@@ -5,7 +5,7 @@ import session from "express-session";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage";
-import { User as SelectUser } from "@shared/schema";
+import { User as SelectUser, insertUserSchema } from "@shared/schema";
 
 declare global {
   namespace Express {
@@ -59,24 +59,41 @@ export function setupAuth(app: Express) {
   });
 
   app.post("/api/register", async (req, res, next) => {
-    const existingUser = await storage.getUserByUsername(req.body.username);
-    if (existingUser) {
-      return res.status(400).send("Username already exists");
+    try {
+      // Force role to student for security - only admins can create other roles
+      const validatedData = insertUserSchema.parse({
+        ...req.body,
+        role: "student", // Security: Force role to student to prevent escalation
+        password: await hashPassword(req.body.password),
+      });
+
+      const existingUser = await storage.getUserByUsername(validatedData.username);
+      if (existingUser) {
+        return res.status(400).json({ message: "Username already exists" });
+      }
+
+      const existingEmail = await storage.getUserByEmail(validatedData.email);
+      if (existingEmail) {
+        return res.status(400).json({ message: "Email already exists" });
+      }
+
+      const user = await storage.createUser(validatedData);
+
+      req.login(user, (err) => {
+        if (err) return next(err);
+        // Remove password from response
+        const { password, ...safeUser } = user;
+        res.status(201).json(safeUser);
+      });
+    } catch (error) {
+      res.status(400).json({ message: "Invalid registration data", error: error.message });
     }
-
-    const user = await storage.createUser({
-      ...req.body,
-      password: await hashPassword(req.body.password),
-    });
-
-    req.login(user, (err) => {
-      if (err) return next(err);
-      res.status(201).json(user);
-    });
   });
 
   app.post("/api/login", passport.authenticate("local"), (req, res) => {
-    res.status(200).json(req.user);
+    // Remove password from response
+    const { password, ...safeUser } = req.user!;
+    res.status(200).json(safeUser);
   });
 
   app.post("/api/logout", (req, res, next) => {
@@ -88,6 +105,8 @@ export function setupAuth(app: Express) {
 
   app.get("/api/user", (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-    res.json(req.user);
+    // Remove password from response
+    const { password, ...safeUser } = req.user!;
+    res.json(safeUser);
   });
 }

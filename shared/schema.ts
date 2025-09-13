@@ -348,6 +348,7 @@ export const insertLearningModuleSchema = createInsertSchema(learningModules).om
 
 // Types
 export type User = typeof users.$inferSelect;
+export type SafeUser = Omit<User, 'password'>;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type Program = typeof programs.$inferSelect;
 export type InsertProgram = z.infer<typeof insertProgramSchema>;

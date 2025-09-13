@@ -30,10 +30,22 @@ export function registerRoutes(app: Express): Server {
   };
 
   // User routes
-  app.get("/api/users", requireAuth, async (req, res) => {
+  app.get("/api/users", requireRole(["admin"]), async (req, res) => {
     try {
-      const users = await storage.getUsersByRole(req.query.role as Role);
-      res.json(users);
+      // Admin can get all users or filter by role
+      let users;
+      if (req.query.role) {
+        users = await storage.getUsersByRole(req.query.role as Role);
+      } else {
+        // Get all users for admin - add this to storage interface
+        users = await storage.getAllUsers();
+      }
+      // Remove passwords from all users
+      const safeUsers = users.map(user => {
+        const { password, ...safeUser } = user;
+        return safeUser;
+      });
+      res.json(safeUsers);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch users" });
     }
@@ -41,11 +53,35 @@ export function registerRoutes(app: Express): Server {
 
   app.put("/api/users/:id", requireAuth, async (req, res) => {
     try {
-      const user = await storage.updateUser(req.params.id, req.body);
+      const targetUserId = req.params.id;
+      const currentUser = req.user!;
+      
+      // Only admin can update other users, users can only update themselves
+      if (currentUser.id !== targetUserId && currentUser.role !== "admin") {
+        return res.status(403).json({ message: "Can only update your own profile" });
+      }
+      
+      // Filter allowed fields based on role
+      const allowedFields = currentUser.role === "admin" 
+        ? ["firstName", "lastName", "email", "profileImage", "isActive", "role"] // Admin can update role
+        : ["firstName", "lastName", "email", "profileImage"]; // Users cannot update role
+      
+      const filteredUpdates = Object.fromEntries(
+        Object.entries(req.body).filter(([key]) => allowedFields.includes(key))
+      );
+      
+      if (Object.keys(filteredUpdates).length === 0) {
+        return res.status(400).json({ message: "No valid fields to update" });
+      }
+      
+      const user = await storage.updateUser(targetUserId, filteredUpdates);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
-      res.json(user);
+      
+      // Remove sensitive fields before returning
+      const { password, ...safeUser } = user;
+      res.json(safeUser);
     } catch (error) {
       res.status(500).json({ message: "Failed to update user" });
     }
