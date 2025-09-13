@@ -1,0 +1,60 @@
+
+### **Verification of Role Responsibilities**
+
+*   **Your Rule:** "administrator will only update ILO and can also update PLO as well but not mandatory"
+    *   **How the Prompt Implements This:**
+        *   `Admin (Institutional Strategist)`
+        *   **Primary Owner: `ILO`** - This gives them exclusive, primary control over Institutional Outcomes.
+        *   **Secondary/Override Owner: `PLO`** - This gives them the *ability* to edit PLOs, but clarifies that it's not their main job, perfectly matching your "can also update but not mandatory" rule.
+
+*   **Your Rule:** "coordinator will only update PLO but can update CLO as well but not mandatory"
+    *   **How the Prompt Implements This:**
+        *   `Coordinator (Curriculum Architect)`
+        *   **Primary Owner: `PLO`** - This makes them the main person responsible for Program Outcomes within their department.
+        *   **Secondary/Override Owner: `CLO`** - This gives them the *ability* to edit Course Outcomes if needed (e.g., for a new or adjunct faculty member), but clarifies the primary owner is the Teacher. This matches your "can update CLO but not mandatory" rule.
+
+*   **Your Rule:** "Teacher will only update CLO"
+    *   **How the Prompt Implements This:**
+        *   `Teacher (Faculty)`
+        *   **Primary Owner: `CLO`** - This gives Teachers clear and direct control over the learning outcomes for the courses they are teaching. They have no override permissions for PLOs or ILOs, keeping their focus on the classroom.
+
+*   **Your Rule:** "through these profile the student has OBE SET UP For course OBE and they all should interconnect to pass the data"
+    *   **How the Prompt Implements This:** The entire system is built on this principle of interconnection. The **Visual Mapping Canvas** and the **Automated Evidence "Roll-Up"** are the specific features that ensure this happens. A grade a Teacher enters against their `CLO` is automatically traced up through the `PLO` mapped by the Coordinator, right to the `ILO` overseen by the Admin.
+
+---
+
+### **Re-Confirmed & Final Specification Section for Your Use**
+
+Here is the clean, re-verified "Roles & Permissions" and "Outcome Management" section from the prompt. You can proceed with confidence that this specification correctly captures your intended workflow.
+
+#### **Primary Roles & Permissions (RBAC) - *Verified***
+
+-   **Admin (Institutional Strategist)**
+    -   **Primary Owner:** `ILO` (Institutional Learning Outcomes) - has exclusive create/edit/delete rights.
+    -   **Secondary/Override Owner:** `PLO` (Program Learning Outcomes) - can create/edit/delete PLOs for any program, but this is typically the Coordinator's role.
+    -   **Global:** Manages `Programs`, `Users`, `System Settings`, `Badge Templates`, `Integrations`.
+    -   **Access:** Can run institution-wide analytics and generate accreditation bundles. Has full audit log access.
+
+-   **Coordinator (Curriculum Architect)** — scoped per Program
+    -   **Primary Owner:** `PLO` - has primary create/edit/delete rights for PLOs within their assigned program(s).
+    -   **Secondary/Override Owner:** `CLO` (Course Learning Outcomes) - can create/edit/delete CLOs for any course within their program, but this is typically the Teacher's role.
+    -   **Core Function:** Maps `CLO → PLO` and `PLO → ILO` using a visual editor.
+    -   **Access:** Runs Curriculum Gap Analysis and program-level dashboards.
+
+-   **Teacher (Faculty)** — scoped per Course
+    -   **Primary Owner:** `CLO` - has primary create/edit/delete rights for CLOs within their assigned course(s).
+    -   **Core Function:** Creates `Learning Modules`, `Assignments`, and `Rubrics`. Tags rubric criteria to their `CLOs`.
+    -   **Action:** Grades student submissions, which is the trigger that generates evidence.
+    -   **Access:** Monitors class dashboards and student progress.
+
+-   **Student**
+    -   **Core Function:** Engages with the learning path and submits work.
+    -   **Access:** Views feedback, personal competency profile, badges, and an exportable portfolio.
+
+#### **Outcome Management - *Verified***
+
+*   **CRUD for ILO, PLO, CLO:** Based on the verified primary/secondary ownership rules above.
+*   **Single Source of Truth:** The system treats OBE as a single, unified feature. The different roles simply have different permissions to interact with this unified system.
+*   **Clear Ownership & Version History:** Each outcome (`ILO`, `PLO`, `CLO`) must have a clear `owner_id` and a `last_edited_by` field, with a full version history for auditing.
+*   **Bloom's Taxonomy as a Core Attribute:** When creating/editing a `CLO`, the Teacher or Coordinator is **required** to select a cognitive level (Remember, Understand, Apply, Analyze, Evaluate, Create).
+*   **Visual Mapping Canvas:** A single, powerful mapping interface for Admins and Coordinators to map `CLO → PLO → ILO`, ensuring the data interconnection is explicitly defined.
