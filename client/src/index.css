@@ -6,11 +6,11 @@
 
 :root {
   /* Base Colors - E DEVISER Brand */
-  --background: 0 0% 100%; /* #FFFFFF */
+  --background: 210 30% 98%; /* Very light blue instead of pure white */
   --foreground: 0 0% 7%; /* #121212 */
-  --card: 0 0% 100%;
+  --card: 210 25% 96%; /* Light blue tint for cards */
   --card-foreground: 0 0% 7%;
-  --popover: 0 0% 100%;
+  --popover: 210 25% 96%; /* Light blue tint for popovers */
   --popover-foreground: 0 0% 7%;
 
   /* Theme Colors - E DEVISER Brand */
@@ -18,7 +18,7 @@
   --primary-foreground: 0 0% 100%;
   --secondary: 211 50% 23%; /* #1D3557 - Dark Blue */
   --secondary-foreground: 0 0% 100%;
-  --muted: 210 30% 96%;
+  --muted: 210 40% 94%;
   --muted-foreground: 211 30% 45%;
   --accent: 200 100% 60%; /* Light Blue Accent */
   --accent-foreground: 0 0% 100%;
@@ -31,7 +31,7 @@
 
   /* UI Colors */
   --border: 0 0% 90%;
-  --input: 0 0% 95%;
+  --input: 210 20% 94%;
   --ring: 210 100% 50%;
 
   /* Chart Colors - Logo Inspired */
@@ -42,7 +42,7 @@
   --chart-5: 190 70% 50%; /* Cyan Blue Variant */
 
   /* Sidebar Colors */
-  --sidebar: 0 0% 100%;
+  --sidebar: 210 30% 97%;
   --sidebar-foreground: 0 0% 7%;
   --sidebar-primary: 210 100% 50%;
   --sidebar-primary-foreground: 0 0% 100%;
