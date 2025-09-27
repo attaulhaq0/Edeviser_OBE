@@ -1,14 +1,20 @@
+import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ProgressDisplay } from "@/components/gamification/progress-display";
 import { BadgeDisplay } from "@/components/gamification/badge-display";
+import { SubmissionForm } from "@/components/assignments/submission-form";
+import type { Assignment, StudentSubmission } from "@shared/schema";
 
 export default function StudentDashboard() {
   const { user } = useAuth();
+  const [selectedAssignment, setSelectedAssignment] = useState<Assignment | undefined>(undefined);
+  const [submissionDialogOpen, setSubmissionDialogOpen] = useState(false);
 
   const { data: progress } = useQuery({
     queryKey: ["/api/student-progress/" + user?.id],
@@ -21,6 +27,16 @@ export default function StudentDashboard() {
 
   const { data: learningModules } = useQuery({
     queryKey: ["/api/learning-modules"],
+    enabled: !!user,
+  });
+
+  const { data: assignments = [], isLoading: assignmentsLoading } = useQuery<Assignment[]>({
+    queryKey: ["/api/assignments"],
+    enabled: !!user,
+  });
+
+  const { data: mySubmissions = [], isLoading: submissionsLoading } = useQuery<StudentSubmission[]>({
+    queryKey: ["/api/student-submissions"],
     enabled: !!user,
   });
 
@@ -257,6 +273,135 @@ export default function StudentDashboard() {
         </CardContent>
       </Card>
 
+      {/* Assignments Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <i className="fas fa-clipboard-list text-blue-500 mr-3"></i>
+            My Assignments
+          </CardTitle>
+          <CardDescription>
+            View and submit your course assignments
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {assignmentsLoading || submissionsLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[1, 2, 3].map((i) => (
+                  <Card key={i} className="animate-pulse">
+                    <CardHeader>
+                      <div className="h-4 bg-muted rounded w-3/4 mb-2"></div>
+                      <div className="h-3 bg-muted rounded w-1/2"></div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        <div className="h-3 bg-muted rounded w-full"></div>
+                        <div className="h-3 bg-muted rounded w-2/3"></div>
+                        <div className="flex space-x-2 mt-4">
+                          <div className="h-8 bg-muted rounded flex-1"></div>
+                          <div className="h-8 bg-muted rounded flex-1"></div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : assignments.length === 0 ? (
+              <div className="text-center py-12">
+                <i className="fas fa-clipboard-list text-muted-foreground text-4xl mb-4"></i>
+                <h3 className="text-lg font-semibold text-foreground mb-2">No assignments available</h3>
+                <p className="text-muted-foreground">Check back later for new assignments from your teachers.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {assignments.map((assignment, index) => {
+                  const submission = mySubmissions.find(s => s.assignmentId === assignment.id);
+                  const isSubmitted = !!submission;
+                  const isGraded = submission?.gradedAt;
+                  
+                  return (
+                    <Card key={assignment.id} className="hover:shadow-lg transition-shadow">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-base flex items-center justify-between">
+                          <span data-testid={`assignment-title-${index}`}>{assignment.title}</span>
+                          <div className="flex items-center space-x-2">
+                            <Badge variant="outline" className="text-xs">
+                              {assignment.totalPoints} pts
+                            </Badge>
+                            {isGraded ? (
+                              <Badge variant="secondary" className="text-xs">
+                                Graded
+                              </Badge>
+                            ) : isSubmitted ? (
+                              <Badge variant="default" className="text-xs">
+                                Submitted
+                              </Badge>
+                            ) : (
+                              <Badge variant="destructive" className="text-xs">
+                                Pending
+                              </Badge>
+                            )}
+                          </div>
+                        </CardTitle>
+                        <CardDescription className="text-sm line-clamp-2">
+                          {assignment.description || "No description provided"}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="pt-0">
+                        <div className="space-y-3">
+                          <div className="text-sm text-muted-foreground space-y-1">
+                            {assignment.dueDate && (
+                              <p><strong>Due:</strong> {new Date(assignment.dueDate).toLocaleDateString()}</p>
+                            )}
+                            {isSubmitted && submission?.submittedAt && (
+                              <p><strong>Submitted:</strong> {new Date(submission.submittedAt).toLocaleDateString()}</p>
+                            )}
+                            {isGraded && submission?.totalScore != null && (
+                              <p><strong>Grade:</strong> {submission.totalScore}/{assignment.totalPoints}</p>
+                            )}
+                          </div>
+                          <div className="flex space-x-2">
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="flex-1" 
+                              data-testid={`button-view-assignment-${index}`}
+                              onClick={() => {
+                                setSelectedAssignment(assignment);
+                                setSubmissionDialogOpen(true);
+                              }}
+                            >
+                              <i className="fas fa-eye mr-2"></i>
+                              {isSubmitted ? "View" : "Submit"}
+                            </Button>
+                            {isGraded && submission?.feedback && (
+                              <Button 
+                                size="sm" 
+                                variant="secondary" 
+                                className="flex-1" 
+                                data-testid={`button-view-feedback-${index}`}
+                                onClick={() => {
+                                  setSelectedAssignment(assignment);
+                                  setSubmissionDialogOpen(true);
+                                }}
+                              >
+                                <i className="fas fa-comment mr-2"></i>
+                                Feedback
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Achievements and Competency */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Recent Badges */}
@@ -370,6 +515,31 @@ export default function StudentDashboard() {
           </CardContent>
         </Card>
       </div>
+      
+      {/* Assignment Submission Dialog */}
+      <Dialog open={submissionDialogOpen} onOpenChange={setSubmissionDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {selectedAssignment?.title || 'Assignment'}
+            </DialogTitle>
+          </DialogHeader>
+          {selectedAssignment && (
+            <SubmissionForm
+              assignment={selectedAssignment}
+              existingSubmission={mySubmissions.find(s => s.assignmentId === selectedAssignment.id)}
+              onSuccess={() => {
+                setSubmissionDialogOpen(false);
+                setSelectedAssignment(undefined);
+              }}
+              onCancel={() => {
+                setSubmissionDialogOpen(false);
+                setSelectedAssignment(undefined);
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
