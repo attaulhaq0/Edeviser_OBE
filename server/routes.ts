@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
+import { unsign } from "cookie-signature";
 import { setupAuth } from "./auth";
 import { storage } from "./storage";
 import { 
@@ -700,7 +701,7 @@ export function registerRoutes(app: Express): Server {
       const onboarding = await storage.createStudentOnboarding({
         ...parsed,
         studentId: req.user!.id,
-      } as any);
+      });
       res.json(onboarding);
     } catch (error) {
       console.error("Student onboarding error:", error);
@@ -1128,17 +1129,29 @@ export function registerRoutes(app: Express): Server {
       return;
     }
     
-    // Validate session and get user from session store
+    // Decode and validate session using the session store
     try {
+      // Parse the session ID from the signed cookie
+      const sessionParser = unsign(sessionId.slice(2), process.env.SESSION_SECRET!);
+      if (!sessionParser) {
+        console.log('WebSocket connection rejected: Invalid session signature');
+        ws.send(JSON.stringify({
+          type: 'error',
+          message: 'Authentication required'
+        }));
+        ws.close();
+        return;
+      }
+
       const sessionData = await new Promise<any>((resolve, reject) => {
-        storage.sessionStore.get(sessionId, (err: any, session: any) => {
+        storage.sessionStore.get(sessionParser, (err: any, session: any) => {
           if (err) return reject(err);
           resolve(session);
         });
       });
       
       if (!sessionData || !sessionData.passport || !sessionData.passport.user) {
-        console.log('WebSocket connection rejected: Invalid session');
+        console.log('WebSocket connection rejected: No valid session data');
         ws.send(JSON.stringify({
           type: 'error',
           message: 'Authentication required'

@@ -104,12 +104,12 @@ export interface IStorage {
 
   // Student Onboarding operations
   getStudentOnboarding(studentId: string): Promise<StudentOnboarding | undefined>;
-  createStudentOnboarding(onboarding: InsertStudentOnboarding): Promise<StudentOnboarding>;
+  createStudentOnboarding(data: InsertStudentOnboarding & { studentId: string }): Promise<StudentOnboarding>;
   updateStudentOnboarding(studentId: string, updates: Partial<StudentOnboarding>): Promise<StudentOnboarding | undefined>;
 
   // Student Mascot operations
   getStudentMascot(studentId: string): Promise<StudentMascot | undefined>;
-  createStudentMascot(mascot: InsertStudentMascot): Promise<StudentMascot>;
+  createStudentMascot(data: InsertStudentMascot & { studentId: string }): Promise<StudentMascot>;
   updateStudentMascot(studentId: string, updates: Partial<StudentMascot>): Promise<StudentMascot | undefined>;
 
   // Study Streaks operations
@@ -551,10 +551,10 @@ export class DatabaseStorage implements IStorage {
     return onboarding || undefined;
   }
 
-  async createStudentOnboarding(insertOnboarding: InsertStudentOnboarding): Promise<StudentOnboarding> {
+  async createStudentOnboarding(data: InsertStudentOnboarding & { studentId: string }): Promise<StudentOnboarding> {
     const [onboarding] = await db
       .insert(studentOnboarding)
-      .values(insertOnboarding)
+      .values(data)
       .returning();
     return onboarding;
   }
@@ -577,10 +577,10 @@ export class DatabaseStorage implements IStorage {
     return mascot || undefined;
   }
 
-  async createStudentMascot(insertMascot: InsertStudentMascot): Promise<StudentMascot> {
+  async createStudentMascot(data: InsertStudentMascot & { studentId: string }): Promise<StudentMascot> {
     const [mascot] = await db
       .insert(studentMascot)
-      .values(insertMascot)
+      .values(data)
       .returning();
     return mascot;
   }

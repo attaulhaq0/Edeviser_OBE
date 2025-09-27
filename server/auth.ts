@@ -29,14 +29,23 @@ async function comparePasswords(supplied: string, stored: string) {
 }
 
 export function setupAuth(app: Express) {
+  // Production-ready session configuration for autoscale deployment
+  const isProduction = process.env.NODE_ENV === 'production' || process.env.REPLIT_DEPLOYMENT === '1';
+  
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET!,
     resave: false,
     saveUninitialized: false,
     store: storage.sessionStore,
+    cookie: {
+      secure: isProduction, // Require HTTPS in production
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      sameSite: isProduction ? 'none' : 'lax', // Allow cross-origin cookies in production for autoscale
+    },
   };
 
-  app.set("trust proxy", 1);
+  app.set("trust proxy", 1); // Required for autoscale behind proxy
   app.use(session(sessionSettings));
   app.use(passport.initialize());
   app.use(passport.session());

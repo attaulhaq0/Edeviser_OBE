@@ -459,6 +459,8 @@ export const insertStudentOnboardingSchema = createInsertSchema(studentOnboardin
 
 export const insertStudentMascotSchema = createInsertSchema(studentMascot).omit({
   id: true,
+  studentId: true, // Omit studentId since it's added server-side from authenticated user
+  selectedAt: true, // Has default value
   createdAt: true,
 });
 

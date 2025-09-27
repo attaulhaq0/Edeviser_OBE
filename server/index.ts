@@ -37,8 +37,15 @@ app.use((req, res, next) => {
   next();
 });
 
-// Environment variable validation for production deployment
+// Environment variable validation for production deployment only
 function validateEnvironment() {
+  // Only validate in production environments
+  if (process.env.NODE_ENV !== 'production' && process.env.REPLIT_DEPLOYMENT !== '1') {
+    return;
+  }
+  
+  console.log('Production environment detected, validating configuration...');
+  
   const requiredEnvVars = ['DATABASE_URL'];
   const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
   
@@ -48,19 +55,14 @@ function validateEnvironment() {
     process.exit(1);
   }
   
-  // Production-specific validation
-  if (process.env.NODE_ENV === 'production' || process.env.REPLIT_DEPLOYMENT === '1') {
-    console.log('Production environment detected, validating configuration...');
-    
-    // Ensure PORT is properly set for autoscale deployment
-    const port = process.env.PORT;
-    if (!port || isNaN(parseInt(port))) {
-      console.error('PORT environment variable must be set to a valid number in production');
-      process.exit(1);
-    }
-    
-    console.log('Environment validation passed');
+  // Ensure PORT is properly set for autoscale deployment
+  const port = process.env.PORT;
+  if (!port || isNaN(parseInt(port))) {
+    console.error('PORT environment variable must be set to a valid number in production');
+    process.exit(1);
   }
+  
+  console.log('Environment validation passed');
 }
 
 // Graceful startup with proper error handling
@@ -107,6 +109,23 @@ function validateEnvironment() {
       
       if (process.env.REPLIT_DEPLOYMENT === '1') {
         console.log('🚀 Production deployment detected - server ready for autoscaling');
+      }
+    });
+
+    // Process-level error handlers for production
+    process.on('unhandledRejection', (reason, promise) => {
+      console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+      if (process.env.NODE_ENV === 'production' || process.env.REPLIT_DEPLOYMENT === '1') {
+        console.error('Shutting down due to unhandled rejection in production');
+        server.close(() => process.exit(1));
+      }
+    });
+
+    process.on('uncaughtException', (error) => {
+      console.error('Uncaught Exception:', error);
+      if (process.env.NODE_ENV === 'production' || process.env.REPLIT_DEPLOYMENT === '1') {
+        console.error('Shutting down due to uncaught exception in production');
+        server.close(() => process.exit(1));
       }
     });
 
