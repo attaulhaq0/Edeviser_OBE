@@ -1,6 +1,6 @@
 import { useAuth } from "@/hooks/use-auth";
 import CoordinatorDashboard from "@/components/dashboard/coordinator-dashboard";
-import StudentDashboard from "@/components/dashboard/student-dashboard";
+import { StudentOnboardingWrapper } from "@/components/onboarding/student-onboarding-wrapper";
 import TeacherDashboard from "@/components/dashboard/teacher-dashboard";
 import AdminDashboard from "@/components/dashboard/admin-dashboard";
 import { NavigationHeader } from "@/components/navigation/navigation-header";
@@ -27,7 +27,7 @@ export default function HomePage() {
       case "teacher":
         return <TeacherDashboard />;
       case "student":
-        return <StudentDashboard />;
+        return <StudentOnboardingWrapper />;
       default:
         return <div>Invalid role</div>;
     }

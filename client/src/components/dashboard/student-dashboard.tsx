@@ -24,8 +24,8 @@ export default function StudentDashboard() {
     enabled: !!user,
   });
 
-  const xpToNextLevel = (progress?.currentLevel || 1) * 200;
-  const currentLevelProgress = ((progress?.totalXP || 0) % 200) / 200 * 100;
+  const xpToNextLevel = ((progress as any)?.currentLevel || 1) * 200;
+  const currentLevelProgress = (((progress as any)?.totalXP || 0) % 200) / 200 * 100;
 
   return (
     <div className="space-y-8" data-testid="student-dashboard">
@@ -44,19 +44,19 @@ export default function StudentDashboard() {
                 <div className="flex items-center space-x-2">
                   <i className="fas fa-star text-xl text-yellow-300"></i>
                   <span className="font-medium" data-testid="stat-total-xp">
-                    {progress?.totalXP || 0} XP Earned
+                    {(progress as any)?.totalXP || 0} XP Earned
                   </span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <i className="fas fa-trophy text-xl text-yellow-300"></i>
                   <span className="font-medium" data-testid="stat-current-level">
-                    Level {progress?.currentLevel || 1}
+                    Level {(progress as any)?.currentLevel || 1}
                   </span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <i className="fas fa-fire text-xl text-orange-300"></i>
                   <span className="font-medium" data-testid="stat-current-streak">
-                    {progress?.currentStreak || 0} Day Streak
+                    {(progress as any)?.currentStreak || 0} Day Streak
                   </span>
                 </div>
               </div>
@@ -64,7 +64,7 @@ export default function StudentDashboard() {
             
             <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6 text-center min-w-[140px]">
               <div className="text-2xl font-bold text-yellow-300 mb-2">
-                {progress?.totalBadges || 0}
+                {(progress as any)?.totalBadges || 0}
               </div>
               <div className="text-sm font-medium">Badges</div>
               <div className="text-sm font-medium">Earned</div>
@@ -95,15 +95,15 @@ export default function StudentDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <div className="text-2xl font-bold text-primary" data-testid="display-current-level">
-                    Level {progress?.currentLevel || 1}
+                    Level {(progress as any)?.currentLevel || 1}
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    {progress?.totalXP || 0} / {xpToNextLevel} XP
+                    {(progress as any)?.totalXP || 0} / {xpToNextLevel} XP
                   </div>
                 </div>
                 <div className="text-right">
                   <div className="text-lg font-semibold text-foreground">
-                    {xpToNextLevel - (progress?.totalXP || 0)} XP
+                    {xpToNextLevel - ((progress as any)?.totalXP || 0)} XP
                   </div>
                   <div className="text-sm text-muted-foreground">to next level</div>
                 </div>

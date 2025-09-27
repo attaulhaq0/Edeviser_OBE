@@ -2,12 +2,15 @@ import {
   users, programs, courses, learningOutcomes, outcomeMappings, assignments, 
   studentSubmissions, studentPerformance, studentProgress, badgeTemplates, 
   studentBadges, learningModules, studentModuleProgress, rubricCriteria,
+  studentOnboarding, studentMascot, studyStreaks, studyBuddyInteractions,
   type User, type InsertUser, type Program, type InsertProgram, type Course, 
   type InsertCourse, type LearningOutcome, type InsertLearningOutcome,
   type OutcomeMapping, type InsertOutcomeMapping, type Assignment, type InsertAssignment,
   type StudentSubmission, type InsertStudentSubmission, type StudentProgress,
   type BadgeTemplate, type InsertBadgeTemplate, type LearningModule, 
-  type InsertLearningModule, type Role
+  type InsertLearningModule, type Role, type StudentOnboarding, type InsertStudentOnboarding,
+  type StudentMascot, type InsertStudentMascot, type StudyStreaks, type InsertStudyStreaks,
+  type StudyBuddyInteractions, type InsertStudyBuddyInteractions
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, desc, asc, count, avg, sum, inArray } from "drizzle-orm";
@@ -94,6 +97,27 @@ export interface IStorage {
   getStudentPerformanceByOutcome(outcomeId: string): Promise<any[]>;
   getProgramAnalytics(programId: string): Promise<any>;
   getBloomsTaxonomyDistribution(programId?: string): Promise<any[]>;
+
+  // Student Onboarding operations
+  getStudentOnboarding(studentId: string): Promise<StudentOnboarding | undefined>;
+  createStudentOnboarding(onboarding: InsertStudentOnboarding): Promise<StudentOnboarding>;
+  updateStudentOnboarding(studentId: string, updates: Partial<StudentOnboarding>): Promise<StudentOnboarding | undefined>;
+
+  // Student Mascot operations
+  getStudentMascot(studentId: string): Promise<StudentMascot | undefined>;
+  createStudentMascot(mascot: InsertStudentMascot): Promise<StudentMascot>;
+  updateStudentMascot(studentId: string, updates: Partial<StudentMascot>): Promise<StudentMascot | undefined>;
+
+  // Study Streaks operations
+  getStudyStreaks(studentId: string): Promise<StudyStreaks | undefined>;
+  createStudyStreaks(streaks: InsertStudyStreaks): Promise<StudyStreaks>;
+  updateStudyStreaks(studentId: string, updates: Partial<StudyStreaks>): Promise<StudyStreaks | undefined>;
+
+  // Study Buddy Interactions operations
+  getStudyBuddyInteractions(studentId: string): Promise<StudyBuddyInteractions[]>;
+  createStudyBuddyInteraction(interaction: InsertStudyBuddyInteractions): Promise<StudyBuddyInteractions>;
+  markInteractionAsRead(interactionId: string): Promise<StudyBuddyInteractions | undefined>;
+  getUnreadInteractions(studentId: string): Promise<StudyBuddyInteractions[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -485,6 +509,125 @@ export class DatabaseStorage implements IStorage {
       .from(learningOutcomes)
       .where(and(...whereConditions))
       .groupBy(learningOutcomes.bloomsLevel);
+  }
+
+  // Student Onboarding implementations
+  async getStudentOnboarding(studentId: string): Promise<StudentOnboarding | undefined> {
+    const [onboarding] = await db
+      .select()
+      .from(studentOnboarding)
+      .where(eq(studentOnboarding.studentId, studentId));
+    return onboarding || undefined;
+  }
+
+  async createStudentOnboarding(insertOnboarding: InsertStudentOnboarding): Promise<StudentOnboarding> {
+    const [onboarding] = await db
+      .insert(studentOnboarding)
+      .values(insertOnboarding)
+      .returning();
+    return onboarding;
+  }
+
+  async updateStudentOnboarding(studentId: string, updates: Partial<StudentOnboarding>): Promise<StudentOnboarding | undefined> {
+    const [onboarding] = await db
+      .update(studentOnboarding)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(studentOnboarding.studentId, studentId))
+      .returning();
+    return onboarding || undefined;
+  }
+
+  // Student Mascot implementations
+  async getStudentMascot(studentId: string): Promise<StudentMascot | undefined> {
+    const [mascot] = await db
+      .select()
+      .from(studentMascot)
+      .where(eq(studentMascot.studentId, studentId));
+    return mascot || undefined;
+  }
+
+  async createStudentMascot(insertMascot: InsertStudentMascot): Promise<StudentMascot> {
+    const [mascot] = await db
+      .insert(studentMascot)
+      .values(insertMascot)
+      .returning();
+    return mascot;
+  }
+
+  async updateStudentMascot(studentId: string, updates: Partial<StudentMascot>): Promise<StudentMascot | undefined> {
+    const [mascot] = await db
+      .update(studentMascot)
+      .set(updates)
+      .where(eq(studentMascot.studentId, studentId))
+      .returning();
+    return mascot || undefined;
+  }
+
+  // Study Streaks implementations
+  async getStudyStreaks(studentId: string): Promise<StudyStreaks | undefined> {
+    const [streaks] = await db
+      .select()
+      .from(studyStreaks)
+      .where(eq(studyStreaks.studentId, studentId));
+    return streaks || undefined;
+  }
+
+  async createStudyStreaks(insertStreaks: InsertStudyStreaks): Promise<StudyStreaks> {
+    const [streaks] = await db
+      .insert(studyStreaks)
+      .values(insertStreaks)
+      .returning();
+    return streaks;
+  }
+
+  async updateStudyStreaks(studentId: string, updates: Partial<StudyStreaks>): Promise<StudyStreaks | undefined> {
+    const [streaks] = await db
+      .update(studyStreaks)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(studyStreaks.studentId, studentId))
+      .returning();
+    return streaks || undefined;
+  }
+
+  // Study Buddy Interactions implementations
+  async getStudyBuddyInteractions(studentId: string): Promise<StudyBuddyInteractions[]> {
+    const interactions = await db
+      .select()
+      .from(studyBuddyInteractions)
+      .where(eq(studyBuddyInteractions.studentId, studentId))
+      .orderBy(desc(studyBuddyInteractions.createdAt));
+    return interactions;
+  }
+
+  async createStudyBuddyInteraction(insertInteraction: InsertStudyBuddyInteractions): Promise<StudyBuddyInteractions> {
+    const [interaction] = await db
+      .insert(studyBuddyInteractions)
+      .values(insertInteraction)
+      .returning();
+    return interaction;
+  }
+
+  async markInteractionAsRead(interactionId: string): Promise<StudyBuddyInteractions | undefined> {
+    const [interaction] = await db
+      .update(studyBuddyInteractions)
+      .set({ isRead: true, readAt: new Date() })
+      .where(eq(studyBuddyInteractions.id, interactionId))
+      .returning();
+    return interaction || undefined;
+  }
+
+  async getUnreadInteractions(studentId: string): Promise<StudyBuddyInteractions[]> {
+    const interactions = await db
+      .select()
+      .from(studyBuddyInteractions)
+      .where(
+        and(
+          eq(studyBuddyInteractions.studentId, studentId),
+          eq(studyBuddyInteractions.isRead, false)
+        )
+      )
+      .orderBy(desc(studyBuddyInteractions.createdAt));
+    return interactions;
   }
 }
 

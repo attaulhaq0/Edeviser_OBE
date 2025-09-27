@@ -6,7 +6,8 @@ import {
   insertProgramSchema, insertCourseSchema, insertLearningOutcomeSchema,
   insertOutcomeMappingSchema, insertAssignmentSchema, insertStudentSubmissionSchema,
   insertBadgeTemplateSchema, insertLearningModuleSchema,
-  type Role
+  insertStudentOnboardingSchema, insertStudentMascotSchema, insertStudyStreaksSchema,
+  insertStudyBuddyInteractionsSchema, type Role
 } from "@shared/schema";
 
 export function registerRoutes(app: Express): Server {
@@ -500,6 +501,158 @@ export function registerRoutes(app: Express): Server {
       res.json(performance);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch outcome performance" });
+    }
+  });
+
+  // Student Onboarding routes
+  app.get("/api/student/onboarding", requireRole(["student"]), async (req, res) => {
+    try {
+      const onboarding = await storage.getStudentOnboarding(req.user!.id);
+      res.json(onboarding);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch onboarding data" });
+    }
+  });
+
+  app.post("/api/student/onboarding", requireRole(["student"]), async (req, res) => {
+    try {
+      const parsed = insertStudentOnboardingSchema.parse(req.body);
+      const onboarding = await storage.createStudentOnboarding({
+        ...parsed,
+        studentId: req.user!.id,
+      });
+      res.json(onboarding);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid onboarding data" });
+    }
+  });
+
+  app.put("/api/student/onboarding", requireRole(["student"]), async (req, res) => {
+    try {
+      const parsed = insertStudentOnboardingSchema.partial().parse(req.body);
+      const onboarding = await storage.updateStudentOnboarding(req.user!.id, parsed);
+      if (!onboarding) {
+        return res.status(404).json({ message: "Onboarding data not found" });
+      }
+      res.json(onboarding);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid onboarding data" });
+    }
+  });
+
+  // Student Mascot routes
+  app.get("/api/student/mascot", requireRole(["student"]), async (req, res) => {
+    try {
+      const mascot = await storage.getStudentMascot(req.user!.id);
+      res.json(mascot);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch mascot data" });
+    }
+  });
+
+  app.post("/api/student/mascot", requireRole(["student"]), async (req, res) => {
+    try {
+      const parsed = insertStudentMascotSchema.parse(req.body);
+      const mascot = await storage.createStudentMascot({
+        ...parsed,
+        studentId: req.user!.id,
+      });
+      res.json(mascot);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid mascot data" });
+    }
+  });
+
+  app.put("/api/student/mascot", requireRole(["student"]), async (req, res) => {
+    try {
+      const parsed = insertStudentMascotSchema.partial().parse(req.body);
+      const mascot = await storage.updateStudentMascot(req.user!.id, parsed);
+      if (!mascot) {
+        return res.status(404).json({ message: "Mascot data not found" });
+      }
+      res.json(mascot);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid mascot data" });
+    }
+  });
+
+  // Study Streaks routes
+  app.get("/api/student/streaks", requireRole(["student"]), async (req, res) => {
+    try {
+      const streaks = await storage.getStudyStreaks(req.user!.id);
+      res.json(streaks);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch streak data" });
+    }
+  });
+
+  app.post("/api/student/streaks", requireRole(["student"]), async (req, res) => {
+    try {
+      const parsed = insertStudyStreaksSchema.parse(req.body);
+      const streaks = await storage.createStudyStreaks({
+        ...parsed,
+        studentId: req.user!.id,
+      });
+      res.json(streaks);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid streak data" });
+    }
+  });
+
+  app.put("/api/student/streaks", requireRole(["student"]), async (req, res) => {
+    try {
+      const parsed = insertStudyStreaksSchema.partial().parse(req.body);
+      const streaks = await storage.updateStudyStreaks(req.user!.id, parsed);
+      if (!streaks) {
+        return res.status(404).json({ message: "Streak data not found" });
+      }
+      res.json(streaks);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid streak data" });
+    }
+  });
+
+  // Study Buddy Interactions routes
+  app.get("/api/student/buddy-interactions", requireRole(["student"]), async (req, res) => {
+    try {
+      const interactions = await storage.getStudyBuddyInteractions(req.user!.id);
+      res.json(interactions);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch interactions" });
+    }
+  });
+
+  app.get("/api/student/buddy-interactions/unread", requireRole(["student"]), async (req, res) => {
+    try {
+      const interactions = await storage.getUnreadInteractions(req.user!.id);
+      res.json(interactions);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch unread interactions" });
+    }
+  });
+
+  app.post("/api/student/buddy-interactions", requireRole(["student"]), async (req, res) => {
+    try {
+      const parsed = insertStudyBuddyInteractionsSchema.parse(req.body);
+      const interaction = await storage.createStudyBuddyInteraction({
+        ...parsed,
+        studentId: req.user!.id,
+      });
+      res.json(interaction);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid interaction data" });
+    }
+  });
+
+  app.put("/api/student/buddy-interactions/:id/read", requireRole(["student"]), async (req, res) => {
+    try {
+      const interaction = await storage.markInteractionAsRead(req.params.id);
+      if (!interaction) {
+        return res.status(404).json({ message: "Interaction not found" });
+      }
+      res.json(interaction);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to mark interaction as read" });
     }
   });
 
