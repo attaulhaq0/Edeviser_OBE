@@ -694,13 +694,19 @@ export function registerRoutes(app: Express): Server {
 
   app.post("/api/student/onboarding", requireRole(["student"]), async (req, res) => {
     try {
+      console.log("Onboarding request body:", JSON.stringify(req.body, null, 2));
       const parsed = insertStudentOnboardingSchema.parse(req.body);
+      console.log("Validation passed, parsed data:", JSON.stringify(parsed, null, 2));
       const onboarding = await storage.createStudentOnboarding({
         ...parsed,
         studentId: req.user!.id,
       });
       res.json(onboarding);
     } catch (error) {
+      console.error("Student onboarding error:", error);
+      if (error instanceof Error) {
+        console.error("Error details:", error.message);
+      }
       res.status(400).json({ message: "Invalid onboarding data" });
     }
   });
