@@ -142,12 +142,26 @@ export function StudentOnboarding({ onComplete }: StudentOnboardingProps) {
       onComplete();
     },
     onError: (error) => {
-      toast({
-        title: "Oops! Something went wrong",
-        description: "We couldn't complete your setup. Please try again.",
-        variant: "destructive",
-      });
-      console.error('Onboarding error:', error);
+      console.error('Onboarding error details:', error);
+      
+      // Check if it's an authentication error
+      if (error.message.includes('401') || error.message.includes('Authentication required')) {
+        toast({
+          title: "Session Expired",
+          description: "Please log in again to complete your setup.",
+          variant: "destructive",
+        });
+        // Redirect to login page after a short delay
+        setTimeout(() => {
+          window.location.href = '/auth';
+        }, 2000);
+      } else {
+        toast({
+          title: "Oops! Something went wrong",
+          description: `Setup failed: ${error.message || 'Please try again.'}`,
+          variant: "destructive",
+        });
+      }
     },
   });
 
