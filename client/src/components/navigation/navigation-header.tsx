@@ -4,8 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
-import { RoleNotifications } from "@/components/notifications/role-notifications";
-import { NotificationCenter } from "@/components/notifications/notification-center";
+import { UnifiedNotificationCenter } from "@/components/notifications/unified-notification-center";
 
 export function NavigationHeader() {
   const { user, logoutMutation } = useAuth();
@@ -94,11 +93,8 @@ export function NavigationHeader() {
               </div>
             ))}
 
-            {/* Role-based Notifications */}
-            <RoleNotifications />
-            
-            {/* Real-time Academic Alerts */}
-            <NotificationCenter />
+            {/* Unified Notification Center */}
+            <UnifiedNotificationCenter />
 
             {/* Role Display */}
             <div className="flex items-center space-x-2 bg-muted px-3 py-2 rounded-lg">

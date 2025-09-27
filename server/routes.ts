@@ -1093,13 +1093,17 @@ export function registerRoutes(app: Express): Server {
 
   const httpServer = createServer(app);
   
-  // WebSocket server for real-time notifications (no auto-attach to avoid session issues)
+  // WebSocket server for real-time notifications with session-based authentication
   const wss = new WebSocketServer({ noServer: true });
   
-  // Store active WebSocket connections with user info
-  const activeConnections = new Map<string, { ws: WebSocket, userId: string, userRole: string }>();
+  // Store active WebSocket connections with user info and role-based channels
+  const activeConnections = new Map<string, { ws: WebSocket, userId: string, userRole: string, channels: string[] }>();
   
-  // Handle WebSocket upgrade - temporarily allow all connections to isolate main auth issues
+  // Role-based channel management
+  const roleChannels = new Map<string, Set<string>>(); // channel -> set of connectionIds
+  const userChannels = new Map<string, Set<string>>(); // userId -> set of connectionIds
+  
+  // Handle WebSocket upgrade with session-based authentication
   httpServer.on('upgrade', (request, socket, head) => {
     const url = new URL(request.url!, 'http://localhost');
     
@@ -1109,32 +1113,89 @@ export function registerRoutes(app: Express): Server {
       return;
     }
     
-    console.log('WebSocket upgrade requested - allowing connection');
+    console.log('WebSocket upgrade requested - checking session authentication');
     
-    // Temporarily allow all WebSocket connections to isolate main authentication issues
-    wss.handleUpgrade(request, socket, head, (ws) => {
-      wss.emit('connection', ws, request);
+    // Parse session from cookie
+    sessionParser(request as any, {} as any, () => {
+      const session = (request as any).session;
+      const user = session?.passport?.user;
+      
+      if (!user) {
+        console.log('WebSocket authentication failed - no valid session');
+        socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
+        socket.destroy();
+        return;
+      }
+      
+      console.log(`WebSocket authentication successful for user: ${user.id} (${user.role})`);
+      wss.handleUpgrade(request, socket, head, (ws) => {
+        wss.emit('connection', ws, request, user);
+      });
     });
   });
   
-  wss.on('connection', async (ws, req) => {
-    console.log('WebSocket connection established');
+  wss.on('connection', async (ws, req, user) => {
+    console.log(`WebSocket connection established for user: ${user.id} (${user.role})`);
     
-    // Temporarily create a dummy user for WebSocket to isolate main auth issues
-    const socketId = Date.now().toString();
-    const dummyUserId = 'temp-websocket-user';
+    const socketId = Date.now().toString() + '-' + user.id;
+    const channels = [
+      `user:${user.id}`,
+      `role:${user.role}`
+    ];
     
-    // Store connection without authentication for now
-    activeConnections.set(socketId, { ws, userId: dummyUserId, userRole: 'student' });
+    // Add program/course specific channels based on role
+    if (user.role === 'coordinator') {
+      // Get coordinator's programs and add program channels
+      try {
+        const programs = await storage.getProgramsByCoordinator(user.id);
+        programs.forEach(program => {
+          channels.push(`program:${program.id}`);
+        });
+      } catch (error) {
+        console.error('Error fetching coordinator programs:', error);
+      }
+    } else if (user.role === 'teacher') {
+      // Get teacher's courses and add course channels
+      try {
+        const courses = await storage.getCoursesByTeacher(user.id);
+        courses.forEach(course => {
+          channels.push(`course:${course.id}`);
+          if (course.programId) {
+            channels.push(`program:${course.programId}`);
+          }
+        });
+      } catch (error) {
+        console.error('Error fetching teacher courses:', error);
+      }
+    }
     
-    // Send temporary authentication confirmation
+    // Store connection with role-based channels
+    activeConnections.set(socketId, { 
+      ws, 
+      userId: user.id, 
+      userRole: user.role, 
+      channels: channels 
+    });
+    
+    // Register connection to role-based channel maps
+    channels.forEach(channel => {
+      if (!roleChannels.has(channel)) {
+        roleChannels.set(channel, new Set());
+      }
+      roleChannels.get(channel)!.add(socketId);
+    });
+    
+    // Send authentication confirmation with channel info
     ws.send(JSON.stringify({
       type: 'auth_success',
       socketId,
-      message: 'WebSocket connected (temporary auth disabled)'
+      userId: user.id,
+      userRole: user.role,
+      channels: channels,
+      message: 'WebSocket connected successfully'
     }));
     
-    console.log(`WebSocket connected with temporary authentication`);
+    console.log(`WebSocket authenticated for ${user.role}: ${user.id} with channels: ${channels.join(', ')}`);
     
     // Handle incoming messages
     ws.on('message', async (data) => {
@@ -1154,6 +1215,22 @@ export function registerRoutes(app: Express): Server {
           ws.send(JSON.stringify({ type: 'pong' }));
         }
         
+        if (message.type === 'subscribe_channel') {
+          // Allow dynamic channel subscription based on role permissions
+          const channel = message.channel;
+          if (isChannelAllowedForUser(channel, user)) {
+            if (!roleChannels.has(channel)) {
+              roleChannels.set(channel, new Set());
+            }
+            roleChannels.get(channel)!.add(socketId);
+            
+            ws.send(JSON.stringify({
+              type: 'channel_subscribed',
+              channel
+            }));
+          }
+        }
+        
       } catch (error) {
         console.error('WebSocket message error:', error);
         ws.send(JSON.stringify({
@@ -1164,48 +1241,129 @@ export function registerRoutes(app: Express): Server {
     });
     
     ws.on('close', async () => {
-      // Remove connection and clean up session
+      // Remove connection and clean up channels
       const entries = Array.from(activeConnections.entries());
       for (const [socketId, connection] of entries) {
         if (connection.ws === ws) {
+          // Remove from all role channels
+          connection.channels.forEach(channel => {
+            const channelConnections = roleChannels.get(channel);
+            if (channelConnections) {
+              channelConnections.delete(socketId);
+              if (channelConnections.size === 0) {
+                roleChannels.delete(channel);
+              }
+            }
+          });
+          
+          // Remove from active connections
           activeConnections.delete(socketId);
-          console.log(`WebSocket connection ${socketId} disconnected`);
+          console.log(`WebSocket disconnected: ${connection.userId} (${connection.userRole})`);
           break;
         }
       }
     });
-    
-    ws.on('error', (error) => {
-      console.error('WebSocket error:', error);
-    });
   });
   
-  // Broadcast notification to specific users
-  const broadcastNotification = (targetUserIds: string[], notification: any) => {
-    const entries = Array.from(activeConnections.entries());
-    for (const [socketId, connection] of entries) {
-      if (targetUserIds.includes(connection.userId) && connection.ws.readyState === WebSocket.OPEN) {
-        connection.ws.send(JSON.stringify({
-          type: 'notification',
-          data: notification
-        }));
-      }
+  // Helper function to check if user can access a specific channel
+  function isChannelAllowedForUser(channel: string, user: any): boolean {
+    const [channelType, channelId] = channel.split(':');
+    
+    switch (channelType) {
+      case 'user':
+        return channelId === user.id;
+      case 'role':
+        return channelId === user.role;
+      case 'program':
+        // Check if user has access to this program
+        return user.role === 'admin' || user.role === 'coordinator';
+      case 'course':
+        // Check if user has access to this course
+        return user.role === 'admin' || user.role === 'coordinator' || user.role === 'teacher';
+      default:
+        return false;
     }
-  };
+  }
   
-  // Broadcast alert to relevant users based on roles
-  const broadcastAlert = (alert: any, targetRoles: string[] = []) => {
-    const entries = Array.from(activeConnections.entries());
-    for (const [socketId, connection] of entries) {
-      const shouldNotify = targetRoles.length === 0 || targetRoles.includes(connection.userRole);
-      if (shouldNotify && connection.ws.readyState === WebSocket.OPEN) {
-        connection.ws.send(JSON.stringify({
-          type: 'alert',
-          data: alert
-        }));
+  // Enhanced notification broadcasting with role-based channels
+  function broadcastNotification(notification: any, channels: string[] = []) {
+    const message = JSON.stringify({
+      type: 'notification',
+      data: notification
+    });
+    
+    const targetConnections = new Set<string>();
+    
+    // Add connections from specified channels
+    channels.forEach(channel => {
+      const channelConnections = roleChannels.get(channel);
+      if (channelConnections) {
+        channelConnections.forEach(connectionId => {
+          targetConnections.add(connectionId);
+        });
+      }
+    });
+    
+    // If no specific channels, broadcast to user's personal channel
+    if (channels.length === 0 && notification.userId) {
+      const userChannel = roleChannels.get(`user:${notification.userId}`);
+      if (userChannel) {
+        userChannel.forEach(connectionId => {
+          targetConnections.add(connectionId);
+        });
       }
     }
-  };
+    
+    // Send to all target connections
+    targetConnections.forEach(connectionId => {
+      const connection = activeConnections.get(connectionId);
+      if (connection && connection.ws.readyState === WebSocket.OPEN) {
+        connection.ws.send(message);
+      }
+    });
+    
+    console.log(`Notification broadcast to ${targetConnections.size} connections across ${channels.length} channels`);
+  }
+  
+  function broadcastAlert(alert: any) {
+    const message = JSON.stringify({
+      type: 'alert',
+      data: alert
+    });
+    
+    // Determine broadcast channels based on alert type and scope
+    const channels: string[] = [];
+    
+    // Always add to role-based channels
+    channels.push('role:admin', 'role:coordinator', 'role:teacher');
+    
+    // Add specific program/course channels if available
+    if (alert.programId) {
+      channels.push(`program:${alert.programId}`);
+    }
+    if (alert.courseId) {
+      channels.push(`course:${alert.courseId}`);
+    }
+    
+    const targetConnections = new Set<string>();
+    channels.forEach(channel => {
+      const channelConnections = roleChannels.get(channel);
+      if (channelConnections) {
+        channelConnections.forEach(connectionId => {
+          targetConnections.add(connectionId);
+        });
+      }
+    });
+    
+    targetConnections.forEach(connectionId => {
+      const connection = activeConnections.get(connectionId);
+      if (connection && connection.ws.readyState === WebSocket.OPEN) {
+        connection.ws.send(message);
+      }
+    });
+    
+    console.log(`Alert broadcast to ${targetConnections.size} connections`);
+  }
   
   // Helper function to generate unique socket IDs
   function generateSocketId(): string {
