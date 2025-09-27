@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -5,11 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { OutcomeForm } from "@/components/outcomes/outcome-form";
 import type { Course, Assignment, StudentSubmission, LearningOutcome } from "@shared/schema";
 
 export default function TeacherDashboard() {
   const { user } = useAuth();
+  const [cloDialogOpen, setCloDialogOpen] = useState(false);
+  const [selectedClo, setSelectedClo] = useState<LearningOutcome | undefined>(undefined);
 
   const { data: courses = [], isLoading: coursesLoading } = useQuery<Course[]>({
     queryKey: ["/api/courses/teacher/" + user?.id],
@@ -382,7 +386,13 @@ export default function TeacherDashboard() {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold text-foreground">Course Learning Outcomes (CLOs)</h2>
-              <Button data-testid="button-create-new-clo">
+              <Button 
+                data-testid="button-create-new-clo"
+                onClick={() => {
+                  setSelectedClo(undefined);
+                  setCloDialogOpen(true);
+                }}
+              >
                 <i className="fas fa-plus mr-2"></i>
                 Create New CLO
               </Button>
@@ -407,10 +417,28 @@ export default function TeacherDashboard() {
                       {clo.description}
                     </p>
                     <div className="flex space-x-2">
-                      <Button size="sm" variant="outline" className="flex-1" data-testid={`button-edit-clo-${index}`}>
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="flex-1" 
+                        data-testid={`button-edit-clo-${index}`}
+                        onClick={() => {
+                          setSelectedClo(clo);
+                          setCloDialogOpen(true);
+                        }}
+                      >
                         Edit
                       </Button>
-                      <Button size="sm" variant="outline" className="flex-1" data-testid={`button-view-clo-${index}`}>
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="flex-1" 
+                        data-testid={`button-view-clo-${index}`}
+                        onClick={() => {
+                          setSelectedClo(clo);
+                          setCloDialogOpen(true);
+                        }}
+                      >
                         View Details
                       </Button>
                     </div>
@@ -423,7 +451,13 @@ export default function TeacherDashboard() {
                   <i className="fas fa-bullseye text-muted-foreground text-4xl mb-4"></i>
                   <h3 className="text-lg font-semibold text-foreground mb-2">No CLOs created yet</h3>
                   <p className="text-muted-foreground mb-4">Start by creating your first Course Learning Outcome.</p>
-                  <Button data-testid="button-create-first-clo">
+                  <Button 
+                    data-testid="button-create-first-clo"
+                    onClick={() => {
+                      setSelectedClo(undefined);
+                      setCloDialogOpen(true);
+                    }}
+                  >
                     <i className="fas fa-plus mr-2"></i>
                     Create Your First CLO
                   </Button>
@@ -433,6 +467,28 @@ export default function TeacherDashboard() {
           </div>
         </TabsContent>
       </Tabs>
+      
+      {/* CLO Management Dialog */}
+      <Dialog open={cloDialogOpen} onOpenChange={setCloDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {selectedClo ? 'Edit Course Learning Outcome' : 'Create New Course Learning Outcome'}
+            </DialogTitle>
+          </DialogHeader>
+          <OutcomeForm
+            outcome={selectedClo}
+            onSuccess={() => {
+              setCloDialogOpen(false);
+              setSelectedClo(undefined);
+            }}
+            onCancel={() => {
+              setCloDialogOpen(false);
+              setSelectedClo(undefined);
+            }}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
