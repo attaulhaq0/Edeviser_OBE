@@ -5,47 +5,51 @@
 @tailwind utilities;
 
 :root {
-  /* Base Colors */
-  --background: hsl(210, 20%, 98%);
-  --foreground: hsl(222, 84%, 4.9%);
+  /* Base Colors - E DEVISER Brand */
+  --background: hsl(0, 0%, 100%); /* #FFFFFF */
+  --foreground: hsl(0, 0%, 7%); /* #121212 */
   --card: hsl(0, 0%, 100%);
-  --card-foreground: hsl(222, 84%, 4.9%);
+  --card-foreground: hsl(0, 0%, 7%);
   --popover: hsl(0, 0%, 100%);
-  --popover-foreground: hsl(222, 84%, 4.9%);
+  --popover-foreground: hsl(0, 0%, 7%);
 
-  /* Theme Colors from Design Reference */
-  --primary: hsl(142, 76%, 36%);
-  --primary-foreground: hsl(355, 20%, 97%);
-  --secondary: hsl(199, 89%, 48%);
+  /* Theme Colors - E DEVISER Brand */
+  --primary: hsl(170, 91%, 32%); /* #09B99C - Turquoise */
+  --primary-foreground: hsl(0, 0%, 100%);
+  --secondary: hsl(211, 50%, 23%); /* #1D3557 - Dark Blue */
   --secondary-foreground: hsl(0, 0%, 100%);
-  --muted: hsl(210, 40%, 96%);
-  --muted-foreground: hsl(215, 13%, 65%);
-  --accent: hsl(43, 96%, 56%);
+  --muted: hsl(210, 30%, 96%);
+  --muted-foreground: hsl(211, 30%, 45%);
+  --accent: hsl(200, 90%, 50%); /* Logo Blue Accent */
   --accent-foreground: hsl(0, 0%, 100%);
   --destructive: hsl(0, 84%, 60%);
-  --destructive-foreground: hsl(210, 20%, 98%);
+  --destructive-foreground: hsl(0, 0%, 100%);
+  
+  /* Gradient Colors from Logo */
+  --gradient-start: hsl(210, 90%, 55%); /* Blue from logo */
+  --gradient-end: hsl(170, 91%, 32%); /* Turquoise from logo */
 
   /* UI Colors */
-  --border: hsl(214, 32%, 91%);
-  --input: hsl(214, 32%, 91%);
-  --ring: hsl(142, 76%, 36%);
+  --border: hsl(0, 0%, 90%);
+  --input: hsl(0, 0%, 95%);
+  --ring: hsl(170, 91%, 32%);
 
-  /* Chart Colors */
-  --chart-1: hsl(142, 76%, 36%);
-  --chart-2: hsl(159, 100%, 36%);
-  --chart-3: hsl(43, 96%, 56%);
-  --chart-4: hsl(147, 78%, 42%);
-  --chart-5: hsl(341, 75%, 51%);
+  /* Chart Colors - Logo Inspired */
+  --chart-1: hsl(170, 91%, 32%); /* Primary Turquoise */
+  --chart-2: hsl(211, 50%, 23%); /* Secondary Dark Blue */
+  --chart-3: hsl(200, 90%, 50%); /* Logo Blue */
+  --chart-4: hsl(180, 70%, 40%); /* Teal Variant */
+  --chart-5: hsl(220, 60%, 40%); /* Blue Variant */
 
   /* Sidebar Colors */
   --sidebar: hsl(0, 0%, 100%);
-  --sidebar-foreground: hsl(222, 84%, 4.9%);
-  --sidebar-primary: hsl(142, 76%, 36%);
+  --sidebar-foreground: hsl(0, 0%, 7%);
+  --sidebar-primary: hsl(170, 91%, 32%);
   --sidebar-primary-foreground: hsl(0, 0%, 100%);
-  --sidebar-accent: hsl(210, 40%, 96%);
-  --sidebar-accent-foreground: hsl(142, 76%, 36%);
-  --sidebar-border: hsl(214, 32%, 91%);
-  --sidebar-ring: hsl(142, 76%, 36%);
+  --sidebar-accent: hsl(170, 91%, 95%);
+  --sidebar-accent-foreground: hsl(170, 91%, 25%);
+  --sidebar-border: hsl(0, 0%, 90%);
+  --sidebar-ring: hsl(170, 91%, 32%);
 
   /* Typography */
   --font-sans: 'Inter', system-ui, sans-serif;
@@ -71,38 +75,43 @@
 }
 
 .dark {
-  --background: hsl(222, 84%, 4.9%);
-  --foreground: hsl(210, 20%, 98%);
-  --card: hsl(222, 84%, 4.9%);
-  --card-foreground: hsl(210, 20%, 98%);
-  --popover: hsl(222, 84%, 4.9%);
-  --popover-foreground: hsl(210, 20%, 98%);
-  --primary: hsl(142, 76%, 36%);
-  --primary-foreground: hsl(355, 20%, 97%);
-  --secondary: hsl(217, 32%, 17%);
-  --secondary-foreground: hsl(210, 20%, 98%);
-  --muted: hsl(217, 32%, 17%);
-  --muted-foreground: hsl(215, 20%, 65%);
-  --accent: hsl(217, 32%, 17%);
-  --accent-foreground: hsl(210, 20%, 98%);
-  --destructive: hsl(0, 62%, 30%);
-  --destructive-foreground: hsl(210, 20%, 98%);
-  --border: hsl(217, 32%, 17%);
-  --input: hsl(217, 32%, 17%);
-  --ring: hsl(142, 76%, 36%);
-  --chart-1: hsl(142, 76%, 36%);
-  --chart-2: hsl(159, 100%, 36%);
-  --chart-3: hsl(43, 96%, 56%);
-  --chart-4: hsl(147, 78%, 42%);
-  --chart-5: hsl(341, 75%, 51%);
-  --sidebar: hsl(222, 84%, 4.9%);
-  --sidebar-foreground: hsl(210, 20%, 98%);
-  --sidebar-primary: hsl(142, 76%, 36%);
-  --sidebar-primary-foreground: hsl(0, 0%, 100%);
-  --sidebar-accent: hsl(217, 32%, 17%);
-  --sidebar-accent-foreground: hsl(142, 76%, 36%);
-  --sidebar-border: hsl(217, 32%, 17%);
-  --sidebar-ring: hsl(142, 76%, 36%);
+  --background: hsl(0, 0%, 7%); /* Dark mode background */
+  --foreground: hsl(0, 0%, 95%);
+  --card: hsl(211, 50%, 15%);
+  --card-foreground: hsl(0, 0%, 95%);
+  --popover: hsl(211, 50%, 15%);
+  --popover-foreground: hsl(0, 0%, 95%);
+  --primary: hsl(170, 91%, 40%); /* Brighter turquoise for dark mode */
+  --primary-foreground: hsl(0, 0%, 7%);
+  --secondary: hsl(211, 50%, 35%); /* Lighter blue for visibility */
+  --secondary-foreground: hsl(0, 0%, 95%);
+  --muted: hsl(211, 30%, 20%);
+  --muted-foreground: hsl(210, 20%, 65%);
+  --accent: hsl(200, 90%, 60%); /* Brighter accent */
+  --accent-foreground: hsl(0, 0%, 7%);
+  --destructive: hsl(0, 62%, 45%);
+  --destructive-foreground: hsl(0, 0%, 95%);
+  --border: hsl(211, 30%, 25%);
+  --input: hsl(211, 30%, 20%);
+  --ring: hsl(170, 91%, 40%);
+  
+  /* Gradient Colors for Dark Mode */
+  --gradient-start: hsl(210, 90%, 60%);
+  --gradient-end: hsl(170, 91%, 40%);
+  
+  --chart-1: hsl(170, 91%, 40%);
+  --chart-2: hsl(211, 50%, 35%);
+  --chart-3: hsl(200, 90%, 60%);
+  --chart-4: hsl(180, 70%, 45%);
+  --chart-5: hsl(220, 60%, 50%);
+  --sidebar: hsl(211, 50%, 12%);
+  --sidebar-foreground: hsl(0, 0%, 95%);
+  --sidebar-primary: hsl(170, 91%, 40%);
+  --sidebar-primary-foreground: hsl(0, 0%, 7%);
+  --sidebar-accent: hsl(211, 40%, 20%);
+  --sidebar-accent-foreground: hsl(170, 91%, 50%);
+  --sidebar-border: hsl(211, 30%, 25%);
+  --sidebar-ring: hsl(170, 91%, 40%);
 }
 
 @layer base {
@@ -126,13 +135,45 @@
 }
 
 @layer components {
-  /* Gradient Backgrounds from Design Reference */
+  /* E DEVISER Logo Gradient Styles */
+  .gradient-logo {
+    background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+  }
+  
+  .gradient-logo-text {
+    background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
   .gradient-hero {
-    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 100%);
+    background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
   }
 
   .gradient-card {
-    background: linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--muted)) 100%);
+    background: linear-gradient(135deg, hsl(0, 0%, 100%) 0%, hsl(170, 91%, 98%) 100%);
+  }
+  
+  .gradient-button {
+    background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+    transition: transform 0.2s;
+  }
+  
+  .gradient-button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 10px 25px -5px rgba(9, 185, 156, 0.3);
+  }
+  
+  .gradient-border {
+    position: relative;
+    background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+    padding: 2px;
+  }
+  
+  .gradient-border-inner {
+    background: var(--background);
+    border-radius: calc(var(--radius) - 2px);
   }
 
   /* Custom Animations */
