@@ -8,21 +8,22 @@ import { VisualMappingCanvas } from "@/components/outcomes/visual-mapping-canvas
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProgressDisplay } from "@/components/gamification/progress-display";
 import { EvidenceRollup } from "@/components/analytics/evidence-rollup";
+import type { Program, LearningOutcome } from "@shared/schema";
 
 export default function CoordinatorDashboard() {
   const { user } = useAuth();
 
-  const { data: programs, isLoading: programsLoading } = useQuery({
+  const { data: programs = [], isLoading: programsLoading } = useQuery<Program[]>({
     queryKey: ["/api/programs/coordinator/" + user?.id],
     enabled: !!user,
   });
 
-  const { data: learningOutcomes } = useQuery({
+  const { data: learningOutcomes = [] } = useQuery<LearningOutcome[]>({
     queryKey: ["/api/learning-outcomes"],
     enabled: !!user,
   });
 
-  const { data: bloomsDistribution } = useQuery({
+  const { data: bloomsDistribution = [] } = useQuery<any[]>({
     queryKey: ["/api/analytics/blooms-distribution"],
     enabled: !!user,
   });

@@ -6,26 +6,27 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { OutcomeForm } from "@/components/outcomes/outcome-form";
+import type { Course, Assignment, StudentSubmission, LearningOutcome } from "@shared/schema";
 
 export default function TeacherDashboard() {
   const { user } = useAuth();
 
-  const { data: courses, isLoading: coursesLoading } = useQuery({
+  const { data: courses = [], isLoading: coursesLoading } = useQuery<Course[]>({
     queryKey: ["/api/courses/teacher/" + user?.id],
     enabled: !!user,
   });
 
-  const { data: assignments } = useQuery({
+  const { data: assignments = [] } = useQuery<Assignment[]>({
     queryKey: ["/api/assignments"],
     enabled: !!user,
   });
 
-  const { data: submissions } = useQuery({
+  const { data: submissions = [] } = useQuery<StudentSubmission[]>({
     queryKey: ["/api/student-submissions"],
     enabled: !!user,
   });
 
-  const { data: learningOutcomes } = useQuery({
+  const { data: learningOutcomes = [] } = useQuery<LearningOutcome[]>({
     queryKey: ["/api/learning-outcomes"],
     enabled: !!user,
   });

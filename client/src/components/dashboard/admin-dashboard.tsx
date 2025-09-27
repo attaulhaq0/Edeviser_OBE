@@ -6,26 +6,27 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import type { SafeUser, Program, LearningOutcome } from "@shared/schema";
 
 export default function AdminDashboard() {
   const { user } = useAuth();
 
-  const { data: programs, isLoading: programsLoading } = useQuery({
+  const { data: programs = [], isLoading: programsLoading } = useQuery<Program[]>({
     queryKey: ["/api/programs"],
     enabled: !!user,
   });
 
-  const { data: users } = useQuery({
+  const { data: users = [] } = useQuery<SafeUser[]>({
     queryKey: ["/api/users"],
     enabled: !!user,
   });
 
-  const { data: learningOutcomes } = useQuery({
+  const { data: learningOutcomes = [] } = useQuery<LearningOutcome[]>({
     queryKey: ["/api/learning-outcomes"],
     enabled: !!user,
   });
 
-  const { data: bloomsDistribution } = useQuery({
+  const { data: bloomsDistribution = [] } = useQuery<any[]>({
     queryKey: ["/api/analytics/blooms-distribution"],
     enabled: !!user,
   });

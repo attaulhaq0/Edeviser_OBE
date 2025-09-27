@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
+import { RoleNotifications } from "@/components/notifications/role-notifications";
 
 export function NavigationHeader() {
   const { user, logoutMutation } = useAuth();
@@ -92,13 +93,8 @@ export function NavigationHeader() {
               </div>
             ))}
 
-            {/* Notifications */}
-            <Button variant="ghost" size="icon" className="relative" data-testid="button-notifications">
-              <i className="fas fa-bell text-lg"></i>
-              <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs w-5 h-5 rounded-full flex items-center justify-center">
-                3
-              </span>
-            </Button>
+            {/* Role-based Notifications */}
+            <RoleNotifications />
 
             {/* Role Display */}
             <div className="flex items-center space-x-2 bg-muted px-3 py-2 rounded-lg">

@@ -60,10 +60,10 @@ export function setupAuth(app: Express) {
 
   app.post("/api/register", async (req, res, next) => {
     try {
-      // Force role to student for security - only admins can create other roles
+      // Security: Force role to student for public registration - only admins can assign other roles
       const validatedData = insertUserSchema.parse({
         ...req.body,
-        role: "student", // Security: Force role to student to prevent escalation
+        role: "student", // Security: Prevent privilege escalation via public registration
         password: await hashPassword(req.body.password),
       });
 
@@ -86,7 +86,7 @@ export function setupAuth(app: Express) {
         res.status(201).json(safeUser);
       });
     } catch (error) {
-      res.status(400).json({ message: "Invalid registration data", error: error.message });
+      res.status(400).json({ message: "Invalid registration data", error: error instanceof Error ? error.message : "Unknown error" });
     }
   });
 
