@@ -700,7 +700,7 @@ export function registerRoutes(app: Express): Server {
       const onboarding = await storage.createStudentOnboarding({
         ...parsed,
         studentId: req.user!.id,
-      });
+      } as any);
       res.json(onboarding);
     } catch (error) {
       console.error("Student onboarding error:", error);

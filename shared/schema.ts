@@ -452,6 +452,7 @@ export const insertLearningModuleSchema = createInsertSchema(learningModules).om
 
 export const insertStudentOnboardingSchema = createInsertSchema(studentOnboarding).omit({
   id: true,
+  studentId: true, // Omit studentId since it's added server-side from authenticated user
   createdAt: true,
   updatedAt: true,
 });
