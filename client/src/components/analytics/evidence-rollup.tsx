@@ -4,19 +4,28 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { TrendingUp, Users, Target, Calendar, Filter } from "lucide-react";
+import type { StudentSubmission, LearningOutcome, Program } from "@shared/schema";
 
-export function EvidenceRollup() {
-  const { data: submissions } = useQuery({
+interface EvidenceRollupProps {
+  selectedProgram?: string;
+  reportingPeriod?: string;
+}
+
+export function EvidenceRollup({ selectedProgram = "all", reportingPeriod = "all-time" }: EvidenceRollupProps = {}) {
+  const { data: submissions = [], isLoading: submissionsLoading } = useQuery<StudentSubmission[]>({
     queryKey: ["/api/student-submissions"],
   });
 
-  const { data: learningOutcomes } = useQuery({
+  const { data: learningOutcomes = [], isLoading: outcomesLoading } = useQuery<LearningOutcome[]>({
     queryKey: ["/api/learning-outcomes"],
   });
 
-  const { data: programs } = useQuery({
+  const { data: programs = [], isLoading: programsLoading } = useQuery<Program[]>({
     queryKey: ["/api/programs"],
   });
+
+  const isLoading = submissionsLoading || outcomesLoading || programsLoading;
 
   // Mock evidence data for demonstration
   const evidenceFlow = {
@@ -107,7 +116,7 @@ export function EvidenceRollup() {
   };
 
   const metrics = {
-    totalSubmissions: submissions?.length || 1247,
+    totalSubmissions: submissions.length || 1247,
     avgCLOScore: 83.2,
     mappingCoverage: 94,
     dataFreshness: "Real-time"
@@ -125,13 +134,33 @@ export function EvidenceRollup() {
     return colors[level as keyof typeof colors] || "bg-gray-500";
   };
 
+  if (isLoading) {
+    return (
+      <Card className="w-full" data-testid="evidence-rollup-loading">
+        <CardHeader>
+          <div className="animate-pulse">
+            <div className="h-6 bg-muted rounded w-1/2 mb-2"></div>
+            <div className="h-4 bg-muted rounded w-3/4"></div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-24 bg-muted rounded animate-pulse"></div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="w-full" data-testid="evidence-rollup">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="text-2xl font-bold flex items-center">
-              <i className="fas fa-link text-primary mr-3"></i>
+              <TrendingUp className="w-6 h-6 text-primary mr-3" />
               Evidence Roll-up System
             </CardTitle>
             <CardDescription>
@@ -152,9 +181,10 @@ export function EvidenceRollup() {
                 ))}
               </SelectContent>
             </Select>
-            <Button data-testid="button-refresh-data">
-              <i className="fas fa-sync-alt mr-2"></i>Refresh Data
-            </Button>
+            <Badge variant="outline" className="text-xs">
+              <Filter className="w-3 h-3 mr-1" />
+              {selectedProgram === "all" ? "All Programs" : "Filtered"}
+            </Badge>
           </div>
         </div>
       </CardHeader>
@@ -174,7 +204,7 @@ export function EvidenceRollup() {
           {/* Student Submissions Level */}
           <div className="bg-white rounded-xl p-4 shadow-sm border border-border">
             <h4 className="text-sm font-medium text-green-700 mb-4 flex items-center">
-              <i className="fas fa-user-graduate mr-2"></i>
+              <Users className="w-4 h-4 mr-2" />
               Student Submissions
             </h4>
             <div className="space-y-3">
@@ -196,7 +226,7 @@ export function EvidenceRollup() {
           {/* CLO Aggregation Level */}
           <div className="bg-white rounded-xl p-4 shadow-sm border border-border">
             <h4 className="text-sm font-medium text-blue-700 mb-4 flex items-center">
-              <i className="fas fa-bullseye mr-2"></i>
+              <Target className="w-4 h-4 mr-2" />
               CLO Aggregation
             </h4>
             <div className="space-y-3">
