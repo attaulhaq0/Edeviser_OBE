@@ -1,15 +1,43 @@
 import { useAuth } from "@/hooks/use-auth";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { SafeUser, Program, LearningOutcome } from "@shared/schema";
 
 export default function AdminDashboard() {
   const { user } = useAuth();
+  const { toast } = useToast();
+
+  const roleUpdateMutation = useMutation({
+    mutationFn: async ({ userId, role }: { userId: string; role: string }) => {
+      const res = await apiRequest("PUT", `/api/users/${userId}`, { role });
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      toast({
+        title: "Role updated successfully",
+        description: "User role has been changed.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to update role",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleRoleChange = (userId: string, newRole: string) => {
+    roleUpdateMutation.mutate({ userId, role: newRole });
+  };
 
   const { data: programs = [], isLoading: programsLoading } = useQuery<Program[]>({
     queryKey: ["/api/programs"],
@@ -453,12 +481,17 @@ export default function AdminDashboard() {
                     </Badge>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Button size="sm" variant="outline" data-testid={`button-edit-user-${index}`}>
-                      Edit
-                    </Button>
-                    <Button size="sm" variant="outline" data-testid={`button-view-user-${index}`}>
-                      View
-                    </Button>
+                    <Select value={user.role} onValueChange={(newRole) => handleRoleChange(user.id, newRole)} data-testid={`select-role-${index}`}>
+                      <SelectTrigger className="w-32">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="student">Student</SelectItem>
+                        <SelectItem value="teacher">Teacher</SelectItem>
+                        <SelectItem value="coordinator">Coordinator</SelectItem>
+                        <SelectItem value="admin">Admin</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
               )) || []}
