@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import { WebSocketServer, WebSocket } from "ws";
 import { setupAuth } from "./auth";
 import { storage } from "./storage";
 import { 
@@ -7,7 +8,8 @@ import {
   insertOutcomeMappingSchema, insertAssignmentSchema, insertStudentSubmissionSchema,
   insertBadgeTemplateSchema, insertLearningModuleSchema,
   insertStudentOnboardingSchema, insertStudentMascotSchema, insertStudyStreaksSchema,
-  insertStudyBuddyInteractionsSchema, type Role
+  insertStudyBuddyInteractionsSchema, insertAcademicAlertsSchema, insertAlertNotificationsSchema,
+  insertUserSessionsSchema, type Role, type AlertType, type AlertPriority, type AlertStatus
 } from "@shared/schema";
 
 export function registerRoutes(app: Express): Server {
@@ -656,6 +658,375 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Academic Alerts routes
+  app.get("/api/alerts", requireAuth, async (req, res) => {
+    try {
+      const currentUser = req.user!;
+      let alerts;
+
+      // Role-based alert access
+      if (currentUser.role === "admin") {
+        alerts = await storage.getAcademicAlerts();
+      } else if (currentUser.role === "coordinator" || currentUser.role === "teacher") {
+        alerts = await storage.getAlertsByAssignedUser(currentUser.id);
+      } else {
+        alerts = await storage.getAlertsByStudent(currentUser.id);
+      }
+
+      res.json(alerts);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch alerts" });
+    }
+  });
+
+  app.get("/api/alerts/status/:status", requireAuth, async (req, res) => {
+    try {
+      const status = req.params.status as AlertStatus;
+      const alerts = await storage.getAlertsByStatus(status);
+      res.json(alerts);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch alerts by status" });
+    }
+  });
+
+  app.get("/api/alerts/type/:type", requireAuth, async (req, res) => {
+    try {
+      const type = req.params.type as AlertType;
+      const alerts = await storage.getAlertsByType(type);
+      res.json(alerts);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch alerts by type" });
+    }
+  });
+
+  app.post("/api/alerts", requireRole(["admin", "coordinator", "teacher"]), async (req, res) => {
+    try {
+      const parsed = insertAcademicAlertsSchema.parse(req.body);
+      const alert = await storage.createAcademicAlert({
+        ...parsed,
+        triggeredBy: req.user!.id,
+      });
+      
+      // Create notifications for relevant users
+      const notificationTargets = await getAlertNotificationTargets(alert, req.user!);
+      const createdNotifications = [];
+      
+      for (const targetUserId of notificationTargets) {
+        const notification = await storage.createAlertNotification({
+          alertId: alert.id,
+          userId: targetUserId,
+          notificationType: 'in_app',
+        });
+        createdNotifications.push(notification);
+      }
+
+      // Broadcast real-time notification
+      if (typeof (global as any).broadcastNotification === 'function') {
+        (global as any).broadcastNotification(notificationTargets, {
+          id: alert.id,
+          type: 'new_alert',
+          title: alert.title,
+          message: alert.message,
+          priority: alert.priority,
+          alertType: alert.alertType,
+          createdAt: alert.createdAt,
+        });
+      }
+
+      res.json(alert);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid alert data" });
+    }
+  });
+
+  app.put("/api/alerts/:id", requireAuth, async (req, res) => {
+    try {
+      const alertId = req.params.id;
+      const updates = req.body;
+      const alert = await storage.updateAcademicAlert(alertId, updates);
+      
+      if (!alert) {
+        return res.status(404).json({ message: "Alert not found" });
+      }
+      
+      res.json(alert);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update alert" });
+    }
+  });
+
+  app.put("/api/alerts/:id/acknowledge", requireAuth, async (req, res) => {
+    try {
+      const alertId = req.params.id;
+      const alert = await storage.acknowledgeAlert(alertId, req.user!.id);
+      
+      if (!alert) {
+        return res.status(404).json({ message: "Alert not found" });
+      }
+      
+      res.json(alert);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to acknowledge alert" });
+    }
+  });
+
+  app.put("/api/alerts/:id/resolve", requireAuth, async (req, res) => {
+    try {
+      const alertId = req.params.id;
+      const { resolutionNotes } = req.body;
+      const alert = await storage.resolveAlert(alertId, req.user!.id, resolutionNotes);
+      
+      if (!alert) {
+        return res.status(404).json({ message: "Alert not found" });
+      }
+      
+      res.json(alert);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to resolve alert" });
+    }
+  });
+
+  // Alert Notifications routes
+  app.get("/api/notifications", requireAuth, async (req, res) => {
+    try {
+      const notifications = await storage.getAlertNotifications(req.user!.id);
+      res.json(notifications);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch notifications" });
+    }
+  });
+
+  app.get("/api/notifications/unread", requireAuth, async (req, res) => {
+    try {
+      const notifications = await storage.getUnreadNotifications(req.user!.id);
+      res.json(notifications);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch unread notifications" });
+    }
+  });
+
+  app.put("/api/notifications/:id/read", requireAuth, async (req, res) => {
+    try {
+      const notificationId = req.params.id;
+      const notification = await storage.markNotificationAsRead(notificationId);
+      
+      if (!notification) {
+        return res.status(404).json({ message: "Notification not found" });
+      }
+      
+      res.json(notification);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to mark notification as read" });
+    }
+  });
+
+  // Helper function to determine notification targets based on alert and user role
+  async function getAlertNotificationTargets(alert: any, triggeredBy: any): Promise<string[]> {
+    const targets: string[] = [];
+    
+    // Always notify the student involved
+    targets.push(alert.studentId);
+    
+    // Notify assigned user if specified
+    if (alert.assignedTo) {
+      targets.push(alert.assignedTo);
+    }
+    
+    // Role-based notifications
+    switch (triggeredBy.role) {
+      case "student":
+        // When student needs help, notify teachers and coordinators
+        const teachersAndCoords = await storage.getUsersByRole("teacher");
+        const coordinators = await storage.getUsersByRole("coordinator");
+        targets.push(...teachersAndCoords.map(u => u.id));
+        targets.push(...coordinators.map(u => u.id));
+        break;
+      
+      case "teacher":
+        // When teacher creates alert, notify coordinators and admins
+        const coords = await storage.getUsersByRole("coordinator");
+        const admins = await storage.getUsersByRole("admin");
+        targets.push(...coords.map(u => u.id));
+        targets.push(...admins.map(u => u.id));
+        break;
+      
+      case "coordinator":
+        // When coordinator creates alert, notify admins
+        const adminUsers = await storage.getUsersByRole("admin");
+        targets.push(...adminUsers.map(u => u.id));
+        break;
+    }
+    
+    // Remove duplicates and the person who triggered the alert
+    return Array.from(new Set(targets)).filter(id => id !== triggeredBy.id);
+  }
+
   const httpServer = createServer(app);
+  
+  // WebSocket server for real-time notifications (no auto-attach to avoid session issues)
+  const wss = new WebSocketServer({ noServer: true });
+  
+  // Store active WebSocket connections with user info
+  const activeConnections = new Map<string, { ws: WebSocket, userId: string, userRole: string }>();
+  
+  // Handle WebSocket upgrade with proper session binding
+  httpServer.on('upgrade', (request, socket, head) => {
+    const url = new URL(request.url!, 'http://localhost');
+    
+    // Only handle our WebSocket path
+    if (url.pathname !== '/ws') {
+      socket.destroy();
+      return;
+    }
+    
+    // For now, allow WebSocket connections and handle auth in the connection handler
+    // TODO: Implement proper session parsing for WebSocket upgrades
+    wss.handleUpgrade(request, socket, head, (ws) => {
+      wss.emit('connection', ws, request);
+    });
+  });
+  
+  wss.on('connection', async (ws, req) => {
+    console.log('WebSocket connection established');
+    
+    // Extract user from HTTP session during upgrade (secure authentication)
+    const sessionUser = (req as any).user; // From session middleware
+    
+    if (!sessionUser || !sessionUser.id || !sessionUser.role) {
+      ws.send(JSON.stringify({
+        type: 'error',
+        message: 'Authentication required - please log in'
+      }));
+      ws.close();
+      return;
+    }
+    
+    const userId = sessionUser.id;
+    const userRole = sessionUser.role;
+    const socketId = generateSocketId();
+    
+    // Store connection in our map
+    activeConnections.set(socketId, { ws, userId, userRole });
+    
+    // Store session in database
+    try {
+      await storage.createUserSession({
+        userId,
+        socketId,
+        ipAddress: req.socket.remoteAddress || '',
+        userAgent: req.headers['user-agent'] || '',
+      });
+    } catch (error) {
+      console.error('Error creating user session:', error);
+    }
+    
+    // Send authentication confirmation
+    ws.send(JSON.stringify({
+      type: 'auth_success',
+      socketId,
+      message: 'WebSocket authenticated successfully'
+    }));
+    
+    // Send any unread notifications on connect
+    try {
+      const unreadNotifications = await storage.getUnreadNotifications(userId);
+      if (unreadNotifications.length > 0) {
+        ws.send(JSON.stringify({
+          type: 'unread_notifications',
+          data: unreadNotifications
+        }));
+      }
+    } catch (error) {
+      console.error('Error fetching unread notifications:', error);
+    }
+    
+    console.log(`User ${userId} (${userRole}) connected via WebSocket`);
+    
+    // Handle incoming messages
+    ws.on('message', async (data) => {
+      try {
+        const message = JSON.parse(data.toString());
+        
+        if (message.type === 'ack_notification') {
+          // Client acknowledges receiving a notification
+          const notificationId = message.notificationId;
+          if (notificationId) {
+            await storage.markNotificationAsDelivered(notificationId);
+          }
+        }
+        
+        if (message.type === 'ping') {
+          // Handle ping-pong for connection keep-alive
+          ws.send(JSON.stringify({ type: 'pong' }));
+        }
+        
+      } catch (error) {
+        console.error('WebSocket message error:', error);
+        ws.send(JSON.stringify({
+          type: 'error',
+          message: 'Invalid message format'
+        }));
+      }
+    });
+    
+    ws.on('close', async () => {
+      // Remove connection and clean up session
+      const entries = Array.from(activeConnections.entries());
+      for (const [socketId, connection] of entries) {
+        if (connection.ws === ws) {
+          activeConnections.delete(socketId);
+          await storage.removeUserSession(socketId);
+          console.log(`User ${connection.userId} disconnected from WebSocket`);
+          break;
+        }
+      }
+    });
+    
+    ws.on('error', (error) => {
+      console.error('WebSocket error:', error);
+    });
+  });
+  
+  // Broadcast notification to specific users
+  const broadcastNotification = (targetUserIds: string[], notification: any) => {
+    const entries = Array.from(activeConnections.entries());
+    for (const [socketId, connection] of entries) {
+      if (targetUserIds.includes(connection.userId) && connection.ws.readyState === WebSocket.OPEN) {
+        connection.ws.send(JSON.stringify({
+          type: 'notification',
+          data: notification
+        }));
+      }
+    }
+  };
+  
+  // Broadcast alert to relevant users based on roles
+  const broadcastAlert = (alert: any, targetRoles: string[] = []) => {
+    const entries = Array.from(activeConnections.entries());
+    for (const [socketId, connection] of entries) {
+      const shouldNotify = targetRoles.length === 0 || targetRoles.includes(connection.userRole);
+      if (shouldNotify && connection.ws.readyState === WebSocket.OPEN) {
+        connection.ws.send(JSON.stringify({
+          type: 'alert',
+          data: alert
+        }));
+      }
+    }
+  };
+  
+  // Helper function to generate unique socket IDs
+  function generateSocketId(): string {
+    return `ws_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+  
+  // Cleanup inactive sessions periodically
+  setInterval(async () => {
+    await storage.cleanupInactiveSessions();
+  }, 5 * 60 * 1000); // Every 5 minutes
+  
+  // Export broadcast functions for use in other modules
+  (global as any).broadcastNotification = broadcastNotification;
+  (global as any).broadcastAlert = broadcastAlert;
+  
   return httpServer;
 }

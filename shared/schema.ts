@@ -9,6 +9,9 @@ export const bloomsLevelEnum = pgEnum("blooms_level", ["remember", "understand",
 export const outcomeTypeEnum = pgEnum("outcome_type", ["ILO", "PLO", "CLO"]);
 export const badgeTypeEnum = pgEnum("badge_type", ["achievement", "mastery", "streak", "special"]);
 export const mascotTypeEnum = pgEnum("mascot_type", ["fox", "owl", "penguin"]);
+export const alertTypeEnum = pgEnum("alert_type", ["low_performance", "inactivity", "missed_deadline", "help_request", "achievement", "streak_break"]);
+export const alertPriorityEnum = pgEnum("alert_priority", ["low", "medium", "high", "critical"]);
+export const alertStatusEnum = pgEnum("alert_status", ["active", "acknowledged", "resolved", "dismissed"]);
 
 // Users table
 export const users = pgTable("users", {
@@ -248,6 +251,52 @@ export const studyBuddyInteractions = pgTable("study_buddy_interactions", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+// Academic Support Alerts table
+export const academicAlerts = pgTable("academic_alerts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  studentId: varchar("student_id").notNull().references(() => users.id),
+  alertType: alertTypeEnum("alert_type").notNull(),
+  priority: alertPriorityEnum("priority").notNull().default("medium"),
+  status: alertStatusEnum("status").notNull().default("active"),
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  contextData: jsonb("context_data"), // Additional data like assignment ID, course ID, scores, etc.
+  triggeredBy: varchar("triggered_by").references(() => users.id), // Who/what triggered this alert
+  assignedTo: varchar("assigned_to").references(() => users.id), // Who should handle this alert
+  acknowledgedBy: varchar("acknowledged_by").references(() => users.id),
+  acknowledgedAt: timestamp("acknowledged_at"),
+  resolvedBy: varchar("resolved_by").references(() => users.id),
+  resolvedAt: timestamp("resolved_at"),
+  resolutionNotes: text("resolution_notes"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// Alert Notifications table (tracks who should be notified about alerts)
+export const alertNotifications = pgTable("alert_notifications", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  alertId: varchar("alert_id").notNull().references(() => academicAlerts.id),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  notificationType: text("notification_type").notNull(), // email, push, in_app, sms
+  isRead: boolean("is_read").notNull().default(false),
+  isDelivered: boolean("is_delivered").notNull().default(false),
+  readAt: timestamp("read_at"),
+  deliveredAt: timestamp("delivered_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// Real-time User Sessions table (for WebSocket connections)
+export const userSessions = pgTable("user_sessions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id),
+  socketId: text("socket_id").notNull().unique(),
+  isActive: boolean("is_active").notNull().default(true),
+  lastActivity: timestamp("last_activity").notNull().defaultNow(),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many, one }) => ({
   coordinatedPrograms: many(programs, { relationName: "coordinator" }),
@@ -423,6 +472,22 @@ export const insertStudyBuddyInteractionsSchema = createInsertSchema(studyBuddyI
   createdAt: true,
 });
 
+export const insertAcademicAlertsSchema = createInsertSchema(academicAlerts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertAlertNotificationsSchema = createInsertSchema(alertNotifications).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertUserSessionsSchema = createInsertSchema(userSessions).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type SafeUser = Omit<User, 'password'>;
@@ -454,6 +519,12 @@ export type StudyStreaks = typeof studyStreaks.$inferSelect;
 export type InsertStudyStreaks = z.infer<typeof insertStudyStreaksSchema>;
 export type StudyBuddyInteractions = typeof studyBuddyInteractions.$inferSelect;
 export type InsertStudyBuddyInteractions = z.infer<typeof insertStudyBuddyInteractionsSchema>;
+export type AcademicAlerts = typeof academicAlerts.$inferSelect;
+export type InsertAcademicAlerts = z.infer<typeof insertAcademicAlertsSchema>;
+export type AlertNotifications = typeof alertNotifications.$inferSelect;
+export type InsertAlertNotifications = z.infer<typeof insertAlertNotificationsSchema>;
+export type UserSessions = typeof userSessions.$inferSelect;
+export type InsertUserSessions = z.infer<typeof insertUserSessionsSchema>;
 
 // Enums export for frontend
 export const ROLES = ["admin", "coordinator", "teacher", "student"] as const;
@@ -461,9 +532,15 @@ export const BLOOMS_LEVELS = ["remember", "understand", "apply", "analyze", "eva
 export const OUTCOME_TYPES = ["ILO", "PLO", "CLO"] as const;
 export const BADGE_TYPES = ["achievement", "mastery", "streak", "special"] as const;
 export const MASCOT_TYPES = ["fox", "owl", "penguin"] as const;
+export const ALERT_TYPES = ["low_performance", "inactivity", "missed_deadline", "help_request", "achievement", "streak_break"] as const;
+export const ALERT_PRIORITIES = ["low", "medium", "high", "critical"] as const;
+export const ALERT_STATUSES = ["active", "acknowledged", "resolved", "dismissed"] as const;
 
 export type Role = typeof ROLES[number];
 export type BloomsLevel = typeof BLOOMS_LEVELS[number];
 export type OutcomeType = typeof OUTCOME_TYPES[number];
 export type BadgeType = typeof BADGE_TYPES[number];
 export type MascotType = typeof MASCOT_TYPES[number];
+export type AlertType = typeof ALERT_TYPES[number];
+export type AlertPriority = typeof ALERT_PRIORITIES[number];
+export type AlertStatus = typeof ALERT_STATUSES[number];

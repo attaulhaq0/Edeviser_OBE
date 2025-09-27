@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useQuery } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { RoleNotifications } from "@/components/notifications/role-notifications";
+import { NotificationCenter } from "@/components/notifications/notification-center";
 
 export function NavigationHeader() {
   const { user, logoutMutation } = useAuth();
@@ -52,9 +53,9 @@ export function NavigationHeader() {
         ];
       case "student":
         return [
-          { label: "XP Earned", value: progress?.totalXP?.toString() || "0", icon: "fas fa-star" },
-          { label: "Current Level", value: progress?.currentLevel?.toString() || "1", icon: "fas fa-trophy" },
-          { label: "Streak Days", value: progress?.currentStreak?.toString() || "0", icon: "fas fa-fire" },
+          { label: "XP Earned", value: (progress as any)?.totalXP?.toString() || "0", icon: "fas fa-star" },
+          { label: "Current Level", value: (progress as any)?.currentLevel?.toString() || "1", icon: "fas fa-trophy" },
+          { label: "Streak Days", value: (progress as any)?.currentStreak?.toString() || "0", icon: "fas fa-fire" },
         ];
       default:
         return [];
@@ -95,6 +96,9 @@ export function NavigationHeader() {
 
             {/* Role-based Notifications */}
             <RoleNotifications />
+            
+            {/* Real-time Academic Alerts */}
+            <NotificationCenter />
 
             {/* Role Display */}
             <div className="flex items-center space-x-2 bg-muted px-3 py-2 rounded-lg">

@@ -3,6 +3,7 @@ import {
   studentSubmissions, studentPerformance, studentProgress, badgeTemplates, 
   studentBadges, learningModules, studentModuleProgress, rubricCriteria,
   studentOnboarding, studentMascot, studyStreaks, studyBuddyInteractions,
+  academicAlerts, alertNotifications, userSessions,
   type User, type InsertUser, type Program, type InsertProgram, type Course, 
   type InsertCourse, type LearningOutcome, type InsertLearningOutcome,
   type OutcomeMapping, type InsertOutcomeMapping, type Assignment, type InsertAssignment,
@@ -10,7 +11,10 @@ import {
   type BadgeTemplate, type InsertBadgeTemplate, type LearningModule, 
   type InsertLearningModule, type Role, type StudentOnboarding, type InsertStudentOnboarding,
   type StudentMascot, type InsertStudentMascot, type StudyStreaks, type InsertStudyStreaks,
-  type StudyBuddyInteractions, type InsertStudyBuddyInteractions
+  type StudyBuddyInteractions, type InsertStudyBuddyInteractions,
+  type AcademicAlerts, type InsertAcademicAlerts, type AlertNotifications, 
+  type InsertAlertNotifications, type UserSessions, type InsertUserSessions,
+  type AlertType, type AlertPriority, type AlertStatus
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, desc, asc, count, avg, sum, inArray } from "drizzle-orm";
@@ -118,6 +122,33 @@ export interface IStorage {
   createStudyBuddyInteraction(interaction: InsertStudyBuddyInteractions): Promise<StudyBuddyInteractions>;
   markInteractionAsRead(interactionId: string): Promise<StudyBuddyInteractions | undefined>;
   getUnreadInteractions(studentId: string): Promise<StudyBuddyInteractions[]>;
+
+  // Academic Alerts operations
+  getAcademicAlerts(): Promise<AcademicAlerts[]>;
+  getAcademicAlert(id: string): Promise<AcademicAlerts | undefined>;
+  createAcademicAlert(alert: InsertAcademicAlerts): Promise<AcademicAlerts>;
+  updateAcademicAlert(id: string, updates: Partial<AcademicAlerts>): Promise<AcademicAlerts | undefined>;
+  getAlertsByStudent(studentId: string): Promise<AcademicAlerts[]>;
+  getAlertsByAssignedUser(userId: string): Promise<AcademicAlerts[]>;
+  getAlertsByStatus(status: AlertStatus): Promise<AcademicAlerts[]>;
+  getAlertsByType(type: AlertType): Promise<AcademicAlerts[]>;
+  acknowledgeAlert(alertId: string, userId: string): Promise<AcademicAlerts | undefined>;
+  resolveAlert(alertId: string, userId: string, resolutionNotes?: string): Promise<AcademicAlerts | undefined>;
+
+  // Alert Notifications operations
+  getAlertNotifications(userId: string): Promise<AlertNotifications[]>;
+  createAlertNotification(notification: InsertAlertNotifications): Promise<AlertNotifications>;
+  markNotificationAsRead(notificationId: string): Promise<AlertNotifications | undefined>;
+  markNotificationAsDelivered(notificationId: string): Promise<AlertNotifications | undefined>;
+  getUnreadNotifications(userId: string): Promise<AlertNotifications[]>;
+
+  // User Sessions operations (for WebSocket management)
+  getUserSession(socketId: string): Promise<UserSessions | undefined>;
+  createUserSession(session: InsertUserSessions): Promise<UserSessions>;
+  updateUserSession(socketId: string, updates: Partial<UserSessions>): Promise<UserSessions | undefined>;
+  removeUserSession(socketId: string): Promise<void>;
+  getUserActiveSessions(userId: string): Promise<UserSessions[]>;
+  cleanupInactiveSessions(): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -628,6 +659,215 @@ export class DatabaseStorage implements IStorage {
       )
       .orderBy(desc(studyBuddyInteractions.createdAt));
     return interactions;
+  }
+
+  // Academic Alerts implementations
+  async getAcademicAlerts(): Promise<AcademicAlerts[]> {
+    const alerts = await db
+      .select()
+      .from(academicAlerts)
+      .orderBy(desc(academicAlerts.createdAt));
+    return alerts;
+  }
+
+  async getAcademicAlert(id: string): Promise<AcademicAlerts | undefined> {
+    const [alert] = await db
+      .select()
+      .from(academicAlerts)
+      .where(eq(academicAlerts.id, id));
+    return alert || undefined;
+  }
+
+  async createAcademicAlert(insertAlert: InsertAcademicAlerts): Promise<AcademicAlerts> {
+    const [alert] = await db
+      .insert(academicAlerts)
+      .values(insertAlert)
+      .returning();
+    return alert;
+  }
+
+  async updateAcademicAlert(id: string, updates: Partial<AcademicAlerts>): Promise<AcademicAlerts | undefined> {
+    const [alert] = await db
+      .update(academicAlerts)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(academicAlerts.id, id))
+      .returning();
+    return alert || undefined;
+  }
+
+  async getAlertsByStudent(studentId: string): Promise<AcademicAlerts[]> {
+    const alerts = await db
+      .select()
+      .from(academicAlerts)
+      .where(eq(academicAlerts.studentId, studentId))
+      .orderBy(desc(academicAlerts.createdAt));
+    return alerts;
+  }
+
+  async getAlertsByAssignedUser(userId: string): Promise<AcademicAlerts[]> {
+    const alerts = await db
+      .select()
+      .from(academicAlerts)
+      .where(eq(academicAlerts.assignedTo, userId))
+      .orderBy(desc(academicAlerts.createdAt));
+    return alerts;
+  }
+
+  async getAlertsByStatus(status: AlertStatus): Promise<AcademicAlerts[]> {
+    const alerts = await db
+      .select()
+      .from(academicAlerts)
+      .where(eq(academicAlerts.status, status))
+      .orderBy(desc(academicAlerts.createdAt));
+    return alerts;
+  }
+
+  async getAlertsByType(type: AlertType): Promise<AcademicAlerts[]> {
+    const alerts = await db
+      .select()
+      .from(academicAlerts)
+      .where(eq(academicAlerts.alertType, type))
+      .orderBy(desc(academicAlerts.createdAt));
+    return alerts;
+  }
+
+  async acknowledgeAlert(alertId: string, userId: string): Promise<AcademicAlerts | undefined> {
+    const [alert] = await db
+      .update(academicAlerts)
+      .set({ 
+        status: 'acknowledged',
+        acknowledgedBy: userId, 
+        acknowledgedAt: new Date(),
+        updatedAt: new Date()
+      })
+      .where(eq(academicAlerts.id, alertId))
+      .returning();
+    return alert || undefined;
+  }
+
+  async resolveAlert(alertId: string, userId: string, resolutionNotes?: string): Promise<AcademicAlerts | undefined> {
+    const [alert] = await db
+      .update(academicAlerts)
+      .set({ 
+        status: 'resolved',
+        resolvedBy: userId, 
+        resolvedAt: new Date(),
+        resolutionNotes,
+        updatedAt: new Date()
+      })
+      .where(eq(academicAlerts.id, alertId))
+      .returning();
+    return alert || undefined;
+  }
+
+  // Alert Notifications implementations
+  async getAlertNotifications(userId: string): Promise<AlertNotifications[]> {
+    const notifications = await db
+      .select()
+      .from(alertNotifications)
+      .where(eq(alertNotifications.userId, userId))
+      .orderBy(desc(alertNotifications.createdAt));
+    return notifications;
+  }
+
+  async createAlertNotification(insertNotification: InsertAlertNotifications): Promise<AlertNotifications> {
+    const [notification] = await db
+      .insert(alertNotifications)
+      .values(insertNotification)
+      .returning();
+    return notification;
+  }
+
+  async markNotificationAsRead(notificationId: string): Promise<AlertNotifications | undefined> {
+    const [notification] = await db
+      .update(alertNotifications)
+      .set({ isRead: true, readAt: new Date() })
+      .where(eq(alertNotifications.id, notificationId))
+      .returning();
+    return notification || undefined;
+  }
+
+  async markNotificationAsDelivered(notificationId: string): Promise<AlertNotifications | undefined> {
+    const [notification] = await db
+      .update(alertNotifications)
+      .set({ isDelivered: true, deliveredAt: new Date() })
+      .where(eq(alertNotifications.id, notificationId))
+      .returning();
+    return notification || undefined;
+  }
+
+  async getUnreadNotifications(userId: string): Promise<AlertNotifications[]> {
+    const notifications = await db
+      .select()
+      .from(alertNotifications)
+      .where(
+        and(
+          eq(alertNotifications.userId, userId),
+          eq(alertNotifications.isRead, false)
+        )
+      )
+      .orderBy(desc(alertNotifications.createdAt));
+    return notifications;
+  }
+
+  // User Sessions implementations (for WebSocket management)
+  async getUserSession(socketId: string): Promise<UserSessions | undefined> {
+    const [session] = await db
+      .select()
+      .from(userSessions)
+      .where(eq(userSessions.socketId, socketId));
+    return session || undefined;
+  }
+
+  async createUserSession(insertSession: InsertUserSessions): Promise<UserSessions> {
+    const [session] = await db
+      .insert(userSessions)
+      .values(insertSession)
+      .returning();
+    return session;
+  }
+
+  async updateUserSession(socketId: string, updates: Partial<UserSessions>): Promise<UserSessions | undefined> {
+    const [session] = await db
+      .update(userSessions)
+      .set({ ...updates, lastActivity: new Date() })
+      .where(eq(userSessions.socketId, socketId))
+      .returning();
+    return session || undefined;
+  }
+
+  async removeUserSession(socketId: string): Promise<void> {
+    await db
+      .delete(userSessions)
+      .where(eq(userSessions.socketId, socketId));
+  }
+
+  async getUserActiveSessions(userId: string): Promise<UserSessions[]> {
+    const sessions = await db
+      .select()
+      .from(userSessions)
+      .where(
+        and(
+          eq(userSessions.userId, userId),
+          eq(userSessions.isActive, true)
+        )
+      )
+      .orderBy(desc(userSessions.lastActivity));
+    return sessions;
+  }
+
+  async cleanupInactiveSessions(): Promise<void> {
+    // Remove sessions inactive for more than 24 hours
+    const cutoffTime = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    await db
+      .delete(userSessions)
+      .where(
+        or(
+          eq(userSessions.isActive, false),
+          // Note: SQL comparison for timestamp - convert to ISO string for comparison
+          eq(userSessions.lastActivity, cutoffTime)
+        )
+      );
   }
 }
 
