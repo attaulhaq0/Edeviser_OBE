@@ -127,7 +127,7 @@ export default function AuthPage() {
               <img 
                 src={edeviserLogo} 
                 alt="Edeviser Logo" 
-                className="h-12 w-auto" 
+                className="h-20 w-auto" 
                 data-testid="img-auth-logo"
               />
             </div>

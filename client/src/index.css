@@ -14,42 +14,42 @@
   --popover-foreground: 0 0% 7%;
 
   /* Theme Colors - E DEVISER Brand */
-  --primary: 170 91% 32%; /* #09B99C - Turquoise */
+  --primary: 210 100% 50%; /* Bright Blue */
   --primary-foreground: 0 0% 100%;
   --secondary: 211 50% 23%; /* #1D3557 - Dark Blue */
   --secondary-foreground: 0 0% 100%;
   --muted: 210 30% 96%;
   --muted-foreground: 211 30% 45%;
-  --accent: 200 90% 50%; /* Logo Blue Accent */
+  --accent: 200 100% 60%; /* Light Blue Accent */
   --accent-foreground: 0 0% 100%;
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
   
   /* Gradient Colors from Logo */
-  --gradient-start: 210 90% 55%; /* Blue from logo */
-  --gradient-end: 170 91% 32%; /* Turquoise from logo */
+  --gradient-start: 220 100% 55%; /* Deep Blue */
+  --gradient-end: 190 100% 50%; /* Cyan Blue */
 
   /* UI Colors */
   --border: 0 0% 90%;
   --input: 0 0% 95%;
-  --ring: 170 91% 32%;
+  --ring: 210 100% 50%;
 
   /* Chart Colors - Logo Inspired */
-  --chart-1: 170 91% 32%; /* Primary Turquoise */
+  --chart-1: 210 100% 50%; /* Primary Blue */
   --chart-2: 211 50% 23%; /* Secondary Dark Blue */
-  --chart-3: 200 90% 50%; /* Logo Blue */
-  --chart-4: 180 70% 40%; /* Teal Variant */
-  --chart-5: 220 60% 40%; /* Blue Variant */
+  --chart-3: 200 90% 60%; /* Light Blue */
+  --chart-4: 220 80% 45%; /* Deep Blue Variant */
+  --chart-5: 190 70% 50%; /* Cyan Blue Variant */
 
   /* Sidebar Colors */
   --sidebar: 0 0% 100%;
   --sidebar-foreground: 0 0% 7%;
-  --sidebar-primary: 170 91% 32%;
+  --sidebar-primary: 210 100% 50%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 170 91% 95%;
-  --sidebar-accent-foreground: 170 91% 25%;
+  --sidebar-accent: 210 100% 95%;
+  --sidebar-accent-foreground: 210 100% 35%;
   --sidebar-border: 0 0% 90%;
-  --sidebar-ring: 170 91% 32%;
+  --sidebar-ring: 210 100% 50%;
 
   /* Typography */
   --font-sans: 'Inter', system-ui, sans-serif;
@@ -81,37 +81,37 @@
   --card-foreground: 0 0% 95%;
   --popover: 211 50% 15%;
   --popover-foreground: 0 0% 95%;
-  --primary: 170 91% 40%; /* Brighter turquoise for dark mode */
+  --primary: 210 100% 60%; /* Bright Blue for dark mode */
   --primary-foreground: 0 0% 7%;
   --secondary: 211 50% 35%; /* Lighter blue for visibility */
   --secondary-foreground: 0 0% 95%;
   --muted: 211 30% 20%;
   --muted-foreground: 210 20% 65%;
-  --accent: 200 90% 60%; /* Brighter accent */
+  --accent: 200 100% 70%; /* Brighter blue accent */
   --accent-foreground: 0 0% 7%;
   --destructive: 0 62% 45%;
   --destructive-foreground: 0 0% 95%;
   --border: 211 30% 25%;
   --input: 211 30% 20%;
-  --ring: 170 91% 40%;
+  --ring: 210 100% 60%;
   
   /* Gradient Colors for Dark Mode */
-  --gradient-start: 210 90% 60%;
-  --gradient-end: 170 91% 40%;
+  --gradient-start: 220 100% 65%;
+  --gradient-end: 190 100% 60%;
   
-  --chart-1: 170 91% 40%;
+  --chart-1: 210 100% 60%;
   --chart-2: 211 50% 35%;
-  --chart-3: 200 90% 60%;
-  --chart-4: 180 70% 45%;
-  --chart-5: 220 60% 50%;
+  --chart-3: 200 90% 70%;
+  --chart-4: 220 80% 55%;
+  --chart-5: 190 70% 60%;
   --sidebar: 211 50% 12%;
   --sidebar-foreground: 0 0% 95%;
-  --sidebar-primary: 170 91% 40%;
+  --sidebar-primary: 210 100% 60%;
   --sidebar-primary-foreground: 0 0% 7%;
   --sidebar-accent: 211 40% 20%;
-  --sidebar-accent-foreground: 170 91% 50%;
+  --sidebar-accent-foreground: 210 100% 70%;
   --sidebar-border: 211 30% 25%;
-  --sidebar-ring: 170 91% 40%;
+  --sidebar-ring: 210 100% 60%;
 }
 
 @layer base {
@@ -162,7 +162,7 @@
   
   .gradient-button:hover {
     transform: scale(1.05);
-    box-shadow: 0 10px 25px -5px rgba(9, 185, 156, 0.3);
+    box-shadow: 0 10px 25px -5px rgba(0, 123, 255, 0.3);
   }
   
   .gradient-border {

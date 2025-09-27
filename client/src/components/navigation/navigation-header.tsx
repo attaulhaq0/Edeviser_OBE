@@ -70,7 +70,7 @@ export function NavigationHeader() {
             <img 
               src={edeviserLogo} 
               alt="Edeviser Logo" 
-              className="h-8 w-auto" 
+              className="h-12 w-auto" 
               data-testid="img-logo"
             />
           </div>
