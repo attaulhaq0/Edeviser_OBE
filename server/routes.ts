@@ -205,10 +205,12 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Learning Outcomes routes
+  // Learning Outcomes routes with enhanced role-based filtering for cross-profile synchronization
   app.get("/api/learning-outcomes", requireAuth, async (req, res) => {
     try {
+      const currentUser = req.user!;
       let outcomes;
+      
       if (req.query.type) {
         outcomes = await storage.getLearningOutcomesByType(req.query.type as string);
       } else if (req.query.programId) {
@@ -218,7 +220,29 @@ export function registerRoutes(app: Express): Server {
       } else {
         outcomes = await storage.getLearningOutcomes();
       }
-      res.json(outcomes);
+      
+      // Cross-profile data filtering based on role and ownership
+      const filteredOutcomes = outcomes.filter(outcome => {
+        // Admin can see all outcomes
+        if (currentUser.role === 'admin') return true;
+        
+        // Users can see their own outcomes
+        if (outcome.ownerId === currentUser.id) return true;
+        
+        // Role-based visibility for outcomes they can potentially edit
+        switch (outcome.type) {
+          case 'ILO': 
+            return currentUser.role === 'coordinator'; // Coordinators need to see ILOs for PLO→ILO mappings
+          case 'PLO': 
+            return currentUser.role === 'coordinator'; // Coordinators can see PLOs to potentially override
+          case 'CLO': 
+            return ['coordinator', 'teacher'].includes(currentUser.role); // Coordinators/Teachers can see CLOs
+          default: 
+            return false;
+        }
+      });
+      
+      res.json(filteredOutcomes);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch learning outcomes" });
     }
@@ -226,10 +250,38 @@ export function registerRoutes(app: Express): Server {
 
   app.get("/api/learning-outcomes/:id", requireAuth, async (req, res) => {
     try {
+      const currentUser = req.user!;
       const outcome = await storage.getLearningOutcome(req.params.id);
+      
       if (!outcome) {
         return res.status(404).json({ message: "Learning outcome not found" });
       }
+      
+      // Apply same role-based filtering as list endpoint to prevent IDOR vulnerability
+      const canViewOutcome = (): boolean => {
+        // Admin can see all outcomes
+        if (currentUser.role === 'admin') return true;
+        
+        // Users can see their own outcomes
+        if (outcome.ownerId === currentUser.id) return true;
+        
+        // Role-based visibility for outcomes they can potentially edit
+        switch (outcome.type) {
+          case 'ILO': 
+            return currentUser.role === 'coordinator'; // Coordinators need to see ILOs for PLO→ILO mappings
+          case 'PLO': 
+            return currentUser.role === 'coordinator'; // Coordinators can see PLOs to potentially override
+          case 'CLO': 
+            return ['coordinator', 'teacher'].includes(currentUser.role); // Coordinators/Teachers can see CLOs
+          default: 
+            return false;
+        }
+      };
+      
+      if (!canViewOutcome()) {
+        return res.status(403).json({ message: "Insufficient permissions to view this outcome" });
+      }
+      
       res.json(outcome);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch learning outcome" });
@@ -238,6 +290,25 @@ export function registerRoutes(app: Express): Server {
 
   app.post("/api/learning-outcomes", requireAuth, async (req, res) => {
     try {
+      const currentUser = req.user!;
+      const outcomeType = req.body.type;
+      
+      // Enhanced role-based permission enforcement for cross-profile synchronization
+      const canCreateOutcome = (userRole: Role, type: string): boolean => {
+        switch (type) {
+          case 'ILO': return userRole === 'admin';
+          case 'PLO': return userRole === 'coordinator';
+          case 'CLO': return ['coordinator', 'teacher'].includes(userRole);
+          default: return false;
+        }
+      };
+      
+      if (!canCreateOutcome(currentUser.role, outcomeType)) {
+        return res.status(403).json({ 
+          message: `${currentUser.role} role cannot create ${outcomeType} outcomes` 
+        });
+      }
+      
       const data = insertLearningOutcomeSchema.parse({
         ...req.body,
         ownerId: req.user!.id,
@@ -252,23 +323,55 @@ export function registerRoutes(app: Express): Server {
 
   app.put("/api/learning-outcomes/:id", requireAuth, async (req, res) => {
     try {
+      const currentUser = req.user!;
+      const existingOutcome = await storage.getLearningOutcome(req.params.id);
+      
+      if (!existingOutcome) {
+        return res.status(404).json({ message: "Learning outcome not found" });
+      }
+      
+      // Enhanced hierarchical permission validation for cross-profile synchronization
+      const canUpdateOutcome = (userRole: Role, outcomeType: string, ownerId: string): boolean => {
+        // Users can always update their own outcomes if role permits
+        if (ownerId === currentUser.id) {
+          switch (outcomeType) {
+            case 'ILO': return userRole === 'admin';
+            case 'PLO': return ['admin', 'coordinator'].includes(userRole);
+            case 'CLO': return ['admin', 'coordinator', 'teacher'].includes(userRole);
+            default: return false;
+          }
+        }
+        
+        // Hierarchical overrides: Admin can override PLOs, Coordinator can override CLOs
+        switch (outcomeType) {
+          case 'PLO': return userRole === 'admin'; // Admin can override PLOs
+          case 'CLO': return ['admin', 'coordinator'].includes(userRole); // Admin/Coordinator can override CLOs
+          default: return false; // No overrides for ILOs
+        }
+      };
+      
+      if (!canUpdateOutcome(currentUser.role, existingOutcome.type, existingOutcome.ownerId)) {
+        return res.status(403).json({ 
+          message: `${currentUser.role} role cannot update this ${existingOutcome.type} outcome` 
+        });
+      }
+      
       const outcome = await storage.updateLearningOutcome(req.params.id, {
         ...req.body,
         lastEditedBy: req.user!.id,
       });
-      if (!outcome) {
-        return res.status(404).json({ message: "Learning outcome not found" });
-      }
       res.json(outcome);
     } catch (error) {
       res.status(500).json({ message: "Failed to update learning outcome" });
     }
   });
 
-  // Outcome Mapping routes
+  // Outcome Mapping routes with role-based filtering for cross-profile synchronization
   app.get("/api/outcome-mappings", requireAuth, async (req, res) => {
     try {
+      const currentUser = req.user!;
       let mappings;
+      
       if (req.query.sourceId) {
         mappings = await storage.getOutcomeMappingsBySource(req.query.sourceId as string);
       } else if (req.query.targetId) {
@@ -276,14 +379,87 @@ export function registerRoutes(app: Express): Server {
       } else {
         mappings = await storage.getOutcomeMappings();
       }
-      res.json(mappings);
+      
+      // Role-based filtering to prevent excessive data exposure
+      const filteredMappings = [];
+      for (const mapping of mappings) {
+        const sourceOutcome = await storage.getLearningOutcome(mapping.sourceId);
+        const targetOutcome = await storage.getLearningOutcome(mapping.targetId);
+        
+        if (!sourceOutcome || !targetOutcome) continue;
+        
+        // Apply visibility rules based on user role and outcome access
+        const canViewMapping = (): boolean => {
+          // Admin can see all mappings
+          if (currentUser.role === 'admin') return true;
+          
+          // Users can see mappings they created
+          if (mapping.createdBy === currentUser.id) return true;
+          
+          // Check if user can see both source and target outcomes
+          const canViewSource = currentUser.id === sourceOutcome.ownerId || 
+            (sourceOutcome.type === 'ILO' && currentUser.role === 'coordinator') ||
+            (sourceOutcome.type === 'PLO' && currentUser.role === 'coordinator') ||
+            (sourceOutcome.type === 'CLO' && ['coordinator', 'teacher'].includes(currentUser.role));
+            
+          const canViewTarget = currentUser.id === targetOutcome.ownerId ||
+            (targetOutcome.type === 'ILO' && currentUser.role === 'coordinator') ||
+            (targetOutcome.type === 'PLO' && currentUser.role === 'coordinator') ||
+            (targetOutcome.type === 'CLO' && ['coordinator', 'teacher'].includes(currentUser.role));
+          
+          return canViewSource && canViewTarget;
+        };
+        
+        if (canViewMapping()) {
+          filteredMappings.push(mapping);
+        }
+      }
+      
+      res.json(filteredMappings);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch outcome mappings" });
     }
   });
 
-  app.post("/api/outcome-mappings", requireRole(["admin", "coordinator"]), async (req, res) => {
+  app.post("/api/outcome-mappings", requireAuth, async (req, res) => {
     try {
+      const currentUser = req.user!;
+      const { sourceId, targetId } = req.body;
+      
+      // Enhanced permission validation for outcome mapping based on cross-profile synchronization
+      const sourceOutcome = await storage.getLearningOutcome(sourceId);
+      const targetOutcome = await storage.getLearningOutcome(targetId);
+      
+      if (!sourceOutcome || !targetOutcome) {
+        return res.status(400).json({ message: "Invalid source or target outcome" });
+      }
+      
+      // Validate mapping hierarchy and permissions
+      const canCreateMapping = (): boolean => {
+        // Admin can create any mapping
+        if (currentUser.role === 'admin') return true;
+        
+        // Coordinators can create PLO mappings and manage their program outcomes
+        if (currentUser.role === 'coordinator') {
+          return ['PLO', 'CLO'].includes(sourceOutcome.type) && ['ILO', 'PLO'].includes(targetOutcome.type);
+        }
+        
+        // Teachers can only create CLO mappings for outcomes they own/teach
+        if (currentUser.role === 'teacher') {
+          return sourceOutcome.type === 'CLO' && 
+                 targetOutcome.type === 'PLO' && 
+                 sourceOutcome.ownerId === currentUser.id;
+        }
+        
+        return false;
+      };
+      
+      if (!canCreateMapping()) {
+        return res.status(403).json({ 
+          message: `${currentUser.role} role cannot create ${sourceOutcome.type}→${targetOutcome.type} mappings` 
+        });
+      }
+      
       const data = insertOutcomeMappingSchema.parse({
         ...req.body,
         createdBy: req.user!.id,
