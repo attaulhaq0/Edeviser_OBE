@@ -6,50 +6,50 @@
 
 :root {
   /* Base Colors - E DEVISER Brand */
-  --background: hsl(0, 0%, 100%); /* #FFFFFF */
-  --foreground: hsl(0, 0%, 7%); /* #121212 */
-  --card: hsl(0, 0%, 100%);
-  --card-foreground: hsl(0, 0%, 7%);
-  --popover: hsl(0, 0%, 100%);
-  --popover-foreground: hsl(0, 0%, 7%);
+  --background: 0 0% 100%; /* #FFFFFF */
+  --foreground: 0 0% 7%; /* #121212 */
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 7%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 7%;
 
   /* Theme Colors - E DEVISER Brand */
-  --primary: hsl(170, 91%, 32%); /* #09B99C - Turquoise */
-  --primary-foreground: hsl(0, 0%, 100%);
-  --secondary: hsl(211, 50%, 23%); /* #1D3557 - Dark Blue */
-  --secondary-foreground: hsl(0, 0%, 100%);
-  --muted: hsl(210, 30%, 96%);
-  --muted-foreground: hsl(211, 30%, 45%);
-  --accent: hsl(200, 90%, 50%); /* Logo Blue Accent */
-  --accent-foreground: hsl(0, 0%, 100%);
-  --destructive: hsl(0, 84%, 60%);
-  --destructive-foreground: hsl(0, 0%, 100%);
+  --primary: 170 91% 32%; /* #09B99C - Turquoise */
+  --primary-foreground: 0 0% 100%;
+  --secondary: 211 50% 23%; /* #1D3557 - Dark Blue */
+  --secondary-foreground: 0 0% 100%;
+  --muted: 210 30% 96%;
+  --muted-foreground: 211 30% 45%;
+  --accent: 200 90% 50%; /* Logo Blue Accent */
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
   
   /* Gradient Colors from Logo */
-  --gradient-start: hsl(210, 90%, 55%); /* Blue from logo */
-  --gradient-end: hsl(170, 91%, 32%); /* Turquoise from logo */
+  --gradient-start: 210 90% 55%; /* Blue from logo */
+  --gradient-end: 170 91% 32%; /* Turquoise from logo */
 
   /* UI Colors */
-  --border: hsl(0, 0%, 90%);
-  --input: hsl(0, 0%, 95%);
-  --ring: hsl(170, 91%, 32%);
+  --border: 0 0% 90%;
+  --input: 0 0% 95%;
+  --ring: 170 91% 32%;
 
   /* Chart Colors - Logo Inspired */
-  --chart-1: hsl(170, 91%, 32%); /* Primary Turquoise */
-  --chart-2: hsl(211, 50%, 23%); /* Secondary Dark Blue */
-  --chart-3: hsl(200, 90%, 50%); /* Logo Blue */
-  --chart-4: hsl(180, 70%, 40%); /* Teal Variant */
-  --chart-5: hsl(220, 60%, 40%); /* Blue Variant */
+  --chart-1: 170 91% 32%; /* Primary Turquoise */
+  --chart-2: 211 50% 23%; /* Secondary Dark Blue */
+  --chart-3: 200 90% 50%; /* Logo Blue */
+  --chart-4: 180 70% 40%; /* Teal Variant */
+  --chart-5: 220 60% 40%; /* Blue Variant */
 
   /* Sidebar Colors */
-  --sidebar: hsl(0, 0%, 100%);
-  --sidebar-foreground: hsl(0, 0%, 7%);
-  --sidebar-primary: hsl(170, 91%, 32%);
-  --sidebar-primary-foreground: hsl(0, 0%, 100%);
-  --sidebar-accent: hsl(170, 91%, 95%);
-  --sidebar-accent-foreground: hsl(170, 91%, 25%);
-  --sidebar-border: hsl(0, 0%, 90%);
-  --sidebar-ring: hsl(170, 91%, 32%);
+  --sidebar: 0 0% 100%;
+  --sidebar-foreground: 0 0% 7%;
+  --sidebar-primary: 170 91% 32%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 170 91% 95%;
+  --sidebar-accent-foreground: 170 91% 25%;
+  --sidebar-border: 0 0% 90%;
+  --sidebar-ring: 170 91% 32%;
 
   /* Typography */
   --font-sans: 'Inter', system-ui, sans-serif;
@@ -75,43 +75,43 @@
 }
 
 .dark {
-  --background: hsl(0, 0%, 7%); /* Dark mode background */
-  --foreground: hsl(0, 0%, 95%);
-  --card: hsl(211, 50%, 15%);
-  --card-foreground: hsl(0, 0%, 95%);
-  --popover: hsl(211, 50%, 15%);
-  --popover-foreground: hsl(0, 0%, 95%);
-  --primary: hsl(170, 91%, 40%); /* Brighter turquoise for dark mode */
-  --primary-foreground: hsl(0, 0%, 7%);
-  --secondary: hsl(211, 50%, 35%); /* Lighter blue for visibility */
-  --secondary-foreground: hsl(0, 0%, 95%);
-  --muted: hsl(211, 30%, 20%);
-  --muted-foreground: hsl(210, 20%, 65%);
-  --accent: hsl(200, 90%, 60%); /* Brighter accent */
-  --accent-foreground: hsl(0, 0%, 7%);
-  --destructive: hsl(0, 62%, 45%);
-  --destructive-foreground: hsl(0, 0%, 95%);
-  --border: hsl(211, 30%, 25%);
-  --input: hsl(211, 30%, 20%);
-  --ring: hsl(170, 91%, 40%);
+  --background: 0 0% 7%; /* Dark mode background */
+  --foreground: 0 0% 95%;
+  --card: 211 50% 15%;
+  --card-foreground: 0 0% 95%;
+  --popover: 211 50% 15%;
+  --popover-foreground: 0 0% 95%;
+  --primary: 170 91% 40%; /* Brighter turquoise for dark mode */
+  --primary-foreground: 0 0% 7%;
+  --secondary: 211 50% 35%; /* Lighter blue for visibility */
+  --secondary-foreground: 0 0% 95%;
+  --muted: 211 30% 20%;
+  --muted-foreground: 210 20% 65%;
+  --accent: 200 90% 60%; /* Brighter accent */
+  --accent-foreground: 0 0% 7%;
+  --destructive: 0 62% 45%;
+  --destructive-foreground: 0 0% 95%;
+  --border: 211 30% 25%;
+  --input: 211 30% 20%;
+  --ring: 170 91% 40%;
   
   /* Gradient Colors for Dark Mode */
-  --gradient-start: hsl(210, 90%, 60%);
-  --gradient-end: hsl(170, 91%, 40%);
+  --gradient-start: 210 90% 60%;
+  --gradient-end: 170 91% 40%;
   
-  --chart-1: hsl(170, 91%, 40%);
-  --chart-2: hsl(211, 50%, 35%);
-  --chart-3: hsl(200, 90%, 60%);
-  --chart-4: hsl(180, 70%, 45%);
-  --chart-5: hsl(220, 60%, 50%);
-  --sidebar: hsl(211, 50%, 12%);
-  --sidebar-foreground: hsl(0, 0%, 95%);
-  --sidebar-primary: hsl(170, 91%, 40%);
-  --sidebar-primary-foreground: hsl(0, 0%, 7%);
-  --sidebar-accent: hsl(211, 40%, 20%);
-  --sidebar-accent-foreground: hsl(170, 91%, 50%);
-  --sidebar-border: hsl(211, 30%, 25%);
-  --sidebar-ring: hsl(170, 91%, 40%);
+  --chart-1: 170 91% 40%;
+  --chart-2: 211 50% 35%;
+  --chart-3: 200 90% 60%;
+  --chart-4: 180 70% 45%;
+  --chart-5: 220 60% 50%;
+  --sidebar: 211 50% 12%;
+  --sidebar-foreground: 0 0% 95%;
+  --sidebar-primary: 170 91% 40%;
+  --sidebar-primary-foreground: 0 0% 7%;
+  --sidebar-accent: 211 40% 20%;
+  --sidebar-accent-foreground: 170 91% 50%;
+  --sidebar-border: 211 30% 25%;
+  --sidebar-ring: 170 91% 40%;
 }
 
 @layer base {
@@ -137,26 +137,26 @@
 @layer components {
   /* E DEVISER Logo Gradient Styles */
   .gradient-logo {
-    background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+    background: linear-gradient(135deg, hsl(var(--gradient-start)) 0%, hsl(var(--gradient-end)) 100%);
   }
   
   .gradient-logo-text {
-    background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+    background: linear-gradient(135deg, hsl(var(--gradient-start)) 0%, hsl(var(--gradient-end)) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
   
   .gradient-hero {
-    background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+    background: linear-gradient(135deg, hsl(var(--gradient-start)) 0%, hsl(var(--gradient-end)) 100%);
   }
 
   .gradient-card {
-    background: linear-gradient(135deg, hsl(0, 0%, 100%) 0%, hsl(170, 91%, 98%) 100%);
+    background: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--primary) / 0.05) 100%);
   }
   
   .gradient-button {
-    background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+    background: linear-gradient(135deg, hsl(var(--gradient-start)) 0%, hsl(var(--gradient-end)) 100%);
     transition: transform 0.2s;
   }
   
@@ -167,12 +167,12 @@
   
   .gradient-border {
     position: relative;
-    background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+    background: linear-gradient(135deg, hsl(var(--gradient-start)) 0%, hsl(var(--gradient-end)) 100%);
     padding: 2px;
   }
   
   .gradient-border-inner {
-    background: var(--background);
+    background: hsl(var(--background));
     border-radius: calc(var(--radius) - 2px);
   }
 
