@@ -71,6 +71,51 @@ export default function AuthPage() {
     setLocation("/");
   };
 
+  const profileShortcuts = [
+    {
+      role: "admin",
+      username: "admin",
+      password: "admin123",
+      name: "Administrator",
+      color: "bg-red-500 hover:bg-red-600",
+      icon: "fas fa-shield-alt",
+      description: "System Administrator"
+    },
+    {
+      role: "coordinator",
+      username: "coordinator", 
+      password: "coordinator123",
+      name: "Program Coordinator",
+      color: "bg-primary hover:bg-primary/80",
+      icon: "fas fa-sitemap",
+      description: "Program Management"
+    },
+    {
+      role: "teacher",
+      username: "teacher",
+      password: "teacher123", 
+      name: "Course Teacher",
+      color: "bg-blue-500 hover:bg-blue-600",
+      icon: "fas fa-chalkboard-teacher",
+      description: "Course Instruction"
+    },
+    {
+      role: "student",
+      username: "Admin",
+      password: "student123",
+      name: "Student",
+      color: "bg-green-500 hover:bg-green-600", 
+      icon: "fas fa-graduation-cap",
+      description: "Learning Journey"
+    }
+  ];
+
+  const handleQuickLogin = (username: string, password: string) => {
+    loginForm.setValue("username", username);
+    loginForm.setValue("password", password);
+    setActiveTab("login");
+  };
+
   return (
     <div className="min-h-screen bg-background flex" data-testid="auth-page">
       {/* Left Column - Forms */}
@@ -145,6 +190,35 @@ export default function AuthPage() {
                       {loginMutation.isPending ? "Signing in..." : "Sign In"}
                     </Button>
                   </form>
+
+                  {/* Quick Login Shortcuts */}
+                  <div className="mt-6 pt-6 border-t border-border">
+                    <div className="text-center mb-4">
+                      <h4 className="text-sm font-medium text-muted-foreground">Quick Access</h4>
+                      <p className="text-xs text-muted-foreground mt-1">Demo profiles for testing</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      {profileShortcuts.map((profile) => (
+                        <Button
+                          key={profile.role}
+                          variant="outline"
+                          size="sm"
+                          className={`h-auto p-3 flex flex-col items-center space-y-2 ${profile.color} text-white border-0 hover:text-white`}
+                          onClick={() => handleQuickLogin(profile.username, profile.password)}
+                          data-testid={`shortcut-${profile.role}`}
+                        >
+                          <i className={`${profile.icon} text-lg`}></i>
+                          <div className="text-center">
+                            <div className="text-xs font-semibold">{profile.name}</div>
+                            <div className="text-xs opacity-90">{profile.description}</div>
+                          </div>
+                        </Button>
+                      ))}
+                    </div>
+                    <p className="text-xs text-muted-foreground text-center mt-3">
+                      Click any profile to auto-fill login credentials
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>
