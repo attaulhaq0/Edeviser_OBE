@@ -1130,8 +1130,8 @@ export function registerRoutes(app: Express): Server {
     
     // Validate session and get user from session store
     try {
-      const sessionData = await new Promise((resolve, reject) => {
-        sessionStore.get(sessionId, (err, session) => {
+      const sessionData = await new Promise<any>((resolve, reject) => {
+        storage.sessionStore.get(sessionId, (err: any, session: any) => {
           if (err) return reject(err);
           resolve(session);
         });
