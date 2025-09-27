@@ -1,10 +1,14 @@
 import { AuthProvider, useAuth } from './hooks/useSupabaseAuth'
 import SupabaseAuthPage from './pages/supabase-auth-page'
-import Dashboard from './pages/supabase-dashboard'
 import { Loader2 } from 'lucide-react'
+import CoordinatorDashboard from "@/components/dashboard/coordinator-dashboard";
+import { StudentOnboardingWrapper } from "@/components/onboarding/student-onboarding-wrapper";
+import TeacherDashboard from "@/components/dashboard/teacher-dashboard";
+import AdminDashboard from "@/components/dashboard/admin-dashboard";
+import { NavigationHeader } from "@/components/navigation/navigation-header";
 
 function AppContent() {
-  const { user, loading } = useAuth()
+  const { user, profile, loading } = useAuth()
 
   if (loading) {
     return (
@@ -14,11 +18,33 @@ function AppContent() {
     )
   }
 
-  if (!user) {
+  if (!user || !profile) {
     return <SupabaseAuthPage />
   }
 
-  return <Dashboard />
+  const renderDashboard = () => {
+    switch (profile.role) {
+      case "admin":
+        return <AdminDashboard />;
+      case "coordinator":
+        return <CoordinatorDashboard />;
+      case "teacher":
+        return <TeacherDashboard />;
+      case "student":
+        return <StudentOnboardingWrapper />;
+      default:
+        return <div>Invalid role</div>;
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-background">
+      <NavigationHeader />
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {renderDashboard()}
+      </main>
+    </div>
+  )
 }
 
 function SupabaseApp() {
