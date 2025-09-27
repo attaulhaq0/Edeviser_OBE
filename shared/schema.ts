@@ -8,6 +8,7 @@ export const roleEnum = pgEnum("role", ["admin", "coordinator", "teacher", "stud
 export const bloomsLevelEnum = pgEnum("blooms_level", ["remember", "understand", "apply", "analyze", "evaluate", "create"]);
 export const outcomeTypeEnum = pgEnum("outcome_type", ["ILO", "PLO", "CLO"]);
 export const badgeTypeEnum = pgEnum("badge_type", ["achievement", "mastery", "streak", "special"]);
+export const mascotTypeEnum = pgEnum("mascot_type", ["fox", "owl", "penguin"]);
 
 // Users table
 export const users = pgTable("users", {
@@ -193,6 +194,60 @@ export const studentModuleProgress = pgTable("student_module_progress", {
   completedAt: timestamp("completed_at"),
 });
 
+// Student Onboarding table
+export const studentOnboarding = pgTable("student_onboarding", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  studentId: varchar("student_id").notNull().references(() => users.id).unique(),
+  learningStyle: text("learning_style"), // visual, auditory, kinesthetic
+  studyTimePreference: text("study_time_preference"), // morning, afternoon, evening, night
+  motivationGoals: text("motivation_goals").array(), // career, grades, knowledge, etc.
+  currentEducationLevel: text("current_education_level"), // undergraduate, graduate, postgraduate
+  fieldOfStudy: text("field_of_study"),
+  weeklyStudyHours: integer("weekly_study_hours"),
+  preferredLanguage: text("preferred_language").default("english"),
+  isCompleted: boolean("is_completed").notNull().default(false),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// Mascot Selection table
+export const studentMascot = pgTable("student_mascot", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  studentId: varchar("student_id").notNull().references(() => users.id).unique(),
+  mascotType: mascotTypeEnum("mascot_type").notNull(),
+  mascotName: text("mascot_name").notNull(),
+  mascotImagePath: text("mascot_image_path").notNull(),
+  selectedAt: timestamp("selected_at").notNull().defaultNow(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// Study Streaks table
+export const studyStreaks = pgTable("study_streaks", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  studentId: varchar("student_id").notNull().references(() => users.id).unique(),
+  currentStreak: integer("current_streak").notNull().default(0),
+  longestStreak: integer("longest_streak").notNull().default(0),
+  lastActivityDate: timestamp("last_activity_date"),
+  streakStartDate: timestamp("streak_start_date"),
+  totalActiveDays: integer("total_active_days").notNull().default(0),
+  weeklyGoal: integer("weekly_goal").notNull().default(5), // days per week
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// Study Buddy Interactions table
+export const studyBuddyInteractions = pgTable("study_buddy_interactions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  studentId: varchar("student_id").notNull().references(() => users.id),
+  interactionType: text("interaction_type").notNull(), // motivation, reminder, celebration, encouragement
+  message: text("message").notNull(),
+  triggerReason: text("trigger_reason"), // streak_break, milestone, inactivity, completion
+  isRead: boolean("is_read").notNull().default(false),
+  readAt: timestamp("read_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many, one }) => ({
   coordinatedPrograms: many(programs, { relationName: "coordinator" }),
@@ -346,6 +401,28 @@ export const insertLearningModuleSchema = createInsertSchema(learningModules).om
   updatedAt: true,
 });
 
+export const insertStudentOnboardingSchema = createInsertSchema(studentOnboarding).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertStudentMascotSchema = createInsertSchema(studentMascot).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertStudyStreaksSchema = createInsertSchema(studyStreaks).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertStudyBuddyInteractionsSchema = createInsertSchema(studyBuddyInteractions).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type SafeUser = Omit<User, 'password'>;
@@ -369,14 +446,24 @@ export type StudentBadge = typeof studentBadges.$inferSelect;
 export type LearningModule = typeof learningModules.$inferSelect;
 export type InsertLearningModule = z.infer<typeof insertLearningModuleSchema>;
 export type StudentModuleProgress = typeof studentModuleProgress.$inferSelect;
+export type StudentOnboarding = typeof studentOnboarding.$inferSelect;
+export type InsertStudentOnboarding = z.infer<typeof insertStudentOnboardingSchema>;
+export type StudentMascot = typeof studentMascot.$inferSelect;
+export type InsertStudentMascot = z.infer<typeof insertStudentMascotSchema>;
+export type StudyStreaks = typeof studyStreaks.$inferSelect;
+export type InsertStudyStreaks = z.infer<typeof insertStudyStreaksSchema>;
+export type StudyBuddyInteractions = typeof studyBuddyInteractions.$inferSelect;
+export type InsertStudyBuddyInteractions = z.infer<typeof insertStudyBuddyInteractionsSchema>;
 
 // Enums export for frontend
 export const ROLES = ["admin", "coordinator", "teacher", "student"] as const;
 export const BLOOMS_LEVELS = ["remember", "understand", "apply", "analyze", "evaluate", "create"] as const;
 export const OUTCOME_TYPES = ["ILO", "PLO", "CLO"] as const;
 export const BADGE_TYPES = ["achievement", "mastery", "streak", "special"] as const;
+export const MASCOT_TYPES = ["fox", "owl", "penguin"] as const;
 
 export type Role = typeof ROLES[number];
 export type BloomsLevel = typeof BLOOMS_LEVELS[number];
 export type OutcomeType = typeof OUTCOME_TYPES[number];
 export type BadgeType = typeof BADGE_TYPES[number];
+export type MascotType = typeof MASCOT_TYPES[number];
