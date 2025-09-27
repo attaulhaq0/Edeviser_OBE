@@ -16,6 +16,24 @@ export function NavigationHeader() {
     enabled: !!user && user.role === "student",
   });
 
+  // Fetch admin statistics
+  const { data: adminStats } = useQuery({
+    queryKey: ["/api/stats/admin"],
+    enabled: !!user && user.role === "admin",
+  });
+
+  // Fetch coordinator statistics
+  const { data: coordinatorStats } = useQuery({
+    queryKey: [`/api/stats/coordinator/${user?.id}`],
+    enabled: !!user && user.role === "coordinator",
+  });
+
+  // Fetch teacher statistics
+  const { data: teacherStats } = useQuery({
+    queryKey: [`/api/stats/teacher/${user?.id}`],
+    enabled: !!user && user.role === "teacher",
+  });
+
   const handleLogout = () => {
     logoutMutation.mutate();
   };
@@ -34,21 +52,21 @@ export function NavigationHeader() {
     switch (user?.role) {
       case "coordinator":
         return [
-          { label: "Programs Managed", value: "3", icon: "fas fa-graduation-cap" },
-          { label: "Students Tracked", value: "247", icon: "fas fa-users" },
-          { label: "Outcomes Mapped", value: "89%", icon: "fas fa-chart-line" },
+          { label: "Programs Managed", value: coordinatorStats?.programsManaged?.toString() || "0", icon: "fas fa-graduation-cap" },
+          { label: "Students Tracked", value: coordinatorStats?.studentsTracked?.toString() || "0", icon: "fas fa-users" },
+          { label: "Outcomes Mapped", value: coordinatorStats?.outcomesMapped ? `${coordinatorStats.outcomesMapped}%` : "0%", icon: "fas fa-chart-line" },
         ];
       case "teacher":
         return [
-          { label: "Courses Teaching", value: "2", icon: "fas fa-chalkboard-teacher" },
-          { label: "Active Students", value: "85", icon: "fas fa-user-graduate" },
-          { label: "Assignments Created", value: "12", icon: "fas fa-tasks" },
+          { label: "Courses Teaching", value: teacherStats?.coursesTeaching?.toString() || "0", icon: "fas fa-chalkboard-teacher" },
+          { label: "Active Students", value: teacherStats?.activeStudents?.toString() || "0", icon: "fas fa-user-graduate" },
+          { label: "Assignments Created", value: teacherStats?.assignmentsCreated?.toString() || "0", icon: "fas fa-tasks" },
         ];
       case "admin":
         return [
-          { label: "Total Programs", value: "8", icon: "fas fa-university" },
-          { label: "System Users", value: "1,247", icon: "fas fa-users-cog" },
-          { label: "System Health", value: "98%", icon: "fas fa-heartbeat" },
+          { label: "Total Programs", value: adminStats?.totalPrograms?.toString() || "0", icon: "fas fa-university" },
+          { label: "System Users", value: adminStats?.systemUsers?.toLocaleString() || "0", icon: "fas fa-users-cog" },
+          { label: "System Health", value: adminStats?.systemHealth ? `${adminStats.systemHealth}%` : "0%", icon: "fas fa-heartbeat" },
         ];
       case "student":
         return [

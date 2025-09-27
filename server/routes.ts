@@ -654,6 +654,94 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Statistics endpoints for role-specific dashboard
+  app.get("/api/stats/admin", requireRole(["admin"]), async (req, res) => {
+    try {
+      const programs = await storage.getPrograms();
+      const users = await storage.getAllUsers();
+      
+      res.json({
+        totalPrograms: programs.length,
+        systemUsers: users.length,
+        systemHealth: 98 // Can be calculated based on various metrics
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch admin statistics" });
+    }
+  });
+
+  app.get("/api/stats/coordinator/:coordinatorId", requireAuth, async (req, res) => {
+    try {
+      if (req.user!.role !== 'coordinator' && req.user!.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const programs = await storage.getProgramsByCoordinator(req.params.coordinatorId);
+      const outcomes = await storage.getLearningOutcomesByType('PLO');
+      const mappings = await storage.getOutcomeMappings();
+      
+      // Calculate students in coordinator's programs
+      let totalStudents = 0;
+      for (const program of programs) {
+        const courses = await storage.getCoursesByProgram(program.id);
+        const studentSet = new Set();
+        for (const course of courses) {
+          const enrollments = await storage.getStudentEnrollmentsByCourse(course.id);
+          enrollments.forEach(e => studentSet.add(e.studentId));
+        }
+        totalStudents += studentSet.size;
+      }
+      
+      // Calculate outcomes mapped percentage
+      const coordinatorOutcomes = outcomes.filter(o => o.ownerId === req.params.coordinatorId);
+      const mappedOutcomes = coordinatorOutcomes.filter(o => 
+        mappings.some(m => m.sourceId === o.id || m.targetId === o.id)
+      );
+      const mappedPercentage = coordinatorOutcomes.length > 0 
+        ? Math.round((mappedOutcomes.length / coordinatorOutcomes.length) * 100)
+        : 0;
+      
+      res.json({
+        programsManaged: programs.length,
+        studentsTracked: totalStudents,
+        outcomesMapped: mappedPercentage
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch coordinator statistics" });
+    }
+  });
+
+  app.get("/api/stats/teacher/:teacherId", requireAuth, async (req, res) => {
+    try {
+      if (req.user!.role !== 'teacher' && req.user!.role !== 'admin') {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const courses = await storage.getCoursesByTeacher(req.params.teacherId);
+      const assignments = await storage.getAssignments();
+      
+      // Calculate active students
+      const studentSet = new Set();
+      for (const course of courses) {
+        const enrollments = await storage.getStudentEnrollmentsByCourse(course.id);
+        enrollments.forEach(e => studentSet.add(e.studentId));
+      }
+      
+      // Count teacher's assignments
+      const teacherAssignments = assignments.filter(a => 
+        courses.some(c => c.id === a.courseId)
+      );
+      
+      res.json({
+        coursesTeaching: courses.length,
+        activeStudents: studentSet.size,
+        assignmentsCreated: teacherAssignments.length
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch teacher statistics" });
+    }
+  });
+
   // Analytics routes
   app.get("/api/analytics/program/:programId", requireRole(["admin", "coordinator"]), async (req, res) => {
     try {
