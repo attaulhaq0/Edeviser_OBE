@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,12 +7,16 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { VisualMappingCanvas } from "@/components/outcomes/visual-mapping-canvas";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ProgressDisplay } from "@/components/gamification/progress-display";
 import { EvidenceRollup } from "@/components/analytics/evidence-rollup";
+import { OutcomeForm } from "@/components/outcomes/outcome-form";
 import type { Program, LearningOutcome } from "@shared/schema";
 
 export default function CoordinatorDashboard() {
   const { user } = useAuth();
+  const [ploDialogOpen, setPloDialogOpen] = useState(false);
+  const [selectedPlo, setSelectedPlo] = useState<LearningOutcome | undefined>(undefined);
 
   const { data: programs = [], isLoading: programsLoading } = useQuery<Program[]>({
     queryKey: ["/api/programs/coordinator/" + user?.id],
@@ -112,7 +117,14 @@ export default function CoordinatorDashboard() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Button className="w-full" data-testid="button-create-plo">
+                <Button 
+                  className="w-full" 
+                  data-testid="button-create-plo"
+                  onClick={() => {
+                    setSelectedPlo(undefined);
+                    setPloDialogOpen(true);
+                  }}
+                >
                   <i className="fas fa-plus mr-2"></i>
                   Create New PLO
                 </Button>
@@ -311,6 +323,90 @@ export default function CoordinatorDashboard() {
               </CardContent>
             </Card>
           </div>
+          
+          {/* PLO Management Section */}
+          <div className="space-y-6 mt-8">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-foreground">Program Learning Outcomes (PLOs)</h2>
+              <Button 
+                data-testid="button-create-new-plo-section"
+                onClick={() => {
+                  setSelectedPlo(undefined);
+                  setPloDialogOpen(true);
+                }}
+              >
+                <i className="fas fa-plus mr-2"></i>
+                Create New PLO
+              </Button>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {plos.map((plo, index) => (
+                <Card key={plo.id} className="hover:shadow-lg transition-shadow">
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                      <span data-testid={`plo-code-${index}`}>{plo.code}</span>
+                      <Badge variant="outline" className="capitalize">
+                        {plo.bloomsLevel}
+                      </Badge>
+                    </CardTitle>
+                    <CardDescription className="line-clamp-2" data-testid={`plo-title-${index}`}>
+                      {plo.title}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
+                      {plo.description}
+                    </p>
+                    <div className="flex space-x-2">
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="flex-1" 
+                        data-testid={`button-edit-plo-${index}`}
+                        onClick={() => {
+                          setSelectedPlo(plo);
+                          setPloDialogOpen(true);
+                        }}
+                      >
+                        Edit
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="flex-1" 
+                        data-testid={`button-view-plo-${index}`}
+                        onClick={() => {
+                          setSelectedPlo(plo);
+                          setPloDialogOpen(true);
+                        }}
+                      >
+                        View Details
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+              
+              {plos.length === 0 && (
+                <div className="col-span-full text-center py-12">
+                  <i className="fas fa-bullseye text-muted-foreground text-4xl mb-4"></i>
+                  <h3 className="text-lg font-semibold text-foreground mb-2">No PLOs created yet</h3>
+                  <p className="text-muted-foreground mb-4">Start by creating your first Program Learning Outcome.</p>
+                  <Button 
+                    data-testid="button-create-first-plo"
+                    onClick={() => {
+                      setSelectedPlo(undefined);
+                      setPloDialogOpen(true);
+                    }}
+                  >
+                    <i className="fas fa-plus mr-2"></i>
+                    Create Your First PLO
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
         </TabsContent>
 
         <TabsContent value="mapping">
@@ -385,6 +481,28 @@ export default function CoordinatorDashboard() {
           <EvidenceRollup />
         </TabsContent>
       </Tabs>
+      
+      {/* PLO Management Dialog */}
+      <Dialog open={ploDialogOpen} onOpenChange={setPloDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {selectedPlo ? 'Edit Program Learning Outcome' : 'Create New Program Learning Outcome'}
+            </DialogTitle>
+          </DialogHeader>
+          <OutcomeForm
+            outcome={selectedPlo}
+            onSuccess={() => {
+              setPloDialogOpen(false);
+              setSelectedPlo(undefined);
+            }}
+            onCancel={() => {
+              setPloDialogOpen(false);
+              setSelectedPlo(undefined);
+            }}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
