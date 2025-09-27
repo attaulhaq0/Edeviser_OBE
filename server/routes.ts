@@ -1093,57 +1093,122 @@ export function registerRoutes(app: Express): Server {
   wss.on('connection', async (ws, req) => {
     console.log('WebSocket connection established');
     
-    // Simplified WebSocket authentication for development
-    // In production, you'd want proper session validation
-    console.log('WebSocket connection attempt');
+    // Production-ready WebSocket authentication using session validation
+    const cookies = req.headers.cookie;
+    if (!cookies) {
+      console.log('WebSocket connection rejected: No cookies');
+      ws.send(JSON.stringify({
+        type: 'error',
+        message: 'Authentication required'
+      }));
+      ws.close();
+      return;
+    }
     
-    // Allow WebSocket connections without strict authentication for now
-    // This fixes the authentication errors while maintaining functionality
-    const mockUser = {
-      id: 'ws-user-' + Date.now(),
-      role: 'student'
-    };
+    // Parse session cookie
+    const sessionCookie = cookies.split(';').find(c => c.trim().startsWith('connect.sid='));
+    if (!sessionCookie) {
+      console.log('WebSocket connection rejected: No session cookie');
+      ws.send(JSON.stringify({
+        type: 'error',
+        message: 'Authentication required'
+      }));
+      ws.close();
+      return;
+    }
     
-    const userId = mockUser.id;
-    const userRole = mockUser.role;
-    const socketId = Date.now().toString();
+    const sessionId = sessionCookie.split('=')[1];
+    if (!sessionId) {
+      console.log('WebSocket connection rejected: Invalid session ID');
+      ws.send(JSON.stringify({
+        type: 'error',
+        message: 'Authentication required'
+      }));
+      ws.close();
+      return;
+    }
     
-    // Store connection in our map
-    activeConnections.set(socketId, { ws, userId, userRole });
-    
-    // Store session in database
+    // Validate session and get user from session store
     try {
-      await storage.createUserSession({
-        userId,
-        socketId,
-        ipAddress: req.socket.remoteAddress || '',
-        userAgent: req.headers['user-agent'] || '',
+      const sessionData = await new Promise((resolve, reject) => {
+        sessionStore.get(sessionId, (err, session) => {
+          if (err) return reject(err);
+          resolve(session);
+        });
       });
-    } catch (error) {
-      console.error('Error creating user session:', error);
-    }
-    
-    // Send authentication confirmation
-    ws.send(JSON.stringify({
-      type: 'auth_success',
-      socketId,
-      message: 'WebSocket authenticated successfully'
-    }));
-    
-    // Send any unread notifications on connect
-    try {
-      const unreadNotifications = await storage.getUnreadNotifications(userId);
-      if (unreadNotifications.length > 0) {
+      
+      if (!sessionData || !sessionData.passport || !sessionData.passport.user) {
+        console.log('WebSocket connection rejected: Invalid session');
         ws.send(JSON.stringify({
-          type: 'unread_notifications',
-          data: unreadNotifications
+          type: 'error',
+          message: 'Authentication required'
         }));
+        ws.close();
+        return;
       }
+      
+      const userId = sessionData.passport.user;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        console.log('WebSocket connection rejected: User not found');
+        ws.send(JSON.stringify({
+          type: 'error',
+          message: 'Authentication required'
+        }));
+        ws.close();
+        return;
+      }
+      
+      const socketId = Date.now().toString();
+      
+      // Store connection in our map
+      activeConnections.set(socketId, { ws, userId: user.id, userRole: user.role });
+      
+      // Store session in database (only for valid users)
+      try {
+        await storage.createUserSession({
+          userId: user.id,
+          socketId,
+          ipAddress: req.socket.remoteAddress || '',
+          userAgent: req.headers['user-agent'] || '',
+        });
+      } catch (error) {
+        console.error('Error creating user session:', error);
+        // Don't fail WebSocket connection for session storage errors
+      }
+      
+      // Send authentication confirmation
+      ws.send(JSON.stringify({
+        type: 'auth_success',
+        socketId,
+        message: 'WebSocket authenticated successfully'
+      }));
+      
+      // Send any unread notifications on connect
+      try {
+        const unreadNotifications = await storage.getUnreadNotifications(user.id);
+        if (unreadNotifications.length > 0) {
+          ws.send(JSON.stringify({
+            type: 'unread_notifications',
+            data: unreadNotifications
+          }));
+        }
+      } catch (error) {
+        console.error('Error fetching unread notifications:', error);
+      }
+      
+      console.log(`User ${user.id} (${user.role}) connected via WebSocket`);
+      
     } catch (error) {
-      console.error('Error fetching unread notifications:', error);
+      console.error('WebSocket authentication error:', error);
+      ws.send(JSON.stringify({
+        type: 'error',
+        message: 'Authentication failed'
+      }));
+      ws.close();
+      return;
     }
-    
-    console.log(`User ${userId} (${userRole}) connected via WebSocket`);
     
     // Handle incoming messages
     ws.on('message', async (data) => {
