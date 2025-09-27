@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,13 +7,17 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { OutcomeForm } from "@/components/outcomes/outcome-form";
 import type { SafeUser, Program, LearningOutcome } from "@shared/schema";
 
 export default function AdminDashboard() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [iloDialogOpen, setIloDialogOpen] = useState(false);
+  const [selectedIlo, setSelectedIlo] = useState<LearningOutcome | undefined>(undefined);
 
   const roleUpdateMutation = useMutation({
     mutationFn: async ({ userId, role }: { userId: string; role: string }) => {
@@ -503,7 +508,13 @@ export default function AdminDashboard() {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold text-foreground">Institutional Learning Outcomes (ILOs)</h2>
-              <Button data-testid="button-create-new-ilo">
+              <Button 
+                data-testid="button-create-new-ilo"
+                onClick={() => {
+                  setSelectedIlo(undefined);
+                  setIloDialogOpen(true);
+                }}
+              >
                 <i className="fas fa-plus mr-2"></i>
                 Create New ILO
               </Button>
@@ -528,10 +539,28 @@ export default function AdminDashboard() {
                       {ilo.description}
                     </p>
                     <div className="flex space-x-2">
-                      <Button size="sm" variant="outline" className="flex-1" data-testid={`button-edit-ilo-${index}`}>
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="flex-1" 
+                        data-testid={`button-edit-ilo-${index}`}
+                        onClick={() => {
+                          setSelectedIlo(ilo);
+                          setIloDialogOpen(true);
+                        }}
+                      >
                         Edit
                       </Button>
-                      <Button size="sm" variant="outline" className="flex-1" data-testid={`button-view-ilo-${index}`}>
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="flex-1" 
+                        data-testid={`button-view-ilo-${index}`}
+                        onClick={() => {
+                          setSelectedIlo(ilo);
+                          setIloDialogOpen(true);
+                        }}
+                      >
                         View Details
                       </Button>
                     </div>
@@ -544,7 +573,13 @@ export default function AdminDashboard() {
                   <i className="fas fa-university text-muted-foreground text-4xl mb-4"></i>
                   <h3 className="text-lg font-semibold text-foreground mb-2">No ILOs created yet</h3>
                   <p className="text-muted-foreground mb-4">Start by creating your first Institutional Learning Outcome.</p>
-                  <Button data-testid="button-create-first-ilo">
+                  <Button 
+                    data-testid="button-create-first-ilo"
+                    onClick={() => {
+                      setSelectedIlo(undefined);
+                      setIloDialogOpen(true);
+                    }}
+                  >
                     <i className="fas fa-plus mr-2"></i>
                     Create Your First ILO
                   </Button>
@@ -618,6 +653,28 @@ export default function AdminDashboard() {
           </div>
         </TabsContent>
       </Tabs>
+      
+      {/* ILO Management Dialog */}
+      <Dialog open={iloDialogOpen} onOpenChange={setIloDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {selectedIlo ? 'Edit Institutional Learning Outcome' : 'Create New Institutional Learning Outcome'}
+            </DialogTitle>
+          </DialogHeader>
+          <OutcomeForm
+            outcome={selectedIlo}
+            onSuccess={() => {
+              setIloDialogOpen(false);
+              setSelectedIlo(undefined);
+            }}
+            onCancel={() => {
+              setIloDialogOpen(false);
+              setSelectedIlo(undefined);
+            }}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
