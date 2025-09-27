@@ -8,12 +8,15 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { OutcomeForm } from "@/components/outcomes/outcome-form";
+import { AssignmentForm } from "@/components/assignments/assignment-form";
 import type { Course, Assignment, StudentSubmission, LearningOutcome } from "@shared/schema";
 
 export default function TeacherDashboard() {
   const { user } = useAuth();
   const [cloDialogOpen, setCloDialogOpen] = useState(false);
   const [selectedClo, setSelectedClo] = useState<LearningOutcome | undefined>(undefined);
+  const [assignmentDialogOpen, setAssignmentDialogOpen] = useState(false);
+  const [selectedAssignment, setSelectedAssignment] = useState<Assignment | undefined>(undefined);
 
   const { data: courses = [], isLoading: coursesLoading } = useQuery<Course[]>({
     queryKey: ["/api/courses/teacher/" + user?.id],
@@ -105,9 +108,10 @@ export default function TeacherDashboard() {
 
       {/* Dashboard Tabs */}
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview" data-testid="tab-overview">Overview</TabsTrigger>
           <TabsTrigger value="courses" data-testid="tab-courses">My Courses</TabsTrigger>
+          <TabsTrigger value="assignments" data-testid="tab-assignments">Assignments</TabsTrigger>
           <TabsTrigger value="grading" data-testid="tab-grading">Grading</TabsTrigger>
           <TabsTrigger value="outcomes" data-testid="tab-outcomes">CLO Management</TabsTrigger>
         </TabsList>
@@ -123,7 +127,14 @@ export default function TeacherDashboard() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Button className="w-full" data-testid="button-create-assignment">
+                <Button 
+                  className="w-full" 
+                  data-testid="button-create-assignment"
+                  onClick={() => {
+                    setSelectedAssignment(undefined);
+                    setAssignmentDialogOpen(true);
+                  }}
+                >
                   <i className="fas fa-plus mr-2"></i>
                   Create Assignment
                 </Button>
@@ -341,6 +352,97 @@ export default function TeacherDashboard() {
           </div>
         </TabsContent>
 
+        <TabsContent value="assignments">
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-foreground">My Assignments</h2>
+              <Button 
+                data-testid="button-create-new-assignment"
+                onClick={() => {
+                  setSelectedAssignment(undefined);
+                  setAssignmentDialogOpen(true);
+                }}
+              >
+                <i className="fas fa-plus mr-2"></i>
+                Create New Assignment
+              </Button>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {teacherAssignments.map((assignment, index) => (
+                <Card key={assignment.id} className="hover:shadow-lg transition-shadow">
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                      <span data-testid={`assignment-title-${index}`}>{assignment.title}</span>
+                      <Badge variant="outline">
+                        {assignment.totalPoints} pts
+                      </Badge>
+                    </CardTitle>
+                    <CardDescription className="line-clamp-2" data-testid={`assignment-description-${index}`}>
+                      {assignment.description || "No description provided"}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div className="text-sm text-muted-foreground">
+                        <p><strong>Course:</strong> {courses.find(c => c.id === assignment.courseId)?.code || "Unknown"}</p>
+                        {assignment.dueDate && (
+                          <p><strong>Due:</strong> {new Date(assignment.dueDate).toLocaleDateString()}</p>
+                        )}
+                        <p><strong>Status:</strong> {assignment.isActive ? "Active" : "Inactive"}</p>
+                      </div>
+                      <div className="flex space-x-2">
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="flex-1" 
+                          data-testid={`button-edit-assignment-${index}`}
+                          onClick={() => {
+                            setSelectedAssignment(assignment);
+                            setAssignmentDialogOpen(true);
+                          }}
+                        >
+                          Edit
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="flex-1" 
+                          data-testid={`button-view-assignment-${index}`}
+                          onClick={() => {
+                            setSelectedAssignment(assignment);
+                            setAssignmentDialogOpen(true);
+                          }}
+                        >
+                          View Details
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+              
+              {teacherAssignments.length === 0 && (
+                <div className="col-span-full text-center py-12">
+                  <i className="fas fa-clipboard-list text-muted-foreground text-4xl mb-4"></i>
+                  <h3 className="text-lg font-semibold text-foreground mb-2">No assignments created yet</h3>
+                  <p className="text-muted-foreground mb-4">Start by creating your first assignment for your students.</p>
+                  <Button 
+                    data-testid="button-create-first-assignment"
+                    onClick={() => {
+                      setSelectedAssignment(undefined);
+                      setAssignmentDialogOpen(true);
+                    }}
+                  >
+                    <i className="fas fa-plus mr-2"></i>
+                    Create Your First Assignment
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+        </TabsContent>
+
         <TabsContent value="grading">
           <Card>
             <CardHeader>
@@ -485,6 +587,28 @@ export default function TeacherDashboard() {
             onCancel={() => {
               setCloDialogOpen(false);
               setSelectedClo(undefined);
+            }}
+          />
+        </DialogContent>
+      </Dialog>
+      
+      {/* Assignment Management Dialog */}
+      <Dialog open={assignmentDialogOpen} onOpenChange={setAssignmentDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {selectedAssignment ? 'Edit Assignment' : 'Create New Assignment'}
+            </DialogTitle>
+          </DialogHeader>
+          <AssignmentForm
+            assignment={selectedAssignment}
+            onSuccess={() => {
+              setAssignmentDialogOpen(false);
+              setSelectedAssignment(undefined);
+            }}
+            onCancel={() => {
+              setAssignmentDialogOpen(false);
+              setSelectedAssignment(undefined);
             }}
           />
         </DialogContent>
