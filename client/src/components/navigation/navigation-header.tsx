@@ -64,13 +64,13 @@ export function NavigationHeader() {
   return (
     <nav className="bg-card shadow-sm border-b border-border sticky top-0 z-50" data-testid="navigation-header">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex justify-between items-center py-2">
           {/* Logo and Brand */}
           <div className="flex items-center">
             <img 
               src={edeviserLogo} 
               alt="Edeviser Logo" 
-              className="h-12 w-auto" 
+              className="h-20 w-auto" 
               data-testid="img-logo"
             />
           </div>
