@@ -325,7 +325,7 @@ export class AlertGenerator {
 
       // Create notifications in database
       for (const targetUserId of Array.from(new Set(notificationTargets))) {
-        await storage.createAlertNotification({
+        await storage.createNotification({
           alertId: alert.id,
           userId: targetUserId,
           notificationType: 'in_app',

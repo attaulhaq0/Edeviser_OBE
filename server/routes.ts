@@ -996,12 +996,23 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Alert Notifications routes
+  // Unified Notifications API with role-based access control
   app.get("/api/notifications", requireAuth, async (req, res) => {
     try {
-      const notifications = await storage.getAlertNotifications(req.user!.id);
+      const { unread, type, priority } = req.query;
+      const userId = req.user!.id;
+      const userRole = req.user!.role;
+      
+      // Get notifications with role-based filtering
+      const notifications = await storage.getNotifications(userId, { 
+        unread: unread === 'true',
+        type: type as string,
+        priority: priority as string
+      });
+      
       res.json(notifications);
     } catch (error) {
+      console.error('Failed to fetch notifications:', error);
       res.status(500).json({ message: "Failed to fetch notifications" });
     }
   });
@@ -1027,6 +1038,15 @@ export function registerRoutes(app: Express): Server {
       res.json(notification);
     } catch (error) {
       res.status(500).json({ message: "Failed to mark notification as read" });
+    }
+  });
+
+  app.put("/api/notifications/mark-all-read", requireAuth, async (req, res) => {
+    try {
+      await storage.markAllNotificationsAsRead(req.user!.id);
+      res.json({ message: "All notifications marked as read" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to mark all notifications as read" });
     }
   });
 

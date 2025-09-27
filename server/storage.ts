@@ -135,12 +135,14 @@ export interface IStorage {
   acknowledgeAlert(alertId: string, userId: string): Promise<AcademicAlerts | undefined>;
   resolveAlert(alertId: string, userId: string, resolutionNotes?: string): Promise<AcademicAlerts | undefined>;
 
-  // Alert Notifications operations
-  getAlertNotifications(userId: string): Promise<AlertNotifications[]>;
-  createAlertNotification(notification: InsertAlertNotifications): Promise<AlertNotifications>;
+  // Unified Notification operations
+  getNotifications(userId: string, filters?: { unread?: boolean; type?: string; priority?: string }): Promise<AlertNotifications[]>;
+  createNotification(notification: InsertAlertNotifications): Promise<AlertNotifications>;
   markNotificationAsRead(notificationId: string): Promise<AlertNotifications | undefined>;
   markNotificationAsDelivered(notificationId: string): Promise<AlertNotifications | undefined>;
+  markAllNotificationsAsRead(userId: string): Promise<void>;
   getUnreadNotifications(userId: string): Promise<AlertNotifications[]>;
+  getNotificationsByRole(userRole: string, scope?: { programId?: string; courseId?: string }): Promise<AlertNotifications[]>;
 
   // User Sessions operations (for WebSocket management)
   getUserSession(socketId: string): Promise<UserSessions | undefined>;
@@ -761,21 +763,45 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Alert Notifications implementations
-  async getAlertNotifications(userId: string): Promise<AlertNotifications[]> {
+  async getNotifications(userId: string, filters: { unread?: boolean; type?: string; priority?: string } = {}): Promise<AlertNotifications[]> {
+    let whereConditions = [eq(alertNotifications.userId, userId)];
+    
+    if (filters.unread) {
+      whereConditions.push(eq(alertNotifications.isRead, false));
+    }
+    
     const notifications = await db
       .select()
       .from(alertNotifications)
-      .where(eq(alertNotifications.userId, userId))
+      .where(and(...whereConditions))
       .orderBy(desc(alertNotifications.createdAt));
     return notifications;
   }
 
-  async createAlertNotification(insertNotification: InsertAlertNotifications): Promise<AlertNotifications> {
+  async createNotification(insertNotification: InsertAlertNotifications): Promise<AlertNotifications> {
     const [notification] = await db
       .insert(alertNotifications)
       .values(insertNotification)
       .returning();
     return notification;
+  }
+  
+  async markAllNotificationsAsRead(userId: string): Promise<void> {
+    await db
+      .update(alertNotifications)
+      .set({ isRead: true, readAt: new Date() })
+      .where(and(
+        eq(alertNotifications.userId, userId),
+        eq(alertNotifications.isRead, false)
+      ));
+  }
+  
+  async getNotificationsByRole(userRole: string, scope: { programId?: string; courseId?: string } = {}): Promise<AlertNotifications[]> {
+    // Role-based notification filtering - for future expansion
+    return await db
+      .select()
+      .from(alertNotifications)
+      .orderBy(desc(alertNotifications.createdAt));
   }
 
   async markNotificationAsRead(notificationId: string): Promise<AlertNotifications | undefined> {
