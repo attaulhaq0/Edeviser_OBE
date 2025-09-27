@@ -3,8 +3,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
-import { Badge } from "@/components/ui/badge";
 import { UnifiedNotificationCenter } from "@/components/notifications/unified-notification-center";
+import edeviserLogo from "@assets/edeviser-logo.png";
 
 export function NavigationHeader() {
   const { user, logoutMutation } = useAuth();
@@ -66,14 +66,13 @@ export function NavigationHeader() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo and Brand */}
-          <div className="flex items-center space-x-3">
-            <div className="bg-primary text-primary-foreground w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg">
-              E
-            </div>
-            <div className="text-xl font-bold text-foreground">E Deviser</div>
-            <Badge variant="secondary" className="text-xs">
-              OBE Hub
-            </Badge>
+          <div className="flex items-center">
+            <img 
+              src={edeviserLogo} 
+              alt="Edeviser Logo" 
+              className="h-8 w-auto" 
+              data-testid="img-logo"
+            />
           </div>
 
           {/* User Profile & Role Info */}

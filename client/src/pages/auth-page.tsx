@@ -11,6 +11,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertUserSchema } from "@shared/schema";
 import { z } from "zod";
+import edeviserLogo from "@assets/edeviser-logo.png";
 
 const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -122,13 +123,15 @@ export default function AuthPage() {
       <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8">
         <div className="w-full max-w-md space-y-8">
           <div className="text-center">
-            <div className="flex items-center justify-center space-x-3 mb-6">
-              <div className="bg-primary text-primary-foreground w-12 h-12 rounded-xl flex items-center justify-center font-bold text-xl">
-                E
-              </div>
-              <div className="text-2xl font-bold text-foreground">E Deviser</div>
+            <div className="flex items-center justify-center mb-6">
+              <img 
+                src={edeviserLogo} 
+                alt="Edeviser Logo" 
+                className="h-12 w-auto" 
+                data-testid="img-auth-logo"
+              />
             </div>
-            <h2 className="text-3xl font-bold text-foreground">Welcome to OBE Hub</h2>
+            <h2 className="text-3xl font-bold text-foreground">Welcome</h2>
             <p className="mt-2 text-sm text-muted-foreground">
               Your gamified learning outcome mastery platform
             </p>
