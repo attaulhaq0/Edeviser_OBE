@@ -1,0 +1,66 @@
+@echo off
+echo 🚀 E-Deviser LXP - Complete Deployment Guide
+echo =============================================
+echo.
+
+echo 📋 Step 1: Initialize Git Repository
+echo ------------------------------------
+echo Run these commands in your project directory:
+echo.
+echo git init
+echo git add .
+echo git commit -m "Initial commit: E-Deviser LXP with Supabase integration"
+echo.
+
+echo 📋 Step 2: Create GitHub Repository
+echo -----------------------------------
+echo Option A - Using GitHub CLI (recommended):
+echo 1. Install GitHub CLI: https://cli.github.com/
+echo 2. Login: gh auth login
+echo 3. Create repo: gh repo create e-deviser-lxp --public --push
+echo.
+echo Option B - Using GitHub Web:
+echo 1. Go to https://github.com/new
+echo 2. Repository name: e-deviser-lxp
+echo 3. Description: OBE Learning Management System with Supabase
+echo 4. Set to Public
+echo 5. Click 'Create repository'
+echo 6. Follow the push instructions shown
+echo.
+
+echo 📋 Step 3: Deploy to Vercel
+echo ---------------------------
+echo Option A - Using Vercel CLI:
+echo 1. Install: npm install -g vercel
+echo 2. Login: vercel login
+echo 3. Deploy: vercel --prod
+echo.
+echo Option B - Using Vercel Dashboard:
+echo 1. Go to https://vercel.com/new
+echo 2. Import your GitHub repository
+echo 3. Use these settings:
+echo    - Framework: Vite
+echo    - Build Command: npm run build
+echo    - Output Directory: dist/public
+echo.
+
+echo 📋 Step 4: Configure Environment Variables
+echo ------------------------------------------
+echo In Vercel Dashboard → Settings → Environment Variables, add:
+echo.
+echo VITE_SUPABASE_URL=https://farydblfbtxtzwjbpsuk.supabase.co
+echo VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhcnlkYmxmYnR4dHp3amJwc3VrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzc3NDc1NTMsImV4cCI6MjA1MzMyMzU1M30.K3iY4ZOtP5I_VGFJcOeqcyDBHE9cFNj0Jy6HjYy6O4E
+echo NODE_ENV=production
+echo.
+
+echo 🎉 Your E-Deviser LXP will be live!
+echo.
+echo ✅ Features available after deployment:
+echo - Beautiful login page with animations
+echo - 4 demo login buttons (Admin, Coordinator, Teacher, Student)
+echo - Full Supabase authentication integration
+echo - Responsive design for all devices
+echo - Role-based access control
+echo.
+
+pause

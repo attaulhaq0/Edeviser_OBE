@@ -5,10 +5,17 @@
   "license": "MIT",
   "scripts": {
     "dev": "NODE_ENV=development tsx server/index.ts",
-    "build": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
+    "dev:supabase": "vite dev",
+    "build": "vite build",
+    "build:full": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
     "start": "NODE_ENV=production node dist/index.js",
+    "preview": "vite preview",
     "check": "tsc",
-    "db:push": "drizzle-kit push"
+    "db:push": "drizzle-kit push",
+    "seed:demo": "node scripts/seed-demo-users.js",
+    "setup:supabase": "node scripts/setup-supabase.js",
+    "check:database": "node scripts/check-database.js",
+    "fix:profiles": "node scripts/fix-profiles.js"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -44,6 +51,7 @@
     "@radix-ui/react-toggle": "^1.1.3",
     "@radix-ui/react-toggle-group": "^1.1.3",
     "@radix-ui/react-tooltip": "^1.2.0",
+    "@supabase/supabase-js": "^2.58.0",
     "@tanstack/react-query": "^5.60.5",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
