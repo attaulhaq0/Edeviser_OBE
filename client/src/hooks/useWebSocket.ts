@@ -33,7 +33,9 @@ export const useWebSocket = () => {
     if (!user || wsRef.current?.readyState === WebSocket.OPEN) return;
 
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const wsUrl = `${protocol}//${window.location.host}/ws`;
+    // Fix for Replit environment where window.location.host might be undefined
+    const host = window.location.host || window.location.hostname + (window.location.port ? `:${window.location.port}` : ':5000');
+    const wsUrl = `${protocol}//${host}/ws`;
     
     try {
       const ws = new WebSocket(wsUrl);
