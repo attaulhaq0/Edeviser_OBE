@@ -375,9 +375,10 @@ export function registerRoutes(app: Express): Server {
 
   app.post("/api/student-submissions", requireAuth, async (req, res) => {
     try {
+      const user = req.user!; // Safe because of requireAuth middleware
       const data = insertStudentSubmissionSchema.parse({
         ...req.body,
-        studentId: req.user.role === "student" ? req.user.id : req.body.studentId,
+        studentId: user.role === "student" ? user.id : req.body.studentId,
       });
       const submission = await storage.createStudentSubmission(data);
       res.status(201).json(submission);
@@ -388,9 +389,10 @@ export function registerRoutes(app: Express): Server {
 
   app.put("/api/student-submissions/:id", requireAuth, async (req, res) => {
     try {
+      const user = req.user!; // Safe because of requireAuth middleware
       const updates = {
         ...req.body,
-        gradedBy: req.user.role !== "student" ? req.user.id : undefined,
+        gradedBy: user.role !== "student" ? user.id : undefined,
         gradedAt: req.body.totalScore !== undefined ? new Date() : undefined,
       };
       const submission = await storage.updateStudentSubmission(req.params.id, updates);

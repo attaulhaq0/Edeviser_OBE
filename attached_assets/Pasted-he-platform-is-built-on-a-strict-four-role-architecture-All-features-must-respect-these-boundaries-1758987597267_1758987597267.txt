@@ -1,0 +1,26 @@
+he platform is built on a strict, four-role architecture. All features must respect these boundaries:
+
+*   **Administrator (The Institutional Strategist):** The top-level user. Their primary responsibility is to create and manage the institution's highest-level goals: Institutional Learning Outcomes (ILOs). They have override permissions on Program Learning Outcomes (PLOs) and view institution-wide analytics.
+*   **Coordinator (The Curriculum Architect):** Scoped to a specific academic program. Their primary responsibility is to create and manage PLOs for their program and to build the curriculum map by linking Course Learning Outcomes (CLOs) to PLOs. They are also the primary creators of the empty `Course` shells.
+*   **Teacher (The Experience Designer):** Scoped to their assigned courses. Their primary responsibility is to define the CLOs for their course (with Coordinator approval) and to build the entire learning experience. They create `Learning Modules` and their content, including assignments and rubrics.
+*   **Student (The Learner & Achiever):** The central user. They engage with the learning path, submit work, and their actions generate the evidence that powers the entire system.
+
+**3. The Golden Path: The Core OBE Data Flow**
+
+This end-to-end data pipeline is the non-negotiable backbone of the application and must be implemented precisely:
+
+1.  An **Admin** defines an `ILO`.
+2.  A **Coordinator** maps a `PLO` to that `ILO`.
+3.  The **Coordinator** creates a `Course` shell and assigns a `Teacher`.
+4.  The **Teacher** defines a `CLO` (tagged with a Bloom's Taxonomy level) and builds a `Learning Module` for it.
+5.  A **Student** submits an assignment within that module.
+6.  The **Teacher** grades the assignment. **This is the critical trigger.**
+7.  The system must automatically generate an "Evidence" record that is instantly and traceably linked up the entire chain: `Submission → CLO → PLO → ILO`. This "roll-up" ensures data is available in real-time to the analytics dashboards of all relevant roles.
+
+**4. The Student Experience: The Duolingo-Style UI**
+
+The student dashboard is the centerpiece of the user experience and must be implemented as specified:
+
+*   **Layout:** A three-column design with a left sidebar for navigation, a right sidebar for daily quests and leaderboards, and a central column for the learning path.
+*   **Learning Path:** A vertical, zig-zagging path of circular nodes representing lessons, quizzes, assignments, and reward chests. Nodes must have clear `LOCKED`, `AVAILABLE`, and `DONE` visual states.
+*   **Gamification:** The system must be fully gamified with daily streaks (enforced by a "Streak Gate" modal), points/gems, badges for achievements, and competitive leaderboards.
