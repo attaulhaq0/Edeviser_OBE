@@ -206,6 +206,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signInWithDemo = async (role: 'admin' | 'coordinator' | 'teacher' | 'student') => {
+    console.log('🔑 signInWithDemo called with role:', role)
     const demoCredentials = {
       admin: { email: 'admin@edeviser.demo', password: 'admin123' },
       coordinator: { email: 'coordinator@edeviser.demo', password: 'coord123' },
@@ -214,7 +215,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     const { email, password } = demoCredentials[role]
-    return await signIn(email, password)
+    console.log('🔐 Demo credentials:', { email, password: '***' })
+    const result = await signIn(email, password)
+    console.log('📤 Demo signIn result:', result)
+    return result
   }
 
   const updateProfile = async (updates: Partial<Profile>) => {

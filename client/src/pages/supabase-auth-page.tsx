@@ -13,7 +13,6 @@ export default function SupabaseAuthPage() {
   const { signIn, signUp, signInWithDemo, loading } = useAuth()
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
 
   // Login form state
   const [loginData, setLoginData] = useState({
@@ -35,15 +34,12 @@ export default function SupabaseAuthPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
-    setIsLoading(true)
 
     const { error } = await signIn(loginData.email, loginData.password)
     
     if (error) {
       setError(error.message)
     }
-    
-    setIsLoading(false)
   }
 
   const handleRegister = async (e: React.FormEvent) => {
@@ -55,8 +51,6 @@ export default function SupabaseAuthPage() {
       setError("Passwords don't match")
       return
     }
-
-    setIsLoading(true)
 
     const { error } = await signUp(registerData.email, registerData.password, {
       username: registerData.username,
@@ -79,27 +73,28 @@ export default function SupabaseAuthPage() {
         role: 'student'
       })
     }
-
-    setIsLoading(false)
   }
 
   const handleDemoLogin = async (role: keyof typeof DEMO_CREDENTIALS) => {
+    console.log('🎯 Demo login started for role:', role)
     setError(null)
     setSuccess(null)
-    setIsLoading(true)
 
     try {
+      console.log('🔐 Calling signInWithDemo...')
       const { error } = await signInWithDemo(role)
+      console.log('📋 signInWithDemo result:', { error })
       
       if (error) {
+        console.error('❌ Demo login failed:', error)
         setError(`Demo login failed: ${error.message}`)
       } else {
+        console.log('✅ Demo login successful!')
         setSuccess(`Demo login successful! Redirecting to ${role} dashboard...`)
       }
     } catch (err) {
+      console.error('❌ Demo login exception:', err)
       setError(`Demo login error: ${err instanceof Error ? err.message : 'Unknown error'}`)
-    } finally {
-      setIsLoading(false)
     }
   }
 
@@ -198,9 +193,9 @@ export default function SupabaseAuthPage() {
                     <Button 
                       type="submit" 
                       className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium py-3 shadow-lg" 
-                      disabled={isLoading}
+                      disabled={loading}
                     >
-                      {isLoading && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+                      {loading && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
                       Sign In
                     </Button>
                   </CardFooter>
@@ -217,11 +212,11 @@ export default function SupabaseAuthPage() {
                             size="sm"
                             className="h-10 px-3 text-xs bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 hover:border-blue-300 flex items-center justify-center"
                             onClick={() => handleDemoLogin(role as keyof typeof DEMO_CREDENTIALS)}
-                            disabled={isLoading}
+                            disabled={loading}
                             title={`${credentials.firstName} ${credentials.lastName}`}
                           >
                             <div className="flex items-center gap-1.5">
-                              {isLoading ? (
+                              {loading ? (
                                 <Loader2 className="h-3 w-3 animate-spin" />
                               ) : (
                                 getRoleIcon(role)
@@ -327,9 +322,9 @@ export default function SupabaseAuthPage() {
                     <Button 
                       type="submit" 
                       className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium py-3 shadow-lg" 
-                      disabled={isLoading}
+                      disabled={loading}
                     >
-                      {isLoading && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+                      {loading && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
                       Create Account
                     </Button>
                   </CardFooter>
