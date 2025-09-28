@@ -1,618 +1,294 @@
 import { useState } from "react";
-import { useAuth } from "@/hooks/use-auth";
-import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/useSupabaseAuth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { OutcomeForm } from "@/components/outcomes/outcome-form";
-import { AssignmentForm } from "@/components/assignments/assignment-form";
-import type { Course, Assignment, StudentSubmission, LearningOutcome } from "@shared/schema";
+import { BookOpen, Users, CheckCircle, Calendar, FileText, Award } from "lucide-react";
 
 export default function TeacherDashboard() {
-  const { user } = useAuth();
-  const [cloDialogOpen, setCloDialogOpen] = useState(false);
-  const [selectedClo, setSelectedClo] = useState<LearningOutcome | undefined>(undefined);
-  const [assignmentDialogOpen, setAssignmentDialogOpen] = useState(false);
-  const [selectedAssignment, setSelectedAssignment] = useState<Assignment | undefined>(undefined);
+  const { profile } = useAuth();
+  const [activeTab, setActiveTab] = useState("overview");
 
-  const { data: courses = [], isLoading: coursesLoading } = useQuery<Course[]>({
-    queryKey: ["/api/courses/teacher/" + user?.id],
-    enabled: !!user,
-  });
-
-  const { data: assignments = [] } = useQuery<Assignment[]>({
-    queryKey: ["/api/assignments"],
-    enabled: !!user,
-  });
-
-  const { data: submissions = [] } = useQuery<StudentSubmission[]>({
-    queryKey: ["/api/student-submissions"],
-    enabled: !!user,
-  });
-
-  const { data: learningOutcomes = [] } = useQuery<LearningOutcome[]>({
-    queryKey: ["/api/learning-outcomes"],
-    enabled: !!user,
-  });
-
-  const teacherCourses = courses || [];
-  const teacherAssignments = assignments?.filter(a => a.teacherId === user?.id) || [];
-  const pendingGrading = submissions?.filter(s => !s.gradedAt && 
-    teacherAssignments.some(a => a.id === s.assignmentId)) || [];
-
-  const clos = learningOutcomes?.filter(outcome => 
-    outcome.type === "CLO" && outcome.ownerId === user?.id) || [];
-
-  if (coursesLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading dashboard...</p>
-        </div>
-      </div>
-    );
+  if (!profile) {
+    return <div className="p-6">Loading...</div>;
   }
 
   return (
-    <div className="space-y-8" data-testid="teacher-dashboard">
-      {/* Welcome Hero Section */}
-      <section className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl p-8 text-white relative overflow-hidden">
-        <div className="relative z-10">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold mb-2" data-testid="welcome-title">
-                Welcome back, Professor {user?.firstName}! 📚
-              </h1>
-              <p className="text-lg opacity-90 mb-4">
-                Ready to inspire and educate your students today?
-              </p>
-              <div className="flex items-center space-x-6">
-                <div className="flex items-center space-x-2">
-                  <i className="fas fa-chalkboard-teacher text-xl"></i>
-                  <span className="font-medium" data-testid="stat-courses-teaching">
-                    {teacherCourses.length} Courses Teaching
-                  </span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <i className="fas fa-tasks text-xl"></i>
-                  <span className="font-medium" data-testid="stat-assignments-created">
-                    {teacherAssignments.length} Assignments Created
-                  </span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <i className="fas fa-clock text-xl"></i>
-                  <span className="font-medium" data-testid="stat-pending-grading">
-                    {pendingGrading.length} Pending Grading
-                  </span>
-                </div>
-              </div>
-            </div>
-            
-            <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 text-center min-w-[120px]">
-              <i className="fas fa-award text-3xl text-yellow-300 mb-2"></i>
-              <div className="text-sm font-medium">Teaching</div>
-              <div className="text-sm font-medium">Excellence</div>
-              <div className="text-xs opacity-75 mt-1">Level 4</div>
-            </div>
+    <div className="min-h-screen bg-white">
+      <div className="space-y-8 p-8">
+        {/* Welcome Header */}
+        <div className="relative overflow-hidden bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 text-white rounded-2xl p-8 shadow-2xl">
+          <div className="absolute inset-0 bg-black/10"></div>
+          <div className="relative z-10">
+            <h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-white to-green-100 bg-clip-text text-transparent">
+              Welcome back, {profile.first_name}! 📚
+            </h1>
+            <p className="text-green-100 text-lg">
+              Manage your courses and track student progress with powerful insights
+            </p>
           </div>
+          <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-white/10 to-transparent rounded-full -mr-48 -mt-48"></div>
         </div>
-        
-        {/* Decorative elements */}
-        <div className="absolute top-4 right-4 w-32 h-32 bg-white/10 rounded-full animate-pulse"></div>
-        <div className="absolute bottom-4 left-4 w-20 h-20 bg-white/5 rounded-full"></div>
-      </section>
 
-      {/* Dashboard Tabs */}
-      <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="overview" data-testid="tab-overview">Overview</TabsTrigger>
-          <TabsTrigger value="courses" data-testid="tab-courses">My Courses</TabsTrigger>
-          <TabsTrigger value="assignments" data-testid="tab-assignments">Assignments</TabsTrigger>
-          <TabsTrigger value="grading" data-testid="tab-grading">Grading</TabsTrigger>
-          <TabsTrigger value="outcomes" data-testid="tab-outcomes">CLO Management</TabsTrigger>
+      {/* Quick Stats */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Courses Teaching</CardTitle>
+            <BookOpen className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">2</div>
+            <p className="text-xs text-muted-foreground">Active courses</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Active Students</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">45</div>
+            <p className="text-xs text-muted-foreground">Enrolled students</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Assignments</CardTitle>
+            <FileText className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">12</div>
+            <p className="text-xs text-muted-foreground">Created assignments</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Submissions</CardTitle>
+            <CheckCircle className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">89%</div>
+            <p className="text-xs text-muted-foreground">Completion rate</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Main Dashboard Content */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="courses">Courses</TabsTrigger>
+          <TabsTrigger value="assignments">Assignments</TabsTrigger>
+          <TabsTrigger value="grading">Grading</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-6">
-          {/* Quick Actions */}
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            <Card className="lg:col-span-1">
+        <TabsContent value="overview" className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            <Card>
               <CardHeader>
-                <CardTitle className="text-lg flex items-center">
-                  <i className="fas fa-bolt text-primary mr-2"></i>
-                  Quick Actions
-                </CardTitle>
+                <CardTitle>Course Performance</CardTitle>
+                <CardDescription>Student progress across your courses</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <Button 
-                  className="w-full" 
-                  data-testid="button-create-assignment"
-                  onClick={() => {
-                    setSelectedAssignment(undefined);
-                    setAssignmentDialogOpen(true);
-                  }}
-                >
-                  <i className="fas fa-plus mr-2"></i>
-                  Create Assignment
-                </Button>
-                <Button variant="secondary" className="w-full" data-testid="button-grade-submissions">
-                  <i className="fas fa-edit mr-2"></i>
-                  Grade Submissions
-                </Button>
-                <Button variant="outline" className="w-full" data-testid="button-manage-clos">
-                  <i className="fas fa-bullseye mr-2"></i>
-                  Manage CLOs
-                </Button>
-                <Button variant="outline" className="w-full" data-testid="button-class-analytics">
-                  <i className="fas fa-chart-line mr-2"></i>
-                  Class Analytics
-                </Button>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <div className="flex justify-between text-sm mb-2">
+                      <span>Data Structures</span>
+                      <span>92% Average</span>
+                    </div>
+                    <Progress value={92} />
+                  </div>
+                  <div>
+                    <div className="flex justify-between text-sm mb-2">
+                      <span>Web Development</span>
+                      <span>87% Average</span>
+                    </div>
+                    <Progress value={87} />
+                  </div>
+                </div>
               </CardContent>
             </Card>
 
-            {/* Statistics Cards */}
-            <div className="lg:col-span-3">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Card className="hover:shadow-lg transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="bg-blue-500/10 text-blue-500 p-3 rounded-xl">
-                        <i className="fas fa-user-graduate text-xl"></i>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-2xl font-bold text-foreground" data-testid="stat-total-students">
-                          85
-                        </div>
-                        <div className="text-sm text-muted-foreground">Active Students</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Enrolled</span>
-                      <span className="text-blue-500 font-medium">All courses</span>
-                    </div>
-                    <Progress value={100} className="mt-2" />
-                  </CardContent>
-                </Card>
-
-                <Card className="hover:shadow-lg transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="bg-green-500/10 text-green-500 p-3 rounded-xl">
-                        <i className="fas fa-check-circle text-xl"></i>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-2xl font-bold text-foreground" data-testid="stat-graded-assignments">
-                          {teacherAssignments.length - pendingGrading.length}
-                        </div>
-                        <div className="text-sm text-muted-foreground">Graded This Week</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Completion Rate</span>
-                      <span className="text-green-500 font-medium">94%</span>
-                    </div>
-                    <Progress value={94} className="mt-2" />
-                  </CardContent>
-                </Card>
-
-                <Card className="hover:shadow-lg transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="bg-purple-500/10 text-purple-500 p-3 rounded-xl">
-                        <i className="fas fa-bullseye text-xl"></i>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-2xl font-bold text-foreground" data-testid="stat-total-clos">
-                          {clos.length}
-                        </div>
-                        <div className="text-sm text-muted-foreground">CLOs Created</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Active</span>
-                      <span className="text-purple-500 font-medium">All active</span>
-                    </div>
-                    <Progress value={100} className="mt-2" />
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          </div>
-
-          {/* Course Performance and Grading Queue */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Course Performance */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center">
-                  <i className="fas fa-chart-line text-blue-500 mr-3"></i>
-                  Course Performance
-                </CardTitle>
+                <CardTitle>Recent Activity</CardTitle>
+                <CardDescription>Latest course activities</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                {teacherCourses.map((course, index) => (
-                  <div key={course.id} className="flex items-center justify-between p-4 bg-muted/20 rounded-xl">
-                    <div>
-                      <div className="text-sm font-medium text-foreground" data-testid={`course-name-${index}`}>
-                        {course.name}
-                      </div>
-                      <div className="text-xs text-muted-foreground">{course.code}</div>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">Assignment submitted</p>
+                      <p className="text-xs text-muted-foreground">15 minutes ago</p>
                     </div>
-                    <div className="text-right">
-                      <div className="text-lg font-bold text-primary">82%</div>
-                      <div className="text-xs text-muted-foreground">Avg Score</div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">New student enrolled</p>
+                      <p className="text-xs text-muted-foreground">2 hours ago</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">Grade uploaded</p>
+                      <p className="text-xs text-muted-foreground">1 day ago</p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="courses" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BookOpen className="h-5 w-5" />
+                My Courses
+              </CardTitle>
+              <CardDescription>Courses you are currently teaching</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {[
+                  { 
+                    name: "Data Structures and Algorithms", 
+                    code: "CS-301", 
+                    students: 25, 
+                    progress: 75,
+                    status: "Active"
+                  },
+                  { 
+                    name: "Web Development Fundamentals", 
+                    code: "CS-205", 
+                    students: 20, 
+                    progress: 60,
+                    status: "Active"
+                  }
+                ].map((course, index) => (
+                  <div key={index} className="border rounded-lg p-4">
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <h3 className="font-medium">{course.name}</h3>
+                        <p className="text-sm text-muted-foreground">{course.code} • {course.students} students</p>
+                      </div>
+                      <Badge variant="outline">{course.status}</Badge>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span>Course Progress</span>
+                        <span>{course.progress}%</span>
+                      </div>
+                      <Progress value={course.progress} />
+                    </div>
+                    <div className="flex gap-2 mt-4">
+                      <Button variant="outline" size="sm">View Course</Button>
+                      <Button variant="outline" size="sm">Manage Students</Button>
                     </div>
                   </div>
                 ))}
-              </CardContent>
-            </Card>
-
-            {/* Grading Queue */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <i className="fas fa-clipboard-list text-orange-500 mr-3"></i>
-                  Grading Queue
-                  {pendingGrading.length > 0 && (
-                    <Badge variant="destructive" className="ml-2">
-                      {pendingGrading.length}
-                    </Badge>
-                  )}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {pendingGrading.length === 0 ? (
-                  <div className="text-center py-8">
-                    <i className="fas fa-check-circle text-green-500 text-4xl mb-4"></i>
-                    <p className="text-muted-foreground">All caught up! No submissions pending grading.</p>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {pendingGrading.slice(0, 5).map((submission, index) => (
-                      <div key={submission.id} className="flex items-center justify-between p-3 bg-orange-50 rounded-lg border border-orange-200">
-                        <div>
-                          <div className="text-sm font-medium text-foreground">
-                            Assignment Submission
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            Submitted {submission.submittedAt ? new Date(submission.submittedAt).toLocaleDateString() : 'Recently'}
-                          </div>
-                        </div>
-                        <Button size="sm" data-testid={`button-grade-${index}`}>
-                          Grade
-                        </Button>
-                      </div>
-                    ))}
-                    {pendingGrading.length > 5 && (
-                      <div className="text-center pt-2">
-                        <Button variant="outline" size="sm" data-testid="button-view-all-pending">
-                          View All ({pendingGrading.length - 5} more)
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="courses">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {teacherCourses.map((course, index) => (
-              <Card key={course.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <CardTitle className="flex items-center justify-between">
-                    <span data-testid={`course-title-${index}`}>{course.name}</span>
-                    <Badge variant="secondary">{course.code}</Badge>
-                  </CardTitle>
-                  <CardDescription>
-                    {course.credits} Credits • Active Course
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Students</span>
-                      <span className="font-semibold">28</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Assignments</span>
-                      <span className="font-semibold">
-                        {teacherAssignments.filter(a => a.courseId === course.id).length}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Avg Performance</span>
-                      <span className="font-semibold text-green-600">85%</span>
-                    </div>
-                    <div className="flex space-x-2">
-                      <Button size="sm" className="flex-1" data-testid={`button-manage-course-${index}`}>
-                        Manage
-                      </Button>
-                      <Button size="sm" variant="outline" className="flex-1" data-testid={`button-analytics-course-${index}`}>
-                        Analytics
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-            
-            {teacherCourses.length === 0 && (
-              <div className="col-span-full text-center py-12">
-                <i className="fas fa-chalkboard text-muted-foreground text-4xl mb-4"></i>
-                <h3 className="text-lg font-semibold text-foreground mb-2">No courses assigned</h3>
-                <p className="text-muted-foreground">Contact your coordinator to get assigned to courses.</p>
               </div>
-            )}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="assignments">
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-foreground">My Assignments</h2>
-              <Button 
-                data-testid="button-create-new-assignment"
-                onClick={() => {
-                  setSelectedAssignment(undefined);
-                  setAssignmentDialogOpen(true);
-                }}
-              >
-                <i className="fas fa-plus mr-2"></i>
-                Create New Assignment
-              </Button>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {teacherAssignments.map((assignment, index) => (
-                <Card key={assignment.id} className="hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    <CardTitle className="flex items-center justify-between">
-                      <span data-testid={`assignment-title-${index}`}>{assignment.title}</span>
-                      <Badge variant="outline">
-                        {assignment.totalPoints} pts
-                      </Badge>
-                    </CardTitle>
-                    <CardDescription className="line-clamp-2" data-testid={`assignment-description-${index}`}>
-                      {assignment.description || "No description provided"}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <div className="text-sm text-muted-foreground">
-                        <p><strong>Course:</strong> {courses.find(c => c.id === assignment.courseId)?.code || "Unknown"}</p>
-                        {assignment.dueDate && (
-                          <p><strong>Due:</strong> {new Date(assignment.dueDate).toLocaleDateString()}</p>
-                        )}
-                        <p><strong>Status:</strong> {assignment.isActive ? "Active" : "Inactive"}</p>
-                      </div>
-                      <div className="flex space-x-2">
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
-                          className="flex-1" 
-                          data-testid={`button-edit-assignment-${index}`}
-                          onClick={() => {
-                            setSelectedAssignment(assignment);
-                            setAssignmentDialogOpen(true);
-                          }}
-                        >
-                          Edit
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
-                          className="flex-1" 
-                          data-testid={`button-view-assignment-${index}`}
-                          onClick={() => {
-                            setSelectedAssignment(assignment);
-                            setAssignmentDialogOpen(true);
-                          }}
-                        >
-                          View Details
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-              
-              {teacherAssignments.length === 0 && (
-                <div className="col-span-full text-center py-12">
-                  <i className="fas fa-clipboard-list text-muted-foreground text-4xl mb-4"></i>
-                  <h3 className="text-lg font-semibold text-foreground mb-2">No assignments created yet</h3>
-                  <p className="text-muted-foreground mb-4">Start by creating your first assignment for your students.</p>
-                  <Button 
-                    data-testid="button-create-first-assignment"
-                    onClick={() => {
-                      setSelectedAssignment(undefined);
-                      setAssignmentDialogOpen(true);
-                    }}
-                  >
-                    <i className="fas fa-plus mr-2"></i>
-                    Create Your First Assignment
-                  </Button>
-                </div>
-              )}
-            </div>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="grading">
-          <Card>
-            <CardHeader>
-              <CardTitle>Grading Center</CardTitle>
-              <CardDescription>
-                Review and grade student submissions
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {pendingGrading.length === 0 ? (
-                <div className="text-center py-12">
-                  <i className="fas fa-clipboard-check text-green-500 text-4xl mb-4"></i>
-                  <h3 className="text-lg font-semibold text-foreground mb-2">All caught up!</h3>
-                  <p className="text-muted-foreground">No submissions are currently pending grading.</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {pendingGrading.map((submission, index) => (
-                    <div key={submission.id} className="border rounded-lg p-4 hover:bg-muted/20 transition-colors">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h4 className="font-medium text-foreground">Assignment Submission</h4>
-                          <p className="text-sm text-muted-foreground">
-                            Submitted: {submission.submittedAt ? new Date(submission.submittedAt).toLocaleDateString() : 'Recently'}
-                          </p>
-                        </div>
-                        <div className="flex items-center space-x-3">
-                          <Badge variant="outline">Pending</Badge>
-                          <Button data-testid={`button-review-${index}`}>
-                            Review & Grade
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="outcomes">
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-foreground">Course Learning Outcomes (CLOs)</h2>
-              <Button 
-                data-testid="button-create-new-clo"
-                onClick={() => {
-                  setSelectedClo(undefined);
-                  setCloDialogOpen(true);
-                }}
-              >
-                <i className="fas fa-plus mr-2"></i>
-                Create New CLO
-              </Button>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {clos.map((clo, index) => (
-                <Card key={clo.id} className="hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    <CardTitle className="flex items-center justify-between">
-                      <span data-testid={`clo-code-${index}`}>{clo.code}</span>
-                      <Badge variant="outline" className="capitalize">
-                        {clo.bloomsLevel}
-                      </Badge>
-                    </CardTitle>
-                    <CardDescription className="line-clamp-2" data-testid={`clo-title-${index}`}>
-                      {clo.title}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
-                      {clo.description}
-                    </p>
-                    <div className="flex space-x-2">
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        className="flex-1" 
-                        data-testid={`button-edit-clo-${index}`}
-                        onClick={() => {
-                          setSelectedClo(clo);
-                          setCloDialogOpen(true);
-                        }}
-                      >
-                        Edit
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        className="flex-1" 
-                        data-testid={`button-view-clo-${index}`}
-                        onClick={() => {
-                          setSelectedClo(clo);
-                          setCloDialogOpen(true);
-                        }}
-                      >
-                        View Details
-                      </Button>
+        <TabsContent value="assignments" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Assignment Management
+              </CardTitle>
+              <CardDescription>Create and manage course assignments</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <Button>Create New Assignment</Button>
+                
+                <div className="space-y-2">
+                  {[
+                    { title: "Binary Search Implementation", course: "Data Structures", due: "Dec 15", submissions: "20/25" },
+                    { title: "React Component Project", course: "Web Development", due: "Dec 20", submissions: "15/20" },
+                    { title: "Algorithm Analysis Report", course: "Data Structures", due: "Dec 22", submissions: "18/25" }
+                  ].map((assignment, index) => (
+                    <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div>
+                        <h3 className="font-medium">{assignment.title}</h3>
+                        <p className="text-sm text-muted-foreground">
+                          {assignment.course} • Due: {assignment.due}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline">{assignment.submissions}</Badge>
+                        <Button variant="outline" size="sm">View</Button>
+                      </div>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
-              
-              {clos.length === 0 && (
-                <div className="col-span-full text-center py-12">
-                  <i className="fas fa-bullseye text-muted-foreground text-4xl mb-4"></i>
-                  <h3 className="text-lg font-semibold text-foreground mb-2">No CLOs created yet</h3>
-                  <p className="text-muted-foreground mb-4">Start by creating your first Course Learning Outcome.</p>
-                  <Button 
-                    data-testid="button-create-first-clo"
-                    onClick={() => {
-                      setSelectedClo(undefined);
-                      setCloDialogOpen(true);
-                    }}
-                  >
-                    <i className="fas fa-plus mr-2"></i>
-                    Create Your First CLO
-                  </Button>
+                  ))}
                 </div>
-              )}
-            </div>
-          </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="grading" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Award className="h-5 w-5" />
+                Grading Center
+              </CardTitle>
+              <CardDescription>Review and grade student submissions</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="grid gap-4 md:grid-cols-3">
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-orange-600">8</div>
+                        <p className="text-sm text-muted-foreground">Pending Grades</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-green-600">42</div>
+                        <p className="text-sm text-muted-foreground">Graded This Week</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-blue-600">87</div>
+                        <p className="text-sm text-muted-foreground">Average Grade</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+                
+                <div className="text-center py-8">
+                  <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground">No pending submissions to grade</p>
+                  <Button className="mt-4">View Grade Book</Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
-      
-      {/* CLO Management Dialog */}
-      <Dialog open={cloDialogOpen} onOpenChange={setCloDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>
-              {selectedClo ? 'Edit Course Learning Outcome' : 'Create New Course Learning Outcome'}
-            </DialogTitle>
-          </DialogHeader>
-          <OutcomeForm
-            outcome={selectedClo}
-            onSuccess={() => {
-              setCloDialogOpen(false);
-              setSelectedClo(undefined);
-            }}
-            onCancel={() => {
-              setCloDialogOpen(false);
-              setSelectedClo(undefined);
-            }}
-          />
-        </DialogContent>
-      </Dialog>
-      
-      {/* Assignment Management Dialog */}
-      <Dialog open={assignmentDialogOpen} onOpenChange={setAssignmentDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>
-              {selectedAssignment ? 'Edit Assignment' : 'Create New Assignment'}
-            </DialogTitle>
-          </DialogHeader>
-          <AssignmentForm
-            assignment={selectedAssignment}
-            onSuccess={() => {
-              setAssignmentDialogOpen(false);
-              setSelectedAssignment(undefined);
-            }}
-            onCancel={() => {
-              setAssignmentDialogOpen(false);
-              setSelectedAssignment(undefined);
-            }}
-          />
-        </DialogContent>
-      </Dialog>
+      </div>
     </div>
   );
 }

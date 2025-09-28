@@ -1,508 +1,848 @@
-import { useState } from "react";
-import { useAuth } from "@/hooks/use-auth";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { useAuth } from "@/hooks/useSupabaseAuth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { VisualMappingCanvas } from "@/components/outcomes/visual-mapping-canvas";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ProgressDisplay } from "@/components/gamification/progress-display";
-import { EvidenceRollup } from "@/components/analytics/evidence-rollup";
-import { OutcomeForm } from "@/components/outcomes/outcome-form";
-import type { Program, LearningOutcome } from "@shared/schema";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { GraduationCap, Users, TrendingUp, Award, BookOpen, Target, Plus, Edit, Trash2, Eye, Settings } from "lucide-react";
+import { supabase } from "@/lib/supabase";
+import { useToast } from "@/hooks/use-toast";
+
+type Program = {
+  id: string;
+  name: string;
+  description: string;
+  coordinator_id?: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  courses?: Course[];
+  student_programs?: { student: Profile }[];
+};
+
+type Course = {
+  id: string;
+  name: string;
+  description: string;
+  program_id: string;
+  teacher_id?: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  teacher?: Profile;
+  student_courses?: { student: Profile }[];
+};
+
+type Profile = {
+  id: string;
+  username: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  role: 'admin' | 'coordinator' | 'teacher' | 'student';
+  is_active: boolean;
+  profile_image?: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+type LearningOutcome = {
+  id: string;
+  title: string;
+  description: string;
+  type: 'ILO' | 'PLO' | 'CLO';
+  program_id?: string;
+  course_id?: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+};
 
 export default function CoordinatorDashboard() {
-  const { user } = useAuth();
-  const [ploDialogOpen, setPloDialogOpen] = useState(false);
-  const [selectedPlo, setSelectedPlo] = useState<LearningOutcome | undefined>(undefined);
+  const { profile } = useAuth();
+  const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState("overview");
+  const [programs, setPrograms] = useState<Program[]>([]);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [outcomes, setOutcomes] = useState<LearningOutcome[]>([]);
+  const [teachers, setTeachers] = useState<Profile[]>([]);
+  const [students, setStudents] = useState<Profile[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [courseDialogOpen, setCourseDialogOpen] = useState(false);
+  const [outcomeDialogOpen, setOutcomeDialogOpen] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [selectedOutcome, setSelectedOutcome] = useState<LearningOutcome | null>(null);
 
-  const { data: programs = [], isLoading: programsLoading } = useQuery<Program[]>({
-    queryKey: ["/api/programs/coordinator/" + user?.id],
-    enabled: !!user,
+  // Form states
+  const [courseForm, setCourseForm] = useState({
+    name: '',
+    description: '',
+    program_id: '',
+    teacher_id: ''
   });
 
-  const { data: learningOutcomes = [] } = useQuery<LearningOutcome[]>({
-    queryKey: ["/api/learning-outcomes"],
-    enabled: !!user,
+  const [outcomeForm, setOutcomeForm] = useState<{
+    title: string;
+    description: string;
+    type: 'ILO' | 'PLO' | 'CLO';
+    program_id: string;
+    course_id: string;
+  }>({
+    title: '',
+    description: '',
+    type: 'PLO',
+    program_id: '',
+    course_id: ''
   });
 
-  const { data: bloomsDistribution = [] } = useQuery<any[]>({
-    queryKey: ["/api/analytics/blooms-distribution"],
-    enabled: !!user,
-  });
+  // Fetch data
+  useEffect(() => {
+    if (profile?.id) {
+      fetchPrograms();
+      fetchTeachers();
+      fetchStudents();
+      fetchOutcomes();
+    }
+  }, [profile?.id]);
 
-  const ilos = learningOutcomes?.filter(outcome => outcome.type === "ILO") || [];
-  const plos = learningOutcomes?.filter(outcome => outcome.type === "PLO") || [];
-  const clos = learningOutcomes?.filter(outcome => outcome.type === "CLO") || [];
-
-  const getBloomsPercentage = (level: string) => {
-    const total = bloomsDistribution?.reduce((sum, item) => sum + item.count, 0) || 1;
-    const levelCount = bloomsDistribution?.find(item => item.level === level)?.count || 0;
-    return Math.round((levelCount / total) * 100);
+  const fetchPrograms = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('programs')
+        .select(`
+          *,
+          courses(*,
+            teacher:profiles!courses_teacher_id_fkey(first_name, last_name),
+            student_courses(
+              student:profiles!student_courses_student_id_fkey(first_name, last_name)
+            )
+          ),
+          student_programs(
+            student:profiles!student_programs_student_id_fkey(first_name, last_name)
+          )
+        `)
+        .eq('coordinator_id', profile?.id)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      setPrograms(data || []);
+      
+      // Extract courses from programs
+      const allCourses = data?.flatMap(program => program.courses || []) || [];
+      setCourses(allCourses);
+    } catch (error) {
+      console.error('Error fetching programs:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch programs",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
-  if (programsLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading dashboard...</p>
-        </div>
-      </div>
-    );
+  const fetchTeachers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('role', 'teacher')
+        .eq('is_active', true);
+      
+      if (error) throw error;
+      setTeachers(data || []);
+    } catch (error) {
+      console.error('Error fetching teachers:', error);
+    }
+  };
+
+  const fetchStudents = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('role', 'student')
+        .eq('is_active', true);
+      
+      if (error) throw error;
+      setStudents(data || []);
+    } catch (error) {
+      console.error('Error fetching students:', error);
+    }
+  };
+
+  const fetchOutcomes = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('learning_outcomes')
+        .select(`
+          *,
+          program:programs!learning_outcomes_program_id_fkey(name),
+          course:courses!learning_outcomes_course_id_fkey(name)
+        `)
+        .or(`program_id.in.(${programs.map(p => p.id).join(',')}),course_id.in.(${courses.map(c => c.id).join(',')})`)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      setOutcomes(data || []);
+    } catch (error) {
+      console.error('Error fetching outcomes:', error);
+    }
+  };
+
+  // Course management functions
+  const handleCreateCourse = async () => {
+    try {
+      const { error } = await supabase
+        .from('courses')
+        .insert({
+          name: courseForm.name,
+          description: courseForm.description,
+          program_id: courseForm.program_id,
+          teacher_id: courseForm.teacher_id || null,
+          is_active: true
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Course created successfully"
+      });
+
+      setCourseDialogOpen(false);
+      setCourseForm({
+        name: '',
+        description: '',
+        program_id: '',
+        teacher_id: ''
+      });
+      fetchPrograms();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleUpdateCourse = async () => {
+    if (!selectedCourse) return;
+
+    try {
+      const { error } = await supabase
+        .from('courses')
+        .update({
+          name: courseForm.name,
+          description: courseForm.description,
+          teacher_id: courseForm.teacher_id || null,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', selectedCourse.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Course updated successfully"
+      });
+
+      setCourseDialogOpen(false);
+      setSelectedCourse(null);
+      setCourseForm({
+        name: '',
+        description: '',
+        program_id: '',
+        teacher_id: ''
+      });
+      fetchPrograms();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleDeleteCourse = async (courseId: string) => {
+    try {
+      const { error } = await supabase
+        .from('courses')
+        .delete()
+        .eq('id', courseId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Course deleted successfully"
+      });
+
+      fetchPrograms();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Outcome management functions
+  const handleCreateOutcome = async () => {
+    try {
+      const { error } = await supabase
+        .from('learning_outcomes')
+        .insert({
+          title: outcomeForm.title,
+          description: outcomeForm.description,
+          type: outcomeForm.type,
+          program_id: outcomeForm.program_id || null,
+          course_id: outcomeForm.course_id || null,
+          is_active: true
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Learning outcome created successfully"
+      });
+
+      setOutcomeDialogOpen(false);
+      setOutcomeForm({
+        title: '',
+        description: '',
+        type: 'PLO',
+        program_id: '',
+        course_id: ''
+      });
+      fetchOutcomes();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleDeleteOutcome = async (outcomeId: string) => {
+    try {
+      const { error } = await supabase
+        .from('learning_outcomes')
+        .delete()
+        .eq('id', outcomeId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Learning outcome deleted successfully"
+      });
+
+      fetchOutcomes();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Helper functions
+  const openEditCourse = (course: Course) => {
+    setSelectedCourse(course);
+    setCourseForm({
+      name: course.name,
+      description: course.description,
+      program_id: course.program_id,
+      teacher_id: course.teacher_id || ''
+    });
+    setCourseDialogOpen(true);
+  };
+
+  // Statistics
+  const totalStudents = programs.reduce((acc, program) => acc + (program.student_programs?.length || 0), 0);
+  const totalCourses = courses.length;
+  const activePrograms = programs.filter(p => p.is_active).length;
+  const plos = outcomes.filter(o => o.type === 'PLO').length;
+  const clos = outcomes.filter(o => o.type === 'CLO').length;
+  const ilos = outcomes.filter(o => o.type === 'ILO').length;
+
+  if (!profile) {
+    return <div className="p-6">Loading...</div>;
+  }
+
+  if (loading) {
+    return <div className="p-6">Loading dashboard...</div>;
   }
 
   return (
-    <div className="space-y-8" data-testid="coordinator-dashboard">
-      {/* Welcome Hero Section */}
-      <section className="bg-gradient-to-r from-primary to-secondary rounded-2xl p-8 text-primary-foreground relative overflow-hidden">
-        <div className="relative z-10">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold mb-2" data-testid="welcome-title">
-                Welcome back, {user?.firstName}! 🎯
-              </h1>
-              <p className="text-lg opacity-90 mb-4">
-                Ready to advance your programs today?
-              </p>
-              <div className="flex items-center space-x-6">
-                <div className="flex items-center space-x-2">
-                  <i className="fas fa-graduation-cap text-xl"></i>
-                  <span className="font-medium" data-testid="stat-programs">
-                    {programs?.length || 0} Programs Managed
-                  </span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <i className="fas fa-bullseye text-xl"></i>
-                  <span className="font-medium" data-testid="stat-outcomes">
-                    {plos?.length || 0} PLOs Mapped
-                  </span>
-                </div>
-              </div>
-            </div>
-            
-            <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 text-center min-w-[120px]">
-              <i className="fas fa-trophy text-3xl text-accent mb-2"></i>
-              <div className="text-sm font-medium">Program</div>
-              <div className="text-sm font-medium">Excellence</div>
-              <div className="text-xs opacity-75 mt-1">Level 5</div>
-            </div>
+    <div className="min-h-screen bg-white">
+      <div className="space-y-8 p-8">
+        {/* Welcome Header */}
+        <div className="relative overflow-hidden bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 text-white rounded-2xl p-8 shadow-2xl">
+          <div className="relative z-10">
+            <h1 className="text-4xl font-bold mb-3">
+              Welcome back, {profile.first_name}! 📊
+            </h1>
+            <p className="text-blue-100 text-lg">
+              Manage your academic programs and track student progress with powerful insights
+            </p>
           </div>
         </div>
-        
-        {/* Decorative elements */}
-        <div className="absolute top-4 right-4 w-32 h-32 bg-white/10 rounded-full animate-pulse"></div>
-        <div className="absolute bottom-4 left-4 w-20 h-20 bg-white/5 rounded-full"></div>
-      </section>
 
-      {/* Dashboard Tabs */}
-      <Tabs defaultValue="overview" className="w-full">
+      {/* Quick Stats */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Programs Managed</CardTitle>
+            <GraduationCap className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{activePrograms}</div>
+            <p className="text-xs text-muted-foreground">Active programs</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Students</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalStudents}</div>
+            <p className="text-xs text-muted-foreground">Across all programs</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Courses</CardTitle>
+            <BookOpen className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalCourses}</div>
+            <p className="text-xs text-muted-foreground">Under management</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Learning Outcomes</CardTitle>
+            <Target className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{outcomes.length}</div>
+            <p className="text-xs text-muted-foreground">Total outcomes</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Main Dashboard Content */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview" data-testid="tab-overview">Overview</TabsTrigger>
-          <TabsTrigger value="mapping" data-testid="tab-mapping">Visual Mapping</TabsTrigger>
-          <TabsTrigger value="analytics" data-testid="tab-analytics">Analytics</TabsTrigger>
-          <TabsTrigger value="evidence" data-testid="tab-evidence">Evidence Roll-up</TabsTrigger>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="programs">Programs</TabsTrigger>
+          <TabsTrigger value="courses">Courses</TabsTrigger>
+          <TabsTrigger value="outcomes">Outcomes</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-6">
-          {/* Quick Actions */}
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            <Card className="lg:col-span-1">
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center">
-                  <i className="fas fa-bolt text-primary mr-2"></i>
-                  Quick Actions
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <Button 
-                  className="w-full" 
-                  data-testid="button-create-plo"
-                  onClick={() => {
-                    setSelectedPlo(undefined);
-                    setPloDialogOpen(true);
-                  }}
-                >
-                  <i className="fas fa-plus mr-2"></i>
-                  Create New PLO
-                </Button>
-                <Button variant="secondary" className="w-full" data-testid="button-visual-mapping">
-                  <i className="fas fa-project-diagram mr-2"></i>
-                  Visual Mapping
-                </Button>
-                <Button variant="outline" className="w-full" data-testid="button-analytics">
-                  <i className="fas fa-chart-bar mr-2"></i>
-                  Analytics Report
-                </Button>
-                <Button variant="outline" className="w-full" data-testid="button-gap-analysis">
-                  <i className="fas fa-search mr-2"></i>
-                  Gap Analysis
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Statistics Cards */}
-            <div className="lg:col-span-3">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Card className="hover:shadow-lg transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="bg-primary/10 text-primary p-3 rounded-xl">
-                        <i className="fas fa-graduation-cap text-xl"></i>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-2xl font-bold text-foreground" data-testid="stat-total-programs">
-                          {programs?.length || 0}
-                        </div>
-                        <div className="text-sm text-muted-foreground">Programs</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Active Programs</span>
-                      <span className="text-primary font-medium">All active</span>
-                    </div>
-                    <Progress value={100} className="mt-2" />
-                  </CardContent>
-                </Card>
-
-                <Card className="hover:shadow-lg transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="bg-secondary/10 text-secondary p-3 rounded-xl">
-                        <i className="fas fa-bullseye text-xl"></i>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-2xl font-bold text-foreground" data-testid="stat-total-plos">
-                          {plos?.length || 0}
-                        </div>
-                        <div className="text-sm text-muted-foreground">PLOs Mapped</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Coverage Rate</span>
-                      <span className="text-secondary font-medium">89% complete</span>
-                    </div>
-                    <Progress value={89} className="mt-2" />
-                  </CardContent>
-                </Card>
-
-                <Card className="hover:shadow-lg transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="bg-accent/10 text-accent p-3 rounded-xl">
-                        <i className="fas fa-chart-line text-xl"></i>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-2xl font-bold text-foreground" data-testid="stat-total-clos">
-                          {clos?.length || 0}
-                        </div>
-                        <div className="text-sm text-muted-foreground">CLOs Connected</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Mapping Status</span>
-                      <span className="text-accent font-medium">Active</span>
-                    </div>
-                    <Progress value={75} className="mt-2" />
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          </div>
-
-          {/* Program Performance and Activity */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Program Performance */}
+        <TabsContent value="overview" className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center">
-                  <i className="fas fa-chart-line text-secondary mr-3"></i>
-                  Program Performance
-                </CardTitle>
+                <CardTitle>Program Performance</CardTitle>
+                <CardDescription>Overall program statistics</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                {programs?.map((program, index) => (
-                  <div key={program.id} className="flex items-center justify-between p-4 bg-muted/20 rounded-xl">
-                    <div>
-                      <div className="text-sm font-medium text-foreground" data-testid={`program-name-${index}`}>
-                        {program.name}
-                      </div>
-                      <div className="text-xs text-muted-foreground">{program.level}</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-lg font-bold text-primary">87%</div>
-                      <div className="text-xs text-muted-foreground">Avg Completion</div>
-                    </div>
-                  </div>
-                ))}
-
-                {/* Bloom's Taxonomy Distribution */}
-                <div className="border-t border-border pt-4">
-                  <h4 className="text-sm font-medium text-foreground mb-4">Bloom's Taxonomy Distribution</h4>
-                  <div className="space-y-2">
-                    {["create", "evaluate", "analyze", "apply", "understand", "remember"].map((level) => (
-                      <div key={level} className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground capitalize">{level}</span>
-                        <div className="flex items-center space-x-2">
-                          <Progress value={getBloomsPercentage(level)} className="w-16 h-2" />
-                          <span className="text-sm font-medium text-foreground w-8">
-                            {getBloomsPercentage(level)}%
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Recent Activity */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <i className="fas fa-history text-primary mr-3"></i>
-                  Recent Activity
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent>
                 <div className="space-y-4">
-                  <div className="flex items-start space-x-4">
-                    <div className="w-3 h-3 bg-primary rounded-full mt-2 flex-shrink-0"></div>
-                    <div className="flex-1">
-                      <div className="text-sm font-medium text-foreground">PLO created for CS Program</div>
-                      <div className="text-xs text-muted-foreground mt-1">New outcome added to curriculum mapping</div>
-                      <div className="text-xs text-muted-foreground">Just now</div>
+                  {programs.map((program, index) => (
+                    <div key={program.id}>
+                      <div className="flex justify-between text-sm mb-2">
+                        <span>{program.name}</span>
+                        <span>{program.student_programs?.length || 0} students</span>
+                      </div>
+                      <Progress value={(program.student_programs?.length || 0) * 10} />
                     </div>
-                  </div>
-                  
-                  <div className="flex items-start space-x-4">
-                    <div className="w-3 h-3 bg-secondary rounded-full mt-2 flex-shrink-0"></div>
-                    <div className="flex-1">
-                      <div className="text-sm font-medium text-foreground">Outcome mapping updated</div>
-                      <div className="text-xs text-muted-foreground mt-1">CLO-PLO connections refined</div>
-                      <div className="text-xs text-muted-foreground">2 hours ago</div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start space-x-4">
-                    <div className="w-3 h-3 bg-accent rounded-full mt-2 flex-shrink-0"></div>
-                    <div className="flex-1">
-                      <div className="text-sm font-medium text-foreground">Analytics report generated</div>
-                      <div className="text-xs text-muted-foreground mt-1">Program assessment completed</div>
-                      <div className="text-xs text-muted-foreground">1 day ago</div>
-                    </div>
-                  </div>
+                  ))}
                 </div>
+              </CardContent>
+            </Card>
 
-                {/* Pending Tasks */}
-                <div className="border-t border-border pt-4">
-                  <h4 className="text-sm font-medium text-foreground mb-4 flex items-center">
-                    <i className="fas fa-tasks text-accent mr-2"></i>
-                    Pending Tasks
-                  </h4>
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between p-3 bg-accent/5 rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <input type="checkbox" className="w-4 h-4 text-primary focus:ring-primary border-border rounded" />
-                        <span className="text-sm font-medium text-foreground">Review PLO-ILO alignment</span>
-                      </div>
-                      <Badge variant="destructive" className="text-xs">High</Badge>
-                    </div>
-                    
-                    <div className="flex items-center justify-between p-3 bg-secondary/5 rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <input type="checkbox" className="w-4 h-4 text-primary focus:ring-primary border-border rounded" />
-                        <span className="text-sm font-medium text-foreground">Approve new CLOs</span>
-                      </div>
-                      <Badge variant="secondary" className="text-xs">Medium</Badge>
-                    </div>
+            <Card>
+              <CardHeader>
+                <CardTitle>Learning Outcomes Distribution</CardTitle>
+                <CardDescription>Breakdown by outcome type</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="grid gap-4 md:grid-cols-3">
+                    <Card>
+                      <CardContent className="p-4">
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-green-600">{plos}</div>
+                          <p className="text-sm text-muted-foreground">PLOs</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardContent className="p-4">
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-blue-600">{clos}</div>
+                          <p className="text-sm text-muted-foreground">CLOs</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardContent className="p-4">
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-purple-600">{ilos}</div>
+                          <p className="text-sm text-muted-foreground">ILOs</p>
+                        </div>
+                      </CardContent>
+                    </Card>
                   </div>
                 </div>
               </CardContent>
             </Card>
           </div>
-          
-          {/* PLO Management Section */}
-          <div className="space-y-6 mt-8">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-foreground">Program Learning Outcomes (PLOs)</h2>
-              <Button 
-                data-testid="button-create-new-plo-section"
-                onClick={() => {
-                  setSelectedPlo(undefined);
-                  setPloDialogOpen(true);
-                }}
-              >
-                <i className="fas fa-plus mr-2"></i>
-                Create New PLO
-              </Button>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {plos.map((plo, index) => (
-                <Card key={plo.id} className="hover:shadow-lg transition-shadow">
-                  <CardHeader>
-                    <CardTitle className="flex items-center justify-between">
-                      <span data-testid={`plo-code-${index}`}>{plo.code}</span>
-                      <Badge variant="outline" className="capitalize">
-                        {plo.bloomsLevel}
+        </TabsContent>
+
+        <TabsContent value="programs" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <GraduationCap className="h-5 w-5" />
+                Managed Programs
+              </CardTitle>
+              <CardDescription>Programs under your coordination</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {programs.map((program) => (
+                  <div key={program.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div>
+                      <h3 className="font-medium">{program.name}</h3>
+                      <p className="text-sm text-muted-foreground">{program.description}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {program.student_programs?.length || 0} students • {program.courses?.length || 0} courses
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={program.is_active ? "default" : "secondary"}>
+                        {program.is_active ? "Active" : "Inactive"}
                       </Badge>
-                    </CardTitle>
-                    <CardDescription className="line-clamp-2" data-testid={`plo-title-${index}`}>
-                      {plo.title}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
-                      {plo.description}
-                    </p>
-                    <div className="flex space-x-2">
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        className="flex-1" 
-                        data-testid={`button-edit-plo-${index}`}
-                        onClick={() => {
-                          setSelectedPlo(plo);
-                          setPloDialogOpen(true);
-                        }}
-                      >
-                        Edit
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        className="flex-1" 
-                        data-testid={`button-view-plo-${index}`}
-                        onClick={() => {
-                          setSelectedPlo(plo);
-                          setPloDialogOpen(true);
-                        }}
-                      >
+                      <Button variant="outline" size="sm">
+                        <Eye className="h-4 w-4 mr-2" />
                         View Details
                       </Button>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
-              
-              {plos.length === 0 && (
-                <div className="col-span-full text-center py-12">
-                  <i className="fas fa-bullseye text-muted-foreground text-4xl mb-4"></i>
-                  <h3 className="text-lg font-semibold text-foreground mb-2">No PLOs created yet</h3>
-                  <p className="text-muted-foreground mb-4">Start by creating your first Program Learning Outcome.</p>
-                  <Button 
-                    data-testid="button-create-first-plo"
-                    onClick={() => {
-                      setSelectedPlo(undefined);
-                      setPloDialogOpen(true);
-                    }}
-                  >
-                    <i className="fas fa-plus mr-2"></i>
-                    Create Your First PLO
-                  </Button>
-                </div>
-              )}
-            </div>
-          </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
-        <TabsContent value="mapping">
-          <VisualMappingCanvas />
+        <TabsContent value="courses" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BookOpen className="h-5 w-5" />
+                Course Management
+              </CardTitle>
+              <CardDescription>Manage courses within your programs</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <Dialog open={courseDialogOpen} onOpenChange={setCourseDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button onClick={() => {
+                      setSelectedCourse(null);
+                      setCourseForm({
+                        name: '',
+                        description: '',
+                        program_id: '',
+                        teacher_id: ''
+                      });
+                    }}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Course
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>{selectedCourse ? 'Edit Course' : 'Create New Course'}</DialogTitle>
+                      <DialogDescription>
+                        {selectedCourse ? 'Update course information' : 'Enter the details for the new course'}
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="course_name">Course Name</Label>
+                        <Input
+                          id="course_name"
+                          value={courseForm.name}
+                          onChange={(e) => setCourseForm(prev => ({ ...prev, name: e.target.value }))}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="course_description">Description</Label>
+                        <Textarea
+                          id="course_description"
+                          value={courseForm.description}
+                          onChange={(e) => setCourseForm(prev => ({ ...prev, description: e.target.value }))}
+                        />
+                      </div>
+                      {!selectedCourse && (
+                        <div>
+                          <Label htmlFor="program">Program</Label>
+                          <Select value={courseForm.program_id} onValueChange={(value: string) => setCourseForm(prev => ({ ...prev, program_id: value }))}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a program" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {programs.map((program) => (
+                                <SelectItem key={program.id} value={program.id}>
+                                  {program.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
+                      <div>
+                        <Label htmlFor="teacher">Teacher</Label>
+                        <Select value={courseForm.teacher_id} onValueChange={(value: string) => setCourseForm(prev => ({ ...prev, teacher_id: value }))}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a teacher" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="">No teacher assigned</SelectItem>
+                            {teachers.map((teacher) => (
+                              <SelectItem key={teacher.id} value={teacher.id}>
+                                {teacher.first_name} {teacher.last_name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <Button onClick={selectedCourse ? handleUpdateCourse : handleCreateCourse} className="w-full">
+                        {selectedCourse ? 'Update Course' : 'Create Course'}
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+                
+                <div className="space-y-2">
+                  {courses.map((course) => (
+                    <div key={course.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div>
+                        <h3 className="font-medium">{course.name}</h3>
+                        <p className="text-sm text-muted-foreground">{course.description}</p>
+                        <p className="text-xs text-muted-foreground">
+                          Teacher: {course.teacher ? `${course.teacher.first_name} ${course.teacher.last_name}` : "Unassigned"} •
+                          {course.student_courses?.length || 0} students
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant={course.is_active ? "default" : "secondary"}>
+                          {course.is_active ? "Active" : "Inactive"}
+                        </Badge>
+                        <Button variant="outline" size="sm" onClick={() => openEditCourse(course)}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="outline" size="sm">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Course</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete "{course.name}"? This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => handleDeleteCourse(course.id)}>Delete</AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
-        <TabsContent value="analytics">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <Card>
-              <CardHeader>
-                <CardTitle>Outcome Distribution</CardTitle>
-                <CardDescription>Distribution of learning outcomes across Bloom's taxonomy</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-primary mb-2">
-                      {learningOutcomes?.length || 0}
+        <TabsContent value="outcomes" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Target className="h-5 w-5" />
+                Learning Outcomes Management
+              </CardTitle>
+              <CardDescription>Track and manage program learning outcomes</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <Dialog open={outcomeDialogOpen} onOpenChange={setOutcomeDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button onClick={() => {
+                      setSelectedOutcome(null);
+                      setOutcomeForm({
+                        title: '',
+                        description: '',
+                        type: 'PLO',
+                        program_id: '',
+                        course_id: ''
+                      });
+                    }}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Learning Outcome
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Create Learning Outcome</DialogTitle>
+                      <DialogDescription>
+                        Define a new learning outcome for your programs
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="outcome_title">Title</Label>
+                        <Input
+                          id="outcome_title"
+                          value={outcomeForm.title}
+                          onChange={(e) => setOutcomeForm(prev => ({ ...prev, title: e.target.value }))}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="outcome_description">Description</Label>
+                        <Textarea
+                          id="outcome_description"
+                          value={outcomeForm.description}
+                          onChange={(e) => setOutcomeForm(prev => ({ ...prev, description: e.target.value }))}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="outcome_type">Type</Label>
+                        <Select value={outcomeForm.type} onValueChange={(value: 'ILO' | 'PLO' | 'CLO') => setOutcomeForm(prev => ({ ...prev, type: value }))}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="PLO">Program Learning Outcome (PLO)</SelectItem>
+                            <SelectItem value="CLO">Course Learning Outcome (CLO)</SelectItem>
+                            <SelectItem value="ILO">Institutional Learning Outcome (ILO)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      {(outcomeForm.type === 'PLO' || outcomeForm.type === 'ILO') && (
+                        <div>
+                          <Label htmlFor="outcome_program">Program</Label>
+                          <Select value={outcomeForm.program_id} onValueChange={(value: string) => setOutcomeForm(prev => ({ ...prev, program_id: value }))}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a program" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {programs.map((program) => (
+                                <SelectItem key={program.id} value={program.id}>
+                                  {program.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
+                      {outcomeForm.type === 'CLO' && (
+                        <div>
+                          <Label htmlFor="outcome_course">Course</Label>
+                          <Select value={outcomeForm.course_id} onValueChange={(value: string) => setOutcomeForm(prev => ({ ...prev, course_id: value }))}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a course" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {courses.map((course) => (
+                                <SelectItem key={course.id} value={course.id}>
+                                  {course.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
+                      <Button onClick={handleCreateOutcome} className="w-full">
+                        Create Learning Outcome
+                      </Button>
                     </div>
-                    <div className="text-sm text-muted-foreground">Total Learning Outcomes</div>
-                  </div>
-                  
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm">ILOs</span>
-                      <Badge variant="outline">{ilos?.length || 0}</Badge>
+                  </DialogContent>
+                </Dialog>
+                
+                <div className="space-y-2">
+                  {outcomes.map((outcome) => (
+                    <div key={outcome.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div>
+                        <h3 className="font-medium">{outcome.title}</h3>
+                        <p className="text-sm text-muted-foreground">{outcome.description}</p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <Badge variant="outline">{outcome.type}</Badge>
+                          {outcome.type === 'PLO' || outcome.type === 'ILO' ? (
+                            <Badge variant="secondary">Program Level</Badge>
+                          ) : (
+                            <Badge variant="secondary">Course Level</Badge>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="outline" size="sm">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Learning Outcome</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete "{outcome.title}"? This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => handleDeleteOutcome(outcome.id)}>Delete</AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
                     </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm">PLOs</span>
-                      <Badge variant="outline">{plos?.length || 0}</Badge>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm">CLOs</span>
-                      <Badge variant="outline">{clos?.length || 0}</Badge>
-                    </div>
-                  </div>
+                  ))}
                 </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Program Health</CardTitle>
-                <CardDescription>Overall system performance metrics</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Mapping Coverage</span>
-                    <span className="text-sm font-semibold text-primary">89%</span>
-                  </div>
-                  <Progress value={89} />
-
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Data Quality</span>
-                    <span className="text-sm font-semibold text-secondary">94%</span>
-                  </div>
-                  <Progress value={94} />
-
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm">Student Engagement</span>
-                    <span className="text-sm font-semibold text-accent">76%</span>
-                  </div>
-                  <Progress value={76} />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="evidence">
-          <EvidenceRollup />
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
-      
-      {/* PLO Management Dialog */}
-      <Dialog open={ploDialogOpen} onOpenChange={setPloDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>
-              {selectedPlo ? 'Edit Program Learning Outcome' : 'Create New Program Learning Outcome'}
-            </DialogTitle>
-          </DialogHeader>
-          <OutcomeForm
-            outcome={selectedPlo}
-            onSuccess={() => {
-              setPloDialogOpen(false);
-              setSelectedPlo(undefined);
-            }}
-            onCancel={() => {
-              setPloDialogOpen(false);
-              setSelectedPlo(undefined);
-            }}
-          />
-        </DialogContent>
-      </Dialog>
+      </div>
     </div>
   );
 }

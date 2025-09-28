@@ -1,18 +1,5 @@
 import { supabase } from '../lib/supabase'
-import { createClient } from '@supabase/supabase-js'
 import { Database } from '../../../shared/supabase-types'
-
-// Admin client for service role operations
-const supabaseAdmin = createClient<Database>(
-  'https://farydblfbtxtzwjbpsuk.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhcnlkYmxmYnR4dHp3amJwc3VrIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczNzc0NzU1MywiZXhwIjoyMDUzMzIzNTUzfQ.jcPh6pWmpOtCB5vWnVNUhXTcG1IxPMFlJi8sYdYVfJc',
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  }
-)
 
 type Profile = Database['public']['Tables']['profiles']['Row']
 type Program = Database['public']['Tables']['programs']['Row']
@@ -356,44 +343,6 @@ export class SupabaseStorage {
 
     if (error) {
       console.error('Error updating student progress:', error)
-      return null
-    }
-
-    return data
-  }
-
-  // Admin operations using service role
-  async createDemoProfile(profileData: Database['public']['Tables']['profiles']['Insert'], password: string): Promise<Profile | null> {
-    // Create auth user first
-    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
-      email: profileData.email,
-      password: password,
-      email_confirm: true,
-      user_metadata: {
-        username: profileData.username,
-        first_name: profileData.first_name,
-        last_name: profileData.last_name,
-        role: profileData.role
-      }
-    })
-
-    if (authError) {
-      console.error('Error creating auth user:', authError)
-      return null
-    }
-
-    // Create profile
-    const { data, error } = await supabaseAdmin
-      .from('profiles')
-      .insert({
-        ...profileData,
-        id: authData.user.id
-      })
-      .select()
-      .single()
-
-    if (error) {
-      console.error('Error creating profile:', error)
       return null
     }
 

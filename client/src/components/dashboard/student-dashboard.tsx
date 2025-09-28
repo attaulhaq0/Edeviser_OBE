@@ -1,545 +1,309 @@
 import { useState } from "react";
-import { useAuth } from "@/hooks/use-auth";
-import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/useSupabaseAuth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ProgressDisplay } from "@/components/gamification/progress-display";
-import { BadgeDisplay } from "@/components/gamification/badge-display";
-import { SubmissionForm } from "@/components/assignments/submission-form";
-import type { Assignment, StudentSubmission } from "@shared/schema";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Star, Trophy, Flame, BookOpen, Target, Award, Calendar } from "lucide-react";
 
 export default function StudentDashboard() {
-  const { user } = useAuth();
-  const [selectedAssignment, setSelectedAssignment] = useState<Assignment | undefined>(undefined);
-  const [submissionDialogOpen, setSubmissionDialogOpen] = useState(false);
+  const { profile } = useAuth();
+  const [activeTab, setActiveTab] = useState("overview");
 
-  const { data: progress } = useQuery({
-    queryKey: ["/api/student-progress/" + user?.id],
-    enabled: !!user,
-  });
-
-  const { data: courses } = useQuery({
-    queryKey: ["/api/courses"],
-  });
-
-  const { data: learningModules } = useQuery({
-    queryKey: ["/api/learning-modules"],
-    enabled: !!user,
-  });
-
-  const { data: assignments = [], isLoading: assignmentsLoading } = useQuery<Assignment[]>({
-    queryKey: ["/api/assignments"],
-    enabled: !!user,
-  });
-
-  const { data: mySubmissions = [], isLoading: submissionsLoading } = useQuery<StudentSubmission[]>({
-    queryKey: ["/api/student-submissions"],
-    enabled: !!user,
-  });
-
-  const xpToNextLevel = ((progress as any)?.currentLevel || 1) * 200;
-  const currentLevelProgress = (((progress as any)?.totalXP || 0) % 200) / 200 * 100;
+  if (!profile) {
+    return <div className="p-6">Loading...</div>;
+  }
 
   return (
-    <div className="space-y-8" data-testid="student-dashboard">
-      {/* Welcome Hero Section */}
-      <section className="bg-gradient-to-br from-purple-500 via-blue-500 to-green-500 rounded-2xl p-8 text-white relative overflow-hidden">
-        <div className="relative z-10">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold mb-2" data-testid="welcome-title">
-                Welcome back, {user?.firstName}! 🚀
-              </h1>
-              <p className="text-lg opacity-90 mb-4">
-                Ready to continue your learning journey?
-              </p>
-              <div className="flex items-center space-x-6">
-                <div className="flex items-center space-x-2">
-                  <i className="fas fa-star text-xl text-yellow-300"></i>
-                  <span className="font-medium" data-testid="stat-total-xp">
-                    {(progress as any)?.totalXP || 0} XP Earned
-                  </span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <i className="fas fa-trophy text-xl text-yellow-300"></i>
-                  <span className="font-medium" data-testid="stat-current-level">
-                    Level {(progress as any)?.currentLevel || 1}
-                  </span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <i className="fas fa-fire text-xl text-orange-300"></i>
-                  <span className="font-medium" data-testid="stat-current-streak">
-                    {(progress as any)?.currentStreak || 0} Day Streak
-                  </span>
-                </div>
-              </div>
-            </div>
-            
-            <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-6 text-center min-w-[140px]">
-              <div className="text-2xl font-bold text-yellow-300 mb-2">
-                {(progress as any)?.totalBadges || 0}
-              </div>
-              <div className="text-sm font-medium">Badges</div>
-              <div className="text-sm font-medium">Earned</div>
-            </div>
+    <div className="min-h-screen bg-white">
+      <div className="space-y-8 p-8">
+        {/* Welcome Header */}
+        <div className="relative overflow-hidden bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white rounded-2xl p-8 shadow-2xl">
+          <div className="relative z-10">
+            <h1 className="text-4xl font-bold mb-3">
+              Welcome back, {profile.first_name}! 🚀
+            </h1>
+            <p className="text-blue-100 text-lg">
+              Continue your learning journey and unlock new achievements
+            </p>
           </div>
         </div>
-        
-        {/* Decorative elements */}
-        <div className="absolute top-4 right-4 w-32 h-32 bg-white/10 rounded-full animate-pulse"></div>
-        <div className="absolute bottom-4 left-4 w-20 h-20 bg-white/5 rounded-full"></div>
-      </section>
 
-      {/* Progress Overview */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Level Progress */}
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <i className="fas fa-chart-line text-primary mr-3"></i>
-              Level Progress
-            </CardTitle>
-            <CardDescription>
-              Your journey to the next level
-            </CardDescription>
+      {/* Quick Stats */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">XP Earned</CardTitle>
+            <Star className="h-4 w-4 text-yellow-500" />
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-2xl font-bold text-primary" data-testid="display-current-level">
-                    Level {(progress as any)?.currentLevel || 1}
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    {(progress as any)?.totalXP || 0} / {xpToNextLevel} XP
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-lg font-semibold text-foreground">
-                    {xpToNextLevel - ((progress as any)?.totalXP || 0)} XP
-                  </div>
-                  <div className="text-sm text-muted-foreground">to next level</div>
-                </div>
-              </div>
-              
-              <Progress value={currentLevelProgress} className="h-4" />
-              
-              <div className="grid grid-cols-3 gap-4 mt-6">
-                <div className="text-center">
-                  <div className="text-lg font-bold text-secondary" data-testid="stat-xp-today">250</div>
-                  <div className="text-xs text-muted-foreground">XP Today</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-lg font-bold text-accent" data-testid="stat-modules-completed">12</div>
-                  <div className="text-xs text-muted-foreground">Modules Done</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-lg font-bold text-green-500" data-testid="stat-assignments-submitted">8</div>
-                  <div className="text-xs text-muted-foreground">Assignments</div>
-                </div>
-              </div>
-            </div>
+            <div className="text-2xl font-bold">1,250</div>
+            <p className="text-xs text-muted-foreground">Total experience points</p>
           </CardContent>
         </Card>
 
-        {/* Daily Goals */}
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <i className="fas fa-calendar-day text-green-500 mr-2"></i>
-              Today's Goals
-            </CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Current Level</CardTitle>
+            <Trophy className="h-4 w-4 text-yellow-500" />
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-3">
-              <div className="flex items-center space-x-3">
-                <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white text-xs">
-                  <i className="fas fa-check"></i>
-                </div>
-                <div className="flex-1">
-                  <div className="text-sm font-medium text-foreground">Complete Daily Challenge</div>
-                  <div className="text-xs text-green-500">Completed +50 XP</div>
-                </div>
-              </div>
-              
-              <div className="flex items-center space-x-3">
-                <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs animate-pulse">
-                  <i className="fas fa-play"></i>
-                </div>
-                <div className="flex-1">
-                  <div className="text-sm font-medium text-foreground">Study Data Structures</div>
-                  <div className="text-xs text-blue-500">In Progress</div>
-                </div>
-              </div>
-              
-              <div className="flex items-center space-x-3">
-                <div className="w-6 h-6 bg-muted rounded-full flex items-center justify-center text-muted-foreground text-xs">
-                  <i className="fas fa-clock"></i>
-                </div>
-                <div className="flex-1">
-                  <div className="text-sm font-medium text-muted-foreground">Submit Assignment</div>
-                  <div className="text-xs text-muted-foreground">Pending</div>
-                </div>
-              </div>
-            </div>
+          <CardContent>
+            <div className="text-2xl font-bold">7</div>
+            <p className="text-xs text-muted-foreground">Learning level</p>
+          </CardContent>
+        </Card>
 
-            <Button className="w-full" size="sm" data-testid="button-view-all-goals">
-              View All Goals
-            </Button>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Streak Days</CardTitle>
+            <Flame className="h-4 w-4 text-orange-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">12</div>
+            <p className="text-xs text-muted-foreground">Consecutive days</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Courses</CardTitle>
+            <BookOpen className="h-4 w-4 text-blue-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">4</div>
+            <p className="text-xs text-muted-foreground">Enrolled courses</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Learning Path */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <i className="fas fa-route text-purple-500 mr-3"></i>
-            Learning Path: Data Structures & Algorithms
-          </CardTitle>
-          <CardDescription>
-            Your personalized learning journey
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between space-x-4 overflow-x-auto pb-4">
-            {/* Learning Path Nodes */}
-            <div className="flex-shrink-0 text-center">
-              <div className="bg-green-500 text-white w-16 h-16 rounded-full flex items-center justify-center mb-2 mx-auto border-4 border-green-200 shadow-lg">
-                <i className="fas fa-check text-lg"></i>
-              </div>
-              <div className="text-xs font-medium text-foreground">Arrays</div>
-              <div className="text-xs text-green-500">Complete</div>
-              <Badge variant="secondary" className="text-xs mt-1">+100 XP</Badge>
-            </div>
+      {/* Main Dashboard Content */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="courses">Courses</TabsTrigger>
+          <TabsTrigger value="assignments">Assignments</TabsTrigger>
+          <TabsTrigger value="achievements">Achievements</TabsTrigger>
+        </TabsList>
 
-            <div className="w-8 h-px bg-green-500 flex-shrink-0"></div>
+        <TabsContent value="overview" className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Learning Progress</CardTitle>
+                <CardDescription>Your progress across all courses</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <div className="flex justify-between text-sm mb-2">
+                      <span>Data Structures</span>
+                      <span>85%</span>
+                    </div>
+                    <Progress value={85} />
+                  </div>
+                  <div>
+                    <div className="flex justify-between text-sm mb-2">
+                      <span>Web Development</span>
+                      <span>72%</span>
+                    </div>
+                    <Progress value={72} />
+                  </div>
+                  <div>
+                    <div className="flex justify-between text-sm mb-2">
+                      <span>Database Systems</span>
+                      <span>90%</span>
+                    </div>
+                    <Progress value={90} />
+                  </div>
+                  <div>
+                    <div className="flex justify-between text-sm mb-2">
+                      <span>Software Engineering</span>
+                      <span>68%</span>
+                    </div>
+                    <Progress value={68} />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-            <div className="flex-shrink-0 text-center">
-              <div className="bg-green-500 text-white w-16 h-16 rounded-full flex items-center justify-center mb-2 mx-auto border-4 border-green-200 shadow-lg">
-                <i className="fas fa-check text-lg"></i>
-              </div>
-              <div className="text-xs font-medium text-foreground">Linked Lists</div>
-              <div className="text-xs text-green-500">Complete</div>
-              <Badge variant="secondary" className="text-xs mt-1">+120 XP</Badge>
-            </div>
-
-            <div className="w-8 h-px bg-blue-500 flex-shrink-0"></div>
-
-            <div className="flex-shrink-0 text-center">
-              <div className="bg-blue-500 text-white w-16 h-16 rounded-full flex items-center justify-center mb-2 mx-auto border-4 border-blue-200 shadow-lg animate-pulse">
-                <i className="fas fa-play text-lg"></i>
-              </div>
-              <div className="text-xs font-medium text-foreground">Stacks</div>
-              <div className="text-xs text-blue-500">In Progress</div>
-              <Badge variant="outline" className="text-xs mt-1">75% Done</Badge>
-            </div>
-
-            <div className="w-8 h-px bg-gray-300 flex-shrink-0"></div>
-
-            <div className="flex-shrink-0 text-center">
-              <div className="bg-muted text-muted-foreground w-16 h-16 rounded-full flex items-center justify-center mb-2 mx-auto border-4 border-muted">
-                <i className="fas fa-lock text-lg"></i>
-              </div>
-              <div className="text-xs font-medium text-muted-foreground">Queues</div>
-              <div className="text-xs text-muted-foreground">Locked</div>
-              <Badge variant="outline" className="text-xs mt-1">+150 XP</Badge>
-            </div>
-
-            <div className="w-8 h-px bg-gray-300 flex-shrink-0"></div>
-
-            <div className="flex-shrink-0 text-center">
-              <div className="bg-muted text-muted-foreground w-16 h-16 rounded-full flex items-center justify-center mb-2 mx-auto border-4 border-muted">
-                <i className="fas fa-lock text-lg"></i>
-              </div>
-              <div className="text-xs font-medium text-muted-foreground">Trees</div>
-              <div className="text-xs text-muted-foreground">Locked</div>
-              <Badge variant="outline" className="text-xs mt-1">+200 XP</Badge>
-            </div>
+            <Card>
+              <CardHeader>
+                <CardTitle>Recent Activities</CardTitle>
+                <CardDescription>Your latest learning activities</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">Completed assignment</p>
+                      <p className="text-xs text-muted-foreground">Data Structures • 2 hours ago</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">Level up achievement</p>
+                      <p className="text-xs text-muted-foreground">Reached Level 7 • 1 day ago</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">Started new course</p>
+                      <p className="text-xs text-muted-foreground">Software Engineering • 2 days ago</p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
+        </TabsContent>
 
-          <div className="mt-6 flex items-center justify-between">
-            <Button data-testid="button-continue-learning">
-              <i className="fas fa-play mr-2"></i>
-              Continue Learning
-            </Button>
-            <div className="text-sm text-muted-foreground">
-              2 of 6 modules completed
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+        <TabsContent value="courses" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BookOpen className="h-5 w-5" />
+                My Courses
+              </CardTitle>
+              <CardDescription>Courses you are currently enrolled in</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {[
+                  { name: "Data Structures and Algorithms", progress: 85, instructor: "Dr. Smith", status: "Active" },
+                  { name: "Web Development", progress: 72, instructor: "Prof. Johnson", status: "Active" },
+                  { name: "Database Systems", progress: 90, instructor: "Dr. Wilson", status: "Active" },
+                  { name: "Software Engineering", progress: 68, instructor: "Prof. Brown", status: "Active" }
+                ].map((course, index) => (
+                  <div key={index} className="border rounded-lg p-4">
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <h3 className="font-medium">{course.name}</h3>
+                        <p className="text-sm text-muted-foreground">Instructor: {course.instructor}</p>
+                      </div>
+                      <Badge variant="outline">{course.status}</Badge>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span>Progress</span>
+                        <span>{course.progress}%</span>
+                      </div>
+                      <Progress value={course.progress} />
+                    </div>
+                    <Button variant="outline" size="sm" className="mt-3">
+                      Continue Learning
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-      {/* Assignments Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <i className="fas fa-clipboard-list text-blue-500 mr-3"></i>
-            My Assignments
-          </CardTitle>
-          <CardDescription>
-            View and submit your course assignments
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {assignmentsLoading || submissionsLoading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {[1, 2, 3].map((i) => (
-                  <Card key={i} className="animate-pulse">
-                    <CardHeader>
-                      <div className="h-4 bg-muted rounded w-3/4 mb-2"></div>
-                      <div className="h-3 bg-muted rounded w-1/2"></div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-2">
-                        <div className="h-3 bg-muted rounded w-full"></div>
-                        <div className="h-3 bg-muted rounded w-2/3"></div>
-                        <div className="flex space-x-2 mt-4">
-                          <div className="h-8 bg-muted rounded flex-1"></div>
-                          <div className="h-8 bg-muted rounded flex-1"></div>
-                        </div>
+        <TabsContent value="assignments" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Target className="h-5 w-5" />
+                Assignments & Tasks
+              </CardTitle>
+              <CardDescription>Your upcoming and completed assignments</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-orange-600">3</div>
+                        <p className="text-sm text-muted-foreground">Due This Week</p>
                       </div>
                     </CardContent>
                   </Card>
-                ))}
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-green-600">15</div>
+                        <p className="text-sm text-muted-foreground">Completed</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+                
+                <div className="space-y-2">
+                  {[
+                    { title: "Binary Search Implementation", course: "Data Structures", due: "Dec 15", status: "Pending" },
+                    { title: "Database Design Project", course: "Database Systems", due: "Dec 18", status: "In Progress" },
+                    { title: "React Component Assignment", course: "Web Development", due: "Dec 20", status: "Completed" }
+                  ].map((assignment, index) => (
+                    <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div>
+                        <h3 className="font-medium">{assignment.title}</h3>
+                        <p className="text-sm text-muted-foreground">
+                          {assignment.course} • Due: {assignment.due}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant={assignment.status === "Completed" ? "default" : "outline"}>
+                          {assignment.status}
+                        </Badge>
+                        <Button variant="outline" size="sm">View</Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-            ) : assignments.length === 0 ? (
-              <div className="text-center py-12">
-                <i className="fas fa-clipboard-list text-muted-foreground text-4xl mb-4"></i>
-                <h3 className="text-lg font-semibold text-foreground mb-2">No assignments available</h3>
-                <p className="text-muted-foreground">Check back later for new assignments from your teachers.</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {assignments.map((assignment, index) => {
-                  const submission = mySubmissions.find(s => s.assignmentId === assignment.id);
-                  const isSubmitted = !!submission;
-                  const isGraded = submission?.gradedAt;
-                  
-                  return (
-                    <Card key={assignment.id} className="hover:shadow-lg transition-shadow">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-base flex items-center justify-between">
-                          <span data-testid={`assignment-title-${index}`}>{assignment.title}</span>
-                          <div className="flex items-center space-x-2">
-                            <Badge variant="outline" className="text-xs">
-                              {assignment.totalPoints} pts
-                            </Badge>
-                            {isGraded ? (
-                              <Badge variant="secondary" className="text-xs">
-                                Graded
-                              </Badge>
-                            ) : isSubmitted ? (
-                              <Badge variant="default" className="text-xs">
-                                Submitted
-                              </Badge>
-                            ) : (
-                              <Badge variant="destructive" className="text-xs">
-                                Pending
-                              </Badge>
-                            )}
-                          </div>
-                        </CardTitle>
-                        <CardDescription className="text-sm line-clamp-2">
-                          {assignment.description || "No description provided"}
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent className="pt-0">
-                        <div className="space-y-3">
-                          <div className="text-sm text-muted-foreground space-y-1">
-                            {assignment.dueDate && (
-                              <p><strong>Due:</strong> {new Date(assignment.dueDate).toLocaleDateString()}</p>
-                            )}
-                            {isSubmitted && submission?.submittedAt && (
-                              <p><strong>Submitted:</strong> {new Date(submission.submittedAt).toLocaleDateString()}</p>
-                            )}
-                            {isGraded && submission?.totalScore != null && (
-                              <p><strong>Grade:</strong> {submission.totalScore}/{assignment.totalPoints}</p>
-                            )}
-                          </div>
-                          <div className="flex space-x-2">
-                            <Button 
-                              size="sm" 
-                              variant="outline" 
-                              className="flex-1" 
-                              data-testid={`button-view-assignment-${index}`}
-                              onClick={() => {
-                                setSelectedAssignment(assignment);
-                                setSubmissionDialogOpen(true);
-                              }}
-                            >
-                              <i className="fas fa-eye mr-2"></i>
-                              {isSubmitted ? "View" : "Submit"}
-                            </Button>
-                            {isGraded && submission?.feedback && (
-                              <Button 
-                                size="sm" 
-                                variant="secondary" 
-                                className="flex-1" 
-                                data-testid={`button-view-feedback-${index}`}
-                                onClick={() => {
-                                  setSelectedAssignment(assignment);
-                                  setSubmissionDialogOpen(true);
-                                }}
-                              >
-                                <i className="fas fa-comment mr-2"></i>
-                                Feedback
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-      {/* Achievements and Competency */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Recent Badges */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <i className="fas fa-trophy text-yellow-500 mr-2"></i>
-              Recent Badges
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex items-center space-x-3 p-2 bg-yellow-50 rounded-lg">
-              <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center text-white text-sm">
-                <i className="fas fa-star"></i>
+        <TabsContent value="achievements" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Award className="h-5 w-5" />
+                Your Achievements
+              </CardTitle>
+              <CardDescription>Badges and milestones you've earned</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 md:grid-cols-3">
+                <Card>
+                  <CardContent className="p-4 text-center">
+                    <Trophy className="h-8 w-8 text-yellow-500 mx-auto mb-2" />
+                    <h3 className="font-medium">Level 7 Scholar</h3>
+                    <p className="text-xs text-muted-foreground">Reached learning level 7</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-4 text-center">
+                    <Flame className="h-8 w-8 text-orange-500 mx-auto mb-2" />
+                    <h3 className="font-medium">12-Day Streak</h3>
+                    <p className="text-xs text-muted-foreground">Consistent daily activity</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-4 text-center">
+                    <Star className="h-8 w-8 text-purple-500 mx-auto mb-2" />
+                    <h3 className="font-medium">1000+ XP</h3>
+                    <p className="text-xs text-muted-foreground">Experience points earned</p>
+                  </CardContent>
+                </Card>
               </div>
-              <div>
-                <div className="text-sm font-medium text-foreground">Array Master</div>
-                <div className="text-xs text-muted-foreground">Completed all array exercises</div>
+              
+              <div className="mt-6 text-center">
+                <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">Keep learning to unlock more achievements!</p>
+                <Button className="mt-4">View All Badges</Button>
               </div>
-            </div>
-            
-            <div className="flex items-center space-x-3 p-2 bg-blue-50 rounded-lg">
-              <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm">
-                <i className="fas fa-code"></i>
-              </div>
-              <div>
-                <div className="text-sm font-medium text-foreground">Code Warrior</div>
-                <div className="text-xs text-muted-foreground">Solved 10 coding challenges</div>
-              </div>
-            </div>
-
-            <Button variant="outline" size="sm" className="w-full mt-4" data-testid="button-view-all-badges">
-              View All Badges
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* Competency Profile */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <i className="fas fa-chart-pie text-purple-500 mr-2"></i>
-              Competency Profile
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-foreground">Problem Solving</span>
-                <span className="text-primary font-medium">85%</span>
-              </div>
-              <Progress value={85} />
-            </div>
-            
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-foreground">Algorithm Design</span>
-                <span className="text-secondary font-medium">72%</span>
-              </div>
-              <Progress value={72} />
-            </div>
-            
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-foreground">Code Quality</span>
-                <span className="text-accent font-medium">91%</span>
-              </div>
-              <Progress value={91} />
-            </div>
-
-            <Button variant="outline" size="sm" className="w-full mt-4" data-testid="button-detailed-analysis">
-              Detailed Analysis
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* Study Statistics */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <i className="fas fa-chart-bar text-green-500 mr-2"></i>
-              Study Statistics
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-green-500 mb-1">4.5h</div>
-              <div className="text-sm text-muted-foreground">Study Time Today</div>
-            </div>
-            
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-sm">This Week</span>
-                <span className="text-sm font-semibold">28.5h</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm">This Month</span>
-                <span className="text-sm font-semibold">142h</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm">Average/Day</span>
-                <span className="text-sm font-semibold">3.2h</span>
-              </div>
-            </div>
-
-            <div className="bg-muted/50 rounded-lg p-3 text-center">
-              <div className="text-xs text-muted-foreground">Weekly Goal</div>
-              <div className="text-sm font-semibold text-foreground">25h / 30h</div>
-              <Progress value={83} className="mt-2" />
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
       </div>
-      
-      {/* Assignment Submission Dialog */}
-      <Dialog open={submissionDialogOpen} onOpenChange={setSubmissionDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>
-              {selectedAssignment?.title || 'Assignment'}
-            </DialogTitle>
-          </DialogHeader>
-          {selectedAssignment && (
-            <SubmissionForm
-              assignment={selectedAssignment}
-              existingSubmission={mySubmissions.find(s => s.assignmentId === selectedAssignment.id)}
-              onSuccess={() => {
-                setSubmissionDialogOpen(false);
-                setSelectedAssignment(undefined);
-              }}
-              onCancel={() => {
-                setSubmissionDialogOpen(false);
-                setSelectedAssignment(undefined);
-              }}
-            />
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

@@ -1,41 +1,17 @@
 import { useState } from "react";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/hooks/useSupabaseAuth";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useQuery } from "@tanstack/react-query";
 import { UnifiedNotificationCenter } from "@/components/notifications/unified-notification-center";
+import { Shield } from "lucide-react";
 import edeviserLogo from "@assets/edeviser-logo.png";
 
 export function NavigationHeader() {
-  const { user, logoutMutation } = useAuth();
-  const [selectedRole, setSelectedRole] = useState(user?.role || "student");
+  const { user, profile, signOut } = useAuth();
+  const [selectedRole, setSelectedRole] = useState(profile?.role || "student");
 
-  // Fetch user's progress data for display
-  const { data: progress } = useQuery({
-    queryKey: ["/api/student-progress/" + user?.id],
-    enabled: !!user && user.role === "student",
-  });
-
-  // Fetch admin statistics
-  const { data: adminStats } = useQuery({
-    queryKey: ["/api/stats/admin"],
-    enabled: !!user && user.role === "admin",
-  });
-
-  // Fetch coordinator statistics
-  const { data: coordinatorStats } = useQuery({
-    queryKey: [`/api/stats/coordinator/${user?.id}`],
-    enabled: !!user && user.role === "coordinator",
-  });
-
-  // Fetch teacher statistics
-  const { data: teacherStats } = useQuery({
-    queryKey: [`/api/stats/teacher/${user?.id}`],
-    enabled: !!user && user.role === "teacher",
-  });
-
-  const handleLogout = () => {
-    logoutMutation.mutate();
+  const handleLogout = async () => {
+    await signOut();
   };
 
   const getRoleLabel = (role: string) => {
@@ -49,30 +25,30 @@ export function NavigationHeader() {
   };
 
   const getStatsForRole = () => {
-    switch (user?.role) {
+    switch (profile?.role) {
       case "coordinator":
         return [
-          { label: "Programs Managed", value: coordinatorStats?.programsManaged?.toString() || "0", icon: "fas fa-graduation-cap" },
-          { label: "Students Tracked", value: coordinatorStats?.studentsTracked?.toString() || "0", icon: "fas fa-users" },
-          { label: "Outcomes Mapped", value: coordinatorStats?.outcomesMapped ? `${coordinatorStats.outcomesMapped}%` : "0%", icon: "fas fa-chart-line" },
+          { label: "Programs Managed", value: "3", icon: "fas fa-graduation-cap" },
+          { label: "Students Tracked", value: "125", icon: "fas fa-users" },
+          { label: "Outcomes Mapped", value: "87%", icon: "fas fa-chart-line" },
         ];
       case "teacher":
         return [
-          { label: "Courses Teaching", value: teacherStats?.coursesTeaching?.toString() || "0", icon: "fas fa-chalkboard-teacher" },
-          { label: "Active Students", value: teacherStats?.activeStudents?.toString() || "0", icon: "fas fa-user-graduate" },
-          { label: "Assignments Created", value: teacherStats?.assignmentsCreated?.toString() || "0", icon: "fas fa-tasks" },
+          { label: "Courses Teaching", value: "2", icon: "fas fa-chalkboard-teacher" },
+          { label: "Active Students", value: "45", icon: "fas fa-user-graduate" },
+          { label: "Assignments Created", value: "12", icon: "fas fa-tasks" },
         ];
       case "admin":
         return [
-          { label: "Total Programs", value: adminStats?.totalPrograms?.toString() || "0", icon: "fas fa-university" },
-          { label: "System Users", value: adminStats?.systemUsers?.toLocaleString() || "0", icon: "fas fa-users-cog" },
-          { label: "System Health", value: adminStats?.systemHealth ? `${adminStats.systemHealth}%` : "0%", icon: "fas fa-heartbeat" },
+          { label: "Total Programs", value: "5", icon: "fas fa-university" },
+          { label: "System Users", value: "250", icon: "fas fa-users-cog" },
+          { label: "System Health", value: "98%", icon: "fas fa-heartbeat" },
         ];
       case "student":
         return [
-          { label: "XP Earned", value: (progress as any)?.totalXP?.toString() || "0", icon: "fas fa-star" },
-          { label: "Current Level", value: (progress as any)?.currentLevel?.toString() || "1", icon: "fas fa-trophy" },
-          { label: "Streak Days", value: (progress as any)?.currentStreak?.toString() || "0", icon: "fas fa-fire" },
+          { label: "XP Earned", value: "1,250", icon: "fas fa-star" },
+          { label: "Current Level", value: "7", icon: "fas fa-trophy" },
+          { label: "Streak Days", value: "12", icon: "fas fa-fire" },
         ];
       default:
         return [];
@@ -80,72 +56,82 @@ export function NavigationHeader() {
   };
 
   return (
-    <nav className="bg-card shadow-sm border-b border-border sticky top-0 z-50" data-testid="navigation-header">
+    <nav className="bg-gradient-to-r from-slate-900 via-purple-900 to-slate-900 shadow-2xl border-b border-purple-500/20 sticky top-0 z-50 backdrop-blur-xl" data-testid="navigation-header">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center py-2">
+        <div className="flex justify-between items-center py-3">
           {/* Logo and Brand */}
           <div className="flex items-center">
             <img 
               src={edeviserLogo} 
               alt="Edeviser Logo" 
-              className="h-20 w-auto" 
+              className="h-16 w-auto filter drop-shadow-lg" 
               data-testid="img-logo"
             />
+            <div className="ml-3 hidden md:block">
+              <h1 className="text-white font-bold text-xl bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                E-Deviser LXP
+              </h1>
+              <p className="text-gray-300 text-xs">Learning Experience Platform</p>
+            </div>
           </div>
 
           {/* User Profile & Role Info */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-6">
             {/* Role-specific stats */}
             {getStatsForRole().map((stat, index) => (
-              <div key={index} className="hidden md:flex items-center space-x-2">
-                <div className="bg-primary/10 text-primary p-2 rounded-lg">
+              <div key={index} className="hidden lg:flex items-center space-x-3 bg-white/10 backdrop-blur-sm rounded-xl px-4 py-2 border border-white/20">
+                <div className="bg-gradient-to-br from-blue-500 to-purple-600 text-white p-2.5 rounded-lg shadow-lg">
                   <i className={`${stat.icon} text-sm`}></i>
                 </div>
                 <div>
-                  <div className="text-sm font-semibold text-foreground" data-testid={`stat-${stat.label.toLowerCase().replace(/\s+/g, '-')}`}>
+                  <div className="text-sm font-bold text-white" data-testid={`stat-${stat.label.toLowerCase().replace(/\s+/g, '-')}`}>
                     {stat.value}
                   </div>
-                  <div className="text-xs text-muted-foreground">{stat.label}</div>
+                  <div className="text-xs text-gray-300">{stat.label}</div>
                 </div>
               </div>
             ))}
 
             {/* Unified Notification Center */}
-            <UnifiedNotificationCenter />
+            <div className="relative">
+              <UnifiedNotificationCenter />
+            </div>
 
             {/* Role Display */}
-            <div className="flex items-center space-x-2 bg-muted px-3 py-2 rounded-lg">
-              <span className="text-sm text-muted-foreground">Role:</span>
-              <span className="text-sm font-medium text-foreground" data-testid="text-user-role">
-                {getRoleLabel(user?.role || "")}
+            <div className="flex items-center space-x-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 backdrop-blur-sm px-4 py-2 rounded-xl border border-blue-500/30">
+              <Shield className="h-4 w-4 text-blue-400" />
+              <span className="text-sm text-gray-300">Role:</span>
+              <span className="text-sm font-semibold text-white" data-testid="text-user-role">
+                {getRoleLabel(profile?.role || "")}
               </span>
             </div>
 
             {/* User Avatar and Info */}
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-4 bg-white/10 backdrop-blur-sm rounded-xl px-4 py-2 border border-white/20">
               <div className="text-right">
-                <div className="text-sm font-medium text-foreground" data-testid="text-user-name">
-                  {user?.firstName} {user?.lastName}
+                <div className="text-sm font-semibold text-white" data-testid="text-user-name">
+                  {profile?.first_name} {profile?.last_name}
                 </div>
-                <div className="text-xs text-muted-foreground" data-testid="text-user-email">
-                  {user?.email}
+                <div className="text-xs text-gray-300" data-testid="text-user-email">
+                  {profile?.email}
                 </div>
               </div>
               
               <div className="relative">
-                <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-semibold">
-                  {user?.firstName?.[0]}{user?.lastName?.[0]}
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 text-white rounded-full flex items-center justify-center text-sm font-bold shadow-lg border-2 border-white/30">
+                  {profile?.first_name?.[0]}{profile?.last_name?.[0]}
                 </div>
+                <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-white"></div>
               </div>
 
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleLogout}
-                disabled={logoutMutation.isPending}
+                className="bg-red-500/20 border-red-400/30 text-red-100 hover:bg-red-500/30 hover:border-red-400/50 transition-all duration-200"
                 data-testid="button-logout"
               >
-                {logoutMutation.isPending ? "Signing out..." : "Sign Out"}
+                Sign Out
               </Button>
             </div>
           </div>

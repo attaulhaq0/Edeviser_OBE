@@ -6,11 +6,11 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
 import { Alert, AlertDescription } from '../components/ui/alert'
 import { useAuth } from '../hooks/useSupabaseAuth'
-import { signInWithDemo, DEMO_CREDENTIALS } from '../lib/demo-users'
+import { DEMO_CREDENTIALS } from '../lib/demo-users'
 import { Loader2, User, Users, GraduationCap, Shield } from 'lucide-react'
 
 export default function SupabaseAuthPage() {
-  const { signIn, signUp, loading } = useAuth()
+  const { signIn, signUp, signInWithDemo, loading } = useAuth()
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -85,15 +85,22 @@ export default function SupabaseAuthPage() {
 
   const handleDemoLogin = async (role: keyof typeof DEMO_CREDENTIALS) => {
     setError(null)
+    setSuccess(null)
     setIsLoading(true)
 
-    const { error } = await signInWithDemo(role)
-    
-    if (error) {
-      setError(error.message)
+    try {
+      const { error } = await signInWithDemo(role)
+      
+      if (error) {
+        setError(`Demo login failed: ${error.message}`)
+      } else {
+        setSuccess(`Demo login successful! Redirecting to ${role} dashboard...`)
+      }
+    } catch (err) {
+      setError(`Demo login error: ${err instanceof Error ? err.message : 'Unknown error'}`)
+    } finally {
+      setIsLoading(false)
     }
-    
-    setIsLoading(false)
   }
 
   const getRoleIcon = (role: string) => {
@@ -138,9 +145,9 @@ export default function SupabaseAuthPage() {
           </div>
 
           {/* Auth Forms */}
-          <Card className="backdrop-blur-sm bg-white/90 border-0 shadow-2xl">
+          <Card className="bg-white border-0 shadow-2xl">
             <Tabs defaultValue="login" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 bg-blue-50/80">
+              <TabsList className="grid w-full grid-cols-2 bg-blue-50">
                 <TabsTrigger 
                   value="login" 
                   className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white"
@@ -214,7 +221,11 @@ export default function SupabaseAuthPage() {
                             title={`${credentials.firstName} ${credentials.lastName}`}
                           >
                             <div className="flex items-center gap-1.5">
-                              {getRoleIcon(role)}
+                              {isLoading ? (
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                              ) : (
+                                getRoleIcon(role)
+                              )}
                               <span className="capitalize font-medium">{role}</span>
                             </div>
                           </Button>
@@ -329,13 +340,13 @@ export default function SupabaseAuthPage() {
 
           {/* Error/Success Messages */}
           {error && (
-            <Alert variant="destructive" className="backdrop-blur-sm bg-red-50/90 border-red-200">
+            <Alert variant="destructive" className="bg-red-50 border-red-200">
               <AlertDescription className="text-red-800">{error}</AlertDescription>
             </Alert>
           )}
           
           {success && (
-            <Alert className="backdrop-blur-sm bg-green-50/90 border-green-200">
+            <Alert className="bg-green-50 border-green-200">
               <AlertDescription className="text-green-800">{success}</AlertDescription>
             </Alert>
           )}

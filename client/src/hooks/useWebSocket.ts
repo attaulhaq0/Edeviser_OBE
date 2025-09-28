@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useAuth } from './use-auth';
+import { useAuth } from './useSupabaseAuth';
 import { useToast } from './use-toast';
 
 interface WebSocketMessage {
