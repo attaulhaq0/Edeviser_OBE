@@ -2,7 +2,7 @@
 
 ## Overview
 
-Complete unified implementation of the Edeviser platform covering authentication, RBAC, user/program/course management, the full OBE engine (outcomes, rubrics, assignments, submissions, grading, evidence, rollup), gamification (XP, streaks, badges, levels, leaderboards, journals, daily habits, variable rewards, learning path gating), Bloom's verb guide, email notifications (Resend), AI Co-Pilot (module suggestions, at-risk predictions, feedback drafts), peer milestone notifications, CLO progress dashboard, XP transaction history, seed data generation, CI/CD pipeline, health monitoring, load testing, four role-specific dashboards, notifications, realtime, reporting, audit logging, and platform enhancements (student portfolio, streak freeze, onboarding flows, read habit, dark mode, offline resilience, GDPR data export, notification batching, error states, teacher grading stats). Tasks are ordered foundation-first in a single unified plan.
+Complete unified implementation of the Edeviser platform covering authentication, RBAC, user/program/course management, the full OBE engine (outcomes, rubrics, assignments, submissions, grading, evidence, rollup), gamification (XP, streaks, badges, levels, leaderboards, journals, daily habits, variable rewards, learning path gating), Bloom's verb guide, email notifications (Resend), AI Co-Pilot (module suggestions, at-risk predictions, feedback drafts), peer milestone notifications, CLO progress dashboard, XP transaction history, seed data generation, CI/CD pipeline, health monitoring, load testing, four role-specific dashboards (plus parent portal), notifications, realtime, reporting, audit logging, platform enhancements (student portfolio, streak freeze, onboarding flows, read habit, dark mode, offline resilience, GDPR data export, notification batching, error states, teacher grading stats), and institutional management features (semester management, course sections, surveys, CQI loop, configurable KPI thresholds, multi-accreditation body support, course file generation, announcements, course content/materials, discussion forums, attendance tracking, quiz/exam module, gradebook with weighted categories, calendar view, timetable, department management, academic calendar, student transcripts, parent/guardian portal, fee management). Tasks are ordered foundation-first in a single unified plan.
 
 ## Tasks
 
@@ -29,6 +29,25 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Create `exportData.ts` with `exportRequestSchema`
     - Create `themePrefs.ts` with `themePreferenceSchema`
     - Create `onboarding.ts` with `onboardingStepSchema`, `checklistItemSchema`
+    - Create `semester.ts` with `createSemesterSchema`, `updateSemesterSchema`
+    - Create `department.ts` with `createDepartmentSchema`, `updateDepartmentSchema`
+    - Create `courseSection.ts` with `createSectionSchema`, `updateSectionSchema`
+    - Create `survey.ts` with `createSurveySchema`, `surveyQuestionSchema`, `surveyResponseSchema`
+    - Create `cqiPlan.ts` with `createCQIPlanSchema`, `updateCQIPlanSchema`
+    - Create `institutionSettings.ts` with `institutionSettingsSchema`, `gradeScaleSchema`
+    - Create `programAccreditation.ts` with `programAccreditationSchema`
+    - Create `announcement.ts` with `createAnnouncementSchema`
+    - Create `courseModule.ts` with `createModuleSchema`, `createMaterialSchema`
+    - Create `discussion.ts` with `createThreadSchema`, `createReplySchema`
+    - Create `attendance.ts` with `createSessionSchema`, `attendanceRecordSchema`
+    - Create `quiz.ts` with `createQuizSchema`, `quizQuestionSchema`, `quizAttemptSchema`
+    - Create `gradeCategory.ts` with `gradeCategorySchema`
+    - Create `timetable.ts` with `timetableSlotSchema`
+    - Create `academicCalendar.ts` with `academicCalendarEventSchema`
+    - Create `parentLink.ts` with `parentStudentLinkSchema`
+    - Create `feeStructure.ts` with `feeStructureSchema`, `feePaymentSchema`
+    - Create `transcript.ts` with `transcriptRequestSchema`
+    - Create `courseFile.ts` with `courseFileRequestSchema`
     - _Requirements: All_
 
   - [ ] 1.2 Create Audit Logger service (`/src/lib/auditLogger.ts`)
@@ -36,7 +55,7 @@ Complete unified implementation of the Edeviser platform covering authentication
     - _Requirements: 34_
 
   - [ ] 1.3 Create TanStack Query key factory (`/src/lib/queryKeys.ts`)
-    - Define hierarchical keys for all entities including AI Co-Pilot queries
+    - Define hierarchical keys for all entities including AI Co-Pilot queries and institutional management entities (semesters, departments, courseSections, surveys, cqiPlans, institutionSettings, programAccreditations, announcements, courseModules, courseMaterials, discussionThreads, discussionReplies, classSessions, attendanceRecords, quizzes, quizAttempts, gradeCategories, gradebook, timetableSlots, academicCalendarEvents, parentStudentLinks, feeStructures, feePayments, calendarEvents, transcripts, courseFiles)
     - _Requirements: All_
 
   - [ ] 1.4 Create shared type definitions (`/src/types/app.ts`)
@@ -46,6 +65,11 @@ Complete unified implementation of the Edeviser platform covering authentication
     - AI Co-Pilot types: ModuleSuggestion, AtRiskPrediction, FeedbackDraft, AIFeedbackEntry
     - Portfolio types, StreakFreeze types, Onboarding types, ThemePreference, GradingStats types
     - DraftManager types, OfflineQueue types, NotificationBatcher types, ExportData types
+    - Semester types, CourseSection types, Survey types, CQI types, InstitutionSettings types
+    - Announcement types, CourseModule types, Discussion types, Attendance types
+    - Quiz types, Gradebook types, Calendar types, Timetable types
+    - Department types, AcademicCalendar types, Transcript types, CourseFile types
+    - ParentPortal types, FeeManagement types, PaymentStatus types
     - _Requirements: All_
 
   - [ ] 1.5 Apply database extensions, indexes, and cron jobs via Supabase MCP
@@ -60,8 +84,15 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Create UNIQUE index on outcome_attainment for UPSERT rollup logic
     - Create composite index on `student_gamification(xp_total DESC, student_id)` for leaderboard direct queries
     - Apply column additions: `student_gamification.streak_freezes_available`, `profiles.onboarding_completed`, `profiles.portfolio_public`, `profiles.theme_preference` (see design.md Column Additions)
-    - Update `student_activity_log.event_type` CHECK to include `grading_start`, `grading_end`
-    - _Requirements: 2, 34, 35, 36, 37, 41, 43, 47, 50, 51, 58, 59, 60, 62, 67_
+    - Create new tables: `semesters`, `departments`, `course_sections`, `surveys`, `survey_questions`, `survey_responses`, `cqi_action_plans`, `institution_settings`, `program_accreditations`, `announcements`, `course_modules`, `course_materials`, `discussion_threads`, `discussion_replies`, `class_sessions`, `attendance_records`, `quizzes`, `quiz_questions`, `quiz_attempts`, `grade_categories`, `timetable_slots`, `academic_calendar_events`, `parent_student_links`, `fee_structures`, `fee_payments` — all with RLS enabled
+    - Apply column additions: `courses.semester_id`, `programs.department_id`, `student_courses.section_id`
+    - Create indexes: `idx_announcements_course`, `idx_discussion_threads_course`, `idx_attendance_student`, `idx_quiz_attempts_student`, `idx_fee_payments_student`
+    - Update `student_activity_log.event_type` CHECK to include `grading_start`, `grading_end`, `material_view`, `announcement_view`, `discussion_post`, `quiz_attempt`, `attendance_marked`
+    - Update `xp_transactions.source` CHECK to include `streak_freeze_purchase`, `discussion_question`, `discussion_answer`, `survey_completion`, `quiz_completion`
+    - Create RLS policies for all new tables using `auth_user_role()` and `auth_institution_id()` helper functions
+    - Create RLS policies for `parent` role on `parent_student_links` and read-only access to linked student data
+    - Add pg_cron job: fee-overdue-check (daily 6 AM — update pending → overdue)
+    - _Requirements: 2, 34, 35, 36, 37, 41, 43, 47, 50, 51, 58, 59, 60, 62, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87_
 
   - [ ] 1.6 Create Activity Logger service (`/src/lib/activityLogger.ts`)
     - Implement fire-and-forget logging of student behavioral events
@@ -87,7 +118,9 @@ Complete unified implementation of the Edeviser platform covering authentication
     - _Requirements: 1, 3, 5_
 
   - [ ] 2.6 Create AppRouter with role-based route guards
-    - _Requirements: 3_
+    - Include route guards for all 5 roles: admin, coordinator, teacher, student, parent
+    - Add `/parent/*` route group with ParentLayout
+    - _Requirements: 3, 86.7_
 
   - [ ] 2.7 Create App shell (`/src/App.tsx`)
     - Wrap in AuthProvider, QueryClientProvider, BrowserRouter, Toaster
@@ -603,7 +636,7 @@ Complete unified implementation of the Edeviser platform covering authentication
     - _Requirements: 49.5_
 
 - [ ] 39. Implement shared UI components
-  - [ ] 39.1 Create all shared components: AttainmentBar, BloomsPill, OutcomeTypeBadge, KPICard, GradientCardHeader, HabitGrid, LockedNode, BloomsVerbGuide, MysteryBadge, BonusEventBanner, AIFeedbackThumbs, AISuggestionCard, AtRiskStudentRow, CLOProgressBar, XPTransactionRow, Shimmer, EmptyState, ConfirmDialog, DataTable wrapper, ErrorState, UploadProgress, ReconnectBanner, StreakFreezeShop, ExportDataButton, QuickStartChecklist
+  - [ ] 39.1 Create all shared components: AttainmentBar, BloomsPill, OutcomeTypeBadge, KPICard, GradientCardHeader, HabitGrid, LockedNode, BloomsVerbGuide, MysteryBadge, BonusEventBanner, AIFeedbackThumbs, AISuggestionCard, AtRiskStudentRow, CLOProgressBar, XPTransactionRow, Shimmer, EmptyState, ConfirmDialog, DataTable wrapper, ErrorState, UploadProgress, ReconnectBanner, StreakFreezeShop, ExportDataButton, QuickStartChecklist, SurveyForm, AttendanceGrid, QuizQuestionCard, GradebookMatrix, TimetableGrid, AnnouncementCard, MaterialItem, DiscussionThreadCard, CalendarEventCard, CQIStatusBadge, SectionComparisonChart, FeeStatusBadge, ParentStudentCard
   - [ ] 39.2 Apply brand design tokens from design style guide to all pages
   - [ ] 39.3 Add custom animations: xp-pulse, badge-pop, shimmer, float, streak-flame, node-unlock, mystery-reveal
   - [ ] 39.4 Implement reduced motion support
@@ -613,7 +646,7 @@ Complete unified implementation of the Edeviser platform covering authentication
   - [ ] 40.2 Extract all user-facing strings to translation files
 
 - [ ] 41. Write comprehensive tests
-  - [ ]* 41.1 Write property-based tests (Properties 1–40)
+  - [ ]* 41.1 Write property-based tests (Properties 1–50)
     - **Properties 1-3**: Auth (login, lockout, generic errors)
     - **Properties 4-5**: RBAC (data isolation, role enforcement)
     - **Properties 6-8**: Routing (role redirect, access denied, unauthenticated)
@@ -632,7 +665,14 @@ Complete unified implementation of the Edeviser platform covering authentication
     - **Property 36**: Peer milestone notification scoping
     - **Property 37**: Perfect Day prompt notification accuracy
     - **Properties 38-40**: AI Co-Pilot (CLO gap detection, at-risk timeliness, feedback flywheel integrity)
-    - **Validates: Requirements 1-57**
+    - **Properties 41-42**: Streak Freeze (consumption correctness, purchase constraints)
+    - **Properties 43-44**: Notification batching (rate limiting, batching correctness)
+    - **Properties 45-46**: Offline queue (flush integrity, draft round-trip)
+    - **Property 47**: Student data export completeness
+    - **Property 48**: Dark mode token consistency
+    - **Property 49**: Read habit timer accuracy
+    - **Property 50**: Grading time calculation correctness
+    - _Validates: Requirements 1-67_
 
   - [ ]* 41.2 Write unit tests for all modules
     - Auth, users, programs, courses, outcomes, rubrics, assignments, grading, evidence
@@ -641,6 +681,10 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Email notifications, activity logger, CLO progress, XP history
     - Peer notifications, Perfect Day prompt
     - AI module suggestion, AI at-risk prediction, AI feedback draft, AI feedback flywheel
+    - Semesters, departments, course sections, surveys, CQI plans, institution settings
+    - Program accreditations, announcements, course modules, discussion forum
+    - Attendance, quizzes, gradebook, calendar view, timetable
+    - Academic calendar, transcripts, course file, parent portal, fee management
     - _Requirements: All_
 
   - [ ]* 41.3 Write integration tests
@@ -651,6 +695,12 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Level-up → peer milestone notification pipeline
     - AI suggestion → feedback collection pipeline
     - Realtime subscription delivery
+    - Quiz attempt → auto-grade → evidence → CLO attainment pipeline
+    - Attendance marking → at-risk signal → AI prediction pipeline
+    - Discussion post → XP award → badge check pipeline
+    - Survey response → indirect evidence → accreditation report pipeline
+    - Semester activation → course scoping → report filtering pipeline
+    - Parent link verification → data access → notification pipeline
     - _Requirements: All_
 
 - [ ] 42. Production hardening
@@ -686,11 +736,12 @@ Complete unified implementation of the Edeviser platform covering authentication
   - [ ] 44.1 Create Vercel API routes for cron triggers (`/api/cron/`)
     - Create thin API routes for: streak-risk, weekly-summary, compute-at-risk, perfect-day-prompt, streak-reset, leaderboard-refresh, ai-at-risk-prediction, notification-digest
     - Each route authenticates with `CRON_SECRET` env var and calls the corresponding Supabase Edge Function
-    - _Requirements: 50, 53_
+    - Include fee-overdue-check route
+    - _Requirements: 50, 53, 87_
 
   - [ ] 44.2 Create `vercel.json` cron configuration
-    - Configure schedules matching pg_cron jobs: streak-risk (8 PM daily), weekly-summary (Monday 8 AM), compute-at-risk (2 AM nightly), perfect-day-prompt (6 PM daily), streak-reset (midnight daily), leaderboard-refresh (every 5 min), ai-at-risk-prediction (nightly), notification-digest (8 PM daily)
-    - _Requirements: 50, 53_
+    - Configure schedules matching pg_cron jobs: streak-risk (8 PM daily), weekly-summary (Monday 8 AM), compute-at-risk (2 AM nightly), perfect-day-prompt (6 PM daily), streak-reset (midnight daily), leaderboard-refresh (every 5 min), ai-at-risk-prediction (nightly), notification-digest (8 PM daily), fee-overdue-check (6 AM daily)
+    - _Requirements: 50, 53, 87_
 
   - [ ] 44.3 Add environment detection to skip pg_cron setup on free tier
     - Check for `SUPABASE_PRO` env var; if absent, skip pg_cron extension and cron job creation in migrations
@@ -1003,10 +1054,480 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Offline queue flush pipeline (queue events → go online → events flushed)
     - _Requirements: 59, 63_
 
-- [ ] 60. Final verification — All tests pass, production ready
+- [ ] 60. Implement Semester & Academic Structure
+  - [ ] 60.1 Create semester TanStack Query hooks (`/src/hooks/useSemesters.ts`)
+    - CRUD operations for semesters
+    - Active semester query with institution scoping
+    - _Requirements: 68_
+
+  - [ ] 60.2 Create Semester Manager page (`/src/pages/admin/semesters/SemesterManager.tsx`)
+    - List, create, edit semesters with date range validation
+    - Active/inactive toggle with single-active enforcement
+    - Deactivation preserves data as read-only
+    - Log changes to Audit_Logger
+    - _Requirements: 68.1, 68.2, 68.3, 68.5_
+
+  - [ ] 60.3 Create Department Manager page (`/src/pages/admin/departments/DepartmentManager.tsx`)
+    - CRUD for departments with head-of-department assignment
+    - Block deletion if active programs exist
+    - Log changes to Audit_Logger
+    - _Requirements: 83_
+
+  - [ ] 60.4 Create department TanStack Query hooks (`/src/hooks/useDepartments.ts`)
+    - _Requirements: 83_
+
+  - [ ] 60.5 Add department-level analytics to Admin Dashboard
+    - Aggregated PLO/ILO attainment per department
+    - _Requirements: 83.3_
+
+  - [ ] 60.6 Migrate courses to use `semester_id` FK and programs to use `department_id` FK
+    - Update course creation/edit forms to use semester dropdown
+    - Update program creation/edit forms to use department dropdown
+    - _Requirements: 68.6, 83.2_
+
+- [ ] 61. Implement Course Section Support
+  - [ ] 61.1 Create course section TanStack Query hooks (`/src/hooks/useCourseSections.ts`)
+    - CRUD operations for sections within a course
+    - _Requirements: 69_
+
+  - [ ] 61.2 Create Section Manager UI within course detail page
+    - Add/edit sections with section_code, teacher assignment, capacity
+    - _Requirements: 69.1_
+
+  - [ ] 61.3 Update student enrollment to scope by section
+    - `student_courses` now includes `section_id` FK
+    - Enrollment UI shows section selector
+    - _Requirements: 69.2_
+
+  - [ ] 61.4 Update submissions and grades to scope by section
+    - Grading queue filtered by section
+    - _Requirements: 69.3_
+
+  - [ ] 61.5 Create section comparison view on Coordinator Dashboard
+    - Side-by-side attainment metrics across sections of the same course
+    - _Requirements: 69.6_
+
+  - [ ] 61.6 Update Teacher Dashboard for per-section analytics
+    - _Requirements: 69.7_
+
+- [ ] 62. Implement Survey Module (Indirect Assessment)
+  - [ ] 62.1 Create survey TanStack Query hooks (`/src/hooks/useSurveys.ts`)
+    - CRUD for surveys, questions, and responses
+    - _Requirements: 70_
+
+  - [ ] 62.2 Create Survey Manager page (`/src/pages/admin/surveys/SurveyManager.tsx`)
+    - Create surveys with title, type, linked outcomes
+    - Add questions: Likert (1-5), MCQ, open text
+    - Publish/unpublish surveys
+    - _Requirements: 70.1, 70.2_
+
+  - [ ] 62.3 Create Survey Response page (`/src/pages/student/surveys/SurveyResponsePage.tsx`)
+    - Render survey questions with appropriate input types
+    - Enforce single response per respondent
+    - Award 15 XP on completion via XP_Engine
+    - _Requirements: 70.3, 70.5, 70.6_
+
+  - [ ] 62.4 Integrate survey results into accreditation reports
+    - Aggregate responses by linked PLO/ILO as indirect assessment evidence
+    - _Requirements: 70.4_
+
+- [ ] 63. Implement CQI Loop
+  - [ ] 63.1 Create CQI TanStack Query hooks (`/src/hooks/useCQIPlans.ts`)
+    - CRUD for CQI action plans
+    - _Requirements: 71_
+
+  - [ ] 63.2 Create CQI Action Plan Manager page (`/src/pages/coordinator/cqi/CQIManager.tsx`)
+    - Create/edit plans with outcome, baseline/target attainment, action description
+    - Status workflow: planned → in_progress → completed → evaluated
+    - Require result_attainment on evaluation
+    - Log changes to Audit_Logger
+    - _Requirements: 71.1, 71.2, 71.3, 71.6_
+
+  - [ ] 63.3 Add CQI section to Coordinator Dashboard
+    - Open/closed action plans with baseline vs. result comparison
+    - _Requirements: 71.5_
+
+  - [ ] 63.4 Integrate CQI plans into accreditation reports
+    - Include as "closing the loop" evidence
+    - _Requirements: 71.4_
+
+- [ ] 64. Implement Configurable KPI Thresholds & Multi-Accreditation
+  - [ ] 64.1 Create Institution Settings page (`/src/pages/admin/settings/InstitutionSettings.tsx`)
+    - Configure attainment thresholds (excellent/satisfactory/developing)
+    - Configure success threshold
+    - Select accreditation body
+    - Configure grade scales (letter/min/max/GPA points)
+    - Log changes to Audit_Logger
+    - _Requirements: 72.1, 72.2, 72.3, 72.5_
+
+  - [ ] 64.2 Create institution settings TanStack Query hooks (`/src/hooks/useInstitutionSettings.ts`)
+    - _Requirements: 72_
+
+  - [ ] 64.3 Refactor all attainment level calculations to use configurable thresholds
+    - Update Evidence_Generator, dashboards, reports, AI predictions
+    - Replace hardcoded 85/70/50 with institution_settings values
+    - _Requirements: 72.4_
+
+  - [ ] 64.4 Create Program Accreditation Manager
+    - Tag programs with multiple accreditation bodies
+    - Track accreditation dates and review schedules
+    - Display accreditation status on Admin Dashboard
+    - _Requirements: 73_
+
+  - [ ] 64.5 Update Report Generator for body-specific reports
+    - Generate reports per accreditation body per program
+    - Support different PLO naming conventions
+    - _Requirements: 73.2, 73.3_
+
+- [ ] 65. Implement Course File / Portfolio Generation
+  - [ ] 65.1 Create `generate-course-file` Edge Function (`/supabase/functions/generate-course-file/`)
+    - Aggregate: syllabus, CLO-PLO mapping, assessment instruments, sample work (best/avg/worst), CLO attainment charts, teacher reflection, CQI recommendations
+    - Generate as PDF or ZIP
+    - Upload to Supabase Storage, return signed URL
+    - Must complete within 30 seconds
+    - _Requirements: 74.1, 74.2, 74.3, 74.5_
+
+  - [ ] 65.2 Create Course File generation UI on Coordinator course detail page
+    - Trigger generation button with format selector (PDF/ZIP)
+    - Loading state during generation
+    - Download link on completion
+    - _Requirements: 74.4_
+
+  - [ ] 65.3 Create course file TanStack Query hooks (`/src/hooks/useCourseFile.ts`)
+    - Mutation for triggering generation
+    - _Requirements: 74_
+
+- [ ] 66. Implement Announcements & Course Content
+  - [ ] 66.1 Create announcement TanStack Query hooks (`/src/hooks/useAnnouncements.ts`)
+    - CRUD for announcements within a course
+    - _Requirements: 75_
+
+  - [ ] 66.2 Create Announcement Editor page (`/src/pages/teacher/announcements/AnnouncementEditor.tsx`)
+    - Create/edit announcements with markdown content and pin toggle
+    - _Requirements: 75.1, 75.4_
+
+  - [ ] 66.3 Display announcements on Student Dashboard and course detail page
+    - Ordered by pinned DESC, created_at DESC
+    - Trigger notification on new announcement
+    - _Requirements: 75.2, 75.3_
+
+  - [ ] 66.4 Wire announcement view into Read habit (30+ seconds)
+    - Use `useReadHabitTimer` hook on announcement detail view
+    - _Requirements: 75.5_
+
+  - [ ] 66.5 Create Course Module Manager (`/src/pages/teacher/courses/ModuleManager.tsx`)
+    - Create/edit modules with title, description, sort order, publish toggle
+    - Add materials: file upload (Supabase Storage), links, video embeds, text
+    - Link materials to CLOs for traceability
+    - _Requirements: 76.1, 76.2, 76.3, 76.4_
+
+  - [ ] 66.6 Create course module/material TanStack Query hooks (`/src/hooks/useCourseModules.ts`)
+    - _Requirements: 76_
+
+  - [ ] 66.7 Display materials on Student course detail page organized by module
+    - Wire material view into Read habit (30+ seconds)
+    - _Requirements: 76.5, 76.6_
+
+- [ ] 67. Implement Discussion Forum
+  - [ ] 67.1 Create discussion TanStack Query hooks (`/src/hooks/useDiscussions.ts`)
+    - CRUD for threads and replies
+    - _Requirements: 77_
+
+  - [ ] 67.2 Create Discussion Thread List page (`/src/pages/student/discussions/DiscussionForum.tsx`)
+    - List threads per course, ordered by pinned DESC, created_at DESC
+    - Resolved threads visually distinguished
+    - _Requirements: 77.6_
+
+  - [ ] 67.3 Create Thread Detail page with replies
+    - Teacher can mark reply as "answer" (sets is_resolved on thread)
+    - _Requirements: 77.2, 77.3_
+
+  - [ ] 67.4 Wire XP awards for discussion participation
+    - 10 XP for creating a thread (discussion_question)
+    - 15 XP for answer marked correct (discussion_answer)
+    - _Requirements: 77.4, 77.5_
+
+  - [ ] 67.5 Create Discussion Moderation page for Teachers
+    - Pin/unpin threads, mark answers, delete inappropriate content
+    - _Requirements: 77.3_
+
+- [ ] 68. Implement Attendance Tracking
+  - [ ] 68.1 Create attendance TanStack Query hooks (`/src/hooks/useAttendance.ts`)
+    - CRUD for class sessions and attendance records
+    - Attendance percentage calculation
+    - _Requirements: 78_
+
+  - [ ] 68.2 Create Attendance Marker page (`/src/pages/teacher/attendance/AttendanceMarker.tsx`)
+    - Create class sessions (date, type, topic)
+    - Mark attendance per student: present/absent/late/excused
+    - Bulk marking with AttendanceGrid component
+    - _Requirements: 78.1, 78.2_
+
+  - [ ] 68.3 Create Attendance Report view
+    - Per-student attendance percentage per course
+    - Flag students below 75% threshold
+    - _Requirements: 78.3, 78.4_
+
+  - [ ] 68.4 Display attendance on Student Dashboard
+    - Attendance percentage per enrolled course
+    - _Requirements: 78.5_
+
+  - [ ] 68.5 Wire attendance data into AI at-risk prediction
+    - Add attendance frequency as contributing signal in `compute-at-risk-signals`
+    - _Requirements: 78.6_
+
+  - [ ] 68.6 Wire "Perfect Attendance Week" badge
+    - Award badge when student is present for all sessions in a 7-day period
+    - _Requirements: 78.7_
+
+- [ ] 69. Implement Quiz/Exam Module
+  - [ ] 69.1 Create quiz TanStack Query hooks (`/src/hooks/useQuizzes.ts`)
+    - CRUD for quizzes, questions, and attempts
+    - _Requirements: 79_
+
+  - [ ] 69.2 Create Quiz Builder page (`/src/pages/teacher/quizzes/QuizBuilder.tsx`)
+    - Create quizzes with title, CLO links, time limit, max attempts, due date
+    - Add questions: MCQ (single/multi), true/false, short answer, fill-in-blank
+    - Set correct answers and point values
+    - Publish/unpublish toggle
+    - _Requirements: 79.1, 79.2_
+
+  - [ ] 69.3 Create Quiz Attempt page (`/src/pages/student/quizzes/QuizAttemptPage.tsx`)
+    - Display questions with timer (if time limit set)
+    - Enforce max attempts
+    - Auto-submit on time expiry
+    - _Requirements: 79.3, 79.7_
+
+  - [ ] 69.4 Create `auto-grade-quiz` Edge Function or client-side grading logic
+    - Auto-grade MCQ, true/false, fill-in-blank immediately
+    - Flag short answer for manual teacher grading
+    - _Requirements: 79.4_
+
+  - [ ] 69.5 Wire quiz scores into CLO attainment pipeline
+    - Generate evidence records from quiz scores (same as assignment grades)
+    - _Requirements: 79.5_
+
+  - [ ] 69.6 Wire XP awards for quiz completion
+    - 50 XP on-time, 25 XP if late (same schedule as assignments)
+    - _Requirements: 79.6_
+
+- [ ] 70. Implement Gradebook with Weighted Categories
+  - [ ] 70.1 Create gradebook TanStack Query hooks (`/src/hooks/useGradebook.ts`)
+    - CRUD for grade categories
+    - Gradebook matrix query (students × assessments)
+    - _Requirements: 80_
+
+  - [ ] 70.2 Create Grade Category Manager
+    - Define categories with name and weight percentage
+    - Enforce sum of weights = 100%
+    - Link assignments and quizzes to categories
+    - _Requirements: 80.1, 80.2_
+
+  - [ ] 70.3 Create Gradebook View page (`/src/pages/teacher/gradebook/GradebookView.tsx`)
+    - Students × assessments matrix with category subtotals
+    - Final weighted grade and letter grade per student
+    - Filterable by section
+    - _Requirements: 80.3, 80.4, 80.6_
+
+  - [ ] 70.4 Implement letter grade mapping using institution_settings.grade_scales
+    - _Requirements: 80.5_
+
+- [ ] 71. Implement Calendar View
+  - [ ] 71.1 Create calendar TanStack Query hooks (`/src/hooks/useCalendar.ts`)
+    - Aggregate events from assignments, quizzes, class_sessions, academic_calendar_events
+    - _Requirements: 81_
+
+  - [ ] 71.2 Create Calendar View page (`/src/pages/shared/CalendarView.tsx`)
+    - Monthly/weekly view with color-coded events by course
+    - Student view: all enrolled courses; Teacher view: all taught courses
+    - _Requirements: 81.1, 81.2, 81.3_
+
+  - [ ] 71.3 Integrate calendar with Student Dashboard deadline widget
+    - _Requirements: 81.4_
+
+  - [ ] 71.4 Add calendar to dashboard sidebar for Students and Teachers
+    - _Requirements: 81.5_
+
+- [ ] 72. Implement Timetable
+  - [ ] 72.1 Create timetable TanStack Query hooks (`/src/hooks/useTimetable.ts`)
+    - Query timetable slots for student (from enrolled sections) or teacher (from assigned sections)
+    - _Requirements: 82_
+
+  - [ ] 72.2 Create Timetable View page (`/src/pages/shared/TimetableView.tsx`)
+    - Weekly grid: days as columns, time slots as rows
+    - Color-coded by course
+    - _Requirements: 82.1, 82.4_
+
+  - [ ] 72.3 Admin/Coordinator UI for managing timetable slots
+    - Assign day, time, room, slot type per section
+    - _Requirements: 82.1_
+
+  - [ ] 72.4 Add timetable to dashboard sidebar
+    - _Requirements: 82.5_
+
+- [ ] 73. Implement Academic Calendar Management
+  - [ ] 73.1 Create academic calendar TanStack Query hooks (`/src/hooks/useAcademicCalendar.ts`)
+    - CRUD for academic calendar events
+    - _Requirements: 84_
+
+  - [ ] 73.2 Create Academic Calendar Manager page (`/src/pages/admin/calendar/AcademicCalendarManager.tsx`)
+    - Create events: semester dates, exam periods, holidays, registration deadlines
+    - Support recurring events
+    - _Requirements: 84.1_
+
+  - [ ] 73.3 Display academic calendar events on unified Calendar View
+    - _Requirements: 84.2_
+
+  - [ ] 73.4 Implement assignment due date holiday validation
+    - Warn teachers when due date falls on a holiday
+    - _Requirements: 84.3_
+
+  - [ ] 73.5 Wire exam period approach notifications
+    - "Exam period starts in 5 days" notification to enrolled students
+    - _Requirements: 84.4_
+
+- [ ] 74. Implement Student Transcript Generation
+  - [ ] 74.1 Create `generate-transcript` Edge Function (`/supabase/functions/generate-transcript/`)
+    - Query student courses, grades, grade categories, CLO attainment per semester
+    - Calculate semester GPA and cumulative GPA using institution grade scales
+    - Generate PDF via jspdf
+    - Upload to Supabase Storage, return signed URL
+    - Must complete within 10 seconds
+    - _Requirements: 85.1, 85.2, 85.3, 85.5_
+
+  - [ ] 74.2 Create transcript TanStack Query hooks (`/src/hooks/useTranscript.ts`)
+    - Mutation for triggering generation
+    - _Requirements: 85_
+
+  - [ ] 74.3 Add "Download Transcript" button to Student Profile page
+    - Semester selector for per-semester or cumulative transcript
+    - _Requirements: 85.4_
+
+  - [ ] 74.4 Add transcript generation to Admin user detail page
+    - _Requirements: 85.4_
+
+- [ ] 75. Implement Parent/Guardian Portal
+  - [ ] 75.1 Create parent TanStack Query hooks (`/src/hooks/useParentPortal.ts`)
+    - Query linked students via parent_student_links
+    - Query student grades, attendance, CLO progress, habits (read-only)
+    - _Requirements: 86_
+
+  - [ ] 75.2 Create Parent Dashboard page (`/src/pages/parent/ParentDashboard.tsx`)
+    - Display linked students with grades, attendance %, CLO progress bars, habit tracker
+    - XP/level/streak summary per student
+    - Read-only — no mutation capabilities
+    - _Requirements: 86.3_
+
+  - [ ] 75.3 Create ParentLayout with sidebar navigation
+    - _Requirements: 86.7_
+
+  - [ ] 75.4 Implement parent email notifications
+    - Grade released, attendance alert (below 75%), at-risk warning
+    - _Requirements: 86.4_
+
+  - [ ] 75.5 Create parent invite flow for Admin
+    - Bulk import or individual invite creating parent profile + parent_student_links record
+    - _Requirements: 86.5_
+
+  - [ ] 75.6 Create RLS policies for parent role
+    - Read-only access to linked student data via verified parent_student_links
+    - _Requirements: 86.1, 86.6_
+
+- [ ] 76. Implement Fee Management
+  - [ ] 76.1 Create fee management TanStack Query hooks (`/src/hooks/useFees.ts`)
+    - CRUD for fee structures and payments
+    - Fee collection summary query
+    - _Requirements: 87_
+
+  - [ ] 76.2 Create Fee Structure Manager page (`/src/pages/admin/fees/FeeManager.tsx`)
+    - Create fee structures per program per semester
+    - Record payments with method, receipt number
+    - Fee collection dashboard with overdue alerts
+    - Log changes to Audit_Logger
+    - _Requirements: 87.1, 87.2, 87.4, 87.5, 87.7_
+
+  - [ ] 76.3 Display fee status on Student Profile page
+    - Outstanding and paid fees
+    - _Requirements: 87.3_
+
+  - [ ] 76.4 Implement fee receipt PDF generation
+    - Downloadable receipt per payment
+    - _Requirements: 87.6_
+
+  - [ ] 76.5 Implement overdue auto-flagging via pg_cron
+    - Daily check: update pending → overdue when past due_date
+    - _Requirements: 87.5_
+
+- [ ] 77. Implement Report Generator updates for new features
+  - [ ] 77.1 Update accreditation reports to include survey results as indirect assessment evidence
+    - _Requirements: 70.4_
+
+  - [ ] 77.2 Update accreditation reports to include CQI action plans as "closing the loop" evidence
+    - _Requirements: 71.4_
+
+  - [ ] 77.3 Update reports to scope by semester_id
+    - _Requirements: 68.4_
+
+  - [ ] 77.4 Update reports to show per-section and aggregated attainment
+    - _Requirements: 69.5_
+
+  - [ ] 77.5 Update report template selector to include QQA and NCAAA
+    - _Requirements: 73.2_
+
+- [ ] 78. Wire new XP sources and badges
+  - [ ] 78.1 Update `award-xp` Edge Function to support new sources
+    - Add: `discussion_question`, `discussion_answer`, `survey_completion`, `quiz_completion`
+    - _Requirements: 77.4, 77.5, 70.5, 79.6_
+
+  - [ ] 78.2 Update `check-badges` Edge Function for new badges
+    - Perfect Attendance Week, Quiz Master, Discussion Helper, Survey Completer
+    - _Requirements: 78.7, 23_
+
+  - [ ] 78.3 Update Read habit to include announcements and course materials
+    - Wire `useReadHabitTimer` into announcement and material views
+    - _Requirements: 75.5, 76.6_
+
+  - [ ] 78.4 Update `compute-at-risk-signals` to include attendance and quiz data
+    - _Requirements: 78.6, 41_
+
+- [ ] 79. Write tests for institutional management & LMS features
+  - [ ]* 79.1 Write property-based tests (Properties 51–65)
+    - **Properties 51, 65**: Semester (active uniqueness, scoping integrity)
+    - **Property 52**: Course section CLO sharing
+    - **Property 53**: Survey response uniqueness
+    - **Property 54**: CQI action plan lifecycle
+    - **Property 55**: Configurable threshold consistency
+    - **Property 56**: Grade category weight sum
+    - **Properties 57, 58**: Quiz (auto-grading correctness, attempt limit enforcement)
+    - **Property 59**: Attendance percentage calculation
+    - **Property 60**: Discussion XP award correctness
+    - **Property 61**: Calendar event aggregation completeness
+    - **Property 62**: Parent portal data isolation
+    - **Property 63**: Fee payment status consistency
+    - **Property 64**: Course file content completeness
+    - _Requirements: 68-87_
+
+  - [ ]* 79.2 Write unit tests for institutional management modules
+    - Semesters, departments, course sections, surveys, CQI plans
+    - Institution settings, program accreditations, announcements, course modules
+    - Discussion forum, attendance, quizzes, gradebook
+    - Calendar view, timetable, academic calendar, transcripts, course file
+    - Parent portal, fee management
+    - _Requirements: 68-87_
+
+  - [ ]* 79.3 Write integration tests for new flows
+    - Quiz attempt → auto-grade → evidence → CLO attainment pipeline
+    - Attendance marking → at-risk signal → AI prediction pipeline
+    - Discussion post → XP award → badge check pipeline
+    - Survey response → indirect evidence → accreditation report pipeline
+    - Semester activation → course scoping → report filtering pipeline
+    - Parent link verification → data access → notification pipeline
+    - _Requirements: 68-87_
+
+- [ ] 80. Final verification — All tests pass, production ready
   - Ensure all tests pass, ask the user if questions arise.
-  - Verify all 67 requirements (including NFRs 50-57 and enhancements 58-67) have corresponding implementations
-  - Verify all 50 correctness properties are testable
+  - Verify all 87 requirements (including NFRs 50-57, enhancements 58-67, and institutional management 68-87) have corresponding implementations
+  - Verify all 65 correctness properties are testable
   - Confirm all tasks are complete
 
 ## Notes
@@ -1041,3 +1562,19 @@ Complete unified implementation of the Edeviser platform covering authentication
 - Teacher grading stats (Requirement 67) tracks grading time via `grading_start`/`grading_end` activity log events
 - Read habit (Requirement 61) uses a client-side 30-second timer on qualifying pages — replaces the Phase 2 content engagement tracker
 - Onboarding (Requirement 60) awards 50 XP Welcome Bonus to students on tour completion via the existing `award-xp` Edge Function
+- Semester management (Requirement 68) replaces the free-text `semester` field on courses with a proper `semester_id` FK
+- Course sections (Requirement 69) share CLOs/rubrics/assignments at the course level but scope enrollments/submissions/grades to the section level
+- Surveys (Requirement 70) provide indirect assessment evidence for accreditation — results appear alongside direct assessment data in reports
+- CQI action plans (Requirement 71) are the institutional equivalent of student reflection journals — they close Kolb's cycle at the program level
+- Configurable thresholds (Requirement 72) replace all hardcoded attainment level values (85/70/50) with institution-specific settings
+- Quiz auto-grading (Requirement 79) generates evidence for CLO attainment using the same pipeline as assignment grades
+- Gradebook (Requirement 80) coexists with CLO attainment — one shows traditional grades, the other shows OBE competency
+- Parent role (Requirement 86) requires its own RLS policies and route guard — read-only access only
+- Fee management (Requirement 87) uses pg_cron for daily overdue auto-flagging
+- All 25 new database tables require RLS policies — no exceptions
+- All admin mutations on new tables must log to audit_logs
+- New XP sources: discussion_question (10), discussion_answer (15), survey_completion (15), quiz_completion (50/25)
+- New badges: Perfect Attendance Week, Quiz Master, Discussion Helper, Survey Completer
+- Attendance data feeds into AI at-risk prediction as a contributing signal
+- Course File generation packages Pillars 1, 2, 3, and 10 into a single accreditation artifact
+- Transcript generation combines traditional gradebook grades with OBE CLO attainment data

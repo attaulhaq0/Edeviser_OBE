@@ -51,6 +51,24 @@ Edeviser is a Human-Centric Outcome-Based Education (OBE) + Gamification platfor
 - **FERPA**: Family Educational Rights and Privacy Act — US federal law protecting student education records
 - **GDPR**: General Data Protection Regulation — EU regulation on data protection and privacy
 - **WCAG**: Web Content Accessibility Guidelines — international standard for web accessibility
+- **Semester**: A time-bounded academic period (e.g., Fall 2024) with start/end dates, used to scope all courses, reports, and analytics for accreditation compliance
+- **Course_Section**: A distinct section (A, B, C) of a course sharing the same CLOs but with a different teacher and enrolled student cohort
+- **Survey_Module**: The subsystem for creating and distributing indirect assessment surveys (course exit, graduate exit, employer satisfaction) linked to PLOs/ILOs
+- **CQI_Action_Plan**: A Continuous Quality Improvement action plan documenting gap identification, corrective actions, and measured results for accreditation "closing the loop" evidence
+- **Course_File**: An auto-generated accreditation artifact per course per semester containing syllabus, CLO-PLO mapping, assessment instruments, sample student work, attainment analysis, teacher reflection, and CQI recommendations
+- **Announcement**: A teacher-authored notification posted to a course feed, visible to all enrolled students across all sections
+- **Course_Module**: An organizational unit within a course (e.g., Week 1, Module 3) containing ordered course materials (files, links, videos, text)
+- **Discussion_Forum**: A per-course threaded discussion board where students post questions and answers, with teacher-resolvable threads
+- **Attendance_Tracker**: The subsystem that records per-session student attendance (present/absent/late/excused) and calculates attendance percentages per course
+- **Quiz_Module**: The subsystem for creating and auto-grading online quizzes (MCQ, true/false, short answer, fill-in-blank) linked to CLOs
+- **Gradebook**: The weighted grade calculation subsystem that aggregates assessment scores across categories (assignments, quizzes, midterm, final) into a final course grade
+- **Calendar_View**: A unified calendar aggregating due dates, exam dates, class sessions, and academic events across all enrolled/taught courses
+- **Timetable**: A weekly class schedule view auto-generated from enrolled/assigned course sections with day, time, and room information
+- **Department**: An organizational unit within an institution grouping related academic programs under a head of department
+- **Academic_Calendar**: The institution-level calendar defining semester dates, exam periods, holidays, and registration deadlines
+- **Transcript_Generator**: The subsystem (Edge Function) that produces per-student per-semester grade report PDFs with GPA, grades, and CLO attainment summaries
+- **Parent_Portal**: A read-only dashboard for parents/guardians showing linked student grades, attendance, CLO progress, and habit tracker data
+- **Fee_Manager**: The subsystem for managing fee structures per program per semester and tracking student payment status
 
 ## Requirements
 
@@ -183,10 +201,11 @@ Edeviser is a Human-Centric Outcome-Based Education (OBE) + Gamification platfor
 
 ##### Acceptance Criteria
 
-1. WHEN a Coordinator creates a course, THE Platform SHALL insert a record into the `courses` table with `name`, `code`, `semester`, `academic_year`, `program_id`, and `teacher_id`.
+1. WHEN a Coordinator creates a course, THE Platform SHALL insert a record into the `courses` table with `name`, `code`, `semester_id` (FK to `semesters` table), `program_id`, and `teacher_id`.
 2. Coordinators SHALL only manage courses within programs they are assigned to.
 3. Teachers SHALL only see courses assigned to them.
 4. Courses SHALL have an `is_active` flag for semester-based activation/deactivation.
+5. WHEN a course has multiple sections (see Requirement 69), THE Platform SHALL scope submissions, grades, and enrollments to the section level while sharing CLOs at the course level.
 
 ---
 
@@ -337,7 +356,7 @@ Edeviser is a Human-Centric Outcome-Based Education (OBE) + Gamification platfor
 
 ##### Acceptance Criteria
 
-1. THE XP_Engine SHALL award XP per the defined schedule: Daily Login (10), On-time Submission (50), Late Submission (25), Graded Pass (25), Journal Entry (20), Streak Milestones (100/250/500), Perfect Rubric Score (75), Perfect Day Bonus (50), First-Attempt Bonus (25).
+1. THE XP_Engine SHALL award XP per the defined schedule: Daily Login (10), On-time Submission (50), Late Submission (25), Graded Pass (25), Journal Entry (20), Streak Milestones (100/250/500), Perfect Rubric Score (75), Perfect Day Bonus (50), First-Attempt Bonus (25), Discussion Question (10), Discussion Correct Answer (15), Survey Completion (15), Quiz Completion (50 on-time / 25 late).
 2. XP SHALL be credited within 1 second of the trigger action.
 3. Every XP change SHALL be logged as an `xp_transactions` record (ledger pattern).
 4. `student_gamification.xp_total` SHALL be recalculated as the sum of all transactions on each insert.
@@ -364,7 +383,7 @@ Edeviser is a Human-Centric Outcome-Based Education (OBE) + Gamification platfor
 
 ##### Acceptance Criteria
 
-1. THE Badge_System SHALL award badges per the defined catalog: First Flame, Homework Hero, 7-Day Warrior, 30-Day Legend, Bullseye, Deep Thinker, Level 5 Pioneer, Level 10 Elite, Top 10%, Speed Demon (mystery — submit 3 assignments within 24 hours), Night Owl (mystery — submit between midnight and 5 AM), Perfectionist (mystery — 100% on 3 consecutive rubric-graded assignments).
+1. THE Badge_System SHALL award badges per the defined catalog: First Flame, Homework Hero, 7-Day Warrior, 30-Day Legend, Bullseye, Deep Thinker, Level 5 Pioneer, Level 10 Elite, Top 10%, Speed Demon (mystery — submit 3 assignments within 24 hours), Night Owl (mystery — submit between midnight and 5 AM), Perfectionist (mystery — 100% on 3 consecutive rubric-graded assignments), Perfect Attendance Week (present for all sessions in a 7-day period), Quiz Master (pass 10 quizzes with ≥70%), Discussion Helper (5 answers marked correct by teachers), Survey Completer (complete all available course exit surveys).
 2. Badge awards SHALL be atomic and idempotent (cannot be awarded twice for the same trigger).
 3. Badge award SHALL trigger an animated modal notification.
 4. Badges SHALL be permanently visible on the student's profile.
@@ -503,8 +522,9 @@ Edeviser is a Human-Centric Outcome-Based Education (OBE) + Gamification platfor
 
 1. THE Report_Generator SHALL produce PDF reports including: institution header/logo, program name, semester, per-PLO attainment %, evidence count, Bloom's distribution chart.
 2. PDF SHALL be generated within 10 seconds via Edge Function using a lightweight HTML-to-PDF approach (e.g., `jspdf` + `jspdf-autotable` or `@react-pdf/renderer`). Puppeteer SHALL NOT be used due to cold-start constraints in Edge Functions.
-3. Report template SHALL be configurable per accreditation body (ABET, HEC, AACSB, Generic).
+3. Report template SHALL be configurable per accreditation body (ABET, HEC, QQA, NCAAA, AACSB, Generic).
 4. Generated reports SHALL be stored in Supabase Storage and downloadable.
+5. THE Report_Generator SHALL support Course File generation (see Requirement 74) as an additional report type, packaging per-course per-semester accreditation artifacts.
 
 ---
 
@@ -529,7 +549,7 @@ Edeviser is a Human-Centric Outcome-Based Education (OBE) + Gamification platfor
 
 ##### Acceptance Criteria
 
-1. THE Habit_Tracker SHALL track 4 daily habits: Login (automatic on auth), Submit (on assignment submission), Journal (on journal entry save), Read (view assignment detail or CLO progress page for ≥30 seconds — see Requirement 61 for full definition).
+1. THE Habit_Tracker SHALL track 4 daily habits: Login (automatic on auth), Submit (on assignment or quiz submission), Journal (on journal entry save), Read (view assignment detail, CLO progress page, course material, or announcement for ≥30 seconds — see Requirement 61 for full definition).
 2. WHEN a Student completes all 4 habits in a single calendar day, THE XP_Engine SHALL award a Perfect Day Bonus of 50 XP.
 3. THE Habit_Tracker SHALL display a 7-day grid with color-coded cells (green = completed, gray = missed) on the Student Dashboard.
 4. THE Habit_Tracker SHALL store habit data in a `habit_logs` table with `student_id`, `date`, `habit_type`, and `completed_at` columns.
@@ -613,7 +633,7 @@ Edeviser is a Human-Centric Outcome-Based Education (OBE) + Gamification platfor
 
 1. THE Activity_Logger SHALL log all student behavioral events to a `student_activity_log` table including: login timestamps, page views, submission timing patterns, journal frequency, and streak breaks.
 2. THE Platform SHALL create an `ai_feedback` table schema (with columns: `id`, `student_id`, `suggestion_type`, `suggestion_text`, `feedback` (thumbs_up/thumbs_down), `created_at`) for Phase 2 AI Co-Pilot feedback collection.
-3. THE Platform SHALL compute and store at-risk signals: days since last login, CLO attainment trend direction (improving/declining/stagnant), and submission timing patterns (early/on-time/late/missed).
+3. THE Platform SHALL compute and store at-risk signals: days since last login, CLO attainment trend direction (improving/declining/stagnant), submission timing patterns (early/on-time/late/missed), attendance frequency (from `attendance_records`), and quiz performance trends.
 4. THE `student_activity_log` table SHALL be append-only (no UPDATE or DELETE policies) to preserve data integrity for AI training.
 
 ---
@@ -912,7 +932,7 @@ Edeviser is a Human-Centric Outcome-Based Education (OBE) + Gamification platfor
 
 ##### Acceptance Criteria
 
-1. THE Habit_Tracker SHALL define the "Read" habit as: viewing an assignment detail page OR the CLO progress page for 30 seconds or more.
+1. THE Habit_Tracker SHALL define the "Read" habit as: viewing an assignment detail page, the CLO progress page, a course material page, or an announcement for 30 seconds or more.
 2. THE Platform SHALL track view duration via a client-side timer that starts when the student opens an assignment detail page or CLO progress page, and logs a `read` habit completion when the timer reaches 30 seconds.
 3. THE Activity_Logger SHALL log `assignment_view` and `page_view` events with a `duration_seconds` metadata field.
 4. WHEN a student accumulates 30 seconds of viewing time on a qualifying page within a single calendar day, THE Habit_Tracker SHALL mark the "Read" habit as completed for that day.
@@ -999,3 +1019,305 @@ Edeviser is a Human-Centric Outcome-Based Education (OBE) + Gamification platfor
 2. THE Platform SHALL calculate grading time as the duration from when a teacher opens a submission to when the teacher submits the grade, tracked via the Activity_Logger with `grading_start` and `grading_end` event types.
 3. THE Grading Stats card SHALL include a "Grading Streak" counter showing consecutive days with at least 1 graded submission.
 4. THE grading velocity trend SHALL be displayed as a Recharts line chart showing daily grading counts over the last 30 days.
+
+---
+
+### SECTION P: Semester & Academic Structure
+
+#### Requirement 68: Semester / Academic Year Management
+
+**User Story:** As an Admin, I want to create and manage semesters with defined date ranges, so that all courses, reports, and analytics are scoped by academic period as required by accreditation bodies (10 Pillars: time-bounded attainment rollup and evidence for Pillars 1–3).
+
+##### Acceptance Criteria
+
+1. WHEN an Admin creates a semester, THE Platform SHALL insert a record into the `semesters` table with `name`, `code`, `start_date`, `end_date`, `is_active`, and the Admin's `institution_id`.
+2. THE Platform SHALL enforce that only one semester per institution has `is_active = true` at any time.
+3. WHEN an Admin deactivates a semester, THE Platform SHALL preserve all associated data as read-only and prevent new submissions, grades, or enrollments for courses in that semester.
+4. THE Platform SHALL scope all report generation, analytics dashboards, and attainment rollup queries by `semester_id`.
+5. WHEN an Admin creates a semester with overlapping dates to an existing active semester, THE Platform SHALL reject the creation and display a descriptive error.
+6. THE `courses` table SHALL reference `semester_id` as a foreign key, replacing the free-text `semester` field.
+
+---
+
+#### Requirement 69: Course Section Support
+
+**User Story:** As a Coordinator, I want to create multiple sections per course with different teachers and student cohorts sharing the same CLOs, so that large courses can be managed across sections while maintaining consistent outcome measurement (10 Pillars: evidence chain traces through section → course → program for Pillar 1; leaderboard filters by section for Pillar 8).
+
+##### Acceptance Criteria
+
+1. WHEN a Coordinator creates a course section, THE Platform SHALL insert a record into the `course_sections` table with `course_id`, `section_code` (A/B/C), `teacher_id`, `capacity`, and `is_active`.
+2. THE Platform SHALL scope `student_courses` enrollments to a specific `section_id`.
+3. THE Platform SHALL scope `submissions` and `grades` to the section level via the student's enrollment.
+4. THE Platform SHALL share CLOs, rubrics, and assignments at the course level across all sections.
+5. THE Report_Generator SHALL produce both per-section and aggregated attainment data in accreditation reports.
+6. THE Coordinator Dashboard SHALL provide a section comparison view showing side-by-side attainment metrics across sections of the same course.
+7. THE Teacher Dashboard SHALL display per-section analytics when a teacher is assigned to multiple sections.
+
+---
+
+#### Requirement 82: Timetable / Class Schedule
+
+**User Story:** As a Student or Teacher, I want a weekly timetable view auto-generated from my enrolled or assigned sections, so that I can see my class schedule at a glance (10 Pillars: reduces cognitive load per Pillar 6 BJ Fogg — increase ability by making schedule visible).
+
+##### Acceptance Criteria
+
+1. THE Platform SHALL store timetable data in a `timetable_slots` table with `section_id`, `day_of_week` (0–6), `start_time`, `end_time`, `room`, and `slot_type` (lecture/lab/tutorial).
+2. THE Platform SHALL auto-generate a Student timetable from all sections the Student is enrolled in.
+3. THE Platform SHALL auto-generate a Teacher timetable from all sections the Teacher is assigned to.
+4. THE Timetable view SHALL display a weekly grid with days as columns and time slots as rows, color-coded by course.
+5. THE Timetable SHALL be accessible from the dashboard sidebar for both Students and Teachers.
+
+---
+
+#### Requirement 83: Department Management
+
+**User Story:** As an Admin, I want to create departments within my institution and assign programs to them, so that organizational hierarchy supports department-level analytics and accreditation reporting (10 Pillars: departments scope the Compliance Machine for aggregated PLO/ILO attainment).
+
+##### Acceptance Criteria
+
+1. WHEN an Admin creates a department, THE Platform SHALL insert a record into the `departments` table with `name`, `code`, `head_of_department_id` (FK to `profiles`), and the Admin's `institution_id`.
+2. THE `programs` table SHALL reference `department_id` as a foreign key.
+3. THE Admin Dashboard SHALL display department-level aggregated PLO and ILO attainment analytics.
+4. WHEN an Admin deletes a department, THE Platform SHALL block deletion if active programs exist under the department.
+5. WHEN an Admin creates or modifies a department, THE Audit_Logger SHALL record the action with before/after snapshots.
+
+---
+
+#### Requirement 84: Academic Calendar Management
+
+**User Story:** As an Admin, I want to define academic calendar events (exam periods, holidays, registration deadlines), so that the platform enforces scheduling rules and provides institutional-level prompts (10 Pillars: academic calendar provides institutional-level triggers per Pillar 6 BJ Fogg).
+
+##### Acceptance Criteria
+
+1. WHEN an Admin creates an academic calendar event, THE Platform SHALL insert a record into the `academic_calendar_events` table with `institution_id`, `semester_id`, `title`, `event_type` (semester_start/semester_end/exam_period/holiday/registration/custom), `start_date`, `end_date`, and `is_recurring`.
+2. THE Calendar_View SHALL display academic calendar events alongside assignment due dates and class sessions.
+3. WHEN a Teacher sets an assignment due date that falls on a holiday, THE Platform SHALL display a warning and suggest the next available date.
+4. THE Notification_Service SHALL send "Exam period starts in 5 days" notifications to enrolled students when an exam_period event approaches.
+
+---
+
+### SECTION Q: Assessment & Grading
+
+#### Requirement 70: Direct/Indirect Assessment — Survey Module
+
+**User Story:** As an Admin or Coordinator, I want to create and distribute surveys (course exit, graduate exit, employer satisfaction) linked to PLOs/ILOs, so that indirect assessment evidence feeds into accreditation reports alongside direct assessment data (10 Pillars: surveys close the institutional feedback loop extending Pillar 10 Reflection; survey completion awards XP per Pillar 8).
+
+##### Acceptance Criteria
+
+1. WHEN an Admin or Coordinator creates a survey, THE Survey_Module SHALL insert a record into the `surveys` table with `institution_id`, `title`, `type` (course_exit/graduate_exit/employer), `target_outcomes` (jsonb array of outcome_ids), and `is_active`.
+2. THE Survey_Module SHALL support question types: Likert scale (1–5), multiple choice, and open text, stored in the `survey_questions` table.
+3. WHEN a respondent submits a survey response, THE Platform SHALL insert records into the `survey_responses` table with `survey_id`, `question_id`, `respondent_id`, and `response_value`.
+4. THE Report_Generator SHALL include survey results as "indirect assessment evidence" in accreditation reports, aggregated by linked PLO/ILO.
+5. WHEN a Student completes a course exit survey, THE XP_Engine SHALL award 15 XP with `source = 'survey_completion'`.
+6. THE Survey_Module SHALL enforce that each respondent can submit only one response per survey.
+
+---
+
+#### Requirement 71: Continuous Quality Improvement (CQI) Loop
+
+**User Story:** As a Coordinator, I want to document CQI action plans when PLO/CLO attainment falls below threshold, so that accreditation reports include "closing the loop" evidence (10 Pillars: CQI is the institutional-level equivalent of the student reflection journal per Pillar 10; the AI Co-Pilot per Pillar 4 can suggest CQI actions based on historical attainment patterns).
+
+##### Acceptance Criteria
+
+1. WHEN a Coordinator creates a CQI action plan, THE Platform SHALL insert a record into the `cqi_action_plans` table with `program_id`, `semester_id`, `outcome_id`, `outcome_type`, `baseline_attainment`, `target_attainment`, `action_description`, `responsible_person`, and `status` (planned/in_progress/completed/evaluated).
+2. THE CQI workflow SHALL follow the cycle: Identify gap → Document action → Implement → Measure result → Close, tracked via the `status` field.
+3. WHEN a CQI action plan status is updated to `evaluated`, THE Platform SHALL require a `result_attainment` value to measure improvement.
+4. THE Report_Generator SHALL include CQI action plans as "closing the loop" evidence in accreditation reports.
+5. THE Coordinator Dashboard SHALL display a CQI section showing open and closed action plans with baseline vs. result attainment comparison.
+6. WHEN a Coordinator creates or modifies a CQI action plan, THE Audit_Logger SHALL record the action.
+
+---
+
+#### Requirement 72: Configurable KPI Thresholds
+
+**User Story:** As an Admin, I want to configure attainment thresholds and success criteria per institution, so that the platform adapts to different accreditation body standards (10 Pillars: configurable thresholds mean the Compliance Machine Pillars 1–3 adapts to any accreditation body; the Human Engine Pillars 4–10 uses the same thresholds for CLO progress bars, at-risk detection, and AI predictions).
+
+##### Acceptance Criteria
+
+1. WHEN an Admin configures institution settings, THE Platform SHALL store attainment thresholds in the `institution_settings` table as a jsonb column: `attainment_thresholds` (e.g., `{excellent: 85, satisfactory: 70, developing: 50}`).
+2. THE Platform SHALL store a `success_threshold` (default 70) defining the percentage of students who must achieve Satisfactory or above for a PLO to be considered "met".
+3. THE Platform SHALL store an `accreditation_body` field (HEC/QQA/ABET/NCAAA/AACSB/Generic) in `institution_settings`.
+4. ALL attainment level calculations across dashboards, reports, and AI predictions SHALL use the institution-specific configurable thresholds instead of hardcoded values.
+5. WHEN an Admin modifies institution settings, THE Audit_Logger SHALL record the change with before/after values.
+
+---
+
+#### Requirement 73: Multi-Accreditation Body Support
+
+**User Story:** As an Admin, I want programs to be tagged with multiple accreditation bodies, so that the platform generates body-specific reports per program (10 Pillars: the evidence chain per Pillar 1 is body-agnostic — the same evidence serves multiple accreditation reports simultaneously).
+
+##### Acceptance Criteria
+
+1. THE Platform SHALL store program accreditation records in the `program_accreditations` table with `program_id`, `accreditation_body`, `framework_version`, `accreditation_date`, `next_review_date`, and `status` (active/expired/pending).
+2. THE Report_Generator SHALL produce body-specific reports per program based on the program's accreditation records.
+3. THE Platform SHALL support different PLO naming conventions per accreditation body (e.g., "Student Outcomes" for ABET, "PLOs" for HEC).
+4. THE Admin Dashboard SHALL display accreditation status per program with upcoming review date alerts.
+
+---
+
+#### Requirement 74: Course File / Course Portfolio Generation
+
+**User Story:** As a Coordinator, I want to auto-generate a Course File per course per semester containing all accreditation artifacts, so that I have a single downloadable package for accreditation review (10 Pillars: Course File packages Pillar 1 OBE evidence, Pillar 2 rubrics, Pillar 3 Bloom's distribution, and Pillar 10 teacher reflection into one artifact).
+
+##### Acceptance Criteria
+
+1. THE Platform SHALL generate a Course File containing: syllabus (course details + CLOs), CLO-PLO mapping table, all assessment instruments (assignments with rubrics), sample student work (best/average/worst scoring submissions per assignment), CLO attainment analysis with charts, teacher reflection (journal entries tagged to course), and CQI recommendations.
+2. THE Course File SHALL be generated as a downloadable PDF or ZIP via the `generate-course-file` Edge Function.
+3. THE Course File generation SHALL complete within 30 seconds.
+4. THE Coordinator SHALL be able to trigger Course File generation from the course detail page for any course in their program.
+5. Generated Course Files SHALL be stored in Supabase Storage and downloadable.
+
+---
+
+#### Requirement 79: Quiz/Exam Module
+
+**User Story:** As a Teacher, I want to create online quizzes linked to CLOs with auto-grading for objective questions, so that formative assessments generate evidence for the Compliance Machine while reducing ability barriers for students (10 Pillars: quizzes generate evidence for Pillar 1; ideal for Remember/Apply Bloom's levels per Pillar 3; reduce ability barriers per Pillar 6 BJ Fogg; feed Learning Path per Pillar 9 Flow).
+
+##### Acceptance Criteria
+
+1. WHEN a Teacher creates a quiz, THE Quiz_Module SHALL insert a record into the `quizzes` table with `course_id`, `title`, `description`, `clo_ids` (jsonb), `time_limit_minutes`, `max_attempts`, `is_published`, and `due_date`.
+2. THE Quiz_Module SHALL support question types: MCQ (single/multi-select), true/false, short answer, and fill-in-the-blank, stored in the `quiz_questions` table with `question_text`, `question_type`, `options` (jsonb), `correct_answer` (jsonb), `points`, and `sort_order`.
+3. WHEN a Student submits a quiz attempt, THE Platform SHALL insert a record into the `quiz_attempts` table with `quiz_id`, `student_id`, `answers` (jsonb), `score`, `started_at`, `submitted_at`, and `attempt_number`.
+4. THE Quiz_Module SHALL auto-grade MCQ, true/false, and fill-in-the-blank questions immediately on submission; short answer questions SHALL require manual teacher grading.
+5. Quiz scores SHALL feed into CLO attainment calculations using the same evidence generation pipeline as assignment grades.
+6. WHEN a Student completes a quiz, THE XP_Engine SHALL award XP using the same schedule as assignments (50 XP on-time, 25 XP if late).
+7. THE Quiz_Module SHALL enforce `max_attempts` per student per quiz.
+
+---
+
+#### Requirement 80: Gradebook with Weighted Categories
+
+**User Story:** As a Teacher, I want to define weighted grade categories and see a gradebook matrix of students × assessments, so that traditional transcript grades coexist with OBE attainment data (10 Pillars: gradebook is the traditional compliance artifact coexisting with CLO attainment per Pillar 1 — one shows "what the student can do" and the other shows "what grade they earned").
+
+##### Acceptance Criteria
+
+1. WHEN a Teacher defines grade categories, THE Gradebook SHALL insert records into the `grade_categories` table with `course_id`, `name` (e.g., Assignments, Quizzes, Midterm, Final), `weight_percent`, and `sort_order`.
+2. THE Gradebook SHALL enforce that the sum of `weight_percent` across all categories for a course equals 100%.
+3. THE Gradebook SHALL display a students × assessments matrix with category subtotals and a final weighted grade per student.
+4. THE Platform SHALL calculate the final grade as the weighted sum across categories.
+5. THE Platform SHALL support configurable letter grade mapping per institution via a `grade_scales` jsonb array in `institution_settings` containing `{letter, min_percent, max_percent, gpa_points}` entries.
+6. THE Gradebook view SHALL be accessible to Teachers from the course detail page.
+
+---
+
+#### Requirement 85: Student Transcript / Grade Report
+
+**User Story:** As a Student or Admin, I want to generate a per-student per-semester grade report PDF with GPA and CLO attainment summary, so that transcripts combine traditional grades with OBE evidence (10 Pillars: transcript combines traditional grades from the gradebook with OBE evidence from CLO attainment per Pillar 1).
+
+##### Acceptance Criteria
+
+1. THE Transcript_Generator SHALL produce a PDF containing: student info, courses taken in the semester, grades per category, final grade, letter grade, semester GPA, and CLO attainment summary per course.
+2. THE Transcript_Generator SHALL calculate cumulative GPA across all completed semesters.
+3. THE transcript PDF SHALL be generated via the `generate-transcript` Edge Function within 10 seconds.
+4. THE transcript SHALL be downloadable by the Student from their profile page and by the Admin from the user detail page.
+5. Generated transcripts SHALL be stored in Supabase Storage.
+
+---
+
+### SECTION R: LMS Core Features
+
+#### Requirement 75: Announcements / Course Feed
+
+**User Story:** As a Teacher, I want to post announcements to my course visible to all enrolled students, so that important information reaches students promptly (10 Pillars: announcements are external triggers per Pillar 7 Hooked Model Phase 1; reading an announcement counts toward the Read habit per Pillar 6 BJ Fogg if the student spends 30+ seconds).
+
+##### Acceptance Criteria
+
+1. WHEN a Teacher posts an announcement, THE Platform SHALL insert a record into the `announcements` table with `course_id`, `author_id`, `title`, `content` (markdown), and `is_pinned`.
+2. THE Platform SHALL display announcements on the Student Dashboard and the course detail page, ordered by `is_pinned` DESC then `created_at` DESC.
+3. WHEN a new announcement is posted, THE Notification_Service SHALL create an in-app notification for all students enrolled in the course.
+4. THE Platform SHALL support rich text content via markdown rendering.
+5. WHEN a Student views an announcement for 30+ seconds, THE Habit_Tracker SHALL count the view toward the "Read" habit completion for that day.
+
+---
+
+#### Requirement 76: Course Content / Materials Module
+
+**User Story:** As a Teacher, I want to organize course materials into modules/weeks with file uploads and links, so that students have structured access to learning resources (10 Pillars: materials are the content that the Read habit per Pillar 6 tracks engagement with; viewing materials for 30+ seconds completes the Read habit; materials linked to CLOs feed the Learning Path per Pillar 9 Flow; the AI Co-Pilot per Pillar 4 can suggest specific materials for CLO gaps).
+
+##### Acceptance Criteria
+
+1. WHEN a Teacher creates a course module, THE Platform SHALL insert a record into the `course_modules` table with `course_id`, `title`, `description`, `sort_order`, and `is_published`.
+2. WHEN a Teacher adds a material to a module, THE Platform SHALL insert a record into the `course_materials` table with `module_id`, `title`, `type` (file/link/video/text), `content_url`, `file_path` (Supabase Storage), `description`, `sort_order`, and `is_published`.
+3. THE Platform SHALL support file types: PDF, DOCX, PPTX, images, and video links (YouTube/Vimeo embed).
+4. THE Platform SHALL allow materials to be linked to CLOs for traceability.
+5. THE Student course detail page SHALL display materials organized by module.
+6. WHEN a Student views a course material for 30+ seconds, THE Habit_Tracker SHALL count the view toward the "Read" habit completion for that day.
+
+---
+
+#### Requirement 77: Discussion Forum / Q&A
+
+**User Story:** As a Student, I want per-course discussion threads where I can ask questions and post answers, so that I engage in social learning and earn XP for participation (10 Pillars: discussion is social learning per Pillar 8 Octalysis Drive 5 Social Influence; posting is a form of reflection per Pillar 10; XP for participation feeds the gamification loop per Pillar 8).
+
+##### Acceptance Criteria
+
+1. WHEN a Student or Teacher creates a discussion thread, THE Discussion_Forum SHALL insert a record into the `discussion_threads` table with `course_id`, `author_id`, `title`, `content`, `is_pinned`, and `is_resolved`.
+2. WHEN a user replies to a thread, THE Discussion_Forum SHALL insert a record into the `discussion_replies` table with `thread_id`, `author_id`, `content`, and `is_answer`.
+3. WHEN a Teacher marks a reply as "answer", THE Platform SHALL set `is_answer = true` on the reply and `is_resolved = true` on the thread.
+4. WHEN a Student posts a question (creates a thread), THE XP_Engine SHALL award 10 XP with `source = 'discussion_question'`.
+5. WHEN a Student posts an answer that is marked as correct by the Teacher, THE XP_Engine SHALL award 15 XP with `source = 'discussion_answer'`.
+6. THE Discussion_Forum SHALL display threads ordered by `is_pinned` DESC then `created_at` DESC, with resolved threads visually distinguished.
+
+---
+
+#### Requirement 78: Attendance Tracking
+
+**User Story:** As a Teacher, I want to mark attendance per class session per section, so that attendance data feeds into at-risk prediction and accreditation compliance (10 Pillars: attendance is a behavioral signal for the AI Co-Pilot per Pillar 4; low attendance correlates with at-risk status; "Perfect Attendance Week" badge per Pillar 8; attendance data enriches the student_activity_log for AI training).
+
+##### Acceptance Criteria
+
+1. WHEN a Teacher creates a class session, THE Attendance_Tracker SHALL insert a record into the `class_sessions` table with `section_id`, `session_date`, `session_type` (lecture/lab/tutorial), and `topic`.
+2. WHEN a Teacher marks attendance, THE Attendance_Tracker SHALL insert records into the `attendance_records` table with `session_id`, `student_id`, `status` (present/absent/late/excused), and `marked_by`.
+3. THE Attendance_Tracker SHALL calculate attendance percentage per student per course as: (present + late sessions) / total sessions × 100.
+4. WHEN a Student's attendance percentage drops below 75%, THE Platform SHALL flag the student on the Teacher Dashboard and send an in-app notification to the student.
+5. THE Student Dashboard SHALL display attendance percentage per enrolled course.
+6. THE AI Co-Pilot at-risk prediction (Requirement 47) SHALL include attendance frequency as a contributing signal.
+7. THE Badge_System SHALL award a "Perfect Attendance Week" badge when a Student is marked present for all sessions in a 7-day period.
+
+---
+
+#### Requirement 81: Calendar View
+
+**User Story:** As a Student or Teacher, I want a unified calendar showing all due dates, exam dates, class sessions, and events, so that I can plan my work and reduce anxiety (10 Pillars: calendar is a planning tool per Pillar 5 SRL Planning Zone; calendar items are prompts per Pillar 6 BJ Fogg external triggers at the right time).
+
+##### Acceptance Criteria
+
+1. THE Calendar_View SHALL aggregate events from: assignments (due dates), quizzes (due dates), class_sessions (session dates), academic_calendar_events, and announcements.
+2. THE Calendar_View SHALL color-code events by course.
+3. THE Student Calendar_View SHALL display events from all enrolled courses; THE Teacher Calendar_View SHALL display events from all taught courses.
+4. THE Calendar_View SHALL integrate with the deadline widget on the Student Dashboard (red <24h, yellow <72h, green >72h).
+5. THE Calendar_View SHALL be accessible from the dashboard sidebar for both Students and Teachers.
+
+---
+
+### SECTION S: Stakeholder Access
+
+#### Requirement 86: Parent/Guardian Portal
+
+**User Story:** As a Parent or Guardian, I want read-only access to my child's grades, attendance, CLO progress, and habit tracker, so that I can monitor their academic engagement (10 Pillars: parents are external accountability partners per Pillar 8 Octalysis Drive 5 Social Influence; parent notifications are external triggers per Pillar 7 Hooked Model).
+
+##### Acceptance Criteria
+
+1. THE Platform SHALL support a `parent` role with read-only access enforced via RLS policies.
+2. THE Platform SHALL store parent-student relationships in a `parent_student_links` table with `parent_id`, `student_id`, `relationship` (parent/guardian), `verified`, and `created_at`.
+3. THE Parent_Portal Dashboard SHALL display: linked student's grades, attendance percentage, CLO progress bars, habit tracker (read-only), and XP/level/streak summary.
+4. THE Notification_Service SHALL send email notifications to parents for: grade released, attendance alert (below 75%), and at-risk warning.
+5. THE Admin SHALL be able to invite parents via bulk import or individual invite, creating a `parent` role profile and a `parent_student_links` record.
+6. THE RBAC_Engine SHALL enforce that parents can only view data for students linked to them via verified `parent_student_links` records.
+7. THE AppRouter SHALL include a `/parent/*` route group with a ParentLayout and ParentDashboard.
+
+---
+
+#### Requirement 87: Fee Management / Payment Tracking
+
+**User Story:** As an Admin, I want to manage fee structures per program per semester and track student payment status, so that the platform serves as a single institutional management system (10 Pillars: fee management is institutional infrastructure that eliminates the need for a separate school management system).
+
+##### Acceptance Criteria
+
+1. WHEN an Admin creates a fee structure, THE Fee_Manager SHALL insert a record into the `fee_structures` table with `program_id`, `semester_id`, `fee_type` (tuition/lab/library/exam), `amount`, `currency`, and `due_date`.
+2. WHEN an Admin records a payment, THE Fee_Manager SHALL insert a record into the `fee_payments` table with `student_id`, `fee_structure_id`, `amount_paid`, `payment_date`, `payment_method`, `receipt_number`, and `status` (pending/paid/overdue/waived).
+3. THE Student Profile page SHALL display fee status showing outstanding and paid fees.
+4. THE Admin Dashboard SHALL include a fee collection summary showing total collected, total outstanding, and overdue count.
+5. WHEN a fee payment is overdue (current date > `due_date` and status is `pending`), THE Platform SHALL flag the payment as `overdue` and display an alert on the Admin fee dashboard.
+6. THE Platform SHALL generate fee receipts as downloadable PDFs.
+7. WHEN an Admin creates or modifies a fee structure or records a payment, THE Audit_Logger SHALL record the action.

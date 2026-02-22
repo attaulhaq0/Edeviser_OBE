@@ -2,7 +2,7 @@
 
 ## Overview
 
-This design covers the complete production-ready Edeviser platform across all feature areas: authentication, RBAC, user management, program/course management, the full OBE engine (ILO/PLO/CLO, rubrics, assignments, submissions, grading, evidence, rollup), the gamification engine (XP, streaks, badges, levels, leaderboards, journals), four role-specific dashboards, notifications (including peer milestone notifications and Perfect Day nudges), realtime, reporting, audit logging, student CLO progress tracking, XP transaction history, the AI Co-Pilot subsystem (personalized module suggestions, at-risk early warnings, and feedback draft generation), and platform enhancements (student learning portfolio, streak freeze, role-specific onboarding, achievable read habit, dark mode, offline resilience & draft saving, GDPR data export, notification batching & rate limiting, error state components, and teacher grading stats).
+This design covers the complete production-ready Edeviser platform across all feature areas: authentication, RBAC, user management, program/course management, the full OBE engine (ILO/PLO/CLO, rubrics, assignments, submissions, grading, evidence, rollup), the gamification engine (XP, streaks, badges, levels, leaderboards, journals), four role-specific dashboards (plus parent portal), notifications (including peer milestone notifications and Perfect Day nudges), realtime, reporting, audit logging, student CLO progress tracking, XP transaction history, the AI Co-Pilot subsystem (personalized module suggestions, at-risk early warnings, and feedback draft generation), platform enhancements (student learning portfolio, streak freeze, role-specific onboarding, achievable read habit, dark mode, offline resilience & draft saving, GDPR data export, notification batching & rate limiting, error state components, and teacher grading stats), and institutional management features (semester management, course sections, surveys, CQI loop, configurable KPI thresholds, multi-accreditation body support, course file generation, announcements, course content/materials, discussion forums, attendance tracking, quiz/exam module, gradebook with weighted categories, calendar view, timetable, department management, academic calendar, student transcripts, parent/guardian portal, and fee management).
 
 The platform is a React 18 SPA (TypeScript, Vite 6, Tailwind CSS v4, Shadcn/ui) backed by Supabase (PostgreSQL with RLS, GoTrue Auth, Edge Functions, Storage, Realtime). All data access is enforced at the database layer via Row Level Security policies.
 
@@ -43,33 +43,57 @@ React SPA (Vercel CDN)
 │   │   ├── /admin/dashboard — AdminDashboard
 │   │   ├── /admin/users — UserListPage, UserForm, BulkImport
 │   │   ├── /admin/programs — ProgramListPage, ProgramForm
+│   │   ├── /admin/departments — DepartmentListPage, DepartmentForm
+│   │   ├── /admin/semesters — SemesterListPage, SemesterForm
 │   │   ├── /admin/outcomes — ILOListPage, ILOForm
 │   │   ├── /admin/reports — ReportGenerator
 │   │   ├── /admin/bonus-events — BonusXPEventManager
+│   │   ├── /admin/settings — InstitutionSettings (KPI thresholds, grade scales, accreditation body)
+│   │   ├── /admin/surveys — SurveyManager
+│   │   ├── /admin/calendar — AcademicCalendarManager
+│   │   ├── /admin/fees — FeeStructureManager, FeePaymentTracker
+│   │   ├── /admin/parents — ParentInviteManager
 │   │   └── /admin/audit — AuditLogViewer
 │   ├── /coordinator/* — CoordinatorLayout
-│   │   ├── /coordinator/dashboard — CoordinatorDashboard
-│   │   ├── /coordinator/programs — ProgramDetail
-│   │   ├── /coordinator/courses — CourseListPage
+│   │   ├── /coordinator/dashboard — CoordinatorDashboard (includes CQI section)
+│   │   ├── /coordinator/programs — ProgramDetail (includes accreditation tags)
+│   │   ├── /coordinator/courses — CourseListPage (includes section management)
 │   │   ├── /coordinator/outcomes — PLOListPage, PLOForm, CurriculumMatrix
-│   │   └── /coordinator/mapping — OutcomeMappingEditor
+│   │   ├── /coordinator/mapping — OutcomeMappingEditor
+│   │   ├── /coordinator/cqi — CQIActionPlanManager
+│   │   ├── /coordinator/surveys — SurveyManager (course exit surveys)
+│   │   └── /coordinator/course-file — CourseFileGenerator
 │   ├── /teacher/* — TeacherLayout
 │   │   ├── /teacher/dashboard — TeacherDashboard
-│   │   ├── /teacher/courses — CourseDetail
+│   │   ├── /teacher/courses — CourseDetail (includes sections, modules, materials)
 │   │   ├── /teacher/outcomes — CLOListPage, CLOForm, BloomsVerbGuide
 │   │   ├── /teacher/rubrics — RubricBuilder
 │   │   ├── /teacher/assignments — AssignmentListPage, AssignmentForm (with prerequisite gates)
+│   │   ├── /teacher/quizzes — QuizBuilder, QuizListPage
 │   │   ├── /teacher/grading — GradingQueue, GradingInterface
+│   │   ├── /teacher/gradebook — GradebookView, GradeCategoryManager
+│   │   ├── /teacher/attendance — AttendanceMarker, AttendanceReport
+│   │   ├── /teacher/announcements — AnnouncementEditor
+│   │   ├── /teacher/discussions — DiscussionModeration
+│   │   ├── /teacher/calendar — CalendarView
+│   │   ├── /teacher/timetable — TimetableView
 │   │   └── /teacher/students — StudentHeatmap
 │   └── /student/* — StudentLayout
 │       ├── /student/dashboard — StudentDashboard (CLOProgress, AISuggestionWidget)
-│       ├── /student/courses — CourseList
+│       ├── /student/courses — CourseList (includes materials, modules)
 │       ├── /student/assignments — AssignmentDetail, SubmissionForm
+│       ├── /student/quizzes — QuizAttemptPage
 │       ├── /student/progress — ProgressView, LearningPath (Bloom's-gated nodes), CLOProgressView
 │       ├── /student/xp-history — XPTransactionHistory
 │       ├── /student/journal — JournalEditor (contextual prompts)
 │       ├── /student/leaderboard — LeaderboardView
+│       ├── /student/discussions — DiscussionThreadList, ThreadDetail
+│       ├── /student/calendar — CalendarView
+│       ├── /student/timetable — TimetableView
+│       ├── /student/surveys — SurveyResponsePage
 │       └── /student/portfolio — StudentPortfolio (CLO mastery, badges, XP timeline, public link)
+│   ├── /parent/* — ParentLayout
+│   │   └── /parent/dashboard — ParentDashboard (read-only: grades, attendance, CLO progress, habits)
 └── Supabase Backend
     ├── PostgreSQL + RLS (all tables)
     ├── GoTrue Auth
@@ -94,7 +118,10 @@ React SPA (Vercel CDN)
         ├── ai-at-risk-prediction (pg_cron → nightly)
         ├── ai-feedback-draft (on-demand per grading session)
         ├── export-student-data (on-demand per student GDPR export)
-        └── notification-digest (pg_cron → 8 PM daily for digest subscribers)
+        ├── notification-digest (pg_cron → 8 PM daily for digest subscribers)
+        ├── generate-course-file (on-demand per course per semester)
+        ├── generate-transcript (on-demand per student per semester)
+        └── auto-grade-quiz (on quiz attempt submission)
 ```
 
 ## Components and Interfaces
@@ -106,7 +133,7 @@ React SPA (Vercel CDN)
 interface AuthContextValue {
   user: User | null;
   profile: Profile | null;
-  role: 'admin' | 'coordinator' | 'teacher' | 'student' | null;
+  role: 'admin' | 'coordinator' | 'teacher' | 'student' | 'parent' | null;
   institutionId: string | null;
   isLoading: boolean;
   signIn: (email: string, password: string) => Promise<AuthResult>;
@@ -159,7 +186,7 @@ Uses `jspdf` + `jspdf-autotable` for lightweight PDF generation in Deno Edge Fun
 interface XPAwardPayload {
   student_id: string;
   xp_amount: number;
-  source: 'login' | 'submission' | 'badge' | 'admin_adjustment' | 'perfect_day' | 'first_attempt_bonus' | 'perfect_rubric' | 'bonus_event';
+  source: 'login' | 'submission' | 'badge' | 'admin_adjustment' | 'perfect_day' | 'first_attempt_bonus' | 'perfect_rubric' | 'bonus_event' | 'discussion_question' | 'discussion_answer' | 'survey_completion' | 'quiz_completion';
   reference_id?: string;
   note?: string;
   bonus_multiplier?: number; // Applied during Bonus XP Weekend events
@@ -246,7 +273,7 @@ function generateJournalPrompt(context: JournalPromptContext): GeneratedPrompt;
 ```typescript
 interface EmailPayload {
   to: string;
-  template: 'streak_risk' | 'weekly_summary' | 'new_assignment' | 'grade_released' | 'bulk_import_invitation';
+  template: 'streak_risk' | 'weekly_summary' | 'new_assignment' | 'grade_released' | 'bulk_import_invitation' | 'parent_grade_released' | 'parent_attendance_alert' | 'parent_at_risk_warning';
   data: Record<string, unknown>;
 }
 ```
@@ -268,7 +295,7 @@ interface BonusXPEvent {
 ```typescript
 interface ActivityLogEntry {
   student_id: string;
-  event_type: 'login' | 'page_view' | 'submission' | 'journal' | 'streak_break' | 'assignment_view';
+  event_type: 'login' | 'page_view' | 'submission' | 'journal' | 'streak_break' | 'assignment_view' | 'material_view' | 'announcement_view' | 'discussion_post' | 'quiz_attempt' | 'attendance_marked';
   metadata?: Record<string, unknown>;
 }
 
@@ -735,6 +762,485 @@ Each role dashboard follows the same layout pattern:
 3. Tab Navigation (pill-style)
 4. Tab Content (role-specific widgets)
 
+### Institutional Management Components
+
+#### Semester Manager (`/src/pages/admin/semesters/SemesterManager.tsx`)
+```typescript
+interface SemesterFormData {
+  name: string;
+  code: string;
+  start_date: string;
+  end_date: string;
+  is_active: boolean;
+}
+
+interface Semester {
+  id: string;
+  institution_id: string;
+  name: string;
+  code: string;
+  start_date: string;
+  end_date: string;
+  is_active: boolean;
+  created_at: string;
+}
+```
+
+#### Course Section Manager (`/src/pages/coordinator/courses/SectionManager.tsx`)
+```typescript
+interface CourseSectionFormData {
+  course_id: string;
+  section_code: string; // A, B, C
+  teacher_id: string;
+  capacity: number;
+  is_active: boolean;
+}
+
+interface CourseSection {
+  id: string;
+  course_id: string;
+  section_code: string;
+  teacher_id: string;
+  capacity: number;
+  is_active: boolean;
+  created_at: string;
+}
+
+interface SectionComparisonProps {
+  courseId: string;
+  sectionIds: string[];
+}
+```
+
+#### Survey Module (`/src/pages/admin/surveys/SurveyManager.tsx`)
+```typescript
+type SurveyType = 'course_exit' | 'graduate_exit' | 'employer';
+type QuestionType = 'likert' | 'mcq' | 'text';
+
+interface SurveyFormData {
+  title: string;
+  type: SurveyType;
+  target_outcomes: string[]; // outcome_ids
+  is_active: boolean;
+  questions: SurveyQuestionFormData[];
+}
+
+interface SurveyQuestionFormData {
+  question_text: string;
+  question_type: QuestionType;
+  options: string[] | null; // for mcq
+  sort_order: number;
+}
+
+interface SurveyResponseFormData {
+  survey_id: string;
+  responses: Array<{ question_id: string; response_value: string }>;
+}
+```
+
+#### CQI Action Plan Manager (`/src/pages/coordinator/cqi/CQIManager.tsx`)
+```typescript
+type CQIStatus = 'planned' | 'in_progress' | 'completed' | 'evaluated';
+
+interface CQIActionPlanFormData {
+  program_id: string;
+  semester_id: string;
+  outcome_id: string;
+  outcome_type: 'PLO' | 'CLO';
+  baseline_attainment: number;
+  target_attainment: number;
+  action_description: string;
+  responsible_person: string;
+  status: CQIStatus;
+  result_attainment?: number;
+}
+
+interface CQIActionPlan extends CQIActionPlanFormData {
+  id: string;
+  created_at: string;
+  updated_at: string;
+}
+```
+
+#### Institution Settings (`/src/pages/admin/settings/InstitutionSettings.tsx`)
+```typescript
+interface InstitutionSettingsFormData {
+  attainment_thresholds: {
+    excellent: number;
+    satisfactory: number;
+    developing: number;
+  };
+  success_threshold: number;
+  accreditation_body: 'HEC' | 'QQA' | 'ABET' | 'NCAAA' | 'AACSB' | 'Generic';
+  grade_scales: Array<{
+    letter: string;
+    min_percent: number;
+    max_percent: number;
+    gpa_points: number;
+  }>;
+}
+```
+
+#### Announcement Editor (`/src/pages/teacher/announcements/AnnouncementEditor.tsx`)
+```typescript
+interface AnnouncementFormData {
+  course_id: string;
+  title: string;
+  content: string; // markdown
+  is_pinned: boolean;
+}
+
+interface Announcement {
+  id: string;
+  course_id: string;
+  author_id: string;
+  title: string;
+  content: string;
+  is_pinned: boolean;
+  created_at: string;
+  updated_at: string;
+}
+```
+
+#### Course Module & Materials (`/src/pages/teacher/courses/ModuleManager.tsx`)
+```typescript
+type MaterialType = 'file' | 'link' | 'video' | 'text';
+
+interface CourseModuleFormData {
+  course_id: string;
+  title: string;
+  description: string;
+  sort_order: number;
+  is_published: boolean;
+}
+
+interface CourseMaterialFormData {
+  module_id: string;
+  title: string;
+  type: MaterialType;
+  content_url?: string;
+  file_path?: string; // Supabase Storage
+  description: string;
+  sort_order: number;
+  is_published: boolean;
+  clo_ids?: string[]; // linked CLOs for traceability
+}
+```
+
+#### Discussion Forum (`/src/pages/student/discussions/DiscussionForum.tsx`)
+```typescript
+interface DiscussionThreadFormData {
+  course_id: string;
+  title: string;
+  content: string;
+}
+
+interface DiscussionThread {
+  id: string;
+  course_id: string;
+  author_id: string;
+  author_name: string;
+  title: string;
+  content: string;
+  is_pinned: boolean;
+  is_resolved: boolean;
+  reply_count: number;
+  created_at: string;
+}
+
+interface DiscussionReplyFormData {
+  thread_id: string;
+  content: string;
+}
+
+interface DiscussionReply {
+  id: string;
+  thread_id: string;
+  author_id: string;
+  author_name: string;
+  content: string;
+  is_answer: boolean;
+  created_at: string;
+}
+```
+
+#### Attendance Tracker (`/src/pages/teacher/attendance/AttendanceMarker.tsx`)
+```typescript
+type AttendanceStatus = 'present' | 'absent' | 'late' | 'excused';
+type SessionType = 'lecture' | 'lab' | 'tutorial';
+
+interface ClassSessionFormData {
+  section_id: string;
+  session_date: string;
+  session_type: SessionType;
+  topic: string;
+}
+
+interface AttendanceRecordFormData {
+  session_id: string;
+  records: Array<{ student_id: string; status: AttendanceStatus }>;
+}
+
+interface AttendanceReportProps {
+  sectionId: string;
+  studentId?: string; // optional filter
+}
+```
+
+#### Quiz Builder (`/src/pages/teacher/quizzes/QuizBuilder.tsx`)
+```typescript
+type QuizQuestionType = 'mcq_single' | 'mcq_multi' | 'true_false' | 'short_answer' | 'fill_blank';
+
+interface QuizFormData {
+  course_id: string;
+  title: string;
+  description: string;
+  clo_ids: string[];
+  time_limit_minutes: number | null;
+  max_attempts: number;
+  is_published: boolean;
+  due_date: string;
+  questions: QuizQuestionFormData[];
+}
+
+interface QuizQuestionFormData {
+  question_text: string;
+  question_type: QuizQuestionType;
+  options: string[] | null; // for MCQ/TF
+  correct_answer: string | string[]; // string for single, array for multi
+  points: number;
+  sort_order: number;
+}
+
+interface QuizAttemptFormData {
+  quiz_id: string;
+  answers: Record<string, string | string[]>; // question_id → answer
+}
+
+interface QuizAttempt {
+  id: string;
+  quiz_id: string;
+  student_id: string;
+  answers: Record<string, string | string[]>;
+  score: number;
+  started_at: string;
+  submitted_at: string;
+  attempt_number: number;
+}
+```
+
+#### Gradebook (`/src/pages/teacher/gradebook/GradebookView.tsx`)
+```typescript
+interface GradeCategoryFormData {
+  course_id: string;
+  name: string;
+  weight_percent: number;
+  sort_order: number;
+}
+
+interface GradebookEntry {
+  student_id: string;
+  student_name: string;
+  categories: Array<{
+    category_id: string;
+    category_name: string;
+    weight_percent: number;
+    assessments: Array<{
+      id: string;
+      title: string;
+      score: number | null;
+      max_score: number;
+    }>;
+    subtotal_percent: number;
+  }>;
+  final_weighted_grade: number;
+  letter_grade: string;
+}
+
+interface GradebookViewProps {
+  courseId: string;
+  sectionId?: string;
+}
+```
+
+#### Calendar View (`/src/pages/shared/CalendarView.tsx`)
+```typescript
+type CalendarEventSource = 'assignment' | 'quiz' | 'class_session' | 'academic_calendar' | 'announcement';
+
+interface CalendarEvent {
+  id: string;
+  title: string;
+  start_date: string;
+  end_date?: string;
+  source: CalendarEventSource;
+  course_id?: string;
+  course_name?: string;
+  color: string; // course-specific color
+}
+
+interface CalendarViewProps {
+  role: 'student' | 'teacher';
+  userId: string;
+}
+```
+
+#### Timetable View (`/src/pages/shared/TimetableView.tsx`)
+```typescript
+type SlotType = 'lecture' | 'lab' | 'tutorial';
+
+interface TimetableSlot {
+  id: string;
+  section_id: string;
+  course_name: string;
+  section_code: string;
+  day_of_week: number; // 0-6
+  start_time: string; // HH:MM
+  end_time: string;
+  room: string;
+  slot_type: SlotType;
+}
+
+interface TimetableViewProps {
+  role: 'student' | 'teacher';
+  userId: string;
+}
+```
+
+#### Department Manager (`/src/pages/admin/departments/DepartmentManager.tsx`)
+```typescript
+interface DepartmentFormData {
+  name: string;
+  code: string;
+  head_of_department_id: string;
+}
+
+interface Department {
+  id: string;
+  institution_id: string;
+  name: string;
+  code: string;
+  head_of_department_id: string;
+  created_at: string;
+}
+```
+
+#### Academic Calendar Manager (`/src/pages/admin/calendar/AcademicCalendarManager.tsx`)
+```typescript
+type AcademicEventType = 'semester_start' | 'semester_end' | 'exam_period' | 'holiday' | 'registration' | 'custom';
+
+interface AcademicCalendarEventFormData {
+  semester_id: string;
+  title: string;
+  event_type: AcademicEventType;
+  start_date: string;
+  end_date: string;
+  is_recurring: boolean;
+}
+```
+
+#### Transcript Generator (Edge Function: `/supabase/functions/generate-transcript/`)
+```typescript
+interface TranscriptRequest {
+  student_id: string;
+  semester_id?: string; // optional — if omitted, generates cumulative transcript
+}
+
+interface TranscriptData {
+  student_info: { name: string; email: string; program: string; department: string };
+  semesters: Array<{
+    semester_name: string;
+    courses: Array<{
+      code: string;
+      name: string;
+      grade_categories: Array<{ name: string; weight: number; score: number }>;
+      final_grade: number;
+      letter_grade: string;
+      clo_attainment_summary: Array<{ clo_title: string; attainment_percent: number }>;
+    }>;
+    semester_gpa: number;
+  }>;
+  cumulative_gpa: number;
+}
+
+interface TranscriptResponse {
+  download_url: string;
+  generated_at: string;
+}
+```
+
+#### Course File Generator (Edge Function: `/supabase/functions/generate-course-file/`)
+```typescript
+interface CourseFileRequest {
+  course_id: string;
+  semester_id: string;
+}
+
+interface CourseFileResponse {
+  download_url: string;
+  file_type: 'pdf' | 'zip';
+  generated_at: string;
+}
+
+// Contents: syllabus, CLO-PLO mapping, assessment instruments, sample work,
+// CLO attainment charts, teacher reflection, CQI recommendations
+```
+
+#### Parent Dashboard (`/src/pages/parent/ParentDashboard.tsx`)
+```typescript
+interface ParentDashboardProps {
+  parentId: string;
+}
+
+interface LinkedStudent {
+  student_id: string;
+  student_name: string;
+  relationship: 'parent' | 'guardian';
+  program_name: string;
+}
+
+interface ParentStudentView {
+  grades: Array<{ course_name: string; final_grade: number; letter_grade: string }>;
+  attendance: Array<{ course_name: string; attendance_percent: number }>;
+  clo_progress: Array<{ clo_title: string; attainment_percent: number; course_name: string }>;
+  habits: Array<{ date: string; habit_type: string; completed: boolean }>;
+  xp_total: number;
+  level: number;
+  streak_current: number;
+}
+```
+
+#### Fee Manager (`/src/pages/admin/fees/FeeManager.tsx`)
+```typescript
+type FeeType = 'tuition' | 'lab' | 'library' | 'exam';
+type PaymentStatus = 'pending' | 'paid' | 'overdue' | 'waived';
+
+interface FeeStructureFormData {
+  program_id: string;
+  semester_id: string;
+  fee_type: FeeType;
+  amount: number;
+  currency: string;
+  due_date: string;
+}
+
+interface FeePaymentFormData {
+  student_id: string;
+  fee_structure_id: string;
+  amount_paid: number;
+  payment_date: string;
+  payment_method: string;
+  receipt_number: string;
+  status: PaymentStatus;
+}
+
+interface FeeCollectionSummary {
+  total_expected: number;
+  total_collected: number;
+  total_outstanding: number;
+  overdue_count: number;
+}
+```
+
 ### Shared Components (`/src/components/shared/`)
 
 ```typescript
@@ -769,6 +1275,19 @@ ReconnectBanner      // "Live updates paused — Reconnecting..." banner
 StreakFreezeShop     // Streak Freeze purchase UI with inventory display
 ExportDataButton     // GDPR data export trigger with format selector
 QuickStartChecklist  // Persistent onboarding checklist per role
+SurveyForm           // Reusable survey response form (Likert/MCQ/text)
+AttendanceGrid       // Session × student attendance marking grid
+QuizQuestionCard     // Single quiz question display with answer input
+GradebookMatrix      // Students × assessments weighted grade matrix
+TimetableGrid        // Weekly day × time slot grid
+AnnouncementCard     // Course announcement display card with markdown
+MaterialItem         // Course material list item (file/link/video/text)
+DiscussionThreadCard // Discussion thread preview card
+CalendarEventCard    // Calendar event display with course color coding
+CQIStatusBadge       // CQI action plan status pill (planned/in_progress/completed/evaluated)
+SectionComparisonChart // Side-by-side section attainment comparison
+FeeStatusBadge       // Fee payment status pill (pending/paid/overdue/waived)
+ParentStudentCard    // Parent view of linked student summary
 ```
 
 ## Data Models
@@ -790,6 +1309,27 @@ All tables from the architecture document (Section 5) are implemented:
 - `audit_logs`, `notifications`
 
 Note: The `profiles` table includes an `email_preferences` jsonb column (default: all notifications enabled) for per-user email opt-out settings (see Requirement 39). It also includes `onboarding_completed` boolean (default false, Requirement 60), `portfolio_public` boolean (default false, Requirement 58), and `theme_preference` text (default 'system', Requirement 62).
+
+New tables for institutional management and LMS features:
+- `semesters` (Requirement 68)
+- `departments` (Requirement 83)
+- `course_sections` (Requirement 69)
+- `surveys`, `survey_questions`, `survey_responses` (Requirement 70)
+- `cqi_action_plans` (Requirement 71)
+- `institution_settings` (Requirement 72)
+- `program_accreditations` (Requirement 73)
+- `announcements` (Requirement 75)
+- `course_modules`, `course_materials` (Requirement 76)
+- `discussion_threads`, `discussion_replies` (Requirement 77)
+- `class_sessions`, `attendance_records` (Requirement 78)
+- `quizzes`, `quiz_questions`, `quiz_attempts` (Requirement 79)
+- `grade_categories` (Requirement 80)
+- `timetable_slots` (Requirement 82)
+- `academic_calendar_events` (Requirement 84)
+- `parent_student_links` (Requirement 86)
+- `fee_structures`, `fee_payments` (Requirement 87)
+
+Column additions: `courses.semester_id`, `programs.department_id`, `student_courses.section_id`.
 
 Note: `outcome_attainment` requires a unique index for UPSERT rollup logic:
 ```sql
@@ -893,7 +1433,402 @@ ALTER TABLE profiles ADD COLUMN theme_preference text NOT NULL DEFAULT 'system'
   CHECK (theme_preference IN ('light', 'dark', 'system'));
 ```
 
-Note: The `xp_transactions.source` CHECK constraint should be updated to include `'streak_freeze_purchase'` as a valid source value. The `student_activity_log.event_type` CHECK constraint should be updated to include `'grading_start'` and `'grading_end'` event types for teacher grading time tracking.
+#### New Tables for Institutional Management & LMS Features
+
+#### `semesters`
+```sql
+CREATE TABLE semesters (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  institution_id uuid REFERENCES institutions(id) NOT NULL,
+  name text NOT NULL,
+  code text NOT NULL,
+  start_date date NOT NULL,
+  end_date date NOT NULL CHECK (end_date > start_date),
+  is_active boolean NOT NULL DEFAULT false,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (institution_id, code)
+);
+ALTER TABLE semesters ENABLE ROW LEVEL SECURITY;
+-- Only one active semester per institution enforced via trigger
+```
+
+#### `departments`
+```sql
+CREATE TABLE departments (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  institution_id uuid REFERENCES institutions(id) NOT NULL,
+  name text NOT NULL,
+  code text NOT NULL,
+  head_of_department_id uuid REFERENCES profiles(id),
+  created_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (institution_id, code)
+);
+ALTER TABLE departments ENABLE ROW LEVEL SECURITY;
+```
+
+#### `course_sections`
+```sql
+CREATE TABLE course_sections (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  course_id uuid REFERENCES courses(id) NOT NULL,
+  section_code text NOT NULL,
+  teacher_id uuid REFERENCES profiles(id) NOT NULL,
+  capacity integer NOT NULL DEFAULT 50,
+  is_active boolean NOT NULL DEFAULT true,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (course_id, section_code)
+);
+ALTER TABLE course_sections ENABLE ROW LEVEL SECURITY;
+```
+
+#### `surveys`
+```sql
+CREATE TABLE surveys (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  institution_id uuid REFERENCES institutions(id) NOT NULL,
+  title text NOT NULL,
+  type text NOT NULL CHECK (type IN ('course_exit', 'graduate_exit', 'employer')),
+  target_outcomes jsonb NOT NULL DEFAULT '[]',
+  is_active boolean NOT NULL DEFAULT true,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE surveys ENABLE ROW LEVEL SECURITY;
+```
+
+#### `survey_questions`
+```sql
+CREATE TABLE survey_questions (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  survey_id uuid REFERENCES surveys(id) ON DELETE CASCADE NOT NULL,
+  question_text text NOT NULL,
+  question_type text NOT NULL CHECK (question_type IN ('likert', 'mcq', 'text')),
+  options jsonb,
+  sort_order integer NOT NULL DEFAULT 0,
+  UNIQUE (survey_id, sort_order)
+);
+ALTER TABLE survey_questions ENABLE ROW LEVEL SECURITY;
+```
+
+#### `survey_responses`
+```sql
+CREATE TABLE survey_responses (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  survey_id uuid REFERENCES surveys(id) NOT NULL,
+  question_id uuid REFERENCES survey_questions(id) NOT NULL,
+  respondent_id uuid REFERENCES profiles(id) NOT NULL,
+  response_value text NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (survey_id, question_id, respondent_id)
+);
+ALTER TABLE survey_responses ENABLE ROW LEVEL SECURITY;
+```
+
+#### `cqi_action_plans`
+```sql
+CREATE TABLE cqi_action_plans (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  program_id uuid REFERENCES programs(id) NOT NULL,
+  semester_id uuid REFERENCES semesters(id) NOT NULL,
+  outcome_id uuid REFERENCES learning_outcomes(id) NOT NULL,
+  outcome_type text NOT NULL CHECK (outcome_type IN ('PLO', 'CLO')),
+  baseline_attainment numeric NOT NULL CHECK (baseline_attainment >= 0 AND baseline_attainment <= 100),
+  target_attainment numeric NOT NULL CHECK (target_attainment >= 0 AND target_attainment <= 100),
+  action_description text NOT NULL,
+  responsible_person text NOT NULL,
+  status text NOT NULL DEFAULT 'planned' CHECK (status IN ('planned', 'in_progress', 'completed', 'evaluated')),
+  result_attainment numeric CHECK (result_attainment >= 0 AND result_attainment <= 100),
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE cqi_action_plans ENABLE ROW LEVEL SECURITY;
+```
+
+#### `institution_settings`
+```sql
+CREATE TABLE institution_settings (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  institution_id uuid REFERENCES institutions(id) NOT NULL UNIQUE,
+  attainment_thresholds jsonb NOT NULL DEFAULT '{"excellent": 85, "satisfactory": 70, "developing": 50}',
+  success_threshold integer NOT NULL DEFAULT 70,
+  accreditation_body text NOT NULL DEFAULT 'Generic' CHECK (accreditation_body IN ('HEC', 'QQA', 'ABET', 'NCAAA', 'AACSB', 'Generic')),
+  grade_scales jsonb NOT NULL DEFAULT '[{"letter":"A","min_percent":85,"max_percent":100,"gpa_points":4.0},{"letter":"B","min_percent":70,"max_percent":84,"gpa_points":3.0},{"letter":"C","min_percent":55,"max_percent":69,"gpa_points":2.0},{"letter":"D","min_percent":50,"max_percent":54,"gpa_points":1.0},{"letter":"F","min_percent":0,"max_percent":49,"gpa_points":0.0}]',
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE institution_settings ENABLE ROW LEVEL SECURITY;
+```
+
+#### `program_accreditations`
+```sql
+CREATE TABLE program_accreditations (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  program_id uuid REFERENCES programs(id) NOT NULL,
+  accreditation_body text NOT NULL,
+  framework_version text,
+  accreditation_date date,
+  next_review_date date,
+  status text NOT NULL DEFAULT 'pending' CHECK (status IN ('active', 'expired', 'pending')),
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE program_accreditations ENABLE ROW LEVEL SECURITY;
+```
+
+#### `announcements`
+```sql
+CREATE TABLE announcements (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  course_id uuid REFERENCES courses(id) NOT NULL,
+  author_id uuid REFERENCES profiles(id) NOT NULL,
+  title text NOT NULL,
+  content text NOT NULL,
+  is_pinned boolean NOT NULL DEFAULT false,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE announcements ENABLE ROW LEVEL SECURITY;
+CREATE INDEX idx_announcements_course ON announcements(course_id, is_pinned DESC, created_at DESC);
+```
+
+#### `course_modules`
+```sql
+CREATE TABLE course_modules (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  course_id uuid REFERENCES courses(id) NOT NULL,
+  title text NOT NULL,
+  description text,
+  sort_order integer NOT NULL DEFAULT 0,
+  is_published boolean NOT NULL DEFAULT false,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE course_modules ENABLE ROW LEVEL SECURITY;
+```
+
+#### `course_materials`
+```sql
+CREATE TABLE course_materials (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  module_id uuid REFERENCES course_modules(id) ON DELETE CASCADE NOT NULL,
+  title text NOT NULL,
+  type text NOT NULL CHECK (type IN ('file', 'link', 'video', 'text')),
+  content_url text,
+  file_path text,
+  description text,
+  sort_order integer NOT NULL DEFAULT 0,
+  is_published boolean NOT NULL DEFAULT false,
+  clo_ids jsonb DEFAULT '[]',
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE course_materials ENABLE ROW LEVEL SECURITY;
+```
+
+#### `discussion_threads`
+```sql
+CREATE TABLE discussion_threads (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  course_id uuid REFERENCES courses(id) NOT NULL,
+  author_id uuid REFERENCES profiles(id) NOT NULL,
+  title text NOT NULL,
+  content text NOT NULL,
+  is_pinned boolean NOT NULL DEFAULT false,
+  is_resolved boolean NOT NULL DEFAULT false,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE discussion_threads ENABLE ROW LEVEL SECURITY;
+CREATE INDEX idx_discussion_threads_course ON discussion_threads(course_id, is_pinned DESC, created_at DESC);
+```
+
+#### `discussion_replies`
+```sql
+CREATE TABLE discussion_replies (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  thread_id uuid REFERENCES discussion_threads(id) ON DELETE CASCADE NOT NULL,
+  author_id uuid REFERENCES profiles(id) NOT NULL,
+  content text NOT NULL,
+  is_answer boolean NOT NULL DEFAULT false,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE discussion_replies ENABLE ROW LEVEL SECURITY;
+```
+
+#### `class_sessions`
+```sql
+CREATE TABLE class_sessions (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  section_id uuid REFERENCES course_sections(id) NOT NULL,
+  session_date date NOT NULL,
+  session_type text NOT NULL CHECK (session_type IN ('lecture', 'lab', 'tutorial')),
+  topic text,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (section_id, session_date, session_type)
+);
+ALTER TABLE class_sessions ENABLE ROW LEVEL SECURITY;
+```
+
+#### `attendance_records`
+```sql
+CREATE TABLE attendance_records (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  session_id uuid REFERENCES class_sessions(id) NOT NULL,
+  student_id uuid REFERENCES profiles(id) NOT NULL,
+  status text NOT NULL CHECK (status IN ('present', 'absent', 'late', 'excused')),
+  marked_by uuid REFERENCES profiles(id) NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (session_id, student_id)
+);
+ALTER TABLE attendance_records ENABLE ROW LEVEL SECURITY;
+CREATE INDEX idx_attendance_student ON attendance_records(student_id, session_id);
+```
+
+#### `quizzes`
+```sql
+CREATE TABLE quizzes (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  course_id uuid REFERENCES courses(id) NOT NULL,
+  title text NOT NULL,
+  description text,
+  clo_ids jsonb NOT NULL DEFAULT '[]',
+  time_limit_minutes integer,
+  max_attempts integer NOT NULL DEFAULT 1,
+  is_published boolean NOT NULL DEFAULT false,
+  due_date timestamptz NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE quizzes ENABLE ROW LEVEL SECURITY;
+```
+
+#### `quiz_questions`
+```sql
+CREATE TABLE quiz_questions (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  quiz_id uuid REFERENCES quizzes(id) ON DELETE CASCADE NOT NULL,
+  question_text text NOT NULL,
+  question_type text NOT NULL CHECK (question_type IN ('mcq_single', 'mcq_multi', 'true_false', 'short_answer', 'fill_blank')),
+  options jsonb,
+  correct_answer jsonb NOT NULL,
+  points numeric NOT NULL DEFAULT 1,
+  sort_order integer NOT NULL DEFAULT 0
+);
+ALTER TABLE quiz_questions ENABLE ROW LEVEL SECURITY;
+```
+
+#### `quiz_attempts`
+```sql
+CREATE TABLE quiz_attempts (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  quiz_id uuid REFERENCES quizzes(id) NOT NULL,
+  student_id uuid REFERENCES profiles(id) NOT NULL,
+  answers jsonb NOT NULL DEFAULT '{}',
+  score numeric,
+  started_at timestamptz NOT NULL DEFAULT now(),
+  submitted_at timestamptz,
+  attempt_number integer NOT NULL DEFAULT 1,
+  UNIQUE (quiz_id, student_id, attempt_number)
+);
+ALTER TABLE quiz_attempts ENABLE ROW LEVEL SECURITY;
+CREATE INDEX idx_quiz_attempts_student ON quiz_attempts(student_id, quiz_id);
+```
+
+#### `grade_categories`
+```sql
+CREATE TABLE grade_categories (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  course_id uuid REFERENCES courses(id) NOT NULL,
+  name text NOT NULL,
+  weight_percent numeric NOT NULL CHECK (weight_percent > 0 AND weight_percent <= 100),
+  sort_order integer NOT NULL DEFAULT 0,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE grade_categories ENABLE ROW LEVEL SECURITY;
+```
+
+#### `timetable_slots`
+```sql
+CREATE TABLE timetable_slots (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  section_id uuid REFERENCES course_sections(id) NOT NULL,
+  day_of_week integer NOT NULL CHECK (day_of_week >= 0 AND day_of_week <= 6),
+  start_time time NOT NULL,
+  end_time time NOT NULL CHECK (end_time > start_time),
+  room text,
+  slot_type text NOT NULL CHECK (slot_type IN ('lecture', 'lab', 'tutorial')),
+  UNIQUE (section_id, day_of_week, start_time)
+);
+ALTER TABLE timetable_slots ENABLE ROW LEVEL SECURITY;
+```
+
+#### `academic_calendar_events`
+```sql
+CREATE TABLE academic_calendar_events (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  institution_id uuid REFERENCES institutions(id) NOT NULL,
+  semester_id uuid REFERENCES semesters(id),
+  title text NOT NULL,
+  event_type text NOT NULL CHECK (event_type IN ('semester_start', 'semester_end', 'exam_period', 'holiday', 'registration', 'custom')),
+  start_date date NOT NULL,
+  end_date date NOT NULL CHECK (end_date >= start_date),
+  is_recurring boolean NOT NULL DEFAULT false,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE academic_calendar_events ENABLE ROW LEVEL SECURITY;
+```
+
+#### `parent_student_links`
+```sql
+CREATE TABLE parent_student_links (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  parent_id uuid REFERENCES profiles(id) NOT NULL,
+  student_id uuid REFERENCES profiles(id) NOT NULL,
+  relationship text NOT NULL CHECK (relationship IN ('parent', 'guardian')),
+  verified boolean NOT NULL DEFAULT false,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (parent_id, student_id)
+);
+ALTER TABLE parent_student_links ENABLE ROW LEVEL SECURITY;
+```
+
+#### `fee_structures`
+```sql
+CREATE TABLE fee_structures (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  program_id uuid REFERENCES programs(id) NOT NULL,
+  semester_id uuid REFERENCES semesters(id) NOT NULL,
+  fee_type text NOT NULL CHECK (fee_type IN ('tuition', 'lab', 'library', 'exam')),
+  amount numeric NOT NULL CHECK (amount >= 0),
+  currency text NOT NULL DEFAULT 'PKR',
+  due_date date NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE fee_structures ENABLE ROW LEVEL SECURITY;
+```
+
+#### `fee_payments`
+```sql
+CREATE TABLE fee_payments (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  student_id uuid REFERENCES profiles(id) NOT NULL,
+  fee_structure_id uuid REFERENCES fee_structures(id) NOT NULL,
+  amount_paid numeric NOT NULL CHECK (amount_paid >= 0),
+  payment_date date NOT NULL,
+  payment_method text,
+  receipt_number text,
+  status text NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'paid', 'overdue', 'waived')),
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE fee_payments ENABLE ROW LEVEL SECURITY;
+CREATE INDEX idx_fee_payments_student ON fee_payments(student_id, status);
+```
+
+#### Column Additions for Institutional Management
+
+```sql
+-- Semester FK on courses (Requirement 68)
+ALTER TABLE courses ADD COLUMN semester_id uuid REFERENCES semesters(id);
+-- Department FK on programs (Requirement 83)
+ALTER TABLE programs ADD COLUMN department_id uuid REFERENCES departments(id);
+-- Section FK on student_courses (Requirement 69)
+ALTER TABLE student_courses ADD COLUMN section_id uuid REFERENCES course_sections(id);
+```
+
+Note: The `xp_transactions.source` CHECK constraint should be updated to include `'streak_freeze_purchase'`, `'discussion_question'`, `'discussion_answer'`, `'survey_completion'`, and `'quiz_completion'` as valid source values. The `student_activity_log.event_type` CHECK constraint should be updated to include `'grading_start'`, `'grading_end'`, `'material_view'`, `'announcement_view'`, `'discussion_post'`, `'quiz_attempt'`, and `'attendance_marked'` event types.
 
 #### Leaderboard Materialized View
 ```sql
@@ -968,6 +1903,25 @@ streakFreeze.ts  — streakFreezePurchaseSchema
 exportData.ts    — exportRequestSchema
 themePrefs.ts    — themePreferenceSchema
 onboarding.ts    — onboardingStepSchema, checklistItemSchema
+semester.ts      — createSemesterSchema, updateSemesterSchema
+department.ts    — createDepartmentSchema, updateDepartmentSchema
+courseSection.ts  — createSectionSchema, updateSectionSchema
+survey.ts        — createSurveySchema, surveyQuestionSchema, surveyResponseSchema
+cqiPlan.ts       — createCQIPlanSchema, updateCQIPlanSchema
+institutionSettings.ts — institutionSettingsSchema, gradeScaleSchema
+programAccreditation.ts — programAccreditationSchema
+announcement.ts  — createAnnouncementSchema
+courseModule.ts   — createModuleSchema, createMaterialSchema
+discussion.ts    — createThreadSchema, createReplySchema
+attendance.ts    — createSessionSchema, attendanceRecordSchema
+quiz.ts          — createQuizSchema, quizQuestionSchema, quizAttemptSchema
+gradeCategory.ts — gradeCategorySchema
+timetable.ts     — timetableSlotSchema
+academicCalendar.ts — academicCalendarEventSchema
+parentLink.ts    — parentStudentLinkSchema
+feeStructure.ts  — feeStructureSchema, feePaymentSchema
+transcript.ts    — transcriptRequestSchema
+courseFile.ts     — courseFileRequestSchema
 ```
 
 ### Bloom's Verb Constants (`/src/lib/bloomsVerbs.ts`)
@@ -985,7 +1939,7 @@ export const BLOOMS_VERBS = {
 
 ### TanStack Query Key Factory (`/src/lib/queryKeys.ts`)
 
-Hierarchical keys for all entities: users, programs, courses, enrollments, ilos, plos, clos, rubrics, assignments, submissions, grades, evidence, attainment, gamification, badges, xpTransactions, journal, leaderboard, notifications, auditLogs, habitLogs, bonusXPEvents, activityLog, cloProgress, aiModuleSuggestions, aiAtRiskPredictions, aiFeedbackDrafts, aiFeedback, aiPerformanceSummary, portfolio, streakFreezes, onboardingStatus, gradingStats, exportData.
+Hierarchical keys for all entities: users, programs, courses, enrollments, ilos, plos, clos, rubrics, assignments, submissions, grades, evidence, attainment, gamification, badges, xpTransactions, journal, leaderboard, notifications, auditLogs, habitLogs, bonusXPEvents, activityLog, cloProgress, aiModuleSuggestions, aiAtRiskPredictions, aiFeedbackDrafts, aiFeedback, aiPerformanceSummary, portfolio, streakFreezes, onboardingStatus, gradingStats, exportData, semesters, departments, courseSections, surveys, surveyResponses, cqiPlans, institutionSettings, programAccreditations, announcements, courseModules, courseMaterials, discussionThreads, discussionReplies, classSessions, attendanceRecords, quizzes, quizAttempts, gradeCategories, gradebook, timetableSlots, academicCalendarEvents, parentStudentLinks, feeStructures, feePayments, calendarEvents, transcripts, courseFiles.
 
 ## Correctness Properties
 
@@ -1088,6 +2042,51 @@ For any student viewing a qualifying page (assignment detail or CLO progress), t
 ### Property 50: Grading time calculation correctness
 For any graded submission where both `grading_start` and `grading_end` activity log events exist, the calculated grading time should equal the difference between the two timestamps. Submissions without a `grading_start` event should be excluded from average grading time calculations.
 
+### Property 51: Semester active uniqueness
+For any institution, at most one semester should have `is_active = true` at any time. Activating a new semester should deactivate the previously active semester.
+
+### Property 52: Course section CLO sharing
+For any course with multiple sections, all sections should share the same CLOs, rubrics, and assignments. Section-specific data (enrollments, submissions, grades) should be isolated per section.
+
+### Property 53: Survey response uniqueness
+For any survey, each respondent should have at most one response per question. Duplicate submissions for the same survey by the same respondent should be rejected.
+
+### Property 54: CQI action plan lifecycle
+For any CQI action plan transitioning to `evaluated` status, a `result_attainment` value must be present. Plans without `result_attainment` should not be allowed to reach `evaluated` status.
+
+### Property 55: Configurable threshold consistency
+For any institution_settings record, the attainment thresholds must satisfy: `developing < satisfactory < excellent` and all values must be between 0 and 100. All attainment level calculations across the platform should use these configured values instead of hardcoded defaults.
+
+### Property 56: Grade category weight sum
+For any course, the sum of all `grade_categories.weight_percent` should equal exactly 100. Adding a category that would cause the sum to exceed 100 should be rejected.
+
+### Property 57: Quiz auto-grading correctness
+For any quiz attempt with MCQ/true-false/fill-in-blank questions, the auto-graded score should equal the sum of points for questions where the student's answer matches the correct_answer. Short answer questions should remain unscored until manually graded.
+
+### Property 58: Quiz attempt limit enforcement
+For any quiz with `max_attempts = N`, a student should have at most N `quiz_attempts` records. Attempts beyond the limit should be rejected.
+
+### Property 59: Attendance percentage calculation
+For any student in a course section, attendance percentage should equal `(present_count + late_count) / total_sessions * 100`. Students below 75% should be flagged.
+
+### Property 60: Discussion XP award correctness
+For any discussion thread created by a student, exactly 10 XP should be awarded once. For any reply marked as correct answer, exactly 15 XP should be awarded to the reply author once. Unmarking an answer should not revoke XP.
+
+### Property 61: Calendar event aggregation completeness
+For any student's calendar view, the displayed events should include all assignments, quizzes, class sessions, and academic calendar events from all enrolled courses. No events should be missing or duplicated.
+
+### Property 62: Parent portal data isolation
+For any parent user, data access should be restricted to students linked via verified `parent_student_links` records. Unverified links should not grant data access. Parents should have read-only access with no mutation capabilities.
+
+### Property 63: Fee payment status consistency
+For any fee payment, if `payment_date > fee_structure.due_date` and `status = 'pending'`, the status should be automatically updated to `overdue`. Payments with `status = 'paid'` should have `amount_paid > 0`.
+
+### Property 64: Course file content completeness
+For any generated course file, the output should contain all required sections: syllabus, CLO-PLO mapping, assessment instruments, sample student work (best/average/worst), CLO attainment analysis, and teacher reflection. Missing sections should be flagged in the output.
+
+### Property 65: Semester scoping integrity
+For any report, analytics query, or attainment rollup, results should be scoped to the specified semester_id. Data from other semesters should not leak into the results. Deactivated semester data should be read-only.
+
 ## Seed Data Strategy
 
 The platform requires a seed data script to populate 50 realistic student profiles with 3–4 months of simulated activity. This data is critical for AI Co-Pilot development and testing.
@@ -1148,6 +2147,12 @@ pg_cron is only available on Supabase Pro plan or self-hosted instances. For fre
     { "path": "/api/cron/notification-digest", "schedule": "0 20 * * *" }
   ]
 }
+```
+
+Additional cron job for fee overdue check:
+```json
+{ "path": "/api/cron/fee-overdue-check", "schedule": "0 6 * * *" }
+```
 ```
 
 Each Vercel Cron route is a thin API route that authenticates with a `CRON_SECRET` and calls the corresponding Supabase Edge Function.
@@ -1282,11 +2287,26 @@ All error handling from the MVP design is retained. Additional error scenarios:
 | Onboarding tour dismissed early | Mark current step as last seen; resume from that step on next login |
 | Theme toggle failure | Apply theme locally; retry profile update silently |
 | Grading time tracking gap | Exclude from average if grading_start event missing |
+| Semester overlap | "A semester with overlapping dates already exists for this institution" |
+| Semester deactivation with active courses | Preserve data as read-only, block new submissions |
+| Section capacity exceeded | "Section is full. Maximum capacity of N students reached." |
+| Survey duplicate response | "You have already completed this survey" (UNIQUE constraint) |
+| CQI evaluated without result | "Result attainment is required when marking a CQI plan as evaluated" |
+| Grade category weight overflow | "Total category weights exceed 100%. Current total: N%" |
+| Quiz attempt limit exceeded | "Maximum attempts (N) reached for this quiz" |
+| Quiz time limit expired | Auto-submit with current answers when time runs out |
+| Attendance duplicate marking | UNIQUE constraint on (session_id, student_id) — upsert |
+| Assignment due date on holiday | "Due date falls on a holiday. Suggested next available date: [date]" |
+| Parent accessing unlinked student | RLS denies access — HTTP 403 |
+| Fee payment overdue auto-flag | pg_cron daily check updates pending → overdue when past due_date |
+| Course file generation timeout | "Course file generation timed out. Please try again." (30s limit) |
+| Transcript generation failure | "Transcript generation failed. Please contact support." |
+| Discussion thread in inactive course | "Discussions are closed for this course" |
 
 ## Testing Strategy
 
-### Expanded Property-Based Tests (50 properties total)
-All 18 MVP properties retained + 10 OBE/gamification properties + 7 habit/reward/path/activity/journal properties + 5 AI Co-Pilot properties + 10 platform enhancement properties (streak freeze, notification batching, offline queue, draft saving, data export, dark mode, read habit timer, grading time).
+### Expanded Property-Based Tests (65 properties total)
+All 18 MVP properties retained + 10 OBE/gamification properties + 7 habit/reward/path/activity/journal properties + 5 AI Co-Pilot properties + 10 platform enhancement properties (streak freeze, notification batching, offline queue, draft saving, data export, dark mode, read habit timer, grading time) + 15 institutional management & LMS properties (semester scoping, section CLO sharing, survey uniqueness, CQI lifecycle, threshold consistency, grade category weights, quiz auto-grading, quiz attempt limits, attendance calculation, discussion XP, calendar aggregation, parent data isolation, fee status, course file completeness, semester integrity).
 
 ### Integration Tests
 - End-to-end grading → evidence → rollup pipeline
@@ -1295,6 +2315,12 @@ All 18 MVP properties retained + 10 OBE/gamification properties + 7 habit/reward
 - Realtime subscription delivery tests
 - AI suggestion → feedback collection pipeline
 - Level-up → peer milestone notification pipeline
+- Quiz attempt → auto-grade → evidence → CLO attainment pipeline
+- Attendance marking → at-risk signal → AI prediction pipeline
+- Discussion post → XP award → badge check pipeline
+- Survey response → indirect evidence → accreditation report pipeline
+- Semester activation → course scoping → report filtering pipeline
+- Parent link verification → data access → notification pipeline
 
 ### Test Organization
 ```
@@ -1324,7 +2350,20 @@ src/__tests__/
 │   ├── data-export.property.test.ts   # Property 47
 │   ├── dark-mode.property.test.ts     # Property 48
 │   ├── read-habit.property.test.ts    # Property 49
-│   └── grading-stats.property.test.ts # Property 50
+│   ├── grading-stats.property.test.ts # Property 50
+│   ├── semesters.property.test.ts     # Properties 51, 65
+│   ├── course-sections.property.test.ts # Property 52
+│   ├── surveys.property.test.ts       # Property 53
+│   ├── cqi.property.test.ts           # Property 54
+│   ├── thresholds.property.test.ts    # Property 55
+│   ├── gradebook.property.test.ts     # Property 56
+│   ├── quiz.property.test.ts          # Properties 57, 58
+│   ├── attendance.property.test.ts    # Property 59
+│   ├── discussion.property.test.ts    # Property 60
+│   ├── calendar.property.test.ts      # Property 61
+│   ├── parent-portal.property.test.ts # Property 62
+│   ├── fees.property.test.ts          # Property 63
+│   └── course-file.property.test.ts   # Property 64
 ├── unit/
 │   ├── auth.test.ts
 │   ├── users.test.ts
@@ -1367,7 +2406,27 @@ src/__tests__/
 │   ├── data-export.test.ts
 │   ├── notification-batcher.test.ts
 │   ├── error-state.test.ts
-│   └── grading-stats.test.ts
+│   ├── grading-stats.test.ts
+│   ├── semesters.test.ts
+│   ├── departments.test.ts
+│   ├── course-sections.test.ts
+│   ├── surveys.test.ts
+│   ├── cqi-plans.test.ts
+│   ├── institution-settings.test.ts
+│   ├── program-accreditations.test.ts
+│   ├── announcements.test.ts
+│   ├── course-modules.test.ts
+│   ├── discussion-forum.test.ts
+│   ├── attendance.test.ts
+│   ├── quizzes.test.ts
+│   ├── gradebook.test.ts
+│   ├── calendar-view.test.ts
+│   ├── timetable.test.ts
+│   ├── academic-calendar.test.ts
+│   ├── transcripts.test.ts
+│   ├── course-file.test.ts
+│   ├── parent-portal.test.ts
+│   └── fee-management.test.ts
 └── integration/
     ├── grading-pipeline.test.ts
     ├── gamification-pipeline.test.ts
@@ -1377,5 +2436,11 @@ src/__tests__/
     ├── ai-suggestion-feedback.test.ts
     ├── realtime.test.ts
     ├── streak-freeze-consumption.test.ts
-    └── offline-queue-flush.test.ts
+    ├── offline-queue-flush.test.ts
+    ├── quiz-grading-evidence.test.ts
+    ├── attendance-at-risk.test.ts
+    ├── discussion-xp-pipeline.test.ts
+    ├── survey-evidence-report.test.ts
+    ├── semester-scoping.test.ts
+    └── parent-data-access.test.ts
 ```
