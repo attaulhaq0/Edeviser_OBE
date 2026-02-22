@@ -2,7 +2,7 @@
 
 ## Overview
 
-This design covers the complete production-ready Edeviser platform across all feature areas: authentication, RBAC, user management, program/course management, the full OBE engine (ILO/PLO/CLO, rubrics, assignments, submissions, grading, evidence, rollup), the gamification engine (XP, streaks, badges, levels, leaderboards, journals), four role-specific dashboards, notifications (including peer milestone notifications and Perfect Day nudges), realtime, reporting, audit logging, student CLO progress tracking, XP transaction history, and the AI Co-Pilot subsystem (personalized module suggestions, at-risk early warnings, and feedback draft generation).
+This design covers the complete production-ready Edeviser platform across all feature areas: authentication, RBAC, user management, program/course management, the full OBE engine (ILO/PLO/CLO, rubrics, assignments, submissions, grading, evidence, rollup), the gamification engine (XP, streaks, badges, levels, leaderboards, journals), four role-specific dashboards, notifications (including peer milestone notifications and Perfect Day nudges), realtime, reporting, audit logging, student CLO progress tracking, XP transaction history, the AI Co-Pilot subsystem (personalized module suggestions, at-risk early warnings, and feedback draft generation), and platform enhancements (student learning portfolio, streak freeze, role-specific onboarding, achievable read habit, dark mode, offline resilience & draft saving, GDPR data export, notification batching & rate limiting, error state components, and teacher grading stats).
 
 The platform is a React 18 SPA (TypeScript, Vite 6, Tailwind CSS v4, Shadcn/ui) backed by Supabase (PostgreSQL with RLS, GoTrue Auth, Edge Functions, Storage, Realtime). All data access is enforced at the database layer via Row Level Security policies.
 
@@ -38,6 +38,7 @@ React SPA (Vercel CDN)
 ├── QueryClientProvider (TanStack Query)
 ├── AppRouter (React Router v7)
 │   ├── /login — LoginPage
+│   ├── /portfolio/:student_id — PublicPortfolio (unauthenticated, opt-in only)
 │   ├── /admin/* — AdminLayout
 │   │   ├── /admin/dashboard — AdminDashboard
 │   │   ├── /admin/users — UserListPage, UserForm, BulkImport
@@ -67,7 +68,8 @@ React SPA (Vercel CDN)
 │       ├── /student/progress — ProgressView, LearningPath (Bloom's-gated nodes), CLOProgressView
 │       ├── /student/xp-history — XPTransactionHistory
 │       ├── /student/journal — JournalEditor (contextual prompts)
-│       └── /student/leaderboard — LeaderboardView
+│       ├── /student/leaderboard — LeaderboardView
+│       └── /student/portfolio — StudentPortfolio (CLO mastery, badges, XP timeline, public link)
 └── Supabase Backend
     ├── PostgreSQL + RLS (all tables)
     ├── GoTrue Auth
@@ -90,7 +92,9 @@ React SPA (Vercel CDN)
         ├── health (health check endpoint)
         ├── ai-module-suggestion (on-demand per student)
         ├── ai-at-risk-prediction (pg_cron → nightly)
-        └── ai-feedback-draft (on-demand per grading session)
+        ├── ai-feedback-draft (on-demand per grading session)
+        ├── export-student-data (on-demand per student GDPR export)
+        └── notification-digest (pg_cron → 8 PM daily for digest subscribers)
 ```
 
 ## Components and Interfaces
@@ -426,6 +430,303 @@ interface AIFeedbackThumbsProps {
 }
 ```
 
+### Platform Enhancement Components
+
+#### Student Portfolio Page (`/src/pages/student/portfolio/StudentPortfolio.tsx`)
+```typescript
+interface StudentPortfolioProps {
+  studentId: string;
+}
+
+interface PortfolioCLOMastery {
+  clo_id: string;
+  clo_title: string;
+  blooms_level: BloomsLevel;
+  attainment_level: AttainmentLevel;
+  attainment_percent: number;
+  course_name: string;
+  course_id: string;
+}
+
+interface PortfolioBadge {
+  badge_id: string;
+  badge_name: string;
+  badge_emoji: string;
+  earned_at: string;
+}
+
+interface PortfolioXPDataPoint {
+  date: string; // ISO date
+  cumulative_xp: number;
+}
+
+interface SemesterAttainment {
+  semester: string;
+  academic_year: string;
+  average_attainment: number;
+}
+
+// Route: /student/portfolio (authenticated)
+// Route: /portfolio/:student_id (public, opt-in only)
+```
+
+#### Streak Freeze Shop (`/src/components/shared/StreakFreezeShop.tsx`)
+```typescript
+interface StreakFreezeShopProps {
+  studentId: string;
+  currentXP: number;
+  freezesAvailable: number; // 0, 1, or 2
+  onPurchase: () => Promise<void>;
+}
+
+// Displays current freeze inventory (snowflake icons)
+// Purchase button disabled when: XP < 200 OR freezesAvailable >= 2
+// Calls award-xp Edge Function with source = 'streak_freeze_purchase', xp_amount = -200
+```
+
+#### Onboarding Components
+```typescript
+// Admin Setup Wizard (`/src/components/shared/OnboardingWizard.tsx`)
+interface OnboardingWizardProps {
+  role: 'admin';
+  steps: OnboardingStep[];
+  onComplete: () => Promise<void>;
+}
+
+interface OnboardingStep {
+  id: string;
+  title: string;
+  description: string;
+  isCompleted: boolean;
+  route: string; // navigate to this route on click
+}
+
+// Welcome Tour (`/src/components/shared/WelcomeTour.tsx`)
+interface WelcomeTourProps {
+  role: 'coordinator' | 'teacher' | 'student';
+  steps: TourStep[];
+  onComplete: () => Promise<void>;
+}
+
+interface TourStep {
+  target: string; // CSS selector for highlight
+  title: string;
+  content: string;
+  placement: 'top' | 'bottom' | 'left' | 'right';
+}
+
+// Quick Start Checklist (`/src/components/shared/QuickStartChecklist.tsx`)
+interface QuickStartChecklistProps {
+  role: UserRole;
+  items: ChecklistItem[];
+  onDismiss: () => void;
+}
+
+interface ChecklistItem {
+  id: string;
+  label: string;
+  isCompleted: boolean;
+  route: string;
+}
+```
+
+#### Read Habit Timer (`/src/hooks/useReadHabitTimer.ts`)
+```typescript
+interface UseReadHabitTimerOptions {
+  studentId: string;
+  pageType: 'assignment_detail' | 'clo_progress';
+  pageId: string; // assignment_id or course_id
+}
+
+interface UseReadHabitTimerReturn {
+  elapsedSeconds: number;
+  isCompleted: boolean; // true when ≥30 seconds
+}
+
+// Starts a timer on mount, logs activity with duration_seconds metadata
+// When 30 seconds reached, inserts habit_log record for 'read' habit
+// Uses useEffect cleanup to log partial duration on unmount
+```
+
+#### Theme Provider (`/src/providers/ThemeProvider.tsx`)
+```typescript
+type ThemePreference = 'light' | 'dark' | 'system';
+
+interface ThemeContextValue {
+  theme: 'light' | 'dark'; // resolved theme (never 'system')
+  preference: ThemePreference;
+  setPreference: (pref: ThemePreference) => Promise<void>;
+}
+
+// Reads preference from profiles.theme_preference
+// Applies 'dark' class to <html> element
+// Listens to prefers-color-scheme media query when preference = 'system'
+```
+
+#### Dark Mode CSS Custom Properties (`/src/index.css`)
+```css
+/* Light mode (default) */
+:root {
+  --background: #ffffff;
+  --card: #ffffff;
+  --card-border: #e2e8f0; /* slate-200 */
+  --text-primary: #0f172a; /* slate-900 */
+  --text-secondary: #64748b; /* slate-500 */
+  --surface-subtle: #f8fafc; /* slate-50 */
+}
+
+/* Dark mode */
+.dark {
+  --background: #020617; /* slate-950 */
+  --card: #0f172a; /* slate-900 */
+  --card-border: #334155; /* slate-700 */
+  --text-primary: #f1f5f9; /* slate-100 */
+  --text-secondary: #94a3b8; /* slate-400 */
+  --surface-subtle: #1e293b; /* slate-800 */
+}
+```
+
+#### Draft Manager (`/src/lib/draftManager.ts`)
+```typescript
+interface DraftManager {
+  saveDraft(key: string, content: unknown): void;
+  loadDraft<T>(key: string): T | null;
+  clearDraft(key: string): void;
+  startAutoSave(key: string, getContent: () => unknown, intervalMs?: number): () => void; // returns cleanup fn
+}
+
+// Keys: `journal-draft-${courseId}`, `submission-draft-${assignmentId}`
+// Auto-save interval: 30 seconds (default)
+// Clears draft on successful server save
+```
+
+#### Offline Queue (`/src/lib/offlineQueue.ts`)
+```typescript
+interface QueuedEvent {
+  id: string;
+  type: 'activity_log' | 'submission_upload';
+  payload: unknown;
+  timestamp: string; // original event time
+  retryCount: number;
+}
+
+interface OfflineQueue {
+  enqueue(event: Omit<QueuedEvent, 'id' | 'retryCount'>): void;
+  flush(): Promise<void>; // process all queued events
+  getQueueSize(): number;
+}
+
+// Listens to navigator.onLine + online/offline events
+// On 'online' event, automatically flushes queue
+// Max 3 retries per event; dead-letter after 3 failures
+```
+
+#### Student Data Export (Edge Function: `/supabase/functions/export-student-data/`)
+```typescript
+interface ExportRequest {
+  student_id: string;
+  format: 'json' | 'csv';
+}
+
+interface ExportResponse {
+  download_url: string; // signed Supabase Storage URL
+  file_size_bytes: number;
+  generated_at: string;
+}
+
+// Queries: profiles, grades, outcome_attainment, xp_transactions,
+//          journal_entries, badges (student_badges join), habit_logs
+// Packages as JSON or CSV, uploads to Storage, returns signed URL
+// Must complete within 30 seconds
+```
+
+#### Export Data Button (`/src/components/shared/ExportDataButton.tsx`)
+```typescript
+interface ExportDataButtonProps {
+  studentId: string;
+}
+
+// Format selector (JSON/CSV) + Download button
+// Shows loading spinner during generation
+// Uses Sonner toast on success/failure
+```
+
+#### Notification Batcher (`/src/lib/notificationBatcher.ts`)
+```typescript
+interface NotificationBatcher {
+  shouldBatch(studentId: string, type: string): boolean;
+  getBatchedCount(studentId: string, type: string, windowMs: number): number;
+  hasReachedDailyLimit(studentId: string): boolean; // max 5 peer milestone per day
+  createBatchedNotification(studentId: string, type: string, items: string[]): NotificationPayload;
+}
+
+// Batching window: 1 hour for peer milestones
+// Daily limit: 5 peer milestone notifications per student
+// Grouping threshold: >3 of same type → grouped notification
+```
+
+#### Notification Digest (Edge Function: `/supabase/functions/notification-digest/`)
+```typescript
+// pg_cron → 0 20 * * * (8 PM daily)
+// For students with digest preference enabled:
+// - Aggregate all undelivered notifications from the day
+// - Create single summary notification
+// - Mark individual notifications as delivered
+```
+
+#### ErrorState Component (`/src/components/shared/ErrorState.tsx`)
+```typescript
+interface ErrorStateProps {
+  title?: string;
+  message: string;
+  icon?: React.ReactNode; // defaults to AlertCircle from Lucide
+  onRetry?: () => void;
+  retryLabel?: string; // defaults to "Try Again"
+  children?: React.ReactNode; // fallback content
+}
+```
+
+#### Upload Progress Component (`/src/components/shared/UploadProgress.tsx`)
+```typescript
+interface UploadProgressProps {
+  progress: number; // 0-100
+  fileName: string;
+  fileSize: number; // bytes
+  status: 'uploading' | 'success' | 'error';
+  onRetry?: () => void;
+  onCancel?: () => void;
+}
+```
+
+#### Reconnect Banner (`/src/components/shared/ReconnectBanner.tsx`)
+```typescript
+interface ReconnectBannerProps {
+  isDisconnected: boolean;
+  retryCount: number;
+}
+
+// Displays: "Live updates paused — Reconnecting..." with animated dots
+// Auto-hides when connection is restored
+```
+
+#### Grading Stats Component (`/src/pages/teacher/dashboard/GradingStats.tsx`)
+```typescript
+interface GradingStatsData {
+  graded_this_week: number;
+  avg_grading_time_seconds: number;
+  pending_count: number;
+  grading_streak_days: number;
+  velocity_trend: Array<{ date: string; count: number }>; // last 30 days
+}
+
+interface GradingStatsProps {
+  teacherId: string;
+}
+
+// KPI card layout with Recharts line chart for velocity trend
+// Grading time tracked via activity_logger: grading_start / grading_end events
+```
+
 ### Dashboard Components
 
 Each role dashboard follows the same layout pattern:
@@ -462,6 +763,12 @@ Shimmer              // Loading skeleton
 EmptyState           // Empty state with icon and CTA
 DataTable            // TanStack Table wrapper with sorting/filtering
 ConfirmDialog        // Destructive action confirmation
+ErrorState           // Reusable error display with retry button
+UploadProgress       // File upload progress bar with percentage
+ReconnectBanner      // "Live updates paused — Reconnecting..." banner
+StreakFreezeShop     // Streak Freeze purchase UI with inventory display
+ExportDataButton     // GDPR data export trigger with format selector
+QuickStartChecklist  // Persistent onboarding checklist per role
 ```
 
 ## Data Models
@@ -482,7 +789,7 @@ All tables from the architecture document (Section 5) are implemented:
 - `ai_feedback` (student_id, suggestion_type, suggestion_text, feedback, created_at — Phase 2 schema)
 - `audit_logs`, `notifications`
 
-Note: The `profiles` table includes an `email_preferences` jsonb column (default: all notifications enabled) for per-user email opt-out settings (see Requirement 39).
+Note: The `profiles` table includes an `email_preferences` jsonb column (default: all notifications enabled) for per-user email opt-out settings (see Requirement 39). It also includes `onboarding_completed` boolean (default false, Requirement 60), `portfolio_public` boolean (default false, Requirement 58), and `theme_preference` text (default 'system', Requirement 62).
 
 Note: `outcome_attainment` requires a unique index for UPSERT rollup logic:
 ```sql
@@ -568,6 +875,26 @@ CREATE TABLE ai_feedback (
 ALTER TABLE ai_feedback ENABLE ROW LEVEL SECURITY;
 ```
 
+#### Column Additions for Platform Enhancements
+
+```sql
+-- Streak Freeze inventory (Requirement 59)
+ALTER TABLE student_gamification ADD COLUMN streak_freezes_available integer NOT NULL DEFAULT 0
+  CHECK (streak_freezes_available >= 0 AND streak_freezes_available <= 2);
+
+-- Onboarding completion tracking (Requirement 60)
+ALTER TABLE profiles ADD COLUMN onboarding_completed boolean NOT NULL DEFAULT false;
+
+-- Public portfolio opt-in (Requirement 58)
+ALTER TABLE profiles ADD COLUMN portfolio_public boolean NOT NULL DEFAULT false;
+
+-- Dark mode theme preference (Requirement 62)
+ALTER TABLE profiles ADD COLUMN theme_preference text NOT NULL DEFAULT 'system'
+  CHECK (theme_preference IN ('light', 'dark', 'system'));
+```
+
+Note: The `xp_transactions.source` CHECK constraint should be updated to include `'streak_freeze_purchase'` as a valid source value. The `student_activity_log.event_type` CHECK constraint should be updated to include `'grading_start'` and `'grading_end'` event types for teacher grading time tracking.
+
 #### Leaderboard Materialized View
 ```sql
 CREATE MATERIALIZED VIEW leaderboard_weekly AS
@@ -637,6 +964,10 @@ habitLog.ts      — habitLogSchema
 bonusXPEvent.ts  — bonusXPEventSchema, createBonusEventSchema
 emailPrefs.ts    — emailPreferencesSchema
 aiSuggestion.ts  — moduleSuggestionSchema, atRiskPredictionSchema, feedbackDraftSchema, aiFeedbackSchema
+streakFreeze.ts  — streakFreezePurchaseSchema
+exportData.ts    — exportRequestSchema
+themePrefs.ts    — themePreferenceSchema
+onboarding.ts    — onboardingStepSchema, checklistItemSchema
 ```
 
 ### Bloom's Verb Constants (`/src/lib/bloomsVerbs.ts`)
@@ -654,7 +985,7 @@ export const BLOOMS_VERBS = {
 
 ### TanStack Query Key Factory (`/src/lib/queryKeys.ts`)
 
-Hierarchical keys for all entities: users, programs, courses, enrollments, ilos, plos, clos, rubrics, assignments, submissions, grades, evidence, attainment, gamification, badges, xpTransactions, journal, leaderboard, notifications, auditLogs, habitLogs, bonusXPEvents, activityLog, cloProgress, aiModuleSuggestions, aiAtRiskPredictions, aiFeedbackDrafts, aiFeedback, aiPerformanceSummary.
+Hierarchical keys for all entities: users, programs, courses, enrollments, ilos, plos, clos, rubrics, assignments, submissions, grades, evidence, attainment, gamification, badges, xpTransactions, journal, leaderboard, notifications, auditLogs, habitLogs, bonusXPEvents, activityLog, cloProgress, aiModuleSuggestions, aiAtRiskPredictions, aiFeedbackDrafts, aiFeedback, aiPerformanceSummary, portfolio, streakFreezes, onboardingStatus, gradingStats, exportData.
 
 ## Correctness Properties
 
@@ -727,6 +1058,36 @@ For any at-risk prediction, the prediction date should be ≥7 days before the n
 ### Property 40: AI feedback flywheel data integrity
 For any AI suggestion stored in `ai_feedback`, the `suggestion_type` should be one of: `module_suggestion`, `at_risk_prediction`, `feedback_draft`. Every record should have a non-null `suggestion_text` and valid `student_id`.
 
+### Property 41: Streak Freeze consumption correctness
+For any student with `streak_freezes_available > 0` who misses a day, the streak should NOT reset and the freeze count should decrement by 1. For any student with `streak_freezes_available = 0` who misses a day, the streak should reset to 0.
+
+### Property 42: Streak Freeze purchase constraints
+For any Streak Freeze purchase, the student must have ≥200 XP balance and `streak_freezes_available < 2`. A purchase should decrement XP by 200 and increment `streak_freezes_available` by 1. Purchases when balance < 200 or freezes ≥ 2 should be rejected.
+
+### Property 43: Notification rate limiting
+For any student, the number of peer milestone notifications received in a 24-hour period should not exceed 5. Excess notifications within the window should be batched or dropped.
+
+### Property 44: Notification batching correctness
+For any set of peer milestone events occurring within a 1-hour window for the same recipient student, the system should produce at most 1 grouped notification summarizing all milestones, not individual notifications per event.
+
+### Property 45: Offline queue flush integrity
+For any set of activity log events queued in localStorage while offline, flushing the queue when online should result in all events being inserted into `student_activity_log` with their original timestamps preserved. The queue should be empty after a successful flush.
+
+### Property 46: Journal draft auto-save round-trip
+For any journal entry draft saved to localStorage, restoring the draft should produce content identical to what was saved. Drafts should be cleared from localStorage only after successful server-side save.
+
+### Property 47: Student data export completeness
+For any student data export, the exported data should contain records from all student-scoped tables (grades, attainment, xp_transactions, journal_entries, badges, habit_logs). The count of exported records per table should match the count of records in the database for that student.
+
+### Property 48: Dark mode token consistency
+For any CSS custom property defined in the light theme, a corresponding dark theme value must exist. Switching themes should not produce any unstyled or invisible elements (all text must have sufficient contrast against its background in both modes).
+
+### Property 49: Read habit timer accuracy
+For any student viewing a qualifying page (assignment detail or CLO progress), the "Read" habit should be marked complete if and only if the cumulative view duration on qualifying pages reaches ≥30 seconds within the same calendar day. Durations below 30 seconds should not trigger completion.
+
+### Property 50: Grading time calculation correctness
+For any graded submission where both `grading_start` and `grading_end` activity log events exist, the calculated grading time should equal the difference between the two timestamps. Submissions without a `grading_start` event should be excluded from average grading time calculations.
+
 ## Seed Data Strategy
 
 The platform requires a seed data script to populate 50 realistic student profiles with 3–4 months of simulated activity. This data is critical for AI Co-Pilot development and testing.
@@ -783,7 +1144,8 @@ pg_cron is only available on Supabase Pro plan or self-hosted instances. For fre
     { "path": "/api/cron/perfect-day-prompt", "schedule": "0 18 * * *" },
     { "path": "/api/cron/streak-reset", "schedule": "0 0 * * *" },
     { "path": "/api/cron/leaderboard-refresh", "schedule": "*/5 * * * *" },
-    { "path": "/api/cron/ai-at-risk-prediction", "schedule": "0 3 * * *" }
+    { "path": "/api/cron/ai-at-risk-prediction", "schedule": "0 3 * * *" },
+    { "path": "/api/cron/notification-digest", "schedule": "0 20 * * *" }
   ]
 }
 ```
@@ -912,11 +1274,19 @@ All error handling from the MVP design is retained. Additional error scenarios:
 | AI feedback draft generation failure | Show "AI draft unavailable" with manual feedback fallback |
 | Peer notification for anonymous student | Silently skip; do not create notification |
 | Perfect Day prompt cron failure | Log error; students miss nudge but no data loss |
+| Streak Freeze purchase — insufficient XP | "Insufficient XP balance. You need 200 XP to purchase a Streak Freeze." |
+| Streak Freeze purchase — max reached | "You already have 2 Streak Freezes. Use one before purchasing another." |
+| Data export timeout | "Export is taking longer than expected. Please try again." (30s limit) |
+| Draft auto-save failure | Silent — retry on next interval; never block editing |
+| Offline queue flush failure | Retry up to 3 times; dead-letter remaining events with console.error |
+| Onboarding tour dismissed early | Mark current step as last seen; resume from that step on next login |
+| Theme toggle failure | Apply theme locally; retry profile update silently |
+| Grading time tracking gap | Exclude from average if grading_start event missing |
 
 ## Testing Strategy
 
-### Expanded Property-Based Tests (40+ properties total)
-All 18 MVP properties retained + 10 OBE/gamification properties + 7 habit/reward/path/activity/journal properties + 5 new properties for peer notifications, Perfect Day prompt, AI Co-Pilot gap detection, at-risk timeliness, and feedback flywheel integrity.
+### Expanded Property-Based Tests (50 properties total)
+All 18 MVP properties retained + 10 OBE/gamification properties + 7 habit/reward/path/activity/journal properties + 5 AI Co-Pilot properties + 10 platform enhancement properties (streak freeze, notification batching, offline queue, draft saving, data export, dark mode, read habit timer, grading time).
 
 ### Integration Tests
 - End-to-end grading → evidence → rollup pipeline
@@ -947,7 +1317,14 @@ src/__tests__/
 │   ├── journal-prompts.property.test.ts # Property 35
 │   ├── peer-notifications.property.test.ts # Property 36
 │   ├── perfect-day-prompt.property.test.ts # Property 37
-│   └── ai-copilot.property.test.ts    # Properties 38-40
+│   ├── ai-copilot.property.test.ts    # Properties 38-40
+│   ├── streak-freeze.property.test.ts # Properties 41-42
+│   ├── notification-batching.property.test.ts # Properties 43-44
+│   ├── offline-queue.property.test.ts # Properties 45-46
+│   ├── data-export.property.test.ts   # Property 47
+│   ├── dark-mode.property.test.ts     # Property 48
+│   ├── read-habit.property.test.ts    # Property 49
+│   └── grading-stats.property.test.ts # Property 50
 ├── unit/
 │   ├── auth.test.ts
 │   ├── users.test.ts
@@ -979,7 +1356,18 @@ src/__tests__/
 │   ├── ai-module-suggestion.test.ts
 │   ├── ai-at-risk-prediction.test.ts
 │   ├── ai-feedback-draft.test.ts
-│   └── ai-feedback-flywheel.test.ts
+│   ├── ai-feedback-flywheel.test.ts
+│   ├── student-portfolio.test.ts
+│   ├── streak-freeze.test.ts
+│   ├── onboarding.test.ts
+│   ├── read-habit-timer.test.ts
+│   ├── dark-mode.test.ts
+│   ├── draft-manager.test.ts
+│   ├── offline-queue.test.ts
+│   ├── data-export.test.ts
+│   ├── notification-batcher.test.ts
+│   ├── error-state.test.ts
+│   └── grading-stats.test.ts
 └── integration/
     ├── grading-pipeline.test.ts
     ├── gamification-pipeline.test.ts
@@ -987,5 +1375,7 @@ src/__tests__/
     ├── prerequisite-gating.test.ts
     ├── peer-milestone-pipeline.test.ts
     ├── ai-suggestion-feedback.test.ts
-    └── realtime.test.ts
+    ├── realtime.test.ts
+    ├── streak-freeze-consumption.test.ts
+    └── offline-queue-flush.test.ts
 ```

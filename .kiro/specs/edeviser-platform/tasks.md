@@ -2,7 +2,7 @@
 
 ## Overview
 
-Complete unified implementation of the Edeviser platform covering authentication, RBAC, user/program/course management, the full OBE engine (outcomes, rubrics, assignments, submissions, grading, evidence, rollup), gamification (XP, streaks, badges, levels, leaderboards, journals, daily habits, variable rewards, learning path gating), Bloom's verb guide, email notifications (Resend), AI Co-Pilot (module suggestions, at-risk predictions, feedback drafts), peer milestone notifications, CLO progress dashboard, XP transaction history, seed data generation, CI/CD pipeline, health monitoring, load testing, four role-specific dashboards, notifications, realtime, reporting, and audit logging. Tasks are ordered foundation-first in a single unified plan.
+Complete unified implementation of the Edeviser platform covering authentication, RBAC, user/program/course management, the full OBE engine (outcomes, rubrics, assignments, submissions, grading, evidence, rollup), gamification (XP, streaks, badges, levels, leaderboards, journals, daily habits, variable rewards, learning path gating), Bloom's verb guide, email notifications (Resend), AI Co-Pilot (module suggestions, at-risk predictions, feedback drafts), peer milestone notifications, CLO progress dashboard, XP transaction history, seed data generation, CI/CD pipeline, health monitoring, load testing, four role-specific dashboards, notifications, realtime, reporting, audit logging, and platform enhancements (student portfolio, streak freeze, onboarding flows, read habit, dark mode, offline resilience, GDPR data export, notification batching, error states, teacher grading stats). Tasks are ordered foundation-first in a single unified plan.
 
 ## Tasks
 
@@ -25,6 +25,10 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Create `bonusXPEvent.ts` with `bonusXPEventSchema`, `createBonusEventSchema`
     - Create `emailPrefs.ts` with `emailPreferencesSchema`
     - Create `aiSuggestion.ts` with `moduleSuggestionSchema`, `atRiskPredictionSchema`, `feedbackDraftSchema`, `aiFeedbackSchema`
+    - Create `streakFreeze.ts` with `streakFreezePurchaseSchema`
+    - Create `exportData.ts` with `exportRequestSchema`
+    - Create `themePrefs.ts` with `themePreferenceSchema`
+    - Create `onboarding.ts` with `onboardingStepSchema`, `checklistItemSchema`
     - _Requirements: All_
 
   - [ ] 1.2 Create Audit Logger service (`/src/lib/auditLogger.ts`)
@@ -40,6 +44,8 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Bloom's levels, attainment levels, user roles, XP schedule, badge catalog, level thresholds
     - Habit types, learning path node types, bonus XP event types, activity log event types
     - AI Co-Pilot types: ModuleSuggestion, AtRiskPrediction, FeedbackDraft, AIFeedbackEntry
+    - Portfolio types, StreakFreeze types, Onboarding types, ThemePreference, GradingStats types
+    - DraftManager types, OfflineQueue types, NotificationBatcher types, ExportData types
     - _Requirements: All_
 
   - [ ] 1.5 Apply database extensions, indexes, and cron jobs via Supabase MCP
@@ -53,7 +59,9 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Create cron job: streak-midnight-reset (daily midnight — increment/reset streaks)
     - Create UNIQUE index on outcome_attainment for UPSERT rollup logic
     - Create composite index on `student_gamification(xp_total DESC, student_id)` for leaderboard direct queries
-    - _Requirements: 2, 34, 35, 36, 37, 41, 43, 47, 50, 51_
+    - Apply column additions: `student_gamification.streak_freezes_available`, `profiles.onboarding_completed`, `profiles.portfolio_public`, `profiles.theme_preference` (see design.md Column Additions)
+    - Update `student_activity_log.event_type` CHECK to include `grading_start`, `grading_end`
+    - _Requirements: 2, 34, 35, 36, 37, 41, 43, 47, 50, 51, 58, 59, 60, 62, 67_
 
   - [ ] 1.6 Create Activity Logger service (`/src/lib/activityLogger.ts`)
     - Implement fire-and-forget logging of student behavioral events
@@ -595,7 +603,7 @@ Complete unified implementation of the Edeviser platform covering authentication
     - _Requirements: 49.5_
 
 - [ ] 39. Implement shared UI components
-  - [ ] 39.1 Create all shared components: AttainmentBar, BloomsPill, OutcomeTypeBadge, KPICard, GradientCardHeader, HabitGrid, LockedNode, BloomsVerbGuide, MysteryBadge, BonusEventBanner, AIFeedbackThumbs, AISuggestionCard, AtRiskStudentRow, CLOProgressBar, XPTransactionRow, Shimmer, EmptyState, ConfirmDialog, DataTable wrapper
+  - [ ] 39.1 Create all shared components: AttainmentBar, BloomsPill, OutcomeTypeBadge, KPICard, GradientCardHeader, HabitGrid, LockedNode, BloomsVerbGuide, MysteryBadge, BonusEventBanner, AIFeedbackThumbs, AISuggestionCard, AtRiskStudentRow, CLOProgressBar, XPTransactionRow, Shimmer, EmptyState, ConfirmDialog, DataTable wrapper, ErrorState, UploadProgress, ReconnectBanner, StreakFreezeShop, ExportDataButton, QuickStartChecklist
   - [ ] 39.2 Apply brand design tokens from design style guide to all pages
   - [ ] 39.3 Add custom animations: xp-pulse, badge-pop, shimmer, float, streak-flame, node-unlock, mystery-reveal
   - [ ] 39.4 Implement reduced motion support
@@ -676,12 +684,12 @@ Complete unified implementation of the Edeviser platform covering authentication
 
 - [ ] 44. Implement Vercel Cron fallback for free-tier (pg_cron alternative)
   - [ ] 44.1 Create Vercel API routes for cron triggers (`/api/cron/`)
-    - Create thin API routes for: streak-risk, weekly-summary, compute-at-risk, perfect-day-prompt, streak-reset, leaderboard-refresh, ai-at-risk-prediction
+    - Create thin API routes for: streak-risk, weekly-summary, compute-at-risk, perfect-day-prompt, streak-reset, leaderboard-refresh, ai-at-risk-prediction, notification-digest
     - Each route authenticates with `CRON_SECRET` env var and calls the corresponding Supabase Edge Function
     - _Requirements: 50, 53_
 
   - [ ] 44.2 Create `vercel.json` cron configuration
-    - Configure schedules matching pg_cron jobs: streak-risk (8 PM daily), weekly-summary (Monday 8 AM), compute-at-risk (2 AM nightly), perfect-day-prompt (6 PM daily), streak-reset (midnight daily), leaderboard-refresh (every 5 min), ai-at-risk-prediction (nightly)
+    - Configure schedules matching pg_cron jobs: streak-risk (8 PM daily), weekly-summary (Monday 8 AM), compute-at-risk (2 AM nightly), perfect-day-prompt (6 PM daily), streak-reset (midnight daily), leaderboard-refresh (every 5 min), ai-at-risk-prediction (nightly), notification-digest (8 PM daily)
     - _Requirements: 50, 53_
 
   - [ ] 44.3 Add environment detection to skip pg_cron setup on free tier
@@ -727,10 +735,278 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Document Redis upgrade path in code comments for >10K student scale
     - _Requirements: 50, 25_
 
-- [ ] 49. Final verification — All tests pass, production ready
+- [ ] 49. Implement Student Learning Portfolio Page
+  - [ ] 49.1 Create portfolio TanStack Query hooks (`/src/hooks/usePortfolio.ts`)
+    - Query CLO mastery across all courses from `outcome_attainment`
+    - Query badge collection with earn dates
+    - Query journal entries with CLO links
+    - Query cumulative XP timeline from `xp_transactions`
+    - Query semester-over-semester attainment averages
+    - _Requirements: 58_
+
+  - [ ] 49.2 Create Student Portfolio page (`/src/pages/student/portfolio/StudentPortfolio.tsx`)
+    - CLO mastery section grouped by course with Bloom's pills and attainment color coding
+    - Badge collection grid with earn dates
+    - Journal entry history with CLO links
+    - XP timeline chart (Recharts line chart — cumulative XP over time)
+    - Attainment growth section (semester comparison)
+    - _Requirements: 58.1, 58.2, 58.3, 58.4_
+
+  - [ ] 49.3 Implement public portfolio opt-in and shareable link
+    - Toggle on Portfolio page to enable/disable public profile
+    - Store `portfolio_public` boolean on `profiles` table
+    - Create public route `/portfolio/:student_id` (unauthenticated, read-only)
+    - Public view shows only non-sensitive data: badges, CLO attainment levels, XP total, level
+    - _Requirements: 58.5, 58.6_
+
+  - [ ] 49.4 Add portfolio route to AppRouter and Student sidebar navigation
+    - _Requirements: 58_
+
+- [ ] 50. Implement Streak Freeze
+  - [ ] 50.1 Apply database migration: add `streak_freezes_available` column to `student_gamification`
+    - `ALTER TABLE student_gamification ADD COLUMN streak_freezes_available integer NOT NULL DEFAULT 0 CHECK (streak_freezes_available >= 0 AND streak_freezes_available <= 2)`
+    - Update `xp_transactions` source CHECK to include `'streak_freeze_purchase'`
+    - Regenerate TypeScript types
+    - _Requirements: 59.2_
+
+  - [ ] 50.2 Create Streak Freeze Shop component (`/src/components/shared/StreakFreezeShop.tsx`)
+    - Display current freeze inventory (snowflake icons, max 2)
+    - Purchase button: disabled when XP < 200 or freezes >= 2
+    - Calls `award-xp` Edge Function with `source = 'streak_freeze_purchase'`, `xp_amount = -200`
+    - Show confirmation dialog before purchase
+    - _Requirements: 59.1, 59.3, 59.6_
+
+  - [ ] 50.3 Update `process-streak` Edge Function to consume Streak Freeze on missed day
+    - If `streak_freezes_available > 0` and student missed a day: decrement freeze, keep streak intact
+    - If `streak_freezes_available = 0` and student missed a day: reset streak to 0
+    - _Requirements: 59.4_
+
+  - [ ] 50.4 Create streak freeze TanStack Query hooks (`/src/hooks/useStreakFreeze.ts`)
+    - Query current freeze inventory
+    - Mutation for purchasing freeze
+    - _Requirements: 59.1, 59.5_
+
+  - [ ] 50.5 Add Streak Freeze Shop to Student Dashboard (near streak display)
+    - _Requirements: 59_
+
+- [ ] 51. Implement Onboarding Flows
+  - [ ] 51.1 Apply database migration: add `onboarding_completed` column to `profiles`
+    - `ALTER TABLE profiles ADD COLUMN onboarding_completed boolean NOT NULL DEFAULT false`
+    - Regenerate TypeScript types
+    - _Requirements: 60.6_
+
+  - [ ] 51.2 Create OnboardingWizard component for Admin (`/src/components/shared/OnboardingWizard.tsx`)
+    - Progress stepper: Create ILOs → Create Programs → Invite Coordinators → Invite Teachers
+    - Each step navigates to the relevant page
+    - Mark onboarding complete when all steps done
+    - _Requirements: 60.1_
+
+  - [ ] 51.3 Create WelcomeTour component for Coordinator, Teacher, Student (`/src/components/shared/WelcomeTour.tsx`)
+    - Coordinator: program management, PLO mapping, curriculum matrix highlights
+    - Teacher: course setup, CLO creation, rubric builder, grading queue highlights
+    - Student: XP, streaks, habits, learning path, badges walkthrough + 50 XP Welcome Bonus on completion
+    - _Requirements: 60.2, 60.3, 60.4_
+
+  - [ ] 51.4 Create QuickStartChecklist component (`/src/components/shared/QuickStartChecklist.tsx`)
+    - Role-specific checklist items displayed on dashboard
+    - Persists until all items completed
+    - Hides when `onboarding_completed = true`
+    - _Requirements: 60.5, 60.7_
+
+  - [ ] 51.5 Create onboarding TanStack Query hooks (`/src/hooks/useOnboarding.ts`)
+    - Query onboarding status from `profiles.onboarding_completed`
+    - Mutation to mark onboarding complete
+    - _Requirements: 60.6, 60.7_
+
+  - [ ] 51.6 Wire onboarding check into each role's dashboard layout
+    - On first login (onboarding_completed = false), show wizard/tour
+    - Show QuickStartChecklist until all items completed
+    - _Requirements: 60_
+
+- [ ] 52. Implement Read Habit (Achievable from Day One)
+  - [ ] 52.1 Create `useReadHabitTimer` hook (`/src/hooks/useReadHabitTimer.ts`)
+    - Start timer on mount for assignment detail and CLO progress pages
+    - Track cumulative view duration per calendar day
+    - When 30 seconds reached, insert `habit_log` record for 'read' habit
+    - Log activity with `duration_seconds` metadata
+    - _Requirements: 61.1, 61.2, 61.4_
+
+  - [ ] 52.2 Wire `useReadHabitTimer` into AssignmentDetail and CLOProgressView pages
+    - _Requirements: 61.2_
+
+  - [ ] 52.3 Update Activity Logger to include `duration_seconds` metadata for `assignment_view` and `page_view` events
+    - _Requirements: 61.3_
+
+- [ ] 53. Implement Dark Mode Foundation
+  - [ ] 53.1 Apply database migration: add `theme_preference` column to `profiles`
+    - `ALTER TABLE profiles ADD COLUMN theme_preference text NOT NULL DEFAULT 'system' CHECK (theme_preference IN ('light', 'dark', 'system'))`
+    - Regenerate TypeScript types
+    - _Requirements: 62.3_
+
+  - [ ] 53.2 Create ThemeProvider (`/src/providers/ThemeProvider.tsx`)
+    - Read preference from `profiles.theme_preference`
+    - Apply 'dark' class to `<html>` element
+    - Listen to `prefers-color-scheme` media query when preference = 'system'
+    - Provide `setPreference` mutation that updates profile and applies immediately
+    - _Requirements: 62.4, 62.6_
+
+  - [ ] 53.3 Define CSS custom properties for light/dark mode in `/src/index.css`
+    - Light: background white, card white, border slate-200, text slate-900
+    - Dark: background slate-950, card slate-900, border slate-700, text slate-100
+    - _Requirements: 62.1, 62.5_
+
+  - [ ] 53.4 Add theme toggle to Profile/Settings page
+    - Three-way toggle: Light / Dark / System
+    - _Requirements: 62.2_
+
+  - [ ] 53.5 Wrap App in ThemeProvider
+    - _Requirements: 62_
+
+- [ ] 54. Implement Offline Resilience & Draft Saving
+  - [ ] 54.1 Create DraftManager utility (`/src/lib/draftManager.ts`)
+    - `saveDraft(key, content)`, `loadDraft(key)`, `clearDraft(key)`, `startAutoSave(key, getContent, intervalMs)`
+    - Auto-save interval: 30 seconds
+    - Clear draft on successful server save
+    - _Requirements: 63.1, 63.2_
+
+  - [ ] 54.2 Create OfflineQueue utility (`/src/lib/offlineQueue.ts`)
+    - Queue events to localStorage when offline (`navigator.onLine` + `online`/`offline` events)
+    - Auto-flush on `online` event
+    - Max 3 retries per event
+    - _Requirements: 63.5_
+
+  - [ ] 54.3 Wire DraftManager into Journal Editor
+    - Auto-save journal draft every 30 seconds
+    - Restore draft on page load
+    - Clear draft on successful save
+    - _Requirements: 63.1_
+
+  - [ ] 54.4 Wire DraftManager into Submission Form
+    - Persist file selection and form state to localStorage
+    - Clear on successful upload
+    - _Requirements: 63.2_
+
+  - [ ] 54.5 Implement upload retry on network failure
+    - Queue failed uploads, retry when connectivity restored (max 3 retries)
+    - _Requirements: 63.3_
+
+  - [ ] 54.6 Wire OfflineQueue into Activity Logger
+    - Queue activity log events when offline, flush when online
+    - _Requirements: 63.5_
+
+  - [ ] 54.7 Add TanStack Query optimistic updates for XP display and streak counter
+    - _Requirements: 63.4_
+
+- [ ] 55. Implement Student Data Export (GDPR)
+  - [ ] 55.1 Create `export-student-data` Edge Function (`/supabase/functions/export-student-data/`)
+    - Query all student-scoped tables: profiles, grades, outcome_attainment, xp_transactions, journal_entries, badges, habit_logs
+    - Package as JSON or CSV based on request format
+    - Upload to Supabase Storage, return signed download URL
+    - Must complete within 30 seconds
+    - _Requirements: 64.2, 64.3, 64.4, 64.5_
+
+  - [ ] 55.2 Create ExportDataButton component (`/src/components/shared/ExportDataButton.tsx`)
+    - Format selector (JSON/CSV) + Download button
+    - Loading state during generation
+    - Sonner toast on success/failure
+    - _Requirements: 64.1, 64.5_
+
+  - [ ] 55.3 Add "Download My Data" button to Student Profile page
+    - _Requirements: 64.1_
+
+- [ ] 56. Implement Notification Batching & Rate Limiting
+  - [ ] 56.1 Create NotificationBatcher utility (`/src/lib/notificationBatcher.ts`)
+    - Batch peer milestone notifications within 1-hour window
+    - Enforce max 5 peer milestone notifications per student per 24 hours
+    - Group notifications by type when >3 of same type exist
+    - _Requirements: 65.1, 65.2, 65.3_
+
+  - [ ] 56.2 Update peer milestone notification logic (in `award-xp` / `check-badges` Edge Functions)
+    - Apply batching and rate limiting before creating notifications
+    - _Requirements: 65.1, 65.2_
+
+  - [ ] 56.3 Update Notification Center to display grouped notifications
+    - "5 new grades released" instead of 5 separate notifications when >3 of same type
+    - _Requirements: 65.3_
+
+  - [ ] 56.4 Implement Notification Digest preference
+    - Add digest toggle to notification preferences (stored in `profiles.email_preferences`)
+    - Create `notification-digest` Edge Function (pg_cron → 8 PM daily)
+    - Aggregate undelivered notifications into single daily summary for digest subscribers
+    - _Requirements: 65.4, 65.5_
+
+- [ ] 57. Implement ErrorState Component & Upload Progress
+  - [ ] 57.1 Create ErrorState shared component (`/src/components/shared/ErrorState.tsx`)
+    - Error icon, descriptive message, retry button, optional fallback content
+    - _Requirements: 66.1_
+
+  - [ ] 57.2 Create UploadProgress shared component (`/src/components/shared/UploadProgress.tsx`)
+    - Progress bar with percentage, file name, file size
+    - Status states: uploading, success, error
+    - Retry and cancel buttons
+    - _Requirements: 66.2_
+
+  - [ ] 57.3 Create ReconnectBanner shared component (`/src/components/shared/ReconnectBanner.tsx`)
+    - "Live updates paused — Reconnecting..." with animated dots
+    - Auto-hide on reconnection
+    - _Requirements: 66.4_
+
+  - [ ] 57.4 Wire ErrorState into all error boundaries and data fetching error states
+    - _Requirements: 66.1_
+
+  - [ ] 57.5 Wire UploadProgress into Submission Form file upload
+    - Show progress bar during upload, ErrorState with retry on failure
+    - _Requirements: 66.2, 66.3_
+
+  - [ ] 57.6 Wire ReconnectBanner into useRealtime hook
+    - Show banner when Realtime disconnects, hide on reconnect
+    - _Requirements: 66.4_
+
+- [ ] 58. Implement Teacher Grading Stats
+  - [ ] 58.1 Update Activity Logger to track grading time
+    - Log `grading_start` event when teacher opens a submission in Grading Interface
+    - Log `grading_end` event when teacher submits the grade
+    - _Requirements: 67.2_
+
+  - [ ] 58.2 Create grading stats TanStack Query hooks (`/src/hooks/useGradingStats.ts`)
+    - Query: total graded this week, average grading time, pending count, velocity trend (last 30 days)
+    - Calculate grading streak (consecutive days with ≥1 graded submission)
+    - _Requirements: 67.1, 67.3_
+
+  - [ ] 58.3 Create GradingStats component (`/src/pages/teacher/dashboard/GradingStats.tsx`)
+    - KPI card layout: graded this week, avg time, pending, grading streak
+    - Recharts line chart for velocity trend (submissions/day over 30 days)
+    - _Requirements: 67.1, 67.4_
+
+  - [ ] 58.4 Add GradingStats card to Teacher Dashboard
+    - _Requirements: 67_
+
+- [ ] 59. Write tests for platform enhancements
+  - [ ]* 59.1 Write property-based tests (Properties 41–50)
+    - **Properties 41-42**: Streak Freeze (consumption correctness, purchase constraints)
+    - **Properties 43-44**: Notification batching (rate limiting, batching correctness)
+    - **Properties 45-46**: Offline queue (flush integrity, draft round-trip)
+    - **Property 47**: Student data export completeness
+    - **Property 48**: Dark mode token consistency
+    - **Property 49**: Read habit timer accuracy
+    - **Property 50**: Grading time calculation correctness
+    - _Requirements: 58-67_
+
+  - [ ]* 59.2 Write unit tests for new modules
+    - Student portfolio, streak freeze, onboarding, read habit timer, dark mode
+    - Draft manager, offline queue, data export, notification batcher
+    - Error state, upload progress, grading stats
+    - _Requirements: 58-67_
+
+  - [ ]* 59.3 Write integration tests for new flows
+    - Streak freeze consumption pipeline (miss day → freeze consumed → streak preserved)
+    - Offline queue flush pipeline (queue events → go online → events flushed)
+    - _Requirements: 59, 63_
+
+- [ ] 60. Final verification — All tests pass, production ready
   - Ensure all tests pass, ask the user if questions arise.
-  - Verify all 57 requirements (including NFRs 50-57) have corresponding implementations
-  - Verify all 40+ correctness properties are testable
+  - Verify all 67 requirements (including NFRs 50-57 and enhancements 58-67) have corresponding implementations
+  - Verify all 50 correctness properties are testable
   - Confirm all tasks are complete
 
 ## Notes
@@ -756,4 +1032,12 @@ Complete unified implementation of the Edeviser platform covering authentication
 - Property tests validate universal correctness properties
 - Unit tests validate specific examples and edge cases
 - The `award-xp` Edge Function is referenced as `process-xp-event` in the architecture doc — they are the same function
-- Streak Freeze item (purchasable with XP to protect streak for 1 day) is deferred to post-v1.0
+- Streak Freeze (Requirement 59) adds `streak_freezes_available` column to `student_gamification` and `streak_freeze_purchase` source to `xp_transactions`
+- Platform enhancements (Requirements 58-67) add 4 new columns to `profiles`: `onboarding_completed`, `portfolio_public`, `theme_preference`, and extend `email_preferences` with digest option
+- Dark mode (Requirement 62) uses CSS custom properties with `.dark` class on `<html>` — ThemeProvider manages the toggle
+- Offline resilience (Requirement 63) uses localStorage for draft saving and event queuing — never blocks user-facing flows
+- Notification batching (Requirement 65) applies to peer milestone notifications only — grade/assignment notifications are always delivered immediately
+- Student data export (Requirement 64) runs as an Edge Function with a 30-second timeout — exports are uploaded to Supabase Storage
+- Teacher grading stats (Requirement 67) tracks grading time via `grading_start`/`grading_end` activity log events
+- Read habit (Requirement 61) uses a client-side 30-second timer on qualifying pages — replaces the Phase 2 content engagement tracker
+- Onboarding (Requirement 60) awards 50 XP Welcome Bonus to students on tour completion via the existing `award-xp` Edge Function

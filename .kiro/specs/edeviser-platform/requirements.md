@@ -43,6 +43,11 @@ Edeviser is a Human-Centric Outcome-Based Education (OBE) + Gamification platfor
 - **Perfect_Day_Nudge**: A scheduled notification sent at 6 PM (institution timezone) to students who have completed 3 of 4 daily habits, prompting them to complete the final habit before midnight
 - **AI_Co-Pilot**: The Agentic AI subsystem (Phase 2) that provides personalized module suggestions, at-risk early warnings, and feedback draft generation based on student behavioral and learning data collected in Phase 1
 - **NFR**: Non-Functional Requirement — a quality attribute or constraint on the system (performance, security, accessibility, reliability)
+- **Streak_Freeze**: A purchasable item (200 XP) that protects a student's streak for one missed day, stored as `streak_freezes_available` in `student_gamification`
+- **DraftManager**: The client-side utility that auto-saves journal and submission drafts to localStorage every 30 seconds
+- **OfflineQueue**: The client-side utility that queues activity log events and failed uploads in localStorage when offline, flushing when connectivity is restored
+- **NotificationBatcher**: The utility that groups peer milestone notifications within a 1-hour window and enforces a daily limit of 5 per student
+- **ThemeProvider**: The React context provider that manages light/dark/system theme preference and applies CSS custom properties accordingly
 - **FERPA**: Family Educational Rights and Privacy Act — US federal law protecting student education records
 - **GDPR**: General Data Protection Regulation — EU regulation on data protection and privacy
 - **WCAG**: Web Content Accessibility Guidelines — international standard for web accessibility
@@ -524,7 +529,7 @@ Edeviser is a Human-Centric Outcome-Based Education (OBE) + Gamification platfor
 
 ##### Acceptance Criteria
 
-1. THE Habit_Tracker SHALL track 4 daily habits: Login (automatic on auth), Submit (on assignment submission), Journal (on journal entry save), Read (Phase 2 — content engagement tracking).
+1. THE Habit_Tracker SHALL track 4 daily habits: Login (automatic on auth), Submit (on assignment submission), Journal (on journal entry save), Read (view assignment detail or CLO progress page for ≥30 seconds — see Requirement 61 for full definition).
 2. WHEN a Student completes all 4 habits in a single calendar day, THE XP_Engine SHALL award a Perfect Day Bonus of 50 XP.
 3. THE Habit_Tracker SHALL display a 7-day grid with color-coded cells (green = completed, gray = missed) on the Student Dashboard.
 4. THE Habit_Tracker SHALL store habit data in a `habit_logs` table with `student_id`, `date`, `habit_type`, and `completed_at` columns.
@@ -849,3 +854,148 @@ Edeviser is a Human-Centric Outcome-Based Education (OBE) + Gamification platfor
 1. THE Platform SHALL include k6 load test scripts for critical paths: login flow, assignment submission, grading pipeline, and leaderboard queries.
 2. Load tests SHALL simulate the target of 5,000 concurrent users (Requirement 50.3).
 3. Load test results SHALL validate the p95 response time target of ≤300ms (Requirement 50.4).
+
+
+---
+
+### SECTION O: Platform Enhancements & Resilience
+
+#### Requirement 58: Student Learning Portfolio Page
+
+**User Story:** As a Student, I want a unified portfolio page that showcases all my learning achievements, so that I can see my cumulative progress and optionally share it publicly (Pillar 7 — Hooked Model, Investment phase).
+
+##### Acceptance Criteria
+
+1. THE Platform SHALL provide a Student Learning Portfolio page at `/student/portfolio` displaying: all CLOs mastered across all courses with attainment levels, complete badge collection with earn dates, journal entry history with CLO links, XP timeline chart (cumulative XP over time), and attainment growth over semesters.
+2. THE Portfolio page SHALL display CLO mastery grouped by course, with each CLO showing its Bloom's level pill and attainment level color coding.
+3. THE Portfolio page SHALL include a cumulative XP timeline chart (Recharts line chart) showing XP growth over the student's enrollment period.
+4. THE Portfolio page SHALL include an attainment growth section comparing semester-over-semester attainment averages.
+5. THE Platform SHALL allow students to opt in to a shareable public profile link from the Portfolio page, stored as `portfolio_public` boolean column on the `profiles` table (default false).
+6. WHEN a student enables the public profile link, THE Platform SHALL generate a unique shareable URL (`/portfolio/:student_id`) accessible without authentication, displaying only non-sensitive portfolio data (badges, CLO attainment levels, XP total, level).
+
+---
+
+#### Requirement 59: Streak Freeze (Purchasable with XP)
+
+**User Story:** As a Student, I want to purchase a Streak Freeze using my XP, so that I can protect my streak from a single missed day (Octalysis Drive 8 — Loss & Avoidance recovery mechanism).
+
+##### Acceptance Criteria
+
+1. THE Platform SHALL allow students to purchase a Streak Freeze for 200 XP from their XP balance.
+2. THE Platform SHALL store Streak Freeze inventory in the `student_gamification` table via a `streak_freezes_available` integer column (default 0).
+3. THE Platform SHALL enforce a maximum of 2 Streak Freezes held at once per student.
+4. WHEN a student misses a day and has `streak_freezes_available > 0`, THE Streak_Tracker SHALL consume one Streak Freeze instead of resetting the streak, decrementing `streak_freezes_available` by 1.
+5. THE Streak Freeze purchase SHALL be logged as an `xp_transactions` record with a negative `xp_amount` of -200 and `source = 'streak_freeze_purchase'`.
+6. WHEN a student attempts to purchase a Streak Freeze with insufficient XP balance, THE Platform SHALL reject the purchase and display a descriptive message.
+
+---
+
+#### Requirement 60: Onboarding Flows (All Roles)
+
+**User Story:** As a new user of any role, I want a guided onboarding experience tailored to my role, so that I can quickly understand the platform and start using it effectively.
+
+##### Acceptance Criteria
+
+1. WHEN an Admin logs in for the first time, THE Platform SHALL present a guided setup wizard with a progress stepper: Create ILOs → Create Programs → Invite Coordinators → Invite Teachers.
+2. WHEN a Coordinator logs in for the first time, THE Platform SHALL present a welcome tour showing program management, PLO mapping, and the curriculum matrix.
+3. WHEN a Teacher logs in for the first time, THE Platform SHALL present a welcome tour showing course setup, CLO creation, rubric builder, and grading queue.
+4. WHEN a Student logs in for the first time, THE Platform SHALL present an interactive welcome tour explaining XP, streaks, habits, learning path, and badges, and SHALL award 50 XP "Welcome Bonus" on tour completion.
+5. THE Platform SHALL display a "Quick Start" checklist on each role's dashboard that persists until all checklist items are completed.
+6. THE Platform SHALL store onboarding completion status in the `profiles` table via an `onboarding_completed` boolean column (default false).
+7. WHEN a user completes all onboarding steps, THE Platform SHALL set `onboarding_completed` to true and hide the Quick Start checklist.
+
+---
+
+#### Requirement 61: Read Habit Definition (Achievable from Day One)
+
+**User Story:** As a Student, I want the "Read" habit to be achievable from day one without Phase 2 content engagement, so that I can complete a Perfect Day (4/4 habits) immediately.
+
+##### Acceptance Criteria
+
+1. THE Habit_Tracker SHALL define the "Read" habit as: viewing an assignment detail page OR the CLO progress page for 30 seconds or more.
+2. THE Platform SHALL track view duration via a client-side timer that starts when the student opens an assignment detail page or CLO progress page, and logs a `read` habit completion when the timer reaches 30 seconds.
+3. THE Activity_Logger SHALL log `assignment_view` and `page_view` events with a `duration_seconds` metadata field.
+4. WHEN a student accumulates 30 seconds of viewing time on a qualifying page within a single calendar day, THE Habit_Tracker SHALL mark the "Read" habit as completed for that day.
+
+---
+
+#### Requirement 62: Dark Mode Foundation
+
+**User Story:** As a user, I want to switch between light and dark mode, so that I can use the platform comfortably in different lighting conditions.
+
+##### Acceptance Criteria
+
+1. THE Platform SHALL structure all color tokens as CSS custom properties that support light and dark mode switching.
+2. THE Platform SHALL provide a theme toggle in the user profile settings page.
+3. THE Platform SHALL store theme preference in the `profiles` table via a `theme_preference` text column (default 'system', allowed values: 'light', 'dark', 'system').
+4. WHEN theme preference is set to 'system', THE Platform SHALL respect the `prefers-color-scheme` media query to determine the active theme.
+5. THE Platform SHALL define dark mode surface colors: background `slate-950`, card `slate-900`, border `slate-700`, text `slate-100`.
+6. THE Platform SHALL apply the selected theme immediately without page refresh.
+
+---
+
+#### Requirement 63: Offline Resilience & Draft Saving
+
+**User Story:** As a Student, I want my work to be preserved when I lose connectivity, so that I do not lose progress on journal entries or submissions.
+
+##### Acceptance Criteria
+
+1. THE Platform SHALL auto-save journal entry drafts to localStorage every 30 seconds while the student is editing.
+2. THE Submission form SHALL persist file selection and form state to localStorage until a successful upload completes.
+3. WHEN a network error occurs during submission upload, THE Platform SHALL queue the upload and retry automatically when connectivity is restored, with a maximum of 3 retries.
+4. THE Platform SHALL use TanStack Query optimistic updates for XP display and streak counter to provide immediate visual feedback.
+5. THE Activity_Logger SHALL queue events in localStorage when the browser is offline (detected via `navigator.onLine` and `online`/`offline` events) and flush the queue when connectivity is restored.
+
+---
+
+#### Requirement 64: Student Data Export (GDPR Compliance)
+
+**User Story:** As a Student, I want to export all my personal data as a JSON or CSV download, so that I can exercise my data portability rights under GDPR.
+
+##### Acceptance Criteria
+
+1. THE Platform SHALL provide a "Download My Data" button on the Student Profile page.
+2. THE export SHALL include: profile information, grade history, CLO attainment records, XP transaction log, journal entries, badge collection, and habit logs.
+3. THE export SHALL be generated via an Edge Function (`export-student-data`) that queries all student-scoped tables and packages the result as JSON or CSV.
+4. THE export generation SHALL complete within 30 seconds.
+5. THE export SHALL be available in both JSON and CSV formats, selectable by the student before download.
+
+---
+
+#### Requirement 65: Notification Batching & Rate Limiting
+
+**User Story:** As a Student, I want notifications to be grouped and rate-limited, so that I am not overwhelmed by excessive alerts.
+
+##### Acceptance Criteria
+
+1. THE Notification_Service SHALL batch peer milestone notifications: if multiple peers achieve milestones within a 1-hour window, THE Notification_Service SHALL group them into a single notification (e.g., "3 classmates leveled up today!").
+2. THE Notification_Service SHALL enforce a maximum of 5 peer milestone notifications per student per 24-hour period.
+3. THE Notification Center SHALL group notifications by type when more than 3 of the same type exist (e.g., "5 new grades released" instead of 5 separate notifications).
+4. THE Platform SHALL provide a "Notification Digest" option in student notification preferences: receive a single daily summary at 8 PM instead of individual notifications throughout the day.
+5. THE Platform SHALL store the digest preference in the `profiles.email_preferences` jsonb column.
+
+---
+
+#### Requirement 66: ErrorState Component & Upload Progress
+
+**User Story:** As a user, I want clear error states and upload progress indicators, so that I understand what went wrong and can recover gracefully.
+
+##### Acceptance Criteria
+
+1. THE Platform SHALL provide a reusable ErrorState component for all error scenarios displaying: an error icon, a descriptive message, a retry button, and optional fallback content.
+2. THE Platform SHALL display file upload progress with a progress bar showing percentage complete.
+3. WHEN a file upload fails, THE Platform SHALL show the ErrorState component with a "Retry Upload" button that restarts the upload.
+4. WHEN a Supabase Realtime connection disconnects, THE Platform SHALL display a "Live updates paused — Reconnecting..." banner until the connection is restored.
+
+---
+
+#### Requirement 67: Teacher Grading Stats
+
+**User Story:** As a Teacher, I want to see my grading statistics, so that I can monitor my grading velocity and maintain a consistent grading cadence.
+
+##### Acceptance Criteria
+
+1. THE Teacher Dashboard SHALL include a "Grading Stats" card displaying: total submissions graded this week, average grading time per submission, pending submissions count, and grading velocity trend (submissions per day over the last 30 days).
+2. THE Platform SHALL calculate grading time as the duration from when a teacher opens a submission to when the teacher submits the grade, tracked via the Activity_Logger with `grading_start` and `grading_end` event types.
+3. THE Grading Stats card SHALL include a "Grading Streak" counter showing consecutive days with at least 1 graded submission.
+4. THE grading velocity trend SHALL be displayed as a Recharts line chart showing daily grading counts over the last 30 days.
