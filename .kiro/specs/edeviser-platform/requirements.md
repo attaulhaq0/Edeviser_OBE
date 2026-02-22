@@ -69,6 +69,10 @@ Edeviser is a Human-Centric Outcome-Based Education (OBE) + Gamification platfor
 - **Transcript_Generator**: The subsystem (Edge Function) that produces per-student per-semester grade report PDFs with GPA, grades, and CLO attainment summaries
 - **Parent_Portal**: A read-only dashboard for parents/guardians showing linked student grades, attendance, CLO progress, and habit tracker data
 - **Fee_Manager**: The subsystem for managing fee structures per program per semester and tracking student payment status
+- **LanguageProvider**: The React context provider that manages language preference (English/Urdu/Arabic) and applies RTL layout direction accordingly
+- **SearchCommand**: The global search component accessible via Cmd+K / Ctrl+K that searches across courses, assignments, students, announcements, and materials using full-text search
+- **ImpersonationProvider**: The React context provider that manages admin impersonation sessions with read-only enforcement and 30-minute auto-expiry
+- **RateLimiter**: The shared Edge Function middleware that enforces per-user request rate limits (100 read/min, 30 write/min)
 
 ## Requirements
 

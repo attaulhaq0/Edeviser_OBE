@@ -2,7 +2,7 @@
 
 ## Overview
 
-This design covers the complete production-ready Edeviser platform across all feature areas: authentication, RBAC, user management, program/course management, the full OBE engine (ILO/PLO/CLO, rubrics, assignments, submissions, grading, evidence, rollup), the gamification engine (XP, streaks, badges, levels, leaderboards, journals), four role-specific dashboards (plus parent portal), notifications (including peer milestone notifications and Perfect Day nudges), realtime, reporting, audit logging, student CLO progress tracking, XP transaction history, the AI Co-Pilot subsystem (personalized module suggestions, at-risk early warnings, and feedback draft generation), platform enhancements (student learning portfolio, streak freeze, role-specific onboarding, achievable read habit, dark mode, offline resilience & draft saving, GDPR data export, notification batching & rate limiting, error state components, and teacher grading stats), and institutional management features (semester management, course sections, surveys, CQI loop, configurable KPI thresholds, multi-accreditation body support, course file generation, announcements, course content/materials, discussion forums, attendance tracking, quiz/exam module, gradebook with weighted categories, calendar view, timetable, department management, academic calendar, student transcripts, parent/guardian portal, and fee management).
+This design covers the complete production-ready Edeviser platform across all feature areas: authentication, RBAC, user management, program/course management, the full OBE engine (ILO/PLO/CLO, rubrics, assignments, submissions, grading, evidence, rollup), the gamification engine (XP, streaks, badges, levels, leaderboards, journals), four role-specific dashboards (plus parent portal), notifications (including peer milestone notifications and Perfect Day nudges), realtime, reporting, audit logging, student CLO progress tracking, XP transaction history, the AI Co-Pilot subsystem (personalized module suggestions, at-risk early warnings, and feedback draft generation), platform enhancements (student learning portfolio, streak freeze, role-specific onboarding, achievable read habit, dark mode, offline resilience & draft saving, GDPR data export, notification batching & rate limiting, error state components, and teacher grading stats), institutional management features (semester management, course sections, surveys, CQI loop, configurable KPI thresholds, multi-accreditation body support, course file generation, announcements, course content/materials, discussion forums, attendance tracking, quiz/exam module, gradebook with weighted categories, calendar view, timetable, department management, academic calendar, student transcripts, parent/guardian portal, and fee management), and production readiness improvements (multi-language RTL support for Urdu/Arabic, Progressive Web App with offline shell caching, disaster recovery procedures, Edge Function rate limiting, security headers including CSP/HSTS, cookie consent/privacy banner, Terms of Service & Privacy Policy pages, admin impersonation/support mode, bulk data operations, database connection pooling configuration, image/asset optimization, global search with Cmd+K, plagiarism detection placeholder, granular in-app notification preferences with quiet hours, and session management UI).
 
 The platform is a React 18 SPA (TypeScript, Vite 6, Tailwind CSS v4, Shadcn/ui) backed by Supabase (PostgreSQL with RLS, GoTrue Auth, Edge Functions, Storage, Realtime). All data access is enforced at the database layer via Row Level Security policies.
 
@@ -1288,6 +1288,14 @@ CQIStatusBadge       // CQI action plan status pill (planned/in_progress/complet
 SectionComparisonChart // Side-by-side section attainment comparison
 FeeStatusBadge       // Fee payment status pill (pending/paid/overdue/waived)
 ParentStudentCard    // Parent view of linked student summary
+LanguageSelector     // Language dropdown (English/Urdu/Arabic) with RTL toggle
+PWAInstallPrompt     // Mobile install prompt for PWA
+CookieConsentBanner  // GDPR cookie consent with Accept/Reject/Manage options
+ToSAcceptanceDialog  // Terms of Service acceptance gate on first login
+ImpersonationBanner  // "Viewing as [user]" banner during admin impersonation
+SearchCommand        // Global search (Cmd+K) with category-grouped results
+PlagiarismPlaceholder // Plagiarism check placeholder in grading interface
+ImageCompressor      // Client-side avatar compression utility display
 ```
 
 ## Data Models
@@ -2444,3 +2452,479 @@ src/__tests__/
     ├── semester-scoping.test.ts
     └── parent-data-access.test.ts
 ```
+
+
+---
+
+## Production Readiness & Infrastructure (Requirements 88–102)
+
+### New Components
+
+#### RTL / Language Provider (`/src/providers/LanguageProvider.tsx`)
+```typescript
+type LanguageCode = 'en' | 'ur' | 'ar';
+
+interface LanguageContextValue {
+  language: LanguageCode;
+  direction: 'ltr' | 'rtl';
+  setLanguage: (lang: LanguageCode) => Promise<void>;
+}
+
+const RTL_LANGUAGES: LanguageCode[] = ['ur', 'ar'];
+
+// Sets dir="rtl" on <html> when language is Urdu or Arabic
+// Loads corresponding translation file via i18next
+// Stores preference in profiles.language_preference
+```
+
+#### Language Selector (`/src/components/shared/LanguageSelector.tsx`)
+```typescript
+interface LanguageSelectorProps {
+  currentLanguage: LanguageCode;
+  onLanguageChange: (lang: LanguageCode) => Promise<void>;
+}
+
+// Dropdown with: English, اردو (Urdu), العربية (Arabic)
+// Placed in Profile Settings page
+```
+
+#### RTL CSS Utilities (`/src/styles/rtl.css`)
+```css
+/* RTL-aware utilities — applied when html[dir="rtl"] */
+[dir="rtl"] .rtl\:space-x-reverse > :not([hidden]) ~ :not([hidden]) {
+  --tw-space-x-reverse: 1;
+}
+[dir="rtl"] .rtl\:flex-row-reverse { flex-direction: row-reverse; }
+[dir="rtl"] .rtl\:text-right { text-align: right; }
+[dir="rtl"] .sidebar { right: 0; left: auto; }
+```
+
+#### PWA Install Prompt (`/src/components/shared/PWAInstallPrompt.tsx`)
+```typescript
+interface PWAInstallPromptProps {
+  onDismiss: () => void;
+}
+
+// Listens for `beforeinstallprompt` event
+// Shows install banner on mobile devices
+// Stores dismissal in localStorage to avoid repeated prompts
+```
+
+#### Service Worker (`/public/sw.js`)
+```typescript
+// Cache-first strategy for app shell (HTML, CSS, JS bundles)
+// Network-first for API calls (never caches Supabase responses)
+// Offline fallback: shows cached app shell with "You are offline" message
+// Cache name versioned: `edeviser-shell-v1`
+```
+
+#### Cookie Consent Banner (`/src/components/shared/CookieConsentBanner.tsx`)
+```typescript
+type ConsentStatus = 'accepted_all' | 'rejected_non_essential' | 'custom';
+
+interface CookieConsent {
+  status: ConsentStatus;
+  essential: true; // always true
+  analytics: boolean;
+  performance: boolean;
+  timestamp: string;
+}
+
+interface CookieConsentBannerProps {
+  onConsent: (consent: CookieConsent) => void;
+}
+
+// Stored in localStorage key: `edeviser_cookie_consent`
+// Blocks analytics scripts until consent given
+// "Cookie Settings" link in footer for updating preferences
+```
+
+#### Terms of Service / Privacy Policy Pages
+```typescript
+// Route: /terms — TermsOfServicePage (`/src/pages/public/TermsPage.tsx`)
+// Route: /privacy — PrivacyPolicyPage (`/src/pages/public/PrivacyPage.tsx`)
+// Both render markdown content, no auth required
+
+// ToS Acceptance Dialog (`/src/components/shared/ToSAcceptanceDialog.tsx`)
+interface ToSAcceptanceDialogProps {
+  onAccept: () => Promise<void>;
+}
+// Shown on first login when profiles.tos_accepted_at is null
+// Blocks navigation until accepted
+// Stores timestamp in profiles.tos_accepted_at
+```
+
+#### Admin Impersonation (`/src/components/shared/ImpersonationBanner.tsx`)
+```typescript
+interface ImpersonationContextValue {
+  isImpersonating: boolean;
+  impersonatedUser: Profile | null;
+  startImpersonation: (userId: string) => Promise<void>;
+  stopImpersonation: () => Promise<void>;
+  timeRemaining: number; // seconds until auto-expire (30 min)
+}
+
+// ImpersonationProvider wraps App
+// Banner: "You are viewing as [name] — [role]. Click to exit."
+// Read-only mode: all mutations blocked during impersonation
+// Auto-expires after 30 minutes
+// Logged to audit_logs: impersonation_start, impersonation_end
+```
+
+#### Bulk Data Operations
+```typescript
+// Grade Export (`/src/pages/teacher/gradebook/GradeExport.tsx`)
+interface GradeExportProps {
+  courseId: string;
+  sectionId?: string;
+}
+// Exports CSV: student_name, assessment scores, category subtotals, final_grade, letter_grade
+
+// Enrollment Import/Export (`/src/pages/coordinator/courses/EnrollmentBulk.tsx`)
+interface EnrollmentImportRow {
+  student_email: string;
+  course_code: string;
+  section_code: string;
+}
+
+// Semester Transition Tool (`/src/pages/coordinator/courses/SemesterTransition.tsx`)
+interface SemesterTransitionProps {
+  sourceSemesterId: string;
+  targetSemesterId: string;
+  programId: string;
+}
+// Bulk copies: courses, CLOs, rubrics, grade_categories to new semester
+```
+
+#### Edge Function Rate Limiter (`/supabase/functions/_shared/rateLimiter.ts`)
+```typescript
+interface RateLimitConfig {
+  readLimit: number;   // 100 per minute
+  writeLimit: number;  // 30 per minute
+  windowMs: number;    // 60000 (1 minute)
+}
+
+interface RateLimitResult {
+  allowed: boolean;
+  remaining: number;
+  retryAfter?: number; // seconds
+}
+
+// Uses in-memory Map keyed by user_id + function_name
+// Returns 429 with Retry-After header when exceeded
+// Logs violations to audit_logs
+```
+
+#### Security Headers Configuration (`vercel.json` headers section)
+```json
+{
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://*.supabase.co; connect-src 'self' https://*.supabase.co wss://*.supabase.co" },
+        { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+      ]
+    }
+  ]
+}
+```
+
+#### Global Search (`/src/components/shared/SearchCommand.tsx`)
+```typescript
+type SearchCategory = 'courses' | 'assignments' | 'students' | 'announcements' | 'materials';
+
+interface SearchResult {
+  id: string;
+  title: string;
+  category: SearchCategory;
+  subtitle?: string;
+  route: string;
+}
+
+interface SearchCommandProps {
+  role: UserRole;
+  institutionId: string;
+}
+
+// Cmd+K / Ctrl+K shortcut
+// Debounced input (300ms)
+// Results grouped by category with keyboard navigation
+// Uses Supabase full-text search (tsvector + GIN indexes)
+// Scoped by role: students see only enrolled content
+```
+
+#### Image Compressor (`/src/lib/imageCompressor.ts`)
+```typescript
+interface CompressOptions {
+  maxWidth: number;   // 256
+  maxHeight: number;  // 256
+  maxSizeKB: number;  // 500
+  quality: number;    // 0.8
+}
+
+async function compressImage(file: File, options: CompressOptions): Promise<File>;
+
+// Uses canvas API for client-side compression
+// Returns compressed File object ready for upload
+```
+
+#### Notification Preferences Page (`/src/pages/shared/NotificationPreferences.tsx`)
+```typescript
+interface NotificationPreferences {
+  muted_courses: string[];  // course_ids
+  quiet_hours: {
+    enabled: boolean;
+    start: string; // "22:00"
+    end: string;   // "07:00"
+  };
+}
+
+// Per-course mute toggles
+// Quiet hours time picker
+// Stored in profiles.notification_preferences jsonb
+```
+
+#### Session Management Page (`/src/pages/shared/SessionManagement.tsx`)
+```typescript
+interface ActiveSession {
+  id: string;
+  device_type: 'desktop' | 'mobile' | 'tablet';
+  browser: string;
+  ip_address: string; // masked: "192.168.x.x"
+  last_active: string;
+  is_current: boolean;
+}
+
+interface SessionManagementProps {
+  userId: string;
+}
+
+// "Sign out other sessions" — terminates all except current
+// "Sign out all sessions" — terminates all, redirects to login
+// Uses Supabase Auth admin API
+// Logs to audit_logs
+```
+
+#### Plagiarism Placeholder UI (`/src/components/shared/PlagiarismPlaceholder.tsx`)
+```typescript
+interface PlagiarismPlaceholderProps {
+  plagiarismScore: number | null;
+}
+
+// Shows "Plagiarism check: Not configured" when score is null
+// Shows score badge when configured (future integration)
+// Displayed in Grading Interface
+```
+
+### New Database Schema Changes
+
+#### Column Additions for Production Readiness
+
+```sql
+-- Language preference (Requirement 88)
+ALTER TABLE profiles ADD COLUMN language_preference text NOT NULL DEFAULT 'en'
+  CHECK (language_preference IN ('en', 'ur', 'ar'));
+
+-- ToS acceptance (Requirement 94)
+ALTER TABLE profiles ADD COLUMN tos_accepted_at timestamptz;
+
+-- Plagiarism score placeholder (Requirement 100)
+ALTER TABLE submissions ADD COLUMN plagiarism_score numeric
+  CHECK (plagiarism_score IS NULL OR (plagiarism_score >= 0 AND plagiarism_score <= 100));
+
+-- Notification preferences (Requirement 101)
+ALTER TABLE profiles ADD COLUMN notification_preferences jsonb NOT NULL DEFAULT '{"muted_courses": [], "quiet_hours": {"enabled": false, "start": "22:00", "end": "07:00"}}';
+```
+
+#### Full-Text Search Indexes (Requirement 99)
+
+```sql
+-- GIN indexes for global search
+ALTER TABLE courses ADD COLUMN search_vector tsvector
+  GENERATED ALWAYS AS (to_tsvector('english', coalesce(name, '') || ' ' || coalesce(code, ''))) STORED;
+CREATE INDEX idx_courses_search ON courses USING GIN(search_vector);
+
+ALTER TABLE assignments ADD COLUMN search_vector tsvector
+  GENERATED ALWAYS AS (to_tsvector('english', coalesce(title, '') || ' ' || coalesce(description, ''))) STORED;
+CREATE INDEX idx_assignments_search ON assignments USING GIN(search_vector);
+
+ALTER TABLE announcements ADD COLUMN search_vector tsvector
+  GENERATED ALWAYS AS (to_tsvector('english', coalesce(title, '') || ' ' || coalesce(content, ''))) STORED;
+CREATE INDEX idx_announcements_search ON announcements USING GIN(search_vector);
+
+ALTER TABLE course_materials ADD COLUMN search_vector tsvector
+  GENERATED ALWAYS AS (to_tsvector('english', coalesce(title, '') || ' ' || coalesce(description, ''))) STORED;
+CREATE INDEX idx_materials_search ON course_materials USING GIN(search_vector);
+
+ALTER TABLE profiles ADD COLUMN search_vector tsvector
+  GENERATED ALWAYS AS (to_tsvector('english', coalesce(full_name, '') || ' ' || coalesce(email, ''))) STORED;
+CREATE INDEX idx_profiles_search ON profiles USING GIN(search_vector);
+```
+
+### New Zod Schemas
+
+```
+languagePrefs.ts     — languagePreferenceSchema
+cookieConsent.ts     — cookieConsentSchema
+impersonation.ts     — impersonationSchema
+bulkGradeExport.ts   — gradeExportSchema
+enrollmentImport.ts  — enrollmentImportRowSchema
+semesterTransition.ts — semesterTransitionSchema
+globalSearch.ts      — searchQuerySchema, searchResultSchema
+notificationPrefs.ts — notificationPreferencesSchema
+sessionManagement.ts — sessionActionSchema
+```
+
+### New TanStack Query Keys
+
+Add to `/src/lib/queryKeys.ts`: `globalSearch`, `activeSessions`, `impersonation`, `bulkExport`, `enrollmentBulk`, `semesterTransition`, `notificationPreferences`.
+
+### Updated Architecture — New Routes
+
+```
+├── /terms — TermsOfServicePage (public, no auth)
+├── /privacy — PrivacyPolicyPage (public, no auth)
+├── /admin/*
+│   └── /admin/users/:id — UserDetail (includes "View as User" impersonation button)
+├── /teacher/*
+│   └── /teacher/gradebook/export — GradeExport
+├── /coordinator/*
+│   └── /coordinator/courses/enrollment-bulk — EnrollmentBulk
+│   └── /coordinator/courses/semester-transition — SemesterTransition
+└── Profile Settings (all roles)
+    ├── Language Selector
+    ├── Notification Preferences (per-course mute, quiet hours)
+    └── Active Sessions
+```
+
+### Updated Architecture — New Edge Functions
+
+```
+└── Edge Functions
+    ├── ... (existing)
+    ├── rate-limiter (_shared module, not standalone)
+    ├── bulk-grade-export (on-demand per course/section)
+    ├── bulk-enrollment-import (on-demand per CSV upload)
+    └── semester-transition (on-demand per program)
+```
+
+### Updated Error Handling
+
+| Scenario | Handling |
+|----------|----------|
+| RTL language selected | Apply `dir="rtl"` immediately; fallback to English if translation file fails to load |
+| PWA install prompt dismissed | Store dismissal in localStorage; do not re-prompt for 30 days |
+| Service worker cache miss | Fall back to network; show "You are offline" if both fail |
+| Rate limit exceeded | Return HTTP 429 with `Retry-After` header; show "Too many requests" toast |
+| CSP violation | Log to Sentry via `report-uri` directive |
+| Cookie consent not given | Block analytics scripts; core functionality unaffected |
+| ToS not accepted | Block all protected routes; redirect to ToS dialog |
+| Impersonation expired | Auto-exit to admin dashboard; show "Impersonation session expired" toast |
+| Impersonation mutation attempt | Block with "Read-only mode during impersonation" error |
+| Bulk import invalid rows | Show error list with row numbers; process valid rows only |
+| Semester transition duplicate | "Course already exists in target semester" — skip duplicates |
+| Global search no results | Show "No results found" empty state |
+| Image compression failure | Upload original file with warning "Image could not be optimized" |
+| Plagiarism API not configured | Show "Plagiarism check: Not configured" placeholder |
+| Quiet hours notification held | Queue notification; deliver after quiet hours end |
+| Session termination failure | "Could not sign out session. Please try again." |
+
+### Correctness Properties (66–80)
+
+### Property 66: RTL layout direction correctness
+For any user with `language_preference` set to 'ur' or 'ar', the `<html>` element should have `dir="rtl"`. For any user with `language_preference` set to 'en', the `<html>` element should have `dir="ltr"`. Switching language should update the direction without page refresh.
+
+### Property 67: PWA manifest validity
+The web app manifest (`public/manifest.json`) should contain all required fields: `name`, `short_name`, `icons` (at least 192×192 and 512×512), `start_url`, `display: standalone`, `theme_color`, and `background_color`. The manifest should be valid JSON parseable without errors.
+
+### Property 68: Rate limiting enforcement
+For any user making more than 100 read requests or 30 write requests within a 60-second window to any Edge Function, the system should return HTTP 429 for all subsequent requests until the window resets. The `Retry-After` header value should be a positive integer ≤60.
+
+### Property 69: Security headers presence
+For any HTTP response served by the platform, the response headers should include: `Content-Security-Policy`, `Strict-Transport-Security`, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, and `Referrer-Policy: strict-origin-when-cross-origin`. No security header should be missing from any response.
+
+### Property 70: Cookie consent blocking
+While a user has not given analytics consent (no `edeviser_cookie_consent` in localStorage or analytics=false), no analytics tracking scripts should be loaded or executed. After consent is given with analytics=true, analytics scripts should load.
+
+### Property 71: ToS acceptance gate
+For any user with `tos_accepted_at = null`, navigation to any protected route should be blocked and redirected to the ToS acceptance dialog. After acceptance, `tos_accepted_at` should be a non-null timestamp and all protected routes should be accessible.
+
+### Property 72: Impersonation read-only enforcement
+While an admin is impersonating another user, all mutation operations (create, update, delete) should be blocked and return an error. Read operations should return data scoped to the impersonated user. Impersonation should auto-expire after 30 minutes.
+
+### Property 73: Bulk grade export completeness
+For any grade export of a course/section, the exported CSV should contain one row per enrolled student with all assessment scores, category subtotals, final grade, and letter grade. The count of rows should equal the count of enrolled students.
+
+### Property 74: Global search result scoping
+For any search query by a student, results should only include content from courses the student is enrolled in. For any search query by a teacher, results should only include content from courses the teacher is assigned to. Admin searches should be scoped to the admin's institution.
+
+### Property 75: Image compression constraints
+For any avatar image processed by the compressor, the output file size should be ≤500KB and dimensions should be ≤256×256 pixels. The output should be a valid image file (JPEG or PNG).
+
+### Property 76: Notification quiet hours enforcement
+For any non-critical notification generated during a user's quiet hours, the notification should not be delivered until quiet hours end. Critical notifications (grade released, at-risk alert) should be delivered immediately regardless of quiet hours.
+
+### Property 77: Session management correctness
+For any "sign out other sessions" action, all sessions except the current one should be terminated. The current session should remain active. For any "sign out all sessions" action, all sessions including the current one should be terminated.
+
+### Property 78: Plagiarism score column integrity
+For any submission record, `plagiarism_score` should be either null (not configured) or a numeric value between 0 and 100 inclusive. No other values should be accepted.
+
+### Property 79: Semester transition data integrity
+For any semester transition operation, the target semester should contain copies of all courses, CLOs, rubrics, and grade categories from the source semester. The source semester data should remain unchanged. No student-specific data (enrollments, submissions, grades) should be copied.
+
+### Property 80: Per-course notification muting
+For any user with a course in their `muted_courses` list, no in-app notifications from that course should be delivered. Notifications from non-muted courses should be delivered normally. Muting/unmuting should take effect immediately.
+
+### Updated Test Organization
+
+Add to `src/__tests__/properties/`:
+```
+├── rtl-language.property.test.ts      # Property 66
+├── pwa-manifest.property.test.ts      # Property 67
+├── rate-limiting.property.test.ts     # Property 68
+├── security-headers.property.test.ts  # Property 69
+├── cookie-consent.property.test.ts    # Property 70
+├── tos-acceptance.property.test.ts    # Property 71
+├── impersonation.property.test.ts     # Property 72
+├── bulk-export.property.test.ts       # Property 73
+├── global-search.property.test.ts     # Property 74
+├── image-compression.property.test.ts # Property 75
+├── quiet-hours.property.test.ts       # Property 76
+├── session-management.property.test.ts# Property 77
+├── plagiarism.property.test.ts        # Property 78
+├── semester-transition.property.test.ts # Property 79
+└── notification-muting.property.test.ts # Property 80
+```
+
+Add to `src/__tests__/unit/`:
+```
+├── rtl-language.test.ts
+├── pwa.test.ts
+├── rate-limiter.test.ts
+├── security-headers.test.ts
+├── cookie-consent.test.ts
+├── tos-acceptance.test.ts
+├── impersonation.test.ts
+├── bulk-operations.test.ts
+├── global-search.test.ts
+├── image-compressor.test.ts
+├── notification-preferences.test.ts
+├── session-management.test.ts
+└── semester-transition.test.ts
+```
+
+Add to `src/__tests__/integration/`:
+```
+├── impersonation-audit.test.ts
+├── bulk-export-pipeline.test.ts
+└── semester-transition-pipeline.test.ts
+```
+
+### Updated Testing Strategy
+
+All 18 MVP properties retained + 10 OBE/gamification properties + 7 habit/reward/path/activity/journal properties + 5 AI Co-Pilot properties + 10 platform enhancement properties + 15 institutional management & LMS properties + 15 production readiness properties (RTL layout, PWA manifest, rate limiting, security headers, cookie consent, ToS gate, impersonation read-only, bulk export completeness, global search scoping, image compression, quiet hours, session management, plagiarism column, semester transition, notification muting) = 80 total correctness properties.

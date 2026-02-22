@@ -2,7 +2,7 @@
 
 ## Overview
 
-Complete unified implementation of the Edeviser platform covering authentication, RBAC, user/program/course management, the full OBE engine (outcomes, rubrics, assignments, submissions, grading, evidence, rollup), gamification (XP, streaks, badges, levels, leaderboards, journals, daily habits, variable rewards, learning path gating), Bloom's verb guide, email notifications (Resend), AI Co-Pilot (module suggestions, at-risk predictions, feedback drafts), peer milestone notifications, CLO progress dashboard, XP transaction history, seed data generation, CI/CD pipeline, health monitoring, load testing, four role-specific dashboards (plus parent portal), notifications, realtime, reporting, audit logging, platform enhancements (student portfolio, streak freeze, onboarding flows, read habit, dark mode, offline resilience, GDPR data export, notification batching, error states, teacher grading stats), and institutional management features (semester management, course sections, surveys, CQI loop, configurable KPI thresholds, multi-accreditation body support, course file generation, announcements, course content/materials, discussion forums, attendance tracking, quiz/exam module, gradebook with weighted categories, calendar view, timetable, department management, academic calendar, student transcripts, parent/guardian portal, fee management). Tasks are ordered foundation-first in a single unified plan.
+Complete unified implementation of the Edeviser platform covering authentication, RBAC, user/program/course management, the full OBE engine (outcomes, rubrics, assignments, submissions, grading, evidence, rollup), gamification (XP, streaks, badges, levels, leaderboards, journals, daily habits, variable rewards, learning path gating), Bloom's verb guide, email notifications (Resend), AI Co-Pilot (module suggestions, at-risk predictions, feedback drafts), peer milestone notifications, CLO progress dashboard, XP transaction history, seed data generation, CI/CD pipeline, health monitoring, load testing, four role-specific dashboards (plus parent portal), notifications, realtime, reporting, audit logging, platform enhancements (student portfolio, streak freeze, onboarding flows, read habit, dark mode, offline resilience, GDPR data export, notification batching, error states, teacher grading stats), institutional management features (semester management, course sections, surveys, CQI loop, configurable KPI thresholds, multi-accreditation body support, course file generation, announcements, course content/materials, discussion forums, attendance tracking, quiz/exam module, gradebook with weighted categories, calendar view, timetable, department management, academic calendar, student transcripts, parent/guardian portal, fee management), and production readiness improvements (multi-language RTL support, PWA, disaster recovery, Edge Function rate limiting, security headers, cookie consent, ToS/privacy pages, admin impersonation, bulk data operations, connection pooling, image optimization, global search, plagiarism placeholder, granular notification preferences, session management). Tasks are ordered foundation-first in a single unified plan.
 
 ## Tasks
 
@@ -48,6 +48,15 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Create `feeStructure.ts` with `feeStructureSchema`, `feePaymentSchema`
     - Create `transcript.ts` with `transcriptRequestSchema`
     - Create `courseFile.ts` with `courseFileRequestSchema`
+    - Create `languagePrefs.ts` with `languagePreferenceSchema`
+    - Create `cookieConsent.ts` with `cookieConsentSchema`
+    - Create `impersonation.ts` with `impersonationSchema`
+    - Create `bulkGradeExport.ts` with `gradeExportSchema`
+    - Create `enrollmentImport.ts` with `enrollmentImportRowSchema`
+    - Create `semesterTransition.ts` with `semesterTransitionSchema`
+    - Create `globalSearch.ts` with `searchQuerySchema`, `searchResultSchema`
+    - Create `notificationPrefs.ts` with `notificationPreferencesSchema`
+    - Create `sessionManagement.ts` with `sessionActionSchema`
     - _Requirements: All_
 
   - [ ] 1.2 Create Audit Logger service (`/src/lib/auditLogger.ts`)
@@ -70,6 +79,9 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Quiz types, Gradebook types, Calendar types, Timetable types
     - Department types, AcademicCalendar types, Transcript types, CourseFile types
     - ParentPortal types, FeeManagement types, PaymentStatus types
+    - LanguagePreference types, CookieConsent types, Impersonation types
+    - BulkOperation types, GlobalSearch types, NotificationPreferences types
+    - SessionManagement types, PWA types, RateLimiter types
     - _Requirements: All_
 
   - [ ] 1.5 Apply database extensions, indexes, and cron jobs via Supabase MCP
@@ -92,7 +104,9 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Create RLS policies for all new tables using `auth_user_role()` and `auth_institution_id()` helper functions
     - Create RLS policies for `parent` role on `parent_student_links` and read-only access to linked student data
     - Add pg_cron job: fee-overdue-check (daily 6 AM — update pending → overdue)
-    - _Requirements: 2, 34, 35, 36, 37, 41, 43, 47, 50, 51, 58, 59, 60, 62, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87_
+    - Apply column additions for production readiness: `profiles.language_preference`, `profiles.tos_accepted_at`, `profiles.notification_preferences`, `submissions.plagiarism_score`
+    - Create full-text search tsvector columns and GIN indexes on `courses`, `assignments`, `announcements`, `course_materials`, `profiles`
+    - _Requirements: 2, 34, 35, 36, 37, 41, 43, 47, 50, 51, 58, 59, 60, 62, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 91, 92, 94, 99, 100, 101_
 
   - [ ] 1.6 Create Activity Logger service (`/src/lib/activityLogger.ts`)
     - Implement fire-and-forget logging of student behavioral events
@@ -1526,8 +1540,8 @@ Complete unified implementation of the Edeviser platform covering authentication
 
 - [ ] 80. Final verification — All tests pass, production ready
   - Ensure all tests pass, ask the user if questions arise.
-  - Verify all 87 requirements (including NFRs 50-57, enhancements 58-67, and institutional management 68-87) have corresponding implementations
-  - Verify all 65 correctness properties are testable
+  - Verify all 102 requirements (including NFRs 50-57, enhancements 58-67, institutional management 68-87, and production readiness 88-102) have corresponding implementations
+  - Verify all 80 correctness properties are testable
   - Confirm all tasks are complete
 
 ## Notes
@@ -1578,3 +1592,373 @@ Complete unified implementation of the Edeviser platform covering authentication
 - Attendance data feeds into AI at-risk prediction as a contributing signal
 - Course File generation packages Pillars 1, 2, 3, and 10 into a single accreditation artifact
 - Transcript generation combines traditional gradebook grades with OBE CLO attainment data
+- RTL support (Requirement 88) extends task 40 (i18n foundation) — LanguageProvider sets `dir="rtl"` on `<html>` for Urdu/Arabic
+- PWA (Requirement 89) uses cache-first for app shell only — never caches Supabase API responses
+- Disaster recovery (Requirement 90) is documentation-only — no code changes, just `/docs/disaster-recovery.md`
+- Edge Function rate limiting (Requirement 91) uses a shared `_shared/rateLimiter.ts` module imported by all Edge Functions
+- Security headers (Requirement 92) are configured entirely in `vercel.json` — no application code changes
+- Cookie consent (Requirement 93) uses localStorage — blocks analytics until consent given, core functionality unaffected
+- ToS acceptance (Requirement 94) adds `tos_accepted_at` column to `profiles` — blocks all protected routes until accepted
+- Admin impersonation (Requirement 95) is read-only — all mutations blocked during impersonation, auto-expires after 30 minutes
+- Bulk data operations (Requirement 96) include grade export (teacher), enrollment import/export (coordinator), semester transition (coordinator), and data cleanup (admin)
+- Connection pooling (Requirement 97) is documentation-only — `/docs/connection-pooling.md` with pool size recommendations per tier
+- Image optimization (Requirement 98) uses client-side canvas API compression before upload — max 500KB, 256×256
+- Global search (Requirement 99) uses Supabase full-text search with tsvector + GIN indexes — Cmd+K / Ctrl+K shortcut
+- Plagiarism placeholder (Requirement 100) adds nullable `plagiarism_score` column to `submissions` — no actual plagiarism detection, just infrastructure
+- Notification preferences (Requirement 101) adds `notification_preferences` jsonb to `profiles` — per-course muting and quiet hours
+- Session management (Requirement 102) uses Supabase Auth admin API for session enumeration and termination
+- New column additions to `profiles`: `language_preference`, `tos_accepted_at`, `notification_preferences`
+- New column addition to `submissions`: `plagiarism_score`
+- Full-text search adds `search_vector` tsvector columns to: `courses`, `assignments`, `announcements`, `course_materials`, `profiles`
+
+
+- [ ] 81. Implement Multi-Language / RTL Support
+  - [ ] 81.1 Apply database migration: add `language_preference` column to `profiles`
+    - `ALTER TABLE profiles ADD COLUMN language_preference text NOT NULL DEFAULT 'en' CHECK (language_preference IN ('en', 'ur', 'ar'))`
+    - Regenerate TypeScript types
+    - _Requirements: 88.5_
+
+  - [ ] 81.2 Create LanguageProvider (`/src/providers/LanguageProvider.tsx`)
+    - Read preference from `profiles.language_preference`
+    - Set `dir="rtl"` on `<html>` for Urdu and Arabic, `dir="ltr"` for English
+    - Switch i18next language on preference change
+    - Apply direction change without page refresh
+    - _Requirements: 88.1, 88.6_
+
+  - [ ] 81.3 Create translation file stubs
+    - `/public/locales/en/translation.json` (existing English strings)
+    - `/public/locales/ur/translation.json` (Urdu stub with key structure matching English)
+    - `/public/locales/ar/translation.json` (Arabic stub with key structure matching English)
+    - _Requirements: 88.2_
+
+  - [ ] 81.4 Create RTL-aware CSS utilities (`/src/styles/rtl.css`)
+    - Mirror horizontal padding, margins, flexbox directions, border-radius for RTL
+    - Ensure sidebar moves to right side in RTL mode
+    - _Requirements: 88.3_
+
+  - [ ] 81.5 Create LanguageSelector component (`/src/components/shared/LanguageSelector.tsx`)
+    - Dropdown: English, اردو (Urdu), العربية (Arabic)
+    - Add to Profile Settings page
+    - _Requirements: 88.4_
+
+  - [ ] 81.6 Wrap App in LanguageProvider and wire into i18next configuration
+    - Extend existing task 40 (i18n foundation) with RTL support
+    - _Requirements: 88.1, 88.6_
+
+- [ ] 82. Implement Progressive Web App (PWA)
+  - [ ] 82.1 Create web app manifest (`/public/manifest.json`)
+    - Edeviser branding: name, short_name, icons (192×192, 512×512), theme_color (#3b82f6), background_color (#ffffff), display: standalone, start_url: /
+    - _Requirements: 89.1_
+
+  - [ ] 82.2 Create service worker (`/public/sw.js`)
+    - Cache-first strategy for app shell (HTML, CSS, JS bundles)
+    - Network-first for API calls — never cache Supabase responses
+    - Offline fallback: display cached shell with "You are offline" message
+    - Version cache name for cache busting on deploy
+    - _Requirements: 89.2, 89.5, 89.6_
+
+  - [ ] 82.3 Register service worker in app entry point
+    - Register in `src/main.tsx` with scope `/`
+    - _Requirements: 89.2_
+
+  - [ ] 82.4 Create PWAInstallPrompt component (`/src/components/shared/PWAInstallPrompt.tsx`)
+    - Listen for `beforeinstallprompt` event
+    - Show install banner on mobile devices
+    - Store dismissal in localStorage (suppress for 30 days)
+    - _Requirements: 89.3_
+
+  - [ ] 82.5 Add PWA meta tags to `index.html`
+    - `<link rel="manifest" href="/manifest.json">`
+    - `<meta name="theme-color" content="#3b82f6">`
+    - `<link rel="apple-touch-icon" href="/icons/icon-192.png">`
+    - _Requirements: 89.4_
+
+- [ ] 83. Document Backup & Disaster Recovery Procedures
+  - [ ] 83.1 Create `/docs/disaster-recovery.md` runbook
+    - Document Supabase PITR configuration and activation steps
+    - Define RTO <4h and RPO <1h procedures with step-by-step restoration guide
+    - Document rollback procedures for failed Edge Function deployments and database migrations
+    - Include contact escalation paths and communication templates
+    - _Requirements: 90.1, 90.2, 90.4, 90.5_
+
+  - [ ] 83.2 Document monthly backup verification procedure
+    - Steps to restore backup to staging environment
+    - Verification checklist: data integrity, RLS policies, Edge Function connectivity
+    - _Requirements: 90.3_
+
+- [ ] 84. Implement Edge Function Rate Limiting
+  - [ ] 84.1 Create rate limiter shared module (`/supabase/functions/_shared/rateLimiter.ts`)
+    - In-memory Map keyed by `user_id:function_name`
+    - Read limit: 100 requests/minute, Write limit: 30 requests/minute
+    - Return `{ allowed, remaining, retryAfter }` result
+    - _Requirements: 91.1, 91.3_
+
+  - [ ] 84.2 Integrate rate limiter into all existing Edge Functions
+    - Import shared module at the top of each Edge Function handler
+    - Return HTTP 429 with `Retry-After` header when limit exceeded
+    - _Requirements: 91.1, 91.2_
+
+  - [ ] 84.3 Log rate limit violations to audit_logs
+    - `action = 'rate_limit_exceeded'`, `target_type = 'edge_function'`, function name in metadata
+    - _Requirements: 91.4_
+
+- [ ] 85. Implement Security Headers
+  - [ ] 85.1 Add security headers to `vercel.json`
+    - Content-Security-Policy: restrict script-src, style-src, img-src, connect-src, font-src
+    - Strict-Transport-Security: `max-age=31536000; includeSubDomains`
+    - X-Frame-Options: `DENY`
+    - X-Content-Type-Options: `nosniff`
+    - Referrer-Policy: `strict-origin-when-cross-origin`
+    - _Requirements: 92.1, 92.2, 92.3, 92.4, 92.5, 92.6_
+
+- [ ] 86. Implement Cookie Consent / Privacy Banner
+  - [ ] 86.1 Create CookieConsentBanner component (`/src/components/shared/CookieConsentBanner.tsx`)
+    - Display on first visit (no `edeviser_cookie_consent` in localStorage)
+    - Options: "Accept All", "Reject Non-Essential", "Manage Preferences"
+    - Manage Preferences dialog: essential (always on), analytics, performance toggles
+    - Store consent in localStorage key `edeviser_cookie_consent`
+    - _Requirements: 93.1, 93.2, 93.4_
+
+  - [ ] 86.2 Create analytics consent gate utility (`/src/lib/analyticsConsent.ts`)
+    - Block Sentry and any analytics scripts until consent is given
+    - Initialize analytics only when `analytics: true` in consent
+    - _Requirements: 93.3_
+
+  - [ ] 86.3 Add "Cookie Settings" link to app footer
+    - Opens the Manage Preferences dialog
+    - _Requirements: 93.5_
+
+- [ ] 87. Implement Terms of Service & Privacy Policy Pages
+  - [ ] 87.1 Create public routes `/terms` and `/privacy`
+    - Add to AppRouter as unauthenticated routes
+    - Create TermsPage (`/src/pages/public/TermsPage.tsx`) and PrivacyPage (`/src/pages/public/PrivacyPage.tsx`)
+    - Render markdown content
+    - _Requirements: 94.1, 94.2_
+
+  - [ ] 87.2 Add footer links to ToS and Privacy Policy on all pages
+    - _Requirements: 94.3_
+
+  - [ ] 87.3 Apply database migration: add `tos_accepted_at` column to `profiles`
+    - `ALTER TABLE profiles ADD COLUMN tos_accepted_at timestamptz`
+    - Regenerate TypeScript types
+    - _Requirements: 94.5_
+
+  - [ ] 87.4 Create ToSAcceptanceDialog component (`/src/components/shared/ToSAcceptanceDialog.tsx`)
+    - Shown on first login when `tos_accepted_at` is null
+    - Checkbox + "Accept" button
+    - Blocks navigation to protected routes until accepted
+    - Stores timestamp in `profiles.tos_accepted_at`
+    - _Requirements: 94.4, 94.5, 94.6_
+
+- [ ] 88. Implement Admin Impersonation / Support Mode
+  - [ ] 88.1 Create ImpersonationProvider (`/src/providers/ImpersonationProvider.tsx`)
+    - Context: `isImpersonating`, `impersonatedUser`, `startImpersonation`, `stopImpersonation`, `timeRemaining`
+    - Store impersonation state in Zustand or context with 30-minute auto-expire timer
+    - Block all mutations during impersonation (read-only mode)
+    - _Requirements: 95.2, 95.6, 95.7_
+
+  - [ ] 88.2 Create ImpersonationBanner component (`/src/components/shared/ImpersonationBanner.tsx`)
+    - "You are viewing as [user_name] — [role]. Click to exit."
+    - Prominent banner at top of every page during impersonation
+    - _Requirements: 95.3_
+
+  - [ ] 88.3 Add "View as User" button to Admin user detail page
+    - Only visible for admin role, only for users within same institution
+    - _Requirements: 95.1, 95.5_
+
+  - [ ] 88.4 Log impersonation sessions to audit_logs
+    - `impersonation_start` and `impersonation_end` actions with actor_id and target_id
+    - _Requirements: 95.4_
+
+  - [ ] 88.5 Create impersonation TanStack Query hooks (`/src/hooks/useImpersonation.ts`)
+    - Mutation for starting/stopping impersonation
+    - Query for impersonated user profile
+    - _Requirements: 95_
+
+- [ ] 89. Implement Bulk Data Operations
+  - [ ] 89.1 Create bulk grade export Edge Function (`/supabase/functions/bulk-grade-export/`)
+    - Accept course_id and optional section_id
+    - Query enrolled students, assessment scores, category subtotals, final grade, letter grade
+    - Generate CSV and upload to Supabase Storage
+    - Return signed download URL
+    - _Requirements: 96.1_
+
+  - [ ] 89.2 Create grade export UI on Teacher gradebook page
+    - Export button with course/section selector
+    - Loading state during generation, download link on completion
+    - _Requirements: 96.1_
+
+  - [ ] 89.3 Create bulk enrollment import/export for Coordinators
+    - Import CSV: `student_email`, `course_code`, `section_code`
+    - Validate rows, reject invalid, process valid
+    - Export current enrollments as CSV
+    - _Requirements: 96.2, 96.5_
+
+  - [ ] 89.4 Create semester transition tool (`/src/pages/coordinator/courses/SemesterTransition.tsx`)
+    - Source semester → target semester selector within a program
+    - Bulk copy: courses, CLOs, rubrics, grade_categories (no student data)
+    - Skip duplicates, show summary of copied items
+    - _Requirements: 96.3_
+
+  - [ ] 89.5 Create bulk data cleanup tool for Admins
+    - Archive/purge data from deactivated semesters older than configurable retention period
+    - Confirmation dialog with data summary before cleanup
+    - _Requirements: 96.4_
+
+  - [ ] 89.6 Create bulk operations TanStack Query hooks (`/src/hooks/useBulkOperations.ts`)
+    - Mutations for grade export, enrollment import/export, semester transition, data cleanup
+    - _Requirements: 96_
+
+- [ ] 90. Document Database Connection Pooling Configuration
+  - [ ] 90.1 Create `/docs/connection-pooling.md`
+    - Document Supabase PgBouncer configuration
+    - Pool size recommendations: free (15), pro (50), team (100)
+    - Troubleshooting steps for connection exhaustion
+    - _Requirements: 97.1, 97.4_
+
+  - [ ] 90.2 Configure Edge Functions to use pooler connection URL
+    - Update Supabase client initialization in Edge Functions to use pooler URL
+    - _Requirements: 97.2_
+
+  - [ ] 90.3 Add pool status to health check endpoint
+    - Include `pool_status` field in health check response
+    - _Requirements: 97.3_
+
+- [ ] 91. Implement Image/Asset Optimization
+  - [ ] 91.1 Create image compressor utility (`/src/lib/imageCompressor.ts`)
+    - Client-side compression using canvas API
+    - Max 500KB, 256×256 pixels, quality 0.8
+    - Returns compressed File object
+    - _Requirements: 98.1_
+
+  - [ ] 91.2 Wire image compressor into avatar upload flow
+    - Compress before uploading to Supabase Storage
+    - Show warning if compression fails, upload original as fallback
+    - _Requirements: 98.1_
+
+  - [ ] 91.3 Add lazy loading to all images
+    - `loading="lazy"` on avatars, badge icons, material thumbnails
+    - _Requirements: 98.2_
+
+  - [ ] 91.4 Configure Supabase Storage image transformations for avatar thumbnails
+    - 64×64 and 128×128 thumbnail sizes
+    - _Requirements: 98.3_
+
+  - [ ] 91.5 Configure Vercel CDN caching headers for static assets
+    - `Cache-Control: public, max-age=31536000, immutable` for hashed assets in `vercel.json`
+    - _Requirements: 98.4_
+
+- [ ] 92. Implement Global Search
+  - [ ] 92.1 Apply database migration: add full-text search indexes
+    - Add `search_vector` tsvector columns to `courses`, `assignments`, `announcements`, `course_materials`, `profiles`
+    - Create GIN indexes on all search_vector columns
+    - _Requirements: 99.5_
+
+  - [ ] 92.2 Create SearchCommand component (`/src/components/shared/SearchCommand.tsx`)
+    - Cmd+K / Ctrl+K keyboard shortcut from any page
+    - Debounced input (300ms)
+    - Results grouped by category: Courses, Assignments, Students, Announcements, Materials
+    - Keyboard navigation (arrow keys + Enter)
+    - Built on Shadcn/ui Command component (cmdk)
+    - _Requirements: 99.1, 99.3, 99.4_
+
+  - [ ] 92.3 Create global search TanStack Query hooks (`/src/hooks/useGlobalSearch.ts`)
+    - Query Supabase full-text search across multiple tables
+    - Scope results by user role and institution
+    - Students: only enrolled course content; Teachers: only assigned course content; Admins: institution-wide
+    - _Requirements: 99.2, 99.6_
+
+  - [ ] 92.4 Add SearchCommand to app header/navbar
+    - Search icon button + keyboard shortcut hint
+    - _Requirements: 99.1_
+
+- [ ] 93. Implement Plagiarism Awareness Placeholder
+  - [ ] 93.1 Apply database migration: add `plagiarism_score` column to `submissions`
+    - `ALTER TABLE submissions ADD COLUMN plagiarism_score numeric CHECK (plagiarism_score IS NULL OR (plagiarism_score >= 0 AND plagiarism_score <= 100))`
+    - Regenerate TypeScript types
+    - _Requirements: 100.1_
+
+  - [ ] 93.2 Create PlagiarismPlaceholder component (`/src/components/shared/PlagiarismPlaceholder.tsx`)
+    - Show "Plagiarism check: Not configured" when score is null
+    - Show score badge when configured (future)
+    - _Requirements: 100.2_
+
+  - [ ] 93.3 Add PlagiarismPlaceholder to Grading Interface
+    - Display alongside submission details
+    - _Requirements: 100.2_
+
+  - [ ] 93.4 Document integration points in code comments
+    - Turnitin/Copyleaks API integration points in Grading Interface and submission processing
+    - Add `PLAGIARISM_API_KEY` to `.env.example`
+    - _Requirements: 100.3, 100.4_
+
+- [ ] 94. Implement Granular In-App Notification Preferences
+  - [ ] 94.1 Apply database migration: add `notification_preferences` column to `profiles`
+    - `ALTER TABLE profiles ADD COLUMN notification_preferences jsonb NOT NULL DEFAULT '{"muted_courses": [], "quiet_hours": {"enabled": false, "start": "22:00", "end": "07:00"}}'`
+    - Regenerate TypeScript types
+    - _Requirements: 101.3_
+
+  - [ ] 94.2 Create Notification Preferences page (`/src/pages/shared/NotificationPreferences.tsx`)
+    - Per-course mute toggles (list enrolled/assigned courses with toggle)
+    - Quiet hours: enable toggle + start/end time pickers
+    - Accessible from Profile Settings
+    - _Requirements: 101.1, 101.2, 101.5_
+
+  - [ ] 94.3 Create notification preferences TanStack Query hooks (`/src/hooks/useNotificationPreferences.ts`)
+    - Query current preferences from `profiles.notification_preferences`
+    - Mutation for updating preferences
+    - _Requirements: 101_
+
+  - [ ] 94.4 Update Notification_Service to respect preferences
+    - Check `muted_courses` before delivering course-specific notifications
+    - Check quiet hours: hold non-critical notifications, deliver critical immediately
+    - Critical notifications: grade released, at-risk alert
+    - _Requirements: 101.4_
+
+- [ ] 95. Implement Session Management UI
+  - [ ] 95.1 Create Session Management page (`/src/pages/shared/SessionManagement.tsx`)
+    - Display active sessions: device type, browser, masked IP, last active, current session indicator
+    - "Sign out other sessions" button
+    - "Sign out all sessions" button
+    - Accessible from Profile Settings
+    - _Requirements: 102.1, 102.2, 102.3, 102.4_
+
+  - [ ] 95.2 Create session management TanStack Query hooks (`/src/hooks/useSessionManagement.ts`)
+    - Query active sessions via Supabase Auth admin API
+    - Mutations for signing out other/all sessions
+    - _Requirements: 102.5_
+
+  - [ ] 95.3 Log session termination to audit_logs
+    - Record action with count of terminated sessions
+    - _Requirements: 102.6_
+
+- [ ] 96. Write tests for production readiness features
+  - [ ]* 96.1 Write property-based tests (Properties 66–80)
+    - **Property 66**: RTL layout direction correctness
+    - **Property 67**: PWA manifest validity
+    - **Property 68**: Rate limiting enforcement
+    - **Property 69**: Security headers presence
+    - **Property 70**: Cookie consent blocking
+    - **Property 71**: ToS acceptance gate
+    - **Property 72**: Impersonation read-only enforcement
+    - **Property 73**: Bulk grade export completeness
+    - **Property 74**: Global search result scoping
+    - **Property 75**: Image compression constraints
+    - **Property 76**: Notification quiet hours enforcement
+    - **Property 77**: Session management correctness
+    - **Property 78**: Plagiarism score column integrity
+    - **Property 79**: Semester transition data integrity
+    - **Property 80**: Per-course notification muting
+    - _Requirements: 88-102_
+
+  - [ ]* 96.2 Write unit tests for production readiness modules
+    - RTL language, PWA, rate limiter, security headers, cookie consent
+    - ToS acceptance, impersonation, bulk operations, global search
+    - Image compressor, notification preferences, session management, semester transition
+    - _Requirements: 88-102_
+
+  - [ ]* 96.3 Write integration tests for production readiness flows
+    - Impersonation start → audit log → auto-expire pipeline
+    - Bulk grade export → CSV generation → download pipeline
+    - Semester transition → course copy → CLO copy pipeline
+    - _Requirements: 88-102_
