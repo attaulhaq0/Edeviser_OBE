@@ -8,6 +8,30 @@
 
 export type UserRole = 'admin' | 'coordinator' | 'teacher' | 'student' | 'parent';
 
+export interface Profile {
+  id: string;
+  email: string;
+  full_name: string;
+  role: UserRole;
+  institution_id: string;
+  avatar_url: string | null;
+  is_active: boolean;
+  onboarding_completed: boolean;
+  portfolio_public: boolean;
+  theme_preference: ThemePreference;
+  language_preference: LanguagePreference;
+  email_preferences: Record<string, boolean> | null;
+  notification_preferences: NotificationPreferences | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AuthResult {
+  success: boolean;
+  error?: string;
+  redirectTo?: string;
+}
+
 export type BloomsLevel =
   | 'Remembering'
   | 'Understanding'

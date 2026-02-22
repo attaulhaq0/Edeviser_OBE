@@ -6,7 +6,7 @@ Complete unified implementation of the Edeviser platform covering authentication
 
 ## Tasks
 
-- [ ] 1. Set up foundation: schemas, utilities, and database
+- [x] 1. Set up foundation: schemas, utilities, and database
   - [x] 1.1 Create Zod validation schemas (`/src/lib/schemas/`)
     - Create `auth.ts` with `loginSchema`, `resetPasswordSchema`
     - Create `user.ts` with `createUserSchema`, `updateUserSchema`
@@ -108,50 +108,50 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Create full-text search tsvector columns and GIN indexes on `courses`, `assignments`, `announcements`, `course_materials`, `profiles`
     - _Requirements: 2, 34, 35, 36, 37, 41, 43, 47, 50, 51, 58, 59, 60, 62, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 91, 92, 94, 99, 100, 101_
 
-  - [~] 1.6 Create Activity Logger service (`/src/lib/activityLogger.ts`)
+  - [x] 1.6 Create Activity Logger service (`/src/lib/activityLogger.ts`)
     - Implement fire-and-forget logging of student behavioral events
     - Log event types: login, page_view, submission, journal, streak_break, assignment_view
     - Insert into `student_activity_log` table (append-only)
     - Never block user-facing flows — use console.error on failure
     - _Requirements: 41.1, 41.4_
 
-- [ ] 2. Implement authentication and session management
-  - [ ] 2.1 Create AuthProvider context and `useAuth()` hook
+- [x] 2. Implement authentication and session management
+  - [x] 2.1 Create AuthProvider context and `useAuth()` hook
     - _Requirements: 1, 2, 3, 4_
 
-  - [ ] 2.2 Implement login attempt tracking and account lockout
+  - [x] 2.2 Implement login attempt tracking and account lockout
     - _Requirements: 1.2, 1.3_
 
-  - [ ] 2.3 Implement session persistence and auto-refresh
+  - [x] 2.3 Implement session persistence and auto-refresh
     - _Requirements: 4_
 
-  - [ ] 2.4 Implement password reset flow
+  - [x] 2.4 Implement password reset flow
     - _Requirements: 5_
 
-  - [ ] 2.5 Create Login page (`/src/pages/LoginPage.tsx`)
+  - [x] 2.5 Create Login page (`/src/pages/LoginPage.tsx`)
     - _Requirements: 1, 3, 5_
 
-  - [ ] 2.6 Create AppRouter with role-based route guards
+  - [x] 2.6 Create AppRouter with role-based route guards
     - Include route guards for all 5 roles: admin, coordinator, teacher, student, parent
     - Add `/parent/*` route group with ParentLayout
     - _Requirements: 3, 86.7_
 
-  - [ ] 2.7 Create App shell (`/src/App.tsx`)
+  - [x] 2.7 Create App shell (`/src/App.tsx`)
     - Wrap in AuthProvider, QueryClientProvider, BrowserRouter, Toaster
     - _Requirements: 1, 3, 4_
 
-  - [ ] 2.8 Wire activity logging into AuthProvider (login events)
+  - [x] 2.8 Wire activity logging into AuthProvider (login events)
     - Call `logActivity({ event_type: 'login' })` on successful authentication
     - _Requirements: 41.1_
 
-- [ ] 3. Implement Admin user management
-  - [ ] 3.1 Create user management TanStack Query hooks (`/src/hooks/useUsers.ts`)
+- [-] 3. Implement Admin user management
+  - [x] 3.1 Create user management TanStack Query hooks (`/src/hooks/useUsers.ts`)
     - _Requirements: 6_
 
-  - [ ] 3.2 Create User List page with TanStack Table
+  - [x] 3.2 Create User List page with TanStack Table
     - _Requirements: 6.5_
 
-  - [ ] 3.3 Create User Create/Edit forms
+  - [x] 3.3 Create User Create/Edit forms
     - _Requirements: 6.1_
 
   - [ ] 3.4 Implement soft-delete with confirmation
