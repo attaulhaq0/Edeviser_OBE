@@ -2928,3 +2928,1552 @@ Add to `src/__tests__/integration/`:
 ### Updated Testing Strategy
 
 All 18 MVP properties retained + 10 OBE/gamification properties + 7 habit/reward/path/activity/journal properties + 5 AI Co-Pilot properties + 10 platform enhancement properties + 15 institutional management & LMS properties + 15 production readiness properties (RTL layout, PWA manifest, rate limiting, security headers, cookie consent, ToS gate, impersonation read-only, bulk export completeness, global search scoping, image compression, quiet hours, session management, plagiarism column, semester transition, notification muting) = 80 total correctness properties.
+
+
+---
+
+## SECTION U: OBE Engine Enhancements (Requirements 103–111)
+
+### Overview
+
+This section extends the OBE Core with deeper outcome granularity (Sub-CLOs, Graduate Attributes, Competency Frameworks) and advanced analytics visualizations (Sankey diagrams, gap analysis, coverage heatmaps, semester trends, cohort comparisons, and historical evidence analysis). These features target Coordinator and Admin roles primarily, strengthening accreditation readiness and curriculum quality assurance.
+
+### Architecture
+
+#### Updated High-Level Component Flow
+
+```
+├── /admin/*
+│   ├── /admin/graduate-attributes — GraduateAttributeManager
+│   ├── /admin/competency-frameworks — CompetencyFrameworkManager
+│   ├── /admin/historical-evidence — HistoricalEvidenceDashboard
+│   └── /admin/dashboard — AdminDashboard (+ Graduate Attribute attainment card)
+├── /coordinator/*
+│   ├── /coordinator/sankey — SankeyDiagramView
+│   ├── /coordinator/gap-analysis — GapAnalysisView
+│   ├── /coordinator/coverage-heatmap — CoverageHeatmapView
+│   ├── /coordinator/trends — SemesterTrendView
+│   └── /coordinator/cohort-comparison — CohortComparisonView
+├── /teacher/*
+│   └── /teacher/outcomes — CLOListPage (+ Sub-CLO expansion)
+```
+
+#### Updated Edge Functions
+
+```
+└── Edge Functions
+    ├── ... (existing)
+    ├── calculate-attainment-rollup (updated: Sub-CLO weighted rollup, Graduate Attribute rollup)
+    ├── generate-accreditation-report (updated: Graduate Attribute section, competency alignment matrix)
+    ├── semester-close-snapshot (pg_cron → triggered at semester close)
+    └── competency-framework-import (on-demand CSV import)
+```
+
+#### Materialized Views for Analytics Performance
+
+```sql
+-- Semester attainment snapshots (Requirement 109)
+CREATE MATERIALIZED VIEW mv_semester_attainment AS
+SELECT
+  oa.outcome_id,
+  lo.type AS outcome_type,
+  c.semester_id,
+  s.name AS semester_name,
+  AVG(oa.attainment_percent) AS avg_attainment,
+  COUNT(DISTINCT oa.student_id) AS student_count,
+  COUNT(oa.id) AS evidence_count,
+  STDDEV(oa.attainment_percent) AS std_deviation
+FROM outcome_attainment oa
+JOIN learning_outcomes lo ON lo.id = oa.outcome_id
+JOIN courses c ON c.id = oa.course_id
+JOIN semesters s ON s.id = c.semester_id
+WHERE oa.scope = 'student'
+GROUP BY oa.outcome_id, lo.type, c.semester_id, s.name;
+
+CREATE UNIQUE INDEX idx_mv_semester_attainment ON mv_semester_attainment(outcome_id, semester_id);
+
+-- Historical evidence aggregation (Requirement 111)
+CREATE MATERIALIZED VIEW mv_historical_evidence AS
+SELECT
+  c.semester_id,
+  s.name AS semester_name,
+  s.start_date,
+  lo.type AS outcome_type,
+  lo.blooms_level,
+  COUNT(e.id) AS evidence_count,
+  AVG(e.score_percent) AS avg_score,
+  SUM(CASE WHEN e.score_percent >= 85 THEN 1 ELSE 0 END) AS excellent_count,
+  SUM(CASE WHEN e.score_percent >= 70 AND e.score_percent < 85 THEN 1 ELSE 0 END) AS satisfactory_count,
+  SUM(CASE WHEN e.score_percent >= 50 AND e.score_percent < 70 THEN 1 ELSE 0 END) AS developing_count,
+  SUM(CASE WHEN e.score_percent < 50 THEN 1 ELSE 0 END) AS not_yet_count
+FROM evidence e
+JOIN learning_outcomes lo ON lo.id = e.outcome_id
+JOIN courses c ON c.id = e.course_id
+JOIN semesters s ON s.id = c.semester_id
+GROUP BY c.semester_id, s.name, s.start_date, lo.type, lo.blooms_level;
+
+CREATE UNIQUE INDEX idx_mv_historical_evidence ON mv_historical_evidence(semester_id, outcome_type, blooms_level);
+```
+
+### Components and Interfaces
+
+#### Sub-CLO Manager (`/src/pages/teacher/outcomes/SubCLOManager.tsx`)
+```typescript
+interface SubCLOFormData {
+  parent_outcome_id: string; // parent CLO id
+  title: string;
+  description: string;
+  code: string;
+  weight: number; // 0.0–1.0
+}
+
+interface SubCLO {
+  id: string;
+  parent_outcome_id: string;
+  title: string;
+  description: string;
+  code: string;
+  weight: number;
+  type: 'SUB_CLO';
+  created_at: string;
+}
+
+interface SubCLOListProps {
+  cloId: string;
+  courseId: string;
+}
+
+// Expandable children beneath parent CLO in outcome list views
+// Weight sum validation: sum of all Sub-CLO weights under a CLO must equal 1.0
+// Deletion blocked when Sub-CLO has linked evidence records
+```
+
+#### Graduate Attribute Manager (`/src/pages/admin/graduate-attributes/GraduateAttributeManager.tsx`)
+```typescript
+interface GraduateAttributeFormData {
+  title: string;
+  description: string;
+  code: string;
+}
+
+interface GraduateAttribute {
+  id: string;
+  institution_id: string;
+  title: string;
+  description: string;
+  code: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface GraduateAttributeMappingFormData {
+  graduate_attribute_id: string;
+  ilo_id: string;
+  weight: number; // 0.0–1.0
+}
+
+interface GraduateAttributeAttainmentCard {
+  attribute_id: string;
+  attribute_title: string;
+  attribute_code: string;
+  attainment_percent: number;
+  mapped_ilo_count: number;
+}
+```
+
+#### Competency Framework Manager (`/src/pages/admin/competency-frameworks/CompetencyFrameworkManager.tsx`)
+```typescript
+interface CompetencyFrameworkFormData {
+  name: string;
+  version: string;
+  source: string; // e.g., "ABET EAC 2024"
+}
+
+interface CompetencyFramework {
+  id: string;
+  institution_id: string;
+  name: string;
+  version: string;
+  source: string;
+  created_at: string;
+}
+
+type CompetencyItemLevel = 'domain' | 'competency' | 'indicator';
+
+interface CompetencyItemFormData {
+  framework_id: string;
+  parent_id: string | null;
+  level: CompetencyItemLevel;
+  code: string;
+  title: string;
+}
+
+interface CompetencyItem {
+  id: string;
+  framework_id: string;
+  parent_id: string | null;
+  level: CompetencyItemLevel;
+  code: string;
+  title: string;
+  children?: CompetencyItem[];
+}
+
+interface CompetencyOutcomeMappingFormData {
+  competency_item_id: string;
+  outcome_id: string;
+  outcome_type: 'ILO' | 'PLO' | 'CLO';
+}
+
+interface CompetencyCSVRow {
+  domain_code: string;
+  domain_title: string;
+  competency_code: string;
+  competency_title: string;
+  indicator_code: string;
+  indicator_title: string;
+}
+```
+
+#### Sankey Diagram View (`/src/pages/coordinator/sankey/SankeyDiagramView.tsx`)
+```typescript
+interface SankeyNode {
+  id: string;
+  label: string;
+  type: 'ILO' | 'PLO' | 'CLO';
+  attainment_percent: number | null;
+  attainment_level: AttainmentLevel | 'unmapped' | null;
+}
+
+interface SankeyLink {
+  source: string; // node id
+  target: string; // node id
+  weight: number;
+  attainment_percent: number | null;
+}
+
+interface SankeyDiagramProps {
+  programId?: string;
+  courseId?: string;
+  semesterId?: string;
+}
+
+// Renders using Recharts Sankey or a custom D3-based Sankey component
+// Node colors: green (Excellent), blue (Satisfactory), yellow (Developing), red (Not Yet), gray (Unmapped)
+// Hover tooltip: source outcome, target outcome, weight, attainment %
+// Click node: opens detail panel with full outcome info
+// Filter by program, course, semester
+// Performance target: render within 2 seconds for 30 ILOs, 100 PLOs, 500 CLOs
+```
+
+#### Gap Analysis View (`/src/pages/coordinator/gap-analysis/GapAnalysisView.tsx`)
+```typescript
+type GapStatus = 'fully_mapped' | 'partially_mapped' | 'unmapped' | 'no_evidence';
+
+interface GapAnalysisNode {
+  outcome_id: string;
+  outcome_title: string;
+  outcome_code: string;
+  outcome_type: 'ILO' | 'PLO' | 'CLO';
+  status: GapStatus;
+  mapped_children_count: number;
+  total_children_count: number;
+  evidence_count: number;
+  attainment_percent: number | null;
+  children?: GapAnalysisNode[];
+}
+
+interface GapAnalysisSummary {
+  total_outcomes: number;
+  fully_mapped_percent: number;
+  with_evidence_percent: number;
+  meeting_target_percent: number;
+}
+
+interface GapAnalysisRecommendation {
+  outcome_id: string;
+  action: string; // e.g., "Add CLO mapping to PLO-3"
+}
+
+interface GapAnalysisViewProps {
+  programId: string;
+  semesterId: string;
+}
+
+// Hierarchical tree with status indicators
+// PLO flagged as "Under-Mapped" when < 2 mapped CLOs
+// CLO flagged as "Unassessed" when 0 linked assessments in current semester
+// Summary statistics bar at top
+// Click flagged outcome → recommended actions panel
+// Exportable as PDF
+```
+
+#### Coverage Heatmap View (`/src/pages/coordinator/coverage-heatmap/CoverageHeatmapView.tsx`)
+```typescript
+type HeatmapColorMode = 'evidence_count' | 'attainment_percent';
+
+interface HeatmapCell {
+  clo_id: string;
+  course_id: string;
+  evidence_count: number;
+  attainment_percent: number | null;
+  student_count: number;
+}
+
+interface CoverageHeatmapProps {
+  programId: string;
+  semesterId?: string;
+  attainmentThreshold?: number;
+}
+
+// Matrix: CLOs (rows) × Courses (columns)
+// Color scale: white (0) → light blue (1–5) → dark blue (6+) for evidence count
+// Toggle to attainment percentage coloring
+// Click cell → drill-down to individual student attainment records
+// Filter by semester, program, attainment level threshold
+// Empty cells highlighted with distinct border pattern
+// Performance target: render within 3 seconds for 200 CLOs × 50 courses
+```
+
+#### Semester Trend View (`/src/pages/coordinator/trends/SemesterTrendView.tsx`)
+```typescript
+interface SemesterTrendDataPoint {
+  semester_id: string;
+  semester_name: string;
+  attainment_percent: number;
+  student_count: number;
+  evidence_count: number;
+}
+
+interface SemesterTrendViewProps {
+  outcomeId?: string;
+  outcomeType?: 'CLO' | 'PLO' | 'ILO';
+}
+
+// Line chart: attainment % over semesters (up to 8 semesters)
+// Declining trend warning: ≥10 percentage point drop between consecutive semesters
+// Side-by-side comparison of up to 4 outcomes
+// Tabular view alongside chart
+// Data from mv_semester_attainment materialized view
+```
+
+#### Cohort Comparison View (`/src/pages/coordinator/cohort-comparison/CohortComparisonView.tsx`)
+```typescript
+type CohortDefinition = {
+  type: 'semester' | 'section' | 'enrollment_year';
+  value: string;
+  label: string;
+};
+
+interface CohortComparisonData {
+  outcome_code: string;
+  outcome_title: string;
+  cohorts: Array<{
+    label: string;
+    avg_attainment: number;
+    student_count: number;
+    std_deviation: number;
+  }>;
+  effect_size?: number; // Cohen's d (only for 2-cohort comparison with n≥20)
+  has_significant_gap: boolean; // ≥15 percentage point difference
+}
+
+interface CohortComparisonViewProps {
+  programId: string;
+}
+
+// Grouped bar chart: average attainment per CLO/PLO across cohorts
+// Cohen's d effect size for 2-cohort comparisons with n≥20
+// CSV export: outcome_code, outcome_title, cohort_label, average_attainment, student_count, standard_deviation
+// Red highlight + "Significant Gap" label when ≥15 pp difference
+// Accessible from Coordinator and Admin dashboards
+```
+
+#### Historical Evidence Dashboard (`/src/pages/admin/historical-evidence/HistoricalEvidenceDashboard.tsx`)
+```typescript
+interface HistoricalEvidenceStats {
+  total_evidence_records: number;
+  avg_attainment_by_level: Record<'CLO' | 'PLO' | 'ILO', number>;
+  attainment_distribution: Record<AttainmentLevel, number>;
+}
+
+interface HistoricalEvidenceSemesterData {
+  semester_name: string;
+  excellent_count: number;
+  satisfactory_count: number;
+  developing_count: number;
+  not_yet_count: number;
+}
+
+interface HistoricalEvidenceDashboardProps {
+  programId?: string;
+  courseId?: string;
+  outcomeId?: string;
+  bloomsLevel?: BloomsLevel;
+}
+
+// Stacked area chart: proportion of attainment levels per semester over time
+// Filter by program, course, outcome, Bloom's level
+// "Continuous Improvement Report" PDF generation
+// Data from mv_historical_evidence materialized view
+// Performance target: load within 4 seconds for 500,000 evidence records
+```
+
+### New TanStack Query Hooks
+
+```typescript
+// Sub-CLOs
+useSubCLOs(cloId: string)
+useCreateSubCLO()
+useUpdateSubCLO()
+useDeleteSubCLO()
+
+// Graduate Attributes
+useGraduateAttributes(institutionId: string)
+useCreateGraduateAttribute()
+useUpdateGraduateAttribute()
+useDeleteGraduateAttribute()
+useGraduateAttributeMappings(attributeId: string)
+useGraduateAttributeAttainment(institutionId: string)
+
+// Competency Frameworks
+useCompetencyFrameworks(institutionId: string)
+useCompetencyItems(frameworkId: string)
+useCreateCompetencyFramework()
+useImportCompetencyCSV()
+useCompetencyOutcomeMappings(frameworkId: string)
+
+// Visualizations
+useSankeyData(programId?: string, courseId?: string, semesterId?: string)
+useGapAnalysis(programId: string, semesterId: string)
+useCoverageHeatmap(programId: string, semesterId?: string)
+useSemesterTrends(outcomeId: string, outcomeType: string)
+useCohortComparison(programId: string, cohorts: CohortDefinition[])
+useHistoricalEvidence(filters: HistoricalEvidenceFilters)
+```
+
+### New Zod Schemas
+
+```
+subCLO.ts                — subCLOSchema, subCLOWeightSumSchema
+graduateAttribute.ts     — graduateAttributeSchema, graduateAttributeMappingSchema
+competencyFramework.ts   — competencyFrameworkSchema, competencyItemSchema, competencyCSVRowSchema
+sankeyFilter.ts          — sankeyFilterSchema
+gapAnalysis.ts           — gapAnalysisFilterSchema
+coverageHeatmap.ts       — coverageHeatmapFilterSchema
+semesterTrend.ts         — semesterTrendFilterSchema
+cohortComparison.ts      — cohortDefinitionSchema, cohortComparisonExportSchema
+historicalEvidence.ts    — historicalEvidenceFilterSchema
+```
+
+### Data Models
+
+#### `graduate_attributes` (Requirement 104)
+```sql
+CREATE TABLE graduate_attributes (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  institution_id uuid REFERENCES institutions(id) NOT NULL,
+  title text NOT NULL,
+  description text,
+  code text NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (institution_id, code)
+);
+ALTER TABLE graduate_attributes ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Admin manages graduate attributes" ON graduate_attributes
+  FOR ALL USING (institution_id = auth_institution_id() AND auth_user_role() = 'admin');
+CREATE POLICY "All roles read graduate attributes" ON graduate_attributes
+  FOR SELECT USING (institution_id = auth_institution_id());
+```
+
+#### `graduate_attribute_mappings` (Requirement 104)
+```sql
+CREATE TABLE graduate_attribute_mappings (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  graduate_attribute_id uuid REFERENCES graduate_attributes(id) ON DELETE CASCADE NOT NULL,
+  ilo_id uuid REFERENCES learning_outcomes(id) ON DELETE CASCADE NOT NULL,
+  weight numeric NOT NULL DEFAULT 1.0 CHECK (weight > 0 AND weight <= 1.0),
+  created_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (graduate_attribute_id, ilo_id)
+);
+ALTER TABLE graduate_attribute_mappings ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Admin manages GA mappings" ON graduate_attribute_mappings
+  FOR ALL USING (
+    EXISTS (SELECT 1 FROM graduate_attributes ga WHERE ga.id = graduate_attribute_id AND ga.institution_id = auth_institution_id())
+    AND auth_user_role() = 'admin'
+  );
+CREATE POLICY "All roles read GA mappings" ON graduate_attribute_mappings
+  FOR SELECT USING (
+    EXISTS (SELECT 1 FROM graduate_attributes ga WHERE ga.id = graduate_attribute_id AND ga.institution_id = auth_institution_id())
+  );
+```
+
+#### `competency_frameworks` (Requirement 105)
+```sql
+CREATE TABLE competency_frameworks (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  institution_id uuid REFERENCES institutions(id) NOT NULL,
+  name text NOT NULL,
+  version text NOT NULL,
+  source text NOT NULL, -- e.g., "ABET EAC 2024"
+  created_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (institution_id, name, version)
+);
+ALTER TABLE competency_frameworks ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Admin manages competency frameworks" ON competency_frameworks
+  FOR ALL USING (institution_id = auth_institution_id() AND auth_user_role() = 'admin');
+CREATE POLICY "All roles read competency frameworks" ON competency_frameworks
+  FOR SELECT USING (institution_id = auth_institution_id());
+```
+
+#### `competency_items` (Requirement 105)
+```sql
+CREATE TABLE competency_items (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  framework_id uuid REFERENCES competency_frameworks(id) ON DELETE CASCADE NOT NULL,
+  parent_id uuid REFERENCES competency_items(id) ON DELETE CASCADE,
+  level text NOT NULL CHECK (level IN ('domain', 'competency', 'indicator')),
+  code text NOT NULL,
+  title text NOT NULL,
+  sort_order integer NOT NULL DEFAULT 0,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (framework_id, code)
+);
+ALTER TABLE competency_items ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Admin manages competency items" ON competency_items
+  FOR ALL USING (
+    EXISTS (SELECT 1 FROM competency_frameworks cf WHERE cf.id = framework_id AND cf.institution_id = auth_institution_id())
+    AND auth_user_role() = 'admin'
+  );
+CREATE POLICY "All roles read competency items" ON competency_items
+  FOR SELECT USING (
+    EXISTS (SELECT 1 FROM competency_frameworks cf WHERE cf.id = framework_id AND cf.institution_id = auth_institution_id())
+  );
+```
+
+#### `competency_outcome_mappings` (Requirement 105)
+```sql
+CREATE TABLE competency_outcome_mappings (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  competency_item_id uuid REFERENCES competency_items(id) ON DELETE CASCADE NOT NULL,
+  outcome_id uuid REFERENCES learning_outcomes(id) ON DELETE CASCADE NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (competency_item_id, outcome_id)
+);
+ALTER TABLE competency_outcome_mappings ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Admin manages competency-outcome mappings" ON competency_outcome_mappings
+  FOR ALL USING (
+    EXISTS (
+      SELECT 1 FROM competency_items ci
+      JOIN competency_frameworks cf ON cf.id = ci.framework_id
+      WHERE ci.id = competency_item_id AND cf.institution_id = auth_institution_id()
+    )
+    AND auth_user_role() = 'admin'
+  );
+CREATE POLICY "All roles read competency-outcome mappings" ON competency_outcome_mappings
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM competency_items ci
+      JOIN competency_frameworks cf ON cf.id = ci.framework_id
+      WHERE ci.id = competency_item_id AND cf.institution_id = auth_institution_id()
+    )
+  );
+```
+
+#### `semester_attainment_snapshots` (Requirement 109)
+```sql
+CREATE TABLE semester_attainment_snapshots (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  outcome_id uuid REFERENCES learning_outcomes(id) ON DELETE CASCADE NOT NULL,
+  semester_id uuid REFERENCES semesters(id) ON DELETE CASCADE NOT NULL,
+  avg_attainment numeric NOT NULL CHECK (avg_attainment >= 0 AND avg_attainment <= 100),
+  student_count integer NOT NULL DEFAULT 0,
+  evidence_count integer NOT NULL DEFAULT 0,
+  std_deviation numeric,
+  snapshot_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (outcome_id, semester_id)
+);
+ALTER TABLE semester_attainment_snapshots ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Coordinator/Admin read snapshots" ON semester_attainment_snapshots
+  FOR SELECT USING (
+    auth_user_role() IN ('admin', 'coordinator')
+    AND EXISTS (
+      SELECT 1 FROM learning_outcomes lo
+      JOIN programs p ON p.id = lo.program_id OR p.institution_id = auth_institution_id()
+      WHERE lo.id = outcome_id
+    )
+  );
+```
+
+#### Column Additions for Sub-CLOs (Requirement 103)
+
+The existing `learning_outcomes` table already supports hierarchical outcomes. Sub-CLOs use:
+```sql
+-- learning_outcomes already has: id, type, parent_outcome_id, course_id, program_id, institution_id
+-- Add weight column for Sub-CLO contribution to parent CLO
+ALTER TABLE learning_outcomes ADD COLUMN weight numeric DEFAULT 1.0
+  CHECK (weight > 0 AND weight <= 1.0);
+
+-- Add type value 'SUB_CLO' to the type check constraint
+ALTER TABLE learning_outcomes DROP CONSTRAINT IF EXISTS learning_outcomes_type_check;
+ALTER TABLE learning_outcomes ADD CONSTRAINT learning_outcomes_type_check
+  CHECK (type IN ('ILO', 'PLO', 'CLO', 'SUB_CLO'));
+
+-- Trigger: validate Sub-CLO weight sum = 1.0 before assignment linkage
+CREATE OR REPLACE FUNCTION validate_sub_clo_weights()
+RETURNS trigger AS $$
+BEGIN
+  IF NEW.type = 'SUB_CLO' THEN
+    -- Check that parent is a CLO
+    IF NOT EXISTS (SELECT 1 FROM learning_outcomes WHERE id = NEW.parent_outcome_id AND type = 'CLO') THEN
+      RAISE EXCEPTION 'Sub-CLO parent must be a CLO';
+    END IF;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_validate_sub_clo
+  BEFORE INSERT OR UPDATE ON learning_outcomes
+  FOR EACH ROW EXECUTE FUNCTION validate_sub_clo_weights();
+```
+
+### New Shared Components
+
+```typescript
+SubCLORow             // Expandable Sub-CLO row beneath parent CLO
+GraduateAttributeCard // GA attainment card for Admin dashboard
+CompetencyTree        // Hierarchical Domain → Competency → Indicator tree view
+SankeyChart           // Reusable Sankey diagram component (Recharts or D3)
+GapStatusBadge        // Color-coded gap status indicator (green/yellow/red/gray)
+HeatmapGrid           // Reusable heatmap matrix with drill-down
+TrendLineChart        // Multi-series line chart for semester trends
+CohortBarChart        // Grouped bar chart for cohort comparison
+StackedAreaChart      // Stacked area chart for historical evidence distribution
+DecliningTrendBadge   // Warning badge for ≥10pp attainment decline
+SignificantGapLabel   // Red "Significant Gap" label for cohort comparison
+CompetencyAlignmentMatrix // Competency × Outcome alignment matrix with coverage indicators
+```
+
+
+---
+
+## SECTION V: Habit Engine Enhancements (Requirements 112–123)
+
+### Overview
+
+This section extends the Habit Core with 4 new habit types (Collaborate, Practice, Review, Mentor), a full social challenges system (team-based and course-wide), team management with shared XP pools, team leaderboards/badges/streaks, and an adaptive XP scaling engine with level-based, difficulty-based, diminishing returns, and improvement bonus mechanics. These features target Student and Teacher roles, deepening engagement through collaboration and fair reward scaling.
+
+### Architecture
+
+#### Updated High-Level Component Flow
+
+```
+├── /teacher/*
+│   ├── /teacher/teams — TeamManager
+│   ├── /teacher/challenges — ChallengeManager
+│   └── /teacher/courses — CourseDetail (+ team assignment)
+├── /student/*
+│   ├── /student/dashboard — StudentDashboard (+ 8-habit grid, team card, challenges tab, XP multiplier)
+│   ├── /student/team — TeamDashboard
+│   ├── /student/challenges — ChallengeListView
+│   └── /student/leaderboard — LeaderboardView (+ team leaderboard tab)
+```
+
+#### Updated Edge Functions
+
+```
+└── Edge Functions
+    ├── award-xp (updated: adaptive XP calculation with level/difficulty/diminishing returns multipliers, team XP contribution)
+    ├── check-badges (updated: team badges, Comeback Kid badge)
+    ├── process-streak (updated: team streak calculation)
+    ├── perfect-day-nudge-cron (updated: 6/8 habits threshold)
+    ├── challenge-progress-update (triggered on qualifying actions during active challenges)
+    ├── challenge-completion (pg_cron → checks challenge end dates daily)
+    ├── team-streak-risk-cron (pg_cron → 8 PM daily — notify teams at risk)
+    └── improvement-bonus-check (triggered after evidence creation)
+```
+
+#### Realtime Subscriptions
+
+```typescript
+// Team leaderboard: subscribe to team_gamification changes
+supabase.channel('team-leaderboard')
+  .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'team_gamification' }, handleTeamXPUpdate)
+  .subscribe();
+
+// Challenge progress: subscribe to social_challenge_progress changes
+supabase.channel('challenge-progress')
+  .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'social_challenges', filter: `status=eq.active` }, handleChallengeUpdate)
+  .subscribe();
+```
+
+### Components and Interfaces
+
+#### Extended Habit Tracker (`/src/components/shared/HabitTracker.tsx` — updated)
+```typescript
+type HabitType = 'login' | 'submit' | 'journal' | 'read' | 'collaborate' | 'practice' | 'review' | 'mentor';
+
+// Updated: 8 habits in 7-day grid
+// Perfect Day threshold updated: 6 of 8 habits
+// New habit icons: Collaborate (MessageSquare), Practice (Brain), Review (Eye), Mentor (HandHelping)
+// XP: 15 XP per extended habit completion per day
+```
+
+#### Team Manager (`/src/pages/teacher/teams/TeamManager.tsx`)
+```typescript
+interface TeamFormData {
+  name: string;
+  course_id: string;
+}
+
+interface Team {
+  id: string;
+  name: string;
+  course_id: string;
+  created_by: string;
+  avatar_letter: string; // auto-generated from first letter of name
+  created_at: string;
+}
+
+interface TeamMember {
+  team_id: string;
+  student_id: string;
+  student_name: string;
+  joined_at: string;
+}
+
+interface TeamManagerProps {
+  courseId: string;
+}
+
+interface AutoGenerateTeamsFormData {
+  course_id: string;
+  team_size: number; // 2–6
+}
+
+// Create teams manually or auto-generate balanced teams
+// Enforce: min 2, max 6 members per team
+// Enforce: student can only be in 1 team per course
+// Retain historical contribution on member removal
+```
+
+#### Challenge Manager (`/src/pages/teacher/challenges/ChallengeManager.tsx`)
+```typescript
+type ChallengeType = 'team' | 'course_wide';
+type ChallengeGoalMetric = 'total_xp' | 'habits_completed' | 'assignments_submitted' | 'quiz_score_avg';
+type ChallengeStatus = 'draft' | 'active' | 'completed' | 'cancelled';
+
+interface ChallengeFormData {
+  title: string;
+  description: string;
+  challenge_type: ChallengeType;
+  course_id: string;
+  start_date: string;
+  end_date: string;
+  goal_metric: ChallengeGoalMetric;
+  goal_target: number;
+  reward_type: 'xp_bonus' | 'badge';
+  reward_value: number; // XP amount or badge_id reference
+  team_ids?: string[]; // for team challenges, min 2, max 20
+}
+
+interface SocialChallenge extends ChallengeFormData {
+  id: string;
+  status: ChallengeStatus;
+  created_by: string;
+  created_at: string;
+}
+
+interface ChallengeProgress {
+  challenge_id: string;
+  participant_id: string; // team_id or student_id
+  participant_type: 'team' | 'student';
+  current_progress: number;
+  goal_target: number;
+  progress_percent: number;
+}
+
+interface ChallengeManagerProps {
+  courseId: string;
+}
+```
+
+#### Challenge List View (`/src/pages/student/challenges/ChallengeListView.tsx`)
+```typescript
+interface ChallengeListViewProps {
+  studentId: string;
+  courseId?: string;
+}
+
+// Active and completed challenges
+// Live progress bars for active challenges
+// Contribution leaderboard for course-wide challenges
+// Team progress for team-based challenges
+```
+
+#### Team Dashboard Card (`/src/components/shared/TeamDashboardCard.tsx`)
+```typescript
+interface TeamDashboardCardProps {
+  teamId: string;
+  studentId: string;
+}
+
+// Displays: team name, avatar, member avatars, team XP pool, team streak (flame icon)
+// Team badges section
+// Link to full team leaderboard
+```
+
+#### Team Leaderboard (`/src/pages/student/leaderboard/TeamLeaderboard.tsx`)
+```typescript
+interface TeamLeaderboardEntry {
+  rank: number;
+  team_id: string;
+  team_name: string;
+  avatar_letter: string;
+  member_count: number;
+  xp_total: number;
+  xp_this_week: number;
+  is_current_team: boolean;
+}
+
+interface TeamLeaderboardProps {
+  courseId: string;
+  studentId: string;
+  view: 'weekly' | 'all_time';
+}
+
+// Real-time updates via Supabase Realtime
+// Top 3: Gold, Silver, Bronze styling
+// Current team highlighted
+// Accessible from Student Dashboard and course detail
+```
+
+#### Team Badge Display (`/src/components/shared/TeamBadgeDisplay.tsx`)
+```typescript
+interface TeamBadge {
+  badge_id: string;
+  badge_name: string;
+  badge_emoji: string;
+  badge_description: string;
+  earned_at: string;
+}
+
+// Team Spirit: team earns 500 XP
+// Unstoppable: team wins 3 challenges
+// Dream Team: all members complete Perfect Day on same day
+// Study Squad: team maintains 7-day team streak
+```
+
+#### Adaptive XP Display (`/src/components/shared/AdaptiveXPDisplay.tsx`)
+```typescript
+interface AdaptiveXPDisplayProps {
+  studentId: string;
+  currentLevel: number;
+  levelMultiplier: number;
+}
+
+// Shows current XP multiplier on Student Dashboard gamification card
+// Displays "Diminishing Returns" indicator when next action would receive reduced XP
+// Shows difficulty bonus on assignment detail page
+```
+
+#### Improvement Bonus Celebration (`/src/components/shared/ImprovementBonusCelebration.tsx`)
+```typescript
+interface ImprovementBonusCelebrationProps {
+  cloTitle: string;
+  bonusXP: number;
+  previousPercent: number;
+  currentPercent: number;
+}
+
+// Celebratory animation: "Great improvement on [CLO title]!"
+// Shows +50 XP bonus amount
+// Uses Framer Motion + canvas-confetti
+```
+
+### New TanStack Query Hooks
+
+```typescript
+// Teams
+useTeams(courseId: string)
+useTeamMembers(teamId: string)
+useCreateTeam()
+useAutoGenerateTeams()
+useAddTeamMember()
+useRemoveTeamMember()
+useTeamGamification(teamId: string)
+
+// Challenges
+useChallenges(courseId: string, status?: ChallengeStatus)
+useCreateChallenge()
+useChallengeProgress(challengeId: string)
+useStudentChallenges(studentId: string)
+
+// Team Leaderboard
+useTeamLeaderboard(courseId: string, view: 'weekly' | 'all_time')
+
+// Team Badges
+useTeamBadges(teamId: string)
+
+// Adaptive XP
+useStudentXPMultiplier(studentId: string)
+useDiminishingReturnsStatus(studentId: string, actionType: string)
+useImprovementBonusHistory(studentId: string)
+```
+
+### New Zod Schemas
+
+```
+team.ts              — teamSchema, teamMemberSchema, autoGenerateTeamsSchema
+challenge.ts         — challengeSchema, challengeProgressSchema
+teamLeaderboard.ts   — teamLeaderboardFilterSchema
+teamBadge.ts         — teamBadgeSchema
+adaptiveXP.ts        — xpMultiplierSchema, diminishingReturnsSchema
+improvementBonus.ts  — improvementBonusSchema
+```
+
+### Data Models
+
+#### Updated `habit_logs` type constraint (Requirement 112)
+```sql
+ALTER TABLE habit_logs DROP CONSTRAINT IF EXISTS habit_logs_habit_type_check;
+ALTER TABLE habit_logs ADD CONSTRAINT habit_logs_habit_type_check
+  CHECK (habit_type IN ('login', 'submit', 'journal', 'read', 'collaborate', 'practice', 'review', 'mentor'));
+```
+
+#### `teams` (Requirement 115)
+```sql
+CREATE TABLE teams (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name text NOT NULL,
+  course_id uuid REFERENCES courses(id) ON DELETE CASCADE NOT NULL,
+  created_by uuid REFERENCES profiles(id) NOT NULL,
+  avatar_letter char(1) NOT NULL, -- auto-generated from first letter of name
+  created_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (course_id, name)
+);
+ALTER TABLE teams ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Teacher manages teams in own courses" ON teams
+  FOR ALL USING (
+    EXISTS (SELECT 1 FROM courses c WHERE c.id = course_id AND c.teacher_id = auth.uid())
+    OR EXISTS (SELECT 1 FROM course_sections cs WHERE cs.course_id = course_id AND cs.teacher_id = auth.uid())
+  );
+CREATE POLICY "Students read teams in enrolled courses" ON teams
+  FOR SELECT USING (
+    EXISTS (SELECT 1 FROM student_courses sc WHERE sc.course_id = course_id AND sc.student_id = auth.uid())
+  );
+```
+
+#### `team_members` (Requirement 115)
+```sql
+CREATE TABLE team_members (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  team_id uuid REFERENCES teams(id) ON DELETE CASCADE NOT NULL,
+  student_id uuid REFERENCES profiles(id) NOT NULL,
+  joined_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (team_id, student_id)
+);
+ALTER TABLE team_members ENABLE ROW LEVEL SECURITY;
+
+-- Enforce: max 6 members per team
+CREATE OR REPLACE FUNCTION enforce_team_size_limit()
+RETURNS trigger AS $$
+BEGIN
+  IF (SELECT COUNT(*) FROM team_members WHERE team_id = NEW.team_id) >= 6 THEN
+    RAISE EXCEPTION 'Team cannot have more than 6 members';
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_team_size_limit
+  BEFORE INSERT ON team_members
+  FOR EACH ROW EXECUTE FUNCTION enforce_team_size_limit();
+
+-- Enforce: student can only be in 1 team per course
+CREATE OR REPLACE FUNCTION enforce_one_team_per_course()
+RETURNS trigger AS $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM team_members tm
+    JOIN teams t ON t.id = tm.team_id
+    JOIN teams new_t ON new_t.id = NEW.team_id
+    WHERE tm.student_id = NEW.student_id
+    AND t.course_id = new_t.course_id
+    AND tm.team_id != NEW.team_id
+  ) THEN
+    RAISE EXCEPTION 'Student is already a member of another team in this course';
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_one_team_per_course
+  BEFORE INSERT ON team_members
+  FOR EACH ROW EXECUTE FUNCTION enforce_one_team_per_course();
+
+CREATE POLICY "Teacher manages team members" ON team_members
+  FOR ALL USING (
+    EXISTS (
+      SELECT 1 FROM teams t
+      JOIN courses c ON c.id = t.course_id
+      WHERE t.id = team_id AND (c.teacher_id = auth.uid()
+        OR EXISTS (SELECT 1 FROM course_sections cs WHERE cs.course_id = c.id AND cs.teacher_id = auth.uid()))
+    )
+  );
+CREATE POLICY "Students read team members in own course" ON team_members
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM teams t
+      JOIN student_courses sc ON sc.course_id = t.course_id
+      WHERE t.id = team_id AND sc.student_id = auth.uid()
+    )
+  );
+```
+
+#### `team_gamification` (Requirements 116, 119)
+```sql
+CREATE TABLE team_gamification (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  team_id uuid REFERENCES teams(id) ON DELETE CASCADE NOT NULL UNIQUE,
+  xp_total integer NOT NULL DEFAULT 0 CHECK (xp_total >= 0),
+  xp_this_week integer NOT NULL DEFAULT 0 CHECK (xp_this_week >= 0),
+  streak_current integer NOT NULL DEFAULT 0 CHECK (streak_current >= 0),
+  streak_longest integer NOT NULL DEFAULT 0 CHECK (streak_longest >= 0),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE team_gamification ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Read team gamification in enrolled courses" ON team_gamification
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM teams t
+      JOIN student_courses sc ON sc.course_id = t.course_id
+      WHERE t.id = team_id AND sc.student_id = auth.uid()
+    )
+    OR EXISTS (
+      SELECT 1 FROM teams t
+      JOIN courses c ON c.id = t.course_id
+      WHERE t.id = team_id AND (c.teacher_id = auth.uid()
+        OR EXISTS (SELECT 1 FROM course_sections cs WHERE cs.course_id = c.id AND cs.teacher_id = auth.uid()))
+    )
+  );
+```
+
+#### `social_challenges` (Requirements 113, 114)
+```sql
+CREATE TABLE social_challenges (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  course_id uuid REFERENCES courses(id) ON DELETE CASCADE NOT NULL,
+  title text NOT NULL,
+  description text,
+  challenge_type text NOT NULL CHECK (challenge_type IN ('team', 'course_wide')),
+  start_date timestamptz NOT NULL,
+  end_date timestamptz NOT NULL CHECK (end_date > start_date),
+  goal_metric text NOT NULL CHECK (goal_metric IN ('total_xp', 'habits_completed', 'assignments_submitted', 'quiz_score_avg')),
+  goal_target numeric NOT NULL CHECK (goal_target > 0),
+  reward_type text NOT NULL CHECK (reward_type IN ('xp_bonus', 'badge')),
+  reward_value numeric NOT NULL CHECK (reward_value > 0),
+  status text NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'active', 'completed', 'cancelled')),
+  created_by uuid REFERENCES profiles(id) NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE social_challenges ENABLE ROW LEVEL SECURITY;
+
+-- Enforce max 3 active course-wide challenges per course
+CREATE OR REPLACE FUNCTION enforce_course_wide_challenge_limit()
+RETURNS trigger AS $$
+BEGIN
+  IF NEW.challenge_type = 'course_wide' AND NEW.status = 'active' THEN
+    IF (SELECT COUNT(*) FROM social_challenges
+        WHERE course_id = NEW.course_id AND challenge_type = 'course_wide' AND status = 'active'
+        AND id != NEW.id) >= 3 THEN
+      RAISE EXCEPTION 'Maximum 3 active course-wide challenges per course';
+    END IF;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_course_wide_challenge_limit
+  BEFORE INSERT OR UPDATE ON social_challenges
+  FOR EACH ROW EXECUTE FUNCTION enforce_course_wide_challenge_limit();
+
+CREATE POLICY "Teacher manages challenges in own courses" ON social_challenges
+  FOR ALL USING (
+    EXISTS (SELECT 1 FROM courses c WHERE c.id = course_id AND c.teacher_id = auth.uid())
+    OR EXISTS (SELECT 1 FROM course_sections cs WHERE cs.course_id = course_id AND cs.teacher_id = auth.uid())
+  );
+CREATE POLICY "Students read challenges in enrolled courses" ON social_challenges
+  FOR SELECT USING (
+    EXISTS (SELECT 1 FROM student_courses sc WHERE sc.course_id = course_id AND sc.student_id = auth.uid())
+  );
+```
+
+#### `challenge_participants` (Requirements 113, 114)
+```sql
+CREATE TABLE challenge_participants (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  challenge_id uuid REFERENCES social_challenges(id) ON DELETE CASCADE NOT NULL,
+  participant_id uuid NOT NULL, -- team_id for team challenges, student_id for course-wide
+  participant_type text NOT NULL CHECK (participant_type IN ('team', 'student')),
+  current_progress numeric NOT NULL DEFAULT 0 CHECK (current_progress >= 0),
+  created_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (challenge_id, participant_id)
+);
+ALTER TABLE challenge_participants ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Read challenge participants in enrolled courses" ON challenge_participants
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM social_challenges sc
+      JOIN student_courses stc ON stc.course_id = sc.course_id
+      WHERE sc.id = challenge_id AND stc.student_id = auth.uid()
+    )
+  );
+```
+
+#### Updated `xp_transactions` columns (Requirements 116, 120, 121, 122, 123)
+```sql
+-- Add team XP tracking
+ALTER TABLE xp_transactions ADD COLUMN scope text NOT NULL DEFAULT 'individual'
+  CHECK (scope IN ('individual', 'team'));
+ALTER TABLE xp_transactions ADD COLUMN team_id uuid REFERENCES teams(id);
+
+-- Add adaptive XP fields
+ALTER TABLE xp_transactions ADD COLUMN base_xp integer;
+ALTER TABLE xp_transactions ADD COLUMN final_xp integer;
+ALTER TABLE xp_transactions ADD COLUMN level_multiplier numeric DEFAULT 1.0;
+ALTER TABLE xp_transactions ADD COLUMN difficulty_multiplier numeric DEFAULT 1.0;
+ALTER TABLE xp_transactions ADD COLUMN diminishing_multiplier numeric DEFAULT 1.0;
+
+-- Add improvement bonus fields
+ALTER TABLE xp_transactions ADD COLUMN action_type text;
+-- action_type values: 'submission', 'login', 'habit', 'badge', 'challenge', 'improvement_bonus', etc.
+ALTER TABLE xp_transactions ADD COLUMN previous_score numeric;
+ALTER TABLE xp_transactions ADD COLUMN current_score numeric;
+ALTER TABLE xp_transactions ADD COLUMN clo_id uuid REFERENCES learning_outcomes(id);
+```
+
+#### Updated `badges` table for team scope (Requirement 118)
+```sql
+ALTER TABLE badges ADD COLUMN scope text NOT NULL DEFAULT 'individual'
+  CHECK (scope IN ('individual', 'team'));
+ALTER TABLE badges ADD COLUMN team_id uuid REFERENCES teams(id);
+
+-- Team badge definitions (seeded)
+-- Team Spirit: team earns 500 XP
+-- Unstoppable: team wins 3 challenges
+-- Dream Team: all members complete Perfect Day on same day
+-- Study Squad: team maintains 7-day team streak
+```
+
+### Adaptive XP Engine Logic (Requirements 120–123)
+
+```typescript
+// Level-based multiplier table (Requirement 120)
+const LEVEL_MULTIPLIERS: Record<string, number> = {
+  '1-5': 1.2,    // encouragement bonus
+  '6-10': 1.0,   // baseline
+  '11-15': 0.9,  // slight reduction
+  '16-20': 0.8,  // experienced reduction
+};
+
+function getLevelMultiplier(level: number): number {
+  if (level <= 5) return 1.2;
+  if (level <= 10) return 1.0;
+  if (level <= 15) return 0.9;
+  return 0.8;
+}
+
+// Difficulty-based multiplier (Requirement 121)
+const BLOOMS_MULTIPLIERS: Record<BloomsLevel, number> = {
+  remembering: 1.0,
+  understanding: 1.1,
+  applying: 1.2,
+  analyzing: 1.3,
+  evaluating: 1.4,
+  creating: 1.5,
+};
+
+// For assignments linked to multiple CLOs, use highest Bloom's level
+function getDifficultyMultiplier(cloBloomsLevels: BloomsLevel[]): number {
+  const highest = cloBloomsLevels.reduce((max, level) =>
+    BLOOMS_MULTIPLIERS[level] > BLOOMS_MULTIPLIERS[max] ? level : max
+  );
+  return BLOOMS_MULTIPLIERS[highest];
+}
+
+// Diminishing returns (Requirement 122)
+function getDiminishingMultiplier(repeatCount: number): number {
+  // 1st action: 1.0, 2nd: 0.8, 3rd: 0.6, 4th: 0.4, 5th+: 0.2
+  const multiplier = Math.max(0.2, 1.0 - (repeatCount - 1) * 0.2);
+  return multiplier;
+}
+
+// Does NOT apply to: streak milestones, badge awards, level-up bonuses
+
+// Final XP calculation
+function calculateFinalXP(
+  baseXP: number,
+  level: number,
+  bloomsLevels: BloomsLevel[],
+  repeatCount: number,
+  isMilestone: boolean
+): number {
+  const levelMult = getLevelMultiplier(level);
+  const diffMult = getDifficultyMultiplier(bloomsLevels);
+  const dimMult = isMilestone ? 1.0 : getDiminishingMultiplier(repeatCount);
+  return Math.floor(baseXP * levelMult * diffMult * dimMult);
+}
+
+// Improvement bonus check (Requirement 123)
+function checkImprovementBonus(
+  currentScore: number,
+  previousScore: number
+): { eligible: boolean; bonusXP: number } {
+  const improvement = currentScore - previousScore;
+  return {
+    eligible: improvement >= 15,
+    bonusXP: improvement >= 15 ? 50 : 0,
+  };
+}
+```
+
+### New Shared Components
+
+```typescript
+TeamCard              // Team summary card with avatar, members, XP pool
+TeamMemberAvatar      // Small avatar with tooltip for team member
+ChallengeCard         // Challenge card with progress bar and countdown
+ChallengeProgressBar  // Animated progress bar toward goal target
+ContributionLeaderboard // Individual contribution ranking within course-wide challenge
+TeamStreakDisplay      // Team streak flame icon with count
+TeamBadgeCard         // Team badge display card
+XPMultiplierBadge     // Current XP multiplier indicator
+DiminishingReturnsBadge // "Reduced XP" warning indicator
+DifficultyBonusBadge  // Bloom's level difficulty bonus indicator on assignment detail
+ImprovementBonusCelebration // Celebratory animation for improvement bonus
+AutoGenerateTeamsDialog // Dialog for auto-generating balanced teams
+ChallengeCountdown    // Countdown timer for active challenges
+```
+
+
+---
+
+### Error Handling (Sections U & V)
+
+| Scenario | Handling |
+|----------|----------|
+| Sub-CLO weight sum ≠ 1.0 | Block assignment linkage; show "Sub-CLO weights must sum to 1.0 (current: X.XX)" |
+| Sub-CLO deletion with evidence | Block deletion; show "Cannot delete: X evidence records depend on this Sub-CLO" |
+| Sub-CLO parent is not a CLO | Reject with "Sub-CLO parent must be a CLO" |
+| Graduate Attribute code duplicate | "A Graduate Attribute with this code already exists" |
+| Competency CSV malformed | Show row-level errors; process valid rows only |
+| Competency indicator unmapped | Display "Unmapped" warning in alignment matrix |
+| Sankey diagram data too large | Paginate or aggregate; show "Showing top N outcomes" |
+| Gap analysis no outcomes | Show empty state: "No outcomes defined for this program" |
+| Heatmap cell zero coverage | Highlight with dashed border pattern |
+| Semester trend no data | Show "No trend data available — at least 2 semesters required" |
+| Cohort comparison insufficient sample | Hide Cohen's d; show "Sample size too small for statistical comparison" |
+| Historical evidence query timeout | Show partial results with "Loading more data..." indicator |
+| Team name duplicate in course | "A team with this name already exists in this course" |
+| Team size limit exceeded | "Team cannot have more than 6 members" |
+| Student already in team | "Student is already a member of another team in this course" |
+| Team size below minimum | "Team must have at least 2 members" |
+| Challenge < 2 teams at start | Auto-cancel; notify teacher "Challenge cancelled: fewer than 2 teams" |
+| Course-wide challenge limit | "Maximum 3 active course-wide challenges per course" |
+| Challenge end date in past | "End date must be in the future" |
+| Team XP direct transfer attempt | "Direct XP transfers between individual and team pools are not allowed" |
+| Diminishing returns active | Show "Reduced XP" indicator with current multiplier |
+| Improvement bonus no previous score | Skip bonus check; no previous assessment to compare |
+| Adaptive XP calculation overflow | Cap final_xp at 9999 per transaction |
+
+### Correctness Properties (81–100)
+
+*A property is a characteristic or behavior that should hold true across all valid executions of a system — essentially, a formal statement about what the system should do. Properties serve as the bridge between human-readable specifications and machine-verifiable correctness guarantees.*
+
+### Property 81: Sub-CLO weight sum constraint
+*For any* CLO with one or more Sub-CLOs, the sum of all Sub-CLO weights must equal 1.0 (within floating-point tolerance of ±0.001). Assignment linkage to the parent CLO should be blocked when the weight sum deviates from 1.0.
+
+**Validates: Requirements 103.1, 103.2**
+
+### Property 82: Sub-CLO weighted rollup accuracy
+*For any* CLO with Sub-CLOs, the parent CLO attainment should equal the weighted average of its Sub-CLO attainments: `sum(sub_clo_attainment × sub_clo_weight)`. When no Sub-CLOs exist, the CLO attainment should be calculated directly from evidence as before.
+
+**Validates: Requirements 103.4**
+
+### Property 83: Sub-CLO deletion protection
+*For any* Sub-CLO with one or more linked evidence records, deletion should be rejected. The error response should include the count of dependent evidence records.
+
+**Validates: Requirements 103.5**
+
+### Property 84: Graduate Attribute weighted rollup accuracy
+*For any* Graduate Attribute with one or more ILO mappings, the GA attainment should equal the weighted average of mapped ILO attainments: `sum(ilo_attainment × mapping_weight)`.
+
+**Validates: Requirements 104.2, 104.3**
+
+### Property 85: Graduate Attribute audit logging
+*For any* create, update, or delete operation on a Graduate Attribute, an audit log record should be created with the correct action type and before/after snapshots. The audit log count for GA operations should equal the count of GA mutations performed.
+
+**Validates: Requirements 104.6**
+
+### Property 86: Competency hierarchy level consistency
+*For any* competency item in a framework, the hierarchy levels must follow: Domain (no parent or parent is null) → Competency (parent is Domain) → Indicator (parent is Competency). An Indicator cannot be a parent of another item. A Domain cannot have a Domain parent.
+
+**Validates: Requirements 105.1**
+
+### Property 87: Competency CSV import round-trip
+*For any* valid competency CSV with Domain/Competency/Indicator rows, importing the CSV and then querying the resulting competency_items should produce a hierarchy that matches the original CSV structure: same codes, titles, and parent-child relationships.
+
+**Validates: Requirements 105.4**
+
+### Property 88: Unmapped competency indicator flagging
+*For any* competency indicator with zero entries in competency_outcome_mappings, the indicator should be flagged as "Unmapped" in the alignment matrix. Indicators with at least one mapping should not be flagged.
+
+**Validates: Requirements 105.6**
+
+### Property 89: Sankey data transformation correctness
+*For any* set of ILO → PLO → CLO outcome mappings with weights, the Sankey data transformation should produce: (a) one node per outcome with the correct attainment-based color (green/blue/yellow/red/gray), and (b) one link per mapping with width proportional to the mapping weight. The total number of links should equal the total number of outcome_mappings records in scope.
+
+**Validates: Requirements 106.1, 106.4**
+
+### Property 90: Gap status classification correctness
+*For any* outcome (ILO, PLO, or CLO), the gap status should be classified as: "Fully Mapped" when all expected child mappings exist and evidence is present; "Partially Mapped" when some but not all child mappings exist; "Unmapped" when zero child mappings exist; "No Evidence" when mappings exist but zero evidence records exist in the current semester. Additionally, any PLO with fewer than 2 mapped CLOs should be flagged as "Under-Mapped", and any CLO with zero linked assessments in the current semester should be flagged as "Unassessed".
+
+**Validates: Requirements 107.1, 107.2, 107.3**
+
+### Property 91: Coverage heatmap data integrity
+*For any* CLO × Course intersection in the heatmap matrix, the evidence count should equal the actual count of evidence records for that CLO in that course. The color assignment should follow the sequential scale: white (0) → light blue (1–5) → dark blue (6+) for evidence count mode, and the attainment-level color scale for attainment mode.
+
+**Validates: Requirements 108.1, 108.2**
+
+### Property 92: Semester attainment snapshot completeness
+*For any* semester close operation, a snapshot record should be created for every CLO, PLO, and ILO that has evidence in that semester. The snapshot's avg_attainment should equal the average of all student attainment records for that outcome in that semester.
+
+**Validates: Requirements 109.1**
+
+### Property 93: Declining trend detection
+*For any* pair of consecutive semester attainment snapshots for the same outcome, if the attainment drops by 10 percentage points or more, the outcome should be flagged with a "Declining Trend" warning. Drops of less than 10 percentage points should not trigger the warning.
+
+**Validates: Requirements 109.3**
+
+### Property 94: Cohort comparison average attainment and gap detection
+*For any* cohort comparison between two or more cohorts, the average attainment per outcome per cohort should equal the mean of all student attainment records in that cohort for that outcome. When any cohort's average is 15 or more percentage points below another cohort for the same outcome, it should be flagged as "Significant Gap".
+
+**Validates: Requirements 110.2, 110.5**
+
+### Property 95: Cohen's d effect size calculation
+*For any* two-cohort comparison where both cohorts have sample sizes of 20 or more students, Cohen's d should be calculated as `(mean1 - mean2) / pooled_std_dev`. The pooled standard deviation should use the standard formula: `sqrt(((n1-1)*s1² + (n2-1)*s2²) / (n1+n2-2))`. Cohen's d should not be calculated when either cohort has fewer than 20 students.
+
+**Validates: Requirements 110.3**
+
+### Property 96: Historical evidence attainment distribution
+*For any* semester in the historical evidence view, the sum of Excellent + Satisfactory + Developing + Not_Yet counts should equal the total evidence count for that semester. The proportion of each level should be correctly calculated as `level_count / total_count`.
+
+**Validates: Requirements 111.1, 111.2**
+
+### Property 97: Extended habit type validation
+*For any* habit log record, the habit_type must be one of the 8 valid types: login, submit, journal, read, collaborate, practice, review, mentor. Records with any other habit_type should be rejected.
+
+**Validates: Requirements 112.1**
+
+### Property 98: Extended habit completion triggers
+*For any* student who posts a discussion question or answer, the Collaborate habit should be marked complete for that day. *For any* student who completes a quiz attempt, the Practice habit should be marked complete. *For any* student who submits a peer review, the Review habit should be marked complete. *For any* student whose discussion answer is marked correct by a teacher, the Mentor habit should be marked complete. Each extended habit completion should award exactly 15 XP.
+
+**Validates: Requirements 112.2, 112.3, 112.4, 112.5, 112.6**
+
+### Property 99: Updated Perfect Day threshold
+*For any* student on a given day, a Perfect Day is achieved if and only if the count of distinct completed habit types is ≥ 6 (out of 8). The Perfect Day bonus XP (50 XP) should be awarded exactly once per qualifying day.
+
+**Validates: Requirements 112.8**
+
+### Property 100: Team membership constraints
+*For any* team, the member count must be between 2 and 6 inclusive. *For any* student within a single course, they should be a member of at most one team. Adding a 7th member should be rejected. Adding a student who is already on another team in the same course should be rejected.
+
+**Validates: Requirements 115.2, 115.3**
+
+### Property 101: Auto-generated team balance
+*For any* auto-generation of teams from N students with target team size S, the resulting teams should have sizes that differ by at most 1 (balanced distribution). Every enrolled student should be assigned to exactly one team.
+
+**Validates: Requirements 115.4**
+
+### Property 102: Team XP split correctness
+*For any* XP award to a student who is a team member, the student's individual XP balance should increase by the full award amount, and the team's XP pool should increase by `floor(award_amount / 2)`. A separate xp_transactions record with `scope = 'team'` should be created for the team contribution.
+
+**Validates: Requirements 116.1, 116.4**
+
+### Property 103: Team leaderboard ordering and completeness
+*For any* team leaderboard query within a course, all teams in that course should be present, ordered by team XP descending (weekly or all-time). Each entry should include: rank, team name, avatar letter, member count, total XP, and weekly XP.
+
+**Validates: Requirements 117.1, 117.2**
+
+### Property 104: Team badge idempotency
+*For any* team badge trigger (Team Spirit at 500 XP, Unstoppable at 3 challenge wins, Dream Team on shared Perfect Day, Study Squad at 7-day streak) that fires multiple times for the same team, the badge should be awarded exactly once. The badge record should have `scope = 'team'`.
+
+**Validates: Requirements 118.2, 118.5**
+
+### Property 105: Team streak calculation
+*For any* team, the team streak should increment by 1 when ALL team members log in on the same calendar day. When any team member misses a day (no login record), the team streak should reset to 0. The `streak_longest` should always be ≥ `streak_current`.
+
+**Validates: Requirements 119.1, 119.2**
+
+### Property 106: Team streak milestone rewards
+*For any* team reaching streak milestones of 7, 14, or 30 days, the corresponding team badge should be awarded and the team XP pool should receive the correct bonus (100, 250, or 500 XP respectively). Each milestone reward should be awarded exactly once.
+
+**Validates: Requirements 119.5**
+
+### Property 107: Adaptive XP formula correctness
+*For any* XP award, the final XP should equal `floor(base_xp × level_multiplier × difficulty_multiplier × diminishing_multiplier)` where: level_multiplier is 1.2 for levels 1–5, 1.0 for 6–10, 0.9 for 11–15, 0.8 for 16–20; difficulty_multiplier follows Bloom's taxonomy (Remembering 1.0 through Creating 1.5); and diminishing_multiplier decreases by 0.2 per repetition (min 0.2) for non-milestone actions. For assignments linked to multiple CLOs, the highest Bloom's level determines the difficulty multiplier.
+
+**Validates: Requirements 120.1, 120.2, 121.1, 121.2**
+
+### Property 108: XP transaction auditability
+*For any* xp_transactions record created by the Adaptive XP Engine, the record should contain: base_xp, final_xp, level_multiplier, difficulty_multiplier, and diminishing_multiplier. The relationship `final_xp = floor(base_xp × level_multiplier × difficulty_multiplier × diminishing_multiplier)` should hold for every record.
+
+**Validates: Requirements 120.3, 121.4**
+
+### Property 109: Diminishing returns mechanics
+*For any* student performing repeated actions of the same type within a rolling 24-hour window, the diminishing multiplier should be: 1.0 (1st), 0.8 (2nd), 0.6 (3rd), 0.4 (4th), 0.2 (5th+). After 24 hours from the first action in the window, the multiplier should reset to 1.0 for that action type. Milestone rewards (streak milestones, badge awards, level-up bonuses) should always receive a 1.0 diminishing multiplier regardless of repetition count.
+
+**Validates: Requirements 122.1, 122.4, 122.5**
+
+### Property 110: Improvement bonus correctness
+*For any* student whose CLO attainment improves by 15 or more percentage points compared to their previous evidence score on the same CLO, an Improvement Bonus of exactly 50 XP should be awarded with `action_type = 'improvement_bonus'`. Improvements of less than 15 percentage points should not trigger the bonus. The xp_transactions record should reference the CLO and include previous and current scores.
+
+**Validates: Requirements 123.1, 123.2, 123.5**
+
+### Property 111: Comeback Kid badge threshold
+*For any* student who earns 3 or more Improvement Bonuses within a single semester, the "Comeback Kid" badge should be awarded exactly once. Students with fewer than 3 Improvement Bonuses in a semester should not receive the badge.
+
+**Validates: Requirements 123.4**
+
+### Property 112: Challenge creation constraints
+*For any* social challenge, all required fields (title, description, challenge_type, start/end date, goal_metric, goal_target, reward) must be present. For team-based challenges, the assigned team count must be between 2 and 20 inclusive. Challenges with fewer than 2 teams at the start date should be auto-cancelled.
+
+**Validates: Requirements 113.1, 113.2, 113.6**
+
+### Property 113: Course-wide challenge participation and reward distribution
+*For any* course-wide challenge, all enrolled students in the course should be participants. The aggregate progress should equal the sum of individual contributions. When the goal is achieved, the reward should be distributed only to students who contributed at least one qualifying action. Active course-wide challenges per course should not exceed 3.
+
+**Validates: Requirements 114.1, 114.2, 114.3, 114.5**
+
+### Property 114: Challenge 90% notification trigger
+*For any* course-wide challenge that reaches 90% of the goal target, a notification should be sent to all enrolled students. The notification should not be sent again if progress fluctuates around the 90% mark (send once per challenge).
+
+**Validates: Requirements 114.6**
+
+### Property 115: Team challenge reward atomicity
+*For any* completed team-based challenge, the winning team(s) should be determined by highest progress toward the goal. The reward should be distributed to all members of the winning team(s) atomically — either all members receive the reward or none do.
+
+**Validates: Requirements 113.4**
+
+### Updated Testing Strategy (Sections U & V)
+
+All 80 existing properties retained + 35 new properties (81–115) covering OBE Engine Enhancements and Habit Engine Enhancements = 115 total correctness properties.
+
+### New Test Organization
+
+Add to `src/__tests__/properties/`:
+```
+├── sub-clo.property.test.ts           # Properties 81, 82, 83
+├── graduate-attributes.property.test.ts # Properties 84, 85
+├── competency-frameworks.property.test.ts # Properties 86, 87, 88
+├── sankey-diagram.property.test.ts    # Property 89
+├── gap-analysis.property.test.ts      # Property 90
+├── coverage-heatmap.property.test.ts  # Property 91
+├── semester-trends.property.test.ts   # Properties 92, 93
+├── cohort-comparison.property.test.ts # Properties 94, 95
+├── historical-evidence.property.test.ts # Property 96
+├── extended-habits.property.test.ts   # Properties 97, 98, 99
+├── teams.property.test.ts            # Properties 100, 101
+├── team-xp.property.test.ts          # Property 102
+├── team-leaderboard.property.test.ts  # Property 103
+├── team-badges.property.test.ts       # Property 104
+├── team-streaks.property.test.ts      # Properties 105, 106
+├── adaptive-xp.property.test.ts       # Properties 107, 108, 109
+├── improvement-bonus.property.test.ts # Properties 110, 111
+└── social-challenges.property.test.ts # Properties 112, 113, 114, 115
+```
+
+Add to `src/__tests__/unit/`:
+```
+├── sub-clo.test.ts
+├── graduate-attributes.test.ts
+├── competency-frameworks.test.ts
+├── sankey-diagram.test.ts
+├── gap-analysis.test.ts
+├── coverage-heatmap.test.ts
+├── semester-trends.test.ts
+├── cohort-comparison.test.ts
+├── historical-evidence.test.ts
+├── extended-habits.test.ts
+├── teams.test.ts
+├── team-gamification.test.ts
+├── team-leaderboard.test.ts
+├── team-badges.test.ts
+├── team-streaks.test.ts
+├── adaptive-xp.test.ts
+├── improvement-bonus.test.ts
+└── social-challenges.test.ts
+```
+
+Add to `src/__tests__/integration/`:
+```
+├── sub-clo-rollup-pipeline.test.ts
+├── graduate-attribute-rollup.test.ts
+├── competency-import-pipeline.test.ts
+├── team-xp-pipeline.test.ts
+├── team-streak-pipeline.test.ts
+├── adaptive-xp-pipeline.test.ts
+├── improvement-bonus-pipeline.test.ts
+├── challenge-completion-pipeline.test.ts
+└── extended-habit-xp-pipeline.test.ts
+```
+
+### Property-Based Testing Configuration
+
+All property tests use `fast-check` with minimum 100 iterations per property. Each test file references the design document property:
+
+```typescript
+// Example: src/__tests__/properties/adaptive-xp.property.test.ts
+import * as fc from 'fast-check';
+
+describe('Adaptive XP Engine', () => {
+  // Feature: edeviser-platform, Property 107: Adaptive XP formula correctness
+  it('should calculate final XP using correct formula with all multipliers', () => {
+    fc.assert(
+      fc.property(
+        fc.integer({ min: 1, max: 100 }),  // base_xp
+        fc.integer({ min: 1, max: 20 }),   // level
+        fc.constantFrom('remembering', 'understanding', 'applying', 'analyzing', 'evaluating', 'creating'),
+        fc.integer({ min: 1, max: 10 }),   // repeat count
+        fc.boolean(),                       // is milestone
+        (baseXP, level, bloomsLevel, repeatCount, isMilestone) => {
+          const result = calculateFinalXP(baseXP, level, [bloomsLevel], repeatCount, isMilestone);
+          const expected = Math.floor(
+            baseXP *
+            getLevelMultiplier(level) *
+            BLOOMS_MULTIPLIERS[bloomsLevel] *
+            (isMilestone ? 1.0 : getDiminishingMultiplier(repeatCount))
+          );
+          expect(result).toBe(expected);
+        }
+      ),
+      { numRuns: 100 }
+    );
+  });
+});
+```
+
+### New TanStack Query Keys
+
+Add to `/src/lib/queryKeys.ts`: `subCLOs`, `graduateAttributes`, `graduateAttributeMappings`, `graduateAttributeAttainment`, `competencyFrameworks`, `competencyItems`, `competencyOutcomeMappings`, `sankeyData`, `gapAnalysis`, `coverageHeatmap`, `semesterTrends`, `cohortComparison`, `historicalEvidence`, `teams`, `teamMembers`, `teamGamification`, `teamLeaderboard`, `teamBadges`, `challenges`, `challengeProgress`, `studentChallenges`, `xpMultiplier`, `diminishingReturns`, `improvementBonusHistory`.

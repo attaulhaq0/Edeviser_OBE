@@ -2236,3 +2236,905 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Mutation for uploading and processing CSV imports
     - Query for import history/status
     - _Requirements: NFR_
+
+
+- [ ] 109. OBE Engine — Sub-CLO Database Migration and Core Logic
+  - [ ] 109.1 Apply Sub-CLO database migration via Supabase MCP `apply_migration`
+    - Add `weight` column to `learning_outcomes` table: `ALTER TABLE learning_outcomes ADD COLUMN weight numeric DEFAULT 1.0 CHECK (weight > 0 AND weight <= 1.0)`
+    - Update type check constraint to include `SUB_CLO`: `ALTER TABLE learning_outcomes DROP CONSTRAINT IF EXISTS learning_outcomes_type_check; ALTER TABLE learning_outcomes ADD CONSTRAINT learning_outcomes_type_check CHECK (type IN ('ILO', 'PLO', 'CLO', 'SUB_CLO'))`
+    - Create `validate_sub_clo_weights()` trigger function that ensures Sub-CLO parent is a CLO
+    - Create `trg_validate_sub_clo` trigger on `learning_outcomes` BEFORE INSERT OR UPDATE
+    - Regenerate TypeScript types: `npx supabase gen types --linked > src/types/database.ts`
+    - _Requirements: 103.1_
+
+  - [ ] 109.2 Create Sub-CLO Zod schemas (`/src/lib/schemas/subCLO.ts`)
+    - `subCLOSchema`: validates title, description, code, weight (0.0–1.0), parent_outcome_id
+    - `subCLOWeightSumSchema`: validates that sum of sibling Sub-CLO weights equals 1.0 (±0.001 tolerance)
+    - _Requirements: 103.1, 103.2_
+
+  - [ ] 109.3 Create Sub-CLO TanStack Query hooks (`/src/hooks/useSubCLOs.ts`)
+    - `useSubCLOs(cloId)`: fetches Sub-CLOs for a parent CLO
+    - `useCreateSubCLO()`: mutation to create Sub-CLO with weight validation
+    - `useUpdateSubCLO()`: mutation to update Sub-CLO
+    - `useDeleteSubCLO()`: mutation that checks for linked evidence before deletion (Req 103.5)
+    - Add query keys to `/src/lib/queryKeys.ts`: `subCLOs`
+    - _Requirements: 103.1, 103.5_
+
+  - [ ] 109.4 Implement Sub-CLO weighted rollup logic in `calculate-attainment-rollup` Edge Function
+    - When a CLO has Sub-CLOs, calculate parent CLO attainment as `sum(sub_clo_attainment × sub_clo_weight)`
+    - When no Sub-CLOs exist, retain existing direct evidence calculation
+    - _Requirements: 103.4_
+
+  - [ ]* 109.5 Write property tests for Sub-CLO weight sum constraint (`/src/__tests__/properties/sub-clo.property.test.ts`)
+    - **Property 81: Sub-CLO weight sum constraint**
+    - **Validates: Requirements 103.1, 103.2**
+
+  - [ ]* 109.6 Write property tests for Sub-CLO weighted rollup accuracy
+    - **Property 82: Sub-CLO weighted rollup accuracy**
+    - **Validates: Requirements 103.4**
+
+  - [ ]* 109.7 Write property test for Sub-CLO deletion protection
+    - **Property 83: Sub-CLO deletion protection**
+    - **Validates: Requirements 103.5**
+
+
+- [ ] 110. OBE Engine — Sub-CLO UI Components
+  - [ ] 110.1 Create SubCLOManager page component (`/src/pages/teacher/outcomes/SubCLOManager.tsx`)
+    - Form for creating/editing Sub-CLOs with weight input (React Hook Form + Zod)
+    - Weight sum validation indicator showing current total vs 1.0
+    - Deletion blocked when evidence exists, showing dependent evidence count
+    - _Requirements: 103.1, 103.2, 103.5_
+
+  - [ ] 110.2 Create SubCLORow shared component (`/src/components/shared/SubCLORow.tsx`)
+    - Expandable row beneath parent CLO in outcome list views
+    - Shows Sub-CLO code, title, weight, and attainment bar
+    - Uses Shadcn/ui Collapsible for expand/collapse
+    - _Requirements: 103.6_
+
+  - [ ] 110.3 Update CLO list views to display Sub-CLOs as expandable children
+    - Modify Teacher CLO list page to render SubCLORow beneath each CLO
+    - Modify Coordinator outcome views to show Sub-CLO hierarchy
+    - Modify Student CLO progress view to show Sub-CLO breakdown
+    - _Requirements: 103.6_
+
+  - [ ] 110.4 Update RubricBuilder to support Sub-CLO linkage
+    - When a CLO has Sub-CLOs, allow rubric criteria to link to individual Sub-CLOs
+    - Show Sub-CLO selector dropdown when parent CLO is selected
+    - _Requirements: 103.3_
+
+- [ ] 111. Checkpoint — Sub-CLO Implementation
+  - Ensure all tests pass, ask the user if questions arise.
+
+
+- [ ] 112. OBE Engine — Graduate Attribute Database and Core Logic
+  - [ ] 112.1 Apply Graduate Attribute database migration via Supabase MCP `apply_migration`
+    - Create `graduate_attributes` table with `id`, `institution_id`, `title`, `description`, `code`, `created_at`, `updated_at`, UNIQUE(institution_id, code)
+    - Create `graduate_attribute_mappings` table with `id`, `graduate_attribute_id`, `ilo_id`, `weight`, UNIQUE(graduate_attribute_id, ilo_id)
+    - Enable RLS on both tables with admin-manages and all-roles-read policies
+    - Regenerate TypeScript types
+    - _Requirements: 104.1, 104.2_
+
+  - [ ] 112.2 Create Graduate Attribute Zod schemas (`/src/lib/schemas/graduateAttribute.ts`)
+    - `graduateAttributeSchema`: validates title, description, code
+    - `graduateAttributeMappingSchema`: validates graduate_attribute_id, ilo_id, weight (0.0–1.0)
+    - _Requirements: 104.1, 104.2_
+
+  - [ ] 112.3 Create Graduate Attribute TanStack Query hooks (`/src/hooks/useGraduateAttributes.ts`)
+    - `useGraduateAttributes(institutionId)`, `useCreateGraduateAttribute()`, `useUpdateGraduateAttribute()`, `useDeleteGraduateAttribute()`
+    - `useGraduateAttributeMappings(attributeId)`, `useGraduateAttributeAttainment(institutionId)`
+    - All mutations log to audit_logs via auditLogger
+    - Add query keys to `/src/lib/queryKeys.ts`
+    - _Requirements: 104.1, 104.2, 104.3, 104.6_
+
+  - [ ] 112.4 Implement GA weighted rollup in `calculate-attainment-rollup` Edge Function
+    - Calculate GA attainment as weighted average of mapped ILO attainments: `sum(ilo_attainment × mapping_weight)`
+    - _Requirements: 104.3_
+
+  - [ ]* 112.5 Write property tests for Graduate Attribute rollup (`/src/__tests__/properties/graduate-attributes.property.test.ts`)
+    - **Property 84: Graduate Attribute weighted rollup accuracy**
+    - **Validates: Requirements 104.2, 104.3**
+
+  - [ ]* 112.6 Write property test for Graduate Attribute audit logging
+    - **Property 85: Graduate Attribute audit logging**
+    - **Validates: Requirements 104.6**
+
+
+- [ ] 113. OBE Engine — Graduate Attribute UI Components
+  - [ ] 113.1 Create GraduateAttributeManager page (`/src/pages/admin/graduate-attributes/GraduateAttributeManager.tsx`)
+    - CRUD form for Graduate Attributes (React Hook Form + Zod)
+    - Mapping interface to link GAs to ILOs with weight input
+    - Data table with sorting/filtering via TanStack Table
+    - _Requirements: 104.1, 104.2_
+
+  - [ ] 113.2 Create GraduateAttributeCard shared component (`/src/components/shared/GraduateAttributeCard.tsx`)
+    - Displays GA title, code, attainment percentage, mapped ILO count
+    - Color-coded attainment level (Excellent/Satisfactory/Developing/Not Yet)
+    - _Requirements: 104.5_
+
+  - [ ] 113.3 Add GA attainment overview card to Admin Dashboard
+    - Institution-wide attainment percentages per attribute
+    - Uses GraduateAttributeCard in a grid layout
+    - _Requirements: 104.5_
+
+  - [ ] 113.4 Update Report Generator Edge Function to include GA summary in accreditation PDF
+    - Add Graduate Attribute attainment summary section to PDF report
+    - _Requirements: 104.4_
+
+- [ ] 114. OBE Engine — Competency Framework Database and Core Logic
+  - [ ] 114.1 Apply Competency Framework database migration via Supabase MCP `apply_migration`
+    - Create `competency_frameworks` table with `id`, `institution_id`, `name`, `version`, `source`, UNIQUE(institution_id, name, version)
+    - Create `competency_items` table with `id`, `framework_id`, `parent_id` (self-ref), `level` (domain/competency/indicator), `code`, `title`, `sort_order`, UNIQUE(framework_id, code)
+    - Create `competency_outcome_mappings` table with `id`, `competency_item_id`, `outcome_id`, UNIQUE(competency_item_id, outcome_id)
+    - Enable RLS on all three tables with admin-manages and all-roles-read policies
+    - Regenerate TypeScript types
+    - _Requirements: 105.1, 105.2, 105.3_
+
+  - [ ] 114.2 Create Competency Framework Zod schemas (`/src/lib/schemas/competencyFramework.ts`)
+    - `competencyFrameworkSchema`: validates name, version, source
+    - `competencyItemSchema`: validates framework_id, parent_id, level, code, title
+    - `competencyCSVRowSchema`: validates domain_code, domain_title, competency_code, competency_title, indicator_code, indicator_title
+    - _Requirements: 105.1, 105.4_
+
+  - [ ] 114.3 Create Competency Framework TanStack Query hooks (`/src/hooks/useCompetencyFrameworks.ts`)
+    - `useCompetencyFrameworks(institutionId)`, `useCompetencyItems(frameworkId)`
+    - `useCreateCompetencyFramework()`, `useImportCompetencyCSV()`, `useCompetencyOutcomeMappings(frameworkId)`
+    - Add query keys to `/src/lib/queryKeys.ts`
+    - _Requirements: 105.1, 105.3, 105.4_
+
+  - [ ] 114.4 Create CSV import Edge Function for competency frameworks (`/supabase/functions/import-competency-csv/`)
+    - Parse CSV with columns: domain_code, domain_title, competency_code, competency_title, indicator_code, indicator_title
+    - Build three-level hierarchy: Domain → Competency → Indicator
+    - Validate against Zod schema, return import summary
+    - _Requirements: 105.4_
+
+  - [ ]* 114.5 Write property tests for competency hierarchy (`/src/__tests__/properties/competency-frameworks.property.test.ts`)
+    - **Property 86: Competency hierarchy level consistency**
+    - **Validates: Requirements 105.1**
+
+  - [ ]* 114.6 Write property test for CSV import round-trip
+    - **Property 87: Competency CSV import round-trip**
+    - **Validates: Requirements 105.4**
+
+  - [ ]* 114.7 Write property test for unmapped indicator flagging
+    - **Property 88: Unmapped competency indicator flagging**
+    - **Validates: Requirements 105.6**
+
+
+- [ ] 115. OBE Engine — Competency Framework UI Components
+  - [ ] 115.1 Create CompetencyFrameworkManager page (`/src/pages/admin/competency-frameworks/CompetencyFrameworkManager.tsx`)
+    - CRUD form for frameworks (name, version, source) with React Hook Form + Zod
+    - CSV file upload with drag-and-drop for bulk import
+    - Import preview with validation status per row
+    - Data table listing frameworks with TanStack Table
+    - _Requirements: 105.1, 105.2, 105.4_
+
+  - [ ] 115.2 Create CompetencyTree shared component (`/src/components/shared/CompetencyTree.tsx`)
+    - Hierarchical tree view: Domain → Competency → Indicator
+    - Expand/collapse nodes using Shadcn/ui Collapsible
+    - "Unmapped" warning badge on indicators with zero outcome mappings
+    - _Requirements: 105.1, 105.6_
+
+  - [ ] 115.3 Create CompetencyAlignmentMatrix shared component (`/src/components/shared/CompetencyAlignmentMatrix.tsx`)
+    - Matrix: Competency Indicators (rows) × Outcomes (columns)
+    - Coverage indicators showing mapping presence and attainment
+    - Unmapped indicators flagged with visual warning
+    - _Requirements: 105.5, 105.6_
+
+  - [ ] 115.4 Create mapping interface for competency indicators to outcomes
+    - Dropdown selectors for linking indicators to ILOs, PLOs, or CLOs
+    - Mapping stored in `competency_outcome_mappings` table
+    - _Requirements: 105.3_
+
+  - [ ] 115.5 Update Report Generator to produce competency alignment matrix report
+    - Add competency-to-outcome alignment section to accreditation PDF
+    - Show mapping coverage and attainment per indicator
+    - _Requirements: 105.5_
+
+- [ ] 116. Checkpoint — Graduate Attributes and Competency Frameworks
+  - Ensure all tests pass, ask the user if questions arise.
+
+
+- [ ] 117. OBE Engine — Visualization Data Hooks and Utilities
+  - [ ] 117.1 Create Sankey data transformation utility (`/src/lib/sankeyTransform.ts`)
+    - Transform outcome_mappings + outcome_attainment into SankeyNode[] and SankeyLink[]
+    - Color-code nodes by attainment level: green (Excellent), blue (Satisfactory), yellow (Developing), red (Not Yet), gray (Unmapped)
+    - Link widths proportional to mapping weights
+    - _Requirements: 106.1, 106.4_
+
+  - [ ] 117.2 Create Gap Analysis classification utility (`/src/lib/gapAnalysis.ts`)
+    - Classify outcomes as: fully_mapped, partially_mapped, unmapped, no_evidence
+    - Flag PLOs with < 2 mapped CLOs as "Under-Mapped"
+    - Flag CLOs with 0 linked assessments in current semester as "Unassessed"
+    - Generate recommendation actions for flagged outcomes
+    - _Requirements: 107.1, 107.2, 107.3, 107.5_
+
+  - [ ] 117.3 Create Coverage Heatmap data utility (`/src/lib/coverageHeatmap.ts`)
+    - Build CLO × Course matrix from evidence records
+    - Sequential color scale: white (0) → light blue (1–5) → dark blue (6+)
+    - Toggle support for attainment percentage coloring mode
+    - _Requirements: 108.1, 108.2_
+
+  - [ ] 117.4 Create visualization TanStack Query hooks (`/src/hooks/useVisualizationData.ts`)
+    - `useSankeyData(programId?, courseId?, semesterId?)`: fetches and transforms Sankey data
+    - `useGapAnalysis(programId, semesterId)`: fetches gap analysis data
+    - `useCoverageHeatmap(programId, semesterId?)`: fetches heatmap matrix data
+    - Add query keys to `/src/lib/queryKeys.ts`
+    - _Requirements: 106.1, 107.1, 108.1_
+
+  - [ ] 117.5 Create Zod filter schemas for visualizations (`/src/lib/schemas/`)
+    - `sankeyFilter.ts`: sankeyFilterSchema (programId, courseId, semesterId)
+    - `gapAnalysis.ts`: gapAnalysisFilterSchema (programId, semesterId)
+    - `coverageHeatmap.ts`: coverageHeatmapFilterSchema (programId, semesterId, attainmentThreshold)
+    - _Requirements: 106.5, 107.1, 108.4_
+
+  - [ ]* 117.6 Write property test for Sankey data transformation (`/src/__tests__/properties/sankey-diagram.property.test.ts`)
+    - **Property 89: Sankey data transformation correctness**
+    - **Validates: Requirements 106.1, 106.4**
+
+  - [ ]* 117.7 Write property test for Gap status classification (`/src/__tests__/properties/gap-analysis.property.test.ts`)
+    - **Property 90: Gap status classification correctness**
+    - **Validates: Requirements 107.1, 107.2, 107.3**
+
+  - [ ]* 117.8 Write property test for Coverage heatmap data integrity (`/src/__tests__/properties/coverage-heatmap.property.test.ts`)
+    - **Property 91: Coverage heatmap data integrity**
+    - **Validates: Requirements 108.1, 108.2**
+
+
+- [ ] 118. OBE Engine — Sankey Diagram UI
+  - [ ] 118.1 Create SankeyChart shared component (`/src/components/shared/SankeyChart.tsx`)
+    - Reusable Sankey diagram component using Recharts Sankey or custom D3
+    - Node rendering with attainment-level color coding
+    - Link rendering with proportional widths
+    - Performance target: render within 2 seconds for 30 ILOs, 100 PLOs, 500 CLOs
+    - _Requirements: 106.1, 106.4, 106.6_
+
+  - [ ] 118.2 Create SankeyDiagramView page (`/src/pages/coordinator/sankey/SankeyDiagramView.tsx`)
+    - Hover tooltip: source outcome, target outcome, weight, attainment %
+    - Click node: opens detail panel with full outcome info, mapped children/parents, attainment breakdown
+    - Filter controls: program, course, semester (using nuqs for URL state)
+    - _Requirements: 106.2, 106.3, 106.5_
+
+  - [ ] 118.3 Add Sankey diagram route and navigation
+    - Add route `/coordinator/sankey` to AppRouter
+    - Add navigation link in Coordinator sidebar
+    - Also accessible from Admin dashboard
+    - _Requirements: 106.1_
+
+- [ ] 119. OBE Engine — Gap Analysis UI
+  - [ ] 119.1 Create GapStatusBadge shared component (`/src/components/shared/GapStatusBadge.tsx`)
+    - Color-coded status: Fully Mapped (green), Partially Mapped (yellow), Unmapped (red), No Evidence (gray)
+    - "Under-Mapped" and "Unassessed" warning variants with warning icon
+    - _Requirements: 107.1, 107.2, 107.3_
+
+  - [ ] 119.2 Create GapAnalysisView page (`/src/pages/coordinator/gap-analysis/GapAnalysisView.tsx`)
+    - Hierarchical tree with GapStatusBadge per outcome
+    - Summary statistics bar: total outcomes, % fully mapped, % with evidence, % meeting targets
+    - Click flagged outcome → recommended actions panel
+    - Filter by program and semester (nuqs)
+    - _Requirements: 107.1, 107.4, 107.5_
+
+  - [ ] 119.3 Add PDF export for Gap Analysis
+    - Export gap analysis summary as PDF using jspdf
+    - Include hierarchical tree, summary stats, and recommendations
+    - _Requirements: 107.6_
+
+  - [ ] 119.4 Add Gap Analysis route and navigation
+    - Add route `/coordinator/gap-analysis` to AppRouter
+    - Add navigation link in Coordinator sidebar
+    - _Requirements: 107.1_
+
+
+- [ ] 120. OBE Engine — Coverage Heatmap UI
+  - [ ] 120.1 Create HeatmapGrid shared component (`/src/components/shared/HeatmapGrid.tsx`)
+    - Reusable matrix component: rows × columns with color-coded cells
+    - Sequential color scale for evidence count mode
+    - Attainment-level color scale for attainment mode
+    - Empty cells highlighted with distinct border pattern
+    - Click cell → drill-down callback
+    - Performance target: render within 3 seconds for 200 CLOs × 50 courses
+    - _Requirements: 108.1, 108.2, 108.5, 108.6_
+
+  - [ ] 120.2 Create CoverageHeatmapView page (`/src/pages/coordinator/coverage-heatmap/CoverageHeatmapView.tsx`)
+    - Matrix: CLOs (rows) × Courses (columns)
+    - Toggle between evidence count and attainment percentage coloring
+    - Click cell → drill-down to individual student attainment records
+    - Filter by semester, program, attainment level threshold (nuqs)
+    - _Requirements: 108.1, 108.2, 108.3, 108.4_
+
+  - [ ] 120.3 Add Coverage Heatmap route and navigation
+    - Add route `/coordinator/coverage-heatmap` to AppRouter
+    - Add navigation link in Coordinator sidebar
+    - _Requirements: 108.1_
+
+- [ ] 121. Checkpoint — OBE Visualizations (Sankey, Gap Analysis, Heatmap)
+  - Ensure all tests pass, ask the user if questions arise.
+
+
+- [ ] 122. OBE Engine — Semester Trends Database and Core Logic
+  - [ ] 122.1 Apply semester attainment snapshots migration via Supabase MCP `apply_migration`
+    - Create `semester_attainment_snapshots` table with `id`, `outcome_id`, `semester_id`, `avg_attainment`, `student_count`, `evidence_count`, `std_deviation`, `snapshot_at`, UNIQUE(outcome_id, semester_id)
+    - Enable RLS with coordinator/admin read policy
+    - Create `mv_semester_attainment` materialized view aggregating evidence by semester and outcome
+    - Create unique index on materialized view
+    - Create pg_cron job to refresh materialized view on semester close
+    - Regenerate TypeScript types
+    - _Requirements: 109.1, 109.6_
+
+  - [ ] 122.2 Create semester trend Zod schemas and hooks
+    - `semesterTrend.ts`: semesterTrendFilterSchema (outcomeId, outcomeType)
+    - `useSemesterTrends(outcomeId, outcomeType)`: fetches trend data from mv_semester_attainment
+    - Add query keys to `/src/lib/queryKeys.ts`
+    - _Requirements: 109.2_
+
+  - [ ] 122.3 Create declining trend detection utility (`/src/lib/trendDetection.ts`)
+    - Detect ≥10 percentage point drop between consecutive semesters
+    - Return flagged outcomes with "Declining Trend" status
+    - _Requirements: 109.3_
+
+  - [ ]* 122.4 Write property tests for semester trends (`/src/__tests__/properties/semester-trends.property.test.ts`)
+    - **Property 92: Semester attainment snapshot completeness**
+    - **Validates: Requirements 109.1**
+
+  - [ ]* 122.5 Write property test for declining trend detection
+    - **Property 93: Declining trend detection**
+    - **Validates: Requirements 109.3**
+
+- [ ] 123. OBE Engine — Semester Trend UI
+  - [ ] 123.1 Create TrendLineChart shared component (`/src/components/shared/TrendLineChart.tsx`)
+    - Multi-series line chart using Recharts
+    - Data points labeled by semester name
+    - Support side-by-side comparison of up to 4 outcomes
+    - _Requirements: 109.2, 109.4_
+
+  - [ ] 123.2 Create DecliningTrendBadge shared component (`/src/components/shared/DecliningTrendBadge.tsx`)
+    - Warning badge for ≥10pp attainment decline
+    - Red/amber styling with warning icon
+    - _Requirements: 109.3_
+
+  - [ ] 123.3 Create SemesterTrendView page (`/src/pages/coordinator/trends/SemesterTrendView.tsx`)
+    - Line chart: attainment % over semesters (up to 8 semesters)
+    - DecliningTrendBadge on flagged outcomes
+    - Side-by-side comparison of up to 4 outcomes
+    - Tabular view alongside chart (semester, attainment %, student count, evidence count)
+    - Outcome selector with type filter (CLO/PLO/ILO)
+    - _Requirements: 109.2, 109.3, 109.4, 109.5_
+
+  - [ ] 123.4 Add Semester Trend route and navigation
+    - Add route `/coordinator/trends` to AppRouter
+    - Add navigation link in Coordinator sidebar
+    - _Requirements: 109.2_
+
+
+- [ ] 124. OBE Engine — Cohort Comparison Analytics
+  - [ ] 124.1 Create cohort comparison Zod schemas and hooks
+    - `cohortComparison.ts`: cohortDefinitionSchema (type: semester/section/enrollment_year, value, label), cohortComparisonExportSchema
+    - `useCohortComparison(programId, cohorts)`: fetches comparison data with avg attainment, student count, std deviation per outcome per cohort
+    - Add query keys to `/src/lib/queryKeys.ts`
+    - _Requirements: 110.1, 110.2_
+
+  - [ ] 124.2 Create Cohen's d effect size utility (`/src/lib/cohortStats.ts`)
+    - Calculate Cohen's d: `(mean1 - mean2) / pooled_std_dev`
+    - Pooled std dev: `sqrt(((n1-1)*s1² + (n2-1)*s2²) / (n1+n2-2))`
+    - Only calculate when both cohorts have n ≥ 20
+    - Detect "Significant Gap" when ≥15 percentage point difference
+    - _Requirements: 110.3, 110.5_
+
+  - [ ] 124.3 Create CohortBarChart shared component (`/src/components/shared/CohortBarChart.tsx`)
+    - Grouped bar chart using Recharts
+    - Average attainment per CLO/PLO across selected cohorts
+    - Red highlight + "Significant Gap" label for ≥15pp differences
+    - _Requirements: 110.2, 110.5_
+
+  - [ ] 124.4 Create SignificantGapLabel shared component (`/src/components/shared/SignificantGapLabel.tsx`)
+    - Red "Significant Gap" label with warning styling
+    - _Requirements: 110.5_
+
+  - [ ] 124.5 Create CohortComparisonView page (`/src/pages/coordinator/cohort-comparison/CohortComparisonView.tsx`)
+    - Cohort selector: define cohorts by semester, section, or enrollment year
+    - Grouped bar chart with CohortBarChart
+    - Cohen's d display for 2-cohort comparisons with n≥20
+    - CSV export: outcome_code, outcome_title, cohort_label, average_attainment, student_count, standard_deviation
+    - _Requirements: 110.1, 110.2, 110.3, 110.4, 110.5_
+
+  - [ ] 124.6 Add Cohort Comparison route and navigation
+    - Add route `/coordinator/cohort-comparison` to AppRouter
+    - Add navigation link in Coordinator sidebar, also accessible from Admin dashboard
+    - _Requirements: 110.6_
+
+  - [ ]* 124.7 Write property tests for cohort comparison (`/src/__tests__/properties/cohort-comparison.property.test.ts`)
+    - **Property 94: Cohort comparison average attainment and gap detection**
+    - **Validates: Requirements 110.2, 110.5**
+
+  - [ ]* 124.8 Write property test for Cohen's d calculation
+    - **Property 95: Cohen's d effect size calculation**
+    - **Validates: Requirements 110.3**
+
+
+- [ ] 125. OBE Engine — Historical Evidence Analysis
+  - [ ] 125.1 Apply historical evidence materialized view migration via Supabase MCP `apply_migration`
+    - Create `mv_historical_evidence` materialized view aggregating evidence by semester, outcome_type, blooms_level
+    - Columns: semester_id, semester_name, start_date, outcome_type, blooms_level, evidence_count, avg_score, excellent_count, satisfactory_count, developing_count, not_yet_count
+    - Create unique index on (semester_id, outcome_type, blooms_level)
+    - Create pg_cron job to refresh materialized view periodically
+    - _Requirements: 111.1, 111.6_
+
+  - [ ] 125.2 Create historical evidence Zod schemas and hooks
+    - `historicalEvidence.ts`: historicalEvidenceFilterSchema (programId, courseId, outcomeId, bloomsLevel)
+    - `useHistoricalEvidence(filters)`: fetches from mv_historical_evidence
+    - Add query keys to `/src/lib/queryKeys.ts`
+    - _Requirements: 111.1, 111.3_
+
+  - [ ] 125.3 Create StackedAreaChart shared component (`/src/components/shared/StackedAreaChart.tsx`)
+    - Stacked area chart using Recharts
+    - Shows proportion of Excellent, Satisfactory, Developing, Not Yet per semester
+    - Color-coded by attainment level (green, blue, yellow, red)
+    - _Requirements: 111.2_
+
+  - [ ] 125.4 Create HistoricalEvidenceDashboard page (`/src/pages/admin/historical-evidence/HistoricalEvidenceDashboard.tsx`)
+    - Aggregated stats: total evidence records, avg attainment by level (CLO/PLO/ILO), attainment distribution
+    - Stacked area chart for attainment level proportions over time
+    - Filter by program, course, outcome, Bloom's level (nuqs)
+    - Performance target: load within 4 seconds for 500,000 evidence records
+    - _Requirements: 111.1, 111.2, 111.3, 111.6_
+
+  - [ ] 125.5 Create "Continuous Improvement Report" PDF generation
+    - Update Report Generator Edge Function to produce CI report
+    - Include trend charts, cohort comparisons, gap analysis summaries, CQI action plan status
+    - Selectable date range
+    - _Requirements: 111.4_
+
+  - [ ] 125.6 Add Historical Evidence route and navigation
+    - Add route `/admin/historical-evidence` to AppRouter
+    - Add navigation link in Admin sidebar
+    - _Requirements: 111.1_
+
+  - [ ]* 125.7 Write property test for historical evidence distribution (`/src/__tests__/properties/historical-evidence.property.test.ts`)
+    - **Property 96: Historical evidence attainment distribution**
+    - **Validates: Requirements 111.1, 111.2**
+
+- [ ] 126. Checkpoint — Semester Trends, Cohort Comparison, Historical Evidence
+  - Ensure all tests pass, ask the user if questions arise.
+
+
+- [ ] 127. Habit Engine — Extended Habit Types Database and Core Logic
+  - [ ] 127.1 Apply extended habit types migration via Supabase MCP `apply_migration`
+    - Update `habit_logs` type constraint: `ALTER TABLE habit_logs DROP CONSTRAINT IF EXISTS habit_logs_habit_type_check; ALTER TABLE habit_logs ADD CONSTRAINT habit_logs_habit_type_check CHECK (habit_type IN ('login', 'submit', 'journal', 'read', 'collaborate', 'practice', 'review', 'mentor'))`
+    - Regenerate TypeScript types
+    - _Requirements: 112.1_
+
+  - [ ] 127.2 Update shared type definitions (`/src/types/app.ts`)
+    - Update `HabitType` to include all 8 types: `'login' | 'submit' | 'journal' | 'read' | 'collaborate' | 'practice' | 'review' | 'mentor'`
+    - _Requirements: 112.1_
+
+  - [ ] 127.3 Implement extended habit completion triggers
+    - Collaborate: auto-complete when student posts discussion question or answer (trigger on `discussion_replies` insert)
+    - Practice: auto-complete when student completes quiz attempt (trigger on `quiz_attempts` insert)
+    - Review: auto-complete when student submits peer review (trigger on relevant action)
+    - Mentor: auto-complete when student's discussion answer is marked correct by teacher
+    - Each completion awards 15 XP via `award-xp` Edge Function
+    - _Requirements: 112.2, 112.3, 112.4, 112.5, 112.6_
+
+  - [ ] 127.4 Update Perfect Day logic
+    - Update threshold: Perfect Day requires ≥ 6 of 8 habits completed
+    - Update `perfect-day-nudge-cron` Edge Function to check 8 habits
+    - Nudge when student has completed 5 of 8 habits: "You're 1 habit away from a Perfect Day!"
+    - _Requirements: 112.8_
+
+  - [ ] 127.5 Update HabitTracker component (`/src/components/shared/HabitTracker.tsx`)
+    - Display all 8 habits in 7-day grid
+    - New habit icons: Collaborate (MessageSquare), Practice (Brain), Review (Eye), Mentor (HandHelping) from Lucide
+    - Completed habits as filled icons, incomplete as outlined
+    - _Requirements: 112.7_
+
+  - [ ]* 127.6 Write property tests for extended habits (`/src/__tests__/properties/extended-habits.property.test.ts`)
+    - **Property 97: Extended habit type validation**
+    - **Validates: Requirements 112.1**
+
+  - [ ]* 127.7 Write property test for extended habit completion triggers
+    - **Property 98: Extended habit completion triggers**
+    - **Validates: Requirements 112.2, 112.3, 112.4, 112.5, 112.6**
+
+  - [ ]* 127.8 Write property test for updated Perfect Day threshold
+    - **Property 99: Updated Perfect Day threshold**
+    - **Validates: Requirements 112.8**
+
+
+- [ ] 128. Habit Engine — Team Management Database and Core Logic
+  - [ ] 128.1 Apply teams database migration via Supabase MCP `apply_migration`
+    - Create `teams` table with `id`, `name`, `course_id`, `created_by`, `avatar_letter` (char(1)), `created_at`, UNIQUE(course_id, name)
+    - Create `team_members` table with `id`, `team_id`, `student_id`, `joined_at`, UNIQUE(team_id, student_id)
+    - Create `team_gamification` table with `id`, `team_id` (unique), `xp_total`, `xp_this_week`, `streak_current`, `streak_longest`
+    - Enable RLS on all three tables with teacher-manages and student-reads policies
+    - Create `enforce_team_size_limit()` trigger: max 6 members per team
+    - Create `enforce_one_team_per_course()` trigger: student can only be in 1 team per course
+    - Regenerate TypeScript types
+    - _Requirements: 115.1, 115.2, 115.3_
+
+  - [ ] 128.2 Create Team Zod schemas (`/src/lib/schemas/team.ts`)
+    - `teamSchema`: validates name, course_id
+    - `teamMemberSchema`: validates team_id, student_id
+    - `autoGenerateTeamsSchema`: validates course_id, team_size (2–6)
+    - _Requirements: 115.1, 115.2, 115.4_
+
+  - [ ] 128.3 Create Team TanStack Query hooks (`/src/hooks/useTeams.ts`)
+    - `useTeams(courseId)`, `useTeamMembers(teamId)`, `useCreateTeam()`, `useAddTeamMember()`, `useRemoveTeamMember()`
+    - `useAutoGenerateTeams()`: mutation for balanced auto-generation
+    - `useTeamGamification(teamId)`: fetches team XP, streak data
+    - Add query keys to `/src/lib/queryKeys.ts`
+    - _Requirements: 115.1, 115.4, 115.5_
+
+  - [ ] 128.4 Implement auto-generate balanced teams logic
+    - Randomly distribute N enrolled students into teams of target size S
+    - Ensure balanced distribution: team sizes differ by at most 1
+    - Every enrolled student assigned to exactly one team
+    - _Requirements: 115.4_
+
+  - [ ]* 128.5 Write property tests for team membership constraints (`/src/__tests__/properties/teams.property.test.ts`)
+    - **Property 100: Team membership constraints**
+    - **Validates: Requirements 115.2, 115.3**
+
+  - [ ]* 128.6 Write property test for auto-generated team balance
+    - **Property 101: Auto-generated team balance**
+    - **Validates: Requirements 115.4**
+
+
+- [ ] 129. Habit Engine — Team Management UI
+  - [ ] 129.1 Create TeamManager page (`/src/pages/teacher/teams/TeamManager.tsx`)
+    - CRUD form for teams (name, course_id) with React Hook Form + Zod
+    - Member management: add/remove students with autocomplete
+    - Auto-generate balanced teams button with team size input (2–6)
+    - Data table listing teams with member count, XP total via TanStack Table
+    - Enforce min 2, max 6 members visually with validation messages
+    - _Requirements: 115.1, 115.2, 115.4_
+
+  - [ ] 129.2 Create TeamDashboardCard shared component (`/src/components/shared/TeamDashboardCard.tsx`)
+    - Displays team name, avatar letter, member avatars, team XP pool, team streak (flame icon)
+    - Team badges section
+    - Link to full team leaderboard
+    - _Requirements: 115.6, 116.3_
+
+  - [ ] 129.3 Add team display to Student Dashboard course card
+    - Show team name and member avatars on enrolled course cards
+    - _Requirements: 115.6_
+
+  - [ ] 129.4 Add Team Manager route and navigation
+    - Add route `/teacher/teams` to AppRouter
+    - Add navigation link in Teacher sidebar
+    - _Requirements: 115.1_
+
+- [ ] 130. Checkpoint — Extended Habits and Team Management
+  - Ensure all tests pass, ask the user if questions arise.
+
+
+- [ ] 131. Habit Engine — Team XP Pool and Leaderboard
+  - [ ] 131.1 Update `award-xp` Edge Function for team XP contribution
+    - When student is a team member: credit 100% to individual, credit `floor(amount / 2)` to team XP pool
+    - Create separate `xp_transactions` record with `scope = 'team'` and `team_id`
+    - Update `team_gamification.xp_total` and `xp_this_week`
+    - _Requirements: 116.1, 116.4_
+
+  - [ ] 131.2 Apply xp_transactions column additions via Supabase MCP `apply_migration`
+    - Add `scope` column: `ALTER TABLE xp_transactions ADD COLUMN scope text NOT NULL DEFAULT 'individual' CHECK (scope IN ('individual', 'team'))`
+    - Add `team_id` column: `ALTER TABLE xp_transactions ADD COLUMN team_id uuid REFERENCES teams(id)`
+    - Add `base_xp` column: `ALTER TABLE xp_transactions ADD COLUMN base_xp integer`
+    - Add `final_xp` column: `ALTER TABLE xp_transactions ADD COLUMN final_xp integer`
+    - Add `multipliers` jsonb column: `ALTER TABLE xp_transactions ADD COLUMN multipliers jsonb DEFAULT '{}'`
+    - Regenerate TypeScript types
+    - _Requirements: 116.4, 120.3_
+
+  - [ ] 131.3 Create Team Leaderboard TanStack Query hooks (`/src/hooks/useTeamLeaderboard.ts`)
+    - `useTeamLeaderboard(courseId, view: 'weekly' | 'all_time')`: fetches team rankings
+    - Supabase Realtime subscription for live updates on `team_gamification` changes
+    - Add query keys to `/src/lib/queryKeys.ts`
+    - _Requirements: 117.1, 117.4_
+
+  - [ ] 131.4 Create TeamLeaderboard page (`/src/pages/student/leaderboard/TeamLeaderboard.tsx`)
+    - All teams in course ranked by XP (weekly and all-time toggle)
+    - Each entry: rank, team name, avatar letter, member count, total XP, weekly XP
+    - Top 3: Gold, Silver, Bronze styling
+    - Current student's team highlighted with distinct visual indicator
+    - Real-time updates via Supabase Realtime
+    - _Requirements: 117.1, 117.2, 117.3, 117.4, 117.5_
+
+  - [ ] 131.5 Add Team Leaderboard tab to existing LeaderboardView
+    - Add "Teams" tab alongside existing individual leaderboard
+    - Accessible from Student Dashboard and course detail page
+    - _Requirements: 117.6_
+
+  - [ ]* 131.6 Write property test for Team XP split (`/src/__tests__/properties/team-xp.property.test.ts`)
+    - **Property 102: Team XP split correctness**
+    - **Validates: Requirements 116.1, 116.4**
+
+  - [ ]* 131.7 Write property test for Team Leaderboard ordering (`/src/__tests__/properties/team-leaderboard.property.test.ts`)
+    - **Property 103: Team leaderboard ordering and completeness**
+    - **Validates: Requirements 117.1, 117.2**
+
+
+- [ ] 132. Habit Engine — Team Badges and Streaks
+  - [ ] 132.1 Apply badges table column additions via Supabase MCP `apply_migration`
+    - Add `scope` column: `ALTER TABLE badges ADD COLUMN scope text NOT NULL DEFAULT 'individual' CHECK (scope IN ('individual', 'team'))`
+    - Add `team_id` column: `ALTER TABLE badges ADD COLUMN team_id uuid REFERENCES teams(id)`
+    - Regenerate TypeScript types
+    - _Requirements: 118.1_
+
+  - [ ] 132.2 Update `check-badges` Edge Function for team badges
+    - Team Spirit: team earns 500 XP → award badge
+    - Unstoppable: team wins 3 challenges → award badge
+    - Dream Team: all members complete Perfect Day on same day → award badge
+    - Study Squad: team maintains 7-day team streak → award badge
+    - All awards atomic and idempotent (cannot be awarded twice for same trigger and team)
+    - _Requirements: 118.2, 118.5_
+
+  - [ ] 132.3 Create TeamBadgeDisplay shared component (`/src/components/shared/TeamBadgeDisplay.tsx`)
+    - Display team badges with emoji, name, description, earned date
+    - Animated notification to all online team members when badge awarded (Framer Motion)
+    - Shown on Team Dashboard card and team member profiles under "Team Badges" section
+    - _Requirements: 118.3, 118.4_
+
+  - [ ] 132.4 Update `process-streak` Edge Function for team streaks
+    - Team streak increments when ALL team members log in on same calendar day
+    - Team streak resets to 0 when any member misses a day
+    - Update `team_gamification.streak_current` and `streak_longest`
+    - Streak milestones: 7 days → 100 XP + badge, 14 days → 250 XP + badge, 30 days → 500 XP + badge
+    - _Requirements: 119.1, 119.2, 119.3, 119.5_
+
+  - [ ] 132.5 Create `team-streak-risk-cron` Edge Function
+    - pg_cron → 8 PM daily (institution timezone)
+    - Check if any team member has not logged in today
+    - Send notification to all team members: "Your team streak is at risk — [member_name] hasn't logged in today."
+    - _Requirements: 119.6_
+
+  - [ ] 132.6 Add team streak display to TeamDashboardCard
+    - Flame icon consistent with individual streak styling (red-500 to orange-500 gradient)
+    - Show streak_current and streak_longest
+    - _Requirements: 119.4_
+
+  - [ ]* 132.7 Write property test for team badge idempotency (`/src/__tests__/properties/team-badges.property.test.ts`)
+    - **Property 104: Team badge idempotency**
+    - **Validates: Requirements 118.2, 118.5**
+
+  - [ ]* 132.8 Write property tests for team streak calculation (`/src/__tests__/properties/team-streaks.property.test.ts`)
+    - **Property 105: Team streak calculation**
+    - **Validates: Requirements 119.1, 119.2**
+
+  - [ ]* 132.9 Write property test for team streak milestone rewards
+    - **Property 106: Team streak milestone rewards**
+    - **Validates: Requirements 119.5**
+
+- [ ] 133. Checkpoint — Team XP, Leaderboard, Badges, and Streaks
+  - Ensure all tests pass, ask the user if questions arise.
+
+
+- [ ] 134. Habit Engine — Social Challenges Database and Core Logic
+  - [ ] 134.1 Apply social challenges database migration via Supabase MCP `apply_migration`
+    - Create `social_challenges` table with `id`, `title`, `description`, `challenge_type` (team/course_wide), `course_id`, `start_date`, `end_date`, `goal_metric` (total_xp/habits_completed/assignments_submitted/quiz_score_avg), `goal_target`, `reward_type` (xp_bonus/badge), `reward_value`, `status` (draft/active/completed/cancelled), `created_by`, `created_at`
+    - Create `challenge_participants` table with `id`, `challenge_id`, `participant_id` (team_id or student_id), `participant_type` (team/student), `current_progress`, `created_at`
+    - Enable RLS on both tables with teacher-manages and student-reads policies
+    - Create trigger to enforce max 3 active course-wide challenges per course
+    - Regenerate TypeScript types
+    - _Requirements: 113.1, 114.1, 114.5_
+
+  - [ ] 134.2 Create Challenge Zod schemas (`/src/lib/schemas/challenge.ts`)
+    - `challengeSchema`: validates title, description, challenge_type, course_id, start/end dates, goal_metric, goal_target, reward_type, reward_value
+    - `challengeProgressSchema`: validates challenge_id, participant_id, participant_type, current_progress
+    - _Requirements: 113.1_
+
+  - [ ] 134.3 Create Challenge TanStack Query hooks (`/src/hooks/useChallenges.ts`)
+    - `useChallenges(courseId, status?)`, `useCreateChallenge()`, `useChallengeProgress(challengeId)`
+    - `useStudentChallenges(studentId)`: fetches challenges for a student
+    - Supabase Realtime subscription for live progress updates on active challenges
+    - Add query keys to `/src/lib/queryKeys.ts`
+    - _Requirements: 113.1, 113.3_
+
+  - [ ] 134.4 Create `challenge-progress-update` Edge Function
+    - Triggered on qualifying actions during active challenges
+    - Update `challenge_participants.current_progress` based on goal_metric
+    - For course-wide: aggregate individual contributions toward shared goal
+    - _Requirements: 113.3, 114.2_
+
+  - [ ] 134.5 Create `challenge-completion` Edge Function (pg_cron daily)
+    - Check challenge end dates daily
+    - For team challenges: determine winning team(s), distribute reward atomically to all members
+    - For course-wide: distribute reward to all students who contributed ≥1 qualifying action
+    - Auto-cancel team challenges with < 2 participating teams at start date
+    - _Requirements: 113.4, 113.6, 114.3_
+
+  - [ ] 134.6 Implement 90% notification trigger for course-wide challenges
+    - When course-wide challenge reaches 90% of goal target, send notification to all enrolled students
+    - Send once per challenge (track notification sent flag)
+    - _Requirements: 114.6_
+
+  - [ ]* 134.7 Write property tests for challenge creation constraints (`/src/__tests__/properties/social-challenges.property.test.ts`)
+    - **Property 112: Challenge creation constraints**
+    - **Validates: Requirements 113.1, 113.2, 113.6**
+
+  - [ ]* 134.8 Write property test for course-wide challenge participation and reward
+    - **Property 113: Course-wide challenge participation and reward distribution**
+    - **Validates: Requirements 114.1, 114.2, 114.3, 114.5**
+
+  - [ ]* 134.9 Write property test for 90% notification trigger
+    - **Property 114: Challenge 90% notification trigger**
+    - **Validates: Requirements 114.6**
+
+  - [ ]* 134.10 Write property test for team challenge reward atomicity
+    - **Property 115: Team challenge reward atomicity**
+    - **Validates: Requirements 113.4**
+
+
+- [ ] 135. Habit Engine — Social Challenges UI
+  - [ ] 135.1 Create ChallengeManager page (`/src/pages/teacher/challenges/ChallengeManager.tsx`)
+    - CRUD form for challenges with React Hook Form + Zod
+    - Team selector for team-based challenges (min 2, max 20 teams)
+    - Goal metric and target configuration
+    - Reward type selector (XP bonus or badge)
+    - Data table listing challenges with status via TanStack Table
+    - _Requirements: 113.1, 113.2_
+
+  - [ ] 135.2 Create ChallengeListView page (`/src/pages/student/challenges/ChallengeListView.tsx`)
+    - Active and completed challenges tabs
+    - Live progress bars for active challenges (Supabase Realtime)
+    - Contribution leaderboard for course-wide challenges
+    - Team progress display for team-based challenges
+    - _Requirements: 113.3, 113.5, 114.4_
+
+  - [ ] 135.3 Add Challenges tab to Student Dashboard
+    - Dedicated "Challenges" tab showing active challenges
+    - Quick-view progress bars
+    - _Requirements: 113.5_
+
+  - [ ] 135.4 Add Challenge routes and navigation
+    - Add route `/teacher/challenges` to AppRouter with Teacher sidebar link
+    - Add route `/student/challenges` to AppRouter with Student sidebar link
+    - _Requirements: 113.1, 113.5_
+
+- [ ] 136. Checkpoint — Social Challenges
+  - Ensure all tests pass, ask the user if questions arise.
+
+
+- [ ] 137. Habit Engine — Adaptive XP Engine Core Logic
+  - [ ] 137.1 Create Adaptive XP calculation utility (`/src/lib/adaptiveXP.ts`)
+    - `getLevelMultiplier(level)`: 1.2 for levels 1–5, 1.0 for 6–10, 0.9 for 11–15, 0.8 for 16–20
+    - `getDifficultyMultiplier(bloomsLevel)`: Remembering 1.0, Understanding 1.1, Applying 1.2, Analyzing 1.3, Evaluating 1.4, Creating 1.5
+    - `getDiminishingMultiplier(repeatCount, isMilestone)`: 1.0 → 0.8 → 0.6 → 0.4 → 0.2 per repetition; milestones always 1.0
+    - `calculateFinalXP(baseXP, level, bloomsLevels, repeatCount, isMilestone)`: `floor(base × level × difficulty × diminishing)`
+    - For multiple CLOs: use highest Bloom's level for difficulty multiplier
+    - _Requirements: 120.1, 120.2, 121.1, 121.2, 122.1, 122.5_
+
+  - [ ] 137.2 Create Adaptive XP Zod schemas (`/src/lib/schemas/adaptiveXP.ts`)
+    - `xpMultiplierSchema`: validates level_multiplier, difficulty_multiplier, diminishing_multiplier
+    - `diminishingReturnsSchema`: validates action_type, repeat_count, window_start
+    - _Requirements: 120.1, 122.1_
+
+  - [ ] 137.3 Update `award-xp` Edge Function with adaptive XP calculation
+    - Integrate level-based, difficulty-based, and diminishing returns multipliers
+    - Calculate final_xp using the adaptive formula
+    - Store base_xp, final_xp, and multipliers jsonb in xp_transactions
+    - Query rolling 24-hour window for diminishing returns count per action type
+    - Recalculate level multiplier immediately on level-up
+    - _Requirements: 120.1, 120.2, 120.4, 121.1, 122.1, 122.2, 122.4_
+
+  - [ ] 137.4 Create diminishing returns tracking hooks (`/src/hooks/useAdaptiveXP.ts`)
+    - `useStudentXPMultiplier(studentId)`: fetches current level multiplier
+    - `useDiminishingReturnsStatus(studentId, actionType)`: checks if next action would receive reduced XP
+    - `useImprovementBonusHistory(studentId)`: fetches improvement bonus records
+    - Add query keys to `/src/lib/queryKeys.ts`
+    - _Requirements: 120.5, 122.3_
+
+  - [ ]* 137.5 Write property tests for adaptive XP formula (`/src/__tests__/properties/adaptive-xp.property.test.ts`)
+    - **Property 107: Adaptive XP formula correctness**
+    - **Validates: Requirements 120.1, 120.2, 121.1, 121.2**
+
+  - [ ]* 137.6 Write property test for XP transaction auditability
+    - **Property 108: XP transaction auditability**
+    - **Validates: Requirements 120.3, 121.4**
+
+  - [ ]* 137.7 Write property test for diminishing returns mechanics
+    - **Property 109: Diminishing returns mechanics**
+    - **Validates: Requirements 122.1, 122.4, 122.5**
+
+
+- [ ] 138. Habit Engine — Adaptive XP UI Components
+  - [ ] 138.1 Create AdaptiveXPDisplay shared component (`/src/components/shared/AdaptiveXPDisplay.tsx`)
+    - Shows current XP multiplier on Student Dashboard gamification card
+    - Displays "Diminishing Returns" indicator when next action would receive reduced XP
+    - Shows current level and level multiplier
+    - _Requirements: 120.5, 122.3_
+
+  - [ ] 138.2 Add difficulty bonus display to assignment detail page
+    - Show difficulty multiplier as "Difficulty Bonus" indicator
+    - Display Bloom's level badge alongside the multiplier
+    - _Requirements: 121.3_
+
+  - [ ] 138.3 Integrate AdaptiveXPDisplay into Student Dashboard
+    - Add multiplier display to existing gamification card
+    - Show diminishing returns warning when applicable
+    - _Requirements: 120.5, 122.3_
+
+- [ ] 139. Habit Engine — Improvement Bonus
+  - [ ] 139.1 Create `improvement-bonus-check` Edge Function
+    - Triggered after evidence creation
+    - Compare current evidence score to student's previous evidence score for same CLO
+    - If improvement ≥ 15 percentage points: award 50 XP with `action_type = 'improvement_bonus'`
+    - Store CLO reference and previous/current scores in xp_transactions record
+    - _Requirements: 123.1, 123.2, 123.5_
+
+  - [ ] 139.2 Create Improvement Bonus Zod schema (`/src/lib/schemas/improvementBonus.ts`)
+    - `improvementBonusSchema`: validates clo_id, previous_percent, current_percent, bonus_xp
+    - _Requirements: 123.1_
+
+  - [ ] 139.3 Update `check-badges` Edge Function for Comeback Kid badge
+    - Award "Comeback Kid" badge when student earns 3 Improvement Bonuses within a single semester
+    - Idempotent: cannot be awarded twice for same semester
+    - _Requirements: 123.4_
+
+  - [ ] 139.4 Create ImprovementBonusCelebration shared component (`/src/components/shared/ImprovementBonusCelebration.tsx`)
+    - Celebratory animation: "Great improvement on [CLO title]!"
+    - Shows +50 XP bonus amount
+    - Uses Framer Motion + canvas-confetti
+    - Honors `prefers-reduced-motion`
+    - _Requirements: 123.3_
+
+  - [ ]* 139.5 Write property test for improvement bonus correctness (`/src/__tests__/properties/improvement-bonus.property.test.ts`)
+    - **Property 110: Improvement bonus correctness**
+    - **Validates: Requirements 123.1, 123.2, 123.5**
+
+  - [ ]* 139.6 Write property test for Comeback Kid badge threshold
+    - **Property 111: Comeback Kid badge threshold**
+    - **Validates: Requirements 123.4**
+
+- [ ] 140. Checkpoint — Adaptive XP Engine and Improvement Bonus
+  - Ensure all tests pass, ask the user if questions arise.
+
+
+- [ ] 141. Integration — Wire OBE Enhancements into Existing Dashboards
+  - [ ] 141.1 Update Coordinator Dashboard with OBE visualization links
+    - Add Sankey Diagram, Gap Analysis, Coverage Heatmap, Semester Trends, Cohort Comparison quick-access cards
+    - _Requirements: 106.1, 107.1, 108.1, 109.2, 110.6_
+
+  - [ ] 141.2 Update Admin Dashboard with new sections
+    - Add Graduate Attribute attainment overview card
+    - Add Historical Evidence dashboard link
+    - Add Competency Framework management link
+    - _Requirements: 104.5, 111.1, 105.1_
+
+  - [ ] 141.3 Update Student Dashboard with team and challenge sections
+    - Add TeamDashboardCard to course cards for team members
+    - Add Challenges tab with active challenge progress
+    - Add AdaptiveXPDisplay to gamification card
+    - Update HabitTracker to show 8 habits
+    - _Requirements: 112.7, 113.5, 115.6, 120.5_
+
+  - [ ] 141.4 Update Teacher Dashboard with team and challenge management links
+    - Add Team Manager link in sidebar
+    - Add Challenge Manager link in sidebar
+    - _Requirements: 113.1, 115.1_
+
+  - [ ] 141.5 Update AppRouter with all new routes
+    - Coordinator: `/coordinator/sankey`, `/coordinator/gap-analysis`, `/coordinator/coverage-heatmap`, `/coordinator/trends`, `/coordinator/cohort-comparison`
+    - Admin: `/admin/graduate-attributes`, `/admin/competency-frameworks`, `/admin/historical-evidence`
+    - Teacher: `/teacher/teams`, `/teacher/challenges`, `/teacher/outcomes/sub-clos`
+    - Student: `/student/challenges`, `/student/team`
+    - Add role-based route guards for all new routes
+    - _Requirements: All Sections U & V_
+
+  - [ ] 141.6 Update TanStack Query key factory with all new keys
+    - Add all new query keys: subCLOs, graduateAttributes, graduateAttributeMappings, graduateAttributeAttainment, competencyFrameworks, competencyItems, competencyOutcomeMappings, sankeyData, gapAnalysis, coverageHeatmap, semesterTrends, cohortComparison, historicalEvidence, teams, teamMembers, teamGamification, teamLeaderboard, teamBadges, challenges, challengeProgress, studentChallenges, xpMultiplier, diminishingReturns, improvementBonusHistory
+    - _Requirements: All Sections U & V_
+
+- [ ] 142. Final Checkpoint — Sections U & V Complete
+  - Ensure all tests pass, ask the user if questions arise.
+  - Verify all 21 requirements (103–123) are covered by implementation tasks
+  - Verify all 35 correctness properties (81–115) have corresponding property test tasks
+
+## Notes (Tasks 109–142)
+
+- Tasks marked with `*` are optional and can be skipped for faster MVP
+- Each task references specific requirements for traceability
+- Checkpoints ensure incremental validation
+- Property tests validate universal correctness properties from the design document (Properties 81–115)
+- All database migrations use Supabase MCP `apply_migration` for DDL changes
+- TypeScript types regenerated after every migration: `npx supabase gen types --linked > src/types/database.ts`
+- All UI components use Shadcn/ui as base, Tailwind CSS v4 for styling, Lucide React for icons
+- All forms use React Hook Form + Zod for validation
+- All data fetching through TanStack Query hooks, never raw supabase calls in components
+- URL-persisted filter state uses nuqs in list/filter pages
