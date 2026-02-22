@@ -73,6 +73,24 @@ Edeviser is a Human-Centric Outcome-Based Education (OBE) + Gamification platfor
 - **SearchCommand**: The global search component accessible via Cmd+K / Ctrl+K that searches across courses, assignments, students, announcements, and materials using full-text search
 - **ImpersonationProvider**: The React context provider that manages admin impersonation sessions with read-only enforcement and 30-minute auto-expiry
 - **RateLimiter**: The shared Edge Function middleware that enforces per-user request rate limits (100 read/min, 30 write/min)
+- **Sub_CLO**: A granular sub-outcome beneath a CLO, representing a specific skill or knowledge component that contributes to the parent CLO attainment
+- **Graduate_Attribute**: An institution-wide competency (e.g., Critical Thinking, Communication, Ethical Reasoning) mapped from ILOs, used for accreditation reporting at the graduate profile level
+- **Competency_Framework**: A structured hierarchy of competencies (domains → competencies → indicators) that can be mapped to existing ILO/PLO/CLO chains for standards-based reporting
+- **Sankey_Diagram**: An interactive flow visualization showing weighted relationships between outcome levels (ILO → PLO → CLO) with proportional link widths
+- **Coverage_Heatmap**: A matrix visualization showing the degree of CLO coverage across courses or assessments, with color intensity representing attainment or mapping density
+- **Gap_Analysis_View**: A visual report highlighting unmapped or under-assessed outcomes across the ILO → PLO → CLO chain
+- **Cohort_Comparison**: An analytics view comparing attainment metrics between different student cohorts (by semester, section, or program year)
+- **Semester_Trend_Engine**: The subsystem that calculates and visualizes semester-over-semester attainment trends for CLOs, PLOs, and ILOs
+- **Collaborate_Habit**: A daily habit type tracking meaningful discussion forum participation (posting or answering)
+- **Practice_Habit**: A daily habit type tracking quiz attempt completion
+- **Review_Habit**: A daily habit type tracking peer review submissions
+- **Mentor_Habit**: A daily habit type tracking help-others actions (answers marked correct by teachers, or peer assistance events)
+- **Social_Challenge**: A time-bounded competitive event where groups of students work toward shared goals with collective rewards
+- **Team**: A named group of students (2–6 members) within a course that shares a collective XP pool, team streak, and team badges
+- **Team_Leaderboard**: A leaderboard ranking Teams by collective XP within a course or program scope
+- **Adaptive_XP_Engine**: The subsystem that dynamically adjusts XP award amounts based on student level, task difficulty, time investment, and diminishing returns rules
+- **XP_Multiplier**: A scaling factor applied to base XP amounts, calculated from student level, task difficulty, and contextual bonuses
+- **Diminishing_Returns_Rule**: A rule that reduces XP awarded for repeated identical actions within a rolling 24-hour window
 
 ## Requirements
 
@@ -1542,3 +1560,319 @@ Edeviser is a Human-Centric Outcome-Based Education (OBE) + Gamification platfor
 4. THE Platform SHALL provide a "Sign out all sessions" button that terminates all sessions including the current one, redirecting to the login page.
 5. THE Platform SHALL use the Supabase Auth admin API for session enumeration and termination.
 6. WHEN a user signs out other sessions, THE Audit_Logger SHALL log the action with the count of terminated sessions.
+
+
+---
+
+### SECTION U: OBE Engine Enhancements
+
+#### Requirement 103: Sub-CLO Management
+
+**User Story:** As a Teacher, I want to define Sub-CLOs beneath each CLO, so that I can track granular skill components and provide more detailed attainment feedback to students.
+
+##### Acceptance Criteria
+
+1. WHEN a Teacher creates a Sub-CLO, THE Outcome_Manager SHALL insert a record into the `learning_outcomes` table with `type = 'SUB_CLO'`, a `parent_outcome_id` referencing the parent CLO, and a `weight` (0.0–1.0) representing contribution to the parent CLO.
+2. THE Outcome_Manager SHALL enforce that the sum of Sub-CLO weights under a single CLO equals 1.0 before allowing assignment linkage.
+3. WHEN a CLO has Sub-CLOs defined, THE Rubric_Builder SHALL allow rubric criteria to be linked to individual Sub-CLOs instead of the parent CLO.
+4. THE Rollup_Engine SHALL calculate parent CLO attainment as the weighted average of Sub-CLO attainments when Sub-CLOs exist.
+5. WHEN a Teacher deletes a Sub-CLO that has linked evidence records, THE Outcome_Manager SHALL block the deletion and display the count of dependent evidence records.
+6. THE Platform SHALL display Sub-CLOs as expandable children beneath their parent CLO in all outcome list views.
+
+---
+
+#### Requirement 104: Graduate Attribute Management
+
+**User Story:** As an Admin, I want to define Graduate Attributes for my institution and map them to ILOs, so that accreditation reports can demonstrate graduate profile alignment.
+
+##### Acceptance Criteria
+
+1. WHEN an Admin creates a Graduate Attribute, THE Outcome_Manager SHALL insert a record into a `graduate_attributes` table with `title`, `description`, `code`, and `institution_id`.
+2. THE Mapping_Engine SHALL allow mapping of Graduate Attributes to one or more ILOs via a `graduate_attribute_mappings` table with a `weight` (0.0–1.0).
+3. THE Rollup_Engine SHALL calculate Graduate Attribute attainment as the weighted average of mapped ILO attainments.
+4. THE Report_Generator SHALL include a Graduate Attribute attainment summary section in accreditation PDF reports.
+5. THE Admin Dashboard SHALL display a Graduate Attribute attainment overview card showing institution-wide attainment percentages per attribute.
+6. WHEN an Admin modifies or deletes a Graduate Attribute, THE Audit_Logger SHALL record the action with before/after snapshots.
+
+---
+
+#### Requirement 105: Competency Framework Management
+
+**User Story:** As an Admin, I want to import and manage external competency frameworks (e.g., ABET, NCAAA) and map them to existing outcome chains, so that the platform supports standards-based accreditation reporting.
+
+##### Acceptance Criteria
+
+1. THE Platform SHALL support a three-level competency hierarchy: Domain → Competency → Indicator, stored in a `competency_frameworks` table and a `competency_items` table with `parent_id` self-referencing.
+2. WHEN an Admin creates a competency framework, THE Platform SHALL require a `name`, `version`, `source` (e.g., "ABET EAC 2024"), and `institution_id`.
+3. THE Mapping_Engine SHALL allow mapping of Competency Indicators to ILOs, PLOs, or CLOs via a `competency_outcome_mappings` table.
+4. THE Platform SHALL provide a CSV import for competency frameworks with columns (`domain_code`, `domain_title`, `competency_code`, `competency_title`, `indicator_code`, `indicator_title`).
+5. THE Report_Generator SHALL produce a competency-to-outcome alignment matrix report showing mapping coverage and attainment per indicator.
+6. IF a competency indicator has no mapped outcomes, THEN THE Platform SHALL flag the indicator as "Unmapped" in the alignment matrix with a visual warning.
+
+---
+
+#### Requirement 106: Interactive Sankey Diagram for Outcome Chains
+
+**User Story:** As a Coordinator or Admin, I want to visualize the ILO → PLO → CLO mapping chain as an interactive Sankey diagram, so that I can understand outcome flow and identify mapping gaps at a glance.
+
+##### Acceptance Criteria
+
+1. THE Platform SHALL render an interactive Sankey_Diagram on the Coordinator and Admin dashboards showing ILO → PLO → CLO relationships with link widths proportional to mapping weights.
+2. WHEN a user hovers over a Sankey link, THE Platform SHALL display a tooltip showing the source outcome, target outcome, weight, and current attainment percentage.
+3. WHEN a user clicks on a Sankey node (ILO, PLO, or CLO), THE Platform SHALL open a detail panel showing the outcome's full details, mapped children/parents, and attainment breakdown.
+4. THE Sankey_Diagram SHALL color-code nodes by attainment level: Excellent (green), Satisfactory (blue), Developing (yellow), Not_Yet (red), and Unmapped (gray).
+5. THE Platform SHALL allow filtering the Sankey diagram by program, course, or semester scope.
+6. THE Sankey_Diagram SHALL render within 2 seconds for institutions with up to 30 ILOs, 100 PLOs, and 500 CLOs.
+
+---
+
+#### Requirement 107: Visual Gap Analysis
+
+**User Story:** As a Coordinator, I want a visual gap analysis view that highlights unmapped or under-assessed outcomes, so that I can identify and address curriculum gaps before accreditation reviews.
+
+##### Acceptance Criteria
+
+1. THE Gap_Analysis_View SHALL display all ILOs, PLOs, and CLOs in a hierarchical tree with status indicators: Fully Mapped (green), Partially Mapped (yellow), Unmapped (red), and No Evidence (gray).
+2. WHEN a PLO has fewer than 2 mapped CLOs, THE Gap_Analysis_View SHALL flag the PLO as "Under-Mapped" with a warning icon.
+3. WHEN a CLO has zero linked assessments in the current semester, THE Gap_Analysis_View SHALL flag the CLO as "Unassessed" with a warning icon.
+4. THE Gap_Analysis_View SHALL provide a summary statistics bar showing: total outcomes, percentage fully mapped, percentage with evidence, and percentage meeting attainment targets.
+5. WHEN a user clicks on a flagged outcome in the Gap_Analysis_View, THE Platform SHALL display recommended actions (e.g., "Add CLO mapping to PLO-3", "Create assessment for CLO-7").
+6. THE Gap_Analysis_View SHALL be exportable as a PDF summary for accreditation documentation.
+
+---
+
+#### Requirement 108: Coverage Heatmap with Drill-Down
+
+**User Story:** As a Coordinator, I want a coverage heatmap showing CLO assessment coverage across courses, so that I can verify that all outcomes are adequately assessed.
+
+##### Acceptance Criteria
+
+1. THE Coverage_Heatmap SHALL display a matrix with CLOs as rows and courses (or assessments) as columns, with cell color intensity representing the number of evidence records or attainment percentage.
+2. THE Coverage_Heatmap SHALL use a sequential color scale: white (0 evidence) → light blue (1–5 evidence records) → dark blue (6+ evidence records), with an overlay toggle to switch to attainment percentage coloring.
+3. WHEN a user clicks on a heatmap cell, THE Platform SHALL drill down to show individual student attainment records for that CLO × course intersection.
+4. THE Coverage_Heatmap SHALL be filterable by semester, program, and attainment level threshold.
+5. THE Coverage_Heatmap SHALL highlight empty cells (zero coverage) with a distinct border pattern to draw attention to assessment gaps.
+6. THE Coverage_Heatmap SHALL render within 3 seconds for programs with up to 200 CLOs and 50 courses.
+
+---
+
+#### Requirement 109: Semester-Over-Semester Attainment Trends
+
+**User Story:** As a Coordinator or Admin, I want to view attainment trends across semesters for CLOs, PLOs, and ILOs, so that I can track program improvement over time for accreditation evidence.
+
+##### Acceptance Criteria
+
+1. THE Semester_Trend_Engine SHALL calculate and store semester-level attainment snapshots for each CLO, PLO, and ILO at semester close.
+2. THE Platform SHALL display a line chart showing attainment percentage over semesters (up to 8 semesters) for any selected outcome, with data points labeled by semester name.
+3. WHEN a trend line shows a decline of 10 percentage points or more between consecutive semesters, THE Platform SHALL flag the outcome with a "Declining Trend" warning badge.
+4. THE Platform SHALL allow side-by-side comparison of up to 4 outcomes on the same trend chart.
+5. THE Platform SHALL provide a tabular view alongside the chart showing semester, attainment percentage, student count, and evidence count per data point.
+6. THE Semester_Trend_Engine SHALL recalculate trend data within 5 minutes of semester close via a scheduled pg_cron job.
+
+---
+
+#### Requirement 110: Cohort Comparison Analytics
+
+**User Story:** As a Coordinator, I want to compare attainment metrics between different student cohorts (by semester, section, or program year), so that I can identify which cohorts need additional support and measure intervention effectiveness.
+
+##### Acceptance Criteria
+
+1. THE Platform SHALL provide a Cohort_Comparison view allowing selection of two or more cohorts defined by: semester, course section, or program enrollment year.
+2. THE Platform SHALL display a grouped bar chart comparing average attainment percentages per CLO or PLO across selected cohorts.
+3. THE Platform SHALL calculate and display statistical significance indicators (effect size using Cohen's d) when comparing two cohorts with sample sizes of 20 or more students each.
+4. THE Platform SHALL allow exporting cohort comparison data as CSV with columns: outcome_code, outcome_title, cohort_label, average_attainment, student_count, and standard_deviation.
+5. WHEN a cohort's average attainment for an outcome is 15 percentage points or more below the comparison cohort, THE Platform SHALL highlight the cell in red with a "Significant Gap" label.
+6. THE Cohort_Comparison view SHALL be accessible from the Coordinator and Admin dashboards.
+
+---
+
+#### Requirement 111: Historical Evidence Analysis
+
+**User Story:** As an Admin, I want to analyze historical evidence data across multiple semesters, so that I can produce longitudinal accreditation reports showing continuous improvement.
+
+##### Acceptance Criteria
+
+1. THE Platform SHALL provide a Historical Evidence dashboard showing aggregated evidence statistics across all completed semesters: total evidence records, average attainment by outcome level (CLO/PLO/ILO), and distribution of attainment levels.
+2. THE Platform SHALL display a stacked area chart showing the proportion of Excellent, Satisfactory, Developing, and Not_Yet evidence records per semester over time.
+3. THE Platform SHALL allow filtering historical evidence by program, course, outcome, and Bloom's level.
+4. THE Report_Generator SHALL produce a "Continuous Improvement Report" PDF containing trend charts, cohort comparisons, gap analysis summaries, and CQI action plan status for a selected date range.
+5. THE Platform SHALL retain evidence data indefinitely (no automatic purging) to support longitudinal accreditation analysis.
+6. THE Historical Evidence dashboard SHALL load within 4 seconds for institutions with up to 500,000 evidence records, using materialized views for aggregation.
+
+---
+
+### SECTION V: Habit Engine Enhancements
+
+#### Requirement 112: Extended Habit Types
+
+**User Story:** As a Student, I want additional daily habit types beyond Login, Submit, Journal, and Read, so that more of my learning activities are tracked and rewarded.
+
+##### Acceptance Criteria
+
+1. THE Habit_Tracker SHALL support 8 habit types: Login, Submit, Journal, Read, Collaborate, Practice, Review, and Mentor.
+2. THE Collaborate_Habit SHALL be marked complete when a student posts a discussion question or answer in any enrolled course forum during the current day.
+3. THE Practice_Habit SHALL be marked complete when a student completes at least one quiz attempt in any enrolled course during the current day.
+4. THE Review_Habit SHALL be marked complete when a student submits a peer review for a classmate's work during the current day.
+5. THE Mentor_Habit SHALL be marked complete when a student's discussion answer is marked as correct by a teacher, or when the student provides a documented help action during the current day.
+6. THE XP_Engine SHALL award 15 XP for each newly completed extended habit type (Collaborate, Practice, Review, Mentor) per day.
+7. THE Habit_Tracker SHALL display all 8 habits in the 7-day grid on the Student Dashboard, with completed habits shown as filled icons and incomplete habits as outlined icons.
+8. THE Perfect_Day_Nudge logic SHALL be updated to consider all 8 habits: a Perfect Day requires completing at least 6 of 8 habits.
+
+---
+
+#### Requirement 113: Social Challenges — Team-Based Challenges
+
+**User Story:** As a Teacher, I want to create team-based challenges where groups of students compete toward shared goals, so that students are motivated through collaboration and friendly competition.
+
+##### Acceptance Criteria
+
+1. WHEN a Teacher creates a Social_Challenge, THE Platform SHALL require: title, description, challenge type (team or course-wide), start date, end date, goal metric (total XP earned, habits completed, assignments submitted, or quiz score average), goal target value, and reward (XP bonus or badge).
+2. THE Platform SHALL allow Teachers to assign existing Teams (see Requirement 115) to a team-based challenge, with a minimum of 2 teams and a maximum of 20 teams per challenge.
+3. WHILE a Social_Challenge is active, THE Platform SHALL display a live progress bar for each participating team showing current progress toward the goal target.
+4. WHEN a Social_Challenge ends, THE Platform SHALL determine the winning team(s) and distribute the reward to all members of the winning team(s) atomically.
+5. THE Platform SHALL display active and completed challenges on the Student Dashboard in a dedicated "Challenges" tab.
+6. IF a Social_Challenge has fewer than 2 participating teams at the start date, THEN THE Platform SHALL auto-cancel the challenge and notify the creating Teacher.
+
+---
+
+#### Requirement 114: Social Challenges — Course-Wide Challenges
+
+**User Story:** As a Teacher, I want to create course-wide challenges with shared goals where all enrolled students contribute collectively, so that the entire class works together toward a common objective.
+
+##### Acceptance Criteria
+
+1. WHEN a Teacher creates a course-wide Social_Challenge, THE Platform SHALL set the participation scope to all enrolled students in the course (across all sections).
+2. THE Platform SHALL aggregate individual student contributions toward the shared goal target and display a single course-wide progress bar.
+3. WHEN the course-wide goal is achieved, THE Platform SHALL distribute the reward to all enrolled students who contributed at least one qualifying action during the challenge period.
+4. THE Platform SHALL display a contribution leaderboard within the course-wide challenge showing each student's individual contribution to the shared goal.
+5. THE Platform SHALL limit active course-wide challenges to a maximum of 3 per course at any time.
+6. WHEN a course-wide challenge reaches 90% of the goal target, THE Notification_Service SHALL send a push notification to all enrolled students: "Almost there — [X]% of the goal reached."
+
+---
+
+#### Requirement 115: Team Management
+
+**User Story:** As a Teacher, I want to create and manage student teams within my course, so that teams can participate in team-based challenges and earn collective rewards.
+
+##### Acceptance Criteria
+
+1. WHEN a Teacher creates a Team, THE Platform SHALL insert a record into a `teams` table with `name`, `course_id`, `created_by` (teacher_id), and auto-generate a team avatar using the first letter of the team name.
+2. THE Platform SHALL enforce team size limits: minimum 2 members and maximum 6 members per team.
+3. THE Platform SHALL prevent a student from being a member of more than one team within the same course.
+4. THE Platform SHALL allow Teachers to auto-generate balanced teams by randomly distributing enrolled students into teams of a specified size.
+5. WHEN a student is removed from a team, THE Platform SHALL retain the student's historical contribution to team XP and challenge progress.
+6. THE Platform SHALL display team membership on the Student Dashboard course card with the team name and member avatars.
+
+---
+
+#### Requirement 116: Team-Based Gamification — Shared XP Pool
+
+**User Story:** As a Student on a team, I want my individual XP contributions to also feed into a shared team XP pool, so that my team progresses together.
+
+##### Acceptance Criteria
+
+1. WHEN a student who is a team member earns XP from any action, THE XP_Engine SHALL credit 100% of the XP to the student's individual balance AND credit 50% of the XP (rounded down) to the team's shared XP pool.
+2. THE Platform SHALL store team XP in a `team_gamification` table with `team_id`, `xp_total`, `xp_this_week`, and `streak_current`.
+3. THE Platform SHALL display the team XP pool on the Team Dashboard card alongside individual XP.
+4. THE XP_Engine SHALL log team XP contributions as separate `xp_transactions` records with `scope = 'team'` and `team_id`.
+5. THE Platform SHALL NOT allow direct transfer of individual XP to team XP or vice versa outside the automatic 50% contribution.
+
+---
+
+#### Requirement 117: Team Leaderboard
+
+**User Story:** As a Student, I want to see how my team ranks against other teams, so that team competition motivates collaborative engagement.
+
+##### Acceptance Criteria
+
+1. THE Team_Leaderboard SHALL display all teams within a course ranked by team XP (weekly and all-time views).
+2. THE Team_Leaderboard SHALL show for each team: rank, team name, team avatar, member count, total team XP, and weekly team XP.
+3. THE Team_Leaderboard SHALL highlight the current student's team with a distinct visual indicator.
+4. THE Team_Leaderboard SHALL update in real time via Supabase Realtime subscriptions.
+5. THE Platform SHALL display the top 3 teams with Gold, Silver, and Bronze styling consistent with the individual leaderboard design.
+6. THE Team_Leaderboard SHALL be accessible from the Student Dashboard and the course detail page.
+
+---
+
+#### Requirement 118: Team Badges
+
+**User Story:** As a team member, I want my team to earn collective badges for team milestones, so that we have shared achievements to celebrate.
+
+##### Acceptance Criteria
+
+1. THE Badge_System SHALL support a `team` badge scope in addition to the existing `individual` scope, stored as `scope = 'team'` in the `badges` table.
+2. THE Badge_System SHALL award team badges for defined milestones: Team Spirit (team earns 500 XP), Unstoppable (team wins 3 challenges), Dream Team (all members complete a Perfect Day on the same day), Study Squad (team maintains a 7-day team streak).
+3. WHEN a team badge is awarded, THE Platform SHALL display an animated notification to all online team members simultaneously.
+4. Team badges SHALL be displayed on the Team Dashboard card and on each team member's profile under a "Team Badges" section.
+5. Team badge awards SHALL be atomic and idempotent (cannot be awarded twice for the same trigger and team).
+
+---
+
+#### Requirement 119: Team Streaks
+
+**User Story:** As a team member, I want my team to maintain a collective streak when all members are active daily, so that we motivate each other to stay consistent.
+
+##### Acceptance Criteria
+
+1. THE Streak_Tracker SHALL calculate a team streak: the team streak increments when ALL team members log in on the same calendar day.
+2. WHEN any team member misses a day, THE team streak SHALL reset to 0.
+3. THE Platform SHALL store team streak data in the `team_gamification` table with `streak_current` and `streak_longest`.
+4. THE Platform SHALL display the team streak on the Team Dashboard card with a flame icon consistent with individual streak styling.
+5. Team streak milestones (7, 14, 30 days) SHALL trigger team badge awards and bonus XP to the team pool (100, 250, 500 XP respectively).
+6. THE Platform SHALL send a notification to all team members at 8 PM (institution timezone) if any team member has not logged in that day: "Your team streak is at risk — [member_name] hasn't logged in today."
+
+---
+
+#### Requirement 120: Adaptive XP Scaling — Level-Based Adjustment
+
+**User Story:** As the system, I want XP awards to scale based on student level, so that higher-level students are not over-rewarded for trivial actions and lower-level students receive encouragement.
+
+##### Acceptance Criteria
+
+1. THE Adaptive_XP_Engine SHALL apply an XP_Multiplier based on student level: Levels 1–5 receive a 1.2x multiplier (encouragement bonus), Levels 6–10 receive 1.0x (baseline), Levels 11–15 receive 0.9x, and Levels 16–20 receive 0.8x.
+2. THE XP_Engine SHALL calculate final XP as: `floor(base_xp × level_multiplier × difficulty_multiplier)`.
+3. THE `xp_transactions` table SHALL store both `base_xp` and `final_xp` fields, along with the applied `multiplier` value for auditability.
+4. WHEN a student levels up, THE Adaptive_XP_Engine SHALL recalculate the level multiplier immediately for subsequent XP awards.
+5. THE Platform SHALL display the current XP multiplier on the Student Dashboard gamification card.
+
+---
+
+#### Requirement 121: Adaptive XP Scaling — Difficulty-Based Adjustment
+
+**User Story:** As the system, I want XP awards to scale based on task difficulty, so that students are rewarded proportionally to the cognitive effort required.
+
+##### Acceptance Criteria
+
+1. THE Adaptive_XP_Engine SHALL assign a difficulty multiplier based on the Bloom's Taxonomy level of the linked CLO: Remembering (1.0x), Understanding (1.1x), Applying (1.2x), Analyzing (1.3x), Evaluating (1.4x), Creating (1.5x).
+2. WHEN a student submits an assignment linked to multiple CLOs, THE Adaptive_XP_Engine SHALL use the highest Bloom's level among the linked CLOs for the difficulty multiplier.
+3. THE Platform SHALL display the difficulty multiplier on the assignment detail page as a "Difficulty Bonus" indicator with the Bloom's level badge.
+4. THE XP_Engine SHALL log the `difficulty_multiplier` in the `xp_transactions` record for each XP award.
+
+---
+
+#### Requirement 122: Adaptive XP Scaling — Diminishing Returns
+
+**User Story:** As the system, I want to apply diminishing returns for repetitive actions within a short window, so that XP farming is discouraged and diverse learning behaviors are rewarded.
+
+##### Acceptance Criteria
+
+1. THE Adaptive_XP_Engine SHALL apply a Diminishing_Returns_Rule: for each repeated action type (e.g., multiple quiz completions) within a rolling 24-hour window, the XP multiplier decreases by 0.2x per repetition after the first (1.0x → 0.8x → 0.6x → 0.4x → 0.2x minimum).
+2. THE Adaptive_XP_Engine SHALL track action counts per student per action type in a rolling 24-hour window using the `xp_transactions` table timestamps.
+3. THE Platform SHALL display a "Diminishing Returns" indicator on the Student Dashboard when a student's next action of a given type would receive reduced XP.
+4. THE Diminishing_Returns_Rule SHALL reset for each action type independently after 24 hours from the first action in the window.
+5. THE Diminishing_Returns_Rule SHALL NOT apply to one-time milestone rewards (streak milestones, badge awards, level-up bonuses).
+
+---
+
+#### Requirement 123: Adaptive XP Scaling — Improvement Bonus
+
+**User Story:** As the system, I want to award bonus XP to struggling students who show measurable improvement, so that the gamification system encourages growth rather than only rewarding high performers.
+
+##### Acceptance Criteria
+
+1. WHEN a student's attainment for a CLO improves by 15 percentage points or more compared to their previous assessment on the same CLO, THE Adaptive_XP_Engine SHALL award an "Improvement Bonus" of 50 XP in addition to the standard XP award.
+2. THE Adaptive_XP_Engine SHALL calculate improvement by comparing the current evidence score percentage to the student's previous evidence score percentage for the same CLO.
+3. WHEN an Improvement Bonus is awarded, THE Platform SHALL display a celebratory animation with the message "Great improvement on [CLO title]" and the bonus XP amount.
+4. THE Badge_System SHALL award a "Comeback Kid" badge when a student earns 3 Improvement Bonuses within a single semester.
+5. THE `xp_transactions` record for an Improvement Bonus SHALL include `action_type = 'improvement_bonus'` and a reference to the CLO and previous/current scores.
+
