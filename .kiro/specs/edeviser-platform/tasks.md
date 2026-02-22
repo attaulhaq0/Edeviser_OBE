@@ -84,7 +84,7 @@ Complete unified implementation of the Edeviser platform covering authentication
     - SessionManagement types, PWA types, RateLimiter types
     - _Requirements: All_
 
-  - [-] 1.5 Apply database extensions, indexes, and cron jobs via Supabase MCP
+  - [x] 1.5 Apply database extensions, indexes, and cron jobs via Supabase MCP
     - NOTE: All 23 tables with RLS policies already exist. DO NOT recreate tables.
     - Enable `pg_cron` and `pg_net` extensions (requires Supabase Pro plan — see task 44 for free-tier fallback)
     - Create performance indexes per architecture doc (outcome_attainment, xp_transactions, evidence, student_activity_log, ai_feedback)
