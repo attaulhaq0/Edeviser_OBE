@@ -5,7 +5,7 @@ import reactRefresh from 'eslint-plugin-react-refresh';
 import globals from 'globals';
 
 export default tseslint.config(
-  { ignores: ['dist', 'node_modules', 'supabase/functions'] },
+  { ignores: ['dist', 'node_modules', 'supabase/functions', 'src/components/ui'] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ['**/*.{ts,tsx}'],
@@ -22,12 +22,6 @@ export default tseslint.config(
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
       '@typescript-eslint/no-explicit-any': 'warn',
-    },
-  },
-  {
-    files: ['src/components/ui/**/*.{ts,tsx}'],
-    rules: {
-      'react-refresh/only-export-components': 'off',
     },
   },
 );
