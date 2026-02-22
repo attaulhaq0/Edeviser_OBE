@@ -183,61 +183,61 @@ Complete unified implementation of the Edeviser platform covering authentication
   - [x] 5.4 Implement ILO deletion with dependency check
     - _Requirements: 12.2_
 
-- [-] 6. Implement Admin Dashboard
+- [x] 6. Implement Admin Dashboard
   - [x] 6.1 Create Admin layout with sidebar navigation
     - _Requirements: 27_
 
   - [x] 6.2 Create Admin Dashboard page with KPI cards, activity feed, PLO heatmap
     - _Requirements: 27_
 
-  - [~] 6.3 Create Audit Log viewer page
+  - [x] 6.3 Create Audit Log viewer page
     - _Requirements: 34_
 
-- [ ] 7. Implement Bonus XP Event Manager
-  - [ ] 7.1 Create bonus XP event TanStack Query hooks (`/src/hooks/useBonusEvents.ts`)
+- [x] 7. Implement Bonus XP Event Manager
+  - [x] 7.1 Create bonus XP event TanStack Query hooks (`/src/hooks/useBonusEvents.ts`)
     - _Requirements: 36.3_
 
-  - [ ] 7.2 Create Bonus XP Event Manager page (`/src/pages/admin/BonusXPEventManager.tsx`)
+  - [x] 7.2 Create Bonus XP Event Manager page (`/src/pages/admin/BonusXPEventManager.tsx`)
     - CRUD for bonus events: title, multiplier, start/end datetime, active toggle
     - Validate no overlapping active events
     - Log creation/modification to Audit_Logger
     - _Requirements: 36.3_
 
-  - [ ] 7.3 Create BonusEventBanner shared component
+  - [x] 7.3 Create BonusEventBanner shared component
     - Display active bonus event on Student Dashboard with countdown timer
     - _Requirements: 36.3_
 
-- [ ] 8. Implement Course management
-  - [ ] 8.1 Create course TanStack Query hooks (`/src/hooks/useCourses.ts`)
+- [x] 8. Implement Course management
+  - [x] 8.1 Create course TanStack Query hooks (`/src/hooks/useCourses.ts`)
     - _Requirements: 10_
 
-  - [ ] 8.2 Create Course List page and forms
+  - [x] 8.2 Create Course List page and forms
     - _Requirements: 10_
 
-  - [ ] 8.3 Implement teacher assignment to courses
+  - [x] 8.3 Implement teacher assignment to courses
     - _Requirements: 10.1_
 
-- [ ] 9. Implement PLO management
-  - [ ] 9.1 Create PLO TanStack Query hooks (`/src/hooks/usePLOs.ts`)
+- [x] 9. Implement PLO management
+  - [x] 9.1 Create PLO TanStack Query hooks (`/src/hooks/usePLOs.ts`)
     - _Requirements: 13_
 
-  - [ ] 9.2 Create PLO List page with drag-and-drop reorder
+  - [x] 9.2 Create PLO List page with drag-and-drop reorder
     - _Requirements: 13.4_
 
-  - [ ] 9.3 Create PLO Create/Edit form with ILO mapping
+  - [x] 9.3 Create PLO Create/Edit form with ILO mapping
     - _Requirements: 13.1, 13.2_
 
-  - [ ] 9.4 Implement PLO-ILO weight validation
+  - [x] 9.4 Implement PLO-ILO weight validation
     - _Requirements: 13.3_
 
-- [ ] 10. Implement Curriculum Matrix
-  - [ ] 10.1 Create Curriculum Matrix component (PLO × Course grid)
+- [-] 10. Implement Curriculum Matrix
+  - [x] 10.1 Create Curriculum Matrix component (PLO × Course grid)
     - _Requirements: 28.2_
 
-  - [ ] 10.2 Implement click-through to evidence detail
+  - [x] 10.2 Implement click-through to evidence detail
     - _Requirements: 28.3_
 
-  - [ ] 10.3 Implement CSV export
+  - [~] 10.3 Implement CSV export
     - _Requirements: 28.3_
 
 - [ ] 11. Implement Coordinator Dashboard

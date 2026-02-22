@@ -17,5 +17,5 @@ export const updateCourseSchema = z.object({
   is_active: z.boolean().optional(),
 });
 
-export type CreateCourseFormData = z.infer<typeof createCourseSchema>;
+export type CreateCourseFormData = z.input<typeof createCourseSchema>;
 export type UpdateCourseFormData = z.infer<typeof updateCourseSchema>;

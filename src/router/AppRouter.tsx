@@ -30,7 +30,14 @@ const ProgramListPage = lazy(() => import('@/pages/admin/programs/ProgramListPag
 const ProgramForm = lazy(() => import('@/pages/admin/programs/ProgramForm'));
 const ILOListPage = lazy(() => import('@/pages/admin/outcomes/ILOListPage'));
 const ILOForm = lazy(() => import('@/pages/admin/outcomes/ILOForm'));
+const AuditLogPage = lazy(() => import('@/pages/admin/AuditLogPage'));
+const BonusXPEventManager = lazy(() => import('@/pages/admin/BonusXPEventManager'));
+const CourseListPage = lazy(() => import('@/pages/admin/courses/CourseListPage'));
+const CourseForm = lazy(() => import('@/pages/admin/courses/CourseForm'));
 const CoordinatorDashboard = lazy(() => import('@/pages/coordinator/CoordinatorDashboard'));
+const PLOListPage = lazy(() => import('@/pages/coordinator/plos/PLOListPage'));
+const PLOForm = lazy(() => import('@/pages/coordinator/plos/PLOForm'));
+const CurriculumMatrixPage = lazy(() => import('@/pages/coordinator/CurriculumMatrixPage'));
 const TeacherDashboard = lazy(() => import('@/pages/teacher/TeacherDashboard'));
 const StudentDashboard = lazy(() => import('@/pages/student/StudentDashboard'));
 const ParentDashboard = lazy(() => import('@/pages/parent/ParentDashboard'));
@@ -76,6 +83,11 @@ const AppRouter = () => (
         <Route path="outcomes" element={<ILOListPage />} />
         <Route path="outcomes/new" element={<ILOForm />} />
         <Route path="outcomes/:id/edit" element={<ILOForm />} />
+        <Route path="audit-log" element={<AuditLogPage />} />
+        <Route path="bonus-events" element={<BonusXPEventManager />} />
+        <Route path="courses" element={<CourseListPage />} />
+        <Route path="courses/new" element={<CourseForm />} />
+        <Route path="courses/:id/edit" element={<CourseForm />} />
       </Route>
 
       {/* Coordinator routes */}
@@ -89,6 +101,10 @@ const AppRouter = () => (
       >
         <Route index element={<Navigate to="/coordinator/dashboard" replace />} />
         <Route path="dashboard" element={<CoordinatorDashboard />} />
+        <Route path="plos" element={<PLOListPage />} />
+        <Route path="plos/new" element={<PLOForm />} />
+        <Route path="plos/:id/edit" element={<PLOForm />} />
+        <Route path="matrix" element={<CurriculumMatrixPage />} />
       </Route>
 
       {/* Teacher routes */}
