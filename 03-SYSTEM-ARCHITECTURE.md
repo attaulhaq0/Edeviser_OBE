@@ -184,6 +184,7 @@ erDiagram
         varchar avatar_url
         enum role "admin, coordinator, teacher, student"
         boolean is_active
+        jsonb email_preferences "Per-type notification opt-out toggles: streak_risk, weekly_summary, new_assignment, grade_released"
         timestamptz created_at
         timestamptz last_seen_at
     }
@@ -272,6 +273,7 @@ erDiagram
         boolean is_late_allowed
         integer late_window_hours "Default 24"
         jsonb clo_weights "Array of {clo_id, weight} summing to 1.0"
+        jsonb prerequisites "Array of {clo_id, min_attainment_percent} for learning path gating"
         timestamptz created_at
     }
 
@@ -375,11 +377,53 @@ erDiagram
     notifications {
         uuid id PK
         uuid user_id FK
-        varchar type "grade_released, badge_earned, streak_risk, ai_suggestion"
+        varchar type "grade_released, badge_earned, streak_risk, ai_suggestion, peer_milestone, perfect_day_prompt"
         varchar title
         text body
         jsonb metadata "Reference IDs for deep linking"
         boolean is_read
+        timestamptz created_at
+    }
+
+    habit_logs {
+        uuid id PK
+        uuid student_id FK "References profiles.id"
+        date log_date
+        boolean logged_in
+        boolean submitted
+        boolean journaled
+        boolean read_content
+        boolean is_perfect_day "All 4 habits completed"
+        timestamptz created_at
+    }
+
+    bonus_xp_events {
+        uuid id PK
+        uuid institution_id FK
+        varchar title
+        numeric multiplier "e.g., 2.0 for 2× XP"
+        timestamptz start_datetime
+        timestamptz end_datetime
+        boolean is_active
+        uuid created_by FK "References profiles.id (admin)"
+        timestamptz created_at
+    }
+
+    student_activity_log {
+        uuid id PK
+        uuid student_id FK "References profiles.id"
+        varchar event_type "login, page_view, submission, journal, streak_break, assignment_view"
+        jsonb metadata "Context-specific data"
+        timestamptz created_at "Append-only — never updated or deleted"
+    }
+
+    ai_feedback {
+        uuid id PK
+        uuid student_id FK "References profiles.id"
+        enum suggestion_type "module_suggestion, at_risk_prediction, feedback_draft"
+        jsonb suggestion_data "AI-generated content payload"
+        text feedback "Student/teacher thumbs up/down or accept/edit/reject"
+        text validated_outcome "Actual grade outcome for prediction accuracy tracking"
         timestamptz created_at
     }
 
@@ -407,6 +451,11 @@ erDiagram
     submissions ||--|| grades : "receives"
     grades ||--|{ evidence : "produces"
     evidence ||--|{ outcome_attainment : "aggregated into"
+
+    profiles ||--|{ habit_logs : "tracks habits"
+    profiles ||--|{ student_activity_log : "logs activity"
+    profiles ||--|{ ai_feedback : "receives suggestions"
+    institutions ||--|{ bonus_xp_events : "creates events"
 ```
 
 ### Key Schema Design Decisions
@@ -574,7 +623,89 @@ ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "audit_admin_read" ON audit_logs
   FOR SELECT USING (auth_user_role() = 'admin');
+
+-- ==============================
+-- HABIT LOGS
+-- ==============================
+ALTER TABLE habit_logs ENABLE ROW LEVEL SECURITY;
+
+-- Students can read and write their own habit logs
+CREATE POLICY "habit_logs_student_own" ON habit_logs
+  FOR ALL USING (student_id = auth.uid());
+
+-- Teachers can read habit logs for students in their courses
+CREATE POLICY "habit_logs_teacher_read" ON habit_logs
+  FOR SELECT USING (
+    auth_user_role() = 'teacher'
+    AND student_id IN (
+      SELECT sc.student_id FROM student_courses sc
+      JOIN courses c ON c.id = sc.course_id
+      WHERE c.teacher_id = auth.uid()
+    )
+  );
+
+-- ==============================
+-- BONUS XP EVENTS
+-- ==============================
+ALTER TABLE bonus_xp_events ENABLE ROW LEVEL SECURITY;
+
+-- All authenticated users can read active bonus events
+CREATE POLICY "bonus_xp_events_read" ON bonus_xp_events
+  FOR SELECT USING (
+    institution_id = auth_institution_id()
+  );
+
+-- Only admins can create/update/delete bonus events
+CREATE POLICY "bonus_xp_events_admin_write" ON bonus_xp_events
+  FOR ALL USING (
+    auth_user_role() = 'admin'
+    AND institution_id = auth_institution_id()
+  );
+
+-- ==============================
+-- STUDENT ACTIVITY LOG (Append-only for AI training data)
+-- ==============================
+ALTER TABLE student_activity_log ENABLE ROW LEVEL SECURITY;
+
+-- Students can insert their own activity events (fire-and-forget)
+CREATE POLICY "activity_log_student_insert" ON student_activity_log
+  FOR INSERT WITH CHECK (student_id = auth.uid());
+
+-- No client-side reads — service role only for AI processing
+-- Admins can read for monitoring/debugging
+CREATE POLICY "activity_log_admin_read" ON student_activity_log
+  FOR SELECT USING (auth_user_role() = 'admin');
+
+-- ==============================
+-- AI FEEDBACK
+-- ==============================
+ALTER TABLE ai_feedback ENABLE ROW LEVEL SECURITY;
+
+-- Students can read their own AI suggestions
+CREATE POLICY "ai_feedback_student_read" ON ai_feedback
+  FOR SELECT USING (student_id = auth.uid());
+
+-- Students can update feedback (thumbs up/down) on their own suggestions
+CREATE POLICY "ai_feedback_student_update" ON ai_feedback
+  FOR UPDATE USING (student_id = auth.uid());
+
+-- Teachers can read at-risk predictions and feedback drafts for their course students
+CREATE POLICY "ai_feedback_teacher_read" ON ai_feedback
+  FOR SELECT USING (
+    auth_user_role() = 'teacher'
+    AND student_id IN (
+      SELECT sc.student_id FROM student_courses sc
+      JOIN courses c ON c.id = sc.course_id
+      WHERE c.teacher_id = auth.uid()
+    )
+  );
+
+-- Admins can read all AI feedback for monitoring and accuracy tracking
+CREATE POLICY "ai_feedback_admin_read" ON ai_feedback
+  FOR SELECT USING (auth_user_role() = 'admin');
 ```
+
+> **Note:** RLS policies for the 23 existing tables (beyond `profiles`, `learning_outcomes`, `submissions`, `evidence`, `student_gamification`, and `audit_logs` shown above) are tracked in the implementation plan (Task 1.5). All tables have RLS enabled; remaining policies for `programs`, `courses`, `student_courses`, `outcome_mappings`, `rubrics`, `rubric_criteria`, `assignments`, `grades`, `outcome_attainment`, `badges`, `xp_transactions`, `journal_entries`, and `notifications` will be applied following the same `auth_user_role()` / `auth_institution_id()` pattern.
 
 ---
 
@@ -755,6 +886,19 @@ CREATE INDEX idx_outcomes_program ON learning_outcomes(program_id) WHERE type = 
 -- Outcome mappings
 CREATE INDEX idx_outcome_mappings_source ON outcome_mappings(source_outcome_id);
 CREATE INDEX idx_outcome_mappings_target ON outcome_mappings(target_outcome_id);
+
+-- Habit logs
+CREATE INDEX idx_habit_logs_student_date ON habit_logs(student_id, log_date);
+
+-- Student activity log (AI training data)
+CREATE INDEX idx_student_activity_log_student ON student_activity_log(student_id, created_at DESC);
+
+-- AI feedback
+CREATE INDEX idx_ai_feedback_student ON ai_feedback(student_id, suggestion_type);
+CREATE INDEX idx_ai_feedback_type ON ai_feedback(suggestion_type, created_at DESC);
+
+-- Bonus XP events
+CREATE INDEX idx_bonus_xp_events_active ON bonus_xp_events(institution_id, is_active) WHERE is_active = true;
 ```
 
 ---
@@ -820,6 +964,88 @@ sequenceDiagram
     EF->>RT: Emit realtime event to each student's channel
     RT-->>Student: In-app notification badge updates
 ```
+
+### Peer Milestone Notification Flow
+
+```mermaid
+sequenceDiagram
+    participant XP as XP Engine
+    participant DB as Supabase DB
+    participant RT as Supabase Realtime
+
+    XP->>DB: Student levels up (UPDATE student_gamification SET level = new_level)
+    DB->>DB: Query peers in shared courses (SELECT DISTINCT sc2.student_id FROM student_courses sc1 JOIN student_courses sc2 ON sc1.course_id = sc2.course_id WHERE sc1.student_id = leveled_up_student AND sc2.student_id != leveled_up_student)
+    DB->>DB: Filter out anonymous leaderboard students
+    DB->>DB: INSERT INTO notifications (type='peer_milestone', user_id=peer_id, title='Your classmate [name] just hit Level [X]!')
+    DB->>RT: Emit Realtime event to each peer's channel
+    RT-->>Peers: Peer milestone toast notification (delivered within 5 seconds)
+```
+
+### Perfect Day Detection Flow
+
+```mermaid
+flowchart TD
+    subgraph HabitCheck ["Daily Habit Tracker"]
+        H1[Login ✓] --> Check{All 4 habits\ncompleted today?}
+        H2[Submit ✓] --> Check
+        H3[Journal ✓] --> Check
+        H4[Read ✓] --> Check
+        Check -- "Yes (4/4)" --> PerfectDay["Award 50 XP bonus\nUPDATE habit_logs SET is_perfect_day = true\nINSERT xp_transactions (source='perfect_day')"]
+        Check -- "No (3/4 at 6 PM)" --> Nudge["pg_cron: perfect-day-nudge-cron\nSend in-app notification:\n'You're 1 habit away from a Perfect Day! ✨\nComplete your [missing_habit] to earn 50 bonus XP.'"]
+    end
+
+    style HabitCheck fill:#fff8e1,stroke:#f9a825
+```
+
+### Bonus XP Event Multiplier Flow
+
+```mermaid
+flowchart TD
+    subgraph BonusXP ["Bonus XP Event Processing"]
+        Action[Student earns base XP] --> CheckEvent{Active bonus_xp_event\nexists for institution?}
+        CheckEvent -- "Yes" --> Apply["Multiply XP: base_xp × event.multiplier\nINSERT xp_transactions with multiplied amount\nNote includes event title"]
+        CheckEvent -- "No" --> Normal["Award base XP as normal"]
+        Apply --> Banner["Student dashboard shows\nBonus Event banner with countdown"]
+    end
+
+    subgraph AdminControl ["Admin Event Management"]
+        Admin[Admin creates event] --> Validate{Overlapping active\nevent exists?}
+        Validate -- "No" --> Create["INSERT bonus_xp_events\n(title, multiplier, start/end datetime)"]
+        Validate -- "Yes" --> Reject["Block creation:\n'An active event already exists'"]
+    end
+
+    style BonusXP fill:#e8f5e9,stroke:#2e7d32
+    style AdminControl fill:#e1f5fe,stroke:#01579b
+```
+
+### Mystery Badge System
+
+Mystery badges have hidden conditions that are not announced in advance. They are displayed as silhouettes on the badge wall until earned, creating Drive 7 (Unpredictability & Curiosity) from the Octalysis framework.
+
+**Mystery Badge Catalog:**
+| Badge | Hidden Condition | Rarity |
+|-------|-----------------|--------|
+| ⚡ Speed Demon | Submit 3 assignments within 24 hours | Rare |
+| 🌙 Night Owl | Submit an assignment between midnight and 5 AM | Uncommon |
+| 💯 Perfectionist | Achieve 100% on 3 consecutive rubric-graded assignments | Epic |
+
+**Display Rules:**
+- Unearned mystery badges show as silhouettes (`opacity-30 grayscale`) with "???" label
+- On unlock: `badge-pop` animation with confetti burst
+- Badge condition revealed only after earning
+
+---
+
+## 9.1 Scheduled Cron Jobs (pg_cron)
+
+| Job Name | Schedule | Edge Function | Description |
+|----------|----------|---------------|-------------|
+| `streak-risk-check` | Daily at 8 PM (UTC+5) | `streak-risk-check` | Identifies students with active streaks who haven't logged in today; sends email + in-app notification |
+| `streak-midnight-reset` | Daily at midnight (UTC+5) | `process-xp-event` | Increments streaks for students who logged in; resets streaks for those who didn't |
+| `weekly-summary` | Monday 8 AM (UTC+5) | `weekly-summary` | Sends weekly digest email: submissions count, XP earned, streak status |
+| `perfect-day-prompt` | Daily at 6 PM (UTC+5) | `perfect-day-nudge-cron` | Checks students with 3/4 habits completed; sends in-app notification for the missing habit |
+| `ai-at-risk-prediction` | Nightly at 2 AM (UTC+5) | `ai-at-risk-prediction` | Analyzes behavioral signals from `student_activity_log`; predicts at-risk students ≥7 days before due dates |
+| `leaderboard-refresh` | Every 5 minutes | — (SQL) | `REFRESH MATERIALIZED VIEW leaderboard_weekly` |
 
 ---
 
@@ -913,6 +1139,26 @@ POST   /functions/v1/ai-suggest
   Body: { student_id: uuid, context: 'module_suggestion' | 'at_risk' }
   Auth: Teacher/Student JWT
   Action: Call AI service, return structured suggestions (Phase 2)
+
+POST   /functions/v1/perfect-day-nudge-cron
+  Auth: Service role (pg_cron invocation)
+  Schedule: Daily at 6 PM (UTC+5)
+  Action: Check students with 3/4 habits completed today, send in-app notification for the missing habit
+
+POST   /functions/v1/ai-module-suggestion
+  Body: { student_id: uuid }
+  Auth: Service role or Student JWT
+  Action: Analyze student CLO attainment gaps, generate personalized module suggestions with social proof from historical cohort data
+
+POST   /functions/v1/ai-at-risk-prediction
+  Auth: Service role (pg_cron invocation)
+  Schedule: Nightly
+  Action: Monitor behavioral signals (login frequency, submission timing, CLO trends from student_activity_log), predict at-risk students ≥7 days before due date, surface to teacher dashboard with probability score (0-100%)
+
+POST   /functions/v1/ai-feedback-draft
+  Body: { submission_id: uuid, grade_id: uuid }
+  Auth: Teacher JWT
+  Action: Generate draft rubric feedback comments per criterion for teacher review (accept/edit/reject controls)
 ```
 
 ### TanStack Query Hook Pattern
@@ -1164,14 +1410,23 @@ jobs:
 | Layer | Technology | Version | Purpose |
 |-------|-----------|---------|---------|
 | **Frontend Framework** | React | 18 | Component-based UI |
-| **Build Tool** | Vite | 5 | Fast dev server + optimized production build |
+| **Build Tool** | Vite | 6 | Fast dev server + optimized production build |
 | **Language** | TypeScript | 5 | Type safety across frontend and edge functions |
-| **Styling** | Tailwind CSS | 3 | Utility-first CSS; design token integration |
+| **Styling** | Tailwind CSS | v4 | Utility-first CSS; design token integration |
 | **Component Library** | Shadcn/ui + Radix UI | Latest | Accessible, unstyled primitives + Edeviser overrides |
-| **Routing** | React Router | 6 | SPA navigation with role guards |
+| **Routing** | React Router | v7 | SPA navigation with role-based guards |
 | **Server State** | TanStack Query | 5 | Caching, deduplication, optimistic updates, background sync |
+| **Data Tables** | TanStack Table | Latest | Headless table logic for data-heavy views |
 | **Forms** | React Hook Form + Zod | Latest | Type-safe form validation |
+| **Client State** | Zustand | Latest | Lightweight client-side state management |
 | **Animation** | Framer Motion | 11 | Complex UI animations; gamification celebrations |
+| **Celebration Effects** | canvas-confetti | Latest | Confetti bursts on XP awards, level-ups, badge unlocks |
+| **Charts** | Recharts | Latest | Dashboard analytics and Bloom's distribution charts |
+| **Drag & Drop** | dnd-kit | Latest | Reorderable lists (PLO sort order, rubric criteria) |
+| **Dates** | date-fns | Latest | Date formatting and manipulation |
+| **Toasts** | Sonner | Latest | Toast notifications for all user feedback |
+| **URL State** | nuqs | Latest | URL-persisted filter/search state in list pages |
+| **Internationalization** | i18next + react-i18next | Latest | Multi-language support (English first, Urdu/Arabic Phase 2) |
 | **Icons** | Lucide React | Latest | Consistent icon set |
 | **Database** | Supabase PostgreSQL | 15 | Managed PostgreSQL with realtime |
 | **Auth** | Supabase Auth (GoTrue) | — | JWT-based sessions, RBAC |
@@ -1180,9 +1435,10 @@ jobs:
 | **Realtime** | Supabase Realtime | — | WebSocket-based live updates |
 | **File Storage** | Supabase Storage | — | Assignment files, PDFs; CDN delivery |
 | **Frontend Host** | Vercel | — | Global CDN, CI/CD, edge middleware |
-| **Email** | Resend | — | Transactional emails with Supabase hook |
-| **Monitoring** | Sentry | — | Error tracking |
+| **Email** | Resend | — | Transactional emails (Edge Functions only — not in React app) |
+| **Error Monitoring** | @sentry/react | Latest | Frontend error tracking + performance monitoring |
 | **Testing** | Vitest + React Testing Library | — | Unit and component tests |
+| **Property Testing** | fast-check | Latest | Property-based tests (min 100 iterations per property) |
 | **PDF Generation** | Puppeteer (in Edge Function) | Latest | Server-side accreditation report rendering |
 | **AI (Phase 2)** | OpenAI API / Anthropic API | — | AI Co-Pilot features |
 
@@ -1192,20 +1448,37 @@ jobs:
 /src
 ├── /pages
 │   ├── /admin          # Admin dashboard, user mgmt, ILOs, reports
+│   │   └── BonusXPEventManager.tsx  # Create/manage time-limited XP multiplier events
 │   ├── /coordinator    # PLO management, curriculum matrix
 │   ├── /teacher        # CLO/assignment/rubric/grading views
 │   └── /student        # Gamified dashboard, learning path, journal
+│       └── /progress
+│           ├── CLOProgress.tsx   # Per-CLO attainment bars with Bloom's level pills
+│           └── XPHistory.tsx     # Chronological XP transaction log with filtering
 │
 ├── /components
 │   ├── /ui             # Shadcn base components (Button, Card, Input, etc.)
-│   ├── /shared         # Shared cross-role components (GradientCard, BloomsPill, etc.)
+│   ├── /shared         # Shared cross-role components
+│   │   ├── GradientCard.tsx
+│   │   ├── BloomsPill.tsx
+│   │   ├── CLOProgressBar.tsx       # Per-CLO attainment bar with Bloom's level context
+│   │   ├── XPTransactionRow.tsx     # Single XP transaction display (source, amount, timestamp)
+│   │   ├── HabitTracker.tsx         # 7-day habit grid (Login, Submit, Journal, Read)
+│   │   ├── BonusEventBanner.tsx     # Active bonus XP event banner with countdown
+│   │   ├── AISuggestionCard.tsx     # AI module suggestion with thumbs up/down
+│   │   ├── AIFeedbackThumbs.tsx     # Thumbs up/down feedback component for AI outputs
+│   │   ├── AtRiskStudentRow.tsx     # At-risk student row with probability badge
+│   │   └── ...
 │   ├── /obe            # OBE-specific: OutcomeTree, RubricBuilder, EvidenceChain
 │   └── /gamification   # XPBadge, StreakCounter, LevelBar, LeaderboardRow
 │
 ├── /lib
-│   ├── supabase.ts     # Supabase client initialization
-│   ├── /obe            # OBE business logic (attainment calc, Bloom's mapping)
-│   └── /habit          # Gamification logic (XP events, badge checks, level thresholds)
+│   ├── supabase.ts          # Supabase client initialization
+│   ├── activityLogger.ts    # Fire-and-forget student behavioral event logging
+│   ├── journalPromptGenerator.ts  # Dynamic journal prompt generation from CLO context
+│   ├── bloomsVerbs.ts       # Bloom's taxonomy verb suggestions per level
+│   ├── /obe                 # OBE business logic (attainment calc, Bloom's mapping)
+│   └── /habit               # Gamification logic (XP events, badge checks, level thresholds)
 │
 ├── /queries            # TanStack Query hooks (per domain)
 │   ├── useLearningOutcomes.ts
@@ -1216,7 +1489,14 @@ jobs:
 ├── /hooks              # Custom React hooks
 │   ├── useAuth.ts
 │   ├── useRealtime.ts
-│   └── useOptimisticMutation.ts
+│   ├── useOptimisticMutation.ts
+│   ├── useHabits.ts             # Habit log CRUD + Perfect Day detection
+│   ├── useBonusEvents.ts        # Active bonus XP event queries
+│   ├── useXPHistory.ts          # XP transaction history with filtering
+│   ├── useAISuggestions.ts      # AI module suggestion queries + feedback
+│   ├── useAtRiskPredictions.ts  # At-risk prediction queries for teacher dashboard
+│   ├── useAIFeedbackDraft.ts    # AI feedback draft generation + accept/edit/reject
+│   └── useAIPerformance.ts      # AI accuracy metrics for admin dashboard
 │
 ├── /types              # TypeScript type definitions (mirroring DB schema)
 │   ├── database.types.ts  # Auto-generated by Supabase CLI
@@ -1230,13 +1510,17 @@ jobs:
 ```
 /supabase
 ├── /functions
-│   ├── grade-submission/           # Evidence rollup trigger (fallback)
-│   ├── process-xp-event/           # XP award, level/badge check
-│   ├── generate-accreditation-report/ # PDF generation
-│   ├── bulk-import-users/          # CSV import + invite emails
-│   ├── streak-risk-check/          # Daily cron: streak reminders
-│   ├── leaderboard/                # Leaderboard query with privacy
-│   └── ai-suggest/                 # AI Co-Pilot (Phase 2)
+│   ├── grade-submission/               # Evidence rollup trigger (fallback)
+│   ├── process-xp-event/               # XP award, level/badge check
+│   ├── generate-accreditation-report/   # PDF generation
+│   ├── bulk-import-users/              # CSV import + invite emails
+│   ├── streak-risk-check/              # Daily cron: streak reminders
+│   ├── leaderboard/                    # Leaderboard query with privacy
+│   ├── ai-suggest/                     # AI Co-Pilot general suggestions
+│   ├── perfect-day-nudge-cron/         # Daily 6 PM: nudge students with 3/4 habits
+│   ├── ai-module-suggestion/           # Personalized CLO gap analysis + module suggestions
+│   ├── ai-at-risk-prediction/          # Nightly cron: behavioral signal analysis + at-risk prediction
+│   └── ai-feedback-draft/              # Per-criterion draft rubric feedback for teacher review
 │
 └── /migrations
     ├── 001_initial_schema.sql

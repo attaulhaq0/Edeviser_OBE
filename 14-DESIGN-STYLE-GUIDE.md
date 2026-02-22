@@ -1,6 +1,6 @@
 # Edeviser Design Style Guide
 **Version:** 2.0 | **Status:** Living Document | **Last Updated:** 2026-02-22
-**Owners:** Design System Lead | **Tools:** Figma, Tailwind CSS 3, Shadcn/ui, Framer Motion
+**Owners:** Design System Lead | **Tools:** Figma, Tailwind CSS v4, Shadcn/ui, Framer Motion
 
 ---
 
@@ -15,11 +15,14 @@
 8. [Animation & Motion](#8-animation--motion)
 9. [Dashboard Patterns](#9-dashboard-patterns)
 10. [Gamification UI Patterns](#10-gamification-ui-patterns)
-11. [Form & Input Patterns](#11-form--input-patterns)
-12. [Responsive Design](#12-responsive-design)
-13. [Accessibility Standards](#13-accessibility-standards)
-14. [Dark Mode (Phase 2)](#14-dark-mode-phase-2)
-15. [Implementation Checklist](#15-implementation-checklist)
+11. [AI Co-Pilot UI Patterns](#11-ai-co-pilot-ui-patterns)
+12. [Notification Patterns](#12-notification-patterns)
+13. [Self-Regulated Learning UI Patterns](#13-self-regulated-learning-ui-patterns)
+14. [Form & Input Patterns](#14-form--input-patterns)
+15. [Responsive Design](#15-responsive-design)
+16. [Accessibility Standards](#16-accessibility-standards)
+17. [Dark Mode (Phase 2)](#17-dark-mode-phase-2)
+18. [Implementation Checklist](#18-implementation-checklist)
 
 ---
 
@@ -810,7 +813,288 @@ const AttainmentBar = ({ percent, label }: { percent: number; label: string }) =
 
 ---
 
-## 11. Form & Input Patterns
+## 11. AI Co-Pilot UI Patterns
+
+### 11.1 AI Suggestion Card
+
+Used for personalized module suggestions on the student dashboard. Features a left border accent, sparkles icon, and thumbs up/down feedback buttons.
+
+```tsx
+<div className="bg-white border border-gray-200 border-l-4 border-l-blue-400 rounded-xl p-4 shadow-sm">
+  <div className="flex items-start gap-3">
+    <div className="p-1.5 bg-blue-50 rounded-lg">
+      <Sparkles className="h-4 w-4 text-blue-500" />
+    </div>
+    <div className="flex-1 min-w-0">
+      <div className="flex items-center gap-2 mb-1">
+        <p className="text-sm font-semibold text-gray-800">Suggested for you</p>
+        <span className="text-xs text-gray-400 italic">AI Draft</span>
+      </div>
+      <p className="text-sm text-gray-600 leading-relaxed">
+        Your hands-on configuration skills (CLO-3) need attention.
+        Try these practice labs to improve.
+      </p>
+      <p className="text-xs text-gray-400 mt-1">
+        Students who completed these scored 34% higher on this CLO.
+      </p>
+    </div>
+  </div>
+  <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100">
+    <Button variant="ghost" size="sm" className="text-gray-400 hover:text-green-600 hover:bg-green-50 h-8 px-2">
+      <ThumbsUp className="h-3.5 w-3.5" />
+    </Button>
+    <Button variant="ghost" size="sm" className="text-gray-400 hover:text-red-600 hover:bg-red-50 h-8 px-2">
+      <ThumbsDown className="h-3.5 w-3.5" />
+    </Button>
+    <span className="text-xs text-gray-400 ml-auto">Was this helpful?</span>
+  </div>
+</div>
+```
+
+### 11.2 At-Risk Student Row
+
+Used on the teacher dashboard's At-Risk Students widget. Red left border with probability badge.
+
+```tsx
+<div className="flex items-center gap-3 py-3 px-4 bg-red-50 border-l-4 border-l-red-400 rounded-r-xl">
+  {/* Avatar */}
+  <div className="w-8 h-8 rounded-full bg-red-200 flex items-center justify-center">
+    <span className="text-xs font-bold text-red-700">{student.name[0]}</span>
+  </div>
+  {/* Info */}
+  <div className="flex-1 min-w-0">
+    <p className="text-sm font-semibold text-gray-800 truncate">{student.name}</p>
+    <p className="text-xs text-gray-500">Last login: {student.lastLogin} · {student.atRiskReason}</p>
+  </div>
+  {/* Probability Badge */}
+  <span className="px-2 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700 border border-red-200">
+    {student.probability}% risk
+  </span>
+  {/* Action */}
+  <Button variant="ghost" size="sm" className="text-blue-600 hover:bg-blue-50 text-xs font-semibold">
+    Send Nudge
+  </Button>
+</div>
+```
+
+### 11.3 AI Feedback Draft (Teacher Grading View)
+
+Displayed in the grading interface per rubric criterion. Amber background with accept/edit/reject controls.
+
+```tsx
+<div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mt-2">
+  <div className="flex items-center gap-2 mb-2">
+    <Sparkles className="h-3.5 w-3.5 text-amber-500" />
+    <span className="text-xs text-gray-400 italic">AI Draft</span>
+  </div>
+  <p className="text-sm text-gray-700 leading-relaxed">
+    {draftComment}
+  </p>
+  <div className="flex items-center gap-2 mt-3">
+    <Button size="sm" className="bg-green-500 hover:bg-green-600 text-white text-xs h-7 px-3">
+      <Check className="h-3 w-3 mr-1" /> Accept
+    </Button>
+    <Button size="sm" variant="outline" className="text-xs h-7 px-3 border-gray-200">
+      <Pencil className="h-3 w-3 mr-1" /> Edit
+    </Button>
+    <Button size="sm" variant="ghost" className="text-red-500 hover:bg-red-50 text-xs h-7 px-3">
+      <X className="h-3 w-3 mr-1" /> Reject
+    </Button>
+  </div>
+</div>
+```
+
+### 11.4 AI-Generated Content Label
+
+All AI-generated content must include this label for transparency:
+
+```tsx
+<span className="text-xs text-gray-400 italic">AI Draft</span>
+```
+
+---
+
+## 12. Notification Patterns
+
+### 12.1 Peer Milestone Toast
+
+Triggered when a classmate levels up. Uses Sonner toast with a custom layout.
+
+```tsx
+toast.custom(() => (
+  <div className="flex items-center gap-3 bg-white border border-gray-200 shadow-lg rounded-xl px-4 py-3 w-80">
+    <div className="p-2 bg-blue-50 rounded-full">
+      <Star className="h-4 w-4 text-blue-500" />
+    </div>
+    <div className="flex-1 min-w-0">
+      <p className="text-sm font-semibold text-gray-800">Peer Milestone! 🎉</p>
+      <p className="text-xs text-gray-500 truncate">
+        Your classmate {peerName} just hit Level {level}!
+      </p>
+    </div>
+  </div>
+));
+```
+
+### 12.2 Perfect Day Prompt Notification
+
+In-app notification for students with 3/4 habits completed at 6 PM.
+
+```tsx
+<div className="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+  <span className="text-xl">✨</span>
+  <div className="flex-1">
+    <p className="text-sm font-semibold text-gray-800">Almost a Perfect Day!</p>
+    <p className="text-xs text-gray-600">
+      You're 1 habit away! Complete your <span className="font-bold text-amber-700">{missingHabit}</span> to earn 50 bonus XP.
+    </p>
+  </div>
+  <Button size="sm" className="bg-gradient-to-r from-teal-500 to-blue-600 text-white text-xs h-7 px-3">
+    Do it now
+  </Button>
+</div>
+```
+
+---
+
+## 13. Self-Regulated Learning UI Patterns
+
+### 13.1 CLO Progress Bar
+
+Per-CLO attainment bar with Bloom's level pill. Reuses attainment level colors from the design system.
+
+```tsx
+const CLOProgressBar = ({ clo }: { clo: CLOProgress }) => {
+  const attainmentColor = clo.percent >= 85 ? 'text-green-600 bg-green-50'
+    : clo.percent >= 70 ? 'text-blue-600 bg-blue-50'
+    : clo.percent >= 50 ? 'text-yellow-600 bg-yellow-50'
+    : 'text-red-600 bg-red-50';
+
+  const barColor = clo.percent >= 85 ? 'from-green-400 to-green-600'
+    : clo.percent >= 70 ? 'from-blue-400 to-blue-600'
+    : clo.percent >= 50 ? 'from-yellow-400 to-yellow-600'
+    : 'from-red-400 to-red-600';
+
+  return (
+    <div className="py-2">
+      <div className="flex items-center gap-2 mb-1">
+        <span className={cn("px-1.5 py-0.5 rounded text-[10px] font-bold text-white", BLOOMS_COLORS[clo.bloomsLevel])}>
+          {clo.bloomsLevel}
+        </span>
+        <span className="text-sm font-medium text-gray-700 truncate flex-1">{clo.title}</span>
+        <span className={cn("px-2 py-0.5 rounded-full text-xs font-bold", attainmentColor)}>
+          {clo.percent}%
+        </span>
+      </div>
+      <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+        <div
+          className={`h-full bg-gradient-to-r ${barColor} rounded-full transition-all duration-700 ease-out`}
+          style={{ width: `${clo.percent}%` }}
+        />
+      </div>
+    </div>
+  );
+};
+```
+
+### 13.2 XP Transaction Row
+
+Single row in the XP transaction history log.
+
+```tsx
+<div className="flex items-center gap-3 py-2.5 px-3 border-b border-gray-100 last:border-0">
+  <div className={cn(
+    "w-8 h-8 rounded-full flex items-center justify-center",
+    xp.amount > 0 ? "bg-green-50" : "bg-red-50"
+  )}>
+    <Zap className={cn("h-4 w-4", xp.amount > 0 ? "text-green-500" : "text-red-500")} />
+  </div>
+  <div className="flex-1 min-w-0">
+    <p className="text-sm font-medium text-gray-800">{xp.sourceLabel}</p>
+    <p className="text-xs text-gray-400">{formatDistanceToNow(xp.createdAt)} ago</p>
+  </div>
+  <span className={cn(
+    "text-sm font-black",
+    xp.amount > 0 ? "text-green-600" : "text-red-600"
+  )}>
+    {xp.amount > 0 ? '+' : ''}{xp.amount} XP
+  </span>
+</div>
+```
+
+### 13.3 Habit Tracker (7-Day Grid)
+
+Compact 7-day habit grid showing 4 daily habits (Login, Submit, Journal, Read).
+
+```tsx
+<div className="grid grid-cols-7 gap-1">
+  {days.map((day) => (
+    <div key={day.date} className="flex flex-col items-center gap-0.5">
+      <span className="text-[10px] text-gray-400 font-medium">{day.label}</span>
+      {['login', 'submit', 'journal', 'read'].map((habit) => (
+        <div
+          key={habit}
+          className={cn(
+            "w-4 h-4 rounded-sm",
+            day.habits[habit]
+              ? "bg-green-500"
+              : "bg-gray-200"
+          )}
+        />
+      ))}
+    </div>
+  ))}
+</div>
+```
+
+### 13.4 Bonus Event Banner
+
+Displayed on the student dashboard when an active Bonus XP Event is running. Gradient background with countdown timer.
+
+```tsx
+<div className="relative overflow-hidden rounded-xl p-4"
+  style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}>
+  <div className="flex items-center justify-between">
+    <div className="flex items-center gap-3">
+      <div className="p-2 bg-white/20 rounded-lg">
+        <Zap className="h-5 w-5 text-white" />
+      </div>
+      <div>
+        <p className="text-white font-bold text-sm">{event.title}</p>
+        <p className="text-blue-100 text-xs">{event.multiplier}× XP on all actions!</p>
+      </div>
+    </div>
+    <div className="text-right">
+      <p className="text-white text-xs font-medium">Ends in</p>
+      <p className="text-white text-lg font-black">{countdown}</p>
+    </div>
+  </div>
+</div>
+```
+
+### 13.5 Mystery Badge (Silhouette)
+
+Unearned mystery badges display as greyed-out silhouettes. On unlock, the `badge-pop` animation plays with a confetti burst.
+
+```tsx
+// Unearned (silhouette)
+<div className="flex flex-col items-center p-4 bg-white border border-gray-200 rounded-xl shadow-sm text-center">
+  <div className="text-4xl mb-2 opacity-30 grayscale">🏆</div>
+  <p className="text-xs font-bold text-gray-400">???</p>
+  <p className="text-[10px] text-gray-300 mt-0.5">Hidden badge</p>
+</div>
+
+// Earned (revealed with animation)
+<div className="flex flex-col items-center p-4 bg-white border border-gray-200 rounded-xl shadow-sm text-center group">
+  <div className="text-4xl mb-2 animate-badge-pop">⚡</div>
+  <p className="text-xs font-bold text-gray-800">Speed Demon</p>
+  <p className="text-[10px] text-gray-400 mt-0.5">Earned {date}</p>
+</div>
+```
+
+---
+
+## 14. Form & Input Patterns
 
 ### Standard Form Field
 ```tsx
@@ -837,7 +1121,7 @@ const AttainmentBar = ({ percent, label }: { percent: number; label: string }) =
 
 ---
 
-## 12. Responsive Design
+## 15. Responsive Design
 
 ### Breakpoints (Tailwind defaults)
 | Prefix | Min-width | Target |
@@ -868,7 +1152,7 @@ On mobile, replace sidebar with a bottom navigation bar:
 
 ---
 
-## 13. Accessibility Standards
+## 16. Accessibility Standards
 
 **Target:** WCAG 2.1 Level AA compliance on all core learning flows.
 
@@ -887,7 +1171,7 @@ On mobile, replace sidebar with a bottom navigation bar:
 
 ---
 
-## 14. Dark Mode (Phase 2)
+## 17. Dark Mode (Phase 2)
 
 Dark mode will be implemented using Tailwind's `class` strategy with a `ThemeProvider` toggle. All CSS custom properties will have dark-mode variants:
 
@@ -906,7 +1190,7 @@ Dark mode will be implemented using Tailwind's `class` strategy with a `ThemePro
 
 ---
 
-## 15. Implementation Checklist
+## 18. Implementation Checklist
 
 Use this checklist when building any new dashboard view or component:
 
@@ -947,6 +1231,22 @@ Use this checklist when building any new dashboard view or component:
 - [ ] Streak displayed with flame icon
 - [ ] Level progress bar present on profile/hero card
 - [ ] Badge awards trigger `animate-badge-pop`
+- [ ] Mystery badges show as silhouettes (`opacity-30 grayscale`) until earned
+- [ ] Bonus Event banner uses brand gradient with countdown timer
+
+**AI Co-Pilot**
+- [ ] AI suggestion cards use `border-l-4 border-l-blue-400` with sparkles icon
+- [ ] At-risk student rows use `bg-red-50 border-l-4 border-l-red-400` with probability badge
+- [ ] Feedback drafts use `bg-amber-50 border border-amber-200` with accept/edit/reject buttons
+- [ ] All AI-generated content includes `text-xs text-gray-400 italic` "AI Draft" label
+- [ ] Thumbs up/down feedback buttons on all AI suggestions
+
+**Self-Regulated Learning**
+- [ ] CLO Progress bars include Bloom's level pill (color-coded)
+- [ ] CLO attainment colors follow design system (green/blue/yellow/red)
+- [ ] XP Transaction rows show positive amounts in green, negative in red
+- [ ] Habit Tracker uses 7-day grid with green/gray squares
+- [ ] Peer milestone notifications delivered via Sonner toast
 
 ---
 

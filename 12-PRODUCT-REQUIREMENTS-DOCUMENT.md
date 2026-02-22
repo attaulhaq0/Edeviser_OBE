@@ -355,6 +355,64 @@ Each requirement follows: **ID | Description | Acceptance Criteria | Priority | 
 - *AC:* Journal entry minimum 100 words (enforced client-side). XP awarded on save. Teacher can view entries only if student opts to share.
 - *Priority:* P2
 
+**FR-GAME-09 — Peer Milestone Notifications**
+- When a student levels up, all peers in shared course enrollments receive an in-app notification: "Your classmate [name] just hit Level [X]!"
+- Students who have opted out of leaderboard visibility (anonymous) are excluded from peer notifications.
+- *AC:* Notification delivered via Supabase Realtime within 5 seconds of level-up event. Notification includes deep link to leaderboard. Peer query scoped to `student_courses` join (shared course enrollments only).
+- *Priority:* P1
+
+**FR-GAME-10 — Perfect Day Prompt Notification**
+- pg_cron job at 6 PM (UTC+5) checks each student's habit completion for the current day. If 3 of 4 habits are completed, send an in-app notification: "You're 1 habit away from a Perfect Day! ✨ Complete your [missing_habit] to earn 50 bonus XP."
+- Students who have already completed all 4 habits are skipped (no notification needed).
+- *AC:* Notification identifies the specific missing habit (Login, Submit, Journal, or Read). Notification delivered within 60 seconds of cron execution. Perfect Day completion awards 50 XP bonus via `xp_transactions`.
+- *Priority:* P1
+
+**FR-GAME-11 — Bonus XP Events**
+- Admins can create time-limited XP multiplier events (e.g., 2×, 3× XP) with a title, multiplier, start datetime, and end datetime.
+- Active event displays a banner on the student dashboard with a countdown timer to event end.
+- No overlapping active events are allowed within the same institution.
+- *AC:* XP multiplier applied to all XP awards during the event window. Banner shows event title, multiplier, and countdown. Admin can deactivate an event early. Event creation blocked if an active event already exists. All multiplied XP transactions reference the event in their `note` field.
+- *Priority:* P2
+
+**FR-GAME-12 — Mystery Badges**
+- System includes hidden badges with conditions that are not announced in advance. Mystery badges are displayed as silhouettes on the badge wall until earned.
+- *Mystery Badge Catalog:* Speed Demon (submit 3 assignments within 24h), Night Owl (submit between midnight and 5 AM), Perfectionist (100% on 3 consecutive rubric-graded assignments).
+- *AC:* Unearned mystery badges display as greyed-out silhouettes with "???" label. Badge condition is revealed only after earning. Unlock triggers `badge-pop` animation with confetti burst. Mystery badge awards are idempotent (cannot be awarded twice).
+- *Priority:* P2
+
+---
+
+### 5.4.1 Self-Regulated Learning & Student Features (FR-SRL)
+
+**FR-SRL-01 — Student CLO Progress Dashboard**
+- Students see per-CLO attainment bars for each enrolled course. Each bar displays: CLO title, Bloom's level pill (color-coded per design system), attainment percentage, and attainment level label (Excellent/Satisfactory/Developing/Not Yet).
+- Click on any CLO bar drills down to contributing evidence records (individual assignment scores).
+- *AC:* CLO bars update in real time via Supabase Realtime on new grades. Bloom's level pills use the standard color coding (Remember=Purple, Understand=Blue, Apply=Green, Analyze=Yellow, Evaluate=Orange, Create=Red). Attainment level colors follow the design system (≥85% green, 70-84% blue, 50-69% yellow, <50% red). Accessible from student dashboard and course detail page.
+- *Priority:* P1
+
+**FR-SRL-02 — XP Transaction History**
+- Students can view a chronological log of all XP transactions. Each entry shows: source label (e.g., "Daily Login", "Assignment Submission"), XP amount (+/−), timestamp, and reference link (to the submission, badge, etc.).
+- Time period filtering: today, this week, this month, all time.
+- Running total and per-source summary (e.g., "Login: 320 XP, Submissions: 1,200 XP").
+- *AC:* Transaction list is paginated (20 per page). Accessible from student dashboard XP chip and profile page. Positive XP shown in green, negative (admin adjustments) in red. Per-source summary shows breakdown as a simple bar chart.
+- *Priority:* P1
+
+---
+
+### 5.4.2 Data Collection & Preferences (FR-DATA)
+
+**FR-DATA-01 — Activity Logger**
+- System logs student behavioral events in a fire-and-forget pattern to `student_activity_log`. Event types: `login`, `page_view`, `submission`, `journal`, `streak_break`, `assignment_view`.
+- Logging is append-only and never blocks user-facing flows. Events include contextual metadata (e.g., `page_view` includes page path; `submission` includes assignment_id).
+- *AC:* Activity log insert completes asynchronously (does not block UI). No client-side reads of activity log (service role only for AI processing). Admin can read activity logs for monitoring. Events include student_id, event_type, metadata jsonb, and created_at timestamp.
+- *Priority:* P0 (foundational for AI data collection)
+
+**FR-DATA-02 — Email Notification Preferences**
+- Users can configure per-type email notification opt-out toggles. Notification types: `streak_risk`, `weekly_summary`, `new_assignment`, `grade_released`.
+- Preferences stored in `profiles.email_preferences` jsonb field.
+- *AC:* Default state is all notifications enabled (opt-out model). Preferences accessible from Profile Settings page. Edge Functions check preferences before sending emails. Changes take effect immediately (no delay).
+- *Priority:* P1
+
 ---
 
 ### 5.5 Dashboard & Analytics (FR-DASH)
@@ -388,19 +446,31 @@ Each requirement follows: **ID | Description | Acceptance Criteria | Priority | 
 
 ---
 
-### 5.6 AI Co-Pilot (FR-AI) — Phase 2
+### 5.6 AI Co-Pilot (FR-AI)
 
 **FR-AI-01 — Personalized Module Suggestions**
-- AI analyzes student's CLO attainment gaps and suggests specific learning resources or extra practice tasks.
-- *AC:* Suggestion relevance rated by student (thumbs up/down); feedback fed back into model weighting.
+- AI analyzes student's CLO attainment gaps and suggests specific learning resources or extra practice tasks. Suggestions include social proof statistics from historical cohort data (e.g., "Students who completed these exercises scored 34% higher on this CLO").
+- *AC:* Suggestion relevance rated by student (thumbs up/down); feedback stored in `ai_feedback` table and fed back into model weighting. Suggestions reference specific CLOs and Bloom's levels. Social proof data sourced from anonymized historical `outcome_attainment` records.
+- *Priority:* P2
 
 **FR-AI-02 — At-Risk Early Warning**
-- AI flags students with >80% probability of failing a CLO based on early submission patterns.
-- *AC:* Warning surfaced to teacher ≥7 days before assignment due date. False positive rate <20%.
+- AI flags students with high probability of failing a CLO based on behavioral signals from `student_activity_log` (login frequency, submission timing, CLO attainment trends). Each prediction includes a probability score (0–100%) and contributing signal details (e.g., "Last login: 9 days ago", "2 of 4 CLOs below 50%").
+- *AC:* Warning surfaced to teacher dashboard ≥7 days before assignment due date. False positive rate <20%. Probability score and contributing signals displayed on the At-Risk Students widget. Each prediction stored in `ai_feedback` with `suggestion_type = 'at_risk_prediction'`. Validated against actual grades for accuracy tracking.
+- *Priority:* P2
 
 **FR-AI-03 — Assignment Feedback Draft**
-- AI generates a first-draft rubric feedback comment based on the submitted work (teacher edits and confirms before sending).
-- *AC:* Draft available within 10 seconds of teacher opening grading view. Teacher must confirm before feedback is sent to student.
+- AI generates per-criterion draft rubric feedback comments based on the submitted work and rubric criteria. Teacher sees draft comments with accept/edit/reject controls per criterion.
+- *AC:* Draft available within 10 seconds of teacher opening grading view. Teacher must confirm (accept or edit) before feedback is sent to student. Reject discards the draft for that criterion. Teacher actions (accept/edit/reject) stored in `ai_feedback` for model improvement. Draft comments reference specific rubric criteria and performance levels.
+- *Priority:* P2
+
+**FR-AI-04 — AI Feedback Flywheel**
+- Every AI output collects structured feedback to improve model accuracy over time:
+  - Module suggestions: students provide thumbs up/down rating
+  - At-risk predictions: validated against actual grades when assignments are graded
+  - Feedback drafts: teachers accept, edit, or reject each draft comment
+- Admin dashboard shows AI performance metrics: suggestion acceptance rate, prediction accuracy rate, feedback draft acceptance rate.
+- *AC:* All feedback stored in `ai_feedback` table with appropriate `suggestion_type`. Admin AI Performance dashboard shows: total suggestions/predictions/drafts generated, acceptance/accuracy rates, trend over time (weekly). Data accessible only to admins. Metrics update daily via scheduled aggregation.
+- *Priority:* P2
 
 ---
 
@@ -572,20 +642,20 @@ Each requirement follows: **ID | Description | Acceptance Criteria | Priority | 
 
 | Priority | Features |
 |----------|----------|
-| **Must Have (P0)** | Auth & RBAC, ILO/PLO/CLO CRUD, Rubric Builder, Grading, Evidence Auto-Generation, Attainment Rollup, Student Dashboard (XP/Streak/Level/Badges), Admin/Coord/Teacher Dashboards |
-| **Should Have (P1)** | Accreditation Report Export, Curriculum Mapping Matrix, Leaderboard, Notification Center, Password Reset, Bulk User Import |
-| **Could Have (P2)** | Reflection Journal, Daily Habit Tracker, AI At-Risk Warnings, Streak Freeze Item |
-| **Won't Have (MVP)** | AI Module Suggestions, Peer Review, SSO/OAuth, Mobile App, Multi-language |
+| **Must Have (P0)** | Auth & RBAC, ILO/PLO/CLO CRUD, Rubric Builder, Grading, Evidence Auto-Generation, Attainment Rollup, Student Dashboard (XP/Streak/Level/Badges), Admin/Coord/Teacher Dashboards, Activity Logger (data collection foundation) |
+| **Should Have (P1)** | Accreditation Report Export, Curriculum Mapping Matrix, Leaderboard, Notification Center, Password Reset, Bulk User Import, Peer Milestone Notifications, Perfect Day Prompt, CLO Progress Dashboard, XP Transaction History, Email Notification Preferences |
+| **Could Have (P2)** | Reflection Journal, Daily Habit Tracker, Bonus XP Events, Mystery Badges, AI Module Suggestions, AI At-Risk Warnings, AI Feedback Drafts, AI Feedback Flywheel, Streak Freeze Item |
+| **Won't Have (MVP)** | Peer Review, SSO/OAuth, Mobile App, Multi-language, Adaptive Difficulty |
 
 ### Release Roadmap
 
 | Phase | Timeline | Deliverables |
 |-------|----------|--------------|
-| **Alpha (Internal)** | Month 1–2 | Auth, RBAC, ILO/PLO/CLO CRUD, basic dashboards |
-| **Beta (Pilot Institution)** | Month 3–4 | Grading, Evidence, Gamification core (XP/Streaks/Badges/Levels), Student Dashboard |
-| **v1.0 (GA)** | Month 5–6 | Accreditation Reports, Curriculum Matrix, Notifications, Leaderboard, Performance hardening |
-| **v1.5** | Month 7–9 | Reflection Journal, AI At-Risk, Habit Tracker, Bulk Import |
-| **v2.0** | Month 10–12 | AI Co-Pilot (suggestions), SSO, Advanced Analytics, Multi-program views |
+| **Alpha (Internal)** | Month 1–2 | Auth, RBAC, ILO/PLO/CLO CRUD, basic dashboards, Activity Logger (data collection begins) |
+| **Beta (Pilot Institution)** | Month 3–4 | Grading, Evidence, Gamification core (XP/Streaks/Badges/Levels), Student Dashboard, CLO Progress Dashboard, XP Transaction History, Peer Milestone Notifications, Perfect Day Prompt |
+| **v1.0 (GA)** | Month 5–6 | Accreditation Reports, Curriculum Matrix, Notifications, Leaderboard, Email Preferences, Habit Tracker, Performance hardening |
+| **v1.5** | Month 7–9 | Reflection Journal, Bonus XP Events, Mystery Badges, AI At-Risk Predictions (using collected behavioral data), Bulk Import |
+| **v2.0** | Month 10–12 | AI Module Suggestions, AI Feedback Drafts, AI Feedback Flywheel, SSO, Advanced Analytics, Multi-program views |
 
 ---
 
@@ -670,7 +740,9 @@ POST   /functions/v1/calculate-attainment-rollup       → Manual rollup trigger
 | GDPR/FERPA data residency requirements | Medium | High | Supabase region selection; DPA signing; legal review before launch |
 | Gamification leading to gaming the system | Medium | Medium | XP caps per day; admin visibility into XP history; anomaly detection (Phase 2) |
 | Supabase Realtime stability at high concurrency | Low | Medium | Fallback polling; graceful degradation |
-| AI Co-Pilot hallucinations (Phase 2) | Medium | Medium | Human-in-the-loop for all AI outputs; confidence threshold filtering |
+| AI Co-Pilot hallucinations | Medium | Medium | Human-in-the-loop for all AI outputs; confidence threshold filtering; teacher must confirm before feedback reaches student |
+| AI data quality — insufficient behavioral data in early cohorts | High | Medium | Activity Logger deployed in Alpha (Month 1) to begin data collection early; AI features delayed to v1.5/v2.0 to ensure sufficient training data; fallback to rule-based heuristics when data is sparse |
+| Peer notification spam — excessive notifications from active cohorts | Medium | Low | Rate-limit peer notifications (max 5 per student per day); anonymous leaderboard students excluded; notification preferences allow opt-out |
 
 ---
 

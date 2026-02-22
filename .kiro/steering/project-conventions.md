@@ -15,6 +15,10 @@
 - Sonner (toasts)
 - nuqs (URL search params)
 - Supabase (Auth, PostgreSQL + RLS, Realtime, Storage, Edge Functions)
+- canvas-confetti (celebration effects)
+- Zustand (client state management)
+- i18next + react-i18next (internationalization)
+- @sentry/react (error monitoring & performance)
 
 ## File Structure
 - Components: `src/components/ui/` (Shadcn), `src/components/shared/` (custom shared)
@@ -44,6 +48,13 @@
 - Generate types after every migration: `npx supabase gen types --linked > src/types/database.ts`
 - Sync migrations locally: `npx supabase migration fetch --yes`
 - Use MCP `apply_migration` for DDL changes, `execute_sql` for data queries
+- pg_cron for scheduled jobs (streak risk, weekly summary, at-risk signals, perfect day prompt, AI predictions)
+- pg_net for HTTP calls from database triggers
+
+## Edge Functions (Deno)
+- Resend (transactional email — used only in Edge Functions, not in React app)
+- Edge Functions run on Deno runtime — npm packages are NOT installed for them
+- Secrets stored via Supabase Dashboard or CLI: RESEND_API_KEY
 
 ## Testing
 - Vitest as test runner (`npm test` runs `vitest --run`)
