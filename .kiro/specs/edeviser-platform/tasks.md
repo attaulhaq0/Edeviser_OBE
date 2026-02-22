@@ -7,7 +7,7 @@ Complete unified implementation of the Edeviser platform covering authentication
 ## Tasks
 
 - [ ] 1. Set up foundation: schemas, utilities, and database
-  - [ ] 1.1 Create Zod validation schemas (`/src/lib/schemas/`)
+  - [x] 1.1 Create Zod validation schemas (`/src/lib/schemas/`)
     - Create `auth.ts` with `loginSchema`, `resetPasswordSchema`
     - Create `user.ts` with `createUserSchema`, `updateUserSchema`
     - Create `program.ts` with `createProgramSchema`, `updateProgramSchema`
@@ -59,15 +59,15 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Create `sessionManagement.ts` with `sessionActionSchema`
     - _Requirements: All_
 
-  - [ ] 1.2 Create Audit Logger service (`/src/lib/auditLogger.ts`)
+  - [x] 1.2 Create Audit Logger service (`/src/lib/auditLogger.ts`)
     - Implement `logAuditEvent(entry: AuditLogEntry): Promise<void>`
     - _Requirements: 34_
 
-  - [ ] 1.3 Create TanStack Query key factory (`/src/lib/queryKeys.ts`)
+  - [x] 1.3 Create TanStack Query key factory (`/src/lib/queryKeys.ts`)
     - Define hierarchical keys for all entities including AI Co-Pilot queries and institutional management entities (semesters, departments, courseSections, surveys, cqiPlans, institutionSettings, programAccreditations, announcements, courseModules, courseMaterials, discussionThreads, discussionReplies, classSessions, attendanceRecords, quizzes, quizAttempts, gradeCategories, gradebook, timetableSlots, academicCalendarEvents, parentStudentLinks, feeStructures, feePayments, calendarEvents, transcripts, courseFiles)
     - _Requirements: All_
 
-  - [ ] 1.4 Create shared type definitions (`/src/types/app.ts`)
+  - [x] 1.4 Create shared type definitions (`/src/types/app.ts`)
     - Export all app-level interfaces and type aliases
     - Bloom's levels, attainment levels, user roles, XP schedule, badge catalog, level thresholds
     - Habit types, learning path node types, bonus XP event types, activity log event types
@@ -84,7 +84,7 @@ Complete unified implementation of the Edeviser platform covering authentication
     - SessionManagement types, PWA types, RateLimiter types
     - _Requirements: All_
 
-  - [ ] 1.5 Apply database extensions, indexes, and cron jobs via Supabase MCP
+  - [-] 1.5 Apply database extensions, indexes, and cron jobs via Supabase MCP
     - NOTE: All 23 tables with RLS policies already exist. DO NOT recreate tables.
     - Enable `pg_cron` and `pg_net` extensions (requires Supabase Pro plan — see task 44 for free-tier fallback)
     - Create performance indexes per architecture doc (outcome_attainment, xp_transactions, evidence, student_activity_log, ai_feedback)
@@ -108,7 +108,7 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Create full-text search tsvector columns and GIN indexes on `courses`, `assignments`, `announcements`, `course_materials`, `profiles`
     - _Requirements: 2, 34, 35, 36, 37, 41, 43, 47, 50, 51, 58, 59, 60, 62, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 91, 92, 94, 99, 100, 101_
 
-  - [ ] 1.6 Create Activity Logger service (`/src/lib/activityLogger.ts`)
+  - [~] 1.6 Create Activity Logger service (`/src/lib/activityLogger.ts`)
     - Implement fire-and-forget logging of student behavioral events
     - Log event types: login, page_view, submission, journal, streak_break, assignment_view
     - Insert into `student_activity_log` table (append-only)

@@ -1,0 +1,13 @@
+{
+  "name": "Migration Safety Check",
+  "version": "1.0.0",
+  "description": "Validates SQL migrations for safety: checks for RLS, destructive operations, and missing indexes",
+  "when": {
+    "type": "fileCreated",
+    "patterns": ["supabase/migrations/*.sql"]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A new SQL migration file was just created. Read the migration file and perform these safety checks:\n\n1. RLS Check: Every CREATE TABLE must be followed by ALTER TABLE ... ENABLE ROW LEVEL SECURITY. Flag any table missing RLS.\n2. Destructive Operation Check: Flag any DROP TABLE, DROP COLUMN, TRUNCATE, or DELETE FROM without WHERE clause. These require explicit approval.\n3. Index Check: For tables with foreign keys or columns used in WHERE clauses, suggest missing indexes.\n4. CHECK Constraint Validation: Verify CHECK constraints use valid values matching the design doc.\n5. Backward Compatibility: Flag any ALTER TABLE that removes or renames existing columns.\n\nReport findings as: PASS (all checks clean), WARN (suggestions but not blocking), or FAIL (must fix before applying). For FAIL items, explain what needs to change."
+  }
+}
