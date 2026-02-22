@@ -1,0 +1,19 @@
+{
+  "enabled": true,
+  "name": "Postman Auto-Sync",
+  "description": "Automatically detects new API endpoints from migrations, Edge Functions, and route changes, then syncs them to the Postman collection",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "supabase/migrations/*.sql",
+      "supabase/functions/**/*.ts",
+      "src/lib/supabase.ts",
+      "src/types/database.ts"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A Supabase-related file was modified. Read the .postman.json file to get the collection ID and workspace ID. Then analyze the changed file to determine if new API endpoints were introduced (new tables in migrations = new PostgREST CRUD endpoints, new Edge Functions = new function endpoints). If new endpoints are detected, use the Postman power to add corresponding requests with test scripts to the existing Edeviser API collection. Include proper headers (apikey, Authorization), use environment variables ({{base_url}}, {{anon_key}}, {{access_token}}), and add post-request test scripts that validate status codes, response structure, and response time. For new tables, add: List (GET), Create (POST with Prefer: return=representation), Get by ID (GET with eq filter), Update (PATCH), Delete (DELETE). For Edge Functions, add: POST request to {{base_url}}/functions/v1/{function-name}. Update the .postman.json file if any new IDs are generated."
+  }
+}

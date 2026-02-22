@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "Postman API Testing",
+  "description": "After a spec task completes, checks if new API endpoints were built and runs the Postman collection to validate them",
+  "version": "1",
+  "when": {
+    "type": "postTaskExecution"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A spec task just completed. Read the .postman.json file. If it exists and has a collection ID, check if the task involved creating new database tables, Edge Functions, or API-related code. If so, first ensure the Postman collection has requests for all current endpoints by reading src/types/database.ts for tables. Then run the collection using the Postman power's runCollection tool with the production environment ID to validate all endpoints. Show a summary of results — passed/failed counts and any failing endpoints with details. Propose fixes for any failures."
+  }
+}

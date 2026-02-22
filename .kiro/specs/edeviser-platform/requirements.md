@@ -1321,3 +1321,220 @@ Edeviser is a Human-Centric Outcome-Based Education (OBE) + Gamification platfor
 5. WHEN a fee payment is overdue (current date > `due_date` and status is `pending`), THE Platform SHALL flag the payment as `overdue` and display an alert on the Admin fee dashboard.
 6. THE Platform SHALL generate fee receipts as downloadable PDFs.
 7. WHEN an Admin creates or modifies a fee structure or records a payment, THE Audit_Logger SHALL record the action.
+
+
+---
+
+### SECTION T: Production Readiness & Infrastructure
+
+#### Requirement 88: Multi-Language / RTL Support (Urdu + Arabic)
+
+**User Story:** As a user at an institution where Urdu or Arabic is the primary language, I want the platform to display in my language with correct right-to-left layout, so that I can use the platform comfortably in my native language (extends Requirement 52.6 i18n architecture).
+
+##### Acceptance Criteria
+
+1. WHEN a user selects Urdu or Arabic as their language preference, THE Platform SHALL switch the layout direction to RTL by setting `dir="rtl"` on the `<html>` element and load the corresponding translation file.
+2. THE Platform SHALL provide translation file stubs for Urdu (`/public/locales/ur/translation.json`) and Arabic (`/public/locales/ar/translation.json`) alongside the existing English translations.
+3. THE Platform SHALL include RTL-aware CSS utilities that mirror horizontal padding, margins, flexbox directions, and border-radius for RTL layouts.
+4. THE Platform SHALL provide a language selector in the Profile Settings page allowing users to choose between English, Urdu, and Arabic.
+5. THE Platform SHALL store the selected language preference in a `language_preference` text column on the `profiles` table (default 'en', allowed values: 'en', 'ur', 'ar').
+6. WHEN the Platform loads, THE Platform SHALL read the user's `language_preference` from the profile and apply the corresponding language and layout direction without requiring a page refresh.
+
+---
+
+#### Requirement 89: Progressive Web App (PWA)
+
+**User Story:** As a mobile user, I want to install the platform as an app on my device with offline shell caching, so that I get an app-like experience without downloading from an app store (extends Requirement 50 performance).
+
+##### Acceptance Criteria
+
+1. THE Platform SHALL include a web app manifest (`public/manifest.json`) with Edeviser branding (name, short_name, icons, theme_color, background_color, display: standalone).
+2. THE Platform SHALL register a service worker that caches the app shell (HTML, CSS, JS bundles) for offline access using a cache-first strategy.
+3. THE Platform SHALL display an install prompt component for mobile users when the browser's `beforeinstallprompt` event fires.
+4. THE Platform SHALL include meta tags for iOS home screen icons (`apple-touch-icon`) and Android PWA support.
+5. THE service worker SHALL NOT cache API data or Supabase responses — only static app shell assets.
+6. WHEN a user opens the installed PWA without network connectivity, THE Platform SHALL display the cached app shell with an "You are offline" message instead of a browser error.
+
+---
+
+#### Requirement 90: Backup & Disaster Recovery Procedures
+
+**User Story:** As an institution, I want documented and verified backup and disaster recovery procedures, so that data can be restored within defined time objectives in case of a catastrophic failure (extends Requirement 53 reliability).
+
+##### Acceptance Criteria
+
+1. THE Platform SHALL document Supabase Point-in-Time Recovery (PITR) configuration in `/docs/disaster-recovery.md`.
+2. THE disaster recovery runbook SHALL define procedures for achieving Recovery Time Objective (RTO) of less than 4 hours and Recovery Point Objective (RPO) of less than 1 hour.
+3. THE Platform SHALL include a monthly database backup verification task in the runbook that validates backup restoration to a staging environment.
+4. THE disaster recovery runbook SHALL document rollback procedures for failed Edge Function deployments and database migrations.
+5. THE disaster recovery runbook SHALL include contact escalation paths and communication templates for stakeholder notification during outages.
+
+---
+
+#### Requirement 91: Edge Function Rate Limiting
+
+**User Story:** As the system, I want all Edge Functions to enforce per-user rate limits, so that the platform is protected from abuse and resource exhaustion (extends Requirement 51 security).
+
+##### Acceptance Criteria
+
+1. THE Platform SHALL enforce per-user rate limits on all Edge Functions: 100 requests per minute for read operations and 30 requests per minute for write operations.
+2. WHEN a user exceeds the rate limit, THE Edge Function SHALL return HTTP 429 (Too Many Requests) with a `Retry-After` header indicating the number of seconds until the limit resets.
+3. THE Platform SHALL implement rate limiting via a shared middleware module (`supabase/functions/_shared/rateLimiter.ts`) that all Edge Functions import.
+4. WHEN a rate limit violation occurs, THE Audit_Logger SHALL log the event with `actor_id`, `action = 'rate_limit_exceeded'`, `target_type = 'edge_function'`, and the function name.
+
+---
+
+#### Requirement 92: Security Headers (CSP, HSTS)
+
+**User Story:** As an institution, I want the platform to serve all responses with industry-standard security headers, so that common web vulnerabilities are mitigated (extends Requirement 51 security).
+
+##### Acceptance Criteria
+
+1. THE Platform SHALL serve a Content-Security-Policy header restricting script sources to self and trusted CDNs (Google Fonts, Supabase).
+2. THE Platform SHALL serve a Strict-Transport-Security header with `max-age=31536000; includeSubDomains`.
+3. THE Platform SHALL serve an X-Frame-Options header with value `DENY`.
+4. THE Platform SHALL serve an X-Content-Type-Options header with value `nosniff`.
+5. THE Platform SHALL serve a Referrer-Policy header with value `strict-origin-when-cross-origin`.
+6. THE security headers SHALL be configured via Vercel configuration (`vercel.json` headers section).
+
+---
+
+#### Requirement 93: Cookie Consent / Privacy Banner
+
+**User Story:** As a user, I want to be informed about cookie usage and control my consent preferences, so that my privacy is respected in compliance with GDPR and ePrivacy regulations.
+
+##### Acceptance Criteria
+
+1. WHEN a user visits the Platform for the first time, THE Platform SHALL display a cookie consent banner with options: "Accept All", "Reject Non-Essential", and "Manage Preferences".
+2. THE Platform SHALL store the user's consent status in localStorage under the key `edeviser_cookie_consent`.
+3. WHILE a user has not given consent for analytics tracking, THE Platform SHALL block all analytics and tracking scripts from loading.
+4. WHEN a user selects "Manage Preferences", THE Platform SHALL display a preferences dialog allowing granular control over: essential cookies (always on, non-toggleable), analytics cookies, and performance cookies.
+5. THE Platform SHALL provide a "Cookie Settings" link in the footer of all pages allowing users to update their consent preferences at any time.
+
+---
+
+#### Requirement 94: Terms of Service & Privacy Policy Pages
+
+**User Story:** As a user, I want to read the Terms of Service and Privacy Policy before using the platform, so that I understand my rights and obligations.
+
+##### Acceptance Criteria
+
+1. THE Platform SHALL provide public routes at `/terms` and `/privacy` accessible without authentication.
+2. THE Platform SHALL render Terms of Service and Privacy Policy content from markdown files.
+3. THE Platform SHALL display footer links to Terms of Service and Privacy Policy on all pages.
+4. WHEN a user logs in for the first time and has not accepted the Terms of Service, THE Platform SHALL display a ToS acceptance dialog with a checkbox before granting access to the platform.
+5. THE Platform SHALL store the ToS acceptance timestamp in a `tos_accepted_at` timestamptz column on the `profiles` table (default null).
+6. WHILE a user has `tos_accepted_at = null`, THE Platform SHALL block navigation to any protected route and redirect to the ToS acceptance dialog.
+
+---
+
+#### Requirement 95: Admin Impersonation / Support Mode
+
+**User Story:** As an Admin, I want to view the platform as another user within my institution for support purposes, so that I can diagnose issues without asking the user to share their screen.
+
+##### Acceptance Criteria
+
+1. THE Platform SHALL provide a "View as User" button on the Admin user detail page for users within the Admin's institution.
+2. THE Platform SHALL implement impersonation via a separate JWT claim (`impersonating_user_id`) that overrides the current user context for display purposes.
+3. WHILE an Admin is impersonating another user, THE Platform SHALL display a prominent banner: "You are viewing as [user_name] — [role]. Click to exit." at the top of every page.
+4. THE Audit_Logger SHALL log all impersonation sessions with `action = 'impersonation_start'` and `action = 'impersonation_end'`, including `actor_id` (admin) and `target_id` (impersonated user).
+5. THE Platform SHALL restrict impersonation to users with the `admin` role only, enforced via RLS and client-side route guards.
+6. THE Platform SHALL auto-expire impersonation sessions after 30 minutes, returning the Admin to their own dashboard.
+7. WHILE impersonating, THE Admin SHALL have read-only access — all mutation operations SHALL be blocked.
+
+---
+
+#### Requirement 96: Bulk Data Operations
+
+**User Story:** As a Teacher or Coordinator, I want to perform bulk data operations (grade export, enrollment import/export, semester transition), so that I can manage large datasets efficiently without repetitive manual work.
+
+##### Acceptance Criteria
+
+1. THE Platform SHALL allow Teachers to export grades as CSV per course or per section, including student name, assessment scores, category subtotals, final grade, and letter grade.
+2. THE Platform SHALL allow Coordinators to import student enrollments via CSV upload with columns (`student_email`, `course_code`, `section_code`) and export current enrollments as CSV.
+3. THE Platform SHALL provide a semester transition tool that bulk-copies courses, CLOs, rubrics, and grade categories from a source semester to a target semester within the same program.
+4. THE Platform SHALL provide a bulk data cleanup tool for Admins to archive or purge data from deactivated semesters older than a configurable retention period.
+5. WHEN a bulk import contains invalid rows, THE Platform SHALL reject those rows and display a list of errors with row numbers and descriptions, processing only valid rows.
+
+---
+
+#### Requirement 97: Database Connection Pooling Configuration
+
+**User Story:** As the operations team, I want database connections to be pooled and documented for different deployment tiers, so that the platform handles concurrent connections efficiently without exhausting database limits.
+
+##### Acceptance Criteria
+
+1. THE Platform SHALL document Supabase connection pooler (PgBouncer) configuration in `/docs/connection-pooling.md` with pool size recommendations for free (15 connections), pro (50 connections), and team (100 connections) tiers.
+2. THE Platform SHALL configure the `supabase-js` client in Edge Functions to use the pooler connection URL instead of the direct database URL.
+3. THE Platform SHALL include connection pool utilization in the health check endpoint response as a `pool_status` field.
+4. THE connection pooling documentation SHALL include troubleshooting steps for common connection exhaustion scenarios.
+
+---
+
+#### Requirement 98: Image/Asset Optimization
+
+**User Story:** As a user, I want images to load quickly and uploads to be optimized, so that the platform feels fast even on slow connections.
+
+##### Acceptance Criteria
+
+1. THE Platform SHALL compress avatar images client-side before upload to a maximum of 500KB and 256×256 pixels.
+2. THE Platform SHALL implement lazy loading via the `loading="lazy"` attribute for all images including avatars, badge icons, and material thumbnails.
+3. THE Platform SHALL configure Supabase Storage image transformations to serve avatar thumbnails at 64×64 and 128×128 sizes.
+4. THE Platform SHALL configure Vercel CDN caching headers for static assets with `Cache-Control: public, max-age=31536000, immutable` for hashed assets.
+
+---
+
+#### Requirement 99: Global Search
+
+**User Story:** As a user, I want to search across all platform content using a keyboard shortcut, so that I can quickly find courses, assignments, students, announcements, and materials.
+
+##### Acceptance Criteria
+
+1. THE Platform SHALL provide a SearchCommand component accessible via `Cmd+K` (macOS) or `Ctrl+K` (Windows/Linux) keyboard shortcut from any page.
+2. THE Platform SHALL search across: courses, assignments, students (visible to admin and teacher roles only), announcements, and course materials using Supabase full-text search (tsvector).
+3. THE Platform SHALL debounce search input by 300 milliseconds before executing the search query.
+4. THE Platform SHALL display search results grouped by category (Courses, Assignments, Students, Announcements, Materials) with keyboard navigation (arrow keys + Enter to select).
+5. THE Platform SHALL create GIN indexes on searchable text columns (`courses.name`, `assignments.title`, `announcements.title`, `course_materials.title`, `profiles.full_name`) for full-text search performance.
+6. THE Platform SHALL scope search results by the user's role and institution — students see only their enrolled courses and related content.
+
+---
+
+#### Requirement 100: Plagiarism Awareness Placeholder
+
+**User Story:** As a Teacher, I want placeholder infrastructure for plagiarism detection on student submissions, so that the platform is ready for future integration with plagiarism detection services.
+
+##### Acceptance Criteria
+
+1. THE Platform SHALL add a `plagiarism_score` nullable numeric column to the `submissions` table.
+2. THE Platform SHALL display a placeholder UI in the Grading Interface showing "Plagiarism check: Not configured" when `plagiarism_score` is null.
+3. THE Platform SHALL document integration points for Turnitin or Copyleaks API in code comments within the Grading Interface and submission processing logic.
+4. THE Platform SHALL define a `PLAGIARISM_API_KEY` environment variable placeholder in `.env.example`.
+
+---
+
+#### Requirement 101: Granular In-App Notification Preferences
+
+**User Story:** As a user, I want fine-grained control over my in-app notifications including per-course muting and quiet hours, so that I am not overwhelmed by notifications during off-hours (extends Requirement 65 notification batching).
+
+##### Acceptance Criteria
+
+1. THE Platform SHALL allow users to mute in-app notifications per course via a toggle in notification preferences.
+2. THE Platform SHALL allow users to set quiet hours (start time and end time, e.g., 10 PM to 7 AM) during which non-critical notifications are held and delivered after quiet hours end.
+3. THE Platform SHALL store notification preferences in a `notification_preferences` jsonb column on the `profiles` table, including `muted_courses` (array of course_ids) and `quiet_hours` (object with `start` and `end` time strings).
+4. WHILE quiet hours are active, THE Notification_Service SHALL hold all non-critical notifications and deliver them when quiet hours end. Critical notifications (grade released, at-risk alert) SHALL be delivered immediately regardless of quiet hours.
+5. THE Platform SHALL provide a notification preferences page accessible from the Profile Settings page.
+
+---
+
+#### Requirement 102: Session Management UI
+
+**User Story:** As a user, I want to view my active sessions and remotely sign out other devices, so that I can maintain control over my account security.
+
+##### Acceptance Criteria
+
+1. THE Platform SHALL provide an Active Sessions page in Profile Settings displaying all active sessions for the current user.
+2. Each session entry SHALL display: device type (desktop/mobile/tablet), browser name, masked IP address (e.g., 192.168.x.x), and last active timestamp.
+3. THE Platform SHALL provide a "Sign out other sessions" button that terminates all sessions except the current one.
+4. THE Platform SHALL provide a "Sign out all sessions" button that terminates all sessions including the current one, redirecting to the login page.
+5. THE Platform SHALL use the Supabase Auth admin API for session enumeration and termination.
+6. WHEN a user signs out other sessions, THE Audit_Logger SHALL log the action with the count of terminated sessions.

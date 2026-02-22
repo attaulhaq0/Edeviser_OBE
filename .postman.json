@@ -1,0 +1,19 @@
+{
+  "workspaceId": "4857e769-164b-4ab1-b226-1cd43fe6d5c3",
+  "workspaceName": "Edeviser Platform",
+  "collectionId": "547902a2-8435-44c1-b295-cdea74dcbe5b",
+  "collectionUid": "52595471-547902a2-8435-44c1-b295-cdea74dcbe5b",
+  "collectionName": "Edeviser API",
+  "environments": {
+    "production": {
+      "id": "149918ca-ac4c-4e97-87a7-1ebc2adc247f",
+      "uid": "52595471-149918ca-ac4c-4e97-87a7-1ebc2adc247f",
+      "name": "Production"
+    },
+    "local": {
+      "id": "975f0249-7871-47ed-a80a-77b7845cbf8b",
+      "uid": "52595471-975f0249-7871-47ed-a80a-77b7845cbf8b",
+      "name": "Local Development"
+    }
+  }
+}
