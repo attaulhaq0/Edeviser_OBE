@@ -9,26 +9,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import type { Profile, UserRole } from '@/types/app';
+import type { Program } from '@/types/app';
 
-// ─── Role badge color mapping ────────────────────────────────────────────────
-
-const roleBadgeStyles: Record<UserRole, string> = {
-  admin: 'bg-red-100 text-red-700 border-red-200',
-  coordinator: 'bg-blue-100 text-blue-700 border-blue-200',
-  teacher: 'bg-green-100 text-green-700 border-green-200',
-  student: 'bg-amber-100 text-amber-700 border-amber-200',
-  parent: 'bg-purple-100 text-purple-700 border-purple-200',
-};
-
-// ─── Column factory — accepts onEdit callback ───────────────────────────────
+// ─── Column factory — accepts onEdit and onDeactivate callbacks ─────────────
 
 export const createColumns = (
   onEdit: (id: string) => void,
-  onDeactivate: (user: Profile) => void,
-): ColumnDef<Profile>[] => [
+  onDeactivate: (program: Program) => void,
+): ColumnDef<Program>[] => [
   {
-    accessorKey: 'full_name',
+    accessorKey: 'name',
     header: ({ column }) => (
       <Button
         variant="ghost"
@@ -36,16 +26,16 @@ export const createColumns = (
         className="-ml-3"
         onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
       >
-        Full Name
+        Name
         <ArrowUpDown className="h-4 w-4" />
       </Button>
     ),
     cell: ({ row }) => (
-      <span className="font-medium">{row.getValue('full_name')}</span>
+      <span className="font-medium">{row.getValue('name')}</span>
     ),
   },
   {
-    accessorKey: 'email',
+    accessorKey: 'code',
     header: ({ column }) => (
       <Button
         variant="ghost"
@@ -53,22 +43,26 @@ export const createColumns = (
         className="-ml-3"
         onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
       >
-        Email
+        Code
         <ArrowUpDown className="h-4 w-4" />
       </Button>
     ),
   },
   {
-    accessorKey: 'role',
-    header: 'Role',
+    accessorKey: 'coordinator_id',
+    header: 'Coordinator',
     cell: ({ row }) => {
-      const role = row.getValue('role') as UserRole;
+      const coordinatorId = row.getValue('coordinator_id') as string | null;
       return (
         <Badge
           variant="outline"
-          className={roleBadgeStyles[role]}
+          className={
+            coordinatorId
+              ? 'bg-blue-50 text-blue-600 border-blue-200'
+              : 'bg-gray-50 text-gray-500 border-gray-200'
+          }
         >
-          {role.charAt(0).toUpperCase() + role.slice(1)}
+          {coordinatorId ? 'Assigned' : 'Unassigned'}
         </Badge>
       );
     },

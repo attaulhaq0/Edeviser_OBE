@@ -25,6 +25,11 @@ const ParentLayout = lazy(() => import('@/pages/parent/ParentLayout'));
 const AdminDashboard = lazy(() => import('@/pages/admin/AdminDashboard'));
 const UserListPage = lazy(() => import('@/pages/admin/users/UserListPage'));
 const UserForm = lazy(() => import('@/pages/admin/users/UserForm'));
+const BulkImportPage = lazy(() => import('@/pages/admin/users/BulkImportPage'));
+const ProgramListPage = lazy(() => import('@/pages/admin/programs/ProgramListPage'));
+const ProgramForm = lazy(() => import('@/pages/admin/programs/ProgramForm'));
+const ILOListPage = lazy(() => import('@/pages/admin/outcomes/ILOListPage'));
+const ILOForm = lazy(() => import('@/pages/admin/outcomes/ILOForm'));
 const CoordinatorDashboard = lazy(() => import('@/pages/coordinator/CoordinatorDashboard'));
 const TeacherDashboard = lazy(() => import('@/pages/teacher/TeacherDashboard'));
 const StudentDashboard = lazy(() => import('@/pages/student/StudentDashboard'));
@@ -63,7 +68,14 @@ const AppRouter = () => (
         <Route path="dashboard" element={<AdminDashboard />} />
         <Route path="users" element={<UserListPage />} />
         <Route path="users/new" element={<UserForm />} />
+        <Route path="users/import" element={<BulkImportPage />} />
         <Route path="users/:id/edit" element={<UserForm />} />
+        <Route path="programs" element={<ProgramListPage />} />
+        <Route path="programs/new" element={<ProgramForm />} />
+        <Route path="programs/:id/edit" element={<ProgramForm />} />
+        <Route path="outcomes" element={<ILOListPage />} />
+        <Route path="outcomes/new" element={<ILOForm />} />
+        <Route path="outcomes/:id/edit" element={<ILOForm />} />
       </Route>
 
       {/* Coordinator routes */}

@@ -32,6 +32,34 @@ export interface AuthResult {
   redirectTo?: string;
 }
 
+export interface Program {
+  id: string;
+  name: string;
+  code: string;
+  description: string | null;
+  institution_id: string;
+  coordinator_id: string | null;
+  department_id: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface LearningOutcome {
+  id: string;
+  type: 'ILO' | 'PLO' | 'CLO';
+  title: string;
+  description: string | null;
+  institution_id: string;
+  program_id: string | null;
+  course_id: string | null;
+  blooms_level: BloomsLevel | null;
+  sort_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 export type BloomsLevel =
   | 'Remembering'
   | 'Understanding'

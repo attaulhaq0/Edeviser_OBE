@@ -144,7 +144,7 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Call `logActivity({ event_type: 'login' })` on successful authentication
     - _Requirements: 41.1_
 
-- [-] 3. Implement Admin user management
+- [x] 3. Implement Admin user management
   - [x] 3.1 Create user management TanStack Query hooks (`/src/hooks/useUsers.ts`)
     - _Requirements: 6_
 
@@ -154,43 +154,43 @@ Complete unified implementation of the Edeviser platform covering authentication
   - [x] 3.3 Create User Create/Edit forms
     - _Requirements: 6.1_
 
-  - [ ] 3.4 Implement soft-delete with confirmation
+  - [x] 3.4 Implement soft-delete with confirmation
     - _Requirements: 6.2, 6.4_
 
-  - [ ] 3.5 Create Bulk Import UI and Edge Function
+  - [x] 3.5 Create Bulk Import UI and Edge Function
     - _Requirements: 7_
 
-- [ ] 4. Implement Program management
-  - [ ] 4.1 Create program TanStack Query hooks (`/src/hooks/usePrograms.ts`)
+- [x] 4. Implement Program management
+  - [x] 4.1 Create program TanStack Query hooks (`/src/hooks/usePrograms.ts`)
     - _Requirements: 9_
 
-  - [ ] 4.2 Create Program List page and forms
+  - [x] 4.2 Create Program List page and forms
     - _Requirements: 9_
 
-  - [ ] 4.3 Implement coordinator assignment to programs
+  - [x] 4.3 Implement coordinator assignment to programs
     - _Requirements: 9.2_
 
-- [ ] 5. Implement ILO management
-  - [ ] 5.1 Create ILO TanStack Query hooks (`/src/hooks/useILOs.ts`)
+- [x] 5. Implement ILO management
+  - [x] 5.1 Create ILO TanStack Query hooks (`/src/hooks/useILOs.ts`)
     - _Requirements: 12_
 
-  - [ ] 5.2 Create ILO List page with drag-and-drop reorder
+  - [x] 5.2 Create ILO List page with drag-and-drop reorder
     - _Requirements: 12.3_
 
-  - [ ] 5.3 Create ILO Create/Edit form
+  - [x] 5.3 Create ILO Create/Edit form
     - _Requirements: 12.1_
 
-  - [ ] 5.4 Implement ILO deletion with dependency check
+  - [x] 5.4 Implement ILO deletion with dependency check
     - _Requirements: 12.2_
 
-- [ ] 6. Implement Admin Dashboard
-  - [ ] 6.1 Create Admin layout with sidebar navigation
+- [-] 6. Implement Admin Dashboard
+  - [x] 6.1 Create Admin layout with sidebar navigation
     - _Requirements: 27_
 
-  - [ ] 6.2 Create Admin Dashboard page with KPI cards, activity feed, PLO heatmap
+  - [x] 6.2 Create Admin Dashboard page with KPI cards, activity feed, PLO heatmap
     - _Requirements: 27_
 
-  - [ ] 6.3 Create Audit Log viewer page
+  - [~] 6.3 Create Audit Log viewer page
     - _Requirements: 34_
 
 - [ ] 7. Implement Bonus XP Event Manager

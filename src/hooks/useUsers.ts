@@ -4,6 +4,14 @@ import { queryKeys } from '@/lib/queryKeys';
 import { logAuditEvent } from '@/lib/auditLogger';
 import { useAuth } from '@/providers/AuthProvider';
 import type { CreateUserFormData, UpdateUserFormData } from '@/lib/schemas/user';
+import type { Profile } from '@/types/app';
+
+// The generated database.ts only has the `institutions` table so far.
+// We cast through `unknown` at each `.from('profiles')` call to bridge the
+// gap until the types are regenerated.  Return types are explicitly annotated
+// with the hand-maintained `Profile` interface from @/types/app.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const db = supabase as unknown as { from: (table: string) => any };
 
 // ─── Filter types ────────────────────────────────────────────────────────────
 
@@ -16,9 +24,9 @@ export interface UserFilters {
 
 export const useUsers = (filters: UserFilters = {}) => {
   return useQuery({
-    queryKey: queryKeys.users.list(filters),
-    queryFn: async () => {
-      let query = supabase
+    queryKey: queryKeys.users.list(filters as Record<string, unknown>),
+    queryFn: async (): Promise<Profile[]> => {
+      let query = db
         .from('profiles')
         .select('*')
         .order('created_at', { ascending: false });
@@ -35,7 +43,26 @@ export const useUsers = (filters: UserFilters = {}) => {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data;
+      return data as Profile[];
+    },
+  });
+};
+
+// ─── useCoordinators — fetch active coordinators for assignment dropdowns ────
+
+export const useCoordinators = () => {
+  return useQuery({
+    queryKey: queryKeys.users.list({ role: 'coordinator' }),
+    queryFn: async (): Promise<Profile[]> => {
+      const { data, error } = await db
+        .from('profiles')
+        .select('*')
+        .eq('role', 'coordinator')
+        .eq('is_active', true)
+        .order('full_name', { ascending: true });
+
+      if (error) throw error;
+      return data as Profile[];
     },
   });
 };
@@ -45,20 +72,19 @@ export const useUsers = (filters: UserFilters = {}) => {
 export const useUser = (id: string | undefined) => {
   return useQuery({
     queryKey: queryKeys.users.detail(id ?? ''),
-    queryFn: async () => {
-      const { data, error } = await supabase
+    queryFn: async (): Promise<Profile | null> => {
+      const { data, error } = await db
         .from('profiles')
         .select('*')
         .eq('id', id!)
         .maybeSingle();
 
       if (error) throw error;
-      return data;
+      return data as Profile | null;
     },
     enabled: !!id,
   });
 };
-
 
 // ─── useCreateUser — insert into profiles table ─────────────────────────────
 
@@ -67,8 +93,8 @@ export const useCreateUser = () => {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async (data: CreateUserFormData) => {
-      const { data: result, error } = await supabase
+    mutationFn: async (data: CreateUserFormData): Promise<Profile> => {
+      const { data: result, error } = await db
         .from('profiles')
         .insert(data)
         .select()
@@ -76,15 +102,17 @@ export const useCreateUser = () => {
 
       if (error) throw error;
 
+      const profile = result as Profile;
+
       await logAuditEvent({
         action: 'create',
         entity_type: 'user',
-        entity_id: result.id,
+        entity_id: profile.id,
         changes: data,
         performed_by: user?.id ?? 'unknown',
       });
 
-      return result;
+      return profile;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.users.lists() });
@@ -99,8 +127,8 @@ export const useUpdateUser = (id: string) => {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async (data: UpdateUserFormData) => {
-      const { data: result, error } = await supabase
+    mutationFn: async (data: UpdateUserFormData): Promise<Profile> => {
+      const { data: result, error } = await db
         .from('profiles')
         .update(data)
         .eq('id', id)
@@ -117,7 +145,7 @@ export const useUpdateUser = (id: string) => {
         performed_by: user?.id ?? 'unknown',
       });
 
-      return result;
+      return result as Profile;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.users.lists() });
@@ -133,8 +161,8 @@ export const useSoftDeleteUser = () => {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async (id: string) => {
-      const { data: result, error } = await supabase
+    mutationFn: async (id: string): Promise<Profile> => {
+      const { data: result, error } = await db
         .from('profiles')
         .update({ is_active: false })
         .eq('id', id)
@@ -151,7 +179,7 @@ export const useSoftDeleteUser = () => {
         performed_by: user?.id ?? 'unknown',
       });
 
-      return result;
+      return result as Profile;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.users.lists() });

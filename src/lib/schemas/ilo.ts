@@ -16,5 +16,11 @@ export const reorderSchema = z.object({
   ),
 });
 
+export const updateILOSchema = z.object({
+  title: z.string().min(1, "Title is required").max(255),
+  description: z.string().optional(),
+});
+
 export type CreateILOFormData = z.infer<typeof createILOSchema>;
+export type UpdateILOFormData = z.infer<typeof updateILOSchema>;
 export type ReorderFormData = z.infer<typeof reorderSchema>;

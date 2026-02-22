@@ -1,11 +1,13 @@
 import { Outlet, NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { LayoutDashboard, Users, BookOpen } from 'lucide-react';
+import { LayoutDashboard, Users, BookOpen, Target, ScrollText } from 'lucide-react';
 
 const navItems = [
   { to: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/admin/users', icon: Users, label: 'Users' },
   { to: '/admin/programs', icon: BookOpen, label: 'Programs' },
+  { to: '/admin/outcomes', icon: Target, label: 'ILOs' },
+  { to: '/admin/audit-log', icon: ScrollText, label: 'Audit Log' },
 ];
 
 const AdminLayout = () => (
