@@ -1540,9 +1540,10 @@ Complete unified implementation of the Edeviser platform covering authentication
 
 - [ ] 80. Final verification — All tests pass, production ready
   - Ensure all tests pass, ask the user if questions arise.
-  - Verify all 102 requirements (including NFRs 50-57, enhancements 58-67, institutional management 68-87, and production readiness 88-102) have corresponding implementations
+  - Verify all 102 requirements (including NFRs 50-57, enhancements 58-67, institutional management 68-87, and production readiness 88-102) plus NFR gaps (tasks 97-108) have corresponding implementations
   - Verify all 80 correctness properties are testable
-  - Confirm all tasks are complete
+  - Verify tasks 97-108 (production readiness gaps) are complete: Sentry, E2E, CI/CD, backups, secrets, perf budgets, a11y, seed script, throttling, security headers, responsive testing, data migration
+  - Confirm all 108 tasks are complete
 
 ## Notes
 
@@ -1962,3 +1963,276 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Bulk grade export → CSV generation → download pipeline
     - Semester transition → course copy → CLO copy pipeline
     - _Requirements: 88-102_
+
+- [ ] 97. Implement Sentry Initialization & Global Error Boundary
+  - [ ] 97.1 Configure Sentry SDK initialization in `src/main.tsx`
+    - Call `Sentry.init()` with DSN from `VITE_SENTRY_DSN` env var
+    - Configure `tracesSampleRate`, `replaysSessionSampleRate`, environment tag
+    - Gate initialization behind cookie consent analytics approval (integrate with `analyticsConsent.ts` from task 86.2)
+    - _Requirements: NFR_
+
+  - [ ] 97.2 Create global ErrorBoundary wrapping the app (`src/components/shared/ErrorBoundary.tsx`)
+    - Use `Sentry.ErrorBoundary` or `@sentry/react`'s `withErrorBoundary`
+    - Render user-friendly fallback UI with "Something went wrong" message and "Reload" button
+    - Report caught errors to Sentry automatically
+    - Wrap `<App />` in `src/main.tsx` with the ErrorBoundary
+    - _Requirements: NFR_
+
+  - [ ] 97.3 Add `VITE_SENTRY_DSN` to `.env.example` and document in README
+    - _Requirements: NFR_
+
+  - [ ] 97.4 Configure Sentry source map upload in CI pipeline
+    - Add `@sentry/vite-plugin` to Vite config for automatic source map upload on production builds
+    - Add `SENTRY_AUTH_TOKEN` and `SENTRY_ORG`/`SENTRY_PROJECT` to CI secrets documentation
+    - _Requirements: NFR_
+
+- [ ] 98. Implement End-to-End (E2E) Testing with Playwright
+  - [ ] 98.1 Install and configure Playwright
+    - Add `@playwright/test` as dev dependency
+    - Create `playwright.config.ts` with baseURL, projects (chromium, firefox, webkit), retries, reporter
+    - Create `e2e/` directory at project root
+    - _Requirements: NFR_
+
+  - [ ] 98.2 Create E2E test: login → dashboard redirect
+    - Test login with valid credentials redirects to role-appropriate dashboard
+    - Test invalid credentials show error message
+    - Test locked account after failed attempts
+    - _Requirements: 1, 3_
+
+  - [ ] 98.3 Create E2E test: assignment creation → submission → grading → evidence chain
+    - Teacher creates assignment with CLO links → Student submits → Teacher grades with rubric → Evidence record created → Student CLO attainment updated
+    - _Requirements: 16, 17, 18, 19, 20_
+
+  - [ ] 98.4 Create E2E test: XP award → level up → badge check
+    - Student action triggers XP → XP total updates → Level threshold crossed → Badge condition met → Badge awarded
+    - _Requirements: 21, 23, 24_
+
+  - [ ] 98.5 Create E2E test: student enrollment → course visibility
+    - Admin enrolls student in course → Student sees course on dashboard → Student can access course assignments
+    - _Requirements: 11, 30_
+
+  - [ ] 98.6 Add E2E test step to CI pipeline (GitHub Actions)
+    - Run Playwright tests after unit/property tests pass
+    - Upload test artifacts (screenshots, traces) on failure
+    - _Requirements: NFR_
+
+- [ ] 99. Enhance CI/CD Pipeline
+  - [ ] 99.1 Add Sentry source map upload step to CI
+    - Run after successful build step
+    - Use `sentry-cli releases` to create release and upload sourcemaps
+    - Skip on PR builds, run only on main/production branch
+    - _Requirements: NFR_
+
+  - [ ] 99.2 Add Lighthouse CI performance budget check
+    - Install `@lhci/cli` as dev dependency
+    - Create `lighthouserc.js` with assertions: performance ≥ 90, accessibility ≥ 90, LCP < 2.5s, CLS < 0.1
+    - Add `lhci autorun` step to CI after build
+    - _Requirements: NFR_
+
+  - [ ] 99.3 Add bundle size tracking to CI
+    - Install `bundlesize` or use `vite-plugin-bundle-analyzer` with JSON output
+    - Set budget: initial JS bundle < 500KB gzipped
+    - Fail CI if budget exceeded
+    - _Requirements: NFR_
+
+  - [ ] 99.4 Add E2E test step to CI (reference task 98.6)
+    - Run Playwright tests in CI with headless browsers
+    - _Requirements: NFR_
+
+  - [ ] 99.5 Add Supabase migration check to CI
+    - Verify `supabase db diff` produces no uncommitted changes
+    - Run `supabase db lint` for migration validation
+    - _Requirements: NFR_
+
+  - [ ] 99.6 Document branch protection rules in `/docs/ci-cd.md`
+    - Required checks: lint, typecheck, test, build, e2e, lighthouse, bundle-size
+    - Require PR reviews, no direct pushes to main
+    - _Requirements: NFR_
+
+- [ ] 100. Implement Database Backup & PITR Activation
+  - [ ] 100.1 Document Supabase PITR activation steps in `/docs/disaster-recovery.md`
+    - Step-by-step guide to enable PITR on Supabase Pro project
+    - Document retention period configuration (default 7 days)
+    - Include point-in-time restore procedure with timestamp selection
+    - _Requirements: 90.1_
+
+  - [ ] 100.2 Create automated monthly backup verification script (`/scripts/verify-backup.sh`)
+    - Restore latest backup to a temporary Supabase project or local instance
+    - Run data integrity checks: row counts, RLS policy presence, FK constraints
+    - Output verification report
+    - _Requirements: 90.3_
+
+  - [ ] 100.3 Document backup monitoring alerts
+    - Configure Supabase dashboard alerts for backup failures
+    - Add backup status check to health monitoring endpoint (task 46)
+    - _Requirements: 90_
+
+- [ ] 101. Implement Environment & Secrets Management
+  - [ ] 101.1 Create comprehensive `.env.example` with all required variables
+    - `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_SENTRY_DSN`
+    - Document Edge Function secrets: `RESEND_API_KEY`, `OPENAI_API_KEY` (or `ANTHROPIC_API_KEY`), `CRON_SECRET`
+    - Document CI secrets: `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT`, `SUPABASE_ACCESS_TOKEN`
+    - Include comments explaining each variable's purpose and where to obtain it
+    - _Requirements: NFR_
+
+  - [ ] 101.2 Create Edge Function secrets provisioning guide (`/docs/secrets-management.md`)
+    - Document `supabase secrets set` CLI commands for each secret
+    - Document Supabase Dashboard secrets UI as alternative
+    - Include secret rotation procedures
+    - _Requirements: NFR_
+
+  - [ ] 101.3 Add startup validation for required environment variables
+    - Create `/src/lib/envValidation.ts` with Zod schema for all `VITE_` env vars
+    - Validate on app startup in `src/main.tsx`, show clear error if missing
+    - _Requirements: NFR_
+
+- [ ] 102. Implement Performance Budgets & Bundle Analysis
+  - [ ] 102.1 Configure bundle analysis tooling
+    - Add `rollup-plugin-visualizer` to Vite config (generate `stats.html` on build)
+    - Add npm script: `"analyze": "vite build && open stats.html"`
+    - _Requirements: NFR_
+
+  - [ ] 102.2 Implement code splitting for role-specific page modules
+    - Lazy load all route-level page components using `React.lazy()` + `Suspense`
+    - Split admin, coordinator, teacher, student, parent page bundles into separate chunks
+    - Configure Vite `manualChunks` for vendor splitting (react, tanstack, recharts, framer-motion)
+    - _Requirements: NFR_
+
+  - [ ] 102.3 Create performance budget configuration (`/lighthouserc.js`)
+    - Bundle size: < 500KB gzipped initial load
+    - Lighthouse performance score: ≥ 90
+    - LCP: < 2.5s
+    - CLS: < 0.1
+    - FID: < 100ms
+    - _Requirements: NFR_
+
+  - [ ] 102.4 Add performance budget check to CI (reference task 99.2)
+    - Fail build if any budget is exceeded
+    - _Requirements: NFR_
+
+- [ ] 103. Implement Automated Accessibility Testing
+  - [ ] 103.1 Integrate `@axe-core/react` in development mode
+    - Conditionally import and initialize in `src/main.tsx` when `import.meta.env.DEV`
+    - Log a11y violations to browser console during development
+    - _Requirements: NFR_
+
+  - [ ] 103.2 Add `vitest-axe` for component-level a11y assertions
+    - Install `vitest-axe` and configure custom matchers in Vitest setup
+    - Add a11y assertions to key shared component tests: Button, Card, Dialog, Form, Navigation
+    - _Requirements: NFR_
+
+  - [ ] 103.3 Add Lighthouse accessibility score ≥ 90 to CI budget
+    - Include in `lighthouserc.js` assertions (reference task 102.3)
+    - _Requirements: NFR_
+
+  - [ ]* 103.4 Write a11y-focused unit tests for critical interactive components
+    - Test keyboard navigation on SearchCommand, Leaderboard, GradingInterface
+    - Test ARIA labels on KPI cards, progress bars, badge collection
+    - Test focus management on modal dialogs (ToSAcceptanceDialog, BadgeAwardModal, LevelUpOverlay)
+    - _Requirements: NFR_
+
+- [ ] 104. Create Local Development Seed Script
+  - [ ] 104.1 Create `supabase/seed.sql` for rapid local development onboarding
+    - 1 institution with settings (configurable thresholds, grade scale)
+    - 1 admin user, 1 coordinator user, 1 teacher user, 5 student users (all with known test passwords)
+    - 1 department, 1 program (assigned to coordinator), 1 semester
+    - 2 courses (assigned to teacher, linked to semester), 2 sections per course
+    - 3 ILOs, 4 PLOs (mapped to ILOs), 6 CLOs (2 per course, mapped to PLOs, spanning Bloom's levels)
+    - 1 rubric template with 3 criteria × 4 levels
+    - 2 assignments (one per course, linked to CLOs with rubric)
+    - Enroll all 5 students in both courses
+    - Sample XP transactions, streak data, and 1 badge per student
+    - _Requirements: NFR_
+
+  - [ ] 104.2 Add npm script for seeding: `"seed": "supabase db reset"`
+    - Document in README: `npm run seed` for fresh local environment
+    - _Requirements: NFR_
+
+- [ ] 105. Implement Client-Side Request Throttling
+  - [ ] 105.1 Configure TanStack Query global defaults (`/src/providers/QueryProvider.tsx`)
+    - Set `staleTime: 5 * 60 * 1000` (5 minutes) for read-heavy queries
+    - Set `gcTime: 30 * 60 * 1000` (30 minutes) for garbage collection
+    - Set `retry: 3` with exponential backoff (`retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 30000)`)
+    - Enable `refetchOnWindowFocus: false` globally to reduce unnecessary requests
+    - _Requirements: NFR_
+
+  - [ ] 105.2 Add global error handler for HTTP 429 responses
+    - Create `onError` callback in QueryClient defaultOptions
+    - On 429 response, show Sonner toast: "Too many requests. Please wait a moment."
+    - Parse `Retry-After` header and pause queries for that duration
+    - _Requirements: 91_
+
+  - [ ] 105.3 Configure request deduplication for concurrent identical queries
+    - Verify TanStack Query's built-in deduplication is active (default behavior)
+    - Add `queryKeyHashFn` if custom deduplication logic is needed
+    - Document deduplication behavior in code comments
+    - _Requirements: NFR_
+
+- [ ] 106. Implement Security Headers in vercel.json
+  - [ ] 106.1 Add comprehensive security headers configuration to `vercel.json`
+    - Content-Security-Policy: `default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://*.supabase.co; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.sentry.io; font-src 'self' https://fonts.gstatic.com; frame-ancestors 'none'`
+    - Strict-Transport-Security: `max-age=31536000; includeSubDomains`
+    - X-Frame-Options: `DENY`
+    - X-Content-Type-Options: `nosniff`
+    - Referrer-Policy: `strict-origin-when-cross-origin`
+    - Permissions-Policy: `camera=(), microphone=(), geolocation=()`
+    - _Requirements: 92.1, 92.2, 92.3, 92.4, 92.5, 92.6_
+
+  - [ ] 106.2 Add CDN caching headers for static assets in `vercel.json`
+    - `Cache-Control: public, max-age=31536000, immutable` for `/assets/**`
+    - `Cache-Control: no-cache` for `index.html` and service worker
+    - _Requirements: 98.4_
+
+- [ ] 107. Implement Mobile Responsiveness Testing Strategy
+  - [ ] 107.1 Document responsive breakpoints and testing strategy (`/docs/responsive-testing.md`)
+    - Breakpoints: sm (640px), md (768px), lg (1024px), xl (1280px)
+    - Document layout behavior per breakpoint: sidebar collapse, grid column changes, touch targets
+    - Include manual testing checklist for each role's dashboard at each breakpoint
+    - _Requirements: NFR_
+
+  - [ ] 107.2 Verify viewport meta tag in `index.html`
+    - Ensure `<meta name="viewport" content="width=device-width, initial-scale=1.0">` is present
+    - _Requirements: NFR_
+
+  - [ ] 107.3 Add responsive viewport screenshots to E2E tests
+    - Extend Playwright config with viewport sizes: mobile (375×667), tablet (768×1024), desktop (1280×720)
+    - Capture screenshots of Student Dashboard, Teacher Grading Queue, Admin Dashboard at each viewport
+    - Store as test artifacts for visual regression review
+    - _Requirements: NFR_
+
+  - [ ]* 107.4 Write responsive layout assertions in E2E tests
+    - Verify sidebar is hidden on mobile, visible on desktop (admin/coordinator/teacher)
+    - Verify student dashboard switches from 3-column to single-column on mobile
+    - Verify touch targets meet 44×44px minimum on mobile viewports
+    - _Requirements: NFR_
+
+- [ ] 108. Implement Data Migration Tooling from Existing LMS
+  - [ ] 108.1 Create CSV import templates (`/docs/import-templates/`)
+    - `courses.csv`: course_code, title, description, semester_code, teacher_email
+    - `outcomes.csv`: type (ILO/PLO/CLO), code, title, bloom_level (CLO only), parent_code (PLO→ILO, CLO→PLO)
+    - `grades.csv`: student_email, course_code, assignment_title, score, max_score, date
+    - `enrollments.csv`: student_email, course_code, section_code
+    - Include sample files with example data
+    - _Requirements: 7, NFR_
+
+  - [ ] 108.2 Create `bulk-data-import` Edge Function (`/supabase/functions/bulk-data-import/`)
+    - Accept CSV file upload with `import_type` parameter (courses, outcomes, grades, enrollments)
+    - Parse and validate rows against Zod schemas
+    - Process valid rows: create/update records with proper FK resolution (lookup by code/email)
+    - Return summary: total rows, imported count, skipped count, error details per row
+    - Log import to audit_logs with summary metadata
+    - _Requirements: 7, NFR_
+
+  - [ ] 108.3 Create Data Import UI (`/src/pages/admin/import/DataImportPage.tsx`)
+    - Import type selector (Courses, Outcomes, Grades, Enrollments)
+    - CSV file upload with drag-and-drop
+    - Preview parsed rows before import with validation status per row
+    - Import progress indicator and result summary
+    - Download error report for failed rows
+    - Link to download CSV templates
+    - _Requirements: 7, NFR_
+
+  - [ ] 108.4 Create data import TanStack Query hooks (`/src/hooks/useDataImport.ts`)
+    - Mutation for uploading and processing CSV imports
+    - Query for import history/status
+    - _Requirements: NFR_
