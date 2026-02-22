@@ -1,8 +1,11 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { usePrograms } from '@/hooks/usePrograms';
+import { useCurriculumMatrix } from '@/hooks/useCurriculumMatrix';
 import CurriculumMatrix from '@/components/shared/CurriculumMatrix';
 import CellDetailSheet from '@/components/shared/CellDetailSheet';
 import Shimmer from '@/components/shared/Shimmer';
+import { Button } from '@/components/ui/button';
+import { buildMatrixCsv, downloadCsv } from '@/lib/exportCurriculumMatrixCsv';
 import {
   Select,
   SelectContent,
@@ -10,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Download } from 'lucide-react';
 
 interface SelectedCell {
   ploId: string;
@@ -20,16 +24,33 @@ const CurriculumMatrixPage = () => {
   const [selectedProgramId, setSelectedProgramId] = useState<string>('');
   const [selectedCell, setSelectedCell] = useState<SelectedCell | null>(null);
   const { data: programs, isLoading: programsLoading } = usePrograms();
+  const { data: matrixData } = useCurriculumMatrix(selectedProgramId || undefined);
+
+  const selectedProgram = programs?.find((p) => p.id === selectedProgramId);
 
   const handleCellClick = (ploId: string, courseId: string) => {
     setSelectedCell({ ploId, courseId });
   };
 
+  const handleExportCsv = useCallback(() => {
+    if (!matrixData || !selectedProgram) return;
+    if (matrixData.plos.length === 0 || matrixData.courses.length === 0) return;
+
+    const csvContent = buildMatrixCsv(matrixData);
+    downloadCsv(csvContent, `curriculum-matrix-${selectedProgram.code}.csv`);
+  }, [matrixData, selectedProgram]);
+
+  const canExport =
+    !!selectedProgramId &&
+    !!matrixData &&
+    matrixData.plos.length > 0 &&
+    matrixData.courses.length > 0;
+
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold tracking-tight">Curriculum Matrix</h1>
 
-      {/* Program selector */}
+      {/* Program selector + Export */}
       <div className="flex items-center gap-3">
         <label className="text-sm font-medium text-gray-700">Program</label>
         {programsLoading ? (
@@ -48,6 +69,15 @@ const CurriculumMatrixPage = () => {
             </SelectContent>
           </Select>
         )}
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={!canExport}
+          onClick={handleExportCsv}
+        >
+          <Download className="h-4 w-4" />
+          Export CSV
+        </Button>
       </div>
 
       {/* Matrix */}

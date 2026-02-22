@@ -230,47 +230,47 @@ Complete unified implementation of the Edeviser platform covering authentication
   - [x] 9.4 Implement PLO-ILO weight validation
     - _Requirements: 13.3_
 
-- [-] 10. Implement Curriculum Matrix
+- [x] 10. Implement Curriculum Matrix
   - [x] 10.1 Create Curriculum Matrix component (PLO × Course grid)
     - _Requirements: 28.2_
 
   - [x] 10.2 Implement click-through to evidence detail
     - _Requirements: 28.3_
 
-  - [~] 10.3 Implement CSV export
+  - [x] 10.3 Implement CSV export
     - _Requirements: 28.3_
 
-- [ ] 11. Implement Coordinator Dashboard
-  - [ ] 11.1 Create Coordinator layout with sidebar
+- [x] 11. Implement Coordinator Dashboard
+  - [x] 11.1 Create Coordinator layout with sidebar
     - _Requirements: 28_
 
-  - [ ] 11.2 Create Coordinator Dashboard with matrix, compliance rate, at-risk count
+  - [x] 11.2 Create Coordinator Dashboard with matrix, compliance rate, at-risk count
     - _Requirements: 28_
 
-- [ ] 12. Implement CLO management
-  - [ ] 12.1 Create CLO TanStack Query hooks (`/src/hooks/useCLOs.ts`)
+- [x] 12. Implement CLO management
+  - [x] 12.1 Create CLO TanStack Query hooks (`/src/hooks/useCLOs.ts`)
     - _Requirements: 14_
 
-  - [ ] 12.2 Create CLO List page with Bloom's level tags
+  - [x] 12.2 Create CLO List page with Bloom's level tags
     - _Requirements: 14.2_
 
-  - [ ] 12.3 Create CLO Create/Edit form with PLO mapping and Bloom's selector
+  - [x] 12.3 Create CLO Create/Edit form with PLO mapping and Bloom's selector
     - _Requirements: 14.1, 14.2, 14.3_
 
-  - [ ] 12.4 Create Bloom's Verb Guide component (`/src/components/shared/BloomsVerbGuide.tsx`)
+  - [x] 12.4 Create Bloom's Verb Guide component (`/src/components/shared/BloomsVerbGuide.tsx`)
     - Display suggested action verbs when a Bloom's level is selected in CLO builder
     - Implement click-to-insert verb into CLO title field
     - Create `/src/lib/bloomsVerbs.ts` with verb constants per level
     - _Requirements: 38_
 
-- [ ] 13. Implement Rubric Builder
-  - [ ] 13.1 Create Rubric Builder component with dynamic criteria/levels grid
+- [-] 13. Implement Rubric Builder
+  - [x] 13.1 Create Rubric Builder component with dynamic criteria/levels grid
     - _Requirements: 15_
 
-  - [ ] 13.2 Implement rubric template save/copy
+  - [x] 13.2 Implement rubric template save/copy
     - _Requirements: 15.4, 15.5_
 
-  - [ ] 13.3 Create rubric preview component
+  - [x] 13.3 Create rubric preview component
     - _Requirements: 15_
 
 - [ ] 14. Implement Assignment management

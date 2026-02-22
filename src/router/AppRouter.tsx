@@ -39,6 +39,10 @@ const PLOListPage = lazy(() => import('@/pages/coordinator/plos/PLOListPage'));
 const PLOForm = lazy(() => import('@/pages/coordinator/plos/PLOForm'));
 const CurriculumMatrixPage = lazy(() => import('@/pages/coordinator/CurriculumMatrixPage'));
 const TeacherDashboard = lazy(() => import('@/pages/teacher/TeacherDashboard'));
+const CLOListPage = lazy(() => import('@/pages/teacher/clos/CLOListPage'));
+const CLOForm = lazy(() => import('@/pages/teacher/clos/CLOForm'));
+const RubricListPage = lazy(() => import('@/pages/teacher/rubrics/RubricListPage'));
+const RubricBuilder = lazy(() => import('@/pages/teacher/rubrics/RubricBuilder'));
 const StudentDashboard = lazy(() => import('@/pages/student/StudentDashboard'));
 const ParentDashboard = lazy(() => import('@/pages/parent/ParentDashboard'));
 
@@ -118,6 +122,12 @@ const AppRouter = () => (
       >
         <Route index element={<Navigate to="/teacher/dashboard" replace />} />
         <Route path="dashboard" element={<TeacherDashboard />} />
+        <Route path="clos" element={<CLOListPage />} />
+        <Route path="clos/new" element={<CLOForm />} />
+        <Route path="clos/:id/edit" element={<CLOForm />} />
+        <Route path="rubrics" element={<RubricListPage />} />
+        <Route path="rubrics/new" element={<RubricBuilder />} />
+        <Route path="rubrics/:id/edit" element={<RubricBuilder />} />
       </Route>
 
       {/* Student routes */}

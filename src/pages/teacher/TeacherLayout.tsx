@@ -1,9 +1,32 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, NavLink } from 'react-router-dom';
+import { cn } from '@/lib/utils';
+import { LayoutDashboard, Target, TableProperties } from 'lucide-react';
+
+const navItems = [
+  { to: '/teacher/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+  { to: '/teacher/clos', icon: Target, label: 'CLOs' },
+  { to: '/teacher/rubrics', icon: TableProperties, label: 'Rubrics' },
+];
 
 const TeacherLayout = () => (
   <div className="flex h-screen">
-    <aside className="w-64 border-r border-slate-200 bg-white p-4">
-      <h2 className="text-lg font-bold tracking-tight">Teacher</h2>
+    <aside className="w-64 border-r border-slate-200 bg-white p-4 space-y-1">
+      <h2 className="text-lg font-bold tracking-tight mb-4 px-3">Teacher</h2>
+      {navItems.map(({ to, icon: Icon, label }) => (
+        <NavLink
+          key={to}
+          to={to}
+          className={({ isActive }) =>
+            cn(
+              'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+              isActive ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-slate-50',
+            )
+          }
+        >
+          <Icon className="h-5 w-5" />
+          {label}
+        </NavLink>
+      ))}
     </aside>
     <main className="flex-1 overflow-auto p-6 bg-slate-50">
       <Outlet />
