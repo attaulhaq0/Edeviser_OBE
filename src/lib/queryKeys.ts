@@ -83,6 +83,7 @@ const globalSearch = createKeys('globalSearch')
 const notificationPreferences = createKeys('notificationPreferences')
 const sessions = createKeys('sessions')
 const auditLogs = createKeys('auditLogs')
+const teacherDashboard = createKeys('teacherDashboard')
 
 // ─── Exported Key Factory ────────────────────────────────────────────────────
 export const queryKeys = {
@@ -156,4 +157,5 @@ export const queryKeys = {
   notificationPreferences,
   sessions,
   auditLogs,
+  teacherDashboard,
 } as const

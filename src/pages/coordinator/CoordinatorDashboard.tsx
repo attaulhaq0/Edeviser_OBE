@@ -106,11 +106,14 @@ const CoordinatorDashboard = () => {
       {/* Two-column layout: Matrix + At-Risk */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Curriculum Matrix (2/3 width) */}
-        <Card className="bg-white border-0 shadow-md rounded-xl p-6 lg:col-span-2">
-          <div className="flex items-center justify-between mb-4">
+        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden lg:col-span-2">
+          <div
+            className="px-6 py-4 flex items-center justify-between"
+            style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+          >
             <div className="flex items-center gap-2">
-              <Grid3X3 className="h-5 w-5 text-blue-600" />
-              <h2 className="text-lg font-bold tracking-tight">Curriculum Matrix</h2>
+              <Grid3X3 className="h-5 w-5 text-white" />
+              <h2 className="text-lg font-bold tracking-tight text-white">Curriculum Matrix</h2>
             </div>
             <div className="flex items-center gap-3">
               {programsLoading ? (
@@ -134,45 +137,51 @@ const CoordinatorDashboard = () => {
               )}
               <Link
                 to="/coordinator/matrix"
-                className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors whitespace-nowrap"
+                className="inline-flex items-center gap-1 text-sm font-medium text-white/90 hover:text-white transition-colors whitespace-nowrap"
               >
                 View Full Matrix
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
           </div>
-
-          {effectiveProgramId ? (
-            <CurriculumMatrix
-              programId={effectiveProgramId}
-              onCellClick={handleCellClick}
-            />
-          ) : (
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-8 text-center text-sm text-gray-500">
-              No programs available. Create a program to view the curriculum matrix.
-            </div>
-          )}
+          <div className="p-6">
+            {effectiveProgramId ? (
+              <CurriculumMatrix
+                programId={effectiveProgramId}
+                onCellClick={handleCellClick}
+              />
+            ) : (
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-8 text-center text-sm text-gray-500">
+                No programs available. Create a program to view the curriculum matrix.
+              </div>
+            )}
+          </div>
         </Card>
 
         {/* At-Risk Students (1/3 width) */}
-        <Card className="bg-white border-0 shadow-md rounded-xl p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <AlertTriangle className="h-5 w-5 text-blue-600" />
-            <h2 className="text-lg font-bold tracking-tight">At-Risk Students</h2>
+        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+          <div
+            className="px-6 py-4 flex items-center gap-2"
+            style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+          >
+            <AlertTriangle className="h-5 w-5 text-white" />
+            <h2 className="text-lg font-bold tracking-tight text-white">At-Risk Students</h2>
           </div>
-          {kpisLoading ? (
-            <Shimmer className="h-32 rounded-xl" />
-          ) : (
-            <div className="flex flex-col items-center justify-center py-8 text-center">
-              <div className="p-3 rounded-full bg-amber-50 mb-3">
-                <AlertTriangle className="h-8 w-8 text-amber-500" />
+          <div className="p-6">
+            {kpisLoading ? (
+              <Shimmer className="h-32 rounded-xl" />
+            ) : (
+              <div className="flex flex-col items-center justify-center py-8 text-center">
+                <div className="p-3 rounded-full bg-amber-50 mb-3">
+                  <AlertTriangle className="h-8 w-8 text-amber-500" />
+                </div>
+                <p className="text-sm text-gray-500 max-w-[220px]">
+                  At-risk student detection will be available once attainment data is
+                  collected.
+                </p>
               </div>
-              <p className="text-sm text-gray-500 max-w-[220px]">
-                At-risk student detection will be available once attainment data is
-                collected.
-              </p>
-            </div>
-          )}
+            )}
+          </div>
         </Card>
       </div>
 

@@ -302,7 +302,7 @@ Complete unified implementation of the Edeviser platform covering authentication
   - [x] 16.3 Implement grade submission triggering Evidence Generator
     - _Requirements: 18.4_
 
-- [ ] 17. Implement Evidence Generator Edge Function
+- [x] 17. Implement Evidence Generator Edge Function
   - [x] 17.1 Create `calculate-attainment-rollup` Edge Function
     - Fetch CLO → PLO → ILO chain from outcome_mappings
     - Calculate attainment_level from score_percent
@@ -311,17 +311,17 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Insert notification for student
     - _Requirements: 19, 20_
 
-  - [~] 17.2 Create database trigger on `grades` table to invoke Edge Function
+  - [x] 17.2 Create database trigger on `grades` table to invoke Edge Function
     - _Requirements: 19.4_
 
-- [ ] 18. Implement Teacher Dashboard
-  - [ ] 18.1 Create Teacher layout with sidebar
+- [-] 18. Implement Teacher Dashboard
+  - [x] 18.1 Create Teacher layout with sidebar
     - _Requirements: 29_
 
-  - [ ] 18.2 Create Teacher Dashboard with grading queue, CLO chart, heatmap, Bloom's distribution
+  - [x] 18.2 Create Teacher Dashboard with grading queue, CLO chart, heatmap, Bloom's distribution
     - _Requirements: 29_
 
-  - [ ] 18.3 Implement at-risk student list with nudge notification
+  - [-] 18.3 Implement at-risk student list with nudge notification
     - _Requirements: 29.2, 29.4_
 
 - [ ] 19. Implement Student Submission

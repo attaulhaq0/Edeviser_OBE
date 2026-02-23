@@ -259,3 +259,50 @@ Key rules:
 // Use shimmer placeholders per component, not full-page loaders
 {isLoading ? <Shimmer className="h-32 rounded-xl" /> : <ActualContent />}
 ```
+
+### Section Card with Gradient Header
+Used for: Dashboard content sections (Users by Role, Recent Activity, Grading Queue, etc.)
+
+```typescript
+<Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+  <div
+    className="px-6 py-4 flex items-center gap-2"
+    style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+  >
+    <Icon className="h-5 w-5 text-white" />
+    <h2 className="text-lg font-bold tracking-tight text-white">Section Title</h2>
+  </div>
+  <div className="p-6">
+    {/* Section content */}
+  </div>
+</Card>
+```
+
+Key rules:
+- Card must have `overflow-hidden` for the gradient to clip to rounded corners
+- Header uses inline `style` for the brand gradient (not Tailwind class)
+- Icon and heading text are always white
+- Content body wrapped in `<div className="p-6">`
+- Every dashboard section card uses this pattern — no plain white headers on section cards
+
+### Welcome Hero Card
+Used for: Student and Parent dashboard hero sections
+
+```typescript
+<Card
+  className="border-0 shadow-lg rounded-xl overflow-hidden text-white"
+  style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #312e81 100%)' }}
+>
+  <div className="p-6">
+    <h1 className="text-2xl font-bold tracking-tight">
+      Good morning, {name} 👋
+    </h1>
+    <p className="text-sm text-white/70 mt-1">Motivational subtitle</p>
+  </div>
+</Card>
+```
+
+Key rules:
+- Uses dark hero gradient (slate-900 → blue-800 → violet-900)
+- Subtitle text uses `text-white/70` for hierarchy
+- Optional right-side stats section for XP/Level display

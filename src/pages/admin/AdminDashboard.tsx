@@ -76,78 +76,89 @@ const AdminDashboard = () => {
       {/* Two-column layout: Users by Role + Recent Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Users by Role */}
-        <Card className="bg-white border-0 shadow-md rounded-xl p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <Users className="h-5 w-5 text-blue-600" />
-            <h2 className="text-lg font-bold tracking-tight">Users by Role</h2>
+        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+          <div
+            className="px-6 py-4 flex items-center gap-2"
+            style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+          >
+            <Users className="h-5 w-5 text-white" />
+            <h2 className="text-lg font-bold tracking-tight text-white">Users by Role</h2>
           </div>
-          {kpisLoading ? (
-            <div className="space-y-3">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Shimmer key={i} className="h-8 rounded-lg" />
-              ))}
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {Object.entries(kpis?.usersByRole ?? {}).map(([role, count]) => (
-                <div key={role} className="flex items-center justify-between">
-                  <Badge variant="outline" className={roleBadgeStyles[role] ?? ''}>
-                    {role.charAt(0).toUpperCase() + role.slice(1)}
-                  </Badge>
-                  <span className="text-sm font-semibold">{count}</span>
-                </div>
-              ))}
-              {Object.keys(kpis?.usersByRole ?? {}).length === 0 && (
-                <p className="text-sm text-gray-500">No active users yet.</p>
-              )}
-            </div>
-          )}
+          <div className="p-6">
+            {kpisLoading ? (
+              <div className="space-y-3">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Shimmer key={i} className="h-8 rounded-lg" />
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {Object.entries(kpis?.usersByRole ?? {}).map(([role, count]) => (
+                  <div key={role} className="flex items-center justify-between">
+                    <Badge variant="outline" className={roleBadgeStyles[role] ?? ''}>
+                      {role.charAt(0).toUpperCase() + role.slice(1)}
+                    </Badge>
+                    <span className="text-sm font-semibold">{count}</span>
+                  </div>
+                ))}
+                {Object.keys(kpis?.usersByRole ?? {}).length === 0 && (
+                  <p className="text-sm text-gray-500">No active users yet.</p>
+                )}
+              </div>
+            )}
+          </div>
         </Card>
 
         {/* Recent Activity Feed */}
-        <Card className="bg-white border-0 shadow-md rounded-xl p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <Activity className="h-5 w-5 text-blue-600" />
-            <h2 className="text-lg font-bold tracking-tight">Recent Activity</h2>
+        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+          <div
+            className="px-6 py-4 flex items-center gap-2"
+            style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+          >
+            <Activity className="h-5 w-5 text-white" />
+            <h2 className="text-lg font-bold tracking-tight text-white">Recent Activity</h2>
           </div>
-          {logsLoading ? (
-            <div className="space-y-3">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Shimmer key={i} className="h-10 rounded-lg" />
-              ))}
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {(auditLogs ?? []).map((log) => (
-                <div key={log.id} className="flex items-start justify-between gap-2 py-1">
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium truncate">
-                      {log.action} {log.entity_type}
-                    </p>
-                    <p className="text-xs text-gray-500 truncate">
-                      {log.entity_id}
-                    </p>
+          <div className="p-6">
+            {logsLoading ? (
+              <div className="space-y-3">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Shimmer key={i} className="h-10 rounded-lg" />
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {(auditLogs ?? []).map((log) => (
+                  <div key={log.id} className="flex items-start justify-between gap-2 py-1">
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium truncate">
+                        {log.action} {log.entity_type}
+                      </p>
+                      <p className="text-xs text-gray-500 truncate">{log.entity_id}</p>
+                    </div>
+                    <span className="text-xs text-gray-400 whitespace-nowrap">
+                      {formatDistanceToNow(new Date(log.created_at), { addSuffix: true })}
+                    </span>
                   </div>
-                  <span className="text-xs text-gray-400 whitespace-nowrap">
-                    {formatDistanceToNow(new Date(log.created_at), { addSuffix: true })}
-                  </span>
-                </div>
-              ))}
-              {(auditLogs ?? []).length === 0 && (
-                <p className="text-sm text-gray-500">No recent activity.</p>
-              )}
-            </div>
-          )}
+                ))}
+                {(auditLogs ?? []).length === 0 && (
+                  <p className="text-sm text-gray-500">No recent activity.</p>
+                )}
+              </div>
+            )}
+          </div>
         </Card>
       </div>
 
       {/* PLO Heatmap Placeholder */}
-      <Card className="bg-white border-0 shadow-md rounded-xl p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <BarChart3 className="h-5 w-5 text-blue-600" />
-          <h2 className="text-lg font-bold tracking-tight">PLO Attainment Heatmap</h2>
+      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+        <div
+          className="px-6 py-4 flex items-center gap-2"
+          style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+        >
+          <BarChart3 className="h-5 w-5 text-white" />
+          <h2 className="text-lg font-bold tracking-tight text-white">PLO Attainment Heatmap</h2>
         </div>
-        <div className="flex items-center justify-center py-12 text-gray-400">
+        <div className="flex items-center justify-center py-12 px-6 text-gray-400">
           <p className="text-sm">
             PLO attainment heatmap will appear here once outcome data is available.
           </p>

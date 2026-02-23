@@ -5,7 +5,7 @@ interface ShimmerProps {
 }
 
 const Shimmer = ({ className }: ShimmerProps) => (
-  <div className={cn('animate-pulse rounded-xl bg-slate-200', className)} />
+  <div className={cn('animate-shimmer rounded-xl', className)} />
 );
 
 export default Shimmer;
