@@ -324,59 +324,59 @@ Complete unified implementation of the Edeviser platform covering authentication
   - [x] 18.3 Implement at-risk student list with nudge notification
     - _Requirements: 29.2, 29.4_
 
-- [ ] 19. Implement Student Submission
-  - [ ] 19.1 Create submission TanStack Query hooks (`/src/hooks/useSubmissions.ts`)
+- [x] 19. Implement Student Submission
+  - [x] 19.1 Create submission TanStack Query hooks (`/src/hooks/useSubmissions.ts`)
     - _Requirements: 17_
 
-  - [ ] 19.2 Create Assignment Detail page with submission form
+  - [x] 19.2 Create Assignment Detail page with submission form
     - _Requirements: 17_
 
-  - [ ] 19.3 Implement file upload to Supabase Storage
+  - [x] 19.3 Implement file upload to Supabase Storage
     - _Requirements: 17.1_
 
-  - [ ] 19.4 Implement late submission logic
+  - [x] 19.4 Implement late submission logic
     - _Requirements: 17.2, 17.3_
 
-  - [ ] 19.5 Wire activity logging into submission flow
+  - [x] 19.5 Wire activity logging into submission flow
     - Call `logActivity({ event_type: 'submission' })` on successful submission
     - _Requirements: 41.1_
 
-- [ ] 20. Implement XP Engine
-  - [ ] 20.1 Create `award-xp` Edge Function
+- [x] 20. Implement XP Engine
+  - [x] 20.1 Create `award-xp` Edge Function
     - Insert xp_transaction record
     - Recalculate student_gamification.xp_total
     - Check level-up condition
     - Check for active bonus_xp_events and apply multiplier
     - _Requirements: 21, 36.3_
 
-  - [ ] 20.2 Wire XP triggers: login, submission, grade, journal, streak milestones, perfect day, first-attempt bonus, perfect rubric
+  - [x] 20.2 Wire XP triggers: login, submission, grade, journal, streak milestones, perfect day, first-attempt bonus, perfect rubric
     - _Requirements: 21.1, 35.2, 36.1, 36.2_
 
-  - [ ] 20.3 Create XP animation component (confetti + count-up)
+  - [x] 20.3 Create XP animation component (confetti + count-up)
     - _Requirements: 21.2_
 
-- [ ] 21. Implement Streak System
-  - [ ] 21.1 Create `process-streak` Edge Function
+- [x] 21. Implement Streak System
+  - [x] 21.1 Create `process-streak` Edge Function
     - Increment or reset streak on login
     - Update last_login_date
     - Check streak milestones
     - _Requirements: 22_
 
-  - [ ] 21.2 Create Streak Display component with flame animation
+  - [x] 21.2 Create Streak Display component with flame animation
     - _Requirements: 22_
 
-- [ ] 22. Implement Badge System
-  - [ ] 22.1 Create `check-badges` Edge Function
+- [-] 22. Implement Badge System
+  - [x] 22.1 Create `check-badges` Edge Function
     - Check all badge conditions idempotently
     - Insert badge record if not already awarded
     - Support mystery badges (Speed Demon, Night Owl, Perfectionist) with hidden conditions
     - _Requirements: 23, 36.4_
 
-  - [ ] 22.2 Create Badge Award modal with animation
+  - [x] 22.2 Create Badge Award modal with animation
     - Include mystery badge reveal animation (hidden → revealed transition)
     - _Requirements: 23.3, 36.4_
 
-  - [ ] 22.3 Create Badge Collection display on profile
+  - [-] 22.3 Create Badge Collection display on profile
     - Show mystery badges as silhouettes until earned
     - _Requirements: 23.4, 36.4_
 

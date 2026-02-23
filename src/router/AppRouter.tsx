@@ -49,6 +49,8 @@ const AssignmentForm = lazy(() => import('@/pages/teacher/assignments/Assignment
 const GradingQueuePage = lazy(() => import('@/pages/teacher/grading/GradingQueuePage'));
 const GradingInterface = lazy(() => import('@/pages/teacher/grading/GradingInterface'));
 const StudentDashboard = lazy(() => import('@/pages/student/StudentDashboard'));
+const StudentAssignmentListPage = lazy(() => import('@/pages/student/assignments/AssignmentListPage'));
+const StudentAssignmentDetailPage = lazy(() => import('@/pages/student/assignments/AssignmentDetailPage'));
 const ParentDashboard = lazy(() => import('@/pages/parent/ParentDashboard'));
 
 // ---------------------------------------------------------------------------
@@ -152,6 +154,8 @@ const AppRouter = () => (
       >
         <Route index element={<Navigate to="/student/dashboard" replace />} />
         <Route path="dashboard" element={<StudentDashboard />} />
+        <Route path="assignments" element={<StudentAssignmentListPage />} />
+        <Route path="assignments/:id" element={<StudentAssignmentDetailPage />} />
       </Route>
 
       {/* Parent routes */}

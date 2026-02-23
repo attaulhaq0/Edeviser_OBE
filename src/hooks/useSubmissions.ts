@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { queryKeys } from '@/lib/queryKeys';
 
@@ -98,6 +98,137 @@ export const usePendingSubmissions = (courseId?: string) => {
       // Filter client-side: only submissions without a grade record
       const submissions = data as SubmissionWithRelations[];
       return submissions.filter((s) => !s.grades);
+    },
+  });
+};
+
+// ─── Mutation types ─────────────────────────────────────────────────────────
+
+export interface CreateSubmissionInput {
+  assignment_id: string;
+  file_url: string;
+  is_late: boolean;
+  institution_id: string;
+}
+
+// ─── Student assignment view types ──────────────────────────────────────────
+
+export interface StudentAssignment {
+  id: string;
+  title: string;
+  description: string;
+  course_id: string;
+  due_date: string;
+  total_marks: number;
+  rubric_id: string;
+  late_window_hours: number;
+  prerequisites: Array<{ clo_id: string; required_attainment: number }> | null;
+  institution_id: string;
+  created_at: string;
+  updated_at: string;
+  submissions: Pick<Submission, 'id' | 'is_late' | 'created_at'>[] | null;
+}
+
+// ─── useCreateSubmission — insert a submission record ───────────────────────
+
+export const useCreateSubmission = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: CreateSubmissionInput): Promise<Submission> => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { data, error } = await db
+        .from('submissions')
+        .insert({
+          assignment_id: input.assignment_id,
+          student_id: user.id,
+          file_url: input.file_url,
+          is_late: input.is_late,
+          institution_id: input.institution_id,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data as Submission;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.submissions.lists() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.assignments.lists() });
+    },
+  });
+};
+
+// ─── useUploadSubmissionFile — upload file to Supabase Storage ──────────────
+
+export interface UploadSubmissionFileParams {
+  file: File;
+  assignmentId: string;
+  institutionId: string;
+}
+
+export const useUploadSubmissionFile = () => {
+  return useMutation({
+    mutationFn: async (params: UploadSubmissionFileParams): Promise<string> => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { uploadSubmissionFile } = await import('@/lib/fileUpload');
+      return uploadSubmissionFile({
+        file: params.file,
+        assignmentId: params.assignmentId,
+        studentId: user.id,
+        institutionId: params.institutionId,
+      });
+    },
+  });
+};
+
+// ─── useStudentAssignments — assignments for the current student's courses ──
+
+export const useStudentAssignments = (courseId?: string) => {
+  return useQuery({
+    queryKey: queryKeys.assignments.list({ courseId, scope: 'student' }),
+    queryFn: async (): Promise<StudentAssignment[]> => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      // Get courses the student is enrolled in
+      const { data: enrollments, error: enrollError } = await db
+        .from('student_courses')
+        .select('course_id')
+        .eq('student_id', user.id);
+
+      if (enrollError) throw enrollError;
+
+      const courseIds = (enrollments as Array<{ course_id: string }>).map(
+        (e) => e.course_id,
+      );
+
+      if (courseIds.length === 0) return [];
+
+      let query = db
+        .from('assignments')
+        .select('*, submissions(id, is_late, created_at)')
+        .in('course_id', courseIds)
+        .eq('submissions.student_id', user.id)
+        .order('due_date', { ascending: true });
+
+      if (courseId) {
+        query = query.eq('course_id', courseId);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return data as StudentAssignment[];
     },
   });
 };
