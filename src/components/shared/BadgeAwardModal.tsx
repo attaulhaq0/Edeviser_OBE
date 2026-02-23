@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useSyncExternalStore } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import {
@@ -62,9 +62,7 @@ function useDelayedFlag(active: boolean, delayMs: number): boolean {
 
   const getSnapshot = useCallback(() => value.current, []);
 
-  // Inline useSyncExternalStore to avoid import issues in some envs
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  return require('react').useSyncExternalStore(subscribe, getSnapshot);
+  return useSyncExternalStore(subscribe, getSnapshot);
 }
 
 const BadgeAwardModal = ({ badge, isOpen, onClose }: BadgeAwardModalProps) => {
