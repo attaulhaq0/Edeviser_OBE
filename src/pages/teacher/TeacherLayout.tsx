@@ -1,11 +1,13 @@
 import { Outlet, NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { LayoutDashboard, Target, TableProperties } from 'lucide-react';
+import { LayoutDashboard, Target, TableProperties, ClipboardList, CheckSquare } from 'lucide-react';
 
 const navItems = [
   { to: '/teacher/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/teacher/clos', icon: Target, label: 'CLOs' },
   { to: '/teacher/rubrics', icon: TableProperties, label: 'Rubrics' },
+  { to: '/teacher/assignments', icon: ClipboardList, label: 'Assignments' },
+  { to: '/teacher/grading', icon: CheckSquare, label: 'Grading' },
 ];
 
 const TeacherLayout = () => (

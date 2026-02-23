@@ -263,7 +263,7 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Create `/src/lib/bloomsVerbs.ts` with verb constants per level
     - _Requirements: 38_
 
-- [-] 13. Implement Rubric Builder
+- [x] 13. Implement Rubric Builder
   - [x] 13.1 Create Rubric Builder component with dynamic criteria/levels grid
     - _Requirements: 15_
 
@@ -273,37 +273,37 @@ Complete unified implementation of the Edeviser platform covering authentication
   - [x] 13.3 Create rubric preview component
     - _Requirements: 15_
 
-- [ ] 14. Implement Assignment management
-  - [ ] 14.1 Create assignment TanStack Query hooks (`/src/hooks/useAssignments.ts`)
+- [x] 14. Implement Assignment management
+  - [x] 14.1 Create assignment TanStack Query hooks (`/src/hooks/useAssignments.ts`)
     - _Requirements: 16_
 
-  - [ ] 14.2 Create Assignment List page
+  - [x] 14.2 Create Assignment List page
     - _Requirements: 16_
 
-  - [ ] 14.3 Create Assignment Create/Edit form with CLO linking and weight distribution
+  - [x] 14.3 Create Assignment Create/Edit form with CLO linking and weight distribution
     - Include prerequisite gate configuration: select CLO + minimum attainment % threshold
     - Store prerequisites as jsonb array on assignments table
     - _Requirements: 16.1, 37.2_
 
-- [ ] 15. Implement Student Enrollment
-  - [ ] 15.1 Create enrollment TanStack Query hooks (`/src/hooks/useEnrollments.ts`)
+- [x] 15. Implement Student Enrollment
+  - [x] 15.1 Create enrollment TanStack Query hooks (`/src/hooks/useEnrollments.ts`)
     - _Requirements: 11_
 
-  - [ ] 15.2 Create student enrollment UI within course detail
+  - [x] 15.2 Create student enrollment UI within course detail
     - _Requirements: 11_
 
-- [ ] 16. Implement Grading
-  - [ ] 16.1 Create Grading Queue component (pending submissions list)
+- [x] 16. Implement Grading
+  - [x] 16.1 Create Grading Queue component (pending submissions list)
     - _Requirements: 18, 29.1_
 
-  - [ ] 16.2 Create Grading Interface with rubric cell selection
+  - [x] 16.2 Create Grading Interface with rubric cell selection
     - _Requirements: 18.1, 18.2, 18.3_
 
-  - [ ] 16.3 Implement grade submission triggering Evidence Generator
+  - [x] 16.3 Implement grade submission triggering Evidence Generator
     - _Requirements: 18.4_
 
 - [ ] 17. Implement Evidence Generator Edge Function
-  - [ ] 17.1 Create `calculate-attainment-rollup` Edge Function
+  - [x] 17.1 Create `calculate-attainment-rollup` Edge Function
     - Fetch CLO → PLO → ILO chain from outcome_mappings
     - Calculate attainment_level from score_percent
     - Insert immutable evidence record
@@ -311,7 +311,7 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Insert notification for student
     - _Requirements: 19, 20_
 
-  - [ ] 17.2 Create database trigger on `grades` table to invoke Edge Function
+  - [~] 17.2 Create database trigger on `grades` table to invoke Edge Function
     - _Requirements: 19.4_
 
 - [ ] 18. Implement Teacher Dashboard

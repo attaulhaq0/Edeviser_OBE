@@ -1,5 +1,5 @@
 import { type ColumnDef } from '@tanstack/react-table';
-import { ArrowUpDown, MoreHorizontal, Pencil, XCircle } from 'lucide-react';
+import { ArrowUpDown, MoreHorizontal, Pencil, Users, XCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -10,11 +10,12 @@ import {
 } from '@/components/ui/dropdown-menu';
 import type { Course } from '@/types/app';
 
-// ─── Column factory — accepts onEdit and onDeactivate callbacks ─────────────
+// ─── Column factory — accepts onEdit, onDeactivate, and onManageEnrollment callbacks ─
 
 export const createColumns = (
   onEdit: (course: Course) => void,
   onDeactivate: (course: Course) => void,
+  onManageEnrollment?: (course: Course) => void,
 ): ColumnDef<Course>[] => [
   {
     accessorKey: 'name',
@@ -92,6 +93,12 @@ export const createColumns = (
               <Pencil className="h-4 w-4" />
               Edit
             </DropdownMenuItem>
+            {onManageEnrollment && (
+              <DropdownMenuItem onClick={() => onManageEnrollment(course)}>
+                <Users className="h-4 w-4" />
+                Manage Enrollment
+              </DropdownMenuItem>
+            )}
             {course.is_active && (
               <DropdownMenuItem
                 variant="destructive"

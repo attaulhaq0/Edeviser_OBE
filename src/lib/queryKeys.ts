@@ -21,6 +21,7 @@ const clos = createKeys('clos')
 const outcomeMappings = createKeys('outcomeMappings')
 const rubrics = createKeys('rubrics')
 const assignments = createKeys('assignments')
+const enrollments = createKeys('enrollments')
 const submissions = createKeys('submissions')
 const grades = createKeys('grades')
 const evidence = createKeys('evidence')
@@ -98,6 +99,7 @@ export const queryKeys = {
   outcomeMappings,
   rubrics,
   assignments,
+  enrollments,
   submissions,
   grades,
   evidence,

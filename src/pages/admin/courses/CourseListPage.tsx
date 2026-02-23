@@ -39,6 +39,7 @@ const CourseListPage = () => {
   const columns = createColumns(
     (course) => navigate(`/admin/courses/${course.id}/edit`),
     (course) => setCourseToDeactivate(course),
+    (course) => navigate(`/admin/courses/${course.id}/enrollment`),
   );
 
   return (
