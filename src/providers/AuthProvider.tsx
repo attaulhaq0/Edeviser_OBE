@@ -45,6 +45,7 @@ export interface AuthContextValue {
   resetPassword: (email: string) => Promise<void>;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 // ---------------------------------------------------------------------------

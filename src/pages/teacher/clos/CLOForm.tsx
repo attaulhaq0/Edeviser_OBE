@@ -73,6 +73,7 @@ const CreateCLODetailsForm = () => {
     },
   });
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const watchedBloomsLevel = form.watch('blooms_level');
 
   const handleVerbClick = (verb: string) => {
@@ -262,6 +263,7 @@ const EditCLODetailsForm = ({ cloId }: { cloId: string }) => {
     });
   };
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const currentBloomsLevel = form.watch('blooms_level');
   const bloomsConfig = BLOOMS_LEVELS.find((l) => l.value === currentBloomsLevel);
 
