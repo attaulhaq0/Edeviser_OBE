@@ -2,6 +2,15 @@ import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import {
   Select,
   SelectContent,
@@ -18,7 +27,10 @@ import {
   useTeacherCLOAttainment,
   useTeacherBloomsDistribution,
   useStudentPerformanceHeatmap,
+  useAtRiskStudents,
+  useSendNudge,
 } from '@/hooks/useTeacherDashboard';
+import type { AtRiskStudent } from '@/hooks/useTeacherDashboard';
 import type { BloomsLevel } from '@/types/app';
 import {
   ClipboardList,
@@ -29,8 +41,11 @@ import {
   PieChart as PieChartIcon,
   Grid3X3,
   ArrowRight,
+  Send,
+  Loader2,
   type LucideIcon,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import {
   BarChart,
   Bar,
@@ -118,6 +133,140 @@ const CLOBarTooltip = ({ active, payload }: BarTooltipProps) => {
       <p className="text-gray-500">{item.payload.blooms_level}</p>
       <p className="font-black mt-1">{item.value}%</p>
     </div>
+  );
+};
+
+// ─── At-Risk Student Card ───────────────────────────────────────────────────
+
+const AtRiskStudentCard = () => {
+  const { data: atRiskStudents, isLoading } = useAtRiskStudents();
+  const nudgeMutation = useSendNudge();
+  const [nudgeTarget, setNudgeTarget] = useState<AtRiskStudent | null>(null);
+  const [nudgeMessage, setNudgeMessage] = useState('');
+
+  const openNudgeDialog = (student: AtRiskStudent) => {
+    setNudgeTarget(student);
+    setNudgeMessage(
+      `Hi ${student.full_name}, we noticed you haven't been active recently. Let us know if you need help!`,
+    );
+  };
+
+  const handleSendNudge = () => {
+    if (!nudgeTarget) return;
+    nudgeMutation.mutate(
+      { studentId: nudgeTarget.id, message: nudgeMessage },
+      {
+        onSuccess: () => {
+          toast.success(`Nudge sent to ${nudgeTarget.full_name}`);
+          setNudgeTarget(null);
+          setNudgeMessage('');
+        },
+        onError: (err) => {
+          toast.error(err instanceof Error ? err.message : 'Failed to send nudge');
+        },
+      },
+    );
+  };
+
+  return (
+    <>
+      <Card className="bg-white border-0 shadow-md rounded-xl p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <AlertTriangle className="h-5 w-5 text-blue-600" />
+          <h2 className="text-lg font-bold tracking-tight">At-Risk Students</h2>
+        </div>
+        {isLoading ? (
+          <div className="space-y-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Shimmer key={i} className="h-14 rounded-lg" />
+            ))}
+          </div>
+        ) : !atRiskStudents || atRiskStudents.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-8 text-center">
+            <div className="p-3 rounded-full bg-green-50 mb-3">
+              <CheckSquare className="h-8 w-8 text-green-500" />
+            </div>
+            <p className="text-sm text-gray-500">
+              No at-risk students detected. Great work!
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {atRiskStudents.map((student) => (
+              <div
+                key={student.id}
+                className="flex items-center justify-between py-2 border-b border-slate-100 last:border-0"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium truncate">{student.full_name}</p>
+                  <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                    {student.risk_reasons.map((reason) => (
+                      <Badge
+                        key={reason}
+                        variant="outline"
+                        className={
+                          reason.includes('Inactive')
+                            ? 'bg-red-50 text-red-600 border-red-200 text-xs'
+                            : 'bg-amber-50 text-amber-600 border-amber-200 text-xs'
+                        }
+                      >
+                        {reason}
+                      </Badge>
+                    ))}
+                    {student.days_inactive > 0 && (
+                      <span className="text-xs text-gray-400">
+                        {student.days_inactive}d inactive
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="ml-3 shrink-0"
+                  onClick={() => openNudgeDialog(student)}
+                >
+                  <Send className="h-4 w-4" />
+                  Nudge
+                </Button>
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
+
+      {/* Nudge Dialog */}
+      <Dialog open={!!nudgeTarget} onOpenChange={(open) => { if (!open) setNudgeTarget(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Send Nudge to {nudgeTarget?.full_name}</DialogTitle>
+          </DialogHeader>
+          <Textarea
+            value={nudgeMessage}
+            onChange={(e) => setNudgeMessage(e.target.value)}
+            rows={4}
+            placeholder="Write a message..."
+          />
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setNudgeTarget(null)}
+              disabled={nudgeMutation.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSendNudge}
+              disabled={nudgeMutation.isPending || !nudgeMessage.trim()}
+              className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
+            >
+              {nudgeMutation.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+              Send Nudge
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
@@ -412,38 +561,8 @@ const TeacherDashboard = () => {
           )}
         </Card>
 
-        {/* At-Risk Students Placeholder (Task 18.3) */}
-        <Card className="bg-white border-0 shadow-md rounded-xl p-6">
-          <div className="flex items-center gap-2 mb-4">
-            <AlertTriangle className="h-5 w-5 text-blue-600" />
-            <h2 className="text-lg font-bold tracking-tight">At-Risk Students</h2>
-          </div>
-          {kpisLoading ? (
-            <Shimmer className="h-32 rounded-xl" />
-          ) : (kpis?.atRiskCount ?? 0) > 0 ? (
-            <div className="flex flex-col items-center justify-center py-8 text-center">
-              <div className="p-3 rounded-full bg-amber-50 mb-3">
-                <AlertTriangle className="h-8 w-8 text-amber-500" />
-              </div>
-              <p className="text-2xl font-black text-amber-600">{kpis?.atRiskCount}</p>
-              <p className="text-sm text-gray-500 mt-1">
-                students need attention
-              </p>
-              <p className="text-xs text-gray-400 mt-2">
-                Detailed list with nudge actions coming soon.
-              </p>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center py-8 text-center">
-              <div className="p-3 rounded-full bg-green-50 mb-3">
-                <CheckSquare className="h-8 w-8 text-green-500" />
-              </div>
-              <p className="text-sm text-gray-500">
-                No at-risk students detected. Great work!
-              </p>
-            </div>
-          )}
-        </Card>
+        {/* At-Risk Students */}
+        <AtRiskStudentCard />
       </div>
     </div>
   );

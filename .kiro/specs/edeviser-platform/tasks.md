@@ -314,14 +314,14 @@ Complete unified implementation of the Edeviser platform covering authentication
   - [x] 17.2 Create database trigger on `grades` table to invoke Edge Function
     - _Requirements: 19.4_
 
-- [-] 18. Implement Teacher Dashboard
+- [x] 18. Implement Teacher Dashboard
   - [x] 18.1 Create Teacher layout with sidebar
     - _Requirements: 29_
 
   - [x] 18.2 Create Teacher Dashboard with grading queue, CLO chart, heatmap, Bloom's distribution
     - _Requirements: 29_
 
-  - [-] 18.3 Implement at-risk student list with nudge notification
+  - [x] 18.3 Implement at-risk student list with nudge notification
     - _Requirements: 29.2, 29.4_
 
 - [ ] 19. Implement Student Submission

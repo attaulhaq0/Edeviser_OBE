@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/providers/AuthProvider';
 import type { BloomsLevel } from '@/types/app';
@@ -318,5 +318,162 @@ export const useStudentPerformanceHeatmap = (courseId?: string) => {
     },
     enabled: !!courseId,
     staleTime: 30_000,
+  });
+};
+
+
+// ─── At-Risk Student Types ──────────────────────────────────────────────────
+
+export interface AtRiskStudent {
+  id: string;
+  full_name: string;
+  email: string;
+  last_login_at: string | null;
+  risk_reasons: string[];
+  low_clo_count: number;
+  days_inactive: number;
+}
+
+// ─── useAtRiskStudents ──────────────────────────────────────────────────────
+
+export const useAtRiskStudents = () => {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ['teacherDashboard', 'atRiskStudents', user?.id],
+    queryFn: async (): Promise<AtRiskStudent[]> => {
+      const teacherId = user?.id;
+      if (!teacherId) throw new Error('Not authenticated');
+
+      // Get teacher's active courses
+      const { data: courses } = await db
+        .from('courses')
+        .select('id')
+        .eq('teacher_id', teacherId)
+        .eq('is_active', true);
+
+      const courseIds = (courses as Array<{ id: string }> ?? []).map((c) => c.id);
+      if (courseIds.length === 0) return [];
+
+      // Get enrolled student IDs
+      const { data: enrolledStudents } = await db
+        .from('student_courses')
+        .select('student_id')
+        .in('course_id', courseIds);
+
+      const studentIds = [
+        ...new Set(
+          (enrolledStudents as Array<{ student_id: string }> ?? []).map((s) => s.student_id),
+        ),
+      ];
+      if (studentIds.length === 0) return [];
+
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+      // Get profiles for all enrolled students
+      const { data: profiles } = await db
+        .from('profiles')
+        .select('id, full_name, email, last_login_at')
+        .in('id', studentIds);
+
+      const typedProfiles = (profiles ?? []) as Array<{
+        id: string;
+        full_name: string;
+        email: string;
+        last_login_at: string | null;
+      }>;
+
+      // Build inactive set with days count
+      const inactiveMap = new Map<string, number>();
+      for (const p of typedProfiles) {
+        if (!p.last_login_at || new Date(p.last_login_at) < sevenDaysAgo) {
+          const lastLogin = p.last_login_at ? new Date(p.last_login_at) : null;
+          const daysInactive = lastLogin
+            ? Math.floor((Date.now() - lastLogin.getTime()) / (1000 * 60 * 60 * 24))
+            : 999;
+          inactiveMap.set(p.id, daysInactive);
+        }
+      }
+
+      // Students with <50% on 2+ CLOs
+      const { data: lowAttainment } = await db
+        .from('outcome_attainment')
+        .select('student_id, outcome_id')
+        .in('course_id', courseIds)
+        .eq('scope', 'student_course')
+        .lt('score_percent', 50);
+
+      const lowCloMap = new Map<string, number>();
+      for (const row of (lowAttainment ?? []) as Array<{ student_id: string; outcome_id: string }>) {
+        lowCloMap.set(row.student_id, (lowCloMap.get(row.student_id) ?? 0) + 1);
+      }
+
+      // Combine into at-risk list
+      const atRiskSet = new Set<string>();
+      for (const sid of inactiveMap.keys()) atRiskSet.add(sid);
+      for (const [sid, count] of lowCloMap) {
+        if (count >= 2) atRiskSet.add(sid);
+      }
+
+      const profileMap = new Map(typedProfiles.map((p) => [p.id, p]));
+
+      const result: AtRiskStudent[] = [];
+      for (const sid of atRiskSet) {
+        const profile = profileMap.get(sid);
+        if (!profile) continue;
+
+        const reasons: string[] = [];
+        const daysInactive = inactiveMap.get(sid) ?? 0;
+        if (inactiveMap.has(sid)) {
+          reasons.push('Inactive 7+ days');
+        }
+        const lowCount = lowCloMap.get(sid) ?? 0;
+        if (lowCount >= 2) {
+          reasons.push(`Below 50% on ${lowCount} CLOs`);
+        }
+
+        result.push({
+          id: profile.id,
+          full_name: profile.full_name,
+          email: profile.email,
+          last_login_at: profile.last_login_at,
+          risk_reasons: reasons,
+          low_clo_count: lowCount,
+          days_inactive: daysInactive,
+        });
+      }
+
+      // Sort by most risk reasons first, then by days inactive
+      result.sort((a, b) => b.risk_reasons.length - a.risk_reasons.length || b.days_inactive - a.days_inactive);
+
+      return result;
+    },
+    enabled: !!user?.id,
+    staleTime: 30_000,
+  });
+};
+
+// ─── useSendNudge ───────────────────────────────────────────────────────────
+
+export const useSendNudge = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ studentId, message }: { studentId: string; message: string }) => {
+      const { error } = await db
+        .from('notifications')
+        .insert({
+          user_id: studentId,
+          type: 'nudge',
+          title: 'Your teacher sent you a nudge',
+          body: message,
+          is_read: false,
+        });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['teacherDashboard', 'atRiskStudents'] });
+    },
   });
 };
