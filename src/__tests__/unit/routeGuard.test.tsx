@@ -9,7 +9,7 @@ import type { UserRole } from '@/types/app';
 // ---------------------------------------------------------------------------
 const mockUseAuth = vi.fn();
 
-vi.mock('@/providers/AuthProvider', () => ({
+vi.mock('@/hooks/useAuth', () => ({
   useAuth: () => mockUseAuth(),
 }));
 

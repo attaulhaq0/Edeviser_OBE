@@ -9,7 +9,7 @@ import {
   type UpdateUserFormData,
 } from '@/lib/schemas/user';
 import { useCreateUser, useUpdateUser, useUser } from '@/hooks/useUsers';
-import { useAuth } from '@/providers/AuthProvider';
+import { useAuth } from '@/hooks/useAuth';
 import {
   Form,
   FormField,

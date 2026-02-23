@@ -65,7 +65,7 @@ const CoordinatorDashboard = () => {
 
   // Auto-select first program when loaded
   const effectiveProgramId =
-    selectedProgramId || (programs && programs.length > 0 ? programs[0].id : '');
+    selectedProgramId || (programs && programs.length > 0 ? (programs[0]?.id ?? '') : '');
 
   const handleCellClick = (ploId: string, courseId: string) => {
     setSelectedCell({ ploId, courseId });

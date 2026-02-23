@@ -83,8 +83,8 @@ describe('CellDetailSheet', () => {
       <CellDetailSheet ploId="plo-1" courseId="course-1" open={true} onOpenChange={() => {}} />,
     );
 
-    // Shimmer elements should be present (they render as divs with animate-pulse)
-    const shimmers = document.querySelectorAll('.animate-pulse');
+    // Shimmer elements should be present (they render as divs with animate-shimmer)
+    const shimmers = document.querySelectorAll('.animate-shimmer');
     expect(shimmers.length).toBeGreaterThan(0);
   });
 

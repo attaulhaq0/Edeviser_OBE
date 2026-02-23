@@ -31,7 +31,8 @@ vi.mock('@/lib/activityLogger', () => ({
   logActivity: (...args: unknown[]) => mockLogActivity(...args),
 }));
 
-import { AuthProvider, useAuth } from '../AuthProvider';
+import { AuthProvider } from '../AuthProvider';
+import { useAuth } from '@/hooks/useAuth';
 
 // ---------------------------------------------------------------------------
 // Helpers

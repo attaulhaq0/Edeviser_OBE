@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import Shimmer from '@/components/shared/Shimmer';
-import { useAuth } from '@/providers/AuthProvider';
+import { useAuth } from '@/hooks/useAuth';
 import { useCourses } from '@/hooks/useCourses';
 import { usePendingSubmissions } from '@/hooks/useSubmissions';
 import {

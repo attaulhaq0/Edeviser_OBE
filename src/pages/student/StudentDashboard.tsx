@@ -1,7 +1,7 @@
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Shimmer from '@/components/shared/Shimmer';
-import { useAuth } from '@/providers/AuthProvider';
+import { useAuth } from '@/hooks/useAuth';
 import { useStudentKPIs, useUpcomingDeadlines } from '@/hooks/useStudentDashboard';
 import {
   BookOpen,

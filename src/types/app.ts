@@ -43,21 +43,6 @@ export interface Program {
   is_active: boolean;
   created_at: string;
   updated_at: string;
-
-
-  export interface Course {
-    id: string;
-    name: string;
-    code: string;
-    program_id: string;
-    semester_id: string;
-    teacher_id: string;
-    institution_id: string;
-    is_active: boolean;
-    created_at: string;
-    updated_at: string;
-  }
-
 }
 
 export interface Course {

@@ -4,7 +4,7 @@ import { useAssignment } from '@/hooks/useAssignments';
 import { useSubmissions, useCreateSubmission, useUploadSubmissionFile } from '@/hooks/useSubmissions';
 import type { CreateSubmissionInput } from '@/hooks/useSubmissions';
 import { validateFile, FileValidationError } from '@/lib/fileUpload';
-import { useAuth } from '@/providers/AuthProvider';
+import { useAuth } from '@/hooks/useAuth';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';

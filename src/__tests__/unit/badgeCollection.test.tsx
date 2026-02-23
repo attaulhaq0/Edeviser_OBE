@@ -1,7 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import BadgeCollection from '@/components/shared/BadgeCollection';
-import { BADGE_DEFINITIONS } from '@/lib/badgeDefinitions';
 
 // ---------------------------------------------------------------------------
 // Mock date-fns format to avoid locale issues in tests
@@ -20,8 +19,6 @@ vi.mock('date-fns', () => ({
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-const totalBadges = BADGE_DEFINITIONS.length;
-
 const earnedIds = ['streak_7', 'first_submission', 'speed_demon'];
 const earnedMap: Record<string, string> = {
   streak_7: '2024-06-01T10:00:00Z',
@@ -53,3 +50,4 @@ describe('BadgeCollection', () => {
     expect(card.className).toContain('opacity-30');
     expect(card.className).toContain('grayscale');
   });
+});

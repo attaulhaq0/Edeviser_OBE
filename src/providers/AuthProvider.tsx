@@ -1,7 +1,6 @@
 import {
   createContext,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -17,6 +16,9 @@ import {
   clearAttempts,
 } from '@/lib/loginAttemptTracker';
 import { logActivity } from '@/lib/activityLogger';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const db = supabase as unknown as { from: (table: string) => any };
 
 // ---------------------------------------------------------------------------
 // Role → dashboard path mapping
@@ -43,7 +45,7 @@ export interface AuthContextValue {
   resetPassword: (email: string) => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+export const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 // ---------------------------------------------------------------------------
 // Provider
@@ -60,7 +62,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // Fetch profile from `profiles` table
   // -------------------------------------------------------------------
   const fetchProfile = useCallback(async (userId: string): Promise<Profile | null> => {
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('profiles')
       .select('*')
       .eq('id', userId)
@@ -231,15 +233,4 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};
-
-// ---------------------------------------------------------------------------
-// Hook — throws when used outside provider
-// ---------------------------------------------------------------------------
-export const useAuth = (): AuthContextValue => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
 };

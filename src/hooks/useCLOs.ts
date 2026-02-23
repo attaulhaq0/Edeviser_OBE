@@ -168,7 +168,7 @@ export const useDeleteCLO = () => {
   return useMutation({
     mutationFn: async (id: string): Promise<void> => {
       // Check for dependent assignments via outcome_mappings where this CLO is a parent
-      const { data: deps, error: depsError } = await db
+      const { error: depsError } = await db
         .from('outcome_mappings')
         .select('id')
         .eq('child_outcome_id', id);
@@ -237,89 +237,6 @@ export const useCLOMappings = (cloId?: string) => {
     enabled: !!cloId,
   });
 };
-
-// ─── useUpdateCLOMappings — replace outcome_mappings for a CLO→PLO ──────────
-
-export const useUpdateCLOMappings = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (data: {
-      cloId: string;
-      mappings: Array<{ parent_outcome_id: string; weight: number }>;
-    }): Promise<void> => {
-      // Delete existing mappings for this CLO
-      const { error: deleteError } = await db
-        .from('outcome_mappings')
-        .delete()
-        .eq('child_outcome_id', data.cloId);
-
-      if (deleteError) throw deleteError;
-
-      // Insert new mappings
-      if (data.mappings.length > 0) {
-        const rows = data.mappings.map((m) => ({
-          parent_outcome_id: m.parent_outcome_id,
-          child_outcome_id: data.cloId,
-          weight: m.weight,
-        }));
-
-        const { error: insertError } = await db
-          .from('outcome_mappings')
-          .insert(rows);
-
-        if (insertError) throw insertError;
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.outcomeMappings.lists() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.clos.lists() });
-    },
-  });
-};
-
-
-// ─── useUpdateCLOMappings — replace outcome_mappings for a CLO→PLO ──────────
-
-export const useUpdateCLOMappings = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (data: {
-      cloId: string;
-      mappings: Array<{ parent_outcome_id: string; weight: number }>;
-    }): Promise<void> => {
-      // Delete existing mappings for this CLO
-      const { error: deleteError } = await db
-        .from('outcome_mappings')
-        .delete()
-        .eq('child_outcome_id', data.cloId);
-
-      if (deleteError) throw deleteError;
-
-      // Insert new mappings
-      if (data.mappings.length > 0) {
-        const rows = data.mappings.map((m) => ({
-          parent_outcome_id: m.parent_outcome_id,
-          child_outcome_id: data.cloId,
-          weight: m.weight,
-        }));
-
-        const { error: insertError } = await db
-          .from('outcome_mappings')
-          .insert(rows);
-
-        if (insertError) throw insertError;
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.outcomeMappings.lists() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.clos.lists() });
-    },
-  });
-};
-
-
 
 // ─── useUpdateCLOMappings — replace outcome_mappings for a CLO→PLO ──────────
 

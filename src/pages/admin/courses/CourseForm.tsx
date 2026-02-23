@@ -15,7 +15,7 @@ import {
   useTeachers,
 } from '@/hooks/useCourses';
 import { usePrograms } from '@/hooks/usePrograms';
-import { useAuth } from '@/providers/AuthProvider';
+import { useAuth } from '@/hooks/useAuth';
 import {
   Form,
   FormField,

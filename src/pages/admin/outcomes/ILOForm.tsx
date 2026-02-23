@@ -9,7 +9,7 @@ import {
   type UpdateILOFormData,
 } from '@/lib/schemas/ilo';
 import { useCreateILO, useUpdateILO, useILO } from '@/hooks/useILOs';
-import { useAuth } from '@/providers/AuthProvider';
+import { useAuth } from '@/hooks/useAuth';
 import {
   Form,
   FormField,

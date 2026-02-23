@@ -27,7 +27,7 @@ import { useSubmission } from '@/hooks/useSubmissions';
 import { useRubric } from '@/hooks/useRubrics';
 import type { RubricCriterion } from '@/hooks/useRubrics';
 import { useGrade, useCreateGrade } from '@/hooks/useGrades';
-import { useAuth } from '@/providers/AuthProvider';
+import { useAuth } from '@/hooks/useAuth';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const db = supabase as unknown as { from: (table: string) => any };

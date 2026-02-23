@@ -34,7 +34,7 @@ vi.mock('@/lib/auditLogger', () => ({
   logAuditEvent: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock('@/providers/AuthProvider', () => ({
+vi.mock('@/hooks/useAuth', () => ({
   useAuth: vi.fn(() => ({
     user: { id: 'admin-user-id' },
     profile: null,
@@ -47,8 +47,11 @@ vi.mock('@/providers/AuthProvider', () => ({
   })),
 }));
 
-import { supabase } from '@/lib/supabase';
+import { supabase as _supabase } from '@/lib/supabase';
 import { logAuditEvent } from '@/lib/auditLogger';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const supabase = _supabase as unknown as { from: (table: string) => any };
 
 describe('useUsers hooks — queryFn / mutationFn logic', () => {
   beforeEach(() => {
@@ -63,11 +66,6 @@ describe('useUsers hooks — queryFn / mutationFn logic', () => {
     mockMaybeSingle.mockResolvedValue({ data: null, error: null });
     mockSingle.mockResolvedValue({ data: { id: 'new-id' }, error: null });
   });
-
-  // Helper: make the chain resolve like a thenable with given data/error
-  const resolveChain = (data: unknown, error: unknown = null) => {
-    chainObj.then = (resolve: (v: unknown) => void) => resolve({ data, error });
-  };
 
   // ─── useUsers queryFn ───────────────────────────────────────────────────
 
@@ -187,7 +185,7 @@ describe('useUsers hooks — queryFn / mutationFn logic', () => {
       chain.update(changes);
       chain.eq('id', userId);
       chain.select();
-      const { data, error } = await chain.single();
+      const { error } = await chain.single();
 
       expect(error).toBeNull();
       expect(mockUpdate).toHaveBeenCalledWith(changes);
@@ -223,7 +221,7 @@ describe('useUsers hooks — queryFn / mutationFn logic', () => {
       chain.update({ is_active: false });
       chain.eq('id', userId);
       chain.select();
-      const { data, error } = await chain.single();
+      const { error } = await chain.single();
 
       expect(error).toBeNull();
       expect(mockUpdate).toHaveBeenCalledWith({ is_active: false });

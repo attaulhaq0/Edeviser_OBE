@@ -10,7 +10,7 @@ import {
 } from '@/lib/schemas/program';
 import { useCreateProgram, useUpdateProgram, useProgram } from '@/hooks/usePrograms';
 import { useCoordinators } from '@/hooks/useUsers';
-import { useAuth } from '@/providers/AuthProvider';
+import { useAuth } from '@/hooks/useAuth';
 import {
   Form,
   FormField,

@@ -17,6 +17,7 @@ export const useStreak = () => {
       } = await supabase.auth.getUser();
       if (!user) return null;
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error } = await (supabase as unknown as { from: (table: string) => any })
         .from('student_gamification')
         .select('streak_count, last_login_date, streak_freezes_available')

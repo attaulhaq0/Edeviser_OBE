@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import React from 'react';
 
 // ---------------------------------------------------------------------------
 // Mocks
@@ -31,7 +30,7 @@ vi.mock('@/hooks/useGrades', () => ({
   useCreateGrade: () => ({ mutate: mockMutate, isPending: false }),
 }));
 
-vi.mock('@/providers/AuthProvider', () => ({
+vi.mock('@/hooks/useAuth', () => ({
   useAuth: () => ({ user: { id: 'teacher-1' }, profile: null, role: 'teacher' }),
 }));
 

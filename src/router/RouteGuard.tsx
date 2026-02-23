@@ -1,5 +1,5 @@
 import { Navigate } from 'react-router-dom';
-import { useAuth } from '@/providers/AuthProvider';
+import { useAuth } from '@/hooks/useAuth';
 import { Loader2 } from 'lucide-react';
 import type { UserRole } from '@/types/app';
 

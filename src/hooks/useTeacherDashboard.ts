@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
-import { useAuth } from '@/providers/AuthProvider';
+import { useAuth } from '@/hooks/useAuth';
 import type { BloomsLevel } from '@/types/app';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

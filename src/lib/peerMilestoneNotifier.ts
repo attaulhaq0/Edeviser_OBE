@@ -2,8 +2,6 @@
 // Peer Milestone Notifier — Creates notifications for course peers on milestones
 // =============================================================================
 
-import { supabase } from '@/lib/supabase';
-
 export type MilestoneType = 'level_up' | 'rare_badge' | 'streak_milestone';
 
 export interface PeerMilestonePayload {

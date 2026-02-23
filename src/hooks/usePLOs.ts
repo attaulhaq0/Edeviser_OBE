@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { queryKeys } from '@/lib/queryKeys';
 import { logAuditEvent } from '@/lib/auditLogger';
-import { useAuth } from '@/providers/AuthProvider';
+import { useAuth } from '@/hooks/useAuth';
 import type { CreatePLOFormData } from '@/lib/schemas/plo';
 import type { LearningOutcome } from '@/types/app';
 

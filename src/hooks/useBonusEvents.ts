@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { queryKeys } from '@/lib/queryKeys';
 import { logAuditEvent } from '@/lib/auditLogger';
-import { useAuth } from '@/providers/AuthProvider';
+import { useAuth } from '@/hooks/useAuth';
 import type { CreateBonusEventFormData } from '@/lib/schemas/bonusXPEvent';
 
 // Bridge the generated types gap until database.ts is regenerated.
