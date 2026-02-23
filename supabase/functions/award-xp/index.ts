@@ -113,6 +113,65 @@ function validatePayload(payload: unknown): { valid: true; data: XPAwardPayload 
   };
 }
 
+// ─── Peer Milestone Notification ────────────────────────────────────────────
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function notifyPeersOfLevelUp(supabase: any, studentId: string, newLevel: number): Promise<void> {
+  // Check if student is in anonymous leaderboard mode — skip if so
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('full_name, leaderboard_anonymous')
+    .eq('id', studentId)
+    .maybeSingle();
+
+  if (!profile || profile.leaderboard_anonymous) return;
+
+  const studentName = profile.full_name ?? 'A classmate';
+
+  // Find all courses the student is enrolled in
+  const { data: enrollments } = await supabase
+    .from('student_courses')
+    .select('course_id')
+    .eq('student_id', studentId);
+
+  if (!enrollments || enrollments.length === 0) return;
+
+  const courseIds = enrollments.map((e: { course_id: string }) => e.course_id);
+
+  // Find all peer students in those courses (excluding the triggering student)
+  const { data: peerEnrollments } = await supabase
+    .from('student_courses')
+    .select('student_id')
+    .in('course_id', courseIds)
+    .neq('student_id', studentId);
+
+  if (!peerEnrollments || peerEnrollments.length === 0) return;
+
+  // Deduplicate peer IDs (a peer may share multiple courses)
+  const peerIds = [...new Set(peerEnrollments.map((e: { student_id: string }) => e.student_id))];
+
+  const message = `Your classmate ${studentName} just hit Level ${newLevel}!`;
+
+  // Batch insert notifications for all peers
+  const notifications = peerIds.map((peerId) => ({
+    user_id: peerId,
+    type: 'peer_milestone',
+    title: 'Classmate Leveled Up',
+    message,
+    is_read: false,
+    metadata: {
+      milestone_type: 'level_up',
+      triggering_student_id: studentId,
+      level: newLevel,
+    },
+  }));
+
+  const { error } = await supabase.from('notifications').insert(notifications);
+  if (error) {
+    console.error('Failed to insert peer milestone notifications:', error.message);
+  }
+}
+
 // ─── Main Handler ───────────────────────────────────────────────────────────
 
 serve(async (req) => {
@@ -260,6 +319,15 @@ serve(async (req) => {
         JSON.stringify({ error: 'Failed to update gamification record', detail: upsertErr.message }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       );
+    }
+
+    // ── Step 6: Peer milestone notification on level-up ──────────────────
+
+    if (levelUp) {
+      // Fire-and-forget — never block the XP response
+      notifyPeersOfLevelUp(supabase, student_id, newLevel).catch((err) => {
+        console.error('Peer milestone notification failed:', err);
+      });
     }
 
     // ── Response ──────────────────────────────────────────────────────────

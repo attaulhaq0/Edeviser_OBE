@@ -357,6 +357,80 @@ async function checkMysteryBadges(
   return newBadges;
 }
 
+// ─── Peer Milestone Notification for Rare Badges ────────────────────────────
+
+const BADGE_DISPLAY_NAMES: Record<string, string> = {
+  streak_30: '30-Day Legend',
+  streak_60: '60-Day Legend',
+  streak_100: '100-Day Legend',
+  speed_demon: 'Speed Demon',
+  night_owl: 'Night Owl',
+  perfectionist: 'Perfectionist',
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function notifyPeersOfRareBadge(supabase: any, studentId: string, badgeIds: string[]): Promise<void> {
+  // Check if student is in anonymous leaderboard mode
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('full_name, leaderboard_anonymous')
+    .eq('id', studentId)
+    .maybeSingle();
+
+  if (!profile || profile.leaderboard_anonymous) return;
+
+  const studentName = profile.full_name ?? 'A classmate';
+
+  // Find peer students in shared courses
+  const { data: enrollments } = await supabase
+    .from('student_courses')
+    .select('course_id')
+    .eq('student_id', studentId);
+
+  if (!enrollments || enrollments.length === 0) return;
+
+  const courseIds = enrollments.map((e: { course_id: string }) => e.course_id);
+
+  const { data: peerEnrollments } = await supabase
+    .from('student_courses')
+    .select('student_id')
+    .in('course_id', courseIds)
+    .neq('student_id', studentId);
+
+  if (!peerEnrollments || peerEnrollments.length === 0) return;
+
+  const peerIds = [...new Set(peerEnrollments.map((e: { student_id: string }) => e.student_id))];
+
+  // Create a notification per rare badge per peer
+  const notifications = [];
+  for (const badgeId of badgeIds) {
+    const badgeName = BADGE_DISPLAY_NAMES[badgeId] ?? badgeId;
+    const message = `${studentName} just earned the ${badgeName} badge!`;
+
+    for (const peerId of peerIds) {
+      notifications.push({
+        user_id: peerId,
+        type: 'peer_milestone',
+        title: 'Badge Achievement',
+        message,
+        is_read: false,
+        metadata: {
+          milestone_type: 'rare_badge',
+          triggering_student_id: studentId,
+          badge_id: badgeId,
+        },
+      });
+    }
+  }
+
+  if (notifications.length > 0) {
+    const { error } = await supabase.from('notifications').insert(notifications);
+    if (error) {
+      console.error('Failed to insert peer badge notifications:', error.message);
+    }
+  }
+}
+
 // ─── Main Handler ───────────────────────────────────────────────────────────
 
 serve(async (req) => {
@@ -474,7 +548,21 @@ serve(async (req) => {
       }
     }
 
-    // ── Step 4: Get total badge count ───────────────────────────────────
+    // ── Step 4: Notify peers of rare badge awards ─────────────────────
+
+    const RARE_BADGES = new Set([
+      'streak_30', 'streak_60', 'streak_100',
+      'speed_demon', 'night_owl', 'perfectionist',
+    ]);
+
+    const rareBadgesAwarded = awardedBadges.filter((b) => RARE_BADGES.has(b));
+    if (rareBadgesAwarded.length > 0) {
+      notifyPeersOfRareBadge(supabase, student_id, rareBadgesAwarded).catch((err) => {
+        console.error('Peer badge notification failed:', err);
+      });
+    }
+
+    // ── Step 5: Get total badge count ───────────────────────────────────
 
     const totalBadges = existingBadgeIds.size + awardedBadges.length;
 

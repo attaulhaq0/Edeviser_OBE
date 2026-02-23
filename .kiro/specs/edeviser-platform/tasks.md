@@ -376,21 +376,21 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Include mystery badge reveal animation (hidden → revealed transition)
     - _Requirements: 23.3, 36.4_
 
-  - [-] 22.3 Create Badge Collection display on profile
+  - [x] 22.3 Create Badge Collection display on profile
     - Show mystery badges as silhouettes until earned
     - _Requirements: 23.4, 36.4_
 
-- [ ] 23. Implement Level System with Peer Milestone Notifications
-  - [ ] 23.1 Implement level calculation from XP thresholds
+- [x] 23. Implement Level System with Peer Milestone Notifications
+  - [x] 23.1 Implement level calculation from XP thresholds
     - _Requirements: 24_
 
-  - [ ] 23.2 Create Level Progress component
+  - [x] 23.2 Create Level Progress component
     - _Requirements: 24.3_
 
-  - [ ] 23.3 Create Level-Up animation (full-screen overlay)
+  - [x] 23.3 Create Level-Up animation (full-screen overlay)
     - _Requirements: 24.2_
 
-  - [ ] 23.4 Wire peer milestone notifications on level-up
+  - [x] 23.4 Wire peer milestone notifications on level-up
     - On level-up, query all peers in shared course enrollments
     - Create in-app notification: "Your classmate [name] just hit Level [X]!"
     - Skip students in anonymous leaderboard mode

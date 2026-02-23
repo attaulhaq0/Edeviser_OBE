@@ -61,6 +61,62 @@ function validatePayload(
   return { valid: true, data: { student_id: p.student_id } };
 }
 
+// ─── Peer Milestone Notification for Streak ─────────────────────────────────
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function notifyPeersOfStreakMilestone(supabase: any, studentId: string, streakDays: number): Promise<void> {
+  // Check if student is in anonymous leaderboard mode
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('full_name, leaderboard_anonymous')
+    .eq('id', studentId)
+    .maybeSingle();
+
+  if (!profile || profile.leaderboard_anonymous) return;
+
+  const studentName = profile.full_name ?? 'A classmate';
+
+  // Find peer students in shared courses
+  const { data: enrollments } = await supabase
+    .from('student_courses')
+    .select('course_id')
+    .eq('student_id', studentId);
+
+  if (!enrollments || enrollments.length === 0) return;
+
+  const courseIds = enrollments.map((e: { course_id: string }) => e.course_id);
+
+  const { data: peerEnrollments } = await supabase
+    .from('student_courses')
+    .select('student_id')
+    .in('course_id', courseIds)
+    .neq('student_id', studentId);
+
+  if (!peerEnrollments || peerEnrollments.length === 0) return;
+
+  const peerIds = [...new Set(peerEnrollments.map((e: { student_id: string }) => e.student_id))];
+
+  const message = `${studentName} is on a ${streakDays}-day streak!`;
+
+  const notifications = peerIds.map((peerId) => ({
+    user_id: peerId,
+    type: 'peer_milestone',
+    title: 'Streak Achievement',
+    message,
+    is_read: false,
+    metadata: {
+      milestone_type: 'streak_milestone',
+      triggering_student_id: studentId,
+      streak_days: streakDays,
+    },
+  }));
+
+  const { error } = await supabase.from('notifications').insert(notifications);
+  if (error) {
+    console.error('Failed to insert peer streak notifications:', error.message);
+  }
+}
+
 // ─── Main Handler ───────────────────────────────────────────────────────────
 
 serve(async (req) => {
@@ -199,6 +255,14 @@ serve(async (req) => {
           // Log but don't fail the streak update
           console.error('Failed to award milestone XP:', (xpErr as Error).message);
         }
+      }
+
+      // Notify peers for notable streak milestones (7, 30, 100)
+      const PEER_NOTIFY_MILESTONES = [7, 30, 100];
+      if (PEER_NOTIFY_MILESTONES.includes(milestoneReached)) {
+        notifyPeersOfStreakMilestone(supabase, student_id, milestoneReached).catch((err) => {
+          console.error('Peer streak notification failed:', err);
+        });
       }
     }
 
