@@ -365,7 +365,7 @@ Complete unified implementation of the Edeviser platform covering authentication
   - [x] 21.2 Create Streak Display component with flame animation
     - _Requirements: 22_
 
-- [-] 22. Implement Badge System
+- [x] 22. Implement Badge System
   - [x] 22.1 Create `check-badges` Edge Function
     - Check all badge conditions idempotently
     - Insert badge record if not already awarded
@@ -397,17 +397,17 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Deliver via Supabase Realtime within 5 seconds
     - _Requirements: 42_
 
-- [ ] 24. Implement Leaderboard
-  - [ ] 24.1 Create leaderboard TanStack Query hooks (`/src/hooks/useLeaderboard.ts`)
+- [-] 24. Implement Leaderboard
+  - [~] 24.1 Create leaderboard TanStack Query hooks (`/src/hooks/useLeaderboard.ts`)
     - _Requirements: 25_
 
-  - [ ] 24.2 Create Leaderboard page with course/program/all filters
+  - [~] 24.2 Create Leaderboard page with course/program/all filters
     - _Requirements: 25.2_
 
-  - [ ] 24.3 Implement realtime leaderboard updates
+  - [~] 24.3 Implement realtime leaderboard updates
     - _Requirements: 25.4_
 
-  - [ ] 24.4 Implement anonymous opt-out
+  - [~] 24.4 Implement anonymous opt-out
     - _Requirements: 25.5_
 
 - [ ] 25. Implement Reflection Journal
