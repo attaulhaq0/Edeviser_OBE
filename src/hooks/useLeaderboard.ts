@@ -165,7 +165,7 @@ export const useMyRank = (
   programId?: string,
 ) => {
   return useQuery({
-    queryKey: queryKeys.leaderboard.detail('my-rank'),
+    queryKey: queryKeys.leaderboard.list({ scope: 'my-rank', filter, timeframe, courseId, programId }),
     queryFn: async (): Promise<MyRankData | null> => {
       const {
         data: { user },
@@ -185,17 +185,31 @@ export const useMyRank = (
       const myXp = (gamData as { xp_total: number; level: number }).xp_total;
       const myLevel = (gamData as { xp_total: number; level: number }).level;
 
-      // For weekly timeframe, use the materialized view rank
+      // For weekly timeframe, compute scoped rank from materialized view
       if (timeframe === 'weekly') {
-        const { data: weeklyData, error: weeklyError } = await db
-          .from('leaderboard_weekly')
-          .select('global_rank')
-          .eq('student_id', user.id)
-          .maybeSingle();
+        let scopeFilter: string[] | null = null;
 
+        if (filter === 'course' && courseId) {
+          scopeFilter = await getStudentIdsByCourse(courseId);
+          if (scopeFilter.length === 0) return { rank: 1, xp_total: myXp, level: myLevel };
+        } else if (filter === 'program' && programId) {
+          scopeFilter = await getStudentIdsByProgram(programId);
+          if (scopeFilter.length === 0) return { rank: 1, xp_total: myXp, level: myLevel };
+        }
+
+        let weeklyCountQuery = db
+          .from('leaderboard_weekly')
+          .select('student_id', { count: 'exact', head: true })
+          .gt('xp_total', myXp);
+
+        if (scopeFilter) {
+          weeklyCountQuery = weeklyCountQuery.in('student_id', scopeFilter);
+        }
+
+        const { count: weeklyCount, error: weeklyError } = await weeklyCountQuery;
         if (weeklyError) throw weeklyError;
-        const weeklyRank = (weeklyData as { global_rank: number } | null)?.global_rank ?? 0;
-        return { rank: weeklyRank || 1, xp_total: myXp, level: myLevel };
+
+        return { rank: (weeklyCount ?? 0) + 1, xp_total: myXp, level: myLevel };
       }
 
       // For all-time, count students with more XP to determine rank

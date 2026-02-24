@@ -19,7 +19,11 @@ const mockLeaderboardData = [
 const mockMyRank = { rank: 25, xp_total: 1000, level: 3 };
 
 vi.mock('@/hooks/useAuth', () => ({
-  useAuth: () => ({ user: { id: 'current-user' }, profile: { role: 'student' }, role: 'student' }),
+  useAuth: () => ({ user: { id: 'current-user' }, profile: { role: 'student', institution_id: 'inst-1' }, role: 'student', institutionId: 'inst-1' }),
+}));
+
+vi.mock('@/hooks/useLeaderboardRealtime', () => ({
+  useLeaderboardRealtime: vi.fn(),
 }));
 
 vi.mock('@/hooks/useLeaderboard', () => ({
@@ -51,7 +55,7 @@ vi.mock('nuqs', () => {
     parseAsString: {
       withDefault: (def: string) => def,
     },
-    useQueryState: (key: string, defaultVal: string) => {
+    useQueryState: (_key: string, defaultVal: string) => {
       const val = typeof defaultVal === 'string' ? defaultVal : '';
       const setter = vi.fn();
       return [val, setter] as const;
@@ -108,8 +112,8 @@ describe('LeaderboardPage', () => {
     const rankCard = screen.getByText('Your Rank').closest('[data-slot="card"]');
     expect(rankCard).toBeInTheDocument();
     if (rankCard) {
-      expect(within(rankCard).getByText('#25')).toBeInTheDocument();
-      expect(within(rankCard).getByText('1,000')).toBeInTheDocument();
+      expect(within(rankCard as HTMLElement).getByText('#25')).toBeInTheDocument();
+      expect(within(rankCard as HTMLElement).getByText('1,000')).toBeInTheDocument();
     }
   });
 
@@ -146,11 +150,6 @@ describe('LeaderboardPage', () => {
     expect(screen.getByTestId('anonymous-toggle')).toBeInTheDocument();
   });
 
-  it('renders AnonymousToggle in the page header', async () => {
-    renderPage();
-    expect(screen.getByTestId('anonymous-toggle')).toBeInTheDocument();
-  });
-
   it('renders Top 50 section header', () => {
     renderPage();
     expect(screen.getByText('Top 50')).toBeInTheDocument();
@@ -162,7 +161,7 @@ describe('LeaderboardPage', () => {
     const aliceRow = screen.getByText('Alice').closest('div[class*="flex items-center gap-4"]');
     expect(aliceRow).toBeInTheDocument();
     if (aliceRow) {
-      expect(within(aliceRow).getByText('30')).toBeInTheDocument();
+      expect(within(aliceRow as HTMLElement).getByText('30')).toBeInTheDocument();
     }
   });
 });

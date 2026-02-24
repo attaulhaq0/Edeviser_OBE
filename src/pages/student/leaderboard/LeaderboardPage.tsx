@@ -166,11 +166,11 @@ const MyRankCard = ({ rank, xpTotal, level, isLoading }: MyRankCardProps) => {
 // ─── LeaderboardPage ─────────────────────────────────────────────────────────
 
 const LeaderboardPage = () => {
-  const { user } = useAuth();
+  const { user, institutionId } = useAuth();
   const userId = user?.id ?? '';
 
   // Subscribe to realtime XP changes so the leaderboard stays fresh
-  useLeaderboardRealtime();
+  useLeaderboardRealtime(institutionId ?? undefined);
 
   // URL-persisted filter state
   const [filter, setFilter] = useQueryState(
@@ -209,8 +209,15 @@ const LeaderboardPage = () => {
   }, [filter, selectedProgramId, programs]);
 
   // Leaderboard data
-  const typedFilter = filter as LeaderboardFilter;
-  const typedTimeframe = timeframe as LeaderboardTimeframe;
+  const VALID_FILTERS: LeaderboardFilter[] = ['all', 'course', 'program'];
+  const VALID_TIMEFRAMES: LeaderboardTimeframe[] = ['weekly', 'all_time'];
+
+  const typedFilter: LeaderboardFilter = VALID_FILTERS.includes(filter as LeaderboardFilter)
+    ? (filter as LeaderboardFilter)
+    : 'all';
+  const typedTimeframe: LeaderboardTimeframe = VALID_TIMEFRAMES.includes(timeframe as LeaderboardTimeframe)
+    ? (timeframe as LeaderboardTimeframe)
+    : 'all_time';
 
   const {
     data: leaderboardData,

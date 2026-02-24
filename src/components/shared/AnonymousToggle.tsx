@@ -24,8 +24,9 @@ const AnonymousToggle = () => {
             : 'You are now visible on the leaderboard',
         );
       },
-      onError: (err: Error) => {
-        toast.error(err.message);
+      onError: (err: unknown) => {
+        const message = err instanceof Error ? err.message : String(err);
+        toast.error(message);
       },
     });
   }, [toggleMutation]);
