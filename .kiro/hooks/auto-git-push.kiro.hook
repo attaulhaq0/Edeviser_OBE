@@ -1,13 +1,13 @@
 {
   "enabled": true,
   "name": "Auto Git Push",
-  "description": "Automatically stages, commits with a meaningful conventional commit message, and pushes all changes to GitHub when the agent finishes working",
-  "version": "1",
+  "description": "Automatically stages, commits with a conventional commit message, pushes to a feature branch, and creates a PR using GitHub CLI",
+  "version": "2",
   "when": {
     "type": "agentStop"
   },
   "then": {
     "type": "askAgent",
-    "prompt": "Run `git add -A` first. Then run `git diff --cached --stat` to see what files changed. Based on the changed files and the work you just completed, generate a single conventional commit message following this format: `type(scope): short description`. Types: feat, fix, refactor, test, chore, docs, style. Scope should be the feature area (e.g., leaderboard, auth, ci, badges). Keep the description under 72 characters, imperative mood. Then run `git commit -m \"<your message>\"` and `git push origin main`. Do NOT use 'chore: auto-commit' as the message."
+    "prompt": "Check if there are any staged or unstaged changes by running `git add -A` then `git diff --cached --name-only`. If there are NO changed files, do nothing and say 'Nothing to commit'. If there ARE changes, do the following steps:\n\n1. Determine the current branch by running `git branch --show-current`.\n2. If on `main`, create a new feature branch based on the work just completed. Use the naming convention: `feat/<scope>` for new features, `fix/<scope>` for bug fixes, `chore/<scope>` for maintenance. Example: `feat/leaderboard`, `fix/ci-env-vars`, `chore/update-hooks`. Run `git checkout -b <branch-name>`.\n3. Generate a conventional commit message based on the changed files and work completed. Format: `type(scope): short description` (under 72 chars, imperative mood). Types: feat, fix, refactor, test, chore, docs, style.\n4. Run `git commit -m \"<your message>\"`.\n5. Push the branch: `git push origin <branch-name>`.\n6. Check if GitHub CLI is available by running `gh --version`. If available, create a PR: `gh pr create --base main --head <branch-name> --title \"<commit message>\" --body \"Auto-generated PR from Kiro agent session.\" --fill`. If `gh` is not installed, tell the user: 'Branch pushed. Open a PR manually on GitHub or install GitHub CLI (`winget install GitHub.cli`) for auto-PR creation.'\n7. Do NOT push directly to main."
   }
 }

@@ -1,0 +1,24 @@
+language: en
+reviews:
+  profile: chill
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  review_status: true
+  collapse_walkthrough: false
+  auto_review:
+    enabled: true
+    drafts: false
+  path_instructions:
+    - path: "src/components/**"
+      instructions: "Follow Shadcn/ui patterns. Use cn() for class merging. Never use raw HTML for interactive elements. Check design-system.md for color tokens."
+    - path: "src/hooks/**"
+      instructions: "Must use TanStack Query. Never call Supabase directly in components. Use queryKeys factory from src/lib/queryKeys.ts."
+    - path: "src/lib/schemas/**"
+      instructions: "All schemas must use Zod. Export types alongside schemas. No inline validation in components."
+    - path: "supabase/functions/**"
+      instructions: "Deno runtime. Use esm.sh imports, not npm. Always handle CORS. Use SUPABASE_SERVICE_ROLE_KEY for server ops."
+    - path: "src/__tests__/**"
+      instructions: "Property tests need min 100 iterations with fast-check. Use happy-dom environment. Mock Supabase client, never real calls."
+chat:
+  auto_reply: true
