@@ -1,13 +1,13 @@
 {
   "enabled": true,
   "name": "Auto Git Push",
-  "description": "Automatically stages, commits, and pushes all changes to GitHub when the agent finishes working",
+  "description": "Automatically stages, commits with a meaningful conventional commit message, and pushes all changes to GitHub when the agent finishes working",
   "version": "1",
   "when": {
     "type": "agentStop"
   },
   "then": {
-    "type": "runCommand",
-    "command": "git add -A && git diff --cached --quiet || git commit -m \"chore: auto-commit\" && git push origin main"
+    "type": "askAgent",
+    "prompt": "Run `git add -A` first. Then run `git diff --cached --stat` to see what files changed. Based on the changed files and the work you just completed, generate a single conventional commit message following this format: `type(scope): short description`. Types: feat, fix, refactor, test, chore, docs, style. Scope should be the feature area (e.g., leaderboard, auth, ci, badges). Keep the description under 72 characters, imperative mood. Then run `git commit -m \"<your message>\"` and `git push origin main`. Do NOT use 'chore: auto-commit' as the message."
   }
 }
