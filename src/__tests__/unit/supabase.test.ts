@@ -7,11 +7,9 @@ describe('Supabase client singleton', () => {
   });
 
   it('supabase module exports a client instance', async () => {
-    // Verify the module structure is correct by checking the source
     const fs = await import('fs');
     const source = fs.readFileSync('src/lib/supabase.ts', 'utf-8');
 
-    // Validates the singleton pattern
     expect(source).toContain("import { createClient } from '@supabase/supabase-js'");
     expect(source).toContain('VITE_SUPABASE_URL');
     expect(source).toContain('VITE_SUPABASE_ANON_KEY');
@@ -19,13 +17,13 @@ describe('Supabase client singleton', () => {
     expect(source).toContain('createClient<Database>');
   });
 
-  it('throws if VITE_SUPABASE_URL is missing', async () => {
+  it('falls back to localhost when VITE_SUPABASE_URL is missing', async () => {
     const source = (await import('fs')).readFileSync('src/lib/supabase.ts', 'utf-8');
-    expect(source).toContain("throw new Error('Missing environment variable: VITE_SUPABASE_URL')");
+    expect(source).toContain("VITE_SUPABASE_URL ?? 'http://localhost:54321'");
   });
 
-  it('throws if VITE_SUPABASE_ANON_KEY is missing', async () => {
+  it('falls back to placeholder when VITE_SUPABASE_ANON_KEY is missing', async () => {
     const source = (await import('fs')).readFileSync('src/lib/supabase.ts', 'utf-8');
-    expect(source).toContain("throw new Error('Missing environment variable: VITE_SUPABASE_ANON_KEY')");
+    expect(source).toContain("VITE_SUPABASE_ANON_KEY ?? 'placeholder-anon-key'");
   });
 });
