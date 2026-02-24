@@ -397,17 +397,17 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Deliver via Supabase Realtime within 5 seconds
     - _Requirements: 42_
 
-- [-] 24. Implement Leaderboard
-  - [~] 24.1 Create leaderboard TanStack Query hooks (`/src/hooks/useLeaderboard.ts`)
+- [x] 24. Implement Leaderboard
+  - [x] 24.1 Create leaderboard TanStack Query hooks (`/src/hooks/useLeaderboard.ts`)
     - _Requirements: 25_
 
-  - [~] 24.2 Create Leaderboard page with course/program/all filters
+  - [x] 24.2 Create Leaderboard page with course/program/all filters
     - _Requirements: 25.2_
 
-  - [~] 24.3 Implement realtime leaderboard updates
+  - [x] 24.3 Implement realtime leaderboard updates
     - _Requirements: 25.4_
 
-  - [~] 24.4 Implement anonymous opt-out
+  - [x] 24.4 Implement anonymous opt-out
     - _Requirements: 25.5_
 
 - [ ] 25. Implement Reflection Journal
