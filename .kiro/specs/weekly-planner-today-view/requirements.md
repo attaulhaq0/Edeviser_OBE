@@ -2,7 +2,7 @@
 
 ## Introduction
 
-The Weekly Planner & Today View feature adds a structured self-regulated learning workflow to the Edeviser student experience, built around the PDCR cycle (Plan, Do, Check, Reflect). Students plan their week by creating study sessions and tasks, execute sessions in a distraction-free Focus Mode with a configurable timer, track study time per subject/CLO with evidence capture (notes, screenshots, file uploads), review progress against weekly goals, and reflect on what worked. The Today View provides a single-screen daily agenda showing planned study sessions, assignment deadlines, tasks, and daily habits. Study session evidence links to CLOs for outcome tracking, integrating with the existing OBE attainment pipeline. The feature integrates with the existing gamification engine (XP for completing sessions, streaks for daily study), assignment deadlines, habit tracking (the "Submit" and "Read" daily habits), and parent visibility. All data is stored in Supabase (PostgreSQL + RLS, Storage for evidence files, Edge Functions for XP/badge processing).
+The Weekly Planner & Today View feature adds a structured self-regulated learning workflow to the Edeviser student experience, built around the PDCR cycle (Plan, Do, Check, Reflect). Students plan their week by creating study sessions and tasks, execute sessions in a distraction-free Focus Mode with a configurable timer, track study time per subject/CLO with evidence capture (notes, screenshots, file uploads), review progress against weekly goals, and reflect on what worked. The Today View provides a single-screen daily agenda showing planned study sessions, assignment deadlines, tasks, and daily habits. Study session evidence links to CLOs for outcome tracking, integrating with the existing OBE attainment pipeline. The feature integrates with the existing gamification engine (XP for completing sessions, streaks for daily study), assignment deadlines, habit tracking (the "Submit" and "Read" daily habits), and parent visibility. All data is stored in Supabase (PostgreSQL + RLS, Storage for evidence files, Edge Functions for XP/badge processing). The feature also includes pre-learning rituals and flow optimization (session intent setting, flow state micro-check-ins, low-friction evidence capture), spaced repetition integration (automatic review scheduling based on the Leitner system with 1/3/7-day intervals), structured reflection frameworks (Gibbs' Reflective Cycle, What-So What-Now What templates), AI reflection synthesis (monthly digests identifying growth patterns and themes), and journal quality assurance (AI-powered quality scoring with XP adjustments to discourage gaming).
 
 ## Glossary
 
@@ -22,6 +22,14 @@ The Weekly Planner & Today View feature adds a structured self-regulated learnin
 - **Student**: A user with the `student` role in the Edeviser platform
 - **Parent**: A user with the `parent` role linked to a Student via `parent_student_links`
 - **Timer_State**: The current state of the Focus_Mode timer: idle, running, paused, break, or completed
+- **Session_Intent**: A brief pre-learning declaration completed before starting a Study_Session, consisting of a specific concept to work on and a success criterion. Stored in the `session_intents` table
+- **Flow_Check_In**: A micro-survey presented at Pomodoro break points (every 25 minutes) asking the student to self-report their flow state: "In the zone," "Stuck," or "Too easy." Stored in the `flow_check_ins` table
+- **Quick_Thought**: A single-line text input (max 280 characters) offered as the lowest-friction evidence capture option after a Study_Session, as an alternative to file uploads or longer notes
+- **Review_Session**: A Study_Session specifically created by the Spaced_Repetition_Schedule to review previously studied CLO material. Visually distinct from regular sessions in the planner with a review badge
+- **Spaced_Repetition_Schedule**: An automatic schedule of review reminders generated after a Study_Session on a CLO, following the Leitner system intervals of 1 day, 3 days, and 7 days. Stored in the `review_schedules` table
+- **Reflection_Template**: A structured framework for writing reflections, offering guided prompts instead of free-form text. Available templates: Simple ("What went well? / What was challenging? / What will I do differently?") and Gibbs' Reflective Cycle (Description, Feelings, Evaluation, Analysis, Conclusion, Action Plan)
+- **Reflection_Digest**: A monthly AI-generated summary of a student's journal entries, identifying recurring themes, growth patterns, emotional trends, and suggested focus areas. Stored in the `reflection_digests` table
+- **Quality_Score**: An AI-generated score (0–100) assigned to a journal entry or Session_Reflection, evaluating originality, relevance to CLOs, and metacognitive depth. Used to adjust XP awards and flag low-quality entries
 
 ## Requirements
 
@@ -291,3 +299,167 @@ The Weekly Planner & Today View feature adds a structured self-regulated learnin
 3. THE Today_View timeline items SHALL be navigable via Tab key with clear focus indicators.
 4. All interactive elements in the planner and focus mode SHALL meet a minimum touch target of 44×44 pixels on mobile.
 5. THE Focus_Mode completion audio notification SHALL be accompanied by a visual notification for users who cannot hear audio.
+
+
+### SECTION I: Pre-Learning Rituals & Flow Optimization
+
+#### Requirement 22: Session Intent Step
+
+**User Story:** As a Student, I want to set a clear intention before starting a study session, so that I begin each session with focused goals aligned with self-regulated learning principles.
+
+##### Acceptance Criteria
+
+1. WHEN a Student starts a Study_Session, THE Platform SHALL display a Session_Intent dialog before launching Focus_Mode, requiring the student to answer: "What specific concept will you work on?" (text, 5–200 characters) and "What does success look like for this session?" (text, 5–200 characters).
+2. THE Platform SHALL auto-suggest Session_Intent concepts based on the student's upcoming assignment deadlines and CLOs with attainment below 70%.
+3. WHEN the Student submits a Session_Intent, THE Platform SHALL store the intent in the `session_intents` table linked to the Study_Session and then launch Focus_Mode.
+4. THE Platform SHALL allow the Student to skip the Session_Intent step via a "Skip" button, launching Focus_Mode without an intent record.
+5. WHEN a Study_Session has a Session_Intent, THE Focus_Mode SHALL display the intent text alongside the timer for reference during the session.
+
+#### Requirement 23: Flow State Micro-Check-Ins
+
+**User Story:** As a Student, I want brief check-ins during Pomodoro breaks to report how my session is going, so that the platform can help me maintain an optimal challenge-skill balance.
+
+##### Acceptance Criteria
+
+1. WHILE in Pomodoro_Mode, WHEN a work interval ends and a break begins, THE Platform SHALL display a Flow_Check_In dialog with three options: "In the zone," "Stuck," or "Too easy."
+2. WHEN the Student selects "Stuck," THE Platform SHALL offer a link to launch the AI Tutor pre-scoped to the Study_Session's linked CLO.
+3. WHEN the Student selects "Too easy," THE Platform SHALL suggest advancing to a higher Bloom's Taxonomy level task for the same CLO.
+4. THE Platform SHALL store each Flow_Check_In response in the `flow_check_ins` table linked to the Study_Session and the interval number.
+5. THE Platform SHALL allow the Student to dismiss the Flow_Check_In dialog without responding, proceeding directly to the break.
+6. WHILE in Custom_Timer_Mode with a duration of 50 minutes or more, THE Platform SHALL display a Flow_Check_In at the midpoint of the session.
+
+#### Requirement 24: Low-Friction Evidence Capture
+
+**User Story:** As a Student, I want multiple lightweight options for capturing evidence after a session, so that documenting my work does not break my flow or discourage session completion.
+
+##### Acceptance Criteria
+
+1. WHEN a Study_Session is completed, THE session completion form SHALL offer three evidence capture tiers: Quick_Thought (single-line text, max 280 characters), text notes (multi-line, optional), and file upload (existing EvidenceUploader).
+2. THE Platform SHALL auto-capture session metadata as minimal evidence: session duration, course, CLOs studied, Session_Intent text (if set), and Flow_Check_In responses (if any).
+3. THE Platform SHALL store Quick_Thought entries in the `session_evidence` table with `mime_type` set to `text/quick-thought` and the text stored in the `notes` field.
+4. THE session completion form SHALL default to the Quick_Thought input as the primary evidence option, with file upload available via an "Attach Files" expansion.
+5. WHEN the Student submits a Quick_Thought or text note, THE Platform SHALL count the entry as evidence for the purposes of the evidence XP bonus (10 XP).
+
+### SECTION J: Spaced Repetition Integration
+
+#### Requirement 25: Automatic Review Scheduling
+
+**User Story:** As a Student, I want the platform to automatically schedule review sessions after I study a CLO, so that I retain material according to spaced repetition principles.
+
+##### Acceptance Criteria
+
+1. WHEN a Study_Session linked to one or more CLOs is completed, THE Platform SHALL create Spaced_Repetition_Schedule entries for each linked CLO with review dates at 1 day, 3 days, and 7 days after the session date.
+2. IF a Spaced_Repetition_Schedule entry already exists for the same CLO and review date, THEN THE Platform SHALL NOT create a duplicate entry.
+3. THE Platform SHALL store Spaced_Repetition_Schedule entries in the `review_schedules` table with fields: student_id, clo_id, course_id, source_session_id, review_date, interval_days (1, 3, or 7), and status (pending, completed, skipped).
+4. THE Weekly_Planner SHALL display pending Review_Sessions from the Spaced_Repetition_Schedule as suggested items in the corresponding day columns, visually distinct from student-created sessions.
+
+#### Requirement 26: Review Session Management
+
+**User Story:** As a Student, I want to see and act on scheduled review sessions in my planner, so that I can complete reviews and strengthen my retention.
+
+##### Acceptance Criteria
+
+1. THE Weekly_Planner SHALL display Review_Sessions with a distinct visual badge indicating the review interval (e.g., "Day 1 Review," "Day 3 Review," "Day 7 Review").
+2. WHEN a Student starts a Review_Session from the planner, THE Platform SHALL create a Study_Session linked to the review's CLO and course, pre-populate the title with "Review: {CLO title}," and launch Focus_Mode.
+3. WHEN a Review_Session's Study_Session is completed, THE Platform SHALL update the corresponding `review_schedules` entry status to `completed`.
+4. THE Platform SHALL allow a Student to skip a Review_Session by marking the `review_schedules` entry status as `skipped`.
+5. WHEN a review date has passed and the Review_Session was not completed or skipped, THE Today_View SHALL display the review with a "Missed Review" indicator.
+
+#### Requirement 27: Review Session XP Incentives
+
+**User Story:** As a Student, I want to earn bonus XP for completing review sessions, so that I am motivated to follow through on spaced repetition.
+
+##### Acceptance Criteria
+
+1. WHEN a Review_Session is completed, THE Platform SHALL award a 15 XP bonus on top of the standard Study_Session XP via the `award-xp` Edge Function with source `review_session`.
+2. THE `award-xp` Edge Function SHALL accept `review_session` as a valid XP source with a fixed amount of 15 XP.
+3. WHEN a Student completes all 3 review intervals (Day 1, Day 3, Day 7) for a single CLO, THE Platform SHALL award a 25 XP completion bonus via the `award-xp` Edge Function with source `review_cycle_complete`.
+
+### SECTION K: Reflection Quality & Frameworks
+
+#### Requirement 28: Structured Reflection Templates
+
+**User Story:** As a Student, I want guided reflection templates with structured prompts, so that I can write deeper, more meaningful reflections instead of unstructured free-text.
+
+##### Acceptance Criteria
+
+1. WHEN a Student opens the Session_Reflection or Weekly Reflection input, THE Platform SHALL offer a Reflection_Template selector with options: "Free-form" (default), "Simple" (What went well? / What was challenging? / What will I do differently?), and "Gibbs' Cycle" (Description, Feelings, Evaluation, Analysis, Conclusion, Action Plan).
+2. WHEN the Student selects the "Simple" template, THE Platform SHALL display three labeled text areas with the corresponding prompts.
+3. WHEN the Student selects the "Gibbs' Cycle" template, THE Platform SHALL display six labeled text areas with the corresponding Gibbs' Reflective Cycle stage prompts.
+4. THE Platform SHALL concatenate template section responses into a single text for storage, preserving section headers as markdown headings.
+5. THE Platform SHALL apply the same minimum word count requirements to templated reflections as to free-form reflections (30 words for session, 50 words for weekly), counted across all sections combined.
+
+#### Requirement 29: AI Reflection Prompts
+
+**User Story:** As a Student, I want personalized reflection prompts that reference my specific CLO progress, so that my reflections are relevant and actionable.
+
+##### Acceptance Criteria
+
+1. WHEN a Student opens a Session_Reflection input, THE Platform SHALL display an AI-generated prompt referencing the Study_Session's linked CLOs and the student's current attainment levels for those CLOs.
+2. WHEN a Student opens the Weekly Reflection input, THE Platform SHALL display an AI-generated prompt referencing the student's weekly progress, goals met or missed, and CLOs studied that week.
+3. THE AI-generated prompts SHALL be displayed as optional suggestions above the reflection input, not as required fields.
+4. IF the Platform cannot generate an AI prompt (Edge Function failure or no CLO data), THEN THE Platform SHALL fall back to a generic prompt: "What did you learn today?" for sessions or "How did your week go?" for weekly reflections.
+
+#### Requirement 30: Reflection Consolidation
+
+**User Story:** As a Student, I want a streamlined reflection experience that avoids redundant prompts, so that reflection feels purposeful rather than like busywork.
+
+##### Acceptance Criteria
+
+1. THE Platform SHALL limit reflection prompts to a maximum of one per Study_Session (the session completion form) and one per week (the Weekly Reflection panel).
+2. WHEN a Student has already written a Session_Reflection for a completed Study_Session, THE Platform SHALL NOT prompt for reflection again for that session.
+3. THE Weekly Reflection panel SHALL pre-populate a summary of the week's Session_Reflections (if any) as context, allowing the student to build on previous thoughts rather than starting from scratch.
+4. THE Platform SHALL display a "Reflection streak" indicator showing consecutive weeks with a completed Weekly Reflection, encouraging consistency without requiring daily reflections.
+
+### SECTION L: AI Reflection Synthesis
+
+#### Requirement 31: Monthly Reflection Digest
+
+**User Story:** As a Student, I want a monthly AI-generated summary of my journal entries and reflections, so that I can see patterns in my learning and growth over time.
+
+##### Acceptance Criteria
+
+1. THE Platform SHALL generate a Reflection_Digest at the end of each calendar month via the `generate-reflection-digest` Edge Function, analyzing all journal entries and Session_Reflections from that month.
+2. THE Reflection_Digest SHALL include: recurring themes (top 3–5 topics), growth patterns (areas of improvement over the month), emotional trends (sentiment analysis summary), and suggested focus areas for the next month.
+3. THE Platform SHALL store the Reflection_Digest in the `reflection_digests` table with fields: student_id, month (date, first of month), themes (jsonb), growth_patterns (jsonb), emotional_trends (jsonb), suggested_focus (jsonb), generated_at (timestamptz).
+4. THE Platform SHALL display the Reflection_Digest on the student's Weekly_Planner page in a dedicated "Monthly Insights" card, accessible from the Reflect tab.
+5. IF a Student has fewer than 3 journal entries or Session_Reflections in a month, THEN THE Platform SHALL NOT generate a Reflection_Digest for that month and SHALL display a message: "Write at least 3 reflections this month to unlock your Monthly Insights."
+
+#### Requirement 32: Reflection Digest Sharing
+
+**User Story:** As a Student, I want to share my monthly reflection digest with my advisor or parent, so that they can support my learning journey with informed guidance.
+
+##### Acceptance Criteria
+
+1. THE Platform SHALL provide a "Share Digest" button on the Reflection_Digest card with options: "Share with Parent" and "Share with Advisor."
+2. WHEN the Student shares a Reflection_Digest with a Parent, THE Platform SHALL make the digest visible on the Parent dashboard for the linked student.
+3. WHEN the Student shares a Reflection_Digest with an Advisor, THE Platform SHALL send a notification to the advisor (teacher role) with a link to view the digest.
+4. THE Platform SHALL record sharing actions in the `reflection_digests` table via `shared_with` (jsonb array of {role, user_id, shared_at}).
+5. THE Student SHALL be able to revoke sharing at any time, removing the digest from the recipient's view.
+
+### SECTION M: Journal Quality Assurance
+
+#### Requirement 33: AI Quality Scoring for Reflections
+
+**User Story:** As the system, I want to assess the quality of journal entries and reflections using AI, so that the platform can provide feedback and discourage low-effort submissions.
+
+##### Acceptance Criteria
+
+1. WHEN a journal entry or Session_Reflection is saved, THE Platform SHALL submit the text to the `score-reflection-quality` Edge Function for quality assessment.
+2. THE `score-reflection-quality` Edge Function SHALL return a Quality_Score (0–100) evaluating: originality (similarity to the student's previous 10 entries), relevance (references to CLOs, courses, or learning concepts), and metacognitive depth (evidence of self-awareness, analysis, or planning).
+3. THE Platform SHALL store the Quality_Score in the `reflection_quality_scores` table with fields: reflection_id, reflection_type (session_reflection or journal_entry), student_id, score (integer 0–100), originality_score (integer 0–100), relevance_score (integer 0–100), depth_score (integer 0–100), flags (text array), scored_at (timestamptz).
+4. THE Platform SHALL flag entries with a Quality_Score below 30 as "low quality" with flags indicating the reason: `similar_to_previous` (>60% similarity to a recent entry), `off_topic` (no relevance to learning content), or `ai_generated` (detected AI-generated patterns).
+5. IF the `score-reflection-quality` Edge Function fails, THEN THE Platform SHALL save the reflection without a Quality_Score and retry scoring in the background.
+
+#### Requirement 34: Quality-Based XP Adjustment
+
+**User Story:** As the system, I want to adjust XP awards based on reflection quality, so that students are incentivized to write thoughtful reflections rather than gaming the system.
+
+##### Acceptance Criteria
+
+1. WHEN a journal entry or Session_Reflection receives a Quality_Score below 30, THE Platform SHALL reduce the XP award to 5 XP instead of the standard amount (20 XP for journal, 10 XP for session reflection).
+2. WHEN a journal entry or Session_Reflection receives a Quality_Score of 80 or above, THE Platform SHALL award a bonus of 10 XP on top of the standard amount.
+3. WHEN a reflection entry references specific CLOs or demonstrates metacognitive awareness (Quality_Score relevance_score ≥ 70 or depth_score ≥ 70), THE Platform SHALL award a bonus of 10 XP on top of the standard amount.
+4. THE Platform SHALL display a Quality_Feedback banner on the reflection input showing the Quality_Score category: "Thoughtful reflection" (≥80), "Good effort" (30–79), or "Try adding more detail" (<30), with specific suggestions for improvement.
+5. THE Platform SHALL NOT display the numeric Quality_Score to the student — only the category label and improvement suggestions.
+6. THE maximum combined XP for a single reflection (base + quality bonus + CLO reference bonus) SHALL be capped at 40 XP for journal entries and 30 XP for session reflections.

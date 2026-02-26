@@ -2,7 +2,7 @@
 
 ## Introduction
 
-The AI-Powered Adaptive Quiz Generation feature extends the existing Quiz Module (Requirement 79) in Edeviser with three capabilities: (1) AI-driven question generation from uploaded course materials using an LLM via OpenRouter, grounded by the RAG pipeline from the AI Tutor feature; (2) per-student adaptive difficulty that adjusts question Bloom's level and complexity based on CLO attainment data from the existing `outcome_attainment` table; and (3) per-question analytics (success rate, average time, discrimination index) that help teachers identify weak questions and correlate quiz performance with CLO attainment. The feature integrates with the existing OBE engine (ILO → PLO → CLO mapping, evidence rollup), gamification engine (XP awards for quiz completion), and Supabase backend (PostgreSQL + RLS, Edge Functions, Realtime).
+The AI-Powered Adaptive Quiz Generation feature extends the existing Quiz Module (Requirement 79) in Edeviser with three capabilities: (1) AI-driven question generation from uploaded course materials using an LLM via OpenRouter, grounded by the RAG pipeline from the AI Tutor feature; (2) per-student adaptive difficulty that adjusts question Bloom's level and complexity based on CLO attainment data from the existing `outcome_attainment` table; and (3) per-question analytics (success rate, average time, discrimination index) that help teachers identify weak questions and correlate quiz performance with CLO attainment. Additionally, the feature includes: (4) mastery recovery pathways that detect when students are stuck at mastery gates and provide structured recovery through AI Tutor sessions, lower Bloom's practice, and peer study suggestions; (5) AI explanation confidence indicators based on RAG similarity scores with a teacher verification workflow and verified explanations cache; (6) a Practice Mode for low-stakes formative assessment that does not record grades or affect attainment, awarding reduced XP; and (7) a Bloom's Climb mechanic that guides students up the Bloom's taxonomy hierarchy within adaptive quizzes, with progression visualization and pioneer badges. The feature integrates with the existing OBE engine (ILO → PLO → CLO mapping, evidence rollup), gamification engine (XP awards for quiz completion), AI Tutor RAG feature (recovery sessions, explanation grounding), and Supabase backend (PostgreSQL + RLS, Edge Functions, Realtime).
 
 ## Glossary
 
@@ -23,6 +23,13 @@ The AI-Powered Adaptive Quiz Generation feature extends the existing Quiz Module
 - **Vector_Store**: The pgvector-powered table (`course_material_embeddings`) from the AI Tutor RAG feature that stores chunked course material text and embedding vectors
 - **RAG_Pipeline**: The Retrieval-Augmented Generation pipeline from the AI Tutor feature that retrieves relevant course material chunks via vector similarity search
 - **Post_Quiz_Review**: The student-facing UI displayed after quiz submission showing each question, the student's answer, the correct answer, and an AI-generated explanation
+- **Mastery_Recovery_Pathway**: A structured recovery sequence triggered when a student fails an adaptive quiz twice on the same CLO, consisting of an AI Tutor session focused on foundational concepts, lower Bloom's level practice questions, and a peer study group suggestion; the student must complete the pathway before retrying the mastery gate
+- **Recovery_Session**: A single instance of a Mastery_Recovery_Pathway for a specific student and CLO, tracked from activation through completion with status (active, completed, expired)
+- **Explanation_Confidence**: A numeric score (0.0–1.0) derived from the RAG similarity score of the course material chunks used to generate an AI explanation; scores below 0.8 indicate the explanation may contain hallucinated content and requires teacher verification
+- **Verified_Explanation**: A teacher-reviewed and approved AI explanation for a specific question, stored in the `verified_explanations` cache table; verified explanations bypass LLM generation on subsequent requests for the same question
+- **Practice_Mode**: A quiz-taking mode where the adaptive quiz does not record grades, does not generate evidence records, and does not affect CLO attainment calculations; students receive reduced XP (10 instead of 50) and see immediate explanations after each question
+- **Blooms_Climb**: The adaptive mechanic that automatically introduces questions at the next higher Bloom's taxonomy level after a student answers 3 consecutive questions correctly at the current level within an Adaptive_Quiz_Session
+- **Blooms_Progression_Ladder**: A per-CLO vertical visualization showing the highest Bloom's taxonomy level a student has reached through adaptive quiz performance, displayed as a ladder from Remembering (bottom) to Creating (top)
 
 ## Requirements
 
@@ -276,3 +283,173 @@ The AI-Powered Adaptive Quiz Generation feature extends the existing Quiz Module
 3. THE Adaptive_Engine SHALL serve questions to students only through the quiz session API, preventing direct access to the Question_Bank table.
 4. THE Platform SHALL NOT send student PII (full name, email, student ID) to the LLM provider during question generation; only course material content and pedagogical parameters SHALL be included in the prompt.
 5. All LLM API calls for question generation SHALL be logged to an internal monitoring table with: teacher_id, course_id, model used, token count, latency, and timestamp for cost tracking.
+
+
+---
+
+### SECTION I: Mastery Recovery Pathways
+
+#### Requirement 18: Mastery Gate Failure Detection
+
+**User Story:** As the system, I want to detect when a student fails an adaptive quiz twice on the same CLO at a mastery gate, so that the platform can intervene before the student becomes permanently stuck.
+
+##### Acceptance Criteria
+
+1. WHEN a Student completes an Adaptive_Quiz_Session and the per-CLO score for a linked CLO falls below the mastery threshold (default 70%), THE Platform SHALL record the failure against that CLO in the student's mastery attempt history.
+2. WHEN a Student accumulates two failures on the same CLO within the same course, THE Platform SHALL flag the student-CLO pair as requiring a Mastery_Recovery_Pathway.
+3. WHILE a student-CLO pair is flagged for recovery, THE Platform SHALL prevent the Student from retaking the adaptive quiz for that CLO until the Recovery_Session is completed.
+4. THE Platform SHALL notify the Teacher via a dashboard alert when a student is flagged for mastery recovery, including the student name, CLO, and failure count.
+
+---
+
+#### Requirement 19: Recovery Pathway Activation
+
+**User Story:** As a Student who is stuck at a mastery gate, I want to receive a structured recovery pathway with targeted help, so that I can rebuild my understanding and successfully pass the gate.
+
+##### Acceptance Criteria
+
+1. WHEN a Mastery_Recovery_Pathway is activated for a student-CLO pair, THE Platform SHALL create a Recovery_Session with three sequential steps: (a) an AI Tutor session focused on the CLO's foundational concepts, (b) a set of 5 practice questions at one Bloom's level below the CLO's target level (floored at Remembering), and (c) a peer study group suggestion from active Team Challenges linked to the same CLO.
+2. THE AI Tutor session step SHALL pre-scope the AI Tutor (from the AI Tutor RAG feature) to the specific CLO and include a prompt referencing the student's most common incorrect answers from the failed quiz attempts.
+3. THE practice questions step SHALL draw from the Question_Bank with `status = 'approved'`, filtered to the target CLO and the lower Bloom's level, and SHALL operate in Practice_Mode (no grade impact).
+4. THE peer study group suggestion step SHALL query active Team Challenges linked to the CLO and display up to 3 suggestions; IF no active Team Challenges exist for the CLO, THEN THE Platform SHALL skip this step and mark it as not applicable.
+5. THE Recovery_Session SHALL track completion of each step independently, requiring the student to complete steps (a) and (b) before the mastery gate retry is unlocked.
+
+---
+
+#### Requirement 20: Recovery Pathway Tracking
+
+**User Story:** As a Coordinator, I want to see recovery pathway completion rates as a platform health metric, so that I can identify systemic issues with mastery gates and intervene at the program level.
+
+##### Acceptance Criteria
+
+1. THE Platform SHALL store each Recovery_Session with: student_id, clo_id, course_id, activation_date, status (active, completed, expired), step completion timestamps, and retry outcome (pass/fail after recovery).
+2. THE Platform SHALL expose recovery pathway metrics on the Coordinator dashboard: total activations, completion rate, average time to completion, and retry success rate, filterable by course and CLO.
+3. WHEN a Recovery_Session remains in `active` status for more than 14 days, THE Platform SHALL update the status to `expired` and notify the Teacher to follow up with the student.
+4. THE Platform SHALL log recovery pathway activations and completions to the audit_logs table for institutional reporting.
+
+---
+
+### SECTION J: AI Explanation Confidence and Verification
+
+#### Requirement 21: Explanation Confidence Indicators
+
+**User Story:** As a Student, I want to see a confidence indicator on AI-generated explanations, so that I know when an explanation might be unreliable and should be verified by my teacher.
+
+##### Acceptance Criteria
+
+1. WHEN the Quiz_Generator produces an AI explanation for a question, THE Platform SHALL compute an Explanation_Confidence score as the average cosine similarity of the top 3 RAG chunks used to generate the explanation.
+2. WHEN the Explanation_Confidence score is below 0.8, THE Post_Quiz_Review SHALL display a visible warning label: "This explanation may need teacher verification" alongside the explanation.
+3. WHEN the Explanation_Confidence score is 0.8 or above, THE Post_Quiz_Review SHALL display a "Verified by course materials" indicator alongside the explanation.
+4. THE Platform SHALL store the Explanation_Confidence score in the `question_bank` table alongside the explanation text.
+
+---
+
+#### Requirement 22: Teacher Explanation Review
+
+**User Story:** As a Teacher, I want to review and approve or edit AI-generated explanations for frequently-missed questions, so that students receive accurate feedback on the questions they struggle with most.
+
+##### Acceptance Criteria
+
+1. THE Platform SHALL identify frequently-missed questions as those with a Success_Rate below 50% and at least 10 attempts.
+2. THE Platform SHALL display a "Review Explanations" queue for the Teacher showing frequently-missed questions sorted by attempt count descending, with the current AI explanation and its Explanation_Confidence score.
+3. WHEN a Teacher approves an explanation, THE Platform SHALL store the explanation as a Verified_Explanation linked to the question_id.
+4. WHEN a Teacher edits an explanation, THE Platform SHALL store the edited text as a Verified_Explanation with `source = 'teacher_edited'` and the teacher_id who edited it.
+5. THE Platform SHALL display a badge on questions in the Question_Bank that have a Verified_Explanation.
+
+---
+
+#### Requirement 23: Verified Explanations Cache
+
+**User Story:** As the system, I want to serve verified explanations directly from the cache instead of regenerating them via the LLM, so that students receive consistent, teacher-approved feedback and the platform reduces LLM API costs.
+
+##### Acceptance Criteria
+
+1. WHEN a Student views the Post_Quiz_Review for a question that has a Verified_Explanation, THE Platform SHALL display the Verified_Explanation instead of the AI-generated explanation.
+2. THE Verified_Explanation SHALL take precedence over any AI-generated explanation, regardless of the Explanation_Confidence score.
+3. WHEN a Teacher updates a Verified_Explanation, THE Platform SHALL invalidate the previous version and serve the updated version immediately.
+4. THE Platform SHALL track cache hit rate (verified explanation served / total explanation requests) as a monitoring metric.
+
+---
+
+### SECTION K: Practice Mode
+
+#### Requirement 24: Practice Quiz Mode
+
+**User Story:** As a Student, I want to take adaptive quizzes in a practice mode that does not affect my grades or attainment, so that I can practice freely and build confidence before taking graded assessments.
+
+##### Acceptance Criteria
+
+1. WHEN a Student starts a quiz in Practice_Mode, THE Platform SHALL present the adaptive quiz using the same Adaptive_Engine and question selection logic as graded quizzes.
+2. WHEN a Student completes a Practice_Mode quiz, THE Platform SHALL NOT create evidence records, SHALL NOT update CLO attainment in the `outcome_attainment` table, and SHALL NOT trigger the attainment rollup pipeline.
+3. THE Platform SHALL store Practice_Mode quiz attempts in the `quiz_attempts` table with a `mode = 'practice'` flag to distinguish them from graded attempts.
+4. THE Platform SHALL allow Teachers to enable or disable Practice_Mode availability per quiz via a toggle in the quiz settings.
+5. THE Platform SHALL display a clear "Practice Mode" banner on the quiz session UI so the student knows the attempt is ungraded.
+
+---
+
+#### Requirement 25: Practice Mode XP
+
+**User Story:** As a Student, I want to earn some XP for completing practice quizzes, so that I am still motivated to practice even though the quiz is ungraded.
+
+##### Acceptance Criteria
+
+1. WHEN a Student completes a Practice_Mode quiz, THE XP_Engine SHALL award 10 XP (reduced from the standard 50 XP for graded quiz completion).
+2. THE XP_Engine SHALL log Practice_Mode XP awards as `xp_transactions` with `source = 'practice_quiz'` and `reference_id` pointing to the quiz_attempt_id.
+3. THE XP_Engine SHALL NOT award hard question bonus XP for Practice_Mode quizzes.
+4. THE diminishing returns rules SHALL apply to Practice_Mode XP independently from graded quiz XP (separate rolling 24-hour window counter).
+
+---
+
+#### Requirement 26: Immediate Feedback in Practice Mode
+
+**User Story:** As a Student, I want to see the correct answer and explanation immediately after answering each question in practice mode, so that I learn in real time rather than waiting until the end of the quiz.
+
+##### Acceptance Criteria
+
+1. WHEN a Student submits an answer to a question in Practice_Mode, THE Platform SHALL immediately display: whether the answer was correct or incorrect, the correct answer, and the AI-generated explanation (or Verified_Explanation if available).
+2. THE immediate feedback display SHALL include the CLO and Bloom's level associated with the question.
+3. WHEN the explanation has an Explanation_Confidence score below 0.8 and no Verified_Explanation exists, THE feedback SHALL display the "This explanation may need teacher verification" warning.
+4. THE Student SHALL be able to dismiss the feedback and proceed to the next question via a "Next Question" button.
+
+---
+
+### SECTION L: Bloom's Progression Pathway
+
+#### Requirement 27: Bloom's Climb Mechanic
+
+**User Story:** As a Student, I want the adaptive quiz to guide me up the Bloom's taxonomy hierarchy, so that I progressively develop higher-order thinking skills rather than staying at the same cognitive level.
+
+##### Acceptance Criteria
+
+1. WHEN a Student answers 3 consecutive questions correctly at the same Bloom's level within an Adaptive_Quiz_Session, THE Adaptive_Engine SHALL introduce the next question at one Bloom's level higher (capped at Creating, level 6).
+2. WHEN a Student answers a question incorrectly at a newly introduced higher Bloom's level, THE Adaptive_Engine SHALL revert to the previous Bloom's level for the next question.
+3. THE Blooms_Climb mechanic SHALL operate independently of the difficulty adjustment (Difficulty_Rating changes continue as normal; Bloom's level changes are an additional dimension of adaptation).
+4. THE Adaptive_Engine SHALL record the Bloom's level transitions in the `difficulty_trajectory` data for the quiz attempt.
+5. WHEN the Question_Bank has no approved questions at the target higher Bloom's level for the linked CLO, THE Adaptive_Engine SHALL remain at the current Bloom's level and log a warning for the Teacher.
+
+---
+
+#### Requirement 28: Bloom's Progression Visualization
+
+**User Story:** As a Student, I want to see my Bloom's taxonomy progression per CLO as a visual ladder, so that I can track my cognitive growth and understand where I stand.
+
+##### Acceptance Criteria
+
+1. THE Blooms_Progression_Ladder SHALL display a vertical ladder for each CLO showing all 6 Bloom's levels from Remembering (bottom) to Creating (top).
+2. THE Blooms_Progression_Ladder SHALL highlight the highest Bloom's level the student has reached for each CLO, determined by correctly answering at least 2 questions at that level across all adaptive quiz attempts.
+3. THE Blooms_Progression_Ladder SHALL use the existing Bloom's taxonomy color coding (Remembering: purple, Understanding: blue, Applying: green, Analyzing: yellow, Evaluating: orange, Creating: red).
+4. THE Blooms_Progression_Ladder SHALL be accessible from the Student's course detail page and the Post_Quiz_Review page.
+
+---
+
+#### Requirement 29: Bloom's Pioneer Badges
+
+**User Story:** As a Student, I want to earn badges for reaching higher Bloom's taxonomy levels in adaptive quizzes, so that my cognitive growth is recognized and rewarded.
+
+##### Acceptance Criteria
+
+1. WHEN a Student reaches the Analyzing level (level 4) on any CLO for the first time via adaptive quiz performance, THE Platform SHALL award the "Bloom's Explorer" badge.
+2. WHEN a Student reaches the Evaluating level (level 5) on any CLO for the first time via adaptive quiz performance, THE Platform SHALL award the "Bloom's Challenger" badge.
+3. WHEN a Student reaches the Creating level (level 6) on any CLO for the first time via adaptive quiz performance, THE Platform SHALL award the "Bloom's Pioneer" badge.
+4. THE badge award SHALL trigger the standard badge notification flow (peer milestone notification to course peers) and award XP per the badge definition in the gamification engine.
+5. THE Platform SHALL check badge conditions idempotently after each adaptive quiz attempt completion, consistent with the existing badge checking pattern.

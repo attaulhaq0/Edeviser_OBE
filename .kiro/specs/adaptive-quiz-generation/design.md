@@ -27,6 +27,11 @@ The system integrates with:
 | Question versioning | New row on edit, original preserved | Preserves historical analytics integrity |
 | Adaptation toggle | `is_adaptive` boolean on `quizzes` table | Minimal schema change; teachers opt-in per quiz |
 | PBT library | fast-check | Consistent with project conventions (project-conventions.md) |
+| Mastery recovery detection | 2-failure threshold per CLO | Research-backed (Bloom, 1968); simple to implement, avoids false positives |
+| Explanation confidence | Average RAG similarity of top 3 chunks | Direct proxy for grounding quality; 0.8 threshold balances sensitivity |
+| Verified explanations | Separate cache table | Decouples teacher edits from AI generation; enables cache hit tracking |
+| Practice mode | `mode` column on `quiz_attempts` | Minimal schema change; reuses adaptive engine without grade side effects |
+| Bloom's Climb | 3-consecutive-correct trigger | Balances progression speed with confidence; independent of difficulty axis |
 
 ## Architecture
 
@@ -107,19 +112,32 @@ src/
 │   ├── DifficultyBadge.tsx          # Color-coded difficulty rating badge
 │   ├── BloomsBadge.tsx              # Bloom's level badge (reuses existing color coding)
 │   ├── QuestionQualityIndicator.tsx # Green/yellow/red quality status
-│   └── AnswerDistributionChart.tsx  # Bar chart for MCQ option distribution
+│   ├── AnswerDistributionChart.tsx  # Bar chart for MCQ option distribution
+│   ├── MasteryRecoveryPanel.tsx     # Recovery pathway steps UI (AI Tutor, practice, peer)
+│   ├── ExplanationConfidenceBadge.tsx # Confidence indicator on AI explanations
+│   ├── PracticeModeToggle.tsx       # Toggle for enabling practice mode on quiz settings
+│   ├── PracticeModeBanner.tsx       # "Practice Mode" banner during quiz session
+│   ├── BloomsProgressionLadder.tsx  # Vertical ladder visualization per CLO
+│   └── BloomsPioneerBadge.tsx       # Badge display for Bloom's progression achievements
 ├── hooks/
 │   ├── useQuestionBank.ts           # CRUD + filters for question_bank
 │   ├── useGenerateQuestions.ts      # Mutation for AI generation
 │   ├── useReviewQueue.ts           # Pending questions + approve/edit/reject mutations
 │   ├── useAdaptiveQuiz.ts          # Adaptive session state + question selection
 │   ├── useQuestionAnalytics.ts     # Per-question analytics queries
-│   └── useQuizCLOCorrelation.ts    # Quiz vs CLO attainment data
+│   ├── useQuizCLOCorrelation.ts    # Quiz vs CLO attainment data
+│   ├── useMasteryRecovery.ts       # Recovery pathway state, step completion, retry gating
+│   ├── useExplanationConfidence.ts # Confidence scores, verified explanation queries
+│   ├── usePracticeMode.ts          # Practice mode toggle, practice attempt queries
+│   └── useBloomsProgression.ts     # Bloom's ladder data, climb state, badge checks
 ├── lib/
 │   ├── adaptiveEngine.ts           # Client-side ability estimation + difficulty targeting
 │   ├── questionAnalytics.ts        # Analytics computation helpers
 │   ├── quizGenerationSchemas.ts    # Zod schemas for generation requests/responses
-│   └── difficultyCalibration.ts    # Calibrated difficulty formula
+│   ├── difficultyCalibration.ts    # Calibrated difficulty formula
+│   ├── masteryRecovery.ts          # Recovery pathway logic, failure counting, step validation
+│   ├── explanationConfidence.ts    # Confidence score computation, threshold checks
+│   └── bloomsClimb.ts             # Bloom's level progression logic, consecutive tracking
 supabase/functions/
 ├── generate-quiz-questions/index.ts    # AI question generation Edge Function
 ├── select-adaptive-question/index.ts   # Adaptive question selection Edge Function
@@ -496,6 +514,186 @@ ALTER TABLE quiz_attempts ADD COLUMN per_question_times JSONB DEFAULT '[]';
 -- array of { question_id, response_time_ms }
 ```
 
+### New Database Tables (Gap Analysis Additions)
+
+```sql
+-- ============================================================
+-- mastery_recovery_pathways — Tracks recovery sessions for stuck students
+-- ============================================================
+CREATE TABLE mastery_recovery_pathways (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  institution_id UUID NOT NULL REFERENCES institutions(id),
+  student_id UUID NOT NULL REFERENCES profiles(id),
+  clo_id UUID NOT NULL REFERENCES clos(id),
+  course_id UUID NOT NULL REFERENCES courses(id),
+  failure_count INTEGER NOT NULL DEFAULT 2,
+  status VARCHAR(20) NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'completed', 'expired')),
+  ai_tutor_completed BOOLEAN NOT NULL DEFAULT false,
+  ai_tutor_completed_at TIMESTAMPTZ,
+  practice_completed BOOLEAN NOT NULL DEFAULT false,
+  practice_completed_at TIMESTAMPTZ,
+  peer_suggestion_shown BOOLEAN NOT NULL DEFAULT false,
+  peer_suggestion_applicable BOOLEAN NOT NULL DEFAULT true,
+  retry_quiz_attempt_id UUID,                    -- quiz attempt after recovery
+  retry_outcome VARCHAR(10) CHECK (retry_outcome IN ('pass', 'fail', NULL)),
+  activated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  completed_at TIMESTAMPTZ,
+  expired_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_recovery_student_clo ON mastery_recovery_pathways (student_id, clo_id);
+CREATE INDEX idx_recovery_course ON mastery_recovery_pathways (course_id, status);
+CREATE INDEX idx_recovery_status ON mastery_recovery_pathways (status) WHERE status = 'active';
+CREATE UNIQUE INDEX idx_recovery_active_unique ON mastery_recovery_pathways (student_id, clo_id) WHERE status = 'active';
+
+-- ============================================================
+-- verified_explanations — Teacher-approved explanation cache
+-- ============================================================
+CREATE TABLE verified_explanations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  institution_id UUID NOT NULL REFERENCES institutions(id),
+  question_id UUID NOT NULL REFERENCES question_bank(id) ON DELETE CASCADE,
+  explanation_text TEXT NOT NULL,
+  source VARCHAR(20) NOT NULL CHECK (source IN ('teacher_approved', 'teacher_edited')),
+  verified_by UUID NOT NULL REFERENCES profiles(id),
+  is_active BOOLEAN NOT NULL DEFAULT true,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE UNIQUE INDEX idx_verified_active ON verified_explanations (question_id) WHERE is_active = true;
+CREATE INDEX idx_verified_question ON verified_explanations (question_id);
+
+-- ============================================================
+-- blooms_progression — Tracks highest Bloom's level reached per student-CLO
+-- ============================================================
+CREATE TABLE blooms_progression (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  institution_id UUID NOT NULL REFERENCES institutions(id),
+  student_id UUID NOT NULL REFERENCES profiles(id),
+  clo_id UUID NOT NULL REFERENCES clos(id),
+  course_id UUID NOT NULL REFERENCES courses(id),
+  highest_bloom_level SMALLINT NOT NULL DEFAULT 1 CHECK (highest_bloom_level BETWEEN 1 AND 6),
+  correct_count_at_highest INTEGER NOT NULL DEFAULT 0,
+  bloom_explorer_awarded BOOLEAN NOT NULL DEFAULT false,   -- level 4
+  bloom_challenger_awarded BOOLEAN NOT NULL DEFAULT false,  -- level 5
+  bloom_pioneer_awarded BOOLEAN NOT NULL DEFAULT false,     -- level 6
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (student_id, clo_id)
+);
+
+CREATE INDEX idx_blooms_student ON blooms_progression (student_id, course_id);
+CREATE INDEX idx_blooms_clo ON blooms_progression (clo_id);
+```
+
+### Additional Schema Modifications (Gap Analysis Additions)
+
+```sql
+-- Add explanation confidence to question_bank
+ALTER TABLE question_bank ADD COLUMN explanation_confidence NUMERIC(3,2) CHECK (
+  explanation_confidence IS NULL OR (explanation_confidence BETWEEN 0.0 AND 1.0)
+);
+
+-- Add practice mode support to quizzes table
+ALTER TABLE quizzes ADD COLUMN practice_mode_enabled BOOLEAN NOT NULL DEFAULT false;
+
+-- Add mode and bloom's climb data to quiz_attempts table
+ALTER TABLE quiz_attempts ADD COLUMN mode VARCHAR(10) NOT NULL DEFAULT 'graded' CHECK (
+  mode IN ('graded', 'practice')
+);
+ALTER TABLE quiz_attempts ADD COLUMN blooms_climb_state JSONB DEFAULT '{}';
+-- { current_bloom_level, consecutive_correct_at_level, bloom_transitions: [...] }
+```
+
+### New RLS Policies (Gap Analysis Additions)
+
+```sql
+-- ============================================================
+-- mastery_recovery_pathways — RLS
+-- ============================================================
+ALTER TABLE mastery_recovery_pathways ENABLE ROW LEVEL SECURITY;
+
+-- Students: read their own recovery pathways
+CREATE POLICY "recovery_student_read" ON mastery_recovery_pathways
+  FOR SELECT USING (student_id = auth.uid());
+
+-- Teachers: read recovery pathways for their courses
+CREATE POLICY "recovery_teacher_read" ON mastery_recovery_pathways
+  FOR SELECT USING (
+    auth_user_role() = 'teacher'
+    AND course_id IN (SELECT id FROM courses WHERE teacher_id = auth.uid())
+  );
+
+-- System (Edge Functions with service role) handles INSERT/UPDATE
+-- Admins: read all within institution
+CREATE POLICY "recovery_admin_read" ON mastery_recovery_pathways
+  FOR SELECT USING (
+    auth_user_role() = 'admin'
+    AND institution_id = auth_institution_id()
+  );
+
+-- Coordinators: read for metrics dashboard
+CREATE POLICY "recovery_coordinator_read" ON mastery_recovery_pathways
+  FOR SELECT USING (
+    auth_user_role() = 'coordinator'
+    AND institution_id = auth_institution_id()
+  );
+
+-- ============================================================
+-- verified_explanations — RLS
+-- ============================================================
+ALTER TABLE verified_explanations ENABLE ROW LEVEL SECURITY;
+
+-- Teachers: full CRUD for their course questions
+CREATE POLICY "verified_teacher_all" ON verified_explanations
+  FOR ALL USING (
+    auth_user_role() = 'teacher'
+    AND question_id IN (
+      SELECT id FROM question_bank
+      WHERE course_id IN (SELECT id FROM courses WHERE teacher_id = auth.uid())
+    )
+  );
+
+-- Students: read active verified explanations (served via post-quiz review)
+CREATE POLICY "verified_student_read" ON verified_explanations
+  FOR SELECT USING (
+    auth_user_role() = 'student'
+    AND is_active = true
+  );
+
+-- Admins: read all within institution
+CREATE POLICY "verified_admin_read" ON verified_explanations
+  FOR SELECT USING (
+    auth_user_role() = 'admin'
+    AND institution_id = auth_institution_id()
+  );
+
+-- ============================================================
+-- blooms_progression — RLS
+-- ============================================================
+ALTER TABLE blooms_progression ENABLE ROW LEVEL SECURITY;
+
+-- Students: read their own progression
+CREATE POLICY "blooms_student_read" ON blooms_progression
+  FOR SELECT USING (student_id = auth.uid());
+
+-- Teachers: read progression for their courses
+CREATE POLICY "blooms_teacher_read" ON blooms_progression
+  FOR SELECT USING (
+    auth_user_role() = 'teacher'
+    AND course_id IN (SELECT id FROM courses WHERE teacher_id = auth.uid())
+  );
+
+-- Admins: read all within institution
+CREATE POLICY "blooms_admin_read" ON blooms_progression
+  FOR SELECT USING (
+    auth_user_role() = 'admin'
+    AND institution_id = auth_institution_id()
+  );
+```
+
 ### RLS Policies
 
 ```sql
@@ -800,6 +998,310 @@ function determineQualityFlag(
 
 **Validates: Requirements 17.4**
 
+### Property 21: Mastery failure count triggers recovery at threshold
+
+*For any* sequence of quiz attempts by a student on a CLO, if exactly 2 attempts have a per-CLO score below the mastery threshold (70%), `shouldActivateRecovery(countMasteryFailures(...))` must return `true`. For 0 or 1 failures, it must return `false`.
+
+**Validates: Requirements 18.1, 18.2**
+
+### Property 22: Recovery pathway blocks quiz retry until complete
+
+*For any* active Recovery_Session, `isRecoveryComplete` must return `false` when either `ai_tutor_completed` or `practice_completed` is `false`. It must return `true` only when both are `true`. The peer suggestion step does not gate retry.
+
+**Validates: Requirements 18.3, 19.5**
+
+### Property 23: Recovery Bloom's level is floored at 1
+
+*For any* CLO Bloom's level in [1, 6], `recoveryBloomLevel` must return `max(1, level - 1)`. For level 1, the result must be 1 (not 0).
+
+**Validates: Requirements 19.1**
+
+### Property 24: Explanation confidence computation
+
+*For any* array of chunk similarity scores (each in [0, 1]), `computeExplanationConfidence` must return the average of the top 3 scores (or all scores if fewer than 3). The result must be in [0, 1]. For an empty array, the result must be 0.
+
+**Validates: Requirements 21.1**
+
+### Property 25: Explanation confidence threshold classification
+
+*For any* confidence score in [0, 1], `needsTeacherVerification` must return `true` when the score is below 0.8 and `false` when the score is 0.8 or above.
+
+**Validates: Requirements 21.2, 21.3**
+
+### Property 26: Frequently missed question identification
+
+*For any* question with `success_rate` in [0, 1] and `total_attempts` ≥ 0, `isFrequentlyMissed` must return `true` only when `success_rate < 0.5` AND `total_attempts >= 10`. All other combinations must return `false`.
+
+**Validates: Requirements 22.1**
+
+### Property 27: Practice mode XP is fixed at 10
+
+*For any* completed Practice_Mode quiz attempt, `computePracticeXP()` must return exactly 10, regardless of question difficulty, correctness, or any other factor.
+
+**Validates: Requirements 25.1, 25.3**
+
+### Property 28: Bloom's Climb advancement after 3 consecutive correct
+
+*For any* `currentLevel` in [1, 6] and `consecutiveCorrectAtLevel` in [0, ∞), `shouldAdvanceBloom` must return `currentLevel + 1` when `consecutiveCorrectAtLevel >= 3` and `currentLevel < 6`. When `currentLevel = 6`, it must return 6 (capped at Creating). When `consecutiveCorrectAtLevel < 3`, it must return `currentLevel`.
+
+**Validates: Requirements 27.1**
+
+### Property 29: Bloom's Climb revert on incorrect at new level
+
+*For any* current and previous Bloom's levels, `handleBloomRevert` must return `previousLevel` when `wasCorrect = false` and `justAdvanced = true`. In all other cases, it must return `currentLevel`.
+
+**Validates: Requirements 27.2**
+
+### Property 30: Highest Bloom's level reached requires 2 correct answers
+
+*For any* set of quiz question attempts with Bloom's levels and correctness, `highestBloomReached` must return the highest Bloom's level where the student has at least 2 correct answers. If no level has 2+ correct answers, it must return 0.
+
+**Validates: Requirements 28.2**
+
+### New Components (Gap Analysis Additions)
+
+**MasteryRecoveryPanel** — Student recovery pathway UI:
+- Displays 3-step recovery pathway: AI Tutor session, lower Bloom's practice, peer study suggestion
+- Step completion checkmarks with progress tracking
+- "Start AI Tutor Session" button opens AI Tutor pre-scoped to the CLO
+- Practice questions rendered inline via `QuestionPreview` in Practice_Mode
+- Peer study group cards with join links (or "No active groups" message)
+- "Retry Quiz" button unlocked only after steps (a) and (b) are completed
+
+**ExplanationConfidenceBadge** — Confidence indicator on explanations:
+- Green "Verified by course materials" badge when confidence ≥ 0.8
+- Amber "This explanation may need teacher verification" warning when confidence < 0.8
+- Blue "Teacher verified" badge when a Verified_Explanation exists
+- Tooltip showing the numeric confidence score
+
+**PracticeModeToggle** — Teacher quiz settings toggle:
+- Switch component in quiz creation/edit form
+- Label: "Allow Practice Mode"
+- Description text: "Students can take this quiz without grade impact"
+
+**PracticeModeBanner** — Student quiz session banner:
+- Fixed banner at top of quiz session: "Practice Mode — This attempt will not affect your grades"
+- Uses `bg-blue-50 text-blue-700 border-blue-200` styling
+- Visible throughout the entire practice quiz session
+
+**BloomsProgressionLadder** — Vertical ladder visualization:
+- 6-level vertical ladder per CLO (Remembering at bottom, Creating at top)
+- Each level uses Bloom's taxonomy color coding from design system
+- Highlighted levels show the student's highest reached level
+- Animated level-up transition when a new level is reached (Framer Motion)
+- Accessible from student course detail page and PostQuizReview
+
+**BloomsPioneerBadge** — Badge display component:
+- Renders Bloom's Explorer (level 4), Bloom's Challenger (level 5), Bloom's Pioneer (level 6) badges
+- Uses existing `BadgeCollection` component pattern
+- Badge pop animation on award (reuses `animate-badge-pop`)
+
+### New TanStack Query Hooks (Gap Analysis Additions)
+
+```typescript
+// useMasteryRecovery.ts
+export const useMasteryRecoveryStatus = (studentId: string, cloId: string) => useQuery({...});
+export const useRecoveryPathway = (recoverySessionId: string) => useQuery({...});
+export const useActivateRecovery = () => useMutation({...});
+export const useCompleteRecoveryStep = () => useMutation({...});
+export const useRecoveryMetrics = (courseId?: string, cloId?: string) => useQuery({...});
+
+// useExplanationConfidence.ts
+export const useExplanationConfidence = (questionId: string) => useQuery({...});
+export const useVerifiedExplanation = (questionId: string) => useQuery({...});
+export const useApproveExplanation = () => useMutation({...});
+export const useEditExplanation = () => useMutation({...});
+export const useExplanationReviewQueue = (courseId: string) => useQuery({...});
+
+// usePracticeMode.ts
+export const usePracticeModeConfig = (quizId: string) => useQuery({...});
+export const useTogglePracticeMode = () => useMutation({...});
+export const usePracticeAttempts = (quizId: string, studentId: string) => useQuery({...});
+
+// useBloomsProgression.ts
+export const useBloomsProgression = (studentId: string, courseId: string) => useQuery({...});
+export const useBloomsClimbState = (quizAttemptId: string) => useQuery({...});
+export const useBloomsPioneerBadges = (studentId: string) => useQuery({...});
+```
+
+### New Zod Schemas (Gap Analysis Additions)
+
+```typescript
+// Added to quizGenerationSchemas.ts
+
+export const recoverySessionSchema = z.object({
+  student_id: z.string().uuid(),
+  clo_id: z.string().uuid(),
+  course_id: z.string().uuid(),
+  status: z.enum(['active', 'completed', 'expired']),
+  ai_tutor_completed: z.boolean(),
+  practice_completed: z.boolean(),
+  peer_suggestion_shown: z.boolean(),
+});
+
+export const verifiedExplanationSchema = z.object({
+  question_id: z.string().uuid(),
+  explanation_text: z.string().min(1).max(5000),
+  source: z.enum(['teacher_approved', 'teacher_edited']),
+  verified_by: z.string().uuid(),
+});
+
+export const practiceModeConfigSchema = z.object({
+  practice_mode_enabled: z.boolean(),
+});
+
+export const bloomsClimbStateSchema = z.object({
+  current_bloom_level: z.number().int().min(1).max(6),
+  consecutive_correct_at_level: z.number().int().min(0).max(3),
+  bloom_transitions: z.array(z.object({
+    from_level: z.number().int().min(1).max(6),
+    to_level: z.number().int().min(1).max(6),
+    question_number: z.number().int().min(1),
+  })),
+});
+
+export type RecoverySession = z.infer<typeof recoverySessionSchema>;
+export type VerifiedExplanation = z.infer<typeof verifiedExplanationSchema>;
+export type PracticeModeConfig = z.infer<typeof practiceModeConfigSchema>;
+export type BloomsClimbState = z.infer<typeof bloomsClimbStateSchema>;
+```
+
+### New Library Functions (Gap Analysis Additions)
+
+```typescript
+// masteryRecovery.ts
+
+/**
+ * Counts consecutive failures for a student-CLO pair.
+ * Returns the number of failed attempts (per-CLO score < mastery threshold).
+ */
+function countMasteryFailures(
+  attempts: { clo_scores: Record<string, number> }[],
+  cloId: string,
+  masteryThreshold: number = 70
+): number {
+  return attempts.filter(a => (a.clo_scores[cloId] ?? 0) < masteryThreshold).length;
+}
+
+/**
+ * Determines if a recovery pathway should be activated.
+ * Returns true when failure count reaches 2.
+ */
+function shouldActivateRecovery(failureCount: number): boolean {
+  return failureCount >= 2;
+}
+
+/**
+ * Determines the practice Bloom's level for recovery (one below CLO target, floored at 1).
+ */
+function recoveryBloomLevel(cloBloomLevel: number): number {
+  return Math.max(1, cloBloomLevel - 1);
+}
+
+/**
+ * Checks if a recovery session is complete (AI Tutor + practice done).
+ */
+function isRecoveryComplete(session: {
+  ai_tutor_completed: boolean;
+  practice_completed: boolean;
+}): boolean {
+  return session.ai_tutor_completed && session.practice_completed;
+}
+```
+
+```typescript
+// explanationConfidence.ts
+
+/**
+ * Computes explanation confidence as the average similarity of top chunks.
+ * Returns a value between 0.0 and 1.0.
+ */
+function computeExplanationConfidence(
+  chunkSimilarities: number[]
+): number {
+  if (chunkSimilarities.length === 0) return 0;
+  const topChunks = chunkSimilarities
+    .sort((a, b) => b - a)
+    .slice(0, 3);
+  return topChunks.reduce((sum, s) => sum + s, 0) / topChunks.length;
+}
+
+/**
+ * Determines if an explanation needs teacher verification.
+ */
+function needsTeacherVerification(confidence: number): boolean {
+  return confidence < 0.8;
+}
+
+/**
+ * Determines if a question is frequently missed (success_rate < 0.5 and attempts >= 10).
+ */
+function isFrequentlyMissed(successRate: number, totalAttempts: number): boolean {
+  return successRate < 0.5 && totalAttempts >= 10;
+}
+```
+
+```typescript
+// bloomsClimb.ts
+
+/**
+ * Determines if the Bloom's level should advance.
+ * Returns the next Bloom's level if 3 consecutive correct at current level, else current.
+ */
+function shouldAdvanceBloom(
+  currentLevel: number,
+  consecutiveCorrectAtLevel: number
+): number {
+  if (consecutiveCorrectAtLevel >= 3 && currentLevel < 6) {
+    return currentLevel + 1;
+  }
+  return currentLevel;
+}
+
+/**
+ * Handles Bloom's level revert on incorrect answer at a newly introduced level.
+ * Returns the previous level if the student just advanced and got it wrong.
+ */
+function handleBloomRevert(
+  currentLevel: number,
+  previousLevel: number,
+  wasCorrect: boolean,
+  justAdvanced: boolean
+): number {
+  if (!wasCorrect && justAdvanced) {
+    return previousLevel;
+  }
+  return currentLevel;
+}
+
+/**
+ * Determines the highest Bloom's level reached for a CLO.
+ * Requires at least 2 correct answers at that level across all attempts.
+ */
+function highestBloomReached(
+  attempts: { bloom_level: number; was_correct: boolean }[]
+): number {
+  const correctCountByLevel = new Map<number, number>();
+  for (const a of attempts) {
+    if (a.was_correct) {
+      correctCountByLevel.set(a.bloom_level, (correctCountByLevel.get(a.bloom_level) ?? 0) + 1);
+    }
+  }
+  let highest = 0;
+  for (const [level, count] of correctCountByLevel) {
+    if (count >= 2 && level > highest) highest = level;
+  }
+  return highest;
+}
+
+/**
+ * Computes practice mode XP (10 instead of 50, no hard question bonus).
+ */
+function computePracticeXP(): number {
+  return 10;
+}
+```
+
 ## Error Handling
 
 ### Edge Function Errors
@@ -815,6 +1317,11 @@ function determineQualityFlag(
 | Course ownership check failure | 403 response | Sonner toast: "You don't have access to this course." |
 | No eligible questions for adaptive selection | Expand range to ±1.0; if still none, fall back to random approved | Silent fallback; log warning for teacher |
 | Question analytics calculation failure | Queue for retry on next attempt submission | Silent; no user impact |
+| Recovery pathway activation failure | Retry once; if fails, allow quiz retry without recovery | Sonner toast to teacher: "Recovery pathway could not be created. Student can retry quiz." |
+| No active Team Challenges for recovery peer step | Skip peer suggestion step; mark as not applicable | Recovery panel shows "No active study groups for this topic" |
+| Verified explanation lookup failure | Fall back to AI-generated explanation | Silent fallback; no user impact |
+| Bloom's Climb: no questions at target higher level | Remain at current Bloom's level; log warning for teacher | Silent; teacher sees warning in analytics |
+| Recovery session expiry (14 days) | Cron job updates status to expired; notifies teacher | Teacher dashboard alert: "Recovery session expired for [student]" |
 
 ### Client-Side Errors
 
@@ -874,6 +1381,16 @@ This feature uses both unit tests and property-based tests for comprehensive cov
 | Property 18 | `approvalRate.property.test.ts` | Approval rate = approved / total |
 | Property 19 | `bonusXP.property.test.ts` | Hard question bonus XP capped at 50 |
 | Property 20 | `promptPII.property.test.ts` | LLM prompt excludes student PII |
+| Property 21 | `masteryFailureCount.property.test.ts` | Mastery failure count triggers recovery at threshold |
+| Property 22 | `recoveryCompletion.property.test.ts` | Recovery pathway blocks retry until complete |
+| Property 23 | `recoveryBloomLevel.property.test.ts` | Recovery Bloom's level floored at 1 |
+| Property 24 | `explanationConfidence.property.test.ts` | Explanation confidence computation from chunk similarities |
+| Property 25 | `confidenceThreshold.property.test.ts` | Confidence threshold classification |
+| Property 26 | `frequentlyMissed.property.test.ts` | Frequently missed question identification |
+| Property 27 | `practiceXP.property.test.ts` | Practice mode XP is fixed at 10 |
+| Property 28 | `bloomsClimbAdvance.property.test.ts` | Bloom's Climb advancement after 3 consecutive correct |
+| Property 29 | `bloomsClimbRevert.property.test.ts` | Bloom's Climb revert on incorrect at new level |
+| Property 30 | `highestBloomReached.property.test.ts` | Highest Bloom's level requires 2 correct answers |
 
 ### Unit Tests
 
@@ -887,6 +1404,10 @@ This feature uses both unit tests and property-based tests for comprehensive cov
 | Post-quiz review | `postQuizReview.test.ts` | Per-CLO score with single CLO, multiple CLOs, all correct, all incorrect |
 | Review queue | `reviewQueue.test.ts` | Approve/reject/edit mutations, bulk operations |
 | Generation warnings | `generationWarnings.test.ts` | Insufficient material warning (<3 chunks), grounded=false fallback |
+| Mastery recovery | `masteryRecovery.test.ts` | Failure counting, recovery activation, step completion, expiry |
+| Explanation confidence | `explanationConfidence.test.ts` | Confidence computation, threshold checks, frequently missed detection |
+| Bloom's climb | `bloomsClimb.test.ts` | Advancement, revert, highest level reached, edge cases at level 1 and 6 |
+| Practice mode | `practiceMode.test.ts` | XP calculation, mode flag, no evidence generation |
 
 ### Component Tests
 
@@ -897,3 +1418,8 @@ This feature uses both unit tests and property-based tests for comprehensive cov
 | QuestionQualityIndicator | `questionQualityIndicator.test.tsx` | Green/yellow/red rendering based on quality flag |
 | AdaptiveQuizSession | `adaptiveQuizSession.test.tsx` | Progress bar, timer, one-at-a-time rendering, no back navigation |
 | PostQuizReview | `postQuizReview.test.tsx` | Explanation display, CLO badges, "Get Help" link |
+| MasteryRecoveryPanel | `masteryRecoveryPanel.test.tsx` | 3-step display, step completion, retry button gating |
+| ExplanationConfidenceBadge | `explanationConfidenceBadge.test.tsx` | Green/amber/blue badge rendering based on confidence and verification |
+| PracticeModeBanner | `practiceModeBanner.test.tsx` | Banner visibility, correct styling, text content |
+| BloomsProgressionLadder | `bloomsProgressionLadder.test.tsx` | 6-level rendering, color coding, highlighted level |
+| BloomsPioneerBadge | `bloomsPioneerBadge.test.tsx` | Badge rendering for Explorer, Challenger, Pioneer |
