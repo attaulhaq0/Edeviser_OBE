@@ -4,6 +4,8 @@
 
 The Student Onboarding & Profiling feature extends the Edeviser platform with a structured onboarding flow for new students that captures personality traits, learning style preferences, and baseline competency levels. When a student logs in for the first time (with `onboarding_completed = false`), the platform presents a multi-step wizard that guides the student through a personality assessment (Big Five traits), a learning style questionnaire (VARK model), and optional baseline diagnostic tests mapped to enrolled course CLOs. The results are stored in a student profile that feeds into adaptive features (AI Tutor persona recommendations, learning path ordering, at-risk predictions) and awards XP for completion. The feature integrates with the existing auth flow (AuthProvider, `onboarding_completed` flag), gamification engine (XP awards, badge checks), and OBE outcome hierarchy (CLO-based baseline testing).
 
+Additionally, the feature incorporates evidence-based profiling instruments (Self-Efficacy Scale, Study Strategy Inventory) as primary inputs to the adaptive engine, while repositioning VARK as an optional self-awareness exercise. To reduce onboarding drop-off, the flow uses progressive profiling — capturing only essential data on Day 1 and dripping remaining questions over the first two weeks via gamified micro-assessments. Upon onboarding completion, an AI-generated "Starter Week" plan pre-populates the student's planner with study sessions derived from enrolled courses, assignment deadlines, and historical cohort patterns. The weekly planner also receives AI-suggested goals with difficulty indicators and SMART templates to scaffold self-regulated learning from day one.
+
 ## Glossary
 
 - **Onboarding_Wizard**: The multi-step React wizard component presented to students on first login that guides them through personality assessment, learning style detection, and baseline testing
@@ -19,6 +21,16 @@ The Student Onboarding & Profiling feature extends the Edeviser platform with a 
 - **Assessment_Response**: A student's answer to a single question, stored in the `onboarding_responses` table with the selected option and computed score contribution
 - **Onboarding_Progress**: The tracking record in `onboarding_progress` that stores which steps the student has completed and allows resuming an interrupted onboarding flow
 - **Profile_Summary_Card**: The UI component on the student dashboard that displays a visual summary of the student's personality traits and learning style after onboarding completion
+- **Self_Efficacy_Scale**: An evidence-based instrument (Bandura, 1997) measuring a student's belief in their ability to succeed in specific academic tasks, producing a normalized score (0–100) per domain
+- **Study_Strategy_Inventory**: An instrument assessing a student's study habits and metacognitive strategies (e.g., time management, elaboration, self-testing), producing dimension scores (0–100)
+- **Progressive_Profiling**: A phased data-collection approach where only essential questions are asked on Day 1 and remaining profiling questions are delivered as Micro_Assessments over the first two weeks
+- **Micro_Assessment**: A short (2–3 question) profiling prompt delivered daily during the first two weeks after onboarding, awarding XP on completion and contributing to the student's Profile_Completeness
+- **Profile_Completeness**: A percentage (0–100) representing how many profiling dimensions the student has completed, displayed as a progress bar on the student dashboard
+- **Starter_Week_Plan**: An AI-generated set of 3–5 study sessions pre-populated into the student's weekly planner immediately after onboarding, based on enrolled courses, assignment deadlines, and historical cohort patterns
+- **Starter_Week_Engine**: The Edge Function that generates the Starter_Week_Plan by analyzing the student's onboarding profile, enrolled course schedules, upcoming deadlines, and cohort performance data
+- **Goal_Suggestion_Engine**: The system component that recommends weekly goals to students based on historical cohort data, current attainment levels, and course workload, with difficulty indicators and SMART templates
+- **SMART_Goal_Template**: A structured goal format (Specific, Measurable, Achievable, Relevant, Time-bound) pre-filled with contextual data to help students set realistic weekly goals
+- **Goal_Difficulty_Indicator**: A visual label (Easy, Moderate, Ambitious) attached to each suggested goal, derived from historical cohort completion rates for similar goals
 
 ## Requirements
 
@@ -304,3 +316,163 @@ The Student Onboarding & Profiling feature extends the Edeviser platform with a 
 3. THE `onboarding_responses` table SHALL enforce a unique constraint on (student_id, question_id, assessment_version) to prevent duplicate storage.
 4. THE `student_profiles` table SHALL enforce a unique constraint on (student_id, assessment_version) to prevent duplicate profiles.
 5. THE `baseline_attainment` table SHALL enforce a unique constraint on (student_id, course_id, clo_id) with UPSERT semantics for re-assessment.
+
+
+---
+
+### SECTION K: Evidence-Based Profiling & VARK Repositioning
+
+#### Requirement 21: Self-Efficacy Scale
+
+**User Story:** As a Student, I want to complete a self-efficacy assessment, so that the platform can understand my confidence levels across academic domains and provide appropriately challenging recommendations.
+
+##### Acceptance Criteria
+
+1. THE Onboarding_Wizard SHALL include a Self_Efficacy_Scale section consisting of 6 items measuring academic self-efficacy across domains (general academic, course-specific, self-regulated learning).
+2. WHEN a self-efficacy item is displayed, THE Self_Efficacy_Scale SHALL show the statement text and a 5-point Likert scale (Not at all confident → Extremely confident).
+3. WHEN the Student completes all self-efficacy items, THE Profile_Engine SHALL calculate a Self_Efficacy score (0–100) as the mean of all item responses normalized to the 0–100 range.
+4. THE Self_Efficacy_Scale score SHALL be stored in the `student_profiles` table within a `self_efficacy` JSONB field containing the overall score and per-domain sub-scores.
+5. THE adaptive engine SHALL use the Self_Efficacy_Scale score as a primary input for difficulty calibration and encouragement messaging, replacing VARK as a driver of content adaptation.
+
+---
+
+#### Requirement 22: Study Strategy Inventory
+
+**User Story:** As a Student, I want to complete a study strategy assessment, so that the platform can identify my strengths and gaps in study habits and recommend targeted improvements.
+
+##### Acceptance Criteria
+
+1. THE Onboarding_Wizard SHALL include a Study_Strategy_Inventory section consisting of 8 items measuring study strategies across 4 dimensions: time management, elaboration, self-testing, and help-seeking.
+2. WHEN a study strategy item is displayed, THE Study_Strategy_Inventory SHALL show the statement text and a 5-point Likert scale (Never → Always).
+3. WHEN the Student completes all study strategy items, THE Profile_Engine SHALL calculate a dimension score (0–100) for each of the 4 strategy dimensions.
+4. THE Study_Strategy_Inventory scores SHALL be stored in the `student_profiles` table within a `study_strategies` JSONB field containing per-dimension scores.
+5. THE adaptive engine SHALL use Study_Strategy_Inventory scores to recommend specific study techniques and to inform the Starter_Week_Plan session types (e.g., students low on self-testing receive more practice quiz sessions).
+
+---
+
+#### Requirement 23: VARK Repositioning as Optional Self-Awareness Exercise
+
+**User Story:** As a Student, I want to understand that the VARK questionnaire is a self-awareness exercise rather than a scientifically validated instruction-matching tool, so that I have accurate expectations about how the platform uses my learning style data.
+
+##### Acceptance Criteria
+
+1. THE Learning_Style_Detector step in the Onboarding_Wizard SHALL display a disclaimer stating: "Learning style preferences are provided as a self-awareness exercise. Research does not support matching instruction to VARK styles (Pashler et al., 2008). Your results will not be used to restrict content delivery."
+2. THE Learning_Style_Detector SHALL be moved to the Progressive_Profiling phase (delivered as a Micro_Assessment during Week 1) and SHALL NOT be part of the Day 1 onboarding flow.
+3. THE adaptive engine SHALL NOT use VARK scores as a primary input for content adaptation or learning path ordering; VARK data SHALL be used only for the student's self-reflection on the Profile_Summary_Card.
+4. THE Profile_Summary_Card SHALL display VARK results under a "Self-Awareness" section with a note: "For reflection only — not used for content matching."
+
+---
+
+### SECTION L: Progressive Profiling & Drop-Off Reduction
+
+#### Requirement 24: Day 1 Minimal Onboarding
+
+**User Story:** As a Student, I want to complete onboarding quickly on my first day, so that I can start using the platform without a lengthy assessment barrier.
+
+##### Acceptance Criteria
+
+1. THE Day 1 onboarding flow SHALL consist of at most 7 questions: name confirmation, program confirmation, 3 personality items (one each for Openness, Conscientiousness, and Extraversion), and 2 self-efficacy items (general academic and self-regulated learning).
+2. THE Onboarding_Wizard SHALL complete the Day 1 flow in under 3 minutes for the average student.
+3. WHEN the Student completes the Day 1 flow, THE Platform SHALL set `onboarding_completed = true` and grant access to the student dashboard immediately.
+4. WHEN the Student completes the Day 1 flow, THE Profile_Engine SHALL compute a preliminary Student_Profile using the available responses, storing partial scores with a `profile_completeness` percentage.
+5. THE Day 1 flow SHALL NOT include the Learning_Style_Detector, the full 25-question Personality_Assessment, the Study_Strategy_Inventory, or Baseline_Tests.
+
+---
+
+#### Requirement 25: Micro-Assessment Delivery
+
+**User Story:** As a Student, I want to complete my profile gradually over the first two weeks through short daily prompts, so that profiling feels lightweight and rewarding rather than burdensome.
+
+##### Acceptance Criteria
+
+1. THE Platform SHALL deliver Micro_Assessments as daily prompts (2–3 questions each) during the first 14 days after the student's initial onboarding, until all profiling dimensions are complete.
+2. WHEN a Micro_Assessment is available, THE StudentDashboard SHALL display a dismissible card at the top of the page with the prompt text, estimated time (under 1 minute), and XP reward.
+3. WHEN the Student completes a Micro_Assessment, THE XP_Engine SHALL award 10 XP with `source = 'micro_assessment'`.
+4. THE Micro_Assessment delivery schedule SHALL follow this order: (a) remaining personality items (Days 2–5, ~5 questions/day), (b) self-efficacy remaining items (Day 6), (c) study strategy items (Days 7–8), (d) VARK questions (Days 9–12), (e) baseline test prompt (Days 13–14).
+5. IF the Student dismisses a Micro_Assessment, THEN THE Platform SHALL re-present the same Micro_Assessment the following day, up to 3 consecutive dismissals, after which the Micro_Assessment SHALL be marked as skipped.
+6. THE Student SHALL be able to complete all remaining Micro_Assessments at once from a "Complete My Profile" page accessible from the Profile_Completeness progress bar.
+
+---
+
+#### Requirement 26: Profile Completeness Tracking
+
+**User Story:** As a Student, I want to see how complete my profile is, so that I am motivated to finish all profiling dimensions.
+
+##### Acceptance Criteria
+
+1. THE StudentDashboard SHALL display a Profile_Completeness progress bar showing the percentage of profiling dimensions completed (personality, self-efficacy, study strategies, learning style, baseline tests).
+2. THE Profile_Completeness percentage SHALL be calculated as: `(completed_dimensions / total_dimensions) * 100`, where each dimension is weighted equally.
+3. WHEN Profile_Completeness reaches 100%, THE Platform SHALL award a 30 XP "Profile Complete" bonus with `source = 'profile_complete'` and THE Profile_Completeness progress bar SHALL be replaced by a "Profile Complete" badge.
+4. THE Profile_Completeness progress bar SHALL be tappable, navigating to the "Complete My Profile" page showing remaining dimensions with estimated time for each.
+
+---
+
+### SECTION M: AI-Generated Starter Week Plan
+
+#### Requirement 27: Starter Week Plan Generation
+
+**User Story:** As a Student, I want the platform to generate a study plan for my first week, so that I have a structured starting point even if I lack planning skills.
+
+##### Acceptance Criteria
+
+1. WHEN the Student completes the Day 1 onboarding flow, THE Starter_Week_Engine SHALL generate a Starter_Week_Plan containing 3–5 study sessions for the first 7 calendar days.
+2. THE Starter_Week_Engine SHALL generate study sessions based on: (a) the student's enrolled courses and their schedules, (b) upcoming assignment deadlines within the next 14 days, (c) historical cohort study patterns for similar courses, and (d) the student's preliminary self-efficacy score (lower self-efficacy receives more frequent, shorter sessions).
+3. EACH generated study session SHALL include: a suggested date and time slot, a course reference, a session type (reading, practice, review, or exploration), an estimated duration (25–50 minutes), and a brief description of what to focus on.
+4. THE Starter_Week_Plan SHALL be inserted into the student's weekly planner as pre-populated entries marked with an "AI Suggested" badge.
+5. THE Student SHALL be able to accept, modify, reschedule, or dismiss each suggested study session individually.
+6. IF the Student has no enrolled courses or no upcoming deadlines, THEN THE Starter_Week_Engine SHALL generate generic study habit sessions (e.g., "Explore your courses", "Set up your study space", "Review the platform features").
+
+---
+
+#### Requirement 28: Starter Week Plan Display
+
+**User Story:** As a Student, I want to see my AI-generated study plan clearly on my dashboard and planner, so that I know what to do in my first week.
+
+##### Acceptance Criteria
+
+1. WHEN the Student first accesses the dashboard after onboarding, THE StudentDashboard SHALL display a "Your Starter Week" hero card summarizing the generated plan with the number of sessions and total estimated study time.
+2. THE "Your Starter Week" hero card SHALL include a "View Plan" button that navigates to the weekly planner with the starter week sessions highlighted.
+3. THE weekly planner SHALL visually distinguish AI-suggested sessions from student-created sessions using an "AI Suggested" badge and a subtle background tint.
+4. WHEN the Student completes (marks as done) an AI-suggested study session, THE XP_Engine SHALL award 15 XP with `source = 'starter_session_complete'`.
+5. AFTER the first week has elapsed, THE "Your Starter Week" hero card SHALL be replaced by a summary showing how many sessions the Student completed out of the total suggested, with encouragement messaging.
+
+---
+
+### SECTION N: Goal-Setting Scaffolding
+
+#### Requirement 29: AI-Suggested Weekly Goals
+
+**User Story:** As a Student, I want the platform to suggest realistic weekly goals, so that I can set effective targets even if I am new to self-regulated learning.
+
+##### Acceptance Criteria
+
+1. WHEN the Student opens the weekly planner goal-setting interface, THE Goal_Suggestion_Engine SHALL present 3 suggested goals based on: (a) the student's current course workload and upcoming deadlines, (b) historical cohort goal completion rates for similar students, and (c) the student's current attainment levels and self-efficacy score.
+2. EACH suggested goal SHALL include a Goal_Difficulty_Indicator label (Easy, Moderate, or Ambitious) derived from the historical cohort completion rate for that goal type (Easy ≥ 80% completion, Moderate 50–79%, Ambitious < 50%).
+3. THE Student SHALL be able to accept a suggested goal as-is, modify it before accepting, or dismiss it and create a custom goal.
+4. WHEN the Student accepts a suggested goal, THE Platform SHALL populate the goal text in the weekly planner goal slot.
+
+---
+
+#### Requirement 30: SMART Goal Templates
+
+**User Story:** As a Student, I want structured goal templates, so that I can write specific, measurable goals instead of vague intentions.
+
+##### Acceptance Criteria
+
+1. WHEN the Student creates or edits a weekly goal, THE weekly planner SHALL offer a "Use SMART Template" option that presents a structured form with fields: Specific (what), Measurable (how much/how many), Achievable (is this realistic given current workload), Relevant (which course/CLO), and Time-bound (by when).
+2. THE SMART_Goal_Template form SHALL pre-fill the Relevant field with the student's enrolled courses and the Time-bound field with the current week's end date.
+3. WHEN the Student completes the SMART_Goal_Template form, THE Platform SHALL compose the goal text from the template fields and insert it into the goal slot.
+4. THE Goal_Suggestion_Engine's suggested goals SHALL already be formatted using the SMART structure, so that students see examples of well-formed goals.
+
+---
+
+#### Requirement 31: Goal Difficulty Indicators
+
+**User Story:** As a Student, I want to see how challenging each goal is relative to my peers, so that I can calibrate my ambition level appropriately.
+
+##### Acceptance Criteria
+
+1. THE weekly planner SHALL display a Goal_Difficulty_Indicator badge next to each goal (both suggested and custom goals).
+2. FOR suggested goals, THE Goal_Difficulty_Indicator SHALL be computed by the Goal_Suggestion_Engine based on historical cohort completion rates.
+3. FOR custom goals, THE Goal_Difficulty_Indicator SHALL be set by the Student from a dropdown (Easy, Moderate, Ambitious) during goal creation.
+4. THE Goal_Difficulty_Indicator SHALL use the following visual encoding: Easy = green badge, Moderate = amber badge, Ambitious = red badge.
