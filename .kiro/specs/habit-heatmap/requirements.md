@@ -2,7 +2,7 @@
 
 ## Introduction
 
-The Habit Heatmap feature extends the existing daily habit tracking system in Edeviser from a 7-day grid into a semester-long heatmap visualization (inspired by GitHub's contribution graph) and introduces optional wellness habits alongside the existing academic habits. Currently, the platform tracks 4 academic habits (Login, Submit, Journal, Read) in a `habit_logs` table with a `HabitType` enum, displayed as a 7-day grid on the Student Dashboard. Perfect Day (all 4 academic habits completed) awards 50 XP. This feature adds: (1) a semester-long heatmap where each cell represents one day and color intensity reflects the number of habits completed, with hover/tap detail tooltips; (2) wellness habits (Meditation, Hydration, Exercise, Sleep) that are opt-in, contribute to the heatmap but do NOT count toward Perfect Day, and are private to the student by default; (3) a Habit Analytics Dashboard showing weekly/monthly completion rates, consistency scores, best-day-of-week analysis, habit correlation insights, and exportable reports. The feature integrates with the existing Supabase backend (PostgreSQL + RLS, Edge Functions, Realtime), TanStack Query hooks, gamification engine (XP, streaks, badges), and the student dashboard.
+The Habit Heatmap feature extends the existing daily habit tracking system in Edeviser from a 7-day grid into a semester-long heatmap visualization (inspired by GitHub's contribution graph) and introduces optional wellness habits alongside the existing academic habits. Currently, the platform tracks 4 academic habits (Login, Submit, Journal, Read) in a `habit_logs` table with a `HabitType` enum, displayed as a 7-day grid on the Student Dashboard. Perfect Day (all 4 academic habits completed) awards 50 XP. This feature adds: (1) a semester-long heatmap where each cell represents one day and color intensity reflects the number of habits completed, with hover/tap detail tooltips; (2) wellness habits (Meditation, Hydration, Exercise, Sleep) that are opt-in, contribute to the heatmap but do NOT count toward Perfect Day, and are private to the student by default; (3) a Habit Analytics Dashboard showing weekly/monthly completion rates, consistency scores, best-day-of-week analysis, habit correlation insights, and exportable reports; (4) level-aware heatmap rendering that adapts cell intensity and analytics to the student's current Habit Difficulty Level (from the edeviser-platform spec); (5) streak recovery and sabbatical visual indicators on the heatmap to reduce burnout; (6) wellness habit micro-guidance, reminders, and personal goal setting to scaffold behavior change; (7) confidence-level indicators on correlation insights to prevent misleading conclusions from small sample sizes. The feature integrates with the existing Supabase backend (PostgreSQL + RLS, Edge Functions, Realtime), TanStack Query hooks, gamification engine (XP, streaks, badges), and the student dashboard.
 
 ## Glossary
 
@@ -20,6 +20,11 @@ The Habit Heatmap feature extends the existing daily habit tracking system in Ed
 - **Semester_Range**: The date range of the current academic semester, used to bound the Heatmap display. Derived from the `semesters` table or institution settings
 - **Wellness_XP**: The configurable XP amount awarded per wellness habit completion (default 5 XP), managed by the Admin via institution settings
 - **Habit_Report**: An exportable document (CSV or PDF) summarizing a student's habit data over a selected date range for self-reflection purposes
+- **Habit_Difficulty_Level_Integration**: The heatmap's awareness of the student's current Habit Difficulty Level (from edeviser-platform) for level-relative intensity rendering and analytics
+- **Level_Relative_Intensity**: Heatmap cell color intensity calculated relative to the student's current Habit Difficulty Level requirements rather than a fixed maximum of 4 academic habits
+- **Streak_Recovery_Visualization**: Special heatmap cell styling for Comeback Challenge days and Streak Sabbatical rest days, reducing the visual impact of streak breaks
+- **Wellness_Micro_Guidance**: Brief tips, resource links, and reminders provided for each wellness habit to scaffold behavior change beyond simple checkbox tracking
+- **Correlation_Confidence_Level**: A data maturity indicator (early pattern, emerging trend, strong pattern) based on the number of data points underlying a correlation insight
 
 ## Requirements
 
@@ -316,3 +321,165 @@ The Habit Heatmap feature extends the existing daily habit tracking system in Ed
 3. THE color intensity scale SHALL maintain a minimum contrast ratio of 3:1 between adjacent intensity levels against the background.
 4. THE Habit_Analytics_Dashboard charts SHALL include text alternatives or data tables accessible to screen readers.
 5. THE Heatmap SHALL honor the `prefers-reduced-motion` media query by disabling all transition animations.
+
+---
+
+### SECTION G: Habit Difficulty Level Integration
+
+#### Requirement 22: Heatmap Level-Aware Rendering
+
+**User Story:** As a Student on a lower Habit Difficulty Level, I want the heatmap to reflect my current level's requirements, so that my progress is shown relative to what is expected of me rather than a fixed maximum.
+
+##### Acceptance Criteria
+
+1. THE Heatmap SHALL fetch the student's current Habit Difficulty Level from the `student_habit_levels` table (defined in the edeviser-platform spec).
+2. THE Heatmap cell intensity SHALL be calculated relative to the student's current level requirements: Level 1 (1 habit/day max), Level 2 (2 habits/day max), Level 3 (3 habits/day max), Level 4 (4 habits/day max — the default full set).
+3. WHEN a Student on Level 1 completes 1 academic habit, THE Heatmap_Cell SHALL render at full intensity (level 4 color), equivalent to a Level 4 student completing all 4 habits.
+4. THE Heatmap legend SHALL dynamically update to reflect the student's current level (e.g., "No activity" to "1/1 habits" for Level 1, "No activity" to "4/4 habits" for Level 4).
+5. WHEN a Student's Habit Difficulty Level changes mid-semester, THE Heatmap SHALL render historical cells using the level that was active on each respective date.
+
+---
+
+#### Requirement 23: Analytics Level Progression
+
+**User Story:** As a Student, I want to see how my Habit Difficulty Level has changed over the semester, so that I can appreciate my growth in building habit capacity.
+
+##### Acceptance Criteria
+
+1. THE Habit_Analytics_Dashboard SHALL display a "Level Progression" chart showing the student's Habit Difficulty Level over time within the Semester_Range.
+2. THE Level Progression chart SHALL render as a step chart with the x-axis as dates and the y-axis as levels (1–4).
+3. WHEN a Student has remained on the same level for the entire semester, THE chart SHALL display a single horizontal line at that level with a message: "You've been consistent at Level {N} this semester."
+4. THE Level Progression chart SHALL annotate level-up events with a marker and the date of the transition.
+
+---
+
+#### Requirement 24: Level-Relative Consistency Score
+
+**User Story:** As a Student, I want my consistency score to account for my current Habit Difficulty Level, so that completing my level's requirements counts as 100% for that day.
+
+##### Acceptance Criteria
+
+1. THE Consistency_Score calculation SHALL treat a day as "fully completed" when the student meets their current Habit Difficulty Level's daily requirement (e.g., 1 habit for Level 1, 4 habits for Level 4).
+2. THE completion rate charts SHALL use the student's level-appropriate daily maximum when computing the denominator (e.g., Level 2 student: possible = 2 habits/day, not 4).
+3. WHEN a Student's level changes mid-semester, THE completion rate calculation SHALL use the level that was active on each respective date for the denominator.
+4. THE Habit_Report CSV export SHALL include a "level" column indicating the student's Habit Difficulty Level on each date.
+
+---
+
+### SECTION H: Streak Burnout Mitigation
+
+#### Requirement 25: Heatmap Streak Recovery Visualization
+
+**User Story:** As a Student recovering from a streak break, I want to see my Comeback Challenge progress on the heatmap, so that streak breaks feel like recoverable setbacks rather than failures.
+
+##### Acceptance Criteria
+
+1. WHEN a Student is in an active Comeback Challenge (from the edeviser-platform spec), THE Heatmap SHALL render Comeback Challenge days with a distinct cell border or overlay pattern (e.g., dashed border in teal-500) to visually distinguish them from regular days.
+2. THE Heatmap tooltip for a Comeback Challenge day SHALL include a "Comeback Day {N}/3" label alongside the regular habit details.
+3. WHEN a Student completes a Comeback Challenge, THE Heatmap SHALL render the completion day cell with a success indicator (e.g., checkmark overlay).
+
+---
+
+#### Requirement 26: Streak Sabbatical Visual Indicator
+
+**User Story:** As a Student with Streak Sabbatical enabled, I want weekend cells on the heatmap to show as intentional rest days, so that they do not appear as missed days.
+
+##### Acceptance Criteria
+
+1. WHEN a Student has Streak Sabbatical enabled (from the edeviser-platform spec), THE Heatmap SHALL render Saturday and Sunday cells with a distinct "rest day" visual treatment (e.g., subtle diagonal stripe pattern in slate-200) instead of the default empty-cell appearance.
+2. THE Heatmap tooltip for a Streak Sabbatical rest day SHALL display "Rest Day (Sabbatical)" instead of "No habits completed."
+3. THE Heatmap summary statistics SHALL exclude Streak Sabbatical rest days from the "total possible days" denominator when computing consistency-related metrics.
+
+---
+
+#### Requirement 27: Motivational Milestones on Heatmap
+
+**User Story:** As a Student, I want to see milestone markers on the heatmap for significant streak achievements, so that I can celebrate my long-term consistency.
+
+##### Acceptance Criteria
+
+1. THE Heatmap SHALL overlay milestone markers at the cells corresponding to 30-day, 60-day, and 100-day streak milestones within the Semester_Range.
+2. THE milestone markers SHALL be visually distinct (e.g., a small star or flag icon) and positioned at the top-right corner of the milestone cell without obscuring the cell's intensity color.
+3. THE Heatmap tooltip for a milestone cell SHALL include the milestone label (e.g., "30-Day Streak Milestone 🎉") alongside the regular habit details.
+4. WHEN a Student has not yet reached a milestone, THE Heatmap SHALL NOT display any placeholder or upcoming milestone indicator for that milestone.
+
+---
+
+### SECTION I: Wellness Habit Behavioral Scaffolding
+
+#### Requirement 28: Wellness Habit Micro-Guidance
+
+**User Story:** As a Student enabling a wellness habit for the first time, I want to see a brief tip or resource link, so that I have guidance on how to build the habit effectively.
+
+##### Acceptance Criteria
+
+1. WHEN a Student enables a Wellness_Habit for the first time, THE Platform SHALL display a one-time onboarding tip card for that habit (e.g., "Start with just 2 minutes of meditation — consistency matters more than duration").
+2. THE Platform SHALL display a rotating "Habit Tip" on the wellness section of the habit tracking page, cycling through a curated set of tips for each enabled wellness habit on a weekly basis.
+3. Each Wellness_Habit tip SHALL include an optional external resource link (e.g., a guided meditation app, hydration tracker guide) that opens in a new tab.
+4. THE Student SHALL be able to dismiss the onboarding tip card, and THE Platform SHALL NOT display the same onboarding tip again for that habit.
+
+---
+
+#### Requirement 29: Wellness Habit Reminders
+
+**User Story:** As a Student, I want to set optional reminders for my wellness habits, so that I receive timely nudges to complete them.
+
+##### Acceptance Criteria
+
+1. THE Wellness_Preferences panel SHALL include an optional reminder time setting for each enabled Wellness_Habit.
+2. WHEN a Student configures a reminder time for a Wellness_Habit, THE Platform SHALL send an in-app notification at the configured time if the habit has not been logged for that day.
+3. THE reminder notification SHALL include the habit name and a quick-log action button that navigates to the habit tracking page.
+4. THE Student SHALL be able to disable reminders for individual wellness habits at any time via the Wellness_Preferences panel.
+5. THE Platform SHALL NOT send a reminder if the student has already logged the corresponding Wellness_Habit for that day.
+
+---
+
+#### Requirement 30: Wellness Habit Goal Setting
+
+**User Story:** As a Student, I want to set personal targets for each wellness habit, so that I can track my progress toward specific goals.
+
+##### Acceptance Criteria
+
+1. THE Wellness_Preferences panel SHALL allow the Student to set a personal daily target for each enabled Wellness_Habit (e.g., "Meditate 10 min/day", "Drink 8 glasses/day", "Exercise 30 min/day", "Sleep 7 hours/night").
+2. THE wellness habit logging UI SHALL display the student's progress toward their daily target (e.g., "15/30 min" for exercise) when a target is set.
+3. WHEN a Student meets their daily target for a Wellness_Habit, THE Platform SHALL display a completion indicator (checkmark) and optionally trigger a micro-celebration animation.
+4. THE Habit_Analytics_Dashboard SHALL display target achievement rates for each wellness habit with a set target (percentage of days the target was met over the selected range).
+5. IF a Student has not set a target for a Wellness_Habit, THEN THE Platform SHALL treat any logged completion as meeting the daily goal for that habit.
+
+---
+
+### SECTION J: Correlation Insight Confidence
+
+#### Requirement 31: Increased Minimum Data Threshold
+
+**User Story:** As the system, I want to require a minimum of 30 days of data before showing correlation insights, so that displayed patterns are statistically more reliable.
+
+##### Acceptance Criteria
+
+1. THE `compute-habit-correlations` Edge Function SHALL require a minimum of 30 days of habit data before computing and returning correlation insights.
+2. WHEN a Student has between 14 and 29 days of habit data, THE Habit_Analytics_Dashboard SHALL display a message: "Almost there — correlation insights appear after 30 days of data. You have {N} days so far."
+3. WHEN a Student has fewer than 14 days of habit data, THE Habit_Analytics_Dashboard SHALL display the existing message: "Keep tracking your habits — insights will appear after more data is collected."
+
+---
+
+#### Requirement 32: Correlation Confidence Levels
+
+**User Story:** As a Student, I want to see how confident the system is in each correlation insight, so that I can judge how much weight to give each pattern.
+
+##### Acceptance Criteria
+
+1. THE Habit_Analytics_Dashboard SHALL display a Correlation_Confidence_Level badge on each correlation insight card: "Early Pattern" (30–59 days of data), "Emerging Trend" (60–89 days of data), "Strong Pattern" (90+ days of data).
+2. THE Correlation_Confidence_Level badge SHALL use distinct visual styling: "Early Pattern" in amber-100/amber-700, "Emerging Trend" in blue-100/blue-700, "Strong Pattern" in green-100/green-700.
+3. THE `compute-habit-correlations` Edge Function SHALL include the `confidenceLevel` field in each returned correlation insight object.
+
+---
+
+#### Requirement 33: Correlation Disclaimer
+
+**User Story:** As a Student, I want to see a clear disclaimer that correlations are not causation, so that I do not draw incorrect conclusions from the data.
+
+##### Acceptance Criteria
+
+1. THE Habit_Analytics_Dashboard SHALL display a persistent disclaimer below the correlation insights section: "Correlations show patterns in your data, not causes. Many factors influence academic performance."
+2. THE disclaimer text SHALL be styled as a subtle info banner (slate-50 background, text-xs, with an info icon).
+3. THE disclaimer SHALL be visible whenever correlation insights are displayed, regardless of the confidence level.

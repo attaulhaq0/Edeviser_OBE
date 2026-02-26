@@ -118,3 +118,81 @@
 - [ ] 12.3 `src/__tests__/unit/tutorCitationParsing.test.ts` — Citation marker extraction from response text
 - [ ] 12.4 `src/__tests__/unit/tutorSseParser.test.ts` — SSE event type parsing
 - [ ] 12.5 `src/__tests__/unit/tutorRetryBackoff.test.ts` — Exponential backoff delay calculation (P34)
+
+## 13. Autonomy Level Database & Library
+
+- [ ] 13.1 Create migration: add `tutor_autonomy_level` column to `assignments` table (VARCHAR(2), default 'L1')
+- [ ] 13.2 Create migration: add `tutor_autonomy_level` column to `clos` table (VARCHAR(2), default 'L2')
+- [ ] 13.3 Create migration: add `autonomy_override` column to `tutor_conversations` table
+- [ ] 13.4 Create migration: add `autonomy_level` and `nudge_type` columns to `tutor_messages` table
+- [ ] 13.5 Create `src/lib/tutorAutonomy.ts` — Autonomy level resolution logic (assignment > CLO > default, student override capped by teacher ceiling)
+- [ ] 13.6 Update `src/lib/tutorSchemas.ts` — Add `autonomyLevelSchema`, `updateAssignmentAutonomySchema`, `updateCLOAutonomySchema`
+- [ ] 13.7 Update `src/lib/tutorPrompt.ts` — Add autonomy level prompt modifiers (L1/L2/L3) to system prompt assembly
+
+## 14. Autonomy Level UI & Hooks
+
+- [ ] 14.1 Create `src/hooks/useTutorAutonomy.ts` — Hooks for reading/updating assignment and CLO autonomy levels
+- [ ] 14.2 Create `src/components/shared/AutonomyToggle.tsx` — Student-facing "Figure it out" / "Just explain it" toggle
+- [ ] 14.3 Update `src/pages/student/tutor/ChatPanel.tsx` — Add AutonomyToggle to chat header
+- [ ] 14.4 Update `src/pages/teacher/assignments/AssignmentForm.tsx` — Add autonomy level select field
+- [ ] 14.5 Update `src/pages/teacher/clos/CLOForm.tsx` — Add autonomy level select field
+- [ ] 14.6 Update `supabase/functions/chat-with-tutor/index.ts` — Integrate autonomy resolution and log level per message
+
+## 15. Learning Plan Updates
+
+- [ ] 15.1 Create migration: `tutor_plan_updates` table with indexes and RLS policies
+- [ ] 15.2 Create `supabase/functions/generate-plan-update/index.ts` — Learning plan update generation Edge Function
+  - [ ] 15.2.1 Fetch student CLO attainment and recent tutor messages
+  - [ ] 15.2.2 Retrieve top 3 relevant materials via RAG
+  - [ ] 15.2.3 Generate study time and planner recommendations via LLM
+  - [ ] 15.2.4 Persist suggestion to `tutor_plan_updates` table
+- [ ] 15.3 Update `supabase/functions/chat-with-tutor/index.ts` — Add 5-interaction CLO trigger check and plan update SSE event
+- [ ] 15.4 Create `src/components/shared/LearningPlanCard.tsx` — Plan update card with accept/modify/dismiss actions
+- [ ] 15.5 Update `src/hooks/useTutorMessages.ts` — Handle `plan_update` SSE event type
+- [ ] 15.6 Add plan update response mutation to `src/hooks/useTutorConversations.ts`
+- [ ] 15.7 Create `src/lib/tutorSchemas.ts` additions — `planUpdateResponseSchema`
+
+## 16. Persona Auto-Selection
+
+- [ ] 16.1 Create `src/lib/tutorPersonaAutoSelect.ts` — Big Five to persona mapping logic
+- [ ] 16.2 Update `supabase/functions/chat-with-tutor/index.ts` — Fetch Big Five profile and auto-select persona for new conversations
+- [ ] 16.3 Update `src/pages/student/tutor/PersonaSelector.tsx` — Show auto-recommendation with "Change" option
+- [ ] 16.4 Update `src/hooks/useTutorConversations.ts` — Pass Big Five profile data for persona recommendation
+
+## 17. AI Dependency Prevention
+
+- [ ] 17.1 Create `src/lib/independenceCalculator.ts` — Independence score calculation (1 - AI-assisted/total submissions)
+- [ ] 17.2 Update `supabase/functions/chat-with-tutor/index.ts` — Add same-topic detection and independence nudge injection
+- [ ] 17.3 Create `src/hooks/useIndependenceScore.ts` — Hook for fetching independence scores per student per CLO
+- [ ] 17.4 Update `src/pages/student/StudentDashboard.tsx` — Display independence score alongside CLO attainment
+- [ ] 17.5 Create `src/components/shared/IndependenceScoreBadge.tsx` — Color-coded independence score chip
+- [ ] 17.6 Update `supabase/functions/check-badges/index.ts` — Add "Self-Reliant Scholar" badge condition check
+- [ ] 17.7 Add `self_reliant_scholar` badge definition to badge definitions
+
+## 18. Teacher-AI Collaboration
+
+- [ ] 18.1 Create migration: `teacher_handoff_requests` table with indexes and RLS policies
+- [ ] 18.2 Update `supabase/functions/chat-with-tutor/index.ts` — Add handoff trigger detection (low RAG confidence, repeated questions, low satisfaction)
+- [ ] 18.3 Create `src/components/shared/TeacherHandoffCard.tsx` — In-conversation handoff suggestion with consent checkbox
+- [ ] 18.4 Create `src/hooks/useTeacherHandoffs.ts` — CRUD hooks for handoff requests (student create, teacher read/respond)
+- [ ] 18.5 Create `src/pages/teacher/tutor-analytics/TeacherHandoffPage.tsx` — Teacher handoff dashboard tab
+  - [ ] 18.5.1 Pending handoff requests list with conversation summaries
+  - [ ] 18.5.2 Most-asked questions section (anonymized)
+  - [ ] 18.5.3 Low-confidence topics section
+  - [ ] 18.5.4 High AI dependency students section
+- [ ] 18.6 Update `src/pages/teacher/tutor-analytics/TutorAnalyticsPage.tsx` — Add "Coverage Gaps" and "Material Effectiveness" sections
+- [ ] 18.7 Add `/teacher/tutor-handoffs` route to AppRouter and nav item to TeacherLayout sidebar
+- [ ] 18.8 Update `src/lib/tutorSchemas.ts` — Add `createHandoffSchema`, `respondToHandoffSchema`
+
+## 19. New Property-Based & Unit Tests
+
+- [ ] 19.1 `src/__tests__/properties/tutorAutonomy.property.test.ts` — P38, P39, P40, P41, P42: autonomy resolution, override ceiling, logging, prompt inclusion
+- [ ] 19.2 `src/__tests__/properties/tutorPlanUpdates.property.test.ts` — P43, P44, P46: trigger threshold, required fields, adaptive frequency
+- [ ] 19.3 `src/__tests__/properties/tutorPersonaAutoSelect.property.test.ts` — P47, P48: Big Five mapping, fallback
+- [ ] 19.4 `src/__tests__/properties/tutorIndependence.property.test.ts` — P49, P50, P51, P52: nudge trigger, non-blocking, score calculation, badge award
+- [ ] 19.5 `src/__tests__/properties/tutorHandoff.property.test.ts` — P53, P54, P55: trigger conditions, consent requirement, coverage gaps
+- [ ] 19.6 `src/__tests__/unit/tutorAutonomyResolution.test.ts` — Autonomy level resolution edge cases
+- [ ] 19.7 `src/__tests__/unit/tutorPersonaAutoSelect.test.ts` — Big Five mapping, missing profile fallback
+- [ ] 19.8 `src/__tests__/unit/tutorIndependenceScore.test.ts` — Independence score calculation, zero submissions
+- [ ] 19.9 `src/__tests__/unit/tutorHandoffTrigger.test.ts` — Handoff trigger detection logic
+- [ ] 19.10 `src/__tests__/unit/tutorPlanUpdateAcceptance.test.ts` — Acceptance rate calculation and frequency adaptation

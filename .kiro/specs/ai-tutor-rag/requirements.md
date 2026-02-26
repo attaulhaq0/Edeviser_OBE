@@ -2,7 +2,7 @@
 
 ## Introduction
 
-The AI Chat Tutor with RAG (Retrieval-Augmented Generation) Engine extends the Edeviser platform with a conversational AI tutoring interface for students, grounded in actual course materials via vector search. The feature combines a multi-persona chat UI accessible from the student dashboard with a backend RAG pipeline that indexes course materials using Supabase pgvector and generates contextual, CLO-aligned responses via OpenAI/DeepSeek through OpenRouter. Teachers gain access to anonymized aggregate tutor usage analytics. This feature builds on the existing OBE engine (ILO → PLO → CLO mapping, evidence rollup, attainment tracking) and gamification engine (XP, streaks, badges) to deliver personalized tutoring that references the student's competency gaps, Bloom's taxonomy level, and actual course content.
+The AI Chat Tutor with RAG (Retrieval-Augmented Generation) Engine extends the Edeviser platform with a conversational AI tutoring interface for students, grounded in actual course materials via vector search. The feature combines a multi-persona chat UI accessible from the student dashboard with a backend RAG pipeline that indexes course materials using Supabase pgvector and generates contextual, CLO-aligned responses via OpenAI/DeepSeek through OpenRouter. Teachers gain access to anonymized aggregate tutor usage analytics. The tutor operates across explicit autonomy levels (L1–L3) that teachers can configure per assignment, and adapts its persona selection based on the student's Big Five personality profile from onboarding. The system proactively generates learning plan updates based on accumulated interaction patterns, includes independence nudges to prevent AI dependency, and supports teacher handoff when the AI detects it cannot help effectively. This feature builds on the existing OBE engine (ILO → PLO → CLO mapping, evidence rollup, attainment tracking) and gamification engine (XP, streaks, badges) to deliver personalized tutoring that references the student's competency gaps, Bloom's taxonomy level, and actual course content.
 
 ## Glossary
 
@@ -22,6 +22,12 @@ The AI Chat Tutor with RAG (Retrieval-Augmented Generation) Engine extends the E
 - **System_Prompt**: The dynamically constructed prompt sent to the LLM that includes the student's CLO attainment context, Bloom's level, retrieved Chunks, and Persona instructions
 - **OpenRouter**: The API gateway used to route LLM requests to OpenAI or DeepSeek models from Edge Functions
 - **Satisfaction_Rating**: A per-message thumbs-up/thumbs-down rating provided by the Student to indicate response helpfulness
+- **Autonomy_Level**: A classification (L1–L3) defining how much direct help the AI provides — L1 (hints only), L2 (guided discovery), L3 (direct explanation)
+- **Learning_Plan_Update**: An AI-generated suggestion to adjust study time, resources, or planner sessions based on accumulated tutor interaction patterns for a specific CLO
+- **Persona_Auto_Selection**: Automatic AI persona recommendation based on the student's Big Five personality profile from onboarding
+- **Independence_Nudge**: A system prompt injection triggered after 3 consecutive questions on the same topic within a session, encouraging the student to attempt the problem independently
+- **Independence_Score**: A metric tracking the ratio of AI-assisted vs. independent work per CLO, displayed alongside attainment data
+- **Teacher_Handoff**: A mechanism for escalating AI tutor conversations to the human teacher when the AI detects it cannot help effectively (low RAG confidence, repeated questions, declining satisfaction)
 
 ## Requirements
 
@@ -296,3 +302,166 @@ The AI Chat Tutor with RAG (Retrieval-Augmented Generation) Engine extends the E
 3. THE Vector_Store RLS policies SHALL ensure that Similarity_Search results are scoped to courses the requesting student is enrolled in.
 4. THE Platform SHALL NOT send student PII (full name, email, student ID) to the LLM provider; the System_Prompt SHALL use only anonymized identifiers.
 5. THE Platform SHALL log all LLM API calls (model used, token count, latency) to an internal monitoring table for cost tracking and anomaly detection.
+
+---
+
+### SECTION H: Autonomy Levels
+
+#### Requirement 21: Explicit Autonomy Level Framework
+
+**User Story:** As an institution, I want the AI Tutor to operate at defined autonomy levels for different interaction types, so that the level of direct help is appropriate to the learning context.
+
+##### Acceptance Criteria
+
+1. THE Tutor_Engine SHALL support three Autonomy_Levels: L1 (hints only — the tutor asks guiding questions and provides hints but never reveals answers), L2 (guided discovery — the tutor provides scaffolded hints and partial explanations leading the student toward understanding), and L3 (direct explanation — the tutor provides complete, direct explanations of concepts).
+2. WHEN a student asks for help on a graded assignment, THE Tutor_Engine SHALL default to Autonomy_Level L1 unless the Teacher has configured a different level for that assignment.
+3. WHEN a student asks for concept explanation unrelated to a graded assignment, THE Tutor_Engine SHALL default to Autonomy_Level L2.
+4. WHEN a student asks for review or practice help, THE Tutor_Engine SHALL default to Autonomy_Level L3.
+5. THE Tutor_Engine SHALL include the active Autonomy_Level in the System_Prompt to instruct the LLM on the appropriate level of directness.
+
+---
+
+#### Requirement 22: Teacher-Configurable Autonomy Levels
+
+**User Story:** As a Teacher, I want to configure the AI Tutor's autonomy level per assignment or CLO, so that I can control how much help students receive for specific learning activities.
+
+##### Acceptance Criteria
+
+1. THE Platform SHALL provide a per-assignment autonomy level setting (L1, L2, or L3) in the assignment creation and edit forms, defaulting to L1.
+2. THE Platform SHALL provide a per-CLO autonomy level setting in the CLO management interface, defaulting to L2.
+3. WHEN both an assignment-level and a CLO-level autonomy setting exist for a conversation, THE Tutor_Engine SHALL use the assignment-level setting (more specific scope takes precedence).
+4. THE Tutor_Engine SHALL log the Autonomy_Level used in each interaction to the `tutor_messages` table as metadata for analysis.
+
+---
+
+#### Requirement 23: Student Autonomy Toggle
+
+**User Story:** As a Student, I want to toggle between "I want to figure this out" mode and "Just explain it" mode, so that I can control how much help I receive based on my current needs.
+
+##### Acceptance Criteria
+
+1. THE Chat_UI SHALL display a toggle control with two modes: "Figure it out" (maps to Autonomy_Level L1) and "Just explain it" (maps to Autonomy_Level L3).
+2. WHEN a Student selects "Figure it out", THE Tutor_Engine SHALL constrain responses to hints and guiding questions only, regardless of the default Autonomy_Level.
+3. WHEN a Student selects "Just explain it", THE Tutor_Engine SHALL provide direct explanations, subject to the Teacher-configured maximum Autonomy_Level for the assignment (the student toggle cannot exceed the teacher-set ceiling).
+4. THE Chat_UI SHALL persist the student's toggle preference per conversation and restore it when the student returns to that conversation.
+
+---
+
+### SECTION I: Explainable Replans
+
+#### Requirement 24: Learning Plan Update Generation
+
+**User Story:** As a Student, I want the AI Tutor to proactively suggest adjustments to my learning plan based on my tutoring interactions, so that I can study more effectively.
+
+##### Acceptance Criteria
+
+1. WHEN a Student has completed 5 tutor interactions on the same CLO within a rolling 7-day window, THE Tutor_Engine SHALL generate a Learning_Plan_Update for that CLO.
+2. THE Learning_Plan_Update SHALL include: a revised study time allocation recommendation, up to 3 specific course material sections to review (retrieved via the RAG_Pipeline), and a suggested number of weekly planner sessions for that CLO.
+3. THE Chat_UI SHALL display the Learning_Plan_Update as a distinct card within the conversation, visually differentiated from regular assistant messages.
+4. THE Student SHALL be able to accept, modify, or dismiss the Learning_Plan_Update via action buttons on the card.
+
+---
+
+#### Requirement 25: Learning Plan Update Tracking
+
+**User Story:** As the system, I want to track student responses to learning plan suggestions, so that recommendation quality can improve over time.
+
+##### Acceptance Criteria
+
+1. WHEN a Student accepts, modifies, or dismisses a Learning_Plan_Update, THE Platform SHALL record the response (accepted, modified, dismissed) in a `tutor_plan_updates` table with the CLO_id, student_id, and suggestion content.
+2. THE Platform SHALL calculate an acceptance rate per CLO and per student over the last 30 days.
+3. WHEN the acceptance rate for a CLO falls below 30% over the last 10 suggestions, THE Tutor_Engine SHALL reduce the frequency of Learning_Plan_Updates for that CLO to every 10 interactions instead of every 5.
+
+---
+
+### SECTION J: Persona Auto-Selection
+
+#### Requirement 26: Personality-Based Persona Auto-Selection
+
+**User Story:** As a Student, I want the AI Tutor to automatically recommend a persona that matches my personality profile, so that I get a tutoring style suited to my learning preferences without manual selection.
+
+##### Acceptance Criteria
+
+1. WHEN a Student starts a new conversation and has a completed Big Five personality profile from onboarding, THE Tutor_Engine SHALL recommend a Persona based on the following mapping: students scoring high (≥70th percentile) in Openness receive "Socratic Guide", students scoring high in Conscientiousness receive "Step-by-Step Coach", and students scoring high in Neuroticism receive a more supportive, encouraging tone variant of the selected persona.
+2. WHEN multiple Big Five traits score high, THE Tutor_Engine SHALL prioritize the trait with the highest percentile score for persona selection.
+3. THE Chat_UI SHALL display the auto-selected persona as a recommendation with a "Change" option, allowing the Student to override the selection at any time.
+4. WHEN a Student does not have a completed personality profile, THE Chat_UI SHALL fall back to the standard manual persona selection.
+
+---
+
+### SECTION K: AI Dependency Prevention
+
+#### Requirement 27: Independence Nudges
+
+**User Story:** As an institution, I want the AI Tutor to encourage independent problem-solving when it detects over-reliance, so that students develop self-sufficiency rather than learned helplessness.
+
+##### Acceptance Criteria
+
+1. WHEN a Student asks 3 consecutive questions on the same topic within a single conversation session, THE Tutor_Engine SHALL inject an Independence_Nudge encouraging the student to attempt the problem independently before asking again.
+2. THE Independence_Nudge SHALL be a supportive, non-punitive message (e.g., "You're making good progress on this topic. Try working through the next step on your own — I believe you can do it. I'm here if you get stuck.").
+3. AFTER delivering an Independence_Nudge, THE Tutor_Engine SHALL continue to accept and respond to further questions from the Student (the nudge is advisory, not blocking).
+4. THE Tutor_Engine SHALL log Independence_Nudge occurrences to the `tutor_messages` table with a `nudge_type = 'independence'` metadata field.
+
+---
+
+#### Requirement 28: Independence Score Tracking
+
+**User Story:** As a Student, I want to see my independence score alongside my attainment data, so that I can understand how much I rely on the AI Tutor versus working independently.
+
+##### Acceptance Criteria
+
+1. THE Platform SHALL calculate an Independence_Score per student per CLO, defined as: `1 - (AI-assisted submissions for CLO / total submissions for CLO)`, where an AI-assisted submission is one preceded by a tutor conversation on the same CLO within 2 hours before submission.
+2. THE Student Dashboard SHALL display the Independence_Score alongside CLO attainment data as a secondary metric.
+3. THE Independence_Score SHALL update after each new submission or tutor conversation.
+
+---
+
+#### Requirement 29: Self-Reliant Scholar Badge
+
+**User Story:** As a Student, I want to earn a badge for improving my CLO attainment with below-average AI usage, so that independent learning is recognized and rewarded.
+
+##### Acceptance Criteria
+
+1. WHEN a Student's CLO attainment improves by at least 15 percentage points and the Student's Independence_Score for that CLO is above the course average, THE XP_Engine SHALL award the "Self-Reliant Scholar" badge.
+2. THE "Self-Reliant Scholar" badge SHALL be a visible badge in the student's badge collection with a description: "Improved attainment through independent effort."
+3. THE XP_Engine SHALL check the badge condition after each attainment rollup, idempotently (awarding only once per CLO per student).
+
+---
+
+### SECTION L: Teacher-AI Collaboration
+
+#### Requirement 30: Teacher Handoff Mechanism
+
+**User Story:** As a Student, I want the AI Tutor to suggest connecting me with my teacher when it cannot help effectively, so that I am not left without support.
+
+##### Acceptance Criteria
+
+1. WHEN the Tutor_Engine detects low effectiveness (average RAG similarity score below 0.7 for the last 3 responses, or the student asks the same question 3 times, or the student gives 3 consecutive thumbs-down ratings), THE Chat_UI SHALL display a "Connect with Teacher" suggestion card.
+2. THE "Connect with Teacher" card SHALL explain why the handoff is suggested (e.g., "I'm having trouble finding relevant course materials for this topic. Your teacher may be able to help.").
+3. WHEN the Student accepts the handoff, THE Platform SHALL create a `teacher_handoff_requests` record containing: the conversation_id, a summary of the last 5 messages (generated by the LLM), the specific CLO or topic, and a suggested intervention.
+4. THE Platform SHALL require explicit student consent before sharing any conversation content with the Teacher.
+
+---
+
+#### Requirement 31: Teacher Handoff Dashboard
+
+**User Story:** As a Teacher, I want to see AI tutor handoff requests and analytics about AI tutor effectiveness, so that I can intervene where the AI falls short and improve my course materials.
+
+##### Acceptance Criteria
+
+1. THE Teacher Dashboard SHALL include an "AI Tutor Insights" tab displaying: pending handoff requests with conversation summaries, most-asked questions across all students (anonymized), lowest-confidence responses (topics where RAG similarity scores are consistently low), and students with high AI dependency scores (Independence_Score below 0.3).
+2. WHEN a Teacher views a handoff request, THE Platform SHALL display the conversation summary, CLO context, and suggested intervention without revealing the student's identity unless the student has granted consent.
+3. THE Teacher SHALL be able to respond to a handoff request by sending a message to the student through the platform's existing notification system.
+4. WHEN a Teacher responds to a handoff request, THE Platform SHALL mark the request as resolved and log the response in the `teacher_handoff_requests` table.
+
+---
+
+#### Requirement 32: AI Tutor Effectiveness Metrics for Teachers
+
+**User Story:** As a Teacher, I want to see which topics the AI Tutor handles well and which it struggles with, so that I can upload additional materials to improve coverage.
+
+##### Acceptance Criteria
+
+1. THE Tutor_Analytics dashboard SHALL include a "Coverage Gaps" section listing CLOs where the average RAG similarity score across student queries is below 0.75, indicating insufficient course material coverage.
+2. THE Tutor_Analytics dashboard SHALL display a "Material Effectiveness" ranking showing which uploaded course materials are most frequently cited in tutor responses, ordered by citation count.
+3. WHEN a CLO appears in the "Coverage Gaps" list, THE Platform SHALL display a prompt suggesting the Teacher upload additional materials for that CLO.

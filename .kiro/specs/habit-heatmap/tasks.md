@@ -127,3 +127,82 @@
 - [ ] 15.3 Verify parent visibility flow: student enables parent_visibility → parent can see wellness data via RLS
 - [ ] 15.4 Verify CSV export generates correct file with all required columns and summary row
 - [ ] 15.5 Run all property-based tests and unit tests, fix any failures
+
+## Task 16: Habit Difficulty Level Integration — Schema & Utilities
+
+- [ ] 16.1 Add `habit_targets` (jsonb, default '{}'), `reminder_times` (jsonb, default '{}'), and `dismissed_onboarding_tips` (text[], default '{}') columns to `student_wellness_preferences` table via migration
+- [ ] 16.2 Create `src/lib/levelAwareHeatmap.ts` with pure functions: `getLevelAwareIntensityLevel(count, levelMax)`, `getLevelForDate(date, history)`, `computeLevelRelativeConsistencyScore(days, levelHistory, sabbaticalDates)`, `getLevelMaxHabits(level)`
+- [ ] 16.3 Create `src/hooks/useStudentHabitLevel.ts` with `useStudentHabitLevel(studentId)` hook — fetches current level and level history from `student_habit_levels` and `student_habit_level_history` tables
+- [ ] 16.4 Add `LevelProgressionPoint`, `StudentHabitLevel` types to `src/types/habits.ts`
+- [ ] 16.5 Update `HeatmapGrid` component to accept `studentLevel: StudentHabitLevel` prop and use `getLevelAwareIntensityLevel` for cell rendering
+- [ ] 16.6 Update `HeatmapLegend` to dynamically show level-relative labels (e.g., "0/1" to "1/1" for Level 1)
+- [ ] 16.7 Update `useHeatmapData` hook to join level history for per-date level resolution
+
+## Task 17: Level Progression Analytics
+
+- [ ] 17.1 Create `src/components/shared/LevelProgressionChart.tsx` — Recharts StepChart showing level over time with level-up markers
+- [ ] 17.2 Handle single-level case: display horizontal line with "You've been consistent at Level {N}" message
+- [ ] 17.3 Integrate `LevelProgressionChart` into `HabitAnalyticsPage` as a new section
+- [ ] 17.4 Update completion rate charts to use level-relative denominator via `getLevelForDate`
+- [ ] 17.5 Update CSV export to include "level" column per date row
+- [ ] 17.6 Write unit test `src/__tests__/unit/levelProgressionChart.test.tsx`
+
+## Task 18: Streak Recovery & Sabbatical Visualization
+
+- [ ] 18.1 Create `src/hooks/useComebackChallengeStatus.ts` — fetches active Comeback Challenge from `student_gamification` or related table
+- [ ] 18.2 Create `src/hooks/useSabbaticalStatus.ts` — fetches Streak Sabbatical enabled status
+- [ ] 18.3 Create `src/hooks/useStreakMilestones.ts` — computes achieved milestone dates using `detectStreakMilestones` utility
+- [ ] 18.4 Create `src/lib/streakMilestones.ts` with `detectStreakMilestones(days)` pure function
+- [ ] 18.5 Update `HeatmapGrid` to render Comeback Challenge cells with dashed teal-500 border overlay
+- [ ] 18.6 Update `HeatmapGrid` to render Sabbatical rest day cells (Saturday/Sunday) with diagonal stripe pattern when enabled
+- [ ] 18.7 Update `HeatmapGrid` to render milestone markers (star icon) at 30/60/100-day streak cells
+- [ ] 18.8 Update `HeatmapTooltip` to show "Comeback Day N/3" label for challenge days
+- [ ] 18.9 Update `HeatmapTooltip` to show "Rest Day (Sabbatical)" for sabbatical weekend cells
+- [ ] 18.10 Update `HeatmapTooltip` to show milestone label (e.g., "30-Day Streak Milestone 🎉") for milestone cells
+- [ ] 18.11 Update `HeatmapSummaryStats` to exclude sabbatical days from total possible days denominator
+- [ ] 18.12 Write unit tests: `src/__tests__/unit/comebackChallengeOverlay.test.tsx`, `src/__tests__/unit/sabbaticalRestDay.test.tsx`, `src/__tests__/unit/milestoneMarker.test.tsx`
+
+## Task 19: Wellness Habit Behavioral Scaffolding
+
+- [ ] 19.1 Create `src/lib/wellnessTips.ts` with curated tip arrays for each wellness habit type (onboarding tips + rotating tips with optional resource URLs)
+- [ ] 19.2 Create `src/hooks/useWellnessTips.ts` with `useCurrentTip(habitType)` and `useDismissOnboardingTip` mutation
+- [ ] 19.3 Create `src/components/shared/WellnessTipCard.tsx` — displays tip text, optional resource link, dismiss button for onboarding tips
+- [ ] 19.4 Create `src/hooks/useWellnessReminders.ts` with reminder time CRUD and notification trigger logic
+- [ ] 19.5 Create `src/components/shared/WellnessReminderSettings.tsx` — time picker per habit with enable/disable toggle
+- [ ] 19.6 Create `src/hooks/useWellnessGoals.ts` with target CRUD and daily progress computation
+- [ ] 19.7 Create `src/components/shared/WellnessGoalInput.tsx` — target value input with unit label, progress bar, completion indicator
+- [ ] 19.8 Integrate `WellnessTipCard` into wellness section of `HabitHeatmapPage` (show onboarding on first enable, rotating tip thereafter)
+- [ ] 19.9 Integrate `WellnessReminderSettings` and `WellnessGoalInput` into the Wellness_Preferences panel
+- [ ] 19.10 Update `WellnessHabitLogger` to show progress toward daily target when a target is set
+- [ ] 19.11 Update `HabitAnalyticsPage` to show target achievement rates for habits with set targets
+- [ ] 19.12 Write unit tests: `src/__tests__/unit/wellnessTipCard.test.tsx`, `src/__tests__/unit/wellnessGoalInput.test.tsx`, `src/__tests__/unit/wellnessReminderSettings.test.tsx`
+
+## Task 20: Correlation Confidence & Disclaimer
+
+- [ ] 20.1 Create `src/lib/correlationConfidence.ts` with `getCorrelationConfidenceLevel(dataPointCount)` pure function
+- [ ] 20.2 Add `CorrelationConfidenceLevel`, `CorrelationInsightWithConfidence` types to `src/types/habits.ts`
+- [ ] 20.3 Update `compute-habit-correlations` Edge Function: increase minimum threshold to 30 days, add `confidenceLevel` and `dataPointCount` fields to response, return `daysUntilReady` for 14-29 day range
+- [ ] 20.4 Create `src/components/shared/CorrelationConfidenceBadge.tsx` — badge with tier-specific colors (amber for early, blue for emerging, green for strong)
+- [ ] 20.5 Create `src/components/shared/CorrelationDisclaimer.tsx` — persistent info banner with disclaimer text
+- [ ] 20.6 Update `CorrelationInsightCard` to include `CorrelationConfidenceBadge`
+- [ ] 20.7 Update `HabitAnalyticsPage` correlation section: add `CorrelationDisclaimer`, update insufficient data messages for 14-29 day and <14 day ranges
+- [ ] 20.8 Write unit tests: `src/__tests__/unit/correlationConfidenceBadge.test.tsx`
+
+## Task 21: Property Tests for New Features
+
+- [ ] 21.1 Create `src/__tests__/properties/habitLevelIntegration.property.test.ts` with property tests for Properties 27–29, 36 (level-aware intensity, level-relative consistency, milestones, level progression)
+- [ ] 21.2 Create `src/__tests__/properties/habitStreakRecovery.property.test.ts` with property tests for Properties 34–35 (comeback challenge cells, sabbatical rest days)
+- [ ] 21.3 Create `src/__tests__/properties/habitWellnessScaffolding.property.test.ts` with property tests for Properties 32–33 (tip rotation, target progress)
+- [ ] 21.4 Create `src/__tests__/properties/habitCorrelationConfidence.property.test.ts` with property tests for Properties 30–31 (confidence levels, minimum threshold)
+
+## Task 22: Integration & Verification for New Features
+
+- [ ] 22.1 Verify level-aware heatmap rendering: Level 1 student with 1 habit shows full intensity; Level 4 student with 1 habit shows level-1 intensity
+- [ ] 22.2 Verify Comeback Challenge overlay renders correctly on active challenge days and disappears after completion
+- [ ] 22.3 Verify Sabbatical rest days exclude from consistency calculations and show correct tooltip
+- [ ] 22.4 Verify milestone markers appear at correct streak achievement dates
+- [ ] 22.5 Verify wellness tip rotation changes weekly and onboarding tip dismissal persists
+- [ ] 22.6 Verify wellness reminders fire only when habit not yet logged for the day
+- [ ] 22.7 Verify wellness goal progress displays correctly and target met triggers completion indicator
+- [ ] 22.8 Verify correlation insights show confidence badges and disclaimer, with correct threshold messaging for <14, 14-29, and 30+ day ranges
+- [ ] 22.9 Run all new property-based tests and unit tests, fix any failures

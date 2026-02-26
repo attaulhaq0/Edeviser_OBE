@@ -12,6 +12,10 @@ This design covers the Habit Heatmap Visualization & Wellness Habits feature for
 6. A Habit Analytics Dashboard with weekly/monthly completion rate charts, consistency score, best-day-of-week analysis, correlation insights, and CSV export
 7. Three new badges (Habit Master, Wellness Warrior, Full Spectrum) integrated into the existing `check-badges` Edge Function
 8. A `compute-habit-correlations` Edge Function for analyzing co-occurrence patterns between habits and academic events
+9. Level-aware heatmap rendering that adapts cell intensity and analytics to the student's current Habit Difficulty Level (from edeviser-platform)
+10. Streak recovery and sabbatical visual indicators on the heatmap to reduce burnout from streak breaks
+11. Wellness habit micro-guidance, configurable reminders, and personal goal setting to scaffold behavior change
+12. Confidence-level indicators on correlation insights to prevent misleading conclusions from small sample sizes
 
 The system integrates with the existing Supabase backend (PostgreSQL + RLS, Edge Functions), TanStack Query hooks, gamification engine (XP, streaks, badges), and the student dashboard. All new tables follow the append-only pattern for logs and enforce RLS scoped by role and privacy settings.
 
@@ -29,6 +33,16 @@ The system integrates with the existing Supabase backend (PostgreSQL + RLS, Edge
 | CSV export | Client-side generation from cached TanStack Query data | No Edge Function needed; data already fetched for analytics display |
 | Wellness XP | Lookup `institution_settings.wellness_xp_amount` in `award-xp` Edge Function | Reuses existing XP pipeline; admin-configurable; respects bonus multipliers |
 | Mobile heatmap | Horizontal scroll with fixed cell size (min 12px) | Preserves readability; standard pattern for wide grids on mobile |
+| Level-aware intensity | Fetch student's Habit Difficulty Level and normalize cell intensity to level max | A Level 1 student completing 1/1 habit sees full intensity — avoids demotivation from always-dim cells |
+| Level history tracking | Join `student_habit_level_history` by date for historical rendering | Ensures mid-semester level changes render correctly per-day |
+| Streak recovery cells | CSS border overlay (dashed teal-500) on Comeback Challenge days | Lightweight visual treatment; no extra SVG elements; accessible via ARIA |
+| Sabbatical rest days | Diagonal stripe pattern via CSS background-image | Distinct from empty cells; communicates intentional rest; no interaction needed |
+| Milestone markers | Small star icon positioned absolute in cell top-right | Non-obstructive; only shown for achieved milestones |
+| Wellness micro-guidance | Curated tip arrays in `src/lib/wellnessTips.ts` (static data) | No database table needed; tips rotate weekly via date-based index |
+| Wellness reminders | In-app notifications via existing notification system | No push notification infrastructure needed; respects existing notification patterns |
+| Wellness goal targets | Stored in `student_wellness_preferences.habit_targets` JSONB column | Avoids new table; targets are per-student per-habit |
+| Correlation confidence | 3-tier system (30-59, 60-89, 90+ days) | Aligns with statistical reliability; clear visual hierarchy |
+| Correlation minimum threshold | 30 days (up from 14) | 14 days too unreliable; 30 days provides meaningful sample size |
 
 ## Architecture
 
@@ -133,6 +147,15 @@ sequenceDiagram
 | `BestDayChart` | `src/components/shared/BestDayChart.tsx` | `data: DayOfWeekData[]` |
 | `CorrelationInsightCard` | `src/components/shared/CorrelationInsightCard.tsx` | `insight: CorrelationInsight` |
 | `HabitMobileBottomSheet` | `src/components/shared/HabitMobileBottomSheet.tsx` | `date: string`, `habits: CompletedHabit[]`, `open: boolean`, `onClose: () => void` |
+| `LevelProgressionChart` | `src/components/shared/LevelProgressionChart.tsx` | `data: LevelProgressionPoint[]`, `currentLevel: number` |
+| `ComebackChallengeOverlay` | Internal to HeatmapCell | `day: number`, `total: number` |
+| `SabbaticalRestDayCell` | Internal to HeatmapGrid | `date: string` |
+| `MilestoneMarker` | Internal to HeatmapGrid | `milestone: 30 \| 60 \| 100` |
+| `WellnessTipCard` | `src/components/shared/WellnessTipCard.tsx` | `habit: WellnessHabitType`, `tip: WellnessTip`, `isOnboarding: boolean`, `onDismiss: () => void` |
+| `WellnessReminderSettings` | `src/components/shared/WellnessReminderSettings.tsx` | `habit: WellnessHabitType`, `reminderTime: string \| null`, `onChange: (time: string \| null) => void` |
+| `WellnessGoalInput` | `src/components/shared/WellnessGoalInput.tsx` | `habit: WellnessHabitType`, `target: WellnessTarget \| null`, `progress: number`, `onSave: (target: WellnessTarget) => void` |
+| `CorrelationConfidenceBadge` | `src/components/shared/CorrelationConfidenceBadge.tsx` | `level: CorrelationConfidenceLevel`, `dayCount: number` |
+| `CorrelationDisclaimer` | `src/components/shared/CorrelationDisclaimer.tsx` | (no props) |
 
 ### New Hooks
 
@@ -146,6 +169,13 @@ sequenceDiagram
 | `useHabitCorrelations` | `src/hooks/useHabitCorrelations.ts` | Invoke compute-habit-correlations Edge Function |
 | `useHabitExport` | `src/hooks/useHabitExport.ts` | Generate and download CSV report from cached data |
 | `useHeatmapSummary` | `src/hooks/useHeatmapData.ts` | Compute current streak, longest streak, total active days |
+| `useStudentHabitLevel` | `src/hooks/useStudentHabitLevel.ts` | Fetch student's current Habit Difficulty Level and level history for the semester |
+| `useWellnessTips` | `src/hooks/useWellnessTips.ts` | Get current rotating tip for each enabled wellness habit; track dismissed onboarding tips |
+| `useWellnessReminders` | `src/hooks/useWellnessReminders.ts` | CRUD for wellness habit reminder times; trigger in-app notifications |
+| `useWellnessGoals` | `src/hooks/useWellnessGoals.ts` | CRUD for wellness habit daily targets; compute daily progress |
+| `useComebackChallengeStatus` | `src/hooks/useComebackChallengeStatus.ts` | Fetch active Comeback Challenge status for heatmap overlay rendering |
+| `useSabbaticalStatus` | `src/hooks/useSabbaticalStatus.ts` | Fetch Streak Sabbatical enabled status for rest day rendering |
+| `useStreakMilestones` | `src/hooks/useStreakMilestones.ts` | Compute achieved streak milestone dates within semester range |
 
 ### New Edge Functions
 
@@ -195,6 +225,9 @@ Indexes:
 | `student_id` | `uuid` | FK → `profiles.id`, UNIQUE, NOT NULL | One preferences record per student |
 | `enabled_habits` | `text[]` | NOT NULL, default `'{}'` | Subset of ['meditation', 'hydration', 'exercise', 'sleep'] |
 | `parent_visibility` | `boolean` | NOT NULL, default `false` | Whether linked parents can view wellness data |
+| `habit_targets` | `jsonb` | NOT NULL, default `'{}'` | Per-habit daily targets, e.g., `{"meditation": {"value": 10, "unit": "min"}}` |
+| `reminder_times` | `jsonb` | NOT NULL, default `'{}'` | Per-habit reminder times, e.g., `{"meditation": "08:00", "sleep": "22:00"}` |
+| `dismissed_onboarding_tips` | `text[]` | NOT NULL, default `'{}'` | Wellness habit types whose onboarding tips have been dismissed |
 | `created_at` | `timestamptz` | NOT NULL, default `now()` | Record creation time |
 | `updated_at` | `timestamptz` | NOT NULL, default `now()` | Last update time |
 
@@ -396,6 +429,65 @@ export interface DateRange {
   start: string; // YYYY-MM-DD
   end: string; // YYYY-MM-DD
 }
+
+// --- Level Integration Types ---
+
+export interface LevelProgressionPoint {
+  date: string; // YYYY-MM-DD
+  level: 1 | 2 | 3 | 4;
+}
+
+export interface StudentHabitLevel {
+  currentLevel: 1 | 2 | 3 | 4;
+  levelHistory: LevelProgressionPoint[];
+  maxHabitsPerDay: number; // derived from currentLevel
+}
+
+// --- Streak Recovery Types ---
+
+export interface ComebackChallengeStatus {
+  active: boolean;
+  currentDay: number; // 0 if not active, 1-3 if active
+  totalDays: 3;
+  startDate: string | null;
+}
+
+export interface StreakMilestone {
+  days: 30 | 60 | 100;
+  achievedDate: string; // YYYY-MM-DD
+}
+
+// --- Wellness Scaffolding Types ---
+
+export interface WellnessTip {
+  id: string;
+  habitType: WellnessHabitType;
+  text: string;
+  resourceUrl?: string;
+  resourceLabel?: string;
+  isOnboarding: boolean;
+}
+
+export interface WellnessTarget {
+  habitType: WellnessHabitType;
+  targetValue: number;
+  unit: string; // "min", "glasses", "hours"
+}
+
+export interface WellnessReminderConfig {
+  habitType: WellnessHabitType;
+  reminderTime: string | null; // HH:mm format or null if disabled
+  enabled: boolean;
+}
+
+// --- Correlation Confidence Types ---
+
+export type CorrelationConfidenceLevel = 'early_pattern' | 'emerging_trend' | 'strong_pattern';
+
+export interface CorrelationInsightWithConfidence extends CorrelationInsight {
+  confidenceLevel: CorrelationConfidenceLevel;
+  dataPointCount: number;
+}
 ```
 
 ### Heatmap Data Query
@@ -469,6 +561,101 @@ export function computeCompletionRate(
   const totalPossible = possiblePerDay * daysInPeriod;
   if (totalPossible === 0) return 0;
   return Math.round((totalCompleted / totalPossible) * 100);
+}
+
+### Level-Aware Intensity Computation
+
+```typescript
+export function getLevelAwareIntensityLevel(
+  count: number,
+  levelMax: number,
+): number {
+  if (count === 0 || levelMax === 0) return 0;
+  const ratio = count / levelMax;
+  if (ratio <= 0.25) return 1;
+  if (ratio <= 0.5) return 2;
+  if (ratio <= 0.75) return 3;
+  return 4;
+}
+```
+
+### Level-Relative Consistency Score
+
+```typescript
+export function computeLevelRelativeConsistencyScore(
+  days: Array<{ date: string; academicCount: number }>,
+  levelHistory: LevelProgressionPoint[],
+  sabbaticalDates: Set<string>,
+): number {
+  const eligibleDays = days.filter(d => !sabbaticalDates.has(d.date));
+  if (eligibleDays.length === 0) return 0;
+  const fullyCompletedDays = eligibleDays.filter(d => {
+    const levelOnDate = getLevelForDate(d.date, levelHistory);
+    return d.academicCount >= levelOnDate;
+  }).length;
+  return Math.round((fullyCompletedDays / eligibleDays.length) * 100);
+}
+
+function getLevelForDate(date: string, history: LevelProgressionPoint[]): number {
+  // Find the most recent level change on or before the given date
+  let level = 4; // default
+  for (const point of history) {
+    if (point.date <= date) level = point.level;
+  }
+  return level;
+}
+```
+
+### Correlation Confidence Level Computation
+
+```typescript
+export function getCorrelationConfidenceLevel(
+  dataPointCount: number,
+): CorrelationConfidenceLevel | null {
+  if (dataPointCount < 30) return null; // below minimum threshold
+  if (dataPointCount < 60) return 'early_pattern';
+  if (dataPointCount < 90) return 'emerging_trend';
+  return 'strong_pattern';
+}
+```
+
+### Streak Milestone Detection
+
+```typescript
+export function detectStreakMilestones(
+  days: HeatmapDay[],
+): StreakMilestone[] {
+  const milestoneThresholds = [30, 60, 100] as const;
+  const milestones: StreakMilestone[] = [];
+  let consecutiveDays = 0;
+  for (const day of days) {
+    if (day.academicCount > 0) {
+      consecutiveDays++;
+      for (const threshold of milestoneThresholds) {
+        if (consecutiveDays === threshold) {
+          milestones.push({ days: threshold, achievedDate: day.date });
+        }
+      }
+    } else {
+      consecutiveDays = 0;
+    }
+  }
+  return milestones;
+}
+```
+
+### Wellness Tip Rotation
+
+```typescript
+export function getCurrentWellnessTip(
+  habitType: WellnessHabitType,
+  tips: WellnessTip[],
+): WellnessTip | null {
+  const habitTips = tips.filter(t => t.habitType === habitType && !t.isOnboarding);
+  if (habitTips.length === 0) return null;
+  // Rotate weekly based on current week number
+  const weekNumber = Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000));
+  return habitTips[weekNumber % habitTips.length];
 }
 ```
 
@@ -633,6 +820,66 @@ export function computeCompletionRate(
 
 **Validates: Requirements 17.4**
 
+### Property 27: Level-aware intensity normalization
+
+*For any* habit count (≥ 0) and level max (1–4), the level-aware intensity function SHALL return: level 0 for count 0, and for count > 0 SHALL return an intensity proportional to count/levelMax, such that count ≥ levelMax always produces intensity level 4 (full). A Level 1 student with 1 habit SHALL get the same intensity as a Level 4 student with 4 habits.
+
+**Validates: Requirements 22.2, 22.3**
+
+### Property 28: Level-relative consistency score excludes sabbatical days
+
+*For any* set of daily habit data, level history, and set of sabbatical dates, the level-relative consistency score SHALL: (a) exclude sabbatical dates from both numerator and denominator, (b) count a day as "fully completed" only when academicCount ≥ the level active on that date, (c) return a value in [0, 100], and (d) return 0 when all days are sabbatical days.
+
+**Validates: Requirements 24.1, 24.2, 24.3, 26.3**
+
+### Property 29: Streak milestone detection
+
+*For any* sorted sequence of daily habit data, the milestone detection function SHALL return milestones only at exactly 30, 60, and 100 consecutive active days. Each milestone SHALL appear at most once. The milestone's achievedDate SHALL correspond to the Nth consecutive active day. No milestones SHALL be returned for streaks shorter than 30 days.
+
+**Validates: Requirements 27.1, 27.4**
+
+### Property 30: Correlation confidence level mapping
+
+*For any* non-negative integer data point count, the confidence level function SHALL return: null for count < 30, "early_pattern" for 30 ≤ count < 60, "emerging_trend" for 60 ≤ count < 90, and "strong_pattern" for count ≥ 90.
+
+**Validates: Requirements 31.1, 32.1**
+
+### Property 31: Correlation minimum threshold enforcement
+
+*For any* student with fewer than 30 days of habit data, the `compute-habit-correlations` Edge Function SHALL return an empty insights array with an `insufficient_data: true` flag. For students with 14–29 days, the response SHALL include `daysUntilReady` equal to 30 minus the current day count.
+
+**Validates: Requirements 31.1, 31.2, 31.3**
+
+### Property 32: Wellness tip rotation determinism
+
+*For any* wellness habit type and non-empty array of tips for that type, the tip rotation function SHALL return a valid tip from the array. For the same calendar week, the function SHALL always return the same tip (deterministic). The selected tip index SHALL equal `weekNumber % tipCount`.
+
+**Validates: Requirements 28.2**
+
+### Property 33: Wellness target progress computation
+
+*For any* wellness target (targetValue > 0) and logged value (≥ 0), the progress percentage SHALL equal `min(round((loggedValue / targetValue) × 100), 100)`. When targetValue is 0 or no target is set, progress SHALL be 100 if any value is logged, 0 otherwise.
+
+**Validates: Requirements 30.2, 30.5**
+
+### Property 34: Comeback Challenge cell identification
+
+*For any* set of heatmap days and an active Comeback Challenge with a start date, the cells between startDate and startDate + 2 days (inclusive) SHALL be marked as comeback challenge cells. Cells outside this range SHALL NOT be marked. When no Comeback Challenge is active, no cells SHALL be marked.
+
+**Validates: Requirements 25.1, 25.2**
+
+### Property 35: Sabbatical rest day identification
+
+*For any* set of heatmap days and sabbatical enabled = true, all Saturday and Sunday cells SHALL be marked as rest days. When sabbatical is disabled, no cells SHALL be marked as rest days. Rest day cells SHALL have a distinct visual state and SHALL NOT count as "missed" days.
+
+**Validates: Requirements 26.1, 26.2**
+
+### Property 36: Level progression chart data
+
+*For any* level history with at least one entry, the level progression chart data SHALL contain one point per level change, sorted by date ascending. All level values SHALL be in [1, 4]. When the history contains a single entry, the chart SHALL render a horizontal line at that level.
+
+**Validates: Requirements 23.1, 23.2, 23.3**
+
 ## Error Handling
 
 | Scenario | Handling | User Feedback |
@@ -648,6 +895,11 @@ export function computeCompletionRate(
 | CSV export fails (data too large) | Catch error in client-side generation | Sonner error toast: "Export failed. Try a shorter date range." |
 | Wellness XP config out of range (0–25) | Zod validation on admin form | Form field error: "Must be between 0 and 25" |
 | Semester range not configured | Fall back to current calendar year | Show info banner: "Semester dates not configured — showing current year" |
+| Student habit level fetch fails | Default to Level 4 (full set) | Console.error logged; heatmap renders with standard 4-habit intensity |
+| Comeback Challenge status fetch fails | Render cells without overlay | Console.error logged; no visual disruption |
+| Wellness reminder notification fails | Log error, skip notification | No user-facing error; retry on next scheduled check |
+| Wellness tip data missing | Hide tip card section | No error shown; section simply not rendered |
+| Level history empty | Default to Level 4 for all dates | Heatmap renders with standard intensity; level chart shows single line at Level 4 |
 
 ### Error Boundaries
 
@@ -667,6 +919,10 @@ Each property from the Correctness Properties section maps to a single property-
 | `wellnessHabits.property.test.ts` | Properties 11–16, 26 (wellness preferences, logging, Perfect Day, XP) |
 | `habitAnalytics.property.test.ts` | Properties 17–21 (completion rates, consistency, day-of-week, correlations, CSV) |
 | `habitBadges.property.test.ts` | Properties 22–24 (Habit Master, Wellness Warrior, Full Spectrum) |
+| `habitLevelIntegration.property.test.ts` | Properties 27–29, 36 (level-aware intensity, level-relative consistency, milestones, level progression) |
+| `habitStreakRecovery.property.test.ts` | Properties 34–35 (comeback challenge cells, sabbatical rest days) |
+| `habitWellnessScaffolding.property.test.ts` | Properties 32–33 (tip rotation, target progress) |
+| `habitCorrelationConfidence.property.test.ts` | Properties 30–31 (confidence levels, minimum threshold) |
 
 Property test tag format: `// Feature: habit-heatmap, Property N: {property_text}`
 
@@ -681,6 +937,14 @@ Property test tag format: `// Feature: habit-heatmap, Property N: {property_text
 | `habitAnalyticsPage.test.tsx` | Analytics page rendering, chart presence, export button |
 | `habitExport.test.ts` | CSV generation: header row, data rows, summary row format |
 | `correlationInsightCard.test.tsx` | Insight card rendering, language validation |
+| `levelProgressionChart.test.tsx` | Level progression chart rendering, single-level message, level-up markers |
+| `wellnessTipCard.test.tsx` | Tip card rendering, onboarding vs rotating, dismiss action, resource link |
+| `wellnessGoalInput.test.tsx` | Goal input rendering, progress display, target met indicator |
+| `wellnessReminderSettings.test.tsx` | Reminder time picker, enable/disable, already-logged suppression |
+| `correlationConfidenceBadge.test.tsx` | Badge rendering for each confidence level, correct color styling |
+| `comebackChallengeOverlay.test.tsx` | Overlay rendering on comeback days, tooltip label |
+| `sabbaticalRestDay.test.tsx` | Rest day cell rendering, tooltip text, exclusion from stats |
+| `milestoneMarker.test.tsx` | Milestone icon rendering at correct cells, tooltip label |
 
 ### Testing Library
 
