@@ -133,3 +133,144 @@
 - [ ] 13.7 `src/__tests__/unit/saleEventForm.test.tsx` — Sale event form validation, date range
 - [ ] 13.8 `src/__tests__/unit/processPurchase.test.ts` — Edge Function: success path, each error code
 - [ ] 13.9 `src/__tests__/unit/awardXpBoost.test.ts` — Modified award-xp: boost lookup, multiplier, metadata
+
+
+## 14. Database Schema — Creative Expression & Unpredictability (Gap 1)
+
+- [ ] 14.1 Create migration: `student_content` table with content_type enum, status enum, reviewer fields, and indexes
+- [ ] 14.2 Create migration: `knowledge_quests` table with quest_type enum, reward fields, date range constraint, and indexes
+- [ ] 14.3 Create migration: `student_quest_progress` table with unique constraint on (student_id, quest_id)
+- [ ] 14.4 Create migration: RLS policies for `student_content`, `knowledge_quests`, `student_quest_progress`
+- [ ] 14.5 Add Zod schemas to `src/lib/marketplaceSchemas.ts`: `createKnowledgeQuestSchema`, `createStudentContentSchema`, `reviewStudentContentSchema`
+
+## 15. Database Schema — XP Economy Health (Gap 2)
+
+- [ ] 15.1 Create migration: add `dynamic_price_override` column to `marketplace_items`
+- [ ] 15.2 Create migration: `class_donations` table with goal tracking and status
+- [ ] 15.3 Create migration: `class_donation_contributions` table with FK to donations and xp_purchases
+- [ ] 15.4 Create migration: `get_earn_spend_ratio` PL/pgSQL function
+- [ ] 15.5 Create migration: `recalculate_dynamic_prices` PL/pgSQL function
+- [ ] 15.6 Create migration: pg_cron job for daily dynamic price recalculation at midnight UTC
+- [ ] 15.7 Create migration: RLS policies for `class_donations`, `class_donation_contributions`
+- [ ] 15.8 Add Zod schemas to `src/lib/marketplaceSchemas.ts`: `classDonationSchema`, `classDonationContributionSchema`, `bonusQuestionProbabilitySchema`, `mysteryBoxProbabilitySchema`
+
+## 16. Database Schema — Inclusive Leaderboard (Gap 3)
+
+- [ ] 16.1 Create migration: add `league_tier` column (enum: bronze, silver, gold, diamond) to `student_gamification`
+- [ ] 16.2 Create migration: `recalculate_league_tiers` PL/pgSQL function
+- [ ] 16.3 Create migration: pg_cron job for weekly league tier recalculation (Sunday midnight UTC)
+
+## 17. Database Schema — Badge Progression (Gap 4)
+
+- [ ] 17.1 Create migration: add `tier` column (enum: bronze, silver, gold) to `student_badges`
+- [ ] 17.2 Create migration: add `tier_conditions` (jsonb) and `is_archived` (boolean) columns to `badge_definitions`
+- [ ] 17.3 Create migration: `get_badge_spotlight` PL/pgSQL function (deterministic rotation)
+
+## 18. Shared Library Code — Gap Analysis Features
+
+- [ ] 18.1 Create `src/lib/dynamicPricingCalculator.ts` — Pure function: compute dynamic price from demand score and base price with bounds (50%–150%)
+- [ ] 18.2 Create `src/lib/earnSpendRatioCalculator.ts` — Pure function: compute earn/spend ratio and inflation status (healthy/inflationary/deflationary)
+- [ ] 18.3 Create `src/lib/leagueTierCalculator.ts` — Pure function: assign league tiers from XP percentiles (Diamond top 5%, Gold top 20%, Silver top 50%, Bronze bottom 50%)
+- [ ] 18.4 Create `src/lib/badgeSpotlightResolver.ts` — Pure function: deterministic badge rotation from student_id hash + week number
+- [ ] 18.5 Create `src/lib/mysteryRewardResolver.ts` — Pure function: resolve mystery box outcome from probability weights (50% 2x XP, 30% cosmetic, 20% boost)
+- [ ] 18.6 Add new query keys to `src/lib/queryKeys.ts` (economist, quests, studentContent, donations, personalBest, mostImproved, leagues, spotlight, dynamicPricing)
+
+## 19. Edge Functions — Gap Analysis Features
+
+- [ ] 19.1 Create `supabase/functions/resolve-mystery-reward/index.ts` — Mystery reward box resolution
+  - [ ] 19.1.1 Probability-weighted outcome selection
+  - [ ] 19.1.2 Cosmetic item grant for cosmetic outcomes
+  - [ ] 19.1.3 Temporary boost activation for boost outcomes
+  - [ ] 19.1.4 XP multiplier application for 2x XP outcomes
+- [ ] 19.2 Create `supabase/functions/check-bonus-question/index.ts` — Bonus question trigger and validation
+  - [ ] 19.2.1 Probability check (configurable 5–30%)
+  - [ ] 19.2.2 CLO-relevant question selection
+  - [ ] 19.2.3 Answer validation and surprise XP award
+- [ ] 19.3 Modify `supabase/functions/award-xp/index.ts` — Add mystery reward box probability check (10% default, configurable 5–20%)
+
+## 20. TanStack Query Hooks — Gap Analysis Features
+
+- [ ] 20.1 Create `src/hooks/useXPEconomist.ts` — Earn/spend ratio, XP velocity, inflation indicator, time-series queries
+- [ ] 20.2 Create `src/hooks/useKnowledgeQuests.ts` — Quest browsing, progress tracking, start/complete mutations
+- [ ] 20.3 Create `src/hooks/useKnowledgeQuestAdmin.ts` — Admin quest CRUD mutations
+- [ ] 20.4 Create `src/hooks/useBonusQuestion.ts` — Bonus question trigger and answer submission mutations
+- [ ] 20.5 Create `src/hooks/useMysteryRewardBox.ts` — Mystery box state and reveal mutation
+- [ ] 20.6 Create `src/hooks/useStudentContent.ts` — Student content creation, listing, teacher review mutations
+- [ ] 20.7 Create `src/hooks/useClassDonations.ts` — Donation campaigns, contribution mutation
+- [ ] 20.8 Create `src/hooks/usePersonalBest.ts` — Personal best leaderboard data (current vs previous week)
+- [ ] 20.9 Create `src/hooks/useMostImproved.ts` — Most improved leaderboard data (4-week delta)
+- [ ] 20.10 Create `src/hooks/useLeagueTiers.ts` — League tier query, league-scoped leaderboard
+- [ ] 20.11 Create `src/hooks/useBadgeSpotlight.ts` — Weekly badge spotlight query
+- [ ] 20.12 Create `src/hooks/useDynamicPricing.ts` — Dynamic price display, admin toggle mutation
+
+## 21. UI — Creative Expression & Unpredictability (Gap 1)
+
+- [ ] 21.1 Create `src/pages/student/marketplace/KnowledgeQuestsTab.tsx` — Quest listing with countdown timers and progress
+- [ ] 21.2 Create `src/pages/student/content/StudentContentPage.tsx` — Student content creation and listing
+- [ ] 21.3 Create `src/pages/student/content/ContentForm.tsx` — Form for study plans, quiz questions, explanation videos
+- [ ] 21.4 Create `src/components/shared/BonusQuestionPopup.tsx` — Random bonus question modal with 30s timer
+- [ ] 21.5 Create `src/components/shared/MysteryRewardBox.tsx` — Unboxing animation with reward reveal
+- [ ] 21.6 Create `src/pages/admin/marketplace/KnowledgeQuestManager.tsx` — Admin quest CRUD with DataTable
+- [ ] 21.7 Create `src/pages/teacher/content/ContentReviewPage.tsx` — Teacher review queue for student content
+- [ ] 21.8 Add `/student/content` and `/admin/marketplace/quests` routes to AppRouter
+- [ ] 21.9 Add "My Content" nav item to StudentLayout sidebar
+- [ ] 21.10 Add "Knowledge Quests" nav item to AdminLayout marketplace section
+
+## 22. UI — XP Economy Health (Gap 2)
+
+- [ ] 22.1 Create `src/pages/admin/marketplace/XPEconomistDashboard.tsx` — Earn/spend ratio, velocity, inflation indicator, time-series chart
+- [ ] 22.2 Create `src/components/shared/ClassDonationProgress.tsx` — Donation progress bar with goal display
+- [ ] 22.3 Add class donation campaigns section to student marketplace page
+- [ ] 22.4 Add dynamic pricing display (base price + current price) to ItemCard when dynamic pricing is enabled
+- [ ] 22.5 Add dynamic pricing toggle to admin marketplace settings
+- [ ] 22.6 Add `/admin/marketplace/economist` route to AppRouter
+- [ ] 22.7 Add "XP Economist" nav item to AdminLayout marketplace section
+
+## 23. UI — Inclusive Leaderboard (Gap 3)
+
+- [ ] 23.1 Create `src/components/shared/PersonalBestCard.tsx` — Metric comparison card with delta arrows
+- [ ] 23.2 Create `src/components/shared/LeagueTierBadge.tsx` — League tier indicator (Bronze/Silver/Gold/Diamond)
+- [ ] 23.3 Add "Personal Best" tab to LeaderboardPage
+- [ ] 23.4 Add "Most Improved" tab to LeaderboardPage
+- [ ] 23.5 Add "My League" tab to LeaderboardPage showing tier-scoped rankings
+- [ ] 23.6 Modify LeaderboardPage to show percentile bands for students ranked outside top 10
+- [ ] 23.7 Add league tier promotion animation when student moves up a tier
+- [ ] 23.8 Set Personal Best as default leaderboard tab for students who opted out of competitive leaderboard
+
+## 24. UI — Badge Progression (Gap 4)
+
+- [ ] 24.1 Create `src/components/shared/BadgeTierIndicator.tsx` — Bronze/Silver/Gold visual indicator on badges
+- [ ] 24.2 Create `src/components/shared/BadgeSpotlightCard.tsx` — Weekly spotlight card with progress bar
+- [ ] 24.3 Modify BadgeCollection to display tier indicators on all badges
+- [ ] 24.4 Add "Archive" section to BadgeCollection for archived badges
+- [ ] 24.5 Add BadgeSpotlightCard to student dashboard
+- [ ] 24.6 Add badge archive/unarchive actions to admin badge management
+- [ ] 24.7 Modify badge check Edge Function to support tiered progression (Bronze → Silver → Gold)
+- [ ] 24.8 Add spotlight bonus XP (50% extra) when earning the spotlighted badge during spotlight week
+
+## 25. Property-Based Tests — Gap Analysis Features
+
+- [ ] 25.1 `src/__tests__/properties/dynamicPricing.property.test.ts` — P26: bounded adjustment (50%–150% of base)
+- [ ] 25.2 `src/__tests__/properties/earnSpendRatio.property.test.ts` — P27: ratio computation and inflation status
+- [ ] 25.3 `src/__tests__/properties/mysteryReward.property.test.ts` — P28: probability distribution (50/30/20 weights)
+- [ ] 25.4 `src/__tests__/properties/leagueTiers.property.test.ts` — P29: tier assignment from percentiles, P30: percentile band display
+- [ ] 25.5 `src/__tests__/properties/badgeTiers.property.test.ts` — P31: monotonic tier progression, P32: spotlight determinism
+- [ ] 25.6 `src/__tests__/properties/classDonation.property.test.ts` — P33: progress invariant (current_total = SUM contributions)
+- [ ] 25.7 `src/__tests__/properties/knowledgeQuest.property.test.ts` — P34: quest reward exclusivity
+- [ ] 25.8 `src/__tests__/properties/bonusQuestion.property.test.ts` — P35: probability bounds (5–30%)
+- [ ] 25.9 `src/__tests__/properties/personalBest.property.test.ts` — P36: comparison correctness
+- [ ] 25.10 `src/__tests__/properties/badgeArchive.property.test.ts` — P37: archived badge exclusion from spotlight
+
+## 26. Unit Tests — Gap Analysis Features
+
+- [ ] 26.1 `src/__tests__/unit/xpEconomistDashboard.test.tsx` — Earn/spend ratio display, inflation indicator, time-series chart
+- [ ] 26.2 `src/__tests__/unit/dynamicPricingCalculator.test.ts` — Dynamic price computation, bounds enforcement
+- [ ] 26.3 `src/__tests__/unit/bonusQuestionPopup.test.tsx` — Bonus question rendering, timer, answer submission
+- [ ] 26.4 `src/__tests__/unit/mysteryRewardBox.test.tsx` — Unboxing animation, reward display
+- [ ] 26.5 `src/__tests__/unit/knowledgeQuestManager.test.tsx` — Quest CRUD form, date validation
+- [ ] 26.6 `src/__tests__/unit/leagueTierBadge.test.tsx` — Tier badge rendering, promotion animation
+- [ ] 26.7 `src/__tests__/unit/personalBestCard.test.tsx` — Metric comparison, delta arrows
+- [ ] 26.8 `src/__tests__/unit/badgeSpotlightCard.test.tsx` — Spotlight rendering, progress display
+- [ ] 26.9 `src/__tests__/unit/classDonationProgress.test.tsx` — Progress bar, goal completion
+- [ ] 26.10 `src/__tests__/unit/studentContentForm.test.tsx` — Content creation form, type selection
+- [ ] 26.11 `src/__tests__/unit/badgeTierIndicator.test.tsx` — Bronze/Silver/Gold visual rendering

@@ -12,6 +12,10 @@ This design covers the XP Marketplace & Virtual Economy feature for the Edeviser
 6. Power-ups (2x XP boost, streak shield upgrade) that integrate with the existing `award-xp` Edge Function and streak system
 7. Admin Marketplace Management panel for item configuration, sale events, and analytics
 8. Migration of the existing streak freeze (200 XP) into the unified marketplace system
+9. Creative Expression & Knowledge Quests — student-created content, time-limited quests, bonus questions, and mystery reward boxes (Octalysis Core Drives 3, 6, 7)
+10. XP Economist Dashboard with earn/spend ratio monitoring, dynamic pricing, and XP sinks to prevent marketplace inflation
+11. Inclusive Leaderboard System with Personal Best, Most Improved, percentile bands, and league tiers to reduce lower-performer demotivation
+12. Tiered Badge System (Bronze/Silver/Gold) with Badge Spotlight rotation and badge archiving to combat badge fatigue
 
 The system integrates with the existing Supabase backend (PostgreSQL + RLS, Edge Functions, Realtime), TanStack Query hooks, and the existing XP/level/streak/badge subsystems. All new tables follow the append-only pattern for purchase records and enforce RLS scoped by institution and role.
 
@@ -28,6 +32,14 @@ The system integrates with the existing Supabase backend (PostgreSQL + RLS, Edge
 | Profile themes | Predefined CSS custom property overrides per theme | Stays within design system; no arbitrary colors; themes are JSON metadata on `marketplace_items` |
 | Stock management | `stock_quantity` decremented in purchase transaction | Atomic decrement in same transaction as purchase insert prevents overselling |
 | Hint token expiry | Midnight UTC on day of purchase | Simple date comparison; no background job needed for cleanup |
+| Dynamic pricing | pg_cron daily recalculation with bounded adjustments | Prevents runaway prices; admin retains control via enable/disable toggle and bounds |
+| Mystery reward box | Probability-based replacement of standard XP awards | 10% default rate keeps unpredictability without frustrating students expecting XP |
+| League tiers | Weekly recalculation via pg_cron on Sunday midnight UTC | Prevents constant tier churn; gives students a full week to compete within tier |
+| Badge tiers | Bronze → Silver → Gold progression stored in existing student_badges | Reuses existing badge infrastructure; tier column addition is backward-compatible |
+| Badge spotlight | Deterministic rotation via student_id hash | Different students see different badges; no server-side state needed for rotation |
+| Earn/spend ratio | Computed from existing xp_transactions + xp_purchases tables | No new aggregation tables; leverages existing append-only ledgers |
+| Student content | Separate `student_content` table with teacher approval workflow | Keeps user-generated content isolated from official curriculum content |
+| Knowledge quests | Admin-created with exclusive reward items | Exclusive rewards create scarcity (Core Drive 6); quest items not purchasable directly |
 
 ## Architecture
 
@@ -101,12 +113,21 @@ src/
 │   ├── ItemForm.tsx                   # Create/edit marketplace item
 │   ├── SaleEventManager.tsx           # Sale events CRUD
 │   ├── SaleEventForm.tsx              # Create/edit sale event
-│   └── MarketplaceAnalyticsPage.tsx   # Analytics dashboard
+│   ├── MarketplaceAnalyticsPage.tsx   # Analytics dashboard
+│   ├── XPEconomistDashboard.tsx       # Earn/spend ratio, inflation indicators, dynamic pricing
+│   └── KnowledgeQuestManager.tsx      # Knowledge quest CRUD
 ├── components/shared/
 │   ├── XPBalanceBadge.tsx           # Persistent XP balance indicator
 │   ├── CosmeticPreview.tsx          # Theme/frame/title preview
 │   ├── ActiveBoostIndicator.tsx     # Boost countdown timer
-│   └── SaleBadge.tsx                # Sale discount badge
+│   ├── SaleBadge.tsx                # Sale discount badge
+│   ├── BonusQuestionPopup.tsx       # Random bonus question modal
+│   ├── MysteryRewardBox.tsx         # Mystery box unboxing animation
+│   ├── BadgeSpotlightCard.tsx       # Weekly badge spotlight on dashboard
+│   ├── LeagueTierBadge.tsx          # League tier indicator (Bronze/Silver/Gold/Diamond)
+│   ├── PersonalBestCard.tsx         # Personal best comparison card
+│   ├── ClassDonationProgress.tsx    # Class donation progress bar
+│   └── BadgeTierIndicator.tsx       # Bronze/Silver/Gold tier visual on badges
 ├── hooks/
 │   ├── useMarketplace.ts           # Browse items, filtered by category
 │   ├── usePurchase.ts              # Purchase mutation + confirmation
@@ -118,15 +139,34 @@ src/
 │   ├── useDeadlineExtensions.ts    # Deadline extension management
 │   ├── useMarketplaceAdmin.ts      # Admin CRUD for items
 │   ├── useSaleEvents.ts            # Admin sale event management
-│   └── useMarketplaceAnalytics.ts  # Admin analytics queries
+│   ├── useMarketplaceAnalytics.ts  # Admin analytics queries
+│   ├── useXPEconomist.ts           # Earn/spend ratio, inflation indicators
+│   ├── useKnowledgeQuests.ts       # Knowledge quest browsing + progress
+│   ├── useKnowledgeQuestAdmin.ts   # Admin quest CRUD
+│   ├── useBonusQuestion.ts         # Bonus question trigger + submission
+│   ├── useMysteryRewardBox.ts      # Mystery box state + reveal
+│   ├── useStudentContent.ts        # Student content creation + listing
+│   ├── useClassDonations.ts        # Class donation campaigns
+│   ├── usePersonalBest.ts          # Personal best leaderboard data
+│   ├── useMostImproved.ts          # Most improved leaderboard data
+│   ├── useLeagueTiers.ts           # League tier assignment + leaderboard
+│   ├── useBadgeSpotlight.ts        # Weekly badge spotlight
+│   └── useDynamicPricing.ts        # Dynamic pricing display + admin config
 ├── lib/
 │   ├── marketplaceSchemas.ts       # Zod schemas for all marketplace payloads
 │   ├── xpBalanceCalculator.ts      # Pure function: compute balance from transactions
 │   ├── salePriceCalculator.ts      # Pure function: apply discount to item price
 │   ├── purchaseValidator.ts        # Pure function: validate purchase eligibility
-│   └── themeResolver.ts            # Pure function: resolve CSS vars from theme metadata
+│   ├── themeResolver.ts            # Pure function: resolve CSS vars from theme metadata
+│   ├── dynamicPricingCalculator.ts # Pure function: compute dynamic price from demand score
+│   ├── earnSpendRatioCalculator.ts # Pure function: compute earn/spend ratio and inflation status
+│   ├── leagueTierCalculator.ts     # Pure function: assign league tiers from XP percentiles
+│   ├── badgeSpotlightResolver.ts   # Pure function: deterministic badge rotation from student_id + week
+│   └── mysteryRewardResolver.ts    # Pure function: resolve mystery box outcome from probability weights
 supabase/functions/
 ├── process-purchase/index.ts       # Atomic purchase processor Edge Function
+├── resolve-mystery-reward/index.ts # Mystery reward box resolution Edge Function
+├── check-bonus-question/index.ts   # Bonus question trigger + validation Edge Function
 └── (existing) award-xp/index.ts    # Modified to check student_active_boosts
 ```
 
@@ -435,6 +475,57 @@ export const useCancelSaleEvent = () => useMutation({...});
 
 // useMarketplaceAnalytics.ts
 export const useMarketplaceAnalytics = () => useQuery({...});
+
+// useXPEconomist.ts
+export const useEarnSpendRatio = () => useQuery({...});
+export const useXPVelocity = () => useQuery({...});
+export const useInflationIndicator = () => useQuery({...});
+export const useEarnSpendTimeSeries = (weeks: number) => useQuery({...});
+
+// useKnowledgeQuests.ts
+export const useKnowledgeQuests = (status?: string) => useQuery({...});
+export const useQuestProgress = (questId: string) => useQuery({...});
+export const useStartQuest = () => useMutation({...});
+export const useCompleteQuest = () => useMutation({...});
+
+// useKnowledgeQuestAdmin.ts
+export const useAdminKnowledgeQuests = () => useQuery({...});
+export const useCreateKnowledgeQuest = () => useMutation({...});
+export const useUpdateKnowledgeQuest = () => useMutation({...});
+
+// useBonusQuestion.ts
+export const useTriggerBonusQuestion = () => useMutation({...});
+export const useSubmitBonusAnswer = () => useMutation({...});
+
+// useMysteryRewardBox.ts
+export const useResolveMysteryReward = () => useMutation({...});
+
+// useStudentContent.ts
+export const useStudentContent = (studentId: string) => useQuery({...});
+export const useCreateStudentContent = () => useMutation({...});
+export const useReviewStudentContent = () => useMutation({...}); // teacher action
+
+// useClassDonations.ts
+export const useClassDonations = (courseId: string) => useQuery({...});
+export const useContributeToDonation = () => useMutation({...});
+export const useCreateClassDonation = () => useMutation({...}); // admin action
+
+// usePersonalBest.ts
+export const usePersonalBest = (studentId: string) => useQuery({...});
+
+// useMostImproved.ts
+export const useMostImproved = (courseId?: string) => useQuery({...});
+
+// useLeagueTiers.ts
+export const useLeagueTier = (studentId: string) => useQuery({...});
+export const useLeagueLeaderboard = (tier: string) => useQuery({...});
+
+// useBadgeSpotlight.ts
+export const useBadgeSpotlight = (studentId: string) => useQuery({...});
+
+// useDynamicPricing.ts
+export const useDynamicPrices = () => useQuery({...});
+export const useToggleDynamicPricing = () => useMutation({...}); // admin action
 ```
 
 ### Zod Schemas
@@ -493,6 +584,59 @@ export type UpdateMarketplaceItemInput = z.infer<typeof updateMarketplaceItemSch
 export type CreateSaleEventInput = z.infer<typeof createSaleEventSchema>;
 export type PurchaseRequestInput = z.infer<typeof purchaseRequestSchema>;
 export type DeadlineExtensionInput = z.infer<typeof deadlineExtensionSchema>;
+
+// ── New schemas for gap analysis features ──────────────────────
+
+export const createKnowledgeQuestSchema = z.object({
+  title: z.string().min(1).max(200),
+  description: z.string().min(1),
+  quest_type: z.enum(['quiz_challenge', 'content_creation', 'peer_review']),
+  target_clo_ids: z.array(z.string().uuid()).default([]),
+  start_date: z.string().datetime(),
+  end_date: z.string().datetime(),
+  reward_type: z.enum(['item', 'xp']),
+  reward_item_id: z.string().uuid().nullable().default(null),
+  reward_xp_amount: z.number().int().positive().nullable().default(null),
+}).refine(
+  (data) => new Date(data.end_date) > new Date(data.start_date),
+  { message: 'End date must be after start date' }
+).refine(
+  (data) => (data.reward_type === 'item' && data.reward_item_id) || (data.reward_type === 'xp' && data.reward_xp_amount),
+  { message: 'Must specify reward_item_id for item rewards or reward_xp_amount for XP rewards' }
+);
+
+export const createStudentContentSchema = z.object({
+  content_type: z.enum(['study_plan', 'quiz_question', 'explanation_video']),
+  clo_id: z.string().uuid().nullable().default(null),
+  title: z.string().min(1).max(200),
+  content_data: z.record(z.unknown()),
+});
+
+export const reviewStudentContentSchema = z.object({
+  content_id: z.string().uuid(),
+  status: z.enum(['approved', 'rejected']),
+  feedback: z.string().max(1000).optional(),
+});
+
+export const classDonationSchema = z.object({
+  course_id: z.string().uuid(),
+  resource_description: z.string().min(1).max(500),
+  goal_amount: z.number().int().min(100).max(10000),
+});
+
+export const classDonationContributionSchema = z.object({
+  donation_id: z.string().uuid(),
+  xp_amount: z.number().int().positive(),
+});
+
+export const bonusQuestionProbabilitySchema = z.number().int().min(5).max(30);
+export const mysteryBoxProbabilitySchema = z.number().int().min(5).max(20);
+
+export type CreateKnowledgeQuestInput = z.infer<typeof createKnowledgeQuestSchema>;
+export type CreateStudentContentInput = z.infer<typeof createStudentContentSchema>;
+export type ReviewStudentContentInput = z.infer<typeof reviewStudentContentSchema>;
+export type ClassDonationInput = z.infer<typeof classDonationSchema>;
+export type ClassDonationContributionInput = z.infer<typeof classDonationContributionSchema>;
 ```
 
 
@@ -627,6 +771,118 @@ CREATE TABLE deadline_extensions (
 
 CREATE INDEX idx_deadline_ext_student ON deadline_extensions (student_id);
 CREATE INDEX idx_deadline_ext_assignment ON deadline_extensions (assignment_id);
+
+-- ============================================================
+-- student_content — Student-created learning content
+-- ============================================================
+CREATE TABLE student_content (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  institution_id UUID NOT NULL REFERENCES institutions(id),
+  student_id UUID NOT NULL REFERENCES profiles(id),
+  content_type VARCHAR(30) NOT NULL CHECK (content_type IN ('study_plan', 'quiz_question', 'explanation_video')),
+  clo_id UUID REFERENCES clos(id),
+  title VARCHAR(200) NOT NULL,
+  content_data JSONB NOT NULL DEFAULT '{}',
+  status VARCHAR(20) NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'submitted', 'approved', 'rejected')),
+  reviewer_id UUID REFERENCES profiles(id),
+  reviewer_feedback TEXT,
+  reviewed_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_student_content_student ON student_content (student_id, status);
+CREATE INDEX idx_student_content_institution ON student_content (institution_id, status);
+
+-- ============================================================
+-- knowledge_quests — Time-limited learning challenges
+-- ============================================================
+CREATE TABLE knowledge_quests (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  institution_id UUID NOT NULL REFERENCES institutions(id),
+  title VARCHAR(200) NOT NULL,
+  description TEXT NOT NULL,
+  quest_type VARCHAR(30) NOT NULL CHECK (quest_type IN ('quiz_challenge', 'content_creation', 'peer_review')),
+  target_clo_ids UUID[] DEFAULT '{}',
+  start_date TIMESTAMPTZ NOT NULL,
+  end_date TIMESTAMPTZ NOT NULL,
+  reward_type VARCHAR(10) NOT NULL CHECK (reward_type IN ('item', 'xp')),
+  reward_item_id UUID REFERENCES marketplace_items(id),
+  reward_xp_amount INTEGER CHECK (reward_xp_amount > 0 OR reward_type = 'item'),
+  created_by UUID NOT NULL REFERENCES profiles(id),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT valid_quest_dates CHECK (end_date > start_date)
+);
+
+CREATE INDEX idx_knowledge_quests_institution ON knowledge_quests (institution_id, start_date, end_date);
+
+-- ============================================================
+-- student_quest_progress — Student progress on knowledge quests
+-- ============================================================
+CREATE TABLE student_quest_progress (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  student_id UUID NOT NULL REFERENCES profiles(id),
+  quest_id UUID NOT NULL REFERENCES knowledge_quests(id),
+  status VARCHAR(20) NOT NULL DEFAULT 'in_progress' CHECK (status IN ('in_progress', 'completed', 'expired')),
+  started_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  completed_at TIMESTAMPTZ,
+  UNIQUE (student_id, quest_id)
+);
+
+CREATE INDEX idx_quest_progress_student ON student_quest_progress (student_id, status);
+
+-- ============================================================
+-- class_donations — XP sink: class-wide resource unlocks
+-- ============================================================
+CREATE TABLE class_donations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  institution_id UUID NOT NULL REFERENCES institutions(id),
+  course_id UUID NOT NULL REFERENCES courses(id),
+  resource_description TEXT NOT NULL,
+  goal_amount INTEGER NOT NULL CHECK (goal_amount > 0),
+  current_total INTEGER NOT NULL DEFAULT 0 CHECK (current_total >= 0),
+  status VARCHAR(20) NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'completed')),
+  created_by UUID NOT NULL REFERENCES profiles(id),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_class_donations_course ON class_donations (course_id, status);
+
+-- ============================================================
+-- class_donation_contributions — Individual student contributions
+-- ============================================================
+CREATE TABLE class_donation_contributions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  donation_id UUID NOT NULL REFERENCES class_donations(id),
+  student_id UUID NOT NULL REFERENCES profiles(id),
+  xp_amount INTEGER NOT NULL CHECK (xp_amount > 0),
+  purchase_id UUID NOT NULL REFERENCES xp_purchases(id),
+  contributed_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_donation_contributions_donation ON class_donation_contributions (donation_id);
+
+-- ============================================================
+-- Alterations to existing tables
+-- ============================================================
+
+-- Add dynamic pricing column to marketplace_items
+ALTER TABLE marketplace_items ADD COLUMN dynamic_price_override INTEGER;
+
+-- Add league tier to student_gamification
+ALTER TABLE student_gamification ADD COLUMN league_tier VARCHAR(10) DEFAULT 'bronze'
+  CHECK (league_tier IN ('bronze', 'silver', 'gold', 'diamond'));
+
+-- Add badge tier to student_badges
+ALTER TABLE student_badges ADD COLUMN tier VARCHAR(10) DEFAULT 'bronze'
+  CHECK (tier IN ('bronze', 'silver', 'gold'));
+
+-- Add tier_conditions and is_archived to badge_definitions
+ALTER TABLE badge_definitions ADD COLUMN tier_conditions JSONB DEFAULT '{"bronze": {}, "silver": {}, "gold": {}}';
+ALTER TABLE badge_definitions ADD COLUMN is_archived BOOLEAN NOT NULL DEFAULT false;
+
+-- Add sub_category 'donation' to marketplace_items category check
+-- (handled via migration that updates the CHECK constraint)
 ```
 
 ### RLS Policies
@@ -777,6 +1033,122 @@ CREATE POLICY "deadline_ext_admin_read" ON deadline_extensions
       SELECT id FROM profiles WHERE institution_id = auth_institution_id()
     )
   );
+
+-- ============================================================
+-- student_content — RLS
+-- ============================================================
+ALTER TABLE student_content ENABLE ROW LEVEL SECURITY;
+
+-- Students: full control over own content
+CREATE POLICY "student_content_own" ON student_content
+  FOR ALL USING (student_id = auth.uid());
+
+-- Teachers: read submitted content in their institution for review
+CREATE POLICY "student_content_teacher_read" ON student_content
+  FOR SELECT USING (
+    auth_user_role() = 'teacher'
+    AND institution_id = auth_institution_id()
+    AND status IN ('submitted', 'approved', 'rejected')
+  );
+
+-- Teachers: update status (approve/reject)
+CREATE POLICY "student_content_teacher_review" ON student_content
+  FOR UPDATE USING (
+    auth_user_role() = 'teacher'
+    AND institution_id = auth_institution_id()
+  );
+
+-- Admins: full access within institution
+CREATE POLICY "student_content_admin_all" ON student_content
+  FOR ALL USING (
+    auth_user_role() = 'admin'
+    AND institution_id = auth_institution_id()
+  );
+
+-- ============================================================
+-- knowledge_quests — RLS
+-- ============================================================
+ALTER TABLE knowledge_quests ENABLE ROW LEVEL SECURITY;
+
+-- Students: read active quests in their institution
+CREATE POLICY "knowledge_quests_student_read" ON knowledge_quests
+  FOR SELECT USING (
+    auth_user_role() = 'student'
+    AND institution_id = auth_institution_id()
+  );
+
+-- Admins: full CRUD within institution
+CREATE POLICY "knowledge_quests_admin_all" ON knowledge_quests
+  FOR ALL USING (
+    auth_user_role() = 'admin'
+    AND institution_id = auth_institution_id()
+  );
+
+-- ============================================================
+-- student_quest_progress — RLS
+-- ============================================================
+ALTER TABLE student_quest_progress ENABLE ROW LEVEL SECURITY;
+
+-- Students: read and insert own progress
+CREATE POLICY "quest_progress_student_own" ON student_quest_progress
+  FOR ALL USING (student_id = auth.uid());
+
+-- Admins: read all progress in institution
+CREATE POLICY "quest_progress_admin_read" ON student_quest_progress
+  FOR SELECT USING (
+    auth_user_role() = 'admin'
+    AND quest_id IN (
+      SELECT id FROM knowledge_quests WHERE institution_id = auth_institution_id()
+    )
+  );
+
+-- ============================================================
+-- class_donations — RLS
+-- ============================================================
+ALTER TABLE class_donations ENABLE ROW LEVEL SECURITY;
+
+-- Students: read donations for courses they're enrolled in
+CREATE POLICY "class_donations_student_read" ON class_donations
+  FOR SELECT USING (
+    auth_user_role() = 'student'
+    AND course_id IN (
+      SELECT course_id FROM enrollments WHERE student_id = auth.uid()
+    )
+  );
+
+-- Admins: full CRUD within institution
+CREATE POLICY "class_donations_admin_all" ON class_donations
+  FOR ALL USING (
+    auth_user_role() = 'admin'
+    AND institution_id = auth_institution_id()
+  );
+
+-- Teachers: read donations for their courses
+CREATE POLICY "class_donations_teacher_read" ON class_donations
+  FOR SELECT USING (
+    auth_user_role() = 'teacher'
+    AND course_id IN (
+      SELECT id FROM courses WHERE teacher_id = auth.uid()
+    )
+  );
+
+-- ============================================================
+-- class_donation_contributions — RLS
+-- ============================================================
+ALTER TABLE class_donation_contributions ENABLE ROW LEVEL SECURITY;
+
+-- Students: read own contributions, insert own contributions
+CREATE POLICY "donation_contributions_student_own" ON class_donation_contributions
+  FOR ALL USING (student_id = auth.uid());
+
+-- Admins: read all contributions in institution
+CREATE POLICY "donation_contributions_admin_read" ON class_donation_contributions
+  FOR SELECT USING (
+    auth_user_role() = 'admin'
+    AND donation_id IN (
+      SELECT id FROM class_donations WHERE institution_id = auth_institution_id()
+    )
+  );
 ```
 
 ### Helper Functions
@@ -841,6 +1213,131 @@ Available predefined themes:
 - Midnight Purple (`violet-500` → `purple-700`)
 - Rose Gold (`rose-400` → `pink-600`)
 - Arctic Silver (`slate-400` → `slate-600`)
+
+### Additional Helper Functions (Gap Analysis)
+
+```sql
+-- Compute earn/spend ratio for an institution
+CREATE OR REPLACE FUNCTION get_earn_spend_ratio(p_institution_id UUID)
+RETURNS TABLE (total_earned BIGINT, total_spent BIGINT, ratio NUMERIC, status TEXT)
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+AS $$
+  WITH earned AS (
+    SELECT COALESCE(SUM(xt.xp_amount), 0) AS total
+    FROM xp_transactions xt
+    JOIN profiles p ON p.id = xt.student_id
+    WHERE p.institution_id = p_institution_id
+  ),
+  spent AS (
+    SELECT COALESCE(SUM(xp.xp_cost), 0) AS total
+    FROM xp_purchases xp
+    JOIN marketplace_items mi ON mi.id = xp.item_id
+    WHERE mi.institution_id = p_institution_id AND xp.status != 'refunded'
+  )
+  SELECT
+    earned.total AS total_earned,
+    spent.total AS total_spent,
+    CASE WHEN spent.total > 0 THEN ROUND(earned.total::NUMERIC / spent.total, 2) ELSE NULL END AS ratio,
+    CASE
+      WHEN spent.total = 0 THEN 'no_spending'
+      WHEN earned.total::NUMERIC / spent.total > 4 THEN 'inflationary'
+      WHEN earned.total::NUMERIC / spent.total < 2 THEN 'deflationary'
+      ELSE 'healthy'
+    END AS status
+  FROM earned, spent;
+$$;
+
+-- Recalculate dynamic prices (called by pg_cron daily at midnight UTC)
+CREATE OR REPLACE FUNCTION recalculate_dynamic_prices(p_institution_id UUID)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_p25 NUMERIC;
+  v_p75 NUMERIC;
+BEGIN
+  WITH demand AS (
+    SELECT item_id, COUNT(*) AS purchase_count
+    FROM xp_purchases
+    WHERE purchased_at > NOW() - INTERVAL '7 days' AND status != 'refunded'
+    GROUP BY item_id
+  )
+  SELECT
+    PERCENTILE_CONT(0.25) WITHIN GROUP (ORDER BY purchase_count),
+    PERCENTILE_CONT(0.75) WITHIN GROUP (ORDER BY purchase_count)
+  INTO v_p25, v_p75
+  FROM demand;
+
+  UPDATE marketplace_items mi SET
+    dynamic_price_override = CASE
+      WHEN d.purchase_count > v_p75 THEN LEAST(FLOOR(mi.xp_price * 1.25), FLOOR(mi.xp_price * 1.5))
+      WHEN d.purchase_count < v_p25 THEN GREATEST(FLOOR(mi.xp_price * 0.8), FLOOR(mi.xp_price * 0.5))
+      ELSE NULL
+    END
+  FROM (
+    SELECT item_id, COUNT(*) AS purchase_count
+    FROM xp_purchases
+    WHERE purchased_at > NOW() - INTERVAL '7 days' AND status != 'refunded'
+    GROUP BY item_id
+  ) d
+  WHERE mi.id = d.item_id AND mi.institution_id = p_institution_id AND mi.is_active = true;
+END;
+$$;
+
+-- Recalculate league tiers (called by pg_cron weekly on Sunday midnight UTC)
+CREATE OR REPLACE FUNCTION recalculate_league_tiers(p_institution_id UUID)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  WITH ranked AS (
+    SELECT sg.student_id,
+      PERCENT_RANK() OVER (ORDER BY COALESCE(sg.xp_total, 0) DESC) AS prank
+    FROM student_gamification sg
+    JOIN profiles p ON p.id = sg.student_id
+    WHERE p.institution_id = p_institution_id
+  )
+  UPDATE student_gamification sg SET league_tier = CASE
+    WHEN r.prank <= 0.05 THEN 'diamond'
+    WHEN r.prank <= 0.20 THEN 'gold'
+    WHEN r.prank <= 0.50 THEN 'silver'
+    ELSE 'bronze'
+  END
+  FROM ranked r
+  WHERE sg.student_id = r.student_id;
+END;
+$$;
+
+-- Deterministic badge spotlight selection
+CREATE OR REPLACE FUNCTION get_badge_spotlight(p_student_id UUID, p_week_number INTEGER)
+RETURNS UUID
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+AS $$
+  WITH eligible_badges AS (
+    SELECT bd.id, ROW_NUMBER() OVER (ORDER BY bd.created_at) AS rn
+    FROM badge_definitions bd
+    WHERE bd.is_archived = false
+      AND bd.id NOT IN (
+        SELECT sb.badge_id FROM student_badges sb
+        WHERE sb.student_id = p_student_id AND sb.tier = 'gold'
+      )
+  ),
+  total AS (SELECT COUNT(*) AS cnt FROM eligible_badges)
+  SELECT eb.id
+  FROM eligible_badges eb, total t
+  WHERE t.cnt > 0
+    AND eb.rn = (
+      (('x' || substr(md5(p_student_id::text || p_week_number::text), 1, 8))::bit(32)::int
+       % t.cnt) + 1
+    );
+$$;
+```
 
 ### Avatar Frame Metadata Schema
 
@@ -1023,6 +1520,78 @@ Available predefined themes:
 
 **Validates: Requirements 3.2, 5.2**
 
+### Property 26: Dynamic pricing bounded adjustment
+
+*For any* marketplace item with a base price P and a demand score, the dynamically adjusted price must satisfy: `0.5 × P ≤ dynamic_price ≤ 1.5 × P`. High-demand items (above 75th percentile) increase by up to 25%, low-demand items (below 25th percentile) decrease by up to 20%.
+
+**Validates: Requirements 28.2, 28.3, 28.4**
+
+### Property 27: Earn/spend ratio computation correctness
+
+*For any* institution with total earned XP (E) and total spent XP (S), the earn/spend ratio must equal `E / S` when S > 0, and "∞" (displayed as "No spending yet") when S = 0. The inflation status must be "Healthy" when 2 ≤ ratio ≤ 4, "Inflationary" when ratio > 4, and "Deflationary" when ratio < 2.
+
+**Validates: Requirements 27.1, 27.3**
+
+### Property 28: Mystery reward box probability distribution
+
+*For any* mystery reward box resolution, the outcome must be one of: 2x XP (50% weight), random cosmetic (30% weight), or temporary boost (20% weight). Over 1000 resolutions, the distribution must approximate these weights within a 10% tolerance.
+
+**Validates: Requirements 26.5, 26.6**
+
+### Property 29: League tier assignment from percentiles
+
+*For any* set of students with cumulative XP values, league tier assignment must satisfy: top 5% → Diamond, next 15% → Gold, next 30% → Silver, bottom 50% → Bronze. Tier boundaries must be non-overlapping and exhaustive (every student gets exactly one tier).
+
+**Validates: Requirements 32.2, 32.4**
+
+### Property 30: Percentile band display for non-top-10 students
+
+*For any* student ranked outside the top 10 on the leaderboard, the displayed rank must be a percentile band (top 10%, top 25%, top 50%, bottom 50%) and never an exact numeric rank. Students ranked in the top 10 must see their exact rank.
+
+**Validates: Requirements 32.1**
+
+### Property 31: Badge tier progression is monotonic
+
+*For any* badge and student, the tier must progress only forward: Bronze → Silver → Gold. A student cannot earn Silver without first having Bronze, and cannot earn Gold without first having Silver. Tier downgrades are not permitted.
+
+**Validates: Requirements 33.2, 33.3, 33.4**
+
+### Property 32: Badge spotlight deterministic rotation
+
+*For any* student_id and week number, the spotlighted badge must be deterministic (same student + same week = same badge). Different students should see different badges in the same week (with high probability for institutions with > 5 badges).
+
+**Validates: Requirements 34.2, 34.5**
+
+### Property 33: Class donation progress invariant
+
+*For any* class donation campaign, the `current_total` must equal the SUM of all `class_donation_contributions.xp_amount` for that donation. When `current_total >= goal_amount`, the status must be "completed".
+
+**Validates: Requirements 29.1, 29.2**
+
+### Property 34: Knowledge quest exclusivity
+
+*For any* knowledge quest with reward_type "item", the reward item must not be purchasable through the regular marketplace. The item must only be obtainable by completing the quest.
+
+**Validates: Requirements 25.7**
+
+### Property 35: Bonus question probability bounds
+
+*For any* institution with configured bonus question probability P (5–30%), the trigger rate over a large sample of study session completions must approximate P within a 5% tolerance. The probability must be clamped to the [5%, 30%] range regardless of admin input.
+
+**Validates: Requirements 26.1, 26.8**
+
+### Property 36: Personal best comparison correctness
+
+*For any* student with metrics for the current week (C) and previous week (P), the improvement delta must equal C - P. The direction indicator must be "up" when C > P, "down" when C < P, and "same" when C = P.
+
+**Validates: Requirements 30.2, 30.3**
+
+### Property 37: Archived badges excluded from spotlight and checks
+
+*For any* badge with `is_archived = true`, the badge must not appear in the Badge Spotlight rotation and must not be evaluated by the badge check function. Archived badges must still be visible in the student's badge history if previously earned.
+
+**Validates: Requirements 35.1, 35.6**
+
 
 ## Error Handling
 
@@ -1105,6 +1674,16 @@ This feature uses both unit tests and property-based tests for comprehensive cov
 | `src/__tests__/properties/inventoryStatus.property.test.ts` | P24 (status resolution), P25 (display fields) |
 | `src/__tests__/properties/boostAndStreak.property.test.ts` | P19 (one boost), P20 (streak shield cap) |
 | `src/__tests__/properties/leaderboardCosmetics.property.test.ts` | P11 (anonymous mode), P12 (extra quiz attempt) |
+| `src/__tests__/properties/dynamicPricing.property.test.ts` | P26 (bounded adjustment) |
+| `src/__tests__/properties/earnSpendRatio.property.test.ts` | P27 (ratio computation) |
+| `src/__tests__/properties/mysteryReward.property.test.ts` | P28 (probability distribution) |
+| `src/__tests__/properties/leagueTiers.property.test.ts` | P29 (tier assignment), P30 (percentile bands) |
+| `src/__tests__/properties/badgeTiers.property.test.ts` | P31 (monotonic progression), P32 (spotlight rotation) |
+| `src/__tests__/properties/classDonation.property.test.ts` | P33 (progress invariant) |
+| `src/__tests__/properties/knowledgeQuest.property.test.ts` | P34 (exclusivity) |
+| `src/__tests__/properties/bonusQuestion.property.test.ts` | P35 (probability bounds) |
+| `src/__tests__/properties/personalBest.property.test.ts` | P36 (comparison correctness) |
+| `src/__tests__/properties/badgeArchive.property.test.ts` | P37 (archived exclusion) |
 
 ### Unit Test Files
 
@@ -1119,3 +1698,14 @@ This feature uses both unit tests and property-based tests for comprehensive cov
 | `src/__tests__/unit/saleEventForm.test.tsx` | Sale event form validation, date range checks |
 | `src/__tests__/unit/processPurchase.test.ts` | Edge Function: success path, each error code, edge cases |
 | `src/__tests__/unit/awardXpBoost.test.ts` | Modified award-xp: boost lookup, multiplier application, metadata recording |
+| `src/__tests__/unit/xpEconomistDashboard.test.tsx` | Earn/spend ratio display, inflation indicator, time-series chart |
+| `src/__tests__/unit/dynamicPricingCalculator.test.ts` | Dynamic price computation, bounds enforcement |
+| `src/__tests__/unit/bonusQuestionPopup.test.tsx` | Bonus question rendering, timer, answer submission |
+| `src/__tests__/unit/mysteryRewardBox.test.tsx` | Unboxing animation, reward display |
+| `src/__tests__/unit/knowledgeQuestManager.test.tsx` | Quest CRUD form, date validation |
+| `src/__tests__/unit/leagueTierBadge.test.tsx` | Tier badge rendering, promotion animation |
+| `src/__tests__/unit/personalBestCard.test.tsx` | Metric comparison, delta arrows |
+| `src/__tests__/unit/badgeSpotlightCard.test.tsx` | Spotlight rendering, progress display |
+| `src/__tests__/unit/classDonationProgress.test.tsx` | Progress bar, goal completion |
+| `src/__tests__/unit/studentContentForm.test.tsx` | Content creation form, type selection |
+| `src/__tests__/unit/badgeTierIndicator.test.tsx` | Bronze/Silver/Gold visual rendering |

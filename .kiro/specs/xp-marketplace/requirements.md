@@ -2,7 +2,7 @@
 
 ## Introduction
 
-The XP Marketplace feature expands the existing gamification engine in Edeviser from a simple earn-and-display system into a full virtual economy. Currently, students earn XP through activities (login, submission, grading, streaks, badges) tracked in the append-only `xp_transactions` ledger, with `xp_total` derived from SUM. The only spending mechanism is the streak freeze (200 XP, stored in `student_gamification.streak_freezes_available`). This feature introduces: (1) a Virtual Wallet that tracks spendable XP balance (earned minus spent); (2) an XP Marketplace where students browse and purchase items using earned XP; (3) three item categories — Cosmetic (profile themes, avatar frames, display titles), Educational Perks (extra quiz attempt, deadline extension, AI Tutor hint tokens), and Power-ups (2x XP boost, streak shield upgrade); (4) an equipped-items system where cosmetic purchases are visible on the student's profile and leaderboard; and (5) an Admin Marketplace Management panel for configuring items, prices, level gates, sales events, and usage analytics. The feature integrates with the existing Supabase backend (PostgreSQL + RLS, Edge Functions, Realtime), TanStack Query hooks, and the existing XP/level/streak/badge subsystems.
+The XP Marketplace feature expands the existing gamification engine in Edeviser from a simple earn-and-display system into a full virtual economy. Currently, students earn XP through activities (login, submission, grading, streaks, badges) tracked in the append-only `xp_transactions` ledger, with `xp_total` derived from SUM. The only spending mechanism is the streak freeze (200 XP, stored in `student_gamification.streak_freezes_available`). This feature introduces: (1) a Virtual Wallet that tracks spendable XP balance (earned minus spent); (2) an XP Marketplace where students browse and purchase items using earned XP; (3) three item categories — Cosmetic (profile themes, avatar frames, display titles), Educational Perks (extra quiz attempt, deadline extension, AI Tutor hint tokens), and Power-ups (2x XP boost, streak shield upgrade); (4) an equipped-items system where cosmetic purchases are visible on the student's profile and leaderboard; (5) an Admin Marketplace Management panel for configuring items, prices, level gates, sales events, and usage analytics; (6) Creative Expression & Knowledge Quests — student-created content (study plans, peer quiz questions, CLO explanation videos) with "Architect" and "Creator" badges, time-limited Knowledge Quests that unlock exclusive marketplace items, and surprise XP mechanics (random bonus questions, mystery reward boxes) to address Octalysis Core Drives 3, 6, and 7; (7) an XP Economist admin dashboard with earn/spend ratio monitoring, dynamic pricing that adjusts based on purchase frequency, and XP sinks (cosmetic upgrades, seasonal items, class donations) to prevent marketplace inflation; (8) an enhanced leaderboard system with Personal Best and Most Improved leaderboards, percentile bands for students outside the top 10, and league tiers (Bronze, Silver, Gold, Diamond) to reduce demotivation for lower performers; and (9) a tiered badge system (Bronze/Silver/Gold) with a rotating Badge Spotlight and badge archiving to combat badge fatigue. The feature integrates with the existing Supabase backend (PostgreSQL + RLS, Edge Functions, Realtime), TanStack Query hooks, and the existing XP/level/streak/badge subsystems.
 
 ## Glossary
 
@@ -25,6 +25,22 @@ The XP Marketplace feature expands the existing gamification engine in Edeviser 
 - **Profile_Theme**: A Cosmetic_Item that changes the student's dashboard color accent within design system constraints (predefined theme palettes, not arbitrary colors)
 - **Avatar_Frame**: A Cosmetic_Item that adds a decorative border around the student's profile picture
 - **Display_Title**: A Cosmetic_Item that adds a custom title shown next to the student's name on the leaderboard (e.g., "The Scholar", "Night Owl")
+- **Knowledge_Quest**: A time-limited learning activity created by an Admin that awards exclusive marketplace items or rare rewards upon completion within the time window
+- **Mystery_Reward_Box**: A randomized reward container that occasionally replaces a standard XP award, containing a random prize (bonus XP, rare cosmetic, temporary boost) revealed with an unboxing animation
+- **Bonus_Question**: A random pop-up question presented to a student during a study session that awards surprise XP upon correct answer
+- **XP_Economist_Dashboard**: An admin-facing analytics panel displaying earn/spend ratios, XP velocity, inflation indicators, and dynamic pricing recommendations for the virtual economy
+- **Dynamic_Pricing**: An automated pricing mechanism that adjusts marketplace item prices based on purchase frequency — popular items increase in price, unpopular items decrease — within admin-configured bounds
+- **XP_Sink**: A mechanism that removes XP from circulation to prevent inflation, including cosmetic upgrades, seasonal limited-edition items, and class donations
+- **Class_Donation**: An XP sink where a student donates XP to unlock a shared study resource (e.g., practice exam, study guide) for all students in a course
+- **Earn_Spend_Ratio**: The ratio of total XP earned to total XP spent across an institution, used as the primary inflation indicator (target: 3:1)
+- **Personal_Best_Leaderboard**: A leaderboard variant that compares a student's current performance metrics against their own historical performance
+- **Most_Improved_Leaderboard**: A leaderboard variant that ranks students by the magnitude of their performance improvement over a configurable time window
+- **League_Tier**: A competitive grouping (Bronze, Silver, Gold, Diamond) based on cumulative XP ranges, where students compete within their tier rather than against the entire cohort
+- **Percentile_Band**: A display format showing a student's approximate ranking as a percentile range (top 10%, top 25%, top 50%) instead of an exact numeric rank
+- **Badge_Tier**: A progression level (Bronze, Silver, Gold) within a single badge definition, where each tier has increasingly difficult unlock conditions
+- **Badge_Spotlight**: A weekly rotating feature that highlights one badge on the student dashboard, showing progress toward earning it and increasing engagement with underused badges
+- **Archived_Badge**: A badge that has been moved to an archive collection, still visible in a student's history but no longer actively displayed or promoted
+- **Student_Content**: User-generated learning content created by students, including custom study plans, peer quiz questions, and CLO explanation videos, eligible for "Architect" and "Creator" badges
 
 ## Requirements
 
@@ -375,3 +391,196 @@ The XP Marketplace feature expands the existing gamification engine in Edeviser 
 2. THE `xp_purchases` table SHALL serve as the immutable purchase ledger — insert-only for new purchases, with status field updates permitted for lifecycle transitions (active → consumed, active → refunded).
 3. WHEN a Teacher revokes a deadline extension, THE Platform SHALL insert a refund record in `xp_purchases` with status "refunded" and restore the token to the student's inventory.
 4. THE Admin SHALL be able to export purchase history as CSV for compliance reporting.
+
+
+---
+
+### SECTION J: Creative Expression & Unpredictability (Octalysis Core Drives 3, 6, 7)
+
+#### Requirement 24: Student-Created Content
+
+**User Story:** As a Student, I want to create and share learning content (study plans, peer quiz questions, CLO explanation videos), so that I can express creativity and earn recognition through "Architect" and "Creator" badges.
+
+##### Acceptance Criteria
+
+1. THE Platform SHALL allow students to create three types of Student_Content: custom study plans (structured text with CLO references), peer quiz questions (multiple-choice with answer key), and CLO explanation videos (uploaded video with CLO tag).
+2. WHEN a Student submits a Student_Content item, THE Platform SHALL store the content in a `student_content` table with: student_id, content_type (study_plan, quiz_question, explanation_video), clo_id (optional reference), content_data (jsonb), status (draft, submitted, approved, rejected), and created_at.
+3. THE Teacher SHALL review submitted Student_Content and approve or reject each item with optional feedback.
+4. WHEN a Student's first Student_Content item is approved, THE Platform SHALL award the "Architect" badge (Bronze tier).
+5. WHEN a Student has 5 approved Student_Content items, THE Platform SHALL award the "Creator" badge (Bronze tier).
+6. WHEN an approved peer quiz question is used by another student, THE creator SHALL receive 15 XP per unique student who attempts the question.
+
+---
+
+#### Requirement 25: Knowledge Quests
+
+**User Story:** As a Student, I want to participate in time-limited Knowledge Quests, so that I can earn exclusive marketplace items and rare rewards through focused learning challenges.
+
+##### Acceptance Criteria
+
+1. THE Admin SHALL be able to create a Knowledge_Quest by specifying: title, description, target CLO(s), quest type (quiz challenge, content creation, peer review), start_date, end_date, and reward (exclusive Marketplace_Item or bonus XP amount).
+2. WHEN a Knowledge_Quest is active, THE Marketplace SHALL display a "Quests" tab showing all available quests with countdown timers.
+3. WHEN a Student completes a Knowledge_Quest within the time window, THE Platform SHALL award the specified reward and mark the quest as completed for that student.
+4. THE Platform SHALL store Knowledge_Quest data in a `knowledge_quests` table with: id, institution_id, title, description, quest_type, target_clo_ids (uuid[]), start_date, end_date, reward_type (item, xp), reward_item_id (nullable FK), reward_xp_amount (nullable), created_by, created_at.
+5. THE Platform SHALL store student quest progress in a `student_quest_progress` table with: student_id, quest_id, status (in_progress, completed, expired), started_at, completed_at.
+6. WHEN a Knowledge_Quest expires and the student has not completed the quest, THE Platform SHALL mark the student's progress as "expired".
+7. THE Knowledge_Quest reward items SHALL be exclusive — available only through quest completion, not through regular marketplace purchase.
+
+---
+
+#### Requirement 26: Surprise XP Mechanics
+
+**User Story:** As a Student, I want to encounter random bonus questions and mystery reward boxes during my learning activities, so that the platform feels exciting and unpredictable.
+
+##### Acceptance Criteria
+
+1. THE Platform SHALL present a Bonus_Question pop-up to a student with a 15% probability upon completing a study session activity (assignment submission, quiz completion, journal entry).
+2. WHEN a Bonus_Question is presented, THE Platform SHALL display a single multiple-choice question related to the student's active CLOs, with a 30-second timer.
+3. WHEN a Student answers a Bonus_Question correctly, THE Platform SHALL award 20 surprise XP with a celebration animation.
+4. WHEN a Student answers a Bonus_Question incorrectly or the timer expires, THE Platform SHALL display the correct answer with no XP penalty.
+5. THE Platform SHALL replace a standard XP award with a Mystery_Reward_Box with a 10% probability on any XP-earning event.
+6. WHEN a Mystery_Reward_Box is awarded, THE Platform SHALL display an unboxing animation revealing one of: 2x the original XP (50% chance), a random cosmetic item (30% chance), or a temporary 30-minute XP boost (20% chance).
+7. THE Platform SHALL store Mystery_Reward_Box outcomes in the `xp_transactions` metadata field with `mystery_box: true` and the reward details.
+8. THE Admin SHALL be able to configure the Bonus_Question probability (5–30%) and Mystery_Reward_Box probability (5–20%) per institution via `institution_settings`.
+
+---
+
+### SECTION K: XP Economy Health & Inflation Prevention
+
+#### Requirement 27: XP Economist Dashboard
+
+**User Story:** As an Admin, I want to monitor the health of the virtual XP economy, so that I can detect inflation risks and make data-driven pricing decisions.
+
+##### Acceptance Criteria
+
+1. THE XP_Economist_Dashboard SHALL display the current Earn_Spend_Ratio for the institution, calculated as total XP earned (SUM of xp_transactions.xp_amount) divided by total XP spent (SUM of xp_purchases.xp_cost).
+2. THE XP_Economist_Dashboard SHALL display XP velocity — the rate of XP circulation measured as total XP transacted (earned + spent) per active student per week.
+3. THE XP_Economist_Dashboard SHALL display an inflation indicator: "Healthy" (earn:spend ratio between 2:1 and 4:1), "Inflationary" (ratio > 4:1), or "Deflationary" (ratio < 2:1).
+4. WHEN the Earn_Spend_Ratio deviates beyond the target range (default 2:1 to 4:1), THE Platform SHALL send an alert notification to institution admins.
+5. THE XP_Economist_Dashboard SHALL display a time-series chart of the Earn_Spend_Ratio over the past 12 weeks.
+6. THE XP_Economist_Dashboard SHALL display per-item purchase frequency and revenue (XP collected) to inform pricing decisions.
+7. THE Admin SHALL be able to configure the target Earn_Spend_Ratio range via `institution_settings`.
+
+---
+
+#### Requirement 28: Dynamic Pricing
+
+**User Story:** As the system, I want marketplace item prices to adjust automatically based on demand, so that the economy self-balances and popular items do not become trivially cheap.
+
+##### Acceptance Criteria
+
+1. THE Platform SHALL compute a demand score for each Marketplace_Item based on purchase frequency over the trailing 7-day window.
+2. WHEN a Marketplace_Item's demand score exceeds the 75th percentile of all items, THE Dynamic_Pricing engine SHALL increase the item's effective price by up to 25% above the admin-set base price.
+3. WHEN a Marketplace_Item's demand score falls below the 25th percentile of all items, THE Dynamic_Pricing engine SHALL decrease the item's effective price by up to 20% below the admin-set base price.
+4. THE Dynamic_Pricing adjustments SHALL be bounded: the effective price SHALL never exceed 150% of the base price and SHALL never fall below 50% of the base price.
+5. THE Admin SHALL be able to enable or disable Dynamic_Pricing per institution via `institution_settings`.
+6. WHEN Dynamic_Pricing is active, THE Marketplace SHALL display both the base price and the current dynamic price for each item.
+7. THE Dynamic_Pricing engine SHALL recalculate prices daily at midnight UTC via a pg_cron scheduled job.
+8. THE `marketplace_items` table SHALL store a `dynamic_price_override` column (integer, nullable) that holds the current dynamically computed price when Dynamic_Pricing is enabled.
+
+---
+
+#### Requirement 29: XP Sinks
+
+**User Story:** As a Student, I want meaningful ways to spend XP beyond standard marketplace items, so that XP retains its value and I feel motivated to keep earning.
+
+##### Acceptance Criteria
+
+1. THE Platform SHALL support Class_Donation as an XP sink: a student donates a configurable XP amount (set by Admin, default 500 XP) to unlock a shared study resource for all students in a course.
+2. WHEN a Class_Donation reaches its XP goal, THE Platform SHALL unlock the associated resource and notify all students in the course.
+3. THE Platform SHALL support seasonal limited-edition Marketplace_Items that are available only during admin-defined date ranges and cannot be restocked after the season ends.
+4. THE Platform SHALL support cosmetic upgrade paths: a student can spend additional XP to upgrade an owned cosmetic from its base version to an enhanced version (e.g., "Golden Laurel" → "Diamond Laurel") with improved visual effects.
+5. THE Platform SHALL store Class_Donation records in a `class_donations` table with: id, course_id, student_id, xp_amount, resource_description, goal_amount, current_total, status (active, completed), created_at.
+6. THE Platform SHALL display active Class_Donation campaigns on the student marketplace with a progress bar showing current_total / goal_amount.
+7. WHEN a student contributes to a Class_Donation, THE Platform SHALL record the contribution as an XP_Purchase with category "donation" and deduct the XP from the student's balance.
+
+---
+
+### SECTION L: Inclusive Leaderboard System
+
+#### Requirement 30: Personal Best Leaderboard
+
+**User Story:** As a Student, I want to compare my current performance against my own past performance, so that I can see my personal growth regardless of how I rank against peers.
+
+##### Acceptance Criteria
+
+1. THE Platform SHALL display a Personal_Best_Leaderboard tab on the leaderboard page showing the student's current-week metrics compared to their previous-week metrics.
+2. THE Personal_Best_Leaderboard SHALL track: XP earned this week vs. last week, assignments submitted this week vs. last week, average attainment this week vs. last week, and streak length.
+3. WHEN a student's current-week metric exceeds their previous-week metric, THE Platform SHALL display a green upward arrow with the improvement delta.
+4. WHEN a student sets a new personal best in any tracked metric, THE Platform SHALL award 10 XP and display a "New Personal Best" celebration animation.
+5. THE Personal_Best_Leaderboard SHALL be the default leaderboard view for students who have opted out of the competitive leaderboard.
+
+---
+
+#### Requirement 31: Most Improved Leaderboard
+
+**User Story:** As a Student, I want to see a leaderboard that celebrates improvement, so that students who are growing fastest are recognized alongside top performers.
+
+##### Acceptance Criteria
+
+1. THE Platform SHALL display a "Most Improved" leaderboard tab ranking students by their XP improvement over the past 4 weeks (current 4-week XP minus previous 4-week XP).
+2. THE Most_Improved_Leaderboard SHALL display the top 20 students with the highest positive improvement delta.
+3. WHEN a student appears on the Most Improved leaderboard for the first time, THE Platform SHALL award the "Rising Star" badge (Bronze tier).
+4. THE Most_Improved_Leaderboard SHALL respect the same anonymous opt-out setting as the main leaderboard.
+
+---
+
+#### Requirement 32: Percentile Bands and League Tiers
+
+**User Story:** As a Student, I want to see my approximate ranking as a percentile band and compete within my league tier, so that the leaderboard feels achievable rather than discouraging.
+
+##### Acceptance Criteria
+
+1. WHEN a student is ranked outside the top 10 on the main leaderboard, THE Platform SHALL display the student's position as a Percentile_Band (top 10%, top 25%, top 50%, bottom 50%) instead of an exact numeric rank.
+2. THE Platform SHALL assign students to League_Tiers based on cumulative XP: Diamond (top 5%), Gold (top 20%), Silver (top 50%), Bronze (bottom 50%).
+3. THE Platform SHALL display a "My League" tab on the leaderboard showing only students within the same League_Tier, with exact rankings visible within the tier.
+4. THE League_Tier boundaries SHALL be recalculated weekly at midnight UTC on Sunday via a pg_cron scheduled job.
+5. WHEN a student moves up to a higher League_Tier, THE Platform SHALL display a tier promotion animation and award 25 XP.
+6. THE Platform SHALL store each student's current League_Tier in the `student_gamification` table as a `league_tier` column (enum: bronze, silver, gold, diamond).
+
+---
+
+### SECTION M: Badge Progression & Anti-Fatigue
+
+#### Requirement 33: Tiered Badge System
+
+**User Story:** As a Student, I want badges to have Bronze, Silver, and Gold tiers with progressively harder conditions, so that each badge feels like a meaningful journey rather than a one-time unlock.
+
+##### Acceptance Criteria
+
+1. THE Platform SHALL support Badge_Tiers (Bronze, Silver, Gold) for each badge definition, where each tier has its own unlock condition and XP reward.
+2. WHEN a Student meets the Bronze tier condition for a badge, THE Platform SHALL award the Bronze tier and display the badge with a bronze visual indicator.
+3. WHEN a Student meets the Silver tier condition (which requires Bronze to be already earned), THE Platform SHALL upgrade the badge to Silver tier with an upgraded visual indicator and award additional XP.
+4. WHEN a Student meets the Gold tier condition (which requires Silver to be already earned), THE Platform SHALL upgrade the badge to Gold tier with a premium visual indicator and award additional XP.
+5. THE Platform SHALL store badge tier progress in the existing `student_badges` table by adding a `tier` column (enum: bronze, silver, gold, default bronze).
+6. THE badge definitions table SHALL include `tier_conditions` (jsonb) specifying the unlock condition for each tier (e.g., `{"bronze": {"count": 1}, "silver": {"count": 5}, "gold": {"count": 15}}`).
+7. THE total number of active (non-archived) badge definitions per institution SHALL be limited to 15 to maintain badge value.
+
+---
+
+#### Requirement 34: Badge Spotlight
+
+**User Story:** As a Student, I want to see a featured badge each week with my progress toward earning it, so that I stay engaged with the badge system and discover badges I might not have noticed.
+
+##### Acceptance Criteria
+
+1. THE Platform SHALL display a Badge_Spotlight card on the student dashboard highlighting one badge per week.
+2. THE Badge_Spotlight SHALL rotate weekly, cycling through all non-archived badges that the student has not yet earned at Gold tier.
+3. THE Badge_Spotlight card SHALL display: badge name, description, current tier (if any), progress toward the next tier (e.g., "3/5 submissions"), and the XP reward for the next tier.
+4. WHEN a Student earns the spotlighted badge during the spotlight week, THE Platform SHALL award a 50% XP bonus on top of the standard badge XP reward.
+5. THE Badge_Spotlight rotation SHALL be deterministic per student (based on student_id hash) so that different students see different spotlighted badges in the same week.
+
+---
+
+#### Requirement 35: Badge Archiving
+
+**User Story:** As an Admin, I want to archive older or less relevant badges, so that the active badge collection stays manageable and each badge feels valuable.
+
+##### Acceptance Criteria
+
+1. THE Admin SHALL be able to archive a badge definition, which removes the badge from the active badge collection and the Badge_Spotlight rotation.
+2. WHEN a badge is archived, THE Platform SHALL preserve all existing student_badges records — students who earned the badge retain it in their profile history.
+3. THE Platform SHALL display archived badges in a separate "Archive" section on the student's badge collection page, visually distinct from active badges.
+4. THE Admin SHALL be able to unarchive a badge, restoring it to the active collection and Badge_Spotlight rotation.
+5. THE Platform SHALL add an `is_archived` column (boolean, default false) to the badge definitions table.
+6. THE Badge_Spotlight and badge check functions SHALL exclude archived badges from consideration.
