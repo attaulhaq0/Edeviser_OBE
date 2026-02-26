@@ -823,3 +823,503 @@ for all .tsx files in src/components/ and src/pages/:
 ```
 
 Derived from: Requirement 6, Acceptance Criteria 8
+
+
+---
+
+## Cognitive Accessibility & Neurodivergent Learner Support (Gap Analysis Additions)
+
+### Accessibility Preferences Manager: `src/lib/accessibilityPreferences.ts`
+
+Manages user accessibility preferences with persistence to profile (authenticated) and localStorage (fallback).
+
+```typescript
+import { z } from 'zod';
+
+export const accessibilityPreferencesSchema = z.object({
+  font_size: z.enum(['default', 'large', 'x-large']).default('default'),
+  high_contrast: z.boolean().default(false),
+  reduced_animations: z.boolean().default(false),
+  dyslexia_font: z.boolean().default(false),
+  simplified_view: z.boolean().default(false),
+});
+
+export type AccessibilityPreferences = z.infer<typeof accessibilityPreferencesSchema>;
+
+const STORAGE_KEY = 'edeviser-accessibility-prefs';
+
+const DEFAULT_PREFS: AccessibilityPreferences = {
+  font_size: 'default',
+  high_contrast: false,
+  reduced_animations: false,
+  dyslexia_font: false,
+  simplified_view: false,
+};
+
+export const loadAccessibilityPreferences = (): AccessibilityPreferences => {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (!stored) return DEFAULT_PREFS;
+    return accessibilityPreferencesSchema.parse(JSON.parse(stored));
+  } catch {
+    return DEFAULT_PREFS;
+  }
+};
+
+export const saveAccessibilityPreferencesLocal = (prefs: AccessibilityPreferences): void => {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs));
+};
+
+export const applyAccessibilityPreferences = (prefs: AccessibilityPreferences): void => {
+  const root = document.documentElement;
+
+  // Font size
+  const fontSizeMap: Record<string, string> = {
+    default: '16px',
+    large: '18px',
+    'x-large': '20px',
+  };
+  root.style.fontSize = fontSizeMap[prefs.font_size] || '16px';
+
+  // High contrast
+  root.classList.toggle('high-contrast', prefs.high_contrast);
+
+  // Reduced animations
+  root.classList.toggle('reduce-animations', prefs.reduced_animations);
+
+  // Dyslexia font
+  root.classList.toggle('dyslexia-font', prefs.dyslexia_font);
+
+  // Simplified view
+  root.classList.toggle('simplified-view', prefs.simplified_view);
+};
+```
+
+### Accessibility Preferences Hook: `src/hooks/useAccessibilityPreferences.ts`
+
+```typescript
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/lib/supabase';
+import { queryKeys } from '@/lib/queryKeys';
+import {
+  type AccessibilityPreferences,
+  loadAccessibilityPreferences,
+  saveAccessibilityPreferencesLocal,
+  applyAccessibilityPreferences,
+} from '@/lib/accessibilityPreferences';
+
+export const useAccessibilityPreferences = () => {
+  return useQuery({
+    queryKey: queryKeys.profile.accessibility(),
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return loadAccessibilityPreferences();
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('accessibility_preferences')
+        .eq('id', user.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data?.accessibility_preferences ?? loadAccessibilityPreferences();
+    },
+    initialData: loadAccessibilityPreferences,
+  });
+};
+
+export const useUpdateAccessibilityPreferences = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (prefs: AccessibilityPreferences) => {
+      saveAccessibilityPreferencesLocal(prefs);
+      applyAccessibilityPreferences(prefs);
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return prefs;
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({ accessibility_preferences: prefs })
+        .eq('id', user.id);
+      if (error) throw error;
+      return prefs;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.profile.accessibility() });
+    },
+  });
+};
+```
+
+### Cognitive Load Indicator Component: `src/components/shared/CognitiveLoadIndicator.tsx`
+
+Displays a non-intrusive banner when a page exceeds a complexity threshold, offering a simplified view.
+
+```typescript
+import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Button } from '@/components/ui/button';
+import { X, Eye } from 'lucide-react';
+import { useAccessibilityPreferences, useUpdateAccessibilityPreferences } from '@/hooks/useAccessibilityPreferences';
+
+interface CognitiveLoadIndicatorProps {
+  /** Number of visible sections/widgets on the page */
+  sectionCount: number;
+  /** Threshold above which the indicator appears (default: 6) */
+  threshold?: number;
+  /** Unique page identifier for dismissal tracking */
+  pageId: string;
+}
+
+const DISMISSED_KEY = 'edeviser-cognitive-dismissed';
+
+export const CognitiveLoadIndicator = ({
+  sectionCount,
+  threshold = 6,
+  pageId,
+}: CognitiveLoadIndicatorProps) => {
+  const { t } = useTranslation('common');
+  const { data: prefs } = useAccessibilityPreferences();
+  const updatePrefs = useUpdateAccessibilityPreferences();
+  const [dismissed, setDismissed] = useState(false);
+
+  useEffect(() => {
+    const dismissedPages = JSON.parse(localStorage.getItem(DISMISSED_KEY) || '[]');
+    if (dismissedPages.includes(pageId)) setDismissed(true);
+  }, [pageId]);
+
+  if (dismissed || sectionCount <= threshold || prefs?.simplified_view) return null;
+
+  const handleDismiss = () => {
+    const dismissedPages = JSON.parse(localStorage.getItem(DISMISSED_KEY) || '[]');
+    localStorage.setItem(DISMISSED_KEY, JSON.stringify([...dismissedPages, pageId]));
+    setDismissed(true);
+  };
+
+  const handleSimplify = () => {
+    if (prefs) {
+      updatePrefs.mutate({ ...prefs, simplified_view: true });
+    }
+    handleDismiss();
+  };
+
+  return (
+    <div
+      role="status"
+      className="flex items-center justify-between gap-4 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800"
+    >
+      <p>{t('accessibility.cognitiveLoadMessage')}</p>
+      <div className="flex items-center gap-2">
+        <Button variant="outline" size="sm" onClick={handleSimplify} className="gap-1">
+          <Eye className="h-4 w-4" />
+          {t('accessibility.simplifiedView')}
+        </Button>
+        <Button variant="ghost" size="sm" onClick={handleDismiss} aria-label={t('dismiss')}>
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
+    </div>
+  );
+};
+```
+
+### UI Focus Mode Provider: `src/providers/FocusModeProvider.tsx`
+
+Context provider that manages Focus Mode state and provides it to the component tree.
+
+```typescript
+import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
+import { useAccessibilityPreferences, useUpdateAccessibilityPreferences } from '@/hooks/useAccessibilityPreferences';
+
+interface FocusModeContextValue {
+  isFocusMode: boolean;
+  toggleFocusMode: () => void;
+}
+
+const FocusModeContext = createContext<FocusModeContextValue>({
+  isFocusMode: false,
+  toggleFocusMode: () => {},
+});
+
+export const useFocusMode = () => useContext(FocusModeContext);
+
+export const FocusModeProvider = ({ children }: { children: ReactNode }) => {
+  const { data: prefs } = useAccessibilityPreferences();
+  const updatePrefs = useUpdateAccessibilityPreferences();
+  const [localFocusMode, setLocalFocusMode] = useState(false);
+
+  const isFocusMode = prefs?.simplified_view ?? localFocusMode;
+
+  const toggleFocusMode = useCallback(() => {
+    const newValue = !isFocusMode;
+    setLocalFocusMode(newValue);
+    if (prefs) {
+      updatePrefs.mutate({ ...prefs, simplified_view: newValue });
+    }
+  }, [isFocusMode, prefs, updatePrefs]);
+
+  return (
+    <FocusModeContext.Provider value={{ isFocusMode, toggleFocusMode }}>
+      {children}
+    </FocusModeContext.Provider>
+  );
+};
+```
+
+### Font Preference Manager: `src/lib/fontPreferences.ts`
+
+Manages font loading and switching for dyslexia-friendly font option.
+
+```typescript
+const OPENDYSLEXIC_URL = 'https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/open-dyslexic-regular.woff2';
+
+let fontLoaded = false;
+
+export const loadDyslexiaFont = async (): Promise<void> => {
+  if (fontLoaded) return;
+  try {
+    const font = new FontFace('OpenDyslexic', `url(${OPENDYSLEXIC_URL})`);
+    const loaded = await font.load();
+    document.fonts.add(loaded);
+    fontLoaded = true;
+  } catch (error) {
+    console.error('Failed to load OpenDyslexic font:', error);
+  }
+};
+
+export const applyDyslexiaFont = (enabled: boolean): void => {
+  const root = document.documentElement;
+  if (enabled) {
+    loadDyslexiaFont();
+    root.style.setProperty('--font-body', '"OpenDyslexic", "Noto Sans", ui-sans-serif, system-ui, sans-serif');
+  } else {
+    root.style.removeProperty('--font-body');
+  }
+};
+```
+
+### Animation Reduction Manager: `src/lib/animationPreferences.ts`
+
+Manages animation reduction that works alongside OS-level `prefers-reduced-motion`.
+
+```typescript
+export const shouldReduceAnimations = (userPref: boolean): boolean => {
+  const osPref = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  return osPref || userPref;
+};
+
+export const applyAnimationReduction = (reduce: boolean): void => {
+  document.documentElement.classList.toggle('reduce-animations', reduce);
+};
+```
+
+### Standardized Bloom's Arabic Terminology: `src/lib/bloomsArabicTerminology.ts`
+
+Maps Bloom's Taxonomy levels to standardized Arabic educational terms (not literal translations).
+
+```typescript
+/**
+ * Standardized Arabic educational terminology for Bloom's Taxonomy.
+ * These terms align with established Arabic pedagogical vocabulary
+ * used in Gulf Cooperation Council (GCC) educational standards.
+ */
+export const BLOOMS_ARABIC_STANDARD: Record<string, { term: string; verbs: string[] }> = {
+  remembering: {
+    term: 'التذكر',
+    verbs: ['يُعرِّف', 'يُسمِّي', 'يَسرُد', 'يَصِف', 'يُحدِّد', 'يَذكُر'],
+  },
+  understanding: {
+    term: 'الفهم',
+    verbs: ['يُفسِّر', 'يُلخِّص', 'يَشرَح', 'يُوضِّح', 'يُقارِن', 'يُصنِّف'],
+  },
+  applying: {
+    term: 'التطبيق',
+    verbs: ['يُطبِّق', 'يَستخدِم', 'يُنفِّذ', 'يَحُل', 'يُوظِّف', 'يُجرِّب'],
+  },
+  analyzing: {
+    term: 'التحليل',
+    verbs: ['يُحلِّل', 'يُقارِن', 'يُميِّز', 'يَفحَص', 'يَستنتِج', 'يُنظِّم'],
+  },
+  evaluating: {
+    term: 'التقييم',
+    verbs: ['يُقيِّم', 'يَنقُد', 'يُبرِّر', 'يَحكُم', 'يُراجِع', 'يُدافِع'],
+  },
+  creating: {
+    term: 'الإبداع',
+    verbs: ['يُصمِّم', 'يَبتكِر', 'يُؤلِّف', 'يُخطِّط', 'يَبنِي', 'يُنتِج'],
+  },
+};
+
+/**
+ * Standardized Arabic OBE terminology for the Qatar education context.
+ */
+export const OBE_ARABIC_TERMS: Record<string, string> = {
+  ILO: 'مخرجات التعلم المؤسسية',
+  PLO: 'مخرجات التعلم البرنامجية',
+  CLO: 'مخرجات التعلم للمقرر',
+  attainment: 'التحصيل',
+  excellent: 'ممتاز',
+  satisfactory: 'مُرضٍ',
+  developing: 'قيد التطوير',
+  notYet: 'لم يتحقق بعد',
+  curriculumMatrix: 'مصفوفة المنهج',
+  CQI: 'التحسين المستمر للجودة',
+  courseFile: 'ملف المقرر',
+  outcomeMapping: 'ربط المخرجات',
+};
+```
+
+### Data Model Addition: `accessibility_preferences` on profiles
+
+```sql
+-- Add accessibility_preferences JSONB column to profiles
+ALTER TABLE profiles
+  ADD COLUMN accessibility_preferences JSONB DEFAULT '{
+    "font_size": "default",
+    "high_contrast": false,
+    "reduced_animations": false,
+    "dyslexia_font": false,
+    "simplified_view": false
+  }'::jsonb;
+```
+
+The column is covered by existing profile RLS policies (users can read/update their own profile).
+
+### CSS Additions for Accessibility: `src/index.css`
+
+```css
+/* ─── Accessibility Overrides ─────────────────────────────────────────────── */
+
+/* Dyslexia-friendly font */
+.dyslexia-font {
+  font-family: var(--font-body, "OpenDyslexic", "Noto Sans", ui-sans-serif, system-ui, sans-serif);
+}
+
+.dyslexia-font[dir="rtl"] {
+  font-family: var(--font-body, "OpenDyslexic", "Noto Sans Arabic", "Noto Sans", ui-sans-serif, system-ui, sans-serif);
+}
+
+/* High contrast mode */
+.high-contrast {
+  --background: #ffffff;
+  --foreground: #000000;
+  --card: #ffffff;
+  --card-foreground: #000000;
+  --border: #000000;
+  --ring: #000000;
+}
+
+.high-contrast * {
+  border-color: #000000 !important;
+}
+
+.high-contrast .text-gray-500,
+.high-contrast .text-gray-400,
+.high-contrast .text-slate-500 {
+  color: #000000 !important;
+}
+
+/* Reduced animations — overrides all custom keyframe animations */
+.reduce-animations *,
+.reduce-animations *::before,
+.reduce-animations *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
+
+/* Preserve essential UI transitions in reduced animation mode */
+.reduce-animations [data-radix-popper-content-wrapper],
+.reduce-animations [data-state] {
+  transition-duration: 100ms !important;
+}
+
+/* Simplified view — hide non-essential elements */
+.simplified-view [data-focus-hide="true"] {
+  display: none !important;
+}
+
+/* Font size overrides */
+html.font-large {
+  font-size: 18px;
+}
+
+html.font-x-large {
+  font-size: 20px;
+}
+```
+
+## Additional Correctness Properties (Gap Analysis)
+
+### Property 11: Accessibility Preferences Persistence Round-Trip
+
+For any valid accessibility preferences object, saving to localStorage and loading back SHALL produce an equivalent object. Similarly, saving to the database and reading back SHALL produce an equivalent object.
+
+```
+for all valid AccessibilityPreferences P:
+  loadAccessibilityPreferences(saveAccessibilityPreferencesLocal(P)) == P
+```
+
+Derived from: Requirement 23, Acceptance Criteria 5-6
+
+### Property 12: Dyslexia Font Toggle Consistency
+
+When the `dyslexia_font` preference is toggled, the document root's font-family CSS variable SHALL reflect the change. Toggling on then off SHALL restore the original font stack.
+
+```
+applyDyslexiaFont(true) → root.style.getPropertyValue('--font-body') contains 'OpenDyslexic'
+applyDyslexiaFont(false) → root.style.getPropertyValue('--font-body') == '' (removed)
+```
+
+Derived from: Requirement 24, Acceptance Criteria 2-3
+
+### Property 13: Animation Reduction Respects Both OS and User Preferences
+
+The `shouldReduceAnimations` function SHALL return `true` if either the OS-level `prefers-reduced-motion` is set OR the user's `reduced_animations` preference is enabled. It SHALL return `false` only when both are disabled.
+
+```
+shouldReduceAnimations(userPref) == (osPref || userPref)
+// Truth table:
+// OS=false, User=false → false
+// OS=false, User=true  → true
+// OS=true,  User=false → true
+// OS=true,  User=true  → true
+```
+
+Derived from: Requirement 25, Acceptance Criteria 4-5
+
+### Property 14: Bloom's Arabic Terminology Uses Standardized Terms
+
+For all Bloom's Taxonomy levels, the Arabic translation in the common namespace SHALL match the standardized term in `BLOOMS_ARABIC_STANDARD`. No literal translations are used.
+
+```
+for all levels L in ['remembering', 'understanding', 'applying', 'analyzing', 'evaluating', 'creating']:
+  arCommon.blooms[L] == BLOOMS_ARABIC_STANDARD[L].term
+```
+
+Derived from: Requirement 26, Acceptance Criteria 1, 4
+
+### Property 15: Cognitive Load Indicator Threshold Consistency
+
+The CognitiveLoadIndicator SHALL render only when `sectionCount > threshold`. For all values of sectionCount ≤ threshold, the component SHALL render nothing.
+
+```
+for all sectionCount S and threshold T:
+  if S <= T → CognitiveLoadIndicator renders null
+  if S > T → CognitiveLoadIndicator renders banner
+```
+
+Derived from: Requirement 21, Acceptance Criteria 1
+
+### Property 16: UI Focus Mode Hides Only Non-Essential Elements
+
+When Focus Mode is active (simplified_view = true), elements marked with `data-focus-hide="true"` SHALL be hidden. Elements without this attribute SHALL remain visible. Essential elements (primary nav, form inputs, submit buttons) SHALL never have `data-focus-hide="true"`.
+
+```
+for all elements E:
+  if E.dataset.focusHide == 'true' AND simplified_view == true → E is hidden
+  if E.dataset.focusHide != 'true' → E is visible regardless of simplified_view
+```
+
+Derived from: Requirement 22, Acceptance Criteria 2-3

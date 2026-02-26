@@ -132,3 +132,38 @@
 - [ ] 15.7 Create `src/__tests__/unit/languageSwitcher.test.tsx` — unit test: LanguageSwitcher renders, toggles language, persists preference
 - [ ] 15.8 Create `src/__tests__/unit/directionManager.test.ts` — unit test: applyDirection sets correct dir/lang attributes
 - [ ] 15.9 Create `src/__tests__/unit/formatDate.test.ts` — unit test: formatLocalDate returns correct locale-formatted strings
+
+
+## 16. Cognitive Accessibility
+
+- [ ] 16.1 Create `src/lib/accessibilityPreferences.ts` — accessibility preferences manager with Zod schema, localStorage persistence, and `applyAccessibilityPreferences()` function that toggles CSS classes on document root
+- [ ] 16.2 Create migration: add `accessibility_preferences` JSONB column to `profiles` table with default value `{"font_size": "default", "high_contrast": false, "reduced_animations": false, "dyslexia_font": false, "simplified_view": false}`
+- [ ] 16.3 Create `src/hooks/useAccessibilityPreferences.ts` — TanStack Query hook for reading and updating accessibility preferences (profile + localStorage fallback)
+- [ ] 16.4 Create `src/components/shared/CognitiveLoadIndicator.tsx` — non-intrusive banner component that appears when page section count exceeds threshold, offers simplified view toggle, dismissible per page
+- [ ] 16.5 Create `src/providers/FocusModeProvider.tsx` — context provider for UI Focus Mode state with `useFocusMode()` hook, toggles `simplified_view` preference
+- [ ] 16.6 Create Accessibility Settings panel — accessible from user menu, includes toggles for font size, high contrast, reduced animations, dyslexia font, and simplified view
+- [ ] 16.7 Add `data-focus-hide="true"` attribute to non-essential UI elements (gamification widgets, decorative animations, notification badges, secondary nav items) across all role layouts
+
+## 17. Neurodivergent Learner Support
+
+- [ ] 17.1 Create `src/lib/fontPreferences.ts` — font preference manager with `loadDyslexiaFont()` (FontFace API) and `applyDyslexiaFont()` toggle function using OpenDyslexic from CDN
+- [ ] 17.2 Create `src/lib/animationPreferences.ts` — animation reduction manager with `shouldReduceAnimations()` (combines OS pref + user pref) and `applyAnimationReduction()` function
+- [ ] 17.3 Update `src/index.css` — add CSS rules for `.dyslexia-font`, `.high-contrast`, `.reduce-animations`, `.simplified-view [data-focus-hide]`, and font size override classes
+- [ ] 17.4 Integrate accessibility preferences with AuthProvider — load and apply preferences on authentication, same pattern as language preference
+- [ ] 17.5 Add `accessibility` query keys to `src/lib/queryKeys.ts`
+
+## 18. Standardized Educational Terminology
+
+- [ ] 18.1 Create `src/lib/bloomsArabicTerminology.ts` — standardized Bloom's Taxonomy Arabic terminology mapping with `BLOOMS_ARABIC_STANDARD` (terms + action verbs per level) and `OBE_ARABIC_TERMS` glossary
+- [ ] 18.2 Update `src/locales/ar/common.json` — replace Bloom's taxonomy translations with standardized Arabic educational terms from `BLOOMS_ARABIC_STANDARD`
+- [ ] 18.3 Update Arabic translation files with standardized OBE terminology (ILO → مخرجات التعلم المؤسسية, PLO → مخرجات التعلم البرنامجية, CLO → مخرجات التعلم للمقرر, attainment levels, CQI terms)
+- [ ] 18.4 Update `src/components/shared/BloomsVerbGuide.tsx` — use standardized Arabic action verbs from `BLOOMS_ARABIC_STANDARD` when language is Arabic
+
+## 19. Accessibility Testing
+
+- [ ] 19.1 Create `src/__tests__/properties/accessibilityPreferences.property.test.ts` — property test: accessibility preferences localStorage round-trip (save then load returns equivalent object) (Property 11)
+- [ ] 19.2 Create `src/__tests__/unit/dyslexiaFont.test.ts` — unit test: `applyDyslexiaFont(true)` sets `--font-body` CSS variable with OpenDyslexic, `applyDyslexiaFont(false)` removes it (Property 12)
+- [ ] 19.3 Create `src/__tests__/unit/animationReduction.test.ts` — unit test: `shouldReduceAnimations` returns true when either OS pref or user pref is enabled, false only when both disabled (Property 13)
+- [ ] 19.4 Create `src/__tests__/unit/bloomsArabicTerminology.test.ts` — unit test: all Bloom's levels in `ar/common.json` match `BLOOMS_ARABIC_STANDARD` terms; no literal translations used (Property 14)
+- [ ] 19.5 Create `src/__tests__/unit/cognitiveLoadIndicator.test.tsx` — unit test: CognitiveLoadIndicator renders banner only when sectionCount > threshold, renders null otherwise (Property 15)
+- [ ] 19.6 Create `src/__tests__/unit/focusMode.test.tsx` — unit test: elements with `data-focus-hide="true"` are hidden when simplified_view is active, visible otherwise (Property 16)
