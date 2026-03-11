@@ -77,20 +77,29 @@ describe('useLeaderboardRealtime', () => {
     });
   });
 
-  it('subscribes to the leaderboard-realtime channel on mount', () => {
-    renderHook(() => useLeaderboardRealtime(), { wrapper: createWrapper() });
+  const testInstitutionId = 'inst-abc-123';
 
-    expect(supabase.channel).toHaveBeenCalledWith('leaderboard-realtime');
+  it('subscribes to the leaderboard-realtime channel on mount', () => {
+    renderHook(() => useLeaderboardRealtime(testInstitutionId), { wrapper: createWrapper() });
+
+    expect(supabase.channel).toHaveBeenCalledWith(`leaderboard-realtime-${testInstitutionId}`);
     expect(channelObj.on).toHaveBeenCalledWith(
       'postgres_changes',
-      { event: 'UPDATE', schema: 'public', table: 'student_gamification' },
+      { event: 'UPDATE', schema: 'public', table: 'student_gamification', filter: `institution_id=eq.${testInstitutionId}` },
       expect.any(Function),
     );
     expect(mockState.subscribeCalled).toBe(true);
   });
 
+  it('does not subscribe when institutionId is undefined', () => {
+    renderHook(() => useLeaderboardRealtime(), { wrapper: createWrapper() });
+
+    expect(supabase.channel).not.toHaveBeenCalled();
+    expect(mockState.subscribeCalled).toBe(false);
+  });
+
   it('removes the channel on unmount', () => {
-    const { unmount } = renderHook(() => useLeaderboardRealtime(), {
+    const { unmount } = renderHook(() => useLeaderboardRealtime(testInstitutionId), {
       wrapper: createWrapper(),
     });
 
@@ -108,7 +117,7 @@ describe('useLeaderboardRealtime', () => {
     const wrapper = ({ children }: { children: ReactNode }) =>
       createElement(QueryClientProvider, { client: queryClient }, children);
 
-    renderHook(() => useLeaderboardRealtime(), { wrapper });
+    renderHook(() => useLeaderboardRealtime(testInstitutionId), { wrapper });
 
     // Extract the callback passed to `.on()` and invoke it
     const onCallback = mockState.onCalls[0]?.[2];
