@@ -1,6 +1,6 @@
 # Implementation Plan
 
-- [ ] 1. Write bug condition exploration tests (BEFORE implementing fixes)
+- [x] 1. Write bug condition exploration tests (BEFORE implementing fixes)
   - **Property 1: Fault Condition** — Platform Audit Defects (17 Bugs)
   - **CRITICAL**: These tests MUST FAIL on unfixed code — failure confirms the bugs exist
   - **DO NOT attempt to fix the tests or the code when they fail**
@@ -13,14 +13,14 @@
   - Document counterexamples found to understand root causes
   - Mark task complete when tests are written, run, and failures are documented
 
-  - [ ] 1.1 XP Schedule fault condition test
+  - [x] 1.1 XP Schedule fault condition test
     - **Property 1a: Fault Condition** — XP Schedule Mismatch
     - Generate random XP source types from `['submission', 'grade', 'streak_milestone', 'first_attempt_bonus']`
     - Assert `XP_SCHEDULE[source]` matches domain spec: `submission: 25`, `grade: 15`, `streak_milestone: 50`, `first_attempt_bonus: 10`
     - Will FAIL on unfixed code (currently `submission: 50`, `grade: 25`, `streak_milestone: 100`, `first_attempt_bonus: 25`)
     - _Requirements: 2.13_
 
-  - [ ] 1.2 Query key consistency fault condition test
+  - [x] 1.2 Query key consistency fault condition test
     - **Property 1b: Fault Condition** — Ad-Hoc Query Keys
     - Import dashboard hooks (useAdminDashboard, useStudentDashboard, useTeacherDashboard, useCoordinatorDashboard, useParentDashboard)
     - Verify each hook's query key uses the `queryKeys` factory (not ad-hoc string arrays)
@@ -28,7 +28,7 @@
     - Will FAIL on unfixed code (dashboard hooks use ad-hoc keys like `['admin', 'kpis']`)
     - _Requirements: 2.2_
 
-  - [ ] 1.3 Column name fault condition test
+  - [x] 1.3 Column name fault condition test
     - **Property 1c: Fault Condition** — Column Name Mismatches
     - Verify `useStudentDashboard` reads `streak_count` (not `current_streak`) from `student_gamification`
     - Verify `useStudentDashboard` reads `level` (not `current_level`) from `student_gamification`
@@ -36,33 +36,33 @@
     - Will FAIL on unfixed code (reads wrong column names)
     - _Requirements: 2.3, 2.4_
 
-  - [ ] 1.4 PostgREST filter sanitization fault condition test
+  - [x] 1.4 PostgREST filter sanitization fault condition test
     - **Property 1d: Fault Condition** — Filter Injection
     - Generate random strings containing PostgREST special characters (`.`, `,`, `(`, `)`, `%`, `*`)
     - Assert `sanitizePostgrestValue(input)` escapes all special characters
     - Will FAIL on unfixed code (function does not exist yet)
     - _Requirements: 2.12_
 
-  - [ ] 1.5 Audit logging coverage fault condition test
+  - [x] 1.5 Audit logging coverage fault condition test
     - **Property 1e: Fault Condition** — Missing Audit Logs
     - For each mutation hook: useCreateCLO, useUpdateCLO, useDeleteCLO, useCreateAssignment, useUpdateAssignment, useDeleteAssignment, useCreateRubric, useUpdateRubric, useDeleteRubric, useEnrollStudent, useUnenrollStudent, useCreateGrade, useCreateSubmission
     - Mock `logAuditEvent` and call mutation, verify `logAuditEvent` is called with correct `entity_type`
     - Will FAIL on unfixed code (no audit logging in these hooks)
     - _Requirements: 2.8_
 
-  - [ ] 1.6 Course name display fault condition test
+  - [x] 1.6 Course name display fault condition test
     - **Property 1f: Fault Condition** — Truncated UUID Course Name
     - Verify `useUpcomingDeadlines` query includes a join to `courses` table for course name
     - Will FAIL on unfixed code (uses `Course ${course_id.slice(0, 8)}`)
     - _Requirements: 2.16_
 
-  - [ ] 1.7 Edge function permission fault condition test
+  - [x] 1.7 Edge function permission fault condition test
     - **Property 1g: Fault Condition** — award-xp No Permission Check
     - Verify `award-xp` edge function rejects requests from non-service-role callers awarding XP to other students
     - Will FAIL on unfixed code (no permission validation)
     - _Requirements: 2.11_
 
-- [ ] 2. Write preservation property tests (BEFORE implementing fixes)
+- [x] 2. Write preservation property tests (BEFORE implementing fixes)
   - **Property 2: Preservation** — Existing Behavior Unchanged
   - **IMPORTANT**: Follow observation-first methodology
   - Observe behavior on UNFIXED code for non-buggy inputs
@@ -72,7 +72,7 @@
   - **EXPECTED OUTCOME**: Tests PASS (this confirms baseline behavior to preserve)
   - Mark task complete when tests are written, run, and passing on unfixed code
 
-  - [ ] 2.1 Existing query key factory preservation test
+  - [x] 2.1 Existing query key factory preservation test
     - **Property 2a: Preservation** — Existing queryKeys Usage
     - Observe: hooks already using `queryKeys` factory (useUsers, useCourses, usePrograms, useILOs, usePLOs) produce specific key structures
     - Generate random filter objects and verify `queryKeys.users.list(filters)` produces `['users', 'list', filters]`
@@ -81,14 +81,14 @@
     - Tests PASS on unfixed code (factory already works correctly)
     - _Requirements: 3.2_
 
-  - [ ] 2.2 Existing audit logging preservation test
+  - [x] 2.2 Existing audit logging preservation test
     - **Property 2b: Preservation** — Existing Audit Log Format
     - Observe: useCreateUser, useCreateProgram, useCreateCourse call `logAuditEvent` with `{ action, entity_type, entity_id, changes }`
     - Mock `logAuditEvent` and verify existing hooks continue to call it with correct format
     - Tests PASS on unfixed code (existing hooks already log correctly)
     - _Requirements: 3.3_
 
-  - [ ] 2.3 Unaffected XP sources preservation test
+  - [x] 2.3 Unaffected XP sources preservation test
     - **Property 2c: Preservation** — Unaffected XP Schedule Values
     - Observe: `XP_SCHEDULE.login = 10`, `XP_SCHEDULE.journal = 20`, `XP_SCHEDULE.perfect_day = 50`, `XP_SCHEDULE.perfect_rubric = 75`
     - Generate random source from `['login', 'journal', 'perfect_day', 'perfect_rubric']`
@@ -96,7 +96,7 @@
     - Tests PASS on unfixed code (these values are already correct)
     - _Requirements: 3.9_
 
-  - [ ] 2.4 UI continuity preservation test
+  - [x] 2.4 UI continuity preservation test
     - **Property 2d: Preservation** — Toast and Provider Behavior
     - Observe: Sonner Toaster configured with `position="top-right"` and `richColors`
     - Verify App.tsx wraps with AuthProvider, QueryClientProvider, NuqsAdapter
