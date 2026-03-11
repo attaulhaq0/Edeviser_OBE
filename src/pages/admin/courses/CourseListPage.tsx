@@ -28,12 +28,13 @@ const CourseListPage = () => {
   );
   const [courseToDeactivate, setCourseToDeactivate] = useState<Course | null>(null);
 
-  const { data, isLoading } = useCourses({
+  const { data: paginatedCourses, isLoading } = useCourses({
     search: search || undefined,
     programId: programFilter || undefined,
   });
 
-  const { data: programs = [] } = usePrograms();
+  const { data: paginatedPrograms } = usePrograms();
+  const programs = paginatedPrograms?.data ?? [];
   const softDeleteMutation = useSoftDeleteCourse();
 
   const columns = createColumns(
@@ -87,7 +88,7 @@ const CourseListPage = () => {
       </div>
 
       {/* Data Table */}
-      <DataTable columns={columns} data={data ?? []} isLoading={isLoading} />
+      <DataTable columns={columns} data={paginatedCourses?.data ?? []} isLoading={isLoading} />
 
       {/* Deactivate Confirmation Dialog */}
       <ConfirmDialog

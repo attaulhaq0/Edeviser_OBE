@@ -22,8 +22,8 @@ vi.mock('@/hooks/useAuth', () => ({
   useAuth: () => ({ user: { id: 'current-user' }, profile: { role: 'student', institution_id: 'inst-1' }, role: 'student', institutionId: 'inst-1' }),
 }));
 
-vi.mock('@/hooks/useLeaderboardRealtime', () => ({
-  useLeaderboardRealtime: vi.fn(),
+vi.mock('@/hooks/useRealtime', () => ({
+  useRealtime: () => ({ isLive: true }),
 }));
 
 vi.mock('@/hooks/useLeaderboard', () => ({

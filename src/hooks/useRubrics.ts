@@ -1,9 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { queryKeys } from '@/lib/queryKeys';
+import { logAuditEvent } from '@/lib/auditLogger';
+import { useAuth } from '@/hooks/useAuth';
+import type { PaginatedResult } from '@/types/pagination';
+import { getPaginationRange } from '@/types/pagination';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const db = supabase as unknown as { from: (table: string) => any };
+
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -43,40 +46,41 @@ interface CreateRubricInput {
 
 // ─── useRubrics — list rubrics, optionally filtered by courseId ──────────────
 
-export const useRubrics = (courseId?: string) => {
+export const useRubrics = (courseId?: string, pagination?: { page?: number; pageSize?: number }) => {
+  const { page, pageSize, from, to } = getPaginationRange(pagination?.page, pagination?.pageSize);
+
   return useQuery({
-    queryKey: queryKeys.rubrics.list({ courseId }),
-    queryFn: async (): Promise<Rubric[]> => {
+    queryKey: queryKeys.rubrics.list({ courseId, page, pageSize }),
+    queryFn: async (): Promise<PaginatedResult<Rubric>> => {
       if (courseId) {
         // Get CLO ids for this course, then filter rubrics
-        const { data: clos, error: closError } = await db
-          .from('learning_outcomes')
+        const { data: clos, error: closError } = await supabase.from('learning_outcomes')
           .select('id')
           .eq('type', 'CLO')
           .eq('course_id', courseId);
 
         if (closError) throw closError;
 
-        const cloIds = (clos as Array<{ id: string }>).map((c) => c.id);
-        if (cloIds.length === 0) return [];
+        const cloIds = (clos ?? []).map((c) => c.id);
+        if (cloIds.length === 0) return { data: [], count: 0, page, pageSize };
 
-        const { data, error } = await db
-          .from('rubrics')
-          .select('*')
+        const { data, error, count } = await supabase.from('rubrics')
+          .select('*', { count: 'exact' })
           .in('clo_id', cloIds)
-          .order('created_at', { ascending: false });
+          .order('created_at', { ascending: false })
+          .range(from, to);
 
         if (error) throw error;
-        return data as Rubric[];
+        return { data: (data ?? []) as Rubric[], count: count ?? 0, page, pageSize };
       }
 
-      const { data, error } = await db
-        .from('rubrics')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const { data, error, count } = await supabase.from('rubrics')
+        .select('*', { count: 'exact' })
+        .order('created_at', { ascending: false })
+        .range(from, to);
 
       if (error) throw error;
-      return data as Rubric[];
+      return { data: (data ?? []) as Rubric[], count: count ?? 0, page, pageSize };
     },
   });
 };
@@ -88,8 +92,7 @@ export const useRubric = (id?: string) => {
   return useQuery({
     queryKey: queryKeys.rubrics.detail(id ?? ''),
     queryFn: async (): Promise<RubricWithCriteria | null> => {
-      const { data: rubric, error } = await db
-        .from('rubrics')
+      const { data: rubric, error } = await supabase.from('rubrics')
         .select('*')
         .eq('id', id!)
         .maybeSingle();
@@ -97,8 +100,7 @@ export const useRubric = (id?: string) => {
       if (error) throw error;
       if (!rubric) return null;
 
-      const { data: criteria, error: criteriaError } = await db
-        .from('rubric_criteria')
+      const { data: criteria, error: criteriaError } = await supabase.from('rubric_criteria')
         .select('*')
         .eq('rubric_id', id!)
         .order('sort_order', { ascending: true });
@@ -118,13 +120,13 @@ export const useRubric = (id?: string) => {
 
 export const useCreateRubric = () => {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async (input: CreateRubricInput): Promise<Rubric> => {
       const { criteria, ...rubricFields } = input;
 
-      const { data: rubric, error } = await db
-        .from('rubrics')
+      const { data: rubric, error } = await supabase.from('rubrics')
         .insert(rubricFields)
         .select()
         .single();
@@ -142,12 +144,19 @@ export const useCreateRubric = () => {
           max_points: c.max_points,
         }));
 
-        const { error: criteriaError } = await db
-          .from('rubric_criteria')
+        const { error: criteriaError } = await supabase.from('rubric_criteria')
           .insert(rows);
 
         if (criteriaError) throw criteriaError;
       }
+
+      await logAuditEvent({
+        action: 'create',
+        entity_type: 'rubric',
+        entity_id: created.id,
+        changes: input as unknown as Record<string, unknown>,
+        performed_by: user?.id ?? 'unknown',
+      });
 
       return created;
     },
@@ -161,13 +170,13 @@ export const useCreateRubric = () => {
 
 export const useUpdateRubric = (id: string) => {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async (input: CreateRubricInput): Promise<Rubric> => {
       const { criteria, ...rubricFields } = input;
 
-      const { data: rubric, error } = await db
-        .from('rubrics')
+      const { data: rubric, error } = await supabase.from('rubrics')
         .update(rubricFields)
         .eq('id', id)
         .select()
@@ -176,8 +185,7 @@ export const useUpdateRubric = (id: string) => {
       if (error) throw error;
 
       // Delete existing criteria and re-insert
-      const { error: deleteError } = await db
-        .from('rubric_criteria')
+      const { error: deleteError } = await supabase.from('rubric_criteria')
         .delete()
         .eq('rubric_id', id);
 
@@ -192,12 +200,19 @@ export const useUpdateRubric = (id: string) => {
           max_points: c.max_points,
         }));
 
-        const { error: criteriaError } = await db
-          .from('rubric_criteria')
+        const { error: criteriaError } = await supabase.from('rubric_criteria')
           .insert(rows);
 
         if (criteriaError) throw criteriaError;
       }
+
+      await logAuditEvent({
+        action: 'update',
+        entity_type: 'rubric',
+        entity_id: id,
+        changes: input as unknown as Record<string, unknown>,
+        performed_by: user?.id ?? 'unknown',
+      });
 
       return rubric as Rubric;
     },
@@ -212,22 +227,29 @@ export const useUpdateRubric = (id: string) => {
 
 export const useDeleteRubric = () => {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async (id: string): Promise<void> => {
-      const { error: criteriaError } = await db
-        .from('rubric_criteria')
+      const { error: criteriaError } = await supabase.from('rubric_criteria')
         .delete()
         .eq('rubric_id', id);
 
       if (criteriaError) throw criteriaError;
 
-      const { error } = await db
-        .from('rubrics')
+      const { error } = await supabase.from('rubrics')
         .delete()
         .eq('id', id);
 
       if (error) throw error;
+
+      await logAuditEvent({
+        action: 'delete',
+        entity_type: 'rubric',
+        entity_id: id,
+        changes: {},
+        performed_by: user?.id ?? 'unknown',
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.rubrics.lists() });
@@ -241,8 +263,7 @@ export const useRubricTemplates = () => {
   return useQuery({
     queryKey: queryKeys.rubrics.list({ isTemplate: true }),
     queryFn: async (): Promise<Rubric[]> => {
-      const { data, error } = await db
-        .from('rubrics')
+      const { data, error } = await supabase.from('rubrics')
         .select('*')
         .eq('is_template', true)
         .order('created_at', { ascending: false });
@@ -261,8 +282,7 @@ export const useCopyRubric = () => {
   return useMutation({
     mutationFn: async (sourceId: string): Promise<Rubric> => {
       // Fetch original rubric
-      const { data: original, error: fetchError } = await db
-        .from('rubrics')
+      const { data: original, error: fetchError } = await supabase.from('rubrics')
         .select('*')
         .eq('id', sourceId)
         .single();
@@ -272,8 +292,7 @@ export const useCopyRubric = () => {
       const src = original as Rubric;
 
       // Fetch original criteria
-      const { data: srcCriteria, error: criteriaFetchError } = await db
-        .from('rubric_criteria')
+      const { data: srcCriteria, error: criteriaFetchError } = await supabase.from('rubric_criteria')
         .select('*')
         .eq('rubric_id', sourceId)
         .order('sort_order', { ascending: true });
@@ -281,8 +300,7 @@ export const useCopyRubric = () => {
       if (criteriaFetchError) throw criteriaFetchError;
 
       // Insert copied rubric
-      const { data: newRubric, error: insertError } = await db
-        .from('rubrics')
+      const { data: newRubric, error: insertError } = await supabase.from('rubrics')
         .insert({
           title: `${src.title} (Copy)`,
           clo_id: src.clo_id,
@@ -306,8 +324,7 @@ export const useCopyRubric = () => {
           max_points: c.max_points,
         }));
 
-        const { error: criteriaInsertError } = await db
-          .from('rubric_criteria')
+        const { error: criteriaInsertError } = await supabase.from('rubric_criteria')
           .insert(rows);
 
         if (criteriaInsertError) throw criteriaInsertError;

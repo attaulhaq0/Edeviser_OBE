@@ -77,13 +77,19 @@ const feePayments = createKeys('feePayments')
 const transcripts = createKeys('transcripts')
 const courseFiles = createKeys('courseFiles')
 
+// ─── Dashboards ──────────────────────────────────────────────────────────────
+const adminDashboard = createKeys('adminDashboard')
+const coordinatorDashboard = createKeys('coordinatorDashboard')
+const studentDashboard = createKeys('studentDashboard')
+const parentDashboard = createKeys('parentDashboard')
+const teacherDashboard = createKeys('teacherDashboard')
+
 // ─── Production ──────────────────────────────────────────────────────────────
 const calendarEvents = createKeys('calendarEvents')
 const globalSearch = createKeys('globalSearch')
 const notificationPreferences = createKeys('notificationPreferences')
 const sessions = createKeys('sessions')
 const auditLogs = createKeys('auditLogs')
-const teacherDashboard = createKeys('teacherDashboard')
 
 // ─── Exported Key Factory ────────────────────────────────────────────────────
 export const queryKeys = {
@@ -151,11 +157,16 @@ export const queryKeys = {
   feePayments,
   transcripts,
   courseFiles,
+  // Dashboards
+  adminDashboard,
+  coordinatorDashboard,
+  studentDashboard,
+  parentDashboard,
+  teacherDashboard,
   // Production
   calendarEvents,
   globalSearch,
   notificationPreferences,
   sessions,
   auditLogs,
-  teacherDashboard,
 } as const

@@ -6,28 +6,32 @@ import { useAuth } from '@/hooks/useAuth';
 import type { CreateCourseFormData, UpdateCourseFormData } from '@/lib/schemas/course';
 import type { Course } from '@/types/app';
 import type { Profile } from '@/types/app';
+import type { PaginatedResult } from '@/types/pagination';
+import { getPaginationRange } from '@/types/pagination';
 
-// Bridge the generated types gap until database.ts is regenerated.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const db = supabase as unknown as { from: (table: string) => any };
+
 
 // ─── Filter types ────────────────────────────────────────────────────────────
 
 export interface CourseFilters {
   search?: string;
   programId?: string;
+  page?: number;
+  pageSize?: number;
 }
 
 // ─── useCourses — list courses with optional search/program filter ───────────
 
 export const useCourses = (filters: CourseFilters = {}) => {
+  const { page, pageSize, from, to } = getPaginationRange(filters.page, filters.pageSize);
+
   return useQuery({
-    queryKey: queryKeys.courses.list(filters as Record<string, unknown>),
-    queryFn: async (): Promise<Course[]> => {
-      let query = db
-        .from('courses')
-        .select('*')
-        .order('created_at', { ascending: false });
+    queryKey: queryKeys.courses.list({ ...filters, page, pageSize } as Record<string, unknown>),
+    queryFn: async (): Promise<PaginatedResult<Course>> => {
+      let query = supabase.from('courses')
+        .select('*', { count: 'exact' })
+        .order('created_at', { ascending: false })
+        .range(from, to);
 
       if (filters.programId) {
         query = query.eq('program_id', filters.programId);
@@ -39,9 +43,9 @@ export const useCourses = (filters: CourseFilters = {}) => {
         );
       }
 
-      const { data, error } = await query;
+      const { data, error, count } = await query;
       if (error) throw error;
-      return data as Course[];
+      return { data: (data ?? []) as Course[], count: count ?? 0, page, pageSize };
     },
     staleTime: 30_000,
   });
@@ -53,8 +57,7 @@ export const useCourse = (id: string | undefined) => {
   return useQuery({
     queryKey: queryKeys.courses.detail(id ?? ''),
     queryFn: async (): Promise<Course | null> => {
-      const { data, error } = await db
-        .from('courses')
+      const { data, error } = await supabase.from('courses')
         .select('*')
         .eq('id', id!)
         .maybeSingle();
@@ -76,8 +79,7 @@ export const useCreateCourse = () => {
 
   return useMutation({
     mutationFn: async (data: CreateCourseFormData): Promise<Course> => {
-      const { data: result, error } = await db
-        .from('courses')
+      const { data: result, error } = await supabase.from('courses')
         .insert(data)
         .select()
         .single();
@@ -90,7 +92,7 @@ export const useCreateCourse = () => {
         action: 'create',
         entity_type: 'course',
         entity_id: course.id,
-        changes: data as unknown as Record<string, unknown>,
+        changes: data as Record<string, unknown>,
         performed_by: user?.id ?? 'unknown',
       });
 
@@ -110,8 +112,7 @@ export const useUpdateCourse = (id: string) => {
 
   return useMutation({
     mutationFn: async (data: UpdateCourseFormData): Promise<Course> => {
-      const { data: result, error } = await db
-        .from('courses')
+      const { data: result, error } = await supabase.from('courses')
         .update(data)
         .eq('id', id)
         .select()
@@ -144,8 +145,7 @@ export const useSoftDeleteCourse = () => {
 
   return useMutation({
     mutationFn: async (id: string): Promise<Course> => {
-      const { data: result, error } = await db
-        .from('courses')
+      const { data: result, error } = await supabase.from('courses')
         .update({ is_active: false })
         .eq('id', id)
         .select()
@@ -175,8 +175,7 @@ export const useTeachers = () => {
   return useQuery({
     queryKey: queryKeys.users.list({ role: 'teacher' }),
     queryFn: async (): Promise<Profile[]> => {
-      const { data, error } = await db
-        .from('profiles')
+      const { data, error } = await supabase.from('profiles')
         .select('*')
         .eq('role', 'teacher')
         .eq('is_active', true)

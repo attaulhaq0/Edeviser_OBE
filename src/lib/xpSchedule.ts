@@ -11,12 +11,12 @@ import type { XPSource } from '@/types/app';
  */
 export const XP_SCHEDULE: Record<XPSource, number> = {
   login: 10,
-  submission: 50,
-  grade: 25,
+  submission: 25,
+  grade: 15,
   journal: 20,
-  streak_milestone: 100,
+  streak_milestone: 50,
   perfect_day: 50,
-  first_attempt_bonus: 25,
+  first_attempt_bonus: 10,
   perfect_rubric: 75,
   badge_earned: 0,
   level_up: 0,

@@ -134,7 +134,7 @@ const AuditLogPage = () => {
   const [action, setAction] = useQueryState('action', parseAsString.withDefault(''));
   const [entityType, setEntityType] = useQueryState('type', parseAsString.withDefault(''));
 
-  const { data, isLoading } = useAuditLogs({
+  const { data: paginatedData, isLoading } = useAuditLogs({
     search: search || undefined,
     action: action || undefined,
     entityType: entityType || undefined,
@@ -193,7 +193,7 @@ const AuditLogPage = () => {
       </div>
 
       {/* Data Table */}
-      <DataTable columns={columns} data={data ?? []} isLoading={isLoading} />
+      <DataTable columns={columns} data={paginatedData?.data ?? []} isLoading={isLoading} />
     </div>
   );
 };

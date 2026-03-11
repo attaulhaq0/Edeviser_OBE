@@ -36,9 +36,10 @@ const AssignmentDetailPage = () => {
   const { profile } = useAuth();
 
   const { data: assignment, isLoading: assignmentLoading } = useAssignment(id);
-  const { data: submissions, isLoading: submissionsLoading } = useSubmissions({
+  const { data: paginatedSubmissions, isLoading: submissionsLoading } = useSubmissions({
     assignmentId: id,
   });
+  const submissions = paginatedSubmissions?.data;
   const createSubmission = useCreateSubmission();
   const uploadFile = useUploadSubmissionFile();
 

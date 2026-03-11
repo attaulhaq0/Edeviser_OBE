@@ -306,13 +306,16 @@ const AssignmentFormFields = ({
   const navigate = useNavigate();
 
   const selectedCourseId = useWatch({ control: form.control, name: 'course_id' });
-  const { data: courses = [], isLoading: isLoadingCourses } = useCourses();
-  const { data: clos = [], isLoading: isLoadingCLOs } = useCLOs(
+  const { data: paginatedCourses, isLoading: isLoadingCourses } = useCourses();
+  const courses = paginatedCourses?.data ?? [];
+  const { data: paginatedCLOs, isLoading: isLoadingCLOs } = useCLOs(
     selectedCourseId || undefined,
   );
-  const { data: rubrics = [], isLoading: isLoadingRubrics } = useRubrics(
+  const clos = paginatedCLOs?.data ?? [];
+  const { data: paginatedRubrics, isLoading: isLoadingRubrics } = useRubrics(
     selectedCourseId || undefined,
   );
+  const rubrics = paginatedRubrics?.data ?? [];
 
   // Reset CLO weights and rubric when course changes
   useEffect(() => {

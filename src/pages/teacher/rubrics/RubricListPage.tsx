@@ -14,18 +14,18 @@ import { createColumns } from './columns';
 const RubricListPage = () => {
   const navigate = useNavigate();
   const [search, setSearch] = useQueryState('q', parseAsString.withDefault(''));
-  const { data, isLoading } = useRubrics();
+  const { data: paginatedData, isLoading } = useRubrics();
   const deleteMutation = useDeleteRubric();
   const copyMutation = useCopyRubric();
 
   const [deleteTarget, setDeleteTarget] = useState<Rubric | null>(null);
 
   const filtered = useMemo(() => {
-    if (!data) return [];
-    if (!search) return data;
+    const items = paginatedData?.data ?? [];
+    if (!search) return items;
     const q = search.toLowerCase();
-    return data.filter((r) => r.title.toLowerCase().includes(q));
-  }, [data, search]);
+    return items.filter((r) => r.title.toLowerCase().includes(q));
+  }, [paginatedData, search]);
 
   const columns = useMemo(
     () =>

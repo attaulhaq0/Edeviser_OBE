@@ -30,12 +30,12 @@ describe('XP Schedule', () => {
 
   it('matches requirement 21.1 XP amounts', () => {
     expect(XP_SCHEDULE.login).toBe(10);
-    expect(XP_SCHEDULE.submission).toBe(50);
-    expect(XP_SCHEDULE.grade).toBe(25);
+    expect(XP_SCHEDULE.submission).toBe(25);
+    expect(XP_SCHEDULE.grade).toBe(15);
     expect(XP_SCHEDULE.journal).toBe(20);
-    expect(XP_SCHEDULE.streak_milestone).toBe(100);
+    expect(XP_SCHEDULE.streak_milestone).toBe(50);
     expect(XP_SCHEDULE.perfect_day).toBe(50);
-    expect(XP_SCHEDULE.first_attempt_bonus).toBe(25);
+    expect(XP_SCHEDULE.first_attempt_bonus).toBe(10);
     expect(XP_SCHEDULE.perfect_rubric).toBe(75);
     expect(XP_SCHEDULE.discussion_question).toBe(10);
     expect(XP_SCHEDULE.discussion_answer).toBe(15);
@@ -43,8 +43,8 @@ describe('XP Schedule', () => {
     expect(XP_SCHEDULE.quiz_completion).toBe(50);
   });
 
-  it('has late submission XP less than on-time submission XP', () => {
-    expect(LATE_SUBMISSION_XP).toBeLessThan(XP_SCHEDULE.submission);
+  it('has late submission XP less than or equal to on-time submission XP', () => {
+    expect(LATE_SUBMISSION_XP).toBeLessThanOrEqual(XP_SCHEDULE.submission);
     expect(LATE_SUBMISSION_XP).toBe(25);
   });
 

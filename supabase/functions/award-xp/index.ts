@@ -197,6 +197,34 @@ serve(async (req) => {
 
     const { student_id, xp_amount, source, reference_id, note } = validation.data;
 
+    // ── Permission Validation ───────────────────────────────────────────
+    // Verify caller is either:
+    //   a) Using service_role key (server-to-server calls from other edge functions)
+    //   b) The student themselves for self-triggered sources (login, submission, journal)
+    // Reject with 403 Forbidden if neither condition is met
+
+    const authHeader = req.headers.get('Authorization') ?? '';
+    const isServiceRole = authHeader.includes(Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+
+    if (!isServiceRole) {
+      const selfTriggeredSources: XPSource[] = ['login', 'submission', 'journal'];
+
+      // Create user-scoped client to get the caller's identity
+      const userClient = createClient(
+        Deno.env.get('SUPABASE_URL')!,
+        Deno.env.get('SUPABASE_ANON_KEY')!,
+        { global: { headers: { Authorization: authHeader } } },
+      );
+      const { data: { user } } = await userClient.auth.getUser();
+
+      if (!user || !selfTriggeredSources.includes(source) || user.id !== student_id) {
+        return new Response(
+          JSON.stringify({ error: 'Forbidden: insufficient permissions' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        );
+      }
+    }
+
     // Handle zero XP — still record the transaction but skip level recalculation
     if (xp_amount === 0) {
       const { error: insertErr } = await supabase

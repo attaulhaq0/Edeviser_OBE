@@ -103,9 +103,9 @@
     - Tests PASS on unfixed code (providers already configured correctly)
     - _Requirements: 3.7, 3.10_
 
-- [ ] 3. Category 1 — Type Safety Fix (Bug 1.1)
+- [x] 3. Category 1 — Type Safety Fix (Bug 1.1)
 
-  - [ ] 3.1 Regenerate `src/types/database.ts` with full schema types
+  - [x] 3.1 Regenerate `src/types/database.ts` with full schema types
     - Run `npx supabase gen types --linked > src/types/database.ts` to include all tables
     - Verify the generated file includes types for all tables used by hooks (student_gamification, outcome_attainment, audit_logs, etc.)
     - _Bug_Condition: hook queries table other than 'institutions' AND uses `as unknown as { from: ... }` cast_
@@ -113,7 +113,7 @@
     - _Preservation: institutions table queries continue with full type inference (Req 3.1)_
     - _Requirements: 2.1, 3.1_
 
-  - [ ] 3.2 Remove `any` casts from all hook files
+  - [x] 3.2 Remove `any` casts from all hook files
     - Remove `const db = supabase as unknown as { from: (table: string) => any }` from 25+ hook files
     - Use `import { supabase } from '@/lib/supabase'` directly (already typed with `Database` generic)
     - Remove manual type assertions `(data as Array<{ ... }>)` — use inferred types
@@ -124,13 +124,13 @@
     - _Preservation: existing query logic unchanged, only type annotations removed_
     - _Requirements: 2.1_
 
-- [ ] 4. Category 2 — Data Correctness Fixes (Bugs 1.2, 1.3, 1.4, 1.13, 1.16)
+- [x] 4. Category 2 — Data Correctness Fixes (Bugs 1.2, 1.3, 1.4, 1.13, 1.16)
 
-  - [ ] 4.1 Add missing dashboard keys to `queryKeys` factory
+  - [x] 4.1 Add missing dashboard keys to `queryKeys` factory
     - Add `adminDashboard`, `coordinatorDashboard`, `studentDashboard`, `parentDashboard` to `src/lib/queryKeys.ts`
     - _Requirements: 2.2_
 
-  - [ ] 4.2 Migrate dashboard hooks to use `queryKeys` factory
+  - [x] 4.2 Migrate dashboard hooks to use `queryKeys` factory
     - `src/hooks/useAdminDashboard.ts`: Replace `['admin', 'kpis']` → `queryKeys.adminDashboard.list({})`, `['admin', 'recentAuditLogs', limit]` → `queryKeys.auditLogs.list({ limit })`
     - `src/hooks/useTeacherDashboard.ts`: Replace ad-hoc keys → `queryKeys.teacherDashboard.list({})`
     - `src/hooks/useStudentDashboard.ts`: Replace `['student', 'kpis', studentId]` → `queryKeys.studentGamification.detail(studentId)`, `['student', 'upcomingDeadlines', studentId, limit]` → `queryKeys.assignments.list({ studentId, upcoming: true, limit })`
@@ -141,7 +141,7 @@
     - _Preservation: hooks already using queryKeys factory unchanged (Req 3.2)_
     - _Requirements: 2.2, 3.2_
 
-  - [ ] 4.3 Fix column name mismatches in student dashboard
+  - [x] 4.3 Fix column name mismatches in student dashboard
     - `src/hooks/useStudentDashboard.ts`: Fix `current_streak` → `streak_count`, `current_level` → `level` in gamification query
     - `src/hooks/useStudentDashboard.ts`: Fix `score_percent` → `attainment_percent` and `scope: 'CLO'` → correct scope in attainment query
     - `src/hooks/useParentDashboard.ts`: Fix `current_streak` → `streak_count`, `current_level` → `level` in gamification reads
@@ -150,30 +150,30 @@
     - _Preservation: edge function write paths unchanged (Req 3.4, 3.8)_
     - _Requirements: 2.3, 2.4_
 
-  - [ ] 4.4 Correct XP schedule constants
+  - [x] 4.4 Correct XP schedule constants
     - `src/lib/xpSchedule.ts`: Change `submission: 50` → `25`, `grade: 25` → `15`, `streak_milestone: 100` → `50`, `first_attempt_bonus: 25` → `10`
     - _Bug_Condition: XP_SCHEDULE values don't match domain specification_
     - _Expected_Behavior: submission=25, grade=15, streak_milestone=50, first_attempt_bonus=10_
     - _Preservation: unaffected sources unchanged — login=10, journal=20, perfect_day=50, perfect_rubric=75 (Req 3.9)_
     - _Requirements: 2.13, 3.9_
 
-  - [ ] 4.5 Fix course name display in upcoming deadlines
+  - [x] 4.5 Fix course name display in upcoming deadlines
     - `src/hooks/useStudentDashboard.ts`: Join `assignments` to `courses` table via `.select('id, title, course_id, due_date, courses(name)')` to get actual course name
     - Remove `Course ${a.course_id.slice(0, 8)}` fallback, use `a.courses.name` instead
     - _Bug_Condition: useUpcomingDeadlines displays truncated UUID as course name_
     - _Expected_Behavior: displays actual course name from joined courses table_
     - _Requirements: 2.16_
 
-- [ ] 5. Category 3 — Performance Fixes (Bugs 1.5, 1.6, 1.7)
+- [x] 5. Category 3 — Performance Fixes (Bugs 1.5, 1.6, 1.7)
 
-  - [ ] 5.1 Batch parent dashboard queries
+  - [x] 5.1 Batch parent dashboard queries
     - `src/hooks/useParentDashboard.ts`: Replace per-child loop with batch queries using `.in('student_id', studentIds)` for gamification and enrollment data
     - Collect all child student IDs first, then make 2 batch queries instead of 2N sequential queries
     - _Bug_Condition: useLinkedChildren makes 2 queries per child in a loop_
     - _Expected_Behavior: at most 2 batch queries regardless of child count_
     - _Requirements: 2.5_
 
-  - [ ] 5.2 Batch reorder operations
+  - [x] 5.2 Batch reorder operations
     - `src/hooks/useCLOs.ts`: Replace sequential `for` loop in useReorderCLOs with single batch upsert `supabase.from('clos').upsert(updates, { onConflict: 'id' })`
     - `src/hooks/usePLOs.ts`: Replace sequential loop in useReorderPLOs with batch upsert
     - `src/hooks/useILOs.ts`: Replace sequential loop in useReorderILOs with batch upsert
@@ -181,7 +181,7 @@
     - _Expected_Behavior: single database call for all sort_order updates_
     - _Requirements: 2.6_
 
-  - [ ] 5.3 Add pagination to list hooks
+  - [x] 5.3 Add pagination to list hooks
     - Add `page` and `pageSize` parameters (default pageSize=25) to list hooks
     - Apply `.range(from, to)` to queries: `from = (page - 1) * pageSize`, `to = from + pageSize - 1`
     - Add `.select('*', { count: 'exact' })` for total count
@@ -192,9 +192,9 @@
     - _Expected_Behavior: paginated results with configurable page size_
     - _Requirements: 2.7_
 
-- [ ] 6. Category 4 — Compliance & Resilience Fixes (Bugs 1.8, 1.9, 1.10, 1.14, 1.15)
+- [x] 6. Category 4 — Compliance & Resilience Fixes (Bugs 1.8, 1.9, 1.10, 1.14, 1.15)
 
-  - [ ] 6.1 Add audit logging to uncovered mutation hooks
+  - [x] 6.1 Add audit logging to uncovered mutation hooks
     - `src/hooks/useCLOs.ts`: Add `logAuditEvent` to useCreateCLO, useUpdateCLO, useDeleteCLO with `entity_type: 'clo'`
     - `src/hooks/useAssignments.ts`: Add `logAuditEvent` to useCreateAssignment, useUpdateAssignment, useDeleteAssignment with `entity_type: 'assignment'`
     - `src/hooks/useRubrics.ts`: Add `logAuditEvent` to useCreateRubric, useUpdateRubric, useDeleteRubric with `entity_type: 'rubric'`
@@ -206,7 +206,7 @@
     - _Preservation: existing audit logging in useUsers, usePrograms, useCourses, usePLOs, useILOs, useBonusEvents, useBulkImport unchanged (Req 3.3)_
     - _Requirements: 2.8, 3.3_
 
-  - [ ] 6.2 Create ErrorBoundary component
+  - [x] 6.2 Create ErrorBoundary component
     - Create `src/components/shared/ErrorBoundary.tsx`
     - React class component with `componentDidCatch` and `getDerivedStateFromError`
     - Fallback UI: Card with gradient header, error message, and retry button
@@ -216,7 +216,7 @@
     - _Expected_Behavior: graceful fallback UI with retry option instead of white screen crash_
     - _Requirements: 2.9_
 
-  - [ ] 6.3 Initialize Sentry and wrap app
+  - [x] 6.3 Initialize Sentry and wrap app
     - Create `src/lib/sentry.ts`: Initialize Sentry with DSN from `VITE_SENTRY_DSN`, configure breadcrumbs for navigation and API calls, set up performance monitoring
     - `src/App.tsx`: Import and call `initSentry()` before component tree, wrap `<AppRouter />` with `<Sentry.ErrorBoundary>` as outer boundary and custom `<ErrorBoundary>` as inner boundary
     - _Bug_Condition: @sentry/react dependency exists but Sentry.init() never called_
@@ -224,7 +224,7 @@
     - _Preservation: existing providers (Toaster, AuthProvider, QueryClientProvider, NuqsAdapter) continue functioning (Req 3.10)_
     - _Requirements: 2.14, 3.10_
 
-  - [ ] 6.4 Create shared realtime subscription manager
+  - [x] 6.4 Create shared realtime subscription manager
     - Create `src/hooks/useRealtime.ts`: Shared subscription manager with channel deduplication, reconnection with exponential backoff (1s→2s→4s→8s→max 30s), fallback to polling (30s refetchInterval), "Live updates paused" state, cleanup on unmount
     - `src/pages/student/leaderboard/LeaderboardPage.tsx`: Replace direct `supabase.channel()` subscription with `useRealtime` hook
     - _Bug_Condition: useLeaderboardRealtime creates per-component subscription with no reconnection/fallback_
@@ -232,16 +232,16 @@
     - _Preservation: leaderboard continues to respect anonymous opt-out, display correct XP/levels (Req 3.6)_
     - _Requirements: 2.10, 3.6_
 
-  - [ ] 6.5 Replace full-page spinner with shimmer loading
+  - [x] 6.5 Replace full-page spinner with shimmer loading
     - `src/router/AppRouter.tsx`: Replace `LoadingFallback` full-page spinner (`min-h-screen` centered Loader2) with component-level shimmer placeholder using `animate-shimmer` class
     - Shimmer layout: page title placeholder (h-8 w-48), KPI grid (4 cards h-24), content area (h-64)
     - _Bug_Condition: LoadingFallback uses min-h-screen full-page spinner_
     - _Expected_Behavior: component-level shimmer placeholder consistent with design system_
     - _Requirements: 2.15_
 
-- [ ] 7. Category 5 — Security Fixes (Bugs 1.11, 1.12, 1.17)
+- [-] 7. Category 5 — Security Fixes (Bugs 1.11, 1.12, 1.17)
 
-  - [ ] 7.1 Add permission validation to award-xp edge function
+  - [x] 7.1 Add permission validation to award-xp edge function
     - `supabase/functions/award-xp/index.ts`: After payload validation, extract JWT from Authorization header
     - Verify caller is either: (a) using service_role key (server-to-server), or (b) the student themselves (student_id matches auth.uid()) for self-triggered sources (login, submission, journal)
     - Reject with 403 Forbidden if neither condition is met
@@ -250,14 +250,14 @@
     - _Preservation: valid authorized requests continue to work (Req 3.5)_
     - _Requirements: 2.11, 3.5_
 
-  - [ ] 7.2 Create PostgREST filter sanitization utility
+  - [~] 7.2 Create PostgREST filter sanitization utility
     - Create `src/lib/sanitizeFilter.ts`: `sanitizePostgrestValue(input: string): string` that escapes `.`, `,`, `(`, `)`, `%`, `*`, `\` characters
     - Apply `sanitizePostgrestValue()` to user search strings in `.or()` filters in: useUsers, usePrograms, useCourses, useAuditLogs
     - _Bug_Condition: user search strings interpolated directly into .or() filter expressions_
     - _Expected_Behavior: all special PostgREST characters escaped before interpolation_
     - _Requirements: 2.12_
 
-  - [ ] 7.3 Implement server-side login rate limiting
+  - [~] 7.3 Implement server-side login rate limiting
     - Create migration `supabase/migrations/XXXXXX_create_login_attempts_table.sql`: table with `email`, `attempt_count`, `locked_until`, `updated_at` columns, RLS policy for service_role only
     - Create `supabase/functions/check-login-rate/index.ts`: Edge function to check/increment attempts, return lock status
     - `src/lib/loginAttemptTracker.ts`: Keep client-side tracking as UX layer, add server-side check before `supabase.auth.signInWithPassword()`
@@ -265,9 +265,9 @@
     - _Expected_Behavior: server-side enforcement that persists across browsers/devices_
     - _Requirements: 2.17_
 
-- [ ] 8. Verify bug condition exploration tests now pass
+- [~] 8. Verify bug condition exploration tests now pass
 
-  - [ ] 8.1 Verify fault condition tests pass after fixes
+  - [~] 8.1 Verify fault condition tests pass after fixes
     - **Property 1: Expected Behavior** — Platform Audit Defects Fixed
     - **IMPORTANT**: Re-run the SAME tests from task 1 — do NOT write new tests
     - The tests from task 1 encode the expected behavior for all 17 defects
@@ -276,7 +276,7 @@
     - **EXPECTED OUTCOME**: All tests PASS (confirms all bugs are fixed)
     - _Requirements: 2.1–2.17_
 
-  - [ ] 8.2 Verify preservation tests still pass after fixes
+  - [~] 8.2 Verify preservation tests still pass after fixes
     - **Property 2: Preservation** — Existing Behavior Unchanged
     - **IMPORTANT**: Re-run the SAME tests from task 2 — do NOT write new tests
     - Run `src/__tests__/properties/platformAuditPreservation.property.test.ts`
@@ -284,7 +284,7 @@
     - Confirm all preservation tests still pass after fixes (no regressions)
     - _Requirements: 3.1–3.10_
 
-- [ ] 9. Checkpoint — Ensure all tests pass
+- [~] 9. Checkpoint — Ensure all tests pass
   - Run full test suite: `npm test`
   - Ensure all property-based tests pass (fault condition + preservation)
   - Ensure all existing unit tests pass (no regressions)

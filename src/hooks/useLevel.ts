@@ -49,8 +49,7 @@ export const useLevel = (studentId: string | undefined) => {
         return computeLevelData(0);
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (supabase as unknown as { from: (table: string) => any })
+      const { data, error } = await supabase
         .from('student_gamification')
         .select('xp_total')
         .eq('student_id', studentId)
@@ -58,7 +57,7 @@ export const useLevel = (studentId: string | undefined) => {
 
       if (error) throw error;
 
-      const xpTotal = (data as { xp_total: number } | null)?.xp_total ?? 0;
+      const xpTotal = data?.xp_total ?? 0;
       return computeLevelData(xpTotal);
     },
     enabled: !!studentId,

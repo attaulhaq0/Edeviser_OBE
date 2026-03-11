@@ -1,8 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const db = supabase as unknown as { from: (table: string) => any };
+import { queryKeys } from '@/lib/queryKeys';
 
 export interface LinkedChild {
   student_id: string;
@@ -23,11 +21,11 @@ export interface ParentKPIData {
 
 export const useLinkedChildren = (parentId: string | undefined) => {
   return useQuery({
-    queryKey: ['parent', 'linkedChildren', parentId],
+    queryKey: queryKeys.parentStudentLinks.list({ parentId }),
     queryFn: async (): Promise<LinkedChild[]> => {
       if (!parentId) return [];
 
-      const { data: links, error } = await db
+      const { data: links, error } = await supabase
         .from('parent_student_links')
         .select('student_id')
         .eq('parent_id', parentId)
@@ -35,49 +33,53 @@ export const useLinkedChildren = (parentId: string | undefined) => {
 
       if (error) throw error;
 
-      const studentIds = ((links ?? []) as Array<{ student_id: string }>).map(
+      const studentIds = (links ?? []).map(
         (l) => l.student_id,
       );
 
       if (studentIds.length === 0) return [];
 
-      const { data: profiles } = await db
+      const { data: profiles } = await supabase
         .from('profiles')
         .select('id, full_name')
         .in('id', studentIds);
 
-      const typedProfiles = (profiles ?? []) as Array<{ id: string; full_name: string }>;
+      const typedProfiles = profiles ?? [];
 
-      const children: LinkedChild[] = [];
+      // Batch fetch gamification for all children (1 query instead of N)
+      const { data: gamData } = await supabase
+        .from('student_gamification')
+        .select('student_id, level, xp_total, streak_count')
+        .in('student_id', studentIds);
 
-      for (const profile of typedProfiles) {
-        const { data: gam } = await db
-          .from('student_gamification')
-          .select('current_level, xp_total, current_streak')
-          .eq('student_id', profile.id)
-          .maybeSingle();
+      const gamMap = new Map(
+        (gamData ?? []).map((g) => [g.student_id, g]),
+      );
 
-        const gamData = gam as {
-          current_level: number;
-          xp_total: number;
-          current_streak: number;
-        } | null;
+      // Batch fetch enrollment data for all children (1 query instead of N)
+      const { data: enrollData } = await supabase
+        .from('student_courses')
+        .select('student_id')
+        .in('student_id', studentIds);
 
-        const { count: enrolledCourses } = await db
-          .from('student_courses')
-          .select('*', { count: 'exact', head: true })
-          .eq('student_id', profile.id);
+      const enrollCountMap = new Map<string, number>();
+      for (const e of enrollData ?? []) {
+        enrollCountMap.set(e.student_id, (enrollCountMap.get(e.student_id) ?? 0) + 1);
+      }
 
-        children.push({
+      // Map results back to each child
+      const children: LinkedChild[] = typedProfiles.map((profile) => {
+        const gam = gamMap.get(profile.id);
+        return {
           student_id: profile.id,
           student_name: profile.full_name ?? 'Unknown',
-          current_level: gamData?.current_level ?? 1,
-          xp_total: gamData?.xp_total ?? 0,
-          current_streak: gamData?.current_streak ?? 0,
-          enrolled_courses: enrolledCourses ?? 0,
+          current_level: gam?.level ?? 1,
+          xp_total: gam?.xp_total ?? 0,
+          current_streak: gam?.streak_count ?? 0,
+          enrolled_courses: enrollCountMap.get(profile.id) ?? 0,
           avg_attainment: 0,
-        });
-      }
+        };
+      });
 
       return children;
     },
@@ -88,13 +90,13 @@ export const useLinkedChildren = (parentId: string | undefined) => {
 
 export const useParentKPIs = (parentId: string | undefined) => {
   return useQuery({
-    queryKey: ['parent', 'kpis', parentId],
+    queryKey: queryKeys.parentDashboard.detail(parentId ?? ''),
     queryFn: async (): Promise<ParentKPIData> => {
       if (!parentId) {
         return { linkedChildren: 0, totalCourses: 0, avgAttainment: 0, upcomingDeadlines: 0 };
       }
 
-      const { count: linkedChildren } = await db
+      const { count: linkedChildren } = await supabase
         .from('parent_student_links')
         .select('*', { count: 'exact', head: true })
         .eq('parent_id', parentId)

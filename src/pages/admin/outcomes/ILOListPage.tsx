@@ -110,7 +110,8 @@ const ILOListPage = () => {
   const [localOrder, setLocalOrder] = useState<LearningOutcome[] | null>(null);
   const [iloToDelete, setIloToDelete] = useState<LearningOutcome | null>(null);
 
-  const { data: ilos, isLoading } = useILOs();
+  const { data: paginatedILOs, isLoading } = useILOs();
+  const ilos = paginatedILOs?.data;
   const deleteMutation = useDeleteILO();
   const reorderMutation = useReorderILOs();
 

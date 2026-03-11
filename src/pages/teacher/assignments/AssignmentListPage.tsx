@@ -29,13 +29,14 @@ const AssignmentListPage = () => {
   const [assignmentToDelete, setAssignmentToDelete] =
     useState<AssignmentWithRelations | null>(null);
 
-  const { data: courses, isLoading: coursesLoading } = useCourses();
-  const { data: assignments, isLoading } = useAssignments(
+  const { data: paginatedCourses, isLoading: coursesLoading } = useCourses();
+  const courses = paginatedCourses?.data;
+  const { data: paginatedAssignments, isLoading } = useAssignments(
     courseFilter || undefined,
   );
   const deleteMutation = useDeleteAssignment();
 
-  const filteredAssignments = (assignments ?? []).filter((a) => {
+  const filteredAssignments = (paginatedAssignments?.data ?? []).filter((a) => {
     if (!search) return true;
     const q = search.toLowerCase();
     return (

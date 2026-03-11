@@ -1,8 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const db = supabase as unknown as { from: (table: string) => any };
+import { queryKeys } from '@/lib/queryKeys';
 
 export interface AdminKPIData {
   totalUsers: number;
@@ -23,33 +21,33 @@ export interface AuditLogEntry {
 
 export const useAdminKPIs = () => {
   return useQuery({
-    queryKey: ['admin', 'kpis'],
+    queryKey: queryKeys.adminDashboard.list({}),
     queryFn: async (): Promise<AdminKPIData> => {
-      const { count: totalUsers } = await db
+      const { count: totalUsers } = await supabase
         .from('profiles')
         .select('*', { count: 'exact', head: true });
 
-      const { count: activeUsers } = await db
+      const { count: activeUsers } = await supabase
         .from('profiles')
         .select('*', { count: 'exact', head: true })
         .eq('is_active', true);
 
-      const { count: totalPrograms } = await db
+      const { count: totalPrograms } = await supabase
         .from('programs')
         .select('*', { count: 'exact', head: true });
 
-      const { count: totalCourses } = await db
+      const { count: totalCourses } = await supabase
         .from('courses')
         .select('*', { count: 'exact', head: true });
 
-      const { data: roleData } = await db
+      const { data: roleData } = await supabase
         .from('profiles')
         .select('role')
         .eq('is_active', true);
 
       const usersByRole: Record<string, number> = {};
       if (roleData) {
-        for (const row of roleData as Array<{ role: string }>) {
+        for (const row of roleData) {
           usersByRole[row.role] = (usersByRole[row.role] ?? 0) + 1;
         }
       }
@@ -68,9 +66,9 @@ export const useAdminKPIs = () => {
 
 export const useRecentAuditLogs = (limit: number = 10) => {
   return useQuery({
-    queryKey: ['admin', 'recentAuditLogs', limit],
+    queryKey: queryKeys.auditLogs.list({ limit }),
     queryFn: async (): Promise<AuditLogEntry[]> => {
-      const { data, error } = await db
+      const { data, error } = await supabase
         .from('audit_logs')
         .select('id, action, entity_type, entity_id, performed_by, created_at')
         .order('created_at', { ascending: false })

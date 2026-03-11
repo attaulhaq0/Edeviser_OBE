@@ -49,7 +49,8 @@ interface ILOMappingEntry {
 const CreatePLODetailsForm = () => {
   const navigate = useNavigate();
   const createMutation = useCreatePLO();
-  const { data: programs = [], isLoading: isLoadingPrograms } = usePrograms();
+  const { data: paginatedPrograms, isLoading: isLoadingPrograms } = usePrograms();
+  const programs = paginatedPrograms?.data ?? [];
 
   const form = useForm<CreatePLOFormData>({
     resolver: zodResolver(createPLOSchema),
@@ -294,7 +295,8 @@ const EditPLODetailsForm = ({ ploId }: { ploId: string }) => {
 // ─── ILO Mapping Section ────────────────────────────────────────────────────
 
 const ILOMappingSection = ({ ploId }: { ploId: string }) => {
-  const { data: ilos = [], isLoading: isLoadingILOs } = useILOs();
+  const { data: paginatedILOs, isLoading: isLoadingILOs } = useILOs();
+  const ilos = paginatedILOs?.data ?? [];
   const { data: existingMappings = [], isLoading: isLoadingMappings } =
     usePLOMappings(ploId);
   const updateMappingsMutation = useUpdatePLOMappings();

@@ -16,12 +16,16 @@ const GradingQueuePage = () => {
   const [courseId, setCourseId] = useQueryState('course', parseAsString.withDefault(''));
   const [assignmentId, setAssignmentId] = useQueryState('assignment', parseAsString.withDefault(''));
 
-  const { data: courses } = useCourses();
-  const { data: assignments } = useAssignments(courseId || undefined);
-  const { data: submissions, isLoading } = useSubmissions({
+  const { data: paginatedCourses } = useCourses();
+  const { data: paginatedAssignments } = useAssignments(courseId || undefined);
+  const { data: paginatedSubmissions, isLoading } = useSubmissions({
     courseId: courseId || undefined,
     assignmentId: assignmentId || undefined,
   });
+
+  const courses = paginatedCourses?.data;
+  const assignments = paginatedAssignments?.data;
+  const submissions = paginatedSubmissions?.data ?? [];
 
   const handleCourseChange = (value: string) => {
     setCourseId(value === 'all' ? '' : value);
@@ -75,7 +79,7 @@ const GradingQueuePage = () => {
       {/* Data Table */}
       <DataTable
         columns={gradingQueueColumns}
-        data={submissions ?? []}
+        data={submissions}
         isLoading={isLoading}
       />
     </div>

@@ -5,28 +5,31 @@ import { logAuditEvent } from '@/lib/auditLogger';
 import { useAuth } from '@/hooks/useAuth';
 import type { CreateProgramFormData, UpdateProgramFormData } from '@/lib/schemas/program';
 import type { Program } from '@/types/app';
+import type { PaginatedResult } from '@/types/pagination';
+import { getPaginationRange } from '@/types/pagination';
 
-// The generated database.ts doesn't have the `programs` table yet.
-// We cast through `unknown` once to bridge the gap until types are regenerated.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const db = supabase as unknown as { from: (table: string) => any };
+
 
 // ─── Filter types ────────────────────────────────────────────────────────────
 
 export interface ProgramFilters {
   search?: string;
+  page?: number;
+  pageSize?: number;
 }
 
 // ─── usePrograms — list programs with optional search filter ─────────────────
 
 export const usePrograms = (filters: ProgramFilters = {}) => {
+  const { page, pageSize, from, to } = getPaginationRange(filters.page, filters.pageSize);
+
   return useQuery({
-    queryKey: queryKeys.programs.list(filters as Record<string, unknown>),
-    queryFn: async (): Promise<Program[]> => {
-      let query = db
-        .from('programs')
-        .select('*')
-        .order('created_at', { ascending: false });
+    queryKey: queryKeys.programs.list({ ...filters, page, pageSize } as Record<string, unknown>),
+    queryFn: async (): Promise<PaginatedResult<Program>> => {
+      let query = supabase.from('programs')
+        .select('*', { count: 'exact' })
+        .order('created_at', { ascending: false })
+        .range(from, to);
 
       if (filters.search) {
         query = query.or(
@@ -34,9 +37,9 @@ export const usePrograms = (filters: ProgramFilters = {}) => {
         );
       }
 
-      const { data, error } = await query;
+      const { data, error, count } = await query;
       if (error) throw error;
-      return data as Program[];
+      return { data: (data ?? []) as Program[], count: count ?? 0, page, pageSize };
     },
   });
 };
@@ -47,8 +50,7 @@ export const useProgram = (id: string | undefined) => {
   return useQuery({
     queryKey: queryKeys.programs.detail(id ?? ''),
     queryFn: async (): Promise<Program | null> => {
-      const { data, error } = await db
-        .from('programs')
+      const { data, error } = await supabase.from('programs')
         .select('*')
         .eq('id', id!)
         .maybeSingle();
@@ -68,8 +70,7 @@ export const useCreateProgram = () => {
 
   return useMutation({
     mutationFn: async (data: CreateProgramFormData): Promise<Program> => {
-      const { data: result, error } = await db
-        .from('programs')
+      const { data: result, error } = await supabase.from('programs')
         .insert(data)
         .select()
         .single();
@@ -102,8 +103,7 @@ export const useUpdateProgram = (id: string) => {
 
   return useMutation({
     mutationFn: async (data: UpdateProgramFormData): Promise<Program> => {
-      const { data: result, error } = await db
-        .from('programs')
+      const { data: result, error } = await supabase.from('programs')
         .update(data)
         .eq('id', id)
         .select()
@@ -136,8 +136,7 @@ export const useSoftDeleteProgram = () => {
 
   return useMutation({
     mutationFn: async (id: string): Promise<Program> => {
-      const { data: result, error } = await db
-        .from('programs')
+      const { data: result, error } = await supabase.from('programs')
         .update({ is_active: false })
         .eq('id', id)
         .select()
