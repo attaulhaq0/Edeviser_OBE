@@ -51,6 +51,7 @@ const GradingInterface = lazy(() => import('@/pages/teacher/grading/GradingInter
 const StudentDashboard = lazy(() => import('@/pages/student/StudentDashboard'));
 const StudentAssignmentListPage = lazy(() => import('@/pages/student/assignments/AssignmentListPage'));
 const StudentAssignmentDetailPage = lazy(() => import('@/pages/student/assignments/AssignmentDetailPage'));
+const LeaderboardPage = lazy(() => import('@/pages/student/leaderboard/LeaderboardPage'));
 const ParentDashboard = lazy(() => import('@/pages/parent/ParentDashboard'));
 
 // ---------------------------------------------------------------------------
@@ -156,6 +157,7 @@ const AppRouter = () => (
         <Route path="dashboard" element={<StudentDashboard />} />
         <Route path="assignments" element={<StudentAssignmentListPage />} />
         <Route path="assignments/:id" element={<StudentAssignmentDetailPage />} />
+        <Route path="leaderboard" element={<LeaderboardPage />} />
       </Route>
 
       {/* Parent routes */}

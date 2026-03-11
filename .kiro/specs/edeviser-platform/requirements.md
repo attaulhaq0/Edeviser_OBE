@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Edeviser is a Human-Centric Outcome-Based Education (OBE) + Gamification platform for higher education institutions. The platform fuses accreditation compliance with student engagement through a Dual-Engine Architecture: an OBE Core that automates ILO → PLO → CLO mapping, rubric-based grading, and evidence rollup; and a Habit Core that motivates students via XP, streaks, badges, levels, and leaderboards. This document covers the complete production-ready feature set across all user roles using React 18, TypeScript, Vite, Tailwind CSS v4, Shadcn/ui, and Supabase (PostgreSQL, Auth, Realtime, Storage, Edge Functions) deployed on Vercel, including non-functional requirements for performance, security, accessibility, and reliability.
+Edeviser is a Human-Centric Outcome-Based Education (OBE) + Gamification platform for higher education institutions. The platform fuses accreditation compliance with student engagement through a Dual-Engine Architecture: an OBE Core that automates ILO → PLO → CLO mapping, rubric-based grading, and evidence rollup; and a Habit Core that motivates students via XP, streaks, badges, levels, and leaderboards. The platform incorporates research-backed engagement safeguards including multi-layered streak recovery (Comeback Challenges, Streak Sabbaticals, range-based display) to prevent burnout, BJ Fogg-inspired graduated habit difficulty levels that scale requirements based on student consistency, tiered leaderboards (Personal Best, Most Improved, League Tiers) to motivate all performance levels, and a streamlined badge tier system to combat badge fatigue. This document covers the complete production-ready feature set across all user roles using React 18, TypeScript, Vite, Tailwind CSS v4, Shadcn/ui, and Supabase (PostgreSQL, Auth, Realtime, Storage, Edge Functions) deployed on Vercel, including non-functional requirements for performance, security, accessibility, and reliability.
 
 ## Glossary
 
@@ -91,6 +91,16 @@ Edeviser is a Human-Centric Outcome-Based Education (OBE) + Gamification platfor
 - **Adaptive_XP_Engine**: The subsystem that dynamically adjusts XP award amounts based on student level, task difficulty, time investment, and diminishing returns rules
 - **XP_Multiplier**: A scaling factor applied to base XP amounts, calculated from student level, task difficulty, and contextual bonuses
 - **Diminishing_Returns_Rule**: A rule that reduces XP awarded for repeated identical actions within a rolling 24-hour window
+- **Streak_Recovery**: The multi-layered system for recovering from streak breaks, including Comeback Challenge, Streak Sabbatical, range-based display, and Total Active Days celebration
+- **Comeback_Challenge**: A 3-day challenge offered after a streak break that restores 50% of the lost streak upon completion of all 3 days
+- **Streak_Sabbatical**: An institution-configurable option where weekends (Saturday and Sunday) do not count toward streak requirements, preventing weekend-induced streak breaks
+- **Habit_Difficulty_Level**: A BJ Fogg-inspired graduated habit system (Level 1–3) that scales the number of required daily habits based on student consistency, starting at Level 1 (login only) and graduating up after 7-day consistency
+- **Personal_Best_Leaderboard**: A leaderboard mode comparing students against their own historical performance (weekly XP, monthly XP, semester XP) rather than peers
+- **Most_Improved_Leaderboard**: A leaderboard mode ranking students by XP growth rate or attainment improvement over a defined period
+- **League_Tier**: A competitive tier (Bronze, Silver, Gold, Diamond) grouping students by cumulative XP range for within-tier leaderboard competition, promoting achievable goals
+- **Percentile_Band**: A display mode showing students their position as a percentile range (top 10%, top 25%, top 50%) instead of exact numerical rank, reducing demotivation for lower performers
+- **Badge_Tier**: A progression system (Bronze, Silver, Gold) within a single badge category, replacing many unique badges with fewer meaningful badges that have clear advancement paths
+- **Badge_Spotlight**: A weekly rotating featured badge that creates renewed interest and scarcity by highlighting one badge category with a temporary XP bonus for earning it
 
 ## Requirements
 
@@ -1876,3 +1886,154 @@ Edeviser is a Human-Centric Outcome-Based Education (OBE) + Gamification platfor
 4. THE Badge_System SHALL award a "Comeback Kid" badge when a student earns 3 Improvement Bonuses within a single semester.
 5. THE `xp_transactions` record for an Improvement Bonus SHALL include `action_type = 'improvement_bonus'` and a reference to the CLO and previous/current scores.
 
+
+### SECTION W: Engagement Safeguards & Anti-Burnout
+
+#### Requirement 124: Streak Recovery — Comeback Challenge
+
+**User Story:** As a student, I want a chance to recover my streak after a break, so that losing a long streak does not make me feel like quitting the platform entirely.
+
+##### Acceptance Criteria
+
+1. WHEN a student's streak resets to 0 after a break of 1 or more days, THE Streak_Tracker SHALL offer a "Comeback Challenge" within the student's next login session.
+2. THE Comeback_Challenge SHALL require the student to complete all daily habits at their current Habit_Difficulty_Level for 3 consecutive days.
+3. WHEN a student completes the Comeback Challenge, THE Streak_Tracker SHALL restore the student's streak to 50% of the streak value before the break (rounded down to the nearest integer).
+4. IF a student fails to complete any day during the Comeback Challenge, THEN THE Streak_Tracker SHALL cancel the challenge and retain the streak at 0.
+5. THE Platform SHALL display a "Comeback Challenge" banner on the Student Dashboard during an active challenge, showing progress (day 1/3, 2/3, 3/3) and the streak value to be restored.
+6. WHEN a student completes a Comeback Challenge, THE Badge_System SHALL check eligibility for a "Comeback Kid" badge (3 completed Comeback Challenges in a single semester).
+
+#### Requirement 125: Streak Recovery — Streak Sabbatical
+
+**User Story:** As an institution admin, I want to configure weekends as non-streak days, so that students are not penalized for taking healthy breaks on weekends.
+
+##### Acceptance Criteria
+
+1. WHERE the Streak Sabbatical feature is enabled in `institution_settings`, THE Streak_Tracker SHALL exclude Saturday and Sunday from streak requirement calculations.
+2. WHILE Streak Sabbatical is active, THE Streak_Tracker SHALL not reset a student's streak for missing Saturday or Sunday logins.
+3. THE Admin SHALL be able to enable or disable Streak Sabbatical via the Institution Settings page.
+4. THE `institution_settings` record SHALL store the Streak Sabbatical configuration as a boolean `streak_sabbatical_enabled` field defaulting to `false`.
+5. WHEN Streak Sabbatical is toggled, THE Platform SHALL apply the change to all students in the institution starting from the next calendar day.
+
+#### Requirement 126: Streak Recovery — Range Display and Total Active Days
+
+**User Story:** As a student, I want to see my streak displayed as a range including rest days and my total active days, so that I feel my accomplishment is preserved even after a streak break.
+
+##### Acceptance Criteria
+
+1. THE StreakDisplay component SHALL show the current streak as a range format: "[X]-day streak, [Y] rest days" when Streak Sabbatical is enabled and the student has taken weekend rest days within the current streak period.
+2. THE Student Dashboard SHALL display a "Total Active Days" counter alongside the current streak, representing the cumulative count of days the student has completed at least one habit since account creation.
+3. THE `student_gamification` record SHALL store `total_active_days` as an integer field, incremented on each day the student completes at least one habit.
+4. WHEN a streak resets, THE Platform SHALL display a motivational message: "Your [X] total active days of learning are still an achievement" alongside the reset notification.
+5. THE StreakDisplay component SHALL visually celebrate Total Active Days milestones at 30, 60, 100, 200, and 365 days with a brief animation.
+
+#### Requirement 127: Habit Difficulty Levels — Graduated System
+
+**User Story:** As a student, I want the daily habit requirements to start easy and gradually increase, so that I can build consistency without feeling overwhelmed.
+
+##### Acceptance Criteria
+
+1. THE Habit_Tracker SHALL implement three Habit Difficulty Levels: Level 1 (login only — 1 habit), Level 2 (login + one other habit — 2 habits), and Level 3 (all habits at current count).
+2. WHEN a new student account is created, THE Habit_Tracker SHALL assign the student to Habit Difficulty Level 1.
+3. WHEN a student completes all required habits at their current Habit Difficulty Level for 7 consecutive days, THE Habit_Tracker SHALL automatically promote the student to the next level.
+4. THE `student_gamification` record SHALL store `habit_difficulty_level` as an integer (1, 2, or 3) and `habit_level_streak` as an integer tracking consecutive days of completion at the current level.
+5. IF a student misses a day at their current level, THEN THE Habit_Tracker SHALL reset `habit_level_streak` to 0 but SHALL NOT demote the student to a lower level.
+6. THE Student Dashboard SHALL display the current Habit Difficulty Level with a progress indicator showing days completed toward the next level promotion (e.g., "Level 2 — 5/7 days to Level 3").
+
+#### Requirement 128: Habit Difficulty Levels — Relative Perfect Day
+
+**User Story:** As the system, I want Perfect Day to be relative to the student's current habit difficulty level, so that newer students can achieve Perfect Days without needing to complete all habits.
+
+##### Acceptance Criteria
+
+1. WHILE a student is at Habit Difficulty Level 1, THE Habit_Tracker SHALL award a Perfect Day when the student completes the login habit.
+2. WHILE a student is at Habit Difficulty Level 2, THE Habit_Tracker SHALL award a Perfect Day when the student completes login plus one other habit.
+3. WHILE a student is at Habit Difficulty Level 3, THE Habit_Tracker SHALL award a Perfect Day when the student completes 6 of 8 habits (existing threshold).
+4. THE `perfect-day-nudge-cron` Edge Function SHALL check the student's current Habit Difficulty Level when determining the nudge threshold (e.g., Level 1 students are nudged when they have 0/1 habits, Level 2 students when they have 1/2 habits).
+5. THE XP_Engine SHALL award the standard Perfect Day XP bonus (50 XP) regardless of the student's Habit Difficulty Level.
+
+#### Requirement 129: Leaderboard — Personal Best Mode
+
+**User Story:** As a student, I want to see a leaderboard comparing me against my own past performance, so that I can track my personal growth without feeling demotivated by top performers.
+
+##### Acceptance Criteria
+
+1. THE Leaderboard_Service SHALL provide a "Personal Best" leaderboard mode that compares the student's current week XP against their own previous weeks.
+2. THE Personal Best leaderboard SHALL display the student's weekly XP for the last 8 weeks as a bar chart with the current week highlighted.
+3. WHEN a student's current week XP exceeds their personal best week, THE Platform SHALL display a "New Personal Best" celebration with confetti animation.
+4. THE Leaderboard page SHALL include a tab or toggle to switch between "Top XP", "Personal Best", and "Most Improved" leaderboard modes.
+5. THE Personal Best leaderboard SHALL be the default view for students who have opted out of the public leaderboard.
+
+#### Requirement 130: Leaderboard — Most Improved Mode
+
+**User Story:** As a student, I want to see a leaderboard celebrating growth and improvement, so that students who are making progress feel recognized even if they are not at the top.
+
+##### Acceptance Criteria
+
+1. THE Leaderboard_Service SHALL provide a "Most Improved" leaderboard mode ranking students by XP growth rate over the last 4 weeks.
+2. THE Most Improved leaderboard SHALL calculate improvement as `(current_4_week_xp - previous_4_week_xp) / previous_4_week_xp * 100` expressed as a percentage.
+3. IF a student has no XP in the previous 4-week period, THEN THE Leaderboard_Service SHALL exclude the student from the Most Improved ranking to avoid division-by-zero.
+4. THE Most Improved leaderboard SHALL display the top 20 students with their improvement percentage and XP delta.
+5. THE Platform SHALL award a "Rising Star" badge when a student appears in the top 3 of the Most Improved leaderboard for 2 consecutive weeks.
+
+#### Requirement 131: Leaderboard — Percentile Bands
+
+**User Story:** As the system, I want to show students their percentile band instead of exact rank when they are outside the top 10, so that lower-ranked students are not demotivated by seeing a large gap.
+
+##### Acceptance Criteria
+
+1. THE Leaderboard_Service SHALL display exact ranks (1st, 2nd, 3rd, etc.) only for students in the top 10 positions.
+2. FOR students ranked outside the top 10, THE Leaderboard_Service SHALL display their position as a percentile band: "Top 10%", "Top 25%", "Top 50%", or "Bottom 50%".
+3. THE percentile band SHALL be calculated as `(rank / total_students) * 100` and assigned to the nearest band threshold.
+4. THE Leaderboard page SHALL show the student's own position card at the top of the leaderboard regardless of their rank, displaying either exact rank or percentile band.
+5. THE Leaderboard_Service SHALL recalculate percentile bands in real-time as XP changes are received via Supabase Realtime.
+
+#### Requirement 132: Leaderboard — League Tiers
+
+**User Story:** As a student, I want to compete within a league tier of students at a similar level, so that the competition feels achievable and motivating.
+
+##### Acceptance Criteria
+
+1. THE Leaderboard_Service SHALL assign students to League Tiers based on cumulative XP: Bronze (0–499 XP), Silver (500–1499 XP), Gold (1500–3999 XP), Diamond (4000+ XP).
+2. THE Leaderboard page SHALL display a "League" tab showing only students within the same League Tier as the viewing student.
+3. THE Platform SHALL display the student's current League Tier with a visual badge (Bronze, Silver, Gold, Diamond) on the Student Dashboard and Leaderboard page.
+4. WHEN a student's cumulative XP crosses a League Tier threshold, THE Platform SHALL display a "League Promotion" celebration animation and award 100 XP bonus.
+5. THE League Tier thresholds SHALL be configurable per institution via `institution_settings.league_thresholds` with the default values specified in criterion 1.
+6. THE Leaderboard_Service SHALL rank students within their League Tier by weekly XP to encourage ongoing engagement rather than just cumulative totals.
+
+#### Requirement 133: Badge Tiers — Progressive Badge System
+
+**User Story:** As the system, I want to replace many unique badges with fewer meaningful badges that have Bronze, Silver, and Gold tiers, so that students maintain interest in badge progression without experiencing badge fatigue.
+
+##### Acceptance Criteria
+
+1. THE Badge_System SHALL implement a three-tier progression (Bronze, Silver, Gold) for each badge category instead of separate unique badges.
+2. THE Badge_System SHALL define a maximum of 15 badge categories, each with Bronze, Silver, and Gold tier thresholds.
+3. WHEN a student meets the Bronze tier threshold for a badge category, THE Badge_System SHALL award the Bronze tier badge. WHEN the student meets the Silver threshold, THE Badge_System SHALL upgrade the badge to Silver tier, replacing the Bronze display.
+4. THE `badges` table SHALL include a `tier` column with values `'bronze'`, `'silver'`, `'gold'` and a `category` column grouping related badges.
+5. THE Badge_System SHALL store only the highest earned tier per category per student — lower tiers are not displayed separately.
+6. THE BadgeCollection component SHALL display badges grouped by category with the current tier indicated by a color-coded border (Bronze: amber-600, Silver: gray-400, Gold: yellow-400).
+
+#### Requirement 134: Badge Spotlight — Weekly Featured Badge
+
+**User Story:** As the system, I want to feature one badge category each week with a temporary XP bonus, so that students have renewed motivation to pursue specific badges.
+
+##### Acceptance Criteria
+
+1. THE Badge_System SHALL rotate a "Badge Spotlight" weekly, featuring one badge category with a 2x XP bonus for earning or upgrading that badge during the spotlight week.
+2. THE Admin SHALL be able to configure the Badge Spotlight schedule via the Admin Dashboard, selecting which badge category to feature each week.
+3. IF no manual selection is made, THEN THE Badge_System SHALL auto-rotate through badge categories in alphabetical order.
+4. THE Student Dashboard SHALL display a "Badge Spotlight" card showing the featured badge category, its tier thresholds, the student's current progress, and the bonus XP multiplier.
+5. WHEN a student earns or upgrades the spotlighted badge during the spotlight week, THE XP_Engine SHALL apply the 2x bonus to the badge XP award.
+6. THE Badge Spotlight SHALL change at midnight UTC every Monday.
+
+#### Requirement 135: Badge Archive — Manageable Active Collection
+
+**User Story:** As a student, I want older or less relevant badges to be archived, so that my active badge collection stays manageable and meaningful.
+
+##### Acceptance Criteria
+
+1. THE BadgeCollection component SHALL display a maximum of 12 badges in the "Active" section, prioritizing the most recently earned or upgraded badges.
+2. WHEN a student has more than 12 badges, THE BadgeCollection component SHALL move older badges to an "Archived" section accessible via an "View All Badges" link.
+3. THE Badge_System SHALL automatically archive badges that have not been upgraded in the last 90 days, moving them to the archived section.
+4. THE Student SHALL be able to manually pin up to 3 badges to always appear in the Active section regardless of age.
+5. THE `student_badges` table SHALL include an `is_pinned` boolean column defaulting to `false` and an `archived_at` timestamptz column defaulting to `null`.

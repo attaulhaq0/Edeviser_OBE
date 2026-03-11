@@ -4477,3 +4477,595 @@ describe('Adaptive XP Engine', () => {
 ### New TanStack Query Keys
 
 Add to `/src/lib/queryKeys.ts`: `subCLOs`, `graduateAttributes`, `graduateAttributeMappings`, `graduateAttributeAttainment`, `competencyFrameworks`, `competencyItems`, `competencyOutcomeMappings`, `sankeyData`, `gapAnalysis`, `coverageHeatmap`, `semesterTrends`, `cohortComparison`, `historicalEvidence`, `teams`, `teamMembers`, `teamGamification`, `teamLeaderboard`, `teamBadges`, `challenges`, `challengeProgress`, `studentChallenges`, `xpMultiplier`, `diminishingReturns`, `improvementBonusHistory`.
+
+---
+
+## SECTION W: Engagement Safeguards & Anti-Burnout (Requirements 124–135)
+
+### Overview
+
+This section addresses research-backed gaps in the gamification engine: streak burnout prevention (multi-layered recovery system), BJ Fogg-inspired graduated habit difficulty levels, leaderboard improvements for lower performers (Personal Best, Most Improved, Percentile Bands, League Tiers), and badge fatigue mitigation (tiered badges, spotlight rotation, archive management). These features target Student engagement sustainability and Admin configurability.
+
+### Architecture
+
+#### Updated High-Level Component Flow
+
+```
+├── /admin/*
+│   ├── /admin/settings — InstitutionSettings (+ Streak Sabbatical toggle, League Tier thresholds)
+│   ├── /admin/badges — BadgeSpotlightManager
+│   └── /admin/dashboard — AdminDashboard (+ Badge Spotlight config card)
+├── /student/*
+│   ├── /student/dashboard — StudentDashboard (+ Comeback Challenge banner, Habit Level indicator, Total Active Days)
+│   ├── /student/leaderboard — LeaderboardPage (+ Personal Best tab, Most Improved tab, League tab, Percentile Bands)
+│   └── /student/badges — BadgeCollection (+ tiered display, archive, pinning, spotlight card)
+```
+
+#### Updated Edge Functions
+
+```
+└── Edge Functions
+    ├── process-streak (updated: Comeback Challenge logic, Streak Sabbatical check, Total Active Days increment)
+    ├── award-xp (updated: Badge Spotlight 2x bonus, League Promotion bonus)
+    ├── check-badges (updated: tiered badge progression, Rising Star badge, archive auto-management)
+    ├── perfect-day-nudge-cron (updated: Habit Difficulty Level-relative threshold)
+    ├── badge-spotlight-rotate-cron (pg_cron → midnight UTC Monday — auto-rotate spotlight)
+    └── badge-archive-cron (pg_cron → daily — archive badges not upgraded in 90 days)
+```
+
+### Components and Interfaces
+
+#### Comeback Challenge Banner (`/src/components/shared/ComebackChallengeBanner.tsx`)
+```typescript
+interface ComebackChallengeState {
+  is_active: boolean;
+  start_date: string;
+  days_completed: number; // 0, 1, 2, or 3
+  streak_to_restore: number; // 50% of lost streak, rounded down
+  lost_streak_value: number;
+}
+
+interface ComebackChallengeBannerProps {
+  studentId: string;
+  challengeState: ComebackChallengeState;
+}
+
+// Displayed on Student Dashboard when challenge is active
+// Progress indicator: 3 circles (day 1, 2, 3) with filled/empty state
+// Shows "Complete today's habits to continue your Comeback Challenge"
+// Shows streak value to be restored on completion
+// Dismiss option cancels the challenge
+```
+
+#### Updated StreakDisplay (`/src/components/shared/StreakDisplay.tsx` — updated)
+```typescript
+interface StreakDisplayProps {
+  currentStreak: number;
+  restDays: number; // weekend rest days within current streak period
+  totalActiveDays: number;
+  streakSabbaticalEnabled: boolean;
+  comebackChallengeActive: boolean;
+}
+
+// Range format: "15-day streak, 2 rest days" when sabbatical enabled
+// Total Active Days counter with milestone celebrations (30, 60, 100, 200, 365)
+// Motivational message on streak reset: "Your X total active days are still an achievement"
+```
+
+#### Habit Difficulty Level Indicator (`/src/components/shared/HabitDifficultyIndicator.tsx`)
+```typescript
+type HabitDifficultyLevel = 1 | 2 | 3;
+
+interface HabitDifficultyIndicatorProps {
+  currentLevel: HabitDifficultyLevel;
+  habitLevelStreak: number; // consecutive days at current level
+  daysToNextLevel: number; // 7 - habitLevelStreak
+}
+
+// Displays: "Level 2 — 5/7 days to Level 3"
+// Progress bar showing days toward next level
+// Level icons: Level 1 (Seedling), Level 2 (Sprout), Level 3 (Tree)
+// Celebration animation on level promotion
+```
+
+#### Updated Leaderboard Page (`/src/pages/student/leaderboard/LeaderboardPage.tsx` — updated)
+```typescript
+type LeaderboardMode = 'top_xp' | 'personal_best' | 'most_improved' | 'league';
+
+interface PersonalBestEntry {
+  week_label: string; // "Week of Jan 6"
+  xp_earned: number;
+  is_current_week: boolean;
+  is_personal_best: boolean;
+}
+
+interface MostImprovedEntry {
+  rank: number;
+  student_id: string;
+  student_name: string;
+  avatar_url: string | null;
+  improvement_percent: number;
+  xp_delta: number;
+  is_anonymous: boolean;
+}
+
+type LeagueTier = 'bronze' | 'silver' | 'gold' | 'diamond';
+
+interface LeagueTierConfig {
+  tier: LeagueTier;
+  min_xp: number;
+  max_xp: number | null; // null for diamond (no upper bound)
+  color: string;
+  icon: string;
+}
+
+interface LeagueLeaderboardEntry {
+  rank: number;
+  student_id: string;
+  student_name: string;
+  avatar_url: string | null;
+  league_tier: LeagueTier;
+  weekly_xp: number;
+  cumulative_xp: number;
+  is_current_user: boolean;
+  is_anonymous: boolean;
+}
+
+type PercentileBand = 'top_10' | 'top_25' | 'top_50' | 'bottom_50';
+
+interface LeaderboardEntry {
+  rank: number;
+  percentile_band: PercentileBand | null; // null for top 10 (show exact rank)
+  // ... existing fields
+}
+
+// Tab navigation: Top XP | Personal Best | Most Improved | League
+// Personal Best: bar chart of last 8 weeks, "New Personal Best" confetti
+// Most Improved: top 20 by improvement %, "Rising Star" badge eligibility
+// League: within-tier ranking by weekly XP, tier badge display
+// Percentile bands for ranks > 10 in Top XP mode
+// Default to Personal Best for leaderboard opt-out students
+```
+
+#### League Tier Badge (`/src/components/shared/LeagueTierBadge.tsx`)
+```typescript
+interface LeagueTierBadgeProps {
+  tier: LeagueTier;
+  size: 'sm' | 'md' | 'lg';
+}
+
+// Bronze: amber-600 border, bronze shield icon
+// Silver: gray-400 border, silver shield icon
+// Gold: yellow-400 border, gold shield icon
+// Diamond: blue-400 border, diamond icon
+// Displayed on Student Dashboard, Leaderboard, and profile
+```
+
+#### League Promotion Celebration (`/src/components/shared/LeaguePromotionCelebration.tsx`)
+```typescript
+interface LeaguePromotionCelebrationProps {
+  previousTier: LeagueTier;
+  newTier: LeagueTier;
+  bonusXP: number; // 100 XP
+}
+
+// Full-screen overlay with tier transition animation
+// Shows old tier → new tier with arrow
+// Confetti + "+100 XP" bonus display
+// Uses Framer Motion + canvas-confetti
+```
+
+#### Updated BadgeCollection (`/src/components/shared/BadgeCollection.tsx` — updated)
+```typescript
+type BadgeTier = 'bronze' | 'silver' | 'gold';
+
+interface TieredBadge {
+  category: string;
+  category_label: string;
+  current_tier: BadgeTier | null; // null if not yet earned
+  bronze_threshold: string;
+  silver_threshold: string;
+  gold_threshold: string;
+  progress_toward_next: number; // 0.0–1.0
+  earned_at: string | null;
+  is_pinned: boolean;
+  archived_at: string | null;
+}
+
+interface BadgeCollectionProps {
+  studentId: string;
+  maxActive: number; // default 12
+}
+
+// Active section: max 12 badges, most recently earned/upgraded first
+// Pinned badges (up to 3) always in Active section
+// Archived section: "View All Badges" expandable
+// Tier display: color-coded border (Bronze: amber-600, Silver: gray-400, Gold: yellow-400)
+// Progress bar toward next tier within each badge card
+```
+
+#### Badge Spotlight Card (`/src/components/shared/BadgeSpotlightCard.tsx`)
+```typescript
+interface BadgeSpotlightCardProps {
+  category: string;
+  category_label: string;
+  tier_thresholds: { bronze: string; silver: string; gold: string };
+  student_progress: number; // 0.0–1.0
+  student_current_tier: BadgeTier | null;
+  bonus_multiplier: number; // 2.0
+  expires_at: string; // next Monday midnight UTC
+}
+
+// Displayed on Student Dashboard
+// Shows featured badge category with sparkle icon
+// Progress toward next tier
+// "2x XP Bonus this week" label
+// Countdown to spotlight expiry
+```
+
+#### Badge Spotlight Manager (`/src/pages/admin/badges/BadgeSpotlightManager.tsx`)
+```typescript
+interface BadgeSpotlightSchedule {
+  week_start: string; // ISO date (Monday)
+  category: string;
+  is_manual: boolean; // true if admin-selected, false if auto-rotated
+}
+
+interface BadgeSpotlightManagerProps {
+  institutionId: string;
+}
+
+// Calendar view showing upcoming spotlight schedule
+// Drag-and-drop to reorder spotlight weeks
+// Auto-rotate fills unassigned weeks alphabetically
+// Preview of each badge category with tier thresholds
+```
+
+### New Database Schema Changes
+
+#### Column Additions for Streak Recovery
+
+```sql
+-- Comeback Challenge state (Requirement 124)
+ALTER TABLE student_gamification ADD COLUMN comeback_challenge_active boolean NOT NULL DEFAULT false;
+ALTER TABLE student_gamification ADD COLUMN comeback_challenge_start_date timestamptz;
+ALTER TABLE student_gamification ADD COLUMN comeback_challenge_days_completed integer NOT NULL DEFAULT 0
+  CHECK (comeback_challenge_days_completed >= 0 AND comeback_challenge_days_completed <= 3);
+ALTER TABLE student_gamification ADD COLUMN comeback_challenge_streak_to_restore integer NOT NULL DEFAULT 0;
+
+-- Total Active Days (Requirement 126)
+ALTER TABLE student_gamification ADD COLUMN total_active_days integer NOT NULL DEFAULT 0
+  CHECK (total_active_days >= 0);
+
+-- Streak Sabbatical (Requirement 125)
+-- Stored in institution_settings jsonb: { ..., "streak_sabbatical_enabled": false }
+```
+
+#### Column Additions for Habit Difficulty Levels
+
+```sql
+-- Habit Difficulty Level (Requirement 127)
+ALTER TABLE student_gamification ADD COLUMN habit_difficulty_level integer NOT NULL DEFAULT 1
+  CHECK (habit_difficulty_level IN (1, 2, 3));
+ALTER TABLE student_gamification ADD COLUMN habit_level_streak integer NOT NULL DEFAULT 0
+  CHECK (habit_level_streak >= 0);
+```
+
+#### Column Additions for Leaderboard Enhancements
+
+```sql
+-- League Tier thresholds (Requirement 132)
+-- Stored in institution_settings jsonb: { ..., "league_thresholds": { "bronze": 0, "silver": 500, "gold": 1500, "diamond": 4000 } }
+
+-- No new tables needed — league tier is derived from cumulative XP at query time
+```
+
+#### Column Additions for Badge Tiers
+
+```sql
+-- Badge tier system (Requirement 133)
+ALTER TABLE badges ADD COLUMN tier text DEFAULT NULL
+  CHECK (tier IS NULL OR tier IN ('bronze', 'silver', 'gold'));
+ALTER TABLE badges ADD COLUMN category text;
+
+-- Student badge pinning and archiving (Requirement 135)
+ALTER TABLE student_badges ADD COLUMN is_pinned boolean NOT NULL DEFAULT false;
+ALTER TABLE student_badges ADD COLUMN archived_at timestamptz;
+
+-- Badge Spotlight schedule (Requirement 134)
+CREATE TABLE badge_spotlight_schedule (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  institution_id uuid REFERENCES institutions(id) NOT NULL,
+  week_start date NOT NULL, -- always a Monday
+  category text NOT NULL,
+  is_manual boolean NOT NULL DEFAULT false,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (institution_id, week_start)
+);
+ALTER TABLE badge_spotlight_schedule ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Admin manages badge spotlight" ON badge_spotlight_schedule
+  FOR ALL USING (institution_id = auth_institution_id() AND auth_user_role() = 'admin');
+CREATE POLICY "All roles read badge spotlight" ON badge_spotlight_schedule
+  FOR SELECT USING (institution_id = auth_institution_id());
+```
+
+### New TanStack Query Hooks
+
+```typescript
+// Streak Recovery
+useComebackChallenge(studentId: string)
+useStartComebackChallenge()
+useCancelComebackChallenge()
+
+// Habit Difficulty
+useHabitDifficultyLevel(studentId: string)
+
+// Leaderboard Modes
+usePersonalBestLeaderboard(studentId: string)
+useMostImprovedLeaderboard(courseId: string)
+useLeagueLeaderboard(courseId: string, tier: LeagueTier)
+useStudentLeagueTier(studentId: string)
+useStudentPercentileBand(studentId: string, courseId: string)
+
+// Badge Tiers
+useTieredBadges(studentId: string)
+usePinBadge()
+useUnpinBadge()
+useBadgeSpotlight(institutionId: string)
+useBadgeSpotlightSchedule(institutionId: string)
+useUpdateBadgeSpotlightSchedule()
+```
+
+### New Zod Schemas
+
+```
+comebackChallenge.ts     — comebackChallengeSchema, comebackChallengeStateSchema
+habitDifficulty.ts       — habitDifficultyLevelSchema
+leagueLeaderboard.ts     — leagueTierSchema, leagueTierConfigSchema, personalBestSchema, mostImprovedSchema, percentileBandSchema
+badgeTier.ts             — badgeTierSchema, tieredBadgeSchema, badgePinSchema
+badgeSpotlight.ts        — badgeSpotlightScheduleSchema
+```
+
+### Updated Edge Function Logic
+
+#### process-streak (updated for Streak Recovery)
+```typescript
+// On daily login:
+// 1. Check if Streak Sabbatical is enabled and today is Saturday/Sunday → skip streak check
+// 2. Increment total_active_days if student completed at least 1 habit today
+// 3. If streak was broken:
+//    a. Store lost streak value
+//    b. Offer Comeback Challenge (set comeback_challenge_active = true, streak_to_restore = floor(lost_streak / 2))
+// 4. If Comeback Challenge is active:
+//    a. Check if student completed all habits at their Habit Difficulty Level today
+//    b. If yes: increment comeback_challenge_days_completed
+//    c. If days_completed = 3: restore streak, deactivate challenge, check Comeback Kid badge
+//    d. If no: cancel challenge, reset to 0
+
+function checkStreakSabbatical(institutionSettings: InstitutionSettings, date: Date): boolean {
+  if (!institutionSettings.streak_sabbatical_enabled) return false;
+  const day = date.getUTCDay();
+  return day === 0 || day === 6; // Sunday or Saturday
+}
+
+function calculateStreakToRestore(lostStreak: number): number {
+  return Math.floor(lostStreak / 2);
+}
+```
+
+#### perfect-day-nudge-cron (updated for Habit Difficulty Levels)
+```typescript
+function getPerfectDayThreshold(habitDifficultyLevel: HabitDifficultyLevel): number {
+  switch (habitDifficultyLevel) {
+    case 1: return 1; // login only
+    case 2: return 2; // login + one other
+    case 3: return 6; // 6 of 8 habits
+  }
+}
+
+function getNudgeThreshold(habitDifficultyLevel: HabitDifficultyLevel): number {
+  // Nudge when student is 1 habit away from Perfect Day
+  return getPerfectDayThreshold(habitDifficultyLevel) - 1;
+}
+```
+
+#### check-badges (updated for Badge Tiers)
+```typescript
+// Badge tier progression logic:
+// 1. For each badge category, check if student meets next tier threshold
+// 2. If student has no badge in category and meets bronze threshold → award bronze
+// 3. If student has bronze and meets silver threshold → upgrade to silver
+// 4. If student has silver and meets gold threshold → upgrade to gold
+// 5. Only store highest tier per category per student
+
+function checkBadgeTierProgression(
+  studentId: string,
+  category: string,
+  currentTier: BadgeTier | null,
+  metrics: Record<string, number>
+): { shouldUpgrade: boolean; newTier: BadgeTier } | null {
+  const thresholds = BADGE_TIER_THRESHOLDS[category];
+  if (!thresholds) return null;
+
+  if (currentTier === 'gold') return null; // already max
+  if (currentTier === 'silver' && meetsThreshold(metrics, thresholds.gold)) {
+    return { shouldUpgrade: true, newTier: 'gold' };
+  }
+  if (currentTier === 'bronze' && meetsThreshold(metrics, thresholds.silver)) {
+    return { shouldUpgrade: true, newTier: 'silver' };
+  }
+  if (currentTier === null && meetsThreshold(metrics, thresholds.bronze)) {
+    return { shouldUpgrade: true, newTier: 'bronze' };
+  }
+  return null;
+}
+```
+
+### Leaderboard Query Logic
+
+```typescript
+// Personal Best: query xp_transactions grouped by week for the student
+// Most Improved: compare 4-week rolling windows
+// League: filter by XP range thresholds, rank by weekly XP
+// Percentile Band: calculate rank / total_students * 100
+
+function calculatePercentileBand(rank: number, totalStudents: number): PercentileBand | null {
+  if (rank <= 10) return null; // show exact rank
+  const percentile = (rank / totalStudents) * 100;
+  if (percentile <= 10) return 'top_10';
+  if (percentile <= 25) return 'top_25';
+  if (percentile <= 50) return 'top_50';
+  return 'bottom_50';
+}
+
+function getLeagueTier(cumulativeXP: number, thresholds: LeagueTierConfig[]): LeagueTier {
+  // thresholds sorted by min_xp descending
+  for (const t of thresholds.sort((a, b) => b.min_xp - a.min_xp)) {
+    if (cumulativeXP >= t.min_xp) return t.tier;
+  }
+  return 'bronze';
+}
+
+function calculateMostImproved(
+  current4WeekXP: number,
+  previous4WeekXP: number
+): number | null {
+  if (previous4WeekXP === 0) return null; // exclude from ranking
+  return ((current4WeekXP - previous4WeekXP) / previous4WeekXP) * 100;
+}
+```
+
+### Error Handling (Section W)
+
+| Scenario | Handling |
+|----------|----------|
+| Comeback Challenge already active | "You already have an active Comeback Challenge" — block duplicate |
+| Comeback Challenge day missed | Cancel challenge; show "Comeback Challenge ended — keep going, you'll get it next time" |
+| Streak Sabbatical toggle during active streak | Apply from next calendar day; do not retroactively modify current streak |
+| Habit level promotion at max level | No-op; Level 3 students remain at Level 3 |
+| Habit level streak reset | Reset `habit_level_streak` to 0; do not demote level |
+| Personal Best no history | Show "Complete your first week to see your Personal Best" empty state |
+| Most Improved division by zero | Exclude student from ranking; show "Not enough history" |
+| League Tier threshold change | Recalculate all student tiers on next leaderboard query; no retroactive XP adjustments |
+| League Promotion during impersonation | Block; read-only mode |
+| Badge tier upgrade during spotlight | Apply 2x XP bonus to the badge award XP |
+| Badge pin limit exceeded (>3) | "You can pin a maximum of 3 badges. Unpin one first." |
+| Badge Spotlight no manual selection | Auto-rotate alphabetically; show "Auto-selected" label |
+| Badge archive with pinned badge | Pinned badges are never auto-archived |
+
+### Correctness Properties (101–115)
+
+### Property 101: Comeback Challenge streak restoration accuracy
+*For any* student who completes a 3-day Comeback Challenge, the restored streak should equal `floor(lost_streak_value / 2)`. The restored streak should never exceed the original lost streak value. A student who fails any day should have their streak remain at 0.
+
+**Validates: Requirements 124.2, 124.3, 124.4**
+
+### Property 102: Streak Sabbatical weekend exclusion
+*For any* institution with `streak_sabbatical_enabled = true`, a student's streak should not be reset for missing Saturday or Sunday logins. The streak should only be evaluated on weekdays (Monday–Friday). When sabbatical is disabled, all 7 days count toward streak requirements.
+
+**Validates: Requirements 125.1, 125.2**
+
+### Property 103: Total Active Days monotonic increment
+*For any* student, `total_active_days` should be monotonically non-decreasing. It should increment by exactly 1 on each day the student completes at least one habit, and should never decrease.
+
+**Validates: Requirements 126.2, 126.3**
+
+### Property 104: Habit Difficulty Level promotion correctness
+*For any* student at Habit Difficulty Level L (where L < 3), completing all required habits for 7 consecutive days should promote the student to Level L+1. Missing a day should reset `habit_level_streak` to 0 but should not change `habit_difficulty_level`.
+
+**Validates: Requirements 127.3, 127.5**
+
+### Property 105: Relative Perfect Day threshold
+*For any* student at Habit Difficulty Level 1, Perfect Day requires 1 habit. At Level 2, Perfect Day requires 2 habits. At Level 3, Perfect Day requires 6 of 8 habits. The Perfect Day XP award (50 XP) should be the same regardless of level.
+
+**Validates: Requirements 128.1, 128.2, 128.3, 128.5**
+
+### Property 106: Personal Best leaderboard data integrity
+*For any* student's Personal Best view, the weekly XP values should equal the sum of `xp_transactions.xp_amount` for that student within each ISO week. The "is_personal_best" flag should be true for exactly one week (the week with the highest XP).
+
+**Validates: Requirements 129.1, 129.2**
+
+### Property 107: Most Improved calculation correctness
+*For any* student with non-zero XP in the previous 4-week period, the improvement percentage should equal `(current_4_week_xp - previous_4_week_xp) / previous_4_week_xp * 100`. Students with zero previous XP should be excluded from the ranking.
+
+**Validates: Requirements 130.2, 130.3**
+
+### Property 108: Percentile band assignment correctness
+*For any* leaderboard with N students, a student at rank R should be assigned: exact rank if R ≤ 10, "Top 10%" if R/N ≤ 0.10, "Top 25%" if R/N ≤ 0.25, "Top 50%" if R/N ≤ 0.50, "Bottom 50%" otherwise. The band assignment should be mutually exclusive.
+
+**Validates: Requirements 131.1, 131.2, 131.3**
+
+### Property 109: League Tier assignment correctness
+*For any* student with cumulative XP, the League Tier should be determined by the configured thresholds: Bronze (0–499), Silver (500–1499), Gold (1500–3999), Diamond (4000+). The tier should update immediately when XP crosses a threshold boundary.
+
+**Validates: Requirements 132.1, 132.5**
+
+### Property 110: League Promotion XP bonus idempotence
+*For any* League Tier promotion event, exactly 100 XP should be awarded. The promotion bonus should be awarded exactly once per tier transition — re-querying the leaderboard should not trigger duplicate bonuses.
+
+**Validates: Requirements 132.4**
+
+### Property 111: Badge tier progression monotonicity
+*For any* badge category, a student's tier should only progress upward: null → bronze → silver → gold. A student should never be downgraded to a lower tier. Only the highest earned tier should be stored per category per student.
+
+**Validates: Requirements 133.3, 133.5**
+
+### Property 112: Badge Spotlight XP bonus application
+*For any* badge earned or upgraded during the spotlight week for the spotlighted category, the XP award should be exactly 2x the standard badge XP. Badges in non-spotlighted categories should receive standard XP (1x).
+
+**Validates: Requirements 134.1, 134.5**
+
+### Property 113: Badge archive threshold
+*For any* badge not upgraded in the last 90 days and not pinned, the badge should be moved to the archived section. Pinned badges should never be auto-archived regardless of age.
+
+**Validates: Requirements 135.3, 135.4**
+
+### Property 114: Badge pin limit enforcement
+*For any* student, the number of pinned badges should never exceed 3. Attempting to pin a 4th badge should be rejected.
+
+**Validates: Requirements 135.4**
+
+### Property 115: Active badge collection size limit
+*For any* student with more than 12 badges, the Active section should display at most 12 badges (including pinned badges). Remaining badges should appear in the Archived section.
+
+**Validates: Requirements 135.1, 135.2**
+
+### Updated Test Organization
+
+Add to `src/__tests__/properties/`:
+```
+├── comeback-challenge.property.test.ts    # Property 101
+├── streak-sabbatical.property.test.ts     # Property 102
+├── total-active-days.property.test.ts     # Property 103
+├── habit-difficulty.property.test.ts      # Properties 104, 105
+├── personal-best.property.test.ts         # Property 106
+├── most-improved.property.test.ts         # Property 107
+├── percentile-band.property.test.ts       # Property 108
+├── league-tier.property.test.ts           # Properties 109, 110
+├── badge-tier.property.test.ts            # Property 111
+├── badge-spotlight.property.test.ts       # Property 112
+└── badge-archive.property.test.ts         # Properties 113, 114, 115
+```
+
+Add to `src/__tests__/unit/`:
+```
+├── comebackChallenge.test.ts
+├── streakSabbatical.test.ts
+├── habitDifficulty.test.ts
+├── personalBestLeaderboard.test.ts
+├── mostImprovedLeaderboard.test.ts
+├── percentileBand.test.ts
+├── leagueTier.test.ts
+├── badgeTier.test.ts
+├── badgeSpotlight.test.ts
+└── badgeArchive.test.ts
+```
+
+### New TanStack Query Keys
+
+Add to `/src/lib/queryKeys.ts`: `comebackChallenge`, `habitDifficultyLevel`, `personalBest`, `mostImproved`, `leagueLeaderboard`, `leagueTier`, `percentileBand`, `tieredBadges`, `badgeSpotlight`, `badgeSpotlightSchedule`.
+
+### Updated Testing Strategy
+
+All previous 100 correctness properties retained + 15 engagement safeguard properties (Comeback Challenge restoration, Streak Sabbatical exclusion, Total Active Days monotonicity, Habit Difficulty promotion, Relative Perfect Day, Personal Best integrity, Most Improved calculation, Percentile Band assignment, League Tier assignment, League Promotion idempotence, Badge tier monotonicity, Badge Spotlight bonus, Badge archive threshold, Badge pin limit, Active badge size limit) = 115 total correctness properties.

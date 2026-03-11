@@ -397,17 +397,17 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Deliver via Supabase Realtime within 5 seconds
     - _Requirements: 42_
 
-- [-] 24. Implement Leaderboard
-  - [~] 24.1 Create leaderboard TanStack Query hooks (`/src/hooks/useLeaderboard.ts`)
+- [x] 24. Implement Leaderboard
+  - [x] 24.1 Create leaderboard TanStack Query hooks (`/src/hooks/useLeaderboard.ts`)
     - _Requirements: 25_
 
-  - [~] 24.2 Create Leaderboard page with course/program/all filters
+  - [x] 24.2 Create Leaderboard page with course/program/all filters
     - _Requirements: 25.2_
 
-  - [~] 24.3 Implement realtime leaderboard updates
+  - [x] 24.3 Implement realtime leaderboard updates
     - _Requirements: 25.4_
 
-  - [~] 24.4 Implement anonymous opt-out
+  - [x] 24.4 Implement anonymous opt-out
     - _Requirements: 25.5_
 
 - [ ] 25. Implement Reflection Journal
@@ -3126,7 +3126,374 @@ Complete unified implementation of the Edeviser platform covering authentication
   - Verify all 21 requirements (103–123) are covered by implementation tasks
   - Verify all 35 correctness properties (81–115) have corresponding property test tasks
 
-## Notes (Tasks 109–142)
+
+- [ ] 143. Streak Recovery — Comeback Challenge Database and Core Logic
+  - [ ] 143.1 Apply Comeback Challenge database migration via Supabase MCP `apply_migration`
+    - Add columns to `student_gamification`: `comeback_challenge_active` (boolean, default false), `comeback_challenge_start_date` (timestamptz), `comeback_challenge_days_completed` (integer, default 0, CHECK 0–3), `comeback_challenge_streak_to_restore` (integer, default 0)
+    - Add `total_active_days` column to `student_gamification`: integer, default 0, CHECK >= 0
+    - Regenerate TypeScript types
+    - _Requirements: 124.1, 126.3_
+
+  - [ ] 143.2 Create Comeback Challenge Zod schemas (`/src/lib/schemas/comebackChallenge.ts`)
+    - `comebackChallengeStateSchema`: validates is_active, days_completed (0–3), streak_to_restore
+    - _Requirements: 124.1_
+
+  - [ ] 143.3 Update `process-streak` Edge Function for Comeback Challenge logic
+    - On streak break: store lost streak value, set `comeback_challenge_active = true`, calculate `streak_to_restore = floor(lost_streak / 2)`
+    - On daily login during active challenge: check habit completion at current Habit Difficulty Level, increment days_completed or cancel challenge
+    - On 3 days completed: restore streak, deactivate challenge, check Comeback Kid badge eligibility
+    - Increment `total_active_days` when student completes at least 1 habit
+    - _Requirements: 124.1, 124.2, 124.3, 124.4, 124.6, 126.3_
+
+  - [ ] 143.4 Create Comeback Challenge TanStack Query hooks (`/src/hooks/useComebackChallenge.ts`)
+    - `useComebackChallenge(studentId)`: fetches current challenge state
+    - `useStartComebackChallenge()`: mutation to activate challenge
+    - `useCancelComebackChallenge()`: mutation to dismiss/cancel challenge
+    - Add query keys to `/src/lib/queryKeys.ts`
+    - _Requirements: 124.1, 124.5_
+
+  - [ ]* 143.5 Write property test for Comeback Challenge streak restoration (`/src/__tests__/properties/comeback-challenge.property.test.ts`)
+    - **Property 101: Comeback Challenge streak restoration accuracy**
+    - **Validates: Requirements 124.2, 124.3, 124.4**
+
+  - [ ]* 143.6 Write property test for Total Active Days monotonicity (`/src/__tests__/properties/total-active-days.property.test.ts`)
+    - **Property 103: Total Active Days monotonic increment**
+    - **Validates: Requirements 126.2, 126.3**
+
+
+- [ ] 144. Streak Recovery — Streak Sabbatical and Range Display
+  - [ ] 144.1 Update `institution_settings` schema to include `streak_sabbatical_enabled` boolean (default false)
+    - Update Institution Settings Zod schema
+    - Update Institution Settings form to include Streak Sabbatical toggle
+    - _Requirements: 125.3, 125.4_
+
+  - [ ] 144.2 Update `process-streak` Edge Function for Streak Sabbatical
+    - Check `institution_settings.streak_sabbatical_enabled` before evaluating streak
+    - Skip streak check on Saturday and Sunday when enabled
+    - Apply change from next calendar day when toggled
+    - _Requirements: 125.1, 125.2, 125.5_
+
+  - [ ] 144.3 Update StreakDisplay component (`/src/components/shared/StreakDisplay.tsx`)
+    - Range format: "[X]-day streak, [Y] rest days" when sabbatical enabled
+    - Total Active Days counter with milestone celebrations (30, 60, 100, 200, 365)
+    - Motivational message on streak reset
+    - _Requirements: 126.1, 126.2, 126.4, 126.5_
+
+  - [ ] 144.4 Create ComebackChallengeBanner component (`/src/components/shared/ComebackChallengeBanner.tsx`)
+    - Progress indicator: 3 circles for days 1/2/3
+    - Shows streak value to be restored
+    - Dismiss option to cancel challenge
+    - _Requirements: 124.5_
+
+  - [ ] 144.5 Wire Comeback Challenge banner and updated StreakDisplay into Student Dashboard
+    - _Requirements: 124.5, 126.1, 126.2_
+
+  - [ ]* 144.6 Write property test for Streak Sabbatical weekend exclusion (`/src/__tests__/properties/streak-sabbatical.property.test.ts`)
+    - **Property 102: Streak Sabbatical weekend exclusion**
+    - **Validates: Requirements 125.1, 125.2**
+
+
+- [ ] 145. Habit Difficulty Levels — Database and Core Logic
+  - [ ] 145.1 Apply Habit Difficulty Level database migration via Supabase MCP `apply_migration`
+    - Add columns to `student_gamification`: `habit_difficulty_level` (integer, default 1, CHECK IN (1,2,3)), `habit_level_streak` (integer, default 0, CHECK >= 0)
+    - Regenerate TypeScript types
+    - _Requirements: 127.4_
+
+  - [ ] 145.2 Create Habit Difficulty Level Zod schema (`/src/lib/schemas/habitDifficulty.ts`)
+    - `habitDifficultyLevelSchema`: validates level (1, 2, 3), habit_level_streak
+    - _Requirements: 127.1_
+
+  - [ ] 145.3 Create Habit Difficulty Level utility (`/src/lib/habitDifficulty.ts`)
+    - `getRequiredHabitsForLevel(level)`: Level 1 → 1, Level 2 → 2, Level 3 → 6 of 8
+    - `checkLevelPromotion(level, habitLevelStreak)`: promote if streak >= 7 and level < 3
+    - `getPerfectDayThreshold(level)`: returns required habit count for Perfect Day at given level
+    - _Requirements: 127.1, 127.3, 128.1, 128.2, 128.3_
+
+  - [ ] 145.4 Update `process-streak` Edge Function for Habit Difficulty Level tracking
+    - Check daily habit completion against current level requirements
+    - Increment `habit_level_streak` on success, reset to 0 on miss (without demotion)
+    - Promote level when `habit_level_streak` reaches 7
+    - _Requirements: 127.3, 127.5_
+
+  - [ ] 145.5 Update `perfect-day-nudge-cron` Edge Function for level-relative thresholds
+    - Use `getPerfectDayThreshold(habit_difficulty_level)` instead of fixed threshold
+    - Nudge when student is 1 habit away from their level's Perfect Day
+    - _Requirements: 128.4_
+
+  - [ ] 145.6 Create HabitDifficultyIndicator component (`/src/components/shared/HabitDifficultyIndicator.tsx`)
+    - Displays current level with progress toward next level
+    - Level icons: Seedling (1), Sprout (2), Tree (3)
+    - _Requirements: 127.6_
+
+  - [ ] 145.7 Create Habit Difficulty Level TanStack Query hook (`/src/hooks/useHabitDifficulty.ts`)
+    - `useHabitDifficultyLevel(studentId)`: fetches current level and streak
+    - Add query keys to `/src/lib/queryKeys.ts`
+    - _Requirements: 127.4_
+
+  - [ ] 145.8 Wire HabitDifficultyIndicator into Student Dashboard
+    - Display below or alongside HabitTracker component
+    - _Requirements: 127.6_
+
+  - [ ]* 145.9 Write property tests for Habit Difficulty Level (`/src/__tests__/properties/habit-difficulty.property.test.ts`)
+    - **Property 104: Habit Difficulty Level promotion correctness**
+    - **Property 105: Relative Perfect Day threshold**
+    - **Validates: Requirements 127.3, 127.5, 128.1, 128.2, 128.3, 128.5**
+
+- [ ] 146. Checkpoint — Streak Recovery and Habit Difficulty Levels
+  - Ensure all tests pass, ask the user if questions arise.
+
+
+- [ ] 147. Leaderboard Enhancements — Personal Best and Most Improved
+  - [ ] 147.1 Create Personal Best leaderboard utility (`/src/lib/personalBestLeaderboard.ts`)
+    - Query `xp_transactions` grouped by ISO week for a student (last 8 weeks)
+    - Identify personal best week
+    - _Requirements: 129.1, 129.2_
+
+  - [ ] 147.2 Create Most Improved leaderboard utility (`/src/lib/mostImprovedLeaderboard.ts`)
+    - Calculate improvement: `(current_4_week_xp - previous_4_week_xp) / previous_4_week_xp * 100`
+    - Exclude students with zero previous XP
+    - Return top 20 by improvement percentage
+    - _Requirements: 130.1, 130.2, 130.3, 130.4_
+
+  - [ ] 147.3 Create Personal Best and Most Improved TanStack Query hooks
+    - `usePersonalBestLeaderboard(studentId)`: fetches weekly XP history
+    - `useMostImprovedLeaderboard(courseId)`: fetches top 20 most improved
+    - Add query keys to `/src/lib/queryKeys.ts`
+    - _Requirements: 129.1, 130.1_
+
+  - [ ] 147.4 Update LeaderboardPage with Personal Best tab
+    - Bar chart of last 8 weeks with current week highlighted
+    - "New Personal Best" confetti celebration
+    - Default view for leaderboard opt-out students
+    - _Requirements: 129.1, 129.2, 129.3, 129.4, 129.5_
+
+  - [ ] 147.5 Update LeaderboardPage with Most Improved tab
+    - Top 20 students with improvement percentage and XP delta
+    - "Rising Star" badge eligibility indicator
+    - _Requirements: 130.1, 130.4, 130.5_
+
+  - [ ] 147.6 Update `check-badges` Edge Function for Rising Star badge
+    - Award "Rising Star" badge when student appears in top 3 of Most Improved for 2 consecutive weeks
+    - _Requirements: 130.5_
+
+  - [ ]* 147.7 Write property tests for Personal Best (`/src/__tests__/properties/personal-best.property.test.ts`)
+    - **Property 106: Personal Best leaderboard data integrity**
+    - **Validates: Requirements 129.1, 129.2**
+
+  - [ ]* 147.8 Write property test for Most Improved calculation (`/src/__tests__/properties/most-improved.property.test.ts`)
+    - **Property 107: Most Improved calculation correctness**
+    - **Validates: Requirements 130.2, 130.3**
+
+
+- [ ] 148. Leaderboard Enhancements — Percentile Bands and League Tiers
+  - [ ] 148.1 Create Percentile Band utility (`/src/lib/percentileBand.ts`)
+    - `calculatePercentileBand(rank, totalStudents)`: returns exact rank for top 10, percentile band otherwise
+    - Band thresholds: top 10%, top 25%, top 50%, bottom 50%
+    - _Requirements: 131.1, 131.2, 131.3_
+
+  - [ ] 148.2 Create League Tier utility (`/src/lib/leagueTier.ts`)
+    - `getLeagueTier(cumulativeXP, thresholds)`: returns tier based on configurable thresholds
+    - Default thresholds: Bronze (0–499), Silver (500–1499), Gold (1500–3999), Diamond (4000+)
+    - _Requirements: 132.1, 132.5_
+
+  - [ ] 148.3 Update `institution_settings` schema to include `league_thresholds` configuration
+    - Default: `{ "bronze": 0, "silver": 500, "gold": 1500, "diamond": 4000 }`
+    - Update Institution Settings form with League Tier threshold inputs
+    - _Requirements: 132.5_
+
+  - [ ] 148.4 Create League Tier TanStack Query hooks
+    - `useLeagueLeaderboard(courseId, tier)`: fetches within-tier ranking by weekly XP
+    - `useStudentLeagueTier(studentId)`: fetches current tier
+    - `useStudentPercentileBand(studentId, courseId)`: fetches percentile position
+    - Add query keys to `/src/lib/queryKeys.ts`
+    - _Requirements: 131.1, 132.1, 132.2_
+
+  - [ ] 148.5 Update LeaderboardPage with Percentile Bands in Top XP mode
+    - Show exact rank for top 10, percentile band for others
+    - Student's own position card always visible at top
+    - _Requirements: 131.1, 131.2, 131.4_
+
+  - [ ] 148.6 Update LeaderboardPage with League tab
+    - Within-tier ranking by weekly XP
+    - League Tier badge display (Bronze, Silver, Gold, Diamond)
+    - _Requirements: 132.2, 132.6_
+
+  - [ ] 148.7 Create LeagueTierBadge component (`/src/components/shared/LeagueTierBadge.tsx`)
+    - Color-coded tier badges: Bronze (amber-600), Silver (gray-400), Gold (yellow-400), Diamond (blue-400)
+    - _Requirements: 132.3_
+
+  - [ ] 148.8 Create LeaguePromotionCelebration component (`/src/components/shared/LeaguePromotionCelebration.tsx`)
+    - Full-screen overlay with tier transition animation
+    - +100 XP bonus display
+    - _Requirements: 132.4_
+
+  - [ ] 148.9 Update `award-xp` Edge Function for League Promotion bonus
+    - Award 100 XP when student crosses a League Tier threshold
+    - Ensure idempotent — no duplicate bonuses on re-query
+    - _Requirements: 132.4_
+
+  - [ ]* 148.10 Write property tests for Percentile Bands (`/src/__tests__/properties/percentile-band.property.test.ts`)
+    - **Property 108: Percentile band assignment correctness**
+    - **Validates: Requirements 131.1, 131.2, 131.3**
+
+  - [ ]* 148.11 Write property tests for League Tiers (`/src/__tests__/properties/league-tier.property.test.ts`)
+    - **Property 109: League Tier assignment correctness**
+    - **Property 110: League Promotion XP bonus idempotence**
+    - **Validates: Requirements 132.1, 132.4, 132.5**
+
+- [ ] 149. Checkpoint — Leaderboard Enhancements
+  - Ensure all tests pass, ask the user if questions arise.
+
+
+- [ ] 150. Badge Tiers — Progressive Badge System Database and Core Logic
+  - [ ] 150.1 Apply Badge Tier database migration via Supabase MCP `apply_migration`
+    - Add columns to `badges`: `tier` (text, CHECK IN ('bronze','silver','gold'), nullable), `category` (text)
+    - Add columns to `student_badges`: `is_pinned` (boolean, default false), `archived_at` (timestamptz, nullable)
+    - Create `badge_spotlight_schedule` table with `id`, `institution_id`, `week_start` (date, always Monday), `category`, `is_manual` (boolean), UNIQUE(institution_id, week_start)
+    - Enable RLS on `badge_spotlight_schedule` with admin-manages and all-roles-read policies
+    - Regenerate TypeScript types
+    - _Requirements: 133.4, 134.1, 135.5_
+
+  - [ ] 150.2 Create Badge Tier Zod schemas (`/src/lib/schemas/badgeTier.ts`)
+    - `badgeTierSchema`: validates tier ('bronze', 'silver', 'gold'), category
+    - `tieredBadgeSchema`: validates category, current_tier, progress, is_pinned, archived_at
+    - `badgePinSchema`: validates student_badge_id, is_pinned
+    - _Requirements: 133.1, 135.4_
+
+  - [ ] 150.3 Create Badge Spotlight Zod schema (`/src/lib/schemas/badgeSpotlight.ts`)
+    - `badgeSpotlightScheduleSchema`: validates week_start (must be Monday), category, is_manual
+    - _Requirements: 134.2_
+
+  - [ ] 150.4 Update `check-badges` Edge Function for tiered badge progression
+    - Check if student meets next tier threshold for each badge category
+    - Award bronze → upgrade to silver → upgrade to gold
+    - Store only highest tier per category per student
+    - _Requirements: 133.2, 133.3, 133.5_
+
+  - [ ] 150.5 Update `award-xp` Edge Function for Badge Spotlight 2x bonus
+    - Check if earned/upgraded badge category matches current spotlight
+    - Apply 2x multiplier to badge XP award during spotlight week
+    - _Requirements: 134.1, 134.5_
+
+  - [ ] 150.6 Create `badge-spotlight-rotate-cron` pg_cron job
+    - Runs at midnight UTC every Monday
+    - If no manual selection for current week, auto-rotate alphabetically through categories
+    - _Requirements: 134.3, 134.6_
+
+  - [ ] 150.7 Create `badge-archive-cron` pg_cron job
+    - Runs daily
+    - Archive badges not upgraded in 90 days (set `archived_at`)
+    - Skip pinned badges
+    - _Requirements: 135.3_
+
+  - [ ]* 150.8 Write property tests for Badge Tiers (`/src/__tests__/properties/badge-tier.property.test.ts`)
+    - **Property 111: Badge tier progression monotonicity**
+    - **Validates: Requirements 133.3, 133.5**
+
+  - [ ]* 150.9 Write property test for Badge Spotlight bonus (`/src/__tests__/properties/badge-spotlight.property.test.ts`)
+    - **Property 112: Badge Spotlight XP bonus application**
+    - **Validates: Requirements 134.1, 134.5**
+
+  - [ ]* 150.10 Write property tests for Badge Archive (`/src/__tests__/properties/badge-archive.property.test.ts`)
+    - **Property 113: Badge archive threshold**
+    - **Property 114: Badge pin limit enforcement**
+    - **Property 115: Active badge collection size limit**
+    - **Validates: Requirements 135.1, 135.2, 135.3, 135.4**
+
+
+- [ ] 151. Badge Tiers — UI Components
+  - [ ] 151.1 Update BadgeCollection component (`/src/components/shared/BadgeCollection.tsx`)
+    - Active section: max 12 badges, most recently earned/upgraded first
+    - Pinned badges (up to 3) always in Active section
+    - Archived section: "View All Badges" expandable
+    - Tier display: color-coded border (Bronze: amber-600, Silver: gray-400, Gold: yellow-400)
+    - Progress bar toward next tier within each badge card
+    - _Requirements: 133.6, 135.1, 135.2, 135.4_
+
+  - [ ] 151.2 Create BadgeSpotlightCard component (`/src/components/shared/BadgeSpotlightCard.tsx`)
+    - Featured badge category with sparkle icon
+    - Progress toward next tier
+    - "2x XP Bonus this week" label with countdown
+    - _Requirements: 134.4_
+
+  - [ ] 151.3 Create BadgeSpotlightManager page (`/src/pages/admin/badges/BadgeSpotlightManager.tsx`)
+    - Calendar view of upcoming spotlight schedule
+    - Manual selection or auto-rotate
+    - Preview of each badge category with tier thresholds
+    - _Requirements: 134.2_
+
+  - [ ] 151.4 Create Badge Tier TanStack Query hooks (`/src/hooks/useTieredBadges.ts`)
+    - `useTieredBadges(studentId)`: fetches badges with tier info, pinned status, archive status
+    - `usePinBadge()`, `useUnpinBadge()`: mutations for badge pinning
+    - `useBadgeSpotlight(institutionId)`: fetches current spotlight
+    - `useBadgeSpotlightSchedule(institutionId)`: fetches schedule for admin
+    - `useUpdateBadgeSpotlightSchedule()`: mutation for admin schedule changes
+    - Add query keys to `/src/lib/queryKeys.ts`
+    - _Requirements: 133.6, 134.2, 135.4_
+
+  - [ ] 151.5 Wire BadgeSpotlightCard into Student Dashboard
+    - _Requirements: 134.4_
+
+  - [ ] 151.6 Add Badge Spotlight Manager route and navigation
+    - Add route `/admin/badges/spotlight` to AppRouter
+    - Add navigation link in Admin sidebar
+    - _Requirements: 134.2_
+
+- [ ] 152. Checkpoint — Badge Tiers and Spotlight
+  - Ensure all tests pass, ask the user if questions arise.
+
+
+- [ ] 153. Integration — Wire Engagement Safeguards into Existing Dashboards
+  - [ ] 153.1 Update Student Dashboard with all Section W components
+    - Comeback Challenge banner (when active)
+    - Updated StreakDisplay with range format and Total Active Days
+    - Habit Difficulty Level indicator
+    - Badge Spotlight card
+    - League Tier badge on gamification card
+    - _Requirements: 124.5, 126.1, 126.2, 127.6, 132.3, 134.4_
+
+  - [ ] 153.2 Update Leaderboard page tab navigation
+    - Add tabs: Top XP, Personal Best, Most Improved, League
+    - Wire percentile bands into Top XP mode
+    - Default to Personal Best for opt-out students
+    - _Requirements: 129.4, 131.4_
+
+  - [ ] 153.3 Update Admin Institution Settings page
+    - Add Streak Sabbatical toggle
+    - Add League Tier threshold configuration
+    - _Requirements: 125.3, 132.5_
+
+  - [ ] 153.4 Update seed script with Section W data
+    - Add badge categories with tier thresholds
+    - Add badge spotlight schedule entries
+    - Add league tier default thresholds to institution settings
+    - _Requirements: All Section W_
+
+- [ ] 154. Write tests for Engagement Safeguards features
+  - [ ]* 154.1 Write unit tests for Streak Recovery
+    - Comeback Challenge activation, day completion, streak restoration, cancellation
+    - Streak Sabbatical weekend exclusion
+    - Total Active Days increment
+    - _Requirements: 124, 125, 126_
+
+  - [ ]* 154.2 Write unit tests for Habit Difficulty Levels
+    - Level promotion after 7 days, streak reset without demotion, Perfect Day thresholds per level
+    - _Requirements: 127, 128_
+
+  - [ ]* 154.3 Write unit tests for Leaderboard Enhancements
+    - Personal Best weekly XP calculation, Most Improved percentage, Percentile Band assignment, League Tier determination
+    - _Requirements: 129, 130, 131, 132_
+
+  - [ ]* 154.4 Write unit tests for Badge Tiers
+    - Tier progression, spotlight bonus, archive logic, pin limit
+    - _Requirements: 133, 134, 135_
+
+- [ ] 155. Final Checkpoint — Section W Complete
+  - Ensure all tests pass, ask the user if questions arise.
+  - Verify all 12 requirements (124–135) are covered by implementation tasks
+  - Verify all 15 correctness properties (101–115) have corresponding property test tasks
+
+## Notes (Tasks 109–155)
 
 - Tasks marked with `*` are optional and can be skipped for faster MVP
 - Each task references specific requirements for traceability
@@ -3138,3 +3505,12 @@ Complete unified implementation of the Edeviser platform covering authentication
 - All forms use React Hook Form + Zod for validation
 - All data fetching through TanStack Query hooks, never raw supabase calls in components
 - URL-persisted filter state uses nuqs in list/filter pages
+- Streak Sabbatical (Requirement 125) is stored in `institution_settings` jsonb — no new table needed
+- League Tier thresholds (Requirement 132) are stored in `institution_settings` jsonb — tier is derived at query time from cumulative XP
+- Habit Difficulty Level (Requirement 127) does not demote students — only `habit_level_streak` resets on missed days
+- Badge Spotlight auto-rotation (Requirement 134) uses pg_cron weekly job — falls back to alphabetical order when no manual selection
+- Badge archive (Requirement 135) uses pg_cron daily job — pinned badges are never auto-archived
+- Comeback Challenge (Requirement 124) restores 50% of lost streak (rounded down) — challenge is cancelled on any missed day
+- Personal Best leaderboard (Requirement 129) is the default view for students who opted out of public leaderboard
+- Most Improved leaderboard (Requirement 130) excludes students with zero previous-period XP to avoid division-by-zero
+- Percentile Bands (Requirement 131) only apply to ranks > 10 — top 10 always see exact rank
