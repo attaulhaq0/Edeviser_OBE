@@ -28,11 +28,12 @@ const CLOListPage = () => {
   );
   const [cloToDelete, setCloToDelete] = useState<LearningOutcome | null>(null);
 
-  const { data: courses, isLoading: coursesLoading } = useCourses();
-  const { data: clos, isLoading } = useCLOs(courseFilter || undefined);
+  const { data: paginatedCourses, isLoading: coursesLoading } = useCourses();
+  const courses = paginatedCourses?.data;
+  const { data: paginatedCLOs, isLoading } = useCLOs(courseFilter || undefined);
   const deleteMutation = useDeleteCLO();
 
-  const filteredCLOs = (clos ?? []).filter((clo) => {
+  const filteredCLOs = (paginatedCLOs?.data ?? []).filter((clo) => {
     if (!search) return true;
     const q = search.toLowerCase();
     return (

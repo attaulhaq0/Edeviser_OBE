@@ -43,7 +43,8 @@ import type { Profile, Program } from '@/types/app';
 const CreateCourseForm = ({ institutionId }: { institutionId: string }) => {
   const navigate = useNavigate();
   const createMutation = useCreateCourse();
-  const { data: programs = [], isLoading: isLoadingPrograms } = usePrograms();
+  const { data: paginatedPrograms, isLoading: isLoadingPrograms } = usePrograms();
+  const programs = paginatedPrograms?.data ?? [];
   const { data: teachers = [], isLoading: isLoadingTeachers } = useTeachers();
 
   const form = useForm<CreateCourseFormData>({

@@ -5,9 +5,7 @@ import { logAuditEvent } from '@/lib/auditLogger';
 import { useAuth } from '@/hooks/useAuth';
 import type { CreateBonusEventFormData } from '@/lib/schemas/bonusXPEvent';
 
-// Bridge the generated types gap until database.ts is regenerated.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const db = supabase as unknown as { from: (table: string) => any };
+
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -32,8 +30,7 @@ export const useBonusEvents = (filters: BonusEventFilters = {}) => {
   return useQuery({
     queryKey: queryKeys.bonusXPEvents.list(filters as Record<string, unknown>),
     queryFn: async (): Promise<BonusXPEvent[]> => {
-      let query = db
-        .from('bonus_xp_events')
+      let query = supabase.from('bonus_xp_events')
         .select('*')
         .order('starts_at', { ascending: false });
 
@@ -55,8 +52,7 @@ export const useBonusEvent = (id: string | undefined) => {
   return useQuery({
     queryKey: queryKeys.bonusXPEvents.detail(id ?? ''),
     queryFn: async (): Promise<BonusXPEvent | null> => {
-      const { data, error } = await db
-        .from('bonus_xp_events')
+      const { data, error } = await supabase.from('bonus_xp_events')
         .select('*')
         .eq('id', id!)
         .maybeSingle();
@@ -77,8 +73,7 @@ export const useActiveBonusEvent = () => {
     queryFn: async (): Promise<BonusXPEvent | null> => {
       const now = new Date().toISOString();
 
-      const { data, error } = await db
-        .from('bonus_xp_events')
+      const { data, error } = await supabase.from('bonus_xp_events')
         .select('*')
         .eq('is_active', true)
         .lte('starts_at', now)
@@ -100,9 +95,8 @@ export const useCreateBonusEvent = () => {
 
   return useMutation({
     mutationFn: async (data: CreateBonusEventFormData): Promise<BonusXPEvent> => {
-      const { data: result, error } = await db
-        .from('bonus_xp_events')
-        .insert({ ...data, created_by: user?.id })
+      const { data: result, error } = await supabase.from('bonus_xp_events')
+        .insert({ ...data, created_by: user?.id ?? 'unknown' })
         .select()
         .single();
 
@@ -114,7 +108,7 @@ export const useCreateBonusEvent = () => {
         action: 'create',
         entity_type: 'bonus_xp_event',
         entity_id: event.id,
-        changes: data as unknown as Record<string, unknown>,
+        changes: data as Record<string, unknown>,
         performed_by: user?.id ?? 'unknown',
       });
 
@@ -134,8 +128,7 @@ export const useUpdateBonusEvent = (id: string) => {
 
   return useMutation({
     mutationFn: async (data: Partial<CreateBonusEventFormData>): Promise<BonusXPEvent> => {
-      const { data: result, error } = await db
-        .from('bonus_xp_events')
+      const { data: result, error } = await supabase.from('bonus_xp_events')
         .update(data)
         .eq('id', id)
         .select()
@@ -168,8 +161,7 @@ export const useDeleteBonusEvent = () => {
 
   return useMutation({
     mutationFn: async (id: string): Promise<BonusXPEvent> => {
-      const { data: result, error } = await db
-        .from('bonus_xp_events')
+      const { data: result, error } = await supabase.from('bonus_xp_events')
         .update({ is_active: false })
         .eq('id', id)
         .select()

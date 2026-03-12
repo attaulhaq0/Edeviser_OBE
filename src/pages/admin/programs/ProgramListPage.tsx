@@ -16,7 +16,7 @@ const ProgramListPage = () => {
   const [search, setSearch] = useQueryState('q', parseAsString.withDefault(''));
   const [programToDeactivate, setProgramToDeactivate] = useState<Program | null>(null);
 
-  const { data, isLoading } = usePrograms({
+  const { data: paginatedData, isLoading } = usePrograms({
     search: search || undefined,
   });
 
@@ -54,7 +54,7 @@ const ProgramListPage = () => {
       </div>
 
       {/* Data Table */}
-      <DataTable columns={columns} data={data ?? []} isLoading={isLoading} />
+      <DataTable columns={columns} data={paginatedData?.data ?? []} isLoading={isLoading} />
 
       {/* Deactivate Confirmation Dialog */}
       <ConfirmDialog

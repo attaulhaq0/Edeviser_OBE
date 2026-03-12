@@ -26,9 +26,6 @@ interface MyRankData {
   level: number;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const db = supabase as unknown as { from: (table: string) => any };
-
 // ─── useLeaderboard ──────────────────────────────────────────────────────────
 
 export const useLeaderboard = (
@@ -55,7 +52,7 @@ async function fetchWeeklyLeaderboard(
   courseId?: string,
   programId?: string,
 ): Promise<LeaderboardEntry[]> {
-  let query = db
+  let query = supabase
     .from('leaderboard_weekly')
     .select('student_id, full_name, xp_total, level, streak_current, global_rank')
     .order('xp_total', { ascending: false })
@@ -77,14 +74,14 @@ async function fetchWeeklyLeaderboard(
   const optOutIds = await getOptOutStudentIds();
 
   return assignRanks(
-    (data as Array<{
-      student_id: string;
-      full_name: string;
-      xp_total: number;
-      level: number;
-      streak_current: number;
-      global_rank: number;
-    }>) ?? [],
+    (data ?? []).map((d) => ({
+      student_id: d.student_id,
+      full_name: d.full_name,
+      xp_total: d.xp_total,
+      level: d.level,
+      streak_current: d.streak_current,
+      global_rank: d.global_rank,
+    })),
     optOutIds,
   );
 }
@@ -106,7 +103,7 @@ async function fetchAllTimeLeaderboard(
     if (studentIdFilter.length === 0) return [];
   }
 
-  let query = db
+  let query = supabase
     .from('student_gamification')
     .select('student_id, xp_total, level, streak_current')
     .order('xp_total', { ascending: false })
@@ -119,18 +116,13 @@ async function fetchAllTimeLeaderboard(
   const { data: gamData, error: gamError } = await query;
   if (gamError) throw gamError;
 
-  const rows = (gamData as Array<{
-    student_id: string;
-    xp_total: number;
-    level: number;
-    streak_current: number;
-  }>) ?? [];
+  const rows = gamData ?? [];
 
   if (rows.length === 0) return [];
 
   // Fetch profile names for these students
   const ids = rows.map((r) => r.student_id);
-  const { data: profileData, error: profileError } = await db
+  const { data: profileData, error: profileError } = await supabase
     .from('profiles')
     .select('id, full_name')
     .in('id', ids);
@@ -138,7 +130,7 @@ async function fetchAllTimeLeaderboard(
   if (profileError) throw profileError;
 
   const nameMap = new Map<string, string>();
-  for (const p of (profileData as Array<{ id: string; full_name: string }>) ?? []) {
+  for (const p of profileData ?? []) {
     nameMap.set(p.id, p.full_name);
   }
 
@@ -173,7 +165,7 @@ export const useMyRank = (
       if (!user) return null;
 
       // Get the student's gamification data
-      const { data: gamData, error: gamError } = await db
+      const { data: gamData, error: gamError } = await supabase
         .from('student_gamification')
         .select('xp_total, level')
         .eq('student_id', user.id)
@@ -182,8 +174,8 @@ export const useMyRank = (
       if (gamError) throw gamError;
       if (!gamData) return null;
 
-      const myXp = (gamData as { xp_total: number; level: number }).xp_total;
-      const myLevel = (gamData as { xp_total: number; level: number }).level;
+      const myXp = gamData.xp_total;
+      const myLevel = gamData.level;
 
       // For weekly timeframe, compute scoped rank from materialized view
       if (timeframe === 'weekly') {
@@ -197,7 +189,7 @@ export const useMyRank = (
           if (scopeFilter.length === 0) return { rank: 1, xp_total: myXp, level: myLevel };
         }
 
-        let weeklyCountQuery = db
+        let weeklyCountQuery = supabase
           .from('leaderboard_weekly')
           .select('student_id', { count: 'exact', head: true })
           .gt('xp_total', myXp);
@@ -213,7 +205,7 @@ export const useMyRank = (
       }
 
       // For all-time, count students with more XP to determine rank
-      let countQuery = db
+      let countQuery = supabase
         .from('student_gamification')
         .select('student_id', { count: 'exact', head: true })
         .gt('xp_total', myXp);
@@ -251,7 +243,7 @@ export const useAnonymousStatus = () => {
       } = await supabase.auth.getUser();
       if (!user) return { isAnonymous: false };
 
-      const { data, error } = await db
+      const { data, error } = await supabase
         .from('student_gamification')
         .select('leaderboard_opt_out')
         .eq('student_id', user.id)
@@ -259,7 +251,7 @@ export const useAnonymousStatus = () => {
 
       if (error) throw error;
 
-      const optOut = (data as { leaderboard_opt_out: boolean } | null)?.leaderboard_opt_out ?? false;
+      const optOut = data?.leaderboard_opt_out ?? false;
       return { isAnonymous: optOut };
     },
   });
@@ -278,7 +270,7 @@ export const useToggleAnonymous = () => {
       if (!user) throw new Error('Not authenticated');
 
       // Get current opt-out status
-      const { data: current, error: fetchError } = await db
+      const { data: current, error: fetchError } = await supabase
         .from('student_gamification')
         .select('leaderboard_opt_out')
         .eq('student_id', user.id)
@@ -286,10 +278,10 @@ export const useToggleAnonymous = () => {
 
       if (fetchError) throw fetchError;
 
-      const currentOptOut = (current as { leaderboard_opt_out: boolean } | null)?.leaderboard_opt_out ?? false;
+      const currentOptOut = current?.leaderboard_opt_out ?? false;
       const newOptOut = !currentOptOut;
 
-      const { error: updateError } = await db
+      const { error: updateError } = await supabase
         .from('student_gamification')
         .update({ leaderboard_opt_out: newOptOut })
         .eq('student_id', user.id);
@@ -308,29 +300,29 @@ export const useToggleAnonymous = () => {
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 async function getStudentIdsByCourse(courseId: string): Promise<string[]> {
-  const { data, error } = await db
+  const { data, error } = await supabase
     .from('student_courses')
     .select('student_id')
     .eq('course_id', courseId)
     .eq('status', 'active');
 
   if (error) throw error;
-  return ((data as Array<{ student_id: string }>) ?? []).map((r) => r.student_id);
+  return (data ?? []).map((r) => r.student_id);
 }
 
 async function getStudentIdsByProgram(programId: string): Promise<string[]> {
   // Get all courses in the program, then get enrolled students
-  const { data: courses, error: courseError } = await db
+  const { data: courses, error: courseError } = await supabase
     .from('courses')
     .select('id')
     .eq('program_id', programId);
 
   if (courseError) throw courseError;
 
-  const courseIds = ((courses as Array<{ id: string }>) ?? []).map((c) => c.id);
+  const courseIds = (courses ?? []).map((c) => c.id);
   if (courseIds.length === 0) return [];
 
-  const { data, error } = await db
+  const { data, error } = await supabase
     .from('student_courses')
     .select('student_id')
     .in('course_id', courseIds)
@@ -339,18 +331,18 @@ async function getStudentIdsByProgram(programId: string): Promise<string[]> {
   if (error) throw error;
 
   // Deduplicate student IDs (a student may be in multiple courses)
-  const unique = [...new Set(((data as Array<{ student_id: string }>) ?? []).map((r) => r.student_id))];
+  const unique = [...new Set((data ?? []).map((r) => r.student_id))];
   return unique;
 }
 
 async function getOptOutStudentIds(): Promise<Set<string>> {
-  const { data, error } = await db
+  const { data, error } = await supabase
     .from('student_gamification')
     .select('student_id')
     .eq('leaderboard_opt_out', true);
 
   if (error) throw error;
-  return new Set(((data as Array<{ student_id: string }>) ?? []).map((r) => r.student_id));
+  return new Set((data ?? []).map((r) => r.student_id));
 }
 
 function assignRanks(

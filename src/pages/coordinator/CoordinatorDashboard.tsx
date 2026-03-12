@@ -59,7 +59,8 @@ interface SelectedCell {
 
 const CoordinatorDashboard = () => {
   const { data: kpis, isLoading: kpisLoading } = useCoordinatorKPIs();
-  const { data: programs, isLoading: programsLoading } = usePrograms();
+  const { data: paginatedPrograms, isLoading: programsLoading } = usePrograms();
+  const programs = paginatedPrograms?.data;
   const [selectedProgramId, setSelectedProgramId] = useState<string>('');
   const [selectedCell, setSelectedCell] = useState<SelectedCell | null>(null);
 

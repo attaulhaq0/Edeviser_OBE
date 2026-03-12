@@ -40,8 +40,10 @@ const CourseEnrollmentPage = () => {
   const [unenrollTarget, setUnenrollTarget] = useState<EnrollmentWithProfile | null>(null);
 
   const { data: course, isLoading: courseLoading } = useCourse(courseId);
-  const { data: enrollments = [], isLoading: enrollmentsLoading } = useEnrollments(courseId);
-  const { data: students = [] } = useUsers({ role: 'student' });
+  const { data: paginatedEnrollments, isLoading: enrollmentsLoading } = useEnrollments(courseId);
+  const enrollments = useMemo(() => paginatedEnrollments?.data ?? [], [paginatedEnrollments?.data]);
+  const { data: paginatedStudents } = useUsers({ role: 'student' });
+  const students = useMemo(() => paginatedStudents?.data ?? [], [paginatedStudents?.data]);
   const enrollMutation = useEnrollStudent();
   const unenrollMutation = useUnenrollStudent();
 

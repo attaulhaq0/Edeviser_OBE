@@ -274,13 +274,13 @@ const AtRiskStudentCard = () => {
 
 const TeacherDashboard = () => {
   const { user } = useAuth();
-  const { data: courses, isLoading: coursesLoading } = useCourses();
+  const { data: paginatedCourses, isLoading: coursesLoading } = useCourses();
   const [selectedCourseId, setSelectedCourseId] = useState<string>('');
 
   // Filter to teacher's own courses
   const teacherCourses = useMemo(
-    () => (courses ?? []).filter((c) => c.teacher_id === user?.id),
-    [courses, user?.id],
+    () => (paginatedCourses?.data ?? []).filter((c) => c.teacher_id === user?.id),
+    [paginatedCourses, user?.id],
   );
 
   const effectiveCourseId = selectedCourseId || (teacherCourses.length > 0 ? teacherCourses[0]!.id : '');

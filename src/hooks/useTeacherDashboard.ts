@@ -1,10 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { queryKeys } from '@/lib/queryKeys';
 import { useAuth } from '@/hooks/useAuth';
 import type { BloomsLevel } from '@/types/app';
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const db = supabase as unknown as { from: (table: string) => any };
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -39,96 +37,96 @@ export const useTeacherKPIs = () => {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ['teacherDashboard', 'kpis', user?.id],
+    queryKey: queryKeys.teacherDashboard.list({ type: 'kpis', teacherId: user?.id }),
     queryFn: async (): Promise<TeacherKPIData> => {
       const teacherId = user?.id;
       if (!teacherId) throw new Error('Not authenticated');
 
       // Get teacher's courses
-      const { data: courses } = await db
+      const { data: courses } = await supabase
         .from('courses')
         .select('id')
         .eq('teacher_id', teacherId)
         .eq('is_active', true);
 
-      const courseIds = (courses as Array<{ id: string }> ?? []).map((c) => c.id);
+      const courseIds = (courses ?? []).map((c) => c.id);
 
       if (courseIds.length === 0) {
         return { pendingSubmissions: 0, gradedThisWeek: 0, avgAttainment: 0, atRiskCount: 0, totalStudents: 0 };
       }
 
       // 1. Pending submissions (no grade record)
-      const { data: allSubmissions } = await db
+      const { data: allSubmissions } = await supabase
         .from('submissions')
         .select('id, assignment_id, assignments!inner(course_id), grades(id)')
         .in('assignments.course_id', courseIds);
 
-      const submissions = (allSubmissions ?? []) as Array<{ id: string; grades: { id: string } | null }>;
+      const submissions = allSubmissions ?? [];
       const pendingSubmissions = submissions.filter((s) => !s.grades).length;
 
       // 2. Graded this week
       const weekAgo = new Date();
       weekAgo.setDate(weekAgo.getDate() - 7);
-      const { count: gradedThisWeek } = await db
+      const { count: gradedThisWeek } = await supabase
         .from('grades')
         .select('*', { count: 'exact', head: true })
         .eq('graded_by', teacherId)
         .gte('created_at', weekAgo.toISOString());
 
       // 3. Average attainment across teacher's courses
-      const { data: attainmentData } = await db
+      const { data: attainmentData } = await supabase
         .from('outcome_attainment')
-        .select('score_percent')
+        .select('attainment_percent')
         .eq('scope', 'student_course')
         .in('course_id', courseIds);
 
-      const attainments = (attainmentData ?? []) as Array<{ score_percent: number }>;
+      const attainments = attainmentData ?? [];
       const avgAttainment = attainments.length > 0
-        ? Math.round(attainments.reduce((sum, a) => sum + a.score_percent, 0) / attainments.length)
+        ? Math.round(attainments.reduce((sum, a) => sum + a.attainment_percent, 0) / attainments.length)
         : 0;
 
       // 4. Total enrolled students
-      const { count: totalStudents } = await db
+      const { count: totalStudents } = await supabase
         .from('student_courses')
         .select('*', { count: 'exact', head: true })
         .in('course_id', courseIds);
 
       // 5. At-risk count: students not logged in 7+ days OR <50% on 2+ CLOs
       let atRiskCount = 0;
-      const { data: enrolledStudents } = await db
+      const { data: enrolledStudents } = await supabase
         .from('student_courses')
         .select('student_id')
         .in('course_id', courseIds);
 
-      const studentIds = [...new Set((enrolledStudents as Array<{ student_id: string }> ?? []).map((s) => s.student_id))];
+      const studentIds = [...new Set((enrolledStudents ?? []).map((s) => s.student_id))];
 
       if (studentIds.length > 0) {
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
         // Students inactive 7+ days
-        const { data: inactiveProfiles } = await db
+        const { data: inactiveProfiles } = await supabase
           .from('profiles')
           .select('id, last_login_at')
           .in('id', studentIds);
 
         const inactiveSet = new Set<string>();
-        for (const p of (inactiveProfiles ?? []) as Array<{ id: string; last_login_at: string | null }>) {
+        for (const p of inactiveProfiles ?? []) {
           if (!p.last_login_at || new Date(p.last_login_at) < sevenDaysAgo) {
             inactiveSet.add(p.id);
           }
         }
 
         // Students with <50% on 2+ CLOs
-        const { data: lowAttainment } = await db
+        const { data: lowAttainment } = await supabase
           .from('outcome_attainment')
           .select('student_id, outcome_id')
           .in('course_id', courseIds)
           .eq('scope', 'student_course')
-          .lt('score_percent', 50);
+          .lt('attainment_percent', 50);
 
         const lowCloMap = new Map<string, number>();
-        for (const row of (lowAttainment ?? []) as Array<{ student_id: string; outcome_id: string }>) {
+        for (const row of lowAttainment ?? []) {
           lowCloMap.set(row.student_id, (lowCloMap.get(row.student_id) ?? 0) + 1);
         }
 
@@ -156,12 +154,12 @@ export const useTeacherKPIs = () => {
 
 export const useTeacherCLOAttainment = (courseId?: string) => {
   return useQuery({
-    queryKey: ['teacherDashboard', 'cloAttainment', courseId],
+    queryKey: queryKeys.teacherDashboard.list({ type: 'cloAttainment', courseId }),
     queryFn: async (): Promise<CLOAttainmentRow[]> => {
       if (!courseId) return [];
 
       // Get CLOs for this course
-      const { data: clos } = await db
+      const { data: clos } = await supabase
         .from('learning_outcomes')
         .select('id, title, blooms_level')
         .eq('type', 'CLO')
@@ -169,22 +167,22 @@ export const useTeacherCLOAttainment = (courseId?: string) => {
         .eq('is_active', true)
         .order('sort_order', { ascending: true });
 
-      const typedCLOs = (clos ?? []) as Array<{ id: string; title: string; blooms_level: BloomsLevel }>;
+      const typedCLOs = clos ?? [];
       if (typedCLOs.length === 0) return [];
 
       const cloIds = typedCLOs.map((c) => c.id);
 
       // Get attainment for these CLOs
-      const { data: attainment } = await db
+      const { data: attainment } = await supabase
         .from('outcome_attainment')
-        .select('outcome_id, score_percent')
+        .select('outcome_id, attainment_percent')
         .in('outcome_id', cloIds)
         .eq('scope', 'student_course');
 
       const attainmentMap = new Map<string, number[]>();
-      for (const row of (attainment ?? []) as Array<{ outcome_id: string; score_percent: number }>) {
+      for (const row of attainment ?? []) {
         const arr = attainmentMap.get(row.outcome_id) ?? [];
-        arr.push(row.score_percent);
+        arr.push(row.attainment_percent);
         attainmentMap.set(row.outcome_id, arr);
       }
 
@@ -195,7 +193,7 @@ export const useTeacherCLOAttainment = (courseId?: string) => {
           : 0;
         return {
           clo_title: clo.title,
-          blooms_level: clo.blooms_level,
+          blooms_level: clo.blooms_level as BloomsLevel,
           avg_attainment: avg,
         };
       });
@@ -211,21 +209,21 @@ export const useTeacherBloomsDistribution = () => {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ['teacherDashboard', 'bloomsDistribution', user?.id],
+    queryKey: queryKeys.teacherDashboard.list({ type: 'bloomsDistribution', teacherId: user?.id }),
     queryFn: async (): Promise<BloomsDistributionRow[]> => {
       const teacherId = user?.id;
       if (!teacherId) return [];
 
-      const { data: courses } = await db
+      const { data: courses } = await supabase
         .from('courses')
         .select('id')
         .eq('teacher_id', teacherId)
         .eq('is_active', true);
 
-      const courseIds = (courses as Array<{ id: string }> ?? []).map((c) => c.id);
+      const courseIds = (courses ?? []).map((c) => c.id);
       if (courseIds.length === 0) return [];
 
-      const { data: clos } = await db
+      const { data: clos } = await supabase
         .from('learning_outcomes')
         .select('blooms_level')
         .eq('type', 'CLO')
@@ -233,7 +231,7 @@ export const useTeacherBloomsDistribution = () => {
         .in('course_id', courseIds);
 
       const countMap = new Map<string, number>();
-      for (const row of (clos ?? []) as Array<{ blooms_level: BloomsLevel | null }>) {
+      for (const row of clos ?? []) {
         if (row.blooms_level) {
           countMap.set(row.blooms_level, (countMap.get(row.blooms_level) ?? 0) + 1);
         }
@@ -253,12 +251,12 @@ export const useTeacherBloomsDistribution = () => {
 
 export const useStudentPerformanceHeatmap = (courseId?: string) => {
   return useQuery({
-    queryKey: ['teacherDashboard', 'heatmap', courseId],
+    queryKey: queryKeys.teacherDashboard.list({ type: 'heatmap', courseId }),
     queryFn: async (): Promise<HeatmapCell[]> => {
       if (!courseId) return [];
 
       // Get CLOs for this course
-      const { data: clos } = await db
+      const { data: clos } = await supabase
         .from('learning_outcomes')
         .select('id, title')
         .eq('type', 'CLO')
@@ -266,42 +264,42 @@ export const useStudentPerformanceHeatmap = (courseId?: string) => {
         .eq('is_active', true)
         .order('sort_order', { ascending: true });
 
-      const typedCLOs = (clos ?? []) as Array<{ id: string; title: string }>;
+      const typedCLOs = clos ?? [];
       if (typedCLOs.length === 0) return [];
 
       const cloIds = typedCLOs.map((c) => c.id);
       const cloTitleMap = new Map(typedCLOs.map((c) => [c.id, c.title]));
 
       // Get enrolled students
-      const { data: enrollments } = await db
+      const { data: enrollments } = await supabase
         .from('student_courses')
         .select('student_id, profiles!student_courses_student_id_fkey(full_name)')
         .eq('course_id', courseId);
 
-      const students = (enrollments ?? []) as Array<{
-        student_id: string;
-        profiles: { full_name: string } | null;
-      }>;
+      const students = enrollments ?? [];
 
       if (students.length === 0) return [];
 
       const studentIds = students.map((s) => s.student_id);
       const studentNameMap = new Map(
-        students.map((s) => [s.student_id, s.profiles?.full_name ?? 'Unknown']),
+        students.map((s) => {
+          const profile = s.profiles as { full_name: string } | null;
+          return [s.student_id, profile?.full_name ?? 'Unknown'];
+        }),
       );
 
       // Get attainment data
-      const { data: attainment } = await db
+      const { data: attainment } = await supabase
         .from('outcome_attainment')
-        .select('student_id, outcome_id, score_percent')
+        .select('student_id, outcome_id, attainment_percent')
         .in('outcome_id', cloIds)
         .in('student_id', studentIds)
         .eq('scope', 'student_course');
 
       const cells: HeatmapCell[] = [];
       const attainmentLookup = new Map<string, number>();
-      for (const row of (attainment ?? []) as Array<{ student_id: string; outcome_id: string; score_percent: number }>) {
-        attainmentLookup.set(`${row.student_id}:${row.outcome_id}`, row.score_percent);
+      for (const row of attainment ?? []) {
+        attainmentLookup.set(`${row.student_id}:${row.outcome_id}`, row.attainment_percent);
       }
 
       for (const sid of studentIds) {
@@ -340,30 +338,30 @@ export const useAtRiskStudents = () => {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ['teacherDashboard', 'atRiskStudents', user?.id],
+    queryKey: queryKeys.teacherDashboard.list({ type: 'atRiskStudents', teacherId: user?.id }),
     queryFn: async (): Promise<AtRiskStudent[]> => {
       const teacherId = user?.id;
       if (!teacherId) throw new Error('Not authenticated');
 
       // Get teacher's active courses
-      const { data: courses } = await db
+      const { data: courses } = await supabase
         .from('courses')
         .select('id')
         .eq('teacher_id', teacherId)
         .eq('is_active', true);
 
-      const courseIds = (courses as Array<{ id: string }> ?? []).map((c) => c.id);
+      const courseIds = (courses ?? []).map((c) => c.id);
       if (courseIds.length === 0) return [];
 
       // Get enrolled student IDs
-      const { data: enrolledStudents } = await db
+      const { data: enrolledStudents } = await supabase
         .from('student_courses')
         .select('student_id')
         .in('course_id', courseIds);
 
       const studentIds = [
         ...new Set(
-          (enrolledStudents as Array<{ student_id: string }> ?? []).map((s) => s.student_id),
+          (enrolledStudents ?? []).map((s) => s.student_id),
         ),
       ];
       if (studentIds.length === 0) return [];
@@ -372,17 +370,12 @@ export const useAtRiskStudents = () => {
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
       // Get profiles for all enrolled students
-      const { data: profiles } = await db
+      const { data: profiles } = await supabase
         .from('profiles')
         .select('id, full_name, email, last_login_at')
         .in('id', studentIds);
 
-      const typedProfiles = (profiles ?? []) as Array<{
-        id: string;
-        full_name: string;
-        email: string;
-        last_login_at: string | null;
-      }>;
+      const typedProfiles = profiles ?? [];
 
       // Build inactive set with days count
       const inactiveMap = new Map<string, number>();
@@ -397,15 +390,15 @@ export const useAtRiskStudents = () => {
       }
 
       // Students with <50% on 2+ CLOs
-      const { data: lowAttainment } = await db
+      const { data: lowAttainment } = await supabase
         .from('outcome_attainment')
         .select('student_id, outcome_id')
         .in('course_id', courseIds)
         .eq('scope', 'student_course')
-        .lt('score_percent', 50);
+        .lt('attainment_percent', 50);
 
       const lowCloMap = new Map<string, number>();
-      for (const row of (lowAttainment ?? []) as Array<{ student_id: string; outcome_id: string }>) {
+      for (const row of lowAttainment ?? []) {
         lowCloMap.set(row.student_id, (lowCloMap.get(row.student_id) ?? 0) + 1);
       }
 
@@ -461,7 +454,7 @@ export const useSendNudge = () => {
 
   return useMutation({
     mutationFn: async ({ studentId, message }: { studentId: string; message: string }) => {
-      const { error } = await db
+      const { error } = await supabase
         .from('notifications')
         .insert({
           user_id: studentId,
@@ -473,7 +466,7 @@ export const useSendNudge = () => {
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['teacherDashboard', 'atRiskStudents'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.teacherDashboard.lists() });
     },
   });
 };

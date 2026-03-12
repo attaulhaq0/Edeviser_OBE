@@ -5,26 +5,27 @@ import { logAuditEvent } from '@/lib/auditLogger';
 import { useAuth } from '@/hooks/useAuth';
 import type { CreateILOFormData, UpdateILOFormData, ReorderFormData } from '@/lib/schemas/ilo';
 import type { LearningOutcome } from '@/types/app';
+import type { PaginatedResult } from '@/types/pagination';
+import { getPaginationRange } from '@/types/pagination';
 
-// The generated database.ts doesn't have the `learning_outcomes` table yet.
-// We cast through `unknown` once to bridge the gap until types are regenerated.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const db = supabase as unknown as { from: (table: string) => any };
+
 
 // ─── useILOs — list ILOs for the current institution ────────────────────────
 
-export const useILOs = () => {
+export const useILOs = (pagination?: { page?: number; pageSize?: number }) => {
+  const { page, pageSize, from, to } = getPaginationRange(pagination?.page, pagination?.pageSize);
+
   return useQuery({
-    queryKey: queryKeys.ilos.list({}),
-    queryFn: async (): Promise<LearningOutcome[]> => {
-      const { data, error } = await db
-        .from('learning_outcomes')
-        .select('*')
+    queryKey: queryKeys.ilos.list({ page, pageSize }),
+    queryFn: async (): Promise<PaginatedResult<LearningOutcome>> => {
+      const { data, error, count } = await supabase.from('learning_outcomes')
+        .select('*', { count: 'exact' })
         .eq('type', 'ILO')
-        .order('sort_order', { ascending: true });
+        .order('sort_order', { ascending: true })
+        .range(from, to);
 
       if (error) throw error;
-      return data as LearningOutcome[];
+      return { data: (data ?? []) as LearningOutcome[], count: count ?? 0, page, pageSize };
     },
   });
 };
@@ -35,8 +36,7 @@ export const useILO = (id: string | undefined) => {
   return useQuery({
     queryKey: queryKeys.ilos.detail(id ?? ''),
     queryFn: async (): Promise<LearningOutcome | null> => {
-      const { data, error } = await db
-        .from('learning_outcomes')
+      const { data, error } = await supabase.from('learning_outcomes')
         .select('*')
         .eq('id', id!)
         .maybeSingle();
@@ -57,8 +57,7 @@ export const useCreateILO = () => {
 
   return useMutation({
     mutationFn: async (data: CreateILOFormData): Promise<LearningOutcome> => {
-      const { data: result, error } = await db
-        .from('learning_outcomes')
+      const { data: result, error } = await supabase.from('learning_outcomes')
         .insert({ ...data, type: 'ILO' })
         .select()
         .single();
@@ -93,8 +92,7 @@ export const useUpdateILO = (id: string) => {
     mutationFn: async (
       data: UpdateILOFormData,
     ): Promise<LearningOutcome> => {
-      const { data: result, error } = await db
-        .from('learning_outcomes')
+      const { data: result, error } = await supabase.from('learning_outcomes')
         .update(data)
         .eq('id', id)
         .select()
@@ -128,26 +126,24 @@ export const useDeleteILO = () => {
   return useMutation({
     mutationFn: async (id: string): Promise<void> => {
       // Check for dependent PLOs via outcome_mappings
-      const { data: deps, error: depsError } = await db
-        .from('outcome_mappings')
+      const { data: deps, error: depsError } = await supabase.from('outcome_mappings')
         .select('id, child_outcome_id')
         .eq('parent_outcome_id', id);
 
       if (depsError) throw depsError;
 
-      if (deps && (deps as unknown[]).length > 0) {
+      if (deps && (deps ?? []).length > 0) {
         // Fetch the dependent PLO titles for a helpful error message
-        const childIds = (deps as Array<{ child_outcome_id: string }>).map(
+        const childIds = (deps ?? []).map(
           (d) => d.child_outcome_id,
         );
-        const { data: plos, error: ploError } = await db
-          .from('learning_outcomes')
+        const { data: plos, error: ploError } = await supabase.from('learning_outcomes')
           .select('id, title')
           .in('id', childIds);
 
         if (ploError) throw ploError;
 
-        const ploNames = (plos as Array<{ id: string; title: string }>)
+        const ploNames = (plos ?? [])
           .map((p) => p.title)
           .join(', ');
 
@@ -156,8 +152,7 @@ export const useDeleteILO = () => {
         );
       }
 
-      const { error } = await db
-        .from('learning_outcomes')
+      const { error } = await supabase.from('learning_outcomes')
         .delete()
         .eq('id', id);
 
@@ -185,14 +180,15 @@ export const useReorderILOs = () => {
 
   return useMutation({
     mutationFn: async (data: ReorderFormData): Promise<void> => {
-      for (const item of data.items) {
-        const { error } = await db
-          .from('learning_outcomes')
-          .update({ sort_order: item.sort_order })
-          .eq('id', item.id);
-
-        if (error) throw error;
-      }
+      const results = await Promise.all(
+        data.items.map((item, index) =>
+          supabase.from('learning_outcomes')
+            .update({ sort_order: index })
+            .eq('id', item.id)
+        )
+      );
+      const failed = results.find((r) => r.error);
+      if (failed?.error) throw failed.error;
 
       await logAuditEvent({
         action: 'reorder',

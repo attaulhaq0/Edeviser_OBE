@@ -14,6 +14,9 @@ import {
   getRemainingLockTime,
   recordFailedAttempt,
   clearAttempts,
+  checkServerRateLimit,
+  recordServerFailedAttempt,
+  clearServerAttempts,
 } from '@/lib/loginAttemptTracker';
 import { logActivity } from '@/lib/activityLogger';
 
@@ -145,10 +148,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // -------------------------------------------------------------------
   const signIn = useCallback(
     async (email: string, password: string): Promise<AuthResult> => {
-      // Check lockout before attempting authentication
+      // 1. Client-side lockout check (immediate UX feedback)
       if (isLocked(email)) {
         const remaining = getRemainingLockTime(email);
         const minutes = Math.ceil(remaining / 60);
+        return {
+          success: false,
+          error: `Account is temporarily locked. Please try again in ${minutes} minute${minutes === 1 ? '' : 's'}.`,
+        };
+      }
+
+      // 2. Server-side lockout check (tamper-proof enforcement)
+      const serverCheck = await checkServerRateLimit(email);
+      if (serverCheck.locked) {
+        const minutes = Math.ceil(serverCheck.remaining_seconds / 60);
         return {
           success: false,
           error: `Account is temporarily locked. Please try again in ${minutes} minute${minutes === 1 ? '' : 's'}.`,
@@ -161,10 +174,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       });
 
       if (error) {
+        // Record on both client and server
         recordFailedAttempt(email);
+        const serverResult = await recordServerFailedAttempt(email);
 
-        // After recording, check if the account just got locked
-        if (isLocked(email)) {
+        // After recording, check if the account just got locked (either side)
+        if (isLocked(email) || serverResult.locked) {
           return {
             success: false,
             error: 'Account is temporarily locked due to too many failed attempts. Please try again in 15 minutes.',
@@ -175,8 +190,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return { success: false, error: 'Invalid email or password.' };
       }
 
-      // Successful login — clear any tracked attempts
+      // Successful login — clear attempts on both client and server
       clearAttempts(email);
+      clearServerAttempts(email).catch(() => {
+        // Fire-and-forget — don't block successful login
+      });
 
       const userProfile = await fetchProfile(data.user.id);
       setUser(data.user);

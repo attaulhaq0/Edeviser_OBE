@@ -1,6 +1,5 @@
 import { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
 import RouteGuard from '@/router/RouteGuard';
 
 // ---------------------------------------------------------------------------
@@ -58,8 +57,14 @@ const ParentDashboard = lazy(() => import('@/pages/parent/ParentDashboard'));
 // Shared loading fallback
 // ---------------------------------------------------------------------------
 const LoadingFallback = () => (
-  <div className="flex min-h-screen items-center justify-center">
-    <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+  <div className="p-6 space-y-4">
+    <div className="h-8 w-48 rounded-lg animate-shimmer" />
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div key={i} className="h-24 rounded-xl animate-shimmer" />
+      ))}
+    </div>
+    <div className="h-64 rounded-xl animate-shimmer" />
   </div>
 );
 

@@ -32,7 +32,7 @@ const UserListPage = () => {
   const [role, setRole] = useQueryState('role', parseAsString.withDefault(''));
   const [userToDeactivate, setUserToDeactivate] = useState<Profile | null>(null);
 
-  const { data, isLoading } = useUsers({
+  const { data: paginatedData, isLoading } = useUsers({
     search: search || undefined,
     role: role || undefined,
   });
@@ -98,7 +98,7 @@ const UserListPage = () => {
       </div>
 
       {/* Data Table */}
-      <DataTable columns={columns} data={data ?? []} isLoading={isLoading} />
+      <DataTable columns={columns} data={paginatedData?.data ?? []} isLoading={isLoading} />
 
       {/* Deactivate Confirmation Dialog */}
       <ConfirmDialog

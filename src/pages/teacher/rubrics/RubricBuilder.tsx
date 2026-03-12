@@ -83,7 +83,8 @@ const RubricBuilder = () => {
   const navigate = useNavigate();
   const isEdit = !!id;
 
-  const { data: clos } = useCLOs();
+  const { data: paginatedCLOs } = useCLOs();
+  const clos = paginatedCLOs?.data;
   const { data: existingRubric, isLoading: isLoadingRubric } = useRubric(id);
 
   const createMutation = useCreateRubric();

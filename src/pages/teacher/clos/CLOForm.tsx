@@ -61,7 +61,8 @@ interface PLOMappingEntry {
 const CreateCLODetailsForm = () => {
   const navigate = useNavigate();
   const createMutation = useCreateCLO();
-  const { data: courses = [], isLoading: isLoadingCourses } = useCourses();
+  const { data: paginatedCourses, isLoading: isLoadingCourses } = useCourses();
+  const courses = paginatedCourses?.data ?? [];
 
   const form = useForm<CreateCLOFormData>({
     resolver: zodResolver(createCLOSchema),
@@ -396,7 +397,8 @@ const EditCLODetailsForm = ({ cloId }: { cloId: string }) => {
 // ─── PLO Mapping Section ────────────────────────────────────────────────────
 
 const PLOMappingSection = ({ cloId, programId }: { cloId: string; programId: string | undefined }) => {
-  const { data: plos = [], isLoading: isLoadingPLOs } = usePLOs(programId);
+  const { data: paginatedPLOs, isLoading: isLoadingPLOs } = usePLOs(programId);
+  const plos = useMemo(() => paginatedPLOs?.data ?? [], [paginatedPLOs?.data]);
   const { data: existingMappings = [], isLoading: isLoadingMappings } =
     useCLOMappings(cloId);
   const updateMappingsMutation = useUpdateCLOMappings();
@@ -657,7 +659,8 @@ const CLOForm = () => {
 
   // In edit mode, fetch the CLO to resolve its course → program for PLO mapping
   const { data: existingCLO } = useCLO(id);
-  const { data: courses = [] } = useCourses();
+  const { data: paginatedCoursesForEdit } = useCourses();
+  const courses = useMemo(() => paginatedCoursesForEdit?.data ?? [], [paginatedCoursesForEdit?.data]);
 
   // Resolve program_id from the CLO's course
   const programId = useMemo(() => {

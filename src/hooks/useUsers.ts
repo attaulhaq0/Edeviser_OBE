@@ -5,45 +5,48 @@ import { logAuditEvent } from '@/lib/auditLogger';
 import { useAuth } from '@/hooks/useAuth';
 import type { CreateUserFormData, UpdateUserFormData } from '@/lib/schemas/user';
 import type { Profile } from '@/types/app';
+import type { PaginatedResult } from '@/types/pagination';
+import { getPaginationRange } from '@/types/pagination';
+import { sanitizePostgrestValue } from '@/lib/sanitizeFilter';
 
-// The generated database.ts only has the `institutions` table so far.
-// We cast through `unknown` at each `.from('profiles')` call to bridge the
-// gap until the types are regenerated.  Return types are explicitly annotated
-// with the hand-maintained `Profile` interface from @/types/app.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const db = supabase as unknown as { from: (table: string) => any };
+
 
 // ─── Filter types ────────────────────────────────────────────────────────────
 
 export interface UserFilters {
   search?: string;
   role?: string;
+  page?: number;
+  pageSize?: number;
 }
 
 // ─── useUsers — list users with optional search/role filter ──────────────────
 
 export const useUsers = (filters: UserFilters = {}) => {
+  const { page, pageSize, from, to } = getPaginationRange(filters.page, filters.pageSize);
+
   return useQuery({
-    queryKey: queryKeys.users.list(filters as Record<string, unknown>),
-    queryFn: async (): Promise<Profile[]> => {
-      let query = db
-        .from('profiles')
-        .select('*')
-        .order('created_at', { ascending: false });
+    queryKey: queryKeys.users.list({ ...filters, page, pageSize } as Record<string, unknown>),
+    queryFn: async (): Promise<PaginatedResult<Profile>> => {
+      let query = supabase.from('profiles')
+        .select('*', { count: 'exact' })
+        .order('created_at', { ascending: false })
+        .range(from, to);
 
       if (filters.role) {
         query = query.eq('role', filters.role);
       }
 
       if (filters.search) {
+        const safe = sanitizePostgrestValue(filters.search);
         query = query.or(
-          `full_name.ilike.%${filters.search}%,email.ilike.%${filters.search}%`,
+          `full_name.ilike.%${safe}%,email.ilike.%${safe}%`,
         );
       }
 
-      const { data, error } = await query;
+      const { data, error, count } = await query;
       if (error) throw error;
-      return data as Profile[];
+      return { data: (data ?? []) as Profile[], count: count ?? 0, page, pageSize };
     },
   });
 };
@@ -54,8 +57,7 @@ export const useCoordinators = () => {
   return useQuery({
     queryKey: queryKeys.users.list({ role: 'coordinator' }),
     queryFn: async (): Promise<Profile[]> => {
-      const { data, error } = await db
-        .from('profiles')
+      const { data, error } = await supabase.from('profiles')
         .select('*')
         .eq('role', 'coordinator')
         .eq('is_active', true)
@@ -73,8 +75,7 @@ export const useUser = (id: string | undefined) => {
   return useQuery({
     queryKey: queryKeys.users.detail(id ?? ''),
     queryFn: async (): Promise<Profile | null> => {
-      const { data, error } = await db
-        .from('profiles')
+      const { data, error } = await supabase.from('profiles')
         .select('*')
         .eq('id', id!)
         .maybeSingle();
@@ -94,8 +95,7 @@ export const useCreateUser = () => {
 
   return useMutation({
     mutationFn: async (data: CreateUserFormData): Promise<Profile> => {
-      const { data: result, error } = await db
-        .from('profiles')
+      const { data: result, error } = await supabase.from('profiles')
         .insert(data)
         .select()
         .single();
@@ -128,8 +128,7 @@ export const useUpdateUser = (id: string) => {
 
   return useMutation({
     mutationFn: async (data: UpdateUserFormData): Promise<Profile> => {
-      const { data: result, error } = await db
-        .from('profiles')
+      const { data: result, error } = await supabase.from('profiles')
         .update(data)
         .eq('id', id)
         .select()
@@ -162,8 +161,7 @@ export const useSoftDeleteUser = () => {
 
   return useMutation({
     mutationFn: async (id: string): Promise<Profile> => {
-      const { data: result, error } = await db
-        .from('profiles')
+      const { data: result, error } = await supabase.from('profiles')
         .update({ is_active: false })
         .eq('id', id)
         .select()

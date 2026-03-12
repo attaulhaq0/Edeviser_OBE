@@ -23,7 +23,8 @@ interface SelectedCell {
 const CurriculumMatrixPage = () => {
   const [selectedProgramId, setSelectedProgramId] = useState<string>('');
   const [selectedCell, setSelectedCell] = useState<SelectedCell | null>(null);
-  const { data: programs, isLoading: programsLoading } = usePrograms();
+  const { data: paginatedPrograms, isLoading: programsLoading } = usePrograms();
+  const programs = paginatedPrograms?.data;
   const { data: matrixData } = useCurriculumMatrix(selectedProgramId || undefined);
 
   const selectedProgram = programs?.find((p) => p.id === selectedProgramId);

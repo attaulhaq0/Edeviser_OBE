@@ -16,7 +16,7 @@ export const useStudentBadges = () => {
       } = await supabase.auth.getUser();
       if (!user) return [];
 
-      const { data, error } = await (supabase as unknown as { from: (table: string) => ReturnType<typeof supabase.from> })
+      const { data, error } = await supabase
         .from('student_badges')
         .select('badge_id, awarded_at')
         .eq('student_id', user.id)

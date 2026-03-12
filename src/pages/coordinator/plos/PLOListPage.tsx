@@ -115,8 +115,10 @@ const PLOListPage = () => {
     parseAsString.withDefault(''),
   );
 
-  const { data: programs, isLoading: programsLoading } = usePrograms();
-  const { data: plos, isLoading } = usePLOs(programFilter || undefined);
+  const { data: paginatedPrograms, isLoading: programsLoading } = usePrograms();
+  const programs = paginatedPrograms?.data;
+  const { data: paginatedPLOs, isLoading } = usePLOs(programFilter || undefined);
+  const plos = paginatedPLOs?.data;
   const deleteMutation = useDeletePLO();
   const reorderMutation = useReorderPLOs();
 

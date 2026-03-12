@@ -1,11 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { queryKeys } from '@/lib/queryKeys';
+import { logAuditEvent } from '@/lib/auditLogger';
+import { useAuth } from '@/hooks/useAuth';
 import type { GradeFormData } from '@/lib/schemas/grade';
 
-// Bridge the generated types gap until database.ts is regenerated.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const db = supabase as unknown as { from: (table: string) => any };
+
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -31,8 +31,7 @@ export const useGrades = (assignmentId?: string) => {
   return useQuery({
     queryKey: queryKeys.grades.list({ assignmentId }),
     queryFn: async (): Promise<GradeWithRelations[]> => {
-      let query = db
-        .from('grades')
+      let query = supabase.from('grades')
         .select('*, profiles!grades_graded_by_fkey(id, full_name, email)')
         .order('created_at', { ascending: false });
 
@@ -42,7 +41,7 @@ export const useGrades = (assignmentId?: string) => {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data as GradeWithRelations[];
+      return (data ?? []) as unknown as GradeWithRelations[];
     },
     enabled: !!assignmentId,
   });
@@ -54,14 +53,13 @@ export const useGrade = (submissionId?: string) => {
   return useQuery({
     queryKey: queryKeys.grades.detail(submissionId ?? ''),
     queryFn: async (): Promise<Grade | null> => {
-      const { data, error } = await db
-        .from('grades')
+      const { data, error } = await supabase.from('grades')
         .select('*')
         .eq('submission_id', submissionId!)
         .maybeSingle();
 
       if (error) throw error;
-      return data as Grade | null;
+      return data as unknown as Grade | null;
     },
     enabled: !!submissionId,
   });
@@ -71,17 +69,28 @@ export const useGrade = (submissionId?: string) => {
 
 export const useCreateGrade = () => {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async (data: GradeFormData & { graded_by: string }): Promise<Grade> => {
-      const { data: result, error } = await db
-        .from('grades')
+      const { data: result, error } = await supabase.from('grades')
         .insert(data)
         .select()
         .single();
 
       if (error) throw error;
-      return result as Grade;
+
+      const grade = result as unknown as Grade;
+
+      await logAuditEvent({
+        action: 'create',
+        entity_type: 'grade',
+        entity_id: grade.id,
+        changes: data,
+        performed_by: user?.id ?? 'unknown',
+      });
+
+      return grade;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.grades.lists() });

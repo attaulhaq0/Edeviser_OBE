@@ -2,11 +2,13 @@
 // LeaderboardPage — Student leaderboard with course/program/all filters
 // =============================================================================
 
-import { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 import { parseAsString, useQueryState } from 'nuqs';
-import { Trophy, Flame, Medal } from 'lucide-react';
+import { Trophy, Flame, Medal, WifiOff } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
-import { useLeaderboardRealtime } from '@/hooks/useLeaderboardRealtime';
+import { useRealtime } from '@/hooks/useRealtime';
+import { queryKeys } from '@/lib/queryKeys';
 import {
   useLeaderboard,
   useMyRank,
@@ -168,9 +170,24 @@ const MyRankCard = ({ rank, xpTotal, level, isLoading }: MyRankCardProps) => {
 const LeaderboardPage = () => {
   const { user, institutionId } = useAuth();
   const userId = user?.id ?? '';
+  const queryClient = useQueryClient();
 
-  // Subscribe to realtime XP changes so the leaderboard stays fresh
-  useLeaderboardRealtime(institutionId ?? undefined);
+  // Polling fallback: refetch leaderboard data when realtime is unavailable
+  const pollingFn = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: queryKeys.leaderboard.lists() });
+  }, [queryClient]);
+
+  // Subscribe to realtime XP changes via shared subscription manager
+  const { isLive } = useRealtime({
+    table: 'student_gamification',
+    event: 'UPDATE',
+    filter: institutionId ? `institution_id=eq.${institutionId}` : undefined,
+    onPayload: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.leaderboard.lists() });
+    },
+    pollingFn,
+    pollingInterval: 30_000,
+  });
 
   // URL-persisted filter state
   const [filter, setFilter] = useQueryState(
@@ -241,6 +258,14 @@ const LeaderboardPage = () => {
         </div>
         <AnonymousToggle />
       </div>
+
+      {/* Live updates paused banner */}
+      {!isLive && (
+        <div className="flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-700">
+          <WifiOff className="h-4 w-4" />
+          Live updates paused — polling every 30s
+        </div>
+      )}
 
       {/* Filter Tabs */}
       <Tabs value={filter} onValueChange={(v) => setFilter(v)}>

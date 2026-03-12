@@ -3,9 +3,7 @@ import { supabase } from '@/lib/supabase';
 import { queryKeys } from '@/lib/queryKeys';
 import type { LearningOutcome, Course } from '@/types/app';
 
-// Bridge the generated types gap until database.ts is regenerated.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const db = supabase as unknown as { from: (table: string) => any };
+
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -50,8 +48,7 @@ export const useCellDetail = (ploId: string | undefined, courseId: string | unde
     queryKey: queryKeys.outcomeMappings.list({ ploId, courseId, view: 'cellDetail' }),
     queryFn: async (): Promise<CellDetailData> => {
       // 1. Fetch PLO details
-      const { data: plo, error: ploError } = await db
-        .from('learning_outcomes')
+      const { data: plo, error: ploError } = await supabase.from('learning_outcomes')
         .select('*')
         .eq('id', ploId!)
         .single();
@@ -59,8 +56,7 @@ export const useCellDetail = (ploId: string | undefined, courseId: string | unde
       if (ploError) throw ploError;
 
       // 2. Fetch course details
-      const { data: course, error: courseError } = await db
-        .from('courses')
+      const { data: course, error: courseError } = await supabase.from('courses')
         .select('*')
         .eq('id', courseId!)
         .single();
@@ -68,14 +64,13 @@ export const useCellDetail = (ploId: string | undefined, courseId: string | unde
       if (courseError) throw courseError;
 
       // 3. Fetch outcome_mappings where parent = this PLO
-      const { data: mappings, error: mapError } = await db
-        .from('outcome_mappings')
+      const { data: mappings, error: mapError } = await supabase.from('outcome_mappings')
         .select('child_outcome_id')
         .eq('parent_outcome_id', ploId!);
 
       if (mapError) throw mapError;
 
-      const childIds = (mappings as Array<{ child_outcome_id: string }>).map(
+      const childIds = (mappings ?? []).map(
         (m) => m.child_outcome_id,
       );
 
@@ -84,8 +79,7 @@ export const useCellDetail = (ploId: string | undefined, courseId: string | unde
       }
 
       // 4. Fetch CLOs that are in this course AND mapped to this PLO
-      const { data: clos, error: cloError } = await db
-        .from('learning_outcomes')
+      const { data: clos, error: cloError } = await supabase.from('learning_outcomes')
         .select('*')
         .eq('type', 'CLO')
         .eq('course_id', courseId!)
@@ -111,8 +105,7 @@ export const useCurriculumMatrix = (programId: string | undefined) => {
     queryKey: queryKeys.outcomeMappings.list({ programId, view: 'curriculumMatrix' }),
     queryFn: async (): Promise<CurriculumMatrixData> => {
       // 1. Fetch PLOs for the program
-      const { data: plos, error: ploError } = await db
-        .from('learning_outcomes')
+      const { data: plos, error: ploError } = await supabase.from('learning_outcomes')
         .select('*')
         .eq('type', 'PLO')
         .eq('program_id', programId!)
@@ -121,8 +114,7 @@ export const useCurriculumMatrix = (programId: string | undefined) => {
       if (ploError) throw ploError;
 
       // 2. Fetch courses for the program
-      const { data: courses, error: courseError } = await db
-        .from('courses')
+      const { data: courses, error: courseError } = await supabase.from('courses')
         .select('*')
         .eq('program_id', programId!)
         .order('code', { ascending: true });
@@ -141,15 +133,14 @@ export const useCurriculumMatrix = (programId: string | undefined) => {
       const ploIds = typedPlos.map((p) => p.id);
 
       // 3. Fetch CLOs for all courses in this program
-      const { data: clos, error: cloError } = await db
-        .from('learning_outcomes')
+      const { data: clos, error: cloError } = await supabase.from('learning_outcomes')
         .select('id, course_id')
         .eq('type', 'CLO')
         .in('course_id', courseIds);
 
       if (cloError) throw cloError;
 
-      const typedClos = clos as Array<{ id: string; course_id: string }>;
+      const typedClos = clos ?? [];
 
       // 4. Fetch outcome_mappings: PLO (parent) ← CLO (child)
       const cloIds = typedClos.map((c) => c.id);
@@ -157,8 +148,7 @@ export const useCurriculumMatrix = (programId: string | undefined) => {
       let typedMappings: OutcomeMappingRow[] = [];
 
       if (cloIds.length > 0) {
-        const { data: mappings, error: mapError } = await db
-          .from('outcome_mappings')
+        const { data: mappings, error: mapError } = await supabase.from('outcome_mappings')
           .select('parent_outcome_id, child_outcome_id')
           .in('parent_outcome_id', ploIds)
           .in('child_outcome_id', cloIds);
@@ -170,7 +160,9 @@ export const useCurriculumMatrix = (programId: string | undefined) => {
       // 5. Build a lookup: cloId → courseId
       const cloToCourse = new Map<string, string>();
       for (const clo of typedClos) {
-        cloToCourse.set(clo.id, clo.course_id);
+        if (clo.course_id) {
+          cloToCourse.set(clo.id, clo.course_id);
+        }
       }
 
       // 6. Compute the matrix

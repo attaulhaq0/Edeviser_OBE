@@ -1,8 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const db = supabase as unknown as { from: (table: string) => any };
+import { queryKeys } from '@/lib/queryKeys';
 
 export interface StudentKPIData {
   enrolledCourses: number;
@@ -22,7 +20,7 @@ export interface UpcomingDeadline {
 
 export const useStudentKPIs = (studentId: string | undefined) => {
   return useQuery({
-    queryKey: ['student', 'kpis', studentId],
+    queryKey: queryKeys.studentGamification.detail(studentId ?? ''),
     queryFn: async (): Promise<StudentKPIData> => {
       if (!studentId) {
         return {
@@ -35,51 +33,45 @@ export const useStudentKPIs = (studentId: string | undefined) => {
         };
       }
 
-      const { count: enrolledCourses } = await db
+      const { count: enrolledCourses } = await supabase
         .from('student_courses')
         .select('*', { count: 'exact', head: true })
         .eq('student_id', studentId);
 
-      const { count: completedAssignments } = await db
+      const { count: completedAssignments } = await supabase
         .from('submissions')
         .select('*', { count: 'exact', head: true })
         .eq('student_id', studentId)
         .eq('status', 'graded');
 
-      const { data: attainmentData } = await db
+      const { data: attainmentData } = await supabase
         .from('outcome_attainment')
-        .select('score_percent')
+        .select('attainment_percent')
         .eq('student_id', studentId)
-        .eq('scope', 'CLO');
+        .eq('scope', 'student_course');
 
-      const typedAttainment = (attainmentData as Array<{ score_percent: number }>) ?? [];
+      const typedAttainment = attainmentData ?? [];
       const avgAttainment =
         typedAttainment.length > 0
           ? Math.round(
-              typedAttainment.reduce((sum, a) => sum + a.score_percent, 0) /
+              typedAttainment.reduce((sum, a) => sum + a.attainment_percent, 0) /
                 typedAttainment.length,
             )
           : 0;
 
-      const { data: gamification } = await db
+      const { data: gamification } = await supabase
         .from('student_gamification')
-        .select('current_streak, current_level, xp_total')
+        .select('streak_count, level, xp_total')
         .eq('student_id', studentId)
         .maybeSingle();
-
-      const gam = gamification as {
-        current_streak: number;
-        current_level: number;
-        xp_total: number;
-      } | null;
 
       return {
         enrolledCourses: enrolledCourses ?? 0,
         completedAssignments: completedAssignments ?? 0,
         avgAttainment,
-        currentStreak: gam?.current_streak ?? 0,
-        currentLevel: gam?.current_level ?? 1,
-        totalXP: gam?.xp_total ?? 0,
+        currentStreak: gamification?.streak_count ?? 0,
+        currentLevel: gamification?.level ?? 1,
+        totalXP: gamification?.xp_total ?? 0,
       };
     },
     enabled: !!studentId,
@@ -89,24 +81,24 @@ export const useStudentKPIs = (studentId: string | undefined) => {
 
 export const useUpcomingDeadlines = (studentId: string | undefined, limit: number = 5) => {
   return useQuery({
-    queryKey: ['student', 'upcomingDeadlines', studentId, limit],
+    queryKey: queryKeys.assignments.list({ studentId, upcoming: true, limit }),
     queryFn: async (): Promise<UpcomingDeadline[]> => {
       if (!studentId) return [];
 
-      const { data: enrollments } = await db
+      const { data: enrollments } = await supabase
         .from('student_courses')
         .select('course_id')
         .eq('student_id', studentId);
 
-      const courseIds = ((enrollments ?? []) as Array<{ course_id: string }>).map(
+      const courseIds = (enrollments ?? []).map(
         (e) => e.course_id,
       );
 
       if (courseIds.length === 0) return [];
 
-      const { data, error } = await db
+      const { data, error } = await supabase
         .from('assignments')
-        .select('id, title, course_id, due_date')
+        .select('id, title, course_id, due_date, courses(name)')
         .in('course_id', courseIds)
         .gte('due_date', new Date().toISOString())
         .order('due_date', { ascending: true })
@@ -114,15 +106,10 @@ export const useUpcomingDeadlines = (studentId: string | undefined, limit: numbe
 
       if (error) throw error;
 
-      return ((data ?? []) as Array<{
-        id: string;
-        title: string;
-        course_id: string;
-        due_date: string;
-      }>).map((a) => ({
+      return (data ?? []).map((a) => ({
         id: a.id,
         title: a.title,
-        course_name: `Course ${a.course_id.slice(0, 8)}`,
+        course_name: (a.courses as { name: string } | null)?.name ?? a.course_id,
         due_date: a.due_date,
       }));
     },
