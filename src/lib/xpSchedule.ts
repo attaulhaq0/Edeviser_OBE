@@ -28,7 +28,7 @@ export const XP_SCHEDULE: Record<XPSource, number> = {
 };
 
 /** XP awarded for late submissions (assignment or quiz) */
-export const LATE_SUBMISSION_XP = 25;
+export const LATE_SUBMISSION_XP = 15;
 
 /** XP awarded for late quiz completion */
-export const LATE_QUIZ_XP = 25;
+export const LATE_QUIZ_XP = 15;

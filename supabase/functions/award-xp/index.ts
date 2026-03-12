@@ -195,7 +195,7 @@ serve(async (req) => {
       );
     }
 
-    const { student_id, xp_amount, source, reference_id, note } = validation.data;
+    const { student_id, source, note } = validation.data;
 
     // ── Permission Validation ───────────────────────────────────────────
     // Verify caller is either:
@@ -206,9 +206,16 @@ serve(async (req) => {
     const authHeader = req.headers.get('Authorization') ?? '';
     const isServiceRole = authHeader.includes(Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
 
-    if (!isServiceRole) {
-      const selfTriggeredSources: XPSource[] = ['login', 'submission', 'journal'];
+    // Server-side canonical XP amounts for self-triggered sources.
+    // Students cannot choose their own XP — the server enforces these values.
+    // Submission is handled separately to derive late/on-time XP from trusted data.
+    const SELF_TRIGGERED_XP: Partial<Record<XPSource, number>> = {
+      login: 10,
+      journal: 20,
+    };
+    const selfTriggeredSources: XPSource[] = ['login', 'submission', 'journal'];
 
+    if (!isServiceRole) {
       // Create user-scoped client to get the caller's identity
       const userClient = createClient(
         Deno.env.get('SUPABASE_URL')!,
@@ -223,17 +230,62 @@ serve(async (req) => {
           { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
         );
       }
+
+      if (source === 'submission') {
+        // Derive XP from trusted server data: look up the assignment's due_date
+        // and compare against now to determine late vs on-time.
+        const assignmentId = validation.data.reference_id;
+        if (!assignmentId) {
+          return new Response(
+            JSON.stringify({ error: 'reference_id (assignment_id) is required for submission XP' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+          );
+        }
+
+        const { data: assignment, error: assignmentErr } = await supabase
+          .from('assignments')
+          .select('id, due_date, late_window_hours')
+          .eq('id', assignmentId)
+          .maybeSingle();
+
+        if (assignmentErr || !assignment) {
+          return new Response(
+            JSON.stringify({ error: 'Assignment not found or query failed' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+          );
+        }
+
+        const SUBMISSION_XP = 25;
+        const LATE_SUBMISSION_XP = 15;
+        const dueDate = new Date(assignment.due_date);
+        const isLate = new Date() > dueDate;
+
+        validation.data.xp_amount = isLate ? LATE_SUBMISSION_XP : SUBMISSION_XP;
+        // Keep the assignment_id as reference_id for submission idempotency
+        // (one XP award per student per assignment)
+      } else {
+        // Fixed-amount sources (login, journal)
+        validation.data.xp_amount = SELF_TRIGGERED_XP[source]!;
+
+        // Generate a deterministic reference_id for idempotency.
+        // Format: {source}:{student_id}:{UTC date} — one award per source per day.
+        const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+        validation.data.reference_id = `${source}:${student_id}:${today}`;
+      }
     }
 
+    // Re-destructure after potential overrides
+    const { xp_amount: resolvedXpAmount, reference_id: resolvedReferenceId } = validation.data;
+
     // Handle zero XP — still record the transaction but skip level recalculation
-    if (xp_amount === 0) {
+    if (resolvedXpAmount === 0) {
       const { error: insertErr } = await supabase
         .from('xp_transactions')
         .insert({
           student_id,
           xp_amount: 0,
           source,
-          reference_id: reference_id ?? null,
+          reference_id: resolvedReferenceId ?? null,
           note: note ?? null,
         });
 
@@ -253,7 +305,7 @@ serve(async (req) => {
 
     // ── Step 1: Check for active bonus XP events ──────────────────────────
 
-    let finalXP = xp_amount;
+    let finalXP = resolvedXpAmount;
 
     const { data: bonusEvents, error: bonusErr } = await supabase
       .from('bonus_xp_events')
@@ -270,23 +322,36 @@ serve(async (req) => {
       // Apply the highest active multiplier
       const maxMultiplier = Math.max(...bonusEvents.map((e: { multiplier: number }) => e.multiplier));
       if (maxMultiplier > 1) {
-        finalXP = Math.floor(xp_amount * maxMultiplier);
+        finalXP = Math.floor(resolvedXpAmount * maxMultiplier);
       }
     }
 
-    // ── Step 2: Insert XP transaction ─────────────────────────────────────
+    // ── Step 2: Insert XP transaction (atomic idempotency via unique constraint) ─
+
+    // The DB has a unique partial index on (student_id, reference_id) WHERE
+    // reference_id IS NOT NULL. We attempt the insert and catch the conflict
+    // to avoid race-condition duplicates.
+
+    const insertPayload = {
+      student_id,
+      xp_amount: finalXP,
+      source,
+      reference_id: resolvedReferenceId ?? null,
+      note: note ?? null,
+    };
 
     const { error: insertErr } = await supabase
       .from('xp_transactions')
-      .insert({
-        student_id,
-        xp_amount: finalXP,
-        source,
-        reference_id: reference_id ?? null,
-        note: note ?? null,
-      });
+      .insert(insertPayload);
 
     if (insertErr) {
+      // Postgres unique_violation code = 23505
+      if (insertErr.code === '23505' && resolvedReferenceId) {
+        return new Response(
+          JSON.stringify({ success: true, xp_awarded: 0, duplicate: true, reference_id: resolvedReferenceId }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        );
+      }
       console.error('XP transaction insert failed:', insertErr.message);
       return new Response(
         JSON.stringify({ error: 'Failed to insert XP transaction', detail: insertErr.message }),
