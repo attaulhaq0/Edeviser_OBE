@@ -41,7 +41,7 @@ export const useGrades = (assignmentId?: string) => {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data as GradeWithRelations[];
+      return (data ?? []) as unknown as GradeWithRelations[];
     },
     enabled: !!assignmentId,
   });
@@ -59,7 +59,7 @@ export const useGrade = (submissionId?: string) => {
         .maybeSingle();
 
       if (error) throw error;
-      return data as Grade | null;
+      return data as unknown as Grade | null;
     },
     enabled: !!submissionId,
   });
@@ -80,7 +80,7 @@ export const useCreateGrade = () => {
 
       if (error) throw error;
 
-      const grade = result as Grade;
+      const grade = result as unknown as Grade;
 
       await logAuditEvent({
         action: 'create',

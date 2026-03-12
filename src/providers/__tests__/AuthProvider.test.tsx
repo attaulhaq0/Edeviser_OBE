@@ -12,6 +12,7 @@ const mockSignOut = vi.fn();
 const mockResetPasswordForEmail = vi.fn();
 const mockOnAuthStateChange = vi.fn();
 const mockFrom = vi.fn();
+const mockFunctionsInvoke = vi.fn();
 
 vi.mock('@/lib/supabase', () => ({
   supabase: {
@@ -23,6 +24,9 @@ vi.mock('@/lib/supabase', () => ({
       onAuthStateChange: (...args: unknown[]) => mockOnAuthStateChange(...args),
     },
     from: (...args: unknown[]) => mockFrom(...args),
+    functions: {
+      invoke: (...args: unknown[]) => mockFunctionsInvoke(...args),
+    },
   },
 }));
 
@@ -90,6 +94,12 @@ const setupMocks = (opts?: {
 
   // resetPasswordForEmail
   mockResetPasswordForEmail.mockResolvedValue({ error: null });
+
+  // Edge function calls (server-side rate limiting) — default: not locked
+  mockFunctionsInvoke.mockResolvedValue({
+    data: { locked: false, remaining_seconds: 0, cleared: true, attempt_count: 0 },
+    error: null,
+  });
 };
 
 const wrapper = ({ children }: { children: React.ReactNode }) => (

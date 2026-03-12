@@ -8,6 +8,7 @@ import type { Course } from '@/types/app';
 import type { Profile } from '@/types/app';
 import type { PaginatedResult } from '@/types/pagination';
 import { getPaginationRange } from '@/types/pagination';
+import { sanitizePostgrestValue } from '@/lib/sanitizeFilter';
 
 
 
@@ -38,8 +39,9 @@ export const useCourses = (filters: CourseFilters = {}) => {
       }
 
       if (filters.search) {
+        const safe = sanitizePostgrestValue(filters.search);
         query = query.or(
-          `name.ilike.%${filters.search}%,code.ilike.%${filters.search}%`,
+          `name.ilike.%${safe}%,code.ilike.%${safe}%`,
         );
       }
 

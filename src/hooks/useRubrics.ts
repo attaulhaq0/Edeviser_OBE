@@ -109,7 +109,7 @@ export const useRubric = (id?: string) => {
 
       return {
         ...(rubric as Rubric),
-        criteria: (criteria ?? []) as RubricCriterion[],
+        criteria: (criteria ?? []) as unknown as RubricCriterion[],
       };
     },
     enabled: !!id,
@@ -314,7 +314,7 @@ export const useCopyRubric = () => {
       const created = newRubric as Rubric;
 
       // Insert copied criteria
-      const criteria = (srcCriteria ?? []) as RubricCriterion[];
+      const criteria = (srcCriteria ?? []) as unknown as RubricCriterion[];
       if (criteria.length > 0) {
         const rows = criteria.map((c) => ({
           rubric_id: created.id,

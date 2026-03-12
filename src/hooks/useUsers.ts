@@ -7,6 +7,7 @@ import type { CreateUserFormData, UpdateUserFormData } from '@/lib/schemas/user'
 import type { Profile } from '@/types/app';
 import type { PaginatedResult } from '@/types/pagination';
 import { getPaginationRange } from '@/types/pagination';
+import { sanitizePostgrestValue } from '@/lib/sanitizeFilter';
 
 
 
@@ -37,8 +38,9 @@ export const useUsers = (filters: UserFilters = {}) => {
       }
 
       if (filters.search) {
+        const safe = sanitizePostgrestValue(filters.search);
         query = query.or(
-          `full_name.ilike.%${filters.search}%,email.ilike.%${filters.search}%`,
+          `full_name.ilike.%${safe}%,email.ilike.%${safe}%`,
         );
       }
 

@@ -1,13 +1,32 @@
 // ---------------------------------------------------------------------------
-// Login Attempt Tracker — client-side lockout via localStorage
+// Login Attempt Tracker — client-side lockout via localStorage + server-side
 // ---------------------------------------------------------------------------
-// Tracks failed login attempts per email. After MAX_ATTEMPTS consecutive
-// failures the account is locked for LOCKOUT_DURATION_MS.
+// Client-side tracking provides immediate UX feedback. Server-side tracking
+// via the check-login-rate Edge Function provides tamper-proof enforcement.
 // ---------------------------------------------------------------------------
+
+import { supabase } from '@/lib/supabase';
 
 const STORAGE_PREFIX = 'login_attempts_';
 const MAX_ATTEMPTS = 5;
 const LOCKOUT_DURATION_MS = 15 * 60 * 1000; // 15 minutes
+
+// ─── Server-Side Rate Limit Types ───────────────────────────────────────────
+
+interface ServerRateLimitCheckResult {
+  locked: boolean;
+  remaining_seconds: number;
+}
+
+interface ServerRecordFailureResult {
+  locked: boolean;
+  remaining_seconds: number;
+  attempt_count: number;
+}
+
+interface ServerClearResult {
+  cleared: boolean;
+}
 
 interface AttemptRecord {
   count: number;
@@ -94,6 +113,89 @@ export function clearAttempts(email: string): void {
   } catch {
     // Fail silently
   }
+}
+
+// ---------------------------------------------------------------------------
+// Server-Side Rate Limiting — calls check-login-rate Edge Function
+// ---------------------------------------------------------------------------
+
+async function callRateLimitEdgeFunction(
+  email: string,
+  action: 'check' | 'record_failure' | 'clear',
+): Promise<unknown> {
+  const { data, error } = await supabase.functions.invoke('check-login-rate', {
+    body: { email: email.toLowerCase().trim(), action },
+  });
+
+  if (error) {
+    console.error(`Server rate limit ${action} failed:`, error.message);
+    return null;
+  }
+
+  return data;
+}
+
+/**
+ * Check server-side rate limit status for an email.
+ * Returns lock status and remaining seconds. Falls back gracefully
+ * if the edge function is unavailable (returns unlocked).
+ */
+export async function checkServerRateLimit(
+  email: string,
+): Promise<ServerRateLimitCheckResult> {
+  const result = await callRateLimitEdgeFunction(email, 'check');
+
+  if (
+    result &&
+    typeof result === 'object' &&
+    'locked' in result &&
+    typeof (result as ServerRateLimitCheckResult).locked === 'boolean'
+  ) {
+    return result as ServerRateLimitCheckResult;
+  }
+
+  // Fallback: if server is unreachable, don't block login
+  return { locked: false, remaining_seconds: 0 };
+}
+
+/**
+ * Record a failed login attempt on the server.
+ * Returns updated lock status. Falls back gracefully.
+ */
+export async function recordServerFailedAttempt(
+  email: string,
+): Promise<ServerRecordFailureResult> {
+  const result = await callRateLimitEdgeFunction(email, 'record_failure');
+
+  if (
+    result &&
+    typeof result === 'object' &&
+    'locked' in result &&
+    typeof (result as ServerRecordFailureResult).locked === 'boolean'
+  ) {
+    return result as ServerRecordFailureResult;
+  }
+
+  return { locked: false, remaining_seconds: 0, attempt_count: 0 };
+}
+
+/**
+ * Clear server-side login attempts for an email (call on successful login).
+ * Falls back gracefully if the edge function is unavailable.
+ */
+export async function clearServerAttempts(email: string): Promise<ServerClearResult> {
+  const result = await callRateLimitEdgeFunction(email, 'clear');
+
+  if (
+    result &&
+    typeof result === 'object' &&
+    'cleared' in result &&
+    typeof (result as ServerClearResult).cleared === 'boolean'
+  ) {
+    return result as ServerClearResult;
+  }
+
+  return { cleared: false };
 }
 
 // Re-export constants for testing

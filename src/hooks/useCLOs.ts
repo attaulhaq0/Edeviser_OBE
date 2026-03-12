@@ -87,6 +87,8 @@ export const useCreateCLO = () => {
       // Insert PLO mappings if provided
       if (plo_mappings && plo_mappings.length > 0) {
         const rows = plo_mappings.map((m) => ({
+          source_outcome_id: m.plo_id,
+          target_outcome_id: clo.id,
           parent_outcome_id: m.plo_id,
           child_outcome_id: clo.id,
           weight: m.weight,
@@ -145,6 +147,8 @@ export const useUpdateCLO = (id: string) => {
 
         if (plo_mappings.length > 0) {
           const rows = plo_mappings.map((m) => ({
+            source_outcome_id: m.plo_id,
+            target_outcome_id: id,
             parent_outcome_id: m.plo_id,
             child_outcome_id: id,
             weight: m.weight,
@@ -279,6 +283,8 @@ export const useUpdateCLOMappings = () => {
       // Insert new mappings
       if (data.mappings.length > 0) {
         const rows = data.mappings.map((m) => ({
+          source_outcome_id: m.parent_outcome_id,
+          target_outcome_id: data.cloId,
           parent_outcome_id: m.parent_outcome_id,
           child_outcome_id: data.cloId,
           weight: m.weight,

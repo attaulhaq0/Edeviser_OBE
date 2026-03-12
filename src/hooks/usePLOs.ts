@@ -257,6 +257,8 @@ export const useUpdatePLOMappings = () => {
       // Insert new mappings
       if (data.mappings.length > 0) {
         const rows = data.mappings.map((m) => ({
+          source_outcome_id: m.parent_outcome_id,
+          target_outcome_id: data.ploId,
           parent_outcome_id: m.parent_outcome_id,
           child_outcome_id: data.ploId,
           weight: m.weight,

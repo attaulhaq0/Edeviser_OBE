@@ -239,7 +239,7 @@
     - _Expected_Behavior: component-level shimmer placeholder consistent with design system_
     - _Requirements: 2.15_
 
-- [-] 7. Category 5 — Security Fixes (Bugs 1.11, 1.12, 1.17)
+- [x] 7. Category 5 — Security Fixes (Bugs 1.11, 1.12, 1.17)
 
   - [x] 7.1 Add permission validation to award-xp edge function
     - `supabase/functions/award-xp/index.ts`: After payload validation, extract JWT from Authorization header
@@ -250,14 +250,14 @@
     - _Preservation: valid authorized requests continue to work (Req 3.5)_
     - _Requirements: 2.11, 3.5_
 
-  - [~] 7.2 Create PostgREST filter sanitization utility
+  - [x] 7.2 Create PostgREST filter sanitization utility
     - Create `src/lib/sanitizeFilter.ts`: `sanitizePostgrestValue(input: string): string` that escapes `.`, `,`, `(`, `)`, `%`, `*`, `\` characters
     - Apply `sanitizePostgrestValue()` to user search strings in `.or()` filters in: useUsers, usePrograms, useCourses, useAuditLogs
     - _Bug_Condition: user search strings interpolated directly into .or() filter expressions_
     - _Expected_Behavior: all special PostgREST characters escaped before interpolation_
     - _Requirements: 2.12_
 
-  - [~] 7.3 Implement server-side login rate limiting
+  - [x] 7.3 Implement server-side login rate limiting
     - Create migration `supabase/migrations/XXXXXX_create_login_attempts_table.sql`: table with `email`, `attempt_count`, `locked_until`, `updated_at` columns, RLS policy for service_role only
     - Create `supabase/functions/check-login-rate/index.ts`: Edge function to check/increment attempts, return lock status
     - `src/lib/loginAttemptTracker.ts`: Keep client-side tracking as UX layer, add server-side check before `supabase.auth.signInWithPassword()`
@@ -265,9 +265,9 @@
     - _Expected_Behavior: server-side enforcement that persists across browsers/devices_
     - _Requirements: 2.17_
 
-- [~] 8. Verify bug condition exploration tests now pass
+- [x] 8. Verify bug condition exploration tests now pass
 
-  - [~] 8.1 Verify fault condition tests pass after fixes
+  - [x] 8.1 Verify fault condition tests pass after fixes
     - **Property 1: Expected Behavior** — Platform Audit Defects Fixed
     - **IMPORTANT**: Re-run the SAME tests from task 1 — do NOT write new tests
     - The tests from task 1 encode the expected behavior for all 17 defects
@@ -276,7 +276,7 @@
     - **EXPECTED OUTCOME**: All tests PASS (confirms all bugs are fixed)
     - _Requirements: 2.1–2.17_
 
-  - [~] 8.2 Verify preservation tests still pass after fixes
+  - [x] 8.2 Verify preservation tests still pass after fixes
     - **Property 2: Preservation** — Existing Behavior Unchanged
     - **IMPORTANT**: Re-run the SAME tests from task 2 — do NOT write new tests
     - Run `src/__tests__/properties/platformAuditPreservation.property.test.ts`
@@ -284,7 +284,7 @@
     - Confirm all preservation tests still pass after fixes (no regressions)
     - _Requirements: 3.1–3.10_
 
-- [~] 9. Checkpoint — Ensure all tests pass
+- [x] 9. Checkpoint — Ensure all tests pass
   - Run full test suite: `npm test`
   - Ensure all property-based tests pass (fault condition + preservation)
   - Ensure all existing unit tests pass (no regressions)

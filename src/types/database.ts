@@ -202,7 +202,7 @@ export type Database = {
           program_id: string
           semester_id: string
           teacher_id: string
-          institution_id: string
+          institution_id?: string
           is_active?: boolean
           created_at?: string
           updated_at?: string
@@ -263,7 +263,7 @@ export type Database = {
           type: string
           title: string
           description?: string | null
-          institution_id: string
+          institution_id?: string
           program_id?: string | null
           course_id?: string | null
           blooms_level?: string | null
@@ -322,8 +322,8 @@ export type Database = {
         }
         Insert: {
           id?: string
-          source_outcome_id: string
-          target_outcome_id: string
+          source_outcome_id?: string
+          target_outcome_id?: string
           parent_outcome_id: string
           child_outcome_id: string
           weight: number
@@ -382,7 +382,7 @@ export type Database = {
           clo_weights?: Json
           late_window_hours?: number
           prerequisites?: Json | null
-          institution_id: string
+          institution_id?: string
           created_at?: string
           updated_at?: string
         }
@@ -675,8 +675,10 @@ export type Database = {
           xp_total: number
           level: number
           streak_count: number
+          streak_current: number
           last_login_date: string | null
           streak_freezes_available: number
+          leaderboard_opt_out: boolean
           created_at: string
           updated_at: string
         }
@@ -686,8 +688,10 @@ export type Database = {
           xp_total?: number
           level?: number
           streak_count?: number
+          streak_current?: number
           last_login_date?: string | null
           streak_freezes_available?: number
+          leaderboard_opt_out?: boolean
           created_at?: string
           updated_at?: string
         }
@@ -697,8 +701,10 @@ export type Database = {
           xp_total?: number
           level?: number
           streak_count?: number
+          streak_current?: number
           last_login_date?: string | null
           streak_freezes_available?: number
+          leaderboard_opt_out?: boolean
           created_at?: string
           updated_at?: string
         }
@@ -1177,7 +1183,17 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      leaderboard_weekly: {
+        Row: {
+          student_id: string
+          full_name: string
+          xp_total: number
+          level: number
+          streak_current: number
+          global_rank: number
+        }
+        Relationships: []
+      }
     }
     Functions: {
       auth_user_role: {

@@ -19,6 +19,7 @@ const mockSignInWithPassword = vi.fn();
 const mockGetSession = vi.fn();
 const mockOnAuthStateChange = vi.fn();
 const mockFrom = vi.fn();
+const mockFunctionsInvoke = vi.fn();
 
 vi.mock('@/lib/supabase', () => ({
   supabase: {
@@ -30,6 +31,9 @@ vi.mock('@/lib/supabase', () => ({
       onAuthStateChange: (...args: unknown[]) => mockOnAuthStateChange(...args),
     },
     from: (...args: unknown[]) => mockFrom(...args),
+    functions: {
+      invoke: (...args: unknown[]) => mockFunctionsInvoke(...args),
+    },
   },
 }));
 
@@ -70,6 +74,11 @@ const setupMocks = () => {
         maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
       }),
     }),
+  });
+  // Server-side rate limiting — default: not locked
+  mockFunctionsInvoke.mockResolvedValue({
+    data: { locked: false, remaining_seconds: 0, cleared: true, attempt_count: 0 },
+    error: null,
   });
 };
 

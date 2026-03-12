@@ -96,7 +96,7 @@ export const useCreateBonusEvent = () => {
   return useMutation({
     mutationFn: async (data: CreateBonusEventFormData): Promise<BonusXPEvent> => {
       const { data: result, error } = await supabase.from('bonus_xp_events')
-        .insert({ ...data, created_by: user?.id })
+        .insert({ ...data, created_by: user?.id ?? 'unknown' })
         .select()
         .single();
 

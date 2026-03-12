@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase';
 import { queryKeys } from '@/lib/queryKeys';
 import type { PaginatedResult } from '@/types/pagination';
 import { getPaginationRange } from '@/types/pagination';
+import { sanitizePostgrestValue } from '@/lib/sanitizeFilter';
 
 
 
@@ -45,8 +46,9 @@ export const useAuditLogs = (filters: AuditLogFilters = {}) => {
       }
 
       if (filters.search) {
+        const safe = sanitizePostgrestValue(filters.search);
         query = query.or(
-          `action.ilike.%${filters.search}%,target_type.ilike.%${filters.search}%,target_id.ilike.%${filters.search}%`,
+          `action.ilike.%${safe}%,target_type.ilike.%${safe}%,target_id.ilike.%${safe}%`,
         );
       }
 

@@ -7,6 +7,7 @@ import type { CreateProgramFormData, UpdateProgramFormData } from '@/lib/schemas
 import type { Program } from '@/types/app';
 import type { PaginatedResult } from '@/types/pagination';
 import { getPaginationRange } from '@/types/pagination';
+import { sanitizePostgrestValue } from '@/lib/sanitizeFilter';
 
 
 
@@ -32,8 +33,9 @@ export const usePrograms = (filters: ProgramFilters = {}) => {
         .range(from, to);
 
       if (filters.search) {
+        const safe = sanitizePostgrestValue(filters.search);
         query = query.or(
-          `name.ilike.%${filters.search}%,code.ilike.%${filters.search}%`,
+          `name.ilike.%${safe}%,code.ilike.%${safe}%`,
         );
       }
 

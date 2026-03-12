@@ -160,7 +160,9 @@ export const useCurriculumMatrix = (programId: string | undefined) => {
       // 5. Build a lookup: cloId → courseId
       const cloToCourse = new Map<string, string>();
       for (const clo of typedClos) {
-        cloToCourse.set(clo.id, clo.course_id);
+        if (clo.course_id) {
+          cloToCourse.set(clo.id, clo.course_id);
+        }
       }
 
       // 6. Compute the matrix

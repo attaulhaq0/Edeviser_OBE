@@ -59,7 +59,7 @@ export const useSubmissions = (filters: SubmissionFilters = {}) => {
 
       const { data, error, count } = await query;
       if (error) throw error;
-      return { data: (data ?? []) as SubmissionWithRelations[], count: count ?? 0, page, pageSize };
+      return { data: (data ?? []) as unknown as SubmissionWithRelations[], count: count ?? 0, page, pageSize };
     },
   });
 };
@@ -76,7 +76,7 @@ export const useSubmission = (id?: string) => {
         .maybeSingle();
 
       if (error) throw error;
-      return data as SubmissionWithRelations | null;
+      return data as unknown as SubmissionWithRelations | null;
     },
     enabled: !!id,
   });
@@ -100,7 +100,7 @@ export const usePendingSubmissions = (courseId?: string) => {
       if (error) throw error;
 
       // Filter client-side: only submissions without a grade record
-      const submissions = data as SubmissionWithRelations[];
+      const submissions = data as unknown as SubmissionWithRelations[];
       return submissions.filter((s) => !s.grades);
     },
   });
