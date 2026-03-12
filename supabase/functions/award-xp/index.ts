@@ -195,7 +195,7 @@ serve(async (req) => {
       );
     }
 
-    const { student_id, xp_amount, source, reference_id, note } = validation.data;
+    const { student_id, source, note } = validation.data;
 
     // ── Permission Validation ───────────────────────────────────────────
     // Verify caller is either:
@@ -206,9 +206,16 @@ serve(async (req) => {
     const authHeader = req.headers.get('Authorization') ?? '';
     const isServiceRole = authHeader.includes(Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
 
-    if (!isServiceRole) {
-      const selfTriggeredSources: XPSource[] = ['login', 'submission', 'journal'];
+    // Server-side canonical XP amounts for self-triggered sources.
+    // Students cannot choose their own XP — the server enforces these values.
+    const SELF_TRIGGERED_XP: Partial<Record<XPSource, number>> = {
+      login: 10,
+      submission: 25,
+      journal: 20,
+    };
+    const selfTriggeredSources = Object.keys(SELF_TRIGGERED_XP) as XPSource[];
 
+    if (!isServiceRole) {
       // Create user-scoped client to get the caller's identity
       const userClient = createClient(
         Deno.env.get('SUPABASE_URL')!,
@@ -223,17 +230,29 @@ serve(async (req) => {
           { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
         );
       }
+
+      // Override client-supplied xp_amount with the canonical server-side value.
+      // This prevents students from granting themselves arbitrary XP.
+      validation.data.xp_amount = SELF_TRIGGERED_XP[source]!;
+
+      // Generate a deterministic reference_id for idempotency.
+      // Format: {source}:{student_id}:{UTC date} — one award per source per day.
+      const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+      validation.data.reference_id = `${source}:${student_id}:${today}`;
     }
 
+    // Re-destructure after potential overrides
+    const { xp_amount: resolvedXpAmount, reference_id: resolvedReferenceId } = validation.data;
+
     // Handle zero XP — still record the transaction but skip level recalculation
-    if (xp_amount === 0) {
+    if (resolvedXpAmount === 0) {
       const { error: insertErr } = await supabase
         .from('xp_transactions')
         .insert({
           student_id,
           xp_amount: 0,
           source,
-          reference_id: reference_id ?? null,
+          reference_id: resolvedReferenceId ?? null,
           note: note ?? null,
         });
 
@@ -253,7 +272,7 @@ serve(async (req) => {
 
     // ── Step 1: Check for active bonus XP events ──────────────────────────
 
-    let finalXP = xp_amount;
+    let finalXP = resolvedXpAmount;
 
     const { data: bonusEvents, error: bonusErr } = await supabase
       .from('bonus_xp_events')
@@ -270,11 +289,29 @@ serve(async (req) => {
       // Apply the highest active multiplier
       const maxMultiplier = Math.max(...bonusEvents.map((e: { multiplier: number }) => e.multiplier));
       if (maxMultiplier > 1) {
-        finalXP = Math.floor(xp_amount * maxMultiplier);
+        finalXP = Math.floor(resolvedXpAmount * maxMultiplier);
       }
     }
 
-    // ── Step 2: Insert XP transaction ─────────────────────────────────────
+    // ── Step 2: Insert XP transaction (with idempotency check) ────────────
+
+    // If a reference_id is present, check for duplicate to enforce idempotency
+    if (resolvedReferenceId) {
+      const { data: existing } = await supabase
+        .from('xp_transactions')
+        .select('id')
+        .eq('student_id', student_id)
+        .eq('reference_id', resolvedReferenceId)
+        .maybeSingle();
+
+      if (existing) {
+        // Already awarded — return success without double-awarding
+        return new Response(
+          JSON.stringify({ success: true, xp_awarded: 0, duplicate: true, reference_id: resolvedReferenceId }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        );
+      }
+    }
 
     const { error: insertErr } = await supabase
       .from('xp_transactions')
@@ -282,7 +319,7 @@ serve(async (req) => {
         student_id,
         xp_amount: finalXP,
         source,
-        reference_id: reference_id ?? null,
+        reference_id: resolvedReferenceId ?? null,
         note: note ?? null,
       });
 
