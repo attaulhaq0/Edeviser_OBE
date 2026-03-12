@@ -398,7 +398,7 @@ const EditCLODetailsForm = ({ cloId }: { cloId: string }) => {
 
 const PLOMappingSection = ({ cloId, programId }: { cloId: string; programId: string | undefined }) => {
   const { data: paginatedPLOs, isLoading: isLoadingPLOs } = usePLOs(programId);
-  const plos = paginatedPLOs?.data ?? [];
+  const plos = useMemo(() => paginatedPLOs?.data ?? [], [paginatedPLOs?.data]);
   const { data: existingMappings = [], isLoading: isLoadingMappings } =
     useCLOMappings(cloId);
   const updateMappingsMutation = useUpdateCLOMappings();
@@ -660,7 +660,7 @@ const CLOForm = () => {
   // In edit mode, fetch the CLO to resolve its course → program for PLO mapping
   const { data: existingCLO } = useCLO(id);
   const { data: paginatedCoursesForEdit } = useCourses();
-  const courses = paginatedCoursesForEdit?.data ?? [];
+  const courses = useMemo(() => paginatedCoursesForEdit?.data ?? [], [paginatedCoursesForEdit?.data]);
 
   // Resolve program_id from the CLO's course
   const programId = useMemo(() => {

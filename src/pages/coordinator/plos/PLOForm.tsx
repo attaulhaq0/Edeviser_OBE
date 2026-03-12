@@ -296,7 +296,7 @@ const EditPLODetailsForm = ({ ploId }: { ploId: string }) => {
 
 const ILOMappingSection = ({ ploId }: { ploId: string }) => {
   const { data: paginatedILOs, isLoading: isLoadingILOs } = useILOs();
-  const ilos = paginatedILOs?.data ?? [];
+  const ilos = useMemo(() => paginatedILOs?.data ?? [], [paginatedILOs?.data]);
   const { data: existingMappings = [], isLoading: isLoadingMappings } =
     usePLOMappings(ploId);
   const updateMappingsMutation = useUpdatePLOMappings();
