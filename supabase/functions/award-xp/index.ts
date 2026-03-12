@@ -208,12 +208,12 @@ serve(async (req) => {
 
     // Server-side canonical XP amounts for self-triggered sources.
     // Students cannot choose their own XP — the server enforces these values.
+    // Submission is handled separately to derive late/on-time XP from trusted data.
     const SELF_TRIGGERED_XP: Partial<Record<XPSource, number>> = {
       login: 10,
-      submission: 25,
       journal: 20,
     };
-    const selfTriggeredSources = Object.keys(SELF_TRIGGERED_XP) as XPSource[];
+    const selfTriggeredSources: XPSource[] = ['login', 'submission', 'journal'];
 
     if (!isServiceRole) {
       // Create user-scoped client to get the caller's identity
@@ -231,14 +231,47 @@ serve(async (req) => {
         );
       }
 
-      // Override client-supplied xp_amount with the canonical server-side value.
-      // This prevents students from granting themselves arbitrary XP.
-      validation.data.xp_amount = SELF_TRIGGERED_XP[source]!;
+      if (source === 'submission') {
+        // Derive XP from trusted server data: look up the assignment's due_date
+        // and compare against now to determine late vs on-time.
+        const assignmentId = validation.data.reference_id;
+        if (!assignmentId) {
+          return new Response(
+            JSON.stringify({ error: 'reference_id (assignment_id) is required for submission XP' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+          );
+        }
 
-      // Generate a deterministic reference_id for idempotency.
-      // Format: {source}:{student_id}:{UTC date} — one award per source per day.
-      const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-      validation.data.reference_id = `${source}:${student_id}:${today}`;
+        const { data: assignment, error: assignmentErr } = await supabase
+          .from('assignments')
+          .select('id, due_date, late_window_hours')
+          .eq('id', assignmentId)
+          .maybeSingle();
+
+        if (assignmentErr || !assignment) {
+          return new Response(
+            JSON.stringify({ error: 'Assignment not found or query failed' }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+          );
+        }
+
+        const SUBMISSION_XP = 25;
+        const LATE_SUBMISSION_XP = 15;
+        const dueDate = new Date(assignment.due_date);
+        const isLate = new Date() > dueDate;
+
+        validation.data.xp_amount = isLate ? LATE_SUBMISSION_XP : SUBMISSION_XP;
+        // Keep the assignment_id as reference_id for submission idempotency
+        // (one XP award per student per assignment)
+      } else {
+        // Fixed-amount sources (login, journal)
+        validation.data.xp_amount = SELF_TRIGGERED_XP[source]!;
+
+        // Generate a deterministic reference_id for idempotency.
+        // Format: {source}:{student_id}:{UTC date} — one award per source per day.
+        const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+        validation.data.reference_id = `${source}:${student_id}:${today}`;
+      }
     }
 
     // Re-destructure after potential overrides
@@ -293,37 +326,32 @@ serve(async (req) => {
       }
     }
 
-    // ── Step 2: Insert XP transaction (with idempotency check) ────────────
+    // ── Step 2: Insert XP transaction (atomic idempotency via unique constraint) ─
 
-    // If a reference_id is present, check for duplicate to enforce idempotency
-    if (resolvedReferenceId) {
-      const { data: existing } = await supabase
-        .from('xp_transactions')
-        .select('id')
-        .eq('student_id', student_id)
-        .eq('reference_id', resolvedReferenceId)
-        .maybeSingle();
+    // The DB has a unique partial index on (student_id, reference_id) WHERE
+    // reference_id IS NOT NULL. We attempt the insert and catch the conflict
+    // to avoid race-condition duplicates.
 
-      if (existing) {
-        // Already awarded — return success without double-awarding
+    const insertPayload = {
+      student_id,
+      xp_amount: finalXP,
+      source,
+      reference_id: resolvedReferenceId ?? null,
+      note: note ?? null,
+    };
+
+    const { error: insertErr } = await supabase
+      .from('xp_transactions')
+      .insert(insertPayload);
+
+    if (insertErr) {
+      // Postgres unique_violation code = 23505
+      if (insertErr.code === '23505' && resolvedReferenceId) {
         return new Response(
           JSON.stringify({ success: true, xp_awarded: 0, duplicate: true, reference_id: resolvedReferenceId }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
         );
       }
-    }
-
-    const { error: insertErr } = await supabase
-      .from('xp_transactions')
-      .insert({
-        student_id,
-        xp_amount: finalXP,
-        source,
-        reference_id: resolvedReferenceId ?? null,
-        note: note ?? null,
-      });
-
-    if (insertErr) {
       console.error('XP transaction insert failed:', insertErr.message);
       return new Response(
         JSON.stringify({ error: 'Failed to insert XP transaction', detail: insertErr.message }),

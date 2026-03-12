@@ -45,12 +45,12 @@ describe('XP Schedule', () => {
 
   it('has late submission XP less than or equal to on-time submission XP', () => {
     expect(LATE_SUBMISSION_XP).toBeLessThanOrEqual(XP_SCHEDULE.submission);
-    expect(LATE_SUBMISSION_XP).toBe(25);
+    expect(LATE_SUBMISSION_XP).toBe(15);
   });
 
   it('has late quiz XP less than on-time quiz XP', () => {
     expect(LATE_QUIZ_XP).toBeLessThan(XP_SCHEDULE.quiz_completion);
-    expect(LATE_QUIZ_XP).toBe(25);
+    expect(LATE_QUIZ_XP).toBe(15);
   });
 
   it('has non-negative XP for all sources', () => {
