@@ -23,7 +23,16 @@ type XPSource =
   | 'quiz_completion'
   | 'streak_milestone'
   | 'journal'
-  | 'grade';
+  | 'grade'
+  | 'onboarding_personality'
+  | 'onboarding_learning_style'
+  | 'onboarding_baseline'
+  | 'onboarding_complete'
+  | 'onboarding_self_efficacy'
+  | 'onboarding_study_strategy'
+  | 'micro_assessment'
+  | 'profile_complete'
+  | 'starter_session_complete';
 
 interface XPAwardPayload {
   student_id: string;
@@ -80,6 +89,9 @@ const VALID_SOURCES: XPSource[] = [
   'first_attempt_bonus', 'perfect_rubric', 'bonus_event',
   'discussion_question', 'discussion_answer', 'survey_completion',
   'quiz_completion', 'streak_milestone', 'journal', 'grade',
+  'onboarding_personality', 'onboarding_learning_style', 'onboarding_baseline',
+  'onboarding_complete', 'onboarding_self_efficacy', 'onboarding_study_strategy',
+  'micro_assessment', 'profile_complete', 'starter_session_complete',
 ];
 
 function validatePayload(payload: unknown): { valid: true; data: XPAwardPayload } | { valid: false; error: string } {

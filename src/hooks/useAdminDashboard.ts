@@ -80,3 +80,74 @@ export const useRecentAuditLogs = (limit: number = 10) => {
     staleTime: 30_000,
   });
 };
+
+
+// ── Onboarding Analytics ─────────────────────────────────────────────────────
+
+export interface OnboardingAnalytics {
+  totalStudents: number;
+  completedOnboarding: number;
+  completionRate: number;
+}
+
+export const useOnboardingAnalytics = () => {
+  return useQuery({
+    queryKey: [...queryKeys.adminDashboard.lists(), 'onboarding'],
+    queryFn: async (): Promise<OnboardingAnalytics> => {
+      const { count: totalStudents } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true })
+        .eq('role', 'student')
+        .eq('is_active', true);
+
+      const { count: completedOnboarding } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true })
+        .eq('role', 'student')
+        .eq('is_active', true)
+        .eq('onboarding_completed', true);
+
+      const total = totalStudents ?? 0;
+      const completed = completedOnboarding ?? 0;
+      const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+      return { totalStudents: total, completedOnboarding: completed, completionRate };
+    },
+    staleTime: 30_000,
+  });
+};
+
+export interface PendingOnboardingStudent {
+  id: string;
+  full_name: string;
+  email: string;
+  created_at: string;
+  program_name?: string;
+}
+
+export const usePendingOnboardingStudents = (filters?: {
+  programId?: string;
+  enrolledAfter?: string;
+}) => {
+  return useQuery({
+    queryKey: [...queryKeys.adminDashboard.lists(), 'pending-onboarding', filters],
+    queryFn: async (): Promise<PendingOnboardingStudent[]> => {
+      let query = supabase
+        .from('profiles')
+        .select('id, full_name, email, created_at')
+        .eq('role', 'student')
+        .eq('is_active', true)
+        .eq('onboarding_completed', false)
+        .order('created_at', { ascending: false });
+
+      if (filters?.enrolledAfter) {
+        query = query.gte('created_at', filters.enrolledAfter);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return (data ?? []) as PendingOnboardingStudent[];
+    },
+    staleTime: 30_000,
+  });
+};

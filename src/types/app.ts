@@ -108,7 +108,16 @@ export type XPSource =
   | 'discussion_question'
   | 'discussion_answer'
   | 'survey_completion'
-  | 'quiz_completion';
+  | 'quiz_completion'
+  | 'onboarding_personality'
+  | 'onboarding_learning_style'
+  | 'onboarding_baseline'
+  | 'onboarding_complete'
+  | 'onboarding_self_efficacy'
+  | 'onboarding_study_strategy'
+  | 'micro_assessment'
+  | 'profile_complete'
+  | 'starter_session_complete';
 
 export type XPSchedule = Record<XPSource, number>;
 

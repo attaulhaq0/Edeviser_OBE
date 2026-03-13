@@ -34,6 +34,7 @@ const BonusXPEventManager = lazy(() => import('@/pages/admin/BonusXPEventManager
 const CourseListPage = lazy(() => import('@/pages/admin/courses/CourseListPage'));
 const CourseForm = lazy(() => import('@/pages/admin/courses/CourseForm'));
 const CourseEnrollmentPage = lazy(() => import('@/pages/admin/courses/CourseEnrollmentPage'));
+const PendingOnboardingPage = lazy(() => import('@/pages/admin/onboarding/PendingOnboardingPage'));
 const CoordinatorDashboard = lazy(() => import('@/pages/coordinator/CoordinatorDashboard'));
 const PLOListPage = lazy(() => import('@/pages/coordinator/plos/PLOListPage'));
 const PLOForm = lazy(() => import('@/pages/coordinator/plos/PLOForm'));
@@ -47,10 +48,15 @@ const AssignmentListPage = lazy(() => import('@/pages/teacher/assignments/Assign
 const AssignmentForm = lazy(() => import('@/pages/teacher/assignments/AssignmentForm'));
 const GradingQueuePage = lazy(() => import('@/pages/teacher/grading/GradingQueuePage'));
 const GradingInterface = lazy(() => import('@/pages/teacher/grading/GradingInterface'));
+const BaselineConfigPage = lazy(() => import('@/pages/teacher/baseline/BaselineConfigPage'));
+const BaselineQuestionForm = lazy(() => import('@/pages/teacher/baseline/BaselineQuestionForm'));
+const BaselineResultsPage = lazy(() => import('@/pages/teacher/baseline/BaselineResultsPage'));
 const StudentDashboard = lazy(() => import('@/pages/student/StudentDashboard'));
 const StudentAssignmentListPage = lazy(() => import('@/pages/student/assignments/AssignmentListPage'));
 const StudentAssignmentDetailPage = lazy(() => import('@/pages/student/assignments/AssignmentDetailPage'));
 const LeaderboardPage = lazy(() => import('@/pages/student/leaderboard/LeaderboardPage'));
+const CompleteProfilePage = lazy(() => import('@/pages/student/onboarding/CompleteProfilePage'));
+const ReassessmentPage = lazy(() => import('@/pages/student/settings/ReassessmentPage'));
 const ParentDashboard = lazy(() => import('@/pages/parent/ParentDashboard'));
 
 // ---------------------------------------------------------------------------
@@ -106,6 +112,7 @@ const AppRouter = () => (
         <Route path="courses/new" element={<CourseForm />} />
         <Route path="courses/:id/edit" element={<CourseForm />} />
         <Route path="courses/:courseId/enrollment" element={<CourseEnrollmentPage />} />
+        <Route path="onboarding/pending" element={<PendingOnboardingPage />} />
       </Route>
 
       {/* Coordinator routes */}
@@ -147,6 +154,9 @@ const AppRouter = () => (
         <Route path="assignments/:id/edit" element={<AssignmentForm />} />
         <Route path="grading" element={<GradingQueuePage />} />
         <Route path="grading/:submissionId" element={<GradingInterface />} />
+        <Route path="baseline/:courseId" element={<BaselineResultsPage />} />
+        <Route path="baseline/:courseId/config" element={<BaselineConfigPage />} />
+        <Route path="baseline/:courseId/questions/new" element={<BaselineQuestionForm />} />
       </Route>
 
       {/* Student routes */}
@@ -163,6 +173,8 @@ const AppRouter = () => (
         <Route path="assignments" element={<StudentAssignmentListPage />} />
         <Route path="assignments/:id" element={<StudentAssignmentDetailPage />} />
         <Route path="leaderboard" element={<LeaderboardPage />} />
+        <Route path="onboarding/complete-profile" element={<CompleteProfilePage />} />
+        <Route path="settings/reassessment" element={<ReassessmentPage />} />
       </Route>
 
       {/* Parent routes */}

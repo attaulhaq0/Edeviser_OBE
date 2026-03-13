@@ -79,82 +79,82 @@
 - [x] 5.3 Create `src/pages/student/onboarding/PersonalityStep.tsx` — Big Five questionnaire (Day 1: 3 questions; full: 25 questions, one at a time, LikertScale)
 - [x] 5.4 Create `src/pages/student/onboarding/LearningStyleStep.tsx` — VARK questionnaire (16 questions, one at a time, 4 radio options) with research disclaimer; delivered via micro-assessments only
 - [x] 5.5 Create `src/pages/student/onboarding/SelfEfficacyStep.tsx` — Self-efficacy scale (Day 1: 2 items; full: 6 items, LikertScale)
-- [~] 5.6 Create `src/pages/student/onboarding/StudyStrategyStep.tsx` — Study strategy inventory (8 items, 4 dimensions, LikertScale); delivered via micro-assessments only
-- [~] 5.7 Create `src/pages/student/onboarding/BaselineSelectStep.tsx` — Course selection for baseline tests
-- [~] 5.8 Create `src/pages/student/onboarding/BaselineTestStep.tsx` — Timed test per course with AssessmentTimer
-- [~] 5.9 Create `src/pages/student/onboarding/ProfileSummaryStep.tsx` — Radar chart, VARK display (with "self-awareness only" note), self-efficacy display, baseline scores, confirm button
-- [~] 5.10 Create `src/pages/student/onboarding/CompleteProfilePage.tsx` — "Complete My Profile" page listing remaining dimensions with item counts and estimated time
+- [x] 5.6 Create `src/pages/student/onboarding/StudyStrategyStep.tsx` — Study strategy inventory (8 items, 4 dimensions, LikertScale); delivered via micro-assessments only
+- [x] 5.7 Create `src/pages/student/onboarding/BaselineSelectStep.tsx` — Course selection for baseline tests
+- [x] 5.8 Create `src/pages/student/onboarding/BaselineTestStep.tsx` — Timed test per course with AssessmentTimer
+- [x] 5.9 Create `src/pages/student/onboarding/ProfileSummaryStep.tsx` — Radar chart, VARK display (with "self-awareness only" note), self-efficacy display, baseline scores, confirm button
+- [x] 5.10 Create `src/pages/student/onboarding/CompleteProfilePage.tsx` — "Complete My Profile" page listing remaining dimensions with item counts and estimated time
 
 ## 6. Shared UI Components
 
-- [~] 6.1 Create `src/components/shared/LikertScale.tsx` — 5-point Likert scale input with keyboard navigation and ARIA labels
-- [~] 6.2 Create `src/components/shared/QuestionCard.tsx` — Single question display with options (radio or Likert)
-- [~] 6.3 Create `src/components/shared/AssessmentTimer.tsx` — Countdown timer with warning state and auto-submit callback
-- [~] 6.4 Create `src/components/shared/ProfileSummaryCard.tsx` — Dashboard card with Big Five radar chart, VARK display (under "Self-Awareness" section with disclaimer), self-efficacy display, and study strategy summary
-- [~] 6.5 Create `src/components/shared/MicroAssessmentCard.tsx` — Dismissible dashboard prompt card with question text, time estimate, XP reward, "Complete Now" and "Remind Me Later" actions
-- [~] 6.6 Create `src/components/shared/ProfileCompletenessBar.tsx` — Tappable progress bar showing profiling completion %, navigates to CompleteProfilePage; replaced by badge at 100%
-- [~] 6.7 Create `src/components/shared/StarterWeekHeroCard.tsx` — Dashboard hero card showing session count, total study time, "View Plan" CTA; post-week summary with completion stats
-- [~] 6.8 Create `src/components/shared/GoalSuggestionPanel.tsx` — Panel showing 3 AI-suggested goals with GoalDifficultyBadge, accept/edit/dismiss actions
-- [~] 6.9 Create `src/components/shared/SmartGoalForm.tsx` — SMART template form with 5 fields (Specific, Measurable, Achievable, Relevant dropdown, Time-bound date picker), pre-fills Relevant and Time-bound
-- [~] 6.10 Create `src/components/shared/GoalDifficultyBadge.tsx` — Visual badge: Easy (green), Moderate (amber), Ambitious (red)
+- [x] 6.1 Create `src/components/shared/LikertScale.tsx` — 5-point Likert scale input with keyboard navigation and ARIA labels
+- [x] 6.2 Create `src/components/shared/QuestionCard.tsx` — Single question display with options (radio or Likert)
+- [x] 6.3 Create `src/components/shared/AssessmentTimer.tsx` — Countdown timer with warning state and auto-submit callback
+- [x] 6.4 Create `src/components/shared/ProfileSummaryCard.tsx` — Dashboard card with Big Five radar chart, VARK display (under "Self-Awareness" section with disclaimer), self-efficacy display, and study strategy summary
+- [x] 6.5 Create `src/components/shared/MicroAssessmentCard.tsx` — Dismissible dashboard prompt card with question text, time estimate, XP reward, "Complete Now" and "Remind Me Later" actions
+- [x] 6.6 Create `src/components/shared/ProfileCompletenessBar.tsx` — Tappable progress bar showing profiling completion %, navigates to CompleteProfilePage; replaced by badge at 100%
+- [x] 6.7 Create `src/components/shared/StarterWeekHeroCard.tsx` — Dashboard hero card showing session count, total study time, "View Plan" CTA; post-week summary with completion stats
+- [x] 6.8 Create `src/components/shared/GoalSuggestionPanel.tsx` — Panel showing 3 AI-suggested goals with GoalDifficultyBadge, accept/edit/dismiss actions
+- [x] 6.9 Create `src/components/shared/SmartGoalForm.tsx` — SMART template form with 5 fields (Specific, Measurable, Achievable, Relevant dropdown, Time-bound date picker), pre-fills Relevant and Time-bound
+- [x] 6.10 Create `src/components/shared/GoalDifficultyBadge.tsx` — Visual badge: Easy (green), Moderate (amber), Ambitious (red)
 
 ## 7. Dashboard & Navigation Integration
 
-- [~] 7.1 Wire OnboardingWizard into StudentLayout — render as overlay when `onboarding_completed = false`; Day 1 mode (7 questions only)
-- [~] 7.2 Add ProfileSummaryCard to StudentDashboard — display when `onboarding_completed = true` and student_profile exists; show VARK under "Self-Awareness" section with disclaimer
-- [~] 7.3 Add MicroAssessmentCard to StudentDashboard — display daily micro-assessment prompt when available (first 14 days)
-- [~] 7.4 Add ProfileCompletenessBar to StudentDashboard — display when profile_completeness < 100%
-- [~] 7.5 Add StarterWeekHeroCard to StudentDashboard — display after Day 1 onboarding; show completion summary after first week
-- [~] 7.6 Add "Complete Assessment" prompt to StudentDashboard for students with skipped sections
-- [~] 7.7 Add onboarding completion reminder banner for students who deferred onboarding
-- [~] 7.8 Add `/student/onboarding/complete-profile` route to AppRouter for CompleteProfilePage
+- [x] 7.1 Wire OnboardingWizard into StudentLayout — render as overlay when `onboarding_completed = false`; Day 1 mode (7 questions only)
+- [x] 7.2 Add ProfileSummaryCard to StudentDashboard — display when `onboarding_completed = true` and student_profile exists; show VARK under "Self-Awareness" section with disclaimer
+- [x] 7.3 Add MicroAssessmentCard to StudentDashboard — display daily micro-assessment prompt when available (first 14 days)
+- [x] 7.4 Add ProfileCompletenessBar to StudentDashboard — display when profile_completeness < 100%
+- [x] 7.5 Add StarterWeekHeroCard to StudentDashboard — display after Day 1 onboarding; show completion summary after first week
+- [x] 7.6 Add "Complete Assessment" prompt to StudentDashboard for students with skipped sections
+- [x] 7.7 Add onboarding completion reminder banner for students who deferred onboarding
+- [x] 7.8 Add `/student/onboarding/complete-profile` route to AppRouter for CompleteProfilePage
 
 ## 8. Teacher Baseline Management
 
-- [~] 8.1 Create `src/pages/teacher/baseline/BaselineConfigPage.tsx` — Configure baseline test (time limit, activate/deactivate)
-- [~] 8.2 Create `src/pages/teacher/baseline/BaselineQuestionForm.tsx` — Add/edit baseline questions (question text, 4 options, correct answer, CLO mapping, difficulty)
-- [~] 8.3 Create `src/pages/teacher/baseline/BaselineResultsPage.tsx` — Per-CLO bar chart of average scores, completion count
-- [~] 8.4 Add `/teacher/baseline/:courseId` routes to AppRouter
-- [~] 8.5 Add baseline nav item or section to TeacherLayout
+- [x] 8.1 Create `src/pages/teacher/baseline/BaselineConfigPage.tsx` — Configure baseline test (time limit, activate/deactivate)
+- [x] 8.2 Create `src/pages/teacher/baseline/BaselineQuestionForm.tsx` — Add/edit baseline questions (question text, 4 options, correct answer, CLO mapping, difficulty)
+- [x] 8.3 Create `src/pages/teacher/baseline/BaselineResultsPage.tsx` — Per-CLO bar chart of average scores, completion count
+- [x] 8.4 Add `/teacher/baseline/:courseId` routes to AppRouter
+- [x] 8.5 Add baseline nav item or section to TeacherLayout
 
 ## 9. Admin Onboarding Analytics
 
-- [~] 9.1 Add "Onboarding Status" KPI card to AdminDashboard — percentage of students who completed onboarding
-- [~] 9.2 Create admin view for students who have not completed onboarding (filterable by program, enrollment date)
-- [~] 9.3 Add "Send Reminder" action to notify students who haven't completed onboarding within 7 days
+- [x] 9.1 Add "Onboarding Status" KPI card to AdminDashboard — percentage of students who completed onboarding
+- [x] 9.2 Create admin view for students who have not completed onboarding (filterable by program, enrollment date)
+- [x] 9.3 Add "Send Reminder" action to notify students who haven't completed onboarding within 7 days
 
 ## 10. Re-Assessment Flow
 
-- [~] 10.1 Create `src/pages/student/settings/ReassessmentPage.tsx` — Re-assessment flow with cooldown check (90 days)
-- [~] 10.2 Add `/student/settings/reassessment` route to AppRouter
-- [~] 10.3 Add "Retake Assessment" link to ProfileSummaryCard and student settings page
+- [x] 10.1 Create `src/pages/student/settings/ReassessmentPage.tsx` — Re-assessment flow with cooldown check (90 days)
+- [x] 10.2 Add `/student/settings/reassessment` route to AppRouter
+- [x] 10.3 Add "Retake Assessment" link to ProfileSummaryCard and student settings page
 
 ## 11. XP & Badge Integration
 
-- [~] 11.1 Add `onboarding_personality`, `onboarding_learning_style`, `onboarding_baseline`, `onboarding_complete`, `onboarding_self_efficacy`, `onboarding_study_strategy`, `micro_assessment`, `profile_complete`, `starter_session_complete` sources to XPSource type
-- [~] 11.2 Add XP amounts to XP schedule (personality: 25, learning_style: 25, self_efficacy: 25, study_strategy: 25, baseline: 20/course, complete: 50, micro_assessment: 10, profile_complete: 30, starter_session_complete: 15)
-- [~] 11.3 Add "Self-Aware Scholar" and "Thorough Explorer" badge definitions to badge catalog
-- [~] 11.4 Wire badge checks into process-onboarding Edge Function
+- [x] 11.1 Add `onboarding_personality`, `onboarding_learning_style`, `onboarding_baseline`, `onboarding_complete`, `onboarding_self_efficacy`, `onboarding_study_strategy`, `micro_assessment`, `profile_complete`, `starter_session_complete` sources to XPSource type
+- [x] 11.2 Add XP amounts to XP schedule (personality: 25, learning_style: 25, self_efficacy: 25, study_strategy: 25, baseline: 20/course, complete: 50, micro_assessment: 10, profile_complete: 30, starter_session_complete: 15)
+- [x] 11.3 Add "Self-Aware Scholar" and "Thorough Explorer" badge definitions to badge catalog
+- [x] 11.4 Wire badge checks into process-onboarding Edge Function
 
 ## 12. Property-Based Tests
 
-- [~] 12.1 `src/__tests__/properties/bigFiveScoring.property.test.ts` — P1, P4, P8: trait scores bounded [0,100], deterministic, reverse scoring
-- [~] 12.2 `src/__tests__/properties/varkScoring.property.test.ts` — P2, P3, P5: VARK scores bounded [0,100], sum to 100, dominant style logic
-- [~] 12.3 `src/__tests__/properties/baselineScoring.property.test.ts` — P6, P12: baseline score = % correct, unanswered = 0
-- [~] 12.4 `src/__tests__/properties/scoreRoundTrip.property.test.ts` — P7: score computation → serialize → deserialize → recompute equivalence
-- [~] 12.5 `src/__tests__/properties/onboardingValidation.property.test.ts` — P9, P10, P11: Likert [1,5], VARK [0,3], baseline [0,3] schema validation
-- [~] 12.6 `src/__tests__/properties/onboardingXp.property.test.ts` — P13, P14: XP awarded once, re-assessment no XP
-- [~] 12.7 `src/__tests__/properties/reassessmentCooldown.property.test.ts` — P15: 90-day cooldown enforcement
-- [~] 12.8 `src/__tests__/properties/baselineConfig.property.test.ts` — P18, P19: min questions per CLO, time limit [5,60]
-- [~] 12.9 `src/__tests__/properties/selfEfficacyScoring.property.test.ts` — P21, P23: self-efficacy scores bounded [0,100], deterministic
-- [~] 12.10 `src/__tests__/properties/studyStrategyScoring.property.test.ts` — P22, P24: study strategy scores bounded [0,100], deterministic
-- [~] 12.11 `src/__tests__/properties/profileCompleteness.property.test.ts` — P25, P26: completeness bounded [0,100], monotonically non-decreasing
-- [~] 12.12 `src/__tests__/properties/day1Profile.property.test.ts` — P27: Day 1 produces valid preliminary profile with partial scores
-- [~] 12.13 `src/__tests__/properties/microAssessment.property.test.ts` — P28, P29: dismissal limit enforced (3 max), XP awarded per completion only
-- [~] 12.14 `src/__tests__/properties/starterWeekPlan.property.test.ts` — P30, P31: session count matches self-efficacy tier, sessions within 7-day window
-- [~] 12.15 `src/__tests__/properties/goalDifficulty.property.test.ts` — P32: difficulty classification matches cohort thresholds
-- [~] 12.16 `src/__tests__/properties/smartGoalTemplate.property.test.ts` — P33: SMART template produces valid non-empty goal text
-- [~] 12.17 `src/__tests__/properties/profileCompleteBonus.property.test.ts` — P35: profile complete bonus awarded exactly once at 100%
+- [x] 12.1 `src/__tests__/properties/bigFiveScoring.property.test.ts` — P1, P4, P8: trait scores bounded [0,100], deterministic, reverse scoring
+- [x] 12.2 `src/__tests__/properties/varkScoring.property.test.ts` — P2, P3, P5: VARK scores bounded [0,100], sum to 100, dominant style logic
+- [x] 12.3 `src/__tests__/properties/baselineScoring.property.test.ts` — P6, P12: baseline score = % correct, unanswered = 0
+- [x] 12.4 `src/__tests__/properties/scoreRoundTrip.property.test.ts` — P7: score computation → serialize → deserialize → recompute equivalence
+- [x] 12.5 `src/__tests__/properties/onboardingValidation.property.test.ts` — P9, P10, P11: Likert [1,5], VARK [0,3], baseline [0,3] schema validation
+- [x] 12.6 `src/__tests__/properties/onboardingXp.property.test.ts` — P13, P14: XP awarded once, re-assessment no XP
+- [x] 12.7 `src/__tests__/properties/reassessmentCooldown.property.test.ts` — P15: 90-day cooldown enforcement
+- [x] 12.8 `src/__tests__/properties/baselineConfig.property.test.ts` — P18, P19: min questions per CLO, time limit [5,60]
+- [x] 12.9 `src/__tests__/properties/selfEfficacyScoring.property.test.ts` — P21, P23: self-efficacy scores bounded [0,100], deterministic
+- [x] 12.10 `src/__tests__/properties/studyStrategyScoring.property.test.ts` — P22, P24: study strategy scores bounded [0,100], deterministic
+- [x] 12.11 `src/__tests__/properties/profileCompleteness.property.test.ts` — P25, P26: completeness bounded [0,100], monotonically non-decreasing
+- [x] 12.12 `src/__tests__/properties/day1Profile.property.test.ts` — P27: Day 1 produces valid preliminary profile with partial scores
+- [x] 12.13 `src/__tests__/properties/microAssessment.property.test.ts` — P28, P29: dismissal limit enforced (3 max), XP awarded per completion only
+- [x] 12.14 `src/__tests__/properties/starterWeekPlan.property.test.ts` — P30, P31: session count matches self-efficacy tier, sessions within 7-day window
+- [x] 12.15 `src/__tests__/properties/goalDifficulty.property.test.ts` — P32: difficulty classification matches cohort thresholds
+- [x] 12.16 `src/__tests__/properties/smartGoalTemplate.property.test.ts` — P33: SMART template produces valid non-empty goal text
+- [x] 12.17 `src/__tests__/properties/profileCompleteBonus.property.test.ts` — P35: profile complete bonus awarded exactly once at 100%
 
 ## 13. Unit Tests
 
