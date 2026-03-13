@@ -23,7 +23,7 @@ export interface Submission {
 export interface SubmissionWithRelations extends Submission {
   profiles: { id: string; full_name: string; email: string } | null;
   assignments: { id: string; title: string; total_marks: number; course_id: string } | null;
-  grades: { id: string } | null;
+  grades: { id: string }[] | null;
 }
 
 // ─── Filter types ───────────────────────────────────────────────────────────
@@ -59,7 +59,7 @@ export const useSubmissions = (filters: SubmissionFilters = {}) => {
 
       const { data, error, count } = await query;
       if (error) throw error;
-      return { data: (data ?? []) as unknown as SubmissionWithRelations[], count: count ?? 0, page, pageSize };
+      return { data: (data ?? []) as SubmissionWithRelations[], count: count ?? 0, page, pageSize };
     },
   });
 };
@@ -76,7 +76,7 @@ export const useSubmission = (id?: string) => {
         .maybeSingle();
 
       if (error) throw error;
-      return data as unknown as SubmissionWithRelations | null;
+      return data as SubmissionWithRelations | null;
     },
     enabled: !!id,
   });
@@ -100,8 +100,8 @@ export const usePendingSubmissions = (courseId?: string) => {
       if (error) throw error;
 
       // Filter client-side: only submissions without a grade record
-      const submissions = data as unknown as SubmissionWithRelations[];
-      return submissions.filter((s) => !s.grades);
+      const submissions = (data ?? []) as SubmissionWithRelations[];
+      return submissions.filter((s) => !s.grades || s.grades.length === 0);
     },
   });
 };
@@ -165,7 +165,7 @@ export const useCreateSubmission = () => {
         action: 'create',
         entity_type: 'submission',
         entity_id: submission.id,
-        changes: input as unknown as Record<string, unknown>,
+        changes: { ...input },
         performed_by: authUser?.id ?? user.id,
       });
 

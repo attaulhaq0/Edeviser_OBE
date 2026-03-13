@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { parseAsString, useQueryState } from 'nuqs';
+import { parseAsString, parseAsInteger, useQueryState } from 'nuqs';
 import { createColumns } from './columns';
 import { DataTable } from '@/components/shared/DataTable';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
@@ -26,11 +26,12 @@ const CLOListPage = () => {
     'course',
     parseAsString.withDefault(''),
   );
+  const [page, setPage] = useQueryState('page', parseAsInteger.withDefault(1));
   const [cloToDelete, setCloToDelete] = useState<LearningOutcome | null>(null);
 
   const { data: paginatedCourses, isLoading: coursesLoading } = useCourses();
   const courses = paginatedCourses?.data;
-  const { data: paginatedCLOs, isLoading } = useCLOs(courseFilter || undefined);
+  const { data: paginatedCLOs, isLoading } = useCLOs(courseFilter || undefined, { page });
   const deleteMutation = useDeleteCLO();
 
   const filteredCLOs = (paginatedCLOs?.data ?? []).filter((clo) => {
@@ -93,7 +94,15 @@ const CLOListPage = () => {
       </div>
 
       {/* Data Table */}
-      <DataTable columns={columns} data={filteredCLOs} isLoading={isLoading} />
+      <DataTable
+        columns={columns}
+        data={filteredCLOs}
+        isLoading={isLoading}
+        page={paginatedCLOs?.page}
+        pageSize={paginatedCLOs?.pageSize}
+        totalCount={paginatedCLOs?.count}
+        onPageChange={setPage}
+      />
 
       {/* Delete Confirmation Dialog */}
       <ConfirmDialog
