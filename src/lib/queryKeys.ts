@@ -91,6 +91,30 @@ const notificationPreferences = createKeys('notificationPreferences')
 const sessions = createKeys('sessions')
 const auditLogs = createKeys('auditLogs')
 
+// ─── Onboarding ──────────────────────────────────────────────────────────────
+const onboarding = {
+  progress: (studentId: string) =>
+    ['onboarding', 'progress', studentId] as const,
+  questions: (type: string) =>
+    ['onboarding', 'questions', type] as const,
+  responses: (studentId: string, version: number) =>
+    ['onboarding', 'responses', studentId, version] as const,
+  studentProfile: (studentId: string) =>
+    ['onboarding', 'studentProfile', studentId] as const,
+  baselineTests: (courseId: string) =>
+    ['onboarding', 'baselineTests', courseId] as const,
+  baselineResults: (courseId: string) =>
+    ['onboarding', 'baselineResults', courseId] as const,
+  microAssessments: (studentId: string) =>
+    ['onboarding', 'microAssessments', studentId] as const,
+  profileCompleteness: (studentId: string) =>
+    ['onboarding', 'profileCompleteness', studentId] as const,
+  starterWeekSessions: (studentId: string) =>
+    ['onboarding', 'starterWeekSessions', studentId] as const,
+  goalSuggestions: (studentId: string, weekStart: string) =>
+    ['onboarding', 'goalSuggestions', studentId, weekStart] as const,
+}
+
 // ─── Exported Key Factory ────────────────────────────────────────────────────
 export const queryKeys = {
   // Core
@@ -169,4 +193,6 @@ export const queryKeys = {
   notificationPreferences,
   sessions,
   auditLogs,
+  // Onboarding
+  onboarding,
 } as const

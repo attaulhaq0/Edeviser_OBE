@@ -2,27 +2,27 @@
 
 ## 1. Database Schema & Migrations
 
-- [ ] 1.1 Create migration: `onboarding_questions` table with indexes on (institution_id, assessment_type) and (course_id)
-- [ ] 1.2 Create migration: `onboarding_responses` table with unique constraint on (student_id, question_id, assessment_version)
-- [ ] 1.3 Create migration: `onboarding_progress` table with unique constraint on (student_id), including progressive profiling fields (day1_completed, micro_assessment_day, micro_assessment_dismissals, profile_completeness)
-- [ ] 1.4 Create migration: `student_profiles` table with unique constraint on (student_id, assessment_version), including self_efficacy JSONB, study_strategies JSONB, and profile_completeness columns
-- [ ] 1.5 Create migration: `baseline_attainment` table with unique constraint on (student_id, course_id, clo_id)
-- [ ] 1.6 Create migration: `baseline_test_config` table with unique constraint on (course_id)
-- [ ] 1.7 Create migration: `micro_assessment_schedule` table with unique constraint on (student_id, scheduled_day) and index on (student_id, status, scheduled_at)
-- [ ] 1.8 Create migration: `starter_week_sessions` table with index on (student_id, status)
-- [ ] 1.9 Create migration: `goal_suggestions` table with index on (student_id, week_start, status)
-- [ ] 1.10 Create migration: RLS policies for all 9 tables (questions, responses, progress, student_profiles, baseline_attainment, baseline_test_config, micro_assessment_schedule, starter_week_sessions, goal_suggestions)
-- [ ] 1.11 Create migration: Seed default 25 Big Five personality questions, 16 VARK learning style questions, 6 self-efficacy items, and 8 study strategy items
-- [ ] 1.12 Create migration: Update `onboarding_questions` assessment_type CHECK to include 'self_efficacy' and 'study_strategy'
+- [x] 1.1 Create migration: `onboarding_questions` table with indexes on (institution_id, assessment_type) and (course_id)
+- [x] 1.2 Create migration: `onboarding_responses` table with unique constraint on (student_id, question_id, assessment_version)
+- [x] 1.3 Create migration: `onboarding_progress` table with unique constraint on (student_id), including progressive profiling fields (day1_completed, micro_assessment_day, micro_assessment_dismissals, profile_completeness)
+- [x] 1.4 Create migration: `student_profiles` table with unique constraint on (student_id, assessment_version), including self_efficacy JSONB, study_strategies JSONB, and profile_completeness columns
+- [x] 1.5 Create migration: `baseline_attainment` table with unique constraint on (student_id, course_id, clo_id)
+- [x] 1.6 Create migration: `baseline_test_config` table with unique constraint on (course_id)
+- [x] 1.7 Create migration: `micro_assessment_schedule` table with unique constraint on (student_id, scheduled_day) and index on (student_id, status, scheduled_at)
+- [x] 1.8 Create migration: `starter_week_sessions` table with index on (student_id, status)
+- [x] 1.9 Create migration: `goal_suggestions` table with index on (student_id, week_start, status)
+- [x] 1.10 Create migration: RLS policies for all 9 tables (questions, responses, progress, student_profiles, baseline_attainment, baseline_test_config, micro_assessment_schedule, starter_week_sessions, goal_suggestions)
+- [x] 1.11 Create migration: Seed default 25 Big Five personality questions, 16 VARK learning style questions, 6 self-efficacy items, and 8 study strategy items
+- [x] 1.12 Create migration: Update `onboarding_questions` assessment_type CHECK to include 'self_efficacy' and 'study_strategy'
 
 ## 2. Shared Library Code
 
-- [ ] 2.1 Create `src/lib/onboardingSchemas.ts` — Zod schemas for likertResponse, varkResponse, baselineResponse, selfEfficacyResponse, studyStrategyResponse, saveResponses, processOnboarding, baselineQuestion, baselineTestConfig, starterWeekSession, goalSuggestion, smartGoalTemplate
-- [ ] 2.2 Create `src/lib/scoreCalculator.ts` — calculateBigFiveScores, calculateVARKScores, calculateBaselineScores, calculateSelfEfficacyScores, calculateStudyStrategyScores, calculateProfileCompleteness functions
-- [ ] 2.3 Create `src/lib/onboardingConstants.ts` — Step definitions, XP amounts, VARK descriptions, Big Five labels, cooldown config, Day 1 question count, micro-assessment schedule, goal difficulty thresholds, starter session duration tiers, profiling dimensions
-- [ ] 2.4 Add onboarding query keys to `src/lib/queryKeys.ts` (onboardingProgress, onboardingQuestions, onboardingResponses, studentProfile, baselineTests, baselineResults, microAssessments, profileCompleteness, starterWeekSessions, goalSuggestions)
-- [ ] 2.5 Create `src/lib/profileCompleteness.ts` — Profile completeness calculation logic with partial credit for Day 1 items
-- [ ] 2.6 Create `src/lib/goalTemplates.ts` — SMART goal template composition, difficulty classification from cohort rates
+- [x] 2.1 Create `src/lib/onboardingSchemas.ts` — Zod schemas for likertResponse, varkResponse, baselineResponse, selfEfficacyResponse, studyStrategyResponse, saveResponses, processOnboarding, baselineQuestion, baselineTestConfig, starterWeekSession, goalSuggestion, smartGoalTemplate
+- [x] 2.2 Create `src/lib/scoreCalculator.ts` — calculateBigFiveScores, calculateVARKScores, calculateBaselineScores, calculateSelfEfficacyScores, calculateStudyStrategyScores, calculateProfileCompleteness functions
+- [x] 2.3 Create `src/lib/onboardingConstants.ts` — Step definitions, XP amounts, VARK descriptions, Big Five labels, cooldown config, Day 1 question count, micro-assessment schedule, goal difficulty thresholds, starter session duration tiers, profiling dimensions
+- [x] 2.4 Add onboarding query keys to `src/lib/queryKeys.ts` (onboardingProgress, onboardingQuestions, onboardingResponses, studentProfile, baselineTests, baselineResults, microAssessments, profileCompleteness, starterWeekSessions, goalSuggestions)
+- [x] 2.5 Create `src/lib/profileCompleteness.ts` — Profile completeness calculation logic with partial credit for Day 1 items
+- [x] 2.6 Create `src/lib/goalTemplates.ts` — SMART goal template composition, difficulty classification from cohort rates
 
 ## 3. Edge Functions
 
