@@ -87,17 +87,13 @@ describe('Starter week plan — property-based tests', () => {
         validDate,
         (selfEfficacy, startDate) => {
           const sessions = generateStarterSessions(selfEfficacy, startDate);
-          const startMs = startDate.getTime();
-          const endMs = startMs + 7 * 24 * 60 * 60 * 1000; // 7 days
-
           for (const session of sessions) {
             const sessionDate = new Date(session.suggested_date + 'T00:00:00Z');
             const sessionMs = sessionDate.getTime();
             // Session date should be >= start date and < start + 7 days
-            const startDateStr = startDate.toISOString().split('T')[0];
-            const startDateMs = new Date(startDateStr + 'T00:00:00Z').getTime();
-            const endDateMs = startDateMs + 7 * 24 * 60 * 60 * 1000;
-            expect(sessionMs).toBeGreaterThanOrEqual(startDateMs);
+            const startDateNorm = new Date(startDate.toISOString().split('T')[0] + 'T00:00:00Z').getTime();
+            const endDateMs = startDateNorm + 7 * 24 * 60 * 60 * 1000;
+            expect(sessionMs).toBeGreaterThanOrEqual(startDateNorm);
             expect(sessionMs).toBeLessThan(endDateMs);
           }
         },

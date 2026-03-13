@@ -31,7 +31,7 @@ describe('Micro-assessment — property-based tests', () => {
     fc.assert(
       fc.property(
         fc.integer({ min: 0, max: 10 }),
-        (extraDismissals) => {
+        (_extraDismissals) => {
           let micro: MicroAssessment = { status: 'pending', dismissal_count: 0 };
 
           // Dismiss exactly MAX_MICRO_DISMISSALS times
