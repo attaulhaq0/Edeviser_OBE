@@ -15,8 +15,11 @@ export interface AssessmentTimerProps {
 const AssessmentTimer = ({ totalSeconds, onExpire, paused = false }: AssessmentTimerProps) => {
   const [remaining, setRemaining] = useState(totalSeconds);
   const onExpireRef = useRef(onExpire);
-  onExpireRef.current = onExpire;
   const expiredRef = useRef(false);
+
+  useEffect(() => {
+    onExpireRef.current = onExpire;
+  }, [onExpire]);
 
   // Pause on tab hidden via visibility API
   const [tabVisible, setTabVisible] = useState(true);

@@ -91,13 +91,9 @@ const SortableRow = ({ plo, index }: SortableRowProps) => {
       </div>
       <Badge
         variant="outline"
-        className={
-          plo.is_active
-            ? 'bg-green-50 text-green-600 border-green-200'
-            : 'bg-red-50 text-red-600 border-red-200'
-        }
+        className="bg-green-50 text-green-600 border-green-200"
       >
-        {plo.is_active ? 'Active' : 'Inactive'}
+        Active
       </Badge>
     </div>
   );

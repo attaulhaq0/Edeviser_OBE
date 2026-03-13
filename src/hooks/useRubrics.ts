@@ -13,10 +13,11 @@ import { getPaginationRange } from '@/types/pagination';
 export interface Rubric {
   id: string;
   title: string;
-  clo_id: string;
+  clo_id: string | null;
+  description: string | null;
+  created_by: string | null;
   is_template: boolean;
   created_at: string;
-  updated_at: string;
 }
 
 export interface RubricCriterion {

@@ -78,7 +78,7 @@ export const OnboardingWizard = ({ isDay1 = true }: OnboardingWizardProps) => {
     }
   }, [progress, steps]);
 
-  const currentStep = steps[currentStepIndex];
+  const currentStep = steps[currentStepIndex] as OnboardingStepId;
   const totalSteps = steps.length;
   const progressPercent = Math.round(((currentStepIndex + 1) / totalSteps) * 100);
   const assessmentVersion = progress?.assessment_version ?? 1;

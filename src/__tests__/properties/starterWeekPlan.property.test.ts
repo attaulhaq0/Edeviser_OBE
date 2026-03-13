@@ -33,7 +33,7 @@ function generateStarterSessions(
     const sessionDate = new Date(startDate);
     sessionDate.setDate(sessionDate.getDate() + dayOffset);
     sessions.push({
-      suggested_date: sessionDate.toISOString().split('T')[0],
+      suggested_date: sessionDate.toISOString().slice(0, 10),
       duration_minutes: config.duration,
     });
   }
@@ -64,15 +64,15 @@ describe('Starter week plan — property-based tests', () => {
           if (selfEfficacy < SELF_EFFICACY_TIER_THRESHOLDS.low) {
             expect(tier).toBe('low');
             expect(sessions).toHaveLength(5);
-            expect(sessions[0].duration_minutes).toBe(25);
+            expect(sessions[0]!.duration_minutes).toBe(25);
           } else if (selfEfficacy <= SELF_EFFICACY_TIER_THRESHOLDS.moderate) {
             expect(tier).toBe('moderate');
             expect(sessions).toHaveLength(4);
-            expect(sessions[0].duration_minutes).toBe(35);
+            expect(sessions[0]!.duration_minutes).toBe(35);
           } else {
             expect(tier).toBe('high');
             expect(sessions).toHaveLength(3);
-            expect(sessions[0].duration_minutes).toBe(45);
+            expect(sessions[0]!.duration_minutes).toBe(45);
           }
         },
       ),
@@ -91,7 +91,7 @@ describe('Starter week plan — property-based tests', () => {
             const sessionDate = new Date(session.suggested_date + 'T00:00:00Z');
             const sessionMs = sessionDate.getTime();
             // Session date should be >= start date and < start + 7 days
-            const startDateNorm = new Date(startDate.toISOString().split('T')[0] + 'T00:00:00Z').getTime();
+            const startDateNorm = new Date(startDate.toISOString().slice(0, 10) + 'T00:00:00Z').getTime();
             const endDateMs = startDateNorm + 7 * 24 * 60 * 60 * 1000;
             expect(sessionMs).toBeGreaterThanOrEqual(startDateNorm);
             expect(sessionMs).toBeLessThan(endDateMs);

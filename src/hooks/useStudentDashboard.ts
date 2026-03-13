@@ -61,7 +61,7 @@ export const useStudentKPIs = (studentId: string | undefined) => {
 
       const { data: gamification } = await supabase
         .from('student_gamification')
-        .select('streak_count, level, xp_total')
+        .select('streak_current, level, xp_total')
         .eq('student_id', studentId)
         .maybeSingle();
 
@@ -69,7 +69,7 @@ export const useStudentKPIs = (studentId: string | undefined) => {
         enrolledCourses: enrolledCourses ?? 0,
         completedAssignments: completedAssignments ?? 0,
         avgAttainment,
-        currentStreak: gamification?.streak_count ?? 0,
+        currentStreak: gamification?.streak_current ?? 0,
         currentLevel: gamification?.level ?? 1,
         totalXP: gamification?.xp_total ?? 0,
       };

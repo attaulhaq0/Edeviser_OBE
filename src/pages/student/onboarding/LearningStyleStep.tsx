@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Layers, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -40,15 +40,12 @@ export const LearningStyleStep = ({
   const currentAnswer = currentQuestion ? answers[currentQuestion.id] ?? null : null;
   const options = currentQuestion ? parseOptions(currentQuestion) : [];
 
-  const handleSelect = useCallback(
-    (optionIndex: number) => {
-      if (!currentQuestion) return;
-      setAnswers((prev) => ({ ...prev, [currentQuestion.id]: optionIndex }));
-    },
-    [currentQuestion],
-  );
+  const handleSelect = (optionIndex: number) => {
+    if (!currentQuestion) return;
+    setAnswers((prev) => ({ ...prev, [currentQuestion.id]: optionIndex }));
+  };
 
-  const handleNext = useCallback(async () => {
+  const handleNext = async () => {
     if (currentIndex < totalQuestions - 1) {
       setDirection(1);
       setCurrentIndex((prev) => prev + 1);
@@ -68,14 +65,14 @@ export const LearningStyleStep = ({
 
       onComplete();
     }
-  }, [currentIndex, totalQuestions, questions, answers, saveResponses, studentId, assessmentVersion, onComplete]);
+  };
 
-  const handleBack = useCallback(() => {
+  const handleBack = () => {
     if (currentIndex > 0) {
       setDirection(-1);
       setCurrentIndex((prev) => prev - 1);
     }
-  }, [currentIndex]);
+  };
 
   // Learning style is NOT shown in Day 1 mode — delivered via micro-assessments
   if (isDay1) {

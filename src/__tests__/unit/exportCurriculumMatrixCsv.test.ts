@@ -15,7 +15,7 @@ const makePlo = (overrides: Partial<LearningOutcome> = {}): LearningOutcome => (
   course_id: null,
   blooms_level: null,
   sort_order: 1,
-  is_active: true,
+  created_by: null,
   created_at: '2024-01-01T00:00:00Z',
   updated_at: '2024-01-01T00:00:00Z',
   ...overrides,
@@ -26,12 +26,12 @@ const makeCourse = (overrides: Partial<Course> = {}): Course => ({
   name: 'Data Structures',
   code: 'CS201',
   program_id: 'prog-1',
+  semester: 'Fall',
   semester_id: 'sem-1',
   teacher_id: 'teacher-1',
-  institution_id: 'inst-1',
+  academic_year: '2024-2025',
   is_active: true,
   created_at: '2024-01-01T00:00:00Z',
-  updated_at: '2024-01-01T00:00:00Z',
   ...overrides,
 });
 

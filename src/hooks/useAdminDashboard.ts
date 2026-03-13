@@ -70,12 +70,12 @@ export const useRecentAuditLogs = (limit: number = 10) => {
     queryFn: async (): Promise<AuditLogEntry[]> => {
       const { data, error } = await supabase
         .from('audit_logs')
-        .select('id, action, entity_type, entity_id, performed_by, created_at')
+        .select('*')
         .order('created_at', { ascending: false })
         .limit(limit);
 
       if (error) throw error;
-      return (data ?? []) as AuditLogEntry[];
+      return (data ?? []) as unknown as AuditLogEntry[];
     },
     staleTime: 30_000,
   });

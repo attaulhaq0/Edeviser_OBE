@@ -99,7 +99,7 @@ export const PersonalityStep = ({
   const currentAnswer = currentQuestion ? answers[currentQuestion.id] ?? null : null;
 
   const currentDimension = currentQuestion?.dimension
-    ? BIG_FIVE_LABELS[currentQuestion.dimension] ?? currentQuestion.dimension
+    ? BIG_FIVE_LABELS[currentQuestion.dimension as keyof typeof BIG_FIVE_LABELS] ?? currentQuestion.dimension
     : '';
 
   const handleSelect = useCallback(

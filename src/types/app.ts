@@ -18,12 +18,12 @@ export interface Profile {
   is_active: boolean;
   onboarding_completed: boolean;
   portfolio_public: boolean;
-  theme_preference: ThemePreference;
-  language_preference: LanguagePreference;
-  email_preferences: Record<string, boolean> | null;
-  notification_preferences: NotificationPreferences | null;
+  theme_preference: string;
+  language_preference: string;
+  notification_preferences: unknown;
+  last_seen_at: string | null;
+  tos_accepted_at: string | null;
   created_at: string;
-  updated_at: string;
 }
 
 export interface AuthResult {
@@ -42,7 +42,6 @@ export interface Program {
   department_id: string | null;
   is_active: boolean;
   created_at: string;
-  updated_at: string;
 }
 
 export interface Course {
@@ -50,12 +49,12 @@ export interface Course {
   name: string;
   code: string;
   program_id: string;
-  semester_id: string;
-  teacher_id: string;
-  institution_id: string;
+  semester: string;
+  semester_id: string | null;
+  teacher_id: string | null;
+  academic_year: string;
   is_active: boolean;
   created_at: string;
-  updated_at: string;
 }
 
 export interface LearningOutcome {
@@ -68,18 +67,18 @@ export interface LearningOutcome {
   course_id: string | null;
   blooms_level: BloomsLevel | null;
   sort_order: number;
-  is_active: boolean;
+  created_by: string | null;
   created_at: string;
   updated_at: string;
 }
 
 export type BloomsLevel =
-  | 'Remembering'
-  | 'Understanding'
-  | 'Applying'
-  | 'Analyzing'
-  | 'Evaluating'
-  | 'Creating';
+  | 'remembering'
+  | 'understanding'
+  | 'applying'
+  | 'analyzing'
+  | 'evaluating'
+  | 'creating';
 
 export type AttainmentLevel = 'Excellent' | 'Satisfactory' | 'Developing' | 'Not_Yet';
 

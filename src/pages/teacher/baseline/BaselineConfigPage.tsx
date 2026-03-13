@@ -21,7 +21,7 @@ import { Settings, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 const configSchema = z.object({
-  time_limit_minutes: z.coerce.number().int().min(5).max(60),
+  time_limit_minutes: z.number().int().min(5).max(60),
   is_active: z.boolean(),
 });
 

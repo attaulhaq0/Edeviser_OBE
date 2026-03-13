@@ -49,7 +49,7 @@ export const useLinkedChildren = (parentId: string | undefined) => {
       // Batch fetch gamification for all children (1 query instead of N)
       const { data: gamData } = await supabase
         .from('student_gamification')
-        .select('student_id, level, xp_total, streak_count')
+        .select('student_id, level, xp_total, streak_current')
         .in('student_id', studentIds);
 
       const gamMap = new Map(
@@ -75,7 +75,7 @@ export const useLinkedChildren = (parentId: string | undefined) => {
           student_name: profile.full_name ?? 'Unknown',
           current_level: gam?.level ?? 1,
           xp_total: gam?.xp_total ?? 0,
-          current_streak: gam?.streak_count ?? 0,
+          current_streak: gam?.streak_current ?? 0,
           enrolled_courses: enrollCountMap.get(profile.id) ?? 0,
           avg_attainment: 0,
         };

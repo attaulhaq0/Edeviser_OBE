@@ -40,14 +40,14 @@ export const useCoordinatorKPIs = () => {
         if (typedPloIds.length > 0) {
           const { data: mappings } = await supabase
             .from('outcome_mappings')
-            .select('parent_outcome_id')
+            .select('source_outcome_id')
             .in(
-              'parent_outcome_id',
+              'source_outcome_id',
               typedPloIds.map((p) => p.id),
             );
 
           const typedMappings = mappings ?? [];
-          const coveredPLOs = new Set(typedMappings.map((m) => m.parent_outcome_id));
+          const coveredPLOs = new Set(typedMappings.map((m) => m.source_outcome_id));
           cloCoveragePercent = Math.round((coveredPLOs.size / ploCount) * 100);
         }
       }

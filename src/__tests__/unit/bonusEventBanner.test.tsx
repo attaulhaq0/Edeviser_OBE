@@ -53,8 +53,8 @@ describe('BonusEventBanner', () => {
     mockUseActiveBonusEvent.mockReturnValue({
       data: {
         id: 'evt-1',
-        title: 'Weekend Bonus',
-        multiplier: 2,
+        name: 'Weekend Bonus',
+        xp_multiplier: 2,
         starts_at: new Date().toISOString(),
         ends_at: futureDate,
         is_active: true,
@@ -78,8 +78,8 @@ describe('BonusEventBanner', () => {
     mockUseActiveBonusEvent.mockReturnValue({
       data: {
         id: 'evt-2',
-        title: 'Double XP',
-        multiplier: 3,
+        name: 'Double XP',
+        xp_multiplier: 3,
         starts_at: new Date(now - 3600000).toISOString(),
         ends_at: endsAt,
         is_active: true,
@@ -98,8 +98,8 @@ describe('BonusEventBanner', () => {
     mockUseActiveBonusEvent.mockReturnValue({
       data: {
         id: 'evt-3',
-        title: 'Expired Event',
-        multiplier: 2,
+        name: 'Expired Event',
+        xp_multiplier: 2,
         starts_at: new Date(Date.now() - 7200000).toISOString(),
         ends_at: pastDate,
         is_active: true,
@@ -120,8 +120,8 @@ describe('BonusEventBanner', () => {
     mockUseActiveBonusEvent.mockReturnValue({
       data: {
         id: 'evt-4',
-        title: 'Ticking Event',
-        multiplier: 2,
+        name: 'Ticking Event',
+        xp_multiplier: 2,
         starts_at: new Date(now - 3600000).toISOString(),
         ends_at: new Date('2024-06-15T12:00:10Z').toISOString(), // 10 seconds from now
         is_active: true,

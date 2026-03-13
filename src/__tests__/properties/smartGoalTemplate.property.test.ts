@@ -16,13 +16,13 @@ const dateStr = fc.date({
 }).filter((d: Date) => !isNaN(d.getTime()))
   .map((d: Date) => d.toISOString().split('T')[0]);
 
-const smartFieldsArb: fc.Arbitrary<SmartGoalFields> = fc.record({
+const smartFieldsArb = fc.record({
   specific: nonEmptyStr,
   measurable: nonEmptyStr,
   achievable: nonEmptyStr,
   relevant: nonEmptyStr,
   timebound: dateStr,
-});
+}) as fc.Arbitrary<SmartGoalFields>;
 
 describe('SMART goal template - property-based tests', () => {
   it('P33: composed goal text is non-empty', () => {

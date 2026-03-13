@@ -18,7 +18,7 @@ function canActivateBaseline(
 ): boolean {
   const cloIds = Object.keys(questionCountsByClo);
   if (cloIds.length === 0) return false;
-  return cloIds.every((cloId) => questionCountsByClo[cloId] >= MIN_QUESTIONS_PER_CLO);
+  return cloIds.every((cloId) => (questionCountsByClo[cloId] ?? 0) >= MIN_QUESTIONS_PER_CLO);
 }
 
 describe('Baseline config — property-based tests', () => {

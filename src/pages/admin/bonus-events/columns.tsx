@@ -18,10 +18,10 @@ type EventStatus = 'Active' | 'Scheduled' | 'Ended' | 'Inactive';
 const deriveStatus = (event: BonusXPEvent): EventStatus => {
   if (!event.is_active) return 'Inactive';
   const now = new Date();
-  const start = new Date(event.starts_at);
-  const end = new Date(event.ends_at);
-  if (now >= start && now <= end) return 'Active';
-  if (start > now) return 'Scheduled';
+  const start = event.starts_at ? new Date(event.starts_at) : null;
+  const end = event.ends_at ? new Date(event.ends_at) : null;
+  if (start && end && now >= start && now <= end) return 'Active';
+  if (start && start > now) return 'Scheduled';
   return 'Ended';
 };
 
@@ -39,7 +39,7 @@ export const createColumns = (
   onDeactivate: (event: BonusXPEvent) => void,
 ): ColumnDef<BonusXPEvent>[] => [
   {
-    accessorKey: 'title',
+    accessorKey: 'name',
     header: ({ column }) => (
       <Button
         variant="ghost"
@@ -47,20 +47,20 @@ export const createColumns = (
         className="-ml-3"
         onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
       >
-        Title
+        Name
         <ArrowUpDown className="h-4 w-4" />
       </Button>
     ),
     cell: ({ row }) => (
-      <span className="font-medium">{row.getValue('title')}</span>
+      <span className="font-medium">{row.getValue('name')}</span>
     ),
   },
   {
-    accessorKey: 'multiplier',
+    accessorKey: 'xp_multiplier',
     header: 'Multiplier',
     cell: ({ row }) => (
       <span className="font-medium text-amber-600">
-        {row.getValue<number>('multiplier')}x
+        {row.getValue<number>('xp_multiplier')}x
       </span>
     ),
   },
@@ -77,11 +77,14 @@ export const createColumns = (
         <ArrowUpDown className="h-4 w-4" />
       </Button>
     ),
-    cell: ({ row }) => (
-      <span className="text-gray-500">
-        {format(new Date(row.getValue('starts_at')), 'MMM d, yyyy h:mm a')}
-      </span>
-    ),
+    cell: ({ row }) => {
+      const val = row.getValue<string | null>('starts_at');
+      return (
+        <span className="text-gray-500">
+          {val ? format(new Date(val), 'MMM d, yyyy h:mm a') : '—'}
+        </span>
+      );
+    },
   },
   {
     accessorKey: 'ends_at',
@@ -96,11 +99,14 @@ export const createColumns = (
         <ArrowUpDown className="h-4 w-4" />
       </Button>
     ),
-    cell: ({ row }) => (
-      <span className="text-gray-500">
-        {format(new Date(row.getValue('ends_at')), 'MMM d, yyyy h:mm a')}
-      </span>
-    ),
+    cell: ({ row }) => {
+      const val = row.getValue<string | null>('ends_at');
+      return (
+        <span className="text-gray-500">
+          {val ? format(new Date(val), 'MMM d, yyyy h:mm a') : '—'}
+        </span>
+      );
+    },
   },
   {
     id: 'status',

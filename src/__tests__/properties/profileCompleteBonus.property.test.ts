@@ -93,7 +93,7 @@ describe('Profile complete bonus — property-based tests', () => {
 
           const profileCompleteTxns = transactions.filter((t) => t.source === 'profile_complete');
           expect(profileCompleteTxns).toHaveLength(1);
-          expect(profileCompleteTxns[0].amount).toBe(30);
+          expect(profileCompleteTxns[0]!.amount).toBe(30);
         },
       ),
       { numRuns: 100 },

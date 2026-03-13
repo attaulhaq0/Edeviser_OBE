@@ -315,7 +315,7 @@ const ILOMappingSection = ({ ploId }: { ploId: string }) => {
         return { ilo_id: ilo.id, weight: override.weight, enabled: override.enabled };
       }
       const existing = existingMappings.find(
-        (m) => m.parent_outcome_id === ilo.id,
+        (m) => m.source_outcome_id === ilo.id,
       );
       return {
         ilo_id: ilo.id,
@@ -369,7 +369,7 @@ const ILOMappingSection = ({ ploId }: { ploId: string }) => {
     const activeMappings = mappings
       .filter((m) => m.enabled && m.weight > 0)
       .map((m) => ({
-        parent_outcome_id: m.ilo_id,
+        source_outcome_id: m.ilo_id,
         weight: m.weight,
       }));
 

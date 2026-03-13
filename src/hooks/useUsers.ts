@@ -34,7 +34,7 @@ export const useUsers = (filters: UserFilters = {}) => {
         .range(from, to);
 
       if (filters.role) {
-        query = query.eq('role', filters.role);
+        query = query.eq('role', filters.role as never);
       }
 
       if (filters.search) {
@@ -96,7 +96,7 @@ export const useCreateUser = () => {
   return useMutation({
     mutationFn: async (data: CreateUserFormData): Promise<Profile> => {
       const { data: result, error } = await supabase.from('profiles')
-        .insert(data)
+        .insert(data as never)
         .select()
         .single();
 

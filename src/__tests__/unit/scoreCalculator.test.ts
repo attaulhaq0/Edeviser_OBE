@@ -211,8 +211,8 @@ describe('calculateBaselineScores', () => {
       { clo_id: 'clo-1', selected_option: 2, correct_option: 0 },
     ];
     const result = calculateBaselineScores(responses);
-    expect(result[0].score).toBe(0);
-    expect(result[0].correct_count).toBe(0);
+    expect(result[0]!.score).toBe(0);
+    expect(result[0]!.correct_count).toBe(0);
   });
 
   it('handles multiple CLOs independently', () => {
