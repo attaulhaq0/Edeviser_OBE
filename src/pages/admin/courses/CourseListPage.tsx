@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { parseAsString, useQueryState } from 'nuqs';
+import { parseAsString, parseAsInteger, useQueryState } from 'nuqs';
 import { toast } from 'sonner';
 import { createColumns } from './columns';
 import { DataTable } from '@/components/shared/DataTable';
@@ -26,11 +26,13 @@ const CourseListPage = () => {
     'program',
     parseAsString.withDefault(''),
   );
+  const [page, setPage] = useQueryState('page', parseAsInteger.withDefault(1));
   const [courseToDeactivate, setCourseToDeactivate] = useState<Course | null>(null);
 
   const { data: paginatedCourses, isLoading } = useCourses({
     search: search || undefined,
     programId: programFilter || undefined,
+    page,
   });
 
   const { data: paginatedPrograms } = usePrograms();
@@ -88,7 +90,15 @@ const CourseListPage = () => {
       </div>
 
       {/* Data Table */}
-      <DataTable columns={columns} data={paginatedCourses?.data ?? []} isLoading={isLoading} />
+      <DataTable
+        columns={columns}
+        data={paginatedCourses?.data ?? []}
+        isLoading={isLoading}
+        page={paginatedCourses?.page}
+        pageSize={paginatedCourses?.pageSize}
+        totalCount={paginatedCourses?.count}
+        onPageChange={setPage}
+      />
 
       {/* Deactivate Confirmation Dialog */}
       <ConfirmDialog

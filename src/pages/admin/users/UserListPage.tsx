@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { parseAsString, useQueryState } from 'nuqs';
+import { parseAsString, parseAsInteger, useQueryState } from 'nuqs';
 import { toast } from 'sonner';
 import { createColumns } from './columns';
 import { DataTable } from '@/components/shared/DataTable';
@@ -30,11 +30,13 @@ const UserListPage = () => {
   const navigate = useNavigate();
   const [search, setSearch] = useQueryState('q', parseAsString.withDefault(''));
   const [role, setRole] = useQueryState('role', parseAsString.withDefault(''));
+  const [page, setPage] = useQueryState('page', parseAsInteger.withDefault(1));
   const [userToDeactivate, setUserToDeactivate] = useState<Profile | null>(null);
 
   const { data: paginatedData, isLoading } = useUsers({
     search: search || undefined,
     role: role || undefined,
+    page,
   });
 
   const softDeleteMutation = useSoftDeleteUser();
@@ -98,7 +100,15 @@ const UserListPage = () => {
       </div>
 
       {/* Data Table */}
-      <DataTable columns={columns} data={paginatedData?.data ?? []} isLoading={isLoading} />
+      <DataTable
+        columns={columns}
+        data={paginatedData?.data ?? []}
+        isLoading={isLoading}
+        page={paginatedData?.page}
+        pageSize={paginatedData?.pageSize}
+        totalCount={paginatedData?.count}
+        onPageChange={setPage}
+      />
 
       {/* Deactivate Confirmation Dialog */}
       <ConfirmDialog

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { parseAsString, useQueryState } from 'nuqs';
+import { parseAsString, parseAsInteger, useQueryState } from 'nuqs';
 import { createColumns } from './columns';
 import { DataTable } from '@/components/shared/DataTable';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
@@ -26,6 +26,7 @@ const AssignmentListPage = () => {
     'course',
     parseAsString.withDefault(''),
   );
+  const [page, setPage] = useQueryState('page', parseAsInteger.withDefault(1));
   const [assignmentToDelete, setAssignmentToDelete] =
     useState<AssignmentWithRelations | null>(null);
 
@@ -33,6 +34,7 @@ const AssignmentListPage = () => {
   const courses = paginatedCourses?.data;
   const { data: paginatedAssignments, isLoading } = useAssignments(
     courseFilter || undefined,
+    { page },
   );
   const deleteMutation = useDeleteAssignment();
 
@@ -98,6 +100,10 @@ const AssignmentListPage = () => {
         columns={columns}
         data={filteredAssignments}
         isLoading={isLoading}
+        page={paginatedAssignments?.page}
+        pageSize={paginatedAssignments?.pageSize}
+        totalCount={paginatedAssignments?.count}
+        onPageChange={setPage}
       />
 
       {/* Delete Confirmation Dialog */}

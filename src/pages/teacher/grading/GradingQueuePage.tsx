@@ -1,4 +1,4 @@
-import { parseAsString, useQueryState } from 'nuqs';
+import { parseAsString, parseAsInteger, useQueryState } from 'nuqs';
 import { DataTable } from '@/components/shared/DataTable';
 import { useSubmissions } from '@/hooks/useSubmissions';
 import { useCourses } from '@/hooks/useCourses';
@@ -15,12 +15,14 @@ import {
 const GradingQueuePage = () => {
   const [courseId, setCourseId] = useQueryState('course', parseAsString.withDefault(''));
   const [assignmentId, setAssignmentId] = useQueryState('assignment', parseAsString.withDefault(''));
+  const [page, setPage] = useQueryState('page', parseAsInteger.withDefault(1));
 
   const { data: paginatedCourses } = useCourses();
   const { data: paginatedAssignments } = useAssignments(courseId || undefined);
   const { data: paginatedSubmissions, isLoading } = useSubmissions({
     courseId: courseId || undefined,
     assignmentId: assignmentId || undefined,
+    page,
   });
 
   const courses = paginatedCourses?.data;
@@ -81,6 +83,10 @@ const GradingQueuePage = () => {
         columns={gradingQueueColumns}
         data={submissions}
         isLoading={isLoading}
+        page={paginatedSubmissions?.page}
+        pageSize={paginatedSubmissions?.pageSize}
+        totalCount={paginatedSubmissions?.count}
+        onPageChange={setPage}
       />
     </div>
   );

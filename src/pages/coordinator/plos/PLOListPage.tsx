@@ -18,7 +18,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { toast } from 'sonner';
-import { parseAsString, useQueryState } from 'nuqs';
+import { parseAsString, parseAsInteger, useQueryState } from 'nuqs';
 import { createColumns } from './columns';
 import { DataTable } from '@/components/shared/DataTable';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
@@ -110,10 +110,11 @@ const PLOListPage = () => {
     'program',
     parseAsString.withDefault(''),
   );
+  const [page, setPage] = useQueryState('page', parseAsInteger.withDefault(1));
 
   const { data: paginatedPrograms, isLoading: programsLoading } = usePrograms();
   const programs = paginatedPrograms?.data;
-  const { data: paginatedPLOs, isLoading } = usePLOs(programFilter || undefined);
+  const { data: paginatedPLOs, isLoading } = usePLOs(programFilter || undefined, { page });
   const plos = paginatedPLOs?.data;
   const deleteMutation = useDeletePLO();
   const reorderMutation = useReorderPLOs();
@@ -280,7 +281,15 @@ const PLOListPage = () => {
           </DndContext>
         </Card>
       ) : (
-        <DataTable columns={columns} data={displayItems} isLoading={false} />
+        <DataTable
+          columns={columns}
+          data={displayItems}
+          isLoading={false}
+          page={paginatedPLOs?.page}
+          pageSize={paginatedPLOs?.pageSize}
+          totalCount={paginatedPLOs?.count}
+          onPageChange={setPage}
+        />
       )}
 
       {/* Delete Confirmation Dialog */}

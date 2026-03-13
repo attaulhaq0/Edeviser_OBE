@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { parseAsString, useQueryState } from 'nuqs';
+import { parseAsString, parseAsInteger, useQueryState } from 'nuqs';
 import { Plus, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { DataTable } from '@/components/shared/DataTable';
@@ -14,7 +14,8 @@ import { createColumns } from './columns';
 const RubricListPage = () => {
   const navigate = useNavigate();
   const [search, setSearch] = useQueryState('q', parseAsString.withDefault(''));
-  const { data: paginatedData, isLoading } = useRubrics();
+  const [page, setPage] = useQueryState('page', parseAsInteger.withDefault(1));
+  const { data: paginatedData, isLoading } = useRubrics(undefined, { page });
   const deleteMutation = useDeleteRubric();
   const copyMutation = useCopyRubric();
 
@@ -66,7 +67,15 @@ const RubricListPage = () => {
         </div>
       </div>
 
-      <DataTable columns={columns} data={filtered} isLoading={isLoading} />
+      <DataTable
+        columns={columns}
+        data={filtered}
+        isLoading={isLoading}
+        page={paginatedData?.page}
+        pageSize={paginatedData?.pageSize}
+        totalCount={paginatedData?.count}
+        onPageChange={setPage}
+      />
 
       <ConfirmDialog
         open={!!deleteTarget}
