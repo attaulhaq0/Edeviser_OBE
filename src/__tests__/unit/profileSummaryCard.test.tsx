@@ -11,8 +11,8 @@ import userEvent from '@testing-library/user-event';
 
 // ─── Mock recharts to avoid canvas issues in happy-dom ───────────────────────
 
-vi.mock('recharts', () => {
-  const React = require('react');
+vi.mock('recharts', async () => {
+  const React = await import('react');
   return {
     ResponsiveContainer: ({ children }: { children: React.ReactNode }) =>
       React.createElement('div', { 'data-testid': 'responsive-container' }, children),
