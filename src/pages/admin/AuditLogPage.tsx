@@ -1,4 +1,4 @@
-import { parseAsString, useQueryState } from 'nuqs';
+import { parseAsString, parseAsInteger, useQueryState } from 'nuqs';
 import { type ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
 import { DataTable, ArrowUpDown } from '@/components/shared/DataTable';
@@ -133,11 +133,13 @@ const AuditLogPage = () => {
   const [search, setSearch] = useQueryState('q', parseAsString.withDefault(''));
   const [action, setAction] = useQueryState('action', parseAsString.withDefault(''));
   const [entityType, setEntityType] = useQueryState('type', parseAsString.withDefault(''));
+  const [page, setPage] = useQueryState('page', parseAsInteger.withDefault(1));
 
   const { data: paginatedData, isLoading } = useAuditLogs({
     search: search || undefined,
     action: action || undefined,
     entityType: entityType || undefined,
+    page,
   });
 
   return (
@@ -193,7 +195,15 @@ const AuditLogPage = () => {
       </div>
 
       {/* Data Table */}
-      <DataTable columns={columns} data={paginatedData?.data ?? []} isLoading={isLoading} />
+      <DataTable
+        columns={columns}
+        data={paginatedData?.data ?? []}
+        isLoading={isLoading}
+        page={paginatedData?.page}
+        pageSize={paginatedData?.pageSize}
+        totalCount={paginatedData?.count}
+        onPageChange={setPage}
+      />
     </div>
   );
 };

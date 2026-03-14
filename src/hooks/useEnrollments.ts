@@ -100,7 +100,7 @@ export const useEnrollStudent = () => {
         action: 'create',
         entity_type: 'enrollment',
         entity_id: enrollment.id,
-        changes: input as unknown as Record<string, unknown>,
+        changes: { ...input },
         performed_by: user?.id ?? 'unknown',
       });
 

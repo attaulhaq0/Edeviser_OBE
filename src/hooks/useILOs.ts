@@ -5,6 +5,7 @@ import { logAuditEvent } from '@/lib/auditLogger';
 import { useAuth } from '@/hooks/useAuth';
 import type { CreateILOFormData, UpdateILOFormData, ReorderFormData } from '@/lib/schemas/ilo';
 import type { LearningOutcome } from '@/types/app';
+import type { Database } from '@/types/database';
 import type { PaginatedResult } from '@/types/pagination';
 import { getPaginationRange } from '@/types/pagination';
 
@@ -180,14 +181,19 @@ export const useReorderILOs = () => {
 
   return useMutation({
     mutationFn: async (data: ReorderFormData): Promise<void> => {
-      const rows = data.items.map((item, index) => ({
+      const updates = data.items.map((item, index) => ({
         id: item.id,
         sort_order: index,
       }));
 
-      // Partial upsert: only id + sort_order needed since onConflict='id' triggers UPDATE
+      // Partial upsert: ON CONFLICT (id) only updates sort_order.
+      // Cast needed because Supabase Insert type requires `type` and `title`,
+      // but PostgreSQL's ON CONFLICT clause correctly handles partial columns.
       const { error } = await supabase.from('learning_outcomes')
-        .upsert(rows as never, { onConflict: 'id', ignoreDuplicates: false });
+        .upsert(
+          updates as Database['public']['Tables']['learning_outcomes']['Insert'][],
+          { onConflict: 'id' },
+        );
 
       if (error) throw error;
 

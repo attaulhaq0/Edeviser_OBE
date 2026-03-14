@@ -5,6 +5,7 @@ import { logAuditEvent } from '@/lib/auditLogger';
 import { useAuth } from '@/hooks/useAuth';
 import type { CreatePLOFormData } from '@/lib/schemas/plo';
 import type { LearningOutcome } from '@/types/app';
+import type { Database } from '@/types/database';
 import type { PaginatedResult } from '@/types/pagination';
 import { getPaginationRange } from '@/types/pagination';
 

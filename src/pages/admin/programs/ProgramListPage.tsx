@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { parseAsString, useQueryState } from 'nuqs';
+import { parseAsString, parseAsInteger, useQueryState } from 'nuqs';
 import { toast } from 'sonner';
 import { createColumns } from './columns';
 import { DataTable } from '@/components/shared/DataTable';
@@ -14,10 +14,12 @@ import type { Program } from '@/types/app';
 const ProgramListPage = () => {
   const navigate = useNavigate();
   const [search, setSearch] = useQueryState('q', parseAsString.withDefault(''));
+  const [page, setPage] = useQueryState('page', parseAsInteger.withDefault(1));
   const [programToDeactivate, setProgramToDeactivate] = useState<Program | null>(null);
 
   const { data: paginatedData, isLoading } = usePrograms({
     search: search || undefined,
+    page,
   });
 
   const softDeleteMutation = useSoftDeleteProgram();
@@ -54,7 +56,15 @@ const ProgramListPage = () => {
       </div>
 
       {/* Data Table */}
-      <DataTable columns={columns} data={paginatedData?.data ?? []} isLoading={isLoading} />
+      <DataTable
+        columns={columns}
+        data={paginatedData?.data ?? []}
+        isLoading={isLoading}
+        page={paginatedData?.page}
+        pageSize={paginatedData?.pageSize}
+        totalCount={paginatedData?.count}
+        onPageChange={setPage}
+      />
 
       {/* Deactivate Confirmation Dialog */}
       <ConfirmDialog
