@@ -57,6 +57,7 @@ const StudentAssignmentDetailPage = lazy(() => import('@/pages/student/assignmen
 const LeaderboardPage = lazy(() => import('@/pages/student/leaderboard/LeaderboardPage'));
 const CompleteProfilePage = lazy(() => import('@/pages/student/onboarding/CompleteProfilePage'));
 const ReassessmentPage = lazy(() => import('@/pages/student/settings/ReassessmentPage'));
+const StarterWeekPlanPage = lazy(() => import('@/pages/student/planner/StarterWeekPlanPage'));
 const ParentDashboard = lazy(() => import('@/pages/parent/ParentDashboard'));
 
 // ---------------------------------------------------------------------------
@@ -174,6 +175,7 @@ const AppRouter = () => (
         <Route path="assignments/:id" element={<StudentAssignmentDetailPage />} />
         <Route path="leaderboard" element={<LeaderboardPage />} />
         <Route path="onboarding/complete-profile" element={<CompleteProfilePage />} />
+        <Route path="planner/starter-week" element={<StarterWeekPlanPage />} />
         <Route path="settings/reassessment" element={<ReassessmentPage />} />
       </Route>
 

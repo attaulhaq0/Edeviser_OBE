@@ -140,7 +140,7 @@ const StudentDashboard = () => {
       {onboardingCompleted && day1Completed && starterSessions && starterSessions.length > 0 && (
         <StarterWeekHeroCard
           sessions={starterSessions}
-          onViewPlan={() => navigate('/student/planner')}
+          onViewPlan={() => navigate('/student/planner/starter-week')}
           isPostWeek={isPostWeek}
         />
       )}

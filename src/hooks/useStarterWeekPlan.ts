@@ -1,6 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { queryKeys } from '@/lib/queryKeys';
+import { ONBOARDING_XP } from '@/lib/onboardingConstants';
+import { awardXP } from '@/lib/xpClient';
+import type { XPSource } from '@/types/app';
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -51,7 +54,7 @@ export const useStarterWeekSessions = (studentId: string) => {
   });
 };
 
-// ── useUpdateSessionStatus — update a session's status ───────────────
+// ── useUpdateSessionStatus — update a session's status + award XP on complete ─
 
 export const useUpdateSessionStatus = () => {
   const queryClient = useQueryClient();
@@ -70,6 +73,26 @@ export const useUpdateSessionStatus = () => {
         .single();
 
       if (error) throw error;
+
+      // 15.5: Award XP on starter session completion (non-blocking — DB update already succeeded)
+      if (params.status === 'completed') {
+        try {
+          await awardXP({
+            studentId: params.studentId,
+            xpAmount: ONBOARDING_XP.starter_session_complete,
+            source: 'starter_session_complete' as XPSource,
+            referenceId: `starter_session:${params.id}`,
+            note: 'Starter week session completed',
+          });
+        } catch (xpError) {
+          console.error(
+            `[useUpdateSessionStatus] Failed to award XP for session ${params.id}, student ${params.studentId}, ref starter_session:${params.id}`,
+            xpError,
+          );
+          // Swallow — the session update already succeeded; XP is idempotent via referenceId
+        }
+      }
+
       return data as StarterWeekSession;
     },
     onSuccess: (_data, variables) => {
