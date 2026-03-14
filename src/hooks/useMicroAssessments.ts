@@ -121,13 +121,11 @@ export const useCompleteMicroAssessment = () => {
         const total = Object.values(weights).reduce((sum, w) => sum + w, 0);
         const newCompleteness = Math.round((total / 5) * 100);
 
-        // Upsert student_profiles with new completeness (insert if missing)
+        // Update student_profiles with new completeness (profile created during onboarding)
         const { error: profileError } = await supabase
           .from('student_profiles')
-          .upsert(
-            { student_id: params.studentId, profile_completeness: newCompleteness },
-            { onConflict: 'student_id' },
-          );
+          .update({ profile_completeness: newCompleteness })
+          .eq('student_id', params.studentId);
 
         if (profileError) throw profileError;
 
