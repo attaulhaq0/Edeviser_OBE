@@ -121,11 +121,15 @@ export const useCompleteMicroAssessment = () => {
         const total = Object.values(weights).reduce((sum, w) => sum + w, 0);
         const newCompleteness = Math.round((total / 5) * 100);
 
-        // UPSERT student_profiles with new completeness
-        await supabase
+        // Upsert student_profiles with new completeness (insert if missing)
+        const { error: profileError } = await supabase
           .from('student_profiles')
-          .update({ profile_completeness: newCompleteness })
-          .eq('student_id', params.studentId);
+          .upsert(
+            { student_id: params.studentId, profile_completeness: newCompleteness },
+            { onConflict: 'student_id' },
+          );
+
+        if (profileError) throw profileError;
 
         // 14.7: Award "Profile Complete" bonus XP when reaching 100%
         if (newCompleteness >= 100) {

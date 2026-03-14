@@ -62,7 +62,9 @@ export const useTeacherKPIs = () => {
         .in('assignments.course_id', courseIds);
 
       const submissions = allSubmissions ?? [];
-      const pendingSubmissions = submissions.filter((s) => s.grades === null).length;
+      const pendingSubmissions = submissions.filter(
+        (s) => s.grades == null || (Array.isArray(s.grades) && s.grades.length === 0),
+      ).length;
 
       // 2. Graded this week
       const weekAgo = new Date();

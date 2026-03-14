@@ -32,11 +32,19 @@ import {
   ArrowLeft,
   Target,
 } from 'lucide-react';
-import { format, startOfWeek, differenceInDays } from 'date-fns';
+import { format, startOfWeek, differenceInDays, parseISO, isValid } from 'date-fns';
 import { useState } from 'react';
 import type { StarterWeekSession, SessionStatus } from '@/hooks/useStarterWeekPlan';
 import type { GoalDifficulty } from '@/lib/goalTemplates';
 import { toast } from 'sonner';
+
+// ── Helper: safe date format ────────────────────────────────────────────────
+
+const safeDateFormat = (dateStr: string | null | undefined, fmt: string): string => {
+  if (!dateStr) return 'TBD';
+  const parsed = parseISO(dateStr);
+  return isValid(parsed) ? format(parsed, fmt) : 'TBD';
+};
 
 // ── Session type icons ──────────────────────────────────────────────────────
 
@@ -100,7 +108,7 @@ const SessionCard = ({
       <div className="flex items-center gap-4 text-xs text-gray-500">
         <span className="flex items-center gap-1">
           <CalendarDays className="h-3 w-3" />
-          {format(new Date(session.suggested_date), 'EEE, MMM d')}
+          {safeDateFormat(session.suggested_date, 'EEE, MMM d')}
         </span>
         <span className="flex items-center gap-1">
           <Clock className="h-3 w-3" />
@@ -181,6 +189,15 @@ const StarterWeekPlanPage = () => {
   const { data: coursesData } = useCourses();
   const [showSmartForm, setShowSmartForm] = useState(false);
 
+  // Redirect unauthenticated users
+  if (!user?.id) {
+    return (
+      <div className="p-8 text-center text-sm text-gray-500">
+        Please log in to view your starter week plan.
+      </div>
+    );
+  }
+
   const handleStatusChange = (id: string, status: SessionStatus) => {
     updateStatus.mutate(
       { id, studentId, status },
@@ -204,12 +221,17 @@ const StarterWeekPlanPage = () => {
     );
   };
 
-  // Post-week summary
+  // Post-week summary — find earliest valid suggested_date
   const isPostWeek = (() => {
     if (!sessions || sessions.length === 0) return false;
-    const firstDate = sessions[0]?.suggested_date;
-    if (!firstDate) return false;
-    return differenceInDays(new Date(), new Date(firstDate)) >= 7;
+    const validDates = sessions
+      .map((s) => s.suggested_date)
+      .filter((d): d is string => !!d)
+      .map((d) => parseISO(d))
+      .filter((d) => isValid(d));
+    if (validDates.length === 0) return false;
+    const earliest = validDates.reduce((min, d) => (d < min ? d : min), validDates[0]!);
+    return differenceInDays(new Date(), earliest) >= 7;
   })();
 
   const completedCount = sessions?.filter((s) => s.status === 'completed').length ?? 0;
@@ -227,7 +249,7 @@ const StarterWeekPlanPage = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <Button variant="ghost" size="sm" onClick={() => navigate('/student/dashboard')}>
+        <Button variant="ghost" size="sm" onClick={() => navigate('/student/dashboard')} aria-label="Back to dashboard">
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <h1 className="text-2xl font-bold tracking-tight">
@@ -317,7 +339,10 @@ const StarterWeekPlanPage = () => {
           onAccept={(id) =>
             acceptGoal.mutate(
               { id, studentId, weekStart },
-              { onSuccess: () => toast.success('Goal accepted') },
+              {
+                onSuccess: () => toast.success('Goal accepted'),
+                onError: (err) => toast.error(`Failed to accept goal: ${err.message}`),
+              },
             )
           }
           onEdit={() => {
@@ -326,7 +351,10 @@ const StarterWeekPlanPage = () => {
           onDismiss={(id) =>
             dismissGoal.mutate(
               { id, studentId, weekStart },
-              { onSuccess: () => toast.success('Goal dismissed') },
+              {
+                onSuccess: () => toast.success('Goal dismissed'),
+                onError: (err) => toast.error(`Failed to dismiss goal: ${err.message}`),
+              },
             )
           }
           isLoading={goalsLoading || generateGoals.isPending}

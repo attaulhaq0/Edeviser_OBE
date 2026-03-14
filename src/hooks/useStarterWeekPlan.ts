@@ -74,15 +74,23 @@ export const useUpdateSessionStatus = () => {
 
       if (error) throw error;
 
-      // 15.5: Award XP on starter session completion
+      // 15.5: Award XP on starter session completion (non-blocking — DB update already succeeded)
       if (params.status === 'completed') {
-        await awardXP({
-          studentId: params.studentId,
-          xpAmount: ONBOARDING_XP.starter_session_complete,
-          source: 'starter_session_complete' as XPSource,
-          referenceId: `starter_session:${params.id}`,
-          note: 'Starter week session completed',
-        });
+        try {
+          await awardXP({
+            studentId: params.studentId,
+            xpAmount: ONBOARDING_XP.starter_session_complete,
+            source: 'starter_session_complete' as XPSource,
+            referenceId: `starter_session:${params.id}`,
+            note: 'Starter week session completed',
+          });
+        } catch (xpError) {
+          console.error(
+            `[useUpdateSessionStatus] Failed to award XP for session ${params.id}, student ${params.studentId}, ref starter_session:${params.id}`,
+            xpError,
+          );
+          // Swallow — the session update already succeeded; XP is idempotent via referenceId
+        }
       }
 
       return data as StarterWeekSession;
