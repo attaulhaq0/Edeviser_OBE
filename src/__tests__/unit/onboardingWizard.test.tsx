@@ -508,7 +508,7 @@ describe('OnboardingWizard', () => {
       });
     });
 
-    it('does NOT hide the Next button on the summary step (Next is hidden there)', async () => {
+    it('hides the Next button on the summary step', async () => {
       const user = userEvent.setup();
       renderWizard({ isDay1: true });
 

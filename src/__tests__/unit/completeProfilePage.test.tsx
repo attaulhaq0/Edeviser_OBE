@@ -164,7 +164,7 @@ describe('CompleteProfilePage', () => {
       expect(screen.getByText('Earn XP for each section')).toBeInTheDocument();
     });
 
-    it('does not show estimated time when all dimensions are complete', () => {
+    it('shows estimated time when baseline is incomplete', () => {
       mockCompletenessData = { profile_completeness: 100 };
       mockProfileData = {
         personality_traits: { openness: 80, conscientiousness: 70, extraversion: 60, agreeableness: 50, neuroticism: 40 },
