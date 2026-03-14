@@ -121,7 +121,7 @@ describe('GoalSuggestionPanel', () => {
       const onAccept = vi.fn();
       renderPanel({ onAccept });
       const acceptButtons = screen.getAllByText('Accept');
-      await userEvent.click(acceptButtons[0]);
+      await userEvent.click(acceptButtons[0]!);
       expect(onAccept).toHaveBeenCalledWith('goal-1');
     });
 
@@ -129,7 +129,7 @@ describe('GoalSuggestionPanel', () => {
       const onAccept = vi.fn();
       renderPanel({ onAccept });
       const acceptButtons = screen.getAllByText('Accept');
-      await userEvent.click(acceptButtons[1]);
+      await userEvent.click(acceptButtons[1]!);
       expect(onAccept).toHaveBeenCalledWith('goal-2');
     });
   });
@@ -147,7 +147,7 @@ describe('GoalSuggestionPanel', () => {
       const onEdit = vi.fn();
       renderPanel({ onEdit });
       const editButtons = screen.getAllByText('Edit');
-      await userEvent.click(editButtons[2]);
+      await userEvent.click(editButtons[2]!);
       expect(onEdit).toHaveBeenCalledWith('goal-3');
     });
   });
@@ -165,7 +165,7 @@ describe('GoalSuggestionPanel', () => {
       const onDismiss = vi.fn();
       renderPanel({ onDismiss });
       const dismissButtons = screen.getAllByText('Dismiss');
-      await userEvent.click(dismissButtons[1]);
+      await userEvent.click(dismissButtons[1]!);
       expect(onDismiss).toHaveBeenCalledWith('goal-2');
     });
   });
