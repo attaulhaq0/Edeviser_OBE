@@ -58,11 +58,11 @@ export const useTeacherKPIs = () => {
       // 1. Pending submissions (no grade record)
       const { data: allSubmissions } = await supabase
         .from('submissions')
-        .select('id, assignment_id, assignments!inner(course_id), grades(id)')
+        .select('id, assignment_id, assignments!inner(course_id), grades:grades(id)')
         .in('assignments.course_id', courseIds);
 
       const submissions = allSubmissions ?? [];
-      const pendingSubmissions = submissions.filter((s) => !s.grades || s.grades.length === 0).length;
+
 
       // 2. Graded this week
       const weekAgo = new Date();

@@ -196,19 +196,14 @@ export const useReorderPLOs = () => {
 
   return useMutation({
     mutationFn: async (data: { items: Array<{ id: string; sort_order: number }> }): Promise<void> => {
-      const updates = data.items.map((item, index) => ({
+      const rows = data.items.map((item, index) => ({
         id: item.id,
         sort_order: index,
       }));
 
-      // Partial upsert: ON CONFLICT (id) only updates sort_order.
-      // Cast needed because Supabase Insert type requires `type` and `title`,
-      // but PostgreSQL's ON CONFLICT clause correctly handles partial columns.
+      // Partial upsert: only id + sort_order needed since onConflict='id' triggers UPDATE
       const { error } = await supabase.from('learning_outcomes')
-        .upsert(
-          updates as Database['public']['Tables']['learning_outcomes']['Insert'][],
-          { onConflict: 'id' },
-        );
+        .upsert(rows as never, { onConflict: 'id', ignoreDuplicates: false });
 
       if (error) throw error;
 
