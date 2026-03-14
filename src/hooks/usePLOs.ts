@@ -195,15 +195,16 @@ export const useReorderPLOs = () => {
 
   return useMutation({
     mutationFn: async (data: { items: Array<{ id: string; sort_order: number }> }): Promise<void> => {
-      const results = await Promise.all(
-        data.items.map((item, index) =>
-          supabase.from('learning_outcomes')
-            .update({ sort_order: index })
-            .eq('id', item.id)
-        )
-      );
-      const failed = results.find((r) => r.error);
-      if (failed?.error) throw failed.error;
+      const rows = data.items.map((item, index) => ({
+        id: item.id,
+        sort_order: index,
+      }));
+
+      // Partial upsert: only id + sort_order needed since onConflict='id' triggers UPDATE
+      const { error } = await supabase.from('learning_outcomes')
+        .upsert(rows as never, { onConflict: 'id', ignoreDuplicates: false });
+
+      if (error) throw error;
 
       await logAuditEvent({
         action: 'reorder',
