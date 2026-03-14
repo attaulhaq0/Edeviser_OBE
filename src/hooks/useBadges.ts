@@ -3,7 +3,9 @@ import { supabase } from '@/lib/supabase';
 import { queryKeys } from '@/lib/queryKeys';
 
 export interface StudentBadge {
-  badge_id: string;
+  badge_key: string;
+  badge_name: string;
+  emoji: string;
   awarded_at: string;
 }
 
@@ -17,8 +19,8 @@ export const useStudentBadges = () => {
       if (!user) return [];
 
       const { data, error } = await supabase
-        .from('student_badges')
-        .select('badge_id, awarded_at')
+        .from('badges')
+        .select('badge_key, badge_name, emoji, awarded_at')
         .eq('student_id', user.id)
         .order('awarded_at', { ascending: false });
 

@@ -416,7 +416,7 @@ const PLOMappingSection = ({ cloId, programId }: { cloId: string; programId: str
         return { plo_id: plo.id, weight: override.weight, enabled: override.enabled };
       }
       const existing = existingMappings.find(
-        (m) => m.parent_outcome_id === plo.id,
+        (m) => m.source_outcome_id === plo.id,
       );
       return {
         plo_id: plo.id,
@@ -470,7 +470,7 @@ const PLOMappingSection = ({ cloId, programId }: { cloId: string; programId: str
     const activeMappings = mappings
       .filter((m) => m.enabled && m.weight > 0)
       .map((m) => ({
-        parent_outcome_id: m.plo_id,
+        source_outcome_id: m.plo_id,
         weight: m.weight,
       }));
 

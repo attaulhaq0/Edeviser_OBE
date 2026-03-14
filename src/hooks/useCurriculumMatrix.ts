@@ -20,8 +20,8 @@ export interface CurriculumMatrixData {
 }
 
 interface OutcomeMappingRow {
-  parent_outcome_id: string;
-  child_outcome_id: string;
+  source_outcome_id: string;
+  target_outcome_id: string;
 }
 
 // ─── Status helper ──────────────────────────────────────────────────────────
@@ -65,13 +65,13 @@ export const useCellDetail = (ploId: string | undefined, courseId: string | unde
 
       // 3. Fetch outcome_mappings where parent = this PLO
       const { data: mappings, error: mapError } = await supabase.from('outcome_mappings')
-        .select('child_outcome_id')
-        .eq('parent_outcome_id', ploId!);
+        .select('target_outcome_id')
+        .eq('source_outcome_id', ploId!);
 
       if (mapError) throw mapError;
 
       const childIds = (mappings ?? []).map(
-        (m) => m.child_outcome_id,
+        (m) => m.target_outcome_id,
       );
 
       if (childIds.length === 0) {
@@ -149,9 +149,9 @@ export const useCurriculumMatrix = (programId: string | undefined) => {
 
       if (cloIds.length > 0) {
         const { data: mappings, error: mapError } = await supabase.from('outcome_mappings')
-          .select('parent_outcome_id, child_outcome_id')
-          .in('parent_outcome_id', ploIds)
-          .in('child_outcome_id', cloIds);
+          .select('source_outcome_id, target_outcome_id')
+          .in('source_outcome_id', ploIds)
+          .in('target_outcome_id', cloIds);
 
         if (mapError) throw mapError;
         typedMappings = mappings as OutcomeMappingRow[];
@@ -174,8 +174,8 @@ export const useCurriculumMatrix = (programId: string | undefined) => {
           // Count CLOs in this course that map to this PLO
           const cloCount = typedMappings.filter(
             (m) =>
-              m.parent_outcome_id === plo.id &&
-              cloToCourse.get(m.child_outcome_id) === course.id,
+              m.source_outcome_id === plo.id &&
+              cloToCourse.get(m.target_outcome_id) === course.id,
           ).length;
 
           row[course.id] = {

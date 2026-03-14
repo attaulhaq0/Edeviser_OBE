@@ -16,8 +16,8 @@ export interface Submission {
   student_id: string;
   file_url: string;
   is_late: boolean;
-  created_at: string;
-  institution_id: string;
+  submitted_at: string;
+  status: string;
 }
 
 export interface SubmissionWithRelations extends Submission {
@@ -124,13 +124,10 @@ export interface StudentAssignment {
   course_id: string;
   due_date: string;
   total_marks: number;
-  rubric_id: string;
   late_window_hours: number;
   prerequisites: Array<{ clo_id: string; required_attainment: number }> | null;
-  institution_id: string;
   created_at: string;
-  updated_at: string;
-  submissions: Pick<Submission, 'id' | 'is_late' | 'created_at'>[] | null;
+  submissions: Pick<Submission, 'id' | 'is_late'>[] | null;
 }
 
 // ─── useCreateSubmission — insert a submission record ───────────────────────
@@ -159,7 +156,7 @@ export const useCreateSubmission = () => {
 
       if (error) throw error;
 
-      const submission = data as Submission;
+      const submission = data as unknown as Submission;
 
       await logAuditEvent({
         action: 'create',
@@ -241,7 +238,7 @@ export const useStudentAssignments = (courseId?: string) => {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data as StudentAssignment[];
+      return data as unknown as StudentAssignment[];
     },
   });
 };

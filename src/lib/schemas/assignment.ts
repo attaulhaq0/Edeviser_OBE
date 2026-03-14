@@ -11,7 +11,6 @@ export const createAssignmentSchema = z.object({
   course_id: z.uuid(),
   due_date: z.iso.datetime(),
   total_marks: z.number().int().min(1),
-  rubric_id: z.uuid(),
   clo_weights: z
     .array(cloWeightSchema)
     .min(1, "At least 1 CLO required")

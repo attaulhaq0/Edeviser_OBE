@@ -75,12 +75,12 @@ async function fetchWeeklyLeaderboard(
 
   return assignRanks(
     (data ?? []).map((d) => ({
-      student_id: d.student_id,
-      full_name: d.full_name,
-      xp_total: d.xp_total,
-      level: d.level,
-      streak_current: d.streak_current,
-      global_rank: d.global_rank,
+      student_id: d.student_id ?? '',
+      full_name: d.full_name ?? '',
+      xp_total: d.xp_total ?? 0,
+      level: d.level ?? 0,
+      streak_current: d.streak_current ?? 0,
+      global_rank: d.global_rank ?? 0,
     })),
     optOutIds,
   );
@@ -245,13 +245,13 @@ export const useAnonymousStatus = () => {
 
       const { data, error } = await supabase
         .from('student_gamification')
-        .select('leaderboard_opt_out')
+        .select('leaderboard_anonymous')
         .eq('student_id', user.id)
         .maybeSingle();
 
       if (error) throw error;
 
-      const optOut = data?.leaderboard_opt_out ?? false;
+      const optOut = data?.leaderboard_anonymous ?? false;
       return { isAnonymous: optOut };
     },
   });
@@ -272,18 +272,18 @@ export const useToggleAnonymous = () => {
       // Get current opt-out status
       const { data: current, error: fetchError } = await supabase
         .from('student_gamification')
-        .select('leaderboard_opt_out')
+        .select('leaderboard_anonymous')
         .eq('student_id', user.id)
         .maybeSingle();
 
       if (fetchError) throw fetchError;
 
-      const currentOptOut = current?.leaderboard_opt_out ?? false;
+      const currentOptOut = current?.leaderboard_anonymous ?? false;
       const newOptOut = !currentOptOut;
 
       const { error: updateError } = await supabase
         .from('student_gamification')
-        .update({ leaderboard_opt_out: newOptOut })
+        .update({ leaderboard_anonymous: newOptOut })
         .eq('student_id', user.id);
 
       if (updateError) throw updateError;
@@ -339,7 +339,7 @@ async function getOptOutStudentIds(): Promise<Set<string>> {
   const { data, error } = await supabase
     .from('student_gamification')
     .select('student_id')
-    .eq('leaderboard_opt_out', true);
+    .eq('leaderboard_anonymous', true);
 
   if (error) throw error;
   return new Set((data ?? []).map((r) => r.student_id));

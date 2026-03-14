@@ -1,8 +1,19 @@
+import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import Shimmer from '@/components/shared/Shimmer';
+import ProfileSummaryCard from '@/components/shared/ProfileSummaryCard';
+import MicroAssessmentCard from '@/components/shared/MicroAssessmentCard';
+import ProfileCompletenessBar from '@/components/shared/ProfileCompletenessBar';
+import StarterWeekHeroCard from '@/components/shared/StarterWeekHeroCard';
 import { useAuth } from '@/hooks/useAuth';
 import { useStudentKPIs, useUpcomingDeadlines } from '@/hooks/useStudentDashboard';
+import { useStudentProfile } from '@/hooks/useStudentProfile';
+import { useTodayMicroAssessment, useCompleteMicroAssessment, useDismissMicroAssessment } from '@/hooks/useMicroAssessments';
+import { useProfileCompleteness } from '@/hooks/useProfileCompleteness';
+import { useStarterWeekSessions } from '@/hooks/useStarterWeekPlan';
+import { useOnboardingProgress } from '@/hooks/useOnboardingProgress';
 import {
   BookOpen,
   CheckCircle2,
@@ -10,9 +21,11 @@ import {
   Flame,
   Star,
   CalendarClock,
+  AlertCircle,
+  Bell,
   type LucideIcon,
 } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, differenceInDays } from 'date-fns';
 
 // ─── KPI Card ───────────────────────────────────────────────────────────────
 
@@ -42,9 +55,38 @@ const KPICard = ({ icon: Icon, label, value, accent }: KPICardProps) => (
 // ─── Student Dashboard ──────────────────────────────────────────────────────
 
 const StudentDashboard = () => {
+  const navigate = useNavigate();
   const { user, profile } = useAuth();
+  const studentId = user?.id ?? '';
   const { data: kpis, isLoading: kpisLoading } = useStudentKPIs(user?.id);
   const { data: deadlines, isLoading: deadlinesLoading } = useUpcomingDeadlines(user?.id, 5);
+
+  // Onboarding-related hooks
+  const onboardingCompleted = profile?.onboarding_completed === true;
+  const { data: studentProfile } = useStudentProfile(studentId);
+  const { data: todayMicro } = useTodayMicroAssessment(studentId);
+  const completeMicro = useCompleteMicroAssessment();
+  const dismissMicro = useDismissMicroAssessment();
+  const { data: completenessData } = useProfileCompleteness(studentId);
+  const { data: starterSessions } = useStarterWeekSessions(studentId);
+  const { data: progress } = useOnboardingProgress(studentId);
+
+  const profileCompleteness = completenessData?.profile_completeness ?? 0;
+  const day1Completed = completenessData?.day1_completed ?? false;
+  const hasSkippedSections = (progress?.skipped_sections?.length ?? 0) > 0;
+
+  // Determine if starter week is post-week (7+ days since first session)
+  const isPostWeek = (() => {
+    if (!starterSessions || starterSessions.length === 0) return false;
+    const firstDate = starterSessions[0]?.suggested_date;
+    if (!firstDate) return false;
+    return differenceInDays(new Date(), new Date(firstDate)) >= 7;
+  })();
+
+  // Determine if student deferred onboarding (not completed, account > 1 day old)
+  const showDeferredBanner = !onboardingCompleted && profile?.created_at
+    ? differenceInDays(new Date(), new Date(profile.created_at)) >= 1
+    : false;
 
   const greeting = () => {
     const hour = new Date().getHours();
@@ -55,6 +97,54 @@ const StudentDashboard = () => {
 
   return (
     <div className="space-y-6">
+      {/* 7.7 — Onboarding deferred reminder banner */}
+      {showDeferredBanner && (
+        <Card className="border-0 shadow-md rounded-xl p-4 bg-amber-50 flex items-center gap-3">
+          <Bell className="h-5 w-5 text-amber-600 shrink-0" />
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-amber-800">Complete your onboarding</p>
+            <p className="text-xs text-amber-600">
+              Finish your profile to unlock personalized recommendations and earn XP.
+            </p>
+          </div>
+          <Button
+            size="sm"
+            onClick={() => navigate('/student/dashboard')}
+            className="bg-gradient-to-r from-teal-500 to-blue-600 text-white text-xs font-semibold active:scale-95 transition-transform duration-100"
+          >
+            Start Now
+          </Button>
+        </Card>
+      )}
+
+      {/* 7.3 — Micro-assessment prompt (first 14 days) */}
+      {onboardingCompleted && todayMicro && (
+        <MicroAssessmentCard
+          assessmentType={todayMicro.assessment_type}
+          questionCount={todayMicro.question_ids.length}
+          dismissalCount={todayMicro.dismissal_count}
+          onComplete={() =>
+            completeMicro.mutate({ id: todayMicro.id, studentId })
+          }
+          onDismiss={() =>
+            dismissMicro.mutate({
+              id: todayMicro.id,
+              studentId,
+              currentDismissals: todayMicro.dismissal_count,
+            })
+          }
+        />
+      )}
+
+      {/* 7.5 — Starter Week Hero Card */}
+      {onboardingCompleted && day1Completed && starterSessions && starterSessions.length > 0 && (
+        <StarterWeekHeroCard
+          sessions={starterSessions}
+          onViewPlan={() => navigate('/student/planner')}
+          isPostWeek={isPostWeek}
+        />
+      )}
+
       {/* Welcome Hero Card */}
       <Card
         className="border-0 shadow-lg rounded-xl overflow-hidden text-white"
@@ -82,6 +172,35 @@ const StudentDashboard = () => {
           </div>
         </div>
       </Card>
+
+      {/* 7.4 — Profile Completeness Bar */}
+      {onboardingCompleted && profileCompleteness < 100 && (
+        <ProfileCompletenessBar completeness={profileCompleteness} />
+      )}
+      {onboardingCompleted && profileCompleteness >= 100 && (
+        <ProfileCompletenessBar completeness={100} />
+      )}
+
+      {/* 7.6 — Complete Assessment prompt for skipped sections */}
+      {onboardingCompleted && hasSkippedSections && !studentProfile?.personality_traits && !studentProfile?.learning_style && (
+        <Card className="border-0 shadow-md rounded-xl p-4 bg-blue-50 flex items-center gap-3">
+          <AlertCircle className="h-5 w-5 text-blue-600 shrink-0" />
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-blue-800">Complete your assessment</p>
+            <p className="text-xs text-blue-600">
+              You skipped some sections during onboarding. Complete them to get full personalization.
+            </p>
+          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => navigate('/student/onboarding/complete-profile')}
+            className="text-xs border-blue-300 text-blue-700"
+          >
+            Complete Now
+          </Button>
+        </Card>
+      )}
 
       {/* KPI Row */}
       {kpisLoading ? (
@@ -180,6 +299,19 @@ const StudentDashboard = () => {
           </div>
         </Card>
       </div>
+
+      {/* 7.2 — Profile Summary Card */}
+      {onboardingCompleted && studentProfile && (
+        <ProfileSummaryCard
+          personalityTraits={studentProfile.personality_traits}
+          learningStyle={studentProfile.learning_style}
+          selfEfficacy={studentProfile.self_efficacy}
+          studyStrategies={studentProfile.study_strategies}
+          hasSkippedSections={hasSkippedSections}
+          onRetake={() => navigate('/student/settings/reassessment')}
+          onCompleteRemaining={() => navigate('/student/onboarding/complete-profile')}
+        />
+      )}
     </div>
   );
 };

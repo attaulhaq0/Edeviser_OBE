@@ -12,9 +12,10 @@ const makeRubric = (overrides?: Partial<RubricWithCriteria>): RubricWithCriteria
   id: 'rubric-1',
   title: 'Essay Rubric',
   clo_id: 'clo-1',
+  description: null,
+  created_by: null,
   is_template: false,
   created_at: '2024-01-01T00:00:00Z',
-  updated_at: '2024-01-01T00:00:00Z',
   criteria: [
     {
       id: 'c1',

@@ -127,15 +127,15 @@ export const useDeleteILO = () => {
     mutationFn: async (id: string): Promise<void> => {
       // Check for dependent PLOs via outcome_mappings
       const { data: deps, error: depsError } = await supabase.from('outcome_mappings')
-        .select('id, child_outcome_id')
-        .eq('parent_outcome_id', id);
+        .select('id, target_outcome_id')
+        .eq('source_outcome_id', id);
 
       if (depsError) throw depsError;
 
       if (deps && (deps ?? []).length > 0) {
         // Fetch the dependent PLO titles for a helpful error message
         const childIds = (deps ?? []).map(
-          (d) => d.child_outcome_id,
+          (d) => d.target_outcome_id,
         );
         const { data: plos, error: ploError } = await supabase.from('learning_outcomes')
           .select('id, title')

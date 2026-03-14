@@ -118,7 +118,7 @@ const RubricBuilder = () => {
 
     form.reset({
       title: existingRubric.title,
-      clo_id: existingRubric.clo_id,
+      clo_id: existingRubric.clo_id ?? '',
       is_template: existingRubric.is_template,
     });
 
@@ -159,9 +159,10 @@ const RubricBuilder = () => {
     id: id ?? 'preview',
     title: form.getValues('title') || 'Untitled Rubric',
     clo_id: form.getValues('clo_id') || '',
+    description: null,
+    created_by: null,
     is_template: form.getValues('is_template') || false,
     created_at: '',
-    updated_at: '',
     criteria: criteria.map((c, idx) => ({
       id: `preview-criterion-${idx}`,
       rubric_id: id ?? 'preview',

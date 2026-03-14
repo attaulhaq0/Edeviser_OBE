@@ -14,7 +14,6 @@ import {
 } from '@/hooks/useAssignments';
 import { useCourses } from '@/hooks/useCourses';
 import { useCLOs } from '@/hooks/useCLOs';
-import { useRubrics } from '@/hooks/useRubrics';
 import { BLOOMS_COLORS } from '@/lib/bloomsVerbs';
 import type { BloomsLevel } from '@/lib/schemas/clo';
 import type { LearningOutcome } from '@/types/app';
@@ -312,16 +311,11 @@ const AssignmentFormFields = ({
     selectedCourseId || undefined,
   );
   const clos = paginatedCLOs?.data ?? [];
-  const { data: paginatedRubrics, isLoading: isLoadingRubrics } = useRubrics(
-    selectedCourseId || undefined,
-  );
-  const rubrics = paginatedRubrics?.data ?? [];
 
-  // Reset CLO weights and rubric when course changes
+  // Reset CLO weights when course changes
   useEffect(() => {
     if (selectedCourseId && !isEditMode) {
       form.setValue('clo_weights', []);
-      form.setValue('rubric_id', '' as `${string}-${string}-${string}-${string}-${string}`);
       form.setValue('prerequisites', []);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -474,51 +468,7 @@ const AssignmentFormFields = ({
           </div>
         </Card>
 
-        {/* Section 2: Rubric Selection */}
-        <Card className="bg-white border-0 shadow-md rounded-xl p-6">
-          <h2 className="text-lg font-bold tracking-tight mb-4">Rubric</h2>
-          <FormField
-            control={form.control}
-            name="rubric_id"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Select Rubric</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  value={field.value}
-                  disabled={isLoadingRubrics || !selectedCourseId}
-                >
-                  <FormControl>
-                    <SelectTrigger className="bg-white">
-                      <SelectValue
-                        placeholder={
-                          !selectedCourseId
-                            ? 'Select a course first'
-                            : 'Select a rubric'
-                        }
-                      />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {rubrics.map((rubric) => (
-                      <SelectItem key={rubric.id} value={rubric.id}>
-                        {rubric.title}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {selectedCourseId && rubrics.length === 0 && !isLoadingRubrics && (
-                  <p className="text-xs text-amber-600 mt-1">
-                    No rubrics found for this course. Create a rubric first.
-                  </p>
-                )}
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </Card>
-
-        {/* Section 3: CLO Linking & Weight Distribution */}
+        {/* Section 2: CLO Linking & Weight Distribution */}
         <Card className="bg-white border-0 shadow-md rounded-xl p-6">
           <h2 className="text-lg font-bold tracking-tight mb-4">
             CLO Linking &amp; Weight Distribution
@@ -534,7 +484,7 @@ const AssignmentFormFields = ({
           )}
         </Card>
 
-        {/* Section 4: Prerequisite Gates */}
+        {/* Section 3: Prerequisite Gates */}
         <Card className="bg-white border-0 shadow-md rounded-xl p-6">
           <h2 className="text-lg font-bold tracking-tight mb-4">
             Prerequisite Gates
@@ -584,7 +534,6 @@ const CreateAssignmentForm = () => {
       course_id: '' as `${string}-${string}-${string}-${string}-${string}`,
       due_date: '',
       total_marks: undefined as unknown as number,
-      rubric_id: '' as `${string}-${string}-${string}-${string}-${string}`,
       clo_weights: [],
       late_window_hours: 24,
       prerequisites: [],
@@ -626,7 +575,6 @@ const EditAssignmentForm = ({ assignmentId }: { assignmentId: string }) => {
       course_id: '' as `${string}-${string}-${string}-${string}-${string}`,
       due_date: '',
       total_marks: undefined as unknown as number,
-      rubric_id: '' as `${string}-${string}-${string}-${string}-${string}`,
       clo_weights: [],
       late_window_hours: 24,
       prerequisites: [],
@@ -641,7 +589,6 @@ const EditAssignmentForm = ({ assignmentId }: { assignmentId: string }) => {
         course_id: existing.course_id as `${string}-${string}-${string}-${string}-${string}`,
         due_date: existing.due_date,
         total_marks: existing.total_marks,
-        rubric_id: existing.rubric_id as `${string}-${string}-${string}-${string}-${string}`,
         clo_weights: (existing.clo_weights ?? []).map((w) => ({
           clo_id: w.clo_id as `${string}-${string}-${string}-${string}-${string}`,
           weight: w.weight,

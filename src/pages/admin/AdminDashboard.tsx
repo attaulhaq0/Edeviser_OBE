@@ -1,7 +1,8 @@
+import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Shimmer from '@/components/shared/Shimmer';
-import { useAdminKPIs, useRecentAuditLogs } from '@/hooks/useAdminDashboard';
+import { useAdminKPIs, useRecentAuditLogs, useOnboardingAnalytics } from '@/hooks/useAdminDashboard';
 import {
   Users,
   UserCheck,
@@ -9,6 +10,7 @@ import {
   GraduationCap,
   Activity,
   BarChart3,
+  ClipboardCheck,
   type LucideIcon,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
@@ -50,8 +52,10 @@ const roleBadgeStyles: Record<string, string> = {
 // ─── Admin Dashboard ────────────────────────────────────────────────────────
 
 const AdminDashboard = () => {
+  const navigate = useNavigate();
   const { data: kpis, isLoading: kpisLoading } = useAdminKPIs();
   const { data: auditLogs, isLoading: logsLoading } = useRecentAuditLogs(10);
+  const { data: onboardingAnalytics } = useOnboardingAnalytics();
 
   return (
     <div className="space-y-6">
@@ -59,18 +63,40 @@ const AdminDashboard = () => {
 
       {/* KPI Row */}
       {kpisLoading ? (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {Array.from({ length: 4 }).map((_, i) => (
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          {Array.from({ length: 5 }).map((_, i) => (
             <Shimmer key={i} className="h-24 rounded-xl" />
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <KPICard icon={Users} label="Total Users" value={kpis?.totalUsers ?? 0} />
           <KPICard icon={UserCheck} label="Active Users" value={kpis?.activeUsers ?? 0} />
           <KPICard icon={BookOpen} label="Programs" value={kpis?.totalPrograms ?? 0} />
           <KPICard icon={GraduationCap} label="Courses" value={kpis?.totalCourses ?? 0} />
+          <KPICard
+            icon={ClipboardCheck}
+            label="Onboarding"
+            value={`${onboardingAnalytics?.completionRate ?? 0}%`}
+          />
         </div>
+      )}
+
+      {/* Onboarding pending link */}
+      {onboardingAnalytics && onboardingAnalytics.completionRate < 100 && (
+        <button
+          type="button"
+          onClick={() => navigate('/admin/onboarding/pending')}
+          className="w-full text-left rounded-xl bg-amber-50 p-4 flex items-center justify-between hover:bg-amber-100 transition-colors"
+        >
+          <div>
+            <p className="text-sm font-semibold text-amber-800">
+              {onboardingAnalytics.totalStudents - onboardingAnalytics.completedOnboarding} student{onboardingAnalytics.totalStudents - onboardingAnalytics.completedOnboarding !== 1 ? 's' : ''} haven&apos;t completed onboarding
+            </p>
+            <p className="text-xs text-amber-600">View list and send reminders</p>
+          </div>
+          <ClipboardCheck className="h-5 w-5 text-amber-600 shrink-0" />
+        </button>
       )}
 
       {/* Two-column layout: Users by Role + Recent Activity */}

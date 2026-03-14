@@ -37,8 +37,9 @@ import { Plus, Search, Loader2, Sparkles } from 'lucide-react';
 // ─── Form schema (all fields required — avoids .default() type mismatch) ────
 
 const bonusEventFormSchema = z.object({
-  title: z.string().min(1, 'Title is required').max(255),
-  multiplier: z.number().positive(),
+  name: z.string().min(1, 'Name is required').max(255),
+  event_type: z.string().min(1),
+  xp_multiplier: z.number().positive(),
   starts_at: z.string().min(1, 'Start date is required'),
   ends_at: z.string().min(1, 'End date is required'),
   is_active: z.boolean(),
@@ -93,8 +94,9 @@ const BonusEventFormDialog = ({
   const form = useForm<BonusEventFormValues>({
     resolver: zodResolver(bonusEventFormSchema),
     defaultValues: {
-      title: '',
-      multiplier: 2,
+      name: '',
+      event_type: 'bonus_xp',
+      xp_multiplier: 2,
       starts_at: '',
       ends_at: '',
       is_active: true,
@@ -106,16 +108,18 @@ const BonusEventFormDialog = ({
     (isOpen: boolean) => {
       if (isOpen && editingEvent) {
         form.reset({
-          title: editingEvent.title,
-          multiplier: editingEvent.multiplier,
-          starts_at: editingEvent.starts_at,
-          ends_at: editingEvent.ends_at,
+          name: editingEvent.name,
+          event_type: editingEvent.event_type,
+          xp_multiplier: editingEvent.xp_multiplier,
+          starts_at: editingEvent.starts_at ?? '',
+          ends_at: editingEvent.ends_at ?? '',
           is_active: editingEvent.is_active,
         });
       } else if (isOpen) {
         form.reset({
-          title: '',
-          multiplier: 2,
+          name: '',
+          event_type: 'bonus_xp',
+          xp_multiplier: 2,
           starts_at: '',
           ends_at: '',
           is_active: true,
@@ -133,11 +137,11 @@ const BonusEventFormDialog = ({
         (ev) =>
           ev.is_active &&
           ev.id !== editingEvent?.id &&
-          rangesOverlap(data.starts_at, data.ends_at, ev.starts_at, ev.ends_at),
+          rangesOverlap(data.starts_at, data.ends_at, ev.starts_at ?? '', ev.ends_at ?? ''),
       );
       if (overlapping) {
         toast.error(
-          `Date range overlaps with "${overlapping.title}". Only one active event allowed per time period.`,
+          `Date range overlaps with "${overlapping.name}". Only one active event allowed per time period.`,
         );
         return;
       }
@@ -180,10 +184,10 @@ const BonusEventFormDialog = ({
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
-              name="title"
+              name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Title</FormLabel>
+                  <FormLabel>Name</FormLabel>
                   <FormControl>
                     <Input placeholder="e.g. Double XP Weekend" {...field} />
                   </FormControl>
@@ -194,7 +198,7 @@ const BonusEventFormDialog = ({
 
             <FormField
               control={form.control}
-              name="multiplier"
+              name="xp_multiplier"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Multiplier</FormLabel>
@@ -372,7 +376,7 @@ const BonusXPEventManager = () => {
         open={!!eventToDeactivate}
         onOpenChange={() => setEventToDeactivate(null)}
         title="Deactivate Bonus Event"
-        description={`Are you sure you want to deactivate "${eventToDeactivate?.title}"? The XP multiplier will no longer apply.`}
+        description={`Are you sure you want to deactivate "${eventToDeactivate?.name}"? The XP multiplier will no longer apply.`}
         variant="destructive"
         confirmLabel="Deactivate"
         isPending={deleteMutation.isPending}
@@ -380,7 +384,7 @@ const BonusXPEventManager = () => {
           if (!eventToDeactivate) return;
           deleteMutation.mutate(eventToDeactivate.id, {
             onSuccess: () => {
-              toast.success(`"${eventToDeactivate.title}" has been deactivated`);
+              toast.success(`"${eventToDeactivate.name}" has been deactivated`);
               setEventToDeactivate(null);
             },
             onError: (err) => {

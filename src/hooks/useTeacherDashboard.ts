@@ -107,12 +107,12 @@ export const useTeacherKPIs = () => {
         // Students inactive 7+ days
         const { data: inactiveProfiles } = await supabase
           .from('profiles')
-          .select('id, last_login_at')
+          .select('id, last_seen_at')
           .in('id', studentIds);
 
         const inactiveSet = new Set<string>();
         for (const p of inactiveProfiles ?? []) {
-          if (!p.last_login_at || new Date(p.last_login_at) < sevenDaysAgo) {
+          if (!p.last_seen_at || new Date(p.last_seen_at) < sevenDaysAgo) {
             inactiveSet.add(p.id);
           }
         }
@@ -127,7 +127,7 @@ export const useTeacherKPIs = () => {
 
         const lowCloMap = new Map<string, number>();
         for (const row of lowAttainment ?? []) {
-          lowCloMap.set(row.student_id, (lowCloMap.get(row.student_id) ?? 0) + 1);
+          lowCloMap.set(row.student_id!, (lowCloMap.get(row.student_id!) ?? 0) + 1);
         }
 
         const atRiskSet = new Set<string>(inactiveSet);
@@ -164,7 +164,6 @@ export const useTeacherCLOAttainment = (courseId?: string) => {
         .select('id, title, blooms_level')
         .eq('type', 'CLO')
         .eq('course_id', courseId)
-        .eq('is_active', true)
         .order('sort_order', { ascending: true });
 
       const typedCLOs = clos ?? [];
@@ -227,7 +226,6 @@ export const useTeacherBloomsDistribution = () => {
         .from('learning_outcomes')
         .select('blooms_level')
         .eq('type', 'CLO')
-        .eq('is_active', true)
         .in('course_id', courseIds);
 
       const countMap = new Map<string, number>();
@@ -237,7 +235,7 @@ export const useTeacherBloomsDistribution = () => {
         }
       }
 
-      const levels: BloomsLevel[] = ['Remembering', 'Understanding', 'Applying', 'Analyzing', 'Evaluating', 'Creating'];
+      const levels: BloomsLevel[] = ['remembering', 'understanding', 'applying', 'analyzing', 'evaluating', 'creating'];
       return levels
         .map((level) => ({ level, count: countMap.get(level) ?? 0 }))
         .filter((r) => r.count > 0);
@@ -261,7 +259,6 @@ export const useStudentPerformanceHeatmap = (courseId?: string) => {
         .select('id, title')
         .eq('type', 'CLO')
         .eq('course_id', courseId)
-        .eq('is_active', true)
         .order('sort_order', { ascending: true });
 
       const typedCLOs = clos ?? [];
@@ -372,7 +369,7 @@ export const useAtRiskStudents = () => {
       // Get profiles for all enrolled students
       const { data: profiles } = await supabase
         .from('profiles')
-        .select('id, full_name, email, last_login_at')
+        .select('id, full_name, email, last_seen_at')
         .in('id', studentIds);
 
       const typedProfiles = profiles ?? [];
@@ -380,8 +377,8 @@ export const useAtRiskStudents = () => {
       // Build inactive set with days count
       const inactiveMap = new Map<string, number>();
       for (const p of typedProfiles) {
-        if (!p.last_login_at || new Date(p.last_login_at) < sevenDaysAgo) {
-          const lastLogin = p.last_login_at ? new Date(p.last_login_at) : null;
+        if (!p.last_seen_at || new Date(p.last_seen_at) < sevenDaysAgo) {
+          const lastLogin = p.last_seen_at ? new Date(p.last_seen_at) : null;
           const daysInactive = lastLogin
             ? Math.floor((Date.now() - lastLogin.getTime()) / (1000 * 60 * 60 * 24))
             : 999;
@@ -399,7 +396,7 @@ export const useAtRiskStudents = () => {
 
       const lowCloMap = new Map<string, number>();
       for (const row of lowAttainment ?? []) {
-        lowCloMap.set(row.student_id, (lowCloMap.get(row.student_id) ?? 0) + 1);
+        lowCloMap.set(row.student_id!, (lowCloMap.get(row.student_id!) ?? 0) + 1);
       }
 
       // Combine into at-risk list
@@ -430,7 +427,7 @@ export const useAtRiskStudents = () => {
           id: profile.id,
           full_name: profile.full_name,
           email: profile.email,
-          last_login_at: profile.last_login_at,
+          last_login_at: profile.last_seen_at,
           risk_reasons: reasons,
           low_clo_count: lowCount,
           days_inactive: daysInactive,
