@@ -158,20 +158,20 @@
 
 ## 13. Unit Tests
 
-- [ ] 13.1 `src/__tests__/unit/scoreCalculator.test.ts` — Big Five, VARK, baseline, self-efficacy, study strategy, and profile completeness score calculation edge cases
-- [ ] 13.2 `src/__tests__/unit/onboardingSchemas.test.ts` — Zod schema validation (valid/invalid payloads) for all schemas including selfEfficacyResponse, studyStrategyResponse, starterWeekSession, goalSuggestion, smartGoalTemplate
-- [ ] 13.3 `src/__tests__/unit/onboardingWizard.test.tsx` — Wizard step navigation, Day 1 mode (7 questions), progress persistence, skip behavior
-- [ ] 13.4 `src/__tests__/unit/likertScale.test.tsx` — Likert scale rendering, keyboard navigation, ARIA attributes
-- [ ] 13.5 `src/__tests__/unit/assessmentTimer.test.tsx` — Timer countdown, warning state, auto-submit on expiry
-- [ ] 13.6 `src/__tests__/unit/profileSummaryCard.test.tsx` — Radar chart rendering, VARK "Self-Awareness" section with disclaimer, null state handling, retake link
-- [ ] 13.7 `src/__tests__/unit/microAssessmentCard.test.tsx` — Micro-assessment card rendering, complete/dismiss actions, dismissal counter, skip after 3 dismissals
-- [ ] 13.8 `src/__tests__/unit/profileCompletenessBar.test.tsx` — Progress bar rendering, percentage display, navigation to CompleteProfilePage, badge at 100%
-- [ ] 13.9 `src/__tests__/unit/starterWeekHeroCard.test.tsx` — Hero card rendering, session count display, "View Plan" navigation, post-week summary
-- [ ] 13.10 `src/__tests__/unit/goalSuggestionPanel.test.tsx` — Goal suggestion rendering, difficulty badges, accept/edit/dismiss actions
-- [ ] 13.11 `src/__tests__/unit/smartGoalForm.test.tsx` — SMART form rendering, pre-filled fields, goal text composition on submit
-- [ ] 13.12 `src/__tests__/unit/goalDifficultyBadge.test.tsx` — Badge rendering for Easy (green), Moderate (amber), Ambitious (red)
-- [ ] 13.13 `src/__tests__/unit/completeProfilePage.test.tsx` — Remaining dimensions list, item counts, estimated time, bulk completion flow
-- [ ] 13.14 `src/__tests__/unit/goalTemplates.test.ts` — SMART goal composition, difficulty classification from cohort rates
+- [x] 13.1 `src/__tests__/unit/scoreCalculator.test.ts` — Big Five, VARK, baseline, self-efficacy, study strategy, and profile completeness score calculation edge cases
+- [x] 13.2 `src/__tests__/unit/onboardingSchemas.test.ts` — Zod schema validation (valid/invalid payloads) for all schemas including selfEfficacyResponse, studyStrategyResponse, starterWeekSession, goalSuggestion, smartGoalTemplate
+- [x] 13.3 `src/__tests__/unit/onboardingWizard.test.tsx` — Wizard step navigation, Day 1 mode (7 questions), progress persistence, skip behavior
+- [x] 13.4 `src/__tests__/unit/likertScale.test.tsx` — Likert scale rendering, keyboard navigation, ARIA attributes
+- [x] 13.5 `src/__tests__/unit/assessmentTimer.test.tsx` — Timer countdown, warning state, auto-submit on expiry
+- [x] 13.6 `src/__tests__/unit/profileSummaryCard.test.tsx` — Radar chart rendering, VARK "Self-Awareness" section with disclaimer, null state handling, retake link
+- [x] 13.7 `src/__tests__/unit/microAssessmentCard.test.tsx` — Micro-assessment card rendering, complete/dismiss actions, dismissal counter, skip after 3 dismissals
+- [x] 13.8 `src/__tests__/unit/profileCompletenessBar.test.tsx` — Progress bar rendering, percentage display, navigation to CompleteProfilePage, badge at 100%
+- [x] 13.9 `src/__tests__/unit/starterWeekHeroCard.test.tsx` — Hero card rendering, session count display, "View Plan" navigation, post-week summary
+- [x] 13.10 `src/__tests__/unit/goalSuggestionPanel.test.tsx` — Goal suggestion rendering, difficulty badges, accept/edit/dismiss actions
+- [~] 13.11 `src/__tests__/unit/smartGoalForm.test.tsx` — SMART form rendering, pre-filled fields, goal text composition on submit
+- [~] 13.12 `src/__tests__/unit/goalDifficultyBadge.test.tsx` — Badge rendering for Easy (green), Moderate (amber), Ambitious (red)
+- [~] 13.13 `src/__tests__/unit/completeProfilePage.test.tsx` — Remaining dimensions list, item counts, estimated time, bulk completion flow
+- [~] 13.14 `src/__tests__/unit/goalTemplates.test.ts` — SMART goal composition, difficulty classification from cohort rates
 
 
 ## 14. Progressive Profiling & Micro-Assessments
