@@ -64,12 +64,12 @@ import { formatDistanceToNow } from 'date-fns';
 // ─── Bloom's Color Map ──────────────────────────────────────────────────────
 
 const BLOOMS_COLORS: Record<BloomsLevel, string> = {
-  Remembering: '#a855f7',   // purple-500
-  Understanding: '#3b82f6', // blue-500
-  Applying: '#22c55e',      // green-500
-  Analyzing: '#eab308',     // yellow-500
-  Evaluating: '#f97316',    // orange-500
-  Creating: '#ef4444',      // red-500
+  remembering: '#a855f7',   // purple-500
+  understanding: '#3b82f6', // blue-500
+  applying: '#22c55e',      // green-500
+  analyzing: '#eab308',     // yellow-500
+  evaluating: '#f97316',    // orange-500
+  creating: '#ef4444',      // red-500
 };
 
 
@@ -552,7 +552,7 @@ const TeacherDashboard = () => {
                       </Badge>
                     )}
                     <span className="text-xs text-gray-400 whitespace-nowrap">
-                      {formatDistanceToNow(new Date(sub.created_at), { addSuffix: true })}
+                      {formatDistanceToNow(new Date(sub.submitted_at), { addSuffix: true })}
                     </span>
                   </div>
                 </div>

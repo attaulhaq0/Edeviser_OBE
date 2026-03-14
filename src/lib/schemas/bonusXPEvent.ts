@@ -11,8 +11,9 @@ export const bonusXPEventSchema = z.object({
 });
 
 export const createBonusEventSchema = z.object({
-  title: z.string().min(1, "Title is required").max(255),
-  multiplier: z.number().positive().default(2),
+  name: z.string().min(1, "Name is required").max(255),
+  event_type: z.string().min(1, "Event type is required").default("bonus_xp"),
+  xp_multiplier: z.number().positive().default(2),
   starts_at: z.iso.datetime(),
   ends_at: z.iso.datetime(),
   is_active: z.boolean().default(true),

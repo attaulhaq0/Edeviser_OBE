@@ -69,6 +69,7 @@ const baseSubmission = {
   id: 'sub-1',
   assignment_id: 'assign-1',
   student_id: 'student-1',
+  submitted_at: '2024-06-15T10:30:00Z',
   file_url: 'https://storage.example.com/file.pdf',
   is_late: false,
   created_at: '2024-06-15T10:30:00Z',

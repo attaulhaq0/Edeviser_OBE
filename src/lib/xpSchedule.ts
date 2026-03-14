@@ -25,6 +25,15 @@ export const XP_SCHEDULE: Record<XPSource, number> = {
   discussion_answer: 15,
   survey_completion: 15,
   quiz_completion: 50,
+  onboarding_personality: 25,
+  onboarding_learning_style: 25,
+  onboarding_baseline: 20,
+  onboarding_complete: 50,
+  onboarding_self_efficacy: 25,
+  onboarding_study_strategy: 25,
+  micro_assessment: 10,
+  profile_complete: 30,
+  starter_session_complete: 15,
 };
 
 /** XP awarded for late submissions (assignment or quiz) */

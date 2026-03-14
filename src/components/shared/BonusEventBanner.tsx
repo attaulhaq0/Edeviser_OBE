@@ -37,9 +37,9 @@ const BonusEventBanner = () => {
 
   return (
     <BonusEventBannerContent
-      title={event.title}
-      multiplier={event.multiplier}
-      endsAt={event.ends_at}
+      title={event.name}
+      multiplier={event.xp_multiplier}
+      endsAt={event.ends_at ?? ''}
       prefersReducedMotion={prefersReducedMotion ?? false}
     />
   );

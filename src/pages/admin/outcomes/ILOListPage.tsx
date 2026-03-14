@@ -88,13 +88,9 @@ const SortableRow = ({ ilo, index }: SortableRowProps) => {
       </div>
       <Badge
         variant="outline"
-        className={
-          ilo.is_active
-            ? 'bg-green-50 text-green-600 border-green-200'
-            : 'bg-red-50 text-red-600 border-red-200'
-        }
+        className="bg-green-50 text-green-600 border-green-200"
       >
-        {ilo.is_active ? 'Active' : 'Inactive'}
+        Active
       </Badge>
       <span className="text-xs text-gray-400">
         {format(new Date(ilo.created_at), 'MMM d, yyyy')}

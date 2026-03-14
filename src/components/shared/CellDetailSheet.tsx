@@ -14,12 +14,12 @@ import type { BloomsLevel } from '@/types/app';
 // ─── Bloom's badge color map (from design-system steering) ──────────────────
 
 const bloomsStyles: Record<BloomsLevel, string> = {
-  Remembering: 'bg-purple-500 text-white',
-  Understanding: 'bg-blue-500 text-white',
-  Applying: 'bg-green-500 text-white',
-  Analyzing: 'bg-yellow-500 text-gray-900',
-  Evaluating: 'bg-orange-500 text-white',
-  Creating: 'bg-red-500 text-white',
+  remembering: 'bg-purple-500 text-white',
+  understanding: 'bg-blue-500 text-white',
+  applying: 'bg-green-500 text-white',
+  analyzing: 'bg-yellow-500 text-gray-900',
+  evaluating: 'bg-orange-500 text-white',
+  creating: 'bg-red-500 text-white',
 };
 
 // ─── Props ──────────────────────────────────────────────────────────────────

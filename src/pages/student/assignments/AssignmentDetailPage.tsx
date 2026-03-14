@@ -91,7 +91,7 @@ const AssignmentDetailPage = () => {
       const fileUrl = await uploadFile.mutateAsync({
         file: selectedFile,
         assignmentId: assignment.id,
-        institutionId: assignment.institution_id,
+        institutionId: '',
       });
 
       // Step 2: Create submission record with the real URL
@@ -99,7 +99,7 @@ const AssignmentDetailPage = () => {
         assignment_id: assignment.id,
         file_url: fileUrl,
         is_late: deadline.isLate,
-        institution_id: assignment.institution_id,
+        institution_id: '',
       };
 
       createSubmission.mutate(input, {
@@ -268,10 +268,10 @@ const AssignmentDetailPage = () => {
                 <div>
                   <p className="text-xs text-gray-500">Submitted At</p>
                   <p className="font-medium">
-                    {format(new Date(mySubmission.created_at), 'MMM d, yyyy h:mm a')}
+                    {format(new Date(mySubmission.submitted_at), 'MMM d, yyyy h:mm a')}
                   </p>
                   <p className="text-xs text-gray-400">
-                    {formatDistanceToNow(new Date(mySubmission.created_at), {
+                    {formatDistanceToNow(new Date(mySubmission.submitted_at), {
                       addSuffix: true,
                     })}
                   </p>

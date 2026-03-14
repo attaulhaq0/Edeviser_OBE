@@ -15,8 +15,8 @@ import { getPaginationRange } from '@/types/pagination';
 
 export interface OutcomeMapping {
   id: string;
-  parent_outcome_id: string;
-  child_outcome_id: string;
+  source_outcome_id: string;
+  target_outcome_id: string;
   weight: number;
   created_at: string;
 }
@@ -74,7 +74,7 @@ export const useCreatePLO = () => {
   return useMutation({
     mutationFn: async (data: CreatePLOFormData): Promise<LearningOutcome> => {
       const { data: result, error } = await supabase.from('learning_outcomes')
-        .insert({ ...data, type: 'PLO' })
+        .insert({ ...data, type: 'PLO' } as never)
         .select()
         .single();
 
@@ -143,15 +143,15 @@ export const useDeletePLO = () => {
     mutationFn: async (id: string): Promise<void> => {
       // Check for dependent CLOs via outcome_mappings
       const { data: deps, error: depsError } = await supabase.from('outcome_mappings')
-        .select('id, child_outcome_id')
-        .eq('parent_outcome_id', id);
+        .select('id, target_outcome_id')
+        .eq('source_outcome_id', id);
 
       if (depsError) throw depsError;
 
       if (deps && (deps ?? []).length > 0) {
         // Fetch the dependent CLO titles for a helpful error message
         const childIds = (deps ?? []).map(
-          (d) => d.child_outcome_id,
+          (d) => d.target_outcome_id,
         );
         const { data: clos, error: cloError } = await supabase.from('learning_outcomes')
           .select('id, title')
@@ -234,7 +234,7 @@ export const usePLOMappings = (ploId: string | undefined) => {
     queryFn: async (): Promise<OutcomeMapping[]> => {
       const { data, error } = await supabase.from('outcome_mappings')
         .select('*')
-        .eq('child_outcome_id', ploId!);
+        .eq('target_outcome_id', ploId!);
 
       if (error) throw error;
       return data as OutcomeMapping[];
@@ -252,22 +252,20 @@ export const useUpdatePLOMappings = () => {
   return useMutation({
     mutationFn: async (data: {
       ploId: string;
-      mappings: Array<{ parent_outcome_id: string; weight: number }>;
+      mappings: Array<{ source_outcome_id: string; weight: number }>;
     }): Promise<void> => {
       // Delete existing mappings for this PLO
       const { error: deleteError } = await supabase.from('outcome_mappings')
         .delete()
-        .eq('child_outcome_id', data.ploId);
+        .eq('target_outcome_id', data.ploId);
 
       if (deleteError) throw deleteError;
 
       // Insert new mappings
       if (data.mappings.length > 0) {
         const rows = data.mappings.map((m) => ({
-          source_outcome_id: m.parent_outcome_id,
+          source_outcome_id: m.source_outcome_id,
           target_outcome_id: data.ploId,
-          parent_outcome_id: m.parent_outcome_id,
-          child_outcome_id: data.ploId,
           weight: m.weight,
         }));
 

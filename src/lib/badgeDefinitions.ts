@@ -122,6 +122,28 @@ export const BADGE_DEFINITIONS: BadgeDef[] = [
     xpReward: 100,
   },
 
+  // ── Onboarding badges ────────────────────────────────────────────────────
+  {
+    id: 'self_aware_scholar',
+    name: 'Self-Aware Scholar',
+    description: 'Complete personality, learning style, and baseline assessments',
+    icon: '🔬',
+    category: 'engagement',
+    isMystery: false,
+    condition: 'Complete all three assessment sections (personality, learning style, and at least one baseline test)',
+    xpReward: 50,
+  },
+  {
+    id: 'thorough_explorer',
+    name: 'Thorough Explorer',
+    description: 'Complete onboarding without skipping any section',
+    icon: '🧭',
+    category: 'engagement',
+    isMystery: false,
+    condition: 'Complete onboarding without skipping any assessment section',
+    xpReward: 75,
+  },
+
   // ── Mystery badges (hidden conditions) ──────────────────────────────────
   {
     id: 'speed_demon',

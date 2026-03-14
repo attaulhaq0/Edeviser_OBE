@@ -82,7 +82,7 @@ export const useCreateCourse = () => {
   return useMutation({
     mutationFn: async (data: CreateCourseFormData): Promise<Course> => {
       const { data: result, error } = await supabase.from('courses')
-        .insert(data)
+        .insert(data as never)
         .select()
         .single();
 

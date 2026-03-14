@@ -18,13 +18,10 @@ export interface Assignment {
   course_id: string;
   due_date: string;
   total_marks: number;
-  rubric_id: string;
   clo_weights: Array<{ clo_id: string; weight: number }>;
   late_window_hours: number;
   prerequisites: Array<{ clo_id: string; required_attainment: number }> | null;
-  institution_id: string;
   created_at: string;
-  updated_at: string;
 }
 
 export interface AssignmentWithRelations extends Assignment {
@@ -51,7 +48,7 @@ export const useAssignments = (courseId?: string, pagination?: { page?: number; 
       const { data, error, count } = await query;
 
       if (error) throw error;
-      return { data: (data ?? []) as AssignmentWithRelations[], count: count ?? 0, page, pageSize };
+      return { data: (data ?? []) as unknown as AssignmentWithRelations[], count: count ?? 0, page, pageSize };
     },
   });
 };
@@ -90,7 +87,7 @@ export const useCreateAssignment = () => {
 
       if (error) throw error;
 
-      const assignment = result as Assignment;
+      const assignment = result as unknown as Assignment;
 
       await logAuditEvent({
         action: 'create',
@@ -134,7 +131,7 @@ export const useUpdateAssignment = (id: string) => {
         performed_by: user?.id ?? 'unknown',
       });
 
-      return result as Assignment;
+      return result as unknown as Assignment;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.assignments.lists() });

@@ -140,7 +140,7 @@ const SubmissionInfoPanel = ({ submission, assignment }: SubmissionInfoPanelProp
       <div className="flex items-center gap-2">
         <Clock className="h-4 w-4 text-gray-400" />
         <span className="text-sm">
-          {format(new Date(submission.created_at), 'MMM d, yyyy h:mm a')}
+          {format(new Date(submission.submitted_at), 'MMM d, yyyy h:mm a')}
         </span>
       </div>
     </div>

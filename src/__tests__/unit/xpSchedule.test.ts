@@ -20,6 +20,15 @@ describe('XP Schedule', () => {
       'discussion_answer',
       'survey_completion',
       'quiz_completion',
+      'onboarding_personality',
+      'onboarding_learning_style',
+      'onboarding_baseline',
+      'onboarding_complete',
+      'onboarding_self_efficacy',
+      'onboarding_study_strategy',
+      'micro_assessment',
+      'profile_complete',
+      'starter_session_complete',
     ];
 
     for (const source of expectedSources) {
@@ -63,5 +72,17 @@ describe('XP Schedule', () => {
     expect(XP_SCHEDULE.badge_earned).toBe(0);
     expect(XP_SCHEDULE.level_up).toBe(0);
     expect(XP_SCHEDULE.streak_freeze_purchase).toBe(0);
+  });
+
+  it('matches onboarding XP amounts from spec', () => {
+    expect(XP_SCHEDULE.onboarding_personality).toBe(25);
+    expect(XP_SCHEDULE.onboarding_learning_style).toBe(25);
+    expect(XP_SCHEDULE.onboarding_self_efficacy).toBe(25);
+    expect(XP_SCHEDULE.onboarding_study_strategy).toBe(25);
+    expect(XP_SCHEDULE.onboarding_baseline).toBe(20);
+    expect(XP_SCHEDULE.onboarding_complete).toBe(50);
+    expect(XP_SCHEDULE.micro_assessment).toBe(10);
+    expect(XP_SCHEDULE.profile_complete).toBe(30);
+    expect(XP_SCHEDULE.starter_session_complete).toBe(15);
   });
 });

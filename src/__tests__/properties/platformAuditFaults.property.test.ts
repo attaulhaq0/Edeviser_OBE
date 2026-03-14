@@ -68,12 +68,12 @@ describe('1.2 Query key consistency fault condition', () => {
 // **Validates: Requirements 2.3, 2.4**
 
 describe('1.3 Column name fault condition', () => {
-  it('useStudentDashboard reads streak_count (not current_streak) from student_gamification', () => {
+  it('useStudentDashboard reads streak_current (not current_streak) from student_gamification', () => {
     const filePath = path.join(srcRoot, 'src/hooks/useStudentDashboard.ts');
     const source = fs.readFileSync(filePath, 'utf-8');
 
     // Should use the correct column name that the edge function writes to
-    expect(source).toContain('streak_count');
+    expect(source).toContain('streak_current');
   });
 
   it('useStudentDashboard reads attainment_percent (not score_percent) from outcome_attainment', () => {

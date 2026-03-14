@@ -15,8 +15,8 @@ import { getPaginationRange } from '@/types/pagination';
 
 export interface OutcomeMapping {
   id: string;
-  parent_outcome_id: string;
-  child_outcome_id: string;
+  source_outcome_id: string;
+  target_outcome_id: string;
   weight: number;
   created_at: string;
 }
@@ -77,7 +77,7 @@ export const useCreateCLO = () => {
       const { plo_mappings, ...cloFields } = data;
 
       const { data: result, error } = await supabase.from('learning_outcomes')
-        .insert({ ...cloFields, type: 'CLO' })
+        .insert({ ...cloFields, type: 'CLO' } as never)
         .select()
         .single();
 
@@ -90,8 +90,6 @@ export const useCreateCLO = () => {
         const rows = plo_mappings.map((m) => ({
           source_outcome_id: m.plo_id,
           target_outcome_id: clo.id,
-          parent_outcome_id: m.plo_id,
-          child_outcome_id: clo.id,
           weight: m.weight,
         }));
 
@@ -142,7 +140,7 @@ export const useUpdateCLO = (id: string) => {
       if (plo_mappings !== undefined) {
         const { error: deleteError } = await supabase.from('outcome_mappings')
           .delete()
-          .eq('child_outcome_id', id);
+          .eq('target_outcome_id', id);
 
         if (deleteError) throw deleteError;
 
@@ -150,8 +148,6 @@ export const useUpdateCLO = (id: string) => {
           const rows = plo_mappings.map((m) => ({
             source_outcome_id: m.plo_id,
             target_outcome_id: id,
-            parent_outcome_id: m.plo_id,
-            child_outcome_id: id,
             weight: m.weight,
           }));
 
@@ -191,14 +187,14 @@ export const useDeleteCLO = () => {
       // Check for dependent assignments via outcome_mappings where this CLO is a parent
       const { error: depsError } = await supabase.from('outcome_mappings')
         .select('id')
-        .eq('child_outcome_id', id);
+        .eq('target_outcome_id', id);
 
       if (depsError) throw depsError;
 
       // Remove outcome_mappings where this CLO is the child
       const { error: deleteMappingsError } = await supabase.from('outcome_mappings')
         .delete()
-        .eq('child_outcome_id', id);
+        .eq('target_outcome_id', id);
 
       if (deleteMappingsError) throw deleteMappingsError;
 
@@ -261,7 +257,7 @@ export const useCLOMappings = (cloId?: string) => {
     queryFn: async (): Promise<OutcomeMapping[]> => {
       const { data, error } = await supabase.from('outcome_mappings')
         .select('*')
-        .eq('child_outcome_id', cloId!);
+        .eq('target_outcome_id', cloId!);
 
       if (error) throw error;
       return data as OutcomeMapping[];
@@ -278,22 +274,20 @@ export const useUpdateCLOMappings = () => {
   return useMutation({
     mutationFn: async (data: {
       cloId: string;
-      mappings: Array<{ parent_outcome_id: string; weight: number }>;
+      mappings: Array<{ source_outcome_id: string; weight: number }>;
     }): Promise<void> => {
       // Delete existing mappings for this CLO
       const { error: deleteError } = await supabase.from('outcome_mappings')
         .delete()
-        .eq('child_outcome_id', data.cloId);
+        .eq('target_outcome_id', data.cloId);
 
       if (deleteError) throw deleteError;
 
       // Insert new mappings
       if (data.mappings.length > 0) {
         const rows = data.mappings.map((m) => ({
-          source_outcome_id: m.parent_outcome_id,
+          source_outcome_id: m.source_outcome_id,
           target_outcome_id: data.cloId,
-          parent_outcome_id: m.parent_outcome_id,
-          child_outcome_id: data.cloId,
           weight: m.weight,
         }));
 
