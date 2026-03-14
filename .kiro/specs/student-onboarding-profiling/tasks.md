@@ -158,55 +158,55 @@
 
 ## 13. Unit Tests
 
-- [~] 13.1 `src/__tests__/unit/scoreCalculator.test.ts` — Big Five, VARK, baseline, self-efficacy, study strategy, and profile completeness score calculation edge cases
-- [~] 13.2 `src/__tests__/unit/onboardingSchemas.test.ts` — Zod schema validation (valid/invalid payloads) for all schemas including selfEfficacyResponse, studyStrategyResponse, starterWeekSession, goalSuggestion, smartGoalTemplate
-- [~] 13.3 `src/__tests__/unit/onboardingWizard.test.tsx` — Wizard step navigation, Day 1 mode (7 questions), progress persistence, skip behavior
-- [~] 13.4 `src/__tests__/unit/likertScale.test.tsx` — Likert scale rendering, keyboard navigation, ARIA attributes
-- [~] 13.5 `src/__tests__/unit/assessmentTimer.test.tsx` — Timer countdown, warning state, auto-submit on expiry
-- [~] 13.6 `src/__tests__/unit/profileSummaryCard.test.tsx` — Radar chart rendering, VARK "Self-Awareness" section with disclaimer, null state handling, retake link
-- [~] 13.7 `src/__tests__/unit/microAssessmentCard.test.tsx` — Micro-assessment card rendering, complete/dismiss actions, dismissal counter, skip after 3 dismissals
-- [~] 13.8 `src/__tests__/unit/profileCompletenessBar.test.tsx` — Progress bar rendering, percentage display, navigation to CompleteProfilePage, badge at 100%
-- [~] 13.9 `src/__tests__/unit/starterWeekHeroCard.test.tsx` — Hero card rendering, session count display, "View Plan" navigation, post-week summary
-- [~] 13.10 `src/__tests__/unit/goalSuggestionPanel.test.tsx` — Goal suggestion rendering, difficulty badges, accept/edit/dismiss actions
-- [~] 13.11 `src/__tests__/unit/smartGoalForm.test.tsx` — SMART form rendering, pre-filled fields, goal text composition on submit
-- [~] 13.12 `src/__tests__/unit/goalDifficultyBadge.test.tsx` — Badge rendering for Easy (green), Moderate (amber), Ambitious (red)
-- [~] 13.13 `src/__tests__/unit/completeProfilePage.test.tsx` — Remaining dimensions list, item counts, estimated time, bulk completion flow
-- [~] 13.14 `src/__tests__/unit/goalTemplates.test.ts` — SMART goal composition, difficulty classification from cohort rates
+- [ ] 13.1 `src/__tests__/unit/scoreCalculator.test.ts` — Big Five, VARK, baseline, self-efficacy, study strategy, and profile completeness score calculation edge cases
+- [ ] 13.2 `src/__tests__/unit/onboardingSchemas.test.ts` — Zod schema validation (valid/invalid payloads) for all schemas including selfEfficacyResponse, studyStrategyResponse, starterWeekSession, goalSuggestion, smartGoalTemplate
+- [ ] 13.3 `src/__tests__/unit/onboardingWizard.test.tsx` — Wizard step navigation, Day 1 mode (7 questions), progress persistence, skip behavior
+- [ ] 13.4 `src/__tests__/unit/likertScale.test.tsx` — Likert scale rendering, keyboard navigation, ARIA attributes
+- [ ] 13.5 `src/__tests__/unit/assessmentTimer.test.tsx` — Timer countdown, warning state, auto-submit on expiry
+- [ ] 13.6 `src/__tests__/unit/profileSummaryCard.test.tsx` — Radar chart rendering, VARK "Self-Awareness" section with disclaimer, null state handling, retake link
+- [ ] 13.7 `src/__tests__/unit/microAssessmentCard.test.tsx` — Micro-assessment card rendering, complete/dismiss actions, dismissal counter, skip after 3 dismissals
+- [ ] 13.8 `src/__tests__/unit/profileCompletenessBar.test.tsx` — Progress bar rendering, percentage display, navigation to CompleteProfilePage, badge at 100%
+- [ ] 13.9 `src/__tests__/unit/starterWeekHeroCard.test.tsx` — Hero card rendering, session count display, "View Plan" navigation, post-week summary
+- [ ] 13.10 `src/__tests__/unit/goalSuggestionPanel.test.tsx` — Goal suggestion rendering, difficulty badges, accept/edit/dismiss actions
+- [ ] 13.11 `src/__tests__/unit/smartGoalForm.test.tsx` — SMART form rendering, pre-filled fields, goal text composition on submit
+- [ ] 13.12 `src/__tests__/unit/goalDifficultyBadge.test.tsx` — Badge rendering for Easy (green), Moderate (amber), Ambitious (red)
+- [ ] 13.13 `src/__tests__/unit/completeProfilePage.test.tsx` — Remaining dimensions list, item counts, estimated time, bulk completion flow
+- [ ] 13.14 `src/__tests__/unit/goalTemplates.test.ts` — SMART goal composition, difficulty classification from cohort rates
 
 
 ## 14. Progressive Profiling & Micro-Assessments
 
-- [~] 14.1 Implement micro-assessment schedule generation logic in process-onboarding Edge Function (14-day schedule based on MICRO_ASSESSMENT_SCHEDULE constant)
-- [~] 14.2 Create pg_cron job to check for due micro-assessments daily and update scheduled_at dates
-- [~] 14.3 Wire MicroAssessmentCard into StudentDashboard — fetch today's micro-assessment, handle complete/dismiss
-- [~] 14.4 Implement dismissal tracking: increment dismissal_count on dismiss, mark as 'skipped' after 3 consecutive dismissals
-- [~] 14.5 Wire ProfileCompletenessBar into StudentDashboard — fetch profile_completeness, navigate to CompleteProfilePage
-- [~] 14.6 Implement profile_completeness recalculation on each micro-assessment completion (UPSERT student_profiles)
-- [~] 14.7 Wire "Profile Complete" bonus XP (30 XP) when profile_completeness reaches 100%
+- [ ] 14.1 Implement micro-assessment schedule generation logic in process-onboarding Edge Function (14-day schedule based on MICRO_ASSESSMENT_SCHEDULE constant)
+- [ ] 14.2 Create pg_cron job to check for due micro-assessments daily and update scheduled_at dates
+- [ ] 14.3 Wire MicroAssessmentCard into StudentDashboard — fetch today's micro-assessment, handle complete/dismiss
+- [ ] 14.4 Implement dismissal tracking: increment dismissal_count on dismiss, mark as 'skipped' after 3 consecutive dismissals
+- [ ] 14.5 Wire ProfileCompletenessBar into StudentDashboard — fetch profile_completeness, navigate to CompleteProfilePage
+- [ ] 14.6 Implement profile_completeness recalculation on each micro-assessment completion (UPSERT student_profiles)
+- [ ] 14.7 Wire "Profile Complete" bonus XP (30 XP) when profile_completeness reaches 100%
 
 ## 15. Starter Week Plan Integration
 
-- [~] 15.1 Wire generate-starter-week Edge Function call from process-onboarding after Day 1 completion
-- [~] 15.2 Wire StarterWeekHeroCard into StudentDashboard — fetch starter_week_sessions, display session count and total time
-- [~] 15.3 Integrate starter week sessions into weekly planner — display with "AI Suggested" badge and subtle background tint
-- [~] 15.4 Implement session status management: accept, modify, reschedule, dismiss, complete actions
-- [~] 15.5 Wire XP award (15 XP) on starter session completion
-- [~] 15.6 Implement post-week summary: replace hero card with completion stats after 7 days
+- [ ] 15.1 Wire generate-starter-week Edge Function call from process-onboarding after Day 1 completion
+- [ ] 15.2 Wire StarterWeekHeroCard into StudentDashboard — fetch starter_week_sessions, display session count and total time
+- [ ] 15.3 Integrate starter week sessions into weekly planner — display with "AI Suggested" badge and subtle background tint
+- [ ] 15.4 Implement session status management: accept, modify, reschedule, dismiss, complete actions
+- [ ] 15.5 Wire XP award (15 XP) on starter session completion
+- [ ] 15.6 Implement post-week summary: replace hero card with completion stats after 7 days
 
 ## 16. Goal-Setting Scaffolding Integration
 
-- [~] 16.1 Wire suggest-goals Edge Function call when student opens weekly planner goal-setting interface
-- [~] 16.2 Wire GoalSuggestionPanel into weekly planner — display 3 suggested goals with difficulty badges
-- [~] 16.3 Implement goal accept/edit/dismiss actions — populate goal slot on accept
-- [~] 16.4 Wire SmartGoalForm into weekly planner goal creation/edit flow — "Use SMART Template" option
-- [~] 16.5 Implement SMART goal text composition from template fields
-- [~] 16.6 Wire GoalDifficultyBadge into weekly planner — display next to each goal (suggested and custom)
-- [~] 16.7 Add difficulty dropdown (Easy/Moderate/Ambitious) to custom goal creation form
+- [ ] 16.1 Wire suggest-goals Edge Function call when student opens weekly planner goal-setting interface
+- [ ] 16.2 Wire GoalSuggestionPanel into weekly planner — display 3 suggested goals with difficulty badges
+- [ ] 16.3 Implement goal accept/edit/dismiss actions — populate goal slot on accept
+- [ ] 16.4 Wire SmartGoalForm into weekly planner goal creation/edit flow — "Use SMART Template" option
+- [ ] 16.5 Implement SMART goal text composition from template fields
+- [ ] 16.6 Wire GoalDifficultyBadge into weekly planner — display next to each goal (suggested and custom)
+- [ ] 16.7 Add difficulty dropdown (Easy/Moderate/Ambitious) to custom goal creation form
 
 ## 17. VARK Repositioning
 
-- [~] 17.1 Add research disclaimer to LearningStyleStep: "Learning style preferences are provided as a self-awareness exercise..."
-- [~] 17.2 Remove LearningStyleStep from Day 1 onboarding flow — move to micro-assessment schedule (Days 9–12)
-- [~] 17.3 Update ProfileSummaryCard to display VARK under "Self-Awareness" section with "For reflection only" note
-- [~] 17.4 Audit adaptive engine integration points — ensure VARK scores are NOT used for content adaptation or learning path ordering
-- [~] 17.5 Update process-onboarding Edge Function to handle VARK as optional/deferred section
+- [ ] 17.1 Add research disclaimer to LearningStyleStep: "Learning style preferences are provided as a self-awareness exercise..."
+- [ ] 17.2 Remove LearningStyleStep from Day 1 onboarding flow — move to micro-assessment schedule (Days 9–12)
+- [ ] 17.3 Update ProfileSummaryCard to display VARK under "Self-Awareness" section with "For reflection only" note
+- [ ] 17.4 Audit adaptive engine integration points — ensure VARK scores are NOT used for content adaptation or learning path ordering
+- [ ] 17.5 Update process-onboarding Edge Function to handle VARK as optional/deferred section
