@@ -176,37 +176,37 @@
 
 ## 14. Progressive Profiling & Micro-Assessments
 
-- [ ] 14.1 Implement micro-assessment schedule generation logic in process-onboarding Edge Function (14-day schedule based on MICRO_ASSESSMENT_SCHEDULE constant)
-- [ ] 14.2 Create pg_cron job to check for due micro-assessments daily and update scheduled_at dates
-- [ ] 14.3 Wire MicroAssessmentCard into StudentDashboard — fetch today's micro-assessment, handle complete/dismiss
-- [ ] 14.4 Implement dismissal tracking: increment dismissal_count on dismiss, mark as 'skipped' after 3 consecutive dismissals
-- [ ] 14.5 Wire ProfileCompletenessBar into StudentDashboard — fetch profile_completeness, navigate to CompleteProfilePage
-- [ ] 14.6 Implement profile_completeness recalculation on each micro-assessment completion (UPSERT student_profiles)
-- [ ] 14.7 Wire "Profile Complete" bonus XP (30 XP) when profile_completeness reaches 100%
+- [x] 14.1 Implement micro-assessment schedule generation logic in process-onboarding Edge Function (14-day schedule based on MICRO_ASSESSMENT_SCHEDULE constant)
+- [x] 14.2 Create pg_cron job to check for due micro-assessments daily and update scheduled_at dates
+- [x] 14.3 Wire MicroAssessmentCard into StudentDashboard — fetch today's micro-assessment, handle complete/dismiss
+- [x] 14.4 Implement dismissal tracking: increment dismissal_count on dismiss, mark as 'skipped' after 3 consecutive dismissals
+- [x] 14.5 Wire ProfileCompletenessBar into StudentDashboard — fetch profile_completeness, navigate to CompleteProfilePage
+- [x] 14.6 Implement profile_completeness recalculation on each micro-assessment completion (UPSERT student_profiles)
+- [x] 14.7 Wire "Profile Complete" bonus XP (30 XP) when profile_completeness reaches 100%
 
 ## 15. Starter Week Plan Integration
 
-- [ ] 15.1 Wire generate-starter-week Edge Function call from process-onboarding after Day 1 completion
-- [ ] 15.2 Wire StarterWeekHeroCard into StudentDashboard — fetch starter_week_sessions, display session count and total time
-- [ ] 15.3 Integrate starter week sessions into weekly planner — display with "AI Suggested" badge and subtle background tint
-- [ ] 15.4 Implement session status management: accept, modify, reschedule, dismiss, complete actions
-- [ ] 15.5 Wire XP award (15 XP) on starter session completion
-- [ ] 15.6 Implement post-week summary: replace hero card with completion stats after 7 days
+- [x] 15.1 Wire generate-starter-week Edge Function call from process-onboarding after Day 1 completion
+- [x] 15.2 Wire StarterWeekHeroCard into StudentDashboard — fetch starter_week_sessions, display session count and total time
+- [x] 15.3 Integrate starter week sessions into weekly planner — display with "AI Suggested" badge and subtle background tint
+- [x] 15.4 Implement session status management: accept, modify, reschedule, dismiss, complete actions
+- [x] 15.5 Wire XP award (15 XP) on starter session completion
+- [x] 15.6 Implement post-week summary: replace hero card with completion stats after 7 days
 
 ## 16. Goal-Setting Scaffolding Integration
 
-- [ ] 16.1 Wire suggest-goals Edge Function call when student opens weekly planner goal-setting interface
-- [ ] 16.2 Wire GoalSuggestionPanel into weekly planner — display 3 suggested goals with difficulty badges
-- [ ] 16.3 Implement goal accept/edit/dismiss actions — populate goal slot on accept
-- [ ] 16.4 Wire SmartGoalForm into weekly planner goal creation/edit flow — "Use SMART Template" option
-- [ ] 16.5 Implement SMART goal text composition from template fields
-- [ ] 16.6 Wire GoalDifficultyBadge into weekly planner — display next to each goal (suggested and custom)
-- [ ] 16.7 Add difficulty dropdown (Easy/Moderate/Ambitious) to custom goal creation form
+- [x] 16.1 Wire suggest-goals Edge Function call when student opens weekly planner goal-setting interface
+- [x] 16.2 Wire GoalSuggestionPanel into weekly planner — display 3 suggested goals with difficulty badges
+- [x] 16.3 Implement goal accept/edit/dismiss actions — populate goal slot on accept
+- [x] 16.4 Wire SmartGoalForm into weekly planner goal creation/edit flow — "Use SMART Template" option
+- [x] 16.5 Implement SMART goal text composition from template fields
+- [x] 16.6 Wire GoalDifficultyBadge into weekly planner — display next to each goal (suggested and custom)
+- [x] 16.7 Add difficulty dropdown (Easy/Moderate/Ambitious) to custom goal creation form
 
 ## 17. VARK Repositioning
 
-- [ ] 17.1 Add research disclaimer to LearningStyleStep: "Learning style preferences are provided as a self-awareness exercise..."
-- [ ] 17.2 Remove LearningStyleStep from Day 1 onboarding flow — move to micro-assessment schedule (Days 9–12)
-- [ ] 17.3 Update ProfileSummaryCard to display VARK under "Self-Awareness" section with "For reflection only" note
-- [ ] 17.4 Audit adaptive engine integration points — ensure VARK scores are NOT used for content adaptation or learning path ordering
-- [ ] 17.5 Update process-onboarding Edge Function to handle VARK as optional/deferred section
+- [x] 17.1 Add research disclaimer to LearningStyleStep: "Learning style preferences are provided as a self-awareness exercise..."
+- [x] 17.2 Remove LearningStyleStep from Day 1 onboarding flow — move to micro-assessment schedule (Days 9–12)
+- [x] 17.3 Update ProfileSummaryCard to display VARK under "Self-Awareness" section with "For reflection only" note
+- [x] 17.4 Audit adaptive engine integration points — ensure VARK scores are NOT used for content adaptation or learning path ordering
+- [x] 17.5 Update process-onboarding Edge Function to handle VARK as optional/deferred section
