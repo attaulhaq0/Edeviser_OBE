@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import type { CompletedHabit } from '@/types/habits';
+import type { CompletedHabit, StreakMilestone } from '@/types/habits';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -11,6 +11,10 @@ export interface HeatmapTooltipProps {
   xpEarned: number;
   streakActive: boolean;
   position?: { x: number; y: number };
+  isComebackDay?: boolean;
+  comebackDayNumber?: number;
+  isSabbaticalRestDay?: boolean;
+  milestone?: StreakMilestone;
 }
 
 // ---------------------------------------------------------------------------
@@ -47,6 +51,10 @@ const HeatmapTooltip = ({
   xpEarned,
   streakActive,
   position,
+  isComebackDay,
+  comebackDayNumber,
+  isSabbaticalRestDay: isSabbatical,
+  milestone,
 }: HeatmapTooltipProps) => {
   const academic = habits.filter((h) => h.category === 'academic');
   const wellness = habits.filter((h) => h.category === 'wellness');
@@ -70,11 +78,41 @@ const HeatmapTooltip = ({
         {formatDate(date)}
       </p>
 
-      {isEmpty ? (
+      {/* Comeback Challenge label */}
+      {isComebackDay && comebackDayNumber != null && (
+        <p
+          className="text-xs font-medium text-teal-600 mt-1"
+          data-testid="tooltip-comeback-label"
+        >
+          Comeback Day {comebackDayNumber}/3
+        </p>
+      )}
+
+      {/* Sabbatical rest day label */}
+      {isSabbatical && (
+        <p
+          className="text-xs font-medium text-slate-500 mt-1"
+          data-testid="tooltip-sabbatical-label"
+        >
+          Rest Day (Sabbatical)
+        </p>
+      )}
+
+      {/* Milestone label */}
+      {milestone && (
+        <p
+          className="text-xs font-medium text-amber-600 mt-1"
+          data-testid="tooltip-milestone-label"
+        >
+          {milestone.days}-Day Streak Milestone 🎉
+        </p>
+      )}
+
+      {isEmpty && !isSabbatical ? (
         <p className="text-sm text-gray-500 mt-2" data-testid="tooltip-empty">
           No habits completed
         </p>
-      ) : (
+      ) : isEmpty && isSabbatical ? null : (
         <>
           {academic.length > 0 && (
             <div className="mt-2" data-testid="tooltip-academic-section">

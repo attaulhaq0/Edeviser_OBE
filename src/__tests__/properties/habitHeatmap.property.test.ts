@@ -22,7 +22,7 @@ import {
   computeLongestStreak,
   computeCellSize,
 } from '@/lib/heatmapUtils';
-import type { HeatmapDay, WellnessHabitType } from '@/types/habits';
+import type { HeatmapDay, WellnessHabitType, CompletedHabit } from '@/types/habits';
 
 // --- Arbitraries ---
 
@@ -59,7 +59,7 @@ const heatmapDayArb = (date: string): fc.Arbitrary<HeatmapDay> =>
     academicCount: fc.integer({ min: 0, max: 4 }),
     wellnessCount: fc.integer({ min: 0, max: 4 }),
     totalCount: fc.constant(0), // will be computed
-    habits: fc.constant([]),
+    habits: fc.constant([] as CompletedHabit[]),
   }).map((d) => ({ ...d, totalCount: d.academicCount + d.wellnessCount }));
 
 /** Generate a sorted array of HeatmapDays for consecutive dates */

@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect, useCallback, useMemo } from 'react';
-import type { HeatmapDay, DateRange, StudentHabitLevel } from '@/types/habits';
+import type { HeatmapDay, DateRange, StudentHabitLevel, ComebackChallengeStatus, StreakMilestone } from '@/types/habits';
 import {
   getIntensityLevel,
   computeCellSize,
@@ -56,6 +56,9 @@ export interface HeatmapGridProps {
   data: HeatmapDay[];
   semesterRange: DateRange;
   studentLevel?: StudentHabitLevel;
+  comebackChallenge?: ComebackChallengeStatus;
+  sabbaticalEnabled?: boolean;
+  milestones?: StreakMilestone[];
   onCellClick?: (date: string) => void;
   onCellHover?: (date: string | null) => void;
 }
@@ -111,6 +114,59 @@ function buildCellGrid(
 }
 
 // ---------------------------------------------------------------------------
+// Overlay helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Returns true if the given date falls within the Comeback Challenge window
+ * (startDate to startDate + 2 days inclusive).
+ */
+function isComebackChallengeDate(
+  date: string,
+  challenge: ComebackChallengeStatus | undefined,
+): boolean {
+  if (!challenge?.active || !challenge.startDate) return false;
+  const start = new Date(challenge.startDate + 'T00:00:00');
+  const end = new Date(start);
+  end.setDate(end.getDate() + 2); // 3 days total (0, 1, 2)
+  const d = new Date(date + 'T00:00:00');
+  return d >= start && d <= end;
+}
+
+/**
+ * Returns the comeback day number (1, 2, or 3) for a date within the challenge window.
+ */
+function getComebackDayNumber(
+  date: string,
+  challenge: ComebackChallengeStatus,
+): number {
+  if (!challenge.startDate) return 0;
+  const start = new Date(challenge.startDate + 'T00:00:00');
+  const d = new Date(date + 'T00:00:00');
+  return Math.floor((d.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+}
+
+/**
+ * Returns true if the date is a Saturday (6) or Sunday (0) — sabbatical rest day.
+ */
+function isSabbaticalRestDay(date: string, sabbaticalEnabled: boolean): boolean {
+  if (!sabbaticalEnabled) return false;
+  const dow = new Date(date + 'T00:00:00').getDay();
+  return dow === 0 || dow === 6;
+}
+
+/**
+ * Returns the milestone for a given date, if any.
+ */
+function getMilestoneForDate(
+  date: string,
+  milestones: StreakMilestone[] | undefined,
+): StreakMilestone | undefined {
+  if (!milestones) return undefined;
+  return milestones.find((m) => m.achievedDate === date);
+}
+
+// ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
@@ -118,6 +174,9 @@ const HeatmapGrid = ({
   data,
   semesterRange,
   studentLevel,
+  comebackChallenge,
+  sabbaticalEnabled = false,
+  milestones,
   onCellClick,
   onCellHover,
 }: HeatmapGridProps) => {
@@ -297,43 +356,114 @@ const HeatmapGrid = ({
           const y = MONTH_LABEL_HEIGHT + cell.row * (cellSize + CELL_GAP);
           const isFocused = focusedIndex === index;
 
+          const isComeback = isComebackChallengeDate(cell.date, comebackChallenge);
+          const isSabbatical = isSabbaticalRestDay(cell.date, sabbaticalEnabled);
+          const milestone = getMilestoneForDate(cell.date, milestones);
+
           return (
-            <rect
-              key={cell.date}
-              ref={(el) => setCellRef(index, el)}
-              x={x}
-              y={y}
-              width={cellSize}
-              height={cellSize}
-              rx={2}
-              ry={2}
-              fill={color}
-              opacity={cell.isFuture ? 0.4 : 1}
-              aria-label={generateAriaLabel(cell.date, cell.count)}
-              aria-disabled={cell.isFuture}
-              role="gridcell"
-              tabIndex={isFocused || (focusedIndex === null && index === 0) ? 0 : -1}
-              data-date={cell.date}
-              data-testid={`heatmap-cell-${cell.date}`}
-              style={
-                !prefersReducedMotion
-                  ? { transition: 'fill 0.15s ease, opacity 0.15s ease' }
-                  : undefined
-              }
-              onKeyDown={(e) => handleKeyDown(e, index)}
-              onFocus={() => {
-                setFocusedIndex(index);
-                if (!cell.isFuture) onCellHover?.(cell.date);
-              }}
-              onBlur={() => onCellHover?.(null)}
-              onMouseEnter={() => {
-                if (!cell.isFuture) onCellHover?.(cell.date);
-              }}
-              onMouseLeave={() => onCellHover?.(null)}
-              onClick={() => {
-                if (!cell.isFuture) onCellClick?.(cell.date);
-              }}
-            />
+            <g key={cell.date} data-testid={`heatmap-cell-group-${cell.date}`}>
+              <rect
+                ref={(el) => setCellRef(index, el)}
+                x={x}
+                y={y}
+                width={cellSize}
+                height={cellSize}
+                rx={2}
+                ry={2}
+                fill={color}
+                opacity={cell.isFuture ? 0.4 : 1}
+                aria-label={generateAriaLabel(cell.date, cell.count)}
+                aria-disabled={cell.isFuture}
+                role="gridcell"
+                tabIndex={isFocused || (focusedIndex === null && index === 0) ? 0 : -1}
+                data-date={cell.date}
+                data-testid={`heatmap-cell-${cell.date}`}
+                style={
+                  !prefersReducedMotion
+                    ? { transition: 'fill 0.15s ease, opacity 0.15s ease' }
+                    : undefined
+                }
+                onKeyDown={(e) => handleKeyDown(e, index)}
+                onFocus={() => {
+                  setFocusedIndex(index);
+                  if (!cell.isFuture) onCellHover?.(cell.date);
+                }}
+                onBlur={() => onCellHover?.(null)}
+                onMouseEnter={() => {
+                  if (!cell.isFuture) onCellHover?.(cell.date);
+                }}
+                onMouseLeave={() => onCellHover?.(null)}
+                onClick={() => {
+                  if (!cell.isFuture) onCellClick?.(cell.date);
+                }}
+              />
+
+              {/* Comeback Challenge overlay — dashed teal-500 border */}
+              {isComeback && (
+                <rect
+                  x={x + 1}
+                  y={y + 1}
+                  width={cellSize - 2}
+                  height={cellSize - 2}
+                  rx={2}
+                  ry={2}
+                  fill="none"
+                  stroke="#14b8a6"
+                  strokeWidth={1.5}
+                  strokeDasharray="3 2"
+                  pointerEvents="none"
+                  aria-label={`Comeback Day ${getComebackDayNumber(cell.date, comebackChallenge!)}/3`}
+                  data-testid={`comeback-overlay-${cell.date}`}
+                />
+              )}
+
+              {/* Sabbatical rest day overlay — diagonal stripe pattern */}
+              {isSabbatical && !cell.isFuture && (
+                <>
+                  <defs>
+                    <pattern
+                      id={`sabbatical-stripe-${cell.date}`}
+                      width={4}
+                      height={4}
+                      patternUnits="userSpaceOnUse"
+                      patternTransform="rotate(45)"
+                    >
+                      <line x1={0} y1={0} x2={0} y2={4} stroke="#94a3b8" strokeWidth={1} />
+                    </pattern>
+                  </defs>
+                  <rect
+                    x={x}
+                    y={y}
+                    width={cellSize}
+                    height={cellSize}
+                    rx={2}
+                    ry={2}
+                    fill={`url(#sabbatical-stripe-${cell.date})`}
+                    opacity={0.5}
+                    pointerEvents="none"
+                    aria-label="Rest Day (Sabbatical)"
+                    data-testid={`sabbatical-overlay-${cell.date}`}
+                  />
+                </>
+              )}
+
+              {/* Milestone marker — star icon at top-right corner */}
+              {milestone && (
+                <g
+                  transform={`translate(${x + cellSize - 7}, ${y + 1})`}
+                  pointerEvents="none"
+                  aria-label={`${milestone.days}-Day Streak Milestone`}
+                  data-testid={`milestone-marker-${cell.date}`}
+                >
+                  <polygon
+                    points="3,0 3.9,2.1 6,2.5 4.5,4 4.9,6 3,5 1.1,6 1.5,4 0,2.5 2.1,2.1"
+                    fill="#eab308"
+                    stroke="#ca8a04"
+                    strokeWidth={0.3}
+                  />
+                </g>
+              )}
+            </g>
           );
         })}
 

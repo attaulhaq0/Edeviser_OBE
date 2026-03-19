@@ -48,7 +48,7 @@ export const useHeatmapData = (
       // Fetch academic habit logs (unless filtering to a specific wellness habit)
       if (!filterIsWellness) {
         let academicQuery = supabase
-          .from('habit_logs')
+          .from('habit_logs' as never)
           .select('date, habit_type, completed_at')
           .eq('student_id', studentId)
           .gte('date', semesterRange.start)
@@ -62,12 +62,13 @@ export const useHeatmapData = (
         if (academicError) throw academicError;
 
         for (const log of academicLogs ?? []) {
-          const date = log.date as string;
+          const l = log as Record<string, unknown>;
+          const date = l.date as string;
           const habits = dateMap.get(date) ?? [];
           habits.push({
-            type: log.habit_type as HabitType,
+            type: l.habit_type as HabitType,
             category: 'academic',
-            completedAt: log.completed_at as string,
+            completedAt: l.completed_at as string,
           });
           dateMap.set(date, habits);
         }
@@ -83,7 +84,7 @@ export const useHeatmapData = (
           .lte('date', semesterRange.end);
 
         if (filterIsWellness && specificFilter) {
-          wellnessQuery = wellnessQuery.eq('wellness_type', specificFilter);
+          wellnessQuery = wellnessQuery.eq('wellness_type', specificFilter as WellnessHabitType);
         }
 
         const { data: wellnessLogs, error: wellnessError } = await wellnessQuery;
@@ -142,12 +143,12 @@ export const useHeatmapSummary = (
       if (studentId) {
         const { data, error } = await supabase
           .from('student_gamification')
-          .select('streak_count')
+          .select('streak_current')
           .eq('student_id', studentId)
           .maybeSingle();
 
         if (error) throw error;
-        currentStreak = data?.streak_count ?? 0;
+        currentStreak = data?.streak_current ?? 0;
       }
 
       const days = heatmapData ?? [];

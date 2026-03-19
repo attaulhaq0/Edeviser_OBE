@@ -10,10 +10,11 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
-import type { CorrelationInsight, HabitType } from '@/types/habits';
+import CorrelationConfidenceBadge from '@/components/shared/CorrelationConfidenceBadge';
+import type { CorrelationInsight, CorrelationInsightWithConfidence, HabitType } from '@/types/habits';
 
 export interface CorrelationInsightCardProps {
-  insight: CorrelationInsight;
+  insight: CorrelationInsight | CorrelationInsightWithConfidence;
 }
 
 const HABIT_ICONS: Record<HabitType, LucideIcon> = {
@@ -43,6 +44,11 @@ const CorrelationInsightCard = ({ insight }: CorrelationInsightCardProps) => {
   const colorClasses = HABIT_COLORS[insight.habitType] ?? 'bg-slate-50 text-slate-600';
   const strengthPercent = Math.round(insight.strength * 100);
 
+  const hasConfidence =
+    'confidenceLevel' in insight &&
+    insight.confidenceLevel != null &&
+    'dataPointCount' in insight;
+
   return (
     <Card
       className="bg-white border-0 shadow-sm rounded-xl p-4"
@@ -54,6 +60,12 @@ const CorrelationInsightCard = ({ insight }: CorrelationInsightCardProps) => {
         </div>
         <div className="flex-1 min-w-0 space-y-2">
           <p className="text-sm font-medium text-gray-800">{insight.description}</p>
+          {hasConfidence && (
+            <CorrelationConfidenceBadge
+              level={(insight as CorrelationInsightWithConfidence).confidenceLevel}
+              dataPointCount={(insight as CorrelationInsightWithConfidence).dataPointCount}
+            />
+          )}
           {/* Strength indicator */}
           <div className="space-y-1">
             <div className="flex items-center justify-between">

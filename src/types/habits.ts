@@ -31,6 +31,9 @@ export interface WellnessPreferences {
   studentId: string;
   enabledHabits: WellnessHabitType[];
   parentVisibility: boolean;
+  habitTargets: Record<string, { value: number; unit: string }>;
+  reminderTimes: Record<string, string>;
+  dismissedOnboardingTips: string[];
 }
 
 export interface HeatmapSummary {

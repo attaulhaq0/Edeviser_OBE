@@ -11,6 +11,7 @@ import HeatmapGrid from '@/components/shared/HeatmapGrid';
 import HeatmapTooltip from '@/components/shared/HeatmapTooltip';
 import HabitMobileBottomSheet from '@/components/shared/HabitMobileBottomSheet';
 import WellnessHabitLogger from '@/components/shared/WellnessHabitLogger';
+import WellnessTipCard from '@/components/shared/WellnessTipCard';
 import WellnessSettingsPanel from '@/components/shared/WellnessSettingsPanel';
 import Shimmer from '@/components/shared/Shimmer';
 import { useAuth } from '@/hooks/useAuth';
@@ -18,7 +19,33 @@ import { useHeatmapData, useHeatmapSummary } from '@/hooks/useHeatmapData';
 import { useWellnessPreferences, useUpdateWellnessPreferences } from '@/hooks/useWellnessPreferences';
 import { useWellnessHabitLogs, useLogWellnessHabit } from '@/hooks/useWellnessHabits';
 import { useSemesterRange } from '@/hooks/useSemesterRange';
-import type { DateRange, WellnessHabitType } from '@/types/habits';
+import { useCurrentTip, useDismissOnboardingTip } from '@/hooks/useWellnessTips';
+import { useWellnessReminders, useUpdateWellnessReminder } from '@/hooks/useWellnessReminders';
+import { useWellnessGoals, useDailyProgress, useUpdateWellnessGoal } from '@/hooks/useWellnessGoals';
+import type { DateRange, WellnessHabitType, WellnessTarget } from '@/types/habits';
+
+// ---------------------------------------------------------------------------
+// Wellness Tip Display (per-habit)
+// ---------------------------------------------------------------------------
+
+const WellnessHabitTip = ({ habitType, studentId }: { habitType: WellnessHabitType; studentId: string }) => {
+  const { tip, isOnboarding } = useCurrentTip(habitType, studentId);
+  const dismissMutation = useDismissOnboardingTip();
+
+  if (!tip) return null;
+
+  return (
+    <WellnessTipCard
+      tip={tip}
+      isOnboarding={isOnboarding}
+      onDismiss={
+        isOnboarding
+          ? () => dismissMutation.mutate({ studentId, habitType })
+          : undefined
+      }
+    />
+  );
+};
 
 // ---------------------------------------------------------------------------
 // Page Content (inside ErrorBoundary)
@@ -55,6 +82,13 @@ const HabitHeatmapContent = () => {
   const enabledHabits = preferences?.enabledHabits ?? [];
   const parentVisibility = preferences?.parentVisibility ?? false;
 
+  // Wellness reminders & goals
+  const { data: reminders } = useWellnessReminders(studentId);
+  const updateReminder = useUpdateWellnessReminder();
+  const { data: goals } = useWellnessGoals(studentId);
+  const dailyProgress = useDailyProgress(studentId, todayLogs ?? []);
+  const updateGoal = useUpdateWellnessGoal();
+
   // Tooltip / bottom sheet state
   const [hoveredDate, setHoveredDate] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
@@ -86,6 +120,30 @@ const HabitHeatmapContent = () => {
   const handleLogWellness = (type: WellnessHabitType, value?: number) => {
     if (!studentId) return;
     logWellnessHabit.mutate({ studentId, wellnessType: type, value: value ?? null, date: today });
+  };
+
+  const handleReminderToggle = (habitType: WellnessHabitType, enabled: boolean) => {
+    if (!studentId) return;
+    updateReminder.mutate({
+      studentId,
+      habitType,
+      reminderTime: enabled ? '09:00' : null,
+    });
+  };
+
+  const handleReminderTimeChange = (habitType: WellnessHabitType, time: string) => {
+    if (!studentId) return;
+    updateReminder.mutate({ studentId, habitType, reminderTime: time || null });
+  };
+
+  const handleGoalSave = (target: WellnessTarget) => {
+    if (!studentId) return;
+    updateGoal.mutate({
+      studentId,
+      habitType: target.habitType,
+      targetValue: target.targetValue,
+      unit: target.unit,
+    });
   };
 
   const isLoading = semesterLoading || heatmapLoading;
@@ -166,11 +224,19 @@ const HabitHeatmapContent = () => {
 
       {/* Wellness Section */}
       {enabledHabits.length > 0 && (
-        <WellnessHabitLogger
-          enabledHabits={enabledHabits}
-          todayLogs={todayLogs ?? []}
-          onLog={handleLogWellness}
-        />
+        <div className="space-y-3">
+          {/* Wellness Tips */}
+          {studentId && enabledHabits.map((ht) => (
+            <WellnessHabitTip key={ht} habitType={ht} studentId={studentId} />
+          ))}
+
+          <WellnessHabitLogger
+            enabledHabits={enabledHabits}
+            todayLogs={todayLogs ?? []}
+            onLog={handleLogWellness}
+            dailyProgress={dailyProgress}
+          />
+        </div>
       )}
 
       {/* Settings Panel (collapsible) */}
@@ -181,6 +247,12 @@ const HabitHeatmapContent = () => {
             parentVisibility={parentVisibility}
             onToggleHabit={handleToggleHabit}
             onToggleParentVisibility={handleToggleParentVisibility}
+            reminders={reminders}
+            onReminderToggle={handleReminderToggle}
+            onReminderTimeChange={handleReminderTimeChange}
+            goals={goals}
+            goalProgress={dailyProgress}
+            onGoalSave={handleGoalSave}
           />
         </Card>
       )}

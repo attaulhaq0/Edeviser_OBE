@@ -123,9 +123,9 @@ export const useCompleteMicroAssessment = () => {
 
         // Upsert student_profiles with new completeness (insert if missing)
         const { error: profileError } = await supabase
-          .from('student_profiles')
+          .from('student_profiles' as never)
           .upsert(
-            { student_id: params.studentId, profile_completeness: newCompleteness },
+            { student_id: params.studentId, profile_completeness: newCompleteness } as never,
             { onConflict: 'student_id' },
           );
 

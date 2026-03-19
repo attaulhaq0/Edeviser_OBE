@@ -10,6 +10,7 @@ export interface WellnessHabitLoggerProps {
   enabledHabits: WellnessHabitType[];
   todayLogs: WellnessHabitLog[];
   onLog: (type: WellnessHabitType, value?: number) => void;
+  dailyProgress?: Record<string, { progress: number; logged: number; target: number; unit: string }>;
 }
 
 const HABIT_CONFIG: Record<
@@ -46,6 +47,7 @@ const WellnessHabitLogger = ({
   enabledHabits,
   todayLogs,
   onLog,
+  dailyProgress,
 }: WellnessHabitLoggerProps) => {
   const [values, setValues] = useState<Partial<Record<WellnessHabitType, string>>>({});
 
@@ -75,6 +77,7 @@ const WellnessHabitLogger = ({
           const config = HABIT_CONFIG[type];
           const Icon = config.icon;
           const logged = isLogged(type);
+          const prog = dailyProgress?.[type];
 
           return (
             <div
@@ -102,6 +105,30 @@ const WellnessHabitLogger = ({
               <div className="flex-1 min-w-0">
                 <Label className="text-sm font-medium">{config.label}</Label>
                 <p className="text-xs text-gray-500">{config.description}</p>
+                {prog && (
+                  <div className="mt-1">
+                    <div className="flex items-center justify-between text-xs text-gray-500 mb-0.5">
+                      <span data-testid={`wellness-progress-${type}`}>
+                        {prog.logged}/{prog.target} {prog.unit}
+                      </span>
+                      {prog.progress >= 100 && (
+                        <span className="text-green-600 font-medium text-xs">✓ Target met</span>
+                      )}
+                    </div>
+                    <div className="h-1.5 w-full rounded-full bg-gray-100 overflow-hidden">
+                      <div
+                        data-testid={`wellness-progress-bar-${type}`}
+                        className={cn(
+                          'h-full rounded-full transition-all duration-300',
+                          prog.progress >= 100
+                            ? 'bg-green-400'
+                            : 'bg-gradient-to-r from-teal-400 to-blue-500',
+                        )}
+                        style={{ width: `${Math.min(prog.progress, 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="flex items-center gap-2">

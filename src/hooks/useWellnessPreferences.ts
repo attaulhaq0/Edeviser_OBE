@@ -13,7 +13,7 @@ export const useWellnessPreferences = (studentId: string | undefined) => {
 
       const { data, error } = await supabase
         .from('student_wellness_preferences')
-        .select('id, student_id, enabled_habits, parent_visibility')
+        .select('id, student_id, enabled_habits, parent_visibility, habit_targets, reminder_times, dismissed_onboarding_tips')
         .eq('student_id', studentId)
         .maybeSingle();
 
@@ -25,6 +25,9 @@ export const useWellnessPreferences = (studentId: string | undefined) => {
         studentId: data.student_id as string,
         enabledHabits: (data.enabled_habits ?? []) as WellnessHabitType[],
         parentVisibility: data.parent_visibility as boolean,
+        habitTargets: (data.habit_targets ?? {}) as Record<string, { value: number; unit: string }>,
+        reminderTimes: (data.reminder_times ?? {}) as Record<string, string>,
+        dismissedOnboardingTips: (data.dismissed_onboarding_tips ?? []) as string[],
       };
     },
   });

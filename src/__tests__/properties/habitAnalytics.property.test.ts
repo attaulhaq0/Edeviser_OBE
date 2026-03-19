@@ -14,7 +14,7 @@ import {
   getBestDay,
 } from '@/lib/heatmapUtils';
 import { generateHabitCSV } from '@/lib/habitExport';
-import type { HeatmapDay, HabitReportRow, HeatmapSummary, WellnessHabitType, CorrelationInsight } from '@/types/habits';
+import type { HeatmapDay, HabitReportRow, HeatmapSummary, WellnessHabitType, CorrelationInsight, CompletedHabit } from '@/types/habits';
 
 // --- Arbitraries ---
 
@@ -24,7 +24,7 @@ const heatmapDayArb = (date: string): fc.Arbitrary<HeatmapDay> =>
     academicCount: fc.integer({ min: 0, max: 4 }),
     wellnessCount: fc.integer({ min: 0, max: 4 }),
     totalCount: fc.constant(0),
-    habits: fc.constant([]),
+    habits: fc.constant([] as CompletedHabit[]),
   }).map((d) => ({ ...d, totalCount: d.academicCount + d.wellnessCount }));
 
 const heatmapDaysArb = fc

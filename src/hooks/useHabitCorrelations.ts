@@ -1,11 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { queryKeys } from '@/lib/queryKeys';
-import type { CorrelationInsight } from '@/types/habits';
+import { getCorrelationConfidenceLevel } from '@/lib/correlationConfidence';
+import type { CorrelationInsightWithConfidence, CorrelationConfidenceLevel, HabitType } from '@/types/habits';
 
 interface CorrelationResult {
-  insights: CorrelationInsight[];
+  insights: CorrelationInsightWithConfidence[];
   insufficientData: boolean;
+  daysUntilReady?: number;
+  dataPointCount?: number;
 }
 
 export const useHabitCorrelations = (studentId: string | undefined) => {
@@ -23,9 +26,35 @@ export const useHabitCorrelations = (studentId: string | undefined) => {
 
       if (error) throw error;
 
+      const dataPointCount = data?.data_point_count as number | undefined;
+      const daysUntilReady = data?.days_until_ready as number | undefined;
+
+      // Map insights to include confidence data
+      const rawInsights = (data?.insights ?? []) as Array<{
+        id: string;
+        habitType: string;
+        academicMetric: string;
+        description: string;
+        strength: number;
+        confidenceLevel?: CorrelationConfidenceLevel;
+        dataPointCount?: number;
+      }>;
+
+      const insights: CorrelationInsightWithConfidence[] = rawInsights.map((insight) => ({
+        ...insight,
+        habitType: insight.habitType as HabitType,
+        confidenceLevel:
+          insight.confidenceLevel ??
+          getCorrelationConfidenceLevel(dataPointCount ?? 0) ??
+          'early_pattern',
+        dataPointCount: insight.dataPointCount ?? dataPointCount ?? 0,
+      }));
+
       return {
-        insights: (data?.insights ?? []) as CorrelationInsight[],
+        insights,
         insufficientData: data?.insufficient_data === true,
+        daysUntilReady,
+        dataPointCount,
       };
     },
   });

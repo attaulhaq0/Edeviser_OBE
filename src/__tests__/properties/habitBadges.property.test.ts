@@ -5,7 +5,7 @@
 
 import { describe, it, expect } from 'vitest';
 import * as fc from 'fast-check';
-import type { HeatmapDay } from '@/types/habits';
+import type { HeatmapDay, CompletedHabit } from '@/types/habits';
 
 // --- Inline badge condition helpers (per design doc) ---
 // These implement the badge conditions as specified. Task 5 will create the actual functions.
@@ -52,7 +52,7 @@ const heatmapDayArb = (date: string): fc.Arbitrary<HeatmapDay> =>
     academicCount: fc.integer({ min: 0, max: 4 }),
     wellnessCount: fc.integer({ min: 0, max: 4 }),
     totalCount: fc.constant(0),
-    habits: fc.constant([]),
+    habits: fc.constant([] as CompletedHabit[]),
   }).map((d) => ({ ...d, totalCount: d.academicCount + d.wellnessCount }));
 
 const consecutiveDaysArb = (numDays: number, startDate: Date = new Date('2024-01-01')) =>

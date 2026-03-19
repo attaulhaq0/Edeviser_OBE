@@ -7,7 +7,9 @@ import type { HeatmapSummary } from '@/types/habits';
 // Types
 // ---------------------------------------------------------------------------
 
-export type HeatmapSummaryStatsProps = HeatmapSummary;
+export interface HeatmapSummaryStatsProps extends HeatmapSummary {
+  sabbaticalDayCount?: number;
+}
 
 // ---------------------------------------------------------------------------
 // Internal KPI Card
@@ -56,33 +58,41 @@ const HeatmapSummaryStats = ({
   currentStreak,
   longestStreak,
   totalActiveDays,
-}: HeatmapSummaryStatsProps) => (
-  <div className="grid grid-cols-3 gap-4" data-testid="heatmap-summary-stats">
-    <KPICard
-      icon={Flame}
-      label="Current Streak"
-      value={currentStreak}
-      iconColor="text-orange-500"
-      iconBg="bg-orange-50"
-      testId="kpi-current-streak"
-    />
-    <KPICard
-      icon={Trophy}
-      label="Longest Streak"
-      value={longestStreak}
-      iconColor="text-amber-500"
-      iconBg="bg-amber-50"
-      testId="kpi-longest-streak"
-    />
-    <KPICard
-      icon={Calendar}
-      label="Total Active Days"
-      value={totalActiveDays}
-      iconColor="text-blue-600"
-      iconBg="bg-blue-50"
-      testId="kpi-total-active-days"
-    />
-  </div>
-);
+  sabbaticalDayCount,
+}: HeatmapSummaryStatsProps) => {
+  // When sabbatical days are provided, display adjusted total active days label
+  const activeDaysLabel = sabbaticalDayCount != null && sabbaticalDayCount > 0
+    ? 'Active Days (excl. rest)'
+    : 'Total Active Days';
+
+  return (
+    <div className="grid grid-cols-3 gap-4" data-testid="heatmap-summary-stats">
+      <KPICard
+        icon={Flame}
+        label="Current Streak"
+        value={currentStreak}
+        iconColor="text-orange-500"
+        iconBg="bg-orange-50"
+        testId="kpi-current-streak"
+      />
+      <KPICard
+        icon={Trophy}
+        label="Longest Streak"
+        value={longestStreak}
+        iconColor="text-amber-500"
+        iconBg="bg-amber-50"
+        testId="kpi-longest-streak"
+      />
+      <KPICard
+        icon={Calendar}
+        label={activeDaysLabel}
+        value={totalActiveDays}
+        iconColor="text-blue-600"
+        iconBg="bg-blue-50"
+        testId="kpi-total-active-days"
+      />
+    </div>
+  );
+};
 
 export default HeatmapSummaryStats;

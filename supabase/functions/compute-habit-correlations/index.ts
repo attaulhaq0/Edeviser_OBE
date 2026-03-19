@@ -20,9 +20,16 @@ interface CorrelationInsight {
   strength: number;
 }
 
+interface CorrelationInsightWithConfidence extends CorrelationInsight {
+  confidenceLevel: 'early_pattern' | 'emerging_trend' | 'strong_pattern';
+  dataPointCount: number;
+}
+
 interface CorrelationResponse {
-  insights: CorrelationInsight[];
+  insights: CorrelationInsightWithConfidence[] | CorrelationInsight[];
   insufficient_data: boolean;
+  days_until_ready?: number;
+  data_point_count?: number;
 }
 
 // ─── Validation ─────────────────────────────────────────────────────────────
@@ -166,6 +173,21 @@ export function computeCorrelationInsights(
     .slice(0, 3);
 }
 
+// ─── Confidence Level Mapping ────────────────────────────────────────────────
+
+/**
+ * Maps data point count to a confidence level.
+ * Returns null for counts below the 30-day minimum threshold.
+ */
+export function getConfidenceLevel(
+  dataPointCount: number,
+): 'early_pattern' | 'emerging_trend' | 'strong_pattern' | null {
+  if (dataPointCount < 30) return null;
+  if (dataPointCount < 60) return 'early_pattern';
+  if (dataPointCount < 90) return 'emerging_trend';
+  return 'strong_pattern';
+}
+
 // ─── Forbidden causal words validation ──────────────────────────────────────
 
 const FORBIDDEN_CAUSAL_WORDS = ['because', 'causes', 'caused', 'due to', 'results in', 'leads to'];
@@ -301,20 +323,36 @@ serve(async (req) => {
       allDates.add(date);
     }
 
-    // ── Step 6: Check minimum data threshold (14 days) ──────────────────
+    // ── Step 6: Check minimum data threshold ───────────────────────────
 
-    if (!hasMinimumData(allDates, 14)) {
-      const response: CorrelationResponse = {
-        insights: [],
-        insufficient_data: true,
-      };
+    const dayCount = allDates.size;
+
+    // Under 14 days: insufficient data, no countdown
+    if (dayCount < 14) {
       return new Response(
-        JSON.stringify(response),
+        JSON.stringify({
+          insights: [],
+          insufficient_data: true,
+          data_point_count: dayCount,
+        }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       );
     }
 
-    // ── Step 7: Compute correlations ────────────────────────────────────
+    // 14-29 days: insufficient data, show countdown to 30
+    if (dayCount < 30) {
+      return new Response(
+        JSON.stringify({
+          insights: [],
+          insufficient_data: true,
+          days_until_ready: 30 - dayCount,
+          data_point_count: dayCount,
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
+
+    // ── Step 7: Compute correlations (30+ days) ─────────────────────────
 
     const insights = computeCorrelationInsights(
       habitDatesByType,
@@ -322,9 +360,18 @@ serve(async (req) => {
       allDates,
     );
 
+    const confidenceLevel = getConfidenceLevel(dayCount);
+
+    const insightsWithConfidence: CorrelationInsightWithConfidence[] = insights.map((insight) => ({
+      ...insight,
+      confidenceLevel: confidenceLevel!,
+      dataPointCount: dayCount,
+    }));
+
     const response: CorrelationResponse = {
-      insights,
+      insights: insightsWithConfidence,
       insufficient_data: false,
+      data_point_count: dayCount,
     };
 
     return new Response(

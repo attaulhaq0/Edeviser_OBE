@@ -8,6 +8,7 @@ import ConsistencyScoreRing from '@/components/shared/ConsistencyScoreRing';
 import HabitCompletionChart from '@/components/shared/HabitCompletionChart';
 import BestDayChart from '@/components/shared/BestDayChart';
 import CorrelationInsightCard from '@/components/shared/CorrelationInsightCard';
+import CorrelationDisclaimer from '@/components/shared/CorrelationDisclaimer';
 import LevelProgressionChart from '@/components/shared/LevelProgressionChart';
 import { useAuth } from '@/hooks/useAuth';
 import { useSemesterRange } from '@/hooks/useSemesterRange';
@@ -199,7 +200,7 @@ const HabitAnalyticsContent = () => {
               <BarChart3 className="h-5 w-5 text-white" />
               <h2 className="text-lg font-bold tracking-tight text-white">Insights</h2>
             </div>
-            <div className="p-6">
+            <div className="p-6 space-y-3">
               {correlationsLoading ? (
                 <Shimmer className="h-24 rounded-xl" />
               ) : correlationResult?.insufficientData ? (
@@ -209,19 +210,27 @@ const HabitAnalyticsContent = () => {
                 >
                   <Info className="h-5 w-5 text-blue-500 shrink-0" />
                   <p className="text-sm text-blue-700">
-                    Keep tracking — insights appear after 2 weeks of data
+                    {correlationResult.daysUntilReady != null
+                      ? `Almost there — ${correlationResult.daysUntilReady} more days of data needed for insights`
+                      : 'Keep tracking — insights appear after 2 weeks of data'}
                   </p>
                 </div>
               ) : correlationResult?.insights && correlationResult.insights.length > 0 ? (
-                <div className="space-y-3" data-testid="correlation-insights-list">
-                  {correlationResult.insights.slice(0, 3).map((insight) => (
-                    <CorrelationInsightCard key={insight.id} insight={insight} />
-                  ))}
-                </div>
+                <>
+                  <CorrelationDisclaimer />
+                  <div className="space-y-3" data-testid="correlation-insights-list">
+                    {correlationResult.insights.slice(0, 3).map((insight) => (
+                      <CorrelationInsightCard key={insight.id} insight={insight} />
+                    ))}
+                  </div>
+                </>
               ) : (
-                <p className="text-sm text-gray-500 text-center py-4">
-                  No insights available yet
-                </p>
+                <>
+                  <CorrelationDisclaimer />
+                  <p className="text-sm text-gray-500 text-center py-4">
+                    No insights available yet
+                  </p>
+                </>
               )}
             </div>
           </Card>
