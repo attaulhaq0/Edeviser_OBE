@@ -1,4 +1,5 @@
 import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 import type { CorrelationConfidenceLevel } from '@/types/habits';
 
 export interface CorrelationConfidenceBadgeProps {
@@ -25,12 +26,12 @@ const CONFIDENCE_CONFIG: Record<
 };
 
 const CorrelationConfidenceBadge = ({ level, dataPointCount }: CorrelationConfidenceBadgeProps) => {
-  const config = CONFIDENCE_CONFIG[level];
+  const config = CONFIDENCE_CONFIG[level] ?? { label: 'Unknown', className: 'bg-slate-50 text-slate-700 border-slate-200' };
 
   return (
     <Badge
       variant="outline"
-      className={config.className}
+      className={cn(config.className)}
       data-testid={`confidence-badge-${level}`}
     >
       {config.label} ({dataPointCount} days)

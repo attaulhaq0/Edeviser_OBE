@@ -16,3 +16,36 @@ export function getCorrelationConfidenceLevel(
   if (dataPointCount < 90) return 'emerging_trend';
   return 'strong_pattern';
 }
+
+// ---------------------------------------------------------------------------
+// Correlation threshold logic (shared between Edge Function and client)
+// ---------------------------------------------------------------------------
+
+export interface CorrelationThresholdResult {
+  insights: unknown[];
+  insufficient_data: boolean;
+  daysUntilReady?: number;
+}
+
+/**
+ * Applies the correlation data threshold rules:
+ * - < 14 days → insufficient data, no daysUntilReady
+ * - 14–29 days → insufficient data, daysUntilReady = 30 - dayCount
+ * - 30+ days → sufficient data
+ *
+ * This is the canonical threshold logic used by the
+ * compute-habit-correlations Edge Function.
+ */
+export function applyCorrelationThreshold(dayCount: number): CorrelationThresholdResult {
+  if (dayCount < 14) {
+    return { insights: [], insufficient_data: true };
+  }
+  if (dayCount < 30) {
+    return {
+      insights: [],
+      insufficient_data: true,
+      daysUntilReady: 30 - dayCount,
+    };
+  }
+  return { insights: [], insufficient_data: false };
+}

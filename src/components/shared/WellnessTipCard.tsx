@@ -26,16 +26,22 @@ const WellnessTipCard = ({ tip, isOnboarding, onDismiss }: WellnessTipCardProps)
           </p>
 
           {tip.resourceUrl && (
-            <a
-              data-testid="wellness-tip-resource"
-              href={tip.resourceUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-xs text-amber-700 hover:text-amber-900 mt-1.5 font-medium"
+            <Button
+              asChild
+              variant="ghost"
+              size="sm"
+              className="inline-flex items-center gap-1 text-xs text-amber-700 hover:text-amber-900 mt-1.5 font-medium h-auto p-0"
             >
-              {tip.resourceLabel ?? 'Learn more'}
-              <ExternalLink className="h-3 w-3" />
-            </a>
+              <a
+                data-testid="wellness-tip-resource"
+                href={tip.resourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {tip.resourceLabel ?? 'Learn more'}
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            </Button>
           )}
         </div>
 

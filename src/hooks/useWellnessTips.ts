@@ -50,11 +50,16 @@ export const useDismissOnboardingTip = () => {
       habitType: WellnessHabitType;
     }) => {
       // Fetch current dismissed list
-      const { data: current } = await supabase
+      const { data: current, error: fetchError } = await supabase
         .from('student_wellness_preferences')
         .select('dismissed_onboarding_tips')
         .eq('student_id', studentId)
         .maybeSingle();
+
+      if (fetchError) {
+        console.error('Failed to fetch dismissed tips:', fetchError.message);
+        throw fetchError;
+      }
 
       const existing: string[] = (current?.dismissed_onboarding_tips as string[]) ?? [];
       if (existing.includes(habitType)) return;

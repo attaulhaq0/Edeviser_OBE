@@ -249,7 +249,7 @@ export function computeWellnessProgress(
   targetValue: number,
 ): number {
   if (targetValue <= 0) return loggedValue > 0 ? 100 : 0;
-  return Math.min(Math.round((loggedValue / targetValue) * 100), 100);
+  return Math.max(0, Math.min(Math.round((loggedValue / targetValue) * 100), 100));
 }
 
 // ---------------------------------------------------------------------------

@@ -96,7 +96,7 @@ describe('detectStreakMilestones', () => {
       days.push(makeDay(`2025-01-${String(i).padStart(2, '0')}`, 1));
     }
     days.push(makeDay('2025-01-30', 0)); // break
-    for (let i = 1; i <= 29; i++) {
+    for (let i = 1; i <= 28; i++) {
       days.push(makeDay(`2025-02-${String(i).padStart(2, '0')}`, 1));
     }
     expect(detectStreakMilestones(days)).toEqual([]);

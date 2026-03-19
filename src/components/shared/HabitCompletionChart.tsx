@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import {
   BarChart,
   Bar,
@@ -8,6 +8,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 import type { CompletionRateData } from '@/types/habits';
 
 export interface HabitCompletionChartProps {
@@ -28,6 +29,7 @@ const HabitCompletionChart = ({
 }: HabitCompletionChartProps) => {
   const [period, setPeriod] = useState<Period>('weekly');
   const [view, setView] = useState<View>('all');
+  const gradientId = `barGradient-${useId()}`;
 
   const getData = (): CompletionRateData[] => {
     if (period === 'weekly') {
@@ -48,36 +50,42 @@ const HabitCompletionChart = ({
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <div className="flex gap-1">
           {(['weekly', 'monthly'] as const).map((p) => (
-            <button
+            <Button
               key={p}
+              variant="outline"
+              size="sm"
               onClick={() => setPeriod(p)}
+              aria-pressed={period === p}
               className={cn(
-                'px-3 py-1 text-xs font-semibold rounded-xl transition-colors',
+                'px-3 py-1 text-xs font-semibold rounded-xl',
                 period === p
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-white text-gray-600 border border-gray-200',
+                  ? 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700 hover:text-white'
+                  : 'bg-white text-gray-600 border-gray-200',
               )}
               data-testid={`period-toggle-${p}`}
             >
               {p === 'weekly' ? 'Weekly' : 'Monthly'}
-            </button>
+            </Button>
           ))}
         </div>
         <div className="flex gap-1">
           {(['all', 'academic'] as const).map((v) => (
-            <button
+            <Button
               key={v}
+              variant="outline"
+              size="sm"
               onClick={() => setView(v)}
+              aria-pressed={view === v}
               className={cn(
-                'px-3 py-1 text-xs font-semibold rounded-xl transition-colors',
+                'px-3 py-1 text-xs font-semibold rounded-xl',
                 view === v
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-white text-gray-600 border border-gray-200',
+                  ? 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700 hover:text-white'
+                  : 'bg-white text-gray-600 border-gray-200',
               )}
               data-testid={`view-toggle-${v}`}
             >
               {v === 'all' ? 'All Habits' : 'Academic Only'}
-            </button>
+            </Button>
           ))}
         </div>
       </div>
@@ -107,12 +115,12 @@ const HabitCompletionChart = ({
             />
             <Bar
               dataKey="rate"
-              fill="url(#barGradient)"
+              fill={`url(#${gradientId})`}
               radius={[4, 4, 0, 0]}
               maxBarSize={32}
             />
             <defs>
-              <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+              <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="#14B8A6" />
                 <stop offset="100%" stopColor="#0382BD" />
               </linearGradient>

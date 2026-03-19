@@ -97,13 +97,15 @@ const WellnessGoalInput = ({
             <span data-testid={`goal-progress-label-${habitType}`}>
               {currentValue}/{target?.targetValue ?? 0} {unit}
             </span>
-            <button
+            <Button
               data-testid={`goal-edit-${habitType}`}
+              variant="ghost"
+              size="sm"
               onClick={() => setIsEditing(true)}
-              className="text-blue-600 hover:text-blue-800 text-xs font-medium"
+              className="text-blue-600 hover:text-blue-800 text-xs font-medium h-auto p-0"
             >
               Edit
-            </button>
+            </Button>
           </div>
 
           {/* Progress bar */}

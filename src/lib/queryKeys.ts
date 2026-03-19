@@ -29,11 +29,20 @@ const outcomeAttainment = createKeys('outcomeAttainment')
 
 // ─── Gamification ────────────────────────────────────────────────────────────
 const xpTransactions = createKeys('xpTransactions')
-const studentGamification = createKeys('studentGamification')
+const studentGamification = {
+  ...createKeys('studentGamification'),
+  sabbatical: (studentId: string) =>
+    ['studentGamification', 'sabbatical', studentId] as const,
+};
 const badges = createKeys('badges')
 const leaderboard = createKeys('leaderboard')
 const journal = createKeys('journal')
 const habitLogs = createKeys('habitLogs')
+
+const studentHabitLevel = {
+  all: ['studentHabitLevel'] as const,
+  detail: (studentId: string) => ['studentHabitLevel', studentId] as const,
+}
 const bonusXPEvents = createKeys('bonusXPEvents')
 const streakFreezes = createKeys('streakFreezes')
 
@@ -163,6 +172,7 @@ export const queryKeys = {
   leaderboard,
   journal,
   habitLogs,
+  studentHabitLevel,
   bonusXPEvents,
   streakFreezes,
   // Notifications

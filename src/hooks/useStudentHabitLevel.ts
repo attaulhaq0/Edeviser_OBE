@@ -1,13 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { queryKeys } from '@/lib/queryKeys';
 import { getLevelMaxHabits } from '@/lib/levelAwareHeatmap';
 import type { StudentHabitLevel, LevelProgressionPoint } from '@/types/habits';
 
-const STUDENT_HABIT_LEVEL_KEY = 'studentHabitLevel';
-
 export const useStudentHabitLevel = (studentId: string | undefined) => {
   return useQuery({
-    queryKey: [STUDENT_HABIT_LEVEL_KEY, studentId],
+    queryKey: queryKeys.studentHabitLevel.detail(studentId ?? ''),
     enabled: !!studentId,
     queryFn: async (): Promise<StudentHabitLevel> => {
       if (!studentId) {
@@ -17,33 +16,37 @@ export const useStudentHabitLevel = (studentId: string | undefined) => {
       // Fetch current level from student_habit_levels
       let currentLevel: 1 | 2 | 3 | 4 = 4;
       try {
-        const { data: levelData } = await supabase
+        const { data: levelData, error } = await supabase
           .from('student_habit_levels' as never)
           .select('current_level')
           .eq('student_id', studentId)
           .maybeSingle();
 
-        if (levelData && typeof levelData === 'object' && 'current_level' in levelData) {
+        if (error) {
+          console.error('Failed to fetch student habit level:', error.message);
+        } else if (levelData && typeof levelData === 'object' && 'current_level' in levelData) {
           const raw = (levelData as Record<string, unknown>).current_level;
           if (typeof raw === 'number' && raw >= 1 && raw <= 4) {
             currentLevel = raw as 1 | 2 | 3 | 4;
           }
         }
-      } catch {
+      } catch (e) {
         // Table may not exist yet — default to Level 4
-        console.error('student_habit_levels table not available, defaulting to Level 4');
+        console.error('student_habit_levels table not available, defaulting to Level 4', e);
       }
 
       // Fetch level history from student_habit_level_history
       const levelHistory: LevelProgressionPoint[] = [];
       try {
-        const { data: historyData } = await supabase
+        const { data: historyData, error } = await supabase
           .from('student_habit_level_history' as never)
           .select('changed_at, new_level')
           .eq('student_id', studentId)
           .order('changed_at', { ascending: true });
 
-        if (Array.isArray(historyData)) {
+        if (error) {
+          console.error('Failed to fetch habit level history:', error.message);
+        } else if (Array.isArray(historyData)) {
           for (const row of historyData) {
             const r = row as Record<string, unknown>;
             const date = typeof r.changed_at === 'string'
@@ -55,9 +58,9 @@ export const useStudentHabitLevel = (studentId: string | undefined) => {
             }
           }
         }
-      } catch {
+      } catch (e) {
         // Table may not exist yet — empty history
-        console.error('student_habit_level_history table not available');
+        console.error('student_habit_level_history table not available', e);
       }
 
       return {

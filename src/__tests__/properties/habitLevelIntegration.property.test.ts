@@ -119,14 +119,16 @@ describe('Habit Level Integration Properties', () => {
           fc.integer({ min: 1, max: 30 }),
           levelArb,
           fc.float({ min: 0, max: 1, noNaN: true }),
-          (numDays, level, sabbaticalRatio) => {
+          fc.array(fc.integer({ min: 0, max: 4 }), { minLength: 1, maxLength: 30 }),
+          (numDays, level, sabbaticalRatio, academicCounts) => {
             const base = new Date('2024-01-01T00:00:00');
-            const days = Array.from({ length: numDays }, (_, i) => ({
+            const actualNumDays = Math.min(numDays, academicCounts.length);
+            const days = Array.from({ length: actualNumDays }, (_, i) => ({
               date: dateFromOffset(base, i),
-              academicCount: fc.sample(fc.integer({ min: 0, max: 4 }), 1)[0]!,
+              academicCount: academicCounts[i]!,
             }));
             const history: LevelProgressionPoint[] = [{ date: '2023-12-01', level }];
-            const sabbaticalCount = Math.floor(numDays * sabbaticalRatio);
+            const sabbaticalCount = Math.floor(actualNumDays * sabbaticalRatio);
             const sabbaticalDates = new Set(
               days.slice(0, sabbaticalCount).map((d) => d.date),
             );

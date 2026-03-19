@@ -4,35 +4,7 @@
 
 import { describe, it, expect } from 'vitest';
 import * as fc from 'fast-check';
-import { getCorrelationConfidenceLevel } from '@/lib/correlationConfidence';
-
-// --- Pure helper for Property 31 (simulates Edge Function threshold logic) ---
-
-interface CorrelationThresholdResult {
-  insights: unknown[];
-  insufficient_data: boolean;
-  daysUntilReady?: number;
-}
-
-/**
- * Simulates the compute-habit-correlations Edge Function threshold logic.
- * For < 30 days: returns empty insights with insufficient_data: true.
- * For 14-29 days: also includes daysUntilReady = 30 - dayCount.
- */
-function applyCorrelationThreshold(dayCount: number): CorrelationThresholdResult {
-  if (dayCount < 14) {
-    return { insights: [], insufficient_data: true };
-  }
-  if (dayCount < 30) {
-    return {
-      insights: [],
-      insufficient_data: true,
-      daysUntilReady: 30 - dayCount,
-    };
-  }
-  // 30+ days: would compute real insights, but for threshold testing we just confirm it passes
-  return { insights: [], insufficient_data: false };
-}
+import { getCorrelationConfidenceLevel, applyCorrelationThreshold } from '@/lib/correlationConfidence';
 
 describe('Habit Correlation Confidence Properties', () => {
   // Feature: habit-heatmap, Property 30: Correlation confidence level mapping

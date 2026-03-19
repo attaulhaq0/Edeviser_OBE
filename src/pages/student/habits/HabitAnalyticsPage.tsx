@@ -111,6 +111,7 @@ const HabitAnalyticsContent = () => {
         </div>
         <Button
           onClick={exportCSV}
+          disabled={isLoading}
           className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 gap-1"
           data-testid="export-report-btn"
         >

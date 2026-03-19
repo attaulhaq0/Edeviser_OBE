@@ -41,7 +41,11 @@ const WellnessXpSettingsPage = () => {
   }, [currentXp, form]);
 
   const onSubmit = (data: WellnessXpFormData) => {
-    mutation.mutate(data.wellness_xp_amount);
+    mutation.mutate(data.wellness_xp_amount, {
+      onSuccess: () => {
+        form.reset({ wellness_xp_amount: data.wellness_xp_amount });
+      },
+    });
   };
 
   if (isLoading) {

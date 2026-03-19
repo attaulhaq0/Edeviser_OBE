@@ -43,11 +43,16 @@ export const useUpdateWellnessReminder = () => {
       reminderTime: string | null;
     }) => {
       // Fetch current reminder_times
-      const { data: current } = await supabase
+      const { data: current, error: fetchError } = await supabase
         .from('student_wellness_preferences')
         .select('reminder_times')
         .eq('student_id', studentId)
         .maybeSingle();
+
+      if (fetchError) {
+        console.error('Failed to fetch reminder times:', fetchError.message);
+        throw fetchError;
+      }
 
       const existing = (current?.reminder_times ?? {}) as Record<string, string | null>;
       const updated = { ...existing };

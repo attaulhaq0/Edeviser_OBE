@@ -39,7 +39,9 @@ export const useUpdateWellnessXpAmount = () => {
       if (fetchError) throw fetchError;
       if (!existing) throw new Error('Institution settings not found');
 
-      const previousValue = existing.wellness_xp_amount as number;
+      const previousValue = existing.wellness_xp_amount == null
+        ? null
+        : Number(existing.wellness_xp_amount);
 
       const { error: updateError } = await db
         .from('institution_settings')
@@ -48,15 +50,19 @@ export const useUpdateWellnessXpAmount = () => {
 
       if (updateError) throw updateError;
 
-      await logAuditEvent({
-        action: 'update',
-        entity_type: 'institution_settings',
-        entity_id: existing.id as string,
-        changes: {
-          wellness_xp_amount: { from: previousValue, to: wellnessXpAmount },
-        },
-        performed_by: user?.id ?? 'unknown',
-      });
+      try {
+        await logAuditEvent({
+          action: 'update',
+          entity_type: 'institution_settings',
+          entity_id: existing.id as string,
+          changes: {
+            wellness_xp_amount: { from: previousValue, to: wellnessXpAmount },
+          },
+          performed_by: user?.id ?? 'unknown',
+        });
+      } catch (auditError) {
+        console.error('Audit logging failed (update succeeded):', auditError);
+      }
 
       return { wellnessXpAmount };
     },

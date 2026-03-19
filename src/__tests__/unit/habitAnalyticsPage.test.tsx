@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import type { ReactNode } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 
@@ -80,14 +81,14 @@ vi.mock('@/hooks/useStudentHabitLevel', () => ({
 
 // Mock Recharts to avoid SVG rendering issues in tests
 vi.mock('recharts', () => ({
-  BarChart: ({ children }: { children: React.ReactNode }) => <div data-testid="bar-chart">{children}</div>,
+  BarChart: ({ children }: { children: ReactNode }) => <div data-testid="bar-chart">{children}</div>,
   Bar: () => <div />,
-  LineChart: ({ children }: { children: React.ReactNode }) => <div data-testid="line-chart">{children}</div>,
+  LineChart: ({ children }: { children: ReactNode }) => <div data-testid="line-chart">{children}</div>,
   Line: () => <div />,
   XAxis: () => <div />,
   YAxis: () => <div />,
   Tooltip: () => <div />,
-  ResponsiveContainer: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  ResponsiveContainer: ({ children }: { children: ReactNode }) => <div>{children}</div>,
   Cell: () => <div />,
   ReferenceDot: () => <div />,
 }));

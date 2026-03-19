@@ -9,7 +9,7 @@ import { queryKeys } from '@/lib/queryKeys';
  */
 export const useSabbaticalStatus = (studentId: string | undefined) => {
   return useQuery({
-    queryKey: [...queryKeys.studentGamification.all, 'sabbatical', studentId ?? ''],
+    queryKey: queryKeys.studentGamification.sabbatical(studentId ?? ''),
     enabled: !!studentId,
     queryFn: async (): Promise<boolean> => {
       if (!studentId) return false;

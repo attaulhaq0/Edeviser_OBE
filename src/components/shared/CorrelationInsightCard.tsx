@@ -10,6 +10,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 import CorrelationConfidenceBadge from '@/components/shared/CorrelationConfidenceBadge';
 import type { CorrelationInsight, CorrelationInsightWithConfidence, HabitType } from '@/types/habits';
 
@@ -55,7 +56,7 @@ const CorrelationInsightCard = ({ insight }: CorrelationInsightCardProps) => {
       data-testid={`correlation-insight-${insight.id}`}
     >
       <div className="flex items-start gap-3">
-        <div className={`p-2 rounded-lg shrink-0 ${colorClasses}`}>
+        <div className={cn('p-2 rounded-lg shrink-0', colorClasses)}>
           <Icon className="h-4 w-4" />
         </div>
         <div className="flex-1 min-w-0 space-y-2">

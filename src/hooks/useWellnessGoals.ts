@@ -82,11 +82,16 @@ export const useUpdateWellnessGoal = () => {
       targetValue: number;
       unit: string;
     }) => {
-      const { data: current } = await supabase
+      const { data: current, error: fetchError } = await supabase
         .from('student_wellness_preferences')
         .select('habit_targets')
         .eq('student_id', studentId)
         .maybeSingle();
+
+      if (fetchError) {
+        console.error('Failed to fetch habit targets:', fetchError.message);
+        throw fetchError;
+      }
 
       const existing = (current?.habit_targets ?? {}) as Record<string, { value: number; unit: string }>;
       const updated = {

@@ -130,7 +130,9 @@ export const useTeacherKPIs = () => {
 
         const lowCloMap = new Map<string, number>();
         for (const row of lowAttainment ?? []) {
-          lowCloMap.set(row.student_id!, (lowCloMap.get(row.student_id!) ?? 0) + 1);
+          if (row.student_id != null) {
+            lowCloMap.set(row.student_id, (lowCloMap.get(row.student_id) ?? 0) + 1);
+          }
         }
 
         const atRiskSet = new Set<string>(inactiveSet);
@@ -399,7 +401,9 @@ export const useAtRiskStudents = () => {
 
       const lowCloMap = new Map<string, number>();
       for (const row of lowAttainment ?? []) {
-        lowCloMap.set(row.student_id!, (lowCloMap.get(row.student_id!) ?? 0) + 1);
+        if (row.student_id != null) {
+          lowCloMap.set(row.student_id, (lowCloMap.get(row.student_id) ?? 0) + 1);
+        }
       }
 
       // Combine into at-risk list

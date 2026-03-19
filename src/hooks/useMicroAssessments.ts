@@ -122,10 +122,12 @@ export const useCompleteMicroAssessment = () => {
         const newCompleteness = Math.round((total / 5) * 100);
 
         // Upsert student_profiles with new completeness (insert if missing)
-        const { error: profileError } = await supabase
-          .from('student_profiles' as never)
+        // Note: using type assertion because student_profiles schema may not include
+        // profile_completeness in generated types yet
+        const { error: profileError } = await (supabase
+          .from('student_profiles') as unknown as { upsert: (data: Record<string, unknown>, opts: { onConflict: string }) => { error: unknown } })
           .upsert(
-            { student_id: params.studentId, profile_completeness: newCompleteness } as never,
+            { student_id: params.studentId, profile_completeness: newCompleteness },
             { onConflict: 'student_id' },
           );
 
