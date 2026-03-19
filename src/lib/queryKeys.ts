@@ -91,6 +91,25 @@ const notificationPreferences = createKeys('notificationPreferences')
 const sessions = createKeys('sessions')
 const auditLogs = createKeys('auditLogs')
 
+// ─── Heatmap & Wellness ──────────────────────────────────────────────────────
+const heatmap = {
+  all: ['heatmap'] as const,
+  data: (studentId: string, start: string, end: string, filter?: string) =>
+    ['heatmap', studentId, start, end, filter] as const,
+  summary: (studentId: string) => ['heatmap', 'summary', studentId] as const,
+}
+
+const wellness = {
+  all: ['wellness'] as const,
+  preferences: (studentId: string) => ['wellness', 'preferences', studentId] as const,
+  logs: (studentId: string, date: string) => ['wellness', 'logs', studentId, date] as const,
+}
+
+const habitAnalytics = {
+  all: ['habitAnalytics'] as const,
+  correlations: (studentId: string) => ['habitAnalytics', 'correlations', studentId] as const,
+}
+
 // ─── Onboarding ──────────────────────────────────────────────────────────────
 const onboarding = {
   progress: (studentId: string) =>
@@ -193,6 +212,10 @@ export const queryKeys = {
   notificationPreferences,
   sessions,
   auditLogs,
+  // Heatmap & Wellness
+  heatmap,
+  wellness,
+  habitAnalytics,
   // Onboarding
   onboarding,
 } as const

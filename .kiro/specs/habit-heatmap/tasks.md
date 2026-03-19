@@ -36,62 +36,62 @@
 
 ## Task 5: Check-Badges Edge Function Update
 
-- [-] 5.1 Add `'habit_log'` to `BadgeTrigger` type and `VALID_TRIGGERS` array in `supabase/functions/check-badges/index.ts`
-- [ ] 5.2 Add badge XP entries for `habit_master` (100), `wellness_warrior` (75), `full_spectrum` (150) to `BADGE_XP` map
-- [ ] 5.3 Implement `checkHabitBadges()` function: Habit Master (30+ active days in semester), Wellness Warrior (14 consecutive wellness days), Full Spectrum (7 days with all 4 academic + ≥1 wellness)
-- [ ] 5.4 Wire `checkHabitBadges()` into the main handler for `habit_log` trigger
-- [ ] 5.5 Add badge definitions to `src/lib/badgeDefinitions.ts`: habit_master, wellness_warrior, full_spectrum with names, descriptions, icons, XP rewards, and conditions
-- [ ] 5.6 Write unit test for habit badge conditions in `src/__tests__/unit/habitBadges.test.ts`
+- [x] 5.1 Add `'habit_log'` to `BadgeTrigger` type and `VALID_TRIGGERS` array in `supabase/functions/check-badges/index.ts`
+- [x] 5.2 Add badge XP entries for `habit_master` (100), `wellness_warrior` (75), `full_spectrum` (150) to `BADGE_XP` map
+- [x] 5.3 Implement `checkHabitBadges()` function: Habit Master (30+ active days in semester), Wellness Warrior (14 consecutive wellness days), Full Spectrum (7 days with all 4 academic + ≥1 wellness)
+- [x] 5.4 Wire `checkHabitBadges()` into the main handler for `habit_log` trigger
+- [x] 5.5 Add badge definitions to `src/lib/badgeDefinitions.ts`: habit_master, wellness_warrior, full_spectrum with names, descriptions, icons, XP rewards, and conditions
+- [x] 5.6 Write unit test for habit badge conditions in `src/__tests__/unit/habitBadges.test.ts`
 
 ## Task 6: Compute-Habit-Correlations Edge Function
 
-- [ ] 6.1 Create `supabase/functions/compute-habit-correlations/index.ts` with standard Edge Function structure (CORS, service role client)
-- [ ] 6.2 Implement correlation logic: fetch habit_logs + wellness_habit_logs + submissions for semester range, compute co-occurrence rates between habit types and academic events, return up to 3 insights sorted by strength
-- [ ] 6.3 Implement 14-day minimum data threshold check — return empty insights with `insufficient_data: true` flag when below threshold
-- [ ] 6.4 Ensure insight text uses non-causal language ("on days when", "tends to") — no "because", "causes", "due to"
-- [ ] 6.5 Write unit test for correlation computation logic in `src/__tests__/unit/habitCorrelations.test.ts`
+- [x] 6.1 Create `supabase/functions/compute-habit-correlations/index.ts` with standard Edge Function structure (CORS, service role client)
+- [x] 6.2 Implement correlation logic: fetch habit_logs + wellness_habit_logs + submissions for semester range, compute co-occurrence rates between habit types and academic events, return up to 3 insights sorted by strength
+- [x] 6.3 Implement 14-day minimum data threshold check — return empty insights with `insufficient_data: true` flag when below threshold
+- [x] 6.4 Ensure insight text uses non-causal language ("on days when", "tends to") — no "because", "causes", "due to"
+- [x] 6.5 Write unit test for correlation computation logic in `src/__tests__/unit/habitCorrelations.test.ts`
 
 ## Task 7: TanStack Query Hooks
 
-- [ ] 7.1 Create `src/hooks/useHeatmapData.ts` with `useHeatmapData(studentId, semesterRange, filter)` hook — single aggregated query joining habit_logs + wellness_habit_logs grouped by date
-- [ ] 7.2 Create `useHeatmapSummary` hook in same file — derives current streak (from student_gamification), longest streak, and total active days from heatmap data
-- [ ] 7.3 Create `src/hooks/useWellnessPreferences.ts` with `useWellnessPreferences(studentId)` query and `useUpdateWellnessPreferences` mutation
-- [ ] 7.4 Create `src/hooks/useWellnessHabits.ts` with `useWellnessHabitLogs(studentId, date)` query, `useLogWellnessHabit` mutation (insert log → invoke award-xp → invoke check-badges → invalidate queries)
-- [ ] 7.5 Create `src/hooks/useHabitAnalytics.ts` with `useWeeklyCompletionRates`, `useMonthlyCompletionRates`, `useConsistencyScore`, `useBestDayOfWeek` hooks
-- [ ] 7.6 Create `src/hooks/useHabitCorrelations.ts` with `useHabitCorrelations(studentId)` hook — invokes compute-habit-correlations Edge Function
-- [ ] 7.7 Create `src/hooks/useHabitExport.ts` with `useHabitExport` hook — generates CSV from cached TanStack Query data and triggers browser download
+- [x] 7.1 Create `src/hooks/useHeatmapData.ts` with `useHeatmapData(studentId, semesterRange, filter)` hook — single aggregated query joining habit_logs + wellness_habit_logs grouped by date
+- [x] 7.2 Create `useHeatmapSummary` hook in same file — derives current streak (from student_gamification), longest streak, and total active days from heatmap data
+- [x] 7.3 Create `src/hooks/useWellnessPreferences.ts` with `useWellnessPreferences(studentId)` query and `useUpdateWellnessPreferences` mutation
+- [x] 7.4 Create `src/hooks/useWellnessHabits.ts` with `useWellnessHabitLogs(studentId, date)` query, `useLogWellnessHabit` mutation (insert log → invoke award-xp → invoke check-badges → invalidate queries)
+- [x] 7.5 Create `src/hooks/useHabitAnalytics.ts` with `useWeeklyCompletionRates`, `useMonthlyCompletionRates`, `useConsistencyScore`, `useBestDayOfWeek` hooks
+- [x] 7.6 Create `src/hooks/useHabitCorrelations.ts` with `useHabitCorrelations(studentId)` hook — invokes compute-habit-correlations Edge Function
+- [x] 7.7 Create `src/hooks/useHabitExport.ts` with `useHabitExport` hook — generates CSV from cached TanStack Query data and triggers browser download
 
 ## Task 8: Heatmap Grid Components
 
-- [ ] 8.1 Create `src/components/shared/HeatmapGrid.tsx` — SVG-based grid rendering with cells, month labels, day-of-week labels, color legend; accepts HeatmapDay[] data and DateRange
-- [ ] 8.2 Implement cell color intensity using streak gradient palette (5 levels: empty, light, medium-light, medium, full) with CSS custom properties
-- [ ] 8.3 Implement keyboard navigation (arrow keys between cells, Enter/Space to activate tooltip) with proper focus management
-- [ ] 8.4 Add ARIA labels on each cell: `aria-label="{formatted date}: {count} habits completed"`
-- [ ] 8.5 Implement `prefers-reduced-motion` support — disable hover/tap transition animations
-- [ ] 8.6 Implement responsive cell sizing: `max(floor(containerWidth / numWeeks), 12)` on desktop, fixed 12px with horizontal scroll on mobile
-- [ ] 8.7 Write unit test `src/__tests__/unit/heatmapGrid.test.tsx` for grid rendering, cell states, keyboard nav, ARIA attributes
+- [x] 8.1 Create `src/components/shared/HeatmapGrid.tsx` — SVG-based grid rendering with cells, month labels, day-of-week labels, color legend; accepts HeatmapDay[] data and DateRange
+- [x] 8.2 Implement cell color intensity using streak gradient palette (5 levels: empty, light, medium-light, medium, full) with CSS custom properties
+- [x] 8.3 Implement keyboard navigation (arrow keys between cells, Enter/Space to activate tooltip) with proper focus management
+- [x] 8.4 Add ARIA labels on each cell: `aria-label="{formatted date}: {count} habits completed"`
+- [x] 8.5 Implement `prefers-reduced-motion` support — disable hover/tap transition animations
+- [x] 8.6 Implement responsive cell sizing: `max(floor(containerWidth / numWeeks), 12)` on desktop, fixed 12px with horizontal scroll on mobile
+- [x] 8.7 Write unit test `src/__tests__/unit/heatmapGrid.test.tsx` for grid rendering, cell states, keyboard nav, ARIA attributes
 
 ## Task 9: Heatmap Interaction Components
 
-- [ ] 9.1 Create `src/components/shared/HeatmapTooltip.tsx` — desktop hover tooltip showing date, completed habits with checkmarks, XP earned, streak status
-- [ ] 9.2 Create `src/components/shared/HabitMobileBottomSheet.tsx` — mobile tap bottom sheet with same content as tooltip, using Shadcn Sheet component
-- [ ] 9.3 Handle empty day state: tooltip shows "No habits completed" with date
-- [ ] 9.4 Handle future date state: cell rendered as disabled, no tooltip interaction
-- [ ] 9.5 Write unit test `src/__tests__/unit/heatmapTooltip.test.tsx` for tooltip content variants
+- [x] 9.1 Create `src/components/shared/HeatmapTooltip.tsx` — desktop hover tooltip showing date, completed habits with checkmarks, XP earned, streak status
+- [x] 9.2 Create `src/components/shared/HabitMobileBottomSheet.tsx` — mobile tap bottom sheet with same content as tooltip, using Shadcn Sheet component
+- [x] 9.3 Handle empty day state: tooltip shows "No habits completed" with date
+- [x] 9.4 Handle future date state: cell rendered as disabled, no tooltip interaction
+- [x] 9.5 Write unit test `src/__tests__/unit/heatmapTooltip.test.tsx` for tooltip content variants
 
 ## Task 10: Heatmap Filters & Summary Stats
 
-- [ ] 10.1 Create `src/components/shared/HeatmapFilters.tsx` — pill-style filter tabs using Shadcn Tabs with "All Habits" default, academic habits, and enabled wellness habits; persisted via nuqs `useQueryState('habit', ...)`
-- [ ] 10.2 Create `src/components/shared/HeatmapSummaryStats.tsx` — 3 KPI cards (current streak with flame icon, longest streak, total active days) using project KPI card pattern
-- [ ] 10.3 Write unit test `src/__tests__/unit/heatmapFilters.test.tsx` for filter rendering and selection
+- [x] 10.1 Create `src/components/shared/HeatmapFilters.tsx` — pill-style filter tabs using Shadcn Tabs with "All Habits" default, academic habits, and enabled wellness habits; persisted via nuqs `useQueryState('habit', ...)`
+- [x] 10.2 Create `src/components/shared/HeatmapSummaryStats.tsx` — 3 KPI cards (current streak with flame icon, longest streak, total active days) using project KPI card pattern
+- [x] 10.3 Write unit test `src/__tests__/unit/heatmapFilters.test.tsx` for filter rendering and selection
 
 ## Task 11: Wellness Habit Components
 
-- [ ] 11.1 Create `src/components/shared/WellnessHabitLogger.tsx` — displays enabled wellness habits with toggle buttons and optional value input (minutes, glasses, hours), visually separated from academic habits with "Wellness" section label
-- [ ] 11.2 Create wellness preferences panel (inline on habits page) — 4 toggle switches for wellness habits with descriptions, parent visibility toggle
-- [ ] 11.3 Implement one-log-per-day enforcement in UI: disable toggle after logging, show checkmark for completed
-- [ ] 11.4 Implement XP award flow: on wellness log → call award-xp with source 'wellness_habit' → show XP toast on success
-- [ ] 11.5 Write unit tests `src/__tests__/unit/wellnessHabitLogger.test.tsx` and `src/__tests__/unit/wellnessSettings.test.tsx`
+- [-] 11.1 Create `src/components/shared/WellnessHabitLogger.tsx` — displays enabled wellness habits with toggle buttons and optional value input (minutes, glasses, hours), visually separated from academic habits with "Wellness" section label
+- [~] 11.2 Create wellness preferences panel (inline on habits page) — 4 toggle switches for wellness habits with descriptions, parent visibility toggle
+- [~] 11.3 Implement one-log-per-day enforcement in UI: disable toggle after logging, show checkmark for completed
+- [~] 11.4 Implement XP award flow: on wellness log → call award-xp with source 'wellness_habit' → show XP toast on success
+- [~] 11.5 Write unit tests `src/__tests__/unit/wellnessHabitLogger.test.tsx` and `src/__tests__/unit/wellnessSettings.test.tsx`
 
 ## Task 12: Habit Heatmap Page
 
