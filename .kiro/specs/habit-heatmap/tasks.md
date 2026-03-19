@@ -190,19 +190,19 @@
 
 ## Task 21: Property Tests for New Features
 
-- [-] 21.1 Create `src/__tests__/properties/habitLevelIntegration.property.test.ts` with property tests for Properties 27–29, 36 (level-aware intensity, level-relative consistency, milestones, level progression)
-- [~] 21.2 Create `src/__tests__/properties/habitStreakRecovery.property.test.ts` with property tests for Properties 34–35 (comeback challenge cells, sabbatical rest days)
-- [~] 21.3 Create `src/__tests__/properties/habitWellnessScaffolding.property.test.ts` with property tests for Properties 32–33 (tip rotation, target progress)
-- [~] 21.4 Create `src/__tests__/properties/habitCorrelationConfidence.property.test.ts` with property tests for Properties 30–31 (confidence levels, minimum threshold)
+- [x] 21.1 Create `src/__tests__/properties/habitLevelIntegration.property.test.ts` with property tests for Properties 27–29, 36 (level-aware intensity, level-relative consistency, milestones, level progression)
+- [x] 21.2 Create `src/__tests__/properties/habitStreakRecovery.property.test.ts` with property tests for Properties 34–35 (comeback challenge cells, sabbatical rest days)
+- [x] 21.3 Create `src/__tests__/properties/habitWellnessScaffolding.property.test.ts` with property tests for Properties 32–33 (tip rotation, target progress)
+- [x] 21.4 Create `src/__tests__/properties/habitCorrelationConfidence.property.test.ts` with property tests for Properties 30–31 (confidence levels, minimum threshold)
 
 ## Task 22: Integration & Verification for New Features
 
-- [~] 22.1 Verify level-aware heatmap rendering: Level 1 student with 1 habit shows full intensity; Level 4 student with 1 habit shows level-1 intensity
-- [~] 22.2 Verify Comeback Challenge overlay renders correctly on active challenge days and disappears after completion
-- [~] 22.3 Verify Sabbatical rest days exclude from consistency calculations and show correct tooltip
-- [~] 22.4 Verify milestone markers appear at correct streak achievement dates
-- [~] 22.5 Verify wellness tip rotation changes weekly and onboarding tip dismissal persists
-- [~] 22.6 Verify wellness reminders fire only when habit not yet logged for the day
-- [~] 22.7 Verify wellness goal progress displays correctly and target met triggers completion indicator
-- [~] 22.8 Verify correlation insights show confidence badges and disclaimer, with correct threshold messaging for <14, 14-29, and 30+ day ranges
-- [~] 22.9 Run all new property-based tests and unit tests, fix any failures
+- [x] 22.1 Verify level-aware heatmap rendering: Level 1 student with 1 habit shows full intensity; Level 4 student with 1 habit shows level-1 intensity
+- [x] 22.2 Verify Comeback Challenge overlay renders correctly on active challenge days and disappears after completion
+- [x] 22.3 Verify Sabbatical rest days exclude from consistency calculations and show correct tooltip
+- [x] 22.4 Verify milestone markers appear at correct streak achievement dates
+- [x] 22.5 Verify wellness tip rotation changes weekly and onboarding tip dismissal persists
+- [x] 22.6 Verify wellness reminders fire only when habit not yet logged for the day
+- [x] 22.7 Verify wellness goal progress displays correctly and target met triggers completion indicator
+- [x] 22.8 Verify correlation insights show confidence badges and disclaimer, with correct threshold messaging for <14, 14-29, and 30+ day ranges
+- [x] 22.9 Run all new property-based tests and unit tests, fix any failures
