@@ -2,41 +2,41 @@
 
 ## Task 1: Database Schema & Migrations
 
-- [ ] 1.1 Create `wellness_habit_type` enum: `CREATE TYPE wellness_habit_type AS ENUM ('meditation', 'hydration', 'exercise', 'sleep');`
-- [ ] 1.2 Create `wellness_habit_logs` table with columns (id, student_id, date, wellness_type, value, completed_at, created_at), unique constraint on (student_id, date, wellness_type), FK to profiles, and indexes on (student_id, date) and (student_id, wellness_type, date)
-- [ ] 1.3 Create `student_wellness_preferences` table with columns (id, student_id, enabled_habits, parent_visibility, created_at, updated_at), unique constraint on student_id, FK to profiles
-- [ ] 1.4 Add `wellness_xp_amount` integer column (default 5) to `institution_settings` table
-- [ ] 1.5 Create index `idx_habit_logs_student_date` on existing `habit_logs(student_id, date)` if not exists
-- [ ] 1.6 Create RLS policies on `wellness_habit_logs`: student SELECT/INSERT own, student UPDATE value on own, parent SELECT linked with parent_visibility=true, no DELETE, no teacher SELECT
-- [ ] 1.7 Create RLS policies on `student_wellness_preferences`: student ALL on own, no other role access
-- [ ] 1.8 Create `get_wellness_aggregate_stats` database function for admin aggregate access
-- [ ] 1.9 Regenerate TypeScript types: `npx supabase gen types --linked > src/types/database.ts`
+- [x] 1.1 Create `wellness_habit_type` enum: `CREATE TYPE wellness_habit_type AS ENUM ('meditation', 'hydration', 'exercise', 'sleep');`
+- [x] 1.2 Create `wellness_habit_logs` table with columns (id, student_id, date, wellness_type, value, completed_at, created_at), unique constraint on (student_id, date, wellness_type), FK to profiles, and indexes on (student_id, date) and (student_id, wellness_type, date)
+- [x] 1.3 Create `student_wellness_preferences` table with columns (id, student_id, enabled_habits, parent_visibility, created_at, updated_at), unique constraint on student_id, FK to profiles
+- [x] 1.4 Add `wellness_xp_amount` integer column (default 5) to `institution_settings` table
+- [x] 1.5 Create index `idx_habit_logs_student_date` on existing `habit_logs(student_id, date)` if not exists
+- [x] 1.6 Create RLS policies on `wellness_habit_logs`: student SELECT/INSERT own, student UPDATE value on own, parent SELECT linked with parent_visibility=true, no DELETE, no teacher SELECT
+- [x] 1.7 Create RLS policies on `student_wellness_preferences`: student ALL on own, no other role access
+- [x] 1.8 Create `get_wellness_aggregate_stats` database function for admin aggregate access
+- [x] 1.9 Regenerate TypeScript types: `npx supabase gen types --linked > src/types/database.ts`
 
 ## Task 2: TypeScript Types & Shared Utilities
 
-- [ ] 2.1 Create `src/types/habits.ts` with types: WellnessHabitType, AcademicHabitType, HabitType, HeatmapDay, CompletedHabit, WellnessHabitLog, WellnessPreferences, HeatmapSummary, CompletionRateData, DayOfWeekData, CorrelationInsight, HabitReportRow, DateRange
-- [ ] 2.2 Create `src/lib/heatmapUtils.ts` with pure functions: `getIntensityLevel(count)`, `computeLongestStreak(days)`, `computeConsistencyScore(days, totalDays)`, `computeCompletionRate(completed, possiblePerDay, days)`, `computeDayOfWeekAverages(days)`, `getBestDay(averages)`, `computeCellSize(containerWidth, numWeeks)`, `generateMonthLabels(startDate, endDate)`, `generateGridDimensions(startDate, endDate)`, `isDateFuture(date)`, `getFilterOptions(enabledWellnessHabits)`, `generateAriaLabel(date, count)`
-- [ ] 2.3 Create `src/lib/habitExport.ts` with `generateHabitCSV(data, summary, enabledWellnessHabits)` and `downloadCSV(csv, filename)` functions
-- [ ] 2.4 Create `src/lib/perfectDayCheck.ts` with `isPerfectDay(academicHabits)` function that checks only the 4 academic habits (excluding wellness)
-- [ ] 2.5 Add Zod schema `wellnessXpAmountSchema` (integer, min 0, max 25) to `src/lib/schemas/`
+- [x] 2.1 Create `src/types/habits.ts` with types: WellnessHabitType, AcademicHabitType, HabitType, HeatmapDay, CompletedHabit, WellnessHabitLog, WellnessPreferences, HeatmapSummary, CompletionRateData, DayOfWeekData, CorrelationInsight, HabitReportRow, DateRange
+- [x] 2.2 Create `src/lib/heatmapUtils.ts` with pure functions: `getIntensityLevel(count)`, `computeLongestStreak(days)`, `computeConsistencyScore(days, totalDays)`, `computeCompletionRate(completed, possiblePerDay, days)`, `computeDayOfWeekAverages(days)`, `getBestDay(averages)`, `computeCellSize(containerWidth, numWeeks)`, `generateMonthLabels(startDate, endDate)`, `generateGridDimensions(startDate, endDate)`, `isDateFuture(date)`, `getFilterOptions(enabledWellnessHabits)`, `generateAriaLabel(date, count)`
+- [x] 2.3 Create `src/lib/habitExport.ts` with `generateHabitCSV(data, summary, enabledWellnessHabits)` and `downloadCSV(csv, filename)` functions
+- [x] 2.4 Create `src/lib/perfectDayCheck.ts` with `isPerfectDay(academicHabits)` function that checks only the 4 academic habits (excluding wellness)
+- [x] 2.5 Add Zod schema `wellnessXpAmountSchema` (integer, min 0, max 25) to `src/lib/schemas/`
 
 ## Task 3: Property-Based Tests for Heatmap Utilities
 
-- [ ] 3.1 Create `src/__tests__/properties/habitHeatmap.property.test.ts` with property tests for Properties 1–10 and 25 (grid structure, intensity mapping, tooltip content, future dates, filter options, binary filter, all-habits sum, longest streak, total active days, cell size, ARIA labels)
-- [ ] 3.2 Create `src/__tests__/properties/wellnessHabits.property.test.ts` with property tests for Properties 11–16 and 26 (preferences toggle, log fields, one-per-day, Perfect Day exclusion, wellness XP, XP validation, bonus multiplier)
-- [ ] 3.3 Create `src/__tests__/properties/habitAnalytics.property.test.ts` with property tests for Properties 17–21 (completion rate formula, consistency score, day-of-week averages, correlation cap/language, CSV structure)
-- [ ] 3.4 Create `src/__tests__/properties/habitBadges.property.test.ts` with property tests for Properties 22–24 (Habit Master 30-day, Wellness Warrior 14-consecutive, Full Spectrum 7-day)
+- [x] 3.1 Create `src/__tests__/properties/habitHeatmap.property.test.ts` with property tests for Properties 1–10 and 25 (grid structure, intensity mapping, tooltip content, future dates, filter options, binary filter, all-habits sum, longest streak, total active days, cell size, ARIA labels)
+- [x] 3.2 Create `src/__tests__/properties/wellnessHabits.property.test.ts` with property tests for Properties 11–16 and 26 (preferences toggle, log fields, one-per-day, Perfect Day exclusion, wellness XP, XP validation, bonus multiplier)
+- [x] 3.3 Create `src/__tests__/properties/habitAnalytics.property.test.ts` with property tests for Properties 17–21 (completion rate formula, consistency score, day-of-week averages, correlation cap/language, CSV structure)
+- [x] 3.4 Create `src/__tests__/properties/habitBadges.property.test.ts` with property tests for Properties 22–24 (Habit Master 30-day, Wellness Warrior 14-consecutive, Full Spectrum 7-day)
 
 ## Task 4: Award-XP Edge Function Update
 
-- [ ] 4.1 Add `'wellness_habit'` to `XPSource` type union and `VALID_SOURCES` array in `supabase/functions/award-xp/index.ts`
-- [ ] 4.2 Add wellness XP lookup logic: when source is `wellness_habit`, fetch `wellness_xp_amount` from `institution_settings` for the student's institution and use that as the XP amount (override the passed `xp_amount`)
-- [ ] 4.3 Handle `wellness_xp_amount = 0`: skip XP transaction insert and return `{ success: true, xp_awarded: 0 }`
-- [ ] 4.4 Write unit test for award-xp wellness_habit source handling in `src/__tests__/unit/awardXpWellness.test.ts`
+- [x] 4.1 Add `'wellness_habit'` to `XPSource` type union and `VALID_SOURCES` array in `supabase/functions/award-xp/index.ts`
+- [x] 4.2 Add wellness XP lookup logic: when source is `wellness_habit`, fetch `wellness_xp_amount` from `institution_settings` for the student's institution and use that as the XP amount (override the passed `xp_amount`)
+- [x] 4.3 Handle `wellness_xp_amount = 0`: skip XP transaction insert and return `{ success: true, xp_awarded: 0 }`
+- [x] 4.4 Write unit test for award-xp wellness_habit source handling in `src/__tests__/unit/awardXpWellness.test.ts`
 
 ## Task 5: Check-Badges Edge Function Update
 
-- [ ] 5.1 Add `'habit_log'` to `BadgeTrigger` type and `VALID_TRIGGERS` array in `supabase/functions/check-badges/index.ts`
+- [-] 5.1 Add `'habit_log'` to `BadgeTrigger` type and `VALID_TRIGGERS` array in `supabase/functions/check-badges/index.ts`
 - [ ] 5.2 Add badge XP entries for `habit_master` (100), `wellness_warrior` (75), `full_spectrum` (150) to `BADGE_XP` map
 - [ ] 5.3 Implement `checkHabitBadges()` function: Habit Master (30+ active days in semester), Wellness Warrior (14 consecutive wellness days), Full Spectrum (7 days with all 4 academic + ≥1 wellness)
 - [ ] 5.4 Wire `checkHabitBadges()` into the main handler for `habit_log` trigger

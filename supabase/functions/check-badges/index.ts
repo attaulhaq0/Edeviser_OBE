@@ -8,7 +8,7 @@ const corsHeaders = {
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
-type BadgeTrigger = 'xp_award' | 'submission' | 'streak_update' | 'grade' | 'journal';
+type BadgeTrigger = 'xp_award' | 'submission' | 'streak_update' | 'grade' | 'journal' | 'habit_log';
 
 interface CheckBadgesPayload {
   student_id: string;
@@ -39,12 +39,15 @@ const BADGE_XP: Record<string, number> = {
   speed_demon: 75,
   night_owl: 75,
   perfectionist: 100,
+  habit_master: 100,
+  wellness_warrior: 75,
+  full_spectrum: 150,
 };
 
 // ─── Validation ─────────────────────────────────────────────────────────────
 
 const VALID_TRIGGERS: BadgeTrigger[] = [
-  'xp_award', 'submission', 'streak_update', 'grade', 'journal',
+  'xp_award', 'submission', 'streak_update', 'grade', 'journal', 'habit_log',
 ];
 
 function validatePayload(
@@ -357,6 +360,156 @@ async function checkMysteryBadges(
   return newBadges;
 }
 
+// ─── Habit Badge Checkers ────────────────────────────────────────────────────
+
+async function checkHabitBadges(
+  supabase: ReturnType<typeof createClient>,
+  studentId: string,
+  existingBadgeIds: Set<string>,
+): Promise<string[]> {
+  const newBadges: string[] = [];
+
+  // Determine current semester range (fall back to current calendar year)
+  const now = new Date();
+  const yearStart = `${now.getFullYear()}-01-01`;
+  const yearEnd = `${now.getFullYear()}-12-31`;
+
+  let semesterStart = yearStart;
+  let semesterEnd = yearEnd;
+
+  const { data: semester } = await supabase
+    .from('semesters')
+    .select('start_date, end_date')
+    .lte('start_date', now.toISOString().slice(0, 10))
+    .gte('end_date', now.toISOString().slice(0, 10))
+    .maybeSingle();
+
+  if (semester) {
+    semesterStart = semester.start_date;
+    semesterEnd = semester.end_date;
+  }
+
+  // ── Habit Master: 30+ active days (≥1 habit completed) in current semester ──
+  if (!existingBadgeIds.has('habit_master')) {
+    // Get distinct dates from habit_tracking where any academic habit is true
+    const { data: academicDays } = await supabase
+      .from('habit_tracking')
+      .select('habit_date')
+      .eq('student_id', studentId)
+      .gte('habit_date', semesterStart)
+      .lte('habit_date', semesterEnd)
+      .or('login.eq.true,submit.eq.true,journal.eq.true,read_content.eq.true');
+
+    // Get distinct dates from wellness_habit_logs
+    const { data: wellnessDays } = await supabase
+      .from('wellness_habit_logs')
+      .select('date')
+      .eq('student_id', studentId)
+      .gte('date', semesterStart)
+      .lte('date', semesterEnd);
+
+    const activeDates = new Set<string>();
+    if (academicDays) {
+      for (const row of academicDays) {
+        activeDates.add(row.habit_date as string);
+      }
+    }
+    if (wellnessDays) {
+      for (const row of wellnessDays) {
+        activeDates.add(row.date as string);
+      }
+    }
+
+    if (activeDates.size >= 30) {
+      newBadges.push('habit_master');
+    }
+  }
+
+  // ── Wellness Warrior: 14 consecutive days with ≥1 wellness habit logged ──
+  if (!existingBadgeIds.has('wellness_warrior')) {
+    const { data: wellnessLogs } = await supabase
+      .from('wellness_habit_logs')
+      .select('date')
+      .eq('student_id', studentId)
+      .order('date', { ascending: true });
+
+    if (wellnessLogs && wellnessLogs.length > 0) {
+      // Get distinct dates sorted
+      const distinctDates = [...new Set(wellnessLogs.map((l: { date: string }) => l.date))].sort();
+
+      let longestConsecutive = 1;
+      let currentConsecutive = 1;
+
+      for (let i = 1; i < distinctDates.length; i++) {
+        const prevDate = new Date(distinctDates[i - 1]);
+        const currDate = new Date(distinctDates[i]);
+        const diffMs = currDate.getTime() - prevDate.getTime();
+        const diffDays = diffMs / (1000 * 60 * 60 * 24);
+
+        if (diffDays === 1) {
+          currentConsecutive++;
+          longestConsecutive = Math.max(longestConsecutive, currentConsecutive);
+        } else {
+          currentConsecutive = 1;
+        }
+      }
+
+      if (longestConsecutive >= 14) {
+        newBadges.push('wellness_warrior');
+      }
+    }
+  }
+
+  // ── Full Spectrum: 7 days with all 4 academic habits AND ≥1 wellness habit ──
+  if (!existingBadgeIds.has('full_spectrum')) {
+    // Get days where all 4 academic habits are true
+    const { data: perfectAcademicDays } = await supabase
+      .from('habit_tracking')
+      .select('habit_date')
+      .eq('student_id', studentId)
+      .eq('login', true)
+      .eq('submit', true)
+      .eq('journal', true)
+      .eq('read_content', true)
+      .gte('habit_date', semesterStart)
+      .lte('habit_date', semesterEnd);
+
+    if (perfectAcademicDays && perfectAcademicDays.length > 0) {
+      const perfectDates = new Set(
+        perfectAcademicDays.map((d: { habit_date: string }) => d.habit_date),
+      );
+
+      // Get wellness dates in semester
+      const { data: wellnessDates } = await supabase
+        .from('wellness_habit_logs')
+        .select('date')
+        .eq('student_id', studentId)
+        .gte('date', semesterStart)
+        .lte('date', semesterEnd);
+
+      if (wellnessDates) {
+        const wellnessDateSet = new Set(
+          wellnessDates.map((d: { date: string }) => d.date),
+        );
+
+        // Count days that appear in both sets
+        let fullSpectrumDays = 0;
+        for (const date of perfectDates) {
+          if (wellnessDateSet.has(date)) {
+            fullSpectrumDays++;
+          }
+        }
+
+        if (fullSpectrumDays >= 7) {
+          newBadges.push('full_spectrum');
+        }
+      }
+    }
+  }
+
+  return newBadges;
+}
+
 // ─── Peer Milestone Notification for Rare Badges ────────────────────────────
 
 const BADGE_DISPLAY_NAMES: Record<string, string> = {
@@ -495,6 +648,12 @@ serve(async (req) => {
     if (trigger === 'journal' || trigger === 'xp_award') {
       const engagementBadges = await checkEngagementBadges(supabase, student_id, existingBadgeIds);
       newBadgeIds.push(...engagementBadges);
+    }
+
+    // Habit badges — check on habit_log trigger
+    if (trigger === 'habit_log') {
+      const habitBadges = await checkHabitBadges(supabase, student_id, existingBadgeIds);
+      newBadgeIds.push(...habitBadges);
     }
 
     // Mystery badges — always check on any trigger
