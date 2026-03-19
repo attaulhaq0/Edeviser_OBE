@@ -1,15 +1,19 @@
-import type { HabitReportRow, HeatmapSummary, WellnessHabitType } from '@/types/habits';
+import type { HabitReportRow, HeatmapSummary, WellnessHabitType, LevelProgressionPoint } from '@/types/habits';
+import { getLevelForDate } from '@/lib/levelAwareHeatmap';
 
 export const generateHabitCSV = (
   data: HabitReportRow[],
   summary: HeatmapSummary & { totalXP: number; consistencyScore: number },
   enabledWellnessHabits: WellnessHabitType[],
+  levelHistory?: LevelProgressionPoint[],
 ): string => {
   const wellnessColumns = enabledWellnessHabits;
+  const includeLevelColumn = levelHistory && levelHistory.length > 0;
   const headers = [
     'date', 'login', 'submit', 'journal', 'read',
     ...wellnessColumns,
     'total_habits', 'xp_earned', 'streak_active',
+    ...(includeLevelColumn ? ['level'] : []),
   ];
 
   const rows = data.map(row => {
@@ -21,12 +25,16 @@ export const generateHabitCSV = (
       row.read ? 'yes' : 'no',
     ];
     const wellness = wellnessColumns.map(h => (row[h] ? 'yes' : 'no'));
+    const levelCol = includeLevelColumn
+      ? [String(getLevelForDate(row.date, levelHistory))]
+      : [];
     return [
       ...base,
       ...wellness,
       String(row.totalHabits),
       String(row.xpEarned),
       row.streakActive ? 'yes' : 'no',
+      ...levelCol,
     ].join(',');
   });
 

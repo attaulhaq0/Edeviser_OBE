@@ -9,6 +9,7 @@ import type {
   HabitReportRow,
   WellnessHabitType,
   DateRange,
+  LevelProgressionPoint,
 } from '@/types/habits';
 
 interface UseHabitExportOptions {
@@ -16,6 +17,7 @@ interface UseHabitExportOptions {
   semesterRange: DateRange;
   enabledWellnessHabits: WellnessHabitType[];
   filter?: string;
+  levelHistory?: LevelProgressionPoint[];
 }
 
 export const useHabitExport = ({
@@ -23,6 +25,7 @@ export const useHabitExport = ({
   semesterRange,
   enabledWellnessHabits,
   filter,
+  levelHistory,
 }: UseHabitExportOptions) => {
   const queryClient = useQueryClient();
 
@@ -76,12 +79,12 @@ export const useHabitExport = ({
       consistencyScore: heatmapData.length > 0
         ? Math.round((heatmapData.filter(d => d.totalCount > 0).length / heatmapData.length) * 100)
         : 0,
-    }, enabledWellnessHabits);
+    }, enabledWellnessHabits, levelHistory);
 
     const filename = `habit-report-${semesterRange.start}-to-${semesterRange.end}.csv`;
     downloadCSV(csv, filename);
     toast.success('Habit report exported');
-  }, [studentId, semesterRange, enabledWellnessHabits, filter, queryClient]);
+  }, [studentId, semesterRange, enabledWellnessHabits, filter, levelHistory, queryClient]);
 
   return { exportCSV };
 };

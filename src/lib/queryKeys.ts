@@ -97,6 +97,8 @@ const heatmap = {
   data: (studentId: string, start: string, end: string, filter?: string) =>
     ['heatmap', studentId, start, end, filter] as const,
   summary: (studentId: string) => ['heatmap', 'summary', studentId] as const,
+  levelHistory: (studentId: string, start: string, end: string) =>
+    ['heatmap', 'levelHistory', studentId, start, end] as const,
 }
 
 const wellness = {

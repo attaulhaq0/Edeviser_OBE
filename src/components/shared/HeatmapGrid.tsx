@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect, useCallback, useMemo } from 'react';
-import type { HeatmapDay, DateRange } from '@/types/habits';
+import type { HeatmapDay, DateRange, StudentHabitLevel } from '@/types/habits';
 import {
   getIntensityLevel,
   computeCellSize,
@@ -8,6 +8,7 @@ import {
   isDateFuture,
   generateAriaLabel,
 } from '@/lib/heatmapUtils';
+import { getLevelAwareIntensityLevel, getLevelForDate } from '@/lib/levelAwareHeatmap';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -34,7 +35,18 @@ const INTENSITY_COLORS: Record<number, string> = {
   4: 'var(--heatmap-level-4)',
 };
 
-const LEGEND_LABELS = ['No activity', '', '', '', '4+ habits'];
+const LEGEND_LABELS_DEFAULT = ['No activity', '', '', '', '4+ habits'];
+
+/**
+ * Generates level-relative legend labels.
+ * For Level 1: ["No activity", "", "", "", "1/1"]
+ * For Level 4 (or no level): ["No activity", "", "", "", "4/4 habits"]
+ */
+function getLegendLabels(studentLevel?: StudentHabitLevel): string[] {
+  if (!studentLevel) return LEGEND_LABELS_DEFAULT;
+  const max = studentLevel.currentLevel;
+  return ['No activity', '', '', '', `${max}/${max} habits`];
+}
 
 // ---------------------------------------------------------------------------
 // Props
@@ -43,6 +55,7 @@ const LEGEND_LABELS = ['No activity', '', '', '', '4+ habits'];
 export interface HeatmapGridProps {
   data: HeatmapDay[];
   semesterRange: DateRange;
+  studentLevel?: StudentHabitLevel;
   onCellClick?: (date: string) => void;
   onCellHover?: (date: string | null) => void;
 }
@@ -104,6 +117,7 @@ function buildCellGrid(
 const HeatmapGrid = ({
   data,
   semesterRange,
+  studentLevel,
   onCellClick,
   onCellHover,
 }: HeatmapGridProps) => {
@@ -269,7 +283,15 @@ const HeatmapGrid = ({
 
         {/* Grid cells */}
         {cells.map((cell, index) => {
-          const intensity = cell.isFuture ? 0 : getIntensityLevel(cell.count);
+          let intensity: number;
+          if (cell.isFuture) {
+            intensity = 0;
+          } else if (studentLevel) {
+            const levelOnDate = getLevelForDate(cell.date, studentLevel.levelHistory);
+            intensity = getLevelAwareIntensityLevel(cell.count, levelOnDate);
+          } else {
+            intensity = getIntensityLevel(cell.count);
+          }
           const color = INTENSITY_COLORS[intensity] ?? INTENSITY_COLORS[0];
           const x = DAY_LABEL_WIDTH + cell.col * (cellSize + CELL_GAP);
           const y = MONTH_LABEL_HEIGHT + cell.row * (cellSize + CELL_GAP);
@@ -316,37 +338,40 @@ const HeatmapGrid = ({
         })}
 
         {/* Color legend */}
-        {[0, 1, 2, 3, 4].map((level, i) => {
-          const legendCellSize = 12;
-          const legendGap = 4;
-          const legendY = MONTH_LABEL_HEIGHT + gridHeight + 8;
-          const legendX = DAY_LABEL_WIDTH + i * (legendCellSize + legendGap);
-          return (
-            <g key={`legend-${level}`}>
-              <rect
-                x={legendX}
-                y={legendY}
-                width={legendCellSize}
-                height={legendCellSize}
-                rx={2}
-                ry={2}
-                fill={INTENSITY_COLORS[level]}
-                data-testid={`legend-level-${level}`}
-              />
-              {LEGEND_LABELS[i] && (
-                <text
-                  x={legendX + legendCellSize + 4}
-                  y={legendY + legendCellSize - 2}
-                  fontSize={9}
-                  fill="#64748b"
-                  data-testid={`legend-label-${level}`}
-                >
-                  {LEGEND_LABELS[i]}
-                </text>
-              )}
-            </g>
-          );
-        })}
+        {(() => {
+          const legendLabels = getLegendLabels(studentLevel);
+          return [0, 1, 2, 3, 4].map((level, i) => {
+            const legendCellSize = 12;
+            const legendGap = 4;
+            const legendY = MONTH_LABEL_HEIGHT + gridHeight + 8;
+            const legendX = DAY_LABEL_WIDTH + i * (legendCellSize + legendGap);
+            return (
+              <g key={`legend-${level}`}>
+                <rect
+                  x={legendX}
+                  y={legendY}
+                  width={legendCellSize}
+                  height={legendCellSize}
+                  rx={2}
+                  ry={2}
+                  fill={INTENSITY_COLORS[level]}
+                  data-testid={`legend-level-${level}`}
+                />
+                {legendLabels[i] && (
+                  <text
+                    x={legendX + legendCellSize + 4}
+                    y={legendY + legendCellSize - 2}
+                    fontSize={9}
+                    fill="#64748b"
+                    data-testid={`legend-label-${level}`}
+                  >
+                    {legendLabels[i]}
+                  </text>
+                )}
+              </g>
+            );
+          });
+        })()}
       </svg>
     </div>
   );

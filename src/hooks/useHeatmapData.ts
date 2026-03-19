@@ -10,6 +10,7 @@ import type {
   HabitType,
   AcademicHabitType,
   WellnessHabitType,
+  LevelProgressionPoint,
 } from '@/types/habits';
 
 const ACADEMIC_HABITS: AcademicHabitType[] = ['login', 'submit', 'journal', 'read'];
@@ -158,6 +159,47 @@ export const useHeatmapSummary = (
         longestStreak,
         totalActiveDays,
       };
+    },
+  });
+};
+
+/**
+ * Fetches the student's habit level history for per-date level resolution.
+ * Used by HeatmapGrid to determine the level active on each date.
+ * Falls back to empty array if the table doesn't exist yet.
+ */
+export const useHeatmapLevelHistory = (
+  studentId: string | undefined,
+  semesterRange: DateRange,
+) => {
+  return useQuery({
+    queryKey: queryKeys.heatmap.levelHistory(studentId ?? '', semesterRange.start, semesterRange.end),
+    enabled: !!studentId && !!semesterRange.start && !!semesterRange.end,
+    queryFn: async (): Promise<LevelProgressionPoint[]> => {
+      if (!studentId) return [];
+
+      try {
+        const { data } = await supabase
+          .from('student_habit_level_history' as never)
+          .select('changed_at, new_level')
+          .eq('student_id', studentId)
+          .lte('changed_at', semesterRange.end)
+          .order('changed_at', { ascending: true });
+
+        if (!Array.isArray(data)) return [];
+
+        return data
+          .map((row) => {
+            const r = row as Record<string, unknown>;
+            const date = typeof r.changed_at === 'string' ? r.changed_at.slice(0, 10) : '';
+            const level = typeof r.new_level === 'number' ? r.new_level : 4;
+            return { date, level: (level >= 1 && level <= 4 ? level : 4) as 1 | 2 | 3 | 4 };
+          })
+          .filter((p) => p.date !== '');
+      } catch {
+        // Table may not exist yet — return empty history (defaults to Level 4)
+        return [];
+      }
     },
   });
 };
