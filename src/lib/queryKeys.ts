@@ -131,6 +131,20 @@ const quizGeneration = createKeys('quizGeneration')
 const reviewQueue = createKeys('reviewQueue')
 const quizCLOCorrelation = createKeys('quizCLOCorrelation')
 
+// ─── Mastery Recovery ────────────────────────────────────────────────────────
+const masteryRecovery = {
+  all: ['masteryRecovery'] as const,
+  lists: () => [...masteryRecovery.all, 'list'] as const,
+  list: (filters: Record<string, unknown>) =>
+    [...masteryRecovery.lists(), filters] as const,
+  status: (studentId: string, cloId: string) =>
+    ['masteryRecovery', 'status', studentId, cloId] as const,
+  detail: (recoveryId: string) =>
+    ['masteryRecovery', 'detail', recoveryId] as const,
+  metrics: (institutionId: string) =>
+    ['masteryRecovery', 'metrics', institutionId] as const,
+}
+
 // ─── Onboarding ──────────────────────────────────────────────────────────────
 const onboarding = {
   progress: (studentId: string) =>
@@ -246,6 +260,8 @@ export const queryKeys = {
   quizGeneration,
   reviewQueue,
   quizCLOCorrelation,
+  // Mastery Recovery
+  masteryRecovery,
   // Onboarding
   onboarding,
 } as const

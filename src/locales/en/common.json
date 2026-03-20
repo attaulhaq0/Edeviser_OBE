@@ -1,0 +1,92 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "users": "Users",
+    "programs": "Programs",
+    "courses": "Courses",
+    "outcomes": "Outcomes",
+    "assignments": "Assignments",
+    "grading": "Grading",
+    "reports": "Reports",
+    "settings": "Settings",
+    "profile": "Profile",
+    "notifications": "Notifications",
+    "leaderboard": "Leaderboard",
+    "journal": "Journal",
+    "progress": "Progress",
+    "calendar": "Calendar",
+    "timetable": "Timetable",
+    "discussions": "Discussions",
+    "attendance": "Attendance",
+    "quizzes": "Quizzes",
+    "gradebook": "Gradebook",
+    "auditLog": "Audit Log"
+  },
+  "buttons": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "submit": "Submit",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "close": "Close",
+    "retry": "Try Again",
+    "export": "Export",
+    "import": "Import",
+    "search": "Search",
+    "filter": "Filter",
+    "reset": "Reset",
+    "download": "Download",
+    "upload": "Upload"
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive",
+    "pending": "Pending",
+    "completed": "Completed",
+    "dropped": "Dropped",
+    "loading": "Loading...",
+    "saving": "Saving...",
+    "error": "Error",
+    "success": "Success"
+  },
+  "form": {
+    "required": "This field is required",
+    "email": "Email",
+    "password": "Password",
+    "name": "Name",
+    "description": "Description",
+    "title": "Title",
+    "code": "Code",
+    "selectOption": "Select an option",
+    "noResults": "No results found"
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "notFound": "The requested resource was not found.",
+    "unauthorized": "You are not authorized to perform this action.",
+    "forbidden": "Access denied.",
+    "networkError": "Network error. Please check your connection.",
+    "timeout": "The request timed out. Please try again.",
+    "validation": "Please check the form for errors."
+  },
+  "pagination": {
+    "previous": "Previous",
+    "next": "Next",
+    "showing": "Showing {{from}} to {{to}} of {{total}}",
+    "rowsPerPage": "Rows per page"
+  },
+  "confirmation": {
+    "deleteTitle": "Are you sure?",
+    "deleteMessage": "This action cannot be undone.",
+    "unsavedChanges": "You have unsaved changes. Are you sure you want to leave?"
+  },
+  "errorBoundary": {
+    "title": "Something went wrong",
+    "defaultMessage": "An unexpected error occurred.",
+    "retry": "Try Again"
+  }
+}

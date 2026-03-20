@@ -42,6 +42,8 @@ const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12
 const CALIBRATION_MIN_ATTEMPTS = 10;
 const DISCRIMINATION_MIN_ATTEMPTS = 20;
 const EMPIRICAL_WEIGHT_DENOMINATOR = 50;
+const MASTERY_THRESHOLD = 70; // default mastery threshold percentage
+const MASTERY_FAILURE_THRESHOLD = 2; // failures before recovery activation
 
 // ─── Calibration Logic (mirrors src/lib/difficultyCalibration.ts) ───────────
 
@@ -220,6 +222,249 @@ async function computeDiscriminationForQuestion(
     bottomGroup.filter((s) => s.is_correct).length / bottomGroup.length;
 
   return topSuccessRate - bottomSuccessRate;
+}
+
+// ─── Mastery Failure Detection ───────────────────────────────────────────────
+
+/**
+ * Computes per-CLO scores from the quiz attempt answers and question bank data.
+ * Returns a Record<clo_id, percentage_correct>.
+ */
+function computePerCLOScores(
+  questionSequence: QuestionSequenceEntry[],
+  answersMap: Map<string, boolean>,
+  questionBankMap: Map<string, QuestionBankRow>,
+): Record<string, number> {
+  const totals: Record<string, number> = {};
+  const corrects: Record<string, number> = {};
+
+  for (const seqEntry of questionSequence) {
+    const qbRow = questionBankMap.get(seqEntry.question_id);
+    const isCorrect = answersMap.get(seqEntry.question_id);
+    if (!qbRow || isCorrect === undefined) continue;
+
+    const cloId = qbRow.clo_id;
+    totals[cloId] = (totals[cloId] ?? 0) + 1;
+    if (isCorrect) {
+      corrects[cloId] = (corrects[cloId] ?? 0) + 1;
+    }
+  }
+
+  const result: Record<string, number> = {};
+  for (const cloId of Object.keys(totals)) {
+    result[cloId] = ((corrects[cloId] ?? 0) / totals[cloId]) * 100;
+  }
+  return result;
+}
+
+/**
+ * Counts the number of previous quiz attempts where the student scored below
+ * the mastery threshold for a given CLO. Excludes the current attempt.
+ */
+async function countPreviousCLOFailures(
+  supabase: ReturnType<typeof createClient>,
+  studentId: string,
+  cloId: string,
+  currentAttemptId: string,
+  threshold: number,
+): Promise<number> {
+  // Fetch all quiz attempts for this student (excluding current)
+  const { data: attempts } = await supabase
+    .from('quiz_attempts')
+    .select('id, answers, question_sequence')
+    .eq('student_id', studentId)
+    .neq('id', currentAttemptId)
+    .not('answers', 'is', null)
+    .not('question_sequence', 'is', null);
+
+  if (!attempts || attempts.length === 0) return 0;
+
+  let failureCount = 0;
+
+  for (const attempt of attempts) {
+    const seq = (attempt.question_sequence ?? []) as QuestionSequenceEntry[];
+    const answers = parseAnswers(attempt.answers);
+
+    // We need question_bank data for CLO mapping — fetch question IDs from this attempt
+    const qIds = seq.map((q: QuestionSequenceEntry) => q.question_id);
+    if (qIds.length === 0) continue;
+
+    const { data: qbRows } = await supabase
+      .from('question_bank')
+      .select('id, clo_id')
+      .in('id', qIds);
+
+    if (!qbRows) continue;
+
+    // Count questions for this CLO and how many were correct
+    let cloTotal = 0;
+    let cloCorrect = 0;
+
+    for (const qb of qbRows) {
+      if (qb.clo_id !== cloId) continue;
+      const isCorrect = answers.get(qb.id);
+      if (isCorrect === undefined) continue;
+      cloTotal++;
+      if (isCorrect) cloCorrect++;
+    }
+
+    // If this attempt had questions for this CLO and scored below threshold
+    if (cloTotal > 0) {
+      const score = (cloCorrect / cloTotal) * 100;
+      if (score < threshold) {
+        failureCount++;
+      }
+    }
+  }
+
+  return failureCount;
+}
+
+/**
+ * Checks mastery failures for all CLOs below threshold in the current attempt
+ * and activates recovery pathways when the failure threshold is reached.
+ * This is idempotent — the unique partial index on (student_id, clo_id)
+ * WHERE status = 'active' prevents duplicate active recovery sessions.
+ */
+async function checkAndActivateMasteryRecovery(
+  supabase: ReturnType<typeof createClient>,
+  attemptId: string,
+  studentId: string,
+  quizId: string,
+  questionSequence: QuestionSequenceEntry[],
+  answersMap: Map<string, boolean>,
+  questionBankMap: Map<string, QuestionBankRow>,
+): Promise<{ recoveries_activated: string[] }> {
+  const recoveriesActivated: string[] = [];
+
+  // Step 1: Compute per-CLO scores for this attempt
+  const perCLOScores = computePerCLOScores(questionSequence, answersMap, questionBankMap);
+
+  // Step 2: Identify CLOs below mastery threshold
+  const failingCLOs = Object.entries(perCLOScores)
+    .filter(([, score]) => score < MASTERY_THRESHOLD)
+    .map(([cloId]) => cloId);
+
+  if (failingCLOs.length === 0) return { recoveries_activated: [] };
+
+  // Step 3: Get course_id from the quiz
+  const { data: quiz } = await supabase
+    .from('quizzes')
+    .select('course_id')
+    .eq('id', quizId)
+    .maybeSingle();
+
+  if (!quiz) return { recoveries_activated: [] };
+
+  // Step 4: Get institution_id from the student's profile
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('institution_id')
+    .eq('id', studentId)
+    .maybeSingle();
+
+  if (!profile) return { recoveries_activated: [] };
+
+  // Step 5: For each failing CLO, check failure count and activate recovery if needed
+  for (const cloId of failingCLOs) {
+    try {
+      // Count previous failures (excluding current attempt — current is +1)
+      const previousFailures = await countPreviousCLOFailures(
+        supabase,
+        studentId,
+        cloId,
+        attemptId,
+        MASTERY_THRESHOLD,
+      );
+
+      // Total failures including this attempt
+      const totalFailures = previousFailures + 1;
+
+      if (totalFailures < MASTERY_FAILURE_THRESHOLD) continue;
+
+      // Check if an active recovery already exists (the unique partial index
+      // also prevents duplicates, but checking first avoids unnecessary errors)
+      const { data: existingRecovery } = await supabase
+        .from('mastery_recovery_pathways')
+        .select('id')
+        .eq('student_id', studentId)
+        .eq('clo_id', cloId)
+        .eq('status', 'active')
+        .maybeSingle();
+
+      if (existingRecovery) continue;
+
+      // Activate recovery pathway
+      const { error: insertError } = await supabase
+        .from('mastery_recovery_pathways')
+        .insert({
+          institution_id: profile.institution_id,
+          student_id: studentId,
+          clo_id: cloId,
+          course_id: quiz.course_id,
+          failure_count: totalFailures,
+          status: 'active',
+        });
+
+      if (insertError) {
+        // The unique partial index will cause a conflict error if an active
+        // recovery already exists — this is expected and safe to ignore
+        if (insertError.code === '23505') {
+          console.log(
+            `Active recovery already exists for student ${studentId}, CLO ${cloId} — skipping`,
+          );
+        } else {
+          console.error(
+            `Failed to activate recovery for student ${studentId}, CLO ${cloId}:`,
+            insertError.message,
+          );
+        }
+        continue;
+      }
+
+      // Fetch the inserted recovery pathway id for audit logging
+      const { data: insertedRecovery } = await supabase
+        .from('mastery_recovery_pathways')
+        .select('id')
+        .eq('student_id', studentId)
+        .eq('clo_id', cloId)
+        .eq('status', 'active')
+        .maybeSingle();
+
+      const recoveryId = insertedRecovery?.id ?? 'unknown';
+      recoveriesActivated.push(cloId);
+
+      // Audit log: recovery pathway activation (non-blocking)
+      try {
+        await supabase.from('audit_logs').insert({
+          action: 'recovery_activated',
+          target_type: 'mastery_recovery_pathway',
+          target_id: recoveryId,
+          diff: {
+            student_id: studentId,
+            clo_id: cloId,
+            course_id: quiz.course_id,
+            failure_count: totalFailures,
+          },
+          actor_id: studentId,
+        });
+      } catch (auditErr) {
+        console.error('[AuditLog] Failed to log recovery activation:', (auditErr as Error).message);
+      }
+
+      console.log(
+        `Mastery recovery activated for student ${studentId}, CLO ${cloId} (${totalFailures} failures)`,
+      );
+    } catch (err) {
+      // Don't let recovery activation errors block the main analytics flow
+      console.error(
+        `Error checking mastery recovery for CLO ${cloId}:`,
+        (err as Error).message,
+      );
+    }
+  }
+
+  return { recoveries_activated: recoveriesActivated };
 }
 
 // ─── Main Handler ───────────────────────────────────────────────────────────
@@ -419,7 +664,25 @@ serve(async (req) => {
       });
     }
 
-    // ── Step 5: Return summary ──────────────────────────────────────────
+    // ── Step 5: Mastery Failure Detection ───────────────────────────────
+
+    let masteryRecoveryResult: { recoveries_activated: string[] } = { recoveries_activated: [] };
+    try {
+      masteryRecoveryResult = await checkAndActivateMasteryRecovery(
+        supabase,
+        quiz_attempt_id,
+        attempt.student_id,
+        attempt.quiz_id,
+        questionSequence,
+        answersMap,
+        questionBankMap,
+      );
+    } catch (err) {
+      // Mastery recovery errors must not block the analytics response
+      console.error('Mastery recovery check failed:', (err as Error).message);
+    }
+
+    // ── Step 6: Return summary ──────────────────────────────────────────
 
     return new Response(
       JSON.stringify({
@@ -427,6 +690,7 @@ serve(async (req) => {
         quiz_attempt_id,
         updated: updatedSummary.length,
         analytics: updatedSummary,
+        mastery_recovery: masteryRecoveryResult,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );

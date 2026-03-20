@@ -451,6 +451,87 @@ export const useAtRiskStudents = () => {
   });
 };
 
+// ─── Recovery Alert Types ───────────────────────────────────────────────────
+
+export interface RecoveryAlertStudent {
+  recovery_id: string;
+  student_id: string;
+  student_name: string;
+  clo_id: string;
+  clo_title: string;
+  failure_count: number;
+  status: string;
+  activated_at: string;
+}
+
+// ─── useTeacherRecoveryAlerts ───────────────────────────────────────────────
+
+export const useTeacherRecoveryAlerts = () => {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: queryKeys.teacherDashboard.list({ type: 'recoveryAlerts', teacherId: user?.id }),
+    queryFn: async (): Promise<RecoveryAlertStudent[]> => {
+      const teacherId = user?.id;
+      if (!teacherId) throw new Error('Not authenticated');
+
+      // Get teacher's active courses
+      const { data: courses } = await supabase
+        .from('courses')
+        .select('id')
+        .eq('teacher_id', teacherId)
+        .eq('is_active', true);
+
+      const courseIds = (courses ?? []).map((c) => c.id);
+      if (courseIds.length === 0) return [];
+
+      // Fetch active recovery pathways for teacher's courses
+      const { data: recoveries, error } = await supabase
+        .from('mastery_recovery_pathways')
+        .select('id, student_id, clo_id, failure_count, status, activated_at')
+        .in('course_id', courseIds)
+        .eq('status', 'active')
+        .order('activated_at', { ascending: false });
+
+      if (error) throw error;
+      if (!recoveries || recoveries.length === 0) return [];
+
+      // Collect unique student and CLO IDs for batch lookups
+      const studentIds = [...new Set(recoveries.map((r) => r.student_id))];
+      const cloIds = [...new Set(recoveries.map((r) => r.clo_id))];
+
+      // Batch fetch student names
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, full_name')
+        .in('id', studentIds);
+
+      const nameMap = new Map((profiles ?? []).map((p) => [p.id, p.full_name]));
+
+      // Batch fetch CLO titles
+      const { data: clos } = await supabase
+        .from('learning_outcomes')
+        .select('id, title')
+        .in('id', cloIds);
+
+      const cloMap = new Map((clos ?? []).map((c) => [c.id, c.title]));
+
+      return recoveries.map((r) => ({
+        recovery_id: r.id,
+        student_id: r.student_id,
+        student_name: nameMap.get(r.student_id) ?? 'Unknown',
+        clo_id: r.clo_id,
+        clo_title: cloMap.get(r.clo_id) ?? 'Unknown CLO',
+        failure_count: r.failure_count,
+        status: r.status,
+        activated_at: r.activated_at,
+      }));
+    },
+    enabled: !!user?.id,
+    staleTime: 30_000,
+  });
+};
+
 // ─── useSendNudge ───────────────────────────────────────────────────────────
 
 export const useSendNudge = () => {

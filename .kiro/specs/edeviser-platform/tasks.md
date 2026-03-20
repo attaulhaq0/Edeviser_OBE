@@ -619,7 +619,7 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Update `ai_feedback.validated_outcome` to 'correct' or 'incorrect'
     - _Requirements: 49.2_
 
-- [-] 37. Implement AI Feedback Draft Generation (Capability 3)
+- [x] 37. Implement AI Feedback Draft Generation (Capability 3)
   - [x] 37.1 Create `ai-feedback-draft` Edge Function
     - Accept: submission_id, rubric_id, rubric_selections, student_id, clo_id
     - Generate draft feedback comments per rubric criterion based on: criteria descriptions, selected performance levels, student's historical feedback patterns, CLO context
@@ -634,30 +634,30 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Log accepted/edited/rejected status to `ai_feedback` table with `suggestion_type = 'feedback_draft'`
     - _Requirements: 48.3, 48.5, 48.6_
 
-  - [~] 37.3 Create feedback draft TanStack Query hooks (`/src/hooks/useAIFeedbackDraft.ts`)
+  - [x] 37.3 Create feedback draft TanStack Query hooks (`/src/hooks/useAIFeedbackDraft.ts`)
     - Mutation for generating draft
     - Mutation for logging draft acceptance/rejection
     - _Requirements: 48.4, 48.6_
 
-- [ ] 38. Implement AI Feedback Flywheel & Admin Dashboard
-  - [~] 38.1 Create AI Performance summary for Admin Dashboard
+- [x] 38. Implement AI Feedback Flywheel & Admin Dashboard
+  - [x] 38.1 Create AI Performance summary for Admin Dashboard
     - Show: suggestion acceptance rate (thumbs up %), prediction accuracy rate (correct %), feedback draft acceptance rate (accepted %)
     - Query aggregated data from `ai_feedback` table grouped by `suggestion_type`
     - _Requirements: 49.5_
 
-  - [~] 38.2 Create AI performance TanStack Query hooks (`/src/hooks/useAIPerformance.ts`)
+  - [x] 38.2 Create AI performance TanStack Query hooks (`/src/hooks/useAIPerformance.ts`)
     - Aggregate metrics from `ai_feedback` table
     - _Requirements: 49.5_
 
-- [ ] 39. Implement shared UI components
-  - [ ] 39.1 Create all shared components: AttainmentBar, BloomsPill, OutcomeTypeBadge, KPICard, GradientCardHeader, HabitGrid, LockedNode, BloomsVerbGuide, MysteryBadge, BonusEventBanner, AIFeedbackThumbs, AISuggestionCard, AtRiskStudentRow, CLOProgressBar, XPTransactionRow, Shimmer, EmptyState, ConfirmDialog, DataTable wrapper, ErrorState, UploadProgress, ReconnectBanner, StreakFreezeShop, ExportDataButton, QuickStartChecklist, SurveyForm, AttendanceGrid, QuizQuestionCard, GradebookMatrix, TimetableGrid, AnnouncementCard, MaterialItem, DiscussionThreadCard, CalendarEventCard, CQIStatusBadge, SectionComparisonChart, FeeStatusBadge, ParentStudentCard
-  - [ ] 39.2 Apply brand design tokens from design style guide to all pages
-  - [ ] 39.3 Add custom animations: xp-pulse, badge-pop, shimmer, float, streak-flame, node-unlock, mystery-reveal
-  - [ ] 39.4 Implement reduced motion support
+- [x] 39. Implement shared UI components
+  - [x] 39.1 Create all shared components: AttainmentBar, BloomsPill, OutcomeTypeBadge, KPICard, GradientCardHeader, HabitGrid, LockedNode, BloomsVerbGuide, MysteryBadge, BonusEventBanner, AIFeedbackThumbs, AISuggestionCard, AtRiskStudentRow, CLOProgressBar, XPTransactionRow, Shimmer, EmptyState, ConfirmDialog, DataTable wrapper, ErrorState, UploadProgress, ReconnectBanner, StreakFreezeShop, ExportDataButton, QuickStartChecklist, SurveyForm, AttendanceGrid, QuizQuestionCard, GradebookMatrix, TimetableGrid, AnnouncementCard, MaterialItem, DiscussionThreadCard, CalendarEventCard, CQIStatusBadge, SectionComparisonChart, FeeStatusBadge, ParentStudentCard
+  - [x] 39.2 Apply brand design tokens from design style guide to all pages
+  - [x] 39.3 Add custom animations: xp-pulse, badge-pop, shimmer, float, streak-flame, node-unlock, mystery-reveal
+  - [x] 39.4 Implement reduced motion support
 
 - [ ] 40. Implement i18n foundation
-  - [ ] 40.1 Set up i18next with English translations
-  - [ ] 40.2 Extract all user-facing strings to translation files
+  - [x] 40.1 Set up i18next with English translations
+  - [-] 40.2 Extract all user-facing strings to translation files
 
 - [ ] 41. Write comprehensive tests
   - [ ]* 41.1 Write property-based tests (Properties 1–50)

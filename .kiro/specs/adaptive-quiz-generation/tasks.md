@@ -106,26 +106,26 @@
 ## Task 13: Component Tests
 
 - [x] 13.1 Create `src/__tests__/unit/questionPreview.test.tsx` — Renders MCQ, T/F, short answer, fill-in-blank correctly
-- [-] 13.2 Create `src/__tests__/unit/difficultyBadge.test.tsx` — Color coding for difficulty ranges
-- [ ] 13.3 Create `src/__tests__/unit/questionQualityIndicator.test.tsx` — Green/yellow/red rendering based on quality flag
-- [ ] 13.4 Create `src/__tests__/unit/adaptiveQuizSession.test.tsx` — Progress bar, timer, one-at-a-time rendering
-- [ ] 13.5 Create `src/__tests__/unit/postQuizReviewPage.test.tsx` — Explanation display, CLO badges, "Get Help" link
+- [x] 13.2 Create `src/__tests__/unit/difficultyBadge.test.tsx` — Color coding for difficulty ranges
+- [x] 13.3 Create `src/__tests__/unit/questionQualityIndicator.test.tsx` — Green/yellow/red rendering based on quality flag
+- [x] 13.4 Create `src/__tests__/unit/adaptiveQuizSession.test.tsx` — Progress bar, timer, one-at-a-time rendering
+- [x] 13.5 Create `src/__tests__/unit/postQuizReviewPage.test.tsx` — Explanation display, CLO badges, "Get Help" link
 
 
 ## Task 14: Mastery Recovery System
 
-- [ ] 14.1 Create `mastery_recovery_pathways` table migration with all columns, constraints, indexes, and unique partial index on active sessions
-- [ ] 14.2 Create RLS policies for `mastery_recovery_pathways` (student own read, teacher course read, coordinator institution read, admin institution read)
-- [ ] 14.3 Create `src/lib/masteryRecovery.ts` with functions: `countMasteryFailures`, `shouldActivateRecovery`, `recoveryBloomLevel`, `isRecoveryComplete`
-- [ ] 14.4 Create `src/hooks/useMasteryRecovery.ts` — hooks for recovery status, pathway data, activation, step completion, and coordinator metrics
-- [ ] 14.5 Create `src/components/shared/MasteryRecoveryPanel.tsx` — 3-step recovery UI with AI Tutor link, practice questions, peer study suggestions, and retry gating
-- [ ] 14.6 Integrate mastery failure detection into quiz attempt submission flow — after grading, check failure count and activate recovery if threshold reached
-- [ ] 14.7 Add teacher dashboard alert for students flagged for mastery recovery
-- [ ] 14.8 Add coordinator dashboard recovery metrics (activations, completion rate, avg time, retry success rate)
-- [ ] 14.9 Add pg_cron job to expire active recovery sessions older than 14 days and notify teachers
-- [ ] 14.10 Add recovery pathway activations and completions to audit_logs
-- [ ] 14.11 Add query keys to `src/lib/queryKeys.ts`: `masteryRecovery`
-- [ ] 14.12 Regenerate TypeScript types after migration
+- [x] 14.1 Create `mastery_recovery_pathways` table migration with all columns, constraints, indexes, and unique partial index on active sessions
+- [x] 14.2 Create RLS policies for `mastery_recovery_pathways` (student own read, teacher course read, coordinator institution read, admin institution read)
+- [x] 14.3 Create `src/lib/masteryRecovery.ts` with functions: `countMasteryFailures`, `shouldActivateRecovery`, `recoveryBloomLevel`, `isRecoveryComplete`
+- [x] 14.4 Create `src/hooks/useMasteryRecovery.ts` — hooks for recovery status, pathway data, activation, step completion, and coordinator metrics
+- [x] 14.5 Create `src/components/shared/MasteryRecoveryPanel.tsx` — 3-step recovery UI with AI Tutor link, practice questions, peer study suggestions, and retry gating
+- [x] 14.6 Integrate mastery failure detection into quiz attempt submission flow — after grading, check failure count and activate recovery if threshold reached
+- [x] 14.7 Add teacher dashboard alert for students flagged for mastery recovery
+- [x] 14.8 Add coordinator dashboard recovery metrics (activations, completion rate, avg time, retry success rate)
+- [x] 14.9 Add pg_cron job to expire active recovery sessions older than 14 days and notify teachers
+- [x] 14.10 Add recovery pathway activations and completions to audit_logs
+- [x] 14.11 Add query keys to `src/lib/queryKeys.ts`: `masteryRecovery`
+- [-] 14.12 Regenerate TypeScript types after migration
 
 ## Task 15: AI Explanation Confidence and Verification
 

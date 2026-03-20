@@ -1,0 +1,70 @@
+{
+  "dashboard": {
+    "title": "Dashboard",
+    "totalUsers": "Total Users",
+    "activeUsers": "Active Users",
+    "programs": "Programs",
+    "courses": "Courses",
+    "onboarding": "Onboarding",
+    "activeCourses": "Active Courses",
+    "avgAttainment": "Avg Attainment",
+    "atRiskStudents": "At-Risk Students",
+    "usersByRole": "Users by Role",
+    "recentActivity": "Recent Activity",
+    "noActiveUsers": "No active users yet.",
+    "noRecentActivity": "No recent activity.",
+    "ploHeatmap": "PLO Attainment Heatmap",
+    "ploHeatmapEmpty": "PLO attainment heatmap will appear here once outcome data is available.",
+    "aiCoPilot": "AI Co-Pilot Performance",
+    "suggestionAcceptance": "Suggestion Acceptance",
+    "totalSuggestions": "{{count}} total suggestions",
+    "predictionAccuracy": "Prediction Accuracy",
+    "validatedPredictions": "{{count}} validated predictions",
+    "draftAcceptance": "Draft Acceptance",
+    "feedbackDrafts": "{{count}} feedback drafts",
+    "onboardingPending": "{{count}} student(s) haven't completed onboarding",
+    "onboardingPendingAction": "View list and send reminders"
+  },
+  "users": {
+    "title": "User Management",
+    "addUser": "Add User",
+    "editUser": "Edit User",
+    "bulkImport": "Bulk Import",
+    "role": "Role",
+    "fullName": "Full Name",
+    "email": "Email",
+    "status": "Status",
+    "deleteConfirm": "This will deactivate the user account.",
+    "importSuccess": "{{count}} users imported successfully.",
+    "importErrors": "{{count}} rows had errors."
+  },
+  "programs": {
+    "title": "Program Management",
+    "addProgram": "Add Program",
+    "editProgram": "Edit Program",
+    "coordinator": "Coordinator",
+    "department": "Department",
+    "deleteBlocked": "Cannot delete program with active courses."
+  },
+  "outcomes": {
+    "title": "Institutional Learning Outcomes",
+    "addILO": "Add ILO",
+    "editILO": "Edit ILO",
+    "deleteBlocked": "Cannot delete ILO with mapped PLOs.",
+    "sortOrder": "Sort Order"
+  },
+  "audit": {
+    "title": "Audit Log",
+    "action": "Action",
+    "entity": "Entity",
+    "performedBy": "Performed By",
+    "timestamp": "Timestamp",
+    "changes": "Changes"
+  },
+  "settings": {
+    "title": "Institution Settings",
+    "kpiThresholds": "KPI Thresholds",
+    "gradeScale": "Grade Scale",
+    "accreditationBody": "Accreditation Body"
+  }
+}

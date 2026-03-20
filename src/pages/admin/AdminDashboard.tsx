@@ -3,6 +3,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Shimmer from '@/components/shared/Shimmer';
 import { useAdminKPIs, useRecentAuditLogs, useOnboardingAnalytics } from '@/hooks/useAdminDashboard';
+import { useAIPerformance } from '@/hooks/useAIPerformance';
 import {
   Users,
   UserCheck,
@@ -11,6 +12,10 @@ import {
   Activity,
   BarChart3,
   ClipboardCheck,
+  Brain,
+  ThumbsUp,
+  Target,
+  FileCheck,
   type LucideIcon,
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
@@ -56,6 +61,7 @@ const AdminDashboard = () => {
   const { data: kpis, isLoading: kpisLoading } = useAdminKPIs();
   const { data: auditLogs, isLoading: logsLoading } = useRecentAuditLogs(10);
   const { data: onboardingAnalytics } = useOnboardingAnalytics();
+  const { data: aiPerformance, isLoading: aiLoading } = useAIPerformance();
 
   return (
     <div className="space-y-6">
@@ -188,6 +194,79 @@ const AdminDashboard = () => {
           <p className="text-sm">
             PLO attainment heatmap will appear here once outcome data is available.
           </p>
+        </div>
+      </Card>
+
+      {/* AI Co-Pilot Performance */}
+      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+        <div
+          className="px-6 py-4 flex items-center gap-2"
+          style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+        >
+          <Brain className="h-5 w-5 text-white" />
+          <h2 className="text-lg font-bold tracking-tight text-white">AI Co-Pilot Performance</h2>
+        </div>
+        <div className="p-6">
+          {aiLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <Shimmer key={i} className="h-24 rounded-xl" />
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="rounded-xl border border-slate-200 p-4 flex items-center gap-4">
+                <div className="p-2 rounded-lg bg-green-50">
+                  <ThumbsUp className="h-5 w-5 text-green-600" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
+                    Suggestion Acceptance
+                  </p>
+                  <p className="text-2xl font-black mt-1">
+                    {aiPerformance?.suggestionAcceptanceRate ?? 0}%
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {aiPerformance?.suggestionTotal ?? 0} total suggestions
+                  </p>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 p-4 flex items-center gap-4">
+                <div className="p-2 rounded-lg bg-blue-50">
+                  <Target className="h-5 w-5 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
+                    Prediction Accuracy
+                  </p>
+                  <p className="text-2xl font-black mt-1">
+                    {aiPerformance?.predictionAccuracyRate ?? 0}%
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {aiPerformance?.predictionTotal ?? 0} validated predictions
+                  </p>
+                </div>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 p-4 flex items-center gap-4">
+                <div className="p-2 rounded-lg bg-amber-50">
+                  <FileCheck className="h-5 w-5 text-amber-600" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
+                    Draft Acceptance
+                  </p>
+                  <p className="text-2xl font-black mt-1">
+                    {aiPerformance?.draftAcceptanceRate ?? 0}%
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {aiPerformance?.draftTotal ?? 0} feedback drafts
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </Card>
     </div>

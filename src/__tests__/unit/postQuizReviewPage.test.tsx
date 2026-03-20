@@ -162,6 +162,57 @@ describe('PostQuizReview', () => {
     expect(helpLinks.length).toBeGreaterThan(0);
   });
 
+  it('shows correct/incorrect indicators per question', async () => {
+    render(<PostQuizReview />, { wrapper: createWrapper() });
+
+    await screen.findByText('75%');
+    // q-1: answer 'B' === correct 'B' → Correct
+    // q-2: answer 'A' !== correct 'True' → Incorrect
+    // q-3: answer 'C' !== correct 'QuickSort' → Incorrect
+    expect(screen.getByText('Correct')).toBeInTheDocument();
+    expect(screen.getAllByText('Incorrect').length).toBe(2);
+  });
+
+  it('displays per-CLO score breakdown section', async () => {
+    render(<PostQuizReview />, { wrapper: createWrapper() });
+
+    await screen.findByText('75%');
+    expect(screen.getByText('Per-CLO Score Breakdown')).toBeInTheDocument();
+    // clo-1: q-1 correct, q-2 incorrect → 50%
+    // clo-2: q-3 incorrect → 0%
+    expect(screen.getByText('50%')).toBeInTheDocument();
+    expect(screen.getByText('0%')).toBeInTheDocument();
+  });
+
+  it('"Get Help" links are scoped to the question CLO', async () => {
+    render(<PostQuizReview />, { wrapper: createWrapper() });
+
+    await screen.findByText('75%');
+    const helpLinks = screen.getAllByText(/Get Help/);
+    // q-2 (clo-1) and q-3 (clo-2) are incorrect
+    const hrefs = helpLinks.map((link) => link.closest('a')?.getAttribute('href'));
+    expect(hrefs).toContain('/student/ai-tutor?clo=clo-1');
+    expect(hrefs).toContain('/student/ai-tutor?clo=clo-2');
+  });
+
+  it('labels AI explanations with "AI Explanation" heading', async () => {
+    render(<PostQuizReview />, { wrapper: createWrapper() });
+
+    await screen.findByText('75%');
+    // Two questions have explanations (q-1 and q-2), q-3 has null
+    const labels = screen.getAllByText('AI Explanation');
+    expect(labels.length).toBe(2);
+  });
+
+  it('does not show "Get Help" link for correct answers', async () => {
+    render(<PostQuizReview />, { wrapper: createWrapper() });
+
+    await screen.findByText('75%');
+    // q-1 is correct, so only 2 help links (for q-2 and q-3)
+    const helpLinks = screen.getAllByText(/Get Help/);
+    expect(helpLinks.length).toBe(2);
+  });
+
   it('renders "Back to Dashboard" button', async () => {
     render(<PostQuizReview />, { wrapper: createWrapper() });
 
