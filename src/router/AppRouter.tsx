@@ -75,6 +75,8 @@ const QuizCLOCorrelationPage = lazy(() => import('@/pages/teacher/quiz-analytics
 const QuizForm = lazy(() => import('@/pages/teacher/quizzes/QuizForm'));
 const AdaptiveQuizSession = lazy(() => import('@/pages/student/quiz/AdaptiveQuizSession'));
 const PostQuizReview = lazy(() => import('@/pages/student/quiz/PostQuizReview'));
+const MasteryRecoveryPage = lazy(() => import('@/pages/student/recovery/MasteryRecoveryPage'));
+const ExplanationReviewPage = lazy(() => import('@/pages/teacher/quiz-generation/ExplanationReviewPage'));
 
 // Shared pages
 const ProfilePage = lazy(() => import('@/pages/shared/ProfilePage'));
@@ -187,6 +189,7 @@ const AppRouter = () => (
         <Route path="courses/:courseId/quiz-clo-correlation/:quizId" element={<QuizCLOCorrelationPage />} />
         <Route path="courses/:courseId/quizzes/new" element={<QuizForm />} />
         <Route path="courses/:courseId/quizzes/:id/edit" element={<QuizForm />} />
+        <Route path="courses/:courseId/explanation-review" element={<ExplanationReviewPage />} />
         <Route path="settings/profile" element={<ProfilePage />} />
       </Route>
 
@@ -211,6 +214,7 @@ const AppRouter = () => (
         <Route path="settings/reassessment" element={<ReassessmentPage />} />
         <Route path="quizzes/:quizId/adaptive" element={<AdaptiveQuizSession />} />
         <Route path="quizzes/:quizId/review/:attemptId" element={<PostQuizReview />} />
+        <Route path="courses/:courseId/recovery/:cloId" element={<MasteryRecoveryPage />} />
         <Route path="settings/profile" element={<ProfilePage />} />
         <Route path="xp-history" element={<XPHistory />} />
       </Route>

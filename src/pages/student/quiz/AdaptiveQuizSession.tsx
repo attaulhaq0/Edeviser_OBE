@@ -1,13 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, Clock, AlertCircle, CheckCircle2, XCircle } from 'lucide-react';
+import { Loader2, Clock, AlertCircle, CheckCircle2, XCircle, ShieldAlert } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/lib/supabase';
+import { queryKeys } from '@/lib/queryKeys';
 import QuestionPreview from '@/components/shared/QuestionPreview';
 import PracticeModeBanner from '@/components/shared/PracticeModeBanner';
 import { usePracticeModeConfig } from '@/hooks/usePracticeMode';
+import { useAuth } from '@/hooks/useAuth';
 import {
   useStartAdaptiveQuiz,
   useSelectNextQuestion,
@@ -45,8 +49,42 @@ const AdaptiveQuizSession = () => {
   const selectNext = useSelectNextQuestion();
   const submitAttempt = useSubmitQuizAttempt();
   const { data: practiceModeConfig } = usePracticeModeConfig(quizId ?? '');
+  const { user } = useAuth();
 
   const isPracticeMode = practiceModeConfig?.practice_mode_enabled ?? false;
+
+  // ─── Active recovery check ────────────────────────────────────────────────
+  const { data: activeRecovery, isLoading: recoveryLoading } = useQuery({
+    queryKey: [...queryKeys.masteryRecovery.all, 'quiz-block', quizId],
+    queryFn: async () => {
+      if (!user?.id || !quizId) return null;
+
+      // Fetch quiz CLO IDs
+      const { data: quiz, error: quizError } = await supabase
+        .from('quizzes')
+        .select('clo_ids')
+        .eq('id', quizId)
+        .maybeSingle();
+
+      if (quizError || !quiz) return null;
+
+      const cloIds = (quiz.clo_ids ?? []) as string[];
+      if (cloIds.length === 0) return null;
+
+      // Check for active recovery on any of the quiz's CLOs
+      const { data: recoveries, error: recoveryError } = await supabase
+        .from('mastery_recovery_pathways')
+        .select('id, clo_id, course_id, status')
+        .eq('student_id', user.id)
+        .eq('status', 'active')
+        .in('clo_id', cloIds)
+        .limit(1);
+
+      if (recoveryError || !recoveries || recoveries.length === 0) return null;
+      return recoveries[0];
+    },
+    enabled: !!quizId && !!user?.id,
+  });
 
   const [session, setSession] = useState<SessionState | null>(null);
   const [selectedAnswer, setSelectedAnswer] = useState<string>('');
@@ -81,11 +119,11 @@ const AdaptiveQuizSession = () => {
 
   // ─── Initialize session ─────────────────────────────────────────────────────
   useEffect(() => {
-    if (hasInitialized.current || !quizId) return;
+    if (hasInitialized.current || !quizId || recoveryLoading || activeRecovery) return;
     hasInitialized.current = true;
     initSession();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [quizId]);
+  }, [quizId, recoveryLoading, activeRecovery]);
 
   const initSession = async () => {
     if (!quizId) return;
@@ -254,6 +292,27 @@ const AdaptiveQuizSession = () => {
     const s = seconds % 60;
     return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
+
+  // ─── Recovery block ──────────────────────────────────────────────────────
+  if (!recoveryLoading && activeRecovery) {
+    return (
+      <div className="max-w-lg mx-auto flex flex-col items-center justify-center min-h-[60vh] gap-4 text-center">
+        <div className="p-3 rounded-full bg-amber-50">
+          <ShieldAlert className="h-8 w-8 text-amber-500" />
+        </div>
+        <h2 className="text-lg font-bold tracking-tight">Recovery Required</h2>
+        <p className="text-sm text-gray-500 max-w-sm">
+          You have an active mastery recovery pathway for a CLO linked to this quiz.
+          Complete the recovery steps before retrying.
+        </p>
+        <Link to={`/student/courses/${activeRecovery.course_id}/recovery/${activeRecovery.clo_id}`}>
+          <Button className="bg-gradient-to-r from-teal-500 to-blue-600 text-white active:scale-95">
+            Go to Recovery Pathway
+          </Button>
+        </Link>
+      </div>
+    );
+  }
 
   // ─── Loading state ──────────────────────────────────────────────────────────
   if (initializing) {

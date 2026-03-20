@@ -168,41 +168,41 @@
 - [x] 17.8 Update quiz attempt submission to update `blooms_progression` table with highest Bloom's level reached
 - [x] 17.9 Integrate Bloom's Pioneer badge checks into existing `check-badges` Edge Function (idempotent, after quiz attempt completion)
 - [x] 17.10 Add BloomsProgressionLadder to student course detail page and PostQuizReview page
-- [~] 17.11 Add query keys to `src/lib/queryKeys.ts`: `bloomsProgression`
-- [~] 17.12 Regenerate TypeScript types after migration
+- [x] 17.11 Add query keys to `src/lib/queryKeys.ts`: `bloomsProgression`
+- [x] 17.12 Regenerate TypeScript types after migration
 
 ## Task 18: Property-Based Tests for New Features
 
-- [~] 18.1 Create `src/__tests__/properties/masteryFailureCount.property.test.ts` — Property 21: Mastery failure count triggers recovery at threshold
-- [~] 18.2 Create `src/__tests__/properties/recoveryCompletion.property.test.ts` — Property 22: Recovery pathway blocks retry until complete
-- [~] 18.3 Create `src/__tests__/properties/recoveryBloomLevel.property.test.ts` — Property 23: Recovery Bloom's level floored at 1
-- [~] 18.4 Create `src/__tests__/properties/explanationConfidence.property.test.ts` — Property 24: Explanation confidence computation
-- [~] 18.5 Create `src/__tests__/properties/confidenceThreshold.property.test.ts` — Property 25: Confidence threshold classification
-- [~] 18.6 Create `src/__tests__/properties/frequentlyMissed.property.test.ts` — Property 26: Frequently missed question identification
-- [~] 18.7 Create `src/__tests__/properties/practiceXP.property.test.ts` — Property 27: Practice mode XP is fixed at 10
-- [~] 18.8 Create `src/__tests__/properties/bloomsClimbAdvance.property.test.ts` — Property 28: Bloom's Climb advancement after 3 consecutive correct
-- [~] 18.9 Create `src/__tests__/properties/bloomsClimbRevert.property.test.ts` — Property 29: Bloom's Climb revert on incorrect at new level
-- [~] 18.10 Create `src/__tests__/properties/highestBloomReached.property.test.ts` — Property 30: Highest Bloom's level requires 2 correct answers
+- [x] 18.1 Create `src/__tests__/properties/masteryFailureCount.property.test.ts` — Property 21: Mastery failure count triggers recovery at threshold
+- [x] 18.2 Create `src/__tests__/properties/recoveryCompletion.property.test.ts` — Property 22: Recovery pathway blocks retry until complete
+- [x] 18.3 Create `src/__tests__/properties/recoveryBloomLevel.property.test.ts` — Property 23: Recovery Bloom's level floored at 1
+- [x] 18.4 Create `src/__tests__/properties/explanationConfidence.property.test.ts` — Property 24: Explanation confidence computation
+- [x] 18.5 Create `src/__tests__/properties/confidenceThreshold.property.test.ts` — Property 25: Confidence threshold classification
+- [x] 18.6 Create `src/__tests__/properties/frequentlyMissed.property.test.ts` — Property 26: Frequently missed question identification
+- [x] 18.7 Create `src/__tests__/properties/practiceXP.property.test.ts` — Property 27: Practice mode XP is fixed at 10
+- [x] 18.8 Create `src/__tests__/properties/bloomsClimbAdvance.property.test.ts` — Property 28: Bloom's Climb advancement after 3 consecutive correct
+- [x] 18.9 Create `src/__tests__/properties/bloomsClimbRevert.property.test.ts` — Property 29: Bloom's Climb revert on incorrect at new level
+- [x] 18.10 Create `src/__tests__/properties/highestBloomReached.property.test.ts` — Property 30: Highest Bloom's level requires 2 correct answers
 
 ## Task 19: Unit and Component Tests for New Features
 
-- [~] 19.1 Create `src/__tests__/unit/masteryRecovery.test.ts` — Failure counting, recovery activation, step completion, expiry edge cases
-- [~] 19.2 Create `src/__tests__/unit/explanationConfidence.test.ts` — Confidence computation, threshold checks, frequently missed detection, empty arrays
-- [~] 19.3 Create `src/__tests__/unit/bloomsClimb.test.ts` — Advancement, revert, highest level reached, edge cases at level 1 and 6
-- [~] 19.4 Create `src/__tests__/unit/practiceMode.test.ts` — XP calculation, mode flag, no evidence generation verification
-- [~] 19.5 Create `src/__tests__/unit/masteryRecoveryPanel.test.tsx` — 3-step display, step completion checkmarks, retry button gating
-- [~] 19.6 Create `src/__tests__/unit/explanationConfidenceBadge.test.tsx` — Green/amber/blue badge rendering based on confidence and verification
-- [~] 19.7 Create `src/__tests__/unit/practiceModeBanner.test.tsx` — Banner visibility, correct styling, text content
-- [~] 19.8 Create `src/__tests__/unit/bloomsProgressionLadder.test.tsx` — 6-level rendering, Bloom's color coding, highlighted level
-- [~] 19.9 Create `src/__tests__/unit/bloomsPioneerBadge.test.tsx` — Badge rendering for Explorer, Challenger, Pioneer
+- [x] 19.1 Create `src/__tests__/unit/masteryRecovery.test.ts` — Failure counting, recovery activation, step completion, expiry edge cases
+- [x] 19.2 Create `src/__tests__/unit/explanationConfidence.test.ts` — Confidence computation, threshold checks, frequently missed detection, empty arrays
+- [x] 19.3 Create `src/__tests__/unit/bloomsClimb.test.ts` — Advancement, revert, highest level reached, edge cases at level 1 and 6
+- [x] 19.4 Create `src/__tests__/unit/practiceMode.test.ts` — XP calculation, mode flag, no evidence generation verification
+- [x] 19.5 Create `src/__tests__/unit/masteryRecoveryPanel.test.tsx` — 3-step display, step completion checkmarks, retry button gating
+- [x] 19.6 Create `src/__tests__/unit/explanationConfidenceBadge.test.tsx` — Green/amber/blue badge rendering based on confidence and verification
+- [x] 19.7 Create `src/__tests__/unit/practiceModeBanner.test.tsx` — Banner visibility, correct styling, text content
+- [x] 19.8 Create `src/__tests__/unit/bloomsProgressionLadder.test.tsx` — 6-level rendering, Bloom's color coding, highlighted level
+- [x] 19.9 Create `src/__tests__/unit/bloomsPioneerBadge.test.tsx` — Badge rendering for Explorer, Challenger, Pioneer
 
 ## Task 20: Routing, Navigation, and Integration for New Features
 
-- [~] 20.1 Add student route for mastery recovery: `/student/courses/:courseId/recovery/:cloId`
-- [~] 20.2 Add teacher route for explanation review queue: `/teacher/courses/:courseId/explanation-review`
-- [~] 20.3 Add coordinator dashboard route section for recovery metrics
-- [~] 20.4 Add navigation items to teacher sidebar for "Explanation Review"
-- [~] 20.5 Integrate MasteryRecoveryPanel into student quiz flow — show recovery panel when student-CLO pair is flagged, block quiz retry
-- [~] 20.6 Integrate PracticeModeToggle into existing quiz creation/edit form
-- [~] 20.7 Integrate BloomsProgressionLadder into student course detail page
-- [~] 20.8 Update PostQuizReview to show ExplanationConfidenceBadge, Verified_Explanation preference, and BloomsProgressionLadder
+- [x] 20.1 Add student route for mastery recovery: `/student/courses/:courseId/recovery/:cloId`
+- [x] 20.2 Add teacher route for explanation review queue: `/teacher/courses/:courseId/explanation-review`
+- [x] 20.3 Add coordinator dashboard route section for recovery metrics
+- [x] 20.4 Add navigation items to teacher sidebar for "Explanation Review"
+- [x] 20.5 Integrate MasteryRecoveryPanel into student quiz flow — show recovery panel when student-CLO pair is flagged, block quiz retry
+- [x] 20.6 Integrate PracticeModeToggle into existing quiz creation/edit form
+- [x] 20.7 Integrate BloomsProgressionLadder into student course detail page
+- [x] 20.8 Update PostQuizReview to show ExplanationConfidenceBadge, Verified_Explanation preference, and BloomsProgressionLadder

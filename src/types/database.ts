@@ -469,6 +469,77 @@ export type Database = {
           },
         ]
       }
+      blooms_progression: {
+        Row: {
+          bloom_challenger_awarded: boolean
+          bloom_explorer_awarded: boolean
+          bloom_pioneer_awarded: boolean
+          clo_id: string
+          correct_count_at_highest: number
+          course_id: string
+          highest_bloom_level: number
+          id: string
+          institution_id: string
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          bloom_challenger_awarded?: boolean
+          bloom_explorer_awarded?: boolean
+          bloom_pioneer_awarded?: boolean
+          clo_id: string
+          correct_count_at_highest?: number
+          course_id: string
+          highest_bloom_level?: number
+          id?: string
+          institution_id: string
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          bloom_challenger_awarded?: boolean
+          bloom_explorer_awarded?: boolean
+          bloom_pioneer_awarded?: boolean
+          clo_id?: string
+          correct_count_at_highest?: number
+          course_id?: string
+          highest_bloom_level?: number
+          id?: string
+          institution_id?: string
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blooms_progression_clo_id_fkey"
+            columns: ["clo_id"]
+            isOneToOne: false
+            referencedRelation: "learning_outcomes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blooms_progression_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blooms_progression_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blooms_progression_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       class_sessions: {
         Row: {
           created_at: string

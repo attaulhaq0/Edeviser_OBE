@@ -165,6 +165,17 @@ const masteryRecovery = {
     ['masteryRecovery', 'metrics', institutionId] as const,
 }
 
+// ─── Bloom's Progression ─────────────────────────────────────────────────
+const bloomsProgression = {
+  all: ['bloomsProgression'] as const,
+  progression: (studentId: string, courseId: string) =>
+    ['bloomsProgression', studentId, courseId] as const,
+  climbState: (quizAttemptId: string) =>
+    ['bloomsProgression', 'climbState', quizAttemptId] as const,
+  badges: (studentId: string) =>
+    ['bloomsProgression', 'badges', studentId] as const,
+}
+
 // ─── Onboarding ──────────────────────────────────────────────────────────────
 const onboarding = {
   progress: (studentId: string) =>
@@ -287,6 +298,8 @@ export const queryKeys = {
   explanationReviewQueue,
   // Mastery Recovery
   masteryRecovery,
+  // Bloom's Progression
+  bloomsProgression,
   // Onboarding
   onboarding,
 } as const

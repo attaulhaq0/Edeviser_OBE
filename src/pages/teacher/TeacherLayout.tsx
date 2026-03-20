@@ -1,6 +1,6 @@
 import { Outlet, NavLink, useParams } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { LayoutDashboard, Target, TableProperties, ClipboardList, CheckSquare, FlaskConical, UserCircle, BookOpen, Sparkles, BarChart3 } from 'lucide-react';
+import { LayoutDashboard, Target, TableProperties, ClipboardList, CheckSquare, FlaskConical, UserCircle, BookOpen, Sparkles, BarChart3, FileSearch } from 'lucide-react';
 
 const navItems = [
   { to: '/teacher/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -16,6 +16,7 @@ const getCourseQuizNavItems = (courseId: string) => [
   { to: `/teacher/courses/${courseId}/question-bank`, icon: BookOpen, label: 'Question Bank' },
   { to: `/teacher/courses/${courseId}/generate-questions`, icon: Sparkles, label: 'Generate Questions' },
   { to: `/teacher/courses/${courseId}/question-analytics`, icon: BarChart3, label: 'Question Analytics' },
+  { to: `/teacher/courses/${courseId}/explanation-review`, icon: FileSearch, label: 'Explanation Review' },
 ];
 
 const TeacherLayout = () => {
