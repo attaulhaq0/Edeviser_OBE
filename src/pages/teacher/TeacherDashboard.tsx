@@ -36,6 +36,7 @@ import {
 } from '@/hooks/useTeacherDashboard';
 import type { AtRiskStudent } from '@/hooks/useTeacherDashboard';
 import type { BloomsLevel } from '@/types/app';
+import AIAtRiskWidget from '@/components/shared/AIAtRiskWidget';
 import {
   ClipboardList,
   CheckSquare,
@@ -529,7 +530,10 @@ const TeacherDashboard = () => {
         )}
       </Card>
 
-      {/* Bottom Row: Grading Queue + At-Risk Placeholder */}
+      {/* AI At-Risk Students Widget */}
+      <AIAtRiskWidget />
+
+      {/* Bottom Row: Grading Queue + At-Risk Students */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Grading Queue */}
         <Card className="bg-white border-0 shadow-md rounded-xl p-6">
@@ -587,7 +591,7 @@ const TeacherDashboard = () => {
           )}
         </Card>
 
-        {/* At-Risk Students */}
+        {/* At-Risk Students (heuristic-based) */}
         <AtRiskStudentCard />
       </div>
     </div>

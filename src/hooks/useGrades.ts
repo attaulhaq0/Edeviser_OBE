@@ -99,6 +99,10 @@ export const useCreateGrade = () => {
       // Invalidate evidence & attainment caches so the UI picks up new records.
       queryClient.invalidateQueries({ queryKey: queryKeys.evidence.lists() });
       queryClient.invalidateQueries({ queryKey: queryKeys.outcomeAttainment.lists() });
+      // Prediction validation (Task 36.4) updates ai_feedback records.
+      // Invalidate so teacher dashboard reflects validated predictions.
+      queryClient.invalidateQueries({ queryKey: queryKeys.aiFeedback.lists() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.atRiskPredictions.lists() });
     },
   });
 };

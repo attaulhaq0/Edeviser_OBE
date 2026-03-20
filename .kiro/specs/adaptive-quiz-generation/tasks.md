@@ -60,7 +60,7 @@
 
 ## Task 6: TanStack Query Hooks
 
-- [-] 6.1 Create `src/hooks/useQuestionBank.ts` — CRUD hooks for question_bank with filters (CLO, Bloom's, type, status, source)
+- [x] 6.1 Create `src/hooks/useQuestionBank.ts` — CRUD hooks for question_bank with filters (CLO, Bloom's, type, status, source)
 - [ ] 6.2 Create `src/hooks/useGenerateQuestions.ts` — Mutation hook for AI question generation via Edge Function
 - [ ] 6.3 Create `src/hooks/useReviewQueue.ts` — Query + mutations for pending questions: approve, reject, edit, bulk approve
 - [ ] 6.4 Create `src/hooks/useAdaptiveQuiz.ts` — Hooks for adaptive quiz session: start, select next question, submit attempt
