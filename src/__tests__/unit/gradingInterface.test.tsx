@@ -61,6 +61,20 @@ vi.mock('@/lib/activityLogger', () => ({
   logActivity: vi.fn().mockResolvedValue(undefined),
 }));
 
+vi.mock('@/hooks/useAIFeedbackDraft', () => ({
+  useGenerateFeedbackDraft: () => ({
+    mutate: vi.fn(),
+    isPending: false,
+  }),
+  useLogDraftAction: () => ({
+    mutate: vi.fn(),
+  }),
+}));
+
+vi.mock('@/lib/predictionValidator', () => ({
+  validateAtRiskPredictions: vi.fn().mockResolvedValue(undefined),
+}));
+
 // ---------------------------------------------------------------------------
 // Fixtures
 // ---------------------------------------------------------------------------

@@ -558,26 +558,26 @@ Complete unified implementation of the Edeviser platform covering authentication
   - [x] 32.3 Create report download and email delivery
     - _Requirements: 33.4_
 
-- [-] 33. Implement AI Data Collection Foundation
+- [x] 33. Implement AI Data Collection Foundation
   - [x] 33.1 Wire activity logging into remaining flows
     - Page navigation (page_view), assignment detail (assignment_view), streak processor (streak_break)
     - _Requirements: 41.1_
 
-  - [~] 33.2 Create `compute-at-risk-signals` Edge Function (pg_cron → nightly 2 AM)
+  - [x] 33.2 Create `compute-at-risk-signals` Edge Function (pg_cron → nightly 2 AM)
     - Compute: days since last login, CLO attainment trend direction, submission timing patterns
     - Store computed signals in student_gamification or dedicated column
     - _Requirements: 41.3_
 
-- [ ] 34. Implement Profile Management
-  - [~] 34.1 Create Profile page for all roles
+- [x] 34. Implement Profile Management
+  - [x] 34.1 Create Profile page for all roles
     - Include email notification preferences section
     - _Requirements: 8, 39.2_
 
-  - [~] 34.2 Implement avatar upload to Supabase Storage
+  - [x] 34.2 Implement avatar upload to Supabase Storage
     - _Requirements: 8.2_
 
-- [ ] 35. Implement AI Module Suggestion (Capability 1)
-  - [~] 35.1 Create `ai-module-suggestion` Edge Function
+- [x] 35. Implement AI Module Suggestion (Capability 1)
+  - [x] 35.1 Create `ai-module-suggestion` Edge Function
     - Query student's `outcome_attainment` to find CLOs with attainment < 70%
     - Identify prerequisite CLO relationships from `outcome_mappings`
     - Generate suggestion text with CLO gap analysis
@@ -585,49 +585,49 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Store suggestion in `ai_feedback` table with `suggestion_type = 'module_suggestion'`
     - _Requirements: 46.1, 46.2, 46.3, 46.4, 46.5_
 
-  - [~] 35.2 Create AI Suggestion Widget for Student Dashboard (`/src/components/shared/AISuggestionCard.tsx`)
+  - [x] 35.2 Create AI Suggestion Widget for Student Dashboard (`/src/components/shared/AISuggestionCard.tsx`)
     - Display suggestion cards with CLO gap info and social proof text
     - Include thumbs up/down feedback buttons (AIFeedbackThumbs component)
     - Store feedback in `ai_feedback.feedback` column
     - _Requirements: 46.2, 46.6_
 
-  - [~] 35.3 Create AI suggestion TanStack Query hooks (`/src/hooks/useAISuggestions.ts`)
+  - [x] 35.3 Create AI suggestion TanStack Query hooks (`/src/hooks/useAISuggestions.ts`)
     - Fetch suggestions for current student
     - Mutation for submitting feedback
     - _Requirements: 46.5, 46.6_
 
-- [ ] 36. Implement AI At-Risk Early Warning (Capability 2)
-  - [~] 36.1 Create `ai-at-risk-prediction` Edge Function (pg_cron → nightly)
+- [x] 36. Implement AI At-Risk Early Warning (Capability 2)
+  - [x] 36.1 Create `ai-at-risk-prediction` Edge Function (pg_cron → nightly)
     - Monitor per-student behavioral signals: login frequency (from `student_activity_log`), submission timing patterns, CLO attainment trends (from `outcome_attainment`)
     - Predict students likely to fail a CLO ≥7 days before next assignment due date
     - Calculate probability score (0–100%) based on weighted signal combination
     - Store predictions in `ai_feedback` table with `suggestion_type = 'at_risk_prediction'`
     - _Requirements: 47.1, 47.2, 47.5, 47.6_
 
-  - [~] 36.2 Create AI At-Risk Widget for Teacher Dashboard
+  - [x] 36.2 Create AI At-Risk Widget for Teacher Dashboard
     - Display at-risk students: name, CLO, probability score, contributing signals
     - One-click "Send Nudge" button to send personalized notification to student
     - _Requirements: 47.3, 47.4_
 
-  - [~] 36.3 Create at-risk prediction TanStack Query hooks (`/src/hooks/useAtRiskPredictions.ts`)
+  - [x] 36.3 Create at-risk prediction TanStack Query hooks (`/src/hooks/useAtRiskPredictions.ts`)
     - Fetch predictions for teacher's courses
     - Mutation for sending nudge notifications
     - _Requirements: 47.3, 47.4_
 
-  - [~] 36.4 Implement prediction validation on grade submission
+  - [x] 36.4 Implement prediction validation on grade submission
     - When an assignment is graded, check if there was an at-risk prediction for that student+CLO
     - Update `ai_feedback.validated_outcome` to 'correct' or 'incorrect'
     - _Requirements: 49.2_
 
-- [ ] 37. Implement AI Feedback Draft Generation (Capability 3)
-  - [~] 37.1 Create `ai-feedback-draft` Edge Function
+- [-] 37. Implement AI Feedback Draft Generation (Capability 3)
+  - [x] 37.1 Create `ai-feedback-draft` Edge Function
     - Accept: submission_id, rubric_id, rubric_selections, student_id, clo_id
     - Generate draft feedback comments per rubric criterion based on: criteria descriptions, selected performance levels, student's historical feedback patterns, CLO context
     - Generate overall draft feedback
     - Return structured FeedbackDraftResponse
     - _Requirements: 48.1, 48.2, 48.4_
 
-  - [~] 37.2 Integrate AI draft into Grading Interface
+  - [-] 37.2 Integrate AI draft into Grading Interface
     - Add "Generate AI Draft" button in grading interface
     - Display draft comments per criterion with accept/edit/reject controls
     - Label AI-generated feedback as "AI Draft" until teacher confirms

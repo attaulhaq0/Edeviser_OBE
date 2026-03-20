@@ -58,12 +58,14 @@ const StudentAssignmentDetailPage = lazy(() => import('@/pages/student/assignmen
 const LeaderboardPage = lazy(() => import('@/pages/student/leaderboard/LeaderboardPage'));
 const CompleteProfilePage = lazy(() => import('@/pages/student/onboarding/CompleteProfilePage'));
 const ReassessmentPage = lazy(() => import('@/pages/student/settings/ReassessmentPage'));
-const ProfileSettingsPage = lazy(() => import('@/pages/student/settings/ProfileSettingsPage'));
 const StarterWeekPlanPage = lazy(() => import('@/pages/student/planner/StarterWeekPlanPage'));
 const HabitHeatmapPage = lazy(() => import('@/pages/student/habits/HabitHeatmapPage'));
 const HabitAnalyticsPage = lazy(() => import('@/pages/student/habits/HabitAnalyticsPage'));
 const XPHistory = lazy(() => import('@/pages/student/progress/XPHistory'));
 const ParentDashboard = lazy(() => import('@/pages/parent/ParentDashboard'));
+
+// Shared pages
+const ProfilePage = lazy(() => import('@/pages/shared/ProfilePage'));
 
 // ---------------------------------------------------------------------------
 // Shared loading fallback
@@ -120,6 +122,7 @@ const AppRouter = () => (
         <Route path="courses/:courseId/enrollment" element={<CourseEnrollmentPage />} />
         <Route path="onboarding/pending" element={<PendingOnboardingPage />} />
         <Route path="reports" element={<ReportGeneratorPage />} />
+        <Route path="settings/profile" element={<ProfilePage />} />
       </Route>
 
       {/* Coordinator routes */}
@@ -137,6 +140,7 @@ const AppRouter = () => (
         <Route path="plos/new" element={<PLOForm />} />
         <Route path="plos/:id/edit" element={<PLOForm />} />
         <Route path="matrix" element={<CurriculumMatrixPage />} />
+        <Route path="settings/profile" element={<ProfilePage />} />
       </Route>
 
       {/* Teacher routes */}
@@ -164,6 +168,7 @@ const AppRouter = () => (
         <Route path="baseline/:courseId" element={<BaselineResultsPage />} />
         <Route path="baseline/:courseId/config" element={<BaselineConfigPage />} />
         <Route path="baseline/:courseId/questions/new" element={<BaselineQuestionForm />} />
+        <Route path="settings/profile" element={<ProfilePage />} />
       </Route>
 
       {/* Student routes */}
@@ -185,7 +190,7 @@ const AppRouter = () => (
         <Route path="habits/analytics" element={<HabitAnalyticsPage />} />
         <Route path="planner/starter-week" element={<StarterWeekPlanPage />} />
         <Route path="settings/reassessment" element={<ReassessmentPage />} />
-        <Route path="settings/profile" element={<ProfileSettingsPage />} />
+        <Route path="settings/profile" element={<ProfilePage />} />
         <Route path="xp-history" element={<XPHistory />} />
       </Route>
 

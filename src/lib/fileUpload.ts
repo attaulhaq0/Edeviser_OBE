@@ -6,6 +6,10 @@ const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
 const ALLOWED_EXTENSIONS = ['pdf', 'doc', 'docx', 'txt', 'png', 'jpg', 'jpeg', 'zip'];
 const BUCKET_NAME = 'submissions';
 
+const AVATAR_MAX_SIZE_BYTES = 2 * 1024 * 1024; // 2MB
+const AVATAR_ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+const AVATAR_BUCKET = 'avatars';
+
 // ─── Validation ─────────────────────────────────────────────────────────────
 
 export class FileValidationError extends Error {
@@ -63,6 +67,50 @@ export async function uploadSubmissionFile(params: UploadFileParams): Promise<st
 
   const { data: urlData } = supabase.storage
     .from(BUCKET_NAME)
+    .getPublicUrl(path);
+
+  return urlData.publicUrl;
+}
+
+// ─── Avatar Upload ──────────────────────────────────────────────────────────
+
+export function validateAvatarFile(file: File): void {
+  if (file.size > AVATAR_MAX_SIZE_BYTES) {
+    throw new FileValidationError(
+      `File size exceeds the 2MB limit. Your file is ${(file.size / (1024 * 1024)).toFixed(1)}MB.`,
+    );
+  }
+
+  if (!AVATAR_ALLOWED_TYPES.includes(file.type)) {
+    throw new FileValidationError(
+      'Only image files are allowed (JPG, PNG, GIF, WebP).',
+    );
+  }
+}
+
+export interface UploadAvatarParams {
+  file: File;
+  userId: string;
+}
+
+export async function uploadAvatarFile(params: UploadAvatarParams): Promise<string> {
+  const { file, userId } = params;
+
+  validateAvatarFile(file);
+
+  const ext = file.name.split('.').pop()?.toLowerCase() ?? 'jpg';
+  const path = `${userId}/avatar_${Date.now()}.${ext}`;
+
+  const { error } = await supabase.storage
+    .from(AVATAR_BUCKET)
+    .upload(path, file, { upsert: true });
+
+  if (error) {
+    throw new Error(`Avatar upload failed: ${error.message}`);
+  }
+
+  const { data: urlData } = supabase.storage
+    .from(AVATAR_BUCKET)
     .getPublicUrl(path);
 
   return urlData.publicUrl;
