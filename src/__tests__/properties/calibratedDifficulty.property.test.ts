@@ -11,7 +11,7 @@ describe('computeCalibratedDifficulty — property-based tests', () => {
       fc.property(
         fc.double({ min: 1.0, max: 5.0, noNaN: true }),
         fc.double({ min: 0, max: 1, noNaN: true }),
-        fc.integer({ min: 10, max: 500 }),
+        fc.integer({ min: 0, max: 500 }),
         (original, successRate, attempts) => {
           const result = computeCalibratedDifficulty(original, successRate, attempts);
           expect(result).toBeGreaterThanOrEqual(1.0);
@@ -56,7 +56,27 @@ describe('computeCalibratedDifficulty — property-based tests', () => {
     );
   });
 
-  it('P13d: at 0 attempts, result equals original difficulty', () => {
+  it('P13d: higher success rate produces lower calibrated difficulty', () => {
+    fc.assert(
+      fc.property(
+        fc.double({ min: 1.0, max: 5.0, noNaN: true }),
+        fc.double({ min: 0, max: 0.49, noNaN: true }),
+        fc.double({ min: 0.01, max: 0.5, noNaN: true }),
+        fc.integer({ min: 1, max: 500 }),
+        (original, baseSR, delta, attempts) => {
+          const lowerSR = baseSR;
+          const higherSR = baseSR + delta;
+          if (higherSR > 1.0) return;
+          const resultLow = computeCalibratedDifficulty(original, lowerSR, attempts);
+          const resultHigh = computeCalibratedDifficulty(original, higherSR, attempts);
+          expect(resultHigh).toBeLessThanOrEqual(resultLow);
+        },
+      ),
+      { numRuns: 100 },
+    );
+  });
+
+  it('P13e: at 0 attempts, result equals original difficulty', () => {
     fc.assert(
       fc.property(
         fc.double({ min: 1.0, max: 5.0, noNaN: true }),

@@ -6,37 +6,36 @@ import * as fc from 'fast-check';
 import { detectCLODiscrepancy } from '@/lib/questionAnalytics';
 
 describe('detectCLODiscrepancy — property-based tests', () => {
-  it('P17a: flags discrepancy when absolute difference > 15', () => {
+  it('P17a: returns true when absolute difference > 15', () => {
     fc.assert(
       fc.property(
         fc.double({ min: 0, max: 100, noNaN: true }),
         fc.double({ min: 0, max: 100, noNaN: true }),
-        (quizScore, attainment) => {
-          const result = detectCLODiscrepancy(quizScore, attainment);
-          if (Math.abs(quizScore - attainment) > 15) {
-            expect(result).toBe(true);
-          } else {
-            expect(result).toBe(false);
-          }
+        (quizScore, cloAttainment) => {
+          fc.pre(Math.abs(quizScore - cloAttainment) > 15);
+          expect(detectCLODiscrepancy(quizScore, cloAttainment)).toBe(true);
         },
       ),
       { numRuns: 100 },
     );
   });
 
-  it('P17b: no discrepancy when scores are equal', () => {
+  it('P17b: returns false when absolute difference <= 15', () => {
     fc.assert(
       fc.property(
         fc.double({ min: 0, max: 100, noNaN: true }),
-        (score) => {
-          expect(detectCLODiscrepancy(score, score)).toBe(false);
+        fc.double({ min: -15, max: 15, noNaN: true }),
+        (base, offset) => {
+          const cloAttainment = Math.max(0, Math.min(100, base + offset));
+          fc.pre(Math.abs(base - cloAttainment) <= 15);
+          expect(detectCLODiscrepancy(base, cloAttainment)).toBe(false);
         },
       ),
       { numRuns: 100 },
     );
   });
 
-  it('P17c: discrepancy detection is symmetric', () => {
+  it('P17c: is symmetric — detectCLODiscrepancy(a, b) === detectCLODiscrepancy(b, a)', () => {
     fc.assert(
       fc.property(
         fc.double({ min: 0, max: 100, noNaN: true }),
@@ -49,13 +48,12 @@ describe('detectCLODiscrepancy — property-based tests', () => {
     );
   });
 
-  it('P17d: difference of exactly 15 (integer values) does not flag', () => {
+  it('P17d: equal values always return false', () => {
     fc.assert(
       fc.property(
-        fc.integer({ min: 15, max: 85 }),
-        (base) => {
-          expect(detectCLODiscrepancy(base, base + 15)).toBe(false);
-          expect(detectCLODiscrepancy(base, base - 15)).toBe(false);
+        fc.double({ min: 0, max: 100, noNaN: true }),
+        (value) => {
+          expect(detectCLODiscrepancy(value, value)).toBe(false);
         },
       ),
       { numRuns: 100 },

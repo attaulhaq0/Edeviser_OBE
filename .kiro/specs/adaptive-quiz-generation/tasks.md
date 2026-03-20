@@ -45,22 +45,22 @@
 
 ## Task 4: Unit Tests
 
-- [ ] 4.1 Create `src/__tests__/unit/quizGenerationSchemas.test.ts` — Specific valid/invalid input examples for all Zod schemas
-- [ ] 4.2 Create `src/__tests__/unit/adaptiveEngine.test.ts` — Edge cases: null attainment, difficulty bounds, empty question pool
-- [ ] 4.3 Create `src/__tests__/unit/difficultyCalibration.test.ts` — Edge cases: 0%/100% success rate, threshold attempt counts
-- [ ] 4.4 Create `src/__tests__/unit/questionAnalytics.test.ts` — Analytics update, cumulative updates, flagging thresholds
-- [ ] 4.5 Create `src/__tests__/unit/quizBonusXP.test.ts` — 0 hard questions, max cap, mixed difficulties
-- [ ] 4.6 Create `src/__tests__/unit/postQuizReview.test.ts` — Per-CLO score with various CLO configurations
+- [x] 4.1 Create `src/__tests__/unit/quizGenerationSchemas.test.ts` — Specific valid/invalid input examples for all Zod schemas
+- [x] 4.2 Create `src/__tests__/unit/adaptiveEngine.test.ts` — Edge cases: null attainment, difficulty bounds, empty question pool
+- [x] 4.3 Create `src/__tests__/unit/difficultyCalibration.test.ts` — Edge cases: 0%/100% success rate, threshold attempt counts
+- [x] 4.4 Create `src/__tests__/unit/questionAnalytics.test.ts` — Analytics update, cumulative updates, flagging thresholds
+- [x] 4.5 Create `src/__tests__/unit/quizBonusXP.test.ts` — 0 hard questions, max cap, mixed difficulties
+- [x] 4.6 Create `src/__tests__/unit/postQuizReview.test.ts` — Per-CLO score with various CLO configurations
 
 ## Task 5: Edge Functions
 
-- [ ] 5.1 Create `supabase/functions/generate-quiz-questions/index.ts` — AI question generation Edge Function with JWT validation, RAG retrieval, LLM call, question insertion, logging
-- [ ] 5.2 Create `supabase/functions/select-adaptive-question/index.ts` — Adaptive question selection Edge Function with ability estimation, difficulty targeting, question filtering, exclusion of previously answered
-- [ ] 5.3 Create `supabase/functions/update-question-analytics/index.ts` — Post-quiz analytics recalculation Edge Function with success rate, discrimination index, calibrated difficulty, quality flagging
+- [x] 5.1 Create `supabase/functions/generate-quiz-questions/index.ts` — AI question generation Edge Function with JWT validation, RAG retrieval, LLM call, question insertion, logging
+- [x] 5.2 Create `supabase/functions/select-adaptive-question/index.ts` — Adaptive question selection Edge Function with ability estimation, difficulty targeting, question filtering, exclusion of previously answered
+- [x] 5.3 Create `supabase/functions/update-question-analytics/index.ts` — Post-quiz analytics recalculation Edge Function with success rate, discrimination index, calibrated difficulty, quality flagging
 
 ## Task 6: TanStack Query Hooks
 
-- [ ] 6.1 Create `src/hooks/useQuestionBank.ts` — CRUD hooks for question_bank with filters (CLO, Bloom's, type, status, source)
+- [-] 6.1 Create `src/hooks/useQuestionBank.ts` — CRUD hooks for question_bank with filters (CLO, Bloom's, type, status, source)
 - [ ] 6.2 Create `src/hooks/useGenerateQuestions.ts` — Mutation hook for AI question generation via Edge Function
 - [ ] 6.3 Create `src/hooks/useReviewQueue.ts` — Query + mutations for pending questions: approve, reject, edit, bulk approve
 - [ ] 6.4 Create `src/hooks/useAdaptiveQuiz.ts` — Hooks for adaptive quiz session: start, select next question, submit attempt
