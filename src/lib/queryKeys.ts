@@ -93,6 +93,9 @@ const studentDashboard = createKeys('studentDashboard')
 const parentDashboard = createKeys('parentDashboard')
 const teacherDashboard = createKeys('teacherDashboard')
 
+// ─── Reports ─────────────────────────────────────────────────────────────────
+const accreditationReports = createKeys('accreditationReports')
+
 // ─── Production ──────────────────────────────────────────────────────────────
 const calendarEvents = createKeys('calendarEvents')
 const globalSearch = createKeys('globalSearch')
@@ -225,6 +228,8 @@ export const queryKeys = {
   studentDashboard,
   parentDashboard,
   teacherDashboard,
+  // Reports
+  accreditationReports,
   // Production
   calendarEvents,
   globalSearch,

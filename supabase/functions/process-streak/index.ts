@@ -208,6 +208,21 @@ serve(async (req) => {
       }
     }
 
+    // Log streak_break event if streak was reset from a non-zero value
+    const streakBroken = state && state.streak_count > 1 && newStreakCount === 1;
+    if (streakBroken) {
+      supabase
+        .from('student_activity_log')
+        .insert({
+          student_id: student_id,
+          event_type: 'streak_break',
+          metadata: { previous_streak: state.streak_count },
+        })
+        .then(({ error: logErr }: { error: { message: string } | null }) => {
+          if (logErr) console.error('[ActivityLogger] streak_break log failed:', logErr.message);
+        });
+    }
+
     // Check milestone
     if (STREAK_MILESTONES.includes(newStreakCount)) {
       milestoneReached = newStreakCount;
