@@ -31,6 +31,10 @@ vi.mock('@/hooks/useAdaptiveQuiz', () => ({
   }),
 }));
 
+vi.mock('@/hooks/usePracticeMode', () => ({
+  usePracticeModeConfig: () => ({ data: null, isLoading: false }),
+}));
+
 // Mock sonner toast
 vi.mock('sonner', () => ({
   toast: {

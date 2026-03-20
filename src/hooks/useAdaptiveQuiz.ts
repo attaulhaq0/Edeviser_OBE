@@ -35,6 +35,7 @@ export interface SubmitQuizAttemptInput {
   quiz_attempt_id: string;
   answers: Record<string, string>;
   score: number;
+  mode?: 'graded' | 'practice';
 }
 
 // ─── useStartAdaptiveQuiz — create a new adaptive quiz attempt ──────────────
@@ -92,11 +93,16 @@ export const useSubmitQuizAttempt = () => {
 
   return useMutation({
     mutationFn: async (input: SubmitQuizAttemptInput) => {
-      const { quiz_attempt_id, answers, score } = input;
+      const { quiz_attempt_id, answers, score, mode } = input;
+
+      const updatePayload: Record<string, unknown> = { answers, score };
+      if (mode) {
+        updatePayload.mode = mode;
+      }
 
       const { data, error } = await supabase
         .from('quiz_attempts')
-        .update({ answers, score })
+        .update(updatePayload)
         .eq('id', quiz_attempt_id)
         .select()
         .single();

@@ -21,4 +21,4 @@ CREATE TABLE verified_explanations (
 ALTER TABLE verified_explanations ENABLE ROW LEVEL SECURITY;
 
 CREATE UNIQUE INDEX idx_verified_active ON verified_explanations (question_id) WHERE is_active = true;
-CREATE INDEX idx_verified_question ON verified_explanations (question_id);;
+CREATE INDEX idx_verified_question ON verified_explanations (question_id);

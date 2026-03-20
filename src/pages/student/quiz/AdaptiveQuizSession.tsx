@@ -2,10 +2,12 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, Clock, AlertCircle } from 'lucide-react';
+import { Loader2, Clock, AlertCircle, CheckCircle2, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import QuestionPreview from '@/components/shared/QuestionPreview';
+import PracticeModeBanner from '@/components/shared/PracticeModeBanner';
+import { usePracticeModeConfig } from '@/hooks/usePracticeMode';
 import {
   useStartAdaptiveQuiz,
   useSelectNextQuestion,
@@ -24,6 +26,15 @@ interface SessionState {
   timeLimit: number; // seconds
 }
 
+interface PracticeFeedback {
+  wasCorrect: boolean;
+  selectedAnswer: string;
+  nextResponse: SelectQuestionResponse | null;
+  isSessionComplete: boolean;
+  updatedAnswers: Record<string, string>;
+  updatedTimes: Record<string, number>;
+}
+
 const DEFAULT_TIME_LIMIT = 1800; // 30 minutes
 
 const AdaptiveQuizSession = () => {
@@ -33,12 +44,16 @@ const AdaptiveQuizSession = () => {
   const startQuiz = useStartAdaptiveQuiz();
   const selectNext = useSelectNextQuestion();
   const submitAttempt = useSubmitQuizAttempt();
+  const { data: practiceModeConfig } = usePracticeModeConfig(quizId ?? '');
+
+  const isPracticeMode = practiceModeConfig?.practice_mode_enabled ?? false;
 
   const [session, setSession] = useState<SessionState | null>(null);
   const [selectedAnswer, setSelectedAnswer] = useState<string>('');
   const [timeRemaining, setTimeRemaining] = useState<number>(DEFAULT_TIME_LIMIT);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [initializing, setInitializing] = useState(true);
+  const [practiceFeedback, setPracticeFeedback] = useState<PracticeFeedback | null>(null);
 
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const hasInitialized = useRef(false);
@@ -116,6 +131,7 @@ const AdaptiveQuizSession = () => {
         quiz_attempt_id: session.attemptId,
         answers: session.answers,
         score,
+        ...(isPracticeMode ? { mode: 'practice' as const } : {}),
       });
 
       navigate(`/student/quizzes/${quizId}/review/${session.attemptId}`, { replace: true });
@@ -148,6 +164,20 @@ const AdaptiveQuizSession = () => {
         previous_response_time_ms: responseTimeMs,
       });
 
+      if (isPracticeMode) {
+        // In practice mode, show feedback before advancing
+        setPracticeFeedback({
+          wasCorrect,
+          selectedAnswer,
+          nextResponse: response.session_complete ? null : response,
+          isSessionComplete: response.session_complete,
+          updatedAnswers,
+          updatedTimes,
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
       if (response.session_complete) {
         const totalQuestions = response.total_questions;
         const score = totalQuestions > 0 ? Math.round((session.totalCorrect / totalQuestions) * 100) : 0;
@@ -179,6 +209,43 @@ const AdaptiveQuizSession = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleNextQuestion = async () => {
+    if (!practiceFeedback || !session) return;
+
+    if (practiceFeedback.isSessionComplete) {
+      const totalQuestions = session.currentQuestion?.total_questions ?? 1;
+      const score = totalQuestions > 0 ? Math.round((session.totalCorrect / totalQuestions) * 100) : 0;
+
+      try {
+        await submitAttempt.mutateAsync({
+          quiz_attempt_id: session.attemptId,
+          answers: practiceFeedback.updatedAnswers,
+          score,
+          ...(isPracticeMode ? { mode: 'practice' as const } : {}),
+        });
+
+        navigate(`/student/quizzes/${quizId}/review/${session.attemptId}`, { replace: true });
+      } catch {
+        toast.error('Failed to submit quiz. Please try again.');
+      }
+      return;
+    }
+
+    setSession((prev) =>
+      prev
+        ? {
+            ...prev,
+            answers: practiceFeedback.updatedAnswers,
+            responseTimes: practiceFeedback.updatedTimes,
+            currentQuestion: practiceFeedback.nextResponse,
+            questionStartTime: Date.now(),
+          }
+        : prev,
+    );
+    setSelectedAnswer('');
+    setPracticeFeedback(null);
   };
 
   // ─── Format timer ───────────────────────────────────────────────────────────
@@ -214,6 +281,9 @@ const AdaptiveQuizSession = () => {
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
+      {/* Practice Mode Banner */}
+      {isPracticeMode && <PracticeModeBanner />}
+
       {/* Header: Progress + Timer */}
       <Card className="bg-white border-0 shadow-md rounded-xl p-4">
         <div className="flex items-center justify-between mb-3">
@@ -245,28 +315,67 @@ const AdaptiveQuizSession = () => {
         questionText={question.question_text}
         questionType={question.question_type as 'mcq' | 'true_false' | 'short_answer' | 'fill_in_blank'}
         options={question.options}
-        selectedAnswer={selectedAnswer}
-        onAnswerChange={setSelectedAnswer}
+        selectedAnswer={practiceFeedback?.selectedAnswer ?? selectedAnswer}
+        onAnswerChange={practiceFeedback ? undefined : setSelectedAnswer}
+        disabled={!!practiceFeedback}
       />
 
-      {/* Submit button */}
+      {/* Practice Mode Feedback */}
+      {isPracticeMode && practiceFeedback && (
+        <Card className="bg-white border-0 shadow-md rounded-xl p-4">
+          <div className="flex items-center gap-3">
+            {practiceFeedback.wasCorrect ? (
+              <>
+                <CheckCircle2 className="h-6 w-6 text-green-500 shrink-0" />
+                <div>
+                  <p className="text-sm font-semibold text-green-700">Correct!</p>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Great job — check the post-quiz review for a detailed explanation.
+                  </p>
+                </div>
+              </>
+            ) : (
+              <>
+                <XCircle className="h-6 w-6 text-red-500 shrink-0" />
+                <div>
+                  <p className="text-sm font-semibold text-red-700">Incorrect</p>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Review the correct answer and explanation after the quiz.
+                  </p>
+                </div>
+              </>
+            )}
+          </div>
+        </Card>
+      )}
+
+      {/* Submit / Next button */}
       <div className="flex justify-end">
-        <Button
-          onClick={handleSubmitAnswer}
-          disabled={!selectedAnswer || isSubmitting}
-          className="bg-gradient-to-r from-teal-500 to-blue-600 text-white px-8 py-2 active:scale-95 transition-transform duration-100"
-        >
-          {isSubmitting ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin" />
-              Loading...
-            </>
-          ) : question_number === total_questions ? (
-            'Finish Quiz'
-          ) : (
-            'Submit Answer'
-          )}
-        </Button>
+        {isPracticeMode && practiceFeedback ? (
+          <Button
+            onClick={handleNextQuestion}
+            className="bg-gradient-to-r from-teal-500 to-blue-600 text-white px-8 py-2 active:scale-95 transition-transform duration-100"
+          >
+            {practiceFeedback.isSessionComplete ? 'Finish Quiz' : 'Next Question'}
+          </Button>
+        ) : (
+          <Button
+            onClick={handleSubmitAnswer}
+            disabled={!selectedAnswer || isSubmitting}
+            className="bg-gradient-to-r from-teal-500 to-blue-600 text-white px-8 py-2 active:scale-95 transition-transform duration-100"
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Loading...
+              </>
+            ) : question_number === total_questions ? (
+              'Finish Quiz'
+            ) : (
+              'Submit Answer'
+            )}
+          </Button>
+        )}
       </div>
     </div>
   );

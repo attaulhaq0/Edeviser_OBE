@@ -131,6 +131,16 @@ const quizGeneration = createKeys('quizGeneration')
 const reviewQueue = createKeys('reviewQueue')
 const quizCLOCorrelation = createKeys('quizCLOCorrelation')
 
+// ─── Explanation Confidence ───────────────────────────────────────────────────
+const verifiedExplanations = {
+  all: ['verifiedExplanations'] as const,
+  detail: (questionId: string) => ['verifiedExplanations', questionId] as const,
+}
+const explanationReviewQueue = {
+  all: ['explanationReviewQueue'] as const,
+  list: (courseId: string) => ['explanationReviewQueue', courseId] as const,
+}
+
 // ─── Mastery Recovery ────────────────────────────────────────────────────────
 const masteryRecovery = {
   all: ['masteryRecovery'] as const,
@@ -260,6 +270,9 @@ export const queryKeys = {
   quizGeneration,
   reviewQueue,
   quizCLOCorrelation,
+  // Explanation Confidence
+  verifiedExplanations,
+  explanationReviewQueue,
   // Mastery Recovery
   masteryRecovery,
   // Onboarding

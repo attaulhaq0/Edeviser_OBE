@@ -117,7 +117,8 @@ export type XPSource =
   | 'micro_assessment'
   | 'profile_complete'
   | 'starter_session_complete'
-  | 'wellness_habit';
+  | 'wellness_habit'
+  | 'practice_quiz';
 
 export type XPSchedule = Record<XPSource, number>;
 

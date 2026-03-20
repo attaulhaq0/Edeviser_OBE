@@ -498,7 +498,7 @@ serve(async (req) => {
 
     const { data: attempt, error: attemptError } = await supabase
       .from('quiz_attempts')
-      .select('id, quiz_id, student_id, answers, question_sequence, per_question_times')
+      .select('id, quiz_id, student_id, answers, question_sequence, per_question_times, mode')
       .eq('id', quiz_attempt_id)
       .maybeSingle();
 
@@ -508,6 +508,10 @@ serve(async (req) => {
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       );
     }
+
+    // Determine if this is a practice mode attempt
+    const attemptMode = (attempt.mode as string) ?? 'graded';
+    const isPractice = attemptMode === 'practice';
 
     const questionSequence = (attempt.question_sequence ?? []) as QuestionSequenceEntry[];
     const answersMap = parseAnswers(attempt.answers);
@@ -664,22 +668,24 @@ serve(async (req) => {
       });
     }
 
-    // ── Step 5: Mastery Failure Detection ───────────────────────────────
+    // ── Step 5: Mastery Failure Detection (skip for practice mode) ─────
 
     let masteryRecoveryResult: { recoveries_activated: string[] } = { recoveries_activated: [] };
-    try {
-      masteryRecoveryResult = await checkAndActivateMasteryRecovery(
-        supabase,
-        quiz_attempt_id,
-        attempt.student_id,
-        attempt.quiz_id,
-        questionSequence,
-        answersMap,
-        questionBankMap,
-      );
-    } catch (err) {
-      // Mastery recovery errors must not block the analytics response
-      console.error('Mastery recovery check failed:', (err as Error).message);
+    if (!isPractice) {
+      try {
+        masteryRecoveryResult = await checkAndActivateMasteryRecovery(
+          supabase,
+          quiz_attempt_id,
+          attempt.student_id,
+          attempt.quiz_id,
+          questionSequence,
+          answersMap,
+          questionBankMap,
+        );
+      } catch (err) {
+        // Mastery recovery errors must not block the analytics response
+        console.error('Mastery recovery check failed:', (err as Error).message);
+      }
     }
 
     // ── Step 6: Return summary ──────────────────────────────────────────
@@ -688,6 +694,7 @@ serve(async (req) => {
       JSON.stringify({
         success: true,
         quiz_attempt_id,
+        mode: attemptMode,
         updated: updatedSummary.length,
         analytics: updatedSummary,
         mastery_recovery: masteryRecoveryResult,

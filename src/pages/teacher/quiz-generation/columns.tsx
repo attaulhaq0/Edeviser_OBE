@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import DifficultyBadge from '@/components/shared/DifficultyBadge';
 import QuestionQualityIndicator from '@/components/shared/QuestionQualityIndicator';
+import ExplanationConfidenceBadge from '@/components/shared/ExplanationConfidenceBadge';
 import type { QuestionBankRow } from '@/hooks/useQuestionBank';
 
 // ─── Bloom's level helpers ──────────────────────────────────────────────────
@@ -158,6 +159,16 @@ export const createColumns = (): ColumnDef<QuestionWithAnalytics>[] => [
         <QuestionQualityIndicator qualityFlag={analytics.quality_flag} />
       );
     },
+  },
+  {
+    id: 'explanation',
+    header: 'Explanation',
+    cell: ({ row }) => (
+      <ExplanationConfidenceBadge
+        confidence={row.original.explanation_confidence ?? null}
+        isVerified={false}
+      />
+    ),
   },
   {
     accessorKey: 'generation_source',

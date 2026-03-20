@@ -2,12 +2,8 @@
 -- Migration: RLS policies for verified_explanations
 -- Feature: AI-Powered Adaptive Quiz Generation (Task 15.2)
 -- ============================================================
-
--- ============================================================
--- verified_explanations RLS policies
--- Teachers: full CRUD for their course questions
--- Students: read active verified explanations (served via post-quiz review)
--- Admins: read all within institution
+-- RLS is already enabled on the table from Task 15.1 migration.
+-- This migration only adds the policies.
 -- ============================================================
 
 -- Teachers: full CRUD for their course questions
@@ -35,4 +31,4 @@ CREATE POLICY "verified_admin_read" ON verified_explanations
   USING (
     auth_user_role() = 'admin'
     AND institution_id = auth_institution_id()
-  );;
+  );

@@ -9,6 +9,8 @@ import { supabase } from '@/lib/supabase';
 import { queryKeys } from '@/lib/queryKeys';
 import { computePerCLOScore } from '@/lib/questionAnalytics';
 import QuestionPreview from '@/components/shared/QuestionPreview';
+import ExplanationConfidenceBadge from '@/components/shared/ExplanationConfidenceBadge';
+import { useVerifiedExplanation, useExplanationConfidence } from '@/hooks/useExplanationConfidence';
 
 // ─── Bloom's level helpers ────────────────────────────────────────────────────
 
@@ -134,6 +136,40 @@ const getAttainmentBarColor = (percent: number): string => {
   if (percent >= 70) return 'bg-green-500';
   if (percent >= 50) return 'bg-yellow-500';
   return 'bg-red-500';
+};
+
+// ─── QuestionExplanation wrapper (uses hooks per question) ────────────────────
+
+interface QuestionExplanationProps {
+  questionId: string;
+  aiExplanation: string | null;
+}
+
+const QuestionExplanation = ({ questionId, aiExplanation }: QuestionExplanationProps) => {
+  const { data: verifiedExplanation } = useVerifiedExplanation(questionId);
+  const { data: confidence } = useExplanationConfidence(questionId);
+
+  const isVerified = !!verifiedExplanation;
+  const displayText = isVerified
+    ? verifiedExplanation.explanation_text
+    : aiExplanation;
+
+  if (!displayText) return null;
+
+  return (
+    <div className="bg-blue-50 rounded-lg px-4 py-3">
+      <div className="flex items-center gap-2 mb-1">
+        <p className="text-xs font-bold tracking-wide uppercase text-blue-600">
+          {isVerified ? 'Verified Explanation' : 'AI Explanation'}
+        </p>
+        <ExplanationConfidenceBadge
+          confidence={confidence ?? null}
+          isVerified={isVerified}
+        />
+      </div>
+      <p className="text-sm text-gray-700 leading-relaxed">{displayText}</p>
+    </div>
+  );
 };
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -265,15 +301,11 @@ const PostQuizReview = () => {
               disabled
             />
 
-            {/* AI Explanation */}
-            {question.explanation && (
-              <div className="bg-blue-50 rounded-lg px-4 py-3">
-                <p className="text-xs font-bold tracking-wide uppercase text-blue-600 mb-1">
-                  AI Explanation
-                </p>
-                <p className="text-sm text-gray-700 leading-relaxed">{question.explanation}</p>
-              </div>
-            )}
+            {/* Explanation with confidence badge and verified preference */}
+            <QuestionExplanation
+              questionId={question.id}
+              aiExplanation={question.explanation}
+            />
 
             {/* Badges: CLO + Bloom's */}
             <div className="flex items-center gap-2 flex-wrap">

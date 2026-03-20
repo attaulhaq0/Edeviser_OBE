@@ -1,6 +1,6 @@
 // =============================================================================
 // PostQuizReview — Unit tests (Page-level)
-// Validates: Requirement 10 (Student Post-Quiz Review), Task 10.2
+// Validates: Requirement 10 (Student Post-Quiz Review), Task 10.2, Task 15.8
 // =============================================================================
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -8,7 +8,17 @@ import { render, screen } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
-// ─── Mocks ───────────────────────────────────────────────────────────────────
+// ─── Hook mocks ──────────────────────────────────────────────────────────────
+
+const mockUseVerifiedExplanation = vi.fn();
+const mockUseExplanationConfidence = vi.fn();
+
+vi.mock('@/hooks/useExplanationConfidence', () => ({
+  useVerifiedExplanation: (...args: unknown[]) => mockUseVerifiedExplanation(...args),
+  useExplanationConfidence: (...args: unknown[]) => mockUseExplanationConfidence(...args),
+}));
+
+// ─── Supabase mock ───────────────────────────────────────────────────────────
 
 vi.mock('@/lib/supabase', () => {
   const mockFrom = vi.fn().mockReturnValue({
@@ -112,6 +122,9 @@ const createWrapper = () => {
 describe('PostQuizReview', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Default: no verified explanation, no confidence score
+    mockUseVerifiedExplanation.mockReturnValue({ data: null, isLoading: false });
+    mockUseExplanationConfidence.mockReturnValue({ data: null, isLoading: false });
   });
 
   it('displays overall score', async () => {
@@ -218,5 +231,75 @@ describe('PostQuizReview', () => {
 
     await screen.findByText('75%');
     expect(screen.getByRole('link', { name: /Back to Dashboard/i })).toBeInTheDocument();
+  });
+
+  // ─── Task 15.8: Explanation confidence badge and verified explanation ───────
+
+  it('displays "Verified Explanation" label when verified explanation exists', async () => {
+    mockUseVerifiedExplanation.mockReturnValue({
+      data: { explanation_text: 'Teacher-verified OOP explanation.', is_active: true },
+      isLoading: false,
+    });
+    mockUseExplanationConfidence.mockReturnValue({ data: 0.9, isLoading: false });
+
+    render(<PostQuizReview />, { wrapper: createWrapper() });
+
+    await screen.findByText('75%');
+    expect(screen.getAllByText('Verified Explanation').length).toBeGreaterThan(0);
+  });
+
+  it('prefers verified explanation text over AI-generated explanation', async () => {
+    mockUseVerifiedExplanation.mockImplementation((questionId: string) => {
+      if (questionId === 'q-1') {
+        return {
+          data: { explanation_text: 'Teacher-verified OOP explanation.', is_active: true },
+          isLoading: false,
+        };
+      }
+      return { data: null, isLoading: false };
+    });
+    mockUseExplanationConfidence.mockReturnValue({ data: 0.85, isLoading: false });
+
+    render(<PostQuizReview />, { wrapper: createWrapper() });
+
+    await screen.findByText('75%');
+    // Verified text should appear instead of AI text for q-1
+    expect(screen.getByText('Teacher-verified OOP explanation.')).toBeInTheDocument();
+    // Original AI explanation for q-1 should NOT appear
+    expect(screen.queryByText('OOP is a programming paradigm based on objects.')).not.toBeInTheDocument();
+  });
+
+  it('displays ExplanationConfidenceBadge with "Teacher verified" for verified explanations', async () => {
+    mockUseVerifiedExplanation.mockReturnValue({
+      data: { explanation_text: 'Verified text.', is_active: true },
+      isLoading: false,
+    });
+    mockUseExplanationConfidence.mockReturnValue({ data: 0.9, isLoading: false });
+
+    render(<PostQuizReview />, { wrapper: createWrapper() });
+
+    await screen.findByText('75%');
+    expect(screen.getAllByText('Teacher verified').length).toBeGreaterThan(0);
+  });
+
+  it('displays confidence badge for unverified AI explanations with high confidence', async () => {
+    mockUseVerifiedExplanation.mockReturnValue({ data: null, isLoading: false });
+    mockUseExplanationConfidence.mockReturnValue({ data: 0.85, isLoading: false });
+
+    render(<PostQuizReview />, { wrapper: createWrapper() });
+
+    await screen.findByText('75%');
+    // High confidence (>= 0.8) shows "Verified by course materials"
+    expect(screen.getAllByText('Verified by course materials').length).toBeGreaterThan(0);
+  });
+
+  it('displays amber confidence badge for low confidence AI explanations', async () => {
+    mockUseVerifiedExplanation.mockReturnValue({ data: null, isLoading: false });
+    mockUseExplanationConfidence.mockReturnValue({ data: 0.5, isLoading: false });
+
+    render(<PostQuizReview />, { wrapper: createWrapper() });
+
+    await screen.findByText('75%');
+    expect(screen.getAllByText('This explanation may need teacher verification').length).toBeGreaterThan(0);
   });
 });
