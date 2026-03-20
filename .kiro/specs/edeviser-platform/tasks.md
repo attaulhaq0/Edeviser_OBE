@@ -410,42 +410,42 @@ Complete unified implementation of the Edeviser platform covering authentication
   - [x] 24.4 Implement anonymous opt-out
     - _Requirements: 25.5_
 
-- [ ] 25. Implement Reflection Journal
-  - [ ] 25.1 Create journal TanStack Query hooks (`/src/hooks/useJournal.ts`)
+- [x] 25. Implement Reflection Journal
+  - [x] 25.1 Create journal TanStack Query hooks (`/src/hooks/useJournal.ts`)
     - _Requirements: 26_
 
-  - [ ] 25.2 Create Journal Editor page with contextual prompts
+  - [x] 25.2 Create Journal Editor page with contextual prompts
     - _Requirements: 26.1, 26.2_
 
-  - [ ] 25.3 Implement word count validation and share toggle
+  - [x] 25.3 Implement word count validation and share toggle
     - _Requirements: 26.3, 26.4_
 
-  - [ ] 25.4 Create contextual journal prompt generator (`/src/lib/journalPromptGenerator.ts`)
+  - [x] 25.4 Create contextual journal prompt generator (`/src/lib/journalPromptGenerator.ts`)
     - Generate prompts using CLO title, Bloom's level, attainment level, rubric feedback summary
     - Include 3–4 Kolb's Cycle aligned reflection questions
     - Store generated prompt text alongside journal entry
     - Allow student to dismiss prompt and write freely
     - _Requirements: 40_
 
-  - [ ] 25.5 Wire activity logging into journal editor
+  - [x] 25.5 Wire activity logging into journal editor
     - Call `logActivity({ event_type: 'journal' })` on journal entry save
     - _Requirements: 41.1_
 
 - [ ] 26. Implement Student Dashboard
-  - [ ] 26.1 Create Student layout (mobile-first)
+  - [x] 26.1 Create Student layout (mobile-first)
     - _Requirements: 30_
 
-  - [ ] 26.2 Create Student Dashboard with hero card, learning path, deadlines, habit tracker, badges, leaderboard position
+  - [x] 26.2 Create Student Dashboard with hero card, learning path, deadlines, habit tracker, badges, leaderboard position
     - Include active Bonus XP Event banner when applicable
     - _Requirements: 30, 36.3_
 
-  - [ ] 26.3 Create Learning Path visualization (node-based journey map)
+  - [x] 26.3 Create Learning Path visualization (node-based journey map)
     - Order assignments by Bloom's level (Remembering → Creating)
     - Show locked nodes with prerequisite tooltip for gated assignments
     - Animate node unlock when prerequisite is met
     - _Requirements: 30.1, 37_
 
-  - [ ] 26.4 Create Daily Habit Tracker component (`/src/components/shared/HabitTracker.tsx`)
+  - [-] 26.4 Create Daily Habit Tracker component (`/src/components/shared/HabitTracker.tsx`)
     - 7-day grid with 4 habit rows (Login, Submit, Journal, Read)
     - Color-coded cells: green = completed, gray = missed
     - Wire Perfect Day detection → XP award trigger
