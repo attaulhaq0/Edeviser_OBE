@@ -2,46 +2,46 @@
 
 ## Task 1: Database Schema and Migrations
 
-- [ ] 1.1 Create `question_bank` table migration with all columns, constraints, and indexes
-- [ ] 1.2 Create `question_analytics` table migration with unique constraint on question_id
-- [ ] 1.3 Create `quiz_generation_logs` table migration with indexes
-- [ ] 1.4 Create migration to add `is_adaptive`, `adaptation_config` columns to `quizzes` table
-- [ ] 1.5 Create migration to add `question_sequence`, `difficulty_trajectory`, `per_question_times` columns to `quiz_attempts` table
-- [ ] 1.6 Create RLS policies for `question_bank` (teacher CRUD, admin read, no student access)
-- [ ] 1.7 Create RLS policies for `question_analytics` (teacher read, admin read)
-- [ ] 1.8 Create RLS policies for `quiz_generation_logs` (teacher own, admin institution)
-- [ ] 1.9 Regenerate TypeScript types: `npx supabase gen types --linked > src/types/database.ts`
+- [x] 1.1 Create `question_bank` table migration with all columns, constraints, and indexes
+- [x] 1.2 Create `question_analytics` table migration with unique constraint on question_id
+- [x] 1.3 Create `quiz_generation_logs` table migration with indexes
+- [x] 1.4 Create migration to add `is_adaptive`, `adaptation_config` columns to `quizzes` table
+- [x] 1.5 Create migration to add `question_sequence`, `difficulty_trajectory`, `per_question_times` columns to `quiz_attempts` table
+- [x] 1.6 Create RLS policies for `question_bank` (teacher CRUD, admin read, no student access)
+- [x] 1.7 Create RLS policies for `question_analytics` (teacher read, admin read)
+- [x] 1.8 Create RLS policies for `quiz_generation_logs` (teacher own, admin institution)
+- [x] 1.9 Regenerate TypeScript types: `npx supabase gen types --linked > src/types/database.ts`
 
 ## Task 2: Shared Libraries and Schemas
 
-- [ ] 2.1 Create `src/lib/quizGenerationSchemas.ts` with Zod schemas: `generateQuestionsSchema`, `questionBankEntrySchema`, `adaptiveQuizConfigSchema`
-- [ ] 2.2 Create `src/lib/adaptiveEngine.ts` with functions: `classifyAbility`, `abilityToTargetDifficulty`, `adjustDifficulty`, `preferredBloomLevels`
-- [ ] 2.3 Create `src/lib/difficultyCalibration.ts` with functions: `computeCalibratedDifficulty`, `computeDiscriminationIndex`, `determineQualityFlag`
-- [ ] 2.4 Create `src/lib/questionAnalytics.ts` with functions: `computePerCLOScore`, `detectCLODiscrepancy`, `computeApprovalRate`, `computeBonusXP`
-- [ ] 2.5 Add query keys to `src/lib/queryKeys.ts`: `questionBank`, `questionAnalytics`, `quizGeneration`, `reviewQueue`, `quizCLOCorrelation`
+- [x] 2.1 Create `src/lib/quizGenerationSchemas.ts` with Zod schemas: `generateQuestionsSchema`, `questionBankEntrySchema`, `adaptiveQuizConfigSchema`
+- [x] 2.2 Create `src/lib/adaptiveEngine.ts` with functions: `classifyAbility`, `abilityToTargetDifficulty`, `adjustDifficulty`, `preferredBloomLevels`
+- [x] 2.3 Create `src/lib/difficultyCalibration.ts` with functions: `computeCalibratedDifficulty`, `computeDiscriminationIndex`, `determineQualityFlag`
+- [x] 2.4 Create `src/lib/questionAnalytics.ts` with functions: `computePerCLOScore`, `detectCLODiscrepancy`, `computeApprovalRate`, `computeBonusXP`
+- [x] 2.5 Add query keys to `src/lib/queryKeys.ts`: `questionBank`, `questionAnalytics`, `quizGeneration`, `reviewQueue`, `quizCLOCorrelation`
 
 ## Task 3: Property-Based Tests
 
-- [ ] 3.1 Create `src/__tests__/properties/generateQuestionsSchema.property.test.ts` — Property 1: Generation request schema validation
-- [ ] 3.2 Create `src/__tests__/properties/generatedQuestionOutput.property.test.ts` — Property 2: Generated question output completeness
-- [ ] 3.3 Create `src/__tests__/properties/questionInsertion.property.test.ts` — Property 3: AI-generated questions inserted with pending review status
-- [ ] 3.4 Create `src/__tests__/properties/questionStatusTransitions.property.test.ts` — Property 4: Question status transitions
-- [ ] 3.5 Create `src/__tests__/properties/questionVersioning.property.test.ts` — Property 5: Question versioning preserves original
-- [ ] 3.6 Create `src/__tests__/properties/questionBankSchema.property.test.ts` — Property 6: Question schema enforces single CLO and Bloom's level
-- [ ] 3.7 Create `src/__tests__/properties/abilityClassification.property.test.ts` — Property 7: Ability classification from attainment percentage
-- [ ] 3.8 Create `src/__tests__/properties/difficultyAdjustment.property.test.ts` — Property 8: Difficulty adjustment is bounded
-- [ ] 3.9 Create `src/__tests__/properties/questionSelection.property.test.ts` — Property 9: Selected question respects difficulty range
-- [ ] 3.10 Create `src/__tests__/properties/preferredBloomLevels.property.test.ts` — Property 10: Preferred Bloom's levels match ability
-- [ ] 3.11 Create `src/__tests__/properties/noPreviousQuestions.property.test.ts` — Property 11: No previously answered questions selected
-- [ ] 3.12 Create `src/__tests__/properties/adaptiveSessionData.property.test.ts` — Property 12: Adaptive session stores complete trajectory data
-- [ ] 3.13 Create `src/__tests__/properties/calibratedDifficulty.property.test.ts` — Property 13: Calibrated difficulty formula correctness
-- [ ] 3.14 Create `src/__tests__/properties/discriminationIndex.property.test.ts` — Property 14: Discrimination index computation
-- [ ] 3.15 Create `src/__tests__/properties/qualityFlag.property.test.ts` — Property 15: Quality flag determination
-- [ ] 3.16 Create `src/__tests__/properties/perCLOScore.property.test.ts` — Property 16: Per-CLO score breakdown calculation
-- [ ] 3.17 Create `src/__tests__/properties/cloDiscrepancy.property.test.ts` — Property 17: CLO discrepancy detection
-- [ ] 3.18 Create `src/__tests__/properties/approvalRate.property.test.ts` — Property 18: Approval rate calculation
-- [ ] 3.19 Create `src/__tests__/properties/bonusXP.property.test.ts` — Property 19: Hard question bonus XP capped at 50
-- [ ] 3.20 Create `src/__tests__/properties/promptPII.property.test.ts` — Property 20: LLM prompt excludes student PII
+- [x] 3.1 Create `src/__tests__/properties/generateQuestionsSchema.property.test.ts` — Property 1: Generation request schema validation
+- [x] 3.2 Create `src/__tests__/properties/generatedQuestionOutput.property.test.ts` — Property 2: Generated question output completeness
+- [x] 3.3 Create `src/__tests__/properties/questionInsertion.property.test.ts` — Property 3: AI-generated questions inserted with pending review status
+- [x] 3.4 Create `src/__tests__/properties/questionStatusTransitions.property.test.ts` — Property 4: Question status transitions
+- [x] 3.5 Create `src/__tests__/properties/questionVersioning.property.test.ts` — Property 5: Question versioning preserves original
+- [x] 3.6 Create `src/__tests__/properties/questionBankSchema.property.test.ts` — Property 6: Question schema enforces single CLO and Bloom's level
+- [x] 3.7 Create `src/__tests__/properties/abilityClassification.property.test.ts` — Property 7: Ability classification from attainment percentage
+- [x] 3.8 Create `src/__tests__/properties/difficultyAdjustment.property.test.ts` — Property 8: Difficulty adjustment is bounded
+- [x] 3.9 Create `src/__tests__/properties/questionSelection.property.test.ts` — Property 9: Selected question respects difficulty range
+- [x] 3.10 Create `src/__tests__/properties/preferredBloomLevels.property.test.ts` — Property 10: Preferred Bloom's levels match ability
+- [~] 3.11 Create `src/__tests__/properties/noPreviousQuestions.property.test.ts` — Property 11: No previously answered questions selected
+- [~] 3.12 Create `src/__tests__/properties/adaptiveSessionData.property.test.ts` — Property 12: Adaptive session stores complete trajectory data
+- [~] 3.13 Create `src/__tests__/properties/calibratedDifficulty.property.test.ts` — Property 13: Calibrated difficulty formula correctness
+- [~] 3.14 Create `src/__tests__/properties/discriminationIndex.property.test.ts` — Property 14: Discrimination index computation
+- [~] 3.15 Create `src/__tests__/properties/qualityFlag.property.test.ts` — Property 15: Quality flag determination
+- [~] 3.16 Create `src/__tests__/properties/perCLOScore.property.test.ts` — Property 16: Per-CLO score breakdown calculation
+- [~] 3.17 Create `src/__tests__/properties/cloDiscrepancy.property.test.ts` — Property 17: CLO discrepancy detection
+- [~] 3.18 Create `src/__tests__/properties/approvalRate.property.test.ts` — Property 18: Approval rate calculation
+- [~] 3.19 Create `src/__tests__/properties/bonusXP.property.test.ts` — Property 19: Hard question bonus XP capped at 50
+- [~] 3.20 Create `src/__tests__/properties/promptPII.property.test.ts` — Property 20: LLM prompt excludes student PII
 
 ## Task 4: Unit Tests
 
