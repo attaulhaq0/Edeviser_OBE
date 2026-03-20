@@ -61,52 +61,52 @@
 ## Task 6: TanStack Query Hooks
 
 - [x] 6.1 Create `src/hooks/useQuestionBank.ts` — CRUD hooks for question_bank with filters (CLO, Bloom's, type, status, source)
-- [ ] 6.2 Create `src/hooks/useGenerateQuestions.ts` — Mutation hook for AI question generation via Edge Function
-- [ ] 6.3 Create `src/hooks/useReviewQueue.ts` — Query + mutations for pending questions: approve, reject, edit, bulk approve
-- [ ] 6.4 Create `src/hooks/useAdaptiveQuiz.ts` — Hooks for adaptive quiz session: start, select next question, submit attempt
-- [ ] 6.5 Create `src/hooks/useQuestionAnalytics.ts` — Query hooks for per-question analytics and question detail
-- [ ] 6.6 Create `src/hooks/useQuizCLOCorrelation.ts` — Query hook for quiz vs CLO attainment correlation data
+- [x] 6.2 Create `src/hooks/useGenerateQuestions.ts` — Mutation hook for AI question generation via Edge Function
+- [x] 6.3 Create `src/hooks/useReviewQueue.ts` — Query + mutations for pending questions: approve, reject, edit, bulk approve
+- [x] 6.4 Create `src/hooks/useAdaptiveQuiz.ts` — Hooks for adaptive quiz session: start, select next question, submit attempt
+- [x] 6.5 Create `src/hooks/useQuestionAnalytics.ts` — Query hooks for per-question analytics and question detail
+- [x] 6.6 Create `src/hooks/useQuizCLOCorrelation.ts` — Query hook for quiz vs CLO attainment correlation data
 
 ## Task 7: Shared Components
 
-- [ ] 7.1 Create `src/components/shared/QuestionPreview.tsx` — Renders question by type (MCQ, T/F, short answer, fill-in-blank) with answer input
-- [ ] 7.2 Create `src/components/shared/DifficultyBadge.tsx` — Color-coded difficulty rating badge (1.0–5.0 scale)
-- [ ] 7.3 Create `src/components/shared/QuestionQualityIndicator.tsx` — Green/yellow/red quality status based on analytics
-- [ ] 7.4 Create `src/components/shared/AnswerDistributionChart.tsx` — Recharts bar chart for MCQ option distribution
+- [x] 7.1 Create `src/components/shared/QuestionPreview.tsx` — Renders question by type (MCQ, T/F, short answer, fill-in-blank) with answer input
+- [x] 7.2 Create `src/components/shared/DifficultyBadge.tsx` — Color-coded difficulty rating badge (1.0–5.0 scale)
+- [x] 7.3 Create `src/components/shared/QuestionQualityIndicator.tsx` — Green/yellow/red quality status based on analytics
+- [x] 7.4 Create `src/components/shared/AnswerDistributionChart.tsx` — Recharts bar chart for MCQ option distribution
 
 ## Task 8: Teacher Pages — Question Generation and Review
 
-- [ ] 8.1 Create `src/pages/teacher/quiz-generation/GenerateQuestionsPage.tsx` — AI generation form with CLO picker, Bloom's checkboxes, type selector, count slider, results panel
-- [ ] 8.2 Create `src/pages/teacher/quiz-generation/ReviewQueuePage.tsx` — Pending question review grouped by CLO/Bloom's with approve/edit/reject actions and approval rate
-- [ ] 8.3 Create `src/pages/teacher/quiz-generation/QuestionBankPage.tsx` — Full question bank DataTable with filters, inline analytics, manual question creation, label tagging
+- [x] 8.1 Create `src/pages/teacher/quiz-generation/GenerateQuestionsPage.tsx` — AI generation form with CLO picker, Bloom's checkboxes, type selector, count slider, results panel
+- [x] 8.2 Create `src/pages/teacher/quiz-generation/ReviewQueuePage.tsx` — Pending question review grouped by CLO/Bloom's with approve/edit/reject actions and approval rate
+- [x] 8.3 Create `src/pages/teacher/quiz-generation/QuestionBankPage.tsx` — Full question bank DataTable with filters, inline analytics, manual question creation, label tagging
 
 ## Task 9: Teacher Pages — Analytics
 
-- [ ] 9.1 Create `src/pages/teacher/quiz-analytics/QuestionAnalyticsDashboard.tsx` — Per-question metrics table with color-coded quality, sort/filter, flagged question detail panel with answer distribution chart
-- [ ] 9.2 Create `src/pages/teacher/quiz-analytics/QuizCLOCorrelationPage.tsx` — Per-CLO comparison chart (quiz score vs attainment), discrepancy highlighting, Bloom's distribution chart
+- [x] 9.1 Create `src/pages/teacher/quiz-analytics/QuestionAnalyticsDashboard.tsx` — Per-question metrics table with color-coded quality, sort/filter, flagged question detail panel with answer distribution chart
+- [x] 9.2 Create `src/pages/teacher/quiz-analytics/QuizCLOCorrelationPage.tsx` — Per-CLO comparison chart (quiz score vs attainment), discrepancy highlighting, Bloom's distribution chart
 
 ## Task 10: Student Pages — Adaptive Quiz and Review
 
-- [ ] 10.1 Create `src/pages/student/quiz/AdaptiveQuizSession.tsx` — One-at-a-time adaptive quiz UI with progress bar, timer, no backward navigation, immediate next question on submit
-- [ ] 10.2 Create `src/pages/student/quiz/PostQuizReview.tsx` — Post-quiz review with AI explanations, CLO/Bloom's badges, "Get Help" AI Tutor link, per-CLO score breakdown
+- [x] 10.1 Create `src/pages/student/quiz/AdaptiveQuizSession.tsx` — One-at-a-time adaptive quiz UI with progress bar, timer, no backward navigation, immediate next question on submit
+- [x] 10.2 Create `src/pages/student/quiz/PostQuizReview.tsx` — Post-quiz review with AI explanations, CLO/Bloom's badges, "Get Help" AI Tutor link, per-CLO score breakdown
 
 ## Task 11: Routing and Navigation
 
-- [ ] 11.1 Add teacher routes: `/teacher/courses/:courseId/generate-questions`, `/teacher/courses/:courseId/review-queue`, `/teacher/courses/:courseId/question-bank`, `/teacher/courses/:courseId/question-analytics`, `/teacher/courses/:courseId/quiz-clo-correlation`
-- [ ] 11.2 Add student routes: `/student/quizzes/:quizId/adaptive`, `/student/quizzes/:quizId/review/:attemptId`
-- [ ] 11.3 Add navigation items to teacher sidebar for Question Bank, Generate Questions, and Analytics
+- [x] 11.1 Add teacher routes: `/teacher/courses/:courseId/generate-questions`, `/teacher/courses/:courseId/review-queue`, `/teacher/courses/:courseId/question-bank`, `/teacher/courses/:courseId/question-analytics`, `/teacher/courses/:courseId/quiz-clo-correlation`
+- [x] 11.2 Add student routes: `/student/quizzes/:quizId/adaptive`, `/student/quizzes/:quizId/review/:attemptId`
+- [x] 11.3 Add navigation items to teacher sidebar for Question Bank, Generate Questions, and Analytics
 
 ## Task 12: Integration with Existing Systems
 
-- [ ] 12.1 Update existing quiz creation form to include `is_adaptive` toggle and `adaptation_config` fields
-- [ ] 12.2 Integrate `update-question-analytics` Edge Function call into existing quiz attempt submission flow
-- [ ] 12.3 Add quiz completion XP award (50 base, 25 late) and hard question bonus XP to existing `award-xp` Edge Function
-- [ ] 12.4 Add "Get Help" link in PostQuizReview that opens AI Tutor scoped to question's CLO (depends on AI Tutor RAG feature)
+- [x] 12.1 Update existing quiz creation form to include `is_adaptive` toggle and `adaptation_config` fields
+- [x] 12.2 Integrate `update-question-analytics` Edge Function call into existing quiz attempt submission flow
+- [x] 12.3 Add quiz completion XP award (50 base, 25 late) and hard question bonus XP to existing `award-xp` Edge Function
+- [x] 12.4 Add "Get Help" link in PostQuizReview that opens AI Tutor scoped to question's CLO (depends on AI Tutor RAG feature)
 
 ## Task 13: Component Tests
 
-- [ ] 13.1 Create `src/__tests__/unit/questionPreview.test.tsx` — Renders MCQ, T/F, short answer, fill-in-blank correctly
-- [ ] 13.2 Create `src/__tests__/unit/difficultyBadge.test.tsx` — Color coding for difficulty ranges
+- [x] 13.1 Create `src/__tests__/unit/questionPreview.test.tsx` — Renders MCQ, T/F, short answer, fill-in-blank correctly
+- [-] 13.2 Create `src/__tests__/unit/difficultyBadge.test.tsx` — Color coding for difficulty ranges
 - [ ] 13.3 Create `src/__tests__/unit/questionQualityIndicator.test.tsx` — Green/yellow/red rendering based on quality flag
 - [ ] 13.4 Create `src/__tests__/unit/adaptiveQuizSession.test.tsx` — Progress bar, timer, one-at-a-time rendering
 - [ ] 13.5 Create `src/__tests__/unit/postQuizReviewPage.test.tsx` — Explanation display, CLO badges, "Get Help" link

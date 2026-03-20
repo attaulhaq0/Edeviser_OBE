@@ -21,6 +21,7 @@ type XPSource =
   | 'discussion_answer'
   | 'survey_completion'
   | 'quiz_completion'
+  | 'quiz_hard_bonus'
   | 'streak_milestone'
   | 'journal'
   | 'grade'
@@ -89,7 +90,7 @@ const VALID_SOURCES: XPSource[] = [
   'login', 'submission', 'badge', 'admin_adjustment', 'perfect_day',
   'first_attempt_bonus', 'perfect_rubric', 'bonus_event',
   'discussion_question', 'discussion_answer', 'survey_completion',
-  'quiz_completion', 'streak_milestone', 'journal', 'grade',
+  'quiz_completion', 'quiz_hard_bonus', 'streak_milestone', 'journal', 'grade',
   'onboarding_personality', 'onboarding_learning_style', 'onboarding_baseline',
   'onboarding_complete', 'onboarding_self_efficacy', 'onboarding_study_strategy',
   'micro_assessment', 'profile_complete', 'starter_session_complete',
@@ -338,8 +339,18 @@ serve(async (req) => {
     // Re-destructure after potential overrides
     const { xp_amount: resolvedXpAmount, reference_id: resolvedReferenceId } = validation.data;
 
+    // ── Server-side XP caps for quiz sources ────────────────────────────
+    // quiz_completion: 50 base (on-time) or 25 (late) — caller provides the value
+    // quiz_hard_bonus: 10 per hard question, capped at 50
+    let cappedXpAmount = resolvedXpAmount;
+    if (source === 'quiz_completion') {
+      cappedXpAmount = Math.min(Math.max(resolvedXpAmount, 0), 50);
+    } else if (source === 'quiz_hard_bonus') {
+      cappedXpAmount = Math.min(Math.max(resolvedXpAmount, 0), 50);
+    }
+
     // Handle zero XP — still record the transaction but skip level recalculation
-    if (resolvedXpAmount === 0) {
+    if (cappedXpAmount === 0) {
       const { error: insertErr } = await supabase
         .from('xp_transactions')
         .insert({
@@ -366,7 +377,7 @@ serve(async (req) => {
 
     // ── Step 1: Check for active bonus XP events ──────────────────────────
 
-    let finalXP = resolvedXpAmount;
+    let finalXP = cappedXpAmount;
 
     const { data: bonusEvents, error: bonusErr } = await supabase
       .from('bonus_xp_events')
@@ -383,7 +394,7 @@ serve(async (req) => {
       // Apply the highest active multiplier
       const maxMultiplier = Math.max(...bonusEvents.map((e: { multiplier: number }) => e.multiplier));
       if (maxMultiplier > 1) {
-        finalXP = Math.floor(resolvedXpAmount * maxMultiplier);
+        finalXP = Math.floor(cappedXpAmount * maxMultiplier);
       }
     }
 

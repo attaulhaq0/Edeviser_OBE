@@ -64,6 +64,23 @@ const HabitAnalyticsPage = lazy(() => import('@/pages/student/habits/HabitAnalyt
 const XPHistory = lazy(() => import('@/pages/student/progress/XPHistory'));
 const ParentDashboard = lazy(() => import('@/pages/parent/ParentDashboard'));
 
+// ---------------------------------------------------------------------------
+// Adaptive Quiz Generation pages (lazy-loaded)
+// ---------------------------------------------------------------------------
+// TODO: Quiz creation/edit form does not exist yet. When implemented, add:
+//   - `is_adaptive` Switch toggle (from adaptiveQuizConfigSchema in @/lib/quizGenerationSchemas.ts)
+//   - Conditional `adaptation_config` fields when is_adaptive is true:
+//     initial_difficulty (1.0–5.0), difficulty_step_up (default 0.3),
+//     difficulty_step_down (default 0.5), difficulty_range (default 0.5)
+//   - Route: /teacher/courses/:courseId/quizzes/new and /teacher/courses/:courseId/quizzes/:id/edit
+const GenerateQuestionsPage = lazy(() => import('@/pages/teacher/quiz-generation/GenerateQuestionsPage'));
+const ReviewQueuePage = lazy(() => import('@/pages/teacher/quiz-generation/ReviewQueuePage'));
+const QuestionBankPage = lazy(() => import('@/pages/teacher/quiz-generation/QuestionBankPage'));
+const QuestionAnalyticsDashboard = lazy(() => import('@/pages/teacher/quiz-analytics/QuestionAnalyticsDashboard'));
+const QuizCLOCorrelationPage = lazy(() => import('@/pages/teacher/quiz-analytics/QuizCLOCorrelationPage'));
+const AdaptiveQuizSession = lazy(() => import('@/pages/student/quiz/AdaptiveQuizSession'));
+const PostQuizReview = lazy(() => import('@/pages/student/quiz/PostQuizReview'));
+
 // Shared pages
 const ProfilePage = lazy(() => import('@/pages/shared/ProfilePage'));
 
@@ -168,6 +185,11 @@ const AppRouter = () => (
         <Route path="baseline/:courseId" element={<BaselineResultsPage />} />
         <Route path="baseline/:courseId/config" element={<BaselineConfigPage />} />
         <Route path="baseline/:courseId/questions/new" element={<BaselineQuestionForm />} />
+        <Route path="courses/:courseId/generate-questions" element={<GenerateQuestionsPage />} />
+        <Route path="courses/:courseId/review-queue" element={<ReviewQueuePage />} />
+        <Route path="courses/:courseId/question-bank" element={<QuestionBankPage />} />
+        <Route path="courses/:courseId/question-analytics" element={<QuestionAnalyticsDashboard />} />
+        <Route path="courses/:courseId/quiz-clo-correlation/:quizId" element={<QuizCLOCorrelationPage />} />
         <Route path="settings/profile" element={<ProfilePage />} />
       </Route>
 
@@ -190,6 +212,8 @@ const AppRouter = () => (
         <Route path="habits/analytics" element={<HabitAnalyticsPage />} />
         <Route path="planner/starter-week" element={<StarterWeekPlanPage />} />
         <Route path="settings/reassessment" element={<ReassessmentPage />} />
+        <Route path="quizzes/:quizId/adaptive" element={<AdaptiveQuizSession />} />
+        <Route path="quizzes/:quizId/review/:attemptId" element={<PostQuizReview />} />
         <Route path="settings/profile" element={<ProfilePage />} />
         <Route path="xp-history" element={<XPHistory />} />
       </Route>

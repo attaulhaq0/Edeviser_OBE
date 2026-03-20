@@ -627,7 +627,7 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Return structured FeedbackDraftResponse
     - _Requirements: 48.1, 48.2, 48.4_
 
-  - [-] 37.2 Integrate AI draft into Grading Interface
+  - [x] 37.2 Integrate AI draft into Grading Interface
     - Add "Generate AI Draft" button in grading interface
     - Display draft comments per criterion with accept/edit/reject controls
     - Label AI-generated feedback as "AI Draft" until teacher confirms

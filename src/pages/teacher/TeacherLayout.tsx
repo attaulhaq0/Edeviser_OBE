@@ -1,6 +1,6 @@
-import { Outlet, NavLink } from 'react-router-dom';
+import { Outlet, NavLink, useParams } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { LayoutDashboard, Target, TableProperties, ClipboardList, CheckSquare, FlaskConical, UserCircle } from 'lucide-react';
+import { LayoutDashboard, Target, TableProperties, ClipboardList, CheckSquare, FlaskConical, UserCircle, BookOpen, Sparkles, BarChart3 } from 'lucide-react';
 
 const navItems = [
   { to: '/teacher/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -12,30 +12,63 @@ const navItems = [
   { to: '/teacher/settings/profile', icon: UserCircle, label: 'Profile' },
 ];
 
-const TeacherLayout = () => (
-  <div className="flex h-screen">
-    <aside className="w-64 border-r border-slate-200 bg-white p-4 space-y-1">
-      <h2 className="text-lg font-bold tracking-tight mb-4 px-3">Teacher</h2>
-      {navItems.map(({ to, icon: Icon, label }) => (
-        <NavLink
-          key={to}
-          to={to}
-          className={({ isActive }) =>
-            cn(
-              'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
-              isActive ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-slate-50',
-            )
-          }
-        >
-          <Icon className="h-5 w-5" />
-          {label}
-        </NavLink>
-      ))}
-    </aside>
-    <main className="flex-1 overflow-auto p-6 bg-slate-50">
-      <Outlet />
-    </main>
-  </div>
-);
+const getCourseQuizNavItems = (courseId: string) => [
+  { to: `/teacher/courses/${courseId}/question-bank`, icon: BookOpen, label: 'Question Bank' },
+  { to: `/teacher/courses/${courseId}/generate-questions`, icon: Sparkles, label: 'Generate Questions' },
+  { to: `/teacher/courses/${courseId}/question-analytics`, icon: BarChart3, label: 'Question Analytics' },
+];
+
+const TeacherLayout = () => {
+  const { courseId } = useParams<{ courseId?: string }>();
+  const courseQuizNavItems = courseId ? getCourseQuizNavItems(courseId) : [];
+
+  return (
+    <div className="flex h-screen">
+      <aside className="w-64 border-r border-slate-200 bg-white p-4 space-y-1">
+        <h2 className="text-lg font-bold tracking-tight mb-4 px-3">Teacher</h2>
+        {navItems.map(({ to, icon: Icon, label }) => (
+          <NavLink
+            key={to}
+            to={to}
+            className={({ isActive }) =>
+              cn(
+                'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                isActive ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-slate-50',
+              )
+            }
+          >
+            <Icon className="h-5 w-5" />
+            {label}
+          </NavLink>
+        ))}
+        {courseQuizNavItems.length > 0 && (
+          <>
+            <div className="pt-4 pb-1 px-3">
+              <p className="text-[10px] font-black tracking-widest uppercase text-gray-400">Quiz Tools</p>
+            </div>
+            {courseQuizNavItems.map(({ to, icon: Icon, label }) => (
+              <NavLink
+                key={to}
+                to={to}
+                className={({ isActive }) =>
+                  cn(
+                    'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                    isActive ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-slate-50',
+                  )
+                }
+              >
+                <Icon className="h-5 w-5" />
+                {label}
+              </NavLink>
+            ))}
+          </>
+        )}
+      </aside>
+      <main className="flex-1 overflow-auto p-6 bg-slate-50">
+        <Outlet />
+      </main>
+    </div>
+  );
+};
 
 export default TeacherLayout;
