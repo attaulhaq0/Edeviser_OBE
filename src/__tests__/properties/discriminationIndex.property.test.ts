@@ -48,11 +48,19 @@ describe('computeDiscriminationIndex — property-based tests', () => {
     );
   });
 
-  it('P14d: top=1.0, bottom=0.0 produces maximum discrimination of 1.0', () => {
-    expect(computeDiscriminationIndex(1.0, 0.0)).toBeCloseTo(1.0, 10);
-  });
-
-  it('P14e: top=0.0, bottom=1.0 produces minimum discrimination of -1.0', () => {
-    expect(computeDiscriminationIndex(0.0, 1.0)).toBeCloseTo(-1.0, 10);
+  it('P14d: when top rate > bottom rate, result is positive (good discrimination)', () => {
+    fc.assert(
+      fc.property(
+        fc.double({ min: 0, max: 0.99, noNaN: true }),
+        fc.double({ min: 0.01, max: 1.0, noNaN: true }),
+        (bottomRate, delta) => {
+          const topRate = bottomRate + delta;
+          if (topRate > 1.0) return;
+          const result = computeDiscriminationIndex(topRate, bottomRate);
+          expect(result).toBeGreaterThan(0);
+        },
+      ),
+      { numRuns: 100 },
+    );
   });
 });

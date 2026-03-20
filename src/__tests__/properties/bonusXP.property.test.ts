@@ -49,6 +49,18 @@ describe('computeBonusXP — property-based tests', () => {
     );
   });
 
+  it('P19g: result is always a multiple of 10', () => {
+    fc.assert(
+      fc.property(
+        fc.array(questionArb, { minLength: 0, maxLength: 30 }),
+        (questions) => {
+          expect(computeBonusXP(questions) % 10).toBe(0);
+        },
+      ),
+      { numRuns: 100 },
+    );
+  });
+
   it('P19d: no hard questions produces 0 XP', () => {
     fc.assert(
       fc.property(
