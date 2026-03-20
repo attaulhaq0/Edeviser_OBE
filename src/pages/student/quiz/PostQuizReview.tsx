@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Loader2, CheckCircle2, XCircle, HelpCircle, ArrowLeft } from 'lucide-react';
+import { Loader2, CheckCircle2, XCircle, HelpCircle, ArrowLeft, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/supabase';
 import { queryKeys } from '@/lib/queryKeys';
@@ -11,6 +11,8 @@ import { computePerCLOScore } from '@/lib/questionAnalytics';
 import QuestionPreview from '@/components/shared/QuestionPreview';
 import ExplanationConfidenceBadge from '@/components/shared/ExplanationConfidenceBadge';
 import { useVerifiedExplanation, useExplanationConfidence } from '@/hooks/useExplanationConfidence';
+import { BloomsProgressionLadder } from '@/components/shared/BloomsProgressionLadder';
+import { useBloomsClimbState } from '@/hooks/useBloomsProgression';
 
 // ─── Bloom's level helpers ────────────────────────────────────────────────────
 
@@ -177,6 +179,7 @@ const QuestionExplanation = ({ questionId, aiExplanation }: QuestionExplanationP
 const PostQuizReview = () => {
   const { quizId, attemptId } = useParams<{ quizId: string; attemptId: string }>();
   const { data, isLoading, error } = useQuizReview(quizId, attemptId);
+  const { data: climbState } = useBloomsClimbState(attemptId ?? '');
 
   if (isLoading) {
     return (
@@ -212,6 +215,9 @@ const PostQuizReview = () => {
 
   // Build CLO title map from questions
   const cloTitleMap = new Map(questions.map((q: ReviewQuestion) => [q.clo_id, q.clo_title ?? q.clo_id]));
+
+  // Build unique CLO list for Bloom's Progression section
+  const uniqueCloIds = [...new Set(questions.map((q: ReviewQuestion) => q.clo_id))];
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
@@ -264,6 +270,31 @@ const PostQuizReview = () => {
           )}
         </div>
       </Card>
+
+      {/* Bloom's Progression */}
+      {climbState && uniqueCloIds.length > 0 && (
+        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+          <div
+            className="px-6 py-4 flex items-center gap-2"
+            style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+          >
+            <TrendingUp className="h-5 w-5 text-white" />
+            <h2 className="text-lg font-bold tracking-tight text-white">Bloom's Progression</h2>
+          </div>
+          <div className="p-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {uniqueCloIds.map((cloId) => (
+                <BloomsProgressionLadder
+                  key={cloId}
+                  highestLevel={climbState.highest_level_reached ?? 0}
+                  cloTitle={cloTitleMap.get(cloId) ?? cloId}
+                  compact
+                />
+              ))}
+            </div>
+          </div>
+        </Card>
+      )}
 
       {/* Question Review List */}
       {questions.map((question: ReviewQuestion, index: number) => {

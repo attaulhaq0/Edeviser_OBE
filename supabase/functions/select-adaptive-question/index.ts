@@ -47,6 +47,22 @@ interface DifficultyTrajectoryEntry {
   was_correct: boolean | null;
 }
 
+interface BloomTransition {
+  from_level: number;
+  to_level: number;
+  question_number: number;
+  reason: 'advance' | 'revert';
+}
+
+interface BloomsClimbState {
+  current_level: number;
+  consecutive_correct: number;
+  transitions: BloomTransition[];
+  highest_level_reached: number;
+  previous_level: number;
+  just_advanced: boolean;
+}
+
 // ─── Constants ──────────────────────────────────────────────────────────────
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -55,6 +71,8 @@ const EXPANDED_DIFFICULTY_RANGE = 1.0;
 const MIN_ELIGIBLE_QUESTIONS = 3;
 const DIFFICULTY_STEP_UP = 0.3;
 const DIFFICULTY_STEP_DOWN = 0.5;
+const BLOOMS_CLIMB_CONSECUTIVE_THRESHOLD = 3;
+const BLOOMS_MAX_LEVEL = 6;
 
 // ─── Adaptive Engine (mirrors src/lib/adaptiveEngine.ts) ────────────────────
 
@@ -88,6 +106,41 @@ function preferredBloomLevels(ability: AbilityLevel): number[] {
     case 'medium': return [2, 3, 4];
     case 'low': return [1, 2];
   }
+}
+
+// ─── Bloom's Climb (mirrors src/lib/bloomsClimb.ts) ─────────────────────────
+
+function shouldAdvanceBloom(
+  currentLevel: number,
+  consecutiveCorrectAtLevel: number,
+): number {
+  if (consecutiveCorrectAtLevel >= BLOOMS_CLIMB_CONSECUTIVE_THRESHOLD && currentLevel < BLOOMS_MAX_LEVEL) {
+    return currentLevel + 1;
+  }
+  return currentLevel;
+}
+
+function handleBloomRevert(
+  currentLevel: number,
+  previousLevel: number,
+  wasCorrect: boolean,
+  justAdvanced: boolean,
+): number {
+  if (!wasCorrect && justAdvanced) {
+    return previousLevel;
+  }
+  return currentLevel;
+}
+
+function initializeBloomsClimbState(): BloomsClimbState {
+  return {
+    current_level: 1,
+    consecutive_correct: 0,
+    transitions: [],
+    highest_level_reached: 1,
+    previous_level: 1,
+    just_advanced: false,
+  };
 }
 
 // ─── Validation ─────────────────────────────────────────────────────────────
@@ -261,7 +314,7 @@ serve(async (req) => {
 
     const { data: attempt, error: attemptError } = await supabase
       .from('quiz_attempts')
-      .select('id, question_sequence, difficulty_trajectory, per_question_times')
+      .select('id, question_sequence, difficulty_trajectory, per_question_times, blooms_climb_state')
       .eq('id', quiz_attempt_id)
       .eq('student_id', studentId)
       .maybeSingle();
@@ -277,6 +330,21 @@ serve(async (req) => {
     const difficultyTrajectory: DifficultyTrajectoryEntry[] = (attempt.difficulty_trajectory ?? []) as DifficultyTrajectoryEntry[];
     const perQuestionTimes: { question_id: string; response_time_ms: number }[] =
       (attempt.per_question_times ?? []) as { question_id: string; response_time_ms: number }[];
+
+    // ── Initialize or restore Bloom's Climb state ───────────────────────
+
+    const rawClimbState = attempt.blooms_climb_state as Record<string, unknown> | null;
+    let bloomsClimb: BloomsClimbState =
+      rawClimbState && typeof rawClimbState === 'object' && typeof rawClimbState.current_level === 'number'
+        ? {
+            current_level: rawClimbState.current_level as number,
+            consecutive_correct: (rawClimbState.consecutive_correct as number) ?? 0,
+            transitions: (rawClimbState.transitions as BloomTransition[]) ?? [],
+            highest_level_reached: (rawClimbState.highest_level_reached as number) ?? 1,
+            previous_level: (rawClimbState.previous_level as number) ?? 1,
+            just_advanced: (rawClimbState.just_advanced as boolean) ?? false,
+          }
+        : initializeBloomsClimbState();
 
     const currentQuestionNumber = questionSequence.length + 1;
 
@@ -384,6 +452,60 @@ serve(async (req) => {
       // Update previous trajectory entry with correctness
       if (difficultyTrajectory.length > 0 && previous_answer_correct !== undefined) {
         difficultyTrajectory[difficultyTrajectory.length - 1].was_correct = previous_answer_correct;
+      }
+
+      // ── Bloom's Climb: process previous answer ──────────────────────────
+
+      if (previous_answer_correct !== undefined && previous_answer_correct !== null) {
+        if (previous_answer_correct) {
+          // Correct answer: increment consecutive correct at current level
+          bloomsClimb.consecutive_correct += 1;
+
+          // Check if we should advance to the next Bloom's level
+          const newLevel = shouldAdvanceBloom(bloomsClimb.current_level, bloomsClimb.consecutive_correct);
+          if (newLevel !== bloomsClimb.current_level) {
+            bloomsClimb.transitions.push({
+              from_level: bloomsClimb.current_level,
+              to_level: newLevel,
+              question_number: currentQuestionNumber - 1,
+              reason: 'advance',
+            });
+            bloomsClimb.previous_level = bloomsClimb.current_level;
+            bloomsClimb.current_level = newLevel;
+            bloomsClimb.consecutive_correct = 0;
+            bloomsClimb.just_advanced = true;
+
+            // Update highest level reached
+            if (newLevel > bloomsClimb.highest_level_reached) {
+              bloomsClimb.highest_level_reached = newLevel;
+            }
+          } else {
+            // No advancement, clear just_advanced flag
+            bloomsClimb.just_advanced = false;
+          }
+        } else {
+          // Incorrect answer: check if we need to revert
+          const revertedLevel = handleBloomRevert(
+            bloomsClimb.current_level,
+            bloomsClimb.previous_level,
+            false,
+            bloomsClimb.just_advanced,
+          );
+
+          if (revertedLevel !== bloomsClimb.current_level) {
+            bloomsClimb.transitions.push({
+              from_level: bloomsClimb.current_level,
+              to_level: revertedLevel,
+              question_number: currentQuestionNumber - 1,
+              reason: 'revert',
+            });
+            bloomsClimb.current_level = revertedLevel;
+          }
+
+          // Reset consecutive correct and just_advanced on any incorrect
+          bloomsClimb.consecutive_correct = 0;
+          bloomsClimb.just_advanced = false;
+        }
       }
 
       // Re-derive ability from attainment for Bloom's preference
@@ -504,11 +626,27 @@ serve(async (req) => {
 
     // ── Step 9: Prefer questions at matching Bloom's levels ─────────────
 
-    // Score candidates: prefer Bloom's levels matching ability
+    // Score candidates: prefer Bloom's climb level, then ability-based preference
+    const bloomsClimbLevel = bloomsClimb.current_level;
+
+    // Check if any candidates match the Bloom's climb level
+    const hasClimbLevelCandidates = candidates.some((q) => q.bloom_level === bloomsClimbLevel);
+    if (!hasClimbLevelCandidates && bloomsClimbLevel > 1) {
+      warnings.push(
+        `No approved questions at Bloom's level ${bloomsClimbLevel} for linked CLOs. ` +
+        'Remaining at current level for question selection. Consider adding questions at higher Bloom\'s levels.',
+      );
+    }
+
     const scoredCandidates = candidates.map((q) => {
       let score = 0;
 
-      // Bloom's preference: higher score for preferred levels
+      // Bloom's Climb: strongest preference for current climb level
+      if (q.bloom_level === bloomsClimbLevel) {
+        score += 20;
+      }
+
+      // Bloom's preference from ability: secondary preference
       if (bloomPreference.includes(q.bloom_level)) {
         score += 10;
       }
@@ -554,6 +692,7 @@ serve(async (req) => {
         question_sequence: questionSequence,
         difficulty_trajectory: difficultyTrajectory,
         per_question_times: perQuestionTimes,
+        blooms_climb_state: bloomsClimb,
       })
       .eq('id', quiz_attempt_id);
 
@@ -577,6 +716,11 @@ serve(async (req) => {
         question_number: currentQuestionNumber,
         total_questions: totalQuestions,
         current_target_difficulty: Math.round(targetDifficulty * 100) / 100,
+        blooms_climb_state: {
+          current_level: bloomsClimb.current_level,
+          consecutive_correct: bloomsClimb.consecutive_correct,
+          highest_level_reached: bloomsClimb.highest_level_reached,
+        },
         session_complete: false,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },

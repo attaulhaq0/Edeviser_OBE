@@ -150,24 +150,24 @@
 - [x] 16.4 Create `src/components/shared/PracticeModeBanner.tsx` — "Practice Mode" banner for quiz session UI
 - [x] 16.5 Update `AdaptiveQuizSession.tsx` to support practice mode: display banner, show immediate feedback after each question, no backward navigation change
 - [x] 16.6 Update quiz attempt submission flow to skip evidence generation and attainment rollup when `mode = 'practice'`
-- [-] 16.7 Update `award-xp` Edge Function to award 10 XP for practice quiz completion with `source = 'practice_quiz'`, no hard question bonus, separate diminishing returns window
-- [~] 16.8 Update teacher quiz creation/edit form to include PracticeModeToggle
-- [~] 16.9 Add `blooms_climb_state` column to `quiz_attempts` table via migration
-- [~] 16.10 Add query keys to `src/lib/queryKeys.ts`: `practiceMode`
-- [~] 16.11 Regenerate TypeScript types after migration
+- [x] 16.7 Update `award-xp` Edge Function to award 10 XP for practice quiz completion with `source = 'practice_quiz'`, no hard question bonus, separate diminishing returns window
+- [x] 16.8 Update teacher quiz creation/edit form to include PracticeModeToggle
+- [x] 16.9 Add `blooms_climb_state` column to `quiz_attempts` table via migration
+- [x] 16.10 Add query keys to `src/lib/queryKeys.ts`: `practiceMode`
+- [x] 16.11 Regenerate TypeScript types after migration
 
 ## Task 17: Bloom's Progression Pathway
 
-- [~] 17.1 Create `blooms_progression` table migration with all columns, constraints, unique index on (student_id, clo_id)
-- [~] 17.2 Create RLS policies for `blooms_progression` (student own read, teacher course read, admin institution read)
-- [~] 17.3 Create `src/lib/bloomsClimb.ts` with functions: `shouldAdvanceBloom`, `handleBloomRevert`, `highestBloomReached`, `computePracticeXP`
-- [~] 17.4 Create `src/hooks/useBloomsProgression.ts` — hooks for progression data, climb state, and pioneer badge queries
-- [~] 17.5 Create `src/components/shared/BloomsProgressionLadder.tsx` — vertical 6-level ladder per CLO with Bloom's color coding and highlighted highest level
-- [~] 17.6 Create `src/components/shared/BloomsPioneerBadge.tsx` — badge display for Explorer (level 4), Challenger (level 5), Pioneer (level 6)
-- [~] 17.7 Update `select-adaptive-question` Edge Function to implement Bloom's Climb mechanic: track consecutive correct, advance/revert Bloom's level, record transitions
-- [~] 17.8 Update quiz attempt submission to update `blooms_progression` table with highest Bloom's level reached
-- [~] 17.9 Integrate Bloom's Pioneer badge checks into existing `check-badges` Edge Function (idempotent, after quiz attempt completion)
-- [~] 17.10 Add BloomsProgressionLadder to student course detail page and PostQuizReview page
+- [x] 17.1 Create `blooms_progression` table migration with all columns, constraints, unique index on (student_id, clo_id)
+- [x] 17.2 Create RLS policies for `blooms_progression` (student own read, teacher course read, admin institution read)
+- [x] 17.3 Create `src/lib/bloomsClimb.ts` with functions: `shouldAdvanceBloom`, `handleBloomRevert`, `highestBloomReached`, `computePracticeXP`
+- [x] 17.4 Create `src/hooks/useBloomsProgression.ts` — hooks for progression data, climb state, and pioneer badge queries
+- [x] 17.5 Create `src/components/shared/BloomsProgressionLadder.tsx` — vertical 6-level ladder per CLO with Bloom's color coding and highlighted highest level
+- [x] 17.6 Create `src/components/shared/BloomsPioneerBadge.tsx` — badge display for Explorer (level 4), Challenger (level 5), Pioneer (level 6)
+- [x] 17.7 Update `select-adaptive-question` Edge Function to implement Bloom's Climb mechanic: track consecutive correct, advance/revert Bloom's level, record transitions
+- [x] 17.8 Update quiz attempt submission to update `blooms_progression` table with highest Bloom's level reached
+- [x] 17.9 Integrate Bloom's Pioneer badge checks into existing `check-badges` Edge Function (idempotent, after quiz attempt completion)
+- [x] 17.10 Add BloomsProgressionLadder to student course detail page and PostQuizReview page
 - [~] 17.11 Add query keys to `src/lib/queryKeys.ts`: `bloomsProgression`
 - [~] 17.12 Regenerate TypeScript types after migration
 

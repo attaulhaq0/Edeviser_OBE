@@ -131,6 +131,16 @@ const quizGeneration = createKeys('quizGeneration')
 const reviewQueue = createKeys('reviewQueue')
 const quizCLOCorrelation = createKeys('quizCLOCorrelation')
 
+// ─── Practice Mode ─────────────────────────────────────────────────────────────
+const practiceMode = {
+  all: ['practiceMode'] as const,
+  config: (quizId: string) => ['practiceMode', quizId] as const,
+  attempts: (quizId: string, studentId?: string) =>
+    studentId
+      ? (['practiceAttempts', quizId, studentId] as const)
+      : (['practiceAttempts', quizId] as const),
+}
+
 // ─── Explanation Confidence ───────────────────────────────────────────────────
 const verifiedExplanations = {
   all: ['verifiedExplanations'] as const,
@@ -270,6 +280,8 @@ export const queryKeys = {
   quizGeneration,
   reviewQueue,
   quizCLOCorrelation,
+  // Practice Mode
+  practiceMode,
   // Explanation Confidence
   verifiedExplanations,
   explanationReviewQueue,

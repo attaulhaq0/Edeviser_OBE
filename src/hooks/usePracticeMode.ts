@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { queryKeys } from '@/lib/queryKeys';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -30,7 +31,7 @@ export interface PracticeAttempt {
 
 export const usePracticeModeConfig = (quizId: string) => {
   return useQuery({
-    queryKey: ['practiceMode', quizId],
+    queryKey: queryKeys.practiceMode.config(quizId),
     queryFn: async (): Promise<PracticeModeConfig | null> => {
       const { data, error } = await supabase
         .from('quizzes')
@@ -73,10 +74,10 @@ export const useTogglePracticeMode = () => {
     },
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({
-        queryKey: ['practiceMode', variables.quiz_id],
+        queryKey: queryKeys.practiceMode.config(variables.quiz_id),
       });
       queryClient.invalidateQueries({
-        queryKey: ['quizzes'],
+        queryKey: queryKeys.quizzes.all,
       });
     },
   });
@@ -87,7 +88,7 @@ export const useTogglePracticeMode = () => {
 
 export const usePracticeAttempts = (quizId: string, studentId: string) => {
   return useQuery({
-    queryKey: ['practiceMode', 'attempts', quizId, studentId],
+    queryKey: queryKeys.practiceMode.attempts(quizId, studentId),
     queryFn: async (): Promise<PracticeAttempt[]> => {
       const { data, error } = await supabase
         .from('quiz_attempts')

@@ -2350,8 +2350,10 @@ export type Database = {
         Row: {
           answers: Json
           attempt_number: number
+          blooms_climb_state: Json | null
           difficulty_trajectory: Json | null
           id: string
+          mode: string
           per_question_times: Json | null
           question_sequence: Json | null
           quiz_id: string
@@ -2363,8 +2365,10 @@ export type Database = {
         Insert: {
           answers?: Json
           attempt_number?: number
+          blooms_climb_state?: Json | null
           difficulty_trajectory?: Json | null
           id?: string
+          mode?: string
           per_question_times?: Json | null
           question_sequence?: Json | null
           quiz_id: string
@@ -2376,8 +2380,10 @@ export type Database = {
         Update: {
           answers?: Json
           attempt_number?: number
+          blooms_climb_state?: Json | null
           difficulty_trajectory?: Json | null
           id?: string
+          mode?: string
           per_question_times?: Json | null
           question_sequence?: Json | null
           quiz_id?: string
@@ -2535,6 +2541,7 @@ export type Database = {
           is_adaptive: boolean
           is_published: boolean
           max_attempts: number
+          practice_mode_enabled: boolean
           time_limit_minutes: number | null
           title: string
         }
@@ -2549,6 +2556,7 @@ export type Database = {
           is_adaptive?: boolean
           is_published?: boolean
           max_attempts?: number
+          practice_mode_enabled?: boolean
           time_limit_minutes?: number | null
           title: string
         }
@@ -2563,6 +2571,7 @@ export type Database = {
           is_adaptive?: boolean
           is_published?: boolean
           max_attempts?: number
+          practice_mode_enabled?: boolean
           time_limit_minutes?: number | null
           title?: string
         }

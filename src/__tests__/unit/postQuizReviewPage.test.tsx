@@ -12,10 +12,15 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
 const mockUseVerifiedExplanation = vi.fn();
 const mockUseExplanationConfidence = vi.fn();
+const mockUseBloomsClimbState = vi.fn();
 
 vi.mock('@/hooks/useExplanationConfidence', () => ({
   useVerifiedExplanation: (...args: unknown[]) => mockUseVerifiedExplanation(...args),
   useExplanationConfidence: (...args: unknown[]) => mockUseExplanationConfidence(...args),
+}));
+
+vi.mock('@/hooks/useBloomsProgression', () => ({
+  useBloomsClimbState: (...args: unknown[]) => mockUseBloomsClimbState(...args),
 }));
 
 // ─── Supabase mock ───────────────────────────────────────────────────────────
@@ -125,6 +130,8 @@ describe('PostQuizReview', () => {
     // Default: no verified explanation, no confidence score
     mockUseVerifiedExplanation.mockReturnValue({ data: null, isLoading: false });
     mockUseExplanationConfidence.mockReturnValue({ data: null, isLoading: false });
+    // Default: no climb state (Bloom's Progression section hidden)
+    mockUseBloomsClimbState.mockReturnValue({ data: null, isLoading: false });
   });
 
   it('displays overall score', async () => {
@@ -301,5 +308,53 @@ describe('PostQuizReview', () => {
 
     await screen.findByText('75%');
     expect(screen.getAllByText('This explanation may need teacher verification').length).toBeGreaterThan(0);
+  });
+
+  // ─── Task 17.10: Bloom's Progression Ladder in PostQuizReview ──────────────
+
+  it('displays Bloom\'s Progression section when climb state is available', async () => {
+    mockUseBloomsClimbState.mockReturnValue({
+      data: {
+        current_level: 3,
+        consecutive_correct: 1,
+        transitions: [],
+        highest_level_reached: 3,
+      },
+      isLoading: false,
+    });
+
+    render(<PostQuizReview />, { wrapper: createWrapper() });
+
+    await screen.findByText('75%');
+    expect(screen.getByText("Bloom's Progression")).toBeInTheDocument();
+  });
+
+  it('does not display Bloom\'s Progression section when climb state is null', async () => {
+    mockUseBloomsClimbState.mockReturnValue({ data: null, isLoading: false });
+
+    render(<PostQuizReview />, { wrapper: createWrapper() });
+
+    await screen.findByText('75%');
+    expect(screen.queryByText("Bloom's Progression")).not.toBeInTheDocument();
+  });
+
+  it('renders a BloomsProgressionLadder for each unique CLO in the quiz', async () => {
+    mockUseBloomsClimbState.mockReturnValue({
+      data: {
+        current_level: 4,
+        consecutive_correct: 2,
+        transitions: [],
+        highest_level_reached: 4,
+      },
+      isLoading: false,
+    });
+
+    render(<PostQuizReview />, { wrapper: createWrapper() });
+
+    await screen.findByText('75%');
+    // The quiz has 2 unique CLOs: clo-1 and clo-2
+    // Each ladder has an aria-label containing the CLO title
+    const ladders = screen.getAllByRole('img', { name: /Bloom's progression ladder/i });
+    expect(ladders.length).toBe(2);
   });
 });

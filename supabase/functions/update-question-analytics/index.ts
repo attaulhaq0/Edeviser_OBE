@@ -36,6 +36,15 @@ interface QuestionBankRow {
   clo_id: string;
 }
 
+interface BloomsClimbState {
+  current_level: number;
+  consecutive_correct: number;
+  transitions: { from_level: number; to_level: number; question_number: number; reason: string }[];
+  highest_level_reached: number;
+  previous_level: number;
+  just_advanced: boolean;
+}
+
 // ─── Constants ──────────────────────────────────────────────────────────────
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -467,6 +476,167 @@ async function checkAndActivateMasteryRecovery(
   return { recoveries_activated: recoveriesActivated };
 }
 
+// ─── Bloom's Progression Update ──────────────────────────────────────────────
+
+/**
+ * Computes the highest Bloom's level where the student has at least 2
+ * correct answers across all attempts in the session.
+ * Mirrors the logic from src/lib/bloomsClimb.ts highestBloomReached.
+ */
+function computeHighestBloomReached(
+  questionSequence: QuestionSequenceEntry[],
+  answersMap: Map<string, boolean>,
+  questionBankMap: Map<string, QuestionBankRow>,
+): number {
+  const correctCountByLevel = new Map<number, number>();
+
+  for (const seqEntry of questionSequence) {
+    const isCorrect = answersMap.get(seqEntry.question_id);
+    if (!isCorrect) continue;
+
+    const bloomLevel = seqEntry.bloom_level;
+    correctCountByLevel.set(bloomLevel, (correctCountByLevel.get(bloomLevel) ?? 0) + 1);
+  }
+
+  let highest = 0;
+  for (const [level, count] of correctCountByLevel) {
+    if (count >= 2 && level > highest) {
+      highest = level;
+    }
+  }
+
+  return highest;
+}
+
+/**
+ * Updates the blooms_progression table with the highest Bloom's level reached
+ * during this quiz session. Uses UPSERT on the (student_id, clo_id) unique
+ * constraint. Badge flags are only set to true, never reverted to false.
+ */
+async function updateBloomsProgression(
+  supabase: ReturnType<typeof createClient>,
+  studentId: string,
+  quizId: string,
+  questionSequence: QuestionSequenceEntry[],
+  answersMap: Map<string, boolean>,
+  questionBankMap: Map<string, QuestionBankRow>,
+  bloomsClimbState: BloomsClimbState | null,
+): Promise<{ clos_updated: string[] }> {
+  const closUpdated: string[] = [];
+
+  // Determine highest level reached — prefer blooms_climb_state if available
+  let highestLevelReached = 0;
+
+  if (bloomsClimbState && bloomsClimbState.highest_level_reached > 0) {
+    highestLevelReached = bloomsClimbState.highest_level_reached;
+  } else {
+    // Fallback: compute from attempt data
+    highestLevelReached = computeHighestBloomReached(questionSequence, answersMap, questionBankMap);
+  }
+
+  if (highestLevelReached <= 0) {
+    return { clos_updated: [] };
+  }
+
+  // Get course_id and institution_id from the quiz
+  const { data: quiz } = await supabase
+    .from('quizzes')
+    .select('course_id')
+    .eq('id', quizId)
+    .maybeSingle();
+
+  if (!quiz) return { clos_updated: [] };
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('institution_id')
+    .eq('id', studentId)
+    .maybeSingle();
+
+  if (!profile) return { clos_updated: [] };
+
+  // Collect unique CLO IDs from the quiz questions
+  const cloIds = new Set<string>();
+  for (const seqEntry of questionSequence) {
+    const qbRow = questionBankMap.get(seqEntry.question_id);
+    if (qbRow) {
+      cloIds.add(qbRow.clo_id);
+    }
+  }
+
+  // Compute correct count at the highest level for this session
+  let correctCountAtHighest = 0;
+  for (const seqEntry of questionSequence) {
+    const isCorrect = answersMap.get(seqEntry.question_id);
+    if (isCorrect && seqEntry.bloom_level === highestLevelReached) {
+      correctCountAtHighest++;
+    }
+  }
+
+  // Badge flags based on highest level reached
+  const explorerEarned = highestLevelReached >= 4;
+  const challengerEarned = highestLevelReached >= 5;
+  const pioneerEarned = highestLevelReached >= 6;
+
+  // UPSERT for each CLO in the quiz
+  for (const cloId of cloIds) {
+    try {
+      // Fetch existing row to preserve badge flags (once earned, never reverted)
+      const { data: existing } = await supabase
+        .from('blooms_progression')
+        .select('highest_bloom_level, correct_count_at_highest, bloom_explorer_awarded, bloom_challenger_awarded, bloom_pioneer_awarded')
+        .eq('student_id', studentId)
+        .eq('clo_id', cloId)
+        .maybeSingle();
+
+      const existingLevel = existing?.highest_bloom_level ?? 0;
+      const newHighest = Math.max(existingLevel, highestLevelReached);
+
+      // If the new highest is the same as existing, keep the higher correct count
+      const newCorrectCount = newHighest > existingLevel
+        ? correctCountAtHighest
+        : newHighest === existingLevel
+          ? Math.max(existing?.correct_count_at_highest ?? 0, correctCountAtHighest)
+          : existing?.correct_count_at_highest ?? 0;
+
+      const { error: upsertError } = await supabase
+        .from('blooms_progression')
+        .upsert(
+          {
+            institution_id: profile.institution_id,
+            student_id: studentId,
+            clo_id: cloId,
+            course_id: quiz.course_id,
+            highest_bloom_level: newHighest,
+            correct_count_at_highest: newCorrectCount,
+            bloom_explorer_awarded: explorerEarned || (existing?.bloom_explorer_awarded ?? false),
+            bloom_challenger_awarded: challengerEarned || (existing?.bloom_challenger_awarded ?? false),
+            bloom_pioneer_awarded: pioneerEarned || (existing?.bloom_pioneer_awarded ?? false),
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: 'student_id,clo_id' },
+        );
+
+      if (upsertError) {
+        console.error(
+          `Failed to upsert blooms_progression for student ${studentId}, CLO ${cloId}:`,
+          upsertError.message,
+        );
+        continue;
+      }
+
+      closUpdated.push(cloId);
+    } catch (err) {
+      console.error(
+        `Error updating blooms_progression for CLO ${cloId}:`,
+        (err as Error).message,
+      );
+    }
+  }
+
+  return { clos_updated: closUpdated };
+}
+
 // ─── Main Handler ───────────────────────────────────────────────────────────
 
 serve(async (req) => {
@@ -498,7 +668,7 @@ serve(async (req) => {
 
     const { data: attempt, error: attemptError } = await supabase
       .from('quiz_attempts')
-      .select('id, quiz_id, student_id, answers, question_sequence, per_question_times, mode')
+      .select('id, quiz_id, student_id, answers, question_sequence, per_question_times, mode, blooms_climb_state')
       .eq('id', quiz_attempt_id)
       .maybeSingle();
 
@@ -688,7 +858,43 @@ serve(async (req) => {
       }
     }
 
-    // ── Step 6: Return summary ──────────────────────────────────────────
+    // ── Step 6: Bloom's Progression Update (skip for practice mode) ────
+
+    let bloomsProgressionResult: { clos_updated: string[] } = { clos_updated: [] };
+    if (!isPractice) {
+      try {
+        // Parse blooms_climb_state from the quiz attempt
+        const rawClimbState = attempt.blooms_climb_state as Record<string, unknown> | null;
+        const bloomsClimbState: BloomsClimbState | null =
+          rawClimbState &&
+          typeof rawClimbState === 'object' &&
+          typeof rawClimbState.highest_level_reached === 'number'
+            ? {
+                current_level: (rawClimbState.current_level as number) ?? 1,
+                consecutive_correct: (rawClimbState.consecutive_correct as number) ?? 0,
+                transitions: (rawClimbState.transitions as BloomsClimbState['transitions']) ?? [],
+                highest_level_reached: rawClimbState.highest_level_reached as number,
+                previous_level: (rawClimbState.previous_level as number) ?? 1,
+                just_advanced: (rawClimbState.just_advanced as boolean) ?? false,
+              }
+            : null;
+
+        bloomsProgressionResult = await updateBloomsProgression(
+          supabase,
+          attempt.student_id,
+          attempt.quiz_id,
+          questionSequence,
+          answersMap,
+          questionBankMap,
+          bloomsClimbState,
+        );
+      } catch (err) {
+        // Bloom's progression errors must not block the analytics response
+        console.error('Blooms progression update failed:', (err as Error).message);
+      }
+    }
+
+    // ── Step 7: Return summary ──────────────────────────────────────────
 
     return new Response(
       JSON.stringify({
@@ -698,6 +904,7 @@ serve(async (req) => {
         updated: updatedSummary.length,
         analytics: updatedSummary,
         mastery_recovery: masteryRecoveryResult,
+        blooms_progression: bloomsProgressionResult,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );
