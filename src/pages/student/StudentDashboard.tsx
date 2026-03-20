@@ -1,8 +1,11 @@
 import { useNavigate } from 'react-router-dom';
+import { useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Shimmer from '@/components/shared/Shimmer';
+import RealtimeStatusBanner from '@/components/shared/RealtimeStatusBanner';
 import ProfileSummaryCard from '@/components/shared/ProfileSummaryCard';
 import MicroAssessmentCard from '@/components/shared/MicroAssessmentCard';
 import ProfileCompletenessBar from '@/components/shared/ProfileCompletenessBar';
@@ -14,6 +17,8 @@ import { useTodayMicroAssessment, useCompleteMicroAssessment, useDismissMicroAss
 import { useProfileCompleteness } from '@/hooks/useProfileCompleteness';
 import { useStarterWeekSessions } from '@/hooks/useStarterWeekPlan';
 import { useOnboardingProgress } from '@/hooks/useOnboardingProgress';
+import { useRealtime } from '@/hooks/useRealtime';
+import { queryKeys } from '@/lib/queryKeys';
 import {
   BookOpen,
   CheckCircle2,
@@ -23,6 +28,7 @@ import {
   CalendarClock,
   AlertCircle,
   Bell,
+  Coins,
   type LucideIcon,
 } from 'lucide-react';
 import { format, differenceInDays } from 'date-fns';
@@ -58,8 +64,28 @@ const StudentDashboard = () => {
   const navigate = useNavigate();
   const { user, profile } = useAuth();
   const studentId = user?.id ?? '';
+  const queryClient = useQueryClient();
   const { data: kpis, isLoading: kpisLoading } = useStudentKPIs(user?.id);
   const { data: deadlines, isLoading: deadlinesLoading } = useUpcomingDeadlines(user?.id, 5);
+
+  // Realtime: invalidate XP/streak/level queries when student_gamification changes
+  const handleGamificationPayload = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: queryKeys.studentGamification.detail(studentId) });
+    queryClient.invalidateQueries({ queryKey: queryKeys.studentDashboard.lists() });
+  }, [queryClient, studentId]);
+
+  const handleGamificationPolling = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: queryKeys.studentGamification.detail(studentId) });
+  }, [queryClient, studentId]);
+
+  const { isLive } = useRealtime({
+    table: 'student_gamification',
+    event: 'UPDATE',
+    filter: studentId ? `student_id=eq.${studentId}` : undefined,
+    onPayload: handleGamificationPayload,
+    pollingFn: handleGamificationPolling,
+    pollingInterval: 30_000,
+  });
 
   // Onboarding-related hooks
   const onboardingCompleted = profile?.onboarding_completed === true;
@@ -97,6 +123,9 @@ const StudentDashboard = () => {
 
   return (
     <div className="space-y-6">
+      {/* Live updates status */}
+      <RealtimeStatusBanner isLive={isLive} />
+
       {/* 7.7 — Onboarding deferred reminder banner */}
       {showDeferredBanner && (
         <Card className="border-0 shadow-md rounded-xl p-4 bg-amber-50 flex items-center gap-3">
@@ -296,6 +325,15 @@ const StudentDashboard = () => {
               <span className="text-sm font-medium text-gray-600">Assignments Done</span>
               <span className="text-sm font-bold">{kpis?.completedAssignments ?? 0}</span>
             </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate('/student/xp-history')}
+              className="w-full mt-2 text-xs font-semibold text-amber-600 border-amber-200 hover:bg-amber-50"
+            >
+              <Coins className="h-4 w-4 mr-1" />
+              View XP History
+            </Button>
           </div>
         </Card>
       </div>

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -19,9 +19,13 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import Shimmer from '@/components/shared/Shimmer';
+import RealtimeStatusBanner from '@/components/shared/RealtimeStatusBanner';
 import { useAuth } from '@/hooks/useAuth';
 import { useCourses } from '@/hooks/useCourses';
 import { usePendingSubmissions } from '@/hooks/useSubmissions';
+import { useRealtime } from '@/hooks/useRealtime';
+import { queryKeys } from '@/lib/queryKeys';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   useTeacherKPIs,
   useTeacherCLOAttainment,
@@ -274,6 +278,7 @@ const AtRiskStudentCard = () => {
 
 const TeacherDashboard = () => {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const { data: paginatedCourses, isLoading: coursesLoading } = useCourses();
   const [selectedCourseId, setSelectedCourseId] = useState<string>('');
 
@@ -284,6 +289,24 @@ const TeacherDashboard = () => {
   );
 
   const effectiveCourseId = selectedCourseId || (teacherCourses.length > 0 ? teacherCourses[0]!.id : '');
+
+  // Realtime: invalidate grading queue when new submissions arrive
+  const handleGradingPayload = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: queryKeys.submissions.lists() });
+    queryClient.invalidateQueries({ queryKey: queryKeys.teacherDashboard.lists() });
+  }, [queryClient]);
+
+  const handleGradingPolling = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: queryKeys.submissions.lists() });
+  }, [queryClient]);
+
+  const { isLive } = useRealtime({
+    table: 'submissions',
+    event: 'INSERT',
+    onPayload: handleGradingPayload,
+    pollingFn: handleGradingPolling,
+    pollingInterval: 30_000,
+  });
 
   const { data: kpis, isLoading: kpisLoading } = useTeacherKPIs();
   const { data: cloAttainment, isLoading: cloLoading } = useTeacherCLOAttainment(effectiveCourseId);
@@ -312,6 +335,9 @@ const TeacherDashboard = () => {
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+
+      {/* Live updates status */}
+      <RealtimeStatusBanner isLive={isLive} />
 
       {/* KPI Row */}
       {kpisLoading ? (

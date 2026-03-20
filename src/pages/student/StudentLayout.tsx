@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react';
 import { Outlet, NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
+import { usePageViewLogger } from '@/hooks/usePageViewLogger';
 import { LayoutDashboard, BookOpen, ClipboardList, TrendingUp, Trophy, PenLine, Star, Grid3X3 } from 'lucide-react';
 
 const OnboardingWizard = lazy(() => import('@/pages/student/onboarding/OnboardingWizard'));
@@ -20,6 +21,9 @@ const navItems = [
 const StudentLayout = () => {
   const { profile } = useAuth();
   const showOnboarding = profile?.role === 'student' && profile?.onboarding_completed === false;
+
+  // Log page_view events on every student route change
+  usePageViewLogger();
 
   return (
     <>
