@@ -94,8 +94,20 @@ describe('computePerCLOScore — property-based tests', () => {
     );
   });
 
-  it('P16e: empty answers produce empty result', () => {
-    const result = computePerCLOScore([]);
-    expect(Object.keys(result)).toHaveLength(0);
+  it('P16e: every CLO in the input appears in the output', () => {
+    fc.assert(
+      fc.property(
+        fc.array(answerArb, { minLength: 1, maxLength: 50 }),
+        (answers) => {
+          const result = computePerCLOScore(answers);
+          const inputCLOs = new Set(answers.map((a) => a.clo_id));
+          for (const cloId of inputCLOs) {
+            expect(result).toHaveProperty(cloId);
+          }
+          expect(Object.keys(result).length).toBe(inputCLOs.size);
+        },
+      ),
+      { numRuns: 100 },
+    );
   });
 });

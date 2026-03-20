@@ -9,9 +9,10 @@ describe('computeApprovalRate — property-based tests', () => {
   it('P18a: approval rate equals approved / total when total > 0', () => {
     fc.assert(
       fc.property(
-        fc.integer({ min: 1, max: 500 }),
-        (total) => {
-          const approved = Math.floor(Math.random() * (total + 1));
+        fc.integer({ min: 1, max: 500 }).chain((total) =>
+          fc.tuple(fc.constant(total), fc.integer({ min: 0, max: total })),
+        ),
+        ([total, approved]) => {
           const result = computeApprovalRate(approved, total);
           expect(result).toBeCloseTo(approved / total, 10);
         },
