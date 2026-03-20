@@ -559,7 +559,7 @@ Complete unified implementation of the Edeviser platform covering authentication
     - _Requirements: 33.4_
 
 - [-] 33. Implement AI Data Collection Foundation
-  - [-] 33.1 Wire activity logging into remaining flows
+  - [x] 33.1 Wire activity logging into remaining flows
     - Page navigation (page_view), assignment detail (assignment_view), streak processor (streak_break)
     - _Requirements: 41.1_
 
