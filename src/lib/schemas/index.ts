@@ -47,3 +47,4 @@ export * from "./semesterTransition";
 export * from "./globalSearch";
 export * from "./notificationPrefs";
 export * from "./sessionManagement";
+export * from "./wellnessXpAmount";

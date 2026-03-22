@@ -63,6 +63,9 @@ export const useTeacherKPIs = () => {
 
       const submissions = allSubmissions ?? [];
 
+      const pendingSubmissions = submissions.filter(
+        (s) => !s.grades || (Array.isArray(s.grades) && s.grades.length === 0),
+      ).length;
 
       // 2. Graded this week
       const weekAgo = new Date();
@@ -127,7 +130,9 @@ export const useTeacherKPIs = () => {
 
         const lowCloMap = new Map<string, number>();
         for (const row of lowAttainment ?? []) {
-          lowCloMap.set(row.student_id!, (lowCloMap.get(row.student_id!) ?? 0) + 1);
+          if (row.student_id != null) {
+            lowCloMap.set(row.student_id, (lowCloMap.get(row.student_id) ?? 0) + 1);
+          }
         }
 
         const atRiskSet = new Set<string>(inactiveSet);
@@ -396,7 +401,9 @@ export const useAtRiskStudents = () => {
 
       const lowCloMap = new Map<string, number>();
       for (const row of lowAttainment ?? []) {
-        lowCloMap.set(row.student_id!, (lowCloMap.get(row.student_id!) ?? 0) + 1);
+        if (row.student_id != null) {
+          lowCloMap.set(row.student_id, (lowCloMap.get(row.student_id) ?? 0) + 1);
+        }
       }
 
       // Combine into at-risk list

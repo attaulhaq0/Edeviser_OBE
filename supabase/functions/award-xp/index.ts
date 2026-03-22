@@ -32,7 +32,8 @@ type XPSource =
   | 'onboarding_study_strategy'
   | 'micro_assessment'
   | 'profile_complete'
-  | 'starter_session_complete';
+  | 'starter_session_complete'
+  | 'wellness_habit';
 
 interface XPAwardPayload {
   student_id: string;
@@ -92,6 +93,7 @@ const VALID_SOURCES: XPSource[] = [
   'onboarding_personality', 'onboarding_learning_style', 'onboarding_baseline',
   'onboarding_complete', 'onboarding_self_efficacy', 'onboarding_study_strategy',
   'micro_assessment', 'profile_complete', 'starter_session_complete',
+  'wellness_habit',
 ];
 
 function validatePayload(payload: unknown): { valid: true; data: XPAwardPayload } | { valid: false; error: string } {
@@ -284,6 +286,53 @@ serve(async (req) => {
         const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
         validation.data.reference_id = `${source}:${student_id}:${today}`;
       }
+    }
+
+    // ── Wellness Habit XP Lookup ──────────────────────────────────────────
+    // When source is wellness_habit, fetch the institution's configured
+    // wellness_xp_amount and use it as the XP amount (overriding passed value).
+    if (source === 'wellness_habit') {
+      // Fetch the student's institution_id from profiles
+      const { data: studentProfile, error: profileErr } = await supabase
+        .from('profiles')
+        .select('institution_id')
+        .eq('id', student_id)
+        .maybeSingle();
+
+      if (profileErr || !studentProfile) {
+        return new Response(
+          JSON.stringify({ error: 'Failed to fetch student profile for wellness XP lookup' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        );
+      }
+
+      // Fetch wellness_xp_amount from institution_settings
+      const { data: instSettings, error: settingsErr } = await supabase
+        .from('institution_settings')
+        .select('wellness_xp_amount')
+        .eq('institution_id', studentProfile.institution_id)
+        .maybeSingle();
+
+      if (settingsErr) {
+        console.error('Institution settings query failed:', settingsErr.message);
+        return new Response(
+          JSON.stringify({ error: 'Failed to fetch institution settings', detail: settingsErr.message }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        );
+      }
+
+      const wellnessXpAmount = instSettings?.wellness_xp_amount ?? 5; // default 5
+
+      // When wellness_xp_amount is 0, skip XP transaction entirely
+      if (wellnessXpAmount === 0) {
+        return new Response(
+          JSON.stringify({ success: true, xp_awarded: 0 }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        );
+      }
+
+      // Override the passed xp_amount with the institution-configured value
+      validation.data.xp_amount = wellnessXpAmount;
     }
 
     // Re-destructure after potential overrides

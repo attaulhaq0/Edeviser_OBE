@@ -29,11 +29,20 @@ const outcomeAttainment = createKeys('outcomeAttainment')
 
 // ─── Gamification ────────────────────────────────────────────────────────────
 const xpTransactions = createKeys('xpTransactions')
-const studentGamification = createKeys('studentGamification')
+const studentGamification = {
+  ...createKeys('studentGamification'),
+  sabbatical: (studentId: string) =>
+    ['studentGamification', 'sabbatical', studentId] as const,
+};
 const badges = createKeys('badges')
 const leaderboard = createKeys('leaderboard')
 const journal = createKeys('journal')
 const habitLogs = createKeys('habitLogs')
+
+const studentHabitLevel = {
+  all: ['studentHabitLevel'] as const,
+  detail: (studentId: string) => ['studentHabitLevel', studentId] as const,
+}
 const bonusXPEvents = createKeys('bonusXPEvents')
 const streakFreezes = createKeys('streakFreezes')
 
@@ -91,6 +100,27 @@ const notificationPreferences = createKeys('notificationPreferences')
 const sessions = createKeys('sessions')
 const auditLogs = createKeys('auditLogs')
 
+// ─── Heatmap & Wellness ──────────────────────────────────────────────────────
+const heatmap = {
+  all: ['heatmap'] as const,
+  data: (studentId: string, start: string, end: string, filter?: string) =>
+    ['heatmap', studentId, start, end, filter] as const,
+  summary: (studentId: string) => ['heatmap', 'summary', studentId] as const,
+  levelHistory: (studentId: string, start: string, end: string) =>
+    ['heatmap', 'levelHistory', studentId, start, end] as const,
+}
+
+const wellness = {
+  all: ['wellness'] as const,
+  preferences: (studentId: string) => ['wellness', 'preferences', studentId] as const,
+  logs: (studentId: string, date: string) => ['wellness', 'logs', studentId, date] as const,
+}
+
+const habitAnalytics = {
+  all: ['habitAnalytics'] as const,
+  correlations: (studentId: string) => ['habitAnalytics', 'correlations', studentId] as const,
+}
+
 // ─── Onboarding ──────────────────────────────────────────────────────────────
 const onboarding = {
   progress: (studentId: string) =>
@@ -142,6 +172,7 @@ export const queryKeys = {
   leaderboard,
   journal,
   habitLogs,
+  studentHabitLevel,
   bonusXPEvents,
   streakFreezes,
   // Notifications
@@ -193,6 +224,10 @@ export const queryKeys = {
   notificationPreferences,
   sessions,
   auditLogs,
+  // Heatmap & Wellness
+  heatmap,
+  wellness,
+  habitAnalytics,
   // Onboarding
   onboarding,
 } as const

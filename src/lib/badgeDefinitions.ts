@@ -2,7 +2,7 @@
 // All badge conditions are defined here as a single source of truth.
 // Mystery badge conditions are checked server-side only — never expose to client.
 
-export type BadgeCategory = 'streak' | 'academic' | 'engagement' | 'mystery';
+export type BadgeCategory = 'streak' | 'academic' | 'engagement' | 'mystery' | 'habit';
 
 export interface BadgeDef {
   id: string;
@@ -142,6 +142,38 @@ export const BADGE_DEFINITIONS: BadgeDef[] = [
     isMystery: false,
     condition: 'Complete onboarding without skipping any assessment section',
     xpReward: 75,
+  },
+
+  // ── Habit badges ──────────────────────────────────────────────────────────
+  {
+    id: 'habit_master',
+    name: 'Habit Master',
+    description: 'Completed at least one habit on 30+ days this semester',
+    icon: '🏆',
+    category: 'habit',
+    isMystery: false,
+    condition: '30+ active habit days in a semester',
+    xpReward: 100,
+  },
+  {
+    id: 'wellness_warrior',
+    name: 'Wellness Warrior',
+    description: 'Logged wellness habits for 14 consecutive days',
+    icon: '🧘',
+    category: 'habit',
+    isMystery: false,
+    condition: '14 consecutive days with ≥1 wellness habit',
+    xpReward: 75,
+  },
+  {
+    id: 'full_spectrum',
+    name: 'Full Spectrum',
+    description: 'Completed all academic and wellness habits on 7 days',
+    icon: '🌈',
+    category: 'habit',
+    isMystery: false,
+    condition: '7 days with all 4 academic + ≥1 wellness habit',
+    xpReward: 150,
   },
 
   // ── Mystery badges (hidden conditions) ──────────────────────────────────

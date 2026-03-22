@@ -20,7 +20,7 @@ describe('Badge Definitions', () => {
       expect(typeof badge.description).toBe('string');
       expect(badge.icon).toBeTruthy();
       expect(typeof badge.icon).toBe('string');
-      expect(['streak', 'academic', 'engagement', 'mystery']).toContain(badge.category);
+      expect(['streak', 'academic', 'engagement', 'mystery', 'habit']).toContain(badge.category);
       expect(typeof badge.isMystery).toBe('boolean');
       expect(badge.condition).toBeTruthy();
       expect(typeof badge.condition).toBe('string');

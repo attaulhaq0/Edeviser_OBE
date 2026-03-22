@@ -1279,6 +1279,7 @@ export type Database = {
           id: string
           institution_id: string
           success_threshold: number
+          wellness_xp_amount: number
         }
         Insert: {
           accreditation_body?: string
@@ -1288,6 +1289,7 @@ export type Database = {
           id?: string
           institution_id: string
           success_threshold?: number
+          wellness_xp_amount?: number
         }
         Update: {
           accreditation_body?: string
@@ -1297,6 +1299,7 @@ export type Database = {
           id?: string
           institution_id?: string
           success_threshold?: number
+          wellness_xp_amount?: number
         }
         Relationships: [
           {
@@ -2592,6 +2595,50 @@ export type Database = {
           },
         ]
       }
+      student_wellness_preferences: {
+        Row: {
+          created_at: string
+          dismissed_onboarding_tips: string[]
+          enabled_habits: string[]
+          habit_targets: Json
+          id: string
+          parent_visibility: boolean
+          reminder_times: Json
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          dismissed_onboarding_tips?: string[]
+          enabled_habits?: string[]
+          habit_targets?: Json
+          id?: string
+          parent_visibility?: boolean
+          reminder_times?: Json
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          dismissed_onboarding_tips?: string[]
+          enabled_habits?: string[]
+          habit_targets?: Json
+          id?: string
+          parent_visibility?: boolean
+          reminder_times?: Json
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_wellness_preferences_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       submissions: {
         Row: {
           assignment_id: string
@@ -2803,6 +2850,44 @@ export type Database = {
           },
         ]
       }
+      wellness_habit_logs: {
+        Row: {
+          completed_at: string
+          created_at: string
+          date: string
+          id: string
+          student_id: string
+          value: number | null
+          wellness_type: Database["public"]["Enums"]["wellness_habit_type"]
+        }
+        Insert: {
+          completed_at?: string
+          created_at?: string
+          date: string
+          id?: string
+          student_id: string
+          value?: number | null
+          wellness_type: Database["public"]["Enums"]["wellness_habit_type"]
+        }
+        Update: {
+          completed_at?: string
+          created_at?: string
+          date?: string
+          id?: string
+          student_id?: string
+          value?: number | null
+          wellness_type?: Database["public"]["Enums"]["wellness_habit_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wellness_habit_logs_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       xp_events: {
         Row: {
           bonus_xp: number
@@ -2924,6 +3009,14 @@ export type Database = {
     Functions: {
       auth_institution_id: { Args: never; Returns: string }
       auth_user_role: { Args: never; Returns: string }
+      get_wellness_aggregate_stats: {
+        Args: { p_institution_id: string }
+        Returns: {
+          total_logs: number
+          unique_students: number
+          wellness_type: string
+        }[]
+      }
     }
     Enums: {
       assignment_type: "assignment" | "quiz" | "project" | "exam"
@@ -2939,6 +3032,7 @@ export type Database = {
       outcome_type: "ILO" | "PLO" | "CLO"
       submission_status: "submitted" | "graded"
       user_role: "admin" | "coordinator" | "teacher" | "student" | "parent"
+      wellness_habit_type: "meditation" | "hydration" | "exercise" | "sleep"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -3083,6 +3177,7 @@ export const Constants = {
       outcome_type: ["ILO", "PLO", "CLO"],
       submission_status: ["submitted", "graded"],
       user_role: ["admin", "coordinator", "teacher", "student", "parent"],
+      wellness_habit_type: ["meditation", "hydration", "exercise", "sleep"],
     },
   },
 } as const

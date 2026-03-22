@@ -29,6 +29,7 @@ describe('XP Schedule', () => {
       'micro_assessment',
       'profile_complete',
       'starter_session_complete',
+      'wellness_habit',
     ];
 
     for (const source of expectedSources) {
