@@ -3,6 +3,7 @@
 // =============================================================================
 
 import { useMemo, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { parseAsString, useQueryState } from 'nuqs';
 import { Trophy, Flame, Medal, WifiOff } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
@@ -168,6 +169,7 @@ const MyRankCard = ({ rank, xpTotal, level, isLoading }: MyRankCardProps) => {
 // ─── LeaderboardPage ─────────────────────────────────────────────────────────
 
 const LeaderboardPage = () => {
+  useTranslation('student');
   const { user, institutionId } = useAuth();
   const userId = user?.id ?? '';
   const queryClient = useQueryClient();
