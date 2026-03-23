@@ -28,11 +28,13 @@ const AssignmentListPage = () => {
   );
   const [assignmentToDelete, setAssignmentToDelete] =
     useState<AssignmentWithRelations | null>(null);
+  const [page, setPage] = useState(1);
 
   const { data: paginatedCourses, isLoading: coursesLoading } = useCourses();
   const courses = paginatedCourses?.data;
   const { data: paginatedAssignments, isLoading } = useAssignments(
     courseFilter || undefined,
+    { page },
   );
   const deleteMutation = useDeleteAssignment();
 
@@ -76,7 +78,7 @@ const AssignmentListPage = () => {
         </div>
         <Select
           value={courseFilter}
-          onValueChange={(val) => setCourseFilter(val === 'all' ? '' : val)}
+          onValueChange={(val) => { setCourseFilter(val === 'all' ? '' : val); setPage(1); }}
           disabled={coursesLoading}
         >
           <SelectTrigger className="w-[260px] bg-white">
@@ -98,6 +100,10 @@ const AssignmentListPage = () => {
         columns={columns}
         data={filteredAssignments}
         isLoading={isLoading}
+        page={page}
+        pageSize={paginatedAssignments?.pageSize}
+        totalCount={paginatedAssignments?.count}
+        onPageChange={setPage}
       />
 
       {/* Delete Confirmation Dialog */}

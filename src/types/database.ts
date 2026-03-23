@@ -1516,6 +1516,27 @@ export type Database = {
           },
         ]
       }
+      login_attempts: {
+        Row: {
+          attempt_count: number
+          email: string
+          locked_until: string | null
+          updated_at: string
+        }
+        Insert: {
+          attempt_count?: number
+          email: string
+          locked_until?: string | null
+          updated_at?: string
+        }
+        Update: {
+          attempt_count?: number
+          email?: string
+          locked_until?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       micro_assessment_schedule: {
         Row: {
           assessment_type: string
@@ -2497,7 +2518,7 @@ export type Database = {
           last_login_date: string | null
           leaderboard_anonymous: boolean
           level: number
-          streak_current: number
+          streak_count: number
           streak_freezes_available: number
           streak_longest: number
           student_id: string
@@ -2509,7 +2530,7 @@ export type Database = {
           last_login_date?: string | null
           leaderboard_anonymous?: boolean
           level?: number
-          streak_current?: number
+          streak_count?: number
           streak_freezes_available?: number
           streak_longest?: number
           student_id: string
@@ -2521,7 +2542,7 @@ export type Database = {
           last_login_date?: string | null
           leaderboard_anonymous?: boolean
           level?: number
-          streak_current?: number
+          streak_count?: number
           streak_freezes_available?: number
           streak_longest?: number
           student_id?: string

@@ -32,9 +32,12 @@ const UserListPage = () => {
   const [role, setRole] = useQueryState('role', parseAsString.withDefault(''));
   const [userToDeactivate, setUserToDeactivate] = useState<Profile | null>(null);
 
+  const [page, setPage] = useState(1);
+
   const { data: paginatedData, isLoading } = useUsers({
     search: search || undefined,
     role: role || undefined,
+    page,
   });
 
   const softDeleteMutation = useSoftDeleteUser();
@@ -72,7 +75,7 @@ const UserListPage = () => {
           <Input
             placeholder="Search by name or email..."
             value={search}
-            onChange={(e) => setSearch(e.target.value || null)}
+            onChange={(e) => { setSearch(e.target.value || null); setPage(1); }}
             className="pl-9"
           />
         </div>
@@ -88,7 +91,7 @@ const UserListPage = () => {
             {ROLE_OPTIONS.map((option) => (
               <DropdownMenuItem
                 key={option.value}
-                onClick={() => setRole(option.value || null)}
+                onClick={() => { setRole(option.value || null); setPage(1); }}
               >
                 {option.label}
               </DropdownMenuItem>
@@ -98,7 +101,15 @@ const UserListPage = () => {
       </div>
 
       {/* Data Table */}
-      <DataTable columns={columns} data={paginatedData?.data ?? []} isLoading={isLoading} />
+      <DataTable
+        columns={columns}
+        data={paginatedData?.data ?? []}
+        isLoading={isLoading}
+        page={page}
+        pageSize={paginatedData?.pageSize}
+        totalCount={paginatedData?.count}
+        onPageChange={setPage}
+      />
 
       {/* Deactivate Confirmation Dialog */}
       <ConfirmDialog

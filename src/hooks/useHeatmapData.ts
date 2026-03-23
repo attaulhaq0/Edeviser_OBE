@@ -143,12 +143,12 @@ export const useHeatmapSummary = (
       if (studentId) {
         const { data, error } = await supabase
           .from('student_gamification')
-          .select('streak_current')
+          .select('streak_count')
           .eq('student_id', studentId)
           .maybeSingle();
 
         if (error) throw error;
-        currentStreak = data?.streak_current ?? 0;
+        currentStreak = data?.streak_count ?? 0;
       }
 
       const days = heatmapData ?? [];

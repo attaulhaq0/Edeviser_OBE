@@ -15,9 +15,11 @@ const ProgramListPage = () => {
   const navigate = useNavigate();
   const [search, setSearch] = useQueryState('q', parseAsString.withDefault(''));
   const [programToDeactivate, setProgramToDeactivate] = useState<Program | null>(null);
+  const [page, setPage] = useState(1);
 
   const { data: paginatedData, isLoading } = usePrograms({
     search: search || undefined,
+    page,
   });
 
   const softDeleteMutation = useSoftDeleteProgram();
@@ -47,14 +49,22 @@ const ProgramListPage = () => {
           <Input
             placeholder="Search by name or code..."
             value={search}
-            onChange={(e) => setSearch(e.target.value || null)}
+            onChange={(e) => { setSearch(e.target.value || null); setPage(1); }}
             className="pl-9"
           />
         </div>
       </div>
 
       {/* Data Table */}
-      <DataTable columns={columns} data={paginatedData?.data ?? []} isLoading={isLoading} />
+      <DataTable
+        columns={columns}
+        data={paginatedData?.data ?? []}
+        isLoading={isLoading}
+        page={page}
+        pageSize={paginatedData?.pageSize}
+        totalCount={paginatedData?.count}
+        onPageChange={setPage}
+      />
 
       {/* Deactivate Confirmation Dialog */}
       <ConfirmDialog

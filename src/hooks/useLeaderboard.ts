@@ -105,7 +105,7 @@ async function fetchAllTimeLeaderboard(
 
   let query = supabase
     .from('student_gamification')
-    .select('student_id, xp_total, level, streak_current')
+    .select('student_id, xp_total, level, streak_count')
     .order('xp_total', { ascending: false })
     .limit(50);
 
@@ -141,7 +141,7 @@ async function fetchAllTimeLeaderboard(
     full_name: nameMap.get(r.student_id) ?? 'Unknown',
     xp_total: r.xp_total,
     level: r.level,
-    streak_current: r.streak_current,
+    streak_current: r.streak_count,
     global_rank: 0,
   }));
 
