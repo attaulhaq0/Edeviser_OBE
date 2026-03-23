@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import type { Json } from '@/types/database';
 
 export interface AuditLogEntry {
   action: string;
@@ -14,7 +15,7 @@ export const logAuditEvent = async (entry: AuditLogEntry): Promise<void> => {
       action: entry.action,
       target_type: entry.entity_type,
       target_id: entry.entity_id,
-      diff: entry.changes,
+      diff: entry.changes as Json,
       actor_id: entry.performed_by,
     });
 

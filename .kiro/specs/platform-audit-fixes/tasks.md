@@ -34,7 +34,7 @@
   - Mark task complete when tests are written, run, and passing on unfixed code
   - _Requirements: 3.2, 3.3, 3.7, 3.9, 3.10_
 
-- [ ] 3. Fix platform audit defects
+- [x] 3. Fix platform audit defects
 
   - [x] 3.1 Regenerate `src/types/database.ts` with full schema types
     - Run `npx supabase gen types --linked > src/types/database.ts` to include all tables
@@ -143,7 +143,7 @@
     - _Preservation: existing providers continue functioning (Req 3.10)_
     - _Requirements: 2.14, 3.10_
 
-  - [-] 3.13 Create shared realtime subscription manager
+  - [x] 3.13 Create shared realtime subscription manager
     - Create `src/hooks/useRealtime.ts`: channel deduplication, exponential backoff (1s→2s→4s→8s→max 30s), polling fallback (30s), "Live updates paused" state, cleanup on unmount
     - `LeaderboardPage.tsx`: Replace direct `supabase.channel()` with `useRealtime` hook
     - _Bug_Condition: useLeaderboardRealtime creates per-component subscription with no reconnection/fallback_
@@ -151,14 +151,14 @@
     - _Preservation: leaderboard continues to respect anonymous opt-out, correct XP/levels (Req 3.6)_
     - _Requirements: 2.10, 3.6_
 
-  - [~] 3.14 Replace full-page spinner with shimmer loading
+  - [x] 3.14 Replace full-page spinner with shimmer loading
     - `src/router/AppRouter.tsx`: Replace `LoadingFallback` full-page spinner with component-level shimmer using `animate-shimmer`
     - Shimmer layout: page title placeholder (h-8 w-48), KPI grid (4 cards h-24), content area (h-64)
     - _Bug_Condition: LoadingFallback uses min-h-screen full-page spinner_
     - _Expected_Behavior: component-level shimmer placeholder consistent with design system_
     - _Requirements: 2.15_
 
-  - [~] 3.15 Add permission validation to award-xp edge function
+  - [x] 3.15 Add permission validation to award-xp edge function
     - `supabase/functions/award-xp/index.ts`: Extract JWT, verify caller is service_role or student themselves (student_id matches auth.uid()) for self-triggered sources
     - Reject with 403 Forbidden if neither condition met
     - _Bug_Condition: award-xp accepts requests from any authenticated user without permission check_
@@ -166,14 +166,14 @@
     - _Preservation: valid authorized requests continue to work (Req 3.5)_
     - _Requirements: 2.11, 3.5_
 
-  - [~] 3.16 Create PostgREST filter sanitization utility and apply to hooks
+  - [x] 3.16 Create PostgREST filter sanitization utility and apply to hooks
     - Create `src/lib/sanitizeFilter.ts`: `sanitizePostgrestValue(input)` escapes `.`, `,`, `(`, `)`, `%`, `*`, `\`
     - Apply to user search strings in `.or()` filters in: useUsers, usePrograms, useCourses, useAuditLogs
     - _Bug_Condition: user search strings interpolated directly into .or() filter expressions_
     - _Expected_Behavior: all special PostgREST characters escaped before interpolation_
     - _Requirements: 2.12_
 
-  - [~] 3.17 Implement server-side login rate limiting
+  - [x] 3.17 Implement server-side login rate limiting
     - Create migration `supabase/migrations/XXXXXX_create_login_attempts_table.sql`: table with `email`, `attempt_count`, `locked_until`, `updated_at`, RLS for service_role only
     - Create `supabase/functions/check-login-rate/index.ts`: Edge function to check/increment attempts, return lock status
     - `src/lib/loginAttemptTracker.ts`: Keep client-side tracking as UX layer, add server-side check before `signInWithPassword()`
@@ -181,7 +181,7 @@
     - _Expected_Behavior: server-side enforcement that persists across browsers/devices_
     - _Requirements: 2.17_
 
-  - [~] 3.18 Verify bug condition exploration test now passes
+  - [x] 3.18 Verify bug condition exploration test now passes
     - **Property 1: Expected Behavior** — Platform Audit Defects Fixed
     - **IMPORTANT**: Re-run the SAME test from task 1 — do NOT write a new test
     - The test from task 1 encodes the expected behavior for all 17 defects
@@ -190,14 +190,14 @@
     - **EXPECTED OUTCOME**: Test PASSES (confirms all bugs are fixed)
     - _Requirements: 2.1–2.17_
 
-  - [~] 3.19 Verify preservation tests still pass
+  - [x] 3.19 Verify preservation tests still pass
     - **Property 2: Preservation** — Existing Behavior Unchanged
     - **IMPORTANT**: Re-run the SAME tests from task 2 — do NOT write new tests
     - Run `src/__tests__/properties/platformAuditPreservation.property.test.ts`
     - **EXPECTED OUTCOME**: Tests PASS (confirms no regressions)
     - Confirm all preservation tests still pass after fixes (no regressions)
 
-- [~] 4. Checkpoint — Ensure all tests pass
+- [x] 4. Checkpoint — Ensure all tests pass
   - Run full test suite: `npm test`
   - Ensure all property-based tests pass (fault condition + preservation)
   - Ensure all existing unit tests pass (no regressions)

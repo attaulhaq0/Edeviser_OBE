@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import type { ActivityLogEventType } from '@/types/app';
+import type { Json } from '@/types/database';
 
 export interface ActivityLogEntry {
   student_id: string;
@@ -16,7 +17,7 @@ export const logActivity = async (entry: ActivityLogEntry): Promise<void> => {
     const { error } = await supabase.from('student_activity_log').insert({
       student_id: entry.student_id,
       event_type: entry.event_type,
-      metadata: entry.metadata ?? null,
+      metadata: (entry.metadata ?? null) as Json,
     });
 
     if (error) {
