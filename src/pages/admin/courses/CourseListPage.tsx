@@ -27,10 +27,12 @@ const CourseListPage = () => {
     parseAsString.withDefault(''),
   );
   const [courseToDeactivate, setCourseToDeactivate] = useState<Course | null>(null);
+  const [page, setPage] = useState(1);
 
   const { data: paginatedCourses, isLoading } = useCourses({
     search: search || undefined,
     programId: programFilter || undefined,
+    page,
   });
 
   const { data: paginatedPrograms } = usePrograms();
@@ -63,15 +65,16 @@ const CourseListPage = () => {
           <Input
             placeholder="Search by name or code..."
             value={search}
-            onChange={(e) => setSearch(e.target.value || null)}
+            onChange={(e) => { setSearch(e.target.value || null); setPage(1); }}
             className="pl-9"
           />
         </div>
         <Select
           value={programFilter || '__all__'}
-          onValueChange={(value) =>
-            setProgramFilter(value === '__all__' ? null : value)
-          }
+          onValueChange={(value) => {
+            setProgramFilter(value === '__all__' ? null : value);
+            setPage(1);
+          }}
         >
           <SelectTrigger className="w-[220px] bg-white">
             <SelectValue placeholder="All Programs" />
@@ -88,7 +91,15 @@ const CourseListPage = () => {
       </div>
 
       {/* Data Table */}
-      <DataTable columns={columns} data={paginatedCourses?.data ?? []} isLoading={isLoading} />
+      <DataTable
+        columns={columns}
+        data={paginatedCourses?.data ?? []}
+        isLoading={isLoading}
+        page={page}
+        pageSize={paginatedCourses?.pageSize}
+        totalCount={paginatedCourses?.count}
+        onPageChange={setPage}
+      />
 
       {/* Deactivate Confirmation Dialog */}
       <ConfirmDialog

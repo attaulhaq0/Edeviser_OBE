@@ -1,5 +1,5 @@
 // Feature: platform-audit-fixes, Property 1: Fault Condition — Platform Audit Defects (17 Bugs)
-// **Validates: Requirements 2.2, 2.3, 2.4, 2.8, 2.11, 2.12, 2.13, 2.16**
+// **Validates: Requirements 2.1, 2.2, 2.3, 2.4, 2.8, 2.11, 2.12, 2.13, 2.16**
 //
 // CRITICAL: These tests MUST FAIL on unfixed code — failure confirms the bugs exist.
 // DO NOT fix source code or tests when they fail.
@@ -9,29 +9,33 @@ import * as fc from 'fast-check';
 import * as fs from 'fs';
 import * as path from 'path';
 import { XP_SCHEDULE } from '@/lib/xpSchedule';
+import { sanitizePostgrestValue } from '@/lib/sanitizeFilter';
 
 // Resolve the src root for fs-based source reading
 const srcRoot = path.resolve(__dirname, '../../..');
 
-// ─── 1.1 XP Schedule Mismatch ──────────────────────────────────────────────
+// ─── 1. XP Schedule Values ─────────────────────────────────────────────────
 // **Validates: Requirements 2.13**
+// Domain spec: submission=25, grade=15, streak_milestone=50, first_attempt_bonus=10
+// Bug: currently submission=50, grade=25, streak_milestone=100, first_attempt_bonus=25
 
-describe('1.1 XP Schedule fault condition', () => {
-  it('XP_SCHEDULE values match domain specification for affected sources', () => {
-    const domainSpec: Record<string, number> = {
-      submission: 25,
-      grade: 15,
-      streak_milestone: 50,
-      first_attempt_bonus: 10,
-    };
+describe('1. XP Schedule fault condition', () => {
+  const domainSpec: Record<string, number> = {
+    submission: 25,
+    grade: 15,
+    streak_milestone: 50,
+    first_attempt_bonus: 10,
+  };
 
+  it('XP_SCHEDULE values match domain specification for all affected sources', () => {
     const affectedSources = Object.keys(domainSpec);
 
     fc.assert(
       fc.property(
         fc.constantFrom(...affectedSources),
         (source: string) => {
-          expect(XP_SCHEDULE[source as keyof typeof XP_SCHEDULE]).toBe(domainSpec[source]);
+          const actual = XP_SCHEDULE[source as keyof typeof XP_SCHEDULE];
+          expect(actual).toBe(domainSpec[source]);
         },
       ),
       { numRuns: 100 },
@@ -40,10 +44,11 @@ describe('1.1 XP Schedule fault condition', () => {
 });
 
 
-// ─── 1.2 Query Key Consistency ──────────────────────────────────────────────
+// ─── 2. Query Key Consistency ───────────────────────────────────────────────
 // **Validates: Requirements 2.2**
+// All dashboard hooks must use queryKeys factory, not ad-hoc string arrays
 
-describe('1.2 Query key consistency fault condition', () => {
+describe('2. Query key consistency fault condition', () => {
   const dashboardHookFiles = [
     'src/hooks/useAdminDashboard.ts',
     'src/hooks/useStudentDashboard.ts',
@@ -52,108 +57,188 @@ describe('1.2 Query key consistency fault condition', () => {
     'src/hooks/useParentDashboard.ts',
   ];
 
-  it.each(dashboardHookFiles)(
-    '%s uses queryKeys factory (not ad-hoc arrays)',
-    (relPath: string) => {
-      const filePath = path.join(srcRoot, relPath);
-      const source = fs.readFileSync(filePath, 'utf-8');
+  it('all dashboard hooks import and use queryKeys factory (not ad-hoc arrays)', () => {
+    fc.assert(
+      fc.property(
+        fc.constantFrom(...dashboardHookFiles),
+        (relPath: string) => {
+          const filePath = path.join(srcRoot, relPath);
+          const source = fs.readFileSync(filePath, 'utf-8');
 
-      // Every dashboard hook should reference the queryKeys factory
-      expect(source).toContain('queryKeys.');
-    },
-  );
+          // Must import queryKeys
+          expect(source).toContain("import { queryKeys }");
+          // Must reference queryKeys. in query key definitions
+          expect(source).toContain('queryKeys.');
+          // Must NOT use ad-hoc string array patterns like ['admin', 'kpis']
+          const adHocPattern = /queryKey:\s*\[\s*['"][a-z]+['"]\s*,\s*['"][a-z]/;
+          expect(adHocPattern.test(source)).toBe(false);
+        },
+      ),
+      { numRuns: 100 },
+    );
+  });
 });
 
-// ─── 1.3 Column Name Mismatches ────────────────────────────────────────────
+// ─── 3. Column Name Mismatches ──────────────────────────────────────────────
 // **Validates: Requirements 2.3, 2.4**
+// useStudentDashboard must read streak_count (not current_streak or streak_current)
+// useStudentDashboard must read level (not current_level)
+// useStudentDashboard must read attainment_percent (not score_percent)
 
-describe('1.3 Column name fault condition', () => {
-  it('useStudentDashboard reads streak_current (not current_streak) from student_gamification', () => {
+describe('3. Column name fault condition', () => {
+  it('useStudentDashboard reads streak_count from student_gamification', () => {
     const filePath = path.join(srcRoot, 'src/hooks/useStudentDashboard.ts');
     const source = fs.readFileSync(filePath, 'utf-8');
 
-    // Should use the correct column name that the edge function writes to
-    expect(source).toContain('streak_current');
+    // The gamification select query must include streak_count (matching process-streak writes)
+    // Bug: code currently uses streak_current instead of streak_count
+    const gamificationSelectMatch = source.match(
+      /\.from\(['"]student_gamification['"]\)\s*\.select\(['"]([^'"]+)['"]\)/s,
+    );
+    expect(gamificationSelectMatch).not.toBeNull();
+    const selectColumns = gamificationSelectMatch![1];
+    expect(selectColumns).toContain('streak_count');
   });
 
-  it('useStudentDashboard reads attainment_percent (not score_percent) from outcome_attainment', () => {
+  it('useStudentDashboard reads attainment_percent from outcome_attainment', () => {
     const filePath = path.join(srcRoot, 'src/hooks/useStudentDashboard.ts');
     const source = fs.readFileSync(filePath, 'utf-8');
 
-    // Should use the correct column name that calculate-attainment-rollup writes
+    // Must use attainment_percent (matching calculate-attainment-rollup writes)
     expect(source).toContain('attainment_percent');
+    // Must NOT use score_percent
+    expect(source).not.toContain('score_percent');
+  });
+
+  it('useParentDashboard reads streak_count from student_gamification', () => {
+    const filePath = path.join(srcRoot, 'src/hooks/useParentDashboard.ts');
+    const source = fs.readFileSync(filePath, 'utf-8');
+
+    // The gamification select query must include streak_count
+    // Bug: code currently uses streak_current instead of streak_count
+    const gamificationSelectMatch = source.match(
+      /\.from\(['"]student_gamification['"]\)\s*\.select\(['"]([^'"]+)['"]\)/s,
+    );
+    expect(gamificationSelectMatch).not.toBeNull();
+    const selectColumns = gamificationSelectMatch![1];
+    expect(selectColumns).toContain('streak_count');
   });
 });
 
-// ─── 1.4 PostgREST Filter Sanitization ─────────────────────────────────────
+
+// ─── 4. PostgREST Filter Sanitization ───────────────────────────────────────
 // **Validates: Requirements 2.12**
+// sanitizePostgrestValue must escape all PostgREST special chars: . , ( ) % *
 
-describe('1.4 PostgREST filter sanitization fault condition', () => {
-  it('sanitizePostgrestValue utility exists and escapes special characters', () => {
-    const sanitizeFilterPath = path.join(srcRoot, 'src/lib/sanitizeFilter.ts');
+describe('4. PostgREST filter sanitization fault condition', () => {
+  const postgrestSpecialChars = ['.', ',', '(', ')', '%', '*'];
 
-    // The module file must exist
-    const fileExists = fs.existsSync(sanitizeFilterPath);
-    expect(fileExists).toBe(true);
+  it('sanitizePostgrestValue escapes all PostgREST special characters', () => {
+    // Generate strings that contain at least one PostgREST special character
+    const charArb = fc.constantFrom(...postgrestSpecialChars, 'a', 'b', 'c', '1', '2', ' ');
+    const stringArb = fc.array(charArb, { minLength: 1, maxLength: 50 }).map((chars) => chars.join(''));
+
+    fc.assert(
+      fc.property(
+        stringArb,
+        (input: string) => {
+          const sanitized = sanitizePostgrestValue(input);
+
+          // Every special char in the input must be escaped with backslash in output
+          for (const char of postgrestSpecialChars) {
+            if (input.includes(char)) {
+              expect(sanitized).toContain(`\\${char}`);
+            }
+          }
+
+          // The sanitized output must not contain any unescaped special chars
+          // (every special char must be preceded by a backslash)
+          for (const char of postgrestSpecialChars) {
+            const unescapedPattern = new RegExp(`(?<!\\\\)\\${char}`);
+            expect(unescapedPattern.test(sanitized)).toBe(false);
+          }
+        },
+      ),
+      { numRuns: 100 },
+    );
   });
 });
 
-
-// ─── 1.5 Audit Logging Coverage ────────────────────────────────────────────
+// ─── 5. Audit Logging Coverage ──────────────────────────────────────────────
 // **Validates: Requirements 2.8**
+// All mutation hooks in CLO, assignment, rubric, enrollment, grade, submission
+// must call logAuditEvent
 
-describe('1.5 Audit logging coverage fault condition', () => {
-  const hookFiles: Array<{ file: string; label: string }> = [
-    { file: 'src/hooks/useCLOs.ts', label: 'useCLOs' },
-    { file: 'src/hooks/useAssignments.ts', label: 'useAssignments' },
-    { file: 'src/hooks/useRubrics.ts', label: 'useRubrics' },
-    { file: 'src/hooks/useEnrollments.ts', label: 'useEnrollments' },
-    { file: 'src/hooks/useSubmissions.ts', label: 'useSubmissions' },
+describe('5. Audit logging coverage fault condition', () => {
+  const hookFiles: Array<{ file: string; label: string; expectedEntityTypes: string[] }> = [
+    { file: 'src/hooks/useCLOs.ts', label: 'useCLOs', expectedEntityTypes: ['clo'] },
+    { file: 'src/hooks/useAssignments.ts', label: 'useAssignments', expectedEntityTypes: ['assignment'] },
+    { file: 'src/hooks/useRubrics.ts', label: 'useRubrics', expectedEntityTypes: ['rubric'] },
+    { file: 'src/hooks/useEnrollments.ts', label: 'useEnrollments', expectedEntityTypes: ['enrollment'] },
+    { file: 'src/hooks/useGrades.ts', label: 'useGrades', expectedEntityTypes: ['grade'] },
+    { file: 'src/hooks/useSubmissions.ts', label: 'useSubmissions', expectedEntityTypes: ['submission'] },
   ];
 
-  it.each(hookFiles)(
-    '$label contains logAuditEvent calls for mutation hooks',
-    ({ file }: { file: string }) => {
-      const filePath = path.join(srcRoot, file);
-      const source = fs.readFileSync(filePath, 'utf-8');
+  it('all mutation hooks import and call logAuditEvent', () => {
+    fc.assert(
+      fc.property(
+        fc.constantFrom(...hookFiles),
+        ({ file, expectedEntityTypes }: { file: string; expectedEntityTypes: string[] }) => {
+          const filePath = path.join(srcRoot, file);
+          const source = fs.readFileSync(filePath, 'utf-8');
 
-      // All mutation hooks in these files should call logAuditEvent
-      expect(source).toContain('logAuditEvent');
-    },
-  );
+          // Must import logAuditEvent
+          expect(source).toContain('logAuditEvent');
+
+          // Must call logAuditEvent with the correct entity_type
+          for (const entityType of expectedEntityTypes) {
+            expect(source).toContain(`entity_type: '${entityType}'`);
+          }
+        },
+      ),
+      { numRuns: 100 },
+    );
+  });
 });
 
-// ─── 1.6 Course Name Display ───────────────────────────────────────────────
+// ─── 6. Course Name Display ─────────────────────────────────────────────────
 // **Validates: Requirements 2.16**
+// useUpcomingDeadlines must join to courses table for actual course name
 
-describe('1.6 Course name display fault condition', () => {
+describe('6. Course name display fault condition', () => {
   it('useUpcomingDeadlines joins to courses table for course name', () => {
     const filePath = path.join(srcRoot, 'src/hooks/useStudentDashboard.ts');
     const source = fs.readFileSync(filePath, 'utf-8');
 
-    // The query should join to courses to get the actual name
+    // The assignments query must include a join to courses for the name
     expect(source).toContain('courses(name)');
+
+    // Must NOT use truncated UUID pattern like course_id.slice(0, 8)
+    expect(source).not.toMatch(/course_id\.slice\(/);
   });
 });
 
-// ─── 1.7 Edge Function Permission Check ────────────────────────────────────
+// ─── 7. Edge Function Permission Check ──────────────────────────────────────
 // **Validates: Requirements 2.11**
+// award-xp must reject non-service-role callers awarding XP to other students
 
-describe('1.7 Edge function permission fault condition', () => {
+describe('7. Edge function permission fault condition', () => {
   it('award-xp edge function validates caller permissions', () => {
     const filePath = path.join(srcRoot, 'supabase/functions/award-xp/index.ts');
     const source = fs.readFileSync(filePath, 'utf-8');
 
-    // The edge function should check authorization/permissions before awarding XP
-    // It should verify the caller is either service_role or the student themselves
-    const hasPermissionCheck =
-      source.includes('authorization') && (
-        source.includes('service_role') ||
-        source.includes('403') ||
-        source.includes('Forbidden') ||
-        source.includes('permission')
-      );
+    // Must check authorization header
+    expect(source).toContain('Authorization');
 
-    expect(hasPermissionCheck).toBe(true);
+    // Must have service_role check
+    expect(source).toMatch(/service.?role/i);
+
+    // Must return 403 for unauthorized requests
+    expect(source).toContain('403');
+
+    // Must have permission/forbidden error messaging
+    const hasPermissionDenial =
+      source.includes('Forbidden') || source.includes('permission') || source.includes('unauthorized');
+    expect(hasPermissionDenial).toBe(true);
   });
 });
