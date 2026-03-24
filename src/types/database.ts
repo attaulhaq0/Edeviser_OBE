@@ -1537,6 +1537,104 @@ export type Database = {
         }
         Relationships: []
       }
+      mastery_recovery_pathways: {
+        Row: {
+          activated_at: string
+          ai_tutor_completed: boolean
+          ai_tutor_completed_at: string | null
+          clo_id: string
+          completed_at: string | null
+          course_id: string
+          created_at: string
+          expired_at: string | null
+          failure_count: number
+          id: string
+          institution_id: string
+          peer_suggestion_applicable: boolean
+          peer_suggestion_shown: boolean
+          practice_completed: boolean
+          practice_completed_at: string | null
+          retry_outcome: string | null
+          retry_quiz_attempt_id: string | null
+          status: string
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          activated_at?: string
+          ai_tutor_completed?: boolean
+          ai_tutor_completed_at?: string | null
+          clo_id: string
+          completed_at?: string | null
+          course_id: string
+          created_at?: string
+          expired_at?: string | null
+          failure_count?: number
+          id?: string
+          institution_id: string
+          peer_suggestion_applicable?: boolean
+          peer_suggestion_shown?: boolean
+          practice_completed?: boolean
+          practice_completed_at?: string | null
+          retry_outcome?: string | null
+          retry_quiz_attempt_id?: string | null
+          status?: string
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          activated_at?: string
+          ai_tutor_completed?: boolean
+          ai_tutor_completed_at?: string | null
+          clo_id?: string
+          completed_at?: string | null
+          course_id?: string
+          created_at?: string
+          expired_at?: string | null
+          failure_count?: number
+          id?: string
+          institution_id?: string
+          peer_suggestion_applicable?: boolean
+          peer_suggestion_shown?: boolean
+          practice_completed?: boolean
+          practice_completed_at?: string | null
+          retry_outcome?: string | null
+          retry_quiz_attempt_id?: string | null
+          status?: string
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mastery_recovery_pathways_clo_id_fkey"
+            columns: ["clo_id"]
+            isOneToOne: false
+            referencedRelation: "learning_outcomes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mastery_recovery_pathways_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mastery_recovery_pathways_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mastery_recovery_pathways_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       micro_assessment_schedule: {
         Row: {
           assessment_type: string
@@ -2114,11 +2212,169 @@ export type Database = {
           },
         ]
       }
+      question_analytics: {
+        Row: {
+          avg_response_time_seconds: number | null
+          calibrated_difficulty: number | null
+          correct_count: number
+          discrimination_index: number | null
+          id: string
+          last_calculated_at: string
+          quality_flag: string | null
+          question_id: string
+          success_rate: number | null
+          total_attempts: number
+        }
+        Insert: {
+          avg_response_time_seconds?: number | null
+          calibrated_difficulty?: number | null
+          correct_count?: number
+          discrimination_index?: number | null
+          id?: string
+          last_calculated_at?: string
+          quality_flag?: string | null
+          question_id: string
+          success_rate?: number | null
+          total_attempts?: number
+        }
+        Update: {
+          avg_response_time_seconds?: number | null
+          calibrated_difficulty?: number | null
+          correct_count?: number
+          discrimination_index?: number | null
+          id?: string
+          last_calculated_at?: string
+          quality_flag?: string | null
+          question_id?: string
+          success_rate?: number | null
+          total_attempts?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "question_analytics_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: true
+            referencedRelation: "question_bank"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      question_bank: {
+        Row: {
+          bloom_level: number
+          clo_id: string
+          correct_answer: Json
+          course_id: string
+          created_at: string
+          created_by: string
+          difficulty_rating: number
+          explanation: string | null
+          explanation_confidence: number | null
+          generation_request_id: string | null
+          generation_source: string
+          id: string
+          institution_id: string
+          labels: string[] | null
+          options: Json | null
+          parent_question_id: string | null
+          question_text: string
+          question_type: string
+          source_chunks: Json | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          bloom_level: number
+          clo_id: string
+          correct_answer: Json
+          course_id: string
+          created_at?: string
+          created_by: string
+          difficulty_rating: number
+          explanation?: string | null
+          explanation_confidence?: number | null
+          generation_request_id?: string | null
+          generation_source: string
+          id?: string
+          institution_id: string
+          labels?: string[] | null
+          options?: Json | null
+          parent_question_id?: string | null
+          question_text: string
+          question_type: string
+          source_chunks?: Json | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          bloom_level?: number
+          clo_id?: string
+          correct_answer?: Json
+          course_id?: string
+          created_at?: string
+          created_by?: string
+          difficulty_rating?: number
+          explanation?: string | null
+          explanation_confidence?: number | null
+          generation_request_id?: string | null
+          generation_source?: string
+          id?: string
+          institution_id?: string
+          labels?: string[] | null
+          options?: Json | null
+          parent_question_id?: string | null
+          question_text?: string
+          question_type?: string
+          source_chunks?: Json | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "question_bank_clo_id_fkey"
+            columns: ["clo_id"]
+            isOneToOne: false
+            referencedRelation: "learning_outcomes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_bank_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_bank_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_bank_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_bank_parent_question_id_fkey"
+            columns: ["parent_question_id"]
+            isOneToOne: false
+            referencedRelation: "question_bank"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quiz_attempts: {
         Row: {
           answers: Json
           attempt_number: number
+          difficulty_trajectory: Json | null
           id: string
+          per_question_times: Json | null
+          question_sequence: Json | null
           quiz_id: string
           score: number | null
           started_at: string
@@ -2128,7 +2384,10 @@ export type Database = {
         Insert: {
           answers?: Json
           attempt_number?: number
+          difficulty_trajectory?: Json | null
           id?: string
+          per_question_times?: Json | null
+          question_sequence?: Json | null
           quiz_id: string
           score?: number | null
           started_at?: string
@@ -2138,7 +2397,10 @@ export type Database = {
         Update: {
           answers?: Json
           attempt_number?: number
+          difficulty_trajectory?: Json | null
           id?: string
+          per_question_times?: Json | null
+          question_sequence?: Json | null
           quiz_id?: string
           score?: number | null
           started_at?: string
@@ -2156,6 +2418,85 @@ export type Database = {
           {
             foreignKeyName: "quiz_attempts_student_id_fkey"
             columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quiz_generation_logs: {
+        Row: {
+          chunks_retrieved: number
+          completion_tokens: number
+          course_id: string
+          created_at: string
+          error_message: string | null
+          generation_request_id: string
+          id: string
+          institution_id: string
+          latency_ms: number
+          model_used: string
+          prompt_tokens: number
+          question_count_generated: number
+          question_count_requested: number
+          status: string
+          teacher_id: string
+          total_tokens: number
+        }
+        Insert: {
+          chunks_retrieved: number
+          completion_tokens: number
+          course_id: string
+          created_at?: string
+          error_message?: string | null
+          generation_request_id: string
+          id?: string
+          institution_id: string
+          latency_ms: number
+          model_used: string
+          prompt_tokens: number
+          question_count_generated: number
+          question_count_requested: number
+          status: string
+          teacher_id: string
+          total_tokens: number
+        }
+        Update: {
+          chunks_retrieved?: number
+          completion_tokens?: number
+          course_id?: string
+          created_at?: string
+          error_message?: string | null
+          generation_request_id?: string
+          id?: string
+          institution_id?: string
+          latency_ms?: number
+          model_used?: string
+          prompt_tokens?: number
+          question_count_generated?: number
+          question_count_requested?: number
+          status?: string
+          teacher_id?: string
+          total_tokens?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_generation_logs_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quiz_generation_logs_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quiz_generation_logs_teacher_id_fkey"
+            columns: ["teacher_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -2205,36 +2546,42 @@ export type Database = {
       }
       quizzes: {
         Row: {
+          adaptation_config: Json | null
           clo_ids: Json
           course_id: string
           created_at: string
           description: string | null
           due_date: string
           id: string
+          is_adaptive: boolean
           is_published: boolean
           max_attempts: number
           time_limit_minutes: number | null
           title: string
         }
         Insert: {
+          adaptation_config?: Json | null
           clo_ids?: Json
           course_id: string
           created_at?: string
           description?: string | null
           due_date: string
           id?: string
+          is_adaptive?: boolean
           is_published?: boolean
           max_attempts?: number
           time_limit_minutes?: number | null
           title: string
         }
         Update: {
+          adaptation_config?: Json | null
           clo_ids?: Json
           course_id?: string
           created_at?: string
           description?: string | null
           due_date?: string
           id?: string
+          is_adaptive?: boolean
           is_published?: boolean
           max_attempts?: number
           time_limit_minutes?: number | null
@@ -2872,6 +3219,64 @@ export type Database = {
           },
         ]
       }
+      verified_explanations: {
+        Row: {
+          created_at: string
+          explanation_text: string
+          id: string
+          institution_id: string
+          is_active: boolean
+          question_id: string
+          source: string
+          updated_at: string
+          verified_by: string
+        }
+        Insert: {
+          created_at?: string
+          explanation_text: string
+          id?: string
+          institution_id: string
+          is_active?: boolean
+          question_id: string
+          source: string
+          updated_at?: string
+          verified_by: string
+        }
+        Update: {
+          created_at?: string
+          explanation_text?: string
+          id?: string
+          institution_id?: string
+          is_active?: boolean
+          question_id?: string
+          source?: string
+          updated_at?: string
+          verified_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "verified_explanations_institution_id_fkey"
+            columns: ["institution_id"]
+            isOneToOne: false
+            referencedRelation: "institutions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "verified_explanations_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "question_bank"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "verified_explanations_verified_by_fkey"
+            columns: ["verified_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       wellness_habit_logs: {
         Row: {
           completed_at: string
@@ -3053,6 +3458,7 @@ export type Database = {
     Functions: {
       auth_institution_id: { Args: never; Returns: string }
       auth_user_role: { Args: never; Returns: string }
+      expire_stale_recovery_sessions: { Args: never; Returns: number }
       get_wellness_aggregate_stats: {
         Args: { p_institution_id: string }
         Returns: {
