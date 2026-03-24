@@ -38,9 +38,10 @@ const CourseEnrollmentPage = () => {
   const [enrollDialogOpen, setEnrollDialogOpen] = useState(false);
   const [selectedStudentId, setSelectedStudentId] = useState<string>('');
   const [unenrollTarget, setUnenrollTarget] = useState<EnrollmentWithProfile | null>(null);
+  const [page, setPage] = useState(1);
 
   const { data: course, isLoading: courseLoading } = useCourse(courseId);
-  const { data: paginatedEnrollments, isLoading: enrollmentsLoading } = useEnrollments(courseId);
+  const { data: paginatedEnrollments, isLoading: enrollmentsLoading } = useEnrollments(courseId, { page });
   const enrollments = useMemo(() => paginatedEnrollments?.data ?? [], [paginatedEnrollments?.data]);
   const { data: paginatedStudents } = useUsers({ role: 'student' });
   const students = useMemo(() => paginatedStudents?.data ?? [], [paginatedStudents?.data]);
@@ -133,6 +134,10 @@ const CourseEnrollmentPage = () => {
         columns={columns}
         data={enrollments}
         isLoading={enrollmentsLoading}
+        page={page}
+        pageSize={paginatedEnrollments?.pageSize}
+        totalCount={paginatedEnrollments?.count}
+        onPageChange={setPage}
       />
 
       {/* Enroll Student Dialog */}

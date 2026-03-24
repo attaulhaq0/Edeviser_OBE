@@ -110,10 +110,11 @@ const PLOListPage = () => {
     'program',
     parseAsString.withDefault(''),
   );
+  const [page, setPage] = useState(1);
 
   const { data: paginatedPrograms, isLoading: programsLoading } = usePrograms();
   const programs = paginatedPrograms?.data;
-  const { data: paginatedPLOs, isLoading } = usePLOs(programFilter || undefined);
+  const { data: paginatedPLOs, isLoading } = usePLOs(programFilter || undefined, { page });
   const plos = paginatedPLOs?.data;
   const deleteMutation = useDeletePLO();
   const reorderMutation = useReorderPLOs();
@@ -233,7 +234,7 @@ const PLOListPage = () => {
       <div className="flex items-center gap-4">
         <Select
           value={programFilter}
-          onValueChange={(val) => setProgramFilter(val === 'all' ? '' : val)}
+          onValueChange={(val) => { setProgramFilter(val === 'all' ? '' : val); setPage(1); }}
           disabled={programsLoading}
         >
           <SelectTrigger className="w-[260px] bg-white">
@@ -280,7 +281,15 @@ const PLOListPage = () => {
           </DndContext>
         </Card>
       ) : (
-        <DataTable columns={columns} data={displayItems} isLoading={false} />
+        <DataTable
+          columns={columns}
+          data={displayItems}
+          isLoading={false}
+          page={page}
+          pageSize={paginatedPLOs?.pageSize}
+          totalCount={paginatedPLOs?.count}
+          onPageChange={setPage}
+        />
       )}
 
       {/* Delete Confirmation Dialog */}
