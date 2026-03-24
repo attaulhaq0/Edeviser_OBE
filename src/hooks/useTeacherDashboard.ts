@@ -62,10 +62,14 @@ export const useTeacherKPIs = () => {
         .in('assignments.course_id', courseIds);
 
       const submissions = allSubmissions ?? [];
+<<<<<<< HEAD
 
       const pendingSubmissions = submissions.filter(
         (s) => !s.grades || (Array.isArray(s.grades) && s.grades.length === 0),
       ).length;
+=======
+      const pendingSubmissions = submissions.filter((s) => !s.grades || s.grades.length === 0).length;
+>>>>>>> e1901d0 (fix(audit): complete remaining platform audit tasks 3.4-4 with pagination wiring, batch reorder, and test cleanup)
 
       // 2. Graded this week
       const weekAgo = new Date();

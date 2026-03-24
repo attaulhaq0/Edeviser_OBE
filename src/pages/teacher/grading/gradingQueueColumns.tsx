@@ -84,7 +84,7 @@ export const gradingQueueColumns: ColumnDef<SubmissionWithRelations>[] = [
     id: 'status',
     header: 'Status',
     cell: ({ row }) => {
-      const isGraded = !!row.original.grades;
+      const isGraded = Array.isArray(row.original.grades) && row.original.grades.length > 0;
       return isGraded ? (
         <Badge className="bg-green-100 text-green-700 border-green-200" variant="outline">
           Graded
