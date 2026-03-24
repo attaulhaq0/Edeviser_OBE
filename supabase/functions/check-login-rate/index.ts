@@ -211,6 +211,32 @@ serve(async (req) => {
 
     const { email, action } = validation.data;
 
+    // ── Vuln 12 fix: 'clear' action requires admin auth ─────────────
+    if (action === 'clear') {
+      const authHeader = req.headers.get('Authorization') ?? '';
+      const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+      const isServiceRole = serviceRoleKey && authHeader.includes(serviceRoleKey);
+
+      if (!isServiceRole) {
+        if (!authHeader) {
+          return jsonResponse({ error: 'Unauthorized: clear requires admin auth' }, 401);
+        }
+        const userClient = createClient(
+          Deno.env.get('SUPABASE_URL')!,
+          Deno.env.get('SUPABASE_ANON_KEY')!,
+          { global: { headers: { Authorization: authHeader } } },
+        );
+        const { data: { user }, error: authError } = await userClient.auth.getUser();
+        if (authError || !user) {
+          return jsonResponse({ error: 'Unauthorized' }, 401);
+        }
+        const role = user.app_metadata?.role ?? user.user_metadata?.role ?? '';
+        if (role !== 'admin') {
+          return jsonResponse({ error: 'Forbidden: admin role required for clear action' }, 403);
+        }
+      }
+    }
+
     switch (action) {
       case 'check':
         return await handleCheck(supabase, email);

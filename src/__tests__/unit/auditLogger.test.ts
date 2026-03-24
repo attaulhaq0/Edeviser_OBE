@@ -20,23 +20,24 @@ describe('logAuditEvent', () => {
     mockInsert.mockResolvedValue({ error: null });
   });
 
-  it('inserts into audit_logs with mapped field names', async () => {
+  it('inserts into audit_logs with mapped field names and filtered changes', async () => {
     const entry: AuditLogEntry = {
       action: 'create',
-      entity_type: 'profiles',
+      entity_type: 'user',
       entity_id: 'user-123',
-      changes: { full_name: { before: 'Old', after: 'New' } },
+      changes: { role: 'student', full_name: 'Test User', email: 'test@example.com' },
       performed_by: 'admin-456',
     };
 
     await logAuditEvent(entry);
 
     expect(supabase.from).toHaveBeenCalledWith('audit_logs');
+    // email should be filtered out (not in allowlist), role and is_active are allowed
     expect(mockInsert).toHaveBeenCalledWith({
       action: 'create',
-      target_type: 'profiles',
+      target_type: 'user',
       target_id: 'user-123',
-      diff: { full_name: { before: 'Old', after: 'New' } },
+      diff: { role: 'student' },
       actor_id: 'admin-456',
     });
   });

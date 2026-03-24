@@ -8,7 +8,11 @@ export function initSentry(): void {
     dsn,
     integrations: [
       Sentry.browserTracingIntegration(),
-      Sentry.replayIntegration(),
+      Sentry.replayIntegration({
+        maskAllText: true,
+        maskAllInputs: true,
+        blockAllMedia: true,
+      }),
     ],
     tracesSampleRate: 0.1,
     replaysSessionSampleRate: 0.1,
