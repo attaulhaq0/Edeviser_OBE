@@ -40,7 +40,7 @@ const ExportDataButton = ({
     return (
       <Button
         variant="outline"
-        onClick={() => handleExport(formats[0])}
+        onClick={() => handleExport(formats[0]!)}
         disabled={isExporting}
         className={cn(className)}
       >

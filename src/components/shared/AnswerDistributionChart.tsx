@@ -32,9 +32,9 @@ const AnswerDistributionChart = ({ data, className }: AnswerDistributionChartPro
             tick={{ fontSize: 11, fill: '#64748b' }}
           />
           <Tooltip
-            formatter={(value: number, _name: string, props: { payload: { option: string } }) =>
-              [`${value} responses`, `Option ${props.payload.option}`]
-            }
+            formatter={((value: number) =>
+              [`${value} responses`]
+            ) as never}
             contentStyle={{
               borderRadius: 8,
               border: 'none',

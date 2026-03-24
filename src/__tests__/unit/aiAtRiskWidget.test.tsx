@@ -89,7 +89,7 @@ describe('AIAtRiskWidget', () => {
     mockUseAtRiskPredictions.mockReturnValue({
       data: undefined,
       isLoading: true,
-    } as ReturnType<typeof useAtRiskPredictions>);
+    } as unknown as ReturnType<typeof useAtRiskPredictions>);
 
     render(<AIAtRiskWidget />, { wrapper: createWrapper() });
     expect(screen.getByText('AI At-Risk Students')).toBeInTheDocument();
@@ -99,7 +99,7 @@ describe('AIAtRiskWidget', () => {
     mockUseAtRiskPredictions.mockReturnValue({
       data: [],
       isLoading: false,
-    } as ReturnType<typeof useAtRiskPredictions>);
+    } as unknown as ReturnType<typeof useAtRiskPredictions>);
 
     render(<AIAtRiskWidget />, { wrapper: createWrapper() });
     expect(screen.getByText(/No AI at-risk predictions/)).toBeInTheDocument();
@@ -109,7 +109,7 @@ describe('AIAtRiskWidget', () => {
     mockUseAtRiskPredictions.mockReturnValue({
       data: mockPredictions,
       isLoading: false,
-    } as ReturnType<typeof useAtRiskPredictions>);
+    } as unknown as ReturnType<typeof useAtRiskPredictions>);
 
     render(<AIAtRiskWidget />, { wrapper: createWrapper() });
     expect(screen.getByText('Alice Johnson')).toBeInTheDocument();
@@ -122,7 +122,7 @@ describe('AIAtRiskWidget', () => {
     mockUseAtRiskPredictions.mockReturnValue({
       data: mockPredictions,
       isLoading: false,
-    } as ReturnType<typeof useAtRiskPredictions>);
+    } as unknown as ReturnType<typeof useAtRiskPredictions>);
 
     render(<AIAtRiskWidget />, { wrapper: createWrapper() });
     expect(screen.getByText('85% risk')).toBeInTheDocument();
@@ -133,7 +133,7 @@ describe('AIAtRiskWidget', () => {
     mockUseAtRiskPredictions.mockReturnValue({
       data: mockPredictions,
       isLoading: false,
-    } as ReturnType<typeof useAtRiskPredictions>);
+    } as unknown as ReturnType<typeof useAtRiskPredictions>);
 
     render(<AIAtRiskWidget />, { wrapper: createWrapper() });
     expect(screen.getAllByText('Login: low').length).toBeGreaterThanOrEqual(1);
@@ -145,7 +145,7 @@ describe('AIAtRiskWidget', () => {
     mockUseAtRiskPredictions.mockReturnValue({
       data: mockPredictions,
       isLoading: false,
-    } as ReturnType<typeof useAtRiskPredictions>);
+    } as unknown as ReturnType<typeof useAtRiskPredictions>);
 
     render(<AIAtRiskWidget />, { wrapper: createWrapper() });
     const nudgeButtons = screen.getAllByRole('button', { name: /send nudge/i });
@@ -157,7 +157,7 @@ describe('AIAtRiskWidget', () => {
     mockUseAtRiskPredictions.mockReturnValue({
       data: mockPredictions,
       isLoading: false,
-    } as ReturnType<typeof useAtRiskPredictions>);
+    } as unknown as ReturnType<typeof useAtRiskPredictions>);
 
     render(<AIAtRiskWidget />, { wrapper: createWrapper() });
     const nudgeButtons = screen.getAllByRole('button', { name: /send nudge/i });
@@ -171,7 +171,7 @@ describe('AIAtRiskWidget', () => {
     mockUseAtRiskPredictions.mockReturnValue({
       data: mockPredictions,
       isLoading: false,
-    } as ReturnType<typeof useAtRiskPredictions>);
+    } as unknown as ReturnType<typeof useAtRiskPredictions>);
 
     render(<AIAtRiskWidget />, { wrapper: createWrapper() });
     const nudgeButtons = screen.getAllByRole('button', { name: /send nudge/i });
@@ -196,7 +196,7 @@ describe('AIAtRiskWidget', () => {
     mockUseAtRiskPredictions.mockReturnValue({
       data: [],
       isLoading: false,
-    } as ReturnType<typeof useAtRiskPredictions>);
+    } as unknown as ReturnType<typeof useAtRiskPredictions>);
 
     render(<AIAtRiskWidget />, { wrapper: createWrapper() });
     expect(screen.getByText('AI At-Risk Students')).toBeInTheDocument();

@@ -3,17 +3,19 @@
 // Validates: Requirement 7 (Adaptive Quiz Session Flow), Task 10.1
 // =============================================================================
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { MemoryRouter } from 'react-router-dom';
 
 // ─── Mocks ───────────────────────────────────────────────────────────────────
 
 const mockNavigate = vi.fn();
 
-vi.mock('react-router-dom', () => ({
-  useParams: () => ({ quizId: 'quiz-123' }),
-  useNavigate: () => mockNavigate,
-}));
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom');
+  return { ...actual, useParams: () => ({ quizId: 'quiz-123' }), useNavigate: () => mockNavigate };
+});
 
 const mockStartMutateAsync = vi.fn();
 const mockSelectMutateAsync = vi.fn();
@@ -35,6 +37,29 @@ vi.mock('@/hooks/usePracticeMode', () => ({
   usePracticeModeConfig: () => ({ data: null, isLoading: false }),
 }));
 
+vi.mock('@/hooks/useAuth', () => ({
+  useAuth: () => ({ user: { id: 'student-1', role: 'student' } }),
+}));
+
+// Mock supabase client used by the recovery-check useQuery inside the component
+vi.mock('@/lib/supabase', () => ({
+  supabase: {
+    from: vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+        }),
+      }),
+    }),
+  },
+}));
+
+vi.mock('@/lib/queryKeys', () => ({
+  queryKeys: {
+    masteryRecovery: { all: ['mastery-recovery'] },
+  },
+}));
+
 // Mock sonner toast
 vi.mock('sonner', () => ({
   toast: {
@@ -48,6 +73,20 @@ vi.mock('sonner', () => ({
 import AdaptiveQuizSession from '@/pages/student/quiz/AdaptiveQuizSession';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
+
+const createQueryClient = () =>
+  new QueryClient({ defaultOptions: { queries: { retry: false } } });
+
+const renderWithProviders = () => {
+  const queryClient = createQueryClient();
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter>
+        <AdaptiveQuizSession />
+      </MemoryRouter>
+    </QueryClientProvider>,
+  );
+};
 
 const mockQuestion = {
   question: {
@@ -88,13 +127,13 @@ describe('AdaptiveQuizSession', () => {
 
   it('shows loading spinner during initialization', () => {
     mockStartMutateAsync.mockReturnValue(new Promise(() => {})); // never resolves
-    render(<AdaptiveQuizSession />);
+    renderWithProviders();
     expect(screen.getByText('Preparing your adaptive quiz...')).toBeInTheDocument();
   });
 
   it('renders progress bar with correct width after loading', async () => {
     setupSuccessfulInit();
-    const { container } = render(<AdaptiveQuizSession />);
+    const { container } = renderWithProviders();
 
     await waitFor(() => {
       expect(screen.getByText('Question 1 of 5')).toBeInTheDocument();
@@ -108,7 +147,7 @@ describe('AdaptiveQuizSession', () => {
 
   it('displays formatted timer', async () => {
     setupSuccessfulInit();
-    render(<AdaptiveQuizSession />);
+    renderWithProviders();
 
     await waitFor(() => {
       expect(screen.getByText('Question 1 of 5')).toBeInTheDocument();
@@ -120,7 +159,7 @@ describe('AdaptiveQuizSession', () => {
 
   it('renders the question text', async () => {
     setupSuccessfulInit();
-    render(<AdaptiveQuizSession />);
+    renderWithProviders();
 
     await waitFor(() => {
       expect(screen.getByText('What is 2 + 2?')).toBeInTheDocument();
@@ -129,7 +168,7 @@ describe('AdaptiveQuizSession', () => {
 
   it('disables submit button when no answer is selected', async () => {
     setupSuccessfulInit();
-    render(<AdaptiveQuizSession />);
+    renderWithProviders();
 
     await waitFor(() => {
       expect(screen.getByText('Question 1 of 5')).toBeInTheDocument();
@@ -141,7 +180,7 @@ describe('AdaptiveQuizSession', () => {
 
   it('enables submit button when an answer is selected', async () => {
     setupSuccessfulInit();
-    render(<AdaptiveQuizSession />);
+    renderWithProviders();
 
     await waitFor(() => {
       expect(screen.getByText('What is 2 + 2?')).toBeInTheDocument();
@@ -156,7 +195,7 @@ describe('AdaptiveQuizSession', () => {
 
   it('shows error state when session fails to load', async () => {
     mockStartMutateAsync.mockRejectedValue(new Error('Network error'));
-    render(<AdaptiveQuizSession />);
+    renderWithProviders();
 
     await waitFor(() => {
       expect(screen.getByText(/Unable to load quiz/)).toBeInTheDocument();
@@ -171,7 +210,7 @@ describe('AdaptiveQuizSession', () => {
       total_questions: 5,
     });
 
-    render(<AdaptiveQuizSession />);
+    renderWithProviders();
 
     await waitFor(() => {
       expect(screen.getByText('Question 5 of 5')).toBeInTheDocument();

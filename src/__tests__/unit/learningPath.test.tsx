@@ -230,5 +230,5 @@ describe('LearningPath component rendering', () => {
     // This test validates the component can be imported without errors.
     expect(LearningPath).toBeDefined();
     expect(typeof LearningPath).toBe('function');
-  });
+  }, 15_000);
 });

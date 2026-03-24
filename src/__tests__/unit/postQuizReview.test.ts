@@ -132,8 +132,8 @@ describe('combined per-CLO score and discrepancy check', () => {
     };
 
     // clo-1: |50 − 80| = 30 > 15 → discrepancy
-    expect(detectCLODiscrepancy(scores['clo-1'], attainment['clo-1'])).toBe(true);
+    expect(detectCLODiscrepancy(scores['clo-1']!, attainment['clo-1']!)).toBe(true);
     // clo-2: |100 − 90| = 10 ≤ 15 → no discrepancy
-    expect(detectCLODiscrepancy(scores['clo-2'], attainment['clo-2'])).toBe(false);
+    expect(detectCLODiscrepancy(scores['clo-2']!, attainment['clo-2']!)).toBe(false);
   });
 });

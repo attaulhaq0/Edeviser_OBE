@@ -29,7 +29,7 @@ function selectQuestion(
       Math.abs(a.difficulty_rating - targetDifficulty) -
       Math.abs(b.difficulty_rating - targetDifficulty),
   );
-  return eligible[0];
+  return eligible[0] ?? null;
 }
 
 const questionPoolArb = fc.array(

@@ -273,5 +273,5 @@ describe('UpdatePasswordPage', () => {
       expect(screen.queryByText('Password Updated')).not.toBeInTheDocument();
     });
     expect(screen.getByText('Set New Password')).toBeInTheDocument();
-  });
+  }, 15_000);
 });

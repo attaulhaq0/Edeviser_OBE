@@ -66,6 +66,7 @@ export interface QuestionWithAnalytics extends QuestionBankRow {
     quality_flag: 'good' | 'low_discrimination' | 'too_easy' | 'too_hard' | null;
   } | null;
   clo_title?: string;
+  explanation_confidence?: number | null;
 }
 
 // ─── Column definitions ─────────────────────────────────────────────────────

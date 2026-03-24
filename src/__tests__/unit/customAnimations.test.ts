@@ -25,7 +25,7 @@ describe('Custom animation utility classes', () => {
       /@media\s*\(prefers-reduced-motion:\s*reduce\)\s*\{([^}]*\{[^}]*\})\s*\}/s,
     );
     expect(reducedMotionMatch).not.toBeNull();
-    const reducedMotionBlock = reducedMotionMatch![1];
+    const reducedMotionBlock = reducedMotionMatch![1]!;
     for (const cls of expectedClasses) {
       expect(reducedMotionBlock).toContain(`.${cls}`);
     }
@@ -45,8 +45,8 @@ describe('Custom animation utility classes', () => {
     expect(nodeUnlockMatch).not.toBeNull();
     expect(mysteryRevealMatch).not.toBeNull();
 
-    const nodeUnlockDuration = parseFloat(nodeUnlockMatch![1]) * 1000;
-    const mysteryRevealDuration = parseFloat(mysteryRevealMatch![1]) * 1000;
+    const nodeUnlockDuration = parseFloat(nodeUnlockMatch![1]!) * 1000;
+    const mysteryRevealDuration = parseFloat(mysteryRevealMatch![1]!) * 1000;
 
     expect(nodeUnlockDuration).toBeLessThanOrEqual(600);
     expect(mysteryRevealDuration).toBeLessThanOrEqual(600);
