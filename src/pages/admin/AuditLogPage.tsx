@@ -1,4 +1,5 @@
 import { parseAsString, useQueryState } from 'nuqs';
+import { useState } from 'react';
 import { type ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
 import { DataTable, ArrowUpDown } from '@/components/shared/DataTable';
@@ -133,11 +134,13 @@ const AuditLogPage = () => {
   const [search, setSearch] = useQueryState('q', parseAsString.withDefault(''));
   const [action, setAction] = useQueryState('action', parseAsString.withDefault(''));
   const [entityType, setEntityType] = useQueryState('type', parseAsString.withDefault(''));
+  const [page, setPage] = useState(1);
 
   const { data: paginatedData, isLoading } = useAuditLogs({
     search: search || undefined,
     action: action || undefined,
     entityType: entityType || undefined,
+    page,
   });
 
   return (
@@ -154,14 +157,14 @@ const AuditLogPage = () => {
           <Input
             placeholder="Search action, type, or ID..."
             value={search}
-            onChange={(e) => setSearch(e.target.value || null)}
+            onChange={(e) => { setSearch(e.target.value || null); setPage(1); }}
             className="pl-9"
           />
         </div>
 
         <Select
           value={action || '_all'}
-          onValueChange={(v) => setAction(v === '_all' ? null : v)}
+          onValueChange={(v) => { setAction(v === '_all' ? null : v); setPage(1); }}
         >
           <SelectTrigger className="w-[160px] bg-white">
             <SelectValue placeholder="All Actions" />
@@ -177,7 +180,7 @@ const AuditLogPage = () => {
 
         <Select
           value={entityType || '_all'}
-          onValueChange={(v) => setEntityType(v === '_all' ? null : v)}
+          onValueChange={(v) => { setEntityType(v === '_all' ? null : v); setPage(1); }}
         >
           <SelectTrigger className="w-[160px] bg-white">
             <SelectValue placeholder="All Types" />
@@ -193,7 +196,15 @@ const AuditLogPage = () => {
       </div>
 
       {/* Data Table */}
-      <DataTable columns={columns} data={paginatedData?.data ?? []} isLoading={isLoading} />
+      <DataTable
+        columns={columns}
+        data={paginatedData?.data ?? []}
+        isLoading={isLoading}
+        page={page}
+        pageSize={paginatedData?.pageSize}
+        totalCount={paginatedData?.count}
+        onPageChange={setPage}
+      />
     </div>
   );
 };

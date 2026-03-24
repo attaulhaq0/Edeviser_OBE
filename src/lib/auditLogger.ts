@@ -1,7 +1,5 @@
 import { supabase } from '@/lib/supabase';
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const db = supabase as unknown as { from: (table: string) => any };
+import type { Json } from '@/types/database';
 
 export interface AuditLogEntry {
   action: string;
@@ -13,11 +11,11 @@ export interface AuditLogEntry {
 
 export const logAuditEvent = async (entry: AuditLogEntry): Promise<void> => {
   try {
-    const { error } = await db.from('audit_logs').insert({
+    const { error } = await supabase.from('audit_logs').insert({
       action: entry.action,
       target_type: entry.entity_type,
       target_id: entry.entity_id,
-      diff: entry.changes,
+      diff: entry.changes as Json,
       actor_id: entry.performed_by,
     });
 

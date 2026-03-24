@@ -14,7 +14,8 @@ import { createColumns } from './columns';
 const RubricListPage = () => {
   const navigate = useNavigate();
   const [search, setSearch] = useQueryState('q', parseAsString.withDefault(''));
-  const { data: paginatedData, isLoading } = useRubrics();
+  const [page, setPage] = useState(1);
+  const { data: paginatedData, isLoading } = useRubrics(undefined, { page });
   const deleteMutation = useDeleteRubric();
   const copyMutation = useCopyRubric();
 
@@ -66,7 +67,15 @@ const RubricListPage = () => {
         </div>
       </div>
 
-      <DataTable columns={columns} data={filtered} isLoading={isLoading} />
+      <DataTable
+        columns={columns}
+        data={filtered}
+        isLoading={isLoading}
+        page={page}
+        pageSize={paginatedData?.pageSize}
+        totalCount={paginatedData?.count}
+        onPageChange={setPage}
+      />
 
       <ConfirmDialog
         open={!!deleteTarget}

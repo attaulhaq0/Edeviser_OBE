@@ -5,9 +5,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const db = supabase as unknown as { from: (table: string) => any };
-
 interface CourseOption {
   id: string;
   name: string;
@@ -30,7 +27,7 @@ export const useStudentCourseProgram = (studentId: string) => {
       if (!studentId) return { courses: [], programs: [] };
 
       // Fetch enrolled courses
-      const { data: enrollments, error: enrollError } = await db
+      const { data: enrollments, error: enrollError } = await supabase
         .from('student_courses')
         .select('course_id')
         .eq('student_id', studentId)
@@ -38,21 +35,19 @@ export const useStudentCourseProgram = (studentId: string) => {
 
       if (enrollError) throw enrollError;
 
-      const courseIds = (
-        (enrollments as Array<{ course_id: string }>) ?? []
-      ).map((e) => e.course_id);
+      const courseIds = (enrollments ?? []).map((e) => e.course_id);
 
       if (courseIds.length === 0) return { courses: [], programs: [] };
 
       // Fetch course details with program info
-      const { data: courseData, error: courseError } = await db
+      const { data: courseData, error: courseError } = await supabase
         .from('courses')
         .select('id, name, program_id')
         .in('id', courseIds);
 
       if (courseError) throw courseError;
 
-      const typedCourses = (courseData as Array<{ id: string; name: string; program_id: string }>) ?? [];
+      const typedCourses = courseData ?? [];
 
       const courses: CourseOption[] = typedCourses.map((c) => ({
         id: c.id,
@@ -65,16 +60,14 @@ export const useStudentCourseProgram = (studentId: string) => {
       if (programIds.length === 0) return { courses, programs: [] };
 
       // Fetch program details
-      const { data: programData, error: programError } = await db
+      const { data: programData, error: programError } = await supabase
         .from('programs')
         .select('id, name')
         .in('id', programIds);
 
       if (programError) throw programError;
 
-      const programs: ProgramOption[] = (
-        (programData as Array<{ id: string; name: string }>) ?? []
-      ).map((p) => ({
+      const programs: ProgramOption[] = (programData ?? []).map((p) => ({
         id: p.id,
         name: p.name,
       }));

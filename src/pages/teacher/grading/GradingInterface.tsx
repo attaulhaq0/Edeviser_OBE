@@ -39,9 +39,6 @@ import {
 } from '@/hooks/useAIFeedbackDraft';
 import type { CriterionDraft } from '@/hooks/useAIFeedbackDraft';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const db = supabase as unknown as { from: (table: string) => any };
-
 // ─── Types ──────────────────────────────────────────────────────────────────
 
 interface CellSelection {
@@ -63,7 +60,7 @@ const useAssignmentForRubric = (assignmentId?: string) => {
   return useQuery({
     queryKey: queryKeys.assignments.detail(assignmentId ?? ''),
     queryFn: async (): Promise<AssignmentForRubric | null> => {
-      const { data, error } = await db
+      const { data, error } = await supabase
         .from('assignments')
         .select('id, title, total_marks, rubric_id, clo_weights')
         .eq('id', assignmentId!)
