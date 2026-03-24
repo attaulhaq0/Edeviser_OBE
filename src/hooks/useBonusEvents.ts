@@ -4,6 +4,7 @@ import { queryKeys } from '@/lib/queryKeys';
 import { logAuditEvent } from '@/lib/auditLogger';
 import { useAuth } from '@/hooks/useAuth';
 import type { CreateBonusEventFormData } from '@/lib/schemas/bonusXPEvent';
+import { sanitizePostgrestValue } from '@/lib/sanitizeFilter';
 
 
 
@@ -38,7 +39,8 @@ export const useBonusEvents = (filters: BonusEventFilters = {}) => {
         .order('starts_at', { ascending: false });
 
       if (filters.search) {
-        query = query.ilike('name', `%${filters.search}%`);
+        const safe = sanitizePostgrestValue(filters.search);
+        query = query.ilike('name', `%${safe}%`);
       }
 
       const { data, error } = await query;

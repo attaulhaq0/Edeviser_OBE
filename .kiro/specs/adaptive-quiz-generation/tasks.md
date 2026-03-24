@@ -32,35 +32,35 @@
 - [x] 3.8 Create `src/__tests__/properties/difficultyAdjustment.property.test.ts` — Property 8: Difficulty adjustment is bounded
 - [x] 3.9 Create `src/__tests__/properties/questionSelection.property.test.ts` — Property 9: Selected question respects difficulty range
 - [x] 3.10 Create `src/__tests__/properties/preferredBloomLevels.property.test.ts` — Property 10: Preferred Bloom's levels match ability
-- [x] 3.11 Create `src/__tests__/properties/noPreviousQuestions.property.test.ts` — Property 11: No previously answered questions selected
-- [x] 3.12 Create `src/__tests__/properties/adaptiveSessionData.property.test.ts` — Property 12: Adaptive session stores complete trajectory data
-- [x] 3.13 Create `src/__tests__/properties/calibratedDifficulty.property.test.ts` — Property 13: Calibrated difficulty formula correctness
-- [x] 3.14 Create `src/__tests__/properties/discriminationIndex.property.test.ts` — Property 14: Discrimination index computation
-- [x] 3.15 Create `src/__tests__/properties/qualityFlag.property.test.ts` — Property 15: Quality flag determination
-- [x] 3.16 Create `src/__tests__/properties/perCLOScore.property.test.ts` — Property 16: Per-CLO score breakdown calculation
-- [x] 3.17 Create `src/__tests__/properties/cloDiscrepancy.property.test.ts` — Property 17: CLO discrepancy detection
-- [x] 3.18 Create `src/__tests__/properties/approvalRate.property.test.ts` — Property 18: Approval rate calculation
-- [x] 3.19 Create `src/__tests__/properties/bonusXP.property.test.ts` — Property 19: Hard question bonus XP capped at 50
-- [x] 3.20 Create `src/__tests__/properties/promptPII.property.test.ts` — Property 20: LLM prompt excludes student PII
+- [~] 3.11 Create `src/__tests__/properties/noPreviousQuestions.property.test.ts` — Property 11: No previously answered questions selected
+- [~] 3.12 Create `src/__tests__/properties/adaptiveSessionData.property.test.ts` — Property 12: Adaptive session stores complete trajectory data
+- [~] 3.13 Create `src/__tests__/properties/calibratedDifficulty.property.test.ts` — Property 13: Calibrated difficulty formula correctness
+- [~] 3.14 Create `src/__tests__/properties/discriminationIndex.property.test.ts` — Property 14: Discrimination index computation
+- [~] 3.15 Create `src/__tests__/properties/qualityFlag.property.test.ts` — Property 15: Quality flag determination
+- [~] 3.16 Create `src/__tests__/properties/perCLOScore.property.test.ts` — Property 16: Per-CLO score breakdown calculation
+- [~] 3.17 Create `src/__tests__/properties/cloDiscrepancy.property.test.ts` — Property 17: CLO discrepancy detection
+- [~] 3.18 Create `src/__tests__/properties/approvalRate.property.test.ts` — Property 18: Approval rate calculation
+- [~] 3.19 Create `src/__tests__/properties/bonusXP.property.test.ts` — Property 19: Hard question bonus XP capped at 50
+- [~] 3.20 Create `src/__tests__/properties/promptPII.property.test.ts` — Property 20: LLM prompt excludes student PII
 
 ## Task 4: Unit Tests
 
-- [x] 4.1 Create `src/__tests__/unit/quizGenerationSchemas.test.ts` — Specific valid/invalid input examples for all Zod schemas
-- [x] 4.2 Create `src/__tests__/unit/adaptiveEngine.test.ts` — Edge cases: null attainment, difficulty bounds, empty question pool
-- [x] 4.3 Create `src/__tests__/unit/difficultyCalibration.test.ts` — Edge cases: 0%/100% success rate, threshold attempt counts
-- [x] 4.4 Create `src/__tests__/unit/questionAnalytics.test.ts` — Analytics update, cumulative updates, flagging thresholds
-- [x] 4.5 Create `src/__tests__/unit/quizBonusXP.test.ts` — 0 hard questions, max cap, mixed difficulties
-- [x] 4.6 Create `src/__tests__/unit/postQuizReview.test.ts` — Per-CLO score with various CLO configurations
+- [ ] 4.1 Create `src/__tests__/unit/quizGenerationSchemas.test.ts` — Specific valid/invalid input examples for all Zod schemas
+- [ ] 4.2 Create `src/__tests__/unit/adaptiveEngine.test.ts` — Edge cases: null attainment, difficulty bounds, empty question pool
+- [ ] 4.3 Create `src/__tests__/unit/difficultyCalibration.test.ts` — Edge cases: 0%/100% success rate, threshold attempt counts
+- [ ] 4.4 Create `src/__tests__/unit/questionAnalytics.test.ts` — Analytics update, cumulative updates, flagging thresholds
+- [ ] 4.5 Create `src/__tests__/unit/quizBonusXP.test.ts` — 0 hard questions, max cap, mixed difficulties
+- [ ] 4.6 Create `src/__tests__/unit/postQuizReview.test.ts` — Per-CLO score with various CLO configurations
 
 ## Task 5: Edge Functions
 
-- [x] 5.1 Create `supabase/functions/generate-quiz-questions/index.ts` — AI question generation Edge Function with JWT validation, RAG retrieval, LLM call, question insertion, logging
-- [x] 5.2 Create `supabase/functions/select-adaptive-question/index.ts` — Adaptive question selection Edge Function with ability estimation, difficulty targeting, question filtering, exclusion of previously answered
-- [x] 5.3 Create `supabase/functions/update-question-analytics/index.ts` — Post-quiz analytics recalculation Edge Function with success rate, discrimination index, calibrated difficulty, quality flagging
+- [ ] 5.1 Create `supabase/functions/generate-quiz-questions/index.ts` — AI question generation Edge Function with JWT validation, RAG retrieval, LLM call, question insertion, logging
+- [ ] 5.2 Create `supabase/functions/select-adaptive-question/index.ts` — Adaptive question selection Edge Function with ability estimation, difficulty targeting, question filtering, exclusion of previously answered
+- [ ] 5.3 Create `supabase/functions/update-question-analytics/index.ts` — Post-quiz analytics recalculation Edge Function with success rate, discrimination index, calibrated difficulty, quality flagging
 
 ## Task 6: TanStack Query Hooks
 
-- [x] 6.1 Create `src/hooks/useQuestionBank.ts` — CRUD hooks for question_bank with filters (CLO, Bloom's, type, status, source)
+- [ ] 6.1 Create `src/hooks/useQuestionBank.ts` — CRUD hooks for question_bank with filters (CLO, Bloom's, type, status, source)
 - [ ] 6.2 Create `src/hooks/useGenerateQuestions.ts` — Mutation hook for AI question generation via Edge Function
 - [ ] 6.3 Create `src/hooks/useReviewQueue.ts` — Query + mutations for pending questions: approve, reject, edit, bulk approve
 - [ ] 6.4 Create `src/hooks/useAdaptiveQuiz.ts` — Hooks for adaptive quiz session: start, select next question, submit attempt
