@@ -144,7 +144,6 @@ export const BADGE_DEFINITIONS: BadgeDef[] = [
     xpReward: 75,
   },
 
-<<<<<<< HEAD
   // ── Habit badges ──────────────────────────────────────────────────────────
   {
     id: 'habit_master',

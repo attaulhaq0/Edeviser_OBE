@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "Pre-Push CI Check",
+  "description": "Click to run lint + typecheck + tests locally before pushing. Mirrors the GitHub Actions CI pipeline.",
+  "version": "1",
+  "when": {
+    "type": "userTriggered"
+  },
+  "then": {
+    "type": "runCommand",
+    "command": "npm run lint && npx tsc --noEmit && npm test"
+  }
+}

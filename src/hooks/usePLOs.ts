@@ -196,20 +196,11 @@ export const useReorderPLOs = () => {
 
   return useMutation({
     mutationFn: async (data: { items: Array<{ id: string; sort_order: number }> }): Promise<void> => {
-<<<<<<< HEAD
-      const rows = data.items.map((item, index) => ({
-=======
       const updates = data.items.map((item, index) => ({
->>>>>>> e1901d0 (fix(audit): complete remaining platform audit tasks 3.4-4 with pagination wiring, batch reorder, and test cleanup)
         id: item.id,
         sort_order: index,
       }));
 
-<<<<<<< HEAD
-      // Partial upsert: only id + sort_order needed since onConflict='id' triggers UPDATE
-      const { error } = await supabase.from('learning_outcomes')
-        .upsert(rows as never, { onConflict: 'id', ignoreDuplicates: false });
-=======
       // Partial upsert: ON CONFLICT (id) only updates sort_order.
       // Cast needed because Supabase Insert type requires `type` and `title`,
       // but PostgreSQL's ON CONFLICT clause correctly handles partial columns.
@@ -218,7 +209,6 @@ export const useReorderPLOs = () => {
           updates as Database['public']['Tables']['learning_outcomes']['Insert'][],
           { onConflict: 'id' },
         );
->>>>>>> e1901d0 (fix(audit): complete remaining platform audit tasks 3.4-4 with pagination wiring, batch reorder, and test cleanup)
 
       if (error) throw error;
 
