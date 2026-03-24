@@ -39,15 +39,12 @@ const BADGE_XP: Record<string, number> = {
   speed_demon: 75,
   night_owl: 75,
   perfectionist: 100,
-<<<<<<< HEAD
   habit_master: 100,
   wellness_warrior: 75,
   full_spectrum: 150,
-=======
   bloom_explorer: 75,
   bloom_challenger: 100,
   bloom_pioneer: 150,
->>>>>>> 2bc8adf (feat(adaptive-quiz): add practice mode form, Bloom's Climb system, and progression tracking)
 };
 
 // ─── Validation ─────────────────────────────────────────────────────────────
@@ -366,23 +363,15 @@ async function checkMysteryBadges(
   return newBadges;
 }
 
-<<<<<<< HEAD
 // ─── Habit Badge Checkers ────────────────────────────────────────────────────
 
 async function checkHabitBadges(
-=======
-// ─── Bloom's Progression Badge Checkers ─────────────────────────────────
-
-async function checkBloomsBadges(
->>>>>>> 2bc8adf (feat(adaptive-quiz): add practice mode form, Bloom's Climb system, and progression tracking)
   supabase: ReturnType<typeof createClient>,
   studentId: string,
   existingBadgeIds: Set<string>,
 ): Promise<string[]> {
   const newBadges: string[] = [];
 
-<<<<<<< HEAD
-  // Determine current semester range (fall back to current calendar year)
   const now = new Date();
   const yearStart = `${now.getFullYear()}-01-01`;
   const yearEnd = `${now.getFullYear()}-12-31`;
@@ -402,9 +391,7 @@ async function checkBloomsBadges(
     semesterEnd = semester.end_date;
   }
 
-  // ── Habit Master: 30+ active days (≥1 habit completed) in current semester ──
   if (!existingBadgeIds.has('habit_master')) {
-    // Get distinct dates from habit_tracking where any academic habit is true
     const { data: academicDays } = await supabase
       .from('habit_tracking')
       .select('habit_date')
@@ -413,7 +400,6 @@ async function checkBloomsBadges(
       .lte('habit_date', semesterEnd)
       .or('login.eq.true,submit.eq.true,journal.eq.true,read_content.eq.true');
 
-    // Get distinct dates from wellness_habit_logs
     const { data: wellnessDays } = await supabase
       .from('wellness_habit_logs')
       .select('date')
@@ -438,7 +424,6 @@ async function checkBloomsBadges(
     }
   }
 
-  // ── Wellness Warrior: 14 consecutive days with ≥1 wellness habit logged ──
   if (!existingBadgeIds.has('wellness_warrior')) {
     const { data: wellnessLogs } = await supabase
       .from('wellness_habit_logs')
@@ -447,8 +432,7 @@ async function checkBloomsBadges(
       .order('date', { ascending: true });
 
     if (wellnessLogs && wellnessLogs.length > 0) {
-      // Get distinct dates sorted
-      const distinctDates = [...new Set(wellnessLogs.map((l: { date: string }) => l.date))].sort();
+      const distinctDates = [...new Set(wellnessLogs.map((l: { date: string }) => l.date))].sort() as string[];
 
       let longestConsecutive = 1;
       let currentConsecutive = 1;
@@ -473,9 +457,7 @@ async function checkBloomsBadges(
     }
   }
 
-  // ── Full Spectrum: 7 days with all 4 academic habits AND ≥1 wellness habit ──
   if (!existingBadgeIds.has('full_spectrum')) {
-    // Get days where all 4 academic habits are true
     const { data: perfectAcademicDays } = await supabase
       .from('habit_tracking')
       .select('habit_date')
@@ -492,7 +474,6 @@ async function checkBloomsBadges(
         perfectAcademicDays.map((d: { habit_date: string }) => d.habit_date),
       );
 
-      // Get wellness dates in semester
       const { data: wellnessDates } = await supabase
         .from('wellness_habit_logs')
         .select('date')
@@ -505,7 +486,6 @@ async function checkBloomsBadges(
           wellnessDates.map((d: { date: string }) => d.date),
         );
 
-        // Count days that appear in both sets
         let fullSpectrumDays = 0;
         for (const date of perfectDates) {
           if (wellnessDateSet.has(date)) {
@@ -518,8 +498,20 @@ async function checkBloomsBadges(
         }
       }
     }
-=======
-  // If all three Bloom's badges already awarded, skip the query
+  }
+
+  return newBadges;
+}
+
+// ─── Bloom's Progression Badge Checkers ─────────────────────────────────
+
+async function checkBloomsBadges(
+  supabase: ReturnType<typeof createClient>,
+  studentId: string,
+  existingBadgeIds: Set<string>,
+): Promise<string[]> {
+  const newBadges: string[] = [];
+
   if (
     existingBadgeIds.has('bloom_explorer') &&
     existingBadgeIds.has('bloom_challenger') &&
@@ -528,7 +520,6 @@ async function checkBloomsBadges(
     return newBadges;
   }
 
-  // Query blooms_progression for rows where any badge flag is set
   const { data: progressions } = await supabase
     .from('blooms_progression')
     .select('bloom_explorer_awarded, bloom_challenger_awarded, bloom_pioneer_awarded')
@@ -539,7 +530,6 @@ async function checkBloomsBadges(
 
   if (!progressions || progressions.length === 0) return newBadges;
 
-  // Check each badge flag across all progression rows
   let hasExplorer = false;
   let hasChallenger = false;
   let hasPioneer = false;
@@ -558,7 +548,6 @@ async function checkBloomsBadges(
   }
   if (hasPioneer && !existingBadgeIds.has('bloom_pioneer')) {
     newBadges.push('bloom_pioneer');
->>>>>>> 2bc8adf (feat(adaptive-quiz): add practice mode form, Bloom's Climb system, and progression tracking)
   }
 
   return newBadges;
@@ -649,6 +638,32 @@ serve(async (req) => {
   }
 
   try {
+    // ── Auth: require service role or teacher/admin ──────────────────
+    const authHeader = req.headers.get('Authorization') ?? '';
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+    const isServiceRole = serviceRoleKey && authHeader.includes(serviceRoleKey);
+
+    if (!isServiceRole) {
+      if (!authHeader) {
+        return new Response(
+          JSON.stringify({ error: 'Missing authorization header' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        );
+      }
+      const userClient = createClient(
+        Deno.env.get('SUPABASE_URL')!,
+        Deno.env.get('SUPABASE_ANON_KEY')!,
+        { global: { headers: { Authorization: authHeader } } },
+      );
+      const { data: { user: caller }, error: authError } = await userClient.auth.getUser();
+      if (authError || !caller) {
+        return new Response(
+          JSON.stringify({ error: 'Unauthorized' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        );
+      }
+    }
+
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,

@@ -34,11 +34,8 @@ type XPSource =
   | 'micro_assessment'
   | 'profile_complete'
   | 'starter_session_complete'
-<<<<<<< HEAD
-  | 'wellness_habit';
-=======
+  | 'wellness_habit'
   | 'practice_quiz';
->>>>>>> ef1a98f (feat(adaptive-quiz): add explanation confidence, practice mode, and verified explanations)
 
 interface XPAwardPayload {
   student_id: string;
@@ -97,12 +94,8 @@ const VALID_SOURCES: XPSource[] = [
   'quiz_completion', 'quiz_hard_bonus', 'streak_milestone', 'journal', 'grade',
   'onboarding_personality', 'onboarding_learning_style', 'onboarding_baseline',
   'onboarding_complete', 'onboarding_self_efficacy', 'onboarding_study_strategy',
-<<<<<<< HEAD
   'micro_assessment', 'profile_complete', 'starter_session_complete',
-  'wellness_habit',
-=======
-  'micro_assessment', 'profile_complete', 'starter_session_complete', 'practice_quiz',
->>>>>>> ef1a98f (feat(adaptive-quiz): add explanation confidence, practice mode, and verified explanations)
+  'wellness_habit', 'practice_quiz',
 ];
 
 function validatePayload(payload: unknown): { valid: true; data: XPAwardPayload } | { valid: false; error: string } {
