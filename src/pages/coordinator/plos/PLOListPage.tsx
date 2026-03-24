@@ -18,7 +18,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { toast } from 'sonner';
-import { parseAsString, parseAsInteger, useQueryState } from 'nuqs';
+import { parseAsString, useQueryState } from 'nuqs';
 import { createColumns } from './columns';
 import { DataTable } from '@/components/shared/DataTable';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
@@ -110,7 +110,7 @@ const PLOListPage = () => {
     'program',
     parseAsString.withDefault(''),
   );
-  const [page, setPage] = useQueryState('page', parseAsInteger.withDefault(1));
+  const [page, setPage] = useState(1);
 
   const { data: paginatedPrograms, isLoading: programsLoading } = usePrograms();
   const programs = paginatedPrograms?.data;
@@ -234,7 +234,7 @@ const PLOListPage = () => {
       <div className="flex items-center gap-4">
         <Select
           value={programFilter}
-          onValueChange={(val) => setProgramFilter(val === 'all' ? '' : val)}
+          onValueChange={(val) => { setProgramFilter(val === 'all' ? '' : val); setPage(1); }}
           disabled={programsLoading}
         >
           <SelectTrigger className="w-[260px] bg-white">
@@ -285,7 +285,7 @@ const PLOListPage = () => {
           columns={columns}
           data={displayItems}
           isLoading={false}
-          page={paginatedPLOs?.page}
+          page={page}
           pageSize={paginatedPLOs?.pageSize}
           totalCount={paginatedPLOs?.count}
           onPageChange={setPage}

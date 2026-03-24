@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { parseAsString, parseAsInteger, useQueryState } from 'nuqs';
+import { parseAsString, useQueryState } from 'nuqs';
 import { toast } from 'sonner';
 import { createColumns } from './columns';
 import { DataTable } from '@/components/shared/DataTable';
@@ -14,8 +14,8 @@ import type { Program } from '@/types/app';
 const ProgramListPage = () => {
   const navigate = useNavigate();
   const [search, setSearch] = useQueryState('q', parseAsString.withDefault(''));
-  const [page, setPage] = useQueryState('page', parseAsInteger.withDefault(1));
   const [programToDeactivate, setProgramToDeactivate] = useState<Program | null>(null);
+  const [page, setPage] = useState(1);
 
   const { data: paginatedData, isLoading } = usePrograms({
     search: search || undefined,
@@ -49,7 +49,7 @@ const ProgramListPage = () => {
           <Input
             placeholder="Search by name or code..."
             value={search}
-            onChange={(e) => setSearch(e.target.value || null)}
+            onChange={(e) => { setSearch(e.target.value || null); setPage(1); }}
             className="pl-9"
           />
         </div>
@@ -60,7 +60,7 @@ const ProgramListPage = () => {
         columns={columns}
         data={paginatedData?.data ?? []}
         isLoading={isLoading}
-        page={paginatedData?.page}
+        page={page}
         pageSize={paginatedData?.pageSize}
         totalCount={paginatedData?.count}
         onPageChange={setPage}

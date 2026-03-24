@@ -1,6 +1,5 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { parseAsInteger, useQueryState } from 'nuqs';
 import {
   DndContext,
   closestCenter,
@@ -106,7 +105,7 @@ const ILOListPage = () => {
   const [isDragMode, setIsDragMode] = useState(false);
   const [localOrder, setLocalOrder] = useState<LearningOutcome[] | null>(null);
   const [iloToDelete, setIloToDelete] = useState<LearningOutcome | null>(null);
-  const [page, setPage] = useQueryState('page', parseAsInteger.withDefault(1));
+  const [page, setPage] = useState(1);
 
   const { data: paginatedILOs, isLoading } = useILOs({ page });
   const ilos = paginatedILOs?.data;
@@ -274,7 +273,7 @@ const ILOListPage = () => {
           columns={columns}
           data={displayItems}
           isLoading={false}
-          page={paginatedILOs?.page}
+          page={page}
           pageSize={paginatedILOs?.pageSize}
           totalCount={paginatedILOs?.count}
           onPageChange={setPage}

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { parseAsString, parseAsInteger, useQueryState } from 'nuqs';
+import { parseAsString, useQueryState } from 'nuqs';
 import { createColumns } from './columns';
 import { DataTable } from '@/components/shared/DataTable';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
@@ -26,9 +26,9 @@ const AssignmentListPage = () => {
     'course',
     parseAsString.withDefault(''),
   );
-  const [page, setPage] = useQueryState('page', parseAsInteger.withDefault(1));
   const [assignmentToDelete, setAssignmentToDelete] =
     useState<AssignmentWithRelations | null>(null);
+  const [page, setPage] = useState(1);
 
   const { data: paginatedCourses, isLoading: coursesLoading } = useCourses();
   const courses = paginatedCourses?.data;
@@ -78,7 +78,7 @@ const AssignmentListPage = () => {
         </div>
         <Select
           value={courseFilter}
-          onValueChange={(val) => setCourseFilter(val === 'all' ? '' : val)}
+          onValueChange={(val) => { setCourseFilter(val === 'all' ? '' : val); setPage(1); }}
           disabled={coursesLoading}
         >
           <SelectTrigger className="w-[260px] bg-white">
@@ -100,7 +100,7 @@ const AssignmentListPage = () => {
         columns={columns}
         data={filteredAssignments}
         isLoading={isLoading}
-        page={paginatedAssignments?.page}
+        page={page}
         pageSize={paginatedAssignments?.pageSize}
         totalCount={paginatedAssignments?.count}
         onPageChange={setPage}

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { parseAsString, parseAsInteger, useQueryState } from 'nuqs';
+import { parseAsString, useQueryState } from 'nuqs';
 import { toast } from 'sonner';
 import { createColumns } from './columns';
 import { DataTable } from '@/components/shared/DataTable';
@@ -26,8 +26,8 @@ const CourseListPage = () => {
     'program',
     parseAsString.withDefault(''),
   );
-  const [page, setPage] = useQueryState('page', parseAsInteger.withDefault(1));
   const [courseToDeactivate, setCourseToDeactivate] = useState<Course | null>(null);
+  const [page, setPage] = useState(1);
 
   const { data: paginatedCourses, isLoading } = useCourses({
     search: search || undefined,
@@ -65,15 +65,16 @@ const CourseListPage = () => {
           <Input
             placeholder="Search by name or code..."
             value={search}
-            onChange={(e) => setSearch(e.target.value || null)}
+            onChange={(e) => { setSearch(e.target.value || null); setPage(1); }}
             className="pl-9"
           />
         </div>
         <Select
           value={programFilter || '__all__'}
-          onValueChange={(value) =>
-            setProgramFilter(value === '__all__' ? null : value)
-          }
+          onValueChange={(value) => {
+            setProgramFilter(value === '__all__' ? null : value);
+            setPage(1);
+          }}
         >
           <SelectTrigger className="w-[220px] bg-white">
             <SelectValue placeholder="All Programs" />
@@ -94,7 +95,7 @@ const CourseListPage = () => {
         columns={columns}
         data={paginatedCourses?.data ?? []}
         isLoading={isLoading}
-        page={paginatedCourses?.page}
+        page={page}
         pageSize={paginatedCourses?.pageSize}
         totalCount={paginatedCourses?.count}
         onPageChange={setPage}

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { parseAsString, parseAsInteger, useQueryState } from 'nuqs';
+import { parseAsString, useQueryState } from 'nuqs';
 import { toast } from 'sonner';
 import { createColumns } from './columns';
 import { DataTable } from '@/components/shared/DataTable';
@@ -30,8 +30,9 @@ const UserListPage = () => {
   const navigate = useNavigate();
   const [search, setSearch] = useQueryState('q', parseAsString.withDefault(''));
   const [role, setRole] = useQueryState('role', parseAsString.withDefault(''));
-  const [page, setPage] = useQueryState('page', parseAsInteger.withDefault(1));
   const [userToDeactivate, setUserToDeactivate] = useState<Profile | null>(null);
+
+  const [page, setPage] = useState(1);
 
   const { data: paginatedData, isLoading } = useUsers({
     search: search || undefined,
@@ -74,7 +75,7 @@ const UserListPage = () => {
           <Input
             placeholder="Search by name or email..."
             value={search}
-            onChange={(e) => setSearch(e.target.value || null)}
+            onChange={(e) => { setSearch(e.target.value || null); setPage(1); }}
             className="pl-9"
           />
         </div>
@@ -90,7 +91,7 @@ const UserListPage = () => {
             {ROLE_OPTIONS.map((option) => (
               <DropdownMenuItem
                 key={option.value}
-                onClick={() => setRole(option.value || null)}
+                onClick={() => { setRole(option.value || null); setPage(1); }}
               >
                 {option.label}
               </DropdownMenuItem>
@@ -104,7 +105,7 @@ const UserListPage = () => {
         columns={columns}
         data={paginatedData?.data ?? []}
         isLoading={isLoading}
-        page={paginatedData?.page}
+        page={page}
         pageSize={paginatedData?.pageSize}
         totalCount={paginatedData?.count}
         onPageChange={setPage}

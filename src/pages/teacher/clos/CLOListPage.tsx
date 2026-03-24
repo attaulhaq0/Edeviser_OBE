@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { parseAsString, parseAsInteger, useQueryState } from 'nuqs';
+import { parseAsString, useQueryState } from 'nuqs';
 import { createColumns } from './columns';
 import { DataTable } from '@/components/shared/DataTable';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
@@ -26,8 +26,8 @@ const CLOListPage = () => {
     'course',
     parseAsString.withDefault(''),
   );
-  const [page, setPage] = useQueryState('page', parseAsInteger.withDefault(1));
   const [cloToDelete, setCloToDelete] = useState<LearningOutcome | null>(null);
+  const [page, setPage] = useState(1);
 
   const { data: paginatedCourses, isLoading: coursesLoading } = useCourses();
   const courses = paginatedCourses?.data;
@@ -76,7 +76,7 @@ const CLOListPage = () => {
         </div>
         <Select
           value={courseFilter}
-          onValueChange={(val) => setCourseFilter(val === 'all' ? '' : val)}
+          onValueChange={(val) => { setCourseFilter(val === 'all' ? '' : val); setPage(1); }}
           disabled={coursesLoading}
         >
           <SelectTrigger className="w-[260px] bg-white">
@@ -98,7 +98,7 @@ const CLOListPage = () => {
         columns={columns}
         data={filteredCLOs}
         isLoading={isLoading}
-        page={paginatedCLOs?.page}
+        page={page}
         pageSize={paginatedCLOs?.pageSize}
         totalCount={paginatedCLOs?.count}
         onPageChange={setPage}
