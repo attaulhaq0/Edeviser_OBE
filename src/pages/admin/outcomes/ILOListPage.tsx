@@ -105,8 +105,9 @@ const ILOListPage = () => {
   const [isDragMode, setIsDragMode] = useState(false);
   const [localOrder, setLocalOrder] = useState<LearningOutcome[] | null>(null);
   const [iloToDelete, setIloToDelete] = useState<LearningOutcome | null>(null);
+  const [page, setPage] = useState(1);
 
-  const { data: paginatedILOs, isLoading } = useILOs();
+  const { data: paginatedILOs, isLoading } = useILOs({ page });
   const ilos = paginatedILOs?.data;
   const deleteMutation = useDeleteILO();
   const reorderMutation = useReorderILOs();
@@ -268,7 +269,15 @@ const ILOListPage = () => {
           </DndContext>
         </Card>
       ) : (
-        <DataTable columns={columns} data={displayItems} isLoading={false} />
+        <DataTable
+          columns={columns}
+          data={displayItems}
+          isLoading={false}
+          page={page}
+          pageSize={paginatedILOs?.pageSize}
+          totalCount={paginatedILOs?.count}
+          onPageChange={setPage}
+        />
       )}
 
       {/* Delete Confirmation Dialog */}

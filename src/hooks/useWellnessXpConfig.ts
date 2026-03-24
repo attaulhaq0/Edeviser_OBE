@@ -5,14 +5,11 @@ import { logAuditEvent } from '@/lib/auditLogger';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const db = supabase as unknown as { from: (table: string) => any };
-
 export const useWellnessXpConfig = () => {
   return useQuery({
     queryKey: [...queryKeys.institutionSettings.all, 'wellnessXp'],
     queryFn: async (): Promise<number> => {
-      const { data, error } = await db
+      const { data, error } = await supabase
         .from('institution_settings')
         .select('wellness_xp_amount')
         .limit(1)
@@ -30,7 +27,7 @@ export const useUpdateWellnessXpAmount = () => {
 
   return useMutation({
     mutationFn: async (wellnessXpAmount: number) => {
-      const { data: existing, error: fetchError } = await db
+      const { data: existing, error: fetchError } = await supabase
         .from('institution_settings')
         .select('id, wellness_xp_amount')
         .limit(1)
@@ -43,7 +40,7 @@ export const useUpdateWellnessXpAmount = () => {
         ? null
         : Number(existing.wellness_xp_amount);
 
-      const { error: updateError } = await db
+      const { error: updateError } = await supabase
         .from('institution_settings')
         .update({ wellness_xp_amount: wellnessXpAmount })
         .eq('id', existing.id);

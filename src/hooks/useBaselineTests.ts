@@ -83,7 +83,7 @@ export const useCourseBaselineStats = (courseId: string) => {
 
       if (error) throw error;
 
-      const rows = (data ?? []) as Array<{ clo_id: string; score: number }>;
+      const rows = data ?? [];
       const cloMap = new Map<string, { total: number; count: number }>();
 
       for (const row of rows) {
