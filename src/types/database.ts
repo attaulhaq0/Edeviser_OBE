@@ -2810,7 +2810,6 @@ export type Database = {
           },
         ]
       }
-<<<<<<< HEAD
       student_courses: {
         Row: {
           course_id: string
@@ -3402,7 +3401,7 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-=======
+      }
       login_attempts: {
         Row: {
           email: string
@@ -3423,7 +3422,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
->>>>>>> e1901d0 (fix(audit): complete remaining platform audit tasks 3.4-4 with pagination wiring, batch reorder, and test cleanup)
       }
     }
     Views: {
