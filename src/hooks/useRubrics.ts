@@ -110,7 +110,10 @@ export const useRubric = (id?: string) => {
 
       return {
         ...(rubric as Rubric),
-        criteria: (criteria ?? []) as unknown as RubricCriterion[],
+        criteria: (criteria ?? []).map((c) => ({
+          ...c,
+          levels: c.levels as unknown as Array<{ label: string; description: string; points: number }>,
+        })),
       };
     },
     enabled: !!id,
@@ -155,7 +158,7 @@ export const useCreateRubric = () => {
         action: 'create',
         entity_type: 'rubric',
         entity_id: created.id,
-        changes: input as unknown as Record<string, unknown>,
+        changes: { ...input },
         performed_by: user?.id ?? 'unknown',
       });
 
@@ -211,7 +214,7 @@ export const useUpdateRubric = (id: string) => {
         action: 'update',
         entity_type: 'rubric',
         entity_id: id,
-        changes: input as unknown as Record<string, unknown>,
+        changes: { ...input },
         performed_by: user?.id ?? 'unknown',
       });
 
@@ -315,7 +318,10 @@ export const useCopyRubric = () => {
       const created = newRubric as Rubric;
 
       // Insert copied criteria
-      const criteria = (srcCriteria ?? []) as unknown as RubricCriterion[];
+      const criteria = (srcCriteria ?? []).map((c) => ({
+        ...c,
+        levels: c.levels as unknown as Array<{ label: string; description: string; points: number }>,
+      }));
       if (criteria.length > 0) {
         const rows = criteria.map((c) => ({
           rubric_id: created.id,
