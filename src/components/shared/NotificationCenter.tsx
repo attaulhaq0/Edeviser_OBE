@@ -43,7 +43,7 @@ const NOTIFICATION_ICONS: Record<NotificationType, React.ReactNode> = {
   prerequisite_unlocked: <Unlock className="h-4 w-4 text-indigo-500" />,
 };
 
-const NotificationCenter = ({ onClose }: NotificationCenterProps) => {
+const NotificationCenter = ({ onClose: _onClose }: NotificationCenterProps) => {
   const { user } = useAuth();
   const { data: notifications = [], isLoading } = useNotifications(user?.id);
   const markAsRead = useMarkAsRead();
@@ -65,7 +65,7 @@ const NotificationCenter = ({ onClose }: NotificationCenterProps) => {
     if (user?.id) {
       markAllAsRead.mutate(user.id);
     }
-  }, [markAllAsRead, user?.id]);
+  }, [markAllAsRead, user]);
 
   const handleDelete = useCallback(
     (e: React.MouseEvent, notificationId: string) => {

@@ -3402,27 +3402,6 @@ export type Database = {
           },
         ]
       }
-      login_attempts: {
-        Row: {
-          email: string
-          attempt_count: number
-          locked_until: string | null
-          updated_at: string
-        }
-        Insert: {
-          email: string
-          attempt_count?: number
-          locked_until?: string | null
-          updated_at?: string
-        }
-        Update: {
-          email?: string
-          attempt_count?: number
-          locked_until?: string | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
     }
     Views: {
       leaderboard_weekly: {

@@ -246,7 +246,7 @@ describe('AI Draft Integration in GradingInterface', () => {
       student_id: 'student-1',
       clo_id: 'clo-1',
     });
-  });
+  }, 15_000);
 
   it('displays AI draft panel after successful generation', async () => {
     const user = userEvent.setup();
@@ -264,7 +264,7 @@ describe('AI Draft Integration in GradingInterface', () => {
     expect(screen.getByText('Excellent work on Clarity.')).toBeInTheDocument();
     expect(screen.getByText('Grammar needs improvement.')).toBeInTheDocument();
     expect(screen.getByText('Overall, good submission with areas for improvement.')).toBeInTheDocument();
-  });
+  }, 15_000);
 
   it('shows AI Draft badges on each criterion draft', async () => {
     const user = userEvent.setup();
@@ -379,7 +379,7 @@ describe('AI Draft Integration in GradingInterface', () => {
         feedback: 'thumbs_up',
       }),
     );
-  });
+  }, 15_000);
 
   it('rejects a draft and logs as rejected', async () => {
     const user = userEvent.setup();

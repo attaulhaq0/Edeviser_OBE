@@ -27,8 +27,6 @@ function applyTransition(state: QuestionState, action: Action): QuestionState | 
   return null; // invalid transition
 }
 
-const actionArb = fc.constantFrom<Action>('approve', 'edit', 'reject');
-
 describe('Question status transitions — property-based tests', () => {
   it('P4a: pending_review → approved via approve action', () => {
     fc.assert(
@@ -70,7 +68,7 @@ describe('Question status transitions — property-based tests', () => {
 
   it('P4d: manual questions are created with status=approved and source=manual', () => {
     fc.assert(
-      fc.property(fc.uuid(), (courseId) => {
+      fc.property(fc.uuid(), (_courseId) => {
         const manualQuestion: QuestionState = { status: 'approved', generation_source: 'manual' };
         expect(manualQuestion.status).toBe('approved');
         expect(manualQuestion.generation_source).toBe('manual');

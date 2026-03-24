@@ -2,6 +2,7 @@
 // AttainmentBar — Shows attainment percentage with color coding
 // Excellent ≥85% green, Satisfactory 70-84% blue, Developing 50-69% yellow, Not Yet <50% red
 // =============================================================================
+/* eslint-disable react-refresh/only-export-components */
 
 import { cn } from '@/lib/utils';
 import type { AttainmentLevel } from '@/types/app';

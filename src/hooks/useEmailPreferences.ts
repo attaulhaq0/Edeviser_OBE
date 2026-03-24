@@ -22,13 +22,13 @@ export const useEmailPreferences = () => {
 
       const { data, error } = await supabase
         .from('profiles')
-        .select('email_preferences')
+        .select('email_preferences' as never)
         .eq('id', user.id)
         .maybeSingle();
 
       if (error) throw error;
 
-      const raw = data?.email_preferences as Partial<EmailPreferencesFormData> | null;
+      const raw = (data as Record<string, unknown> | null)?.email_preferences as Partial<EmailPreferencesFormData> | null;
       return { ...DEFAULT_PREFERENCES, ...raw };
     },
     enabled: !!user,
@@ -40,7 +40,7 @@ export const useEmailPreferences = () => {
 
       const { error } = await supabase
         .from('profiles')
-        .update({ email_preferences: prefs })
+        .update({ email_preferences: prefs } as never)
         .eq('id', user.id);
 
       if (error) throw error;

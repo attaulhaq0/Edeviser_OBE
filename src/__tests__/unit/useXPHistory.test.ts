@@ -188,12 +188,12 @@ describe('useXPHistory — queryFn logic', () => {
       .sort((a, b) => b.total_xp - a.total_xp);
 
     expect(categories).toHaveLength(3);
-    expect(categories[0].source).toBe('login');
-    expect(categories[0].total_xp).toBe(30);
-    expect(categories[0].count).toBe(3);
-    expect(categories[1].source).toBe('submission');
-    expect(categories[1].total_xp).toBe(25);
-    expect(categories[2].source).toBe('journal');
-    expect(categories[2].total_xp).toBe(20);
+    expect(categories[0]!.source).toBe('login');
+    expect(categories[0]!.total_xp).toBe(30);
+    expect(categories[0]!.count).toBe(3);
+    expect(categories[1]!.source).toBe('submission');
+    expect(categories[1]!.total_xp).toBe(25);
+    expect(categories[2]!.source).toBe('journal');
+    expect(categories[2]!.total_xp).toBe(20);
   });
 });

@@ -169,10 +169,10 @@ describe('JournalEditor', () => {
   it('renders back button that navigates to journal list', async () => {
     const user = userEvent.setup();
     renderEditor();
-    const backBtn = screen.getByRole('button', { name: '' });
+    screen.getByRole('button', { name: '' });
     // The first ghost button is the back button
     const buttons = screen.getAllByRole('button');
-    const backButton = buttons[0];
+    const backButton = buttons[0]!;
     await user.click(backButton);
     expect(mockNavigate).toHaveBeenCalledWith('/student/journal');
   });
@@ -186,7 +186,7 @@ describe('JournalEditor', () => {
     // Radix renders both <option> and <span> — target the select item role
     const mathOptions = screen.getAllByText('Math 101');
     const mathItem = mathOptions.find((el) => el.closest('[data-slot="select-item"]'));
-    fireEvent.click(mathItem ?? mathOptions[0]);
+    fireEvent.click(mathItem ?? mathOptions[0]!);
 
     // Now CLO selector should appear
     expect(screen.getByText('Learning Outcome (optional)')).toBeInTheDocument();
@@ -196,7 +196,7 @@ describe('JournalEditor', () => {
     fireEvent.click(cloTrigger!);
     const cloOptions = screen.getAllByText('Understand derivatives');
     const cloItem = cloOptions.find((el) => el.closest('[data-slot="select-item"]'));
-    fireEvent.click(cloItem ?? cloOptions[0]);
+    fireEvent.click(cloItem ?? cloOptions[0]!);
 
     // Prompt should appear
     expect(screen.getByText('Reflection Prompt')).toBeInTheDocument();
@@ -214,13 +214,13 @@ describe('JournalEditor', () => {
     fireEvent.click(courseTrigger!);
     const mathOptions = screen.getAllByText('Math 101');
     const mathItem = mathOptions.find((el) => el.closest('[data-slot="select-item"]'));
-    fireEvent.click(mathItem ?? mathOptions[0]);
+    fireEvent.click(mathItem ?? mathOptions[0]!);
 
     const cloTrigger = screen.getByText('Select a CLO for guided prompts').closest('button');
     fireEvent.click(cloTrigger!);
     const cloOptions = screen.getAllByText('Understand derivatives');
     const cloItem = cloOptions.find((el) => el.closest('[data-slot="select-item"]'));
-    fireEvent.click(cloItem ?? cloOptions[0]);
+    fireEvent.click(cloItem ?? cloOptions[0]!);
 
     // Prompt should be visible
     expect(screen.getByText('Reflection Prompt')).toBeInTheDocument();

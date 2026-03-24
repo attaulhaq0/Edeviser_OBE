@@ -1,6 +1,7 @@
 // =============================================================================
 // GradebookMatrix — Student x Assignment grade matrix
 // =============================================================================
+/* eslint-disable react-refresh/only-export-components */
 
 import { cn } from '@/lib/utils';
 

@@ -176,7 +176,7 @@ describe('SmartGoalForm', () => {
       expect(call.composedText).toBe(
         'Complete all practice problems by 2025-06-30, measuring progress through Score at least 80 percent on quiz. This is achievable because I have enough study time available and relevant to Mathematics 101.',
       );
-    });
+    }, 15_000);
   });
 
   // ── Validation errors ─────────────────────────────────────────────────

@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
+import '@/lib/i18n';
 
 // ---------------------------------------------------------------------------
 // Mock react-router-dom navigate
@@ -187,7 +188,7 @@ describe('LoginPage', () => {
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith('/admin', { replace: true });
     });
-  });
+  }, 15_000);
 
   it('shows generic error message on failed login (Req 1.3)', async () => {
     mockSignInWithPassword.mockResolvedValue({

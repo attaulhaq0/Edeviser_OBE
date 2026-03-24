@@ -27,7 +27,7 @@ describe('computePerCLOScore — property-based tests', () => {
           }
 
           for (const cloId of Object.keys(totals)) {
-            const expected = ((corrects[cloId] ?? 0) / totals[cloId]) * 100;
+            const expected = ((corrects[cloId] ?? 0) / totals[cloId]!) * 100;
             expect(result[cloId]).toBeCloseTo(expected, 10);
           }
         },

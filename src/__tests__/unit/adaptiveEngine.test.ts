@@ -6,7 +6,8 @@ import {
   adjustDifficulty,
   preferredBloomLevels,
 } from '@/lib/adaptiveEngine';
-import type { AbilityLevel } from '@/lib/adaptiveEngine';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import type { AbilityLevel as _AbilityLevel } from '@/lib/adaptiveEngine';
 
 // ── classifyAbility ─────────────────────────────────────────────────
 

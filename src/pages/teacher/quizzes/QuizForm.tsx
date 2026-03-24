@@ -448,7 +448,7 @@ const CreateQuizForm = () => {
   const createMutation = useCreateQuiz();
 
   const form = useForm<CreateQuizFormData>({
-    resolver: zodResolver(createQuizSchema),
+    resolver: zodResolver(createQuizSchema) as never,
     defaultValues: {
       title: '',
       description: '',
@@ -481,7 +481,7 @@ const CreateQuizForm = () => {
 
   return (
     <QuizFormFields
-      form={form}
+      form={form as never}
       onSubmit={onSubmit}
       isPending={createMutation.isPending}
       isEditMode={false}
@@ -497,7 +497,7 @@ const EditQuizForm = ({ quizId }: { quizId: string }) => {
   const updateMutation = useUpdateQuiz();
 
   const form = useForm<CreateQuizFormData>({
-    resolver: zodResolver(createQuizSchema),
+    resolver: zodResolver(createQuizSchema) as never,
     defaultValues: {
       title: '',
       description: '',
@@ -566,7 +566,7 @@ const EditQuizForm = ({ quizId }: { quizId: string }) => {
 
   return (
     <QuizFormFields
-      form={form}
+      form={form as never}
       onSubmit={onSubmit}
       isPending={updateMutation.isPending}
       isEditMode
