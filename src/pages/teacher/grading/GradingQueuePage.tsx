@@ -1,4 +1,5 @@
 import { parseAsString, useQueryState } from 'nuqs';
+import { useState } from 'react';
 import { DataTable } from '@/components/shared/DataTable';
 import { useSubmissions } from '@/hooks/useSubmissions';
 import { useCourses } from '@/hooks/useCourses';
@@ -15,12 +16,14 @@ import {
 const GradingQueuePage = () => {
   const [courseId, setCourseId] = useQueryState('course', parseAsString.withDefault(''));
   const [assignmentId, setAssignmentId] = useQueryState('assignment', parseAsString.withDefault(''));
+  const [page, setPage] = useState(1);
 
   const { data: paginatedCourses } = useCourses();
   const { data: paginatedAssignments } = useAssignments(courseId || undefined);
   const { data: paginatedSubmissions, isLoading } = useSubmissions({
     courseId: courseId || undefined,
     assignmentId: assignmentId || undefined,
+    page,
   });
 
   const courses = paginatedCourses?.data;
@@ -30,10 +33,12 @@ const GradingQueuePage = () => {
   const handleCourseChange = (value: string) => {
     setCourseId(value === 'all' ? '' : value);
     setAssignmentId('');
+    setPage(1);
   };
 
   const handleAssignmentChange = (value: string) => {
     setAssignmentId(value === 'all' ? '' : value);
+    setPage(1);
   };
 
   return (
@@ -81,6 +86,10 @@ const GradingQueuePage = () => {
         columns={gradingQueueColumns}
         data={submissions}
         isLoading={isLoading}
+        page={page}
+        pageSize={paginatedSubmissions?.pageSize}
+        totalCount={paginatedSubmissions?.count}
+        onPageChange={setPage}
       />
     </div>
   );

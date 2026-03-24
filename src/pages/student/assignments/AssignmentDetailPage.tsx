@@ -293,7 +293,7 @@ const AssignmentDetailPage = () => {
                   Late Submission
                 </Badge>
               )}
-              {mySubmission.grades && (
+              {mySubmission.grades && mySubmission.grades.length > 0 && (
                 <div className="flex items-center gap-2 mt-2">
                   <Badge className="bg-blue-100 text-blue-700 border-blue-200">
                     Graded

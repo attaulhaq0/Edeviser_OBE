@@ -121,6 +121,13 @@ const habitAnalytics = {
   correlations: (studentId: string) => ['habitAnalytics', 'correlations', studentId] as const,
 }
 
+// ─── Adaptive Quiz ────────────────────────────────────────────────────────────
+const questionBank = createKeys('questionBank')
+const questionAnalytics = createKeys('questionAnalytics')
+const quizGeneration = createKeys('quizGeneration')
+const reviewQueue = createKeys('reviewQueue')
+const quizCLOCorrelation = createKeys('quizCLOCorrelation')
+
 // ─── Onboarding ──────────────────────────────────────────────────────────────
 const onboarding = {
   progress: (studentId: string) =>
@@ -228,6 +235,12 @@ export const queryKeys = {
   heatmap,
   wellness,
   habitAnalytics,
+  // Adaptive Quiz
+  questionBank,
+  questionAnalytics,
+  quizGeneration,
+  reviewQueue,
+  quizCLOCorrelation,
   // Onboarding
   onboarding,
 } as const
