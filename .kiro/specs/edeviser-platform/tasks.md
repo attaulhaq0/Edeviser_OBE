@@ -431,7 +431,7 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Call `logActivity({ event_type: 'journal' })` on journal entry save
     - _Requirements: 41.1_
 
-- [x] 26. Implement Student Dashboard
+- [ ] 26. Implement Student Dashboard
   - [x] 26.1 Create Student layout (mobile-first)
     - _Requirements: 30_
 
@@ -452,98 +452,98 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Create TanStack Query hooks (`/src/hooks/useHabits.ts`)
     - _Requirements: 30.1, 35_
 
-- [x] 27. Implement Student CLO Progress Dashboard
-  - [x] 27.1 Create CLO Progress component (`/src/pages/student/progress/CLOProgress.tsx`)
+- [ ] 27. Implement Student CLO Progress Dashboard
+  - [ ] 27.1 Create CLO Progress component (`/src/pages/student/progress/CLOProgress.tsx`)
     - Display per-CLO attainment bars for each enrolled course
     - Each entry shows: CLO title, Bloom's level pill (color-coded), attainment percentage bar (color-coded by attainment level), attainment level label
     - Source data from `outcome_attainment` table scoped to `student_course`
     - _Requirements: 44.1, 44.2, 44.3_
 
-  - [x] 27.2 Implement CLO evidence drill-down
+  - [ ] 27.2 Implement CLO evidence drill-down
     - On CLO click, expand to show contributing evidence records (assignment name, score, date)
     - _Requirements: 44.5_
 
-  - [x] 27.3 Wire realtime updates for CLO Progress
+  - [ ] 27.3 Wire realtime updates for CLO Progress
     - Subscribe to `outcome_attainment` changes for the student
     - Update bars in real time when new grades are released
     - _Requirements: 44.4_
 
-  - [x] 27.4 Create CLOProgressBar shared component (`/src/components/shared/CLOProgressBar.tsx`)
+  - [ ] 27.4 Create CLOProgressBar shared component (`/src/components/shared/CLOProgressBar.tsx`)
     - Reusable attainment bar with Bloom's color coding and attainment level styling
     - _Requirements: 44.2_
 
-- [x] 28. Implement XP Transaction History
-  - [x] 28.1 Create XP history TanStack Query hooks (`/src/hooks/useXPHistory.ts`)
+- [ ] 28. Implement XP Transaction History
+  - [ ] 28.1 Create XP history TanStack Query hooks (`/src/hooks/useXPHistory.ts`)
     - Query `xp_transactions` filtered by student_id
     - Support time period filtering: today, this_week, this_month, all_time
     - _Requirements: 45.3, 45.5_
 
-  - [x] 28.2 Create XP Transaction History page (`/src/pages/student/progress/XPHistory.tsx`)
+  - [ ] 28.2 Create XP Transaction History page (`/src/pages/student/progress/XPHistory.tsx`)
     - Display each transaction: source label, XP amount (+prefix), timestamp, reference description
     - Show running total and per-source category summary
     - Use nuqs for URL-persisted filter state
     - _Requirements: 45.1, 45.2, 45.4_
 
-  - [x] 28.3 Add XP History link to Student Dashboard and Profile page
+  - [ ] 28.3 Add XP History link to Student Dashboard and Profile page
     - _Requirements: 45.1_
 
-- [x] 29. Implement Notification System
-  - [x] 29.1 Create notification TanStack Query hooks (`/src/hooks/useNotifications.ts`)
+- [ ] 29. Implement Notification System
+  - [ ] 29.1 Create notification TanStack Query hooks (`/src/hooks/useNotifications.ts`)
     - _Requirements: 31_
 
-  - [x] 29.2 Create Notification Bell component with unread count
+  - [ ] 29.2 Create Notification Bell component with unread count
     - _Requirements: 31.3_
 
-  - [x] 29.3 Create Notification Center dropdown
+  - [ ] 29.3 Create Notification Center dropdown
     - _Requirements: 31.4_
 
-  - [x] 29.4 Wire notification triggers: grade released, new assignment, badge earned, streak at risk, prerequisite unlocked, peer milestone
+  - [ ] 29.4 Wire notification triggers: grade released, new assignment, badge earned, streak at risk, prerequisite unlocked, peer milestone
     - _Requirements: 31.2, 37.4, 42_
 
-- [x] 30. Implement Email Notifications
-  - [x] 30.1 Create `send-email-notification` Edge Function (Resend API integration)
+- [ ] 30. Implement Email Notifications
+  - [ ] 30.1 Create `send-email-notification` Edge Function (Resend API integration)
     - Support templates: streak_risk, weekly_summary, new_assignment, grade_released, bulk_import_invitation
     - Implement retry logic (3× with exponential backoff)
     - _Requirements: 39_
 
-  - [x] 30.2 Create `streak-risk-cron` Edge Function (pg_cron → daily 8 PM)
+  - [ ] 30.2 Create `streak-risk-cron` Edge Function (pg_cron → daily 8 PM)
     - Query students with no login today who have active streaks
     - Invoke send-email-notification for each
     - _Requirements: 39.1_
 
-  - [x] 30.3 Create `weekly-summary-cron` Edge Function (pg_cron → Monday 8 AM)
+  - [ ] 30.3 Create `weekly-summary-cron` Edge Function (pg_cron → Monday 8 AM)
     - Aggregate weekly XP, badges, streak, attainment changes per student
     - Send summary email via Resend
     - _Requirements: 39.1_
 
-  - [x] 30.4 Create `perfect-day-prompt` Edge Function (pg_cron → daily 6 PM)
+  - [ ] 30.4 Create `perfect-day-prompt` Edge Function (pg_cron → daily 6 PM)
     - Query each active student's habit completion for the current day
     - If exactly 3 of 4 habits completed, send in-app notification identifying the missing habit
     - Notification text: "You're 1 habit away from a Perfect Day! ✨ Complete your [missing_habit] to earn 50 bonus XP."
     - Skip students who already completed all 4 habits
     - _Requirements: 43_
 
-  - [x] 30.5 Add email notification opt-out settings to Profile page
+  - [ ] 30.5 Add email notification opt-out settings to Profile page
     - Per-type toggle: streak_risk, weekly_summary, new_assignment, grade_released
     - Store preferences in `profiles.email_preferences` jsonb column
     - _Requirements: 39.2_
 
-- [x] 31. Implement Realtime Subscriptions
-  - [x] 31.1 Create useRealtime hook (`/src/hooks/useRealtime.ts`)
+- [ ] 31. Implement Realtime Subscriptions
+  - [ ] 31.1 Create useRealtime hook (`/src/hooks/useRealtime.ts`)
     - Implement shared subscription manager: one subscription per table, components register callbacks
     - Do NOT create per-component subscriptions — share via centralized manager
     - _Requirements: 32_
 
-  - [x] 31.2 Wire realtime to: leaderboard, grading queue, notifications, XP/streak updates, CLO progress
+  - [ ] 31.2 Wire realtime to: leaderboard, grading queue, notifications, XP/streak updates, CLO progress
     - _Requirements: 32.1, 44.4_
 
-  - [x] 31.3 Implement reconnection with exponential backoff
+  - [ ] 31.3 Implement reconnection with exponential backoff
     - On connection failure, fall back to polling (30-second refetchInterval via TanStack Query)
     - Show "Live updates paused" banner when in polling fallback mode
     - _Requirements: 32, 53.5_
 
-- [x] 32. Implement Accreditation Report Generator
-  - [x] 32.1 Create `generate-accreditation-report` Edge Function
+- [ ] 32. Implement Accreditation Report Generator
+  - [ ] 32.1 Create `generate-accreditation-report` Edge Function
     - Aggregate outcome_attainment across institution
     - Render PDF via `jspdf` + `jspdf-autotable` (lightweight, no Puppeteer)
     - For charts: accept pre-rendered SVG/base64 from client
@@ -551,33 +551,33 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Return signed download URL
     - _Requirements: 33_
 
-  - [x] 32.2 Create Report Generator UI (Admin → Reports tab)
+  - [ ] 32.2 Create Report Generator UI (Admin → Reports tab)
     - Program selector, semester selector, template selector (ABET/HEC/Generic)
     - _Requirements: 33.3_
 
-  - [x] 32.3 Create report download and email delivery
+  - [ ] 32.3 Create report download and email delivery
     - _Requirements: 33.4_
 
-- [x] 33. Implement AI Data Collection Foundation
-  - [x] 33.1 Wire activity logging into remaining flows
+- [ ] 33. Implement AI Data Collection Foundation
+  - [ ] 33.1 Wire activity logging into remaining flows
     - Page navigation (page_view), assignment detail (assignment_view), streak processor (streak_break)
     - _Requirements: 41.1_
 
-  - [x] 33.2 Create `compute-at-risk-signals` Edge Function (pg_cron → nightly 2 AM)
+  - [ ] 33.2 Create `compute-at-risk-signals` Edge Function (pg_cron → nightly 2 AM)
     - Compute: days since last login, CLO attainment trend direction, submission timing patterns
     - Store computed signals in student_gamification or dedicated column
     - _Requirements: 41.3_
 
-- [x] 34. Implement Profile Management
-  - [x] 34.1 Create Profile page for all roles
+- [ ] 34. Implement Profile Management
+  - [ ] 34.1 Create Profile page for all roles
     - Include email notification preferences section
     - _Requirements: 8, 39.2_
 
-  - [x] 34.2 Implement avatar upload to Supabase Storage
+  - [ ] 34.2 Implement avatar upload to Supabase Storage
     - _Requirements: 8.2_
 
-- [x] 35. Implement AI Module Suggestion (Capability 1)
-  - [x] 35.1 Create `ai-module-suggestion` Edge Function
+- [ ] 35. Implement AI Module Suggestion (Capability 1)
+  - [ ] 35.1 Create `ai-module-suggestion` Edge Function
     - Query student's `outcome_attainment` to find CLOs with attainment < 70%
     - Identify prerequisite CLO relationships from `outcome_mappings`
     - Generate suggestion text with CLO gap analysis
@@ -585,79 +585,79 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Store suggestion in `ai_feedback` table with `suggestion_type = 'module_suggestion'`
     - _Requirements: 46.1, 46.2, 46.3, 46.4, 46.5_
 
-  - [x] 35.2 Create AI Suggestion Widget for Student Dashboard (`/src/components/shared/AISuggestionCard.tsx`)
+  - [ ] 35.2 Create AI Suggestion Widget for Student Dashboard (`/src/components/shared/AISuggestionCard.tsx`)
     - Display suggestion cards with CLO gap info and social proof text
     - Include thumbs up/down feedback buttons (AIFeedbackThumbs component)
     - Store feedback in `ai_feedback.feedback` column
     - _Requirements: 46.2, 46.6_
 
-  - [x] 35.3 Create AI suggestion TanStack Query hooks (`/src/hooks/useAISuggestions.ts`)
+  - [ ] 35.3 Create AI suggestion TanStack Query hooks (`/src/hooks/useAISuggestions.ts`)
     - Fetch suggestions for current student
     - Mutation for submitting feedback
     - _Requirements: 46.5, 46.6_
 
-- [x] 36. Implement AI At-Risk Early Warning (Capability 2)
-  - [x] 36.1 Create `ai-at-risk-prediction` Edge Function (pg_cron → nightly)
+- [ ] 36. Implement AI At-Risk Early Warning (Capability 2)
+  - [ ] 36.1 Create `ai-at-risk-prediction` Edge Function (pg_cron → nightly)
     - Monitor per-student behavioral signals: login frequency (from `student_activity_log`), submission timing patterns, CLO attainment trends (from `outcome_attainment`)
     - Predict students likely to fail a CLO ≥7 days before next assignment due date
     - Calculate probability score (0–100%) based on weighted signal combination
     - Store predictions in `ai_feedback` table with `suggestion_type = 'at_risk_prediction'`
     - _Requirements: 47.1, 47.2, 47.5, 47.6_
 
-  - [x] 36.2 Create AI At-Risk Widget for Teacher Dashboard
+  - [ ] 36.2 Create AI At-Risk Widget for Teacher Dashboard
     - Display at-risk students: name, CLO, probability score, contributing signals
     - One-click "Send Nudge" button to send personalized notification to student
     - _Requirements: 47.3, 47.4_
 
-  - [x] 36.3 Create at-risk prediction TanStack Query hooks (`/src/hooks/useAtRiskPredictions.ts`)
+  - [ ] 36.3 Create at-risk prediction TanStack Query hooks (`/src/hooks/useAtRiskPredictions.ts`)
     - Fetch predictions for teacher's courses
     - Mutation for sending nudge notifications
     - _Requirements: 47.3, 47.4_
 
-  - [x] 36.4 Implement prediction validation on grade submission
+  - [ ] 36.4 Implement prediction validation on grade submission
     - When an assignment is graded, check if there was an at-risk prediction for that student+CLO
     - Update `ai_feedback.validated_outcome` to 'correct' or 'incorrect'
     - _Requirements: 49.2_
 
-- [x] 37. Implement AI Feedback Draft Generation (Capability 3)
-  - [x] 37.1 Create `ai-feedback-draft` Edge Function
+- [ ] 37. Implement AI Feedback Draft Generation (Capability 3)
+  - [ ] 37.1 Create `ai-feedback-draft` Edge Function
     - Accept: submission_id, rubric_id, rubric_selections, student_id, clo_id
     - Generate draft feedback comments per rubric criterion based on: criteria descriptions, selected performance levels, student's historical feedback patterns, CLO context
     - Generate overall draft feedback
     - Return structured FeedbackDraftResponse
     - _Requirements: 48.1, 48.2, 48.4_
 
-  - [x] 37.2 Integrate AI draft into Grading Interface
+  - [ ] 37.2 Integrate AI draft into Grading Interface
     - Add "Generate AI Draft" button in grading interface
     - Display draft comments per criterion with accept/edit/reject controls
     - Label AI-generated feedback as "AI Draft" until teacher confirms
     - Log accepted/edited/rejected status to `ai_feedback` table with `suggestion_type = 'feedback_draft'`
     - _Requirements: 48.3, 48.5, 48.6_
 
-  - [x] 37.3 Create feedback draft TanStack Query hooks (`/src/hooks/useAIFeedbackDraft.ts`)
+  - [ ] 37.3 Create feedback draft TanStack Query hooks (`/src/hooks/useAIFeedbackDraft.ts`)
     - Mutation for generating draft
     - Mutation for logging draft acceptance/rejection
     - _Requirements: 48.4, 48.6_
 
-- [x] 38. Implement AI Feedback Flywheel & Admin Dashboard
-  - [x] 38.1 Create AI Performance summary for Admin Dashboard
+- [ ] 38. Implement AI Feedback Flywheel & Admin Dashboard
+  - [ ] 38.1 Create AI Performance summary for Admin Dashboard
     - Show: suggestion acceptance rate (thumbs up %), prediction accuracy rate (correct %), feedback draft acceptance rate (accepted %)
     - Query aggregated data from `ai_feedback` table grouped by `suggestion_type`
     - _Requirements: 49.5_
 
-  - [x] 38.2 Create AI performance TanStack Query hooks (`/src/hooks/useAIPerformance.ts`)
+  - [ ] 38.2 Create AI performance TanStack Query hooks (`/src/hooks/useAIPerformance.ts`)
     - Aggregate metrics from `ai_feedback` table
     - _Requirements: 49.5_
 
-- [x] 39. Implement shared UI components
-  - [x] 39.1 Create all shared components: AttainmentBar, BloomsPill, OutcomeTypeBadge, KPICard, GradientCardHeader, HabitGrid, LockedNode, BloomsVerbGuide, MysteryBadge, BonusEventBanner, AIFeedbackThumbs, AISuggestionCard, AtRiskStudentRow, CLOProgressBar, XPTransactionRow, Shimmer, EmptyState, ConfirmDialog, DataTable wrapper, ErrorState, UploadProgress, ReconnectBanner, StreakFreezeShop, ExportDataButton, QuickStartChecklist, SurveyForm, AttendanceGrid, QuizQuestionCard, GradebookMatrix, TimetableGrid, AnnouncementCard, MaterialItem, DiscussionThreadCard, CalendarEventCard, CQIStatusBadge, SectionComparisonChart, FeeStatusBadge, ParentStudentCard
-  - [x] 39.2 Apply brand design tokens from design style guide to all pages
-  - [x] 39.3 Add custom animations: xp-pulse, badge-pop, shimmer, float, streak-flame, node-unlock, mystery-reveal
-  - [x] 39.4 Implement reduced motion support
+- [ ] 39. Implement shared UI components
+  - [ ] 39.1 Create all shared components: AttainmentBar, BloomsPill, OutcomeTypeBadge, KPICard, GradientCardHeader, HabitGrid, LockedNode, BloomsVerbGuide, MysteryBadge, BonusEventBanner, AIFeedbackThumbs, AISuggestionCard, AtRiskStudentRow, CLOProgressBar, XPTransactionRow, Shimmer, EmptyState, ConfirmDialog, DataTable wrapper, ErrorState, UploadProgress, ReconnectBanner, StreakFreezeShop, ExportDataButton, QuickStartChecklist, SurveyForm, AttendanceGrid, QuizQuestionCard, GradebookMatrix, TimetableGrid, AnnouncementCard, MaterialItem, DiscussionThreadCard, CalendarEventCard, CQIStatusBadge, SectionComparisonChart, FeeStatusBadge, ParentStudentCard
+  - [ ] 39.2 Apply brand design tokens from design style guide to all pages
+  - [ ] 39.3 Add custom animations: xp-pulse, badge-pop, shimmer, float, streak-flame, node-unlock, mystery-reveal
+  - [ ] 39.4 Implement reduced motion support
 
 - [ ] 40. Implement i18n foundation
-  - [x] 40.1 Set up i18next with English translations
-  - [-] 40.2 Extract all user-facing strings to translation files
+  - [ ] 40.1 Set up i18next with English translations
+  - [ ] 40.2 Extract all user-facing strings to translation files
 
 - [ ] 41. Write comprehensive tests
   - [ ]* 41.1 Write property-based tests (Properties 1–50)

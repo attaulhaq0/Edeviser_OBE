@@ -469,77 +469,6 @@ export type Database = {
           },
         ]
       }
-      blooms_progression: {
-        Row: {
-          bloom_challenger_awarded: boolean
-          bloom_explorer_awarded: boolean
-          bloom_pioneer_awarded: boolean
-          clo_id: string
-          correct_count_at_highest: number
-          course_id: string
-          highest_bloom_level: number
-          id: string
-          institution_id: string
-          student_id: string
-          updated_at: string
-        }
-        Insert: {
-          bloom_challenger_awarded?: boolean
-          bloom_explorer_awarded?: boolean
-          bloom_pioneer_awarded?: boolean
-          clo_id: string
-          correct_count_at_highest?: number
-          course_id: string
-          highest_bloom_level?: number
-          id?: string
-          institution_id: string
-          student_id: string
-          updated_at?: string
-        }
-        Update: {
-          bloom_challenger_awarded?: boolean
-          bloom_explorer_awarded?: boolean
-          bloom_pioneer_awarded?: boolean
-          clo_id?: string
-          correct_count_at_highest?: number
-          course_id?: string
-          highest_bloom_level?: number
-          id?: string
-          institution_id?: string
-          student_id?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "blooms_progression_clo_id_fkey"
-            columns: ["clo_id"]
-            isOneToOne: false
-            referencedRelation: "learning_outcomes"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "blooms_progression_course_id_fkey"
-            columns: ["course_id"]
-            isOneToOne: false
-            referencedRelation: "courses"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "blooms_progression_institution_id_fkey"
-            columns: ["institution_id"]
-            isOneToOne: false
-            referencedRelation: "institutions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "blooms_progression_student_id_fkey"
-            columns: ["student_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       class_sessions: {
         Row: {
           created_at: string
@@ -2442,10 +2371,8 @@ export type Database = {
         Row: {
           answers: Json
           attempt_number: number
-          blooms_climb_state: Json | null
           difficulty_trajectory: Json | null
           id: string
-          mode: string
           per_question_times: Json | null
           question_sequence: Json | null
           quiz_id: string
@@ -2457,10 +2384,8 @@ export type Database = {
         Insert: {
           answers?: Json
           attempt_number?: number
-          blooms_climb_state?: Json | null
           difficulty_trajectory?: Json | null
           id?: string
-          mode?: string
           per_question_times?: Json | null
           question_sequence?: Json | null
           quiz_id: string
@@ -2472,10 +2397,8 @@ export type Database = {
         Update: {
           answers?: Json
           attempt_number?: number
-          blooms_climb_state?: Json | null
           difficulty_trajectory?: Json | null
           id?: string
-          mode?: string
           per_question_times?: Json | null
           question_sequence?: Json | null
           quiz_id?: string
@@ -2633,7 +2556,6 @@ export type Database = {
           is_adaptive: boolean
           is_published: boolean
           max_attempts: number
-          practice_mode_enabled: boolean
           time_limit_minutes: number | null
           title: string
         }
@@ -2648,7 +2570,6 @@ export type Database = {
           is_adaptive?: boolean
           is_published?: boolean
           max_attempts?: number
-          practice_mode_enabled?: boolean
           time_limit_minutes?: number | null
           title: string
         }
@@ -2663,7 +2584,6 @@ export type Database = {
           is_adaptive?: boolean
           is_published?: boolean
           max_attempts?: number
-          practice_mode_enabled?: boolean
           time_limit_minutes?: number | null
           title?: string
         }
@@ -2890,6 +2810,7 @@ export type Database = {
           },
         ]
       }
+<<<<<<< HEAD
       student_courses: {
         Row: {
           course_id: string
@@ -3481,6 +3402,28 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+=======
+      login_attempts: {
+        Row: {
+          email: string
+          attempt_count: number
+          locked_until: string | null
+          updated_at: string
+        }
+        Insert: {
+          email: string
+          attempt_count?: number
+          locked_until?: string | null
+          updated_at?: string
+        }
+        Update: {
+          email?: string
+          attempt_count?: number
+          locked_until?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+>>>>>>> e1901d0 (fix(audit): complete remaining platform audit tasks 3.4-4 with pagination wiring, batch reorder, and test cleanup)
       }
     }
     Views: {

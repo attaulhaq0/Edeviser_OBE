@@ -33,7 +33,6 @@ export interface QuestionBankRow {
   parent_question_id: string | null;
   generation_request_id: string | null;
   created_by: string;
-  explanation_confidence: number | null;
   created_at: string;
   updated_at: string;
 }

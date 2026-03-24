@@ -628,16 +628,6 @@ serve(async (req) => {
       );
     }
 
-    // ── Step 7.5: Compute explanation_confidence per question ───────────
-
-    function computeExplanationConfidence(sourceChunks: ChunkReference[]): number {
-      if (sourceChunks.length === 0) return 0;
-      const topChunks = [...sourceChunks]
-        .sort((a, b) => b.similarity_score - a.similarity_score)
-        .slice(0, 3);
-      return topChunks.reduce((sum, c) => sum + c.similarity_score, 0) / topChunks.length;
-    }
-
     // ── Step 8: INSERT into question_bank ────────────────────────────────
 
     const questionBankRows = validatedQuestions.map((q) => ({
@@ -652,7 +642,6 @@ serve(async (req) => {
       correct_answer: q.correct_answer,
       explanation: q.explanation,
       difficulty_rating: q.difficulty_rating,
-      explanation_confidence: computeExplanationConfidence(q.source_chunks),
       status: 'pending_review',
       generation_source: 'ai',
       source_chunks: q.source_chunks,
