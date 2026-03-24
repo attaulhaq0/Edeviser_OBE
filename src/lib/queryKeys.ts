@@ -131,6 +131,52 @@ const quizGeneration = createKeys('quizGeneration')
 const reviewQueue = createKeys('reviewQueue')
 const quizCLOCorrelation = createKeys('quizCLOCorrelation')
 
+// ─── Practice Mode ─────────────────────────────────────────────────────────────
+const practiceMode = {
+  all: ['practiceMode'] as const,
+  config: (quizId: string) => ['practiceMode', quizId] as const,
+  attempts: (quizId: string, studentId?: string) =>
+    studentId
+      ? (['practiceAttempts', quizId, studentId] as const)
+      : (['practiceAttempts', quizId] as const),
+}
+
+// ─── Explanation Confidence ───────────────────────────────────────────────────
+const verifiedExplanations = {
+  all: ['verifiedExplanations'] as const,
+  detail: (questionId: string) => ['verifiedExplanations', questionId] as const,
+}
+const explanationReviewQueue = {
+  all: ['explanationReviewQueue'] as const,
+  list: (courseId: string) => ['explanationReviewQueue', courseId] as const,
+}
+
+// ─── Mastery Recovery ────────────────────────────────────────────────────────
+const masteryRecovery = {
+  all: ['masteryRecovery'] as const,
+  lists: () => [...masteryRecovery.all, 'list'] as const,
+  list: (filters: Record<string, unknown>) =>
+    [...masteryRecovery.lists(), filters] as const,
+  status: (studentId: string, cloId: string) =>
+    ['masteryRecovery', 'status', studentId, cloId] as const,
+  detail: (recoveryId: string) =>
+    ['masteryRecovery', 'detail', recoveryId] as const,
+  metrics: (institutionId: string) =>
+    ['masteryRecovery', 'metrics', institutionId] as const,
+}
+
+// ─── Bloom's Progression ─────────────────────────────────────────────────
+const bloomsProgression = {
+  all: ['bloomsProgression'] as const,
+  progression: (studentId: string, courseId: string) =>
+    ['bloomsProgression', studentId, courseId] as const,
+  climbState: (quizAttemptId: string) =>
+    ['bloomsProgression', 'climbState', quizAttemptId] as const,
+  badges: (studentId: string) =>
+    ['bloomsProgression', 'badges', studentId] as const,
+}
+
+
 // ─── Onboarding ──────────────────────────────────────────────────────────────
 const onboarding = {
   progress: (studentId: string) =>
@@ -246,6 +292,15 @@ export const queryKeys = {
   quizGeneration,
   reviewQueue,
   quizCLOCorrelation,
+  // Practice Mode
+  practiceMode,
+  // Explanation Confidence
+  verifiedExplanations,
+  explanationReviewQueue,
+  // Mastery Recovery
+  masteryRecovery,
+  // Bloom's Progression
+  bloomsProgression,
   // Onboarding
   onboarding,
 } as const

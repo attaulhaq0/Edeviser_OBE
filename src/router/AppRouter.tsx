@@ -69,6 +69,23 @@ const ParentDashboard = lazy(() => import('@/pages/parent/ParentDashboard'));
 const ProfilePage = lazy(() => import('@/pages/shared/ProfilePage'));
 
 // ---------------------------------------------------------------------------
+// Adaptive Quiz Generation pages (lazy-loaded)
+// ---------------------------------------------------------------------------
+const GenerateQuestionsPage = lazy(() => import('@/pages/teacher/quiz-generation/GenerateQuestionsPage'));
+const ReviewQueuePage = lazy(() => import('@/pages/teacher/quiz-generation/ReviewQueuePage'));
+const QuestionBankPage = lazy(() => import('@/pages/teacher/quiz-generation/QuestionBankPage'));
+const QuestionAnalyticsDashboard = lazy(() => import('@/pages/teacher/quiz-analytics/QuestionAnalyticsDashboard'));
+const QuizCLOCorrelationPage = lazy(() => import('@/pages/teacher/quiz-analytics/QuizCLOCorrelationPage'));
+const QuizForm = lazy(() => import('@/pages/teacher/quizzes/QuizForm'));
+const AdaptiveQuizSession = lazy(() => import('@/pages/student/quiz/AdaptiveQuizSession'));
+const PostQuizReview = lazy(() => import('@/pages/student/quiz/PostQuizReview'));
+const MasteryRecoveryPage = lazy(() => import('@/pages/student/recovery/MasteryRecoveryPage'));
+const ExplanationReviewPage = lazy(() => import('@/pages/teacher/quiz-generation/ExplanationReviewPage'));
+
+// Shared pages
+const ProfilePage = lazy(() => import('@/pages/shared/ProfilePage'));
+
+// ---------------------------------------------------------------------------
 // Shared loading fallback
 // ---------------------------------------------------------------------------
 const LoadingFallback = () => (
@@ -169,6 +186,14 @@ const AppRouter = () => (
         <Route path="baseline/:courseId" element={<BaselineResultsPage />} />
         <Route path="baseline/:courseId/config" element={<BaselineConfigPage />} />
         <Route path="baseline/:courseId/questions/new" element={<BaselineQuestionForm />} />
+        <Route path="courses/:courseId/generate-questions" element={<GenerateQuestionsPage />} />
+        <Route path="courses/:courseId/review-queue" element={<ReviewQueuePage />} />
+        <Route path="courses/:courseId/question-bank" element={<QuestionBankPage />} />
+        <Route path="courses/:courseId/question-analytics" element={<QuestionAnalyticsDashboard />} />
+        <Route path="courses/:courseId/quiz-clo-correlation/:quizId" element={<QuizCLOCorrelationPage />} />
+        <Route path="courses/:courseId/quizzes/new" element={<QuizForm />} />
+        <Route path="courses/:courseId/quizzes/:id/edit" element={<QuizForm />} />
+        <Route path="courses/:courseId/explanation-review" element={<ExplanationReviewPage />} />
         <Route path="settings/profile" element={<ProfilePage />} />
       </Route>
 
@@ -191,7 +216,14 @@ const AppRouter = () => (
         <Route path="habits/analytics" element={<HabitAnalyticsPage />} />
         <Route path="planner/starter-week" element={<StarterWeekPlanPage />} />
         <Route path="settings/reassessment" element={<ReassessmentPage />} />
+<<<<<<< HEAD
+        <Route path="quizzes/:quizId/adaptive" element={<AdaptiveQuizSession />} />
+        <Route path="quizzes/:quizId/review/:attemptId" element={<PostQuizReview />} />
+        <Route path="courses/:courseId/recovery/:cloId" element={<MasteryRecoveryPage />} />
+        <Route path="settings/profile" element={<ProfilePage />} />
+=======
         <Route path="settings/profile" element={<ProfileSettingsPage />} />
+>>>>>>> origin/main
         <Route path="xp-history" element={<XPHistory />} />
       </Route>
 

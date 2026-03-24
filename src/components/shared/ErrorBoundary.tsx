@@ -2,6 +2,7 @@ import { Component, type ReactNode, type ErrorInfo } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
+import i18n from '@/lib/i18n';
 
 interface Props {
   children: ReactNode;
@@ -43,18 +44,20 @@ class ErrorBoundary extends Component<Props, State> {
               style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
             >
               <AlertTriangle className="h-5 w-5 text-white" />
-              <h2 className="text-lg font-bold tracking-tight text-white">Something went wrong</h2>
+              <h2 className="text-lg font-bold tracking-tight text-white">
+                {i18n.t('errorBoundary.title', { ns: 'common' })}
+              </h2>
             </div>
             <div className="p-6 space-y-4">
               <p className="text-sm text-gray-600">
-                {this.state.error?.message ?? 'An unexpected error occurred.'}
+                {this.state.error?.message ?? i18n.t('errorBoundary.defaultMessage', { ns: 'common' })}
               </p>
               <Button
                 onClick={this.handleRetry}
                 className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
               >
                 <RefreshCw className="h-4 w-4" />
-                Try Again
+                {i18n.t('errorBoundary.retry', { ns: 'common' })}
               </Button>
             </div>
           </Card>

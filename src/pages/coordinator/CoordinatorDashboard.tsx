@@ -12,6 +12,8 @@ import Shimmer from '@/components/shared/Shimmer';
 import CurriculumMatrix from '@/components/shared/CurriculumMatrix';
 import CellDetailSheet from '@/components/shared/CellDetailSheet';
 import { useCoordinatorKPIs } from '@/hooks/useCoordinatorDashboard';
+import { useRecoveryMetrics } from '@/hooks/useMasteryRecovery';
+import { useAuth } from '@/hooks/useAuth';
 import { usePrograms } from '@/hooks/usePrograms';
 import {
   Target,
@@ -21,6 +23,9 @@ import {
   AlertTriangle,
   Grid3X3,
   ArrowRight,
+  RotateCcw,
+  Clock,
+  TrendingUp,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -58,7 +63,9 @@ interface SelectedCell {
 // ─── Coordinator Dashboard ──────────────────────────────────────────────────
 
 const CoordinatorDashboard = () => {
+  const { institutionId } = useAuth();
   const { data: kpis, isLoading: kpisLoading } = useCoordinatorKPIs();
+  const { data: recoveryMetrics, isLoading: recoveryLoading } = useRecoveryMetrics(institutionId ?? '');
   const { data: paginatedPrograms, isLoading: programsLoading } = usePrograms();
   const programs = paginatedPrograms?.data;
   const [selectedProgramId, setSelectedProgramId] = useState<string>('');
@@ -185,6 +192,49 @@ const CoordinatorDashboard = () => {
           </div>
         </Card>
       </div>
+
+      {/* Recovery Pathway Metrics */}
+      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+        <div
+          className="px-6 py-4 flex items-center gap-2"
+          style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+        >
+          <RotateCcw className="h-5 w-5 text-white" />
+          <h2 className="text-lg font-bold tracking-tight text-white">Recovery Pathways</h2>
+        </div>
+        <div className="p-6">
+          {recoveryLoading ? (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Shimmer key={i} className="h-24 rounded-xl" />
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <KPICard
+                icon={RotateCcw}
+                label="Total Activations"
+                value={recoveryMetrics?.total_activations ?? 0}
+              />
+              <KPICard
+                icon={CheckCircle2}
+                label="Completion Rate"
+                value={`${Math.round((recoveryMetrics?.completion_rate ?? 0) * 100)}%`}
+              />
+              <KPICard
+                icon={Clock}
+                label="Avg Completion Time"
+                value={`${(recoveryMetrics?.avg_completion_time_hours ?? 0).toFixed(1)}h`}
+              />
+              <KPICard
+                icon={TrendingUp}
+                label="Retry Success Rate"
+                value={`${Math.round((recoveryMetrics?.retry_success_rate ?? 0) * 100)}%`}
+              />
+            </div>
+          )}
+        </div>
+      </Card>
 
       {/* Cell Detail Sheet */}
       <CellDetailSheet

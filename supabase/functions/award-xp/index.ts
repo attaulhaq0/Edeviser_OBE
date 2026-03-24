@@ -21,6 +21,7 @@ type XPSource =
   | 'discussion_answer'
   | 'survey_completion'
   | 'quiz_completion'
+  | 'quiz_hard_bonus'
   | 'streak_milestone'
   | 'journal'
   | 'grade'
@@ -33,7 +34,11 @@ type XPSource =
   | 'micro_assessment'
   | 'profile_complete'
   | 'starter_session_complete'
+<<<<<<< HEAD
   | 'wellness_habit';
+=======
+  | 'practice_quiz';
+>>>>>>> ef1a98f (feat(adaptive-quiz): add explanation confidence, practice mode, and verified explanations)
 
 interface XPAwardPayload {
   student_id: string;
@@ -89,11 +94,15 @@ const VALID_SOURCES: XPSource[] = [
   'login', 'submission', 'badge', 'admin_adjustment', 'perfect_day',
   'first_attempt_bonus', 'perfect_rubric', 'bonus_event',
   'discussion_question', 'discussion_answer', 'survey_completion',
-  'quiz_completion', 'streak_milestone', 'journal', 'grade',
+  'quiz_completion', 'quiz_hard_bonus', 'streak_milestone', 'journal', 'grade',
   'onboarding_personality', 'onboarding_learning_style', 'onboarding_baseline',
   'onboarding_complete', 'onboarding_self_efficacy', 'onboarding_study_strategy',
+<<<<<<< HEAD
   'micro_assessment', 'profile_complete', 'starter_session_complete',
   'wellness_habit',
+=======
+  'micro_assessment', 'profile_complete', 'starter_session_complete', 'practice_quiz',
+>>>>>>> ef1a98f (feat(adaptive-quiz): add explanation confidence, practice mode, and verified explanations)
 ];
 
 function validatePayload(payload: unknown): { valid: true; data: XPAwardPayload } | { valid: false; error: string } {
@@ -338,8 +347,47 @@ serve(async (req) => {
     // Re-destructure after potential overrides
     const { xp_amount: resolvedXpAmount, reference_id: resolvedReferenceId } = validation.data;
 
+    // ── Server-side XP caps for quiz sources ────────────────────────────
+    // quiz_completion: 50 base (on-time) or 25 (late) — caller provides the value
+    // quiz_hard_bonus: 10 per hard question, capped at 50
+    // practice_quiz: fixed 10 XP, no hard question bonus, separate diminishing returns
+    const PRACTICE_QUIZ_XP = 10;
+    const PRACTICE_QUIZ_MAX_PER_DAY = 3;
+
+    let cappedXpAmount = resolvedXpAmount;
+    if (source === 'practice_quiz') {
+      // Fixed 10 XP for practice quiz — server-enforced, ignore caller value
+      cappedXpAmount = PRACTICE_QUIZ_XP;
+
+      // Separate diminishing returns window: max 3 practice quiz XP awards per day per student
+      const dayStart = new Date();
+      dayStart.setUTCHours(0, 0, 0, 0);
+
+      const { data: practiceAwards, error: practiceCountErr } = await supabase
+        .from('xp_transactions')
+        .select('id')
+        .eq('student_id', student_id)
+        .eq('source', 'practice_quiz')
+        .gte('created_at', dayStart.toISOString());
+
+      if (practiceCountErr) {
+        console.error('Practice quiz diminishing returns query failed:', practiceCountErr.message);
+        // Continue without blocking — don't prevent XP award on query failure
+      }
+
+      const practiceCountToday = practiceAwards?.length ?? 0;
+      if (practiceCountToday >= PRACTICE_QUIZ_MAX_PER_DAY) {
+        // Diminishing returns exhausted — award 0 XP but still record the transaction
+        cappedXpAmount = 0;
+      }
+    } else if (source === 'quiz_completion') {
+      cappedXpAmount = Math.min(Math.max(resolvedXpAmount, 0), 50);
+    } else if (source === 'quiz_hard_bonus') {
+      cappedXpAmount = Math.min(Math.max(resolvedXpAmount, 0), 50);
+    }
+
     // Handle zero XP — still record the transaction but skip level recalculation
-    if (resolvedXpAmount === 0) {
+    if (cappedXpAmount === 0) {
       const { error: insertErr } = await supabase
         .from('xp_transactions')
         .insert({
@@ -365,25 +413,28 @@ serve(async (req) => {
     }
 
     // ── Step 1: Check for active bonus XP events ──────────────────────────
+    // Practice quiz XP is exempt from bonus event multipliers (Requirement 25.3)
 
-    let finalXP = resolvedXpAmount;
+    let finalXP = cappedXpAmount;
 
-    const { data: bonusEvents, error: bonusErr } = await supabase
-      .from('bonus_xp_events')
-      .select('multiplier')
-      .lte('start_date', new Date().toISOString())
-      .gte('end_date', new Date().toISOString());
+    if (source !== 'practice_quiz') {
+      const { data: bonusEvents, error: bonusErr } = await supabase
+        .from('bonus_xp_events')
+        .select('multiplier')
+        .lte('start_date', new Date().toISOString())
+        .gte('end_date', new Date().toISOString());
 
-    if (bonusErr) {
-      console.error('Bonus event query failed:', bonusErr.message);
-      // Continue without multiplier — don't block XP award
-    }
+      if (bonusErr) {
+        console.error('Bonus event query failed:', bonusErr.message);
+        // Continue without multiplier — don't block XP award
+      }
 
-    if (bonusEvents && bonusEvents.length > 0) {
-      // Apply the highest active multiplier
-      const maxMultiplier = Math.max(...bonusEvents.map((e: { multiplier: number }) => e.multiplier));
-      if (maxMultiplier > 1) {
-        finalXP = Math.floor(resolvedXpAmount * maxMultiplier);
+      if (bonusEvents && bonusEvents.length > 0) {
+        // Apply the highest active multiplier
+        const maxMultiplier = Math.max(...bonusEvents.map((e: { multiplier: number }) => e.multiplier));
+        if (maxMultiplier > 1) {
+          finalXP = Math.floor(cappedXpAmount * maxMultiplier);
+        }
       }
     }
 

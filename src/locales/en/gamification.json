@@ -1,0 +1,62 @@
+{
+  "xp": {
+    "title": "Experience Points",
+    "earned": "+{{amount}} XP",
+    "total": "Total XP",
+    "history": "XP History",
+    "sources": {
+      "login": "Daily Login",
+      "submission": "Assignment Submission",
+      "grade": "Grade Released",
+      "journal": "Journal Entry",
+      "streakMilestone": "Streak Milestone",
+      "perfectDay": "Perfect Day",
+      "firstAttempt": "First Attempt Bonus",
+      "perfectRubric": "Perfect Rubric Score",
+      "badgeEarned": "Badge Earned"
+    }
+  },
+  "streaks": {
+    "title": "Login Streak",
+    "days": "{{count}} day streak",
+    "atRisk": "Your streak is at risk!",
+    "lost": "Streak lost",
+    "freeze": "Streak Freeze",
+    "freezeAvailable": "{{count}} freeze(s) available",
+    "freezeCost": "Cost: 200 XP",
+    "milestone": "🔥 {{count}}-day streak milestone!"
+  },
+  "badges": {
+    "title": "Badges",
+    "earned": "Badge Earned!",
+    "collection": "Badge Collection",
+    "mystery": "Mystery Badge",
+    "mysteryHint": "Complete hidden challenges to unlock",
+    "locked": "Locked"
+  },
+  "leaderboard": {
+    "title": "Leaderboard",
+    "rank": "Rank",
+    "player": "Student",
+    "xpTotal": "Total XP",
+    "level": "Level",
+    "gold": "Gold",
+    "silver": "Silver",
+    "bronze": "Bronze"
+  },
+  "habits": {
+    "title": "Daily Habits",
+    "login": "Login",
+    "submit": "Submit",
+    "journal": "Journal",
+    "read": "Read",
+    "perfectDay": "Perfect Day! All habits completed 🎉",
+    "almostThere": "Almost there! Complete {{habit}} for a Perfect Day."
+  },
+  "level": {
+    "title": "Level",
+    "current": "Level {{level}}",
+    "levelUp": "Level Up! 🎉",
+    "nextLevel": "{{xp}} XP to next level"
+  }
+}

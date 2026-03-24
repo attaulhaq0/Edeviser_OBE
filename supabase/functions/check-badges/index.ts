@@ -39,9 +39,15 @@ const BADGE_XP: Record<string, number> = {
   speed_demon: 75,
   night_owl: 75,
   perfectionist: 100,
+<<<<<<< HEAD
   habit_master: 100,
   wellness_warrior: 75,
   full_spectrum: 150,
+=======
+  bloom_explorer: 75,
+  bloom_challenger: 100,
+  bloom_pioneer: 150,
+>>>>>>> 2bc8adf (feat(adaptive-quiz): add practice mode form, Bloom's Climb system, and progression tracking)
 };
 
 // ─── Validation ─────────────────────────────────────────────────────────────
@@ -360,15 +366,22 @@ async function checkMysteryBadges(
   return newBadges;
 }
 
+<<<<<<< HEAD
 // ─── Habit Badge Checkers ────────────────────────────────────────────────────
 
 async function checkHabitBadges(
+=======
+// ─── Bloom's Progression Badge Checkers ─────────────────────────────────
+
+async function checkBloomsBadges(
+>>>>>>> 2bc8adf (feat(adaptive-quiz): add practice mode form, Bloom's Climb system, and progression tracking)
   supabase: ReturnType<typeof createClient>,
   studentId: string,
   existingBadgeIds: Set<string>,
 ): Promise<string[]> {
   const newBadges: string[] = [];
 
+<<<<<<< HEAD
   // Determine current semester range (fall back to current calendar year)
   const now = new Date();
   const yearStart = `${now.getFullYear()}-01-01`;
@@ -505,6 +518,47 @@ async function checkHabitBadges(
         }
       }
     }
+=======
+  // If all three Bloom's badges already awarded, skip the query
+  if (
+    existingBadgeIds.has('bloom_explorer') &&
+    existingBadgeIds.has('bloom_challenger') &&
+    existingBadgeIds.has('bloom_pioneer')
+  ) {
+    return newBadges;
+  }
+
+  // Query blooms_progression for rows where any badge flag is set
+  const { data: progressions } = await supabase
+    .from('blooms_progression')
+    .select('bloom_explorer_awarded, bloom_challenger_awarded, bloom_pioneer_awarded')
+    .eq('student_id', studentId)
+    .or(
+      'bloom_explorer_awarded.eq.true,bloom_challenger_awarded.eq.true,bloom_pioneer_awarded.eq.true',
+    );
+
+  if (!progressions || progressions.length === 0) return newBadges;
+
+  // Check each badge flag across all progression rows
+  let hasExplorer = false;
+  let hasChallenger = false;
+  let hasPioneer = false;
+
+  for (const row of progressions) {
+    if (row.bloom_explorer_awarded) hasExplorer = true;
+    if (row.bloom_challenger_awarded) hasChallenger = true;
+    if (row.bloom_pioneer_awarded) hasPioneer = true;
+  }
+
+  if (hasExplorer && !existingBadgeIds.has('bloom_explorer')) {
+    newBadges.push('bloom_explorer');
+  }
+  if (hasChallenger && !existingBadgeIds.has('bloom_challenger')) {
+    newBadges.push('bloom_challenger');
+  }
+  if (hasPioneer && !existingBadgeIds.has('bloom_pioneer')) {
+    newBadges.push('bloom_pioneer');
+>>>>>>> 2bc8adf (feat(adaptive-quiz): add practice mode form, Bloom's Climb system, and progression tracking)
   }
 
   return newBadges;
@@ -519,6 +573,9 @@ const BADGE_DISPLAY_NAMES: Record<string, string> = {
   speed_demon: 'Speed Demon',
   night_owl: 'Night Owl',
   perfectionist: 'Perfectionist',
+  bloom_explorer: "Bloom's Explorer",
+  bloom_challenger: "Bloom's Challenger",
+  bloom_pioneer: "Bloom's Pioneer",
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -660,6 +717,12 @@ serve(async (req) => {
     const mysteryBadges = await checkMysteryBadges(supabase, student_id, existingBadgeIds);
     newBadgeIds.push(...mysteryBadges);
 
+    // Bloom's progression badges — check on grade or submission (quiz attempt completion)
+    if (trigger === 'grade' || trigger === 'submission') {
+      const bloomsBadges = await checkBloomsBadges(supabase, student_id, existingBadgeIds);
+      newBadgeIds.push(...bloomsBadges);
+    }
+
     // ── Step 3: Insert new badges idempotently ──────────────────────────
 
     const awardedBadges: string[] = [];
@@ -712,6 +775,7 @@ serve(async (req) => {
     const RARE_BADGES = new Set([
       'streak_30', 'streak_60', 'streak_100',
       'speed_demon', 'night_owl', 'perfectionist',
+      'bloom_explorer', 'bloom_challenger', 'bloom_pioneer',
     ]);
 
     const rareBadgesAwarded = awardedBadges.filter((b) => RARE_BADGES.has(b));

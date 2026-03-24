@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslation } from 'react-i18next';
 import { loginSchema, type LoginFormData } from '@/lib/schemas/auth';
 import { useAuth } from '@/hooks/useAuth';
 import {
@@ -18,6 +19,7 @@ import { Loader2, Mail, Lock } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 
 const LoginPage = () => {
+  const { t } = useTranslation('auth');
   const { signIn } = useAuth();
   const navigate = useNavigate();
   const [isPending, setIsPending] = useState(false);
@@ -36,7 +38,7 @@ const LoginPage = () => {
       const result = await signIn(data.email, data.password);
 
       if (!result.success) {
-        setError(result.error ?? 'Invalid email or password.');
+        setError(result.error ?? t('login.defaultError'));
         return;
       }
 
@@ -44,7 +46,7 @@ const LoginPage = () => {
         navigate(result.redirectTo, { replace: true });
       }
     } catch {
-      setError('Something went wrong. Please try again.');
+      setError(t('login.genericError'));
     } finally {
       setIsPending(false);
     }
@@ -55,10 +57,10 @@ const LoginPage = () => {
       <Card className="bg-white border-0 shadow-md rounded-xl w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold tracking-tight">
-            Welcome to Edeviser
+            {t('login.welcomeTitle')}
           </CardTitle>
           <CardDescription>
-            Sign in to your account
+            {t('login.welcomeSubtitle')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -74,13 +76,13 @@ const LoginPage = () => {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>{t('login.emailLabel')}</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                         <Input
                           type="email"
-                          placeholder="you@institution.edu"
+                          placeholder={t('login.emailPlaceholder')}
                           className="pl-9"
                           {...field}
                         />
@@ -96,12 +98,12 @@ const LoginPage = () => {
                 render={({ field }) => (
                   <FormItem>
                     <div className="flex items-center justify-between">
-                      <FormLabel>Password</FormLabel>
+                      <FormLabel>{t('login.passwordLabel')}</FormLabel>
                       <Link
                         to="/reset-password"
                         className="text-sm font-medium text-blue-600 hover:text-blue-700"
                       >
-                        Forgot password?
+                        {t('login.forgotPassword')}
                       </Link>
                     </div>
                     <FormControl>
@@ -109,7 +111,7 @@ const LoginPage = () => {
                         <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                         <Input
                           type="password"
-                          placeholder="Enter your password"
+                          placeholder={t('login.passwordPlaceholder')}
                           className="pl-9"
                           {...field}
                         />
@@ -125,7 +127,7 @@ const LoginPage = () => {
                 className="w-full bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
               >
                 {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-                Sign In
+                {t('login.submitButton')}
               </Button>
             </form>
           </Form>

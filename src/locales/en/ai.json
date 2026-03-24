@@ -1,0 +1,28 @@
+{
+  "suggestions": {
+    "title": "AI Suggestions",
+    "moduleSuggestion": "Suggested Focus Area",
+    "weakArea": "Needs improvement in {{clo}}",
+    "socialProof": "Students who improved this area scored {{percent}}% higher",
+    "feedback": "Was this helpful?",
+    "noSuggestions": "No suggestions at this time."
+  },
+  "atRisk": {
+    "title": "At-Risk Predictions",
+    "probability": "Risk Score: {{score}}%",
+    "signals": "Contributing Signals",
+    "loginFrequency": "Login Frequency",
+    "submissionPattern": "Submission Pattern",
+    "attainmentTrend": "Attainment Trend",
+    "sendNudge": "Send Nudge",
+    "nudgeSent": "Nudge sent to {{name}}."
+  },
+  "feedbackDraft": {
+    "title": "AI Feedback Draft",
+    "generating": "Generating feedback draft...",
+    "accept": "Accept",
+    "edit": "Edit",
+    "reject": "Reject",
+    "overallFeedback": "Overall Feedback Draft"
+  }
+}

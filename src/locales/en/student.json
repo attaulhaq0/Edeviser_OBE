@@ -1,0 +1,67 @@
+{
+  "dashboard": {
+    "title": "Student Dashboard",
+    "welcome": "Good morning, {{name}} 👋",
+    "subtitle": "Here's your learning journey today",
+    "upcomingDeadlines": "Upcoming Deadlines",
+    "learningPath": "Learning Path",
+    "dailyHabits": "Daily Habits",
+    "greeting": {
+      "morning": "Good morning",
+      "afternoon": "Good afternoon",
+      "evening": "Good evening"
+    },
+    "momentum": "Keep up the momentum — every step counts.",
+    "xp": "XP",
+    "level": "Lv {{level}}",
+    "levelLabel": "Level",
+    "courses": "Courses",
+    "completed": "Completed",
+    "avgAttainment": "Avg Attainment",
+    "streak": "Streak",
+    "noDeadlines": "No upcoming deadlines. Enjoy the break.",
+    "yourProgress": "Your Progress",
+    "totalXP": "Total XP",
+    "currentLevel": "Current Level",
+    "loginStreak": "Login Streak",
+    "daysStreak": "🔥 {{count}} days",
+    "assignmentsDone": "Assignments Done",
+    "viewXPHistory": "View XP History",
+    "completeOnboarding": "Complete your onboarding",
+    "completeOnboardingDesc": "Finish your profile to unlock personalized recommendations and earn XP.",
+    "startNow": "Start Now",
+    "completeAssessment": "Complete your assessment",
+    "completeAssessmentDesc": "You skipped some sections during onboarding. Complete them to get full personalization.",
+    "completeNow": "Complete Now"
+  },
+  "assignments": {
+    "title": "Assignments",
+    "submitAssignment": "Submit Assignment",
+    "uploadFile": "Upload File",
+    "submissionConfirmed": "Submission confirmed!",
+    "lateSubmission": "This is a late submission.",
+    "deadlinePassed": "The submission deadline has passed.",
+    "dueIn": "Due in {{time}}"
+  },
+  "progress": {
+    "title": "My Progress",
+    "cloProgress": "CLO Progress",
+    "xpHistory": "XP History",
+    "attainment": "Attainment",
+    "evidence": "Evidence",
+    "noAssessments": "No assessments yet"
+  },
+  "journal": {
+    "title": "Reflection Journal",
+    "newEntry": "New Entry",
+    "wordCount": "{{count}} words",
+    "minWords": "Minimum 50 words required",
+    "saved": "Journal entry saved."
+  },
+  "leaderboard": {
+    "title": "Leaderboard",
+    "yourRank": "Your Rank",
+    "anonymous": "Anonymous Mode",
+    "anonymousHint": "Your name is hidden from other students"
+  }
+}

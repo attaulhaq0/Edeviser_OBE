@@ -1,0 +1,83 @@
+{
+  "dashboard": {
+    "title": "Dashboard",
+    "gradingQueue": "Grading Queue",
+    "pendingSubmissions": "Pending Submissions",
+    "gradedThisWeek": "Graded This Week",
+    "avgAttainment": "Avg Attainment",
+    "atRiskStudents": "At-Risk Students",
+    "bloomsDistribution": "Bloom's Distribution",
+    "cloAttainment": "CLO Attainment",
+    "studentHeatmap": "Student Performance Heatmap",
+    "selectCourse": "Select course",
+    "viewAll": "View All",
+    "noCloData": "No CLO attainment data available for this course.",
+    "noClosDefined": "No CLOs defined yet.",
+    "noHeatmapData": "No student performance data available for this course.",
+    "noAtRisk": "No at-risk students detected. Great work!",
+    "noPending": "No pending submissions. You're all caught up!",
+    "sendNudgeTo": "Send Nudge to {{name}}",
+    "nudgePlaceholder": "Write a message...",
+    "nudgeSent": "Nudge sent to {{name}}",
+    "nudgeFailed": "Failed to send nudge",
+    "nudge": "Nudge",
+    "daysInactive": "{{count}}d inactive",
+    "late": "Late",
+    "heatmapLegend": {
+      "excellent": "Excellent (≥85%)",
+      "satisfactory": "Satisfactory (70-84%)",
+      "developing": "Developing (50-69%)",
+      "notYet": "Not Yet (<50%)",
+      "noData": "No data"
+    },
+    "student": "Student",
+    "masteryRecovery": {
+      "title": "Mastery Recovery Alerts",
+      "description": "Students flagged for mastery recovery need to complete a recovery pathway before retrying the mastery gate.",
+      "failures": "{{count}} failures",
+      "inRecovery": "In Recovery"
+    }
+  },
+  "grading": {
+    "title": "Grading",
+    "rubricSelection": "Select rubric level for each criterion",
+    "totalScore": "Total Score",
+    "feedback": "Feedback",
+    "overallFeedback": "Overall Feedback",
+    "submitGrade": "Submit Grade",
+    "gradeSubmitted": "Grade submitted successfully."
+  },
+  "assignments": {
+    "title": "Assignments",
+    "addAssignment": "Add Assignment",
+    "editAssignment": "Edit Assignment",
+    "dueDate": "Due Date",
+    "totalMarks": "Total Marks",
+    "linkedCLOs": "Linked CLOs",
+    "lateWindow": "Late Submission Window"
+  },
+  "clos": {
+    "title": "Course Learning Outcomes",
+    "addCLO": "Add CLO",
+    "editCLO": "Edit CLO",
+    "bloomsLevel": "Bloom's Level",
+    "ploMapping": "PLO Mapping",
+    "noMapping": "No PLO mapping yet"
+  },
+  "rubrics": {
+    "title": "Rubrics",
+    "addRubric": "Add Rubric",
+    "editRubric": "Edit Rubric",
+    "criteria": "Criteria",
+    "levels": "Performance Levels",
+    "saveAsTemplate": "Save as Template"
+  },
+  "attendance": {
+    "title": "Attendance",
+    "markAttendance": "Mark Attendance",
+    "present": "Present",
+    "absent": "Absent",
+    "late": "Late",
+    "excused": "Excused"
+  }
+}

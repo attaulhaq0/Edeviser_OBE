@@ -20,7 +20,7 @@ describe('Badge Definitions', () => {
       expect(typeof badge.description).toBe('string');
       expect(badge.icon).toBeTruthy();
       expect(typeof badge.icon).toBe('string');
-      expect(['streak', 'academic', 'engagement', 'mystery', 'habit']).toContain(badge.category);
+      expect(['streak', 'academic', 'engagement', 'mystery', 'habit', 'blooms']).toContain(badge.category);
       expect(typeof badge.isMystery).toBe('boolean');
       expect(badge.condition).toBeTruthy();
       expect(typeof badge.condition).toBe('string');
@@ -69,6 +69,7 @@ describe('Badge Definitions', () => {
     expect(categories.has('academic')).toBe(true);
     expect(categories.has('engagement')).toBe(true);
     expect(categories.has('mystery')).toBe(true);
+    expect(categories.has('blooms')).toBe(true);
   });
 
   it('includes streak milestone badges at 7, 14, 30, 60, 100 days', () => {
@@ -79,6 +80,19 @@ describe('Badge Definitions', () => {
     expect(streakIds).toContain('streak_30');
     expect(streakIds).toContain('streak_60');
     expect(streakIds).toContain('streak_100');
+  });
+
+  it('includes Bloom\'s progression badges', () => {
+    const bloomsBadges = BADGE_DEFINITIONS.filter((b) => b.category === 'blooms');
+    const bloomsIds = bloomsBadges.map((b) => b.id);
+    expect(bloomsIds).toContain('bloom_explorer');
+    expect(bloomsIds).toContain('bloom_challenger');
+    expect(bloomsIds).toContain('bloom_pioneer');
+    expect(bloomsBadges.length).toBe(3);
+    for (const badge of bloomsBadges) {
+      expect(badge.isMystery).toBe(false);
+      expect(badge.xpReward).toBeGreaterThan(0);
+    }
   });
 });
 
@@ -114,7 +128,7 @@ describe('getBadgesByCategory', () => {
 
   it('returns empty array for a category with no badges', () => {
     // All categories have badges, but test the filtering works
-    const allCategories: BadgeCategory[] = ['streak', 'academic', 'engagement', 'mystery'];
+    const allCategories: BadgeCategory[] = ['streak', 'academic', 'engagement', 'mystery', 'blooms'];
     for (const cat of allCategories) {
       const badges = getBadgesByCategory(cat);
       expect(badges.length).toBeGreaterThan(0);

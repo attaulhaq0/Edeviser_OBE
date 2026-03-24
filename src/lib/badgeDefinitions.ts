@@ -2,7 +2,7 @@
 // All badge conditions are defined here as a single source of truth.
 // Mystery badge conditions are checked server-side only — never expose to client.
 
-export type BadgeCategory = 'streak' | 'academic' | 'engagement' | 'mystery' | 'habit';
+export type BadgeCategory = 'streak' | 'academic' | 'engagement' | 'mystery' | 'habit' | 'blooms';
 
 export interface BadgeDef {
   id: string;
@@ -144,6 +144,7 @@ export const BADGE_DEFINITIONS: BadgeDef[] = [
     xpReward: 75,
   },
 
+<<<<<<< HEAD
   // ── Habit badges ──────────────────────────────────────────────────────────
   {
     id: 'habit_master',
@@ -173,6 +174,38 @@ export const BADGE_DEFINITIONS: BadgeDef[] = [
     category: 'habit',
     isMystery: false,
     condition: '7 days with all 4 academic + ≥1 wellness habit',
+    xpReward: 150,
+  },
+
+  // ── Bloom's Progression badges ──────────────────────────────────────────
+  {
+    id: 'bloom_explorer',
+    name: "Bloom's Explorer",
+    description: 'Reached Bloom\'s level 4 (Analyzing) on any CLO',
+    icon: '🌱',
+    category: 'blooms',
+    isMystery: false,
+    condition: 'Reach highest_bloom_level >= 4 on any CLO via adaptive quiz',
+    xpReward: 75,
+  },
+  {
+    id: 'bloom_challenger',
+    name: "Bloom's Challenger",
+    description: 'Reached Bloom\'s level 5 (Evaluating) on any CLO',
+    icon: '🌿',
+    category: 'blooms',
+    isMystery: false,
+    condition: 'Reach highest_bloom_level >= 5 on any CLO via adaptive quiz',
+    xpReward: 100,
+  },
+  {
+    id: 'bloom_pioneer',
+    name: "Bloom's Pioneer",
+    description: 'Reached Bloom\'s level 6 (Creating) on any CLO',
+    icon: '🌳',
+    category: 'blooms',
+    isMystery: false,
+    condition: 'Reach highest_bloom_level >= 6 on any CLO via adaptive quiz',
     xpReward: 150,
   },
 

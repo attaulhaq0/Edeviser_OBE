@@ -35,6 +35,7 @@ export const XP_SCHEDULE: Record<XPSource, number> = {
   profile_complete: 30,
   starter_session_complete: 15,
   wellness_habit: 0, // Variable: looked up from institution_settings.wellness_xp_amount
+  practice_quiz: 10,
 };
 
 /** XP awarded for late submissions (assignment or quiz) */
