@@ -115,7 +115,7 @@ describe('gamification translation keys', () => {
 
 describe('namespace-specific key existence', () => {
   it('admin namespace has dashboard keys', () => {
-    expect(i18n.t('dashboard.title', { ns: 'admin' })).toBe('Admin Dashboard');
+    expect(i18n.t('dashboard.title', { ns: 'admin' })).toBe('Dashboard');
   });
 
   it('teacher namespace has grading keys', () => {

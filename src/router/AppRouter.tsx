@@ -65,9 +65,6 @@ const HabitAnalyticsPage = lazy(() => import('@/pages/student/habits/HabitAnalyt
 const XPHistory = lazy(() => import('@/pages/student/progress/XPHistory'));
 const ParentDashboard = lazy(() => import('@/pages/parent/ParentDashboard'));
 
-// Shared pages
-const ProfilePage = lazy(() => import('@/pages/shared/ProfilePage'));
-
 // ---------------------------------------------------------------------------
 // Adaptive Quiz Generation pages (lazy-loaded)
 // ---------------------------------------------------------------------------
@@ -216,14 +213,10 @@ const AppRouter = () => (
         <Route path="habits/analytics" element={<HabitAnalyticsPage />} />
         <Route path="planner/starter-week" element={<StarterWeekPlanPage />} />
         <Route path="settings/reassessment" element={<ReassessmentPage />} />
-<<<<<<< HEAD
         <Route path="quizzes/:quizId/adaptive" element={<AdaptiveQuizSession />} />
         <Route path="quizzes/:quizId/review/:attemptId" element={<PostQuizReview />} />
         <Route path="courses/:courseId/recovery/:cloId" element={<MasteryRecoveryPage />} />
-        <Route path="settings/profile" element={<ProfilePage />} />
-=======
         <Route path="settings/profile" element={<ProfileSettingsPage />} />
->>>>>>> origin/main
         <Route path="xp-history" element={<XPHistory />} />
       </Route>
 

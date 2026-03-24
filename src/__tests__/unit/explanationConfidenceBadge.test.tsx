@@ -117,7 +117,7 @@ describe('ExplanationConfidenceBadge — Blue badge (teacher verified)', () => {
     const { container } = render(
       <ExplanationConfidenceBadge confidence={null} isVerified={true} />,
     );
-    const badge = container.querySelector('[title]');
+    container.querySelector('[title]');
     // The badge should exist but without a title attribute (or title is undefined)
     expect(screen.getByText('Teacher verified')).toBeInTheDocument();
     // No title attribute when confidence is null

@@ -29,13 +29,13 @@ describe('Practice mode flag behavior', () => {
   it('practice mode is identified by mode = "practice"', () => {
     const attempt = { mode: 'practice' as const };
     expect(attempt.mode).toBe('practice');
-    expect(attempt.mode !== 'graded').toBe(true);
+    expect(attempt.mode !== ('graded' as string)).toBe(true);
   });
 
   it('graded mode is identified by mode = "graded"', () => {
     const attempt = { mode: 'graded' as const };
     expect(attempt.mode).toBe('graded');
-    expect(attempt.mode !== 'practice').toBe(true);
+    expect(attempt.mode !== ('practice' as string)).toBe(true);
   });
 
   it('practice and graded modes are mutually exclusive', () => {
@@ -50,30 +50,30 @@ describe('Practice XP is independent of external factors', () => {
   it('XP is the same regardless of difficulty level', () => {
     // computePracticeXP takes no parameters — XP is always 10
     const difficulties = [1.0, 2.0, 3.0, 4.0, 5.0];
-    for (const _difficulty of difficulties) {
+    difficulties.forEach(() => {
       expect(computePracticeXP()).toBe(10);
-    }
+    });
   });
 
   it('XP is the same regardless of correctness', () => {
     const correctnessValues = [true, false];
-    for (const _correct of correctnessValues) {
+    correctnessValues.forEach(() => {
       expect(computePracticeXP()).toBe(10);
-    }
+    });
   });
 
   it('XP is the same regardless of Bloom level', () => {
     const bloomLevels = [1, 2, 3, 4, 5, 6];
-    for (const _level of bloomLevels) {
+    bloomLevels.forEach(() => {
       expect(computePracticeXP()).toBe(10);
-    }
+    });
   });
 
   it('XP is the same regardless of score', () => {
     const scores = [0, 25, 50, 75, 100];
-    for (const _score of scores) {
+    scores.forEach(() => {
       expect(computePracticeXP()).toBe(10);
-    }
+    });
   });
 });
 

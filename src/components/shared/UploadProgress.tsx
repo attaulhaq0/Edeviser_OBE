@@ -1,6 +1,7 @@
 // =============================================================================
 // UploadProgress — File upload progress indicator
 // =============================================================================
+/* eslint-disable react-refresh/only-export-components */
 
 import { CheckCircle, AlertCircle, X, RefreshCw, File } from 'lucide-react';
 import { Button } from '@/components/ui/button';

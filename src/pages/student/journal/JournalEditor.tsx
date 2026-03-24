@@ -161,6 +161,7 @@ const JournalEditor = () => {
   }, [existingEntry, form]);
 
   // Watch form values for live word count and CLO prompt
+  // eslint-disable-next-line react-hooks/incompatible-library
   const watchedContent = form.watch('content');
   const watchedCourseId = form.watch('course_id');
   const watchedCloId = form.watch('clo_id');

@@ -187,7 +187,9 @@ describe('GradingInterface', () => {
 
   it('displays student name and email', async () => {
     await renderGradingInterface();
-    expect(screen.getByText('Alice Johnson')).toBeInTheDocument();
+    // Use getAllByText to handle cases where the name may appear in multiple places
+    const nameElements = screen.getAllByText('Alice Johnson');
+    expect(nameElements.length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('alice@example.com')).toBeInTheDocument();
   });
 

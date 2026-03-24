@@ -47,7 +47,7 @@ export const useBloomsProgression = (studentId: string, courseId: string) => {
     queryKey: queryKeys.bloomsProgression.progression(studentId, courseId),
     queryFn: async (): Promise<BloomsProgressionRecord[]> => {
       const { data, error } = await supabase
-        .from('blooms_progression')
+        .from('blooms_progression' as never)
         .select(
           'id, student_id, clo_id, course_id, highest_bloom_level, correct_count_at_highest, bloom_explorer_awarded, bloom_challenger_awarded, bloom_pioneer_awarded, updated_at',
         )
@@ -103,7 +103,7 @@ export const useBloomsPioneerBadges = (studentId: string) => {
     queryKey: queryKeys.bloomsProgression.badges(studentId),
     queryFn: async (): Promise<BloomsBadgeRecord[]> => {
       const { data, error } = await supabase
-        .from('blooms_progression')
+        .from('blooms_progression' as never)
         .select(
           'id, student_id, clo_id, course_id, highest_bloom_level, bloom_explorer_awarded, bloom_challenger_awarded, bloom_pioneer_awarded',
         )

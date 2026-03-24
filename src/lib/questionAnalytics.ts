@@ -20,7 +20,7 @@ export function computePerCLOScore(
 
   const result: Record<string, number> = {};
   for (const cloId of Object.keys(totals)) {
-    result[cloId] = ((corrects[cloId] ?? 0) / totals[cloId]) * 100;
+    result[cloId] = ((corrects[cloId] ?? 0) / totals[cloId]!) * 100;
   }
   return result;
 }

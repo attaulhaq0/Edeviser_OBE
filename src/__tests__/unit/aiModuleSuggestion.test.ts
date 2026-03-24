@@ -54,7 +54,7 @@ describe('ai-module-suggestion helpers', () => {
     it('should maintain correct ordering', () => {
       const levels = ['remembering', 'understanding', 'applying', 'analyzing', 'evaluating', 'creating'];
       for (let i = 0; i < levels.length - 1; i++) {
-        expect(BLOOMS_ORDER[levels[i]]).toBeLessThan(BLOOMS_ORDER[levels[i + 1]]);
+        expect(BLOOMS_ORDER[levels[i]!]!).toBeLessThan(BLOOMS_ORDER[levels[i + 1]!]!);
       }
     });
   });
