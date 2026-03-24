@@ -5,11 +5,15 @@ import { format } from 'date-fns';
 import {
   ArrowLeft,
   Check,
+  CheckCircle2,
   Clock,
   ExternalLink,
   FileText,
   Loader2,
+  Pencil,
+  Sparkles,
   User,
+  X,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -23,11 +27,17 @@ import { supabase } from '@/lib/supabase';
 import { queryKeys } from '@/lib/queryKeys';
 import { cn } from '@/lib/utils';
 import { logActivity } from '@/lib/activityLogger';
+import { validateAtRiskPredictions } from '@/lib/predictionValidator';
 import { useSubmission } from '@/hooks/useSubmissions';
 import { useRubric } from '@/hooks/useRubrics';
 import type { RubricCriterion } from '@/hooks/useRubrics';
 import { useGrade, useCreateGrade } from '@/hooks/useGrades';
 import { useAuth } from '@/hooks/useAuth';
+import {
+  useGenerateFeedbackDraft,
+  useLogDraftAction,
+} from '@/hooks/useAIFeedbackDraft';
+import type { CriterionDraft } from '@/hooks/useAIFeedbackDraft';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -41,6 +51,7 @@ interface AssignmentForRubric {
   title: string;
   total_marks: number;
   rubric_id: string;
+  clo_weights: Array<{ clo_id: string; weight: number }>;
 }
 
 // ─── Local hook: fetch assignment to get rubric_id ──────────────────────────
@@ -51,7 +62,7 @@ const useAssignmentForRubric = (assignmentId?: string) => {
     queryFn: async (): Promise<AssignmentForRubric | null> => {
       const { data, error } = await supabase
         .from('assignments')
-        .select('id, title, total_marks, rubric_id')
+        .select('id, title, total_marks, rubric_id, clo_weights')
         .eq('id', assignmentId!)
         .maybeSingle();
       if (error) throw error;
@@ -246,6 +257,160 @@ const RubricGrid = ({ criteria, selections, onCellSelect, isReadOnly }: RubricGr
 };
 
 
+// ─── AI Draft Types ─────────────────────────────────────────────────────────
+
+type DraftStatus = 'pending' | 'accepted' | 'editing' | 'rejected';
+
+interface DraftState {
+  criterion_id: string;
+  criterion_title: string;
+  draft_comment: string;
+  edited_comment: string;
+  status: DraftStatus;
+}
+
+// ─── AI Draft Panel ─────────────────────────────────────────────────────────
+
+interface AIDraftPanelProps {
+  drafts: DraftState[];
+  overallDraft: string;
+  onAccept: (criterionId: string) => void;
+  onEdit: (criterionId: string) => void;
+  onReject: (criterionId: string) => void;
+  onEditChange: (criterionId: string, text: string) => void;
+  onEditConfirm: (criterionId: string) => void;
+  onAcceptOverall: () => void;
+}
+
+const AIDraftPanel = ({
+  drafts,
+  overallDraft,
+  onAccept,
+  onEdit,
+  onReject,
+  onEditChange,
+  onEditConfirm,
+  onAcceptOverall,
+}: AIDraftPanelProps) => (
+  <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+    <div
+      className="px-6 py-4 flex items-center gap-2"
+      style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+    >
+      <Sparkles className="h-5 w-5 text-white" />
+      <h2 className="text-lg font-bold tracking-tight text-white">AI Feedback Drafts</h2>
+    </div>
+    <div className="p-6 space-y-4">
+      {drafts.map((draft) => (
+        <div
+          key={draft.criterion_id}
+          className={cn(
+            'rounded-lg border p-4 space-y-3',
+            draft.status === 'accepted' && 'border-green-200 bg-green-50',
+            draft.status === 'rejected' && 'border-red-200 bg-red-50 opacity-60',
+            draft.status === 'editing' && 'border-blue-200 bg-blue-50',
+            draft.status === 'pending' && 'border-slate-200 bg-white',
+          )}
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-semibold">{draft.criterion_title}</span>
+              <Badge className="bg-amber-100 text-amber-700 border-amber-200 text-[10px]" variant="outline">
+                AI Draft
+              </Badge>
+              {draft.status === 'accepted' && (
+                <Badge className="bg-green-100 text-green-700 border-green-200 text-[10px]" variant="outline">
+                  Accepted
+                </Badge>
+              )}
+              {draft.status === 'rejected' && (
+                <Badge className="bg-red-100 text-red-700 border-red-200 text-[10px]" variant="outline">
+                  Rejected
+                </Badge>
+              )}
+            </div>
+            {draft.status === 'pending' && (
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onAccept(draft.criterion_id)}
+                  className="h-8 px-2 text-green-600 hover:text-green-700 hover:bg-green-50"
+                  aria-label={`Accept draft for ${draft.criterion_title}`}
+                >
+                  <CheckCircle2 className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onEdit(draft.criterion_id)}
+                  className="h-8 px-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                  aria-label={`Edit draft for ${draft.criterion_title}`}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onReject(draft.criterion_id)}
+                  className="h-8 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                  aria-label={`Reject draft for ${draft.criterion_title}`}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+          </div>
+
+          {draft.status === 'editing' ? (
+            <div className="space-y-2">
+              <Textarea
+                value={draft.edited_comment}
+                onChange={(e) => onEditChange(draft.criterion_id, e.target.value)}
+                rows={3}
+                className="text-sm"
+              />
+              <Button
+                size="sm"
+                onClick={() => onEditConfirm(draft.criterion_id)}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                <Check className="h-3 w-3" /> Confirm Edit
+              </Button>
+            </div>
+          ) : (
+            <p className="text-sm text-gray-700 leading-relaxed">{draft.draft_comment}</p>
+          )}
+        </div>
+      ))}
+
+      {/* Overall draft */}
+      {overallDraft && (
+        <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-semibold">Overall Feedback</span>
+              <Badge className="bg-amber-100 text-amber-700 border-amber-200 text-[10px]" variant="outline">
+                AI Draft
+              </Badge>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onAcceptOverall}
+              className="h-8 px-2 text-green-600 hover:text-green-700 hover:bg-green-50"
+              aria-label="Use overall draft as feedback"
+            >
+              <CheckCircle2 className="h-4 w-4 mr-1" /> Use
+            </Button>
+          </div>
+          <p className="text-sm text-gray-700 leading-relaxed">{overallDraft}</p>
+        </div>
+      )}
+    </div>
+  </Card>
+);
+
 // ─── Main Component ─────────────────────────────────────────────────────────
 
 const GradingInterface = () => {
@@ -260,10 +425,14 @@ const GradingInterface = () => {
   const { data: rubric, isLoading: rubricLoading } = useRubric(assignment?.rubric_id ?? undefined);
   const { data: existingGrade, isLoading: gradeLoading } = useGrade(submissionId);
   const createGrade = useCreateGrade();
+  const generateDraft = useGenerateFeedbackDraft();
+  const logDraftAction = useLogDraftAction();
 
   // ── Local state ─────────────────────────────────────────────────────────
   const [selections, setSelections] = useState<Map<string, CellSelection>>(new Map());
   const [feedback, setFeedback] = useState('');
+  const [aiDrafts, setAiDrafts] = useState<DraftState[]>([]);
+  const [aiOverallDraft, setAiOverallDraft] = useState('');
 
   const isReadOnly = !!existingGrade;
   const isLoading = submissionLoading || assignmentLoading || rubricLoading || gradeLoading;
@@ -316,6 +485,119 @@ const GradingInterface = () => {
     });
   };
 
+  // ── AI Draft Handlers ───────────────────────────────────────────────────
+  const handleGenerateAIDraft = () => {
+    if (!submissionId || !rubric || !submission?.student_id || selections.size === 0) return;
+
+    const cloId = assignment?.clo_weights?.[0]?.clo_id;
+    if (!cloId) {
+      toast.error('No CLO linked to this assignment');
+      return;
+    }
+
+    const rubricSelections = Array.from(selections.entries()).map(([criterionId, sel]) => ({
+      criterion_id: criterionId,
+      level_index: sel.levelIndex,
+    }));
+
+    generateDraft.mutate(
+      {
+        submission_id: submissionId,
+        rubric_id: rubric.id,
+        rubric_selections: rubricSelections,
+        student_id: submission.student_id,
+        clo_id: cloId,
+      },
+      {
+        onSuccess: (data) => {
+          const newDrafts: DraftState[] = data.criterion_drafts.map((d: CriterionDraft) => ({
+            criterion_id: d.criterion_id,
+            criterion_title: d.criterion_title,
+            draft_comment: d.draft_comment,
+            edited_comment: d.draft_comment,
+            status: 'pending' as DraftStatus,
+          }));
+          setAiDrafts(newDrafts);
+          setAiOverallDraft(data.overall_draft);
+          toast.success('AI feedback drafts generated');
+        },
+        onError: (err) => toast.error(`Draft generation failed: ${err.message}`),
+      },
+    );
+  };
+
+  const logDraft = (criterionId: string, action: 'accepted' | 'edited' | 'rejected', text: string) => {
+    if (!submission?.student_id) return;
+    logDraftAction.mutate({
+      student_id: submission.student_id,
+      suggestion_type: 'feedback_draft',
+      suggestion_text: text,
+      suggestion_data: { criterion_id: criterionId, submission_id: submissionId },
+      feedback: action === 'rejected' ? 'thumbs_down' : 'thumbs_up',
+      validated_outcome: action,
+    });
+  };
+
+  const handleAcceptDraft = (criterionId: string) => {
+    const draft = aiDrafts.find((d) => d.criterion_id === criterionId);
+    setAiDrafts((prev) =>
+      prev.map((d) => (d.criterion_id === criterionId ? { ...d, status: 'accepted' as DraftStatus } : d)),
+    );
+    if (draft) {
+      setFeedback((prev) => {
+        const prefix = prev ? `${prev}\n\n` : '';
+        return `${prefix}[${draft.criterion_title}]: ${draft.draft_comment}`;
+      });
+      logDraft(criterionId, 'accepted', draft.draft_comment);
+    }
+  };
+
+  const handleEditDraft = (criterionId: string) => {
+    setAiDrafts((prev) =>
+      prev.map((d) => (d.criterion_id === criterionId ? { ...d, status: 'editing' as DraftStatus } : d)),
+    );
+  };
+
+  const handleEditChange = (criterionId: string, text: string) => {
+    setAiDrafts((prev) =>
+      prev.map((d) => (d.criterion_id === criterionId ? { ...d, edited_comment: text } : d)),
+    );
+  };
+
+  const handleEditConfirm = (criterionId: string) => {
+    const draft = aiDrafts.find((d) => d.criterion_id === criterionId);
+    if (!draft) return;
+    setAiDrafts((prev) =>
+      prev.map((d) =>
+        d.criterion_id === criterionId
+          ? { ...d, draft_comment: d.edited_comment, status: 'accepted' as DraftStatus }
+          : d,
+      ),
+    );
+    setFeedback((prev) => {
+      const prefix = prev ? `${prev}\n\n` : '';
+      return `${prefix}[${draft.criterion_title}]: ${draft.edited_comment}`;
+    });
+    logDraft(criterionId, 'edited', draft.edited_comment);
+  };
+
+  const handleRejectDraft = (criterionId: string) => {
+    const draft = aiDrafts.find((d) => d.criterion_id === criterionId);
+    setAiDrafts((prev) =>
+      prev.map((d) => (d.criterion_id === criterionId ? { ...d, status: 'rejected' as DraftStatus } : d)),
+    );
+    if (draft) {
+      logDraft(criterionId, 'rejected', draft.draft_comment);
+    }
+  };
+
+  const handleAcceptOverallDraft = () => {
+    if (aiOverallDraft) {
+      setFeedback(aiOverallDraft);
+      toast.success('Overall draft applied to feedback');
+    }
+  };
+
   const handleSubmitGrade = () => {
     if (!submissionId || !user?.id || !rubric) return;
 
@@ -354,6 +636,16 @@ const GradingInterface = () => {
               score_percent: scorePercent,
             },
           });
+
+          // Validate at-risk predictions for this student + assignment CLOs (fire-and-forget)
+          // Requirement 49.2: validate predictions against actual grades
+          if (submission?.student_id && assignment?.clo_weights) {
+            const cloIds = assignment.clo_weights.map((w: { clo_id: string }) => w.clo_id);
+            validateAtRiskPredictions(submission.student_id, cloIds).catch(() => {
+              // Fire-and-forget — never block the grading flow
+            });
+          }
+
           toast.success('Grade submitted successfully');
           navigate('/teacher/grading');
         },
@@ -422,6 +714,37 @@ const GradingInterface = () => {
             <Card className="bg-white border-0 shadow-md rounded-xl p-6">
               <p className="text-gray-500">No rubric linked to this assignment.</p>
             </Card>
+          )}
+
+          {/* Generate AI Draft Button */}
+          {!isReadOnly && rubric && selections.size > 0 && (
+            <Button
+              onClick={handleGenerateAIDraft}
+              disabled={generateDraft.isPending}
+              variant="outline"
+              className="border-teal-300 text-teal-700 hover:bg-teal-50"
+            >
+              {generateDraft.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Sparkles className="h-4 w-4" />
+              )}
+              Generate AI Draft
+            </Button>
+          )}
+
+          {/* AI Draft Panel */}
+          {aiDrafts.length > 0 && (
+            <AIDraftPanel
+              drafts={aiDrafts}
+              overallDraft={aiOverallDraft}
+              onAccept={handleAcceptDraft}
+              onEdit={handleEditDraft}
+              onReject={handleRejectDraft}
+              onEditChange={handleEditChange}
+              onEditConfirm={handleEditConfirm}
+              onAcceptOverall={handleAcceptOverallDraft}
+            />
           )}
 
           {/* Score Summary */}

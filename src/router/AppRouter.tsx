@@ -65,6 +65,9 @@ const HabitAnalyticsPage = lazy(() => import('@/pages/student/habits/HabitAnalyt
 const XPHistory = lazy(() => import('@/pages/student/progress/XPHistory'));
 const ParentDashboard = lazy(() => import('@/pages/parent/ParentDashboard'));
 
+// Shared pages
+const ProfilePage = lazy(() => import('@/pages/shared/ProfilePage'));
+
 // ---------------------------------------------------------------------------
 // Shared loading fallback
 // ---------------------------------------------------------------------------
@@ -120,6 +123,7 @@ const AppRouter = () => (
         <Route path="courses/:courseId/enrollment" element={<CourseEnrollmentPage />} />
         <Route path="onboarding/pending" element={<PendingOnboardingPage />} />
         <Route path="reports" element={<ReportGeneratorPage />} />
+        <Route path="settings/profile" element={<ProfilePage />} />
       </Route>
 
       {/* Coordinator routes */}
@@ -137,6 +141,7 @@ const AppRouter = () => (
         <Route path="plos/new" element={<PLOForm />} />
         <Route path="plos/:id/edit" element={<PLOForm />} />
         <Route path="matrix" element={<CurriculumMatrixPage />} />
+        <Route path="settings/profile" element={<ProfilePage />} />
       </Route>
 
       {/* Teacher routes */}
@@ -164,6 +169,7 @@ const AppRouter = () => (
         <Route path="baseline/:courseId" element={<BaselineResultsPage />} />
         <Route path="baseline/:courseId/config" element={<BaselineConfigPage />} />
         <Route path="baseline/:courseId/questions/new" element={<BaselineQuestionForm />} />
+        <Route path="settings/profile" element={<ProfilePage />} />
       </Route>
 
       {/* Student routes */}

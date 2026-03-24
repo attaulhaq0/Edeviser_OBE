@@ -1,11 +1,12 @@
 import { Outlet, NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { LayoutDashboard, Target, Grid3X3 } from 'lucide-react';
+import { LayoutDashboard, Target, Grid3X3, UserCircle } from 'lucide-react';
 
 const navItems = [
   { to: '/coordinator/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/coordinator/plos', icon: Target, label: 'PLOs' },
   { to: '/coordinator/matrix', icon: Grid3X3, label: 'Matrix' },
+  { to: '/coordinator/settings/profile', icon: UserCircle, label: 'Profile' },
 ];
 
 const CoordinatorLayout = () => (
