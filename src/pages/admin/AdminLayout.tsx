@@ -1,6 +1,6 @@
 import { Outlet, NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { LayoutDashboard, Users, BookOpen, GraduationCap, Target, ScrollText, Sparkles } from 'lucide-react';
+import { LayoutDashboard, Users, BookOpen, GraduationCap, Target, ScrollText, Sparkles, FileText } from 'lucide-react';
 
 const navItems = [
   { to: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -8,6 +8,7 @@ const navItems = [
   { to: '/admin/programs', icon: BookOpen, label: 'Programs' },
   { to: '/admin/courses', icon: GraduationCap, label: 'Courses' },
   { to: '/admin/outcomes', icon: Target, label: 'ILOs' },
+  { to: '/admin/reports', icon: FileText, label: 'Reports' },
   { to: '/admin/audit-log', icon: ScrollText, label: 'Audit Log' },
   { to: '/admin/bonus-events', icon: Sparkles, label: 'Bonus XP' },
 ];

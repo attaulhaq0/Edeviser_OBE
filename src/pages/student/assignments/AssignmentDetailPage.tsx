@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAssignment } from '@/hooks/useAssignments';
 import { useSubmissions, useCreateSubmission, useUploadSubmissionFile } from '@/hooks/useSubmissions';
@@ -58,6 +58,16 @@ const AssignmentDetailPage = () => {
   const deadlineStatus = assignment
     ? getDeadlineStatus(assignment.due_date, assignment.late_window_hours)
     : null;
+
+  // Log assignment_view when the student opens this assignment
+  useEffect(() => {
+    if (!assignment || !profile?.id) return;
+    logActivity({
+      student_id: profile.id,
+      event_type: 'assignment_view',
+      metadata: { assignment_id: assignment.id, assignment_title: assignment.title },
+    });
+  }, [assignment?.id, profile?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleFileChange = (file: File | undefined) => {
     setFileError(null);

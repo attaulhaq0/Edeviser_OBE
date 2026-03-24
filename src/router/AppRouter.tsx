@@ -35,6 +35,7 @@ const CourseListPage = lazy(() => import('@/pages/admin/courses/CourseListPage')
 const CourseForm = lazy(() => import('@/pages/admin/courses/CourseForm'));
 const CourseEnrollmentPage = lazy(() => import('@/pages/admin/courses/CourseEnrollmentPage'));
 const PendingOnboardingPage = lazy(() => import('@/pages/admin/onboarding/PendingOnboardingPage'));
+const ReportGeneratorPage = lazy(() => import('@/pages/admin/reports/ReportGeneratorPage'));
 const CoordinatorDashboard = lazy(() => import('@/pages/coordinator/CoordinatorDashboard'));
 const PLOListPage = lazy(() => import('@/pages/coordinator/plos/PLOListPage'));
 const PLOForm = lazy(() => import('@/pages/coordinator/plos/PLOForm'));
@@ -57,9 +58,11 @@ const StudentAssignmentDetailPage = lazy(() => import('@/pages/student/assignmen
 const LeaderboardPage = lazy(() => import('@/pages/student/leaderboard/LeaderboardPage'));
 const CompleteProfilePage = lazy(() => import('@/pages/student/onboarding/CompleteProfilePage'));
 const ReassessmentPage = lazy(() => import('@/pages/student/settings/ReassessmentPage'));
+const ProfileSettingsPage = lazy(() => import('@/pages/student/settings/ProfileSettingsPage'));
 const StarterWeekPlanPage = lazy(() => import('@/pages/student/planner/StarterWeekPlanPage'));
 const HabitHeatmapPage = lazy(() => import('@/pages/student/habits/HabitHeatmapPage'));
 const HabitAnalyticsPage = lazy(() => import('@/pages/student/habits/HabitAnalyticsPage'));
+const XPHistory = lazy(() => import('@/pages/student/progress/XPHistory'));
 const ParentDashboard = lazy(() => import('@/pages/parent/ParentDashboard'));
 
 // ---------------------------------------------------------------------------
@@ -116,6 +119,7 @@ const AppRouter = () => (
         <Route path="courses/:id/edit" element={<CourseForm />} />
         <Route path="courses/:courseId/enrollment" element={<CourseEnrollmentPage />} />
         <Route path="onboarding/pending" element={<PendingOnboardingPage />} />
+        <Route path="reports" element={<ReportGeneratorPage />} />
       </Route>
 
       {/* Coordinator routes */}
@@ -181,6 +185,8 @@ const AppRouter = () => (
         <Route path="habits/analytics" element={<HabitAnalyticsPage />} />
         <Route path="planner/starter-week" element={<StarterWeekPlanPage />} />
         <Route path="settings/reassessment" element={<ReassessmentPage />} />
+        <Route path="settings/profile" element={<ProfileSettingsPage />} />
+        <Route path="xp-history" element={<XPHistory />} />
       </Route>
 
       {/* Parent routes */}
