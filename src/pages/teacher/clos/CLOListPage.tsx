@@ -27,10 +27,11 @@ const CLOListPage = () => {
     parseAsString.withDefault(''),
   );
   const [cloToDelete, setCloToDelete] = useState<LearningOutcome | null>(null);
+  const [page, setPage] = useState(1);
 
   const { data: paginatedCourses, isLoading: coursesLoading } = useCourses();
   const courses = paginatedCourses?.data;
-  const { data: paginatedCLOs, isLoading } = useCLOs(courseFilter || undefined);
+  const { data: paginatedCLOs, isLoading } = useCLOs(courseFilter || undefined, { page });
   const deleteMutation = useDeleteCLO();
 
   const filteredCLOs = (paginatedCLOs?.data ?? []).filter((clo) => {
@@ -75,7 +76,7 @@ const CLOListPage = () => {
         </div>
         <Select
           value={courseFilter}
-          onValueChange={(val) => setCourseFilter(val === 'all' ? '' : val)}
+          onValueChange={(val) => { setCourseFilter(val === 'all' ? '' : val); setPage(1); }}
           disabled={coursesLoading}
         >
           <SelectTrigger className="w-[260px] bg-white">
@@ -93,7 +94,15 @@ const CLOListPage = () => {
       </div>
 
       {/* Data Table */}
-      <DataTable columns={columns} data={filteredCLOs} isLoading={isLoading} />
+      <DataTable
+        columns={columns}
+        data={filteredCLOs}
+        isLoading={isLoading}
+        page={page}
+        pageSize={paginatedCLOs?.pageSize}
+        totalCount={paginatedCLOs?.count}
+        onPageChange={setPage}
+      />
 
       {/* Delete Confirmation Dialog */}
       <ConfirmDialog

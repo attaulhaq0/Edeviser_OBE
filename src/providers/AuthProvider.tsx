@@ -20,9 +20,6 @@ import {
 } from '@/lib/loginAttemptTracker';
 import { logActivity } from '@/lib/activityLogger';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const db = supabase as unknown as { from: (table: string) => any };
-
 // ---------------------------------------------------------------------------
 // Role → dashboard path mapping
 // ---------------------------------------------------------------------------
@@ -66,7 +63,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // Fetch profile from `profiles` table
   // -------------------------------------------------------------------
   const fetchProfile = useCallback(async (userId: string): Promise<Profile | null> => {
-    const { data, error } = await db
+    const { data, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', userId)

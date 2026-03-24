@@ -1516,6 +1516,27 @@ export type Database = {
           },
         ]
       }
+      login_attempts: {
+        Row: {
+          attempt_count: number
+          email: string
+          locked_until: string | null
+          updated_at: string
+        }
+        Insert: {
+          attempt_count?: number
+          email: string
+          locked_until?: string | null
+          updated_at?: string
+        }
+        Update: {
+          attempt_count?: number
+          email?: string
+          locked_until?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       mastery_recovery_pathways: {
         Row: {
           activated_at: string
@@ -2844,7 +2865,7 @@ export type Database = {
           last_login_date: string | null
           leaderboard_anonymous: boolean
           level: number
-          streak_current: number
+          streak_count: number
           streak_freezes_available: number
           streak_longest: number
           student_id: string
@@ -2856,7 +2877,7 @@ export type Database = {
           last_login_date?: string | null
           leaderboard_anonymous?: boolean
           level?: number
-          streak_current?: number
+          streak_count?: number
           streak_freezes_available?: number
           streak_longest?: number
           student_id: string
@@ -2868,7 +2889,7 @@ export type Database = {
           last_login_date?: string | null
           leaderboard_anonymous?: boolean
           level?: number
-          streak_current?: number
+          streak_count?: number
           streak_freezes_available?: number
           streak_longest?: number
           student_id?: string
@@ -3197,8 +3218,6 @@ export type Database = {
           },
         ]
       }
-<<<<<<< HEAD
-=======
       verified_explanations: {
         Row: {
           created_at: string
@@ -3257,7 +3276,6 @@ export type Database = {
           },
         ]
       }
->>>>>>> 1c847f3 (feat(quiz): add adaptive quiz schema, libs, and property tests)
       wellness_habit_logs: {
         Row: {
           completed_at: string
@@ -3417,10 +3435,7 @@ export type Database = {
     Functions: {
       auth_institution_id: { Args: never; Returns: string }
       auth_user_role: { Args: never; Returns: string }
-<<<<<<< HEAD
-=======
       expire_stale_recovery_sessions: { Args: never; Returns: number }
->>>>>>> 1c847f3 (feat(quiz): add adaptive quiz schema, libs, and property tests)
       get_wellness_aggregate_stats: {
         Args: { p_institution_id: string }
         Returns: {

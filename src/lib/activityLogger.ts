@@ -1,8 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import type { ActivityLogEventType } from '@/types/app';
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const db = supabase as unknown as { from: (table: string) => any };
+import type { Json } from '@/types/database';
 
 export interface ActivityLogEntry {
   student_id: string;
@@ -16,10 +14,10 @@ export interface ActivityLogEntry {
  */
 export const logActivity = async (entry: ActivityLogEntry): Promise<void> => {
   try {
-    const { error } = await db.from('student_activity_log').insert({
+    const { error } = await supabase.from('student_activity_log').insert({
       student_id: entry.student_id,
       event_type: entry.event_type,
-      metadata: entry.metadata ?? null,
+      metadata: (entry.metadata ?? null) as Json,
     });
 
     if (error) {
