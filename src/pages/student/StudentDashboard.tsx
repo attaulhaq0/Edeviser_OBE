@@ -10,6 +10,7 @@ import ProfileSummaryCard from '@/components/shared/ProfileSummaryCard';
 import MicroAssessmentCard from '@/components/shared/MicroAssessmentCard';
 import ProfileCompletenessBar from '@/components/shared/ProfileCompletenessBar';
 import StarterWeekHeroCard from '@/components/shared/StarterWeekHeroCard';
+import StreakFreezeShop from '@/components/shared/StreakFreezeShop';
 import { useAuth } from '@/hooks/useAuth';
 import { useStudentKPIs, useUpcomingDeadlines } from '@/hooks/useStudentDashboard';
 import { useStudentProfile } from '@/hooks/useStudentProfile';
@@ -18,6 +19,7 @@ import { useProfileCompleteness } from '@/hooks/useProfileCompleteness';
 import { useStarterWeekSessions } from '@/hooks/useStarterWeekPlan';
 import { useOnboardingProgress } from '@/hooks/useOnboardingProgress';
 import { useRealtime } from '@/hooks/useRealtime';
+import { useStreakFreezeInventory, usePurchaseStreakFreeze } from '@/hooks/useStreakFreeze';
 import { queryKeys } from '@/lib/queryKeys';
 import {
   BookOpen,
@@ -78,7 +80,7 @@ const StudentDashboard = () => {
     queryClient.invalidateQueries({ queryKey: queryKeys.studentGamification.detail(studentId) });
   }, [queryClient, studentId]);
 
-  const { isLive } = useRealtime({
+  const { isLive, retryCount } = useRealtime({
     table: 'student_gamification',
     event: 'UPDATE',
     filter: studentId ? `student_id=eq.${studentId}` : undefined,
@@ -96,6 +98,10 @@ const StudentDashboard = () => {
   const { data: completenessData } = useProfileCompleteness(studentId);
   const { data: starterSessions } = useStarterWeekSessions(studentId);
   const { data: progress } = useOnboardingProgress(studentId);
+
+  // Streak Freeze hooks
+  const { data: freezeData } = useStreakFreezeInventory(studentId);
+  const purchaseFreeze = usePurchaseStreakFreeze();
 
   const profileCompleteness = completenessData?.profile_completeness ?? 0;
   const day1Completed = completenessData?.day1_completed ?? false;
@@ -124,7 +130,7 @@ const StudentDashboard = () => {
   return (
     <div className="space-y-6">
       {/* Live updates status */}
-      <RealtimeStatusBanner isLive={isLive} />
+      <RealtimeStatusBanner isLive={isLive} retryCount={retryCount} />
 
       {/* 7.7 — Onboarding deferred reminder banner */}
       {showDeferredBanner && (
@@ -297,45 +303,54 @@ const StudentDashboard = () => {
           </div>
         </Card>
 
-        {/* Gamification Summary */}
-        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
-          <div
-            className="px-6 py-4 flex items-center gap-2"
-            style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
-          >
-            <Star className="h-5 w-5 text-white" />
-            <h2 className="text-lg font-bold tracking-tight text-white">Your Progress</h2>
-          </div>
-          <div className="p-6 space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-600">Total XP</span>
-              <span className="text-sm font-bold text-amber-600">{kpis?.totalXP ?? 0} XP</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-600">Current Level</span>
-              <span className="text-sm font-bold">Level {kpis?.currentLevel ?? 1}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-600">Login Streak</span>
-              <span className="text-sm font-bold text-red-500">
-                🔥 {kpis?.currentStreak ?? 0} days
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-gray-600">Assignments Done</span>
-              <span className="text-sm font-bold">{kpis?.completedAssignments ?? 0}</span>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate('/student/xp-history')}
-              className="w-full mt-2 text-xs font-semibold text-amber-600 border-amber-200 hover:bg-amber-50"
+        {/* Gamification Summary + Streak Freeze */}
+        <div className="space-y-4">
+          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+            <div
+              className="px-6 py-4 flex items-center gap-2"
+              style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
             >
-              <Coins className="h-4 w-4 mr-1" />
-              View XP History
-            </Button>
-          </div>
-        </Card>
+              <Star className="h-5 w-5 text-white" />
+              <h2 className="text-lg font-bold tracking-tight text-white">Your Progress</h2>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-600">Total XP</span>
+                <span className="text-sm font-bold text-amber-600">{kpis?.totalXP ?? 0} XP</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-600">Current Level</span>
+                <span className="text-sm font-bold">Level {kpis?.currentLevel ?? 1}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-600">Login Streak</span>
+                <span className="text-sm font-bold text-red-500">
+                  🔥 {kpis?.currentStreak ?? 0} days
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-600">Assignments Done</span>
+                <span className="text-sm font-bold">{kpis?.completedAssignments ?? 0}</span>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate('/student/xp-history')}
+                className="w-full mt-2 text-xs font-semibold text-amber-600 border-amber-200 hover:bg-amber-50"
+              >
+                <Coins className="h-4 w-4 mr-1" />
+                View XP History
+              </Button>
+            </div>
+          </Card>
+
+          {/* Streak Freeze Shop */}
+          <StreakFreezeShop
+            currentXP={freezeData?.xpTotal ?? kpis?.totalXP ?? 0}
+            freezesAvailable={freezeData?.freezes ?? 0}
+            onPurchase={() => purchaseFreeze.mutateAsync(studentId)}
+          />
+        </div>
       </div>
 
       {/* 7.2 — Profile Summary Card */}

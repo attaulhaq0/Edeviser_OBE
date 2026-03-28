@@ -4,6 +4,7 @@ import { DataTable } from '@/components/shared/DataTable';
 import { useSubmissions } from '@/hooks/useSubmissions';
 import { useCourses } from '@/hooks/useCourses';
 import { useAssignments } from '@/hooks/useAssignments';
+import { useCourseSections } from '@/hooks/useCourseSections';
 import { gradingQueueColumns } from './gradingQueueColumns';
 import {
   Select,
@@ -16,13 +17,16 @@ import {
 const GradingQueuePage = () => {
   const [courseId, setCourseId] = useQueryState('course', parseAsString.withDefault(''));
   const [assignmentId, setAssignmentId] = useQueryState('assignment', parseAsString.withDefault(''));
+  const [sectionId, setSectionId] = useQueryState('section', parseAsString.withDefault(''));
   const [page, setPage] = useState(1);
 
   const { data: paginatedCourses } = useCourses();
   const { data: paginatedAssignments } = useAssignments(courseId || undefined);
+  const { data: sections } = useCourseSections(courseId || undefined);
   const { data: paginatedSubmissions, isLoading } = useSubmissions({
     courseId: courseId || undefined,
     assignmentId: assignmentId || undefined,
+    sectionId: sectionId || undefined,
     page,
   });
 
@@ -33,11 +37,17 @@ const GradingQueuePage = () => {
   const handleCourseChange = (value: string) => {
     setCourseId(value === 'all' ? '' : value);
     setAssignmentId('');
+    setSectionId('');
     setPage(1);
   };
 
   const handleAssignmentChange = (value: string) => {
     setAssignmentId(value === 'all' ? '' : value);
+    setPage(1);
+  };
+
+  const handleSectionChange = (value: string) => {
+    setSectionId(value === 'all' ? '' : value);
     setPage(1);
   };
 
@@ -75,6 +85,24 @@ const GradingQueuePage = () => {
             {assignments?.map((a) => (
               <SelectItem key={a.id} value={a.id}>
                 {a.title}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select
+          value={sectionId || 'all'}
+          onValueChange={handleSectionChange}
+          disabled={!courseId}
+        >
+          <SelectTrigger className="w-[220px] bg-white">
+            <SelectValue placeholder="All Sections" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Sections</SelectItem>
+            {sections?.map((s) => (
+              <SelectItem key={s.id} value={s.id}>
+                Section {s.section_code}
               </SelectItem>
             ))}
           </SelectContent>

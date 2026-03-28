@@ -721,14 +721,14 @@ Complete unified implementation of the Edeviser platform covering authentication
   - [x] 42.1 Run Supabase security and performance advisors, fix all issues
   - [x] 42.2 Verify RLS policies on all tables (including: habit_logs, bonus_xp_events, student_activity_log, ai_feedback)
   - [x] 42.3 Add error boundaries and Sentry integration
-  - [ ] 42.4 Performance audit: Lighthouse CI, bundle analysis
-  - [ ] 42.5 Accessibility audit: keyboard navigation, screen reader, color contrast
-  - [ ] 42.6 Validate NFR performance targets: dashboard load ≤1.5s, rollup ≤500ms, API p95 ≤300ms
-  - [ ] 42.7 Validate FERPA/GDPR compliance: data classification, no PII in logs, deletion workflows
-  - [ ] 42.8 Set up GitHub Dependabot for dependency vulnerability scanning
+  - [x] 42.4 Performance audit: Lighthouse CI, bundle analysis
+  - [x] 42.5 Accessibility audit: keyboard navigation, screen reader, color contrast
+  - [x] 42.6 Validate NFR performance targets: dashboard load ≤1.5s, rollup ≤500ms, API p95 ≤300ms
+  - [x] 42.7 Validate FERPA/GDPR compliance: data classification, no PII in logs, deletion workflows
+  - [x] 42.8 Set up GitHub Dependabot for dependency vulnerability scanning
 
-- [ ] 43. Seed 50 realistic students for AI Co-Pilot
-  - [ ] 43.1 Create `seed-demo-data` Edge Function or SQL seed script (`supabase/seed.sql`)
+- [x] 43. Seed 50 realistic students for AI Co-Pilot
+  - [x] 43.1 Create `seed-demo-data` Edge Function or SQL seed script (`supabase/seed.sql`)
     - Create 50 student profiles with realistic names, emails, institution_id
     - Create enrollments across 2–4 courses per student
     - Generate 10–30 submissions per student with varying scores and timing patterns (early, on-time, late, missed)
@@ -746,18 +746,18 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Script must be idempotent — check for existing seed data before inserting
     - _Requirements: 54_
 
-- [ ] 44. Implement Vercel Cron fallback for free-tier (pg_cron alternative)
-  - [ ] 44.1 Create Vercel API routes for cron triggers (`/api/cron/`)
+- [x] 44. Implement Vercel Cron fallback for free-tier (pg_cron alternative)
+  - [x] 44.1 Create Vercel API routes for cron triggers (`/api/cron/`)
     - Create thin API routes for: streak-risk, weekly-summary, compute-at-risk, perfect-day-prompt, streak-reset, leaderboard-refresh, ai-at-risk-prediction, notification-digest
     - Each route authenticates with `CRON_SECRET` env var and calls the corresponding Supabase Edge Function
     - Include fee-overdue-check route
     - _Requirements: 50, 53, 87_
 
-  - [ ] 44.2 Create `vercel.json` cron configuration
+  - [x] 44.2 Create `vercel.json` cron configuration
     - Configure schedules matching pg_cron jobs: streak-risk (8 PM daily), weekly-summary (Monday 8 AM), compute-at-risk (2 AM nightly), perfect-day-prompt (6 PM daily), streak-reset (midnight daily), leaderboard-refresh (every 5 min), ai-at-risk-prediction (nightly), notification-digest (8 PM daily), fee-overdue-check (6 AM daily)
     - _Requirements: 50, 53, 87_
 
-  - [ ] 44.3 Add environment detection to skip pg_cron setup on free tier
+  - [x] 44.3 Add environment detection to skip pg_cron setup on free tier
     - Check for `SUPABASE_PRO` env var; if absent, skip pg_cron extension and cron job creation in migrations
     - Document both approaches in README
     - _Requirements: 50_
@@ -768,25 +768,25 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Trigger on push to `main` and pull requests to `main`
     - _Requirements: 55_
 
-  - [ ] 45.2 Configure Vercel GitHub integration
+  - [x] 45.2 Configure Vercel GitHub integration
     - Production deployment on merge to `main`
     - Preview deployment on pull request
     - _Requirements: 55.3_
 
-- [ ] 46. Implement Health Check Endpoint
-  - [ ] 46.1 Create `health` Edge Function (`/supabase/functions/health/`)
+- [x] 46. Implement Health Check Endpoint
+  - [x] 46.1 Create `health` Edge Function (`/supabase/functions/health/`)
     - Return JSON: `{ status, database, timestamp }`
     - Verify database connectivity with lightweight `SELECT 1` query
     - Return HTTP 503 if database unreachable
     - _Requirements: 56_
 
-  - [ ] 46.2 Document BetterUptime/Checkly integration in README
+  - [x] 46.2 Document BetterUptime/Checkly integration in README
     - Monitor health endpoint every 60 seconds
     - Alert on 2 consecutive failures
     - _Requirements: 56.3_
 
-- [ ] 47. Create Load Test Scripts
-  - [ ] 47.1 Create k6 load test scripts in `/load-tests/`
+- [x] 47. Create Load Test Scripts
+  - [x] 47.1 Create k6 load test scripts in `/load-tests/`
     - `login.js` — Authentication flow under load
     - `submission.js` — Assignment submission with file upload
     - `grading-pipeline.js` — Grade submission → evidence → rollup chain
@@ -794,14 +794,14 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Target: 5,000 virtual users, p95 ≤300ms
     - _Requirements: 57_
 
-- [ ] 48. Implement leaderboard index optimization
-  - [ ] 48.1 Add composite index on `student_gamification(xp_total DESC, student_id)` for direct leaderboard queries
+- [x] 48. Implement leaderboard index optimization
+  - [x] 48.1 Add composite index on `student_gamification(xp_total DESC, student_id)` for direct leaderboard queries
     - Add institution-scoped index via `profiles.institution_id` join optimization
     - Document Redis upgrade path in code comments for >10K student scale
     - _Requirements: 50, 25_
 
-- [ ] 49. Implement Student Learning Portfolio Page
-  - [ ] 49.1 Create portfolio TanStack Query hooks (`/src/hooks/usePortfolio.ts`)
+- [x] 49. Implement Student Learning Portfolio Page
+  - [x] 49.1 Create portfolio TanStack Query hooks (`/src/hooks/usePortfolio.ts`)
     - Query CLO mastery across all courses from `outcome_attainment`
     - Query badge collection with earn dates
     - Query journal entries with CLO links
@@ -809,7 +809,7 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Query semester-over-semester attainment averages
     - _Requirements: 58_
 
-  - [ ] 49.2 Create Student Portfolio page (`/src/pages/student/portfolio/StudentPortfolio.tsx`)
+  - [x] 49.2 Create Student Portfolio page (`/src/pages/student/portfolio/StudentPortfolio.tsx`)
     - CLO mastery section grouped by course with Bloom's pills and attainment color coding
     - Badge collection grid with earn dates
     - Journal entry history with CLO links
@@ -817,237 +817,237 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Attainment growth section (semester comparison)
     - _Requirements: 58.1, 58.2, 58.3, 58.4_
 
-  - [ ] 49.3 Implement public portfolio opt-in and shareable link
+  - [x] 49.3 Implement public portfolio opt-in and shareable link
     - Toggle on Portfolio page to enable/disable public profile
     - Store `portfolio_public` boolean on `profiles` table
     - Create public route `/portfolio/:student_id` (unauthenticated, read-only)
     - Public view shows only non-sensitive data: badges, CLO attainment levels, XP total, level
     - _Requirements: 58.5, 58.6_
 
-  - [ ] 49.4 Add portfolio route to AppRouter and Student sidebar navigation
+  - [x] 49.4 Add portfolio route to AppRouter and Student sidebar navigation
     - _Requirements: 58_
 
-- [ ] 50. Implement Streak Freeze
-  - [ ] 50.1 Apply database migration: add `streak_freezes_available` column to `student_gamification`
+- [x] 50. Implement Streak Freeze
+  - [x] 50.1 Apply database migration: add `streak_freezes_available` column to `student_gamification`
     - `ALTER TABLE student_gamification ADD COLUMN streak_freezes_available integer NOT NULL DEFAULT 0 CHECK (streak_freezes_available >= 0 AND streak_freezes_available <= 2)`
     - Update `xp_transactions` source CHECK to include `'streak_freeze_purchase'`
     - Regenerate TypeScript types
     - _Requirements: 59.2_
 
-  - [ ] 50.2 Create Streak Freeze Shop component (`/src/components/shared/StreakFreezeShop.tsx`)
+  - [x] 50.2 Create Streak Freeze Shop component (`/src/components/shared/StreakFreezeShop.tsx`)
     - Display current freeze inventory (snowflake icons, max 2)
     - Purchase button: disabled when XP < 200 or freezes >= 2
     - Calls `award-xp` Edge Function with `source = 'streak_freeze_purchase'`, `xp_amount = -200`
     - Show confirmation dialog before purchase
     - _Requirements: 59.1, 59.3, 59.6_
 
-  - [ ] 50.3 Update `process-streak` Edge Function to consume Streak Freeze on missed day
+  - [x] 50.3 Update `process-streak` Edge Function to consume Streak Freeze on missed day
     - If `streak_freezes_available > 0` and student missed a day: decrement freeze, keep streak intact
     - If `streak_freezes_available = 0` and student missed a day: reset streak to 0
     - _Requirements: 59.4_
 
-  - [ ] 50.4 Create streak freeze TanStack Query hooks (`/src/hooks/useStreakFreeze.ts`)
+  - [x] 50.4 Create streak freeze TanStack Query hooks (`/src/hooks/useStreakFreeze.ts`)
     - Query current freeze inventory
     - Mutation for purchasing freeze
     - _Requirements: 59.1, 59.5_
 
-  - [ ] 50.5 Add Streak Freeze Shop to Student Dashboard (near streak display)
+  - [x] 50.5 Add Streak Freeze Shop to Student Dashboard (near streak display)
     - _Requirements: 59_
 
-- [ ] 51. Implement Onboarding Flows
-  - [ ] 51.1 Apply database migration: add `onboarding_completed` column to `profiles`
+- [x] 51. Implement Onboarding Flows
+  - [x] 51.1 Apply database migration: add `onboarding_completed` column to `profiles`
     - `ALTER TABLE profiles ADD COLUMN onboarding_completed boolean NOT NULL DEFAULT false`
     - Regenerate TypeScript types
     - _Requirements: 60.6_
 
-  - [ ] 51.2 Create OnboardingWizard component for Admin (`/src/components/shared/OnboardingWizard.tsx`)
+  - [x] 51.2 Create OnboardingWizard component for Admin (`/src/components/shared/OnboardingWizard.tsx`)
     - Progress stepper: Create ILOs → Create Programs → Invite Coordinators → Invite Teachers
     - Each step navigates to the relevant page
     - Mark onboarding complete when all steps done
     - _Requirements: 60.1_
 
-  - [ ] 51.3 Create WelcomeTour component for Coordinator, Teacher, Student (`/src/components/shared/WelcomeTour.tsx`)
+  - [x] 51.3 Create WelcomeTour component for Coordinator, Teacher, Student (`/src/components/shared/WelcomeTour.tsx`)
     - Coordinator: program management, PLO mapping, curriculum matrix highlights
     - Teacher: course setup, CLO creation, rubric builder, grading queue highlights
     - Student: XP, streaks, habits, learning path, badges walkthrough + 50 XP Welcome Bonus on completion
     - _Requirements: 60.2, 60.3, 60.4_
 
-  - [ ] 51.4 Create QuickStartChecklist component (`/src/components/shared/QuickStartChecklist.tsx`)
+  - [x] 51.4 Create QuickStartChecklist component (`/src/components/shared/QuickStartChecklist.tsx`)
     - Role-specific checklist items displayed on dashboard
     - Persists until all items completed
     - Hides when `onboarding_completed = true`
     - _Requirements: 60.5, 60.7_
 
-  - [ ] 51.5 Create onboarding TanStack Query hooks (`/src/hooks/useOnboarding.ts`)
+  - [x] 51.5 Create onboarding TanStack Query hooks (`/src/hooks/useOnboarding.ts`)
     - Query onboarding status from `profiles.onboarding_completed`
     - Mutation to mark onboarding complete
     - _Requirements: 60.6, 60.7_
 
-  - [ ] 51.6 Wire onboarding check into each role's dashboard layout
+  - [x] 51.6 Wire onboarding check into each role's dashboard layout
     - On first login (onboarding_completed = false), show wizard/tour
     - Show QuickStartChecklist until all items completed
     - _Requirements: 60_
 
-- [ ] 52. Implement Read Habit (Achievable from Day One)
-  - [ ] 52.1 Create `useReadHabitTimer` hook (`/src/hooks/useReadHabitTimer.ts`)
+- [x] 52. Implement Read Habit (Achievable from Day One)
+  - [x] 52.1 Create `useReadHabitTimer` hook (`/src/hooks/useReadHabitTimer.ts`)
     - Start timer on mount for assignment detail and CLO progress pages
     - Track cumulative view duration per calendar day
     - When 30 seconds reached, insert `habit_log` record for 'read' habit
     - Log activity with `duration_seconds` metadata
     - _Requirements: 61.1, 61.2, 61.4_
 
-  - [ ] 52.2 Wire `useReadHabitTimer` into AssignmentDetail and CLOProgressView pages
+  - [x] 52.2 Wire `useReadHabitTimer` into AssignmentDetail and CLOProgressView pages
     - _Requirements: 61.2_
 
-  - [ ] 52.3 Update Activity Logger to include `duration_seconds` metadata for `assignment_view` and `page_view` events
+  - [x] 52.3 Update Activity Logger to include `duration_seconds` metadata for `assignment_view` and `page_view` events
     - _Requirements: 61.3_
 
-- [ ] 53. Implement Dark Mode Foundation
-  - [ ] 53.1 Apply database migration: add `theme_preference` column to `profiles`
+- [x] 53. Implement Dark Mode Foundation
+  - [x] 53.1 Apply database migration: add `theme_preference` column to `profiles`
     - `ALTER TABLE profiles ADD COLUMN theme_preference text NOT NULL DEFAULT 'system' CHECK (theme_preference IN ('light', 'dark', 'system'))`
     - Regenerate TypeScript types
     - _Requirements: 62.3_
 
-  - [ ] 53.2 Create ThemeProvider (`/src/providers/ThemeProvider.tsx`)
+  - [x] 53.2 Create ThemeProvider (`/src/providers/ThemeProvider.tsx`)
     - Read preference from `profiles.theme_preference`
     - Apply 'dark' class to `<html>` element
     - Listen to `prefers-color-scheme` media query when preference = 'system'
     - Provide `setPreference` mutation that updates profile and applies immediately
     - _Requirements: 62.4, 62.6_
 
-  - [ ] 53.3 Define CSS custom properties for light/dark mode in `/src/index.css`
+  - [x] 53.3 Define CSS custom properties for light/dark mode in `/src/index.css`
     - Light: background white, card white, border slate-200, text slate-900
     - Dark: background slate-950, card slate-900, border slate-700, text slate-100
     - _Requirements: 62.1, 62.5_
 
-  - [ ] 53.4 Add theme toggle to Profile/Settings page
+  - [x] 53.4 Add theme toggle to Profile/Settings page
     - Three-way toggle: Light / Dark / System
     - _Requirements: 62.2_
 
-  - [ ] 53.5 Wrap App in ThemeProvider
+  - [x] 53.5 Wrap App in ThemeProvider
     - _Requirements: 62_
 
-- [ ] 54. Implement Offline Resilience & Draft Saving
-  - [ ] 54.1 Create DraftManager utility (`/src/lib/draftManager.ts`)
+- [x] 54. Implement Offline Resilience & Draft Saving
+  - [x] 54.1 Create DraftManager utility (`/src/lib/draftManager.ts`)
     - `saveDraft(key, content)`, `loadDraft(key)`, `clearDraft(key)`, `startAutoSave(key, getContent, intervalMs)`
     - Auto-save interval: 30 seconds
     - Clear draft on successful server save
     - _Requirements: 63.1, 63.2_
 
-  - [ ] 54.2 Create OfflineQueue utility (`/src/lib/offlineQueue.ts`)
+  - [x] 54.2 Create OfflineQueue utility (`/src/lib/offlineQueue.ts`)
     - Queue events to localStorage when offline (`navigator.onLine` + `online`/`offline` events)
     - Auto-flush on `online` event
     - Max 3 retries per event
     - _Requirements: 63.5_
 
-  - [ ] 54.3 Wire DraftManager into Journal Editor
+  - [x] 54.3 Wire DraftManager into Journal Editor
     - Auto-save journal draft every 30 seconds
     - Restore draft on page load
     - Clear draft on successful save
     - _Requirements: 63.1_
 
-  - [ ] 54.4 Wire DraftManager into Submission Form
+  - [x] 54.4 Wire DraftManager into Submission Form
     - Persist file selection and form state to localStorage
     - Clear on successful upload
     - _Requirements: 63.2_
 
-  - [ ] 54.5 Implement upload retry on network failure
+  - [x] 54.5 Implement upload retry on network failure
     - Queue failed uploads, retry when connectivity restored (max 3 retries)
     - _Requirements: 63.3_
 
-  - [ ] 54.6 Wire OfflineQueue into Activity Logger
+  - [x] 54.6 Wire OfflineQueue into Activity Logger
     - Queue activity log events when offline, flush when online
     - _Requirements: 63.5_
 
-  - [ ] 54.7 Add TanStack Query optimistic updates for XP display and streak counter
+  - [x] 54.7 Add TanStack Query optimistic updates for XP display and streak counter
     - _Requirements: 63.4_
 
-- [ ] 55. Implement Student Data Export (GDPR)
-  - [ ] 55.1 Create `export-student-data` Edge Function (`/supabase/functions/export-student-data/`)
+- [x] 55. Implement Student Data Export (GDPR)
+  - [x] 55.1 Create `export-student-data` Edge Function (`/supabase/functions/export-student-data/`)
     - Query all student-scoped tables: profiles, grades, outcome_attainment, xp_transactions, journal_entries, badges, habit_logs
     - Package as JSON or CSV based on request format
     - Upload to Supabase Storage, return signed download URL
     - Must complete within 30 seconds
     - _Requirements: 64.2, 64.3, 64.4, 64.5_
 
-  - [ ] 55.2 Create ExportDataButton component (`/src/components/shared/ExportDataButton.tsx`)
+  - [x] 55.2 Create ExportDataButton component (`/src/components/shared/ExportDataButton.tsx`)
     - Format selector (JSON/CSV) + Download button
     - Loading state during generation
     - Sonner toast on success/failure
     - _Requirements: 64.1, 64.5_
 
-  - [ ] 55.3 Add "Download My Data" button to Student Profile page
+  - [x] 55.3 Add "Download My Data" button to Student Profile page
     - _Requirements: 64.1_
 
-- [ ] 56. Implement Notification Batching & Rate Limiting
-  - [ ] 56.1 Create NotificationBatcher utility (`/src/lib/notificationBatcher.ts`)
+- [x] 56. Implement Notification Batching & Rate Limiting
+  - [x] 56.1 Create NotificationBatcher utility (`/src/lib/notificationBatcher.ts`)
     - Batch peer milestone notifications within 1-hour window
     - Enforce max 5 peer milestone notifications per student per 24 hours
     - Group notifications by type when >3 of same type exist
     - _Requirements: 65.1, 65.2, 65.3_
 
-  - [ ] 56.2 Update peer milestone notification logic (in `award-xp` / `check-badges` Edge Functions)
+  - [x] 56.2 Update peer milestone notification logic (in `award-xp` / `check-badges` Edge Functions)
     - Apply batching and rate limiting before creating notifications
     - _Requirements: 65.1, 65.2_
 
-  - [ ] 56.3 Update Notification Center to display grouped notifications
+  - [x] 56.3 Update Notification Center to display grouped notifications
     - "5 new grades released" instead of 5 separate notifications when >3 of same type
     - _Requirements: 65.3_
 
-  - [ ] 56.4 Implement Notification Digest preference
+  - [x] 56.4 Implement Notification Digest preference
     - Add digest toggle to notification preferences (stored in `profiles.email_preferences`)
     - Create `notification-digest` Edge Function (pg_cron → 8 PM daily)
     - Aggregate undelivered notifications into single daily summary for digest subscribers
     - _Requirements: 65.4, 65.5_
 
-- [ ] 57. Implement ErrorState Component & Upload Progress
-  - [ ] 57.1 Create ErrorState shared component (`/src/components/shared/ErrorState.tsx`)
+- [x] 57. Implement ErrorState Component & Upload Progress
+  - [x] 57.1 Create ErrorState shared component (`/src/components/shared/ErrorState.tsx`)
     - Error icon, descriptive message, retry button, optional fallback content
     - _Requirements: 66.1_
 
-  - [ ] 57.2 Create UploadProgress shared component (`/src/components/shared/UploadProgress.tsx`)
+  - [x] 57.2 Create UploadProgress shared component (`/src/components/shared/UploadProgress.tsx`)
     - Progress bar with percentage, file name, file size
     - Status states: uploading, success, error
     - Retry and cancel buttons
     - _Requirements: 66.2_
 
-  - [ ] 57.3 Create ReconnectBanner shared component (`/src/components/shared/ReconnectBanner.tsx`)
+  - [x] 57.3 Create ReconnectBanner shared component (`/src/components/shared/ReconnectBanner.tsx`)
     - "Live updates paused — Reconnecting..." with animated dots
     - Auto-hide on reconnection
     - _Requirements: 66.4_
 
-  - [ ] 57.4 Wire ErrorState into all error boundaries and data fetching error states
+  - [x] 57.4 Wire ErrorState into all error boundaries and data fetching error states
     - _Requirements: 66.1_
 
-  - [ ] 57.5 Wire UploadProgress into Submission Form file upload
+  - [x] 57.5 Wire UploadProgress into Submission Form file upload
     - Show progress bar during upload, ErrorState with retry on failure
     - _Requirements: 66.2, 66.3_
 
-  - [ ] 57.6 Wire ReconnectBanner into useRealtime hook
+  - [x] 57.6 Wire ReconnectBanner into useRealtime hook
     - Show banner when Realtime disconnects, hide on reconnect
     - _Requirements: 66.4_
 
-- [ ] 58. Implement Teacher Grading Stats
-  - [ ] 58.1 Update Activity Logger to track grading time
+- [x] 58. Implement Teacher Grading Stats
+  - [x] 58.1 Update Activity Logger to track grading time
     - Log `grading_start` event when teacher opens a submission in Grading Interface
     - Log `grading_end` event when teacher submits the grade
     - _Requirements: 67.2_
 
-  - [ ] 58.2 Create grading stats TanStack Query hooks (`/src/hooks/useGradingStats.ts`)
+  - [x] 58.2 Create grading stats TanStack Query hooks (`/src/hooks/useGradingStats.ts`)
     - Query: total graded this week, average grading time, pending count, velocity trend (last 30 days)
     - Calculate grading streak (consecutive days with ≥1 graded submission)
     - _Requirements: 67.1, 67.3_
 
-  - [ ] 58.3 Create GradingStats component (`/src/pages/teacher/dashboard/GradingStats.tsx`)
+  - [x] 58.3 Create GradingStats component (`/src/pages/teacher/dashboard/GradingStats.tsx`)
     - KPI card layout: graded this week, avg time, pending, grading streak
     - Recharts line chart for velocity trend (submissions/day over 30 days)
     - _Requirements: 67.1, 67.4_
 
-  - [ ] 58.4 Add GradingStats card to Teacher Dashboard
+  - [x] 58.4 Add GradingStats card to Teacher Dashboard
     - _Requirements: 67_
 
-- [ ] 59. Write tests for platform enhancements
-  - [ ]* 59.1 Write property-based tests (Properties 41–50)
+- [x] 59. Write tests for platform enhancements
+  - [ ] 59.1 Write property-based tests (Properties 41–50)
     - **Properties 41-42**: Streak Freeze (consumption correctness, purchase constraints)
     - **Properties 43-44**: Notification batching (rate limiting, batching correctness)
     - **Properties 45-46**: Offline queue (flush integrity, draft round-trip)
@@ -1057,7 +1057,7 @@ Complete unified implementation of the Edeviser platform covering authentication
     - **Property 50**: Grading time calculation correctness
     - _Requirements: 58-67_
 
-  - [ ]* 59.2 Write unit tests for new modules
+  - [ ] 59.2 Write unit tests for new modules
     - Student portfolio, streak freeze, onboarding, read habit timer, dark mode
     - Draft manager, offline queue, data export, notification batcher
     - Error state, upload progress, grading stats
@@ -1068,63 +1068,63 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Offline queue flush pipeline (queue events → go online → events flushed)
     - _Requirements: 59, 63_
 
-- [ ] 60. Implement Semester & Academic Structure
-  - [ ] 60.1 Create semester TanStack Query hooks (`/src/hooks/useSemesters.ts`)
+- [x] 60. Implement Semester & Academic Structure
+  - [x] 60.1 Create semester TanStack Query hooks (`/src/hooks/useSemesters.ts`)
     - CRUD operations for semesters
     - Active semester query with institution scoping
     - _Requirements: 68_
 
-  - [ ] 60.2 Create Semester Manager page (`/src/pages/admin/semesters/SemesterManager.tsx`)
+  - [x] 60.2 Create Semester Manager page (`/src/pages/admin/semesters/SemesterManager.tsx`)
     - List, create, edit semesters with date range validation
     - Active/inactive toggle with single-active enforcement
     - Deactivation preserves data as read-only
     - Log changes to Audit_Logger
     - _Requirements: 68.1, 68.2, 68.3, 68.5_
 
-  - [ ] 60.3 Create Department Manager page (`/src/pages/admin/departments/DepartmentManager.tsx`)
+  - [x] 60.3 Create Department Manager page (`/src/pages/admin/departments/DepartmentManager.tsx`)
     - CRUD for departments with head-of-department assignment
     - Block deletion if active programs exist
     - Log changes to Audit_Logger
     - _Requirements: 83_
 
-  - [ ] 60.4 Create department TanStack Query hooks (`/src/hooks/useDepartments.ts`)
+  - [x] 60.4 Create department TanStack Query hooks (`/src/hooks/useDepartments.ts`)
     - _Requirements: 83_
 
-  - [ ] 60.5 Add department-level analytics to Admin Dashboard
+  - [x] 60.5 Add department-level analytics to Admin Dashboard
     - Aggregated PLO/ILO attainment per department
     - _Requirements: 83.3_
 
-  - [ ] 60.6 Migrate courses to use `semester_id` FK and programs to use `department_id` FK
+  - [x] 60.6 Migrate courses to use `semester_id` FK and programs to use `department_id` FK
     - Update course creation/edit forms to use semester dropdown
     - Update program creation/edit forms to use department dropdown
     - _Requirements: 68.6, 83.2_
 
-- [ ] 61. Implement Course Section Support
-  - [ ] 61.1 Create course section TanStack Query hooks (`/src/hooks/useCourseSections.ts`)
+- [x] 61. Implement Course Section Support
+  - [x] 61.1 Create course section TanStack Query hooks (`/src/hooks/useCourseSections.ts`)
     - CRUD operations for sections within a course
     - _Requirements: 69_
 
-  - [ ] 61.2 Create Section Manager UI within course detail page
+  - [x] 61.2 Create Section Manager UI within course detail page
     - Add/edit sections with section_code, teacher assignment, capacity
     - _Requirements: 69.1_
 
-  - [ ] 61.3 Update student enrollment to scope by section
+  - [x] 61.3 Update student enrollment to scope by section
     - `student_courses` now includes `section_id` FK
     - Enrollment UI shows section selector
     - _Requirements: 69.2_
 
-  - [ ] 61.4 Update submissions and grades to scope by section
+  - [x] 61.4 Update submissions and grades to scope by section
     - Grading queue filtered by section
     - _Requirements: 69.3_
 
-  - [ ] 61.5 Create section comparison view on Coordinator Dashboard
+  - [x] 61.5 Create section comparison view on Coordinator Dashboard
     - Side-by-side attainment metrics across sections of the same course
     - _Requirements: 69.6_
 
-  - [ ] 61.6 Update Teacher Dashboard for per-section analytics
+  - [x] 61.6 Update Teacher Dashboard for per-section analytics
     - _Requirements: 69.7_
 
-- [ ] 62. Implement Survey Module (Indirect Assessment)
+- [-] 62. Implement Survey Module (Indirect Assessment)
   - [ ] 62.1 Create survey TanStack Query hooks (`/src/hooks/useSurveys.ts`)
     - CRUD for surveys, questions, and responses
     - _Requirements: 70_
@@ -1145,7 +1145,7 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Aggregate responses by linked PLO/ILO as indirect assessment evidence
     - _Requirements: 70.4_
 
-- [ ] 63. Implement CQI Loop
+- [~] 63. Implement CQI Loop
   - [ ] 63.1 Create CQI TanStack Query hooks (`/src/hooks/useCQIPlans.ts`)
     - CRUD for CQI action plans
     - _Requirements: 71_
@@ -1165,7 +1165,7 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Include as "closing the loop" evidence
     - _Requirements: 71.4_
 
-- [ ] 64. Implement Configurable KPI Thresholds & Multi-Accreditation
+- [~] 64. Implement Configurable KPI Thresholds & Multi-Accreditation
   - [ ] 64.1 Create Institution Settings page (`/src/pages/admin/settings/InstitutionSettings.tsx`)
     - Configure attainment thresholds (excellent/satisfactory/developing)
     - Configure success threshold
@@ -1193,7 +1193,7 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Support different PLO naming conventions
     - _Requirements: 73.2, 73.3_
 
-- [ ] 65. Implement Course File / Portfolio Generation
+- [~] 65. Implement Course File / Portfolio Generation
   - [ ] 65.1 Create `generate-course-file` Edge Function (`/supabase/functions/generate-course-file/`)
     - Aggregate: syllabus, CLO-PLO mapping, assessment instruments, sample work (best/avg/worst), CLO attainment charts, teacher reflection, CQI recommendations
     - Generate as PDF or ZIP
@@ -1211,7 +1211,7 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Mutation for triggering generation
     - _Requirements: 74_
 
-- [ ] 66. Implement Announcements & Course Content
+- [~] 66. Implement Announcements & Course Content
   - [ ] 66.1 Create announcement TanStack Query hooks (`/src/hooks/useAnnouncements.ts`)
     - CRUD for announcements within a course
     - _Requirements: 75_
@@ -1242,7 +1242,7 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Wire material view into Read habit (30+ seconds)
     - _Requirements: 76.5, 76.6_
 
-- [ ] 67. Implement Discussion Forum
+- [~] 67. Implement Discussion Forum
   - [ ] 67.1 Create discussion TanStack Query hooks (`/src/hooks/useDiscussions.ts`)
     - CRUD for threads and replies
     - _Requirements: 77_
@@ -1265,7 +1265,7 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Pin/unpin threads, mark answers, delete inappropriate content
     - _Requirements: 77.3_
 
-- [ ] 68. Implement Attendance Tracking
+- [~] 68. Implement Attendance Tracking
   - [ ] 68.1 Create attendance TanStack Query hooks (`/src/hooks/useAttendance.ts`)
     - CRUD for class sessions and attendance records
     - Attendance percentage calculation
@@ -1294,7 +1294,7 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Award badge when student is present for all sessions in a 7-day period
     - _Requirements: 78.7_
 
-- [ ] 69. Implement Quiz/Exam Module
+- [~] 69. Implement Quiz/Exam Module
   - [ ] 69.1 Create quiz TanStack Query hooks (`/src/hooks/useQuizzes.ts`)
     - CRUD for quizzes, questions, and attempts
     - _Requirements: 79_
@@ -1325,7 +1325,7 @@ Complete unified implementation of the Edeviser platform covering authentication
     - 50 XP on-time, 25 XP if late (same schedule as assignments)
     - _Requirements: 79.6_
 
-- [ ] 70. Implement Gradebook with Weighted Categories
+- [~] 70. Implement Gradebook with Weighted Categories
   - [ ] 70.1 Create gradebook TanStack Query hooks (`/src/hooks/useGradebook.ts`)
     - CRUD for grade categories
     - Gradebook matrix query (students × assessments)
@@ -1346,7 +1346,7 @@ Complete unified implementation of the Edeviser platform covering authentication
   - [ ] 70.4 Implement letter grade mapping using institution_settings.grade_scales
     - _Requirements: 80.5_
 
-- [ ] 71. Implement Calendar View
+- [~] 71. Implement Calendar View
   - [ ] 71.1 Create calendar TanStack Query hooks (`/src/hooks/useCalendar.ts`)
     - Aggregate events from assignments, quizzes, class_sessions, academic_calendar_events
     - _Requirements: 81_
@@ -1362,7 +1362,7 @@ Complete unified implementation of the Edeviser platform covering authentication
   - [ ] 71.4 Add calendar to dashboard sidebar for Students and Teachers
     - _Requirements: 81.5_
 
-- [ ] 72. Implement Timetable
+- [~] 72. Implement Timetable
   - [ ] 72.1 Create timetable TanStack Query hooks (`/src/hooks/useTimetable.ts`)
     - Query timetable slots for student (from enrolled sections) or teacher (from assigned sections)
     - _Requirements: 82_
@@ -1379,7 +1379,7 @@ Complete unified implementation of the Edeviser platform covering authentication
   - [ ] 72.4 Add timetable to dashboard sidebar
     - _Requirements: 82.5_
 
-- [ ] 73. Implement Academic Calendar Management
+- [~] 73. Implement Academic Calendar Management
   - [ ] 73.1 Create academic calendar TanStack Query hooks (`/src/hooks/useAcademicCalendar.ts`)
     - CRUD for academic calendar events
     - _Requirements: 84_
@@ -1400,7 +1400,7 @@ Complete unified implementation of the Edeviser platform covering authentication
     - "Exam period starts in 5 days" notification to enrolled students
     - _Requirements: 84.4_
 
-- [ ] 74. Implement Student Transcript Generation
+- [~] 74. Implement Student Transcript Generation
   - [ ] 74.1 Create `generate-transcript` Edge Function (`/supabase/functions/generate-transcript/`)
     - Query student courses, grades, grade categories, CLO attainment per semester
     - Calculate semester GPA and cumulative GPA using institution grade scales
@@ -1420,7 +1420,7 @@ Complete unified implementation of the Edeviser platform covering authentication
   - [ ] 74.4 Add transcript generation to Admin user detail page
     - _Requirements: 85.4_
 
-- [ ] 75. Implement Parent/Guardian Portal
+- [~] 75. Implement Parent/Guardian Portal
   - [ ] 75.1 Create parent TanStack Query hooks (`/src/hooks/useParentPortal.ts`)
     - Query linked students via parent_student_links
     - Query student grades, attendance, CLO progress, habits (read-only)
@@ -1447,7 +1447,7 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Read-only access to linked student data via verified parent_student_links
     - _Requirements: 86.1, 86.6_
 
-- [ ] 76. Implement Fee Management
+- [~] 76. Implement Fee Management
   - [ ] 76.1 Create fee management TanStack Query hooks (`/src/hooks/useFees.ts`)
     - CRUD for fee structures and payments
     - Fee collection summary query
@@ -1472,7 +1472,7 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Daily check: update pending → overdue when past due_date
     - _Requirements: 87.5_
 
-- [ ] 77. Implement Report Generator updates for new features
+- [~] 77. Implement Report Generator updates for new features
   - [ ] 77.1 Update accreditation reports to include survey results as indirect assessment evidence
     - _Requirements: 70.4_
 
@@ -1488,7 +1488,7 @@ Complete unified implementation of the Edeviser platform covering authentication
   - [ ] 77.5 Update report template selector to include QQA and NCAAA
     - _Requirements: 73.2_
 
-- [ ] 78. Wire new XP sources and badges
+- [~] 78. Wire new XP sources and badges
   - [ ] 78.1 Update `award-xp` Edge Function to support new sources
     - Add: `discussion_question`, `discussion_answer`, `survey_completion`, `quiz_completion`
     - _Requirements: 77.4, 77.5, 70.5, 79.6_
@@ -1504,7 +1504,7 @@ Complete unified implementation of the Edeviser platform covering authentication
   - [ ] 78.4 Update `compute-at-risk-signals` to include attendance and quiz data
     - _Requirements: 78.6, 41_
 
-- [ ] 79. Write tests for institutional management & LMS features
+- [~] 79. Write tests for institutional management & LMS features
   - [ ]* 79.1 Write property-based tests (Properties 51–65)
     - **Properties 51, 65**: Semester (active uniqueness, scoping integrity)
     - **Property 52**: Course section CLO sharing
@@ -1538,7 +1538,7 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Parent link verification → data access → notification pipeline
     - _Requirements: 68-87_
 
-- [ ] 80. Final verification — All tests pass, production ready
+- [~] 80. Final verification — All tests pass, production ready
   - Ensure all tests pass, ask the user if questions arise.
   - Verify all 102 requirements (including NFRs 50-57, enhancements 58-67, institutional management 68-87, and production readiness 88-102) plus NFR gaps (tasks 97-108) have corresponding implementations
   - Verify all 80 correctness properties are testable
@@ -1613,7 +1613,7 @@ Complete unified implementation of the Edeviser platform covering authentication
 - Full-text search adds `search_vector` tsvector columns to: `courses`, `assignments`, `announcements`, `course_materials`, `profiles`
 
 
-- [ ] 81. Implement Multi-Language / RTL Support
+- [~] 81. Implement Multi-Language / RTL Support
   - [ ] 81.1 Apply database migration: add `language_preference` column to `profiles`
     - `ALTER TABLE profiles ADD COLUMN language_preference text NOT NULL DEFAULT 'en' CHECK (language_preference IN ('en', 'ur', 'ar'))`
     - Regenerate TypeScript types
@@ -1646,7 +1646,7 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Extend existing task 40 (i18n foundation) with RTL support
     - _Requirements: 88.1, 88.6_
 
-- [ ] 82. Implement Progressive Web App (PWA)
+- [~] 82. Implement Progressive Web App (PWA)
   - [ ] 82.1 Create web app manifest (`/public/manifest.json`)
     - Edeviser branding: name, short_name, icons (192×192, 512×512), theme_color (#3b82f6), background_color (#ffffff), display: standalone, start_url: /
     - _Requirements: 89.1_
@@ -1674,7 +1674,7 @@ Complete unified implementation of the Edeviser platform covering authentication
     - `<link rel="apple-touch-icon" href="/icons/icon-192.png">`
     - _Requirements: 89.4_
 
-- [ ] 83. Document Backup & Disaster Recovery Procedures
+- [~] 83. Document Backup & Disaster Recovery Procedures
   - [ ] 83.1 Create `/docs/disaster-recovery.md` runbook
     - Document Supabase PITR configuration and activation steps
     - Define RTO <4h and RPO <1h procedures with step-by-step restoration guide
@@ -1687,7 +1687,7 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Verification checklist: data integrity, RLS policies, Edge Function connectivity
     - _Requirements: 90.3_
 
-- [ ] 84. Implement Edge Function Rate Limiting
+- [~] 84. Implement Edge Function Rate Limiting
   - [ ] 84.1 Create rate limiter shared module (`/supabase/functions/_shared/rateLimiter.ts`)
     - In-memory Map keyed by `user_id:function_name`
     - Read limit: 100 requests/minute, Write limit: 30 requests/minute
@@ -1703,7 +1703,7 @@ Complete unified implementation of the Edeviser platform covering authentication
     - `action = 'rate_limit_exceeded'`, `target_type = 'edge_function'`, function name in metadata
     - _Requirements: 91.4_
 
-- [ ] 85. Implement Security Headers
+- [~] 85. Implement Security Headers
   - [ ] 85.1 Add security headers to `vercel.json`
     - Content-Security-Policy: restrict script-src, style-src, img-src, connect-src, font-src
     - Strict-Transport-Security: `max-age=31536000; includeSubDomains`
@@ -1712,7 +1712,7 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Referrer-Policy: `strict-origin-when-cross-origin`
     - _Requirements: 92.1, 92.2, 92.3, 92.4, 92.5, 92.6_
 
-- [ ] 86. Implement Cookie Consent / Privacy Banner
+- [~] 86. Implement Cookie Consent / Privacy Banner
   - [ ] 86.1 Create CookieConsentBanner component (`/src/components/shared/CookieConsentBanner.tsx`)
     - Display on first visit (no `edeviser_cookie_consent` in localStorage)
     - Options: "Accept All", "Reject Non-Essential", "Manage Preferences"
@@ -1729,7 +1729,7 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Opens the Manage Preferences dialog
     - _Requirements: 93.5_
 
-- [ ] 87. Implement Terms of Service & Privacy Policy Pages
+- [~] 87. Implement Terms of Service & Privacy Policy Pages
   - [ ] 87.1 Create public routes `/terms` and `/privacy`
     - Add to AppRouter as unauthenticated routes
     - Create TermsPage (`/src/pages/public/TermsPage.tsx`) and PrivacyPage (`/src/pages/public/PrivacyPage.tsx`)
@@ -1751,7 +1751,7 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Stores timestamp in `profiles.tos_accepted_at`
     - _Requirements: 94.4, 94.5, 94.6_
 
-- [ ] 88. Implement Admin Impersonation / Support Mode
+- [~] 88. Implement Admin Impersonation / Support Mode
   - [ ] 88.1 Create ImpersonationProvider (`/src/providers/ImpersonationProvider.tsx`)
     - Context: `isImpersonating`, `impersonatedUser`, `startImpersonation`, `stopImpersonation`, `timeRemaining`
     - Store impersonation state in Zustand or context with 30-minute auto-expire timer
@@ -1776,7 +1776,7 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Query for impersonated user profile
     - _Requirements: 95_
 
-- [ ] 89. Implement Bulk Data Operations
+- [~] 89. Implement Bulk Data Operations
   - [ ] 89.1 Create bulk grade export Edge Function (`/supabase/functions/bulk-grade-export/`)
     - Accept course_id and optional section_id
     - Query enrolled students, assessment scores, category subtotals, final grade, letter grade
@@ -1810,7 +1810,7 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Mutations for grade export, enrollment import/export, semester transition, data cleanup
     - _Requirements: 96_
 
-- [ ] 90. Document Database Connection Pooling Configuration
+- [~] 90. Document Database Connection Pooling Configuration
   - [ ] 90.1 Create `/docs/connection-pooling.md`
     - Document Supabase PgBouncer configuration
     - Pool size recommendations: free (15), pro (50), team (100)
@@ -1825,7 +1825,7 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Include `pool_status` field in health check response
     - _Requirements: 97.3_
 
-- [ ] 91. Implement Image/Asset Optimization
+- [~] 91. Implement Image/Asset Optimization
   - [ ] 91.1 Create image compressor utility (`/src/lib/imageCompressor.ts`)
     - Client-side compression using canvas API
     - Max 500KB, 256×256 pixels, quality 0.8
@@ -1849,7 +1849,7 @@ Complete unified implementation of the Edeviser platform covering authentication
     - `Cache-Control: public, max-age=31536000, immutable` for hashed assets in `vercel.json`
     - _Requirements: 98.4_
 
-- [ ] 92. Implement Global Search
+- [~] 92. Implement Global Search
   - [ ] 92.1 Apply database migration: add full-text search indexes
     - Add `search_vector` tsvector columns to `courses`, `assignments`, `announcements`, `course_materials`, `profiles`
     - Create GIN indexes on all search_vector columns
@@ -1873,7 +1873,7 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Search icon button + keyboard shortcut hint
     - _Requirements: 99.1_
 
-- [ ] 93. Implement Plagiarism Awareness Placeholder
+- [~] 93. Implement Plagiarism Awareness Placeholder
   - [ ] 93.1 Apply database migration: add `plagiarism_score` column to `submissions`
     - `ALTER TABLE submissions ADD COLUMN plagiarism_score numeric CHECK (plagiarism_score IS NULL OR (plagiarism_score >= 0 AND plagiarism_score <= 100))`
     - Regenerate TypeScript types
@@ -1893,7 +1893,7 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Add `PLAGIARISM_API_KEY` to `.env.example`
     - _Requirements: 100.3, 100.4_
 
-- [ ] 94. Implement Granular In-App Notification Preferences
+- [~] 94. Implement Granular In-App Notification Preferences
   - [ ] 94.1 Apply database migration: add `notification_preferences` column to `profiles`
     - `ALTER TABLE profiles ADD COLUMN notification_preferences jsonb NOT NULL DEFAULT '{"muted_courses": [], "quiet_hours": {"enabled": false, "start": "22:00", "end": "07:00"}}'`
     - Regenerate TypeScript types
@@ -1916,7 +1916,7 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Critical notifications: grade released, at-risk alert
     - _Requirements: 101.4_
 
-- [ ] 95. Implement Session Management UI
+- [~] 95. Implement Session Management UI
   - [ ] 95.1 Create Session Management page (`/src/pages/shared/SessionManagement.tsx`)
     - Display active sessions: device type, browser, masked IP, last active, current session indicator
     - "Sign out other sessions" button
@@ -1933,7 +1933,7 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Record action with count of terminated sessions
     - _Requirements: 102.6_
 
-- [ ] 96. Write tests for production readiness features
+- [~] 96. Write tests for production readiness features
   - [ ]* 96.1 Write property-based tests (Properties 66–80)
     - **Property 66**: RTL layout direction correctness
     - **Property 67**: PWA manifest validity
@@ -1964,7 +1964,7 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Semester transition → course copy → CLO copy pipeline
     - _Requirements: 88-102_
 
-- [ ] 97. Implement Sentry Initialization & Global Error Boundary
+- [~] 97. Implement Sentry Initialization & Global Error Boundary
   - [ ] 97.1 Configure Sentry SDK initialization in `src/main.tsx`
     - Call `Sentry.init()` with DSN from `VITE_SENTRY_DSN` env var
     - Configure `tracesSampleRate`, `replaysSessionSampleRate`, environment tag
@@ -1986,7 +1986,7 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Add `SENTRY_AUTH_TOKEN` and `SENTRY_ORG`/`SENTRY_PROJECT` to CI secrets documentation
     - _Requirements: NFR_
 
-- [ ] 98. Implement End-to-End (E2E) Testing with Playwright
+- [~] 98. Implement End-to-End (E2E) Testing with Playwright
   - [ ] 98.1 Install and configure Playwright
     - Add `@playwright/test` as dev dependency
     - Create `playwright.config.ts` with baseURL, projects (chromium, firefox, webkit), retries, reporter
@@ -2016,7 +2016,7 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Upload test artifacts (screenshots, traces) on failure
     - _Requirements: NFR_
 
-- [ ] 99. Enhance CI/CD Pipeline
+- [~] 99. Enhance CI/CD Pipeline
   - [ ] 99.1 Add Sentry source map upload step to CI
     - Run after successful build step
     - Use `sentry-cli releases` to create release and upload sourcemaps
@@ -2049,7 +2049,7 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Require PR reviews, no direct pushes to main
     - _Requirements: NFR_
 
-- [ ] 100. Implement Database Backup & PITR Activation
+- [~] 100. Implement Database Backup & PITR Activation
   - [ ] 100.1 Document Supabase PITR activation steps in `/docs/disaster-recovery.md`
     - Step-by-step guide to enable PITR on Supabase Pro project
     - Document retention period configuration (default 7 days)
@@ -2067,7 +2067,7 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Add backup status check to health monitoring endpoint (task 46)
     - _Requirements: 90_
 
-- [ ] 101. Implement Environment & Secrets Management
+- [~] 101. Implement Environment & Secrets Management
   - [ ] 101.1 Create comprehensive `.env.example` with all required variables
     - `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_SENTRY_DSN`
     - Document Edge Function secrets: `RESEND_API_KEY`, `OPENAI_API_KEY` (or `ANTHROPIC_API_KEY`), `CRON_SECRET`
@@ -2086,7 +2086,7 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Validate on app startup in `src/main.tsx`, show clear error if missing
     - _Requirements: NFR_
 
-- [ ] 102. Implement Performance Budgets & Bundle Analysis
+- [~] 102. Implement Performance Budgets & Bundle Analysis
   - [ ] 102.1 Configure bundle analysis tooling
     - Add `rollup-plugin-visualizer` to Vite config (generate `stats.html` on build)
     - Add npm script: `"analyze": "vite build && open stats.html"`
@@ -2110,7 +2110,7 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Fail build if any budget is exceeded
     - _Requirements: NFR_
 
-- [ ] 103. Implement Automated Accessibility Testing
+- [~] 103. Implement Automated Accessibility Testing
   - [ ] 103.1 Integrate `@axe-core/react` in development mode
     - Conditionally import and initialize in `src/main.tsx` when `import.meta.env.DEV`
     - Log a11y violations to browser console during development
@@ -2131,7 +2131,7 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Test focus management on modal dialogs (ToSAcceptanceDialog, BadgeAwardModal, LevelUpOverlay)
     - _Requirements: NFR_
 
-- [ ] 104. Create Local Development Seed Script
+- [~] 104. Create Local Development Seed Script
   - [ ] 104.1 Create `supabase/seed.sql` for rapid local development onboarding
     - 1 institution with settings (configurable thresholds, grade scale)
     - 1 admin user, 1 coordinator user, 1 teacher user, 5 student users (all with known test passwords)
@@ -2148,7 +2148,7 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Document in README: `npm run seed` for fresh local environment
     - _Requirements: NFR_
 
-- [ ] 105. Implement Client-Side Request Throttling
+- [~] 105. Implement Client-Side Request Throttling
   - [ ] 105.1 Configure TanStack Query global defaults (`/src/providers/QueryProvider.tsx`)
     - Set `staleTime: 5 * 60 * 1000` (5 minutes) for read-heavy queries
     - Set `gcTime: 30 * 60 * 1000` (30 minutes) for garbage collection
@@ -2168,7 +2168,7 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Document deduplication behavior in code comments
     - _Requirements: NFR_
 
-- [ ] 106. Implement Security Headers in vercel.json
+- [~] 106. Implement Security Headers in vercel.json
   - [ ] 106.1 Add comprehensive security headers configuration to `vercel.json`
     - Content-Security-Policy: `default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://*.supabase.co; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.sentry.io; font-src 'self' https://fonts.gstatic.com; frame-ancestors 'none'`
     - Strict-Transport-Security: `max-age=31536000; includeSubDomains`

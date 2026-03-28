@@ -34,6 +34,11 @@ const PREFERENCE_ITEMS: PreferenceItem[] = [
     label: 'Grade Released',
     description: 'Notification when your grade is ready to view',
   },
+  {
+    key: 'notification_digest',
+    label: 'Daily Digest',
+    description: 'Receive a single daily summary at 8 PM instead of individual notifications',
+  },
 ];
 
 const EmailPreferencesSection = () => {

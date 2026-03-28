@@ -1,0 +1,18 @@
+{
+  "enabled": true,
+  "name": "Clear Stale TS Errors",
+  "description": "Runs TypeScript type-check on file save to refresh diagnostics and clear stale errors from previous sessions",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "*.ts",
+      "*.tsx"
+    ]
+  },
+  "then": {
+    "type": "runCommand",
+    "command": "npx tsc --noEmit",
+    "timeout": 30
+  }
+}

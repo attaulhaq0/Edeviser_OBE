@@ -12,6 +12,7 @@ import {
   useUnenrollStudent,
   type EnrollmentWithProfile,
 } from '@/hooks/useEnrollments';
+import { useCourseSections } from '@/hooks/useCourseSections';
 import { useUsers } from '@/hooks/useUsers';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -37,6 +38,7 @@ const CourseEnrollmentPage = () => {
 
   const [enrollDialogOpen, setEnrollDialogOpen] = useState(false);
   const [selectedStudentId, setSelectedStudentId] = useState<string>('');
+  const [selectedSectionId, setSelectedSectionId] = useState<string>('');
   const [unenrollTarget, setUnenrollTarget] = useState<EnrollmentWithProfile | null>(null);
   const [page, setPage] = useState(1);
 
@@ -45,6 +47,7 @@ const CourseEnrollmentPage = () => {
   const enrollments = useMemo(() => paginatedEnrollments?.data ?? [], [paginatedEnrollments?.data]);
   const { data: paginatedStudents } = useUsers({ role: 'student' });
   const students = useMemo(() => paginatedStudents?.data ?? [], [paginatedStudents?.data]);
+  const { data: sections } = useCourseSections(courseId);
   const enrollMutation = useEnrollStudent();
   const unenrollMutation = useUnenrollStudent();
 
@@ -65,12 +68,17 @@ const CourseEnrollmentPage = () => {
   const handleEnroll = () => {
     if (!selectedStudentId || !courseId) return;
     enrollMutation.mutate(
-      { student_id: selectedStudentId, course_id: courseId },
+      {
+        student_id: selectedStudentId,
+        course_id: courseId,
+        section_id: selectedSectionId || undefined,
+      },
       {
         onSuccess: () => {
           toast.success('Student enrolled successfully');
           setEnrollDialogOpen(false);
           setSelectedStudentId('');
+          setSelectedSectionId('');
         },
         onError: (err) => toast.error(err.message),
       },
@@ -170,12 +178,31 @@ const CourseEnrollmentPage = () => {
             </SelectContent>
           </Select>
 
+          {sections && sections.length > 0 && (
+            <Select value={selectedSectionId} onValueChange={setSelectedSectionId}>
+              <SelectTrigger className="w-full bg-white">
+                <SelectValue placeholder="Select a section (optional)" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">No section</SelectItem>
+                {sections
+                  .filter((s) => s.is_active)
+                  .map((s) => (
+                    <SelectItem key={s.id} value={s.id}>
+                      Section {s.section_code} — {s.profiles?.full_name ?? 'Unassigned'}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
+          )}
+
           <DialogFooter>
             <Button
               variant="outline"
               onClick={() => {
                 setEnrollDialogOpen(false);
                 setSelectedStudentId('');
+                setSelectedSectionId('');
               }}
               disabled={enrollMutation.isPending}
             >

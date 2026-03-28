@@ -9,6 +9,7 @@ const DEFAULT_PREFERENCES: EmailPreferencesFormData = {
   weekly_summary: true,
   new_assignment: true,
   grade_released: true,
+  notification_digest: false,
 };
 
 export const useEmailPreferences = () => {

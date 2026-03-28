@@ -288,9 +288,11 @@ export interface Semester {
   id: string;
   institution_id: string;
   name: string;
+  code: string;
   start_date: string;
   end_date: string;
   is_active: boolean;
+  created_at: string;
 }
 
 export interface CourseSection {
@@ -455,8 +457,10 @@ export interface Department {
   id: string;
   institution_id: string;
   name: string;
-  head_id: string;
   code: string;
+  head_of_department_id: string | null;
+  head_id: string;
+  created_at: string;
 }
 
 export interface Transcript {

@@ -1,14 +1,17 @@
 import { useRef, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
-import { User, Camera, Loader2 } from 'lucide-react';
+import { User, Camera, Loader2, Sun, Moon, Monitor, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { uploadAvatarFile, FileValidationError } from '@/lib/fileUpload';
 import EmailPreferencesSection from '@/components/shared/EmailPreferencesSection';
+import { useTheme, type ThemePreference } from '@/providers/ThemeProvider';
+import ExportDataButton from '@/components/shared/ExportDataButton';
 
 const ProfilePage = () => {
   const { profile, user } = useAuth();
+  const { theme, setTheme } = useTheme();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -116,8 +119,66 @@ const ProfilePage = () => {
         </div>
       </Card>
 
+      {/* Theme Preference */}
+      <Card className="bg-white dark:bg-slate-900 border-0 shadow-md rounded-xl overflow-hidden">
+        <div
+          className="px-6 py-4 flex items-center gap-2"
+          style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+        >
+          <Sun className="h-5 w-5 text-white" />
+          <h2 className="text-lg font-bold tracking-tight text-white">Appearance</h2>
+        </div>
+        <div className="p-6">
+          <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+            Choose how the platform looks to you.
+          </p>
+          <div className="flex gap-2" role="radiogroup" aria-label="Theme preference">
+            {([
+              { value: 'light' as ThemePreference, label: 'Light', icon: Sun },
+              { value: 'dark' as ThemePreference, label: 'Dark', icon: Moon },
+              { value: 'system' as ThemePreference, label: 'System', icon: Monitor },
+            ]).map(({ value, label, icon: Icon }) => (
+              <button
+                key={value}
+                type="button"
+                role="radio"
+                aria-checked={theme === value}
+                onClick={() => setTheme(value)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${
+                  theme === value
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-white dark:bg-slate-800 text-gray-600 dark:text-slate-300 border border-gray-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'
+                }`}
+              >
+                <Icon className="h-4 w-4" />
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </Card>
+
       {/* Email Notification Preferences */}
       <EmailPreferencesSection />
+
+      {/* GDPR Data Export — students only */}
+      {profile?.role === 'student' && user && (
+        <Card className="bg-white dark:bg-slate-900 border-0 shadow-md rounded-xl overflow-hidden">
+          <div
+            className="px-6 py-4 flex items-center gap-2"
+            style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+          >
+            <Shield className="h-5 w-5 text-white" />
+            <h2 className="text-lg font-bold tracking-tight text-white">Data Export</h2>
+          </div>
+          <div className="p-6">
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+              Download all your personal data (profile, grades, XP, journals, badges, habits) in JSON or CSV format.
+            </p>
+            <ExportDataButton studentId={user.id} />
+          </div>
+        </Card>
+      )}
     </div>
   );
 };

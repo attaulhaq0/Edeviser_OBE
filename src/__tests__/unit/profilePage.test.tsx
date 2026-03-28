@@ -28,6 +28,9 @@ vi.mock('@/lib/supabase', () => ({
         };
       }),
     })),
+    functions: {
+      invoke: vi.fn().mockResolvedValue({ data: { download_url: 'https://example.com/export.json' }, error: null }),
+    },
   },
 }));
 
@@ -48,6 +51,16 @@ vi.mock('@/hooks/useAuth', () => ({
 
 vi.mock('sonner', () => ({
   toast: { success: vi.fn(), error: vi.fn() },
+}));
+
+const mockSetTheme = vi.fn();
+vi.mock('@/providers/ThemeProvider', () => ({
+  useTheme: () => ({
+    theme: 'system' as const,
+    resolvedTheme: 'light' as const,
+    setTheme: mockSetTheme,
+  }),
+  ThemePreference: {},
 }));
 
 const mockUploadAvatarFile = vi.fn();
@@ -227,5 +240,38 @@ describe('ProfilePage', () => {
         'Failed to upload avatar. Please try again.',
       );
     });
+  });
+
+  it('renders the Appearance section with theme toggle buttons', () => {
+    renderPage();
+    expect(screen.getByText('Appearance')).toBeDefined();
+    expect(screen.getByRole('radio', { name: /light/i })).toBeDefined();
+    expect(screen.getByRole('radio', { name: /dark/i })).toBeDefined();
+    expect(screen.getByRole('radio', { name: /system/i })).toBeDefined();
+  });
+
+  it('calls setTheme when a theme button is clicked', () => {
+    renderPage();
+    fireEvent.click(screen.getByRole('radio', { name: /dark/i }));
+    expect(mockSetTheme).toHaveBeenCalledWith('dark');
+  });
+
+  it('marks the current theme as checked', () => {
+    renderPage();
+    const systemBtn = screen.getByRole('radio', { name: /system/i });
+    expect(systemBtn.getAttribute('aria-checked')).toBe('true');
+  });
+
+  it('does not render Data Export section for non-student roles', () => {
+    mockProfile.role = 'admin' as const;
+    renderPage();
+    expect(screen.queryByText('Data Export')).toBeNull();
+  });
+
+  it('renders Data Export section for student role', () => {
+    mockProfile.role = 'student' as 'admin';
+    renderPage();
+    expect(screen.getByText('Data Export')).toBeDefined();
+    expect(screen.getByRole('button', { name: /download my data/i })).toBeDefined();
   });
 });

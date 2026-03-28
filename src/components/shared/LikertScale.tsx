@@ -60,6 +60,7 @@ const LikertScale = ({
       aria-label="Likert scale rating"
       className="flex items-center gap-2"
       onKeyDown={handleKeyDown}
+      tabIndex={-1}
     >
       {labels.map((label, index) => {
         const optionValue = index + 1;

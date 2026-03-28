@@ -25,6 +25,10 @@ const AUDIT_FIELD_ALLOWLIST: Record<string, string[]> = {
   outcome_mapping: ['source_outcome_id', 'target_outcome_id', 'weight'],
   bonus_xp_event: ['name', 'multiplier', 'start_date', 'end_date'],
   enrollment: ['student_id', 'course_id', 'status'],
+  semester: ['name', 'code', 'start_date', 'end_date', 'is_active', 'institution_id'],
+  department: ['name', 'code', 'head_of_department_id', 'institution_id'],
+  course_section: ['course_id', 'section_code', 'teacher_id', 'capacity', 'is_active'],
+  survey: ['title', 'type', 'is_active', 'target_outcomes', 'institution_id'],
 };
 
 function filterChanges(

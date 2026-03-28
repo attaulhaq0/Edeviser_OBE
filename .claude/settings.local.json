@@ -1,7 +1,14 @@
 {
   "permissions": {
     "allow": [
-      "Bash(xargs:*)"
+      "Bash(xargs:*)",
+      "Bash(grep -l \"serve\\(\" F:/Edeviser-Kiro/supabase/functions/*/index.ts)",
+      "Bash(for f:*)",
+      "Bash(do echo:*)",
+      "Read(//f/Edeviser-Kiro/supabase/functions/$f/**)",
+      "Bash(done)",
+      "Bash(cat supabase/functions/_shared/*.ts)",
+      "Bash(cat F:/Edeviser-Kiro/api/cron/*.ts F:/Edeviser-Kiro/api/_utils/*.ts)"
     ]
   }
 }

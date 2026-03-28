@@ -1,6 +1,13 @@
-import { Outlet, NavLink } from 'react-router-dom';
+import { useState, useCallback, lazy, Suspense } from 'react';
+import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/hooks/useAuth';
+import { useOnboardingStatus, useCompleteOnboarding } from '@/hooks/useOnboarding';
+import { getChecklistForRole } from '@/lib/onboardingChecklist';
+import QuickStartChecklist from '@/components/shared/QuickStartChecklist';
 import { LayoutDashboard, Target, TableProperties, ClipboardList, CheckSquare, FlaskConical, UserCircle } from 'lucide-react';
+
+const WelcomeTour = lazy(() => import('@/components/shared/WelcomeTour'));
 
 const navItems = [
   { to: '/teacher/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -12,30 +19,74 @@ const navItems = [
   { to: '/teacher/settings/profile', icon: UserCircle, label: 'Profile' },
 ];
 
-const TeacherLayout = () => (
-  <div className="flex h-screen">
-    <aside className="w-64 border-r border-slate-200 bg-white p-4 space-y-1">
-      <h2 className="text-lg font-bold tracking-tight mb-4 px-3">Teacher</h2>
-      {navItems.map(({ to, icon: Icon, label }) => (
-        <NavLink
-          key={to}
-          to={to}
-          className={({ isActive }) =>
-            cn(
-              'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
-              isActive ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-slate-50',
-            )
-          }
-        >
-          <Icon className="h-5 w-5" />
-          {label}
-        </NavLink>
-      ))}
-    </aside>
-    <main className="flex-1 overflow-auto p-6 bg-slate-50">
-      <Outlet />
-    </main>
-  </div>
-);
+const TeacherLayout = () => {
+  const { profile } = useAuth();
+  const navigate = useNavigate();
+  const { data: onboardingCompleted } = useOnboardingStatus();
+  const completeOnboarding = useCompleteOnboarding();
+  const [tourDismissed, setTourDismissed] = useState(false);
+  const [checklistDismissed, setChecklistDismissed] = useState(false);
+
+  const showTour = profile?.role === 'teacher' && onboardingCompleted === false && !tourDismissed;
+  const showChecklist = profile?.role === 'teacher' && onboardingCompleted === false && tourDismissed && !checklistDismissed;
+
+  const checklistItems = getChecklistForRole('teacher').map((item) => ({
+    id: item.id,
+    label: item.label,
+    isCompleted: false,
+    route: item.route,
+  }));
+
+  const handleTourComplete = useCallback(() => {
+    setTourDismissed(true);
+  }, []);
+
+  const handleChecklistDismiss = useCallback(() => {
+    completeOnboarding.mutate();
+    setChecklistDismissed(true);
+  }, [completeOnboarding]);
+
+  return (
+    <>
+      {showTour && (
+        <Suspense fallback={<div className="fixed inset-0 z-50 bg-black/40" />}>
+          <WelcomeTour userRole="teacher" onComplete={handleTourComplete} />
+        </Suspense>
+      )}
+      <div className="flex h-screen">
+        <aside className="w-64 border-r border-slate-200 bg-white p-4 space-y-1 flex flex-col">
+          <h2 className="text-lg font-bold tracking-tight mb-4 px-3">Teacher</h2>
+          <div className="flex-1 space-y-1">
+            {navItems.map(({ to, icon: Icon, label }) => (
+              <NavLink
+                key={to}
+                to={to}
+                className={({ isActive }) =>
+                  cn(
+                    'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                    isActive ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-slate-50',
+                  )
+                }
+              >
+                <Icon className="h-5 w-5" />
+                {label}
+              </NavLink>
+            ))}
+          </div>
+          {showChecklist && (
+            <QuickStartChecklist
+              items={checklistItems}
+              onItemClick={(route) => navigate(route)}
+              onDismiss={handleChecklistDismiss}
+            />
+          )}
+        </aside>
+        <main className="flex-1 overflow-auto p-6 bg-slate-50">
+          <Outlet />
+        </main>
+      </div>
+    </>
+  );
+};
 
 export default TeacherLayout;

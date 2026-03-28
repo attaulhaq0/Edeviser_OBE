@@ -31,6 +31,7 @@ export interface SubmissionWithRelations extends Submission {
 export interface SubmissionFilters {
   courseId?: string;
   assignmentId?: string;
+  sectionId?: string;
   status?: string;
   page?: number;
   pageSize?: number;
@@ -44,6 +45,21 @@ export const useSubmissions = (filters: SubmissionFilters = {}) => {
   return useQuery({
     queryKey: queryKeys.submissions.list({ ...filters, page, pageSize } as Record<string, unknown>),
     queryFn: async (): Promise<PaginatedResult<SubmissionWithRelations>> => {
+      // If filtering by section, first get student IDs in that section
+      let sectionStudentIds: string[] | null = null;
+      if (filters.sectionId) {
+        const { data: enrollments, error: enrollError } = await supabase
+          .from('student_courses')
+          .select('student_id')
+          .eq('section_id', filters.sectionId)
+          .eq('status', 'active');
+        if (enrollError) throw enrollError;
+        sectionStudentIds = (enrollments ?? []).map((e) => e.student_id);
+        if (sectionStudentIds.length === 0) {
+          return { data: [], count: 0, page, pageSize };
+        }
+      }
+
       let query = supabase.from('submissions')
         .select('*, profiles!submissions_student_id_fkey(id, full_name, email), assignments(id, title, total_marks, course_id), grades(id)', { count: 'exact' })
         .order('created_at', { ascending: false })
@@ -55,6 +71,10 @@ export const useSubmissions = (filters: SubmissionFilters = {}) => {
 
       if (filters.courseId) {
         query = query.eq('assignments.course_id', filters.courseId);
+      }
+
+      if (sectionStudentIds) {
+        query = query.in('student_id', sectionStudentIds);
       }
 
       const { data, error, count } = await query;

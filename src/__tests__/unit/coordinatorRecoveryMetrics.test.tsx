@@ -38,6 +38,19 @@ vi.mock('@/components/shared/CellDetailSheet', () => ({
   default: () => null,
 }));
 
+vi.mock('@/hooks/useCourses', () => ({
+  useCourses: () => ({ data: { data: [] }, isLoading: false }),
+  useTeachers: () => ({ data: [] }),
+}));
+
+vi.mock('@/hooks/useCourseSections', () => ({
+  useCourseSections: () => ({ data: [], isLoading: false }),
+}));
+
+vi.mock('@/components/shared/SectionComparisonChart', () => ({
+  default: () => <div data-testid="section-comparison-chart" />,
+}));
+
 import CoordinatorDashboard from '@/pages/coordinator/CoordinatorDashboard';
 
 // ---------------------------------------------------------------------------

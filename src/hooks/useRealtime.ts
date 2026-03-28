@@ -32,10 +32,11 @@ interface RealtimeOptions {
  * - `isLive` state exposed to consumers for "Live updates paused" banner
  * - Full cleanup on unmount
  */
-export const useRealtime = (options: RealtimeOptions): { isLive: boolean } => {
+export const useRealtime = (options: RealtimeOptions): { isLive: boolean; retryCount: number } => {
   const { table, event = '*', filter, onPayload, pollingFn, pollingInterval = 30_000 } = options;
 
   const [isLive, setIsLive] = useState(true);
+  const [retryCount, setRetryCount] = useState(0);
   const channelRef = useRef<RealtimeChannel | null>(null);
   const retryCountRef = useRef(0);
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -87,11 +88,13 @@ export const useRealtime = (options: RealtimeOptions): { isLive: boolean } => {
         .subscribe((status) => {
           if (status === 'SUBSCRIBED') {
             retryCountRef.current = 0;
+            setRetryCount(0);
             stopPolling();
           } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
             // Exponential backoff: 1s, 2s, 4s, 8s, … max 30s
             const delay = Math.min(1000 * Math.pow(2, retryCountRef.current), 30_000);
             retryCountRef.current += 1;
+            setRetryCount(retryCountRef.current);
             startPolling();
 
             retryTimerRef.current = setTimeout(() => {
@@ -119,5 +122,5 @@ export const useRealtime = (options: RealtimeOptions): { isLive: boolean } => {
     };
   }, [table, event, filter, startPolling, stopPolling]);
 
-  return { isLive };
+  return { isLive, retryCount };
 };

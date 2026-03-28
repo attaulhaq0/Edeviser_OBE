@@ -30,6 +30,7 @@ describe('emailPreferencesSchema', () => {
       expect(result.data.weekly_summary).toBe(true);
       expect(result.data.new_assignment).toBe(true);
       expect(result.data.grade_released).toBe(true);
+      expect(result.data.notification_digest).toBe(false);
     }
   });
 

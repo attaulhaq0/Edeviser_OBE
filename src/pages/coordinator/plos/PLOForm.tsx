@@ -254,8 +254,9 @@ const EditPLODetailsForm = ({ ploId }: { ploId: string }) => {
 
           {/* Program is read-only in edit mode */}
           <div className="grid gap-2">
-            <label className="text-sm font-medium">Program</label>
+            <label htmlFor="plo-program-readonly" className="text-sm font-medium">Program</label>
             <Input
+              id="plo-program-readonly"
               value={
                 (existingPLO as unknown as LearningOutcome)?.program_id ?? ''
               }

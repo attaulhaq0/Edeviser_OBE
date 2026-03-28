@@ -5,6 +5,7 @@ export const emailPreferencesSchema = z.object({
   weekly_summary: z.boolean().default(true),
   new_assignment: z.boolean().default(true),
   grade_released: z.boolean().default(true),
+  notification_digest: z.boolean().default(false),
 });
 
 export type EmailPreferencesFormData = z.infer<typeof emailPreferencesSchema>;

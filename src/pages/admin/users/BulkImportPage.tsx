@@ -190,13 +190,15 @@ const BulkImportPage = () => {
             <p className="text-xs text-slate-500 mb-4">
               Required columns: email, full_name, role. Optional: program_id. Max {MAX_ROWS} rows.
             </p>
-            <label>
+            <label htmlFor="csv-file-input">
+              <span className="sr-only">Choose CSV file</span>
               <Button variant="outline" asChild>
                 <span>
                   <Upload className="h-4 w-4" /> Choose File
                 </span>
               </Button>
               <input
+                id="csv-file-input"
                 type="file"
                 accept=".csv"
                 className="hidden"

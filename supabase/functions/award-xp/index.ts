@@ -35,7 +35,8 @@ type XPSource =
   | 'profile_complete'
   | 'starter_session_complete'
   | 'wellness_habit'
-  | 'practice_quiz';
+  | 'practice_quiz'
+  | 'streak_freeze_purchase';
 
 interface XPAwardPayload {
   student_id: string;
@@ -95,7 +96,7 @@ const VALID_SOURCES: XPSource[] = [
   'onboarding_personality', 'onboarding_learning_style', 'onboarding_baseline',
   'onboarding_complete', 'onboarding_self_efficacy', 'onboarding_study_strategy',
   'micro_assessment', 'profile_complete', 'starter_session_complete',
-  'wellness_habit', 'practice_quiz',
+  'wellness_habit', 'practice_quiz', 'streak_freeze_purchase',
 ];
 
 function validatePayload(payload: unknown): { valid: true; data: XPAwardPayload } | { valid: false; error: string } {
@@ -133,6 +134,9 @@ function validatePayload(payload: unknown): { valid: true; data: XPAwardPayload 
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function notifyPeersOfLevelUp(supabase: any, studentId: string, newLevel: number): Promise<void> {
+  const PEER_MILESTONE_DAILY_LIMIT = 5;
+  const BATCH_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+
   // Check if student is in anonymous leaderboard mode — skip if so
   const { data: profile } = await supabase
     .from('profiles')
@@ -167,26 +171,61 @@ async function notifyPeersOfLevelUp(supabase: any, studentId: string, newLevel: 
   const peerIds = [...new Set(peerEnrollments.map((e: { student_id: string }) => e.student_id))];
 
   const message = `Your classmate ${studentName} just hit Level ${newLevel}!`;
+  const now = new Date();
+  const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
+  const oneHourAgo = new Date(now.getTime() - BATCH_WINDOW_MS).toISOString();
 
-  // Batch insert notifications for all peers
-  const notifications = peerIds.map((peerId) => ({
-    user_id: peerId,
-    type: 'peer_milestone',
-    title: 'Classmate Leveled Up',
-    message,
-    is_read: false,
-    metadata: {
-      milestone_type: 'level_up',
-      triggering_student_id: studentId,
-      level: newLevel,
-    },
-  }));
+  // Rate-limit: fetch recent peer_milestone counts per peer in the last 24h
+  const { data: recentNotifications } = await supabase
+    .from('notifications')
+    .select('user_id, created_at')
+    .in('user_id', peerIds)
+    .eq('type', 'peer_milestone')
+    .gte('created_at', twentyFourHoursAgo);
+
+  // Build per-peer counts for rate limiting and batching
+  const peerDailyCounts = new Map<string, number>();
+  const peerHasRecentBatch = new Map<string, boolean>();
+  if (recentNotifications) {
+    for (const n of recentNotifications) {
+      const uid = n.user_id as string;
+      peerDailyCounts.set(uid, (peerDailyCounts.get(uid) ?? 0) + 1);
+      if (new Date(n.created_at as string).getTime() >= new Date(oneHourAgo).getTime()) {
+        peerHasRecentBatch.set(uid, true);
+      }
+    }
+  }
+
+  // Build notifications only for peers under the daily limit
+  const notifications = [];
+  for (const peerId of peerIds) {
+    const dailyCount = peerDailyCounts.get(peerId as string) ?? 0;
+    if (dailyCount >= PEER_MILESTONE_DAILY_LIMIT) continue; // Rate-limited
+
+    const hasRecent = peerHasRecentBatch.get(peerId as string) ?? false;
+    notifications.push({
+      user_id: peerId,
+      type: 'peer_milestone',
+      title: 'Classmate Leveled Up',
+      message,
+      is_read: false,
+      metadata: {
+        milestone_type: 'level_up',
+        triggering_student_id: studentId,
+        level: newLevel,
+        is_batched: hasRecent,
+      },
+    });
+  }
+
+  if (notifications.length === 0) return;
 
   const { error } = await supabase.from('notifications').insert(notifications);
   if (error) {
     console.error('Failed to insert peer milestone notifications:', error.message);
   }
 }
+
 
 // ─── Main Handler ───────────────────────────────────────────────────────────
 

@@ -151,3 +151,99 @@ export const usePendingOnboardingStudents = (filters?: {
     staleTime: 30_000,
   });
 };
+
+
+// ── Department Analytics ─────────────────────────────────────────────────────
+
+export interface DepartmentAttainment {
+  department_id: string;
+  department_name: string;
+  avg_plo_attainment: number;
+  avg_ilo_attainment: number;
+  program_count: number;
+}
+
+export const useDepartmentAnalytics = () => {
+  return useQuery({
+    queryKey: [...queryKeys.adminDashboard.lists(), 'department-analytics'],
+    queryFn: async (): Promise<DepartmentAttainment[]> => {
+      // Fetch departments
+      const { data: departments, error: deptError } = await supabase
+        .from('departments')
+        .select('id, name')
+        .order('name', { ascending: true });
+      if (deptError) throw deptError;
+      if (!departments || departments.length === 0) return [];
+
+      // Fetch programs grouped by department
+      const { data: programs, error: progError } = await supabase
+        .from('programs')
+        .select('id, department_id')
+        .eq('is_active', true);
+      if (progError) throw progError;
+
+      // Fetch outcome attainment for program and institution scopes
+      const { data: attainments, error: attError } = await supabase
+        .from('outcome_attainment')
+        .select('outcome_id, attainment_percent, scope')
+        .in('scope', ['program', 'institution']);
+      if (attError) throw attError;
+
+      // Fetch learning outcomes to map outcome_id to program_id
+      const { data: outcomes, error: outError } = await supabase
+        .from('learning_outcomes')
+        .select('id, type, program_id, institution_id')
+        .in('type', ['PLO', 'ILO']);
+      if (outError) throw outError;
+
+      const outcomeMap = new Map((outcomes ?? []).map((o) => [o.id, o]));
+      const programDeptMap = new Map((programs ?? []).map((p) => [p.id, p.department_id]));
+
+      // Aggregate per department
+      const deptStats = new Map<string, { ploScores: number[]; iloScores: number[]; programIds: Set<string> }>();
+      for (const dept of departments) {
+        deptStats.set(dept.id, { ploScores: [], iloScores: [], programIds: new Set() });
+      }
+
+      // Count programs per department
+      for (const prog of programs ?? []) {
+        if (prog.department_id) {
+          deptStats.get(prog.department_id)?.programIds.add(prog.id);
+        }
+      }
+
+      // Aggregate attainment scores
+      for (const att of attainments ?? []) {
+        const outcome = outcomeMap.get(att.outcome_id);
+        if (!outcome || att.attainment_percent == null) continue;
+
+        if (outcome.type === 'PLO' && outcome.program_id) {
+          const deptId = programDeptMap.get(outcome.program_id);
+          if (deptId && deptStats.has(deptId)) {
+            deptStats.get(deptId)!.ploScores.push(att.attainment_percent);
+          }
+        }
+        // ILO attainment is institution-wide, distribute to all departments
+        if (outcome.type === 'ILO') {
+          for (const [, stats] of deptStats) {
+            stats.iloScores.push(att.attainment_percent);
+          }
+        }
+      }
+
+      const avg = (arr: number[]) => (arr.length > 0 ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) : 0);
+
+      return departments.map((dept) => {
+        const stats = deptStats.get(dept.id)!;
+        return {
+          department_id: dept.id,
+          department_name: dept.name,
+          avg_plo_attainment: avg(stats.ploScores),
+          avg_ilo_attainment: avg(stats.iloScores),
+          program_count: stats.programIds.size,
+        };
+      });
+    },
+    staleTime: 60_000,
+  });
+};

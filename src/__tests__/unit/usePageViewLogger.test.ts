@@ -30,15 +30,33 @@ describe('usePageViewLogger', () => {
     mockProfile = null;
   });
 
-  it('logs page_view when student navigates', () => {
+  it('does not log on first page visit (logs on navigation away)', () => {
     mockProfile = { id: 'student-1', role: 'student' };
     renderHook(() => usePageViewLogger());
 
-    expect(mockLogActivity).toHaveBeenCalledWith({
-      student_id: 'student-1',
-      event_type: 'page_view',
-      metadata: { path: '/student/dashboard' },
-    });
+    // First visit records the path but doesn't log until navigating away
+    expect(mockLogActivity).not.toHaveBeenCalled();
+  });
+
+  it('logs page_view with duration_seconds when student navigates away', () => {
+    mockProfile = { id: 'student-1', role: 'student' };
+    const { rerender } = renderHook(() => usePageViewLogger());
+
+    // Navigate to a new page
+    mockPathname = '/student/assignments';
+    rerender();
+
+    expect(mockLogActivity).toHaveBeenCalledTimes(1);
+    expect(mockLogActivity).toHaveBeenCalledWith(
+      expect.objectContaining({
+        student_id: 'student-1',
+        event_type: 'page_view',
+        metadata: expect.objectContaining({
+          path: '/student/dashboard',
+          duration_seconds: expect.any(Number),
+        }),
+      }),
+    );
   });
 
   it('does not log when profile is null', () => {
@@ -50,7 +68,10 @@ describe('usePageViewLogger', () => {
 
   it('does not log for non-student roles', () => {
     mockProfile = { id: 'teacher-1', role: 'teacher' };
-    renderHook(() => usePageViewLogger());
+    const { rerender } = renderHook(() => usePageViewLogger());
+
+    mockPathname = '/teacher/courses';
+    rerender();
 
     expect(mockLogActivity).not.toHaveBeenCalled();
   });
@@ -59,10 +80,8 @@ describe('usePageViewLogger', () => {
     mockProfile = { id: 'student-1', role: 'student' };
     const { rerender } = renderHook(() => usePageViewLogger());
 
-    expect(mockLogActivity).toHaveBeenCalledTimes(1);
-
     // Re-render with same pathname
     rerender();
-    expect(mockLogActivity).toHaveBeenCalledTimes(1);
+    expect(mockLogActivity).not.toHaveBeenCalled();
   });
 });

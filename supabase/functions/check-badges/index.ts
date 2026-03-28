@@ -569,6 +569,8 @@ const BADGE_DISPLAY_NAMES: Record<string, string> = {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function notifyPeersOfRareBadge(supabase: any, studentId: string, badgeIds: string[]): Promise<void> {
+  const PEER_MILESTONE_DAILY_LIMIT = 5;
+
   // Check if student is in anonymous leaderboard mode
   const { data: profile } = await supabase
     .from('profiles')
@@ -600,13 +602,33 @@ async function notifyPeersOfRareBadge(supabase: any, studentId: string, badgeIds
 
   const peerIds = [...new Set(peerEnrollments.map((e: { student_id: string }) => e.student_id))];
 
-  // Create a notification per rare badge per peer
+  // Rate-limit: fetch recent peer_milestone counts per peer in the last 24h
+  const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const { data: recentNotifications } = await supabase
+    .from('notifications')
+    .select('user_id')
+    .in('user_id', peerIds)
+    .eq('type', 'peer_milestone')
+    .gte('created_at', twentyFourHoursAgo);
+
+  const peerDailyCounts = new Map<string, number>();
+  if (recentNotifications) {
+    for (const n of recentNotifications) {
+      const uid = n.user_id as string;
+      peerDailyCounts.set(uid, (peerDailyCounts.get(uid) ?? 0) + 1);
+    }
+  }
+
+  // Create a notification per rare badge per peer (respecting daily limit)
   const notifications = [];
   for (const badgeId of badgeIds) {
     const badgeName = BADGE_DISPLAY_NAMES[badgeId] ?? badgeId;
     const message = `${studentName} just earned the ${badgeName} badge!`;
 
     for (const peerId of peerIds) {
+      const dailyCount = peerDailyCounts.get(peerId as string) ?? 0;
+      if (dailyCount >= PEER_MILESTONE_DAILY_LIMIT) continue; // Rate-limited
+
       notifications.push({
         user_id: peerId,
         type: 'peer_milestone',
@@ -617,8 +639,12 @@ async function notifyPeersOfRareBadge(supabase: any, studentId: string, badgeIds
           milestone_type: 'rare_badge',
           triggering_student_id: studentId,
           badge_id: badgeId,
+          is_batched: false,
         },
       });
+
+      // Increment local count to track across multiple badges in same call
+      peerDailyCounts.set(peerId as string, dailyCount + 1);
     }
   }
 

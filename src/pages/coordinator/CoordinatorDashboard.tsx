@@ -15,6 +15,9 @@ import { useCoordinatorKPIs } from '@/hooks/useCoordinatorDashboard';
 import { useRecoveryMetrics } from '@/hooks/useMasteryRecovery';
 import { useAuth } from '@/hooks/useAuth';
 import { usePrograms } from '@/hooks/usePrograms';
+import { useCourses } from '@/hooks/useCourses';
+import { useCourseSections } from '@/hooks/useCourseSections';
+import SectionComparisonChart from '@/components/shared/SectionComparisonChart';
 import {
   Target,
   GraduationCap,
@@ -26,6 +29,7 @@ import {
   RotateCcw,
   Clock,
   TrendingUp,
+  Columns3,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -68,8 +72,16 @@ const CoordinatorDashboard = () => {
   const { data: recoveryMetrics, isLoading: recoveryLoading } = useRecoveryMetrics(institutionId ?? '');
   const { data: paginatedPrograms, isLoading: programsLoading } = usePrograms();
   const programs = paginatedPrograms?.data;
+  const { data: paginatedCourses } = useCourses();
+  const courses = paginatedCourses?.data ?? [];
   const [selectedProgramId, setSelectedProgramId] = useState<string>('');
   const [selectedCell, setSelectedCell] = useState<SelectedCell | null>(null);
+  const [comparisonCourseId, setComparisonCourseId] = useState<string>('');
+
+  // Sections for the selected comparison course
+  const { data: comparisonSections, isLoading: sectionsLoading } = useCourseSections(
+    comparisonCourseId || undefined,
+  );
 
   // Auto-select first program when loaded
   const effectiveProgramId =
@@ -232,6 +244,52 @@ const CoordinatorDashboard = () => {
                 value={`${Math.round((recoveryMetrics?.retry_success_rate ?? 0) * 100)}%`}
               />
             </div>
+          )}
+        </div>
+      </Card>
+
+      {/* Section Comparison */}
+      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+        <div
+          className="px-6 py-4 flex items-center justify-between"
+          style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+        >
+          <div className="flex items-center gap-2">
+            <Columns3 className="h-5 w-5 text-white" />
+            <h2 className="text-lg font-bold tracking-tight text-white">Section Comparison</h2>
+          </div>
+          <Select value={comparisonCourseId} onValueChange={setComparisonCourseId}>
+            <SelectTrigger className="w-48 bg-white">
+              <SelectValue placeholder="Select course" />
+            </SelectTrigger>
+            <SelectContent>
+              {courses.map((c) => (
+                <SelectItem key={c.id} value={c.id}>
+                  {c.code} — {c.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="p-6">
+          {!comparisonCourseId ? (
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-8 text-center text-sm text-gray-500">
+              Select a course to compare section attainment metrics.
+            </div>
+          ) : sectionsLoading ? (
+            <Shimmer className="h-32 rounded-xl" />
+          ) : !comparisonSections || comparisonSections.length === 0 ? (
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-8 text-center text-sm text-gray-500">
+              No sections found for this course.
+            </div>
+          ) : (
+            <SectionComparisonChart
+              sections={comparisonSections.map((s) => ({
+                sectionCode: s.section_code,
+                attainmentPercent: 0, // Attainment data populated once evidence exists
+                studentCount: s.capacity,
+              }))}
+            />
           )}
         </div>
       </Card>

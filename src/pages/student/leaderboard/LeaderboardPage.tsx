@@ -5,7 +5,7 @@
 import { useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { parseAsString, useQueryState } from 'nuqs';
-import { Trophy, Flame, Medal, WifiOff } from 'lucide-react';
+import { Trophy, Flame, Medal } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { useRealtime } from '@/hooks/useRealtime';
@@ -31,6 +31,7 @@ import {
 } from '@/components/ui/select';
 import Shimmer from '@/components/shared/Shimmer';
 import AnonymousToggle from '@/components/shared/AnonymousToggle';
+import ReconnectBanner from '@/components/shared/ReconnectBanner';
 import { cn } from '@/lib/utils';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -180,7 +181,7 @@ const LeaderboardPage = () => {
   }, [queryClient]);
 
   // Subscribe to realtime XP changes via shared subscription manager
-  const { isLive } = useRealtime({
+  const { isLive, retryCount } = useRealtime({
     table: 'student_gamification',
     event: 'UPDATE',
     filter: institutionId ? `institution_id=eq.${institutionId}` : undefined,
@@ -262,12 +263,7 @@ const LeaderboardPage = () => {
       </div>
 
       {/* Live updates paused banner */}
-      {!isLive && (
-        <div className="flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-700">
-          <WifiOff className="h-4 w-4" />
-          Live updates paused — polling every 30s
-        </div>
-      )}
+      <ReconnectBanner isDisconnected={!isLive} retryCount={retryCount} />
 
       {/* Filter Tabs */}
       <Tabs value={filter} onValueChange={(v) => setFilter(v)}>

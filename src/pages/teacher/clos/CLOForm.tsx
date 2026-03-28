@@ -319,8 +319,9 @@ const EditCLODetailsForm = ({ cloId }: { cloId: string }) => {
 
           {/* Course is read-only in edit mode */}
           <div className="grid gap-2">
-            <label className="text-sm font-medium">Course</label>
+            <label htmlFor="clo-course-readonly" className="text-sm font-medium">Course</label>
             <Input
+              id="clo-course-readonly"
               value={
                 (existingCLO as unknown as LearningOutcome)?.course_id ?? ''
               }

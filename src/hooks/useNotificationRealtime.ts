@@ -22,6 +22,7 @@ const NOTIFICATION_EMOJI: Record<NotificationType, string> = {
   peer_milestone: '👥',
   perfect_day_nudge: '✨',
   prerequisite_unlocked: '🔓',
+  digest: '📋',
 };
 
 /**
@@ -55,12 +56,12 @@ export const useNotificationRealtime = () => {
     [queryClient],
   );
 
-  const { isLive } = useRealtime({
+  const { isLive, retryCount } = useRealtime({
     table: 'notifications',
     event: 'INSERT',
     filter: user?.id ? `user_id=eq.${user.id}` : undefined,
     onPayload,
   });
 
-  return { isLive };
+  return { isLive, retryCount };
 };
