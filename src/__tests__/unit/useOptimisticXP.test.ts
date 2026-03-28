@@ -1,9 +1,10 @@
+// @vitest-environment happy-dom
 // =============================================================================
 // useOptimisticXP — Unit tests
 // Feature: edeviser-platform, Task 54.7
 // =============================================================================
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createElement, type ReactNode } from 'react';
@@ -140,6 +141,10 @@ describe('useOptimisticStreak', () => {
     });
   });
 
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it('optimistically increments streak counter', () => {
     const kpiKey = queryKeys.studentGamification.detail(STUDENT_ID);
     const initialKPI: StudentKPIData = {
@@ -162,7 +167,5 @@ describe('useOptimisticStreak', () => {
 
     const updatedKPI = queryClient.getQueryData<StudentKPIData>(kpiKey);
     expect(updatedKPI?.currentStreak).toBe(8);
-
-    vi.useRealTimers();
   });
 });

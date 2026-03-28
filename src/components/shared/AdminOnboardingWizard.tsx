@@ -106,7 +106,7 @@ const AdminOnboardingWizard = ({
         setDismissed(true);
         onDismiss?.();
       },
-      onError: (err) => toast.error(err.message),
+      onError: (err) => toast.error(err?.message ?? 'An error occurred'),
     });
   };
 

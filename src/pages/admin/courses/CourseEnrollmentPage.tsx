@@ -71,7 +71,7 @@ const CourseEnrollmentPage = () => {
       {
         student_id: selectedStudentId,
         course_id: courseId,
-        section_id: selectedSectionId || undefined,
+        section_id: selectedSectionId && selectedSectionId !== 'none' ? selectedSectionId : undefined,
       },
       {
         onSuccess: () => {

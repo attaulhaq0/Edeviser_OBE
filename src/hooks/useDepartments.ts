@@ -85,7 +85,8 @@ export const useDeleteDepartment = () => {
   return useMutation({
     mutationFn: async (id: string) => {
       // Check for active programs
-      const { count } = await supabase.from('programs').select('id', { count: 'exact', head: true }).eq('department_id', id);
+      const { count, error: checkError } = await supabase.from('programs').select('id', { count: 'exact', head: true }).eq('department_id', id);
+      if (checkError) throw new Error(`Unable to verify active programs: ${checkError.message}`);
       if (count && count > 0) throw new Error('Cannot delete department with active programs');
       const { error } = await supabase.from('departments').delete().eq('id', id);
       if (error) throw error;

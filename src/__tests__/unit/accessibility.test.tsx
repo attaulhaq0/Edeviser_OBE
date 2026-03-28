@@ -1,3 +1,4 @@
+/** @vitest-environment happy-dom */
 // =============================================================================
 // Accessibility Audit — Task 42.5
 // Validates: keyboard navigation, screen reader support, color contrast

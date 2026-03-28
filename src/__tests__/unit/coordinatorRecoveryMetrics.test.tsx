@@ -51,6 +51,15 @@ vi.mock('@/components/shared/SectionComparisonChart', () => ({
   default: () => <div data-testid="section-comparison-chart" />,
 }));
 
+vi.mock('@/hooks/useCQIPlans', () => ({
+  useCQIPlanSummary: () => ({ data: null, isLoading: false }),
+  useCQIPlans: () => ({ data: [], isLoading: false }),
+}));
+
+vi.mock('@/components/shared/CQIStatusBadge', () => ({
+  default: () => null,
+}));
+
 import CoordinatorDashboard from '@/pages/coordinator/CoordinatorDashboard';
 
 // ---------------------------------------------------------------------------

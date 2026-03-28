@@ -59,7 +59,7 @@ const ProfilePage = () => {
       <h1 className="text-2xl font-bold tracking-tight">Profile Settings</h1>
 
       {/* Profile Info Card */}
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+      <Card className="bg-white dark:bg-slate-900 border-0 shadow-md rounded-xl overflow-hidden">
         <div
           className="px-6 py-4 flex items-center gap-2"
           style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}

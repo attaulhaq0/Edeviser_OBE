@@ -108,6 +108,7 @@ describe('ProfilePage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockProfile.avatar_url = null;
+    mockProfile.role = 'admin' as const;
     mockMaybeSingle.mockResolvedValue({
       data: {
         email_preferences: {

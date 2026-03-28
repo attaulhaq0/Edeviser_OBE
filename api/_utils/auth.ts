@@ -36,6 +36,10 @@ export async function invokeEdgeFunction(
     throw new Error('Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY env vars');
   }
 
+  if (!/^[a-zA-Z0-9_-]+$/.test(functionName)) {
+    throw new Error(`Invalid function name: ${functionName}`);
+  }
+
   const url = `${supabaseUrl}/functions/v1/${functionName}`;
   const response = await fetch(url, {
     method: 'POST',

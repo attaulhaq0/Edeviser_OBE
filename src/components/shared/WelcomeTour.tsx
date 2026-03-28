@@ -187,6 +187,7 @@ const WelcomeTour = ({ userRole, onComplete }: WelcomeTourProps) => {
             size="sm"
             onClick={handleSkip}
             className="text-white/70 hover:text-white hover:bg-white/10 h-8 w-8 p-0"
+            aria-label="Close tour"
           >
             <X className="h-4 w-4" />
           </Button>
@@ -215,14 +216,18 @@ const WelcomeTour = ({ userRole, onComplete }: WelcomeTourProps) => {
           </AnimatePresence>
 
           {/* Progress dots */}
-          <div className="flex items-center justify-center gap-1.5 mt-6">
+          <div className="flex items-center justify-center gap-1.5 mt-6" role="list" aria-label="Tour progress">
             {steps.map((_, i) => (
               <div
                 key={i}
+                role="listitem"
+                aria-current={i === currentStep ? 'step' : undefined}
                 className={`h-1.5 rounded-full transition-all duration-200 ${
                   i === currentStep ? 'w-6 bg-blue-600' : 'w-1.5 bg-slate-200'
                 }`}
-              />
+              >
+                <span className="sr-only">Step {i + 1} of {steps.length}</span>
+              </div>
             ))}
           </div>
         </div>

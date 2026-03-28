@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useForm, useFieldArray } from 'react-hook-form';
+import { useForm, useFieldArray, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
@@ -50,8 +50,8 @@ import {
   useCreateSurveyQuestion,
   useDeleteSurveyQuestion,
 } from '@/hooks/useSurveys';
-import type { SurveyType, QuestionType, Survey } from '@/hooks/useSurveys';
-import ConfirmDialog from '@/components/shared/ConfirmDialog';
+import type { SurveyType, Survey } from '@/hooks/useSurveys';
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 
 // ─── Schemas ────────────────────────────────────────────────────────────────
 
@@ -76,10 +76,26 @@ const SURVEY_TYPE_LABELS: Record<SurveyType, string> = {
   employer: 'Employer',
 };
 
-const QUESTION_TYPE_LABELS: Record<QuestionType, string> = {
-  likert: 'Likert (1–5)',
-  mcq: 'Multiple Choice',
-  text: 'Open Text',
+// ─── MCQ Options Field (extracted to use useWatch safely) ───────────────────
+
+const McqOptionsField = ({ control, index }: { control: ReturnType<typeof useForm<SurveyFormData>>['control']; index: number }) => {
+  const questionType = useWatch({ control, name: `questions.${index}.question_type` as const });
+  if (questionType !== 'mcq') return null;
+  return (
+    <FormField
+      control={control}
+      name={`questions.${index}.options`}
+      render={({ field: f }) => (
+        <FormItem>
+          <FormLabel className="text-xs">Options (comma-separated)</FormLabel>
+          <FormControl>
+            <Input {...f} placeholder="Option A, Option B, Option C" />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
 };
 
 // ─── Survey Form Dialog ─────────────────────────────────────────────────────
@@ -126,7 +142,7 @@ const SurveyFormDialog = ({ open, onOpenChange, editSurveyId }: SurveyFormDialog
     name: 'questions',
   });
 
-  const isPending = createSurvey.isPending || updateSurvey.isPending;
+  const isPending = createSurvey.isPending || updateSurvey.isPending || createQuestion.isPending || deleteQuestion.isPending;
 
   const onSubmit = async (data: SurveyFormData) => {
     if (!user?.id || !institutionId) return;
@@ -146,7 +162,7 @@ const SurveyFormDialog = ({ open, onOpenChange, editSurveyId }: SurveyFormDialog
           await deleteQuestion.mutateAsync({ id: q.id, surveyId: editSurveyId });
         }
         for (let i = 0; i < data.questions.length; i++) {
-          const q = data.questions[i];
+          const q = data.questions[i]!;
           const options = q.question_type === 'mcq' && q.options
             ? q.options.split(',').map((o) => o.trim()).filter(Boolean)
             : null;
@@ -170,7 +186,7 @@ const SurveyFormDialog = ({ open, onOpenChange, editSurveyId }: SurveyFormDialog
         });
 
         for (let i = 0; i < data.questions.length; i++) {
-          const q = data.questions[i];
+          const q = data.questions[i]!;
           const options = q.question_type === 'mcq' && q.options
             ? q.options.split(',').map((o) => o.trim()).filter(Boolean)
             : null;
@@ -324,21 +340,7 @@ const SurveyFormDialog = ({ open, onOpenChange, editSurveyId }: SurveyFormDialog
                     )}
                   />
 
-                  {form.watch(`questions.${index}.question_type`) === 'mcq' && (
-                    <FormField
-                      control={form.control}
-                      name={`questions.${index}.options`}
-                      render={({ field: f }) => (
-                        <FormItem>
-                          <FormLabel className="text-xs">Options (comma-separated)</FormLabel>
-                          <FormControl>
-                            <Input {...f} placeholder="Option A, Option B, Option C" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  )}
+                  <McqOptionsField control={form.control} index={index} />
                 </Card>
               ))}
             </div>
@@ -469,7 +471,7 @@ const SurveyManager = () => {
 
       <ConfirmDialog
         open={!!deleteTarget}
-        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        onOpenChange={(open: boolean) => !open && setDeleteTarget(null)}
         title="Delete Survey"
         description={`Are you sure you want to delete "${deleteTarget?.title}"? This action cannot be undone.`}
         onConfirm={handleDelete}

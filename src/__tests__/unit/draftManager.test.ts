@@ -1,3 +1,4 @@
+// @vitest-environment happy-dom
 // =============================================================================
 // DraftManager — Unit tests
 // Feature: edeviser-platform, Task 54.1

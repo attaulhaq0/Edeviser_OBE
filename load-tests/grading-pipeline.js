@@ -47,7 +47,8 @@ export const options = {
     { duration: '1m', target: 0 },
   ],
   thresholds: {
-    http_req_duration: ['p(95)<300'],
+    'http_req_duration{name:grade_insert}': ['p(95)<300'],
+    'http_req_duration{name:rollup}': ['p(95)<500'],
     grade_insert_duration: ['p(95)<300'],
     rollup_duration: ['p(95)<500'],
     pipeline_failures: ['rate<0.05'],
@@ -70,6 +71,7 @@ export default function () {
 
   const gradeRes = http.post(gradeUrl, gradePayload, {
     headers: { ...authHeaders, Prefer: 'return=minimal' },
+    tags: { name: 'grade_insert' },
   });
 
   gradeInsertDuration.add(gradeRes.timings.duration);
@@ -88,6 +90,7 @@ export default function () {
 
   const rollupRes = http.post(rollupUrl, rollupPayload, {
     headers: authHeaders,
+    tags: { name: 'rollup' },
   });
 
   rollupDuration.add(rollupRes.timings.duration);

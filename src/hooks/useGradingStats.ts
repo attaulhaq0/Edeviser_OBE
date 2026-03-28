@@ -57,6 +57,7 @@ export const useGradingStats = (teacherId: string | undefined) => {
 
       const dayMap = new Map<string, number>();
       for (const g of recentGrades ?? []) {
+        if (!g.graded_at) continue;
         const d = (g.graded_at as string).slice(0, 10);
         dayMap.set(d, (dayMap.get(d) ?? 0) + 1);
       }
@@ -65,10 +66,11 @@ export const useGradingStats = (teacherId: string | undefined) => {
         .map(([date, count]) => ({ date, count }))
         .sort((a, b) => a.date.localeCompare(b.date));
 
-      // Grading streak (consecutive days with >=1 grade)
+      // Grading streak (consecutive days with >=1 grade, limited to data window)
       let streak = 0;
       const today = new Date();
-      for (let i = 0; i < 365; i++) {
+      const maxDays = 30; // limited to recentGrades data window
+      for (let i = 0; i < maxDays; i++) {
         const d = subDays(today, i).toISOString().slice(0, 10);
         if (dayMap.has(d)) streak++;
         else break;

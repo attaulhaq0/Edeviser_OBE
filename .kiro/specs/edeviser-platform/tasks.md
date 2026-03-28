@@ -1124,44 +1124,44 @@ Complete unified implementation of the Edeviser platform covering authentication
   - [x] 61.6 Update Teacher Dashboard for per-section analytics
     - _Requirements: 69.7_
 
-- [-] 62. Implement Survey Module (Indirect Assessment)
-  - [ ] 62.1 Create survey TanStack Query hooks (`/src/hooks/useSurveys.ts`)
+- [x] 62. Implement Survey Module (Indirect Assessment)
+  - [x] 62.1 Create survey TanStack Query hooks (`/src/hooks/useSurveys.ts`)
     - CRUD for surveys, questions, and responses
     - _Requirements: 70_
 
-  - [ ] 62.2 Create Survey Manager page (`/src/pages/admin/surveys/SurveyManager.tsx`)
+  - [x] 62.2 Create Survey Manager page (`/src/pages/admin/surveys/SurveyManager.tsx`)
     - Create surveys with title, type, linked outcomes
     - Add questions: Likert (1-5), MCQ, open text
     - Publish/unpublish surveys
     - _Requirements: 70.1, 70.2_
 
-  - [ ] 62.3 Create Survey Response page (`/src/pages/student/surveys/SurveyResponsePage.tsx`)
+  - [x] 62.3 Create Survey Response page (`/src/pages/student/surveys/SurveyResponsePage.tsx`)
     - Render survey questions with appropriate input types
     - Enforce single response per respondent
     - Award 15 XP on completion via XP_Engine
     - _Requirements: 70.3, 70.5, 70.6_
 
-  - [ ] 62.4 Integrate survey results into accreditation reports
+  - [x] 62.4 Integrate survey results into accreditation reports
     - Aggregate responses by linked PLO/ILO as indirect assessment evidence
     - _Requirements: 70.4_
 
-- [~] 63. Implement CQI Loop
-  - [ ] 63.1 Create CQI TanStack Query hooks (`/src/hooks/useCQIPlans.ts`)
+- [x] 63. Implement CQI Loop
+  - [x] 63.1 Create CQI TanStack Query hooks (`/src/hooks/useCQIPlans.ts`)
     - CRUD for CQI action plans
     - _Requirements: 71_
 
-  - [ ] 63.2 Create CQI Action Plan Manager page (`/src/pages/coordinator/cqi/CQIManager.tsx`)
+  - [x] 63.2 Create CQI Action Plan Manager page (`/src/pages/coordinator/cqi/CQIManager.tsx`)
     - Create/edit plans with outcome, baseline/target attainment, action description
     - Status workflow: planned → in_progress → completed → evaluated
     - Require result_attainment on evaluation
     - Log changes to Audit_Logger
     - _Requirements: 71.1, 71.2, 71.3, 71.6_
 
-  - [ ] 63.3 Add CQI section to Coordinator Dashboard
+  - [x] 63.3 Add CQI section to Coordinator Dashboard
     - Open/closed action plans with baseline vs. result comparison
     - _Requirements: 71.5_
 
-  - [ ] 63.4 Integrate CQI plans into accreditation reports
+  - [x] 63.4 Integrate CQI plans into accreditation reports
     - Include as "closing the loop" evidence
     - _Requirements: 71.4_
 

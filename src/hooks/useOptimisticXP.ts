@@ -4,7 +4,7 @@
 // =============================================================================
 
 import { useQueryClient } from '@tanstack/react-query';
-import { useCallback } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { awardXP, type AwardXPParams } from '@/lib/xpClient';
 import { queryKeys } from '@/lib/queryKeys';
 import { computeLevelData, type LevelData } from '@/hooks/useLevel';
@@ -45,7 +45,15 @@ export const useOptimisticXP = () => {
       }
 
       // ── Fire real request ───────────────────────────────────────────────
-      const result = await awardXP(params);
+      let result;
+      try {
+        result = await awardXP(params);
+      } catch (err) {
+        // Rollback on exception
+        if (previousKPI) queryClient.setQueryData(kpiKey, previousKPI);
+        if (previousLevel) queryClient.setQueryData(levelKey, previousLevel);
+        throw err;
+      }
 
       if (!result) {
         // Rollback on failure
@@ -71,6 +79,15 @@ export const useOptimisticXP = () => {
  */
 export const useOptimisticStreak = () => {
   const queryClient = useQueryClient();
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
+
+  const RECONCILE_DELAY_MS = 5000;
 
   const incrementStreakOptimistic = useCallback(
     (studentId: string) => {
@@ -85,9 +102,10 @@ export const useOptimisticStreak = () => {
       }
 
       // Reconcile with server after a short delay
-      setTimeout(() => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      timerRef.current = setTimeout(() => {
         queryClient.invalidateQueries({ queryKey: queryKeys.studentGamification.all });
-      }, 5000);
+      }, RECONCILE_DELAY_MS);
     },
     [queryClient],
   );

@@ -24,6 +24,18 @@ const PublicPortfolio = () => {
   const { student_id } = useParams<{ student_id: string }>();
   const { data, isLoading } = usePublicPortfolio(student_id);
 
+  if (!student_id) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <Card className="bg-white border-0 shadow-md rounded-xl p-8 text-center max-w-md">
+          <ShieldCheck className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+          <h2 className="text-lg font-bold text-gray-700">Portfolio Not Available</h2>
+          <p className="text-sm text-gray-500 mt-2">No student ID provided.</p>
+        </Card>
+      </div>
+    );
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-slate-50 p-6">

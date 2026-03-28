@@ -59,9 +59,14 @@ export function initSentry(): void {
       }
       // Strip query params from navigation breadcrumbs (may contain search terms with names)
       if (breadcrumb.category === 'navigation' && breadcrumb.data?.to) {
-        const url = breadcrumb.data.to as string;
+        const url = typeof breadcrumb.data.to === 'string' ? breadcrumb.data.to : '';
         const qIdx = url.indexOf('?');
         if (qIdx !== -1) breadcrumb.data.to = url.slice(0, qIdx);
+
+        if (typeof breadcrumb.data?.from === 'string') {
+          const fIdx = breadcrumb.data.from.indexOf('?');
+          if (fIdx !== -1) breadcrumb.data.from = breadcrumb.data.from.slice(0, fIdx);
+        }
       }
       return breadcrumb;
     },

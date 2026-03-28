@@ -43,6 +43,8 @@ export const useCompleteOnboarding = () => {
 
   return useMutation({
     mutationFn: async (): Promise<void> => {
+      if (!userId) throw new Error('No authenticated user');
+
       const { error } = await supabase
         .from('profiles')
         .update({ onboarding_completed: true })

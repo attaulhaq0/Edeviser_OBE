@@ -125,7 +125,7 @@ export const usePortfolio = (studentId: string | undefined) => {
 
       const journals: PortfolioJournal[] = (journalRows ?? []).map((j) => ({
         id: j.id,
-        content_preview: j.content.slice(0, 80) + (j.content.length > 80 ? '...' : ''),
+        content_preview: j.content ? j.content.slice(0, 80) + (j.content.length > 80 ? '...' : '') : '',
         created_at: j.created_at,
         course_name: jCourseMap.get(j.course_id) ?? null,
       }));
@@ -207,6 +207,7 @@ export const useTogglePortfolioPublic = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.profiles.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.studentGamification.lists() });
     },
   });
 };
@@ -260,7 +261,7 @@ export const usePublicPortfolio = (studentId: string | undefined) => {
         .maybeSingle();
 
       return {
-        full_name: profile.full_name,
+        full_name: profile.full_name ?? '',
         badges: (badges ?? []) as PortfolioBadge[],
         clos,
         totalXP: gam?.xp_total ?? 0,

@@ -8,6 +8,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const { status, data } = await invokeEdgeFunction('compute-at-risk-signals');
     res.status(status).json(data);
   } catch (error) {
-    res.status(500).json({ error: (error as Error).message });
+    console.error('compute-at-risk cron failed:', error);
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    res.status(500).json({ error: process.env.NODE_ENV === 'production' ? 'Internal server error' : message });
   }
 }

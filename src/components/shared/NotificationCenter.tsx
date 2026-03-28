@@ -29,6 +29,7 @@ import {
 import type { NotificationType } from '@/hooks/useNotifications';
 import { groupNotifications, type BatchedNotification } from '@/lib/notificationBatcher';
 import { formatDistanceToNow } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 interface NotificationCenterProps {
   onClose: () => void;
@@ -121,26 +122,20 @@ const NotificationCenter = ({ onClose: _onClose }: NotificationCenterProps) => {
         ) : (
           groupedNotifications.map((item, idx) => {
             const hasUnreadItems = item.items.some((n) => !n.is_read);
-            const mostRecent = item.items[0];
+            const mostRecent = item.items.length > 0 ? item.items[0] : undefined;
             const timeAgo = mostRecent
               ? formatDistanceToNow(new Date(mostRecent.created_at), { addSuffix: true })
               : '';
 
             return (
-              <div
+              <button
                 key={item.is_grouped ? `group-${item.type}-${idx}` : mostRecent?.id ?? idx}
-                role="button"
-                tabIndex={0}
-                className={`flex items-start gap-3 px-4 py-3 cursor-pointer transition-colors hover:bg-slate-50 ${
-                  hasUnreadItems ? 'bg-blue-50/50' : ''
-                }`}
+                type="button"
+                className={cn(
+                  'flex items-start gap-3 px-4 py-3 cursor-pointer transition-colors hover:bg-slate-50 w-full text-left',
+                  hasUnreadItems && 'bg-blue-50/50',
+                )}
                 onClick={() => handleNotificationClick(item)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    handleNotificationClick(item);
-                  }
-                }}
               >
                 {/* Type icon */}
                 <div className="mt-0.5 shrink-0">
@@ -179,7 +174,7 @@ const NotificationCenter = ({ onClose: _onClose }: NotificationCenterProps) => {
                     <Trash2 className="h-3 w-3" />
                   </Button>
                 </div>
-              </div>
+              </button>
             );
           })
         )}

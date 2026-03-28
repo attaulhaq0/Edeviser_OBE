@@ -58,6 +58,7 @@ export const useRealtime = (options: RealtimeOptions): { isLive: boolean; retryC
     if (pollingTimerRef.current) return;
     const fn = pollingFnRef.current;
     if (fn) {
+      fn(); // Immediate fetch
       pollingTimerRef.current = setInterval(() => fn(), pollingInterval);
     }
     setIsLive(false);
@@ -97,6 +98,7 @@ export const useRealtime = (options: RealtimeOptions): { isLive: boolean; retryC
             setRetryCount(retryCountRef.current);
             startPolling();
 
+            if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
             retryTimerRef.current = setTimeout(() => {
               channel.unsubscribe();
               doSubscribe();

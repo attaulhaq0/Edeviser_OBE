@@ -67,7 +67,7 @@ export const offlineQueue = {
   },
 
   init(): () => void {
-    const handler = () => { offlineQueue.flush(); };
+    const handler = () => { offlineQueue.flush().catch((err) => console.error('[OfflineQueue] flush failed:', err)); };
     window.addEventListener('online', handler);
     return () => window.removeEventListener('online', handler);
   },

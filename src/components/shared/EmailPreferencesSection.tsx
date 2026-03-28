@@ -99,7 +99,7 @@ const EmailPreferencesSection = () => {
             </div>
             <Switch
               id={`email-pref-${item.key}`}
-              checked={preferences[item.key]}
+              checked={preferences[item.key] ?? false}
               onCheckedChange={(checked) => handleToggle(item.key, checked)}
               disabled={isUpdating}
               aria-label={`Toggle ${item.label} email notifications`}

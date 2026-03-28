@@ -42,8 +42,10 @@ const TeacherLayout = () => {
   }, []);
 
   const handleChecklistDismiss = useCallback(() => {
-    completeOnboarding.mutate();
-    setChecklistDismissed(true);
+    completeOnboarding.mutate(undefined, {
+      onSuccess: () => setChecklistDismissed(true),
+      onError: (err) => console.error('Failed to complete onboarding:', err),
+    });
   }, [completeOnboarding]);
 
   return (

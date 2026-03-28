@@ -1,3 +1,4 @@
+// @vitest-environment happy-dom
 // =============================================================================
 // OfflineQueue — Unit tests
 // Feature: edeviser-platform, Task 54.2

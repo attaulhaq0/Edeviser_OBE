@@ -65,13 +65,17 @@ export const useReadHabitTimer = (
         const studentId = profileRef.current?.id;
         if (!studentId) return;
 
-        const today = new Date().toISOString().slice(0, 10);
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        const todayStr = `${yyyy}-${mm}-${dd}`;
 
         // Mark read_content habit for today in habit_tracking table
         supabase
           .from('habit_tracking')
           .upsert(
-            { student_id: studentId, habit_date: today, read_content: true },
+            { student_id: studentId, habit_date: todayStr, read_content: true },
             { onConflict: 'student_id,habit_date' },
           )
           .then(({ error }) => {

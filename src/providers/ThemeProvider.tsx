@@ -1,5 +1,5 @@
 // Task 53: Dark Mode ThemeProvider
-import { createContext, useContext, useEffect, useState, useSyncExternalStore, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useRef, useSyncExternalStore, type ReactNode } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -62,9 +62,10 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   const { profile } = useAuth();
   const theme = useSyncExternalStore(subscribeThemeStore, getStoredTheme, () => 'system' as ThemePreference);
   const systemTheme = useSyncExternalStore(subscribeSystemTheme, getSystemTheme, () => 'light' as const);
-  const [profileSynced, setProfileSynced] = useState(false);
+  const profileSyncedRef = useRef(false);
 
   const resolvedTheme = theme === 'system' ? systemTheme : theme;
+  const profilePref = profile?.theme_preference;
 
   // Apply class to html element
   useEffect(() => {
@@ -74,17 +75,21 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   }, [resolvedTheme]);
 
   // Sync from profile on first load
-  const profilePref = profile?.theme_preference;
-  if (!profileSynced && profilePref && ['light', 'dark', 'system'].includes(profilePref)) {
-    setProfileSynced(true);
-    setStoredTheme(profilePref as ThemePreference);
-  }
+  useEffect(() => {
+    if (!profileSyncedRef.current && profilePref && ['light', 'dark', 'system'].includes(profilePref)) {
+      profileSyncedRef.current = true;
+      setStoredTheme(profilePref as ThemePreference);
+    }
+  }, [profilePref]);
 
   const profileId = profile?.id;
   const setTheme = (t: ThemePreference) => {
     setStoredTheme(t);
     if (profileId) {
-      supabase.from('profiles').update({ theme_preference: t }).eq('id', profileId);
+      supabase.from('profiles').update({ theme_preference: t }).eq('id', profileId)
+        .then(({ error }) => {
+          if (error) console.error('[ThemeProvider] Failed to sync theme:', error.message);
+        });
     }
   };
 

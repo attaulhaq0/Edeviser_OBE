@@ -38,7 +38,15 @@ const ExportDataButton = ({ studentId, className }: ExportDataButtonProps) => {
       if (!data?.download_url) throw new Error('No download URL returned');
 
       // Open the signed URL to trigger download
-      window.open(data.download_url, '_blank');
+      const win = window.open(data.download_url, '_blank');
+      if (!win) {
+        // Popup blocked — fallback to anchor click
+        const a = document.createElement('a');
+        a.href = data.download_url;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        a.click();
+      }
       toast.success(`Data exported as ${format.toUpperCase()}`);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Export failed';

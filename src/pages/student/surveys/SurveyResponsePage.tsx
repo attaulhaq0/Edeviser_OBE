@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { toast } from 'sonner';
-import { Loader2, ClipboardList, CheckCircle2 } from 'lucide-react';
+import { ClipboardList, CheckCircle2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';

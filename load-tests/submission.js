@@ -54,7 +54,9 @@ export const options = {
 function generateFilePayload() {
   const content = 'x'.repeat(1024);
   return {
-    file: http.file(content, `submission-${Date.now()}.txt`, 'text/plain'),
+    content,
+    fileName: `submission-${Date.now()}.txt`,
+    contentType: 'text/plain',
   };
 }
 
@@ -66,10 +68,10 @@ export default function () {
   // Step 1: Upload file to Supabase Storage
   const uploadUrl = `${BASE_URL}/storage/v1/object/assignments/${fileName}`;
   const fileData = generateFilePayload();
-  const uploadRes = http.post(uploadUrl, fileData.file.data, {
+  const uploadRes = http.post(uploadUrl, fileData.content, {
     headers: {
       ...authHeaders,
-      'Content-Type': 'text/plain',
+      'Content-Type': fileData.contentType,
     },
   });
 
@@ -78,6 +80,12 @@ export default function () {
   const uploadOk = check(uploadRes, {
     'upload status 200': (r) => r.status === 200 || r.status === 201,
   });
+
+  if (!uploadOk) {
+    submissionFailRate.add(true);
+    sleep(Math.random() * 2 + 1);
+    return;
+  }
 
   // Step 2: Insert submission record via PostgREST
   const submissionUrl = `${BASE_URL}/rest/v1/submissions`;

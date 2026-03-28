@@ -9,7 +9,7 @@
     "lint": "eslint . --max-warnings 0",
     "preview": "vite preview",
     "test": "vitest --run",
-    "analyze": "ANALYZE=true vite build",
+    "analyze": "cross-env ANALYZE=true vite build",
     "lighthouse": "lhci autorun"
   },
   "dependencies": {
@@ -57,6 +57,7 @@
     "@vercel/node": "^5.6.20",
     "@vitejs/plugin-react": "^4.3.4",
     "axe-core": "^4.11.1",
+    "cross-env": "^10.1.0",
     "eslint": "^9.39.3",
     "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-react-hooks": "^7.0.1",

@@ -27,6 +27,12 @@ const ANON_KEY = __ENV.SUPABASE_ANON_KEY || '';
 const TEST_EMAIL = __ENV.TEST_EMAIL || 'student@example.com';
 const TEST_PASSWORD = __ENV.TEST_PASSWORD || 'password123';
 
+if (!ANON_KEY) {
+  console.error('FATAL: ANON_KEY environment variable is required. Set it via --env SUPABASE_ANON_KEY=...');
+  // k6 doesn't have process.exit, but throwing in init context aborts the test
+  throw new Error('Missing ANON_KEY');
+}
+
 export const options = {
   stages: [
     { duration: '1m', target: 1000 },

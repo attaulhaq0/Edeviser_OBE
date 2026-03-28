@@ -7,6 +7,7 @@
  * Feature: edeviser-platform, Task 42.7
  * Validates: Requirements 51.1, 51.5
  */
+// @vitest-environment happy-dom
 import { describe, it, expect } from 'vitest';
 import { scrubPII } from '@/lib/sentry';
 

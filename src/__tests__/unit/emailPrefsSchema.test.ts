@@ -22,7 +22,7 @@ describe('emailPreferencesSchema', () => {
     expect(result.success).toBe(true);
   });
 
-  it('applies default true values for missing fields', () => {
+  it('applies default values for missing fields (true for most, false for notification_digest)', () => {
     const result = emailPreferencesSchema.safeParse({});
     expect(result.success).toBe(true);
     if (result.success) {

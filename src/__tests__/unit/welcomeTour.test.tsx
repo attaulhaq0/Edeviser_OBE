@@ -1,3 +1,4 @@
+// @vitest-environment happy-dom
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 
@@ -97,9 +98,8 @@ describe('WelcomeTour', () => {
     // The X button is the ghost button in the header
     const buttons = screen.getAllByRole('button');
     const closeButton = buttons.find((b) => b.querySelector('.lucide-x'));
-    if (closeButton) {
-      fireEvent.click(closeButton);
-      expect(mockMutate).toHaveBeenCalled();
-    }
+    expect(closeButton).toBeTruthy();
+    fireEvent.click(closeButton!);
+    expect(mockMutate).toHaveBeenCalled();
   });
 });

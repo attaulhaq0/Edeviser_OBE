@@ -245,10 +245,10 @@ const SectionCard = ({ section, onEdit, onDelete }: SectionCardProps) => (
         </div>
       </div>
       <div className="flex items-center gap-1">
-        <Button variant="ghost" size="sm" onClick={onEdit}>
+        <Button variant="ghost" size="sm" onClick={onEdit} aria-label="Edit section">
           <Pencil className="h-4 w-4" />
         </Button>
-        <Button variant="ghost" size="sm" onClick={onDelete}>
+        <Button variant="ghost" size="sm" onClick={onDelete} aria-label="Delete section">
           <Trash2 className="h-4 w-4 text-red-500" />
         </Button>
       </div>
@@ -353,7 +353,16 @@ const SectionFormDialog = ({
                 <FormItem>
                   <FormLabel>Capacity</FormLabel>
                   <FormControl>
-                    <Input type="number" min={1} max={500} {...field} />
+                    <Input
+                      type="number"
+                      min={1}
+                      max={500}
+                      value={field.value ?? ''}
+                      onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                      onBlur={field.onBlur}
+                      ref={field.ref}
+                      name={field.name}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

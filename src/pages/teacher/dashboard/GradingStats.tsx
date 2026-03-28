@@ -76,10 +76,18 @@ interface GradingStatsProps {
 }
 
 const GradingStats = ({ teacherId }: GradingStatsProps) => {
-  const { data, isLoading } = useGradingStats(teacherId);
+  const { data, isLoading, error } = useGradingStats(teacherId);
 
   if (isLoading) {
     return <Shimmer className="h-64 rounded-xl" />;
+  }
+
+  if (error) {
+    return (
+      <Card className="bg-white border-0 shadow-md rounded-xl p-6">
+        <p className="text-sm text-red-500">Failed to load grading stats.</p>
+      </Card>
+    );
   }
 
   if (!data) return null;
@@ -97,7 +105,7 @@ const GradingStats = ({ teacherId }: GradingStatsProps) => {
       </div>
 
       {/* Velocity Trend Chart */}
-      {data.velocityTrend.length > 0 ? (
+      {data.velocityTrend?.length > 0 ? (
         <div>
           <p className="text-[10px] font-black tracking-widest uppercase text-gray-500 mb-3">
             Grading Velocity (Last 30 Days)

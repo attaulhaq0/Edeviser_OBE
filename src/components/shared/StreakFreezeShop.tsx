@@ -29,10 +29,10 @@ const StreakFreezeShop = ({
   const canPurchase = currentXP >= FREEZE_COST && freezesAvailable < MAX_FREEZES;
 
   const handleConfirmedPurchase = async () => {
-    setShowConfirm(false);
     setIsPurchasing(true);
     try {
       await onPurchase();
+      setShowConfirm(false);
     } finally {
       setIsPurchasing(false);
     }

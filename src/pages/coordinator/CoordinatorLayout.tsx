@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useOnboardingStatus, useCompleteOnboarding } from '@/hooks/useOnboarding';
 import { getChecklistForRole } from '@/lib/onboardingChecklist';
 import QuickStartChecklist from '@/components/shared/QuickStartChecklist';
-import { LayoutDashboard, Target, Grid3X3, UserCircle } from 'lucide-react';
+import { LayoutDashboard, Target, Grid3X3, UserCircle, ClipboardCheck } from 'lucide-react';
 
 const WelcomeTour = lazy(() => import('@/components/shared/WelcomeTour'));
 
@@ -13,6 +13,7 @@ const navItems = [
   { to: '/coordinator/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/coordinator/plos', icon: Target, label: 'PLOs' },
   { to: '/coordinator/matrix', icon: Grid3X3, label: 'Matrix' },
+  { to: '/coordinator/cqi', icon: ClipboardCheck, label: 'CQI Plans' },
   { to: '/coordinator/settings/profile', icon: UserCircle, label: 'Profile' },
 ];
 
@@ -39,8 +40,10 @@ const CoordinatorLayout = () => {
   }, []);
 
   const handleChecklistDismiss = useCallback(() => {
-    completeOnboarding.mutate();
-    setChecklistDismissed(true);
+    completeOnboarding.mutate(undefined, {
+      onSuccess: () => setChecklistDismissed(true),
+      onError: (err) => console.error('Failed to complete onboarding:', err),
+    });
   }, [completeOnboarding]);
 
   return (

@@ -288,7 +288,7 @@ export const useCreateSurveyQuestion = () => {
 export const useUpdateSurveyQuestion = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, surveyId, ...input }: Partial<CreateSurveyQuestionInput> & { id: string; surveyId: string }) => {
+    mutationFn: async ({ id, surveyId: _surveyId, ...input }: Partial<CreateSurveyQuestionInput> & { id: string; surveyId: string }) => {
       const payload: Record<string, unknown> = {};
       if (input.question_text !== undefined) payload.question_text = input.question_text;
       if (input.question_type !== undefined) payload.question_type = input.question_type;
@@ -313,7 +313,7 @@ export const useUpdateSurveyQuestion = () => {
 export const useDeleteSurveyQuestion = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, surveyId }: { id: string; surveyId: string }) => {
+    mutationFn: async ({ id }: { id: string; surveyId: string }) => {
       const { error } = await supabase.from('survey_questions').delete().eq('id', id);
       if (error) throw error;
     },

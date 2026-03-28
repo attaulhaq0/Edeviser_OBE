@@ -18,7 +18,11 @@ export const draftManager = {
   },
 
   clearDraft(key: string): void {
-    localStorage.removeItem(`${PREFIX}${key}`);
+    try {
+      localStorage.removeItem(`${PREFIX}${key}`);
+    } catch (err) {
+      console.error('[DraftManager] clearDraft failed:', err);
+    }
   },
 
   startAutoSave(key: string, getContent: () => unknown, intervalMs = 30_000): () => void {

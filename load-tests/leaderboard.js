@@ -84,9 +84,11 @@ export default function () {
 
   queryDuration.add(rankRes.timings.duration);
 
-  check(rankRes, {
+  const rankOk = check(rankRes, {
     'rank lookup 200': (r) => r.status === 200,
   });
+
+  queryFailRate.add(!rankOk);
 
   sleep(Math.random() * 2 + 0.5);
 }

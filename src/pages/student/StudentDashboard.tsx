@@ -34,6 +34,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { format, differenceInDays } from 'date-fns';
+import { toast } from 'sonner';
 
 // ─── KPI Card ───────────────────────────────────────────────────────────────
 
@@ -144,7 +145,7 @@ const StudentDashboard = () => {
           </div>
           <Button
             size="sm"
-            onClick={() => navigate('/student/dashboard')}
+            onClick={() => navigate('/student/onboarding')}
             className="bg-gradient-to-r from-teal-500 to-blue-600 text-white text-xs font-semibold active:scale-95 transition-transform duration-100"
           >
             Start Now
@@ -348,7 +349,13 @@ const StudentDashboard = () => {
           <StreakFreezeShop
             currentXP={freezeData?.xpTotal ?? kpis?.totalXP ?? 0}
             freezesAvailable={freezeData?.freezes ?? 0}
-            onPurchase={() => purchaseFreeze.mutateAsync(studentId)}
+            onPurchase={async () => {
+              try {
+                await purchaseFreeze.mutateAsync(studentId);
+              } catch (err) {
+                toast.error(err instanceof Error ? err.message : 'Failed to purchase streak freeze');
+              }
+            }}
           />
         </div>
       </div>

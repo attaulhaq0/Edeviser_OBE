@@ -87,6 +87,14 @@ const PostQuizReview = lazy(() => import('@/pages/student/quiz/PostQuizReview'))
 const MasteryRecoveryPage = lazy(() => import('@/pages/student/recovery/MasteryRecoveryPage'));
 const ExplanationReviewPage = lazy(() => import('@/pages/teacher/quiz-generation/ExplanationReviewPage'));
 
+// CQI pages
+const CQIManager = lazy(() => import('@/pages/coordinator/cqi/CQIManager'));
+
+// Survey pages
+const SurveyManager = lazy(() => import('@/pages/admin/surveys/SurveyManager'));
+const SurveyResultsPage = lazy(() => import('@/pages/admin/surveys/SurveyResultsPage'));
+const SurveyResponsePage = lazy(() => import('@/pages/student/surveys/SurveyResponsePage'));
+
 // Shared pages
 const ProfilePage = lazy(() => import('@/pages/shared/ProfilePage'));
 
@@ -149,6 +157,8 @@ const AppRouter = () => (
         <Route path="departments" element={<DepartmentManager />} />
         <Route path="onboarding/pending" element={<PendingOnboardingPage />} />
         <Route path="reports" element={<ReportGeneratorPage />} />
+        <Route path="surveys" element={<SurveyManager />} />
+        <Route path="surveys/results" element={<SurveyResultsPage />} />
         <Route path="settings/profile" element={<ProfilePage />} />
       </Route>
 
@@ -167,6 +177,7 @@ const AppRouter = () => (
         <Route path="plos/new" element={<PLOForm />} />
         <Route path="plos/:id/edit" element={<PLOForm />} />
         <Route path="matrix" element={<CurriculumMatrixPage />} />
+        <Route path="cqi" element={<CQIManager />} />
         <Route path="settings/profile" element={<ProfilePage />} />
       </Route>
 
@@ -231,6 +242,7 @@ const AppRouter = () => (
         <Route path="settings/profile" element={<ProfileSettingsPage />} />
         <Route path="xp-history" element={<XPHistory />} />
         <Route path="portfolio" element={<StudentPortfolio />} />
+        <Route path="surveys" element={<SurveyResponsePage />} />
       </Route>
 
       {/* Parent routes */}
