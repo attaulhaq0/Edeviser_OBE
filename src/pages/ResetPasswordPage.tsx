@@ -42,12 +42,12 @@ const ResetPasswordPage = () => {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4">
-      <Card className="bg-white border-0 shadow-md rounded-xl w-full max-w-md">
+      <Card className="bg-white border border-slate-200 shadow-lg rounded-2xl w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold tracking-tight">
+          <CardTitle className="text-2xl font-bold tracking-tight text-gray-900">
             Reset Password
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-gray-500">
             {isSubmitted
               ? 'Check your email for a reset link'
               : 'Enter your email to receive a password reset link'}
@@ -79,14 +79,14 @@ const ResetPasswordPage = () => {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email</FormLabel>
+                      <FormLabel className="text-gray-700 font-medium">Email</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                           <Input
                             type="email"
                             placeholder="you@institution.edu"
-                            className="pl-9"
+                            className="pl-10 h-11 border-slate-300 focus:border-blue-500"
                             {...field}
                           />
                         </div>
