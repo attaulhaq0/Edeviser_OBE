@@ -1,4 +1,4 @@
-// @vitest-environment node
+// @vitest-environment happy-dom
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { logActivity, type ActivityLogEntry } from '@/lib/activityLogger';
 
@@ -12,15 +12,28 @@ vi.mock('@/lib/supabase', () => ({
   },
 }));
 
-import { supabase } from '@/lib/supabase';
+vi.mock('@/lib/offlineQueue', () => ({
+  offlineQueue: {
+    registerHandler: vi.fn(),
+    enqueue: vi.fn(),
+  },
+}));
+
+import { offlineQueue } from '@/lib/offlineQueue';
 
 describe('logActivity', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockInsert.mockResolvedValue({ error: null });
+    // Simulate online
+    Object.defineProperty(globalThis, 'navigator', {
+      value: { onLine: true },
+      writable: true,
+      configurable: true,
+    });
   });
 
-  it('inserts into student_activity_log with correct fields', async () => {
+  it('calls persistActivity which inserts into student_activity_log', async () => {
     const entry: ActivityLogEntry = {
       student_id: 'student-123',
       event_type: 'login',
@@ -29,7 +42,7 @@ describe('logActivity', () => {
 
     await logActivity(entry);
 
-    expect(supabase.from).toHaveBeenCalledWith('student_activity_log');
+    // persistActivity is called internally — it uses supabase.from().insert()
     expect(mockInsert).toHaveBeenCalledWith({
       student_id: 'student-123',
       event_type: 'login',
@@ -52,9 +65,9 @@ describe('logActivity', () => {
     });
   });
 
-  it('logs error to console on supabase failure without throwing', async () => {
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+  it('queues to offlineQueue on supabase failure', async () => {
     mockInsert.mockResolvedValue({ error: { message: 'RLS violation' } });
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
     const entry: ActivityLogEntry = {
       student_id: 'student-789',
@@ -62,17 +75,14 @@ describe('logActivity', () => {
     };
 
     await expect(logActivity(entry)).resolves.toBeUndefined();
-    expect(consoleSpy).toHaveBeenCalledWith(
-      '[ActivityLogger] Failed to log activity:',
-      'RLS violation'
-    );
+    expect(offlineQueue.enqueue).toHaveBeenCalledWith('activity_log', entry);
 
     consoleSpy.mockRestore();
   });
 
-  it('catches unexpected exceptions without throwing', async () => {
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+  it('queues to offlineQueue on unexpected exceptions', async () => {
     mockInsert.mockRejectedValue(new Error('Network down'));
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
     const entry: ActivityLogEntry = {
       student_id: 'student-000',
@@ -80,10 +90,7 @@ describe('logActivity', () => {
     };
 
     await expect(logActivity(entry)).resolves.toBeUndefined();
-    expect(consoleSpy).toHaveBeenCalledWith(
-      '[ActivityLogger] Unexpected error:',
-      expect.any(Error)
-    );
+    expect(offlineQueue.enqueue).toHaveBeenCalledWith('activity_log', entry);
 
     consoleSpy.mockRestore();
   });

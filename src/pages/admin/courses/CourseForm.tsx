@@ -15,6 +15,7 @@ import {
   useTeachers,
 } from '@/hooks/useCourses';
 import { usePrograms } from '@/hooks/usePrograms';
+import { useSemesters } from '@/hooks/useSemesters';
 import { useAuth } from '@/hooks/useAuth';
 import {
   Form,
@@ -36,7 +37,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import type { Profile, Program } from '@/types/app';
+import type { Profile, Program, Semester } from '@/types/app';
 
 // ─── Create mode form ────────────────────────────────────────────────────────
 
@@ -46,6 +47,7 @@ const CreateCourseForm = ({ institutionId }: { institutionId: string }) => {
   const { data: paginatedPrograms, isLoading: isLoadingPrograms } = usePrograms();
   const programs = paginatedPrograms?.data ?? [];
   const { data: teachers = [], isLoading: isLoadingTeachers } = useTeachers();
+  const { data: semesters = [], isLoading: isLoadingSemesters } = useSemesters();
 
   const form = useForm<CreateCourseFormData>({
     resolver: zodResolver(createCourseSchema),
@@ -80,6 +82,8 @@ const CreateCourseForm = ({ institutionId }: { institutionId: string }) => {
       teachers={teachers}
       isLoadingTeachers={isLoadingTeachers}
       institutionId={institutionId}
+      semesters={semesters}
+      isLoadingSemesters={isLoadingSemesters}
     />
   );
 };
@@ -91,6 +95,7 @@ const EditCourseForm = ({ courseId }: { courseId: string }) => {
   const { data: existingCourse, isLoading } = useCourse(courseId);
   const updateMutation = useUpdateCourse(courseId);
   const { data: teachers = [], isLoading: isLoadingTeachers } = useTeachers();
+  const { data: semesters = [], isLoading: isLoadingSemesters } = useSemesters();
 
   const form = useForm<UpdateCourseFormData>({
     resolver: zodResolver(updateCourseSchema),
@@ -142,6 +147,8 @@ const EditCourseForm = ({ courseId }: { courseId: string }) => {
       isLoadingPrograms={false}
       teachers={teachers}
       isLoadingTeachers={isLoadingTeachers}
+      semesters={semesters}
+      isLoadingSemesters={isLoadingSemesters}
     />
   );
 };
@@ -160,6 +167,8 @@ interface CourseFormFieldsProps<T extends CreateCourseFormData | UpdateCourseFor
   teachers: Profile[];
   isLoadingTeachers: boolean;
   institutionId?: string;
+  semesters: Semester[];
+  isLoadingSemesters: boolean;
 }
 
 const CourseFormFields = <T extends CreateCourseFormData | UpdateCourseFormData>({
@@ -173,6 +182,8 @@ const CourseFormFields = <T extends CreateCourseFormData | UpdateCourseFormData>
   isLoadingPrograms,
   teachers,
   isLoadingTeachers,
+  semesters,
+  isLoadingSemesters,
 }: CourseFormFieldsProps<T>) => {
   const navigate = useNavigate();
 
@@ -199,6 +210,7 @@ const CourseFormFields = <T extends CreateCourseFormData | UpdateCourseFormData>
 
           {isEditMode ? (
             <div className="grid gap-2">
+              {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
               <label className="text-sm font-medium">Course Code</label>
               <Input
                 value={existingCode ?? ''}
@@ -227,6 +239,7 @@ const CourseFormFields = <T extends CreateCourseFormData | UpdateCourseFormData>
 
           {isEditMode ? (
             <div className="grid gap-2">
+              {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
               <label className="text-sm font-medium">Program</label>
               <Input
                 value={existingProgram ?? ''}
@@ -303,9 +316,24 @@ const CourseFormFields = <T extends CreateCourseFormData | UpdateCourseFormData>
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Semester</FormLabel>
-                <FormControl>
-                  <Input placeholder="Semester ID" {...field} />
-                </FormControl>
+                <Select
+                  onValueChange={field.onChange}
+                  value={field.value as string}
+                  disabled={isLoadingSemesters}
+                >
+                  <FormControl>
+                    <SelectTrigger className="bg-white">
+                      <SelectValue placeholder="Select a semester" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {semesters.map((sem) => (
+                      <SelectItem key={sem.id} value={sem.id}>
+                        {sem.name}{sem.is_active ? ' (Active)' : ''}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}

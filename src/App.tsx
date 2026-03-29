@@ -6,11 +6,20 @@ import { MotionConfig } from 'framer-motion';
 import * as Sentry from '@sentry/react';
 import { Toaster } from '@/components/ui/sonner';
 import { AuthProvider } from '@/providers/AuthProvider';
+import { ThemeProvider } from '@/providers/ThemeProvider';
 import ErrorBoundary from '@/components/shared/ErrorBoundary';
 import AppRouter from '@/router/AppRouter';
 import { initSentry } from '@/lib/sentry';
+import SkipToMain from '@/components/shared/SkipToMain';
+import { offlineQueue } from '@/lib/offlineQueue';
 
 initSentry();
+
+// Initialize offline queue — auto-flushes queued events when connectivity returns
+const cleanupOfflineQueue = offlineQueue.init();
+if (import.meta.hot) {
+  import.meta.hot.dispose(() => cleanupOfflineQueue());
+}
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -31,8 +40,11 @@ const App = () => (
           <QueryClientProvider client={queryClient}>
             <MotionConfig reducedMotion="user">
               <AuthProvider>
-                <AppRouter />
-                <Toaster richColors position="top-right" />
+                <ThemeProvider>
+                  <SkipToMain />
+                  <AppRouter />
+                  <Toaster richColors position="top-right" />
+                </ThemeProvider>
               </AuthProvider>
             </MotionConfig>
             <ReactQueryDevtools initialIsOpen={false} />

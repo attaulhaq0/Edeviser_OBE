@@ -15,6 +15,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useCLOProgress } from '@/hooks/useCLOProgress';
 import { useCLOEvidence } from '@/hooks/useCLOEvidence';
 import { useRealtime } from '@/hooks/useRealtime';
+import { useReadHabitTimer } from '@/hooks/useReadHabitTimer';
 import { queryKeys } from '@/lib/queryKeys';
 import type { CLOEvidenceRecord } from '@/hooks/useCLOEvidence';
 
@@ -76,6 +77,12 @@ const CLOProgress = () => {
   const queryClient = useQueryClient();
   const { data: courseGroups, isLoading } = useCLOProgress(studentId);
   const [expandedCloId, setExpandedCloId] = useState<string | null>(null);
+
+  // Track read habit — fires after 30s of viewing CLO progress
+  useReadHabitTimer({
+    pageType: 'clo_progress',
+    pageId: studentId ?? '',
+  });
 
   // Realtime: invalidate CLO progress queries when outcome_attainment changes
   // Requirement 44.4 — update bars in real time when new grades are released

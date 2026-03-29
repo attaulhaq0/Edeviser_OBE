@@ -1,0 +1,145 @@
+import { useMemo } from 'react';
+import { toast } from 'sonner';
+import { ClipboardList, CheckCircle2 } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { useAuth } from '@/hooks/useAuth';
+import {
+  useSurveys,
+  useSurveyQuestions,
+  useSubmitSurveyResponse,
+  useHasRespondedToSurvey,
+} from '@/hooks/useSurveys';
+import type { Survey } from '@/hooks/useSurveys';
+import SurveyForm from '@/components/shared/SurveyForm';
+import type { SurveyQuestion as SurveyFormQuestion } from '@/components/shared/SurveyForm';
+
+// ─── Single Survey Card ─────────────────────────────────────────────────────
+
+interface SurveyCardProps {
+  survey: Survey;
+}
+
+const SurveyCard = ({ survey }: SurveyCardProps) => {
+  const { user } = useAuth();
+  const { data: questions, isLoading: questionsLoading } = useSurveyQuestions(survey.id);
+  const { data: hasResponded, isLoading: checkLoading } = useHasRespondedToSurvey(
+    survey.id,
+    user?.id,
+  );
+  const submitResponse = useSubmitSurveyResponse();
+
+  const formQuestions: SurveyFormQuestion[] = useMemo(
+    () =>
+      (questions ?? []).map((q) => ({
+        id: q.id,
+        questionText: q.question_text,
+        questionType: q.question_type,
+        options: q.options ?? undefined,
+      })),
+    [questions],
+  );
+
+  const handleSubmit = async (responses: Record<string, string>) => {
+    if (!user?.id) return;
+
+    const responseEntries = Object.entries(responses)
+      .filter(([, value]) => value.trim() !== '')
+      .map(([questionId, value]) => ({
+        question_id: questionId,
+        response_value: value,
+      }));
+
+    if (responseEntries.length === 0) {
+      toast.error('Please answer at least one question');
+      return;
+    }
+
+    try {
+      await submitResponse.mutateAsync({
+        survey_id: survey.id,
+        respondent_id: user.id,
+        responses: responseEntries,
+      });
+      toast.success('Survey submitted! +15 XP');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to submit survey');
+    }
+  };
+
+  if (questionsLoading || checkLoading) {
+    return <div className="h-32 rounded-xl animate-shimmer" />;
+  }
+
+  if (hasResponded) {
+    return (
+      <Card className="bg-white border-0 shadow-md rounded-xl p-6">
+        <div className="flex items-center gap-3">
+          <CheckCircle2 className="h-5 w-5 text-green-500" />
+          <div>
+            <h3 className="text-sm font-bold">{survey.title}</h3>
+            <p className="text-xs text-gray-500">You have already completed this survey.</p>
+          </div>
+          <Badge className="ml-auto bg-green-50 text-green-700 border-green-200">Completed</Badge>
+        </div>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+      <div
+        className="px-6 py-4 flex items-center gap-2"
+        style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+      >
+        <ClipboardList className="h-5 w-5 text-white" />
+        <h2 className="text-lg font-bold tracking-tight text-white">{survey.title}</h2>
+      </div>
+      <div className="p-6">
+        <SurveyForm
+          title=""
+          questions={formQuestions}
+          onSubmit={handleSubmit}
+        />
+      </div>
+    </Card>
+  );
+};
+
+// ─── Main Page ──────────────────────────────────────────────────────────────
+
+const SurveyResponsePage = () => {
+  const { data: surveys, isLoading } = useSurveys();
+
+  const activeSurveys = useMemo(
+    () => (surveys ?? []).filter((s) => s.is_active),
+    [surveys],
+  );
+
+  return (
+    <div className="space-y-6">
+      <h1 className="text-2xl font-bold tracking-tight">Surveys</h1>
+
+      {isLoading ? (
+        <div className="space-y-4">
+          {Array.from({ length: 2 }).map((_, i) => (
+            <div key={i} className="h-32 rounded-xl animate-shimmer" />
+          ))}
+        </div>
+      ) : !activeSurveys.length ? (
+        <Card className="bg-white border-0 shadow-md rounded-xl p-8 text-center">
+          <ClipboardList className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+          <p className="text-sm text-gray-500">No surveys available at this time.</p>
+        </Card>
+      ) : (
+        <div className="space-y-6">
+          {activeSurveys.map((survey) => (
+            <SurveyCard key={survey.id} survey={survey} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default SurveyResponsePage;

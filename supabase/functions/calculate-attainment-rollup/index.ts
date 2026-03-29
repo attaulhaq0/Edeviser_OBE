@@ -27,6 +27,13 @@ function classifyAttainment(percent: number): AttainmentLevel {
   return 'Not_Yet';
 }
 
+// ─── Performance Target ─────────────────────────────────────────────────────
+// NFR-PERF-02: This function MUST complete within 500ms (wall clock).
+// The full cascade (evidence insert → CLO → PLO → ILO rollup + notification)
+// must fit within this budget. Monitor via Supabase Edge Function execution logs.
+// See: performance-budget.config.ts, Requirements §50.2
+// ─────────────────────────────────────────────────────────────────────────────
+
 // ─── Main Handler ───────────────────────────────────────────────────────────
 
 serve(async (req) => {

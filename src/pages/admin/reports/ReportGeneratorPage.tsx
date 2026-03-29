@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/select';
 import Shimmer from '@/components/shared/Shimmer';
 import { usePrograms } from '@/hooks/usePrograms';
+import { useProgramAccreditations } from '@/hooks/useInstitutionSettings';
 import { useGenerateReport, type ReportTemplate } from '@/hooks/useAccreditationReport';
 import { toast } from 'sonner';
 import {
@@ -42,6 +43,16 @@ const TEMPLATE_OPTIONS: Array<{ value: ReportTemplate; label: string; descriptio
   { value: 'Generic', label: 'Generic', description: 'General accreditation report format' },
 ];
 
+/** PLO naming conventions per accreditation body */
+const PLO_NAMING: Record<string, string> = {
+  ABET: 'Student Outcomes',
+  HEC: 'PLOs',
+  QQA: 'Programme Learning Outcomes',
+  NCAAA: 'Programme Learning Outcomes',
+  AACSB: 'Learning Goals',
+  Generic: 'PLOs',
+};
+
 // ─── Report Generator Page ──────────────────────────────────────────────────
 
 const ReportGeneratorPage = () => {
@@ -64,6 +75,23 @@ const ReportGeneratorPage = () => {
   } | null>(null);
 
   const programs = programsResult?.data ?? [];
+
+  // Fetch accreditations for the selected program to enable body-specific reports
+  const { data: programAccreditations } = useProgramAccreditations(programId || undefined);
+
+  // Auto-select template based on program's accreditation body
+  const handleProgramChange = (id: string) => {
+    setProgramId(id);
+    // If the program has accreditations, suggest the first body's template
+    if (programAccreditations && programAccreditations.length > 0) {
+      const first = programAccreditations[0];
+      if (first && ['ABET', 'HEC'].includes(first.accreditation_body)) {
+        setTemplate(first.accreditation_body as ReportTemplate);
+      }
+    }
+  };
+
+  const ploLabel = PLO_NAMING[template] ?? 'PLOs';
 
   const handleGenerate = () => {
     if (!programId) {
@@ -130,7 +158,7 @@ const ReportGeneratorPage = () => {
               {/* Program Selector */}
               <div className="space-y-2">
                 <Label htmlFor="program-select">Program</Label>
-                <Select value={programId} onValueChange={setProgramId}>
+                <Select value={programId} onValueChange={handleProgramChange}>
                   <SelectTrigger id="program-select" className="bg-white">
                     <SelectValue placeholder="Select a program" />
                   </SelectTrigger>
@@ -183,6 +211,12 @@ const ReportGeneratorPage = () => {
                     ))}
                   </SelectContent>
                 </Select>
+                {programAccreditations && programAccreditations.length > 0 && (
+                  <p className="text-xs text-gray-500">
+                    This program has accreditations: {programAccreditations.map((a) => a.accreditation_body).join(', ')}.
+                    {' '}Using &quot;{ploLabel}&quot; naming convention.
+                  </p>
+                )}
               </div>
 
               {/* Email Delivery (optional) */}
@@ -247,7 +281,7 @@ const ReportGeneratorPage = () => {
               </div>
               <div>
                 <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
-                  PLOs
+                  {PLO_NAMING[lastResult.template] ?? 'PLOs'}
                 </p>
                 <p className="font-semibold mt-1">{lastResult.plo_count}</p>
               </div>

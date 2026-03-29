@@ -17,7 +17,8 @@ export type NotificationType =
   | 'at_risk_alert'
   | 'peer_milestone'
   | 'perfect_day_nudge'
-  | 'prerequisite_unlocked';
+  | 'prerequisite_unlocked'
+  | 'digest';
 
 export interface Notification {
   id: string;

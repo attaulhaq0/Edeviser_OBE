@@ -33,14 +33,16 @@ const LikertScale = ({
 
       const current = value ?? 0;
       let next: number | null = null;
+      const max = labels.length;
+      const min = 1;
 
       if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
         e.preventDefault();
-        next = current < 5 ? current + 1 : 5;
-        if (next < 1) next = 1;
+        next = current < max ? current + 1 : max;
+        if (next < min) next = min;
       } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
         e.preventDefault();
-        next = current > 1 ? current - 1 : 1;
+        next = current > min ? current - 1 : min;
       }
 
       if (next !== null) {
@@ -49,7 +51,7 @@ const LikertScale = ({
         buttons?.[next - 1]?.focus();
       }
     },
-    [value, onChange, disabled],
+    [value, onChange, disabled, labels],
   );
 
   return (
@@ -60,6 +62,7 @@ const LikertScale = ({
       aria-label="Likert scale rating"
       className="flex items-center gap-2"
       onKeyDown={handleKeyDown}
+      tabIndex={-1}
     >
       {labels.map((label, index) => {
         const optionValue = index + 1;

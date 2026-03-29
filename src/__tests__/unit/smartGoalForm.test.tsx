@@ -46,8 +46,11 @@ vi.mock('@/components/ui/select', () => ({
   }) => (
     <div
       role="option"
+      aria-selected={false}
       data-testid={`select-item-${value}`}
       onClick={() => mockSelectOnChange?.(value)}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') mockSelectOnChange?.(value); }}
+      tabIndex={0}
     >
       {children}
     </div>

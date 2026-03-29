@@ -3,7 +3,7 @@ import { Outlet, NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 import { usePageViewLogger } from '@/hooks/usePageViewLogger';
-import { LayoutDashboard, BookOpen, ClipboardList, TrendingUp, Trophy, PenLine, Star, Grid3X3, UserCircle } from 'lucide-react';
+import { LayoutDashboard, BookOpen, ClipboardList, TrendingUp, Trophy, PenLine, Star, Grid3X3, UserCircle, FileQuestion } from 'lucide-react';
 
 const OnboardingWizard = lazy(() => import('@/pages/student/onboarding/OnboardingWizard'));
 
@@ -16,6 +16,7 @@ const navItems = [
   { to: '/student/habits', icon: Grid3X3, label: 'Habits' },
   { to: '/student/journal', icon: PenLine, label: 'Journal' },
   { to: '/student/portfolio', icon: Star, label: 'Portfolio' },
+  { to: '/student/surveys', icon: FileQuestion, label: 'Surveys' },
   { to: '/student/settings/profile', icon: UserCircle, label: 'Profile' },
 ];
 

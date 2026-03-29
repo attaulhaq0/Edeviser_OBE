@@ -13,8 +13,14 @@ import CurriculumMatrix from '@/components/shared/CurriculumMatrix';
 import CellDetailSheet from '@/components/shared/CellDetailSheet';
 import { useCoordinatorKPIs } from '@/hooks/useCoordinatorDashboard';
 import { useRecoveryMetrics } from '@/hooks/useMasteryRecovery';
+import { useCQIPlanSummary, useCQIPlans } from '@/hooks/useCQIPlans';
+import CQIStatusBadge from '@/components/shared/CQIStatusBadge';
+import type { CQIStatus } from '@/components/shared/CQIStatusBadge';
 import { useAuth } from '@/hooks/useAuth';
 import { usePrograms } from '@/hooks/usePrograms';
+import { useCourses } from '@/hooks/useCourses';
+import { useCourseSections } from '@/hooks/useCourseSections';
+import SectionComparisonChart from '@/components/shared/SectionComparisonChart';
 import {
   Target,
   GraduationCap,
@@ -26,6 +32,8 @@ import {
   RotateCcw,
   Clock,
   TrendingUp,
+  Columns3,
+  FileCheck2,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -68,8 +76,26 @@ const CoordinatorDashboard = () => {
   const { data: recoveryMetrics, isLoading: recoveryLoading } = useRecoveryMetrics(institutionId ?? '');
   const { data: paginatedPrograms, isLoading: programsLoading } = usePrograms();
   const programs = paginatedPrograms?.data;
+  const { data: paginatedCourses } = useCourses();
+  const courses = paginatedCourses?.data ?? [];
   const [selectedProgramId, setSelectedProgramId] = useState<string>('');
   const [selectedCell, setSelectedCell] = useState<SelectedCell | null>(null);
+  const [comparisonCourseId, setComparisonCourseId] = useState<string>('');
+
+  // CQI plan summary for the first program
+  const effectiveProgramIdForCQI =
+    selectedProgramId || (programs && programs.length > 0 ? (programs[0]?.id ?? '') : '');
+  const { data: cqiSummary, isLoading: cqiLoading } = useCQIPlanSummary(
+    effectiveProgramIdForCQI || undefined,
+  );
+  const { data: recentCQIPlans } = useCQIPlans(
+    effectiveProgramIdForCQI ? { program_id: effectiveProgramIdForCQI } : {},
+  );
+
+  // Sections for the selected comparison course
+  const { data: comparisonSections, isLoading: sectionsLoading } = useCourseSections(
+    comparisonCourseId || undefined,
+  );
 
   // Auto-select first program when loaded
   const effectiveProgramId =
@@ -232,6 +258,125 @@ const CoordinatorDashboard = () => {
                 value={`${Math.round((recoveryMetrics?.retry_success_rate ?? 0) * 100)}%`}
               />
             </div>
+          )}
+        </div>
+      </Card>
+
+      {/* CQI Action Plans Section */}
+      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+        <div
+          className="px-6 py-4 flex items-center justify-between"
+          style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+        >
+          <div className="flex items-center gap-2">
+            <FileCheck2 className="h-5 w-5 text-white" />
+            <h2 className="text-lg font-bold tracking-tight text-white">CQI Action Plans</h2>
+          </div>
+          <Link
+            to="/coordinator/cqi"
+            className="inline-flex items-center gap-1 text-sm font-medium text-white/90 hover:text-white transition-colors whitespace-nowrap"
+          >
+            View All
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+        <div className="p-6">
+          {cqiLoading ? (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Shimmer key={i} className="h-24 rounded-xl" />
+              ))}
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <KPICard icon={ClipboardCheck} label="Planned" value={cqiSummary?.planned ?? 0} />
+                <KPICard icon={Clock} label="In Progress" value={cqiSummary?.in_progress ?? 0} />
+                <KPICard icon={CheckCircle2} label="Completed" value={cqiSummary?.completed ?? 0} />
+                <KPICard icon={FileCheck2} label="Evaluated" value={cqiSummary?.evaluated ?? 0} />
+              </div>
+              {recentCQIPlans && recentCQIPlans.length > 0 ? (
+                <div className="space-y-2">
+                  {recentCQIPlans.slice(0, 5).map((plan) => (
+                    <div
+                      key={plan.id}
+                      className="flex items-center justify-between p-3 rounded-lg border border-slate-100 bg-slate-50"
+                    >
+                      <div className="flex-1 min-w-0 space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <CQIStatusBadge status={plan.status as CQIStatus} />
+                          <span className="text-xs text-gray-400 uppercase">{plan.outcome_type}</span>
+                        </div>
+                        <p className="text-sm truncate">{plan.action_description}</p>
+                      </div>
+                      <div className="flex items-center gap-3 text-xs text-gray-500 ml-4 shrink-0">
+                        <span>{plan.baseline_attainment}%</span>
+                        <ArrowRight className="h-3 w-3" />
+                        <span>{plan.target_attainment}%</span>
+                        {plan.result_attainment !== null && (
+                          <>
+                            <ArrowRight className="h-3 w-3" />
+                            <span className={plan.result_attainment >= plan.target_attainment ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}>
+                              {plan.result_attainment}%
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-8 text-center text-sm text-gray-500">
+                  No CQI action plans yet. Create one from the CQI Plans page.
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </Card>
+
+      {/* Section Comparison */}
+      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+        <div
+          className="px-6 py-4 flex items-center justify-between"
+          style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+        >
+          <div className="flex items-center gap-2">
+            <Columns3 className="h-5 w-5 text-white" />
+            <h2 className="text-lg font-bold tracking-tight text-white">Section Comparison</h2>
+          </div>
+          <Select value={comparisonCourseId} onValueChange={setComparisonCourseId}>
+            <SelectTrigger className="w-48 bg-white">
+              <SelectValue placeholder="Select course" />
+            </SelectTrigger>
+            <SelectContent>
+              {courses.map((c) => (
+                <SelectItem key={c.id} value={c.id}>
+                  {c.code} — {c.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="p-6">
+          {!comparisonCourseId ? (
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-8 text-center text-sm text-gray-500">
+              Select a course to compare section attainment metrics.
+            </div>
+          ) : sectionsLoading ? (
+            <Shimmer className="h-32 rounded-xl" />
+          ) : !comparisonSections || comparisonSections.length === 0 ? (
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-8 text-center text-sm text-gray-500">
+              No sections found for this course.
+            </div>
+          ) : (
+            <SectionComparisonChart
+              sections={comparisonSections.map((s) => ({
+                sectionCode: s.section_code,
+                attainmentPercent: 0, // Attainment data populated once evidence exists
+                studentCount: s.capacity,
+              }))}
+            />
           )}
         </div>
       </Card>

@@ -22,6 +22,7 @@ import Shimmer from '@/components/shared/Shimmer';
 import RealtimeStatusBanner from '@/components/shared/RealtimeStatusBanner';
 import { useAuth } from '@/hooks/useAuth';
 import { useCourses } from '@/hooks/useCourses';
+import { useCourseSections } from '@/hooks/useCourseSections';
 import { usePendingSubmissions } from '@/hooks/useSubmissions';
 import { useRealtime } from '@/hooks/useRealtime';
 import { queryKeys } from '@/lib/queryKeys';
@@ -37,6 +38,7 @@ import {
 import type { AtRiskStudent } from '@/hooks/useTeacherDashboard';
 import type { BloomsLevel } from '@/types/app';
 import AIAtRiskWidget from '@/components/shared/AIAtRiskWidget';
+import GradingStats from '@/pages/teacher/dashboard/GradingStats';
 import {
   ClipboardList,
   CheckSquare,
@@ -65,6 +67,7 @@ import {
   Legend,
 } from 'recharts';
 import { formatDistanceToNow } from 'date-fns';
+import { getAttainmentColor as getAttainmentColorFromClassifier, classifyAttainment } from '@/lib/attainmentClassifier';
 
 // ─── Bloom's Color Map ──────────────────────────────────────────────────────
 
@@ -82,19 +85,12 @@ const BLOOMS_COLORS: Record<BloomsLevel, string> = {
 // ─── Attainment color helpers ───────────────────────────────────────────────
 
 const getAttainmentColor = (percent: number): string => {
-  if (percent < 0) return '#e5e7eb';   // gray-200 — no data
-  if (percent >= 85) return '#22c55e'; // green-500
-  if (percent >= 70) return '#3b82f6'; // blue-500
-  if (percent >= 50) return '#eab308'; // yellow-500
-  return '#ef4444';                    // red-500
+  return getAttainmentColorFromClassifier(percent);
 };
 
 const getAttainmentLabel = (percent: number): string => {
   if (percent < 0) return '—';
-  if (percent >= 85) return 'Excellent';
-  if (percent >= 70) return 'Satisfactory';
-  if (percent >= 50) return 'Developing';
-  return 'Not Yet';
+  return classifyAttainment(percent).replace('_', ' ');
 };
 
 // ─── KPI Card ───────────────────────────────────────────────────────────────
@@ -282,6 +278,7 @@ const TeacherDashboard = () => {
   const queryClient = useQueryClient();
   const { data: paginatedCourses, isLoading: coursesLoading } = useCourses();
   const [selectedCourseId, setSelectedCourseId] = useState<string>('');
+  const [selectedSectionId, setSelectedSectionId] = useState<string>('');
 
   // Filter to teacher's own courses
   const teacherCourses = useMemo(
@@ -290,6 +287,15 @@ const TeacherDashboard = () => {
   );
 
   const effectiveCourseId = selectedCourseId || (teacherCourses.length > 0 ? teacherCourses[0]!.id : '');
+
+  // Sections for the selected course
+  const { data: courseSections } = useCourseSections(effectiveCourseId || undefined);
+
+  // Filter sections to those assigned to this teacher
+  const teacherSections = useMemo(
+    () => (courseSections ?? []).filter((s) => s.teacher_id === user?.id && s.is_active),
+    [courseSections, user?.id],
+  );
 
   // Realtime: invalidate grading queue when new submissions arrive
   const handleGradingPayload = useCallback(() => {
@@ -301,7 +307,7 @@ const TeacherDashboard = () => {
     queryClient.invalidateQueries({ queryKey: queryKeys.submissions.lists() });
   }, [queryClient]);
 
-  const { isLive } = useRealtime({
+  const { isLive, retryCount } = useRealtime({
     table: 'submissions',
     event: 'INSERT',
     onPayload: handleGradingPayload,
@@ -338,7 +344,7 @@ const TeacherDashboard = () => {
       <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
 
       {/* Live updates status */}
-      <RealtimeStatusBanner isLive={isLive} />
+      <RealtimeStatusBanner isLive={isLive} retryCount={retryCount} />
 
       {/* KPI Row */}
       {kpisLoading ? (
@@ -356,12 +362,18 @@ const TeacherDashboard = () => {
         </div>
       )}
 
-      {/* Course Selector */}
+      {/* Course & Section Selector */}
       <div className="flex items-center gap-3">
         {coursesLoading ? (
           <Shimmer className="h-9 w-56" />
         ) : (
-          <Select value={effectiveCourseId} onValueChange={setSelectedCourseId}>
+          <Select
+            value={effectiveCourseId}
+            onValueChange={(v) => {
+              setSelectedCourseId(v);
+              setSelectedSectionId('');
+            }}
+          >
             <SelectTrigger className="w-56 bg-white">
               <SelectValue placeholder="Select course" />
             </SelectTrigger>
@@ -369,6 +381,22 @@ const TeacherDashboard = () => {
               {teacherCourses.map((course) => (
                 <SelectItem key={course.id} value={course.id}>
                   {course.code} — {course.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+
+        {teacherSections.length > 0 && (
+          <Select value={selectedSectionId} onValueChange={setSelectedSectionId}>
+            <SelectTrigger className="w-48 bg-white">
+              <SelectValue placeholder="All Sections" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Sections</SelectItem>
+              {teacherSections.map((s) => (
+                <SelectItem key={s.id} value={s.id}>
+                  Section {s.section_code}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -529,6 +557,9 @@ const TeacherDashboard = () => {
           </div>
         )}
       </Card>
+
+      {/* Grading Stats */}
+      {user?.id && <GradingStats teacherId={user.id} />}
 
       {/* AI At-Risk Students Widget */}
       <AIAtRiskWidget />

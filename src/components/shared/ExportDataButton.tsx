@@ -1,73 +1,85 @@
 // =============================================================================
-// ExportDataButton — Button to trigger CSV/PDF export
+// ExportDataButton — GDPR data export with format selector + download trigger
 // =============================================================================
 
 import { useState } from 'react';
 import { Download, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { toast } from 'sonner';
+import { supabase } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
 
-type ExportFormat = 'csv' | 'pdf' | 'json';
+type ExportFormat = 'json' | 'csv';
 
 interface ExportDataButtonProps {
-  onExport: (format: ExportFormat) => Promise<void>;
-  formats?: ExportFormat[];
-  label?: string;
+  studentId: string;
   className?: string;
 }
 
-const ExportDataButton = ({
-  onExport,
-  formats = ['csv', 'pdf'],
-  label = 'Export',
-  className,
-}: ExportDataButtonProps) => {
+const ExportDataButton = ({ studentId, className }: ExportDataButtonProps) => {
+  const [format, setFormat] = useState<ExportFormat>('json');
   const [isExporting, setIsExporting] = useState(false);
-  const [activeFormat, setActiveFormat] = useState<ExportFormat | null>(null);
 
-  const handleExport = async (format: ExportFormat) => {
+  const handleExport = async () => {
     setIsExporting(true);
-    setActiveFormat(format);
     try {
-      await onExport(format);
+      const { data, error } = await supabase.functions.invoke('export-student-data', {
+        body: { student_id: studentId, format },
+      });
+
+      if (error) throw new Error(error.message);
+      if (!data?.download_url) throw new Error('No download URL returned');
+
+      // Open the signed URL to trigger download
+      const win = window.open(data.download_url, '_blank');
+      if (!win) {
+        // Popup blocked — fallback to anchor click
+        const a = document.createElement('a');
+        a.href = data.download_url;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        a.click();
+      }
+      toast.success(`Data exported as ${format.toUpperCase()}`);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Export failed';
+      toast.error(message);
     } finally {
       setIsExporting(false);
-      setActiveFormat(null);
     }
   };
 
-  if (formats.length === 1) {
-    return (
-      <Button
-        variant="outline"
-        onClick={() => handleExport(formats[0]!)}
-        disabled={isExporting}
-        className={cn(className)}
-      >
-        {isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-        {label}
-      </Button>
-    );
-  }
-
   return (
     <div className={cn('flex items-center gap-2', className)}>
-      {formats.map((format) => (
-        <Button
-          key={format}
-          variant="outline"
-          size="sm"
-          onClick={() => handleExport(format)}
-          disabled={isExporting}
-        >
-          {isExporting && activeFormat === format ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Download className="h-4 w-4" />
-          )}
-          {format.toUpperCase()}
-        </Button>
-      ))}
+      <Select value={format} onValueChange={(v) => setFormat(v as ExportFormat)}>
+        <SelectTrigger aria-label="Export format" className="w-24">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="json">JSON</SelectItem>
+          <SelectItem value="csv">CSV</SelectItem>
+        </SelectContent>
+      </Select>
+      <Button
+        variant="outline"
+        onClick={handleExport}
+        disabled={isExporting}
+        aria-label="Download my data"
+      >
+        {isExporting ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <Download className="h-4 w-4" />
+        )}
+        Download My Data
+      </Button>
     </div>
   );
 };

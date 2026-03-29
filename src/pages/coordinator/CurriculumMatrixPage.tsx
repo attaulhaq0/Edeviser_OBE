@@ -53,12 +53,12 @@ const CurriculumMatrixPage = () => {
 
       {/* Program selector + Export */}
       <div className="flex items-center gap-3">
-        <label className="text-sm font-medium text-gray-700">Program</label>
+        <span id="program-selector-label" className="text-sm font-medium text-gray-700">Program</span>
         {programsLoading ? (
           <Shimmer className="h-9 w-64" />
         ) : (
           <Select value={selectedProgramId} onValueChange={setSelectedProgramId}>
-            <SelectTrigger className="w-64 bg-white">
+            <SelectTrigger className="w-64 bg-white" aria-labelledby="program-selector-label">
               <SelectValue placeholder="Select a program" />
             </SelectTrigger>
             <SelectContent>

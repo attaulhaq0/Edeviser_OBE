@@ -31,6 +31,7 @@ import {
   type KolbQuestion,
 } from '@/lib/journalPromptGenerator';
 import { logActivity } from '@/lib/activityLogger';
+import { draftManager } from '@/lib/draftManager';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -166,6 +167,25 @@ const JournalEditor = () => {
   const watchedCourseId = form.watch('course_id');
   const watchedCloId = form.watch('clo_id');
 
+  // ─── Draft auto-save & restore (new entries only) ──────────────────────────
+  const draftKey = `journal-draft-${watchedCourseId || 'new'}`;
+
+  // Restore draft on mount for new entries
+  useEffect(() => {
+    if (isEditMode) return;
+    const saved = draftManager.loadDraft<JournalFormData>(draftKey);
+    if (saved && saved.content) {
+      form.reset(saved);
+    }
+  }, [draftKey]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Auto-save every 30 seconds for new entries
+  useEffect(() => {
+    if (isEditMode) return;
+    const stop = draftManager.startAutoSave(draftKey, () => form.getValues());
+    return stop;
+  }, [draftKey, isEditMode, form]);
+
   const wordCount = useMemo(() => countWords(watchedContent ?? ''), [watchedContent]);
   const charCount = (watchedContent ?? '').length;
 
@@ -205,6 +225,7 @@ const JournalEditor = () => {
         },
         {
           onSuccess: () => {
+            draftManager.clearDraft(draftKey);
             toast.success('Journal entry updated');
             navigate('/student/journal');
           },
@@ -221,6 +242,7 @@ const JournalEditor = () => {
         },
         {
           onSuccess: () => {
+            draftManager.clearDraft(draftKey);
             // Log activity for journal entry
             if (userId) {
               logActivity({

@@ -10,6 +10,7 @@ import {
 } from '@/lib/schemas/program';
 import { useCreateProgram, useUpdateProgram, useProgram } from '@/hooks/usePrograms';
 import { useCoordinators } from '@/hooks/useUsers';
+import { useDepartments } from '@/hooks/useDepartments';
 import { useAuth } from '@/hooks/useAuth';
 import {
   Form,
@@ -33,6 +34,7 @@ import { Card } from '@/components/ui/card';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Profile, Program } from '@/types/app';
+import type { Department } from '@/hooks/useDepartments';
 
 // ─── Create mode form ────────────────────────────────────────────────────────
 
@@ -40,6 +42,7 @@ const CreateProgramForm = ({ institutionId }: { institutionId: string }) => {
   const navigate = useNavigate();
   const createMutation = useCreateProgram();
   const { data: coordinators = [], isLoading: isLoadingCoordinators } = useCoordinators();
+  const { data: departments = [], isLoading: isLoadingDepartments } = useDepartments();
 
   const form = useForm<CreateProgramFormData>({
     resolver: zodResolver(createProgramSchema),
@@ -72,6 +75,8 @@ const CreateProgramForm = ({ institutionId }: { institutionId: string }) => {
       isEditMode={false}
       coordinators={coordinators}
       isLoadingCoordinators={isLoadingCoordinators}
+      departments={departments}
+      isLoadingDepartments={isLoadingDepartments}
     />
   );
 };
@@ -83,6 +88,7 @@ const EditProgramForm = ({ programId }: { programId: string }) => {
   const { data: existingProgram, isLoading } = useProgram(programId);
   const updateMutation = useUpdateProgram(programId);
   const { data: coordinators = [], isLoading: isLoadingCoordinators } = useCoordinators();
+  const { data: departments = [], isLoading: isLoadingDepartments } = useDepartments();
 
   const form = useForm<UpdateProgramFormData>({
     resolver: zodResolver(updateProgramSchema),
@@ -101,6 +107,7 @@ const EditProgramForm = ({ programId }: { programId: string }) => {
         code: program.code,
         description: program.description ?? '',
         coordinator_id: program.coordinator_id ?? undefined,
+        department_id: program.department_id ?? undefined,
       });
     }
   }, [existingProgram, form]);
@@ -134,6 +141,8 @@ const EditProgramForm = ({ programId }: { programId: string }) => {
       existingCode={existingCode}
       coordinators={coordinators}
       isLoadingCoordinators={isLoadingCoordinators}
+      departments={departments}
+      isLoadingDepartments={isLoadingDepartments}
     />
   );
 };
@@ -148,6 +157,8 @@ interface ProgramFormFieldsProps<T extends CreateProgramFormData | UpdateProgram
   existingCode?: string;
   coordinators: Profile[];
   isLoadingCoordinators: boolean;
+  departments: Department[];
+  isLoadingDepartments: boolean;
 }
 
 const ProgramFormFields = <T extends CreateProgramFormData | UpdateProgramFormData>({
@@ -158,6 +169,8 @@ const ProgramFormFields = <T extends CreateProgramFormData | UpdateProgramFormDa
   existingCode,
   coordinators,
   isLoadingCoordinators,
+  departments,
+  isLoadingDepartments,
 }: ProgramFormFieldsProps<T>) => {
   const navigate = useNavigate();
 
@@ -184,6 +197,7 @@ const ProgramFormFields = <T extends CreateProgramFormData | UpdateProgramFormDa
 
           {isEditMode ? (
             <div className="grid gap-2">
+              {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
               <label className="text-sm font-medium">Program Code</label>
               <Input
                 value={existingCode ?? ''}
@@ -249,6 +263,36 @@ const ProgramFormFields = <T extends CreateProgramFormData | UpdateProgramFormDa
                     {coordinators.map((coord) => (
                       <SelectItem key={coord.id} value={coord.id}>
                         {coord.full_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name={'department_id' as never}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Department</FormLabel>
+                <Select
+                  onValueChange={(value) => field.onChange(value === '__none__' ? undefined : value)}
+                  value={(field.value as string) ?? '__none__'}
+                  disabled={isLoadingDepartments}
+                >
+                  <FormControl>
+                    <SelectTrigger className="bg-white">
+                      <SelectValue placeholder="Select a department" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="__none__">No department</SelectItem>
+                    {departments.map((dept) => (
+                      <SelectItem key={dept.id} value={dept.id}>
+                        {dept.name}
                       </SelectItem>
                     ))}
                   </SelectContent>

@@ -177,8 +177,9 @@ const UserFormFields = <T extends CreateUserFormData | UpdateUserFormData>({
 
           {isEditMode ? (
             <div className="grid gap-2">
-              <label className="text-sm font-medium">Email</label>
+              <label htmlFor="email-readonly" className="text-sm font-medium">Email</label>
               <Input
+                id="email-readonly"
                 type="email"
                 value={existingEmail ?? ''}
                 disabled

@@ -9,13 +9,13 @@ export const gradeScaleSchema = z.object({
 
 export const institutionSettingsSchema = z.object({
   attainment_thresholds: z.object({
-    excellent: z.number().min(0).max(100).default(85),
-    satisfactory: z.number().min(0).max(100).default(70),
-    developing: z.number().min(0).max(100).default(50),
+    excellent: z.number().min(0).max(100),
+    satisfactory: z.number().min(0).max(100),
+    developing: z.number().min(0).max(100),
   }),
-  success_threshold: z.number().min(0).max(100).default(70),
-  accreditation_body: z.enum(["HEC", "QQA", "ABET", "NCAAA", "AACSB", "Generic"]).default("Generic"),
-  grade_scales: z.array(gradeScaleSchema),
+  success_threshold: z.number().min(0).max(100),
+  accreditation_body: z.enum(["HEC", "QQA", "ABET", "NCAAA", "AACSB", "Generic"]),
+  grade_scales: z.array(gradeScaleSchema).min(1, "At least one grade scale is required"),
 });
 
 export type GradeScaleData = z.infer<typeof gradeScaleSchema>;

@@ -13,9 +13,9 @@ describe('RealtimeStatusBanner', () => {
     expect(screen.getByText(/live updates paused/i)).toBeInTheDocument();
   });
 
-  it('includes polling interval info in the banner text', () => {
+  it('includes reconnecting text in the banner', () => {
     render(<RealtimeStatusBanner isLive={false} />);
-    expect(screen.getByText(/polling every 30s/i)).toBeInTheDocument();
+    expect(screen.getByText(/reconnecting/i)).toBeInTheDocument();
   });
 
   it('has role="status" for accessibility', () => {

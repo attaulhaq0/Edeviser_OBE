@@ -5,6 +5,7 @@
 import { Snowflake, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { cn } from '@/lib/utils';
 
 interface StreakFreezeShopProps {
@@ -24,12 +25,14 @@ const StreakFreezeShop = ({
   className,
 }: StreakFreezeShopProps) => {
   const [isPurchasing, setIsPurchasing] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const canPurchase = currentXP >= FREEZE_COST && freezesAvailable < MAX_FREEZES;
 
-  const handlePurchase = async () => {
+  const handleConfirmedPurchase = async () => {
     setIsPurchasing(true);
     try {
       await onPurchase();
+      setShowConfirm(false);
     } finally {
       setIsPurchasing(false);
     }
@@ -59,7 +62,7 @@ const StreakFreezeShop = ({
         </span>
       </div>
       <Button
-        onClick={handlePurchase}
+        onClick={() => setShowConfirm(true)}
         disabled={!canPurchase || isPurchasing}
         variant="outline"
         className="w-full"
@@ -70,6 +73,16 @@ const StreakFreezeShop = ({
       {currentXP < FREEZE_COST && (
         <p className="text-xs text-red-500">Not enough XP ({currentXP}/{FREEZE_COST})</p>
       )}
+
+      <ConfirmDialog
+        open={showConfirm}
+        onOpenChange={setShowConfirm}
+        title="Purchase Streak Freeze?"
+        description={`This will deduct ${FREEZE_COST} XP from your balance. You currently have ${currentXP} XP. The freeze will protect your streak for one missed day.`}
+        confirmLabel="Buy Freeze"
+        isPending={isPurchasing}
+        onConfirm={handleConfirmedPurchase}
+      />
     </div>
   );
 };

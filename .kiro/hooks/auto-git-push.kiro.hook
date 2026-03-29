@@ -1,10 +1,10 @@
 {
   "enabled": true,
   "name": "Auto Git Push",
-  "description": "Automatically stages, commits with a conventional commit message, pushes to a feature branch, and creates a PR with detailed description using GitHub CLI",
-  "version": "3",
+  "description": "Automatically stages, commits, pushes to a feature branch, and creates a PR when triggered by the user",
+  "version": "4",
   "when": {
-    "type": "agentStop"
+    "type": "userTriggered"
   },
   "then": {
     "type": "askAgent",

@@ -10,6 +10,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Shimmer from '@/components/shared/Shimmer';
+import UploadProgress from '@/components/shared/UploadProgress';
+import ErrorState from '@/components/shared/ErrorState';
 import { toast } from 'sonner';
 import {
   ClipboardList,
@@ -25,8 +27,10 @@ import {
 import { format, formatDistanceToNow } from 'date-fns';
 import { getDeadlineStatus } from '@/lib/submissionDeadline';
 import { logActivity } from '@/lib/activityLogger';
-import { awardXP } from '@/lib/xpClient';
+import { draftManager } from '@/lib/draftManager';
+import { useOptimisticXP } from '@/hooks/useOptimisticXP';
 import { XP_SCHEDULE, LATE_SUBMISSION_XP } from '@/lib/xpSchedule';
+import { useReadHabitTimer } from '@/hooks/useReadHabitTimer';
 
 // ─── AssignmentDetailPage ───────────────────────────────────────────────────
 
@@ -43,17 +47,36 @@ const AssignmentDetailPage = () => {
   const createSubmission = useCreateSubmission();
   const uploadFile = useUploadSubmissionFile();
 
+  const { awardXPOptimistic } = useOptimisticXP();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadStatus, setUploadStatus] = useState<'uploading' | 'success' | 'error'>('uploading');
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const isLoading = assignmentLoading || submissionsLoading;
   const isUploading = uploadFile.isPending;
   const isSubmitting = createSubmission.isPending;
 
+  // Draft key for persisting form state
+  const draftKey = `submission-draft-${id ?? 'unknown'}`;
+
+  // Restore draft hint on mount
+  const [draftHint] = useState<string | null>(() => {
+    const saved = draftManager.loadDraft<{ fileName: string; fileSize: number }>(draftKey);
+    return saved?.fileName ? `Previously selected: ${saved.fileName}` : null;
+  });
+
   // Find the current student's submission
   const mySubmission = submissions?.find(
     (s) => s.profiles?.id === profile?.id,
   );
+
+  // Track read habit — fires after 30s of viewing
+  useReadHabitTimer({
+    pageType: 'assignment_detail',
+    pageId: id ?? '',
+  });
 
   const deadlineStatus = assignment
     ? getDeadlineStatus(assignment.due_date, assignment.late_window_hours)
@@ -65,7 +88,11 @@ const AssignmentDetailPage = () => {
     logActivity({
       student_id: profile.id,
       event_type: 'assignment_view',
-      metadata: { assignment_id: assignment.id, assignment_title: assignment.title },
+      metadata: {
+        assignment_id: assignment.id,
+        assignment_title: assignment.title,
+        duration_seconds: 0,
+      },
     });
   }, [assignment?.id, profile?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -73,11 +100,14 @@ const AssignmentDetailPage = () => {
     setFileError(null);
     if (!file) {
       setSelectedFile(null);
+      draftManager.clearDraft(draftKey);
       return;
     }
     try {
       validateFile(file);
       setSelectedFile(file);
+      // Persist file metadata (name/size) so user knows they had a file selected
+      draftManager.saveDraft(draftKey, { fileName: file.name, fileSize: file.size });
     } catch (err) {
       if (err instanceof FileValidationError) {
         setFileError(err.message);
@@ -96,13 +126,60 @@ const AssignmentDetailPage = () => {
       return;
     }
 
+    setUploadProgress(0);
+    setUploadStatus('uploading');
+    setUploadError(null);
+
+    const MAX_UPLOAD_RETRIES = 3;
+
+    const attemptUpload = async (retries: number): Promise<string> => {
+      try {
+        // Simulate progress increments during upload
+        setUploadProgress(10 + retries * 5);
+        const result = await uploadFile.mutateAsync({
+          file: selectedFile,
+          assignmentId: assignment.id,
+          institutionId: '',
+        });
+        setUploadProgress(100);
+        setUploadStatus('success');
+        return result;
+      } catch (err) {
+        const isNetworkError = !navigator.onLine ||
+          (err instanceof Error && /network|fetch|timeout|offline/i.test(err.message));
+
+        if (isNetworkError && retries < MAX_UPLOAD_RETRIES) {
+          // Wait for connectivity to be restored, then retry
+          if (!navigator.onLine) {
+            toast.info(`Offline — waiting for connectivity to retry (${retries + 1}/${MAX_UPLOAD_RETRIES})…`);
+            await new Promise<void>((resolve) => {
+              const onOnline = () => {
+                window.removeEventListener('online', onOnline);
+                resolve();
+              };
+              window.addEventListener('online', onOnline);
+              // Timeout after 60s to avoid hanging forever
+              setTimeout(() => {
+                window.removeEventListener('online', onOnline);
+                resolve();
+              }, 60_000);
+            });
+          } else {
+            // Brief delay before retry
+            toast.info(`Upload failed — retrying (${retries + 1}/${MAX_UPLOAD_RETRIES})…`);
+            await new Promise((r) => setTimeout(r, 2000 * (retries + 1)));
+          }
+          return attemptUpload(retries + 1);
+        }
+        setUploadStatus('error');
+        setUploadError(err instanceof Error ? err.message : 'Upload failed');
+        throw err;
+      }
+    };
+
     try {
-      // Step 1: Upload file to Supabase Storage
-      const fileUrl = await uploadFile.mutateAsync({
-        file: selectedFile,
-        assignmentId: assignment.id,
-        institutionId: '',
-      });
+      // Step 1: Upload file to Supabase Storage with retry
+      const fileUrl = await attemptUpload(0);
 
       // Step 2: Create submission record with the real URL
       const input: CreateSubmissionInput = {
@@ -114,6 +191,7 @@ const AssignmentDetailPage = () => {
 
       createSubmission.mutate(input, {
         onSuccess: () => {
+          draftManager.clearDraft(draftKey);
           toast.success('Assignment submitted successfully!');
           setSelectedFile(null);
           logActivity({
@@ -124,8 +202,8 @@ const AssignmentDetailPage = () => {
               is_late: deadline.isLate,
             },
           });
-          // Fire-and-forget XP award — never blocks UI
-          awardXP({
+          // Fire-and-forget XP award with optimistic UI update
+          awardXPOptimistic({
             studentId: profile?.id ?? '',
             xpAmount: deadline.isLate ? LATE_SUBMISSION_XP : XP_SCHEDULE.submission,
             source: 'submission',
@@ -139,6 +217,8 @@ const AssignmentDetailPage = () => {
       });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Upload failed';
+      setUploadStatus('error');
+      setUploadError(message);
       toast.error(message);
     }
   };
@@ -361,13 +441,43 @@ const AssignmentDetailPage = () => {
                 {fileError && (
                   <p className="text-xs text-red-500 mt-1">{fileError}</p>
                 )}
-                {selectedFile && (
+                {draftHint && !selectedFile && (
+                  <p className="text-xs text-amber-600 mt-1">{draftHint} — please re-select your file</p>
+                )}
+                {selectedFile && !isUploading && uploadStatus !== 'error' && (
                   <p className="text-xs text-gray-500 mt-1">
                     Selected: {selectedFile.name} (
                     {(selectedFile.size / 1024).toFixed(1)} KB)
                   </p>
                 )}
               </div>
+
+              {/* Upload Progress Indicator */}
+              {selectedFile && (isUploading || uploadStatus === 'success' || uploadStatus === 'error') && (
+                <UploadProgress
+                  progress={uploadProgress}
+                  fileName={selectedFile.name}
+                  fileSize={selectedFile.size}
+                  status={uploadStatus}
+                  onRetry={handleSubmit}
+                  onCancel={() => {
+                    setSelectedFile(null);
+                    setUploadStatus('uploading');
+                    setUploadProgress(0);
+                    setUploadError(null);
+                  }}
+                />
+              )}
+
+              {/* Upload Error State */}
+              {uploadStatus === 'error' && uploadError && (
+                <ErrorState
+                  title="Upload Failed"
+                  message={uploadError}
+                  onRetry={handleSubmit}
+                  retryLabel="Retry Upload"
+                />
+              )}
 
               <Button
                 onClick={handleSubmit}
