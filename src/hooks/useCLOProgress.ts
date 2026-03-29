@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { queryKeys } from '@/lib/queryKeys';
 import type { BloomsLevel, AttainmentLevel } from '@/types/app';
+import { classifyAttainment } from '@/lib/attainmentClassifier';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -28,12 +29,7 @@ export interface CLOProgressByCourse {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function classifyAttainment(percent: number): AttainmentLevel {
-  if (percent >= 85) return 'Excellent';
-  if (percent >= 70) return 'Satisfactory';
-  if (percent >= 50) return 'Developing';
-  return 'Not_Yet';
-}
+// classifyAttainment is now imported from @/lib/attainmentClassifier
 
 // ─── useCLOProgress ──────────────────────────────────────────────────────────
 

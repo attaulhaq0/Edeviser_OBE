@@ -21,6 +21,28 @@ vi.mock('@/hooks/useAuth', () => ({
   useAuth: () => ({ profile: mockProfile }),
 }));
 
+const mockInvalidateQueries = vi.fn();
+const mockMutate = vi.fn();
+
+vi.mock('@tanstack/react-query', () => ({
+  useMutation: (opts: { mutationFn: (params: unknown) => Promise<void>; onSuccess?: () => void; onError?: (e: unknown) => void }) => {
+    // Store the mutationFn so mockMutate can call it
+    mockMutate.mockImplementation((params: unknown) => {
+      opts.mutationFn(params).then(() => opts.onSuccess?.()).catch((e) => opts.onError?.(e));
+    });
+    return { mutate: mockMutate, isPending: false };
+  },
+  useQueryClient: () => ({
+    invalidateQueries: mockInvalidateQueries,
+  }),
+}));
+
+vi.mock('@/lib/queryKeys', () => ({
+  queryKeys: {
+    habitLogs: { all: ['habitLogs'] },
+  },
+}));
+
 import { renderHook, act } from '@testing-library/react';
 import { useReadHabitTimer } from '@/hooks/useReadHabitTimer';
 
@@ -50,7 +72,7 @@ describe('useReadHabitTimer', () => {
 
     expect(result.current.elapsedSeconds).toBe(0);
     expect(result.current.isCompleted).toBe(false);
-    expect(mockUpsert).not.toHaveBeenCalled();
+    expect(mockMutate).not.toHaveBeenCalled();
   });
 
   it('does not start timer when profile is null', () => {
@@ -60,7 +82,7 @@ describe('useReadHabitTimer', () => {
     act(() => { vi.advanceTimersByTime(35_000); });
 
     expect(result.current.elapsedSeconds).toBe(0);
-    expect(mockUpsert).not.toHaveBeenCalled();
+    expect(mockMutate).not.toHaveBeenCalled();
   });
 
   it('increments elapsed seconds each tick', () => {
@@ -73,7 +95,7 @@ describe('useReadHabitTimer', () => {
     expect(result.current.isCompleted).toBe(false);
   });
 
-  it('marks habit as completed and upserts habit_tracking at 30 seconds', () => {
+  it('marks habit as completed and calls mutation at 30 seconds', () => {
     mockProfile = { id: 'student-1', role: 'student' };
     const { result } = renderHook(() => useReadHabitTimer(defaultOptions));
 
@@ -82,13 +104,12 @@ describe('useReadHabitTimer', () => {
     expect(result.current.isCompleted).toBe(true);
     expect(result.current.elapsedSeconds).toBe(30);
 
-    // Should upsert into habit_tracking with read_content = true
-    expect(mockUpsert).toHaveBeenCalledWith(
+    // Should call mutation with student_id and habit_date
+    expect(mockMutate).toHaveBeenCalledWith(
       expect.objectContaining({
         student_id: 'student-1',
-        read_content: true,
+        habit_date: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
       }),
-      expect.objectContaining({ onConflict: 'student_id,habit_date' }),
     );
   });
 
@@ -118,8 +139,8 @@ describe('useReadHabitTimer', () => {
 
     act(() => { vi.advanceTimersByTime(60_000); });
 
-    // Should only upsert once
-    expect(mockUpsert).toHaveBeenCalledTimes(1);
+    // Should only call mutation once
+    expect(mockMutate).toHaveBeenCalledTimes(1);
     expect(mockLogActivity).toHaveBeenCalledTimes(1);
   });
 

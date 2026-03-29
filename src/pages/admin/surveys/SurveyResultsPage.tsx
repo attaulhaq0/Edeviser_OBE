@@ -28,48 +28,11 @@ import {
   useSurveyResponses,
 } from '@/hooks/useSurveys';
 import type { SurveyQuestion, SurveyResponse } from '@/hooks/useSurveys';
+import { aggregateLikert, aggregateMCQ, LIKERT_LABELS } from '@/lib/surveyAggregators';
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
-const LIKERT_LABELS = ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree'];
 const PIE_COLORS = ['#3b82f6', '#14b8a6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
-
-// ─── Aggregation Helpers ────────────────────────────────────────────────────
-
-interface LikertAggregation {
-  label: string;
-  count: number;
-}
-
-function aggregateLikert(responses: SurveyResponse[], questionId: string): LikertAggregation[] {
-  const counts = new Map<string, number>();
-  for (const label of LIKERT_LABELS) counts.set(label, 0);
-
-  for (const r of responses) {
-    if (r.question_id === questionId && counts.has(r.response_value)) {
-      counts.set(r.response_value, (counts.get(r.response_value) ?? 0) + 1);
-    }
-  }
-
-  return LIKERT_LABELS.map((label) => ({ label, count: counts.get(label) ?? 0 }));
-}
-
-interface MCQAggregation {
-  option: string;
-  count: number;
-}
-
-function aggregateMCQ(responses: SurveyResponse[], questionId: string): MCQAggregation[] {
-  const counts: Record<string, number> = {};
-
-  for (const r of responses) {
-    if (r.question_id === questionId) {
-      counts[r.response_value] = (counts[r.response_value] ?? 0) + 1;
-    }
-  }
-
-  return Object.entries(counts).map(([option, count]) => ({ option, count }));
-}
 
 // ─── Question Result Card ───────────────────────────────────────────────────
 
@@ -87,7 +50,7 @@ const QuestionResult = ({ question, responses, index }: QuestionResultProps) => 
     const data = aggregateLikert(responses, question.id);
     const avg = totalResponses > 0
       ? questionResponses.reduce((sum, r) => {
-          const idx = LIKERT_LABELS.indexOf(r.response_value);
+          const idx = (LIKERT_LABELS as readonly string[]).indexOf(r.response_value);
           return sum + (idx >= 0 ? idx + 1 : 0);
         }, 0) / totalResponses
       : 0;

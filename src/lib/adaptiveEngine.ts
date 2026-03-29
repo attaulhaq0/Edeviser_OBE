@@ -1,15 +1,21 @@
 // ─── Adaptive Engine ─────────────────────────────────────────────────────────
 // Client-side ability estimation and difficulty targeting for adaptive quizzes.
 
+import type { AttainmentThresholdsConfig } from '@/types/app';
+import { DEFAULT_ATTAINMENT_THRESHOLDS } from '@/types/app';
+
 export type AbilityLevel = 'high' | 'medium' | 'low';
 
 /**
- * Maps CLO attainment percentage to ability level.
- * High: ≥85%, Medium: 50–84%, Low: <50%
+ * Maps CLO attainment percentage to ability level using configurable thresholds.
+ * High: ≥excellent, Medium: ≥developing, Low: <developing
  */
-export function classifyAbility(attainmentPercent: number): AbilityLevel {
-  if (attainmentPercent >= 85) return 'high';
-  if (attainmentPercent >= 50) return 'medium';
+export function classifyAbility(
+  attainmentPercent: number,
+  thresholds: AttainmentThresholdsConfig = DEFAULT_ATTAINMENT_THRESHOLDS,
+): AbilityLevel {
+  if (attainmentPercent >= thresholds.excellent) return 'high';
+  if (attainmentPercent >= thresholds.developing) return 'medium';
   return 'low';
 }
 

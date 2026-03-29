@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useOnboardingStatus, useCompleteOnboarding } from '@/hooks/useOnboarding';
 import { getChecklistForRole } from '@/lib/onboardingChecklist';
 import QuickStartChecklist from '@/components/shared/QuickStartChecklist';
-import { LayoutDashboard, Users, BookOpen, GraduationCap, Target, ScrollText, Sparkles, FileText, UserCircle, Calendar, Building2, ClipboardList } from 'lucide-react';
+import { LayoutDashboard, Users, BookOpen, GraduationCap, Target, ScrollText, Sparkles, FileText, UserCircle, Calendar, Building2, ClipboardList, Settings } from 'lucide-react';
 
 const navItems = [
   { to: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -19,6 +19,7 @@ const navItems = [
   { to: '/admin/audit-log', icon: ScrollText, label: 'Audit Log' },
   { to: '/admin/bonus-events', icon: Sparkles, label: 'Bonus XP' },
   { to: '/admin/surveys', icon: ClipboardList, label: 'Surveys' },
+  { to: '/admin/settings/institution', icon: Settings, label: 'Settings' },
   { to: '/admin/settings/profile', icon: UserCircle, label: 'Profile' },
 ];
 

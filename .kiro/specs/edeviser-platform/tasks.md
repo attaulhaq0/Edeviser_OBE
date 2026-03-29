@@ -1165,8 +1165,8 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Include as "closing the loop" evidence
     - _Requirements: 71.4_
 
-- [~] 64. Implement Configurable KPI Thresholds & Multi-Accreditation
-  - [ ] 64.1 Create Institution Settings page (`/src/pages/admin/settings/InstitutionSettings.tsx`)
+- [x] 64. Implement Configurable KPI Thresholds & Multi-Accreditation
+  - [x] 64.1 Create Institution Settings page (`/src/pages/admin/settings/InstitutionSettings.tsx`)
     - Configure attainment thresholds (excellent/satisfactory/developing)
     - Configure success threshold
     - Select accreditation body
@@ -1174,71 +1174,71 @@ Complete unified implementation of the Edeviser platform covering authentication
     - Log changes to Audit_Logger
     - _Requirements: 72.1, 72.2, 72.3, 72.5_
 
-  - [ ] 64.2 Create institution settings TanStack Query hooks (`/src/hooks/useInstitutionSettings.ts`)
+  - [x] 64.2 Create institution settings TanStack Query hooks (`/src/hooks/useInstitutionSettings.ts`)
     - _Requirements: 72_
 
-  - [ ] 64.3 Refactor all attainment level calculations to use configurable thresholds
+  - [x] 64.3 Refactor all attainment level calculations to use configurable thresholds
     - Update Evidence_Generator, dashboards, reports, AI predictions
     - Replace hardcoded 85/70/50 with institution_settings values
     - _Requirements: 72.4_
 
-  - [ ] 64.4 Create Program Accreditation Manager
+  - [x] 64.4 Create Program Accreditation Manager
     - Tag programs with multiple accreditation bodies
     - Track accreditation dates and review schedules
     - Display accreditation status on Admin Dashboard
     - _Requirements: 73_
 
-  - [ ] 64.5 Update Report Generator for body-specific reports
+  - [x] 64.5 Update Report Generator for body-specific reports
     - Generate reports per accreditation body per program
     - Support different PLO naming conventions
     - _Requirements: 73.2, 73.3_
 
-- [~] 65. Implement Course File / Portfolio Generation
-  - [ ] 65.1 Create `generate-course-file` Edge Function (`/supabase/functions/generate-course-file/`)
+- [x] 65. Implement Course File / Portfolio Generation
+  - [x] 65.1 Create `generate-course-file` Edge Function (`/supabase/functions/generate-course-file/`)
     - Aggregate: syllabus, CLO-PLO mapping, assessment instruments, sample work (best/avg/worst), CLO attainment charts, teacher reflection, CQI recommendations
     - Generate as PDF or ZIP
     - Upload to Supabase Storage, return signed URL
     - Must complete within 30 seconds
     - _Requirements: 74.1, 74.2, 74.3, 74.5_
 
-  - [ ] 65.2 Create Course File generation UI on Coordinator course detail page
+  - [x] 65.2 Create Course File generation UI on Coordinator course detail page
     - Trigger generation button with format selector (PDF/ZIP)
     - Loading state during generation
     - Download link on completion
     - _Requirements: 74.4_
 
-  - [ ] 65.3 Create course file TanStack Query hooks (`/src/hooks/useCourseFile.ts`)
+  - [x] 65.3 Create course file TanStack Query hooks (`/src/hooks/useCourseFile.ts`)
     - Mutation for triggering generation
     - _Requirements: 74_
 
-- [~] 66. Implement Announcements & Course Content
-  - [ ] 66.1 Create announcement TanStack Query hooks (`/src/hooks/useAnnouncements.ts`)
+- [x] 66. Implement Announcements & Course Content
+  - [x] 66.1 Create announcement TanStack Query hooks (`/src/hooks/useAnnouncements.ts`)
     - CRUD for announcements within a course
     - _Requirements: 75_
 
-  - [ ] 66.2 Create Announcement Editor page (`/src/pages/teacher/announcements/AnnouncementEditor.tsx`)
+  - [x] 66.2 Create Announcement Editor page (`/src/pages/teacher/announcements/AnnouncementEditor.tsx`)
     - Create/edit announcements with markdown content and pin toggle
     - _Requirements: 75.1, 75.4_
 
-  - [ ] 66.3 Display announcements on Student Dashboard and course detail page
+  - [x] 66.3 Display announcements on Student Dashboard and course detail page
     - Ordered by pinned DESC, created_at DESC
     - Trigger notification on new announcement
     - _Requirements: 75.2, 75.3_
 
-  - [ ] 66.4 Wire announcement view into Read habit (30+ seconds)
+  - [x] 66.4 Wire announcement view into Read habit (30+ seconds)
     - Use `useReadHabitTimer` hook on announcement detail view
     - _Requirements: 75.5_
 
-  - [ ] 66.5 Create Course Module Manager (`/src/pages/teacher/courses/ModuleManager.tsx`)
+  - [x] 66.5 Create Course Module Manager (`/src/pages/teacher/courses/ModuleManager.tsx`)
     - Create/edit modules with title, description, sort order, publish toggle
     - Add materials: file upload (Supabase Storage), links, video embeds, text
     - Link materials to CLOs for traceability
     - _Requirements: 76.1, 76.2, 76.3, 76.4_
 
-  - [ ] 66.6 Create course module/material TanStack Query hooks (`/src/hooks/useCourseModules.ts`)
+  - [x] 66.6 Create course module/material TanStack Query hooks (`/src/hooks/useCourseModules.ts`)
     - _Requirements: 76_
 
-  - [ ] 66.7 Display materials on Student course detail page organized by module
+  - [x] 66.7 Display materials on Student course detail page organized by module
     - Wire material view into Read habit (30+ seconds)
     - _Requirements: 76.5, 76.6_
 

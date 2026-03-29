@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
+import { classifyAttainment, getAttainmentTextClass, getAttainmentBadgeStyle as getAttainmentBadgeStyleFromClassifier } from '@/lib/attainmentClassifier';
 import {
   ArrowLeft,
   Check,
@@ -75,24 +76,15 @@ const useAssignmentForRubric = (assignmentId?: string) => {
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
 function getScoreColor(percent: number): string {
-  if (percent >= 85) return 'text-green-600';
-  if (percent >= 70) return 'text-blue-600';
-  if (percent >= 50) return 'text-yellow-600';
-  return 'text-red-600';
+  return getAttainmentTextClass(percent);
 }
 
 function getAttainmentLabel(percent: number): string {
-  if (percent >= 85) return 'Excellent';
-  if (percent >= 70) return 'Satisfactory';
-  if (percent >= 50) return 'Developing';
-  return 'Not Yet';
+  return classifyAttainment(percent).replace('_', ' ');
 }
 
 function getAttainmentBadgeStyle(percent: number): string {
-  if (percent >= 85) return 'bg-green-50 text-green-600 border-green-200';
-  if (percent >= 70) return 'bg-blue-50 text-blue-600 border-blue-200';
-  if (percent >= 50) return 'bg-yellow-50 text-yellow-600 border-yellow-200';
-  return 'bg-red-50 text-red-600 border-red-200';
+  return getAttainmentBadgeStyleFromClassifier(percent);
 }
 
 

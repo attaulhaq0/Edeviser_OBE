@@ -67,6 +67,7 @@ import {
   Legend,
 } from 'recharts';
 import { formatDistanceToNow } from 'date-fns';
+import { getAttainmentColor as getAttainmentColorFromClassifier, classifyAttainment } from '@/lib/attainmentClassifier';
 
 // ─── Bloom's Color Map ──────────────────────────────────────────────────────
 
@@ -84,19 +85,12 @@ const BLOOMS_COLORS: Record<BloomsLevel, string> = {
 // ─── Attainment color helpers ───────────────────────────────────────────────
 
 const getAttainmentColor = (percent: number): string => {
-  if (percent < 0) return '#e5e7eb';   // gray-200 — no data
-  if (percent >= 85) return '#22c55e'; // green-500
-  if (percent >= 70) return '#3b82f6'; // blue-500
-  if (percent >= 50) return '#eab308'; // yellow-500
-  return '#ef4444';                    // red-500
+  return getAttainmentColorFromClassifier(percent);
 };
 
 const getAttainmentLabel = (percent: number): string => {
   if (percent < 0) return '—';
-  if (percent >= 85) return 'Excellent';
-  if (percent >= 70) return 'Satisfactory';
-  if (percent >= 50) return 'Developing';
-  return 'Not Yet';
+  return classifyAttainment(percent).replace('_', ' ');
 };
 
 // ─── KPI Card ───────────────────────────────────────────────────────────────

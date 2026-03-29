@@ -20,6 +20,7 @@ import { useStarterWeekSessions } from '@/hooks/useStarterWeekPlan';
 import { useOnboardingProgress } from '@/hooks/useOnboardingProgress';
 import { useRealtime } from '@/hooks/useRealtime';
 import { useStreakFreezeInventory, usePurchaseStreakFreeze } from '@/hooks/useStreakFreeze';
+import { useStudentAnnouncements } from '@/hooks/useAnnouncements';
 import { queryKeys } from '@/lib/queryKeys';
 import {
   BookOpen,
@@ -31,6 +32,7 @@ import {
   AlertCircle,
   Bell,
   Coins,
+  Megaphone,
   type LucideIcon,
 } from 'lucide-react';
 import { format, differenceInDays } from 'date-fns';
@@ -62,6 +64,54 @@ const KPICard = ({ icon: Icon, label, value, accent }: KPICardProps) => (
 );
 
 // ─── Student Dashboard ──────────────────────────────────────────────────────
+
+// ─── Announcements Section ──────────────────────────────────────────────────
+
+const AnnouncementsSection = ({ studentId }: { studentId: string }) => {
+  const navigate = useNavigate();
+  const { data: announcements, isLoading } = useStudentAnnouncements(studentId, 5);
+
+  if (isLoading) {
+    return <Shimmer className="h-32 rounded-xl" />;
+  }
+
+  if (!announcements || announcements.length === 0) return null;
+
+  return (
+    <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+      <div
+        className="px-6 py-4 flex items-center gap-2"
+        style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+      >
+        <Megaphone className="h-5 w-5 text-white" />
+        <h2 className="text-lg font-bold tracking-tight text-white">Recent Announcements</h2>
+      </div>
+      <div className="p-6 space-y-3">
+        {announcements.map((a) => (
+          <div
+            key={a.id}
+            className="flex items-start gap-3 py-2 border-b border-slate-100 last:border-0 cursor-pointer hover:bg-slate-50 rounded-lg px-2 -mx-2 transition-colors"
+            onClick={() => navigate(`/student/announcements/${a.id}`)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/student/announcements/${a.id}`); }}
+          >
+            <Megaphone className={`h-4 w-4 mt-0.5 shrink-0 ${a.is_pinned ? 'text-amber-500' : 'text-gray-400'}`} />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium truncate">{a.title}</p>
+              <p className="text-xs text-gray-500 line-clamp-1">{a.content}</p>
+            </div>
+            <span className="text-xs text-gray-400 whitespace-nowrap">
+              {format(new Date(a.created_at), 'MMM d')}
+            </span>
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+};
+
+// ─── Main Component ─────────────────────────────────────────────────────────
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
@@ -359,6 +409,9 @@ const StudentDashboard = () => {
           />
         </div>
       </div>
+
+      {/* Recent Announcements */}
+      <AnnouncementsSection studentId={studentId} />
 
       {/* 7.2 — Profile Summary Card */}
       {onboardingCompleted && studentProfile && (

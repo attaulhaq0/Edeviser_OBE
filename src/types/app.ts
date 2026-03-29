@@ -331,13 +331,55 @@ export interface CQIPlan {
   status: string;
 }
 
+export interface AttainmentThresholdsConfig {
+  excellent: number;
+  satisfactory: number;
+  developing: number;
+}
+
+export interface GradeScale {
+  letter: string;
+  min_percent: number;
+  max_percent: number;
+  gpa_points: number;
+}
+
+export type AccreditationBody = 'HEC' | 'QQA' | 'ABET' | 'NCAAA' | 'AACSB' | 'Generic';
+
 export interface InstitutionSettings {
   id: string;
   institution_id: string;
-  grade_scale: Record<string, unknown>;
-  kpi_thresholds: Record<string, unknown>;
-  accreditation_body: string;
+  attainment_thresholds: AttainmentThresholdsConfig;
+  success_threshold: number;
+  accreditation_body: AccreditationBody;
+  grade_scales: GradeScale[];
+  created_at: string;
 }
+
+export interface ProgramAccreditation {
+  id: string;
+  program_id: string;
+  accreditation_body: string;
+  framework_version: string | null;
+  accreditation_date: string | null;
+  next_review_date: string | null;
+  status: 'active' | 'expired' | 'pending';
+  created_at: string;
+}
+
+export const DEFAULT_ATTAINMENT_THRESHOLDS: AttainmentThresholdsConfig = {
+  excellent: 85,
+  satisfactory: 70,
+  developing: 50,
+};
+
+export const DEFAULT_GRADE_SCALES: GradeScale[] = [
+  { letter: 'A', min_percent: 85, max_percent: 100, gpa_points: 4.0 },
+  { letter: 'B', min_percent: 70, max_percent: 84, gpa_points: 3.0 },
+  { letter: 'C', min_percent: 55, max_percent: 69, gpa_points: 2.0 },
+  { letter: 'D', min_percent: 50, max_percent: 54, gpa_points: 1.0 },
+  { letter: 'F', min_percent: 0, max_percent: 49, gpa_points: 0.0 },
+];
 
 export interface Announcement {
   id: string;

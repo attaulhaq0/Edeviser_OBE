@@ -87,13 +87,27 @@ const PostQuizReview = lazy(() => import('@/pages/student/quiz/PostQuizReview'))
 const MasteryRecoveryPage = lazy(() => import('@/pages/student/recovery/MasteryRecoveryPage'));
 const ExplanationReviewPage = lazy(() => import('@/pages/teacher/quiz-generation/ExplanationReviewPage'));
 
+// Announcements & Modules
+const AnnouncementEditor = lazy(() => import('@/pages/teacher/announcements/AnnouncementEditor'));
+const ModuleManager = lazy(() => import('@/pages/teacher/courses/ModuleManager'));
+
 // CQI pages
 const CQIManager = lazy(() => import('@/pages/coordinator/cqi/CQIManager'));
+
+// Course File
+const CourseFileGenerator = lazy(() => import('@/pages/coordinator/course-file/CourseFileGenerator'));
 
 // Survey pages
 const SurveyManager = lazy(() => import('@/pages/admin/surveys/SurveyManager'));
 const SurveyResultsPage = lazy(() => import('@/pages/admin/surveys/SurveyResultsPage'));
 const SurveyResponsePage = lazy(() => import('@/pages/student/surveys/SurveyResponsePage'));
+
+// Student Announcement & Material Detail
+const StudentAnnouncementDetail = lazy(() => import('@/pages/student/announcements/AnnouncementDetail'));
+const StudentCourseDetail = lazy(() => import('@/pages/student/courses/CourseDetail'));
+
+// Institution Settings
+const InstitutionSettingsPage = lazy(() => import('@/pages/admin/settings/InstitutionSettings'));
 
 // Shared pages
 const ProfilePage = lazy(() => import('@/pages/shared/ProfilePage'));
@@ -160,6 +174,7 @@ const AppRouter = () => (
         <Route path="surveys" element={<SurveyManager />} />
         <Route path="surveys/results" element={<SurveyResultsPage />} />
         <Route path="settings/profile" element={<ProfilePage />} />
+        <Route path="settings/institution" element={<InstitutionSettingsPage />} />
       </Route>
 
       {/* Coordinator routes */}
@@ -178,6 +193,7 @@ const AppRouter = () => (
         <Route path="plos/:id/edit" element={<PLOForm />} />
         <Route path="matrix" element={<CurriculumMatrixPage />} />
         <Route path="cqi" element={<CQIManager />} />
+        <Route path="course-file" element={<CourseFileGenerator />} />
         <Route path="settings/profile" element={<ProfilePage />} />
       </Route>
 
@@ -214,6 +230,8 @@ const AppRouter = () => (
         <Route path="courses/:courseId/quizzes/new" element={<QuizForm />} />
         <Route path="courses/:courseId/quizzes/:id/edit" element={<QuizForm />} />
         <Route path="courses/:courseId/explanation-review" element={<ExplanationReviewPage />} />
+        <Route path="announcements" element={<AnnouncementEditor />} />
+        <Route path="modules" element={<ModuleManager />} />
         <Route path="settings/profile" element={<ProfilePage />} />
       </Route>
 
@@ -243,6 +261,9 @@ const AppRouter = () => (
         <Route path="xp-history" element={<XPHistory />} />
         <Route path="portfolio" element={<StudentPortfolio />} />
         <Route path="surveys" element={<SurveyResponsePage />} />
+        <Route path="announcements/:announcementId" element={<StudentAnnouncementDetail />} />
+        <Route path="courses/:courseId" element={<StudentCourseDetail />} />
+        <Route path="courses/:courseId/materials/:materialId" element={<StudentCourseDetail />} />
       </Route>
 
       {/* Parent routes */}

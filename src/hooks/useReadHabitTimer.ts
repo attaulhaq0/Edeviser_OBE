@@ -1,8 +1,10 @@
 // Task 52: Read Habit Timer — tracks 30s of reading to mark 'read' habit
 // Requirements: 61.1, 61.2, 61.4
 import { useEffect, useRef, useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/lib/supabase';
+import { queryKeys } from '@/lib/queryKeys';
 import { logActivity } from '@/lib/activityLogger';
 
 const READ_THRESHOLD_SECONDS = 30;
@@ -18,10 +20,20 @@ export interface UseReadHabitTimerReturn {
   isCompleted: boolean;
 }
 
+/** Compute YYYY-MM-DD from the user's local calendar date. */
+function getLocalDateString(): string {
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, '0');
+  const dd = String(today.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
 /**
  * Starts a 1-second interval on mount. When cumulative view time reaches 30 s
- * for the current calendar day, inserts a `habit_tracking` record with
- * `read_content = true` and logs an activity event with `duration_seconds`.
+ * for the current calendar day, upserts a `habit_tracking` record with
+ * `read_content = true` via a TanStack mutation and logs an activity event
+ * with `duration_seconds`.
  *
  * On unmount the partial duration is logged as an activity event so no
  * viewing time is lost.
@@ -30,6 +42,7 @@ export const useReadHabitTimer = (
   options: UseReadHabitTimerOptions,
 ): UseReadHabitTimerReturn => {
   const { profile } = useAuth();
+  const queryClient = useQueryClient();
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [isCompleted, setIsCompleted] = useState(false);
 
@@ -46,6 +59,32 @@ export const useReadHabitTimer = (
   useEffect(() => {
     profileRef.current = profile;
   }, [profile]);
+
+  const upsertMutation = useMutation({
+    mutationFn: async (params: { student_id: string; habit_date: string }) => {
+      const { error } = await supabase
+        .from('habit_tracking')
+        .upsert(
+          { student_id: params.student_id, habit_date: params.habit_date, read_content: true },
+          { onConflict: 'student_id,habit_date' },
+        );
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      const studentId = profileRef.current?.id;
+      if (studentId) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.habitLogs.all });
+      }
+    },
+    onError: (error) => {
+      console.error('[useReadHabitTimer] Failed to upsert habit_tracking:', error instanceof Error ? error.message : error);
+    },
+  });
+
+  const upsertRef = useRef(upsertMutation);
+  useEffect(() => {
+    upsertRef.current = upsertMutation;
+  }, [upsertMutation]);
 
   useEffect(() => {
     if (!profile?.id || profile.role !== 'student') return;
@@ -65,24 +104,10 @@ export const useReadHabitTimer = (
         const studentId = profileRef.current?.id;
         if (!studentId) return;
 
-        const today = new Date();
-        const yyyy = today.getFullYear();
-        const mm = String(today.getMonth() + 1).padStart(2, '0');
-        const dd = String(today.getDate()).padStart(2, '0');
-        const todayStr = `${yyyy}-${mm}-${dd}`;
+        const todayStr = getLocalDateString();
 
-        // Mark read_content habit for today in habit_tracking table
-        supabase
-          .from('habit_tracking')
-          .upsert(
-            { student_id: studentId, habit_date: todayStr, read_content: true },
-            { onConflict: 'student_id,habit_date' },
-          )
-          .then(({ error }) => {
-            if (error) {
-              console.error('[useReadHabitTimer] Failed to upsert habit_tracking:', error.message);
-            }
-          });
+        // Mark read_content habit for today via TanStack mutation
+        upsertRef.current.mutate({ student_id: studentId, habit_date: todayStr });
 
         // Log activity with duration_seconds metadata
         logActivity({

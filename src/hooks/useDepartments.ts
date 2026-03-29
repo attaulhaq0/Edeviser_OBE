@@ -84,12 +84,11 @@ export const useDeleteDepartment = () => {
   const { user } = useAuth();
   return useMutation({
     mutationFn: async (id: string) => {
-      // Check for active programs
-      const { count, error: checkError } = await supabase.from('programs').select('id', { count: 'exact', head: true }).eq('department_id', id);
-      if (checkError) throw new Error(`Unable to verify active programs: ${checkError.message}`);
-      if (count && count > 0) throw new Error('Cannot delete department with active programs');
-      const { error } = await supabase.from('departments').delete().eq('id', id);
-      if (error) throw error;
+      // Atomic delete: only succeeds if no programs reference this department.
+      // Uses a single RPC call to avoid TOCTOU race between check and delete.
+      const { data, error } = await supabase.rpc('delete_department_if_no_programs' as never, { dept_id: id } as never);
+      if (error) throw new Error(`Delete failed: ${(error as { message: string }).message}`);
+      if (data === false) throw new Error('Cannot delete department with active programs');
       await logAuditEvent({ action: 'delete', entity_type: 'department', entity_id: id, changes: null, performed_by: user?.id ?? 'unknown' });
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: queryKeys.departments.all }); toast.success('Department deleted'); },

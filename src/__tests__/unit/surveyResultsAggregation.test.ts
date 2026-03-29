@@ -1,43 +1,16 @@
 // @vitest-environment happy-dom
 import { describe, it, expect } from 'vitest';
-
-// ─── Inline aggregation helpers (mirroring SurveyResultsPage logic) ─────────
-
-const LIKERT_LABELS = ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree'];
-
-interface MockResponse {
-  id: string;
-  survey_id: string;
-  question_id: string;
-  respondent_id: string;
-  response_value: string;
-  created_at: string;
-}
-
-function aggregateLikert(responses: MockResponse[], questionId: string) {
-  const counts = new Map<string, number>();
-  for (const label of LIKERT_LABELS) counts.set(label, 0);
-
-  for (const r of responses) {
-    if (r.question_id === questionId && counts.has(r.response_value)) {
-      counts.set(r.response_value, (counts.get(r.response_value) ?? 0) + 1);
-    }
-  }
-
-  return LIKERT_LABELS.map((label) => ({ label, count: counts.get(label) ?? 0 }));
-}
-
-function aggregateMCQ(responses: MockResponse[], questionId: string) {
-  const counts: Record<string, number> = {};
-  for (const r of responses) {
-    if (r.question_id === questionId) {
-      counts[r.response_value] = (counts[r.response_value] ?? 0) + 1;
-    }
-  }
-  return Object.entries(counts).map(([option, count]) => ({ option, count }));
-}
+import { aggregateLikert, aggregateMCQ } from '@/lib/surveyAggregators';
+import type { AggregableResponse } from '@/lib/surveyAggregators';
 
 // ─── Tests ──────────────────────────────────────────────────────────────────
+
+interface MockResponse extends AggregableResponse {
+  id: string;
+  survey_id: string;
+  respondent_id: string;
+  created_at: string;
+}
 
 describe('Survey Results Aggregation', () => {
   const makeResponse = (questionId: string, value: string, respondentId = 'stu-1'): MockResponse => ({
