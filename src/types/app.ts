@@ -346,6 +346,13 @@ export interface GradeScale {
 
 export type AccreditationBody = 'HEC' | 'QQA' | 'ABET' | 'NCAAA' | 'AACSB' | 'Generic';
 
+export interface LeagueThresholdsConfig {
+  bronze: number;
+  silver: number;
+  gold: number;
+  diamond: number;
+}
+
 export interface InstitutionSettings {
   id: string;
   institution_id: string;
@@ -353,6 +360,8 @@ export interface InstitutionSettings {
   success_threshold: number;
   accreditation_body: AccreditationBody;
   grade_scales: GradeScale[];
+  streak_sabbatical_enabled: boolean;
+  league_thresholds?: LeagueThresholdsConfig;
   created_at: string;
 }
 

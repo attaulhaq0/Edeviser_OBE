@@ -2,7 +2,7 @@
 // All badge conditions are defined here as a single source of truth.
 // Mystery badge conditions are checked server-side only — never expose to client.
 
-export type BadgeCategory = 'streak' | 'academic' | 'engagement' | 'mystery' | 'habit' | 'blooms';
+export type BadgeCategory = 'streak' | 'academic' | 'engagement' | 'mystery' | 'habit' | 'blooms' | 'team';
 
 export interface BadgeDef {
   id: string;
@@ -121,6 +121,46 @@ export const BADGE_DEFINITIONS: BadgeDef[] = [
     condition: 'Complete all 4 daily habits for 7 consecutive days',
     xpReward: 100,
   },
+  {
+    id: 'perfect_attendance_week',
+    name: 'Perfect Attendance Week',
+    description: 'Present for all sessions in a 7-day period',
+    icon: '📋',
+    category: 'engagement',
+    isMystery: false,
+    condition: 'Marked present for all class sessions within a 7-day period',
+    xpReward: 75,
+  },
+  {
+    id: 'quiz_master',
+    name: 'Quiz Master',
+    description: 'Complete 10 quizzes',
+    icon: '🧠',
+    category: 'engagement',
+    isMystery: false,
+    condition: 'Complete 10 quiz attempts',
+    xpReward: 100,
+  },
+  {
+    id: 'discussion_helper',
+    name: 'Discussion Helper',
+    description: 'Have 5 answers marked correct in discussions',
+    icon: '💬',
+    category: 'engagement',
+    isMystery: false,
+    condition: '5 discussion replies marked as correct answer by teacher',
+    xpReward: 75,
+  },
+  {
+    id: 'survey_completer',
+    name: 'Survey Completer',
+    description: 'Complete 3 surveys',
+    icon: '📊',
+    category: 'engagement',
+    isMystery: false,
+    condition: 'Submit responses to 3 different surveys',
+    xpReward: 50,
+  },
 
   // ── Onboarding badges ────────────────────────────────────────────────────
   {
@@ -206,6 +246,48 @@ export const BADGE_DEFINITIONS: BadgeDef[] = [
     isMystery: false,
     condition: 'Reach highest_bloom_level >= 6 on any CLO via adaptive quiz',
     xpReward: 150,
+  },
+
+  // ── Team badges ────────────────────────────────────────────────────────
+  {
+    id: 'team_spirit',
+    name: 'Team Spirit',
+    description: 'Team earned 500 XP together',
+    icon: '🤝',
+    category: 'team',
+    isMystery: false,
+    condition: 'Team earns 500 XP collectively',
+    xpReward: 100,
+  },
+  {
+    id: 'unstoppable',
+    name: 'Unstoppable',
+    description: 'Team won 3 challenges',
+    icon: '💪',
+    category: 'team',
+    isMystery: false,
+    condition: 'Team wins 3 challenges',
+    xpReward: 150,
+  },
+  {
+    id: 'dream_team',
+    name: 'Dream Team',
+    description: 'All members completed a Perfect Day on the same day',
+    icon: '⭐',
+    category: 'team',
+    isMystery: false,
+    condition: 'All team members complete all 4 daily habits on the same day',
+    xpReward: 200,
+  },
+  {
+    id: 'study_squad',
+    name: 'Study Squad',
+    description: 'Team maintained a 7-day streak',
+    icon: '📚',
+    category: 'team',
+    isMystery: false,
+    condition: 'Team maintains a 7-day team streak',
+    xpReward: 100,
   },
 
   // ── Mystery badges (hidden conditions) ──────────────────────────────────

@@ -1,0 +1,26 @@
+/* Task 81.4: RTL-aware CSS utilities */
+
+/* Mirror horizontal padding and margins for RTL */
+[dir="rtl"] .ltr\:pl-3 { padding-right: 0.75rem; padding-left: 0; }
+[dir="rtl"] .ltr\:pr-3 { padding-left: 0.75rem; padding-right: 0; }
+[dir="rtl"] .ltr\:ml-2 { margin-right: 0.5rem; margin-left: 0; }
+[dir="rtl"] .ltr\:mr-2 { margin-left: 0.5rem; margin-right: 0; }
+
+/* Sidebar moves to right side in RTL */
+[dir="rtl"] .flex.h-screen > aside { order: 1; border-left: 1px solid; border-right: 0; }
+[dir="rtl"] .flex.h-screen > main { order: 0; }
+
+/* Mirror flex direction */
+[dir="rtl"] .rtl\:flex-row-reverse { flex-direction: row-reverse; }
+
+/* Mirror border-radius */
+[dir="rtl"] .ltr\:rounded-l-lg { border-radius: 0 0.5rem 0.5rem 0; }
+[dir="rtl"] .ltr\:rounded-r-lg { border-radius: 0.5rem 0 0 0.5rem; }
+
+/* Mirror text alignment */
+[dir="rtl"] .ltr\:text-left { text-align: right; }
+[dir="rtl"] .ltr\:text-right { text-align: left; }
+
+/* Mirror absolute positioning */
+[dir="rtl"] .ltr\:left-3 { right: 0.75rem; left: auto; }
+[dir="rtl"] .ltr\:right-3 { left: 0.75rem; right: auto; }

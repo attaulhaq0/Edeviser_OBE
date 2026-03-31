@@ -31,6 +31,9 @@ import { draftManager } from '@/lib/draftManager';
 import { useOptimisticXP } from '@/hooks/useOptimisticXP';
 import { XP_SCHEDULE, LATE_SUBMISSION_XP } from '@/lib/xpSchedule';
 import { useReadHabitTimer } from '@/hooks/useReadHabitTimer';
+import { useAssignmentDifficultyBonus } from '@/hooks/useAdaptiveXP';
+import BloomsPill from '@/components/shared/BloomsPill';
+import { Sparkles } from 'lucide-react';
 
 // ─── AssignmentDetailPage ───────────────────────────────────────────────────
 
@@ -77,6 +80,10 @@ const AssignmentDetailPage = () => {
     pageType: 'assignment_detail',
     pageId: id ?? '',
   });
+
+  // Difficulty bonus: fetch Bloom's levels for linked CLOs
+  const cloIds = (assignment?.clo_weights ?? []).map((cw) => cw.clo_id);
+  const { data: difficultyBonus } = useAssignmentDifficultyBonus(cloIds);
 
   const deadlineStatus = assignment
     ? getDeadlineStatus(assignment.due_date, assignment.late_window_hours)
@@ -319,6 +326,20 @@ const AssignmentDetailPage = () => {
                     CLO: {cw.weight}%
                   </Badge>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {/* Difficulty Bonus — Requirement 121.3 */}
+          {difficultyBonus && (
+            <div>
+              <p className="text-xs text-gray-500 mb-2">Difficulty Bonus</p>
+              <div className="flex items-center gap-2">
+                <BloomsPill level={difficultyBonus.bloomsLevel} />
+                <Badge variant="outline" className="text-xs bg-amber-50 text-amber-700 border-amber-200">
+                  <Sparkles className="h-3 w-3 mr-1" />
+                  {difficultyBonus.multiplier}x XP Bonus
+                </Badge>
               </div>
             </div>
           )}

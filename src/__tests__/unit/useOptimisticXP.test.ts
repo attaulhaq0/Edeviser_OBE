@@ -50,6 +50,7 @@ describe('useOptimisticXP', () => {
       currentStreak: 7,
       currentLevel: 2,
       totalXP: 100,
+      totalActiveDays: 0,
     };
     queryClient.setQueryData(kpiKey, initialKPI);
 
@@ -110,6 +111,7 @@ describe('useOptimisticXP', () => {
       currentStreak: 7,
       currentLevel: 2,
       totalXP: 100,
+      totalActiveDays: 0,
     };
     queryClient.setQueryData(kpiKey, initialKPI);
 
@@ -154,6 +156,7 @@ describe('useOptimisticStreak', () => {
       currentStreak: 7,
       currentLevel: 2,
       totalXP: 100,
+      totalActiveDays: 0,
     };
     queryClient.setQueryData(kpiKey, initialKPI);
 

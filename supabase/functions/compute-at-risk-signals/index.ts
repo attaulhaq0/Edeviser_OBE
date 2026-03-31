@@ -11,6 +11,7 @@ const corsHeaders = {
 //   • days_since_last_login
 //   • clo_attainment_trend  (improving | declining | stagnant)
 //   • submission_pattern    (early | on_time | late | missed)
+//   • attendance_frequency  (low | medium | high)
 // Stores the computed signals as JSONB in student_gamification.at_risk_signals.
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -19,6 +20,7 @@ interface AtRiskSignals {
   days_since_last_login: number;
   clo_attainment_trend: 'improving' | 'declining' | 'stagnant';
   submission_pattern: 'early' | 'on_time' | 'late' | 'missed';
+  attendance_frequency: 'low' | 'medium' | 'high';
   computed_at: string;
 }
 
@@ -79,6 +81,22 @@ function computeSubmissionPattern(
   if (lateRatio > 0.5) return 'late';
   if (lateRatio < 0.1) return 'early';
   return 'on_time';
+}
+
+/**
+ * Compute attendance frequency from attendance_records.
+ * Compares (present + late) / total sessions.
+ * Requirement 78.6: attendance as contributing signal.
+ */
+function computeAttendanceFrequency(
+  presentOrLate: number,
+  totalSessions: number,
+): 'low' | 'medium' | 'high' {
+  if (totalSessions === 0) return 'high'; // no sessions yet — assume fine
+  const ratio = presentOrLate / totalSessions;
+  if (ratio >= 0.85) return 'high';
+  if (ratio >= 0.65) return 'medium';
+  return 'low';
 }
 
 // ─── Main Handler ───────────────────────────────────────────────────────────
@@ -190,11 +208,56 @@ serve(async (req) => {
           );
         }
 
+        // ── Attendance frequency (Requirement 78.6) ───────────────────
+        let attendanceFrequency: AtRiskSignals['attendance_frequency'] = 'high';
+
+        if (courseIds.length > 0) {
+          // Get sections for enrolled courses
+          const { data: sections } = await supabase
+            .from('course_sections')
+            .select('id')
+            .in('course_id', courseIds);
+
+          const sectionIds = (sections ?? []).map((s: { id: string }) => s.id);
+
+          if (sectionIds.length > 0) {
+            // Count total sessions across all sections
+            const { count: totalSessions } = await supabase
+              .from('class_sessions')
+              .select('id', { count: 'exact', head: true })
+              .in('section_id', sectionIds);
+
+            if (totalSessions && totalSessions > 0) {
+              // Get session IDs for attendance lookup
+              const { data: sessionRows } = await supabase
+                .from('class_sessions')
+                .select('id')
+                .in('section_id', sectionIds);
+
+              const sessionIds = (sessionRows ?? []).map((s: { id: string }) => s.id);
+
+              // Count present + late records for this student
+              const { count: presentOrLate } = await supabase
+                .from('attendance_records')
+                .select('id', { count: 'exact', head: true })
+                .eq('student_id', student.student_id)
+                .in('session_id', sessionIds)
+                .in('status', ['present', 'late']);
+
+              attendanceFrequency = computeAttendanceFrequency(
+                presentOrLate ?? 0,
+                totalSessions,
+              );
+            }
+          }
+        }
+
         // ── Store computed signals ────────────────────────────────────
         const signals: AtRiskSignals = {
           days_since_last_login: daysSinceLogin,
           clo_attainment_trend: cloTrend,
           submission_pattern: submissionPattern,
+          attendance_frequency: attendanceFrequency,
           computed_at: nowISO,
         };
 

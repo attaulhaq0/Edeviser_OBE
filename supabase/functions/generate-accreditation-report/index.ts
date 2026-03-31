@@ -10,7 +10,7 @@ const corsHeaders = {
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
-type ReportTemplate = 'ABET' | 'HEC' | 'Generic';
+type ReportTemplate = 'ABET' | 'HEC' | 'QQA' | 'NCAAA' | 'AACSB' | 'Generic';
 
 interface ReportRequest {
   program_id: string;
@@ -54,7 +54,7 @@ function validatePayload(
     return { valid: false, error: 'semester_id must be a string when provided' };
   }
 
-  const validTemplates: ReportTemplate[] = ['ABET', 'HEC', 'Generic'];
+  const validTemplates: ReportTemplate[] = ['ABET', 'HEC', 'QQA', 'NCAAA', 'AACSB', 'Generic'];
   if (!p.template || typeof p.template !== 'string' || !validTemplates.includes(p.template as ReportTemplate)) {
     return { valid: false, error: `template is required and must be one of: ${validTemplates.join(', ')}` };
   }
@@ -110,6 +110,11 @@ function generatePDF(
   iloData: Array<{ title: string; avgAttainment: number; evidenceCount: number; level: string }>,
   bloomsDist: Record<string, number>,
   chartImages: Record<string, string> | undefined,
+  surveyResponseCount: number,
+  cqiPlans: Array<{ id: string; outcome_id: string; status: string; baseline_attainment: number | null; target_attainment: number | null; result_attainment: number | null }>,
+  sections: Array<{ id: string; section_code: string; course_id: string }>,
+  gaData: Array<{ title: string; code: string; attainment: number; mappedILOs: number }>,
+  competencyData: Array<{ framework: string; totalIndicators: number; mappedIndicators: number; unmappedIndicators: number }>,
 ): Uint8Array {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const doc = new jsPDF() as any;
@@ -201,6 +206,115 @@ function generatePDF(
 
   yPos = doc.lastAutoTable?.finalY ?? yPos + 40;
   yPos += 12;
+
+  // ── Indirect Assessment: Survey Results (Task 62.4 / 77.1) ──────────
+  if (yPos > 240) { doc.addPage(); yPos = 20; }
+  doc.setFontSize(14);
+  doc.text('Indirect Assessment — Survey Results', 14, yPos);
+  yPos += 6;
+  autoTable(doc, {
+    startY: yPos,
+    head: [['Metric', 'Value']],
+    body: [
+      ['Total Survey Responses', String(surveyResponseCount)],
+      ['Assessment Type', 'Indirect (Student/Graduate/Employer Surveys)'],
+    ],
+    theme: 'grid',
+    headStyles: { fillColor: [245, 158, 11] },
+    styles: { fontSize: 8 },
+  });
+  yPos = doc.lastAutoTable?.finalY ?? yPos + 30;
+  yPos += 12;
+
+  // ── CQI Action Plans — Closing the Loop (Task 63.4 / 77.2) ─────────
+  if (cqiPlans.length > 0) {
+    if (yPos > 220) { doc.addPage(); yPos = 20; }
+    doc.setFontSize(14);
+    doc.text('Continuous Quality Improvement (CQI) — Closing the Loop', 14, yPos);
+    yPos += 6;
+    autoTable(doc, {
+      startY: yPos,
+      head: [['Outcome ID', 'Status', 'Baseline %', 'Target %', 'Result %']],
+      body: cqiPlans.map((p) => [
+        p.outcome_id.slice(0, 8),
+        p.status,
+        p.baseline_attainment?.toFixed(1) ?? '—',
+        p.target_attainment?.toFixed(1) ?? '—',
+        p.result_attainment?.toFixed(1) ?? '—',
+      ]),
+      theme: 'grid',
+      headStyles: { fillColor: [34, 197, 94] },
+      styles: { fontSize: 8 },
+    });
+    yPos = doc.lastAutoTable?.finalY ?? yPos + 30;
+    yPos += 12;
+  }
+
+  // ── Per-Section Summary (Task 77.4) ─────────────────────────────────
+  if (sections.length > 0) {
+    if (yPos > 220) { doc.addPage(); yPos = 20; }
+    doc.setFontSize(14);
+    doc.text('Section Summary', 14, yPos);
+    yPos += 6;
+    autoTable(doc, {
+      startY: yPos,
+      head: [['Section Code', 'Course ID']],
+      body: sections.map((s) => [s.section_code, s.course_id.slice(0, 8)]),
+      theme: 'grid',
+      headStyles: { fillColor: [100, 116, 139] },
+      styles: { fontSize: 8 },
+    });
+    yPos = doc.lastAutoTable?.finalY ?? yPos + 30;
+    yPos += 12;
+  }
+
+  // ── Graduate Attribute Attainment Summary (Task 113.4) ────────────────
+  if (gaData.length > 0) {
+    if (yPos > 220) { doc.addPage(); yPos = 20; }
+    doc.setFontSize(14);
+    doc.text('Graduate Attribute Attainment', 14, yPos);
+    yPos += 6;
+    autoTable(doc, {
+      startY: yPos,
+      head: [['Code', 'Attribute', 'Attainment %', 'Level', 'Mapped ILOs']],
+      body: gaData.map((ga) => [
+        ga.code,
+        ga.title,
+        ga.attainment.toFixed(1),
+        classifyAttainment(ga.attainment),
+        String(ga.mappedILOs),
+      ]),
+      theme: 'grid',
+      headStyles: { fillColor: [168, 85, 247] },
+      styles: { fontSize: 8 },
+    });
+    yPos = doc.lastAutoTable?.finalY ?? yPos + 30;
+    yPos += 12;
+  }
+
+  // ── Competency Framework Alignment Summary (Task 115.5) ─────────────
+  if (competencyData.length > 0) {
+    if (yPos > 220) { doc.addPage(); yPos = 20; }
+    doc.setFontSize(14);
+    doc.text('Competency Framework Alignment', 14, yPos);
+    yPos += 6;
+    autoTable(doc, {
+      startY: yPos,
+      head: [['Framework', 'Total Indicators', 'Mapped', 'Unmapped', 'Coverage %']],
+      body: competencyData.map((cf) => [
+        cf.framework,
+        String(cf.totalIndicators),
+        String(cf.mappedIndicators),
+        String(cf.unmappedIndicators),
+        cf.totalIndicators > 0 ? ((cf.mappedIndicators / cf.totalIndicators) * 100).toFixed(1) : '0.0',
+      ]),
+      theme: 'grid',
+      headStyles: { fillColor: [234, 88, 12] },
+      styles: { fontSize: 8 },
+    });
+    yPos = doc.lastAutoTable?.finalY ?? yPos + 30;
+    yPos += 12;
+  }
 
   // ── Chart Images (pre-rendered from client) ─────────────────────────────
   if (chartImages) {
@@ -391,6 +505,91 @@ serve(async (req) => {
     // ── Bloom's distribution ──────────────────────────────────────────────
     const bloomsDist = countBloomsDistribution(allOutcomes);
 
+    // ── Fetch survey results as indirect assessment (Task 62.4 / 77.1) ──
+    const { data: surveyRows } = await supabase
+      .from('survey_responses')
+      .select('survey_id, responses')
+      .in(
+        'survey_id',
+        (await supabase.from('surveys').select('id').eq('institution_id', program.institution_id)).data?.map((s: { id: string }) => s.id) ?? [],
+      );
+    const surveyCount = surveyRows?.length ?? 0;
+
+    // ── Fetch CQI action plans (Task 63.4 / 77.2) ──────────────────────
+    const { data: cqiRows } = await supabase
+      .from('cqi_action_plans')
+      .select('id, outcome_id, status, baseline_attainment, target_attainment, result_attainment')
+      .eq('program_id', program_id);
+    const cqiPlans = (cqiRows ?? []) as Array<{
+      id: string; outcome_id: string; status: string;
+      baseline_attainment: number | null; target_attainment: number | null; result_attainment: number | null;
+    }>;
+
+    // ── Fetch per-section attainment (Task 77.4) ────────────────────────
+    const { data: sectionRows } = await supabase
+      .from('course_sections')
+      .select('id, section_code, course_id')
+      .in('course_id', courseIds.length > 0 ? courseIds : ['__none__']);
+    const sections = (sectionRows ?? []) as Array<{ id: string; section_code: string; course_id: string }>;
+
+    // ── Fetch Graduate Attribute data (Task 113.4) ──────────────────────
+    const { data: gaRows } = await supabase
+      .from('graduate_attributes')
+      .select('id, title, code')
+      .eq('institution_id', program.institution_id);
+    const gaData: Array<{ title: string; code: string; attainment: number; mappedILOs: number }> = [];
+    for (const ga of (gaRows ?? []) as Array<{ id: string; title: string; code: string }>) {
+      const { data: gaMappings } = await supabase
+        .from('graduate_attribute_mappings')
+        .select('ilo_id, weight')
+        .eq('graduate_attribute_id', ga.id);
+      const mappings = (gaMappings ?? []) as Array<{ ilo_id: string; weight: number }>;
+      let weightedSum = 0;
+      let totalWeight = 0;
+      for (const m of mappings) {
+        const iloAtt = iloAgg.find((i) => allOutcomes.find((o) => o.id === m.ilo_id)?.title === i.title);
+        if (iloAtt) {
+          weightedSum += iloAtt.avgAttainment * m.weight;
+          totalWeight += m.weight;
+        }
+      }
+      gaData.push({
+        title: ga.title,
+        code: ga.code,
+        attainment: totalWeight > 0 ? weightedSum / totalWeight : 0,
+        mappedILOs: mappings.length,
+      });
+    }
+
+    // ── Fetch Competency Framework data (Task 115.5) ────────────────────
+    const { data: cfRows } = await supabase
+      .from('competency_frameworks')
+      .select('id, name')
+      .eq('institution_id', program.institution_id);
+    const competencyData: Array<{ framework: string; totalIndicators: number; mappedIndicators: number; unmappedIndicators: number }> = [];
+    for (const cf of (cfRows ?? []) as Array<{ id: string; name: string }>) {
+      const { data: indicators } = await supabase
+        .from('competency_items')
+        .select('id')
+        .eq('framework_id', cf.id)
+        .eq('level', 'indicator');
+      const indicatorIds = ((indicators ?? []) as Array<{ id: string }>).map((i) => i.id);
+      let mappedCount = 0;
+      if (indicatorIds.length > 0) {
+        const { count } = await supabase
+          .from('competency_outcome_mappings')
+          .select('id', { count: 'exact', head: true })
+          .in('competency_item_id', indicatorIds);
+        mappedCount = count ?? 0;
+      }
+      competencyData.push({
+        framework: cf.name,
+        totalIndicators: indicatorIds.length,
+        mappedIndicators: Math.min(mappedCount, indicatorIds.length),
+        unmappedIndicators: Math.max(0, indicatorIds.length - mappedCount),
+      });
+    }
+
     // ── Generate PDF ──────────────────────────────────────────────────────
     const pdfBytes = generatePDF(
       template,
@@ -400,6 +599,11 @@ serve(async (req) => {
       iloAgg,
       bloomsDist,
       chart_images,
+      surveyCount,
+      cqiPlans,
+      sections,
+      gaData,
+      competencyData,
     );
 
     // ── Upload to Supabase Storage ────────────────────────────────────────

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useForm, useFieldArray, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -14,6 +14,7 @@ import {
 } from '@/hooks/useAssignments';
 import { useCourses } from '@/hooks/useCourses';
 import { useCLOs } from '@/hooks/useCLOs';
+import { useAcademicCalendarEvents } from '@/hooks/useAcademicCalendar';
 import { BLOOMS_COLORS } from '@/lib/bloomsVerbs';
 import type { BloomsLevel } from '@/lib/schemas/clo';
 import type { LearningOutcome } from '@/types/app';
@@ -305,12 +306,33 @@ const AssignmentFormFields = ({
   const navigate = useNavigate();
 
   const selectedCourseId = useWatch({ control: form.control, name: 'course_id' });
+  const watchedDueDate = useWatch({ control: form.control, name: 'due_date' });
   const { data: paginatedCourses, isLoading: isLoadingCourses } = useCourses();
   const courses = paginatedCourses?.data ?? [];
   const { data: paginatedCLOs, isLoading: isLoadingCLOs } = useCLOs(
     selectedCourseId || undefined,
   );
   const clos = paginatedCLOs?.data ?? [];
+  const { data: calendarEvents = [] } = useAcademicCalendarEvents();
+
+  // Check if due date falls on a holiday
+  const holidayWarning = useMemo(() => {
+    if (!watchedDueDate) return null;
+    const dueDateStr = watchedDueDate.slice(0, 10);
+    const holidays = calendarEvents.filter((e) => e.event_type === 'holiday');
+    const matchingHoliday = holidays.find((h) => {
+      if (dueDateStr === h.start_date) return true;
+      if (h.end_date && dueDateStr >= h.start_date && dueDateStr <= h.end_date) return true;
+      return false;
+    });
+    if (!matchingHoliday) return null;
+    // Suggest next available date
+    const endDate = matchingHoliday.end_date ?? matchingHoliday.start_date;
+    const nextDate = new Date(endDate);
+    nextDate.setDate(nextDate.getDate() + 1);
+    const nextDateStr = nextDate.toISOString().slice(0, 10);
+    return { holiday: matchingHoliday.title, suggestedDate: nextDateStr };
+  }, [watchedDueDate, calendarEvents]);
 
   // Reset CLO weights when course changes
   useEffect(() => {
@@ -418,6 +440,11 @@ const AssignmentFormFields = ({
                         }
                       />
                     </FormControl>
+                    {holidayWarning && (
+                      <p className="text-xs text-amber-600 mt-1">
+                        ⚠️ This date falls on a holiday ({holidayWarning.holiday}). Consider moving to {holidayWarning.suggestedDate}.
+                      </p>
+                    )}
                     <FormMessage />
                   </FormItem>
                 )}

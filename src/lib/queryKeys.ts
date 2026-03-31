@@ -18,6 +18,7 @@ const courses = createKeys('courses')
 const ilos = createKeys('ilos')
 const plos = createKeys('plos')
 const clos = createKeys('clos')
+const subCLOs = createKeys('subCLOs')
 const outcomeMappings = createKeys('outcomeMappings')
 const rubrics = createKeys('rubrics')
 const assignments = createKeys('assignments')
@@ -213,6 +214,7 @@ export const queryKeys = {
   ilos,
   plos,
   clos,
+  subCLOs,
   outcomeMappings,
   rubrics,
   assignments,
@@ -303,4 +305,43 @@ export const queryKeys = {
   bloomsProgression,
   // Onboarding
   onboarding,
+  // OBE Visualizations
+  graduateAttributes: createKeys('graduateAttributes'),
+  graduateAttributeMappings: createKeys('graduateAttributeMappings'),
+  graduateAttributeAttainment: createKeys('graduateAttributeAttainment'),
+  competencyFrameworks: createKeys('competencyFrameworks'),
+  competencyItems: createKeys('competencyItems'),
+  competencyOutcomeMappings: createKeys('competencyOutcomeMappings'),
+  sankeyData: createKeys('sankeyData'),
+  gapAnalysisData: createKeys('gapAnalysisData'),
+  coverageHeatmapData: createKeys('coverageHeatmapData'),
+  semesterTrends: createKeys('semesterTrends'),
+  cohortComparison: createKeys('cohortComparison'),
+  historicalEvidence: createKeys('historicalEvidence'),
+  // Teams
+  teams: createKeys('teams'),
+  teamMembers: createKeys('teamMembers'),
+  teamGamification: createKeys('teamGamification'),
+  teamLeaderboard: createKeys('teamLeaderboard'),
+  teamBadges: createKeys('teamBadges'),
+  // Challenges
+  challenges: createKeys('challenges'),
+  challengeProgress: createKeys('challengeProgress'),
+  studentChallenges: createKeys('studentChallenges'),
+  // Adaptive XP
+  xpMultiplier: createKeys('xpMultiplier'),
+  diminishingReturns: createKeys('diminishingReturns'),
+  improvementBonusHistory: createKeys('improvementBonusHistory'),
+  // Comeback Challenge
+  comebackChallenge: createKeys('comebackChallenge'),
+  // Leaderboard Enhancements
+  personalBest: createKeys('personalBest'),
+  mostImproved: createKeys('mostImproved'),
+  leagueTier: createKeys('leagueTier'),
+  percentileBand: createKeys('percentileBand'),
+  leagueLeaderboard: createKeys('leagueLeaderboard'),
+  // Badge Tiers
+  tieredBadges: createKeys('tieredBadges'),
+  badgeSpotlight: createKeys('badgeSpotlight'),
+  badgeSpotlightSchedule: createKeys('badgeSpotlightSchedule'),
 } as const

@@ -8,12 +8,13 @@ const corsHeaders = {
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
-type BadgeTrigger = 'xp_award' | 'submission' | 'streak_update' | 'grade' | 'journal' | 'habit_log';
+type BadgeTrigger = 'xp_award' | 'submission' | 'streak_update' | 'grade' | 'journal' | 'habit_log' | 'team_event';
 
 interface CheckBadgesPayload {
   student_id: string;
   trigger: BadgeTrigger;
   context?: Record<string, unknown>;
+  team_id?: string;
 }
 
 interface BadgeDef {
@@ -45,12 +46,21 @@ const BADGE_XP: Record<string, number> = {
   bloom_explorer: 75,
   bloom_challenger: 100,
   bloom_pioneer: 150,
+  // Team badges
+  team_spirit: 100,
+  unstoppable: 150,
+  dream_team: 200,
+  study_squad: 100,
+  // Improvement badge
+  comeback_kid: 100,
+  // Rising Star badge (Most Improved top 3 for 2 consecutive weeks)
+  rising_star: 100,
 };
 
 // ─── Validation ─────────────────────────────────────────────────────────────
 
 const VALID_TRIGGERS: BadgeTrigger[] = [
-  'xp_award', 'submission', 'streak_update', 'grade', 'journal', 'habit_log',
+  'xp_award', 'submission', 'streak_update', 'grade', 'journal', 'habit_log', 'team_event',
 ];
 
 function validatePayload(
@@ -76,6 +86,7 @@ function validatePayload(
       student_id: p.student_id as string,
       trigger: p.trigger as BadgeTrigger,
       context: (p.context && typeof p.context === 'object') ? p.context as Record<string, unknown> : undefined,
+      team_id: (p.team_id && typeof p.team_id === 'string') ? p.team_id as string : undefined,
     },
   };
 }
@@ -269,6 +280,106 @@ async function checkEngagementBadges(
       if (consecutivePerfectDays >= 7) {
         newBadges.push('perfect_week');
       }
+    }
+  }
+
+  // Perfect Attendance Week badge — present for all sessions in a 7-day period
+  // Requirement 78.7
+  if (!existingBadgeIds.has('perfect_attendance_week')) {
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+    const startDate = sevenDaysAgo.toISOString().slice(0, 10);
+
+    // Get all sessions in the last 7 days for courses the student is enrolled in
+    const { data: enrollments } = await supabase
+      .from('student_courses')
+      .select('course_id')
+      .eq('student_id', studentId)
+      .eq('status', 'active');
+
+    const courseIds = (enrollments ?? []).map((e: { course_id: string }) => e.course_id);
+
+    if (courseIds.length > 0) {
+      const { data: sections } = await supabase
+        .from('course_sections')
+        .select('id')
+        .in('course_id', courseIds);
+
+      const sectionIds = (sections ?? []).map((s: { id: string }) => s.id);
+
+      if (sectionIds.length > 0) {
+        const { data: recentSessions } = await supabase
+          .from('class_sessions')
+          .select('id')
+          .in('section_id', sectionIds)
+          .gte('session_date', startDate);
+
+        const sessionIds = (recentSessions ?? []).map((s: { id: string }) => s.id);
+
+        if (sessionIds.length > 0) {
+          // Check if student was present for ALL sessions
+          const { data: attendanceRecords } = await supabase
+            .from('attendance_records')
+            .select('session_id, status')
+            .eq('student_id', studentId)
+            .in('session_id', sessionIds)
+            .eq('status', 'present');
+
+          const presentSessionIds = new Set(
+            (attendanceRecords ?? []).map((r: { session_id: string }) => r.session_id),
+          );
+
+          const allPresent = sessionIds.every((id: string) => presentSessionIds.has(id));
+          if (allPresent) {
+            newBadges.push('perfect_attendance_week');
+          }
+        }
+      }
+    }
+  }
+
+  // Quiz Master badge — complete 10 quizzes (task 78.2)
+  if (!existingBadgeIds.has('quiz_master')) {
+    const { count } = await supabase
+      .from('quiz_attempts')
+      .select('id', { count: 'exact', head: true })
+      .eq('student_id', studentId);
+
+    if (count !== null && count >= 10) {
+      newBadges.push('quiz_master');
+    }
+  }
+
+  // Discussion Helper badge — have 5 answers marked correct (task 78.2)
+  if (!existingBadgeIds.has('discussion_helper')) {
+    const { data: threads } = await supabase
+      .from('discussion_threads')
+      .select('id')
+      .eq('is_resolved', true);
+
+    const threadIds = (threads ?? []).map((t: { id: string }) => t.id);
+    if (threadIds.length > 0) {
+      const { count } = await supabase
+        .from('discussion_replies')
+        .select('id', { count: 'exact', head: true })
+        .eq('author_id', studentId)
+        .eq('is_answer', true);
+
+      if (count !== null && count >= 5) {
+        newBadges.push('discussion_helper');
+      }
+    }
+  }
+
+  // Survey Completer badge — complete 3 surveys (task 78.2)
+  if (!existingBadgeIds.has('survey_completer')) {
+    const { count } = await supabase
+      .from('survey_responses')
+      .select('id', { count: 'exact', head: true })
+      .eq('respondent_id', studentId);
+
+    if (count !== null && count >= 3) {
+      newBadges.push('survey_completer');
     }
   }
 
@@ -503,6 +614,52 @@ async function checkHabitBadges(
   return newBadges;
 }
 
+// ─── Comeback Kid Badge Checker (Requirement 123.4) ─────────────────────
+
+async function checkComebackKidBadge(
+  supabase: ReturnType<typeof createClient>,
+  studentId: string,
+  existingBadgeIds: Set<string>,
+): Promise<string[]> {
+  const newBadges: string[] = [];
+
+  if (existingBadgeIds.has('comeback_kid')) return newBadges;
+
+  // Determine current semester date range
+  const now = new Date();
+  const todayStr = now.toISOString().slice(0, 10);
+
+  const { data: semester } = await supabase
+    .from('semesters')
+    .select('start_date, end_date')
+    .lte('start_date', todayStr)
+    .gte('end_date', todayStr)
+    .maybeSingle();
+
+  if (!semester) return newBadges;
+
+  // Count improvement bonus XP transactions within this semester
+  const { data: improvementTxns, error: txnErr } = await supabase
+    .from('xp_transactions')
+    .select('id')
+    .eq('student_id', studentId)
+    .eq('source', 'improvement_bonus')
+    .gte('created_at', semester.start_date)
+    .lte('created_at', `${semester.end_date}T23:59:59.999Z`);
+
+  if (txnErr) {
+    console.error('Failed to query improvement bonus transactions:', txnErr.message);
+    return newBadges;
+  }
+
+  // Award Comeback Kid badge when student earns 3+ improvement bonuses in a semester
+  if (improvementTxns && improvementTxns.length >= 3) {
+    newBadges.push('comeback_kid');
+  }
+
+  return newBadges;
+}
+
 // ─── Bloom's Progression Badge Checkers ─────────────────────────────────
 
 async function checkBloomsBadges(
@@ -555,6 +712,281 @@ async function checkBloomsBadges(
 
 // ─── Peer Milestone Notification for Rare Badges ────────────────────────────
 
+// ─── Team Badge Checkers ─────────────────────────────────────────────────────
+
+async function checkTeamBadges(
+  supabase: ReturnType<typeof createClient>,
+  teamId: string,
+  existingTeamBadgeIds: Set<string>,
+): Promise<string[]> {
+  const newBadges: string[] = [];
+
+  // Team Spirit: team earns 500 XP
+  if (!existingTeamBadgeIds.has('team_spirit')) {
+    const { data: gam } = await supabase
+      .from('team_gamification')
+      .select('xp_total')
+      .eq('team_id', teamId)
+      .maybeSingle();
+
+    if (gam && (gam.xp_total ?? 0) >= 500) {
+      newBadges.push('team_spirit');
+    }
+  }
+
+  // Unstoppable: team wins 3 challenges
+  if (!existingTeamBadgeIds.has('unstoppable')) {
+    const { count } = await supabase
+      .from('challenge_participants')
+      .select('id', { count: 'exact', head: true })
+      .eq('team_id', teamId)
+      .eq('is_winner', true);
+
+    if (count !== null && count >= 3) {
+      newBadges.push('unstoppable');
+    }
+  }
+
+  // Dream Team: all members complete Perfect Day on same day
+  if (!existingTeamBadgeIds.has('dream_team')) {
+    const { data: members } = await supabase
+      .from('team_members')
+      .select('student_id')
+      .eq('team_id', teamId);
+
+    if (members && members.length >= 2) {
+      const memberIds = members.map((m: { student_id: string }) => m.student_id);
+      const today = new Date().toISOString().slice(0, 10);
+
+      // Check habit_tracking for all 4 habits completed today for each member
+      const { data: habitRows } = await supabase
+        .from('habit_tracking')
+        .select('student_id')
+        .in('student_id', memberIds)
+        .eq('habit_date', today)
+        .eq('login', true)
+        .eq('submit', true)
+        .eq('journal', true)
+        .eq('read_content', true);
+
+      const perfectDayStudents = new Set(
+        (habitRows ?? []).map((r: { student_id: string }) => r.student_id),
+      );
+
+      const allPerfect = memberIds.every((id: string) => perfectDayStudents.has(id));
+      if (allPerfect) {
+        newBadges.push('dream_team');
+      }
+    }
+  }
+
+  // Study Squad: team maintains 7-day team streak
+  if (!existingTeamBadgeIds.has('study_squad')) {
+    const { data: gam } = await supabase
+      .from('team_gamification')
+      .select('streak_current')
+      .eq('team_id', teamId)
+      .maybeSingle();
+
+    if (gam && (gam.streak_current ?? 0) >= 7) {
+      newBadges.push('study_squad');
+    }
+  }
+
+  return newBadges;
+}
+
+// ─── Team Badge Award Helper ─────────────────────────────────────────────────
+
+async function awardTeamBadges(
+  supabase: ReturnType<typeof createClient>,
+  teamId: string,
+  badgeIds: string[],
+): Promise<string[]> {
+  const awarded: string[] = [];
+
+  for (const badgeId of badgeIds) {
+    // Insert with scope='team' and team_id — idempotent via unique constraint
+    const { error: insertErr } = await supabase
+      .from('badges')
+      .insert({
+        badge_key: badgeId,
+        badge_name: TEAM_BADGE_NAMES[badgeId] ?? badgeId,
+        emoji: TEAM_BADGE_EMOJIS[badgeId] ?? '🏅',
+        scope: 'team',
+        team_id: teamId,
+        awarded_at: new Date().toISOString(),
+      })
+      .select()
+      .maybeSingle();
+
+    if (insertErr) {
+      if (insertErr.code === '23505') continue; // Already awarded — idempotent
+      console.error(`Failed to insert team badge ${badgeId}:`, insertErr.message);
+      continue;
+    }
+
+    awarded.push(badgeId);
+
+    // Award XP to team pool
+    const xpReward = BADGE_XP[badgeId] ?? 0;
+    if (xpReward > 0) {
+      try {
+        await supabase.from('xp_transactions').insert({
+          team_id: teamId,
+          xp_amount: xpReward,
+          source: 'badge',
+          reference_id: badgeId,
+          note: `Team badge earned: ${badgeId}`,
+        });
+
+        // Update team_gamification xp_total
+        const { data: gam } = await supabase
+          .from('team_gamification')
+          .select('xp_total')
+          .eq('team_id', teamId)
+          .maybeSingle();
+
+        if (gam) {
+          await supabase
+            .from('team_gamification')
+            .update({ xp_total: (gam.xp_total ?? 0) + xpReward })
+            .eq('team_id', teamId);
+        }
+      } catch (xpErr) {
+        console.error(`Failed to award team XP for badge ${badgeId}:`, (xpErr as Error).message);
+      }
+    }
+
+    // Notify all team members
+    try {
+      const { data: members } = await supabase
+        .from('team_members')
+        .select('student_id')
+        .eq('team_id', teamId);
+
+      if (members && members.length > 0) {
+        const notifications = members.map((m: { student_id: string }) => ({
+          user_id: m.student_id,
+          type: 'team_badge',
+          title: 'Team Badge Earned!',
+          message: `Your team earned the ${TEAM_BADGE_NAMES[badgeId] ?? badgeId} badge! ${TEAM_BADGE_EMOJIS[badgeId] ?? '🏅'}`,
+          is_read: false,
+          metadata: { team_id: teamId, badge_id: badgeId },
+        }));
+
+        await supabase.from('notifications').insert(notifications);
+      }
+    } catch (notifErr) {
+      console.error(`Failed to notify team of badge ${badgeId}:`, (notifErr as Error).message);
+    }
+  }
+
+  return awarded;
+}
+
+const TEAM_BADGE_NAMES: Record<string, string> = {
+  team_spirit: 'Team Spirit',
+  unstoppable: 'Unstoppable',
+  dream_team: 'Dream Team',
+  study_squad: 'Study Squad',
+};
+
+const TEAM_BADGE_EMOJIS: Record<string, string> = {
+  team_spirit: '🤝',
+  unstoppable: '💪',
+  dream_team: '⭐',
+  study_squad: '📚',
+};
+
+// ─── Rising Star Badge Checker (Requirement 130.5) ──────────────────────
+
+async function checkRisingStarBadge(
+  supabase: ReturnType<typeof createClient>,
+  studentId: string,
+  existingBadgeIds: Set<string>,
+): Promise<string[]> {
+  const newBadges: string[] = [];
+
+  if (existingBadgeIds.has('rising_star')) return newBadges;
+
+  // Calculate the Most Improved top 3 for the current and previous week windows.
+  // Current window: last 8 weeks split into current 4 weeks vs previous 4 weeks.
+  // Previous window: shifted 1 week back (weeks 2-5 vs weeks 6-9 ago).
+  const now = new Date();
+
+  const windows = [
+    { currentStart: -28, previousStart: -56 }, // current week window
+    { currentStart: -35, previousStart: -63 }, // previous week window
+  ];
+
+  let consecutiveTop3 = 0;
+
+  for (const window of windows) {
+    const currentStart = new Date(now);
+    currentStart.setDate(currentStart.getDate() + window.currentStart);
+    const previousStart = new Date(now);
+    previousStart.setDate(previousStart.getDate() + window.previousStart);
+    const currentEnd = new Date(now);
+    currentEnd.setDate(currentEnd.getDate() + window.currentStart + 28);
+
+    // Fetch all xp_transactions in the 8-week window
+    const { data: transactions, error: txnErr } = await supabase
+      .from('xp_transactions')
+      .select('student_id, xp_amount, created_at')
+      .gte('created_at', previousStart.toISOString())
+      .lt('created_at', currentEnd.toISOString());
+
+    if (txnErr || !transactions) continue;
+
+    // Group by student into current and previous 4-week buckets
+    const studentMap = new Map<string, { current: number; previous: number }>();
+
+    for (const txn of transactions) {
+      const d = new Date(txn.created_at);
+      const sid = txn.student_id as string;
+
+      if (!studentMap.has(sid)) {
+        studentMap.set(sid, { current: 0, previous: 0 });
+      }
+
+      const entry = studentMap.get(sid)!;
+      if (d >= currentStart) {
+        entry.current += txn.xp_amount;
+      } else {
+        entry.previous += txn.xp_amount;
+      }
+    }
+
+    // Calculate improvement and rank
+    const ranked = [...studentMap.entries()]
+      .filter(([, data]) => data.previous > 0)
+      .map(([sid, data]) => ({
+        student_id: sid,
+        improvement: ((data.current - data.previous) / data.previous) * 100,
+      }))
+      .sort((a, b) => b.improvement - a.improvement)
+      .slice(0, 3);
+
+    const isTop3 = ranked.some((r) => r.student_id === studentId);
+
+    if (isTop3) {
+      consecutiveTop3++;
+    } else {
+      consecutiveTop3 = 0;
+    }
+  }
+
+  // Award Rising Star if top 3 in both consecutive windows
+  if (consecutiveTop3 >= 2) {
+    newBadges.push('rising_star');
+  }
+
+  return newBadges;
+}
+
+// ─── Peer Milestone Notification for Rare Badges (original) ─────────────────
+
 const BADGE_DISPLAY_NAMES: Record<string, string> = {
   streak_30: '30-Day Legend',
   streak_60: '60-Day Legend',
@@ -565,6 +997,8 @@ const BADGE_DISPLAY_NAMES: Record<string, string> = {
   bloom_explorer: "Bloom's Explorer",
   bloom_challenger: "Bloom's Challenger",
   bloom_pioneer: "Bloom's Pioneer",
+  comeback_kid: 'Comeback Kid',
+  rising_star: 'Rising Star',
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -705,7 +1139,7 @@ serve(async (req) => {
       );
     }
 
-    const { student_id, trigger } = validation.data;
+    const { student_id, trigger, team_id } = validation.data;
 
     // ── Step 1: Fetch existing badges for this student ──────────────────
 
@@ -764,6 +1198,39 @@ serve(async (req) => {
       newBadgeIds.push(...bloomsBadges);
     }
 
+    // Comeback Kid badge — check on xp_award (improvement bonus triggers xp_award)
+    if (trigger === 'xp_award') {
+      const comebackKidBadges = await checkComebackKidBadge(supabase, student_id, existingBadgeIds);
+      newBadgeIds.push(...comebackKidBadges);
+
+      // Rising Star badge — check on xp_award (top 3 Most Improved for 2 consecutive weeks)
+      const risingStarBadges = await checkRisingStarBadge(supabase, student_id, existingBadgeIds);
+      newBadgeIds.push(...risingStarBadges);
+    }
+
+    // ── Step 2b: Check team badges if team_event trigger ────────────────
+
+    let teamBadgesAwarded: string[] = [];
+
+    if (trigger === 'team_event' && team_id) {
+      // Fetch existing team badges
+      const { data: existingTeamBadges } = await supabase
+        .from('badges')
+        .select('badge_key')
+        .eq('team_id', team_id)
+        .eq('scope', 'team');
+
+      const existingTeamBadgeIds = new Set(
+        (existingTeamBadges ?? []).map((b: { badge_key: string }) => b.badge_key),
+      );
+
+      const newTeamBadgeIds = await checkTeamBadges(supabase, team_id, existingTeamBadgeIds);
+
+      if (newTeamBadgeIds.length > 0) {
+        teamBadgesAwarded = await awardTeamBadges(supabase, team_id, newTeamBadgeIds);
+      }
+    }
+
     // ── Step 3: Insert new badges idempotently ──────────────────────────
 
     const awardedBadges: string[] = [];
@@ -817,6 +1284,7 @@ serve(async (req) => {
       'streak_30', 'streak_60', 'streak_100',
       'speed_demon', 'night_owl', 'perfectionist',
       'bloom_explorer', 'bloom_challenger', 'bloom_pioneer',
+      'rising_star',
     ]);
 
     const rareBadgesAwarded = awardedBadges.filter((b) => RARE_BADGES.has(b));
@@ -837,6 +1305,7 @@ serve(async (req) => {
         success: true,
         new_badges: awardedBadges,
         total_badges: totalBadges,
+        team_badges_awarded: teamBadgesAwarded,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );

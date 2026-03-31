@@ -13,7 +13,10 @@ type EmailTemplate =
   | 'weekly_summary'
   | 'new_assignment'
   | 'grade_released'
-  | 'bulk_import_invitation';
+  | 'bulk_import_invitation'
+  | 'parent_grade_released'
+  | 'parent_attendance_alert'
+  | 'parent_at_risk_warning';
 
 interface EmailPayload {
   to: string;
@@ -34,6 +37,9 @@ const VALID_TEMPLATES: EmailTemplate[] = [
   'new_assignment',
   'grade_released',
   'bulk_import_invitation',
+  'parent_grade_released',
+  'parent_attendance_alert',
+  'parent_at_risk_warning',
 ];
 
 const DEFAULT_EMAIL_PREFERENCES: EmailPreferences = {
@@ -182,6 +188,58 @@ function renderTemplate(
             <p>You've been invited to join <strong>${data.institution_name ?? 'your institution'}</strong> on Edeviser as a <strong>${data.role ?? 'user'}</strong>.</p>
             <p>Click below to set up your account:</p>
             <a href="${data.invite_url ?? '#'}" style="display: inline-block; padding: 12px 24px; background: linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">Set Up Account</a>
+          </div>
+        `,
+      };
+
+    case 'parent_grade_released':
+      return {
+        subject: `📋 Grade Released for ${data.student_name ?? 'your child'}`,
+        html: `
+          <div style="font-family: 'Noto Sans', sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #0f172a;">Grade Released</h2>
+            <p>Hi ${data.parent_name ?? 'there'},</p>
+            <p>A grade has been released for <strong>${data.student_name ?? 'your child'}</strong> in <strong>${data.course_name ?? 'a course'}</strong>.</p>
+            <div style="background: #f8fafc; border-radius: 8px; padding: 16px; margin: 16px 0;">
+              <p style="margin: 0;"><strong>Assignment:</strong> ${data.assignment_title ?? 'N/A'}</p>
+              <p style="margin: 0;"><strong>Score:</strong> ${data.score ?? 'N/A'}%</p>
+            </div>
+            <a href="${data.dashboard_url ?? '#'}" style="display: inline-block; padding: 12px 24px; background: linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">View Dashboard</a>
+          </div>
+        `,
+      };
+
+    case 'parent_attendance_alert':
+      return {
+        subject: `⚠️ Attendance Alert for ${data.student_name ?? 'your child'}`,
+        html: `
+          <div style="font-family: 'Noto Sans', sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #0f172a;">Attendance Alert</h2>
+            <p>Hi ${data.parent_name ?? 'there'},</p>
+            <p><strong>${data.student_name ?? 'Your child'}</strong>'s attendance in <strong>${data.course_name ?? 'a course'}</strong> has dropped below 75%.</p>
+            <div style="background: #fef2f2; border-radius: 8px; padding: 16px; margin: 16px 0;">
+              <p style="margin: 0; color: #dc2626;"><strong>Current Attendance:</strong> ${data.attendance_percent ?? 0}%</p>
+            </div>
+            <p>Please encourage regular attendance to support their academic success.</p>
+            <a href="${data.dashboard_url ?? '#'}" style="display: inline-block; padding: 12px 24px; background: linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">View Dashboard</a>
+          </div>
+        `,
+      };
+
+    case 'parent_at_risk_warning':
+      return {
+        subject: `🚨 At-Risk Warning for ${data.student_name ?? 'your child'}`,
+        html: `
+          <div style="font-family: 'Noto Sans', sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #0f172a;">At-Risk Warning</h2>
+            <p>Hi ${data.parent_name ?? 'there'},</p>
+            <p><strong>${data.student_name ?? 'Your child'}</strong> has been flagged as at-risk in <strong>${data.course_name ?? 'a course'}</strong>.</p>
+            <div style="background: #fef2f2; border-radius: 8px; padding: 16px; margin: 16px 0;">
+              <p style="margin: 0; color: #dc2626;"><strong>Risk Level:</strong> ${data.risk_level ?? 'High'}</p>
+              <p style="margin: 4px 0 0 0; color: #64748b;">${data.risk_reason ?? 'Multiple performance indicators suggest the student may need additional support.'}</p>
+            </div>
+            <p>We recommend reaching out to the student and their teacher to discuss support options.</p>
+            <a href="${data.dashboard_url ?? '#'}" style="display: inline-block; padding: 12px 24px; background: linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">View Dashboard</a>
           </div>
         `,
       };

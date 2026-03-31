@@ -61,6 +61,8 @@ export const useUpsertInstitutionSettings = () => {
         success_threshold: input.success_threshold,
         accreditation_body: input.accreditation_body,
         grade_scales: input.grade_scales,
+        streak_sabbatical_enabled: input.streak_sabbatical_enabled ?? false,
+        league_thresholds: input.league_thresholds ?? undefined,
       };
 
       let result: InstitutionSettings;

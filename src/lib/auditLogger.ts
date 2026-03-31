@@ -35,6 +35,11 @@ const AUDIT_FIELD_ALLOWLIST: Record<string, string[]> = {
   announcement: ['course_id', 'title', 'is_pinned'],
   course_module: ['course_id', 'title', 'sort_order', 'is_published'],
   course_material: ['module_id', 'title', 'type', 'sort_order', 'is_published', 'clo_ids'],
+  class_session: ['section_id', 'session_date', 'session_type', 'topic'],
+  attendance_record: ['session_id', 'student_count'],
+  quiz: ['course_id', 'title', 'clo_ids', 'time_limit_minutes', 'max_attempts', 'is_published', 'due_date'],
+  quiz_question: ['quiz_id', 'question_type', 'points', 'sort_order'],
+  grade_category: ['course_id', 'name', 'weight_percent', 'sort_order'],
 };
 
 function filterChanges(

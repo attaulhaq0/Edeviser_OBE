@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useOnboardingStatus, useCompleteOnboarding } from '@/hooks/useOnboarding';
 import { getChecklistForRole } from '@/lib/onboardingChecklist';
 import QuickStartChecklist from '@/components/shared/QuickStartChecklist';
-import { LayoutDashboard, Target, TableProperties, ClipboardList, CheckSquare, FlaskConical, UserCircle, Megaphone, FolderOpen } from 'lucide-react';
+import { LayoutDashboard, Target, TableProperties, ClipboardList, CheckSquare, FlaskConical, UserCircle, Megaphone, FolderOpen, BookOpen, Calendar, Clock, Trophy, Users } from 'lucide-react';
 
 const WelcomeTour = lazy(() => import('@/components/shared/WelcomeTour'));
 
@@ -15,8 +15,13 @@ const navItems = [
   { to: '/teacher/rubrics', icon: TableProperties, label: 'Rubrics' },
   { to: '/teacher/assignments', icon: ClipboardList, label: 'Assignments' },
   { to: '/teacher/grading', icon: CheckSquare, label: 'Grading' },
+  { to: '/teacher/gradebook', icon: BookOpen, label: 'Gradebook' },
   { to: '/teacher/announcements', icon: Megaphone, label: 'Announcements' },
   { to: '/teacher/modules', icon: FolderOpen, label: 'Modules' },
+  { to: '/teacher/calendar', icon: Calendar, label: 'Calendar' },
+  { to: '/teacher/timetable', icon: Clock, label: 'Timetable' },
+  { to: '/teacher/challenges', icon: Trophy, label: 'Challenges' },
+  { to: '/teacher/teams', icon: Users, label: 'Teams' },
   { to: '/teacher/baseline', icon: FlaskConical, label: 'Baseline Tests' },
   { to: '/teacher/settings/profile', icon: UserCircle, label: 'Profile' },
 ];

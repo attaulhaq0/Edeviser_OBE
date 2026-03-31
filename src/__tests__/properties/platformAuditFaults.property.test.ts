@@ -93,7 +93,7 @@ describe('3. Column name fault condition', () => {
     // The gamification select query must include streak_count (matching process-streak writes)
     // Bug: code currently uses streak_current instead of streak_count
     const gamificationSelectMatch = source.match(
-      /\.from\(['"]student_gamification['"]\)\s*\.select\(['"]([^'"]+)['"]\)/s,
+      /\.from\(['"]student_gamification['"]\)\s*\.select\(['"]([^'"]+)['"]/s,
     );
     expect(gamificationSelectMatch).not.toBeNull();
     const selectColumns = gamificationSelectMatch![1];
@@ -117,7 +117,7 @@ describe('3. Column name fault condition', () => {
     // The gamification select query must include streak_count
     // Bug: code currently uses streak_current instead of streak_count
     const gamificationSelectMatch = source.match(
-      /\.from\(['"]student_gamification['"]\)\s*\.select\(['"]([^'"]+)['"]\)/s,
+      /\.from\(['"]student_gamification['"]\)\s*\.select\(['"]([^'"]+)['"]/s,
     );
     expect(gamificationSelectMatch).not.toBeNull();
     const selectColumns = gamificationSelectMatch![1];

@@ -9,6 +9,7 @@
     "lint": "eslint . --max-warnings 0",
     "preview": "vite preview",
     "test": "vitest --run",
+    "seed": "supabase db reset",
     "analyze": "cross-env ANALYZE=true vite build",
     "lighthouse": "lhci autorun"
   },
@@ -43,6 +44,7 @@
     "zustand": "^5.0.11"
   },
   "devDependencies": {
+    "@axe-core/react": "^4.11.1",
     "@eslint/js": "^9.39.3",
     "@fast-check/vitest": "^0.2.4",
     "@lhci/cli": "^0.15.1",

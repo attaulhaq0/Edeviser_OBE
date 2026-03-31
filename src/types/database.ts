@@ -2718,6 +2718,110 @@ export type Database = {
           },
         ]
       }
+      social_challenges: {
+        Row: {
+          id: string
+          title: string
+          description: string | null
+          challenge_type: string
+          course_id: string
+          start_date: string
+          end_date: string
+          goal_metric: string
+          goal_target: number
+          reward_type: string
+          reward_value: number
+          status: string
+          notification_sent_90: boolean
+          created_by: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          title: string
+          description?: string | null
+          challenge_type: string
+          course_id: string
+          start_date: string
+          end_date: string
+          goal_metric: string
+          goal_target: number
+          reward_type: string
+          reward_value?: number
+          status?: string
+          notification_sent_90?: boolean
+          created_by: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          title?: string
+          description?: string | null
+          challenge_type?: string
+          course_id?: string
+          start_date?: string
+          end_date?: string
+          goal_metric?: string
+          goal_target?: number
+          reward_type?: string
+          reward_value?: number
+          status?: string
+          notification_sent_90?: boolean
+          created_by?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_challenges_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_challenges_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      challenge_participants: {
+        Row: {
+          id: string
+          challenge_id: string
+          participant_id: string
+          participant_type: string
+          current_progress: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          challenge_id: string
+          participant_id: string
+          participant_type: string
+          current_progress?: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          challenge_id?: string
+          participant_id?: string
+          participant_type?: string
+          current_progress?: number
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "challenge_participants_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "social_challenges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       starter_week_sessions: {
         Row: {
           course_id: string | null
@@ -3366,30 +3470,45 @@ export type Database = {
       }
       xp_transactions: {
         Row: {
+          base_xp: number | null
           created_at: string
+          final_xp: number | null
           id: string
+          multipliers: Record<string, unknown>
           note: string | null
           reference_id: string | null
+          scope: string
           source: string
           student_id: string
+          team_id: string | null
           xp_amount: number
         }
         Insert: {
+          base_xp?: number | null
           created_at?: string
+          final_xp?: number | null
           id?: string
+          multipliers?: Record<string, unknown>
           note?: string | null
           reference_id?: string | null
+          scope?: string
           source: string
           student_id: string
+          team_id?: string | null
           xp_amount: number
         }
         Update: {
+          base_xp?: number | null
           created_at?: string
+          final_xp?: number | null
           id?: string
+          multipliers?: Record<string, unknown>
           note?: string | null
           reference_id?: string | null
+          scope?: string
           source?: string
           student_id?: string
+          team_id?: string | null
           xp_amount?: number
         }
         Relationships: [
@@ -3398,6 +3517,13 @@ export type Database = {
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "xp_transactions_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
             referencedColumns: ["id"]
           },
         ]

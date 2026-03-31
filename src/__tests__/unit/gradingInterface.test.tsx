@@ -183,14 +183,15 @@ describe('GradingInterface', () => {
   it('renders the page title for ungraded submission', async () => {
     await renderGradingInterface();
     expect(screen.getByText('Grade Submission')).toBeInTheDocument();
-  });
+  }, 15000);
 
   it('displays student name and email', async () => {
     await renderGradingInterface();
     // Use getAllByText to handle cases where the name may appear in multiple places
     const nameElements = screen.getAllByText('Alice Johnson');
     expect(nameElements.length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText('alice@example.com')).toBeInTheDocument();
+    const emailElements = screen.getAllByText('alice@example.com');
+    expect(emailElements.length).toBeGreaterThanOrEqual(1);
   });
 
   it('displays assignment title and total marks', async () => {

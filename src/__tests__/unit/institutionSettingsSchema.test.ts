@@ -52,6 +52,7 @@ describe('institutionSettingsSchema', () => {
       { letter: 'A', min_percent: 85, max_percent: 100, gpa_points: 4.0 },
       { letter: 'B', min_percent: 70, max_percent: 84, gpa_points: 3.0 },
     ],
+    streak_sabbatical_enabled: false,
   };
 
   it('accepts valid institution settings', () => {

@@ -47,6 +47,118 @@ export function checkMilestone(streakCount: number): number | null {
     : null;
 }
 
+// ─── Comeback Challenge Types ───────────────────────────────────────────────
+
+export interface ComebackChallengeState {
+  comeback_challenge_active: boolean;
+  comeback_challenge_days_completed: number;
+  comeback_challenge_streak_to_restore: number;
+}
+
+export interface ComebackChallengeResult {
+  /** Whether the challenge is now active */
+  active: boolean;
+  /** Number of days completed (0-3) */
+  days_completed: number;
+  /** Streak value to restore on completion */
+  streak_to_restore: number;
+  /** Whether the challenge was just completed (3 days done) */
+  just_completed: boolean;
+  /** Whether the challenge was cancelled (missed a day) */
+  just_cancelled: boolean;
+}
+
+/**
+ * Calculate the streak value to restore after a Comeback Challenge.
+ * Returns floor(lostStreak / 2) per Requirement 124.3.
+ */
+export function calculateStreakToRestore(lostStreak: number): number {
+  return Math.floor(lostStreak / 2);
+}
+
+/**
+ * Process Comeback Challenge state on daily login.
+ *
+ * Rules (Requirement 124):
+ * - On streak break: activate challenge, set streak_to_restore = floor(lost_streak / 2)
+ * - On daily login during active challenge with habits completed: increment days_completed
+ * - On daily login during active challenge without habits completed: cancel challenge
+ * - On 3 days completed: restore streak, deactivate challenge
+ */
+export function processComebackChallenge(
+  challengeState: ComebackChallengeState,
+  streakBroken: boolean,
+  lostStreak: number,
+  habitsCompletedToday: boolean,
+): ComebackChallengeResult {
+  // Case 1: Streak just broke — activate a new challenge
+  if (streakBroken && lostStreak > 1) {
+    return {
+      active: true,
+      days_completed: 0,
+      streak_to_restore: calculateStreakToRestore(lostStreak),
+      just_completed: false,
+      just_cancelled: false,
+    };
+  }
+
+  // Case 2: Challenge is active — process daily progress
+  if (challengeState.comeback_challenge_active) {
+    if (habitsCompletedToday) {
+      const newDaysCompleted = challengeState.comeback_challenge_days_completed + 1;
+
+      // 3 days completed — challenge succeeded
+      if (newDaysCompleted >= 3) {
+        return {
+          active: false,
+          days_completed: 3,
+          streak_to_restore: challengeState.comeback_challenge_streak_to_restore,
+          just_completed: true,
+          just_cancelled: false,
+        };
+      }
+
+      // Still in progress
+      return {
+        active: true,
+        days_completed: newDaysCompleted,
+        streak_to_restore: challengeState.comeback_challenge_streak_to_restore,
+        just_completed: false,
+        just_cancelled: false,
+      };
+    }
+
+    // Habits not completed — cancel challenge (Requirement 124.4)
+    return {
+      active: false,
+      days_completed: 0,
+      streak_to_restore: 0,
+      just_completed: false,
+      just_cancelled: true,
+    };
+  }
+
+  // Case 3: No active challenge and no streak break — no change
+  return {
+    active: false,
+    days_completed: 0,
+    streak_to_restore: 0,
+    just_completed: false,
+    just_cancelled: false,
+  };
+}
+
+/**
+ * Check if a given date is a Streak Sabbatical rest day (Saturday or Sunday).
+ * Returns false when sabbatical is not enabled.
+ */
+export function isStreakSabbaticalDay(sabbaticalEnabled: boolean, dateStr: string): boolean {
+  if (!sabbaticalEnabled) return false;
+  const d = new Date(dateStr + 'T00:00:00Z');
+  const day = d.getUTCDay();
+  return day === 0 || day === 6; // Sunday = 0, Saturday = 6
+}
+
 /**
  * Calculate the streak update given the current state and today's UTC date.
  *
@@ -56,10 +168,12 @@ export function checkMilestone(streakCount: number): number | null {
  * - Missed exactly 1 day + freeze available → consume freeze, keep streak
  * - Missed >1 day or no freeze → reset streak to 1
  * - No existing record (null) → new streak of 1
+ * - When streakSabbaticalEnabled, weekend days in the gap are excluded from the day count
  */
 export function calculateStreakUpdate(
   current: StreakState | null,
   todayUTC: string,
+  streakSabbaticalEnabled = false,
 ): StreakResult {
   // No existing record — first login ever
   if (!current || !current.last_login_date) {
@@ -100,8 +214,34 @@ export function calculateStreakUpdate(
     };
   }
 
-  // Missed exactly 1 day (dayDiff === 2) with freeze available
-  if (dayDiff === 2 && current.streak_freezes_available > 0) {
+  // Streak Sabbatical: count weekend days in the gap and subtract them
+  let effectiveDayDiff = dayDiff;
+  if (streakSabbaticalEnabled && dayDiff > 1) {
+    let weekendDaysInGap = 0;
+    const gapStart = new Date(current.last_login_date + 'T00:00:00Z');
+    for (let i = 1; i < dayDiff; i++) {
+      const checkDate = new Date(gapStart.getTime() + i * 86_400_000);
+      const dow = checkDate.getUTCDay();
+      if (dow === 0 || dow === 6) weekendDaysInGap++;
+    }
+    effectiveDayDiff = dayDiff - weekendDaysInGap;
+  }
+
+  // After sabbatical adjustment, check if effectively consecutive
+  if (effectiveDayDiff <= 1) {
+    const newCount = current.streak_count + 1;
+    return {
+      new_streak_count: newCount,
+      streak_frozen: false,
+      freeze_consumed: false,
+      milestone_reached: checkMilestone(newCount),
+      should_reset: false,
+      is_new_day: true,
+    };
+  }
+
+  // Missed exactly 1 effective day (effectiveDayDiff === 2) with freeze available
+  if (effectiveDayDiff === 2 && current.streak_freezes_available > 0) {
     const newCount = current.streak_count + 1;
     return {
       new_streak_count: newCount,
@@ -113,7 +253,7 @@ export function calculateStreakUpdate(
     };
   }
 
-  // Missed more than 1 day or no freeze → reset
+  // Missed more than 1 effective day or no freeze → reset
   return {
     new_streak_count: 1,
     streak_frozen: false,

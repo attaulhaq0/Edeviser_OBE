@@ -36,7 +36,17 @@ type XPSource =
   | 'starter_session_complete'
   | 'wellness_habit'
   | 'practice_quiz'
-  | 'streak_freeze_purchase';
+  | 'streak_freeze_purchase'
+  | 'improvement_bonus'
+  | 'league_promotion';
+
+type BloomsLevel =
+  | 'Remembering'
+  | 'Understanding'
+  | 'Applying'
+  | 'Analyzing'
+  | 'Evaluating'
+  | 'Creating';
 
 interface XPAwardPayload {
   student_id: string;
@@ -44,6 +54,8 @@ interface XPAwardPayload {
   source: XPSource;
   reference_id?: string;
   note?: string;
+  blooms_levels?: BloomsLevel[];
+  is_milestone?: boolean;
 }
 
 interface LevelThreshold {
@@ -86,6 +98,50 @@ function calculateLevel(xpTotal: number): number {
   return level;
 }
 
+// ─── Adaptive XP Multipliers (Requirements 120–122) ─────────────────────────
+
+/** Level-based multiplier: encouragement for low levels, reduction for high */
+function getLevelMultiplier(level: number): number {
+  if (level <= 5) return 1.2;
+  if (level <= 10) return 1.0;
+  if (level <= 15) return 0.9;
+  return 0.8;
+}
+
+/** Difficulty multiplier based on Bloom's Taxonomy level */
+const BLOOMS_MULTIPLIERS: Record<BloomsLevel, number> = {
+  Remembering: 1.0,
+  Understanding: 1.1,
+  Applying: 1.2,
+  Analyzing: 1.3,
+  Evaluating: 1.4,
+  Creating: 1.5,
+};
+
+function getDifficultyMultiplier(bloomsLevels: BloomsLevel[]): number {
+  if (!bloomsLevels || bloomsLevels.length === 0) return 1.0;
+  let highest = 1.0;
+  for (const bl of bloomsLevels) {
+    const mult = BLOOMS_MULTIPLIERS[bl] ?? 1.0;
+    if (mult > highest) highest = mult;
+  }
+  return highest;
+}
+
+/** Diminishing returns: decreases by 0.2 per repetition, min 0.2 */
+function getDiminishingMultiplier(repeatCount: number, isMilestone: boolean): number {
+  if (isMilestone) return 1.0;
+  if (repeatCount <= 0) return 1.0;
+  return Math.max(0.2, 1.0 - repeatCount * 0.2);
+}
+
+/** Sources exempt from diminishing returns (one-time milestone rewards) */
+const MILESTONE_SOURCES: XPSource[] = [
+  'streak_milestone', 'badge', 'perfect_day', 'first_attempt_bonus',
+  'perfect_rubric', 'profile_complete', 'onboarding_complete', 'improvement_bonus',
+  'league_promotion',
+];
+
 // ─── Validation ─────────────────────────────────────────────────────────────
 
 const VALID_SOURCES: XPSource[] = [
@@ -97,6 +153,7 @@ const VALID_SOURCES: XPSource[] = [
   'onboarding_complete', 'onboarding_self_efficacy', 'onboarding_study_strategy',
   'micro_assessment', 'profile_complete', 'starter_session_complete',
   'wellness_habit', 'practice_quiz', 'streak_freeze_purchase',
+  'improvement_bonus', 'league_promotion',
 ];
 
 function validatePayload(payload: unknown): { valid: true; data: XPAwardPayload } | { valid: false; error: string } {
@@ -126,9 +183,120 @@ function validatePayload(payload: unknown): { valid: true; data: XPAwardPayload 
       source: p.source as XPSource,
       reference_id: typeof p.reference_id === 'string' ? p.reference_id : undefined,
       note: typeof p.note === 'string' ? p.note : undefined,
+      blooms_levels: Array.isArray(p.blooms_levels) ? p.blooms_levels as BloomsLevel[] : undefined,
+      is_milestone: typeof p.is_milestone === 'boolean' ? p.is_milestone : undefined,
     },
   };
 }
+
+// ─── League Tier Detection ──────────────────────────────────────────────────
+
+interface LeagueThresholds {
+  bronze: number;
+  silver: number;
+  gold: number;
+  diamond: number;
+}
+
+const DEFAULT_LEAGUE_THRESHOLDS: LeagueThresholds = {
+  bronze: 0,
+  silver: 500,
+  gold: 1500,
+  diamond: 4000,
+};
+
+type LeagueTierName = 'Bronze' | 'Silver' | 'Gold' | 'Diamond';
+
+function getLeagueTierFromXP(xp: number, thresholds: LeagueThresholds): LeagueTierName {
+  if (xp >= thresholds.diamond) return 'Diamond';
+  if (xp >= thresholds.gold) return 'Gold';
+  if (xp >= thresholds.silver) return 'Silver';
+  return 'Bronze';
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function fetchLeagueThresholds(supabase: any, studentId: string): Promise<LeagueThresholds> {
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('institution_id')
+    .eq('id', studentId)
+    .maybeSingle();
+
+  if (!profile?.institution_id) return DEFAULT_LEAGUE_THRESHOLDS;
+
+  const { data: settings } = await supabase
+    .from('institution_settings')
+    .select('league_thresholds')
+    .eq('institution_id', profile.institution_id)
+    .maybeSingle();
+
+  if (!settings?.league_thresholds) return DEFAULT_LEAGUE_THRESHOLDS;
+
+  const lt = settings.league_thresholds as Record<string, number>;
+  return {
+    bronze: lt.bronze ?? DEFAULT_LEAGUE_THRESHOLDS.bronze,
+    silver: lt.silver ?? DEFAULT_LEAGUE_THRESHOLDS.silver,
+    gold: lt.gold ?? DEFAULT_LEAGUE_THRESHOLDS.gold,
+    diamond: lt.diamond ?? DEFAULT_LEAGUE_THRESHOLDS.diamond,
+  };
+}
+
+/**
+ * Check if XP award caused a league tier promotion and award 100 XP bonus.
+ * Uses idempotent reference_id to prevent duplicate bonuses (Req 132.4).
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function checkLeaguePromotion(supabase: any, studentId: string, previousTotal: number, newTotal: number): Promise<void> {
+  const thresholds = await fetchLeagueThresholds(supabase, studentId);
+  const previousTier = getLeagueTierFromXP(previousTotal, thresholds);
+  const newTier = getLeagueTierFromXP(newTotal, thresholds);
+
+  if (previousTier === newTier) return;
+
+  // Tier promotion detected — award 100 XP bonus with idempotent reference_id
+  const referenceId = `league_promotion:${studentId}:${newTier}`;
+
+  const { error: insertErr } = await supabase
+    .from('xp_transactions')
+    .insert({
+      student_id: studentId,
+      xp_amount: 100,
+      source: 'league_promotion',
+      reference_id: referenceId,
+      note: `League promotion bonus: ${previousTier} → ${newTier}`,
+      base_xp: 100,
+      final_xp: 100,
+      multipliers: { league_promotion: 1.0 },
+    });
+
+  if (insertErr) {
+    // 23505 = unique_violation — bonus already awarded (idempotent)
+    if (insertErr.code === '23505') return;
+    console.error('League promotion bonus insert failed:', insertErr.message);
+    return;
+  }
+
+  // Update xp_total with the bonus
+  const { data: sumResult } = await supabase
+    .from('xp_transactions')
+    .select('xp_amount')
+    .eq('student_id', studentId);
+
+  const updatedTotal = (sumResult ?? []).reduce(
+    (sum: number, row: { xp_amount: number }) => sum + row.xp_amount,
+    0,
+  );
+
+  const updatedLevel = calculateLevel(updatedTotal);
+
+  await supabase
+    .from('student_gamification')
+    .upsert(
+      { student_id: studentId, xp_total: updatedTotal, level: updatedLevel },
+      { onConflict: 'student_id' },
+    );
+}
+
 
 // ─── Peer Milestone Notification ────────────────────────────────────────────
 
@@ -444,10 +612,49 @@ serve(async (req) => {
       );
     }
 
-    // ── Step 1: Check for active bonus XP events ──────────────────────────
+    // ── Step 1: Fetch student's current level for adaptive multiplier ────
+
+    const { data: gamificationData } = await supabase
+      .from('student_gamification')
+      .select('level, xp_total')
+      .eq('student_id', student_id)
+      .maybeSingle();
+
+    const currentLevel = gamificationData?.level ?? 1;
+    const previousXpTotal = gamificationData?.xp_total ?? 0;
+
+    // ── Step 2: Query rolling 24-hour window for diminishing returns ─────
+
+    const isMilestone = validation.data.is_milestone ?? MILESTONE_SOURCES.includes(source);
+    const bloomsLevels = validation.data.blooms_levels ?? [];
+
+    let repeatCount = 0;
+    if (!isMilestone) {
+      const windowStart = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      const { data: recentActions, error: dimErr } = await supabase
+        .from('xp_transactions')
+        .select('id')
+        .eq('student_id', student_id)
+        .eq('source', source)
+        .gte('created_at', windowStart);
+
+      if (dimErr) {
+        console.error('Diminishing returns query failed:', dimErr.message);
+        // Continue without diminishing — don't block XP award
+      }
+      repeatCount = recentActions?.length ?? 0;
+    }
+
+    // ── Step 3: Calculate adaptive multipliers ───────────────────────────
+
+    const levelMultiplier = getLevelMultiplier(currentLevel);
+    const difficultyMultiplier = getDifficultyMultiplier(bloomsLevels);
+    const diminishingMultiplier = getDiminishingMultiplier(repeatCount, isMilestone);
+
+    // ── Step 4: Check for active bonus XP events ─────────────────────────
     // Practice quiz XP is exempt from bonus event multipliers (Requirement 25.3)
 
-    let finalXP = cappedXpAmount;
+    let bonusEventMultiplier = 1.0;
 
     if (source !== 'practice_quiz') {
       const { data: bonusEvents, error: bonusErr } = await supabase
@@ -462,19 +669,33 @@ serve(async (req) => {
       }
 
       if (bonusEvents && bonusEvents.length > 0) {
-        // Apply the highest active multiplier
         const maxMultiplier = Math.max(...bonusEvents.map((e: { multiplier: number }) => e.multiplier));
         if (maxMultiplier > 1) {
-          finalXP = Math.floor(cappedXpAmount * maxMultiplier);
+          bonusEventMultiplier = maxMultiplier;
         }
       }
     }
 
-    // ── Step 2: Insert XP transaction (atomic idempotency via unique constraint) ─
+    // ── Step 5: Calculate final XP with adaptive formula ─────────────────
+    // final_xp = floor(base_xp × level_multiplier × difficulty_multiplier × diminishing_multiplier × bonus_event)
+    // Cap at 9999 per transaction (design doc edge case)
+
+    const baseXP = cappedXpAmount;
+    let finalXP = Math.floor(baseXP * levelMultiplier * difficultyMultiplier * diminishingMultiplier * bonusEventMultiplier);
+    finalXP = Math.min(finalXP, 9999);
+
+    // ── Step 6: Insert XP transaction with adaptive fields ───────────────
 
     // The DB has a unique partial index on (student_id, reference_id) WHERE
     // reference_id IS NOT NULL. We attempt the insert and catch the conflict
     // to avoid race-condition duplicates.
+
+    const multipliersJsonb = {
+      level_multiplier: levelMultiplier,
+      difficulty_multiplier: difficultyMultiplier,
+      diminishing_multiplier: diminishingMultiplier,
+      bonus_event_multiplier: bonusEventMultiplier,
+    };
 
     const insertPayload = {
       student_id,
@@ -482,6 +703,9 @@ serve(async (req) => {
       source,
       reference_id: resolvedReferenceId ?? null,
       note: note ?? null,
+      base_xp: baseXP,
+      final_xp: finalXP,
+      multipliers: multipliersJsonb,
     };
 
     const { error: insertErr } = await supabase
@@ -503,7 +727,7 @@ serve(async (req) => {
       );
     }
 
-    // ── Step 3: Recalculate xp_total ──────────────────────────────────────
+    // ── Step 7: Recalculate xp_total ──────────────────────────────────────
 
     const { data: sumResult, error: sumErr } = await supabase
       .from('xp_transactions')
@@ -523,21 +747,15 @@ serve(async (req) => {
       0,
     );
 
-    // ── Step 4: Calculate new level ───────────────────────────────────────
+    // ── Step 8: Calculate new level ───────────────────────────────────────
 
     const newLevel = calculateLevel(newTotal);
 
-    // Fetch current gamification record to detect level-up
-    const { data: currentGamification } = await supabase
-      .from('student_gamification')
-      .select('level')
-      .eq('student_id', student_id)
-      .maybeSingle();
-
-    const previousLevel = currentGamification?.level ?? 1;
+    // Detect level-up using the level we fetched in Step 1
+    const previousLevel = currentLevel;
     const levelUp = newLevel > previousLevel;
 
-    // ── Step 5: UPSERT student_gamification ───────────────────────────────
+    // ── Step 9: UPSERT student_gamification ───────────────────────────────
 
     const { error: upsertErr } = await supabase
       .from('student_gamification')
@@ -558,7 +776,16 @@ serve(async (req) => {
       );
     }
 
-    // ── Step 6: Peer milestone notification on level-up ──────────────────
+    // ── Step 9.5: League Promotion check (Req 132.4) ────────────────────
+    // Skip if this XP award is itself a league_promotion to avoid recursion
+
+    if (source !== 'league_promotion') {
+      checkLeaguePromotion(supabase, student_id, previousXpTotal, newTotal).catch((err) => {
+        console.error('League promotion check failed (non-blocking):', err);
+      });
+    }
+
+    // ── Step 10: Peer milestone notification on level-up ──────────────────
 
     if (levelUp) {
       // Fire-and-forget — never block the XP response
@@ -567,15 +794,77 @@ serve(async (req) => {
       });
     }
 
+    // ── Step 11: Team XP contribution ────────────────────────────────────
+    // When student is a team member, credit floor(amount / 2) to team XP pool
+
+    let teamXpAwarded = 0;
+    try {
+      const { data: teamMembership } = await supabase
+        .from('team_members')
+        .select('team_id')
+        .eq('student_id', student_id)
+        .limit(1)
+        .maybeSingle();
+
+      if (teamMembership?.team_id && finalXP > 0) {
+        const teamXp = Math.floor(finalXP / 2);
+        teamXpAwarded = teamXp;
+
+        // Insert team-scoped xp_transaction
+        await supabase.from('xp_transactions').insert({
+          student_id,
+          xp_amount: teamXp,
+          source,
+          reference_id: resolvedReferenceId ? `team:${resolvedReferenceId}` : null,
+          note: `Team XP contribution from ${source}`,
+          scope: 'team',
+          team_id: teamMembership.team_id,
+          base_xp: cappedXpAmount,
+          final_xp: teamXp,
+          multipliers: { team_split: 0.5 },
+        });
+
+        // Update team_gamification totals
+        const { data: existingTeamGam } = await supabase
+          .from('team_gamification')
+          .select('xp_total, xp_this_week')
+          .eq('team_id', teamMembership.team_id)
+          .maybeSingle();
+
+        if (existingTeamGam) {
+          await supabase
+            .from('team_gamification')
+            .update({
+              xp_total: (existingTeamGam.xp_total ?? 0) + teamXp,
+              xp_this_week: (existingTeamGam.xp_this_week ?? 0) + teamXp,
+            })
+            .eq('team_id', teamMembership.team_id);
+        } else {
+          await supabase.from('team_gamification').insert({
+            team_id: teamMembership.team_id,
+            xp_total: teamXp,
+            xp_this_week: teamXp,
+            streak_current: 0,
+            streak_longest: 0,
+          });
+        }
+      }
+    } catch (teamErr) {
+      console.error('Team XP contribution failed (non-blocking):', teamErr);
+    }
+
     // ── Response ──────────────────────────────────────────────────────────
 
     return new Response(
       JSON.stringify({
         success: true,
         xp_awarded: finalXP,
+        base_xp: baseXP,
         new_total: newTotal,
         level_up: levelUp,
         new_level: newLevel,
+        multipliers: multipliersJsonb,
+        team_xp_awarded: teamXpAwarded,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );

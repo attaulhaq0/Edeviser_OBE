@@ -3,9 +3,12 @@ import {
   calculateStreakUpdate,
   daysBetween,
   checkMilestone,
+  calculateStreakToRestore,
+  processComebackChallenge,
   STREAK_MILESTONES,
   MILESTONE_XP,
   type StreakState,
+  type ComebackChallengeState,
 } from '@/lib/streakCalculator';
 
 describe('Streak Calculator', () => {
@@ -231,6 +234,98 @@ describe('Streak Calculator', () => {
         expect(result.new_streak_count).toBe(1);
         expect(result.should_reset).toBe(true);
       });
+    });
+  });
+});
+
+
+describe('calculateStreakToRestore', () => {
+  it('returns floor(lostStreak / 2)', () => {
+    expect(calculateStreakToRestore(10)).toBe(5);
+    expect(calculateStreakToRestore(11)).toBe(5);
+    expect(calculateStreakToRestore(1)).toBe(0);
+    expect(calculateStreakToRestore(0)).toBe(0);
+    expect(calculateStreakToRestore(100)).toBe(50);
+    expect(calculateStreakToRestore(7)).toBe(3);
+  });
+});
+
+describe('processComebackChallenge', () => {
+  const inactiveChallenge: ComebackChallengeState = {
+    comeback_challenge_active: false,
+    comeback_challenge_days_completed: 0,
+    comeback_challenge_streak_to_restore: 0,
+  };
+
+  const activeChallenge = (days: number, restore: number): ComebackChallengeState => ({
+    comeback_challenge_active: true,
+    comeback_challenge_days_completed: days,
+    comeback_challenge_streak_to_restore: restore,
+  });
+
+  describe('streak break activates challenge', () => {
+    it('activates challenge on streak break with lost streak > 1', () => {
+      const result = processComebackChallenge(inactiveChallenge, true, 10, false);
+      expect(result.active).toBe(true);
+      expect(result.days_completed).toBe(0);
+      expect(result.streak_to_restore).toBe(5);
+      expect(result.just_completed).toBe(false);
+      expect(result.just_cancelled).toBe(false);
+    });
+
+    it('does not activate challenge when lost streak is 1', () => {
+      const result = processComebackChallenge(inactiveChallenge, true, 1, false);
+      expect(result.active).toBe(false);
+    });
+
+    it('calculates streak_to_restore as floor(lost / 2) for odd numbers', () => {
+      const result = processComebackChallenge(inactiveChallenge, true, 15, false);
+      expect(result.streak_to_restore).toBe(7);
+    });
+  });
+
+  describe('active challenge progress', () => {
+    it('increments days_completed when habits are completed', () => {
+      const result = processComebackChallenge(activeChallenge(0, 5), false, 0, true);
+      expect(result.active).toBe(true);
+      expect(result.days_completed).toBe(1);
+      expect(result.just_completed).toBe(false);
+    });
+
+    it('increments from 1 to 2', () => {
+      const result = processComebackChallenge(activeChallenge(1, 5), false, 0, true);
+      expect(result.active).toBe(true);
+      expect(result.days_completed).toBe(2);
+    });
+
+    it('completes challenge at 3 days', () => {
+      const result = processComebackChallenge(activeChallenge(2, 5), false, 0, true);
+      expect(result.active).toBe(false);
+      expect(result.days_completed).toBe(3);
+      expect(result.streak_to_restore).toBe(5);
+      expect(result.just_completed).toBe(true);
+      expect(result.just_cancelled).toBe(false);
+    });
+  });
+
+  describe('challenge cancellation', () => {
+    it('cancels challenge when habits not completed', () => {
+      const result = processComebackChallenge(activeChallenge(1, 5), false, 0, false);
+      expect(result.active).toBe(false);
+      expect(result.days_completed).toBe(0);
+      expect(result.streak_to_restore).toBe(0);
+      expect(result.just_cancelled).toBe(true);
+      expect(result.just_completed).toBe(false);
+    });
+  });
+
+  describe('no active challenge and no break', () => {
+    it('returns inactive state', () => {
+      const result = processComebackChallenge(inactiveChallenge, false, 0, true);
+      expect(result.active).toBe(false);
+      expect(result.days_completed).toBe(0);
+      expect(result.just_completed).toBe(false);
+      expect(result.just_cancelled).toBe(false);
     });
   });
 });

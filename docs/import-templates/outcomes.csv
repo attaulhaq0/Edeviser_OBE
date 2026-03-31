@@ -1,0 +1,4 @@
+type,code,title,bloom_level,parent_code
+ILO,ILO1,Critical Thinking,,
+PLO,PLO1,Problem Solving,,ILO1
+CLO,CLO1,Apply algorithms,Applying,PLO1

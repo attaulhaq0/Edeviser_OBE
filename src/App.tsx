@@ -12,6 +12,7 @@ import AppRouter from '@/router/AppRouter';
 import { initSentry } from '@/lib/sentry';
 import SkipToMain from '@/components/shared/SkipToMain';
 import { offlineQueue } from '@/lib/offlineQueue';
+import { toast } from 'sonner';
 
 initSentry();
 
@@ -26,8 +27,22 @@ const queryClient = new QueryClient({
     queries: {
       staleTime: 5 * 60 * 1000, // 5 minutes
       gcTime: 30 * 60 * 1000, // 30 minutes
-      retry: 3,
+      retry: (failureCount, error) => {
+        // Don't retry on 429 — respect rate limits
+        if (error && typeof error === 'object' && 'status' in error && (error as { status: number }).status === 429) {
+          return false;
+        }
+        return failureCount < 3;
+      },
+      retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 30000),
       refetchOnWindowFocus: false,
+    },
+    mutations: {
+      onError: (error) => {
+        if (error && typeof error === 'object' && 'status' in error && (error as { status: number }).status === 429) {
+          toast.error('Too many requests. Please wait a moment.');
+        }
+      },
     },
   },
 });

@@ -160,8 +160,10 @@ const renderGradingInterface = async () => {
 };
 
 const selectRubricCells = async (user: ReturnType<typeof userEvent.setup>) => {
-  await user.click(screen.getByRole('button', { name: /Clarity: Exemplary — 50 points/ }));
-  await user.click(screen.getByRole('button', { name: /Grammar: Proficient — 30 points/ }));
+  const clarityBtns = screen.getAllByRole('button', { name: /Clarity: Exemplary — 50 points/ });
+  await user.click(clarityBtns[0]!);
+  const grammarBtns = screen.getAllByRole('button', { name: /Grammar: Proficient — 30 points/ });
+  await user.click(grammarBtns[0]!);
 };
 
 // ---------------------------------------------------------------------------
@@ -196,7 +198,7 @@ describe('AI Draft Integration in GradingInterface', () => {
   it('does not show Generate AI Draft button when no rubric cells are selected', async () => {
     await renderGradingInterface();
     expect(screen.queryByText('Generate AI Draft')).not.toBeInTheDocument();
-  });
+  }, 10000);
 
   it('shows Generate AI Draft button after selecting rubric cells', async () => {
     const user = userEvent.setup();

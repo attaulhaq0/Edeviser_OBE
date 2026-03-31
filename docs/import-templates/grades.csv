@@ -1,0 +1,3 @@
+student_email,course_code,assignment_title,score,max_score,date
+student1@example.com,CS101,Homework 1,85,100,2026-02-15
+student2@example.com,CS101,Homework 1,72,100,2026-02-15

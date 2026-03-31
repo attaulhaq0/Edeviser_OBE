@@ -7,7 +7,6 @@ module.exports = {
       settings: {
         preset: 'desktop',
         onlyCategories: ['performance', 'accessibility', 'best-practices', 'seo'],
-        // Simulate 4G connection for NFR-PERF-01 dashboard load target
         throttling: {
           rttMs: 150,
           throughputKbps: 1638.4,
@@ -17,14 +16,20 @@ module.exports = {
     },
     assert: {
       assertions: {
-        'categories:performance': ['warn', { minScore: 0.8 }],
-        'categories:accessibility': ['warn', { minScore: 0.9 }],
+        // Performance budgets
+        'categories:performance': ['error', { minScore: 0.9 }],
+        'categories:accessibility': ['error', { minScore: 0.9 }],
         'categories:best-practices': ['warn', { minScore: 0.85 }],
         'categories:seo': ['warn', { minScore: 0.9 }],
 
-        // NFR-PERF-01: Dashboard load targets (warn-only in CI due to variable runner performance)
+        // Core Web Vitals
+        'largest-contentful-paint': ['error', { maxNumericValue: 2500 }],
+        'cumulative-layout-shift': ['error', { maxNumericValue: 0.1 }],
+        'max-potential-fid': ['error', { maxNumericValue: 100 }],
         'first-contentful-paint': ['warn', { maxNumericValue: 2500 }],
-        'largest-contentful-paint': ['warn', { maxNumericValue: 2500 }],
+
+        // Bundle size — initial load < 500KB gzipped
+        'total-byte-weight': ['warn', { maxNumericValue: 512000 }],
       },
     },
     upload: {

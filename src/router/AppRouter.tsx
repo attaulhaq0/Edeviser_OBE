@@ -25,6 +25,7 @@ const AdminDashboard = lazy(() => import('@/pages/admin/AdminDashboard'));
 const UserListPage = lazy(() => import('@/pages/admin/users/UserListPage'));
 const UserForm = lazy(() => import('@/pages/admin/users/UserForm'));
 const BulkImportPage = lazy(() => import('@/pages/admin/users/BulkImportPage'));
+const ParentInvitePage = lazy(() => import('@/pages/admin/users/ParentInvitePage'));
 const ProgramListPage = lazy(() => import('@/pages/admin/programs/ProgramListPage'));
 const ProgramForm = lazy(() => import('@/pages/admin/programs/ProgramForm'));
 const ILOListPage = lazy(() => import('@/pages/admin/outcomes/ILOListPage'));
@@ -67,11 +68,21 @@ const HabitAnalyticsPage = lazy(() => import('@/pages/student/habits/HabitAnalyt
 const XPHistory = lazy(() => import('@/pages/student/progress/XPHistory'));
 const StudentPortfolio = lazy(() => import('@/pages/student/portfolio/StudentPortfolio'));
 const ParentDashboard = lazy(() => import('@/pages/parent/ParentDashboard'));
+const CalendarView = lazy(() => import('@/pages/shared/CalendarView'));
+const TimetableView = lazy(() => import('@/pages/shared/TimetableView'));
+const AcademicCalendarManager = lazy(() => import('@/pages/admin/calendar/AcademicCalendarManager'));
+const TimetableManager = lazy(() => import('@/pages/admin/timetable/TimetableManager'));
+const FeeManager = lazy(() => import('@/pages/admin/fees/FeeManager'));
+const DataImportPage = lazy(() => import('@/pages/admin/import/DataImportPage'));
 
 // ---------------------------------------------------------------------------
 // Public portfolio (unauthenticated)
 // ---------------------------------------------------------------------------
 const PublicPortfolio = lazy(() => import('@/pages/public/PublicPortfolio'));
+const TermsPage = lazy(() => import('@/pages/public/TermsPage'));
+const PrivacyPage = lazy(() => import('@/pages/public/PrivacyPage'));
+const NotificationPreferences = lazy(() => import('@/pages/shared/NotificationPreferences'));
+const SessionManagement = lazy(() => import('@/pages/shared/SessionManagement'));
 
 // ---------------------------------------------------------------------------
 // Adaptive Quiz Generation pages (lazy-loaded)
@@ -87,15 +98,53 @@ const PostQuizReview = lazy(() => import('@/pages/student/quiz/PostQuizReview'))
 const MasteryRecoveryPage = lazy(() => import('@/pages/student/recovery/MasteryRecoveryPage'));
 const ExplanationReviewPage = lazy(() => import('@/pages/teacher/quiz-generation/ExplanationReviewPage'));
 
+// Gradebook
+const GradebookView = lazy(() => import('@/pages/teacher/gradebook/GradebookView'));
+
+// Attendance
+const AttendanceMarker = lazy(() => import('@/pages/teacher/attendance/AttendanceMarker'));
+const AttendanceReport = lazy(() => import('@/pages/teacher/attendance/AttendanceReport'));
+
 // Announcements & Modules
 const AnnouncementEditor = lazy(() => import('@/pages/teacher/announcements/AnnouncementEditor'));
 const ModuleManager = lazy(() => import('@/pages/teacher/courses/ModuleManager'));
+
+// Discussion Forum
+const DiscussionForum = lazy(() => import('@/pages/student/discussions/DiscussionForum'));
+const ThreadDetail = lazy(() => import('@/pages/student/discussions/ThreadDetail'));
+const DiscussionModeration = lazy(() => import('@/pages/teacher/discussions/DiscussionModeration'));
 
 // CQI pages
 const CQIManager = lazy(() => import('@/pages/coordinator/cqi/CQIManager'));
 
 // Course File
 const CourseFileGenerator = lazy(() => import('@/pages/coordinator/course-file/CourseFileGenerator'));
+
+// OBE Visualizations (tasks 112-125)
+const GraduateAttributeManager = lazy(() => import('@/pages/admin/graduate-attributes/GraduateAttributeManager'));
+const CompetencyFrameworkManager = lazy(() => import('@/pages/admin/competency-frameworks/CompetencyFrameworkManager'));
+const HistoricalEvidenceDashboard = lazy(() => import('@/pages/admin/historical-evidence/HistoricalEvidenceDashboard'));
+const SankeyDiagramView = lazy(() => import('@/pages/coordinator/sankey/SankeyDiagramView'));
+const GapAnalysisView = lazy(() => import('@/pages/coordinator/gap-analysis/GapAnalysisView'));
+const CoverageHeatmapView = lazy(() => import('@/pages/coordinator/coverage-heatmap/CoverageHeatmapView'));
+const SemesterTrendView = lazy(() => import('@/pages/coordinator/trends/SemesterTrendView'));
+const CohortComparisonView = lazy(() => import('@/pages/coordinator/cohort-comparison/CohortComparisonView'));
+
+// Team Management (task 129)
+const TeamManager = lazy(() => import('@/pages/teacher/teams/TeamManager'));
+
+// Challenge Management (tasks 134-135)
+const ChallengeManager = lazy(() => import('@/pages/teacher/challenges/ChallengeManager'));
+const ChallengeListView = lazy(() => import('@/pages/student/challenges/ChallengeListView'));
+
+// Student Team Page (task 141)
+const StudentTeamPage = lazy(() => import('@/pages/student/team/StudentTeamPage'));
+
+// Badge Spotlight Manager (task 151)
+const BadgeSpotlightManager = lazy(() => import('@/pages/admin/badges/BadgeSpotlightManager'));
+
+// Sub-CLO Manager (task 110)
+const SubCLOManager = lazy(() => import('@/pages/teacher/outcomes/SubCLOManager'));
 
 // Survey pages
 const SurveyManager = lazy(() => import('@/pages/admin/surveys/SurveyManager'));
@@ -139,6 +188,8 @@ const AppRouter = () => (
       <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/update-password" element={<UpdatePasswordPage />} />
       <Route path="/portfolio/:student_id" element={<PublicPortfolio />} />
+      <Route path="/terms" element={<TermsPage />} />
+      <Route path="/privacy" element={<PrivacyPage />} />
 
       {/* Admin routes */}
       <Route
@@ -154,6 +205,7 @@ const AppRouter = () => (
         <Route path="users" element={<UserListPage />} />
         <Route path="users/new" element={<UserForm />} />
         <Route path="users/import" element={<BulkImportPage />} />
+        <Route path="users/invite-parent" element={<ParentInvitePage />} />
         <Route path="users/:id/edit" element={<UserForm />} />
         <Route path="programs" element={<ProgramListPage />} />
         <Route path="programs/new" element={<ProgramForm />} />
@@ -171,8 +223,16 @@ const AppRouter = () => (
         <Route path="departments" element={<DepartmentManager />} />
         <Route path="onboarding/pending" element={<PendingOnboardingPage />} />
         <Route path="reports" element={<ReportGeneratorPage />} />
+        <Route path="calendar" element={<AcademicCalendarManager />} />
+        <Route path="timetable" element={<TimetableManager />} />
+        <Route path="fees" element={<FeeManager />} />
+        <Route path="import" element={<DataImportPage />} />
         <Route path="surveys" element={<SurveyManager />} />
         <Route path="surveys/results" element={<SurveyResultsPage />} />
+        <Route path="graduate-attributes" element={<GraduateAttributeManager />} />
+        <Route path="competency-frameworks" element={<CompetencyFrameworkManager />} />
+        <Route path="historical-evidence" element={<HistoricalEvidenceDashboard />} />
+        <Route path="badges/spotlight" element={<BadgeSpotlightManager />} />
         <Route path="settings/profile" element={<ProfilePage />} />
         <Route path="settings/institution" element={<InstitutionSettingsPage />} />
       </Route>
@@ -194,6 +254,12 @@ const AppRouter = () => (
         <Route path="matrix" element={<CurriculumMatrixPage />} />
         <Route path="cqi" element={<CQIManager />} />
         <Route path="course-file" element={<CourseFileGenerator />} />
+        <Route path="sankey" element={<SankeyDiagramView />} />
+        <Route path="gap-analysis" element={<GapAnalysisView />} />
+        <Route path="coverage-heatmap" element={<CoverageHeatmapView />} />
+        <Route path="trends" element={<SemesterTrendView />} />
+        <Route path="cohort-comparison" element={<CohortComparisonView />} />
+        <Route path="timetable" element={<TimetableManager />} />
         <Route path="settings/profile" element={<ProfilePage />} />
       </Route>
 
@@ -232,6 +298,17 @@ const AppRouter = () => (
         <Route path="courses/:courseId/explanation-review" element={<ExplanationReviewPage />} />
         <Route path="announcements" element={<AnnouncementEditor />} />
         <Route path="modules" element={<ModuleManager />} />
+        <Route path="courses/:courseId/discussions" element={<DiscussionModeration />} />
+        <Route path="courses/:courseId/discussions/:threadId" element={<ThreadDetail />} />
+        <Route path="attendance" element={<AttendanceMarker />} />
+        <Route path="attendance/report" element={<AttendanceReport />} />
+        <Route path="gradebook" element={<GradebookView />} />
+        <Route path="teams" element={<TeamManager />} />
+        <Route path="challenges" element={<ChallengeManager />} />
+        <Route path="clos/:cloId/sub-clos" element={<SubCLOManager />} />
+        <Route path="outcomes/sub-clos" element={<SubCLOManager />} />
+        <Route path="calendar" element={<CalendarView />} />
+        <Route path="timetable" element={<TimetableView />} />
         <Route path="settings/profile" element={<ProfilePage />} />
       </Route>
 
@@ -260,10 +337,18 @@ const AppRouter = () => (
         <Route path="settings/profile" element={<ProfileSettingsPage />} />
         <Route path="xp-history" element={<XPHistory />} />
         <Route path="portfolio" element={<StudentPortfolio />} />
+        <Route path="calendar" element={<CalendarView />} />
+        <Route path="timetable" element={<TimetableView />} />
+        <Route path="notification-preferences" element={<NotificationPreferences />} />
+        <Route path="sessions" element={<SessionManagement />} />
         <Route path="surveys" element={<SurveyResponsePage />} />
         <Route path="announcements/:announcementId" element={<StudentAnnouncementDetail />} />
         <Route path="courses/:courseId" element={<StudentCourseDetail />} />
         <Route path="courses/:courseId/materials/:materialId" element={<StudentCourseDetail />} />
+        <Route path="courses/:courseId/discussions" element={<DiscussionForum />} />
+        <Route path="courses/:courseId/discussions/:threadId" element={<ThreadDetail />} />
+        <Route path="challenges" element={<ChallengeListView />} />
+        <Route path="team" element={<StudentTeamPage />} />
       </Route>
 
       {/* Parent routes */}

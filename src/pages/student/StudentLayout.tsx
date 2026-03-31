@@ -3,7 +3,7 @@ import { Outlet, NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 import { usePageViewLogger } from '@/hooks/usePageViewLogger';
-import { LayoutDashboard, BookOpen, ClipboardList, TrendingUp, Trophy, PenLine, Star, Grid3X3, UserCircle, FileQuestion } from 'lucide-react';
+import { LayoutDashboard, BookOpen, ClipboardList, TrendingUp, Trophy, PenLine, Star, Grid3X3, UserCircle, FileQuestion, Calendar, Clock, Swords } from 'lucide-react';
 
 const OnboardingWizard = lazy(() => import('@/pages/student/onboarding/OnboardingWizard'));
 
@@ -13,8 +13,11 @@ const navItems = [
   { to: '/student/assignments', icon: ClipboardList, label: 'Assignments' },
   { to: '/student/progress', icon: TrendingUp, label: 'Progress' },
   { to: '/student/leaderboard', icon: Trophy, label: 'Leaderboard' },
+  { to: '/student/challenges', icon: Swords, label: 'Challenges' },
   { to: '/student/habits', icon: Grid3X3, label: 'Habits' },
   { to: '/student/journal', icon: PenLine, label: 'Journal' },
+  { to: '/student/calendar', icon: Calendar, label: 'Calendar' },
+  { to: '/student/timetable', icon: Clock, label: 'Timetable' },
   { to: '/student/portfolio', icon: Star, label: 'Portfolio' },
   { to: '/student/surveys', icon: FileQuestion, label: 'Surveys' },
   { to: '/student/settings/profile', icon: UserCircle, label: 'Profile' },

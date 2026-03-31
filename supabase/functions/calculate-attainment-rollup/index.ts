@@ -164,7 +164,7 @@ serve(async (req) => {
       // Continue with rollup even if evidence insert fails (idempotency)
     }
 
-    // ── Step 3: Calculate CLO attainment ──────────────────────────────────
+    // ── Step 3: Calculate CLO attainment (with Sub-CLO weighted rollup) ──
 
     const affectedCloIds = cloWeights.map((cw) => cw.clo_id);
     const affectedPloIds = new Set<string>();
@@ -172,21 +172,59 @@ serve(async (req) => {
 
     for (const cloId of affectedCloIds) {
       try {
-        // Fetch all evidence for this student + CLO
-        const { data: evidenceList, error: evListErr } = await supabase
-          .from('evidence')
-          .select('score_percent')
-          .eq('student_id', studentId)
-          .eq('clo_id', cloId);
+        // Check if this CLO has Sub-CLOs (Task 109.4)
+        const { data: subCLOs } = await supabase
+          .from('learning_outcomes')
+          .select('id, weight')
+          .eq('type', 'SUB_CLO')
+          .eq('parent_outcome_id', cloId);
 
-        if (evListErr || !evidenceList || evidenceList.length === 0) {
-          console.error(`No evidence found for CLO ${cloId}:`, evListErr?.message);
-          continue;
+        let avgPercent: number;
+        let sampleCount: number;
+
+        if (subCLOs && subCLOs.length > 0) {
+          // Sub-CLO weighted rollup: parent CLO = sum(sub_clo_attainment × weight)
+          let weightedSum = 0;
+          let totalWeight = 0;
+          let totalSamples = 0;
+
+          for (const subCLO of subCLOs) {
+            const { data: subAtt } = await supabase
+              .from('outcome_attainment')
+              .select('attainment_percent, sample_count')
+              .eq('outcome_id', subCLO.id)
+              .eq('student_id', studentId)
+              .eq('scope', 'student_course')
+              .maybeSingle();
+
+            if (subAtt && subAtt.attainment_percent != null) {
+              const w = subCLO.weight ?? 1;
+              weightedSum += subAtt.attainment_percent * w;
+              totalWeight += w;
+              totalSamples += subAtt.sample_count ?? 0;
+            }
+          }
+
+          avgPercent = totalWeight > 0 ? weightedSum / totalWeight : 0;
+          sampleCount = totalSamples;
+        } else {
+          // No Sub-CLOs: direct evidence calculation (existing behavior)
+          const { data: evidenceList, error: evListErr } = await supabase
+            .from('evidence')
+            .select('score_percent')
+            .eq('student_id', studentId)
+            .eq('clo_id', cloId);
+
+          if (evListErr || !evidenceList || evidenceList.length === 0) {
+            console.error(`No evidence found for CLO ${cloId}:`, evListErr?.message);
+            continue;
+          }
+
+          avgPercent =
+            evidenceList.reduce((sum: number, e: { score_percent: number }) => sum + e.score_percent, 0) /
+            evidenceList.length;
+          sampleCount = evidenceList.length;
         }
-
-        const avgPercent =
-          evidenceList.reduce((sum: number, e: { score_percent: number }) => sum + e.score_percent, 0) /
-          evidenceList.length;
 
         // UPSERT CLO attainment
         const { error: upsertErr } = await supabase
@@ -198,7 +236,7 @@ serve(async (req) => {
               course_id: courseId,
               scope: 'student_course',
               attainment_percent: Math.round(avgPercent * 100) / 100,
-              sample_count: evidenceList.length,
+              sample_count: sampleCount,
               last_calculated_at: new Date().toISOString(),
             },
             { onConflict: 'outcome_id,student_id,course_id,scope' },
@@ -360,7 +398,70 @@ serve(async (req) => {
       }
     }
 
-    // ── Step 6: Insert notification for student ───────────────────────────
+    // ── Step 6: Cascade to Graduate Attribute attainment (Task 112.4) ────
+
+    try {
+      // Find all GA mappings that reference the affected ILOs
+      const iloIdArray = Array.from(affectedIloIds);
+      if (iloIdArray.length > 0) {
+        const { data: gaMappings } = await supabase
+          .from('graduate_attribute_mappings')
+          .select('graduate_attribute_id, ilo_id, weight')
+          .in('ilo_id', iloIdArray);
+
+        if (gaMappings && gaMappings.length > 0) {
+          // Group by GA
+          const gaGroups = new Map<string, Array<{ ilo_id: string; weight: number }>>();
+          for (const m of gaMappings) {
+            const existing = gaGroups.get(m.graduate_attribute_id) ?? [];
+            existing.push({ ilo_id: m.ilo_id, weight: m.weight });
+            gaGroups.set(m.graduate_attribute_id, existing);
+          }
+
+          for (const [gaId, mappings] of gaGroups) {
+            let weightedSum = 0;
+            let totalWeight = 0;
+
+            for (const mapping of mappings) {
+              const { data: iloAtt } = await supabase
+                .from('outcome_attainment')
+                .select('attainment_percent')
+                .eq('outcome_id', mapping.ilo_id)
+                .eq('student_id', studentId)
+                .eq('scope', 'program')
+                .maybeSingle();
+
+              if (iloAtt && iloAtt.attainment_percent != null) {
+                weightedSum += iloAtt.attainment_percent * mapping.weight;
+                totalWeight += mapping.weight;
+              }
+            }
+
+            if (totalWeight > 0) {
+              const gaPercent = weightedSum / totalWeight;
+              await supabase
+                .from('outcome_attainment')
+                .upsert(
+                  {
+                    outcome_id: gaId,
+                    student_id: studentId,
+                    course_id: courseId,
+                    scope: 'institution',
+                    attainment_percent: Math.round(gaPercent * 100) / 100,
+                    sample_count: mappings.length,
+                    last_calculated_at: new Date().toISOString(),
+                  },
+                  { onConflict: 'outcome_id,student_id,course_id,scope' },
+                );
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.error('GA rollup error:', err);
+    }
+
+    // ── Step 7: Insert notification for student ───────────────────────────
 
     try {
       await supabase.from('notifications').insert({

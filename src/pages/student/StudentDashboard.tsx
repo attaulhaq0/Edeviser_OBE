@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useCallback } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,12 @@ import MicroAssessmentCard from '@/components/shared/MicroAssessmentCard';
 import ProfileCompletenessBar from '@/components/shared/ProfileCompletenessBar';
 import StarterWeekHeroCard from '@/components/shared/StarterWeekHeroCard';
 import StreakFreezeShop from '@/components/shared/StreakFreezeShop';
+import AdaptiveXPDisplay from '@/components/shared/AdaptiveXPDisplay';
+import TeamDashboardCard from '@/components/shared/TeamDashboardCard';
+import HabitTracker from '@/components/shared/HabitTracker';
+import StreakDisplay from '@/components/shared/StreakDisplay';
+import ComebackChallengeBanner from '@/components/shared/ComebackChallengeBanner';
+import HabitDifficultyIndicator from '@/components/shared/HabitDifficultyIndicator';
 import { useAuth } from '@/hooks/useAuth';
 import { useStudentKPIs, useUpcomingDeadlines } from '@/hooks/useStudentDashboard';
 import { useStudentProfile } from '@/hooks/useStudentProfile';
@@ -20,8 +26,17 @@ import { useStarterWeekSessions } from '@/hooks/useStarterWeekPlan';
 import { useOnboardingProgress } from '@/hooks/useOnboardingProgress';
 import { useRealtime } from '@/hooks/useRealtime';
 import { useStreakFreezeInventory, usePurchaseStreakFreeze } from '@/hooks/useStreakFreeze';
+import { useComebackChallenge, useCancelComebackChallenge } from '@/hooks/useComebackChallenge';
+import { useHabitDifficultyLevel } from '@/hooks/useHabitDifficulty';
+import { useInstitutionSettings } from '@/hooks/useInstitutionSettings';
 import { useStudentAnnouncements } from '@/hooks/useAnnouncements';
+import { useStudentAttendance } from '@/hooks/useAttendance';
+import { useStudentChallenges } from '@/hooks/useChallenges';
+import { useMyTeamId } from '@/hooks/useTeamLeaderboard';
+import { useTeams, useTeamGamification } from '@/hooks/useTeams';
+import { supabase } from '@/lib/supabase';
 import { queryKeys } from '@/lib/queryKeys';
+import { getDeadlineUrgency } from '@/hooks/useCalendar';
 import {
   BookOpen,
   CheckCircle2,
@@ -33,6 +48,9 @@ import {
   Bell,
   Coins,
   Megaphone,
+  ClipboardCheck,
+  Trophy,
+  Users,
   type LucideIcon,
 } from 'lucide-react';
 import { format, differenceInDays } from 'date-fns';
@@ -153,6 +171,46 @@ const StudentDashboard = () => {
   // Streak Freeze hooks
   const { data: freezeData } = useStreakFreezeInventory(studentId);
   const purchaseFreeze = usePurchaseStreakFreeze();
+
+  // Comeback Challenge hooks — Requirement 124.5
+  const { data: comebackData } = useComebackChallenge(studentId || undefined);
+  const cancelComeback = useCancelComebackChallenge();
+
+  // Institution settings for Streak Sabbatical — Requirement 125
+  const { data: institutionSettings } = useInstitutionSettings();
+  const streakSabbaticalEnabled = institutionSettings?.streak_sabbatical_enabled ?? false;
+
+  // Habit Difficulty Level — Requirement 127.6
+  const { data: habitDifficultyData } = useHabitDifficultyLevel(studentId || undefined);
+
+  // Attendance data
+  const { data: attendanceCourses, isLoading: attendanceLoading } = useStudentAttendance(studentId || undefined);
+
+  // Active challenges for dashboard section
+  const { data: studentChallenges } = useStudentChallenges(studentId || undefined);
+  const activeChallenges = (studentChallenges ?? []).filter((c) => c.status === 'active');
+
+  // Team data for dashboard card — Requirement 112.7
+  const firstCourseQuery = useQuery({
+    queryKey: queryKeys.enrollments.list({ studentId, first: true }),
+    queryFn: async (): Promise<string | null> => {
+      const { data, error } = await supabase
+        .from('student_courses')
+        .select('course_id')
+        .eq('student_id', studentId)
+        .eq('status', 'active')
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return (data as { course_id: string } | null)?.course_id ?? null;
+    },
+    enabled: !!studentId,
+  });
+  const firstCourseId = firstCourseQuery.data ?? undefined;
+  const { data: myTeamId } = useMyTeamId(studentId || undefined, firstCourseId);
+  const { data: teamsData } = useTeams(firstCourseId);
+  const myTeam = (teamsData ?? []).find((t) => t.id === myTeamId);
+  const { data: teamGamification } = useTeamGamification(myTeamId ?? undefined);
 
   const profileCompleteness = completenessData?.profile_completeness ?? 0;
   const day1Completed = completenessData?.day1_completed ?? false;
@@ -308,6 +366,28 @@ const StudentDashboard = () => {
         </div>
       )}
 
+      {/* Comeback Challenge Banner — Requirement 124.5 */}
+      {comebackData?.is_active && (
+        <ComebackChallengeBanner
+          daysCompleted={comebackData.days_completed}
+          streakToRestore={comebackData.streak_to_restore}
+          onDismiss={() => {
+            if (studentId) {
+              cancelComeback.mutate(studentId);
+            }
+          }}
+        />
+      )}
+
+      {/* Streak Display with Sabbatical range and Total Active Days — Requirements 126.1, 126.2 */}
+      <StreakDisplay
+        streakCount={kpis?.currentStreak ?? 0}
+        streakFreezesAvailable={freezeData?.freezes ?? 0}
+        streakSabbaticalEnabled={streakSabbaticalEnabled}
+        restDays={0}
+        totalActiveDays={kpis?.totalActiveDays ?? 0}
+      />
+
       {/* Two-column layout: Upcoming Deadlines + Quick Stats */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Upcoming Deadlines */}
@@ -328,20 +408,28 @@ const StudentDashboard = () => {
               </div>
             ) : (deadlines ?? []).length > 0 ? (
               <div className="space-y-3">
-                {(deadlines ?? []).map((d) => (
-                  <div
-                    key={d.id}
-                    className="flex items-center justify-between py-2 border-b border-slate-100 last:border-0"
-                  >
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium truncate">{d.title}</p>
-                      <p className="text-xs text-gray-500 truncate">{d.course_name}</p>
+                {(deadlines ?? []).map((d) => {
+                  const urgency = getDeadlineUrgency(d.due_date);
+                  const urgencyStyles = {
+                    red: 'bg-red-50 text-red-700 border-red-200',
+                    yellow: 'bg-yellow-50 text-yellow-700 border-yellow-200',
+                    green: 'bg-green-50 text-green-700 border-green-200',
+                  };
+                  return (
+                    <div
+                      key={d.id}
+                      className="flex items-center justify-between py-2 border-b border-slate-100 last:border-0"
+                    >
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium truncate">{d.title}</p>
+                        <p className="text-xs text-gray-500 truncate">{d.course_name}</p>
+                      </div>
+                      <Badge className={`text-xs whitespace-nowrap ${urgencyStyles[urgency]}`}>
+                        {format(new Date(d.due_date), 'MMM d')}
+                      </Badge>
                     </div>
-                    <Badge variant="outline" className="text-xs whitespace-nowrap">
-                      {format(new Date(d.due_date), 'MMM d')}
-                    </Badge>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-8 text-center">
@@ -383,6 +471,14 @@ const StudentDashboard = () => {
                 <span className="text-sm font-medium text-gray-600">Assignments Done</span>
                 <span className="text-sm font-bold">{kpis?.completedAssignments ?? 0}</span>
               </div>
+
+              {/* Adaptive XP Multiplier Display — Requirements 120.5, 122.3 */}
+              {studentId && (
+                <div className="pt-2 border-t border-slate-100">
+                  <AdaptiveXPDisplay studentId={studentId} />
+                </div>
+              )}
+
               <Button
                 variant="outline"
                 size="sm"
@@ -412,6 +508,116 @@ const StudentDashboard = () => {
 
       {/* Recent Announcements */}
       <AnnouncementsSection studentId={studentId} />
+
+      {/* Team Dashboard Card — Requirement 112.7 */}
+      {myTeam && (
+        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+          <div
+            className="px-6 py-4 flex items-center gap-2"
+            style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+          >
+            <Users className="h-5 w-5 text-white" />
+            <h2 className="text-lg font-bold tracking-tight text-white">My Team</h2>
+          </div>
+          <div className="p-6">
+            <TeamDashboardCard team={myTeam} gamification={teamGamification} />
+          </div>
+        </Card>
+      )}
+
+      {/* Active Challenges — Requirement 113.5 */}
+      {activeChallenges.length > 0 && (
+        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+          <div
+            className="px-6 py-4 flex items-center gap-2"
+            style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+          >
+            <Trophy className="h-5 w-5 text-white" />
+            <h2 className="text-lg font-bold tracking-tight text-white">Challenges</h2>
+          </div>
+          <div className="p-6 space-y-3">
+            {activeChallenges.slice(0, 3).map((c) => (
+              <div
+                key={c.id}
+                className="flex items-center justify-between py-2 border-b border-slate-100 last:border-0 cursor-pointer hover:bg-slate-50 rounded-lg px-2 -mx-2 transition-colors"
+                onClick={() => navigate('/student/challenges')}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => { if (e.key === 'Enter') navigate('/student/challenges'); }}
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium truncate">{c.title}</p>
+                  <p className="text-xs text-gray-500">
+                    {c.challenge_type === 'team' ? 'Team' : 'Course-Wide'} · {c.goal_metric}
+                  </p>
+                </div>
+                <Badge className="text-xs bg-amber-50 text-amber-700 border-amber-200 whitespace-nowrap">
+                  Target: {c.goal_target}
+                </Badge>
+              </div>
+            ))}
+            {activeChallenges.length > 3 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate('/student/challenges')}
+                className="w-full text-xs font-semibold text-blue-600 border-blue-200 hover:bg-blue-50"
+              >
+                View All Challenges ({activeChallenges.length})
+              </Button>
+            )}
+          </div>
+        </Card>
+      )}
+
+      {/* Attendance per enrolled course — Requirement 78.5 */}
+      {attendanceLoading ? (
+        <Shimmer className="h-40 rounded-xl" />
+      ) : attendanceCourses && attendanceCourses.length > 0 ? (
+        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+          <div
+            className="px-6 py-4 flex items-center gap-2"
+            style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+          >
+            <ClipboardCheck className="h-5 w-5 text-white" />
+            <h2 className="text-lg font-bold tracking-tight text-white">Attendance</h2>
+          </div>
+          <div className="p-6 space-y-3">
+            {attendanceCourses.map((c) => (
+              <div key={c.courseId} className="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium truncate">{c.courseName}</p>
+                  <p className="text-xs text-gray-500">
+                    {c.attended}/{c.totalSessions} sessions
+                  </p>
+                </div>
+                <Badge
+                  className={`text-xs font-bold ${
+                    c.attendancePercent < 75
+                      ? 'bg-red-50 text-red-700 border-red-200'
+                      : 'bg-green-50 text-green-700 border-green-200'
+                  }`}
+                >
+                  {c.attendancePercent}%
+                </Badge>
+              </div>
+            ))}
+          </div>
+        </Card>
+      ) : null}
+
+      {/* Daily Habit Tracker — 8 habits — Requirement 120.5 */}
+      {studentId && <HabitTracker studentId={studentId} />}
+
+      {/* Habit Difficulty Level Indicator — Requirement 127.6 */}
+      {studentId && habitDifficultyData && (
+        <Card className="bg-white border-0 shadow-md rounded-xl p-4">
+          <HabitDifficultyIndicator
+            level={habitDifficultyData.level}
+            habitLevelStreak={habitDifficultyData.habit_level_streak}
+          />
+        </Card>
+      )}
 
       {/* 7.2 — Profile Summary Card */}
       {onboardingCompleted && studentProfile && (

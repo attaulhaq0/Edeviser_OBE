@@ -1,0 +1,21 @@
+{
+  "common": {
+    "loading": "لوڈ ہو رہا ہے...",
+    "save": "محفوظ کریں",
+    "cancel": "منسوخ",
+    "delete": "حذف کریں",
+    "edit": "ترمیم",
+    "create": "بنائیں",
+    "search": "تلاش کریں",
+    "back": "واپس"
+  },
+  "auth": {
+    "login": "لاگ ان",
+    "logout": "لاگ آؤٹ",
+    "email": "ای میل",
+    "password": "پاس ورڈ"
+  },
+  "dashboard": {
+    "welcome": "خوش آمدید"
+  }
+}

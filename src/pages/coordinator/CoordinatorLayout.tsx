@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useOnboardingStatus, useCompleteOnboarding } from '@/hooks/useOnboarding';
 import { getChecklistForRole } from '@/lib/onboardingChecklist';
 import QuickStartChecklist from '@/components/shared/QuickStartChecklist';
-import { LayoutDashboard, Target, Grid3X3, UserCircle, ClipboardCheck, FileText } from 'lucide-react';
+import { LayoutDashboard, Target, Grid3X3, UserCircle, ClipboardCheck, FileText, Clock, GitBranch, Search, LayoutGrid, TrendingUp, Users } from 'lucide-react';
 
 const WelcomeTour = lazy(() => import('@/components/shared/WelcomeTour'));
 
@@ -13,8 +13,14 @@ const navItems = [
   { to: '/coordinator/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/coordinator/plos', icon: Target, label: 'PLOs' },
   { to: '/coordinator/matrix', icon: Grid3X3, label: 'Matrix' },
+  { to: '/coordinator/sankey', icon: GitBranch, label: 'Sankey Diagram' },
+  { to: '/coordinator/gap-analysis', icon: Search, label: 'Gap Analysis' },
+  { to: '/coordinator/coverage-heatmap', icon: LayoutGrid, label: 'Coverage Heatmap' },
+  { to: '/coordinator/trends', icon: TrendingUp, label: 'Semester Trends' },
+  { to: '/coordinator/cohort-comparison', icon: Users, label: 'Cohort Comparison' },
   { to: '/coordinator/cqi', icon: ClipboardCheck, label: 'CQI Plans' },
   { to: '/coordinator/course-file', icon: FileText, label: 'Course File' },
+  { to: '/coordinator/timetable', icon: Clock, label: 'Timetable' },
   { to: '/coordinator/settings/profile', icon: UserCircle, label: 'Profile' },
 ];
 

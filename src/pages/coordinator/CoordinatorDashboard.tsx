@@ -34,6 +34,11 @@ import {
   TrendingUp,
   Columns3,
   FileCheck2,
+  GitBranch,
+  Search,
+  LayoutGrid,
+  BarChart3,
+  Users,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -378,6 +383,69 @@ const CoordinatorDashboard = () => {
               }))}
             />
           )}
+        </div>
+      </Card>
+
+      {/* OBE Visualization Quick Access — Requirement 106.1, 107.1, 108.1, 109.2, 110.6 */}
+      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+        <div
+          className="px-6 py-4 flex items-center gap-2"
+          style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+        >
+          <BarChart3 className="h-5 w-5 text-white" />
+          <h2 className="text-lg font-bold tracking-tight text-white">OBE Visualizations</h2>
+        </div>
+        <div className="p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          <Link
+            to="/coordinator/sankey"
+            className="flex flex-col items-center gap-2 p-4 rounded-xl border border-slate-200 bg-slate-50 hover:bg-blue-50 hover:border-blue-200 transition-colors text-center group"
+          >
+            <div className="p-2 rounded-lg bg-blue-100 group-hover:scale-110 transition-transform">
+              <GitBranch className="h-5 w-5 text-blue-600" />
+            </div>
+            <span className="text-sm font-semibold text-gray-700">Sankey Diagram</span>
+            <span className="text-xs text-gray-500">ILO → PLO → CLO flow</span>
+          </Link>
+          <Link
+            to="/coordinator/gap-analysis"
+            className="flex flex-col items-center gap-2 p-4 rounded-xl border border-slate-200 bg-slate-50 hover:bg-blue-50 hover:border-blue-200 transition-colors text-center group"
+          >
+            <div className="p-2 rounded-lg bg-amber-100 group-hover:scale-110 transition-transform">
+              <Search className="h-5 w-5 text-amber-600" />
+            </div>
+            <span className="text-sm font-semibold text-gray-700">Gap Analysis</span>
+            <span className="text-xs text-gray-500">Unmapped outcomes</span>
+          </Link>
+          <Link
+            to="/coordinator/coverage-heatmap"
+            className="flex flex-col items-center gap-2 p-4 rounded-xl border border-slate-200 bg-slate-50 hover:bg-blue-50 hover:border-blue-200 transition-colors text-center group"
+          >
+            <div className="p-2 rounded-lg bg-green-100 group-hover:scale-110 transition-transform">
+              <LayoutGrid className="h-5 w-5 text-green-600" />
+            </div>
+            <span className="text-sm font-semibold text-gray-700">Coverage Heatmap</span>
+            <span className="text-xs text-gray-500">CLO coverage density</span>
+          </Link>
+          <Link
+            to="/coordinator/trends"
+            className="flex flex-col items-center gap-2 p-4 rounded-xl border border-slate-200 bg-slate-50 hover:bg-blue-50 hover:border-blue-200 transition-colors text-center group"
+          >
+            <div className="p-2 rounded-lg bg-purple-100 group-hover:scale-110 transition-transform">
+              <TrendingUp className="h-5 w-5 text-purple-600" />
+            </div>
+            <span className="text-sm font-semibold text-gray-700">Semester Trends</span>
+            <span className="text-xs text-gray-500">Attainment over time</span>
+          </Link>
+          <Link
+            to="/coordinator/cohort-comparison"
+            className="flex flex-col items-center gap-2 p-4 rounded-xl border border-slate-200 bg-slate-50 hover:bg-blue-50 hover:border-blue-200 transition-colors text-center group"
+          >
+            <div className="p-2 rounded-lg bg-red-100 group-hover:scale-110 transition-transform">
+              <Users className="h-5 w-5 text-red-600" />
+            </div>
+            <span className="text-sm font-semibold text-gray-700">Cohort Comparison</span>
+            <span className="text-xs text-gray-500">Cross-cohort metrics</span>
+          </Link>
         </div>
       </Card>
 

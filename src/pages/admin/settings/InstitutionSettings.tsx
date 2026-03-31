@@ -24,8 +24,10 @@ import {
 } from '@/components/ui/select';
 import Shimmer from '@/components/shared/Shimmer';
 import ProgramAccreditationManager from '@/components/shared/ProgramAccreditationManager';
-import { Loader2, Settings, GraduationCap, Plus, Trash2 } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Loader2, Settings, GraduationCap, Plus, Trash2, Flame, Trophy } from 'lucide-react';
 import { DEFAULT_GRADE_SCALES, type AccreditationBody } from '@/types/app';
+import { DEFAULT_LEAGUE_THRESHOLDS } from '@/lib/leagueTier';
 
 const ACCREDITATION_BODIES: Array<{ value: AccreditationBody; label: string }> = [
   { value: 'HEC', label: 'HEC — Higher Education Commission' },
@@ -47,6 +49,8 @@ const InstitutionSettings = () => {
       success_threshold: 70,
       accreditation_body: 'Generic',
       grade_scales: DEFAULT_GRADE_SCALES,
+      streak_sabbatical_enabled: false,
+      league_thresholds: DEFAULT_LEAGUE_THRESHOLDS,
     },
   });
 
@@ -62,6 +66,8 @@ const InstitutionSettings = () => {
         success_threshold: settings.success_threshold,
         accreditation_body: settings.accreditation_body,
         grade_scales: settings.grade_scales,
+        streak_sabbatical_enabled: settings.streak_sabbatical_enabled ?? false,
+        league_thresholds: settings.league_thresholds ?? DEFAULT_LEAGUE_THRESHOLDS,
       });
     }
   }, [settings, form]);
@@ -361,6 +367,144 @@ const InstitutionSettings = () => {
                 <Plus className="h-4 w-4" />
                 Add Grade
               </Button>
+            </div>
+          </Card>
+
+          {/* Streak Sabbatical Card — Requirement 125.3, 125.4 */}
+          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+            <div
+              className="px-6 py-4 flex items-center gap-2"
+              style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+            >
+              <Flame className="h-5 w-5 text-white" />
+              <h2 className="text-lg font-bold tracking-tight text-white">
+                Streak Sabbatical
+              </h2>
+            </div>
+            <div className="p-6 space-y-4">
+              <FormField
+                control={form.control}
+                name="streak_sabbatical_enabled"
+                render={({ field }) => (
+                  <FormItem className="flex items-center justify-between rounded-lg border border-slate-200 p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-sm font-medium">
+                        Enable Streak Sabbatical
+                      </FormLabel>
+                      <FormDescription className="text-xs text-gray-500">
+                        When enabled, weekends (Saturday &amp; Sunday) will not count toward streak requirements. Changes apply from the next calendar day.
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        data-testid="streak-sabbatical-toggle"
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </div>
+          </Card>
+
+          {/* League Tier Thresholds Card — Requirement 132.5 */}
+          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+            <div
+              className="px-6 py-4 flex items-center gap-2"
+              style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+            >
+              <Trophy className="h-5 w-5 text-white" />
+              <h2 className="text-lg font-bold tracking-tight text-white">
+                League Tier Thresholds
+              </h2>
+            </div>
+            <div className="p-6 space-y-4">
+              <p className="text-sm text-gray-500">
+                Configure the cumulative XP thresholds for each League Tier. Students are assigned to tiers based on their total XP.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <FormField
+                  control={form.control}
+                  name="league_thresholds.bronze"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Bronze (≥ XP)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min={0}
+                          {...field}
+                          onChange={(e) => field.onChange(Number(e.target.value))}
+                          data-testid="league-bronze"
+                        />
+                      </FormControl>
+                      <FormDescription>Default: 0</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="league_thresholds.silver"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Silver (≥ XP)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min={0}
+                          {...field}
+                          onChange={(e) => field.onChange(Number(e.target.value))}
+                          data-testid="league-silver"
+                        />
+                      </FormControl>
+                      <FormDescription>Default: 500</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="league_thresholds.gold"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Gold (≥ XP)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min={0}
+                          {...field}
+                          onChange={(e) => field.onChange(Number(e.target.value))}
+                          data-testid="league-gold"
+                        />
+                      </FormControl>
+                      <FormDescription>Default: 1500</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="league_thresholds.diamond"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Diamond (≥ XP)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min={0}
+                          {...field}
+                          onChange={(e) => field.onChange(Number(e.target.value))}
+                          data-testid="league-diamond"
+                        />
+                      </FormControl>
+                      <FormDescription>Default: 4000</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </div>
           </Card>
 

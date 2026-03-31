@@ -9,6 +9,7 @@ export interface StudentKPIData {
   currentStreak: number;
   currentLevel: number;
   totalXP: number;
+  totalActiveDays: number;
 }
 
 export interface UpcomingDeadline {
@@ -30,6 +31,7 @@ export const useStudentKPIs = (studentId: string | undefined) => {
           currentStreak: 0,
           currentLevel: 1,
           totalXP: 0,
+          totalActiveDays: 0,
         };
       }
 
@@ -61,17 +63,34 @@ export const useStudentKPIs = (studentId: string | undefined) => {
 
       const { data: gamification } = await supabase
         .from('student_gamification')
-        .select('streak_count, level, xp_total')
+        .select('streak_count, level, xp_total' as never)
         .eq('student_id', studentId)
         .maybeSingle();
+
+      const gamRow = gamification as Record<string, unknown> | null;
+
+      // total_active_days may not exist in generated types yet
+      let totalActiveDaysVal = 0;
+      try {
+        const { data: tadRow } = await supabase
+          .from('student_gamification')
+          .select('total_active_days' as never)
+          .eq('student_id', studentId)
+          .maybeSingle();
+        const val = (tadRow as Record<string, unknown> | null)?.total_active_days;
+        totalActiveDaysVal = typeof val === 'number' ? val : 0;
+      } catch {
+        // Column may not exist yet
+      }
 
       return {
         enrolledCourses: enrolledCourses ?? 0,
         completedAssignments: completedAssignments ?? 0,
         avgAttainment,
-        currentStreak: gamification?.streak_count ?? 0,
-        currentLevel: gamification?.level ?? 1,
-        totalXP: gamification?.xp_total ?? 0,
+        currentStreak: (gamRow?.streak_count as number) ?? 0,
+        currentLevel: (gamRow?.level as number) ?? 1,
+        totalXP: (gamRow?.xp_total as number) ?? 0,
+        totalActiveDays: totalActiveDaysVal,
       };
     },
     enabled: !!studentId,

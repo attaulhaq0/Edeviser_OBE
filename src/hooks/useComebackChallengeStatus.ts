@@ -20,7 +20,7 @@ export const useComebackChallengeStatus = (studentId: string | undefined) => {
       try {
         const { data, error } = await supabase
           .from('student_gamification')
-          .select('comeback_challenge_active, comeback_challenge_day, comeback_challenge_start_date' as never)
+          .select('comeback_challenge_active, comeback_challenge_days_completed, comeback_challenge_start_date' as never)
           .eq('student_id', studentId)
           .maybeSingle();
 
@@ -33,7 +33,7 @@ export const useComebackChallengeStatus = (studentId: string | undefined) => {
         const row = data as unknown as Record<string, unknown>;
         return {
           active: row.comeback_challenge_active === true,
-          currentDay: typeof row.comeback_challenge_day === 'number' ? row.comeback_challenge_day : 0,
+          currentDay: typeof row.comeback_challenge_days_completed === 'number' ? row.comeback_challenge_days_completed : 0,
           totalDays: 3,
           startDate: typeof row.comeback_challenge_start_date === 'string'
             ? row.comeback_challenge_start_date

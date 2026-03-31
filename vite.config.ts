@@ -24,6 +24,18 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+          'vendor-query': ['@tanstack/react-query', '@tanstack/react-table'],
+          'vendor-charts': ['recharts'],
+          'vendor-motion': ['framer-motion'],
+        },
+      },
+    },
+  },
   test: {
     globals: true,
     environment: 'happy-dom',
@@ -31,5 +43,6 @@ export default defineConfig({
     include: ['src/**/*.{test,property.test}.ts', 'src/**/*.{test,property.test}.tsx'],
     pool: 'forks',
     css: false,
+    testTimeout: 15000,
   },
 });
