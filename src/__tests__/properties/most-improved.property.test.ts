@@ -84,8 +84,8 @@ describe('Property 107: Most Improved calculation correctness', () => {
         (entries) => {
           const result = rankMostImproved(entries);
           for (let i = 1; i < result.length; i++) {
-            expect(result[i - 1].improvement_percent).toBeGreaterThanOrEqual(
-              result[i].improvement_percent,
+            expect(result[i - 1]!.improvement_percent).toBeGreaterThanOrEqual(
+              result[i]!.improvement_percent,
             );
           }
         },

@@ -80,7 +80,7 @@ describe('Property 106: Personal Best leaderboard data integrity', () => {
           if (maxXP > 0) {
             const bestWeeks = result.filter((w) => w.isPersonalBest);
             expect(bestWeeks).toHaveLength(1);
-            expect(bestWeeks[0].xp).toBe(maxXP);
+            expect(bestWeeks[0]!.xp).toBe(maxXP);
           }
         },
       ),

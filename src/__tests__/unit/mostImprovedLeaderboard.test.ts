@@ -43,7 +43,7 @@ describe('rankMostImproved', () => {
     const result = rankMostImproved(entries);
     expect(result).toHaveLength(20);
     // First entry should have highest improvement
-    expect(result[0].improvement_percent).toBeGreaterThan(result[1].improvement_percent);
+    expect(result[0]!.improvement_percent).toBeGreaterThan(result[1]!.improvement_percent);
   });
 
   it('excludes students with zero previous XP', () => {
@@ -54,7 +54,7 @@ describe('rankMostImproved', () => {
 
     const result = rankMostImproved(entries);
     expect(result).toHaveLength(1);
-    expect(result[0].student_id).toBe('s2');
+    expect(result[0]!.student_id).toBe('s2');
   });
 
   it('calculates xp_delta correctly', () => {
@@ -63,7 +63,7 @@ describe('rankMostImproved', () => {
     ];
 
     const result = rankMostImproved(entries);
-    expect(result[0].xp_delta).toBe(300);
+    expect(result[0]!.xp_delta).toBe(300);
   });
 
   it('returns empty array when all students have zero previous XP', () => {
@@ -83,6 +83,6 @@ describe('rankMostImproved', () => {
 
     const result = rankMostImproved(entries);
     // (333 - 200) / 200 * 100 = 66.5
-    expect(result[0].improvement_percent).toBe(66.5);
+    expect(result[0]!.improvement_percent).toBe(66.5);
   });
 });

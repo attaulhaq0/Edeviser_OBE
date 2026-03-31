@@ -4,7 +4,7 @@
 
 import { describe, it, expect } from 'vitest';
 import * as fc from 'fast-check';
-import type { UserRole as _UserRole } from '@/types/app';
+// UserRole type used indirectly via CSVRow.role validation
 
 // ─── Pure bulk import model ─────────────────────────────────────────────────
 

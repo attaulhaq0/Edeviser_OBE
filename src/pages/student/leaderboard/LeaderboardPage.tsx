@@ -41,7 +41,6 @@ import { useStudentCourseProgram } from './useStudentCourseProgram';
 import TeamLeaderboard from '@/pages/student/leaderboard/TeamLeaderboard';
 import LeagueTierBadge from '@/components/shared/LeagueTierBadge';
 import { calculatePercentileBand, formatPercentileBand } from '@/lib/percentileBand';
-import { type LeagueTierName } from '@/lib/leagueTier';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -591,8 +590,8 @@ const LeaderboardPage = () => {
   const { data: percentileData } = useStudentPercentileBand(userId, effectiveCourseId);
   const totalStudents = percentileData?.totalStudents ?? entries.length;
 
-  // Student league tier for League tab
-  const { data: tierData } = useStudentLeagueTier(userId);
+  // Student league tier for League tab (fetched for LeagueTierBadge rendering)
+  useStudentLeagueTier(userId);
 
   return (
     <div className="space-y-6">

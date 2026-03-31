@@ -85,15 +85,21 @@ const gamArb = (teamId: string) =>
 
 const viewArb = fc.constantFrom<ViewMode>('weekly', 'all_time');
 
+interface TeamsWithData {
+  teams: { id: string; name: string; avatar_letter: string }[];
+  gamData: { team_id: string; xp_total: number; xp_this_week: number }[];
+  memberCounts: Map<string, number>;
+}
+
 // Generate a consistent set of teams with gamification data
-const teamsWithDataArb = fc
+const teamsWithDataArb: fc.Arbitrary<TeamsWithData> = fc
   .array(teamArb, { minLength: 1, maxLength: 20 })
-  .chain((teams) => {
+  .chain((teams): fc.Arbitrary<TeamsWithData> => {
     // Ensure unique IDs
     const uniqueTeams = teams.filter(
       (t, i, arr) => arr.findIndex((x) => x.id === t.id) === i,
     );
-    if (uniqueTeams.length === 0) return fc.constant({ teams: [], gamData: [], memberCounts: new Map<string, number>() });
+    if (uniqueTeams.length === 0) return fc.constant({ teams: [] as TeamsWithData['teams'], gamData: [] as TeamsWithData['gamData'], memberCounts: new Map<string, number>() });
 
     const gamArbs = uniqueTeams.map((t) => gamArb(t.id));
     const memberCountArbs = uniqueTeams.map((t) =>
@@ -103,7 +109,7 @@ const teamsWithDataArb = fc
     return fc.tuple(fc.tuple(...gamArbs), fc.tuple(...memberCountArbs)).map(
       ([gams, counts]) => ({
         teams: uniqueTeams,
-        gamData: gams,
+        gamData: gams as TeamsWithData['gamData'],
         memberCounts: new Map(counts),
       }),
     );

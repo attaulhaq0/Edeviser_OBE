@@ -33,25 +33,6 @@ function getDayOfWeek(dateStr: string): number {
   return new Date(dateStr + 'T00:00:00Z').getUTCDay();
 }
 
-/** Check if a date is a weekend (Saturday or Sunday) */
-function isWeekend(dateStr: string): boolean {
-  const dow = getDayOfWeek(dateStr);
-  return dow === 0 || dow === 6;
-}
-
-/** Count weekend days strictly between two dates (exclusive of both endpoints) */
-function countWeekendDaysInGap(lastLogin: string, today: string): number {
-  const start = new Date(lastLogin + 'T00:00:00Z');
-  const end = new Date(today + 'T00:00:00Z');
-  const dayDiff = Math.floor((end.getTime() - start.getTime()) / 86_400_000);
-  let count = 0;
-  for (let i = 1; i < dayDiff; i++) {
-    const d = new Date(start.getTime() + i * 86_400_000);
-    const dow = d.getUTCDay();
-    if (dow === 0 || dow === 6) count++;
-  }
-  return count;
-}
 
 // ─── Arbitraries ────────────────────────────────────────────────────────────
 

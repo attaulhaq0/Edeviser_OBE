@@ -76,7 +76,8 @@ export const useLeagueLeaderboard = (courseId?: string, tier?: LeagueTierName) =
 
       const weeklyMap = new Map<string, number>();
       for (const w of weeklyData ?? []) {
-        weeklyMap.set(w.student_id, w.xp_total ?? 0);
+        const sid = w.student_id;
+        if (sid) weeklyMap.set(sid, w.xp_total ?? 0);
       }
 
       // Fetch names
@@ -226,13 +227,14 @@ async function fetchLeagueThresholds(): Promise<LeagueThresholds> {
 
   const { data: settings } = await supabase
     .from('institution_settings')
-    .select('league_thresholds')
+    .select('*')
     .eq('institution_id', profile.institution_id)
     .maybeSingle();
 
-  if (!settings?.league_thresholds) return DEFAULT_LEAGUE_THRESHOLDS;
+  const rawSettings = settings as Record<string, unknown> | null;
+  if (!rawSettings?.league_thresholds) return DEFAULT_LEAGUE_THRESHOLDS;
 
-  const lt = settings.league_thresholds as Record<string, number>;
+  const lt = rawSettings.league_thresholds as Record<string, number>;
   return {
     bronze: lt.bronze ?? DEFAULT_LEAGUE_THRESHOLDS.bronze,
     silver: lt.silver ?? DEFAULT_LEAGUE_THRESHOLDS.silver,

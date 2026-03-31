@@ -7,8 +7,8 @@
 
 import { describe, it, expect } from 'vitest';
 import * as fc from 'fast-check';
-import { calculateStreakUpdate, daysBetween as _daysBetween } from '@/lib/streakCalculator';
-import { calculateLevel, applyBonusMultiplier as _applyBonusMultiplier } from '@/lib/xpLevelCalculator';
+import { calculateStreakUpdate } from '@/lib/streakCalculator';
+import { calculateLevel } from '@/lib/xpLevelCalculator';
 import type { HabitType } from '@/types/app';
 
 // ─── Arbitraries ────────────────────────────────────────────────────────────

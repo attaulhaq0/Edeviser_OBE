@@ -3345,7 +3345,7 @@ mak  - [x] 106.1 Add comprehensive security headers configuration to `vercel.jso
   - Ensure all tests pass, ask the user if questions arise.
 
 
-- [-] 150. Badge Tiers — Progressive Badge System Database and Core Logic
+- [x] 150. Badge Tiers — Progressive Badge System Database and Core Logic
   - [-] 150.1 Apply Badge Tier database migration via Supabase MCP `apply_migration`
     - Add columns to `badges`: `tier` (text, CHECK IN ('bronze','silver','gold'), nullable), `category` (text)
     - Add columns to `student_badges`: `is_pinned` (boolean, default false), `archived_at` (timestamptz, nullable)

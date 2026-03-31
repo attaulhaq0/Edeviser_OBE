@@ -42,8 +42,8 @@ describe('computeWeeklyXP', () => {
 
   it('marks the last week as current week', () => {
     const result = computeWeeklyXP([], refDate);
-    expect(result[7].isCurrentWeek).toBe(true);
-    expect(result[0].isCurrentWeek).toBe(false);
+    expect(result[7]!.isCurrentWeek).toBe(true);
+    expect(result[0]!.isCurrentWeek).toBe(false);
   });
 
   it('correctly sums XP for each week', () => {
@@ -59,8 +59,8 @@ describe('computeWeeklyXP', () => {
     ];
 
     const result = computeWeeklyXP(transactions, refDate);
-    expect(result[7].xp).toBe(80);
-    expect(result[6].xp).toBe(100);
+    expect(result[7]!.xp).toBe(80);
+    expect(result[6]!.xp).toBe(100);
   });
 
   it('marks the week with highest XP as personal best', () => {
