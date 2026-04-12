@@ -56,7 +56,7 @@ const CoverageHeatmapView = () => {
             <table className="w-full text-xs border-collapse min-w-[600px]">
               <thead>
                 <tr>
-                  <th className="p-2 border border-slate-200 bg-slate-50 text-slate-500 font-bold text-left">CLO</th>
+                  <th className="p-2 border border-slate-200 bg-slate-50 text-slate-500 font-bold text-start">CLO</th>
                   {matrix.course_ids.map((cid) => (
                     <th key={cid} className="p-2 border border-slate-200 bg-slate-50 text-slate-500 font-bold truncate max-w-[120px]">
                       {matrix.course_labels[cid]}

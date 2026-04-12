@@ -103,7 +103,7 @@ const HabitTracker = ({ studentId, days = 7 }: HabitTrackerProps) => {
         <table className="w-full text-sm">
           <thead>
             <tr>
-              <th className="text-left py-1 px-2 text-xs font-semibold text-gray-500 w-28">Habit</th>
+              <th className="text-start py-1 px-2 text-xs font-semibold text-gray-500 w-28">Habit</th>
               {dateColumns.map((col) => (
                 <th key={col.date} className="py-1 px-1 text-xs font-semibold text-gray-500 text-center w-10">
                   {col.label}

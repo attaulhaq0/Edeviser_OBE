@@ -25,6 +25,7 @@ export const institutionSettingsSchema = z.object({
   grade_scales: z.array(gradeScaleSchema).min(1, "At least one grade scale is required"),
   streak_sabbatical_enabled: z.boolean(),
   league_thresholds: leagueThresholdsSchema.optional(),
+  default_language: z.enum(["en", "ar"]).optional(),
 });
 
 export type GradeScaleData = z.infer<typeof gradeScaleSchema>;

@@ -104,7 +104,7 @@ const NotificationCenter = ({ onClose: _onClose }: NotificationCenterProps) => {
             onClick={handleMarkAllAsRead}
             disabled={markAllAsRead.isPending}
           >
-            <CheckCheck className="h-3 w-3 mr-1" />
+            <CheckCheck className="h-3 w-3 me-1" />
             Mark all read
           </Button>
         )}
@@ -132,7 +132,7 @@ const NotificationCenter = ({ onClose: _onClose }: NotificationCenterProps) => {
                 key={item.is_grouped ? `group-${item.type}-${idx}` : mostRecent?.id ?? idx}
                 type="button"
                 className={cn(
-                  'flex items-start gap-3 px-4 py-3 cursor-pointer transition-colors hover:bg-slate-50 w-full text-left',
+                  'flex items-start gap-3 px-4 py-3 cursor-pointer transition-colors hover:bg-slate-50 w-full text-start',
                   hasUnreadItems && 'bg-blue-50/50',
                 )}
                 onClick={() => handleNotificationClick(item)}

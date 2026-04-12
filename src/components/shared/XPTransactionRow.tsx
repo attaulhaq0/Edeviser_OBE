@@ -35,7 +35,7 @@ const XPTransactionRow = ({
         <p className="text-sm font-medium truncate">{sourceLabel}</p>
         {description && <p className="text-xs text-gray-500 truncate">{description}</p>}
       </div>
-      <div className="text-right shrink-0">
+      <div className="text-end shrink-0">
         <p className={cn('text-sm font-bold tabular-nums', isPositive ? 'text-amber-600' : 'text-red-600')}>
           {isPositive ? '+' : ''}{xpAmount} XP
         </p>

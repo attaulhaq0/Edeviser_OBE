@@ -81,7 +81,7 @@ const TeamBadgeDisplay = ({ teamId, compact = false }: TeamBadgeDisplayProps) =>
             >
               <Card
                 data-testid={`team-badge-${badge.badge_key}`}
-                className="bg-white border-0 shadow-md rounded-xl p-3 flex flex-col items-center text-center gap-1.5 border-l-4 border-l-amber-400"
+                className="bg-white border-0 shadow-md rounded-xl p-3 flex flex-col items-center text-center gap-1.5 border-s-4 border-s-amber-400"
               >
                 <span className="text-2xl animate-badge-pop" aria-hidden="true">
                   {badge.emoji}

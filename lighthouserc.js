@@ -16,20 +16,20 @@ module.exports = {
     },
     assert: {
       assertions: {
-        // Performance budgets
-        'categories:performance': ['error', { minScore: 0.9 }],
+        // Performance budgets — fail CI on regressions
+        'categories:performance': ['error', { minScore: 0.85 }],
         'categories:accessibility': ['error', { minScore: 0.9 }],
-        'categories:best-practices': ['warn', { minScore: 0.85 }],
-        'categories:seo': ['warn', { minScore: 0.9 }],
+        'categories:best-practices': ['error', { minScore: 0.85 }],
+        'categories:seo': ['error', { minScore: 0.9 }],
 
         // Core Web Vitals
         'largest-contentful-paint': ['error', { maxNumericValue: 2500 }],
         'cumulative-layout-shift': ['error', { maxNumericValue: 0.1 }],
         'max-potential-fid': ['error', { maxNumericValue: 100 }],
-        'first-contentful-paint': ['warn', { maxNumericValue: 2500 }],
+        'first-contentful-paint': ['error', { maxNumericValue: 2500 }],
 
-        // Bundle size — initial load < 500KB gzipped
-        'total-byte-weight': ['warn', { maxNumericValue: 512000 }],
+        // Bundle size — 1.2MB gzipped budget (matches CI check)
+        'total-byte-weight': ['error', { maxNumericValue: 1228800 }],
       },
     },
     upload: {

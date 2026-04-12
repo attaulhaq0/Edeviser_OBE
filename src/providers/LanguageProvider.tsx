@@ -1,19 +1,16 @@
-// Task 81.2: Language provider — sets dir="rtl" for Urdu/Arabic, switches i18next language
-
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/useAuth';
+import { applyDirection } from '@/lib/directionManager';
 
-type Language = 'en' | 'ur' | 'ar';
+export type Language = 'en' | 'ar';
 
 interface LanguageContextValue {
   language: Language;
   direction: 'ltr' | 'rtl';
   setLanguage: (lang: Language) => Promise<void>;
 }
-
-const RTL_LANGUAGES: Language[] = ['ur', 'ar'];
 
 const LanguageContext = createContext<LanguageContextValue>({
   language: 'en',
@@ -27,16 +24,15 @@ export const useLanguage = () => useContext(LanguageContext);
 export const LanguageProvider = ({ children }: { children: ReactNode }) => {
   const { i18n } = useTranslation();
   const { user, profile } = useAuth();
-  const profileLang = (profile?.language_preference as Language) || 'en';
+  const profileLang = ((profile?.preferred_language as Language) || 'en') as Language;
   const [language, setLanguageState] = useState<Language>(profileLang);
 
-  const direction: 'ltr' | 'rtl' = RTL_LANGUAGES.includes(language) ? 'rtl' : 'ltr';
+  const direction: 'ltr' | 'rtl' = language === 'ar' ? 'rtl' : 'ltr';
 
-  // Apply direction to <html>
+  // Apply direction via directionManager
   useEffect(() => {
-    document.documentElement.dir = direction;
-    document.documentElement.lang = language;
-  }, [direction, language]);
+    applyDirection(language);
+  }, [language]);
 
   // Sync language when profile preference changes
   useEffect(() => {
@@ -52,13 +48,13 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
     async (lang: Language) => {
       setLanguageState(lang);
       i18n.changeLanguage(lang);
-      document.documentElement.dir = RTL_LANGUAGES.includes(lang) ? 'rtl' : 'ltr';
-      document.documentElement.lang = lang;
+      localStorage.setItem('edeviser-language', lang);
+      applyDirection(lang);
 
       if (user?.id) {
         await supabase
           .from('profiles')
-          .update({ language_preference: lang })
+          .update({ preferred_language: lang } as Record<string, unknown>)
           .eq('id', user.id)
           .then(({ error }) => {
             if (error) console.error('[LanguageProvider] Failed to save preference:', error.message);

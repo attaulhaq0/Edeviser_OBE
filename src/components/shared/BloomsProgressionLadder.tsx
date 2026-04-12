@@ -87,7 +87,7 @@ export const BloomsProgressionLadder = ({
                 ease: 'easeOut',
               }}
             >
-              <span className={cn('font-bold', compact ? 'w-3 mr-1' : 'w-4 mr-2')}>
+              <span className={cn('font-bold', compact ? 'w-3 me-1' : 'w-4 me-2')}>
                 {config.level}
               </span>
               <span className="truncate">{config.label}</span>

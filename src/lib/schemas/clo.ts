@@ -11,6 +11,7 @@ export const bloomsLevelSchema = z.enum([
 
 export const createCLOSchema = z.object({
   title: z.string().min(1, "Title is required").max(255),
+  title_ar: z.string().max(255).optional(),
   description: z.string().optional(),
   course_id: z.uuid(),
   blooms_level: bloomsLevelSchema,

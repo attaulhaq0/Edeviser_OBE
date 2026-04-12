@@ -197,7 +197,7 @@ const PrerequisiteSection = ({ clos, form }: PrerequisiteSectionProps) => {
       </button>
 
       {isOpen && (
-        <div className="space-y-3 pl-6">
+        <div className="space-y-3 ps-6">
           <p className="text-xs text-gray-500">
             Students must achieve the required attainment on a CLO before accessing this assignment.
           </p>
@@ -515,7 +515,7 @@ const AssignmentFormFields = ({
         <Card className="bg-white border-0 shadow-md rounded-xl p-6">
           <h2 className="text-lg font-bold tracking-tight mb-4">
             Prerequisite Gates
-            <span className="text-sm font-normal text-gray-500 ml-2">(Optional)</span>
+            <span className="text-sm font-normal text-gray-500 ms-2">(Optional)</span>
           </h2>
           {selectedCourseId ? (
             <PrerequisiteSection clos={clos} form={form} />

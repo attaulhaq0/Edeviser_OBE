@@ -113,7 +113,7 @@ const PublicPortfolio = () => {
             ) : (
               <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
                 {data.badges.map((b) => (
-                  <Card key={b.badge_key} className="bg-white border-0 shadow-md rounded-xl p-4 flex flex-col items-center text-center gap-2 border-l-4 border-l-amber-400">
+                  <Card key={b.badge_key} className="bg-white border-0 shadow-md rounded-xl p-4 flex flex-col items-center text-center gap-2 border-s-4 border-s-amber-400">
                     <span className="text-3xl" aria-hidden="true">{b.emoji}</span>
                     <span className="text-xs font-bold tracking-wide">{b.badge_name}</span>
                     <span className="text-[10px] text-gray-500">{format(new Date(b.awarded_at), 'MMM d, yyyy')}</span>

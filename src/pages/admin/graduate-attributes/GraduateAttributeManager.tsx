@@ -62,7 +62,7 @@ const GraduateAttributeManager = () => {
               {attributes.map((attr) => (
                 <div key={attr.id} className="flex items-center justify-between p-3 rounded-lg border border-slate-100 hover:bg-slate-50">
                   <div>
-                    <span className="text-xs font-mono text-slate-400 mr-2">{attr.code}</span>
+                    <span className="text-xs font-mono text-slate-400 me-2">{attr.code}</span>
                     <span className="text-sm font-medium">{attr.title}</span>
                     {attr.description && <p className="text-xs text-slate-500 mt-0.5">{attr.description}</p>}
                   </div>

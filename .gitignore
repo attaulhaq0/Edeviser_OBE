@@ -27,3 +27,6 @@ nul
 # TypeScript build info
 tsconfig.tsbuildinfo
 *.tsbuildinfo
+
+# Coverage reports
+coverage/

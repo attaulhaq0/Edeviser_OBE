@@ -1,42 +1,80 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
-import common from '@/locales/en/common.json';
-import auth from '@/locales/en/auth.json';
-import admin from '@/locales/en/admin.json';
-import teacher from '@/locales/en/teacher.json';
-import student from '@/locales/en/student.json';
-import gamification from '@/locales/en/gamification.json';
-import ai from '@/locales/en/ai.json';
+// English namespaces
+import enCommon from '@/locales/en/common.json';
+import enAuth from '@/locales/en/auth.json';
+import enAdmin from '@/locales/en/admin.json';
+import enTeacher from '@/locales/en/teacher.json';
+import enStudent from '@/locales/en/student.json';
+import enCoordinator from '@/locales/en/coordinator.json';
+import enGamification from '@/locales/en/gamification.json';
+import enAi from '@/locales/en/ai.json';
+
+// Arabic namespaces
+import arCommon from '@/locales/ar/common.json';
+import arAuth from '@/locales/ar/auth.json';
+import arAdmin from '@/locales/ar/admin.json';
+import arTeacher from '@/locales/ar/teacher.json';
+import arStudent from '@/locales/ar/student.json';
+import arCoordinator from '@/locales/ar/coordinator.json';
+import arGamification from '@/locales/ar/gamification.json';
+import arAi from '@/locales/ar/ai.json';
+
+import { applyDirection } from '@/lib/directionManager';
 
 export const defaultNS = 'common';
-export const supportedLanguages = ['en'] as const;
-export const namespaces = ['common', 'auth', 'admin', 'teacher', 'student', 'gamification', 'ai'] as const;
+export const supportedLanguages = ['en', 'ar'] as const;
+export const namespaces = [
+  'common', 'auth', 'admin', 'teacher', 'student',
+  'coordinator', 'gamification', 'ai',
+] as const;
 
 export type SupportedLanguage = (typeof supportedLanguages)[number];
 export type Namespace = (typeof namespaces)[number];
 
 export const resources = {
   en: {
-    common,
-    auth,
-    admin,
-    teacher,
-    student,
-    gamification,
-    ai,
+    common: enCommon,
+    auth: enAuth,
+    admin: enAdmin,
+    teacher: enTeacher,
+    student: enStudent,
+    coordinator: enCoordinator,
+    gamification: enGamification,
+    ai: enAi,
+  },
+  ar: {
+    common: arCommon,
+    auth: arAuth,
+    admin: arAdmin,
+    teacher: arTeacher,
+    student: arStudent,
+    coordinator: arCoordinator,
+    gamification: arGamification,
+    ai: arAi,
   },
 } as const;
 
+const savedLang = typeof window !== 'undefined'
+  ? localStorage.getItem('edeviser-language')
+  : null;
+
 i18n.use(initReactI18next).init({
   resources,
-  lng: 'en',
+  lng: savedLang || 'en',
   fallbackLng: 'en',
   defaultNS,
   ns: [...namespaces],
   interpolation: {
     escapeValue: false, // React already escapes
   },
+  pluralSeparator: '_',
+  supportedLngs: ['en', 'ar'],
 });
+
+// Apply direction on init and on every language change
+applyDirection(i18n.language);
+i18n.on('languageChanged', applyDirection);
 
 export default i18n;

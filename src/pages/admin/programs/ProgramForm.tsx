@@ -33,6 +33,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import type { Profile, Program } from '@/types/app';
 import type { Department } from '@/hooks/useDepartments';
 
@@ -173,6 +174,7 @@ const ProgramFormFields = <T extends CreateProgramFormData | UpdateProgramFormDa
   isLoadingDepartments,
 }: ProgramFormFieldsProps<T>) => {
   const navigate = useNavigate();
+  const { t } = useTranslation('admin');
 
   return (
     <Card className="bg-white border-0 shadow-md rounded-xl p-6 max-w-2xl">
@@ -189,6 +191,25 @@ const ProgramFormFields = <T extends CreateProgramFormData | UpdateProgramFormDa
                 <FormLabel>Program Name</FormLabel>
                 <FormControl>
                   <Input placeholder="e.g. Bachelor of Computer Science" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name={'name_ar' as never}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('bilingual.arabicName')}</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder={t('bilingual.arabicNamePlaceholder')}
+                    dir="rtl"
+                    {...field}
+                    value={(field.value as string) ?? ''}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>

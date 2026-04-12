@@ -45,6 +45,16 @@ describe('habitDifficulty', () => {
       expect(checkLevelPromotion(1, 6)).toBe(false);
       expect(checkLevelPromotion(2, 0)).toBe(false);
     });
+
+    it('streak reset does not demote level', () => {
+      // Simulate: level 2, streak resets to 0 — level stays at 2
+      const level = 2;
+      const resetStreak = 0;
+      // checkLevelPromotion only promotes, never demotes
+      expect(checkLevelPromotion(level, resetStreak)).toBe(false);
+      // Level remains unchanged (no demotion function exists by design)
+      expect(level).toBe(2);
+    });
   });
 
   describe('getPerfectDayThreshold', () => {

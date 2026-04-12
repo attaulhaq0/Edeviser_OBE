@@ -296,6 +296,17 @@
   }
 }
 
+/* ─── RTL Support ─────────────────────────────────────────────────────────── */
+
+[dir="rtl"] {
+  font-family: "Noto Sans Arabic", "Noto Sans", ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Ensure Shadcn/ui dialogs and popovers respect direction */
+[dir="rtl"] [data-radix-popper-content-wrapper] {
+  direction: rtl;
+}
+
 /* ─── Color Contrast Requirements (WCAG 2.1 AA) ──────────────────────────── */
 /*
  * Minimum contrast ratios per WCAG 2.1 AA:
@@ -333,3 +344,63 @@
  * - Never rely on color alone to convey information — always pair with
  *   text labels, icons, or patterns
  */
+
+/* ─── Accessibility Overrides ─────────────────────────────────────────────── */
+
+/* Dyslexia-friendly font */
+.dyslexia-font {
+  font-family: var(--font-body, "OpenDyslexic", "Noto Sans", ui-sans-serif, system-ui, sans-serif);
+}
+
+.dyslexia-font[dir="rtl"] {
+  font-family: var(--font-body, "OpenDyslexic", "Noto Sans Arabic", "Noto Sans", ui-sans-serif, system-ui, sans-serif);
+}
+
+/* High contrast mode */
+.high-contrast {
+  --background: #ffffff;
+  --foreground: #000000;
+  --card: #ffffff;
+  --card-foreground: #000000;
+  --border: #000000;
+  --ring: #000000;
+}
+
+.high-contrast * {
+  border-color: #000000 !important;
+}
+
+.high-contrast .text-gray-500,
+.high-contrast .text-gray-400,
+.high-contrast .text-slate-500 {
+  color: #000000 !important;
+}
+
+/* Reduced animations — overrides all custom keyframe animations */
+.reduce-animations *,
+.reduce-animations *::before,
+.reduce-animations *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
+
+/* Preserve essential UI transitions in reduced animation mode */
+.reduce-animations [data-radix-popper-content-wrapper],
+.reduce-animations [data-state] {
+  transition-duration: 100ms !important;
+}
+
+/* Simplified view — hide non-essential elements */
+.simplified-view [data-focus-hide="true"] {
+  display: none !important;
+}
+
+/* Font size overrides */
+html.font-large {
+  font-size: 18px;
+}
+
+html.font-x-large {
+  font-size: 20px;
+}

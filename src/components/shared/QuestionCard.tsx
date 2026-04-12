@@ -69,7 +69,7 @@ const QuestionCard = ({
                 disabled={disabled}
                 onClick={() => !disabled && onSelect(index)}
                 className={cn(
-                  'w-full text-left rounded-lg px-4 py-3 text-sm font-medium transition-colors',
+                  'w-full text-start rounded-lg px-4 py-3 text-sm font-medium transition-colors',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2',
                   isSelected
                     ? 'bg-blue-600 text-white shadow-md'

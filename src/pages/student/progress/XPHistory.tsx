@@ -60,7 +60,7 @@ const TransactionRow = ({ tx, index }: TransactionRowProps) => {
         </p>
       </div>
       <span
-        className={`text-sm font-bold tabular-nums shrink-0 ml-4 ${
+        className={`text-sm font-bold tabular-nums shrink-0 ms-4 ${
           isPositive ? 'text-amber-600' : 'text-red-500'
         }`}
       >
@@ -87,7 +87,7 @@ const CategorySummary = ({ categories, runningTotal }: CategorySummaryProps) => 
         <TrendingUp className="h-5 w-5 text-white" />
         <h2 className="text-lg font-bold tracking-tight text-white">Summary</h2>
       </div>
-      <div className="text-right">
+      <div className="text-end">
         <p className="text-2xl font-black text-white">{runningTotal.toLocaleString()} XP</p>
         <p className="text-[10px] font-black tracking-widest uppercase text-white/60">Total</p>
       </div>
@@ -104,7 +104,7 @@ const CategorySummary = ({ categories, runningTotal }: CategorySummaryProps) => 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-sm font-medium truncate">{cat.source_label}</span>
-                    <span className="text-xs text-gray-500 shrink-0 ml-2">
+                    <span className="text-xs text-gray-500 shrink-0 ms-2">
                       {cat.total_xp.toLocaleString()} XP · {cat.count}×
                     </span>
                   </div>

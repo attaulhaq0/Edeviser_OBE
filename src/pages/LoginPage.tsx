@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Loader2, Mail, Lock, GraduationCap, Target, TrendingUp, Sparkles } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher';
 
 const LoginPage = () => {
   const { t } = useTranslation('auth');
@@ -50,7 +51,10 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen relative">
+      <div className="absolute top-4 end-4 z-10">
+        <LanguageSwitcher />
+      </div>
       {/* Left panel — branding */}
       <div
         className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 text-white"
@@ -128,11 +132,11 @@ const LoginPage = () => {
                         <FormLabel className="text-gray-700 font-medium">{t('login.emailLabel')}</FormLabel>
                         <FormControl>
                           <div className="relative">
-                            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <Mail className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                             <Input
                               type="email"
                               placeholder={t('login.emailPlaceholder')}
-                              className="pl-10 h-11 border-slate-300 focus:border-blue-500"
+                              className="ps-10 h-11 border-slate-300 focus:border-blue-500"
                               {...field}
                             />
                           </div>
@@ -157,11 +161,11 @@ const LoginPage = () => {
                         </div>
                         <FormControl>
                           <div className="relative">
-                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <Lock className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                             <Input
                               type="password"
                               placeholder={t('login.passwordPlaceholder')}
-                              className="pl-10 h-11 border-slate-300 focus:border-blue-500"
+                              className="ps-10 h-11 border-slate-300 focus:border-blue-500"
                               {...field}
                             />
                           </div>
@@ -175,7 +179,7 @@ const LoginPage = () => {
                     disabled={isPending}
                     className="w-full h-11 text-base font-semibold bg-gradient-to-r from-teal-500 to-blue-600 hover:from-teal-600 hover:to-blue-700 active:scale-[0.98] transition-all shadow-md"
                   >
-                    {isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                    {isPending && <Loader2 className="h-4 w-4 animate-spin me-2" />}
                     {t('login.submitButton')}
                   </Button>
                 </form>

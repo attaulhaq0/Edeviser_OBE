@@ -1,0 +1,28 @@
+{
+  "suggestions": {
+    "title": "اقتراحات الذكاء الاصطناعي",
+    "moduleSuggestion": "مجال التركيز المقترح",
+    "weakArea": "يحتاج إلى تحسين في {{clo}}",
+    "socialProof": "الطلاب الذين حسّنوا هذا المجال حققوا درجات أعلى بنسبة {{percent}}%",
+    "feedback": "هل كان هذا مفيداً؟",
+    "noSuggestions": "لا توجد اقتراحات في الوقت الحالي."
+  },
+  "atRisk": {
+    "title": "تنبؤات الخطر",
+    "probability": "درجة الخطر: {{score}}%",
+    "signals": "الإشارات المساهمة",
+    "loginFrequency": "تكرار تسجيل الدخول",
+    "submissionPattern": "نمط التسليم",
+    "attainmentTrend": "اتجاه التحصيل",
+    "sendNudge": "إرسال تنبيه",
+    "nudgeSent": "تم إرسال التنبيه إلى {{name}}."
+  },
+  "feedbackDraft": {
+    "title": "مسودة التغذية الراجعة الذكية",
+    "generating": "جاري إنشاء مسودة التغذية الراجعة...",
+    "accept": "قبول",
+    "edit": "تعديل",
+    "reject": "رفض",
+    "overallFeedback": "مسودة التغذية الراجعة الشاملة"
+  }
+}

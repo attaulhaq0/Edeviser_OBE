@@ -107,11 +107,11 @@ const MaterialViewer = ({ material, onClose }: MaterialViewerProps) => {
         <div className="flex items-center gap-2">
           {isCompleted ? (
             <Badge className="bg-green-50 text-green-600 border-green-200 text-xs">
-              <CheckCircle2 className="h-3 w-3 mr-1" /> Read habit ✓
+              <CheckCircle2 className="h-3 w-3 me-1" /> Read habit ✓
             </Badge>
           ) : (
             <Badge variant="outline" className="text-xs text-gray-400">
-              <Clock className="h-3 w-3 mr-1" /> {30 - elapsedSeconds}s to read habit
+              <Clock className="h-3 w-3 me-1" /> {30 - elapsedSeconds}s to read habit
             </Badge>
           )}
           <Button variant="outline" size="sm" onClick={onClose}>
@@ -194,7 +194,7 @@ const CourseDetail = () => {
     <div className="space-y-6">
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="text-gray-500">
-          <ArrowLeft className="h-4 w-4 mr-1" /> Back
+          <ArrowLeft className="h-4 w-4 me-1" /> Back
         </Button>
         <div>
           <h1 className="text-2xl font-bold tracking-tight">

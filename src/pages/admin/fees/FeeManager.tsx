@@ -52,7 +52,7 @@ const FeeManager = () => {
                 <div key={f.id} className="flex items-center justify-between p-3 rounded-lg border border-slate-100">
                   <div>
                     <span className="text-sm font-medium">{f.fee_type}</span>
-                    <Badge variant="outline" className="ml-2 text-xs">${f.amount} {f.currency}</Badge>
+                    <Badge variant="outline" className="ms-2 text-xs">${f.amount} {f.currency}</Badge>
                   </div>
                   <span className="text-xs text-slate-400">Due: {f.due_date}</span>
                 </div>

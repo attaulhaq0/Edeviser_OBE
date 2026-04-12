@@ -9,9 +9,16 @@
     "lint": "eslint . --max-warnings 0",
     "preview": "vite preview",
     "test": "vitest --run",
+    "test:coverage": "vitest --run --coverage",
     "seed": "supabase db reset",
     "analyze": "cross-env ANALYZE=true vite build",
-    "lighthouse": "lhci autorun"
+    "lighthouse": "lhci autorun",
+    "prepare": "husky",
+    "changeset": "changeset",
+    "version": "changeset version"
+  },
+  "engines": {
+    "node": ">=20.0.0"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -45,6 +52,7 @@
   },
   "devDependencies": {
     "@axe-core/react": "^4.11.1",
+    "@changesets/cli": "^2.30.0",
     "@eslint/js": "^9.39.3",
     "@fast-check/vitest": "^0.2.4",
     "@lhci/cli": "^0.15.1",
@@ -58,6 +66,7 @@
     "@types/react-dom": "^18.3.5",
     "@vercel/node": "^5.6.20",
     "@vitejs/plugin-react": "^4.3.4",
+    "@vitest/coverage-v8": "^3.2.4",
     "axe-core": "^4.11.1",
     "cross-env": "^10.1.0",
     "eslint": "^9.39.3",
@@ -67,7 +76,9 @@
     "fast-check": "^4.5.3",
     "globals": "^17.3.0",
     "happy-dom": "^20.7.0",
+    "husky": "^9.1.7",
     "jsdom": "^27.0.1",
+    "lint-staged": "^16.4.0",
     "rollup-plugin-visualizer": "^7.0.1",
     "shadcn": "^3.8.5",
     "tailwindcss": "^4.2.0",

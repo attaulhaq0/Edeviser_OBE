@@ -327,7 +327,7 @@ const AnnouncementEditor = () => {
                     <h3 className="text-sm font-bold truncate">{a.title}</h3>
                     {a.is_pinned && (
                       <Badge variant="outline" className="text-xs text-amber-600 border-amber-200">
-                        <Pin className="h-3 w-3 mr-1" /> Pinned
+                        <Pin className="h-3 w-3 me-1" /> Pinned
                       </Badge>
                     )}
                   </div>

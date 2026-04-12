@@ -35,7 +35,7 @@ const LockedNode = ({
         <p className="text-xs text-gray-400 mt-0.5">
           Requires {requiredAttainment ?? 70}% on {prerequisiteCLO}
           {currentAttainment != null && (
-            <span className="ml-1">(current: {Math.round(currentAttainment)}%)</span>
+            <span className="ms-1">(current: {Math.round(currentAttainment)}%)</span>
           )}
         </p>
       )}

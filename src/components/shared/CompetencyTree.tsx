@@ -55,7 +55,7 @@ const TreeNode = ({ item, mappedItemIds, depth = 0 }: { item: CompetencyItem & {
         <span className="text-sm text-slate-700 truncate">{item.title}</span>
         {isUnmapped && (
           <Badge className="text-[9px] bg-amber-100 text-amber-700 ml-auto">
-            <AlertTriangle className="h-2.5 w-2.5 mr-0.5" />Unmapped
+            <AlertTriangle className="h-2.5 w-2.5 me-0.5" />Unmapped
           </Badge>
         )}
       </div>

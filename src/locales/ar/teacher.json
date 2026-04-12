@@ -1,0 +1,87 @@
+{
+  "dashboard": {
+    "title": "لوحة التحكم",
+    "gradingQueue": "قائمة التقييم",
+    "pendingSubmissions": "التسليمات المعلقة",
+    "gradedThisWeek": "تم تقييمها هذا الأسبوع",
+    "avgAttainment": "متوسط التحصيل",
+    "atRiskStudents": "الطلاب المعرضون للخطر",
+    "bloomsDistribution": "توزيع مستويات بلوم",
+    "cloAttainment": "تحصيل مخرجات التعلم",
+    "studentHeatmap": "خريطة أداء الطلاب الحرارية",
+    "selectCourse": "اختر مقرراً",
+    "viewAll": "عرض الكل",
+    "noCloData": "لا تتوفر بيانات تحصيل مخرجات التعلم لهذا المقرر.",
+    "noClosDefined": "لم يتم تحديد مخرجات تعلم بعد.",
+    "noHeatmapData": "لا تتوفر بيانات أداء الطلاب لهذا المقرر.",
+    "noAtRisk": "لم يتم اكتشاف طلاب معرضين للخطر. عمل رائع!",
+    "noPending": "لا توجد تسليمات معلقة. أنت على اطلاع!",
+    "sendNudgeTo": "إرسال تنبيه إلى {{name}}",
+    "nudgePlaceholder": "اكتب رسالة...",
+    "nudgeSent": "تم إرسال التنبيه إلى {{name}}",
+    "nudgeFailed": "فشل إرسال التنبيه",
+    "nudge": "تنبيه",
+    "daysInactive": "{{count}} يوم غير نشط",
+    "late": "متأخر",
+    "heatmapLegend": {
+      "excellent": "ممتاز (≥85%)",
+      "satisfactory": "مُرضٍ (70-84%)",
+      "developing": "قيد التطوير (50-69%)",
+      "notYet": "لم يتحقق بعد (<50%)",
+      "noData": "لا توجد بيانات"
+    },
+    "student": "الطالب",
+    "masteryRecovery": {
+      "title": "تنبيهات استعادة الإتقان",
+      "description": "الطلاب المحددون لاستعادة الإتقان يحتاجون إلى إكمال مسار الاستعادة قبل إعادة محاولة بوابة الإتقان.",
+      "failures": "{{count}} إخفاق",
+      "inRecovery": "في مرحلة الاستعادة"
+    }
+  },
+  "grading": {
+    "title": "التقييم",
+    "rubricSelection": "اختر مستوى المعيار لكل معيار",
+    "totalScore": "الدرجة الإجمالية",
+    "feedback": "التغذية الراجعة",
+    "overallFeedback": "التغذية الراجعة الشاملة",
+    "submitGrade": "إرسال الدرجة",
+    "gradeSubmitted": "تم إرسال الدرجة بنجاح."
+  },
+  "assignments": {
+    "title": "التكليفات",
+    "addAssignment": "إضافة تكليف",
+    "editAssignment": "تعديل تكليف",
+    "dueDate": "تاريخ الاستحقاق",
+    "totalMarks": "الدرجة الكلية",
+    "linkedCLOs": "مخرجات التعلم المرتبطة",
+    "lateWindow": "نافذة التسليم المتأخر"
+  },
+  "clos": {
+    "title": "مخرجات التعلم للمقرر",
+    "addCLO": "إضافة مخرج تعلم",
+    "editCLO": "تعديل مخرج تعلم",
+    "bloomsLevel": "مستوى بلوم",
+    "ploMapping": "ربط مخرجات التعلم البرنامجية",
+    "noMapping": "لا يوجد ربط بمخرجات التعلم البرنامجية بعد"
+  },
+  "bilingual": {
+    "arabicTitle": "العنوان بالعربية",
+    "arabicTitlePlaceholder": "أدخل العنوان بالعربية (اختياري)"
+  },
+  "rubrics": {
+    "title": "معايير التقييم",
+    "addRubric": "إضافة معيار تقييم",
+    "editRubric": "تعديل معيار تقييم",
+    "criteria": "المعايير",
+    "levels": "مستويات الأداء",
+    "saveAsTemplate": "حفظ كقالب"
+  },
+  "attendance": {
+    "title": "الحضور",
+    "markAttendance": "تسجيل الحضور",
+    "present": "حاضر",
+    "absent": "غائب",
+    "late": "متأخر",
+    "excused": "معذور"
+  }
+}

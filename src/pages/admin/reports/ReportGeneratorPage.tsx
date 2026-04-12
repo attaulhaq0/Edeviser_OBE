@@ -206,7 +206,7 @@ const ReportGeneratorPage = () => {
                     {TEMPLATE_OPTIONS.map((t) => (
                       <SelectItem key={t.value} value={t.value}>
                         <span className="font-medium">{t.label}</span>
-                        <span className="text-xs text-gray-500 ml-2">— {t.description}</span>
+                        <span className="text-xs text-gray-500 ms-2">— {t.description}</span>
                       </SelectItem>
                     ))}
                   </SelectContent>

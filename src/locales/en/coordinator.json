@@ -23,5 +23,18 @@
     "selectProgram": "Select a program",
     "exportCsv": "Export CSV",
     "selectPrompt": "Select a program to view the curriculum matrix."
+  },
+  "bilingual": {
+    "arabicTitle": "Arabic Title",
+    "arabicTitlePlaceholder": "Enter title in Arabic (optional)"
+  },
+  "obe": {
+    "ILO": "Institution Learning Outcomes",
+    "PLO": "Program Learning Outcomes",
+    "CLO": "Course Learning Outcomes",
+    "attainment": "Attainment",
+    "outcomeMapping": "Outcome Mapping",
+    "CQI": "Continuous Quality Improvement",
+    "courseFile": "Course File"
   }
 }

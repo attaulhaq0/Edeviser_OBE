@@ -8,6 +8,7 @@ updates:
       interval: weekly
       day: monday
     open-pull-requests-limit: 10
+    rebase-strategy: auto
     labels:
       - dependencies
       - security
@@ -21,6 +22,30 @@ updates:
         update-types:
           - minor
           - patch
+    # Ignore major bumps for core tooling — these need manual migration
+    ignore:
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
+      - dependency-name: eslint
+        update-types: ["version-update:semver-major"]
+      - dependency-name: vitest
+        update-types: ["version-update:semver-major"]
+      - dependency-name: react
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@types/react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: react-dom
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@types/react-dom"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: react-router-dom
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@tanstack/react-query"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: tailwindcss
+        update-types: ["version-update:semver-major"]
+      - dependency-name: vite
+        update-types: ["version-update:semver-major"]
 
   # GitHub Actions
   - package-ecosystem: github-actions
@@ -29,8 +54,14 @@ updates:
       interval: weekly
       day: monday
     open-pull-requests-limit: 5
+    rebase-strategy: auto
     labels:
       - dependencies
       - ci
     commit-message:
       prefix: "chore(ci):"
+    groups:
+      # Group all action bumps into one PR
+      github-actions:
+        patterns:
+          - "*"

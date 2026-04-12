@@ -34,6 +34,10 @@ import { useStudentAttendance } from '@/hooks/useAttendance';
 import { useStudentChallenges } from '@/hooks/useChallenges';
 import { useMyTeamId } from '@/hooks/useTeamLeaderboard';
 import { useTeams, useTeamGamification } from '@/hooks/useTeams';
+import { useBadgeSpotlight, useTieredBadges } from '@/hooks/useTieredBadges';
+import { useStudentLeagueTier } from '@/hooks/useLeagueLeaderboard';
+import BadgeSpotlightCard from '@/components/shared/BadgeSpotlightCard';
+import LeagueTierBadge from '@/components/shared/LeagueTierBadge';
 import { supabase } from '@/lib/supabase';
 import { queryKeys } from '@/lib/queryKeys';
 import { getDeadlineUrgency } from '@/hooks/useCalendar';
@@ -53,7 +57,9 @@ import {
   Users,
   type LucideIcon,
 } from 'lucide-react';
-import { format, differenceInDays } from 'date-fns';
+import { formatLocalDate } from '@/lib/formatDate';
+import { formatNumber, formatPercent } from '@/lib/formatNumber';
+import { differenceInDays } from 'date-fns';
 import { toast } from 'sonner';
 
 // ─── KPI Card ───────────────────────────────────────────────────────────────
@@ -120,7 +126,7 @@ const AnnouncementsSection = ({ studentId }: { studentId: string }) => {
               <p className="text-xs text-gray-500 line-clamp-1">{a.content}</p>
             </div>
             <span className="text-xs text-gray-400 whitespace-nowrap">
-              {format(new Date(a.created_at), 'MMM d')}
+              {formatLocalDate(a.created_at, 'MMM d')}
             </span>
           </div>
         ))}
@@ -182,6 +188,22 @@ const StudentDashboard = () => {
 
   // Habit Difficulty Level — Requirement 127.6
   const { data: habitDifficultyData } = useHabitDifficultyLevel(studentId || undefined);
+
+  // Badge Spotlight — Requirement 134.4
+  const { data: spotlightData } = useBadgeSpotlight(profile?.institution_id ?? undefined);
+  const { data: tieredBadgesData } = useTieredBadges(studentId || undefined);
+
+  // League Tier — Requirement 132.3
+  const { data: leagueTierData } = useStudentLeagueTier(studentId || undefined);
+
+  const spotlightBadge = tieredBadgesData?.find(
+    (b) => b.category === spotlightData?.category,
+  );
+  const spotlightDaysRemaining = (() => {
+    const now = new Date();
+    const dayOfWeek = now.getDay();
+    return dayOfWeek === 0 ? 1 : 8 - dayOfWeek;
+  })();
 
   // Attendance data
   const { data: attendanceCourses, isLoading: attendanceLoading } = useStudentAttendance(studentId || undefined);
@@ -355,12 +377,12 @@ const StudentDashboard = () => {
         </div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <KPICard icon={BookOpen} label="Courses" value={kpis?.enrolledCourses ?? 0} />
-          <KPICard icon={CheckCircle2} label="Completed" value={kpis?.completedAssignments ?? 0} />
+          <KPICard icon={BookOpen} label="Courses" value={formatNumber(kpis?.enrolledCourses ?? 0)} />
+          <KPICard icon={CheckCircle2} label="Completed" value={formatNumber(kpis?.completedAssignments ?? 0)} />
           <KPICard
             icon={TrendingUp}
             label="Avg Attainment"
-            value={`${kpis?.avgAttainment ?? 0}%`}
+            value={formatPercent(kpis?.avgAttainment ?? 0)}
           />
           <KPICard icon={Flame} label="Streak" value={`${kpis?.currentStreak ?? 0}d`} />
         </div>
@@ -376,6 +398,16 @@ const StudentDashboard = () => {
               cancelComeback.mutate(studentId);
             }
           }}
+        />
+      )}
+
+      {/* Badge Spotlight Card — Requirement 134.4 */}
+      {spotlightData && (
+        <BadgeSpotlightCard
+          category={spotlightData.category}
+          currentTier={spotlightBadge?.tier ?? null}
+          progress={spotlightBadge?.progress_toward_next ?? 0}
+          daysRemaining={spotlightDaysRemaining}
         />
       )}
 
@@ -425,7 +457,7 @@ const StudentDashboard = () => {
                         <p className="text-xs text-gray-500 truncate">{d.course_name}</p>
                       </div>
                       <Badge className={`text-xs whitespace-nowrap ${urgencyStyles[urgency]}`}>
-                        {format(new Date(d.due_date), 'MMM d')}
+                        {formatLocalDate(d.due_date, 'MMM d')}
                       </Badge>
                     </div>
                   );
@@ -472,6 +504,14 @@ const StudentDashboard = () => {
                 <span className="text-sm font-bold">{kpis?.completedAssignments ?? 0}</span>
               </div>
 
+              {/* League Tier Badge — Requirement 132.3 */}
+              {leagueTierData && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-600">League Tier</span>
+                  <LeagueTierBadge tier={leagueTierData.tier} size="sm" />
+                </div>
+              )}
+
               {/* Adaptive XP Multiplier Display — Requirements 120.5, 122.3 */}
               {studentId && (
                 <div className="pt-2 border-t border-slate-100">
@@ -485,7 +525,7 @@ const StudentDashboard = () => {
                 onClick={() => navigate('/student/xp-history')}
                 className="w-full mt-2 text-xs font-semibold text-amber-600 border-amber-200 hover:bg-amber-50"
               >
-                <Coins className="h-4 w-4 mr-1" />
+                <Coins className="h-4 w-4 me-1" />
                 View XP History
               </Button>
             </div>

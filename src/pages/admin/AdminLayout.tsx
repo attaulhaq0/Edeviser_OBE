@@ -5,7 +5,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useOnboardingStatus, useCompleteOnboarding } from '@/hooks/useOnboarding';
 import { getChecklistForRole } from '@/lib/onboardingChecklist';
 import QuickStartChecklist from '@/components/shared/QuickStartChecklist';
-import { LayoutDashboard, Users, BookOpen, GraduationCap, Target, ScrollText, Sparkles, FileText, UserCircle, Calendar, Building2, ClipboardList, Settings, Clock, CalendarDays, DollarSign } from 'lucide-react';
+import { LayoutDashboard, Users, BookOpen, GraduationCap, Target, ScrollText, Sparkles, FileText, UserCircle, Calendar, Building2, ClipboardList, Settings, Clock, CalendarDays, DollarSign, Award } from 'lucide-react';
+import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher';
 
 const navItems = [
   { to: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -21,6 +22,7 @@ const navItems = [
   { to: '/admin/reports', icon: FileText, label: 'Reports' },
   { to: '/admin/audit-log', icon: ScrollText, label: 'Audit Log' },
   { to: '/admin/bonus-events', icon: Sparkles, label: 'Bonus XP' },
+  { to: '/admin/badges/spotlight', icon: Award, label: 'Badge Spotlight' },
   { to: '/admin/surveys', icon: ClipboardList, label: 'Surveys' },
   { to: '/admin/settings/institution', icon: Settings, label: 'Settings' },
   { to: '/admin/settings/profile', icon: UserCircle, label: 'Profile' },
@@ -49,7 +51,7 @@ const AdminLayout = () => {
 
   return (
     <div className="flex h-screen">
-      <aside className="w-64 border-r border-slate-200 bg-white p-4 space-y-1 flex flex-col">
+      <aside className="w-64 border-e border-slate-200 bg-white p-4 space-y-1 flex flex-col">
         <h2 className="text-lg font-bold tracking-tight mb-4 px-3">Admin</h2>
         <div className="flex-1 space-y-1">
           {navItems.map(({ to, icon: Icon, label }) => (
@@ -78,8 +80,13 @@ const AdminLayout = () => {
           />
         )}
       </aside>
-      <main className="flex-1 overflow-auto p-6 bg-slate-50">
-        <Outlet />
+      <main className="flex-1 overflow-auto bg-slate-50">
+        <div className="flex items-center justify-end px-6 py-2 border-b border-slate-200 bg-white">
+          <LanguageSwitcher />
+        </div>
+        <div className="p-6">
+          <Outlet />
+        </div>
       </main>
     </div>
   );

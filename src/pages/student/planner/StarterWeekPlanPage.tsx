@@ -119,7 +119,7 @@ const SessionCard = ({
 
       {session.status === 'suggested' && (
         <Badge className="bg-blue-50 text-blue-600 border-blue-200 text-[10px]">
-          <Sparkles className="h-3 w-3 mr-1" />
+          <Sparkles className="h-3 w-3 me-1" />
           AI Suggested
         </Badge>
       )}

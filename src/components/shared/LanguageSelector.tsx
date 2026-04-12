@@ -1,7 +1,7 @@
 // Task 81.5: Language selector dropdown — English, اردو (Urdu), العربية (Arabic)
 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useLanguage } from '@/providers/LanguageProvider';
+import { useLanguage, type Language } from '@/providers/LanguageProvider';
 import { Globe } from 'lucide-react';
 
 const LANGUAGES = [
@@ -16,7 +16,7 @@ const LanguageSelector = () => {
   return (
     <div className="flex items-center gap-2">
       <Globe className="h-4 w-4 text-gray-500" />
-      <Select value={language} onValueChange={(v) => setLanguage(v as 'en' | 'ur' | 'ar')}>
+      <Select value={language} onValueChange={(v) => setLanguage(v as Language)}>
         <SelectTrigger className="w-36 bg-white">
           <SelectValue />
         </SelectTrigger>

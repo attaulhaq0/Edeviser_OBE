@@ -19,6 +19,10 @@ import {
   clearServerAttempts,
 } from '@/lib/loginAttemptTracker';
 import { logActivity } from '@/lib/activityLogger';
+import {
+  loadAccessibilityPreferences,
+  applyAccessibilityPreferences,
+} from '@/lib/accessibilityPreferences';
 
 // ---------------------------------------------------------------------------
 // Role → dashboard path mapping
@@ -100,6 +104,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // -------------------------------------------------------------------
   // Bootstrap: restore persisted session + subscribe to auth changes
   // -------------------------------------------------------------------
+  useEffect(() => {
+    // Apply accessibility preferences from localStorage on startup
+    applyAccessibilityPreferences(loadAccessibilityPreferences());
+  }, []);
+
   useEffect(() => {
     if (initialised.current) return;
     initialised.current = true;

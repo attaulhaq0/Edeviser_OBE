@@ -130,10 +130,10 @@ const LeaderboardRow = ({ entry, isCurrentUser, totalStudents }: LeaderboardRowP
           )}
         >
           {entry.full_name}
-          {isCurrentUser && <span className="ml-1 text-xs font-normal text-blue-500">(You)</span>}
+          {isCurrentUser && <span className="ms-1 text-xs font-normal text-blue-500">(You)</span>}
         </p>
       </div>
-      <div className="text-right shrink-0">
+      <div className="text-end shrink-0">
         <span className="text-sm font-bold text-amber-500">{entry.xp_total.toLocaleString()} XP</span>
       </div>
       <Badge variant="secondary" className="shrink-0 bg-blue-50 text-blue-700 border-blue-200">
@@ -377,11 +377,11 @@ const MostImprovedList = ({ courseId, currentUserId }: MostImprovedListProps) =>
                 >
                   {entry.student_name}
                   {isCurrentUser && (
-                    <span className="ml-1 text-xs font-normal text-blue-500">(You)</span>
+                    <span className="ms-1 text-xs font-normal text-blue-500">(You)</span>
                   )}
                 </p>
               </div>
-              <div className="text-right shrink-0">
+              <div className="text-end shrink-0">
                 <span
                   className={cn(
                     'text-sm font-bold',
@@ -392,7 +392,7 @@ const MostImprovedList = ({ courseId, currentUserId }: MostImprovedListProps) =>
                   {entry.improvement_percent.toFixed(1)}%
                 </span>
               </div>
-              <div className="text-right shrink-0">
+              <div className="text-end shrink-0">
                 <span className="text-xs text-gray-500">
                   {entry.xp_delta >= 0 ? '+' : ''}
                   {entry.xp_delta.toLocaleString()} XP
@@ -400,7 +400,7 @@ const MostImprovedList = ({ courseId, currentUserId }: MostImprovedListProps) =>
               </div>
               {isTop3 && (
                 <Badge variant="secondary" className="shrink-0 bg-green-100 text-green-700 border-green-200">
-                  <Star className="h-3 w-3 mr-1" />
+                  <Star className="h-3 w-3 me-1" />
                   Rising Star
                 </Badge>
               )}
@@ -485,11 +485,11 @@ const LeagueLeaderboardList = ({ courseId, currentUserId }: LeagueLeaderboardLis
                     >
                       {entry.full_name}
                       {isCurrentUser && (
-                        <span className="ml-1 text-xs font-normal text-blue-500">(You)</span>
+                        <span className="ms-1 text-xs font-normal text-blue-500">(You)</span>
                       )}
                     </p>
                   </div>
-                  <div className="text-right shrink-0">
+                  <div className="text-end shrink-0">
                     <span className="text-sm font-bold text-amber-500">
                       {entry.weekly_xp.toLocaleString()} XP
                     </span>

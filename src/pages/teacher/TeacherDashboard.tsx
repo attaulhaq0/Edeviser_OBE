@@ -224,7 +224,7 @@ const AtRiskStudentCard = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="ml-3 shrink-0"
+                  className="ms-3 shrink-0"
                   onClick={() => openNudgeDialog(student)}
                 >
                   <Send className="h-4 w-4" />
@@ -493,7 +493,7 @@ const TeacherDashboard = () => {
             <table className="w-full text-sm">
               <thead>
                 <tr>
-                  <th className="text-left py-2 px-3 text-xs font-semibold text-gray-500 sticky left-0 bg-white">
+                  <th className="text-start py-2 px-3 text-xs font-semibold text-gray-500 sticky start-0 bg-white">
                     Student
                   </th>
                   {heatmapGrid.clos.map((clo) => (
@@ -510,7 +510,7 @@ const TeacherDashboard = () => {
               <tbody>
                 {heatmapGrid.students.map((student) => (
                   <tr key={student} className="border-t border-slate-100">
-                    <td className="py-2 px-3 font-medium text-gray-700 sticky left-0 bg-white whitespace-nowrap">
+                    <td className="py-2 px-3 font-medium text-gray-700 sticky start-0 bg-white whitespace-nowrap">
                       {student}
                     </td>
                     {heatmapGrid.clos.map((clo) => {

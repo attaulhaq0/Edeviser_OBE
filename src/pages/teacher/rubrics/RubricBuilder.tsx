@@ -418,7 +418,7 @@ const RubricBuilder = () => {
                 <table className="w-full border-collapse">
                   <thead>
                     <tr>
-                      <th className="p-2 text-left text-xs font-bold uppercase tracking-wider text-gray-500 w-48 min-w-[12rem]">
+                      <th className="p-2 text-start text-xs font-bold uppercase tracking-wider text-gray-500 w-48 min-w-[12rem]">
                         Criterion
                       </th>
                       {levelLabels.map((label, colIdx) => (
@@ -503,7 +503,7 @@ const RubricBuilder = () => {
                   <tfoot>
                     <tr className="border-t-2 border-slate-300">
                       <td
-                        className="p-2 text-right text-sm font-bold text-gray-700"
+                        className="p-2 text-end text-sm font-bold text-gray-700"
                         colSpan={levelCount + 1}
                       >
                         Total Score

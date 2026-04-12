@@ -241,7 +241,7 @@ const SingleCourseTest = ({
                     aria-checked={isSelected}
                     aria-label={opt.option_text}
                     onClick={() => handleSelect(idx)}
-                    className={`flex items-center gap-3 rounded-lg border px-4 py-3 text-left text-sm font-medium transition-colors ${
+                    className={`flex items-center gap-3 rounded-lg border px-4 py-3 text-start text-sm font-medium transition-colors ${
                       isSelected
                         ? 'border-blue-500 bg-blue-50 text-blue-700'
                         : 'border-slate-200 bg-white text-gray-700 hover:border-slate-300 hover:bg-slate-50'

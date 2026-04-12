@@ -125,13 +125,13 @@ const GradebookView = () => {
               value="matrix"
               className="rounded-xl data-[state=active]:bg-blue-600 data-[state=active]:text-white"
             >
-              <BookOpen className="h-4 w-4 mr-1" /> Gradebook
+              <BookOpen className="h-4 w-4 me-1" /> Gradebook
             </TabsTrigger>
             <TabsTrigger
               value="categories"
               className="rounded-xl data-[state=active]:bg-blue-600 data-[state=active]:text-white"
             >
-              <Settings className="h-4 w-4 mr-1" /> Categories
+              <Settings className="h-4 w-4 me-1" /> Categories
             </TabsTrigger>
           </TabsList>
 
@@ -206,7 +206,7 @@ const GradebookTable = ({ data, categories }: GradebookTableProps) => {
           <tr className="bg-slate-50 border-b border-slate-200">
             <th
               rowSpan={2}
-              className="sticky left-0 bg-slate-50 px-4 py-2 text-left font-medium text-gray-600 z-10 min-w-[160px]"
+              className="sticky start-0 bg-slate-50 px-4 py-2 text-start font-medium text-gray-600 z-10 min-w-[160px]"
             >
               Student
             </th>
@@ -219,10 +219,10 @@ const GradebookTable = ({ data, categories }: GradebookTableProps) => {
                 <th
                   key={cat.id}
                   colSpan={colCount}
-                  className="px-2 py-2 text-center font-bold text-gray-700 border-l border-slate-200"
+                  className="px-2 py-2 text-center font-bold text-gray-700 border-s border-slate-200"
                 >
                   {cat.name}
-                  <Badge variant="secondary" className="ml-1 text-[10px]">
+                  <Badge variant="secondary" className="ms-1 text-[10px]">
                     {cat.weight_percent}%
                   </Badge>
                 </th>
@@ -230,13 +230,13 @@ const GradebookTable = ({ data, categories }: GradebookTableProps) => {
             })}
             <th
               rowSpan={2}
-              className="px-3 py-2 text-center font-bold text-gray-700 border-l border-slate-200 min-w-[80px]"
+              className="px-3 py-2 text-center font-bold text-gray-700 border-s border-slate-200 min-w-[80px]"
             >
               Final %
             </th>
             <th
               rowSpan={2}
-              className="px-3 py-2 text-center font-bold text-gray-700 border-l border-slate-200 min-w-[60px]"
+              className="px-3 py-2 text-center font-bold text-gray-700 border-s border-slate-200 min-w-[60px]"
             >
               Grade
             </th>
@@ -252,7 +252,7 @@ const GradebookTable = ({ data, categories }: GradebookTableProps) => {
                 ...assessments.map((a) => (
                   <th
                     key={a.id}
-                    className="px-2 py-1 text-center font-medium text-gray-500 whitespace-nowrap border-l border-slate-100"
+                    className="px-2 py-1 text-center font-medium text-gray-500 whitespace-nowrap border-s border-slate-100"
                   >
                     <div className="truncate max-w-[90px] text-xs" title={a.title}>
                       {a.title}
@@ -262,7 +262,7 @@ const GradebookTable = ({ data, categories }: GradebookTableProps) => {
                 )),
                 <th
                   key={`${cat.id}-subtotal`}
-                  className="px-2 py-1 text-center font-bold text-gray-600 whitespace-nowrap border-l border-slate-200 bg-slate-100"
+                  className="px-2 py-1 text-center font-bold text-gray-600 whitespace-nowrap border-s border-slate-200 bg-slate-100"
                 >
                   <div className="text-xs">Subtotal</div>
                 </th>,
@@ -273,7 +273,7 @@ const GradebookTable = ({ data, categories }: GradebookTableProps) => {
         <tbody>
           {data.map((student) => (
             <tr key={student.student_id} className="border-t border-slate-100 hover:bg-slate-50/50">
-              <td className="sticky left-0 bg-white px-4 py-2 font-medium truncate max-w-[160px] z-10">
+              <td className="sticky start-0 bg-white px-4 py-2 font-medium truncate max-w-[160px] z-10">
                 {student.student_name}
               </td>
               {student.categories.map((cat) => [
@@ -281,7 +281,7 @@ const GradebookTable = ({ data, categories }: GradebookTableProps) => {
                   <td
                     key={a.id}
                     className={cn(
-                      'px-2 py-2 text-center font-medium tabular-nums border-l border-slate-100',
+                      'px-2 py-2 text-center font-medium tabular-nums border-s border-slate-100',
                       getCellBg(a.score, a.max_score),
                     )}
                   >
@@ -290,19 +290,19 @@ const GradebookTable = ({ data, categories }: GradebookTableProps) => {
                 )),
                 <td
                   key={`${cat.category_id}-sub`}
-                  className="px-2 py-2 text-center font-bold tabular-nums border-l border-slate-200 bg-slate-50"
+                  className="px-2 py-2 text-center font-bold tabular-nums border-s border-slate-200 bg-slate-50"
                 >
                   <span className={getGradeColor(cat.subtotal_percent)}>
                     {cat.subtotal_percent.toFixed(1)}%
                   </span>
                 </td>,
               ])}
-              <td className="px-3 py-2 text-center font-bold tabular-nums border-l border-slate-200">
+              <td className="px-3 py-2 text-center font-bold tabular-nums border-s border-slate-200">
                 <span className={getGradeColor(student.final_weighted_grade)}>
                   {student.final_weighted_grade.toFixed(1)}%
                 </span>
               </td>
-              <td className="px-3 py-2 text-center border-l border-slate-200">
+              <td className="px-3 py-2 text-center border-s border-slate-200">
                 <Badge
                   className={cn(
                     'text-xs font-bold',

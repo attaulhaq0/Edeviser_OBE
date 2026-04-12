@@ -20,6 +20,7 @@ export interface Profile {
   portfolio_public: boolean;
   theme_preference: string;
   language_preference: string;
+  preferred_language?: string;
   notification_preferences: unknown;
   last_seen_at: string | null;
   tos_accepted_at: string | null;
@@ -362,6 +363,7 @@ export interface InstitutionSettings {
   grade_scales: GradeScale[];
   streak_sabbatical_enabled: boolean;
   league_thresholds?: LeagueThresholdsConfig;
+  default_language?: string;
   created_at: string;
 }
 

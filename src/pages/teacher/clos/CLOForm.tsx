@@ -34,6 +34,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Loader2, Link2, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import BloomsVerbGuide from '@/components/shared/BloomsVerbGuide';
 import type { LearningOutcome } from '@/types/app';
 
@@ -60,6 +61,7 @@ interface PLOMappingEntry {
 
 const CreateCLODetailsForm = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation('teacher');
   const createMutation = useCreateCLO();
   const { data: paginatedCourses, isLoading: isLoadingCourses } = useCourses();
   const courses = paginatedCourses?.data ?? [];
@@ -68,6 +70,7 @@ const CreateCLODetailsForm = () => {
     resolver: zodResolver(createCLOSchema),
     defaultValues: {
       title: '',
+      title_ar: '',
       description: '',
       course_id: '' as `${string}-${string}-${string}-${string}-${string}`,
       blooms_level: undefined,
@@ -111,6 +114,26 @@ const CreateCLODetailsForm = () => {
                     placeholder="e.g. Analyze data structures for algorithmic efficiency"
                     maxLength={255}
                     {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="title_ar"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('bilingual.arabicTitle')}</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder={t('bilingual.arabicTitlePlaceholder')}
+                    dir="rtl"
+                    maxLength={255}
+                    {...field}
+                    value={field.value ?? ''}
                   />
                 </FormControl>
                 <FormMessage />
@@ -224,6 +247,7 @@ const CreateCLODetailsForm = () => {
 
 const EditCLODetailsForm = ({ cloId }: { cloId: string }) => {
   const navigate = useNavigate();
+  const { t } = useTranslation('teacher');
   const { data: existingCLO, isLoading } = useCLO(cloId);
   const updateMutation = useUpdateCLO(cloId);
 
@@ -231,6 +255,7 @@ const EditCLODetailsForm = ({ cloId }: { cloId: string }) => {
     resolver: zodResolver(createCLOSchema),
     defaultValues: {
       title: '',
+      title_ar: '',
       description: '',
       course_id: '' as `${string}-${string}-${string}-${string}-${string}`,
       blooms_level: undefined,
@@ -242,6 +267,7 @@ const EditCLODetailsForm = ({ cloId }: { cloId: string }) => {
       const clo = existingCLO as unknown as LearningOutcome;
       form.reset({
         title: clo.title,
+        title_ar: (clo as unknown as Record<string, unknown>).title_ar as string ?? '',
         description: clo.description ?? '',
         course_id: (clo.course_id ?? '') as `${string}-${string}-${string}-${string}-${string}`,
         blooms_level: (clo.blooms_level?.toLowerCase() ?? undefined) as BloomsLevel | undefined,
@@ -292,6 +318,26 @@ const EditCLODetailsForm = ({ cloId }: { cloId: string }) => {
                     placeholder="e.g. Analyze data structures for algorithmic efficiency"
                     maxLength={255}
                     {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="title_ar"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('bilingual.arabicTitle')}</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder={t('bilingual.arabicTitlePlaceholder')}
+                    dir="rtl"
+                    maxLength={255}
+                    {...field}
+                    value={field.value ?? ''}
                   />
                 </FormControl>
                 <FormMessage />

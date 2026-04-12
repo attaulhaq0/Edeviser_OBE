@@ -274,7 +274,7 @@ const ModuleMaterials = ({ module: mod, teacherId, courseId }: ModuleMaterialsPr
   const isPending = createMaterial.isPending || updateMaterial.isPending;
 
   return (
-    <div className="pl-6 space-y-2">
+    <div className="ps-6 space-y-2">
       {isLoading ? (
         <Shimmer className="h-10 rounded-lg" />
       ) : (
@@ -308,7 +308,7 @@ const ModuleMaterials = ({ module: mod, teacherId, courseId }: ModuleMaterialsPr
             );
           })}
           <Button variant="ghost" size="sm" onClick={openCreate} className="text-xs text-blue-600">
-            <Plus className="h-3.5 w-3.5 mr-1" /> Add Material
+            <Plus className="h-3.5 w-3.5 me-1" /> Add Material
           </Button>
         </>
       )}
@@ -372,7 +372,7 @@ const ModuleMaterials = ({ module: mod, teacherId, courseId }: ModuleMaterialsPr
                     disabled={uploading}
                     className="text-xs"
                   >
-                    {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : <Upload className="h-3.5 w-3.5 mr-1" />}
+                    {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin me-1" /> : <Upload className="h-3.5 w-3.5 me-1" />}
                     {uploading ? 'Uploading...' : 'Upload File'}
                   </Button>
                   {form.getValues('content_url') && (

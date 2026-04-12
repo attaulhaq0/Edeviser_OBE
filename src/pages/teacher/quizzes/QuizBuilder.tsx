@@ -259,7 +259,7 @@ const QuestionDialog = ({
                       form.setValue('options', [...options, '']);
                     }}
                   >
-                    <Plus className="h-4 w-4 mr-1" /> Add Option
+                    <Plus className="h-4 w-4 me-1" /> Add Option
                   </Button>
                 )}
               </div>
@@ -396,7 +396,7 @@ const QuestionDialog = ({
               disabled={isPending}
               className="w-full bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 text-white"
             >
-              {isPending && <Loader2 className="h-4 w-4 animate-spin mr-1" />}
+              {isPending && <Loader2 className="h-4 w-4 animate-spin me-1" />}
               {existingQuestion ? 'Update Question' : 'Add Question'}
             </Button>
           </form>
@@ -787,7 +787,7 @@ const QuizBuilder = () => {
               disabled={isPending}
               className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 text-white"
             >
-              {isPending && <Loader2 className="h-4 w-4 animate-spin mr-1" />}
+              {isPending && <Loader2 className="h-4 w-4 animate-spin me-1" />}
               {isEditMode ? 'Update Quiz' : 'Create Quiz'}
             </Button>
           </form>
@@ -810,7 +810,7 @@ const QuizBuilder = () => {
                 setQuestionDialogOpen(true);
               }}
             >
-              <Plus className="h-4 w-4 mr-1" /> Add Question
+              <Plus className="h-4 w-4 me-1" /> Add Question
             </Button>
           </div>
           <div className="p-6 space-y-3">
@@ -828,7 +828,7 @@ const QuizBuilder = () => {
                 >
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium">
-                      <span className="text-gray-400 mr-2">Q{idx + 1}.</span>
+                      <span className="text-gray-400 me-2">Q{idx + 1}.</span>
                       {q.question_text}
                     </p>
                     <div className="flex items-center gap-3 mt-1">

@@ -85,7 +85,7 @@ const GapAnalysisView = () => {
                         <span className="text-sm font-medium">{gap.outcome_title}</span>
                       </div>
                       <Badge className={`text-[10px] ${config.color}`}>
-                        <Icon className="h-3 w-3 mr-1" />{config.label}
+                        <Icon className="h-3 w-3 me-1" />{config.label}
                       </Badge>
                     </div>
                     {gap.flag && (

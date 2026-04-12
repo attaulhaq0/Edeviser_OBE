@@ -32,7 +32,7 @@ const GraduateAttributeCard = ({ title, code, attainment, mappedILOCount }: Grad
         <p className="text-sm font-semibold mt-0.5 truncate">{title}</p>
         <p className="text-xs text-slate-500 mt-1">{mappedILOCount} mapped ILOs</p>
       </div>
-      <div className="text-right">
+      <div className="text-end">
         <p className="text-2xl font-black">{Math.round(attainment)}%</p>
         <Badge className={`text-[10px] ${getAttainmentStyle(attainment)}`}>
           {getAttainmentLabel(attainment)}

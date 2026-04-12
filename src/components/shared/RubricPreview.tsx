@@ -53,7 +53,7 @@ const RubricPreview = ({ rubric, selectedCells, onCellClick }: RubricPreviewProp
         <table className="w-full border-collapse">
           <thead>
             <tr>
-              <th className="p-3 text-left text-xs font-bold uppercase tracking-wider text-gray-500 border border-slate-200 bg-slate-50 w-48 min-w-[12rem]">
+              <th className="p-3 text-start text-xs font-bold uppercase tracking-wider text-gray-500 border border-slate-200 bg-slate-50 w-48 min-w-[12rem]">
                 Criterion
               </th>
               {levelLabels.map((label, idx) => (
@@ -122,7 +122,7 @@ const RubricPreview = ({ rubric, selectedCells, onCellClick }: RubricPreviewProp
           <tfoot>
             <tr className="border-t-2 border-slate-300">
               <td
-                className="p-3 text-right text-sm font-bold text-gray-700"
+                className="p-3 text-end text-sm font-bold text-gray-700"
                 colSpan={levelLabels.length + 1}
               >
                 Total Score:{' '}

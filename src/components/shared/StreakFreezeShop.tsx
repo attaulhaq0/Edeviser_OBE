@@ -57,7 +57,7 @@ const StreakFreezeShop = ({
             )}
           />
         ))}
-        <span className="text-xs text-gray-400 ml-1">
+        <span className="text-xs text-gray-400 ms-1">
           {freezesAvailable}/{MAX_FREEZES}
         </span>
       </div>

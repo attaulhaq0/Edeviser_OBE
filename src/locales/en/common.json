@@ -88,5 +88,31 @@
     "title": "Something went wrong",
     "defaultMessage": "An unexpected error occurred.",
     "retry": "Try Again"
+  },
+  "blooms": {
+    "remembering": "Remembering",
+    "understanding": "Understanding",
+    "applying": "Applying",
+    "analyzing": "Analyzing",
+    "evaluating": "Evaluating",
+    "creating": "Creating"
+  },
+  "attainment": {
+    "excellent": "Excellent",
+    "satisfactory": "Satisfactory",
+    "developing": "Developing",
+    "notYet": "Not Yet"
+  },
+  "accessibility": {
+    "title": "Accessibility Settings",
+    "fontSize": "Font Size",
+    "fontDefault": "Default",
+    "fontLarge": "Large",
+    "fontXLarge": "Extra Large",
+    "highContrast": "High Contrast",
+    "reducedAnimations": "Reduced Animations",
+    "dyslexiaFont": "Dyslexia-Friendly Font",
+    "simplifiedView": "Simplified View",
+    "cognitiveLoadMessage": "This page has a lot of information — would you like a simplified view?"
   }
 }

@@ -88,7 +88,7 @@ const AtRiskStudentRow = ({
       <Button
         variant="outline"
         size="sm"
-        className="ml-2 shrink-0"
+        className="ms-2 shrink-0"
         onClick={onSendNudge}
         disabled={isNudging}
         aria-label={`Send nudge to ${studentName}`}

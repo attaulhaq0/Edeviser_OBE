@@ -2,6 +2,7 @@ import { z } from "zod";
 
 export const createPLOSchema = z.object({
   title: z.string().min(1, "Title is required").max(255),
+  title_ar: z.string().max(255).optional(),
   description: z.string().optional(),
   program_id: z.uuid(),
   sort_order: z.number().int().min(0).optional(),

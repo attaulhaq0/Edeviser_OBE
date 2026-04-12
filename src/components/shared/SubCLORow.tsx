@@ -24,7 +24,7 @@ const SubCLORow = ({
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="border-l-2 border-slate-200 ml-6 pl-4 py-2">
+    <div className="border-s-2 border-slate-200 ms-6 ps-4 py-2">
       <div className="flex items-center gap-3">
         <button
           type="button"
@@ -83,7 +83,7 @@ const SubCLORow = ({
       </div>
 
       {expanded && subCLO.description && (
-        <p className="text-xs text-slate-500 mt-1 ml-8">{subCLO.description}</p>
+        <p className="text-xs text-slate-500 mt-1 ms-8">{subCLO.description}</p>
       )}
     </div>
   );

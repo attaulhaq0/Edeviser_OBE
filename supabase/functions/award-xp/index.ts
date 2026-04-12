@@ -655,6 +655,7 @@ serve(async (req) => {
     // Practice quiz XP is exempt from bonus event multipliers (Requirement 25.3)
 
     let bonusEventMultiplier = 1.0;
+    let spotlightMultiplier = 1.0;
 
     if (source !== 'practice_quiz') {
       const { data: bonusEvents, error: bonusErr } = await supabase
@@ -676,12 +677,62 @@ serve(async (req) => {
       }
     }
 
+    // ── Step 4b: Badge Spotlight 2x bonus (Requirement 134.1, 134.5) ────
+    // When source is 'badge', check if the badge category matches the current spotlight
+
+    if (source === 'badge' && resolvedReferenceId) {
+      try {
+        // Fetch the student's institution_id
+        const { data: studentProfile } = await supabase
+          .from('profiles')
+          .select('institution_id')
+          .eq('id', student_id)
+          .maybeSingle();
+
+        if (studentProfile?.institution_id) {
+          // Get current week's Monday
+          const now = new Date();
+          const dayOfWeek = now.getUTCDay();
+          const monday = new Date(now);
+          monday.setUTCDate(now.getUTCDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+          const weekStart = monday.toISOString().slice(0, 10);
+
+          // Check if there's a spotlight for this week
+          const { data: spotlight } = await supabase
+            .from('badge_spotlight_schedule')
+            .select('category')
+            .eq('institution_id', studentProfile.institution_id)
+            .eq('week_start', weekStart)
+            .maybeSingle();
+
+          if (spotlight?.category) {
+            // Check if the badge being awarded matches the spotlight category
+            // Look up the badge's category from the reference_id
+            const { data: badgeRecord } = await supabase
+              .from('badges')
+              .select('category')
+              .eq('badge_key', resolvedReferenceId)
+              .eq('student_id', student_id)
+              .maybeSingle();
+
+            const badgeCategory = (badgeRecord?.category as string) ?? null;
+
+            if (badgeCategory && badgeCategory === spotlight.category) {
+              spotlightMultiplier = 2.0;
+            }
+          }
+        }
+      } catch (spotlightErr) {
+        console.error('Badge spotlight check failed (non-blocking):', spotlightErr);
+      }
+    }
+
     // ── Step 5: Calculate final XP with adaptive formula ─────────────────
-    // final_xp = floor(base_xp × level_multiplier × difficulty_multiplier × diminishing_multiplier × bonus_event)
+    // final_xp = floor(base_xp × level_multiplier × difficulty_multiplier × diminishing_multiplier × bonus_event × spotlight)
     // Cap at 9999 per transaction (design doc edge case)
 
     const baseXP = cappedXpAmount;
-    let finalXP = Math.floor(baseXP * levelMultiplier * difficultyMultiplier * diminishingMultiplier * bonusEventMultiplier);
+    let finalXP = Math.floor(baseXP * levelMultiplier * difficultyMultiplier * diminishingMultiplier * bonusEventMultiplier * spotlightMultiplier);
     finalXP = Math.min(finalXP, 9999);
 
     // ── Step 6: Insert XP transaction with adaptive fields ───────────────
@@ -695,6 +746,7 @@ serve(async (req) => {
       difficulty_multiplier: difficultyMultiplier,
       diminishing_multiplier: diminishingMultiplier,
       bonus_event_multiplier: bonusEventMultiplier,
+      spotlight_multiplier: spotlightMultiplier,
     };
 
     const insertPayload = {

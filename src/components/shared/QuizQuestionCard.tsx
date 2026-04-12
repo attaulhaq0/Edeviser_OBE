@@ -28,7 +28,7 @@ const QuizQuestionCard = ({
   <div className={cn('rounded-xl border border-slate-200 bg-white p-5 space-y-4', className)}>
     <div className="flex items-start justify-between gap-2">
       <p className="text-sm font-medium">
-        <span className="text-gray-400 mr-2">Q{questionNumber}.</span>
+        <span className="text-gray-400 me-2">Q{questionNumber}.</span>
         {questionText}
       </p>
       <span className="text-xs text-gray-400 shrink-0">{points} pts</span>
@@ -42,13 +42,13 @@ const QuizQuestionCard = ({
             type="button"
             onClick={() => onAnswer(opt)}
             className={cn(
-              'w-full text-left rounded-lg border px-4 py-2.5 text-sm transition-colors',
+              'w-full text-start rounded-lg border px-4 py-2.5 text-sm transition-colors',
               selectedAnswer === opt
                 ? 'border-blue-500 bg-blue-50 text-blue-700 font-medium'
                 : 'border-gray-200 text-gray-700 hover:bg-gray-50',
             )}
           >
-            <span className="text-gray-400 mr-2 font-medium">
+            <span className="text-gray-400 me-2 font-medium">
               {String.fromCharCode(65 + idx)}.
             </span>
             {opt}

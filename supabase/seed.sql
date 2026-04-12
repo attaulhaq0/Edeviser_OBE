@@ -684,4 +684,128 @@ BEGIN
 
   RAISE NOTICE 'Seed complete: 50 students, 4 courses, 20 assignments seeded.';
 
+  -- =========================================================================
+  -- 18. SECTION W — ENGAGEMENT SAFEGUARDS SEED DATA
+  -- =========================================================================
+
+  -- 18a. League Tier default thresholds + Streak Sabbatical in institution_settings
+  INSERT INTO institution_settings (institution_id, attainment_thresholds, success_threshold, accreditation_body, streak_sabbatical_enabled, league_thresholds)
+  VALUES (
+    v_inst_id,
+    '{"excellent": 85, "satisfactory": 70, "developing": 50}'::jsonb,
+    70,
+    'Generic',
+    true,
+    '{"bronze": 0, "silver": 500, "gold": 1500, "diamond": 4000}'::jsonb
+  )
+  ON CONFLICT (institution_id) DO UPDATE SET
+    streak_sabbatical_enabled = true,
+    league_thresholds = '{"bronze": 0, "silver": 500, "gold": 1500, "diamond": 4000}'::jsonb;
+
+  -- 18b. Habit difficulty levels + total active days for students
+  FOR i IN 1..50 LOOP
+    UPDATE student_gamification
+    SET
+      habit_difficulty_level = CASE
+        WHEN i <= 10 THEN 1
+        WHEN i <= 25 THEN 3
+        ELSE 2
+      END,
+      habit_level_streak = CASE
+        WHEN i <= 10 THEN (random() * 2)::int
+        WHEN i <= 25 THEN (random() * 7)::int
+        ELSE (random() * 5)::int
+      END,
+      total_active_days = CASE
+        WHEN i <= 10 THEN 15 + (random() * 30)::int
+        WHEN i <= 25 THEN 80 + (random() * 40)::int
+        ELSE 40 + (random() * 50)::int
+      END
+    WHERE student_id = v_student_ids[i];
+  END LOOP;
+
+  -- 18c. Badge categories with tier thresholds (tiered badges for students)
+  DECLARE
+    v_badge_categories text[] := ARRAY[
+      'Streak Master', 'Perfect Day Pro', 'Journal Writer',
+      'Quiz Champion', 'Collaborator', 'Mentor',
+      'Early Bird', 'Night Owl', 'Speed Demon',
+      'Consistent Learner', 'Comeback Kid', 'Improvement Star',
+      'Team Player', 'Discussion Leader', 'Bloom Climber'
+    ];
+    v_badge_cat_emojis text[] := ARRAY[
+      '🔥', '✨', '📖',
+      '🎯', '🤝', '🧑‍🏫',
+      '🌅', '🌙', '⚡',
+      '📚', '💪', '📈',
+      '👥', '💬', '🌱'
+    ];
+    v_cat text;
+    v_cat_idx int;
+  BEGIN
+    FOR v_cat_idx IN 1..array_length(v_badge_categories, 1) LOOP
+      v_cat := v_badge_categories[v_cat_idx];
+
+      -- Gold tier for top 5 high-perf students (11-15)
+      FOR i IN 11..15 LOOP
+        INSERT INTO badges (student_id, badge_key, badge_name, emoji, category, tier, awarded_at)
+        VALUES (
+          v_student_ids[i],
+          lower(replace(v_cat, ' ', '_')) || '_gold',
+          v_cat || ' — Gold',
+          v_badge_cat_emojis[v_cat_idx],
+          v_cat,
+          'gold',
+          now() - interval '1 day' * (random() * 30)::int
+        )
+        ON CONFLICT DO NOTHING;
+      END LOOP;
+
+      -- Silver tier for next 5 high-perf students (16-20)
+      FOR i IN 16..20 LOOP
+        INSERT INTO badges (student_id, badge_key, badge_name, emoji, category, tier, awarded_at)
+        VALUES (
+          v_student_ids[i],
+          lower(replace(v_cat, ' ', '_')) || '_silver',
+          v_cat || ' — Silver',
+          v_badge_cat_emojis[v_cat_idx],
+          v_cat,
+          'silver',
+          now() - interval '1 day' * (random() * 60)::int
+        )
+        ON CONFLICT DO NOTHING;
+      END LOOP;
+
+      -- Bronze tier for average students (26-35)
+      FOR i IN 26..35 LOOP
+        INSERT INTO badges (student_id, badge_key, badge_name, emoji, category, tier, awarded_at)
+        VALUES (
+          v_student_ids[i],
+          lower(replace(v_cat, ' ', '_')) || '_bronze',
+          v_cat || ' — Bronze',
+          v_badge_cat_emojis[v_cat_idx],
+          v_cat,
+          'bronze',
+          now() - interval '1 day' * (random() * 90)::int
+        )
+        ON CONFLICT DO NOTHING;
+      END LOOP;
+    END LOOP;
+  END;
+
+  -- 18d. Badge Spotlight schedule entries (next 4 weeks)
+  DECLARE
+    v_spotlight_cats text[] := ARRAY['Streak Master', 'Perfect Day Pro', 'Journal Writer', 'Quiz Champion'];
+    v_week_start date;
+  BEGIN
+    FOR i IN 0..3 LOOP
+      v_week_start := date_trunc('week', now()::date + (i * 7))::date;
+      INSERT INTO badge_spotlight_schedule (institution_id, category, week_start, created_by)
+      VALUES (v_inst_id, v_spotlight_cats[i + 1], v_week_start, v_admin_id)
+      ON CONFLICT DO NOTHING;
+    END LOOP;
+  END;
+
+  RAISE NOTICE 'Section W seed data complete: badge tiers, spotlight schedule, league thresholds, habit levels.';
+
 END $$;

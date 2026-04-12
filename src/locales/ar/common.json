@@ -1,0 +1,118 @@
+{
+  "nav": {
+    "dashboard": "لوحة التحكم",
+    "users": "المستخدمون",
+    "programs": "البرامج",
+    "courses": "المقررات",
+    "outcomes": "المخرجات",
+    "assignments": "التكليفات",
+    "grading": "التقييم",
+    "reports": "التقارير",
+    "settings": "الإعدادات",
+    "profile": "الملف الشخصي",
+    "notifications": "الإشعارات",
+    "leaderboard": "لوحة المتصدرين",
+    "journal": "اليومية",
+    "progress": "التقدم",
+    "calendar": "التقويم",
+    "timetable": "الجدول الدراسي",
+    "discussions": "المناقشات",
+    "attendance": "الحضور",
+    "quizzes": "الاختبارات",
+    "gradebook": "سجل الدرجات",
+    "auditLog": "سجل المراجعة"
+  },
+  "buttons": {
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "delete": "حذف",
+    "edit": "تعديل",
+    "create": "إنشاء",
+    "submit": "إرسال",
+    "confirm": "تأكيد",
+    "back": "رجوع",
+    "next": "التالي",
+    "close": "إغلاق",
+    "retry": "إعادة المحاولة",
+    "export": "تصدير",
+    "import": "استيراد",
+    "search": "بحث",
+    "filter": "تصفية",
+    "reset": "إعادة تعيين",
+    "download": "تحميل",
+    "upload": "رفع"
+  },
+  "status": {
+    "active": "نشط",
+    "inactive": "غير نشط",
+    "pending": "قيد الانتظار",
+    "completed": "مكتمل",
+    "dropped": "منسحب",
+    "loading": "جاري التحميل...",
+    "saving": "جاري الحفظ...",
+    "error": "خطأ",
+    "success": "نجاح"
+  },
+  "form": {
+    "required": "هذا الحقل مطلوب",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "name": "الاسم",
+    "description": "الوصف",
+    "title": "العنوان",
+    "code": "الرمز",
+    "selectOption": "اختر خياراً",
+    "noResults": "لم يتم العثور على نتائج"
+  },
+  "errors": {
+    "generic": "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
+    "notFound": "لم يتم العثور على المورد المطلوب.",
+    "unauthorized": "غير مصرح لك بتنفيذ هذا الإجراء.",
+    "forbidden": "تم رفض الوصول.",
+    "networkError": "خطأ في الشبكة. يرجى التحقق من اتصالك.",
+    "timeout": "انتهت مهلة الطلب. يرجى المحاولة مرة أخرى.",
+    "validation": "يرجى التحقق من النموذج بحثاً عن أخطاء."
+  },
+  "pagination": {
+    "previous": "السابق",
+    "next": "التالي",
+    "showing": "عرض {{from}} إلى {{to}} من {{total}}",
+    "rowsPerPage": "صفوف لكل صفحة"
+  },
+  "confirmation": {
+    "deleteTitle": "هل أنت متأكد؟",
+    "deleteMessage": "لا يمكن التراجع عن هذا الإجراء.",
+    "unsavedChanges": "لديك تغييرات غير محفوظة. هل أنت متأكد أنك تريد المغادرة؟"
+  },
+  "errorBoundary": {
+    "title": "حدث خطأ ما",
+    "defaultMessage": "حدث خطأ غير متوقع.",
+    "retry": "إعادة المحاولة"
+  },
+  "blooms": {
+    "remembering": "التذكر",
+    "understanding": "الفهم",
+    "applying": "التطبيق",
+    "analyzing": "التحليل",
+    "evaluating": "التقييم",
+    "creating": "الإبداع"
+  },
+  "attainment": {
+    "excellent": "ممتاز",
+    "satisfactory": "مُرضٍ",
+    "developing": "قيد التطوير",
+    "notYet": "لم يتحقق بعد"
+  },
+  "accessibility": {
+    "title": "إعدادات إمكانية الوصول",
+    "fontSize": "حجم الخط",
+    "fontDefault": "افتراضي",
+    "fontLarge": "كبير",
+    "fontXLarge": "كبير جداً",
+    "highContrast": "تباين عالٍ",
+    "reducedAnimations": "تقليل الحركة",
+    "dyslexiaFont": "خط صديق لعسر القراءة",
+    "simplifiedView": "عرض مبسط",
+    "cognitiveLoadMessage": "تحتوي هذه الصفحة على الكثير من المعلومات — هل تريد عرضاً مبسطاً؟"
+  }
+}

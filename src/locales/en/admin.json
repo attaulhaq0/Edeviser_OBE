@@ -65,6 +65,16 @@
     "title": "Institution Settings",
     "kpiThresholds": "KPI Thresholds",
     "gradeScale": "Grade Scale",
-    "accreditationBody": "Accreditation Body"
+    "accreditationBody": "Accreditation Body",
+    "defaultLanguage": "Default Language",
+    "defaultLanguageDesc": "New users will start with this language preference.",
+    "english": "English",
+    "arabic": "Arabic"
+  },
+  "bilingual": {
+    "arabicTitle": "Arabic Title",
+    "arabicName": "Arabic Name",
+    "arabicTitlePlaceholder": "Enter title in Arabic (optional)",
+    "arabicNamePlaceholder": "Enter name in Arabic (optional)"
   }
 }

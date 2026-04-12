@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Shimmer from '@/components/shared/Shimmer';
@@ -16,9 +16,14 @@ import {
   ThumbsUp,
   Target,
   FileCheck,
+  ArrowRight,
+  Award,
+  Database,
+  Network,
   type LucideIcon,
 } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import { formatRelativeTime } from '@/lib/formatDate';
+import { formatNumber, formatPercent } from '@/lib/formatNumber';
 
 // ─── KPI Card ───────────────────────────────────────────────────────────────
 
@@ -54,6 +59,7 @@ const roleBadgeStyles: Record<string, string> = {
   parent: 'bg-purple-100 text-purple-700 border-purple-200',
 };
 
+
 // ─── Admin Dashboard ────────────────────────────────────────────────────────
 
 const AdminDashboard = () => {
@@ -76,14 +82,14 @@ const AdminDashboard = () => {
         </div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          <KPICard icon={Users} label="Total Users" value={kpis?.totalUsers ?? 0} />
-          <KPICard icon={UserCheck} label="Active Users" value={kpis?.activeUsers ?? 0} />
-          <KPICard icon={BookOpen} label="Programs" value={kpis?.totalPrograms ?? 0} />
-          <KPICard icon={GraduationCap} label="Courses" value={kpis?.totalCourses ?? 0} />
+          <KPICard icon={Users} label="Total Users" value={formatNumber(kpis?.totalUsers ?? 0)} />
+          <KPICard icon={UserCheck} label="Active Users" value={formatNumber(kpis?.activeUsers ?? 0)} />
+          <KPICard icon={BookOpen} label="Programs" value={formatNumber(kpis?.totalPrograms ?? 0)} />
+          <KPICard icon={GraduationCap} label="Courses" value={formatNumber(kpis?.totalCourses ?? 0)} />
           <KPICard
             icon={ClipboardCheck}
             label="Onboarding"
-            value={`${onboardingAnalytics?.completionRate ?? 0}%`}
+            value={formatPercent(onboardingAnalytics?.completionRate ?? 0)}
           />
         </div>
       )}
@@ -93,7 +99,7 @@ const AdminDashboard = () => {
         <button
           type="button"
           onClick={() => navigate('/admin/onboarding/pending')}
-          className="w-full text-left rounded-xl bg-amber-50 p-4 flex items-center justify-between hover:bg-amber-100 transition-colors"
+          className="w-full text-start rounded-xl bg-amber-50 p-4 flex items-center justify-between hover:bg-amber-100 transition-colors"
         >
           <div>
             <p className="text-sm font-semibold text-amber-800">
@@ -168,7 +174,7 @@ const AdminDashboard = () => {
                       <p className="text-xs text-gray-500 truncate">{log.entity_id}</p>
                     </div>
                     <span className="text-xs text-gray-400 whitespace-nowrap">
-                      {formatDistanceToNow(new Date(log.created_at), { addSuffix: true })}
+                      {formatRelativeTime(log.created_at)}
                     </span>
                   </div>
                 ))}
@@ -180,6 +186,7 @@ const AdminDashboard = () => {
           </div>
         </Card>
       </div>
+
 
       {/* PLO Heatmap Placeholder */}
       <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
@@ -269,6 +276,85 @@ const AdminDashboard = () => {
           )}
         </div>
       </Card>
+
+
+      {/* OBE Management Quick Access — Requirements 104.5, 111.1, 105.1 */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Graduate Attribute Overview */}
+        <Link to="/admin/graduate-attributes" className="block">
+          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden hover:shadow-lg transition-shadow h-full">
+            <div
+              className="px-6 py-4 flex items-center gap-2"
+              style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+            >
+              <Award className="h-5 w-5 text-white" />
+              <h2 className="text-lg font-bold tracking-tight text-white">Graduate Attributes</h2>
+            </div>
+            <div className="p-6 flex flex-col items-center justify-center py-8 text-center">
+              <div className="p-3 rounded-full bg-teal-50 mb-3">
+                <Award className="h-8 w-8 text-teal-500" />
+              </div>
+              <p className="text-sm font-semibold text-gray-700">Attribute Attainment</p>
+              <p className="text-xs text-gray-500 mt-1">
+                View and manage graduate attribute mappings and attainment overview.
+              </p>
+              <span className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 mt-3">
+                Manage <ArrowRight className="h-4 w-4" />
+              </span>
+            </div>
+          </Card>
+        </Link>
+
+        {/* Historical Evidence Dashboard */}
+        <Link to="/admin/historical-evidence" className="block">
+          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden hover:shadow-lg transition-shadow h-full">
+            <div
+              className="px-6 py-4 flex items-center gap-2"
+              style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+            >
+              <Database className="h-5 w-5 text-white" />
+              <h2 className="text-lg font-bold tracking-tight text-white">Historical Evidence</h2>
+            </div>
+            <div className="p-6 flex flex-col items-center justify-center py-8 text-center">
+              <div className="p-3 rounded-full bg-blue-50 mb-3">
+                <Database className="h-8 w-8 text-blue-500" />
+              </div>
+              <p className="text-sm font-semibold text-gray-700">Evidence Dashboard</p>
+              <p className="text-xs text-gray-500 mt-1">
+                Browse historical evidence records across semesters and programs.
+              </p>
+              <span className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 mt-3">
+                View <ArrowRight className="h-4 w-4" />
+              </span>
+            </div>
+          </Card>
+        </Link>
+
+        {/* Competency Framework */}
+        <Link to="/admin/competency-frameworks" className="block">
+          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden hover:shadow-lg transition-shadow h-full">
+            <div
+              className="px-6 py-4 flex items-center gap-2"
+              style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+            >
+              <Network className="h-5 w-5 text-white" />
+              <h2 className="text-lg font-bold tracking-tight text-white">Competency Frameworks</h2>
+            </div>
+            <div className="p-6 flex flex-col items-center justify-center py-8 text-center">
+              <div className="p-3 rounded-full bg-purple-50 mb-3">
+                <Network className="h-8 w-8 text-purple-500" />
+              </div>
+              <p className="text-sm font-semibold text-gray-700">Framework Management</p>
+              <p className="text-xs text-gray-500 mt-1">
+                Define competency hierarchies and map to outcome chains.
+              </p>
+              <span className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 mt-3">
+                Manage <ArrowRight className="h-4 w-4" />
+              </span>
+            </div>
+          </Card>
+        </Link>
+      </div>
     </div>
   );
 };
