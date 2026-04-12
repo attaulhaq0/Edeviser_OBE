@@ -32,6 +32,8 @@ export default defineConfig({
           'vendor-query': ['@tanstack/react-query', '@tanstack/react-table'],
           'vendor-charts': ['recharts'],
           'vendor-motion': ['framer-motion'],
+          'vendor-sentry': ['@sentry/react', '@sentry/browser', '@sentry/core'],
+          'vendor-icons': ['lucide-react'],
         },
       },
     },

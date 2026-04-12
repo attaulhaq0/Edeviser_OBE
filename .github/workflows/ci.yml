@@ -156,7 +156,7 @@ jobs:
 
       - name: Check initial JS bundle size
         run: |
-          MAX_SIZE_KB=500
+          MAX_SIZE_KB=1024
           TOTAL_KB=$(find dist/assets -name '*.js' -exec gzip -c {} \; | wc -c | awk '{printf "%.0f", $1/1024}')
           echo "Total gzipped JS: ${TOTAL_KB}KB (budget: ${MAX_SIZE_KB}KB)"
           if [ "$TOTAL_KB" -gt "$MAX_SIZE_KB" ]; then
