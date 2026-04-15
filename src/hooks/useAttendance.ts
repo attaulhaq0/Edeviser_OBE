@@ -303,68 +303,70 @@ export const useStudentAttendance = (studentId: string | undefined) => {
       if (enrErr) throw enrErr;
       if (!enrollments || enrollments.length === 0) return [];
 
-      const results: StudentCourseAttendance[] = [];
+      // ⚡ Bolt: Performance Improvement
+      // What: Executing Supabase queries concurrently using Promise.all for each enrolled course.
+      // Why: The previous implementation used a sequential for-loop causing an N+1 query problem, increasing latency.
+      // Impact: Significantly reduces network round-trip time and dashboard load latency for students with multiple courses.
+      const results: StudentCourseAttendance[] = await Promise.all(
+        enrollments.map(async (enrollment) => {
+          const courseName = (enrollment.courses as unknown as { name: string } | null)?.name ?? 'Unknown';
 
-      for (const enrollment of enrollments) {
-        const courseName = (enrollment.courses as unknown as { name: string } | null)?.name ?? 'Unknown';
+          // Get sections for this course (student may be in one section)
+          const { data: sections } = await supabase
+            .from('course_sections')
+            .select('id')
+            .eq('course_id', enrollment.course_id);
 
-        // Get sections for this course (student may be in one section)
-        const { data: sections } = await supabase
-          .from('course_sections')
-          .select('id')
-          .eq('course_id', enrollment.course_id);
+          const sectionIds = (sections ?? []).map((s) => s.id);
+          if (sectionIds.length === 0) {
+            return {
+              courseId: enrollment.course_id,
+              courseName,
+              attendancePercent: 100,
+              totalSessions: 0,
+              attended: 0,
+            };
+          }
 
-        const sectionIds = (sections ?? []).map((s) => s.id);
-        if (sectionIds.length === 0) {
-          results.push({
+          // Get all sessions for these sections
+          const { data: sessions } = await supabase
+            .from('class_sessions')
+            .select('id')
+            .in('section_id', sectionIds);
+
+          const sessionIds = (sessions ?? []).map((s) => s.id);
+          const totalSessions = sessionIds.length;
+
+          if (totalSessions === 0) {
+            return {
+              courseId: enrollment.course_id,
+              courseName,
+              attendancePercent: 100,
+              totalSessions: 0,
+              attended: 0,
+            };
+          }
+
+          // Get this student's attendance records
+          const { data: records } = await supabase
+            .from('attendance_records')
+            .select('status')
+            .eq('student_id', studentId)
+            .in('session_id', sessionIds);
+
+          const presentOrLate = (records ?? []).filter(
+            (r) => r.status === 'present' || r.status === 'late',
+          ).length;
+
+          return {
             courseId: enrollment.course_id,
             courseName,
-            attendancePercent: 100,
-            totalSessions: 0,
-            attended: 0,
-          });
-          continue;
-        }
-
-        // Get all sessions for these sections
-        const { data: sessions } = await supabase
-          .from('class_sessions')
-          .select('id')
-          .in('section_id', sectionIds);
-
-        const sessionIds = (sessions ?? []).map((s) => s.id);
-        const totalSessions = sessionIds.length;
-
-        if (totalSessions === 0) {
-          results.push({
-            courseId: enrollment.course_id,
-            courseName,
-            attendancePercent: 100,
-            totalSessions: 0,
-            attended: 0,
-          });
-          continue;
-        }
-
-        // Get this student's attendance records
-        const { data: records } = await supabase
-          .from('attendance_records')
-          .select('status')
-          .eq('student_id', studentId)
-          .in('session_id', sessionIds);
-
-        const presentOrLate = (records ?? []).filter(
-          (r) => r.status === 'present' || r.status === 'late',
-        ).length;
-
-        results.push({
-          courseId: enrollment.course_id,
-          courseName,
-          attendancePercent: calculateAttendancePercent(presentOrLate, 0, totalSessions),
-          totalSessions,
-          attended: presentOrLate,
-        });
-      }
+            attendancePercent: calculateAttendancePercent(presentOrLate, 0, totalSessions),
+            totalSessions,
+            attended: presentOrLate,
+          };
+        }),
+      );
 
       return results;
     },
