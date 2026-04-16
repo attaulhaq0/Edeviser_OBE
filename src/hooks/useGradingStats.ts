@@ -22,38 +22,46 @@ export const useGradingStats = (teacherId: string | undefined) => {
       const thirtyDaysAgo = subDays(new Date(), 30).toISOString();
 
       // Graded this week
-      const { count: gradedThisWeek } = await supabase
+      const { count: gradedThisWeek, error: gradedError } = await supabase
         .from('grades')
         .select('id', { count: 'exact', head: true })
         .eq('graded_by', teacherId)
         .gte('graded_at', weekStart);
 
+      if (gradedError) throw gradedError;
+
       // Pending submissions for teacher's courses
-      const { data: courses } = await supabase.from('courses').select('id').eq('teacher_id', teacherId);
+      const { data: courses, error: coursesError } = await supabase.from('courses').select('id').eq('teacher_id', teacherId);
+      if (coursesError) throw coursesError;
+
       const courseIds = (courses ?? []).map((c) => c.id);
       let pendingCount = 0;
       if (courseIds.length > 0) {
-        const { data: assignmentRows } = await supabase
+        const { data: assignmentRows, error: assignmentsError } = await supabase
           .from('assignments')
           .select('id')
           .in('course_id', courseIds);
+        if (assignmentsError) throw assignmentsError;
+
         const assignmentIds = (assignmentRows ?? []).map((a: { id: string }) => a.id);
         if (assignmentIds.length > 0) {
-          const { count } = await supabase
+          const { count, error: countError } = await supabase
             .from('submissions')
             .select('id', { count: 'exact', head: true })
             .in('assignment_id', assignmentIds)
             .eq('status', 'submitted');
+          if (countError) throw countError;
           pendingCount = count ?? 0;
         }
       }
 
       // Velocity trend (last 30 days)
-      const { data: recentGrades } = await supabase
+      const { data: recentGrades, error: recentGradesError } = await supabase
         .from('grades')
         .select('graded_at')
         .eq('graded_by', teacherId)
         .gte('graded_at', thirtyDaysAgo);
+      if (recentGradesError) throw recentGradesError;
 
       const dayMap = new Map<string, number>();
       for (const g of recentGrades ?? []) {
@@ -97,21 +105,23 @@ export const useGradingStats = (teacherId: string | undefined) => {
  * Matches pairs by submission_id in metadata, computes duration, and averages.
  */
 async function calculateAvgGradingTime(teacherId: string, since: string): Promise<number> {
-  const { data: startEvents } = await supabase
+  const { data: startEvents, error: startEventsError } = await supabase
     .from('student_activity_log')
     .select('created_at, metadata')
     .eq('student_id', teacherId)
     .eq('event_type', 'grading_start')
     .gte('created_at', since)
     .order('created_at', { ascending: true });
+  if (startEventsError) throw startEventsError;
 
-  const { data: endEvents } = await supabase
+  const { data: endEvents, error: endEventsError } = await supabase
     .from('student_activity_log')
     .select('created_at, metadata')
     .eq('student_id', teacherId)
     .eq('event_type', 'grading_end')
     .gte('created_at', since)
     .order('created_at', { ascending: true });
+  if (endEventsError) throw endEventsError;
 
   if (!startEvents?.length || !endEvents?.length) return 0;
 
