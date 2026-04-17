@@ -23,27 +23,32 @@ export const useAdminKPIs = () => {
   return useQuery({
     queryKey: queryKeys.adminDashboard.list({}),
     queryFn: async (): Promise<AdminKPIData> => {
-      const { count: totalUsers } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true });
-
-      const { count: activeUsers } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true })
-        .eq('is_active', true);
-
-      const { count: totalPrograms } = await supabase
-        .from('programs')
-        .select('*', { count: 'exact', head: true });
-
-      const { count: totalCourses } = await supabase
-        .from('courses')
-        .select('*', { count: 'exact', head: true });
-
-      const { data: roleData } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('is_active', true);
+      // ⚡ Bolt: Batch independent Supabase queries concurrently with Promise.all to prevent network waterfall
+      const [
+        { count: totalUsers },
+        { count: activeUsers },
+        { count: totalPrograms },
+        { count: totalCourses },
+        { data: roleData }
+      ] = await Promise.all([
+        supabase
+          .from('profiles')
+          .select('id', { count: 'exact', head: true }),
+        supabase
+          .from('profiles')
+          .select('id', { count: 'exact', head: true })
+          .eq('is_active', true),
+        supabase
+          .from('programs')
+          .select('id', { count: 'exact', head: true }),
+        supabase
+          .from('courses')
+          .select('id', { count: 'exact', head: true }),
+        supabase
+          .from('profiles')
+          .select('role')
+          .eq('is_active', true)
+      ]);
 
       const usersByRole: Record<string, number> = {};
       if (roleData) {
@@ -94,18 +99,23 @@ export const useOnboardingAnalytics = () => {
   return useQuery({
     queryKey: [...queryKeys.adminDashboard.lists(), 'onboarding'],
     queryFn: async (): Promise<OnboardingAnalytics> => {
-      const { count: totalStudents } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true })
-        .eq('role', 'student')
-        .eq('is_active', true);
-
-      const { count: completedOnboarding } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true })
-        .eq('role', 'student')
-        .eq('is_active', true)
-        .eq('onboarding_completed', true);
+      // ⚡ Bolt: Batch independent Supabase queries concurrently with Promise.all to prevent network waterfall
+      const [
+        { count: totalStudents },
+        { count: completedOnboarding }
+      ] = await Promise.all([
+        supabase
+          .from('profiles')
+          .select('id', { count: 'exact', head: true })
+          .eq('role', 'student')
+          .eq('is_active', true),
+        supabase
+          .from('profiles')
+          .select('id', { count: 'exact', head: true })
+          .eq('role', 'student')
+          .eq('is_active', true)
+          .eq('onboarding_completed', true)
+      ]);
 
       const total = totalStudents ?? 0;
       const completed = completedOnboarding ?? 0;
@@ -167,34 +177,41 @@ export const useDepartmentAnalytics = () => {
   return useQuery({
     queryKey: [...queryKeys.adminDashboard.lists(), 'department-analytics'],
     queryFn: async (): Promise<DepartmentAttainment[]> => {
-      // Fetch departments
-      const { data: departments, error: deptError } = await supabase
-        .from('departments')
-        .select('id, name')
-        .order('name', { ascending: true });
+      // ⚡ Bolt: Batch independent Supabase queries concurrently with Promise.all to prevent network waterfall
+      const [
+        { data: departments, error: deptError },
+        { data: programs, error: progError },
+        { data: attainments, error: attError },
+        { data: outcomes, error: outError }
+      ] = await Promise.all([
+        // Fetch departments
+        supabase
+          .from('departments')
+          .select('id, name')
+          .order('name', { ascending: true }),
+        // Fetch programs grouped by department
+        supabase
+          .from('programs')
+          .select('id, department_id')
+          .eq('is_active', true),
+        // Fetch outcome attainment for program and institution scopes
+        supabase
+          .from('outcome_attainment')
+          .select('outcome_id, attainment_percent, scope')
+          .in('scope', ['program', 'institution']),
+        // Fetch learning outcomes to map outcome_id to program_id
+        supabase
+          .from('learning_outcomes')
+          .select('id, type, program_id, institution_id')
+          .in('type', ['PLO', 'ILO'])
+      ]);
+
       if (deptError) throw deptError;
-      if (!departments || departments.length === 0) return [];
-
-      // Fetch programs grouped by department
-      const { data: programs, error: progError } = await supabase
-        .from('programs')
-        .select('id, department_id')
-        .eq('is_active', true);
       if (progError) throw progError;
-
-      // Fetch outcome attainment for program and institution scopes
-      const { data: attainments, error: attError } = await supabase
-        .from('outcome_attainment')
-        .select('outcome_id, attainment_percent, scope')
-        .in('scope', ['program', 'institution']);
       if (attError) throw attError;
-
-      // Fetch learning outcomes to map outcome_id to program_id
-      const { data: outcomes, error: outError } = await supabase
-        .from('learning_outcomes')
-        .select('id, type, program_id, institution_id')
-        .in('type', ['PLO', 'ILO']);
       if (outError) throw outError;
+
+      if (!departments || departments.length === 0) return [];
 
       const outcomeMap = new Map((outcomes ?? []).map((o) => [o.id, o]));
       const programDeptMap = new Map((programs ?? []).map((p) => [p.id, p.department_id]));
