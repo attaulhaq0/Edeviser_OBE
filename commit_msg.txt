@@ -1,0 +1,6 @@
+⚡ Bolt: [performance improvement] Parallelize Admin Dashboard KPIs queries
+
+💡 What: Replaced 5 sequential Supabase queries with a single `Promise.all` in `useAdminKPIs`.
+🎯 Why: Sequential awaits block each other, causing the Admin Dashboard KPI data to load slower than necessary. This was a classic "waterfall" performance issue.
+📊 Impact: Reduces the network round-trips from 5 sequential requests down to a single concurrent batch, significantly improving load times for the Admin Dashboard.
+🔬 Measurement: Verify by loading the Admin Dashboard and observing the network tab to see 5 requests triggered simultaneously rather than sequentially. Tests were run to ensure types remain strict and code is sound.

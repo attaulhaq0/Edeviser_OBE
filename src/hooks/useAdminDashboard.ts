@@ -23,27 +23,31 @@ export const useAdminKPIs = () => {
   return useQuery({
     queryKey: queryKeys.adminDashboard.list({}),
     queryFn: async (): Promise<AdminKPIData> => {
-      const { count: totalUsers } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true });
-
-      const { count: activeUsers } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true })
-        .eq('is_active', true);
-
-      const { count: totalPrograms } = await supabase
-        .from('programs')
-        .select('*', { count: 'exact', head: true });
-
-      const { count: totalCourses } = await supabase
-        .from('courses')
-        .select('*', { count: 'exact', head: true });
-
-      const { data: roleData } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('is_active', true);
+      const [
+        { count: totalUsers },
+        { count: activeUsers },
+        { count: totalPrograms },
+        { count: totalCourses },
+        { data: roleData },
+      ] = await Promise.all([
+        supabase
+          .from('profiles')
+          .select('*', { count: 'exact', head: true }),
+        supabase
+          .from('profiles')
+          .select('*', { count: 'exact', head: true })
+          .eq('is_active', true),
+        supabase
+          .from('programs')
+          .select('*', { count: 'exact', head: true }),
+        supabase
+          .from('courses')
+          .select('*', { count: 'exact', head: true }),
+        supabase
+          .from('profiles')
+          .select('role')
+          .eq('is_active', true)
+      ]);
 
       const usersByRole: Record<string, number> = {};
       if (roleData) {
