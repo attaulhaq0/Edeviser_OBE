@@ -112,13 +112,14 @@ export const useCreateAnnouncement = () => {
         performed_by: performedBy,
       });
       // Create notification for enrolled students
-      await supabase.from('notifications').insert({
+      const { error: notificationError } = await supabase.from('notifications').insert({
         user_id: payload.author_id,
         type: 'announcement',
         title: `New Announcement: ${payload.title}`,
         message: payload.content.slice(0, 200),
         metadata: { course_id: payload.course_id, announcement_id: data.id },
-      }).then(() => { /* best-effort */ });
+      });
+      if (notificationError) throw notificationError;
       return castAnnouncement(data as unknown as Record<string, unknown>);
     },
     onSuccess: (_data, variables) => {
