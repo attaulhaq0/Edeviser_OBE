@@ -16,7 +16,10 @@ export function computeCalibratedDifficulty(
 ): number {
   const calibrated = 5.0 - 4.0 * successRate;
   const empiricalWeight = Math.min(1.0, totalAttempts / 50);
-  return empiricalWeight * calibrated + (1 - empiricalWeight) * originalDifficulty;
+  const result = empiricalWeight * calibrated + (1 - empiricalWeight) * originalDifficulty;
+
+  // Floating point precision can cause values like 5.000000000000001
+  return Math.max(1.0, Math.min(5.0, result));
 }
 
 /**
