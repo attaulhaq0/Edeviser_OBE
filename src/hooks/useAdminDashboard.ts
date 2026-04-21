@@ -23,27 +23,26 @@ export const useAdminKPIs = () => {
   return useQuery({
     queryKey: queryKeys.adminDashboard.list({}),
     queryFn: async (): Promise<AdminKPIData> => {
-      const { count: totalUsers } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true });
+      // ⚡ Bolt: Batch parallel independent Supabase queries into Promise.all to improve dashboard load time
+      const [
+        { count: totalUsers, error: err1 },
+        { count: activeUsers, error: err2 },
+        { count: totalPrograms, error: err3 },
+        { count: totalCourses, error: err4 },
+        { data: roleData, error: err5 }
+      ] = await Promise.all([
+        supabase.from('profiles').select('*', { count: 'exact', head: true }),
+        supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('is_active', true),
+        supabase.from('programs').select('*', { count: 'exact', head: true }),
+        supabase.from('courses').select('*', { count: 'exact', head: true }),
+        supabase.from('profiles').select('role').eq('is_active', true)
+      ]);
 
-      const { count: activeUsers } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true })
-        .eq('is_active', true);
-
-      const { count: totalPrograms } = await supabase
-        .from('programs')
-        .select('*', { count: 'exact', head: true });
-
-      const { count: totalCourses } = await supabase
-        .from('courses')
-        .select('*', { count: 'exact', head: true });
-
-      const { data: roleData } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('is_active', true);
+      if (err1) throw err1;
+      if (err2) throw err2;
+      if (err3) throw err3;
+      if (err4) throw err4;
+      if (err5) throw err5;
 
       const usersByRole: Record<string, number> = {};
       if (roleData) {
