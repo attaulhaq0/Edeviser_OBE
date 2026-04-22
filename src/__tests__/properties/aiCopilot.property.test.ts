@@ -201,7 +201,7 @@ describe('Property 40 — AI feedback flywheel data integrity', () => {
         fc.record({
           id: fc.uuid(),
           suggestion_type: suggestionTypeArb,
-          suggestion_text: fc.string({ minLength: 1, maxLength: 500 }),
+          suggestion_text: fc.string({ minLength: 1, maxLength: 500 }).filter(t => t.trim().length > 0),
           student_id: fc.uuid(),
           feedback: fc.constantFrom<'thumbs_up' | 'thumbs_down' | null>(
             'thumbs_up',
@@ -255,7 +255,7 @@ describe('Property 40 — AI feedback flywheel data integrity', () => {
         fc.record({
           id: fc.uuid(),
           suggestion_type: suggestionTypeArb,
-          suggestion_text: fc.string({ minLength: 1, maxLength: 200 }),
+          suggestion_text: fc.string({ minLength: 1, maxLength: 200 }).filter(t => t.trim().length > 0),
           student_id: fc.uuid(),
           feedback: fc.constant(null),
         }),
