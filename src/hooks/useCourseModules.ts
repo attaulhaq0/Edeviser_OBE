@@ -1,14 +1,14 @@
 // Task 66.6: Course module/material TanStack Query hooks
 // Requirements: 76
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import { logAuditEvent } from '@/lib/auditLogger';
-import type { Json } from '@/types/database';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import { logAuditEvent } from "@/lib/auditLogger";
+import type { Json } from "@/types/database";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
-export type MaterialType = 'file' | 'link' | 'video' | 'text';
+export type MaterialType = "file" | "link" | "video" | "text";
 
 export interface CourseModule {
   id: string;
@@ -114,12 +114,16 @@ export const useCourseModules = (courseId: string | undefined) => {
     queryFn: async () => {
       if (!courseId) return [];
       const { data, error } = await supabase
-        .from('course_modules')
-        .select('id, course_id, title, description, sort_order, is_published, created_at')
-        .eq('course_id', courseId)
-        .order('sort_order', { ascending: true });
+        .from("course_modules")
+        .select(
+          "id, course_id, title, description, sort_order, is_published, created_at"
+        )
+        .eq("course_id", courseId)
+        .order("sort_order", { ascending: true });
       if (error) throw error;
-      return (data ?? []).map((r) => castModule(r as unknown as Record<string, unknown>));
+      return (data ?? []).map((r) =>
+        castModule(r as unknown as Record<string, unknown>)
+      );
     },
     enabled: !!courseId,
   });
@@ -133,12 +137,16 @@ export const useCourseMaterials = (moduleId: string | undefined) => {
     queryFn: async () => {
       if (!moduleId) return [];
       const { data, error } = await supabase
-        .from('course_materials')
-        .select('id, module_id, title, type, content_url, file_path, description, sort_order, is_published, clo_ids, created_at')
-        .eq('module_id', moduleId)
-        .order('sort_order', { ascending: true });
+        .from("course_materials")
+        .select(
+          "id, module_id, title, type, content_url, file_path, description, sort_order, is_published, clo_ids, created_at"
+        )
+        .eq("module_id", moduleId)
+        .order("sort_order", { ascending: true });
       if (error) throw error;
-      return (data ?? []).map((r) => castMaterial(r as unknown as Record<string, unknown>));
+      return (data ?? []).map((r) =>
+        castMaterial(r as unknown as Record<string, unknown>)
+      );
     },
     enabled: !!moduleId,
   });
@@ -151,19 +159,23 @@ export const useCourseAllMaterials = (courseId: string | undefined) => {
       if (!courseId) return [];
       // Fetch modules first, then materials for all modules
       const { data: modules, error: modErr } = await supabase
-        .from('course_modules')
-        .select('id')
-        .eq('course_id', courseId);
+        .from("course_modules")
+        .select("id")
+        .eq("course_id", courseId);
       if (modErr) throw modErr;
       if (!modules || modules.length === 0) return [];
       const moduleIds = modules.map((m) => m.id);
       const { data, error } = await supabase
-        .from('course_materials')
-        .select('id, module_id, title, type, content_url, file_path, description, sort_order, is_published, clo_ids, created_at')
-        .in('module_id', moduleIds)
-        .order('sort_order', { ascending: true });
+        .from("course_materials")
+        .select(
+          "id, module_id, title, type, content_url, file_path, description, sort_order, is_published, clo_ids, created_at"
+        )
+        .in("module_id", moduleIds)
+        .order("sort_order", { ascending: true });
       if (error) throw error;
-      return (data ?? []).map((r) => castMaterial(r as unknown as Record<string, unknown>));
+      return (data ?? []).map((r) =>
+        castMaterial(r as unknown as Record<string, unknown>)
+      );
     },
     enabled: !!courseId,
   });
@@ -177,7 +189,7 @@ export const useCreateModule = () => {
     mutationFn: async (input: CreateModuleInput & { performedBy: string }) => {
       const { performedBy, ...payload } = input;
       const { data, error } = await supabase
-        .from('course_modules')
+        .from("course_modules")
         .insert({
           course_id: payload.course_id,
           title: payload.title,
@@ -189,16 +201,25 @@ export const useCreateModule = () => {
         .single();
       if (error) throw error;
       await logAuditEvent({
-        action: 'create',
-        entity_type: 'course_module',
+        action: "create",
+        entity_type: "course_module",
         entity_id: data.id,
-        changes: { course_id: payload.course_id, title: payload.title, sort_order: payload.sort_order, is_published: payload.is_published },
+        changes: {
+          course_id: payload.course_id,
+          title: payload.title,
+          sort_order: payload.sort_order,
+          is_published: payload.is_published,
+        },
         performed_by: performedBy,
       });
       return castModule(data as unknown as Record<string, unknown>);
     },
     onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.courseModules.list({ courseId: variables.course_id }) });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.courseModules.list({
+          courseId: variables.course_id,
+        }),
+      });
     },
   });
 };
@@ -209,15 +230,15 @@ export const useUpdateModule = () => {
     mutationFn: async (input: UpdateModuleInput & { performedBy: string }) => {
       const { id, performedBy, ...updates } = input;
       const { data, error } = await supabase
-        .from('course_modules')
+        .from("course_modules")
         .update(updates)
-        .eq('id', id)
+        .eq("id", id)
         .select()
         .single();
       if (error) throw error;
       await logAuditEvent({
-        action: 'update',
-        entity_type: 'course_module',
+        action: "update",
+        entity_type: "course_module",
         entity_id: id,
         changes: updates,
         performed_by: performedBy,
@@ -225,7 +246,9 @@ export const useUpdateModule = () => {
       return castModule(data as unknown as Record<string, unknown>);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.courseModules.lists() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.courseModules.lists(),
+      });
     },
   });
 };
@@ -233,22 +256,30 @@ export const useUpdateModule = () => {
 export const useDeleteModule = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, performedBy }: { id: string; performedBy: string }) => {
+    mutationFn: async ({
+      id,
+      performedBy,
+    }: {
+      id: string;
+      performedBy: string;
+    }) => {
       const { error } = await supabase
-        .from('course_modules')
+        .from("course_modules")
         .delete()
-        .eq('id', id);
+        .eq("id", id);
       if (error) throw error;
       await logAuditEvent({
-        action: 'delete',
-        entity_type: 'course_module',
+        action: "delete",
+        entity_type: "course_module",
         entity_id: id,
         changes: null,
         performed_by: performedBy,
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.courseModules.lists() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.courseModules.lists(),
+      });
     },
   });
 };
@@ -258,10 +289,12 @@ export const useDeleteModule = () => {
 export const useCreateMaterial = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (input: CreateMaterialInput & { performedBy: string }) => {
+    mutationFn: async (
+      input: CreateMaterialInput & { performedBy: string }
+    ) => {
       const { performedBy, ...payload } = input;
       const { data, error } = await supabase
-        .from('course_materials')
+        .from("course_materials")
         .insert({
           module_id: payload.module_id,
           title: payload.title,
@@ -277,17 +310,30 @@ export const useCreateMaterial = () => {
         .single();
       if (error) throw error;
       await logAuditEvent({
-        action: 'create',
-        entity_type: 'course_material',
+        action: "create",
+        entity_type: "course_material",
         entity_id: data.id,
-        changes: { module_id: payload.module_id, title: payload.title, type: payload.type, sort_order: payload.sort_order, is_published: payload.is_published, clo_ids: payload.clo_ids },
+        changes: {
+          module_id: payload.module_id,
+          title: payload.title,
+          type: payload.type,
+          sort_order: payload.sort_order,
+          is_published: payload.is_published,
+          clo_ids: payload.clo_ids,
+        },
         performed_by: performedBy,
       });
       return castMaterial(data as unknown as Record<string, unknown>);
     },
     onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.courseMaterials.list({ moduleId: variables.module_id }) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.courseMaterials.lists() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.courseMaterials.list({
+          moduleId: variables.module_id,
+        }),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.courseMaterials.lists(),
+      });
     },
   });
 };
@@ -295,22 +341,24 @@ export const useCreateMaterial = () => {
 export const useUpdateMaterial = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (input: UpdateMaterialInput & { performedBy: string }) => {
+    mutationFn: async (
+      input: UpdateMaterialInput & { performedBy: string }
+    ) => {
       const { id, performedBy, ...updates } = input;
       const updatePayload: Record<string, unknown> = { ...updates };
       if (updates.clo_ids !== undefined) {
         updatePayload.clo_ids = updates.clo_ids as unknown as Json;
       }
       const { data, error } = await supabase
-        .from('course_materials')
+        .from("course_materials")
         .update(updatePayload)
-        .eq('id', id)
+        .eq("id", id)
         .select()
         .single();
       if (error) throw error;
       await logAuditEvent({
-        action: 'update',
-        entity_type: 'course_material',
+        action: "update",
+        entity_type: "course_material",
         entity_id: id,
         changes: updates,
         performed_by: performedBy,
@@ -318,7 +366,9 @@ export const useUpdateMaterial = () => {
       return castMaterial(data as unknown as Record<string, unknown>);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.courseMaterials.lists() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.courseMaterials.lists(),
+      });
     },
   });
 };
@@ -326,44 +376,87 @@ export const useUpdateMaterial = () => {
 export const useDeleteMaterial = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, performedBy }: { id: string; performedBy: string }) => {
+    mutationFn: async ({
+      id,
+      performedBy,
+    }: {
+      id: string;
+      performedBy: string;
+    }) => {
       const { error } = await supabase
-        .from('course_materials')
+        .from("course_materials")
         .delete()
-        .eq('id', id);
+        .eq("id", id);
       if (error) throw error;
       await logAuditEvent({
-        action: 'delete',
-        entity_type: 'course_material',
+        action: "delete",
+        entity_type: "course_material",
         entity_id: id,
         changes: null,
         performed_by: performedBy,
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.courseMaterials.lists() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.courseMaterials.lists(),
+      });
     },
   });
 };
 
 // ─── File Upload for Materials ──────────────────────────────────────────────
 
-const MATERIAL_BUCKET = 'course-materials';
+const MATERIAL_BUCKET = "course-materials";
 const MATERIAL_MAX_SIZE = 50 * 1024 * 1024; // 50MB
-const MATERIAL_ALLOWED_EXTENSIONS = ['pdf', 'doc', 'docx', 'pptx', 'png', 'jpg', 'jpeg', 'gif', 'mp4', 'zip'];
+const MATERIAL_ALLOWED_EXTENSIONS = [
+  "pdf",
+  "doc",
+  "docx",
+  "pptx",
+  "png",
+  "jpg",
+  "jpeg",
+  "gif",
+  "mp4",
+  "zip",
+];
 
-export const uploadMaterialFile = async (file: File, courseId: string): Promise<string> => {
+export const uploadMaterialFile = async (
+  file: File,
+  courseId: string
+): Promise<string> => {
   if (file.size > MATERIAL_MAX_SIZE) {
-    throw new Error(`File size exceeds 50MB limit. Your file is ${(file.size / (1024 * 1024)).toFixed(1)}MB.`);
+    throw new Error(
+      `File size exceeds 50MB limit. Your file is ${(
+        file.size /
+        (1024 * 1024)
+      ).toFixed(1)}MB.`
+    );
   }
-  const ext = file.name.split('.').pop()?.toLowerCase() ?? '';
+  const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
   if (!MATERIAL_ALLOWED_EXTENSIONS.includes(ext)) {
-    throw new Error(`File type ".${ext}" is not allowed. Accepted: ${MATERIAL_ALLOWED_EXTENSIONS.join(', ')}`);
+    throw new Error(
+      `File type ".${ext}" is not allowed. Accepted: ${MATERIAL_ALLOWED_EXTENSIONS.join(
+        ", "
+      )}`
+    );
   }
-  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
   const path = `${courseId}/${Date.now()}_${safeName}`;
-  const { error } = await supabase.storage.from(MATERIAL_BUCKET).upload(path, file);
+
+  // Guard against path traversal in filename or courseId
+  if (path.includes("..")) {
+    throw new Error(
+      "Invalid file path: path traversal sequences are not allowed."
+    );
+  }
+
+  const { error } = await supabase.storage
+    .from(MATERIAL_BUCKET)
+    .upload(path, file);
   if (error) throw new Error(`Upload failed: ${error.message}`);
-  const { data: urlData } = supabase.storage.from(MATERIAL_BUCKET).getPublicUrl(path);
+  const { data: urlData } = supabase.storage
+    .from(MATERIAL_BUCKET)
+    .getPublicUrl(path);
   return urlData.publicUrl;
 };
