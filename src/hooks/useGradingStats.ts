@@ -1,8 +1,8 @@
 // Task 58: Teacher Grading Stats hooks
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import { startOfWeek, subDays } from 'date-fns';
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import { startOfWeek, subDays } from "date-fns";
 
 export interface GradingStats {
   gradedThisWeek: number;
@@ -14,46 +14,58 @@ export interface GradingStats {
 
 export const useGradingStats = (teacherId: string | undefined) => {
   return useQuery({
-    queryKey: queryKeys.grades.list({ scope: 'grading_stats', teacherId }),
+    queryKey: queryKeys.grades.list({ scope: "grading_stats", teacherId }),
     queryFn: async (): Promise<GradingStats> => {
-      if (!teacherId) throw new Error('teacherId required');
+      if (!teacherId) throw new Error("teacherId required");
 
-      const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 }).toISOString();
+      const weekStart = startOfWeek(new Date(), {
+        weekStartsOn: 1,
+      }).toISOString();
       const thirtyDaysAgo = subDays(new Date(), 30).toISOString();
 
       // Graded this week
-      const { count: gradedThisWeek } = await supabase
-        .from('grades')
-        .select('id', { count: 'exact', head: true })
-        .eq('graded_by', teacherId)
-        .gte('graded_at', weekStart);
+      const { count: gradedThisWeek, error: gradedError } = await supabase
+        .from("grades")
+        .select("id", { count: "exact", head: true })
+        .eq("graded_by", teacherId)
+        .gte("graded_at", weekStart);
+      if (gradedError) throw gradedError;
 
       // Pending submissions for teacher's courses
-      const { data: courses } = await supabase.from('courses').select('id').eq('teacher_id', teacherId);
+      const { data: courses, error: coursesError } = await supabase
+        .from("courses")
+        .select("id")
+        .eq("teacher_id", teacherId);
+      if (coursesError) throw coursesError;
       const courseIds = (courses ?? []).map((c) => c.id);
       let pendingCount = 0;
       if (courseIds.length > 0) {
-        const { data: assignmentRows } = await supabase
-          .from('assignments')
-          .select('id')
-          .in('course_id', courseIds);
-        const assignmentIds = (assignmentRows ?? []).map((a: { id: string }) => a.id);
+        const { data: assignmentRows, error: assignmentError } = await supabase
+          .from("assignments")
+          .select("id")
+          .in("course_id", courseIds);
+        if (assignmentError) throw assignmentError;
+        const assignmentIds = (assignmentRows ?? []).map(
+          (a: { id: string }) => a.id
+        );
         if (assignmentIds.length > 0) {
-          const { count } = await supabase
-            .from('submissions')
-            .select('id', { count: 'exact', head: true })
-            .in('assignment_id', assignmentIds)
-            .eq('status', 'submitted');
+          const { count, error: pendingError } = await supabase
+            .from("submissions")
+            .select("id", { count: "exact", head: true })
+            .in("assignment_id", assignmentIds)
+            .eq("status", "submitted");
+          if (pendingError) throw pendingError;
           pendingCount = count ?? 0;
         }
       }
 
       // Velocity trend (last 30 days)
-      const { data: recentGrades } = await supabase
-        .from('grades')
-        .select('graded_at')
-        .eq('graded_by', teacherId)
-        .gte('graded_at', thirtyDaysAgo);
+      const { data: recentGrades, error: recentError } = await supabase
+        .from("grades")
+        .select("graded_at")
+        .eq("graded_by", teacherId)
+        .gte("graded_at", thirtyDaysAgo);
+      if (recentError) throw recentError;
 
       const dayMap = new Map<string, number>();
       for (const g of recentGrades ?? []) {
@@ -77,7 +89,10 @@ export const useGradingStats = (teacherId: string | undefined) => {
       }
 
       // Average grading time from activity log (grading_start → grading_end pairs)
-      const avgGradingTimeSeconds = await calculateAvgGradingTime(teacherId, thirtyDaysAgo);
+      const avgGradingTimeSeconds = await calculateAvgGradingTime(
+        teacherId,
+        thirtyDaysAgo
+      );
 
       return {
         gradedThisWeek: gradedThisWeek ?? 0,
@@ -96,29 +111,35 @@ export const useGradingStats = (teacherId: string | undefined) => {
  * Calculate average grading time from grading_start/grading_end activity log pairs.
  * Matches pairs by submission_id in metadata, computes duration, and averages.
  */
-async function calculateAvgGradingTime(teacherId: string, since: string): Promise<number> {
-  const { data: startEvents } = await supabase
-    .from('student_activity_log')
-    .select('created_at, metadata')
-    .eq('student_id', teacherId)
-    .eq('event_type', 'grading_start')
-    .gte('created_at', since)
-    .order('created_at', { ascending: true });
+async function calculateAvgGradingTime(
+  teacherId: string,
+  since: string
+): Promise<number> {
+  const { data: startEvents, error: startError } = await supabase
+    .from("student_activity_log")
+    .select("created_at, metadata")
+    .eq("student_id", teacherId)
+    .eq("event_type", "grading_start")
+    .gte("created_at", since)
+    .order("created_at", { ascending: true });
+  if (startError) throw startError;
 
-  const { data: endEvents } = await supabase
-    .from('student_activity_log')
-    .select('created_at, metadata')
-    .eq('student_id', teacherId)
-    .eq('event_type', 'grading_end')
-    .gte('created_at', since)
-    .order('created_at', { ascending: true });
+  const { data: endEvents, error: endError } = await supabase
+    .from("student_activity_log")
+    .select("created_at, metadata")
+    .eq("student_id", teacherId)
+    .eq("event_type", "grading_end")
+    .gte("created_at", since)
+    .order("created_at", { ascending: true });
+  if (endError) throw endError;
 
   if (!startEvents?.length || !endEvents?.length) return 0;
 
   // Build a map of submission_id → earliest start time
   const startMap = new Map<string, string>();
   for (const evt of startEvents) {
-    const subId = (evt.metadata as Record<string, unknown> | null)?.submission_id as string | undefined;
+    const subId = (evt.metadata as Record<string, unknown> | null)
+      ?.submission_id as string | undefined;
     if (subId && !startMap.has(subId)) {
       startMap.set(subId, evt.created_at as string);
     }
@@ -127,12 +148,15 @@ async function calculateAvgGradingTime(teacherId: string, since: string): Promis
   // Match end events to start events by submission_id
   const durations: number[] = [];
   for (const evt of endEvents) {
-    const subId = (evt.metadata as Record<string, unknown> | null)?.submission_id as string | undefined;
+    const subId = (evt.metadata as Record<string, unknown> | null)
+      ?.submission_id as string | undefined;
     if (!subId) continue;
     const startTime = startMap.get(subId);
     if (!startTime) continue;
 
-    const durationMs = new Date(evt.created_at as string).getTime() - new Date(startTime).getTime();
+    const durationMs =
+      new Date(evt.created_at as string).getTime() -
+      new Date(startTime).getTime();
     const durationSec = durationMs / 1000;
     // Ignore unreasonable durations (< 5s or > 2 hours)
     if (durationSec >= 5 && durationSec <= 7200) {
@@ -141,5 +165,7 @@ async function calculateAvgGradingTime(teacherId: string, since: string): Promis
   }
 
   if (durations.length === 0) return 0;
-  return Math.round(durations.reduce((sum, d) => sum + d, 0) / durations.length);
+  return Math.round(
+    durations.reduce((sum, d) => sum + d, 0) / durations.length
+  );
 }
