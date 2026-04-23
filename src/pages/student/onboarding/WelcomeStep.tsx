@@ -44,7 +44,7 @@ export const WelcomeStep = ({ isDay1, onComplete }: WizardStepProps) => {
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-100">
             <Clock className="h-5 w-5 text-blue-600" />
           </div>
-          <div className="text-left">
+          <div className="text-start">
             <p className="text-sm font-semibold text-gray-900">{timeEstimate}</p>
             <p className="text-xs text-gray-500">
               {isDay1 ? 'Just 7 quick questions' : 'Full personality, learning style & baseline tests'}
@@ -56,7 +56,7 @@ export const WelcomeStep = ({ isDay1, onComplete }: WizardStepProps) => {
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-100">
             <Star className="h-5 w-5 text-amber-600" />
           </div>
-          <div className="text-left">
+          <div className="text-start">
             <p className="text-sm font-semibold text-gray-900">Earn up to {totalXP} XP</p>
             <p className="text-xs text-gray-500">
               Start your gamification journey from day one
@@ -66,7 +66,7 @@ export const WelcomeStep = ({ isDay1, onComplete }: WizardStepProps) => {
       </div>
 
       {/* What we'll cover */}
-      <div className="mt-8 w-full max-w-sm text-left">
+      <div className="mt-8 w-full max-w-sm text-start">
         <p className="text-xs font-bold uppercase tracking-widest text-gray-400">
           What we&apos;ll cover
         </p>

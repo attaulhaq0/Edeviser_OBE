@@ -52,7 +52,7 @@ const LevelProgress = ({ levelData, compact = false }: LevelProgressProps) => {
             <p className="text-xs text-gray-500">{title}</p>
           </div>
         </div>
-        <div className="text-right">
+        <div className="text-end">
           <p className="text-sm font-bold text-amber-600">{xpTotal.toLocaleString()} XP</p>
           {!isMaxLevel && (
             <p className="text-xs text-gray-400">

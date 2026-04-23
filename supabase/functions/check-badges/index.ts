@@ -57,6 +57,64 @@ const BADGE_XP: Record<string, number> = {
   rising_star: 100,
 };
 
+// ─── Badge Tier Types & Thresholds (Requirement 133) ────────────────────────
+
+type BadgeTier = 'bronze' | 'silver' | 'gold';
+
+interface TierThresholds {
+  bronze: number;
+  silver: number;
+  gold: number;
+}
+
+const BADGE_TIER_THRESHOLDS: Record<string, TierThresholds> = {
+  academic: { bronze: 5, silver: 15, gold: 30 },
+  engagement: { bronze: 10, silver: 25, gold: 50 },
+  streak: { bronze: 7, silver: 30, gold: 100 },
+  wellness: { bronze: 7, silver: 21, gold: 60 },
+  social: { bronze: 3, silver: 10, gold: 25 },
+};
+
+const TIER_ORDER: BadgeTier[] = ['bronze', 'silver', 'gold'];
+
+function getNextTier(currentTier: BadgeTier | null): BadgeTier | null {
+  if (currentTier === null) return 'bronze';
+  if (currentTier === 'bronze') return 'silver';
+  if (currentTier === 'silver') return 'gold';
+  return null; // already at gold
+}
+
+function meetsThreshold(metric: number, threshold: number): boolean {
+  return metric >= threshold;
+}
+
+/**
+ * Check if a student should be upgraded to the next badge tier for a category.
+ * Returns the new tier if upgrade is warranted, null otherwise.
+ * Progression is monotonic: null → bronze → silver → gold (never downgrade).
+ */
+function checkBadgeTierProgression(
+  currentTier: BadgeTier | null,
+  category: string,
+  metricValue: number,
+): { shouldUpgrade: boolean; newTier: BadgeTier } | null {
+  const thresholds = BADGE_TIER_THRESHOLDS[category];
+  if (!thresholds) return null;
+
+  if (currentTier === 'gold') return null; // already max
+
+  if (currentTier === 'silver' && meetsThreshold(metricValue, thresholds.gold)) {
+    return { shouldUpgrade: true, newTier: 'gold' };
+  }
+  if (currentTier === 'bronze' && meetsThreshold(metricValue, thresholds.silver)) {
+    return { shouldUpgrade: true, newTier: 'silver' };
+  }
+  if (currentTier === null && meetsThreshold(metricValue, thresholds.bronze)) {
+    return { shouldUpgrade: true, newTier: 'bronze' };
+  }
+  return null;
+}
+
 // ─── Validation ─────────────────────────────────────────────────────────────
 
 const VALID_TRIGGERS: BadgeTrigger[] = [
@@ -1090,6 +1148,130 @@ async function notifyPeersOfRareBadge(supabase: any, studentId: string, badgeIds
   }
 }
 
+// ─── Tiered Badge Progression Checker (Requirement 133) ─────────────────────
+
+async function checkAndUpgradeBadgeTiers(
+  supabase: ReturnType<typeof createClient>,
+  studentId: string,
+): Promise<Array<{ category: string; oldTier: BadgeTier | null; newTier: BadgeTier }>> {
+  const upgrades: Array<{ category: string; oldTier: BadgeTier | null; newTier: BadgeTier }> = [];
+
+  // Fetch student's current tiered badges
+  const { data: currentBadges } = await supabase
+    .from('badges')
+    .select('id, category, tier')
+    .eq('student_id', studentId)
+    .not('category', 'is', null);
+
+  // Build a map of category → current tier
+  const categoryTiers = new Map<string, { id: string; tier: BadgeTier | null }>();
+  if (currentBadges) {
+    for (const badge of currentBadges) {
+      const cat = badge.category as string;
+      const existing = categoryTiers.get(cat);
+      const badgeTier = badge.tier as BadgeTier | null;
+      // Keep the highest tier per category
+      if (!existing || TIER_ORDER.indexOf(badgeTier ?? 'bronze') > TIER_ORDER.indexOf(existing.tier ?? 'bronze')) {
+        categoryTiers.set(cat, { id: badge.id as string, tier: badgeTier });
+      }
+    }
+  }
+
+  // Compute metrics per category from student data
+  const metrics = await computeCategoryMetrics(supabase, studentId);
+
+  // Check each category for tier progression
+  for (const [category, metricValue] of Object.entries(metrics)) {
+    const current = categoryTiers.get(category);
+    const currentTier = current?.tier ?? null;
+
+    const result = checkBadgeTierProgression(currentTier, category, metricValue);
+    if (!result || !result.shouldUpgrade) continue;
+
+    if (current?.id) {
+      // Update existing badge to new tier
+      const { error } = await supabase
+        .from('badges')
+        .update({ tier: result.newTier })
+        .eq('id', current.id);
+
+      if (error) {
+        console.error(`Failed to upgrade badge tier for ${category}:`, error.message);
+        continue;
+      }
+    } else {
+      // Insert new tiered badge
+      const { error } = await supabase
+        .from('badges')
+        .insert({
+          student_id: studentId,
+          badge_key: `tier_${category}_${result.newTier}`,
+          badge_name: `${category} ${result.newTier}`,
+          emoji: '🏅',
+          scope: 'individual',
+          category,
+          tier: result.newTier,
+          awarded_at: new Date().toISOString(),
+        });
+
+      if (error) {
+        if (error.code === '23505') continue; // idempotent
+        console.error(`Failed to insert tiered badge for ${category}:`, error.message);
+        continue;
+      }
+    }
+
+    upgrades.push({ category, oldTier: currentTier, newTier: result.newTier });
+  }
+
+  return upgrades;
+}
+
+async function computeCategoryMetrics(
+  supabase: ReturnType<typeof createClient>,
+  studentId: string,
+): Promise<Record<string, number>> {
+  const metrics: Record<string, number> = {};
+
+  // Academic: count of submissions
+  const { count: submissionCount } = await supabase
+    .from('submissions')
+    .select('id', { count: 'exact', head: true })
+    .eq('student_id', studentId);
+  metrics.academic = submissionCount ?? 0;
+
+  // Engagement: count of journal entries
+  const { count: journalCount } = await supabase
+    .from('journal_entries')
+    .select('id', { count: 'exact', head: true })
+    .eq('student_id', studentId);
+  metrics.engagement = journalCount ?? 0;
+
+  // Streak: current streak count
+  const { data: gamification } = await supabase
+    .from('student_gamification')
+    .select('streak_count')
+    .eq('student_id', studentId)
+    .maybeSingle();
+  metrics.streak = gamification?.streak_count ?? 0;
+
+  // Wellness: count of wellness habit log days
+  const { count: wellnessCount } = await supabase
+    .from('wellness_habit_logs')
+    .select('id', { count: 'exact', head: true })
+    .eq('student_id', studentId);
+  metrics.wellness = wellnessCount ?? 0;
+
+  // Social: count of discussion replies
+  const { count: socialCount } = await supabase
+    .from('discussion_replies')
+    .select('id', { count: 'exact', head: true })
+    .eq('author_id', studentId);
+  metrics.social = socialCount ?? 0;
+
+  return metrics;
+}
+
 // ─── Main Handler ───────────────────────────────────────────────────────────
 
 serve(async (req) => {
@@ -1278,6 +1460,33 @@ serve(async (req) => {
       }
     }
 
+    // ── Step 3b: Check tiered badge progression (Requirement 133) ──────
+
+    let tierUpgrades: Array<{ category: string; oldTier: BadgeTier | null; newTier: BadgeTier }> = [];
+    try {
+      tierUpgrades = await checkAndUpgradeBadgeTiers(supabase, student_id);
+
+      // Award XP for tier upgrades
+      for (const upgrade of tierUpgrades) {
+        const tierXP = upgrade.newTier === 'gold' ? 100 : upgrade.newTier === 'silver' ? 75 : 50;
+        try {
+          await supabase.functions.invoke('award-xp', {
+            body: {
+              student_id,
+              xp_amount: tierXP,
+              source: 'badge',
+              reference_id: `tier_upgrade:${upgrade.category}:${upgrade.newTier}`,
+              note: `Badge tier upgrade: ${upgrade.category} → ${upgrade.newTier}`,
+            },
+          });
+        } catch (xpErr) {
+          console.error(`Failed to award tier upgrade XP:`, (xpErr as Error).message);
+        }
+      }
+    } catch (tierErr) {
+      console.error('Tiered badge check failed (non-blocking):', tierErr);
+    }
+
     // ── Step 4: Notify peers of rare badge awards ─────────────────────
 
     const RARE_BADGES = new Set([
@@ -1306,6 +1515,7 @@ serve(async (req) => {
         new_badges: awardedBadges,
         total_badges: totalBadges,
         team_badges_awarded: teamBadgesAwarded,
+        tier_upgrades: tierUpgrades,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );

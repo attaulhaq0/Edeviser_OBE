@@ -24,6 +24,7 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       );
     }
+    // Find previous evidence scores for same CLO and student
     const { data: prevEvidence, error: prevErr } = await supabase
       .from('evidence')
       .select('score_percent')
@@ -32,6 +33,7 @@ serve(async (req) => {
       .order('created_at', { ascending: false })
       .limit(2);
     if (prevErr) throw prevErr;
+    // Need at least 2 records (current + previous)
     if (!prevEvidence || prevEvidence.length < 2) {
       return new Response(
         JSON.stringify({ success: true, bonus_awarded: false, reason: 'No previous evidence' }),
@@ -46,7 +48,9 @@ serve(async (req) => {
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       );
     }
+
     // Award 50 XP with source = improvement_bonus (Req 123.5)
+    // Store CLO ref and previous/current scores in note JSON
     const noteData = {
       action_type: 'improvement_bonus',
       clo_id,

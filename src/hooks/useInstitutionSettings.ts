@@ -63,6 +63,7 @@ export const useUpsertInstitutionSettings = () => {
         grade_scales: input.grade_scales,
         streak_sabbatical_enabled: input.streak_sabbatical_enabled ?? false,
         league_thresholds: input.league_thresholds ?? undefined,
+        default_language: input.default_language ?? 'en',
       };
 
       let result: InstitutionSettings;

@@ -71,19 +71,19 @@ const TeamRow = ({ entry, isCurrentTeam, showWeekly }: TeamRowProps) => {
         )}>
           {entry.team_name}
           {isCurrentTeam && (
-            <Badge variant="outline" className="ml-2 text-xs text-blue-600 border-blue-200">
+            <Badge variant="outline" className="ms-2 text-xs text-blue-600 border-blue-200">
               Your Team
             </Badge>
           )}
         </p>
         <p className="text-xs text-gray-500">
-          <Users className="inline h-3 w-3 mr-1" />
+          <Users className="inline h-3 w-3 me-1" />
           {entry.member_count} members
         </p>
       </div>
 
       {/* XP */}
-      <div className="text-right shrink-0">
+      <div className="text-end shrink-0">
         <span className="text-sm font-bold text-amber-500">
           {(showWeekly ? entry.xp_this_week : entry.xp_total).toLocaleString()} XP
         </span>

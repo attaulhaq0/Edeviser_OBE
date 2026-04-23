@@ -128,7 +128,7 @@ const DataImportPage = () => {
                       {preview[0]?.map((header, i) => (
                         <th
                           key={i}
-                          className="p-2 border border-slate-200 bg-slate-50 text-slate-500 font-bold text-left"
+                          className="p-2 border border-slate-200 bg-slate-50 text-slate-500 font-bold text-start"
                         >
                           {header}
                         </th>

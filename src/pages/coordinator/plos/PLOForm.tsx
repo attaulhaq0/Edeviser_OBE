@@ -34,6 +34,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Loader2, Link2, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import type { LearningOutcome } from '@/types/app';
 
 // ─── ILO Mapping types ──────────────────────────────────────────────────────
@@ -48,6 +49,7 @@ interface ILOMappingEntry {
 
 const CreatePLODetailsForm = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation('coordinator');
   const createMutation = useCreatePLO();
   const { data: paginatedPrograms, isLoading: isLoadingPrograms } = usePrograms();
   const programs = paginatedPrograms?.data ?? [];
@@ -56,6 +58,7 @@ const CreatePLODetailsForm = () => {
     resolver: zodResolver(createPLOSchema),
     defaultValues: {
       title: '',
+      title_ar: '',
       description: '',
       program_id: '' as `${string}-${string}-${string}-${string}-${string}`,
     },
@@ -88,6 +91,26 @@ const CreatePLODetailsForm = () => {
                     placeholder="e.g. Apply engineering principles to solve problems"
                     maxLength={255}
                     {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="title_ar"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('bilingual.arabicTitle')}</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder={t('bilingual.arabicTitlePlaceholder')}
+                    dir="rtl"
+                    maxLength={255}
+                    {...field}
+                    value={field.value ?? ''}
                   />
                 </FormControl>
                 <FormMessage />
@@ -171,6 +194,7 @@ const CreatePLODetailsForm = () => {
 
 const EditPLODetailsForm = ({ ploId }: { ploId: string }) => {
   const navigate = useNavigate();
+  const { t } = useTranslation('coordinator');
   const { data: existingPLO, isLoading } = usePLO(ploId);
   const updateMutation = useUpdatePLO(ploId);
 
@@ -178,6 +202,7 @@ const EditPLODetailsForm = ({ ploId }: { ploId: string }) => {
     resolver: zodResolver(createPLOSchema),
     defaultValues: {
       title: '',
+      title_ar: '',
       description: '',
       program_id: '' as `${string}-${string}-${string}-${string}-${string}`,
     },
@@ -188,6 +213,7 @@ const EditPLODetailsForm = ({ ploId }: { ploId: string }) => {
       const plo = existingPLO as unknown as LearningOutcome;
       form.reset({
         title: plo.title,
+        title_ar: (plo as unknown as Record<string, unknown>).title_ar as string ?? '',
         description: plo.description ?? '',
         program_id: (plo.program_id ?? '') as `${string}-${string}-${string}-${string}-${string}`,
       });
@@ -227,6 +253,26 @@ const EditPLODetailsForm = ({ ploId }: { ploId: string }) => {
                     placeholder="e.g. Apply engineering principles to solve problems"
                     maxLength={255}
                     {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="title_ar"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('bilingual.arabicTitle')}</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder={t('bilingual.arabicTitlePlaceholder')}
+                    dir="rtl"
+                    maxLength={255}
+                    {...field}
+                    value={field.value ?? ''}
                   />
                 </FormControl>
                 <FormMessage />

@@ -284,7 +284,7 @@ const QuizFormFields = ({ form, onSubmit, isPending, isEditMode }: QuizFormField
 
             {/* Adaptation Config — shown only when adaptive is enabled */}
             {isAdaptive && (
-              <div className="ml-4 space-y-3 border-l-2 border-blue-200 pl-4">
+              <div className="ms-4 space-y-3 border-s-2 border-blue-200 ps-4">
                 <FormField
                   control={form.control}
                   name="adaptation_config.initial_difficulty"

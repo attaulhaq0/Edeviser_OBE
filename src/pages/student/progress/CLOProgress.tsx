@@ -197,7 +197,7 @@ const CLOProgress = () => {
                             transition={{ duration: 0.25, ease: 'easeInOut' }}
                             className="overflow-hidden"
                           >
-                            <div className="mt-2 ml-2 border-l-2 border-slate-200 pl-3">
+                            <div className="mt-2 ms-2 border-s-2 border-slate-200 ps-3">
                               <EvidencePanel cloId={entry.clo_id} studentId={studentId} />
                             </div>
                           </motion.div>

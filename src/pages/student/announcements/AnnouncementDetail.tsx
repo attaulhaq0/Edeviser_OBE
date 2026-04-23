@@ -49,7 +49,7 @@ const AnnouncementDetail = () => {
         onClick={() => navigate(-1)}
         className="text-gray-500"
       >
-        <ArrowLeft className="h-4 w-4 mr-1" /> Back
+        <ArrowLeft className="h-4 w-4 me-1" /> Back
       </Button>
 
       <Card
@@ -65,7 +65,7 @@ const AnnouncementDetail = () => {
           </h1>
           {announcement.is_pinned && (
             <Badge className="bg-white/20 text-white border-0 text-xs">
-              <Pin className="h-3 w-3 mr-1" /> Pinned
+              <Pin className="h-3 w-3 me-1" /> Pinned
             </Badge>
           )}
         </div>
@@ -81,11 +81,11 @@ const AnnouncementDetail = () => {
             <div className="flex items-center gap-2">
               {isCompleted ? (
                 <Badge className="bg-green-50 text-green-600 border-green-200 text-xs">
-                  <CheckCircle2 className="h-3 w-3 mr-1" /> Read habit ✓
+                  <CheckCircle2 className="h-3 w-3 me-1" /> Read habit ✓
                 </Badge>
               ) : (
                 <Badge variant="outline" className="text-xs text-gray-400">
-                  <Clock className="h-3 w-3 mr-1" /> {30 - elapsedSeconds}s to read habit
+                  <Clock className="h-3 w-3 me-1" /> {30 - elapsedSeconds}s to read habit
                 </Badge>
               )}
             </div>

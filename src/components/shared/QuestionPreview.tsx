@@ -139,7 +139,7 @@ const MCQOptions = ({
           disabled={disabled}
           onClick={() => !disabled && onAnswerChange?.(option.key)}
           className={cn(
-            'w-full text-left rounded-lg px-4 py-3 text-sm font-medium transition-colors flex items-center gap-3',
+            'w-full text-start rounded-lg px-4 py-3 text-sm font-medium transition-colors flex items-center gap-3',
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2',
             !showCorrectAnswer && isSelected && 'bg-blue-600 text-white shadow-md',
             !showCorrectAnswer && !isSelected && 'bg-slate-50 text-gray-700 hover:bg-slate-100',

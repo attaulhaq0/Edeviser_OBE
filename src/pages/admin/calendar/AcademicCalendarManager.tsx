@@ -58,7 +58,7 @@ const AcademicCalendarManager = () => {
                 <div key={e.id} className="flex items-center justify-between p-3 rounded-lg border border-slate-100 hover:bg-slate-50">
                   <div>
                     <span className="text-sm font-medium">{e.title}</span>
-                    <Badge variant="outline" className="ml-2 text-xs">{e.event_type}</Badge>
+                    <Badge variant="outline" className="ms-2 text-xs">{e.event_type}</Badge>
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="text-xs text-slate-400">{e.start_date}{e.end_date ? ` → ${e.end_date}` : ''}</span>

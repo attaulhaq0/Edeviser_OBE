@@ -1,0 +1,67 @@
+{
+  "dashboard": {
+    "title": "لوحة تحكم الطالب",
+    "welcome": "صباح الخير، {{name}} 👋",
+    "subtitle": "إليك رحلتك التعليمية اليوم",
+    "upcomingDeadlines": "المواعيد النهائية القادمة",
+    "learningPath": "مسار التعلم",
+    "dailyHabits": "العادات اليومية",
+    "greeting": {
+      "morning": "صباح الخير",
+      "afternoon": "مساء الخير",
+      "evening": "مساء الخير"
+    },
+    "momentum": "واصل التقدم — كل خطوة تحسب.",
+    "xp": "نقاط الخبرة",
+    "level": "مستوى {{level}}",
+    "levelLabel": "المستوى",
+    "courses": "المقررات",
+    "completed": "مكتمل",
+    "avgAttainment": "متوسط التحصيل",
+    "streak": "السلسلة",
+    "noDeadlines": "لا توجد مواعيد نهائية قادمة. استمتع بالاستراحة.",
+    "yourProgress": "تقدمك",
+    "totalXP": "إجمالي نقاط الخبرة",
+    "currentLevel": "المستوى الحالي",
+    "loginStreak": "سلسلة تسجيل الدخول",
+    "daysStreak": "🔥 {{count}} يوم",
+    "assignmentsDone": "التكليفات المنجزة",
+    "viewXPHistory": "عرض سجل نقاط الخبرة",
+    "completeOnboarding": "أكمل التهيئة",
+    "completeOnboardingDesc": "أكمل ملفك الشخصي لفتح التوصيات المخصصة وكسب نقاط الخبرة.",
+    "startNow": "ابدأ الآن",
+    "completeAssessment": "أكمل التقييم",
+    "completeAssessmentDesc": "تخطيت بعض الأقسام أثناء التهيئة. أكملها للحصول على تخصيص كامل.",
+    "completeNow": "أكمل الآن"
+  },
+  "assignments": {
+    "title": "التكليفات",
+    "submitAssignment": "تسليم التكليف",
+    "uploadFile": "رفع ملف",
+    "submissionConfirmed": "تم تأكيد التسليم!",
+    "lateSubmission": "هذا تسليم متأخر.",
+    "deadlinePassed": "انتهى الموعد النهائي للتسليم.",
+    "dueIn": "يستحق خلال {{time}}"
+  },
+  "progress": {
+    "title": "تقدمي",
+    "cloProgress": "تقدم مخرجات التعلم",
+    "xpHistory": "سجل نقاط الخبرة",
+    "attainment": "التحصيل",
+    "evidence": "الأدلة",
+    "noAssessments": "لا توجد تقييمات بعد"
+  },
+  "journal": {
+    "title": "يومية التأمل",
+    "newEntry": "إدخال جديد",
+    "wordCount": "{{count}} كلمة",
+    "minWords": "الحد الأدنى 50 كلمة",
+    "saved": "تم حفظ إدخال اليومية."
+  },
+  "leaderboard": {
+    "title": "لوحة المتصدرين",
+    "yourRank": "ترتيبك",
+    "anonymous": "الوضع المجهول",
+    "anonymousHint": "اسمك مخفي عن الطلاب الآخرين"
+  }
+}

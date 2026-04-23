@@ -207,7 +207,7 @@ export const CompleteProfilePage = () => {
                     <p className="text-sm font-semibold text-gray-900">{meta.label}</p>
                     {isComplete ? (
                       <Badge className="bg-green-100 text-green-700 hover:bg-green-100">
-                        <CheckCircle className="mr-1 h-3 w-3" />
+                        <CheckCircle className="me-1 h-3 w-3" />
                         Complete
                       </Badge>
                     ) : (

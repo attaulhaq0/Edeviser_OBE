@@ -67,7 +67,7 @@ const columns: ColumnDef<AuditLogRecord, unknown>[] = [
         onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
       >
         Timestamp
-        <ArrowUpDown className="ml-1 h-3 w-3" />
+        <ArrowUpDown className="ms-1 h-3 w-3" />
       </Button>
     ),
     cell: ({ row }) => (
@@ -153,12 +153,12 @@ const AuditLogPage = () => {
       {/* Filters */}
       <div className="flex items-center gap-4 flex-wrap">
         <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input
             placeholder="Search action, type, or ID..."
             value={search}
             onChange={(e) => { setSearch(e.target.value || null); setPage(1); }}
-            className="pl-9"
+            className="ps-9"
           />
         </div>
 

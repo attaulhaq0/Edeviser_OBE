@@ -3,6 +3,8 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import '@/lib/i18n';
 import {
   updatePasswordSchema,
   resetPasswordSchema,
@@ -54,15 +56,31 @@ const setupMocks = () => {
   mockUpdateUser.mockResolvedValue({ data: { user: {} }, error: null });
 };
 
-const renderWithRouter = (ui: React.ReactElement) =>
-  render(<MemoryRouter>{ui}</MemoryRouter>);
-
-const renderWithAuthProvider = (ui: React.ReactElement) =>
-  render(
-    <MemoryRouter>
-      <AuthProvider>{ui}</AuthProvider>
-    </MemoryRouter>,
+const renderWithRouter = (ui: React.ReactElement) => {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter>
+        <AuthProvider>{ui}</AuthProvider>
+      </MemoryRouter>
+    </QueryClientProvider>,
   );
+};
+
+const renderWithAuthProvider = (ui: React.ReactElement) => {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter>
+        <AuthProvider>{ui}</AuthProvider>
+      </MemoryRouter>
+    </QueryClientProvider>,
+  );
+};
 
 // ---------------------------------------------------------------------------
 // Schema Tests
@@ -147,7 +165,7 @@ describe('ResetPasswordPage', () => {
     await user.click(screen.getByRole('button', { name: /send reset link/i }));
 
     await waitFor(() => {
-      expect(screen.getByText(/if an account exists/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/password reset link has been sent/i).length).toBeGreaterThanOrEqual(1);
     });
     expect(mockResetPasswordForEmail).toHaveBeenCalledWith('user@test.edu');
   });
@@ -168,7 +186,7 @@ describe('ResetPasswordPage', () => {
     await user.click(screen.getByRole('button', { name: /send reset link/i }));
 
     await waitFor(() => {
-      expect(screen.getByText(/if an account exists/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/password reset link has been sent/i).length).toBeGreaterThanOrEqual(1);
     });
   });
 
@@ -191,7 +209,7 @@ describe('ResetPasswordPage', () => {
   it('has a back to login link', async () => {
     renderWithAuthProvider(<ResetPasswordPage />);
     await waitFor(() => {
-      expect(screen.getByText(/back to login/i)).toBeInTheDocument();
+      expect(screen.getByText(/back to sign in/i)).toBeInTheDocument();
     });
   });
 });
@@ -222,7 +240,7 @@ describe('UpdatePasswordPage', () => {
     await user.click(screen.getByRole('button', { name: /update password/i }));
 
     await waitFor(() => {
-      expect(screen.getByText('Password Updated')).toBeInTheDocument();
+      expect(screen.getAllByText(/password has been updated/i).length).toBeGreaterThanOrEqual(1);
     });
     expect(mockUpdateUser).toHaveBeenCalledWith({ password: 'newSecure123' });
   });

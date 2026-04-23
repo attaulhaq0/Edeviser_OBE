@@ -48,7 +48,7 @@ const CurriculumMatrix = ({ programId, onCellClick }: CurriculumMatrixProps) => 
       <table className="w-full border-collapse text-sm">
         <thead>
           <tr>
-            <th className="sticky left-0 z-10 bg-slate-50 border-b border-r border-slate-200 px-4 py-3 text-left text-xs font-bold tracking-widest uppercase text-gray-500 min-w-[200px]">
+            <th className="sticky start-0 z-10 bg-slate-50 border-b border-e border-slate-200 px-4 py-3 text-start text-xs font-bold tracking-widest uppercase text-gray-500 min-w-[200px]">
               PLO
             </th>
             {courses.map((course) => (
@@ -64,7 +64,7 @@ const CurriculumMatrix = ({ programId, onCellClick }: CurriculumMatrixProps) => 
         <tbody>
           {plos.map((plo) => (
             <tr key={plo.id} className="border-b border-slate-100 last:border-b-0">
-              <td className="sticky left-0 z-10 bg-white border-r border-slate-200 px-4 py-3 font-medium text-gray-700 max-w-[200px] truncate" title={plo.title}>
+              <td className="sticky start-0 z-10 bg-white border-e border-slate-200 px-4 py-3 font-medium text-gray-700 max-w-[200px] truncate" title={plo.title}>
                 {plo.title}
               </td>
               {courses.map((course) => {

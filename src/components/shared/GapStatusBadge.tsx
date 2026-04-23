@@ -23,16 +23,16 @@ const GapStatusBadge = ({ status, flag }: GapStatusBadgeProps) => {
   return (
     <div className="flex items-center gap-1">
       <Badge className={`text-[10px] ${config.className}`}>
-        <Icon className="h-3 w-3 mr-0.5" />{config.label}
+        <Icon className="h-3 w-3 me-0.5" />{config.label}
       </Badge>
       {flag === 'under_mapped' && (
         <Badge className="text-[10px] bg-amber-100 text-amber-700">
-          <AlertTriangle className="h-3 w-3 mr-0.5" />Under-Mapped
+          <AlertTriangle className="h-3 w-3 me-0.5" />Under-Mapped
         </Badge>
       )}
       {flag === 'unassessed' && (
         <Badge className="text-[10px] bg-amber-100 text-amber-700">
-          <AlertTriangle className="h-3 w-3 mr-0.5" />Unassessed
+          <AlertTriangle className="h-3 w-3 me-0.5" />Unassessed
         </Badge>
       )}
     </div>

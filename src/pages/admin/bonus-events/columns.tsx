@@ -44,7 +44,7 @@ export const createColumns = (
       <Button
         variant="ghost"
         size="sm"
-        className="-ml-3"
+        className="-ms-3"
         onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
       >
         Name
@@ -70,7 +70,7 @@ export const createColumns = (
       <Button
         variant="ghost"
         size="sm"
-        className="-ml-3"
+        className="-ms-3"
         onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
       >
         Start Date
@@ -92,7 +92,7 @@ export const createColumns = (
       <Button
         variant="ghost"
         size="sm"
-        className="-ml-3"
+        className="-ms-3"
         onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
       >
         End Date

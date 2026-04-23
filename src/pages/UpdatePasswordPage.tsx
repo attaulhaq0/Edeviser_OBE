@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useTranslation } from 'react-i18next';
 import { updatePasswordSchema, type UpdatePasswordFormData } from '@/lib/schemas/auth';
 import { supabase } from '@/lib/supabase';
 import {
@@ -17,8 +18,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Loader2, Lock, ArrowLeft, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
+import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher';
 
 const UpdatePasswordPage = () => {
+  const { t } = useTranslation('auth');
   const [isUpdated, setIsUpdated] = useState(false);
   const [isPending, setIsPending] = useState(false);
 
@@ -35,7 +38,7 @@ const UpdatePasswordPage = () => {
       });
       if (error) throw error;
       setIsUpdated(true);
-      toast.success('Password updated successfully');
+      toast.success(t('updatePassword.successMessage'));
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : 'Failed to update password';
@@ -46,16 +49,19 @@ const UpdatePasswordPage = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4">
+    <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4 relative">
+      <div className="absolute top-4 end-4 z-10">
+        <LanguageSwitcher />
+      </div>
       <Card className="bg-white border-0 shadow-md rounded-xl w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold tracking-tight">
-            {isUpdated ? 'Password Updated' : 'Set New Password'}
+            {isUpdated ? t('updatePassword.successMessage') : t('updatePassword.title')}
           </CardTitle>
           <CardDescription>
             {isUpdated
-              ? 'Your password has been updated successfully'
-              : 'Enter your new password below'}
+              ? t('updatePassword.successMessage')
+              : t('updatePassword.subtitle', { defaultValue: 'Enter your new password below' })}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -65,14 +71,14 @@ const UpdatePasswordPage = () => {
                 <CheckCircle2 className="h-6 w-6 text-green-600" />
               </div>
               <p className="text-sm text-gray-600">
-                You can now log in with your new password.
+                {t('updatePassword.loginPrompt', { defaultValue: 'You can now log in with your new password.' })}
               </p>
               <Link
                 to="/login"
                 className="inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700"
               >
                 <ArrowLeft className="h-4 w-4" />
-                Go to login
+                {t('updatePassword.goToLogin', { defaultValue: 'Go to login' })}
               </Link>
             </div>
           ) : (
@@ -83,14 +89,14 @@ const UpdatePasswordPage = () => {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>New Password</FormLabel>
+                      <FormLabel>{t('updatePassword.newPasswordLabel')}</FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Lock className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                           <Input
                             type="password"
                             placeholder="Minimum 8 characters"
-                            className="pl-9"
+                            className="ps-9"
                             {...field}
                           />
                         </div>
@@ -104,14 +110,14 @@ const UpdatePasswordPage = () => {
                   name="confirmPassword"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Confirm Password</FormLabel>
+                      <FormLabel>{t('updatePassword.confirmPasswordLabel')}</FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Lock className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                           <Input
                             type="password"
                             placeholder="Re-enter your password"
-                            className="pl-9"
+                            className="ps-9"
                             {...field}
                           />
                         </div>
@@ -126,7 +132,7 @@ const UpdatePasswordPage = () => {
                   className="w-full bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
                 >
                   {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-                  Update Password
+                  {t('updatePassword.submitButton')}
                 </Button>
               </form>
             </Form>

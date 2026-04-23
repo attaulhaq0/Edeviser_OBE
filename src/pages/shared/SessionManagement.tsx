@@ -47,7 +47,7 @@ const SessionManagement = () => {
                   <p className="text-sm font-medium text-gray-900">
                     {session.device}
                     {session.isCurrent && (
-                      <span className="ml-2 text-xs text-green-600 font-bold">Current</span>
+                      <span className="ms-2 text-xs text-green-600 font-bold">Current</span>
                     )}
                   </p>
                   <p className="text-xs text-gray-500">

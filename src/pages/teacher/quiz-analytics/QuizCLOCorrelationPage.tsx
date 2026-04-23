@@ -284,7 +284,7 @@ const QuizCLOCorrelationPage = () => {
                         variant="outline"
                         className="border-amber-300 bg-amber-50 text-amber-700 text-xs font-bold"
                       >
-                        <AlertTriangle className="h-3 w-3 mr-1" />
+                        <AlertTriangle className="h-3 w-3 me-1" />
                         {r.cloName}: {Math.abs(r.quizScore - r.attainment).toFixed(1)}pp gap
                       </Badge>
                     ))}

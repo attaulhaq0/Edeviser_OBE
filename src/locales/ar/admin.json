@@ -1,0 +1,80 @@
+{
+  "dashboard": {
+    "title": "لوحة التحكم",
+    "totalUsers": "إجمالي المستخدمين",
+    "activeUsers": "المستخدمون النشطون",
+    "programs": "البرامج",
+    "courses": "المقررات",
+    "onboarding": "التهيئة",
+    "activeCourses": "المقررات النشطة",
+    "avgAttainment": "متوسط التحصيل",
+    "atRiskStudents": "الطلاب المعرضون للخطر",
+    "usersByRole": "المستخدمون حسب الدور",
+    "recentActivity": "النشاط الأخير",
+    "noActiveUsers": "لا يوجد مستخدمون نشطون بعد.",
+    "noRecentActivity": "لا يوجد نشاط حديث.",
+    "ploHeatmap": "خريطة حرارية لتحصيل مخرجات التعلم البرنامجية",
+    "ploHeatmapEmpty": "ستظهر خريطة تحصيل مخرجات التعلم البرنامجية هنا عند توفر بيانات المخرجات.",
+    "aiCoPilot": "أداء المساعد الذكي",
+    "suggestionAcceptance": "قبول الاقتراحات",
+    "totalSuggestions": "{{count}} اقتراح إجمالي",
+    "predictionAccuracy": "دقة التنبؤات",
+    "validatedPredictions": "{{count}} تنبؤ تم التحقق منه",
+    "draftAcceptance": "قبول المسودات",
+    "feedbackDrafts": "{{count}} مسودة تغذية راجعة",
+    "onboardingPending": "{{count}} طالب لم يكمل التهيئة",
+    "onboardingPendingAction": "عرض القائمة وإرسال تذكيرات"
+  },
+  "users": {
+    "title": "إدارة المستخدمين",
+    "addUser": "إضافة مستخدم",
+    "editUser": "تعديل مستخدم",
+    "bulkImport": "استيراد جماعي",
+    "role": "الدور",
+    "fullName": "الاسم الكامل",
+    "email": "البريد الإلكتروني",
+    "status": "الحالة",
+    "deleteConfirm": "سيتم تعطيل حساب المستخدم.",
+    "importSuccess": "تم استيراد {{count}} مستخدم بنجاح.",
+    "importErrors": "{{count}} صف يحتوي على أخطاء."
+  },
+  "programs": {
+    "title": "إدارة البرامج",
+    "addProgram": "إضافة برنامج",
+    "editProgram": "تعديل برنامج",
+    "coordinator": "المنسق",
+    "department": "القسم",
+    "deleteBlocked": "لا يمكن حذف برنامج يحتوي على مقررات نشطة."
+  },
+  "outcomes": {
+    "title": "مخرجات التعلم المؤسسية",
+    "addILO": "إضافة مخرج تعلم مؤسسي",
+    "editILO": "تعديل مخرج تعلم مؤسسي",
+    "deleteBlocked": "لا يمكن حذف مخرج تعلم مؤسسي مرتبط بمخرجات برنامجية.",
+    "sortOrder": "ترتيب الفرز"
+  },
+  "audit": {
+    "title": "سجل المراجعة",
+    "action": "الإجراء",
+    "entity": "الكيان",
+    "performedBy": "نفذ بواسطة",
+    "timestamp": "الوقت",
+    "changes": "التغييرات"
+  },
+  "settings": {
+    "title": "إعدادات المؤسسة",
+    "kpiThresholds": "حدود مؤشرات الأداء",
+    "gradeScale": "مقياس الدرجات",
+    "accreditationBody": "جهة الاعتماد",
+    "defaultLanguage": "اللغة الافتراضية",
+    "defaultLanguageDesc": "سيبدأ المستخدمون الجدد بتفضيل هذه اللغة.",
+    "english": "الإنجليزية",
+    "arabic": "العربية"
+  },
+  "bilingual": {
+    "arabicTitle": "العنوان بالعربية",
+    "arabicName": "الاسم بالعربية",
+    "arabicTitlePlaceholder": "أدخل العنوان بالعربية (اختياري)",
+    "arabicNamePlaceholder": "أدخل الاسم بالعربية (اختياري)"
+  }
+}

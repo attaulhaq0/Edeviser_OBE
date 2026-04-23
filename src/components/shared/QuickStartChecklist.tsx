@@ -49,7 +49,7 @@ const QuickStartChecklist = ({
           <li key={item.id}>
             <button
               onClick={() => onItemClick(item.route)}
-              className="flex items-center gap-2 w-full text-left text-sm hover:bg-slate-50 rounded-lg px-2 py-1.5 transition-colors"
+              className="flex items-center gap-2 w-full text-start text-sm hover:bg-slate-50 rounded-lg px-2 py-1.5 transition-colors"
             >
               {item.isCompleted ? (
                 <CheckCircle className="h-4 w-4 text-green-500 shrink-0" />

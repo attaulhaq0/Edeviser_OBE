@@ -9,6 +9,7 @@ import {
   type UpdateILOFormData,
 } from '@/lib/schemas/ilo';
 import { useCreateILO, useUpdateILO, useILO } from '@/hooks/useILOs';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/hooks/useAuth';
 import {
   Form,
@@ -36,6 +37,7 @@ const CreateILOForm = ({ institutionId }: { institutionId: string }) => {
     resolver: zodResolver(createILOSchema),
     defaultValues: {
       title: '',
+      title_ar: '',
       description: '',
       institution_id: institutionId,
     },
@@ -75,6 +77,7 @@ const EditILOForm = ({ iloId }: { iloId: string }) => {
     resolver: zodResolver(updateILOSchema),
     defaultValues: {
       title: '',
+      title_ar: '',
       description: '',
     },
   });
@@ -84,6 +87,7 @@ const EditILOForm = ({ iloId }: { iloId: string }) => {
       const ilo = existingILO as unknown as LearningOutcome;
       form.reset({
         title: ilo.title,
+        title_ar: (ilo as unknown as Record<string, unknown>).title_ar as string ?? '',
         description: ilo.description ?? '',
       });
     }
@@ -133,6 +137,7 @@ const ILOFormFields = <T extends CreateILOFormData | UpdateILOFormData>({
   isEditMode,
 }: ILOFormFieldsProps<T>) => {
   const navigate = useNavigate();
+  const { t } = useTranslation('admin');
 
   return (
     <Card className="bg-white border-0 shadow-md rounded-xl p-6 max-w-2xl">
@@ -151,6 +156,25 @@ const ILOFormFields = <T extends CreateILOFormData | UpdateILOFormData>({
                   <Input
                     placeholder="e.g. Demonstrate critical thinking skills"
                     {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name={'title_ar' as never}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('bilingual.arabicTitle')}</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder={t('bilingual.arabicTitlePlaceholder')}
+                    dir="rtl"
+                    {...field}
+                    value={(field.value as string) ?? ''}
                   />
                 </FormControl>
                 <FormMessage />

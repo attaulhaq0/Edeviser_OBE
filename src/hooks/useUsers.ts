@@ -95,8 +95,24 @@ export const useCreateUser = () => {
 
   return useMutation({
     mutationFn: async (data: CreateUserFormData): Promise<Profile> => {
+      // Fetch institution default language
+      let preferredLanguage = 'en';
+      try {
+        const { data: settings } = await supabase
+          .from('institution_settings')
+          .select('*')
+          .eq('institution_id', data.institution_id)
+          .maybeSingle();
+        const settingsRecord = settings as unknown as Record<string, unknown> | null;
+        if (settingsRecord?.default_language) {
+          preferredLanguage = settingsRecord.default_language as string;
+        }
+      } catch {
+        // Fall back to 'en' if settings fetch fails
+      }
+
       const { data: result, error } = await supabase.from('profiles')
-        .insert(data as never)
+        .insert({ ...data, preferred_language: preferredLanguage } as never)
         .select()
         .single();
 

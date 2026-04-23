@@ -2,6 +2,7 @@ import { z } from "zod";
 
 export const createCourseSchema = z.object({
   name: z.string().min(1, "Course name is required").max(255),
+  name_ar: z.string().max(255).optional(),
   code: z.string().min(1, "Course code is required").max(50),
   program_id: z.uuid(),
   semester_id: z.uuid(),
@@ -13,6 +14,7 @@ export const createCourseSchema = z.object({
 
 export const updateCourseSchema = z.object({
   name: z.string().min(1).max(255).optional(),
+  name_ar: z.string().max(255).optional(),
   code: z.string().min(1).max(50).optional(),
   teacher_id: z.uuid().optional(),
   semester_id: z.uuid().optional(),

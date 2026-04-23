@@ -1,12 +1,13 @@
 // Task 108.2: Bulk data import Edge Function
 // Accepts CSV content with import_type parameter, validates rows, processes valid ones
 
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 interface ImportResult {
@@ -17,98 +18,140 @@ interface ImportResult {
 }
 
 const parseCSV = (csv: string): Record<string, string>[] => {
-  const lines = csv.trim().split('\n');
+  const lines = csv.trim().split("\n");
   if (lines.length < 2) return [];
-  const headers = lines[0]!.split(',').map((h) => h.trim());
+  const headers = lines[0]!.split(",").map((h) => h.trim());
   return lines.slice(1).map((line) => {
-    const values = line.split(',').map((v) => v.trim());
+    const values = line.split(",").map((v) => v.trim());
     const row: Record<string, string> = {};
-    headers.forEach((h, i) => { row[h] = values[i] ?? ''; });
+    headers.forEach((h, i) => {
+      row[h] = values[i] ?? "";
+    });
     return row;
   });
 };
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
+  if (req.method === "OPTIONS")
+    return new Response("ok", { headers: corsHeaders });
 
   try {
     const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    const { import_type, csv_content, performed_by } = await req.json();
+    // ── Auth: verify caller JWT and admin role ──────────────────────────────
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: "Missing authorization header" }),
+        {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    const token = authHeader.replace("Bearer ", "");
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser(token);
+
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const { data: callerProfile } = await supabase
+      .from("profiles")
+      .select("role, institution_id")
+      .eq("id", user.id)
+      .single();
+
+    if (!callerProfile || callerProfile.role !== "admin") {
+      return new Response(
+        JSON.stringify({ error: "Forbidden: admin role required" }),
+        {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+    // ── End auth ────────────────────────────────────────────────────────────
+
+    const { import_type, csv_content } = await req.json();
 
     if (!import_type || !csv_content) {
       return new Response(
-        JSON.stringify({ error: 'import_type and csv_content are required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        JSON.stringify({ error: "import_type and csv_content are required" }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
       );
     }
 
     const rows = parseCSV(csv_content);
-    const result: ImportResult = { total_rows: rows.length, imported: 0, skipped: 0, errors: [] };
+    const result: ImportResult = {
+      total_rows: rows.length,
+      imported: 0,
+      skipped: 0,
+      errors: [],
+    };
 
-    if (import_type === 'enrollments') {
+    if (import_type === "enrollments") {
       for (let i = 0; i < rows.length; i++) {
         const row = rows[i]!;
         if (!row.student_email || !row.course_code) {
-          result.errors.push({ row: i + 2, message: 'Missing student_email or course_code' });
+          result.errors.push({
+            row: i + 2,
+            message: "Missing student_email or course_code",
+          });
           result.skipped++;
           continue;
         }
 
         // Resolve student by email
         const { data: student } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('email', row.student_email)
+          .from("profiles")
+          .select("id")
+          .eq("email", row.student_email)
           .maybeSingle();
 
         if (!student) {
-          result.errors.push({ row: i + 2, message: `Student not found: ${row.student_email}` });
+          result.errors.push({
+            row: i + 2,
+            message: `Student not found: ${row.student_email}`,
+          });
           result.skipped++;
           continue;
         }
 
         // Resolve course by code
         const { data: course } = await supabase
-          .from('courses')
-          .select('id')
-          .eq('code', row.course_code)
+          .from("courses")
+          .select("id")
+          .eq("code", row.course_code)
           .maybeSingle();
 
         if (!course) {
-          result.errors.push({ row: i + 2, message: `Course not found: ${row.course_code}` });
+          result.errors.push({
+            row: i + 2,
+            message: `Course not found: ${row.course_code}`,
+          });
           result.skipped++;
           continue;
         }
 
         const { error } = await supabase
-          .from('student_courses')
-          .upsert({ student_id: student.id, course_id: course.id }, { onConflict: 'student_id,course_id' });
-
-        if (error) {
-          result.errors.push({ row: i + 2, message: error.message });
-          result.skipped++;
-        } else {
-          result.imported++;
-        }
-      }
-    } else if (import_type === 'courses') {
-      for (let i = 0; i < rows.length; i++) {
-        const row = rows[i]!;
-        if (!row.course_code || !row.title) {
-          result.errors.push({ row: i + 2, message: 'Missing course_code or title' });
-          result.skipped++;
-          continue;
-        }
-
-        const { error } = await supabase
-          .from('courses')
+          .from("student_courses")
           .upsert(
-            { code: row.course_code, name: row.title, description: row.description || null },
-            { onConflict: 'code' },
+            { student_id: student.id, course_id: course.id },
+            { onConflict: "student_id,course_id" }
           );
 
         if (error) {
@@ -118,22 +161,60 @@ serve(async (req) => {
           result.imported++;
         }
       }
-    } else if (import_type === 'outcomes') {
+    } else if (import_type === "courses") {
       for (let i = 0; i < rows.length; i++) {
         const row = rows[i]!;
-        if (!row.outcome_type || !row.title) {
-          result.errors.push({ row: i + 2, message: 'Missing outcome_type or title' });
+        if (!row.course_code || !row.title) {
+          result.errors.push({
+            row: i + 2,
+            message: "Missing course_code or title",
+          });
           result.skipped++;
           continue;
         }
 
-        const table = row.outcome_type === 'ilo' ? 'ilos'
-          : row.outcome_type === 'plo' ? 'plos'
-          : row.outcome_type === 'clo' ? 'clos'
-          : null;
+        const { error } = await supabase.from("courses").upsert(
+          {
+            code: row.course_code,
+            name: row.title,
+            description: row.description || null,
+          },
+          { onConflict: "code" }
+        );
+
+        if (error) {
+          result.errors.push({ row: i + 2, message: error.message });
+          result.skipped++;
+        } else {
+          result.imported++;
+        }
+      }
+    } else if (import_type === "outcomes") {
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i]!;
+        if (!row.outcome_type || !row.title) {
+          result.errors.push({
+            row: i + 2,
+            message: "Missing outcome_type or title",
+          });
+          result.skipped++;
+          continue;
+        }
+
+        const table =
+          row.outcome_type === "ilo"
+            ? "ilos"
+            : row.outcome_type === "plo"
+            ? "plos"
+            : row.outcome_type === "clo"
+            ? "clos"
+            : null;
 
         if (!table) {
-          result.errors.push({ row: i + 2, message: `Invalid outcome_type: ${row.outcome_type}` });
+          result.errors.push({
+            row: i + 2,
+            message: `Invalid outcome_type: ${row.outcome_type}`,
+          });
           result.skipped++;
           continue;
         }
@@ -149,11 +230,14 @@ serve(async (req) => {
           result.imported++;
         }
       }
-    } else if (import_type === 'grades') {
+    } else if (import_type === "grades") {
       for (let i = 0; i < rows.length; i++) {
         const row = rows[i]!;
         if (!row.student_email || !row.score || !row.max_score) {
-          result.errors.push({ row: i + 2, message: 'Missing required grade fields' });
+          result.errors.push({
+            row: i + 2,
+            message: "Missing required grade fields",
+          });
           result.skipped++;
           continue;
         }
@@ -163,28 +247,36 @@ serve(async (req) => {
     } else {
       return new Response(
         JSON.stringify({ error: `Unknown import_type: ${import_type}` }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
       );
     }
 
-    // Log to audit
-    if (performed_by) {
-      await supabase.from('audit_logs').insert({
-        action: 'bulk_import',
+    // Log to audit using verified caller identity
+    await supabase
+      .from("audit_logs")
+      .insert({
+        action: "bulk_import",
         entity_type: import_type,
         entity_id: null,
-        changes: { total: result.total_rows, imported: result.imported, skipped: result.skipped },
-        performed_by,
-      }).catch(() => {});
-    }
+        changes: {
+          total: result.total_rows,
+          imported: result.imported,
+          skipped: result.skipped,
+        },
+        performed_by: user.id,
+      })
+      .catch(() => {});
 
     return new Response(JSON.stringify(result), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
-    return new Response(
-      JSON.stringify({ error: (error as Error).message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-    );
+    return new Response(JSON.stringify({ error: (error as Error).message }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });

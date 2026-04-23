@@ -2,32 +2,32 @@
 
 ## Task 1: Database Schema & Migrations
 
-- [ ] 1.1 Create enums: `timer_mode_type` (pomodoro, custom), `session_status_type` (planned, in_progress, completed, cancelled), `task_priority_type` (low, medium, high), `task_status_type` (pending, completed), `goal_type_enum` (study_hours, sessions_completed, tasks_completed)
-- [ ] 1.2 Create `study_sessions` table with all columns (id, student_id, course_id, title, description, planned_date, planned_start_time, planned_duration_minutes, actual_start_at, actual_end_at, actual_duration_minutes, timer_mode, status, satisfaction_rating, clo_ids, created_at, updated_at), CHECK constraints on planned_duration_minutes (15–240) and satisfaction_rating (1–5), FKs to profiles and courses, indexes on (student_id, planned_date) and (student_id, status)
-- [ ] 1.3 Create `planner_tasks` table with all columns (id, student_id, title, description, due_date, priority, status, course_id, completed_at, created_at, updated_at), FKs to profiles and courses, indexes on (student_id, due_date) and (student_id, status)
-- [ ] 1.4 Create `weekly_goals` table with all columns (id, student_id, week_start_date, goal_type, target_value, created_at, updated_at), UNIQUE constraint on (student_id, week_start_date, goal_type), CHECK on target_value > 0, FK to profiles
-- [ ] 1.5 Create `session_evidence` table with all columns (id, session_id, student_id, file_url, file_name, file_size_bytes, mime_type, notes, created_at), FKs to study_sessions and profiles — append-only (no UPDATE/DELETE policies)
-- [ ] 1.6 Create `session_reflections` table with all columns (id, session_id, student_id, content, word_count, created_at), FKs to study_sessions and profiles — append-only (no UPDATE/DELETE policies)
-- [ ] 1.7 Create RLS policies on `study_sessions`: student ALL on own, teacher SELECT CLO-linked sessions for their courses, parent SELECT for linked students
-- [ ] 1.8 Create RLS policies on `planner_tasks`: student ALL on own, parent SELECT for linked students
-- [ ] 1.9 Create RLS policies on `weekly_goals`: student ALL on own, parent SELECT for linked students
-- [ ] 1.10 Create RLS policies on `session_evidence`: student SELECT+INSERT own, teacher SELECT for course students, no UPDATE/DELETE
-- [ ] 1.11 Create RLS policies on `session_reflections`: student SELECT+INSERT own, no other role access, no UPDATE/DELETE
-- [ ] 1.12 Create Supabase Storage bucket `session-evidence` with RLS: student upload/read own folder, teacher read course student files
-- [ ] 1.13 Regenerate TypeScript types: `npx supabase gen types --linked > src/types/database.ts`
+- [x] 1.1 Create enums: `timer_mode_type` (pomodoro, custom), `session_status_type` (planned, in_progress, completed, cancelled), `task_priority_type` (low, medium, high), `task_status_type` (pending, completed), `goal_type_enum` (study_hours, sessions_completed, tasks_completed)
+- [x] 1.2 Create `study_sessions` table with all columns (id, student_id, course_id, title, description, planned_date, planned_start_time, planned_duration_minutes, actual_start_at, actual_end_at, actual_duration_minutes, timer_mode, status, satisfaction_rating, clo_ids, created_at, updated_at), CHECK constraints on planned_duration_minutes (15–240) and satisfaction_rating (1–5), FKs to profiles and courses, indexes on (student_id, planned_date) and (student_id, status)
+- [x] 1.3 Create `planner_tasks` table with all columns (id, student_id, title, description, due_date, priority, status, course_id, completed_at, created_at, updated_at), FKs to profiles and courses, indexes on (student_id, due_date) and (student_id, status)
+- [x] 1.4 Create `weekly_goals` table with all columns (id, student_id, week_start_date, goal_type, target_value, created_at, updated_at), UNIQUE constraint on (student_id, week_start_date, goal_type), CHECK on target_value > 0, FK to profiles
+- [x] 1.5 Create `session_evidence` table with all columns (id, session_id, student_id, file_url, file_name, file_size_bytes, mime_type, notes, created_at), FKs to study_sessions and profiles — append-only (no UPDATE/DELETE policies)
+- [x] 1.6 Create `session_reflections` table with all columns (id, session_id, student_id, content, word_count, created_at), FKs to study_sessions and profiles — append-only (no UPDATE/DELETE policies)
+- [x] 1.7 Create RLS policies on `study_sessions`: student ALL on own, teacher SELECT CLO-linked sessions for their courses, parent SELECT for linked students
+- [x] 1.8 Create RLS policies on `planner_tasks`: student ALL on own, parent SELECT for linked students
+- [x] 1.9 Create RLS policies on `weekly_goals`: student ALL on own, parent SELECT for linked students
+- [x] 1.10 Create RLS policies on `session_evidence`: student SELECT+INSERT own, teacher SELECT for course students, no UPDATE/DELETE
+- [x] 1.11 Create RLS policies on `session_reflections`: student SELECT+INSERT own, no other role access, no UPDATE/DELETE
+- [x] 1.12 Create Supabase Storage bucket `session-evidence` with RLS: student upload/read own folder, teacher read course student files
+- [x] 1.13 Regenerate TypeScript types: `npx supabase gen types --linked > src/types/database.ts`
 
 ## Task 2: TypeScript Types & Shared Utilities
 
-- [ ] 2.1 Create `src/types/planner.ts` with all types: TimerMode, SessionStatus, TaskPriority, TaskStatus, GoalType, TimerState, PomodoroIntervalType, TimeOfDay, StudySession, PlannerTask, WeeklyGoal, GoalProgress, SessionEvidence, SessionReflection, WeekDay, TimelineItem, DailyProgress, WeeklyProgressData, CourseStudyTime, CLOStudyTime, WeeklyStudyData, TimerPersistState, UpcomingDeadline, HabitStatus
-- [ ] 2.2 Create `src/lib/plannerUtils.ts` with pure functions: `calculateSessionXP`, `groupByTimeOfDay`, `sortTasksByPriority`, `getDeadlineUrgency`, `isSessionMissed`, `calculateGoalProgress`, `formatTimerDisplay`, `calculateActualDuration`, `getWeekStartDate`, `isWeekInPast`, `countWords`, `aggregateWeeklyStudyTime`, `getPomodoroIntervalType`, `getPomodoroIntervalDuration`
-- [ ] 2.3 Create `src/lib/timerPersistence.ts` with `persistTimerState`, `restoreTimerState`, `clearTimerState` functions (localStorage round-trip)
-- [ ] 2.4 Create Zod schemas in `src/lib/schemas/planner.ts`: `createStudySessionSchema`, `createPlannerTaskSchema`, `createWeeklyGoalSchema`, `sessionCompletionSchema`, `sessionReflectionSchema` (with word count validation ≥ 30), `weeklyReflectionSchema` (≥ 50 words)
+- [x] 2.1 Create `src/types/planner.ts` with all types: TimerMode, SessionStatus, TaskPriority, TaskStatus, GoalType, TimerState, PomodoroIntervalType, TimeOfDay, StudySession, PlannerTask, WeeklyGoal, GoalProgress, SessionEvidence, SessionReflection, WeekDay, TimelineItem, DailyProgress, WeeklyProgressData, CourseStudyTime, CLOStudyTime, WeeklyStudyData, TimerPersistState, UpcomingDeadline, HabitStatus
+- [x] 2.2 Create `src/lib/plannerUtils.ts` with pure functions: `calculateSessionXP`, `groupByTimeOfDay`, `sortTasksByPriority`, `getDeadlineUrgency`, `isSessionMissed`, `calculateGoalProgress`, `formatTimerDisplay`, `calculateActualDuration`, `getWeekStartDate`, `isWeekInPast`, `countWords`, `aggregateWeeklyStudyTime`, `getPomodoroIntervalType`, `getPomodoroIntervalDuration`
+- [x] 2.3 Create `src/lib/timerPersistence.ts` with `persistTimerState`, `restoreTimerState`, `clearTimerState` functions (localStorage round-trip)
+- [x] 2.4 Create Zod schemas in `src/lib/schemas/planner.ts`: `createStudySessionSchema`, `createPlannerTaskSchema`, `createWeeklyGoalSchema`, `sessionCompletionSchema`, `sessionReflectionSchema` (with word count validation ≥ 30), `weeklyReflectionSchema` (≥ 50 words)
 
 ## Task 3: Property-Based Tests
 
-- [ ] 3.1 Create `src/__tests__/properties/plannerUtils.property.test.ts` with property tests for Properties 1–3, 6–9, 11–13, 17, 19–20 (session XP formula, timer display, actual duration, task sorting, deadline urgency, missed session, time-of-day grouping, week start Monday, past week detection, word count, weekly aggregation, daily progress, zero XP for short sessions)
-- [ ] 3.2 Create `src/__tests__/properties/focusTimer.property.test.ts` with property tests for Properties 4–5, 14, 18 (timer state round-trip, Pomodoro interval sequence, duration validation, interval durations)
-- [ ] 3.3 Create `src/__tests__/properties/goalProgress.property.test.ts` with property tests for Properties 10, 15–16 (goal progress calculation, max 3 goals, task deletion rules)
+- [x] 3.1 Create `src/__tests__/properties/plannerUtils.property.test.ts` with property tests for Properties 1–3, 6–9, 11–13, 17, 19–20 (session XP formula, timer display, actual duration, task sorting, deadline urgency, missed session, time-of-day grouping, week start Monday, past week detection, word count, weekly aggregation, daily progress, zero XP for short sessions)
+- [x] 3.2 Create `src/__tests__/properties/focusTimer.property.test.ts` with property tests for Properties 4–5, 14, 18 (timer state round-trip, Pomodoro interval sequence, duration validation, interval durations)
+- [x] 3.3 Create `src/__tests__/properties/goalProgress.property.test.ts` with property tests for Properties 10, 15–16 (goal progress calculation, max 3 goals, task deletion rules)
 
 ## Task 4: Award-XP Edge Function Update
 

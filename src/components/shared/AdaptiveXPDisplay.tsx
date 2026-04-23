@@ -22,11 +22,11 @@ const AdaptiveXPDisplay = ({ studentId, actionType = 'submission' }: AdaptiveXPD
       {/* Level & Multiplier row */}
       <div className="flex items-center gap-2 flex-wrap">
         <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
-          <Zap className="h-3 w-3 mr-1" />
+          <Zap className="h-3 w-3 me-1" />
           Level {multiplierData.level}
         </Badge>
         <Badge variant="outline" className="text-xs bg-amber-50 text-amber-700 border-amber-200">
-          <TrendingUp className="h-3 w-3 mr-1" />
+          <TrendingUp className="h-3 w-3 me-1" />
           {multiplierData.multiplier}x XP Multiplier
         </Badge>
       </div>

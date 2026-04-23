@@ -45,7 +45,7 @@ export const createAnalyticsColumns = (
       <Button
         variant="ghost"
         size="sm"
-        className="-ml-3"
+        className="-ms-3"
         onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
       >
         Question
@@ -61,7 +61,7 @@ export const createAnalyticsColumns = (
         <button
           type="button"
           className={cn(
-            'text-left font-medium text-sm hover:underline',
+            'text-start font-medium text-sm hover:underline',
             isFlagged && 'cursor-pointer text-blue-600',
           )}
           onClick={() => isFlagged && onRowClick(row.original)}
@@ -114,7 +114,7 @@ export const createAnalyticsColumns = (
       <Button
         variant="ghost"
         size="sm"
-        className="-ml-3"
+        className="-ms-3"
         onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
       >
         Success %
@@ -132,7 +132,7 @@ export const createAnalyticsColumns = (
       <Button
         variant="ghost"
         size="sm"
-        className="-ml-3"
+        className="-ms-3"
         onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
       >
         Avg Time (s)
@@ -150,7 +150,7 @@ export const createAnalyticsColumns = (
       <Button
         variant="ghost"
         size="sm"
-        className="-ml-3"
+        className="-ms-3"
         onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
       >
         Discrim.
@@ -168,7 +168,7 @@ export const createAnalyticsColumns = (
       <Button
         variant="ghost"
         size="sm"
-        className="-ml-3"
+        className="-ms-3"
         onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
       >
         Attempts

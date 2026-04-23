@@ -174,11 +174,11 @@ const AttendanceReport = () => {
                         <TableCell className="text-center">
                           {s.isBelowThreshold ? (
                             <Badge variant="destructive" className="text-xs">
-                              <AlertTriangle className="h-3 w-3 mr-1" /> At Risk
+                              <AlertTriangle className="h-3 w-3 me-1" /> At Risk
                             </Badge>
                           ) : (
                             <Badge className="text-xs bg-green-50 text-green-700 border-green-200">
-                              <CheckCircle2 className="h-3 w-3 mr-1" /> Good
+                              <CheckCircle2 className="h-3 w-3 me-1" /> Good
                             </Badge>
                           )}
                         </TableCell>

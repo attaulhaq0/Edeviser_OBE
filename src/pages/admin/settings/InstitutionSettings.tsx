@@ -25,7 +25,8 @@ import {
 import Shimmer from '@/components/shared/Shimmer';
 import ProgramAccreditationManager from '@/components/shared/ProgramAccreditationManager';
 import { Switch } from '@/components/ui/switch';
-import { Loader2, Settings, GraduationCap, Plus, Trash2, Flame, Trophy } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { Loader2, Settings, GraduationCap, Plus, Trash2, Flame, Trophy, Globe } from 'lucide-react';
 import { DEFAULT_GRADE_SCALES, type AccreditationBody } from '@/types/app';
 import { DEFAULT_LEAGUE_THRESHOLDS } from '@/lib/leagueTier';
 
@@ -39,6 +40,7 @@ const ACCREDITATION_BODIES: Array<{ value: AccreditationBody; label: string }> =
 ];
 
 const InstitutionSettings = () => {
+  const { t } = useTranslation('admin');
   const { data: settings, isLoading } = useInstitutionSettings();
   const mutation = useUpsertInstitutionSettings();
 
@@ -51,6 +53,7 @@ const InstitutionSettings = () => {
       grade_scales: DEFAULT_GRADE_SCALES,
       streak_sabbatical_enabled: false,
       league_thresholds: DEFAULT_LEAGUE_THRESHOLDS,
+      default_language: 'en',
     },
   });
 
@@ -68,6 +71,7 @@ const InstitutionSettings = () => {
         grade_scales: settings.grade_scales,
         streak_sabbatical_enabled: settings.streak_sabbatical_enabled ?? false,
         league_thresholds: settings.league_thresholds ?? DEFAULT_LEAGUE_THRESHOLDS,
+        default_language: (settings.default_language === 'ar' ? 'ar' : 'en') as 'en' | 'ar',
       });
     }
   }, [settings, form]);
@@ -505,6 +509,45 @@ const InstitutionSettings = () => {
                   )}
                 />
               </div>
+            </div>
+          </Card>
+
+          {/* Default Language Card */}
+          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+            <div
+              className="px-6 py-4 flex items-center gap-2"
+              style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+            >
+              <Globe className="h-5 w-5 text-white" />
+              <h2 className="text-lg font-bold tracking-tight text-white">
+                {t('settings.defaultLanguage')}
+              </h2>
+            </div>
+            <div className="p-6">
+              <FormField
+                control={form.control}
+                name="default_language"
+                render={({ field }) => (
+                  <FormItem className="max-w-md">
+                    <FormLabel>{t('settings.defaultLanguage')}</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value ?? 'en'}>
+                      <FormControl>
+                        <SelectTrigger className="bg-white" data-testid="default-language-select">
+                          <SelectValue placeholder={t('settings.defaultLanguage')} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="en">{t('settings.english')}</SelectItem>
+                        <SelectItem value="ar">{t('settings.arabic')}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      {t('settings.defaultLanguageDesc')}
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
           </Card>
 

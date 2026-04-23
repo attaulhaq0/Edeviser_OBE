@@ -115,7 +115,7 @@ const SubmissionInfoPanel = ({ submission, assignment }: SubmissionInfoPanelProp
           {submission.profiles?.full_name ?? 'Unknown'}
         </span>
       </div>
-      <p className="text-xs text-gray-500 pl-6">
+      <p className="text-xs text-gray-500 ps-6">
         {submission.profiles?.email ?? ''}
       </p>
     </div>
@@ -129,7 +129,7 @@ const SubmissionInfoPanel = ({ submission, assignment }: SubmissionInfoPanelProp
           {assignment?.title ?? submission.assignments?.title ?? 'Unknown'}
         </span>
       </div>
-      <p className="text-xs text-gray-500 pl-6">
+      <p className="text-xs text-gray-500 ps-6">
         Total Marks: {assignment?.total_marks ?? submission.assignments?.total_marks ?? 0}
       </p>
     </div>
@@ -188,7 +188,7 @@ const RubricGrid = ({ criteria, selections, onCellSelect, isReadOnly }: RubricGr
         <table className="w-full border-collapse">
           <thead>
             <tr>
-              <th className="text-left text-xs font-bold text-gray-500 uppercase tracking-wider p-3 w-40">
+              <th className="text-start text-xs font-bold text-gray-500 uppercase tracking-wider p-3 w-40">
                 Criteria
               </th>
               {levelLabels.map((label) => (
@@ -218,7 +218,7 @@ const RubricGrid = ({ criteria, selections, onCellSelect, isReadOnly }: RubricGr
                         aria-pressed={isSelected}
                         aria-label={`${criterion.criterion_name}: ${level.label} — ${level.points} points`}
                         className={cn(
-                          'w-full rounded-lg border-2 p-3 text-left transition-all focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-1',
+                          'w-full rounded-lg border-2 p-3 text-start transition-all focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-1',
                           isSelected
                             ? 'border-blue-500 bg-blue-50'
                             : 'border-slate-200 bg-white',
@@ -393,7 +393,7 @@ const AIDraftPanel = ({
               className="h-8 px-2 text-green-600 hover:text-green-700 hover:bg-green-50"
               aria-label="Use overall draft as feedback"
             >
-              <CheckCircle2 className="h-4 w-4 mr-1" /> Use
+              <CheckCircle2 className="h-4 w-4 me-1" /> Use
             </Button>
           </div>
           <p className="text-sm text-gray-700 leading-relaxed">{overallDraft}</p>

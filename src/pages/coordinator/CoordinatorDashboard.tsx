@@ -314,7 +314,7 @@ const CoordinatorDashboard = () => {
                         </div>
                         <p className="text-sm truncate">{plan.action_description}</p>
                       </div>
-                      <div className="flex items-center gap-3 text-xs text-gray-500 ml-4 shrink-0">
+                      <div className="flex items-center gap-3 text-xs text-gray-500 ms-4 shrink-0">
                         <span>{plan.baseline_attainment}%</span>
                         <ArrowRight className="h-3 w-3" />
                         <span>{plan.target_attainment}%</span>

@@ -42,7 +42,7 @@ const PWAInstallPrompt = () => {
   if (!visible) return null;
 
   return (
-    <div className="fixed bottom-4 inset-x-4 z-50 md:inset-x-auto md:right-4 md:left-auto md:w-80">
+    <div className="fixed bottom-4 inset-x-4 z-50 md:inset-x-auto md:end-4 md:start-auto md:w-80">
       <Card className="bg-white border-0 shadow-lg rounded-xl">
         <CardContent className="flex items-center gap-3 p-4">
           <Download className="h-5 w-5 text-blue-600 shrink-0" />

@@ -1,6 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
 
 export interface AdminKPIData {
   totalUsers: number;
@@ -23,27 +23,22 @@ export const useAdminKPIs = () => {
   return useQuery({
     queryKey: queryKeys.adminDashboard.list({}),
     queryFn: async (): Promise<AdminKPIData> => {
-      const { count: totalUsers } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true });
-
-      const { count: activeUsers } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true })
-        .eq('is_active', true);
-
-      const { count: totalPrograms } = await supabase
-        .from('programs')
-        .select('*', { count: 'exact', head: true });
-
-      const { count: totalCourses } = await supabase
-        .from('courses')
-        .select('*', { count: 'exact', head: true });
-
-      const { data: roleData } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('is_active', true);
+      const [
+        { count: totalUsers },
+        { count: activeUsers },
+        { count: totalPrograms },
+        { count: totalCourses },
+        { data: roleData },
+      ] = await Promise.all([
+        supabase.from("profiles").select("*", { count: "exact", head: true }),
+        supabase
+          .from("profiles")
+          .select("*", { count: "exact", head: true })
+          .eq("is_active", true),
+        supabase.from("programs").select("*", { count: "exact", head: true }),
+        supabase.from("courses").select("*", { count: "exact", head: true }),
+        supabase.from("profiles").select("role").eq("is_active", true),
+      ]);
 
       const usersByRole: Record<string, number> = {};
       if (roleData) {
@@ -69,9 +64,9 @@ export const useRecentAuditLogs = (limit: number = 10) => {
     queryKey: queryKeys.auditLogs.list({ limit }),
     queryFn: async (): Promise<AuditLogEntry[]> => {
       const { data, error } = await supabase
-        .from('audit_logs')
-        .select('*')
-        .order('created_at', { ascending: false })
+        .from("audit_logs")
+        .select("*")
+        .order("created_at", { ascending: false })
         .limit(limit);
 
       if (error) throw error;
@@ -80,7 +75,6 @@ export const useRecentAuditLogs = (limit: number = 10) => {
     staleTime: 30_000,
   });
 };
-
 
 // ── Onboarding Analytics ─────────────────────────────────────────────────────
 
@@ -92,26 +86,33 @@ export interface OnboardingAnalytics {
 
 export const useOnboardingAnalytics = () => {
   return useQuery({
-    queryKey: [...queryKeys.adminDashboard.lists(), 'onboarding'],
+    queryKey: [...queryKeys.adminDashboard.lists(), "onboarding"],
     queryFn: async (): Promise<OnboardingAnalytics> => {
-      const { count: totalStudents } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true })
-        .eq('role', 'student')
-        .eq('is_active', true);
-
-      const { count: completedOnboarding } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true })
-        .eq('role', 'student')
-        .eq('is_active', true)
-        .eq('onboarding_completed', true);
+      const [{ count: totalStudents }, { count: completedOnboarding }] =
+        await Promise.all([
+          supabase
+            .from("profiles")
+            .select("*", { count: "exact", head: true })
+            .eq("role", "student")
+            .eq("is_active", true),
+          supabase
+            .from("profiles")
+            .select("*", { count: "exact", head: true })
+            .eq("role", "student")
+            .eq("is_active", true)
+            .eq("onboarding_completed", true),
+        ]);
 
       const total = totalStudents ?? 0;
       const completed = completedOnboarding ?? 0;
-      const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
+      const completionRate =
+        total > 0 ? Math.round((completed / total) * 100) : 0;
 
-      return { totalStudents: total, completedOnboarding: completed, completionRate };
+      return {
+        totalStudents: total,
+        completedOnboarding: completed,
+        completionRate,
+      };
     },
     staleTime: 30_000,
   });
@@ -130,18 +131,22 @@ export const usePendingOnboardingStudents = (filters?: {
   enrolledAfter?: string;
 }) => {
   return useQuery({
-    queryKey: [...queryKeys.adminDashboard.lists(), 'pending-onboarding', filters],
+    queryKey: [
+      ...queryKeys.adminDashboard.lists(),
+      "pending-onboarding",
+      filters,
+    ],
     queryFn: async (): Promise<PendingOnboardingStudent[]> => {
       let query = supabase
-        .from('profiles')
-        .select('id, full_name, email, created_at')
-        .eq('role', 'student')
-        .eq('is_active', true)
-        .eq('onboarding_completed', false)
-        .order('created_at', { ascending: false });
+        .from("profiles")
+        .select("id, full_name, email, created_at")
+        .eq("role", "student")
+        .eq("is_active", true)
+        .eq("onboarding_completed", false)
+        .order("created_at", { ascending: false });
 
       if (filters?.enrolledAfter) {
-        query = query.gte('created_at', filters.enrolledAfter);
+        query = query.gte("created_at", filters.enrolledAfter);
       }
 
       const { data, error } = await query;
@@ -151,7 +156,6 @@ export const usePendingOnboardingStudents = (filters?: {
     staleTime: 30_000,
   });
 };
-
 
 // ── Department Analytics ─────────────────────────────────────────────────────
 
@@ -165,44 +169,55 @@ export interface DepartmentAttainment {
 
 export const useDepartmentAnalytics = () => {
   return useQuery({
-    queryKey: [...queryKeys.adminDashboard.lists(), 'department-analytics'],
+    queryKey: [...queryKeys.adminDashboard.lists(), "department-analytics"],
     queryFn: async (): Promise<DepartmentAttainment[]> => {
       // Fetch departments
       const { data: departments, error: deptError } = await supabase
-        .from('departments')
-        .select('id, name')
-        .order('name', { ascending: true });
+        .from("departments")
+        .select("id, name")
+        .order("name", { ascending: true });
       if (deptError) throw deptError;
       if (!departments || departments.length === 0) return [];
 
-      // Fetch programs grouped by department
-      const { data: programs, error: progError } = await supabase
-        .from('programs')
-        .select('id, department_id')
-        .eq('is_active', true);
+      // Fetch programs, attainments, and outcomes in parallel
+      const [
+        { data: programs, error: progError },
+        { data: attainments, error: attError },
+        { data: outcomes, error: outError },
+      ] = await Promise.all([
+        supabase
+          .from("programs")
+          .select("id, department_id")
+          .eq("is_active", true),
+        supabase
+          .from("outcome_attainment")
+          .select("outcome_id, attainment_percent, scope")
+          .in("scope", ["program", "institution"]),
+        supabase
+          .from("learning_outcomes")
+          .select("id, type, program_id, institution_id")
+          .in("type", ["PLO", "ILO"]),
+      ]);
       if (progError) throw progError;
-
-      // Fetch outcome attainment for program and institution scopes
-      const { data: attainments, error: attError } = await supabase
-        .from('outcome_attainment')
-        .select('outcome_id, attainment_percent, scope')
-        .in('scope', ['program', 'institution']);
       if (attError) throw attError;
-
-      // Fetch learning outcomes to map outcome_id to program_id
-      const { data: outcomes, error: outError } = await supabase
-        .from('learning_outcomes')
-        .select('id, type, program_id, institution_id')
-        .in('type', ['PLO', 'ILO']);
       if (outError) throw outError;
 
       const outcomeMap = new Map((outcomes ?? []).map((o) => [o.id, o]));
-      const programDeptMap = new Map((programs ?? []).map((p) => [p.id, p.department_id]));
+      const programDeptMap = new Map(
+        (programs ?? []).map((p) => [p.id, p.department_id])
+      );
 
       // Aggregate per department
-      const deptStats = new Map<string, { ploScores: number[]; iloScores: number[]; programIds: Set<string> }>();
+      const deptStats = new Map<
+        string,
+        { ploScores: number[]; iloScores: number[]; programIds: Set<string> }
+      >();
       for (const dept of departments) {
-        deptStats.set(dept.id, { ploScores: [], iloScores: [], programIds: new Set() });
+        deptStats.set(dept.id, {
+          ploScores: [],
+          iloScores: [],
+          programIds: new Set(),
+        });
       }
 
       // Count programs per department
@@ -217,21 +232,24 @@ export const useDepartmentAnalytics = () => {
         const outcome = outcomeMap.get(att.outcome_id);
         if (!outcome || att.attainment_percent == null) continue;
 
-        if (outcome.type === 'PLO' && outcome.program_id) {
+        if (outcome.type === "PLO" && outcome.program_id) {
           const deptId = programDeptMap.get(outcome.program_id);
           if (deptId && deptStats.has(deptId)) {
             deptStats.get(deptId)!.ploScores.push(att.attainment_percent);
           }
         }
         // ILO attainment is institution-wide, distribute to all departments
-        if (outcome.type === 'ILO') {
+        if (outcome.type === "ILO") {
           for (const [, stats] of deptStats) {
             stats.iloScores.push(att.attainment_percent);
           }
         }
       }
 
-      const avg = (arr: number[]) => (arr.length > 0 ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) : 0);
+      const avg = (arr: number[]) =>
+        arr.length > 0
+          ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length)
+          : 0;
 
       return departments.map((dept) => {
         const stats = deptStats.get(dept.id)!;

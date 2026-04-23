@@ -4,6 +4,13 @@ inclusion: always
 
 # Pre-Push CI Checks (Mandatory)
 
+## Branch Protection Rule
+
+Never push directly to `main`. All changes must go through a feature branch + pull request.
+Use the auto-git-push hook or manually create a branch and PR.
+
+## Local CI Checks
+
 Before committing or pushing any code changes, ALWAYS run these checks locally in order:
 
 1. `npm run lint` — ESLint with zero warnings tolerance

@@ -51,7 +51,7 @@ const CompetencyAlignmentMatrix = ({
       <table className="min-w-full text-xs" role="grid" aria-label="Competency alignment matrix">
         <thead>
           <tr>
-            <th className="sticky left-0 bg-white z-10 px-3 py-2 text-left font-semibold text-slate-600 border-b border-r border-slate-200 min-w-[200px]">
+            <th className="sticky start-0 bg-white z-10 px-3 py-2 text-start font-semibold text-slate-600 border-b border-e border-slate-200 min-w-[200px]">
               Indicator
             </th>
             {outcomes.map((o) => (
@@ -74,8 +74,8 @@ const CompetencyAlignmentMatrix = ({
             const isMapped = mappedIndicatorIds.has(ind.id);
             return (
               <tr key={ind.id} className="hover:bg-slate-50">
-                <td className="sticky left-0 bg-white z-10 px-3 py-2 border-r border-slate-100">
-                  <span className="font-mono text-slate-400 mr-1">{ind.code}</span>
+                <td className="sticky start-0 bg-white z-10 px-3 py-2 border-e border-slate-100">
+                  <span className="font-mono text-slate-400 me-1">{ind.code}</span>
                   <span className="text-slate-700">{ind.title}</span>
                 </td>
                 {outcomes.map((o) => {
@@ -99,7 +99,7 @@ const CompetencyAlignmentMatrix = ({
                     <Badge className="text-[9px] bg-green-100 text-green-700">Mapped</Badge>
                   ) : (
                     <Badge className="text-[9px] bg-amber-100 text-amber-700">
-                      <AlertTriangle className="h-2.5 w-2.5 mr-0.5" />
+                      <AlertTriangle className="h-2.5 w-2.5 me-0.5" />
                       Unmapped
                     </Badge>
                   )}

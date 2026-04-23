@@ -64,6 +64,10 @@
     "ploMapping": "PLO Mapping",
     "noMapping": "No PLO mapping yet"
   },
+  "bilingual": {
+    "arabicTitle": "Arabic Title",
+    "arabicTitlePlaceholder": "Enter title in Arabic (optional)"
+  },
   "rubrics": {
     "title": "Rubrics",
     "addRubric": "Add Rubric",

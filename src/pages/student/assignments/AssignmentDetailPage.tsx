@@ -244,7 +244,7 @@ const AssignmentDetailPage = () => {
     return (
       <div className="space-y-6">
         <Button variant="ghost" onClick={() => navigate('/student/assignments')}>
-          <ArrowLeft className="h-4 w-4 mr-2" /> Back to Assignments
+          <ArrowLeft className="h-4 w-4 me-2" /> Back to Assignments
         </Button>
         <Card className="bg-white border-0 shadow-md rounded-xl">
           <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -260,7 +260,7 @@ const AssignmentDetailPage = () => {
     <div className="space-y-6">
       {/* Back button */}
       <Button variant="ghost" onClick={() => navigate('/student/assignments')}>
-        <ArrowLeft className="h-4 w-4 mr-2" /> Back to Assignments
+        <ArrowLeft className="h-4 w-4 me-2" /> Back to Assignments
       </Button>
 
       {/* Assignment Details Card */}
@@ -337,7 +337,7 @@ const AssignmentDetailPage = () => {
               <div className="flex items-center gap-2">
                 <BloomsPill level={difficultyBonus.bloomsLevel} />
                 <Badge variant="outline" className="text-xs bg-amber-50 text-amber-700 border-amber-200">
-                  <Sparkles className="h-3 w-3 mr-1" />
+                  <Sparkles className="h-3 w-3 me-1" />
                   {difficultyBonus.multiplier}x XP Bonus
                 </Badge>
               </div>
@@ -506,10 +506,10 @@ const AssignmentDetailPage = () => {
                 className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
               >
                 {(isUploading || isSubmitting) && (
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  <Loader2 className="h-4 w-4 animate-spin me-2" />
                 )}
                 {!isUploading && !isSubmitting && (
-                  <Upload className="h-4 w-4 mr-2" />
+                  <Upload className="h-4 w-4 me-2" />
                 )}
                 {isUploading
                   ? 'Uploading...'

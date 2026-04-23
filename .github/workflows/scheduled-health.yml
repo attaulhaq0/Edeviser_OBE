@@ -1,0 +1,139 @@
+name: Scheduled Health Check
+
+on:
+  schedule:
+    # Every 2 days at 6 AM UTC
+    - cron: '0 6 */2 * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  full-test-suite:
+    name: Full Test Suite
+    runs-on: ubuntu-latest
+    env:
+      VITE_SUPABASE_URL: 'http://localhost:54321'
+      VITE_SUPABASE_ANON_KEY: 'placeholder-anon-key'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+      - run: npm run test:coverage
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scheduled-coverage
+          path: coverage/
+          retention-days: 30
+
+  security-audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+      - name: Full npm audit
+        run: npm audit --audit-level=moderate
+
+  supabase-infra-audit:
+    name: Supabase Infrastructure Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check Edge Function deployment coverage
+        run: |
+          echo "=== Edge Function Deployment Audit ==="
+          FUNCTIONS=$(find supabase/functions -mindepth 1 -maxdepth 1 -type d ! -name '_shared' -printf '%f\n' | sort)
+          TOTAL=$(echo "$FUNCTIONS" | wc -l)
+          echo "Total Edge Functions in codebase: $TOTAL"
+
+          if [ -f scripts/deploy-edge-functions.sh ]; then
+            MISSING=0
+            for fn in $FUNCTIONS; do
+              if ! grep -q "deploy.*$fn" scripts/deploy-edge-functions.sh; then
+                echo "::warning::Edge Function '$fn' not in deploy script"
+                MISSING=$((MISSING + 1))
+              fi
+            done
+            echo "Functions missing from deploy script: $MISSING"
+          else
+            echo "::warning::scripts/deploy-edge-functions.sh does not exist — no functions can be deployed"
+          fi
+
+      - name: Check storage bucket migrations
+        run: |
+          echo "=== Storage Bucket Audit ==="
+          BUCKETS=$(grep -roh "storage\.from(['\"][^'\"]*['\"])" src/ 2>/dev/null | sort -u || true)
+          echo "Buckets referenced in code:"
+          echo "$BUCKETS"
+
+          if ! grep -rl "storage\.buckets" supabase/migrations/ >/dev/null 2>&1; then
+            echo "::warning::No storage bucket migration found — uploads will fail in production"
+          fi
+
+      - name: Check FK index coverage
+        run: |
+          echo "=== FK Index Coverage Audit ==="
+          FK_INDEXES=$(grep -c "CREATE INDEX" supabase/migrations/*.sql 2>/dev/null || echo 0)
+          echo "Total CREATE INDEX statements across migrations: $FK_INDEXES"
+
+      - name: Check RLS policy optimization
+        run: |
+          echo "=== RLS Policy Optimization Audit ==="
+          BARE_AUTH=$(grep -rn "= auth\.uid()" supabase/migrations/ 2>/dev/null | grep -v "(select" | wc -l || echo 0)
+          OPTIMIZED=$(grep -rn "(select auth\.uid())" supabase/migrations/ 2>/dev/null | wc -l || echo 0)
+          echo "Bare auth.uid() in policies: $BARE_AUTH"
+          echo "Optimized (select auth.uid()) in policies: $OPTIMIZED"
+          if [ "$BARE_AUTH" -gt 0 ]; then
+            echo "::warning::$BARE_AUTH RLS policies still use bare auth.uid() — performance impact at scale"
+          fi
+
+      - name: Check schema drift
+        run: |
+          echo "=== Schema Drift Audit ==="
+          # Check for any remaining 'as unknown as' casts in hooks
+          CASTS=$(grep -rn "as unknown as" src/hooks/ 2>/dev/null | wc -l || echo 0)
+          echo "Remaining 'as unknown as' type casts in hooks: $CASTS"
+          if [ "$CASTS" -gt 0 ]; then
+            echo "::warning::$CASTS hooks still bypass type checking with 'as unknown as' casts"
+          fi
+
+  sql-validation:
+    name: SQL Migration Validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate all SQL migrations
+        run: |
+          ERRORS=0
+          for f in $(find supabase/migrations -name '*.sql' 2>/dev/null | sort); do
+            if grep -qiP '(CREATE\s+TABEL|DRPO\s+TABLE|ATLER\s+TABLE)' "$f" 2>/dev/null; then
+              echo "::error file=$f::Possible SQL typo in $f"
+              ERRORS=$((ERRORS + 1))
+            fi
+            if [ ! -s "$f" ]; then
+              echo "::error file=$f::Empty migration: $f"
+              ERRORS=$((ERRORS + 1))
+            fi
+            OPEN=$(grep -o '(' "$f" | wc -l)
+            CLOSE=$(grep -o ')' "$f" | wc -l)
+            if [ "$OPEN" -ne "$CLOSE" ]; then
+              echo "::warning file=$f::Unbalanced parens in $f"
+            fi
+          done
+          echo "Validated $(find supabase/migrations -name '*.sql' 2>/dev/null | wc -l) migrations"
+          if [ "$ERRORS" -gt 0 ]; then exit 1; fi

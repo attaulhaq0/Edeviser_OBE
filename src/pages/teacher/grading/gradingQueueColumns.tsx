@@ -13,7 +13,7 @@ export const gradingQueueColumns: ColumnDef<SubmissionWithRelations>[] = [
       <Button
         variant="ghost"
         size="sm"
-        className="-ml-3"
+        className="-ms-3"
         onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
       >
         Student
@@ -33,7 +33,7 @@ export const gradingQueueColumns: ColumnDef<SubmissionWithRelations>[] = [
       <Button
         variant="ghost"
         size="sm"
-        className="-ml-3"
+        className="-ms-3"
         onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
       >
         Assignment
@@ -51,7 +51,7 @@ export const gradingQueueColumns: ColumnDef<SubmissionWithRelations>[] = [
       <Button
         variant="ghost"
         size="sm"
-        className="-ml-3"
+        className="-ms-3"
         onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
       >
         Submitted At

@@ -2,8 +2,10 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Info } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { BLOOMS_VERBS, BLOOMS_COLORS } from '@/lib/bloomsVerbs';
+import { BLOOMS_ARABIC_STANDARD } from '@/lib/bloomsArabicTerminology';
 import type { BloomsLevel } from '@/lib/schemas/clo';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 interface BloomsVerbGuideProps {
   selectedLevel?: BloomsLevel;
@@ -11,9 +13,14 @@ interface BloomsVerbGuideProps {
 }
 
 const BloomsVerbGuide = ({ selectedLevel, onVerbClick }: BloomsVerbGuideProps) => {
+  const { i18n } = useTranslation();
+
   if (!selectedLevel) return null;
 
-  const verbs = BLOOMS_VERBS[selectedLevel];
+  const isArabic = i18n.language === 'ar';
+  const verbs = isArabic
+    ? (BLOOMS_ARABIC_STANDARD[selectedLevel]?.verbs ?? BLOOMS_VERBS[selectedLevel])
+    : BLOOMS_VERBS[selectedLevel];
   const colors = BLOOMS_COLORS[selectedLevel];
 
   return (

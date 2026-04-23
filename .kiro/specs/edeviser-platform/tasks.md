@@ -2944,19 +2944,19 @@ mak  - [x] 106.1 Add comprehensive security headers configuration to `vercel.jso
     - Send once per challenge (track notification sent flag)
     - _Requirements: 114.6_
 
-  - [ ]* 134.7 Write property tests for challenge creation constraints (`/src/__tests__/properties/social-challenges.property.test.ts`)
+  - [x]* 134.7 Write property tests for challenge creation constraints (`/src/__tests__/properties/social-challenges.property.test.ts`)
     - **Property 112: Challenge creation constraints**
     - **Validates: Requirements 113.1, 113.2, 113.6**
 
-  - [ ]* 134.8 Write property test for course-wide challenge participation and reward
+  - [x]* 134.8 Write property test for course-wide challenge participation and reward
     - **Property 113: Course-wide challenge participation and reward distribution**
     - **Validates: Requirements 114.1, 114.2, 114.3, 114.5**
 
-  - [ ]* 134.9 Write property test for 90% notification trigger
+  - [x]* 134.9 Write property test for 90% notification trigger
     - **Property 114: Challenge 90% notification trigger**
     - **Validates: Requirements 114.6**
 
-  - [ ]* 134.10 Write property test for team challenge reward atomicity
+  - [x]* 134.10 Write property test for team challenge reward atomicity
     - **Property 115: Team challenge reward atomicity**
     - **Validates: Requirements 113.4**
 
@@ -3020,15 +3020,15 @@ mak  - [x] 106.1 Add comprehensive security headers configuration to `vercel.jso
     - Add query keys to `/src/lib/queryKeys.ts`
     - _Requirements: 120.5, 122.3_
 
-  - [ ]* 137.5 Write property tests for adaptive XP formula (`/src/__tests__/properties/adaptive-xp.property.test.ts`)
+  - [x]* 137.5 Write property tests for adaptive XP formula (`/src/__tests__/properties/adaptive-xp.property.test.ts`)
     - **Property 107: Adaptive XP formula correctness**
     - **Validates: Requirements 120.1, 120.2, 121.1, 121.2**
 
-  - [ ]* 137.6 Write property test for XP transaction auditability
+  - [x]* 137.6 Write property test for XP transaction auditability
     - **Property 108: XP transaction auditability**
     - **Validates: Requirements 120.3, 121.4**
 
-  - [ ]* 137.7 Write property test for diminishing returns mechanics
+  - [x]* 137.7 Write property test for diminishing returns mechanics
     - **Property 109: Diminishing returns mechanics**
     - **Validates: Requirements 122.1, 122.4, 122.5**
 
@@ -3074,11 +3074,11 @@ mak  - [x] 106.1 Add comprehensive security headers configuration to `vercel.jso
     - Honors `prefers-reduced-motion`
     - _Requirements: 123.3_
 
-  - [ ]* 139.5 Write property test for improvement bonus correctness (`/src/__tests__/properties/improvement-bonus.property.test.ts`)
+  - [x]* 139.5 Write property test for improvement bonus correctness (`/src/__tests__/properties/improvement-bonus.property.test.ts`)
     - **Property 110: Improvement bonus correctness**
     - **Validates: Requirements 123.1, 123.2, 123.5**
 
-  - [ ]* 139.6 Write property test for Comeback Kid badge threshold
+  - [x]* 139.6 Write property test for Comeback Kid badge threshold
     - **Property 111: Comeback Kid badge threshold**
     - **Validates: Requirements 123.4**
 
@@ -3152,11 +3152,11 @@ mak  - [x] 106.1 Add comprehensive security headers configuration to `vercel.jso
     - Add query keys to `/src/lib/queryKeys.ts`
     - _Requirements: 124.1, 124.5_
 
-  - [ ]* 143.5 Write property test for Comeback Challenge streak restoration (`/src/__tests__/properties/comeback-challenge.property.test.ts`)
+  - [x]* 143.5 Write property test for Comeback Challenge streak restoration (`/src/__tests__/properties/comeback-challenge.property.test.ts`)
     - **Property 101: Comeback Challenge streak restoration accuracy**
     - **Validates: Requirements 124.2, 124.3, 124.4**
 
-  - [ ]* 143.6 Write property test for Total Active Days monotonicity (`/src/__tests__/properties/total-active-days.property.test.ts`)
+  - [x]* 143.6 Write property test for Total Active Days monotonicity (`/src/__tests__/properties/total-active-days.property.test.ts`)
     - **Property 103: Total Active Days monotonic increment**
     - **Validates: Requirements 126.2, 126.3**
 
@@ -3276,11 +3276,11 @@ mak  - [x] 106.1 Add comprehensive security headers configuration to `vercel.jso
     - Award "Rising Star" badge when student appears in top 3 of Most Improved for 2 consecutive weeks
     - _Requirements: 130.5_
 
-  - [ ]* 147.7 Write property tests for Personal Best (`/src/__tests__/properties/personal-best.property.test.ts`)
+  - [x]* 147.7 Write property tests for Personal Best (`/src/__tests__/properties/personal-best.property.test.ts`)
     - **Property 106: Personal Best leaderboard data integrity**
     - **Validates: Requirements 129.1, 129.2**
 
-  - [ ]* 147.8 Write property test for Most Improved calculation (`/src/__tests__/properties/most-improved.property.test.ts`)
+  - [x]* 147.8 Write property test for Most Improved calculation (`/src/__tests__/properties/most-improved.property.test.ts`)
     - **Property 107: Most Improved calculation correctness**
     - **Validates: Requirements 130.2, 130.3**
 
@@ -3332,11 +3332,11 @@ mak  - [x] 106.1 Add comprehensive security headers configuration to `vercel.jso
     - Ensure idempotent — no duplicate bonuses on re-query
     - _Requirements: 132.4_
 
-  - [ ]* 148.10 Write property tests for Percentile Bands (`/src/__tests__/properties/percentile-band.property.test.ts`)
+  - [x]* 148.10 Write property tests for Percentile Bands (`/src/__tests__/properties/percentile-band.property.test.ts`)
     - **Property 108: Percentile band assignment correctness**
     - **Validates: Requirements 131.1, 131.2, 131.3**
 
-  - [ ]* 148.11 Write property tests for League Tiers (`/src/__tests__/properties/league-tier.property.test.ts`)
+  - [x]* 148.11 Write property tests for League Tiers (`/src/__tests__/properties/league-tier.property.test.ts`)
     - **Property 109: League Tier assignment correctness**
     - **Property 110: League Promotion XP bonus idempotence**
     - **Validates: Requirements 132.1, 132.4, 132.5**
@@ -3346,7 +3346,7 @@ mak  - [x] 106.1 Add comprehensive security headers configuration to `vercel.jso
 
 
 - [x] 150. Badge Tiers — Progressive Badge System Database and Core Logic
-  - [-] 150.1 Apply Badge Tier database migration via Supabase MCP `apply_migration`
+  - [x] 150.1 Apply Badge Tier database migration via Supabase MCP `apply_migration`
     - Add columns to `badges`: `tier` (text, CHECK IN ('bronze','silver','gold'), nullable), `category` (text)
     - Add columns to `student_badges`: `is_pinned` (boolean, default false), `archived_at` (timestamptz, nullable)
     - Create `badge_spotlight_schedule` table with `id`, `institution_id`, `week_start` (date, always Monday), `category`, `is_manual` (boolean), UNIQUE(institution_id, week_start)
@@ -3354,55 +3354,55 @@ mak  - [x] 106.1 Add comprehensive security headers configuration to `vercel.jso
     - Regenerate TypeScript types
     - _Requirements: 133.4, 134.1, 135.5_
 
-  - [~] 150.2 Create Badge Tier Zod schemas (`/src/lib/schemas/badgeTier.ts`)
+  - [x] 150.2 Create Badge Tier Zod schemas (`/src/lib/schemas/badgeTier.ts`)
     - `badgeTierSchema`: validates tier ('bronze', 'silver', 'gold'), category
     - `tieredBadgeSchema`: validates category, current_tier, progress, is_pinned, archived_at
     - `badgePinSchema`: validates student_badge_id, is_pinned
     - _Requirements: 133.1, 135.4_
 
-  - [~] 150.3 Create Badge Spotlight Zod schema (`/src/lib/schemas/badgeSpotlight.ts`)
+  - [x] 150.3 Create Badge Spotlight Zod schema (`/src/lib/schemas/badgeSpotlight.ts`)
     - `badgeSpotlightScheduleSchema`: validates week_start (must be Monday), category, is_manual
     - _Requirements: 134.2_
 
-  - [~] 150.4 Update `check-badges` Edge Function for tiered badge progression
+  - [x] 150.4 Update `check-badges` Edge Function for tiered badge progression
     - Check if student meets next tier threshold for each badge category
     - Award bronze → upgrade to silver → upgrade to gold
     - Store only highest tier per category per student
     - _Requirements: 133.2, 133.3, 133.5_
 
-  - [~] 150.5 Update `award-xp` Edge Function for Badge Spotlight 2x bonus
+  - [x] 150.5 Update `award-xp` Edge Function for Badge Spotlight 2x bonus
     - Check if earned/upgraded badge category matches current spotlight
     - Apply 2x multiplier to badge XP award during spotlight week
     - _Requirements: 134.1, 134.5_
 
-  - [~] 150.6 Create `badge-spotlight-rotate-cron` pg_cron job
+  - [x] 150.6 Create `badge-spotlight-rotate-cron` pg_cron job
     - Runs at midnight UTC every Monday
     - If no manual selection for current week, auto-rotate alphabetically through categories
     - _Requirements: 134.3, 134.6_
 
-  - [~] 150.7 Create `badge-archive-cron` pg_cron job
+  - [x] 150.7 Create `badge-archive-cron` pg_cron job
     - Runs daily
     - Archive badges not upgraded in 90 days (set `archived_at`)
     - Skip pinned badges
     - _Requirements: 135.3_
 
-  - [ ]* 150.8 Write property tests for Badge Tiers (`/src/__tests__/properties/badge-tier.property.test.ts`)
+  - [x]* 150.8 Write property tests for Badge Tiers (`/src/__tests__/properties/badge-tier.property.test.ts`)
     - **Property 111: Badge tier progression monotonicity**
     - **Validates: Requirements 133.3, 133.5**
 
-  - [ ]* 150.9 Write property test for Badge Spotlight bonus (`/src/__tests__/properties/badge-spotlight.property.test.ts`)
+  - [x]* 150.9 Write property test for Badge Spotlight bonus (`/src/__tests__/properties/badge-spotlight.property.test.ts`)
     - **Property 112: Badge Spotlight XP bonus application**
     - **Validates: Requirements 134.1, 134.5**
 
-  - [ ]* 150.10 Write property tests for Badge Archive (`/src/__tests__/properties/badge-archive.property.test.ts`)
+  - [x]* 150.10 Write property tests for Badge Archive (`/src/__tests__/properties/badge-archive.property.test.ts`)
     - **Property 113: Badge archive threshold**
     - **Property 114: Badge pin limit enforcement**
     - **Property 115: Active badge collection size limit**
     - **Validates: Requirements 135.1, 135.2, 135.3, 135.4**
 
 
-- [ ] 151. Badge Tiers — UI Components
-  - [~] 151.1 Update BadgeCollection component (`/src/components/shared/BadgeCollection.tsx`)
+- [x] 151. Badge Tiers — UI Components
+  - [x] 151.1 Update BadgeCollection component (`/src/components/shared/BadgeCollection.tsx`)
     - Active section: max 12 badges, most recently earned/upgraded first
     - Pinned badges (up to 3) always in Active section
     - Archived section: "View All Badges" expandable
@@ -3410,19 +3410,19 @@ mak  - [x] 106.1 Add comprehensive security headers configuration to `vercel.jso
     - Progress bar toward next tier within each badge card
     - _Requirements: 133.6, 135.1, 135.2, 135.4_
 
-  - [~] 151.2 Create BadgeSpotlightCard component (`/src/components/shared/BadgeSpotlightCard.tsx`)
+  - [x] 151.2 Create BadgeSpotlightCard component (`/src/components/shared/BadgeSpotlightCard.tsx`)
     - Featured badge category with sparkle icon
     - Progress toward next tier
     - "2x XP Bonus this week" label with countdown
     - _Requirements: 134.4_
 
-  - [~] 151.3 Create BadgeSpotlightManager page (`/src/pages/admin/badges/BadgeSpotlightManager.tsx`)
+  - [x] 151.3 Create BadgeSpotlightManager page (`/src/pages/admin/badges/BadgeSpotlightManager.tsx`)
     - Calendar view of upcoming spotlight schedule
     - Manual selection or auto-rotate
     - Preview of each badge category with tier thresholds
     - _Requirements: 134.2_
 
-  - [~] 151.4 Create Badge Tier TanStack Query hooks (`/src/hooks/useTieredBadges.ts`)
+  - [x] 151.4 Create Badge Tier TanStack Query hooks (`/src/hooks/useTieredBadges.ts`)
     - `useTieredBadges(studentId)`: fetches badges with tier info, pinned status, archive status
     - `usePinBadge()`, `useUnpinBadge()`: mutations for badge pinning
     - `useBadgeSpotlight(institutionId)`: fetches current spotlight
@@ -3431,20 +3431,20 @@ mak  - [x] 106.1 Add comprehensive security headers configuration to `vercel.jso
     - Add query keys to `/src/lib/queryKeys.ts`
     - _Requirements: 133.6, 134.2, 135.4_
 
-  - [~] 151.5 Wire BadgeSpotlightCard into Student Dashboard
+  - [x] 151.5 Wire BadgeSpotlightCard into Student Dashboard
     - _Requirements: 134.4_
 
-  - [~] 151.6 Add Badge Spotlight Manager route and navigation
+  - [x] 151.6 Add Badge Spotlight Manager route and navigation
     - Add route `/admin/badges/spotlight` to AppRouter
     - Add navigation link in Admin sidebar
     - _Requirements: 134.2_
 
-- [~] 152. Checkpoint — Badge Tiers and Spotlight
+- [x] 152. Checkpoint — Badge Tiers and Spotlight
   - Ensure all tests pass, ask the user if questions arise.
 
 
-- [ ] 153. Integration — Wire Engagement Safeguards into Existing Dashboards
-  - [~] 153.1 Update Student Dashboard with all Section W components
+- [x] 153. Integration — Wire Engagement Safeguards into Existing Dashboards
+  - [x] 153.1 Update Student Dashboard with all Section W components
     - Comeback Challenge banner (when active)
     - Updated StreakDisplay with range format and Total Active Days
     - Habit Difficulty Level indicator
@@ -3452,39 +3452,39 @@ mak  - [x] 106.1 Add comprehensive security headers configuration to `vercel.jso
     - League Tier badge on gamification card
     - _Requirements: 124.5, 126.1, 126.2, 127.6, 132.3, 134.4_
 
-  - [~] 153.2 Update Leaderboard page tab navigation
+  - [x] 153.2 Update Leaderboard page tab navigation
     - Add tabs: Top XP, Personal Best, Most Improved, League
     - Wire percentile bands into Top XP mode
     - Default to Personal Best for opt-out students
     - _Requirements: 129.4, 131.4_
 
-  - [~] 153.3 Update Admin Institution Settings page
+  - [x] 153.3 Update Admin Institution Settings page
     - Add Streak Sabbatical toggle
     - Add League Tier threshold configuration
     - _Requirements: 125.3, 132.5_
 
-  - [~] 153.4 Update seed script with Section W data
+  - [x] 153.4 Update seed script with Section W data
     - Add badge categories with tier thresholds
     - Add badge spotlight schedule entries
     - Add league tier default thresholds to institution settings
     - _Requirements: All Section W_
 
-- [ ] 154. Write tests for Engagement Safeguards features
-  - [ ]* 154.1 Write unit tests for Streak Recovery
+- [x] 154. Write tests for Engagement Safeguards features
+  - [x]* 154.1 Write unit tests for Streak Recovery
     - Comeback Challenge activation, day completion, streak restoration, cancellation
     - Streak Sabbatical weekend exclusion
     - Total Active Days increment
     - _Requirements: 124, 125, 126_
 
-  - [ ]* 154.2 Write unit tests for Habit Difficulty Levels
+  - [x]* 154.2 Write unit tests for Habit Difficulty Levels
     - Level promotion after 7 days, streak reset without demotion, Perfect Day thresholds per level
     - _Requirements: 127, 128_
 
-  - [ ]* 154.3 Write unit tests for Leaderboard Enhancements
+  - [x]* 154.3 Write unit tests for Leaderboard Enhancements
     - Personal Best weekly XP calculation, Most Improved percentage, Percentile Band assignment, League Tier determination
     - _Requirements: 129, 130, 131, 132_
 
-  - [ ]* 154.4 Write unit tests for Badge Tiers
+  - [x]* 154.4 Write unit tests for Badge Tiers
     - Tier progression, spotlight bonus, archive logic, pin limit
     - _Requirements: 133, 134, 135_
 

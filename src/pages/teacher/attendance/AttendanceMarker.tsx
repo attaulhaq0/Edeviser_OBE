@@ -292,7 +292,7 @@ const AttendanceMarker = () => {
                       disabled={createSession.isPending}
                       className="w-full bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
                     >
-                      {createSession.isPending && <Loader2 className="h-4 w-4 animate-spin mr-1" />}
+                      {createSession.isPending && <Loader2 className="h-4 w-4 animate-spin me-1" />}
                       Create Session
                     </Button>
                   </form>
@@ -325,14 +325,14 @@ const AttendanceMarker = () => {
                         key={s.id}
                         type="button"
                         onClick={() => handleSessionSelect(s.id)}
-                        className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                        className={`w-full text-start px-3 py-2 rounded-lg text-sm transition-colors ${
                           selectedSessionId === s.id
                             ? 'bg-blue-50 text-blue-700 font-semibold'
                             : 'hover:bg-slate-50 text-gray-700'
                         }`}
                       >
                         <span className="font-medium">{format(new Date(s.session_date), 'MMM d, yyyy')}</span>
-                        <span className="text-xs text-gray-500 ml-2 capitalize">{s.session_type}</span>
+                        <span className="text-xs text-gray-500 ms-2 capitalize">{s.session_type}</span>
                         <p className="text-xs text-gray-400 truncate">{s.topic}</p>
                       </button>
                     ))}
@@ -379,7 +379,7 @@ const AttendanceMarker = () => {
                     disabled={markAttendance.isPending || gridStudents.length === 0}
                     className="w-full bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
                   >
-                    {markAttendance.isPending && <Loader2 className="h-4 w-4 animate-spin mr-1" />}
+                    {markAttendance.isPending && <Loader2 className="h-4 w-4 animate-spin me-1" />}
                     Save Attendance
                   </Button>
                 </div>

@@ -47,7 +47,7 @@ const StreakDisplay = ({
   const showMilestoneCelebration = totalActiveDays > 0 && isTotalActiveMilestone(totalActiveDays);
 
   return (
-    <Card className="bg-white border-0 shadow-md rounded-xl p-4">
+    <Card className="bg-white border-0 shadow-md rounded-xl p-4" data-focus-hide="true">
       <div className="flex items-center gap-3">
         <div className="p-2 rounded-lg bg-orange-50">
           <Flame className="h-5 w-5 text-orange-500 animate-streak-flame" />

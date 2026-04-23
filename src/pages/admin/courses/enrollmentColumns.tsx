@@ -26,7 +26,7 @@ export const createEnrollmentColumns = (
       <Button
         variant="ghost"
         size="sm"
-        className="-ml-3"
+        className="-ms-3"
         onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
       >
         Student Name
@@ -61,7 +61,7 @@ export const createEnrollmentColumns = (
       <Button
         variant="ghost"
         size="sm"
-        className="-ml-3"
+        className="-ms-3"
         onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
       >
         Enrolled Date

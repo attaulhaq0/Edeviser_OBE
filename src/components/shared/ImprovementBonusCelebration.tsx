@@ -65,7 +65,7 @@ const ImprovementBonusCelebration = ({
               ? { duration: 0.1 }
               : { type: 'spring', stiffness: 300, damping: 20 }
           }
-          className="fixed bottom-6 right-6 z-50 bg-white shadow-xl rounded-xl p-4 border border-green-200 max-w-sm"
+          className="fixed bottom-6 end-6 z-50 bg-white shadow-xl rounded-xl p-4 border border-green-200 max-w-sm"
         >
           <div className="flex items-start gap-3">
             <div className="p-2 rounded-lg bg-green-50">

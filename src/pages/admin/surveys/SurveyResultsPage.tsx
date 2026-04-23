@@ -59,7 +59,7 @@ const QuestionResult = ({ question, responses, index }: QuestionResultProps) => 
       <Card className="bg-white border-0 shadow-md rounded-xl p-4 space-y-3">
         <div className="flex items-start justify-between">
           <p className="text-sm font-medium">Q{index + 1}. {question.question_text}</p>
-          <Badge variant="secondary" className="text-xs shrink-0 ml-2">
+          <Badge variant="secondary" className="text-xs shrink-0 ms-2">
             Avg: {avg.toFixed(1)}/5
           </Badge>
         </div>

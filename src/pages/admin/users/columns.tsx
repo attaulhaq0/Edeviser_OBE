@@ -33,7 +33,7 @@ export const createColumns = (
       <Button
         variant="ghost"
         size="sm"
-        className="-ml-3"
+        className="-ms-3"
         onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
       >
         Full Name
@@ -50,7 +50,7 @@ export const createColumns = (
       <Button
         variant="ghost"
         size="sm"
-        className="-ml-3"
+        className="-ms-3"
         onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
       >
         Email

@@ -25,13 +25,14 @@ describe('i18n initialization', () => {
       'admin',
       'teacher',
       'student',
+      'coordinator',
       'gamification',
       'ai',
     ]);
   });
 
   it('exports supported languages', () => {
-    expect(supportedLanguages).toEqual(['en']);
+    expect(supportedLanguages).toEqual(['en', 'ar']);
   });
 
   it('uses common as default namespace', () => {
@@ -43,6 +44,14 @@ describe('i18n initialization', () => {
       expect(resources.en[ns]).toBeDefined();
       expect(typeof resources.en[ns]).toBe('object');
       expect(Object.keys(resources.en[ns]).length).toBeGreaterThan(0);
+    }
+  });
+
+  it('loads all namespace resource bundles for Arabic', () => {
+    for (const ns of namespaces) {
+      expect(resources.ar[ns]).toBeDefined();
+      expect(typeof resources.ar[ns]).toBe('object');
+      expect(Object.keys(resources.ar[ns]).length).toBeGreaterThan(0);
     }
   });
 });

@@ -1,6 +1,7 @@
 import { Outlet, NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { LayoutDashboard, GraduationCap, TrendingUp, CalendarDays } from 'lucide-react';
+import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher';
 
 const navItems = [
   { to: '/parent/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -11,7 +12,7 @@ const navItems = [
 
 const ParentLayout = () => (
   <div className="flex h-screen">
-    <aside className="w-64 border-r border-slate-200 bg-white p-4 space-y-1">
+    <aside className="w-64 border-e border-slate-200 bg-white p-4 space-y-1">
       <h2 className="text-lg font-bold tracking-tight mb-4 px-3">Parent Portal</h2>
       {navItems.map(({ to, icon: Icon, label }) => (
         <NavLink
@@ -29,8 +30,13 @@ const ParentLayout = () => (
         </NavLink>
       ))}
     </aside>
-    <main className="flex-1 overflow-auto p-6 bg-slate-50">
-      <Outlet />
+    <main className="flex-1 overflow-auto bg-slate-50">
+      <div className="flex items-center justify-end px-6 py-2 border-b border-slate-200 bg-white">
+        <LanguageSwitcher />
+      </div>
+      <div className="p-6">
+        <Outlet />
+      </div>
     </main>
   </div>
 );

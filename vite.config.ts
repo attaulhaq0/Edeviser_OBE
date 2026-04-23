@@ -44,5 +44,25 @@ export default defineConfig({
     pool: 'forks',
     css: false,
     testTimeout: 15000,
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'text-summary', 'lcov', 'json-summary'],
+      reportsDirectory: './coverage',
+      include: ['src/**/*.{ts,tsx}'],
+      exclude: [
+        'src/__tests__/**',
+        'src/types/**',
+        'src/components/ui/**',
+        'src/**/*.d.ts',
+      ],
+      thresholds: {
+        // Current coverage: ~29% statements, ~78% branches, ~59% functions, ~29% lines
+        // Target: incrementally increase as new tests are added
+        statements: 25,
+        branches: 50,
+        functions: 50,
+        lines: 25,
+      },
+    },
   },
 });

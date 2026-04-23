@@ -48,7 +48,7 @@ const GradebookMatrix = ({
     <table className="w-full text-sm">
       <thead>
         <tr className="bg-slate-50">
-          <th className="sticky left-0 bg-slate-50 px-4 py-2 text-left font-medium text-gray-600 z-10">
+          <th className="sticky start-0 bg-slate-50 px-4 py-2 text-start font-medium text-gray-600 z-10">
             Student
           </th>
           {assignments.map((a) => (
@@ -62,7 +62,7 @@ const GradebookMatrix = ({
       <tbody>
         {students.map((student) => (
           <tr key={student.studentId} className="border-t border-slate-100">
-            <td className="sticky left-0 bg-white px-4 py-2 font-medium truncate max-w-[160px] z-10">
+            <td className="sticky start-0 bg-white px-4 py-2 font-medium truncate max-w-[160px] z-10">
               {student.studentName}
             </td>
             {assignments.map((a) => {

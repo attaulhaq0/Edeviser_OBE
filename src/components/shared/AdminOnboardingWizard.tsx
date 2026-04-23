@@ -145,7 +145,7 @@ const AdminOnboardingWizard = ({
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
                 onClick={() => handleStepClick(step.route)}
-                className="flex items-center gap-3 w-full text-left rounded-lg px-3 py-3 hover:bg-slate-50 transition-colors"
+                className="flex items-center gap-3 w-full text-start rounded-lg px-3 py-3 hover:bg-slate-50 transition-colors"
               >
                 <div className="flex items-center justify-center h-8 w-8 rounded-full shrink-0">
                   {step.isCompleted ? (
@@ -173,7 +173,7 @@ const AdminOnboardingWizard = ({
             disabled={completeOnboarding.isPending}
             className="w-full bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
           >
-            {completeOnboarding.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+            {completeOnboarding.isPending && <Loader2 className="h-4 w-4 animate-spin me-2" />}
             Complete Setup
           </Button>
         )}

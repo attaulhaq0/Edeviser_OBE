@@ -441,7 +441,7 @@ const PlanRow = ({ plan, onEdit, onDelete, onAdvanceStatus, onEvaluate }: PlanRo
         </div>
         <p className="text-xs text-gray-400">Responsible: {plan.responsible_person}</p>
       </div>
-      <div className="flex items-center gap-2 ml-4 shrink-0">
+      <div className="flex items-center gap-2 ms-4 shrink-0">
         {nextStatus && !isEvaluateTransition && (
           <Button
             variant="outline"

@@ -62,7 +62,7 @@ const EntryCard = ({ entry, courseName, onClick }: EntryCardProps) => {
             </Badge>
             {entry.is_shared && (
               <Badge variant="secondary" className="bg-green-50 text-green-700 border-green-200 text-xs">
-                <Share2 className="h-3 w-3 mr-1" />
+                <Share2 className="h-3 w-3 me-1" />
                 Shared
               </Badge>
             )}

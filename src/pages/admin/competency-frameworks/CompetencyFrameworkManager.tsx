@@ -119,8 +119,8 @@ const CompetencyFrameworkManager = () => {
                 <div key={fw.id} className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors ${selectedFramework === fw.id ? 'border-blue-500 bg-blue-50' : 'border-slate-100 hover:bg-slate-50'}`} role="button" tabIndex={0} onClick={() => setSelectedFramework(fw.id)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedFramework(fw.id); } }}>
                   <div>
                     <span className="text-sm font-medium">{fw.name}</span>
-                    <span className="text-xs text-slate-400 ml-2">v{fw.version}</span>
-                    {fw.source && <span className="text-xs text-slate-400 ml-2">({fw.source})</span>}
+                    <span className="text-xs text-slate-400 ms-2">v{fw.version}</span>
+                    {fw.source && <span className="text-xs text-slate-400 ms-2">({fw.source})</span>}
                   </div>
                 </div>
               ))}
@@ -157,7 +157,7 @@ const CompetencyFrameworkManager = () => {
       {selectedFramework && indicators.length > 0 && (
         <Card className="bg-white border-0 shadow-md rounded-xl p-6">
           <h2 className="text-lg font-bold tracking-tight mb-4">
-            <Link2 className="h-4 w-4 inline mr-2" />
+            <Link2 className="h-4 w-4 inline me-2" />
             Map Indicator to Outcome
           </h2>
           <div className="flex items-end gap-3">

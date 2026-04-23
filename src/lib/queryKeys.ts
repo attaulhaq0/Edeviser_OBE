@@ -202,6 +202,22 @@ const onboarding = {
     ['onboarding', 'goalSuggestions', studentId, weekStart] as const,
 }
 
+// ─── i18n ─────────────────────────────────────────────────────────────────────
+const i18n = {
+  all: ['i18n'] as const,
+  languagePreference: (userId: string) =>
+    ['i18n', 'languagePreference', userId] as const,
+  institutionDefault: (institutionId: string) =>
+    ['i18n', 'institutionDefault', institutionId] as const,
+}
+
+// ─── Accessibility ────────────────────────────────────────────────────────────
+const accessibility = {
+  all: ['accessibility'] as const,
+  preferences: (userId: string) =>
+    ['accessibility', 'preferences', userId] as const,
+}
+
 // ─── Exported Key Factory ────────────────────────────────────────────────────
 export const queryKeys = {
   // Core
@@ -344,4 +360,8 @@ export const queryKeys = {
   tieredBadges: createKeys('tieredBadges'),
   badgeSpotlight: createKeys('badgeSpotlight'),
   badgeSpotlightSchedule: createKeys('badgeSpotlightSchedule'),
+  // i18n
+  i18n,
+  // Accessibility
+  accessibility,
 } as const
