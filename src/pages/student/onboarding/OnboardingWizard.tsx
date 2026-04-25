@@ -1,22 +1,22 @@
-import { useState, useCallback, useMemo, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, SkipForward, Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { useAuth } from '@/hooks/useAuth';
-import { useOnboardingProgress } from '@/hooks/useOnboardingProgress';
-import { useUpdateProgress } from '@/hooks/useOnboardingProgress';
-import { useProcessOnboarding } from '@/hooks/useStudentProfile';
-import { DAY1_STEPS, ONBOARDING_STEPS } from '@/lib/onboardingConstants';
-import type { OnboardingStepId } from '@/lib/onboardingConstants';
-import { WelcomeStep } from './WelcomeStep';
-import { PersonalityStep } from './PersonalityStep';
-import { LearningStyleStep } from './LearningStyleStep';
-import { SelfEfficacyStep } from './SelfEfficacyStep';
-import { StudyStrategyStep } from './StudyStrategyStep';
-import { BaselineSelectStep } from './BaselineSelectStep';
-import { BaselineTestStep } from './BaselineTestStep';
-import { ProfileSummaryStep } from './ProfileSummaryStep';
+import { useState, useCallback, useMemo, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { ChevronLeft, ChevronRight, SkipForward, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
+import { useOnboardingProgress } from "@/hooks/useOnboardingProgress";
+import { useUpdateProgress } from "@/hooks/useOnboardingProgress";
+import { useProcessOnboarding } from "@/hooks/useStudentProfile";
+import { DAY1_STEPS, ONBOARDING_STEPS } from "@/lib/onboardingConstants";
+import type { OnboardingStepId } from "@/lib/onboardingConstants";
+import { WelcomeStep } from "./WelcomeStep";
+import { PersonalityStep } from "./PersonalityStep";
+import { LearningStyleStep } from "./LearningStyleStep";
+import { SelfEfficacyStep } from "./SelfEfficacyStep";
+import { StudyStrategyStep } from "./StudyStrategyStep";
+import { BaselineSelectStep } from "./BaselineSelectStep";
+import { BaselineTestStep } from "./BaselineTestStep";
+import { ProfileSummaryStep } from "./ProfileSummaryStep";
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -35,11 +35,11 @@ interface OnboardingWizardProps {
 // ── Skippable steps ──────────────────────────────────────────────────
 
 const SKIPPABLE_STEPS: Set<OnboardingStepId> = new Set([
-  'personality',
-  'learning_style',
-  'self_efficacy',
-  'study_strategy',
-  'baseline_select',
+  "personality",
+  "learning_style",
+  "self_efficacy",
+  "study_strategy",
+  "baseline_select",
 ]);
 
 // ── Component ────────────────────────────────────────────────────────
@@ -47,15 +47,16 @@ const SKIPPABLE_STEPS: Set<OnboardingStepId> = new Set([
 export const OnboardingWizard = ({ isDay1 = true }: OnboardingWizardProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const studentId = user?.id ?? '';
+  const studentId = user?.id ?? "";
 
-  const { data: progress, isLoading: progressLoading } = useOnboardingProgress(studentId);
+  const { data: progress, isLoading: progressLoading } =
+    useOnboardingProgress(studentId);
   const updateProgress = useUpdateProgress(studentId);
   const processOnboarding = useProcessOnboarding();
 
   const steps = useMemo<readonly OnboardingStepId[]>(
     () => (isDay1 ? DAY1_STEPS : ONBOARDING_STEPS),
-    [isDay1],
+    [isDay1]
   );
 
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
@@ -69,6 +70,7 @@ export const OnboardingWizard = ({ isDay1 = true }: OnboardingWizardProps) => {
     if (!progress) return;
     const savedStep = progress.current_step;
     const idx = steps.indexOf(savedStep);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional: sync state from external progress data on mount
     if (idx > 0) setCurrentStepIndex(idx);
     if (progress.skipped_sections.length > 0) {
       setSkippedSections(progress.skipped_sections);
@@ -80,7 +82,9 @@ export const OnboardingWizard = ({ isDay1 = true }: OnboardingWizardProps) => {
 
   const currentStep = steps[currentStepIndex] as OnboardingStepId;
   const totalSteps = steps.length;
-  const progressPercent = Math.round(((currentStepIndex + 1) / totalSteps) * 100);
+  const progressPercent = Math.round(
+    ((currentStepIndex + 1) / totalSteps) * 100
+  );
   const assessmentVersion = progress?.assessment_version ?? 1;
 
   // ── Navigation handlers ──────────────────────────────────────────
@@ -106,11 +110,11 @@ export const OnboardingWizard = ({ isDay1 = true }: OnboardingWizardProps) => {
   const handleSkip = useCallback(() => {
     const stepName = currentStep;
     const sectionMap: Partial<Record<OnboardingStepId, string>> = {
-      personality: 'personality',
-      learning_style: 'learning_style',
-      self_efficacy: 'self_efficacy',
-      study_strategy: 'study_strategy',
-      baseline_select: 'baseline',
+      personality: "personality",
+      learning_style: "learning_style",
+      self_efficacy: "self_efficacy",
+      study_strategy: "study_strategy",
+      baseline_select: "baseline",
     };
     const section = sectionMap[stepName];
     if (section) {
@@ -124,7 +128,9 @@ export const OnboardingWizard = ({ isDay1 = true }: OnboardingWizardProps) => {
   }, [currentStep, goNext, updateProgress]);
 
   const handleStepComplete = useCallback(() => {
-    const completionMap: Partial<Record<OnboardingStepId, Record<string, boolean>>> = {
+    const completionMap: Partial<
+      Record<OnboardingStepId, Record<string, boolean>>
+    > = {
       personality: { personality_completed: true },
       learning_style: { learning_style_completed: true },
       self_efficacy: { self_efficacy_completed: true },
@@ -145,22 +151,22 @@ export const OnboardingWizard = ({ isDay1 = true }: OnboardingWizardProps) => {
       if (courseIds.length === 0) {
         // Skip baseline test step
         setSkippedSections((prev) => {
-          const next = [...prev, 'baseline'];
+          const next = [...prev, "baseline"];
           updateProgress.mutate({ skipped_sections: next });
           return next;
         });
         // Jump past baseline_test to summary
-        const summaryIdx = steps.indexOf('summary');
+        const summaryIdx = steps.indexOf("summary");
         if (summaryIdx >= 0) {
           setDirection(1);
           setCurrentStepIndex(summaryIdx);
-          updateProgress.mutate({ current_step: 'summary' });
+          updateProgress.mutate({ current_step: "summary" });
         }
       } else {
         goNext();
       }
     },
-    [goNext, steps, updateProgress],
+    [goNext, steps, updateProgress]
   );
 
   const handleConfirmProfile = useCallback(async () => {
@@ -170,7 +176,11 @@ export const OnboardingWizard = ({ isDay1 = true }: OnboardingWizardProps) => {
         student_id: studentId,
         assessment_version: assessmentVersion,
         skipped_sections: skippedSections as Array<
-          'personality' | 'learning_style' | 'baseline' | 'self_efficacy' | 'study_strategy'
+          | "personality"
+          | "learning_style"
+          | "baseline"
+          | "self_efficacy"
+          | "study_strategy"
         >,
         baseline_course_ids: baselineCourseIds,
         is_day1: isDay1,
@@ -178,7 +188,7 @@ export const OnboardingWizard = ({ isDay1 = true }: OnboardingWizardProps) => {
       if (isDay1) {
         updateProgress.mutate({ day1_completed: true });
       }
-      navigate('/student');
+      navigate("/student");
     } catch {
       // Error handled by mutation
     } finally {
@@ -207,31 +217,28 @@ export const OnboardingWizard = ({ isDay1 = true }: OnboardingWizardProps) => {
     };
 
     switch (currentStep) {
-      case 'welcome':
+      case "welcome":
         return <WelcomeStep {...stepProps} />;
-      case 'personality':
+      case "personality":
         return <PersonalityStep {...stepProps} />;
-      case 'learning_style':
+      case "learning_style":
         return <LearningStyleStep {...stepProps} />;
-      case 'self_efficacy':
+      case "self_efficacy":
         return <SelfEfficacyStep {...stepProps} />;
-      case 'study_strategy':
+      case "study_strategy":
         return <StudyStrategyStep {...stepProps} />;
-      case 'baseline_select':
+      case "baseline_select":
         return (
           <BaselineSelectStep
             {...stepProps}
             onCoursesSelected={handleBaselineCoursesSelected}
           />
         );
-      case 'baseline_test':
+      case "baseline_test":
         return (
-          <BaselineTestStep
-            {...stepProps}
-            courseIds={baselineCourseIds}
-          />
+          <BaselineTestStep {...stepProps} courseIds={baselineCourseIds} />
         );
-      case 'summary':
+      case "summary":
         return (
           <ProfileSummaryStep
             {...stepProps}
@@ -261,7 +268,9 @@ export const OnboardingWizard = ({ isDay1 = true }: OnboardingWizardProps) => {
           <span className="text-sm font-medium text-gray-600">
             Step {currentStepIndex + 1} of {totalSteps}
           </span>
-          <span className="text-sm font-medium text-blue-600">{progressPercent}%</span>
+          <span className="text-sm font-medium text-blue-600">
+            {progressPercent}%
+          </span>
         </div>
         <div className="mx-auto mt-2 max-w-2xl">
           <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
@@ -269,7 +278,7 @@ export const OnboardingWizard = ({ isDay1 = true }: OnboardingWizardProps) => {
               className="h-full rounded-full bg-gradient-to-r from-teal-500 to-blue-600"
               initial={{ width: 0 }}
               animate={{ width: `${progressPercent}%` }}
-              transition={{ duration: 0.3, ease: 'easeOut' }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
             />
           </div>
         </div>
@@ -308,13 +317,17 @@ export const OnboardingWizard = ({ isDay1 = true }: OnboardingWizardProps) => {
 
           <div className="flex items-center gap-2">
             {SKIPPABLE_STEPS.has(currentStep) && (
-              <Button variant="ghost" onClick={handleSkip} className="gap-1 text-gray-500">
+              <Button
+                variant="ghost"
+                onClick={handleSkip}
+                className="gap-1 text-gray-500"
+              >
                 <SkipForward className="h-4 w-4" />
                 Skip for Now
               </Button>
             )}
 
-            {currentStep !== 'summary' && (
+            {currentStep !== "summary" && (
               <Button
                 onClick={goNext}
                 disabled={currentStepIndex >= totalSteps - 1}

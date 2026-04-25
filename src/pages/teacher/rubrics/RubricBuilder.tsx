@@ -1,21 +1,14 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { toast } from 'sonner';
-import {
-  ArrowLeft,
-  Eye,
-  EyeOff,
-  Loader2,
-  Plus,
-  Trash2,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { toast } from "sonner";
+import { ArrowLeft, Eye, EyeOff, Loader2, Plus, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Form,
   FormControl,
@@ -23,27 +16,27 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
+} from "@/components/ui/form";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { useCLOs } from '@/hooks/useCLOs';
+} from "@/components/ui/select";
+import { useCLOs } from "@/hooks/useCLOs";
 import {
   useRubric,
   useCreateRubric,
   useUpdateRubric,
-} from '@/hooks/useRubrics';
-import RubricPreview from '@/components/shared/RubricPreview';
+} from "@/hooks/useRubrics";
+import RubricPreview from "@/components/shared/RubricPreview";
 
 // ─── Schema for the top-level form fields ───────────────────────────────────
 
 const rubricMetaSchema = z.object({
-  title: z.string().min(1, 'Rubric title is required').max(255),
-  clo_id: z.string().min(1, 'CLO is required'),
+  title: z.string().min(1, "Rubric title is required").max(255),
+  clo_id: z.string().min(1, "CLO is required"),
   is_template: z.boolean(),
 });
 
@@ -63,16 +56,21 @@ interface CriterionState {
 }
 
 const DEFAULT_LEVELS: LevelState[] = [
-  { label: 'Developing', description: '', points: 1 },
-  { label: 'Proficient', description: '', points: 3 },
+  { label: "Developing", description: "", points: 1 },
+  { label: "Proficient", description: "", points: 3 },
 ];
 
 const createDefaultCriterion = (levelCount: number): CriterionState => ({
-  criterion_name: '',
+  criterion_name: "",
   levels: Array.from({ length: levelCount }, (_, i): LevelState => {
     const def = DEFAULT_LEVELS[i];
-    if (def) return { label: def.label, description: def.description, points: def.points };
-    return { label: `Level ${i + 1}`, description: '', points: 0 };
+    if (def)
+      return {
+        label: def.label,
+        description: def.description,
+        points: def.points,
+      };
+    return { label: `Level ${i + 1}`, description: "", points: 0 };
   }),
 });
 
@@ -88,7 +86,7 @@ const RubricBuilder = () => {
   const { data: existingRubric, isLoading: isLoadingRubric } = useRubric(id);
 
   const createMutation = useCreateRubric();
-  const updateMutation = useUpdateRubric(id ?? '');
+  const updateMutation = useUpdateRubric(id ?? "");
   const isPending = createMutation.isPending || updateMutation.isPending;
 
   // Track whether we've already seeded from the existing rubric
@@ -108,7 +106,7 @@ const RubricBuilder = () => {
 
   const form = useForm<RubricMetaFormData>({
     resolver: zodResolver(rubricMetaSchema),
-    defaultValues: { title: '', clo_id: '', is_template: false },
+    defaultValues: { title: "", clo_id: "", is_template: false },
   });
 
   // Seed form + criteria from existing rubric once data arrives
@@ -118,19 +116,22 @@ const RubricBuilder = () => {
 
     form.reset({
       title: existingRubric.title,
-      clo_id: existingRubric.clo_id ?? '',
+      clo_id: existingRubric.clo_id ?? "",
       is_template: existingRubric.is_template,
     });
 
     if (existingRubric.criteria.length > 0) {
       const mapped: CriterionState[] = existingRubric.criteria.map((c) => ({
         criterion_name: c.criterion_name,
-        levels: c.levels.map((l): LevelState => ({
-          label: String(l.label ?? ''),
-          description: String(l.description ?? ''),
-          points: Number(l.points ?? 0),
-        })),
+        levels: c.levels.map(
+          (l): LevelState => ({
+            label: String(l.label ?? ""),
+            description: String(l.description ?? ""),
+            points: Number(l.points ?? 0),
+          })
+        ),
       }));
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional: sync criteria from existing rubric data on mount
       setCriteria(mapped);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -144,53 +145,64 @@ const RubricBuilder = () => {
   const criteriaMaxPoints = useMemo(
     () =>
       criteria.map((c) =>
-        c.levels.reduce((max, l) => Math.max(max, l.points), 0),
+        c.levels.reduce((max, l) => Math.max(max, l.points), 0)
       ),
-    [criteria],
+    [criteria]
   );
 
   const totalScore = useMemo(
     () => criteriaMaxPoints.reduce((sum, mp) => sum + mp, 0),
-    [criteriaMaxPoints],
+    [criteriaMaxPoints]
   );
 
   // Build a RubricWithCriteria object for the preview component
-  const previewRubric = useMemo(() => ({
-    id: id ?? 'preview',
-    title: form.getValues('title') || 'Untitled Rubric',
-    clo_id: form.getValues('clo_id') || '',
-    description: null,
-    created_by: null,
-    is_template: form.getValues('is_template') || false,
-    created_at: '',
-    criteria: criteria.map((c, idx) => ({
-      id: `preview-criterion-${idx}`,
-      rubric_id: id ?? 'preview',
-      criterion_name: c.criterion_name || `Criterion ${idx + 1}`,
-      sort_order: idx,
-      levels: c.levels,
-      max_points: c.levels.reduce((max, l) => Math.max(max, l.points), 0),
-    })),
-  }), [criteria, id, form]);
+  const previewRubric = useMemo(
+    () => ({
+      id: id ?? "preview",
+      title: form.getValues("title") || "Untitled Rubric",
+      clo_id: form.getValues("clo_id") || "",
+      description: null,
+      created_by: null,
+      is_template: form.getValues("is_template") || false,
+      created_at: "",
+      criteria: criteria.map((c, idx) => ({
+        id: `preview-criterion-${idx}`,
+        rubric_id: id ?? "preview",
+        criterion_name: c.criterion_name || `Criterion ${idx + 1}`,
+        sort_order: idx,
+        levels: c.levels,
+        max_points: c.levels.reduce((max, l) => Math.max(max, l.points), 0),
+      })),
+    }),
+    [criteria, id, form]
+  );
 
   // ─── Grid mutation helpers ──────────────────────────────────────────────
 
-  const updateCriterionName = useCallback(
-    (rowIdx: number, name: string) => {
-      setCriteria((prev) => {
-        const next = prev.map((c) => ({ ...c, levels: c.levels.map((l) => ({ ...l })) }));
-        const row = next[rowIdx];
-        if (row) row.criterion_name = name;
-        return next;
-      });
-    },
-    [],
-  );
+  const updateCriterionName = useCallback((rowIdx: number, name: string) => {
+    setCriteria((prev) => {
+      const next = prev.map((c) => ({
+        ...c,
+        levels: c.levels.map((l) => ({ ...l })),
+      }));
+      const row = next[rowIdx];
+      if (row) row.criterion_name = name;
+      return next;
+    });
+  }, []);
 
   const updateLevel = useCallback(
-    (rowIdx: number, colIdx: number, field: keyof LevelState, value: string | number) => {
+    (
+      rowIdx: number,
+      colIdx: number,
+      field: keyof LevelState,
+      value: string | number
+    ) => {
       setCriteria((prev) => {
-        const next = prev.map((c) => ({ ...c, levels: c.levels.map((l) => ({ ...l })) }));
+        const next = prev.map((c) => ({
+          ...c,
+          levels: c.levels.map((l) => ({ ...l })),
+        }));
         const row = next[rowIdx];
         const level = row?.levels[colIdx];
         if (level) {
@@ -199,7 +211,7 @@ const RubricBuilder = () => {
         return next;
       });
     },
-    [],
+    []
   );
 
   const addCriterion = useCallback(() => {
@@ -217,8 +229,11 @@ const RubricBuilder = () => {
     setCriteria((prev) =>
       prev.map((c) => ({
         ...c,
-        levels: [...c.levels, { label: `Level ${c.levels.length + 1}`, description: '', points: 0 }],
-      })),
+        levels: [
+          ...c.levels,
+          { label: `Level ${c.levels.length + 1}`, description: "", points: 0 },
+        ],
+      }))
     );
   }, []);
 
@@ -227,45 +242,42 @@ const RubricBuilder = () => {
       prev.map((c) => ({
         ...c,
         levels: c.levels.filter((_, i) => i !== colIdx),
-      })),
+      }))
     );
   }, []);
 
-  const updateLevelLabel = useCallback(
-    (colIdx: number, label: string) => {
-      setCriteria((prev) =>
-        prev.map((c) => ({
-          ...c,
-          levels: c.levels.map((l, i) => (i === colIdx ? { ...l, label } : l)),
-        })),
-      );
-    },
-    [],
-  );
+  const updateLevelLabel = useCallback((colIdx: number, label: string) => {
+    setCriteria((prev) =>
+      prev.map((c) => ({
+        ...c,
+        levels: c.levels.map((l, i) => (i === colIdx ? { ...l, label } : l)),
+      }))
+    );
+  }, []);
 
   // ─── Submit handler ─────────────────────────────────────────────────────
 
   const onSubmit = (meta: RubricMetaFormData) => {
     if (criteria.length < 2) {
-      toast.error('At least 2 criteria are required');
+      toast.error("At least 2 criteria are required");
       return;
     }
     if (!firstCriterion || firstCriterion.levels.length < 2) {
-      toast.error('At least 2 performance levels are required');
+      toast.error("At least 2 performance levels are required");
       return;
     }
 
     const hasEmptyName = criteria.some((c) => !c.criterion_name.trim());
     if (hasEmptyName) {
-      toast.error('All criteria must have a name');
+      toast.error("All criteria must have a name");
       return;
     }
 
     const hasEmptyLevelLabel = criteria.some((c) =>
-      c.levels.some((l) => !l.label.trim()),
+      c.levels.some((l) => !l.label.trim())
     );
     if (hasEmptyLevelLabel) {
-      toast.error('All performance levels must have a label');
+      toast.error("All performance levels must have a label");
       return;
     }
 
@@ -284,8 +296,8 @@ const RubricBuilder = () => {
     const mutation = isEdit ? updateMutation : createMutation;
     mutation.mutate(payload, {
       onSuccess: () => {
-        toast.success(isEdit ? 'Rubric updated' : 'Rubric created');
-        navigate('/teacher/rubrics');
+        toast.success(isEdit ? "Rubric updated" : "Rubric created");
+        navigate("/teacher/rubrics");
       },
       onError: (err) => toast.error(err.message),
     });
@@ -313,12 +325,12 @@ const RubricBuilder = () => {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => navigate('/teacher/rubrics')}
+          onClick={() => navigate("/teacher/rubrics")}
         >
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <h1 className="text-2xl font-bold tracking-tight">
-          {isEdit ? 'Edit Rubric' : 'Create Rubric'}
+          {isEdit ? "Edit Rubric" : "Create Rubric"}
         </h1>
         <div className="ml-auto">
           <Button
@@ -327,8 +339,12 @@ const RubricBuilder = () => {
             size="sm"
             onClick={() => setShowPreview((prev) => !prev)}
           >
-            {showPreview ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            {showPreview ? 'Hide Preview' : 'Preview'}
+            {showPreview ? (
+              <EyeOff className="h-4 w-4" />
+            ) : (
+              <Eye className="h-4 w-4" />
+            )}
+            {showPreview ? "Hide Preview" : "Preview"}
           </Button>
         </div>
       </div>
@@ -405,10 +421,20 @@ const RubricBuilder = () => {
                   Criteria &amp; Performance Levels
                 </h2>
                 <div className="flex items-center gap-2">
-                  <Button type="button" variant="outline" size="sm" onClick={addLevel}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={addLevel}
+                  >
                     <Plus className="h-4 w-4" /> Level
                   </Button>
-                  <Button type="button" variant="outline" size="sm" onClick={addCriterion}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={addCriterion}
+                  >
                     <Plus className="h-4 w-4" /> Criterion
                   </Button>
                 </div>
@@ -422,11 +448,16 @@ const RubricBuilder = () => {
                         Criterion
                       </th>
                       {levelLabels.map((label, colIdx) => (
-                        <th key={colIdx} className="p-2 text-center min-w-[10rem]">
+                        <th
+                          key={colIdx}
+                          className="p-2 text-center min-w-[10rem]"
+                        >
                           <div className="flex items-center justify-center gap-1">
                             <Input
                               value={label}
-                              onChange={(e) => updateLevelLabel(colIdx, e.target.value)}
+                              onChange={(e) =>
+                                updateLevelLabel(colIdx, e.target.value)
+                              }
                               className="text-center text-xs font-bold h-8 max-w-[8rem]"
                             />
                             <Button
@@ -454,7 +485,9 @@ const RubricBuilder = () => {
                         <td className="p-2 align-top">
                           <Input
                             value={criterion.criterion_name}
-                            onChange={(e) => updateCriterionName(rowIdx, e.target.value)}
+                            onChange={(e) =>
+                              updateCriterionName(rowIdx, e.target.value)
+                            }
                             placeholder={`Criterion ${rowIdx + 1}`}
                             className="text-sm"
                           />
@@ -464,7 +497,14 @@ const RubricBuilder = () => {
                             <div className="space-y-1">
                               <Textarea
                                 value={level.description}
-                                onChange={(e) => updateLevel(rowIdx, colIdx, 'description', e.target.value)}
+                                onChange={(e) =>
+                                  updateLevel(
+                                    rowIdx,
+                                    colIdx,
+                                    "description",
+                                    e.target.value
+                                  )
+                                }
                                 placeholder="Description..."
                                 className="text-xs min-h-[4rem] resize-none"
                                 rows={3}
@@ -473,7 +513,14 @@ const RubricBuilder = () => {
                                 type="number"
                                 min={0}
                                 value={level.points}
-                                onChange={(e) => updateLevel(rowIdx, colIdx, 'points', Number(e.target.value) || 0)}
+                                onChange={(e) =>
+                                  updateLevel(
+                                    rowIdx,
+                                    colIdx,
+                                    "points",
+                                    Number(e.target.value) || 0
+                                  )
+                                }
                                 className="h-8 text-xs text-center w-20"
                                 placeholder="Pts"
                               />
@@ -509,7 +556,9 @@ const RubricBuilder = () => {
                         Total Score
                       </td>
                       <td className="p-2 text-center">
-                        <span className="text-lg font-black text-blue-600">{totalScore}</span>
+                        <span className="text-lg font-black text-blue-600">
+                          {totalScore}
+                        </span>
                       </td>
                       <td />
                     </tr>
@@ -526,9 +575,13 @@ const RubricBuilder = () => {
                 className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
               >
                 {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-                {isEdit ? 'Update Rubric' : 'Create Rubric'}
+                {isEdit ? "Update Rubric" : "Create Rubric"}
               </Button>
-              <Button type="button" variant="outline" onClick={() => navigate('/teacher/rubrics')}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => navigate("/teacher/rubrics")}
+              >
                 Cancel
               </Button>
             </div>

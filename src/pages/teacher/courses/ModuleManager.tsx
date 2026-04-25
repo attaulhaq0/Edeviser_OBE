@@ -1,10 +1,10 @@
 // Task 66.5: Course Module Manager — Create/edit modules with materials
 // Requirements: 76.1, 76.2, 76.3, 76.4
-import { useState, useRef } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { useAuth } from '@/hooks/useAuth';
+import { useState, useRef } from "react";
+import { useForm, useWatch } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useAuth } from "@/hooks/useAuth";
 import {
   useCourseModules,
   useCourseMaterials,
@@ -18,17 +18,17 @@ import {
   type CourseModule,
   type CourseMaterial,
   type MaterialType,
-} from '@/hooks/useCourseModules';
-import { useCLOs } from '@/hooks/useCLOs';
-import { supabase } from '@/lib/supabase';
-import { useQuery } from '@tanstack/react-query';
-import { queryKeys } from '@/lib/queryKeys';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
-import { Checkbox } from '@/components/ui/checkbox';
+} from "@/hooks/useCourseModules";
+import { useCLOs } from "@/hooks/useCLOs";
+import { supabase } from "@/lib/supabase";
+import { useQuery } from "@tanstack/react-query";
+import { queryKeys } from "@/lib/queryKeys";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
   FormField,
@@ -36,15 +36,15 @@ import {
   FormLabel,
   FormControl,
   FormMessage,
-} from '@/components/ui/form';
+} from "@/components/ui/form";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import {
   Loader2,
   Plus,
@@ -58,15 +58,15 @@ import {
   Video,
   File,
   Upload,
-} from 'lucide-react';
-import { toast } from 'sonner';
-import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
-import Shimmer from '@/components/shared/Shimmer';
+} from "lucide-react";
+import { toast } from "sonner";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import Shimmer from "@/components/shared/Shimmer";
 
 // ─── Schemas ────────────────────────────────────────────────────────────────
 
 const moduleSchema = z.object({
-  title: z.string().min(1, 'Title is required').max(255),
+  title: z.string().min(1, "Title is required").max(255),
   description: z.string().optional(),
   sort_order: z.number().int().min(0),
   is_published: z.boolean(),
@@ -75,8 +75,8 @@ const moduleSchema = z.object({
 type ModuleFormData = z.infer<typeof moduleSchema>;
 
 const materialSchema = z.object({
-  title: z.string().min(1, 'Title is required').max(255),
-  type: z.enum(['file', 'link', 'video', 'text']),
+  title: z.string().min(1, "Title is required").max(255),
+  type: z.enum(["file", "link", "video", "text"]),
   content_url: z.string().optional(),
   description: z.string().optional(),
   sort_order: z.number().int().min(0),
@@ -96,15 +96,15 @@ interface TeacherCourse {
 
 const useTeacherCourses = (teacherId: string | undefined) => {
   return useQuery({
-    queryKey: queryKeys.courses.list({ teacherId, role: 'module-manager' }),
+    queryKey: queryKeys.courses.list({ teacherId, role: "module-manager" }),
     queryFn: async () => {
       if (!teacherId) return [];
       const { data, error } = await supabase
-        .from('courses')
-        .select('id, name, code')
-        .eq('teacher_id', teacherId)
-        .eq('is_active', true)
-        .order('name');
+        .from("courses")
+        .select("id, name, code")
+        .eq("teacher_id", teacherId)
+        .eq("is_active", true)
+        .order("name");
       if (error) throw error;
       return (data ?? []) as TeacherCourse[];
     },
@@ -122,10 +122,10 @@ const TYPE_ICONS: Record<MaterialType, typeof FileText> = {
 };
 
 const TYPE_COLORS: Record<MaterialType, string> = {
-  file: 'bg-blue-50 text-blue-600',
-  link: 'bg-green-50 text-green-600',
-  video: 'bg-purple-50 text-purple-600',
-  text: 'bg-gray-50 text-gray-600',
+  file: "bg-blue-50 text-blue-600",
+  link: "bg-green-50 text-green-600",
+  video: "bg-purple-50 text-purple-600",
+  text: "bg-gray-50 text-gray-600",
 };
 
 // ─── Module Materials Sub-component ─────────────────────────────────────────
@@ -136,7 +136,11 @@ interface ModuleMaterialsProps {
   courseId: string;
 }
 
-const ModuleMaterials = ({ module: mod, teacherId, courseId }: ModuleMaterialsProps) => {
+const ModuleMaterials = ({
+  module: mod,
+  teacherId,
+  courseId,
+}: ModuleMaterialsProps) => {
   const { data: materials, isLoading } = useCourseMaterials(mod.id);
   const { data: closData } = useCLOs(courseId);
   const clos = closData?.data;
@@ -145,7 +149,9 @@ const ModuleMaterials = ({ module: mod, teacherId, courseId }: ModuleMaterialsPr
   const deleteMaterial = useDeleteMaterial();
 
   const [showMaterialForm, setShowMaterialForm] = useState(false);
-  const [editingMaterial, setEditingMaterial] = useState<CourseMaterial | null>(null);
+  const [editingMaterial, setEditingMaterial] = useState<CourseMaterial | null>(
+    null
+  );
   const [deleteTarget, setDeleteTarget] = useState<CourseMaterial | null>(null);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -153,26 +159,26 @@ const ModuleMaterials = ({ module: mod, teacherId, courseId }: ModuleMaterialsPr
   const form = useForm<MaterialFormData>({
     resolver: zodResolver(materialSchema),
     defaultValues: {
-      title: '',
-      type: 'link',
-      content_url: '',
-      description: '',
-      sort_order: (materials?.length ?? 0),
+      title: "",
+      type: "link",
+      content_url: "",
+      description: "",
+      sort_order: materials?.length ?? 0,
       is_published: false,
       clo_ids: [],
     },
   });
 
-  const watchType = form.watch('type');
+  const watchType = useWatch({ control: form.control, name: "type" });
 
   const openCreate = () => {
     setEditingMaterial(null);
     form.reset({
-      title: '',
-      type: 'link',
-      content_url: '',
-      description: '',
-      sort_order: (materials?.length ?? 0),
+      title: "",
+      type: "link",
+      content_url: "",
+      description: "",
+      sort_order: materials?.length ?? 0,
       is_published: false,
       clo_ids: [],
     });
@@ -184,8 +190,8 @@ const ModuleMaterials = ({ module: mod, teacherId, courseId }: ModuleMaterialsPr
     form.reset({
       title: m.title,
       type: m.type,
-      content_url: m.content_url ?? '',
-      description: m.description ?? '',
+      content_url: m.content_url ?? "",
+      description: m.description ?? "",
       sort_order: m.sort_order,
       is_published: m.is_published,
       clo_ids: m.clo_ids,
@@ -199,11 +205,14 @@ const ModuleMaterials = ({ module: mod, teacherId, courseId }: ModuleMaterialsPr
     try {
       setUploading(true);
       const url = await uploadMaterialFile(file, courseId);
-      form.setValue('content_url', url);
-      form.setValue('title', form.getValues('title') || file.name.replace(/\.[^.]+$/, ''));
-      toast.success('File uploaded');
+      form.setValue("content_url", url);
+      form.setValue(
+        "title",
+        form.getValues("title") || file.name.replace(/\.[^.]+$/, "")
+      );
+      toast.success("File uploaded");
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Upload failed');
+      toast.error(err instanceof Error ? err.message : "Upload failed");
     } finally {
       setUploading(false);
     }
@@ -225,12 +234,12 @@ const ModuleMaterials = ({ module: mod, teacherId, courseId }: ModuleMaterialsPr
         },
         {
           onSuccess: () => {
-            toast.success('Material updated');
+            toast.success("Material updated");
             setShowMaterialForm(false);
             setEditingMaterial(null);
           },
           onError: (err) => toast.error(err.message),
-        },
+        }
       );
     } else {
       createMaterial.mutate(
@@ -239,7 +248,8 @@ const ModuleMaterials = ({ module: mod, teacherId, courseId }: ModuleMaterialsPr
           title: data.title,
           type: data.type as MaterialType,
           content_url: data.content_url || undefined,
-          file_path: data.type === 'file' ? data.content_url || undefined : undefined,
+          file_path:
+            data.type === "file" ? data.content_url || undefined : undefined,
           description: data.description || undefined,
           sort_order: data.sort_order,
           is_published: data.is_published,
@@ -248,11 +258,11 @@ const ModuleMaterials = ({ module: mod, teacherId, courseId }: ModuleMaterialsPr
         },
         {
           onSuccess: () => {
-            toast.success('Material added');
+            toast.success("Material added");
             setShowMaterialForm(false);
           },
           onError: (err) => toast.error(err.message),
-        },
+        }
       );
     }
   };
@@ -263,11 +273,11 @@ const ModuleMaterials = ({ module: mod, teacherId, courseId }: ModuleMaterialsPr
       { id: deleteTarget.id, performedBy: teacherId },
       {
         onSuccess: () => {
-          toast.success('Material deleted');
+          toast.success("Material deleted");
           setDeleteTarget(null);
         },
         onError: (err) => toast.error(err.message),
-      },
+      }
     );
   };
 
@@ -289,25 +299,47 @@ const ModuleMaterials = ({ module: mod, teacherId, courseId }: ModuleMaterialsPr
                 <div className={`p-1.5 rounded-lg ${TYPE_COLORS[m.type]}`}>
                   <Icon className="h-4 w-4" />
                 </div>
-                <span className="text-sm font-medium flex-1 truncate">{m.title}</span>
+                <span className="text-sm font-medium flex-1 truncate">
+                  {m.title}
+                </span>
                 {!m.is_published && (
-                  <Badge variant="outline" className="text-xs text-gray-400">Draft</Badge>
-                )}
-                {m.clo_ids.length > 0 && (
-                  <Badge variant="outline" className="text-xs text-green-600 border-green-200">
-                    {m.clo_ids.length} CLO{m.clo_ids.length > 1 ? 's' : ''}
+                  <Badge variant="outline" className="text-xs text-gray-400">
+                    Draft
                   </Badge>
                 )}
-                <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => openEdit(m)}>
+                {m.clo_ids.length > 0 && (
+                  <Badge
+                    variant="outline"
+                    className="text-xs text-green-600 border-green-200"
+                  >
+                    {m.clo_ids.length} CLO{m.clo_ids.length > 1 ? "s" : ""}
+                  </Badge>
+                )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 w-7 p-0"
+                  onClick={() => openEdit(m)}
+                >
                   <Pencil className="h-3.5 w-3.5 text-gray-400" />
                 </Button>
-                <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => setDeleteTarget(m)}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 w-7 p-0"
+                  onClick={() => setDeleteTarget(m)}
+                >
                   <Trash2 className="h-3.5 w-3.5 text-red-400" />
                 </Button>
               </div>
             );
           })}
-          <Button variant="ghost" size="sm" onClick={openCreate} className="text-xs text-blue-600">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={openCreate}
+            className="text-xs text-blue-600"
+          >
             <Plus className="h-3.5 w-3.5 me-1" /> Add Material
           </Button>
         </>
@@ -325,7 +357,13 @@ const ModuleMaterials = ({ module: mod, teacherId, courseId }: ModuleMaterialsPr
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-xs">Title</FormLabel>
-                      <FormControl><Input placeholder="Material title" {...field} className="h-8 text-sm" /></FormControl>
+                      <FormControl>
+                        <Input
+                          placeholder="Material title"
+                          {...field}
+                          className="h-8 text-sm"
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -336,7 +374,10 @@ const ModuleMaterials = ({ module: mod, teacherId, courseId }: ModuleMaterialsPr
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-xs">Type</FormLabel>
-                      <Select value={field.value} onValueChange={field.onChange}>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
                         <FormControl>
                           <SelectTrigger className="h-8 text-sm bg-white">
                             <SelectValue />
@@ -355,7 +396,7 @@ const ModuleMaterials = ({ module: mod, teacherId, courseId }: ModuleMaterialsPr
                 />
               </div>
 
-              {watchType === 'file' && (
+              {watchType === "file" && (
                 <div>
                   <input
                     ref={fileInputRef}
@@ -372,26 +413,38 @@ const ModuleMaterials = ({ module: mod, teacherId, courseId }: ModuleMaterialsPr
                     disabled={uploading}
                     className="text-xs"
                   >
-                    {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin me-1" /> : <Upload className="h-3.5 w-3.5 me-1" />}
-                    {uploading ? 'Uploading...' : 'Upload File'}
+                    {uploading ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin me-1" />
+                    ) : (
+                      <Upload className="h-3.5 w-3.5 me-1" />
+                    )}
+                    {uploading ? "Uploading..." : "Upload File"}
                   </Button>
-                  {form.getValues('content_url') && (
-                    <p className="text-xs text-green-600 mt-1">File uploaded ✓</p>
+                  {form.getValues("content_url") && (
+                    <p className="text-xs text-green-600 mt-1">
+                      File uploaded ✓
+                    </p>
                   )}
                 </div>
               )}
 
-              {(watchType === 'link' || watchType === 'video') && (
+              {(watchType === "link" || watchType === "video") && (
                 <FormField
                   control={form.control}
                   name="content_url"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-xs">
-                        {watchType === 'video' ? 'Video URL (YouTube/Vimeo)' : 'URL'}
+                        {watchType === "video"
+                          ? "Video URL (YouTube/Vimeo)"
+                          : "URL"}
                       </FormLabel>
                       <FormControl>
-                        <Input placeholder="https://..." {...field} className="h-8 text-sm" />
+                        <Input
+                          placeholder="https://..."
+                          {...field}
+                          className="h-8 text-sm"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -399,7 +452,7 @@ const ModuleMaterials = ({ module: mod, teacherId, courseId }: ModuleMaterialsPr
                 />
               )}
 
-              {watchType === 'text' && (
+              {watchType === "text" && (
                 <FormField
                   control={form.control}
                   name="content_url"
@@ -407,7 +460,12 @@ const ModuleMaterials = ({ module: mod, teacherId, courseId }: ModuleMaterialsPr
                     <FormItem>
                       <FormLabel className="text-xs">Text Content</FormLabel>
                       <FormControl>
-                        <Textarea placeholder="Enter text content..." rows={3} {...field} className="text-sm" />
+                        <Textarea
+                          placeholder="Enter text content..."
+                          rows={3}
+                          {...field}
+                          className="text-sm"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -420,9 +478,15 @@ const ModuleMaterials = ({ module: mod, teacherId, courseId }: ModuleMaterialsPr
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs">Description (optional)</FormLabel>
+                    <FormLabel className="text-xs">
+                      Description (optional)
+                    </FormLabel>
                     <FormControl>
-                      <Input placeholder="Brief description" {...field} className="h-8 text-sm" />
+                      <Input
+                        placeholder="Brief description"
+                        {...field}
+                        className="h-8 text-sm"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -430,35 +494,41 @@ const ModuleMaterials = ({ module: mod, teacherId, courseId }: ModuleMaterialsPr
               />
 
               {/* CLO Linking */}
-              {clos && (clos as Array<{ id: string; title: string }>).length > 0 && (
-                <FormField
-                  control={form.control}
-                  name="clo_ids"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-xs">Link to CLOs</FormLabel>
-                      <div className="space-y-1">
-                        {(clos as Array<{ id: string; title: string }>).map((clo) => (
-                          <label key={clo.id} className="flex items-center gap-2 text-xs">
-                            <Checkbox
-                              checked={(field.value ?? []).includes(clo.id)}
-                              onCheckedChange={(checked) => {
-                                const current = field.value ?? [];
-                                field.onChange(
-                                  checked
-                                    ? [...current, clo.id]
-                                    : current.filter((id) => id !== clo.id),
-                                );
-                              }}
-                            />
-                            {clo.title}
-                          </label>
-                        ))}
-                      </div>
-                    </FormItem>
-                  )}
-                />
-              )}
+              {clos &&
+                (clos as Array<{ id: string; title: string }>).length > 0 && (
+                  <FormField
+                    control={form.control}
+                    name="clo_ids"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-xs">Link to CLOs</FormLabel>
+                        <div className="space-y-1">
+                          {(clos as Array<{ id: string; title: string }>).map(
+                            (clo) => (
+                              <label
+                                key={clo.id}
+                                className="flex items-center gap-2 text-xs"
+                              >
+                                <Checkbox
+                                  checked={(field.value ?? []).includes(clo.id)}
+                                  onCheckedChange={(checked) => {
+                                    const current = field.value ?? [];
+                                    field.onChange(
+                                      checked
+                                        ? [...current, clo.id]
+                                        : current.filter((id) => id !== clo.id)
+                                    );
+                                  }}
+                                />
+                                {clo.title}
+                              </label>
+                            )
+                          )}
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                )}
 
               <div className="grid grid-cols-2 gap-3">
                 <FormField
@@ -468,7 +538,12 @@ const ModuleMaterials = ({ module: mod, teacherId, courseId }: ModuleMaterialsPr
                     <FormItem>
                       <FormLabel className="text-xs">Sort Order</FormLabel>
                       <FormControl>
-                        <Input type="number" min={0} {...field} className="h-8 text-sm" />
+                        <Input
+                          type="number"
+                          min={0}
+                          {...field}
+                          className="h-8 text-sm"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -480,7 +555,10 @@ const ModuleMaterials = ({ module: mod, teacherId, courseId }: ModuleMaterialsPr
                   render={({ field }) => (
                     <FormItem className="flex items-center gap-2 pt-5">
                       <FormControl>
-                        <Switch checked={field.value} onCheckedChange={field.onChange} />
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
                       </FormControl>
                       <FormLabel className="!mt-0 text-xs">Published</FormLabel>
                     </FormItem>
@@ -489,11 +567,27 @@ const ModuleMaterials = ({ module: mod, teacherId, courseId }: ModuleMaterialsPr
               </div>
 
               <div className="flex gap-2">
-                <Button type="submit" size="sm" disabled={isPending} className="text-xs bg-gradient-to-r from-teal-500 to-blue-600">
-                  {isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-                  {editingMaterial ? 'Update' : 'Add'}
+                <Button
+                  type="submit"
+                  size="sm"
+                  disabled={isPending}
+                  className="text-xs bg-gradient-to-r from-teal-500 to-blue-600"
+                >
+                  {isPending && (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  )}
+                  {editingMaterial ? "Update" : "Add"}
                 </Button>
-                <Button type="button" variant="outline" size="sm" className="text-xs" onClick={() => { setShowMaterialForm(false); setEditingMaterial(null); }}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="text-xs"
+                  onClick={() => {
+                    setShowMaterialForm(false);
+                    setEditingMaterial(null);
+                  }}
+                >
                   Cancel
                 </Button>
               </div>
@@ -504,7 +598,9 @@ const ModuleMaterials = ({ module: mod, teacherId, courseId }: ModuleMaterialsPr
 
       <ConfirmDialog
         open={!!deleteTarget}
-        onOpenChange={(open: boolean) => { if (!open) setDeleteTarget(null); }}
+        onOpenChange={(open: boolean) => {
+          if (!open) setDeleteTarget(null);
+        }}
         title="Delete Material"
         description={`Delete "${deleteTarget?.title}"? This cannot be undone.`}
         onConfirm={handleDeleteMaterial}
@@ -522,18 +618,25 @@ const ModuleManager = () => {
   const { user } = useAuth();
   const teacherId = user?.id;
 
-  const [selectedCourseId, setSelectedCourseId] = useState<string>('');
+  const [selectedCourseId, setSelectedCourseId] = useState<string>("");
   const [showModuleForm, setShowModuleForm] = useState(false);
   const [editingModule, setEditingModule] = useState<CourseModule | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<CourseModule | null>(null);
-  const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
+  const [expandedModules, setExpandedModules] = useState<Set<string>>(
+    new Set()
+  );
 
-  const { data: courses, isLoading: coursesLoading } = useTeacherCourses(teacherId);
+  const { data: courses, isLoading: coursesLoading } =
+    useTeacherCourses(teacherId);
 
   // Derive effective course — default to first course if none selected
-  const effectiveCourseId = selectedCourseId || (courses && courses.length > 0 ? courses[0]?.id ?? '' : '');
+  const effectiveCourseId =
+    selectedCourseId ||
+    (courses && courses.length > 0 ? courses[0]?.id ?? "" : "");
 
-  const { data: modules, isLoading: modulesLoading } = useCourseModules(effectiveCourseId || undefined);
+  const { data: modules, isLoading: modulesLoading } = useCourseModules(
+    effectiveCourseId || undefined
+  );
 
   const createModule = useCreateModule();
   const updateModule = useUpdateModule();
@@ -541,7 +644,12 @@ const ModuleManager = () => {
 
   const moduleForm = useForm<ModuleFormData>({
     resolver: zodResolver(moduleSchema),
-    defaultValues: { title: '', description: '', sort_order: 0, is_published: false },
+    defaultValues: {
+      title: "",
+      description: "",
+      sort_order: 0,
+      is_published: false,
+    },
   });
 
   const toggleExpand = (moduleId: string) => {
@@ -556,9 +664,9 @@ const ModuleManager = () => {
   const openCreateModule = () => {
     setEditingModule(null);
     moduleForm.reset({
-      title: '',
-      description: '',
-      sort_order: (modules?.length ?? 0),
+      title: "",
+      description: "",
+      sort_order: modules?.length ?? 0,
       is_published: false,
     });
     setShowModuleForm(true);
@@ -568,7 +676,7 @@ const ModuleManager = () => {
     setEditingModule(m);
     moduleForm.reset({
       title: m.title,
-      description: m.description ?? '',
+      description: m.description ?? "",
       sort_order: m.sort_order,
       is_published: m.is_published,
     });
@@ -590,12 +698,12 @@ const ModuleManager = () => {
         },
         {
           onSuccess: () => {
-            toast.success('Module updated');
+            toast.success("Module updated");
             setShowModuleForm(false);
             setEditingModule(null);
           },
           onError: (err) => toast.error(err.message),
-        },
+        }
       );
     } else {
       createModule.mutate(
@@ -609,11 +717,11 @@ const ModuleManager = () => {
         },
         {
           onSuccess: () => {
-            toast.success('Module created');
+            toast.success("Module created");
             setShowModuleForm(false);
           },
           onError: (err) => toast.error(err.message),
-        },
+        }
       );
     }
   };
@@ -624,11 +732,11 @@ const ModuleManager = () => {
       { id: deleteTarget.id, performedBy: teacherId },
       {
         onSuccess: () => {
-          toast.success('Module deleted');
+          toast.success("Module deleted");
           setDeleteTarget(null);
         },
         onError: (err) => toast.error(err.message),
-      },
+      }
     );
   };
 
@@ -671,17 +779,25 @@ const ModuleManager = () => {
       {showModuleForm && (
         <Card className="bg-white border-0 shadow-md rounded-xl p-6 max-w-2xl">
           <h2 className="text-lg font-bold tracking-tight mb-4">
-            {editingModule ? 'Edit Module' : 'New Module'}
+            {editingModule ? "Edit Module" : "New Module"}
           </h2>
           <Form {...moduleForm}>
-            <form onSubmit={moduleForm.handleSubmit(onModuleSubmit)} className="space-y-4">
+            <form
+              onSubmit={moduleForm.handleSubmit(onModuleSubmit)}
+              className="space-y-4"
+            >
               <FormField
                 control={moduleForm.control}
                 name="title"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Title</FormLabel>
-                    <FormControl><Input placeholder="e.g., Week 1: Introduction" {...field} /></FormControl>
+                    <FormControl>
+                      <Input
+                        placeholder="e.g., Week 1: Introduction"
+                        {...field}
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -692,7 +808,13 @@ const ModuleManager = () => {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Description (optional)</FormLabel>
-                    <FormControl><Textarea placeholder="Module description" rows={3} {...field} /></FormControl>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Module description"
+                        rows={3}
+                        {...field}
+                      />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -704,7 +826,9 @@ const ModuleManager = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Sort Order</FormLabel>
-                      <FormControl><Input type="number" min={0} {...field} /></FormControl>
+                      <FormControl>
+                        <Input type="number" min={0} {...field} />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -715,7 +839,10 @@ const ModuleManager = () => {
                   render={({ field }) => (
                     <FormItem className="flex items-center gap-3 pt-6">
                       <FormControl>
-                        <Switch checked={field.value} onCheckedChange={field.onChange} />
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
                       </FormControl>
                       <FormLabel className="!mt-0">Published</FormLabel>
                     </FormItem>
@@ -723,11 +850,24 @@ const ModuleManager = () => {
                 />
               </div>
               <div className="flex gap-2">
-                <Button type="submit" disabled={isModulePending} className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 transition-transform duration-100">
-                  {isModulePending && <Loader2 className="h-4 w-4 animate-spin" />}
-                  {editingModule ? 'Update' : 'Create'}
+                <Button
+                  type="submit"
+                  disabled={isModulePending}
+                  className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 transition-transform duration-100"
+                >
+                  {isModulePending && (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  )}
+                  {editingModule ? "Update" : "Create"}
                 </Button>
-                <Button type="button" variant="outline" onClick={() => { setShowModuleForm(false); setEditingModule(null); }}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setShowModuleForm(false);
+                    setEditingModule(null);
+                  }}
+                >
                   Cancel
                 </Button>
               </div>
@@ -746,20 +886,30 @@ const ModuleManager = () => {
       ) : (modules ?? []).length === 0 ? (
         <Card className="bg-white border-0 shadow-md rounded-xl p-8 text-center">
           <FolderOpen className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-          <p className="text-sm text-gray-500">No modules yet. Create one to organize your course materials.</p>
+          <p className="text-sm text-gray-500">
+            No modules yet. Create one to organize your course materials.
+          </p>
         </Card>
       ) : (
         <div className="space-y-2">
           {(modules ?? []).map((m) => {
             const isExpanded = expandedModules.has(m.id);
             return (
-              <Card key={m.id} className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+              <Card
+                key={m.id}
+                className="bg-white border-0 shadow-md rounded-xl overflow-hidden"
+              >
                 <div
                   className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-slate-50 transition-colors"
                   onClick={() => toggleExpand(m.id)}
                   role="button"
                   tabIndex={0}
-                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleExpand(m.id); } }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      toggleExpand(m.id);
+                    }
+                  }}
                 >
                   {isExpanded ? (
                     <ChevronDown className="h-4 w-4 text-gray-400 shrink-0" />
@@ -767,16 +917,23 @@ const ModuleManager = () => {
                     <ChevronRight className="h-4 w-4 text-gray-400 shrink-0" />
                   )}
                   <FolderOpen className="h-4 w-4 text-blue-500 shrink-0" />
-                  <span className="text-sm font-bold flex-1 truncate">{m.title}</span>
+                  <span className="text-sm font-bold flex-1 truncate">
+                    {m.title}
+                  </span>
                   {!m.is_published && (
-                    <Badge variant="outline" className="text-xs text-gray-400">Draft</Badge>
+                    <Badge variant="outline" className="text-xs text-gray-400">
+                      Draft
+                    </Badge>
                   )}
                   <span className="text-xs text-gray-400">#{m.sort_order}</span>
                   <Button
                     variant="ghost"
                     size="sm"
                     className="h-7 w-7 p-0"
-                    onClick={(e) => { e.stopPropagation(); openEditModule(m); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openEditModule(m);
+                    }}
                   >
                     <Pencil className="h-3.5 w-3.5 text-gray-400" />
                   </Button>
@@ -784,14 +941,21 @@ const ModuleManager = () => {
                     variant="ghost"
                     size="sm"
                     className="h-7 w-7 p-0"
-                    onClick={(e) => { e.stopPropagation(); setDeleteTarget(m); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setDeleteTarget(m);
+                    }}
                   >
                     <Trash2 className="h-3.5 w-3.5 text-red-400" />
                   </Button>
                 </div>
                 {isExpanded && teacherId && (
                   <div className="border-t border-slate-100 py-3 px-2">
-                    <ModuleMaterials module={m} teacherId={teacherId} courseId={effectiveCourseId} />
+                    <ModuleMaterials
+                      module={m}
+                      teacherId={teacherId}
+                      courseId={effectiveCourseId}
+                    />
                   </div>
                 )}
               </Card>
@@ -802,7 +966,9 @@ const ModuleManager = () => {
 
       <ConfirmDialog
         open={!!deleteTarget}
-        onOpenChange={(open: boolean) => { if (!open) setDeleteTarget(null); }}
+        onOpenChange={(open: boolean) => {
+          if (!open) setDeleteTarget(null);
+        }}
         title="Delete Module"
         description={`Delete "${deleteTarget?.title}" and all its materials? This cannot be undone.`}
         onConfirm={handleDeleteModule}

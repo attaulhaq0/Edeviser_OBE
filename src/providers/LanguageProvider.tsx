@@ -1,20 +1,28 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { useTranslation } from 'react-i18next';
-import { supabase } from '@/lib/supabase';
-import { useAuth } from '@/hooks/useAuth';
-import { applyDirection } from '@/lib/directionManager';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
+import { useTranslation } from "react-i18next";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/hooks/useAuth";
+import { applyDirection } from "@/lib/directionManager";
 
-export type Language = 'en' | 'ar';
+export type Language = "en" | "ar";
 
 interface LanguageContextValue {
   language: Language;
-  direction: 'ltr' | 'rtl';
+  direction: "ltr" | "rtl";
   setLanguage: (lang: Language) => Promise<void>;
 }
 
 const LanguageContext = createContext<LanguageContextValue>({
-  language: 'en',
-  direction: 'ltr',
+  language: "en",
+  direction: "ltr",
   setLanguage: async () => {},
 });
 
@@ -24,10 +32,11 @@ export const useLanguage = () => useContext(LanguageContext);
 export const LanguageProvider = ({ children }: { children: ReactNode }) => {
   const { i18n } = useTranslation();
   const { user, profile } = useAuth();
-  const profileLang = ((profile?.preferred_language as Language) || 'en') as Language;
+  const profileLang = ((profile?.preferred_language as Language) ||
+    "en") as Language;
   const [language, setLanguageState] = useState<Language>(profileLang);
 
-  const direction: 'ltr' | 'rtl' = language === 'ar' ? 'rtl' : 'ltr';
+  const direction: "ltr" | "rtl" = language === "ar" ? "rtl" : "ltr";
 
   // Apply direction via directionManager
   useEffect(() => {
@@ -37,6 +46,7 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
   // Sync language when profile preference changes
   useEffect(() => {
     if (profileLang !== language) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional: sync state from profile preference
       setLanguageState(profileLang);
       i18n.changeLanguage(profileLang);
     }
@@ -48,25 +58,29 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
     async (lang: Language) => {
       setLanguageState(lang);
       i18n.changeLanguage(lang);
-      localStorage.setItem('edeviser-language', lang);
+      localStorage.setItem("edeviser-language", lang);
       applyDirection(lang);
 
       if (user?.id) {
         await supabase
-          .from('profiles')
-          .update({ preferred_language: lang } as Record<string, unknown>)
-          .eq('id', user.id)
+          .from("profiles")
+          .update({ preferred_language: lang } as never)
+          .eq("id", user.id)
           .then(({ error }) => {
-            if (error) console.error('[LanguageProvider] Failed to save preference:', error.message);
+            if (error)
+              console.error(
+                "[LanguageProvider] Failed to save preference:",
+                error.message
+              );
           });
       }
     },
-    [i18n, user?.id],
+    [i18n, user]
   );
 
   const value = useMemo(
     () => ({ language, direction, setLanguage }),
-    [language, direction, setLanguage],
+    [language, direction, setLanguage]
   );
 
   return (
