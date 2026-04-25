@@ -222,8 +222,10 @@ describe("5. Audit logging coverage fault condition", () => {
           expect(source).toContain("logAuditEvent");
 
           // Must call logAuditEvent with the correct entity_type
+          // (quote style is not enforced — accept either single or double quotes)
           for (const entityType of expectedEntityTypes) {
-            expect(source).toContain(`entity_type: '${entityType}'`);
+            const pattern = new RegExp(`entity_type:\\s*['"]${entityType}['"]`);
+            expect(pattern.test(source)).toBe(true);
           }
         }
       ),
