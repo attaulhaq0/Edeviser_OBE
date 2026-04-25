@@ -1,7 +1,7 @@
 /**
  * Task 21.6: Knowledge Quest Manager — Admin quest CRUD with DataTable
  */
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createKnowledgeQuestSchema } from "@/lib/marketplaceSchemas";
@@ -86,26 +86,32 @@ const KnowledgeQuestManager = () => {
 
   const rewardType = useWatch({ control: form.control, name: "reward_type" });
 
-  const questRows = (quests ?? []) as unknown as QuestRow[];
+  const questRows = useMemo(
+    () => (quests ?? []) as unknown as QuestRow[],
+    [quests]
+  );
 
-  const handleEdit = (quest: QuestRow) => {
-    setEditingQuest(quest);
-    const fullQuest = questRows.find((q) => q.id === quest.id);
-    if (fullQuest) {
-      form.reset({
-        title: fullQuest.title,
-        description: fullQuest.description,
-        quest_type: fullQuest.quest_type as QuestFormValues["quest_type"],
-        target_clo_ids: fullQuest.target_clo_ids ?? [],
-        start_date: fullQuest.start_date,
-        end_date: fullQuest.end_date,
-        reward_type: fullQuest.reward_type as QuestFormValues["reward_type"],
-        reward_item_id: fullQuest.reward_item_id ?? null,
-        reward_xp_amount: fullQuest.reward_xp_amount ?? 100,
-      });
-    }
-    setShowForm(true);
-  };
+  const handleEdit = useCallback(
+    (quest: QuestRow) => {
+      setEditingQuest(quest);
+      const fullQuest = questRows.find((q) => q.id === quest.id);
+      if (fullQuest) {
+        form.reset({
+          title: fullQuest.title,
+          description: fullQuest.description,
+          quest_type: fullQuest.quest_type as QuestFormValues["quest_type"],
+          target_clo_ids: fullQuest.target_clo_ids ?? [],
+          start_date: fullQuest.start_date,
+          end_date: fullQuest.end_date,
+          reward_type: fullQuest.reward_type as QuestFormValues["reward_type"],
+          reward_item_id: fullQuest.reward_item_id ?? null,
+          reward_xp_amount: fullQuest.reward_xp_amount ?? 100,
+        });
+      }
+      setShowForm(true);
+    },
+    [questRows, form]
+  );
 
   const resetForm = () => {
     setShowForm(false);
@@ -199,9 +205,8 @@ const KnowledgeQuestManager = () => {
           </Button>
         ),
       },
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     ],
-    [quests]
+    [handleEdit]
   );
 
   return (
