@@ -6,14 +6,24 @@
 // Enums / Literal Unions
 // -----------------------------------------------------------------------------
 
-export type TimerMode = 'pomodoro' | 'custom';
-export type SessionStatus = 'planned' | 'in_progress' | 'completed' | 'cancelled';
-export type TaskPriority = 'low' | 'medium' | 'high';
-export type TaskStatus = 'pending' | 'completed';
-export type GoalType = 'study_hours' | 'sessions_completed' | 'tasks_completed';
-export type TimerState = 'idle' | 'running' | 'paused' | 'break' | 'long_break' | 'completed';
-export type PomodoroIntervalType = 'work' | 'break' | 'long_break';
-export type TimeOfDay = 'morning' | 'afternoon' | 'evening';
+export type TimerMode = "pomodoro" | "custom";
+export type SessionStatus =
+  | "planned"
+  | "in_progress"
+  | "completed"
+  | "cancelled";
+export type TaskPriority = "low" | "medium" | "high";
+export type TaskStatus = "pending" | "completed";
+export type GoalType = "study_hours" | "sessions_completed" | "tasks_completed";
+export type TimerState =
+  | "idle"
+  | "running"
+  | "paused"
+  | "break"
+  | "long_break"
+  | "completed";
+export type PomodoroIntervalType = "work" | "break" | "long_break";
+export type TimeOfDay = "morning" | "afternoon" | "evening";
 
 // -----------------------------------------------------------------------------
 // Core Domain Interfaces
@@ -103,7 +113,7 @@ export interface WeekDay {
 
 export interface TimelineItem {
   id: string;
-  type: 'session' | 'task' | 'deadline' | 'habit';
+  type: "session" | "task" | "deadline" | "habit";
   time: string | null; // HH:MM or null for unscheduled
   timeOfDay: TimeOfDay | null;
   data: StudySession | PlannerTask | UpcomingDeadline | HabitStatus;
@@ -166,7 +176,7 @@ export interface UpcomingDeadline {
   title: string;
   courseName: string;
   dueDate: string;
-  urgency: 'red' | 'yellow' | 'green';
+  urgency: "red" | "yellow" | "green";
 }
 
 export interface HabitStatus {
@@ -174,4 +184,60 @@ export interface HabitStatus {
   submit: boolean;
   journal: boolean;
   read: boolean;
+}
+
+// -----------------------------------------------------------------------------
+// Reflection Types
+// -----------------------------------------------------------------------------
+
+export interface SimpleReflectionValues {
+  whatWentWell: string;
+  whatWasChallenging: string;
+  whatWillChange: string;
+}
+
+export interface GibbsReflectionValues {
+  description: string;
+  feelings: string;
+  evaluation: string;
+  analysis: string;
+  conclusion: string;
+  actionPlan: string;
+}
+
+// -----------------------------------------------------------------------------
+// Flow Check-In
+// -----------------------------------------------------------------------------
+
+export type FlowResponse = "in_the_zone" | "stuck" | "too_easy";
+
+// -----------------------------------------------------------------------------
+// Quality Category
+// -----------------------------------------------------------------------------
+
+export type QualityCategory = "thoughtful" | "good_effort" | "needs_detail";
+
+// -----------------------------------------------------------------------------
+// Reflection Digest
+// -----------------------------------------------------------------------------
+
+export interface ReflectionDigest {
+  id: string;
+  studentId: string;
+  month: string; // YYYY-MM
+  themes: Array<{ topic: string; count: number }>;
+  growthPatterns: Array<{ area: string; description: string }>;
+  emotionalTrends: Array<{ label: string }>;
+  suggestedFocus: Array<{ area: string; reason: string }>;
+  sharedWith: Array<{ role: "parent" | "advisor"; sharedAt: string }>;
+  createdAt: string;
+}
+
+// -----------------------------------------------------------------------------
+// Session Intent
+// -----------------------------------------------------------------------------
+
+export interface SuggestedIntent {
+  concept: string;
+  successCriterion: string;
 }

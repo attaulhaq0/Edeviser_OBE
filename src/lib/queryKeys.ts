@@ -1,222 +1,223 @@
 const createKeys = <T extends string>(entity: T) => ({
   all: [entity] as const,
-  lists: () => [...createKeys(entity).all, 'list'] as const,
+  lists: () => [...createKeys(entity).all, "list"] as const,
   list: (filters: Record<string, unknown>) =>
     [...createKeys(entity).lists(), filters] as const,
-  details: () => [...createKeys(entity).all, 'detail'] as const,
+  details: () => [...createKeys(entity).all, "detail"] as const,
   detail: (id: string) => [...createKeys(entity).details(), id] as const,
-})
+});
 
 // ─── Core ────────────────────────────────────────────────────────────────────
-const users = createKeys('users')
-const profiles = createKeys('profiles')
-const institutions = createKeys('institutions')
+const users = createKeys("users");
+const profiles = createKeys("profiles");
+const institutions = createKeys("institutions");
 
 // ─── OBE ─────────────────────────────────────────────────────────────────────
-const programs = createKeys('programs')
-const courses = createKeys('courses')
-const ilos = createKeys('ilos')
-const plos = createKeys('plos')
-const clos = createKeys('clos')
-const subCLOs = createKeys('subCLOs')
-const outcomeMappings = createKeys('outcomeMappings')
-const rubrics = createKeys('rubrics')
-const assignments = createKeys('assignments')
-const enrollments = createKeys('enrollments')
-const submissions = createKeys('submissions')
-const grades = createKeys('grades')
-const evidence = createKeys('evidence')
-const outcomeAttainment = createKeys('outcomeAttainment')
+const programs = createKeys("programs");
+const courses = createKeys("courses");
+const ilos = createKeys("ilos");
+const plos = createKeys("plos");
+const clos = createKeys("clos");
+const subCLOs = createKeys("subCLOs");
+const outcomeMappings = createKeys("outcomeMappings");
+const rubrics = createKeys("rubrics");
+const assignments = createKeys("assignments");
+const enrollments = createKeys("enrollments");
+const submissions = createKeys("submissions");
+const grades = createKeys("grades");
+const evidence = createKeys("evidence");
+const outcomeAttainment = createKeys("outcomeAttainment");
 
 // ─── Gamification ────────────────────────────────────────────────────────────
-const xpTransactions = createKeys('xpTransactions')
+const xpTransactions = createKeys("xpTransactions");
 const studentGamification = {
-  ...createKeys('studentGamification'),
+  ...createKeys("studentGamification"),
   sabbatical: (studentId: string) =>
-    ['studentGamification', 'sabbatical', studentId] as const,
+    ["studentGamification", "sabbatical", studentId] as const,
 };
-const badges = createKeys('badges')
-const leaderboard = createKeys('leaderboard')
-const journal = createKeys('journal')
-const habitLogs = createKeys('habitLogs')
+const badges = createKeys("badges");
+const leaderboard = createKeys("leaderboard");
+const journal = createKeys("journal");
+const habitLogs = createKeys("habitLogs");
 
 const studentHabitLevel = {
-  all: ['studentHabitLevel'] as const,
-  detail: (studentId: string) => ['studentHabitLevel', studentId] as const,
-}
-const bonusXPEvents = createKeys('bonusXPEvents')
-const streakFreezes = createKeys('streakFreezes')
+  all: ["studentHabitLevel"] as const,
+  detail: (studentId: string) => ["studentHabitLevel", studentId] as const,
+};
+const bonusXPEvents = createKeys("bonusXPEvents");
+const streakFreezes = createKeys("streakFreezes");
 
 // ─── Notifications ───────────────────────────────────────────────────────────
-const notifications = createKeys('notifications')
-const emailPreferences = createKeys('emailPreferences')
+const notifications = createKeys("notifications");
+const emailPreferences = createKeys("emailPreferences");
 
 // ─── AI Co-Pilot ─────────────────────────────────────────────────────────────
-const aiSuggestions = createKeys('aiSuggestions')
-const atRiskPredictions = createKeys('atRiskPredictions')
-const feedbackDrafts = createKeys('feedbackDrafts')
-const aiFeedback = createKeys('aiFeedback')
+const aiSuggestions = createKeys("aiSuggestions");
+const atRiskPredictions = createKeys("atRiskPredictions");
+const feedbackDrafts = createKeys("feedbackDrafts");
+const aiFeedback = createKeys("aiFeedback");
 
 // ─── Institutional Management ────────────────────────────────────────────────
-const semesters = createKeys('semesters')
-const departments = createKeys('departments')
-const courseSections = createKeys('courseSections')
-const surveys = createKeys('surveys')
-const surveyQuestions = createKeys('surveyQuestions')
-const surveyResponses = createKeys('surveyResponses')
-const cqiPlans = createKeys('cqiPlans')
-const institutionSettings = createKeys('institutionSettings')
-const programAccreditations = createKeys('programAccreditations')
-const announcements = createKeys('announcements')
-const courseModules = createKeys('courseModules')
-const courseMaterials = createKeys('courseMaterials')
-const discussionThreads = createKeys('discussionThreads')
-const discussionReplies = createKeys('discussionReplies')
-const classSessions = createKeys('classSessions')
-const attendanceRecords = createKeys('attendanceRecords')
-const quizzes = createKeys('quizzes')
-const quizQuestions = createKeys('quizQuestions')
-const quizAttempts = createKeys('quizAttempts')
-const gradeCategories = createKeys('gradeCategories')
-const gradebook = createKeys('gradebook')
-const timetableSlots = createKeys('timetableSlots')
-const academicCalendarEvents = createKeys('academicCalendarEvents')
-const parentStudentLinks = createKeys('parentStudentLinks')
-const feeStructures = createKeys('feeStructures')
-const feePayments = createKeys('feePayments')
-const transcripts = createKeys('transcripts')
-const courseFiles = createKeys('courseFiles')
+const semesters = createKeys("semesters");
+const departments = createKeys("departments");
+const courseSections = createKeys("courseSections");
+const surveys = createKeys("surveys");
+const surveyQuestions = createKeys("surveyQuestions");
+const surveyResponses = createKeys("surveyResponses");
+const cqiPlans = createKeys("cqiPlans");
+const institutionSettings = createKeys("institutionSettings");
+const programAccreditations = createKeys("programAccreditations");
+const announcements = createKeys("announcements");
+const courseModules = createKeys("courseModules");
+const courseMaterials = createKeys("courseMaterials");
+const discussionThreads = createKeys("discussionThreads");
+const discussionReplies = createKeys("discussionReplies");
+const classSessions = createKeys("classSessions");
+const attendanceRecords = createKeys("attendanceRecords");
+const quizzes = createKeys("quizzes");
+const quizQuestions = createKeys("quizQuestions");
+const quizAttempts = createKeys("quizAttempts");
+const gradeCategories = createKeys("gradeCategories");
+const gradebook = createKeys("gradebook");
+const timetableSlots = createKeys("timetableSlots");
+const academicCalendarEvents = createKeys("academicCalendarEvents");
+const parentStudentLinks = createKeys("parentStudentLinks");
+const feeStructures = createKeys("feeStructures");
+const feePayments = createKeys("feePayments");
+const transcripts = createKeys("transcripts");
+const courseFiles = createKeys("courseFiles");
 
 // ─── Dashboards ──────────────────────────────────────────────────────────────
-const adminDashboard = createKeys('adminDashboard')
-const coordinatorDashboard = createKeys('coordinatorDashboard')
-const studentDashboard = createKeys('studentDashboard')
-const parentDashboard = createKeys('parentDashboard')
-const teacherDashboard = createKeys('teacherDashboard')
+const adminDashboard = createKeys("adminDashboard");
+const coordinatorDashboard = createKeys("coordinatorDashboard");
+const studentDashboard = createKeys("studentDashboard");
+const parentDashboard = createKeys("parentDashboard");
+const teacherDashboard = createKeys("teacherDashboard");
 
 // ─── Reports ─────────────────────────────────────────────────────────────────
-const accreditationReports = createKeys('accreditationReports')
+const accreditationReports = createKeys("accreditationReports");
 
 // ─── Production ──────────────────────────────────────────────────────────────
-const calendarEvents = createKeys('calendarEvents')
-const globalSearch = createKeys('globalSearch')
-const notificationPreferences = createKeys('notificationPreferences')
-const sessions = createKeys('sessions')
-const auditLogs = createKeys('auditLogs')
+const calendarEvents = createKeys("calendarEvents");
+const globalSearch = createKeys("globalSearch");
+const notificationPreferences = createKeys("notificationPreferences");
+const sessions = createKeys("sessions");
+const auditLogs = createKeys("auditLogs");
 
 // ─── Heatmap & Wellness ──────────────────────────────────────────────────────
 const heatmap = {
-  all: ['heatmap'] as const,
+  all: ["heatmap"] as const,
   data: (studentId: string, start: string, end: string, filter?: string) =>
-    ['heatmap', studentId, start, end, filter] as const,
-  summary: (studentId: string) => ['heatmap', 'summary', studentId] as const,
+    ["heatmap", studentId, start, end, filter] as const,
+  summary: (studentId: string) => ["heatmap", "summary", studentId] as const,
   levelHistory: (studentId: string, start: string, end: string) =>
-    ['heatmap', 'levelHistory', studentId, start, end] as const,
-}
+    ["heatmap", "levelHistory", studentId, start, end] as const,
+};
 
 const wellness = {
-  all: ['wellness'] as const,
-  preferences: (studentId: string) => ['wellness', 'preferences', studentId] as const,
-  logs: (studentId: string, date: string) => ['wellness', 'logs', studentId, date] as const,
-}
+  all: ["wellness"] as const,
+  preferences: (studentId: string) =>
+    ["wellness", "preferences", studentId] as const,
+  logs: (studentId: string, date: string) =>
+    ["wellness", "logs", studentId, date] as const,
+};
 
 const habitAnalytics = {
-  all: ['habitAnalytics'] as const,
-  correlations: (studentId: string) => ['habitAnalytics', 'correlations', studentId] as const,
-}
+  all: ["habitAnalytics"] as const,
+  correlations: (studentId: string) =>
+    ["habitAnalytics", "correlations", studentId] as const,
+};
 
 // ─── Adaptive Quiz ────────────────────────────────────────────────────────────
-const questionBank = createKeys('questionBank')
-const questionAnalytics = createKeys('questionAnalytics')
-const quizGeneration = createKeys('quizGeneration')
-const reviewQueue = createKeys('reviewQueue')
-const quizCLOCorrelation = createKeys('quizCLOCorrelation')
+const questionBank = createKeys("questionBank");
+const questionAnalytics = createKeys("questionAnalytics");
+const quizGeneration = createKeys("quizGeneration");
+const reviewQueue = createKeys("reviewQueue");
+const quizCLOCorrelation = createKeys("quizCLOCorrelation");
 
 // ─── Practice Mode ─────────────────────────────────────────────────────────────
 const practiceMode = {
-  all: ['practiceMode'] as const,
-  config: (quizId: string) => ['practiceMode', quizId] as const,
+  all: ["practiceMode"] as const,
+  config: (quizId: string) => ["practiceMode", quizId] as const,
   attempts: (quizId: string, studentId?: string) =>
     studentId
-      ? (['practiceAttempts', quizId, studentId] as const)
-      : (['practiceAttempts', quizId] as const),
-}
+      ? (["practiceAttempts", quizId, studentId] as const)
+      : (["practiceAttempts", quizId] as const),
+};
 
 // ─── Explanation Confidence ───────────────────────────────────────────────────
 const verifiedExplanations = {
-  all: ['verifiedExplanations'] as const,
-  detail: (questionId: string) => ['verifiedExplanations', questionId] as const,
-}
+  all: ["verifiedExplanations"] as const,
+  detail: (questionId: string) => ["verifiedExplanations", questionId] as const,
+};
 const explanationReviewQueue = {
-  all: ['explanationReviewQueue'] as const,
-  list: (courseId: string) => ['explanationReviewQueue', courseId] as const,
-}
+  all: ["explanationReviewQueue"] as const,
+  list: (courseId: string) => ["explanationReviewQueue", courseId] as const,
+};
 
 // ─── Mastery Recovery ────────────────────────────────────────────────────────
 const masteryRecovery = {
-  all: ['masteryRecovery'] as const,
-  lists: () => [...masteryRecovery.all, 'list'] as const,
+  all: ["masteryRecovery"] as const,
+  lists: () => [...masteryRecovery.all, "list"] as const,
   list: (filters: Record<string, unknown>) =>
     [...masteryRecovery.lists(), filters] as const,
   status: (studentId: string, cloId: string) =>
-    ['masteryRecovery', 'status', studentId, cloId] as const,
+    ["masteryRecovery", "status", studentId, cloId] as const,
   detail: (recoveryId: string) =>
-    ['masteryRecovery', 'detail', recoveryId] as const,
+    ["masteryRecovery", "detail", recoveryId] as const,
   metrics: (institutionId: string) =>
-    ['masteryRecovery', 'metrics', institutionId] as const,
-}
+    ["masteryRecovery", "metrics", institutionId] as const,
+};
 
 // ─── Bloom's Progression ─────────────────────────────────────────────────
 const bloomsProgression = {
-  all: ['bloomsProgression'] as const,
+  all: ["bloomsProgression"] as const,
   progression: (studentId: string, courseId: string) =>
-    ['bloomsProgression', studentId, courseId] as const,
+    ["bloomsProgression", studentId, courseId] as const,
   climbState: (quizAttemptId: string) =>
-    ['bloomsProgression', 'climbState', quizAttemptId] as const,
+    ["bloomsProgression", "climbState", quizAttemptId] as const,
   badges: (studentId: string) =>
-    ['bloomsProgression', 'badges', studentId] as const,
-}
-
+    ["bloomsProgression", "badges", studentId] as const,
+};
 
 // ─── Onboarding ──────────────────────────────────────────────────────────────
 const onboarding = {
   progress: (studentId: string) =>
-    ['onboarding', 'progress', studentId] as const,
-  questions: (type: string) =>
-    ['onboarding', 'questions', type] as const,
+    ["onboarding", "progress", studentId] as const,
+  questions: (type: string) => ["onboarding", "questions", type] as const,
   responses: (studentId: string, version: number) =>
-    ['onboarding', 'responses', studentId, version] as const,
+    ["onboarding", "responses", studentId, version] as const,
   studentProfile: (studentId: string) =>
-    ['onboarding', 'studentProfile', studentId] as const,
+    ["onboarding", "studentProfile", studentId] as const,
   baselineTests: (courseId: string) =>
-    ['onboarding', 'baselineTests', courseId] as const,
+    ["onboarding", "baselineTests", courseId] as const,
   baselineResults: (courseId: string) =>
-    ['onboarding', 'baselineResults', courseId] as const,
+    ["onboarding", "baselineResults", courseId] as const,
   microAssessments: (studentId: string) =>
-    ['onboarding', 'microAssessments', studentId] as const,
+    ["onboarding", "microAssessments", studentId] as const,
   profileCompleteness: (studentId: string) =>
-    ['onboarding', 'profileCompleteness', studentId] as const,
+    ["onboarding", "profileCompleteness", studentId] as const,
   starterWeekSessions: (studentId: string) =>
-    ['onboarding', 'starterWeekSessions', studentId] as const,
+    ["onboarding", "starterWeekSessions", studentId] as const,
   goalSuggestions: (studentId: string, weekStart: string) =>
-    ['onboarding', 'goalSuggestions', studentId, weekStart] as const,
-}
+    ["onboarding", "goalSuggestions", studentId, weekStart] as const,
+};
 
 // ─── i18n ─────────────────────────────────────────────────────────────────────
 const i18n = {
-  all: ['i18n'] as const,
+  all: ["i18n"] as const,
   languagePreference: (userId: string) =>
-    ['i18n', 'languagePreference', userId] as const,
+    ["i18n", "languagePreference", userId] as const,
   institutionDefault: (institutionId: string) =>
-    ['i18n', 'institutionDefault', institutionId] as const,
-}
+    ["i18n", "institutionDefault", institutionId] as const,
+};
 
 // ─── Accessibility ────────────────────────────────────────────────────────────
 const accessibility = {
-  all: ['accessibility'] as const,
+  all: ["accessibility"] as const,
   preferences: (userId: string) =>
-    ['accessibility', 'preferences', userId] as const,
-}
+    ["accessibility", "preferences", userId] as const,
+};
 
 // ─── Exported Key Factory ────────────────────────────────────────────────────
 export const queryKeys = {
@@ -322,46 +323,50 @@ export const queryKeys = {
   // Onboarding
   onboarding,
   // OBE Visualizations
-  graduateAttributes: createKeys('graduateAttributes'),
-  graduateAttributeMappings: createKeys('graduateAttributeMappings'),
-  graduateAttributeAttainment: createKeys('graduateAttributeAttainment'),
-  competencyFrameworks: createKeys('competencyFrameworks'),
-  competencyItems: createKeys('competencyItems'),
-  competencyOutcomeMappings: createKeys('competencyOutcomeMappings'),
-  sankeyData: createKeys('sankeyData'),
-  gapAnalysisData: createKeys('gapAnalysisData'),
-  coverageHeatmapData: createKeys('coverageHeatmapData'),
-  semesterTrends: createKeys('semesterTrends'),
-  cohortComparison: createKeys('cohortComparison'),
-  historicalEvidence: createKeys('historicalEvidence'),
+  graduateAttributes: createKeys("graduateAttributes"),
+  graduateAttributeMappings: createKeys("graduateAttributeMappings"),
+  graduateAttributeAttainment: createKeys("graduateAttributeAttainment"),
+  competencyFrameworks: createKeys("competencyFrameworks"),
+  competencyItems: createKeys("competencyItems"),
+  competencyOutcomeMappings: createKeys("competencyOutcomeMappings"),
+  sankeyData: createKeys("sankeyData"),
+  gapAnalysisData: createKeys("gapAnalysisData"),
+  coverageHeatmapData: createKeys("coverageHeatmapData"),
+  semesterTrends: createKeys("semesterTrends"),
+  cohortComparison: createKeys("cohortComparison"),
+  historicalEvidence: createKeys("historicalEvidence"),
   // Teams
-  teams: createKeys('teams'),
-  teamMembers: createKeys('teamMembers'),
-  teamGamification: createKeys('teamGamification'),
-  teamLeaderboard: createKeys('teamLeaderboard'),
-  teamBadges: createKeys('teamBadges'),
+  teams: createKeys("teams"),
+  teamMembers: createKeys("teamMembers"),
+  teamGamification: createKeys("teamGamification"),
+  teamLeaderboard: createKeys("teamLeaderboard"),
+  teamBadges: createKeys("teamBadges"),
   // Challenges
-  challenges: createKeys('challenges'),
-  challengeProgress: createKeys('challengeProgress'),
-  studentChallenges: createKeys('studentChallenges'),
+  challenges: createKeys("challenges"),
+  challengeProgress: createKeys("challengeProgress"),
+  studentChallenges: createKeys("studentChallenges"),
   // Adaptive XP
-  xpMultiplier: createKeys('xpMultiplier'),
-  diminishingReturns: createKeys('diminishingReturns'),
-  improvementBonusHistory: createKeys('improvementBonusHistory'),
+  xpMultiplier: createKeys("xpMultiplier"),
+  diminishingReturns: createKeys("diminishingReturns"),
+  improvementBonusHistory: createKeys("improvementBonusHistory"),
   // Comeback Challenge
-  comebackChallenge: createKeys('comebackChallenge'),
+  comebackChallenge: createKeys("comebackChallenge"),
   // Leaderboard Enhancements
-  personalBest: createKeys('personalBest'),
-  mostImproved: createKeys('mostImproved'),
-  leagueTier: createKeys('leagueTier'),
-  percentileBand: createKeys('percentileBand'),
-  leagueLeaderboard: createKeys('leagueLeaderboard'),
+  personalBest: createKeys("personalBest"),
+  mostImproved: createKeys("mostImproved"),
+  leagueTier: createKeys("leagueTier"),
+  percentileBand: createKeys("percentileBand"),
+  leagueLeaderboard: createKeys("leagueLeaderboard"),
   // Badge Tiers
-  tieredBadges: createKeys('tieredBadges'),
-  badgeSpotlight: createKeys('badgeSpotlight'),
-  badgeSpotlightSchedule: createKeys('badgeSpotlightSchedule'),
+  tieredBadges: createKeys("tieredBadges"),
+  badgeSpotlight: createKeys("badgeSpotlight"),
+  badgeSpotlightSchedule: createKeys("badgeSpotlightSchedule"),
   // i18n
   i18n,
   // Accessibility
   accessibility,
-} as const
+  // Weekly Planner
+  studySessions: createKeys("studySessions"),
+  plannerTasks: createKeys("plannerTasks"),
+  weeklyGoals: createKeys("weeklyGoals"),
+} as const;

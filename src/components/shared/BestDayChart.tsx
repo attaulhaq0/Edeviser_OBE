@@ -6,9 +6,9 @@ import {
   Tooltip,
   ResponsiveContainer,
   Cell,
-} from 'recharts';
-import { getBestDay } from '@/lib/heatmapUtils';
-import type { DayOfWeekData } from '@/types/habits';
+} from "recharts";
+import { getBestDay } from "@/lib/heatmapUtils";
+import type { DayOfWeekData } from "@/types/habits";
 
 export interface BestDayChartProps {
   data: DayOfWeekData[];
@@ -19,7 +19,10 @@ const BestDayChart = ({ data }: BestDayChartProps) => {
 
   if (data.length === 0) {
     return (
-      <p className="text-sm text-gray-500 text-center py-8" data-testid="best-day-chart-empty">
+      <p
+        className="text-sm text-gray-500 text-center py-8"
+        data-testid="best-day-chart-empty"
+      >
         No data available
       </p>
     );
@@ -29,7 +32,8 @@ const BestDayChart = ({ data }: BestDayChartProps) => {
     <div data-testid="best-day-chart">
       {bestDay && (
         <p className="text-sm text-gray-600 mb-3">
-          Your best day is <span className="font-bold text-blue-600">{bestDay.day}</span> with an
+          Your best day is{" "}
+          <span className="font-bold text-blue-600">{bestDay.day}</span> with an
           average of {bestDay.avgCompletions} habits
         </p>
       )}
@@ -39,7 +43,12 @@ const BestDayChart = ({ data }: BestDayChartProps) => {
           layout="vertical"
           margin={{ top: 4, right: 4, bottom: 4, left: 4 }}
         >
-          <XAxis type="number" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
+          <XAxis
+            type="number"
+            tick={{ fontSize: 11 }}
+            tickLine={false}
+            axisLine={false}
+          />
           <YAxis
             type="category"
             dataKey="day"
@@ -50,14 +59,21 @@ const BestDayChart = ({ data }: BestDayChartProps) => {
             tickFormatter={(v: string) => v.slice(0, 3)}
           />
           <Tooltip
-            formatter={(value: number | undefined) => [(value ?? 0).toFixed(2), 'Avg Habits']}
+            formatter={
+              ((value: number | undefined) => [
+                (value ?? 0).toFixed(2),
+                "Avg Habits",
+              ]) as never
+            }
             contentStyle={{ borderRadius: 8, fontSize: 12 }}
           />
           <Bar dataKey="avgCompletions" radius={[0, 4, 4, 0]} maxBarSize={20}>
             {data.map((entry) => (
               <Cell
                 key={entry.day}
-                fill={bestDay && entry.day === bestDay.day ? '#2563eb' : '#e2e8f0'}
+                fill={
+                  bestDay && entry.day === bestDay.day ? "#2563eb" : "#e2e8f0"
+                }
               />
             ))}
           </Bar>

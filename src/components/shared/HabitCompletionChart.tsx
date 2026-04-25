@@ -1,4 +1,4 @@
-import { useId, useState } from 'react';
+import { useId, useState } from "react";
 import {
   BarChart,
   Bar,
@@ -6,10 +6,10 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
-} from 'recharts';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import type { CompletionRateData } from '@/types/habits';
+} from "recharts";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import type { CompletionRateData } from "@/types/habits";
 
 export interface HabitCompletionChartProps {
   weeklyData: CompletionRateData[];
@@ -18,8 +18,8 @@ export interface HabitCompletionChartProps {
   academicOnlyMonthlyData?: CompletionRateData[];
 }
 
-type Period = 'weekly' | 'monthly';
-type View = 'all' | 'academic';
+type Period = "weekly" | "monthly";
+type View = "all" | "academic";
 
 const HabitCompletionChart = ({
   weeklyData,
@@ -27,17 +27,17 @@ const HabitCompletionChart = ({
   academicOnlyWeeklyData,
   academicOnlyMonthlyData,
 }: HabitCompletionChartProps) => {
-  const [period, setPeriod] = useState<Period>('weekly');
-  const [view, setView] = useState<View>('all');
+  const [period, setPeriod] = useState<Period>("weekly");
+  const [view, setView] = useState<View>("all");
   const gradientId = `barGradient-${useId()}`;
 
   const getData = (): CompletionRateData[] => {
-    if (period === 'weekly') {
-      return view === 'academic' && academicOnlyWeeklyData
+    if (period === "weekly") {
+      return view === "academic" && academicOnlyWeeklyData
         ? academicOnlyWeeklyData
         : weeklyData;
     }
-    return view === 'academic' && academicOnlyMonthlyData
+    return view === "academic" && academicOnlyMonthlyData
       ? academicOnlyMonthlyData
       : monthlyData;
   };
@@ -49,7 +49,7 @@ const HabitCompletionChart = ({
       {/* Toggle controls */}
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <div className="flex gap-1">
-          {(['weekly', 'monthly'] as const).map((p) => (
+          {(["weekly", "monthly"] as const).map((p) => (
             <Button
               key={p}
               variant="outline"
@@ -57,19 +57,19 @@ const HabitCompletionChart = ({
               onClick={() => setPeriod(p)}
               aria-pressed={period === p}
               className={cn(
-                'px-3 py-1 text-xs font-semibold rounded-xl',
+                "px-3 py-1 text-xs font-semibold rounded-xl",
                 period === p
-                  ? 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700 hover:text-white'
-                  : 'bg-white text-gray-600 border-gray-200',
+                  ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700 hover:text-white"
+                  : "bg-white text-gray-600 border-gray-200"
               )}
               data-testid={`period-toggle-${p}`}
             >
-              {p === 'weekly' ? 'Weekly' : 'Monthly'}
+              {p === "weekly" ? "Weekly" : "Monthly"}
             </Button>
           ))}
         </div>
         <div className="flex gap-1">
-          {(['all', 'academic'] as const).map((v) => (
+          {(["all", "academic"] as const).map((v) => (
             <Button
               key={v}
               variant="outline"
@@ -77,14 +77,14 @@ const HabitCompletionChart = ({
               onClick={() => setView(v)}
               aria-pressed={view === v}
               className={cn(
-                'px-3 py-1 text-xs font-semibold rounded-xl',
+                "px-3 py-1 text-xs font-semibold rounded-xl",
                 view === v
-                  ? 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700 hover:text-white'
-                  : 'bg-white text-gray-600 border-gray-200',
+                  ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700 hover:text-white"
+                  : "bg-white text-gray-600 border-gray-200"
               )}
               data-testid={`view-toggle-${v}`}
             >
-              {v === 'all' ? 'All Habits' : 'Academic Only'}
+              {v === "all" ? "All Habits" : "Academic Only"}
             </Button>
           ))}
         </div>
@@ -92,10 +92,15 @@ const HabitCompletionChart = ({
 
       {/* Chart */}
       {data.length === 0 ? (
-        <p className="text-sm text-gray-500 text-center py-8">No data available</p>
+        <p className="text-sm text-gray-500 text-center py-8">
+          No data available
+        </p>
       ) : (
         <ResponsiveContainer width="100%" height={220}>
-          <BarChart data={data} margin={{ top: 4, right: 4, bottom: 4, left: -20 }}>
+          <BarChart
+            data={data}
+            margin={{ top: 4, right: 4, bottom: 4, left: -20 }}
+          >
             <XAxis
               dataKey="period"
               tick={{ fontSize: 11 }}
@@ -110,7 +115,12 @@ const HabitCompletionChart = ({
               tickFormatter={(v: number) => `${v}%`}
             />
             <Tooltip
-              formatter={(value: number | undefined) => [`${value ?? 0}%`, 'Completion']}
+              formatter={
+                ((value: number | undefined) => [
+                  `${value ?? 0}%`,
+                  "Completion",
+                ]) as never
+              }
               contentStyle={{ borderRadius: 8, fontSize: 12 }}
             />
             <Bar

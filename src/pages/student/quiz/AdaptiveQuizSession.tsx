@@ -105,8 +105,6 @@ const AdaptiveQuizSession = () => {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const hasInitialized = useRef(false);
 
-  // ─── Initialize session ─────────────────────────────────────────────────────
-
   const initSession = async () => {
     if (!quizId) return;
     try {
@@ -186,6 +184,7 @@ const AdaptiveQuizSession = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.attemptId]);
 
+  // ─── Initialize session ─────────────────────────────────────────────────────
   useEffect(() => {
     if (hasInitialized.current || !quizId || recoveryLoading || activeRecovery)
       return;

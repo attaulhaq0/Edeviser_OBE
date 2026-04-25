@@ -6,8 +6,8 @@ import {
   Tooltip,
   ResponsiveContainer,
   ReferenceDot,
-} from 'recharts';
-import type { LevelProgressionPoint } from '@/types/habits';
+} from "recharts";
+import type { LevelProgressionPoint } from "@/types/habits";
 
 export interface LevelProgressionChartProps {
   data: LevelProgressionPoint[];
@@ -18,7 +18,7 @@ export interface LevelProgressionChartProps {
  * Detects level-up points where the level increased from the previous entry.
  */
 const getLevelUpMarkers = (
-  data: LevelProgressionPoint[],
+  data: LevelProgressionPoint[]
 ): LevelProgressionPoint[] => {
   const markers: LevelProgressionPoint[] = [];
   for (let i = 1; i < data.length; i++) {
@@ -31,7 +31,10 @@ const getLevelUpMarkers = (
   return markers;
 };
 
-const LevelProgressionChart = ({ data, currentLevel }: LevelProgressionChartProps) => {
+const LevelProgressionChart = ({
+  data,
+  currentLevel,
+}: LevelProgressionChartProps) => {
   const firstPoint = data[0];
   const isSingleLevel =
     data.length <= 1 || data.every((p) => p.level === firstPoint?.level);
@@ -54,23 +57,27 @@ const LevelProgressionChart = ({ data, currentLevel }: LevelProgressionChartProp
     );
   }
 
-  const sorted = [...data].sort(
-    (a, b) => a.date.localeCompare(b.date),
-  );
+  const sorted = [...data].sort((a, b) => a.date.localeCompare(b.date));
   const levelUpMarkers = getLevelUpMarkers(sorted);
 
   return (
     <div data-testid="level-progression-chart">
       <ResponsiveContainer width="100%" height={220}>
-        <LineChart data={sorted} margin={{ top: 12, right: 12, bottom: 4, left: -20 }}>
+        <LineChart
+          data={sorted}
+          margin={{ top: 12, right: 12, bottom: 4, left: -20 }}
+        >
           <XAxis
             dataKey="date"
             tick={{ fontSize: 11 }}
             tickLine={false}
             axisLine={false}
             tickFormatter={(v: string) => {
-              const d = new Date(v + 'T00:00:00');
-              return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+              const d = new Date(v + "T00:00:00");
+              return d.toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+              });
             }}
           />
           <YAxis
@@ -82,13 +89,18 @@ const LevelProgressionChart = ({ data, currentLevel }: LevelProgressionChartProp
             tickFormatter={(v: number) => `Lv ${v}`}
           />
           <Tooltip
-            formatter={(value: number | undefined) => [`Level ${value ?? 0}`, 'Level']}
+            formatter={
+              ((value: number | undefined) => [
+                `Level ${value ?? 0}`,
+                "Level",
+              ]) as never
+            }
             labelFormatter={(label: unknown) => {
-              const d = new Date(String(label) + 'T00:00:00');
-              return d.toLocaleDateString('en-US', {
-                month: 'long',
-                day: 'numeric',
-                year: 'numeric',
+              const d = new Date(String(label) + "T00:00:00");
+              return d.toLocaleDateString("en-US", {
+                month: "long",
+                day: "numeric",
+                year: "numeric",
               });
             }}
             contentStyle={{ borderRadius: 8, fontSize: 12 }}
@@ -99,7 +111,7 @@ const LevelProgressionChart = ({ data, currentLevel }: LevelProgressionChartProp
             stroke="url(#levelGradient)"
             strokeWidth={3}
             dot={false}
-            activeDot={{ r: 5, fill: '#2563eb' }}
+            activeDot={{ r: 5, fill: "#2563eb" }}
           />
           {levelUpMarkers.map((marker) => (
             <ReferenceDot
