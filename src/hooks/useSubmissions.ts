@@ -1,12 +1,10 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import { logAuditEvent } from '@/lib/auditLogger';
-import { useAuth } from '@/hooks/useAuth';
-import type { PaginatedResult } from '@/types/pagination';
-import { getPaginationRange } from '@/types/pagination';
-
-
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import { logAuditEvent } from "@/lib/auditLogger";
+import { useAuth } from "@/hooks/useAuth";
+import type { PaginatedResult } from "@/types/pagination";
+import { getPaginationRange } from "@/types/pagination";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -22,7 +20,12 @@ export interface Submission {
 
 export interface SubmissionWithRelations extends Submission {
   profiles: { id: string; full_name: string; email: string } | null;
-  assignments: { id: string; title: string; total_marks: number; course_id: string } | null;
+  assignments: {
+    id: string;
+    title: string;
+    total_marks: number;
+    course_id: string;
+  } | null;
   grades: { id: string }[] | null;
 }
 
@@ -40,19 +43,26 @@ export interface SubmissionFilters {
 // ─── useSubmissions — list submissions with profile & assignment joins ───────
 
 export const useSubmissions = (filters: SubmissionFilters = {}) => {
-  const { page, pageSize, from, to } = getPaginationRange(filters.page, filters.pageSize);
+  const { page, pageSize, from, to } = getPaginationRange(
+    filters.page,
+    filters.pageSize
+  );
 
   return useQuery({
-    queryKey: queryKeys.submissions.list({ ...filters, page, pageSize } as Record<string, unknown>),
+    queryKey: queryKeys.submissions.list({
+      ...filters,
+      page,
+      pageSize,
+    } as Record<string, unknown>),
     queryFn: async (): Promise<PaginatedResult<SubmissionWithRelations>> => {
       // If filtering by section, first get student IDs in that section
       let sectionStudentIds: string[] | null = null;
       if (filters.sectionId) {
         const { data: enrollments, error: enrollError } = await supabase
-          .from('student_courses')
-          .select('student_id')
-          .eq('section_id', filters.sectionId)
-          .eq('status', 'active');
+          .from("student_courses")
+          .select("student_id")
+          .eq("section_id", filters.sectionId)
+          .eq("status", "active");
         if (enrollError) throw enrollError;
         sectionStudentIds = (enrollments ?? []).map((e) => e.student_id);
         if (sectionStudentIds.length === 0) {
@@ -60,26 +70,35 @@ export const useSubmissions = (filters: SubmissionFilters = {}) => {
         }
       }
 
-      let query = supabase.from('submissions')
-        .select('*, profiles!submissions_student_id_fkey(id, full_name, email), assignments(id, title, total_marks, course_id), grades(id)', { count: 'exact' })
-        .order('created_at', { ascending: false })
+      let query = supabase
+        .from("submissions")
+        .select(
+          "*, profiles!submissions_student_id_fkey(id, full_name, email), assignments(id, title, total_marks, course_id), grades(id)",
+          { count: "exact" }
+        )
+        .order("created_at", { ascending: false })
         .range(from, to);
 
       if (filters.assignmentId) {
-        query = query.eq('assignment_id', filters.assignmentId);
+        query = query.eq("assignment_id", filters.assignmentId);
       }
 
       if (filters.courseId) {
-        query = query.eq('assignments.course_id', filters.courseId);
+        query = query.eq("assignments.course_id", filters.courseId);
       }
 
       if (sectionStudentIds) {
-        query = query.in('student_id', sectionStudentIds);
+        query = query.in("student_id", sectionStudentIds);
       }
 
       const { data, error, count } = await query;
       if (error) throw error;
-      return { data: (data ?? []) as SubmissionWithRelations[], count: count ?? 0, page, pageSize };
+      return {
+        data: (data ?? []) as SubmissionWithRelations[],
+        count: count ?? 0,
+        page,
+        pageSize,
+      };
     },
   });
 };
@@ -88,11 +107,14 @@ export const useSubmissions = (filters: SubmissionFilters = {}) => {
 
 export const useSubmission = (id?: string) => {
   return useQuery({
-    queryKey: queryKeys.submissions.detail(id ?? ''),
+    queryKey: queryKeys.submissions.detail(id ?? ""),
     queryFn: async (): Promise<SubmissionWithRelations | null> => {
-      const { data, error } = await supabase.from('submissions')
-        .select('*, profiles!submissions_student_id_fkey(id, full_name, email), assignments(id, title, total_marks, course_id), grades(id)')
-        .eq('id', id!)
+      const { data, error } = await supabase
+        .from("submissions")
+        .select(
+          "*, profiles!submissions_student_id_fkey(id, full_name, email), assignments(id, title, total_marks, course_id), grades(id)"
+        )
+        .eq("id", id!)
         .maybeSingle();
 
       if (error) throw error;
@@ -106,14 +128,17 @@ export const useSubmission = (id?: string) => {
 
 export const usePendingSubmissions = (courseId?: string) => {
   return useQuery({
-    queryKey: queryKeys.submissions.list({ courseId, status: 'pending' }),
+    queryKey: queryKeys.submissions.list({ courseId, status: "pending" }),
     queryFn: async (): Promise<SubmissionWithRelations[]> => {
-      let query = supabase.from('submissions')
-        .select('*, profiles!submissions_student_id_fkey(id, full_name, email), assignments(id, title, total_marks, course_id), grades(id)')
-        .order('created_at', { ascending: false });
+      let query = supabase
+        .from("submissions")
+        .select(
+          "*, profiles!submissions_student_id_fkey(id, full_name, email), assignments(id, title, total_marks, course_id), grades(id)"
+        )
+        .order("created_at", { ascending: false });
 
       if (courseId) {
-        query = query.eq('assignments.course_id', courseId);
+        query = query.eq("assignments.course_id", courseId);
       }
 
       const { data, error } = await query;
@@ -147,7 +172,7 @@ export interface StudentAssignment {
   late_window_hours: number;
   prerequisites: Array<{ clo_id: string; required_attainment: number }> | null;
   created_at: string;
-  submissions: Pick<Submission, 'id' | 'is_late'>[] | null;
+  submissions: Pick<Submission, "id" | "is_late">[] | null;
 }
 
 // ─── useCreateSubmission — insert a submission record ───────────────────────
@@ -161,15 +186,16 @@ export const useCreateSubmission = () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      if (!user) throw new Error("Not authenticated");
 
-      const { data, error } = await supabase.from('submissions')
+      // submissions table has no institution_id column; inherits from assignment FK
+      const { data, error } = await supabase
+        .from("submissions")
         .insert({
           assignment_id: input.assignment_id,
           student_id: user.id,
           file_url: input.file_url,
           is_late: input.is_late,
-          institution_id: input.institution_id,
         })
         .select()
         .single();
@@ -179,8 +205,8 @@ export const useCreateSubmission = () => {
       const submission = data as unknown as Submission;
 
       await logAuditEvent({
-        action: 'create',
-        entity_type: 'submission',
+        action: "create",
+        entity_type: "submission",
         entity_id: submission.id,
         changes: { ...input },
         performed_by: authUser?.id ?? user.id,
@@ -189,8 +215,12 @@ export const useCreateSubmission = () => {
       return submission;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.submissions.lists() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.assignments.lists() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.submissions.lists(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.assignments.lists(),
+      });
     },
   });
 };
@@ -209,9 +239,9 @@ export const useUploadSubmissionFile = () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      if (!user) throw new Error("Not authenticated");
 
-      const { uploadSubmissionFile } = await import('@/lib/fileUpload');
+      const { uploadSubmissionFile } = await import("@/lib/fileUpload");
       return uploadSubmissionFile({
         file: params.file,
         assignmentId: params.assignmentId,
@@ -226,34 +256,34 @@ export const useUploadSubmissionFile = () => {
 
 export const useStudentAssignments = (courseId?: string) => {
   return useQuery({
-    queryKey: queryKeys.assignments.list({ courseId, scope: 'student' }),
+    queryKey: queryKeys.assignments.list({ courseId, scope: "student" }),
     queryFn: async (): Promise<StudentAssignment[]> => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      if (!user) throw new Error("Not authenticated");
 
       // Get courses the student is enrolled in
-      const { data: enrollments, error: enrollError } = await supabase.from('student_courses')
-        .select('course_id')
-        .eq('student_id', user.id);
+      const { data: enrollments, error: enrollError } = await supabase
+        .from("student_courses")
+        .select("course_id")
+        .eq("student_id", user.id);
 
       if (enrollError) throw enrollError;
 
-      const courseIds = (enrollments ?? []).map(
-        (e) => e.course_id,
-      );
+      const courseIds = (enrollments ?? []).map((e) => e.course_id);
 
       if (courseIds.length === 0) return [];
 
-      let query = supabase.from('assignments')
-        .select('*, submissions(id, is_late, created_at)')
-        .in('course_id', courseIds)
-        .eq('submissions.student_id', user.id)
-        .order('due_date', { ascending: true });
+      let query = supabase
+        .from("assignments")
+        .select("*, submissions(id, is_late, created_at)")
+        .in("course_id", courseIds)
+        .eq("submissions.student_id", user.id)
+        .order("due_date", { ascending: true });
 
       if (courseId) {
-        query = query.eq('course_id', courseId);
+        query = query.eq("course_id", courseId);
       }
 
       const { data, error } = await query;

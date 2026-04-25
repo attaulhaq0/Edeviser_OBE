@@ -1,7 +1,7 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import { useAuth } from '@/hooks/useAuth';
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import { useAuth } from "@/hooks/useAuth";
 
 export const useUpdateLanguagePreference = () => {
   const queryClient = useQueryClient();
@@ -12,9 +12,9 @@ export const useUpdateLanguagePreference = () => {
       if (!user?.id) return;
 
       const { error } = await supabase
-        .from('profiles')
-        .update({ preferred_language: language } as Record<string, unknown>)
-        .eq('id', user.id);
+        .from("profiles")
+        .update({ preferred_language: language })
+        .eq("id", user.id);
       if (error) throw error;
     },
     onSuccess: () => {

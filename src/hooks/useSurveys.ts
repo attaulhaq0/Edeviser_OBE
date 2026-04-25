@@ -1,13 +1,13 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import { logAuditEvent } from '@/lib/auditLogger';
-import type { Json } from '@/types/database';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import { logAuditEvent } from "@/lib/auditLogger";
+import type { Database, Json } from "@/types/database";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
-export type SurveyType = 'course_exit' | 'graduate_exit' | 'employer';
-export type QuestionType = 'likert' | 'mcq' | 'text';
+export type SurveyType = "course_exit" | "graduate_exit" | "employer";
+export type QuestionType = "likert" | "mcq" | "text";
 
 export interface Survey {
   id: string;
@@ -95,23 +95,29 @@ export const useSurveys = (filters: Record<string, unknown> = {}) => {
     queryKey: queryKeys.surveys.list(filters),
     queryFn: async (): Promise<Survey[]> => {
       const { data, error } = await supabase
-        .from('surveys')
-        .select('id, institution_id, title, type, target_outcomes, is_active, created_at')
-        .order('created_at', { ascending: false });
+        .from("surveys")
+        .select(
+          "id, institution_id, title, type, target_outcomes, is_active, created_at"
+        )
+        .order("created_at", { ascending: false });
       if (error) throw error;
-      return (data ?? []).map((r) => castSurvey(r as unknown as Record<string, unknown>));
+      return (data ?? []).map((r) =>
+        castSurvey(r as unknown as Record<string, unknown>)
+      );
     },
   });
 };
 
 export const useSurvey = (surveyId: string | undefined) => {
   return useQuery({
-    queryKey: queryKeys.surveys.detail(surveyId ?? ''),
+    queryKey: queryKeys.surveys.detail(surveyId ?? ""),
     queryFn: async (): Promise<Survey | null> => {
       const { data, error } = await supabase
-        .from('surveys')
-        .select('id, institution_id, title, type, target_outcomes, is_active, created_at')
-        .eq('id', surveyId!)
+        .from("surveys")
+        .select(
+          "id, institution_id, title, type, target_outcomes, is_active, created_at"
+        )
+        .eq("id", surveyId!)
         .maybeSingle();
       if (error) throw error;
       if (!data) return null;
@@ -125,15 +131,19 @@ export const useSurvey = (surveyId: string | undefined) => {
 
 export const useSurveyQuestions = (surveyId: string | undefined) => {
   return useQuery({
-    queryKey: queryKeys.surveyQuestions.list({ surveyId: surveyId ?? '' }),
+    queryKey: queryKeys.surveyQuestions.list({ surveyId: surveyId ?? "" }),
     queryFn: async (): Promise<SurveyQuestion[]> => {
       const { data, error } = await supabase
-        .from('survey_questions')
-        .select('id, survey_id, question_text, question_type, options, sort_order')
-        .eq('survey_id', surveyId!)
-        .order('sort_order', { ascending: true });
+        .from("survey_questions")
+        .select(
+          "id, survey_id, question_text, question_type, options, sort_order"
+        )
+        .eq("survey_id", surveyId!)
+        .order("sort_order", { ascending: true });
       if (error) throw error;
-      return (data ?? []).map((r) => castQuestion(r as unknown as Record<string, unknown>));
+      return (data ?? []).map((r) =>
+        castQuestion(r as unknown as Record<string, unknown>)
+      );
     },
     enabled: !!surveyId,
   });
@@ -143,13 +153,15 @@ export const useSurveyQuestions = (surveyId: string | undefined) => {
 
 export const useSurveyResponses = (surveyId: string | undefined) => {
   return useQuery({
-    queryKey: queryKeys.surveyResponses.list({ surveyId: surveyId ?? '' }),
+    queryKey: queryKeys.surveyResponses.list({ surveyId: surveyId ?? "" }),
     queryFn: async (): Promise<SurveyResponse[]> => {
       const { data, error } = await supabase
-        .from('survey_responses')
-        .select('id, survey_id, question_id, respondent_id, response_value, created_at')
-        .eq('survey_id', surveyId!)
-        .order('created_at', { ascending: false });
+        .from("survey_responses")
+        .select(
+          "id, survey_id, question_id, respondent_id, response_value, created_at"
+        )
+        .eq("survey_id", surveyId!)
+        .order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as SurveyResponse[];
     },
@@ -157,15 +169,22 @@ export const useSurveyResponses = (surveyId: string | undefined) => {
   });
 };
 
-export const useHasRespondedToSurvey = (surveyId: string | undefined, respondentId: string | undefined) => {
+export const useHasRespondedToSurvey = (
+  surveyId: string | undefined,
+  respondentId: string | undefined
+) => {
   return useQuery({
-    queryKey: queryKeys.surveyResponses.list({ surveyId: surveyId ?? '', respondentId: respondentId ?? '', check: true }),
+    queryKey: queryKeys.surveyResponses.list({
+      surveyId: surveyId ?? "",
+      respondentId: respondentId ?? "",
+      check: true,
+    }),
     queryFn: async (): Promise<boolean> => {
       const { count, error } = await supabase
-        .from('survey_responses')
-        .select('id', { count: 'exact', head: true })
-        .eq('survey_id', surveyId!)
-        .eq('respondent_id', respondentId!);
+        .from("survey_responses")
+        .select("id", { count: "exact", head: true })
+        .eq("survey_id", surveyId!)
+        .eq("respondent_id", respondentId!);
       if (error) throw error;
       return (count ?? 0) > 0;
     },
@@ -178,9 +197,12 @@ export const useHasRespondedToSurvey = (surveyId: string | undefined, respondent
 export const useCreateSurvey = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ performedBy, ...input }: CreateSurveyInput & { performedBy: string }) => {
+    mutationFn: async ({
+      performedBy,
+      ...input
+    }: CreateSurveyInput & { performedBy: string }) => {
       const { data, error } = await supabase
-        .from('surveys')
+        .from("surveys")
         .insert({
           institution_id: input.institution_id,
           title: input.title,
@@ -192,10 +214,14 @@ export const useCreateSurvey = () => {
         .single();
       if (error) throw error;
       await logAuditEvent({
-        action: 'create',
-        entity_type: 'survey',
+        action: "create",
+        entity_type: "survey",
         entity_id: data.id,
-        changes: { title: input.title, type: input.type, is_active: input.is_active },
+        changes: {
+          title: input.title,
+          type: input.type,
+          is_active: input.is_active,
+        },
         performed_by: performedBy,
       });
       return castSurvey(data as unknown as Record<string, unknown>);
@@ -209,23 +235,28 @@ export const useCreateSurvey = () => {
 export const useUpdateSurvey = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, performedBy, ...input }: Partial<CreateSurveyInput> & { id: string; performedBy: string }) => {
-      const payload: Record<string, unknown> = {};
+    mutationFn: async ({
+      id,
+      performedBy,
+      ...input
+    }: Partial<CreateSurveyInput> & { id: string; performedBy: string }) => {
+      const payload: Database["public"]["Tables"]["surveys"]["Update"] = {};
       if (input.title !== undefined) payload.title = input.title;
       if (input.type !== undefined) payload.type = input.type;
-      if (input.target_outcomes !== undefined) payload.target_outcomes = input.target_outcomes;
+      if (input.target_outcomes !== undefined)
+        payload.target_outcomes = input.target_outcomes;
       if (input.is_active !== undefined) payload.is_active = input.is_active;
 
       const { data, error } = await supabase
-        .from('surveys')
+        .from("surveys")
         .update(payload)
-        .eq('id', id)
+        .eq("id", id)
         .select()
         .single();
       if (error) throw error;
       await logAuditEvent({
-        action: 'update',
-        entity_type: 'survey',
+        action: "update",
+        entity_type: "survey",
         entity_id: id,
         changes: payload,
         performed_by: performedBy,
@@ -234,7 +265,9 @@ export const useUpdateSurvey = () => {
     },
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.surveys.lists() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.surveys.detail(variables.id) });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.surveys.detail(variables.id),
+      });
     },
   });
 };
@@ -242,12 +275,18 @@ export const useUpdateSurvey = () => {
 export const useDeleteSurvey = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, performedBy }: { id: string; performedBy: string }) => {
-      const { error } = await supabase.from('surveys').delete().eq('id', id);
+    mutationFn: async ({
+      id,
+      performedBy,
+    }: {
+      id: string;
+      performedBy: string;
+    }) => {
+      const { error } = await supabase.from("surveys").delete().eq("id", id);
       if (error) throw error;
       await logAuditEvent({
-        action: 'delete',
-        entity_type: 'survey',
+        action: "delete",
+        entity_type: "survey",
         entity_id: id,
         changes: null,
         performed_by: performedBy,
@@ -266,7 +305,7 @@ export const useCreateSurveyQuestion = () => {
   return useMutation({
     mutationFn: async (input: CreateSurveyQuestionInput) => {
       const { data, error } = await supabase
-        .from('survey_questions')
+        .from("survey_questions")
         .insert({
           survey_id: input.survey_id,
           question_text: input.question_text,
@@ -280,7 +319,11 @@ export const useCreateSurveyQuestion = () => {
       return castQuestion(data as unknown as Record<string, unknown>);
     },
     onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.surveyQuestions.list({ surveyId: variables.survey_id }) });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.surveyQuestions.list({
+          surveyId: variables.survey_id,
+        }),
+      });
     },
   });
 };
@@ -288,24 +331,38 @@ export const useCreateSurveyQuestion = () => {
 export const useUpdateSurveyQuestion = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, surveyId: _surveyId, ...input }: Partial<CreateSurveyQuestionInput> & { id: string; surveyId: string }) => {
-      const payload: Record<string, unknown> = {};
-      if (input.question_text !== undefined) payload.question_text = input.question_text;
-      if (input.question_type !== undefined) payload.question_type = input.question_type;
+    mutationFn: async ({
+      id,
+      surveyId: _surveyId,
+      ...input
+    }: Partial<CreateSurveyQuestionInput> & {
+      id: string;
+      surveyId: string;
+    }) => {
+      const payload: Database["public"]["Tables"]["survey_questions"]["Update"] =
+        {};
+      if (input.question_text !== undefined)
+        payload.question_text = input.question_text;
+      if (input.question_type !== undefined)
+        payload.question_type = input.question_type;
       if (input.options !== undefined) payload.options = input.options;
       if (input.sort_order !== undefined) payload.sort_order = input.sort_order;
 
       const { data, error } = await supabase
-        .from('survey_questions')
+        .from("survey_questions")
         .update(payload)
-        .eq('id', id)
+        .eq("id", id)
         .select()
         .single();
       if (error) throw error;
       return castQuestion(data as unknown as Record<string, unknown>);
     },
     onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.surveyQuestions.list({ surveyId: variables.surveyId }) });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.surveyQuestions.list({
+          surveyId: variables.surveyId,
+        }),
+      });
     },
   });
 };
@@ -314,11 +371,18 @@ export const useDeleteSurveyQuestion = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id }: { id: string; surveyId: string }) => {
-      const { error } = await supabase.from('survey_questions').delete().eq('id', id);
+      const { error } = await supabase
+        .from("survey_questions")
+        .delete()
+        .eq("id", id);
       if (error) throw error;
     },
     onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.surveyQuestions.list({ surveyId: variables.surveyId }) });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.surveyQuestions.list({
+          surveyId: variables.surveyId,
+        }),
+      });
     },
   });
 };
@@ -335,11 +399,15 @@ export const useSubmitSurveyResponse = () => {
         respondent_id: input.respondent_id,
         response_value: r.response_value,
       }));
-      const { error } = await supabase.from('survey_responses').insert(rows);
+      const { error } = await supabase.from("survey_responses").insert(rows);
       if (error) throw error;
     },
     onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.surveyResponses.list({ surveyId: variables.survey_id }) });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.surveyResponses.list({
+          surveyId: variables.survey_id,
+        }),
+      });
       queryClient.invalidateQueries({
         queryKey: queryKeys.surveyResponses.list({
           surveyId: variables.survey_id,

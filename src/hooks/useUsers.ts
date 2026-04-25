@@ -1,15 +1,16 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import { logAuditEvent } from '@/lib/auditLogger';
-import { useAuth } from '@/hooks/useAuth';
-import type { CreateUserFormData, UpdateUserFormData } from '@/lib/schemas/user';
-import type { Profile } from '@/types/app';
-import type { PaginatedResult } from '@/types/pagination';
-import { getPaginationRange } from '@/types/pagination';
-import { sanitizePostgrestValue } from '@/lib/sanitizeFilter';
-
-
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import { logAuditEvent } from "@/lib/auditLogger";
+import { useAuth } from "@/hooks/useAuth";
+import type {
+  CreateUserFormData,
+  UpdateUserFormData,
+} from "@/lib/schemas/user";
+import type { Profile } from "@/types/app";
+import type { PaginatedResult } from "@/types/pagination";
+import { getPaginationRange } from "@/types/pagination";
+import { sanitizePostgrestValue } from "@/lib/sanitizeFilter";
 
 // ─── Filter types ────────────────────────────────────────────────────────────
 
@@ -23,30 +24,40 @@ export interface UserFilters {
 // ─── useUsers — list users with optional search/role filter ──────────────────
 
 export const useUsers = (filters: UserFilters = {}) => {
-  const { page, pageSize, from, to } = getPaginationRange(filters.page, filters.pageSize);
+  const { page, pageSize, from, to } = getPaginationRange(
+    filters.page,
+    filters.pageSize
+  );
 
   return useQuery({
-    queryKey: queryKeys.users.list({ ...filters, page, pageSize } as Record<string, unknown>),
+    queryKey: queryKeys.users.list({ ...filters, page, pageSize } as Record<
+      string,
+      unknown
+    >),
     queryFn: async (): Promise<PaginatedResult<Profile>> => {
-      let query = supabase.from('profiles')
-        .select('*', { count: 'exact' })
-        .order('created_at', { ascending: false })
+      let query = supabase
+        .from("profiles")
+        .select("*", { count: "exact" })
+        .order("created_at", { ascending: false })
         .range(from, to);
 
       if (filters.role) {
-        query = query.eq('role', filters.role as never);
+        query = query.eq("role", filters.role as never);
       }
 
       if (filters.search) {
         const safe = sanitizePostgrestValue(filters.search);
-        query = query.or(
-          `full_name.ilike.%${safe}%,email.ilike.%${safe}%`,
-        );
+        query = query.or(`full_name.ilike.%${safe}%,email.ilike.%${safe}%`);
       }
 
       const { data, error, count } = await query;
       if (error) throw error;
-      return { data: (data ?? []) as Profile[], count: count ?? 0, page, pageSize };
+      return {
+        data: (data ?? []) as Profile[],
+        count: count ?? 0,
+        page,
+        pageSize,
+      };
     },
   });
 };
@@ -55,13 +66,14 @@ export const useUsers = (filters: UserFilters = {}) => {
 
 export const useCoordinators = () => {
   return useQuery({
-    queryKey: queryKeys.users.list({ role: 'coordinator' }),
+    queryKey: queryKeys.users.list({ role: "coordinator" }),
     queryFn: async (): Promise<Profile[]> => {
-      const { data, error } = await supabase.from('profiles')
-        .select('*')
-        .eq('role', 'coordinator')
-        .eq('is_active', true)
-        .order('full_name', { ascending: true });
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("role", "coordinator")
+        .eq("is_active", true)
+        .order("full_name", { ascending: true });
 
       if (error) throw error;
       return data as Profile[];
@@ -73,11 +85,12 @@ export const useCoordinators = () => {
 
 export const useUser = (id: string | undefined) => {
   return useQuery({
-    queryKey: queryKeys.users.detail(id ?? ''),
+    queryKey: queryKeys.users.detail(id ?? ""),
     queryFn: async (): Promise<Profile | null> => {
-      const { data, error } = await supabase.from('profiles')
-        .select('*')
-        .eq('id', id!)
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", id!)
         .maybeSingle();
 
       if (error) throw error;
@@ -96,14 +109,17 @@ export const useCreateUser = () => {
   return useMutation({
     mutationFn: async (data: CreateUserFormData): Promise<Profile> => {
       // Fetch institution default language
-      let preferredLanguage = 'en';
+      let preferredLanguage = "en";
       try {
         const { data: settings } = await supabase
-          .from('institution_settings')
-          .select('*')
-          .eq('institution_id', data.institution_id)
+          .from("institution_settings")
+          .select("*")
+          .eq("institution_id", data.institution_id)
           .maybeSingle();
-        const settingsRecord = settings as unknown as Record<string, unknown> | null;
+        const settingsRecord = settings as unknown as Record<
+          string,
+          unknown
+        > | null;
         if (settingsRecord?.default_language) {
           preferredLanguage = settingsRecord.default_language as string;
         }
@@ -111,7 +127,8 @@ export const useCreateUser = () => {
         // Fall back to 'en' if settings fetch fails
       }
 
-      const { data: result, error } = await supabase.from('profiles')
+      const { data: result, error } = await supabase
+        .from("profiles")
         .insert({ ...data, preferred_language: preferredLanguage } as never)
         .select()
         .single();
@@ -121,11 +138,11 @@ export const useCreateUser = () => {
       const profile = result as Profile;
 
       await logAuditEvent({
-        action: 'create',
-        entity_type: 'user',
+        action: "create",
+        entity_type: "user",
         entity_id: profile.id,
         changes: data,
-        performed_by: user?.id ?? 'unknown',
+        performed_by: user?.id ?? "unknown",
       });
 
       return profile;
@@ -144,20 +161,24 @@ export const useUpdateUser = (id: string) => {
 
   return useMutation({
     mutationFn: async (data: UpdateUserFormData): Promise<Profile> => {
-      const { data: result, error } = await supabase.from('profiles')
-        .update(data)
-        .eq('id', id)
+      // profiles table doesn't have program_id; strip it before update
+      const { program_id: _program_id, ...profileFields } = data;
+      void _program_id;
+      const { data: result, error } = await supabase
+        .from("profiles")
+        .update(profileFields)
+        .eq("id", id)
         .select()
         .single();
 
       if (error) throw error;
 
       await logAuditEvent({
-        action: 'update',
-        entity_type: 'user',
+        action: "update",
+        entity_type: "user",
         entity_id: id,
         changes: data,
-        performed_by: user?.id ?? 'unknown',
+        performed_by: user?.id ?? "unknown",
       });
 
       return result as Profile;
@@ -177,20 +198,21 @@ export const useSoftDeleteUser = () => {
 
   return useMutation({
     mutationFn: async (id: string): Promise<Profile> => {
-      const { data: result, error } = await supabase.from('profiles')
+      const { data: result, error } = await supabase
+        .from("profiles")
         .update({ is_active: false })
-        .eq('id', id)
+        .eq("id", id)
         .select()
         .single();
 
       if (error) throw error;
 
       await logAuditEvent({
-        action: 'soft_delete',
-        entity_type: 'user',
+        action: "soft_delete",
+        entity_type: "user",
         entity_id: id,
         changes: { is_active: false },
-        performed_by: user?.id ?? 'unknown',
+        performed_by: user?.id ?? "unknown",
       });
 
       return result as Profile;

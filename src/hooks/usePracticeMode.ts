@@ -1,6 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -34,9 +34,9 @@ export const usePracticeModeConfig = (quizId: string) => {
     queryKey: queryKeys.practiceMode.config(quizId),
     queryFn: async (): Promise<PracticeModeConfig | null> => {
       const { data, error } = await supabase
-        .from('quizzes')
-        .select('*')
-        .eq('id', quizId)
+        .from("quizzes")
+        .select("*")
+        .eq("id", quizId)
         .maybeSingle();
 
       if (error) throw error;
@@ -58,14 +58,16 @@ export const useTogglePracticeMode = () => {
 
   return useMutation({
     mutationFn: async (input: TogglePracticeModeInput) => {
+      // practice_mode_enabled column not present in current generated types;
+      // cast through `never` until the schema migration is applied upstream.
       const updatePayload = {
         practice_mode_enabled: input.practice_mode_enabled,
-      } as unknown as Record<string, unknown>;
+      } as never;
 
       const { data, error } = await supabase
-        .from('quizzes')
+        .from("quizzes")
         .update(updatePayload)
-        .eq('id', input.quiz_id)
+        .eq("id", input.quiz_id)
         .select()
         .single();
 
@@ -91,17 +93,17 @@ export const usePracticeAttempts = (quizId: string, studentId: string) => {
     queryKey: queryKeys.practiceMode.attempts(quizId, studentId),
     queryFn: async (): Promise<PracticeAttempt[]> => {
       const { data, error } = await supabase
-        .from('quiz_attempts')
-        .select('*')
-        .eq('quiz_id', quizId)
-        .eq('student_id', studentId)
-        .order('created_at', { ascending: false });
+        .from("quiz_attempts")
+        .select("*")
+        .eq("quiz_id", quizId)
+        .eq("student_id", studentId)
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
 
       const rows = (data ?? []) as unknown as Record<string, unknown>[];
       return rows
-        .filter((r) => r.mode === 'practice')
+        .filter((r) => r.mode === "practice")
         .map((r) => ({
           id: r.id as string,
           quiz_id: r.quiz_id as string,

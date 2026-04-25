@@ -1,13 +1,13 @@
 // Task 151.4: Badge Tier TanStack Query hooks
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import { toast } from 'sonner';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import { toast } from "sonner";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-export type BadgeTier = 'bronze' | 'silver' | 'gold';
+export type BadgeTier = "bronze" | "silver" | "gold";
 
 export interface TieredBadgeData {
   id: string;
@@ -39,26 +39,26 @@ export interface SpotlightScheduleEntry {
 
 export const useTieredBadges = (studentId: string | undefined) => {
   return useQuery({
-    queryKey: queryKeys.tieredBadges.detail(studentId ?? ''),
+    queryKey: queryKeys.tieredBadges.detail(studentId ?? ""),
     queryFn: async (): Promise<TieredBadgeData[]> => {
       const { data, error } = await supabase
-        .from('badges')
-        .select('*')
-        .eq('student_id', studentId!)
-        .eq('scope', 'individual')
-        .order('created_at', { ascending: false });
+        .from("badges")
+        .select("*")
+        .eq("student_id", studentId!)
+        .is("team_id", null)
+        .order("awarded_at", { ascending: false });
       if (error) throw error;
-      return (data ?? []).map((b: Record<string, unknown>) => ({
-        id: b.id as string,
-        name: b.name as string,
-        emoji: (b.emoji as string) ?? '🏅',
-        description: (b.description as string) ?? '',
-        category: (b.category as string) ?? 'general',
+      return (data ?? []).map((b) => ({
+        id: b.id,
+        name: b.badge_name,
+        emoji: b.emoji ?? "🏅",
+        description: "",
+        category: b.category ?? "general",
         tier: (b.tier as BadgeTier) ?? null,
         is_pinned: b.is_pinned === true,
-        archived_at: (b.archived_at as string) ?? null,
-        earned_at: b.created_at as string,
-        progress_toward_next: (b.progress_toward_next as number) ?? 0,
+        archived_at: b.archived_at ?? null,
+        earned_at: b.awarded_at,
+        progress_toward_next: 0,
       }));
     },
     enabled: !!studentId,
@@ -72,14 +72,14 @@ export const usePinBadge = () => {
   return useMutation({
     mutationFn: async ({ badgeId }: { badgeId: string }) => {
       const { error } = await supabase
-        .from('badges')
+        .from("badges")
         .update({ is_pinned: true } as never)
-        .eq('id', badgeId);
+        .eq("id", badgeId);
       if (error) throw error;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.tieredBadges.all });
-      toast.success('Badge pinned');
+      toast.success("Badge pinned");
     },
     onError: (err) => toast.error((err as Error).message),
   });
@@ -92,25 +92,24 @@ export const useUnpinBadge = () => {
   return useMutation({
     mutationFn: async ({ badgeId }: { badgeId: string }) => {
       const { error } = await supabase
-        .from('badges')
+        .from("badges")
         .update({ is_pinned: false } as never)
-        .eq('id', badgeId);
+        .eq("id", badgeId);
       if (error) throw error;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.tieredBadges.all });
-      toast.success('Badge unpinned');
+      toast.success("Badge unpinned");
     },
     onError: (err) => toast.error((err as Error).message),
   });
 };
 
-
 // ─── useBadgeSpotlight ───────────────────────────────────────────────────────
 
 export const useBadgeSpotlight = (institutionId: string | undefined) => {
   return useQuery({
-    queryKey: queryKeys.badgeSpotlight.detail(institutionId ?? ''),
+    queryKey: queryKeys.badgeSpotlight.detail(institutionId ?? ""),
     queryFn: async (): Promise<SpotlightData | null> => {
       const today = new Date();
       const dayOfWeek = today.getDay();
@@ -119,10 +118,10 @@ export const useBadgeSpotlight = (institutionId: string | undefined) => {
       const weekStart = monday.toISOString().slice(0, 10);
 
       const { data, error } = await supabase
-        .from('badge_spotlight_schedule' as never)
-        .select('*')
-        .eq('institution_id', institutionId!)
-        .eq('week_start', weekStart)
+        .from("badge_spotlight_schedule" as never)
+        .select("*")
+        .eq("institution_id", institutionId!)
+        .eq("week_start", weekStart)
         .maybeSingle();
       if (error) throw error;
       if (!data) return null;
@@ -139,15 +138,17 @@ export const useBadgeSpotlight = (institutionId: string | undefined) => {
 
 // ─── useBadgeSpotlightSchedule ───────────────────────────────────────────────
 
-export const useBadgeSpotlightSchedule = (institutionId: string | undefined) => {
+export const useBadgeSpotlightSchedule = (
+  institutionId: string | undefined
+) => {
   return useQuery({
     queryKey: queryKeys.badgeSpotlightSchedule.list({ institutionId }),
     queryFn: async (): Promise<SpotlightScheduleEntry[]> => {
       const { data, error } = await supabase
-        .from('badge_spotlight_schedule' as never)
-        .select('*')
-        .eq('institution_id', institutionId!)
-        .order('week_start', { ascending: false })
+        .from("badge_spotlight_schedule" as never)
+        .select("*")
+        .eq("institution_id", institutionId!)
+        .order("week_start", { ascending: false })
         .limit(12);
       if (error) throw error;
       return (data ?? []).map((row: Record<string, unknown>) => ({
@@ -172,7 +173,7 @@ export const useUpdateBadgeSpotlightSchedule = () => {
       category: string;
     }) => {
       const { error } = await supabase
-        .from('badge_spotlight_schedule' as never)
+        .from("badge_spotlight_schedule" as never)
         .upsert(
           {
             institution_id: input.institutionId,
@@ -180,14 +181,16 @@ export const useUpdateBadgeSpotlightSchedule = () => {
             category: input.category,
             is_manual: true,
           } as never,
-          { onConflict: 'institution_id,week_start' },
+          { onConflict: "institution_id,week_start" }
         );
       if (error) throw error;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: queryKeys.badgeSpotlightSchedule.lists() });
+      qc.invalidateQueries({
+        queryKey: queryKeys.badgeSpotlightSchedule.lists(),
+      });
       qc.invalidateQueries({ queryKey: queryKeys.badgeSpotlight.all });
-      toast.success('Spotlight schedule updated');
+      toast.success("Spotlight schedule updated");
     },
     onError: (err) => toast.error((err as Error).message),
   });

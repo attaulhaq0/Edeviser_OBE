@@ -1,12 +1,17 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import { logAuditEvent } from '@/lib/auditLogger';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import { logAuditEvent } from "@/lib/auditLogger";
+import type { Database } from "@/types/database";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
-export type CQIPlanStatus = 'planned' | 'in_progress' | 'completed' | 'evaluated';
-export type OutcomeType = 'PLO' | 'CLO';
+export type CQIPlanStatus =
+  | "planned"
+  | "in_progress"
+  | "completed"
+  | "evaluated";
+export type OutcomeType = "PLO" | "CLO";
 
 export interface CQIActionPlan {
   id: string;
@@ -51,18 +56,18 @@ export const useCQIPlans = (filters: Record<string, unknown> = {}) => {
     queryKey: queryKeys.cqiPlans.list(filters),
     queryFn: async (): Promise<CQIActionPlan[]> => {
       let query = supabase
-        .from('cqi_action_plans')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .from("cqi_action_plans")
+        .select("*")
+        .order("created_at", { ascending: false });
 
       if (filters.program_id) {
-        query = query.eq('program_id', filters.program_id as string);
+        query = query.eq("program_id", filters.program_id as string);
       }
       if (filters.semester_id) {
-        query = query.eq('semester_id', filters.semester_id as string);
+        query = query.eq("semester_id", filters.semester_id as string);
       }
       if (filters.status) {
-        query = query.eq('status', filters.status as string);
+        query = query.eq("status", filters.status as string);
       }
 
       const { data, error } = await query;
@@ -74,12 +79,12 @@ export const useCQIPlans = (filters: Record<string, unknown> = {}) => {
 
 export const useCQIPlan = (planId: string | undefined) => {
   return useQuery({
-    queryKey: queryKeys.cqiPlans.detail(planId ?? ''),
+    queryKey: queryKeys.cqiPlans.detail(planId ?? ""),
     queryFn: async (): Promise<CQIActionPlan | null> => {
       const { data, error } = await supabase
-        .from('cqi_action_plans')
-        .select('*')
-        .eq('id', planId!)
+        .from("cqi_action_plans")
+        .select("*")
+        .eq("id", planId!)
         .maybeSingle();
       if (error) throw error;
       return data as CQIActionPlan | null;
@@ -87,7 +92,6 @@ export const useCQIPlan = (planId: string | undefined) => {
     enabled: !!planId,
   });
 };
-
 
 /** Summary counts by status for the coordinator dashboard CQI section. */
 export interface CQIPlanSummary {
@@ -100,16 +104,25 @@ export interface CQIPlanSummary {
 
 export const useCQIPlanSummary = (programId: string | undefined) => {
   return useQuery({
-    queryKey: queryKeys.cqiPlans.list({ programId: programId ?? '', summary: true }),
+    queryKey: queryKeys.cqiPlans.list({
+      programId: programId ?? "",
+      summary: true,
+    }),
     queryFn: async (): Promise<CQIPlanSummary> => {
       const { data, error } = await supabase
-        .from('cqi_action_plans')
-        .select('status')
-        .eq('program_id', programId!);
+        .from("cqi_action_plans")
+        .select("status")
+        .eq("program_id", programId!);
       if (error) throw error;
 
       const plans = data ?? [];
-      const summary: CQIPlanSummary = { planned: 0, in_progress: 0, completed: 0, evaluated: 0, total: plans.length };
+      const summary: CQIPlanSummary = {
+        planned: 0,
+        in_progress: 0,
+        completed: 0,
+        evaluated: 0,
+        total: plans.length,
+      };
       for (const plan of plans) {
         const s = plan.status as CQIPlanStatus;
         if (s in summary) {
@@ -127,9 +140,12 @@ export const useCQIPlanSummary = (programId: string | undefined) => {
 export const useCreateCQIPlan = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ performedBy, ...input }: CreateCQIPlanInput & { performedBy: string }) => {
+    mutationFn: async ({
+      performedBy,
+      ...input
+    }: CreateCQIPlanInput & { performedBy: string }) => {
       const { data, error } = await supabase
-        .from('cqi_action_plans')
+        .from("cqi_action_plans")
         .insert({
           program_id: input.program_id,
           semester_id: input.semester_id,
@@ -139,14 +155,14 @@ export const useCreateCQIPlan = () => {
           target_attainment: input.target_attainment,
           action_description: input.action_description,
           responsible_person: input.responsible_person,
-          status: 'planned',
+          status: "planned",
         })
         .select()
         .single();
       if (error) throw error;
       await logAuditEvent({
-        action: 'create',
-        entity_type: 'cqi_action_plan',
+        action: "create",
+        entity_type: "cqi_action_plan",
         entity_id: data.id,
         changes: {
           program_id: input.program_id,
@@ -170,24 +186,32 @@ export const useCreateCQIPlan = () => {
 export const useUpdateCQIPlan = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ performedBy, ...input }: UpdateCQIPlanInput & { performedBy: string }) => {
-      const payload: Record<string, unknown> = {};
-      if (input.action_description !== undefined) payload.action_description = input.action_description;
-      if (input.responsible_person !== undefined) payload.responsible_person = input.responsible_person;
+    mutationFn: async ({
+      performedBy,
+      ...input
+    }: UpdateCQIPlanInput & { performedBy: string }) => {
+      const payload: Database["public"]["Tables"]["cqi_action_plans"]["Update"] =
+        {};
+      if (input.action_description !== undefined)
+        payload.action_description = input.action_description;
+      if (input.responsible_person !== undefined)
+        payload.responsible_person = input.responsible_person;
       if (input.status !== undefined) payload.status = input.status;
-      if (input.target_attainment !== undefined) payload.target_attainment = input.target_attainment;
-      if (input.result_attainment !== undefined) payload.result_attainment = input.result_attainment;
+      if (input.target_attainment !== undefined)
+        payload.target_attainment = input.target_attainment;
+      if (input.result_attainment !== undefined)
+        payload.result_attainment = input.result_attainment;
 
       const { data, error } = await supabase
-        .from('cqi_action_plans')
+        .from("cqi_action_plans")
         .update(payload)
-        .eq('id', input.id)
+        .eq("id", input.id)
         .select()
         .single();
       if (error) throw error;
       await logAuditEvent({
-        action: 'update',
-        entity_type: 'cqi_action_plan',
+        action: "update",
+        entity_type: "cqi_action_plan",
         entity_id: input.id,
         changes: payload,
         performed_by: performedBy,
@@ -196,7 +220,9 @@ export const useUpdateCQIPlan = () => {
     },
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.cqiPlans.lists() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.cqiPlans.detail(variables.id) });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.cqiPlans.detail(variables.id),
+      });
     },
   });
 };
@@ -204,12 +230,21 @@ export const useUpdateCQIPlan = () => {
 export const useDeleteCQIPlan = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, performedBy }: { id: string; performedBy: string }) => {
-      const { error } = await supabase.from('cqi_action_plans').delete().eq('id', id);
+    mutationFn: async ({
+      id,
+      performedBy,
+    }: {
+      id: string;
+      performedBy: string;
+    }) => {
+      const { error } = await supabase
+        .from("cqi_action_plans")
+        .delete()
+        .eq("id", id);
       if (error) throw error;
       await logAuditEvent({
-        action: 'delete',
-        entity_type: 'cqi_action_plan',
+        action: "delete",
+        entity_type: "cqi_action_plan",
         entity_id: id,
         changes: null,
         performed_by: performedBy,
