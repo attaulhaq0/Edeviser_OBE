@@ -1,12 +1,12 @@
 // Task 137.1: Adaptive XP calculation utility
 
 export type BloomsLevel =
-  | 'Remembering'
-  | 'Understanding'
-  | 'Applying'
-  | 'Analyzing'
-  | 'Evaluating'
-  | 'Creating';
+  | "Remembering"
+  | "Understanding"
+  | "Applying"
+  | "Analyzing"
+  | "Evaluating"
+  | "Creating";
 
 /**
  * Level-based XP multiplier.
@@ -40,7 +40,10 @@ export function getDifficultyMultiplier(bloomsLevel: BloomsLevel): number {
  * Decreases by 0.2 per repetition: 1.0 → 0.8 → 0.6 → 0.4 → 0.2 min.
  * Milestones always get 1.0.
  */
-export function getDiminishingMultiplier(repeatCount: number, isMilestone: boolean): number {
+export function getDiminishingMultiplier(
+  repeatCount: number,
+  isMilestone: boolean
+): number {
   if (isMilestone) return 1.0;
   if (repeatCount <= 0) return 1.0;
   const multiplier = 1.0 - repeatCount * 0.2;
@@ -57,7 +60,7 @@ export function calculateFinalXP(
   level: number,
   bloomsLevels: BloomsLevel[],
   repeatCount: number,
-  isMilestone: boolean,
+  isMilestone: boolean
 ): number {
   if (baseXP <= 0) return 0;
 
@@ -65,7 +68,12 @@ export function calculateFinalXP(
 
   // Use highest Bloom's level for difficulty multiplier
   const bloomsOrder: BloomsLevel[] = [
-    'Remembering', 'Understanding', 'Applying', 'Analyzing', 'Evaluating', 'Creating',
+    "Remembering",
+    "Understanding",
+    "Applying",
+    "Analyzing",
+    "Evaluating",
+    "Creating",
   ];
   let highestDifficulty = 1.0;
   for (const bl of bloomsLevels) {
@@ -79,4 +87,24 @@ export function calculateFinalXP(
   const diminishing = getDiminishingMultiplier(repeatCount, isMilestone);
 
   return Math.floor(baseXP * levelMult * highestDifficulty * diminishing);
+}
+
+// -----------------------------------------------------------------------------
+// Tutor Diminishing Returns
+// -----------------------------------------------------------------------------
+
+/**
+ * Diminishing multiplier for tutor conversation XP.
+ * - < 5 conversations: 1.0 (full XP)
+ * - 5-9 conversations: 0.5
+ * - 10-14 conversations: 0.25
+ * - >= 15 conversations: 0 (no XP)
+ */
+export function getTutorDiminishingMultiplier(
+  conversationCount: number
+): number {
+  if (conversationCount < 5) return 1.0;
+  if (conversationCount < 10) return 0.5;
+  if (conversationCount < 15) return 0.25;
+  return 0;
 }
