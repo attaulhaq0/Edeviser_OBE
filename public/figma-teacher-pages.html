@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Teacher Feature Pages — Edeviser</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
+  <style>
+    * { font-family: 'Noto Sans', system-ui, sans-serif; }
+    .brand-gradient { background: linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%); }
+    .hero-gradient { background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #312e81 100%); }
+  </style>
+</head>
+<body class="bg-slate-50 min-h-screen">
+  <div class="flex min-h-screen">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-white border-r border-slate-200 p-4 space-y-1 flex-shrink-0 sticky top-0 h-screen overflow-auto">
+      <div class="px-3 py-3 mb-4">
+        <span class="text-xl font-bold tracking-tight bg-gradient-to-r from-teal-500 to-blue-600 bg-clip-text text-transparent">edeviser</span>
+        <p class="text-[10px] text-gray-400 mt-0.5">Teacher Portal</p>
+      </div>
+      <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Dashboard</a>
+      <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium bg-blue-50 text-blue-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>CLOs</a>
+      <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>Assignments</a>
+      <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Rubrics</a>
+      <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>Gradebook</a>
+      <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Attendance</a>
+      <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Quizzes</a>
+      <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>Grading</a>
+    </aside>
+
+    <main class="flex-1 overflow-auto p-6 space-y-10">
+
+      <!-- ==================== CLO LIST ==================== -->
+      <section>
+        <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-400 mb-4">CLO List Page</p>
+        <div class="flex items-center justify-between mb-4">
+          <h1 class="text-2xl font-bold tracking-tight text-gray-900">Course Learning Outcomes — CS-201</h1>
+          <button class="py-2.5 px-4 rounded-lg text-sm font-semibold text-white brand-gradient shadow-md active:scale-95 flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add CLO
+          </button>
+        </div>
+        <div class="bg-white border-0 shadow-lg rounded-xl overflow-hidden">
+          <table class="w-full text-sm">
+            <thead><tr class="bg-gray-50 border-b border-gray-200">
+              <th class="text-left py-3 px-4 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">CLO Title</th>
+              <th class="text-left py-3 px-4 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">Bloom's Level</th>
+              <th class="text-left py-3 px-4 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">PLO Mapping</th>
+              <th class="text-left py-3 px-4 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">Attainment</th>
+            </tr></thead>
+            <tbody>
+              <tr class="border-b border-gray-100"><td class="py-3 px-4 font-medium text-gray-800">CLO 1: Apply fundamental data structures to solve problems</td><td class="py-3 px-4"><span class="px-2 py-0.5 rounded text-xs font-bold bg-green-500 text-white">Apply</span></td><td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700 border border-blue-200">PLO 3</span></td><td class="py-3 px-4"><span class="text-sm font-bold text-green-600">87%</span></td></tr>
+              <tr class="border-b border-gray-100 bg-gray-50/30"><td class="py-3 px-4 font-medium text-gray-800">CLO 2: Analyze algorithm complexity using Big-O notation</td><td class="py-3 px-4"><span class="px-2 py-0.5 rounded text-xs font-bold bg-yellow-500 text-gray-900">Analyze</span></td><td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700 border border-blue-200">PLO 1</span></td><td class="py-3 px-4"><span class="text-sm font-bold text-blue-600">74%</span></td></tr>
+              <tr class="border-b border-gray-100"><td class="py-3 px-4 font-medium text-gray-800">CLO 3: Evaluate sorting algorithms for given scenarios</td><td class="py-3 px-4"><span class="px-2 py-0.5 rounded text-xs font-bold bg-orange-500 text-white">Evaluate</span></td><td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700 border border-blue-200">PLO 1</span></td><td class="py-3 px-4"><span class="text-sm font-bold text-yellow-600">62%</span></td></tr>
+              <tr class="border-b border-gray-100 bg-gray-50/30"><td class="py-3 px-4 font-medium text-gray-800">CLO 4: Create efficient solutions using advanced data structures</td><td class="py-3 px-4"><span class="px-2 py-0.5 rounded text-xs font-bold bg-red-500 text-white">Create</span></td><td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700 border border-blue-200">PLO 5</span></td><td class="py-3 px-4"><span class="text-sm font-bold text-red-600">45%</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ==================== CLO FORM ==================== -->
+      <section>
+        <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-400 mb-4">CLO Form</p>
+        <div class="bg-white border-0 shadow-lg rounded-xl overflow-hidden max-w-2xl">
+          <div class="px-6 py-4 brand-gradient flex items-center gap-2">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+            <h2 class="text-lg font-bold tracking-tight text-white">Create CLO</h2>
+          </div>
+          <div class="p-6 space-y-4">
+            <div><label class="block text-sm font-medium text-gray-700 mb-1.5">CLO Title</label><input type="text" placeholder="e.g. Apply fundamental data structures to solve problems" class="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm bg-white" /></div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1.5">Bloom's Taxonomy Level</label>
+              <select class="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm bg-white">
+                <option>Select level...</option><option>Remember</option><option>Understand</option><option>Apply</option><option>Analyze</option><option>Evaluate</option><option>Create</option>
+              </select>
+              <div class="flex gap-1 mt-2">
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500 text-white">Remember</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500 text-white">Understand</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-green-500 text-white">Apply</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-yellow-500 text-gray-900">Analyze</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-orange-500 text-white">Evaluate</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-red-500 text-white">Create</span>
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1.5">PLO Mapping (with weights)</label>
+              <div class="space-y-2">
+                <div class="flex items-center gap-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <span class="px-2 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700">PLO 3</span>
+                  <span class="text-sm text-gray-700 flex-1">Apply computational thinking to engineering problems</span>
+                  <input type="number" value="60" class="w-16 px-2 py-1 border border-gray-200 rounded text-sm text-center font-bold" />
+                  <span class="text-xs text-gray-500">%</span>
+                </div>
+                <div class="flex items-center gap-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <span class="px-2 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700">PLO 1</span>
+                  <span class="text-sm text-gray-700 flex-1">Demonstrate critical thinking in CS</span>
+                  <input type="number" value="40" class="w-16 px-2 py-1 border border-gray-200 rounded text-sm text-center font-bold" />
+                  <span class="text-xs text-gray-500">%</span>
+                </div>
+              </div>
+              <p class="text-xs text-gray-500 mt-1">Total weight: <span class="font-bold text-green-600">100%</span></p>
+            </div>
+            <div class="flex justify-end gap-3 pt-2">
+              <button class="py-2.5 px-4 rounded-lg text-sm font-medium text-gray-600 bg-white border border-gray-200">Cancel</button>
+              <button class="py-2.5 px-4 rounded-lg text-sm font-semibold text-white brand-gradient shadow-md active:scale-95">Create CLO</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== ASSIGNMENT LIST ==================== -->
+      <section>
+        <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-400 mb-4">Assignment List Page</p>
+        <div class="flex items-center justify-between mb-4">
+          <h1 class="text-2xl font-bold tracking-tight text-gray-900">Assignments</h1>
+          <button class="py-2.5 px-4 rounded-lg text-sm font-semibold text-white brand-gradient shadow-md active:scale-95 flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Create Assignment
+          </button>
+        </div>
+        <div class="bg-white border-0 shadow-lg rounded-xl overflow-hidden">
+          <table class="w-full text-sm">
+            <thead><tr class="bg-gray-50 border-b border-gray-200">
+              <th class="text-left py-3 px-4 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">Title</th>
+              <th class="text-left py-3 px-4 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">Course</th>
+              <th class="text-left py-3 px-4 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">CLO</th>
+              <th class="text-left py-3 px-4 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">Due Date</th>
+              <th class="text-left py-3 px-4 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">Submissions</th>
+              <th class="text-left py-3 px-4 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">Status</th>
+            </tr></thead>
+            <tbody>
+              <tr class="border-b border-gray-100"><td class="py-3 px-4 font-medium text-gray-800">Data Structures Lab 3</td><td class="py-3 px-4 text-gray-600">CS-201</td><td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-700">CLO 1</span></td><td class="py-3 px-4 text-gray-600">Mar 16, 2026</td><td class="py-3 px-4"><span class="font-bold text-blue-600">28/32</span></td><td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-700">Active</span></td></tr>
+              <tr class="border-b border-gray-100 bg-gray-50/30"><td class="py-3 px-4 font-medium text-gray-800">Algorithm Analysis Report</td><td class="py-3 px-4 text-gray-600">CS-201</td><td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-700">CLO 2</span></td><td class="py-3 px-4 text-gray-600">Mar 19, 2026</td><td class="py-3 px-4"><span class="font-bold text-blue-600">12/32</span></td><td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-700">Active</span></td></tr>
+              <tr class="border-b border-gray-100"><td class="py-3 px-4 font-medium text-gray-800">Sorting Comparison Essay</td><td class="py-3 px-4 text-gray-600">CS-201</td><td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-700">CLO 3</span></td><td class="py-3 px-4 text-gray-600">Mar 25, 2026</td><td class="py-3 px-4"><span class="font-bold text-gray-400">0/32</span></td><td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700">Draft</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ==================== ASSIGNMENT FORM ==================== -->
+      <section>
+        <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-400 mb-4">Assignment Form</p>
+        <div class="bg-white border-0 shadow-lg rounded-xl overflow-hidden max-w-2xl">
+          <div class="px-6 py-4 brand-gradient flex items-center gap-2">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+            <h2 class="text-lg font-bold tracking-tight text-white">Create Assignment</h2>
+          </div>
+          <div class="p-6 space-y-4">
+            <div><label class="block text-sm font-medium text-gray-700 mb-1.5">Title</label><input type="text" placeholder="e.g. Data Structures Lab 3" class="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm bg-white" /></div>
+            <div><label class="block text-sm font-medium text-gray-700 mb-1.5">Description</label><textarea rows="3" placeholder="Assignment instructions and requirements..." class="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm bg-white resize-none"></textarea></div>
+            <div class="grid grid-cols-2 gap-4">
+              <div><label class="block text-sm font-medium text-gray-700 mb-1.5">Course</label><select class="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm bg-white"><option>CS-201 — Data Structures</option><option>ENG-102 — Technical Writing</option></select></div>
+              <div><label class="block text-sm font-medium text-gray-700 mb-1.5">Due Date</label><input type="date" value="2026-03-25" class="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm bg-white" /></div>
+            </div>
+            <div><label class="block text-sm font-medium text-gray-700 mb-1.5">CLO Mapping</label>
+              <div class="flex flex-wrap gap-2">
+                <span class="px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700 border border-green-200 cursor-pointer">✓ CLO 1: Apply data structures</span>
+                <span class="px-3 py-1 rounded-full text-xs font-bold bg-white text-gray-600 border border-gray-200 cursor-pointer">CLO 2: Analyze algorithms</span>
+                <span class="px-3 py-1 rounded-full text-xs font-bold bg-white text-gray-600 border border-gray-200 cursor-pointer">CLO 3: Evaluate sorting</span>
+              </div>
+            </div>
+            <div><label class="block text-sm font-medium text-gray-700 mb-1.5">Rubric</label><select class="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm bg-white"><option>Select rubric...</option><option>Lab Report Rubric</option><option>Essay Rubric</option><option>Code Quality Rubric</option></select></div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1.5">Attachments</label>
+              <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                <p class="text-sm text-gray-500">Drop files here or <span class="text-blue-600 cursor-pointer">browse</span></p>
+                <p class="text-xs text-gray-400 mt-1">PDF, DOCX, ZIP. Max 10MB each</p>
+              </div>
+            </div>
+            <div class="flex justify-end gap-3 pt-2">
+              <button class="py-2.5 px-4 rounded-lg text-sm font-medium text-gray-600 bg-white border border-gray-200">Save as Draft</button>
+              <button class="py-2.5 px-4 rounded-lg text-sm font-semibold text-white brand-gradient shadow-md active:scale-95">Publish Assignment</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== RUBRIC BUILDER ==================== -->
+      <section>
+        <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-400 mb-4">Rubric Builder</p>
+        <div class="bg-white border-0 shadow-lg rounded-xl overflow-hidden">
+          <div class="px-6 py-4 brand-gradient flex items-center gap-2">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            <h2 class="text-lg font-bold tracking-tight text-white">Rubric Builder — Lab Report Rubric</h2>
+          </div>
+          <div class="p-6">
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm border border-gray-200 rounded-lg">
+                <thead>
+                  <tr class="bg-gray-50">
+                    <th class="py-3 px-3 text-left text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase w-40">Criterion</th>
+                    <th class="py-3 px-3 text-left text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase w-20">CLO</th>
+                    <th class="py-3 px-3 text-left text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase w-16">Weight</th>
+                    <th class="py-3 px-3 text-center text-[10px] font-black text-green-600 tracking-[0.15em] uppercase">Excellent (4)</th>
+                    <th class="py-3 px-3 text-center text-[10px] font-black text-blue-600 tracking-[0.15em] uppercase">Satisfactory (3)</th>
+                    <th class="py-3 px-3 text-center text-[10px] font-black text-yellow-600 tracking-[0.15em] uppercase">Developing (2)</th>
+                    <th class="py-3 px-3 text-center text-[10px] font-black text-red-600 tracking-[0.15em] uppercase">Not Yet (1)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr class="border-t border-gray-200">
+                    <td class="py-2 px-3"><input type="text" value="Code Correctness" class="w-full px-2 py-1.5 border border-gray-200 rounded text-sm font-medium" /></td>
+                    <td class="py-2 px-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-700">CLO 1</span></td>
+                    <td class="py-2 px-3"><input type="number" value="40" class="w-full px-2 py-1.5 border border-gray-200 rounded text-sm text-center font-bold" /></td>
+                    <td class="py-2 px-3"><textarea rows="2" class="w-full px-2 py-1 border border-gray-200 rounded text-xs resize-none">All test cases pass, efficient implementation</textarea></td>
+                    <td class="py-2 px-3"><textarea rows="2" class="w-full px-2 py-1 border border-gray-200 rounded text-xs resize-none">Most test cases pass, minor issues</textarea></td>
+                    <td class="py-2 px-3"><textarea rows="2" class="w-full px-2 py-1 border border-gray-200 rounded text-xs resize-none">Some test cases fail, needs improvement</textarea></td>
+                    <td class="py-2 px-3"><textarea rows="2" class="w-full px-2 py-1 border border-gray-200 rounded text-xs resize-none">Does not compile or major errors</textarea></td>
+                  </tr>
+                  <tr class="border-t border-gray-200 bg-gray-50/30">
+                    <td class="py-2 px-3"><input type="text" value="Algorithm Analysis" class="w-full px-2 py-1.5 border border-gray-200 rounded text-sm font-medium" /></td>
+                    <td class="py-2 px-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-700">CLO 2</span></td>
+                    <td class="py-2 px-3"><input type="number" value="30" class="w-full px-2 py-1.5 border border-gray-200 rounded text-sm text-center font-bold" /></td>
+                    <td class="py-2 px-3"><textarea rows="2" class="w-full px-2 py-1 border border-gray-200 rounded text-xs resize-none">Correct Big-O with justification</textarea></td>
+                    <td class="py-2 px-3"><textarea rows="2" class="w-full px-2 py-1 border border-gray-200 rounded text-xs resize-none">Correct Big-O, limited justification</textarea></td>
+                    <td class="py-2 px-3"><textarea rows="2" class="w-full px-2 py-1 border border-gray-200 rounded text-xs resize-none">Partially correct analysis</textarea></td>
+                    <td class="py-2 px-3"><textarea rows="2" class="w-full px-2 py-1 border border-gray-200 rounded text-xs resize-none">Missing or incorrect analysis</textarea></td>
+                  </tr>
+                  <tr class="border-t border-gray-200">
+                    <td class="py-2 px-3"><input type="text" value="Documentation" class="w-full px-2 py-1.5 border border-gray-200 rounded text-sm font-medium" /></td>
+                    <td class="py-2 px-3"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-700">CLO 1</span></td>
+                    <td class="py-2 px-3"><input type="number" value="30" class="w-full px-2 py-1.5 border border-gray-200 rounded text-sm text-center font-bold" /></td>
+                    <td class="py-2 px-3"><textarea rows="2" class="w-full px-2 py-1 border border-gray-200 rounded text-xs resize-none">Clear comments, README, examples</textarea></td>
+                    <td class="py-2 px-3"><textarea rows="2" class="w-full px-2 py-1 border border-gray-200 rounded text-xs resize-none">Adequate comments and README</textarea></td>
+                    <td class="py-2 px-3"><textarea rows="2" class="w-full px-2 py-1 border border-gray-200 rounded text-xs resize-none">Minimal documentation</textarea></td>
+                    <td class="py-2 px-3"><textarea rows="2" class="w-full px-2 py-1 border border-gray-200 rounded text-xs resize-none">No documentation provided</textarea></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="flex justify-between items-center mt-4">
+              <button class="text-sm font-medium text-blue-600 flex items-center gap-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Criterion</button>
+              <button class="py-2.5 px-4 rounded-lg text-sm font-semibold text-white brand-gradient shadow-md active:scale-95">Save Rubric</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== GRADING INTERFACE ==================== -->
+      <section>
+        <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-400 mb-4">Grading Interface</p>
+        <div class="grid grid-cols-3 gap-6">
+          <!-- Student Submission -->
+          <div class="col-span-2 bg-white border-0 shadow-lg rounded-xl overflow-hidden">
+            <div class="px-6 py-4 brand-gradient flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
+                <h2 class="text-lg font-bold tracking-tight text-white">Sarah Al-Kuwari — Data Structures Lab 3</h2>
+              </div>
+              <span class="text-xs text-white/70">Submitted Mar 15, 2026 at 11:42 PM</span>
+            </div>
+            <div class="p-6">
+              <!-- Rubric Scoring Grid -->
+              <div class="space-y-4">
+                <div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-bold text-gray-800">Code Correctness (40%)</span>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-700">CLO 1</span>
+                  </div>
+                  <div class="flex gap-2">
+                    <button class="flex-1 py-2 px-3 rounded-lg text-xs font-medium bg-green-500 text-white border-2 border-green-600">Excellent (4)</button>
+                    <button class="flex-1 py-2 px-3 rounded-lg text-xs font-medium bg-white text-gray-600 border border-gray-200">Satisfactory (3)</button>
+                    <button class="flex-1 py-2 px-3 rounded-lg text-xs font-medium bg-white text-gray-600 border border-gray-200">Developing (2)</button>
+                    <button class="flex-1 py-2 px-3 rounded-lg text-xs font-medium bg-white text-gray-600 border border-gray-200">Not Yet (1)</button>
+                  </div>
+                </div>
+                <div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-bold text-gray-800">Algorithm Analysis (30%)</span>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-700">CLO 2</span>
+                  </div>
+                  <div class="flex gap-2">
+                    <button class="flex-1 py-2 px-3 rounded-lg text-xs font-medium bg-white text-gray-600 border border-gray-200">Excellent (4)</button>
+                    <button class="flex-1 py-2 px-3 rounded-lg text-xs font-medium bg-blue-500 text-white border-2 border-blue-600">Satisfactory (3)</button>
+                    <button class="flex-1 py-2 px-3 rounded-lg text-xs font-medium bg-white text-gray-600 border border-gray-200">Developing (2)</button>
+                    <button class="flex-1 py-2 px-3 rounded-lg text-xs font-medium bg-white text-gray-600 border border-gray-200">Not Yet (1)</button>
+                  </div>
+                </div>
+                <div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                  <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-bold text-gray-800">Documentation (30%)</span>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-700">CLO 1</span>
+                  </div>
+                  <div class="flex gap-2">
+                    <button class="flex-1 py-2 px-3 rounded-lg text-xs font-medium bg-green-500 text-white border-2 border-green-600">Excellent (4)</button>
+                    <button class="flex-1 py-2 px-3 rounded-lg text-xs font-medium bg-white text-gray-600 border border-gray-200">Satisfactory (3)</button>
+                    <button class="flex-1 py-2 px-3 rounded-lg text-xs font-medium bg-white text-gray-600 border border-gray-200">Developing (2)</button>
+                    <button class="flex-1 py-2 px-3 rounded-lg text-xs font-medium bg-white text-gray-600 border border-gray-200">Not Yet (1)</button>
+                  </div>
+                </div>
+              </div>
+              <div class="mt-4 flex items-center gap-4">
+                <div><label class="block text-sm font-medium text-gray-700 mb-1">Final Grade</label><input type="number" value="88" class="w-20 px-3 py-2 border border-gray-200 rounded-lg text-lg font-black text-center" /><span class="text-sm text-gray-500 ml-1">/ 100</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- AI Feedback Panel -->
+          <div class="bg-white border-0 shadow-lg rounded-xl overflow-hidden">
+            <div class="px-4 py-3 bg-gradient-to-r from-purple-500 to-blue-500 flex items-center gap-2">
+              <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+              <h3 class="text-sm font-bold text-white">AI Feedback Draft</h3>
+            </div>
+            <div class="p-4 space-y-3">
+              <div class="p-3 bg-blue-50 rounded-lg text-xs text-gray-700 leading-relaxed">
+                <p class="font-medium text-blue-700 mb-1">Suggested Feedback:</p>
+                <p>Excellent work on the implementation, Sarah. Your linked list and binary tree implementations are clean and well-tested. The Big-O analysis for the sorting comparison could be more detailed — consider explaining why quicksort's average case differs from worst case. Documentation is thorough with good inline comments.</p>
+              </div>
+              <div class="flex gap-2">
+                <button class="flex-1 py-2 px-3 rounded-lg text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200">Use Draft</button>
+                <button class="flex-1 py-2 px-3 rounded-lg text-xs font-medium text-gray-600 bg-white border border-gray-200">Regenerate</button>
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-700 mb-1">Your Feedback</label>
+                <textarea rows="4" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-xs resize-none">Excellent work on the implementation, Sarah. Your linked list and binary tree implementations are clean and well-tested.</textarea>
+              </div>
+              <button class="w-full py-2 px-3 rounded-lg text-sm font-semibold text-white brand-gradient shadow-md active:scale-95">Submit Grade & Feedback</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== GRADEBOOK VIEW ==================== -->
+      <section>
+        <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-400 mb-4">Gradebook View</p>
+        <div class="bg-white border-0 shadow-lg rounded-xl overflow-hidden">
+          <div class="px-6 py-4 brand-gradient flex items-center gap-2">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+            <h2 class="text-lg font-bold tracking-tight text-white">Gradebook — CS-201 Data Structures</h2>
+          </div>
+          <div class="p-4 overflow-x-auto">
+            <table class="w-full text-xs border-collapse">
+              <thead>
+                <tr class="bg-gray-50">
+                  <th class="py-2 px-3 text-left font-bold text-gray-700 sticky left-0 bg-gray-50 border-r border-gray-200 min-w-[160px]">Student</th>
+                  <th class="py-2 px-3 text-center font-bold text-gray-500 min-w-[80px]">Lab 1</th>
+                  <th class="py-2 px-3 text-center font-bold text-gray-500 min-w-[80px]">Lab 2</th>
+                  <th class="py-2 px-3 text-center font-bold text-gray-500 min-w-[80px]">Lab 3</th>
+                  <th class="py-2 px-3 text-center font-bold text-gray-500 min-w-[80px]">Report 1</th>
+                  <th class="py-2 px-3 text-center font-bold text-gray-500 min-w-[80px]">Midterm</th>
+                  <th class="py-2 px-3 text-center font-bold text-gray-700 min-w-[80px] bg-blue-50">Average</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="border-t border-gray-100"><td class="py-2 px-3 font-medium text-gray-800 sticky left-0 bg-white border-r border-gray-200">Sarah Al-Kuwari</td><td class="py-2 px-3 text-center"><span class="px-2 py-0.5 rounded bg-green-50 text-green-700 font-bold">92</span></td><td class="py-2 px-3 text-center"><span class="px-2 py-0.5 rounded bg-green-50 text-green-700 font-bold">88</span></td><td class="py-2 px-3 text-center"><span class="px-2 py-0.5 rounded bg-green-50 text-green-700 font-bold">85</span></td><td class="py-2 px-3 text-center"><span class="px-2 py-0.5 rounded bg-blue-50 text-blue-700 font-bold">78</span></td><td class="py-2 px-3 text-center"><span class="px-2 py-0.5 rounded bg-green-50 text-green-700 font-bold">90</span></td><td class="py-2 px-3 text-center bg-blue-50"><span class="font-black text-blue-700">86.6</span></td></tr>
+                <tr class="border-t border-gray-100 bg-gray-50/30"><td class="py-2 px-3 font-medium text-gray-800 sticky left-0 bg-gray-50/30 border-r border-gray-200">Khalid Al-Sulaiti</td><td class="py-2 px-3 text-center"><span class="px-2 py-0.5 rounded bg-blue-50 text-blue-700 font-bold">75</span></td><td class="py-2 px-3 text-center"><span class="px-2 py-0.5 rounded bg-blue-50 text-blue-700 font-bold">72</span></td><td class="py-2 px-3 text-center"><span class="px-2 py-0.5 rounded bg-yellow-50 text-yellow-700 font-bold">68</span></td><td class="py-2 px-3 text-center"><span class="px-2 py-0.5 rounded bg-blue-50 text-blue-700 font-bold">70</span></td><td class="py-2 px-3 text-center"><span class="px-2 py-0.5 rounded bg-blue-50 text-blue-700 font-bold">74</span></td><td class="py-2 px-3 text-center bg-blue-50"><span class="font-black text-blue-700">71.8</span></td></tr>
+                <tr class="border-t border-gray-100"><td class="py-2 px-3 font-medium text-gray-800 sticky left-0 bg-white border-r border-gray-200">Omar Al-Dosari</td><td class="py-2 px-3 text-center"><span class="px-2 py-0.5 rounded bg-green-50 text-green-700 font-bold">95</span></td><td class="py-2 px-3 text-center"><span class="px-2 py-0.5 rounded bg-green-50 text-green-700 font-bold">91</span></td><td class="py-2 px-3 text-center"><span class="px-2 py-0.5 rounded bg-green-50 text-green-700 font-bold">89</span></td><td class="py-2 px-3 text-center"><span class="px-2 py-0.5 rounded bg-green-50 text-green-700 font-bold">85</span></td><td class="py-2 px-3 text-center"><span class="px-2 py-0.5 rounded bg-green-50 text-green-700 font-bold">93</span></td><td class="py-2 px-3 text-center bg-blue-50"><span class="font-black text-green-700">90.6</span></td></tr>
+                <tr class="border-t border-gray-100 bg-gray-50/30"><td class="py-2 px-3 font-medium text-gray-800 sticky left-0 bg-gray-50/30 border-r border-gray-200">Fatima Hassan</td><td class="py-2 px-3 text-center"><span class="px-2 py-0.5 rounded bg-yellow-50 text-yellow-700 font-bold">55</span></td><td class="py-2 px-3 text-center"><span class="px-2 py-0.5 rounded bg-red-50 text-red-700 font-bold">42</span></td><td class="py-2 px-3 text-center"><span class="px-2 py-0.5 rounded bg-gray-100 text-gray-400 font-bold">—</span></td><td class="py-2 px-3 text-center"><span class="px-2 py-0.5 rounded bg-red-50 text-red-700 font-bold">38</span></td><td class="py-2 px-3 text-center"><span class="px-2 py-0.5 rounded bg-red-50 text-red-700 font-bold">45</span></td><td class="py-2 px-3 text-center bg-blue-50"><span class="font-black text-red-700">45.0</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== ATTENDANCE MARKER ==================== -->
+      <section>
+        <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-400 mb-4">Attendance Marker</p>
+        <div class="bg-white border-0 shadow-lg rounded-xl overflow-hidden">
+          <div class="px-6 py-4 brand-gradient flex items-center gap-2">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <h2 class="text-lg font-bold tracking-tight text-white">Attendance — CS-201</h2>
+          </div>
+          <div class="p-6">
+            <div class="flex items-center gap-4 mb-4">
+              <input type="date" value="2026-03-15" class="px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white" />
+              <span class="text-sm text-gray-500">Section A · 32 students</span>
+            </div>
+            <div class="space-y-2">
+              <div class="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
+                <div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-xs font-bold text-blue-700">SK</div><span class="text-sm font-medium text-gray-800">Sarah Al-Kuwari</span></div>
+                <div class="flex gap-2">
+                  <button class="px-3 py-1.5 rounded-lg text-xs font-bold bg-green-500 text-white border-2 border-green-600">Present</button>
+                  <button class="px-3 py-1.5 rounded-lg text-xs font-medium bg-white text-gray-600 border border-gray-200">Absent</button>
+                  <button class="px-3 py-1.5 rounded-lg text-xs font-medium bg-white text-gray-600 border border-gray-200">Late</button>
+                </div>
+              </div>
+              <div class="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
+                <div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-xs font-bold text-blue-700">KS</div><span class="text-sm font-medium text-gray-800">Khalid Al-Sulaiti</span></div>
+                <div class="flex gap-2">
+                  <button class="px-3 py-1.5 rounded-lg text-xs font-medium bg-white text-gray-600 border border-gray-200">Present</button>
+                  <button class="px-3 py-1.5 rounded-lg text-xs font-bold bg-red-500 text-white border-2 border-red-600">Absent</button>
+                  <button class="px-3 py-1.5 rounded-lg text-xs font-medium bg-white text-gray-600 border border-gray-200">Late</button>
+                </div>
+              </div>
+              <div class="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
+                <div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-xs font-bold text-blue-700">OD</div><span class="text-sm font-medium text-gray-800">Omar Al-Dosari</span></div>
+                <div class="flex gap-2">
+                  <button class="px-3 py-1.5 rounded-lg text-xs font-medium bg-white text-gray-600 border border-gray-200">Present</button>
+                  <button class="px-3 py-1.5 rounded-lg text-xs font-medium bg-white text-gray-600 border border-gray-200">Absent</button>
+                  <button class="px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-500 text-white border-2 border-amber-600">Late</button>
+                </div>
+              </div>
+              <div class="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
+                <div class="flex items-center gap-3"><div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-xs font-bold text-blue-700">FH</div><span class="text-sm font-medium text-gray-800">Fatima Hassan</span></div>
+                <div class="flex gap-2">
+                  <button class="px-3 py-1.5 rounded-lg text-xs font-bold bg-green-500 text-white border-2 border-green-600">Present</button>
+                  <button class="px-3 py-1.5 rounded-lg text-xs font-medium bg-white text-gray-600 border border-gray-200">Absent</button>
+                  <button class="px-3 py-1.5 rounded-lg text-xs font-medium bg-white text-gray-600 border border-gray-200">Late</button>
+                </div>
+              </div>
+            </div>
+            <div class="flex justify-end mt-4">
+              <button class="py-2.5 px-6 rounded-lg text-sm font-semibold text-white brand-gradient shadow-md active:scale-95">Save Attendance</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== QUIZ BUILDER ==================== -->
+      <section>
+        <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-400 mb-4">Quiz Builder</p>
+        <div class="bg-white border-0 shadow-lg rounded-xl overflow-hidden">
+          <div class="px-6 py-4 brand-gradient flex items-center gap-2">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <h2 class="text-lg font-bold tracking-tight text-white">Quiz Builder</h2>
+          </div>
+          <div class="p-6 space-y-4">
+            <div class="grid grid-cols-3 gap-4">
+              <div><label class="block text-sm font-medium text-gray-700 mb-1.5">Quiz Title</label><input type="text" value="Midterm Quiz — Data Structures" class="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm bg-white" /></div>
+              <div><label class="block text-sm font-medium text-gray-700 mb-1.5">Time Limit</label><input type="number" value="30" class="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm bg-white" /><p class="text-xs text-gray-400 mt-0.5">minutes</p></div>
+              <div><label class="block text-sm font-medium text-gray-700 mb-1.5">Total Questions</label><p class="text-2xl font-black text-gray-900 mt-1">3</p></div>
+            </div>
+
+            <!-- Question 1 -->
+            <div class="p-4 bg-gray-50 rounded-xl border border-gray-200 space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-sm font-bold text-gray-800">Q1 — Multiple Choice</span>
+                <div class="flex items-center gap-2">
+                  <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500 text-white">Remember</span>
+                  <button class="p-1 rounded hover:bg-gray-200"><svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></button>
+                </div>
+              </div>
+              <p class="text-sm text-gray-700">What is the time complexity of accessing an element in an array by index?</p>
+              <div class="grid grid-cols-2 gap-2">
+                <div class="flex items-center gap-2 p-2 rounded-lg bg-green-50 border border-green-200"><span class="w-6 h-6 rounded-full bg-green-500 text-white text-xs font-bold flex items-center justify-center">A</span><span class="text-sm">O(1)</span><span class="text-xs text-green-600 ml-auto">✓ Correct</span></div>
+                <div class="flex items-center gap-2 p-2 rounded-lg bg-white border border-gray-200"><span class="w-6 h-6 rounded-full bg-gray-200 text-gray-600 text-xs font-bold flex items-center justify-center">B</span><span class="text-sm">O(n)</span></div>
+                <div class="flex items-center gap-2 p-2 rounded-lg bg-white border border-gray-200"><span class="w-6 h-6 rounded-full bg-gray-200 text-gray-600 text-xs font-bold flex items-center justify-center">C</span><span class="text-sm">O(log n)</span></div>
+                <div class="flex items-center gap-2 p-2 rounded-lg bg-white border border-gray-200"><span class="w-6 h-6 rounded-full bg-gray-200 text-gray-600 text-xs font-bold flex items-center justify-center">D</span><span class="text-sm">O(n²)</span></div>
+              </div>
+            </div>
+
+            <!-- Question 2 -->
+            <div class="p-4 bg-gray-50 rounded-xl border border-gray-200 space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-sm font-bold text-gray-800">Q2 — True / False</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-500 text-white">Understand</span>
+              </div>
+              <p class="text-sm text-gray-700">A stack follows the FIFO (First In, First Out) principle.</p>
+              <div class="flex gap-3">
+                <div class="flex items-center gap-2 p-2 rounded-lg bg-white border border-gray-200 flex-1"><span class="text-sm font-medium">True</span></div>
+                <div class="flex items-center gap-2 p-2 rounded-lg bg-green-50 border border-green-200 flex-1"><span class="text-sm font-medium">False</span><span class="text-xs text-green-600 ml-auto">✓ Correct</span></div>
+              </div>
+            </div>
+
+            <!-- Question 3 -->
+            <div class="p-4 bg-gray-50 rounded-xl border border-gray-200 space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-sm font-bold text-gray-800">Q3 — Short Answer</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-green-500 text-white">Apply</span>
+              </div>
+              <p class="text-sm text-gray-700">Write the pseudocode for inserting a node at the beginning of a singly linked list.</p>
+              <div class="p-3 bg-white rounded-lg border border-gray-200">
+                <p class="text-xs text-gray-400 italic">Expected answer keywords: new node, next pointer, head, O(1)</p>
+              </div>
+            </div>
+
+            <div class="flex justify-between items-center pt-2">
+              <button class="text-sm font-medium text-blue-600 flex items-center gap-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Add Question</button>
+              <button class="py-2.5 px-6 rounded-lg text-sm font-semibold text-white brand-gradient shadow-md active:scale-95">Publish Quiz</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</body>
+</html>

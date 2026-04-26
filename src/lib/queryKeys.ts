@@ -369,4 +369,40 @@ export const queryKeys = {
   studySessions: createKeys("studySessions"),
   plannerTasks: createKeys("plannerTasks"),
   weeklyGoals: createKeys("weeklyGoals"),
+  weeklyPlanner: createKeys("weeklyPlanner"),
+  reviewSchedules: createKeys("reviewSchedules"),
+  sessionEvidence: createKeys("sessionEvidence"),
+  sessionReflections: createKeys("sessionReflections"),
+  // XP Marketplace
+  marketplace: createKeys("marketplace"),
+  donations: createKeys("donations"),
+  contributionStatus: createKeys("contributionStatus"),
+  economist: createKeys("economist"),
+  mysteryBox: createKeys("mysteryBox"),
+  extraAttemptUsage: createKeys("extraAttemptUsage"),
+  // Knowledge Quests / Student Content
+  quests: createKeys("quests"),
+  studentContent: createKeys("studentContent"),
+  // Social Challenges v2
+  socialChallenges: createKeys("socialChallenges"),
+  challengeLeaderboard: createKeys("challengeLeaderboard"),
+  // Replacement Votes / Peer Teaching
+  replacementVotes: createKeys("replacementVotes"),
+  peerTeachingMoments: createKeys("peerTeachingMoments"),
+  teachingMomentRatings: createKeys("teachingMomentRatings"),
+  teachingImpact: createKeys("teachingImpact"),
+  // Team Health
+  teamHealth: createKeys("teamHealth"),
+  teamHealthReport: createKeys("teamHealthReport"),
+  teamInvitations: createKeys("teamInvitations"),
+  // AI Tutor (RAG)
+  tutorConversations: createKeys("tutorConversations"),
+  tutorMessages: createKeys("tutorMessages"),
+  tutorUsage: createKeys("tutorUsage"),
+  tutorAnalytics: createKeys("tutorAnalytics"),
+  tutorAutonomy: createKeys("tutorAutonomy"),
+  tutorPlanUpdates: createKeys("tutorPlanUpdates"),
+  teacherHandoffs: createKeys("teacherHandoffs"),
+  // Independence
+  independenceScore: createKeys("independenceScore"),
 } as const;

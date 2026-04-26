@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard — Edeviser</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
+  <style>
+    * { font-family: 'Noto Sans', system-ui, sans-serif; }
+    .brand-gradient { background: linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%); }
+    .hero-gradient { background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #312e81 100%); }
+  </style>
+</head>
+<body class="bg-slate-50 min-h-screen">
+  <div class="flex h-screen">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-white border-r border-slate-200 p-4 space-y-1 flex-shrink-0">
+      <div class="px-3 py-3 mb-4">
+        <span class="text-xl font-bold tracking-tight bg-gradient-to-r from-teal-500 to-blue-600 bg-clip-text text-transparent">edeviser</span>
+        <p class="text-[10px] text-gray-400 mt-0.5">Admin Portal</p>
+      </div>
+      <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium bg-blue-50 text-blue-600">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </a>
+      <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-slate-50">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        Users
+      </a>
+      <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        Programs
+      </a>
+      <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        Courses
+      </a>
+      <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6M9 9l6 6"/></svg>
+        ILOs
+      </a>
+      <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        Bonus XP Events
+      </a>
+      <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+        Audit Logs
+      </a>
+      <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+        Reports
+      </a>
+      <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/></svg>
+        Settings
+      </a>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-auto p-6 space-y-6">
+      <!-- Hero Card -->
+      <div class="relative overflow-hidden rounded-2xl shadow-xl hero-gradient">
+        <div class="absolute inset-0 bg-black/20"></div>
+        <div class="relative z-10 p-8 flex justify-between items-end">
+          <div>
+            <h1 class="text-2xl font-bold tracking-tight text-white">Good morning, Dr. Ahmed 👋</h1>
+            <p class="text-blue-200 text-sm mt-1">Here's what's happening across your institution today.</p>
+          </div>
+          <div class="flex gap-8">
+            <div><p class="text-blue-300 text-[10px] font-black tracking-[0.15em] uppercase">Active Users</p><p class="text-white text-2xl font-black">1,248</p></div>
+            <div><p class="text-blue-300 text-[10px] font-black tracking-[0.15em] uppercase">Reports Due</p><p class="text-white text-2xl font-black">3</p></div>
+            <div><p class="text-blue-300 text-[10px] font-black tracking-[0.15em] uppercase">At Risk</p><p class="text-white text-2xl font-black">17</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- KPI Row -->
+      <div class="grid grid-cols-4 gap-4">
+        <div class="bg-white border-0 shadow-lg rounded-xl p-4 group hover:shadow-xl transition-all">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-500">Total Students</p>
+              <p class="text-2xl font-black mt-1 text-gray-900">892</p>
+              <p class="text-xs text-green-600 font-semibold mt-0.5">+24 this week</p>
+            </div>
+            <div class="p-2.5 rounded-xl bg-blue-50 group-hover:scale-110 transition-transform">
+              <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white border-0 shadow-lg rounded-xl p-4 group hover:shadow-xl transition-all">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-500">Active Courses</p>
+              <p class="text-2xl font-black mt-1 text-gray-900">28</p>
+              <p class="text-xs text-gray-500 mt-0.5">Across 6 programs</p>
+            </div>
+            <div class="p-2.5 rounded-xl bg-teal-50 group-hover:scale-110 transition-transform">
+              <svg class="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white border-0 shadow-lg rounded-xl p-4 group hover:shadow-xl transition-all">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-500">Avg Attainment</p>
+              <p class="text-2xl font-black mt-1 text-gray-900">76.3%</p>
+              <p class="text-xs text-blue-600 font-semibold mt-0.5">Satisfactory</p>
+            </div>
+            <div class="p-2.5 rounded-xl bg-green-50 group-hover:scale-110 transition-transform">
+              <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white border-0 shadow-lg rounded-xl p-4 group hover:shadow-xl transition-all">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-500">At-Risk Students</p>
+              <p class="text-2xl font-black mt-1 text-red-600">17</p>
+              <p class="text-xs text-red-500 font-semibold mt-0.5">+3 from last week</p>
+            </div>
+            <div class="p-2.5 rounded-xl bg-red-50 group-hover:scale-110 transition-transform">
+              <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4M12 17h.01"/></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="flex gap-2">
+        <button class="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 text-sm font-medium rounded-xl bg-blue-600 text-white shadow-md border border-blue-600">Overview</button>
+        <button class="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 text-sm font-medium rounded-xl bg-white text-gray-600 border border-gray-200 shadow-sm">Outcomes</button>
+        <button class="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 text-sm font-medium rounded-xl bg-white text-gray-600 border border-gray-200 shadow-sm">Users</button>
+        <button class="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 text-sm font-medium rounded-xl bg-white text-gray-600 border border-gray-200 shadow-sm">AI Insights</button>
+      </div>
+
+      <!-- Content Grid -->
+      <div class="grid grid-cols-2 gap-6">
+        <!-- Users by Role -->
+        <div class="bg-white border-0 shadow-lg rounded-xl overflow-hidden">
+          <div class="px-6 py-4 brand-gradient flex items-center gap-2">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            <h2 class="text-lg font-bold tracking-tight text-white">Users by Role</h2>
+          </div>
+          <div class="p-6 space-y-4">
+            <div class="flex items-center justify-between"><span class="text-sm font-medium text-gray-700">Students</span><div class="flex items-center gap-2"><div class="w-48 h-2 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-blue-500 rounded-full" style="width:75%"></div></div><span class="text-sm font-black text-gray-900">892</span></div></div>
+            <div class="flex items-center justify-between"><span class="text-sm font-medium text-gray-700">Teachers</span><div class="flex items-center gap-2"><div class="w-48 h-2 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-teal-500 rounded-full" style="width:25%"></div></div><span class="text-sm font-black text-gray-900">48</span></div></div>
+            <div class="flex items-center justify-between"><span class="text-sm font-medium text-gray-700">Coordinators</span><div class="flex items-center gap-2"><div class="w-48 h-2 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-purple-500 rounded-full" style="width:8%"></div></div><span class="text-sm font-black text-gray-900">12</span></div></div>
+            <div class="flex items-center justify-between"><span class="text-sm font-medium text-gray-700">Parents</span><div class="flex items-center gap-2"><div class="w-48 h-2 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-amber-500 rounded-full" style="width:40%"></div></div><span class="text-sm font-black text-gray-900">296</span></div></div>
+          </div>
+        </div>
+
+        <!-- ILO Attainment -->
+        <div class="bg-white border-0 shadow-lg rounded-xl overflow-hidden">
+          <div class="px-6 py-4 brand-gradient flex items-center gap-2">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v8m-4-4h8"/></svg>
+            <h2 class="text-lg font-bold tracking-tight text-white">ILO Attainment Overview</h2>
+          </div>
+          <div class="p-6 space-y-4">
+            <div><div class="flex justify-between mb-1"><span class="text-sm font-medium text-gray-700">ILO 1: Critical Thinking</span><span class="text-sm font-black text-green-600">87%</span></div><div class="h-2 bg-gray-100 rounded-full"><div class="h-full bg-gradient-to-r from-green-400 to-green-600 rounded-full" style="width:87%"></div></div></div>
+            <div><div class="flex justify-between mb-1"><span class="text-sm font-medium text-gray-700">ILO 2: Communication</span><span class="text-sm font-black text-blue-600">74%</span></div><div class="h-2 bg-gray-100 rounded-full"><div class="h-full bg-gradient-to-r from-blue-400 to-blue-600 rounded-full" style="width:74%"></div></div></div>
+            <div><div class="flex justify-between mb-1"><span class="text-sm font-medium text-gray-700">ILO 3: Problem Solving</span><span class="text-sm font-black text-yellow-600">62%</span></div><div class="h-2 bg-gray-100 rounded-full"><div class="h-full bg-gradient-to-r from-yellow-400 to-yellow-600 rounded-full" style="width:62%"></div></div></div>
+            <div><div class="flex justify-between mb-1"><span class="text-sm font-medium text-gray-700">ILO 4: Research Skills</span><span class="text-sm font-black text-red-600">45%</span></div><div class="h-2 bg-gray-100 rounded-full"><div class="h-full bg-gradient-to-r from-red-400 to-red-600 rounded-full" style="width:45%"></div></div></div>
+          </div>
+        </div>
+
+        <!-- At-Risk Students -->
+        <div class="bg-white border-0 shadow-lg rounded-xl overflow-hidden">
+          <div class="px-6 py-4 brand-gradient flex items-center gap-2">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/></svg>
+            <h2 class="text-lg font-bold tracking-tight text-white">At-Risk Students</h2>
+          </div>
+          <div class="p-6">
+            <div class="space-y-3">
+              <div class="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-100">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-full bg-red-200 flex items-center justify-center text-red-700 text-xs font-bold">FH</div>
+                  <div><p class="text-sm font-medium text-gray-800">Fatima Hassan</p><p class="text-xs text-gray-500">CS-201 · 3 CLOs below target</p></div>
+                </div>
+                <span class="px-2 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700">High Risk</span>
+              </div>
+              <div class="flex items-center justify-between p-3 bg-yellow-50 rounded-lg border border-yellow-100">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-full bg-yellow-200 flex items-center justify-center text-yellow-700 text-xs font-bold">AK</div>
+                  <div><p class="text-sm font-medium text-gray-800">Ali Khan</p><p class="text-xs text-gray-500">ENG-102 · Attendance 60%</p></div>
+                </div>
+                <span class="px-2 py-0.5 rounded-full text-xs font-bold bg-yellow-100 text-yellow-700">Medium Risk</span>
+              </div>
+              <div class="flex items-center justify-between p-3 bg-yellow-50 rounded-lg border border-yellow-100">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-full bg-yellow-200 flex items-center justify-center text-yellow-700 text-xs font-bold">SM</div>
+                  <div><p class="text-sm font-medium text-gray-800">Sara Mohammed</p><p class="text-xs text-gray-500">MATH-301 · Streak broken</p></div>
+                </div>
+                <span class="px-2 py-0.5 rounded-full text-xs font-bold bg-yellow-100 text-yellow-700">Medium Risk</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI Suggestions -->
+        <div class="bg-white border-0 shadow-lg rounded-xl overflow-hidden">
+          <div class="px-6 py-4 brand-gradient flex items-center gap-2">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg>
+            <h2 class="text-lg font-bold tracking-tight text-white">AI Insights</h2>
+          </div>
+          <div class="p-6 space-y-3">
+            <div class="p-3 bg-blue-50 rounded-lg border border-blue-100">
+              <div class="flex items-start gap-2">
+                <span class="text-blue-500 mt-0.5">💡</span>
+                <div><p class="text-sm font-medium text-gray-800">ILO 4 needs attention</p><p class="text-xs text-gray-500 mt-0.5">Research Skills attainment dropped 8% this semester. Consider adding scaffolded research assignments in CS and ENG programs.</p></div>
+              </div>
+            </div>
+            <div class="p-3 bg-amber-50 rounded-lg border border-amber-100">
+              <div class="flex items-start gap-2">
+                <span class="text-amber-500 mt-0.5">⚡</span>
+                <div><p class="text-sm font-medium text-gray-800">Engagement spike opportunity</p><p class="text-xs text-gray-500 mt-0.5">Student activity peaks Tue-Thu 2-4 PM. Schedule bonus XP events during these windows for maximum impact.</p></div>
+              </div>
+            </div>
+            <div class="p-3 bg-green-50 rounded-lg border border-green-100">
+              <div class="flex items-start gap-2">
+                <span class="text-green-500 mt-0.5">✅</span>
+                <div><p class="text-sm font-medium text-gray-800">Gamification working</p><p class="text-xs text-gray-500 mt-0.5">Students with active streaks show 23% higher CLO attainment. Consider promoting streak features to at-risk students.</p></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="bg-white border-0 shadow-lg rounded-xl overflow-hidden col-span-2">
+          <div class="px-6 py-4 brand-gradient flex items-center gap-2">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            <h2 class="text-lg font-bold tracking-tight text-white">Recent Activity</h2>
+          </div>
+          <div class="p-6">
+            <div class="rounded-xl overflow-hidden border border-gray-200">
+              <table class="w-full text-sm">
+                <thead><tr class="bg-gray-50 border-b border-gray-200">
+                  <th class="text-left py-3 px-4 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">User</th>
+                  <th class="text-left py-3 px-4 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">Action</th>
+                  <th class="text-left py-3 px-4 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">Entity</th>
+                  <th class="text-left py-3 px-4 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">Time</th>
+                </tr></thead>
+                <tbody>
+                  <tr class="border-b border-gray-100"><td class="py-3 px-4 font-medium text-gray-800">Dr. Ahmed</td><td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700">Created</span></td><td class="py-3 px-4 text-gray-600">ILO: Research Skills</td><td class="py-3 px-4 text-gray-400 text-xs">2 min ago</td></tr>
+                  <tr class="border-b border-gray-100 bg-gray-50/30"><td class="py-3 px-4 font-medium text-gray-800">Prof. Noor</td><td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">Updated</span></td><td class="py-3 px-4 text-gray-600">Course: CS-201</td><td class="py-3 px-4 text-gray-400 text-xs">15 min ago</td></tr>
+                  <tr class="border-b border-gray-100"><td class="py-3 px-4 font-medium text-gray-800">System</td><td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">Alert</span></td><td class="py-3 px-4 text-gray-600">At-risk: 3 new students flagged</td><td class="py-3 px-4 text-gray-400 text-xs">1 hr ago</td></tr>
+                  <tr class="border-b border-gray-100 bg-gray-50/30"><td class="py-3 px-4 font-medium text-gray-800">Admin</td><td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-700">Import</span></td><td class="py-3 px-4 text-gray-600">Bulk import: 45 students</td><td class="py-3 px-4 text-gray-400 text-xs">3 hrs ago</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

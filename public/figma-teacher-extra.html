@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Teacher Extra Pages — Edeviser</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
+  <style>
+    * { font-family: 'Noto Sans', system-ui, sans-serif; }
+    .brand-gradient { background: linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%); }
+    .hero-gradient { background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #312e81 100%); }
+  </style>
+</head>
+<body class="bg-slate-50 min-h-screen">
+  <div class="flex min-h-screen">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-white border-r border-slate-200 p-4 space-y-1 flex-shrink-0 sticky top-0 h-screen overflow-auto">
+      <div class="px-3 py-3 mb-4">
+        <span class="text-xl font-bold tracking-tight bg-gradient-to-r from-teal-500 to-blue-600 bg-clip-text text-transparent">edeviser</span>
+        <p class="text-[10px] text-gray-400 mt-0.5">Teacher Portal</p>
+      </div>
+      <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-slate-50"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Dashboard</a>
+      <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium bg-blue-50 text-blue-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>Courses</a>
+      <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-slate-50"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>Assignments</a>
+      <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-slate-50"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Grading</a>
+      <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-slate-50"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/></svg>Quizzes</a>
+      <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-slate-50"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>Analytics</a>
+      <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-slate-50"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>Discussions</a>
+      <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-slate-50"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>CLOs</a>
+      <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-slate-50"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Teams</a>
+      <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-slate-50"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>AI Tools</a>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-auto p-8 space-y-16">
+
+      <!-- ============================================ -->
+      <!-- 1. ANNOUNCEMENT EDITOR -->
+      <!-- ============================================ -->
+      <section>
+        <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-400 mb-4">ANNOUNCEMENT EDITOR</p>
+        <div class="bg-white rounded-xl shadow-md border-0 overflow-hidden">
+          <div class="px-6 py-4 brand-gradient flex items-center gap-2">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 17H2a3 3 0 0 0 3-3V9a7 7 0 0 1 14 0v5a3 3 0 0 0 3 3zm-8.27 4a2 2 0 0 1-3.46 0"/></svg>
+            <h2 class="text-lg font-bold tracking-tight text-white">Announcement Editor</h2>
+          </div>
+          <div class="p-6 space-y-5">
+            <div>
+              <label class="text-xs font-semibold text-gray-600 mb-1 block">Title</label>
+              <input type="text" value="Midterm Exam Schedule & Study Resources" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+            </div>
+            <div>
+              <label class="text-xs font-semibold text-gray-600 mb-1 block">Course</label>
+              <select class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white">
+                <option>CS201 — Data Structures & Algorithms</option>
+                <option>CS301 — Database Systems</option>
+                <option>All Courses</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-xs font-semibold text-gray-600 mb-1 block">Content</label>
+              <!-- Rich Text Toolbar -->
+              <div class="border border-gray-200 rounded-t-lg px-3 py-2 bg-gray-50 flex items-center gap-2">
+                <button class="p-1.5 rounded hover:bg-gray-200 text-gray-600 font-bold text-sm">B</button>
+                <button class="p-1.5 rounded hover:bg-gray-200 text-gray-600 italic text-sm">I</button>
+                <button class="p-1.5 rounded hover:bg-gray-200 text-gray-600 underline text-sm">U</button>
+                <div class="w-px h-5 bg-gray-300"></div>
+                <button class="p-1.5 rounded hover:bg-gray-200 text-gray-600 text-sm">H1</button>
+                <button class="p-1.5 rounded hover:bg-gray-200 text-gray-600 text-sm">H2</button>
+                <div class="w-px h-5 bg-gray-300"></div>
+                <button class="p-1.5 rounded hover:bg-gray-200 text-gray-600 text-sm">• List</button>
+                <button class="p-1.5 rounded hover:bg-gray-200 text-gray-600 text-sm">1. List</button>
+                <div class="w-px h-5 bg-gray-300"></div>
+                <button class="p-1.5 rounded hover:bg-gray-200 text-gray-600 text-sm">🔗 Link</button>
+              </div>
+              <textarea class="w-full border border-gray-200 border-t-0 rounded-b-lg px-3 py-3 text-sm" rows="5">Dear Students,
+
+The midterm exam for CS201 will be held on October 25, 2025 from 10:00 AM to 12:00 PM in Hall A.
+
+Please review the following topics:
+- Sorting algorithms (Chapters 3-5)
+- Tree data structures (Chapter 6)
+- Graph algorithms (Chapter 7)
+
+Study resources have been uploaded to the course materials section. Office hours will be extended next week.
+
+Best regards,
+Dr. Khalid Al-Thani</textarea>
+            </div>
+            <div class="flex items-center gap-4">
+              <div class="flex items-center gap-2">
+                <input type="checkbox" id="schedule" class="rounded" />
+                <label for="schedule" class="text-sm font-medium text-gray-600">Schedule for later</label>
+              </div>
+              <input type="datetime-local" value="2025-10-18T09:00" class="border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+            </div>
+            <!-- Attachment -->
+            <div class="flex items-center gap-3">
+              <div class="flex items-center gap-2 px-3 py-2 bg-blue-50 rounded-lg">
+                <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
+                <span class="text-xs font-medium text-blue-700">midterm_study_guide.pdf</span>
+                <button class="text-blue-400 hover:text-blue-600">✕</button>
+              </div>
+              <button class="text-blue-600 text-sm font-medium flex items-center gap-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Add Attachment
+              </button>
+            </div>
+            <div class="flex gap-3">
+              <button class="brand-gradient text-white px-6 py-2.5 rounded-lg text-sm font-semibold">Publish Now</button>
+              <button class="bg-white border border-gray-200 text-gray-700 px-4 py-2.5 rounded-lg text-sm font-semibold">Save Draft</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================ -->
+      <!-- 2. COURSE MODULE MANAGER -->
+      <!-- ============================================ -->
+      <section>
+        <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-400 mb-4">COURSE MODULE MANAGER</p>
+        <div class="bg-white rounded-xl shadow-md border-0 overflow-hidden">
+          <div class="px-6 py-4 brand-gradient flex items-center gap-2">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+            <h2 class="text-lg font-bold tracking-tight text-white">Course Module Manager — CS201</h2>
+          </div>
+          <div class="p-6 space-y-4">
+            <!-- Module 1 -->
+            <div class="border border-gray-200 rounded-xl overflow-hidden">
+              <div class="bg-gray-50 px-4 py-3 flex items-center justify-between cursor-pointer">
+                <div class="flex items-center gap-3">
+                  <svg class="w-4 h-4 text-gray-400 cursor-grab" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                  <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+                  <span class="text-sm font-bold">Module 1: Introduction to Data Structures</span>
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-700">Published</span>
+                </div>
+                <span class="text-xs text-gray-500">4 materials</span>
+              </div>
+              <div class="p-4 space-y-2">
+                <div class="flex items-center justify-between p-2 hover:bg-slate-50 rounded-lg">
+                  <div class="flex items-center gap-3">
+                    <span class="text-lg">📄</span>
+                    <div><p class="text-sm font-medium">Lecture Slides — Arrays & Linked Lists</p><p class="text-xs text-gray-500">PDF • 2.4 MB</p></div>
+                  </div>
+                  <button class="text-gray-400 hover:text-red-500"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+                </div>
+                <div class="flex items-center justify-between p-2 hover:bg-slate-50 rounded-lg">
+                  <div class="flex items-center gap-3">
+                    <span class="text-lg">🎥</span>
+                    <div><p class="text-sm font-medium">Video: Understanding Big-O Notation</p><p class="text-xs text-gray-500">Video • 18 min</p></div>
+                  </div>
+                  <button class="text-gray-400 hover:text-red-500"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+                </div>
+                <div class="flex items-center justify-between p-2 hover:bg-slate-50 rounded-lg">
+                  <div class="flex items-center gap-3">
+                    <span class="text-lg">🔗</span>
+                    <div><p class="text-sm font-medium">VisuAlgo — Data Structure Visualizations</p><p class="text-xs text-gray-500">External Link</p></div>
+                  </div>
+                  <button class="text-gray-400 hover:text-red-500"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+                </div>
+                <button class="text-blue-600 text-sm font-medium flex items-center gap-1 mt-2">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                  Add Material
+                </button>
+              </div>
+            </div>
+            <!-- Module 2 (collapsed) -->
+            <div class="border border-gray-200 rounded-xl overflow-hidden">
+              <div class="bg-gray-50 px-4 py-3 flex items-center justify-between cursor-pointer">
+                <div class="flex items-center gap-3">
+                  <svg class="w-4 h-4 text-gray-400 cursor-grab" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                  <svg class="w-4 h-4 text-gray-500 -rotate-90" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+                  <span class="text-sm font-bold">Module 2: Sorting Algorithms</span>
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-700">Published</span>
+                </div>
+                <span class="text-xs text-gray-500">6 materials</span>
+              </div>
+            </div>
+            <!-- Module 3 (collapsed) -->
+            <div class="border border-gray-200 rounded-xl overflow-hidden">
+              <div class="bg-gray-50 px-4 py-3 flex items-center justify-between cursor-pointer">
+                <div class="flex items-center gap-3">
+                  <svg class="w-4 h-4 text-gray-400 cursor-grab" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                  <svg class="w-4 h-4 text-gray-500 -rotate-90" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+                  <span class="text-sm font-bold">Module 3: Trees & Graphs</span>
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-gray-100 text-gray-600">Draft</span>
+                </div>
+                <span class="text-xs text-gray-500">3 materials</span>
+              </div>
+            </div>
+            <button class="brand-gradient text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Add Module
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================ -->
+      <!-- 3. DISCUSSION MODERATION -->
+      <!-- ============================================ -->
+      <section>
+        <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-400 mb-4">DISCUSSION MODERATION</p>
+        <div class="bg-white rounded-xl shadow-md border-0 overflow-hidden">
+          <div class="px-6 py-4 brand-gradient flex items-center gap-2">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+            <h2 class="text-lg font-bold tracking-tight text-white">Discussion Moderation — CS201</h2>
+          </div>
+          <div class="p-6 space-y-3">
+            <!-- Thread 1 - Flagged -->
+            <div class="border border-red-200 bg-red-50 rounded-xl p-4 flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <span class="text-red-500">🚩</span>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <p class="text-sm font-bold">Help with Assignment 3 — sharing solutions?</p>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-700">Flagged</span>
+                  </div>
+                  <p class="text-xs text-gray-500">by Omar Al-Dosari • 12 replies • Last activity 2h ago</p>
+                </div>
+              </div>
+              <div class="flex gap-2">
+                <button class="bg-white border border-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-semibold">Lock</button>
+                <button class="bg-red-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold">Delete</button>
+              </div>
+            </div>
+            <!-- Thread 2 - Pinned -->
+            <div class="border border-blue-200 bg-blue-50 rounded-xl p-4 flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <span class="text-blue-500">📌</span>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <p class="text-sm font-bold">Midterm Exam FAQ</p>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700">Pinned</span>
+                  </div>
+                  <p class="text-xs text-gray-500">by Dr. Khalid Al-Thani • 24 replies • Last activity 30m ago</p>
+                </div>
+              </div>
+              <div class="flex gap-2">
+                <button class="bg-white border border-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-semibold">Unpin</button>
+                <button class="bg-white border border-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-semibold">Lock</button>
+              </div>
+            </div>
+            <!-- Thread 3 -->
+            <div class="border border-gray-200 rounded-xl p-4 flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <span class="text-gray-400">💬</span>
+                <div>
+                  <p class="text-sm font-bold">Best resources for learning graph algorithms?</p>
+                  <p class="text-xs text-gray-500">by Maryam Al-Kuwari • 8 replies • Last activity 5h ago</p>
+                </div>
+              </div>
+              <div class="flex gap-2">
+                <button class="bg-white border border-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-semibold">Pin</button>
+                <button class="bg-white border border-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-semibold">Lock</button>
+                <button class="text-red-400 px-3 py-1.5 rounded-lg text-xs font-semibold hover:text-red-600">Delete</button>
+              </div>
+            </div>
+            <!-- Thread 4 -->
+            <div class="border border-gray-200 rounded-xl p-4 flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <span class="text-gray-400">💬</span>
+                <div>
+                  <p class="text-sm font-bold">Study group for Chapter 6?</p>
+                  <p class="text-xs text-gray-500">by Hamad Al-Thani • 3 replies • Last activity 1d ago</p>
+                </div>
+              </div>
+              <div class="flex gap-2">
+                <button class="bg-white border border-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-semibold">Pin</button>
+                <button class="bg-white border border-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-semibold">Lock</button>
+                <button class="text-red-400 px-3 py-1.5 rounded-lg text-xs font-semibold hover:text-red-600">Delete</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================ -->
+      <!-- 4. SUB-CLO MANAGER -->
+      <!-- ============================================ -->
+      <section>
+        <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-400 mb-4">SUB-CLO MANAGER</p>
+        <div class="bg-white rounded-xl shadow-md border-0 overflow-hidden">
+          <div class="px-6 py-4 brand-gradient flex items-center gap-2">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+            <h2 class="text-lg font-bold tracking-tight text-white">Sub-CLO Manager</h2>
+          </div>
+          <div class="p-6 space-y-6">
+            <div>
+              <label class="text-xs font-semibold text-gray-600 mb-1 block">Parent CLO</label>
+              <select class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white max-w-md">
+                <option>CLO-1: Analyze time complexity of algorithms (Analyze)</option>
+                <option>CLO-2: Design efficient data structures (Create)</option>
+                <option>CLO-3: Implement sorting algorithms (Apply)</option>
+              </select>
+            </div>
+            <table class="w-full">
+              <thead>
+                <tr class="border-b border-gray-200">
+                  <th class="text-left py-3 px-4 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">Sub-CLO</th>
+                  <th class="text-left py-3 px-4 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">Weight</th>
+                  <th class="text-left py-3 px-4 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">Attainment</th>
+                  <th class="text-left py-3 px-4 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="border-b border-gray-100">
+                  <td class="py-3 px-4 text-sm font-medium">1.1 Identify Big-O notation for common patterns</td>
+                  <td class="py-3 px-4 text-sm text-gray-600">30%</td>
+                  <td class="py-3 px-4"><span class="text-sm font-bold text-green-600">88%</span></td>
+                  <td class="py-3 px-4"><button class="text-blue-600 text-sm font-medium hover:underline">Edit</button></td>
+                </tr>
+                <tr class="border-b border-gray-100">
+                  <td class="py-3 px-4 text-sm font-medium">1.2 Compare algorithm efficiency using asymptotic analysis</td>
+                  <td class="py-3 px-4 text-sm text-gray-600">40%</td>
+                  <td class="py-3 px-4"><span class="text-sm font-bold text-blue-600">74%</span></td>
+                  <td class="py-3 px-4"><button class="text-blue-600 text-sm font-medium hover:underline">Edit</button></td>
+                </tr>
+                <tr class="border-b border-gray-100">
+                  <td class="py-3 px-4 text-sm font-medium">1.3 Derive recurrence relations for recursive algorithms</td>
+                  <td class="py-3 px-4 text-sm text-gray-600">30%</td>
+                  <td class="py-3 px-4"><span class="text-sm font-bold text-yellow-600">61%</span></td>
+                  <td class="py-3 px-4"><button class="text-blue-600 text-sm font-medium hover:underline">Edit</button></td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="border border-gray-200 rounded-xl p-5 space-y-4">
+              <h3 class="text-sm font-bold text-gray-800">Create Sub-CLO</h3>
+              <div class="grid grid-cols-3 gap-4">
+                <div class="col-span-2">
+                  <label class="text-xs font-semibold text-gray-600 mb-1 block">Title</label>
+                  <input type="text" value="1.4 Apply Master Theorem to solve recurrences" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+                </div>
+                <div>
+                  <label class="text-xs font-semibold text-gray-600 mb-1 block">Weight (%)</label>
+                  <input type="number" value="20" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+                </div>
+              </div>
+              <button class="brand-gradient text-white px-4 py-2 rounded-lg text-sm font-semibold">Create Sub-CLO</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================ -->
+      <!-- 5. GENERATE QUESTIONS PAGE -->
+      <!-- ============================================ -->
+      <section>
+        <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-400 mb-4">GENERATE QUESTIONS PAGE</p>
+        <div class="bg-white rounded-xl shadow-md border-0 overflow-hidden">
+          <div class="px-6 py-4 brand-gradient flex items-center gap-2">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <h2 class="text-lg font-bold tracking-tight text-white">AI Question Generator</h2>
+          </div>
+          <div class="p-6 space-y-6">
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="text-xs font-semibold text-gray-600 mb-1 block">Target CLO</label>
+                <select class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white">
+                  <option>CLO-1: Analyze time complexity (Analyze)</option>
+                  <option>CLO-2: Design data structures (Create)</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-xs font-semibold text-gray-600 mb-1 block">Bloom's Level Filter</label>
+                <div class="flex gap-1.5 flex-wrap">
+                  <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-purple-500 text-white cursor-pointer">Remember</span>
+                  <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-blue-500 text-white cursor-pointer">Understand</span>
+                  <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-green-500 text-white cursor-pointer opacity-50">Apply</span>
+                  <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-yellow-500 text-gray-900 cursor-pointer">Analyze</span>
+                  <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-orange-500 text-white cursor-pointer opacity-50">Evaluate</span>
+                  <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-red-500 text-white cursor-pointer opacity-50">Create</span>
+                </div>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="text-xs font-semibold text-gray-600 mb-1 block">Number of Questions</label>
+                <input type="number" value="5" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+              </div>
+              <div>
+                <label class="text-xs font-semibold text-gray-600 mb-2 block">Difficulty Range</label>
+                <div class="flex items-center gap-3">
+                  <span class="text-xs text-gray-500">Easy</span>
+                  <div class="flex-1 h-2 bg-gray-200 rounded-full relative">
+                    <div class="absolute h-2 bg-blue-500 rounded-full" style="left: 20%; width: 50%"></div>
+                    <div class="absolute w-4 h-4 bg-white border-2 border-blue-500 rounded-full -top-1" style="left: 18%"></div>
+                    <div class="absolute w-4 h-4 bg-white border-2 border-blue-500 rounded-full -top-1" style="left: 68%"></div>
+                  </div>
+                  <span class="text-xs text-gray-500">Hard</span>
+                </div>
+              </div>
+            </div>
+            <button class="brand-gradient text-white px-6 py-2.5 rounded-lg text-sm font-semibold flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              Generate Questions
+            </button>
+            <!-- AI-Generated Preview -->
+            <div class="border-t border-gray-200 pt-6 space-y-4">
+              <h3 class="text-sm font-bold text-gray-800">Generated Questions Preview</h3>
+              <div class="border border-gray-200 rounded-xl p-4 space-y-2">
+                <div class="flex items-center gap-2">
+                  <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-yellow-500 text-gray-900">Analyze</span>
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700">Medium</span>
+                </div>
+                <p class="text-sm font-medium">Given the following recursive function, determine its time complexity using the Master Theorem and justify your answer.</p>
+                <p class="text-xs text-gray-500">4 options • CLO-1 mapped</p>
+              </div>
+              <div class="border border-gray-200 rounded-xl p-4 space-y-2">
+                <div class="flex items-center gap-2">
+                  <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-purple-500 text-white">Remember</span>
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-700">Easy</span>
+                </div>
+                <p class="text-sm font-medium">What is the time complexity of binary search on a sorted array of n elements?</p>
+                <p class="text-xs text-gray-500">4 options • CLO-1 mapped</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================ -->
+      <!-- 6. QUESTION BANK PAGE -->
+      <!-- ============================================ -->
+      <section>
+        <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-400 mb-4">QUESTION BANK PAGE</p>
+        <div class="bg-white rounded-xl shadow-md border-0 overflow-hidden">
+          <div class="px-6 py-4 brand-gradient flex items-center gap-2">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+            <h2 class="text-lg font-bold tracking-tight text-white">Question Bank — CS201</h2>
+          </div>
+          <div class="p-6 space-y-4">
+            <div class="overflow-x-auto">
+              <table class="w-full">
+                <thead>
+                  <tr class="border-b border-gray-200">
+                    <th class="text-left py-3 px-4 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">Question</th>
+                    <th class="text-left py-3 px-4 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">Bloom's</th>
+                    <th class="text-left py-3 px-4 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">Difficulty</th>
+                    <th class="text-left py-3 px-4 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">Status</th>
+                    <th class="text-left py-3 px-4 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">CLO</th>
+                    <th class="text-left py-3 px-4 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">Disc. Index</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr class="border-b border-gray-100 hover:bg-slate-50">
+                    <td class="py-3 px-4 text-sm font-medium max-w-xs truncate">What is the time complexity of binary search...</td>
+                    <td class="py-3 px-4"><span class="px-2.5 py-1 rounded-full text-xs font-bold bg-purple-500 text-white">Remember</span></td>
+                    <td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-700">Easy</span></td>
+                    <td class="py-3 px-4"><span class="px-2.5 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700">Approved</span></td>
+                    <td class="py-3 px-4 text-sm text-gray-600">CLO-1</td>
+                    <td class="py-3 px-4 text-sm font-bold text-green-600">0.42</td>
+                  </tr>
+                  <tr class="border-b border-gray-100 hover:bg-slate-50">
+                    <td class="py-3 px-4 text-sm font-medium max-w-xs truncate">Given the recursive function T(n) = 2T(n/2)...</td>
+                    <td class="py-3 px-4"><span class="px-2.5 py-1 rounded-full text-xs font-bold bg-yellow-500 text-gray-900">Analyze</span></td>
+                    <td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700">Medium</span></td>
+                    <td class="py-3 px-4"><span class="px-2.5 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700">Approved</span></td>
+                    <td class="py-3 px-4 text-sm text-gray-600">CLO-1</td>
+                    <td class="py-3 px-4 text-sm font-bold text-blue-600">0.35</td>
+                  </tr>
+                  <tr class="border-b border-gray-100 hover:bg-slate-50">
+                    <td class="py-3 px-4 text-sm font-medium max-w-xs truncate">Design an optimal hash table for a phone directory...</td>
+                    <td class="py-3 px-4"><span class="px-2.5 py-1 rounded-full text-xs font-bold bg-red-500 text-white">Create</span></td>
+                    <td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-700">Hard</span></td>
+                    <td class="py-3 px-4"><span class="px-2.5 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-600">Draft</span></td>
+                    <td class="py-3 px-4 text-sm text-gray-600">CLO-2</td>
+                    <td class="py-3 px-4 text-sm text-gray-400">—</td>
+                  </tr>
+                  <tr class="hover:bg-slate-50">
+                    <td class="py-3 px-4 text-sm font-medium max-w-xs truncate">Explain the difference between BFS and DFS...</td>
+                    <td class="py-3 px-4"><span class="px-2.5 py-1 rounded-full text-xs font-bold bg-blue-500 text-white">Understand</span></td>
+                    <td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-700">Easy</span></td>
+                    <td class="py-3 px-4"><span class="px-2.5 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-600">Archived</span></td>
+                    <td class="py-3 px-4 text-sm text-gray-600">CLO-3</td>
+                    <td class="py-3 px-4 text-sm font-bold text-red-600">0.12</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================ -->
+      <!-- 7. REVIEW QUEUE PAGE -->
+      <!-- ============================================ -->
+      <section>
+        <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-400 mb-4">REVIEW QUEUE PAGE</p>
+        <div class="bg-white rounded-xl shadow-md border-0 overflow-hidden">
+          <div class="px-6 py-4 brand-gradient flex items-center gap-2">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            <h2 class="text-lg font-bold tracking-tight text-white">AI Question Review Queue</h2>
+          </div>
+          <div class="p-6 space-y-4">
+            <p class="text-sm text-gray-600">3 AI-generated questions pending your review</p>
+            <!-- Review Card 1 -->
+            <div class="border border-gray-200 rounded-xl p-5 space-y-3">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-yellow-500 text-gray-900">Analyze</span>
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700">Medium</span>
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-700">CLO-1</span>
+                </div>
+                <div class="flex items-center gap-1">
+                  <span class="text-xs text-gray-500">Quality:</span>
+                  <div class="flex gap-0.5">
+                    <div class="w-2 h-2 rounded-full bg-green-500"></div>
+                    <div class="w-2 h-2 rounded-full bg-green-500"></div>
+                    <div class="w-2 h-2 rounded-full bg-green-500"></div>
+                    <div class="w-2 h-2 rounded-full bg-green-500"></div>
+                    <div class="w-2 h-2 rounded-full bg-gray-200"></div>
+                  </div>
+                </div>
+              </div>
+              <p class="text-sm font-medium">Compare the worst-case time complexity of QuickSort and MergeSort. Under what conditions does QuickSort degrade to O(n²)?</p>
+              <div class="text-xs text-gray-500 space-y-1">
+                <p>A) QuickSort is always O(n log n), MergeSort is O(n²)</p>
+                <p>B) QuickSort degrades when pivot is always the smallest element ✓</p>
+                <p>C) MergeSort degrades with sorted input</p>
+                <p>D) Both are always O(n log n)</p>
+              </div>
+              <div class="flex gap-2">
+                <button class="bg-green-500 text-white px-4 py-2 rounded-lg text-sm font-semibold">Approve</button>
+                <button class="bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-semibold">Edit</button>
+                <button class="bg-red-50 text-red-600 border border-red-200 px-4 py-2 rounded-lg text-sm font-semibold">Reject</button>
+              </div>
+            </div>
+            <!-- Review Card 2 -->
+            <div class="border border-gray-200 rounded-xl p-5 space-y-3">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-green-500 text-white">Apply</span>
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-700">Hard</span>
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-700">CLO-3</span>
+                </div>
+                <div class="flex items-center gap-1">
+                  <span class="text-xs text-gray-500">Quality:</span>
+                  <div class="flex gap-0.5">
+                    <div class="w-2 h-2 rounded-full bg-green-500"></div>
+                    <div class="w-2 h-2 rounded-full bg-green-500"></div>
+                    <div class="w-2 h-2 rounded-full bg-green-500"></div>
+                    <div class="w-2 h-2 rounded-full bg-gray-200"></div>
+                    <div class="w-2 h-2 rounded-full bg-gray-200"></div>
+                  </div>
+                </div>
+              </div>
+              <p class="text-sm font-medium">Implement a function to detect a cycle in a directed graph using DFS. What is the time complexity of your solution?</p>
+              <div class="flex gap-2">
+                <button class="bg-green-500 text-white px-4 py-2 rounded-lg text-sm font-semibold">Approve</button>
+                <button class="bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-semibold">Edit</button>
+                <button class="bg-red-50 text-red-600 border border-red-200 px-4 py-2 rounded-lg text-sm font-semibold">Reject</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================ -->
+      <!-- 8. EXPLANATION REVIEW PAGE -->
+      <!-- ============================================ -->
+      <section>
+        <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-400 mb-4">EXPLANATION REVIEW PAGE</p>
+        <div class="bg-white rounded-xl shadow-md border-0 overflow-hidden">
+          <div class="px-6 py-4 brand-gradient flex items-center gap-2">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+            <h2 class="text-lg font-bold tracking-tight text-white">Explanation Review</h2>
+          </div>
+          <div class="p-6 space-y-6">
+            <div class="border border-gray-200 rounded-xl p-5 space-y-4">
+              <div class="bg-gray-50 rounded-lg p-4">
+                <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-500 mb-2">Question</p>
+                <p class="text-sm font-medium">What is the time complexity of inserting an element at the beginning of a linked list?</p>
+                <p class="text-xs text-gray-500 mt-1">Correct answer: O(1)</p>
+              </div>
+              <div>
+                <div class="flex items-center justify-between mb-2">
+                  <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-500">Student Explanation</p>
+                  <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700">Confidence: 85%</span>
+                </div>
+                <div class="bg-blue-50 border border-blue-100 rounded-lg p-4">
+                  <p class="text-sm text-gray-700">"Inserting at the beginning of a linked list is O(1) because we only need to create a new node and point it to the current head. We don't need to traverse the list, unlike inserting at the end which would be O(n) without a tail pointer."</p>
+                  <p class="text-xs text-gray-500 mt-2">— Hamad Al-Thani</p>
+                </div>
+              </div>
+              <div>
+                <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-500 mb-2">AI Analysis</p>
+                <div class="bg-green-50 border border-green-100 rounded-lg p-4">
+                  <p class="text-sm text-green-800">✓ Correct reasoning. Student demonstrates understanding of pointer manipulation and correctly contrasts with tail insertion. Explanation shows Bloom's level: Understand.</p>
+                </div>
+              </div>
+              <div class="flex gap-2">
+                <button class="bg-green-500 text-white px-4 py-2 rounded-lg text-sm font-semibold">Approve</button>
+                <button class="bg-amber-50 text-amber-700 border border-amber-200 px-4 py-2 rounded-lg text-sm font-semibold">Flag for Review</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================ -->
+      <!-- 9. QUESTION ANALYTICS DASHBOARD -->
+      <!-- ============================================ -->
+      <section>
+        <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-400 mb-4">QUESTION ANALYTICS DASHBOARD</p>
+        <div class="bg-white rounded-xl shadow-md border-0 overflow-hidden">
+          <div class="px-6 py-4 brand-gradient flex items-center gap-2">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+            <h2 class="text-lg font-bold tracking-tight text-white">Question Analytics Dashboard</h2>
+          </div>
+          <div class="p-6 space-y-6">
+            <div class="grid grid-cols-4 gap-4">
+              <div class="bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
+                <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-500">Total Attempts</p>
+                <p class="text-2xl font-black mt-1">1,247</p>
+              </div>
+              <div class="bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
+                <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-500">Avg Correct %</p>
+                <p class="text-2xl font-black mt-1 text-green-600">68.3%</p>
+              </div>
+              <div class="bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
+                <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-500">Avg Time</p>
+                <p class="text-2xl font-black mt-1">2m 14s</p>
+              </div>
+              <div class="bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
+                <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-500">Avg Disc. Index</p>
+                <p class="text-2xl font-black mt-1 text-blue-600">0.34</p>
+              </div>
+            </div>
+            <!-- Per-Question Stats -->
+            <table class="w-full">
+              <thead>
+                <tr class="border-b border-gray-200">
+                  <th class="text-left py-3 px-4 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">Question</th>
+                  <th class="text-left py-3 px-4 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">Attempts</th>
+                  <th class="text-left py-3 px-4 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">Correct %</th>
+                  <th class="text-left py-3 px-4 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">Avg Time</th>
+                  <th class="text-left py-3 px-4 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">Disc. Index</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="border-b border-gray-100">
+                  <td class="py-3 px-4 text-sm font-medium max-w-xs truncate">Binary search time complexity...</td>
+                  <td class="py-3 px-4 text-sm">312</td>
+                  <td class="py-3 px-4 text-sm font-bold text-green-600">89%</td>
+                  <td class="py-3 px-4 text-sm">0m 45s</td>
+                  <td class="py-3 px-4 text-sm font-bold text-green-600">0.42</td>
+                </tr>
+                <tr class="border-b border-gray-100">
+                  <td class="py-3 px-4 text-sm font-medium max-w-xs truncate">Master Theorem recurrence...</td>
+                  <td class="py-3 px-4 text-sm">298</td>
+                  <td class="py-3 px-4 text-sm font-bold text-yellow-600">52%</td>
+                  <td class="py-3 px-4 text-sm">3m 20s</td>
+                  <td class="py-3 px-4 text-sm font-bold text-blue-600">0.35</td>
+                </tr>
+                <tr class="border-b border-gray-100">
+                  <td class="py-3 px-4 text-sm font-medium max-w-xs truncate">QuickSort vs MergeSort comparison...</td>
+                  <td class="py-3 px-4 text-sm">287</td>
+                  <td class="py-3 px-4 text-sm font-bold text-blue-600">71%</td>
+                  <td class="py-3 px-4 text-sm">2m 10s</td>
+                  <td class="py-3 px-4 text-sm font-bold text-green-600">0.38</td>
+                </tr>
+                <tr>
+                  <td class="py-3 px-4 text-sm font-medium max-w-xs truncate">Hash table collision resolution...</td>
+                  <td class="py-3 px-4 text-sm">350</td>
+                  <td class="py-3 px-4 text-sm font-bold text-red-600">38%</td>
+                  <td class="py-3 px-4 text-sm">4m 05s</td>
+                  <td class="py-3 px-4 text-sm font-bold text-red-600">0.15</td>
+                </tr>
+              </tbody>
+            </table>
+            <!-- Difficulty Calibration Chart Placeholder -->
+            <div class="border border-gray-200 rounded-xl p-6 text-center">
+              <p class="text-sm font-bold text-gray-800 mb-2">Difficulty Calibration Chart</p>
+              <div class="h-48 bg-gray-50 rounded-lg flex items-center justify-center">
+                <p class="text-sm text-gray-400">📊 Scatter plot: Expected Difficulty vs Actual Correct % — Chart renders at runtime</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================ -->
+      <!-- 10. QUIZ CLO CORRELATION PAGE -->
+      <!-- ============================================ -->
+      <section>
+        <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-400 mb-4">QUIZ CLO CORRELATION PAGE</p>
+        <div class="bg-white rounded-xl shadow-md border-0 overflow-hidden">
+          <div class="px-6 py-4 brand-gradient flex items-center gap-2">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6M9 9l6 6"/></svg>
+            <h2 class="text-lg font-bold tracking-tight text-white">Quiz–CLO Correlation Matrix</h2>
+          </div>
+          <div class="p-6 space-y-6">
+            <!-- Discrepancy Alert -->
+            <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-center gap-3">
+              <svg class="w-5 h-5 text-amber-500 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <p class="text-sm text-amber-800"><span class="font-bold">Discrepancy detected:</span> Q4 shows weak correlation with CLO-2 despite being mapped to it. Consider reviewing the question alignment.</p>
+            </div>
+            <!-- Correlation Matrix -->
+            <div class="overflow-x-auto">
+              <table class="w-full">
+                <thead>
+                  <tr class="border-b border-gray-200">
+                    <th class="text-left py-3 px-4 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">Question</th>
+                    <th class="text-center py-3 px-4 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">CLO-1</th>
+                    <th class="text-center py-3 px-4 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">CLO-2</th>
+                    <th class="text-center py-3 px-4 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">CLO-3</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr class="border-b border-gray-100">
+                    <td class="py-3 px-4 text-sm font-medium">Q1: Binary search complexity</td>
+                    <td class="py-3 px-4 text-center"><span class="px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700">Strong</span></td>
+                    <td class="py-3 px-4 text-center"><span class="px-3 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-500">Weak</span></td>
+                    <td class="py-3 px-4 text-center"><span class="px-3 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-500">Weak</span></td>
+                  </tr>
+                  <tr class="border-b border-gray-100">
+                    <td class="py-3 px-4 text-sm font-medium">Q2: Master Theorem</td>
+                    <td class="py-3 px-4 text-center"><span class="px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700">Strong</span></td>
+                    <td class="py-3 px-4 text-center"><span class="px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700">Moderate</span></td>
+                    <td class="py-3 px-4 text-center"><span class="px-3 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-500">Weak</span></td>
+                  </tr>
+                  <tr class="border-b border-gray-100">
+                    <td class="py-3 px-4 text-sm font-medium">Q3: QuickSort vs MergeSort</td>
+                    <td class="py-3 px-4 text-center"><span class="px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700">Moderate</span></td>
+                    <td class="py-3 px-4 text-center"><span class="px-3 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-500">Weak</span></td>
+                    <td class="py-3 px-4 text-center"><span class="px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700">Strong</span></td>
+                  </tr>
+                  <tr>
+                    <td class="py-3 px-4 text-sm font-medium">Q4: Hash table design ⚠️</td>
+                    <td class="py-3 px-4 text-center"><span class="px-3 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-500">Weak</span></td>
+                    <td class="py-3 px-4 text-center"><span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700">Weak ⚠️</span></td>
+                    <td class="py-3 px-4 text-center"><span class="px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700">Moderate</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================ -->
+      <!-- 11. BASELINE CONFIG PAGE -->
+      <!-- ============================================ -->
+      <section>
+        <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-400 mb-4">BASELINE CONFIG PAGE</p>
+        <div class="bg-white rounded-xl shadow-md border-0 overflow-hidden">
+          <div class="px-6 py-4 brand-gradient flex items-center gap-2">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            <h2 class="text-lg font-bold tracking-tight text-white">Baseline Assessment Config</h2>
+          </div>
+          <div class="p-6 space-y-4">
+            <div class="space-y-3">
+              <div class="flex items-center justify-between p-4 border border-gray-100 rounded-xl">
+                <div class="flex items-center gap-3">
+                  <span class="text-2xl">🧠</span>
+                  <div><p class="text-sm font-bold">Big Five Personality</p><p class="text-xs text-gray-500">Openness, Conscientiousness, Extraversion, Agreeableness, Neuroticism</p></div>
+                </div>
+                <div class="flex items-center gap-4">
+                  <div class="flex items-center gap-2"><label class="text-xs font-semibold text-gray-600">Questions</label><input type="number" value="20" class="w-16 border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-center" /></div>
+                  <div class="flex items-center gap-2"><label class="text-xs font-semibold text-gray-600">Time (min)</label><input type="number" value="10" class="w-16 border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-center" /></div>
+                  <div class="w-10 h-5 bg-green-500 rounded-full relative"><div class="w-4 h-4 bg-white rounded-full absolute right-0.5 top-0.5"></div></div>
+                </div>
+              </div>
+              <div class="flex items-center justify-between p-4 border border-gray-100 rounded-xl">
+                <div class="flex items-center gap-3">
+                  <span class="text-2xl">📖</span>
+                  <div><p class="text-sm font-bold">VARK Learning Style</p><p class="text-xs text-gray-500">Visual, Auditory, Read/Write, Kinesthetic</p></div>
+                </div>
+                <div class="flex items-center gap-4">
+                  <div class="flex items-center gap-2"><label class="text-xs font-semibold text-gray-600">Questions</label><input type="number" value="16" class="w-16 border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-center" /></div>
+                  <div class="flex items-center gap-2"><label class="text-xs font-semibold text-gray-600">Time (min)</label><input type="number" value="8" class="w-16 border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-center" /></div>
+                  <div class="w-10 h-5 bg-green-500 rounded-full relative"><div class="w-4 h-4 bg-white rounded-full absolute right-0.5 top-0.5"></div></div>
+                </div>
+              </div>
+              <div class="flex items-center justify-between p-4 border border-gray-100 rounded-xl">
+                <div class="flex items-center gap-3">
+                  <span class="text-2xl">💪</span>
+                  <div><p class="text-sm font-bold">Self-Efficacy Scale</p><p class="text-xs text-gray-500">Academic confidence and self-regulation beliefs</p></div>
+                </div>
+                <div class="flex items-center gap-4">
+                  <div class="flex items-center gap-2"><label class="text-xs font-semibold text-gray-600">Questions</label><input type="number" value="10" class="w-16 border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-center" /></div>
+                  <div class="flex items-center gap-2"><label class="text-xs font-semibold text-gray-600">Time (min)</label><input type="number" value="5" class="w-16 border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-center" /></div>
+                  <div class="w-10 h-5 bg-gray-300 rounded-full relative"><div class="w-4 h-4 bg-white rounded-full absolute left-0.5 top-0.5"></div></div>
+                </div>
+              </div>
+            </div>
+            <button class="brand-gradient text-white px-4 py-2 rounded-lg text-sm font-semibold">Save Configuration</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================ -->
+      <!-- 12. BASELINE QUESTION FORM -->
+      <!-- ============================================ -->
+      <section>
+        <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-400 mb-4">BASELINE QUESTION FORM</p>
+        <div class="bg-white rounded-xl shadow-md border-0 overflow-hidden">
+          <div class="px-6 py-4 brand-gradient flex items-center gap-2">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <h2 class="text-lg font-bold tracking-tight text-white">Baseline Question Form</h2>
+          </div>
+          <div class="p-6 space-y-5">
+            <div>
+              <label class="text-xs font-semibold text-gray-600 mb-1 block">Question Text</label>
+              <textarea class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" rows="2">I feel confident in my ability to understand complex academic material.</textarea>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="text-xs font-semibold text-gray-600 mb-1 block">Question Type</label>
+                <select class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white">
+                  <option selected>Likert Scale (1-5)</option>
+                  <option>Multiple Choice</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-xs font-semibold text-gray-600 mb-1 block">Category Mapping</label>
+                <select class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white">
+                  <option>Self-Efficacy → Academic Confidence</option>
+                  <option>Big Five → Conscientiousness</option>
+                  <option>VARK → Visual</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label class="text-xs font-semibold text-gray-600 mb-2 block">Scale Labels</label>
+              <div class="flex gap-2">
+                <div class="flex-1 text-center p-2 border border-gray-200 rounded-lg"><p class="text-xs font-bold text-gray-600">1</p><p class="text-[10px] text-gray-400">Strongly Disagree</p></div>
+                <div class="flex-1 text-center p-2 border border-gray-200 rounded-lg"><p class="text-xs font-bold text-gray-600">2</p><p class="text-[10px] text-gray-400">Disagree</p></div>
+                <div class="flex-1 text-center p-2 border border-gray-200 rounded-lg"><p class="text-xs font-bold text-gray-600">3</p><p class="text-[10px] text-gray-400">Neutral</p></div>
+                <div class="flex-1 text-center p-2 border border-gray-200 rounded-lg"><p class="text-xs font-bold text-gray-600">4</p><p class="text-[10px] text-gray-400">Agree</p></div>
+                <div class="flex-1 text-center p-2 border border-gray-200 rounded-lg bg-blue-50 border-blue-200"><p class="text-xs font-bold text-blue-600">5</p><p class="text-[10px] text-blue-500">Strongly Agree</p></div>
+              </div>
+            </div>
+            <button class="brand-gradient text-white px-4 py-2 rounded-lg text-sm font-semibold">Save Question</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================ -->
+      <!-- 13. BASELINE RESULTS PAGE -->
+      <!-- ============================================ -->
+      <section>
+        <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-400 mb-4">BASELINE RESULTS PAGE</p>
+        <div class="bg-white rounded-xl shadow-md border-0 overflow-hidden">
+          <div class="px-6 py-4 brand-gradient flex items-center gap-2">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+            <h2 class="text-lg font-bold tracking-tight text-white">Baseline Assessment Results</h2>
+          </div>
+          <div class="p-6 space-y-6">
+            <!-- Learning Style Distribution -->
+            <div class="grid grid-cols-4 gap-4">
+              <div class="bg-white border border-gray-100 rounded-xl p-4 shadow-sm text-center">
+                <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-500">Visual</p>
+                <p class="text-2xl font-black mt-1 text-blue-600">34%</p>
+              </div>
+              <div class="bg-white border border-gray-100 rounded-xl p-4 shadow-sm text-center">
+                <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-500">Auditory</p>
+                <p class="text-2xl font-black mt-1 text-green-600">22%</p>
+              </div>
+              <div class="bg-white border border-gray-100 rounded-xl p-4 shadow-sm text-center">
+                <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-500">Read/Write</p>
+                <p class="text-2xl font-black mt-1 text-purple-600">28%</p>
+              </div>
+              <div class="bg-white border border-gray-100 rounded-xl p-4 shadow-sm text-center">
+                <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-500">Kinesthetic</p>
+                <p class="text-2xl font-black mt-1 text-amber-600">16%</p>
+              </div>
+            </div>
+            <!-- Radar Chart Placeholder -->
+            <div class="border border-gray-200 rounded-xl p-6 text-center">
+              <p class="text-sm font-bold text-gray-800 mb-2">Personality Profile — Radar Chart</p>
+              <div class="h-48 bg-gray-50 rounded-lg flex items-center justify-center">
+                <p class="text-sm text-gray-400">🕸️ Radar chart: Big Five dimensions — Chart renders at runtime</p>
+              </div>
+            </div>
+            <!-- Student List -->
+            <table class="w-full">
+              <thead>
+                <tr class="border-b border-gray-200">
+                  <th class="text-left py-3 px-4 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">Student</th>
+                  <th class="text-left py-3 px-4 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">Learning Style</th>
+                  <th class="text-left py-3 px-4 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">Self-Efficacy</th>
+                  <th class="text-left py-3 px-4 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">Top Personality</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="border-b border-gray-100"><td class="py-3 px-4 text-sm font-medium">Hamad Al-Thani</td><td class="py-3 px-4"><span class="px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700">Visual</span></td><td class="py-3 px-4 text-sm font-bold text-green-600">High (4.2)</td><td class="py-3 px-4 text-sm text-gray-600">Conscientiousness</td></tr>
+                <tr class="border-b border-gray-100"><td class="py-3 px-4 text-sm font-medium">Noura Al-Naimi</td><td class="py-3 px-4"><span class="px-2.5 py-1 rounded-full text-xs font-bold bg-purple-100 text-purple-700">Read/Write</span></td><td class="py-3 px-4 text-sm font-bold text-blue-600">Medium (3.5)</td><td class="py-3 px-4 text-sm text-gray-600">Openness</td></tr>
+                <tr class="border-b border-gray-100"><td class="py-3 px-4 text-sm font-medium">Omar Al-Dosari</td><td class="py-3 px-4"><span class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700">Kinesthetic</span></td><td class="py-3 px-4 text-sm font-bold text-yellow-600">Low (2.8)</td><td class="py-3 px-4 text-sm text-gray-600">Extraversion</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================ -->
+      <!-- 14. CHALLENGE MANAGER -->
+      <!-- ============================================ -->
+      <section>
+        <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-400 mb-4">CHALLENGE MANAGER</p>
+        <div class="bg-white rounded-xl shadow-md border-0 overflow-hidden">
+          <div class="px-6 py-4 brand-gradient flex items-center gap-2">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            <h2 class="text-lg font-bold tracking-tight text-white">Challenge Manager</h2>
+          </div>
+          <div class="p-6 space-y-6">
+            <table class="w-full">
+              <thead>
+                <tr class="border-b border-gray-200">
+                  <th class="text-left py-3 px-4 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">Challenge</th>
+                  <th class="text-left py-3 px-4 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">Type</th>
+                  <th class="text-left py-3 px-4 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">Target</th>
+                  <th class="text-left py-3 px-4 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">Deadline</th>
+                  <th class="text-left py-3 px-4 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">Participants</th>
+                  <th class="text-left py-3 px-4 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="border-b border-gray-100">
+                  <td class="py-3 px-4 text-sm font-medium">7-Day Streak Sprint</td>
+                  <td class="py-3 px-4"><span class="px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700">Individual</span></td>
+                  <td class="py-3 px-4 text-sm text-gray-600">7 consecutive logins</td>
+                  <td class="py-3 px-4 text-sm text-gray-600">Oct 20, 2025</td>
+                  <td class="py-3 px-4 text-sm text-gray-600">28</td>
+                  <td class="py-3 px-4"><span class="px-2.5 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700">Active</span></td>
+                </tr>
+                <tr class="border-b border-gray-100">
+                  <td class="py-3 px-4 text-sm font-medium">Team Quiz Champions</td>
+                  <td class="py-3 px-4"><span class="px-2.5 py-1 rounded-full text-xs font-bold bg-purple-100 text-purple-700">Team</span></td>
+                  <td class="py-3 px-4 text-sm text-gray-600">Avg team score ≥ 80%</td>
+                  <td class="py-3 px-4 text-sm text-gray-600">Nov 1, 2025</td>
+                  <td class="py-3 px-4 text-sm text-gray-600">6 teams</td>
+                  <td class="py-3 px-4"><span class="px-2.5 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700">Active</span></td>
+                </tr>
+                <tr class="border-b border-gray-100">
+                  <td class="py-3 px-4 text-sm font-medium">Perfect Week Challenge</td>
+                  <td class="py-3 px-4"><span class="px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700">Individual</span></td>
+                  <td class="py-3 px-4 text-sm text-gray-600">All 4 habits × 7 days</td>
+                  <td class="py-3 px-4 text-sm text-gray-600">Oct 14, 2025</td>
+                  <td class="py-3 px-4 text-sm text-gray-600">32</td>
+                  <td class="py-3 px-4"><span class="px-2.5 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-600">Completed</span></td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="border border-gray-200 rounded-xl p-5 space-y-4">
+              <h3 class="text-sm font-bold text-gray-800">Create Challenge</h3>
+              <div class="grid grid-cols-3 gap-4">
+                <div><label class="text-xs font-semibold text-gray-600 mb-1 block">Name</label><input type="text" value="Reading Marathon" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" /></div>
+                <div><label class="text-xs font-semibold text-gray-600 mb-1 block">Type</label><select class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white"><option>Individual</option><option>Team</option></select></div>
+                <div><label class="text-xs font-semibold text-gray-600 mb-1 block">Deadline</label><input type="date" value="2025-11-15" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" /></div>
+              </div>
+              <div><label class="text-xs font-semibold text-gray-600 mb-1 block">Target</label><input type="text" value="Read 30 minutes daily for 14 days" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" /></div>
+              <button class="brand-gradient text-white px-4 py-2 rounded-lg text-sm font-semibold">Create Challenge</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================ -->
+      <!-- 15. TEAM MANAGER -->
+      <!-- ============================================ -->
+      <section>
+        <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-400 mb-4">TEAM MANAGER</p>
+        <div class="bg-white rounded-xl shadow-md border-0 overflow-hidden">
+          <div class="px-6 py-4 brand-gradient flex items-center gap-2">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <h2 class="text-lg font-bold tracking-tight text-white">Team Manager — CS201</h2>
+          </div>
+          <div class="p-6 space-y-6">
+            <div class="flex items-center justify-between">
+              <div></div>
+              <div class="flex gap-2">
+                <button class="bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm font-semibold">Auto-Assign Teams</button>
+                <button class="brand-gradient text-white px-4 py-2 rounded-lg text-sm font-semibold">Create Team</button>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <!-- Team 1 -->
+              <div class="border border-gray-200 rounded-xl p-4 space-y-3">
+                <div class="flex items-center justify-between">
+                  <h4 class="text-sm font-bold">🦅 Team Al-Jazeera</h4>
+                  <span class="text-xs font-bold text-amber-600">⚡ 1,240 XP</span>
+                </div>
+                <div class="space-y-2">
+                  <div class="flex items-center gap-2"><div class="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-xs font-bold text-blue-600">HA</div><span class="text-sm">Hamad Al-Thani</span><span class="text-xs text-gray-400 ml-auto">🔥 12</span></div>
+                  <div class="flex items-center gap-2"><div class="w-7 h-7 rounded-full bg-green-100 flex items-center justify-center text-xs font-bold text-green-600">NN</div><span class="text-sm">Noura Al-Naimi</span><span class="text-xs text-gray-400 ml-auto">🔥 8</span></div>
+                  <div class="flex items-center gap-2"><div class="w-7 h-7 rounded-full bg-purple-100 flex items-center justify-center text-xs font-bold text-purple-600">LM</div><span class="text-sm">Lina Al-Marri</span><span class="text-xs text-gray-400 ml-auto">🔥 15</span></div>
+                </div>
+                <div class="flex items-center justify-between text-xs text-gray-500">
+                  <span>Team Streak: 🔥 8 days</span>
+                  <button class="text-blue-600 font-medium">Edit</button>
+                </div>
+              </div>
+              <!-- Team 2 -->
+              <div class="border border-gray-200 rounded-xl p-4 space-y-3">
+                <div class="flex items-center justify-between">
+                  <h4 class="text-sm font-bold">🐪 Team Al-Sahra</h4>
+                  <span class="text-xs font-bold text-amber-600">⚡ 980 XP</span>
+                </div>
+                <div class="space-y-2">
+                  <div class="flex items-center gap-2"><div class="w-7 h-7 rounded-full bg-amber-100 flex items-center justify-center text-xs font-bold text-amber-600">OD</div><span class="text-sm">Omar Al-Dosari</span><span class="text-xs text-gray-400 ml-auto">🔥 5</span></div>
+                  <div class="flex items-center gap-2"><div class="w-7 h-7 rounded-full bg-red-100 flex items-center justify-center text-xs font-bold text-red-600">AH</div><span class="text-sm">Aisha Al-Hajri</span><span class="text-xs text-gray-400 ml-auto">🔥 10</span></div>
+                  <div class="flex items-center gap-2"><div class="w-7 h-7 rounded-full bg-teal-100 flex items-center justify-center text-xs font-bold text-teal-600">MK</div><span class="text-sm">Maryam Al-Kuwari</span><span class="text-xs text-gray-400 ml-auto">🔥 7</span></div>
+                </div>
+                <div class="flex items-center justify-between text-xs text-gray-500">
+                  <span>Team Streak: 🔥 5 days</span>
+                  <button class="text-blue-600 font-medium">Edit</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================ -->
+      <!-- 16. GRADING QUEUE PAGE -->
+      <!-- ============================================ -->
+      <section>
+        <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-400 mb-4">GRADING QUEUE PAGE</p>
+        <div class="bg-white rounded-xl shadow-md border-0 overflow-hidden">
+          <div class="px-6 py-4 brand-gradient flex items-center gap-2">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            <h2 class="text-lg font-bold tracking-tight text-white">Grading Queue</h2>
+          </div>
+          <div class="p-6">
+            <table class="w-full">
+              <thead>
+                <tr class="border-b border-gray-200">
+                  <th class="text-left py-3 px-4 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">Assignment</th>
+                  <th class="text-left py-3 px-4 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">Course</th>
+                  <th class="text-left py-3 px-4 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">Pending</th>
+                  <th class="text-left py-3 px-4 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">Due</th>
+                  <th class="text-left py-3 px-4 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="border-b border-gray-100 hover:bg-slate-50">
+                  <td class="py-3 px-4 text-sm font-medium">Algorithm Analysis Report</td>
+                  <td class="py-3 px-4 text-sm text-gray-600">CS201</td>
+                  <td class="py-3 px-4"><span class="text-sm font-bold text-red-600">18</span></td>
+                  <td class="py-3 px-4"><span class="px-2.5 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700">Overdue 3d</span></td>
+                  <td class="py-3 px-4"><button class="brand-gradient text-white px-3 py-1.5 rounded-lg text-xs font-semibold">Grade</button></td>
+                </tr>
+                <tr class="border-b border-gray-100 hover:bg-slate-50">
+                  <td class="py-3 px-4 text-sm font-medium">Sorting Lab Report</td>
+                  <td class="py-3 px-4 text-sm text-gray-600">CS201</td>
+                  <td class="py-3 px-4"><span class="text-sm font-bold text-amber-600">12</span></td>
+                  <td class="py-3 px-4"><span class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700">Due in 2d</span></td>
+                  <td class="py-3 px-4"><button class="brand-gradient text-white px-3 py-1.5 rounded-lg text-xs font-semibold">Grade</button></td>
+                </tr>
+                <tr class="border-b border-gray-100 hover:bg-slate-50">
+                  <td class="py-3 px-4 text-sm font-medium">Database ER Diagram</td>
+                  <td class="py-3 px-4 text-sm text-gray-600">CS301</td>
+                  <td class="py-3 px-4"><span class="text-sm font-bold text-gray-600">8</span></td>
+                  <td class="py-3 px-4"><span class="px-2.5 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700">Due in 5d</span></td>
+                  <td class="py-3 px-4"><button class="brand-gradient text-white px-3 py-1.5 rounded-lg text-xs font-semibold">Grade</button></td>
+                </tr>
+                <tr class="hover:bg-slate-50">
+                  <td class="py-3 px-4 text-sm font-medium">SQL Query Optimization</td>
+                  <td class="py-3 px-4 text-sm text-gray-600">CS301</td>
+                  <td class="py-3 px-4"><span class="text-sm font-bold text-gray-600">24</span></td>
+                  <td class="py-3 px-4"><span class="px-2.5 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700">Due in 7d</span></td>
+                  <td class="py-3 px-4"><button class="brand-gradient text-white px-3 py-1.5 rounded-lg text-xs font-semibold">Grade</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</body>
+</html>

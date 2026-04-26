@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Teacher Dashboard — Edeviser</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
+  <style>* { font-family: 'Noto Sans', system-ui, sans-serif; } .brand-gradient { background: linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%); } .hero-gradient { background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #312e81 100%); }</style>
+</head>
+<body class="bg-slate-50 min-h-screen">
+  <div class="flex h-screen">
+    <aside class="w-64 bg-white border-r border-slate-200 p-4 space-y-1 flex-shrink-0">
+      <div class="px-3 py-3 mb-4"><span class="text-xl font-bold tracking-tight bg-gradient-to-r from-teal-500 to-blue-600 bg-clip-text text-transparent">edeviser</span><p class="text-[10px] text-gray-400 mt-0.5">Teacher Portal</p></div>
+      <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium bg-blue-50 text-blue-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Dashboard</a>
+      <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>My Courses</a>
+      <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>Assignments</a>
+      <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>Rubrics</a>
+      <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>CLOs</a>
+      <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>Grading</a>
+      <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>Gradebook</a>
+      <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>Attendance</a>
+    </aside>
+    <main class="flex-1 overflow-auto p-6 space-y-6">
+      <!-- Hero -->
+      <div class="relative overflow-hidden rounded-2xl shadow-xl hero-gradient">
+        <div class="absolute inset-0 bg-black/20"></div>
+        <div class="relative z-10 p-8 flex justify-between items-end">
+          <div><h1 class="text-2xl font-bold tracking-tight text-white">Good afternoon, Prof. Noor 👋</h1><p class="text-blue-200 text-sm mt-1">You have 12 submissions waiting for grading.</p></div>
+          <div class="flex gap-8">
+            <div><p class="text-blue-300 text-[10px] font-black tracking-[0.15em] uppercase">Pending Grades</p><p class="text-white text-2xl font-black">12</p></div>
+            <div><p class="text-blue-300 text-[10px] font-black tracking-[0.15em] uppercase">My Courses</p><p class="text-white text-2xl font-black">4</p></div>
+          </div>
+        </div>
+      </div>
+      <!-- KPIs -->
+      <div class="grid grid-cols-4 gap-4">
+        <div class="bg-white shadow-lg rounded-xl p-4 group"><div class="flex items-center justify-between"><div><p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-500">Pending Grades</p><p class="text-2xl font-black mt-1 text-red-600">12</p><p class="text-xs text-red-500 font-semibold mt-0.5">3 overdue</p></div><div class="p-2.5 rounded-xl bg-red-50"><svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></div></div></div>
+        <div class="bg-white shadow-lg rounded-xl p-4 group"><div class="flex items-center justify-between"><div><p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-500">Avg CLO Attainment</p><p class="text-2xl font-black mt-1 text-gray-900">72.8%</p><p class="text-xs text-blue-600 font-semibold mt-0.5">Satisfactory</p></div><div class="p-2.5 rounded-xl bg-blue-50"><svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div></div></div>
+        <div class="bg-white shadow-lg rounded-xl p-4 group"><div class="flex items-center justify-between"><div><p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-500">Students</p><p class="text-2xl font-black mt-1 text-gray-900">156</p><p class="text-xs text-gray-500 mt-0.5">Across 4 courses</p></div><div class="p-2.5 rounded-xl bg-teal-50"><svg class="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div></div></div>
+        <div class="bg-white shadow-lg rounded-xl p-4 group"><div class="flex items-center justify-between"><div><p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-500">At-Risk</p><p class="text-2xl font-black mt-1 text-amber-600">8</p><p class="text-xs text-amber-500 font-semibold mt-0.5">Need intervention</p></div><div class="p-2.5 rounded-xl bg-amber-50"><svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/></svg></div></div></div>
+      </div>
+      <div class="grid grid-cols-2 gap-6">
+        <!-- Grading Queue -->
+        <div class="bg-white shadow-lg rounded-xl overflow-hidden">
+          <div class="px-6 py-4 brand-gradient flex items-center gap-2"><svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg><h2 class="text-lg font-bold tracking-tight text-white">Grading Queue</h2></div>
+          <div class="p-6 space-y-3">
+            <div class="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-100"><div><p class="text-sm font-medium text-gray-800">Data Structures Lab 2</p><p class="text-xs text-gray-500">CS-201 · 8 submissions</p></div><div class="flex items-center gap-2"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-700">Overdue</span><button class="px-3 py-1 rounded-lg text-xs font-semibold brand-gradient text-white">Grade</button></div></div>
+            <div class="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200"><div><p class="text-sm font-medium text-gray-800">Algorithm Analysis</p><p class="text-xs text-gray-500">CS-201 · 4 submissions</p></div><div><button class="px-3 py-1 rounded-lg text-xs font-semibold brand-gradient text-white">Grade</button></div></div>
+          </div>
+        </div>
+        <!-- CLO Performance -->
+        <div class="bg-white shadow-lg rounded-xl overflow-hidden">
+          <div class="px-6 py-4 brand-gradient flex items-center gap-2"><svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/></svg><h2 class="text-lg font-bold tracking-tight text-white">CLO Performance — CS-201</h2></div>
+          <div class="p-6 space-y-4">
+            <div><div class="flex justify-between mb-1"><span class="text-sm font-medium text-gray-700">CLO 1: Apply data structures</span><span class="text-sm font-black text-green-600">85%</span></div><div class="h-2 bg-gray-100 rounded-full"><div class="h-full bg-gradient-to-r from-green-400 to-green-600 rounded-full" style="width:85%"></div></div></div>
+            <div><div class="flex justify-between mb-1"><span class="text-sm font-medium text-gray-700">CLO 2: Analyze algorithms</span><span class="text-sm font-black text-yellow-600">62%</span></div><div class="h-2 bg-gray-100 rounded-full"><div class="h-full bg-gradient-to-r from-yellow-400 to-yellow-600 rounded-full" style="width:62%"></div></div></div>
+            <div><div class="flex justify-between mb-1"><span class="text-sm font-medium text-gray-700">CLO 3: Create solutions</span><span class="text-sm font-black text-red-600">41%</span></div><div class="h-2 bg-gray-100 rounded-full"><div class="h-full bg-gradient-to-r from-red-400 to-red-600 rounded-full" style="width:41%"></div></div></div>
+            <div><div class="flex justify-between mb-1"><span class="text-sm font-medium text-gray-700">CLO 4: Evaluate complexity</span><span class="text-sm font-black text-blue-600">78%</span></div><div class="h-2 bg-gray-100 rounded-full"><div class="h-full bg-gradient-to-r from-blue-400 to-blue-600 rounded-full" style="width:78%"></div></div></div>
+          </div>
+        </div>
+        <!-- AI Feedback Drafts -->
+        <div class="bg-white shadow-lg rounded-xl overflow-hidden col-span-2">
+          <div class="px-6 py-4 brand-gradient flex items-center gap-2"><svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg><h2 class="text-lg font-bold tracking-tight text-white">AI Feedback Drafts</h2></div>
+          <div class="p-6 space-y-3">
+            <div class="p-4 bg-blue-50 rounded-lg border border-blue-100"><div class="flex items-start justify-between"><div><p class="text-sm font-medium text-gray-800">Sarah Johnson — Data Structures Lab 2</p><p class="text-xs text-gray-500 mt-1">AI Draft: "Good implementation of linked list traversal. Consider optimizing the search function using a hash map for O(1) lookup instead of O(n) linear scan..."</p></div><div class="flex gap-2 flex-shrink-0 ms-4"><button class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-green-500 text-white">Approve</button><button class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-gray-200 text-gray-700">Edit</button></div></div></div>
+            <div class="p-4 bg-blue-50 rounded-lg border border-blue-100"><div class="flex items-start justify-between"><div><p class="text-sm font-medium text-gray-800">Ali Khan — Data Structures Lab 2</p><p class="text-xs text-gray-500 mt-1">AI Draft: "The binary tree implementation is correct but missing edge cases for empty trees. Add null checks in the insert and delete methods..."</p></div><div class="flex gap-2 flex-shrink-0 ms-4"><button class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-green-500 text-white">Approve</button><button class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white border border-gray-200 text-gray-700">Edit</button></div></div></div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

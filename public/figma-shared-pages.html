@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shared & Public Pages — Edeviser</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
+  <style>
+    * { font-family: 'Noto Sans', system-ui, sans-serif; }
+    .brand-gradient { background: linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%); }
+    .hero-gradient { background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #312e81 100%); }
+  </style>
+</head>
+<body class="bg-slate-50 min-h-screen">
+
+  <!-- ============================================================ -->
+  <!-- SHARED PAGES (WITH SIDEBAR) -->
+  <!-- ============================================================ -->
+  <div class="flex min-h-screen">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-white border-r border-slate-200 p-4 space-y-1 flex-shrink-0 sticky top-0 h-screen overflow-auto">
+      <div class="px-3 py-3 mb-4">
+        <span class="text-xl font-bold tracking-tight bg-gradient-to-r from-teal-500 to-blue-600 bg-clip-text text-transparent">edeviser</span>
+        <p class="text-[10px] text-gray-400 mt-0.5">Shared Views</p>
+      </div>
+      <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-slate-50"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Dashboard</a>
+      <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium bg-blue-50 text-blue-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Calendar</a>
+      <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-slate-50"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Timetable</a>
+      <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-slate-50"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 17H2a3 3 0 0 0 3-3V9a7 7 0 0 1 14 0v5a3 3 0 0 0 3 3zm-8.27 4a2 2 0 0 1-3.46 0"/></svg>Notifications</a>
+      <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-slate-50"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33"/></svg>Settings</a>
+    </aside>
+
+    <main class="flex-1 overflow-auto p-8 space-y-16">
+
+      <!-- ============================================ -->
+      <!-- 1. CALENDAR VIEW (shared) -->
+      <!-- ============================================ -->
+      <section>
+        <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-400 mb-4">CALENDAR VIEW</p>
+        <div class="bg-white rounded-xl shadow-md border-0 overflow-hidden">
+          <div class="px-6 py-4 brand-gradient flex items-center gap-2">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <h2 class="text-lg font-bold tracking-tight text-white">My Calendar — October 2025</h2>
+          </div>
+          <div class="p-6 space-y-4">
+            <!-- Legend -->
+            <div class="flex items-center gap-4">
+              <div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-blue-500"></div><span class="text-xs text-gray-600">Assignment</span></div>
+              <div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-red-500"></div><span class="text-xs text-gray-600">Exam</span></div>
+              <div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-green-500"></div><span class="text-xs text-gray-600">Holiday</span></div>
+              <div class="flex items-center gap-1.5"><div class="w-3 h-3 rounded bg-purple-500"></div><span class="text-xs text-gray-600">Event</span></div>
+            </div>
+            <!-- Calendar Grid -->
+            <div class="border border-gray-200 rounded-xl overflow-hidden">
+              <div class="grid grid-cols-7 bg-gray-50">
+                <div class="p-3 text-center text-[10px] font-black tracking-[0.15em] uppercase text-gray-500 border-b border-gray-200">Sun</div>
+                <div class="p-3 text-center text-[10px] font-black tracking-[0.15em] uppercase text-gray-500 border-b border-gray-200">Mon</div>
+                <div class="p-3 text-center text-[10px] font-black tracking-[0.15em] uppercase text-gray-500 border-b border-gray-200">Tue</div>
+                <div class="p-3 text-center text-[10px] font-black tracking-[0.15em] uppercase text-gray-500 border-b border-gray-200">Wed</div>
+                <div class="p-3 text-center text-[10px] font-black tracking-[0.15em] uppercase text-gray-500 border-b border-gray-200">Thu</div>
+                <div class="p-3 text-center text-[10px] font-black tracking-[0.15em] uppercase text-gray-500 border-b border-gray-200">Fri</div>
+                <div class="p-3 text-center text-[10px] font-black tracking-[0.15em] uppercase text-gray-500 border-b border-gray-200">Sat</div>
+              </div>
+              <div class="grid grid-cols-7">
+                <div class="min-h-[80px] p-2 border-b border-r border-gray-100 text-gray-300 text-xs">28</div>
+                <div class="min-h-[80px] p-2 border-b border-r border-gray-100 text-gray-300 text-xs">29</div>
+                <div class="min-h-[80px] p-2 border-b border-r border-gray-100 text-gray-300 text-xs">30</div>
+                <div class="min-h-[80px] p-2 border-b border-r border-gray-100 text-xs font-medium">1</div>
+                <div class="min-h-[80px] p-2 border-b border-r border-gray-100 text-xs font-medium">2</div>
+                <div class="min-h-[80px] p-2 border-b border-r border-gray-100 text-xs font-medium">3</div>
+                <div class="min-h-[80px] p-2 border-b border-gray-100 text-xs font-medium">4</div>
+              </div>
+              <div class="grid grid-cols-7">
+                <div class="min-h-[80px] p-2 border-b border-r border-gray-100 text-xs font-medium">5</div>
+                <div class="min-h-[80px] p-2 border-b border-r border-gray-100 text-xs font-medium">6</div>
+                <div class="min-h-[80px] p-2 border-b border-r border-gray-100 text-xs font-medium">7</div>
+                <div class="min-h-[80px] p-2 border-b border-r border-gray-100 text-xs font-medium">8</div>
+                <div class="min-h-[80px] p-2 border-b border-r border-gray-100 text-xs font-medium">9</div>
+                <div class="min-h-[80px] p-2 border-b border-r border-gray-100 text-xs font-medium">10
+                  <div class="mt-1 px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-[10px] font-semibold truncate">📝 CS201 Assignment Due</div>
+                </div>
+                <div class="min-h-[80px] p-2 border-b border-gray-100 text-xs font-medium">11</div>
+              </div>
+              <div class="grid grid-cols-7">
+                <div class="min-h-[80px] p-2 border-b border-r border-gray-100 text-xs font-medium">12</div>
+                <div class="min-h-[80px] p-2 border-b border-r border-gray-100 text-xs font-medium">13</div>
+                <div class="min-h-[80px] p-2 border-b border-r border-gray-100 text-xs font-medium">14</div>
+                <div class="min-h-[80px] p-2 border-b border-r border-gray-100 text-xs font-medium">15
+                  <div class="mt-1 px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded text-[10px] font-semibold truncate">📝 CS301 Lab Report</div>
+                </div>
+                <div class="min-h-[80px] p-2 border-b border-r border-gray-100 text-xs font-medium">16</div>
+                <div class="min-h-[80px] p-2 border-b border-r border-gray-100 text-xs font-medium">17</div>
+                <div class="min-h-[80px] p-2 border-b border-gray-100 text-xs font-medium bg-green-50">18
+                  <div class="mt-1 px-1.5 py-0.5 bg-green-100 text-green-700 rounded text-[10px] font-semibold">🌴 National Day</div>
+                </div>
+              </div>
+              <div class="grid grid-cols-7">
+                <div class="min-h-[80px] p-2 border-r border-gray-100 text-xs font-medium">19</div>
+                <div class="min-h-[80px] p-2 border-r border-gray-100 text-xs font-medium">20</div>
+                <div class="min-h-[80px] p-2 border-r border-gray-100 text-xs font-medium">21</div>
+                <div class="min-h-[80px] p-2 border-r border-gray-100 text-xs font-medium">22</div>
+                <div class="min-h-[80px] p-2 border-r border-gray-100 text-xs font-medium">23</div>
+                <div class="min-h-[80px] p-2 border-r border-gray-100 text-xs font-medium">24</div>
+                <div class="min-h-[80px] p-2 text-xs font-medium bg-red-50">25
+                  <div class="mt-1 px-1.5 py-0.5 bg-red-100 text-red-700 rounded text-[10px] font-semibold">🎓 CS201 Midterm</div>
+                </div>
+              </div>
+            </div>
+            <!-- Day Detail Panel -->
+            <div class="border border-gray-200 rounded-xl p-4">
+              <p class="text-sm font-bold mb-2">October 25, 2025 — Saturday</p>
+              <div class="flex items-center gap-3 p-2 bg-red-50 rounded-lg">
+                <div class="w-1 h-10 bg-red-500 rounded-full"></div>
+                <div><p class="text-sm font-medium">CS201 Midterm Exam</p><p class="text-xs text-gray-500">10:00 AM – 12:00 PM • Hall A</p></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================ -->
+      <!-- 2. TIMETABLE VIEW (shared) -->
+      <!-- ============================================ -->
+      <section>
+        <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-400 mb-4">TIMETABLE VIEW</p>
+        <div class="bg-white rounded-xl shadow-md border-0 overflow-hidden">
+          <div class="px-6 py-4 brand-gradient flex items-center gap-2">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <h2 class="text-lg font-bold tracking-tight text-white">My Timetable</h2>
+          </div>
+          <div class="p-6">
+            <table class="w-full border border-gray-200 rounded-xl overflow-hidden">
+              <thead>
+                <tr class="bg-gray-50">
+                  <th class="py-3 px-3 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase border-b border-r border-gray-200 w-16">Time</th>
+                  <th class="py-3 px-3 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase border-b border-r border-gray-200">Sun</th>
+                  <th class="py-3 px-3 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase border-b border-r border-gray-200">Mon</th>
+                  <th class="py-3 px-3 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase border-b border-r border-gray-200">Tue</th>
+                  <th class="py-3 px-3 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase border-b border-r border-gray-200">Wed</th>
+                  <th class="py-3 px-3 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase border-b border-gray-200">Thu</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="py-2 px-3 text-xs font-bold text-gray-500 border-r border-b border-gray-100">8:00</td>
+                  <td class="py-2 px-2 border-r border-b border-gray-100"><div class="bg-blue-100 text-blue-700 rounded-lg p-2 text-xs"><p class="font-bold">CS201</p><p class="text-[10px]">Room 301 • Dr. Al-Thani</p></div></td>
+                  <td class="py-2 px-2 border-r border-b border-gray-100"></td>
+                  <td class="py-2 px-2 border-r border-b border-gray-100"><div class="bg-blue-100 text-blue-700 rounded-lg p-2 text-xs"><p class="font-bold">CS201</p><p class="text-[10px]">Room 301 • Dr. Al-Thani</p></div></td>
+                  <td class="py-2 px-2 border-r border-b border-gray-100"></td>
+                  <td class="py-2 px-2 border-b border-gray-100"></td>
+                </tr>
+                <tr>
+                  <td class="py-2 px-3 text-xs font-bold text-gray-500 border-r border-b border-gray-100">10:00</td>
+                  <td class="py-2 px-2 border-r border-b border-gray-100"></td>
+                  <td class="py-2 px-2 border-r border-b border-gray-100"><div class="bg-green-100 text-green-700 rounded-lg p-2 text-xs"><p class="font-bold">BA101</p><p class="text-[10px]">Room 205 • Dr. Al-Kuwari</p></div></td>
+                  <td class="py-2 px-2 border-r border-b border-gray-100"></td>
+                  <td class="py-2 px-2 border-r border-b border-gray-100"><div class="bg-green-100 text-green-700 rounded-lg p-2 text-xs"><p class="font-bold">BA101</p><p class="text-[10px]">Room 205 • Dr. Al-Kuwari</p></div></td>
+                  <td class="py-2 px-2 border-b border-gray-100"></td>
+                </tr>
+                <tr>
+                  <td class="py-2 px-3 text-xs font-bold text-gray-500 border-r border-b border-gray-100">1:00</td>
+                  <td class="py-2 px-2 border-r border-b border-gray-100"><div class="bg-purple-100 text-purple-700 rounded-lg p-2 text-xs"><p class="font-bold">CS301</p><p class="text-[10px]">Room 303 • Dr. Al-Naimi</p></div></td>
+                  <td class="py-2 px-2 border-r border-b border-gray-100"></td>
+                  <td class="py-2 px-2 border-r border-b border-gray-100"><div class="bg-purple-100 text-purple-700 rounded-lg p-2 text-xs"><p class="font-bold">CS301</p><p class="text-[10px]">Room 303 • Dr. Al-Naimi</p></div></td>
+                  <td class="py-2 px-2 border-r border-b border-gray-100"></td>
+                  <td class="py-2 px-2 border-b border-gray-100"><div class="bg-amber-100 text-amber-700 rounded-lg p-2 text-xs"><p class="font-bold">MATH301</p><p class="text-[10px]">Room 102 • Dr. Al-Dosari</p></div></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================ -->
+      <!-- 3. NOTIFICATION PREFERENCES (shared) -->
+      <!-- ============================================ -->
+      <section>
+        <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-400 mb-4">NOTIFICATION PREFERENCES</p>
+        <div class="bg-white rounded-xl shadow-md border-0 overflow-hidden">
+          <div class="px-6 py-4 brand-gradient flex items-center gap-2">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 17H2a3 3 0 0 0 3-3V9a7 7 0 0 1 14 0v5a3 3 0 0 0 3 3zm-8.27 4a2 2 0 0 1-3.46 0"/></svg>
+            <h2 class="text-lg font-bold tracking-tight text-white">Notification Preferences</h2>
+          </div>
+          <div class="p-6 space-y-6">
+            <!-- Frequency Selector -->
+            <div>
+              <label class="text-xs font-semibold text-gray-600 mb-2 block">Email Digest Frequency</label>
+              <div class="flex gap-2">
+                <button class="px-4 py-2 rounded-lg text-sm font-semibold bg-white border border-gray-200 text-gray-600">Instant</button>
+                <button class="px-4 py-2 rounded-lg text-sm font-semibold bg-blue-600 text-white">Daily</button>
+                <button class="px-4 py-2 rounded-lg text-sm font-semibold bg-white border border-gray-200 text-gray-600">Weekly</button>
+              </div>
+            </div>
+            <!-- Category Toggles -->
+            <div class="space-y-3">
+              <div class="flex items-center justify-between p-4 border border-gray-100 rounded-xl">
+                <div><p class="text-sm font-bold">📧 Email Digest</p><p class="text-xs text-gray-500">Summary of activity and updates</p></div>
+                <div class="w-10 h-5 bg-green-500 rounded-full relative"><div class="w-4 h-4 bg-white rounded-full absolute right-0.5 top-0.5"></div></div>
+              </div>
+              <div class="flex items-center justify-between p-4 border border-gray-100 rounded-xl">
+                <div><p class="text-sm font-bold">🔥 Streak Alerts</p><p class="text-xs text-gray-500">Reminders when your streak is at risk</p></div>
+                <div class="w-10 h-5 bg-green-500 rounded-full relative"><div class="w-4 h-4 bg-white rounded-full absolute right-0.5 top-0.5"></div></div>
+              </div>
+              <div class="flex items-center justify-between p-4 border border-gray-100 rounded-xl">
+                <div><p class="text-sm font-bold">📊 Grade Notifications</p><p class="text-xs text-gray-500">When new grades are released</p></div>
+                <div class="w-10 h-5 bg-green-500 rounded-full relative"><div class="w-4 h-4 bg-white rounded-full absolute right-0.5 top-0.5"></div></div>
+              </div>
+              <div class="flex items-center justify-between p-4 border border-gray-100 rounded-xl">
+                <div><p class="text-sm font-bold">📝 Assignment Reminders</p><p class="text-xs text-gray-500">Upcoming deadlines and submissions</p></div>
+                <div class="w-10 h-5 bg-green-500 rounded-full relative"><div class="w-4 h-4 bg-white rounded-full absolute right-0.5 top-0.5"></div></div>
+              </div>
+              <div class="flex items-center justify-between p-4 border border-gray-100 rounded-xl">
+                <div><p class="text-sm font-bold">✨ AI Suggestions</p><p class="text-xs text-gray-500">Personalized learning recommendations</p></div>
+                <div class="w-10 h-5 bg-gray-300 rounded-full relative"><div class="w-4 h-4 bg-white rounded-full absolute left-0.5 top-0.5"></div></div>
+              </div>
+              <div class="flex items-center justify-between p-4 border border-gray-100 rounded-xl">
+                <div><p class="text-sm font-bold">⚙️ System Updates</p><p class="text-xs text-gray-500">Platform maintenance and new features</p></div>
+                <div class="w-10 h-5 bg-gray-300 rounded-full relative"><div class="w-4 h-4 bg-white rounded-full absolute left-0.5 top-0.5"></div></div>
+              </div>
+            </div>
+            <button class="brand-gradient text-white px-4 py-2 rounded-lg text-sm font-semibold">Save Preferences</button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- PUBLIC PAGES (NO SIDEBAR) -->
+  <!-- ============================================================ -->
+
+  <!-- ============================================ -->
+  <!-- 4. TERMS OF SERVICE (public) -->
+  <!-- ============================================ -->
+  <div class="max-w-3xl mx-auto py-12 px-6 space-y-16">
+    <section>
+      <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-400 mb-4">TERMS OF SERVICE</p>
+      <div class="bg-white rounded-xl shadow-md border-0 overflow-hidden">
+        <div class="px-6 py-6 text-center border-b border-gray-100">
+          <span class="text-2xl font-bold tracking-tight bg-gradient-to-r from-teal-500 to-blue-600 bg-clip-text text-transparent">edeviser</span>
+          <p class="text-sm text-gray-500 mt-1">Terms of Service</p>
+        </div>
+        <div class="p-6 space-y-6">
+          <div class="prose prose-sm max-w-none text-gray-700 space-y-4 max-h-96 overflow-y-auto border border-gray-100 rounded-lg p-4">
+            <h3 class="text-sm font-bold">1. Acceptance of Terms</h3>
+            <p class="text-sm">By accessing and using the Edeviser platform ("Service"), you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use the Service. The Service is provided by Edeviser Education Technology W.L.L., registered in the State of Qatar.</p>
+            <h3 class="text-sm font-bold">2. User Accounts</h3>
+            <p class="text-sm">You are responsible for maintaining the confidentiality of your account credentials. You must provide accurate and complete information during registration. Institutional accounts are managed by your institution's administrator.</p>
+            <h3 class="text-sm font-bold">3. Acceptable Use</h3>
+            <p class="text-sm">You agree not to: (a) share your login credentials with others; (b) attempt to access other users' data; (c) upload malicious content; (d) use the platform for any unlawful purpose; (e) interfere with the platform's operation.</p>
+            <h3 class="text-sm font-bold">4. Intellectual Property</h3>
+            <p class="text-sm">All content, features, and functionality of the Service are owned by Edeviser and are protected by international copyright, trademark, and other intellectual property laws.</p>
+            <h3 class="text-sm font-bold">5. Data Protection</h3>
+            <p class="text-sm">We process personal data in accordance with Qatar's Personal Data Privacy Protection Law (Law No. 13 of 2016) and our Privacy Policy. Student academic records are treated as confidential.</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <input type="checkbox" id="accept-terms" class="rounded accent-blue-600" checked />
+            <label for="accept-terms" class="text-sm font-medium text-gray-700">I have read and agree to the Terms of Service</label>
+          </div>
+          <button class="brand-gradient text-white px-6 py-2.5 rounded-lg text-sm font-semibold w-full">Continue</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- 5. PRIVACY POLICY (public) -->
+    <!-- ============================================ -->
+    <section>
+      <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-400 mb-4">PRIVACY POLICY</p>
+      <div class="bg-white rounded-xl shadow-md border-0 overflow-hidden">
+        <div class="px-6 py-6 text-center border-b border-gray-100">
+          <span class="text-2xl font-bold tracking-tight bg-gradient-to-r from-teal-500 to-blue-600 bg-clip-text text-transparent">edeviser</span>
+          <p class="text-sm text-gray-500 mt-1">Privacy Policy</p>
+        </div>
+        <div class="p-6 space-y-6">
+          <div class="prose prose-sm max-w-none text-gray-700 space-y-4">
+            <h3 class="text-sm font-bold">Data Collection</h3>
+            <p class="text-sm">We collect the following categories of personal data: (a) Account information (name, email, institution); (b) Academic data (grades, submissions, attainment scores); (c) Usage data (login times, feature usage, learning habits); (d) Assessment data (quiz responses, baseline test results).</p>
+            <h3 class="text-sm font-bold">Data Usage</h3>
+            <p class="text-sm">Your data is used to: provide educational services, generate learning analytics, power AI-driven recommendations, calculate gamification metrics, and produce accreditation reports for your institution.</p>
+            <h3 class="text-sm font-bold">Data Retention</h3>
+            <p class="text-sm">Academic records are retained for the duration of your enrollment plus 7 years. Usage analytics are anonymized after 2 years. You may request data export or deletion by contacting your institution administrator.</p>
+            <h3 class="text-sm font-bold">Contact</h3>
+            <p class="text-sm">Data Protection Officer: privacy@edeviser.com<br/>Edeviser Education Technology W.L.L.<br/>Qatar Science & Technology Park, Doha, Qatar</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================ -->
+    <!-- 6. PUBLIC PORTFOLIO (public) -->
+    <!-- ============================================ -->
+    <section>
+      <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-400 mb-4">PUBLIC PORTFOLIO</p>
+      <div class="bg-white rounded-xl shadow-md border-0 overflow-hidden">
+        <div class="px-6 py-6 text-center border-b border-gray-100">
+          <span class="text-2xl font-bold tracking-tight bg-gradient-to-r from-teal-500 to-blue-600 bg-clip-text text-transparent">edeviser</span>
+        </div>
+        <div class="p-6 space-y-6">
+          <!-- Profile -->
+          <div class="text-center">
+            <div class="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center text-2xl font-bold text-blue-600 mx-auto">HA</div>
+            <h2 class="text-xl font-bold mt-3">Hamad Al-Thani</h2>
+            <p class="text-sm text-gray-500">Qatar University • BSc Computer Science</p>
+            <p class="text-xs text-gray-400 mt-1">Level 8 • 2,450 XP</p>
+          </div>
+          <!-- Skills -->
+          <div class="flex flex-wrap justify-center gap-2">
+            <span class="px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700">Data Structures</span>
+            <span class="px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700">Algorithm Design</span>
+            <span class="px-3 py-1 rounded-full text-xs font-bold bg-purple-100 text-purple-700">Database Systems</span>
+            <span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700">Problem Solving</span>
+          </div>
+          <!-- CLO Attainment -->
+          <div class="space-y-2">
+            <h3 class="text-sm font-bold text-gray-800">CLO Attainment</h3>
+            <div class="space-y-2">
+              <div class="flex items-center gap-3"><span class="text-xs font-bold text-gray-500 w-40">Analyze algorithms</span><div class="flex-1 bg-gray-100 rounded-full h-3"><div class="bg-green-500 h-3 rounded-full" style="width: 85%"></div></div><span class="text-xs font-bold text-green-600">85%</span></div>
+              <div class="flex items-center gap-3"><span class="text-xs font-bold text-gray-500 w-40">Design data structures</span><div class="flex-1 bg-gray-100 rounded-full h-3"><div class="bg-blue-500 h-3 rounded-full" style="width: 72%"></div></div><span class="text-xs font-bold text-blue-600">72%</span></div>
+              <div class="flex items-center gap-3"><span class="text-xs font-bold text-gray-500 w-40">Implement sorting</span><div class="flex-1 bg-gray-100 rounded-full h-3"><div class="bg-blue-500 h-3 rounded-full" style="width: 78%"></div></div><span class="text-xs font-bold text-blue-600">78%</span></div>
+            </div>
+          </div>
+          <!-- Evidence -->
+          <div class="space-y-3">
+            <h3 class="text-sm font-bold text-gray-800">Evidence Showcase</h3>
+            <div class="grid grid-cols-2 gap-3">
+              <div class="border border-gray-200 rounded-lg p-3"><p class="text-xs font-bold">Algorithm Analysis Report</p><p class="text-xs text-gray-500">CS201 • 92%</p></div>
+              <div class="border border-gray-200 rounded-lg p-3"><p class="text-xs font-bold">Sorting Lab Report</p><p class="text-xs text-gray-500">CS201 • 88%</p></div>
+              <div class="border border-gray-200 rounded-lg p-3"><p class="text-xs font-bold">ER Diagram Project</p><p class="text-xs text-gray-500">CS301 • 78%</p></div>
+              <div class="border border-gray-200 rounded-lg p-3"><p class="text-xs font-bold">SQL Optimization</p><p class="text-xs text-gray-500">CS301 • 82%</p></div>
+            </div>
+          </div>
+          <!-- Share URL -->
+          <div class="bg-gray-50 rounded-lg p-3 flex items-center gap-2">
+            <input type="text" value="https://edeviser.com/portfolio/hamad-al-thani" class="flex-1 bg-transparent text-sm text-gray-600 outline-none" readonly />
+            <button class="bg-white border border-gray-200 text-gray-700 px-3 py-1.5 rounded-lg text-xs font-semibold">Copy</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- COORDINATOR PAGES (WITH SIDEBAR) -->
+  <!-- ============================================================ -->
+  <div class="flex min-h-screen border-t-4 border-gray-200">
+    <!-- Coordinator Sidebar -->
+    <aside class="w-64 bg-white border-r border-slate-200 p-4 space-y-1 flex-shrink-0 sticky top-0 h-screen overflow-auto">
+      <div class="px-3 py-3 mb-4">
+        <span class="text-xl font-bold tracking-tight bg-gradient-to-r from-teal-500 to-blue-600 bg-clip-text text-transparent">edeviser</span>
+        <p class="text-[10px] text-gray-400 mt-0.5">Coordinator Portal</p>
+      </div>
+      <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-slate-50"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Dashboard</a>
+      <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-slate-50"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/></svg>PLOs</a>
+      <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-slate-50"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>Curriculum Matrix</a>
+      <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium bg-blue-50 text-blue-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>Visualizations</a>
+      <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-slate-50"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>CQI Plans</a>
+      <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-slate-50"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>Trends</a>
+    </aside>
+
+    <main class="flex-1 overflow-auto p-8 space-y-16">
+
+      <!-- ============================================ -->
+      <!-- 7. COVERAGE HEATMAP VIEW (coordinator) -->
+      <!-- ============================================ -->
+      <section>
+        <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-400 mb-4">COVERAGE HEATMAP VIEW</p>
+        <div class="bg-white rounded-xl shadow-md border-0 overflow-hidden">
+          <div class="px-6 py-4 brand-gradient flex items-center gap-2">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>
+            <h2 class="text-lg font-bold tracking-tight text-white">PLO × Course Coverage Heatmap</h2>
+          </div>
+          <div class="p-6 space-y-4">
+            <div class="flex items-center justify-between">
+              <select class="border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white"><option>Fall 2025-2026</option><option>Spring 2025-2026</option></select>
+              <div class="flex items-center gap-4 text-xs">
+                <div class="flex items-center gap-1.5"><div class="w-4 h-4 rounded bg-green-600"></div><span>High (≥85%)</span></div>
+                <div class="flex items-center gap-1.5"><div class="w-4 h-4 rounded bg-green-300"></div><span>Good (70-84%)</span></div>
+                <div class="flex items-center gap-1.5"><div class="w-4 h-4 rounded bg-yellow-300"></div><span>Moderate (50-69%)</span></div>
+                <div class="flex items-center gap-1.5"><div class="w-4 h-4 rounded bg-red-400"></div><span>Low (&lt;50%)</span></div>
+                <div class="flex items-center gap-1.5"><div class="w-4 h-4 rounded bg-gray-100 border border-gray-200"></div><span>No mapping</span></div>
+              </div>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full">
+                <thead>
+                  <tr class="border-b border-gray-200">
+                    <th class="text-left py-3 px-4 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">PLO</th>
+                    <th class="text-center py-3 px-3 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">CS201</th>
+                    <th class="text-center py-3 px-3 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">CS301</th>
+                    <th class="text-center py-3 px-3 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">BA101</th>
+                    <th class="text-center py-3 px-3 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">MATH301</th>
+                    <th class="text-center py-3 px-3 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">ENG201</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr class="border-b border-gray-100">
+                    <td class="py-3 px-4 text-xs font-bold">PLO-1: Problem Solving</td>
+                    <td class="py-3 px-3 text-center"><div class="w-10 h-10 rounded-lg bg-green-600 text-white flex items-center justify-center text-xs font-bold mx-auto">92%</div></td>
+                    <td class="py-3 px-3 text-center"><div class="w-10 h-10 rounded-lg bg-green-300 text-gray-800 flex items-center justify-center text-xs font-bold mx-auto">78%</div></td>
+                    <td class="py-3 px-3 text-center"><div class="w-10 h-10 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center text-xs text-gray-400 mx-auto">—</div></td>
+                    <td class="py-3 px-3 text-center"><div class="w-10 h-10 rounded-lg bg-green-600 text-white flex items-center justify-center text-xs font-bold mx-auto">88%</div></td>
+                    <td class="py-3 px-3 text-center"><div class="w-10 h-10 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center text-xs text-gray-400 mx-auto">—</div></td>
+                  </tr>
+                  <tr class="border-b border-gray-100">
+                    <td class="py-3 px-4 text-xs font-bold">PLO-2: Communication</td>
+                    <td class="py-3 px-3 text-center"><div class="w-10 h-10 rounded-lg bg-yellow-300 text-gray-800 flex items-center justify-center text-xs font-bold mx-auto">62%</div></td>
+                    <td class="py-3 px-3 text-center"><div class="w-10 h-10 rounded-lg bg-green-300 text-gray-800 flex items-center justify-center text-xs font-bold mx-auto">74%</div></td>
+                    <td class="py-3 px-3 text-center"><div class="w-10 h-10 rounded-lg bg-green-600 text-white flex items-center justify-center text-xs font-bold mx-auto">85%</div></td>
+                    <td class="py-3 px-3 text-center"><div class="w-10 h-10 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center text-xs text-gray-400 mx-auto">—</div></td>
+                    <td class="py-3 px-3 text-center"><div class="w-10 h-10 rounded-lg bg-green-600 text-white flex items-center justify-center text-xs font-bold mx-auto">90%</div></td>
+                  </tr>
+                  <tr class="border-b border-gray-100">
+                    <td class="py-3 px-4 text-xs font-bold">PLO-3: Ethics</td>
+                    <td class="py-3 px-3 text-center"><div class="w-10 h-10 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center text-xs text-gray-400 mx-auto">—</div></td>
+                    <td class="py-3 px-3 text-center"><div class="w-10 h-10 rounded-lg bg-red-400 text-white flex items-center justify-center text-xs font-bold mx-auto">42%</div></td>
+                    <td class="py-3 px-3 text-center"><div class="w-10 h-10 rounded-lg bg-green-300 text-gray-800 flex items-center justify-center text-xs font-bold mx-auto">71%</div></td>
+                    <td class="py-3 px-3 text-center"><div class="w-10 h-10 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center text-xs text-gray-400 mx-auto">—</div></td>
+                    <td class="py-3 px-3 text-center"><div class="w-10 h-10 rounded-lg bg-yellow-300 text-gray-800 flex items-center justify-center text-xs font-bold mx-auto">58%</div></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================ -->
+      <!-- 8. SANKEY DIAGRAM VIEW (coordinator) -->
+      <!-- ============================================ -->
+      <section>
+        <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-400 mb-4">SANKEY DIAGRAM VIEW</p>
+        <div class="bg-white rounded-xl shadow-md border-0 overflow-hidden">
+          <div class="px-6 py-4 brand-gradient flex items-center gap-2">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+            <h2 class="text-lg font-bold tracking-tight text-white">ILO → PLO → CLO Flow Diagram</h2>
+          </div>
+          <div class="p-6 space-y-4">
+            <p class="text-xs text-gray-500">Visualizes the outcome mapping flow from Institution Learning Outcomes through Program Learning Outcomes to Course Learning Outcomes.</p>
+            <!-- Sankey Placeholder -->
+            <div class="border border-gray-200 rounded-xl p-6">
+              <div class="flex items-start justify-between gap-8">
+                <!-- ILO Column -->
+                <div class="space-y-3 w-1/4">
+                  <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-500 mb-2">ILOs</p>
+                  <div class="bg-red-100 border border-red-200 rounded-lg p-3"><p class="text-xs font-bold text-red-700">ILO-1</p><p class="text-[10px] text-red-600">Critical Thinking</p></div>
+                  <div class="bg-red-100 border border-red-200 rounded-lg p-3"><p class="text-xs font-bold text-red-700">ILO-2</p><p class="text-[10px] text-red-600">Communication</p></div>
+                  <div class="bg-red-100 border border-red-200 rounded-lg p-3"><p class="text-xs font-bold text-red-700">ILO-3</p><p class="text-[10px] text-red-600">Ethics</p></div>
+                </div>
+                <!-- Connections -->
+                <div class="flex-1 flex items-center justify-center">
+                  <div class="h-48 bg-gray-50 rounded-lg flex items-center justify-center w-full">
+                    <p class="text-sm text-gray-400">← Weighted connections flow →<br/><span class="text-xs">Sankey diagram renders at runtime</span></p>
+                  </div>
+                </div>
+                <!-- PLO Column -->
+                <div class="space-y-3 w-1/4">
+                  <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-500 mb-2">PLOs</p>
+                  <div class="bg-blue-100 border border-blue-200 rounded-lg p-3"><p class="text-xs font-bold text-blue-700">PLO-1</p><p class="text-[10px] text-blue-600">Problem Solving (40%)</p></div>
+                  <div class="bg-blue-100 border border-blue-200 rounded-lg p-3"><p class="text-xs font-bold text-blue-700">PLO-2</p><p class="text-[10px] text-blue-600">Communication (30%)</p></div>
+                  <div class="bg-blue-100 border border-blue-200 rounded-lg p-3"><p class="text-xs font-bold text-blue-700">PLO-3</p><p class="text-[10px] text-blue-600">Ethics (30%)</p></div>
+                </div>
+                <!-- CLO Column -->
+                <div class="space-y-2 w-1/4">
+                  <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-500 mb-2">CLOs</p>
+                  <div class="bg-green-100 border border-green-200 rounded-lg p-2"><p class="text-[10px] font-bold text-green-700">CLO-1: Analyze algorithms</p></div>
+                  <div class="bg-green-100 border border-green-200 rounded-lg p-2"><p class="text-[10px] font-bold text-green-700">CLO-2: Design structures</p></div>
+                  <div class="bg-green-100 border border-green-200 rounded-lg p-2"><p class="text-[10px] font-bold text-green-700">CLO-3: Implement sorting</p></div>
+                  <div class="bg-green-100 border border-green-200 rounded-lg p-2"><p class="text-[10px] font-bold text-green-700">CLO-4: Write reports</p></div>
+                  <div class="bg-green-100 border border-green-200 rounded-lg p-2"><p class="text-[10px] font-bold text-green-700">CLO-5: Apply ethics</p></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================ -->
+      <!-- 9. COHORT COMPARISON VIEW (coordinator) -->
+      <!-- ============================================ -->
+      <section>
+        <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-400 mb-4">COHORT COMPARISON VIEW</p>
+        <div class="bg-white rounded-xl shadow-md border-0 overflow-hidden">
+          <div class="px-6 py-4 brand-gradient flex items-center gap-2">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+            <h2 class="text-lg font-bold tracking-tight text-white">Cohort Comparison</h2>
+          </div>
+          <div class="p-6 space-y-6">
+            <!-- Cohort Selectors -->
+            <div class="flex items-center gap-4">
+              <div class="flex-1">
+                <label class="text-xs font-semibold text-gray-600 mb-1 block">Cohort A</label>
+                <select class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white"><option>Fall 2024-2025 (n=142)</option></select>
+              </div>
+              <span class="text-gray-400 font-bold mt-5">vs</span>
+              <div class="flex-1">
+                <label class="text-xs font-semibold text-gray-600 mb-1 block">Cohort B</label>
+                <select class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white"><option>Fall 2025-2026 (n=156)</option></select>
+              </div>
+            </div>
+            <!-- Side-by-Side PLO Bars -->
+            <div class="space-y-4">
+              <div class="space-y-2">
+                <div class="flex items-center justify-between"><span class="text-xs font-bold text-gray-700">PLO-1: Problem Solving</span><div class="flex items-center gap-2"><span class="text-xs font-bold text-green-600">+5.2%</span><span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-700">Significant</span></div></div>
+                <div class="flex gap-2">
+                  <div class="flex-1"><div class="flex items-center gap-2"><span class="text-[10px] text-gray-500 w-8">2024</span><div class="flex-1 bg-gray-100 rounded-full h-4"><div class="bg-blue-400 h-4 rounded-full" style="width: 72%"></div></div><span class="text-xs font-bold">72%</span></div></div>
+                  <div class="flex-1"><div class="flex items-center gap-2"><span class="text-[10px] text-gray-500 w-8">2025</span><div class="flex-1 bg-gray-100 rounded-full h-4"><div class="bg-blue-600 h-4 rounded-full" style="width: 77%"></div></div><span class="text-xs font-bold">77%</span></div></div>
+                </div>
+              </div>
+              <div class="space-y-2">
+                <div class="flex items-center justify-between"><span class="text-xs font-bold text-gray-700">PLO-2: Communication</span><div class="flex items-center gap-2"><span class="text-xs font-bold text-red-600">-2.1%</span><span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-gray-100 text-gray-600">Not Significant</span></div></div>
+                <div class="flex gap-2">
+                  <div class="flex-1"><div class="flex items-center gap-2"><span class="text-[10px] text-gray-500 w-8">2024</span><div class="flex-1 bg-gray-100 rounded-full h-4"><div class="bg-blue-400 h-4 rounded-full" style="width: 68%"></div></div><span class="text-xs font-bold">68%</span></div></div>
+                  <div class="flex-1"><div class="flex items-center gap-2"><span class="text-[10px] text-gray-500 w-8">2025</span><div class="flex-1 bg-gray-100 rounded-full h-4"><div class="bg-blue-600 h-4 rounded-full" style="width: 66%"></div></div><span class="text-xs font-bold">66%</span></div></div>
+                </div>
+              </div>
+              <div class="space-y-2">
+                <div class="flex items-center justify-between"><span class="text-xs font-bold text-gray-700">PLO-3: Ethics</span><div class="flex items-center gap-2"><span class="text-xs font-bold text-green-600">+8.7%</span><span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-700">Significant</span></div></div>
+                <div class="flex gap-2">
+                  <div class="flex-1"><div class="flex items-center gap-2"><span class="text-[10px] text-gray-500 w-8">2024</span><div class="flex-1 bg-gray-100 rounded-full h-4"><div class="bg-blue-400 h-4 rounded-full" style="width: 55%"></div></div><span class="text-xs font-bold">55%</span></div></div>
+                  <div class="flex-1"><div class="flex items-center gap-2"><span class="text-[10px] text-gray-500 w-8">2025</span><div class="flex-1 bg-gray-100 rounded-full h-4"><div class="bg-blue-600 h-4 rounded-full" style="width: 64%"></div></div><span class="text-xs font-bold">64%</span></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================ -->
+      <!-- 10. SEMESTER TREND VIEW (coordinator) -->
+      <!-- ============================================ -->
+      <section>
+        <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-400 mb-4">SEMESTER TREND VIEW</p>
+        <div class="bg-white rounded-xl shadow-md border-0 overflow-hidden">
+          <div class="px-6 py-4 brand-gradient flex items-center gap-2">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            <h2 class="text-lg font-bold tracking-tight text-white">PLO Attainment Trends Over Time</h2>
+          </div>
+          <div class="p-6 space-y-6">
+            <!-- Semester Selector -->
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-semibold text-gray-600">Semesters:</span>
+              <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700">Fall 2023</span>
+              <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700">Spring 2024</span>
+              <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700">Fall 2024</span>
+              <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-blue-600 text-white">Spring 2025</span>
+              <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-blue-600 text-white">Fall 2025</span>
+            </div>
+            <!-- Chart Placeholder -->
+            <div class="border border-gray-200 rounded-xl p-6 text-center">
+              <div class="h-56 bg-gray-50 rounded-lg flex items-center justify-center">
+                <p class="text-sm text-gray-400">📈 Line chart: PLO attainment % over 5 semesters — Chart renders at runtime</p>
+              </div>
+            </div>
+            <!-- Trend Indicators -->
+            <div class="grid grid-cols-3 gap-4">
+              <div class="border border-gray-200 rounded-xl p-4">
+                <div class="flex items-center justify-between">
+                  <p class="text-xs font-bold text-gray-700">PLO-1: Problem Solving</p>
+                  <span class="text-xs font-bold text-green-600">↑ +12%</span>
+                </div>
+                <div class="flex items-center gap-2 mt-2">
+                  <span class="text-xs text-gray-500">Fall 2023: 65%</span>
+                  <span class="text-gray-300">→</span>
+                  <span class="text-xs font-bold text-green-600">Fall 2025: 77%</span>
+                </div>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-700 mt-2 inline-block">Improving</span>
+              </div>
+              <div class="border border-gray-200 rounded-xl p-4">
+                <div class="flex items-center justify-between">
+                  <p class="text-xs font-bold text-gray-700">PLO-2: Communication</p>
+                  <span class="text-xs font-bold text-gray-500">→ +1%</span>
+                </div>
+                <div class="flex items-center gap-2 mt-2">
+                  <span class="text-xs text-gray-500">Fall 2023: 65%</span>
+                  <span class="text-gray-300">→</span>
+                  <span class="text-xs font-bold text-gray-600">Fall 2025: 66%</span>
+                </div>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-gray-100 text-gray-600 mt-2 inline-block">Stable</span>
+              </div>
+              <div class="border border-gray-200 rounded-xl p-4">
+                <div class="flex items-center justify-between">
+                  <p class="text-xs font-bold text-gray-700">PLO-3: Ethics</p>
+                  <span class="text-xs font-bold text-red-600">↓ -3%</span>
+                </div>
+                <div class="flex items-center gap-2 mt-2">
+                  <span class="text-xs text-gray-500">Fall 2023: 67%</span>
+                  <span class="text-gray-300">→</span>
+                  <span class="text-xs font-bold text-red-600">Fall 2025: 64%</span>
+                </div>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-700 mt-2 inline-block">Declining</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+</body>
+</html>

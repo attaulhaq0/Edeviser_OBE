@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Parent Dashboard — Edeviser</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
+  <style>
+    * { font-family: 'Noto Sans', system-ui, sans-serif; }
+    .brand-gradient { background: linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%); }
+    .hero-gradient { background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #312e81 100%); }
+  </style>
+</head>
+<body class="bg-slate-50 min-h-screen">
+  <div class="flex min-h-screen">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-white border-r border-slate-200 p-4 space-y-1 flex-shrink-0 sticky top-0 h-screen overflow-auto">
+      <div class="px-3 py-3 mb-4">
+        <span class="text-xl font-bold tracking-tight bg-gradient-to-r from-teal-500 to-blue-600 bg-clip-text text-transparent">edeviser</span>
+        <p class="text-[10px] text-gray-400 mt-0.5">Parent Portal</p>
+      </div>
+      <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium bg-blue-50 text-blue-600">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </a>
+      <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        My Children
+      </a>
+      <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Attendance
+      </a>
+      <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/></svg>
+        Settings
+      </a>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-auto p-6 space-y-6">
+
+      <!-- Hero Card -->
+      <div class="relative overflow-hidden rounded-2xl shadow-xl hero-gradient">
+        <div class="absolute inset-0 bg-black/20"></div>
+        <div class="relative z-10 p-8">
+          <h1 class="text-2xl font-bold tracking-tight text-white">Welcome, Mrs. Fatima Al-Naimi 👋</h1>
+          <p class="text-blue-200 text-sm mt-1">Stay connected with your children's academic journey.</p>
+        </div>
+      </div>
+
+      <!-- KPI Row -->
+      <div class="grid grid-cols-4 gap-4">
+        <div class="bg-white border-0 shadow-lg rounded-xl p-4 group">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-500">Children</p>
+              <p class="text-2xl font-black mt-1 text-gray-900">2</p>
+              <p class="text-xs text-blue-600 font-semibold mt-0.5">Both active</p>
+            </div>
+            <div class="p-2.5 rounded-xl bg-blue-50 group-hover:scale-110 transition-transform">
+              <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white border-0 shadow-lg rounded-xl p-4 group">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-500">Avg Attainment</p>
+              <p class="text-2xl font-black mt-1 text-gray-900">78%</p>
+              <p class="text-xs text-blue-600 font-semibold mt-0.5">Satisfactory</p>
+            </div>
+            <div class="p-2.5 rounded-xl bg-green-50 group-hover:scale-110 transition-transform">
+              <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white border-0 shadow-lg rounded-xl p-4 group">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-500">Upcoming Deadlines</p>
+              <p class="text-2xl font-black mt-1 text-gray-900">4</p>
+              <p class="text-xs text-amber-600 font-semibold mt-0.5">Next: Tomorrow</p>
+            </div>
+            <div class="p-2.5 rounded-xl bg-amber-50 group-hover:scale-110 transition-transform">
+              <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg>
+            </div>
+          </div>
+        </div>
+        <div class="bg-white border-0 shadow-lg rounded-xl p-4 group">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-500">Streak Status</p>
+              <p class="text-2xl font-black mt-1 text-gray-900">🔥 Active</p>
+              <p class="text-xs text-green-600 font-semibold mt-0.5">Both children on streak</p>
+            </div>
+            <div class="p-2.5 rounded-xl bg-red-50 group-hover:scale-110 transition-transform">
+              <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Child Cards -->
+      <div class="grid grid-cols-2 gap-6">
+        <!-- Child 1: Sarah -->
+        <div class="bg-white border-0 shadow-lg rounded-xl overflow-hidden">
+          <div class="px-6 py-4 brand-gradient flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white font-bold">SK</div>
+              <div>
+                <h2 class="text-lg font-bold tracking-tight text-white">Sarah Al-Kuwari</h2>
+                <p class="text-xs text-white/70">B.Sc. Computer Science · Year 2</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-sm text-white/80">🔥 12 days</span>
+              <span class="px-2 py-0.5 rounded-full text-xs font-bold bg-white/20 text-white">Level 5</span>
+            </div>
+          </div>
+          <div class="p-6 space-y-4">
+            <!-- Attainment -->
+            <div>
+              <div class="flex justify-between mb-1"><span class="text-sm font-medium text-gray-700">Overall Attainment</span><span class="text-sm font-black text-green-600">82%</span></div>
+              <div class="h-2.5 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-gradient-to-r from-green-400 to-green-600 rounded-full" style="width:82%"></div></div>
+            </div>
+            <!-- Recent Activity -->
+            <div>
+              <p class="text-xs font-bold text-gray-500 mb-2">Recent Activity</p>
+              <div class="space-y-1.5">
+                <div class="flex items-center gap-2 text-xs"><span class="text-green-500">✓</span><span class="text-gray-600">Submitted Data Structures Lab 3</span><span class="text-gray-400 ml-auto">2h ago</span></div>
+                <div class="flex items-center gap-2 text-xs"><span class="text-green-500">✓</span><span class="text-gray-600">Completed journal entry</span><span class="text-gray-400 ml-auto">5h ago</span></div>
+                <div class="flex items-center gap-2 text-xs"><span class="text-blue-500">📝</span><span class="text-gray-600">Grade received: 88/100 (Essay)</span><span class="text-gray-400 ml-auto">1d ago</span></div>
+              </div>
+            </div>
+            <!-- Attendance -->
+            <div>
+              <p class="text-xs font-bold text-gray-500 mb-2">Attendance This Month</p>
+              <div class="flex items-center gap-3">
+                <div class="flex-1"><div class="flex justify-between text-xs mb-0.5"><span class="text-gray-600">Present</span><span class="font-bold text-green-600">92%</span></div><div class="h-2 bg-gray-100 rounded-full"><div class="h-full bg-green-500 rounded-full" style="width:92%"></div></div></div>
+              </div>
+            </div>
+            <!-- Upcoming -->
+            <div>
+              <p class="text-xs font-bold text-gray-500 mb-2">Upcoming Assignments</p>
+              <div class="space-y-1.5">
+                <div class="flex items-center justify-between text-xs p-2 bg-gray-50 rounded"><span class="text-gray-700">Algorithm Analysis Report</span><span class="font-bold text-amber-600">Due in 3 days</span></div>
+                <div class="flex items-center justify-between text-xs p-2 bg-gray-50 rounded"><span class="text-gray-700">Technical Writing Quiz</span><span class="font-bold text-gray-500">Due in 5 days</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Child 2: Khalid -->
+        <div class="bg-white border-0 shadow-lg rounded-xl overflow-hidden">
+          <div class="px-6 py-4 brand-gradient flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white font-bold">KN</div>
+              <div>
+                <h2 class="text-lg font-bold tracking-tight text-white">Khalid Al-Naimi</h2>
+                <p class="text-xs text-white/70">B.Sc. Electrical Engineering · Year 1</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-sm text-white/80">🔥 5 days</span>
+              <span class="px-2 py-0.5 rounded-full text-xs font-bold bg-white/20 text-white">Level 3</span>
+            </div>
+          </div>
+          <div class="p-6 space-y-4">
+            <!-- Attainment -->
+            <div>
+              <div class="flex justify-between mb-1"><span class="text-sm font-medium text-gray-700">Overall Attainment</span><span class="text-sm font-black text-blue-600">74%</span></div>
+              <div class="h-2.5 bg-gray-100 rounded-full overflow-hidden"><div class="h-full bg-gradient-to-r from-blue-400 to-blue-600 rounded-full" style="width:74%"></div></div>
+            </div>
+            <!-- Recent Activity -->
+            <div>
+              <p class="text-xs font-bold text-gray-500 mb-2">Recent Activity</p>
+              <div class="space-y-1.5">
+                <div class="flex items-center gap-2 text-xs"><span class="text-green-500">✓</span><span class="text-gray-600">Logged in today</span><span class="text-gray-400 ml-auto">1h ago</span></div>
+                <div class="flex items-center gap-2 text-xs"><span class="text-amber-500">⚠</span><span class="text-gray-600">Missed journal entry yesterday</span><span class="text-gray-400 ml-auto">1d ago</span></div>
+                <div class="flex items-center gap-2 text-xs"><span class="text-green-500">✓</span><span class="text-gray-600">Submitted Circuit Analysis Lab</span><span class="text-gray-400 ml-auto">2d ago</span></div>
+              </div>
+            </div>
+            <!-- Attendance -->
+            <div>
+              <p class="text-xs font-bold text-gray-500 mb-2">Attendance This Month</p>
+              <div class="flex items-center gap-3">
+                <div class="flex-1"><div class="flex justify-between text-xs mb-0.5"><span class="text-gray-600">Present</span><span class="font-bold text-blue-600">78%</span></div><div class="h-2 bg-gray-100 rounded-full"><div class="h-full bg-blue-500 rounded-full" style="width:78%"></div></div></div>
+              </div>
+            </div>
+            <!-- Upcoming -->
+            <div>
+              <p class="text-xs font-bold text-gray-500 mb-2">Upcoming Assignments</p>
+              <div class="space-y-1.5">
+                <div class="flex items-center justify-between text-xs p-2 bg-red-50 rounded border border-red-100"><span class="text-gray-700">Digital Logic Homework 4</span><span class="font-bold text-red-600">Due Tomorrow!</span></div>
+                <div class="flex items-center justify-between text-xs p-2 bg-gray-50 rounded"><span class="text-gray-700">Physics Lab Report</span><span class="font-bold text-gray-500">Due in 4 days</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</body>
+</html>

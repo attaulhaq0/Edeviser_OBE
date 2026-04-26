@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Coordinator Feature Pages — Edeviser</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
+  <style>
+    * { font-family: 'Noto Sans', system-ui, sans-serif; }
+    .brand-gradient { background: linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%); }
+    .hero-gradient { background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #312e81 100%); }
+  </style>
+</head>
+<body class="bg-slate-50 min-h-screen">
+  <div class="flex min-h-screen">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-white border-r border-slate-200 p-4 space-y-1 flex-shrink-0 sticky top-0 h-screen overflow-auto">
+      <div class="px-3 py-3 mb-4">
+        <span class="text-xl font-bold tracking-tight bg-gradient-to-r from-teal-500 to-blue-600 bg-clip-text text-transparent">edeviser</span>
+        <p class="text-[10px] text-gray-400 mt-0.5">Coordinator Portal</p>
+      </div>
+      <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Dashboard</a>
+      <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium bg-blue-50 text-blue-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>PLOs</a>
+      <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>Curriculum Matrix</a>
+      <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/></svg>Gap Analysis</a>
+      <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>CQI Manager</a>
+      <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>Course File</a>
+    </aside>
+
+    <main class="flex-1 overflow-auto p-6 space-y-10">
+
+      <!-- ==================== PLO LIST ==================== -->
+      <section>
+        <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-400 mb-4">PLO List Page</p>
+        <div class="flex items-center justify-between mb-4">
+          <h1 class="text-2xl font-bold tracking-tight text-gray-900">Program Learning Outcomes — B.Sc. Computer Science</h1>
+          <button class="py-2.5 px-4 rounded-lg text-sm font-semibold text-white brand-gradient shadow-md active:scale-95 flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add PLO
+          </button>
+        </div>
+        <div class="bg-white border-0 shadow-lg rounded-xl overflow-hidden">
+          <table class="w-full text-sm">
+            <thead><tr class="bg-gray-50 border-b border-gray-200">
+              <th class="text-left py-3 px-4 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">PLO Title</th>
+              <th class="text-left py-3 px-4 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">ILO Mapping</th>
+              <th class="text-left py-3 px-4 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">Attainment</th>
+              <th class="text-left py-3 px-4 text-[10px] font-black text-gray-500 tracking-[0.15em] uppercase">Course Count</th>
+            </tr></thead>
+            <tbody>
+              <tr class="border-b border-gray-100"><td class="py-3 px-4 font-medium text-gray-800">PLO 1: Demonstrate critical thinking in CS problem-solving</td><td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700 border border-red-200">ILO 1</span></td><td class="py-3 px-4"><span class="text-sm font-black text-green-600">85%</span></td><td class="py-3 px-4 font-bold text-blue-600">6</td></tr>
+              <tr class="border-b border-gray-100 bg-gray-50/30"><td class="py-3 px-4 font-medium text-gray-800">PLO 2: Communicate technical concepts effectively</td><td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700 border border-red-200">ILO 2</span></td><td class="py-3 px-4"><span class="text-sm font-black text-blue-600">76%</span></td><td class="py-3 px-4 font-bold text-blue-600">4</td></tr>
+              <tr class="border-b border-gray-100"><td class="py-3 px-4 font-medium text-gray-800">PLO 3: Apply computational thinking to engineering problems</td><td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700 border border-red-200">ILO 3</span></td><td class="py-3 px-4"><span class="text-sm font-black text-blue-600">72%</span></td><td class="py-3 px-4 font-bold text-blue-600">5</td></tr>
+              <tr class="border-b border-gray-100 bg-gray-50/30"><td class="py-3 px-4 font-medium text-gray-800">PLO 4: Design software systems using best practices</td><td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700 border border-red-200">ILO 3</span></td><td class="py-3 px-4"><span class="text-sm font-black text-yellow-600">64%</span></td><td class="py-3 px-4 font-bold text-blue-600">3</td></tr>
+              <tr class="border-b border-gray-100"><td class="py-3 px-4 font-medium text-gray-800">PLO 5: Conduct independent research in CS</td><td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700 border border-red-200">ILO 4</span></td><td class="py-3 px-4"><span class="text-sm font-black text-red-600">48%</span></td><td class="py-3 px-4 font-bold text-blue-600">2</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ==================== PLO FORM ==================== -->
+      <section>
+        <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-400 mb-4">PLO Form</p>
+        <div class="bg-white border-0 shadow-lg rounded-xl overflow-hidden max-w-2xl">
+          <div class="px-6 py-4 brand-gradient flex items-center gap-2">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/></svg>
+            <h2 class="text-lg font-bold tracking-tight text-white">Create PLO</h2>
+          </div>
+          <div class="p-6 space-y-4">
+            <div><label class="block text-sm font-medium text-gray-700 mb-1.5">PLO Title</label><input type="text" placeholder="e.g. Demonstrate critical thinking in CS problem-solving" class="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm bg-white" /></div>
+            <div><label class="block text-sm font-medium text-gray-700 mb-1.5">Description</label><textarea rows="3" placeholder="Detailed description of this PLO..." class="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm bg-white resize-none"></textarea></div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1.5">ILO Mapping (with weights)</label>
+              <div class="space-y-2">
+                <div class="flex items-center gap-3 p-3 bg-red-50 rounded-lg border border-red-200">
+                  <span class="px-2 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700">ILO 1</span>
+                  <span class="text-sm text-gray-700 flex-1">Critical Thinking</span>
+                  <input type="number" value="70" class="w-16 px-2 py-1 border border-gray-200 rounded text-sm text-center font-bold" />
+                  <span class="text-xs text-gray-500">%</span>
+                </div>
+                <div class="flex items-center gap-3 p-3 bg-red-50 rounded-lg border border-red-200">
+                  <span class="px-2 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700">ILO 3</span>
+                  <span class="text-sm text-gray-700 flex-1">Problem Solving</span>
+                  <input type="number" value="30" class="w-16 px-2 py-1 border border-gray-200 rounded text-sm text-center font-bold" />
+                  <span class="text-xs text-gray-500">%</span>
+                </div>
+              </div>
+              <p class="text-xs text-gray-500 mt-1">Total weight: <span class="font-bold text-green-600">100%</span></p>
+            </div>
+            <div class="flex justify-end gap-3 pt-2">
+              <button class="py-2.5 px-4 rounded-lg text-sm font-medium text-gray-600 bg-white border border-gray-200">Cancel</button>
+              <button class="py-2.5 px-4 rounded-lg text-sm font-semibold text-white brand-gradient shadow-md active:scale-95">Create PLO</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== CURRICULUM MATRIX ==================== -->
+      <section>
+        <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-400 mb-4">Curriculum Matrix</p>
+        <div class="bg-white border-0 shadow-lg rounded-xl overflow-hidden">
+          <div class="px-6 py-4 brand-gradient flex items-center gap-2">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+            <h2 class="text-lg font-bold tracking-tight text-white">Curriculum Matrix — PLO × Course</h2>
+          </div>
+          <div class="p-4 overflow-x-auto">
+            <table class="w-full text-xs border-collapse">
+              <thead>
+                <tr class="bg-gray-50">
+                  <th class="py-3 px-3 text-left font-bold text-gray-700 sticky left-0 bg-gray-50 border-r border-gray-200 min-w-[200px]">PLO / Course →</th>
+                  <th class="py-3 px-3 text-center font-bold text-gray-500 min-w-[80px]">CS-201</th>
+                  <th class="py-3 px-3 text-center font-bold text-gray-500 min-w-[80px]">CS-301</th>
+                  <th class="py-3 px-3 text-center font-bold text-gray-500 min-w-[80px]">CS-401</th>
+                  <th class="py-3 px-3 text-center font-bold text-gray-500 min-w-[80px]">ENG-102</th>
+                  <th class="py-3 px-3 text-center font-bold text-gray-500 min-w-[80px]">MATH-301</th>
+                  <th class="py-3 px-3 text-center font-bold text-gray-500 min-w-[80px]">EE-205</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="border-t border-gray-200">
+                  <td class="py-3 px-3 font-medium text-gray-800 sticky left-0 bg-white border-r border-gray-200">PLO 1: Critical Thinking</td>
+                  <td class="py-3 px-3 text-center"><span class="px-2 py-1 rounded bg-green-50 text-green-700 font-bold">3 CLOs</span></td>
+                  <td class="py-3 px-3 text-center"><span class="px-2 py-1 rounded bg-green-50 text-green-700 font-bold">2 CLOs</span></td>
+                  <td class="py-3 px-3 text-center"><span class="px-2 py-1 rounded bg-blue-50 text-blue-700 font-bold">1 CLO</span></td>
+                  <td class="py-3 px-3 text-center"><span class="px-2 py-1 rounded bg-gray-100 text-gray-400">—</span></td>
+                  <td class="py-3 px-3 text-center"><span class="px-2 py-1 rounded bg-blue-50 text-blue-700 font-bold">1 CLO</span></td>
+                  <td class="py-3 px-3 text-center"><span class="px-2 py-1 rounded bg-gray-100 text-gray-400">—</span></td>
+                </tr>
+                <tr class="border-t border-gray-200 bg-gray-50/30">
+                  <td class="py-3 px-3 font-medium text-gray-800 sticky left-0 bg-gray-50/30 border-r border-gray-200">PLO 2: Communication</td>
+                  <td class="py-3 px-3 text-center"><span class="px-2 py-1 rounded bg-blue-50 text-blue-700 font-bold">1 CLO</span></td>
+                  <td class="py-3 px-3 text-center"><span class="px-2 py-1 rounded bg-gray-100 text-gray-400">—</span></td>
+                  <td class="py-3 px-3 text-center"><span class="px-2 py-1 rounded bg-blue-50 text-blue-700 font-bold">1 CLO</span></td>
+                  <td class="py-3 px-3 text-center"><span class="px-2 py-1 rounded bg-green-50 text-green-700 font-bold">3 CLOs</span></td>
+                  <td class="py-3 px-3 text-center"><span class="px-2 py-1 rounded bg-gray-100 text-gray-400">—</span></td>
+                  <td class="py-3 px-3 text-center"><span class="px-2 py-1 rounded bg-gray-100 text-gray-400">—</span></td>
+                </tr>
+                <tr class="border-t border-gray-200">
+                  <td class="py-3 px-3 font-medium text-gray-800 sticky left-0 bg-white border-r border-gray-200">PLO 3: Computational Thinking</td>
+                  <td class="py-3 px-3 text-center"><span class="px-2 py-1 rounded bg-green-50 text-green-700 font-bold">2 CLOs</span></td>
+                  <td class="py-3 px-3 text-center"><span class="px-2 py-1 rounded bg-green-50 text-green-700 font-bold">2 CLOs</span></td>
+                  <td class="py-3 px-3 text-center"><span class="px-2 py-1 rounded bg-blue-50 text-blue-700 font-bold">1 CLO</span></td>
+                  <td class="py-3 px-3 text-center"><span class="px-2 py-1 rounded bg-gray-100 text-gray-400">—</span></td>
+                  <td class="py-3 px-3 text-center"><span class="px-2 py-1 rounded bg-green-50 text-green-700 font-bold">2 CLOs</span></td>
+                  <td class="py-3 px-3 text-center"><span class="px-2 py-1 rounded bg-blue-50 text-blue-700 font-bold">1 CLO</span></td>
+                </tr>
+                <tr class="border-t border-gray-200 bg-gray-50/30">
+                  <td class="py-3 px-3 font-medium text-gray-800 sticky left-0 bg-gray-50/30 border-r border-gray-200">PLO 4: Software Design</td>
+                  <td class="py-3 px-3 text-center"><span class="px-2 py-1 rounded bg-blue-50 text-blue-700 font-bold">1 CLO</span></td>
+                  <td class="py-3 px-3 text-center"><span class="px-2 py-1 rounded bg-green-50 text-green-700 font-bold">3 CLOs</span></td>
+                  <td class="py-3 px-3 text-center"><span class="px-2 py-1 rounded bg-green-50 text-green-700 font-bold">2 CLOs</span></td>
+                  <td class="py-3 px-3 text-center"><span class="px-2 py-1 rounded bg-gray-100 text-gray-400">—</span></td>
+                  <td class="py-3 px-3 text-center"><span class="px-2 py-1 rounded bg-gray-100 text-gray-400">—</span></td>
+                  <td class="py-3 px-3 text-center"><span class="px-2 py-1 rounded bg-gray-100 text-gray-400">—</span></td>
+                </tr>
+                <tr class="border-t border-gray-200">
+                  <td class="py-3 px-3 font-medium text-gray-800 sticky left-0 bg-white border-r border-gray-200">PLO 5: Research</td>
+                  <td class="py-3 px-3 text-center"><span class="px-2 py-1 rounded bg-gray-100 text-gray-400">—</span></td>
+                  <td class="py-3 px-3 text-center"><span class="px-2 py-1 rounded bg-yellow-50 text-yellow-700 font-bold border border-yellow-300">⚠ 0 CLOs</span></td>
+                  <td class="py-3 px-3 text-center"><span class="px-2 py-1 rounded bg-blue-50 text-blue-700 font-bold">1 CLO</span></td>
+                  <td class="py-3 px-3 text-center"><span class="px-2 py-1 rounded bg-yellow-50 text-yellow-700 font-bold border border-yellow-300">⚠ 0 CLOs</span></td>
+                  <td class="py-3 px-3 text-center"><span class="px-2 py-1 rounded bg-gray-100 text-gray-400">—</span></td>
+                  <td class="py-3 px-3 text-center"><span class="px-2 py-1 rounded bg-gray-100 text-gray-400">—</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== GAP ANALYSIS ==================== -->
+      <section>
+        <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-400 mb-4">Gap Analysis</p>
+        <div class="bg-white border-0 shadow-lg rounded-xl overflow-hidden">
+          <div class="px-6 py-4 brand-gradient flex items-center gap-2">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/></svg>
+            <h2 class="text-lg font-bold tracking-tight text-white">Gap Analysis — B.Sc. Computer Science</h2>
+          </div>
+          <div class="p-6 space-y-3">
+            <div class="p-4 bg-red-50 rounded-lg border border-red-200">
+              <div class="flex items-start gap-3">
+                <span class="px-2 py-0.5 rounded-full text-xs font-bold bg-red-100 text-red-700 mt-0.5">High</span>
+                <div class="flex-1">
+                  <p class="text-sm font-bold text-gray-800">PLO 5 (Research) — CS-301 has no CLOs mapped</p>
+                  <p class="text-xs text-gray-500 mt-1">CS-301 (Software Engineering) should include at least one research-oriented CLO to support PLO 5.</p>
+                  <p class="text-xs text-blue-600 font-medium mt-1">Recommendation: Add a CLO for "Conduct literature review on software methodologies" at Evaluate level.</p>
+                </div>
+              </div>
+            </div>
+            <div class="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+              <div class="flex items-start gap-3">
+                <span class="px-2 py-0.5 rounded-full text-xs font-bold bg-yellow-100 text-yellow-700 mt-0.5">Medium</span>
+                <div class="flex-1">
+                  <p class="text-sm font-bold text-gray-800">PLO 5 (Research) — ENG-102 has no CLOs mapped</p>
+                  <p class="text-xs text-gray-500 mt-1">Technical Writing could support research skills through a research paper assignment.</p>
+                  <p class="text-xs text-blue-600 font-medium mt-1">Recommendation: Add a CLO for "Write a structured research report" at Apply level.</p>
+                </div>
+              </div>
+            </div>
+            <div class="p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <div class="flex items-start gap-3">
+                <span class="px-2 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700 mt-0.5">Low</span>
+                <div class="flex-1">
+                  <p class="text-sm font-bold text-gray-800">PLO 4 (Software Design) — Only covered in 3 courses</p>
+                  <p class="text-xs text-gray-500 mt-1">Consider adding design-focused CLOs in EE-205 to strengthen cross-disciplinary coverage.</p>
+                  <p class="text-xs text-blue-600 font-medium mt-1">Recommendation: Add a CLO for "Design digital circuits using modular principles" at Create level.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== CQI MANAGER ==================== -->
+      <section>
+        <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-400 mb-4">CQI Manager</p>
+        <div class="bg-white border-0 shadow-lg rounded-xl overflow-hidden">
+          <div class="px-6 py-4 brand-gradient flex items-center gap-2">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            <h2 class="text-lg font-bold tracking-tight text-white">CQI Action Plans — Continuous Quality Improvement</h2>
+          </div>
+          <div class="p-6">
+            <!-- Pipeline Tabs -->
+            <div class="flex gap-2 mb-6">
+              <button class="flex-1 py-2.5 px-3 text-sm font-medium rounded-xl bg-blue-600 text-white shadow-md border border-blue-600">All (6)</button>
+              <button class="flex-1 py-2.5 px-3 text-sm font-medium rounded-xl bg-white text-gray-600 border border-gray-200 shadow-sm">Planned (2)</button>
+              <button class="flex-1 py-2.5 px-3 text-sm font-medium rounded-xl bg-white text-gray-600 border border-gray-200 shadow-sm">In Progress (2)</button>
+              <button class="flex-1 py-2.5 px-3 text-sm font-medium rounded-xl bg-white text-gray-600 border border-gray-200 shadow-sm">Completed (1)</button>
+              <button class="flex-1 py-2.5 px-3 text-sm font-medium rounded-xl bg-white text-gray-600 border border-gray-200 shadow-sm">Evaluated (1)</button>
+            </div>
+
+            <div class="space-y-3">
+              <div class="p-4 bg-white rounded-lg border border-gray-200 flex items-start gap-4">
+                <span class="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700 mt-0.5 whitespace-nowrap">Planned</span>
+                <div class="flex-1">
+                  <p class="text-sm font-bold text-gray-800">Add scaffolded research assignments to CS-301</p>
+                  <p class="text-xs text-gray-500 mt-0.5">PLO 5 (Research) · Target: Raise attainment from 48% to 65%</p>
+                  <p class="text-xs text-gray-400 mt-1">Created by Dr. Maryam Al-Hajri · Mar 10, 2026</p>
+                </div>
+              </div>
+              <div class="p-4 bg-white rounded-lg border border-gray-200 flex items-start gap-4">
+                <span class="px-2 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700 mt-0.5 whitespace-nowrap">In Progress</span>
+                <div class="flex-1">
+                  <p class="text-sm font-bold text-gray-800">Redesign ENG-102 writing rubric for research skills</p>
+                  <p class="text-xs text-gray-500 mt-0.5">PLO 2 (Communication) + PLO 5 (Research) · Target: 70% attainment</p>
+                  <p class="text-xs text-gray-400 mt-1">Assigned to Prof. Noor Al-Thani · Started Feb 20, 2026</p>
+                </div>
+              </div>
+              <div class="p-4 bg-white rounded-lg border border-gray-200 flex items-start gap-4">
+                <span class="px-2 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-700 mt-0.5 whitespace-nowrap">In Progress</span>
+                <div class="flex-1">
+                  <p class="text-sm font-bold text-gray-800">Introduce peer review component in CS-201 labs</p>
+                  <p class="text-xs text-gray-500 mt-0.5">PLO 2 (Communication) · Target: Raise from 76% to 82%</p>
+                  <p class="text-xs text-gray-400 mt-1">Assigned to Prof. Noor Al-Thani · Started Mar 1, 2026</p>
+                </div>
+              </div>
+              <div class="p-4 bg-white rounded-lg border border-gray-200 flex items-start gap-4">
+                <span class="px-2 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-700 mt-0.5 whitespace-nowrap">Completed</span>
+                <div class="flex-1">
+                  <p class="text-sm font-bold text-gray-800">Add Big-O analysis component to all CS-201 assignments</p>
+                  <p class="text-xs text-gray-500 mt-0.5">PLO 1 (Critical Thinking) · Result: Attainment rose from 72% to 85%</p>
+                  <p class="text-xs text-gray-400 mt-1">Completed by Prof. Noor Al-Thani · Feb 15, 2026</p>
+                </div>
+              </div>
+              <div class="p-4 bg-white rounded-lg border border-gray-200 flex items-start gap-4">
+                <span class="px-2 py-0.5 rounded-full text-xs font-bold bg-purple-100 text-purple-700 mt-0.5 whitespace-nowrap">Evaluated</span>
+                <div class="flex-1">
+                  <p class="text-sm font-bold text-gray-800">Restructure MATH-301 to include applied CS problems</p>
+                  <p class="text-xs text-gray-500 mt-0.5">PLO 3 (Computational Thinking) · Result: +14% attainment improvement</p>
+                  <p class="text-xs text-green-600 text-xs font-semibold mt-1">✓ Verified effective — attainment sustained above 70% for 2 semesters</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== COURSE FILE GENERATOR ==================== -->
+      <section>
+        <p class="text-[10px] font-black tracking-[0.15em] uppercase text-gray-400 mb-4">Course File Generator</p>
+        <div class="bg-white border-0 shadow-lg rounded-xl overflow-hidden max-w-2xl">
+          <div class="px-6 py-4 brand-gradient flex items-center gap-2">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+            <h2 class="text-lg font-bold tracking-tight text-white">Generate Course File</h2>
+          </div>
+          <div class="p-6 space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1.5">Select Course</label>
+              <select class="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm bg-white">
+                <option>CS-201 — Data Structures & Algorithms (Fall 2026)</option>
+                <option>ENG-102 — Technical Writing (Fall 2026)</option>
+                <option>MATH-301 — Linear Algebra (Fall 2026)</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Sections to Include</label>
+              <div class="space-y-2">
+                <label class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer">
+                  <input type="checkbox" checked class="rounded border-gray-300 text-blue-600" />
+                  <div><p class="text-sm font-medium text-gray-800">Syllabus</p><p class="text-xs text-gray-500">Course description, objectives, schedule</p></div>
+                </label>
+                <label class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer">
+                  <input type="checkbox" checked class="rounded border-gray-300 text-blue-600" />
+                  <div><p class="text-sm font-medium text-gray-800">CLO-PLO Mapping</p><p class="text-xs text-gray-500">Outcome alignment matrix with weights</p></div>
+                </label>
+                <label class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer">
+                  <input type="checkbox" checked class="rounded border-gray-300 text-blue-600" />
+                  <div><p class="text-sm font-medium text-gray-800">Assessment Instruments</p><p class="text-xs text-gray-500">Rubrics, assignment descriptions, quiz specs</p></div>
+                </label>
+                <label class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer">
+                  <input type="checkbox" checked class="rounded border-gray-300 text-blue-600" />
+                  <div><p class="text-sm font-medium text-gray-800">Sample Student Work</p><p class="text-xs text-gray-500">Top, middle, and bottom samples per CLO</p></div>
+                </label>
+                <label class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer">
+                  <input type="checkbox" checked class="rounded border-gray-300 text-blue-600" />
+                  <div><p class="text-sm font-medium text-gray-800">Attainment Analysis</p><p class="text-xs text-gray-500">CLO/PLO attainment charts and statistics</p></div>
+                </label>
+                <label class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer">
+                  <input type="checkbox" checked class="rounded border-gray-300 text-blue-600" />
+                  <div><p class="text-sm font-medium text-gray-800">Teacher Reflection & CQI</p><p class="text-xs text-gray-500">Reflections, action plans, recommendations</p></div>
+                </label>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between pt-2">
+              <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                <a href="#" class="text-sm font-medium text-green-600 hover:text-green-700">Download last generated file (PDF, 2.4MB)</a>
+              </div>
+              <button class="py-2.5 px-6 rounded-lg text-sm font-semibold text-white brand-gradient shadow-md active:scale-95">Generate Course File</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</body>
+</html>
