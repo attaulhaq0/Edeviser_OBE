@@ -2,7 +2,8 @@
 
 > **Living Spec**: This is the dedicated Supabase infrastructure spec. New findings from the automated health audit (hook: `supabase-health-audit`, CI: `scheduled-health.yml`) are appended here as new tasks. Run the hook manually or check CI every 2 days for fresh findings.
 
-- [ ] 1. Write bug condition exploration test
+- [x] 1. Write bug condition exploration test
+
   - **Property 1: Bug Condition** — Supabase Audit Infrastructure Defects
   - **CRITICAL**: This test MUST FAIL on unfixed code — failure confirms the bugs exist
   - **DO NOT attempt to fix the test or the code when it fails**
@@ -22,7 +23,8 @@
   - Mark task complete when test is written, run, and failure is documented
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7_
 
-- [ ] 2. Write preservation property tests (BEFORE implementing fix)
+- [x] 2. Write preservation property tests (BEFORE implementing fix)
+
   - **Property 2: Preservation** — Existing Infrastructure Unchanged
   - **IMPORTANT**: Follow observation-first methodology
   - Test file: `src/__tests__/properties/supabaseAuditPreservation.property.test.ts`
@@ -37,9 +39,10 @@
   - Mark task complete when tests are written, run, and passing on unfixed code
   - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6_
 
-- [ ] 3. Fix Supabase audit infrastructure defects
+- [x] 3. Fix Supabase audit infrastructure defects
 
-  - [ ] 3.1 Create Edge Function deployment script
+  - [x] 3.1 Create Edge Function deployment script
+
     - Create `scripts/deploy-edge-functions.sh` with `#!/usr/bin/env bash` and `set -euo pipefail`
     - List all 36 functions: award-xp, process-streak, check-badges, calculate-attainment-rollup, ai-at-risk-prediction, ai-feedback-draft, ai-module-suggestion, generate-quiz-questions, select-adaptive-question, update-question-analytics, send-email-notification, weekly-summary-cron, streak-risk-cron, compute-at-risk-signals, compute-habit-correlations, bulk-import-users, bulk-data-import, export-student-data, generate-accreditation-report, generate-course-file, generate-fee-receipt, generate-transcript, process-onboarding, suggest-goals, generate-starter-week, check-login-rate, improvement-bonus-check, challenge-completion, challenge-progress-update, team-streak-risk-cron, import-competency-csv, auto-grade-quiz, fee-overdue-check, notification-digest, perfect-day-prompt, exam-period-notify
     - Each function deployed via `supabase functions deploy <name> --project-ref cdlgtbvxlxjpcddjazzx`
@@ -51,7 +54,8 @@
     - _Preservation: health function continues to work (Req 3.1)_
     - _Requirements: 1.1, 2.1_
 
-  - [ ] 3.2 Create storage buckets migration
+  - [x] 3.2 Create storage buckets migration
+
     - Create `supabase/migrations/XXXXXX_create_storage_buckets.sql`
     - Create `avatars` bucket: public=true, file_size_limit=2097152 (2MB), allowed_mime_types=['image/jpeg','image/png','image/webp','image/gif']
     - Create `submissions` bucket: public=false, file_size_limit=52428800 (50MB), allowed_mime_types for documents/archives
@@ -66,7 +70,8 @@
     - _Expected_Behavior: buckets exist with correct size limits, MIME types, and RLS policies_
     - _Requirements: 1.2, 2.2_
 
-  - [ ] 3.3 Create FK indexes migration
+  - [x] 3.3 Create FK indexes migration
+
     - Create `supabase/migrations/XXXXXX_add_fk_indexes.sql`
     - Add `CREATE INDEX IF NOT EXISTS` for all 68 unindexed FK columns listed in the design document
     - Use naming convention `idx_{table}_{column}` for each index
@@ -77,7 +82,8 @@
     - _Preservation: 3 existing performance indexes unchanged (Req 3.3)_
     - _Requirements: 1.3, 2.3_
 
-  - [ ] 3.4 Create RLS optimization and policy consolidation migration
+  - [x] 3.4 Create RLS optimization and policy consolidation migration
+
     - Create `supabase/migrations/XXXXXX_optimize_rls_policies.sql`
     - DROP and recreate ALL RLS policies across 60+ tables replacing bare `auth.uid()` with `(select auth.uid())`, bare `auth_user_role()` with `(select auth_user_role())`, bare `auth_institution_id()` with `(select auth_institution_id())`
     - Simultaneously consolidate multiple permissive policies for the same role+action into single policies with OR conditions (announcements, courses, assignments, grades, attendance_records, outcome_mappings, and others)
@@ -87,7 +93,8 @@
     - _Preservation: existing RLS enforcement unchanged, only optimized (Req 3.2); security audit fixes preserved (Req 3.6)_
     - _Requirements: 1.4, 1.5, 2.4, 2.5_
 
-  - [ ] 3.5 Create pg_net schema migration
+  - [x] 3.5 Create pg_net schema migration
+
     - Create `supabase/migrations/XXXXXX_move_pgnet_to_extensions.sql`
     - `DROP EXTENSION IF EXISTS pg_net;`
     - `CREATE EXTENSION IF NOT EXISTS pg_net SCHEMA extensions;`
@@ -96,7 +103,8 @@
     - _Expected_Behavior: pg_net operates from extensions schema, not exposed via PostgREST API_
     - _Requirements: 1.6, 2.6_
 
-  - [ ] 3.6 Create leaderboard security wrapper migration
+  - [x] 3.6 Create leaderboard security wrapper migration
+
     - Create `supabase/migrations/XXXXXX_secure_leaderboard_view.sql`
     - `REVOKE SELECT ON leaderboard_weekly FROM anon, authenticated;`
     - Create `get_leaderboard(p_institution_id uuid)` function with `SECURITY DEFINER` and `SET search_path = public`
@@ -109,7 +117,8 @@
     - _Preservation: leaderboard displays correct data for opted-in students (Req 3.7)_
     - _Requirements: 1.7, 2.7_
 
-  - [ ] 3.7 Document leaked password protection manual step
+  - [x] 3.7 Document leaked password protection manual step
+
     - Add a comment block at the top of the leaderboard security migration (or a separate `docs/MANUAL-STEPS.md`) documenting:
     - Navigate to Supabase Dashboard → Auth → Settings → Enable "Leaked password protection"
     - This is a Dashboard toggle, NOT a migration — cannot be automated via SQL
@@ -118,7 +127,8 @@
     - _Expected_Behavior: Supabase Auth rejects passwords known to be compromised_
     - _Requirements: 1.8, 2.8_
 
-  - [ ] 3.8 Update useLeaderboard hook to use get_leaderboard function
+  - [x] 3.8 Update useLeaderboard hook to use get_leaderboard function
+
     - Update `src/hooks/useLeaderboard.ts` to call `.rpc('get_leaderboard', { p_institution_id })` instead of `.from('leaderboard_weekly').select('*')`
     - This ensures the frontend uses the new security-definer function
     - _Bug_Condition: hook queries leaderboard_weekly directly via PostgREST_
@@ -126,7 +136,8 @@
     - _Preservation: leaderboard display behavior unchanged for opted-in students (Req 3.7)_
     - _Requirements: 2.7, 3.7_
 
-  - [ ] 3.9 Verify bug condition exploration test now passes
+  - [x] 3.9 Verify bug condition exploration test now passes
+
     - **Property 1: Expected Behavior** — Supabase Audit Infrastructure Defects Fixed
     - **IMPORTANT**: Re-run the SAME test from task 1 — do NOT write a new test
     - The test from task 1 encodes the expected behavior for all infrastructure defects
@@ -135,14 +146,14 @@
     - **EXPECTED OUTCOME**: Test PASSES (confirms all bugs are fixed)
     - _Requirements: Expected Behavior Properties from design (2.1–2.8)_
 
-  - [ ] 3.10 Verify preservation tests still pass
+  - [x] 3.10 Verify preservation tests still pass
     - **Property 2: Preservation** — Existing Infrastructure Unchanged
     - **IMPORTANT**: Re-run the SAME tests from task 2 — do NOT write new tests
     - Run `src/__tests__/properties/supabaseAuditPreservation.property.test.ts`
     - **EXPECTED OUTCOME**: Tests PASS (confirms no regressions)
     - Confirm all preservation tests still pass after fixes (no regressions)
 
-- [ ] 4. Checkpoint — Ensure all tests pass
+- [x] 4. Checkpoint — Ensure all tests pass
   - Run full test suite: `npm test`
   - Ensure all property-based tests pass (fault condition + preservation)
   - Ensure all existing unit tests pass (no regressions)

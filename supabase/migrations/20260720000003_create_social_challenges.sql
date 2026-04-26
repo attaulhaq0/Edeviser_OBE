@@ -35,26 +35,26 @@ ALTER TABLE challenge_participants ENABLE ROW LEVEL SECURITY;
 -- Teacher manages challenges for their courses
 CREATE POLICY "teacher_manage_challenges" ON social_challenges
   FOR ALL TO authenticated
-  USING (created_by = auth.uid() OR EXISTS (
-    SELECT 1 FROM courses c WHERE c.id = course_id AND c.teacher_id = auth.uid()
+  USING (created_by = (select auth.uid()) OR EXISTS (
+    SELECT 1 FROM courses c WHERE c.id = course_id AND c.teacher_id = (select auth.uid())
   ));
 
 -- Students can read active challenges for their courses
 CREATE POLICY "student_read_challenges" ON social_challenges
   FOR SELECT TO authenticated
   USING (status IN ('active', 'completed') AND EXISTS (
-    SELECT 1 FROM student_courses sc WHERE sc.course_id = social_challenges.course_id AND sc.student_id = auth.uid()
+    SELECT 1 FROM student_courses sc WHERE sc.course_id = social_challenges.course_id AND sc.student_id = (select auth.uid())
   ));
 
 -- Participants can read their own progress
 CREATE POLICY "participant_read_progress" ON challenge_participants
   FOR SELECT TO authenticated
-  USING (participant_id = auth.uid() OR EXISTS (
-    SELECT 1 FROM team_members tm WHERE tm.team_id = participant_id AND tm.student_id = auth.uid()
+  USING (participant_id = (select auth.uid()) OR EXISTS (
+    SELECT 1 FROM team_members tm WHERE tm.team_id = participant_id AND tm.student_id = (select auth.uid())
   ) OR EXISTS (
     SELECT 1 FROM social_challenges sc
     JOIN student_courses stc ON stc.course_id = sc.course_id
-    WHERE sc.id = challenge_id AND stc.student_id = auth.uid()
+    WHERE sc.id = challenge_id AND stc.student_id = (select auth.uid())
   ));
 
 -- Teachers manage participants for challenges in their courses
@@ -63,7 +63,7 @@ CREATE POLICY "teacher_manage_participants" ON challenge_participants
   USING (EXISTS (
     SELECT 1 FROM social_challenges sc
     JOIN courses c ON c.id = sc.course_id
-    WHERE sc.id = challenge_id AND c.teacher_id = auth.uid()
+    WHERE sc.id = challenge_id AND c.teacher_id = (select auth.uid())
   ));
 
 -- Indexes
