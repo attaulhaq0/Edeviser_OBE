@@ -139,3 +139,5 @@ if ($Failed -eq 0) {
     Write-Host 'working tree (likely untracked WIP files), not the repo itself.'
     exit 1
 }
+
+# end
