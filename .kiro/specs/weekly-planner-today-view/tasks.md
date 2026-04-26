@@ -31,18 +31,18 @@
 
 ## Task 4: Award-XP Edge Function Update
 
-- [ ] 4.1 Add `'study_session'`, `'planner_task'`, `'session_reflection'`, `'weekly_goal'` to `XPSource` type union and `VALID_SOURCES` array in `supabase/functions/award-xp/index.ts`
-- [ ] 4.2 Add XP amount logic for new sources: study_session uses passed `xp_amount` (calculated client-side), planner_task = 10, session_reflection = 10, weekly_goal = 25
-- [ ] 4.3 Write unit test for new XP sources in `src/__tests__/unit/awardXpPlanner.test.ts`
+- [x] 4.1 Add `'study_session'`, `'planner_task'`, `'session_reflection'`, `'weekly_goal'` to `XPSource` type union and `VALID_SOURCES` array in `supabase/functions/award-xp/index.ts`
+- [x] 4.2 Add XP amount logic for new sources: study_session uses passed `xp_amount` (calculated client-side), planner_task = 10, session_reflection = 10, weekly_goal = 25
+- [x] 4.3 Write unit test for new XP sources in `src/__tests__/unit/awardXpPlanner.test.ts`
 
 ## Task 5: Check-Badges Edge Function Update
 
-- [ ] 5.1 Add `'study_session'` to `BadgeTrigger` type and `VALID_TRIGGERS` in `supabase/functions/check-badges/index.ts`
-- [ ] 5.2 Add badge XP entries for `study_starter` (25), `deep_focus` (50), `weekly_warrior` (100), `evidence_pro` (75) to `BADGE_XP` map
-- [ ] 5.3 Implement `checkStudyBadges()`: Study Starter (first completed session), Deep Focus (single session ≥ 60 min), Weekly Warrior (all 3 goals met in a week), Evidence Pro (10 sessions with evidence)
-- [ ] 5.4 Wire `checkStudyBadges()` into the main handler for `study_session` trigger
-- [ ] 5.5 Add badge definitions to `src/lib/badgeDefinitions.ts`: study_starter, deep_focus, weekly_warrior, evidence_pro
-- [ ] 5.6 Write unit test for study badge conditions in `src/__tests__/unit/studyBadges.test.ts`
+- [x] 5.1 Add `'study_session'` to `BadgeTrigger` type and `VALID_TRIGGERS` in `supabase/functions/check-badges/index.ts`
+- [x] 5.2 Add badge XP entries for `study_starter` (25), `deep_focus` (50), `weekly_warrior` (100), `evidence_pro` (75) to `BADGE_XP` map
+- [x] 5.3 Implement `checkStudyBadges()`: Study Starter (first completed session), Deep Focus (single session ≥ 60 min), Weekly Warrior (all 3 goals met in a week), Evidence Pro (10 sessions with evidence)
+- [x] 5.4 Wire `checkStudyBadges()` into the main handler for `study_session` trigger
+- [x] 5.5 Add badge definitions to `src/lib/badgeDefinitions.ts`: study_starter, deep_focus, weekly_warrior, evidence_pro
+- [x] 5.6 Write unit test for study badge conditions in `src/__tests__/unit/studyBadges.test.ts`
 
 ## Task 6: TanStack Query Hooks — Planner Data
 
@@ -134,7 +134,6 @@
 - [ ] 15.6 Verify Focus Mode timer accuracy: < 50ms drift over 25 minutes
 - [ ] 15.7 Verify offline queue: disconnect during focus → timer continues → reconnect → data syncs
 - [ ] 15.8 Run all property-based tests and unit tests, fix any failures
-
 
 ## Task 16: Session Intent & Flow Optimization — Database & Types
 

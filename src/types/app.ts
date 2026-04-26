@@ -6,7 +6,12 @@
 // Core Types
 // -----------------------------------------------------------------------------
 
-export type UserRole = 'admin' | 'coordinator' | 'teacher' | 'student' | 'parent';
+export type UserRole =
+  | "admin"
+  | "coordinator"
+  | "teacher"
+  | "student"
+  | "parent";
 
 export interface Profile {
   id: string;
@@ -60,7 +65,7 @@ export interface Course {
 
 export interface LearningOutcome {
   id: string;
-  type: 'ILO' | 'PLO' | 'CLO';
+  type: "ILO" | "PLO" | "CLO";
   title: string;
   description: string | null;
   institution_id: string;
@@ -74,14 +79,18 @@ export interface LearningOutcome {
 }
 
 export type BloomsLevel =
-  | 'remembering'
-  | 'understanding'
-  | 'applying'
-  | 'analyzing'
-  | 'evaluating'
-  | 'creating';
+  | "remembering"
+  | "understanding"
+  | "applying"
+  | "analyzing"
+  | "evaluating"
+  | "creating";
 
-export type AttainmentLevel = 'Excellent' | 'Satisfactory' | 'Developing' | 'Not_Yet';
+export type AttainmentLevel =
+  | "Excellent"
+  | "Satisfactory"
+  | "Developing"
+  | "Not_Yet";
 
 export const AttainmentThresholds = {
   Excellent: 85,
@@ -94,32 +103,36 @@ export const AttainmentThresholds = {
 // -----------------------------------------------------------------------------
 
 export type XPSource =
-  | 'login'
-  | 'submission'
-  | 'grade'
-  | 'journal'
-  | 'streak_milestone'
-  | 'perfect_day'
-  | 'first_attempt_bonus'
-  | 'perfect_rubric'
-  | 'badge_earned'
-  | 'level_up'
-  | 'streak_freeze_purchase'
-  | 'discussion_question'
-  | 'discussion_answer'
-  | 'survey_completion'
-  | 'quiz_completion'
-  | 'onboarding_personality'
-  | 'onboarding_learning_style'
-  | 'onboarding_baseline'
-  | 'onboarding_complete'
-  | 'onboarding_self_efficacy'
-  | 'onboarding_study_strategy'
-  | 'micro_assessment'
-  | 'profile_complete'
-  | 'starter_session_complete'
-  | 'wellness_habit'
-  | 'practice_quiz';
+  | "login"
+  | "submission"
+  | "grade"
+  | "journal"
+  | "streak_milestone"
+  | "perfect_day"
+  | "first_attempt_bonus"
+  | "perfect_rubric"
+  | "badge_earned"
+  | "level_up"
+  | "streak_freeze_purchase"
+  | "discussion_question"
+  | "discussion_answer"
+  | "survey_completion"
+  | "quiz_completion"
+  | "onboarding_personality"
+  | "onboarding_learning_style"
+  | "onboarding_baseline"
+  | "onboarding_complete"
+  | "onboarding_self_efficacy"
+  | "onboarding_study_strategy"
+  | "micro_assessment"
+  | "profile_complete"
+  | "starter_session_complete"
+  | "wellness_habit"
+  | "practice_quiz"
+  | "study_session"
+  | "planner_task"
+  | "session_reflection"
+  | "weekly_goal";
 
 export type XPSchedule = Record<XPSource, number>;
 
@@ -142,9 +155,9 @@ export interface LevelThreshold {
 
 export type LevelThresholds = LevelThreshold[];
 
-export type HabitType = 'login' | 'submit' | 'journal' | 'read';
+export type HabitType = "login" | "submit" | "journal" | "read";
 
-export type LearningPathNodeType = 'assignment' | 'quiz' | 'milestone';
+export type LearningPathNodeType = "assignment" | "quiz" | "milestone";
 
 export interface BonusXPEventType {
   id: string;
@@ -156,19 +169,19 @@ export interface BonusXPEventType {
 }
 
 export type ActivityLogEventType =
-  | 'login'
-  | 'page_view'
-  | 'submission'
-  | 'journal'
-  | 'streak_break'
-  | 'assignment_view'
-  | 'grading_start'
-  | 'grading_end'
-  | 'material_view'
-  | 'announcement_view'
-  | 'discussion_post'
-  | 'quiz_attempt'
-  | 'attendance_marked';
+  | "login"
+  | "page_view"
+  | "submission"
+  | "journal"
+  | "streak_break"
+  | "assignment_view"
+  | "grading_start"
+  | "grading_end"
+  | "material_view"
+  | "announcement_view"
+  | "discussion_post"
+  | "quiz_attempt"
+  | "attendance_marked";
 
 // -----------------------------------------------------------------------------
 // AI Co-Pilot Types
@@ -243,7 +256,7 @@ export interface ChecklistItem {
   route?: string;
 }
 
-export type ThemePreference = 'light' | 'dark' | 'system';
+export type ThemePreference = "light" | "dark" | "system";
 
 export interface GradingStats {
   total_graded: number;
@@ -277,7 +290,7 @@ export interface NotificationBatcherConfig {
 
 export interface ExportDataRequest {
   type: string;
-  format: 'json' | 'csv';
+  format: "json" | "csv";
   filters?: Record<string, unknown>;
 }
 
@@ -345,7 +358,13 @@ export interface GradeScale {
   gpa_points: number;
 }
 
-export type AccreditationBody = 'HEC' | 'QQA' | 'ABET' | 'NCAAA' | 'AACSB' | 'Generic';
+export type AccreditationBody =
+  | "HEC"
+  | "QQA"
+  | "ABET"
+  | "NCAAA"
+  | "AACSB"
+  | "Generic";
 
 export interface LeagueThresholdsConfig {
   bronze: number;
@@ -374,7 +393,7 @@ export interface ProgramAccreditation {
   framework_version: string | null;
   accreditation_date: string | null;
   next_review_date: string | null;
-  status: 'active' | 'expired' | 'pending';
+  status: "active" | "expired" | "pending";
   created_at: string;
 }
 
@@ -385,11 +404,11 @@ export const DEFAULT_ATTAINMENT_THRESHOLDS: AttainmentThresholdsConfig = {
 };
 
 export const DEFAULT_GRADE_SCALES: GradeScale[] = [
-  { letter: 'A', min_percent: 85, max_percent: 100, gpa_points: 4.0 },
-  { letter: 'B', min_percent: 70, max_percent: 84, gpa_points: 3.0 },
-  { letter: 'C', min_percent: 55, max_percent: 69, gpa_points: 2.0 },
-  { letter: 'D', min_percent: 50, max_percent: 54, gpa_points: 1.0 },
-  { letter: 'F', min_percent: 0, max_percent: 49, gpa_points: 0.0 },
+  { letter: "A", min_percent: 85, max_percent: 100, gpa_points: 4.0 },
+  { letter: "B", min_percent: 70, max_percent: 84, gpa_points: 3.0 },
+  { letter: "C", min_percent: 55, max_percent: 69, gpa_points: 2.0 },
+  { letter: "D", min_percent: 50, max_percent: 54, gpa_points: 1.0 },
+  { letter: "F", min_percent: 0, max_percent: 49, gpa_points: 0.0 },
 ];
 
 export interface Announcement {
@@ -557,13 +576,13 @@ export interface FeePayment {
   paid_at: string;
 }
 
-export type PaymentStatus = 'pending' | 'paid' | 'overdue' | 'waived';
+export type PaymentStatus = "pending" | "paid" | "overdue" | "waived";
 
 // -----------------------------------------------------------------------------
 // Production Types
 // -----------------------------------------------------------------------------
 
-export type LanguagePreference = 'en' | 'ur' | 'ar';
+export type LanguagePreference = "en" | "ur" | "ar";
 
 export interface CookieConsent {
   analytics: boolean;

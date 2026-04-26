@@ -2,7 +2,7 @@
 // XP Schedule Constants — Base XP amounts per source
 // =============================================================================
 
-import type { XPSource } from '@/types/app';
+import type { XPSource } from "@/types/app";
 
 /**
  * Base XP amounts awarded per trigger source.
@@ -36,6 +36,10 @@ export const XP_SCHEDULE: Record<XPSource, number> = {
   starter_session_complete: 15,
   wellness_habit: 0, // Variable: looked up from institution_settings.wellness_xp_amount
   practice_quiz: 10,
+  study_session: 0, // Variable: calculated client-side via calculateSessionXP
+  planner_task: 10,
+  session_reflection: 10,
+  weekly_goal: 25,
 };
 
 /** XP awarded for late submissions (assignment or quiz) */
