@@ -1,52 +1,57 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
 type XPSource =
-  | 'login'
-  | 'submission'
-  | 'badge'
-  | 'admin_adjustment'
-  | 'perfect_day'
-  | 'first_attempt_bonus'
-  | 'perfect_rubric'
-  | 'bonus_event'
-  | 'discussion_question'
-  | 'discussion_answer'
-  | 'survey_completion'
-  | 'quiz_completion'
-  | 'quiz_hard_bonus'
-  | 'streak_milestone'
-  | 'journal'
-  | 'grade'
-  | 'onboarding_personality'
-  | 'onboarding_learning_style'
-  | 'onboarding_baseline'
-  | 'onboarding_complete'
-  | 'onboarding_self_efficacy'
-  | 'onboarding_study_strategy'
-  | 'micro_assessment'
-  | 'profile_complete'
-  | 'starter_session_complete'
-  | 'wellness_habit'
-  | 'practice_quiz'
-  | 'streak_freeze_purchase'
-  | 'improvement_bonus'
-  | 'league_promotion';
+  | "login"
+  | "submission"
+  | "badge"
+  | "admin_adjustment"
+  | "perfect_day"
+  | "first_attempt_bonus"
+  | "perfect_rubric"
+  | "bonus_event"
+  | "discussion_question"
+  | "discussion_answer"
+  | "survey_completion"
+  | "quiz_completion"
+  | "quiz_hard_bonus"
+  | "streak_milestone"
+  | "journal"
+  | "grade"
+  | "onboarding_personality"
+  | "onboarding_learning_style"
+  | "onboarding_baseline"
+  | "onboarding_complete"
+  | "onboarding_self_efficacy"
+  | "onboarding_study_strategy"
+  | "micro_assessment"
+  | "profile_complete"
+  | "starter_session_complete"
+  | "wellness_habit"
+  | "practice_quiz"
+  | "streak_freeze_purchase"
+  | "improvement_bonus"
+  | "league_promotion"
+  | "study_session"
+  | "planner_task"
+  | "session_reflection"
+  | "weekly_goal";
 
 type BloomsLevel =
-  | 'Remembering'
-  | 'Understanding'
-  | 'Applying'
-  | 'Analyzing'
-  | 'Evaluating'
-  | 'Creating';
+  | "Remembering"
+  | "Understanding"
+  | "Applying"
+  | "Analyzing"
+  | "Evaluating"
+  | "Creating";
 
 interface XPAwardPayload {
   student_id: string;
@@ -129,7 +134,10 @@ function getDifficultyMultiplier(bloomsLevels: BloomsLevel[]): number {
 }
 
 /** Diminishing returns: decreases by 0.2 per repetition, min 0.2 */
-function getDiminishingMultiplier(repeatCount: number, isMilestone: boolean): number {
+function getDiminishingMultiplier(
+  repeatCount: number,
+  isMilestone: boolean
+): number {
   if (isMilestone) return 1.0;
   if (repeatCount <= 0) return 1.0;
   return Math.max(0.2, 1.0 - repeatCount * 0.2);
@@ -137,42 +145,94 @@ function getDiminishingMultiplier(repeatCount: number, isMilestone: boolean): nu
 
 /** Sources exempt from diminishing returns (one-time milestone rewards) */
 const MILESTONE_SOURCES: XPSource[] = [
-  'streak_milestone', 'badge', 'perfect_day', 'first_attempt_bonus',
-  'perfect_rubric', 'profile_complete', 'onboarding_complete', 'improvement_bonus',
-  'league_promotion',
+  "streak_milestone",
+  "badge",
+  "perfect_day",
+  "first_attempt_bonus",
+  "perfect_rubric",
+  "profile_complete",
+  "onboarding_complete",
+  "improvement_bonus",
+  "league_promotion",
 ];
 
 // ─── Validation ─────────────────────────────────────────────────────────────
 
 const VALID_SOURCES: XPSource[] = [
-  'login', 'submission', 'badge', 'admin_adjustment', 'perfect_day',
-  'first_attempt_bonus', 'perfect_rubric', 'bonus_event',
-  'discussion_question', 'discussion_answer', 'survey_completion',
-  'quiz_completion', 'quiz_hard_bonus', 'streak_milestone', 'journal', 'grade',
-  'onboarding_personality', 'onboarding_learning_style', 'onboarding_baseline',
-  'onboarding_complete', 'onboarding_self_efficacy', 'onboarding_study_strategy',
-  'micro_assessment', 'profile_complete', 'starter_session_complete',
-  'wellness_habit', 'practice_quiz', 'streak_freeze_purchase',
-  'improvement_bonus', 'league_promotion',
+  "login",
+  "submission",
+  "badge",
+  "admin_adjustment",
+  "perfect_day",
+  "first_attempt_bonus",
+  "perfect_rubric",
+  "bonus_event",
+  "discussion_question",
+  "discussion_answer",
+  "survey_completion",
+  "quiz_completion",
+  "quiz_hard_bonus",
+  "streak_milestone",
+  "journal",
+  "grade",
+  "onboarding_personality",
+  "onboarding_learning_style",
+  "onboarding_baseline",
+  "onboarding_complete",
+  "onboarding_self_efficacy",
+  "onboarding_study_strategy",
+  "micro_assessment",
+  "profile_complete",
+  "starter_session_complete",
+  "wellness_habit",
+  "practice_quiz",
+  "streak_freeze_purchase",
+  "improvement_bonus",
+  "league_promotion",
+  "study_session",
+  "planner_task",
+  "session_reflection",
+  "weekly_goal",
 ];
 
-function validatePayload(payload: unknown): { valid: true; data: XPAwardPayload } | { valid: false; error: string } {
-  if (!payload || typeof payload !== 'object') {
-    return { valid: false, error: 'Request body must be a JSON object' };
+function validatePayload(
+  payload: unknown
+): { valid: true; data: XPAwardPayload } | { valid: false; error: string } {
+  if (!payload || typeof payload !== "object") {
+    return { valid: false, error: "Request body must be a JSON object" };
   }
 
   const p = payload as Record<string, unknown>;
 
-  if (!p.student_id || typeof p.student_id !== 'string') {
-    return { valid: false, error: 'student_id is required and must be a string' };
+  if (!p.student_id || typeof p.student_id !== "string") {
+    return {
+      valid: false,
+      error: "student_id is required and must be a string",
+    };
   }
 
-  if (p.xp_amount === undefined || p.xp_amount === null || typeof p.xp_amount !== 'number') {
-    return { valid: false, error: 'xp_amount is required and must be a number' };
+  if (
+    p.xp_amount === undefined ||
+    p.xp_amount === null ||
+    typeof p.xp_amount !== "number"
+  ) {
+    return {
+      valid: false,
+      error: "xp_amount is required and must be a number",
+    };
   }
 
-  if (!p.source || typeof p.source !== 'string' || !VALID_SOURCES.includes(p.source as XPSource)) {
-    return { valid: false, error: `source is required and must be one of: ${VALID_SOURCES.join(', ')}` };
+  if (
+    !p.source ||
+    typeof p.source !== "string" ||
+    !VALID_SOURCES.includes(p.source as XPSource)
+  ) {
+    return {
+      valid: false,
+      error: `source is required and must be one of: ${VALID_SOURCES.join(
+        ", "
+      )}`,
+    };
   }
 
   return {
@@ -181,10 +241,14 @@ function validatePayload(payload: unknown): { valid: true; data: XPAwardPayload 
       student_id: p.student_id as string,
       xp_amount: p.xp_amount as number,
       source: p.source as XPSource,
-      reference_id: typeof p.reference_id === 'string' ? p.reference_id : undefined,
-      note: typeof p.note === 'string' ? p.note : undefined,
-      blooms_levels: Array.isArray(p.blooms_levels) ? p.blooms_levels as BloomsLevel[] : undefined,
-      is_milestone: typeof p.is_milestone === 'boolean' ? p.is_milestone : undefined,
+      reference_id:
+        typeof p.reference_id === "string" ? p.reference_id : undefined,
+      note: typeof p.note === "string" ? p.note : undefined,
+      blooms_levels: Array.isArray(p.blooms_levels)
+        ? (p.blooms_levels as BloomsLevel[])
+        : undefined,
+      is_milestone:
+        typeof p.is_milestone === "boolean" ? p.is_milestone : undefined,
     },
   };
 }
@@ -205,29 +269,35 @@ const DEFAULT_LEAGUE_THRESHOLDS: LeagueThresholds = {
   diamond: 4000,
 };
 
-type LeagueTierName = 'Bronze' | 'Silver' | 'Gold' | 'Diamond';
+type LeagueTierName = "Bronze" | "Silver" | "Gold" | "Diamond";
 
-function getLeagueTierFromXP(xp: number, thresholds: LeagueThresholds): LeagueTierName {
-  if (xp >= thresholds.diamond) return 'Diamond';
-  if (xp >= thresholds.gold) return 'Gold';
-  if (xp >= thresholds.silver) return 'Silver';
-  return 'Bronze';
+function getLeagueTierFromXP(
+  xp: number,
+  thresholds: LeagueThresholds
+): LeagueTierName {
+  if (xp >= thresholds.diamond) return "Diamond";
+  if (xp >= thresholds.gold) return "Gold";
+  if (xp >= thresholds.silver) return "Silver";
+  return "Bronze";
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function fetchLeagueThresholds(supabase: any, studentId: string): Promise<LeagueThresholds> {
+async function fetchLeagueThresholds(
+  supabase: any,
+  studentId: string
+): Promise<LeagueThresholds> {
   const { data: profile } = await supabase
-    .from('profiles')
-    .select('institution_id')
-    .eq('id', studentId)
+    .from("profiles")
+    .select("institution_id")
+    .eq("id", studentId)
     .maybeSingle();
 
   if (!profile?.institution_id) return DEFAULT_LEAGUE_THRESHOLDS;
 
   const { data: settings } = await supabase
-    .from('institution_settings')
-    .select('league_thresholds')
-    .eq('institution_id', profile.institution_id)
+    .from("institution_settings")
+    .select("league_thresholds")
+    .eq("institution_id", profile.institution_id)
     .maybeSingle();
 
   if (!settings?.league_thresholds) return DEFAULT_LEAGUE_THRESHOLDS;
@@ -246,7 +316,12 @@ async function fetchLeagueThresholds(supabase: any, studentId: string): Promise<
  * Uses idempotent reference_id to prevent duplicate bonuses (Req 132.4).
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function checkLeaguePromotion(supabase: any, studentId: string, previousTotal: number, newTotal: number): Promise<void> {
+async function checkLeaguePromotion(
+  supabase: any,
+  studentId: string,
+  previousTotal: number,
+  newTotal: number
+): Promise<void> {
   const thresholds = await fetchLeagueThresholds(supabase, studentId);
   const previousTier = getLeagueTierFromXP(previousTotal, thresholds);
   const newTier = getLeagueTierFromXP(newTotal, thresholds);
@@ -256,71 +331,72 @@ async function checkLeaguePromotion(supabase: any, studentId: string, previousTo
   // Tier promotion detected — award 100 XP bonus with idempotent reference_id
   const referenceId = `league_promotion:${studentId}:${newTier}`;
 
-  const { error: insertErr } = await supabase
-    .from('xp_transactions')
-    .insert({
-      student_id: studentId,
-      xp_amount: 100,
-      source: 'league_promotion',
-      reference_id: referenceId,
-      note: `League promotion bonus: ${previousTier} → ${newTier}`,
-      base_xp: 100,
-      final_xp: 100,
-      multipliers: { league_promotion: 1.0 },
-    });
+  const { error: insertErr } = await supabase.from("xp_transactions").insert({
+    student_id: studentId,
+    xp_amount: 100,
+    source: "league_promotion",
+    reference_id: referenceId,
+    note: `League promotion bonus: ${previousTier} → ${newTier}`,
+    base_xp: 100,
+    final_xp: 100,
+    multipliers: { league_promotion: 1.0 },
+  });
 
   if (insertErr) {
     // 23505 = unique_violation — bonus already awarded (idempotent)
-    if (insertErr.code === '23505') return;
-    console.error('League promotion bonus insert failed:', insertErr.message);
+    if (insertErr.code === "23505") return;
+    console.error("League promotion bonus insert failed:", insertErr.message);
     return;
   }
 
   // Update xp_total with the bonus
   const { data: sumResult } = await supabase
-    .from('xp_transactions')
-    .select('xp_amount')
-    .eq('student_id', studentId);
+    .from("xp_transactions")
+    .select("xp_amount")
+    .eq("student_id", studentId);
 
   const updatedTotal = (sumResult ?? []).reduce(
     (sum: number, row: { xp_amount: number }) => sum + row.xp_amount,
-    0,
+    0
   );
 
   const updatedLevel = calculateLevel(updatedTotal);
 
   await supabase
-    .from('student_gamification')
+    .from("student_gamification")
     .upsert(
       { student_id: studentId, xp_total: updatedTotal, level: updatedLevel },
-      { onConflict: 'student_id' },
+      { onConflict: "student_id" }
     );
 }
-
 
 // ─── Peer Milestone Notification ────────────────────────────────────────────
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function notifyPeersOfLevelUp(supabase: any, studentId: string, newLevel: number): Promise<void> {
+async function notifyPeersOfLevelUp(
+  supabase: any,
+  studentId: string,
+  newLevel: number
+): Promise<void> {
   const PEER_MILESTONE_DAILY_LIMIT = 5;
   const BATCH_WINDOW_MS = 60 * 60 * 1000; // 1 hour
 
   // Check if student is in anonymous leaderboard mode — skip if so
   const { data: profile } = await supabase
-    .from('profiles')
-    .select('full_name, leaderboard_anonymous')
-    .eq('id', studentId)
+    .from("profiles")
+    .select("full_name, leaderboard_anonymous")
+    .eq("id", studentId)
     .maybeSingle();
 
   if (!profile || profile.leaderboard_anonymous) return;
 
-  const studentName = profile.full_name ?? 'A classmate';
+  const studentName = profile.full_name ?? "A classmate";
 
   // Find all courses the student is enrolled in
   const { data: enrollments } = await supabase
-    .from('student_courses')
-    .select('course_id')
-    .eq('student_id', studentId);
+    .from("student_courses")
+    .select("course_id")
+    .eq("student_id", studentId);
 
   if (!enrollments || enrollments.length === 0) return;
 
@@ -328,28 +404,34 @@ async function notifyPeersOfLevelUp(supabase: any, studentId: string, newLevel: 
 
   // Find all peer students in those courses (excluding the triggering student)
   const { data: peerEnrollments } = await supabase
-    .from('student_courses')
-    .select('student_id')
-    .in('course_id', courseIds)
-    .neq('student_id', studentId);
+    .from("student_courses")
+    .select("student_id")
+    .in("course_id", courseIds)
+    .neq("student_id", studentId);
 
   if (!peerEnrollments || peerEnrollments.length === 0) return;
 
   // Deduplicate peer IDs (a peer may share multiple courses)
-  const peerIds = [...new Set(peerEnrollments.map((e: { student_id: string }) => e.student_id))];
+  const peerIds = [
+    ...new Set(
+      peerEnrollments.map((e: { student_id: string }) => e.student_id)
+    ),
+  ];
 
   const message = `Your classmate ${studentName} just hit Level ${newLevel}!`;
   const now = new Date();
-  const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
+  const twentyFourHoursAgo = new Date(
+    now.getTime() - 24 * 60 * 60 * 1000
+  ).toISOString();
   const oneHourAgo = new Date(now.getTime() - BATCH_WINDOW_MS).toISOString();
 
   // Rate-limit: fetch recent peer_milestone counts per peer in the last 24h
   const { data: recentNotifications } = await supabase
-    .from('notifications')
-    .select('user_id, created_at')
-    .in('user_id', peerIds)
-    .eq('type', 'peer_milestone')
-    .gte('created_at', twentyFourHoursAgo);
+    .from("notifications")
+    .select("user_id, created_at")
+    .in("user_id", peerIds)
+    .eq("type", "peer_milestone")
+    .gte("created_at", twentyFourHoursAgo);
 
   // Build per-peer counts for rate limiting and batching
   const peerDailyCounts = new Map<string, number>();
@@ -358,7 +440,10 @@ async function notifyPeersOfLevelUp(supabase: any, studentId: string, newLevel: 
     for (const n of recentNotifications) {
       const uid = n.user_id as string;
       peerDailyCounts.set(uid, (peerDailyCounts.get(uid) ?? 0) + 1);
-      if (new Date(n.created_at as string).getTime() >= new Date(oneHourAgo).getTime()) {
+      if (
+        new Date(n.created_at as string).getTime() >=
+        new Date(oneHourAgo).getTime()
+      ) {
         peerHasRecentBatch.set(uid, true);
       }
     }
@@ -373,12 +458,12 @@ async function notifyPeersOfLevelUp(supabase: any, studentId: string, newLevel: 
     const hasRecent = peerHasRecentBatch.get(peerId as string) ?? false;
     notifications.push({
       user_id: peerId,
-      type: 'peer_milestone',
-      title: 'Classmate Leveled Up',
+      type: "peer_milestone",
+      title: "Classmate Leveled Up",
       message,
       is_read: false,
       metadata: {
-        milestone_type: 'level_up',
+        milestone_type: "level_up",
         triggering_student_id: studentId,
         level: newLevel,
         is_batched: hasRecent,
@@ -388,34 +473,36 @@ async function notifyPeersOfLevelUp(supabase: any, studentId: string, newLevel: 
 
   if (notifications.length === 0) return;
 
-  const { error } = await supabase.from('notifications').insert(notifications);
+  const { error } = await supabase.from("notifications").insert(notifications);
   if (error) {
-    console.error('Failed to insert peer milestone notifications:', error.message);
+    console.error(
+      "Failed to insert peer milestone notifications:",
+      error.message
+    );
   }
 }
-
 
 // ─── Main Handler ───────────────────────────────────────────────────────────
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
   }
 
   try {
     const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
     const body = await req.json();
     const validation = validatePayload(body);
 
     if (!validation.valid) {
-      return new Response(
-        JSON.stringify({ error: validation.error }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-      );
+      return new Response(JSON.stringify({ error: validation.error }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const { student_id, source, note } = validation.data;
@@ -426,8 +513,10 @@ serve(async (req) => {
     //   b) The student themselves for self-triggered sources (login, submission, journal)
     // Reject with 403 Forbidden if neither condition is met
 
-    const authHeader = req.headers.get('Authorization') ?? '';
-    const isServiceRole = authHeader.includes(Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+    const authHeader = req.headers.get("Authorization") ?? "";
+    const isServiceRole = authHeader.includes(
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
 
     // Server-side canonical XP amounts for self-triggered sources.
     // Students cannot choose their own XP — the server enforces these values.
@@ -436,45 +525,63 @@ serve(async (req) => {
       login: 10,
       journal: 20,
     };
-    const selfTriggeredSources: XPSource[] = ['login', 'submission', 'journal'];
+    const selfTriggeredSources: XPSource[] = ["login", "submission", "journal"];
 
     if (!isServiceRole) {
       // Create user-scoped client to get the caller's identity
       const userClient = createClient(
-        Deno.env.get('SUPABASE_URL')!,
-        Deno.env.get('SUPABASE_ANON_KEY')!,
-        { global: { headers: { Authorization: authHeader } } },
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_ANON_KEY")!,
+        { global: { headers: { Authorization: authHeader } } }
       );
-      const { data: { user } } = await userClient.auth.getUser();
+      const {
+        data: { user },
+      } = await userClient.auth.getUser();
 
-      if (!user || !selfTriggeredSources.includes(source) || user.id !== student_id) {
+      if (
+        !user ||
+        !selfTriggeredSources.includes(source) ||
+        user.id !== student_id
+      ) {
         return new Response(
-          JSON.stringify({ error: 'Forbidden: insufficient permissions' }),
-          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+          JSON.stringify({ error: "Forbidden: insufficient permissions" }),
+          {
+            status: 403,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
         );
       }
 
-      if (source === 'submission') {
+      if (source === "submission") {
         // Derive XP from trusted server data: look up the assignment's due_date
         // and compare against now to determine late vs on-time.
         const assignmentId = validation.data.reference_id;
         if (!assignmentId) {
           return new Response(
-            JSON.stringify({ error: 'reference_id (assignment_id) is required for submission XP' }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+            JSON.stringify({
+              error:
+                "reference_id (assignment_id) is required for submission XP",
+            }),
+            {
+              status: 400,
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+            }
           );
         }
 
         const { data: assignment, error: assignmentErr } = await supabase
-          .from('assignments')
-          .select('id, due_date, late_window_hours')
-          .eq('id', assignmentId)
+          .from("assignments")
+          .select("id, due_date, late_window_hours")
+          .eq("id", assignmentId)
           .maybeSingle();
 
         if (assignmentErr || !assignment) {
           return new Response(
-            JSON.stringify({ error: 'Assignment not found or query failed' }),
-            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+            JSON.stringify({ error: "Assignment not found or query failed" }),
+            {
+              status: 400,
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+            }
           );
         }
 
@@ -500,33 +607,47 @@ serve(async (req) => {
     // ── Wellness Habit XP Lookup ──────────────────────────────────────────
     // When source is wellness_habit, fetch the institution's configured
     // wellness_xp_amount and use it as the XP amount (overriding passed value).
-    if (source === 'wellness_habit') {
+    if (source === "wellness_habit") {
       // Fetch the student's institution_id from profiles
       const { data: studentProfile, error: profileErr } = await supabase
-        .from('profiles')
-        .select('institution_id')
-        .eq('id', student_id)
+        .from("profiles")
+        .select("institution_id")
+        .eq("id", student_id)
         .maybeSingle();
 
       if (profileErr || !studentProfile) {
         return new Response(
-          JSON.stringify({ error: 'Failed to fetch student profile for wellness XP lookup' }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+          JSON.stringify({
+            error: "Failed to fetch student profile for wellness XP lookup",
+          }),
+          {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
         );
       }
 
       // Fetch wellness_xp_amount from institution_settings
       const { data: instSettings, error: settingsErr } = await supabase
-        .from('institution_settings')
-        .select('wellness_xp_amount')
-        .eq('institution_id', studentProfile.institution_id)
+        .from("institution_settings")
+        .select("wellness_xp_amount")
+        .eq("institution_id", studentProfile.institution_id)
         .maybeSingle();
 
       if (settingsErr) {
-        console.error('Institution settings query failed:', settingsErr.message);
+        console.error(
+          "Institution settings query failed:",
+          settingsErr.message
+        );
         return new Response(
-          JSON.stringify({ error: 'Failed to fetch institution settings', detail: settingsErr.message }),
-          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+          JSON.stringify({
+            error: "Failed to fetch institution settings",
+            detail: settingsErr.message,
+          }),
+          {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
         );
       }
 
@@ -534,10 +655,9 @@ serve(async (req) => {
 
       // When wellness_xp_amount is 0, skip XP transaction entirely
       if (wellnessXpAmount === 0) {
-        return new Response(
-          JSON.stringify({ success: true, xp_awarded: 0 }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-        );
+        return new Response(JSON.stringify({ success: true, xp_awarded: 0 }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       }
 
       // Override the passed xp_amount with the institution-configured value
@@ -545,7 +665,8 @@ serve(async (req) => {
     }
 
     // Re-destructure after potential overrides
-    const { xp_amount: resolvedXpAmount, reference_id: resolvedReferenceId } = validation.data;
+    const { xp_amount: resolvedXpAmount, reference_id: resolvedReferenceId } =
+      validation.data;
 
     // ── Server-side XP caps for quiz sources ────────────────────────────
     // quiz_completion: 50 base (on-time) or 25 (late) — caller provides the value
@@ -555,7 +676,7 @@ serve(async (req) => {
     const PRACTICE_QUIZ_MAX_PER_DAY = 3;
 
     let cappedXpAmount = resolvedXpAmount;
-    if (source === 'practice_quiz') {
+    if (source === "practice_quiz") {
       // Fixed 10 XP for practice quiz — server-enforced, ignore caller value
       cappedXpAmount = PRACTICE_QUIZ_XP;
 
@@ -564,14 +685,17 @@ serve(async (req) => {
       dayStart.setUTCHours(0, 0, 0, 0);
 
       const { data: practiceAwards, error: practiceCountErr } = await supabase
-        .from('xp_transactions')
-        .select('id')
-        .eq('student_id', student_id)
-        .eq('source', 'practice_quiz')
-        .gte('created_at', dayStart.toISOString());
+        .from("xp_transactions")
+        .select("id")
+        .eq("student_id", student_id)
+        .eq("source", "practice_quiz")
+        .gte("created_at", dayStart.toISOString());
 
       if (practiceCountErr) {
-        console.error('Practice quiz diminishing returns query failed:', practiceCountErr.message);
+        console.error(
+          "Practice quiz diminishing returns query failed:",
+          practiceCountErr.message
+        );
         // Continue without blocking — don't prevent XP award on query failure
       }
 
@@ -580,16 +704,29 @@ serve(async (req) => {
         // Diminishing returns exhausted — award 0 XP but still record the transaction
         cappedXpAmount = 0;
       }
-    } else if (source === 'quiz_completion') {
+    } else if (source === "quiz_completion") {
       cappedXpAmount = Math.min(Math.max(resolvedXpAmount, 0), 50);
-    } else if (source === 'quiz_hard_bonus') {
+    } else if (source === "quiz_hard_bonus") {
       cappedXpAmount = Math.min(Math.max(resolvedXpAmount, 0), 50);
+    } else if (source === "planner_task") {
+      // Server-enforced fixed amount: 10 XP per completed planner task
+      cappedXpAmount = 10;
+    } else if (source === "session_reflection") {
+      // Server-enforced fixed amount: 10 XP per session reflection
+      cappedXpAmount = 10;
+    } else if (source === "weekly_goal") {
+      // Server-enforced fixed amount: 25 XP per weekly goal met
+      cappedXpAmount = 25;
+    } else if (source === "study_session") {
+      // study_session uses client-calculated xp_amount (via calculateSessionXP)
+      // Cap at 60 (max 50 base + 10 evidence bonus)
+      cappedXpAmount = Math.min(Math.max(resolvedXpAmount, 0), 60);
     }
 
     // Handle zero XP — still record the transaction but skip level recalculation
     if (cappedXpAmount === 0) {
       const { error: insertErr } = await supabase
-        .from('xp_transactions')
+        .from("xp_transactions")
         .insert({
           student_id,
           xp_amount: 0,
@@ -599,25 +736,37 @@ serve(async (req) => {
         });
 
       if (insertErr) {
-        console.error('XP transaction insert failed:', insertErr.message);
+        console.error("XP transaction insert failed:", insertErr.message);
         return new Response(
-          JSON.stringify({ error: 'Failed to insert XP transaction', detail: insertErr.message }),
-          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+          JSON.stringify({
+            error: "Failed to insert XP transaction",
+            detail: insertErr.message,
+          }),
+          {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
         );
       }
 
       return new Response(
-        JSON.stringify({ success: true, xp_awarded: 0, new_total: 0, level_up: false, new_level: 1 }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        JSON.stringify({
+          success: true,
+          xp_awarded: 0,
+          new_total: 0,
+          level_up: false,
+          new_level: 1,
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     // ── Step 1: Fetch student's current level for adaptive multiplier ────
 
     const { data: gamificationData } = await supabase
-      .from('student_gamification')
-      .select('level, xp_total')
-      .eq('student_id', student_id)
+      .from("student_gamification")
+      .select("level, xp_total")
+      .eq("student_id", student_id)
       .maybeSingle();
 
     const currentLevel = gamificationData?.level ?? 1;
@@ -625,21 +774,24 @@ serve(async (req) => {
 
     // ── Step 2: Query rolling 24-hour window for diminishing returns ─────
 
-    const isMilestone = validation.data.is_milestone ?? MILESTONE_SOURCES.includes(source);
+    const isMilestone =
+      validation.data.is_milestone ?? MILESTONE_SOURCES.includes(source);
     const bloomsLevels = validation.data.blooms_levels ?? [];
 
     let repeatCount = 0;
     if (!isMilestone) {
-      const windowStart = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      const windowStart = new Date(
+        Date.now() - 24 * 60 * 60 * 1000
+      ).toISOString();
       const { data: recentActions, error: dimErr } = await supabase
-        .from('xp_transactions')
-        .select('id')
-        .eq('student_id', student_id)
-        .eq('source', source)
-        .gte('created_at', windowStart);
+        .from("xp_transactions")
+        .select("id")
+        .eq("student_id", student_id)
+        .eq("source", source)
+        .gte("created_at", windowStart);
 
       if (dimErr) {
-        console.error('Diminishing returns query failed:', dimErr.message);
+        console.error("Diminishing returns query failed:", dimErr.message);
         // Continue without diminishing — don't block XP award
       }
       repeatCount = recentActions?.length ?? 0;
@@ -649,7 +801,10 @@ serve(async (req) => {
 
     const levelMultiplier = getLevelMultiplier(currentLevel);
     const difficultyMultiplier = getDifficultyMultiplier(bloomsLevels);
-    const diminishingMultiplier = getDiminishingMultiplier(repeatCount, isMilestone);
+    const diminishingMultiplier = getDiminishingMultiplier(
+      repeatCount,
+      isMilestone
+    );
 
     // ── Step 4: Check for active bonus XP events ─────────────────────────
     // Practice quiz XP is exempt from bonus event multipliers (Requirement 25.3)
@@ -657,20 +812,22 @@ serve(async (req) => {
     let bonusEventMultiplier = 1.0;
     let spotlightMultiplier = 1.0;
 
-    if (source !== 'practice_quiz') {
+    if (source !== "practice_quiz") {
       const { data: bonusEvents, error: bonusErr } = await supabase
-        .from('bonus_xp_events')
-        .select('multiplier')
-        .lte('start_date', new Date().toISOString())
-        .gte('end_date', new Date().toISOString());
+        .from("bonus_xp_events")
+        .select("multiplier")
+        .lte("start_date", new Date().toISOString())
+        .gte("end_date", new Date().toISOString());
 
       if (bonusErr) {
-        console.error('Bonus event query failed:', bonusErr.message);
+        console.error("Bonus event query failed:", bonusErr.message);
         // Continue without multiplier — don't block XP award
       }
 
       if (bonusEvents && bonusEvents.length > 0) {
-        const maxMultiplier = Math.max(...bonusEvents.map((e: { multiplier: number }) => e.multiplier));
+        const maxMultiplier = Math.max(
+          ...bonusEvents.map((e: { multiplier: number }) => e.multiplier)
+        );
         if (maxMultiplier > 1) {
           bonusEventMultiplier = maxMultiplier;
         }
@@ -680,13 +837,13 @@ serve(async (req) => {
     // ── Step 4b: Badge Spotlight 2x bonus (Requirement 134.1, 134.5) ────
     // When source is 'badge', check if the badge category matches the current spotlight
 
-    if (source === 'badge' && resolvedReferenceId) {
+    if (source === "badge" && resolvedReferenceId) {
       try {
         // Fetch the student's institution_id
         const { data: studentProfile } = await supabase
-          .from('profiles')
-          .select('institution_id')
-          .eq('id', student_id)
+          .from("profiles")
+          .select("institution_id")
+          .eq("id", student_id)
           .maybeSingle();
 
         if (studentProfile?.institution_id) {
@@ -694,25 +851,27 @@ serve(async (req) => {
           const now = new Date();
           const dayOfWeek = now.getUTCDay();
           const monday = new Date(now);
-          monday.setUTCDate(now.getUTCDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+          monday.setUTCDate(
+            now.getUTCDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1)
+          );
           const weekStart = monday.toISOString().slice(0, 10);
 
           // Check if there's a spotlight for this week
           const { data: spotlight } = await supabase
-            .from('badge_spotlight_schedule')
-            .select('category')
-            .eq('institution_id', studentProfile.institution_id)
-            .eq('week_start', weekStart)
+            .from("badge_spotlight_schedule")
+            .select("category")
+            .eq("institution_id", studentProfile.institution_id)
+            .eq("week_start", weekStart)
             .maybeSingle();
 
           if (spotlight?.category) {
             // Check if the badge being awarded matches the spotlight category
             // Look up the badge's category from the reference_id
             const { data: badgeRecord } = await supabase
-              .from('badges')
-              .select('category')
-              .eq('badge_key', resolvedReferenceId)
-              .eq('student_id', student_id)
+              .from("badges")
+              .select("category")
+              .eq("badge_key", resolvedReferenceId)
+              .eq("student_id", student_id)
               .maybeSingle();
 
             const badgeCategory = (badgeRecord?.category as string) ?? null;
@@ -723,7 +882,10 @@ serve(async (req) => {
           }
         }
       } catch (spotlightErr) {
-        console.error('Badge spotlight check failed (non-blocking):', spotlightErr);
+        console.error(
+          "Badge spotlight check failed (non-blocking):",
+          spotlightErr
+        );
       }
     }
 
@@ -732,7 +894,14 @@ serve(async (req) => {
     // Cap at 9999 per transaction (design doc edge case)
 
     const baseXP = cappedXpAmount;
-    let finalXP = Math.floor(baseXP * levelMultiplier * difficultyMultiplier * diminishingMultiplier * bonusEventMultiplier * spotlightMultiplier);
+    let finalXP = Math.floor(
+      baseXP *
+        levelMultiplier *
+        difficultyMultiplier *
+        diminishingMultiplier *
+        bonusEventMultiplier *
+        spotlightMultiplier
+    );
     finalXP = Math.min(finalXP, 9999);
 
     // ── Step 6: Insert XP transaction with adaptive fields ───────────────
@@ -761,42 +930,59 @@ serve(async (req) => {
     };
 
     const { error: insertErr } = await supabase
-      .from('xp_transactions')
+      .from("xp_transactions")
       .insert(insertPayload);
 
     if (insertErr) {
       // Postgres unique_violation code = 23505
-      if (insertErr.code === '23505' && resolvedReferenceId) {
+      if (insertErr.code === "23505" && resolvedReferenceId) {
         return new Response(
-          JSON.stringify({ success: true, xp_awarded: 0, duplicate: true, reference_id: resolvedReferenceId }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+          JSON.stringify({
+            success: true,
+            xp_awarded: 0,
+            duplicate: true,
+            reference_id: resolvedReferenceId,
+          }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      console.error('XP transaction insert failed:', insertErr.message);
+      console.error("XP transaction insert failed:", insertErr.message);
       return new Response(
-        JSON.stringify({ error: 'Failed to insert XP transaction', detail: insertErr.message }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        JSON.stringify({
+          error: "Failed to insert XP transaction",
+          detail: insertErr.message,
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
       );
     }
 
     // ── Step 7: Recalculate xp_total ──────────────────────────────────────
 
     const { data: sumResult, error: sumErr } = await supabase
-      .from('xp_transactions')
-      .select('xp_amount')
-      .eq('student_id', student_id);
+      .from("xp_transactions")
+      .select("xp_amount")
+      .eq("student_id", student_id);
 
     if (sumErr) {
-      console.error('XP sum query failed:', sumErr.message);
+      console.error("XP sum query failed:", sumErr.message);
       return new Response(
-        JSON.stringify({ error: 'Failed to calculate XP total', detail: sumErr.message }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        JSON.stringify({
+          error: "Failed to calculate XP total",
+          detail: sumErr.message,
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
       );
     }
 
     const newTotal = (sumResult ?? []).reduce(
       (sum: number, row: { xp_amount: number }) => sum + row.xp_amount,
-      0,
+      0
     );
 
     // ── Step 8: Calculate new level ───────────────────────────────────────
@@ -810,30 +996,41 @@ serve(async (req) => {
     // ── Step 9: UPSERT student_gamification ───────────────────────────────
 
     const { error: upsertErr } = await supabase
-      .from('student_gamification')
+      .from("student_gamification")
       .upsert(
         {
           student_id,
           xp_total: newTotal,
           level: newLevel,
         },
-        { onConflict: 'student_id' },
+        { onConflict: "student_id" }
       );
 
     if (upsertErr) {
-      console.error('Gamification upsert failed:', upsertErr.message);
+      console.error("Gamification upsert failed:", upsertErr.message);
       return new Response(
-        JSON.stringify({ error: 'Failed to update gamification record', detail: upsertErr.message }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        JSON.stringify({
+          error: "Failed to update gamification record",
+          detail: upsertErr.message,
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
       );
     }
 
     // ── Step 9.5: League Promotion check (Req 132.4) ────────────────────
     // Skip if this XP award is itself a league_promotion to avoid recursion
 
-    if (source !== 'league_promotion') {
-      checkLeaguePromotion(supabase, student_id, previousXpTotal, newTotal).catch((err) => {
-        console.error('League promotion check failed (non-blocking):', err);
+    if (source !== "league_promotion") {
+      checkLeaguePromotion(
+        supabase,
+        student_id,
+        previousXpTotal,
+        newTotal
+      ).catch((err) => {
+        console.error("League promotion check failed (non-blocking):", err);
       });
     }
 
@@ -842,7 +1039,7 @@ serve(async (req) => {
     if (levelUp) {
       // Fire-and-forget — never block the XP response
       notifyPeersOfLevelUp(supabase, student_id, newLevel).catch((err) => {
-        console.error('Peer milestone notification failed:', err);
+        console.error("Peer milestone notification failed:", err);
       });
     }
 
@@ -852,9 +1049,9 @@ serve(async (req) => {
     let teamXpAwarded = 0;
     try {
       const { data: teamMembership } = await supabase
-        .from('team_members')
-        .select('team_id')
-        .eq('student_id', student_id)
+        .from("team_members")
+        .select("team_id")
+        .eq("student_id", student_id)
         .limit(1)
         .maybeSingle();
 
@@ -863,13 +1060,15 @@ serve(async (req) => {
         teamXpAwarded = teamXp;
 
         // Insert team-scoped xp_transaction
-        await supabase.from('xp_transactions').insert({
+        await supabase.from("xp_transactions").insert({
           student_id,
           xp_amount: teamXp,
           source,
-          reference_id: resolvedReferenceId ? `team:${resolvedReferenceId}` : null,
+          reference_id: resolvedReferenceId
+            ? `team:${resolvedReferenceId}`
+            : null,
           note: `Team XP contribution from ${source}`,
-          scope: 'team',
+          scope: "team",
           team_id: teamMembership.team_id,
           base_xp: cappedXpAmount,
           final_xp: teamXp,
@@ -878,21 +1077,21 @@ serve(async (req) => {
 
         // Update team_gamification totals
         const { data: existingTeamGam } = await supabase
-          .from('team_gamification')
-          .select('xp_total, xp_this_week')
-          .eq('team_id', teamMembership.team_id)
+          .from("team_gamification")
+          .select("xp_total, xp_this_week")
+          .eq("team_id", teamMembership.team_id)
           .maybeSingle();
 
         if (existingTeamGam) {
           await supabase
-            .from('team_gamification')
+            .from("team_gamification")
             .update({
               xp_total: (existingTeamGam.xp_total ?? 0) + teamXp,
               xp_this_week: (existingTeamGam.xp_this_week ?? 0) + teamXp,
             })
-            .eq('team_id', teamMembership.team_id);
+            .eq("team_id", teamMembership.team_id);
         } else {
-          await supabase.from('team_gamification').insert({
+          await supabase.from("team_gamification").insert({
             team_id: teamMembership.team_id,
             xp_total: teamXp,
             xp_this_week: teamXp,
@@ -902,7 +1101,7 @@ serve(async (req) => {
         }
       }
     } catch (teamErr) {
-      console.error('Team XP contribution failed (non-blocking):', teamErr);
+      console.error("Team XP contribution failed (non-blocking):", teamErr);
     }
 
     // ── Response ──────────────────────────────────────────────────────────
@@ -918,12 +1117,12 @@ serve(async (req) => {
         multipliers: multipliersJsonb,
         team_xp_awarded: teamXpAwarded,
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
-    return new Response(
-      JSON.stringify({ error: (error as Error).message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-    );
+    return new Response(JSON.stringify({ error: (error as Error).message }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });
