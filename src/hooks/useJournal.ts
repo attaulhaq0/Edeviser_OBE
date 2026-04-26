@@ -1,8 +1,9 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import { logAuditEvent } from '@/lib/auditLogger';
-import { useAuth } from '@/hooks/useAuth';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import { logAuditEvent } from "@/lib/auditLogger";
+import { useAuth } from "@/hooks/useAuth";
+import type { Database } from "@/types/database";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -46,16 +47,18 @@ export const useJournalEntries = (filters: JournalEntryFilters = {}) => {
   return useQuery({
     queryKey: queryKeys.journal.list(filters as Record<string, unknown>),
     queryFn: async (): Promise<JournalEntry[]> => {
-      if (!user) throw new Error('Not authenticated');
+      if (!user) throw new Error("Not authenticated");
 
       let query = supabase
-        .from('journal_entries')
-        .select('id, student_id, course_id, content, clo_id, is_shared, created_at')
-        .eq('student_id', user.id)
-        .order('created_at', { ascending: false });
+        .from("journal_entries")
+        .select(
+          "id, student_id, course_id, content, clo_id, is_shared, created_at"
+        )
+        .eq("student_id", user.id)
+        .order("created_at", { ascending: false });
 
       if (filters.courseId) {
-        query = query.eq('course_id', filters.courseId);
+        query = query.eq("course_id", filters.courseId);
       }
 
       const { data, error } = await query;
@@ -66,22 +69,23 @@ export const useJournalEntries = (filters: JournalEntryFilters = {}) => {
   });
 };
 
-
 // ─── useJournalEntry — single entry by id ───────────────────────────────────
 
 export const useJournalEntry = (id?: string) => {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: queryKeys.journal.detail(id ?? ''),
+    queryKey: queryKeys.journal.detail(id ?? ""),
     queryFn: async (): Promise<JournalEntry | null> => {
-      if (!user) throw new Error('Not authenticated');
+      if (!user) throw new Error("Not authenticated");
 
       const { data, error } = await supabase
-        .from('journal_entries')
-        .select('id, student_id, course_id, content, clo_id, is_shared, created_at')
-        .eq('id', id!)
-        .eq('student_id', user.id)
+        .from("journal_entries")
+        .select(
+          "id, student_id, course_id, content, clo_id, is_shared, created_at"
+        )
+        .eq("id", id!)
+        .eq("student_id", user.id)
         .maybeSingle();
 
       if (error) throw error;
@@ -98,11 +102,13 @@ export const useCreateJournalEntry = () => {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async (input: CreateJournalEntryInput): Promise<JournalEntry> => {
-      if (!user) throw new Error('Not authenticated');
+    mutationFn: async (
+      input: CreateJournalEntryInput
+    ): Promise<JournalEntry> => {
+      if (!user) throw new Error("Not authenticated");
 
       const { data, error } = await supabase
-        .from('journal_entries')
+        .from("journal_entries")
         .insert({
           student_id: user.id,
           course_id: input.course_id,
@@ -118,10 +124,13 @@ export const useCreateJournalEntry = () => {
       const entry = data as unknown as JournalEntry;
 
       await logAuditEvent({
-        action: 'create',
-        entity_type: 'journal_entry',
+        action: "create",
+        entity_type: "journal_entry",
         entity_id: entry.id,
-        changes: { course_id: input.course_id, clo_id: input.clo_id ?? null } as Record<string, unknown>,
+        changes: {
+          course_id: input.course_id,
+          clo_id: input.clo_id ?? null,
+        } as Record<string, unknown>,
         performed_by: user.id,
       });
 
@@ -140,10 +149,13 @@ export const useUpdateJournalEntry = () => {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async (input: UpdateJournalEntryInput): Promise<JournalEntry> => {
-      if (!user) throw new Error('Not authenticated');
+    mutationFn: async (
+      input: UpdateJournalEntryInput
+    ): Promise<JournalEntry> => {
+      if (!user) throw new Error("Not authenticated");
 
-      const updates: Record<string, unknown> = {};
+      const updates: Database["public"]["Tables"]["journal_entries"]["Update"] =
+        {};
 
       if (input.content !== undefined) {
         updates.content = input.content;
@@ -158,10 +170,10 @@ export const useUpdateJournalEntry = () => {
       }
 
       const { data, error } = await supabase
-        .from('journal_entries')
+        .from("journal_entries")
         .update(updates)
-        .eq('id', input.id)
-        .eq('student_id', user.id)
+        .eq("id", input.id)
+        .eq("student_id", user.id)
         .select()
         .single();
 
@@ -170,8 +182,8 @@ export const useUpdateJournalEntry = () => {
       const entry = data as unknown as JournalEntry;
 
       await logAuditEvent({
-        action: 'update',
-        entity_type: 'journal_entry',
+        action: "update",
+        entity_type: "journal_entry",
         entity_id: entry.id,
         changes: updates,
         performed_by: user.id,
@@ -181,7 +193,9 @@ export const useUpdateJournalEntry = () => {
     },
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.journal.lists() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.journal.detail(variables.id) });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.journal.detail(variables.id),
+      });
     },
   });
 };
@@ -194,19 +208,19 @@ export const useDeleteJournalEntry = () => {
 
   return useMutation({
     mutationFn: async (id: string): Promise<void> => {
-      if (!user) throw new Error('Not authenticated');
+      if (!user) throw new Error("Not authenticated");
 
       const { error } = await supabase
-        .from('journal_entries')
+        .from("journal_entries")
         .delete()
-        .eq('id', id)
-        .eq('student_id', user.id);
+        .eq("id", id)
+        .eq("student_id", user.id);
 
       if (error) throw error;
 
       await logAuditEvent({
-        action: 'delete',
-        entity_type: 'journal_entry',
+        action: "delete",
+        entity_type: "journal_entry",
         entity_id: id,
         changes: null,
         performed_by: user.id,

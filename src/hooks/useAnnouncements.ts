@@ -130,7 +130,7 @@ export const useCreateAnnouncement = () => {
         user_id: payload.author_id,
         type: "announcement",
         title: `New Announcement: ${payload.title}`,
-        message: payload.content.slice(0, 200),
+        body: payload.content.slice(0, 200),
         metadata: { course_id: payload.course_id, announcement_id: data.id },
       });
       if (notifyErr)

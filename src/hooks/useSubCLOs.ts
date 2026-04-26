@@ -1,26 +1,31 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import { logAuditEvent } from '@/lib/auditLogger';
-import { useAuth } from '@/hooks/useAuth';
-import type { SubCLOFormData } from '@/lib/schemas/subCLO';
-import type { LearningOutcome } from '@/types/app';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import { logAuditEvent } from "@/lib/auditLogger";
+import { useAuth } from "@/hooks/useAuth";
+import type { SubCLOFormData } from "@/lib/schemas/subCLO";
+import type { Database } from "@/types/database";
+
+type SubCLO = Database["public"]["Tables"]["sub_clos"]["Row"];
+
+// Sub-CLOs live in their own table with FK clo_id → learning_outcomes(id).
+// The live schema does not yet persist `code` or `weight`; they remain in the
+// form schema for forward-compatibility but are stripped on write.
 
 // ─── useSubCLOs — list Sub-CLOs for a parent CLO ───────────────────────────
 
 export const useSubCLOs = (cloId?: string) => {
   return useQuery({
-    queryKey: queryKeys.subCLOs.list({ cloId: cloId ?? '' }),
-    queryFn: async (): Promise<LearningOutcome[]> => {
+    queryKey: queryKeys.subCLOs.list({ cloId: cloId ?? "" }),
+    queryFn: async (): Promise<SubCLO[]> => {
       const { data, error } = await supabase
-        .from('learning_outcomes')
-        .select('*')
-        .eq('type', 'SUB_CLO' as 'CLO')
-        .eq('parent_outcome_id', cloId!)
-        .order('sort_order', { ascending: true });
+        .from("sub_clos")
+        .select("*")
+        .eq("clo_id", cloId!)
+        .order("sort_order", { ascending: true });
 
       if (error) throw error;
-      return (data ?? []) as LearningOutcome[];
+      return data ?? [];
     },
     enabled: !!cloId,
   });
@@ -33,37 +38,34 @@ export const useCreateSubCLO = () => {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async (data: SubCLOFormData): Promise<LearningOutcome> => {
+    mutationFn: async (data: SubCLOFormData): Promise<SubCLO> => {
       const { data: result, error } = await supabase
-        .from('learning_outcomes')
+        .from("sub_clos")
         .insert({
           title: data.title,
           description: data.description ?? null,
-          code: data.code,
-          weight: data.weight,
-          parent_outcome_id: data.parent_outcome_id,
-          type: 'SUB_CLO',
-        } as never)
+          clo_id: data.parent_outcome_id,
+        })
         .select()
         .single();
 
       if (error) throw error;
 
-      const subCLO = result as LearningOutcome;
-
       await logAuditEvent({
-        action: 'create',
-        entity_type: 'sub_clo',
-        entity_id: subCLO.id,
+        action: "create",
+        entity_type: "sub_clo",
+        entity_id: result.id,
         changes: data,
-        performed_by: user?.id ?? 'unknown',
+        performed_by: user?.id ?? "unknown",
       });
 
-      return subCLO;
+      return result;
     },
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({
-        queryKey: queryKeys.subCLOs.list({ cloId: variables.parent_outcome_id }),
+        queryKey: queryKeys.subCLOs.list({
+          cloId: variables.parent_outcome_id,
+        }),
       });
       queryClient.invalidateQueries({ queryKey: queryKeys.clos.lists() });
     },
@@ -81,32 +83,31 @@ export const useUpdateSubCLO = () => {
       id: string;
       parentCloId: string;
       data: Partial<SubCLOFormData>;
-    }): Promise<LearningOutcome> => {
+    }): Promise<SubCLO> => {
       const { id, data } = params;
 
+      const update: Database["public"]["Tables"]["sub_clos"]["Update"] = {};
+      if (data.title !== undefined) update.title = data.title;
+      if (data.description !== undefined) update.description = data.description;
+
       const { data: result, error } = await supabase
-        .from('learning_outcomes')
-        .update({
-          ...(data.title !== undefined && { title: data.title }),
-          ...(data.description !== undefined && { description: data.description }),
-          ...(data.code !== undefined && { code: data.code }),
-          ...(data.weight !== undefined && { weight: data.weight }),
-        })
-        .eq('id', id)
+        .from("sub_clos")
+        .update(update)
+        .eq("id", id)
         .select()
         .single();
 
       if (error) throw error;
 
       await logAuditEvent({
-        action: 'update',
-        entity_type: 'sub_clo',
+        action: "update",
+        entity_type: "sub_clo",
         entity_id: id,
         changes: data,
-        performed_by: user?.id ?? 'unknown',
+        performed_by: user?.id ?? "unknown",
       });
 
-      return result as LearningOutcome;
+      return result;
     },
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({
@@ -128,35 +129,33 @@ export const useDeleteSubCLO = () => {
       id: string;
       parentCloId: string;
     }): Promise<void> => {
-      const { id } = params;
+      const { id, parentCloId } = params;
 
-      // Check for linked evidence — block deletion if any exist
+      // Evidence is tied to the parent CLO (no direct sub_clo FK exists).
+      // Check for evidence linked to the parent CLO as a defensive guard.
       const { count, error: evidenceError } = await supabase
-        .from('evidence')
-        .select('id', { count: 'exact', head: true })
-        .eq('outcome_id', id);
+        .from("evidence")
+        .select("id", { count: "exact", head: true })
+        .eq("clo_id", parentCloId);
 
       if (evidenceError) throw evidenceError;
 
       if (count && count > 0) {
         throw new Error(
-          `Cannot delete Sub-CLO: ${count} evidence record(s) are linked to it. Remove or reassign evidence first.`,
+          `Cannot delete Sub-CLO: ${count} evidence record(s) are linked to its parent CLO. Remove or reassign evidence first.`
         );
       }
 
-      const { error } = await supabase
-        .from('learning_outcomes')
-        .delete()
-        .eq('id', id);
+      const { error } = await supabase.from("sub_clos").delete().eq("id", id);
 
       if (error) throw error;
 
       await logAuditEvent({
-        action: 'delete',
-        entity_type: 'sub_clo',
+        action: "delete",
+        entity_type: "sub_clo",
         entity_id: id,
         changes: {},
-        performed_by: user?.id ?? 'unknown',
+        performed_by: user?.id ?? "unknown",
       });
     },
     onSuccess: (_data, variables) => {

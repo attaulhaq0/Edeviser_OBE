@@ -1,6 +1,6 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -35,7 +35,7 @@ export interface SubmitQuizAttemptInput {
   quiz_attempt_id: string;
   answers: Record<string, string>;
   score: number;
-  mode?: 'graded' | 'practice';
+  mode?: "graded" | "practice";
 }
 
 // ─── useStartAdaptiveQuiz — create a new adaptive quiz attempt ──────────────
@@ -48,10 +48,10 @@ export const useStartAdaptiveQuiz = () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      if (!user) throw new Error("Not authenticated");
 
       const { data, error } = await supabase
-        .from('quiz_attempts')
+        .from("quiz_attempts")
         .insert({
           quiz_id: input.quiz_id,
           student_id: user.id,
@@ -66,7 +66,9 @@ export const useStartAdaptiveQuiz = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.quizAttempts.lists() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.quizAttempts.lists(),
+      });
     },
   });
 };
@@ -75,10 +77,15 @@ export const useStartAdaptiveQuiz = () => {
 
 export const useSelectNextQuestion = () => {
   return useMutation({
-    mutationFn: async (input: SelectQuestionInput): Promise<SelectQuestionResponse> => {
-      const { data, error } = await supabase.functions.invoke('select-adaptive-question', {
-        body: input,
-      });
+    mutationFn: async (
+      input: SelectQuestionInput
+    ): Promise<SelectQuestionResponse> => {
+      const { data, error } = await supabase.functions.invoke(
+        "select-adaptive-question",
+        {
+          body: input,
+        }
+      );
 
       if (error) throw error;
       return data as SelectQuestionResponse;
@@ -93,17 +100,13 @@ export const useSubmitQuizAttempt = () => {
 
   return useMutation({
     mutationFn: async (input: SubmitQuizAttemptInput) => {
-      const { quiz_attempt_id, answers, score, mode } = input;
+      const { quiz_attempt_id, answers, score } = input;
 
-      const updatePayload: Record<string, unknown> = { answers, score };
-      if (mode) {
-        updatePayload.mode = mode;
-      }
-
+      // quiz_attempts has no `mode` column in the live schema; ignored if passed
       const { data, error } = await supabase
-        .from('quiz_attempts')
-        .update(updatePayload)
-        .eq('id', quiz_attempt_id)
+        .from("quiz_attempts")
+        .update({ answers, score })
+        .eq("id", quiz_attempt_id)
         .select()
         .single();
 
@@ -111,17 +114,19 @@ export const useSubmitQuizAttempt = () => {
 
       // Trigger post-quiz analytics recalculation (fire-and-forget)
       supabase.functions
-        .invoke('update-question-analytics', {
+        .invoke("update-question-analytics", {
           body: { quiz_attempt_id },
         })
         .catch((err) => {
-          console.error('Failed to update question analytics:', err);
+          console.error("Failed to update question analytics:", err);
         });
 
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.quizAttempts.lists() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.quizAttempts.lists(),
+      });
     },
   });
 };

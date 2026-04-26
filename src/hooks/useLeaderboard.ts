@@ -2,9 +2,9 @@
 // useLeaderboard — TanStack Query hooks for leaderboard data
 // =============================================================================
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -17,8 +17,8 @@ export interface LeaderboardEntry {
   rank: number;
 }
 
-export type LeaderboardFilter = 'course' | 'program' | 'all';
-export type LeaderboardTimeframe = 'weekly' | 'all_time';
+export type LeaderboardFilter = "course" | "program" | "all";
+export type LeaderboardTimeframe = "weekly" | "all_time";
 
 interface MyRankData {
   rank: number;
@@ -32,12 +32,17 @@ export const useLeaderboard = (
   filter: LeaderboardFilter,
   timeframe: LeaderboardTimeframe,
   courseId?: string,
-  programId?: string,
+  programId?: string
 ) => {
   return useQuery({
-    queryKey: queryKeys.leaderboard.list({ filter, timeframe, courseId, programId }),
+    queryKey: queryKeys.leaderboard.list({
+      filter,
+      timeframe,
+      courseId,
+      programId,
+    }),
     queryFn: async (): Promise<LeaderboardEntry[]> => {
-      if (timeframe === 'weekly') {
+      if (timeframe === "weekly") {
         return fetchWeeklyLeaderboard(filter, courseId, programId);
       }
       return fetchAllTimeLeaderboard(filter, courseId, programId);
@@ -50,22 +55,24 @@ export const useLeaderboard = (
 async function fetchWeeklyLeaderboard(
   filter: LeaderboardFilter,
   courseId?: string,
-  programId?: string,
+  programId?: string
 ): Promise<LeaderboardEntry[]> {
   let query = supabase
-    .from('leaderboard_weekly')
-    .select('student_id, full_name, xp_total, level, streak_current, global_rank')
-    .order('xp_total', { ascending: false })
+    .from("leaderboard_weekly")
+    .select(
+      "student_id, full_name, xp_total, level, streak_current, global_rank"
+    )
+    .order("xp_total", { ascending: false })
     .limit(50);
 
-  if (filter === 'course' && courseId) {
+  if (filter === "course" && courseId) {
     const studentIds = await getStudentIdsByCourse(courseId);
     if (studentIds.length === 0) return [];
-    query = query.in('student_id', studentIds);
-  } else if (filter === 'program' && programId) {
+    query = query.in("student_id", studentIds);
+  } else if (filter === "program" && programId) {
     const studentIds = await getStudentIdsByProgram(programId);
     if (studentIds.length === 0) return [];
-    query = query.in('student_id', studentIds);
+    query = query.in("student_id", studentIds);
   }
 
   const { data, error } = await query;
@@ -75,14 +82,14 @@ async function fetchWeeklyLeaderboard(
 
   return assignRanks(
     (data ?? []).map((d) => ({
-      student_id: d.student_id ?? '',
-      full_name: d.full_name ?? '',
+      student_id: d.student_id ?? "",
+      full_name: d.full_name ?? "",
       xp_total: d.xp_total ?? 0,
       level: d.level ?? 0,
       streak_current: d.streak_current ?? 0,
       global_rank: d.global_rank ?? 0,
     })),
-    optOutIds,
+    optOutIds
   );
 }
 
@@ -91,26 +98,26 @@ async function fetchWeeklyLeaderboard(
 async function fetchAllTimeLeaderboard(
   filter: LeaderboardFilter,
   courseId?: string,
-  programId?: string,
+  programId?: string
 ): Promise<LeaderboardEntry[]> {
   let studentIdFilter: string[] | null = null;
 
-  if (filter === 'course' && courseId) {
+  if (filter === "course" && courseId) {
     studentIdFilter = await getStudentIdsByCourse(courseId);
     if (studentIdFilter.length === 0) return [];
-  } else if (filter === 'program' && programId) {
+  } else if (filter === "program" && programId) {
     studentIdFilter = await getStudentIdsByProgram(programId);
     if (studentIdFilter.length === 0) return [];
   }
 
   let query = supabase
-    .from('student_gamification')
-    .select('student_id, xp_total, level, streak_count')
-    .order('xp_total', { ascending: false })
+    .from("student_gamification")
+    .select("student_id, xp_total, level, streak_current")
+    .order("xp_total", { ascending: false })
     .limit(50);
 
   if (studentIdFilter) {
-    query = query.in('student_id', studentIdFilter);
+    query = query.in("student_id", studentIdFilter);
   }
 
   const { data: gamData, error: gamError } = await query;
@@ -123,9 +130,9 @@ async function fetchAllTimeLeaderboard(
   // Fetch profile names for these students
   const ids = rows.map((r) => r.student_id);
   const { data: profileData, error: profileError } = await supabase
-    .from('profiles')
-    .select('id, full_name')
-    .in('id', ids);
+    .from("profiles")
+    .select("id, full_name")
+    .in("id", ids);
 
   if (profileError) throw profileError;
 
@@ -138,10 +145,10 @@ async function fetchAllTimeLeaderboard(
 
   const merged = rows.map((r) => ({
     student_id: r.student_id,
-    full_name: nameMap.get(r.student_id) ?? 'Unknown',
+    full_name: nameMap.get(r.student_id) ?? "Unknown",
     xp_total: r.xp_total,
     level: r.level,
-    streak_current: r.streak_count,
+    streak_current: r.streak_current,
     global_rank: 0,
   }));
 
@@ -154,10 +161,16 @@ export const useMyRank = (
   filter: LeaderboardFilter,
   timeframe: LeaderboardTimeframe,
   courseId?: string,
-  programId?: string,
+  programId?: string
 ) => {
   return useQuery({
-    queryKey: queryKeys.leaderboard.list({ scope: 'my-rank', filter, timeframe, courseId, programId }),
+    queryKey: queryKeys.leaderboard.list({
+      scope: "my-rank",
+      filter,
+      timeframe,
+      courseId,
+      programId,
+    }),
     queryFn: async (): Promise<MyRankData | null> => {
       const {
         data: { user },
@@ -166,9 +179,9 @@ export const useMyRank = (
 
       // Get the student's gamification data
       const { data: gamData, error: gamError } = await supabase
-        .from('student_gamification')
-        .select('xp_total, level')
-        .eq('student_id', user.id)
+        .from("student_gamification")
+        .select("xp_total, level")
+        .eq("student_id", user.id)
         .maybeSingle();
 
       if (gamError) throw gamError;
@@ -178,27 +191,30 @@ export const useMyRank = (
       const myLevel = gamData.level;
 
       // For weekly timeframe, compute scoped rank from materialized view
-      if (timeframe === 'weekly') {
+      if (timeframe === "weekly") {
         let scopeFilter: string[] | null = null;
 
-        if (filter === 'course' && courseId) {
+        if (filter === "course" && courseId) {
           scopeFilter = await getStudentIdsByCourse(courseId);
-          if (scopeFilter.length === 0) return { rank: 1, xp_total: myXp, level: myLevel };
-        } else if (filter === 'program' && programId) {
+          if (scopeFilter.length === 0)
+            return { rank: 1, xp_total: myXp, level: myLevel };
+        } else if (filter === "program" && programId) {
           scopeFilter = await getStudentIdsByProgram(programId);
-          if (scopeFilter.length === 0) return { rank: 1, xp_total: myXp, level: myLevel };
+          if (scopeFilter.length === 0)
+            return { rank: 1, xp_total: myXp, level: myLevel };
         }
 
         let weeklyCountQuery = supabase
-          .from('leaderboard_weekly')
-          .select('student_id', { count: 'exact', head: true })
-          .gt('xp_total', myXp);
+          .from("leaderboard_weekly")
+          .select("student_id", { count: "exact", head: true })
+          .gt("xp_total", myXp);
 
         if (scopeFilter) {
-          weeklyCountQuery = weeklyCountQuery.in('student_id', scopeFilter);
+          weeklyCountQuery = weeklyCountQuery.in("student_id", scopeFilter);
         }
 
-        const { count: weeklyCount, error: weeklyError } = await weeklyCountQuery;
+        const { count: weeklyCount, error: weeklyError } =
+          await weeklyCountQuery;
         if (weeklyError) throw weeklyError;
 
         return { rank: (weeklyCount ?? 0) + 1, xp_total: myXp, level: myLevel };
@@ -206,18 +222,20 @@ export const useMyRank = (
 
       // For all-time, count students with more XP to determine rank
       let countQuery = supabase
-        .from('student_gamification')
-        .select('student_id', { count: 'exact', head: true })
-        .gt('xp_total', myXp);
+        .from("student_gamification")
+        .select("student_id", { count: "exact", head: true })
+        .gt("xp_total", myXp);
 
-      if (filter === 'course' && courseId) {
+      if (filter === "course" && courseId) {
         const studentIds = await getStudentIdsByCourse(courseId);
-        if (studentIds.length === 0) return { rank: 1, xp_total: myXp, level: myLevel };
-        countQuery = countQuery.in('student_id', studentIds);
-      } else if (filter === 'program' && programId) {
+        if (studentIds.length === 0)
+          return { rank: 1, xp_total: myXp, level: myLevel };
+        countQuery = countQuery.in("student_id", studentIds);
+      } else if (filter === "program" && programId) {
         const studentIds = await getStudentIdsByProgram(programId);
-        if (studentIds.length === 0) return { rank: 1, xp_total: myXp, level: myLevel };
-        countQuery = countQuery.in('student_id', studentIds);
+        if (studentIds.length === 0)
+          return { rank: 1, xp_total: myXp, level: myLevel };
+        countQuery = countQuery.in("student_id", studentIds);
       }
 
       const { count, error: countError } = await countQuery;
@@ -236,7 +254,7 @@ export const useMyRank = (
 
 export const useAnonymousStatus = () => {
   return useQuery({
-    queryKey: queryKeys.studentGamification.detail('anonymous-status'),
+    queryKey: queryKeys.studentGamification.detail("anonymous-status"),
     queryFn: async (): Promise<{ isAnonymous: boolean }> => {
       const {
         data: { user },
@@ -244,9 +262,9 @@ export const useAnonymousStatus = () => {
       if (!user) return { isAnonymous: false };
 
       const { data, error } = await supabase
-        .from('student_gamification')
-        .select('leaderboard_anonymous')
-        .eq('student_id', user.id)
+        .from("student_gamification")
+        .select("leaderboard_anonymous")
+        .eq("student_id", user.id)
         .maybeSingle();
 
       if (error) throw error;
@@ -267,13 +285,13 @@ export const useToggleAnonymous = () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      if (!user) throw new Error("Not authenticated");
 
       // Get current opt-out status
       const { data: current, error: fetchError } = await supabase
-        .from('student_gamification')
-        .select('leaderboard_anonymous')
-        .eq('student_id', user.id)
+        .from("student_gamification")
+        .select("leaderboard_anonymous")
+        .eq("student_id", user.id)
         .maybeSingle();
 
       if (fetchError) throw fetchError;
@@ -282,17 +300,21 @@ export const useToggleAnonymous = () => {
       const newOptOut = !currentOptOut;
 
       const { error: updateError } = await supabase
-        .from('student_gamification')
+        .from("student_gamification")
         .update({ leaderboard_anonymous: newOptOut })
-        .eq('student_id', user.id);
+        .eq("student_id", user.id);
 
       if (updateError) throw updateError;
 
       return newOptOut;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.leaderboard.lists() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.studentGamification.all });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.leaderboard.lists(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.studentGamification.all,
+      });
     },
   });
 };
@@ -301,10 +323,10 @@ export const useToggleAnonymous = () => {
 
 async function getStudentIdsByCourse(courseId: string): Promise<string[]> {
   const { data, error } = await supabase
-    .from('student_courses')
-    .select('student_id')
-    .eq('course_id', courseId)
-    .eq('status', 'active');
+    .from("student_courses")
+    .select("student_id")
+    .eq("course_id", courseId)
+    .eq("status", "active");
 
   if (error) throw error;
   return (data ?? []).map((r) => r.student_id);
@@ -313,9 +335,9 @@ async function getStudentIdsByCourse(courseId: string): Promise<string[]> {
 async function getStudentIdsByProgram(programId: string): Promise<string[]> {
   // Get all courses in the program, then get enrolled students
   const { data: courses, error: courseError } = await supabase
-    .from('courses')
-    .select('id')
-    .eq('program_id', programId);
+    .from("courses")
+    .select("id")
+    .eq("program_id", programId);
 
   if (courseError) throw courseError;
 
@@ -323,10 +345,10 @@ async function getStudentIdsByProgram(programId: string): Promise<string[]> {
   if (courseIds.length === 0) return [];
 
   const { data, error } = await supabase
-    .from('student_courses')
-    .select('student_id')
-    .in('course_id', courseIds)
-    .eq('status', 'active');
+    .from("student_courses")
+    .select("student_id")
+    .in("course_id", courseIds)
+    .eq("status", "active");
 
   if (error) throw error;
 
@@ -337,9 +359,9 @@ async function getStudentIdsByProgram(programId: string): Promise<string[]> {
 
 async function getOptOutStudentIds(): Promise<Set<string>> {
   const { data, error } = await supabase
-    .from('student_gamification')
-    .select('student_id')
-    .eq('leaderboard_anonymous', true);
+    .from("student_gamification")
+    .select("student_id")
+    .eq("leaderboard_anonymous", true);
 
   if (error) throw error;
   return new Set((data ?? []).map((r) => r.student_id));
@@ -354,11 +376,11 @@ function assignRanks(
     streak_current: number;
     global_rank: number;
   }>,
-  optOutIds: Set<string>,
+  optOutIds: Set<string>
 ): LeaderboardEntry[] {
   return rows.map((row, index) => ({
     student_id: row.student_id,
-    full_name: optOutIds.has(row.student_id) ? 'Anonymous' : row.full_name,
+    full_name: optOutIds.has(row.student_id) ? "Anonymous" : row.full_name,
     xp_total: row.xp_total,
     level: row.level,
     streak_current: row.streak_current,

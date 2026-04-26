@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
 import { logAuditEvent } from "@/lib/auditLogger";
-import type { Json } from "@/types/database";
+import type { Database, Json } from "@/types/database";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -345,10 +345,14 @@ export const useUpdateMaterial = () => {
       input: UpdateMaterialInput & { performedBy: string }
     ) => {
       const { id, performedBy, ...updates } = input;
-      const updatePayload: Record<string, unknown> = { ...updates };
-      if (updates.clo_ids !== undefined) {
-        updatePayload.clo_ids = updates.clo_ids as unknown as Json;
-      }
+      const { clo_ids, ...rest } = updates;
+      const updatePayload: Database["public"]["Tables"]["course_materials"]["Update"] =
+        {
+          ...rest,
+          ...(clo_ids !== undefined
+            ? { clo_ids: clo_ids as unknown as Json }
+            : {}),
+        };
       const { data, error } = await supabase
         .from("course_materials")
         .update(updatePayload)

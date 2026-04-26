@@ -30,3 +30,8 @@ tsconfig.tsbuildinfo
 
 # Coverage reports
 coverage/
+
+# Local diagnostic output (lint/tsc/test runs)
+tsc_*.txt
+lint_*.txt
+test_*.txt
