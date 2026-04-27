@@ -64,44 +64,44 @@
 
 ## Task 8: Weekly Planner Page & Components
 
-- [ ] 8.1 Create `src/components/shared/WeeklyCalendarGrid.tsx` — 7-column grid (Mon–Sun) with day headers, today highlight, session/task/deadline cards per day; single-day view on mobile with tab navigation
-- [ ] 8.2 Create `src/components/shared/StudySessionCard.tsx` — card showing session title, time, course, duration, status badge, and Start/Edit actions
-- [ ] 8.3 Create `src/components/shared/PlannerTaskItem.tsx` — task item with checkbox, title, priority badge, course tag, edit/delete actions
-- [ ] 8.4 Create `src/components/shared/DeadlineItem.tsx` — read-only deadline item with urgency color indicator (red/yellow/green), course name, due time
-- [ ] 8.5 Create `src/components/shared/CreateSessionDialog.tsx` — Shadcn Dialog with React Hook Form + Zod: title, date, start time, duration (15-min increments), course select, CLO multi-select, description
-- [ ] 8.6 Create `src/components/shared/CreateTaskDialog.tsx` — Shadcn Dialog with React Hook Form + Zod: title, due date, priority select, course select, description
-- [ ] 8.7 Create `src/components/shared/WeeklyGoalPanel.tsx` — goal setting panel with up to 3 goal rows (type select + target input), progress bars, edit/save toggle, disabled for past weeks
-- [ ] 8.8 Create `src/pages/student/planner/WeeklyPlannerPage.tsx` — main page composing: week navigation, WeeklyCalendarGrid, WeeklyGoalPanel, tabs for Check Progress and Reflect
-- [ ] 8.9 Write unit tests `src/__tests__/unit/weeklyCalendarGrid.test.tsx` and `src/__tests__/unit/studySessionCard.test.tsx`
+- [x] 8.1 Create `src/components/shared/WeeklyCalendarGrid.tsx` — 7-column grid (Mon–Sun) with day headers, today highlight, session/task/deadline cards per day; single-day view on mobile with tab navigation
+- [x] 8.2 Create `src/components/shared/StudySessionCard.tsx` — card showing session title, time, course, duration, status badge, and Start/Edit actions
+- [x] 8.3 Create `src/components/shared/PlannerTaskItem.tsx` — task item with checkbox, title, priority badge, course tag, edit/delete actions
+- [x] 8.4 Create `src/components/shared/DeadlineItem.tsx` — read-only deadline item with urgency color indicator (red/yellow/green), course name, due time
+- [x] 8.5 Create `src/components/shared/CreateSessionDialog.tsx` — Shadcn Dialog with React Hook Form + Zod: title, date, start time, duration (15-min increments), course select, CLO multi-select, description
+- [x] 8.6 Create `src/components/shared/CreateTaskDialog.tsx` — Shadcn Dialog with React Hook Form + Zod: title, due date, priority select, course select, description
+- [x] 8.7 Create `src/components/shared/WeeklyGoalPanel.tsx` — goal setting panel with up to 3 goal rows (type select + target input), progress bars, edit/save toggle, disabled for past weeks
+- [x] 8.8 Create `src/pages/student/planner/WeeklyPlannerPage.tsx` — main page composing: week navigation, WeeklyCalendarGrid, WeeklyGoalPanel, tabs for Check Progress and Reflect
+- [x] 8.9 Write unit tests `src/__tests__/unit/weeklyCalendarGrid.test.tsx` and `src/__tests__/unit/studySessionCard.test.tsx`
 
 ## Task 9: Today View Page & Components
 
-- [ ] 9.1 Create `src/components/shared/TodayTimeline.tsx` — chronological timeline with Morning/Afternoon/Evening/ToDo sections, rendering session cards, task items, deadline items, and habit status
-- [ ] 9.2 Create `src/components/shared/DailyProgressSummary.tsx` — 3 KPI cards (study minutes, tasks completed, sessions completed) using project KPI card pattern
-- [ ] 9.3 Create `src/pages/student/planner/TodayViewPage.tsx` — main page composing: DailyProgressSummary, TodayTimeline, Quick Add task button, Start Unplanned Session button
-- [ ] 9.4 Implement quick actions: Start button on sessions (navigates to Focus Mode), checkbox on tasks (completes + XP), Quick Add (inline task creation dialog), Start Unplanned Session (creates ad-hoc session + navigates to Focus Mode)
-- [ ] 9.5 Write unit test `src/__tests__/unit/todayTimeline.test.tsx`
+- [x] 9.1 Create `src/components/shared/TodayTimeline.tsx` — chronological timeline with Morning/Afternoon/Evening/ToDo sections, rendering session cards, task items, deadline items, and habit status
+- [x] 9.2 Create `src/components/shared/DailyProgressSummary.tsx` — 3 KPI cards (study minutes, tasks completed, sessions completed) using project KPI card pattern
+- [x] 9.3 Create `src/pages/student/planner/TodayViewPage.tsx` — main page composing: DailyProgressSummary, TodayTimeline, Quick Add task button, Start Unplanned Session button
+- [x] 9.4 Implement quick actions: Start button on sessions (navigates to Focus Mode), checkbox on tasks (completes + XP), Quick Add (inline task creation dialog), Start Unplanned Session (creates ad-hoc session + navigates to Focus Mode)
+- [x] 9.5 Write unit test `src/__tests__/unit/todayTimeline.test.tsx`
 
 ## Task 10: Focus Mode Page & Timer Components
 
-- [ ] 10.1 Create `src/components/shared/FocusTimer.tsx` — large countdown timer display (MM:SS), start/pause/resume/end controls, Pomodoro interval indicator, session context (title, course, CLOs)
-- [ ] 10.2 Create `src/components/shared/PomodoroIndicator.tsx` — shows current interval number, type (Work/Break/Long Break), and progress dots for completed intervals
-- [ ] 10.3 Implement timer logic using `requestAnimationFrame` + `Date.now()` delta for accuracy; persist state to localStorage on every tick
-- [ ] 10.4 Implement Pomodoro state machine: work → break → work → break → work → break → work → long_break → repeat; auto-transition with prompt before next work interval
-- [ ] 10.5 Implement pause/resume: track totalPausedMs, exclude from actual duration calculation
-- [ ] 10.6 Implement timer completion: audio notification (with visual fallback), transition to completion form
-- [ ] 10.7 Implement offline resilience: detect network loss, show "Offline" indicator, queue pending API calls, auto-sync on reconnect
-- [ ] 10.8 Implement ARIA live region for timer: announce remaining time at 5-min intervals and 1-min mark
-- [ ] 10.9 Create `src/pages/student/planner/FocusModePage.tsx` — full-screen focus page composing: FocusTimer, SessionCompletionForm (shown on complete), minimal navigation
-- [ ] 10.10 Write unit tests `src/__tests__/unit/focusTimer.test.tsx` and `src/__tests__/unit/pomodoroIndicator.test.tsx`
+- [x] 10.1 Create `src/components/shared/FocusTimer.tsx` — large countdown timer display (MM:SS), start/pause/resume/end controls, Pomodoro interval indicator, session context (title, course, CLOs)
+- [x] 10.2 Create `src/components/shared/PomodoroIndicator.tsx` — shows current interval number, type (Work/Break/Long Break), and progress dots for completed intervals
+- [x] 10.3 Implement timer logic using `requestAnimationFrame` + `Date.now()` delta for accuracy; persist state to localStorage on every tick
+- [x] 10.4 Implement Pomodoro state machine: work → break → work → break → work → break → work → long_break → repeat; auto-transition with prompt before next work interval
+- [x] 10.5 Implement pause/resume: track totalPausedMs, exclude from actual duration calculation
+- [x] 10.6 Implement timer completion: audio notification (with visual fallback), transition to completion form
+- [x] 10.7 Implement offline resilience: detect network loss, show "Offline" indicator, queue pending API calls, auto-sync on reconnect
+- [x] 10.8 Implement ARIA live region for timer: announce remaining time at 5-min intervals and 1-min mark
+- [x] 10.9 Create `src/pages/student/planner/FocusModePage.tsx` — full-screen focus page composing: FocusTimer, SessionCompletionForm (shown on complete), minimal navigation
+- [x] 10.10 Write unit tests `src/__tests__/unit/focusTimer.test.tsx` and `src/__tests__/unit/pomodoroIndicator.test.tsx`
 
 ## Task 11: Session Completion & Evidence Components
 
-- [ ] 11.1 Create `src/components/shared/SessionCompletionForm.tsx` — form with: session notes textarea, EvidenceUploader, satisfaction rating (1–5 stars), SessionReflectionInput, Submit and Skip buttons
-- [ ] 11.2 Create `src/components/shared/EvidenceUploader.tsx` — drag-and-drop file upload area, max 3 files, 5MB limit, accepted types (jpg, png, pdf, doc, docx), file preview thumbnails, remove button per file
-- [ ] 11.3 Create `src/components/shared/SessionReflectionInput.tsx` — textarea with live word count, minimum 30 words indicator, save button
-- [ ] 11.4 Implement completion flow: submit form → update session → upload files → insert evidence records → award XP (calculated via `calculateSessionXP`) → check badges → auto-mark Read habit → show XP toast → navigate back to planner
-- [ ] 11.5 Write unit tests `src/__tests__/unit/sessionCompletionForm.test.tsx` and `src/__tests__/unit/evidenceUploader.test.tsx`
+- [x] 11.1 Create `src/components/shared/SessionCompletionForm.tsx` — form with: session notes textarea, EvidenceUploader, satisfaction rating (1–5 stars), SessionReflectionInput, Submit and Skip buttons
+- [x] 11.2 Create `src/components/shared/EvidenceUploader.tsx` — drag-and-drop file upload area, max 3 files, 5MB limit, accepted types (jpg, png, pdf, doc, docx), file preview thumbnails, remove button per file
+- [x] 11.3 Create `src/components/shared/SessionReflectionInput.tsx` — textarea with live word count, minimum 30 words indicator, save button
+- [x] 11.4 Implement completion flow: submit form → update session → upload files → insert evidence records → award XP (calculated via `calculateSessionXP`) → check badges → auto-mark Read habit → show XP toast → navigate back to planner
+- [x] 11.5 Write unit tests `src/__tests__/unit/sessionCompletionForm.test.tsx` and `src/__tests__/unit/evidenceUploader.test.tsx`
 
 ## Task 12: Progress & Reflection Components
 
