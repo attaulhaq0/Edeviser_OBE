@@ -1,0 +1,72 @@
+--- src/hooks/useCurriculumMatrix.ts
++++ src/hooks/useCurriculumMatrix.ts
+@@ -95,20 +95,18 @@
+     queryKey: queryKeys.outcomeMappings.list({ programId, view: 'curriculumMatrix' }),
+     queryFn: async (): Promise<CurriculumMatrixData> => {
+-      // 1. Fetch PLOs for the program
+-      const { data: plos, error: ploError } = await supabase.from('learning_outcomes')
+-        .select('*')
+-        .eq('type', 'PLO')
+-        .eq('program_id', programId!)
+-        .order('sort_order', { ascending: true });
+-
+-      if (ploError) throw ploError;
+-
+-      // 2. Fetch courses for the program
+-      const { data: courses, error: courseError } = await supabase.from('courses')
+-        .select('*')
+-        .eq('program_id', programId!)
+-        .order('code', { ascending: true });
+-
+-      if (courseError) throw courseError;
++      // 1-2. Fetch PLOs and Courses concurrently for better performance
++      const [
++        { data: plos, error: ploError },
++        { data: courses, error: courseError }
++      ] = await Promise.all([
++        supabase.from('learning_outcomes')
++          .select('*')
++          .eq('type', 'PLO')
++          .eq('program_id', programId!)
++          .order('sort_order', { ascending: true }),
++        supabase.from('courses')
++          .select('*')
++          .eq('program_id', programId!)
++          .order('code', { ascending: true })
++      ]);
++
++      if (ploError) throw ploError;
++      if (courseError) throw courseError;
+
+       const typedPlos = plos as LearningOutcome[];
+@@ -155,16 +153,19 @@
+         }
+       }
+
++      // Pre-calculate mappings count to optimize O(P*C*M) nested loop into O(M + P*C)
++      const mappingCounts = new Map<string, number>();
++      for (const m of typedMappings) {
++        const courseId = cloToCourse.get(m.target_outcome_id);
++        if (courseId) {
++          const key = `${m.source_outcome_id}_${courseId}`;
++          mappingCounts.set(key, (mappingCounts.get(key) || 0) + 1);
++        }
++      }
++
+       // 6. Compute the matrix
+       const matrix: Record<string, Record<string, CellData>> = {};
+
+       for (const plo of typedPlos) {
+         const row: Record<string, CellData> = {};
+         for (const course of typedCourses) {
+-          // Count CLOs in this course that map to this PLO
+-          const cloCount = typedMappings.filter(
+-            (m) =>
+-              m.source_outcome_id === plo.id &&
+-              cloToCourse.get(m.target_outcome_id) === course.id,
+-          ).length;
++          // Count CLOs in this course that map to this PLO using O(1) lookup
++          const key = `${plo.id}_${course.id}`;
++          const cloCount = mappingCounts.get(key) || 0;
+
+           row[course.id] = {
