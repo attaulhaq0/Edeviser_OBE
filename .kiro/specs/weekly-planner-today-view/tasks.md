@@ -46,21 +46,21 @@
 
 ## Task 6: TanStack Query Hooks — Planner Data
 
-- [ ] 6.1 Create `src/hooks/useWeeklyPlanner.ts` with `useWeeklyPlannerData(studentId, weekStartDate)` — fetches sessions, tasks, deadlines, goals for the week in parallel queries
-- [ ] 6.2 Create `src/hooks/useStudySessions.ts` with `useCreateStudySession`, `useUpdateStudySession`, `useCancelStudySession` mutations with optimistic updates and query invalidation
-- [ ] 6.3 Create `src/hooks/usePlannerTasks.ts` with `useCreatePlannerTask`, `useUpdatePlannerTask`, `useDeletePlannerTask`, `useCompleteTask` mutations — `useCompleteTask` triggers award-xp with source `planner_task`
-- [ ] 6.4 Create `src/hooks/useWeeklyGoals.ts` with `useWeeklyGoals(studentId, weekStartDate)` query and `useSaveWeeklyGoals` mutation
-- [ ] 6.5 Create `src/hooks/useTodayView.ts` with `useTodayViewData(studentId)` — fetches today's sessions, tasks, upcoming deadlines (3 days), and habit status
+- [x] 6.1 Create `src/hooks/useWeeklyPlanner.ts` with `useWeeklyPlannerData(studentId, weekStartDate)` — fetches sessions, tasks, deadlines, goals for the week in parallel queries
+- [x] 6.2 Create `src/hooks/useStudySessions.ts` with `useCreateStudySession`, `useUpdateStudySession`, `useCancelStudySession` mutations with optimistic updates and query invalidation
+- [x] 6.3 Create `src/hooks/usePlannerTasks.ts` with `useCreatePlannerTask`, `useUpdatePlannerTask`, `useDeletePlannerTask`, `useCompleteTask` mutations — `useCompleteTask` triggers award-xp with source `planner_task`
+- [x] 6.4 Create `src/hooks/useWeeklyGoals.ts` with `useWeeklyGoals(studentId, weekStartDate)` query and `useSaveWeeklyGoals` mutation
+- [x] 6.5 Create `src/hooks/useTodayView.ts` with `useTodayViewData(studentId)` — fetches today's sessions, tasks, upcoming deadlines (3 days), and habit status
 
 ## Task 7: TanStack Query Hooks — Focus Mode & Evidence
 
-- [ ] 7.1 Create `src/hooks/useFocusTimer.ts` with timer state machine hook: start, pause, resume, complete, Pomodoro transitions, localStorage persistence via `timerPersistence.ts`, `requestAnimationFrame` tick loop
-- [ ] 7.2 Create `src/hooks/useSessionCompletion.ts` with `useCompleteSession` mutation: update session status → upload evidence → insert evidence records → award XP → check badges → auto-mark Read habit → invalidate queries
-- [ ] 7.3 Create `src/hooks/useSessionEvidence.ts` with `useUploadEvidence` mutation: upload files to Supabase Storage `session-evidence/{studentId}/{sessionId}/`, insert `session_evidence` records
-- [ ] 7.4 Create `src/hooks/useSessionReflections.ts` with `useSaveSessionReflection` mutation (word count validation, XP award) and `useSaveWeeklyReflection` mutation (creates journal_entries record)
-- [ ] 7.5 Create `src/hooks/useWeeklyProgress.ts` with `useWeeklyProgressSummary(studentId, weekStartDate)` — computes total study time, sessions/tasks completed, per-course/CLO breakdowns, goal progress
-- [ ] 7.6 Create `src/hooks/useStudyTimeAnalytics.ts` with `useStudyTimeTrend(studentId, weekCount)` — fetches 8-week study time data
-- [ ] 7.7 Create `src/hooks/useOfflineQueue.ts` with queue-and-retry pattern for API calls during network loss
+- [x] 7.1 Create `src/hooks/useFocusTimer.ts` with timer state machine hook: start, pause, resume, complete, Pomodoro transitions, localStorage persistence via `timerPersistence.ts`, `requestAnimationFrame` tick loop
+- [x] 7.2 Create `src/hooks/useSessionCompletion.ts` with `useCompleteSession` mutation: update session status → upload evidence → insert evidence records → award XP → check badges → auto-mark Read habit → invalidate queries
+- [x] 7.3 Create `src/hooks/useSessionEvidence.ts` with `useUploadEvidence` mutation: upload files to Supabase Storage `session-evidence/{studentId}/{sessionId}/`, insert `session_evidence` records
+- [x] 7.4 Create `src/hooks/useSessionReflections.ts` with `useSaveSessionReflection` mutation (word count validation, XP award) and `useSaveWeeklyReflection` mutation (creates journal_entries record)
+- [x] 7.5 Create `src/hooks/useWeeklyProgress.ts` with `useWeeklyProgressSummary(studentId, weekStartDate)` — computes total study time, sessions/tasks completed, per-course/CLO breakdowns, goal progress
+- [x] 7.6 Create `src/hooks/useStudyTimeAnalytics.ts` with `useStudyTimeTrend(studentId, weekCount)` — fetches 8-week study time data
+- [x] 7.7 Create `src/hooks/useOfflineQueue.ts` with queue-and-retry pattern for API calls during network loss
 
 ## Task 8: Weekly Planner Page & Components
 
