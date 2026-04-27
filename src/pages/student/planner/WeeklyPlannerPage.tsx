@@ -11,14 +11,21 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import WeeklyCalendarGrid from "@/components/shared/WeeklyCalendarGrid";
 import WeeklyGoalPanel from "@/components/shared/WeeklyGoalPanel";
+import ProgressSummaryPanel from "@/components/shared/ProgressSummaryPanel";
+import CourseStudyBreakdown from "@/components/shared/CourseStudyBreakdown";
+import StudyTimeChart from "@/components/shared/StudyTimeChart";
+import WeeklyReflectionPanel from "@/components/shared/WeeklyReflectionPanel";
 import CreateSessionDialog from "@/components/shared/CreateSessionDialog";
 import CreateTaskDialog from "@/components/shared/CreateTaskDialog";
 import Shimmer from "@/components/shared/Shimmer";
 import { useAuth } from "@/hooks/useAuth";
 import { useWeeklyPlannerData } from "@/hooks/useWeeklyPlanner";
+import { useWeeklyProgressSummary } from "@/hooks/useWeeklyProgress";
+import { useStudyTimeTrend } from "@/hooks/useStudyTimeAnalytics";
 import { useCreateStudySession } from "@/hooks/useStudySessions";
 import { useCreatePlannerTask, useCompleteTask } from "@/hooks/usePlannerTasks";
 import { useSaveWeeklyGoals } from "@/hooks/useWeeklyGoals";
+import { useSaveWeeklyReflection } from "@/hooks/useSessionReflections";
 import {
   getWeekStartDate,
   isWeekInPast,
@@ -73,11 +80,25 @@ const WeeklyPlannerPage = () => {
     currentWeekStart
   );
 
+  // ─── Progress & Analytics Data ────────────────────────────────────────────
+  const {
+    progress: weeklyProgress,
+    goalProgress: progressGoals,
+    isLoading: isProgressLoading,
+  } = useWeeklyProgressSummary(studentId, currentWeekStart);
+
+  const {
+    weeklyData: studyTimeTrendData,
+    averageMinutesPerWeek,
+    isLoading: isTrendLoading,
+  } = useStudyTimeTrend(studentId, 8);
+
   // ─── Mutations ──────────────────────────────────────────────────────────────
   const createSession = useCreateStudySession();
   const createTask = useCreatePlannerTask();
   const completeTask = useCompleteTask();
   const saveGoals = useSaveWeeklyGoals();
+  const saveWeeklyReflection = useSaveWeeklyReflection();
 
   // ─── Dialog State ───────────────────────────────────────────────────────────
   const [sessionDialogOpen, setSessionDialogOpen] = useState(false);
@@ -298,67 +319,47 @@ const WeeklyPlannerPage = () => {
               </div>
 
               <TabsContent value="progress" className="p-6">
-                <div className="space-y-4">
-                  <h3 className="text-sm font-semibold text-gray-700">
-                    Weekly Summary
-                  </h3>
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="rounded-lg bg-blue-50 p-3 text-center">
-                      <p className="text-2xl font-black text-blue-700">
-                        {
-                          sessions.filter((s) => s.status === "completed")
-                            .length
-                        }
-                      </p>
-                      <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
-                        Sessions
-                      </p>
-                    </div>
-                    <div className="rounded-lg bg-green-50 p-3 text-center">
-                      <p className="text-2xl font-black text-green-700">
-                        {tasks.filter((t) => t.status === "completed").length}
-                      </p>
-                      <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
-                        Tasks Done
-                      </p>
-                    </div>
-                    <div className="rounded-lg bg-amber-50 p-3 text-center">
-                      <p className="text-2xl font-black text-amber-700">
-                        {(
-                          sessions
-                            .filter((s) => s.status === "completed")
-                            .reduce(
-                              (sum, s) => sum + (s.actualDurationMinutes ?? 0),
-                              0
-                            ) / 60
-                        ).toFixed(1)}
-                        h
-                      </p>
-                      <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
-                        Study Time
-                      </p>
-                    </div>
-                  </div>
-                  <p className="text-xs text-gray-400">
-                    Detailed analytics available in the Check Progress tab (Task
-                    12).
-                  </p>
+                <div className="space-y-6">
+                  {isProgressLoading ? (
+                    <Shimmer className="h-48 rounded-xl" />
+                  ) : (
+                    <ProgressSummaryPanel
+                      summary={weeklyProgress}
+                      goals={progressGoals}
+                    />
+                  )}
+
+                  {/* Course Study Breakdown */}
+                  {!isProgressLoading &&
+                    weeklyProgress.courseBreakdown.length > 0 && (
+                      <CourseStudyBreakdown
+                        data={weeklyProgress.courseBreakdown}
+                      />
+                    )}
+
+                  {/* Study Time Trends */}
+                  {isTrendLoading ? (
+                    <Shimmer className="h-64 rounded-xl" />
+                  ) : (
+                    <StudyTimeChart
+                      data={studyTimeTrendData}
+                      averageMinutesPerWeek={averageMinutesPerWeek}
+                    />
+                  )}
                 </div>
               </TabsContent>
 
               <TabsContent value="reflect" className="p-6">
-                <div className="space-y-4">
-                  <h3 className="text-sm font-semibold text-gray-700">
-                    Weekly Reflection
-                  </h3>
-                  <p className="text-sm text-gray-500">
-                    Take a moment to reflect on your week. What worked well?
-                    What would you do differently?
-                  </p>
-                  <p className="text-xs text-gray-400">
-                    Full reflection editor available in Task 12.
-                  </p>
-                </div>
+                <WeeklyReflectionPanel
+                  weekStartDate={currentWeekStart}
+                  onSave={(content) =>
+                    saveWeeklyReflection.mutate({
+                      content,
+                      weekStartDate: currentWeekStart,
+                    })
+                  }
+                  isPending={saveWeeklyReflection.isPending}
+                />
               </TabsContent>
             </Tabs>
           </Card>

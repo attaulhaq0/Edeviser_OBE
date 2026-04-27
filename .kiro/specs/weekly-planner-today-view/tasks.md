@@ -105,18 +105,18 @@
 
 ## Task 12: Progress & Reflection Components
 
-- [ ] 12.1 Create `src/components/shared/ProgressSummaryPanel.tsx` — weekly summary: total study hours, sessions completed, tasks completed, goal progress bars with success indicators
-- [ ] 12.2 Create `src/components/shared/CourseStudyBreakdown.tsx` — horizontal bar chart (Recharts) showing study time per course for the week
-- [ ] 12.3 Create `src/components/shared/StudyTimeChart.tsx` — Recharts BarChart showing weekly study hours for last 8 weeks with average line, course filter toggle
-- [ ] 12.4 Create `src/components/shared/WeeklyReflectionPanel.tsx` — textarea with live word count (min 50 words), save button, creates journal_entries record on save
-- [ ] 12.5 Integrate Check Progress tab and Reflect tab into WeeklyPlannerPage
-- [ ] 12.6 Write unit tests `src/__tests__/unit/progressSummaryPanel.test.tsx` and `src/__tests__/unit/studyTimeChart.test.tsx`
+- [x] 12.1 Create `src/components/shared/ProgressSummaryPanel.tsx` — weekly summary: total study hours, sessions completed, tasks completed, goal progress bars with success indicators
+- [x] 12.2 Create `src/components/shared/CourseStudyBreakdown.tsx` — horizontal bar chart (Recharts) showing study time per course for the week
+- [x] 12.3 Create `src/components/shared/StudyTimeChart.tsx` — Recharts BarChart showing weekly study hours for last 8 weeks with average line, course filter toggle
+- [x] 12.4 Create `src/components/shared/WeeklyReflectionPanel.tsx` — textarea with live word count (min 50 words), save button, creates journal_entries record on save
+- [x] 12.5 Integrate Check Progress tab and Reflect tab into WeeklyPlannerPage
+- [x] 12.6 Write unit tests `src/__tests__/unit/progressSummaryPanel.test.tsx` and `src/__tests__/unit/studyTimeChart.test.tsx`
 
 ## Task 13: Routing & Navigation
 
-- [ ] 13.1 Add routes to `src/router/AppRouter.tsx`: `/student/planner` (WeeklyPlannerPage), `/student/today` (TodayViewPage), `/student/focus/:sessionId` (FocusModePage), `/parent/planner/:studentId` (ParentPlannerView)
-- [ ] 13.2 Add "Planner" and "Today" nav items to `src/pages/student/StudentLayout.tsx` with CalendarDays and CalendarCheck icons
-- [ ] 13.3 Add "Study Plan" nav item to `src/pages/parent/ParentLayout.tsx`
+- [x] 13.1 Add routes to `src/router/AppRouter.tsx`: `/student/planner` (WeeklyPlannerPage), `/student/today` (TodayViewPage), `/student/focus/:sessionId` (FocusModePage), `/parent/planner/:studentId` (ParentPlannerView)
+- [x] 13.2 Add "Planner" and "Today" nav items to `src/pages/student/StudentLayout.tsx` with CalendarDays and CalendarCheck icons
+- [x] 13.3 Add "Study Plan" nav item to `src/pages/parent/ParentLayout.tsx`
 
 ## Task 14: Parent Planner View
 
