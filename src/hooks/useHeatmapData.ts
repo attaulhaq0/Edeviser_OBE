@@ -7,7 +7,6 @@ import type {
   HeatmapDay,
   HeatmapSummary,
   CompletedHabit,
-  HabitType,
   AcademicHabitType,
   WellnessHabitType,
   LevelProgressionPoint,
@@ -62,31 +61,50 @@ export const useHeatmapData = (
 
       // Fetch academic habit logs (unless filtering to a specific wellness habit)
       if (!filterIsWellness) {
-        let academicQuery = supabase
-          .from("habit_logs" as never)
-          .select("date, habit_type, completed_at")
+        const { data: academicRows, error: academicError } = await supabase
+          .from("habit_tracking")
+          .select(
+            "habit_date, login, submit, journal, read_content, created_at"
+          )
           .eq("student_id", studentId)
-          .gte("date", semesterRange.start)
-          .lte("date", semesterRange.end);
+          .gte("habit_date", semesterRange.start)
+          .lte("habit_date", semesterRange.end);
 
-        if (filterIsAcademic && specificFilter) {
-          academicQuery = academicQuery.eq("habit_type", specificFilter);
-        }
-
-        const { data: academicLogs, error: academicError } =
-          await academicQuery;
         if (academicError) throw academicError;
 
-        for (const log of academicLogs ?? []) {
-          const l = log as Record<string, unknown>;
-          const date = l.date as string;
-          const habits = dateMap.get(date) ?? [];
-          habits.push({
-            type: l.habit_type as HabitType,
-            category: "academic",
-            completedAt: l.completed_at as string,
-          });
-          dateMap.set(date, habits);
+        const habitColumns: [
+          keyof Pick<
+            NonNullable<typeof academicRows>[number],
+            "login" | "submit" | "journal" | "read_content"
+          >,
+          AcademicHabitType
+        ][] = [
+          ["login", "login"],
+          ["submit", "submit"],
+          ["journal", "journal"],
+          ["read_content", "read"],
+        ];
+
+        for (const row of academicRows ?? []) {
+          const date = row.habit_date;
+          const completedAt = row.created_at;
+          for (const [col, habitType] of habitColumns) {
+            if (
+              filterIsAcademic &&
+              specificFilter &&
+              specificFilter !== habitType
+            )
+              continue;
+            if (row[col]) {
+              const habits = dateMap.get(date) ?? [];
+              habits.push({
+                type: habitType,
+                category: "academic",
+                completedAt,
+              });
+              dateMap.set(date, habits);
+            }
+          }
         }
       }
 

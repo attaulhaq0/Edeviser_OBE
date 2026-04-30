@@ -234,7 +234,18 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps chromium
 
+      - name: Check if Supabase backend is available
+        id: backend
+        run: |
+          if [[ "$VITE_SUPABASE_URL" == "http://localhost:54321" ]]; then
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::E2E tests skipped — set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY secrets to enable"
+          else
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Run Playwright tests
+        if: steps.backend.outputs.available == 'true'
         run: npx playwright test --project=chromium
 
       - name: Upload test artifacts
