@@ -220,13 +220,9 @@ jobs:
     name: E2E Tests
     runs-on: ubuntu-latest
     needs: [build]
-    # E2E tests require a live Supabase backend (all tests use auth).
-    # Skip the job entirely when the secret isn't configured rather than
-    # running for 30 minutes and failing with timeout errors.
-    if: ${{ secrets.VITE_SUPABASE_URL != '' }}
     env:
-      VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-      VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+      VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'http://localhost:54321' }}
+      VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'placeholder-anon-key' }}
     steps:
       - uses: actions/checkout@v6
 
@@ -238,7 +234,18 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps chromium
 
+      - name: Check if Supabase backend is available
+        id: backend
+        run: |
+          if [[ "$VITE_SUPABASE_URL" == "http://localhost:54321" ]]; then
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::E2E tests skipped — set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY secrets to enable"
+          else
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Run Playwright tests
+        if: steps.backend.outputs.available == 'true'
         run: npx playwright test --project=chromium
 
       - name: Upload test artifacts
