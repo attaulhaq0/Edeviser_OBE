@@ -1,0 +1,6 @@
+{
+  "typescript.autoClosingTags": false,
+  "git.repositoryScanIgnoredFolders": [".claude"],
+  "git.autoRepositoryDetection": true,
+  "git.openRepositoryInParentFolders": "always"
+}
