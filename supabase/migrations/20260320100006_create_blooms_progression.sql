@@ -10,7 +10,7 @@ CREATE TABLE blooms_progression (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   institution_id UUID NOT NULL REFERENCES institutions(id),
   student_id UUID NOT NULL REFERENCES profiles(id),
-  clo_id UUID NOT NULL REFERENCES clos(id),
+  clo_id UUID NOT NULL REFERENCES learning_outcomes(id),
   course_id UUID NOT NULL REFERENCES courses(id),
   highest_bloom_level SMALLINT NOT NULL DEFAULT 1 CHECK (highest_bloom_level BETWEEN 1 AND 6),
   correct_count_at_highest INTEGER NOT NULL DEFAULT 0,
