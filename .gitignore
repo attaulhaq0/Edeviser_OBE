@@ -13,6 +13,10 @@ dist/
 .vscode/
 !.vscode/settings.json
 .idea/
+
+# Git worktrees managed by Claude Code (never commit these — they contain
+# per-worktree .git link files that git misreads as phantom submodules in CI)
+.claude/worktrees/
 *.swp
 *.swo
 
