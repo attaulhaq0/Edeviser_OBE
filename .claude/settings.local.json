@@ -7,7 +7,9 @@
       "Read(F:/Edeviser-Kiro/supabase/functions/$f/**)",
       "Bash(done)",
       "Bash(cat supabase/functions/_shared/*.ts)",
-      "Bash(cat F:/Edeviser-Kiro/api/cron/*.ts F:/Edeviser-Kiro/api/_utils/*.ts)"
+      "Bash(cat F:/Edeviser-Kiro/api/cron/*.ts F:/Edeviser-Kiro/api/_utils/*.ts)",
+      "mcp__claude_ai_Supabase__list_projects",
+      "mcp__claude_ai_Supabase__list_tables"
     ]
   }
 }

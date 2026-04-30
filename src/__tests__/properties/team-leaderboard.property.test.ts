@@ -9,8 +9,8 @@
 // total XP, and weekly XP.
 // =============================================================================
 
-import { describe, it, expect } from 'vitest';
-import * as fc from 'fast-check';
+import { describe, it, expect } from "vitest";
+import * as fc from "fast-check";
 
 // ─── Types mirroring the hook ────────────────────────────────────────────────
 
@@ -36,7 +36,7 @@ interface RawGamification {
   xp_this_week: number;
 }
 
-type ViewMode = 'weekly' | 'all_time';
+type ViewMode = "weekly" | "all_time";
 
 // ─── Pure logic under test (mirrors useTeamLeaderboard queryFn) ──────────────
 
@@ -44,7 +44,7 @@ function buildTeamLeaderboard(
   teams: RawTeam[],
   gamData: RawGamification[],
   memberCounts: Map<string, number>,
-  view: ViewMode,
+  view: ViewMode
 ): TeamLeaderboardEntry[] {
   const gamMap = new Map(gamData.map((g) => [g.team_id, g]));
 
@@ -61,7 +61,7 @@ function buildTeamLeaderboard(
     };
   });
 
-  const sortKey = view === 'weekly' ? 'xp_this_week' : 'xp_total';
+  const sortKey = view === "weekly" ? "xp_this_week" : "xp_total";
   entries.sort((a, b) => b[sortKey] - a[sortKey]);
   entries.forEach((e, i) => (e.rank = i + 1));
 
@@ -83,7 +83,7 @@ const gamArb = (teamId: string) =>
     xp_this_week: fc.integer({ min: 0, max: 50_000 }),
   });
 
-const viewArb = fc.constantFrom<ViewMode>('weekly', 'all_time');
+const viewArb = fc.constantFrom<ViewMode>("weekly", "all_time");
 
 interface TeamsWithData {
   teams: { id: string; name: string; avatar_letter: string }[];
@@ -97,43 +97,57 @@ const teamsWithDataArb: fc.Arbitrary<TeamsWithData> = fc
   .chain((teams): fc.Arbitrary<TeamsWithData> => {
     // Ensure unique IDs
     const uniqueTeams = teams.filter(
-      (t, i, arr) => arr.findIndex((x) => x.id === t.id) === i,
+      (t, i, arr) => arr.findIndex((x) => x.id === t.id) === i
     );
-    if (uniqueTeams.length === 0) return fc.constant({ teams: [] as TeamsWithData['teams'], gamData: [] as TeamsWithData['gamData'], memberCounts: new Map<string, number>() });
+    if (uniqueTeams.length === 0)
+      return fc.constant({
+        teams: [] as TeamsWithData["teams"],
+        gamData: [] as TeamsWithData["gamData"],
+        memberCounts: new Map<string, number>(),
+      });
 
     const gamArbs = uniqueTeams.map((t) => gamArb(t.id));
     const memberCountArbs = uniqueTeams.map((t) =>
-      fc.integer({ min: 2, max: 6 }).map((count) => [t.id, count] as const),
+      fc.integer({ min: 2, max: 6 }).map((count) => [t.id, count] as const)
     );
 
-    return fc.tuple(fc.tuple(...gamArbs), fc.tuple(...memberCountArbs)).map(
-      ([gams, counts]) => ({
+    return fc
+      .tuple(fc.tuple(...gamArbs), fc.tuple(...memberCountArbs))
+      .map(([gams, counts]) => ({
         teams: uniqueTeams,
-        gamData: gams as TeamsWithData['gamData'],
+        gamData: gams as TeamsWithData["gamData"],
         memberCounts: new Map(counts),
-      }),
-    );
+      }));
   });
 
 // ─── Property Tests ──────────────────────────────────────────────────────────
 
-describe('Property 103: Team leaderboard ordering and completeness', () => {
+describe("Property 103: Team leaderboard ordering and completeness", () => {
   /**
    * **Validates: Requirements 117.1**
    * All teams in the course are present in the leaderboard
    */
-  it('all teams are present in the leaderboard', () => {
+  it("all teams are present in the leaderboard", () => {
     fc.assert(
-      fc.property(teamsWithDataArb, viewArb, ({ teams, gamData, memberCounts }, view) => {
-        const result = buildTeamLeaderboard(teams, gamData, memberCounts, view);
-        expect(result.length).toBe(teams.length);
+      fc.property(
+        teamsWithDataArb,
+        viewArb,
+        ({ teams, gamData, memberCounts }, view) => {
+          const result = buildTeamLeaderboard(
+            teams,
+            gamData,
+            memberCounts,
+            view
+          );
+          expect(result.length).toBe(teams.length);
 
-        const resultIds = new Set(result.map((e) => e.team_id));
-        for (const team of teams) {
-          expect(resultIds.has(team.id)).toBe(true);
+          const resultIds = new Set(result.map((e) => e.team_id));
+          for (const team of teams) {
+            expect(resultIds.has(team.id)).toBe(true);
+          }
         }
-      }),
-      { numRuns: 200 },
+      ),
+      { numRuns: 200 }
     );
   });
 
@@ -141,17 +155,28 @@ describe('Property 103: Team leaderboard ordering and completeness', () => {
    * **Validates: Requirements 117.1**
    * Teams are ordered by XP descending (weekly or all-time)
    */
-  it('teams are ordered by XP descending for the selected view', () => {
+  it("teams are ordered by XP descending for the selected view", () => {
     fc.assert(
-      fc.property(teamsWithDataArb, viewArb, ({ teams, gamData, memberCounts }, view) => {
-        const result = buildTeamLeaderboard(teams, gamData, memberCounts, view);
-        const sortKey = view === 'weekly' ? 'xp_this_week' : 'xp_total';
+      fc.property(
+        teamsWithDataArb,
+        viewArb,
+        ({ teams, gamData, memberCounts }, view) => {
+          const result = buildTeamLeaderboard(
+            teams,
+            gamData,
+            memberCounts,
+            view
+          );
+          const sortKey = view === "weekly" ? "xp_this_week" : "xp_total";
 
-        for (let i = 1; i < result.length; i++) {
-          expect(result[i]![sortKey]).toBeLessThanOrEqual(result[i - 1]![sortKey]);
+          for (let i = 1; i < result.length; i++) {
+            expect(result[i]![sortKey]).toBeLessThanOrEqual(
+              result[i - 1]![sortKey]
+            );
+          }
         }
-      }),
-      { numRuns: 200 },
+      ),
+      { numRuns: 200 }
     );
   });
 
@@ -159,25 +184,34 @@ describe('Property 103: Team leaderboard ordering and completeness', () => {
    * **Validates: Requirements 117.2**
    * Each entry includes all required fields
    */
-  it('each entry has rank, team_name, avatar_letter, member_count, xp_total, xp_this_week', () => {
+  it("each entry has rank, team_name, avatar_letter, member_count, xp_total, xp_this_week", () => {
     fc.assert(
-      fc.property(teamsWithDataArb, viewArb, ({ teams, gamData, memberCounts }, view) => {
-        const result = buildTeamLeaderboard(teams, gamData, memberCounts, view);
+      fc.property(
+        teamsWithDataArb,
+        viewArb,
+        ({ teams, gamData, memberCounts }, view) => {
+          const result = buildTeamLeaderboard(
+            teams,
+            gamData,
+            memberCounts,
+            view
+          );
 
-        for (const entry of result) {
-          expect(typeof entry.rank).toBe('number');
-          expect(entry.rank).toBeGreaterThanOrEqual(1);
-          expect(typeof entry.team_name).toBe('string');
-          expect(typeof entry.avatar_letter).toBe('string');
-          expect(typeof entry.member_count).toBe('number');
-          expect(entry.member_count).toBeGreaterThanOrEqual(0);
-          expect(typeof entry.xp_total).toBe('number');
-          expect(entry.xp_total).toBeGreaterThanOrEqual(0);
-          expect(typeof entry.xp_this_week).toBe('number');
-          expect(entry.xp_this_week).toBeGreaterThanOrEqual(0);
+          for (const entry of result) {
+            expect(typeof entry.rank).toBe("number");
+            expect(entry.rank).toBeGreaterThanOrEqual(1);
+            expect(typeof entry.team_name).toBe("string");
+            expect(typeof entry.avatar_letter).toBe("string");
+            expect(typeof entry.member_count).toBe("number");
+            expect(entry.member_count).toBeGreaterThanOrEqual(0);
+            expect(typeof entry.xp_total).toBe("number");
+            expect(entry.xp_total).toBeGreaterThanOrEqual(0);
+            expect(typeof entry.xp_this_week).toBe("number");
+            expect(entry.xp_this_week).toBeGreaterThanOrEqual(0);
+          }
         }
-      }),
-      { numRuns: 200 },
+      ),
+      { numRuns: 200 }
     );
   });
 
@@ -185,16 +219,25 @@ describe('Property 103: Team leaderboard ordering and completeness', () => {
    * **Validates: Requirements 117.1**
    * Ranks are sequential starting from 1
    */
-  it('ranks are sequential from 1 to N', () => {
+  it("ranks are sequential from 1 to N", () => {
     fc.assert(
-      fc.property(teamsWithDataArb, viewArb, ({ teams, gamData, memberCounts }, view) => {
-        const result = buildTeamLeaderboard(teams, gamData, memberCounts, view);
+      fc.property(
+        teamsWithDataArb,
+        viewArb,
+        ({ teams, gamData, memberCounts }, view) => {
+          const result = buildTeamLeaderboard(
+            teams,
+            gamData,
+            memberCounts,
+            view
+          );
 
-        for (let i = 0; i < result.length; i++) {
-          expect(result[i]!.rank).toBe(i + 1);
+          for (let i = 0; i < result.length; i++) {
+            expect(result[i]!.rank).toBe(i + 1);
+          }
         }
-      }),
-      { numRuns: 200 },
+      ),
+      { numRuns: 200 }
     );
   });
 });

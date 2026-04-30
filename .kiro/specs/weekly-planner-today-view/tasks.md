@@ -120,97 +120,97 @@
 
 ## Task 14: Parent Planner View
 
-- [ ] 14.1 Create `src/pages/parent/planner/ParentPlannerView.tsx` — read-only weekly planner showing linked student's sessions, tasks, goals with progress, and total study hours; no session notes or reflections visible
-- [ ] 14.2 Reuse WeeklyCalendarGrid and WeeklyGoalPanel components in read-only mode (no create/edit/delete actions)
-- [ ] 14.3 Write unit test `src/__tests__/unit/parentPlannerView.test.tsx`
+- [x] 14.1 Create `src/pages/parent/planner/ParentPlannerView.tsx` — read-only weekly planner showing linked student's sessions, tasks, goals with progress, and total study hours; no session notes or reflections visible
+- [x] 14.2 Reuse WeeklyCalendarGrid and WeeklyGoalPanel components in read-only mode (no create/edit/delete actions)
+- [x] 14.3 Write unit test `src/__tests__/unit/parentPlannerView.test.tsx`
 
 ## Task 15: Integration & Polish
 
-- [ ] 15.1 Implement habit auto-completion: when a study session ≥ 15 min is completed, auto-mark "Read" habit in `habit_logs` if not already marked for today
-- [ ] 15.2 Verify XP award flow end-to-end: session completion → XP → badge check → toast
-- [ ] 15.3 Verify task completion XP flow: checkbox → award-xp → toast
-- [ ] 15.4 Verify weekly goal XP: when goal met → award 25 XP per goal
-- [ ] 15.5 Verify parent RLS: parent can see sessions/tasks/goals but not reflections/notes
-- [ ] 15.6 Verify Focus Mode timer accuracy: < 50ms drift over 25 minutes
-- [ ] 15.7 Verify offline queue: disconnect during focus → timer continues → reconnect → data syncs
-- [ ] 15.8 Run all property-based tests and unit tests, fix any failures
+- [x] 15.1 Implement habit auto-completion: when a study session ≥ 15 min is completed, auto-mark "Read" habit in `habit_logs` if not already marked for today
+- [x] 15.2 Verify XP award flow end-to-end: session completion → XP → badge check → toast
+- [x] 15.3 Verify task completion XP flow: checkbox → award-xp → toast
+- [x] 15.4 Verify weekly goal XP: when goal met → award 25 XP per goal
+- [x] 15.5 Verify parent RLS: parent can see sessions/tasks/goals but not reflections/notes
+- [x] 15.6 Verify Focus Mode timer accuracy: < 50ms drift over 25 minutes
+- [x] 15.7 Verify offline queue: disconnect during focus → timer continues → reconnect → data syncs
+- [x] 15.8 Run all property-based tests and unit tests, fix any failures
 
 ## Task 16: Session Intent & Flow Optimization — Database & Types
 
-- [ ] 16.1 Create enums: `flow_response_type` (in_the_zone, stuck, too_easy), `review_status_type` (pending, completed, skipped), `reflection_type_enum` (session_reflection, journal_entry), `reflection_template_type` (free_form, simple, gibbs), `quality_category_type` (thoughtful, good_effort, needs_detail)
-- [ ] 16.2 Create `session_intents` table with columns (id, session_id, student_id, concept, success_criterion, is_auto_suggested, created_at), UNIQUE on session_id, FKs to study_sessions and profiles
-- [ ] 16.3 Create `flow_check_ins` table with columns (id, session_id, student_id, interval_number, response, created_at), UNIQUE on (session_id, interval_number), CHECK interval_number ≥ 1, FKs to study_sessions and profiles
-- [ ] 16.4 Create `review_schedules` table with columns (id, student_id, clo_id, course_id, source_session_id, review_date, interval_days, status, review_session_id, created_at, updated_at), UNIQUE on (student_id, clo_id, review_date, interval_days), CHECK interval_days IN (1,3,7), FKs to profiles, courses, study_sessions, indexes on (student_id, review_date)
-- [ ] 16.5 Create `reflection_digests` table with columns (id, student_id, month, themes, growth_patterns, emotional_trends, suggested_focus, shared_with, generated_at), UNIQUE on (student_id, month), FK to profiles
-- [ ] 16.6 Create `reflection_quality_scores` table with columns (id, reflection_id, reflection_type, student_id, score, originality_score, relevance_score, depth_score, flags, scored_at), CHECK scores 0–100, FK to profiles, indexes on (reflection_id, reflection_type) and (student_id)
-- [ ] 16.7 Create RLS policies on `session_intents`: student SELECT+INSERT own
-- [ ] 16.8 Create RLS policies on `flow_check_ins`: student SELECT+INSERT own
-- [ ] 16.9 Create RLS policies on `review_schedules`: student ALL on own, parent SELECT for linked students
-- [ ] 16.10 Create RLS policies on `reflection_digests`: student SELECT+UPDATE own, parent SELECT shared digests for linked students, teacher SELECT shared digests
-- [ ] 16.11 Create RLS policies on `reflection_quality_scores`: student SELECT own (INSERT via service role only)
-- [ ] 16.12 Add new TypeScript types to `src/types/planner.ts`: FlowResponse, ReviewStatus, ReflectionTypeEnum, ReflectionTemplateType, QualityCategory, SessionIntent, SuggestedIntent, FlowCheckIn, ReviewSchedule, ReflectionDigest, DigestTheme, DigestPattern, DigestTrend, DigestFocus, DigestShareEntry, ReflectionQualityScore, SimpleReflectionValues, GibbsReflectionValues
-- [ ] 16.13 Add new Zod schemas to `src/lib/schemas/planner.ts`: sessionIntentSchema, flowCheckInSchema, quickThoughtSchema, reviewScheduleCreateSchema, reflectionDigestShareSchema
-- [ ] 16.14 Add new utility functions to `src/lib/plannerUtils.ts`: calculateReflectionXP, getQualityCategory, generateReviewDates, concatenateReflectionTemplate, isReviewCycleComplete
-- [ ] 16.15 Add `'review_session'` and `'review_cycle_complete'` to `XPSource` type and `VALID_SOURCES` in `supabase/functions/award-xp/index.ts` with XP amounts 15 and 25 respectively
-- [ ] 16.16 Regenerate TypeScript types: `npx supabase gen types --linked > src/types/database.ts`
+- [x] 16.1 Create enums: `flow_response_type` (in_the_zone, stuck, too_easy), `review_status_type` (pending, completed, skipped), `reflection_type_enum` (session_reflection, journal_entry), `reflection_template_type` (free_form, simple, gibbs), `quality_category_type` (thoughtful, good_effort, needs_detail)
+- [x] 16.2 Create `session_intents` table with columns (id, session_id, student_id, concept, success_criterion, is_auto_suggested, created_at), UNIQUE on session_id, FKs to study_sessions and profiles
+- [x] 16.3 Create `flow_check_ins` table with columns (id, session_id, student_id, interval_number, response, created_at), UNIQUE on (session_id, interval_number), CHECK interval_number ≥ 1, FKs to study_sessions and profiles
+- [x] 16.4 Create `review_schedules` table with columns (id, student_id, clo_id, course_id, source_session_id, review_date, interval_days, status, review_session_id, created_at, updated_at), UNIQUE on (student_id, clo_id, review_date, interval_days), CHECK interval_days IN (1,3,7), FKs to profiles, courses, study_sessions, indexes on (student_id, review_date)
+- [x] 16.5 Create `reflection_digests` table with columns (id, student_id, month, themes, growth_patterns, emotional_trends, suggested_focus, shared_with, generated_at), UNIQUE on (student_id, month), FK to profiles
+- [x] 16.6 Create `reflection_quality_scores` table with columns (id, reflection_id, reflection_type, student_id, score, originality_score, relevance_score, depth_score, flags, scored_at), CHECK scores 0–100, FK to profiles, indexes on (reflection_id, reflection_type) and (student_id)
+- [x] 16.7 Create RLS policies on `session_intents`: student SELECT+INSERT own
+- [x] 16.8 Create RLS policies on `flow_check_ins`: student SELECT+INSERT own
+- [x] 16.9 Create RLS policies on `review_schedules`: student ALL on own, parent SELECT for linked students
+- [x] 16.10 Create RLS policies on `reflection_digests`: student SELECT+UPDATE own, parent SELECT shared digests for linked students, teacher SELECT shared digests
+- [x] 16.11 Create RLS policies on `reflection_quality_scores`: student SELECT own (INSERT via service role only)
+- [x] 16.12 Add new TypeScript types to `src/types/planner.ts`: FlowResponse, ReviewStatus, ReflectionTypeEnum, ReflectionTemplateType, QualityCategory, SessionIntent, SuggestedIntent, FlowCheckIn, ReviewSchedule, ReflectionDigest, DigestTheme, DigestPattern, DigestTrend, DigestFocus, DigestShareEntry, ReflectionQualityScore, SimpleReflectionValues, GibbsReflectionValues
+- [x] 16.13 Add new Zod schemas to `src/lib/schemas/planner.ts`: sessionIntentSchema, flowCheckInSchema, quickThoughtSchema, reviewScheduleCreateSchema, reflectionDigestShareSchema
+- [x] 16.14 Add new utility functions to `src/lib/plannerUtils.ts`: calculateReflectionXP, getQualityCategory, generateReviewDates, concatenateReflectionTemplate, isReviewCycleComplete
+- [x] 16.15 Add `'review_session'` and `'review_cycle_complete'` to `XPSource` type and `VALID_SOURCES` in `supabase/functions/award-xp/index.ts` with XP amounts 15 and 25 respectively
+- [x] 16.16 Regenerate TypeScript types: `npx supabase gen types --linked > src/types/database.ts`
 
 ## Task 17: Session Intent & Flow Check-In Components
 
-- [ ] 17.1 Create `src/hooks/useSessionIntent.ts` with `useSaveSessionIntent` mutation and `useSuggestedIntents(sessionId)` query — fetches low-attainment CLOs (<70%) and upcoming deadlines for auto-suggestions
-- [ ] 17.2 Create `src/hooks/useFlowCheckIns.ts` with `useSaveFlowCheckIn` mutation and `useSessionFlowCheckIns(sessionId)` query
-- [ ] 17.3 Create `src/components/shared/SessionIntentDialog.tsx` — Shadcn Dialog with concept + success criterion inputs, auto-suggested intents as clickable chips, Skip button, Submit button
-- [ ] 17.4 Create `src/components/shared/FlowCheckInDialog.tsx` — Shadcn Dialog with 3 response buttons ("In the zone" / "Stuck" / "Too easy"), dismiss button, conditional AI Tutor link for "Stuck" and Bloom's suggestion for "Too easy"
-- [ ] 17.5 Integrate SessionIntentDialog into Focus Mode launch flow: show dialog before starting timer, display intent text alongside timer in FocusTimer component
-- [ ] 17.6 Integrate FlowCheckInDialog into Pomodoro break transitions: show at each work→break transition, also at midpoint for custom sessions ≥50 min
-- [ ] 17.7 Create `src/components/shared/QuickThoughtInput.tsx` — single-line input with character counter (max 280), submit button
-- [ ] 17.8 Update `src/components/shared/SessionCompletionForm.tsx` to add QuickThoughtInput as primary evidence option, with "Attach Files" expansion for full EvidenceUploader
-- [ ] 17.9 Write unit tests `src/__tests__/unit/sessionIntentDialog.test.tsx` and `src/__tests__/unit/flowCheckInDialog.test.tsx`
+- [x] 17.1 Create `src/hooks/useSessionIntent.ts` with `useSaveSessionIntent` mutation and `useSuggestedIntents(sessionId)` query — fetches low-attainment CLOs (<70%) and upcoming deadlines for auto-suggestions
+- [x] 17.2 Create `src/hooks/useFlowCheckIns.ts` with `useSaveFlowCheckIn` mutation and `useSessionFlowCheckIns(sessionId)` query
+- [x] 17.3 Create `src/components/shared/SessionIntentDialog.tsx` — Shadcn Dialog with concept + success criterion inputs, auto-suggested intents as clickable chips, Skip button, Submit button
+- [x] 17.4 Create `src/components/shared/FlowCheckInDialog.tsx` — Shadcn Dialog with 3 response buttons ("In the zone" / "Stuck" / "Too easy"), dismiss button, conditional AI Tutor link for "Stuck" and Bloom's suggestion for "Too easy"
+- [x] 17.5 Integrate SessionIntentDialog into Focus Mode launch flow: show dialog before starting timer, display intent text alongside timer in FocusTimer component
+- [x] 17.6 Integrate FlowCheckInDialog into Pomodoro break transitions: show at each work→break transition, also at midpoint for custom sessions ≥50 min
+- [x] 17.7 Create `src/components/shared/QuickThoughtInput.tsx` — single-line input with character counter (max 280), submit button
+- [x] 17.8 Update `src/components/shared/SessionCompletionForm.tsx` to add QuickThoughtInput as primary evidence option, with "Attach Files" expansion for full EvidenceUploader
+- [x] 17.9 Write unit tests `src/__tests__/unit/sessionIntentDialog.test.tsx` and `src/__tests__/unit/flowCheckInDialog.test.tsx`
 
 ## Task 18: Spaced Repetition System
 
-- [ ] 18.1 Create `src/hooks/useReviewSchedule.ts` with `useWeeklyReviews(studentId, weekStartDate)` query, `useCreateReviewSession` mutation (creates study_session + updates review_schedules), `useSkipReview` mutation
-- [ ] 18.2 Create `src/components/shared/ReviewSessionBadge.tsx` — badge showing interval label ("Day 1 Review", "Day 3 Review", "Day 7 Review") with distinct styling per interval, status indicator
-- [ ] 18.3 Create `src/components/shared/ReviewScheduleList.tsx` — list of pending reviews with Start and Skip actions per item
-- [ ] 18.4 Update `src/hooks/useSessionCompletion.ts` to trigger review schedule creation: after completing a CLO-linked session, call generateReviewDates() and INSERT into review_schedules with ON CONFLICT DO NOTHING
-- [ ] 18.5 Update `src/components/shared/WeeklyCalendarGrid.tsx` to render ReviewSessionBadge items from review_schedules in day columns, visually distinct from student-created sessions
-- [ ] 18.6 Update `src/pages/student/planner/TodayViewPage.tsx` to show missed reviews with "Missed Review" indicator for past-due pending reviews
-- [ ] 18.7 Implement review completion XP flow: on review session completion, award 15 XP (review_session source); check if all 3 intervals complete for CLO, award 25 XP (review_cycle_complete source)
-- [ ] 18.8 Write unit tests `src/__tests__/unit/reviewSessionBadge.test.tsx` and `src/__tests__/unit/reviewSchedule.test.ts`
+- [x] 18.1 Create `src/hooks/useReviewSchedule.ts` with `useWeeklyReviews(studentId, weekStartDate)` query, `useCreateReviewSession` mutation (creates study_session + updates review_schedules), `useSkipReview` mutation
+- [x] 18.2 Create `src/components/shared/ReviewSessionBadge.tsx` — badge showing interval label ("Day 1 Review", "Day 3 Review", "Day 7 Review") with distinct styling per interval, status indicator
+- [x] 18.3 Create `src/components/shared/ReviewScheduleList.tsx` — list of pending reviews with Start and Skip actions per item
+- [x] 18.4 Update `src/hooks/useSessionCompletion.ts` to trigger review schedule creation: after completing a CLO-linked session, call generateReviewDates() and INSERT into review_schedules with ON CONFLICT DO NOTHING
+- [x] 18.5 Update `src/components/shared/WeeklyCalendarGrid.tsx` to render ReviewSessionBadge items from review_schedules in day columns, visually distinct from student-created sessions
+- [x] 18.6 Update `src/pages/student/planner/TodayViewPage.tsx` to show missed reviews with "Missed Review" indicator for past-due pending reviews
+- [x] 18.7 Implement review completion XP flow: on review session completion, award 15 XP (review_session source); check if all 3 intervals complete for CLO, award 25 XP (review_cycle_complete source)
+- [x] 18.8 Write unit tests `src/__tests__/unit/reviewSessionBadge.test.tsx` and `src/__tests__/unit/reviewSchedule.test.ts`
 
 ## Task 19: Reflection Frameworks & Quality System
 
-- [ ] 19.1 Create `src/hooks/useReflectionTemplates.ts` with template selection state management and `concatenateReflectionTemplate` integration
-- [ ] 19.2 Create `src/components/shared/ReflectionTemplateSelector.tsx` — Shadcn Select with options: Free-form, Simple, Gibbs' Cycle
-- [ ] 19.3 Create `src/components/shared/SimpleReflectionTemplate.tsx` — 3 labeled text areas (What went well? / What was challenging? / What will I do differently?)
-- [ ] 19.4 Create `src/components/shared/GibbsReflectionTemplate.tsx` — 6 labeled text areas (Description, Feelings, Evaluation, Analysis, Conclusion, Action Plan)
-- [ ] 19.5 Update `src/components/shared/SessionReflectionInput.tsx` to integrate ReflectionTemplateSelector, render selected template component, concatenate sections on save
-- [ ] 19.6 Update `src/components/shared/WeeklyReflectionPanel.tsx` to integrate ReflectionTemplateSelector, pre-populate with session reflection summaries, add ReflectionStreakIndicator
-- [ ] 19.7 Create `src/components/shared/ReflectionStreakIndicator.tsx` — shows consecutive weeks with completed weekly reflection
-- [ ] 19.8 Create `supabase/functions/score-reflection-quality/index.ts` — Edge Function: receive text + student_id + reflection_id + type, fetch last 10 reflections, score originality/relevance/depth, compute overall score, flag if <30, insert into reflection_quality_scores, return score + category + suggestions
-- [ ] 19.9 Create `src/hooks/useReflectionQuality.ts` with `useScoreReflection` mutation (calls score-reflection-quality Edge Function), `useReflectionScore(reflectionId)` query, `calculateReflectionXP` integration
-- [ ] 19.10 Create `src/components/shared/QualityFeedbackBanner.tsx` — displays quality category ("Thoughtful reflection" / "Good effort" / "Try adding more detail") with improvement suggestions, no numeric score shown
-- [ ] 19.11 Update `src/hooks/useSessionReflections.ts` to trigger quality scoring after save, apply XP adjustments based on Quality_Score via calculateReflectionXP
-- [ ] 19.12 Create `supabase/functions/generate-reflection-digest/index.ts` — Edge Function: for each student with ≥3 reflections in month, analyze themes/growth/sentiment/focus, insert into reflection_digests
-- [ ] 19.13 Create `src/hooks/useReflectionDigest.ts` with `useMonthlyDigest(studentId, month)` query, `useShareDigest` mutation, `useRevokeDigestShare` mutation
-- [ ] 19.14 Create `src/components/shared/ReflectionDigestCard.tsx` — card displaying themes, growth patterns, emotional trends, suggested focus; Share button with Parent/Advisor options; Revoke sharing
-- [ ] 19.15 Integrate ReflectionDigestCard into WeeklyPlannerPage Reflect tab as "Monthly Insights" section
-- [ ] 19.16 Write unit tests `src/__tests__/unit/reflectionTemplateSelector.test.tsx`, `src/__tests__/unit/qualityFeedbackBanner.test.tsx`, `src/__tests__/unit/reflectionDigestCard.test.tsx`
+- [x] 19.1 Create `src/hooks/useReflectionTemplates.ts` with template selection state management and `concatenateReflectionTemplate` integration
+- [x] 19.2 Create `src/components/shared/ReflectionTemplateSelector.tsx` — Shadcn Select with options: Free-form, Simple, Gibbs' Cycle
+- [x] 19.3 Create `src/components/shared/SimpleReflectionTemplate.tsx` — 3 labeled text areas (What went well? / What was challenging? / What will I do differently?)
+- [x] 19.4 Create `src/components/shared/GibbsReflectionTemplate.tsx` — 6 labeled text areas (Description, Feelings, Evaluation, Analysis, Conclusion, Action Plan)
+- [x] 19.5 Update `src/components/shared/SessionReflectionInput.tsx` to integrate ReflectionTemplateSelector, render selected template component, concatenate sections on save
+- [x] 19.6 Update `src/components/shared/WeeklyReflectionPanel.tsx` to integrate ReflectionTemplateSelector, pre-populate with session reflection summaries, add ReflectionStreakIndicator
+- [x] 19.7 Create `src/components/shared/ReflectionStreakIndicator.tsx` — shows consecutive weeks with completed weekly reflection
+- [x] 19.8 Create `supabase/functions/score-reflection-quality/index.ts` — Edge Function: receive text + student_id + reflection_id + type, fetch last 10 reflections, score originality/relevance/depth, compute overall score, flag if <30, insert into reflection_quality_scores, return score + category + suggestions
+- [x] 19.9 Create `src/hooks/useReflectionQuality.ts` with `useScoreReflection` mutation (calls score-reflection-quality Edge Function), `useReflectionScore(reflectionId)` query, `calculateReflectionXP` integration
+- [x] 19.10 Create `src/components/shared/QualityFeedbackBanner.tsx` — displays quality category ("Thoughtful reflection" / "Good effort" / "Try adding more detail") with improvement suggestions, no numeric score shown
+- [x] 19.11 Update `src/hooks/useSessionReflections.ts` to trigger quality scoring after save, apply XP adjustments based on Quality_Score via calculateReflectionXP
+- [x] 19.12 Create `supabase/functions/generate-reflection-digest/index.ts` — Edge Function: for each student with ≥3 reflections in month, analyze themes/growth/sentiment/focus, insert into reflection_digests
+- [x] 19.13 Create `src/hooks/useReflectionDigest.ts` with `useMonthlyDigest(studentId, month)` query, `useShareDigest` mutation, `useRevokeDigestShare` mutation
+- [x] 19.14 Create `src/components/shared/ReflectionDigestCard.tsx` — card displaying themes, growth patterns, emotional trends, suggested focus; Share button with Parent/Advisor options; Revoke sharing
+- [x] 19.15 Integrate ReflectionDigestCard into WeeklyPlannerPage Reflect tab as "Monthly Insights" section
+- [x] 19.16 Write unit tests `src/__tests__/unit/reflectionTemplateSelector.test.tsx`, `src/__tests__/unit/qualityFeedbackBanner.test.tsx`, `src/__tests__/unit/reflectionDigestCard.test.tsx`
 
 ## Task 20: Property Tests for New Features
 
-- [ ] 20.1 Create `src/__tests__/properties/sessionIntent.property.test.ts` with property tests for Properties 21, 29 (session intent validation, quick thought length)
-- [ ] 20.2 Create `src/__tests__/properties/flowCheckIn.property.test.ts` with property test for Property 22 (flow check-in response options and interval uniqueness)
-- [ ] 20.3 Create `src/__tests__/properties/reviewSchedule.property.test.ts` with property tests for Properties 23, 24, 25 (review date generation, deduplication, cycle completion)
-- [ ] 20.4 Create `src/__tests__/properties/reflectionQuality.property.test.ts` with property tests for Properties 26, 27, 28, 30 (template concatenation, quality category thresholds, quality-adjusted XP, digest minimum entries)
+- [x] 20.1 Create `src/__tests__/properties/sessionIntent.property.test.ts` with property tests for Properties 21, 29 (session intent validation, quick thought length)
+- [x] 20.2 Create `src/__tests__/properties/flowCheckIn.property.test.ts` with property test for Property 22 (flow check-in response options and interval uniqueness)
+- [x] 20.3 Create `src/__tests__/properties/reviewSchedule.property.test.ts` with property tests for Properties 23, 24, 25 (review date generation, deduplication, cycle completion)
+- [x] 20.4 Create `src/__tests__/properties/reflectionQuality.property.test.ts` with property tests for Properties 26, 27, 28, 30 (template concatenation, quality category thresholds, quality-adjusted XP, digest minimum entries)
 
 ## Task 21: Integration & Polish for New Features
 
-- [ ] 21.1 Verify session intent flow end-to-end: intent dialog → save → display in Focus Mode → stored in DB
-- [ ] 21.2 Verify flow check-in flow: Pomodoro break → dialog → response saved → AI Tutor link works for "Stuck"
-- [ ] 21.3 Verify spaced repetition flow: CLO session completion → review schedules created → reviews appear in planner → review completion awards bonus XP → cycle completion awards bonus XP
-- [ ] 21.4 Verify reflection template flow: select template → fill sections → concatenated text saved → word count validated across sections
-- [ ] 21.5 Verify quality scoring flow: save reflection → Edge Function scores → quality banner shown → XP adjusted correctly (5 for <30, base for 30-79, base+bonus for ≥80)
-- [ ] 21.6 Verify reflection digest flow: monthly cron → digest generated for students with ≥3 entries → digest card visible → sharing works → parent/advisor can view shared digest
-- [ ] 21.7 Verify RLS on all new tables: students see only own data, parents see linked student reviews/digests (shared only for digests), quality scores read-only for students
-- [ ] 21.8 Verify reflection consolidation: max one prompt per session, max one weekly, no duplicate prompts for already-reflected sessions
-- [ ] 21.9 Run all property-based tests (P21–P30) and unit tests for new features, fix any failures
+- [x] 21.1 Verify session intent flow end-to-end: intent dialog → save → display in Focus Mode → stored in DB
+- [x] 21.2 Verify flow check-in flow: Pomodoro break → dialog → response saved → AI Tutor link works for "Stuck"
+- [x] 21.3 Verify spaced repetition flow: CLO session completion → review schedules created → reviews appear in planner → review completion awards bonus XP → cycle completion awards bonus XP
+- [x] 21.4 Verify reflection template flow: select template → fill sections → concatenated text saved → word count validated across sections
+- [x] 21.5 Verify quality scoring flow: save reflection → Edge Function scores → quality banner shown → XP adjusted correctly (5 for <30, base for 30-79, base+bonus for ≥80)
+- [x] 21.6 Verify reflection digest flow: monthly cron → digest generated for students with ≥3 entries → digest card visible → sharing works → parent/advisor can view shared digest
+- [x] 21.7 Verify RLS on all new tables: students see only own data, parents see linked student reviews/digests (shared only for digests), quality scores read-only for students
+- [x] 21.8 Verify reflection consolidation: max one prompt per session, max one weekly, no duplicate prompts for already-reflected sessions
+- [x] 21.9 Run all property-based tests (P21–P30) and unit tests for new features, fix any failures

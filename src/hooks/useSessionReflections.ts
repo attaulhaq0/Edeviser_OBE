@@ -108,6 +108,20 @@ export const useSaveSessionReflection = () => {
         console.error("[useSaveSessionReflection] award-xp invocation failed");
       }
 
+      // Trigger quality scoring asynchronously (non-blocking)
+      try {
+        await supabase.functions.invoke("score-reflection-quality", {
+          body: {
+            reflection_id: reflection.id,
+            reflection_type: "session_reflection",
+            student_id: user.id,
+            content: input.content,
+          },
+        });
+      } catch {
+        console.error("[useSaveSessionReflection] quality scoring failed");
+      }
+
       return { reflection, xpAwarded };
     },
     onSuccess: ({ xpAwarded }) => {

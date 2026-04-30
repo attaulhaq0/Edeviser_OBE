@@ -116,3 +116,34 @@ export const quickThoughtSchema = z.object({
 });
 
 export type QuickThoughtInput = z.infer<typeof quickThoughtSchema>;
+
+// -----------------------------------------------------------------------------
+// Review Schedule Schema
+// -----------------------------------------------------------------------------
+
+/** Schema for creating a review schedule entry. */
+export const reviewScheduleCreateSchema = z.object({
+  cloId: z.string().uuid(),
+  courseId: z.string().uuid().nullable().optional(),
+  sourceSessionId: z.string().uuid().nullable().optional(),
+  reviewDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format"),
+  intervalDays: z.union([z.literal(1), z.literal(3), z.literal(7)]),
+});
+
+export type ReviewScheduleCreateInput = z.infer<
+  typeof reviewScheduleCreateSchema
+>;
+
+// -----------------------------------------------------------------------------
+// Reflection Digest Share Schema
+// -----------------------------------------------------------------------------
+
+/** Schema for sharing a reflection digest with parent / advisor / teacher. */
+export const reflectionDigestShareSchema = z.object({
+  digestId: z.string().uuid(),
+  role: z.enum(["parent", "advisor", "teacher"]),
+});
+
+export type ReflectionDigestShareInput = z.infer<
+  typeof reflectionDigestShareSchema
+>;

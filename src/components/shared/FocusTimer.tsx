@@ -10,9 +10,10 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { getTimerAnnouncement } from "@/lib/plannerUtils";
 import PomodoroIndicator from "@/components/shared/PomodoroIndicator";
+import FlowCheckInDialog from "@/components/shared/FlowCheckInDialog";
 import { useOfflineQueue } from "@/hooks/useOfflineQueue";
 import type { FocusTimerReturn } from "@/hooks/useFocusTimer";
-import type { StudySession } from "@/types/planner";
+import type { StudySession, FlowResponse } from "@/types/planner";
 import {
   Play,
   Pause,
@@ -21,6 +22,7 @@ import {
   WifiOff,
   Volume2,
   Bell,
+  Target,
 } from "lucide-react";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -32,8 +34,10 @@ interface FocusTimerProps {
   session: StudySession | null;
   /** CLO titles for context display */
   cloTitles?: string[];
-  /** Session intent text to display alongside timer */
-  intentText?: string | null;
+  /** Session intent concept text to display alongside timer */
+  intentConcept?: string | null;
+  /** Session intent success criterion to display alongside timer */
+  intentSuccessCriterion?: string | null;
   /** Called when timer completes (transition to completion form) */
   onComplete?: () => void;
   /** Called when user manually ends session */
@@ -77,7 +81,8 @@ const FocusTimer = ({
   timer,
   session,
   cloTitles = [],
-  intentText,
+  intentConcept,
+  intentSuccessCriterion,
   onComplete,
   onEnd,
   className,
@@ -86,6 +91,7 @@ const FocusTimer = ({
     timerState,
     display,
     remainingMs,
+    totalElapsedMs,
     pomodoroInterval,
     pomodoroIntervalType,
     mode,
@@ -146,6 +152,46 @@ const FocusTimer = ({
 
   // ─── Break states ────────────────────────────────────────────────────────
   const isOnBreak = timerState === "break" || timerState === "long_break";
+
+  // ─── Flow Check-In on Pomodoro break transitions ─────────────────────────
+  const [flowDialogOpen, setFlowDialogOpen] = useState(false);
+  const [flowCheckInInterval, setFlowCheckInInterval] = useState(1);
+  const lastCheckInIntervalRef = useRef<number>(-1);
+
+  useEffect(() => {
+    if (mode !== "pomodoro") return;
+    if (!isOnBreak) return;
+    if (!session) return;
+    // Show once per work→break transition; key on the just-completed interval.
+    if (lastCheckInIntervalRef.current === pomodoroInterval) return;
+    lastCheckInIntervalRef.current = pomodoroInterval;
+    setFlowCheckInInterval(pomodoroInterval);
+    setFlowDialogOpen(true);
+  }, [isOnBreak, mode, pomodoroInterval, session]);
+
+  // ─── Flow Check-In at midpoint for custom sessions ≥50 min ───────────────
+  const customMidpointShownRef = useRef(false);
+
+  useEffect(() => {
+    if (mode !== "custom") return;
+    if (!session) return;
+    if (timerState !== "running") return;
+    if (session.plannedDurationMinutes < 50) return;
+    if (customMidpointShownRef.current) return;
+
+    const midpointMs = (session.plannedDurationMinutes * 60 * 1000) / 2;
+    if (totalElapsedMs >= midpointMs) {
+      customMidpointShownRef.current = true;
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setFlowCheckInInterval(1);
+      setFlowDialogOpen(true);
+    }
+  }, [mode, session, timerState, totalElapsedMs]);
+
+  const handleFlowComplete = useCallback((_response: FlowResponse) => {
+    // Response is already saved by FlowCheckInDialog internally.
+    // Close dialog handled by onOpenChange.
+  }, []);
 
   // ─── Handlers ────────────────────────────────────────────────────────────
 
@@ -248,9 +294,15 @@ const FocusTimer = ({
       )}
 
       {/* Session Intent */}
-      {intentText && (
-        <div className="max-w-sm rounded-lg bg-blue-50 px-4 py-2 text-center text-sm text-blue-700">
-          <span className="font-medium">Intent:</span> {intentText}
+      {intentConcept && (
+        <div className="flex max-w-sm items-start gap-3 rounded-lg border border-teal-200 bg-teal-50 px-4 py-3">
+          <Target className="mt-0.5 h-4 w-4 shrink-0 text-teal-600" />
+          <div className="min-w-0 space-y-0.5">
+            <p className="text-sm font-medium text-teal-800">{intentConcept}</p>
+            {intentSuccessCriterion && (
+              <p className="text-xs text-teal-600">{intentSuccessCriterion}</p>
+            )}
+          </div>
         </div>
       )}
 
@@ -403,6 +455,18 @@ const FocusTimer = ({
           </div>
         )}
       </div>
+
+      {/* Flow Check-In Dialog (Pomodoro break transitions + custom midpoint) */}
+      {session && (
+        <FlowCheckInDialog
+          key={`flow-${session.id}-${flowCheckInInterval}`}
+          open={flowDialogOpen}
+          onOpenChange={setFlowDialogOpen}
+          sessionId={session.id}
+          intervalNumber={flowCheckInInterval}
+          onComplete={handleFlowComplete}
+        />
+      )}
 
       {/* Timer mode badge */}
       <Badge

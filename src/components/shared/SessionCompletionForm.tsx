@@ -11,11 +11,20 @@ import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import EvidenceUploader from "@/components/shared/EvidenceUploader";
 import SessionReflectionInput from "@/components/shared/SessionReflectionInput";
+import QuickThoughtInput from "@/components/shared/QuickThoughtInput";
 import { useCompleteSession } from "@/hooks/useSessionCompletion";
 import { useSaveSessionReflection } from "@/hooks/useSessionReflections";
 import { cn } from "@/lib/utils";
 import type { StudySession } from "@/types/planner";
-import { Star, FileText, Loader2, CheckCircle2, Paperclip } from "lucide-react";
+import {
+  Star,
+  FileText,
+  Loader2,
+  CheckCircle2,
+  Paperclip,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -80,6 +89,8 @@ const SessionCompletionForm = ({
   const [rating, setRating] = useState<number | null>(null);
   const [evidenceFiles, setEvidenceFiles] = useState<File[]>([]);
   const [reflectionSaved, setReflectionSaved] = useState(false);
+  const [quickThoughtCaptured, setQuickThoughtCaptured] = useState(false);
+  const [showFullEvidence, setShowFullEvidence] = useState(false);
 
   // ─── Mutations ─────────────────────────────────────────────────────────
   const completeSession = useCompleteSession();
@@ -217,18 +228,48 @@ const SessionCompletionForm = ({
 
         <Separator />
 
-        {/* Evidence Upload */}
-        <div>
-          <div className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-700">
+        {/* Evidence — Quick Thought (primary) + optional full uploader */}
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
             <Paperclip className="h-4 w-4" />
             Evidence
             <span className="text-xs text-gray-400">(optional)</span>
           </div>
-          <EvidenceUploader
-            files={evidenceFiles}
-            onChange={setEvidenceFiles}
-            disabled={isSubmitting}
-          />
+
+          {!quickThoughtCaptured ? (
+            <QuickThoughtInput
+              onSubmit={(text) => {
+                setNotes((prev) => (prev ? `${prev}\n\n${text}` : text));
+                setQuickThoughtCaptured(true);
+              }}
+            />
+          ) : (
+            <div className="rounded-lg bg-green-50 px-3 py-2 text-xs text-green-700">
+              <CheckCircle2 className="me-1 inline-block h-3.5 w-3.5" />
+              Quick thought captured — added to notes above.
+            </div>
+          )}
+
+          <button
+            type="button"
+            onClick={() => setShowFullEvidence((s) => !s)}
+            className="flex items-center gap-1 text-xs font-medium text-gray-600 hover:text-gray-800"
+          >
+            {showFullEvidence ? (
+              <ChevronUp className="h-3.5 w-3.5" />
+            ) : (
+              <ChevronDown className="h-3.5 w-3.5" />
+            )}
+            {showFullEvidence ? "Hide" : "Attach files"}
+          </button>
+
+          {showFullEvidence && (
+            <EvidenceUploader
+              files={evidenceFiles}
+              onChange={setEvidenceFiles}
+              disabled={isSubmitting}
+            />
+          )}
         </div>
 
         <Separator />

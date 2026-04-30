@@ -54,6 +54,22 @@ vi.mock("@/hooks/usePlannerTasks", () => ({
   }),
 }));
 
+vi.mock("@/hooks/useReviewSchedule", () => ({
+  useWeeklyReviews: () => ({
+    data: [],
+    isLoading: false,
+    isError: false,
+  }),
+  useCreateReviewSession: () => ({
+    mutate: vi.fn(),
+    isPending: false,
+  }),
+  useSkipReview: () => ({
+    mutate: vi.fn(),
+    isPending: false,
+  }),
+}));
+
 const mockNavigate = vi.fn();
 vi.mock("react-router-dom", () => ({
   useNavigate: () => mockNavigate,

@@ -2,13 +2,17 @@
 // Property 95: Cohen's d effect size calculation
 // Feature: edeviser-platform, Properties 94-95
 
-import { describe, it, expect } from 'vitest';
-import * as fc from 'fast-check';
-import { calculateCohensD, hasSignificantGap, interpretCohensD } from '@/lib/cohortStats';
+import { describe, it, expect } from "vitest";
+import * as fc from "fast-check";
+import {
+  calculateCohensD,
+  hasSignificantGap,
+  interpretCohensD,
+} from "@/lib/cohortStats";
 
-describe('Cohort Comparison Properties', () => {
+describe("Cohort Comparison Properties", () => {
   // Property 94: Significant gap detected when ≥15pp difference
-  it('detects significant gap at ≥15pp difference', () => {
+  it("detects significant gap at ≥15pp difference", () => {
     fc.assert(
       fc.property(
         fc.double({ min: 0, max: 100, noNaN: true }),
@@ -20,14 +24,14 @@ describe('Cohort Comparison Properties', () => {
           } else {
             expect(result).toBe(false);
           }
-        },
+        }
       ),
-      { numRuns: 100 },
+      { numRuns: 100 }
     );
   });
 
   // Property 95: Cohen's d returns null when n < 20
-  it('returns null for small sample sizes', () => {
+  it("returns null for small sample sizes", () => {
     fc.assert(
       fc.property(
         fc.record({
@@ -45,22 +49,19 @@ describe('Cohort Comparison Properties', () => {
         (small, large) => {
           const result = calculateCohensD(small, large);
           expect(result).toBeNull();
-        },
+        }
       ),
-      { numRuns: 100 },
+      { numRuns: 100 }
     );
   });
 
-  it('Cohen d interpretation covers all ranges', () => {
+  it("Cohen d interpretation covers all ranges", () => {
     fc.assert(
-      fc.property(
-        fc.double({ min: -3, max: 3, noNaN: true }),
-        (d) => {
-          const label = interpretCohensD(d);
-          expect(['Negligible', 'Small', 'Medium', 'Large']).toContain(label);
-        },
-      ),
-      { numRuns: 100 },
+      fc.property(fc.double({ min: -3, max: 3, noNaN: true }), (d) => {
+        const label = interpretCohensD(d);
+        expect(["Negligible", "Small", "Medium", "Large"]).toContain(label);
+      }),
+      { numRuns: 100 }
     );
   });
 });

@@ -2,29 +2,29 @@
 // Property 101: Auto-generated team balance
 // Feature: edeviser-platform, Properties 100-101
 
-import { describe, it, expect } from 'vitest';
-import * as fc from 'fast-check';
+import { describe, it, expect } from "vitest";
+import * as fc from "fast-check";
 
 const MAX_TEAM_SIZE = 6;
 const MIN_TEAM_SIZE = 2;
 
-describe('Team Properties', () => {
+describe("Team Properties", () => {
   // Property 100: Team size is always between 2 and 6
-  it('team size respects min/max constraints', () => {
+  it("team size respects min/max constraints", () => {
     fc.assert(
       fc.property(
         fc.integer({ min: MIN_TEAM_SIZE, max: MAX_TEAM_SIZE }),
         (size) => {
           expect(size).toBeGreaterThanOrEqual(MIN_TEAM_SIZE);
           expect(size).toBeLessThanOrEqual(MAX_TEAM_SIZE);
-        },
+        }
       ),
-      { numRuns: 100 },
+      { numRuns: 100 }
     );
   });
 
   // Property 100: A student can only be in 1 team per course
-  it('student appears in at most one team per course', () => {
+  it("student appears in at most one team per course", () => {
     fc.assert(
       fc.property(
         fc.array(
@@ -32,7 +32,7 @@ describe('Team Properties', () => {
             team_id: fc.uuid(),
             student_id: fc.uuid(),
           }),
-          { minLength: 1, maxLength: 20 },
+          { minLength: 1, maxLength: 20 }
         ),
         (memberships) => {
           const studentTeams = new Map<string, Set<string>>();
@@ -47,14 +47,14 @@ describe('Team Properties', () => {
           for (const [, teams] of studentTeams) {
             expect(teams.size).toBeGreaterThanOrEqual(1);
           }
-        },
+        }
       ),
-      { numRuns: 100 },
+      { numRuns: 100 }
     );
   });
 
   // Property 101: Auto-generated teams are balanced (sizes differ by at most 1)
-  it('auto-generated teams have balanced sizes', () => {
+  it("auto-generated teams have balanced sizes", () => {
     fc.assert(
       fc.property(
         fc.integer({ min: 4, max: 60 }),
@@ -74,9 +74,9 @@ describe('Team Properties', () => {
           // Every student is assigned
           const totalAssigned = teams.reduce((s, t) => s + t, 0);
           expect(totalAssigned).toBe(studentCount);
-        },
+        }
       ),
-      { numRuns: 100 },
+      { numRuns: 100 }
     );
   });
 });

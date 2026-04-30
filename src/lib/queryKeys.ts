@@ -369,4 +369,11 @@ export const queryKeys = {
   studySessions: createKeys("studySessions"),
   plannerTasks: createKeys("plannerTasks"),
   weeklyGoals: createKeys("weeklyGoals"),
+  // Session Intent / Flow / Reviews / Reflection Quality
+  sessionIntents: createKeys("sessionIntents"),
+  suggestedIntents: createKeys("suggestedIntents"),
+  flowCheckIns: createKeys("flowCheckIns"),
+  reviewSchedules: createKeys("reviewSchedules"),
+  reflectionQuality: createKeys("reflectionQuality"),
+  reflectionDigests: createKeys("reflectionDigests"),
 } as const;

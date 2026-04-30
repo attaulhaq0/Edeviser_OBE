@@ -9,15 +9,15 @@
 // xp_transactions record with scope = 'team' should be created.
 // =============================================================================
 
-import { describe, it, expect } from 'vitest';
-import * as fc from 'fast-check';
+import { describe, it, expect } from "vitest";
+import * as fc from "fast-check";
 
 // ─── Pure logic under test ───────────────────────────────────────────────────
 
 interface TeamXPSplitResult {
   individualXP: number;
   teamXP: number;
-  teamTransactionScope: 'team';
+  teamTransactionScope: "team";
   teamTransactionTeamId: string;
 }
 
@@ -27,25 +27,25 @@ interface TeamXPSplitResult {
  */
 function computeTeamXPSplit(
   awardAmount: number,
-  teamId: string,
+  teamId: string
 ): TeamXPSplitResult {
   const teamXP = Math.floor(awardAmount / 2);
   return {
     individualXP: awardAmount,
     teamXP,
-    teamTransactionScope: 'team',
+    teamTransactionScope: "team",
     teamTransactionTeamId: teamId,
   };
 }
 
 // ─── Property Tests ──────────────────────────────────────────────────────────
 
-describe('Property 102: Team XP split correctness', () => {
+describe("Property 102: Team XP split correctness", () => {
   /**
    * **Validates: Requirements 116.1**
    * Individual XP = 100% of award, team XP = floor(award / 2)
    */
-  it('individual gets full XP and team gets floor(amount / 2)', () => {
+  it("individual gets full XP and team gets floor(amount / 2)", () => {
     fc.assert(
       fc.property(
         fc.integer({ min: 1, max: 100_000 }),
@@ -58,9 +58,9 @@ describe('Property 102: Team XP split correctness', () => {
 
           // Team gets floor(amount / 2)
           expect(result.teamXP).toBe(Math.floor(awardAmount / 2));
-        },
+        }
       ),
-      { numRuns: 200 },
+      { numRuns: 200 }
     );
   });
 
@@ -68,7 +68,7 @@ describe('Property 102: Team XP split correctness', () => {
    * **Validates: Requirements 116.4**
    * Team transaction has scope = 'team' and correct team_id
    */
-  it('team transaction record has scope team and correct team_id', () => {
+  it("team transaction record has scope team and correct team_id", () => {
     fc.assert(
       fc.property(
         fc.integer({ min: 1, max: 100_000 }),
@@ -76,11 +76,11 @@ describe('Property 102: Team XP split correctness', () => {
         (awardAmount, teamId) => {
           const result = computeTeamXPSplit(awardAmount, teamId);
 
-          expect(result.teamTransactionScope).toBe('team');
+          expect(result.teamTransactionScope).toBe("team");
           expect(result.teamTransactionTeamId).toBe(teamId);
-        },
+        }
       ),
-      { numRuns: 200 },
+      { numRuns: 200 }
     );
   });
 
@@ -88,7 +88,7 @@ describe('Property 102: Team XP split correctness', () => {
    * **Validates: Requirements 116.1**
    * Team XP is always <= individual XP (50% rounded down)
    */
-  it('team XP is always less than or equal to individual XP', () => {
+  it("team XP is always less than or equal to individual XP", () => {
     fc.assert(
       fc.property(
         fc.integer({ min: 0, max: 100_000 }),
@@ -96,9 +96,9 @@ describe('Property 102: Team XP split correctness', () => {
         (awardAmount, teamId) => {
           const result = computeTeamXPSplit(awardAmount, teamId);
           expect(result.teamXP).toBeLessThanOrEqual(result.individualXP);
-        },
+        }
       ),
-      { numRuns: 200 },
+      { numRuns: 200 }
     );
   });
 
@@ -106,7 +106,7 @@ describe('Property 102: Team XP split correctness', () => {
    * **Validates: Requirements 116.1**
    * Team XP is non-negative for any non-negative award
    */
-  it('team XP is non-negative for non-negative awards', () => {
+  it("team XP is non-negative for non-negative awards", () => {
     fc.assert(
       fc.property(
         fc.integer({ min: 0, max: 100_000 }),
@@ -114,9 +114,9 @@ describe('Property 102: Team XP split correctness', () => {
         (awardAmount, teamId) => {
           const result = computeTeamXPSplit(awardAmount, teamId);
           expect(result.teamXP).toBeGreaterThanOrEqual(0);
-        },
+        }
       ),
-      { numRuns: 200 },
+      { numRuns: 200 }
     );
   });
 
@@ -124,7 +124,7 @@ describe('Property 102: Team XP split correctness', () => {
    * **Validates: Requirements 116.1**
    * For odd awards, team XP = (award - 1) / 2 (floor rounding)
    */
-  it('odd awards round down correctly for team XP', () => {
+  it("odd awards round down correctly for team XP", () => {
     fc.assert(
       fc.property(
         fc.integer({ min: 0, max: 50_000 }).map((n) => n * 2 + 1), // odd numbers
@@ -132,9 +132,9 @@ describe('Property 102: Team XP split correctness', () => {
         (oddAward, teamId) => {
           const result = computeTeamXPSplit(oddAward, teamId);
           expect(result.teamXP).toBe((oddAward - 1) / 2);
-        },
+        }
       ),
-      { numRuns: 200 },
+      { numRuns: 200 }
     );
   });
 });

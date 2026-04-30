@@ -11,6 +11,7 @@ import type {
   StudySession,
   PlannerTask,
   UpcomingDeadline,
+  ReviewSchedule,
 } from "@/types/planner";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -59,6 +60,23 @@ const makeDeadline = (
   courseName: "Physics 201",
   dueDate: "2025-06-18T23:59:00Z",
   urgency: "yellow",
+  ...overrides,
+});
+
+const makeReview = (
+  overrides: Partial<ReviewSchedule> = {}
+): ReviewSchedule => ({
+  id: "review-1",
+  studentId: "student-1",
+  cloId: "clo-abc",
+  courseId: "course-1",
+  sourceSessionId: "session-1",
+  reviewDate: "2025-06-18",
+  intervalDays: 1,
+  status: "pending",
+  reviewSessionId: null,
+  createdAt: "2025-06-15T00:00:00Z",
+  updatedAt: "2025-06-15T00:00:00Z",
   ...overrides,
 });
 
@@ -244,5 +262,210 @@ describe("WeeklyCalendarGrid", () => {
     // Mobile header shows today's full date
     expect(screen.getByText(/Wednesday, Jun 18/)).toBeTruthy();
     expect(screen.getByText("Today")).toBeTruthy();
+  });
+
+  // ─── Review Schedule Tests ───────────────────────────────────────────────
+
+  it("renders review items in the correct day column", () => {
+    const review = makeReview({
+      reviewDate: "2025-06-18",
+      cloId: "clo-xyz",
+      intervalDays: 3,
+    });
+    const weekData = buildWeekData();
+
+    render(
+      <WeeklyCalendarGrid
+        weekData={weekData}
+        today="2025-06-18"
+        reviews={[review]}
+      />
+    );
+
+    // Review CLO text should appear (desktop + mobile since today=Jun 18)
+    const cloTexts = screen.getAllByText(/CLO: clo-xyz/);
+    expect(cloTexts.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("renders review items with dashed border styling", () => {
+    const review = makeReview({ reviewDate: "2025-06-18" });
+    const weekData = buildWeekData();
+
+    const { container } = render(
+      <WeeklyCalendarGrid
+        weekData={weekData}
+        today="2025-06-18"
+        reviews={[review]}
+      />
+    );
+
+    const reviewItems = container.querySelectorAll(
+      '[data-testid="review-item"]'
+    );
+    expect(reviewItems.length).toBeGreaterThanOrEqual(1);
+    // Dashed border class should be present
+    const hasDashedBorder = Array.from(reviewItems).some((el) =>
+      el.className.includes("border-dashed")
+    );
+    expect(hasDashedBorder).toBe(true);
+  });
+
+  it("renders Start and Skip buttons for pending reviews", () => {
+    const review = makeReview({
+      reviewDate: "2025-06-18",
+      status: "pending",
+      cloId: "clo-pending",
+    });
+    const weekData = buildWeekData();
+
+    render(
+      <WeeklyCalendarGrid
+        weekData={weekData}
+        today="2025-06-18"
+        reviews={[review]}
+      />
+    );
+
+    const startButtons = screen.getAllByLabelText(
+      /Start review for CLO clo-pending/
+    );
+    expect(startButtons.length).toBeGreaterThanOrEqual(1);
+    const skipButtons = screen.getAllByLabelText(
+      /Skip review for CLO clo-pending/
+    );
+    expect(skipButtons.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("calls onStartReview when Start button is clicked", async () => {
+    const user = userEvent.setup();
+    const onStartReview = vi.fn();
+    const review = makeReview({
+      reviewDate: "2025-06-18",
+      status: "pending",
+      cloId: "clo-start",
+    });
+    const weekData = buildWeekData();
+
+    render(
+      <WeeklyCalendarGrid
+        weekData={weekData}
+        today="2025-06-18"
+        reviews={[review]}
+        onStartReview={onStartReview}
+      />
+    );
+
+    const startButtons = screen.getAllByLabelText(
+      /Start review for CLO clo-start/
+    );
+    await user.click(startButtons[0]!);
+    expect(onStartReview).toHaveBeenCalledWith(review);
+  });
+
+  it("calls onSkipReview when Skip button is clicked", async () => {
+    const user = userEvent.setup();
+    const onSkipReview = vi.fn();
+    const review = makeReview({
+      reviewDate: "2025-06-18",
+      status: "pending",
+      cloId: "clo-skip",
+    });
+    const weekData = buildWeekData();
+
+    render(
+      <WeeklyCalendarGrid
+        weekData={weekData}
+        today="2025-06-18"
+        reviews={[review]}
+        onSkipReview={onSkipReview}
+      />
+    );
+
+    const skipButtons = screen.getAllByLabelText(
+      /Skip review for CLO clo-skip/
+    );
+    await user.click(skipButtons[0]!);
+    expect(onSkipReview).toHaveBeenCalledWith(review.id);
+  });
+
+  it("shows completed status for completed reviews", () => {
+    const review = makeReview({
+      reviewDate: "2025-06-18",
+      status: "completed",
+      cloId: "clo-done",
+    });
+    const weekData = buildWeekData();
+
+    render(
+      <WeeklyCalendarGrid
+        weekData={weekData}
+        today="2025-06-18"
+        reviews={[review]}
+      />
+    );
+
+    const doneLabels = screen.getAllByText("Done");
+    expect(doneLabels.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("shows skipped status for skipped reviews", () => {
+    const review = makeReview({
+      reviewDate: "2025-06-18",
+      status: "skipped",
+      cloId: "clo-skipped",
+    });
+    const weekData = buildWeekData();
+
+    render(
+      <WeeklyCalendarGrid
+        weekData={weekData}
+        today="2025-06-18"
+        reviews={[review]}
+      />
+    );
+
+    const skippedLabels = screen.getAllByText("Skipped");
+    expect(skippedLabels.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("hides review action buttons in readOnly mode", () => {
+    const review = makeReview({
+      reviewDate: "2025-06-18",
+      status: "pending",
+      cloId: "clo-readonly",
+    });
+    const weekData = buildWeekData();
+
+    render(
+      <WeeklyCalendarGrid
+        weekData={weekData}
+        today="2025-06-18"
+        reviews={[review]}
+        readOnly
+      />
+    );
+
+    // No Start/Skip buttons for reviews in readOnly mode
+    const startButtons = screen.queryAllByLabelText(/Start review/);
+    expect(startButtons.length).toBe(0);
+    const skipButtons = screen.queryAllByLabelText(/Skip review/);
+    expect(skipButtons.length).toBe(0);
+  });
+
+  it("does not show empty state when only reviews exist for a day", () => {
+    const review = makeReview({ reviewDate: "2025-06-18" });
+    const weekData = buildWeekData();
+
+    render(
+      <WeeklyCalendarGrid
+        weekData={weekData}
+        today="2025-06-18"
+        reviews={[review]}
+      />
+    );
+
+    // Desktop: 6 days with "No items" (the 7th day has a review)
+    const emptyDesktop = screen.getAllByText("No items");
+    expect(emptyDesktop.length).toBe(6);
   });
 });

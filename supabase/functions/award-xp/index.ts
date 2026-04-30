@@ -43,7 +43,9 @@ type XPSource =
   | "study_session"
   | "planner_task"
   | "session_reflection"
-  | "weekly_goal";
+  | "weekly_goal"
+  | "review_session"
+  | "review_cycle_complete";
 
 type BloomsLevel =
   | "Remembering"
@@ -154,6 +156,8 @@ const MILESTONE_SOURCES: XPSource[] = [
   "onboarding_complete",
   "improvement_bonus",
   "league_promotion",
+  "weekly_goal",
+  "review_cycle_complete",
 ];
 
 // ─── Validation ─────────────────────────────────────────────────────────────
@@ -193,6 +197,8 @@ const VALID_SOURCES: XPSource[] = [
   "planner_task",
   "session_reflection",
   "weekly_goal",
+  "review_session",
+  "review_cycle_complete",
 ];
 
 function validatePayload(
@@ -716,6 +722,12 @@ serve(async (req) => {
       cappedXpAmount = 10;
     } else if (source === "weekly_goal") {
       // Server-enforced fixed amount: 25 XP per weekly goal met
+      cappedXpAmount = 25;
+    } else if (source === "review_session") {
+      // Server-enforced fixed amount: 15 XP per completed spaced-repetition review
+      cappedXpAmount = 15;
+    } else if (source === "review_cycle_complete") {
+      // Server-enforced fixed amount: 25 XP when all 3 review intervals complete for a CLO
       cappedXpAmount = 25;
     } else if (source === "study_session") {
       // study_session uses client-calculated xp_amount (via calculateSessionXP)

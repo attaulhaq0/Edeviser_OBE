@@ -5,9 +5,22 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import FocusTimer from "@/components/shared/FocusTimer";
 import type { FocusTimerReturn } from "@/hooks/useFocusTimer";
 import type { StudySession } from "@/types/planner";
+
+// ─── Test Wrapper ────────────────────────────────────────────────────────────
+
+const createWrapper = () => {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  const Wrapper = ({ children }: { children: React.ReactNode }) => (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  );
+  return Wrapper;
+};
 
 // ─── Mocks ───────────────────────────────────────────────────────────────────
 
@@ -19,6 +32,26 @@ vi.mock("@/hooks/useOfflineQueue", () => ({
     enqueue: vi.fn(),
     flush: vi.fn(),
   }),
+}));
+
+vi.mock("@/hooks/useFlowCheckIns", () => ({
+  useSaveFlowCheckIn: () => ({
+    mutate: vi.fn(),
+    isPending: false,
+  }),
+  useSessionFlowCheckIns: () => ({
+    data: [],
+    isLoading: false,
+  }),
+}));
+
+// Mock FlowCheckInDialog to capture props for testing
+const flowCheckInProps = vi.fn();
+vi.mock("@/components/shared/FlowCheckInDialog", () => ({
+  default: (props: Record<string, unknown>) => {
+    flowCheckInProps(props);
+    return null;
+  },
 }));
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -68,11 +101,14 @@ const makeTimer = (
 describe("FocusTimer", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    flowCheckInProps.mockClear();
   });
 
   describe("Timer Display", () => {
     it("renders the timer display in MM:SS format", () => {
-      render(<FocusTimer timer={makeTimer()} session={makeSession()} />);
+      render(<FocusTimer timer={makeTimer()} session={makeSession()} />, {
+        wrapper: createWrapper(),
+      });
       expect(screen.getByText("25:00")).toBeTruthy();
     });
 
@@ -81,13 +117,16 @@ describe("FocusTimer", () => {
         <FocusTimer
           timer={makeTimer({ display: "12:34", remainingMs: 754000 })}
           session={makeSession()}
-        />
+        />,
+        { wrapper: createWrapper() }
       );
       expect(screen.getByText("12:34")).toBeTruthy();
     });
 
     it("has aria-label on timer display", () => {
-      render(<FocusTimer timer={makeTimer()} session={makeSession()} />);
+      render(<FocusTimer timer={makeTimer()} session={makeSession()} />, {
+        wrapper: createWrapper(),
+      });
       const timerEl = screen.getByLabelText(/time remaining/i);
       expect(timerEl).toBeTruthy();
     });
@@ -95,12 +134,16 @@ describe("FocusTimer", () => {
 
   describe("Session Context", () => {
     it("renders session title", () => {
-      render(<FocusTimer timer={makeTimer()} session={makeSession()} />);
+      render(<FocusTimer timer={makeTimer()} session={makeSession()} />, {
+        wrapper: createWrapper(),
+      });
       expect(screen.getByText("Review Chapter 5")).toBeTruthy();
     });
 
     it("renders course name", () => {
-      render(<FocusTimer timer={makeTimer()} session={makeSession()} />);
+      render(<FocusTimer timer={makeTimer()} session={makeSession()} />, {
+        wrapper: createWrapper(),
+      });
       expect(screen.getByText("Math 101")).toBeTruthy();
     });
 
@@ -110,32 +153,52 @@ describe("FocusTimer", () => {
           timer={makeTimer()}
           session={makeSession()}
           cloTitles={["Understand derivatives", "Apply chain rule"]}
-        />
+        />,
+        { wrapper: createWrapper() }
       );
       expect(screen.getByText("Understand derivatives")).toBeTruthy();
       expect(screen.getByText("Apply chain rule")).toBeTruthy();
     });
 
-    it("renders intent text when provided", () => {
+    it("renders intent concept and success criterion when provided", () => {
       render(
         <FocusTimer
           timer={makeTimer()}
           session={makeSession()}
-          intentText="Focus on integration by parts"
-        />
+          intentConcept="Integration by parts"
+          intentSuccessCriterion="Solve 3 problems correctly"
+        />,
+        { wrapper: createWrapper() }
       );
-      expect(screen.getByText(/Focus on integration by parts/)).toBeTruthy();
+      expect(screen.getByText("Integration by parts")).toBeTruthy();
+      expect(screen.getByText("Solve 3 problems correctly")).toBeTruthy();
+    });
+
+    it("does not render intent card when intentConcept is null", () => {
+      render(
+        <FocusTimer
+          timer={makeTimer()}
+          session={makeSession()}
+          intentConcept={null}
+        />,
+        { wrapper: createWrapper() }
+      );
+      expect(screen.queryByText("Integration by parts")).toBeNull();
     });
 
     it("does not render session context when session is null", () => {
-      render(<FocusTimer timer={makeTimer()} session={null} />);
+      render(<FocusTimer timer={makeTimer()} session={null} />, {
+        wrapper: createWrapper(),
+      });
       expect(screen.queryByText("Review Chapter 5")).toBeNull();
     });
   });
 
   describe("Controls — Idle State", () => {
     it("shows Start button in idle state", () => {
-      render(<FocusTimer timer={makeTimer()} session={makeSession()} />);
+      render(<FocusTimer timer={makeTimer()} session={makeSession()} />, {
+        wrapper: createWrapper(),
+      });
       expect(screen.getByRole("button", { name: /start/i })).toBeTruthy();
     });
 
@@ -146,7 +209,8 @@ describe("FocusTimer", () => {
         <FocusTimer
           timer={makeTimer({ start: startFn })}
           session={makeSession()}
-        />
+        />,
+        { wrapper: createWrapper() }
       );
       await user.click(screen.getByRole("button", { name: /start/i }));
       expect(startFn).toHaveBeenCalledOnce();
@@ -159,7 +223,8 @@ describe("FocusTimer", () => {
         <FocusTimer
           timer={makeTimer({ timerState: "running" })}
           session={makeSession()}
-        />
+        />,
+        { wrapper: createWrapper() }
       );
       expect(screen.getByRole("button", { name: /pause/i })).toBeTruthy();
       expect(screen.getByRole("button", { name: /end/i })).toBeTruthy();
@@ -172,7 +237,8 @@ describe("FocusTimer", () => {
         <FocusTimer
           timer={makeTimer({ timerState: "running", pause: pauseFn })}
           session={makeSession()}
-        />
+        />,
+        { wrapper: createWrapper() }
       );
       await user.click(screen.getByRole("button", { name: /pause/i }));
       expect(pauseFn).toHaveBeenCalledOnce();
@@ -187,7 +253,8 @@ describe("FocusTimer", () => {
           timer={makeTimer({ timerState: "running", end: endFn })}
           session={makeSession()}
           onEnd={onEnd}
-        />
+        />,
+        { wrapper: createWrapper() }
       );
       await user.click(screen.getByRole("button", { name: /end/i }));
       expect(endFn).toHaveBeenCalledOnce();
@@ -201,7 +268,8 @@ describe("FocusTimer", () => {
         <FocusTimer
           timer={makeTimer({ timerState: "paused" })}
           session={makeSession()}
-        />
+        />,
+        { wrapper: createWrapper() }
       );
       expect(screen.getByRole("button", { name: /resume/i })).toBeTruthy();
       expect(screen.getByRole("button", { name: /end/i })).toBeTruthy();
@@ -214,7 +282,8 @@ describe("FocusTimer", () => {
         <FocusTimer
           timer={makeTimer({ timerState: "paused", resume: resumeFn })}
           session={makeSession()}
-        />
+        />,
+        { wrapper: createWrapper() }
       );
       await user.click(screen.getByRole("button", { name: /resume/i }));
       expect(resumeFn).toHaveBeenCalledOnce();
@@ -227,7 +296,8 @@ describe("FocusTimer", () => {
         <FocusTimer
           timer={makeTimer({ timerState: "break" })}
           session={makeSession()}
-        />
+        />,
+        { wrapper: createWrapper() }
       );
       expect(screen.getByRole("button", { name: /skip break/i })).toBeTruthy();
       expect(screen.getByRole("button", { name: /end/i })).toBeTruthy();
@@ -240,7 +310,8 @@ describe("FocusTimer", () => {
         <FocusTimer
           timer={makeTimer({ timerState: "break", skipBreak: skipBreakFn })}
           session={makeSession()}
-        />
+        />,
+        { wrapper: createWrapper() }
       );
       await user.click(screen.getByRole("button", { name: /skip break/i }));
       expect(skipBreakFn).toHaveBeenCalledOnce();
@@ -251,7 +322,8 @@ describe("FocusTimer", () => {
         <FocusTimer
           timer={makeTimer({ timerState: "long_break" })}
           session={makeSession()}
-        />
+        />,
+        { wrapper: createWrapper() }
       );
       expect(screen.getByRole("button", { name: /skip break/i })).toBeTruthy();
     });
@@ -267,7 +339,8 @@ describe("FocusTimer", () => {
             pomodoroInterval: 2,
           })}
           session={makeSession()}
-        />
+        />,
+        { wrapper: createWrapper() }
       );
       expect(screen.getByRole("button", { name: /start next/i })).toBeTruthy();
       expect(screen.getByRole("button", { name: /end session/i })).toBeTruthy();
@@ -280,7 +353,8 @@ describe("FocusTimer", () => {
         <FocusTimer
           timer={makeTimer({ timerState: "completed" })}
           session={makeSession()}
-        />
+        />,
+        { wrapper: createWrapper() }
       );
       expect(screen.getByText("Session Complete")).toBeTruthy();
     });
@@ -292,7 +366,8 @@ describe("FocusTimer", () => {
         <FocusTimer
           timer={makeTimer({ mode: "pomodoro" })}
           session={makeSession()}
-        />
+        />,
+        { wrapper: createWrapper() }
       );
       expect(screen.getByText("Pomodoro 1 of 4")).toBeTruthy();
     });
@@ -302,7 +377,8 @@ describe("FocusTimer", () => {
         <FocusTimer
           timer={makeTimer({ mode: "custom" })}
           session={makeSession()}
-        />
+        />,
+        { wrapper: createWrapper() }
       );
       expect(screen.queryByText(/Pomodoro \d+ of 4/)).toBeNull();
     });
@@ -314,7 +390,8 @@ describe("FocusTimer", () => {
         <FocusTimer
           timer={makeTimer({ mode: "pomodoro" })}
           session={makeSession()}
-        />
+        />,
+        { wrapper: createWrapper() }
       );
       expect(screen.getByText("Pomodoro Mode")).toBeTruthy();
     });
@@ -324,7 +401,8 @@ describe("FocusTimer", () => {
         <FocusTimer
           timer={makeTimer({ mode: "custom" })}
           session={makeSession()}
-        />
+        />,
+        { wrapper: createWrapper() }
       );
       expect(screen.getByText("Custom Timer")).toBeTruthy();
     });
@@ -332,7 +410,9 @@ describe("FocusTimer", () => {
 
   describe("ARIA Live Region", () => {
     it("renders an ARIA live region for timer announcements", () => {
-      render(<FocusTimer timer={makeTimer()} session={makeSession()} />);
+      render(<FocusTimer timer={makeTimer()} session={makeSession()} />, {
+        wrapper: createWrapper(),
+      });
       const liveRegion = screen.getByRole("timer");
       expect(liveRegion).toBeTruthy();
       expect(liveRegion.getAttribute("aria-live")).toBe("polite");
@@ -341,8 +421,104 @@ describe("FocusTimer", () => {
 
   describe("Offline Indicator", () => {
     it("does not show offline indicator when online", () => {
-      render(<FocusTimer timer={makeTimer()} session={makeSession()} />);
+      render(<FocusTimer timer={makeTimer()} session={makeSession()} />, {
+        wrapper: createWrapper(),
+      });
       expect(screen.queryByText(/offline/i)).toBeNull();
+    });
+  });
+
+  describe("Custom Midpoint Flow Check-In", () => {
+    it("opens flow dialog at midpoint for custom sessions ≥50 min", () => {
+      const midpointMs = (60 * 60 * 1000) / 2; // 30 min for a 60-min session
+      render(
+        <FocusTimer
+          timer={makeTimer({
+            mode: "custom",
+            timerState: "running",
+            totalElapsedMs: midpointMs,
+            remainingMs: midpointMs,
+          })}
+          session={makeSession({
+            plannedDurationMinutes: 60,
+            timerMode: "custom",
+          })}
+        />,
+        { wrapper: createWrapper() }
+      );
+      // FlowCheckInDialog should be called with open=true
+      const lastCall =
+        flowCheckInProps.mock.calls[flowCheckInProps.mock.calls.length - 1]!;
+      expect(lastCall[0].open).toBe(true);
+      expect(lastCall[0].intervalNumber).toBe(1);
+    });
+
+    it("does not open flow dialog for custom sessions <50 min", () => {
+      render(
+        <FocusTimer
+          timer={makeTimer({
+            mode: "custom",
+            timerState: "running",
+            totalElapsedMs: 15 * 60 * 1000, // 15 min elapsed
+            remainingMs: 15 * 60 * 1000,
+          })}
+          session={makeSession({
+            plannedDurationMinutes: 30,
+            timerMode: "custom",
+          })}
+        />,
+        { wrapper: createWrapper() }
+      );
+      // FlowCheckInDialog should be called with open=false
+      const lastCall =
+        flowCheckInProps.mock.calls[flowCheckInProps.mock.calls.length - 1]!;
+      expect(lastCall[0].open).toBe(false);
+    });
+
+    it("does not open flow dialog before midpoint for custom sessions ≥50 min", () => {
+      const beforeMidpointMs = (50 * 60 * 1000) / 2 - 1000; // just before midpoint
+      render(
+        <FocusTimer
+          timer={makeTimer({
+            mode: "custom",
+            timerState: "running",
+            totalElapsedMs: beforeMidpointMs,
+            remainingMs: 50 * 60 * 1000 - beforeMidpointMs,
+          })}
+          session={makeSession({
+            plannedDurationMinutes: 50,
+            timerMode: "custom",
+          })}
+        />,
+        { wrapper: createWrapper() }
+      );
+      // FlowCheckInDialog should be called with open=false (not yet at midpoint)
+      const lastCall =
+        flowCheckInProps.mock.calls[flowCheckInProps.mock.calls.length - 1]!;
+      expect(lastCall[0].open).toBe(false);
+    });
+
+    it("uses intervalNumber 1 for custom midpoint check-in", () => {
+      const midpointMs = (50 * 60 * 1000) / 2;
+      render(
+        <FocusTimer
+          timer={makeTimer({
+            mode: "custom",
+            timerState: "running",
+            totalElapsedMs: midpointMs,
+            remainingMs: midpointMs,
+          })}
+          session={makeSession({
+            plannedDurationMinutes: 50,
+            timerMode: "custom",
+          })}
+        />,
+        { wrapper: createWrapper() }
+      );
+      const lastCall =
+        flowCheckInProps.mock.calls[flowCheckInProps.mock.calls.length - 1]!;
+      expect(lastCall[0].open).toBe(true);
+      expect(lastCall[0].intervalNumber).toBe(1);
     });
   });
 });
@@ -371,7 +547,16 @@ describe("FocusTimer — Offline", () => {
       }>,
     });
 
-    render(<FocusTimer timer={makeTimer()} session={makeSession()} />);
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    const Wrapper = ({ children }: { children: React.ReactNode }) => (
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    );
+
+    render(<FocusTimer timer={makeTimer()} session={makeSession()} />, {
+      wrapper: Wrapper,
+    });
     expect(screen.getByText(/offline/i)).toBeTruthy();
     expect(screen.getByRole("alert")).toBeTruthy();
 

@@ -32,12 +32,12 @@ export type TimeOfDay = "morning" | "afternoon" | "evening";
 export interface StudySession {
   id: string;
   studentId: string;
-  courseId: string;
+  courseId: string | null;
   courseName?: string;
   title: string;
   description: string | null;
   plannedDate: string; // YYYY-MM-DD
-  plannedStartTime: string; // HH:MM
+  plannedStartTime: string | null; // HH:MM
   plannedDurationMinutes: number;
   actualStartAt: string | null;
   actualEndAt: string | null;
@@ -229,7 +229,10 @@ export interface ReflectionDigest {
   growthPatterns: Array<{ area: string; description: string }>;
   emotionalTrends: Array<{ label: string }>;
   suggestedFocus: Array<{ area: string; reason: string }>;
-  sharedWith: Array<{ role: "parent" | "advisor"; sharedAt: string }>;
+  sharedWith: Array<{
+    role: "parent" | "advisor" | "teacher";
+    sharedAt: string;
+  }>;
   createdAt: string;
 }
 
@@ -240,4 +243,91 @@ export interface ReflectionDigest {
 export interface SuggestedIntent {
   concept: string;
   successCriterion: string;
+}
+
+export interface SessionIntent {
+  id: string;
+  sessionId: string;
+  studentId: string;
+  concept: string;
+  successCriterion: string;
+  isAutoSuggested: boolean;
+  createdAt: string;
+}
+
+// -----------------------------------------------------------------------------
+// Flow Check-In Record
+// -----------------------------------------------------------------------------
+
+export interface FlowCheckIn {
+  id: string;
+  sessionId: string;
+  studentId: string;
+  intervalNumber: number;
+  response: FlowResponse;
+  createdAt: string;
+}
+
+// -----------------------------------------------------------------------------
+// Spaced Repetition / Review Schedule
+// -----------------------------------------------------------------------------
+
+export type ReviewStatus = "pending" | "completed" | "skipped";
+
+export interface ReviewSchedule {
+  id: string;
+  studentId: string;
+  cloId: string;
+  courseId: string | null;
+  sourceSessionId: string | null;
+  reviewDate: string; // YYYY-MM-DD
+  intervalDays: 1 | 3 | 7;
+  status: ReviewStatus;
+  reviewSessionId: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// -----------------------------------------------------------------------------
+// Reflection Templates / Quality
+// -----------------------------------------------------------------------------
+
+export type ReflectionTypeEnum = "session_reflection" | "journal_entry";
+export type ReflectionTemplateType = "free_form" | "simple" | "gibbs";
+
+export interface DigestTheme {
+  topic: string;
+  count: number;
+}
+
+export interface DigestPattern {
+  area: string;
+  description: string;
+}
+
+export interface DigestTrend {
+  label: string;
+}
+
+export interface DigestFocus {
+  area: string;
+  reason: string;
+}
+
+export interface DigestShareEntry {
+  role: "parent" | "advisor" | "teacher";
+  sharedAt: string;
+}
+
+export interface ReflectionQualityScore {
+  id: string;
+  reflectionId: string;
+  reflectionType: ReflectionTypeEnum;
+  studentId: string;
+  score: number; // 0–100
+  originalityScore: number;
+  relevanceScore: number;
+  depthScore: number;
+  flags: string[];
+  scoredAt: string;
 }

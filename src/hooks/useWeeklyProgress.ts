@@ -35,7 +35,11 @@ function computeCourseBreakdown(sessions: StudySession[]): CourseStudyTime[] {
   >();
 
   for (const session of sessions) {
-    if (session.status !== "completed" || !session.actualDurationMinutes)
+    if (
+      session.status !== "completed" ||
+      !session.actualDurationMinutes ||
+      !session.courseId
+    )
       continue;
 
     const existing = courseMap.get(session.courseId);

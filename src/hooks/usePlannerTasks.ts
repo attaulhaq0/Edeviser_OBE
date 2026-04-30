@@ -6,6 +6,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
 import { useAuth } from "@/hooks/useAuth";
+import { awardWeeklyGoalXPIfMet } from "@/hooks/useWeeklyGoalXP";
 import { toast } from "sonner";
 import type { PlannerTask } from "@/types/planner";
 import type { CreatePlannerTaskInput } from "@/lib/schemas/planner";
@@ -231,6 +232,13 @@ export const useCompleteTask = () => {
         });
       } catch {
         console.error("[useCompleteTask] check-badges invocation failed");
+      }
+
+      // 4. Award XP for any weekly goals just met (idempotent)
+      try {
+        await awardWeeklyGoalXPIfMet(user.id);
+      } catch {
+        console.error("[useCompleteTask] weekly goal XP award failed");
       }
 
       return { task, xpAwarded };

@@ -10,8 +10,10 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import FocusTimer from "@/components/shared/FocusTimer";
 import SessionCompletionForm from "@/components/shared/SessionCompletionForm";
+import SessionIntentDialog from "@/components/shared/SessionIntentDialog";
 import Shimmer from "@/components/shared/Shimmer";
 import { useFocusTimer } from "@/hooks/useFocusTimer";
+import { useSessionIntent } from "@/hooks/useSessionIntent";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
@@ -80,6 +82,28 @@ const FocusModePage = () => {
       // Timer completed — handled by FocusTimer component
     },
   });
+
+  // ─── Session Intent (shows once before timer starts) ─────────────────────
+  const { data: existingIntent, isLoading: intentLoading } =
+    useSessionIntent(sessionId);
+
+  const [intentResolved, setIntentResolved] = useState(false);
+
+  // Derived: show dialog once data is loaded, no existing intent, and user hasn't acted yet
+  const showIntentDialog =
+    !intentResolved && !intentLoading && !!session && !existingIntent;
+
+  const handleIntentSubmit = useCallback(() => {
+    setIntentResolved(true);
+  }, []);
+
+  const handleIntentSkip = useCallback(() => {
+    setIntentResolved(true);
+  }, []);
+
+  // Build structured intent data for display alongside the timer
+  const intentConcept = existingIntent?.concept ?? null;
+  const intentSuccessCriterion = existingIntent?.successCriterion ?? null;
 
   // ─── Completion state ────────────────────────────────────────────────────
   const [showCompletion, setShowCompletion] = useState(false);
@@ -153,6 +177,17 @@ const FocusModePage = () => {
         <div className="w-16" /> {/* Spacer for centering */}
       </header>
 
+      {/* Session Intent Dialog (shown once at start) */}
+      <SessionIntentDialog
+        open={showIntentDialog}
+        onOpenChange={(open) => {
+          if (!open) setIntentResolved(true);
+        }}
+        sessionId={sessionId ?? ""}
+        onSubmit={handleIntentSubmit}
+        onSkip={handleIntentSkip}
+      />
+
       {/* Main Content */}
       <main className="flex flex-1 flex-col items-center justify-center p-6">
         {showCompletion ? (
@@ -166,6 +201,8 @@ const FocusModePage = () => {
             timer={timer}
             session={session}
             cloTitles={cloTitles}
+            intentConcept={intentConcept}
+            intentSuccessCriterion={intentSuccessCriterion}
             onComplete={handleTimerComplete}
             onEnd={handleTimerEnd}
           />

@@ -1,16 +1,22 @@
 // =============================================================================
 // WeeklyReflectionPanel — Textarea with live word count (min 50 words),
-// save button, creates journal_entries record on save
+// save button, creates journal_entries record on save.
+// Supports reflection templates and streak indicator.
 // =============================================================================
 
-import { useState, useCallback, useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { Card } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import GradientCardHeader from "@/components/shared/GradientCardHeader";
 import { cn } from "@/lib/utils";
 import { countWords } from "@/lib/plannerUtils";
 import { BookOpen, Loader2, Save } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { useReflectionTemplates } from "@/hooks/useReflectionTemplates";
+import ReflectionTemplateSelector from "@/components/shared/ReflectionTemplateSelector";
+import SimpleReflectionTemplate from "@/components/shared/SimpleReflectionTemplate";
+import GibbsReflectionTemplate from "@/components/shared/GibbsReflectionTemplate";
+import ReflectionStreakIndicator from "@/components/shared/ReflectionStreakIndicator";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -19,6 +25,7 @@ interface WeeklyReflectionPanelProps {
   onSave: (content: string) => void;
   isPending?: boolean;
   disabled?: boolean;
+  reflectionStreakWeeks?: number;
   className?: string;
 }
 
@@ -33,10 +40,12 @@ const WeeklyReflectionPanel = ({
   onSave,
   isPending = false,
   disabled = false,
+  reflectionStreakWeeks = 0,
   className,
 }: WeeklyReflectionPanelProps) => {
-  const [content, setContent] = useState("");
+  const templates = useReflectionTemplates();
 
+  const content = templates.getContent();
   const wordCount = useMemo(() => countWords(content), [content]);
   const meetsMinimum = wordCount >= MIN_WORDS;
   const hasContent = content.trim().length > 0;
@@ -45,13 +54,6 @@ const WeeklyReflectionPanel = ({
     if (!meetsMinimum || isPending || disabled) return;
     onSave(content.trim());
   }, [content, meetsMinimum, isPending, disabled, onSave]);
-
-  const handleChange = useCallback(
-    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-      setContent(e.target.value);
-    },
-    []
-  );
 
   return (
     <Card
@@ -64,23 +66,52 @@ const WeeklyReflectionPanel = ({
       <GradientCardHeader icon={BookOpen} title="Weekly Reflection" />
 
       <div className="p-6 space-y-4">
-        <p className="text-sm text-gray-500">
-          Take a moment to reflect on your week. What worked well? What would
-          you do differently? How will you approach next week?
-        </p>
+        {/* Header with streak and template selector */}
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-gray-500">
+            Take a moment to reflect on your week. What worked well? What would
+            you do differently? How will you approach next week?
+          </p>
+          <ReflectionStreakIndicator streakWeeks={reflectionStreakWeeks} />
+        </div>
 
-        {/* Textarea */}
-        <Textarea
-          id="weekly-reflection"
-          placeholder="Write your weekly reflection here... (minimum 50 words)"
-          rows={6}
-          value={content}
-          onChange={handleChange}
+        {/* Template Selector */}
+        <ReflectionTemplateSelector
+          value={templates.templateType}
+          onChange={templates.setTemplateType}
           disabled={disabled || isPending}
-          className="resize-y"
-          aria-describedby="weekly-reflection-word-count"
-          data-testid="weekly-reflection-textarea"
         />
+
+        {/* Template Content */}
+        {templates.templateType === "free_form" && (
+          <Textarea
+            id="weekly-reflection"
+            placeholder="Write your weekly reflection here... (minimum 50 words)"
+            rows={6}
+            value={templates.freeFormContent}
+            onChange={(e) => templates.setFreeFormContent(e.target.value)}
+            disabled={disabled || isPending}
+            className="resize-y"
+            aria-describedby="weekly-reflection-word-count"
+            data-testid="weekly-reflection-textarea"
+          />
+        )}
+
+        {templates.templateType === "simple" && (
+          <SimpleReflectionTemplate
+            values={templates.simpleValues}
+            onChange={templates.updateSimpleField}
+            disabled={disabled || isPending}
+          />
+        )}
+
+        {templates.templateType === "gibbs" && (
+          <GibbsReflectionTemplate
+            values={templates.gibbsValues}
+            onChange={templates.updateGibbsField}
+            disabled={disabled || isPending}
+          />
+        )}
 
         {/* Word Count + Save */}
         <div className="flex items-center justify-between">
@@ -128,7 +159,7 @@ const WeeklyReflectionPanel = ({
         {/* XP hint */}
         <p className="text-xs text-gray-400">
           Saving your weekly reflection creates a journal entry and awards 20
-          XP.
+          XP. Quality reflections earn bonus XP.
         </p>
       </div>
     </Card>

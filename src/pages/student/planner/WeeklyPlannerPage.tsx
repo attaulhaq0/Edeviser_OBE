@@ -27,6 +27,12 @@ import { useCreatePlannerTask, useCompleteTask } from "@/hooks/usePlannerTasks";
 import { useSaveWeeklyGoals } from "@/hooks/useWeeklyGoals";
 import { useSaveWeeklyReflection } from "@/hooks/useSessionReflections";
 import {
+  useMonthlyDigest,
+  useShareDigest,
+  useRevokeDigestShare,
+} from "@/hooks/useReflectionDigest";
+import ReflectionDigestCard from "@/components/shared/ReflectionDigestCard";
+import {
   getWeekStartDate,
   isWeekInPast,
   calculateGoalProgress,
@@ -99,6 +105,12 @@ const WeeklyPlannerPage = () => {
   const completeTask = useCompleteTask();
   const saveGoals = useSaveWeeklyGoals();
   const saveWeeklyReflection = useSaveWeeklyReflection();
+
+  // ─── Monthly Digest ─────────────────────────────────────────────────────────
+  const currentMonth = useMemo(() => format(new Date(), "yyyy-MM"), []);
+  const { data: monthlyDigest } = useMonthlyDigest(studentId, currentMonth);
+  const shareDigest = useShareDigest();
+  const revokeDigestShare = useRevokeDigestShare();
 
   // ─── Dialog State ───────────────────────────────────────────────────────────
   const [sessionDialogOpen, setSessionDialogOpen] = useState(false);
@@ -350,16 +362,34 @@ const WeeklyPlannerPage = () => {
               </TabsContent>
 
               <TabsContent value="reflect" className="p-6">
-                <WeeklyReflectionPanel
-                  weekStartDate={currentWeekStart}
-                  onSave={(content) =>
-                    saveWeeklyReflection.mutate({
-                      content,
-                      weekStartDate: currentWeekStart,
-                    })
-                  }
-                  isPending={saveWeeklyReflection.isPending}
-                />
+                <div className="space-y-6">
+                  <WeeklyReflectionPanel
+                    weekStartDate={currentWeekStart}
+                    onSave={(content) =>
+                      saveWeeklyReflection.mutate({
+                        content,
+                        weekStartDate: currentWeekStart,
+                      })
+                    }
+                    isPending={saveWeeklyReflection.isPending}
+                  />
+
+                  {/* Monthly Insights */}
+                  {monthlyDigest && (
+                    <ReflectionDigestCard
+                      digest={monthlyDigest}
+                      onShare={(digestId, role) =>
+                        shareDigest.mutate({ digestId, role })
+                      }
+                      onRevokeShare={(digestId, role) =>
+                        revokeDigestShare.mutate({ digestId, role })
+                      }
+                      isSharing={
+                        shareDigest.isPending || revokeDigestShare.isPending
+                      }
+                    />
+                  )}
+                </div>
               </TabsContent>
             </Tabs>
           </Card>

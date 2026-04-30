@@ -1,14 +1,18 @@
 // =============================================================================
 // SessionReflectionInput — Textarea with live word count, minimum 30 words
-// indicator, save button
+// indicator, save button. Supports template selection (free-form, simple, gibbs).
 // =============================================================================
 
-import { useState, useCallback, useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { countWords } from "@/lib/plannerUtils";
 import { Loader2, Save, BookOpen } from "lucide-react";
+import { useReflectionTemplates } from "@/hooks/useReflectionTemplates";
+import ReflectionTemplateSelector from "@/components/shared/ReflectionTemplateSelector";
+import SimpleReflectionTemplate from "@/components/shared/SimpleReflectionTemplate";
+import GibbsReflectionTemplate from "@/components/shared/GibbsReflectionTemplate";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -36,8 +40,17 @@ const SessionReflectionInput = ({
   defaultValue = "",
   className,
 }: SessionReflectionInputProps) => {
-  const [content, setContent] = useState(defaultValue);
+  const templates = useReflectionTemplates();
 
+  // Initialize free-form content with defaultValue
+  useMemo(() => {
+    if (defaultValue && templates.freeFormContent === "") {
+      templates.setFreeFormContent(defaultValue);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [defaultValue]);
+
+  const content = templates.getContent();
   const wordCount = useMemo(() => countWords(content), [content]);
   const meetsMinimum = wordCount >= minWords;
   const hasContent = content.trim().length > 0;
@@ -47,40 +60,59 @@ const SessionReflectionInput = ({
     onSave(content.trim());
   }, [content, meetsMinimum, isPending, disabled, onSave]);
 
-  const handleChange = useCallback(
-    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-      setContent(e.target.value);
-    },
-    []
-  );
-
   return (
     <div className={cn("space-y-3", className)}>
-      {/* Label */}
-      <div className="flex items-center gap-2">
-        <BookOpen className="h-4 w-4 text-gray-500" />
-        <label
-          htmlFor="session-reflection"
-          className="text-sm font-medium text-gray-700"
-        >
-          Session Reflection
-          <span className="ms-1 text-xs text-gray-400">
-            (optional, min {minWords} words)
-          </span>
-        </label>
+      {/* Label + Template Selector */}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <BookOpen className="h-4 w-4 text-gray-500" />
+          <label
+            htmlFor="session-reflection"
+            className="text-sm font-medium text-gray-700"
+          >
+            Session Reflection
+            <span className="ms-1 text-xs text-gray-400">
+              (optional, min {minWords} words)
+            </span>
+          </label>
+        </div>
+        <ReflectionTemplateSelector
+          value={templates.templateType}
+          onChange={templates.setTemplateType}
+          disabled={disabled || isPending}
+          className="w-48"
+        />
       </div>
 
-      {/* Textarea */}
-      <Textarea
-        id="session-reflection"
-        placeholder="What did you learn? What went well? What would you do differently?"
-        rows={4}
-        value={content}
-        onChange={handleChange}
-        disabled={disabled || isPending}
-        className="resize-y"
-        aria-describedby="reflection-word-count"
-      />
+      {/* Template Content */}
+      {templates.templateType === "free_form" && (
+        <Textarea
+          id="session-reflection"
+          placeholder="What did you learn? What went well? What would you do differently?"
+          rows={4}
+          value={templates.freeFormContent}
+          onChange={(e) => templates.setFreeFormContent(e.target.value)}
+          disabled={disabled || isPending}
+          className="resize-y"
+          aria-describedby="reflection-word-count"
+        />
+      )}
+
+      {templates.templateType === "simple" && (
+        <SimpleReflectionTemplate
+          values={templates.simpleValues}
+          onChange={templates.updateSimpleField}
+          disabled={disabled || isPending}
+        />
+      )}
+
+      {templates.templateType === "gibbs" && (
+        <GibbsReflectionTemplate
+          values={templates.gibbsValues}
+          onChange={templates.updateGibbsField}
+          disabled={disabled || isPending}
+        />
+      )}
 
       {/* Word Count + Save */}
       <div className="flex items-center justify-between">

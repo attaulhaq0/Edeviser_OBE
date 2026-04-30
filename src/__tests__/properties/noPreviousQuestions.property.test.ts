@@ -1,8 +1,8 @@
 // Feature: adaptive-quiz-generation, Property 11: No previously answered questions selected
 // **Validates: Requirements 6.5**
 
-import { describe, it, expect } from 'vitest';
-import * as fc from 'fast-check';
+import { describe, it, expect } from "vitest";
+import * as fc from "fast-check";
 
 interface QuestionCandidate {
   id: string;
@@ -17,7 +17,7 @@ interface QuestionCandidate {
  */
 function filterEligibleQuestions(
   pool: QuestionCandidate[],
-  previouslyAnsweredIds: Set<string>,
+  previouslyAnsweredIds: Set<string>
 ): QuestionCandidate[] {
   return pool.filter((q) => !previouslyAnsweredIds.has(q.id));
 }
@@ -30,8 +30,8 @@ const questionArb = fc.record({
 
 const questionPoolArb = fc.array(questionArb, { minLength: 1, maxLength: 30 });
 
-describe('No previously answered questions — property-based tests', () => {
-  it('P11: filtered pool contains zero overlap with previously answered IDs', () => {
+describe("No previously answered questions — property-based tests", () => {
+  it("P11: filtered pool contains zero overlap with previously answered IDs", () => {
     fc.assert(
       fc.property(
         questionPoolArb,
@@ -40,7 +40,7 @@ describe('No previously answered questions — property-based tests', () => {
           // Pick a random subset of pool IDs as "previously answered"
           const answeredCount = Math.min(answerCount, pool.length);
           const previouslyAnsweredIds = new Set(
-            pool.slice(0, answeredCount).map((q) => q.id),
+            pool.slice(0, answeredCount).map((q) => q.id)
           );
 
           const eligible = filterEligibleQuestions(pool, previouslyAnsweredIds);
@@ -52,12 +52,12 @@ describe('No previously answered questions — property-based tests', () => {
 
           // The eligible count should equal pool size minus answered questions that were in the pool
           const expectedCount = pool.filter(
-            (q) => !previouslyAnsweredIds.has(q.id),
+            (q) => !previouslyAnsweredIds.has(q.id)
           ).length;
           expect(eligible.length).toBe(expectedCount);
-        },
+        }
       ),
-      { numRuns: 100 },
+      { numRuns: 100 }
     );
   });
 });

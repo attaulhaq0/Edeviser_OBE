@@ -95,7 +95,7 @@ describe("SessionCompletionForm", () => {
       expect(screen.getByPlaceholderText(/what did you work on/i)).toBeTruthy();
     });
 
-    it("renders evidence uploader section", () => {
+    it("renders evidence section with QuickThoughtInput as primary option", () => {
       render(
         <SessionCompletionForm
           session={makeSession()}
@@ -104,7 +104,31 @@ describe("SessionCompletionForm", () => {
         />
       );
       expect(screen.getByText("Evidence")).toBeTruthy();
-      expect(screen.getByLabelText(/upload evidence files/i)).toBeTruthy();
+      // QuickThoughtInput is shown by default
+      expect(screen.getByLabelText(/quick thought/i)).toBeTruthy();
+    });
+
+    it("renders Attach files toggle button", () => {
+      render(
+        <SessionCompletionForm
+          session={makeSession()}
+          actualDurationMinutes={25}
+          onComplete={onComplete}
+        />
+      );
+      expect(screen.getByText("Attach files")).toBeTruthy();
+    });
+
+    it("does not render EvidenceUploader by default", () => {
+      render(
+        <SessionCompletionForm
+          session={makeSession()}
+          actualDurationMinutes={25}
+          onComplete={onComplete}
+        />
+      );
+      // The file upload area should not be visible until "Attach files" is clicked
+      expect(screen.queryByLabelText(/upload evidence files/i)).toBeNull();
     });
 
     it("renders session reflection input", () => {
@@ -151,6 +175,140 @@ describe("SessionCompletionForm", () => {
       const stars = screen.getAllByRole("button", { name: /rate \d star/i });
       // Star 4 and 5 should not be filled
       expect(stars[3]?.className).toContain("text-gray-300");
+    });
+  });
+
+  describe("QuickThoughtInput Integration", () => {
+    it("shows QuickThoughtInput by default in the evidence section", () => {
+      render(
+        <SessionCompletionForm
+          session={makeSession()}
+          actualDurationMinutes={25}
+          onComplete={onComplete}
+        />
+      );
+      expect(screen.getByLabelText(/quick thought/i)).toBeTruthy();
+      expect(
+        screen.getByPlaceholderText(/what's the one thing you'll remember/i)
+      ).toBeTruthy();
+    });
+
+    it("appends quick thought to session notes on submit", async () => {
+      const user = userEvent.setup();
+      render(
+        <SessionCompletionForm
+          session={makeSession()}
+          actualDurationMinutes={25}
+          onComplete={onComplete}
+        />
+      );
+
+      const thoughtInput = screen.getByLabelText(/quick thought/i);
+      await user.type(thoughtInput, "Learned about chain rule");
+
+      const submitThought = screen.getByRole("button", {
+        name: /submit thought/i,
+      });
+      await user.click(submitThought);
+
+      // Should show confirmation message
+      expect(screen.getByText(/quick thought captured/i)).toBeTruthy();
+      // QuickThoughtInput should no longer be visible
+      expect(screen.queryByLabelText(/quick thought/i)).toBeNull();
+    });
+
+    it("includes quick thought text in notes when submitting the form", async () => {
+      const user = userEvent.setup();
+      render(
+        <SessionCompletionForm
+          session={makeSession()}
+          actualDurationMinutes={30}
+          onComplete={onComplete}
+        />
+      );
+
+      // Submit a quick thought first
+      const thoughtInput = screen.getByLabelText(/quick thought/i);
+      await user.type(thoughtInput, "Key insight about derivatives");
+      await user.click(screen.getByRole("button", { name: /submit thought/i }));
+
+      // Now submit the form
+      await user.click(
+        screen.getByRole("button", { name: /submit & finish/i })
+      );
+
+      expect(mockMutate).toHaveBeenCalledOnce();
+      const callArgs = mockMutate.mock.calls[0]?.[0];
+      expect(callArgs.notes).toBe("Key insight about derivatives");
+    });
+
+    it("combines existing notes with quick thought text", async () => {
+      const user = userEvent.setup();
+      render(
+        <SessionCompletionForm
+          session={makeSession()}
+          actualDurationMinutes={30}
+          onComplete={onComplete}
+        />
+      );
+
+      // Type notes first
+      const notesInput = screen.getByPlaceholderText(/what did you work on/i);
+      await user.type(notesInput, "Studied calculus");
+
+      // Then submit a quick thought
+      const thoughtInput = screen.getByLabelText(/quick thought/i);
+      await user.type(thoughtInput, "Chain rule is key");
+      await user.click(screen.getByRole("button", { name: /submit thought/i }));
+
+      // Submit the form
+      await user.click(
+        screen.getByRole("button", { name: /submit & finish/i })
+      );
+
+      const callArgs = mockMutate.mock.calls[0]?.[0];
+      expect(callArgs.notes).toBe("Studied calculus\n\nChain rule is key");
+    });
+  });
+
+  describe("Attach Files Toggle", () => {
+    it("expands EvidenceUploader when Attach files is clicked", async () => {
+      const user = userEvent.setup();
+      render(
+        <SessionCompletionForm
+          session={makeSession()}
+          actualDurationMinutes={25}
+          onComplete={onComplete}
+        />
+      );
+
+      // Initially no file uploader
+      expect(screen.queryByLabelText(/upload evidence files/i)).toBeNull();
+
+      // Click "Attach files"
+      await user.click(screen.getByText("Attach files"));
+
+      // Now the EvidenceUploader should be visible
+      expect(screen.getByLabelText(/upload evidence files/i)).toBeTruthy();
+    });
+
+    it("collapses EvidenceUploader when Hide is clicked", async () => {
+      const user = userEvent.setup();
+      render(
+        <SessionCompletionForm
+          session={makeSession()}
+          actualDurationMinutes={25}
+          onComplete={onComplete}
+        />
+      );
+
+      // Expand
+      await user.click(screen.getByText("Attach files"));
+      expect(screen.getByLabelText(/upload evidence files/i)).toBeTruthy();
+
+      // Collapse
+      await user.click(screen.getByText("Hide"));
+      expect(screen.queryByLabelText(/upload evidence files/i)).toBeNull();
     });
   });
 

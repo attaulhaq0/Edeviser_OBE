@@ -1,8 +1,8 @@
 // Feature: adaptive-quiz-generation, Property 5: Question versioning preserves original
 // **Validates: Requirements 4.3**
 
-import { describe, it, expect } from 'vitest';
-import * as fc from 'fast-check';
+import { describe, it, expect } from "vitest";
+import * as fc from "fast-check";
 
 interface QuestionVersion {
   id: string;
@@ -20,7 +20,7 @@ function editQuestion(
   original: QuestionVersion,
   newText: string,
   newBloom: number,
-  newDifficulty: number,
+  newDifficulty: number
 ): { original: QuestionVersion; edited: QuestionVersion } {
   const edited: QuestionVersion = {
     id: `${original.id}-v2`,
@@ -33,8 +33,8 @@ function editQuestion(
   return { original, edited };
 }
 
-describe('Question versioning — property-based tests', () => {
-  it('P5: editing creates a new row with parent_question_id pointing to original, original unchanged', () => {
+describe("Question versioning — property-based tests", () => {
+  it("P5: editing creates a new row with parent_question_id pointing to original, original unchanged", () => {
     fc.assert(
       fc.property(
         fc.uuid(),
@@ -53,7 +53,12 @@ describe('Question versioning — property-based tests', () => {
             difficulty_rating: origDiff,
           };
 
-          const { original: preserved, edited } = editQuestion(original, newText, newBloom, newDiff);
+          const { original: preserved, edited } = editQuestion(
+            original,
+            newText,
+            newBloom,
+            newDiff
+          );
 
           // Edited version points to original
           expect(edited.parent_question_id).toBe(original.id);
@@ -65,9 +70,9 @@ describe('Question versioning — property-based tests', () => {
           expect(preserved.parent_question_id).toBeNull();
           expect(preserved.bloom_level).toBe(origBloom);
           expect(preserved.difficulty_rating).toBe(origDiff);
-        },
+        }
       ),
-      { numRuns: 100 },
+      { numRuns: 100 }
     );
   });
 });

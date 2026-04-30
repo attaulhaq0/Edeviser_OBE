@@ -6,7 +6,12 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
 import { useAuth } from "@/hooks/useAuth";
-import { calculateSessionXP } from "@/lib/plannerUtils";
+import {
+  calculateSessionXP,
+  generateReviewDates,
+  isReviewCycleComplete,
+} from "@/lib/plannerUtils";
+import { awardWeeklyGoalXPIfMet } from "@/hooks/useWeeklyGoalXP";
 import { toast } from "sonner";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -169,6 +174,97 @@ export const useCompleteSession = () => {
         console.error("[useCompleteSession] check-badges invocation failed");
       }
 
+      // 6a. Award XP for any weekly goals just met (idempotent)
+      try {
+        await awardWeeklyGoalXPIfMet(user.id);
+      } catch {
+        console.error("[useCompleteSession] weekly goal XP award failed");
+      }
+
+      // 6b. Award review session XP (if this session is linked to a review schedule)
+      try {
+        const { data: reviewScheduleRows } = await supabase
+          .from("review_schedules" as never)
+          .select("id, clo_id, interval_days, status")
+          .eq("review_session_id", sessionId)
+          .eq("student_id", user.id);
+
+        const reviewRows = reviewScheduleRows as Array<{
+          id: string;
+          clo_id: string;
+          interval_days: number;
+          status: string;
+        }> | null;
+
+        if (reviewRows && reviewRows.length > 0) {
+          // This session is a review session — award 15 XP
+          try {
+            await supabase.functions.invoke("award-xp", {
+              body: {
+                student_id: user.id,
+                xp_amount: 15,
+                source: "review_session",
+                reference_id: `review_session:${sessionId}`,
+              },
+            });
+          } catch {
+            console.error(
+              "[useCompleteSession] review_session XP award failed"
+            );
+          }
+
+          // Check if all 3 intervals (1, 3, 7) are now complete for each CLO
+          const cloIds = [...new Set(reviewRows.map((r) => r.clo_id))];
+
+          for (const cloId of cloIds) {
+            try {
+              const { data: allCloReviews } = await supabase
+                .from("review_schedules" as never)
+                .select("interval_days, status")
+                .eq("student_id", user.id)
+                .eq("clo_id", cloId);
+
+              const cloReviewRows = (allCloReviews ?? []) as Array<{
+                interval_days: number;
+                status: string;
+              }>;
+
+              if (
+                isReviewCycleComplete(
+                  cloReviewRows.map((r) => ({
+                    intervalDays: r.interval_days,
+                    status: r.status,
+                  }))
+                )
+              ) {
+                try {
+                  await supabase.functions.invoke("award-xp", {
+                    body: {
+                      student_id: user.id,
+                      xp_amount: 25,
+                      source: "review_cycle_complete",
+                      reference_id: `review_cycle_complete:${user.id}:${cloId}`,
+                      is_milestone: true,
+                    },
+                  });
+                } catch {
+                  console.error(
+                    "[useCompleteSession] review_cycle_complete XP award failed"
+                  );
+                }
+              }
+            } catch {
+              console.error(
+                "[useCompleteSession] review cycle check failed for CLO:",
+                cloId
+              );
+            }
+          }
+        }
+      } catch {
+        console.error("[useCompleteSession] review session XP flow failed");
+      }
+
       // 6. Auto-mark Read habit (if session ≥ 15 min)
       if (actualDurationMinutes >= 15) {
         try {
@@ -186,10 +282,52 @@ export const useCompleteSession = () => {
         }
       }
 
+      // 7. Create spaced repetition review schedules for CLO-linked sessions
+      try {
+        // Fetch the session to get clo_ids and course_id
+        const { data: sessionData } = await supabase
+          .from("study_sessions")
+          .select("clo_ids, course_id")
+          .eq("id", sessionId)
+          .eq("student_id", user.id)
+          .single();
+
+        const cloIds = (sessionData as Record<string, unknown> | null)
+          ?.clo_ids as string[] | null;
+        const courseId = (sessionData as Record<string, unknown> | null)
+          ?.course_id as string | null;
+
+        if (cloIds && cloIds.length > 0 && courseId) {
+          const today = new Date().toISOString().split("T")[0] as string;
+          const reviewDates = generateReviewDates(today);
+
+          const reviewRows = cloIds.flatMap((cloId) =>
+            reviewDates.map(({ reviewDate, intervalDays }) => ({
+              student_id: user.id,
+              clo_id: cloId,
+              course_id: courseId,
+              source_session_id: sessionId,
+              review_date: reviewDate,
+              interval_days: intervalDays,
+              status: "pending",
+            }))
+          );
+
+          await supabase
+            .from("review_schedules" as never)
+            .upsert(reviewRows as never[], {
+              onConflict: "student_id,clo_id,review_date,interval_days",
+              ignoreDuplicates: true,
+            });
+        }
+      } catch {
+        console.error("[useCompleteSession] review schedule creation failed");
+      }
+
       return { sessionId, xpAwarded, newBadges, evidenceCount };
     },
     onSuccess: ({ xpAwarded }) => {
-      // 7. Invalidate queries
+      // 8. Invalidate queries
       queryClient.invalidateQueries({
         queryKey: queryKeys.studySessions.lists(),
       });
@@ -207,6 +345,9 @@ export const useCompleteSession = () => {
       });
       queryClient.invalidateQueries({
         queryKey: queryKeys.studentGamification.lists(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.reviewSchedules.lists(),
       });
 
       if (xpAwarded > 0) {

@@ -1,16 +1,21 @@
 // Feature: edeviser-platform, Property 104: Team badge idempotency
 // **Validates: Requirements 118.2, 118.5**
 
-import { describe, it, expect } from 'vitest';
-import * as fc from 'fast-check';
+import { describe, it, expect } from "vitest";
+import * as fc from "fast-check";
 import {
   checkTeamBadgeEligibility,
   awardTeamBadgesIdempotent,
   type TeamBadgeState,
   type TeamBadgeId,
-} from '@/lib/teamBadgeChecker';
+} from "@/lib/teamBadgeChecker";
 
-const ALL_TEAM_BADGES: TeamBadgeId[] = ['team_spirit', 'unstoppable', 'dream_team', 'study_squad'];
+const ALL_TEAM_BADGES: TeamBadgeId[] = [
+  "team_spirit",
+  "unstoppable",
+  "dream_team",
+  "study_squad",
+];
 
 const teamBadgeStateArb = fc.record({
   xp_total: fc.integer({ min: 0, max: 10000 }),
@@ -19,10 +24,12 @@ const teamBadgeStateArb = fc.record({
   team_streak_current: fc.integer({ min: 0, max: 365 }),
 });
 
-const alreadyEarnedArb = fc.subarray(ALL_TEAM_BADGES).map((arr) => new Set<string>(arr));
+const alreadyEarnedArb = fc
+  .subarray(ALL_TEAM_BADGES)
+  .map((arr) => new Set<string>(arr));
 
-describe('Property 104: Team badge idempotency', () => {
-  it('awarding badges twice with the same state produces the same result', () => {
+describe("Property 104: Team badge idempotency", () => {
+  it("awarding badges twice with the same state produces the same result", () => {
     fc.assert(
       fc.property(
         teamBadgeStateArb,
@@ -30,7 +37,10 @@ describe('Property 104: Team badge idempotency', () => {
         (state: TeamBadgeState, alreadyEarned: Set<string>) => {
           // First award pass
           const eligible1 = checkTeamBadgeEligibility(state, alreadyEarned);
-          const afterFirst = awardTeamBadgesIdempotent(alreadyEarned, eligible1);
+          const afterFirst = awardTeamBadgesIdempotent(
+            alreadyEarned,
+            eligible1
+          );
 
           // Second award pass with same state but updated earned set
           const eligible2 = checkTeamBadgeEligibility(state, afterFirst);
@@ -41,13 +51,13 @@ describe('Property 104: Team badge idempotency', () => {
           for (const badge of afterFirst) {
             expect(afterSecond.has(badge)).toBe(true);
           }
-        },
+        }
       ),
-      { numRuns: 200 },
+      { numRuns: 200 }
     );
   });
 
-  it('already-earned badges are never re-awarded', () => {
+  it("already-earned badges are never re-awarded", () => {
     fc.assert(
       fc.property(
         teamBadgeStateArb,
@@ -61,13 +71,13 @@ describe('Property 104: Team badge idempotency', () => {
               expect(result.eligible).toBe(false);
             }
           }
-        },
+        }
       ),
-      { numRuns: 200 },
+      { numRuns: 200 }
     );
   });
 
-  it('badge set only grows, never shrinks', () => {
+  it("badge set only grows, never shrinks", () => {
     fc.assert(
       fc.property(
         teamBadgeStateArb,
@@ -82,9 +92,9 @@ describe('Property 104: Team badge idempotency', () => {
           }
           // Size can only grow or stay the same
           expect(afterAward.size).toBeGreaterThanOrEqual(alreadyEarned.size);
-        },
+        }
       ),
-      { numRuns: 200 },
+      { numRuns: 200 }
     );
   });
 });
