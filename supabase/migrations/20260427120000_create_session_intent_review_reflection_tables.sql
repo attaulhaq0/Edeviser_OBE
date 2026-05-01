@@ -45,11 +45,11 @@ ALTER TABLE session_intents ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "session_intents_student_select" ON session_intents
   FOR SELECT TO authenticated
-  USING (student_id = auth.uid());
+  USING (student_id = (select auth.uid()));
 
 CREATE POLICY "session_intents_student_insert" ON session_intents
   FOR INSERT TO authenticated
-  WITH CHECK (student_id = auth.uid());
+  WITH CHECK (student_id = (select auth.uid()));
 
 -- ─── flow_check_ins (Task 16.3) ──────────────────────────────────────────────
 
@@ -69,11 +69,11 @@ ALTER TABLE flow_check_ins ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "flow_check_ins_student_select" ON flow_check_ins
   FOR SELECT TO authenticated
-  USING (student_id = auth.uid());
+  USING (student_id = (select auth.uid()));
 
 CREATE POLICY "flow_check_ins_student_insert" ON flow_check_ins
   FOR INSERT TO authenticated
-  WITH CHECK (student_id = auth.uid());
+  WITH CHECK (student_id = (select auth.uid()));
 
 -- ─── review_schedules (Task 16.4) ────────────────────────────────────────────
 
@@ -101,15 +101,15 @@ ALTER TABLE review_schedules ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "review_schedules_student_all" ON review_schedules
   FOR ALL TO authenticated
-  USING (student_id = auth.uid())
-  WITH CHECK (student_id = auth.uid());
+  USING (student_id = (select auth.uid()))
+  WITH CHECK (student_id = (select auth.uid()));
 
 CREATE POLICY "review_schedules_parent_select" ON review_schedules
   FOR SELECT TO authenticated
   USING (
     student_id IN (
       SELECT student_id FROM parent_student_links
-      WHERE parent_id = auth.uid() AND verified = true
+      WHERE parent_id = (select auth.uid()) AND verified = true
     )
   );
 
@@ -135,19 +135,19 @@ ALTER TABLE reflection_digests ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "reflection_digests_student_select" ON reflection_digests
   FOR SELECT TO authenticated
-  USING (student_id = auth.uid());
+  USING (student_id = (select auth.uid()));
 
 CREATE POLICY "reflection_digests_student_update" ON reflection_digests
   FOR UPDATE TO authenticated
-  USING (student_id = auth.uid())
-  WITH CHECK (student_id = auth.uid());
+  USING (student_id = (select auth.uid()))
+  WITH CHECK (student_id = (select auth.uid()));
 
 CREATE POLICY "reflection_digests_parent_select" ON reflection_digests
   FOR SELECT TO authenticated
   USING (
     student_id IN (
       SELECT student_id FROM parent_student_links
-      WHERE parent_id = auth.uid() AND verified = true
+      WHERE parent_id = (select auth.uid()) AND verified = true
     )
     AND shared_with @> '[{"role": "parent"}]'::jsonb
   );
@@ -159,7 +159,7 @@ CREATE POLICY "reflection_digests_teacher_select" ON reflection_digests
     AND student_id IN (
       SELECT sc.student_id FROM student_courses sc
       JOIN courses c ON c.id = sc.course_id
-      WHERE c.teacher_id = auth.uid()
+      WHERE c.teacher_id = (select auth.uid())
     )
   );
 
@@ -189,7 +189,7 @@ ALTER TABLE reflection_quality_scores ENABLE ROW LEVEL SECURITY;
 -- (the score-reflection-quality Edge Function).
 CREATE POLICY "reflection_quality_scores_student_select" ON reflection_quality_scores
   FOR SELECT TO authenticated
-  USING (student_id = auth.uid());
+  USING (student_id = (select auth.uid()));
 
 -- ─── Trigger: keep review_schedules.updated_at fresh ─────────────────────────
 

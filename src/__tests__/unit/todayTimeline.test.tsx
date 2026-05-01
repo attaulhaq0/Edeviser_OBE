@@ -328,11 +328,12 @@ describe("TodayTimeline", () => {
   });
 
   it("shows Missed indicator for past sessions", () => {
-    // Create a session that was scheduled in the past
-    const pastDate = new Date();
-    pastDate.setHours(pastDate.getHours() - 3);
-    const dateStr = pastDate.toISOString().split("T")[0] as string;
-    const timeStr = `${String(pastDate.getHours() - 2).padStart(2, "0")}:00`;
+    // Create a session that was scheduled well in the past (use yesterday to avoid
+    // edge cases around midnight / early morning hours)
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const dateStr = yesterday.toISOString().split("T")[0] as string;
+    const timeStr = "08:00";
 
     const missedSession = mockSession({
       plannedDate: dateStr,
