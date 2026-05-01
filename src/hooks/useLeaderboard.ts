@@ -32,7 +32,8 @@ export const useLeaderboard = (
   filter: LeaderboardFilter,
   timeframe: LeaderboardTimeframe,
   courseId?: string,
-  programId?: string
+  programId?: string,
+  institutionId?: string | null
 ) => {
   return useQuery({
     queryKey: queryKeys.leaderboard.list({
@@ -40,57 +41,75 @@ export const useLeaderboard = (
       timeframe,
       courseId,
       programId,
+      institutionId,
     }),
     queryFn: async (): Promise<LeaderboardEntry[]> => {
       if (timeframe === "weekly") {
-        return fetchWeeklyLeaderboard(filter, courseId, programId);
+        return fetchWeeklyLeaderboard(
+          filter,
+          courseId,
+          programId,
+          institutionId ?? undefined
+        );
       }
       return fetchAllTimeLeaderboard(filter, courseId, programId);
     },
   });
 };
 
-// ─── Weekly leaderboard (materialized view) ──────────────────────────────────
+// ─── Weekly leaderboard (security-definer RPC) ──────────────────────────────
 
 async function fetchWeeklyLeaderboard(
   filter: LeaderboardFilter,
   courseId?: string,
-  programId?: string
+  programId?: string,
+  institutionId?: string
 ): Promise<LeaderboardEntry[]> {
-  let query = supabase
-    .from("leaderboard_weekly")
-    .select(
-      "student_id, full_name, xp_total, level, streak_current, global_rank"
-    )
-    .order("xp_total", { ascending: false })
-    .limit(50);
+  if (!institutionId) return [];
 
+  // Use the get_leaderboard RPC which enforces institution scoping and
+  // filters out opted-out students via SECURITY DEFINER
+  const { data, error } = await supabase.rpc("get_leaderboard", {
+    p_institution_id: institutionId,
+  });
+
+  if (error) throw error;
+
+  let rows = (data ?? []).map((d: Record<string, unknown>) => ({
+    student_id: (d.student_id as string) ?? "",
+    full_name: (d.full_name as string) ?? "",
+    xp_total: (d.xp_total as number) ?? 0,
+    level: (d.level as number) ?? 0,
+    streak_current: (d.streak_current as number) ?? 0,
+    global_rank: (d.global_rank as number) ?? 0,
+  }));
+
+  // Apply course/program filter client-side (RPC returns institution-scoped data)
   if (filter === "course" && courseId) {
     const studentIds = await getStudentIdsByCourse(courseId);
     if (studentIds.length === 0) return [];
-    query = query.in("student_id", studentIds);
+    const idSet = new Set(studentIds);
+    rows = rows.filter((r) => idSet.has(r.student_id));
   } else if (filter === "program" && programId) {
     const studentIds = await getStudentIdsByProgram(programId);
     if (studentIds.length === 0) return [];
-    query = query.in("student_id", studentIds);
+    const idSet = new Set(studentIds);
+    rows = rows.filter((r) => idSet.has(r.student_id));
   }
 
-  const { data, error } = await query;
-  if (error) throw error;
+  // Sort by xp descending and take top 50
+  rows.sort((a, b) => b.xp_total - a.xp_total);
+  rows = rows.slice(0, 50);
 
-  const optOutIds = await getOptOutStudentIds();
-
-  return assignRanks(
-    (data ?? []).map((d) => ({
-      student_id: d.student_id ?? "",
-      full_name: d.full_name ?? "",
-      xp_total: d.xp_total ?? 0,
-      level: d.level ?? 0,
-      streak_current: d.streak_current ?? 0,
-      global_rank: d.global_rank ?? 0,
-    })),
-    optOutIds
-  );
+  // Assign ranks (opt-out already filtered by RPC, no need for anonymous masking)
+  return rows.map((row, index) => ({
+    student_id: row.student_id,
+    full_name: row.full_name,
+    xp_total: row.xp_total,
+    level: row.level,
+    streak_current: row.streak_current,
+    rank: index + 1,
+  }));
 }
 
 // ─── All-time leaderboard (direct query) ─────────────────────────────────────
@@ -205,7 +224,7 @@ export const useMyRank = (
         }
 
         let weeklyCountQuery = supabase
-          .from("leaderboard_weekly")
+          .from("student_gamification")
           .select("student_id", { count: "exact", head: true })
           .gt("xp_total", myXp);
 

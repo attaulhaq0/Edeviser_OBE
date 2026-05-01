@@ -40,19 +40,19 @@ ALTER TABLE competency_outcome_mappings ENABLE ROW LEVEL SECURITY;
 -- 5. RLS policies for competency_frameworks
 CREATE POLICY "admin_all_competency_frameworks" ON competency_frameworks
   FOR ALL TO authenticated
-  USING (auth_user_role() = 'admin' AND institution_id = auth_institution_id());
+  USING ((select auth_user_role()) = 'admin' AND institution_id = (select auth_institution_id()));
 
 CREATE POLICY "role_select_competency_frameworks" ON competency_frameworks
   FOR SELECT TO authenticated
-  USING (institution_id = auth_institution_id());
+  USING (institution_id = (select auth_institution_id()));
 
 -- 6. RLS policies for competency_items
 CREATE POLICY "admin_all_competency_items" ON competency_items
   FOR ALL TO authenticated
   USING (
-    auth_user_role() = 'admin'
+    (select auth_user_role()) = 'admin'
     AND framework_id IN (
-      SELECT id FROM competency_frameworks WHERE institution_id = auth_institution_id()
+      SELECT id FROM competency_frameworks WHERE institution_id = (select auth_institution_id())
     )
   );
 
@@ -60,7 +60,7 @@ CREATE POLICY "role_select_competency_items" ON competency_items
   FOR SELECT TO authenticated
   USING (
     framework_id IN (
-      SELECT id FROM competency_frameworks WHERE institution_id = auth_institution_id()
+      SELECT id FROM competency_frameworks WHERE institution_id = (select auth_institution_id())
     )
   );
 
@@ -68,11 +68,11 @@ CREATE POLICY "role_select_competency_items" ON competency_items
 CREATE POLICY "admin_all_competency_outcome_mappings" ON competency_outcome_mappings
   FOR ALL TO authenticated
   USING (
-    auth_user_role() = 'admin'
+    (select auth_user_role()) = 'admin'
     AND competency_item_id IN (
       SELECT ci.id FROM competency_items ci
       JOIN competency_frameworks cf ON ci.framework_id = cf.id
-      WHERE cf.institution_id = auth_institution_id()
+      WHERE cf.institution_id = (select auth_institution_id())
     )
   );
 
@@ -82,6 +82,6 @@ CREATE POLICY "role_select_competency_outcome_mappings" ON competency_outcome_ma
     competency_item_id IN (
       SELECT ci.id FROM competency_items ci
       JOIN competency_frameworks cf ON ci.framework_id = cf.id
-      WHERE cf.institution_id = auth_institution_id()
+      WHERE cf.institution_id = (select auth_institution_id())
     )
   );

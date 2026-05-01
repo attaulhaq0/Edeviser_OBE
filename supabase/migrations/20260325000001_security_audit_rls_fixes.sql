@@ -8,10 +8,10 @@
 DROP POLICY IF EXISTS "student_courses_admin_read" ON public.student_courses;
 CREATE POLICY "student_courses_admin_read" ON public.student_courses
   FOR SELECT USING (
-    auth_user_role() IN ('admin', 'coordinator')
+    (select auth_user_role()) IN ('admin', 'coordinator')
     AND course_id IN (
       SELECT id FROM public.courses WHERE program_id IN (
-        SELECT id FROM public.programs WHERE institution_id = auth_institution_id()
+        SELECT id FROM public.programs WHERE institution_id = (select auth_institution_id())
       )
     )
   );
@@ -23,23 +23,23 @@ DROP POLICY IF EXISTS "outcome_mappings_teacher_write" ON public.outcome_mapping
 
 CREATE POLICY "outcome_mappings_admin_write" ON public.outcome_mappings
   FOR ALL USING (
-    auth_user_role() = 'admin'
+    (select auth_user_role()) = 'admin'
     AND source_outcome_id IN (
-      SELECT id FROM public.learning_outcomes WHERE institution_id = auth_institution_id()
+      SELECT id FROM public.learning_outcomes WHERE institution_id = (select auth_institution_id())
     )
   );
 CREATE POLICY "outcome_mappings_coordinator_write" ON public.outcome_mappings
   FOR ALL USING (
-    auth_user_role() = 'coordinator'
+    (select auth_user_role()) = 'coordinator'
     AND source_outcome_id IN (
-      SELECT id FROM public.learning_outcomes WHERE institution_id = auth_institution_id()
+      SELECT id FROM public.learning_outcomes WHERE institution_id = (select auth_institution_id())
     )
   );
 CREATE POLICY "outcome_mappings_teacher_write" ON public.outcome_mappings
   FOR ALL USING (
-    auth_user_role() = 'teacher'
+    (select auth_user_role()) = 'teacher'
     AND source_outcome_id IN (
-      SELECT id FROM public.learning_outcomes WHERE institution_id = auth_institution_id()
+      SELECT id FROM public.learning_outcomes WHERE institution_id = (select auth_institution_id())
     )
   );
 
@@ -47,10 +47,10 @@ CREATE POLICY "outcome_mappings_teacher_write" ON public.outcome_mappings
 DROP POLICY IF EXISTS "assignments_staff_read" ON public.assignments;
 CREATE POLICY "assignments_staff_read" ON public.assignments
   FOR SELECT USING (
-    auth_user_role() IN ('admin', 'coordinator')
+    (select auth_user_role()) IN ('admin', 'coordinator')
     AND course_id IN (
       SELECT id FROM public.courses WHERE program_id IN (
-        SELECT id FROM public.programs WHERE institution_id = auth_institution_id()
+        SELECT id FROM public.programs WHERE institution_id = (select auth_institution_id())
       )
     )
   );
@@ -59,9 +59,9 @@ CREATE POLICY "assignments_staff_read" ON public.assignments
 DROP POLICY IF EXISTS "attainment_staff_read" ON public.outcome_attainment;
 CREATE POLICY "attainment_staff_read" ON public.outcome_attainment
   FOR SELECT USING (
-    auth_user_role() IN ('teacher', 'coordinator', 'admin')
+    (select auth_user_role()) IN ('teacher', 'coordinator', 'admin')
     AND student_id IN (
-      SELECT id FROM public.profiles WHERE institution_id = auth_institution_id()
+      SELECT id FROM public.profiles WHERE institution_id = (select auth_institution_id())
     )
   );
 
@@ -69,9 +69,9 @@ CREATE POLICY "attainment_staff_read" ON public.outcome_attainment
 DROP POLICY IF EXISTS "attendance_admin_read" ON attendance_records;
 CREATE POLICY "attendance_admin_read" ON attendance_records
   FOR SELECT USING (
-    auth_user_role() = 'admin'
+    (select auth_user_role()) = 'admin'
     AND student_id IN (
-      SELECT id FROM public.profiles WHERE institution_id = auth_institution_id()
+      SELECT id FROM public.profiles WHERE institution_id = (select auth_institution_id())
     )
   );
 
@@ -104,9 +104,9 @@ $ LANGUAGE plpgsql SECURITY DEFINER;
 DROP POLICY IF EXISTS "xp_transactions_admin_read" ON public.xp_transactions;
 CREATE POLICY "xp_transactions_admin_read" ON public.xp_transactions
   FOR SELECT USING (
-    auth_user_role() = 'admin'
+    (select auth_user_role()) = 'admin'
     AND student_id IN (
-      SELECT id FROM public.profiles WHERE institution_id = auth_institution_id()
+      SELECT id FROM public.profiles WHERE institution_id = (select auth_institution_id())
     )
   );
 
@@ -114,9 +114,9 @@ CREATE POLICY "xp_transactions_admin_read" ON public.xp_transactions
 DROP POLICY IF EXISTS "ai_feedback_admin_read" ON ai_feedback;
 CREATE POLICY "ai_feedback_admin_read" ON ai_feedback
   FOR SELECT USING (
-    auth_user_role() = 'admin'
+    (select auth_user_role()) = 'admin'
     AND student_id IN (
-      SELECT id FROM public.profiles WHERE institution_id = auth_institution_id()
+      SELECT id FROM public.profiles WHERE institution_id = (select auth_institution_id())
     )
   );
 
@@ -124,9 +124,9 @@ CREATE POLICY "ai_feedback_admin_read" ON ai_feedback
 DROP POLICY IF EXISTS "activity_log_admin_read" ON student_activity_log;
 CREATE POLICY "activity_log_admin_read" ON student_activity_log
   FOR SELECT USING (
-    auth_user_role() = 'admin'
+    (select auth_user_role()) = 'admin'
     AND student_id IN (
-      SELECT id FROM public.profiles WHERE institution_id = auth_institution_id()
+      SELECT id FROM public.profiles WHERE institution_id = (select auth_institution_id())
     )
   );
 
@@ -134,9 +134,9 @@ CREATE POLICY "activity_log_admin_read" ON student_activity_log
 DROP POLICY IF EXISTS "habit_tracking_staff_read" ON public.habit_tracking;
 CREATE POLICY "habit_tracking_staff_read" ON public.habit_tracking
   FOR SELECT USING (
-    auth_user_role() IN ('teacher', 'coordinator', 'admin')
+    (select auth_user_role()) IN ('teacher', 'coordinator', 'admin')
     AND student_id IN (
-      SELECT id FROM public.profiles WHERE institution_id = auth_institution_id()
+      SELECT id FROM public.profiles WHERE institution_id = (select auth_institution_id())
     )
   );
 
@@ -145,7 +145,7 @@ DROP POLICY IF EXISTS "badges_public_read" ON public.badges;
 CREATE POLICY "badges_institution_read" ON public.badges
   FOR SELECT USING (
     student_id IN (
-      SELECT id FROM public.profiles WHERE institution_id = auth_institution_id()
+      SELECT id FROM public.profiles WHERE institution_id = (select auth_institution_id())
     )
   );
 
@@ -154,12 +154,12 @@ DROP POLICY IF EXISTS "verified_student_read" ON verified_explanations;
 CREATE POLICY "verified_student_read" ON verified_explanations
   FOR SELECT TO authenticated
   USING (
-    auth_user_role() = 'student'
+    (select auth_user_role()) = 'student'
     AND is_active = true
     AND question_id IN (
       SELECT id FROM question_bank
       WHERE course_id IN (
-        SELECT course_id FROM student_courses WHERE student_id = auth.uid()
+        SELECT course_id FROM student_courses WHERE student_id = (select auth.uid())
       )
     )
   );
@@ -167,6 +167,6 @@ CREATE POLICY "verified_student_read" ON verified_explanations
 -- ─── Vuln 27: quiz_attempts overly permissive ──────────────────────────────
 DROP POLICY IF EXISTS "quiz_attempts_own" ON quiz_attempts;
 CREATE POLICY "quiz_attempts_student_read" ON quiz_attempts
-  FOR SELECT USING (student_id = auth.uid());
+  FOR SELECT USING (student_id = (select auth.uid()));
 CREATE POLICY "quiz_attempts_student_insert" ON quiz_attempts
-  FOR INSERT WITH CHECK (student_id = auth.uid());
+  FOR INSERT WITH CHECK (student_id = (select auth.uid()));

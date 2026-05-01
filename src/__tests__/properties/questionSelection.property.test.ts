@@ -1,8 +1,8 @@
 // Feature: adaptive-quiz-generation, Property 9: Selected question respects difficulty range
 // **Validates: Requirements 6.1**
 
-import { describe, it, expect } from 'vitest';
-import * as fc from 'fast-check';
+import { describe, it, expect } from "vitest";
+import * as fc from "fast-check";
 
 interface QuestionCandidate {
   id: string;
@@ -17,17 +17,17 @@ interface QuestionCandidate {
 function selectQuestion(
   pool: QuestionCandidate[],
   targetDifficulty: number,
-  range = 0.5,
+  range = 0.5
 ): QuestionCandidate | null {
   const eligible = pool.filter(
-    (q) => Math.abs(q.difficulty_rating - targetDifficulty) <= range,
+    (q) => Math.abs(q.difficulty_rating - targetDifficulty) <= range
   );
   if (eligible.length === 0) return null;
   // Pick the closest to target
   eligible.sort(
     (a, b) =>
       Math.abs(a.difficulty_rating - targetDifficulty) -
-      Math.abs(b.difficulty_rating - targetDifficulty),
+      Math.abs(b.difficulty_rating - targetDifficulty)
   );
   return eligible[0] ?? null;
 }
@@ -37,11 +37,11 @@ const questionPoolArb = fc.array(
     id: fc.uuid(),
     difficulty_rating: fc.double({ min: 1.0, max: 5.0, noNaN: true }),
   }),
-  { minLength: 1, maxLength: 20 },
+  { minLength: 1, maxLength: 20 }
 );
 
-describe('Question selection — property-based tests', () => {
-  it('P9: selected question is always within ±0.5 of target difficulty', () => {
+describe("Question selection — property-based tests", () => {
+  it("P9: selected question is always within ±0.5 of target difficulty", () => {
     fc.assert(
       fc.property(
         questionPoolArb,
@@ -51,15 +51,17 @@ describe('Question selection — property-based tests', () => {
           if (selected === null) {
             // Verify no question was within range
             const anyInRange = pool.some(
-              (q) => Math.abs(q.difficulty_rating - targetDifficulty) <= 0.5,
+              (q) => Math.abs(q.difficulty_rating - targetDifficulty) <= 0.5
             );
             expect(anyInRange).toBe(false);
           } else {
-            expect(Math.abs(selected.difficulty_rating - targetDifficulty)).toBeLessThanOrEqual(0.5);
+            expect(
+              Math.abs(selected.difficulty_rating - targetDifficulty)
+            ).toBeLessThanOrEqual(0.5);
           }
-        },
+        }
       ),
-      { numRuns: 100 },
+      { numRuns: 100 }
     );
   });
 });

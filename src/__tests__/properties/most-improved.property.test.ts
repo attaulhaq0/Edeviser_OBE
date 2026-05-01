@@ -4,9 +4,12 @@
 // **Validates: Requirements 130.2, 130.3**
 // =============================================================================
 
-import { describe, it, expect } from 'vitest';
-import * as fc from 'fast-check';
-import { calculateImprovement, rankMostImproved } from '@/lib/mostImprovedLeaderboard';
+import { describe, it, expect } from "vitest";
+import * as fc from "fast-check";
+import {
+  calculateImprovement,
+  rankMostImproved,
+} from "@/lib/mostImprovedLeaderboard";
 
 // ─── Generators ──────────────────────────────────────────────────────────────
 
@@ -19,8 +22,8 @@ const studentEntryArb = fc.record({
 
 // ─── Properties ──────────────────────────────────────────────────────────────
 
-describe('Property 107: Most Improved calculation correctness', () => {
-  it('improvement equals (current - previous) / previous * 100 for non-zero previous', () => {
+describe("Property 107: Most Improved calculation correctness", () => {
+  it("improvement equals (current - previous) / previous * 100 for non-zero previous", () => {
     fc.assert(
       fc.property(
         fc.integer({ min: 0, max: 10000 }),
@@ -30,39 +33,36 @@ describe('Property 107: Most Improved calculation correctness', () => {
           expect(result).not.toBeNull();
           const expected = ((current - previous) / previous) * 100;
           expect(result).toBeCloseTo(expected, 10);
-        },
+        }
       ),
-      { numRuns: 100 },
+      { numRuns: 100 }
     );
   });
 
-  it('students with zero previous XP are excluded', () => {
+  it("students with zero previous XP are excluded", () => {
     fc.assert(
-      fc.property(
-        fc.integer({ min: 0, max: 10000 }),
-        (current) => {
-          const result = calculateImprovement(current, 0);
-          expect(result).toBeNull();
-        },
-      ),
-      { numRuns: 100 },
+      fc.property(fc.integer({ min: 0, max: 10000 }), (current) => {
+        const result = calculateImprovement(current, 0);
+        expect(result).toBeNull();
+      }),
+      { numRuns: 100 }
     );
   });
 
-  it('rankMostImproved returns at most 20 entries', () => {
+  it("rankMostImproved returns at most 20 entries", () => {
     fc.assert(
       fc.property(
         fc.array(studentEntryArb, { minLength: 0, maxLength: 50 }),
         (entries) => {
           const result = rankMostImproved(entries);
           expect(result.length).toBeLessThanOrEqual(20);
-        },
+        }
       ),
-      { numRuns: 100 },
+      { numRuns: 100 }
     );
   });
 
-  it('rankMostImproved excludes all entries with zero previous XP', () => {
+  it("rankMostImproved excludes all entries with zero previous XP", () => {
     fc.assert(
       fc.property(
         fc.array(studentEntryArb, { minLength: 1, maxLength: 30 }),
@@ -71,13 +71,13 @@ describe('Property 107: Most Improved calculation correctness', () => {
           for (const entry of result) {
             expect(entry.previous_4_week_xp).toBeGreaterThan(0);
           }
-        },
+        }
       ),
-      { numRuns: 100 },
+      { numRuns: 100 }
     );
   });
 
-  it('rankMostImproved results are sorted by improvement_percent descending', () => {
+  it("rankMostImproved results are sorted by improvement_percent descending", () => {
     fc.assert(
       fc.property(
         fc.array(studentEntryArb, { minLength: 2, maxLength: 30 }),
@@ -85,16 +85,16 @@ describe('Property 107: Most Improved calculation correctness', () => {
           const result = rankMostImproved(entries);
           for (let i = 1; i < result.length; i++) {
             expect(result[i - 1]!.improvement_percent).toBeGreaterThanOrEqual(
-              result[i]!.improvement_percent,
+              result[i]!.improvement_percent
             );
           }
-        },
+        }
       ),
-      { numRuns: 100 },
+      { numRuns: 100 }
     );
   });
 
-  it('xp_delta equals current_4_week_xp - previous_4_week_xp', () => {
+  it("xp_delta equals current_4_week_xp - previous_4_week_xp", () => {
     fc.assert(
       fc.property(
         fc.array(studentEntryArb, { minLength: 1, maxLength: 20 }),
@@ -102,12 +102,12 @@ describe('Property 107: Most Improved calculation correctness', () => {
           const result = rankMostImproved(entries);
           for (const entry of result) {
             expect(entry.xp_delta).toBe(
-              entry.current_4_week_xp - entry.previous_4_week_xp,
+              entry.current_4_week_xp - entry.previous_4_week_xp
             );
           }
-        },
+        }
       ),
-      { numRuns: 100 },
+      { numRuns: 100 }
     );
   });
 });

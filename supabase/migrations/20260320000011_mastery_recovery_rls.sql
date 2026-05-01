@@ -21,7 +21,7 @@ DROP POLICY IF EXISTS "service_recovery" ON mastery_recovery_pathways;
 -- ============================================================
 CREATE POLICY "student_own_recovery" ON mastery_recovery_pathways
   FOR SELECT TO authenticated
-  USING (auth_user_role() = 'student' AND student_id = auth.uid());
+  USING ((select auth_user_role()) = 'student' AND student_id = (select auth.uid()));
 
 -- ============================================================
 -- 2. Teacher: read recovery pathways for their courses
@@ -29,8 +29,8 @@ CREATE POLICY "student_own_recovery" ON mastery_recovery_pathways
 CREATE POLICY "teacher_course_recovery" ON mastery_recovery_pathways
   FOR SELECT TO authenticated
   USING (
-    auth_user_role() = 'teacher'
-    AND course_id IN (SELECT id FROM courses WHERE teacher_id = auth.uid())
+    (select auth_user_role()) = 'teacher'
+    AND course_id IN (SELECT id FROM courses WHERE teacher_id = (select auth.uid()))
   );
 
 -- ============================================================
@@ -39,8 +39,8 @@ CREATE POLICY "teacher_course_recovery" ON mastery_recovery_pathways
 CREATE POLICY "coordinator_institution_recovery" ON mastery_recovery_pathways
   FOR SELECT TO authenticated
   USING (
-    auth_user_role() = 'coordinator'
-    AND institution_id = auth_institution_id()
+    (select auth_user_role()) = 'coordinator'
+    AND institution_id = (select auth_institution_id())
   );
 
 -- ============================================================
@@ -48,7 +48,7 @@ CREATE POLICY "coordinator_institution_recovery" ON mastery_recovery_pathways
 -- ============================================================
 CREATE POLICY "admin_recovery" ON mastery_recovery_pathways
   FOR ALL TO authenticated
-  USING (auth_user_role() = 'admin' AND institution_id = auth_institution_id());
+  USING ((select auth_user_role()) = 'admin' AND institution_id = (select auth_institution_id()));
 
 -- ============================================================
 -- 5. Service role: full access (for Edge Functions)

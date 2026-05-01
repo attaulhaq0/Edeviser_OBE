@@ -4,13 +4,24 @@
 // P8: Reverse-scored personality items invert correctly
 // **Validates: Requirements 11.1, 11.4**
 
-import { describe, it, expect } from 'vitest';
-import * as fc from 'fast-check';
-import { calculateBigFiveScores, type PersonalityResponse } from '@/lib/scoreCalculator';
+import { describe, it, expect } from "vitest";
+import * as fc from "fast-check";
+import {
+  calculateBigFiveScores,
+  type PersonalityResponse,
+} from "@/lib/scoreCalculator";
 
-const BIG_FIVE_DIMENSIONS = ['openness', 'conscientiousness', 'extraversion', 'agreeableness', 'neuroticism'] as const;
+const BIG_FIVE_DIMENSIONS = [
+  "openness",
+  "conscientiousness",
+  "extraversion",
+  "agreeableness",
+  "neuroticism",
+] as const;
 
-const personalityResponseArb = (dimension: string): fc.Arbitrary<PersonalityResponse> =>
+const personalityResponseArb = (
+  dimension: string
+): fc.Arbitrary<PersonalityResponse> =>
   fc.record({
     dimension: fc.constant(dimension),
     selected_option: fc.integer({ min: 1, max: 5 }),
@@ -18,19 +29,26 @@ const personalityResponseArb = (dimension: string): fc.Arbitrary<PersonalityResp
   });
 
 /** Generates a full set of 25 responses (5 per dimension) */
-const fullResponseSetArb: fc.Arbitrary<PersonalityResponse[]> =
-  fc.tuple(
-    ...BIG_FIVE_DIMENSIONS.map((dim) => fc.array(personalityResponseArb(dim), { minLength: 5, maxLength: 5 })),
-  ).map((arrays) => arrays.flat());
+const fullResponseSetArb: fc.Arbitrary<PersonalityResponse[]> = fc
+  .tuple(
+    ...BIG_FIVE_DIMENSIONS.map((dim) =>
+      fc.array(personalityResponseArb(dim), { minLength: 5, maxLength: 5 })
+    )
+  )
+  .map((arrays) => arrays.flat());
 
 /** Generates a partial set (1-5 per dimension, for Day 1 / partial scenarios) */
-const partialResponseSetArb: fc.Arbitrary<PersonalityResponse[]> =
-  fc.tuple(
-    ...BIG_FIVE_DIMENSIONS.map((dim) => fc.array(personalityResponseArb(dim), { minLength: 0, maxLength: 5 })),
-  ).map((arrays) => arrays.flat()).filter((arr) => arr.length > 0);
+const partialResponseSetArb: fc.Arbitrary<PersonalityResponse[]> = fc
+  .tuple(
+    ...BIG_FIVE_DIMENSIONS.map((dim) =>
+      fc.array(personalityResponseArb(dim), { minLength: 0, maxLength: 5 })
+    )
+  )
+  .map((arrays) => arrays.flat())
+  .filter((arr) => arr.length > 0);
 
-describe('calculateBigFiveScores — property-based tests', () => {
-  it('P1: all trait scores are bounded [0, 100] for any valid full response set', () => {
+describe("calculateBigFiveScores — property-based tests", () => {
+  it("P1: all trait scores are bounded [0, 100] for any valid full response set", () => {
     fc.assert(
       fc.property(fullResponseSetArb, (responses) => {
         const scores = calculateBigFiveScores(responses);
@@ -40,11 +58,11 @@ describe('calculateBigFiveScores — property-based tests', () => {
           expect(Number.isInteger(scores[dim])).toBe(true);
         }
       }),
-      { numRuns: 200 },
+      { numRuns: 200 }
     );
   });
 
-  it('P1: all trait scores are bounded [0, 100] for partial response sets', () => {
+  it("P1: all trait scores are bounded [0, 100] for partial response sets", () => {
     fc.assert(
       fc.property(partialResponseSetArb, (responses) => {
         const scores = calculateBigFiveScores(responses);
@@ -54,22 +72,22 @@ describe('calculateBigFiveScores — property-based tests', () => {
           expect(Number.isInteger(scores[dim])).toBe(true);
         }
       }),
-      { numRuns: 200 },
+      { numRuns: 200 }
     );
   });
 
-  it('P4: score calculation is deterministic — same inputs produce same outputs', () => {
+  it("P4: score calculation is deterministic — same inputs produce same outputs", () => {
     fc.assert(
       fc.property(fullResponseSetArb, (responses) => {
         const first = calculateBigFiveScores(responses);
         const second = calculateBigFiveScores(responses);
         expect(first).toEqual(second);
       }),
-      { numRuns: 100 },
+      { numRuns: 100 }
     );
   });
 
-  it('P8: reverse-scored items (weight=-1) invert correctly: contribution = 6 - v', () => {
+  it("P8: reverse-scored items (weight=-1) invert correctly: contribution = 6 - v", () => {
     fc.assert(
       fc.property(
         fc.constantFrom(...BIG_FIVE_DIMENSIONS),
@@ -94,9 +112,9 @@ describe('calculateBigFiveScores — property-based tests', () => {
           // For weight=-1: contribution = 6-v, score = ((6-v)/5)*100
           const expectedNegative = Math.round(((6 - selectedOption) / 5) * 100);
           expect(negativeScores[dimension]).toBe(expectedNegative);
-        },
+        }
       ),
-      { numRuns: 100 },
+      { numRuns: 100 }
     );
   });
 });

@@ -1536,6 +1536,48 @@ export type Database = {
           }
         ];
       };
+      flow_check_ins: {
+        Row: {
+          created_at: string;
+          id: string;
+          interval_number: number;
+          response: Database["public"]["Enums"]["flow_response_type"];
+          session_id: string;
+          student_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          interval_number: number;
+          response: Database["public"]["Enums"]["flow_response_type"];
+          session_id: string;
+          student_id: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          interval_number?: number;
+          response?: Database["public"]["Enums"]["flow_response_type"];
+          session_id?: string;
+          student_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "flow_check_ins_session_id_fkey";
+            columns: ["session_id"];
+            isOneToOne: false;
+            referencedRelation: "study_sessions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "flow_check_ins_student_id_fkey";
+            columns: ["student_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
       goal_suggestions: {
         Row: {
           cohort_completion_rate: number | null;
@@ -3440,6 +3482,97 @@ export type Database = {
           }
         ];
       };
+      reflection_digests: {
+        Row: {
+          emotional_trends: Json;
+          generated_at: string;
+          growth_patterns: Json;
+          id: string;
+          month: string;
+          shared_with: Json;
+          student_id: string;
+          suggested_focus: Json;
+          themes: Json;
+        };
+        Insert: {
+          emotional_trends?: Json;
+          generated_at?: string;
+          growth_patterns?: Json;
+          id?: string;
+          month: string;
+          shared_with?: Json;
+          student_id: string;
+          suggested_focus?: Json;
+          themes?: Json;
+        };
+        Update: {
+          emotional_trends?: Json;
+          generated_at?: string;
+          growth_patterns?: Json;
+          id?: string;
+          month?: string;
+          shared_with?: Json;
+          student_id?: string;
+          suggested_focus?: Json;
+          themes?: Json;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "reflection_digests_student_id_fkey";
+            columns: ["student_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      reflection_quality_scores: {
+        Row: {
+          depth_score: number;
+          flags: Json;
+          id: string;
+          originality_score: number;
+          reflection_id: string;
+          reflection_type: Database["public"]["Enums"]["reflection_type_enum"];
+          relevance_score: number;
+          score: number;
+          scored_at: string;
+          student_id: string;
+        };
+        Insert: {
+          depth_score: number;
+          flags?: Json;
+          id?: string;
+          originality_score: number;
+          reflection_id: string;
+          reflection_type: Database["public"]["Enums"]["reflection_type_enum"];
+          relevance_score: number;
+          score: number;
+          scored_at?: string;
+          student_id: string;
+        };
+        Update: {
+          depth_score?: number;
+          flags?: Json;
+          id?: string;
+          originality_score?: number;
+          reflection_id?: string;
+          reflection_type?: Database["public"]["Enums"]["reflection_type_enum"];
+          relevance_score?: number;
+          score?: number;
+          scored_at?: string;
+          student_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "reflection_quality_scores_student_id_fkey";
+            columns: ["student_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
       replacement_votes: {
         Row: {
           created_at: string;
@@ -3497,6 +3630,77 @@ export type Database = {
             columns: ["team_id"];
             isOneToOne: false;
             referencedRelation: "teams";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      review_schedules: {
+        Row: {
+          clo_id: string;
+          course_id: string | null;
+          created_at: string;
+          id: string;
+          interval_days: number;
+          review_date: string;
+          review_session_id: string | null;
+          source_session_id: string | null;
+          status: Database["public"]["Enums"]["review_status_type"];
+          student_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          clo_id: string;
+          course_id?: string | null;
+          created_at?: string;
+          id?: string;
+          interval_days: number;
+          review_date: string;
+          review_session_id?: string | null;
+          source_session_id?: string | null;
+          status?: Database["public"]["Enums"]["review_status_type"];
+          student_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          clo_id?: string;
+          course_id?: string | null;
+          created_at?: string;
+          id?: string;
+          interval_days?: number;
+          review_date?: string;
+          review_session_id?: string | null;
+          source_session_id?: string | null;
+          status?: Database["public"]["Enums"]["review_status_type"];
+          student_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "review_schedules_course_id_fkey";
+            columns: ["course_id"];
+            isOneToOne: false;
+            referencedRelation: "courses";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "review_schedules_review_session_id_fkey";
+            columns: ["review_session_id"];
+            isOneToOne: false;
+            referencedRelation: "study_sessions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "review_schedules_source_session_id_fkey";
+            columns: ["source_session_id"];
+            isOneToOne: false;
+            referencedRelation: "study_sessions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "review_schedules_student_id_fkey";
+            columns: ["student_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
             referencedColumns: ["id"];
           }
         ];
@@ -3750,6 +3954,51 @@ export type Database = {
           },
           {
             foreignKeyName: "session_evidence_student_id_fkey";
+            columns: ["student_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      session_intents: {
+        Row: {
+          concept: string;
+          created_at: string;
+          id: string;
+          is_auto_suggested: boolean;
+          session_id: string;
+          student_id: string;
+          success_criterion: string;
+        };
+        Insert: {
+          concept: string;
+          created_at?: string;
+          id?: string;
+          is_auto_suggested?: boolean;
+          session_id: string;
+          student_id: string;
+          success_criterion: string;
+        };
+        Update: {
+          concept?: string;
+          created_at?: string;
+          id?: string;
+          is_auto_suggested?: boolean;
+          session_id?: string;
+          student_id?: string;
+          success_criterion?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "session_intents_session_id_fkey";
+            columns: ["session_id"];
+            isOneToOne: true;
+            referencedRelation: "study_sessions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "session_intents_student_id_fkey";
             columns: ["student_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
@@ -5477,6 +5726,7 @@ export type Database = {
         | "evaluating"
         | "creating";
       cosmetic_slot: "profile_theme" | "avatar_frame" | "display_title";
+      flow_response_type: "in_the_zone" | "stuck" | "too_easy";
       goal_type_enum: "study_hours" | "sessions_completed" | "tasks_completed";
       marketplace_item_category: "cosmetic" | "educational_perk" | "power_up";
       marketplace_item_sub_category:
@@ -5490,6 +5740,10 @@ export type Database = {
         | "streak_shield";
       marketplace_stock_type: "unlimited" | "limited" | "one_per_student";
       outcome_type: "ILO" | "PLO" | "CLO";
+      quality_category_type: "thoughtful" | "good_effort" | "needs_detail";
+      reflection_template_type: "free_form" | "simple" | "gibbs";
+      reflection_type_enum: "session_reflection" | "journal_entry";
+      review_status_type: "pending" | "completed" | "skipped";
       session_status_type:
         | "planned"
         | "in_progress"
@@ -5644,6 +5898,7 @@ export const Constants = {
         "creating",
       ],
       cosmetic_slot: ["profile_theme", "avatar_frame", "display_title"],
+      flow_response_type: ["in_the_zone", "stuck", "too_easy"],
       goal_type_enum: ["study_hours", "sessions_completed", "tasks_completed"],
       marketplace_item_category: ["cosmetic", "educational_perk", "power_up"],
       marketplace_item_sub_category: [
@@ -5658,6 +5913,10 @@ export const Constants = {
       ],
       marketplace_stock_type: ["unlimited", "limited", "one_per_student"],
       outcome_type: ["ILO", "PLO", "CLO"],
+      quality_category_type: ["thoughtful", "good_effort", "needs_detail"],
+      reflection_template_type: ["free_form", "simple", "gibbs"],
+      reflection_type_enum: ["session_reflection", "journal_entry"],
+      review_status_type: ["pending", "completed", "skipped"],
       session_status_type: ["planned", "in_progress", "completed", "cancelled"],
       submission_status: ["submitted", "graded"],
       task_priority_type: ["low", "medium", "high"],

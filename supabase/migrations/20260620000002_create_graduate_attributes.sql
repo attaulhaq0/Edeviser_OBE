@@ -29,19 +29,19 @@ ALTER TABLE graduate_attribute_mappings ENABLE ROW LEVEL SECURITY;
 -- 4. RLS policies for graduate_attributes
 CREATE POLICY "admin_all_graduate_attributes" ON graduate_attributes
   FOR ALL TO authenticated
-  USING (auth_user_role() = 'admin' AND institution_id = auth_institution_id());
+  USING ((select auth_user_role()) = 'admin' AND institution_id = (select auth_institution_id()));
 
 CREATE POLICY "role_select_graduate_attributes" ON graduate_attributes
   FOR SELECT TO authenticated
-  USING (institution_id = auth_institution_id());
+  USING (institution_id = (select auth_institution_id()));
 
 -- 5. RLS policies for graduate_attribute_mappings
 CREATE POLICY "admin_all_ga_mappings" ON graduate_attribute_mappings
   FOR ALL TO authenticated
   USING (
-    auth_user_role() = 'admin'
+    (select auth_user_role()) = 'admin'
     AND graduate_attribute_id IN (
-      SELECT id FROM graduate_attributes WHERE institution_id = auth_institution_id()
+      SELECT id FROM graduate_attributes WHERE institution_id = (select auth_institution_id())
     )
   );
 
@@ -49,7 +49,7 @@ CREATE POLICY "role_select_ga_mappings" ON graduate_attribute_mappings
   FOR SELECT TO authenticated
   USING (
     graduate_attribute_id IN (
-      SELECT id FROM graduate_attributes WHERE institution_id = auth_institution_id()
+      SELECT id FROM graduate_attributes WHERE institution_id = (select auth_institution_id())
     )
   );
 

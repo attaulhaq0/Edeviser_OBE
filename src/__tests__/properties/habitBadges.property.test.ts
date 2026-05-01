@@ -3,9 +3,9 @@
 // Feature: habit-heatmap, Property 24: Full Spectrum badge (7 days with all 4 academic + ≥1 wellness)
 // **Validates: Requirements 19.1, 19.2, 19.3**
 
-import { describe, it, expect } from 'vitest';
-import * as fc from 'fast-check';
-import type { HeatmapDay, CompletedHabit } from '@/types/habits';
+import { describe, it, expect } from "vitest";
+import * as fc from "fast-check";
+import type { HeatmapDay, CompletedHabit } from "@/types/habits";
 
 // --- Inline badge condition helpers (per design doc) ---
 // These implement the badge conditions as specified. Task 5 will create the actual functions.
@@ -40,36 +40,45 @@ const checkWellnessWarrior = (days: HeatmapDay[]): boolean => {
  * AND ≥1 wellness habit are completed on the same day.
  */
 const checkFullSpectrum = (days: HeatmapDay[]): boolean => {
-  const fullDays = days.filter((d) => d.academicCount >= 4 && d.wellnessCount >= 1).length;
+  const fullDays = days.filter(
+    (d) => d.academicCount >= 4 && d.wellnessCount >= 1
+  ).length;
   return fullDays >= 7;
 };
 
 // --- Arbitraries ---
 
 const heatmapDayArb = (date: string): fc.Arbitrary<HeatmapDay> =>
-  fc.record({
-    date: fc.constant(date),
-    academicCount: fc.integer({ min: 0, max: 4 }),
-    wellnessCount: fc.integer({ min: 0, max: 4 }),
-    totalCount: fc.constant(0),
-    habits: fc.constant([] as CompletedHabit[]),
-  }).map((d) => ({ ...d, totalCount: d.academicCount + d.wellnessCount }));
+  fc
+    .record({
+      date: fc.constant(date),
+      academicCount: fc.integer({ min: 0, max: 4 }),
+      wellnessCount: fc.integer({ min: 0, max: 4 }),
+      totalCount: fc.constant(0),
+      habits: fc.constant([] as CompletedHabit[]),
+    })
+    .map((d) => ({ ...d, totalCount: d.academicCount + d.wellnessCount }));
 
-const consecutiveDaysArb = (numDays: number, startDate: Date = new Date('2024-01-01')) =>
+const consecutiveDaysArb = (
+  numDays: number,
+  startDate: Date = new Date("2024-01-01")
+) =>
   fc.tuple(
     ...Array.from({ length: numDays }, (_, i) => {
       const d = new Date(startDate);
       d.setDate(d.getDate() + i);
       return heatmapDayArb(d.toISOString().slice(0, 10));
-    }),
+    })
   );
 
-describe('Habit Badges Properties', () => {
+describe("Habit Badges Properties", () => {
   // Feature: habit-heatmap, Property 22: Habit Master badge condition
-  it('Property 22: Habit Master badge true iff ≥30 active days', () => {
+  it("Property 22: Habit Master badge true iff ≥30 active days", () => {
     fc.assert(
       fc.property(
-        fc.integer({ min: 30, max: 120 }).chain((numDays) => consecutiveDaysArb(numDays)),
+        fc
+          .integer({ min: 30, max: 120 })
+          .chain((numDays) => consecutiveDaysArb(numDays)),
         (days) => {
           const activeDays = days.filter((d) => d.totalCount > 0).length;
           const result = checkHabitMaster(days);
@@ -79,17 +88,17 @@ describe('Habit Badges Properties', () => {
           } else {
             expect(result).toBe(false);
           }
-        },
+        }
       ),
-      { numRuns: 100 },
+      { numRuns: 100 }
     );
   });
 
-  it('Property 22 (boundary): exactly 29 active days does not earn Habit Master', () => {
+  it("Property 22 (boundary): exactly 29 active days does not earn Habit Master", () => {
     // Create 29 active days + 1 inactive day
     const days: HeatmapDay[] = [];
     for (let i = 0; i < 30; i++) {
-      const d = new Date('2024-01-01');
+      const d = new Date("2024-01-01");
       d.setDate(d.getDate() + i);
       days.push({
         date: d.toISOString().slice(0, 10),
@@ -102,10 +111,10 @@ describe('Habit Badges Properties', () => {
     expect(checkHabitMaster(days)).toBe(false);
   });
 
-  it('Property 22 (boundary): exactly 30 active days earns Habit Master', () => {
+  it("Property 22 (boundary): exactly 30 active days earns Habit Master", () => {
     const days: HeatmapDay[] = [];
     for (let i = 0; i < 30; i++) {
-      const d = new Date('2024-01-01');
+      const d = new Date("2024-01-01");
       d.setDate(d.getDate() + i);
       days.push({
         date: d.toISOString().slice(0, 10),
@@ -119,10 +128,12 @@ describe('Habit Badges Properties', () => {
   });
 
   // Feature: habit-heatmap, Property 23: Wellness Warrior badge condition
-  it('Property 23: Wellness Warrior badge true iff ≥14 consecutive wellness days', () => {
+  it("Property 23: Wellness Warrior badge true iff ≥14 consecutive wellness days", () => {
     fc.assert(
       fc.property(
-        fc.integer({ min: 14, max: 60 }).chain((numDays) => consecutiveDaysArb(numDays)),
+        fc
+          .integer({ min: 14, max: 60 })
+          .chain((numDays) => consecutiveDaysArb(numDays)),
         (days) => {
           const result = checkWellnessWarrior(days);
 
@@ -143,16 +154,16 @@ describe('Habit Badges Properties', () => {
           } else {
             expect(result).toBe(false);
           }
-        },
+        }
       ),
-      { numRuns: 100 },
+      { numRuns: 100 }
     );
   });
 
-  it('Property 23 (boundary): exactly 13 consecutive wellness days does not earn badge', () => {
+  it("Property 23 (boundary): exactly 13 consecutive wellness days does not earn badge", () => {
     const days: HeatmapDay[] = [];
     for (let i = 0; i < 14; i++) {
-      const d = new Date('2024-01-01');
+      const d = new Date("2024-01-01");
       d.setDate(d.getDate() + i);
       days.push({
         date: d.toISOString().slice(0, 10),
@@ -165,10 +176,10 @@ describe('Habit Badges Properties', () => {
     expect(checkWellnessWarrior(days)).toBe(false);
   });
 
-  it('Property 23 (boundary): exactly 14 consecutive wellness days earns badge', () => {
+  it("Property 23 (boundary): exactly 14 consecutive wellness days earns badge", () => {
     const days: HeatmapDay[] = [];
     for (let i = 0; i < 14; i++) {
-      const d = new Date('2024-01-01');
+      const d = new Date("2024-01-01");
       d.setDate(d.getDate() + i);
       days.push({
         date: d.toISOString().slice(0, 10),
@@ -182,30 +193,34 @@ describe('Habit Badges Properties', () => {
   });
 
   // Feature: habit-heatmap, Property 24: Full Spectrum badge condition
-  it('Property 24: Full Spectrum badge true iff ≥7 days with all 4 academic + ≥1 wellness', () => {
+  it("Property 24: Full Spectrum badge true iff ≥7 days with all 4 academic + ≥1 wellness", () => {
     fc.assert(
       fc.property(
-        fc.integer({ min: 7, max: 60 }).chain((numDays) => consecutiveDaysArb(numDays)),
+        fc
+          .integer({ min: 7, max: 60 })
+          .chain((numDays) => consecutiveDaysArb(numDays)),
         (days) => {
           const result = checkFullSpectrum(days);
 
-          const fullDays = days.filter((d) => d.academicCount >= 4 && d.wellnessCount >= 1).length;
+          const fullDays = days.filter(
+            (d) => d.academicCount >= 4 && d.wellnessCount >= 1
+          ).length;
 
           if (fullDays >= 7) {
             expect(result).toBe(true);
           } else {
             expect(result).toBe(false);
           }
-        },
+        }
       ),
-      { numRuns: 100 },
+      { numRuns: 100 }
     );
   });
 
-  it('Property 24 (boundary): exactly 6 full spectrum days does not earn badge', () => {
+  it("Property 24 (boundary): exactly 6 full spectrum days does not earn badge", () => {
     const days: HeatmapDay[] = [];
     for (let i = 0; i < 7; i++) {
-      const d = new Date('2024-01-01');
+      const d = new Date("2024-01-01");
       d.setDate(d.getDate() + i);
       days.push({
         date: d.toISOString().slice(0, 10),
@@ -218,10 +233,10 @@ describe('Habit Badges Properties', () => {
     expect(checkFullSpectrum(days)).toBe(false);
   });
 
-  it('Property 24 (boundary): exactly 7 full spectrum days earns badge', () => {
+  it("Property 24 (boundary): exactly 7 full spectrum days earns badge", () => {
     const days: HeatmapDay[] = [];
     for (let i = 0; i < 7; i++) {
-      const d = new Date('2024-01-01');
+      const d = new Date("2024-01-01");
       d.setDate(d.getDate() + i);
       days.push({
         date: d.toISOString().slice(0, 10),
