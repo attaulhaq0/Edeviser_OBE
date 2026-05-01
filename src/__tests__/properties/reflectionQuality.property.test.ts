@@ -44,14 +44,19 @@ describe("Property 26: Template concatenation preserves content", () => {
   });
 
   it("gibbs template concatenation includes all non-empty sections", () => {
+    // Use stringMatching to avoid whitespace-only strings that get trimmed to empty
+    const nonEmptyStr = fc
+      .string({ minLength: 1, maxLength: 50 })
+      .filter((s) => s.trim().length > 0);
+
     fc.assert(
       fc.property(
-        fc.string({ minLength: 1, maxLength: 50 }),
-        fc.string({ minLength: 1, maxLength: 50 }),
-        fc.string({ minLength: 1, maxLength: 50 }),
-        fc.string({ minLength: 1, maxLength: 50 }),
-        fc.string({ minLength: 1, maxLength: 50 }),
-        fc.string({ minLength: 1, maxLength: 50 }),
+        nonEmptyStr,
+        nonEmptyStr,
+        nonEmptyStr,
+        nonEmptyStr,
+        nonEmptyStr,
+        nonEmptyStr,
         (desc, feel, eval_, analysis, conclusion, action) => {
           const values: GibbsReflectionValues = {
             description: desc,
