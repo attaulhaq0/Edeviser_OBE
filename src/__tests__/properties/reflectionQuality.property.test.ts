@@ -18,11 +18,16 @@ import type {
 
 describe("Property 26: Template concatenation preserves content", () => {
   it("simple template concatenation includes all non-empty sections", () => {
+    // Use filter to avoid whitespace-only strings that get trimmed to empty
+    const nonEmptyStr = fc
+      .string({ minLength: 1, maxLength: 100 })
+      .filter((s) => s.trim().length > 0);
+
     fc.assert(
       fc.property(
-        fc.string({ minLength: 1, maxLength: 100 }),
-        fc.string({ minLength: 1, maxLength: 100 }),
-        fc.string({ minLength: 1, maxLength: 100 }),
+        nonEmptyStr,
+        nonEmptyStr,
+        nonEmptyStr,
         (well, challenging, change) => {
           const values: SimpleReflectionValues = {
             whatWentWell: well,
