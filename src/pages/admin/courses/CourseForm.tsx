@@ -360,6 +360,32 @@ const CourseFormFields = <T extends CreateCourseFormData | UpdateCourseFormData>
             )}
           />
 
+          {/* Team Formation Mode (Task 5.5) */}
+          <FormField
+            control={form.control}
+            name={'team_formation_mode' as never}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Team Formation Mode</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  value={(field.value as string) ?? 'teacher_assigned'}
+                >
+                  <FormControl>
+                    <SelectTrigger className="bg-white">
+                      <SelectValue placeholder="Select mode" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="teacher_assigned">Teacher Assigned</SelectItem>
+                    <SelectItem value="student_formed">Student Formed</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           <div className="flex items-center gap-3 pt-2">
             <Button
               type="submit"

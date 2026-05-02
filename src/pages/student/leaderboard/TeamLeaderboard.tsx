@@ -113,7 +113,7 @@ const TeamLeaderboard = ({ courseId }: TeamLeaderboardProps) => {
   const typedView: TeamLeaderboardView =
     view === 'weekly' ? 'weekly' : 'all_time';
 
-  const { data: entries, isLoading, isLive, retryCount } = useTeamLeaderboard(courseId, typedView);
+  const { data: entries, isLoading, isLive, retryCount } = useTeamLeaderboard({ courseId });
   const { data: myTeamId } = useMyTeamId(userId, courseId);
 
   if (!courseId) {

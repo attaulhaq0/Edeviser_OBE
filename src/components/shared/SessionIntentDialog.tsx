@@ -161,7 +161,7 @@ const SessionIntentDialog = ({
                     variant="outline"
                     className={cn(
                       "px-3 py-1.5 text-xs hover:bg-teal-50 hover:border-teal-300 hover:text-teal-700 cursor-pointer",
-                      // eslint-disable-next-line react-hooks/incompatible-library
+                       
                       form.watch("concept") === suggestion.concept &&
                         form.watch("successCriterion") ===
                           suggestion.successCriterion

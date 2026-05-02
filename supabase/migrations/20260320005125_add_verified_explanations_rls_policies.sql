@@ -14,10 +14,10 @@
 CREATE POLICY "verified_teacher_all" ON verified_explanations
   FOR ALL TO authenticated
   USING (
-    (select auth_user_role()) = 'teacher'
+    auth_user_role() = 'teacher'
     AND question_id IN (
       SELECT id FROM question_bank
-      WHERE course_id IN (SELECT id FROM courses WHERE teacher_id = (select auth.uid()))
+      WHERE course_id IN (SELECT id FROM courses WHERE teacher_id = auth.uid())
     )
   );
 
@@ -25,7 +25,7 @@ CREATE POLICY "verified_teacher_all" ON verified_explanations
 CREATE POLICY "verified_student_read" ON verified_explanations
   FOR SELECT TO authenticated
   USING (
-    (select auth_user_role()) = 'student'
+    auth_user_role() = 'student'
     AND is_active = true
   );
 
@@ -33,6 +33,6 @@ CREATE POLICY "verified_student_read" ON verified_explanations
 CREATE POLICY "verified_admin_read" ON verified_explanations
   FOR SELECT TO authenticated
   USING (
-    (select auth_user_role()) = 'admin'
-    AND institution_id = (select auth_institution_id())
+    auth_user_role() = 'admin'
+    AND institution_id = auth_institution_id()
   );;

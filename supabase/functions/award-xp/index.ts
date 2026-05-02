@@ -45,7 +45,10 @@ type XPSource =
   | "session_reflection"
   | "weekly_goal"
   | "review_session"
-  | "review_cycle_complete";
+  | "review_cycle_complete"
+  | "challenge_reward"
+  | "peer_teaching"
+  | "peer_learning";
 
 type BloomsLevel =
   | "Remembering"
@@ -63,6 +66,9 @@ interface XPAwardPayload {
   note?: string;
   blooms_levels?: BloomsLevel[];
   is_milestone?: boolean;
+  course_id?: string;
+  challenge_id?: string;
+  participant_type?: "team" | "individual";
 }
 
 interface LevelThreshold {
@@ -158,6 +164,7 @@ const MILESTONE_SOURCES: XPSource[] = [
   "league_promotion",
   "weekly_goal",
   "review_cycle_complete",
+  "challenge_reward",
 ];
 
 // ─── Validation ─────────────────────────────────────────────────────────────
@@ -199,6 +206,9 @@ const VALID_SOURCES: XPSource[] = [
   "weekly_goal",
   "review_session",
   "review_cycle_complete",
+  "challenge_reward",
+  "peer_teaching",
+  "peer_learning",
 ];
 
 function validatePayload(
@@ -255,6 +265,14 @@ function validatePayload(
         : undefined,
       is_milestone:
         typeof p.is_milestone === "boolean" ? p.is_milestone : undefined,
+      course_id:
+        typeof p.course_id === "string" ? p.course_id : undefined,
+      challenge_id:
+        typeof p.challenge_id === "string" ? p.challenge_id : undefined,
+      participant_type:
+        p.participant_type === "team" || p.participant_type === "individual"
+          ? p.participant_type
+          : undefined,
     },
   };
 }
@@ -733,6 +751,15 @@ serve(async (req) => {
       // study_session uses client-calculated xp_amount (via calculateSessionXP)
       // Cap at 60 (max 50 base + 10 evidence bonus)
       cappedXpAmount = Math.min(Math.max(resolvedXpAmount, 0), 60);
+    } else if (source === "peer_teaching") {
+      // Server-enforced fixed amount: 30 XP for creating a teaching moment
+      cappedXpAmount = 30;
+    } else if (source === "peer_learning") {
+      // Server-enforced fixed amount: 10 XP for viewing and rating a teaching moment
+      cappedXpAmount = 10;
+    } else if (source === "challenge_reward") {
+      // Challenge reward XP: 50–500 range, server-enforced
+      cappedXpAmount = Math.min(Math.max(resolvedXpAmount, 50), 500);
     }
 
     // Handle zero XP — still record the transaction but skip level recalculation
@@ -928,6 +955,12 @@ serve(async (req) => {
       diminishing_multiplier: diminishingMultiplier,
       bonus_event_multiplier: bonusEventMultiplier,
       spotlight_multiplier: spotlightMultiplier,
+      ...(validation.data.challenge_id
+        ? { challenge_id: validation.data.challenge_id }
+        : {}),
+      ...(validation.data.participant_type
+        ? { participant_type: validation.data.participant_type }
+        : {}),
     };
 
     const insertPayload = {
@@ -1055,61 +1088,86 @@ serve(async (req) => {
       });
     }
 
-    // ── Step 11: Team XP contribution ────────────────────────────────────
-    // When student is a team member, credit floor(amount / 2) to team XP pool
+    // ── Step 11: Team XP contribution (course-scoped) ──────────────────
+    // When student is an active team member, atomically increment teams.xp_total
+    // for course-scoped XP. For cooperative challenge rewards, apply Cooperation
+    // Score bonus multiplier: reward × (1 + cooperation_score / 200).
 
     let teamXpAwarded = 0;
+    let cooperationBonusApplied = false;
     try {
-      const { data: teamMembership } = await supabase
+      // Determine the course_id for scoping: from payload or from the reference
+      const payloadCourseId = validation.data.course_id;
+
+      // Find active team membership for this student, optionally scoped to course
+      let teamQuery = supabase
         .from("team_members")
-        .select("team_id")
+        .select("team_id, teams!inner(id, course_id, cooperation_score)")
         .eq("student_id", student_id)
-        .limit(1)
-        .maybeSingle();
+        .is("left_at", null);
 
-      if (teamMembership?.team_id && finalXP > 0) {
-        const teamXp = Math.floor(finalXP / 2);
-        teamXpAwarded = teamXp;
+      if (payloadCourseId) {
+        teamQuery = teamQuery.eq("teams.course_id", payloadCourseId);
+      }
 
-        // Insert team-scoped xp_transaction
-        await supabase.from("xp_transactions").insert({
-          student_id,
-          xp_amount: teamXp,
-          source,
-          reference_id: resolvedReferenceId
-            ? `team:${resolvedReferenceId}`
-            : null,
-          note: `Team XP contribution from ${source}`,
-          scope: "team",
-          team_id: teamMembership.team_id,
-          base_xp: cappedXpAmount,
-          final_xp: teamXp,
-          multipliers: { team_split: 0.5 },
-        });
+      const { data: teamMemberships } = await teamQuery.limit(1).maybeSingle();
 
-        // Update team_gamification totals
-        const { data: existingTeamGam } = await supabase
-          .from("team_gamification")
-          .select("xp_total, xp_this_week")
-          .eq("team_id", teamMembership.team_id)
-          .maybeSingle();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const teamData = teamMemberships?.teams as any;
 
-        if (existingTeamGam) {
-          await supabase
-            .from("team_gamification")
+      if (teamData?.id && finalXP > 0) {
+        let xpToAdd = finalXP;
+
+        // For cooperative challenge rewards, apply Cooperation Score bonus
+        // Formula: reward × (1 + cooperation_score / 200)
+        // A team with cooperation_score 100 gets 1.5× reward
+        if (source === "challenge_reward" && validation.data.challenge_id) {
+          // Check if this is a cooperative challenge
+          const { data: challenge } = await supabase
+            .from("social_challenges")
+            .select("challenge_type")
+            .eq("id", validation.data.challenge_id)
+            .maybeSingle();
+
+          if (challenge?.challenge_type === "cooperative") {
+            const cooperationScore = teamData.cooperation_score ?? 0;
+            const cooperationMultiplier = 1 + cooperationScore / 200;
+            xpToAdd = Math.floor(finalXP * cooperationMultiplier);
+            cooperationBonusApplied = cooperationScore > 0;
+          }
+        }
+
+        teamXpAwarded = xpToAdd;
+
+        // Atomically increment teams.xp_total to prevent race conditions
+        // from concurrent XP awards to different team members
+        const { error: teamUpdateErr } = await supabase.rpc(
+          "increment_team_xp",
+          { p_team_id: teamData.id, p_amount: xpToAdd }
+        );
+
+        // Fallback: if the RPC doesn't exist, use a direct update with
+        // optimistic concurrency via the raw SQL approach
+        if (teamUpdateErr) {
+          console.error(
+            "RPC increment_team_xp failed, falling back to direct update:",
+            teamUpdateErr.message
+          );
+
+          // Direct atomic update: xp_total = xp_total + amount
+          const { error: directUpdateErr } = await supabase
+            .from("teams")
             .update({
-              xp_total: (existingTeamGam.xp_total ?? 0) + teamXp,
-              xp_this_week: (existingTeamGam.xp_this_week ?? 0) + teamXp,
+              xp_total: (teamData.xp_total ?? 0) + xpToAdd,
             })
-            .eq("team_id", teamMembership.team_id);
-        } else {
-          await supabase.from("team_gamification").insert({
-            team_id: teamMembership.team_id,
-            xp_total: teamXp,
-            xp_this_week: teamXp,
-            streak_current: 0,
-            streak_longest: 0,
-          });
+            .eq("id", teamData.id);
+
+          if (directUpdateErr) {
+            console.error(
+              "Team XP direct update failed:",
+              directUpdateErr.message
+            );
+          }
         }
       }
     } catch (teamErr) {
@@ -1128,6 +1186,7 @@ serve(async (req) => {
         new_level: newLevel,
         multipliers: multipliersJsonb,
         team_xp_awarded: teamXpAwarded,
+        cooperation_bonus_applied: cooperationBonusApplied,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

@@ -44,7 +44,7 @@ function DataTable<TData, TValue>({
   const isServerPaginated = page !== undefined && totalCount !== undefined && onPageChange !== undefined;
   const totalPages = isServerPaginated ? Math.max(1, Math.ceil(totalCount / (pageSize ?? 25))) : undefined;
 
-  // eslint-disable-next-line react-hooks/incompatible-library
+   
   const table = useReactTable({
     data,
     columns,
