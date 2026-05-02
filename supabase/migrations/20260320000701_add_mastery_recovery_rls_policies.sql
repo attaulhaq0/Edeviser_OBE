@@ -15,14 +15,14 @@
 -- Students: read their own recovery pathways
 CREATE POLICY "recovery_student_read" ON mastery_recovery_pathways
   FOR SELECT TO authenticated
-  USING (student_id = (select auth.uid()));
+  USING (student_id = auth.uid());
 
 -- Teachers: read recovery pathways for their courses
 CREATE POLICY "recovery_teacher_read" ON mastery_recovery_pathways
   FOR SELECT TO authenticated
   USING (
     auth_user_role() = 'teacher'
-    AND course_id IN (SELECT id FROM courses WHERE teacher_id = (select auth.uid()))
+    AND course_id IN (SELECT id FROM courses WHERE teacher_id = auth.uid())
   );
 
 -- Admins: read all within institution

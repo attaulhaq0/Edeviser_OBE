@@ -6,7 +6,6 @@
 
 -- Enable pg_cron if not already enabled
 CREATE EXTENSION IF NOT EXISTS pg_cron;
-
 -- Daily job at 6:00 AM UTC to update micro-assessment scheduled_at dates
 -- and populate question_ids for today's pending assessments
 SELECT cron.schedule(

@@ -8,7 +8,7 @@ CREATE POLICY "qanalytics_teacher_read" ON question_analytics
     auth_user_role() = 'teacher'
     AND question_id IN (
       SELECT id FROM question_bank
-      WHERE course_id IN (SELECT id FROM courses WHERE teacher_id = (select auth.uid()))
+      WHERE course_id IN (SELECT id FROM courses WHERE teacher_id = auth.uid())
     )
   );
 

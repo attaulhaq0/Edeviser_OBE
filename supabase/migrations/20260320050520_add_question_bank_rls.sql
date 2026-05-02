@@ -6,11 +6,11 @@ CREATE POLICY "qbank_teacher_all" ON question_bank
   FOR ALL TO authenticated
   USING (
     auth_user_role() = 'teacher'
-    AND course_id IN (SELECT id FROM courses WHERE teacher_id = (select auth.uid()))
+    AND course_id IN (SELECT id FROM courses WHERE teacher_id = auth.uid())
   )
   WITH CHECK (
     auth_user_role() = 'teacher'
-    AND course_id IN (SELECT id FROM courses WHERE teacher_id = (select auth.uid()))
+    AND course_id IN (SELECT id FROM courses WHERE teacher_id = auth.uid())
   );
 
 -- Admin: read-only within institution
