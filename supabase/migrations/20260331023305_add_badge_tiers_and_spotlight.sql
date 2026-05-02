@@ -27,13 +27,13 @@ ALTER TABLE public.badge_spotlight_schedule ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "admin_all_badge_spotlight_schedule" ON public.badge_spotlight_schedule
   FOR ALL TO authenticated
   USING (
-    (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin'
-    AND institution_id = (SELECT institution_id FROM public.profiles WHERE id = auth.uid())
+    (SELECT role FROM public.profiles WHERE id = (select auth.uid())) = 'admin'
+    AND institution_id = (SELECT institution_id FROM public.profiles WHERE id = (select auth.uid()))
   );
 
 -- All authenticated roles can read within their institution
 CREATE POLICY "all_roles_read_badge_spotlight_schedule" ON public.badge_spotlight_schedule
   FOR SELECT TO authenticated
   USING (
-    institution_id = (SELECT institution_id FROM public.profiles WHERE id = auth.uid())
+    institution_id = (SELECT institution_id FROM public.profiles WHERE id = (select auth.uid()))
   );;

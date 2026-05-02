@@ -11,7 +11,7 @@
 -- === evidence table (immutable, append-only) ===
 CREATE POLICY "evidence_student_read" ON public.evidence
   FOR SELECT TO authenticated
-  USING (student_id = auth.uid());
+  USING (student_id = (select auth.uid()));
 
 CREATE POLICY "evidence_staff_read" ON public.evidence
   FOR SELECT TO authenticated
@@ -23,7 +23,7 @@ CREATE POLICY "evidence_parent_read" ON public.evidence
     auth_user_role() = 'parent'
     AND student_id IN (
       SELECT psl.student_id FROM parent_student_links psl
-      WHERE psl.parent_id = auth.uid() AND psl.verified = true
+      WHERE psl.parent_id = (select auth.uid()) AND psl.verified = true
     )
   );
 
@@ -41,7 +41,7 @@ CREATE POLICY "outcomes_coordinator_write" ON public.learning_outcomes
   USING (
     auth_user_role() = 'coordinator'
     AND program_id IN (
-      SELECT id FROM programs WHERE coordinator_id = auth.uid()
+      SELECT id FROM programs WHERE coordinator_id = (select auth.uid())
     )
   );
 
@@ -50,14 +50,14 @@ CREATE POLICY "outcomes_teacher_write" ON public.learning_outcomes
   USING (
     auth_user_role() = 'teacher'
     AND course_id IN (
-      SELECT id FROM courses WHERE teacher_id = auth.uid()
+      SELECT id FROM courses WHERE teacher_id = (select auth.uid())
     )
   );
 
 -- === submissions table ===
 CREATE POLICY "submissions_student_own" ON public.submissions
   FOR ALL TO authenticated
-  USING (student_id = auth.uid());
+  USING (student_id = (select auth.uid()));
 
 CREATE POLICY "submissions_teacher_read" ON public.submissions
   FOR SELECT TO authenticated
@@ -65,7 +65,7 @@ CREATE POLICY "submissions_teacher_read" ON public.submissions
     auth_user_role() = 'teacher'
     AND assignment_id IN (
       SELECT id FROM assignments WHERE course_id IN (
-        SELECT id FROM courses WHERE teacher_id = auth.uid()
+        SELECT id FROM courses WHERE teacher_id = (select auth.uid())
       )
     )
   );
@@ -80,14 +80,14 @@ CREATE POLICY "submissions_parent_read" ON public.submissions
     auth_user_role() = 'parent'
     AND student_id IN (
       SELECT psl.student_id FROM parent_student_links psl
-      WHERE psl.parent_id = auth.uid() AND psl.verified = true
+      WHERE psl.parent_id = (select auth.uid()) AND psl.verified = true
     )
   );
 
 -- === student_gamification missing policies ===
 CREATE POLICY "gamification_student_read" ON public.student_gamification
   FOR SELECT TO authenticated
-  USING (student_id = auth.uid());
+  USING (student_id = (select auth.uid()));
 
 CREATE POLICY "gamification_staff_read" ON public.student_gamification
   FOR SELECT TO authenticated

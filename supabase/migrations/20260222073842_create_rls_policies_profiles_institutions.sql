@@ -17,7 +17,7 @@ CREATE POLICY "institutions_admin_write" ON public.institutions
 -- ==============================
 -- Users can read their own profile
 CREATE POLICY "profiles_read_own" ON public.profiles
-  FOR SELECT USING (id = auth.uid());
+  FOR SELECT USING (id = (select auth.uid()));
 
 -- Admins can read all profiles in their institution
 CREATE POLICY "profiles_admin_read_institution" ON public.profiles
@@ -40,7 +40,7 @@ CREATE POLICY "profiles_teacher_read_students" ON public.profiles
     AND id IN (
       SELECT sc.student_id FROM public.student_courses sc
       JOIN public.courses c ON c.id = sc.course_id
-      WHERE c.teacher_id = auth.uid()
+      WHERE c.teacher_id = (select auth.uid())
     )
   );
 
@@ -49,4 +49,4 @@ CREATE POLICY "profiles_coordinator_read" ON public.profiles
   FOR SELECT USING (
     auth_user_role() = 'coordinator'
     AND institution_id = auth_institution_id()
-  );;
+  );
