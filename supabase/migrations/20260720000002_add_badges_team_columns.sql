@@ -10,5 +10,8 @@ CREATE INDEX IF NOT EXISTS idx_badges_team
   WHERE team_id IS NOT NULL;
 
 -- Task 132.4: Add last_streak_date to team_gamification for team streak tracking
-ALTER TABLE team_gamification
-  ADD COLUMN IF NOT EXISTS last_streak_date text;
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'team_gamification') THEN
+    ALTER TABLE team_gamification ADD COLUMN IF NOT EXISTS last_streak_date text;
+  END IF;
+END $$;

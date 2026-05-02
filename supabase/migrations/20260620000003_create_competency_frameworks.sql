@@ -38,16 +38,19 @@ ALTER TABLE competency_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE competency_outcome_mappings ENABLE ROW LEVEL SECURITY;
 
 -- 5. RLS policies for competency_frameworks
-DROP POLICY IF EXISTS "admin_all_competency_frameworks" ON competency_frameworks;`nCREATE POLICY "admin_all_competency_frameworks" ON competency_frameworks
+DROP POLICY IF EXISTS "admin_all_competency_frameworks" ON competency_frameworks;
+CREATE POLICY "admin_all_competency_frameworks" ON competency_frameworks
   FOR ALL TO authenticated
   USING ((select auth_user_role()) = 'admin' AND institution_id = (select auth_institution_id()));
 
-DROP POLICY IF EXISTS "role_select_competency_frameworks" ON competency_frameworks;`nCREATE POLICY "role_select_competency_frameworks" ON competency_frameworks
+DROP POLICY IF EXISTS "role_select_competency_frameworks" ON competency_frameworks;
+CREATE POLICY "role_select_competency_frameworks" ON competency_frameworks
   FOR SELECT TO authenticated
   USING (institution_id = (select auth_institution_id()));
 
 -- 6. RLS policies for competency_items
-DROP POLICY IF EXISTS "admin_all_competency_items" ON competency_items;`nCREATE POLICY "admin_all_competency_items" ON competency_items
+DROP POLICY IF EXISTS "admin_all_competency_items" ON competency_items;
+CREATE POLICY "admin_all_competency_items" ON competency_items
   FOR ALL TO authenticated
   USING (
     (select auth_user_role()) = 'admin'
@@ -56,7 +59,8 @@ DROP POLICY IF EXISTS "admin_all_competency_items" ON competency_items;`nCREATE 
     )
   );
 
-DROP POLICY IF EXISTS "role_select_competency_items" ON competency_items;`nCREATE POLICY "role_select_competency_items" ON competency_items
+DROP POLICY IF EXISTS "role_select_competency_items" ON competency_items;
+CREATE POLICY "role_select_competency_items" ON competency_items
   FOR SELECT TO authenticated
   USING (
     framework_id IN (
@@ -65,7 +69,8 @@ DROP POLICY IF EXISTS "role_select_competency_items" ON competency_items;`nCREAT
   );
 
 -- 7. RLS policies for competency_outcome_mappings
-DROP POLICY IF EXISTS "admin_all_competency_outcome_mappings" ON competency_outcome_mappings;`nCREATE POLICY "admin_all_competency_outcome_mappings" ON competency_outcome_mappings
+DROP POLICY IF EXISTS "admin_all_competency_outcome_mappings" ON competency_outcome_mappings;
+CREATE POLICY "admin_all_competency_outcome_mappings" ON competency_outcome_mappings
   FOR ALL TO authenticated
   USING (
     (select auth_user_role()) = 'admin'
@@ -76,7 +81,8 @@ DROP POLICY IF EXISTS "admin_all_competency_outcome_mappings" ON competency_outc
     )
   );
 
-DROP POLICY IF EXISTS "role_select_competency_outcome_mappings" ON competency_outcome_mappings;`nCREATE POLICY "role_select_competency_outcome_mappings" ON competency_outcome_mappings
+DROP POLICY IF EXISTS "role_select_competency_outcome_mappings" ON competency_outcome_mappings;
+CREATE POLICY "role_select_competency_outcome_mappings" ON competency_outcome_mappings
   FOR SELECT TO authenticated
   USING (
     competency_item_id IN (

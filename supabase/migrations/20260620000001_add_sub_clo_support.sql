@@ -6,13 +6,8 @@ ALTER TABLE learning_outcomes
   ADD COLUMN IF NOT EXISTS weight numeric DEFAULT 1.0
   CHECK (weight > 0 AND weight <= 1.0);
 
--- 2. Update type check constraint to include SUB_CLO
-ALTER TABLE learning_outcomes
-  DROP CONSTRAINT IF EXISTS learning_outcomes_type_check;
-
-ALTER TABLE learning_outcomes
-  ADD CONSTRAINT learning_outcomes_type_check
-  CHECK (type IN ('ILO', 'PLO', 'CLO', 'SUB_CLO'));
+-- 2. Update outcome_type enum to include SUB_CLO
+ALTER TYPE outcome_type ADD VALUE IF NOT EXISTS 'SUB_CLO';
 
 -- 3. Create trigger function to validate Sub-CLO parent is a CLO
 CREATE OR REPLACE FUNCTION validate_sub_clo_weights()

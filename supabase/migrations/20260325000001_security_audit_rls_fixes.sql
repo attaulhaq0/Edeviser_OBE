@@ -81,7 +81,7 @@ RETURNS TABLE (
   wellness_type text,
   total_logs bigint,
   unique_students bigint
-) AS $
+) AS $$
 BEGIN
   -- Security: verify caller belongs to the requested institution
   IF auth_institution_id() != p_institution_id THEN
@@ -98,7 +98,7 @@ BEGIN
   WHERE p.institution_id = p_institution_id
   GROUP BY whl.wellness_type;
 END;
-$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- ─── Vuln 21: xp_transactions cross-tenant read ────────────────────────────
 DROP POLICY IF EXISTS "xp_transactions_admin_read" ON public.xp_transactions;
