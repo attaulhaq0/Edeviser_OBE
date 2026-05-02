@@ -3,7 +3,7 @@
 // =============================================================================
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import QuickThoughtInput from "@/components/shared/QuickThoughtInput";
 
@@ -169,12 +169,11 @@ describe("QuickThoughtInput", () => {
       expect(button).toBeDisabled();
     });
 
-    it("disables the submit button when text exceeds 280 characters", async () => {
-      const user = userEvent.setup();
+    it("disables the submit button when text exceeds 280 characters", () => {
       render(<QuickThoughtInput {...defaultProps} />);
 
       const input = screen.getByLabelText("Quick thought");
-      await user.type(input, "a".repeat(285));
+      fireEvent.change(input, { target: { value: "a".repeat(285) } });
 
       const button = screen.getByRole("button", { name: /submit thought/i });
       expect(button).toBeDisabled();
