@@ -26,11 +26,13 @@ CREATE TABLE IF NOT EXISTS badge_spotlight_schedule (
 ALTER TABLE badge_spotlight_schedule ENABLE ROW LEVEL SECURITY;
 
 -- Admin manages spotlight schedule
+DROP POLICY IF EXISTS "admin_manage_spotlight" ON badge_spotlight_schedule;
 CREATE POLICY "admin_manage_spotlight" ON badge_spotlight_schedule
   FOR ALL TO authenticated
   USING (true);
 
 -- All roles can read spotlight
+DROP POLICY IF EXISTS "all_read_spotlight" ON badge_spotlight_schedule;
 CREATE POLICY "all_read_spotlight" ON badge_spotlight_schedule
   FOR SELECT TO authenticated
   USING (true);

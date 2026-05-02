@@ -21,7 +21,7 @@ CREATE POLICY "student_select_enrolled_teams" ON teams
     AND institution_id = auth_institution_id()
     AND course_id IN (
       SELECT sc.course_id FROM student_courses sc
-      WHERE sc.student_id = (select auth.uid())
+      WHERE sc.student_id = auth.uid()
     )
   );
 
@@ -37,7 +37,7 @@ CREATE POLICY "student_select_enrolled_team_members" ON team_members
     AND team_id IN (
       SELECT t.id FROM teams t
       JOIN student_courses sc ON sc.course_id = t.course_id
-      WHERE sc.student_id = (select auth.uid())
+      WHERE sc.student_id = auth.uid()
         AND t.deleted_at IS NULL
     )
   );
@@ -50,7 +50,7 @@ CREATE POLICY "teacher_select_team_members" ON team_members
     AND team_id IN (
       SELECT t.id FROM teams t
       JOIN courses c ON c.id = t.course_id
-      WHERE c.teacher_id = (select auth.uid())
+      WHERE c.teacher_id = auth.uid()
     )
   );
 
@@ -77,7 +77,7 @@ CREATE POLICY "student_select_enrolled_challenges" ON social_challenges
     AND status IN ('active', 'ended')
     AND course_id IN (
       SELECT sc.course_id FROM student_courses sc
-      WHERE sc.student_id = (select auth.uid())
+      WHERE sc.student_id = auth.uid()
     )
   );
 
@@ -92,18 +92,18 @@ CREATE POLICY "student_select_own_challenge_progress" ON challenge_progress
     auth_user_role() = 'student'
     AND (
       -- Individual participation: student is the participant
-      (participant_type = 'individual' AND participant_id = (select auth.uid()))
+      (participant_type = 'individual' AND participant_id = auth.uid())
       OR
       -- Team participation: student is an active member of the participating team
       (participant_type = 'team' AND participant_id IN (
         SELECT tm.team_id FROM team_members tm
-        WHERE tm.student_id = (select auth.uid()) AND tm.left_at IS NULL
+        WHERE tm.student_id = auth.uid() AND tm.left_at IS NULL
       ))
     )
     AND challenge_id IN (
       SELECT sc.id FROM social_challenges sc
       JOIN student_courses scr ON scr.course_id = sc.course_id
-      WHERE scr.student_id = (select auth.uid())
+      WHERE scr.student_id = auth.uid()
     )
   );
 ;

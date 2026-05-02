@@ -48,7 +48,6 @@ BEGIN
   RETURN NEW;
 END;
 $$;
-
 -- Attach trigger to grades table: fires after insert or update
 CREATE TRIGGER on_grade_insert_or_update
   AFTER INSERT OR UPDATE ON public.grades

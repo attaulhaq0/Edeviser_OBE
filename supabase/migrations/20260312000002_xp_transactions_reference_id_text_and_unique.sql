@@ -3,7 +3,6 @@
 -- "login:<student_id>:<date>".
 ALTER TABLE public.xp_transactions
   ALTER COLUMN reference_id TYPE text USING reference_id::text;
-
 -- Add a unique constraint on (student_id, reference_id) to enforce idempotency
 -- atomically at the DB level, preventing race-condition duplicates.
 -- NULLs are excluded (multiple NULL reference_ids per student are allowed).

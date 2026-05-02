@@ -7,6 +7,7 @@
 -- ============================================================
 
 -- Teachers: full CRUD for their course questions
+DROP POLICY IF EXISTS "verified_teacher_all" ON verified_explanations;
 CREATE POLICY "verified_teacher_all" ON verified_explanations
   FOR ALL TO authenticated
   USING (
@@ -18,6 +19,7 @@ CREATE POLICY "verified_teacher_all" ON verified_explanations
   );
 
 -- Students: read active verified explanations (served via post-quiz review)
+DROP POLICY IF EXISTS "verified_student_read" ON verified_explanations;
 CREATE POLICY "verified_student_read" ON verified_explanations
   FOR SELECT TO authenticated
   USING (
@@ -26,6 +28,7 @@ CREATE POLICY "verified_student_read" ON verified_explanations
   );
 
 -- Admins: read all within institution
+DROP POLICY IF EXISTS "verified_admin_read" ON verified_explanations;
 CREATE POLICY "verified_admin_read" ON verified_explanations
   FOR SELECT TO authenticated
   USING (

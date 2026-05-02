@@ -4,7 +4,7 @@
 -- Teacher: read own generation logs
 CREATE POLICY "gen_logs_teacher_read" ON quiz_generation_logs
   FOR SELECT TO authenticated
-  USING (teacher_id = (select auth.uid()));
+  USING (teacher_id = auth.uid());
 
 -- Admin: read all logs within institution
 CREATE POLICY "gen_logs_admin_read" ON quiz_generation_logs

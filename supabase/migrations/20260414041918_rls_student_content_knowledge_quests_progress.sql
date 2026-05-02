@@ -8,14 +8,14 @@ CREATE POLICY "student_content_student_select" ON student_content
   FOR SELECT TO authenticated
   USING (
     auth_user_role() = 'student'
-    AND student_id = (select auth.uid())
+    AND student_id = auth.uid()
   );
 
 CREATE POLICY "student_content_student_insert" ON student_content
   FOR INSERT TO authenticated
   WITH CHECK (
     auth_user_role() = 'student'
-    AND student_id = (select auth.uid())
+    AND student_id = auth.uid()
     AND institution_id = auth_institution_id()
   );
 
@@ -79,7 +79,7 @@ CREATE POLICY "quest_progress_student_own" ON student_quest_progress
   FOR ALL TO authenticated
   USING (
     auth_user_role() = 'student'
-    AND student_id = (select auth.uid())
+    AND student_id = auth.uid()
   );
 
 -- Admins: SELECT within institution

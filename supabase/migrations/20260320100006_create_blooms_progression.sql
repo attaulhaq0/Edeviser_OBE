@@ -6,7 +6,7 @@
 -- ============================================================
 -- blooms_progression — Tracks highest Bloom's level reached per student-CLO
 -- ============================================================
-CREATE TABLE blooms_progression (
+CREATE TABLE IF NOT EXISTS blooms_progression (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   institution_id UUID NOT NULL REFERENCES institutions(id),
   student_id UUID NOT NULL REFERENCES profiles(id),
@@ -23,5 +23,5 @@ CREATE TABLE blooms_progression (
 
 ALTER TABLE blooms_progression ENABLE ROW LEVEL SECURITY;
 
-CREATE INDEX idx_blooms_student ON blooms_progression (student_id, course_id);
-CREATE INDEX idx_blooms_clo ON blooms_progression (clo_id);
+CREATE INDEX IF NOT EXISTS idx_blooms_student ON blooms_progression (student_id, course_id);
+CREATE INDEX IF NOT EXISTS idx_blooms_clo ON blooms_progression (clo_id);

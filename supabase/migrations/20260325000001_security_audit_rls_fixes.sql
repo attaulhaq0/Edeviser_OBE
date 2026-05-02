@@ -81,7 +81,7 @@ RETURNS TABLE (
   wellness_type text,
   total_logs bigint,
   unique_students bigint
-) AS $
+) AS $$
 BEGIN
   -- Security: verify caller belongs to the requested institution
   IF auth_institution_id() != p_institution_id THEN
@@ -98,7 +98,7 @@ BEGIN
   WHERE p.institution_id = p_institution_id
   GROUP BY whl.wellness_type;
 END;
-$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- ─── Vuln 21: xp_transactions cross-tenant read ────────────────────────────
 DROP POLICY IF EXISTS "xp_transactions_admin_read" ON public.xp_transactions;
@@ -142,6 +142,7 @@ CREATE POLICY "habit_tracking_staff_read" ON public.habit_tracking
 
 -- ─── Vuln 25: badges cross-tenant read ──────────────────────────────────────
 DROP POLICY IF EXISTS "badges_public_read" ON public.badges;
+DROP POLICY IF EXISTS "badges_institution_read" ON public.badges;
 CREATE POLICY "badges_institution_read" ON public.badges
   FOR SELECT USING (
     student_id IN (
@@ -166,6 +167,8 @@ CREATE POLICY "verified_student_read" ON verified_explanations
 
 -- ─── Vuln 27: quiz_attempts overly permissive ──────────────────────────────
 DROP POLICY IF EXISTS "quiz_attempts_own" ON quiz_attempts;
+DROP POLICY IF EXISTS "quiz_attempts_student_read" ON quiz_attempts;
+DROP POLICY IF EXISTS "quiz_attempts_student_insert" ON quiz_attempts;
 CREATE POLICY "quiz_attempts_student_read" ON quiz_attempts
   FOR SELECT USING (student_id = (select auth.uid()));
 CREATE POLICY "quiz_attempts_student_insert" ON quiz_attempts

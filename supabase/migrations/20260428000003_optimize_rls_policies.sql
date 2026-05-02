@@ -1457,129 +1457,141 @@ CREATE POLICY "student_read_challenges" ON social_challenges
   ));
 
 -- ══════════════════════════════════════════════════════════════
--- 67. CHALLENGE_PARTICIPANTS
+-- 67. CHALLENGE_PARTICIPANTS (skip if table does not exist yet)
 -- ══════════════════════════════════════════════════════════════
-DROP POLICY IF EXISTS "participant_read_progress" ON challenge_participants;
-DROP POLICY IF EXISTS "teacher_manage_participants" ON challenge_participants;
-
-CREATE POLICY "participant_read_progress" ON challenge_participants
-  FOR SELECT TO authenticated
-  USING (participant_id = (select auth.uid()) OR EXISTS (
-    SELECT 1 FROM team_members tm WHERE tm.team_id = participant_id AND tm.student_id = (select auth.uid())
-  ) OR EXISTS (
-    SELECT 1 FROM social_challenges sc
-    JOIN student_courses stc ON stc.course_id = sc.course_id
-    WHERE sc.id = challenge_id AND stc.student_id = (select auth.uid())
-  ));
-
-CREATE POLICY "teacher_manage_participants" ON challenge_participants
-  FOR ALL TO authenticated
-  USING (EXISTS (
-    SELECT 1 FROM social_challenges sc
-    JOIN courses c ON c.id = sc.course_id
-    WHERE sc.id = challenge_id AND c.teacher_id = (select auth.uid())
-  ));
-
--- ══════════════════════════════════════════════════════════════
--- 68. GRADUATE_ATTRIBUTES
--- ══════════════════════════════════════════════════════════════
-DROP POLICY IF EXISTS "admin_all_graduate_attributes" ON graduate_attributes;
-DROP POLICY IF EXISTS "role_select_graduate_attributes" ON graduate_attributes;
-
-CREATE POLICY "admin_all_graduate_attributes" ON graduate_attributes
-  FOR ALL TO authenticated
-  USING ((select auth_user_role()) = 'admin' AND institution_id = (select auth_institution_id()));
-
-CREATE POLICY "role_select_graduate_attributes" ON graduate_attributes
-  FOR SELECT TO authenticated
-  USING (institution_id = (select auth_institution_id()));
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'challenge_participants') THEN
+    DROP POLICY IF EXISTS "participant_read_progress" ON challenge_participants;
+    DROP POLICY IF EXISTS "teacher_manage_participants" ON challenge_participants;
+    CREATE POLICY "participant_read_progress" ON challenge_participants
+      FOR SELECT TO authenticated
+      USING (participant_id = (select auth.uid()) OR EXISTS (
+        SELECT 1 FROM team_members tm WHERE tm.team_id = participant_id AND tm.student_id = (select auth.uid())
+      ) OR EXISTS (
+        SELECT 1 FROM social_challenges sc
+        JOIN student_courses stc ON stc.course_id = sc.course_id
+        WHERE sc.id = challenge_id AND stc.student_id = (select auth.uid())
+      ));
+    CREATE POLICY "teacher_manage_participants" ON challenge_participants
+      FOR ALL TO authenticated
+      USING (EXISTS (
+        SELECT 1 FROM social_challenges sc
+        JOIN courses c ON c.id = sc.course_id
+        WHERE sc.id = challenge_id AND c.teacher_id = (select auth.uid())
+      ));
+  END IF;
+END $$;
 
 -- ══════════════════════════════════════════════════════════════
--- 69. GRADUATE_ATTRIBUTE_MAPPINGS
+-- 68. GRADUATE_ATTRIBUTES (skip if table does not exist yet)
 -- ══════════════════════════════════════════════════════════════
-DROP POLICY IF EXISTS "admin_all_ga_mappings" ON graduate_attribute_mappings;
-DROP POLICY IF EXISTS "role_select_ga_mappings" ON graduate_attribute_mappings;
-
-CREATE POLICY "admin_all_ga_mappings" ON graduate_attribute_mappings
-  FOR ALL TO authenticated
-  USING (
-    (select auth_user_role()) = 'admin'
-    AND graduate_attribute_id IN (
-      SELECT id FROM graduate_attributes WHERE institution_id = (select auth_institution_id())
-    )
-  );
-
-CREATE POLICY "role_select_ga_mappings" ON graduate_attribute_mappings
-  FOR SELECT TO authenticated
-  USING (
-    graduate_attribute_id IN (
-      SELECT id FROM graduate_attributes WHERE institution_id = (select auth_institution_id())
-    )
-  );
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'graduate_attributes') THEN
+    DROP POLICY IF EXISTS "admin_all_graduate_attributes" ON graduate_attributes;
+    DROP POLICY IF EXISTS "role_select_graduate_attributes" ON graduate_attributes;
+    CREATE POLICY "admin_all_graduate_attributes" ON graduate_attributes
+      FOR ALL TO authenticated
+      USING ((select auth_user_role()) = 'admin' AND institution_id = (select auth_institution_id()));
+    CREATE POLICY "role_select_graduate_attributes" ON graduate_attributes
+      FOR SELECT TO authenticated
+      USING (institution_id = (select auth_institution_id()));
+  END IF;
+END $$;
 
 -- ══════════════════════════════════════════════════════════════
--- 70. COMPETENCY_FRAMEWORKS
+-- 69. GRADUATE_ATTRIBUTE_MAPPINGS (skip if table does not exist yet)
 -- ══════════════════════════════════════════════════════════════
-DROP POLICY IF EXISTS "admin_all_competency_frameworks" ON competency_frameworks;
-DROP POLICY IF EXISTS "role_select_competency_frameworks" ON competency_frameworks;
-
-CREATE POLICY "admin_all_competency_frameworks" ON competency_frameworks
-  FOR ALL TO authenticated
-  USING ((select auth_user_role()) = 'admin' AND institution_id = (select auth_institution_id()));
-
-CREATE POLICY "role_select_competency_frameworks" ON competency_frameworks
-  FOR SELECT TO authenticated
-  USING (institution_id = (select auth_institution_id()));
-
--- ══════════════════════════════════════════════════════════════
--- 71. COMPETENCY_ITEMS
--- ══════════════════════════════════════════════════════════════
-DROP POLICY IF EXISTS "admin_all_competency_items" ON competency_items;
-DROP POLICY IF EXISTS "role_select_competency_items" ON competency_items;
-
-CREATE POLICY "admin_all_competency_items" ON competency_items
-  FOR ALL TO authenticated
-  USING (
-    (select auth_user_role()) = 'admin'
-    AND framework_id IN (
-      SELECT id FROM competency_frameworks WHERE institution_id = (select auth_institution_id())
-    )
-  );
-
-CREATE POLICY "role_select_competency_items" ON competency_items
-  FOR SELECT TO authenticated
-  USING (
-    framework_id IN (
-      SELECT id FROM competency_frameworks WHERE institution_id = (select auth_institution_id())
-    )
-  );
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'graduate_attribute_mappings') THEN
+    DROP POLICY IF EXISTS "admin_all_ga_mappings" ON graduate_attribute_mappings;
+    DROP POLICY IF EXISTS "role_select_ga_mappings" ON graduate_attribute_mappings;
+    CREATE POLICY "admin_all_ga_mappings" ON graduate_attribute_mappings
+      FOR ALL TO authenticated
+      USING (
+        (select auth_user_role()) = 'admin'
+        AND graduate_attribute_id IN (
+          SELECT id FROM graduate_attributes WHERE institution_id = (select auth_institution_id())
+        )
+      );
+    CREATE POLICY "role_select_ga_mappings" ON graduate_attribute_mappings
+      FOR SELECT TO authenticated
+      USING (
+        graduate_attribute_id IN (
+          SELECT id FROM graduate_attributes WHERE institution_id = (select auth_institution_id())
+        )
+      );
+  END IF;
+END $$;
 
 -- ══════════════════════════════════════════════════════════════
--- 72. COMPETENCY_OUTCOME_MAPPINGS
+-- 70. COMPETENCY_FRAMEWORKS (skip if table does not exist yet)
 -- ══════════════════════════════════════════════════════════════
-DROP POLICY IF EXISTS "admin_all_competency_outcome_mappings" ON competency_outcome_mappings;
-DROP POLICY IF EXISTS "role_select_competency_outcome_mappings" ON competency_outcome_mappings;
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'competency_frameworks') THEN
+    DROP POLICY IF EXISTS "admin_all_competency_frameworks" ON competency_frameworks;
+    DROP POLICY IF EXISTS "role_select_competency_frameworks" ON competency_frameworks;
+    CREATE POLICY "admin_all_competency_frameworks" ON competency_frameworks
+      FOR ALL TO authenticated
+      USING ((select auth_user_role()) = 'admin' AND institution_id = (select auth_institution_id()));
+    CREATE POLICY "role_select_competency_frameworks" ON competency_frameworks
+      FOR SELECT TO authenticated
+      USING (institution_id = (select auth_institution_id()));
+  END IF;
+END $$;
 
-CREATE POLICY "admin_all_competency_outcome_mappings" ON competency_outcome_mappings
-  FOR ALL TO authenticated
-  USING (
-    (select auth_user_role()) = 'admin'
-    AND competency_item_id IN (
-      SELECT ci.id FROM competency_items ci
-      JOIN competency_frameworks cf ON ci.framework_id = cf.id
-      WHERE cf.institution_id = (select auth_institution_id())
-    )
-  );
+-- ══════════════════════════════════════════════════════════════
+-- 71. COMPETENCY_ITEMS (skip if table does not exist yet)
+-- ══════════════════════════════════════════════════════════════
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'competency_items') THEN
+    DROP POLICY IF EXISTS "admin_all_competency_items" ON competency_items;
+    DROP POLICY IF EXISTS "role_select_competency_items" ON competency_items;
+    CREATE POLICY "admin_all_competency_items" ON competency_items
+      FOR ALL TO authenticated
+      USING (
+        (select auth_user_role()) = 'admin'
+        AND framework_id IN (
+          SELECT id FROM competency_frameworks WHERE institution_id = (select auth_institution_id())
+        )
+      );
+    CREATE POLICY "role_select_competency_items" ON competency_items
+      FOR SELECT TO authenticated
+      USING (
+        framework_id IN (
+          SELECT id FROM competency_frameworks WHERE institution_id = (select auth_institution_id())
+        )
+      );
+  END IF;
+END $$;
 
-CREATE POLICY "role_select_competency_outcome_mappings" ON competency_outcome_mappings
-  FOR SELECT TO authenticated
-  USING (
-    competency_item_id IN (
-      SELECT ci.id FROM competency_items ci
-      JOIN competency_frameworks cf ON ci.framework_id = cf.id
-      WHERE cf.institution_id = (select auth_institution_id())
-    )
-  );
+-- ══════════════════════════════════════════════════════════════
+-- 72. COMPETENCY_OUTCOME_MAPPINGS (skip if table does not exist yet)
+-- ══════════════════════════════════════════════════════════════
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'competency_outcome_mappings') THEN
+    DROP POLICY IF EXISTS "admin_all_competency_outcome_mappings" ON competency_outcome_mappings;
+    DROP POLICY IF EXISTS "role_select_competency_outcome_mappings" ON competency_outcome_mappings;
+    CREATE POLICY "admin_all_competency_outcome_mappings" ON competency_outcome_mappings
+      FOR ALL TO authenticated
+      USING (
+        (select auth_user_role()) = 'admin'
+        AND competency_item_id IN (
+          SELECT ci.id FROM competency_items ci
+          JOIN competency_frameworks cf ON ci.framework_id = cf.id
+          WHERE cf.institution_id = (select auth_institution_id())
+        )
+      );
+    CREATE POLICY "role_select_competency_outcome_mappings" ON competency_outcome_mappings
+      FOR SELECT TO authenticated
+      USING (
+        competency_item_id IN (
+          SELECT ci.id FROM competency_items ci
+          JOIN competency_frameworks cf ON ci.framework_id = cf.id
+          WHERE cf.institution_id = (select auth_institution_id())
+        )
+      );
+  END IF;
+END $$;
 
 -- ══════════════════════════════════════════════════════════════
 -- 73. BADGE_SPOTLIGHT_SCHEDULE

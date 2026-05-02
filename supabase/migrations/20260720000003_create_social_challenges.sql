@@ -33,6 +33,7 @@ ALTER TABLE social_challenges ENABLE ROW LEVEL SECURITY;
 ALTER TABLE challenge_participants ENABLE ROW LEVEL SECURITY;
 
 -- Teacher manages challenges for their courses
+DROP POLICY IF EXISTS "teacher_manage_challenges" ON social_challenges;
 CREATE POLICY "teacher_manage_challenges" ON social_challenges
   FOR ALL TO authenticated
   USING (created_by = (select auth.uid()) OR EXISTS (
@@ -40,6 +41,7 @@ CREATE POLICY "teacher_manage_challenges" ON social_challenges
   ));
 
 -- Students can read active challenges for their courses
+DROP POLICY IF EXISTS "student_read_challenges" ON social_challenges;
 CREATE POLICY "student_read_challenges" ON social_challenges
   FOR SELECT TO authenticated
   USING (status IN ('active', 'completed') AND EXISTS (
@@ -47,6 +49,7 @@ CREATE POLICY "student_read_challenges" ON social_challenges
   ));
 
 -- Participants can read their own progress
+DROP POLICY IF EXISTS "participant_read_progress" ON challenge_participants;
 CREATE POLICY "participant_read_progress" ON challenge_participants
   FOR SELECT TO authenticated
   USING (participant_id = (select auth.uid()) OR EXISTS (
@@ -58,6 +61,7 @@ CREATE POLICY "participant_read_progress" ON challenge_participants
   ));
 
 -- Teachers manage participants for challenges in their courses
+DROP POLICY IF EXISTS "teacher_manage_participants" ON challenge_participants;
 CREATE POLICY "teacher_manage_participants" ON challenge_participants
   FOR ALL TO authenticated
   USING (EXISTS (

@@ -13,7 +13,7 @@ CREATE POLICY "student_upload_own_evidence" ON storage.objects
   FOR INSERT TO authenticated
   WITH CHECK (
     bucket_id = 'session-evidence'
-    AND (storage.foldername(name))[1] = (select auth.uid())::text
+    AND (storage.foldername(name))[1] = auth.uid()::text
   );
 
 -- Student can read their own files
@@ -21,7 +21,7 @@ CREATE POLICY "student_read_own_evidence" ON storage.objects
   FOR SELECT TO authenticated
   USING (
     bucket_id = 'session-evidence'
-    AND (storage.foldername(name))[1] = (select auth.uid())::text
+    AND (storage.foldername(name))[1] = auth.uid()::text
   );
 
 -- Teacher can read course student files

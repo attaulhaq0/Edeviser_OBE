@@ -16,7 +16,7 @@ ALTER TABLE public.habit_tracking ENABLE ROW LEVEL SECURITY;
 
 -- Students can read/write their own habits
 CREATE POLICY "habit_tracking_student_own" ON public.habit_tracking
-  FOR ALL USING (student_id = (select auth.uid()));
+  FOR ALL USING (student_id = auth.uid());
 
 -- Teachers/admins can read for monitoring
 CREATE POLICY "habit_tracking_staff_read" ON public.habit_tracking
@@ -66,9 +66,9 @@ ALTER TABLE public.learning_path_nodes ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "learning_path_nodes_read" ON public.learning_path_nodes
   FOR SELECT USING (
     course_id IN (
-      SELECT course_id FROM public.student_courses WHERE student_id = (select auth.uid())
+      SELECT course_id FROM public.student_courses WHERE student_id = auth.uid()
       UNION
-      SELECT id FROM public.courses WHERE teacher_id = (select auth.uid())
+      SELECT id FROM public.courses WHERE teacher_id = auth.uid()
     )
   );
 
@@ -76,7 +76,7 @@ CREATE POLICY "learning_path_nodes_read" ON public.learning_path_nodes
 CREATE POLICY "learning_path_nodes_teacher_write" ON public.learning_path_nodes
   FOR ALL USING (
     auth_user_role() = 'teacher'
-    AND course_id IN (SELECT id FROM public.courses WHERE teacher_id = (select auth.uid()))
+    AND course_id IN (SELECT id FROM public.courses WHERE teacher_id = auth.uid())
   );
 
 -- Add notification_preferences to profiles for email opt-in (Pillar 6: BJ Fogg prompts)
