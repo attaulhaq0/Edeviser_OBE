@@ -47,6 +47,7 @@ import {
 } from "@/hooks/useLeagueLeaderboard";
 import { useStudentCourseProgram } from "./useStudentCourseProgram";
 import TeamLeaderboard from "@/pages/student/leaderboard/TeamLeaderboard";
+import { useTeamRealtime } from "@/hooks/useTeamRealtime";
 import LeagueTierBadge from "@/components/shared/LeagueTierBadge";
 import {
   calculatePercentileBand,
@@ -636,6 +637,9 @@ const LeaderboardPage = () => {
     "mode",
     parseAsString.withDefault("individual")
   );
+
+  // Task 7.3: Team realtime subscription for team XP updates
+  useTeamRealtime(institutionId ?? undefined);
 
   // Default tab: personal_best for opt-out students, top_xp otherwise (Req 129.5)
   const defaultTab: LeaderboardTab = isOptedOut ? "personal_best" : "top_xp";

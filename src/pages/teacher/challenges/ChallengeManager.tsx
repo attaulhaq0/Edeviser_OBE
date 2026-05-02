@@ -88,7 +88,7 @@ const ChallengeManager = () => {
   const handleCancel = (challenge: Challenge) => {
     cancelMutation.mutate(challenge.id, {
       onSuccess: () => toast.success('Challenge cancelled'),
-      onError: (err) => toast.error(err.message),
+      onError: (err: Error) => toast.error(err.message),
     });
   };
 
@@ -117,7 +117,7 @@ const ChallengeManager = () => {
             toast.success('Challenge updated');
             resetForm();
           },
-          onError: (err) => toast.error(err.message),
+          onError: (err: Error) => toast.error(err.message),
         },
       );
     } else {
@@ -131,7 +131,7 @@ const ChallengeManager = () => {
                 { challengeId, teamIds: selectedTeamIds },
                 {
                   onSuccess: () => toast.success('Challenge created with teams assigned'),
-                  onError: (err) => toast.error(`Challenge created but team assignment failed: ${err.message}`),
+                  onError: (err: Error) => toast.error(`Challenge created but team assignment failed: ${err.message}`),
                 },
               );
             } else {
@@ -396,7 +396,7 @@ const ChallengeManager = () => {
           {!selectedCourseId ? (
             <p className="text-sm text-gray-500 text-center py-8">Select a course to view challenges.</p>
           ) : (
-            <DataTable columns={columns} data={challenges ?? []} isLoading={isLoading} />
+            <DataTable columns={columns} data={(challenges ?? []) as unknown as Challenge[]} isLoading={isLoading} />
           )}
         </div>
       </Card>

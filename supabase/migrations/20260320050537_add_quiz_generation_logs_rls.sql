@@ -10,6 +10,6 @@ CREATE POLICY "gen_logs_teacher_read" ON quiz_generation_logs
 CREATE POLICY "gen_logs_admin_read" ON quiz_generation_logs
   FOR SELECT TO authenticated
   USING (
-    (select auth_user_role()) = 'admin'
-    AND institution_id = (select auth_institution_id())
+    auth_user_role() = 'admin'
+    AND institution_id = auth_institution_id()
   );;

@@ -5,7 +5,7 @@
 CREATE POLICY "qanalytics_teacher_read" ON question_analytics
   FOR SELECT TO authenticated
   USING (
-    (select auth_user_role()) = 'teacher'
+    auth_user_role() = 'teacher'
     AND question_id IN (
       SELECT id FROM question_bank
       WHERE course_id IN (SELECT id FROM courses WHERE teacher_id = (select auth.uid()))
@@ -16,8 +16,8 @@ CREATE POLICY "qanalytics_teacher_read" ON question_analytics
 CREATE POLICY "qanalytics_admin_read" ON question_analytics
   FOR SELECT TO authenticated
   USING (
-    (select auth_user_role()) = 'admin'
+    auth_user_role() = 'admin'
     AND question_id IN (
-      SELECT id FROM question_bank WHERE institution_id = (select auth_institution_id())
+      SELECT id FROM question_bank WHERE institution_id = auth_institution_id()
     )
   );;

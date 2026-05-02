@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useOnboardingStatus, useCompleteOnboarding } from '@/hooks/useOnboarding';
 import { getChecklistForRole } from '@/lib/onboardingChecklist';
 import QuickStartChecklist from '@/components/shared/QuickStartChecklist';
-import { LayoutDashboard, Target, TableProperties, ClipboardList, CheckSquare, FlaskConical, UserCircle, Megaphone, FolderOpen, BookOpen, Calendar, Clock, Trophy, Users } from 'lucide-react';
+import { LayoutDashboard, Target, TableProperties, ClipboardList, CheckSquare, FlaskConical, UserCircle, Megaphone, FolderOpen, BookOpen, Calendar, Clock, Trophy, Users, HeartPulse } from 'lucide-react';
 import { LanguageSwitcher } from '@/components/shared/LanguageSwitcher';
 
 const WelcomeTour = lazy(() => import('@/components/shared/WelcomeTour'));
@@ -23,6 +23,7 @@ const navItems = [
   { to: '/teacher/timetable', icon: Clock, label: 'Timetable' },
   { to: '/teacher/challenges', icon: Trophy, label: 'Challenges' },
   { to: '/teacher/teams', icon: Users, label: 'Teams' },
+  { to: '/teacher/team-health', icon: HeartPulse, label: 'Team Health' },
   { to: '/teacher/baseline', icon: FlaskConical, label: 'Baseline Tests' },
   { to: '/teacher/settings/profile', icon: UserCircle, label: 'Profile' },
 ];

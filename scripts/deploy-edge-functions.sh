@@ -19,7 +19,7 @@ FAILED=0
 echo "═══════════════════════════════════════════════════════════════"
 echo "  Edeviser Edge Function Deployment"
 echo "  Project: ${PROJECT_REF}"
-echo "  Functions to deploy: 39"
+echo "  Functions to deploy: 40"
 echo "═══════════════════════════════════════════════════════════════"
 echo ""
 
@@ -137,13 +137,16 @@ supabase functions deploy team-streak-risk-cron --project-ref "${PROJECT_REF}" |
 echo "[38/39] Deploying update-question-analytics..."
 supabase functions deploy update-question-analytics --project-ref "${PROJECT_REF}" || { echo "  ✗ update-question-analytics FAILED"; FAILED=$((FAILED + 1)); }
 
-echo "[39/39] Deploying weekly-summary-cron..."
+echo "[39/40] Deploying weekly-summary-cron..."
 supabase functions deploy weekly-summary-cron --project-ref "${PROJECT_REF}" || { echo "  ✗ weekly-summary-cron FAILED"; FAILED=$((FAILED + 1)); }
+
+echo "[40/40] Deploying update-challenge-progress..."
+supabase functions deploy update-challenge-progress --project-ref "${PROJECT_REF}" || { echo "  ✗ update-challenge-progress FAILED"; FAILED=$((FAILED + 1)); }
 
 echo ""
 echo "═══════════════════════════════════════════════════════════════"
 echo "  Deployment Summary"
-echo "  Total: 39  |  Failed: ${FAILED}"
+echo "  Total: 40  |  Failed: ${FAILED}"
 echo "═══════════════════════════════════════════════════════════════"
 
 if [ "${FAILED}" -gt 0 ]; then
@@ -153,4 +156,4 @@ if [ "${FAILED}" -gt 0 ]; then
 fi
 
 echo ""
-echo "✓ All 39 Edge Functions deployed successfully."
+echo "✓ All 40 Edge Functions deployed successfully."

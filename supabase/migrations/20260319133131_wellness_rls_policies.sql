@@ -11,19 +11,19 @@ CREATE POLICY "student_select_own_wellness_logs" ON wellness_habit_logs
 -- Students: INSERT own logs
 CREATE POLICY "student_insert_own_wellness_logs" ON wellness_habit_logs
   FOR INSERT TO authenticated
-  WITH CHECK (student_id = (select auth.uid()) AND (select auth_user_role()) = 'student');
+  WITH CHECK (student_id = (select auth.uid()) AND auth_user_role() = 'student');
 
 -- Students: UPDATE value field only on own logs
 CREATE POLICY "student_update_own_wellness_logs" ON wellness_habit_logs
   FOR UPDATE TO authenticated
-  USING (student_id = (select auth.uid()) AND (select auth_user_role()) = 'student')
+  USING (student_id = (select auth.uid()) AND auth_user_role() = 'student')
   WITH CHECK (student_id = (select auth.uid()));
 
 -- Parents: SELECT linked student logs when parent_visibility = true
 CREATE POLICY "parent_read_linked_wellness_logs" ON wellness_habit_logs
   FOR SELECT TO authenticated
   USING (
-    (select auth_user_role()) = 'parent'
+    auth_user_role() = 'parent'
     AND student_id IN (
       SELECT psl.student_id FROM parent_student_links psl
       JOIN student_wellness_preferences swp ON swp.student_id = psl.student_id
@@ -39,5 +39,5 @@ CREATE POLICY "parent_read_linked_wellness_logs" ON wellness_habit_logs
 -- 1.7: RLS for student_wellness_preferences
 CREATE POLICY "student_manage_own_preferences" ON student_wellness_preferences
   FOR ALL TO authenticated
-  USING (student_id = (select auth.uid()) AND (select auth_user_role()) = 'student')
-  WITH CHECK (student_id = (select auth.uid()) AND (select auth_user_role()) = 'student');;
+  USING (student_id = (select auth.uid()) AND auth_user_role() = 'student')
+  WITH CHECK (student_id = (select auth.uid()) AND auth_user_role() = 'student');;

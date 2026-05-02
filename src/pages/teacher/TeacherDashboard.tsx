@@ -38,6 +38,7 @@ import {
 import type { AtRiskStudent } from '@/hooks/useTeacherDashboard';
 import type { BloomsLevel } from '@/types/app';
 import AIAtRiskWidget from '@/components/shared/AIAtRiskWidget';
+import { useTeamHealthScores } from '@/hooks/useTeamHealth';
 import GradingStats from '@/pages/teacher/dashboard/GradingStats';
 import {
   ClipboardList,
@@ -272,6 +273,55 @@ const AtRiskStudentCard = () => {
 };
 
 // ─── Teacher Dashboard ──────────────────────────────────────────────────────
+
+// ─── Team Health Summary Widget (Task 8.5) ──────────────────────────────────
+
+const TeamHealthSummaryWidget = ({ courseId }: { courseId: string }) => {
+  const { data: healthScores } = useTeamHealthScores(courseId || undefined);
+
+  const atRiskCount = (healthScores ?? []).filter((t) => t.health_status === 'at_risk').length;
+  const needsAttentionCount = (healthScores ?? []).filter((t) => t.health_status === 'needs_attention').length;
+  const totalTeams = (healthScores ?? []).length;
+
+  if (totalTeams === 0) return null;
+
+  return (
+    <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+      <div
+        className="px-6 py-4 flex items-center justify-between"
+        style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+      >
+        <div className="flex items-center gap-2">
+          <AlertTriangle className="h-5 w-5 text-white" />
+          <h2 className="text-lg font-bold tracking-tight text-white">Team Health</h2>
+        </div>
+        <Link
+          to="/teacher/team-health"
+          className="inline-flex items-center gap-1 text-sm font-medium text-white/80 hover:text-white transition-colors"
+        >
+          View Report
+          <ArrowRight className="h-4 w-4" />
+        </Link>
+      </div>
+      <div className="p-6">
+        <div className="grid grid-cols-3 gap-4">
+          <div className="text-center">
+            <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">Total Teams</p>
+            <p className="text-2xl font-black">{totalTeams}</p>
+          </div>
+          <div className="text-center">
+            <p className="text-[10px] font-black tracking-widest uppercase text-yellow-600">Needs Attention</p>
+            <p className="text-2xl font-black text-yellow-600">{needsAttentionCount}</p>
+          </div>
+          <div className="text-center">
+            <p className="text-[10px] font-black tracking-widest uppercase text-red-600">At Risk</p>
+            <p className="text-2xl font-black text-red-600">{atRiskCount}</p>
+          </div>
+        </div>
+      </div>
+    </Card>
+  );
+};
 
 const TeacherDashboard = () => {
   const { user } = useAuth();
@@ -563,6 +613,9 @@ const TeacherDashboard = () => {
 
       {/* AI At-Risk Students Widget */}
       <AIAtRiskWidget />
+
+      {/* Team Health Summary Widget (Task 8.5) */}
+      <TeamHealthSummaryWidget courseId={effectiveCourseId} />
 
       {/* Bottom Row: Grading Queue + At-Risk Students */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

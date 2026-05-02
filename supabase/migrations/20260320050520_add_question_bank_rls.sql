@@ -5,11 +5,11 @@
 CREATE POLICY "qbank_teacher_all" ON question_bank
   FOR ALL TO authenticated
   USING (
-    (select auth_user_role()) = 'teacher'
+    auth_user_role() = 'teacher'
     AND course_id IN (SELECT id FROM courses WHERE teacher_id = (select auth.uid()))
   )
   WITH CHECK (
-    (select auth_user_role()) = 'teacher'
+    auth_user_role() = 'teacher'
     AND course_id IN (SELECT id FROM courses WHERE teacher_id = (select auth.uid()))
   );
 
@@ -17,8 +17,8 @@ CREATE POLICY "qbank_teacher_all" ON question_bank
 CREATE POLICY "qbank_admin_read" ON question_bank
   FOR SELECT TO authenticated
   USING (
-    (select auth_user_role()) = 'admin'
-    AND institution_id = (select auth_institution_id())
+    auth_user_role() = 'admin'
+    AND institution_id = auth_institution_id()
   );
 
 -- No student policy = no student access;

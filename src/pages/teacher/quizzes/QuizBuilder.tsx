@@ -115,7 +115,7 @@ const QuestionDialog = ({
         },
   });
 
-  // eslint-disable-next-line react-hooks/incompatible-library
+   
   const questionType = form.watch('question_type');
 
   const handleTypeChange = (type: string) => {
@@ -453,7 +453,7 @@ const QuizBuilder = () => {
     },
   });
 
-  // eslint-disable-next-line react-hooks/incompatible-library
+   
   const selectedCourseId = form.watch('course_id');
   const { data: paginatedCLOs, isLoading: isLoadingCLOs } = useCLOs(selectedCourseId || undefined);
   const clos = paginatedCLOs?.data ?? [];

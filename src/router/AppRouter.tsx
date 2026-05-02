@@ -269,12 +269,45 @@ const CohortComparisonView = lazy(
 // Team Management (task 129)
 const TeamManager = lazy(() => import("@/pages/teacher/teams/TeamManager"));
 
+// Team Challenges — Phase 5 pages
+const TeamProfilePage = lazy(
+  () => import("@/pages/student/teams/TeamProfilePage")
+);
+const CreateTeamPage = lazy(
+  () => import("@/pages/student/teams/CreateTeamPage")
+);
+const TeamManagementPage = lazy(
+  () => import("@/pages/teacher/teams/TeamManagementPage")
+);
+const TeamFormPage = lazy(
+  () => import("@/pages/teacher/teams/TeamFormPage")
+);
+
 // Challenge Management (tasks 134-135)
 const ChallengeManager = lazy(
   () => import("@/pages/teacher/challenges/ChallengeManager")
 );
 const ChallengeListView = lazy(
   () => import("@/pages/student/challenges/ChallengeListView")
+);
+
+// Team Challenges — Phase 6 pages
+const ChallengeListPage = lazy(
+  () => import("@/pages/student/challenges/ChallengeListPage")
+);
+const ChallengeDetailPage = lazy(
+  () => import("@/pages/student/challenges/ChallengeDetailPage")
+);
+const TeacherChallengeListPage = lazy(
+  () => import("@/pages/teacher/challenges/TeacherChallengeListPage")
+);
+const ChallengeFormPage = lazy(
+  () => import("@/pages/teacher/challenges/ChallengeFormPage")
+);
+
+// Team Health Report (Phase 13)
+const TeamHealthReportPage = lazy(
+  () => import("@/pages/teacher/teams/TeamHealthReportPage")
 );
 
 // Student Team Page (task 141)
@@ -513,8 +546,15 @@ const AppRouter = () => (
           <Route path="attendance" element={<AttendanceMarker />} />
           <Route path="attendance/report" element={<AttendanceReport />} />
           <Route path="gradebook" element={<GradebookView />} />
-          <Route path="teams" element={<TeamManager />} />
-          <Route path="challenges" element={<ChallengeManager />} />
+          <Route path="teams" element={<TeamManagementPage />} />
+          <Route path="teams/manage" element={<TeamManager />} />
+          <Route path="teams/new" element={<TeamFormPage />} />
+          <Route path="teams/:id/edit" element={<TeamFormPage />} />
+          <Route path="challenges" element={<TeacherChallengeListPage />} />
+          <Route path="challenges/manage" element={<ChallengeManager />} />
+          <Route path="challenges/new" element={<ChallengeFormPage />} />
+          <Route path="challenges/:id/edit" element={<ChallengeFormPage />} />
+          <Route path="team-health" element={<TeamHealthReportPage />} />
           <Route path="clos/:cloId/sub-clos" element={<SubCLOManager />} />
           <Route path="outcomes/sub-clos" element={<SubCLOManager />} />
           <Route path="calendar" element={<CalendarView />} />
@@ -593,7 +633,11 @@ const AppRouter = () => (
             element={<ThreadDetail />}
           />
           <Route path="challenges" element={<ChallengeListView />} />
+          <Route path="challenges/list" element={<ChallengeListPage />} />
+          <Route path="challenges/:id" element={<ChallengeDetailPage />} />
           <Route path="team" element={<StudentTeamPage />} />
+          <Route path="teams/:teamId" element={<TeamProfilePage />} />
+          <Route path="teams/new" element={<CreateTeamPage />} />
         </Route>
 
         {/* Student focus mode (full-screen, outside StudentLayout) */}

@@ -341,10 +341,23 @@ export const queryKeys = {
   teamGamification: createKeys("teamGamification"),
   teamLeaderboard: createKeys("teamLeaderboard"),
   teamBadges: createKeys("teamBadges"),
+  teamInvitations: createKeys("teamInvitations"),
   // Challenges
   challenges: createKeys("challenges"),
   challengeProgress: createKeys("challengeProgress"),
   studentChallenges: createKeys("studentChallenges"),
+  socialChallenges: createKeys("socialChallenges"),
+  challengeLeaderboard: createKeys("challengeLeaderboard"),
+  // Contribution Accountability
+  contributionStatus: createKeys("contributionStatus"),
+  replacementVotes: createKeys("replacementVotes"),
+  // Peer Teaching
+  peerTeachingMoments: createKeys("peerTeachingMoments"),
+  teachingMomentRatings: createKeys("teachingMomentRatings"),
+  teachingImpact: createKeys("teachingImpact"),
+  // Team Health
+  teamHealth: createKeys("teamHealth"),
+  teamHealthReport: createKeys("teamHealthReport"),
   // Adaptive XP
   xpMultiplier: createKeys("xpMultiplier"),
   diminishingReturns: createKeys("diminishingReturns"),

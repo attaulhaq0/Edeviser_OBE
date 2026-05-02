@@ -1,0 +1,10 @@
+ALTER FUNCTION public.update_marketplace_items_updated_at() SET search_path = public;
+ALTER FUNCTION public.prevent_xp_purchases_delete() SET search_path = public;
+ALTER FUNCTION public.process_marketplace_purchase(uuid, uuid, uuid) SET search_path = public;
+ALTER FUNCTION public.get_xp_balance(uuid) SET search_path = public;
+ALTER FUNCTION public.get_earn_spend_ratio(uuid) SET search_path = public;
+ALTER FUNCTION public.get_effective_price(uuid, uuid) SET search_path = public;
+ALTER FUNCTION public.recalculate_dynamic_prices(uuid) SET search_path = public;
+ALTER FUNCTION public.seed_marketplace_items(uuid) SET search_path = public;
+ALTER FUNCTION public.recalculate_league_tiers(uuid) SET search_path = public;
+ALTER FUNCTION public.get_badge_spotlight(uuid, integer) SET search_path = public;;

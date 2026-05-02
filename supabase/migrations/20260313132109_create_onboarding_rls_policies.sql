@@ -1,22 +1,22 @@
 -- onboarding_questions RLS
 CREATE POLICY "questions_student_read" ON onboarding_questions
   FOR SELECT USING (
-    (select auth_user_role()) = 'student'
-    AND institution_id = (select auth_institution_id())
+    auth_user_role() = 'student'
+    AND institution_id = auth_institution_id()
     AND is_active = true
   );
 
 CREATE POLICY "questions_teacher_manage" ON onboarding_questions
   FOR ALL USING (
-    (select auth_user_role()) = 'teacher'
+    auth_user_role() = 'teacher'
     AND assessment_type = 'baseline'
     AND course_id IN (SELECT id FROM courses WHERE teacher_id = (select auth.uid()))
   );
 
 CREATE POLICY "questions_admin_all" ON onboarding_questions
   FOR ALL USING (
-    (select auth_user_role()) = 'admin'
-    AND institution_id = (select auth_institution_id())
+    auth_user_role() = 'admin'
+    AND institution_id = auth_institution_id()
   );
 
 -- onboarding_responses RLS
@@ -33,8 +33,8 @@ CREATE POLICY "profiles_student_own" ON student_profiles
 
 CREATE POLICY "profiles_admin_read" ON student_profiles
   FOR SELECT USING (
-    (select auth_user_role()) = 'admin'
-    AND institution_id = (select auth_institution_id())
+    auth_user_role() = 'admin'
+    AND institution_id = auth_institution_id()
   );
 
 -- baseline_attainment RLS
@@ -43,40 +43,40 @@ CREATE POLICY "baseline_student_own" ON baseline_attainment
 
 CREATE POLICY "baseline_teacher_read" ON baseline_attainment
   FOR SELECT USING (
-    (select auth_user_role()) = 'teacher'
+    auth_user_role() = 'teacher'
     AND course_id IN (SELECT id FROM courses WHERE teacher_id = (select auth.uid()))
   );
 
 CREATE POLICY "baseline_admin_read" ON baseline_attainment
   FOR SELECT USING (
-    (select auth_user_role()) = 'admin'
+    auth_user_role() = 'admin'
     AND course_id IN (
       SELECT c.id FROM courses c
       JOIN programs p ON c.program_id = p.id
-      WHERE p.institution_id = (select auth_institution_id())
+      WHERE p.institution_id = auth_institution_id()
     )
   );
 
 -- baseline_test_config RLS
 CREATE POLICY "config_student_read" ON baseline_test_config
   FOR SELECT USING (
-    (select auth_user_role()) = 'student'
+    auth_user_role() = 'student'
     AND course_id IN (SELECT course_id FROM student_courses WHERE student_id = (select auth.uid()))
   );
 
 CREATE POLICY "config_teacher_manage" ON baseline_test_config
   FOR ALL USING (
-    (select auth_user_role()) = 'teacher'
+    auth_user_role() = 'teacher'
     AND course_id IN (SELECT id FROM courses WHERE teacher_id = (select auth.uid()))
   );
 
 CREATE POLICY "config_admin_all" ON baseline_test_config
   FOR ALL USING (
-    (select auth_user_role()) = 'admin'
+    auth_user_role() = 'admin'
     AND course_id IN (
       SELECT c.id FROM courses c
       JOIN programs p ON c.program_id = p.id
-      WHERE p.institution_id = (select auth_institution_id())
+      WHERE p.institution_id = auth_institution_id()
     )
   );
 

@@ -1,6 +1,8 @@
-// Task 134.2: Challenge Zod schemas
+// Challenge Zod schemas for Social Challenges (Quests) feature
 
 import { z } from 'zod';
+
+// ── Legacy schemas (preserved for backward compatibility) ─────────────────────
 
 export const challengeSchema = z.object({
   title: z.string().min(1, 'Title is required').max(200),
@@ -28,3 +30,56 @@ export const challengeProgressSchema = z.object({
 });
 
 export type ChallengeProgressInput = z.infer<typeof challengeProgressSchema>;
+
+// ── Social Challenges schemas ─────────────────────────────────────────────────
+
+const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
+const NINETY_DAYS_MS = 90 * 24 * 60 * 60 * 1000;
+
+export const createChallengeSchema = z
+  .object({
+    title: z.string().min(3, 'Title must be at least 3 characters').max(100, 'Title must be at most 100 characters'),
+    description: z.string().max(500, 'Description must be at most 500 characters'),
+    challenge_type: z.enum(['academic', 'habit', 'xp_race', 'blooms_climb', 'cooperative']),
+    participation_mode: z.enum(['team', 'individual']),
+    goal_target: z.number().int().positive('Goal target must be a positive integer'),
+    start_date: z.string().datetime('Invalid start date format'),
+    end_date: z.string().datetime('Invalid end date format'),
+    reward_xp: z
+      .number()
+      .int()
+      .min(50, 'Reward XP must be at least 50')
+      .max(500, 'Reward XP must be at most 500'),
+    reward_badge_id: z.string().nullable().optional(),
+    xp_race_acknowledged: z.boolean().optional(),
+  })
+  .refine(
+    (data) => new Date(data.end_date) > new Date(data.start_date),
+    { message: 'End date must be after start date', path: ['end_date'] },
+  )
+  .refine(
+    (data) => {
+      const durationMs =
+        new Date(data.end_date).getTime() - new Date(data.start_date).getTime();
+      return durationMs >= TWENTY_FOUR_HOURS_MS;
+    },
+    { message: 'Challenge must be at least 24 hours long', path: ['end_date'] },
+  )
+  .refine(
+    (data) => {
+      const durationMs =
+        new Date(data.end_date).getTime() - new Date(data.start_date).getTime();
+      return durationMs <= NINETY_DAYS_MS;
+    },
+    { message: 'Challenge cannot exceed 90 days', path: ['end_date'] },
+  )
+  .refine(
+    (data) =>
+      data.challenge_type !== 'xp_race' || data.xp_race_acknowledged === true,
+    {
+      message: 'XP Race challenges require explicit acknowledgment',
+      path: ['xp_race_acknowledged'],
+    },
+  );
+
+export type CreateChallengeInput = z.infer<typeof createChallengeSchema>;

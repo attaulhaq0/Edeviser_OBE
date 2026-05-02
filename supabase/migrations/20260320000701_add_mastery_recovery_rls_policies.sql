@@ -21,7 +21,7 @@ CREATE POLICY "recovery_student_read" ON mastery_recovery_pathways
 CREATE POLICY "recovery_teacher_read" ON mastery_recovery_pathways
   FOR SELECT TO authenticated
   USING (
-    (select auth_user_role()) = 'teacher'
+    auth_user_role() = 'teacher'
     AND course_id IN (SELECT id FROM courses WHERE teacher_id = (select auth.uid()))
   );
 
@@ -29,15 +29,15 @@ CREATE POLICY "recovery_teacher_read" ON mastery_recovery_pathways
 CREATE POLICY "recovery_admin_read" ON mastery_recovery_pathways
   FOR SELECT TO authenticated
   USING (
-    (select auth_user_role()) = 'admin'
-    AND institution_id = (select auth_institution_id())
+    auth_user_role() = 'admin'
+    AND institution_id = auth_institution_id()
   );
 
 -- Coordinators: read for metrics dashboard
 CREATE POLICY "recovery_coordinator_read" ON mastery_recovery_pathways
   FOR SELECT TO authenticated
   USING (
-    (select auth_user_role()) = 'coordinator'
-    AND institution_id = (select auth_institution_id())
+    auth_user_role() = 'coordinator'
+    AND institution_id = auth_institution_id()
   );
 ;

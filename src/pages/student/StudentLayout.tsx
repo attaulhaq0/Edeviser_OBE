@@ -17,6 +17,7 @@ import {
   Calendar,
   Clock,
   Swords,
+  Users,
   CalendarDays,
   CalendarCheck,
 } from "lucide-react";
@@ -43,6 +44,12 @@ const navItems = [
     to: "/student/challenges",
     icon: Swords,
     label: "Challenges",
+    focusHide: true,
+  },
+  {
+    to: "/student/team",
+    icon: Users,
+    label: "My Team",
     focusHide: true,
   },
   { to: "/student/habits", icon: Grid3X3, label: "Habits" },
