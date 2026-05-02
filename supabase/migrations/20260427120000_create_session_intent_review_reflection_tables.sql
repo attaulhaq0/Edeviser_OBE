@@ -43,11 +43,11 @@ CREATE INDEX IF NOT EXISTS idx_session_intents_student ON session_intents(studen
 
 ALTER TABLE session_intents ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "session_intents_student_select" ON session_intents
+DROP POLICY IF EXISTS "session_intents_student_select" ON session_intents; CREATE POLICY "session_intents_student_select" ON session_intents
   FOR SELECT TO authenticated
   USING (student_id = (select auth.uid()));
 
-CREATE POLICY "session_intents_student_insert" ON session_intents
+DROP POLICY IF EXISTS "session_intents_student_insert" ON session_intents; CREATE POLICY "session_intents_student_insert" ON session_intents
   FOR INSERT TO authenticated
   WITH CHECK (student_id = (select auth.uid()));
 
@@ -67,11 +67,11 @@ CREATE INDEX IF NOT EXISTS idx_flow_check_ins_student ON flow_check_ins(student_
 
 ALTER TABLE flow_check_ins ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "flow_check_ins_student_select" ON flow_check_ins
+DROP POLICY IF EXISTS "flow_check_ins_student_select" ON flow_check_ins; CREATE POLICY "flow_check_ins_student_select" ON flow_check_ins
   FOR SELECT TO authenticated
   USING (student_id = (select auth.uid()));
 
-CREATE POLICY "flow_check_ins_student_insert" ON flow_check_ins
+DROP POLICY IF EXISTS "flow_check_ins_student_insert" ON flow_check_ins; CREATE POLICY "flow_check_ins_student_insert" ON flow_check_ins
   FOR INSERT TO authenticated
   WITH CHECK (student_id = (select auth.uid()));
 
@@ -99,12 +99,12 @@ CREATE INDEX IF NOT EXISTS idx_review_schedules_status
 
 ALTER TABLE review_schedules ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "review_schedules_student_all" ON review_schedules
+DROP POLICY IF EXISTS "review_schedules_student_all" ON review_schedules; CREATE POLICY "review_schedules_student_all" ON review_schedules
   FOR ALL TO authenticated
   USING (student_id = (select auth.uid()))
   WITH CHECK (student_id = (select auth.uid()));
 
-CREATE POLICY "review_schedules_parent_select" ON review_schedules
+DROP POLICY IF EXISTS "review_schedules_parent_select" ON review_schedules; CREATE POLICY "review_schedules_parent_select" ON review_schedules
   FOR SELECT TO authenticated
   USING (
     student_id IN (
@@ -133,16 +133,16 @@ CREATE INDEX IF NOT EXISTS idx_reflection_digests_student
 
 ALTER TABLE reflection_digests ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "reflection_digests_student_select" ON reflection_digests
+DROP POLICY IF EXISTS "reflection_digests_student_select" ON reflection_digests; CREATE POLICY "reflection_digests_student_select" ON reflection_digests
   FOR SELECT TO authenticated
   USING (student_id = (select auth.uid()));
 
-CREATE POLICY "reflection_digests_student_update" ON reflection_digests
+DROP POLICY IF EXISTS "reflection_digests_student_update" ON reflection_digests; CREATE POLICY "reflection_digests_student_update" ON reflection_digests
   FOR UPDATE TO authenticated
   USING (student_id = (select auth.uid()))
   WITH CHECK (student_id = (select auth.uid()));
 
-CREATE POLICY "reflection_digests_parent_select" ON reflection_digests
+DROP POLICY IF EXISTS "reflection_digests_parent_select" ON reflection_digests; CREATE POLICY "reflection_digests_parent_select" ON reflection_digests
   FOR SELECT TO authenticated
   USING (
     student_id IN (
@@ -152,7 +152,7 @@ CREATE POLICY "reflection_digests_parent_select" ON reflection_digests
     AND shared_with @> '[{"role": "parent"}]'::jsonb
   );
 
-CREATE POLICY "reflection_digests_teacher_select" ON reflection_digests
+DROP POLICY IF EXISTS "reflection_digests_teacher_select" ON reflection_digests; CREATE POLICY "reflection_digests_teacher_select" ON reflection_digests
   FOR SELECT TO authenticated
   USING (
     shared_with @> '[{"role": "teacher"}]'::jsonb
@@ -187,7 +187,7 @@ ALTER TABLE reflection_quality_scores ENABLE ROW LEVEL SECURITY;
 
 -- Students may only SELECT their own scores. INSERT/UPDATE only via service_role
 -- (the score-reflection-quality Edge Function).
-CREATE POLICY "reflection_quality_scores_student_select" ON reflection_quality_scores
+DROP POLICY IF EXISTS "reflection_quality_scores_student_select" ON reflection_quality_scores; CREATE POLICY "reflection_quality_scores_student_select" ON reflection_quality_scores
   FOR SELECT TO authenticated
   USING (student_id = (select auth.uid()));
 

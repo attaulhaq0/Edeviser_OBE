@@ -2,7 +2,7 @@
 -- RLS is already enabled on this table
 
 -- Teacher: full CRUD on questions for their own courses
-CREATE POLICY "qbank_teacher_all" ON question_bank
+DROP POLICY IF EXISTS "qbank_teacher_all" ON question_bank; CREATE POLICY "qbank_teacher_all" ON question_bank
   FOR ALL TO authenticated
   USING (
     (select auth_user_role()) = 'teacher'
@@ -14,7 +14,7 @@ CREATE POLICY "qbank_teacher_all" ON question_bank
   );
 
 -- Admin: read-only within institution
-CREATE POLICY "qbank_admin_read" ON question_bank
+DROP POLICY IF EXISTS "qbank_admin_read" ON question_bank; CREATE POLICY "qbank_admin_read" ON question_bank
   FOR SELECT TO authenticated
   USING (
     (select auth_user_role()) = 'admin'

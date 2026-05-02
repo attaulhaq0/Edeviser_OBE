@@ -1,7 +1,7 @@
 -- ============================================================
 -- quiz_generation_logs — LLM API call monitoring for quiz generation
 -- ============================================================
-CREATE TABLE quiz_generation_logs (
+CREATE TABLE IF NOT EXISTS quiz_generation_logs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   institution_id UUID NOT NULL REFERENCES institutions(id),
   teacher_id UUID NOT NULL REFERENCES profiles(id),
@@ -20,5 +20,5 @@ CREATE TABLE quiz_generation_logs (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_gen_logs_institution ON quiz_generation_logs (institution_id, created_at DESC);
-CREATE INDEX idx_gen_logs_course ON quiz_generation_logs (course_id);
+CREATE INDEX IF NOT EXISTS idx_gen_logs_institution ON quiz_generation_logs (institution_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_gen_logs_course ON quiz_generation_logs (course_id);

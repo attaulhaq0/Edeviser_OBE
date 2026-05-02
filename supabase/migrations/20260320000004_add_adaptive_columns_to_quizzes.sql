@@ -10,14 +10,14 @@ BEGIN
     SELECT 1 FROM information_schema.columns
     WHERE table_name = 'quizzes' AND column_name = 'is_adaptive'
   ) THEN
-    ALTER TABLE quizzes ADD COLUMN is_adaptive BOOLEAN NOT NULL DEFAULT false;
+    ALTER TABLE quizzes ADD COLUMN IF NOT EXISTS is_adaptive BOOLEAN NOT NULL DEFAULT false;
   END IF;
 
   IF NOT EXISTS (
     SELECT 1 FROM information_schema.columns
     WHERE table_name = 'quizzes' AND column_name = 'adaptation_config'
   ) THEN
-    ALTER TABLE quizzes ADD COLUMN adaptation_config JSONB DEFAULT '{}';
+    ALTER TABLE quizzes ADD COLUMN IF NOT EXISTS adaptation_config JSONB DEFAULT '{}';
   END IF;
 END
 $$;

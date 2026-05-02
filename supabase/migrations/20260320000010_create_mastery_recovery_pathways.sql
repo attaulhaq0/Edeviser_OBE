@@ -6,7 +6,7 @@
 -- ============================================================
 -- mastery_recovery_pathways — Tracks recovery sessions for stuck students
 -- ============================================================
-CREATE TABLE mastery_recovery_pathways (
+CREATE TABLE IF NOT EXISTS mastery_recovery_pathways (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   institution_id UUID NOT NULL REFERENCES institutions(id),
   student_id UUID NOT NULL REFERENCES profiles(id),
@@ -33,9 +33,9 @@ CREATE TABLE mastery_recovery_pathways (
 ALTER TABLE mastery_recovery_pathways ENABLE ROW LEVEL SECURITY;
 
 -- Indexes
-CREATE INDEX idx_recovery_student_clo ON mastery_recovery_pathways (student_id, clo_id);
-CREATE INDEX idx_recovery_course ON mastery_recovery_pathways (course_id, status);
-CREATE INDEX idx_recovery_status ON mastery_recovery_pathways (status) WHERE status = 'active';
+CREATE INDEX IF NOT EXISTS idx_recovery_student_clo ON mastery_recovery_pathways (student_id, clo_id);
+CREATE INDEX IF NOT EXISTS idx_recovery_course ON mastery_recovery_pathways (course_id, status);
+CREATE INDEX IF NOT EXISTS idx_recovery_status ON mastery_recovery_pathways (status) WHERE status = 'active';
 
 -- Unique partial index: only one active recovery session per student-CLO pair
 CREATE UNIQUE INDEX idx_recovery_active_unique ON mastery_recovery_pathways (student_id, clo_id) WHERE status = 'active';

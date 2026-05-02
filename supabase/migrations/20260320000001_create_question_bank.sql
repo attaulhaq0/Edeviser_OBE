@@ -1,7 +1,7 @@
 -- ============================================================
 -- question_bank — Centralized question storage for AI-powered adaptive quizzes
 -- ============================================================
-CREATE TABLE question_bank (
+CREATE TABLE IF NOT EXISTS question_bank (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   institution_id UUID NOT NULL REFERENCES institutions(id),
   course_id UUID NOT NULL REFERENCES courses(id),
@@ -30,8 +30,8 @@ CREATE TABLE question_bank (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_qbank_course_status ON question_bank (course_id, status);
-CREATE INDEX idx_qbank_clo ON question_bank (clo_id);
-CREATE INDEX idx_qbank_bloom ON question_bank (bloom_level);
-CREATE INDEX idx_qbank_difficulty ON question_bank (difficulty_rating);
-CREATE INDEX idx_qbank_generation ON question_bank (generation_request_id);
+CREATE INDEX IF NOT EXISTS idx_qbank_course_status ON question_bank (course_id, status);
+CREATE INDEX IF NOT EXISTS idx_qbank_clo ON question_bank (clo_id);
+CREATE INDEX IF NOT EXISTS idx_qbank_bloom ON question_bank (bloom_level);
+CREATE INDEX IF NOT EXISTS idx_qbank_difficulty ON question_bank (difficulty_rating);
+CREATE INDEX IF NOT EXISTS idx_qbank_generation ON question_bank (generation_request_id);

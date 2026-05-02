@@ -2,7 +2,7 @@
 -- RLS is already enabled on this table
 
 -- Teacher: read analytics for questions in their courses
-CREATE POLICY "qanalytics_teacher_read" ON question_analytics
+DROP POLICY IF EXISTS "qanalytics_teacher_read" ON question_analytics; CREATE POLICY "qanalytics_teacher_read" ON question_analytics
   FOR SELECT TO authenticated
   USING (
     (select auth_user_role()) = 'teacher'
@@ -13,7 +13,7 @@ CREATE POLICY "qanalytics_teacher_read" ON question_analytics
   );
 
 -- Admin: read analytics within institution
-CREATE POLICY "qanalytics_admin_read" ON question_analytics
+DROP POLICY IF EXISTS "qanalytics_admin_read" ON question_analytics; CREATE POLICY "qanalytics_admin_read" ON question_analytics
   FOR SELECT TO authenticated
   USING (
     (select auth_user_role()) = 'admin'

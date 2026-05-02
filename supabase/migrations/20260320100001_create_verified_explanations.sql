@@ -6,7 +6,7 @@
 -- ============================================================
 -- verified_explanations — Teacher-approved explanation cache
 -- ============================================================
-CREATE TABLE verified_explanations (
+CREATE TABLE IF NOT EXISTS verified_explanations (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   institution_id UUID NOT NULL REFERENCES institutions(id),
   question_id UUID NOT NULL REFERENCES question_bank(id) ON DELETE CASCADE,
@@ -21,4 +21,4 @@ CREATE TABLE verified_explanations (
 ALTER TABLE verified_explanations ENABLE ROW LEVEL SECURITY;
 
 CREATE UNIQUE INDEX idx_verified_active ON verified_explanations (question_id) WHERE is_active = true;
-CREATE INDEX idx_verified_question ON verified_explanations (question_id);
+CREATE INDEX IF NOT EXISTS idx_verified_question ON verified_explanations (question_id);

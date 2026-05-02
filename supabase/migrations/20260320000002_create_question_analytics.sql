@@ -1,7 +1,7 @@
 -- ============================================================
 -- question_analytics — Per-question performance metrics
 -- ============================================================
-CREATE TABLE question_analytics (
+CREATE TABLE IF NOT EXISTS question_analytics (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   question_id UUID NOT NULL REFERENCES question_bank(id) ON DELETE CASCADE,
   total_attempts INTEGER NOT NULL DEFAULT 0,
@@ -17,5 +17,5 @@ CREATE TABLE question_analytics (
   UNIQUE (question_id)
 );
 
-CREATE INDEX idx_qanalytics_question ON question_analytics (question_id);
-CREATE INDEX idx_qanalytics_flag ON question_analytics (quality_flag) WHERE quality_flag IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_qanalytics_question ON question_analytics (question_id);
+CREATE INDEX IF NOT EXISTS idx_qanalytics_flag ON question_analytics (quality_flag) WHERE quality_flag IS NOT NULL;
