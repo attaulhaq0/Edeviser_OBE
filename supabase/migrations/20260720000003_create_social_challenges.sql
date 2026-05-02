@@ -33,21 +33,21 @@ ALTER TABLE social_challenges ENABLE ROW LEVEL SECURITY;
 ALTER TABLE challenge_participants ENABLE ROW LEVEL SECURITY;
 
 -- Teacher manages challenges for their courses
-CREATE POLICY "teacher_manage_challenges" ON social_challenges
+DROP POLICY IF EXISTS "teacher_manage_challenges" ON social_challenges;`nCREATE POLICY "teacher_manage_challenges" ON social_challenges
   FOR ALL TO authenticated
   USING (created_by = (select auth.uid()) OR EXISTS (
     SELECT 1 FROM courses c WHERE c.id = course_id AND c.teacher_id = (select auth.uid())
   ));
 
 -- Students can read active challenges for their courses
-CREATE POLICY "student_read_challenges" ON social_challenges
+DROP POLICY IF EXISTS "student_read_challenges" ON social_challenges;`nCREATE POLICY "student_read_challenges" ON social_challenges
   FOR SELECT TO authenticated
   USING (status IN ('active', 'completed') AND EXISTS (
     SELECT 1 FROM student_courses sc WHERE sc.course_id = social_challenges.course_id AND sc.student_id = (select auth.uid())
   ));
 
 -- Participants can read their own progress
-CREATE POLICY "participant_read_progress" ON challenge_participants
+DROP POLICY IF EXISTS "participant_read_progress" ON challenge_participants;`nCREATE POLICY "participant_read_progress" ON challenge_participants
   FOR SELECT TO authenticated
   USING (participant_id = (select auth.uid()) OR EXISTS (
     SELECT 1 FROM team_members tm WHERE tm.team_id = participant_id AND tm.student_id = (select auth.uid())
@@ -58,7 +58,7 @@ CREATE POLICY "participant_read_progress" ON challenge_participants
   ));
 
 -- Teachers manage participants for challenges in their courses
-CREATE POLICY "teacher_manage_participants" ON challenge_participants
+DROP POLICY IF EXISTS "teacher_manage_participants" ON challenge_participants;`nCREATE POLICY "teacher_manage_participants" ON challenge_participants
   FOR ALL TO authenticated
   USING (EXISTS (
     SELECT 1 FROM social_challenges sc

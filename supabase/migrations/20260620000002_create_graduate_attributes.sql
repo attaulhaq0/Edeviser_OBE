@@ -27,16 +27,16 @@ ALTER TABLE graduate_attributes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE graduate_attribute_mappings ENABLE ROW LEVEL SECURITY;
 
 -- 4. RLS policies for graduate_attributes
-CREATE POLICY "admin_all_graduate_attributes" ON graduate_attributes
+DROP POLICY IF EXISTS "admin_all_graduate_attributes" ON graduate_attributes;`nCREATE POLICY "admin_all_graduate_attributes" ON graduate_attributes
   FOR ALL TO authenticated
   USING ((select auth_user_role()) = 'admin' AND institution_id = (select auth_institution_id()));
 
-CREATE POLICY "role_select_graduate_attributes" ON graduate_attributes
+DROP POLICY IF EXISTS "role_select_graduate_attributes" ON graduate_attributes;`nCREATE POLICY "role_select_graduate_attributes" ON graduate_attributes
   FOR SELECT TO authenticated
   USING (institution_id = (select auth_institution_id()));
 
 -- 5. RLS policies for graduate_attribute_mappings
-CREATE POLICY "admin_all_ga_mappings" ON graduate_attribute_mappings
+DROP POLICY IF EXISTS "admin_all_ga_mappings" ON graduate_attribute_mappings;`nCREATE POLICY "admin_all_ga_mappings" ON graduate_attribute_mappings
   FOR ALL TO authenticated
   USING (
     (select auth_user_role()) = 'admin'
@@ -45,7 +45,7 @@ CREATE POLICY "admin_all_ga_mappings" ON graduate_attribute_mappings
     )
   );
 
-CREATE POLICY "role_select_ga_mappings" ON graduate_attribute_mappings
+DROP POLICY IF EXISTS "role_select_ga_mappings" ON graduate_attribute_mappings;`nCREATE POLICY "role_select_ga_mappings" ON graduate_attribute_mappings
   FOR SELECT TO authenticated
   USING (
     graduate_attribute_id IN (

@@ -7,11 +7,13 @@
 -- ============================================================
 
 -- Students: read their own progression
+DROP POLICY IF EXISTS "blooms_student_read" ON blooms_progression;
 CREATE POLICY "blooms_student_read" ON blooms_progression
   FOR SELECT TO authenticated
   USING (student_id = (select auth.uid()));
 
 -- Teachers: read progression for their courses
+DROP POLICY IF EXISTS "blooms_teacher_read" ON blooms_progression;
 CREATE POLICY "blooms_teacher_read" ON blooms_progression
   FOR SELECT TO authenticated
   USING (
@@ -20,6 +22,7 @@ CREATE POLICY "blooms_teacher_read" ON blooms_progression
   );
 
 -- Admins: read all within institution
+DROP POLICY IF EXISTS "blooms_admin_read" ON blooms_progression;
 CREATE POLICY "blooms_admin_read" ON blooms_progression
   FOR SELECT TO authenticated
   USING (

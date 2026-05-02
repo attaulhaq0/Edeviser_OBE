@@ -215,13 +215,25 @@ describe("3. FK index migration", () => {
         fc.constantFrom(...unindexedFKColumns),
         (fk: { table: string; column: string }) => {
           // Look for CREATE INDEX ... ON <table> ... (<column>)
-          // The index name convention is idx_{table}_{column}
+          // The index name convention is idx_{table}_{column} or idx_{table}_{column_without_id}
           const indexName = `idx_${fk.table}_${fk.column}`;
+          const indexNameShort = `idx_${fk.table}_${fk.column.replace(
+            /_id$/,
+            ""
+          )}`;
           const hasIndex =
             allMigrationContent.includes(indexName) ||
+            allMigrationContent.includes(indexNameShort) ||
             // Also check for a CREATE INDEX pattern on this table+column
+            // (single-column index)
             new RegExp(
               `CREATE\\s+INDEX\\s+(?:IF\\s+NOT\\s+EXISTS\\s+)?\\S*\\s+ON\\s+(?:public\\.)?${fk.table}\\s*\\(\\s*${fk.column}\\s*\\)`,
+              "i"
+            ).test(allMigrationContent) ||
+            // Also check for composite indexes where the FK column is the
+            // leading column (e.g., ON table(column, other_col DESC))
+            new RegExp(
+              `CREATE\\s+INDEX\\s+(?:IF\\s+NOT\\s+EXISTS\\s+)?\\S*\\s+ON\\s+(?:public\\.)?${fk.table}\\s*\\(\\s*${fk.column}\\s*,`,
               "i"
             ).test(allMigrationContent);
 
