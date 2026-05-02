@@ -1,27 +1,22 @@
 version: 2
 
 updates:
-  # npm dependencies
+  # npm dependencies — security updates only
+  # Setting open-pull-requests-limit to 0 disables version update PRs.
+  # Dependabot security updates are a separate feature and still create PRs
+  # automatically when vulnerabilities are detected.
   - package-ecosystem: npm
     directory: /
     schedule:
       interval: weekly
       day: monday
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 0
     rebase-strategy: auto
     labels:
       - dependencies
       - security
     commit-message:
       prefix: "chore(deps):"
-    groups:
-      # Group minor/patch updates to reduce PR noise
-      production-dependencies:
-        patterns:
-          - "*"
-        update-types:
-          - minor
-          - patch
     # Ignore major bumps for core tooling — these need manual migration
     ignore:
       - dependency-name: typescript
