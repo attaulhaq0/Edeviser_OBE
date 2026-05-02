@@ -389,4 +389,27 @@ export const queryKeys = {
   reviewSchedules: createKeys("reviewSchedules"),
   reflectionQuality: createKeys("reflectionQuality"),
   reflectionDigests: createKeys("reflectionDigests"),
+  // AI Tutor
+  tutorConversations: {
+    ...createKeys("tutorConversations"),
+    byCourse: (courseId: string) =>
+      ["tutorConversations", "byCourse", courseId] as const,
+  },
+  tutorMessages: {
+    ...createKeys("tutorMessages"),
+    byConversation: (conversationId: string) =>
+      ["tutorMessages", "byConversation", conversationId] as const,
+  },
+  tutorUsage: {
+    all: ["tutorUsage"] as const,
+    daily: (studentId: string, date: string) =>
+      ["tutorUsage", "daily", studentId, date] as const,
+  },
+  tutorAnalytics: {
+    ...createKeys("tutorAnalytics"),
+    byCourse: (courseId: string) =>
+      ["tutorAnalytics", "byCourse", courseId] as const,
+    byCourseAndRange: (courseId: string, startDate: string, endDate: string) =>
+      ["tutorAnalytics", "byCourse", courseId, startDate, endDate] as const,
+  },
 } as const;
