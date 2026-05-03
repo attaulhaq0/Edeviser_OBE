@@ -24,7 +24,7 @@ RETURNS TABLE (
   similarity FLOAT
 )
 LANGUAGE plpgsql
-SECURITY DEFINER
+SECURITY INVOKER
 SET search_path = public
 AS $$
 BEGIN

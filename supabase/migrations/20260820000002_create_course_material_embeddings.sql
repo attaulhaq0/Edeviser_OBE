@@ -5,8 +5,8 @@
 
 CREATE TABLE IF NOT EXISTS course_material_embeddings (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  institution_id UUID NOT NULL REFERENCES institutions(id),
-  course_id UUID NOT NULL REFERENCES courses(id),
+  institution_id UUID NOT NULL REFERENCES institutions(id) ON DELETE CASCADE,
+  course_id UUID NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
   chunk_text TEXT NOT NULL,
   embedding vector(1536) NOT NULL,
   source_filename VARCHAR(500) NOT NULL,
@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS course_material_embeddings (
   bloom_level VARCHAR(20),
   chunk_index INTEGER NOT NULL,
   token_count INTEGER NOT NULL,
-  source_material_id UUID,
+  source_material_id UUID REFERENCES course_materials(id) ON DELETE SET NULL,
   indexing_status VARCHAR(20) NOT NULL DEFAULT 'indexed' CHECK (indexing_status IN (
     'pending', 'indexed', 'indexing_failed'
   )),
