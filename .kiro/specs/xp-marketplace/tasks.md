@@ -109,7 +109,7 @@
 
 ## 12. Property-Based Tests
 
-- [-] 12.1 `src/__tests__/properties/xpBalance.property.test.ts` — P1: balance computation, P2: non-negativity
+- [x] 12.1 `src/__tests__/properties/xpBalance.property.test.ts` — P1: balance computation, P2: non-negativity
 - [ ] 12.2 `src/__tests__/properties/transactionHistory.property.test.ts` — P3: ordering, P4: required fields, P5: filtering
 - [ ] 12.3 `src/__tests__/properties/purchaseValidator.property.test.ts` — P6: purchase validation correctness
 - [ ] 12.4 `src/__tests__/properties/salePriceCalculator.property.test.ts` — P7: sale price resolution, highest discount wins

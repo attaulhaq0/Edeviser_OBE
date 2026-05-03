@@ -15,7 +15,7 @@ set -euo pipefail
 
 PROJECT_REF="cdlgtbvxlxjpcddjazzx"
 FAILED=0
-TOTAL=44
+TOTAL=47
 
 echo "═══════════════════════════════════════════════════════════════"
 echo "  Edeviser Edge Function Deployment"
@@ -60,100 +60,109 @@ supabase functions deploy chat-with-tutor --project-ref "${PROJECT_REF}" || { ec
 echo "[12/${TOTAL}] Deploying check-badges..."
 supabase functions deploy check-badges --project-ref "${PROJECT_REF}" || { echo "  ✗ check-badges FAILED"; FAILED=$((FAILED + 1)); }
 
-echo "[13/${TOTAL}] Deploying check-login-rate..."
+echo "[13/${TOTAL}] Deploying check-bonus-question..."
+supabase functions deploy check-bonus-question --project-ref "${PROJECT_REF}" || { echo "  ✗ check-bonus-question FAILED"; FAILED=$((FAILED + 1)); }
+
+echo "[14/${TOTAL}] Deploying check-login-rate..."
 supabase functions deploy check-login-rate --project-ref "${PROJECT_REF}" || { echo "  ✗ check-login-rate FAILED"; FAILED=$((FAILED + 1)); }
 
-echo "[14/${TOTAL}] Deploying compute-at-risk-signals..."
+echo "[15/${TOTAL}] Deploying compute-at-risk-signals..."
 supabase functions deploy compute-at-risk-signals --project-ref "${PROJECT_REF}" || { echo "  ✗ compute-at-risk-signals FAILED"; FAILED=$((FAILED + 1)); }
 
-echo "[15/${TOTAL}] Deploying compute-habit-correlations..."
+echo "[16/${TOTAL}] Deploying compute-habit-correlations..."
 supabase functions deploy compute-habit-correlations --project-ref "${PROJECT_REF}" || { echo "  ✗ compute-habit-correlations FAILED"; FAILED=$((FAILED + 1)); }
 
-echo "[16/${TOTAL}] Deploying embed-course-material..."
+echo "[17/${TOTAL}] Deploying embed-course-material..."
 supabase functions deploy embed-course-material --project-ref "${PROJECT_REF}" || { echo "  ✗ embed-course-material FAILED"; FAILED=$((FAILED + 1)); }
 
-echo "[17/${TOTAL}] Deploying exam-period-notify..."
+echo "[18/${TOTAL}] Deploying exam-period-notify..."
 supabase functions deploy exam-period-notify --project-ref "${PROJECT_REF}" || { echo "  ✗ exam-period-notify FAILED"; FAILED=$((FAILED + 1)); }
 
-echo "[18/${TOTAL}] Deploying export-student-data..."
+echo "[19/${TOTAL}] Deploying export-student-data..."
 supabase functions deploy export-student-data --project-ref "${PROJECT_REF}" || { echo "  ✗ export-student-data FAILED"; FAILED=$((FAILED + 1)); }
 
-echo "[19/${TOTAL}] Deploying fee-overdue-check..."
+echo "[20/${TOTAL}] Deploying fee-overdue-check..."
 supabase functions deploy fee-overdue-check --project-ref "${PROJECT_REF}" || { echo "  ✗ fee-overdue-check FAILED"; FAILED=$((FAILED + 1)); }
 
-echo "[20/${TOTAL}] Deploying generate-accreditation-report..."
+echo "[21/${TOTAL}] Deploying generate-accreditation-report..."
 supabase functions deploy generate-accreditation-report --project-ref "${PROJECT_REF}" || { echo "  ✗ generate-accreditation-report FAILED"; FAILED=$((FAILED + 1)); }
 
-echo "[21/${TOTAL}] Deploying generate-course-file..."
+echo "[22/${TOTAL}] Deploying generate-course-file..."
 supabase functions deploy generate-course-file --project-ref "${PROJECT_REF}" || { echo "  ✗ generate-course-file FAILED"; FAILED=$((FAILED + 1)); }
 
-echo "[22/${TOTAL}] Deploying generate-fee-receipt..."
+echo "[23/${TOTAL}] Deploying generate-fee-receipt..."
 supabase functions deploy generate-fee-receipt --project-ref "${PROJECT_REF}" || { echo "  ✗ generate-fee-receipt FAILED"; FAILED=$((FAILED + 1)); }
 
-echo "[23/${TOTAL}] Deploying generate-plan-update..."
+echo "[24/${TOTAL}] Deploying generate-plan-update..."
 supabase functions deploy generate-plan-update --project-ref "${PROJECT_REF}" || { echo "  ✗ generate-plan-update FAILED"; FAILED=$((FAILED + 1)); }
 
-echo "[24/${TOTAL}] Deploying generate-quiz-questions..."
+echo "[25/${TOTAL}] Deploying generate-quiz-questions..."
 supabase functions deploy generate-quiz-questions --project-ref "${PROJECT_REF}" || { echo "  ✗ generate-quiz-questions FAILED"; FAILED=$((FAILED + 1)); }
 
-echo "[25/${TOTAL}] Deploying generate-reflection-digest..."
+echo "[26/${TOTAL}] Deploying generate-reflection-digest..."
 supabase functions deploy generate-reflection-digest --project-ref "${PROJECT_REF}" || { echo "  ✗ generate-reflection-digest FAILED"; FAILED=$((FAILED + 1)); }
 
-echo "[26/${TOTAL}] Deploying generate-starter-week..."
+echo "[27/${TOTAL}] Deploying generate-starter-week..."
 supabase functions deploy generate-starter-week --project-ref "${PROJECT_REF}" || { echo "  ✗ generate-starter-week FAILED"; FAILED=$((FAILED + 1)); }
 
-echo "[27/${TOTAL}] Deploying generate-transcript..."
+echo "[28/${TOTAL}] Deploying generate-transcript..."
 supabase functions deploy generate-transcript --project-ref "${PROJECT_REF}" || { echo "  ✗ generate-transcript FAILED"; FAILED=$((FAILED + 1)); }
 
-echo "[28/${TOTAL}] Deploying health..."
+echo "[29/${TOTAL}] Deploying health..."
 supabase functions deploy health --project-ref "${PROJECT_REF}" || { echo "  ✗ health FAILED"; FAILED=$((FAILED + 1)); }
 
-echo "[29/${TOTAL}] Deploying import-competency-csv..."
+echo "[30/${TOTAL}] Deploying import-competency-csv..."
 supabase functions deploy import-competency-csv --project-ref "${PROJECT_REF}" || { echo "  ✗ import-competency-csv FAILED"; FAILED=$((FAILED + 1)); }
 
-echo "[30/${TOTAL}] Deploying improvement-bonus-check..."
+echo "[31/${TOTAL}] Deploying improvement-bonus-check..."
 supabase functions deploy improvement-bonus-check --project-ref "${PROJECT_REF}" || { echo "  ✗ improvement-bonus-check FAILED"; FAILED=$((FAILED + 1)); }
 
-echo "[31/${TOTAL}] Deploying notification-digest..."
+echo "[32/${TOTAL}] Deploying notification-digest..."
 supabase functions deploy notification-digest --project-ref "${PROJECT_REF}" || { echo "  ✗ notification-digest FAILED"; FAILED=$((FAILED + 1)); }
 
-echo "[32/${TOTAL}] Deploying perfect-day-prompt..."
+echo "[33/${TOTAL}] Deploying perfect-day-prompt..."
 supabase functions deploy perfect-day-prompt --project-ref "${PROJECT_REF}" || { echo "  ✗ perfect-day-prompt FAILED"; FAILED=$((FAILED + 1)); }
 
-echo "[33/${TOTAL}] Deploying process-onboarding..."
+echo "[34/${TOTAL}] Deploying process-onboarding..."
 supabase functions deploy process-onboarding --project-ref "${PROJECT_REF}" || { echo "  ✗ process-onboarding FAILED"; FAILED=$((FAILED + 1)); }
 
-echo "[34/${TOTAL}] Deploying process-streak..."
+echo "[35/${TOTAL}] Deploying process-purchase..."
+supabase functions deploy process-purchase --project-ref "${PROJECT_REF}" || { echo "  ✗ process-purchase FAILED"; FAILED=$((FAILED + 1)); }
+
+echo "[36/${TOTAL}] Deploying process-streak..."
 supabase functions deploy process-streak --project-ref "${PROJECT_REF}" || { echo "  ✗ process-streak FAILED"; FAILED=$((FAILED + 1)); }
 
-echo "[35/${TOTAL}] Deploying score-reflection-quality..."
+echo "[37/${TOTAL}] Deploying resolve-mystery-reward..."
+supabase functions deploy resolve-mystery-reward --project-ref "${PROJECT_REF}" || { echo "  ✗ resolve-mystery-reward FAILED"; FAILED=$((FAILED + 1)); }
+
+echo "[38/${TOTAL}] Deploying score-reflection-quality..."
 supabase functions deploy score-reflection-quality --project-ref "${PROJECT_REF}" || { echo "  ✗ score-reflection-quality FAILED"; FAILED=$((FAILED + 1)); }
 
-echo "[36/${TOTAL}] Deploying select-adaptive-question..."
+echo "[39/${TOTAL}] Deploying select-adaptive-question..."
 supabase functions deploy select-adaptive-question --project-ref "${PROJECT_REF}" || { echo "  ✗ select-adaptive-question FAILED"; FAILED=$((FAILED + 1)); }
 
-echo "[37/${TOTAL}] Deploying send-email-notification..."
+echo "[40/${TOTAL}] Deploying send-email-notification..."
 supabase functions deploy send-email-notification --project-ref "${PROJECT_REF}" || { echo "  ✗ send-email-notification FAILED"; FAILED=$((FAILED + 1)); }
 
-echo "[38/${TOTAL}] Deploying streak-risk-cron..."
+echo "[41/${TOTAL}] Deploying streak-risk-cron..."
 supabase functions deploy streak-risk-cron --project-ref "${PROJECT_REF}" || { echo "  ✗ streak-risk-cron FAILED"; FAILED=$((FAILED + 1)); }
 
-echo "[39/${TOTAL}] Deploying suggest-goals..."
+echo "[42/${TOTAL}] Deploying suggest-goals..."
 supabase functions deploy suggest-goals --project-ref "${PROJECT_REF}" || { echo "  ✗ suggest-goals FAILED"; FAILED=$((FAILED + 1)); }
 
-echo "[40/${TOTAL}] Deploying team-streak-risk-cron..."
+echo "[43/${TOTAL}] Deploying team-streak-risk-cron..."
 supabase functions deploy team-streak-risk-cron --project-ref "${PROJECT_REF}" || { echo "  ✗ team-streak-risk-cron FAILED"; FAILED=$((FAILED + 1)); }
 
-echo "[41/${TOTAL}] Deploying tutor-analytics..."
+echo "[44/${TOTAL}] Deploying tutor-analytics..."
 supabase functions deploy tutor-analytics --project-ref "${PROJECT_REF}" || { echo "  ✗ tutor-analytics FAILED"; FAILED=$((FAILED + 1)); }
 
-echo "[42/${TOTAL}] Deploying update-challenge-progress..."
+echo "[45/${TOTAL}] Deploying update-challenge-progress..."
 supabase functions deploy update-challenge-progress --project-ref "${PROJECT_REF}" || { echo "  ✗ update-challenge-progress FAILED"; FAILED=$((FAILED + 1)); }
 
-echo "[43/${TOTAL}] Deploying update-question-analytics..."
+echo "[46/${TOTAL}] Deploying update-question-analytics..."
 supabase functions deploy update-question-analytics --project-ref "${PROJECT_REF}" || { echo "  ✗ update-question-analytics FAILED"; FAILED=$((FAILED + 1)); }
 
-echo "[44/${TOTAL}] Deploying weekly-summary-cron..."
+echo "[47/${TOTAL}] Deploying weekly-summary-cron..."
 supabase functions deploy weekly-summary-cron --project-ref "${PROJECT_REF}" || { echo "  ✗ weekly-summary-cron FAILED"; FAILED=$((FAILED + 1)); }
 
 echo ""

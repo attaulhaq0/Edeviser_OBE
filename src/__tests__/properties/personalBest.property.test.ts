@@ -14,20 +14,21 @@ import { computeWeeklyXP } from '@/lib/personalBestLeaderboard';
  */
 describe('P36: Personal best comparison correctness', () => {
   it('exactly one week is marked as personal best when there is XP', () => {
+    const referenceDate = new Date();
     fc.assert(
       fc.property(
         fc.array(
           fc.record({
             xp_amount: fc.integer({ min: 1, max: 100 }),
             created_at: fc.date({
-              min: new Date(Date.now() - 56 * 24 * 60 * 60 * 1000),
-              max: new Date(),
+              min: new Date(referenceDate.getTime() - 55 * 24 * 60 * 60 * 1000),
+              max: referenceDate,
             }).map((d) => d.toISOString()),
           }),
           { minLength: 1, maxLength: 50 },
         ),
         (transactions) => {
-          const weeks = computeWeeklyXP(transactions);
+          const weeks = computeWeeklyXP(transactions, referenceDate);
           const bestWeeks = weeks.filter((w) => w.isPersonalBest);
 
           // If any week has XP > 0, exactly one should be personal best
