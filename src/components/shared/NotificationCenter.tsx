@@ -4,6 +4,7 @@
 // =============================================================================
 
 import { useCallback, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Bell,
   CheckCheck,
@@ -17,6 +18,7 @@ import {
   Sparkles,
   Unlock,
   Layers,
+  Bot,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
@@ -49,6 +51,7 @@ const NOTIFICATION_ICONS: Record<NotificationType, React.ReactNode> = {
 
 const NotificationCenter = ({ onClose: _onClose }: NotificationCenterProps) => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { data: notifications = [], isLoading } = useNotifications(user?.id);
   const markAsRead = useMarkAsRead();
   const markAllAsRead = useMarkAllAsRead();
@@ -156,6 +159,26 @@ const NotificationCenter = ({ onClose: _onClose }: NotificationCenterProps) => {
                   <p className="text-xs text-gray-500 line-clamp-2 mt-0.5">
                     {item.body}
                   </p>
+                  {/* Requirement 10.3: "Ask Tutor" deep link for low-scoring grade notifications */}
+                  {!item.is_grouped && mostRecent?.metadata &&
+                    typeof mostRecent.metadata === 'object' &&
+                    'tutor_action_url' in mostRecent.metadata &&
+                    typeof (mostRecent.metadata as Record<string, unknown>).tutor_action_url === 'string' && (
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-1 mt-1 text-xs font-semibold text-teal-600 hover:text-teal-700 hover:underline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const url = (mostRecent?.metadata as Record<string, unknown> | null)?.tutor_action_url;
+                        if (typeof url === 'string') {
+                          navigate(url);
+                        }
+                      }}
+                    >
+                      <Bot className="h-3 w-3" />
+                      Ask Tutor
+                    </button>
+                  )}
                   <p className="text-[10px] text-gray-400 mt-1">{timeAgo}</p>
                 </div>
 

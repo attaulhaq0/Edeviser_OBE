@@ -128,7 +128,10 @@ export const useUpdateCLO = (id: string) => {
     ): Promise<LearningOutcome> => {
       const { plo_mappings, ...cloFields } = data;
 
-      const { data: result, error } = await supabase.from('learning_outcomes')
+      // NOTE: tutor_autonomy_level column exists in DB but database.ts types have not been
+      // regenerated yet. Using type assertion until `scripts/regen-types.ps1` is run.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: result, error } = await (supabase as any).from('learning_outcomes')
         .update(cloFields)
         .eq('id', id)
         .select()

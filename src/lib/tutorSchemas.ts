@@ -14,6 +14,20 @@ export const autonomyLevelSchema = z.enum(["L1", "L2", "L3"]);
 
 export type AutonomyLevel = z.infer<typeof autonomyLevelSchema>;
 
+export const updateAssignmentAutonomySchema = z.object({
+  assignment_id: z.string().uuid(),
+  autonomy_level: autonomyLevelSchema,
+});
+
+export type UpdateAssignmentAutonomyInput = z.infer<typeof updateAssignmentAutonomySchema>;
+
+export const updateCLOAutonomySchema = z.object({
+  clo_id: z.string().uuid(),
+  autonomy_level: autonomyLevelSchema,
+});
+
+export type UpdateCLOAutonomyInput = z.infer<typeof updateCLOAutonomySchema>;
+
 export const satisfactionRatingSchema = z.enum(["thumbs_up", "thumbs_down"]);
 
 export type SatisfactionRating = z.infer<typeof satisfactionRatingSchema>;
@@ -148,4 +162,52 @@ export interface TutorUsageStatus {
   daily_token_budget: number;
   warning: boolean;
   remaining_messages: number;
+}
+
+// ─── Plan Update Response ────────────────────────────────────────────────────
+
+export const planUpdateResponseSchema = z.object({
+  plan_update_id: z.string().uuid(),
+  response: z.enum(["accepted", "modified", "dismissed"]),
+  modifications: z.string().optional(),
+});
+
+export type PlanUpdateResponseInput = z.infer<typeof planUpdateResponseSchema>;
+
+// ─── Teacher Handoff ─────────────────────────────────────────────────────────
+
+export const createHandoffSchema = z.object({
+  conversation_id: z.string().uuid(),
+  student_consent: z.boolean().refine((val) => val === true, {
+    message: "Student consent is required",
+  }),
+});
+
+export type CreateHandoffInput = z.infer<typeof createHandoffSchema>;
+
+export const respondToHandoffSchema = z.object({
+  handoff_id: z.string().uuid(),
+  response_message: z.string().min(1).max(2000),
+});
+
+export type RespondToHandoffInput = z.infer<typeof respondToHandoffSchema>;
+
+// ─── Teacher Handoff Types ───────────────────────────────────────────────────
+
+export interface TeacherHandoffRequest {
+  id: string;
+  conversation_id: string;
+  student_id: string;
+  teacher_id: string;
+  institution_id: string;
+  course_id: string;
+  clo_id: string | null;
+  conversation_summary: string;
+  suggested_intervention: string;
+  trigger_reason: "low_rag_confidence" | "repeated_question" | "low_satisfaction";
+  student_consent: boolean;
+  status: "pending" | "resolved" | "dismissed";
+  teacher_response: string | null;
+  created_at: string;
+  resolved_at: string | null;
 }

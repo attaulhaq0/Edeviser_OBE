@@ -33,6 +33,7 @@ import { XP_SCHEDULE, LATE_SUBMISSION_XP } from '@/lib/xpSchedule';
 import { useReadHabitTimer } from '@/hooks/useReadHabitTimer';
 import { useAssignmentDifficultyBonus } from '@/hooks/useAdaptiveXP';
 import BloomsPill from '@/components/shared/BloomsPill';
+import TutorEntryButton from '@/components/shared/TutorEntryButton';
 import { Sparkles } from 'lucide-react';
 
 // ─── AssignmentDetailPage ───────────────────────────────────────────────────
@@ -351,6 +352,16 @@ const AssignmentDetailPage = () => {
               <Badge variant="outline">{assignment.rubrics.title}</Badge>
             </div>
           )}
+
+          {/* Ask Tutor — Requirement 10.1 */}
+          <div className="pt-2 border-t border-slate-100">
+            <TutorEntryButton
+              courseId={assignment.course_id}
+              cloIds={cloIds}
+              assignmentId={assignment.id}
+              label="Ask Tutor"
+            />
+          </div>
         </div>
       </Card>
 

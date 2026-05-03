@@ -30,6 +30,13 @@ describe('XP Schedule', () => {
       'profile_complete',
       'starter_session_complete',
       'wellness_habit',
+      'practice_quiz',
+      'study_session',
+      'planner_task',
+      'session_reflection',
+      'weekly_goal',
+      'tutor_engagement',
+      'tutor_rating',
     ];
 
     for (const source of expectedSources) {
@@ -85,5 +92,10 @@ describe('XP Schedule', () => {
     expect(XP_SCHEDULE.micro_assessment).toBe(10);
     expect(XP_SCHEDULE.profile_complete).toBe(30);
     expect(XP_SCHEDULE.starter_session_complete).toBe(15);
+  });
+
+  it('matches tutor engagement XP amounts from Requirement 17', () => {
+    expect(XP_SCHEDULE.tutor_engagement).toBe(15);
+    expect(XP_SCHEDULE.tutor_rating).toBe(5);
   });
 });

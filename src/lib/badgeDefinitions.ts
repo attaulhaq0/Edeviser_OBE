@@ -300,6 +300,18 @@ export const BADGE_DEFINITIONS: BadgeDef[] = [
     xpReward: 100,
   },
 
+  // ── Academic independence badge ──────────────────────────────────────────
+  {
+    id: "self_reliant_scholar",
+    name: "Self-Reliant Scholar",
+    description: "Maintained high independence from AI assistance across all CLOs",
+    icon: "🛡️",
+    category: "academic",
+    isMystery: false,
+    condition: "Independence score ≥ 80% across all enrolled CLOs for a course",
+    xpReward: 100,
+  },
+
   // ── Study badges (Weekly Planner & Today View) ─────────────────────────────
   {
     id: "study_starter",
