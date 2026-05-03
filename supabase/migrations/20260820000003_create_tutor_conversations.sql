@@ -31,12 +31,12 @@ CREATE INDEX IF NOT EXISTS idx_conversations_institution ON tutor_conversations 
 
 -- Trigger: keep updated_at current on every UPDATE so idx_conversations_student ordering is accurate
 CREATE OR REPLACE FUNCTION set_tutor_conversations_updated_at()
-RETURNS TRIGGER LANGUAGE plpgsql AS $
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
 BEGIN
   NEW.updated_at = now();
   RETURN NEW;
 END;
-$;
+$$;
 
 DROP TRIGGER IF EXISTS trg_tutor_conversations_updated_at ON tutor_conversations;
 CREATE TRIGGER trg_tutor_conversations_updated_at
@@ -45,7 +45,7 @@ CREATE TRIGGER trg_tutor_conversations_updated_at
 
 -- Trigger: keep message_count in sync with tutor_messages inserts/deletes
 CREATE OR REPLACE FUNCTION sync_tutor_conversation_stats()
-RETURNS TRIGGER LANGUAGE plpgsql AS $
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
 BEGIN
   IF TG_OP = 'INSERT' THEN
     UPDATE tutor_conversations
@@ -69,9 +69,7 @@ BEGIN
   END IF;
   RETURN NULL;
 END;
-$;
+$$;
 
-DROP TRIGGER IF EXISTS trg_sync_conversation_stats ON tutor_messages;
-CREATE TRIGGER trg_sync_conversation_stats
-  AFTER INSERT OR UPDATE OR DELETE ON tutor_messages
-  FOR EACH ROW EXECUTE FUNCTION sync_tutor_conversation_stats();
+-- NOTE: The trigger trg_sync_conversation_stats is created in 20260820000004_create_tutor_messages.sql
+-- because it references the tutor_messages table which doesn't exist yet at this point.
