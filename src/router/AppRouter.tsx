@@ -196,6 +196,17 @@ const PostQuizReview = lazy(
 const MasteryRecoveryPage = lazy(
   () => import("@/pages/student/recovery/MasteryRecoveryPage")
 );
+
+// AI Tutor
+const TutorPage = lazy(
+  () => import("@/pages/student/tutor/TutorPage")
+);
+const TutorAnalyticsPage = lazy(
+  () => import("@/pages/teacher/tutor-analytics/TutorAnalyticsPage")
+);
+const TeacherHandoffPage = lazy(
+  () => import("@/pages/teacher/tutor-analytics/TeacherHandoffPage")
+);
 const ExplanationReviewPage = lazy(
   () => import("@/pages/teacher/quiz-generation/ExplanationReviewPage")
 );
@@ -557,6 +568,8 @@ const AppRouter = () => (
           <Route path="team-health" element={<TeamHealthReportPage />} />
           <Route path="clos/:cloId/sub-clos" element={<SubCLOManager />} />
           <Route path="outcomes/sub-clos" element={<SubCLOManager />} />
+          <Route path="tutor-analytics" element={<TutorAnalyticsPage />} />
+          <Route path="tutor-handoffs" element={<TeacherHandoffPage />} />
           <Route path="calendar" element={<CalendarView />} />
           <Route path="timetable" element={<TimetableView />} />
           <Route path="settings/profile" element={<ProfilePage />} />
@@ -635,6 +648,8 @@ const AppRouter = () => (
           <Route path="challenges" element={<ChallengeListView />} />
           <Route path="challenges/list" element={<ChallengeListPage />} />
           <Route path="challenges/:id" element={<ChallengeDetailPage />} />
+          <Route path="tutor" element={<TutorPage />} />
+          <Route path="tutor/:conversationId" element={<TutorPage />} />
           <Route path="team" element={<StudentTeamPage />} />
           <Route path="teams/:teamId" element={<TeamProfilePage />} />
           <Route path="teams/new" element={<CreateTeamPage />} />

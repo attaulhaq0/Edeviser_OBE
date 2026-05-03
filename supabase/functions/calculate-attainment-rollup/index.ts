@@ -464,16 +464,28 @@ serve(async (req) => {
     // ── Step 7: Insert notification for student ───────────────────────────
 
     try {
+      // Build notification metadata
+      const notificationMetadata: Record<string, unknown> = {
+        assignment_id: assignment.id,
+        score_percent: grade.score_percent,
+        grade_id: grade_id,
+      };
+
+      // Requirement 10.3: Include "Ask Tutor" deep link for low-scoring submissions (below 70%)
+      if (grade.score_percent < 70 && cloWeights.length > 0) {
+        const cloIdList = cloWeights.map((cw: { clo_id: string }) => cw.clo_id).join(',');
+        notificationMetadata.tutor_action_url =
+          `/student/tutor?courseId=${courseId}&cloIds=${cloIdList}`;
+      }
+
       await supabase.from('notifications').insert({
         user_id: studentId,
         type: 'grade_released',
         title: 'Grade Released',
-        body: 'Your assignment has been graded',
-        metadata: {
-          assignment_id: assignment.id,
-          score_percent: grade.score_percent,
-          grade_id: grade_id,
-        },
+        body: grade.score_percent < 70
+          ? 'Your assignment has been graded. Need help improving? Ask the AI Tutor.'
+          : 'Your assignment has been graded',
+        metadata: notificationMetadata,
         read: false,
       });
     } catch (err) {

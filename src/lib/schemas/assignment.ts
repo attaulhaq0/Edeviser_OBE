@@ -24,6 +24,7 @@ export const createAssignmentSchema = z.object({
       })
     )
     .optional(),
+  tutor_autonomy_level: z.enum(["L1", "L2", "L3"]).optional(),
 });
 
 export type CLOWeightFormData = z.infer<typeof cloWeightSchema>;

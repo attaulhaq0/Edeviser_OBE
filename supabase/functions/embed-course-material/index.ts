@@ -25,6 +25,26 @@ interface EmbedRequest {
   source_filename: string;
   source_material_id?: string;
   institution_id?: string;
+  reindex?: boolean;
+}
+
+// ─── Auto-Indexing Request (3.2.8) ──────────────────────────────────────────
+// Used when assignments or rubrics are created/updated — text content is
+// provided directly instead of a file URL.
+
+interface AutoIndexRequest {
+  course_id: string;
+  clo_ids?: string[];
+  bloom_level?: string;
+  material_type: "assignment_description" | "rubric_criteria";
+  source_filename: string;
+  source_material_id?: string;
+  institution_id?: string;
+  // Direct text content fields (no file_url needed)
+  title: string;
+  description?: string;
+  rubric_criteria?: Array<{ criterion: string; description?: string }>;
+  assignment_id?: string;
 }
 
 interface TextChunk {
@@ -350,8 +370,139 @@ function validateRequest(
       source_filename: req.source_filename as string,
       source_material_id: req.source_material_id as string | undefined,
       institution_id: req.institution_id as string | undefined,
+      reindex: req.reindex === true,
     },
   };
+}
+
+// ─── Auto-Index Request Validation (3.2.8) ──────────────────────────────────
+
+function validateAutoIndexRequest(
+  body: unknown
+): { valid: true; data: AutoIndexRequest } | { valid: false; error: string } {
+  if (!body || typeof body !== "object") {
+    return { valid: false, error: "Request body must be a JSON object" };
+  }
+
+  const req = body as Record<string, unknown>;
+
+  if (!req.course_id || typeof req.course_id !== "string") {
+    return {
+      valid: false,
+      error: "course_id is required and must be a string",
+    };
+  }
+
+  if (!req.title || typeof req.title !== "string") {
+    return { valid: false, error: "title is required and must be a string" };
+  }
+
+  if (!req.material_type || typeof req.material_type !== "string") {
+    return {
+      valid: false,
+      error: "material_type is required and must be a string",
+    };
+  }
+
+  const validAutoTypes: MaterialType[] = [
+    "assignment_description",
+    "rubric_criteria",
+  ];
+  if (!validAutoTypes.includes(req.material_type as MaterialType)) {
+    return {
+      valid: false,
+      error: `material_type for auto-indexing must be one of: ${validAutoTypes.join(", ")}`,
+    };
+  }
+
+  if (!req.source_filename || typeof req.source_filename !== "string") {
+    return {
+      valid: false,
+      error: "source_filename is required and must be a string",
+    };
+  }
+
+  if (req.clo_ids !== undefined) {
+    if (
+      !Array.isArray(req.clo_ids) ||
+      !req.clo_ids.every((id: unknown) => typeof id === "string")
+    ) {
+      return { valid: false, error: "clo_ids must be an array of strings" };
+    }
+  }
+
+  if (req.description !== undefined && typeof req.description !== "string") {
+    return { valid: false, error: "description must be a string" };
+  }
+
+  if (req.rubric_criteria !== undefined) {
+    if (!Array.isArray(req.rubric_criteria)) {
+      return { valid: false, error: "rubric_criteria must be an array" };
+    }
+    for (const criterion of req.rubric_criteria) {
+      if (
+        !criterion ||
+        typeof criterion !== "object" ||
+        typeof (criterion as Record<string, unknown>).criterion !== "string"
+      ) {
+        return {
+          valid: false,
+          error:
+            "Each rubric_criteria item must have a 'criterion' string field",
+        };
+      }
+    }
+  }
+
+  return {
+    valid: true,
+    data: {
+      course_id: req.course_id as string,
+      clo_ids: (req.clo_ids as string[] | undefined) ?? [],
+      bloom_level: req.bloom_level as string | undefined,
+      material_type: req.material_type as "assignment_description" | "rubric_criteria",
+      source_filename: req.source_filename as string,
+      source_material_id: req.source_material_id as string | undefined,
+      institution_id: req.institution_id as string | undefined,
+      title: req.title as string,
+      description: req.description as string | undefined,
+      rubric_criteria: req.rubric_criteria as
+        | Array<{ criterion: string; description?: string }>
+        | undefined,
+      assignment_id: req.assignment_id as string | undefined,
+    },
+  };
+}
+
+// ─── Auto-Index Text Assembly (3.2.8) ────────────────────────────────────────
+
+/**
+ * Assembles text content from assignment/rubric fields for auto-indexing.
+ * Combines title, description, and rubric criteria into a single text block.
+ */
+function assembleAutoIndexText(req: AutoIndexRequest): string {
+  const sections: string[] = [];
+
+  // Title is always included
+  sections.push(req.title);
+
+  // Description if provided
+  if (req.description?.trim()) {
+    sections.push(req.description.trim());
+  }
+
+  // Rubric criteria if provided
+  if (req.rubric_criteria && req.rubric_criteria.length > 0) {
+    const criteriaLines = req.rubric_criteria.map((rc) => {
+      if (rc.description?.trim()) {
+        return `${rc.criterion}: ${rc.description.trim()}`;
+      }
+      return rc.criterion;
+    });
+    sections.push("Rubric Criteria:\n" + criteriaLines.join("\n"));
+  }
+
+  return sections.join("\n\n");
 }
 
 // ─── Notification Helper ────────────────────────────────────────────────────
@@ -400,6 +551,173 @@ serve(async (req) => {
 
     // ── Parse and validate request ──────────────────────────────────────
     const body = await req.json();
+
+    // Determine request mode: auto-index (has title, no file_url) vs file-based
+    const isAutoIndex =
+      body &&
+      typeof body === "object" &&
+      "title" in body &&
+      !("file_url" in body);
+
+    if (isAutoIndex) {
+      // ── Auto-Indexing Mode (3.2.8) ──────────────────────────────────────
+      const autoValidation = validateAutoIndexRequest(body);
+      if (!autoValidation.valid) {
+        return new Response(
+          JSON.stringify({ error: autoValidation.error }),
+          {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
+
+      const autoReq = autoValidation.data;
+
+      // Resolve institution_id from course
+      let autoInstitutionId = autoReq.institution_id;
+      let autoTeacherId: string | null = null;
+
+      const { data: autoCourseData, error: autoCourseError } = await supabase
+        .from("courses")
+        .select("institution_id, teacher_id")
+        .eq("id", autoReq.course_id)
+        .maybeSingle();
+
+      if (autoCourseError || !autoCourseData) {
+        return new Response(
+          JSON.stringify({ error: "Course not found" }),
+          {
+            status: 404,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
+
+      autoInstitutionId = autoInstitutionId ?? autoCourseData.institution_id;
+      autoTeacherId = autoCourseData.teacher_id;
+
+      // Delete old chunks for re-indexing (always re-index for auto-indexed content)
+      if (autoReq.source_material_id) {
+        await supabase
+          .from("course_material_embeddings")
+          .delete()
+          .eq("source_material_id", autoReq.source_material_id)
+          .eq("course_id", autoReq.course_id);
+      } else {
+        await supabase
+          .from("course_material_embeddings")
+          .delete()
+          .eq("source_filename", autoReq.source_filename)
+          .eq("course_id", autoReq.course_id);
+      }
+
+      // Assemble text from assignment/rubric fields
+      const autoText = assembleAutoIndexText(autoReq);
+
+      if (!autoText.trim()) {
+        return new Response(
+          JSON.stringify({
+            error: "No text content to index from assignment/rubric",
+            indexing_status: "indexing_failed",
+          }),
+          {
+            status: 422,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
+
+      // Chunk the assembled text
+      const autoChunks = chunkText(autoText);
+
+      if (autoChunks.length === 0) {
+        return new Response(
+          JSON.stringify({
+            error: "No chunks produced from assignment/rubric text",
+            indexing_status: "indexing_failed",
+          }),
+          {
+            status: 422,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
+
+      // Generate embeddings
+      let autoEmbeddings: number[][];
+      try {
+        autoEmbeddings = await generateEmbeddings(
+          autoChunks.map((c) => c.text),
+          openaiApiKey
+        );
+      } catch (embeddingError) {
+        if (autoTeacherId) {
+          await notifyTeacher(
+            supabase,
+            autoTeacherId,
+            autoInstitutionId,
+            "Auto-Indexing Failed",
+            `Failed to generate embeddings for "${autoReq.source_filename}". ${
+              (embeddingError as Error).message
+            }`
+          );
+        }
+        throw embeddingError;
+      }
+
+      if (autoEmbeddings.length !== autoChunks.length) {
+        throw new Error(
+          `Embedding count mismatch: got ${autoEmbeddings.length} embeddings for ${autoChunks.length} chunks`
+        );
+      }
+
+      // Insert chunks
+      const autoInsertRows = autoChunks.map((chunk, index) => ({
+        institution_id: autoInstitutionId,
+        course_id: autoReq.course_id,
+        chunk_text: chunk.text,
+        embedding: JSON.stringify(autoEmbeddings[index]),
+        source_filename: autoReq.source_filename,
+        material_type: autoReq.material_type,
+        clo_ids: autoReq.clo_ids ?? [],
+        bloom_level: autoReq.bloom_level ?? null,
+        chunk_index: index,
+        token_count: chunk.token_count_estimate,
+        source_material_id: autoReq.source_material_id ?? null,
+        indexing_status: "indexed",
+      }));
+
+      const AUTO_INSERT_BATCH_SIZE = 50;
+      for (let i = 0; i < autoInsertRows.length; i += AUTO_INSERT_BATCH_SIZE) {
+        const batch = autoInsertRows.slice(i, i + AUTO_INSERT_BATCH_SIZE);
+        const { error: insertError } = await supabase
+          .from("course_material_embeddings")
+          .insert(batch);
+
+        if (insertError) {
+          throw new Error(
+            `Failed to insert auto-index chunks: ${insertError.message}`
+          );
+        }
+      }
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          chunks_created: autoChunks.length,
+          source_filename: autoReq.source_filename,
+          material_type: autoReq.material_type,
+          auto_indexed: true,
+        }),
+        {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    // ── File-Based Indexing Mode (3.2.1–3.2.7) ─────────────────────────
     const validation = validateRequest(body);
     if (!validation.valid) {
       return new Response(JSON.stringify({ error: validation.error }), {
@@ -432,14 +750,24 @@ serve(async (req) => {
 
     // ── Delete old chunks for re-indexing ────────────────────────────────
     // (Task 3.2.7: Re-indexing — delete old chunks before inserting new ones)
-    if (embedReq.source_material_id) {
-      await supabase
-        .from("course_material_embeddings")
-        .delete()
-        .eq("source_material_id", embedReq.source_material_id)
-        .eq("course_id", embedReq.course_id);
+    // Always delete old chunks when source_material_id is provided or reindex is true
+    if (embedReq.reindex || embedReq.source_material_id) {
+      if (embedReq.source_material_id) {
+        await supabase
+          .from("course_material_embeddings")
+          .delete()
+          .eq("source_material_id", embedReq.source_material_id)
+          .eq("course_id", embedReq.course_id);
+      } else {
+        // Fall back to matching by filename + course
+        await supabase
+          .from("course_material_embeddings")
+          .delete()
+          .eq("source_filename", embedReq.source_filename)
+          .eq("course_id", embedReq.course_id);
+      }
     } else {
-      // Fall back to matching by filename + course
+      // Default behavior: delete by filename + course to prevent duplicates
       await supabase
         .from("course_material_embeddings")
         .delete()

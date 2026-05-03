@@ -17,8 +17,12 @@ import HabitTracker from '@/components/shared/HabitTracker';
 import StreakDisplay from '@/components/shared/StreakDisplay';
 import ComebackChallengeBanner from '@/components/shared/ComebackChallengeBanner';
 import HabitDifficultyIndicator from '@/components/shared/HabitDifficultyIndicator';
+import TutorEntryButton from '@/components/shared/TutorEntryButton';
+import IndependenceScoreBadge from '@/components/shared/IndependenceScoreBadge';
 import { useAuth } from '@/hooks/useAuth';
 import { useStudentKPIs, useUpcomingDeadlines } from '@/hooks/useStudentDashboard';
+import { useCLOProgress } from '@/hooks/useCLOProgress';
+import { useIndependenceScores } from '@/hooks/useIndependenceScore';
 import { useStudentProfile } from '@/hooks/useStudentProfile';
 import { useTodayMicroAssessment, useCompleteMicroAssessment, useDismissMicroAssessment } from '@/hooks/useMicroAssessments';
 import { useProfileCompleteness } from '@/hooks/useProfileCompleteness';
@@ -56,6 +60,7 @@ import {
   Trophy,
   Users,
   type LucideIcon,
+  Target,
 } from 'lucide-react';
 import { formatLocalDate } from '@/lib/formatDate';
 import { formatNumber, formatPercent } from '@/lib/formatNumber';
@@ -192,6 +197,19 @@ const StudentDashboard = () => {
   // Badge Spotlight — Requirement 134.4
   const { data: spotlightData } = useBadgeSpotlight(profile?.institution_id ?? undefined);
   const { data: tieredBadgesData } = useTieredBadges(studentId || undefined);
+
+  // CLO Progress for "Get Help" buttons — Requirement 10.2
+  const { data: cloProgressData } = useCLOProgress(studentId || undefined);
+
+  // Independence scores for CLOs — Requirement 28
+  const independenceCourseId = cloProgressData?.[0]?.course_id;
+  const { data: independenceScores } = useIndependenceScores(
+    studentId || '',
+    independenceCourseId ?? '',
+  );
+  const independenceMap = new Map(
+    (independenceScores ?? []).map((s) => [s.clo_id, s.score]),
+  );
 
   // League Tier — Requirement 132.3
   const { data: leagueTierData } = useStudentLeagueTier(studentId || undefined);
@@ -548,6 +566,59 @@ const StudentDashboard = () => {
 
       {/* Recent Announcements */}
       <AnnouncementsSection studentId={studentId} />
+
+      {/* CLO Attainment Progress — Requirement 10.2 */}
+      {cloProgressData && cloProgressData.length > 0 && (() => {
+        const lowCLOs = cloProgressData.flatMap((course) =>
+          course.entries
+            .filter((e) => e.attainment_percent !== null && e.attainment_percent < 70)
+            .map((e) => ({ ...e, course_name: course.course_name }))
+        );
+        if (lowCLOs.length === 0) return null;
+        return (
+          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+            <div
+              className="px-6 py-4 flex items-center gap-2"
+              style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+            >
+              <Target className="h-5 w-5 text-white" />
+              <h2 className="text-lg font-bold tracking-tight text-white">CLOs Needing Attention</h2>
+            </div>
+            <div className="p-6 space-y-4">
+              {lowCLOs.slice(0, 6).map((clo) => (
+                <div key={clo.clo_id} className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium truncate">{clo.clo_title}</p>
+                      <p className="text-xs text-gray-500">{clo.course_name}</p>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="text-xs font-bold text-red-600">
+                        {Math.round(clo.attainment_percent ?? 0)}%
+                      </span>
+                      {independenceMap.has(clo.clo_id) && (
+                        <IndependenceScoreBadge score={independenceMap.get(clo.clo_id)!} />
+                      )}
+                      <TutorEntryButton
+                        courseId={clo.course_id}
+                        cloIds={[clo.clo_id]}
+                        compact
+                        label={`Get Help with ${clo.clo_title}`}
+                      />
+                    </div>
+                  </div>
+                  <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-red-400 transition-all duration-300"
+                      style={{ width: `${Math.round(clo.attainment_percent ?? 0)}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        );
+      })()}
 
       {/* Team Dashboard Card — Requirement 112.7 */}
       {myTeam && (

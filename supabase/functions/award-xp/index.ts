@@ -48,7 +48,9 @@ type XPSource =
   | "review_cycle_complete"
   | "challenge_reward"
   | "peer_teaching"
-  | "peer_learning";
+  | "peer_learning"
+  | "tutor_engagement"
+  | "tutor_rating";
 
 type BloomsLevel =
   | "Remembering"
@@ -209,6 +211,8 @@ const VALID_SOURCES: XPSource[] = [
   "challenge_reward",
   "peer_teaching",
   "peer_learning",
+  "tutor_engagement",
+  "tutor_rating",
 ];
 
 function validatePayload(
@@ -760,6 +764,75 @@ serve(async (req) => {
     } else if (source === "challenge_reward") {
       // Challenge reward XP: 50–500 range, server-enforced
       cappedXpAmount = Math.min(Math.max(resolvedXpAmount, 50), 500);
+    } else if (source === "tutor_engagement") {
+      // Server-enforced fixed amount: 15 XP for 3+ messages in a conversation
+      // Diminishing returns: after 5 conversations in 24h → 5 XP, after 10 → 0 XP
+      const TUTOR_ENGAGEMENT_BASE_XP = 15;
+      const TUTOR_ENGAGEMENT_REDUCED_XP = 5;
+      const TUTOR_ENGAGEMENT_THRESHOLD_REDUCED = 5;
+      const TUTOR_ENGAGEMENT_THRESHOLD_ZERO = 10;
+
+      const windowStart24h = new Date(
+        Date.now() - 24 * 60 * 60 * 1000
+      ).toISOString();
+
+      const { data: recentTutorAwards, error: tutorCountErr } = await supabase
+        .from("xp_transactions")
+        .select("id")
+        .eq("student_id", student_id)
+        .eq("source", "tutor_engagement")
+        .gte("created_at", windowStart24h);
+
+      if (tutorCountErr) {
+        console.error(
+          "Tutor engagement diminishing returns query failed:",
+          tutorCountErr.message
+        );
+        // Continue without blocking — default to base XP on query failure
+      }
+
+      const tutorAwardCount24h = recentTutorAwards?.length ?? 0;
+
+      if (tutorAwardCount24h >= TUTOR_ENGAGEMENT_THRESHOLD_ZERO) {
+        // 10+ conversations in 24h — no more tutor engagement XP
+        cappedXpAmount = 0;
+      } else if (tutorAwardCount24h >= TUTOR_ENGAGEMENT_THRESHOLD_REDUCED) {
+        // 5–9 conversations in 24h — reduced XP
+        cappedXpAmount = TUTOR_ENGAGEMENT_REDUCED_XP;
+      } else {
+        cappedXpAmount = TUTOR_ENGAGEMENT_BASE_XP;
+      }
+    } else if (source === "tutor_rating") {
+      // Server-enforced fixed amount: 5 XP per satisfaction rating, max 3/day
+      const TUTOR_RATING_XP = 5;
+      const TUTOR_RATING_MAX_PER_DAY = 3;
+
+      const dayStart = new Date();
+      dayStart.setUTCHours(0, 0, 0, 0);
+
+      const { data: ratingAwards, error: ratingCountErr } = await supabase
+        .from("xp_transactions")
+        .select("id")
+        .eq("student_id", student_id)
+        .eq("source", "tutor_rating")
+        .gte("created_at", dayStart.toISOString());
+
+      if (ratingCountErr) {
+        console.error(
+          "Tutor rating daily cap query failed:",
+          ratingCountErr.message
+        );
+        // Continue without blocking — default to base XP on query failure
+      }
+
+      const ratingCountToday = ratingAwards?.length ?? 0;
+
+      if (ratingCountToday >= TUTOR_RATING_MAX_PER_DAY) {
+        // Max 3 rating XP awards per day — award 0 XP
+        cappedXpAmount = 0;
+      } else {
+        cappedXpAmount = TUTOR_RATING_XP;
+      }
     }
 
     // Handle zero XP — still record the transaction but skip level recalculation

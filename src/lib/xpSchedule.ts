@@ -40,6 +40,8 @@ export const XP_SCHEDULE: Record<XPSource, number> = {
   planner_task: 10,
   session_reflection: 10,
   weekly_goal: 25,
+  tutor_engagement: 15,
+  tutor_rating: 5,
 };
 
 /** XP awarded for late submissions (assignment or quiz) */

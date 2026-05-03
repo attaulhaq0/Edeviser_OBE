@@ -132,7 +132,9 @@ export type XPSource =
   | "study_session"
   | "planner_task"
   | "session_reflection"
-  | "weekly_goal";
+  | "weekly_goal"
+  | "tutor_engagement"
+  | "tutor_rating";
 
 export type XPSchedule = Record<XPSource, number>;
 

@@ -80,7 +80,10 @@ export const useCreateAssignment = () => {
 
   return useMutation({
     mutationFn: async (data: CreateAssignmentFormData): Promise<Assignment> => {
-      const { data: result, error } = await supabase.from('assignments')
+      // NOTE: tutor_autonomy_level column exists in DB but database.ts types have not been
+      // regenerated yet. Using type assertion until `scripts/regen-types.ps1` is run.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: result, error } = await (supabase as any).from('assignments')
         .insert(data)
         .select()
         .single();
@@ -115,7 +118,8 @@ export const useUpdateAssignment = (id: string) => {
     mutationFn: async (
       data: Partial<CreateAssignmentFormData>,
     ): Promise<Assignment> => {
-      const { data: result, error } = await supabase.from('assignments')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: result, error } = await (supabase as any).from('assignments')
         .update(data)
         .eq('id', id)
         .select()

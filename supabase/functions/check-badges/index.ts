@@ -64,6 +64,8 @@ const BADGE_XP: Record<string, number> = {
   comeback_kid: 100,
   // Rising Star badge (Most Improved top 3 for 2 consecutive weeks)
   rising_star: 100,
+  // Self-Reliant Scholar badge (independence score ≥ 0.8 across all CLOs)
+  self_reliant_scholar: 100,
   // Study badges (Weekly Planner & Today View)
   study_starter: 25,
   deep_focus: 50,
@@ -1275,6 +1277,95 @@ async function checkStudyBadges(
   return newBadges;
 }
 
+// ─── Self-Reliant Scholar Badge Checker (Requirement 29) ────────────────────
+
+async function checkSelfReliantScholarBadge(
+  supabase: ReturnType<typeof createClient>,
+  studentId: string,
+  existingBadgeIds: Set<string>
+): Promise<string[]> {
+  const newBadges: string[] = [];
+
+  if (existingBadgeIds.has("self_reliant_scholar")) return newBadges;
+
+  // Get all courses the student is enrolled in
+  const { data: enrollments } = await supabase
+    .from("student_courses")
+    .select("course_id")
+    .eq("student_id", studentId)
+    .eq("status", "active");
+
+  if (!enrollments || enrollments.length === 0) return newBadges;
+
+  const courseIds = enrollments.map((e: { course_id: string }) => e.course_id);
+
+  // For each course, check independence score across all CLOs
+  for (const courseId of courseIds) {
+    // Get all CLOs for this course
+    const { data: clos } = await supabase
+      .from("learning_outcomes")
+      .select("id")
+      .eq("course_id", courseId)
+      .eq("type", "CLO");
+
+    if (!clos || clos.length === 0) continue;
+
+    const cloIds = clos.map((c: { id: string }) => c.id);
+
+    // Get all submissions for this student
+    const { data: submissions } = await supabase
+      .from("submissions")
+      .select("id, submitted_at")
+      .eq("student_id", studentId);
+
+    if (!submissions || submissions.length === 0) continue;
+
+    let allCLOsMeetThreshold = true;
+
+    for (const cloId of cloIds) {
+      // Get tutor conversations scoped to this CLO
+      const { data: conversations } = await supabase
+        .from("tutor_conversations")
+        .select("id, updated_at")
+        .eq("student_id", studentId)
+        .contains("clo_scope", [cloId]);
+
+      // Count AI-assisted submissions (within 1 hour of tutor conversation)
+      let aiAssisted = 0;
+      const ONE_HOUR_MS = 60 * 60 * 1000;
+
+      for (const sub of submissions) {
+        const submittedAt = new Date(sub.submitted_at as string).getTime();
+        const wasAiAssisted = (conversations ?? []).some(
+          (conv: { updated_at: string }) => {
+            const convTime = new Date(conv.updated_at).getTime();
+            const timeDiff = submittedAt - convTime;
+            return timeDiff >= 0 && timeDiff <= ONE_HOUR_MS;
+          }
+        );
+        if (wasAiAssisted) aiAssisted++;
+      }
+
+      const totalSubmissions = submissions.length;
+      const independenceScore =
+        totalSubmissions > 0 ? 1 - aiAssisted / totalSubmissions : 1.0;
+
+      // Condition: independence score ≥ 0.8 across ALL enrolled CLOs
+      if (independenceScore < 0.8) {
+        allCLOsMeetThreshold = false;
+        break;
+      }
+    }
+
+    if (allCLOsMeetThreshold) {
+      newBadges.push("self_reliant_scholar");
+      break; // Only need one qualifying course
+    }
+  }
+
+  return newBadges;
+}
+
 // ─── Peer Milestone Notification for Rare Badges (original) ─────────────────
 
 const BADGE_DISPLAY_NAMES: Record<string, string> = {
@@ -1710,6 +1801,16 @@ serve(async (req) => {
         existingBadgeIds
       );
       newBadgeIds.push(...studyBadges);
+    }
+
+    // Self-Reliant Scholar badge — check on submission trigger (Requirement 29)
+    if (trigger === "submission" || trigger === "grade") {
+      const selfReliantBadges = await checkSelfReliantScholarBadge(
+        supabase,
+        student_id,
+        existingBadgeIds
+      );
+      newBadgeIds.push(...selfReliantBadges);
     }
 
     // ── Step 2b: Check team badges if team_event trigger ────────────────

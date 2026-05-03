@@ -20,6 +20,7 @@ import {
   Users,
   CalendarDays,
   CalendarCheck,
+  Bot,
 } from "lucide-react";
 import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
 
@@ -54,6 +55,7 @@ const navItems = [
   },
   { to: "/student/habits", icon: Grid3X3, label: "Habits" },
   { to: "/student/journal", icon: PenLine, label: "Journal" },
+  { to: "/student/tutor", icon: Bot, label: "AI Tutor" },
   { to: "/student/calendar", icon: Calendar, label: "Calendar" },
   { to: "/student/timetable", icon: Clock, label: "Timetable" },
   { to: "/student/portfolio", icon: Star, label: "Portfolio", focusHide: true },

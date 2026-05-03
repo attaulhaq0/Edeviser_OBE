@@ -32,7 +32,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Loader2, Link2, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Loader2, Link2, AlertTriangle, Bot } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import BloomsVerbGuide from '@/components/shared/BloomsVerbGuide';
@@ -74,6 +74,7 @@ const CreateCLODetailsForm = () => {
       description: '',
       course_id: '' as `${string}-${string}-${string}-${string}-${string}`,
       blooms_level: undefined,
+      tutor_autonomy_level: 'L2',
     },
   });
 
@@ -218,6 +219,36 @@ const CreateCLODetailsForm = () => {
 
           <BloomsVerbGuide selectedLevel={watchedBloomsLevel} onVerbClick={handleVerbClick} />
 
+          {/* AI Tutor Autonomy Level */}
+          <FormField
+            control={form.control}
+            name="tutor_autonomy_level"
+            render={({ field }) => (
+              <FormItem>
+                <div className="flex items-center gap-2">
+                  <Bot className="h-4 w-4 text-blue-600" />
+                  <FormLabel>AI Tutor Autonomy Level</FormLabel>
+                </div>
+                <Select onValueChange={field.onChange} value={field.value ?? 'L2'}>
+                  <FormControl>
+                    <SelectTrigger className="bg-white">
+                      <SelectValue placeholder="Select autonomy level" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="L1">L1 — Hints Only</SelectItem>
+                    <SelectItem value="L2">L2 — Guided Discovery</SelectItem>
+                    <SelectItem value="L3">L3 — Direct Explanation</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-gray-500 mt-1">
+                  Controls how much direct help the AI Tutor provides for this CLO.
+                </p>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           <div className="flex items-center gap-3 pt-2">
             <Button
               type="submit"
@@ -259,6 +290,7 @@ const EditCLODetailsForm = ({ cloId }: { cloId: string }) => {
       description: '',
       course_id: '' as `${string}-${string}-${string}-${string}-${string}`,
       blooms_level: undefined,
+      tutor_autonomy_level: 'L2',
     },
   });
 
@@ -271,6 +303,8 @@ const EditCLODetailsForm = ({ cloId }: { cloId: string }) => {
         description: clo.description ?? '',
         course_id: (clo.course_id ?? '') as `${string}-${string}-${string}-${string}-${string}`,
         blooms_level: (clo.blooms_level?.toLowerCase() ?? undefined) as BloomsLevel | undefined,
+        tutor_autonomy_level:
+          (clo as unknown as Record<string, unknown>).tutor_autonomy_level as 'L1' | 'L2' | 'L3' ?? 'L2',
       });
     }
   }, [existingCLO, form]);
@@ -415,6 +449,36 @@ const EditCLODetailsForm = ({ cloId }: { cloId: string }) => {
           />
 
           <BloomsVerbGuide selectedLevel={currentBloomsLevel} onVerbClick={handleVerbClick} />
+
+          {/* AI Tutor Autonomy Level */}
+          <FormField
+            control={form.control}
+            name="tutor_autonomy_level"
+            render={({ field }) => (
+              <FormItem>
+                <div className="flex items-center gap-2">
+                  <Bot className="h-4 w-4 text-blue-600" />
+                  <FormLabel>AI Tutor Autonomy Level</FormLabel>
+                </div>
+                <Select onValueChange={field.onChange} value={field.value ?? 'L2'}>
+                  <FormControl>
+                    <SelectTrigger className="bg-white">
+                      <SelectValue placeholder="Select autonomy level" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="L1">L1 — Hints Only</SelectItem>
+                    <SelectItem value="L2">L2 — Guided Discovery</SelectItem>
+                    <SelectItem value="L3">L3 — Direct Explanation</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-gray-500 mt-1">
+                  Controls how much direct help the AI Tutor provides for this CLO.
+                </p>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           <div className="flex items-center gap-3 pt-2">
             <Button

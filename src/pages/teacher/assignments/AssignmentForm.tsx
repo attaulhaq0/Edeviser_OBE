@@ -38,7 +38,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Loader2, Plus, Trash2, ChevronDown, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Loader2, Plus, Trash2, ChevronDown, ChevronRight, Bot } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -524,6 +524,39 @@ const AssignmentFormFields = ({
           )}
         </Card>
 
+        {/* Section 4: AI Tutor Settings */}
+        <Card className="bg-white border-0 shadow-md rounded-xl p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Bot className="h-5 w-5 text-blue-600" />
+            <h2 className="text-lg font-bold tracking-tight">AI Tutor Settings</h2>
+          </div>
+          <FormField
+            control={form.control}
+            name="tutor_autonomy_level"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>AI Tutor Autonomy Level</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value ?? 'L1'}>
+                  <FormControl>
+                    <SelectTrigger className="bg-white">
+                      <SelectValue placeholder="Select autonomy level" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="L1">L1 — Hints Only</SelectItem>
+                    <SelectItem value="L2">L2 — Guided Discovery</SelectItem>
+                    <SelectItem value="L3">L3 — Direct Explanation</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-gray-500 mt-1">
+                  Controls how much direct help the AI Tutor provides for this assignment.
+                </p>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </Card>
+
         {/* Actions */}
         <div className="flex items-center gap-3">
           <Button
@@ -564,6 +597,7 @@ const CreateAssignmentForm = () => {
       clo_weights: [],
       late_window_hours: 24,
       prerequisites: [],
+      tutor_autonomy_level: 'L1',
     },
   });
 
@@ -605,6 +639,7 @@ const EditAssignmentForm = ({ assignmentId }: { assignmentId: string }) => {
       clo_weights: [],
       late_window_hours: 24,
       prerequisites: [],
+      tutor_autonomy_level: 'L1',
     },
   });
 
@@ -625,6 +660,8 @@ const EditAssignmentForm = ({ assignmentId }: { assignmentId: string }) => {
           clo_id: p.clo_id as `${string}-${string}-${string}-${string}-${string}`,
           required_attainment: p.required_attainment,
         })),
+        tutor_autonomy_level:
+          (existing as unknown as Record<string, unknown>).tutor_autonomy_level as 'L1' | 'L2' | 'L3' ?? 'L1',
       });
     }
   }, [existing, form]);
