@@ -1,5 +1,6 @@
 // =============================================================================
 // useStreakFreeze — TanStack Query hooks for streak freeze inventory & purchase
+// Migrated to route through the marketplace Purchase_Processor
 // =============================================================================
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -28,7 +29,45 @@ export const usePurchaseStreakFreeze = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (studentId: string) => {
-      // Step 1: Deduct 200 XP via award-xp Edge Function
+      // Find the streak_shield marketplace item for this student's institution
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: items, error: itemError } = await (supabase as any)
+        .from('marketplace_items')
+        .select('id')
+        .eq('sub_category', 'streak_shield')
+        .eq('is_active', true)
+        .limit(1);
+
+      if (itemError) throw itemError;
+
+      const streakShieldItem = (items as Array<Record<string, unknown>> | null)?.[0];
+
+      if (streakShieldItem) {
+        // Route through the marketplace Purchase_Processor Edge Function
+        const { data, error } = await supabase.functions.invoke('process-purchase', {
+          body: {
+            item_id: streakShieldItem.id as string,
+            student_id: studentId,
+          },
+        });
+
+        if (error) throw error;
+
+        const result = data as Record<string, unknown>;
+        if (result.success === false) {
+          const errorCode = result.error_code as string;
+          const errorMessages: Record<string, string> = {
+            INSUFFICIENT_BALANCE: 'Not enough XP to purchase streak freeze',
+            MAX_INVENTORY: 'Maximum streak freezes reached (3)',
+            ITEM_INACTIVE: 'Streak freeze is currently unavailable',
+          };
+          throw new Error(errorMessages[errorCode] ?? 'Purchase failed');
+        }
+
+        return data;
+      }
+
+      // Fallback: direct purchase if marketplace item not found (backward compatibility)
       const { data, error } = await supabase.functions.invoke('award-xp', {
         body: {
           student_id: studentId,
@@ -39,7 +78,6 @@ export const usePurchaseStreakFreeze = () => {
       });
       if (error) throw error;
 
-      // Step 2: Increment streak_freezes_available
       const { data: current, error: fetchErr } = await supabase
         .from('student_gamification')
         .select('streak_freezes_available')
@@ -48,7 +86,7 @@ export const usePurchaseStreakFreeze = () => {
       if (fetchErr) throw fetchErr;
 
       const currentFreezes = current?.streak_freezes_available ?? 0;
-      if (currentFreezes >= 2) throw new Error('Maximum streak freezes reached');
+      if (currentFreezes >= 3) throw new Error('Maximum streak freezes reached');
 
       const { error: updateErr } = await supabase
         .from('student_gamification')
@@ -61,6 +99,7 @@ export const usePurchaseStreakFreeze = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.studentGamification.all });
       qc.invalidateQueries({ queryKey: queryKeys.studentDashboard.lists() });
+      qc.invalidateQueries({ queryKey: queryKeys.marketplace.all });
       toast.success('Streak Freeze purchased!');
     },
     onError: (err) => toast.error(err instanceof Error ? err.message : 'Purchase failed'),

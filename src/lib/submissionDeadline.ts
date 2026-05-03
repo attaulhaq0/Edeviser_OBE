@@ -9,6 +9,7 @@ export interface DeadlineStatus {
   dueDate: Date;
   lateDeadline: Date;
   timeRemaining: string;
+  isExtended: boolean;
 }
 
 // ─── getDeadlineStatus ──────────────────────────────────────────────────────
@@ -19,12 +20,18 @@ export interface DeadlineStatus {
  * - `open`: before due date → canSubmit true, isLate false
  * - `late_window`: after due date but before late deadline → canSubmit true, isLate true
  * - `closed`: after late deadline → canSubmit false, isLate false
+ *
+ * If an extendedDueDate is provided (from deadline_extensions table),
+ * it replaces the original due date for the student.
  */
 export function getDeadlineStatus(
   dueDate: string,
   lateWindowHours: number,
+  extendedDueDate?: string | null,
 ): DeadlineStatus {
-  const due = new Date(dueDate);
+  const isExtended = !!extendedDueDate;
+  const effectiveDueDate = extendedDueDate ?? dueDate;
+  const due = new Date(effectiveDueDate);
   const lateDeadline = addHours(due, lateWindowHours);
 
   if (!isPast(due)) {
@@ -35,6 +42,7 @@ export function getDeadlineStatus(
       dueDate: due,
       lateDeadline,
       timeRemaining: formatDistanceToNow(due, { addSuffix: true }),
+      isExtended,
     };
   }
 
@@ -46,6 +54,7 @@ export function getDeadlineStatus(
       dueDate: due,
       lateDeadline,
       timeRemaining: formatDistanceToNow(lateDeadline, { addSuffix: true }),
+      isExtended,
     };
   }
 
@@ -56,5 +65,6 @@ export function getDeadlineStatus(
     dueDate: due,
     lateDeadline,
     timeRemaining: 'Closed',
+    isExtended,
   };
 }

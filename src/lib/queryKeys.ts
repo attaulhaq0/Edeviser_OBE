@@ -219,6 +219,26 @@ const accessibility = {
     ["accessibility", "preferences", userId] as const,
 };
 
+// ─── Marketplace ──────────────────────────────────────────────────────────────
+const marketplace = {
+  all: ["marketplace"] as const,
+  balance: (studentId: string) => ["marketplace", "balance", studentId] as const,
+  items: (category?: string) =>
+    category
+      ? (["marketplace", "items", category] as const)
+      : (["marketplace", "items"] as const),
+  inventory: (studentId: string) =>
+    ["marketplace", "inventory", studentId] as const,
+  equipped: (studentId: string) =>
+    ["marketplace", "equipped", studentId] as const,
+  transactions: (filter?: string, page?: number) =>
+    ["marketplace", "transactions", filter, page] as const,
+  boosts: (studentId: string) =>
+    ["marketplace", "boosts", studentId] as const,
+  saleEvents: () => ["marketplace", "saleEvents"] as const,
+  analytics: () => ["marketplace", "analytics"] as const,
+};
+
 // ─── Exported Key Factory ────────────────────────────────────────────────────
 export const queryKeys = {
   // Core
@@ -301,6 +321,8 @@ export const queryKeys = {
   notificationPreferences,
   sessions,
   auditLogs,
+  // Marketplace
+  marketplace,
   // Heatmap & Wellness
   heatmap,
   wellness,
@@ -374,6 +396,13 @@ export const queryKeys = {
   tieredBadges: createKeys("tieredBadges"),
   badgeSpotlight: createKeys("badgeSpotlight"),
   badgeSpotlightSchedule: createKeys("badgeSpotlightSchedule"),
+  // Gap Analysis — XP Economy & Creative Expression
+  economist: createKeys("economist"),
+  quests: createKeys("quests"),
+  studentContent: createKeys("studentContent"),
+  donations: createKeys("donations"),
+  dynamicPricing: createKeys("dynamicPricing"),
+  leagues: createKeys("leagues"),
   // i18n
   i18n,
   // Accessibility

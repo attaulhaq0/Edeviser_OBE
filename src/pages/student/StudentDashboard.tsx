@@ -19,6 +19,8 @@ import ComebackChallengeBanner from '@/components/shared/ComebackChallengeBanner
 import HabitDifficultyIndicator from '@/components/shared/HabitDifficultyIndicator';
 import TutorEntryButton from '@/components/shared/TutorEntryButton';
 import IndependenceScoreBadge from '@/components/shared/IndependenceScoreBadge';
+import ActiveBoostIndicator from '@/components/shared/ActiveBoostIndicator';
+import XPBalanceBadge from '@/components/shared/XPBalanceBadge';
 import { useAuth } from '@/hooks/useAuth';
 import { useStudentKPIs, useUpcomingDeadlines } from '@/hooks/useStudentDashboard';
 import { useCLOProgress } from '@/hooks/useCLOProgress';
@@ -353,9 +355,16 @@ const StudentDashboard = () => {
               <p className="text-2xl font-black">Lv {kpis?.currentLevel ?? 1}</p>
               <p className="text-[10px] font-black tracking-widest uppercase text-white/60">Level</p>
             </div>
+            <div className="w-px h-10 bg-white/20" />
+            <div className="text-center">
+              <XPBalanceBadge size="sm" className="bg-white/10 border-white/20 text-white" />
+            </div>
           </div>
         </div>
       </Card>
+
+      {/* Active XP Boost Indicator — Marketplace Integration */}
+      {studentId && <ActiveBoostIndicator className="mx-auto" />}
 
       {/* 7.4 — Profile Completeness Bar */}
       {onboardingCompleted && profileCompleteness < 100 && (

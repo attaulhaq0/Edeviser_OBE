@@ -1001,13 +1001,42 @@ serve(async (req) => {
       }
     }
 
+    // ── Step 4c: Check for active student XP boosts (Marketplace) ───────
+    // Query student_active_boosts for any active boost where expires_at > NOW().
+    // Take the highest multiplier if multiple boosts exist (design: max 1 active,
+    // but defensive). Applied before admin event multiplier per Requirement 18.2.
+
+    let studentBoostMultiplier = 1.0;
+
+    const { data: activeBoosts, error: boostErr } = await supabase
+      .from("student_active_boosts")
+      .select("multiplier")
+      .eq("student_id", student_id)
+      .gt("expires_at", new Date().toISOString());
+
+    if (boostErr) {
+      console.error(
+        "Student boost lookup failed (non-blocking):",
+        boostErr.message
+      );
+      // Continue without boost — don't block XP award
+    }
+
+    if (!boostErr && activeBoosts && activeBoosts.length > 0) {
+      studentBoostMultiplier = Math.max(
+        ...activeBoosts.map((b: { multiplier: number }) => b.multiplier)
+      );
+    }
+
     // ── Step 5: Calculate final XP with adaptive formula ─────────────────
-    // final_xp = floor(base_xp × level_multiplier × difficulty_multiplier × diminishing_multiplier × bonus_event × spotlight)
+    // final_xp = floor(base_xp × student_boost × level_multiplier × difficulty_multiplier × diminishing_multiplier × bonus_event × spotlight)
+    // Student boost is applied before admin event multiplier per Requirement 18.2–18.3.
     // Cap at 9999 per transaction (design doc edge case)
 
     const baseXP = cappedXpAmount;
     let finalXP = Math.floor(
       baseXP *
+        studentBoostMultiplier *
         levelMultiplier *
         difficultyMultiplier *
         diminishingMultiplier *
@@ -1028,6 +1057,8 @@ serve(async (req) => {
       diminishing_multiplier: diminishingMultiplier,
       bonus_event_multiplier: bonusEventMultiplier,
       spotlight_multiplier: spotlightMultiplier,
+      student_boost_multiplier: studentBoostMultiplier,
+      boost_applied: studentBoostMultiplier > 1,
       ...(validation.data.challenge_id
         ? { challenge_id: validation.data.challenge_id }
         : {}),
@@ -1247,6 +1278,46 @@ serve(async (req) => {
       console.error("Team XP contribution failed (non-blocking):", teamErr);
     }
 
+    // ── Step 12: Mystery Reward Box probability check (Task 19.3) ────────
+    // After a successful XP award, there's a configurable chance (default 10%,
+    // range 5–20%) that the student receives a mystery reward box instead of
+    // or in addition to their normal XP. Fire-and-forget to avoid blocking.
+
+    let mysteryRewardTriggered = false;
+
+    if (finalXP > 0 && source !== "league_promotion" && source !== "bonus_event") {
+      try {
+        // Fetch mystery box probability from institution settings
+        const { data: studentProfileForMystery } = await supabase
+          .from("profiles")
+          .select("institution_id")
+          .eq("id", student_id)
+          .maybeSingle();
+
+        if (studentProfileForMystery?.institution_id) {
+          const { data: mysterySettings } = await supabase
+            .from("institution_settings")
+            .select("*")
+            .eq("institution_id", studentProfileForMystery.institution_id)
+            .maybeSingle();
+
+          const rawMysterySettings = mysterySettings as Record<string, unknown> | null;
+          let mysteryProbability = 10; // default 10%
+          if (rawMysterySettings?.mystery_box_probability) {
+            const configured = rawMysterySettings.mystery_box_probability as number;
+            mysteryProbability = Math.max(5, Math.min(20, configured));
+          }
+
+          const mysteryRoll = Math.random() * 100;
+          if (mysteryRoll < mysteryProbability) {
+            mysteryRewardTriggered = true;
+          }
+        }
+      } catch (mysteryErr) {
+        console.error("Mystery reward box check failed (non-blocking):", mysteryErr);
+      }
+    }
+
     // ── Response ──────────────────────────────────────────────────────────
 
     return new Response(
@@ -1260,6 +1331,7 @@ serve(async (req) => {
         multipliers: multipliersJsonb,
         team_xp_awarded: teamXpAwarded,
         cooperation_bonus_applied: cooperationBonusApplied,
+        mystery_reward_triggered: mysteryRewardTriggered,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

@@ -26,17 +26,17 @@ describe('StreakFreezeShop', () => {
 
   it('renders freeze inventory icons', () => {
     render(<StreakFreezeShop {...defaultProps} freezesAvailable={1} />);
-    expect(screen.getByText('1/2')).toBeInTheDocument();
+    expect(screen.getByText('1/3')).toBeInTheDocument();
   });
 
-  it('shows 0/2 when no freezes available', () => {
+  it('shows 0/3 when no freezes available', () => {
     render(<StreakFreezeShop {...defaultProps} freezesAvailable={0} />);
-    expect(screen.getByText('0/2')).toBeInTheDocument();
+    expect(screen.getByText('0/3')).toBeInTheDocument();
   });
 
-  it('shows 2/2 when max freezes available', () => {
-    render(<StreakFreezeShop {...defaultProps} freezesAvailable={2} />);
-    expect(screen.getByText('2/2')).toBeInTheDocument();
+  it('shows 3/3 when max freezes available', () => {
+    render(<StreakFreezeShop {...defaultProps} freezesAvailable={3} />);
+    expect(screen.getByText('3/3')).toBeInTheDocument();
   });
 
   it('enables purchase button when XP >= 200 and freezes < 2', () => {
@@ -51,8 +51,8 @@ describe('StreakFreezeShop', () => {
     expect(btn).toBeDisabled();
   });
 
-  it('disables purchase button when freezes >= 2', () => {
-    render(<StreakFreezeShop {...defaultProps} currentXP={500} freezesAvailable={2} />);
+  it('disables purchase button when freezes >= 3', () => {
+    render(<StreakFreezeShop {...defaultProps} currentXP={500} freezesAvailable={3} />);
     const btn = screen.getByRole('button', { name: /buy for 200 xp/i });
     expect(btn).toBeDisabled();
   });
@@ -113,6 +113,6 @@ describe('StreakFreezeShop', () => {
 
   it('exports FREEZE_COST and MAX_FREEZES constants', () => {
     expect(FREEZE_COST).toBe(200);
-    expect(MAX_FREEZES).toBe(2);
+    expect(MAX_FREEZES).toBe(3);
   });
 });
