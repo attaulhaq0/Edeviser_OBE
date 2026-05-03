@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import {
   useQuiz,
   useQuizQuestions,
@@ -7,10 +8,11 @@ import {
   useSubmitQuizAttempt,
 } from '@/hooks/useQuizzes';
 import { useAuth } from '@/hooks/useAuth';
+import { getActiveExtraAttemptToken, consumeExtraAttemptToken, canAttemptQuiz } from '@/lib/extraQuizAttempt';
 import QuizQuestionCard from '@/components/shared/QuizQuestionCard';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { ArrowLeft, Clock, Loader2, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Clock, Loader2, AlertTriangle, Ticket } from 'lucide-react';
 import { toast } from 'sonner';
 
 // ─── Timer Hook ──────────────────────────────────────────────────────────────
@@ -79,32 +81,57 @@ const QuizAttemptPage = () => {
 
   const attemptCount = attempts?.length ?? 0;
   const maxAttempts = quiz?.max_attempts ?? 1;
-  const canAttempt = attemptCount < maxAttempts;
   const timeLimitSeconds = quiz?.time_limit_minutes ? quiz.time_limit_minutes * 60 : null;
+
+  // Check for extra quiz attempt token from marketplace
+  const { data: extraTokenData } = useQuery({
+    queryKey: ['marketplace', 'extraAttemptToken', studentId, quizId],
+    queryFn: () => getActiveExtraAttemptToken(studentId),
+    enabled: !!studentId && attemptCount >= maxAttempts,
+  });
+
+  const hasExtraToken = !!extraTokenData?.purchaseId;
+  const canAttempt = canAttemptQuiz(attemptCount, maxAttempts, hasExtraToken);
+  const isUsingExtraToken = attemptCount >= maxAttempts && hasExtraToken;
 
   const handleSubmit = useCallback(() => {
     if (submitted || !quizId || !studentId) return;
     setSubmitted(true);
 
-    submitAttempt.mutate(
-      {
-        quiz_id: quizId,
-        student_id: studentId,
-        answers,
-        started_at: startedAt,
-        attempt_number: attemptCount + 1,
-      },
-      {
-        onSuccess: () => {
-          toast.success('Quiz submitted successfully');
-        },
-        onError: (err) => {
-          toast.error(err.message);
+    const doSubmit = async () => {
+      // Consume extra attempt token if this is a bonus attempt
+      if (isUsingExtraToken && extraTokenData?.purchaseId) {
+        try {
+          await consumeExtraAttemptToken(extraTokenData.purchaseId);
+        } catch {
+          toast.error('Failed to consume extra attempt token');
           setSubmitted(false);
+          return;
+        }
+      }
+
+      submitAttempt.mutate(
+        {
+          quiz_id: quizId,
+          student_id: studentId,
+          answers,
+          started_at: startedAt,
+          attempt_number: attemptCount + 1,
         },
-      },
-    );
-  }, [submitted, quizId, studentId, answers, startedAt, attemptCount, submitAttempt]);
+        {
+          onSuccess: () => {
+            toast.success('Quiz submitted successfully');
+          },
+          onError: (err) => {
+            toast.error(err.message);
+            setSubmitted(false);
+          },
+        },
+      );
+    };
+
+    doSubmit();
+  }, [submitted, quizId, studentId, answers, startedAt, attemptCount, submitAttempt, isUsingExtraToken, extraTokenData]);
 
   const { display: timerDisplay, isLow: timerIsLow } = useCountdown(
     started ? timeLimitSeconds : null,
@@ -170,6 +197,10 @@ const QuizAttemptPage = () => {
           <p className="text-sm text-gray-500">
             You have used all {maxAttempts} attempt{maxAttempts > 1 ? 's' : ''} for this quiz.
           </p>
+          <p className="text-xs text-gray-400 mt-2">
+            <Ticket className="inline h-3 w-3 me-1" />
+            Purchase an Extra Quiz Attempt token from the Marketplace to try again.
+          </p>
         </Card>
       </div>
     );
@@ -202,6 +233,11 @@ const QuizAttemptPage = () => {
             <p>
               Attempts: {attemptCount} / {maxAttempts}
             </p>
+            {isUsingExtraToken && (
+              <p className="flex items-center gap-1 text-purple-600 font-semibold">
+                <Ticket className="h-4 w-4" /> Using Extra Attempt Token
+              </p>
+            )}
           </div>
           <Button
             onClick={() => setStarted(true)}

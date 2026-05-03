@@ -331,6 +331,44 @@ const BadgeSpotlightManager = lazy(
   () => import("@/pages/admin/badges/BadgeSpotlightManager")
 );
 
+// Gap Analysis — Creative Expression & Unpredictability (Task 21)
+const StudentContentPage = lazy(
+  () => import("@/pages/student/content/StudentContentPage")
+);
+const KnowledgeQuestManager = lazy(
+  () => import("@/pages/admin/marketplace/KnowledgeQuestManager")
+);
+const ContentReviewPage = lazy(
+  () => import("@/pages/teacher/content/ContentReviewPage")
+);
+
+// Gap Analysis — XP Economy Health (Task 22)
+const XPEconomistDashboard = lazy(
+  () => import("@/pages/admin/marketplace/XPEconomistDashboard")
+);
+
+// Admin Marketplace Management
+const MarketplaceManagementPage = lazy(
+  () => import("@/pages/admin/marketplace/MarketplaceManagementPage")
+);
+const SaleEventManager = lazy(
+  () => import("@/pages/admin/marketplace/SaleEventManager")
+);
+const MarketplaceAnalyticsPage = lazy(
+  () => import("@/pages/admin/marketplace/MarketplaceAnalyticsPage")
+);
+
+// Student Marketplace
+const StudentMarketplacePage = lazy(
+  () => import("@/pages/student/marketplace/MarketplacePage")
+);
+const StudentMyItemsPage = lazy(
+  () => import("@/pages/student/marketplace/MyItemsPage")
+);
+const StudentTransactionHistoryPage = lazy(
+  () => import("@/pages/student/marketplace/TransactionHistoryPage")
+);
+
 // Sub-CLO Manager (task 110)
 const SubCLOManager = lazy(
   () => import("@/pages/teacher/outcomes/SubCLOManager")
@@ -448,6 +486,11 @@ const AppRouter = () => (
             element={<HistoricalEvidenceDashboard />}
           />
           <Route path="badges/spotlight" element={<BadgeSpotlightManager />} />
+          <Route path="marketplace" element={<MarketplaceManagementPage />} />
+          <Route path="marketplace/sales" element={<SaleEventManager />} />
+          <Route path="marketplace/analytics" element={<MarketplaceAnalyticsPage />} />
+          <Route path="marketplace/quests" element={<KnowledgeQuestManager />} />
+          <Route path="marketplace/economist" element={<XPEconomistDashboard />} />
           <Route path="settings/profile" element={<ProfilePage />} />
           <Route
             path="settings/institution"
@@ -569,6 +612,7 @@ const AppRouter = () => (
           <Route path="clos/:cloId/sub-clos" element={<SubCLOManager />} />
           <Route path="outcomes/sub-clos" element={<SubCLOManager />} />
           <Route path="tutor-analytics" element={<TutorAnalyticsPage />} />
+          <Route path="content-review" element={<ContentReviewPage />} />
           <Route path="tutor-handoffs" element={<TeacherHandoffPage />} />
           <Route path="calendar" element={<CalendarView />} />
           <Route path="timetable" element={<TimetableView />} />
@@ -653,6 +697,10 @@ const AppRouter = () => (
           <Route path="team" element={<StudentTeamPage />} />
           <Route path="teams/:teamId" element={<TeamProfilePage />} />
           <Route path="teams/new" element={<CreateTeamPage />} />
+          <Route path="marketplace" element={<StudentMarketplacePage />} />
+          <Route path="marketplace/my-items" element={<StudentMyItemsPage />} />
+          <Route path="marketplace/history" element={<StudentTransactionHistoryPage />} />
+          <Route path="content" element={<StudentContentPage />} />
         </Route>
 
         {/* Student focus mode (full-screen, outside StudentLayout) */}

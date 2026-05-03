@@ -16,7 +16,7 @@ interface StreakFreezeShopProps {
 }
 
 const FREEZE_COST = 200;
-const MAX_FREEZES = 2;
+const MAX_FREEZES = 3;
 
 const StreakFreezeShop = ({
   currentXP,

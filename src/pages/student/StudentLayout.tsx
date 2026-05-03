@@ -21,8 +21,11 @@ import {
   CalendarDays,
   CalendarCheck,
   Bot,
+  Store,
+  FileText,
 } from "lucide-react";
 import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
+import XPBalanceBadge from "@/components/shared/XPBalanceBadge";
 
 const OnboardingWizard = lazy(
   () => import("@/pages/student/onboarding/OnboardingWizard")
@@ -54,6 +57,8 @@ const navItems = [
     focusHide: true,
   },
   { to: "/student/habits", icon: Grid3X3, label: "Habits" },
+  { to: "/student/marketplace", icon: Store, label: "Marketplace" },
+  { to: "/student/content", icon: FileText, label: "My Content" },
   { to: "/student/journal", icon: PenLine, label: "Journal" },
   { to: "/student/tutor", icon: Bot, label: "AI Tutor" },
   { to: "/student/calendar", icon: Calendar, label: "Calendar" },
@@ -83,6 +88,9 @@ const StudentLayout = () => {
           <h2 className="text-lg font-bold tracking-tight mb-4 px-3">
             Student
           </h2>
+          <div className="px-3 mb-3">
+            <XPBalanceBadge size="sm" />
+          </div>
           {navItems.map(({ to, icon: Icon, label, focusHide }) => (
             <NavLink
               key={to}

@@ -13,6 +13,7 @@ import {
   Star,
   BarChart3,
   Shield,
+  Crown,
 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useReducedMotion } from "framer-motion";
@@ -30,6 +31,7 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { useRealtime } from "@/hooks/useRealtime";
 import { queryKeys } from "@/lib/queryKeys";
+import { useLeaderboardCosmetics, type LeaderboardCosmeticData } from "@/hooks/useLeaderboardCosmetics";
 import {
   useLeaderboard,
   useMyRank,
@@ -107,15 +109,20 @@ interface LeaderboardRowProps {
   entry: LeaderboardEntry;
   isCurrentUser: boolean;
   totalStudents?: number;
+  cosmetics?: LeaderboardCosmeticData | null;
 }
 
 const LeaderboardRow = ({
   entry,
   isCurrentUser,
   totalStudents,
+  cosmetics,
 }: LeaderboardRowProps) => {
   const medalColor = getMedalColor(entry.rank);
   const isAnonymous = entry.full_name === "Anonymous";
+
+  // Task 6.3: Hide cosmetics for anonymous (opted-out) students
+  const showCosmetics = !isAnonymous && !!cosmetics;
 
   // Percentile band display for ranks > 10 (Req 131.1, 131.2)
   const bandResult = totalStudents
@@ -124,6 +131,16 @@ const LeaderboardRow = ({
   const displayRank = bandResult
     ? formatPercentileBand(bandResult)
     : `#${entry.rank}`;
+
+  // Task 6.4: Default frame style for students with no equipped cosmetics
+  const frameStyle = showCosmetics && cosmetics?.avatarFrame
+    ? {
+        border: `${cosmetics.avatarFrame.border_width} ${cosmetics.avatarFrame.border_style ?? 'solid'} ${cosmetics.avatarFrame.border_color}`,
+        boxShadow: cosmetics.avatarFrame.box_shadow ?? 'none',
+      }
+    : {
+        border: '2px solid #e2e8f0',
+      };
 
   return (
     <div
@@ -140,6 +157,15 @@ const LeaderboardRow = ({
           <span className="text-sm font-bold text-gray-500">{displayRank}</span>
         )}
       </div>
+
+      {/* Avatar with frame cosmetic */}
+      <div
+        className="h-8 w-8 rounded-full bg-slate-200 flex items-center justify-center shrink-0 text-xs font-bold text-slate-500"
+        style={frameStyle}
+      >
+        {isAnonymous ? "?" : (entry.full_name?.[0] ?? "").toUpperCase()}
+      </div>
+
       <div className="flex-1 min-w-0">
         <p
           className={cn(
@@ -155,6 +181,16 @@ const LeaderboardRow = ({
             </span>
           )}
         </p>
+        {/* Task 6.2: Display title cosmetic below name */}
+        {showCosmetics && cosmetics?.displayTitle && (
+          <p
+            className="text-[10px] font-bold truncate flex items-center gap-0.5"
+            style={{ color: cosmetics.displayTitle.title_color }}
+          >
+            <Crown className="h-2.5 w-2.5 inline" />
+            {cosmetics.displayTitle.title_text}
+          </p>
+        )}
       </div>
       <div className="text-end shrink-0">
         <span className="text-sm font-bold text-amber-500">
@@ -714,7 +750,14 @@ const LeaderboardPage = () => {
     effectiveProgramId
   );
 
-  const entries = leaderboardData ?? [];
+  const entries = useMemo(() => leaderboardData ?? [], [leaderboardData]);
+
+  // Fetch cosmetics for leaderboard entries (Task 6.2)
+  const leaderboardStudentIds = useMemo(
+    () => entries.map((e) => e.student_id),
+    [entries],
+  );
+  const { data: cosmeticsMap } = useLeaderboardCosmetics(leaderboardStudentIds);
 
   // Percentile band data for the current user (Req 131.4)
   const { data: percentileData } = useStudentPercentileBand(
@@ -950,6 +993,7 @@ const LeaderboardPage = () => {
                         entry={entry}
                         isCurrentUser={entry.student_id === userId}
                         totalStudents={totalStudents}
+                        cosmetics={cosmeticsMap?.get(entry.student_id) ?? null}
                       />
                     ))
                   )}
