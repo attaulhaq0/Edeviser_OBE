@@ -15,4 +15,4 @@ ALTER FUNCTION public.sync_tutor_conversation_stats SET search_path = '';
 ALTER FUNCTION public.set_tutor_conversations_updated_at() SET search_path = '';
 ALTER FUNCTION public.delete_department_if_no_programs(uuid) SET search_path = '';
 ALTER FUNCTION public.get_xp_balance SET search_path = '';
-ALTER FUNCTION public.prevent_xp_purchases_delete() SET search_path = '';;
+ALTER FUNCTION public.prevent_xp_purchases_delete() SET search_path = '';

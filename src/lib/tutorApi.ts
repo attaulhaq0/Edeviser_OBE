@@ -23,7 +23,7 @@ export interface SSECallbacks {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-const getEdgeFunctionUrl = (functionName: string): string => {
+export const getEdgeFunctionUrl = (functionName: string): string => {
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
   if (!supabaseUrl) {
     throw new Error("VITE_SUPABASE_URL is not set");
@@ -31,17 +31,21 @@ const getEdgeFunctionUrl = (functionName: string): string => {
   return `${supabaseUrl}/functions/v1/${functionName}`;
 };
 
-const getAuthHeaders = async (): Promise<Record<string, string>> => {
+export const getAuthHeaders = async (): Promise<Record<string, string>> => {
   const {
     data: { session },
   } = await supabase.auth.getSession();
   if (!session?.access_token) {
     throw new Error("Not authenticated");
   }
+  const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+  if (!anonKey) {
+    throw new Error("VITE_SUPABASE_ANON_KEY is not set");
+  }
   return {
     Authorization: `Bearer ${session.access_token}`,
     "Content-Type": "application/json",
-    apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+    apikey: anonKey,
   };
 };
 

@@ -30,7 +30,7 @@ const AUDIT_FIELD_ALLOWLIST: Record<string, string[]> = {
   course_section: ['course_id', 'section_code', 'teacher_id', 'capacity', 'is_active'],
   survey: ['title', 'type', 'is_active', 'target_outcomes', 'institution_id'],
   cqi_action_plan: ['program_id', 'semester_id', 'outcome_id', 'outcome_type', 'baseline_attainment', 'target_attainment', 'action_description', 'responsible_person', 'status', 'result_attainment'],
-  institution_settings: ['attainment_thresholds', 'success_threshold', 'accreditation_body', 'grade_scales'],
+  institution_settings: ['attainment_thresholds', 'success_threshold', 'accreditation_body', 'grade_scales', 'default_language'],
   program_accreditation: ['program_id', 'accreditation_body', 'framework_version', 'accreditation_date', 'next_review_date', 'status'],
   announcement: ['course_id', 'title', 'is_pinned'],
   course_module: ['course_id', 'title', 'sort_order', 'is_published'],

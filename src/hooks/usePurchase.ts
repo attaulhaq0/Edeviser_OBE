@@ -3,8 +3,8 @@
 // =============================================================================
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
 import { queryKeys } from '@/lib/queryKeys';
+import { getEdgeFunctionUrl, getAuthHeaders } from '@/lib/tutorApi';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 
@@ -41,19 +41,12 @@ export const usePurchaseItem = () => {
 
   return useMutation({
     mutationFn: async (itemId: string): Promise<PurchaseResponse> => {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const accessToken = sessionData?.session?.access_token;
+      const headers = await getAuthHeaders();
+      const url = getEdgeFunctionUrl('process-purchase');
 
-      if (!accessToken) throw new Error('Not authenticated');
-
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      if (!supabaseUrl) throw new Error('VITE_SUPABASE_URL is not set');
-      const response = await fetch(`${supabaseUrl}/functions/v1/process-purchase`, {
+      const response = await fetch(url, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
-        },
+        headers,
         body: JSON.stringify({ item_id: itemId }),
       });
 
@@ -75,8 +68,8 @@ export const usePurchaseItem = () => {
         queryClient.invalidateQueries({ queryKey: queryKeys.marketplace.boosts(user.id) });
         queryClient.invalidateQueries({ queryKey: queryKeys.marketplace.equipped(user.id) });
       }
-      queryClient.invalidateQueries({ queryKey: ['marketplace', 'items'] });
-      queryClient.invalidateQueries({ queryKey: ['marketplace', 'transactions'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.marketplace.items() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.marketplace.transactions() });
       toast.success('Purchase successful!');
     },
     onError: (error: Error) => {

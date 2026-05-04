@@ -41,7 +41,7 @@ export interface ReviewQueueItem {
 
 export const useExplanationConfidence = (questionId: string) => {
   return useQuery({
-    queryKey: ['explanationConfidence', questionId],
+    queryKey: queryKeys.explanationConfidence.detail(questionId),
     queryFn: async (): Promise<number | null> => {
       const { data, error } = await supabase
         .from('question_bank')

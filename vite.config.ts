@@ -6,6 +6,7 @@ import { visualizer } from "rollup-plugin-visualizer";
 import path from "path";
 
 const isAnalyze = process.env.ANALYZE === "true";
+const isTest = !!process.env.VITEST;
 
 export default defineConfig({
   plugins: [
@@ -24,6 +25,11 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  esbuild: isTest
+    ? undefined
+    : {
+        drop: ["console", "debugger"],
+      },
   build: {
     rollupOptions: {
       output: {

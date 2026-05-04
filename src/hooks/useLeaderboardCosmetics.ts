@@ -4,6 +4,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { queryKeys } from '@/lib/queryKeys';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -25,7 +26,7 @@ export interface LeaderboardCosmeticData {
 
 export const useLeaderboardCosmetics = (studentIds: string[]) => {
   return useQuery({
-    queryKey: ['leaderboard', 'cosmetics', ...studentIds.slice(0, 5)],
+    queryKey: queryKeys.leaderboardCosmetics.list({ studentIds: studentIds.slice(0, 5).join(',') }),
     queryFn: async (): Promise<Map<string, LeaderboardCosmeticData>> => {
       if (studentIds.length === 0) return new Map();
 
