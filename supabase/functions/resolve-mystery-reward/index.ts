@@ -30,7 +30,10 @@ const DEFAULT_WEIGHTS: RewardWeight[] = [
  * Task 19.1.1: Probability-weighted outcome selection
  */
 function selectOutcome(weights: RewardWeight[]): RewardType {
-  const totalWeight = weights.reduce((sum, w) => sum + Math.max(0, w.weight), 0);
+  const totalWeight = weights.reduce(
+    (sum, w) => sum + Math.max(0, w.weight),
+    0
+  );
   if (totalWeight <= 0) return "double_xp";
 
   const roll = Math.random() * totalWeight;
@@ -75,10 +78,9 @@ serve(async (req) => {
       .maybeSingle();
 
     const rawSettings = settings as Record<string, unknown> | null;
-    const weights: RewardWeight[] =
-      rawSettings?.mystery_reward_weights
-        ? (rawSettings.mystery_reward_weights as RewardWeight[])
-        : DEFAULT_WEIGHTS;
+    const weights: RewardWeight[] = rawSettings?.mystery_reward_weights
+      ? (rawSettings.mystery_reward_weights as RewardWeight[])
+      : DEFAULT_WEIGHTS;
 
     // Task 19.1.1: Select outcome using probability weights
     const outcomeType = selectOutcome(weights);
@@ -95,7 +97,8 @@ serve(async (req) => {
         .eq("is_active", true);
 
       if (cosmetics && cosmetics.length > 0) {
-        const randomItem = cosmetics[Math.floor(Math.random() * cosmetics.length)];
+        const randomItem =
+          cosmetics[Math.floor(Math.random() * cosmetics.length)];
         if (randomItem) {
           // Grant the cosmetic by inserting an xp_purchase with 0 cost
           const { data: purchase, error: purchaseErr } = await supabase
@@ -112,7 +115,10 @@ serve(async (req) => {
             .single();
 
           if (purchaseErr) {
-            console.error("Mystery cosmetic grant failed:", purchaseErr.message);
+            console.error(
+              "Mystery cosmetic grant failed:",
+              purchaseErr.message
+            );
           }
 
           rewardDetails = {
@@ -178,13 +184,14 @@ serve(async (req) => {
     }
 
     // Log to audit
-    await supabase.from("audit_logs").insert({
+    const { error: auditError } = await supabase.from("audit_logs").insert({
       action: "mystery_reward_resolved",
       entity_type: "mystery_reward",
       entity_id: student_id,
       performed_by: student_id,
       changes: { outcome_type: outcomeType, ...rewardDetails },
     });
+    if (auditError) throw auditError;
 
     return new Response(
       JSON.stringify({
@@ -197,12 +204,9 @@ serve(async (req) => {
       }
     );
   } catch (error) {
-    return new Response(
-      JSON.stringify({ error: (error as Error).message }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    return new Response(JSON.stringify({ error: (error as Error).message }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });
