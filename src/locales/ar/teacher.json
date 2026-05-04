@@ -31,6 +31,18 @@
       "noData": "لا توجد بيانات"
     },
     "student": "الطالب",
+    "viewAll": "عرض الكل",
+    "allSections": "جميع الشُعب",
+    "teamHealth": "صحة الفريق",
+    "viewReport": "عرض التقرير",
+    "totalTeams": "إجمالي الفرق",
+    "needsAttention": "يحتاج اهتماماً",
+    "atRiskLabel": "معرض للخطر",
+    "cancel": "إلغاء",
+    "sendNudge": "إرسال تنبيه",
+    "section": "شعبة {{code}}",
+    "unknownStudent": "طالب غير معروف",
+    "unknownAssignment": "تكليف غير معروف",
     "masteryRecovery": {
       "title": "تنبيهات استعادة الإتقان",
       "description": "الطلاب المحددون لاستعادة الإتقان يحتاجون إلى إكمال مسار الاستعادة قبل إعادة محاولة بوابة الإتقان.",

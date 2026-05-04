@@ -32,7 +32,17 @@
     "startNow": "ابدأ الآن",
     "completeAssessment": "أكمل التقييم",
     "completeAssessmentDesc": "تخطيت بعض الأقسام أثناء التهيئة. أكملها للحصول على تخصيص كامل.",
-    "completeNow": "أكمل الآن"
+    "completeNow": "أكمل الآن",
+    "recentAnnouncements": "الإعلانات الأخيرة",
+    "closNeedingAttention": "مخرجات التعلم التي تحتاج اهتماماً",
+    "myTeam": "فريقي",
+    "challenges": "التحديات",
+    "target": "الهدف",
+    "team": "فريق",
+    "courseWide": "على مستوى المقرر",
+    "viewAllChallenges": "عرض جميع التحديات ({{count}})",
+    "attendance": "الحضور",
+    "leagueTier": "فئة الدوري"
   },
   "assignments": {
     "title": "التكليفات",

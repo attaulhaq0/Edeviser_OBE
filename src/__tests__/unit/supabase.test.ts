@@ -17,13 +17,25 @@ describe('Supabase client singleton', () => {
     expect(source).toContain('createClient<Database>');
   });
 
-  it('falls back to localhost when VITE_SUPABASE_URL is missing', async () => {
-    const source = (await import('fs')).readFileSync('src/lib/supabase.ts', 'utf-8');
-    expect(source).toContain("VITE_SUPABASE_URL ?? 'http://localhost:54321'");
+  it('throws when VITE_SUPABASE_URL is missing', async () => {
+    const fs = await import('fs');
+    const source = fs.readFileSync('src/lib/supabase.ts', 'utf-8');
+    expect(source).toContain('if (!supabaseUrl || !supabaseAnonKey)');
+    expect(source).toContain('throw new Error');
+    expect(source).toContain('Missing Supabase environment variables');
   });
 
-  it('falls back to placeholder when VITE_SUPABASE_ANON_KEY is missing', async () => {
-    const source = (await import('fs')).readFileSync('src/lib/supabase.ts', 'utf-8');
-    expect(source).toContain("VITE_SUPABASE_ANON_KEY ?? 'placeholder-anon-key'");
+  it('uses @/ path alias for database type import', async () => {
+    const fs = await import('fs');
+    const source = fs.readFileSync('src/lib/supabase.ts', 'utf-8');
+    expect(source).toContain("from '@/types/database'");
+    expect(source).not.toContain("from '../types/database'");
+  });
+
+  it('does not contain hardcoded fallback values', async () => {
+    const fs = await import('fs');
+    const source = fs.readFileSync('src/lib/supabase.ts', 'utf-8');
+    expect(source).not.toContain('localhost:54321');
+    expect(source).not.toContain('placeholder-anon-key');
   });
 });

@@ -103,6 +103,23 @@
     "developing": "قيد التطوير",
     "notYet": "لم يتحقق بعد"
   },
+  "parentDashboard": {
+    "greeting": {
+      "morning": "صباح الخير",
+      "afternoon": "مساء الخير",
+      "evening": "مساء الخير"
+    },
+    "subtitle": "ابقَ على تواصل مع رحلة طفلك التعليمية.",
+    "children": "الأبناء",
+    "totalCourses": "إجمالي المقررات",
+    "avgAttainment": "متوسط التحصيل",
+    "deadlines": "المواعيد النهائية",
+    "yourChildren": "أبناؤك",
+    "levelLabel": "المستوى",
+    "coursesLabel": "مقررات",
+    "noChildren": "لا يوجد أبناء مرتبطون بعد. اطلب من مسؤول المؤسسة إعداد ربط ولي الأمر بالطالب.",
+    "xp": "نقاط الخبرة"
+  },
   "accessibility": {
     "title": "إعدادات إمكانية الوصول",
     "fontSize": "حجم الخط",

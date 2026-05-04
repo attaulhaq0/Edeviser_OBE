@@ -1,5 +1,6 @@
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { useTranslation } from 'react-i18next';
 import Shimmer from '@/components/shared/Shimmer';
 import { useAuth } from '@/hooks/useAuth';
 import { useParentKPIs, useLinkedChildren } from '@/hooks/useParentDashboard';
@@ -40,15 +41,16 @@ const KPICard = ({ icon: Icon, label, value }: KPICardProps) => (
 // ─── Parent Dashboard ───────────────────────────────────────────────────────
 
 const ParentDashboard = () => {
+  const { t } = useTranslation('common');
   const { user, profile } = useAuth();
   const { data: kpis, isLoading: kpisLoading } = useParentKPIs(user?.id);
   const { data: children, isLoading: childrenLoading } = useLinkedChildren(user?.id);
 
   const greeting = () => {
     const hour = new Date().getHours();
-    if (hour < 12) return 'Good morning';
-    if (hour < 17) return 'Good afternoon';
-    return 'Good evening';
+    if (hour < 12) return t('parentDashboard.greeting.morning');
+    if (hour < 17) return t('parentDashboard.greeting.afternoon');
+    return t('parentDashboard.greeting.evening');
   };
 
   return (
@@ -63,7 +65,7 @@ const ParentDashboard = () => {
             {greeting()}, {profile?.full_name?.split(' ')[0] ?? 'Parent'} 👋
           </h1>
           <p className="text-sm text-white/70 mt-1">
-            Stay connected with your child's learning journey.
+            {t('parentDashboard.subtitle')}
           </p>
         </div>
       </Card>
@@ -77,14 +79,14 @@ const ParentDashboard = () => {
         </div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <KPICard icon={Users} label="Children" value={kpis?.linkedChildren ?? 0} />
-          <KPICard icon={BookOpen} label="Total Courses" value={kpis?.totalCourses ?? 0} />
+          <KPICard icon={Users} label={t('parentDashboard.children')} value={kpis?.linkedChildren ?? 0} />
+          <KPICard icon={BookOpen} label={t('parentDashboard.totalCourses')} value={kpis?.totalCourses ?? 0} />
           <KPICard
             icon={TrendingUp}
-            label="Avg Attainment"
+            label={t('parentDashboard.avgAttainment')}
             value={`${kpis?.avgAttainment ?? 0}%`}
           />
-          <KPICard icon={CalendarDays} label="Deadlines" value={kpis?.upcomingDeadlines ?? 0} />
+          <KPICard icon={CalendarDays} label={t('parentDashboard.deadlines')} value={kpis?.upcomingDeadlines ?? 0} />
         </div>
       )}
 
@@ -95,7 +97,7 @@ const ParentDashboard = () => {
           style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
         >
           <GraduationCap className="h-5 w-5 text-white" />
-          <h2 className="text-lg font-bold tracking-tight text-white">Your Children</h2>
+          <h2 className="text-lg font-bold tracking-tight text-white">{t('parentDashboard.yourChildren')}</h2>
         </div>
         <div className="p-6">
           {childrenLoading ? (
@@ -118,13 +120,13 @@ const ParentDashboard = () => {
                     <div>
                       <p className="text-sm font-semibold">{child.student_name}</p>
                       <p className="text-xs text-gray-500">
-                        Level {child.current_level} · {child.enrolled_courses} courses
+                        {t('parentDashboard.levelLabel')} {child.current_level} · {child.enrolled_courses} {t('parentDashboard.coursesLabel')}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
                     <Badge variant="outline" className="text-xs">
-                      {child.xp_total} XP
+                      {child.xp_total} {t('parentDashboard.xp')}
                     </Badge>
                     <span className="text-sm font-medium text-red-500 flex items-center gap-1">
                       <Flame className="h-4 w-4" />
@@ -140,7 +142,7 @@ const ParentDashboard = () => {
                 <Users className="h-8 w-8 text-blue-500" />
               </div>
               <p className="text-sm text-gray-500 max-w-[260px]">
-                No linked children yet. Ask your institution's admin to set up the parent-student link.
+                {t('parentDashboard.noChildren')}
               </p>
             </div>
           )}

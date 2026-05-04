@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/card';
 import {
   Select,
@@ -76,6 +77,7 @@ interface SelectedCell {
 // ─── Coordinator Dashboard ──────────────────────────────────────────────────
 
 const CoordinatorDashboard = () => {
+  const { t } = useTranslation('coordinator');
   const { institutionId } = useAuth();
   const { data: kpis, isLoading: kpisLoading } = useCoordinatorKPIs();
   const { data: recoveryMetrics, isLoading: recoveryLoading } = useRecoveryMetrics(institutionId ?? '');
@@ -112,7 +114,7 @@ const CoordinatorDashboard = () => {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+      <h1 className="text-2xl font-bold tracking-tight">{t('dashboard.title')}</h1>
 
       {/* KPI Row */}
       {kpisLoading ? (
@@ -123,20 +125,20 @@ const CoordinatorDashboard = () => {
         </div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <KPICard icon={Target} label="Total PLOs" value={kpis?.totalPLOs ?? 0} />
+          <KPICard icon={Target} label={t('dashboard.totalPLOs')} value={kpis?.totalPLOs ?? 0} />
           <KPICard
             icon={GraduationCap}
-            label="Active Courses"
+            label={t('dashboard.activeCourses')}
             value={kpis?.totalCourses ?? 0}
           />
           <KPICard
             icon={CheckCircle2}
-            label="CLO Coverage"
+            label={t('dashboard.cloCoverage')}
             value={`${kpis?.cloCoveragePercent ?? 0}%`}
           />
           <KPICard
             icon={ClipboardCheck}
-            label="Teacher Compliance"
+            label={t('dashboard.teacherCompliance')}
             value={`${kpis?.teacherCompliancePercent ?? 0}%`}
           />
         </div>
@@ -152,7 +154,7 @@ const CoordinatorDashboard = () => {
           >
             <div className="flex items-center gap-2">
               <Grid3X3 className="h-5 w-5 text-white" />
-              <h2 className="text-lg font-bold tracking-tight text-white">Curriculum Matrix</h2>
+              <h2 className="text-lg font-bold tracking-tight text-white">{t('dashboard.curriculumMatrix')}</h2>
             </div>
             <div className="flex items-center gap-3">
               {programsLoading ? (
@@ -163,7 +165,7 @@ const CoordinatorDashboard = () => {
                   onValueChange={setSelectedProgramId}
                 >
                   <SelectTrigger className="w-48 bg-white">
-                    <SelectValue placeholder="Select program" />
+                    <SelectValue placeholder={t('dashboard.selectProgram')} />
                   </SelectTrigger>
                   <SelectContent>
                     {programs?.map((program) => (
@@ -178,7 +180,7 @@ const CoordinatorDashboard = () => {
                 to="/coordinator/matrix"
                 className="inline-flex items-center gap-1 text-sm font-medium text-white/90 hover:text-white transition-colors whitespace-nowrap"
               >
-                View Full Matrix
+                {t('dashboard.viewFullMatrix')}
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
@@ -191,7 +193,7 @@ const CoordinatorDashboard = () => {
               />
             ) : (
               <div className="rounded-xl border border-slate-200 bg-slate-50 p-8 text-center text-sm text-gray-500">
-                No programs available. Create a program to view the curriculum matrix.
+                {t('dashboard.noProgramsAvailable')}
               </div>
             )}
           </div>
@@ -204,7 +206,7 @@ const CoordinatorDashboard = () => {
             style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
           >
             <AlertTriangle className="h-5 w-5 text-white" />
-            <h2 className="text-lg font-bold tracking-tight text-white">At-Risk Students</h2>
+            <h2 className="text-lg font-bold tracking-tight text-white">{t('dashboard.atRiskStudents')}</h2>
           </div>
           <div className="p-6">
             {kpisLoading ? (
@@ -215,8 +217,7 @@ const CoordinatorDashboard = () => {
                   <AlertTriangle className="h-8 w-8 text-amber-500" />
                 </div>
                 <p className="text-sm text-gray-500 max-w-[220px]">
-                  At-risk student detection will be available once attainment data is
-                  collected.
+                  {t('dashboard.atRiskPending')}
                 </p>
               </div>
             )}
@@ -231,7 +232,7 @@ const CoordinatorDashboard = () => {
           style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
         >
           <RotateCcw className="h-5 w-5 text-white" />
-          <h2 className="text-lg font-bold tracking-tight text-white">Recovery Pathways</h2>
+          <h2 className="text-lg font-bold tracking-tight text-white">{t('dashboard.recoveryPathways')}</h2>
         </div>
         <div className="p-6">
           {recoveryLoading ? (
@@ -244,22 +245,22 @@ const CoordinatorDashboard = () => {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <KPICard
                 icon={RotateCcw}
-                label="Total Activations"
+                label={t('dashboard.totalActivations')}
                 value={recoveryMetrics?.total_activations ?? 0}
               />
               <KPICard
                 icon={CheckCircle2}
-                label="Completion Rate"
+                label={t('dashboard.completionRate')}
                 value={`${Math.round((recoveryMetrics?.completion_rate ?? 0) * 100)}%`}
               />
               <KPICard
                 icon={Clock}
-                label="Avg Completion Time"
+                label={t('dashboard.avgCompletionTime')}
                 value={`${(recoveryMetrics?.avg_completion_time_hours ?? 0).toFixed(1)}h`}
               />
               <KPICard
                 icon={TrendingUp}
-                label="Retry Success Rate"
+                label={t('dashboard.retrySuccessRate')}
                 value={`${Math.round((recoveryMetrics?.retry_success_rate ?? 0) * 100)}%`}
               />
             </div>
@@ -275,13 +276,13 @@ const CoordinatorDashboard = () => {
         >
           <div className="flex items-center gap-2">
             <FileCheck2 className="h-5 w-5 text-white" />
-            <h2 className="text-lg font-bold tracking-tight text-white">CQI Action Plans</h2>
+            <h2 className="text-lg font-bold tracking-tight text-white">{t('dashboard.cqiActionPlans')}</h2>
           </div>
           <Link
             to="/coordinator/cqi"
             className="inline-flex items-center gap-1 text-sm font-medium text-white/90 hover:text-white transition-colors whitespace-nowrap"
           >
-            View All
+            {t('dashboard.viewAll')}
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
@@ -295,10 +296,10 @@ const CoordinatorDashboard = () => {
           ) : (
             <>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                <KPICard icon={ClipboardCheck} label="Planned" value={cqiSummary?.planned ?? 0} />
-                <KPICard icon={Clock} label="In Progress" value={cqiSummary?.in_progress ?? 0} />
-                <KPICard icon={CheckCircle2} label="Completed" value={cqiSummary?.completed ?? 0} />
-                <KPICard icon={FileCheck2} label="Evaluated" value={cqiSummary?.evaluated ?? 0} />
+                <KPICard icon={ClipboardCheck} label={t('dashboard.planned')} value={cqiSummary?.planned ?? 0} />
+                <KPICard icon={Clock} label={t('dashboard.inProgress')} value={cqiSummary?.in_progress ?? 0} />
+                <KPICard icon={CheckCircle2} label={t('dashboard.completed')} value={cqiSummary?.completed ?? 0} />
+                <KPICard icon={FileCheck2} label={t('dashboard.evaluated')} value={cqiSummary?.evaluated ?? 0} />
               </div>
               {recentCQIPlans && recentCQIPlans.length > 0 ? (
                 <div className="space-y-2">
@@ -332,7 +333,7 @@ const CoordinatorDashboard = () => {
                 </div>
               ) : (
                 <div className="rounded-xl border border-slate-200 bg-slate-50 p-8 text-center text-sm text-gray-500">
-                  No CQI action plans yet. Create one from the CQI Plans page.
+                  {t('dashboard.noCqiPlans')}
                 </div>
               )}
             </>
@@ -348,11 +349,11 @@ const CoordinatorDashboard = () => {
         >
           <div className="flex items-center gap-2">
             <Columns3 className="h-5 w-5 text-white" />
-            <h2 className="text-lg font-bold tracking-tight text-white">Section Comparison</h2>
+            <h2 className="text-lg font-bold tracking-tight text-white">{t('dashboard.sectionComparison')}</h2>
           </div>
           <Select value={comparisonCourseId} onValueChange={setComparisonCourseId}>
             <SelectTrigger className="w-48 bg-white">
-              <SelectValue placeholder="Select course" />
+              <SelectValue placeholder={t('dashboard.selectCourse')} />
             </SelectTrigger>
             <SelectContent>
               {courses.map((c) => (
@@ -366,13 +367,13 @@ const CoordinatorDashboard = () => {
         <div className="p-6">
           {!comparisonCourseId ? (
             <div className="rounded-xl border border-slate-200 bg-slate-50 p-8 text-center text-sm text-gray-500">
-              Select a course to compare section attainment metrics.
+              {t('dashboard.selectCourseToCompare')}
             </div>
           ) : sectionsLoading ? (
             <Shimmer className="h-32 rounded-xl" />
           ) : !comparisonSections || comparisonSections.length === 0 ? (
             <div className="rounded-xl border border-slate-200 bg-slate-50 p-8 text-center text-sm text-gray-500">
-              No sections found for this course.
+              {t('dashboard.noSectionsFound')}
             </div>
           ) : (
             <SectionComparisonChart
@@ -393,7 +394,7 @@ const CoordinatorDashboard = () => {
           style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
         >
           <BarChart3 className="h-5 w-5 text-white" />
-          <h2 className="text-lg font-bold tracking-tight text-white">OBE Visualizations</h2>
+          <h2 className="text-lg font-bold tracking-tight text-white">{t('dashboard.obeVisualizations')}</h2>
         </div>
         <div className="p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           <Link
@@ -403,8 +404,8 @@ const CoordinatorDashboard = () => {
             <div className="p-2 rounded-lg bg-blue-100 group-hover:scale-110 transition-transform">
               <GitBranch className="h-5 w-5 text-blue-600" />
             </div>
-            <span className="text-sm font-semibold text-gray-700">Sankey Diagram</span>
-            <span className="text-xs text-gray-500">ILO → PLO → CLO flow</span>
+            <span className="text-sm font-semibold text-gray-700">{t('dashboard.sankeyDiagram')}</span>
+            <span className="text-xs text-gray-500">{t('dashboard.sankeyDesc')}</span>
           </Link>
           <Link
             to="/coordinator/gap-analysis"
@@ -413,8 +414,8 @@ const CoordinatorDashboard = () => {
             <div className="p-2 rounded-lg bg-amber-100 group-hover:scale-110 transition-transform">
               <Search className="h-5 w-5 text-amber-600" />
             </div>
-            <span className="text-sm font-semibold text-gray-700">Gap Analysis</span>
-            <span className="text-xs text-gray-500">Unmapped outcomes</span>
+            <span className="text-sm font-semibold text-gray-700">{t('dashboard.gapAnalysis')}</span>
+            <span className="text-xs text-gray-500">{t('dashboard.gapAnalysisDesc')}</span>
           </Link>
           <Link
             to="/coordinator/coverage-heatmap"
@@ -423,8 +424,8 @@ const CoordinatorDashboard = () => {
             <div className="p-2 rounded-lg bg-green-100 group-hover:scale-110 transition-transform">
               <LayoutGrid className="h-5 w-5 text-green-600" />
             </div>
-            <span className="text-sm font-semibold text-gray-700">Coverage Heatmap</span>
-            <span className="text-xs text-gray-500">CLO coverage density</span>
+            <span className="text-sm font-semibold text-gray-700">{t('dashboard.coverageHeatmap')}</span>
+            <span className="text-xs text-gray-500">{t('dashboard.coverageHeatmapDesc')}</span>
           </Link>
           <Link
             to="/coordinator/trends"
@@ -433,8 +434,8 @@ const CoordinatorDashboard = () => {
             <div className="p-2 rounded-lg bg-purple-100 group-hover:scale-110 transition-transform">
               <TrendingUp className="h-5 w-5 text-purple-600" />
             </div>
-            <span className="text-sm font-semibold text-gray-700">Semester Trends</span>
-            <span className="text-xs text-gray-500">Attainment over time</span>
+            <span className="text-sm font-semibold text-gray-700">{t('dashboard.semesterTrends')}</span>
+            <span className="text-xs text-gray-500">{t('dashboard.semesterTrendsDesc')}</span>
           </Link>
           <Link
             to="/coordinator/cohort-comparison"
@@ -443,8 +444,8 @@ const CoordinatorDashboard = () => {
             <div className="p-2 rounded-lg bg-red-100 group-hover:scale-110 transition-transform">
               <Users className="h-5 w-5 text-red-600" />
             </div>
-            <span className="text-sm font-semibold text-gray-700">Cohort Comparison</span>
-            <span className="text-xs text-gray-500">Cross-cohort metrics</span>
+            <span className="text-sm font-semibold text-gray-700">{t('dashboard.cohortComparison')}</span>
+            <span className="text-xs text-gray-500">{t('dashboard.cohortComparisonDesc')}</span>
           </Link>
         </div>
       </Card>

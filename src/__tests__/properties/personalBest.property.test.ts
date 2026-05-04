@@ -9,6 +9,17 @@ import * as fc from 'fast-check';
 import { computeWeeklyXP } from '@/lib/personalBestLeaderboard';
 
 /**
+ * Safe ISO date string arbitrary that avoids RangeError: Invalid time value.
+ * Uses integer timestamps clamped to 2020-01-01 through 2030-12-31.
+ */
+const safeISODateArb = fc
+  .integer({
+    min: new Date('2020-01-01T00:00:00.000Z').getTime(),
+    max: new Date('2030-12-31T23:59:59.999Z').getTime(),
+  })
+  .map((ms) => new Date(ms).toISOString());
+
+/**
  * **Validates: Requirements 129.1**
  * P36: Personal best comparison is correct — exactly one week is marked as personal best.
  */
@@ -20,10 +31,7 @@ describe('P36: Personal best comparison correctness', () => {
         fc.array(
           fc.record({
             xp_amount: fc.integer({ min: 1, max: 100 }),
-            created_at: fc.date({
-              min: new Date(referenceDate.getTime() - 55 * 24 * 60 * 60 * 1000),
-              max: referenceDate,
-            }).map((d) => d.toISOString()),
+            created_at: safeISODateArb,
           }),
           { minLength: 1, maxLength: 50 },
         ),

@@ -23,7 +23,18 @@
     "draftAcceptance": "Draft Acceptance",
     "feedbackDrafts": "{{count}} feedback drafts",
     "onboardingPending": "{{count}} student(s) haven't completed onboarding",
-    "onboardingPendingAction": "View list and send reminders"
+    "onboardingPendingAction": "View list and send reminders",
+    "graduateAttributes": "Graduate Attributes",
+    "attributeAttainment": "Attribute Attainment",
+    "attributeAttainmentDesc": "View and manage graduate attribute mappings and attainment overview.",
+    "historicalEvidence": "Historical Evidence",
+    "evidenceDashboard": "Evidence Dashboard",
+    "evidenceDashboardDesc": "Browse historical evidence records across semesters and programs.",
+    "competencyFrameworks": "Competency Frameworks",
+    "frameworkManagement": "Framework Management",
+    "frameworkManagementDesc": "Define competency hierarchies and map to outcome chains.",
+    "manage": "Manage",
+    "view": "View"
   },
   "users": {
     "title": "User Management",

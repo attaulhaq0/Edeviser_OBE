@@ -38,6 +38,7 @@ import {
   AlertTriangle,
   SkipForward,
 } from "lucide-react";
+import { toast } from "sonner";
 
 // ─── Main Component ─────────────────────────────────────────────────────────
 
@@ -121,7 +122,7 @@ const TodayViewPage = () => {
   );
 
   const handleSessionEdit = useCallback((_session: StudySession) => {
-    // TODO: open edit dialog (Task 8 scope)
+    toast.info("Edit feature coming soon");
   }, []);
 
   const handleTaskToggle = useCallback(
@@ -134,11 +135,11 @@ const TodayViewPage = () => {
   );
 
   const handleTaskEdit = useCallback((_task: PlannerTask) => {
-    // TODO: open edit dialog
+    toast.info("Edit feature coming soon");
   }, []);
 
   const handleTaskDelete = useCallback((_task: PlannerTask) => {
-    // TODO: confirm + delete
+    toast.info("Delete feature coming soon");
   }, []);
 
   const handleQuickAddSubmit = useCallback(
