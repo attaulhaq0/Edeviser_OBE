@@ -103,6 +103,23 @@
     "developing": "Developing",
     "notYet": "Not Yet"
   },
+  "parentDashboard": {
+    "greeting": {
+      "morning": "Good morning",
+      "afternoon": "Good afternoon",
+      "evening": "Good evening"
+    },
+    "subtitle": "Stay connected with your child's learning journey.",
+    "children": "Children",
+    "totalCourses": "Total Courses",
+    "avgAttainment": "Avg Attainment",
+    "deadlines": "Deadlines",
+    "yourChildren": "Your Children",
+    "levelLabel": "Level",
+    "coursesLabel": "courses",
+    "noChildren": "No linked children yet. Ask your institution's admin to set up the parent-student link.",
+    "xp": "XP"
+  },
   "accessibility": {
     "title": "Accessibility Settings",
     "fontSize": "Font Size",

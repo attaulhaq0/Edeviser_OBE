@@ -31,6 +31,18 @@
       "noData": "No data"
     },
     "student": "Student",
+    "viewAll": "View All",
+    "allSections": "All Sections",
+    "teamHealth": "Team Health",
+    "viewReport": "View Report",
+    "totalTeams": "Total Teams",
+    "needsAttention": "Needs Attention",
+    "atRiskLabel": "At Risk",
+    "cancel": "Cancel",
+    "sendNudge": "Send Nudge",
+    "section": "Section {{code}}",
+    "unknownStudent": "Unknown Student",
+    "unknownAssignment": "Unknown Assignment",
     "masteryRecovery": {
       "title": "Mastery Recovery Alerts",
       "description": "Students flagged for mastery recovery need to complete a recovery pathway before retrying the mastery gate.",

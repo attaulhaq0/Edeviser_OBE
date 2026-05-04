@@ -23,7 +23,18 @@
     "draftAcceptance": "قبول المسودات",
     "feedbackDrafts": "{{count}} مسودة تغذية راجعة",
     "onboardingPending": "{{count}} طالب لم يكمل التهيئة",
-    "onboardingPendingAction": "عرض القائمة وإرسال تذكيرات"
+    "onboardingPendingAction": "عرض القائمة وإرسال تذكيرات",
+    "graduateAttributes": "السمات التخرجية",
+    "attributeAttainment": "تحصيل السمات",
+    "attributeAttainmentDesc": "عرض وإدارة ربط السمات التخرجية ونظرة عامة على التحصيل.",
+    "historicalEvidence": "الأدلة التاريخية",
+    "evidenceDashboard": "لوحة الأدلة",
+    "evidenceDashboardDesc": "تصفح سجلات الأدلة التاريخية عبر الفصول الدراسية والبرامج.",
+    "competencyFrameworks": "أطر الكفاءات",
+    "frameworkManagement": "إدارة الأطر",
+    "frameworkManagementDesc": "تحديد التسلسلات الهرمية للكفاءات وربطها بسلاسل المخرجات.",
+    "manage": "إدارة",
+    "view": "عرض"
   },
   "users": {
     "title": "إدارة المستخدمين",

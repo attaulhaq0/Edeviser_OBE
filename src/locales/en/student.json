@@ -32,7 +32,17 @@
     "startNow": "Start Now",
     "completeAssessment": "Complete your assessment",
     "completeAssessmentDesc": "You skipped some sections during onboarding. Complete them to get full personalization.",
-    "completeNow": "Complete Now"
+    "completeNow": "Complete Now",
+    "recentAnnouncements": "Recent Announcements",
+    "closNeedingAttention": "CLOs Needing Attention",
+    "myTeam": "My Team",
+    "challenges": "Challenges",
+    "target": "Target",
+    "team": "Team",
+    "courseWide": "Course-Wide",
+    "viewAllChallenges": "View All Challenges ({{count}})",
+    "attendance": "Attendance",
+    "leagueTier": "League Tier"
   },
   "assignments": {
     "title": "Assignments",

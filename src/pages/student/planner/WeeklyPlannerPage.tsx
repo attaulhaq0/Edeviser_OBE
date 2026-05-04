@@ -55,6 +55,7 @@ import {
   BarChart3,
   BookOpen,
 } from "lucide-react";
+import { toast } from "sonner";
 
 const WeeklyPlannerPage = () => {
   const navigate = useNavigate();
@@ -156,7 +157,7 @@ const WeeklyPlannerPage = () => {
   );
 
   const handleSessionEdit = useCallback((_session: StudySession) => {
-    // TODO: open edit dialog
+    toast.info("Edit feature coming soon");
   }, []);
 
   const handleTaskToggle = useCallback(
@@ -169,11 +170,11 @@ const WeeklyPlannerPage = () => {
   );
 
   const handleTaskEdit = useCallback((_task: PlannerTask) => {
-    // TODO: open edit dialog
+    toast.info("Edit feature coming soon");
   }, []);
 
   const handleTaskDelete = useCallback((_task: PlannerTask) => {
-    // TODO: confirm + delete
+    toast.info("Delete feature coming soon");
   }, []);
 
   const handleDayClick = useCallback((date: string) => {

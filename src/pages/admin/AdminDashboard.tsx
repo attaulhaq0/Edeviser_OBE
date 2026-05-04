@@ -1,4 +1,5 @@
 import { useNavigate, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Shimmer from '@/components/shared/Shimmer';
@@ -63,6 +64,7 @@ const roleBadgeStyles: Record<string, string> = {
 // ─── Admin Dashboard ────────────────────────────────────────────────────────
 
 const AdminDashboard = () => {
+  const { t } = useTranslation('admin');
   const navigate = useNavigate();
   const { data: kpis, isLoading: kpisLoading } = useAdminKPIs();
   const { data: auditLogs, isLoading: logsLoading } = useRecentAuditLogs(10);
@@ -71,7 +73,7 @@ const AdminDashboard = () => {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+      <h1 className="text-2xl font-bold tracking-tight">{t('dashboard.title')}</h1>
 
       {/* KPI Row */}
       {kpisLoading ? (
@@ -82,13 +84,13 @@ const AdminDashboard = () => {
         </div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          <KPICard icon={Users} label="Total Users" value={formatNumber(kpis?.totalUsers ?? 0)} />
-          <KPICard icon={UserCheck} label="Active Users" value={formatNumber(kpis?.activeUsers ?? 0)} />
-          <KPICard icon={BookOpen} label="Programs" value={formatNumber(kpis?.totalPrograms ?? 0)} />
-          <KPICard icon={GraduationCap} label="Courses" value={formatNumber(kpis?.totalCourses ?? 0)} />
+          <KPICard icon={Users} label={t('dashboard.totalUsers')} value={formatNumber(kpis?.totalUsers ?? 0)} />
+          <KPICard icon={UserCheck} label={t('dashboard.activeUsers')} value={formatNumber(kpis?.activeUsers ?? 0)} />
+          <KPICard icon={BookOpen} label={t('dashboard.programs')} value={formatNumber(kpis?.totalPrograms ?? 0)} />
+          <KPICard icon={GraduationCap} label={t('dashboard.courses')} value={formatNumber(kpis?.totalCourses ?? 0)} />
           <KPICard
             icon={ClipboardCheck}
-            label="Onboarding"
+            label={t('dashboard.onboarding')}
             value={formatPercent(onboardingAnalytics?.completionRate ?? 0)}
           />
         </div>
@@ -103,9 +105,9 @@ const AdminDashboard = () => {
         >
           <div>
             <p className="text-sm font-semibold text-amber-800">
-              {onboardingAnalytics.totalStudents - onboardingAnalytics.completedOnboarding} student{onboardingAnalytics.totalStudents - onboardingAnalytics.completedOnboarding !== 1 ? 's' : ''} haven&apos;t completed onboarding
+              {t('dashboard.onboardingPending', { count: onboardingAnalytics.totalStudents - onboardingAnalytics.completedOnboarding })}
             </p>
-            <p className="text-xs text-amber-600">View list and send reminders</p>
+            <p className="text-xs text-amber-600">{t('dashboard.onboardingPendingAction')}</p>
           </div>
           <ClipboardCheck className="h-5 w-5 text-amber-600 shrink-0" />
         </button>
@@ -120,7 +122,7 @@ const AdminDashboard = () => {
             style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
           >
             <Users className="h-5 w-5 text-white" />
-            <h2 className="text-lg font-bold tracking-tight text-white">Users by Role</h2>
+            <h2 className="text-lg font-bold tracking-tight text-white">{t('dashboard.usersByRole')}</h2>
           </div>
           <div className="p-6">
             {kpisLoading ? (
@@ -140,7 +142,7 @@ const AdminDashboard = () => {
                   </div>
                 ))}
                 {Object.keys(kpis?.usersByRole ?? {}).length === 0 && (
-                  <p className="text-sm text-gray-500">No active users yet.</p>
+                  <p className="text-sm text-gray-500">{t('dashboard.noActiveUsers')}</p>
                 )}
               </div>
             )}
@@ -154,7 +156,7 @@ const AdminDashboard = () => {
             style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
           >
             <Activity className="h-5 w-5 text-white" />
-            <h2 className="text-lg font-bold tracking-tight text-white">Recent Activity</h2>
+            <h2 className="text-lg font-bold tracking-tight text-white">{t('dashboard.recentActivity')}</h2>
           </div>
           <div className="p-6">
             {logsLoading ? (
@@ -179,7 +181,7 @@ const AdminDashboard = () => {
                   </div>
                 ))}
                 {(auditLogs ?? []).length === 0 && (
-                  <p className="text-sm text-gray-500">No recent activity.</p>
+                  <p className="text-sm text-gray-500">{t('dashboard.noRecentActivity')}</p>
                 )}
               </div>
             )}
@@ -195,11 +197,11 @@ const AdminDashboard = () => {
           style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
         >
           <BarChart3 className="h-5 w-5 text-white" />
-          <h2 className="text-lg font-bold tracking-tight text-white">PLO Attainment Heatmap</h2>
+          <h2 className="text-lg font-bold tracking-tight text-white">{t('dashboard.ploHeatmap')}</h2>
         </div>
         <div className="flex items-center justify-center py-12 px-6 text-gray-400">
           <p className="text-sm">
-            PLO attainment heatmap will appear here once outcome data is available.
+            {t('dashboard.ploHeatmapEmpty')}
           </p>
         </div>
       </Card>
@@ -211,7 +213,7 @@ const AdminDashboard = () => {
           style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
         >
           <Brain className="h-5 w-5 text-white" />
-          <h2 className="text-lg font-bold tracking-tight text-white">AI Co-Pilot Performance</h2>
+          <h2 className="text-lg font-bold tracking-tight text-white">{t('dashboard.aiCoPilot')}</h2>
         </div>
         <div className="p-6">
           {aiLoading ? (
@@ -228,13 +230,13 @@ const AdminDashboard = () => {
                 </div>
                 <div>
                   <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
-                    Suggestion Acceptance
+                    {t('dashboard.suggestionAcceptance')}
                   </p>
                   <p className="text-2xl font-black mt-1">
                     {aiPerformance?.suggestionAcceptanceRate ?? 0}%
                   </p>
                   <p className="text-xs text-gray-500">
-                    {aiPerformance?.suggestionTotal ?? 0} total suggestions
+                    {t('dashboard.totalSuggestions', { count: aiPerformance?.suggestionTotal ?? 0 })}
                   </p>
                 </div>
               </div>
@@ -245,13 +247,13 @@ const AdminDashboard = () => {
                 </div>
                 <div>
                   <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
-                    Prediction Accuracy
+                    {t('dashboard.predictionAccuracy')}
                   </p>
                   <p className="text-2xl font-black mt-1">
                     {aiPerformance?.predictionAccuracyRate ?? 0}%
                   </p>
                   <p className="text-xs text-gray-500">
-                    {aiPerformance?.predictionTotal ?? 0} validated predictions
+                    {t('dashboard.validatedPredictions', { count: aiPerformance?.predictionTotal ?? 0 })}
                   </p>
                 </div>
               </div>
@@ -262,13 +264,13 @@ const AdminDashboard = () => {
                 </div>
                 <div>
                   <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
-                    Draft Acceptance
+                    {t('dashboard.draftAcceptance')}
                   </p>
                   <p className="text-2xl font-black mt-1">
                     {aiPerformance?.draftAcceptanceRate ?? 0}%
                   </p>
                   <p className="text-xs text-gray-500">
-                    {aiPerformance?.draftTotal ?? 0} feedback drafts
+                    {t('dashboard.feedbackDrafts', { count: aiPerformance?.draftTotal ?? 0 })}
                   </p>
                 </div>
               </div>
@@ -288,18 +290,18 @@ const AdminDashboard = () => {
               style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
             >
               <Award className="h-5 w-5 text-white" />
-              <h2 className="text-lg font-bold tracking-tight text-white">Graduate Attributes</h2>
+              <h2 className="text-lg font-bold tracking-tight text-white">{t('dashboard.graduateAttributes')}</h2>
             </div>
             <div className="p-6 flex flex-col items-center justify-center py-8 text-center">
               <div className="p-3 rounded-full bg-teal-50 mb-3">
                 <Award className="h-8 w-8 text-teal-500" />
               </div>
-              <p className="text-sm font-semibold text-gray-700">Attribute Attainment</p>
+              <p className="text-sm font-semibold text-gray-700">{t('dashboard.attributeAttainment')}</p>
               <p className="text-xs text-gray-500 mt-1">
-                View and manage graduate attribute mappings and attainment overview.
+                {t('dashboard.attributeAttainmentDesc')}
               </p>
               <span className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 mt-3">
-                Manage <ArrowRight className="h-4 w-4" />
+                {t('dashboard.manage')} <ArrowRight className="h-4 w-4" />
               </span>
             </div>
           </Card>
@@ -313,18 +315,18 @@ const AdminDashboard = () => {
               style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
             >
               <Database className="h-5 w-5 text-white" />
-              <h2 className="text-lg font-bold tracking-tight text-white">Historical Evidence</h2>
+              <h2 className="text-lg font-bold tracking-tight text-white">{t('dashboard.historicalEvidence')}</h2>
             </div>
             <div className="p-6 flex flex-col items-center justify-center py-8 text-center">
               <div className="p-3 rounded-full bg-blue-50 mb-3">
                 <Database className="h-8 w-8 text-blue-500" />
               </div>
-              <p className="text-sm font-semibold text-gray-700">Evidence Dashboard</p>
+              <p className="text-sm font-semibold text-gray-700">{t('dashboard.evidenceDashboard')}</p>
               <p className="text-xs text-gray-500 mt-1">
-                Browse historical evidence records across semesters and programs.
+                {t('dashboard.evidenceDashboardDesc')}
               </p>
               <span className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 mt-3">
-                View <ArrowRight className="h-4 w-4" />
+                {t('dashboard.view')} <ArrowRight className="h-4 w-4" />
               </span>
             </div>
           </Card>
@@ -338,18 +340,18 @@ const AdminDashboard = () => {
               style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
             >
               <Network className="h-5 w-5 text-white" />
-              <h2 className="text-lg font-bold tracking-tight text-white">Competency Frameworks</h2>
+              <h2 className="text-lg font-bold tracking-tight text-white">{t('dashboard.competencyFrameworks')}</h2>
             </div>
             <div className="p-6 flex flex-col items-center justify-center py-8 text-center">
               <div className="p-3 rounded-full bg-purple-50 mb-3">
                 <Network className="h-8 w-8 text-purple-500" />
               </div>
-              <p className="text-sm font-semibold text-gray-700">Framework Management</p>
+              <p className="text-sm font-semibold text-gray-700">{t('dashboard.frameworkManagement')}</p>
               <p className="text-xs text-gray-500 mt-1">
-                Define competency hierarchies and map to outcome chains.
+                {t('dashboard.frameworkManagementDesc')}
               </p>
               <span className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 mt-3">
-                Manage <ArrowRight className="h-4 w-4" />
+                {t('dashboard.manage')} <ArrowRight className="h-4 w-4" />
               </span>
             </div>
           </Card>

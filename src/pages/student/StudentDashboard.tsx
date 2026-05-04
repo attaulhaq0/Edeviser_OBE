@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -99,6 +100,7 @@ const KPICard = ({ icon: Icon, label, value, accent }: KPICardProps) => (
 // ─── Announcements Section ──────────────────────────────────────────────────
 
 const AnnouncementsSection = ({ studentId }: { studentId: string }) => {
+  const { t } = useTranslation('student');
   const navigate = useNavigate();
   const { data: announcements, isLoading } = useStudentAnnouncements(studentId, 5);
 
@@ -115,7 +117,7 @@ const AnnouncementsSection = ({ studentId }: { studentId: string }) => {
         style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
       >
         <Megaphone className="h-5 w-5 text-white" />
-        <h2 className="text-lg font-bold tracking-tight text-white">Recent Announcements</h2>
+        <h2 className="text-lg font-bold tracking-tight text-white">{t('dashboard.recentAnnouncements')}</h2>
       </div>
       <div className="p-6 space-y-3">
         {announcements.map((a) => (
@@ -145,6 +147,7 @@ const AnnouncementsSection = ({ studentId }: { studentId: string }) => {
 // ─── Main Component ─────────────────────────────────────────────────────────
 
 const StudentDashboard = () => {
+  const { t } = useTranslation('student');
   const navigate = useNavigate();
   const { user, profile } = useAuth();
   const studentId = user?.id ?? '';
@@ -273,9 +276,9 @@ const StudentDashboard = () => {
 
   const greeting = () => {
     const hour = new Date().getHours();
-    if (hour < 12) return 'Good morning';
-    if (hour < 17) return 'Good afternoon';
-    return 'Good evening';
+    if (hour < 12) return t('dashboard.greeting.morning');
+    if (hour < 17) return t('dashboard.greeting.afternoon');
+    return t('dashboard.greeting.evening');
   };
 
   return (
@@ -288,9 +291,9 @@ const StudentDashboard = () => {
         <Card className="border-0 shadow-md rounded-xl p-4 bg-amber-50 flex items-center gap-3">
           <Bell className="h-5 w-5 text-amber-600 shrink-0" />
           <div className="flex-1">
-            <p className="text-sm font-semibold text-amber-800">Complete your onboarding</p>
+            <p className="text-sm font-semibold text-amber-800">{t('dashboard.completeOnboarding')}</p>
             <p className="text-xs text-amber-600">
-              Finish your profile to unlock personalized recommendations and earn XP.
+              {t('dashboard.completeOnboardingDesc')}
             </p>
           </div>
           <Button
@@ -298,7 +301,7 @@ const StudentDashboard = () => {
             onClick={() => navigate('/student/onboarding')}
             className="bg-gradient-to-r from-teal-500 to-blue-600 text-white text-xs font-semibold active:scale-95 transition-transform duration-100"
           >
-            Start Now
+            {t('dashboard.startNow')}
           </Button>
         </Card>
       )}
@@ -342,18 +345,18 @@ const StudentDashboard = () => {
               {greeting()}, {profile?.full_name?.split(' ')[0] ?? 'Student'} 👋
             </h1>
             <p className="text-sm text-white/70 mt-1">
-              Keep up the momentum — every step counts.
+              {t('dashboard.momentum')}
             </p>
           </div>
           <div className="hidden md:flex items-center gap-4">
             <div className="text-center">
               <p className="text-2xl font-black">{kpis?.totalXP ?? 0}</p>
-              <p className="text-[10px] font-black tracking-widest uppercase text-white/60">XP</p>
+              <p className="text-[10px] font-black tracking-widest uppercase text-white/60">{t('dashboard.xp')}</p>
             </div>
             <div className="w-px h-10 bg-white/20" />
             <div className="text-center">
-              <p className="text-2xl font-black">Lv {kpis?.currentLevel ?? 1}</p>
-              <p className="text-[10px] font-black tracking-widest uppercase text-white/60">Level</p>
+              <p className="text-2xl font-black">{t('dashboard.level', { level: kpis?.currentLevel ?? 1 })}</p>
+              <p className="text-[10px] font-black tracking-widest uppercase text-white/60">{t('dashboard.levelLabel')}</p>
             </div>
             <div className="w-px h-10 bg-white/20" />
             <div className="text-center">
@@ -379,9 +382,9 @@ const StudentDashboard = () => {
         <Card className="border-0 shadow-md rounded-xl p-4 bg-blue-50 flex items-center gap-3">
           <AlertCircle className="h-5 w-5 text-blue-600 shrink-0" />
           <div className="flex-1">
-            <p className="text-sm font-semibold text-blue-800">Complete your assessment</p>
+            <p className="text-sm font-semibold text-blue-800">{t('dashboard.completeAssessment')}</p>
             <p className="text-xs text-blue-600">
-              You skipped some sections during onboarding. Complete them to get full personalization.
+              {t('dashboard.completeAssessmentDesc')}
             </p>
           </div>
           <Button
@@ -390,7 +393,7 @@ const StudentDashboard = () => {
             onClick={() => navigate('/student/onboarding/complete-profile')}
             className="text-xs border-blue-300 text-blue-700"
           >
-            Complete Now
+            {t('dashboard.completeNow')}
           </Button>
         </Card>
       )}
@@ -404,14 +407,14 @@ const StudentDashboard = () => {
         </div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <KPICard icon={BookOpen} label="Courses" value={formatNumber(kpis?.enrolledCourses ?? 0)} />
-          <KPICard icon={CheckCircle2} label="Completed" value={formatNumber(kpis?.completedAssignments ?? 0)} />
+          <KPICard icon={BookOpen} label={t('dashboard.courses')} value={formatNumber(kpis?.enrolledCourses ?? 0)} />
+          <KPICard icon={CheckCircle2} label={t('dashboard.completed')} value={formatNumber(kpis?.completedAssignments ?? 0)} />
           <KPICard
             icon={TrendingUp}
-            label="Avg Attainment"
+            label={t('dashboard.avgAttainment')}
             value={formatPercent(kpis?.avgAttainment ?? 0)}
           />
-          <KPICard icon={Flame} label="Streak" value={`${kpis?.currentStreak ?? 0}d`} />
+          <KPICard icon={Flame} label={t('dashboard.streak')} value={`${kpis?.currentStreak ?? 0}d`} />
         </div>
       )}
 
@@ -456,7 +459,7 @@ const StudentDashboard = () => {
             style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
           >
             <CalendarClock className="h-5 w-5 text-white" />
-            <h2 className="text-lg font-bold tracking-tight text-white">Upcoming Deadlines</h2>
+            <h2 className="text-lg font-bold tracking-tight text-white">{t('dashboard.upcomingDeadlines')}</h2>
           </div>
           <div className="p-6">
             {deadlinesLoading ? (
@@ -495,7 +498,7 @@ const StudentDashboard = () => {
                 <div className="p-3 rounded-full bg-green-50 mb-3">
                   <CheckCircle2 className="h-8 w-8 text-green-500" />
                 </div>
-                <p className="text-sm text-gray-500">No upcoming deadlines. Enjoy the break.</p>
+                <p className="text-sm text-gray-500">{t('dashboard.noDeadlines')}</p>
               </div>
             )}
           </div>
@@ -509,32 +512,32 @@ const StudentDashboard = () => {
               style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
             >
               <Star className="h-5 w-5 text-white" />
-              <h2 className="text-lg font-bold tracking-tight text-white">Your Progress</h2>
+              <h2 className="text-lg font-bold tracking-tight text-white">{t('dashboard.yourProgress')}</h2>
             </div>
             <div className="p-6 space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-600">Total XP</span>
-                <span className="text-sm font-bold text-amber-600">{kpis?.totalXP ?? 0} XP</span>
+                <span className="text-sm font-medium text-gray-600">{t('dashboard.totalXP')}</span>
+                <span className="text-sm font-bold text-amber-600">{kpis?.totalXP ?? 0} {t('dashboard.xp')}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-600">Current Level</span>
-                <span className="text-sm font-bold">Level {kpis?.currentLevel ?? 1}</span>
+                <span className="text-sm font-medium text-gray-600">{t('dashboard.currentLevel')}</span>
+                <span className="text-sm font-bold">{t('dashboard.levelLabel')} {kpis?.currentLevel ?? 1}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-600">Login Streak</span>
+                <span className="text-sm font-medium text-gray-600">{t('dashboard.loginStreak')}</span>
                 <span className="text-sm font-bold text-red-500">
-                  🔥 {kpis?.currentStreak ?? 0} days
+                  {t('dashboard.daysStreak', { count: kpis?.currentStreak ?? 0 })}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-600">Assignments Done</span>
+                <span className="text-sm font-medium text-gray-600">{t('dashboard.assignmentsDone')}</span>
                 <span className="text-sm font-bold">{kpis?.completedAssignments ?? 0}</span>
               </div>
 
               {/* League Tier Badge — Requirement 132.3 */}
               {leagueTierData && (
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-600">League Tier</span>
+                  <span className="text-sm font-medium text-gray-600">{t('dashboard.leagueTier')}</span>
                   <LeagueTierBadge tier={leagueTierData.tier} size="sm" />
                 </div>
               )}
@@ -553,7 +556,7 @@ const StudentDashboard = () => {
                 className="w-full mt-2 text-xs font-semibold text-amber-600 border-amber-200 hover:bg-amber-50"
               >
                 <Coins className="h-4 w-4 me-1" />
-                View XP History
+                {t('dashboard.viewXPHistory')}
               </Button>
             </div>
           </Card>
@@ -591,7 +594,7 @@ const StudentDashboard = () => {
               style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
             >
               <Target className="h-5 w-5 text-white" />
-              <h2 className="text-lg font-bold tracking-tight text-white">CLOs Needing Attention</h2>
+              <h2 className="text-lg font-bold tracking-tight text-white">{t('dashboard.closNeedingAttention')}</h2>
             </div>
             <div className="p-6 space-y-4">
               {lowCLOs.slice(0, 6).map((clo) => (
@@ -637,7 +640,7 @@ const StudentDashboard = () => {
             style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
           >
             <Users className="h-5 w-5 text-white" />
-            <h2 className="text-lg font-bold tracking-tight text-white">My Team</h2>
+            <h2 className="text-lg font-bold tracking-tight text-white">{t('dashboard.myTeam')}</h2>
           </div>
           <div className="p-6">
             <TeamDashboardCard team={myTeam} gamification={teamGamification} />
@@ -653,7 +656,7 @@ const StudentDashboard = () => {
             style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
           >
             <Trophy className="h-5 w-5 text-white" />
-            <h2 className="text-lg font-bold tracking-tight text-white">Challenges</h2>
+            <h2 className="text-lg font-bold tracking-tight text-white">{t('dashboard.challenges')}</h2>
           </div>
           <div className="p-6 space-y-3">
             {activeChallenges.slice(0, 3).map((c) => (
@@ -668,11 +671,11 @@ const StudentDashboard = () => {
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium truncate">{c.title}</p>
                   <p className="text-xs text-gray-500">
-                    {c.challenge_type === 'team' ? 'Team' : 'Course-Wide'} · {c.goal_metric}
+                    {c.challenge_type === 'team' ? t('dashboard.team') : t('dashboard.courseWide')} · {c.goal_metric}
                   </p>
                 </div>
                 <Badge className="text-xs bg-amber-50 text-amber-700 border-amber-200 whitespace-nowrap">
-                  Target: {c.goal_target}
+                  {t('dashboard.target')}: {c.goal_target}
                 </Badge>
               </div>
             ))}
@@ -683,7 +686,7 @@ const StudentDashboard = () => {
                 onClick={() => navigate('/student/challenges')}
                 className="w-full text-xs font-semibold text-blue-600 border-blue-200 hover:bg-blue-50"
               >
-                View All Challenges ({activeChallenges.length})
+                {t('dashboard.viewAllChallenges', { count: activeChallenges.length })}
               </Button>
             )}
           </div>
@@ -700,7 +703,7 @@ const StudentDashboard = () => {
             style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
           >
             <ClipboardCheck className="h-5 w-5 text-white" />
-            <h2 className="text-lg font-bold tracking-tight text-white">Attendance</h2>
+            <h2 className="text-lg font-bold tracking-tight text-white">{t('dashboard.attendance')}</h2>
           </div>
           <div className="p-6 space-y-3">
             {attendanceCourses.map((c) => (

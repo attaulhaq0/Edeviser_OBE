@@ -6,6 +6,23 @@ import { MemoryRouter } from 'react-router-dom';
 // Mocks
 // ---------------------------------------------------------------------------
 
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string, opts?: Record<string, unknown>) => {
+      if (opts) {
+        let result = key;
+        for (const [k, v] of Object.entries(opts)) {
+          result = result.replace(`{{${k}}}`, String(v));
+        }
+        return result;
+      }
+      return key;
+    },
+    i18n: { language: 'en', changeLanguage: vi.fn() },
+  }),
+  Trans: ({ children }: { children: React.ReactNode }) => children,
+}));
+
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom');
   return { ...actual, useNavigate: () => vi.fn() };
@@ -97,7 +114,7 @@ describe('CoordinatorDashboard — Recovery Pathway Metrics', () => {
   it('renders the Recovery Pathways section header', () => {
     mockRecoveryMetrics.mockReturnValue({ data: null, isLoading: false });
     renderDashboard();
-    expect(screen.getByText('Recovery Pathways')).toBeInTheDocument();
+    expect(screen.getByText('dashboard.recoveryPathways')).toBeInTheDocument();
   });
 
   it('shows shimmer loading state when recovery data is loading', () => {
@@ -113,7 +130,7 @@ describe('CoordinatorDashboard — Recovery Pathway Metrics', () => {
       isLoading: false,
     });
     renderDashboard();
-    expect(screen.getByText('Total Activations')).toBeInTheDocument();
+    expect(screen.getByText('dashboard.totalActivations')).toBeInTheDocument();
     expect(screen.getByText('42')).toBeInTheDocument();
   });
 
@@ -123,7 +140,7 @@ describe('CoordinatorDashboard — Recovery Pathway Metrics', () => {
       isLoading: false,
     });
     renderDashboard();
-    expect(screen.getByText('Completion Rate')).toBeInTheDocument();
+    expect(screen.getByText('dashboard.completionRate')).toBeInTheDocument();
     expect(screen.getByText('85%')).toBeInTheDocument();
   });
 
@@ -133,7 +150,7 @@ describe('CoordinatorDashboard — Recovery Pathway Metrics', () => {
       isLoading: false,
     });
     renderDashboard();
-    expect(screen.getByText('Avg Completion Time')).toBeInTheDocument();
+    expect(screen.getByText('dashboard.avgCompletionTime')).toBeInTheDocument();
     expect(screen.getByText('24.3h')).toBeInTheDocument();
   });
 
@@ -143,17 +160,17 @@ describe('CoordinatorDashboard — Recovery Pathway Metrics', () => {
       isLoading: false,
     });
     renderDashboard();
-    expect(screen.getByText('Retry Success Rate')).toBeInTheDocument();
+    expect(screen.getByText('dashboard.retrySuccessRate')).toBeInTheDocument();
     expect(screen.getByText('73%')).toBeInTheDocument();
   });
 
   it('shows 0 defaults when no recovery data is available', () => {
     mockRecoveryMetrics.mockReturnValue({ data: null, isLoading: false });
     renderDashboard();
-    expect(screen.getByText('Total Activations')).toBeInTheDocument();
-    expect(screen.getByText('Completion Rate')).toBeInTheDocument();
-    expect(screen.getByText('Avg Completion Time')).toBeInTheDocument();
-    expect(screen.getByText('Retry Success Rate')).toBeInTheDocument();
+    expect(screen.getByText('dashboard.totalActivations')).toBeInTheDocument();
+    expect(screen.getByText('dashboard.completionRate')).toBeInTheDocument();
+    expect(screen.getByText('dashboard.avgCompletionTime')).toBeInTheDocument();
+    expect(screen.getByText('dashboard.retrySuccessRate')).toBeInTheDocument();
     // Default values
     expect(screen.getByText('0.0h')).toBeInTheDocument();
   });
