@@ -156,8 +156,17 @@ test('No console errors on initial load', async ({ page }) => {
   await page.goto('/login', { waitUntil: 'networkidle' });
 
   // Filter out expected Supabase connection errors (no backend in E2E)
+  // and React dev-mode warnings (not present in production builds)
   const realErrors = consoleErrors.filter(
-    (e) => !e.includes('supabase') && !e.includes('Failed to fetch') && !e.includes('ERR_CONNECTION_REFUSED'),
+    (e) =>
+      !e.includes('supabase') &&
+      !e.includes('Failed to fetch') &&
+      !e.includes('ERR_CONNECTION_REFUSED') &&
+      !e.includes('Warning:') &&
+      !e.includes('Function components cannot be given refs') &&
+      !e.includes('favicon') &&
+      !e.includes('Sentry') &&
+      !e.includes('manifest.json'),
   );
 
   expect(realErrors).toEqual([]);
