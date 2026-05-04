@@ -21,7 +21,6 @@ BEGIN
     CREATE TYPE marketplace_stock_type AS ENUM ('unlimited', 'limited', 'one_per_student');
   END IF;
 END $$;
-
 -- Create table if not exists
 CREATE TABLE IF NOT EXISTS marketplace_items (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -40,14 +39,11 @@ CREATE TABLE IF NOT EXISTS marketplace_items (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-
 -- Indexes (idempotent)
 CREATE INDEX IF NOT EXISTS idx_marketplace_items_institution ON marketplace_items(institution_id);
 CREATE INDEX IF NOT EXISTS idx_marketplace_items_category ON marketplace_items(category);
 CREATE INDEX IF NOT EXISTS idx_marketplace_items_active ON marketplace_items(institution_id, is_active) WHERE is_active = true;
-
 ALTER TABLE marketplace_items ENABLE ROW LEVEL SECURITY;
-
 -- updated_at trigger (idempotent)
 CREATE OR REPLACE FUNCTION update_marketplace_items_updated_at()
 RETURNS TRIGGER AS $$
@@ -56,7 +52,6 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
-
 DO $$
 BEGIN
   IF NOT EXISTS (

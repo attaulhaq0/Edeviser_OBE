@@ -11,7 +11,6 @@ CREATE TABLE IF NOT EXISTS competency_frameworks (
   created_at timestamptz NOT NULL DEFAULT now(),
   UNIQUE(institution_id, name, version)
 );
-
 -- 2. Create competency_items table (self-referencing hierarchy)
 CREATE TABLE IF NOT EXISTS competency_items (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -23,7 +22,6 @@ CREATE TABLE IF NOT EXISTS competency_items (
   sort_order integer NOT NULL DEFAULT 0,
   UNIQUE(framework_id, code)
 );
-
 -- 3. Create competency_outcome_mappings table
 CREATE TABLE IF NOT EXISTS competency_outcome_mappings (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -31,23 +29,19 @@ CREATE TABLE IF NOT EXISTS competency_outcome_mappings (
   outcome_id uuid NOT NULL REFERENCES learning_outcomes(id) ON DELETE CASCADE,
   UNIQUE(competency_item_id, outcome_id)
 );
-
 -- 4. Enable RLS
 ALTER TABLE competency_frameworks ENABLE ROW LEVEL SECURITY;
 ALTER TABLE competency_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE competency_outcome_mappings ENABLE ROW LEVEL SECURITY;
-
 -- 5. RLS policies for competency_frameworks
 DROP POLICY IF EXISTS "admin_all_competency_frameworks" ON competency_frameworks;
 CREATE POLICY "admin_all_competency_frameworks" ON competency_frameworks
   FOR ALL TO authenticated
   USING ((select auth_user_role()) = 'admin' AND institution_id = (select auth_institution_id()));
-
 DROP POLICY IF EXISTS "role_select_competency_frameworks" ON competency_frameworks;
 CREATE POLICY "role_select_competency_frameworks" ON competency_frameworks
   FOR SELECT TO authenticated
   USING (institution_id = (select auth_institution_id()));
-
 -- 6. RLS policies for competency_items
 DROP POLICY IF EXISTS "admin_all_competency_items" ON competency_items;
 CREATE POLICY "admin_all_competency_items" ON competency_items
@@ -58,7 +52,6 @@ CREATE POLICY "admin_all_competency_items" ON competency_items
       SELECT id FROM competency_frameworks WHERE institution_id = (select auth_institution_id())
     )
   );
-
 DROP POLICY IF EXISTS "role_select_competency_items" ON competency_items;
 CREATE POLICY "role_select_competency_items" ON competency_items
   FOR SELECT TO authenticated
@@ -67,7 +60,6 @@ CREATE POLICY "role_select_competency_items" ON competency_items
       SELECT id FROM competency_frameworks WHERE institution_id = (select auth_institution_id())
     )
   );
-
 -- 7. RLS policies for competency_outcome_mappings
 DROP POLICY IF EXISTS "admin_all_competency_outcome_mappings" ON competency_outcome_mappings;
 CREATE POLICY "admin_all_competency_outcome_mappings" ON competency_outcome_mappings
@@ -80,7 +72,6 @@ CREATE POLICY "admin_all_competency_outcome_mappings" ON competency_outcome_mapp
       WHERE cf.institution_id = (select auth_institution_id())
     )
   );
-
 DROP POLICY IF EXISTS "role_select_competency_outcome_mappings" ON competency_outcome_mappings;
 CREATE POLICY "role_select_competency_outcome_mappings" ON competency_outcome_mappings
   FOR SELECT TO authenticated

@@ -14,9 +14,7 @@ CREATE TABLE IF NOT EXISTS student_active_boosts (
   expires_at TIMESTAMPTZ NOT NULL,
   CONSTRAINT chk_boost_duration CHECK (expires_at > activated_at)
 );
-
 -- Indexes (idempotent)
 CREATE INDEX IF NOT EXISTS idx_student_active_boosts_student ON student_active_boosts(student_id);
 CREATE INDEX IF NOT EXISTS idx_student_active_boosts_expires ON student_active_boosts(student_id, expires_at DESC);
-
 ALTER TABLE student_active_boosts ENABLE ROW LEVEL SECURITY;

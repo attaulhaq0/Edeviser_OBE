@@ -2,6 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { queryKeys } from '@/lib/queryKeys';
 
 export interface CompetencyFramework {
   id: string;
@@ -33,7 +34,7 @@ export interface CompetencyOutcomeMapping {
 
 export const useCompetencyFrameworks = (institutionId?: string) => {
   return useQuery({
-    queryKey: ['competencyFrameworks', institutionId],
+    queryKey: queryKeys.competencyFrameworks.list({ institutionId }),
     queryFn: async (): Promise<CompetencyFramework[]> => {
       const { data, error } = await supabase
         .from('competency_frameworks' as never)
@@ -49,7 +50,7 @@ export const useCompetencyFrameworks = (institutionId?: string) => {
 
 export const useCompetencyItems = (frameworkId?: string) => {
   return useQuery({
-    queryKey: ['competencyItems', frameworkId],
+    queryKey: queryKeys.competencyItems.list({ frameworkId }),
     queryFn: async (): Promise<CompetencyItem[]> => {
       const { data, error } = await supabase
         .from('competency_items' as never)
@@ -71,7 +72,7 @@ export const useCreateCompetencyFramework = () => {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['competencyFrameworks'] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.competencyFrameworks.lists() }),
   });
 };
 
@@ -83,13 +84,13 @@ export const useImportCompetencyCSV = () => {
       if (error) throw error;
       return data as { imported: number; errors: string[] };
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['competencyItems'] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.competencyItems.lists() }),
   });
 };
 
 export const useCompetencyOutcomeMappings = (frameworkId?: string) => {
   return useQuery({
-    queryKey: ['competencyOutcomeMappings', frameworkId],
+    queryKey: queryKeys.competencyOutcomeMappings.list({ frameworkId }),
     queryFn: async (): Promise<CompetencyOutcomeMapping[]> => {
       const { data: items } = await supabase.from('competency_items' as never).select('id').eq('framework_id', frameworkId!);
       const itemIds = ((items ?? []) as Array<{ id: string }>).map((i) => i.id);

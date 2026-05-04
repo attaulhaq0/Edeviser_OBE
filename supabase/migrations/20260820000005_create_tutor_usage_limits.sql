@@ -13,9 +13,7 @@ CREATE TABLE IF NOT EXISTS tutor_usage_limits (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   UNIQUE (student_id, usage_date)
 );
-
 -- Index for daily usage lookups
 CREATE INDEX IF NOT EXISTS idx_usage_student_date ON tutor_usage_limits (student_id, usage_date);
-
 -- Index for institution-scoped admin reads (mirrors idx_llm_logs_institution pattern)
 CREATE INDEX IF NOT EXISTS idx_usage_institution ON tutor_usage_limits (institution_id, usage_date DESC);

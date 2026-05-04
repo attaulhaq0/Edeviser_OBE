@@ -11,7 +11,6 @@ BEGIN
     CREATE TYPE xp_purchase_status AS ENUM ('active', 'consumed', 'expired', 'refunded');
   END IF;
 END $$;
-
 -- Create table if not exists
 CREATE TABLE IF NOT EXISTS xp_purchases (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -24,7 +23,6 @@ CREATE TABLE IF NOT EXISTS xp_purchases (
   consumed_at TIMESTAMPTZ,
   metadata JSONB DEFAULT '{}'
 );
-
 -- Add institution_id column if missing (existing table upgrade)
 DO $$
 BEGIN
@@ -43,16 +41,13 @@ BEGIN
         AND xp.institution_id IS NULL;
   END IF;
 END $$;
-
 -- Indexes (idempotent)
 CREATE INDEX IF NOT EXISTS idx_xp_purchases_student ON xp_purchases(student_id);
 CREATE INDEX IF NOT EXISTS idx_xp_purchases_item ON xp_purchases(item_id);
 CREATE INDEX IF NOT EXISTS idx_xp_purchases_institution ON xp_purchases(institution_id);
 CREATE INDEX IF NOT EXISTS idx_xp_purchases_student_status ON xp_purchases(student_id, status);
 CREATE INDEX IF NOT EXISTS idx_xp_purchases_purchased_at ON xp_purchases(purchased_at DESC);
-
 ALTER TABLE xp_purchases ENABLE ROW LEVEL SECURITY;
-
 -- Prevent DELETE trigger (append-only enforcement)
 CREATE OR REPLACE FUNCTION prevent_xp_purchases_delete()
 RETURNS TRIGGER AS $$
@@ -60,7 +55,6 @@ BEGIN
   RAISE EXCEPTION 'Deletion of xp_purchases records is not allowed';
 END;
 $$ LANGUAGE plpgsql;
-
 DO $$
 BEGIN
   IF NOT EXISTS (

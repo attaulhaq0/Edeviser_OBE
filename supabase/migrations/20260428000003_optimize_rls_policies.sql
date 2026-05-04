@@ -17,16 +17,13 @@
 -- ══════════════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "institutions_read_own" ON public.institutions;
 DROP POLICY IF EXISTS "institutions_admin_write" ON public.institutions;
-
 CREATE POLICY "institutions_read_own" ON public.institutions
   FOR SELECT USING (id = (select auth_institution_id()));
-
 CREATE POLICY "institutions_admin_write" ON public.institutions
   FOR ALL USING (
     (select auth_user_role()) = 'admin'
     AND id = (select auth_institution_id())
   );
-
 -- ══════════════════════════════════════════════════════════════
 -- 2. PROFILES
 -- ══════════════════════════════════════════════════════════════
@@ -35,22 +32,18 @@ DROP POLICY IF EXISTS "profiles_admin_read_institution" ON public.profiles;
 DROP POLICY IF EXISTS "profiles_admin_write" ON public.profiles;
 DROP POLICY IF EXISTS "profiles_teacher_read_students" ON public.profiles;
 DROP POLICY IF EXISTS "profiles_coordinator_read" ON public.profiles;
-
 CREATE POLICY "profiles_read_own" ON public.profiles
   FOR SELECT USING (id = (select auth.uid()));
-
 CREATE POLICY "profiles_admin_read_institution" ON public.profiles
   FOR SELECT USING (
     (select auth_user_role()) = 'admin'
     AND institution_id = (select auth_institution_id())
   );
-
 CREATE POLICY "profiles_admin_write" ON public.profiles
   FOR ALL USING (
     (select auth_user_role()) = 'admin'
     AND institution_id = (select auth_institution_id())
   );
-
 CREATE POLICY "profiles_teacher_read_students" ON public.profiles
   FOR SELECT USING (
     (select auth_user_role()) = 'teacher'
@@ -60,68 +53,56 @@ CREATE POLICY "profiles_teacher_read_students" ON public.profiles
       WHERE c.teacher_id = (select auth.uid())
     )
   );
-
 CREATE POLICY "profiles_coordinator_read" ON public.profiles
   FOR SELECT USING (
     (select auth_user_role()) = 'coordinator'
     AND institution_id = (select auth_institution_id())
   );
-
 -- ══════════════════════════════════════════════════════════════
 -- 3. PROGRAMS
 -- ══════════════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "programs_institution_read" ON public.programs;
 DROP POLICY IF EXISTS "programs_admin_write" ON public.programs;
-
 CREATE POLICY "programs_institution_read" ON public.programs
   FOR SELECT USING (institution_id = (select auth_institution_id()));
-
 CREATE POLICY "programs_admin_write" ON public.programs
   FOR ALL USING (
     (select auth_user_role()) = 'admin'
     AND institution_id = (select auth_institution_id())
   );
-
 -- ══════════════════════════════════════════════════════════════
 -- 4. COURSES
 -- ══════════════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "courses_institution_read" ON public.courses;
 DROP POLICY IF EXISTS "courses_coordinator_write" ON public.courses;
 DROP POLICY IF EXISTS "courses_admin_write" ON public.courses;
-
 CREATE POLICY "courses_institution_read" ON public.courses
   FOR SELECT USING (
     program_id IN (SELECT id FROM public.programs WHERE institution_id = (select auth_institution_id()))
   );
-
 CREATE POLICY "courses_coordinator_write" ON public.courses
   FOR ALL USING (
     (select auth_user_role()) = 'coordinator'
     AND program_id IN (SELECT id FROM public.programs WHERE coordinator_id = (select auth.uid()))
   );
-
 CREATE POLICY "courses_admin_write" ON public.courses
   FOR ALL USING (
     (select auth_user_role()) = 'admin'
     AND program_id IN (SELECT id FROM public.programs WHERE institution_id = (select auth_institution_id()))
   );
-
 -- ══════════════════════════════════════════════════════════════
 -- 5. STUDENT_COURSES
 -- ══════════════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "student_courses_student_read" ON public.student_courses;
 DROP POLICY IF EXISTS "student_courses_teacher_manage" ON public.student_courses;
 DROP POLICY IF EXISTS "student_courses_admin_read" ON public.student_courses;
-
 CREATE POLICY "student_courses_student_read" ON public.student_courses
   FOR SELECT USING (student_id = (select auth.uid()));
-
 CREATE POLICY "student_courses_teacher_manage" ON public.student_courses
   FOR ALL USING (
     (select auth_user_role()) = 'teacher'
     AND course_id IN (SELECT id FROM public.courses WHERE teacher_id = (select auth.uid()))
   );
-
 -- Vuln 14 preserved: institution-scoped admin/coordinator read
 CREATE POLICY "student_courses_admin_read" ON public.student_courses
   FOR SELECT USING (
@@ -132,7 +113,6 @@ CREATE POLICY "student_courses_admin_read" ON public.student_courses
       )
     )
   );
-
 -- ══════════════════════════════════════════════════════════════
 -- 6. LEARNING_OUTCOMES (no existing policies to optimize)
 -- ══════════════════════════════════════════════════════════════
@@ -145,12 +125,10 @@ DROP POLICY IF EXISTS "outcome_mappings_institution_read" ON public.outcome_mapp
 DROP POLICY IF EXISTS "outcome_mappings_admin_write" ON public.outcome_mappings;
 DROP POLICY IF EXISTS "outcome_mappings_coordinator_write" ON public.outcome_mappings;
 DROP POLICY IF EXISTS "outcome_mappings_teacher_write" ON public.outcome_mappings;
-
 CREATE POLICY "outcome_mappings_institution_read" ON public.outcome_mappings
   FOR SELECT USING (
     source_outcome_id IN (SELECT id FROM public.learning_outcomes WHERE institution_id = (select auth_institution_id()))
   );
-
 -- Vuln 15 preserved: institution-scoped write policies
 CREATE POLICY "outcome_mappings_admin_write" ON public.outcome_mappings
   FOR ALL USING (
@@ -173,60 +151,50 @@ CREATE POLICY "outcome_mappings_teacher_write" ON public.outcome_mappings
       SELECT id FROM public.learning_outcomes WHERE institution_id = (select auth_institution_id())
     )
   );
-
 -- ══════════════════════════════════════════════════════════════
 -- 8. RUBRICS
 -- ══════════════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "rubrics_institution_read" ON public.rubrics;
 DROP POLICY IF EXISTS "rubrics_teacher_write" ON public.rubrics;
-
 CREATE POLICY "rubrics_institution_read" ON public.rubrics
   FOR SELECT USING (
     clo_id IN (SELECT id FROM public.learning_outcomes WHERE institution_id = (select auth_institution_id()))
     OR is_template = true
   );
-
 CREATE POLICY "rubrics_teacher_write" ON public.rubrics
   FOR ALL USING (
     (select auth_user_role()) = 'teacher'
     AND (created_by = (select auth.uid()) OR is_template = true)
   );
-
 -- ══════════════════════════════════════════════════════════════
 -- 9. RUBRIC_CRITERIA
 -- ══════════════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "rubric_criteria_read" ON public.rubric_criteria;
 DROP POLICY IF EXISTS "rubric_criteria_teacher_write" ON public.rubric_criteria;
-
 CREATE POLICY "rubric_criteria_read" ON public.rubric_criteria
   FOR SELECT USING (
     rubric_id IN (SELECT id FROM public.rubrics)
   );
-
 CREATE POLICY "rubric_criteria_teacher_write" ON public.rubric_criteria
   FOR ALL USING (
     (select auth_user_role()) = 'teacher'
     AND rubric_id IN (SELECT id FROM public.rubrics WHERE created_by = (select auth.uid()))
   );
-
 -- ══════════════════════════════════════════════════════════════
 -- 10. ASSIGNMENTS
 -- ══════════════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "assignments_teacher_write" ON public.assignments;
 DROP POLICY IF EXISTS "assignments_student_read" ON public.assignments;
 DROP POLICY IF EXISTS "assignments_staff_read" ON public.assignments;
-
 CREATE POLICY "assignments_teacher_write" ON public.assignments
   FOR ALL USING (
     (select auth_user_role()) = 'teacher'
     AND course_id IN (SELECT id FROM public.courses WHERE teacher_id = (select auth.uid()))
   );
-
 CREATE POLICY "assignments_student_read" ON public.assignments
   FOR SELECT USING (
     course_id IN (SELECT course_id FROM public.student_courses WHERE student_id = (select auth.uid()) AND status = 'active')
   );
-
 -- Vuln 16 preserved: institution-scoped staff read
 CREATE POLICY "assignments_staff_read" ON public.assignments
   FOR SELECT USING (
@@ -237,7 +205,6 @@ CREATE POLICY "assignments_staff_read" ON public.assignments
       )
     )
   );
-
 -- ══════════════════════════════════════════════════════════════
 -- 11. GRADES
 -- ══════════════════════════════════════════════════════════════
@@ -245,18 +212,15 @@ DROP POLICY IF EXISTS "grades_teacher_write" ON public.grades;
 DROP POLICY IF EXISTS "grades_student_read" ON public.grades;
 DROP POLICY IF EXISTS "grades_teacher_read" ON public.grades;
 DROP POLICY IF EXISTS "parent_read_student_grades" ON public.grades;
-
 CREATE POLICY "grades_teacher_write" ON public.grades
   FOR ALL USING (
     (select auth_user_role()) = 'teacher'
     AND graded_by = (select auth.uid())
   );
-
 CREATE POLICY "grades_student_read" ON public.grades
   FOR SELECT USING (
     submission_id IN (SELECT id FROM public.submissions WHERE student_id = (select auth.uid()))
   );
-
 CREATE POLICY "grades_teacher_read" ON public.grades
   FOR SELECT USING (
     (select auth_user_role()) = 'teacher'
@@ -267,7 +231,6 @@ CREATE POLICY "grades_teacher_read" ON public.grades
       WHERE c.teacher_id = (select auth.uid())
     )
   );
-
 CREATE POLICY "parent_read_student_grades" ON grades
   FOR SELECT USING (
     (select auth_user_role()) = 'parent'
@@ -279,17 +242,14 @@ CREATE POLICY "parent_read_student_grades" ON grades
       AND psl.verified = true
     )
   );
-
 -- ══════════════════════════════════════════════════════════════
 -- 12. OUTCOME_ATTAINMENT
 -- ══════════════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "attainment_student_read" ON public.outcome_attainment;
 DROP POLICY IF EXISTS "attainment_staff_read" ON public.outcome_attainment;
 DROP POLICY IF EXISTS "parent_read_student_attainment" ON public.outcome_attainment;
-
 CREATE POLICY "attainment_student_read" ON public.outcome_attainment
   FOR SELECT USING (student_id = (select auth.uid()));
-
 -- Vuln 17 preserved: institution-scoped staff read
 CREATE POLICY "attainment_staff_read" ON public.outcome_attainment
   FOR SELECT USING (
@@ -298,7 +258,6 @@ CREATE POLICY "attainment_staff_read" ON public.outcome_attainment
       SELECT id FROM public.profiles WHERE institution_id = (select auth_institution_id())
     )
   );
-
 CREATE POLICY "parent_read_student_attainment" ON outcome_attainment
   FOR SELECT USING (
     (select auth_user_role()) = 'parent'
@@ -310,16 +269,13 @@ CREATE POLICY "parent_read_student_attainment" ON outcome_attainment
       AND psl.verified = true
     )
   );
-
 -- ══════════════════════════════════════════════════════════════
 -- 13. BADGES
 -- ══════════════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "badges_student_read" ON public.badges;
 DROP POLICY IF EXISTS "badges_institution_read" ON public.badges;
-
 CREATE POLICY "badges_student_read" ON public.badges
   FOR SELECT USING (student_id = (select auth.uid()));
-
 -- Vuln 25 preserved: institution-scoped read
 CREATE POLICY "badges_institution_read" ON public.badges
   FOR SELECT USING (
@@ -327,16 +283,13 @@ CREATE POLICY "badges_institution_read" ON public.badges
       SELECT id FROM public.profiles WHERE institution_id = (select auth_institution_id())
     )
   );
-
 -- ══════════════════════════════════════════════════════════════
 -- 14. XP_TRANSACTIONS
 -- ══════════════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "xp_transactions_student_read" ON public.xp_transactions;
 DROP POLICY IF EXISTS "xp_transactions_admin_read" ON public.xp_transactions;
-
 CREATE POLICY "xp_transactions_student_read" ON public.xp_transactions
   FOR SELECT USING (student_id = (select auth.uid()));
-
 -- Vuln 21 preserved: institution-scoped admin read
 CREATE POLICY "xp_transactions_admin_read" ON public.xp_transactions
   FOR SELECT USING (
@@ -345,44 +298,35 @@ CREATE POLICY "xp_transactions_admin_read" ON public.xp_transactions
       SELECT id FROM public.profiles WHERE institution_id = (select auth_institution_id())
     )
   );
-
 -- ══════════════════════════════════════════════════════════════
 -- 15. JOURNAL_ENTRIES
 -- ══════════════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "journal_student_own" ON public.journal_entries;
 DROP POLICY IF EXISTS "journal_teacher_read_shared" ON public.journal_entries;
-
 CREATE POLICY "journal_student_own" ON public.journal_entries
   FOR ALL USING (student_id = (select auth.uid()));
-
 CREATE POLICY "journal_teacher_read_shared" ON public.journal_entries
   FOR SELECT USING (
     (select auth_user_role()) = 'teacher'
     AND is_shared = true
     AND course_id IN (SELECT id FROM public.courses WHERE teacher_id = (select auth.uid()))
   );
-
 -- ══════════════════════════════════════════════════════════════
 -- 16. NOTIFICATIONS
 -- ══════════════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "notifications_own" ON public.notifications;
-
 CREATE POLICY "notifications_own" ON public.notifications
   FOR ALL USING (user_id = (select auth.uid()));
-
 -- ══════════════════════════════════════════════════════════════
 -- 17. AUDIT_LOGS (append-only)
 -- ══════════════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "audit_logs_admin_insert" ON public.audit_logs;
-
 CREATE POLICY "audit_logs_admin_insert" ON public.audit_logs
   FOR INSERT WITH CHECK ((select auth_user_role()) = 'admin');
-
 -- ══════════════════════════════════════════════════════════════
 -- 18. STUDENT_GAMIFICATION
 -- ══════════════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "parent_read_student_gamification" ON student_gamification;
-
 CREATE POLICY "parent_read_student_gamification" ON student_gamification
   FOR SELECT USING (
     (select auth_user_role()) = 'parent'
@@ -393,16 +337,13 @@ CREATE POLICY "parent_read_student_gamification" ON student_gamification
       AND psl.verified = true
     )
   );
-
 -- ══════════════════════════════════════════════════════════════
 -- 19. STUDENT_ACTIVITY_LOG
 -- ══════════════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "activity_log_student_insert" ON student_activity_log;
 DROP POLICY IF EXISTS "activity_log_admin_read" ON student_activity_log;
-
 CREATE POLICY "activity_log_student_insert" ON student_activity_log
   FOR INSERT WITH CHECK (student_id = (select auth.uid()));
-
 -- Vuln 23 preserved: institution-scoped admin read
 CREATE POLICY "activity_log_admin_read" ON student_activity_log
   FOR SELECT USING (
@@ -411,7 +352,6 @@ CREATE POLICY "activity_log_admin_read" ON student_activity_log
       SELECT id FROM public.profiles WHERE institution_id = (select auth_institution_id())
     )
   );
-
 -- ══════════════════════════════════════════════════════════════
 -- 20. AI_FEEDBACK
 -- ══════════════════════════════════════════════════════════════
@@ -419,13 +359,10 @@ DROP POLICY IF EXISTS "ai_feedback_student_read" ON ai_feedback;
 DROP POLICY IF EXISTS "ai_feedback_student_update" ON ai_feedback;
 DROP POLICY IF EXISTS "ai_feedback_teacher_read" ON ai_feedback;
 DROP POLICY IF EXISTS "ai_feedback_admin_read" ON ai_feedback;
-
 CREATE POLICY "ai_feedback_student_read" ON ai_feedback
   FOR SELECT USING (student_id = (select auth.uid()));
-
 CREATE POLICY "ai_feedback_student_update" ON ai_feedback
   FOR UPDATE USING (student_id = (select auth.uid()));
-
 CREATE POLICY "ai_feedback_teacher_read" ON ai_feedback
   FOR SELECT USING (
     (select auth_user_role()) = 'teacher'
@@ -435,7 +372,6 @@ CREATE POLICY "ai_feedback_teacher_read" ON ai_feedback
       WHERE c.teacher_id = (select auth.uid())
     )
   );
-
 -- Vuln 22 preserved: institution-scoped admin read
 CREATE POLICY "ai_feedback_admin_read" ON ai_feedback
   FOR SELECT USING (
@@ -444,38 +380,30 @@ CREATE POLICY "ai_feedback_admin_read" ON ai_feedback
       SELECT id FROM public.profiles WHERE institution_id = (select auth_institution_id())
     )
   );
-
 -- ══════════════════════════════════════════════════════════════
 -- 21. SEMESTERS
 -- ══════════════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "semesters_institution_read" ON semesters;
 DROP POLICY IF EXISTS "semesters_admin_write" ON semesters;
-
 CREATE POLICY "semesters_institution_read" ON semesters
   FOR SELECT USING (institution_id = (select auth_institution_id()));
-
 CREATE POLICY "semesters_admin_write" ON semesters
   FOR ALL USING ((select auth_user_role()) = 'admin' AND institution_id = (select auth_institution_id()));
-
 -- ══════════════════════════════════════════════════════════════
 -- 22. DEPARTMENTS
 -- ══════════════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "departments_institution_read" ON departments;
 DROP POLICY IF EXISTS "departments_admin_write" ON departments;
-
 CREATE POLICY "departments_institution_read" ON departments
   FOR SELECT USING (institution_id = (select auth_institution_id()));
-
 CREATE POLICY "departments_admin_write" ON departments
   FOR ALL USING ((select auth_user_role()) = 'admin' AND institution_id = (select auth_institution_id()));
-
 -- ══════════════════════════════════════════════════════════════
 -- 23. COURSE_SECTIONS
 -- ══════════════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "sections_read" ON course_sections;
 DROP POLICY IF EXISTS "sections_admin_write" ON course_sections;
 DROP POLICY IF EXISTS "sections_coordinator_write" ON course_sections;
-
 CREATE POLICY "sections_read" ON course_sections
   FOR SELECT USING (
     EXISTS (
@@ -485,7 +413,6 @@ CREATE POLICY "sections_read" ON course_sections
       AND p.institution_id = (select auth_institution_id())
     )
   );
-
 CREATE POLICY "sections_admin_write" ON course_sections
   FOR ALL USING (
     (select auth_user_role()) = 'admin'
@@ -496,7 +423,6 @@ CREATE POLICY "sections_admin_write" ON course_sections
       AND p.institution_id = (select auth_institution_id())
     )
   );
-
 CREATE POLICY "sections_coordinator_write" ON course_sections
   FOR ALL USING (
     (select auth_user_role()) = 'coordinator'
@@ -507,66 +433,53 @@ CREATE POLICY "sections_coordinator_write" ON course_sections
       AND p.coordinator_id = (select auth.uid())
     )
   );
-
 -- ══════════════════════════════════════════════════════════════
 -- 24. SURVEYS
 -- ══════════════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "surveys_institution_read" ON surveys;
 DROP POLICY IF EXISTS "surveys_admin_write" ON surveys;
 DROP POLICY IF EXISTS "surveys_coordinator_write" ON surveys;
-
 CREATE POLICY "surveys_institution_read" ON surveys
   FOR SELECT USING (institution_id = (select auth_institution_id()));
-
 CREATE POLICY "surveys_admin_write" ON surveys
   FOR ALL USING ((select auth_user_role()) = 'admin' AND institution_id = (select auth_institution_id()));
-
 CREATE POLICY "surveys_coordinator_write" ON surveys
   FOR ALL USING ((select auth_user_role()) = 'coordinator' AND institution_id = (select auth_institution_id()));
-
 -- ══════════════════════════════════════════════════════════════
 -- 25. SURVEY_QUESTIONS
 -- ══════════════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "survey_questions_read" ON survey_questions;
 DROP POLICY IF EXISTS "survey_questions_admin_write" ON survey_questions;
-
 CREATE POLICY "survey_questions_read" ON survey_questions
   FOR SELECT USING (
     EXISTS (SELECT 1 FROM surveys s WHERE s.id = survey_questions.survey_id AND s.institution_id = (select auth_institution_id()))
   );
-
 CREATE POLICY "survey_questions_admin_write" ON survey_questions
   FOR ALL USING (
     (select auth_user_role()) IN ('admin', 'coordinator')
     AND EXISTS (SELECT 1 FROM surveys s WHERE s.id = survey_questions.survey_id AND s.institution_id = (select auth_institution_id()))
   );
-
 -- ══════════════════════════════════════════════════════════════
 -- 26. SURVEY_RESPONSES
 -- ══════════════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "survey_responses_own_read" ON survey_responses;
 DROP POLICY IF EXISTS "survey_responses_own_insert" ON survey_responses;
 DROP POLICY IF EXISTS "survey_responses_admin_read" ON survey_responses;
-
 CREATE POLICY "survey_responses_own_read" ON survey_responses
   FOR SELECT USING (respondent_id = (select auth.uid()));
-
 CREATE POLICY "survey_responses_own_insert" ON survey_responses
   FOR INSERT WITH CHECK (respondent_id = (select auth.uid()));
-
 CREATE POLICY "survey_responses_admin_read" ON survey_responses
   FOR SELECT USING (
     (select auth_user_role()) IN ('admin', 'coordinator')
     AND EXISTS (SELECT 1 FROM surveys s WHERE s.id = survey_responses.survey_id AND s.institution_id = (select auth_institution_id()))
   );
-
 -- ══════════════════════════════════════════════════════════════
 -- 27. CQI_ACTION_PLANS
 -- ══════════════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "cqi_plans_read" ON cqi_action_plans;
 DROP POLICY IF EXISTS "cqi_plans_coordinator_write" ON cqi_action_plans;
 DROP POLICY IF EXISTS "cqi_plans_admin_write" ON cqi_action_plans;
-
 CREATE POLICY "cqi_plans_read" ON cqi_action_plans
   FOR SELECT USING (
     (select auth_user_role()) IN ('admin', 'coordinator')
@@ -574,7 +487,6 @@ CREATE POLICY "cqi_plans_read" ON cqi_action_plans
       SELECT 1 FROM programs p WHERE p.id = cqi_action_plans.program_id AND p.institution_id = (select auth_institution_id())
     )
   );
-
 CREATE POLICY "cqi_plans_coordinator_write" ON cqi_action_plans
   FOR ALL USING (
     (select auth_user_role()) = 'coordinator'
@@ -582,7 +494,6 @@ CREATE POLICY "cqi_plans_coordinator_write" ON cqi_action_plans
       SELECT 1 FROM programs p WHERE p.id = cqi_action_plans.program_id AND p.coordinator_id = (select auth.uid())
     )
   );
-
 CREATE POLICY "cqi_plans_admin_write" ON cqi_action_plans
   FOR ALL USING (
     (select auth_user_role()) = 'admin'
@@ -590,50 +501,41 @@ CREATE POLICY "cqi_plans_admin_write" ON cqi_action_plans
       SELECT 1 FROM programs p WHERE p.id = cqi_action_plans.program_id AND p.institution_id = (select auth_institution_id())
     )
   );
-
 -- ══════════════════════════════════════════════════════════════
 -- 28. INSTITUTION_SETTINGS
 -- ══════════════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "institution_settings_read" ON institution_settings;
 DROP POLICY IF EXISTS "institution_settings_admin_write" ON institution_settings;
-
 CREATE POLICY "institution_settings_read" ON institution_settings
   FOR SELECT USING (institution_id = (select auth_institution_id()));
-
 CREATE POLICY "institution_settings_admin_write" ON institution_settings
   FOR ALL USING ((select auth_user_role()) = 'admin' AND institution_id = (select auth_institution_id()));
-
 -- ══════════════════════════════════════════════════════════════
 -- 29. PROGRAM_ACCREDITATIONS
 -- ══════════════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "program_accreditations_read" ON program_accreditations;
 DROP POLICY IF EXISTS "program_accreditations_admin_write" ON program_accreditations;
 DROP POLICY IF EXISTS "program_accreditations_coordinator_write" ON program_accreditations;
-
 CREATE POLICY "program_accreditations_read" ON program_accreditations
   FOR SELECT USING (
     EXISTS (SELECT 1 FROM programs p WHERE p.id = program_accreditations.program_id AND p.institution_id = (select auth_institution_id()))
   );
-
 CREATE POLICY "program_accreditations_admin_write" ON program_accreditations
   FOR ALL USING (
     (select auth_user_role()) = 'admin'
     AND EXISTS (SELECT 1 FROM programs p WHERE p.id = program_accreditations.program_id AND p.institution_id = (select auth_institution_id()))
   );
-
 CREATE POLICY "program_accreditations_coordinator_write" ON program_accreditations
   FOR ALL USING (
     (select auth_user_role()) = 'coordinator'
     AND EXISTS (SELECT 1 FROM programs p WHERE p.id = program_accreditations.program_id AND p.coordinator_id = (select auth.uid()))
   );
-
 -- ══════════════════════════════════════════════════════════════
 -- 30. ANNOUNCEMENTS
 -- ══════════════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "announcements_course_read" ON announcements;
 DROP POLICY IF EXISTS "announcements_teacher_write" ON announcements;
 DROP POLICY IF EXISTS "announcements_admin_write" ON announcements;
-
 CREATE POLICY "announcements_course_read" ON announcements
   FOR SELECT USING (
     EXISTS (
@@ -643,13 +545,11 @@ CREATE POLICY "announcements_course_read" ON announcements
       AND p.institution_id = (select auth_institution_id())
     )
   );
-
 CREATE POLICY "announcements_teacher_write" ON announcements
   FOR ALL USING (
     (select auth_user_role()) = 'teacher'
     AND EXISTS (SELECT 1 FROM courses c WHERE c.id = announcements.course_id AND c.teacher_id = (select auth.uid()))
   );
-
 CREATE POLICY "announcements_admin_write" ON announcements
   FOR ALL USING (
     (select auth_user_role()) = 'admin'
@@ -658,13 +558,11 @@ CREATE POLICY "announcements_admin_write" ON announcements
       WHERE c.id = announcements.course_id AND p.institution_id = (select auth_institution_id())
     )
   );
-
 -- ══════════════════════════════════════════════════════════════
 -- 31. COURSE_MODULES
 -- ══════════════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "course_modules_read" ON course_modules;
 DROP POLICY IF EXISTS "course_modules_teacher_write" ON course_modules;
-
 CREATE POLICY "course_modules_read" ON course_modules
   FOR SELECT USING (
     EXISTS (
@@ -672,19 +570,16 @@ CREATE POLICY "course_modules_read" ON course_modules
       WHERE c.id = course_modules.course_id AND p.institution_id = (select auth_institution_id())
     )
   );
-
 CREATE POLICY "course_modules_teacher_write" ON course_modules
   FOR ALL USING (
     (select auth_user_role()) = 'teacher'
     AND EXISTS (SELECT 1 FROM courses c WHERE c.id = course_modules.course_id AND c.teacher_id = (select auth.uid()))
   );
-
 -- ══════════════════════════════════════════════════════════════
 -- 32. COURSE_MATERIALS
 -- ══════════════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "course_materials_read" ON course_materials;
 DROP POLICY IF EXISTS "course_materials_teacher_write" ON course_materials;
-
 CREATE POLICY "course_materials_read" ON course_materials
   FOR SELECT USING (
     EXISTS (
@@ -694,7 +589,6 @@ CREATE POLICY "course_materials_read" ON course_materials
       WHERE cm.id = course_materials.module_id AND p.institution_id = (select auth_institution_id())
     )
   );
-
 CREATE POLICY "course_materials_teacher_write" ON course_materials
   FOR ALL USING (
     (select auth_user_role()) = 'teacher'
@@ -704,14 +598,12 @@ CREATE POLICY "course_materials_teacher_write" ON course_materials
       WHERE cm.id = course_materials.module_id AND c.teacher_id = (select auth.uid())
     )
   );
-
 -- ══════════════════════════════════════════════════════════════
 -- 33. DISCUSSION_THREADS
 -- ══════════════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "discussion_threads_course_read" ON discussion_threads;
 DROP POLICY IF EXISTS "discussion_threads_author_write" ON discussion_threads;
 DROP POLICY IF EXISTS "discussion_threads_teacher_manage" ON discussion_threads;
-
 CREATE POLICY "discussion_threads_course_read" ON discussion_threads
   FOR SELECT USING (
     EXISTS (
@@ -719,7 +611,6 @@ CREATE POLICY "discussion_threads_course_read" ON discussion_threads
       WHERE c.id = discussion_threads.course_id AND p.institution_id = (select auth_institution_id())
     )
   );
-
 CREATE POLICY "discussion_threads_author_write" ON discussion_threads
   FOR INSERT WITH CHECK (
     author_id = (select auth.uid())
@@ -728,20 +619,17 @@ CREATE POLICY "discussion_threads_author_write" ON discussion_threads
       WHERE c.id = discussion_threads.course_id AND p.institution_id = (select auth_institution_id())
     )
   );
-
 CREATE POLICY "discussion_threads_teacher_manage" ON discussion_threads
   FOR ALL USING (
     (select auth_user_role()) = 'teacher'
     AND EXISTS (SELECT 1 FROM courses c WHERE c.id = discussion_threads.course_id AND c.teacher_id = (select auth.uid()))
   );
-
 -- ══════════════════════════════════════════════════════════════
 -- 34. DISCUSSION_REPLIES
 -- ══════════════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "discussion_replies_read" ON discussion_replies;
 DROP POLICY IF EXISTS "discussion_replies_author_insert" ON discussion_replies;
 DROP POLICY IF EXISTS "discussion_replies_teacher_manage" ON discussion_replies;
-
 CREATE POLICY "discussion_replies_read" ON discussion_replies
   FOR SELECT USING (
     EXISTS (
@@ -751,7 +639,6 @@ CREATE POLICY "discussion_replies_read" ON discussion_replies
       WHERE dt.id = discussion_replies.thread_id AND p.institution_id = (select auth_institution_id())
     )
   );
-
 CREATE POLICY "discussion_replies_author_insert" ON discussion_replies
   FOR INSERT WITH CHECK (
     author_id = (select auth.uid())
@@ -762,7 +649,6 @@ CREATE POLICY "discussion_replies_author_insert" ON discussion_replies
       WHERE dt.id = discussion_replies.thread_id AND p.institution_id = (select auth_institution_id())
     )
   );
-
 CREATE POLICY "discussion_replies_teacher_manage" ON discussion_replies
   FOR ALL USING (
     (select auth_user_role()) = 'teacher'
@@ -772,13 +658,11 @@ CREATE POLICY "discussion_replies_teacher_manage" ON discussion_replies
       WHERE dt.id = discussion_replies.thread_id AND c.teacher_id = (select auth.uid())
     )
   );
-
 -- ══════════════════════════════════════════════════════════════
 -- 35. CLASS_SESSIONS
 -- ══════════════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "class_sessions_read" ON class_sessions;
 DROP POLICY IF EXISTS "class_sessions_teacher_write" ON class_sessions;
-
 CREATE POLICY "class_sessions_read" ON class_sessions
   FOR SELECT USING (
     EXISTS (
@@ -788,7 +672,6 @@ CREATE POLICY "class_sessions_read" ON class_sessions
       WHERE cs.id = class_sessions.section_id AND p.institution_id = (select auth_institution_id())
     )
   );
-
 CREATE POLICY "class_sessions_teacher_write" ON class_sessions
   FOR ALL USING (
     (select auth_user_role()) = 'teacher'
@@ -796,7 +679,6 @@ CREATE POLICY "class_sessions_teacher_write" ON class_sessions
       SELECT 1 FROM course_sections cs WHERE cs.id = class_sessions.section_id AND cs.teacher_id = (select auth.uid())
     )
   );
-
 -- ══════════════════════════════════════════════════════════════
 -- 36. ATTENDANCE_RECORDS
 -- ══════════════════════════════════════════════════════════════
@@ -804,10 +686,8 @@ DROP POLICY IF EXISTS "attendance_own_read" ON attendance_records;
 DROP POLICY IF EXISTS "attendance_teacher_manage" ON attendance_records;
 DROP POLICY IF EXISTS "attendance_admin_read" ON attendance_records;
 DROP POLICY IF EXISTS "parent_read_student_attendance" ON attendance_records;
-
 CREATE POLICY "attendance_own_read" ON attendance_records
   FOR SELECT USING (student_id = (select auth.uid()));
-
 CREATE POLICY "attendance_teacher_manage" ON attendance_records
   FOR ALL USING (
     (select auth_user_role()) = 'teacher'
@@ -817,7 +697,6 @@ CREATE POLICY "attendance_teacher_manage" ON attendance_records
       WHERE cs.id = attendance_records.session_id AND sect.teacher_id = (select auth.uid())
     )
   );
-
 -- Vuln 18 preserved: institution-scoped admin read
 CREATE POLICY "attendance_admin_read" ON attendance_records
   FOR SELECT USING (
@@ -826,7 +705,6 @@ CREATE POLICY "attendance_admin_read" ON attendance_records
       SELECT id FROM public.profiles WHERE institution_id = (select auth_institution_id())
     )
   );
-
 CREATE POLICY "parent_read_student_attendance" ON attendance_records
   FOR SELECT USING (
     (select auth_user_role()) = 'parent'
@@ -837,13 +715,11 @@ CREATE POLICY "parent_read_student_attendance" ON attendance_records
       AND psl.verified = true
     )
   );
-
 -- ══════════════════════════════════════════════════════════════
 -- 37. QUIZZES
 -- ══════════════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "quizzes_course_read" ON quizzes;
 DROP POLICY IF EXISTS "quizzes_teacher_write" ON quizzes;
-
 CREATE POLICY "quizzes_course_read" ON quizzes
   FOR SELECT USING (
     EXISTS (
@@ -851,19 +727,16 @@ CREATE POLICY "quizzes_course_read" ON quizzes
       WHERE c.id = quizzes.course_id AND p.institution_id = (select auth_institution_id())
     )
   );
-
 CREATE POLICY "quizzes_teacher_write" ON quizzes
   FOR ALL USING (
     (select auth_user_role()) = 'teacher'
     AND EXISTS (SELECT 1 FROM courses c WHERE c.id = quizzes.course_id AND c.teacher_id = (select auth.uid()))
   );
-
 -- ══════════════════════════════════════════════════════════════
 -- 38. QUIZ_QUESTIONS
 -- ══════════════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "quiz_questions_read" ON quiz_questions;
 DROP POLICY IF EXISTS "quiz_questions_teacher_write" ON quiz_questions;
-
 CREATE POLICY "quiz_questions_read" ON quiz_questions
   FOR SELECT USING (
     EXISTS (
@@ -873,7 +746,6 @@ CREATE POLICY "quiz_questions_read" ON quiz_questions
       WHERE q.id = quiz_questions.quiz_id AND p.institution_id = (select auth_institution_id())
     )
   );
-
 CREATE POLICY "quiz_questions_teacher_write" ON quiz_questions
   FOR ALL USING (
     (select auth_user_role()) = 'teacher'
@@ -883,7 +755,6 @@ CREATE POLICY "quiz_questions_teacher_write" ON quiz_questions
       WHERE q.id = quiz_questions.quiz_id AND c.teacher_id = (select auth.uid())
     )
   );
-
 -- ══════════════════════════════════════════════════════════════
 -- 39. QUIZ_ATTEMPTS
 -- ══════════════════════════════════════════════════════════════
@@ -891,13 +762,10 @@ CREATE POLICY "quiz_questions_teacher_write" ON quiz_questions
 DROP POLICY IF EXISTS "quiz_attempts_student_read" ON quiz_attempts;
 DROP POLICY IF EXISTS "quiz_attempts_student_insert" ON quiz_attempts;
 DROP POLICY IF EXISTS "quiz_attempts_teacher_read" ON quiz_attempts;
-
 CREATE POLICY "quiz_attempts_student_read" ON quiz_attempts
   FOR SELECT USING (student_id = (select auth.uid()));
-
 CREATE POLICY "quiz_attempts_student_insert" ON quiz_attempts
   FOR INSERT WITH CHECK (student_id = (select auth.uid()));
-
 CREATE POLICY "quiz_attempts_teacher_read" ON quiz_attempts
   FOR SELECT USING (
     (select auth_user_role()) = 'teacher'
@@ -907,13 +775,11 @@ CREATE POLICY "quiz_attempts_teacher_read" ON quiz_attempts
       WHERE q.id = quiz_attempts.quiz_id AND c.teacher_id = (select auth.uid())
     )
   );
-
 -- ══════════════════════════════════════════════════════════════
 -- 40. GRADE_CATEGORIES
 -- ══════════════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "grade_categories_read" ON grade_categories;
 DROP POLICY IF EXISTS "grade_categories_teacher_write" ON grade_categories;
-
 CREATE POLICY "grade_categories_read" ON grade_categories
   FOR SELECT USING (
     EXISTS (
@@ -921,19 +787,16 @@ CREATE POLICY "grade_categories_read" ON grade_categories
       WHERE c.id = grade_categories.course_id AND p.institution_id = (select auth_institution_id())
     )
   );
-
 CREATE POLICY "grade_categories_teacher_write" ON grade_categories
   FOR ALL USING (
     (select auth_user_role()) = 'teacher'
     AND EXISTS (SELECT 1 FROM courses c WHERE c.id = grade_categories.course_id AND c.teacher_id = (select auth.uid()))
   );
-
 -- ══════════════════════════════════════════════════════════════
 -- 41. TIMETABLE_SLOTS
 -- ══════════════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "timetable_slots_read" ON timetable_slots;
 DROP POLICY IF EXISTS "timetable_slots_admin_write" ON timetable_slots;
-
 CREATE POLICY "timetable_slots_read" ON timetable_slots
   FOR SELECT USING (
     EXISTS (
@@ -943,7 +806,6 @@ CREATE POLICY "timetable_slots_read" ON timetable_slots
       WHERE cs.id = timetable_slots.section_id AND p.institution_id = (select auth_institution_id())
     )
   );
-
 CREATE POLICY "timetable_slots_admin_write" ON timetable_slots
   FOR ALL USING (
     (select auth_user_role()) = 'admin'
@@ -954,51 +816,41 @@ CREATE POLICY "timetable_slots_admin_write" ON timetable_slots
       WHERE cs.id = timetable_slots.section_id AND p.institution_id = (select auth_institution_id())
     )
   );
-
 -- ══════════════════════════════════════════════════════════════
 -- 42. ACADEMIC_CALENDAR_EVENTS
 -- ══════════════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "calendar_events_institution_read" ON academic_calendar_events;
 DROP POLICY IF EXISTS "calendar_events_admin_write" ON academic_calendar_events;
-
 CREATE POLICY "calendar_events_institution_read" ON academic_calendar_events
   FOR SELECT USING (institution_id = (select auth_institution_id()));
-
 CREATE POLICY "calendar_events_admin_write" ON academic_calendar_events
   FOR ALL USING ((select auth_user_role()) = 'admin' AND institution_id = (select auth_institution_id()));
-
 -- ══════════════════════════════════════════════════════════════
 -- 43. PARENT_STUDENT_LINKS
 -- ══════════════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "parent_links_parent_read" ON parent_student_links;
 DROP POLICY IF EXISTS "parent_links_student_read" ON parent_student_links;
 DROP POLICY IF EXISTS "parent_links_admin_manage" ON parent_student_links;
-
 CREATE POLICY "parent_links_parent_read" ON parent_student_links
   FOR SELECT USING (parent_id = (select auth.uid()));
-
 CREATE POLICY "parent_links_student_read" ON parent_student_links
   FOR SELECT USING (student_id = (select auth.uid()));
-
 CREATE POLICY "parent_links_admin_manage" ON parent_student_links
   FOR ALL USING (
     (select auth_user_role()) = 'admin'
     AND EXISTS (SELECT 1 FROM profiles p WHERE p.id = parent_student_links.student_id AND p.institution_id = (select auth_institution_id()))
   );
-
 -- ══════════════════════════════════════════════════════════════
 -- 44. FEE_STRUCTURES
 -- ══════════════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "fee_structures_institution_read" ON fee_structures;
 DROP POLICY IF EXISTS "fee_structures_admin_write" ON fee_structures;
-
 CREATE POLICY "fee_structures_institution_read" ON fee_structures
   FOR SELECT USING (
     EXISTS (
       SELECT 1 FROM programs p WHERE p.id = fee_structures.program_id AND p.institution_id = (select auth_institution_id())
     )
   );
-
 CREATE POLICY "fee_structures_admin_write" ON fee_structures
   FOR ALL USING (
     (select auth_user_role()) = 'admin'
@@ -1006,16 +858,13 @@ CREATE POLICY "fee_structures_admin_write" ON fee_structures
       SELECT 1 FROM programs p WHERE p.id = fee_structures.program_id AND p.institution_id = (select auth_institution_id())
     )
   );
-
 -- ══════════════════════════════════════════════════════════════
 -- 45. FEE_PAYMENTS
 -- ══════════════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "fee_payments_own_read" ON fee_payments;
 DROP POLICY IF EXISTS "fee_payments_admin_manage" ON fee_payments;
-
 CREATE POLICY "fee_payments_own_read" ON fee_payments
   FOR SELECT USING (student_id = (select auth.uid()));
-
 CREATE POLICY "fee_payments_admin_manage" ON fee_payments
   FOR ALL USING (
     (select auth_user_role()) = 'admin'
@@ -1023,16 +872,13 @@ CREATE POLICY "fee_payments_admin_manage" ON fee_payments
       SELECT 1 FROM profiles p WHERE p.id = fee_payments.student_id AND p.institution_id = (select auth_institution_id())
     )
   );
-
 -- ══════════════════════════════════════════════════════════════
 -- 46. HABIT_TRACKING
 -- ══════════════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "habit_tracking_student_own" ON public.habit_tracking;
 DROP POLICY IF EXISTS "habit_tracking_staff_read" ON public.habit_tracking;
-
 CREATE POLICY "habit_tracking_student_own" ON public.habit_tracking
   FOR ALL USING (student_id = (select auth.uid()));
-
 -- Vuln 24 preserved: institution-scoped staff read
 CREATE POLICY "habit_tracking_staff_read" ON public.habit_tracking
   FOR SELECT USING (
@@ -1041,28 +887,23 @@ CREATE POLICY "habit_tracking_staff_read" ON public.habit_tracking
       SELECT id FROM public.profiles WHERE institution_id = (select auth_institution_id())
     )
   );
-
 -- ══════════════════════════════════════════════════════════════
 -- 47. XP_EVENTS
 -- ══════════════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "xp_events_read" ON public.xp_events;
 DROP POLICY IF EXISTS "xp_events_admin_write" ON public.xp_events;
-
 CREATE POLICY "xp_events_read" ON public.xp_events
   FOR SELECT USING (is_active = true);
-
 CREATE POLICY "xp_events_admin_write" ON public.xp_events
   FOR ALL USING (
     (select auth_user_role()) = 'admin'
     AND (institution_id IS NULL OR institution_id = (select auth_institution_id()))
   );
-
 -- ══════════════════════════════════════════════════════════════
 -- 48. LEARNING_PATH_NODES
 -- ══════════════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "learning_path_nodes_read" ON public.learning_path_nodes;
 DROP POLICY IF EXISTS "learning_path_nodes_teacher_write" ON public.learning_path_nodes;
-
 CREATE POLICY "learning_path_nodes_read" ON public.learning_path_nodes
   FOR SELECT USING (
     course_id IN (
@@ -1071,87 +912,71 @@ CREATE POLICY "learning_path_nodes_read" ON public.learning_path_nodes
       SELECT id FROM public.courses WHERE teacher_id = (select auth.uid())
     )
   );
-
 CREATE POLICY "learning_path_nodes_teacher_write" ON public.learning_path_nodes
   FOR ALL USING (
     (select auth_user_role()) = 'teacher'
     AND course_id IN (SELECT id FROM public.courses WHERE teacher_id = (select auth.uid()))
   );
-
 -- ══════════════════════════════════════════════════════════════
 -- 49. ONBOARDING_QUESTIONS
 -- ══════════════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "questions_student_read" ON onboarding_questions;
 DROP POLICY IF EXISTS "questions_teacher_manage" ON onboarding_questions;
 DROP POLICY IF EXISTS "questions_admin_all" ON onboarding_questions;
-
 CREATE POLICY "questions_student_read" ON onboarding_questions
   FOR SELECT USING (
     (select auth_user_role()) = 'student'
     AND institution_id = (select auth_institution_id())
     AND is_active = true
   );
-
 CREATE POLICY "questions_teacher_manage" ON onboarding_questions
   FOR ALL USING (
     (select auth_user_role()) = 'teacher'
     AND assessment_type = 'baseline'
     AND course_id IN (SELECT id FROM courses WHERE teacher_id = (select auth.uid()))
   );
-
 CREATE POLICY "questions_admin_all" ON onboarding_questions
   FOR ALL USING (
     (select auth_user_role()) = 'admin'
     AND institution_id = (select auth_institution_id())
   );
-
 -- ══════════════════════════════════════════════════════════════
 -- 50. ONBOARDING_RESPONSES
 -- ══════════════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "responses_student_own" ON onboarding_responses;
-
 CREATE POLICY "responses_student_own" ON onboarding_responses
   FOR ALL USING (student_id = (select auth.uid()));
-
 -- ══════════════════════════════════════════════════════════════
 -- 51. ONBOARDING_PROGRESS
 -- ══════════════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "progress_student_own" ON onboarding_progress;
-
 CREATE POLICY "progress_student_own" ON onboarding_progress
   FOR ALL USING (student_id = (select auth.uid()));
-
 -- ══════════════════════════════════════════════════════════════
 -- 52. STUDENT_PROFILES
 -- ══════════════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "profiles_student_own" ON student_profiles;
 DROP POLICY IF EXISTS "profiles_admin_read" ON student_profiles;
-
 CREATE POLICY "profiles_student_own" ON student_profiles
   FOR ALL USING (student_id = (select auth.uid()));
-
 CREATE POLICY "profiles_admin_read" ON student_profiles
   FOR SELECT USING (
     (select auth_user_role()) = 'admin'
     AND institution_id = (select auth_institution_id())
   );
-
 -- ══════════════════════════════════════════════════════════════
 -- 53. BASELINE_ATTAINMENT
 -- ══════════════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "baseline_student_own" ON baseline_attainment;
 DROP POLICY IF EXISTS "baseline_teacher_read" ON baseline_attainment;
 DROP POLICY IF EXISTS "baseline_admin_read" ON baseline_attainment;
-
 CREATE POLICY "baseline_student_own" ON baseline_attainment
   FOR SELECT USING (student_id = (select auth.uid()));
-
 CREATE POLICY "baseline_teacher_read" ON baseline_attainment
   FOR SELECT USING (
     (select auth_user_role()) = 'teacher'
     AND course_id IN (SELECT id FROM courses WHERE teacher_id = (select auth.uid()))
   );
-
 CREATE POLICY "baseline_admin_read" ON baseline_attainment
   FOR SELECT USING (
     (select auth_user_role()) = 'admin'
@@ -1161,26 +986,22 @@ CREATE POLICY "baseline_admin_read" ON baseline_attainment
       WHERE p.institution_id = (select auth_institution_id())
     )
   );
-
 -- ══════════════════════════════════════════════════════════════
 -- 54. BASELINE_TEST_CONFIG
 -- ══════════════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "config_student_read" ON baseline_test_config;
 DROP POLICY IF EXISTS "config_teacher_manage" ON baseline_test_config;
 DROP POLICY IF EXISTS "config_admin_all" ON baseline_test_config;
-
 CREATE POLICY "config_student_read" ON baseline_test_config
   FOR SELECT USING (
     (select auth_user_role()) = 'student'
     AND course_id IN (SELECT course_id FROM student_courses WHERE student_id = (select auth.uid()))
   );
-
 CREATE POLICY "config_teacher_manage" ON baseline_test_config
   FOR ALL USING (
     (select auth_user_role()) = 'teacher'
     AND course_id IN (SELECT id FROM courses WHERE teacher_id = (select auth.uid()))
   );
-
 CREATE POLICY "config_admin_all" ON baseline_test_config
   FOR ALL USING (
     (select auth_user_role()) = 'admin'
@@ -1190,31 +1011,24 @@ CREATE POLICY "config_admin_all" ON baseline_test_config
       WHERE p.institution_id = (select auth_institution_id())
     )
   );
-
 -- ══════════════════════════════════════════════════════════════
 -- 55. MICRO_ASSESSMENT_SCHEDULE
 -- ══════════════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "micro_schedule_student_own" ON micro_assessment_schedule;
-
 CREATE POLICY "micro_schedule_student_own" ON micro_assessment_schedule
   FOR ALL USING (student_id = (select auth.uid()));
-
 -- ══════════════════════════════════════════════════════════════
 -- 56. STARTER_WEEK_SESSIONS
 -- ══════════════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "starter_sessions_student_own" ON starter_week_sessions;
-
 CREATE POLICY "starter_sessions_student_own" ON starter_week_sessions
   FOR ALL USING (student_id = (select auth.uid()));
-
 -- ══════════════════════════════════════════════════════════════
 -- 57. GOAL_SUGGESTIONS
 -- ══════════════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "goal_suggestions_student_own" ON goal_suggestions;
-
 CREATE POLICY "goal_suggestions_student_own" ON goal_suggestions
   FOR ALL USING (student_id = (select auth.uid()));
-
 -- ══════════════════════════════════════════════════════════════
 -- 58. WELLNESS_HABIT_LOGS
 -- ══════════════════════════════════════════════════════════════
@@ -1222,20 +1036,16 @@ DROP POLICY IF EXISTS "student_select_own_wellness_logs" ON wellness_habit_logs;
 DROP POLICY IF EXISTS "student_insert_own_wellness_logs" ON wellness_habit_logs;
 DROP POLICY IF EXISTS "student_update_own_wellness_logs" ON wellness_habit_logs;
 DROP POLICY IF EXISTS "parent_read_linked_wellness_logs" ON wellness_habit_logs;
-
 CREATE POLICY "student_select_own_wellness_logs" ON wellness_habit_logs
   FOR SELECT TO authenticated
   USING (student_id = (select auth.uid()));
-
 CREATE POLICY "student_insert_own_wellness_logs" ON wellness_habit_logs
   FOR INSERT TO authenticated
   WITH CHECK (student_id = (select auth.uid()) AND (select auth_user_role()) = 'student');
-
 CREATE POLICY "student_update_own_wellness_logs" ON wellness_habit_logs
   FOR UPDATE TO authenticated
   USING (student_id = (select auth.uid()) AND (select auth_user_role()) = 'student')
   WITH CHECK (student_id = (select auth.uid()));
-
 CREATE POLICY "parent_read_linked_wellness_logs" ON wellness_habit_logs
   FOR SELECT TO authenticated
   USING (
@@ -1248,17 +1058,14 @@ CREATE POLICY "parent_read_linked_wellness_logs" ON wellness_habit_logs
         AND swp.parent_visibility = true
     )
   );
-
 -- ══════════════════════════════════════════════════════════════
 -- 59. STUDENT_WELLNESS_PREFERENCES
 -- ══════════════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "student_manage_own_preferences" ON student_wellness_preferences;
-
 CREATE POLICY "student_manage_own_preferences" ON student_wellness_preferences
   FOR ALL TO authenticated
   USING (student_id = (select auth.uid()) AND (select auth_user_role()) = 'student')
   WITH CHECK (student_id = (select auth.uid()) AND (select auth_user_role()) = 'student');
-
 -- ══════════════════════════════════════════════════════════════
 -- 60. QUESTION_BANK
 -- Note: duplicate policies exist from two migrations (000006 and 050520).
@@ -1266,7 +1073,6 @@ CREATE POLICY "student_manage_own_preferences" ON student_wellness_preferences
 -- ══════════════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "qbank_teacher_all" ON question_bank;
 DROP POLICY IF EXISTS "qbank_admin_read" ON question_bank;
-
 CREATE POLICY "qbank_teacher_all" ON question_bank
   FOR ALL TO authenticated
   USING (
@@ -1277,14 +1083,12 @@ CREATE POLICY "qbank_teacher_all" ON question_bank
     (select auth_user_role()) = 'teacher'
     AND course_id IN (SELECT id FROM courses WHERE teacher_id = (select auth.uid()))
   );
-
 CREATE POLICY "qbank_admin_read" ON question_bank
   FOR SELECT TO authenticated
   USING (
     (select auth_user_role()) = 'admin'
     AND institution_id = (select auth_institution_id())
   );
-
 -- ══════════════════════════════════════════════════════════════
 -- 61. QUESTION_ANALYTICS
 -- Note: duplicate policies exist from two migrations (000007 and 050529).
@@ -1292,7 +1096,6 @@ CREATE POLICY "qbank_admin_read" ON question_bank
 -- ══════════════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "qanalytics_teacher_read" ON question_analytics;
 DROP POLICY IF EXISTS "qanalytics_admin_read" ON question_analytics;
-
 CREATE POLICY "qanalytics_teacher_read" ON question_analytics
   FOR SELECT TO authenticated
   USING (
@@ -1302,7 +1105,6 @@ CREATE POLICY "qanalytics_teacher_read" ON question_analytics
       WHERE course_id IN (SELECT id FROM courses WHERE teacher_id = (select auth.uid()))
     )
   );
-
 CREATE POLICY "qanalytics_admin_read" ON question_analytics
   FOR SELECT TO authenticated
   USING (
@@ -1311,7 +1113,6 @@ CREATE POLICY "qanalytics_admin_read" ON question_analytics
       SELECT id FROM question_bank WHERE institution_id = (select auth_institution_id())
     )
   );
-
 -- ══════════════════════════════════════════════════════════════
 -- 62. QUIZ_GENERATION_LOGS
 -- Note: duplicate policies exist from two migrations (000008 and 050537).
@@ -1319,18 +1120,15 @@ CREATE POLICY "qanalytics_admin_read" ON question_analytics
 -- ══════════════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "gen_logs_teacher_read" ON quiz_generation_logs;
 DROP POLICY IF EXISTS "gen_logs_admin_read" ON quiz_generation_logs;
-
 CREATE POLICY "gen_logs_teacher_read" ON quiz_generation_logs
   FOR SELECT TO authenticated
   USING (teacher_id = (select auth.uid()));
-
 CREATE POLICY "gen_logs_admin_read" ON quiz_generation_logs
   FOR SELECT TO authenticated
   USING (
     (select auth_user_role()) = 'admin'
     AND institution_id = (select auth_institution_id())
   );
-
 -- ══════════════════════════════════════════════════════════════
 -- 63. MASTERY_RECOVERY_PATHWAYS
 -- Note: multiple duplicate migrations exist. We drop all known policy names
@@ -1345,34 +1143,28 @@ DROP POLICY IF EXISTS "recovery_student_read" ON mastery_recovery_pathways;
 DROP POLICY IF EXISTS "recovery_teacher_read" ON mastery_recovery_pathways;
 DROP POLICY IF EXISTS "recovery_admin_read" ON mastery_recovery_pathways;
 DROP POLICY IF EXISTS "recovery_coordinator_read" ON mastery_recovery_pathways;
-
 CREATE POLICY "student_own_recovery" ON mastery_recovery_pathways
   FOR SELECT TO authenticated
   USING ((select auth_user_role()) = 'student' AND student_id = (select auth.uid()));
-
 CREATE POLICY "teacher_course_recovery" ON mastery_recovery_pathways
   FOR SELECT TO authenticated
   USING (
     (select auth_user_role()) = 'teacher'
     AND course_id IN (SELECT id FROM courses WHERE teacher_id = (select auth.uid()))
   );
-
 CREATE POLICY "coordinator_institution_recovery" ON mastery_recovery_pathways
   FOR SELECT TO authenticated
   USING (
     (select auth_user_role()) = 'coordinator'
     AND institution_id = (select auth_institution_id())
   );
-
 CREATE POLICY "admin_recovery" ON mastery_recovery_pathways
   FOR ALL TO authenticated
   USING ((select auth_user_role()) = 'admin' AND institution_id = (select auth_institution_id()));
-
 CREATE POLICY "service_recovery" ON mastery_recovery_pathways
   FOR ALL TO service_role
   USING (true)
   WITH CHECK (true);
-
 -- ══════════════════════════════════════════════════════════════
 -- 64. VERIFIED_EXPLANATIONS
 -- Note: duplicate policies from multiple migrations. Drop all and recreate.
@@ -1381,7 +1173,6 @@ CREATE POLICY "service_recovery" ON mastery_recovery_pathways
 DROP POLICY IF EXISTS "verified_teacher_all" ON verified_explanations;
 DROP POLICY IF EXISTS "verified_student_read" ON verified_explanations;
 DROP POLICY IF EXISTS "verified_admin_read" ON verified_explanations;
-
 CREATE POLICY "verified_teacher_all" ON verified_explanations
   FOR ALL TO authenticated
   USING (
@@ -1391,7 +1182,6 @@ CREATE POLICY "verified_teacher_all" ON verified_explanations
       WHERE course_id IN (SELECT id FROM courses WHERE teacher_id = (select auth.uid()))
     )
   );
-
 -- Vuln 26 preserved: student read scoped to enrolled courses
 CREATE POLICY "verified_student_read" ON verified_explanations
   FOR SELECT TO authenticated
@@ -1405,57 +1195,48 @@ CREATE POLICY "verified_student_read" ON verified_explanations
       )
     )
   );
-
 CREATE POLICY "verified_admin_read" ON verified_explanations
   FOR SELECT TO authenticated
   USING (
     (select auth_user_role()) = 'admin'
     AND institution_id = (select auth_institution_id())
   );
-
 -- ══════════════════════════════════════════════════════════════
 -- 65. BLOOMS_PROGRESSION
 -- ══════════════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "blooms_student_read" ON blooms_progression;
 DROP POLICY IF EXISTS "blooms_teacher_read" ON blooms_progression;
 DROP POLICY IF EXISTS "blooms_admin_read" ON blooms_progression;
-
 CREATE POLICY "blooms_student_read" ON blooms_progression
   FOR SELECT TO authenticated
   USING (student_id = (select auth.uid()));
-
 CREATE POLICY "blooms_teacher_read" ON blooms_progression
   FOR SELECT TO authenticated
   USING (
     (select auth_user_role()) = 'teacher'
     AND course_id IN (SELECT id FROM courses WHERE teacher_id = (select auth.uid()))
   );
-
 CREATE POLICY "blooms_admin_read" ON blooms_progression
   FOR SELECT TO authenticated
   USING (
     (select auth_user_role()) = 'admin'
     AND institution_id = (select auth_institution_id())
   );
-
 -- ══════════════════════════════════════════════════════════════
 -- 66. SOCIAL_CHALLENGES
 -- ══════════════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "teacher_manage_challenges" ON social_challenges;
 DROP POLICY IF EXISTS "student_read_challenges" ON social_challenges;
-
 CREATE POLICY "teacher_manage_challenges" ON social_challenges
   FOR ALL TO authenticated
   USING (created_by = (select auth.uid()) OR EXISTS (
     SELECT 1 FROM courses c WHERE c.id = course_id AND c.teacher_id = (select auth.uid())
   ));
-
 CREATE POLICY "student_read_challenges" ON social_challenges
   FOR SELECT TO authenticated
   USING (status IN ('active', 'completed') AND EXISTS (
     SELECT 1 FROM student_courses sc WHERE sc.course_id = social_challenges.course_id AND sc.student_id = (select auth.uid())
   ));
-
 -- ══════════════════════════════════════════════════════════════
 -- 67. CHALLENGE_PARTICIPANTS (skip if table does not exist yet)
 -- ══════════════════════════════════════════════════════════════
@@ -1481,7 +1262,6 @@ DO $$ BEGIN
       ));
   END IF;
 END $$;
-
 -- ══════════════════════════════════════════════════════════════
 -- 68. GRADUATE_ATTRIBUTES (skip if table does not exist yet)
 -- ══════════════════════════════════════════════════════════════
@@ -1497,7 +1277,6 @@ DO $$ BEGIN
       USING (institution_id = (select auth_institution_id()));
   END IF;
 END $$;
-
 -- ══════════════════════════════════════════════════════════════
 -- 69. GRADUATE_ATTRIBUTE_MAPPINGS (skip if table does not exist yet)
 -- ══════════════════════════════════════════════════════════════
@@ -1522,7 +1301,6 @@ DO $$ BEGIN
       );
   END IF;
 END $$;
-
 -- ══════════════════════════════════════════════════════════════
 -- 70. COMPETENCY_FRAMEWORKS (skip if table does not exist yet)
 -- ══════════════════════════════════════════════════════════════
@@ -1538,7 +1316,6 @@ DO $$ BEGIN
       USING (institution_id = (select auth_institution_id()));
   END IF;
 END $$;
-
 -- ══════════════════════════════════════════════════════════════
 -- 71. COMPETENCY_ITEMS (skip if table does not exist yet)
 -- ══════════════════════════════════════════════════════════════
@@ -1563,7 +1340,6 @@ DO $$ BEGIN
       );
   END IF;
 END $$;
-
 -- ══════════════════════════════════════════════════════════════
 -- 72. COMPETENCY_OUTCOME_MAPPINGS (skip if table does not exist yet)
 -- ══════════════════════════════════════════════════════════════
@@ -1592,21 +1368,17 @@ DO $$ BEGIN
       );
   END IF;
 END $$;
-
 -- ══════════════════════════════════════════════════════════════
 -- 73. BADGE_SPOTLIGHT_SCHEDULE
 -- ══════════════════════════════════════════════════════════════
 DROP POLICY IF EXISTS "admin_manage_spotlight" ON badge_spotlight_schedule;
 DROP POLICY IF EXISTS "all_read_spotlight" ON badge_spotlight_schedule;
-
 CREATE POLICY "admin_manage_spotlight" ON badge_spotlight_schedule
   FOR ALL TO authenticated
   USING (true);
-
 CREATE POLICY "all_read_spotlight" ON badge_spotlight_schedule
   FOR SELECT TO authenticated
   USING (true);
-
 -- ══════════════════════════════════════════════════════════════
 -- END OF RLS POLICY OPTIMIZATION MIGRATION
--- ══════════════════════════════════════════════════════════════
+-- ══════════════════════════════════════════════════════════════;

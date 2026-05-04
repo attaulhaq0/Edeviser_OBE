@@ -4,6 +4,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { queryKeys } from '@/lib/queryKeys';
 import { useAuth } from '@/hooks/useAuth';
 
 // ── Query Keys ───────────────────────────────────────────────────────────────
@@ -54,7 +55,7 @@ export const useCompleteOnboarding = () => {
     },
     onSuccess: () => {
       queryClient.setQueryData(onboardingKeys.status(userId), true);
-      queryClient.invalidateQueries({ queryKey: ['profiles'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.profiles.all });
     },
   });
 };

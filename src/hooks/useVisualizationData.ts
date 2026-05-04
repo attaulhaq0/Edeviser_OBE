@@ -3,6 +3,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { queryKeys } from '@/lib/queryKeys';
 import { transformToSankey, type SankeyNode, type SankeyLink } from '@/lib/sankeyTransform';
 import { analyzeGaps, type GapResult } from '@/lib/gapAnalysis';
 import { buildHeatmapMatrix, type HeatmapMatrix } from '@/lib/coverageHeatmap';
@@ -11,7 +12,7 @@ type AnyRow = Record<string, unknown>;
 
 export const useSankeyData = (programId?: string, _courseId?: string, _semesterId?: string) => {
   return useQuery({
-    queryKey: ['sankeyData', programId],
+    queryKey: queryKeys.sankeyData.list({ programId }),
     queryFn: async (): Promise<{ nodes: SankeyNode[]; links: SankeyLink[] }> => {
       const { data: outcomes } = await supabase.from('learning_outcomes').select('id, type, title');
       const { data: rawMappings } = await supabase.from('outcome_mappings' as never).select('*');
@@ -33,7 +34,7 @@ export const useSankeyData = (programId?: string, _courseId?: string, _semesterI
 
 export const useGapAnalysis = (programId?: string, _semesterId?: string) => {
   return useQuery({
-    queryKey: ['gapAnalysis', programId],
+    queryKey: queryKeys.gapAnalysisData.list({ programId }),
     queryFn: async (): Promise<GapResult[]> => {
       const { data: outcomes } = await supabase.from('learning_outcomes').select('id, title, type');
       const { data: rawMappings } = await supabase.from('outcome_mappings' as never).select('*');
@@ -78,7 +79,7 @@ export const useGapAnalysis = (programId?: string, _semesterId?: string) => {
 
 export const useCoverageHeatmap = (programId?: string, _semesterId?: string) => {
   return useQuery({
-    queryKey: ['coverageHeatmap', programId],
+    queryKey: queryKeys.coverageHeatmapData.list({ programId }),
     queryFn: async (): Promise<HeatmapMatrix> => {
       const { data: clos } = await supabase.from('learning_outcomes').select('id, title').eq('type', 'CLO');
       const { data: courses } = await supabase.from('courses').select('id, name');

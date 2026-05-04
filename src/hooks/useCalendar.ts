@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { queryKeys } from '@/lib/queryKeys';
 import { useAuth } from '@/hooks/useAuth';
 
 export type CalendarEventSource = 'assignment' | 'quiz' | 'class_session' | 'academic_calendar' | 'announcement';
@@ -43,7 +44,7 @@ export const useCalendarEvents = (month?: number, year?: number) => {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ['calendarEvents', month, year, user?.id],
+    queryKey: queryKeys.calendarEvents.list({ month, year, userId: user?.id }),
     queryFn: async (): Promise<CalendarEvent[]> => {
       const events: CalendarEvent[] = [];
       const now = new Date();

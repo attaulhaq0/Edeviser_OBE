@@ -16,9 +16,7 @@ CREATE TABLE IF NOT EXISTS deadline_extensions (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   CONSTRAINT uq_deadline_extension_student_assignment UNIQUE (student_id, assignment_id)
 );
-
 -- Indexes (idempotent)
 CREATE INDEX IF NOT EXISTS idx_deadline_extensions_student ON deadline_extensions(student_id);
 CREATE INDEX IF NOT EXISTS idx_deadline_extensions_assignment ON deadline_extensions(assignment_id);
-
 ALTER TABLE deadline_extensions ENABLE ROW LEVEL SECURITY;

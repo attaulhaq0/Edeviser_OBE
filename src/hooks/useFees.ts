@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { queryKeys } from '@/lib/queryKeys';
 import { logAuditEvent } from '@/lib/auditLogger';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -28,7 +29,7 @@ export interface FeePayment {
 
 export const useFeeStructures = (programId?: string) => {
   return useQuery({
-    queryKey: ['feeStructures', programId],
+    queryKey: queryKeys.feeStructures.list({ programId }),
     queryFn: async (): Promise<FeeStructure[]> => {
       let q = supabase.from('fee_structures').select('*').order('due_date', { ascending: false });
       if (programId) q = q.eq('program_id', programId);
@@ -41,7 +42,7 @@ export const useFeeStructures = (programId?: string) => {
 
 export const useFeePayments = (feeStructureId?: string) => {
   return useQuery({
-    queryKey: ['feePayments', feeStructureId],
+    queryKey: queryKeys.feePayments.list({ feeStructureId }),
     queryFn: async (): Promise<FeePayment[]> => {
       let q = supabase.from('fee_payments').select('*').order('paid_at', { ascending: false });
       if (feeStructureId) q = q.eq('fee_structure_id', feeStructureId);
@@ -55,7 +56,7 @@ export const useFeePayments = (feeStructureId?: string) => {
 
 export const useStudentFees = (studentId?: string) => {
   return useQuery({
-    queryKey: ['studentFees', studentId],
+    queryKey: queryKeys.studentFees.list({ studentId }),
     queryFn: async (): Promise<FeePayment[]> => {
       const { data, error } = await supabase.from('fee_payments').select('*').eq('student_id', studentId!);
       if (error) throw error;
@@ -75,7 +76,7 @@ export const useCreateFeeStructure = () => {
       await logAuditEvent({ action: 'create', entity_type: 'fee_structure', entity_id: data.id, changes: input, performed_by: user?.id ?? '' });
       return data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['feeStructures'] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.feeStructures.lists() }),
   });
 };
 
@@ -93,7 +94,7 @@ export const useRecordPayment = () => {
       await logAuditEvent({ action: 'create', entity_type: 'fee_payment', entity_id: data.id, changes: input, performed_by: user?.id ?? '' });
       return data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['feePayments'] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.feePayments.lists() }),
   });
 };
 

@@ -4,13 +4,11 @@
 ALTER TABLE badges
   ADD COLUMN IF NOT EXISTS tier text CHECK (tier IN ('bronze', 'silver', 'gold')),
   ADD COLUMN IF NOT EXISTS category text;
-
 -- Add pin and archive to student_badges (if exists) or badges
 -- Using badges table since student_badges may not exist separately
 ALTER TABLE badges
   ADD COLUMN IF NOT EXISTS is_pinned boolean NOT NULL DEFAULT false,
   ADD COLUMN IF NOT EXISTS archived_at timestamptz;
-
 -- Badge Spotlight Schedule table
 CREATE TABLE IF NOT EXISTS badge_spotlight_schedule (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -22,15 +20,12 @@ CREATE TABLE IF NOT EXISTS badge_spotlight_schedule (
   UNIQUE(institution_id, week_start),
   CHECK (EXTRACT(DOW FROM week_start) = 1) -- Must be Monday
 );
-
 ALTER TABLE badge_spotlight_schedule ENABLE ROW LEVEL SECURITY;
-
 -- Admin manages spotlight schedule
 DROP POLICY IF EXISTS "admin_manage_spotlight" ON badge_spotlight_schedule;
 CREATE POLICY "admin_manage_spotlight" ON badge_spotlight_schedule
   FOR ALL TO authenticated
   USING (true);
-
 -- All roles can read spotlight
 DROP POLICY IF EXISTS "all_read_spotlight" ON badge_spotlight_schedule;
 CREATE POLICY "all_read_spotlight" ON badge_spotlight_schedule

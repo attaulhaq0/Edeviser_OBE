@@ -15,12 +15,10 @@ CREATE POLICY "student_courses_admin_read" ON public.student_courses
       )
     )
   );
-
 -- ─── Vuln 15: outcome_mappings cross-tenant write ───────────────────────────
 DROP POLICY IF EXISTS "outcome_mappings_admin_write" ON public.outcome_mappings;
 DROP POLICY IF EXISTS "outcome_mappings_coordinator_write" ON public.outcome_mappings;
 DROP POLICY IF EXISTS "outcome_mappings_teacher_write" ON public.outcome_mappings;
-
 CREATE POLICY "outcome_mappings_admin_write" ON public.outcome_mappings
   FOR ALL USING (
     (select auth_user_role()) = 'admin'
@@ -42,7 +40,6 @@ CREATE POLICY "outcome_mappings_teacher_write" ON public.outcome_mappings
       SELECT id FROM public.learning_outcomes WHERE institution_id = (select auth_institution_id())
     )
   );
-
 -- ─── Vuln 16: assignments cross-tenant read ─────────────────────────────────
 DROP POLICY IF EXISTS "assignments_staff_read" ON public.assignments;
 CREATE POLICY "assignments_staff_read" ON public.assignments
@@ -54,7 +51,6 @@ CREATE POLICY "assignments_staff_read" ON public.assignments
       )
     )
   );
-
 -- ─── Vuln 17: outcome_attainment cross-tenant read ──────────────────────────
 DROP POLICY IF EXISTS "attainment_staff_read" ON public.outcome_attainment;
 CREATE POLICY "attainment_staff_read" ON public.outcome_attainment
@@ -64,7 +60,6 @@ CREATE POLICY "attainment_staff_read" ON public.outcome_attainment
       SELECT id FROM public.profiles WHERE institution_id = (select auth_institution_id())
     )
   );
-
 -- ─── Vuln 18: attendance_records cross-tenant read ──────────────────────────
 DROP POLICY IF EXISTS "attendance_admin_read" ON attendance_records;
 CREATE POLICY "attendance_admin_read" ON attendance_records
@@ -74,7 +69,6 @@ CREATE POLICY "attendance_admin_read" ON attendance_records
       SELECT id FROM public.profiles WHERE institution_id = (select auth_institution_id())
     )
   );
-
 -- ─── Vuln 19: SECURITY DEFINER function without auth check ──────────────────
 CREATE OR REPLACE FUNCTION get_wellness_aggregate_stats(p_institution_id uuid)
 RETURNS TABLE (
@@ -99,7 +93,6 @@ BEGIN
   GROUP BY whl.wellness_type;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
-
 -- ─── Vuln 21: xp_transactions cross-tenant read ────────────────────────────
 DROP POLICY IF EXISTS "xp_transactions_admin_read" ON public.xp_transactions;
 CREATE POLICY "xp_transactions_admin_read" ON public.xp_transactions
@@ -109,7 +102,6 @@ CREATE POLICY "xp_transactions_admin_read" ON public.xp_transactions
       SELECT id FROM public.profiles WHERE institution_id = (select auth_institution_id())
     )
   );
-
 -- ─── Vuln 22: ai_feedback cross-tenant read ────────────────────────────────
 DROP POLICY IF EXISTS "ai_feedback_admin_read" ON ai_feedback;
 CREATE POLICY "ai_feedback_admin_read" ON ai_feedback
@@ -119,7 +111,6 @@ CREATE POLICY "ai_feedback_admin_read" ON ai_feedback
       SELECT id FROM public.profiles WHERE institution_id = (select auth_institution_id())
     )
   );
-
 -- ─── Vuln 23: student_activity_log cross-tenant read ────────────────────────
 DROP POLICY IF EXISTS "activity_log_admin_read" ON student_activity_log;
 CREATE POLICY "activity_log_admin_read" ON student_activity_log
@@ -129,7 +120,6 @@ CREATE POLICY "activity_log_admin_read" ON student_activity_log
       SELECT id FROM public.profiles WHERE institution_id = (select auth_institution_id())
     )
   );
-
 -- ─── Vuln 24: habit_tracking cross-tenant read ─────────────────────────────
 DROP POLICY IF EXISTS "habit_tracking_staff_read" ON public.habit_tracking;
 CREATE POLICY "habit_tracking_staff_read" ON public.habit_tracking
@@ -139,7 +129,6 @@ CREATE POLICY "habit_tracking_staff_read" ON public.habit_tracking
       SELECT id FROM public.profiles WHERE institution_id = (select auth_institution_id())
     )
   );
-
 -- ─── Vuln 25: badges cross-tenant read ──────────────────────────────────────
 DROP POLICY IF EXISTS "badges_public_read" ON public.badges;
 DROP POLICY IF EXISTS "badges_institution_read" ON public.badges;
@@ -149,7 +138,6 @@ CREATE POLICY "badges_institution_read" ON public.badges
       SELECT id FROM public.profiles WHERE institution_id = (select auth_institution_id())
     )
   );
-
 -- ─── Vuln 26: verified_explanations cross-tenant student read ───────────────
 DROP POLICY IF EXISTS "verified_student_read" ON verified_explanations;
 CREATE POLICY "verified_student_read" ON verified_explanations
@@ -164,7 +152,6 @@ CREATE POLICY "verified_student_read" ON verified_explanations
       )
     )
   );
-
 -- ─── Vuln 27: quiz_attempts overly permissive ──────────────────────────────
 DROP POLICY IF EXISTS "quiz_attempts_own" ON quiz_attempts;
 DROP POLICY IF EXISTS "quiz_attempts_student_read" ON quiz_attempts;

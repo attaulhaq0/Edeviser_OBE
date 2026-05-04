@@ -3,6 +3,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { queryKeys } from '@/lib/queryKeys';
 import { logAuditEvent } from '@/lib/auditLogger';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -32,7 +33,7 @@ export interface GAAttainment {
 
 export const useGraduateAttributes = (institutionId?: string) => {
   return useQuery({
-    queryKey: ['graduateAttributes', institutionId],
+    queryKey: queryKeys.graduateAttributes.list({ institutionId }),
     queryFn: async (): Promise<GraduateAttribute[]> => {
       const { data, error } = await supabase
         .from('graduate_attributes' as never)
@@ -47,7 +48,7 @@ export const useGraduateAttributes = (institutionId?: string) => {
 
 export const useGraduateAttributeMappings = (attributeId?: string) => {
   return useQuery({
-    queryKey: ['graduateAttributeMappings', attributeId],
+    queryKey: queryKeys.graduateAttributeMappings.list({ attributeId }),
     queryFn: async (): Promise<GraduateAttributeMapping[]> => {
       const { data, error } = await supabase
         .from('graduate_attribute_mappings' as never)
@@ -74,7 +75,7 @@ export const useCreateGraduateAttribute = () => {
       await logAuditEvent({ action: 'create', entity_type: 'graduate_attribute', entity_id: (data as { id: string }).id, changes: input, performed_by: user?.id ?? '' });
       return data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['graduateAttributes'] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.graduateAttributes.lists() }),
   });
 };
 
@@ -88,7 +89,7 @@ export const useUpdateGraduateAttribute = () => {
       await logAuditEvent({ action: 'update', entity_type: 'graduate_attribute', entity_id: id, changes: input, performed_by: user?.id ?? '' });
       return data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['graduateAttributes'] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.graduateAttributes.lists() }),
   });
 };
 
@@ -101,13 +102,13 @@ export const useDeleteGraduateAttribute = () => {
       if (error) throw error;
       await logAuditEvent({ action: 'delete', entity_type: 'graduate_attribute', entity_id: id, changes: {}, performed_by: user?.id ?? '' });
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['graduateAttributes'] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.graduateAttributes.lists() }),
   });
 };
 
 export const useGraduateAttributeAttainment = (institutionId?: string) => {
   return useQuery({
-    queryKey: ['graduateAttributeAttainment', institutionId],
+    queryKey: queryKeys.graduateAttributeAttainment.list({ institutionId }),
     queryFn: async (): Promise<GAAttainment[]> => {
       const { data: attrs } = await supabase.from('graduate_attributes' as never).select('id, title, code').eq('institution_id', institutionId!);
       if (!attrs) return [];

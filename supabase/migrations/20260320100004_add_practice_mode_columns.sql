@@ -6,10 +6,8 @@
 
 -- Add practice mode support to quizzes table
 ALTER TABLE quizzes ADD COLUMN IF NOT EXISTS practice_mode_enabled BOOLEAN NOT NULL DEFAULT false;
-
 -- Add mode column to quiz_attempts table
 ALTER TABLE quiz_attempts ADD COLUMN IF NOT EXISTS mode VARCHAR(10) NOT NULL DEFAULT 'graded';
-
 -- Add check constraint for mode values
 DO $$
 BEGIN

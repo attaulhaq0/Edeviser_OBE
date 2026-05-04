@@ -9,7 +9,6 @@
 --    here with IF NOT EXISTS for completeness and idempotency.
 CREATE INDEX IF NOT EXISTS idx_gamification_leaderboard
   ON student_gamification (xp_total DESC, student_id);
-
 -- 2. Covering index on profiles for institution-scoped leaderboard joins.
 --    The leaderboard_weekly materialized view and direct queries join
 --    student_gamification with profiles via (id) and filter by institution_id.
@@ -17,7 +16,6 @@ CREATE INDEX IF NOT EXISTS idx_gamification_leaderboard
 --    index-only scan instead of a sequential scan on profiles.
 CREATE INDEX IF NOT EXISTS idx_profiles_institution_id_covering
   ON profiles (institution_id, id);
-
 -- ============================================
 -- Redis Upgrade Path (>10K students)
 -- ============================================
@@ -46,4 +44,4 @@ CREATE INDEX IF NOT EXISTS idx_profiles_institution_id_covering
 -- Upstash Redis is recommended for Supabase/Vercel deployments due to
 -- its HTTP-based REST API (no persistent connections needed from Edge
 -- Functions) and per-request pricing model.
--- ============================================
+-- ============================================;

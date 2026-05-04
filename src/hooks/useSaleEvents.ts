@@ -128,7 +128,7 @@ export const useCreateSaleEvent = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.marketplace.saleEvents() });
-      queryClient.invalidateQueries({ queryKey: ['marketplace', 'items'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.marketplace.items() });
       toast.success('Sale event created');
     },
     onError: (error: Error) => {
@@ -155,7 +155,7 @@ export const useCancelSaleEvent = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.marketplace.saleEvents() });
-      queryClient.invalidateQueries({ queryKey: ['marketplace', 'items'] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.marketplace.items() });
       toast.success('Sale event cancelled');
     },
     onError: (error: Error) => {

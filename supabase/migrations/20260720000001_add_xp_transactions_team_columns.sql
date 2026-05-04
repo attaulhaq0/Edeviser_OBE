@@ -8,7 +8,6 @@ ALTER TABLE xp_transactions
   ADD COLUMN IF NOT EXISTS base_xp integer,
   ADD COLUMN IF NOT EXISTS final_xp integer,
   ADD COLUMN IF NOT EXISTS multipliers jsonb DEFAULT '{}';
-
 -- Index for team XP queries
 CREATE INDEX IF NOT EXISTS idx_xp_transactions_team
   ON xp_transactions (team_id, created_at DESC)

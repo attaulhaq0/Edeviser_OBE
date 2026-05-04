@@ -26,8 +26,9 @@ describe("Graduate Attribute Properties", () => {
           );
           const expected = totalWeight > 0 ? weightedSum / totalWeight : 0;
 
-          expect(expected).toBeGreaterThanOrEqual(0);
-          expect(expected).toBeLessThanOrEqual(100);
+          // Use small epsilon for floating-point tolerance
+          expect(expected).toBeGreaterThanOrEqual(-1e-10);
+          expect(expected).toBeLessThanOrEqual(100 + 1e-10);
 
           // Verify weighted average is between min and max attainment
           const minAtt = Math.min(...mappings.map((m) => m.attainment));

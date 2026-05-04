@@ -11,7 +11,6 @@ BEGIN
     CREATE TYPE cosmetic_slot AS ENUM ('profile_theme', 'avatar_frame', 'display_title');
   END IF;
 END $$;
-
 -- Create table if not exists
 CREATE TABLE IF NOT EXISTS student_equipped_items (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -21,8 +20,6 @@ CREATE TABLE IF NOT EXISTS student_equipped_items (
   equipped_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   CONSTRAINT uq_student_equipped_slot UNIQUE (student_id, slot)
 );
-
 -- Indexes (idempotent)
 CREATE INDEX IF NOT EXISTS idx_student_equipped_student ON student_equipped_items(student_id);
-
 ALTER TABLE student_equipped_items ENABLE ROW LEVEL SECURITY;

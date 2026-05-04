@@ -64,7 +64,6 @@ BEGIN
   END LOOP;
 END;
 $$;
-
 -- Schedule the cron job (midnight UTC every Monday)
 -- Guard: only create if pg_cron extension is available
 DO $$

@@ -94,7 +94,7 @@ export interface AssignmentDifficultyBonus {
 
 export const useAssignmentDifficultyBonus = (cloIds: string[]) => {
   return useQuery({
-    queryKey: ['assignmentDifficultyBonus', ...cloIds],
+    queryKey: queryKeys.assignmentDifficultyBonus.list({ cloIds: cloIds.join(',') }),
     queryFn: async (): Promise<AssignmentDifficultyBonus | null> => {
       if (cloIds.length === 0) return null;
 

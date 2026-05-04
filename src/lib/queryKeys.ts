@@ -84,6 +84,7 @@ const academicCalendarEvents = createKeys("academicCalendarEvents");
 const parentStudentLinks = createKeys("parentStudentLinks");
 const feeStructures = createKeys("feeStructures");
 const feePayments = createKeys("feePayments");
+const studentFees = createKeys("studentFees");
 const transcripts = createKeys("transcripts");
 const courseFiles = createKeys("courseFiles");
 
@@ -146,6 +147,7 @@ const practiceMode = {
 };
 
 // ─── Explanation Confidence ───────────────────────────────────────────────────
+const explanationConfidence = createKeys("explanationConfidence");
 const verifiedExplanations = {
   all: ["verifiedExplanations"] as const,
   detail: (questionId: string) => ["verifiedExplanations", questionId] as const,
@@ -305,6 +307,7 @@ export const queryKeys = {
   parentStudentLinks,
   feeStructures,
   feePayments,
+  studentFees,
   transcripts,
   courseFiles,
   // Dashboards
@@ -336,6 +339,7 @@ export const queryKeys = {
   // Practice Mode
   practiceMode,
   // Explanation Confidence
+  explanationConfidence,
   verifiedExplanations,
   explanationReviewQueue,
   // Mastery Recovery
@@ -384,6 +388,7 @@ export const queryKeys = {
   xpMultiplier: createKeys("xpMultiplier"),
   diminishingReturns: createKeys("diminishingReturns"),
   improvementBonusHistory: createKeys("improvementBonusHistory"),
+  assignmentDifficultyBonus: createKeys("assignmentDifficultyBonus"),
   // Comeback Challenge
   comebackChallenge: createKeys("comebackChallenge"),
   // Leaderboard Enhancements
@@ -392,6 +397,7 @@ export const queryKeys = {
   leagueTier: createKeys("leagueTier"),
   percentileBand: createKeys("percentileBand"),
   leagueLeaderboard: createKeys("leagueLeaderboard"),
+  leaderboardCosmetics: createKeys("leaderboardCosmetics"),
   // Badge Tiers
   tieredBadges: createKeys("tieredBadges"),
   badgeSpotlight: createKeys("badgeSpotlight"),

@@ -17,9 +17,7 @@ CREATE TABLE IF NOT EXISTS tutor_llm_logs (
   error_message TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-
 -- Index for institution-scoped monitoring queries
 CREATE INDEX IF NOT EXISTS idx_llm_logs_institution ON tutor_llm_logs (institution_id, created_at DESC);
-
 -- Index for per-conversation log lookups
 CREATE INDEX IF NOT EXISTS idx_llm_logs_conversation ON tutor_llm_logs (conversation_id);
