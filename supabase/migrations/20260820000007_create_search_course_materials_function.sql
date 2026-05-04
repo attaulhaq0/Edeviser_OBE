@@ -5,7 +5,6 @@
 
 -- Drop existing function if it exists (idempotent)
 DROP FUNCTION IF EXISTS search_course_materials(vector(1536), UUID[], UUID[], FLOAT, INT);
-
 -- pgvector cosine similarity search scoped to enrolled courses
 CREATE OR REPLACE FUNCTION search_course_materials(
   query_embedding vector(1536),

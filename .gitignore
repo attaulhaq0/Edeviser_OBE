@@ -40,3 +40,7 @@ coverage/
 tsc_*.txt
 lint_*.txt
 test_*.txt
+
+# Playwright / test output
+playwright-report/
+test-results/

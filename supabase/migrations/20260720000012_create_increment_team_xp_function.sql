@@ -16,7 +16,6 @@ BEGIN
     AND deleted_at IS NULL;
 END;
 $$;
-
 -- Grant execute to authenticated users (Edge Functions use service role)
 GRANT EXECUTE ON FUNCTION increment_team_xp(UUID, INTEGER) TO authenticated;
 GRANT EXECUTE ON FUNCTION increment_team_xp(UUID, INTEGER) TO service_role;

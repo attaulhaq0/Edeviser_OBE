@@ -17,7 +17,6 @@ CREATE POLICY "verified_teacher_all" ON verified_explanations
       WHERE course_id IN (SELECT id FROM courses WHERE teacher_id = (select auth.uid()))
     )
   );
-
 -- Students: read active verified explanations (served via post-quiz review)
 DROP POLICY IF EXISTS "verified_student_read" ON verified_explanations;
 CREATE POLICY "verified_student_read" ON verified_explanations
@@ -26,7 +25,6 @@ CREATE POLICY "verified_student_read" ON verified_explanations
     (select auth_user_role()) = 'student'
     AND is_active = true
   );
-
 -- Admins: read all within institution
 DROP POLICY IF EXISTS "verified_admin_read" ON verified_explanations;
 CREATE POLICY "verified_admin_read" ON verified_explanations

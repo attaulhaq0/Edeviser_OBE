@@ -20,8 +20,6 @@ CREATE TABLE IF NOT EXISTS blooms_progression (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   UNIQUE (student_id, clo_id)
 );
-
 ALTER TABLE blooms_progression ENABLE ROW LEVEL SECURITY;
-
 CREATE INDEX IF NOT EXISTS idx_blooms_student ON blooms_progression (student_id, course_id);
 CREATE INDEX IF NOT EXISTS idx_blooms_clo ON blooms_progression (clo_id);

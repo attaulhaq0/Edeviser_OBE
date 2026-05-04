@@ -41,11 +41,13 @@ export const useCreateAcademicEvent = () => {
   const { user } = useAuth();
   return useMutation({
     mutationFn: async (input: CreateAcademicEventInput) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const insertPayload: any = {
-        ...input,
+      const insertPayload = {
+        title: input.title,
+        event_type: input.event_type,
+        start_date: input.start_date,
         end_date: input.end_date || input.start_date,
-        institution_id: user?.user_metadata?.institution_id,
+        is_recurring: input.is_recurring,
+        institution_id: user?.user_metadata?.institution_id as string,
       };
       const { data, error } = await supabase
         .from('academic_calendar_events')

@@ -3,12 +3,10 @@ ALTER TABLE badges
   ADD COLUMN IF NOT EXISTS scope text NOT NULL DEFAULT 'individual'
     CHECK (scope IN ('individual', 'team')),
   ADD COLUMN IF NOT EXISTS team_id uuid REFERENCES teams(id);
-
 -- Index for team badge queries
 CREATE INDEX IF NOT EXISTS idx_badges_team
   ON badges (team_id)
   WHERE team_id IS NOT NULL;
-
 -- Task 132.4: Add last_streak_date to team_gamification for team streak tracking
 DO $$ BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'team_gamification') THEN

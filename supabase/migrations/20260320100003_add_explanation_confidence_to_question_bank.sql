@@ -4,7 +4,6 @@
 -- Nullable; when present, must be between 0.0 and 1.0.
 -- ============================================================
 ALTER TABLE question_bank ADD COLUMN IF NOT EXISTS explanation_confidence NUMERIC(3,2);
-
 -- Add check constraint if column was just created (idempotent)
 DO $$
 BEGIN

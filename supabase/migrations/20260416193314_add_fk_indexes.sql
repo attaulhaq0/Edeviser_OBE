@@ -5,13 +5,11 @@ CREATE INDEX IF NOT EXISTS idx_assignments_course ON assignments (course_id);
 CREATE INDEX IF NOT EXISTS idx_assignments_created_by ON assignments (created_by);
 CREATE INDEX IF NOT EXISTS idx_attendance_records_marked_by ON attendance_records (marked_by);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_actor ON audit_logs (actor_id);
-CREATE INDEX IF NOT EXISTS idx_badges_student ON badges (student_id);
 CREATE INDEX IF NOT EXISTS idx_badges_team ON badges (team_id);
 CREATE INDEX IF NOT EXISTS idx_baseline_attainment_clo ON baseline_attainment (clo_id);
 CREATE INDEX IF NOT EXISTS idx_challenge_progress_participant ON challenge_progress (participant_id);
 CREATE INDEX IF NOT EXISTS idx_challenge_progress_team ON challenge_progress (team_id);
 CREATE INDEX IF NOT EXISTS idx_class_donation_contributions_purchase ON class_donation_contributions (purchase_id);
-CREATE INDEX IF NOT EXISTS idx_class_sessions_section ON class_sessions (section_id);
 CREATE INDEX IF NOT EXISTS idx_class_donations_created_by ON class_donations (created_by);
 CREATE INDEX IF NOT EXISTS idx_competency_frameworks_institution ON competency_frameworks (institution_id);
 CREATE INDEX IF NOT EXISTS idx_competency_items_framework ON competency_items (framework_id);
@@ -19,7 +17,6 @@ CREATE INDEX IF NOT EXISTS idx_competency_items_parent ON competency_items (pare
 CREATE INDEX IF NOT EXISTS idx_competency_outcome_mappings_outcome ON competency_outcome_mappings (outcome_id);
 CREATE INDEX IF NOT EXISTS idx_course_materials_module ON course_materials (module_id);
 CREATE INDEX IF NOT EXISTS idx_course_modules_course ON course_modules (course_id);
-CREATE INDEX IF NOT EXISTS idx_course_sections_course ON course_sections (course_id);
 CREATE INDEX IF NOT EXISTS idx_course_sections_teacher ON course_sections (teacher_id);
 CREATE INDEX IF NOT EXISTS idx_courses_program ON courses (program_id);
 CREATE INDEX IF NOT EXISTS idx_courses_semester ON courses (semester_id);
@@ -30,7 +27,6 @@ CREATE INDEX IF NOT EXISTS idx_cqi_action_plans_semester ON cqi_action_plans (se
 CREATE INDEX IF NOT EXISTS idx_deadline_extensions_purchase ON deadline_extensions (purchase_id);
 CREATE INDEX IF NOT EXISTS idx_deadline_extensions_revoked_by ON deadline_extensions (revoked_by);
 CREATE INDEX IF NOT EXISTS idx_departments_hod ON departments (head_of_department_id);
-CREATE INDEX IF NOT EXISTS idx_departments_institution ON departments (institution_id);
 CREATE INDEX IF NOT EXISTS idx_discussion_replies_author ON discussion_replies (author_id);
 CREATE INDEX IF NOT EXISTS idx_discussion_replies_thread ON discussion_replies (thread_id);
 CREATE INDEX IF NOT EXISTS idx_discussion_threads_author ON discussion_threads (author_id);
@@ -44,7 +40,6 @@ CREATE INDEX IF NOT EXISTS idx_fee_structures_program ON fee_structures (program
 CREATE INDEX IF NOT EXISTS idx_fee_structures_semester ON fee_structures (semester_id);
 CREATE INDEX IF NOT EXISTS idx_grade_categories_course ON grade_categories (course_id);
 CREATE INDEX IF NOT EXISTS idx_grades_graded_by ON grades (graded_by);
-CREATE INDEX IF NOT EXISTS idx_grades_submission ON grades (submission_id);
 CREATE INDEX IF NOT EXISTS idx_graduate_attribute_mappings_outcome ON graduate_attribute_mappings (outcome_id);
 CREATE INDEX IF NOT EXISTS idx_graduate_attributes_institution ON graduate_attributes (institution_id);
 CREATE INDEX IF NOT EXISTS idx_habit_correlations_student ON habit_correlations (student_id);
@@ -65,7 +60,6 @@ CREATE INDEX IF NOT EXISTS idx_onboarding_questions_clo ON onboarding_questions 
 CREATE INDEX IF NOT EXISTS idx_onboarding_responses_question ON onboarding_responses (question_id);
 CREATE INDEX IF NOT EXISTS idx_outcome_attainment_course ON outcome_attainment (course_id);
 CREATE INDEX IF NOT EXISTS idx_outcome_attainment_student ON outcome_attainment (student_id);
-CREATE INDEX IF NOT EXISTS idx_outcome_mappings_source ON outcome_mappings (source_outcome_id);
 CREATE INDEX IF NOT EXISTS idx_outcome_mappings_target ON outcome_mappings (target_outcome_id);
 CREATE INDEX IF NOT EXISTS idx_parent_student_links_student ON parent_student_links (student_id);
 CREATE INDEX IF NOT EXISTS idx_peer_teaching_moments_clo ON peer_teaching_moments (clo_id);

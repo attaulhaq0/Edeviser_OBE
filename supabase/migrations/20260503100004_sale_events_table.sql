@@ -16,9 +16,7 @@ CREATE TABLE IF NOT EXISTS sale_events (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   CONSTRAINT chk_sale_event_dates CHECK (end_date > start_date)
 );
-
 -- Indexes (idempotent)
 CREATE INDEX IF NOT EXISTS idx_sale_events_institution ON sale_events(institution_id);
 CREATE INDEX IF NOT EXISTS idx_sale_events_active ON sale_events(institution_id, start_date, end_date);
-
 ALTER TABLE sale_events ENABLE ROW LEVEL SECURITY;

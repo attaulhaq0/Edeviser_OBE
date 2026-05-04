@@ -20,7 +20,6 @@ BEGIN
   );
 END;
 $$;
-
 -- Re-create all cron jobs only if pg_cron is available.
 -- This is idempotent — cron.schedule with the same name replaces the existing job.
 DO $$

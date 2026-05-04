@@ -25,7 +25,6 @@ BEGIN
     );
 END;
 $$;
-
 -- Schedule the cron job (daily at midnight UTC)
 DO $$
 BEGIN

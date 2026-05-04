@@ -24,17 +24,13 @@ CREATE TABLE IF NOT EXISTS course_material_embeddings (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-
 -- HNSW index for fast cosine similarity search (sub-200ms at 100K chunks)
 CREATE INDEX IF NOT EXISTS idx_embeddings_hnsw ON course_material_embeddings
   USING hnsw (embedding vector_cosine_ops)
   WITH (m = 16, ef_construction = 64);
-
 -- Composite index for filtered searches by course
 CREATE INDEX IF NOT EXISTS idx_embeddings_course ON course_material_embeddings (course_id, indexing_status);
-
 -- Index for institution-scoped queries
 CREATE INDEX IF NOT EXISTS idx_embeddings_institution ON course_material_embeddings (institution_id);
-
 -- Index for source material lookups (re-indexing)
 CREATE INDEX IF NOT EXISTS idx_embeddings_source_material ON course_material_embeddings (source_material_id);

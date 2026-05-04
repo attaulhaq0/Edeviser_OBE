@@ -24,8 +24,10 @@ export interface SSECallbacks {
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const getEdgeFunctionUrl = (functionName: string): string => {
-  const supabaseUrl =
-    import.meta.env.VITE_SUPABASE_URL ?? "http://localhost:54321";
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  if (!supabaseUrl) {
+    throw new Error("VITE_SUPABASE_URL is not set");
+  }
   return `${supabaseUrl}/functions/v1/${functionName}`;
 };
 
@@ -39,7 +41,7 @@ const getAuthHeaders = async (): Promise<Record<string, string>> => {
   return {
     Authorization: `Bearer ${session.access_token}`,
     "Content-Type": "application/json",
-    apikey: import.meta.env.VITE_SUPABASE_ANON_KEY ?? "",
+    apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
   };
 };
 

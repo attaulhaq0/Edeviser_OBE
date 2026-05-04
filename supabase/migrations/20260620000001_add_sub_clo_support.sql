@@ -5,10 +5,8 @@
 ALTER TABLE learning_outcomes
   ADD COLUMN IF NOT EXISTS weight numeric DEFAULT 1.0
   CHECK (weight > 0 AND weight <= 1.0);
-
 -- 2. Update outcome_type enum to include SUB_CLO
 ALTER TYPE outcome_type ADD VALUE IF NOT EXISTS 'SUB_CLO';
-
 -- 3. Create trigger function to validate Sub-CLO parent is a CLO
 CREATE OR REPLACE FUNCTION validate_sub_clo_weights()
 RETURNS trigger AS $$
@@ -41,10 +39,8 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
-
 -- 4. Create trigger on learning_outcomes
 DROP TRIGGER IF EXISTS trg_validate_sub_clo ON learning_outcomes;
-
 CREATE TRIGGER trg_validate_sub_clo
   BEFORE INSERT OR UPDATE ON learning_outcomes
   FOR EACH ROW

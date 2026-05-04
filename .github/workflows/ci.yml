@@ -169,7 +169,7 @@ jobs:
           SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
         with:
           sourcemaps: ./dist/assets
-          version: ${{ github.sha }}
+          release: ${{ github.sha }}
 
   bundle-size:
     name: Bundle Size Check

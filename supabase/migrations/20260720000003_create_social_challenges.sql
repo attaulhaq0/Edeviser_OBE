@@ -18,7 +18,6 @@ CREATE TABLE IF NOT EXISTS social_challenges (
   created_at timestamptz NOT NULL DEFAULT now(),
   CHECK (end_date > start_date)
 );
-
 CREATE TABLE IF NOT EXISTS challenge_participants (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   challenge_id uuid NOT NULL REFERENCES social_challenges(id) ON DELETE CASCADE,
@@ -28,10 +27,8 @@ CREATE TABLE IF NOT EXISTS challenge_participants (
   created_at timestamptz NOT NULL DEFAULT now(),
   UNIQUE (challenge_id, participant_id)
 );
-
 ALTER TABLE social_challenges ENABLE ROW LEVEL SECURITY;
 ALTER TABLE challenge_participants ENABLE ROW LEVEL SECURITY;
-
 -- Teacher manages challenges for their courses
 DROP POLICY IF EXISTS "teacher_manage_challenges" ON social_challenges;
 CREATE POLICY "teacher_manage_challenges" ON social_challenges
@@ -39,7 +36,6 @@ CREATE POLICY "teacher_manage_challenges" ON social_challenges
   USING (created_by = (select auth.uid()) OR EXISTS (
     SELECT 1 FROM courses c WHERE c.id = course_id AND c.teacher_id = (select auth.uid())
   ));
-
 -- Students can read active challenges for their courses
 DROP POLICY IF EXISTS "student_read_challenges" ON social_challenges;
 CREATE POLICY "student_read_challenges" ON social_challenges
@@ -47,7 +43,6 @@ CREATE POLICY "student_read_challenges" ON social_challenges
   USING (status IN ('active', 'completed') AND EXISTS (
     SELECT 1 FROM student_courses sc WHERE sc.course_id = social_challenges.course_id AND sc.student_id = (select auth.uid())
   ));
-
 -- Participants can read their own progress
 DROP POLICY IF EXISTS "participant_read_progress" ON challenge_participants;
 CREATE POLICY "participant_read_progress" ON challenge_participants
@@ -59,7 +54,6 @@ CREATE POLICY "participant_read_progress" ON challenge_participants
     JOIN student_courses stc ON stc.course_id = sc.course_id
     WHERE sc.id = challenge_id AND stc.student_id = (select auth.uid())
   ));
-
 -- Teachers manage participants for challenges in their courses
 DROP POLICY IF EXISTS "teacher_manage_participants" ON challenge_participants;
 CREATE POLICY "teacher_manage_participants" ON challenge_participants
@@ -69,11 +63,9 @@ CREATE POLICY "teacher_manage_participants" ON challenge_participants
     JOIN courses c ON c.id = sc.course_id
     WHERE sc.id = challenge_id AND c.teacher_id = (select auth.uid())
   ));
-
 -- Indexes
 CREATE INDEX IF NOT EXISTS idx_social_challenges_course ON social_challenges (course_id, status);
 CREATE INDEX IF NOT EXISTS idx_challenge_participants_challenge ON challenge_participants (challenge_id);
-
 -- Trigger: max 3 active course-wide challenges per course
 CREATE OR REPLACE FUNCTION enforce_max_active_challenges()
 RETURNS TRIGGER AS $$
@@ -87,7 +79,6 @@ BEGIN
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
-
 DROP TRIGGER IF EXISTS trg_enforce_max_active_challenges ON social_challenges;
 CREATE TRIGGER trg_enforce_max_active_challenges
   BEFORE INSERT OR UPDATE ON social_challenges

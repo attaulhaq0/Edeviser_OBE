@@ -46,7 +46,8 @@ export const usePurchaseItem = () => {
 
       if (!accessToken) throw new Error('Not authenticated');
 
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL ?? 'http://localhost:54321';
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      if (!supabaseUrl) throw new Error('VITE_SUPABASE_URL is not set');
       const response = await fetch(`${supabaseUrl}/functions/v1/process-purchase`, {
         method: 'POST',
         headers: {

@@ -11,7 +11,6 @@ DROP POLICY IF EXISTS "blooms_student_read" ON blooms_progression;
 CREATE POLICY "blooms_student_read" ON blooms_progression
   FOR SELECT TO authenticated
   USING (student_id = (select auth.uid()));
-
 -- Teachers: read progression for their courses
 DROP POLICY IF EXISTS "blooms_teacher_read" ON blooms_progression;
 CREATE POLICY "blooms_teacher_read" ON blooms_progression
@@ -20,7 +19,6 @@ CREATE POLICY "blooms_teacher_read" ON blooms_progression
     (select auth_user_role()) = 'teacher'
     AND course_id IN (SELECT id FROM courses WHERE teacher_id = (select auth.uid()))
   );
-
 -- Admins: read all within institution
 DROP POLICY IF EXISTS "blooms_admin_read" ON blooms_progression;
 CREATE POLICY "blooms_admin_read" ON blooms_progression
