@@ -104,40 +104,40 @@ describe('MasteryRecoveryAlertCard on TeacherDashboard', () => {
 
   it('renders the teacher dashboard title', () => {
     renderDashboard();
-    expect(screen.getByText('Dashboard')).toBeInTheDocument();
+    expect(screen.getByText('dashboard.title')).toBeInTheDocument();
   });
 
   it('renders KPI cards with correct values', () => {
     renderDashboard();
-    expect(screen.getByText('Pending Submissions')).toBeInTheDocument();
-    expect(screen.getByText('Graded This Week')).toBeInTheDocument();
-    expect(screen.getByText('Avg Attainment')).toBeInTheDocument();
-    expect(screen.getAllByText('At-Risk Students').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText('dashboard.pendingSubmissions')).toBeInTheDocument();
+    expect(screen.getByText('dashboard.gradedThisWeek')).toBeInTheDocument();
+    expect(screen.getByText('dashboard.avgAttainment')).toBeInTheDocument();
+    expect(screen.getAllByText('dashboard.atRiskStudents').length).toBeGreaterThanOrEqual(1);
   });
 
   it('renders CLO Attainment section', () => {
     renderDashboard();
-    expect(screen.getByText('CLO Attainment')).toBeInTheDocument();
+    expect(screen.getByText('dashboard.cloAttainment')).toBeInTheDocument();
   });
 
   it('renders Bloom\'s Distribution section', () => {
     renderDashboard();
-    expect(screen.getByText("Bloom's Distribution")).toBeInTheDocument();
+    expect(screen.getByText('dashboard.bloomsDistribution')).toBeInTheDocument();
   });
 
   it('renders Student Performance Heatmap section', () => {
     renderDashboard();
-    expect(screen.getByText('Student Performance Heatmap')).toBeInTheDocument();
+    expect(screen.getByText('dashboard.studentHeatmap')).toBeInTheDocument();
   });
 
   it('renders Grading Queue section', () => {
     renderDashboard();
-    expect(screen.getByText('Grading Queue')).toBeInTheDocument();
+    expect(screen.getByText('dashboard.gradingQueue')).toBeInTheDocument();
   });
 
   it('shows empty state for grading queue when no pending submissions', () => {
     renderDashboard();
-    expect(screen.getByText(/all caught up/i)).toBeInTheDocument();
+    expect(screen.getByText('dashboard.noPending')).toBeInTheDocument();
   });
 
   it('renders shimmer placeholders when KPIs are loading', () => {
