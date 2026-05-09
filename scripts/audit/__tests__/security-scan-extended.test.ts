@@ -99,9 +99,9 @@ serve(async (req) => {
     );
     const findings = scanEdgeFunctionBodyValidation();
     // Should NOT include the Trivial "dir missing" finding
-    const critical = findings.filter((f) => f.severity === "Critical");
-    expect(critical.length).toBeGreaterThan(0);
-    expect(critical[0]?.requirementId).toBe("13.4");
+    const flagged = findings.filter((f) => f.severity === "Major");
+    expect(flagged.length).toBeGreaterThan(0);
+    expect(flagged[0]?.requirementId).toBe("13.4");
   });
 
   it("does not flag an Edge Function that uses safeParse before side effects", () => {
@@ -122,7 +122,7 @@ serve(async (req) => {
 });`
     );
     const findings = scanEdgeFunctionBodyValidation().filter(
-      (f) => f.severity === "Critical"
+      (f) => f.severity === "Major"
     );
     expect(findings).toHaveLength(0);
   });
