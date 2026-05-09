@@ -673,19 +673,19 @@ Five roles — **Admin, Coordinator, Teacher, Student, Parent** — each receive
   - _Requirements: 9.1, 9.2, 9.3, 9.7, 9.8_
   - _Design: §Design Token Checker_
 
-  - [ ] 10.1 AST visitor — forbidden color families on cards/tabs
+  - [x] 10.1 AST visitor — forbidden color families on cards/tabs
 
     - Regex on `className`: `/\b(bg|from|via|to)-(pink|purple|violet|rose|fuchsia)-\d+/`.
     - Apply only when element classified as Card or Tab (see 10.5 classifier).
     - _Requirements: 9.1_
 
-  - [ ] 10.2 AST visitor — glassmorphism on data cards
+  - [x] 10.2 AST visitor — glassmorphism on data cards
 
     - Regex on `className`: `/backdrop-blur/` OR `/bg-(white|black)\/\d+/`.
     - Apply only when element classified as data Card.
     - _Requirements: 9.2_
 
-  - [ ] 10.3 AST visitor — max one gradient CTA button per `<section>`
+  - [x] 10.3 AST visitor — max one gradient CTA button per `<section>`
 
     - Count elements whose `className` contains `/bg-gradient/` AND component is `Button`. Flag if count > 1 within a single `<section>`.
     - _Requirements: 9.3_
@@ -701,12 +701,12 @@ Five roles — **Admin, Coordinator, Teacher, Student, Parent** — each receive
     - Flag `<Skeleton className="h-screen">` or equivalent full-viewport shapes.
     - _Requirements: 9.8_
 
-  - [ ] 10.6 AST visitor — every `<Route element={...}>` wrapped by `ErrorBoundary`
+  - [x] 10.6 AST visitor — every `<Route element={...}>` wrapped by `ErrorBoundary`
 
     - Walk `src/router/**/*.tsx`; for each `<Route>`, assert its element tree is wrapped by `<ErrorBoundary>` or a `<RouteGuard>` that itself wraps `<ErrorBoundary>`.
     - _Requirements: 9.7, 14.3_
 
-  - [ ] 10.7 Card/Tab classifier
+  - [x] 10.7 Card/Tab classifier
     - Two-heuristic classifier per `design.md` §"Card" vs "Tab" Classification: Shadcn import check + CVA variant name check.
     - Emit JSON + Markdown findings at `audit/output/design-token-findings.{json,md}`.
     - _Requirements: 9.1, 9.2_
@@ -722,7 +722,7 @@ Five roles — **Admin, Coordinator, Teacher, Student, Parent** — each receive
     - Flatten `src/locales/en/**/*.json` and `src/locales/ar/**/*.json` into dotted-path sets. Compute `en - ar` and `ar - en`; any non-empty diff is a finding.
     - _Requirements: 10.1_
 
-  - [ ] 11.2 Untranslated JSX literal AST scan with allowlist
+  - [x] 11.2 Untranslated JSX literal AST scan with allowlist
 
     - Walk JSX text nodes and non-ARIA prop string literals. Ignore `<Trans>` children and `t('...')` arguments.
     - Honor `audit/baselines/i18n-allowlist.json` (brand names, email placeholders).
@@ -804,12 +804,12 @@ Five roles — **Admin, Coordinator, Teacher, Student, Parent** — each receive
     - Assert every referenced name is in `audit/baselines/vite-env.allowlist.json`.
     - _Requirements: 13.2_
 
-  - [ ] 13.3 `zodResolver` presence scan on every `useForm`
+  - [x] 13.3 `zodResolver` presence scan on every `useForm`
 
     - AST-scan `src/pages/**/*.tsx` for `useForm(` call sites; assert the options object contains `resolver: zodResolver(...)`.
     - _Requirements: 13.3_
 
-  - [ ] 13.4 Edge Function body validation scan (conditional on `supabase/functions/` presence)
+  - [x] 13.4 Edge Function body validation scan (conditional on `supabase/functions/` presence)
 
     - If `supabase/functions/` exists: AST-scan every `.ts` file; confirm `req.json()` or `req.text()` flows into a `<schema>.safeParse` / `.parse` before any side-effect call.
     - If the directory does not exist: emit a single severity-Trivial informational finding per `design.md` §Assumptions item 2 and skip.
@@ -907,7 +907,7 @@ Five roles — **Admin, Coordinator, Teacher, Student, Parent** — each receive
     - Fail the run if any of the four reproducibility stamps cannot be resolved — do NOT emit a partial stamp.
     - _Requirements: 16.7, 16.8_
 
-  - [ ] 16.5 PR-comment template
+  - [x] 16.5 PR-comment template
     - `scripts/audit/pr-comment.ts` reads `verdict.json` and produces the Markdown body: verdict line, severity counts, top-3 findings, link to full report.
     - _Requirements: 17.5_
 
@@ -921,7 +921,7 @@ Five roles — **Admin, Coordinator, Teacher, Student, Parent** — each receive
   - _Requirements: 17.1, 17.2, 17.3, 17.4, 17.5, 17.6_
   - _Design: §CI Pipeline Integration_
 
-  - [ ] 18.1 `.github/workflows/pre-deploy-audit.yml` with stage ordering
+  - [x] 18.1 `.github/workflows/pre-deploy-audit.yml` with stage ordering
 
     - Implement the stage DAG from `design.md` §Stage Ordering and Policy.
     - Fail-fast on lint, tsc, unit+property, build, security-scan.
@@ -929,31 +929,31 @@ Five roles — **Admin, Coordinator, Teacher, Student, Parent** — each receive
     - Always run the report aggregator; treat missing artifacts as Critical findings.
     - _Requirements: 17.1, 17.2, 17.3_
 
-  - [ ] 18.2 PR mode vs pre-deploy mode entrypoints
+  - [x] 18.2 PR mode vs pre-deploy mode entrypoints
 
     - PR mode (`on: pull_request`): static + contract + property layers; skip E2E to stay under 10 min.
     - Pre-deploy mode (`on: workflow_dispatch` and `on: push: tags: v*`): full pipeline.
     - Expose both via `npm run audit` with `--pr` flag per §1.4.
     - _Requirements: 17.1_
 
-  - [ ] 18.3 PR-comment bot job (idempotent edit)
+  - [x] 18.3 PR-comment bot job (idempotent edit)
 
     - Use `actions/github-script` to post/edit a comment on the PR. On re-runs, edit the existing comment rather than append.
     - _Requirements: 17.5_
 
-  - [ ] 18.4 Playwright browser cache + node_modules cache
+  - [x] 18.4 Playwright browser cache + node_modules cache
 
     - `actions/cache` on `~/.cache/ms-playwright` keyed by Playwright version; on `node_modules` keyed by `package-lock.json` hash.
     - _Requirements: 17.1_
 
-  - [ ] 18.5 `SUPABASE_ACCESS_TOKEN` secret wiring and fail-fast auth check
+  - [x] 18.5 `SUPABASE_ACCESS_TOKEN` secret wiring and fail-fast auth check
 
     - Audit runner refuses to start if `SUPABASE_ACCESS_TOKEN` is unset. Connectivity matrix + RLS matrix depend on it.
     - Add a `Preflight` step that verifies `npx supabase projects list` succeeds before any stage runs.
     - _Requirements: 17.1_
     - _Design: §Assumptions item 5_
 
-  - [ ] 18.6 Coverage threshold enforcement on `src/lib/`
+  - [x] 18.6 Coverage threshold enforcement on `src/lib/`
     - Fail CI if vitest coverage on `src/lib/` falls below the threshold baselined on first run (initial target 80% line coverage).
     - _Requirements: 17.4_
 
