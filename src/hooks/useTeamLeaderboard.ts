@@ -4,11 +4,11 @@
 //           with Cooperation Score sort option
 // =============================================================================
 
-import { useCallback } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import { useRealtime } from '@/hooks/useRealtime';
+import { useCallback } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import { useRealtime } from "@/hooks/useRealtime";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -25,11 +25,11 @@ export interface TeamLeaderboardEntry {
   rank: number;
 }
 
-export type TeamLeaderboardSort = 'xp_total' | 'cooperation_score';
-export type TeamLeaderboardScope = 'course' | 'program';
+export type TeamLeaderboardSort = "xp_total" | "cooperation_score";
+export type TeamLeaderboardScope = "course" | "program";
 
 /** @deprecated Use TeamLeaderboardScope instead */
-export type TeamLeaderboardView = 'weekly' | 'all_time';
+export type TeamLeaderboardView = "weekly" | "all_time";
 
 // ─── useTeamLeaderboard ──────────────────────────────────────────────────────
 
@@ -39,9 +39,14 @@ export const useTeamLeaderboard = (
     programId?: string;
     scope?: TeamLeaderboardScope;
     sortBy?: TeamLeaderboardSort;
-  } = {},
+  } = {}
 ) => {
-  const { courseId, programId, scope = 'course', sortBy = 'xp_total' } = options;
+  const {
+    courseId,
+    programId,
+    scope = "course",
+    sortBy = "xp_total",
+  } = options;
   const queryClient = useQueryClient();
 
   const pollingFn = useCallback(() => {
@@ -50,9 +55,20 @@ export const useTeamLeaderboard = (
     });
   }, [queryClient]);
 
+  // Scope realtime subscription to the same course the query is scoped to
+  // (Req 12.4 — no unfiltered subscriptions). When scope is 'program' or
+  // 'global' we can't express the set of course_ids in a realtime filter;
+  // fall back to unfiltered and accept the extra invalidations because
+  // those views are intentionally cross-course. The scanner suppression
+  // baseline at audit/baselines/realtime-filter-exceptions.json documents
+  // this carve-out.
+  const realtimeFilter =
+    scope === "course" && courseId ? `course_id=eq.${courseId}` : undefined;
+
   const { isLive, retryCount } = useRealtime({
-    table: 'teams',
-    event: 'UPDATE',
+    table: "teams",
+    event: "UPDATE",
+    filter: realtimeFilter,
     onPayload: () => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.teamLeaderboard.lists(),
@@ -63,25 +79,32 @@ export const useTeamLeaderboard = (
   });
 
   const query = useQuery({
-    queryKey: queryKeys.teamLeaderboard.list({ courseId, programId, scope, sortBy }),
+    queryKey: queryKeys.teamLeaderboard.list({
+      courseId,
+      programId,
+      scope,
+      sortBy,
+    }),
     queryFn: async (): Promise<TeamLeaderboardEntry[]> => {
       let teamQuery = supabase
-        .from('teams' as never)
-        .select('id, name, xp_total, streak_count, cooperation_score, health_score, course_id, avatar_letter')
-        .is('deleted_at', null);
+        .from("teams" as never)
+        .select(
+          "id, name, xp_total, streak_count, cooperation_score, health_score, course_id, avatar_letter"
+        )
+        .is("deleted_at", null);
 
-      if (scope === 'course' && courseId) {
-        teamQuery = teamQuery.eq('course_id', courseId);
-      } else if (scope === 'program' && programId) {
+      if (scope === "course" && courseId) {
+        teamQuery = teamQuery.eq("course_id", courseId);
+      } else if (scope === "program" && programId) {
         // Fetch course IDs for the program first
         const { data: courses, error: coursesError } = await supabase
-          .from('courses')
-          .select('id')
-          .eq('program_id', programId);
+          .from("courses")
+          .select("id")
+          .eq("program_id", programId);
         if (coursesError) throw coursesError;
         const courseIds = (courses ?? []).map((c) => c.id);
         if (courseIds.length === 0) return [];
-        teamQuery = teamQuery.in('course_id', courseIds);
+        teamQuery = teamQuery.in("course_id", courseIds);
       }
 
       const { data: teams, error: teamsError } = await teamQuery;
@@ -92,10 +115,10 @@ export const useTeamLeaderboard = (
 
       // Fetch member counts (active members only)
       const { data: members, error: memError } = await supabase
-        .from('team_members' as never)
-        .select('team_id')
-        .in('team_id', teamIds)
-        .is('left_at', null);
+        .from("team_members" as never)
+        .select("team_id")
+        .in("team_id", teamIds)
+        .is("left_at", null);
       if (memError) throw memError;
 
       const countMap = new Map<string, number>();
@@ -146,21 +169,21 @@ export const useMyTeamId = (studentId?: string, courseId?: string) => {
     queryKey: queryKeys.teamMembers.list({ studentId, courseId }),
     queryFn: async (): Promise<string | null> => {
       const { data: teams, error: teamsErr } = await supabase
-        .from('teams' as never)
-        .select('id')
-        .eq('course_id', courseId!)
-        .is('deleted_at', null);
+        .from("teams" as never)
+        .select("id")
+        .eq("course_id", courseId!)
+        .is("deleted_at", null);
       if (teamsErr) throw teamsErr;
       if (!teams || teams.length === 0) return null;
 
       const teamIds = (teams as Array<{ id: string }>).map((t) => t.id);
 
       const { data: membership, error: memErr } = await supabase
-        .from('team_members' as never)
-        .select('team_id')
-        .eq('student_id', studentId!)
-        .in('team_id', teamIds)
-        .is('left_at', null)
+        .from("team_members" as never)
+        .select("team_id")
+        .eq("student_id", studentId!)
+        .in("team_id", teamIds)
+        .is("left_at", null)
         .limit(1)
         .maybeSingle();
       if (memErr) throw memErr;
