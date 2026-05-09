@@ -1,0 +1,12 @@
+# Nova Act SDK — pinned version for reproducible audit runs.
+# Install with: pip install -r scripts/audit/nova-act/requirements.txt
+#
+# Nova Act is Amazon's browser-automation agent SDK. It is used by the
+# pre-deployment audit to exercise each Role's primary user journey using
+# natural-language prompts (Req 18).
+#
+# The audit runner (run.ts) checks for NOVA_ACT_API_KEY before invoking
+# any Nova Act journey. If the key is absent, the nova-act stage is skipped
+# with a manifest entry of status="skipped".
+
+nova-act==0.1.0

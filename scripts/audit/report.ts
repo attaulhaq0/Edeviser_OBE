@@ -10,6 +10,7 @@
 //   - Task 16.4 / Req 16.7, 16.8: verdict.json emitter stamped with
 //     commit SHA, environment id, timestamp. Refuses to emit a partial
 //     stamp.
+//   - Task 21.10: Ingests audit/output/nova-act/{role}/report.md if present.
 
 import { execFileSync } from "node:child_process";
 import {
@@ -29,6 +30,7 @@ import {
   severityToVerdict,
 } from "./verdict.ts";
 import { loadWaivers as loadWaiverFile } from "./waivers.ts";
+import type { StageResult } from "./types.ts";
 
 // ─── Manifest + artifact I/O ──────────────────────────────────────────────
 
@@ -160,10 +162,6 @@ export const countSeverities = (
 };
 
 // ─── Waiver loader ────────────────────────────────────────────────────────
-// Waivers live in audit/waivers.json (gitignored; audit/waivers.example.json
-// is the committed template). severityToVerdict's expiry check enforces
-// time-bounded scope; malformed waivers are silently rejected AND surfaced
-// via the ingestor's malformedArtifacts path.
 
 const loadWaivers = (): readonly Waiver[] => {
   const result = loadWaiverFile();
@@ -183,9 +181,6 @@ const loadManifest = (): Manifest | null => {
 };
 
 // ─── Migration head resolver (best-effort) ────────────────────────────────
-// supabase/migrations/ files follow the timestamp-prefix convention. The
-// head is the lexically-greatest filename — good enough for a
-// reproducibility stamp without a round-trip to the DB.
 
 const resolveMigrationHead = (): string | null => {
   const migrationsDir = resolve("supabase", "migrations");
@@ -199,6 +194,54 @@ const resolveMigrationHead = (): string | null => {
   } catch {
     return null;
   }
+};
+
+// ─── Nova Act report ingestion (Task 21.10) ───────────────────────────────
+// If audit/output/nova-act/{role}/report.md exists, append its content to
+// the audit report. This is a best-effort inclusion — missing files are
+// silently skipped.
+
+const NOVA_ACT_ROLES = [
+  "admin",
+  "coordinator",
+  "teacher",
+  "student",
+  "parent",
+] as const;
+
+const ingestNovaActReports = (): string => {
+  const sections: string[] = [];
+
+  for (const role of NOVA_ACT_ROLES) {
+    const reportPath = resolve(
+      "audit",
+      "output",
+      "nova-act",
+      role,
+      "report.md"
+    );
+    if (!existsSync(reportPath)) continue;
+
+    try {
+      const content = readFileSync(reportPath, "utf8");
+      sections.push(`### Nova Act — ${role}`);
+      sections.push("");
+      sections.push(content.trim());
+      sections.push("");
+    } catch {
+      // Silently skip unreadable reports
+    }
+  }
+
+  if (sections.length === 0) return "";
+
+  return [
+    "## Nova Act UX Audit",
+    "",
+    "Human-perspective UX audit results from Amazon Nova Act.",
+    "",
+    ...sections,
+  ].join("\n");
 };
 
 // ─── Markdown helpers ─────────────────────────────────────────────────────
@@ -241,6 +284,7 @@ export interface ReportInputs {
     readonly file: string;
     readonly reason: string;
   }[];
+  readonly novaActSection?: string;
 }
 
 export const renderReport = (input: ReportInputs): string => {
@@ -252,6 +296,7 @@ export const renderReport = (input: ReportInputs): string => {
     migrationHead,
     artifactsScanned,
     malformedArtifacts,
+    novaActSection,
   } = input;
 
   const commitShort = manifest?.commitSha?.slice(0, 8) ?? "unknown";
@@ -351,6 +396,11 @@ export const renderReport = (input: ReportInputs): string => {
   }
   lines.push("");
 
+  // Nova Act UX Audit section (optional — Task 21.10)
+  if (novaActSection) {
+    lines.push(novaActSection);
+  }
+
   return `${lines.join("\n")}\n`;
 };
 
@@ -417,8 +467,6 @@ export const buildVerdictArtifact = (
 
 // ─── Stage entry point ────────────────────────────────────────────────────
 
-import type { StageResult } from "./types.ts";
-
 export const runReportStage = async (): Promise<StageResult> => {
   const startedAt = Date.now();
 
@@ -430,6 +478,7 @@ export const runReportStage = async (): Promise<StageResult> => {
   const migrationHead = resolveMigrationHead();
 
   // Render Markdown report — always produced, even on incomplete runs.
+  const novaActSection = ingestNovaActReports();
   const report = renderReport({
     manifest,
     findings: ingested.findings,
@@ -438,6 +487,7 @@ export const runReportStage = async (): Promise<StageResult> => {
     migrationHead,
     artifactsScanned: ingested.artifactFilesScanned,
     malformedArtifacts: ingested.malformedArtifacts,
+    novaActSection,
   });
   mkdirSync(AUDIT_OUTPUT(), { recursive: true });
   writeFileSync(REPORT_PATH(), report, "utf8");

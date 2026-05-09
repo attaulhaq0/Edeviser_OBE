@@ -6,6 +6,8 @@
 // manifest without branching per stage.
 
 import { runA11yStage } from "./a11y-stage.ts";
+import { runConnectivityStage } from "./connectivity-matrix.ts";
+import { runCronStage } from "./cron-health.ts";
 import { runDesignTokensStage } from "./design-token-check.ts";
 import { runI18nStage } from "./i18n-check.ts";
 import { runPerfStage } from "./perf-budget.ts";
@@ -16,6 +18,7 @@ import {
   runTscStage,
 } from "./process-stages.ts";
 import { runReportStage } from "./report.ts";
+import { runRlsStage } from "./rls-matrix.ts";
 import { runSecurityStage } from "./security-scan.ts";
 import type { StageName, StageResult } from "./types.ts";
 
@@ -36,9 +39,9 @@ export const stages: Record<StageName, StageFn> = {
   propertyTests: runPropertyTestsStage,
   build: runBuildStage,
   security: runSecurityStage,
-  connectivity: stub("connectivity"),
-  rls: stub("rls"),
-  cron: stub("cron"),
+  connectivity: runConnectivityStage,
+  rls: runRlsStage,
+  cron: runCronStage,
   e2e: stub("e2e"),
   designTokens: runDesignTokensStage,
   i18n: runI18nStage,

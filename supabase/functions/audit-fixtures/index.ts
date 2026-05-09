@@ -108,13 +108,37 @@ const makeServiceClient = (): SupabaseClient => {
   });
 };
 
-// ─── Route: POST /seed (Tasks 3.1–3.8 land full implementations) ──────────
-// Phase 1 handler: validates body, acknowledges receipt, and returns the
-// canonical seed identifiers so callers can begin wiring Playwright specs
-// against known IDs. The per-role user/OBE/assignment inserts are delegated
-// to Tasks 3.1–3.8 which extend this route body. Keeping those inserts in
-// their own PRs keeps review surface small and each sub-task independently
-// verifiable.
+// ─── Seed helpers ──────────────────────────────────────────────────────────
+
+const upsertUser = async (
+  supabase: SupabaseClient,
+  email: string,
+  role: string,
+  metadata: Record<string, unknown>
+): Promise<string> => {
+  // Try to find existing user first
+  const { data: listData } = await supabase.auth.admin.listUsers();
+  const existing = listData?.users?.find((u) => u.email === email);
+  if (existing) {
+    // Update metadata to ensure it's current
+    await supabase.auth.admin.updateUserById(existing.id, {
+      user_metadata: { role, ...metadata },
+      app_metadata: { role, ...metadata },
+    });
+    return existing.id;
+  }
+  const { data, error } = await supabase.auth.admin.createUser({
+    email,
+    password: "AuditSeed2024!",
+    email_confirm: true,
+    user_metadata: { role, ...metadata },
+    app_metadata: { role, ...metadata },
+  });
+  if (error) throw new Error(`createUser(${email}): ${error.message}`);
+  return data.user.id;
+};
+
+// ─── Route: POST /seed (Tasks 3.1–3.8) ────────────────────────────────────
 
 const handleSeed = async (req: Request): Promise<Response> => {
   const parsed = SeedRequestSchema.safeParse(
@@ -127,15 +151,342 @@ const handleSeed = async (req: Request): Promise<Response> => {
     );
   }
 
-  // Service client is materialised so downstream tasks can extend without
-  // refactoring the handler. Unused right now — marked with a void cast so
-  // Deno's no-unused-vars rule does not fire when linted.
-  void makeServiceClient();
+  const supabase = makeServiceClient();
+  const { runId, roles } = parsed.data;
+  const errors: string[] = [];
+  const seeded: Record<string, string> = {};
+
+  // ── 3.1 Admin seed user ──────────────────────────────────────────────────
+  if (roles.includes("admin")) {
+    try {
+      const adminId = await upsertUser(supabase, SEED_EMAILS.admin, "admin", {
+        institution_id: AUDIT_INSTITUTION_ID,
+      });
+      seeded.admin = adminId;
+      // Upsert profile row
+      await supabase.from("profiles").upsert(
+        {
+          id: adminId,
+          email: SEED_EMAILS.admin,
+          role: "admin",
+          institution_id: AUDIT_INSTITUTION_ID,
+          full_name: "Audit Admin",
+        },
+        { onConflict: "id" }
+      );
+    } catch (e) {
+      errors.push(`admin: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  }
+
+  // ── 3.2 Coordinator seed user ────────────────────────────────────────────
+  if (roles.includes("coordinator")) {
+    try {
+      const coordId = await upsertUser(
+        supabase,
+        SEED_EMAILS.coordinator,
+        "coordinator",
+        { institution_id: AUDIT_INSTITUTION_ID, program_id: AUDIT_PROGRAM_ID }
+      );
+      seeded.coordinator = coordId;
+      await supabase.from("profiles").upsert(
+        {
+          id: coordId,
+          email: SEED_EMAILS.coordinator,
+          role: "coordinator",
+          institution_id: AUDIT_INSTITUTION_ID,
+          full_name: "Audit Coordinator",
+        },
+        { onConflict: "id" }
+      );
+    } catch (e) {
+      errors.push(`coordinator: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  }
+
+  // ── 3.3 Teacher seed user ────────────────────────────────────────────────
+  if (roles.includes("teacher")) {
+    try {
+      const teacherId = await upsertUser(
+        supabase,
+        SEED_EMAILS.teacher,
+        "teacher",
+        { institution_id: AUDIT_INSTITUTION_ID }
+      );
+      seeded.teacher = teacherId;
+      await supabase.from("profiles").upsert(
+        {
+          id: teacherId,
+          email: SEED_EMAILS.teacher,
+          role: "teacher",
+          institution_id: AUDIT_INSTITUTION_ID,
+          full_name: "Audit Teacher",
+        },
+        { onConflict: "id" }
+      );
+      // Assign teacher to course
+      await supabase.from("courses").upsert(
+        {
+          id: AUDIT_COURSE_ID,
+          name: "Audit Course 1",
+          institution_id: AUDIT_INSTITUTION_ID,
+          program_id: AUDIT_PROGRAM_ID,
+          teacher_id: teacherId,
+          code: "AUDIT-101",
+        },
+        { onConflict: "id" }
+      );
+    } catch (e) {
+      errors.push(`teacher: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  }
+
+  // ── 3.4 Student seed user ────────────────────────────────────────────────
+  if (roles.includes("student")) {
+    try {
+      const studentId = await upsertUser(
+        supabase,
+        SEED_EMAILS.student,
+        "student",
+        { institution_id: AUDIT_INSTITUTION_ID }
+      );
+      seeded.student = studentId;
+      await supabase.from("profiles").upsert(
+        {
+          id: studentId,
+          email: SEED_EMAILS.student,
+          role: "student",
+          institution_id: AUDIT_INSTITUTION_ID,
+          full_name: "Audit Student",
+        },
+        { onConflict: "id" }
+      );
+      // Enroll student in course
+      await supabase.from("enrollments").upsert(
+        {
+          student_id: studentId,
+          course_id: AUDIT_COURSE_ID,
+          institution_id: AUDIT_INSTITUTION_ID,
+          status: "active",
+        },
+        { onConflict: "student_id,course_id" }
+      );
+    } catch (e) {
+      errors.push(`student: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  }
+
+  // ── 3.5 Parent (linked, verified) ───────────────────────────────────────
+  if (roles.includes("parent")) {
+    try {
+      const parentLinkedId = await upsertUser(
+        supabase,
+        SEED_EMAILS.parentLinked,
+        "parent",
+        { institution_id: AUDIT_INSTITUTION_ID }
+      );
+      seeded.parentLinked = parentLinkedId;
+      await supabase.from("profiles").upsert(
+        {
+          id: parentLinkedId,
+          email: SEED_EMAILS.parentLinked,
+          role: "parent",
+          institution_id: AUDIT_INSTITUTION_ID,
+          full_name: "Audit Parent Linked",
+        },
+        { onConflict: "id" }
+      );
+      // Insert parent_student_links row if student was seeded
+      if (seeded.student) {
+        await supabase.from("parent_student_links").upsert(
+          {
+            parent_id: parentLinkedId,
+            student_id: seeded.student,
+            verified: true,
+            institution_id: AUDIT_INSTITUTION_ID,
+          },
+          { onConflict: "parent_id,student_id" }
+        );
+      }
+
+      // ── 3.6 Parent (unlinked) ──────────────────────────────────────────
+      const parentUnlinkedId = await upsertUser(
+        supabase,
+        SEED_EMAILS.parentUnlinked,
+        "parent",
+        { institution_id: AUDIT_INSTITUTION_ID }
+      );
+      seeded.parentUnlinked = parentUnlinkedId;
+      await supabase.from("profiles").upsert(
+        {
+          id: parentUnlinkedId,
+          email: SEED_EMAILS.parentUnlinked,
+          role: "parent",
+          institution_id: AUDIT_INSTITUTION_ID,
+          full_name: "Audit Parent Unlinked",
+        },
+        { onConflict: "id" }
+      );
+      // No parent_student_links row for unlinked parent (by design)
+    } catch (e) {
+      errors.push(`parent: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  }
+
+  // ── 3.7 ILO → PLO → CLO chain ───────────────────────────────────────────
+  try {
+    // Institution
+    await supabase
+      .from("institutions")
+      .upsert(
+        { id: AUDIT_INSTITUTION_ID, name: "Audit Institution" },
+        { onConflict: "id" }
+      );
+    // Program
+    await supabase.from("programs").upsert(
+      {
+        id: AUDIT_PROGRAM_ID,
+        name: "Audit Program 1",
+        institution_id: AUDIT_INSTITUTION_ID,
+      },
+      { onConflict: "id" }
+    );
+    // ILO
+    await supabase.from("ilos").upsert(
+      {
+        id: AUDIT_ILO_ID,
+        title: "Audit ILO 1",
+        institution_id: AUDIT_INSTITUTION_ID,
+        description: "Audit ILO for pre-deployment testing",
+      },
+      { onConflict: "id" }
+    );
+    // PLO
+    await supabase.from("plos").upsert(
+      {
+        id: AUDIT_PLO_ID,
+        title: "Audit PLO 1",
+        program_id: AUDIT_PROGRAM_ID,
+        institution_id: AUDIT_INSTITUTION_ID,
+        description: "Audit PLO for pre-deployment testing",
+      },
+      { onConflict: "id" }
+    );
+    // PLO → ILO mapping (weight=100)
+    await supabase.from("outcome_mappings").upsert(
+      {
+        child_id: AUDIT_PLO_ID,
+        parent_id: AUDIT_ILO_ID,
+        weight: 100,
+        child_type: "plo",
+        parent_type: "ilo",
+        institution_id: AUDIT_INSTITUTION_ID,
+      },
+      { onConflict: "child_id,parent_id" }
+    );
+    // CLO-0 (Remembering — prerequisite)
+    await supabase.from("clos").upsert(
+      {
+        id: AUDIT_CLO_PREREQ_ID,
+        title: "Audit CLO 0 — Remembering",
+        course_id: AUDIT_COURSE_ID,
+        institution_id: AUDIT_INSTITUTION_ID,
+        bloom_level: "Remembering",
+        description: "Prerequisite CLO",
+      },
+      { onConflict: "id" }
+    );
+    // CLO-0 → PLO mapping (weight=50)
+    await supabase.from("outcome_mappings").upsert(
+      {
+        child_id: AUDIT_CLO_PREREQ_ID,
+        parent_id: AUDIT_PLO_ID,
+        weight: 50,
+        child_type: "clo",
+        parent_type: "plo",
+        institution_id: AUDIT_INSTITUTION_ID,
+      },
+      { onConflict: "child_id,parent_id" }
+    );
+    // CLO-1 (Applying — target)
+    await supabase.from("clos").upsert(
+      {
+        id: AUDIT_CLO_TARGET_ID,
+        title: "Audit CLO 1 — Applying",
+        course_id: AUDIT_COURSE_ID,
+        institution_id: AUDIT_INSTITUTION_ID,
+        bloom_level: "Applying",
+        description: "Target CLO",
+      },
+      { onConflict: "id" }
+    );
+    // CLO-1 → PLO mapping (weight=50, total=100)
+    await supabase.from("outcome_mappings").upsert(
+      {
+        child_id: AUDIT_CLO_TARGET_ID,
+        parent_id: AUDIT_PLO_ID,
+        weight: 50,
+        child_type: "clo",
+        parent_type: "plo",
+        institution_id: AUDIT_INSTITUTION_ID,
+      },
+      { onConflict: "child_id,parent_id" }
+    );
+  } catch (e) {
+    errors.push(`obe-chain: ${e instanceof Error ? e.message : String(e)}`);
+  }
+
+  // ── 3.8 Assignment with prerequisite gate and rubric ────────────────────
+  try {
+    // Rubric
+    const rubricId = `${AUDIT_ASSIGNMENT_ID}-rubric`;
+    await supabase.from("rubrics").upsert(
+      {
+        id: rubricId,
+        title: "Audit Rubric",
+        course_id: AUDIT_COURSE_ID,
+        institution_id: AUDIT_INSTITUTION_ID,
+        criteria: [
+          {
+            id: "c1",
+            title: "Overall Performance",
+            weight: 100,
+            levels: [
+              { score: 4, description: "Excellent" },
+              { score: 3, description: "Good" },
+              { score: 2, description: "Satisfactory" },
+              { score: 1, description: "Needs Improvement" },
+            ],
+          },
+        ],
+      },
+      { onConflict: "id" }
+    );
+    // Assignment
+    await supabase.from("assignments").upsert(
+      {
+        id: AUDIT_ASSIGNMENT_ID,
+        title: "Audit Assignment 1",
+        course_id: AUDIT_COURSE_ID,
+        institution_id: AUDIT_INSTITUTION_ID,
+        clo_ids: [AUDIT_CLO_TARGET_ID],
+        rubric_id: rubricId,
+        prerequisite_clo_id: AUDIT_CLO_PREREQ_ID,
+        prerequisite_gate_percentage: PREREQUISITE_GATE_PERCENTAGE,
+        due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        max_score: 100,
+      },
+      { onConflict: "id" }
+    );
+  } catch (e) {
+    errors.push(`assignment: ${e instanceof Error ? e.message : String(e)}`);
+  }
 
   return json({
-    ok: true,
-    runId: parsed.data.runId,
-    note: "seed stub — per-role inserts land in tasks 3.1–3.8",
+    ok: errors.length === 0,
+    runId,
+    seeded,
+    errors: errors.length > 0 ? errors : undefined,
     identifiers: {
       institutionId: AUDIT_INSTITUTION_ID,
       programId: AUDIT_PROGRAM_ID,
@@ -151,7 +502,9 @@ const handleSeed = async (req: Request): Promise<Response> => {
   });
 };
 
-// ─── Route: POST /teardown (Task 3.9 lands the delete orchestration) ──────
+// ─── Route: POST /teardown (Task 3.9) ─────────────────────────────────────
+// Deletes rows namespaced with `audit-<runId>-` in FK-safe order.
+// Does NOT delete from evidence, audit_logs, xp_transactions (append-only).
 
 const handleTeardown = async (req: Request): Promise<Response> => {
   const parsed = TeardownRequestSchema.safeParse(
@@ -164,18 +517,54 @@ const handleTeardown = async (req: Request): Promise<Response> => {
     );
   }
 
-  void makeServiceClient();
+  const supabase = makeServiceClient();
+  const { runId } = parsed.data;
+  const prefix = `audit-${runId}-`;
+  const deleted: Record<string, number> = {};
+  const errors: string[] = [];
 
-  // The FK-safe delete orchestration is task 3.9. Stub returns ok so the
-  // Playwright globalTeardown wiring (task 4.2) can exercise the endpoint.
+  // FK-safe delete order: leaves first, then parents
+  // grades → submissions → rubric_scores → assignments → outcome_mappings
+  // → clo → plo → ilo → enrollments → courses → programs
+  const tables: Array<{ table: string; column: string }> = [
+    { table: "grades", column: "id" },
+    { table: "submissions", column: "id" },
+    { table: "assignments", column: "id" },
+    { table: "outcome_mappings", column: "child_id" },
+    { table: "clos", column: "id" },
+    { table: "plos", column: "id" },
+    { table: "ilos", column: "id" },
+    { table: "enrollments", column: "id" },
+    { table: "courses", column: "id" },
+    { table: "programs", column: "id" },
+  ];
+
+  for (const { table, column } of tables) {
+    try {
+      const { count, error } = await supabase
+        .from(table)
+        .delete({ count: "exact" })
+        .like(column, `${prefix}%`);
+      if (error) {
+        errors.push(`${table}: ${error.message}`);
+      } else {
+        deleted[table] = count ?? 0;
+      }
+    } catch (e) {
+      errors.push(`${table}: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  }
+
   return json({
-    ok: true,
-    runId: parsed.data.runId,
-    note: "teardown stub — namespaced truncation lands in task 3.9",
+    ok: errors.length === 0,
+    runId,
+    deleted,
+    errors: errors.length > 0 ? errors : undefined,
   });
 };
 
-// ─── Route: POST /impersonate (Task 3.10 lands the JWT generation) ────────
+// ─── Route: POST /impersonate (Task 3.10) ────────────────────────────────
+// Returns a magic-link JWT for the matching seed user.
 
 const handleImpersonate = async (req: Request): Promise<Response> => {
   const parsed = ImpersonateRequestSchema.safeParse(
@@ -194,16 +583,58 @@ const handleImpersonate = async (req: Request): Promise<Response> => {
     return json({ error: "impersonation disabled" }, 403);
   }
 
-  void makeServiceClient();
+  const supabase = makeServiceClient();
+  const { role, variant } = parsed.data;
+
+  // Resolve the email for the requested role + variant
+  let email: string;
+  if (role === "parent") {
+    email =
+      variant === "unlinked"
+        ? SEED_EMAILS.parentUnlinked
+        : SEED_EMAILS.parentLinked;
+  } else {
+    email = SEED_EMAILS[role as keyof typeof SEED_EMAILS];
+  }
+
+  // Find the user by email
+  const { data: listData, error: listError } =
+    await supabase.auth.admin.listUsers();
+  if (listError) {
+    return json({ error: listError.message }, 500);
+  }
+  const user = listData?.users?.find((u) => u.email === email);
+  if (!user) {
+    return json(
+      { error: `seed user not found for role=${role} variant=${variant}` },
+      404
+    );
+  }
+
+  // Generate a magic link (one-time sign-in link)
+  const { data: linkData, error: linkError } =
+    await supabase.auth.admin.generateLink({
+      type: "magiclink",
+      email,
+    });
+  if (linkError) {
+    return json({ error: linkError.message }, 500);
+  }
 
   return json({
     ok: true,
-    role: parsed.data.role,
-    note: "impersonate stub — magiclink generation lands in task 3.10",
+    role,
+    variant,
+    email,
+    userId: user.id,
+    magicLink: linkData.properties?.action_link ?? null,
+    // Also return the hashed token for programmatic use
+    token: linkData.properties?.hashed_token ?? null,
   });
 };
 
-// ─── Route: POST /event/bonus-xp (Task 3.11 lands the insert) ────────────
+// ─── Route: POST /event/bonus-xp (Task 3.11) ─────────────────────────────
+// Inserts a namespaced row into bonus_xp_events.
 
 const handleBonusXpEvent = async (req: Request): Promise<Response> => {
   const parsed = BonusXpEventRequestSchema.safeParse(
@@ -216,14 +647,32 @@ const handleBonusXpEvent = async (req: Request): Promise<Response> => {
     );
   }
 
-  void makeServiceClient();
+  const supabase = makeServiceClient();
+  const { multiplier, startsAt, endsAt } = parsed.data;
+
+  const { data, error } = await supabase
+    .from("bonus_xp_events")
+    .insert({
+      multiplier,
+      starts_at: startsAt,
+      ends_at: endsAt,
+      institution_id: AUDIT_INSTITUTION_ID,
+      name: `Audit Bonus XP Event (${multiplier}x)`,
+      created_by: null, // service-role insert
+    })
+    .select("id")
+    .single();
+
+  if (error) {
+    return json({ error: error.message }, 500);
+  }
 
   return json({
     ok: true,
-    multiplier: parsed.data.multiplier,
-    startsAt: parsed.data.startsAt,
-    endsAt: parsed.data.endsAt,
-    note: "bonus-xp stub — bonus_xp_events insert lands in task 3.11",
+    id: data?.id,
+    multiplier,
+    startsAt,
+    endsAt,
   });
 };
 

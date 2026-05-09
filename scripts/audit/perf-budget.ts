@@ -6,11 +6,16 @@
 //     baseline × 110%. First run (when baseline.totalGzippedBytes is null)
 //     reports current measurements without enforcing a regression cap —
 //     explicit opt-in to freeze the baseline happens in Task 19.1.
+//   - Task 14.5 / Req 12.5: N+1 detection from Supabase query log.
+//     During per-role critical-path run, normalizes REST calls by stripping
+//     row-identifier query params and counts templates per page transition.
+//     Flags any template with > 10 hits in a single transition. Honors
+//     per-template overrides in audit/baselines/n-plus-one-threshold.json.
 //
 // Tasks 14.2 (per-role TTI), 14.3 (list-page pagination), 14.4 (realtime
-// filter AST), 14.5 (N+1 detection) land in subsequent passes. This
-// scanner deliberately does not measure raw `dist/` size — only JS, CSS,
-// and HTML assets that the browser actually downloads.
+// filter AST) land in separate files. This scanner deliberately does not
+// measure raw `dist/` size — only JS, CSS, and HTML assets that the browser
+// actually downloads.
 
 import { existsSync, readFileSync } from "node:fs";
 import { relative, resolve, sep } from "node:path";
@@ -26,6 +31,142 @@ import { walkFiles } from "./fs-walk.ts";
 import { scanListPagePagination } from "./pagination-scan.ts";
 import { scanRealtimeFilters } from "./realtime-filter-scan.ts";
 import type { StageResult } from "./types.ts";
+
+// ─── N+1 detection (Task 14.5 / Req 12.5) ────────────────────────────────
+
+interface NPlusOneThresholdBaseline {
+  createdAt: string | null;
+  lockedByCommit: string | null;
+  description: string;
+  templates: Record<string, number>;
+}
+
+const N_PLUS_ONE_BASELINE_PATH = (): string =>
+  resolve("audit", "baselines", "n-plus-one-threshold.json");
+
+const DEFAULT_N_PLUS_ONE_THRESHOLD = 10;
+
+const loadNPlusOneBaseline = (): NPlusOneThresholdBaseline | null => {
+  const path = N_PLUS_ONE_BASELINE_PATH();
+  if (!existsSync(path)) return null;
+  try {
+    return JSON.parse(readFileSync(path, "utf8")) as NPlusOneThresholdBaseline;
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * Normalizes a Supabase REST URL by stripping row-identifier query params
+ * (eq.*, id=*, etc.) to produce a stable template for counting.
+ *
+ * Example:
+ *   /rest/v1/assignments?id=eq.abc123&select=*
+ *   → /rest/v1/assignments?select=*
+ */
+export const normalizeRestUrl = (url: string): string => {
+  try {
+    const parsed = new URL(url);
+    const params = new URLSearchParams(parsed.search);
+    const normalized = new URLSearchParams();
+
+    for (const [key, value] of params.entries()) {
+      // Strip row-identifier filters: eq.*, neq.*, gt.*, lt.*, gte.*, lte.*
+      // and bare id= params
+      if (key === "id") continue;
+      if (/^(eq|neq|gt|lt|gte|lte|in|is)\..+/.test(value)) continue;
+      // Keep structural params: select, order, limit, offset, columns
+      normalized.set(key, value);
+    }
+
+    return `${parsed.pathname}?${normalized.toString()}`;
+  } catch {
+    return url;
+  }
+};
+
+/**
+ * Analyzes a list of REST call URLs recorded during a page transition and
+ * flags any query template that appears more than the threshold times.
+ *
+ * @param calls - Array of REST call URLs recorded during a single page transition
+ * @param pageLabel - Human-readable label for the page transition (for findings)
+ * @param baseline - Per-template threshold overrides
+ */
+export const detectNPlusOne = (
+  calls: readonly string[],
+  pageLabel: string,
+  baseline: NPlusOneThresholdBaseline | null
+): Finding[] => {
+  const templateCounts = new Map<string, number>();
+
+  for (const url of calls) {
+    const template = normalizeRestUrl(url);
+    templateCounts.set(template, (templateCounts.get(template) ?? 0) + 1);
+  }
+
+  const findings: Finding[] = [];
+
+  for (const [template, count] of templateCounts.entries()) {
+    const threshold =
+      baseline?.templates[template] ?? DEFAULT_N_PLUS_ONE_THRESHOLD;
+
+    if (count > threshold) {
+      findings.push({
+        severity: "Major",
+        requirementId: "12.5",
+        message: `N+1 detected on "${pageLabel}": query template "${template}" executed ${count} times (threshold: ${threshold})`,
+        detail: {
+          rule: "n-plus-one",
+          pageLabel,
+          template,
+          count,
+          threshold,
+        },
+      });
+    }
+  }
+
+  return findings;
+};
+
+/**
+ * Scans the Supabase query log file if present at audit/output/query-log.json.
+ * The query log is produced by the Playwright TTI spec which intercepts
+ * network requests during critical-path runs.
+ *
+ * Format of query-log.json:
+ * [{ "page": "admin-dashboard", "calls": ["url1", "url2", ...] }]
+ */
+export const scanNPlusOne = (): Finding[] => {
+  const queryLogPath = resolve("audit", "output", "query-log.json");
+  if (!existsSync(queryLogPath)) return [];
+
+  const baseline = loadNPlusOneBaseline();
+  const findings: Finding[] = [];
+
+  try {
+    const log = JSON.parse(readFileSync(queryLogPath, "utf8")) as Array<{
+      page: string;
+      calls: string[];
+    }>;
+
+    for (const entry of log) {
+      const pageFindings = detectNPlusOne(entry.calls, entry.page, baseline);
+      findings.push(...pageFindings);
+    }
+  } catch (error) {
+    findings.push({
+      severity: "Trivial",
+      requirementId: "12.5",
+      message: `Could not parse query-log.json: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    });
+  }
+
+  return findings;
+};
 
 // ─── Budget configuration ─────────────────────────────────────────────────
 
@@ -221,10 +362,12 @@ export const runPerfStage = async (): Promise<StageResult> => {
   const result = runPerfBudgetScan();
   const realtimeFindings = scanRealtimeFilters();
   const paginationFindings = scanListPagePagination();
+  const nPlusOneFindings = scanNPlusOne();
   const combinedFindings: readonly Finding[] = [
     ...result.findings,
     ...realtimeFindings,
     ...paginationFindings,
+    ...nPlusOneFindings,
   ];
 
   // Even on a skipped run (no bundle) we emit an artifact so the report
@@ -235,7 +378,7 @@ export const runPerfStage = async (): Promise<StageResult> => {
   } = {
     stage: "perf",
     generatedAt: new Date().toISOString(),
-    requirementIds: ["12.1", "12.3", "12.4"],
+    requirementIds: ["12.1", "12.3", "12.4", "12.5"],
     findings: combinedFindings,
     ...(result.measurement ? { measurement: result.measurement } : {}),
     ...(result.baseline ? { baseline: result.baseline } : {}),
