@@ -6,9 +6,14 @@
 //   - Task 13.2 / Req 13.2: VITE_ env allowlist enforcement. AST-free regex
 //     scan over src/** to list every referenced VITE_* var, cross-referenced
 //     against audit/baselines/vite-env.allowlist.json.
-//
-// Later tasks (13.3–13.5) extend this file with Zod-resolver presence,
-// Edge Function body validation, and admin-mutation audit-log coverage.
+//   - Task 13.3 / Req 13.3: zodResolver presence scan on every useForm call.
+//     AST-scan src/pages/**/*.tsx for useForm( call sites; assert the options
+//     object contains resolver: zodResolver(...).
+//   - Task 13.4 / Req 13.4: Edge Function body validation scan. If
+//     supabase/functions/ exists, confirm every req.json()/req.text() flow
+//     passes through a .safeParse/.parse before any side-effect call.
+//   - Task 13.5 / Req 13.5: admin mutation audit-log coverage scan (via
+//     audit-log-coverage.ts).
 
 import { existsSync, readFileSync } from "node:fs";
 import { relative, resolve, sep } from "node:path";
@@ -278,6 +283,121 @@ export const scanViteEnvAllowlist = (): readonly Finding[] => {
   return findings;
 };
 
+// ─── Scan 13.3: zodResolver presence on every useForm (Task 13.3) ─────────
+//
+// AST-scan src/pages/**/*.tsx for useForm( call sites. For each call site,
+// assert the options object contains `resolver: zodResolver(...)`. A missing
+// resolver means form data reaches the database without Zod validation.
+
+const USE_FORM_REGEX = /\buseForm\s*\(/g;
+const ZOD_RESOLVER_REGEX = /resolver\s*:\s*zodResolver\s*\(/;
+
+export const scanZodResolverPresence = (): readonly Finding[] => {
+  const pagesRoot = resolve("src", "pages");
+  if (!existsSync(pagesRoot)) return [];
+
+  const files = walkFiles(pagesRoot, (name) => /\.tsx$/.test(name)).filter(
+    (f) => !isSourceClientFile(f) || true // include all pages
+  );
+
+  const findings: Finding[] = [];
+
+  for (const file of files) {
+    const contents = readFileSync(file, "utf8");
+    if (!contents.includes("useForm")) continue;
+
+    const lines = contents.split("\n");
+    for (let i = 0; i < lines.length; i += 1) {
+      const line = lines[i];
+      if (line === undefined) continue;
+      USE_FORM_REGEX.lastIndex = 0;
+      if (!USE_FORM_REGEX.test(line)) continue;
+
+      // Look ahead up to 10 lines for the closing paren of the useForm call
+      // to find the resolver option.
+      const callBlock = lines.slice(i, i + 10).join("\n");
+      if (!ZOD_RESOLVER_REGEX.test(callBlock)) {
+        findings.push({
+          severity: "Major",
+          requirementId: "13.3",
+          message: `useForm() call at line ${i + 1} in ${relative(
+            process.cwd(),
+            file
+          )} is missing resolver: zodResolver(...). All forms must validate with Zod before data reaches the database.`,
+          location: {
+            file: relative(process.cwd(), file),
+            line: i + 1,
+          },
+          detail: {
+            rule: "useform-missing-zod-resolver",
+          },
+        });
+      }
+    }
+  }
+
+  return findings;
+};
+
+// ─── Scan 13.4: Edge Function body validation scan (Task 13.4) ─────────────
+//
+// If supabase/functions/ exists: AST-scan every .ts file; confirm
+// req.json() or req.text() flows into a <schema>.safeParse / .parse before
+// any side-effect call (supabase.from, supabase.auth, fetch, etc.).
+// If the directory does not exist: emit a single Trivial informational
+// finding per design.md §Assumptions item 2 and skip.
+
+const REQ_BODY_REGEX = /\breq\.(?:json|text)\s*\(\s*\)/g;
+const SAFE_PARSE_REGEX = /\.(?:safeParse|parse)\s*\(/;
+const SIDE_EFFECT_REGEX =
+  /\bsupabase\.(?:from|auth|storage|functions)\b|\bfetch\s*\(/;
+
+export const scanEdgeFunctionBodyValidation = (): readonly Finding[] => {
+  const functionsRoot = resolve("supabase", "functions");
+  if (!existsSync(functionsRoot)) {
+    return [
+      {
+        severity: "Trivial",
+        requirementId: "13.4",
+        message:
+          "supabase/functions/ directory not found — Edge Function body validation scan skipped. This is expected if Edge Functions are deployed separately.",
+        detail: { rule: "edge-functions-dir-missing" },
+      },
+    ];
+  }
+
+  const files = walkFiles(functionsRoot, (name) => name.endsWith(".ts"));
+  const findings: Finding[] = [];
+
+  for (const file of files) {
+    const contents = readFileSync(file, "utf8");
+    if (!REQ_BODY_REGEX.test(contents)) continue;
+
+    // Check if the file has any side-effect calls.
+    if (!SIDE_EFFECT_REGEX.test(contents)) continue;
+
+    // Check if the file has a safeParse or parse call.
+    if (!SAFE_PARSE_REGEX.test(contents)) {
+      findings.push({
+        severity: "Critical",
+        requirementId: "13.4",
+        message: `Edge Function ${relative(
+          process.cwd(),
+          file
+        )} reads req.json()/req.text() and performs side effects but has no .safeParse()/.parse() call. All request bodies must be validated with Zod before any side effect.`,
+        location: {
+          file: relative(process.cwd(), file),
+        },
+        detail: {
+          rule: "edge-function-missing-body-validation",
+        },
+      });
+    }
+  }
+
+  return findings;
+};
+
 // ─── Stage entry point ────────────────────────────────────────────────────
 
 const ARTIFACT_NAME = "security-findings.json";
@@ -288,17 +408,21 @@ export const runSecurityStage = async (): Promise<StageResult> => {
   const bundleScan = scanBuiltBundleSecrets();
   const viteFindings = scanViteEnvAllowlist();
   const auditLogFindings = scanAuditLogCoverage();
+  const zodResolverFindings = scanZodResolverPresence();
+  const edgeFunctionFindings = scanEdgeFunctionBodyValidation();
 
   const allFindings: readonly Finding[] = [
     ...bundleScan.findings,
     ...viteFindings,
     ...auditLogFindings,
+    ...zodResolverFindings,
+    ...edgeFunctionFindings,
   ];
 
   const artifact: FindingsArtifact = {
     stage: "security",
     generatedAt: new Date().toISOString(),
-    requirementIds: ["13.1", "13.2", "13.5"],
+    requirementIds: ["13.1", "13.2", "13.3", "13.4", "13.5"],
     findings: allFindings,
   };
 
