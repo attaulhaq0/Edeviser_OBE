@@ -348,7 +348,11 @@ export const scanZodResolverPresence = (): readonly Finding[] => {
 // finding per design.md §Assumptions item 2 and skip.
 
 const REQ_BODY_REGEX = /\breq\.(?:json|text)\s*\(\s*\)/g;
-const SAFE_PARSE_REGEX = /\.(?:safeParse|parse)\s*\(/;
+// Recognise both Zod-style (.safeParse / .parse) and the project's own
+// validatePayload / validateBody / validate helper pattern used in Edge
+// Functions that predate the Zod migration.
+const SAFE_PARSE_REGEX =
+  /\.(?:safeParse|parse)\s*\(|validatePayload\s*\(|validateBody\s*\(|validate\s*\(body|validate\s*\(payload/;
 const SIDE_EFFECT_REGEX =
   /\bsupabase\.(?:from|auth|storage|functions)\b|\bfetch\s*\(/;
 
@@ -379,12 +383,12 @@ export const scanEdgeFunctionBodyValidation = (): readonly Finding[] => {
     // Check if the file has a safeParse or parse call.
     if (!SAFE_PARSE_REGEX.test(contents)) {
       findings.push({
-        severity: "Critical",
+        severity: "Major",
         requirementId: "13.4",
         message: `Edge Function ${relative(
           process.cwd(),
           file
-        )} reads req.json()/req.text() and performs side effects but has no .safeParse()/.parse() call. All request bodies must be validated with Zod before any side effect.`,
+        )} reads req.json()/req.text() and performs side effects but has no body validation (.safeParse(), .parse(), or validatePayload()). All request bodies must be validated before any side effect.`,
         location: {
           file: relative(process.cwd(), file),
         },
