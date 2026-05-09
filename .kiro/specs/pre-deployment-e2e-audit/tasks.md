@@ -180,71 +180,71 @@ Five roles — **Admin, Coordinator, Teacher, Student, Parent** — each receive
   - Creates the authentication + helper foundation every E2E spec imports. Each role gets its own helper module.
   - _Design: §Per-Role Test Helpers, §Authentication Strategy_
 
-  - [ ] 4.1 Implement `tests/e2e/_fixtures/seed.ts` as Playwright `globalSetup`
+  - [x] 4.1 Implement `tests/e2e/_fixtures/seed.ts` as Playwright `globalSetup`
 
     - POST to `audit-fixtures/seed` with a per-run `runId` (UUID) and wait for 200.
     - For each role, log in (or call `/impersonate`) and persist `storageState` to `tests/e2e/_fixtures/storage-states/<role>.json`.
     - Add `tests/e2e/_fixtures/storage-states/` to `.gitignore`.
     - _Requirements: 1.7, 6.1, 6.2_
 
-  - [ ] 4.2 Implement `tests/e2e/_fixtures/teardown.ts` as Playwright `globalTeardown`
+  - [x] 4.2 Implement `tests/e2e/_fixtures/teardown.ts` as Playwright `globalTeardown`
 
     - POST to `audit-fixtures/teardown` with the same `runId` captured in globalSetup (passed via `process.env.AUDIT_RUN_ID`).
     - _Requirements: 1.7_
 
-  - [ ] 4.3 Implement `tests/e2e/_helpers/auth.ts` with `assertRoleClaim(page, expectedRole)`
+  - [x] 4.3 Implement `tests/e2e/_helpers/auth.ts` with `assertRoleClaim(page, expectedRole)`
 
     - Decode the Supabase auth JWT from the session cookie; assert `jwt.role === expectedRole`.
     - Export a `loadStorageState(role)` helper for specs that need to switch role mid-test.
     - _Requirements: 6.2_
     - _Design: §Authentication Strategy bullet 3_
 
-  - [ ] 4.4 Implement `tests/e2e/_helpers/adminHelpers.ts`
+  - [x] 4.4 Implement `tests/e2e/_helpers/adminHelpers.ts`
 
     - Export: `createIlo`, `createUser`, `openAuditLog`, `createBonusXpEvent`, `openInstitutionDashboard`.
     - Each helper namespaces created entities with `audit-<runId>-`.
     - _Requirements: 1.2, 3.4, 13.5_
     - _Design: §Per-Role Test Helpers row Admin_
 
-  - [ ] 4.5 Implement `tests/e2e/_helpers/coordinatorHelpers.ts`
+  - [x] 4.5 Implement `tests/e2e/_helpers/coordinatorHelpers.ts`
 
     - Export: `createPlo`, `mapPloToIlo`, `openCurriculumMatrix`, `openCqiActionPlan`.
     - _Requirements: 1.3, 3.3_
     - _Design: §Per-Role Test Helpers row Coordinator_
 
-  - [ ] 4.6 Implement `tests/e2e/_helpers/teacherHelpers.ts`
+  - [x] 4.6 Implement `tests/e2e/_helpers/teacherHelpers.ts`
 
     - Export: `openCourse`, `createCloWithBloom`, `createAssignment`, `gradeSubmission`, `releaseGrade`.
     - _Requirements: 1.4, 3.1_
     - _Design: §Per-Role Test Helpers row Teacher_
 
-  - [ ] 4.7 Implement `tests/e2e/_helpers/studentHelpers.ts`
+  - [x] 4.7 Implement `tests/e2e/_helpers/studentHelpers.ts`
 
     - Export: `openLearningPath`, `submitAssignment`, `readXpTotal`, `readStreak`, `openLeaderboard`, `toggleLeaderboardOptOut`.
     - _Requirements: 1.5, 8.1, 8.7_
     - _Design: §Per-Role Test Helpers row Student_
 
-  - [ ] 4.8 Implement `tests/e2e/_helpers/parentHelpers.ts`
+  - [x] 4.8 Implement `tests/e2e/_helpers/parentHelpers.ts`
 
     - Export: `selectLinkedChild`, `readChildProgress`, `readXpAndAttainmentSummary`, `readNotificationFeed`.
     - _Requirements: 1.6, 5.6_
     - _Design: §Per-Role Test Helpers row Parent_
 
-  - [ ] 4.9 Implement `tests/e2e/_helpers/crossRoleHelpers.ts`
+  - [x] 4.9 Implement `tests/e2e/_helpers/crossRoleHelpers.ts`
 
     - Export: `waitForGradePropagation`, `waitForXpUpdate`, `waitForPloAvailable`, `waitForBonusXpWindow`.
     - Uses `propagation.ts` polling utility under the hood.
     - _Requirements: 3.1, 3.2, 3.3, 3.4_
     - _Design: §Per-Role Test Helpers row Cross-Role, §Error Handling Timing Bounds_
 
-  - [ ] 4.10 Implement `tests/e2e/_helpers/axe.ts` axe-core injection helper
+  - [x] 4.10 Implement `tests/e2e/_helpers/axe.ts` axe-core injection helper
 
     - Wraps `@axe-core/playwright` with a `scanPage(page, options)` helper that returns violations filtered by severity.
     - Aggregates violations into an in-memory buffer that `tests/e2e/_fixtures/teardown.ts` flushes to `audit/output/a11y-findings.json`.
     - _Requirements: 11.1, 11.2, 11.3_
     - _Design: §Accessibility Baseline, §15 below_
 
-  - [ ] 4.11 Implement `tests/e2e/_helpers/propagation.ts` polling utility
+  - [x] 4.11 Implement `tests/e2e/_helpers/propagation.ts` polling utility
     - Export `pollUntil(fn, { intervalMs, timeoutMs })` with exponential-backoff-free uniform polling.
     - Used by cross-role specs for the 60s grade → XP bound and 2s realtime bound.
     - _Requirements: 3.1, 6.3_
