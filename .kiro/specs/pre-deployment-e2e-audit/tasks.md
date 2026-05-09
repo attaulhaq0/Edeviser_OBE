@@ -99,49 +99,49 @@ Five roles — **Admin, Coordinator, Teacher, Student, Parent** — each receive
     - _Requirements: 1.7_
     - _Design: §Open Questions item 1_
 
-- [ ] 3. Seed accounts, OBE chain, and linked-parent relationships
+- [x] 3. Seed accounts, OBE chain, and linked-parent relationships
 
   - Every role-facing layer of the audit depends on these seed fixtures. Each role gets its own sub-task so none is skipped.
   - _Design: §Seed Accounts, §Seed OBE Chain, §Per-Run Namespace_
 
-  - [ ] 3.1 Implement `/seed` route — Admin seed user
+  - [x] 3.1 Implement `/seed` route — Admin seed user
 
     - Upsert `audit+admin@edeviser.test` with role `admin`, institution `audit-inst`.
     - Use `supabase.auth.admin.createUser` with `email_confirm: true`; idempotent upsert on conflict.
     - _Requirements: 1.2, 6.1_
     - _Design: §Seed Accounts row 1_
 
-  - [ ] 3.2 Implement `/seed` route — Coordinator seed user
+  - [x] 3.2 Implement `/seed` route — Coordinator seed user
 
     - Upsert `audit+coordinator@edeviser.test` with role `coordinator`, institution `audit-inst`, linked to program `audit-prog-1`.
     - _Requirements: 1.3, 6.1_
     - _Design: §Seed Accounts row 2_
 
-  - [ ] 3.3 Implement `/seed` route — Teacher seed user
+  - [x] 3.3 Implement `/seed` route — Teacher seed user
 
     - Upsert `audit+teacher@edeviser.test` with role `teacher`, assigned to course `audit-course-1`.
     - _Requirements: 1.4, 6.1_
     - _Design: §Seed Accounts row 3_
 
-  - [ ] 3.4 Implement `/seed` route — Student seed user
+  - [x] 3.4 Implement `/seed` route — Student seed user
 
     - Upsert `audit+student@edeviser.test` with role `student`, enrolled in course `audit-course-1`.
     - _Requirements: 1.5, 6.1_
     - _Design: §Seed Accounts row 4_
 
-  - [ ] 3.5 Implement `/seed` route — Parent (linked, verified)
+  - [x] 3.5 Implement `/seed` route — Parent (linked, verified)
 
     - Upsert `audit+parent-linked@edeviser.test` with role `parent`; insert a row in `parent_student_links` linking to `audit-student` with `verified = true`.
     - _Requirements: 1.6, 5.6, 6.1_
     - _Design: §Seed Accounts row 5_
 
-  - [ ] 3.6 Implement `/seed` route — Parent (unlinked)
+  - [x] 3.6 Implement `/seed` route — Parent (unlinked)
 
     - Upsert `audit+parent-unlinked@edeviser.test` with role `parent`; insert NO row in `parent_student_links`.
     - _Requirements: 3.2, 5.6_
     - _Design: §Seed Accounts row 6_
 
-  - [ ] 3.7 Seed the ILO → PLO → CLO chain with mapping weights summing to 100
+  - [x] 3.7 Seed the ILO → PLO → CLO chain with mapping weights summing to 100
 
     - Insert `audit-ilo-1` (institution-scoped).
     - Insert `audit-plo-1` under `audit-prog-1`; insert `outcome_mappings` row (plo → ilo) with `weight = 100`.
@@ -149,14 +149,14 @@ Five roles — **Admin, Coordinator, Teacher, Student, Parent** — each receive
     - _Requirements: 7.1, 7.6_
     - _Design: §Seed OBE Chain_
 
-  - [ ] 3.8 Seed the assignment with a prerequisite gate and a rubric
+  - [x] 3.8 Seed the assignment with a prerequisite gate and a rubric
 
     - Insert `audit-assign-1` linking `audit-clo-1`, declaring `audit-clo-0` as prerequisite with `gate_percentage = 60`.
     - Insert a rubric with a single criterion weighted 100.
     - _Requirements: 7.5_
     - _Design: §Seed OBE Chain last row_
 
-  - [ ] 3.9 Implement `/teardown` route with namespaced truncation
+  - [x] 3.9 Implement `/teardown` route with namespaced truncation
 
     - Accept `{ runId }`; delete rows whose PK or tag column starts with `audit-<runId>-`.
     - Respect the append-only rule: do NOT delete from `evidence`, `audit_logs`, `xp_transactions`. Leaving namespaced rows there is acceptable — their invariants still hold.
@@ -164,18 +164,18 @@ Five roles — **Admin, Coordinator, Teacher, Student, Parent** — each receive
     - _Requirements: 1.7_
     - _Design: §Teardown Strategy_
 
-  - [ ] 3.10 Implement `/impersonate` route for password-blocked environments
+  - [x] 3.10 Implement `/impersonate` route for password-blocked environments
 
     - Accept `{ role }` where role ∈ `UserRole`; return a short-lived signed JWT for the matching seed user via `supabase.auth.admin.generateLink({ type: 'magiclink' })` or equivalent.
     - Gate on `ENV_ID == 'audit-staging'` at the top (redundant with §2.2 but explicit).
     - _Requirements: 6.1, 6.2_
     - _Design: §Authentication Strategy bullet 4, §Assumptions item 4_
 
-  - [ ] 3.11 Implement `/event/bonus-xp` route for Req 3.4 cross-role flow
+  - [x] 3.11 Implement `/event/bonus-xp` route for Req 3.4 cross-role flow
     - Accept `{ multiplier, startsAt, endsAt }`; insert a namespaced row into `bonus_xp_events`.
     - _Requirements: 3.4, 8.2_
 
-- [ ] 4. Playwright global setup, storage states, and helper modules
+- [x] 4. Playwright global setup, storage states, and helper modules
 
   - Creates the authentication + helper foundation every E2E spec imports. Each role gets its own helper module.
   - _Design: §Per-Role Test Helpers, §Authentication Strategy_
@@ -250,189 +250,189 @@ Five roles — **Admin, Coordinator, Teacher, Student, Parent** — each receive
     - _Requirements: 3.1, 6.3_
     - _Design: §Error Handling Timing Bounds_
 
-- [ ] 5. Per-role E2E specs
+- [x] 5. Per-role E2E specs
 
   - Each role gets its own parent sub-task. Every role-specific critical path, feature spec, and a11y dashboard spec is named explicitly. No role is collapsed into a generic "per-role loop".
   - _Design: §E2E Test Suite Design, §Per-Role Coverage Matrix_
 
-  - [ ] 5.1 Admin E2E specs
+  - [x] 5.1 Admin E2E specs
 
     - Implements every Admin-facing E2E flow listed in `design.md` §E2E Test Suite Design.
     - _Requirements: 1.2, 2.1, 2.2, 2.3, 2.4, 5.5, 13.5, 14.3_
 
-    - [ ] 5.1.1 `tests/e2e/admin/critical-path.spec.ts`
+    - [x] 5.1.1 `tests/e2e/admin/critical-path.spec.ts`
 
       - Log in → create/edit ILO → create/edit user → institution dashboard → review audit-log entry → logout.
       - Assert `audit_logs` row is written with `performed_by = admin.id` after the user-create step.
       - _Requirements: 1.2, 13.5_
       - _Design: §Per-Role Spec File Coverage Admin_
 
-    - [ ] 5.1.2 `tests/e2e/admin/ilo-crud.spec.ts`
+    - [x] 5.1.2 `tests/e2e/admin/ilo-crud.spec.ts`
 
       - Full CRUD cycle on ILOs: create, edit, list, view, delete. Assert audit-log entry per mutation.
       - _Requirements: 1.2, 13.5_
 
-    - [ ] 5.1.3 `tests/e2e/admin/audit-log.spec.ts`
+    - [x] 5.1.3 `tests/e2e/admin/audit-log.spec.ts`
 
       - Verifies audit-log viewer pagination, filter by actor, filter by entity type.
       - _Requirements: 13.5_
 
-    - [ ] 5.1.4 `tests/e2e/admin/a11y-dashboard.spec.ts`
+    - [x] 5.1.4 `tests/e2e/admin/a11y-dashboard.spec.ts`
       - Run axe-core scan on Admin dashboard and ILO form; keyboard navigation traversal; focus-indicator visible check.
       - _Requirements: 11.1, 11.2, 11.3, 11.4_
 
-  - [ ] 5.2 Coordinator E2E specs
+  - [x] 5.2 Coordinator E2E specs
 
     - Implements every Coordinator-facing E2E flow.
     - _Requirements: 1.3, 2.1, 2.2, 2.3, 2.4, 3.3_
 
-    - [ ] 5.2.1 `tests/e2e/coordinator/critical-path.spec.ts`
+    - [x] 5.2.1 `tests/e2e/coordinator/critical-path.spec.ts`
 
       - Log in → create/edit PLO → map PLO to ILO → curriculum matrix → open CQI action plan → logout.
       - _Requirements: 1.3_
       - _Design: §Per-Role Spec File Coverage Coordinator_
 
-    - [ ] 5.2.2 `tests/e2e/coordinator/plo-mapping.spec.ts`
+    - [x] 5.2.2 `tests/e2e/coordinator/plo-mapping.spec.ts`
 
       - Create a PLO, open mapping dialog, map to two ILOs with weights summing to 100, assert the mapping is persisted.
       - _Requirements: 7.1_
 
-    - [ ] 5.2.3 `tests/e2e/coordinator/curriculum-matrix.spec.ts`
+    - [x] 5.2.3 `tests/e2e/coordinator/curriculum-matrix.spec.ts`
 
       - Open the PLO × Course matrix; assert seeded PLOs and courses render; assert coverage gap cells are visually flagged.
       - _Requirements: 1.3_
 
-    - [ ] 5.2.4 `tests/e2e/coordinator/cqi.spec.ts`
+    - [x] 5.2.4 `tests/e2e/coordinator/cqi.spec.ts`
 
       - Open a CQI action plan, assert detail view renders, advance status `planned → in_progress`.
       - _Requirements: 1.3_
 
-    - [ ] 5.2.5 `tests/e2e/coordinator/a11y-dashboard.spec.ts`
+    - [x] 5.2.5 `tests/e2e/coordinator/a11y-dashboard.spec.ts`
       - axe scan on Coordinator dashboard, PLO form, curriculum matrix; keyboard navigation; focus indicators.
       - _Requirements: 11.1, 11.2, 11.3, 11.4_
 
-  - [ ] 5.3 Teacher E2E specs
+  - [x] 5.3 Teacher E2E specs
 
     - Implements every Teacher-facing E2E flow.
     - _Requirements: 1.4, 2.1, 2.2, 2.3, 2.4, 7.6_
 
-    - [ ] 5.3.1 `tests/e2e/teacher/critical-path.spec.ts`
+    - [x] 5.3.1 `tests/e2e/teacher/critical-path.spec.ts`
 
       - Log in → open course → create CLO with Bloom → create assignment linking CLO → grade submission → release grade → logout.
       - _Requirements: 1.4_
       - _Design: §Per-Role Spec File Coverage Teacher_
 
-    - [ ] 5.3.2 `tests/e2e/teacher/clo-bloom.spec.ts`
+    - [x] 5.3.2 `tests/e2e/teacher/clo-bloom.spec.ts`
 
       - Create a CLO picking each of the six Bloom levels; assert exactly one Bloom badge renders per CLO (surface check; Property 6 proves the invariant).
       - _Requirements: 7.6_
 
-    - [ ] 5.3.3 `tests/e2e/teacher/assignment-create.spec.ts`
+    - [x] 5.3.3 `tests/e2e/teacher/assignment-create.spec.ts`
 
       - Create an assignment linking one or more CLOs; assert CLO selector shows only CLOs from the teacher's courses.
       - _Requirements: 1.4_
 
-    - [ ] 5.3.4 `tests/e2e/teacher/grade-release.spec.ts`
+    - [x] 5.3.4 `tests/e2e/teacher/grade-release.spec.ts`
 
       - Grade the seed student's submission against the rubric; release the grade; assert an `evidence` row is inserted (immutable surface check).
       - _Requirements: 1.4, 7.2_
 
-    - [ ] 5.3.5 `tests/e2e/teacher/a11y-dashboard.spec.ts`
+    - [x] 5.3.5 `tests/e2e/teacher/a11y-dashboard.spec.ts`
       - axe scan on Teacher dashboard, CLO form, assignment form, grading page; keyboard navigation; focus indicators.
       - _Requirements: 11.1, 11.2, 11.3, 11.4_
 
-  - [ ] 5.4 Student E2E specs
+  - [x] 5.4 Student E2E specs
 
     - Implements every Student-facing E2E flow.
     - _Requirements: 1.5, 2.1, 2.2, 2.3, 2.4, 8.1, 8.7_
 
-    - [ ] 5.4.1 `tests/e2e/student/critical-path.spec.ts`
+    - [x] 5.4.1 `tests/e2e/student/critical-path.spec.ts`
 
       - Log in → learning path → submit assignment → view XP → view streak → view leaderboard → logout.
       - _Requirements: 1.5_
       - _Design: §Per-Role Spec File Coverage Student_
 
-    - [ ] 5.4.2 `tests/e2e/student/learning-path.spec.ts`
+    - [x] 5.4.2 `tests/e2e/student/learning-path.spec.ts`
 
       - Assert assignments are ordered by Bloom (Remembering → Creating); assert a prerequisite-gated assignment is locked when prereq attainment is below gate.
       - _Requirements: 1.5, 7.5_
 
-    - [ ] 5.4.3 `tests/e2e/student/submit-assignment.spec.ts`
+    - [x] 5.4.3 `tests/e2e/student/submit-assignment.spec.ts`
 
       - Submit `audit-assign-1`; assert submission succeeds only when `audit-clo-0` attainment ≥ 60%; assert submission blocked otherwise.
       - _Requirements: 7.5_
 
-    - [ ] 5.4.4 `tests/e2e/student/xp-and-streak.spec.ts`
+    - [x] 5.4.4 `tests/e2e/student/xp-and-streak.spec.ts`
 
       - Open XP page; assert `xp_total` equals sum of visible `xp_transactions` (surface check; Property 7 proves the invariant).
       - Open streak page; assert streak counter matches seed state.
       - _Requirements: 8.1, 8.4_
 
-    - [ ] 5.4.5 `tests/e2e/student/leaderboard-opt-out.spec.ts`
+    - [x] 5.4.5 `tests/e2e/student/leaderboard-opt-out.spec.ts`
 
       - Assert student's own position is visible when opted in; toggle opt-out; reload; open leaderboard from a peer student context; assert self-row is anonymized for the peer.
       - _Requirements: 8.7_
 
-    - [ ] 5.4.6 `tests/e2e/student/a11y-dashboard.spec.ts`
+    - [x] 5.4.6 `tests/e2e/student/a11y-dashboard.spec.ts`
       - axe scan on Student dashboard, learning path, submit page, leaderboard; keyboard navigation; focus indicators; 44×44 touch target check on mobile viewport.
       - _Requirements: 9.4, 11.1, 11.2, 11.3, 11.4_
 
-  - [ ] 5.5 Parent E2E specs
+  - [x] 5.5 Parent E2E specs
 
     - Implements every Parent-facing E2E flow. Both linked and unlinked parent flows are explicit.
     - _Requirements: 1.6, 2.1, 2.2, 2.3, 2.4, 3.2, 5.6_
 
-    - [ ] 5.5.1 `tests/e2e/parent/critical-path.spec.ts`
+    - [x] 5.5.1 `tests/e2e/parent/critical-path.spec.ts`
 
       - Log in as linked parent → view linked child progress → view XP + attainment summary → view notification feed → logout.
       - _Requirements: 1.6_
       - _Design: §Per-Role Spec File Coverage Parent_
 
-    - [ ] 5.5.2 `tests/e2e/parent/linked-child.spec.ts`
+    - [x] 5.5.2 `tests/e2e/parent/linked-child.spec.ts`
 
       - Linked parent opens child's detail page; assert attainment, XP, and recent activity render.
       - _Requirements: 1.6, 5.6_
 
-    - [ ] 5.5.3 `tests/e2e/parent/unlinked-denied.spec.ts`
+    - [x] 5.5.3 `tests/e2e/parent/unlinked-denied.spec.ts`
 
       - Log in as unlinked parent; navigate directly to the seed child's URL; assert 403 / access denied UI; assert no child data is returned via network tab inspection.
       - _Requirements: 3.2, 5.6_
 
-    - [ ] 5.5.4 `tests/e2e/parent/a11y-dashboard.spec.ts`
+    - [x] 5.5.4 `tests/e2e/parent/a11y-dashboard.spec.ts`
       - axe scan on Parent dashboard and child progress page; keyboard navigation; focus indicators; mobile Safari (WebKit) viewport.
       - _Requirements: 11.1, 11.2, 11.3, 11.4_
 
-- [ ] 6. Cross-role E2E propagation specs
+- [x] 6. Cross-role E2E propagation specs
 
   - Four named sub-tasks, one per cross-role flow in `design.md` §Cross-Role Specs.
   - _Requirements: 3.1, 3.2, 3.3, 3.4_
   - _Design: §Cross-Role Specs_
 
-  - [ ] 6.1 `tests/e2e/cross-role/teacher-to-student.spec.ts`
+  - [x] 6.1 `tests/e2e/cross-role/teacher-to-student.spec.ts`
 
     - Teacher context releases a grade → Student context polls XP page every 5s up to 60s → assert `xp_total` increased by the base-schedule amount and CLO attainment rose.
     - _Requirements: 3.1_
 
-  - [ ] 6.2 `tests/e2e/cross-role/student-to-parent.spec.ts`
+  - [x] 6.2 `tests/e2e/cross-role/student-to-parent.spec.ts`
 
     - Student submits assignment → linked-parent context sees progress update within 60s → unlinked-parent context asserts child endpoint returns 403.
     - _Requirements: 3.2, 5.6_
 
-  - [ ] 6.3 `tests/e2e/cross-role/coordinator-to-teacher.spec.ts`
+  - [x] 6.3 `tests/e2e/cross-role/coordinator-to-teacher.spec.ts`
 
     - Coordinator creates a PLO → Teacher context refetches CLO mapping target list → assert the new PLO is selectable within the same session.
     - _Requirements: 3.3_
 
-  - [ ] 6.4 `tests/e2e/cross-role/admin-bonus-xp.spec.ts`
+  - [x] 6.4 `tests/e2e/cross-role/admin-bonus-xp.spec.ts`
     - Admin creates a Bonus XP Event with `multiplier = 2` covering the next 5 minutes → Student submits an assignment during the window → assert `xp_transactions.amount === base × 2`.
     - _Requirements: 3.4, 8.2_
 
-- [ ] 7. Property suite (fast-check)
+- [x] 7. Property suite (fast-check)
 
   - Fifteen properties, each its own sub-task with `Feature: pre-deployment-e2e-audit, Property N` reference. Generators first, then OBE, Gamification, System.
   - _Design: §Correctness Properties, §Property Suite Design, §Property-to-Generator-to-Invariant Map_
 
-  - [ ] 7.1 Generators module `src/__tests__/properties/_generators/`
+  - [x] 7.1 Generators module `src/__tests__/properties/_generators/`
 
     - Create `outcomes.ts`, `xpEvents.ts`, `loginTimeline.ts`, `habits.ts`, `findings.ts`, `cronInputs.ts`.
     - Each exports arbitraries used by multiple property files to guarantee consistent definitions of "valid outcome tree", "valid XP event", etc.
@@ -440,7 +440,7 @@ Five roles — **Admin, Coordinator, Teacher, Student, Parent** — each receive
     - _Requirements: 7.7_
     - _Design: §Property Suite Design File Layout_
 
-  - [ ] 7.2 Property 1: Outcome-mapping weights sum to 100
+  - [x] 7.2 Property 1: Outcome-mapping weights sum to 100
 
     - File: `src/__tests__/properties/obe/outcome-mapping-weights.property.test.ts`
     - `Feature: pre-deployment-e2e-audit, Property 1: Outcome-mapping weights sum to 100`
@@ -448,7 +448,7 @@ Five roles — **Admin, Coordinator, Teacher, Student, Parent** — each receive
     - _Requirements: 7.1, 7.7_
     - _Design: §Property 1_
 
-  - [ ] 7.3 Property 2: Evidence records are immutable
+  - [x] 7.3 Property 2: Evidence records are immutable
 
     - File: `src/__tests__/properties/obe/evidence-immutability.property.test.ts`
     - `Feature: pre-deployment-e2e-audit, Property 2: Evidence records are immutable`
@@ -456,7 +456,7 @@ Five roles — **Admin, Coordinator, Teacher, Student, Parent** — each receive
     - _Requirements: 7.2, 7.7_
     - _Design: §Property 2_
 
-  - [ ] 7.4 Property 3: Attainment cascade consistency
+  - [x] 7.4 Property 3: Attainment cascade consistency
 
     - File: `src/__tests__/properties/obe/attainment-cascade.property.test.ts`
     - `Feature: pre-deployment-e2e-audit, Property 3: Attainment cascade consistency`
@@ -464,7 +464,7 @@ Five roles — **Admin, Coordinator, Teacher, Student, Parent** — each receive
     - _Requirements: 7.3, 7.7_
     - _Design: §Property 3_
 
-  - [ ] 7.5 Property 4: Attainment classifier is total and deterministic
+  - [x] 7.5 Property 4: Attainment classifier is total and deterministic
 
     - File: `src/__tests__/properties/obe/attainment-classifier.property.test.ts`
     - `Feature: pre-deployment-e2e-audit, Property 4: Attainment classifier is total and deterministic`
@@ -472,7 +472,7 @@ Five roles — **Admin, Coordinator, Teacher, Student, Parent** — each receive
     - _Requirements: 7.4, 7.7_
     - _Design: §Property 4_
 
-  - [ ] 7.6 Property 5: Prerequisite gate enforcement
+  - [x] 7.6 Property 5: Prerequisite gate enforcement
 
     - File: `src/__tests__/properties/obe/prerequisite-gate.property.test.ts`
     - `Feature: pre-deployment-e2e-audit, Property 5: Prerequisite gate enforcement`
@@ -480,7 +480,7 @@ Five roles — **Admin, Coordinator, Teacher, Student, Parent** — each receive
     - _Requirements: 7.5, 7.7_
     - _Design: §Property 5_
 
-  - [ ] 7.7 Property 6: Single Bloom level per CLO
+  - [x] 7.7 Property 6: Single Bloom level per CLO
 
     - File: `src/__tests__/properties/obe/single-bloom-per-clo.property.test.ts`
     - `Feature: pre-deployment-e2e-audit, Property 6: Single Bloom level per CLO`
@@ -488,7 +488,7 @@ Five roles — **Admin, Coordinator, Teacher, Student, Parent** — each receive
     - _Requirements: 7.6, 7.7_
     - _Design: §Property 6_
 
-  - [ ] 7.8 Property 7: XP ledger sum identity
+  - [x] 7.8 Property 7: XP ledger sum identity
 
     - File: `src/__tests__/properties/gamification/xp-sum-identity.property.test.ts`
     - `Feature: pre-deployment-e2e-audit, Property 7: XP ledger sum identity`
@@ -496,7 +496,7 @@ Five roles — **Admin, Coordinator, Teacher, Student, Parent** — each receive
     - _Requirements: 8.1_
     - _Design: §Property 7_
 
-  - [ ] 7.9 Property 8: Bonus XP multiplier application
+  - [x] 7.9 Property 8: Bonus XP multiplier application
 
     - File: `src/__tests__/properties/gamification/bonus-xp-multiplier.property.test.ts`
     - `Feature: pre-deployment-e2e-audit, Property 8: Bonus XP multiplier application`
@@ -504,7 +504,7 @@ Five roles — **Admin, Coordinator, Teacher, Student, Parent** — each receive
     - _Requirements: 8.2_
     - _Design: §Property 8_
 
-  - [ ] 7.10 Property 9: Level formula consistency
+  - [x] 7.10 Property 9: Level formula consistency
 
     - File: `src/__tests__/properties/gamification/level-formula.property.test.ts`
     - `Feature: pre-deployment-e2e-audit, Property 9: Level formula consistency`
@@ -512,7 +512,7 @@ Five roles — **Admin, Coordinator, Teacher, Student, Parent** — each receive
     - _Requirements: 8.3_
     - _Design: §Property 9_
 
-  - [ ] 7.11 Property 10: Streak state machine correctness
+  - [x] 7.11 Property 10: Streak state machine correctness
 
     - File: `src/__tests__/properties/gamification/streak-state-machine.property.test.ts`
     - `Feature: pre-deployment-e2e-audit, Property 10: Streak state machine correctness`
@@ -520,7 +520,7 @@ Five roles — **Admin, Coordinator, Teacher, Student, Parent** — each receive
     - _Requirements: 8.4_
     - _Design: §Property 10_
 
-  - [ ] 7.12 Property 11: Badge awards are idempotent
+  - [x] 7.12 Property 11: Badge awards are idempotent
 
     - File: `src/__tests__/properties/gamification/badge-idempotency.property.test.ts`
     - `Feature: pre-deployment-e2e-audit, Property 11: Badge awards are idempotent`
@@ -528,7 +528,7 @@ Five roles — **Admin, Coordinator, Teacher, Student, Parent** — each receive
     - _Requirements: 8.5_
     - _Design: §Property 11_
 
-  - [ ] 7.13 Property 12: Perfect Day gating
+  - [x] 7.13 Property 12: Perfect Day gating
 
     - File: `src/__tests__/properties/gamification/perfect-day-gating.property.test.ts`
     - `Feature: pre-deployment-e2e-audit, Property 12: Perfect Day gating`
@@ -536,7 +536,7 @@ Five roles — **Admin, Coordinator, Teacher, Student, Parent** — each receive
     - _Requirements: 8.6_
     - _Design: §Property 12_
 
-  - [ ] 7.14 Property 13: Leaderboard opt-out privacy
+  - [x] 7.14 Property 13: Leaderboard opt-out privacy
 
     - File: `src/__tests__/properties/gamification/leaderboard-opt-out.property.test.ts`
     - `Feature: pre-deployment-e2e-audit, Property 13: Leaderboard opt-out privacy`
@@ -544,7 +544,7 @@ Five roles — **Admin, Coordinator, Teacher, Student, Parent** — each receive
     - _Requirements: 8.7_
     - _Design: §Property 13_
 
-  - [ ] 7.15 Property 14: Cron idempotency
+  - [x] 7.15 Property 14: Cron idempotency
 
     - File: `src/__tests__/properties/system/cron-idempotency.property.test.ts`
     - `Feature: pre-deployment-e2e-audit, Property 14: Cron idempotency`
@@ -553,7 +553,7 @@ Five roles — **Admin, Coordinator, Teacher, Student, Parent** — each receive
     - _Requirements: 15.3_
     - _Design: §Property 14_
 
-  - [ ] 7.16 Property 15: Severity-to-verdict function
+  - [x] 7.16 Property 15: Severity-to-verdict function
     - File: `src/__tests__/properties/system/severity-to-verdict.property.test.ts`
     - `Feature: pre-deployment-e2e-audit, Property 15: Severity-to-verdict function`
     - Min iterations: 100. Generator: `arbitraryFindingVector` with optional waivers.
@@ -561,108 +561,108 @@ Five roles — **Admin, Coordinator, Teacher, Student, Parent** — each receive
     - _Requirements: 16.3, 16.4, 16.5, 16.6_
     - _Design: §Property 15_
 
-- [ ] 8. Connectivity matrix generator
+- [x] 8. Connectivity matrix generator
 
   - AST-driven enumeration of every hook + mutation + subscription, cross-referenced against the deployed schema and the query-key invalidation graph.
   - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7_
   - _Design: §Connectivity Matrix Generator_
 
-  - [ ] 8.1 AST extractor for `.from`, `.rpc`, `supabase.functions.invoke`, realtime channels
+  - [x] 8.1 AST extractor for `.from`, `.rpc`, `supabase.functions.invoke`, realtime channels
 
     - Use `ts-morph` to walk `src/hooks/**/*.ts` `CallExpression` nodes.
     - Record table names, RPC names, edge-function invoke names, and realtime channel `on({ table, filter })` tuples.
     - _Requirements: 4.1, 12.4_
 
-  - [ ] 8.2 QueryKeys invalidation cross-reference
+  - [x] 8.2 QueryKeys invalidation cross-reference
 
     - For each `useMutation`, walk its `onSuccess` body for `queryClient.invalidateQueries({ queryKey: queryKeys.X.Y })` calls.
     - Join against `src/lib/queryKeys.ts` to confirm each referenced path exists; flag unknown keys.
     - Flag mutations whose `onSuccess` invalidates zero keys.
     - _Requirements: 4.3_
 
-  - [ ] 8.3 Deployed-schema probe (tables + Edge Functions)
+  - [x] 8.3 Deployed-schema probe (tables + Edge Functions)
 
     - Query `information_schema.tables` via Supabase MCP `execute_sql`.
     - List deployed Edge Functions via Supabase MCP `list_edge_functions`.
     - Flag any AST-extracted target missing from the deployed surface.
     - _Requirements: 4.2, 4.5, 4.7_
 
-  - [ ] 8.4 Per-role authenticated CORS + auth probe
+  - [x] 8.4 Per-role authenticated CORS + auth probe
 
     - For each hook, derive permitted roles from file path (`src/hooks/admin*.ts` → admin, etc.) or from `@audit-role` JSDoc.
     - Use the pre-seeded Role storageState to issue one probe per permitted role.
     - On `OPTIONS` to each Edge Function: assert expected CORS headers.
     - _Requirements: 4.2, 4.3, 4.5, 6.2_
 
-  - [ ] 8.5 Migration-keyed probe cache at `audit/output/.cache/connectivity-probe-cache.json`
+  - [x] 8.5 Migration-keyed probe cache at `audit/output/.cache/connectivity-probe-cache.json`
 
     - Key cache entries by `migrationHead`. Invalidate all entries when migration head changes.
     - Keeps incremental runs under 30s per `design.md` §Parallelism.
     - _Requirements: 4.2_
     - _Design: §Connectivity Matrix Implementation Details item 6_
 
-  - [ ] 8.6 JSON + Markdown output emitters
+  - [x] 8.6 JSON + Markdown output emitters
 
     - `audit/output/connectivity-matrix.json` per the `design.md` schema.
     - `audit/output/connectivity-matrix.md` as a per-hook table: File, Hook, Target, Role(s), CORS, Auth, QueryKey, Invalidates.
     - _Requirements: 4.1, 16.1_
 
-  - [ ] 8.7 Cron endpoint connectivity probe (Req 4.6)
+  - [x] 8.7 Cron endpoint connectivity probe (Req 4.6)
     - Enumerate `api/cron/*.ts` dynamically; invoke each with `CRON_SECRET` header; assert JSON success response shape.
     - Note: full health + idempotency is §12; this sub-task only covers "endpoint is reachable and returns success".
     - _Requirements: 4.6_
 
-- [ ] 9. RLS matrix runner
+- [x] 9. RLS matrix runner
 
   - Per-(table, role, op) positive and negative probes across all five roles, plus append-only denial checks and parent linkage probes.
   - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7_
   - _Design: §RLS Matrix Runner_
 
-  - [ ] 9.1 Table enumeration and exclude list
+  - [x] 9.1 Table enumeration and exclude list
 
     - Enumerate all tables from `information_schema.tables` via Supabase MCP `execute_sql`.
     - Honor `audit/baselines/rls-exclude.json` (internal-only tables like `schema_migrations`).
     - _Requirements: 5.1_
 
-  - [ ] 9.2 Expectations file loader + first-run seeder
+  - [x] 9.2 Expectations file loader + first-run seeder
 
     - Load `audit/baselines/rls-expectations.json`. On first run, seed it from `CREATE POLICY` statements in `supabase/migrations/`.
     - After first run, diff expectations against actual — do NOT auto-sync; surface the diff as a finding.
     - _Requirements: 5.2, 5.3, 5.4_
 
-  - [ ] 9.3 Per-(table, role, op) probe runner — Admin row
+  - [x] 9.3 Per-(table, role, op) probe runner — Admin row
 
     - Issue SELECT/INSERT/UPDATE/DELETE probes using the Admin JWT for every enumerated table.
     - _Requirements: 5.2, 5.3, 5.4_
 
-  - [ ] 9.4 Per-(table, role, op) probe runner — Coordinator row
+  - [x] 9.4 Per-(table, role, op) probe runner — Coordinator row
 
     - Same as 9.3 for Coordinator JWT.
     - _Requirements: 5.2, 5.3, 5.4_
 
-  - [ ] 9.5 Per-(table, role, op) probe runner — Teacher row
+  - [x] 9.5 Per-(table, role, op) probe runner — Teacher row
 
     - Same for Teacher JWT.
     - _Requirements: 5.2, 5.3, 5.4_
 
-  - [ ] 9.6 Per-(table, role, op) probe runner — Student row
+  - [x] 9.6 Per-(table, role, op) probe runner — Student row
 
     - Same for Student JWT, including the self-scoped positive probes and peer-data negative probes.
     - _Requirements: 5.2, 5.3, 5.4_
 
-  - [ ] 9.7 Per-(table, role, op) probe runner — Parent row (both linked and unlinked)
+  - [x] 9.7 Per-(table, role, op) probe runner — Parent row (both linked and unlinked)
 
     - Issue probes using both `audit+parent-linked` and `audit+parent-unlinked` JWTs.
     - Linked parent: positive SELECT on student-owned tables must return rows.
     - Unlinked parent: negative SELECT on the same tables must return zero rows.
     - _Requirements: 5.2, 5.3, 5.6_
 
-  - [ ] 9.8 Append-only denial probes on `evidence`, `audit_logs`, `xp_transactions`
+  - [x] 9.8 Append-only denial probes on `evidence`, `audit_logs`, `xp_transactions`
 
     - For each of the three tables and each of the five roles (including Admin), assert UPDATE and DELETE return Postgres error `42501`.
     - _Requirements: 5.5, 7.2_
 
-  - [ ] 9.9 JSON + Markdown output pivoted by role
+  - [x] 9.9 JSON + Markdown output pivoted by role
     - `audit/output/rls-matrix.json` per the `design.md` schema.
     - `audit/output/rls-matrix.md` as a `role × table` grid with `✅ / ❌ / ➖` cells and per-role pass/fail summary.
     - _Requirements: 5.7, 16.1_
@@ -728,59 +728,59 @@ Five roles — **Admin, Coordinator, Teacher, Student, Parent** — each receive
     - Honor `audit/baselines/i18n-allowlist.json` (brand names, email placeholders).
     - _Requirements: 10.2_
 
-  - [ ] 11.3 RTL Playwright spec per role — Admin
+  - [x] 11.3 RTL Playwright spec per role — Admin
 
     - `tests/e2e/rtl/layout.spec.ts` — Admin dashboard under `ar` locale with `dir="rtl"`. Capture full-page screenshot, pixel-diff vs `audit/baselines/rtl-screens/admin.png` at 0.3% tolerance.
     - _Requirements: 10.4_
 
-  - [ ] 11.4 RTL Playwright spec per role — Coordinator
+  - [x] 11.4 RTL Playwright spec per role — Coordinator
 
     - Coordinator curriculum matrix under `ar` / `rtl`. Pixel-diff vs `audit/baselines/rtl-screens/coordinator.png`.
     - _Requirements: 10.4_
 
-  - [ ] 11.5 RTL Playwright spec per role — Teacher
+  - [x] 11.5 RTL Playwright spec per role — Teacher
 
     - Teacher grading page under `ar` / `rtl`. Pixel-diff vs `audit/baselines/rtl-screens/teacher.png`.
     - _Requirements: 10.4_
 
-  - [ ] 11.6 RTL Playwright spec per role — Student
+  - [x] 11.6 RTL Playwright spec per role — Student
 
     - Student learning path under `ar` / `rtl`. Pixel-diff vs `audit/baselines/rtl-screens/student.png`.
     - _Requirements: 10.4_
 
-  - [ ] 11.7 RTL Playwright spec per role — Parent
+  - [x] 11.7 RTL Playwright spec per role — Parent
 
     - Parent child-progress page under `ar` / `rtl`. Pixel-diff vs `audit/baselines/rtl-screens/parent.png`.
     - _Requirements: 10.4_
 
-  - [ ] 11.8 Locale-aware number and date formatter tests
+  - [x] 11.8 Locale-aware number and date formatter tests
     - Unit test that `Intl.NumberFormat('ar-QA').format(1234.5)` produces Arabic-Indic digits and `en-US` produces Western-Arabic digits; same for `DateTimeFormat`.
     - _Requirements: 10.5_
 
-- [ ] 12. Cron health probe
+- [x] 12. Cron health probe
 
   - Dynamic endpoint enumeration, first + second invocation, log-row assertion, idempotency delta check. One baseline per endpoint.
   - _Requirements: 15.1, 15.2, 15.3, 15.4_
   - _Design: §Cron Health Probe_
 
-  - [ ] 12.1 Dynamic cron endpoint enumeration from `api/cron/*.ts`
+  - [x] 12.1 Dynamic cron endpoint enumeration from `api/cron/*.ts`
 
     - Do NOT hardcode the endpoint list. Use `globby` or equivalent to enumerate; fail if zero endpoints found.
     - Record `CRON_SECRET` from env; refuse to start without it.
     - _Requirements: 15.1_
 
-  - [ ] 12.2 First-invocation + log-row assertion
+  - [x] 12.2 First-invocation + log-row assertion
 
     - For each endpoint: POST with CRON_SECRET, assert 200 + `{ ok: true }` (or equivalent success shape), SELECT the latest row from `cron_runs` and assert it references the endpoint with `start_time`, `end_time`, and `outcome = 'success'`.
     - _Requirements: 15.1, 15.2_
 
-  - [ ] 12.3 Second-invocation + idempotency delta assertion
+  - [x] 12.3 Second-invocation + idempotency delta assertion
 
     - Invoke the same endpoint again with identical input. Measure row delta in every table it writes to.
     - Assert delta ≤ expected value from `audit/baselines/cron-idempotency.json`.
     - _Requirements: 15.3_
 
-  - [ ] 12.4 Per-endpoint baseline at `audit/baselines/cron-idempotency.json`
+  - [x] 12.4 Per-endpoint baseline at `audit/baselines/cron-idempotency.json`
     - Structure: `{ "<endpoint>": { "targetTables": [...], "expectedDelta": { "<table>": N } } }`.
     - First run seeds the baseline; subsequent runs enforce it.
     - Emit findings to `audit/output/cron-health.json` per the `design.md` schema.
@@ -820,7 +820,7 @@ Five roles — **Admin, Coordinator, Teacher, Student, Parent** — each receive
     - AST-scan `src/hooks/admin*.ts`; for each exported `useMutation` hook, assert `mutationFn` body contains `auditLogger.log(...)` or an equivalent wrapper.
     - _Requirements: 13.5_
 
-  - [ ] 13.6 Token-expired silent-refresh E2E probe
+  - [x] 13.6 Token-expired silent-refresh E2E probe
     - Playwright spec: force JWT expiry via cookie mutation; make a request; assert the client performs one silent refresh; on simulated failure assert redirect to `/login`.
     - _Requirements: 13.6_
 
@@ -835,7 +835,7 @@ Five roles — **Admin, Coordinator, Teacher, Student, Parent** — each receive
     - Measure total gzipped bundle from `npm run build` output; compare to `audit/baselines/bundle.json`; fail if > 110%.
     - _Requirements: 12.1_
 
-  - [ ] 14.2 Per-role cold-start TTI Playwright spec at `tests/e2e/perf/tti.spec.ts`
+  - [x] 14.2 Per-role cold-start TTI Playwright spec at `tests/e2e/perf/tti.spec.ts`
 
     - One sub-test per role dashboard (admin, coordinator, teacher, student, parent). Clear `localStorage`, `sessionStorage`, service-worker cache before each.
     - Record five samples per role; median wins. Compare to `audit/baselines/tti.json`; fail if any median > 120%.
@@ -851,28 +851,28 @@ Five roles — **Admin, Coordinator, Teacher, Student, Parent** — each receive
     - Walk `src/hooks/**/*.ts`; for every `supabase.channel(...).on(...)` call, assert the event config object contains a `filter:` key.
     - _Requirements: 12.4_
 
-  - [ ] 14.5 N+1 detection from Supabase query log
+  - [x] 14.5 N+1 detection from Supabase query log
     - During the per-role critical-path run, route all Supabase REST calls through a normalizer that strips row-identifier query params and counts templates per page transition.
     - Flag any template with > 10 hits in a single transition; honor per-template overrides in `audit/baselines/n-plus-one-threshold.json`.
     - _Requirements: 12.5_
 
-- [ ] 15. Accessibility shared infrastructure
+- [x] 15. Accessibility shared infrastructure
 
   - Per-role a11y dashboard specs are owned by §5 (`5.1.4`, `5.2.5`, `5.3.5`, `5.4.6`, `5.5.4`). This section is for shared infrastructure only.
   - _Requirements: 11.1, 11.2, 11.3, 11.4, 11.5_
   - _Design: §Accessibility Baseline_
 
-  - [ ] 15.1 Wire `tests/e2e/_helpers/axe.ts` aggregation into `audit/output/a11y-findings.json`
+  - [x] 15.1 Wire `tests/e2e/_helpers/axe.ts` aggregation into `audit/output/a11y-findings.json`
 
     - Each per-role a11y spec (§5.x.4/5/6) writes into a run-scoped buffer; globalTeardown flushes the buffer to JSON.
     - _Requirements: 11.1_
 
-  - [ ] 15.2 Icon-only button aria-label AST scan
+  - [x] 15.2 Icon-only button aria-label AST scan
 
     - Walk `src/components/**` and `src/pages/**`; for every `<Button>` or `<a>` whose children consist solely of a Lucide icon component, assert `aria-label`, `aria-labelledby`, or a visually-hidden text child is present.
     - _Requirements: 11.2_
 
-  - [ ] 15.3 Color contrast check on Bloom, outcome, and attainment badges
+  - [x] 15.3 Color contrast check on Bloom, outcome, and attainment badges
     - Parameterized test that computes WCAG contrast ratio for every color pair listed in `.kiro/steering/design-system.md` Domain Color Coding.
     - Assert ≥ 4.5:1 for normal text, ≥ 3:1 for large text (Bloom badges are uppercase `text-xs font-bold` → treat as normal).
     - _Requirements: 11.4_
@@ -911,11 +911,11 @@ Five roles — **Admin, Coordinator, Teacher, Student, Parent** — each receive
     - `scripts/audit/pr-comment.ts` reads `verdict.json` and produces the Markdown body: verdict line, severity counts, top-3 findings, link to full report.
     - _Requirements: 17.5_
 
-- [ ] 17. Checkpoint — ensure every stage runs and every artifact is produced
+- [x] 17. Checkpoint — ensure every stage runs and every artifact is produced
 
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 18. CI pipeline integration
+- [x] 18. CI pipeline integration
 
   - GitHub Actions workflow wiring the audit into PR + pre-deploy modes.
   - _Requirements: 17.1, 17.2, 17.3, 17.4, 17.5, 17.6_
@@ -957,7 +957,7 @@ Five roles — **Admin, Coordinator, Teacher, Student, Parent** — each receive
     - Fail CI if vitest coverage on `src/lib/` falls below the threshold baselined on first run (initial target 80% line coverage).
     - _Requirements: 17.4_
 
-- [ ] 19. Baselines establishment (first-run bootstrap)
+- [x] 19. Baselines establishment (first-run bootstrap)
 
   - First-audit-run bootstrap: populate every baseline file with current values and lock by commit. No baseline file is populated outside this task.
   - _Requirements: 12.1, 12.2, 15.3, 16.7_
@@ -975,37 +975,37 @@ Five roles — **Admin, Coordinator, Teacher, Student, Parent** — each receive
     - Subsequent runs enforce the baseline; updates require a deliberate PR that bumps `createdAt` and `lockedByCommit`.
     - _Requirements: 16.7_
 
-  - [ ] 19.3 Historical `audit_runs` / `audit_findings` tables for trend analysis
+  - [x] 19.3 Historical `audit_runs` / `audit_findings` tables for trend analysis
     - Per `design.md` §Open Question 2: tables enabling historical analysis of audit runs over time. Scoped to an `audit-` prefix so they can't collide with runtime tables.
     - If built: apply via Supabase MCP `apply_migration` (never hand-edit `supabase/migrations/`). Regenerate `src/types/database.ts` via `pwsh scripts/regen-types.ps1` (never by hand or shell redirection).
     - _Requirements: 16.1_
 
-- [ ] 20. Documentation and waiver process
+- [x] 20. Documentation and waiver process
 
   - Documentation enabling release stakeholders to use the audit independently. Now mandatory so CI + release engineers can triage findings without tribal knowledge.
   - _Requirements: 16.4_
   - _Design: §Open Questions item 3_
 
-  - [ ] 20.1 Waiver file format at `audit/waivers.yml`
+  - [x] 20.1 Waiver file format at `audit/waivers.yml`
 
     - YAML schema: `{ id, severity: Critical, findingId, signers: { releaseEngineer, qaLead, techLead }, expiresAt, rationale }`.
     - Audit runner reads the file and enforces the three-signer rule before relaxing a Critical to Go-with-backlog.
     - _Requirements: 16.4_
 
-  - [ ] 20.2 Documentation at `docs/operations/pre-deployment-audit-howto.md`
+  - [x] 20.2 Documentation at `docs/operations/pre-deployment-audit-howto.md`
 
     - How to read the audit report, how to triage findings by severity, how to submit a waiver.
 
-  - [ ] 20.3 Runbook for CI failure modes
+  - [x] 20.3 Runbook for CI failure modes
     - Document what each stage's common failure modes look like and how to diagnose. Cross-link to `design.md` §"Most Likely Breakage Points" sections.
 
-- [ ] 21. Nova Act human-perspective UX audit
+- [x] 21. Nova Act human-perspective UX audit
 
   - AI-driven browser automation that exercises each role's primary journey in natural language and flags UX friction Playwright cannot see. Runs after the Playwright E2E layer in the pipeline so Nova Act operates against an app already proven functional.
   - _Requirements: 18.1, 18.2, 18.3, 18.4, 18.5, 18.6, 18.7, 18.8, 18.9, 18.10_
   - _Design: §Nova Act Human-Perspective UX Audit_
 
-  - [ ] 21.1 Install Nova Act Python SDK and add orchestrator entry point
+  - [x] 21.1 Install Nova Act Python SDK and add orchestrator entry point
 
     - Create `scripts/audit/nova-act/requirements.txt` with a pinned `nova-act[cli]` version (look up the latest stable on PyPI at task execution time and pin exactly).
     - Document the install step (`pip install -r scripts/audit/nova-act/requirements.txt`) in `audit/README.md` under a new "Nova Act setup" section.
@@ -1013,7 +1013,7 @@ Five roles — **Admin, Coordinator, Teacher, Student, Parent** — each receive
     - Create placeholder `scripts/audit/nova-act/run.ts` that parses `--role`, `--headed`, `--env`, probes for `NOVA_ACT_API_KEY` then falls back to AWS credentials, and exits 0 with a skipped-stage manifest entry if neither is found (Req 18.9).
     - _Requirements: 18.8, 18.9_
 
-  - [ ] 21.2 Authentication probe and env wiring in `scripts/audit/nova-act/run.ts`
+  - [x] 21.2 Authentication probe and env wiring in `scripts/audit/nova-act/run.ts`
 
     - Read `NOVA_ACT_API_KEY` first; fall back to AWS credentials via `AWS_ACCESS_KEY_ID` + `AWS_SECRET_ACCESS_KEY` (or AWS profile) per the Nova Act authentication steering.
     - Read `NOVA_ACT_BASE_URL` (defaults to `http://localhost:5173`) and refuse to start if the URL cannot be reached within 10s.
@@ -1022,52 +1022,52 @@ Five roles — **Admin, Coordinator, Teacher, Student, Parent** — each receive
     - _Requirements: 18.8, 18.9_
     - _Design: §Authentication, §Failure modes_
 
-  - [ ] 21.3 Scripted journey — Admin (`scripts/audit/nova-act/journeys/admin.py`)
+  - [x] 21.3 Scripted journey — Admin (`scripts/audit/nova-act/journeys/admin.py`)
 
     - Implements the scripted prompt from `design.md` §Per-Role Journey Catalog row Admin.
     - Uses `NovaAct` context manager with `record_video=True` and `logs_directory=<OUTPUT>/admin`.
     - Final assertions: ILO created, teacher user created, audit log entry visible.
     - _Requirements: 18.1, 18.2, 18.3_
 
-  - [ ] 21.4 Scripted journey — Coordinator (`scripts/audit/nova-act/journeys/coordinator.py`)
+  - [x] 21.4 Scripted journey — Coordinator (`scripts/audit/nova-act/journeys/coordinator.py`)
 
     - Implements the scripted prompt from `design.md` §Per-Role Journey Catalog row Coordinator.
     - Final assertions: PLO created, PLO→ILO mapping with weight 100 exists, PLO visible in curriculum matrix.
     - _Requirements: 18.1, 18.2, 18.3_
 
-  - [ ] 21.5 Scripted journey — Teacher (`scripts/audit/nova-act/journeys/teacher.py`)
+  - [x] 21.5 Scripted journey — Teacher (`scripts/audit/nova-act/journeys/teacher.py`)
 
     - Implements the scripted prompt from `design.md` §Per-Role Journey Catalog row Teacher.
     - Final assertions: CLO created at Applying Bloom level, assignment created using that CLO, seed student submission graded and released.
     - _Requirements: 18.1, 18.2, 18.3_
 
-  - [ ] 21.6 Scripted journey — Student (`scripts/audit/nova-act/journeys/student.py`)
+  - [x] 21.6 Scripted journey — Student (`scripts/audit/nova-act/journeys/student.py`)
 
     - Implements the scripted prompt from `design.md` §Per-Role Journey Catalog row Student.
     - Final assertions: next unlocked assignment submitted, XP visible, streak visible, leaderboard position visible.
     - _Requirements: 18.1, 18.2, 18.3_
 
-  - [ ] 21.7 Scripted journey — Parent (`scripts/audit/nova-act/journeys/parent.py`)
+  - [x] 21.7 Scripted journey — Parent (`scripts/audit/nova-act/journeys/parent.py`)
 
     - Implements the scripted prompt from `design.md` §Per-Role Journey Catalog row Parent.
     - Final assertions: child progress page loads, attainment summary surfaces a value, notification feed renders, one-sentence progress summary extracted via `act_get`.
     - _Requirements: 18.1, 18.2, 18.3_
 
-  - [ ] 21.8 Flow-discovery pass — one per role
+  - [x] 21.8 Flow-discovery pass — one per role
 
     - Create `scripts/audit/nova-act/flow-discovery/prompts.ts` that exports the per-role flow-discovery directive from `design.md` §Per-Role Journey Catalog.
     - Extend each `journeys/{role}.py` with a second test that runs the flow-discovery directive for that role with a higher step budget.
     - Each flow-discovery pass writes findings to `audit/output/nova-act/flow-discovery/{role}.md` as bulleted friction observations.
     - _Requirements: 18.4, 18.6_
 
-  - [ ] 21.9 Session-to-Gherkin converter (`scripts/audit/nova-act/session-to-gherkin.ts`)
+  - [x] 21.9 Session-to-Gherkin converter (`scripts/audit/nova-act/session-to-gherkin.ts`)
 
     - For each completed journey, read `audit/output/nova-act/{role}/session.yaml` and convert to `audit/output/nova-act/gherkin/{role}.feature`.
     - Uses the `goto → Given`, `execute → When`, `verify → Then`, `extract → Then` mapping from `nova-act/steering/gherkin_testing.md`.
     - Runs once per role after the subprocess exits; non-zero exit from a journey skips conversion for that role.
     - _Requirements: 18.10_
 
-  - [ ] 21.10 Report aggregator integration
+  - [x] 21.10 Report aggregator integration
 
     - Extend `scripts/audit/report.ts` (§16.1) to ingest `audit/output/nova-act/{role}/report.md` and `audit/output/nova-act/flow-discovery/{role}.md`.
     - Apply severity mapping per `design.md` §Artifact layout:
@@ -1077,7 +1077,7 @@ Five roles — **Admin, Coordinator, Teacher, Student, Parent** — each receive
     - De-duplicate findings by text similarity (edit distance ≤ 5) so the same complaint phrased two ways is counted once.
     - _Requirements: 18.5, 18.6_
 
-  - [ ] 21.11 CI workflow stage for Nova Act
+  - [x] 21.11 CI workflow stage for Nova Act
     - Add a `nova-act` stage to `.github/workflows/pre-deploy-audit.yml` after the Playwright E2E stage.
     - `continue-on-error: true` per the design's policy for post-E2E stages — artifacts still flow to the report aggregator.
     - Gate on `vars.NOVA_ACT_ENABLED == 'true'` so teams without Nova Act credentials can disable without editing the workflow.
@@ -1086,17 +1086,17 @@ Five roles — **Admin, Coordinator, Teacher, Student, Parent** — each receive
     - _Requirements: 18.7, 18.8_
     - _Design: §Execution Architecture_
 
-- [ ] 22. Final verification
+- [x] 22. Final verification
 
   - The go/no-go gate for the audit itself: run the full pipeline against staging, review the produced artifacts, confirm every requirement traces to a produced artifact.
   - _Requirements: all (1–18)_
 
-  - [ ] 22.1 Run full audit against staging end-to-end
+  - [x] 22.1 Run full audit against staging end-to-end
 
     - `npm run audit` on a clean checkout of the branch. Capture wall-time per stage.
     - _Requirements: 17.1_
 
-  - [ ] 22.2 Review generated `audit/output/audit-report.md`
+  - [x] 22.2 Review generated `audit/output/audit-report.md`
 
     - Confirm executive summary renders.
     - Confirm per-requirement table covers Requirements 1–18.
@@ -1104,14 +1104,14 @@ Five roles — **Admin, Coordinator, Teacher, Student, Parent** — each receive
     - Confirm connectivity, RLS, cron, performance, and Nova Act summaries are present.
     - _Requirements: 16.1, 18.7_
 
-  - [ ] 22.3 Confirm every requirement maps to a produced artifact
+  - [x] 22.3 Confirm every requirement maps to a produced artifact
 
     - Walk Requirements 1–18 against the "Per-Requirement Coverage Confirmation" table in `design.md` §Review Notes item 6.
     - For each requirement, locate the corresponding JSON/MD artifact under `audit/output/` (including `audit/output/nova-act/`) or the test file under `tests/e2e/`, `src/__tests__/properties/`, or `scripts/audit/nova-act/journeys/`.
     - Any gap is a Critical finding that must be resolved before sign-off.
     - _Requirements: all (1–18)_
 
-  - [ ] 22.4 Final checkpoint — ensure all tests pass
+  - [x] 22.4 Final checkpoint — ensure all tests pass
     - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes
