@@ -5,6 +5,7 @@
 // stage returns a StageResult so the orchestrator can append it to the
 // manifest without branching per stage.
 
+import { runA11yStage } from "./a11y-stage.ts";
 import { runDesignTokensStage } from "./design-token-check.ts";
 import { runI18nStage } from "./i18n-check.ts";
 import { runPerfStage } from "./perf-budget.ts";
@@ -41,7 +42,7 @@ export const stages: Record<StageName, StageFn> = {
   e2e: stub("e2e"),
   designTokens: runDesignTokensStage,
   i18n: runI18nStage,
-  a11y: stub("a11y"),
+  a11y: runA11yStage,
   perf: runPerfStage,
   report: runReportStage,
 };
@@ -67,6 +68,8 @@ export const DEFAULT_STAGE_ORDER: readonly StageName[] = [
 
 // PR mode order. Per design.md §Per-PR vs Pre-Deploy Modes the E2E layer and
 // the RTL screenshot capture are skipped to stay inside a 10-minute budget.
+// A11y runs in PR mode because its two scanners are source-tree-only (no
+// running browser); it catches icon-only-button regressions at review time.
 export const PR_STAGE_ORDER: readonly StageName[] = [
   "lint",
   "tsc",
@@ -78,6 +81,7 @@ export const PR_STAGE_ORDER: readonly StageName[] = [
   "cron",
   "designTokens",
   "i18n",
+  "a11y",
   "perf",
   "report",
 ];
