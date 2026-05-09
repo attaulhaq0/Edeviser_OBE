@@ -1,12 +1,18 @@
 // Feature: pre-deployment-e2e-audit, Task 11.8: Locale-aware formatter unit tests
 // **Validates: Requirements 10.5**
 //
-// Ensures that Intl.NumberFormat + Intl.DateTimeFormat emit correct digits
-// under the two locales the product supports. The Arabic locale renders
-// in ar-EG style by default on modern Node which uses Arabic-Indic digits
-// (٠-٩); the English locale always renders with Western-Arabic digits
-// (0-9). A regression here would ship Arabic pages with Latin digits or
-// vice versa.
+// Ensures Intl.NumberFormat + Intl.DateTimeFormat emit correct digits
+// under the two locales the product supports. The Arabic locale must
+// render Arabic-Indic digits (٠-٩) when the numbering system is pinned
+// to "arab"; the English locale always renders Western-Arabic digits
+// (0-9). A regression would ship Arabic pages with the wrong digit set
+// or vice versa.
+//
+// Note: we pin `numberingSystem: "arab"` explicitly rather than relying
+// on the Node ICU default. Node's small-ICU build (common on CI Linux
+// images) returns Latin digits for plain "ar" while full-ICU returns
+// Arabic-Indic. Production uses region-specific tags like "ar-QA" for
+// the same effect — see src/lib/formatNumber.ts.
 
 import { describe, it, expect } from "vitest";
 
@@ -22,8 +28,14 @@ describe("Locale-aware number formatting (Req 10.5)", () => {
     expect(f.format(1234.5)).toBe("1,234.5");
   });
 
-  it("ar renders Arabic-Indic digits by default on Node", () => {
-    const f = new Intl.NumberFormat("ar");
+  it("ar with numberingSystem=arab renders Arabic-Indic digits", () => {
+    // Pin the numbering system explicitly instead of relying on the
+    // Node ICU default: Node's small-ICU build (common on CI Linux
+    // images) returns Western-Arabic digits for plain "ar", while
+    // full-ICU returns Arabic-Indic. Production uses the region-specific
+    // "ar-QA" tag (see src/lib/formatNumber.ts), but the test asserts
+    // the canonical pinned behavior so it's stable across both builds.
+    const f = new Intl.NumberFormat("ar", { numberingSystem: "arab" });
     const result = f.format(1234);
     // Arabic-Indic digits are U+0660..U+0669 (٠..٩).
     expect(result).toMatch(/[\u0660-\u0669]/);
@@ -57,11 +69,15 @@ describe("Locale-aware date formatting (Req 10.5)", () => {
     expect(f.format(ANCHOR_DATE)).toMatch(/2026/);
   });
 
-  it("ar renders Arabic-Indic digits when no override is set", () => {
+  it("ar with numberingSystem=arab renders Arabic-Indic digits in dates", () => {
+    // Same reasoning as the NumberFormat test above: pin the numbering
+    // system explicitly so the test is stable across small-ICU and
+    // full-ICU Node builds.
     const f = new Intl.DateTimeFormat("ar", {
       year: "numeric",
       month: "long",
       day: "numeric",
+      numberingSystem: "arab",
       timeZone: "UTC",
     });
     const result = f.format(ANCHOR_DATE);
