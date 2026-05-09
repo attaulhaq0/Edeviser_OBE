@@ -1,12 +1,10 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import { logAuditEvent } from '@/lib/auditLogger';
-import { useAuth } from '@/hooks/useAuth';
-import type { PaginatedResult } from '@/types/pagination';
-import { getPaginationRange } from '@/types/pagination';
-
-
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import { logAuditEvent } from "@/lib/auditLogger";
+import { useAuth } from "@/hooks/useAuth";
+import type { PaginatedResult } from "@/types/pagination";
+import { getPaginationRange } from "@/types/pagination";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -47,64 +45,84 @@ interface CreateRubricInput {
 
 // ─── useRubrics — list rubrics, optionally filtered by courseId ──────────────
 
-export const useRubrics = (courseId?: string, pagination?: { page?: number; pageSize?: number }) => {
-  const { page, pageSize, from, to } = getPaginationRange(pagination?.page, pagination?.pageSize);
+export const useRubrics = (
+  courseId?: string,
+  pagination?: { page?: number; pageSize?: number }
+) => {
+  const { page, pageSize, from, to } = getPaginationRange(
+    pagination?.page,
+    pagination?.pageSize
+  );
 
   return useQuery({
     queryKey: queryKeys.rubrics.list({ courseId, page, pageSize }),
     queryFn: async (): Promise<PaginatedResult<Rubric>> => {
       if (courseId) {
         // Get CLO ids for this course, then filter rubrics
-        const { data: clos, error: closError } = await supabase.from('learning_outcomes')
-          .select('id')
-          .eq('type', 'CLO')
-          .eq('course_id', courseId);
+        const { data: clos, error: closError } = await supabase
+          .from("learning_outcomes")
+          .select("id")
+          .eq("type", "CLO")
+          .eq("course_id", courseId);
 
         if (closError) throw closError;
 
         const cloIds = (clos ?? []).map((c) => c.id);
         if (cloIds.length === 0) return { data: [], count: 0, page, pageSize };
 
-        const { data, error, count } = await supabase.from('rubrics')
-          .select('*', { count: 'exact' })
-          .in('clo_id', cloIds)
-          .order('created_at', { ascending: false })
+        const { data, error, count } = await supabase
+          .from("rubrics")
+          .select("*", { count: "exact" })
+          .in("clo_id", cloIds)
+          .order("created_at", { ascending: false })
           .range(from, to);
 
         if (error) throw error;
-        return { data: (data ?? []) as Rubric[], count: count ?? 0, page, pageSize };
+        return {
+          data: (data ?? []) as Rubric[],
+          count: count ?? 0,
+          page,
+          pageSize,
+        };
       }
 
-      const { data, error, count } = await supabase.from('rubrics')
-        .select('*', { count: 'exact' })
-        .order('created_at', { ascending: false })
+      const { data, error, count } = await supabase
+        .from("rubrics")
+        .select("*", { count: "exact" })
+        .order("created_at", { ascending: false })
         .range(from, to);
 
       if (error) throw error;
-      return { data: (data ?? []) as Rubric[], count: count ?? 0, page, pageSize };
+      return {
+        data: (data ?? []) as Rubric[],
+        count: count ?? 0,
+        page,
+        pageSize,
+      };
     },
   });
 };
-
 
 // ─── useRubric — single rubric with criteria ────────────────────────────────
 
 export const useRubric = (id?: string) => {
   return useQuery({
-    queryKey: queryKeys.rubrics.detail(id ?? ''),
+    queryKey: queryKeys.rubrics.detail(id ?? ""),
     queryFn: async (): Promise<RubricWithCriteria | null> => {
-      const { data: rubric, error } = await supabase.from('rubrics')
-        .select('*')
-        .eq('id', id!)
+      const { data: rubric, error } = await supabase
+        .from("rubrics")
+        .select("*")
+        .eq("id", id!)
         .maybeSingle();
 
       if (error) throw error;
       if (!rubric) return null;
 
-      const { data: criteria, error: criteriaError } = await supabase.from('rubric_criteria')
-        .select('*')
-        .eq('rubric_id', id!)
-        .order('sort_order', { ascending: true });
+      const { data: criteria, error: criteriaError } = await supabase
+        .from("rubric_criteria")
+        .select("*")
+        .eq("rubric_id", id!)
+        .order("sort_order", { ascending: true });
 
       if (criteriaError) throw criteriaError;
 
@@ -112,7 +130,11 @@ export const useRubric = (id?: string) => {
         ...(rubric as Rubric),
         criteria: (criteria ?? []).map((c) => ({
           ...c,
-          levels: c.levels as unknown as Array<{ label: string; description: string; points: number }>,
+          levels: c.levels as unknown as Array<{
+            label: string;
+            description: string;
+            points: number;
+          }>,
         })),
       };
     },
@@ -130,7 +152,8 @@ export const useCreateRubric = () => {
     mutationFn: async (input: CreateRubricInput): Promise<Rubric> => {
       const { criteria, ...rubricFields } = input;
 
-      const { data: rubric, error } = await supabase.from('rubrics')
+      const { data: rubric, error } = await supabase
+        .from("rubrics")
         .insert(rubricFields)
         .select()
         .single();
@@ -148,18 +171,19 @@ export const useCreateRubric = () => {
           max_points: c.max_points,
         }));
 
-        const { error: criteriaError } = await supabase.from('rubric_criteria')
+        const { error: criteriaError } = await supabase
+          .from("rubric_criteria")
           .insert(rows);
 
         if (criteriaError) throw criteriaError;
       }
 
       await logAuditEvent({
-        action: 'create',
-        entity_type: 'rubric',
+        action: "create",
+        entity_type: "rubric",
         entity_id: created.id,
         changes: { ...input },
-        performed_by: user?.id ?? 'unknown',
+        performed_by: user?.id ?? "unknown",
       });
 
       return created;
@@ -180,18 +204,20 @@ export const useUpdateRubric = (id: string) => {
     mutationFn: async (input: CreateRubricInput): Promise<Rubric> => {
       const { criteria, ...rubricFields } = input;
 
-      const { data: rubric, error } = await supabase.from('rubrics')
+      const { data: rubric, error } = await supabase
+        .from("rubrics")
         .update(rubricFields)
-        .eq('id', id)
+        .eq("id", id)
         .select()
         .single();
 
       if (error) throw error;
 
       // Delete existing criteria and re-insert
-      const { error: deleteError } = await supabase.from('rubric_criteria')
+      const { error: deleteError } = await supabase
+        .from("rubric_criteria")
         .delete()
-        .eq('rubric_id', id);
+        .eq("rubric_id", id);
 
       if (deleteError) throw deleteError;
 
@@ -204,18 +230,19 @@ export const useUpdateRubric = (id: string) => {
           max_points: c.max_points,
         }));
 
-        const { error: criteriaError } = await supabase.from('rubric_criteria')
+        const { error: criteriaError } = await supabase
+          .from("rubric_criteria")
           .insert(rows);
 
         if (criteriaError) throw criteriaError;
       }
 
       await logAuditEvent({
-        action: 'update',
-        entity_type: 'rubric',
+        action: "update",
+        entity_type: "rubric",
         entity_id: id,
         changes: { ...input },
-        performed_by: user?.id ?? 'unknown',
+        performed_by: user?.id ?? "unknown",
       });
 
       return rubric as Rubric;
@@ -235,24 +262,23 @@ export const useDeleteRubric = () => {
 
   return useMutation({
     mutationFn: async (id: string): Promise<void> => {
-      const { error: criteriaError } = await supabase.from('rubric_criteria')
+      const { error: criteriaError } = await supabase
+        .from("rubric_criteria")
         .delete()
-        .eq('rubric_id', id);
+        .eq("rubric_id", id);
 
       if (criteriaError) throw criteriaError;
 
-      const { error } = await supabase.from('rubrics')
-        .delete()
-        .eq('id', id);
+      const { error } = await supabase.from("rubrics").delete().eq("id", id);
 
       if (error) throw error;
 
       await logAuditEvent({
-        action: 'delete',
-        entity_type: 'rubric',
+        action: "delete",
+        entity_type: "rubric",
         entity_id: id,
         changes: {},
-        performed_by: user?.id ?? 'unknown',
+        performed_by: user?.id ?? "unknown",
       });
     },
     onSuccess: () => {
@@ -267,10 +293,11 @@ export const useRubricTemplates = () => {
   return useQuery({
     queryKey: queryKeys.rubrics.list({ isTemplate: true }),
     queryFn: async (): Promise<Rubric[]> => {
-      const { data, error } = await supabase.from('rubrics')
-        .select('*')
-        .eq('is_template', true)
-        .order('created_at', { ascending: false });
+      const { data, error } = await supabase
+        .from("rubrics")
+        .select("*")
+        .eq("is_template", true)
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
       return data as Rubric[];
@@ -282,13 +309,15 @@ export const useRubricTemplates = () => {
 
 export const useCopyRubric = () => {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   return useMutation({
     mutationFn: async (sourceId: string): Promise<Rubric> => {
       // Fetch original rubric
-      const { data: original, error: fetchError } = await supabase.from('rubrics')
-        .select('*')
-        .eq('id', sourceId)
+      const { data: original, error: fetchError } = await supabase
+        .from("rubrics")
+        .select("*")
+        .eq("id", sourceId)
         .single();
 
       if (fetchError) throw fetchError;
@@ -296,15 +325,17 @@ export const useCopyRubric = () => {
       const src = original as Rubric;
 
       // Fetch original criteria
-      const { data: srcCriteria, error: criteriaFetchError } = await supabase.from('rubric_criteria')
-        .select('*')
-        .eq('rubric_id', sourceId)
-        .order('sort_order', { ascending: true });
+      const { data: srcCriteria, error: criteriaFetchError } = await supabase
+        .from("rubric_criteria")
+        .select("*")
+        .eq("rubric_id", sourceId)
+        .order("sort_order", { ascending: true });
 
       if (criteriaFetchError) throw criteriaFetchError;
 
       // Insert copied rubric
-      const { data: newRubric, error: insertError } = await supabase.from('rubrics')
+      const { data: newRubric, error: insertError } = await supabase
+        .from("rubrics")
         .insert({
           title: `${src.title} (Copy)`,
           clo_id: src.clo_id,
@@ -320,7 +351,11 @@ export const useCopyRubric = () => {
       // Insert copied criteria
       const criteria = (srcCriteria ?? []).map((c) => ({
         ...c,
-        levels: c.levels as unknown as Array<{ label: string; description: string; points: number }>,
+        levels: c.levels as unknown as Array<{
+          label: string;
+          description: string;
+          points: number;
+        }>,
       }));
       if (criteria.length > 0) {
         const rows = criteria.map((c) => ({
@@ -331,11 +366,23 @@ export const useCopyRubric = () => {
           max_points: c.max_points,
         }));
 
-        const { error: criteriaInsertError } = await supabase.from('rubric_criteria')
+        const { error: criteriaInsertError } = await supabase
+          .from("rubric_criteria")
           .insert(rows);
 
         if (criteriaInsertError) throw criteriaInsertError;
       }
+
+      // Req 13.5 — admin mutation writes an audit_logs row. The entity is
+      // the newly-created copy; `changes` references the source so reviewers
+      // can trace clone lineage without walking inserts manually.
+      await logAuditEvent({
+        action: "create",
+        entity_type: "rubric",
+        entity_id: created.id,
+        changes: { copied_from: sourceId, title: created.title },
+        performed_by: user?.id ?? "unknown",
+      });
 
       return created;
     },
