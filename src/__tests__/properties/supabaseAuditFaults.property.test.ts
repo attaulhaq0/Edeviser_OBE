@@ -60,12 +60,19 @@ const readAllMigrations = (): { name: string; content: string }[] => {
 
 // ─── 1. Edge Function Deployment ────────────────────────────────────────────
 // **Validates: Requirements 1.1**
-// All 36 function directories (excluding _shared and health) must have a
-// deployment script that contains `supabase functions deploy <name>` for each.
+// All function directories (excluding _shared, health, and audit-only
+// fixtures) must have a deployment script that contains
+// `supabase functions deploy <name>` for each.
 // Will FAIL: script doesn't exist.
 
 describe("1. Edge Function deployment script", () => {
-  const excludedDirs = ["_shared", "health"];
+  // Directories intentionally excluded from production deploy:
+  //   - _shared       — shared utility module, not a deployable function
+  //   - health        — deployed separately with its own CI pipeline
+  //   - audit-fixtures — ENV_ID=audit-staging gated; MUST NOT deploy to
+  //                     production per .kiro/specs/pre-deployment-e2e-audit/
+  //                     design.md §Fixture Endpoint gating
+  const excludedDirs = ["_shared", "health", "audit-fixtures"];
   const functionDirs = listDirs("supabase/functions").filter(
     (d) => !excludedDirs.includes(d)
   );
