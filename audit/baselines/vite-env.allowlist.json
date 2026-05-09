@@ -1,0 +1,6 @@
+{
+  "createdAt": null,
+  "lockedByCommit": null,
+  "description": "Allowlist of VITE_* environment variables permitted in client code. Adding a new entry requires a deliberate PR. Enforced per requirements.md §13.2. Initial list sourced from .env.example.",
+  "allowed": ["VITE_SUPABASE_URL", "VITE_SUPABASE_ANON_KEY", "VITE_SENTRY_DSN"]
+}

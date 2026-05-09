@@ -1,0 +1,24 @@
+{
+  "createdAt": "2026-05-08T00:00:00.000Z",
+  "lockedByCommit": "99a2344347d2683eb26eef93870adbf355d03622",
+  "description": "Explicit exceptions to the list-page pagination rule (Req 12.3). Each entry documents WHY a list is safe to render unpaginated — typically because the result set is bounded by user-scoped RLS (one student, one course, one teacher) and cannot grow to institution scale. Before adding an exception, confirm the query's WHERE clause genuinely bounds the row count.",
+  "fileLevel": [
+    {
+      "file": "src/pages/student/journal/JournalListPage.tsx",
+      "rationale": "Student's own journal entries — bounded by student_id via RLS. A single student's journal realistically contains <200 entries over a semester. If any student exceeds 500 entries we'll revisit with .limit(200) + infinite scroll."
+    },
+    {
+      "file": "src/pages/student/challenges/ChallengeListPage.tsx",
+      "rationale": "Student's own active + upcoming + completed challenges — bounded by student_id. Challenge count per student typically <30 across all statuses. Revisit if platform adds long-running streak-based challenges.",
+      "expiresAt": "2026-09-01T00:00:00.000Z"
+    },
+    {
+      "file": "src/pages/student/assignments/AssignmentListPage.tsx",
+      "rationale": "Student's own assignments filtered by course — bounded by course_id + student enrollment. A single course usually has <50 assignments per semester. Revisit if courses with >100 assignments ship (e.g., daily quiz courses)."
+    },
+    {
+      "file": "src/pages/teacher/challenges/TeacherChallengeListPage.tsx",
+      "rationale": "Teacher's challenges filtered by courseId — bounded by course. Typically <20 per course per semester. Revisit if bulk challenge import ships (EDU-2400)."
+    }
+  ]
+}

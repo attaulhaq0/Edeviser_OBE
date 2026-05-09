@@ -1,0 +1,6 @@
+{
+  "createdAt": null,
+  "lockedByCommit": null,
+  "description": "Documented RTL screenshot-diff exceptions that reviewers have deliberately accepted. Keyed by role with rationale. Consulted by task 11.3-11.7 before failing on pixel diff.",
+  "exceptions": {}
+}

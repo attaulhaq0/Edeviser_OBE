@@ -49,6 +49,7 @@ export default defineConfig({
     include: [
       "src/**/*.{test,property.test}.ts",
       "src/**/*.{test,property.test}.tsx",
+      "scripts/audit/__tests__/**/*.test.ts",
     ],
     pool: "forks",
     css: false,

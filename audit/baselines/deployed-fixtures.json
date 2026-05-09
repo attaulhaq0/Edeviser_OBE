@@ -1,0 +1,12 @@
+{
+  "createdAt": null,
+  "lockedByCommit": null,
+  "description": "Records the deployed slug of the audit-fixtures Edge Function per design.md §Open Question 1. Populated by task 2.4 after the first staging deploy. Consumed by task 8 (connectivity matrix) so the probe knows which Edge Function to expect.",
+  "fixtures": {
+    "audit-fixtures": {
+      "deployedAt": null,
+      "slug": null,
+      "env": "audit-staging"
+    }
+  }
+}

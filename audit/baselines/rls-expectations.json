@@ -1,0 +1,6 @@
+{
+  "createdAt": null,
+  "lockedByCommit": null,
+  "description": "Per-(table, role, operation) expected RLS outcomes. Seeded on first run from CREATE POLICY statements in supabase/migrations/. Enforced thereafter per requirements.md §5.",
+  "tables": {}
+}

@@ -1,0 +1,18 @@
+{
+  "createdAt": "2026-05-08T06:49:57.766Z",
+  "lockedByCommit": "99a2344347d2683eb26eef93870adbf355d03622",
+  "description": "Baseline gzipped Vite bundle size. Frozen by Task 19.1 against commit 99a23443 on 2026-05-08. Enforced with a 110% ceiling per requirements.md §12.1. To update: rebuild fresh (`npm run build`), run `npm run audit -- --stage=perf`, verify the new measurement is intentional, and commit updated values in a deliberate PR.",
+  "totalGzippedBytes": 1216139,
+  "totalSizeBytes": 3759426,
+  "chunkCount": 382,
+  "regressionCapRatio": 1.1,
+  "largestChunks": [
+    { "file": "assets/index-B7gSFa-8.js", "gzippedBytes": 158502 },
+    { "file": "assets/index-BzoOvIxc.js", "gzippedBytes": 143162 },
+    { "file": "assets/vendor-charts-DadajynK.js", "gzippedBytes": 124448 },
+    { "file": "assets/vendor-react-DYokkyb8.js", "gzippedBytes": 59290 },
+    { "file": "assets/vendor-motion-BCJqvGRH.js", "gzippedBytes": 42171 },
+    { "file": "assets/vendor-query-xoYkF9vS.js", "gzippedBytes": 27462 },
+    { "file": "assets/index-C8tCzUEP.css", "gzippedBytes": 19552 }
+  ]
+}

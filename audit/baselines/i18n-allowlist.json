@@ -1,0 +1,16 @@
+{
+  "createdAt": null,
+  "lockedByCommit": null,
+  "description": "User-facing string literals allowed in JSX without a t() wrapper (brand names, email placeholders, etc.). Physical margin/padding utility exceptions also live here. Enforced per requirements.md §10.2 and §10.3.",
+  "stringLiterals": ["Edeviser"],
+  "physicalSpacingExceptions": [
+    {
+      "utility": "ml-auto",
+      "rationale": "ml-auto is a flex-end positioning helper, not a directional margin. In RTL the auto margin still resolves to the end-edge correctly. Flag removed after RTL visual review confirms layout parity (tasks 11.3-11.7)."
+    },
+    {
+      "utility": "mr-auto",
+      "rationale": "mr-auto is a flex-start positioning helper, same rationale as ml-auto."
+    }
+  ]
+}

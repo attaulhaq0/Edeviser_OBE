@@ -1,0 +1,6 @@
+{
+  "createdAt": null,
+  "lockedByCommit": null,
+  "description": "Per-query-template overrides for the N+1 detector. Default threshold is 10 calls per page transition per requirements.md §12.5; entries here relax or tighten it for known-legitimate patterns.",
+  "templates": {}
+}

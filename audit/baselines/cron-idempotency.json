@@ -1,0 +1,6 @@
+{
+  "createdAt": null,
+  "lockedByCommit": null,
+  "description": "Expected row delta between first and second invocation of each cron endpoint. Populated by task 12.4 on first run. Enforced per requirements.md §15.3.",
+  "endpoints": {}
+}
