@@ -28,6 +28,7 @@ import {
   type Waiver,
   severityToVerdict,
 } from "./verdict.ts";
+import { loadWaivers as loadWaiverFile } from "./waivers.ts";
 
 // ─── Manifest + artifact I/O ──────────────────────────────────────────────
 
@@ -48,7 +49,6 @@ interface Manifest {
 }
 
 const AUDIT_OUTPUT = (): string => resolve("audit", "output");
-const AUDIT_BASELINES = (): string => resolve("audit", "baselines");
 const MANIFEST_PATH = (): string => resolve(AUDIT_OUTPUT(), "manifest.json");
 const REPORT_PATH = (): string => resolve(AUDIT_OUTPUT(), "audit-report.md");
 const VERDICT_PATH = (): string => resolve(AUDIT_OUTPUT(), "verdict.json");
@@ -160,14 +160,14 @@ export const countSeverities = (
 };
 
 // ─── Waiver loader ────────────────────────────────────────────────────────
-// Optional audit/waivers.yml support lands in Task 20.1. For now the
-// aggregator only consumes waivers passed explicitly.
+// Waivers live in audit/waivers.json (gitignored; audit/waivers.example.json
+// is the committed template). severityToVerdict's expiry check enforces
+// time-bounded scope; malformed waivers are silently rejected AND surfaced
+// via the ingestor's malformedArtifacts path.
 
 const loadWaivers = (): readonly Waiver[] => {
-  // Task 20.1 will parse audit/waivers.yml. Until then, waivers come from
-  // the empty set so the verdict is honest about what we can prove.
-  void AUDIT_BASELINES();
-  return [];
+  const result = loadWaiverFile();
+  return result.waivers;
 };
 
 // ─── Manifest reader ──────────────────────────────────────────────────────

@@ -1,0 +1,18 @@
+{
+  "createdAt": "2026-05-08T00:00:00.000Z",
+  "lockedByCommit": "placeholder — update when copying this file to audit/waivers.json",
+  "description": "Example waiver file. Copy to audit/waivers.json (gitignored) when a Critical finding needs a time-bounded release waiver per requirements.md §16.4. Each waiver requires THREE signers: releaseEngineer, qaLead, techLead. An expiresAt in the past → the waiver no longer applies and the Critical re-fails the gate.",
+  "waivers": [
+    {
+      "severity": "Critical",
+      "findingId": "example-finding-id-from-audit-report",
+      "signers": {
+        "releaseEngineer": "release.eng@edeviser.test",
+        "qaLead": "qa.lead@edeviser.test",
+        "techLead": "tech.lead@edeviser.test"
+      },
+      "expiresAt": "2026-06-01T00:00:00.000Z",
+      "rationale": "Short human-readable explanation of WHY this Critical is acceptable to ship: what the user impact is, what compensating controls are in place, when and how the underlying fix is tracked."
+    }
+  ]
+}
