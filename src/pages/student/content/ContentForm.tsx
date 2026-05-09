@@ -3,23 +3,23 @@
 // Task 21.3
 // =============================================================================
 
-import { useState } from 'react';
-import { useCreateStudentContent } from '@/hooks/useStudentContent';
-import { useAuth } from '@/hooks/useAuth';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
+import { useState } from "react";
+import { useCreateStudentContent } from "@/hooks/useStudentContent";
+import { useAuth } from "@/hooks/useAuth";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Loader2, X } from 'lucide-react';
-import type { ContentType } from '@/lib/marketplaceSchemas';
+} from "@/components/ui/select";
+import { Loader2, X } from "lucide-react";
+import type { ContentType } from "@/lib/marketplaceSchemas";
 
 interface ContentFormProps {
   onClose: () => void;
@@ -29,9 +29,9 @@ const ContentForm = ({ onClose }: ContentFormProps) => {
   const { profile } = useAuth();
   const createContent = useCreateStudentContent();
 
-  const [contentType, setContentType] = useState<ContentType>('study_plan');
-  const [title, setTitle] = useState('');
-  const [body, setBody] = useState('');
+  const [contentType, setContentType] = useState<ContentType>("study_plan");
+  const [title, setTitle] = useState("");
+  const [body, setBody] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,7 +45,7 @@ const ContentForm = ({ onClose }: ContentFormProps) => {
         content_data: { body },
         studentId: profile.id,
       },
-      { onSuccess: () => onClose() },
+      { onSuccess: () => onClose() }
     );
   };
 
@@ -53,7 +53,7 @@ const ContentForm = ({ onClose }: ContentFormProps) => {
     <Card className="bg-white border-0 shadow-md rounded-xl p-6">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-bold tracking-tight">Create Content</h2>
-        <Button variant="ghost" size="sm" onClick={onClose}>
+        <Button variant="ghost" size="sm" onClick={onClose} aria-label="Close">
           <X className="h-4 w-4" />
         </Button>
       </div>
@@ -71,7 +71,9 @@ const ContentForm = ({ onClose }: ContentFormProps) => {
             <SelectContent>
               <SelectItem value="study_plan">Study Plan</SelectItem>
               <SelectItem value="quiz_question">Quiz Question</SelectItem>
-              <SelectItem value="explanation_video">Explanation Video</SelectItem>
+              <SelectItem value="explanation_video">
+                Explanation Video
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -104,7 +106,9 @@ const ContentForm = ({ onClose }: ContentFormProps) => {
             disabled={createContent.isPending || !title.trim()}
             className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
           >
-            {createContent.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+            {createContent.isPending && (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            )}
             Submit for Review
           </Button>
         </div>

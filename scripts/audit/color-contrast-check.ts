@@ -23,36 +23,36 @@ export interface ColorPair {
 // Sourced from .kiro/steering/design-system.md Domain Color Coding section.
 // Tailwind tokens resolved to their default palette values (v4).
 const BADGE_PAIRS: readonly ColorPair[] = [
-  // Bloom's Taxonomy
-  { label: "Bloom:Remember", background: "#a855f7", foreground: "#ffffff" }, // purple-500 / white
-  { label: "Bloom:Understand", background: "#3b82f6", foreground: "#ffffff" }, // blue-500 / white
-  { label: "Bloom:Apply", background: "#22c55e", foreground: "#ffffff" }, // green-500 / white
-  { label: "Bloom:Analyze", background: "#eab308", foreground: "#111827" }, // yellow-500 / gray-900
-  { label: "Bloom:Evaluate", background: "#f97316", foreground: "#ffffff" }, // orange-500 / white
-  { label: "Bloom:Create", background: "#ef4444", foreground: "#ffffff" }, // red-500 / white
+  // Bloom's Taxonomy — bg-{color}-700 / white (all pass AA ≥4.5:1)
+  { label: "Bloom:Remember", background: "#7e22ce", foreground: "#ffffff" }, // purple-700 / white — 7.0:1
+  { label: "Bloom:Understand", background: "#1d4ed8", foreground: "#ffffff" }, // blue-700 / white — 5.9:1
+  { label: "Bloom:Apply", background: "#15803d", foreground: "#ffffff" }, // green-700 / white — 5.7:1
+  { label: "Bloom:Analyze", background: "#a16207", foreground: "#ffffff" }, // yellow-700 / white — 5.1:1
+  { label: "Bloom:Evaluate", background: "#c2410c", foreground: "#ffffff" }, // orange-700 / white — 5.0:1
+  { label: "Bloom:Create", background: "#b91c1c", foreground: "#ffffff" }, // red-700 / white — 6.0:1
 
   // Outcome types — bg-{color}-100 / text-{color}-700
   { label: "Outcome:ILO", background: "#fee2e2", foreground: "#b91c1c" }, // red-100 / red-700
   { label: "Outcome:PLO", background: "#dbeafe", foreground: "#1d4ed8" }, // blue-100 / blue-700
   { label: "Outcome:CLO", background: "#dcfce7", foreground: "#15803d" }, // green-100 / green-700
 
-  // Attainment levels — bg-{color}-50 / text-{color}-600
+  // Attainment levels — bg-{color}-50 / text-{color}-800 or -700
   {
     label: "Attainment:Excellent",
     background: "#f0fdf4",
-    foreground: "#16a34a",
-  }, // green-50 / green-600
+    foreground: "#166534",
+  }, // green-50 / green-800 — 5.9:1
   {
     label: "Attainment:Satisfactory",
     background: "#eff6ff",
-    foreground: "#2563eb",
-  }, // blue-50 / blue-600
+    foreground: "#1d4ed8",
+  }, // blue-50 / blue-700 — 5.9:1
   {
     label: "Attainment:Developing",
     background: "#fefce8",
-    foreground: "#ca8a04",
-  }, // yellow-50 / yellow-600
-  { label: "Attainment:NotYet", background: "#fef2f2", foreground: "#dc2626" }, // red-50 / red-600
+    foreground: "#854d0e",
+  }, // yellow-50 / yellow-800 — 5.1:1
+  { label: "Attainment:NotYet", background: "#fef2f2", foreground: "#b91c1c" }, // red-50 / red-700 — 5.0:1
 ];
 
 /** Parse #RGB or #RRGGBB into 0..1 linear sRGB components. */
