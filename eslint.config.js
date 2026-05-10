@@ -14,6 +14,7 @@ export default tseslint.config(
       "src/components/ui",
       ".claude",
       "coverage",
+      "loginsignup",
     ],
   },
   {

@@ -261,9 +261,30 @@ export const OnboardingWizard = ({ isDay1 = true }: OnboardingWizardProps) => {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-white">
+    <div className="fixed inset-0 z-50 flex flex-col bg-gradient-to-br from-[#f0fdfa] via-[#eff6ff] to-[#eef2ff]">
+      {/* Doodle pattern overlay — same asset used on /login for brand consistency */}
+      <div
+        className="absolute inset-0 opacity-[0.08] pointer-events-none"
+        style={{
+          backgroundImage: "url('/doodle-background.jpg')",
+          backgroundSize: "1200px",
+          backgroundRepeat: "repeat",
+        }}
+        aria-hidden="true"
+      />
+
+      {/* Floating gamified accent shapes */}
+      <div
+        className="absolute -top-24 -end-24 h-96 w-96 rounded-full bg-gradient-to-br from-teal-200/40 to-blue-300/40 blur-3xl pointer-events-none"
+        aria-hidden="true"
+      />
+      <div
+        className="absolute -bottom-24 -start-24 h-80 w-80 rounded-full bg-gradient-to-br from-purple-200/40 to-pink-200/40 blur-3xl pointer-events-none"
+        aria-hidden="true"
+      />
+
       {/* Progress bar */}
-      <div className="border-b border-slate-200 px-6 py-4">
+      <div className="relative border-b border-slate-200/50 bg-white/80 backdrop-blur-sm px-6 py-4">
         <div className="mx-auto flex max-w-2xl items-center justify-between">
           <span className="text-sm font-medium text-gray-600">
             Step {currentStepIndex + 1} of {totalSteps}
@@ -285,7 +306,7 @@ export const OnboardingWizard = ({ isDay1 = true }: OnboardingWizardProps) => {
       </div>
 
       {/* Step content */}
-      <div className="flex-1 overflow-auto">
+      <div className="relative flex-1 overflow-auto">
         <div className="mx-auto max-w-2xl px-6 py-8">
           <AnimatePresence mode="wait" custom={direction}>
             <motion.div
@@ -303,7 +324,7 @@ export const OnboardingWizard = ({ isDay1 = true }: OnboardingWizardProps) => {
       </div>
 
       {/* Navigation footer */}
-      <div className="border-t border-slate-200 px-6 py-4">
+      <div className="relative border-t border-slate-200/50 bg-white/80 backdrop-blur-sm px-6 py-4">
         <div className="mx-auto flex max-w-2xl items-center justify-between">
           <Button
             variant="ghost"

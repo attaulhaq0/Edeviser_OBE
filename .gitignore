@@ -51,3 +51,6 @@ audit/output/
 # Signed waivers — gitignored so signed production-deploy waivers can't be
 # leaked via the repo. The committed template is audit/waivers.example.json.
 audit/waivers.json
+
+# Local prototype folder — reference UI scaffolded by hand, not part of the app
+loginsignup/
