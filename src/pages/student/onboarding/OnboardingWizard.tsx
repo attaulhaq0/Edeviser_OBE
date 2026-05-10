@@ -279,7 +279,7 @@ export const OnboardingWizard = ({ isDay1 = true }: OnboardingWizardProps) => {
         aria-hidden="true"
       />
       <div
-        className="absolute -bottom-24 -start-24 h-80 w-80 rounded-full bg-gradient-to-br from-purple-200/40 to-pink-200/40 blur-3xl pointer-events-none"
+        className="absolute -bottom-24 -start-24 h-80 w-80 rounded-full bg-gradient-to-br from-blue-200/40 to-teal-200/40 blur-3xl pointer-events-none"
         aria-hidden="true"
       />
 

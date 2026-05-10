@@ -14,6 +14,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useDebounced } from "@/hooks/useDebounced";
 import { useGlobalSearch, type SearchResult } from "@/hooks/useGlobalSearch";
 import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
 import { cn } from "@/lib/utils";
@@ -95,18 +96,6 @@ const getResultIcon = (type: SearchResult["type"]) => {
       return <Megaphone className="h-4 w-4 text-amber-600" />;
   }
 };
-
-// ---------------------------------------------------------------------------
-// useDebounced — tiny local debounce for the search input (200ms)
-// ---------------------------------------------------------------------------
-function useDebounced<T>(value: T, delayMs: number): T {
-  const [debounced, setDebounced] = useState(value);
-  useEffect(() => {
-    const handle = setTimeout(() => setDebounced(value), delayMs);
-    return () => clearTimeout(handle);
-  }, [value, delayMs]);
-  return debounced;
-}
 
 // ---------------------------------------------------------------------------
 // Props
@@ -196,7 +185,8 @@ export const DashboardHeader = ({ hideLogo = false }: DashboardHeaderProps) => {
   const role = authRole ?? "student";
   const routes = ROLE_ROUTES[role] ?? DEFAULT_ROUTES;
 
-  const firstName = profile?.full_name?.split(" ")[0] ?? t("common:user");
+  const firstName =
+    profile?.full_name?.split(" ")[0] ?? t("common:header.user");
   const initials = (profile?.full_name ?? "?")
     .split(" ")
     .map((part) => part.charAt(0).toUpperCase())
@@ -245,9 +235,17 @@ export const DashboardHeader = ({ hideLogo = false }: DashboardHeaderProps) => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onFocus={() => setSearchFocused(true)}
-              placeholder={t("common:searchPlaceholder", "Search...")}
+              placeholder={t("common:header.searchPlaceholder", "Search...")}
               className="bg-gray-100 border border-gray-300 rounded-full ps-4 pe-9 py-2 text-sm text-gray-700 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-80"
-              aria-label={t("common:search", "Search")}
+              aria-label={t("common:header.search", "Search")}
+              // ARIA 1.2 combobox pattern: role + controls/expanded live on
+              // the input, not on a wrapper div. aria-autocomplete="list"
+              // tells assistive tech the listbox offers inline suggestions.
+              role="combobox"
+              aria-controls="global-search-results"
+              aria-expanded={showSearchResults}
+              aria-autocomplete="list"
+              aria-haspopup="listbox"
             />
             {searchLoading && hasQuery ? (
               <Loader2 className="absolute end-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-gray-500" />
@@ -268,11 +266,11 @@ export const DashboardHeader = ({ hideLogo = false }: DashboardHeaderProps) => {
                 {searchLoading ? (
                   <div className="p-6 flex items-center justify-center text-sm text-gray-500">
                     <Loader2 className="h-4 w-4 animate-spin me-2" />
-                    {t("common:searchLoading", "Searching…")}
+                    {t("common:header.searchLoading", "Searching…")}
                   </div>
                 ) : searchResults.length === 0 ? (
                   <div className="p-6 text-center text-sm text-gray-500">
-                    {t("common:searchEmpty", {
+                    {t("common:header.searchEmpty", {
                       defaultValue: "No results for “{{q}}”",
                       q: debouncedQuery,
                     })}
@@ -305,7 +303,7 @@ export const DashboardHeader = ({ hideLogo = false }: DashboardHeaderProps) => {
                             )}
                             <span className="mt-1 inline-block text-[10px] font-bold uppercase tracking-wider text-gray-400">
                               {t(
-                                `common:searchType.${result.type}`,
+                                `common:header.searchType.${result.type}`,
                                 result.type
                               )}
                             </span>
@@ -326,7 +324,7 @@ export const DashboardHeader = ({ hideLogo = false }: DashboardHeaderProps) => {
           <button
             type="button"
             className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors"
-            aria-label={t("common:notifications", "Notifications")}
+            aria-label={t("common:header.notifications", "Notifications")}
           >
             <Bell className="h-5 w-5" />
           </button>
@@ -337,7 +335,7 @@ export const DashboardHeader = ({ hideLogo = false }: DashboardHeaderProps) => {
               type="button"
               onClick={() => setShowSettingsDropdown((v) => !v)}
               className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors"
-              aria-label={t("common:settings", "Settings")}
+              aria-label={t("common:header.settings", "Settings")}
               aria-haspopup="menu"
               aria-expanded={showSettingsDropdown}
             >
@@ -351,7 +349,7 @@ export const DashboardHeader = ({ hideLogo = false }: DashboardHeaderProps) => {
               >
                 <div className="px-4 py-2 border-b border-gray-100">
                   <div className="text-sm font-medium text-gray-900">
-                    {t("common:settings", "Settings")}
+                    {t("common:header.settings", "Settings")}
                   </div>
                 </div>
                 <Link
@@ -360,7 +358,7 @@ export const DashboardHeader = ({ hideLogo = false }: DashboardHeaderProps) => {
                   onClick={() => setShowSettingsDropdown(false)}
                   className="block w-full text-start px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                 >
-                  {t("common:profileSettings", "Profile Settings")}
+                  {t("common:header.profileSettings", "Profile Settings")}
                 </Link>
                 {role === "admin" && (
                   <Link
@@ -369,7 +367,10 @@ export const DashboardHeader = ({ hideLogo = false }: DashboardHeaderProps) => {
                     onClick={() => setShowSettingsDropdown(false)}
                     className="block w-full text-start px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                   >
-                    {t("common:institutionSettings", "Institution Settings")}
+                    {t(
+                      "common:header.institutionSettings",
+                      "Institution Settings"
+                    )}
                   </Link>
                 )}
               </div>
@@ -382,7 +383,7 @@ export const DashboardHeader = ({ hideLogo = false }: DashboardHeaderProps) => {
               type="button"
               onClick={() => setShowProfileDropdown((v) => !v)}
               className="flex items-center gap-3 hover:bg-gray-50 rounded-lg p-2 transition-colors"
-              aria-label={t("common:profileMenu", "Profile menu")}
+              aria-label={t("common:header.profileMenu", "Profile menu")}
               aria-haspopup="menu"
               aria-expanded={showProfileDropdown}
             >
@@ -396,7 +397,10 @@ export const DashboardHeader = ({ hideLogo = false }: DashboardHeaderProps) => {
                 <div
                   className={cn(
                     "w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-semibold ring-2 ring-gray-200 hover:ring-blue-400 transition-all",
-                    "bg-gradient-to-br from-teal-500 to-blue-600"
+                    // Solid brand blue — avatar fallbacks use a single tone
+                    // so initials stay legible and the surface does not
+                    // compete with the gradient used on CTAs.
+                    "bg-blue-600"
                   )}
                   aria-hidden="true"
                 >
@@ -434,7 +438,7 @@ export const DashboardHeader = ({ hideLogo = false }: DashboardHeaderProps) => {
                   className="flex items-center gap-2 w-full text-start px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                 >
                   <UserIcon className="h-4 w-4" />
-                  {t("common:myProfile", "My Profile")}
+                  {t("common:header.myProfile", "My Profile")}
                 </Link>
                 <button
                   type="button"

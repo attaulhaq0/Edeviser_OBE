@@ -7,9 +7,12 @@ const alertVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-white text-gray-900 border-gray-200",
+        // Use shadcn theme tokens so Alert adapts to dark mode once the
+        // theme variables flip. Hardcoded greys / reds were bypassing the
+        // design-system tokens and would stay light-mode only.
+        default: "bg-background text-foreground border-border",
         destructive:
-          "border-red-200 bg-red-50 text-red-800 [&>svg]:text-red-500",
+          "border-destructive/50 bg-destructive/10 text-destructive [&>svg]:text-destructive dark:border-destructive",
       },
     },
     defaultVariants: {

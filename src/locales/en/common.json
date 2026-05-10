@@ -147,5 +147,23 @@
   "profileMenu": "Profile menu",
   "myProfile": "My Profile",
   "profileSettings": "Profile Settings",
-  "institutionSettings": "Institution Settings"
+  "institutionSettings": "Institution Settings",
+  "header": {
+    "user": "User",
+    "search": "Search",
+    "searchPlaceholder": "Search courses, assignments, announcements...",
+    "searchLoading": "Searching…",
+    "searchEmpty": "No results for “{{q}}”",
+    "searchType": {
+      "course": "Course",
+      "assignment": "Assignment",
+      "announcement": "Announcement"
+    },
+    "notifications": "Notifications",
+    "settings": "Settings",
+    "profileMenu": "Profile menu",
+    "myProfile": "My Profile",
+    "profileSettings": "Profile Settings",
+    "institutionSettings": "Institution Settings"
+  }
 }

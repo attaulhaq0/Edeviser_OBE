@@ -278,7 +278,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       };
       if (username) metadata.username = username;
       if (institutionId) metadata.institution_id = institutionId;
-      if (requestedRole) metadata.requested_role = requestedRole;
+      // Key MUST match the `raw_user_meta_data ->> 'role'` read in
+      // public.handle_new_user(). The trigger already forces role='student'
+      // for self-signup without an invitation_id, so sending this is purely
+      // informational for the server-side validator.
+      if (requestedRole) metadata.role = requestedRole;
 
       const { data, error } = await supabase.auth.signUp({
         email,
