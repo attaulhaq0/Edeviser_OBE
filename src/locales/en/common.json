@@ -131,5 +131,21 @@
     "dyslexiaFont": "Dyslexia-Friendly Font",
     "simplifiedView": "Simplified View",
     "cognitiveLoadMessage": "This page has a lot of information — would you like a simplified view?"
-  }
+  },
+  "user": "User",
+  "search": "Search",
+  "searchPlaceholder": "Search courses, assignments, announcements...",
+  "searchLoading": "Searching…",
+  "searchEmpty": "No results for “{{q}}”",
+  "searchType": {
+    "course": "Course",
+    "assignment": "Assignment",
+    "announcement": "Announcement"
+  },
+  "notifications": "Notifications",
+  "settings": "Settings",
+  "profileMenu": "Profile menu",
+  "myProfile": "My Profile",
+  "profileSettings": "Profile Settings",
+  "institutionSettings": "Institution Settings"
 }

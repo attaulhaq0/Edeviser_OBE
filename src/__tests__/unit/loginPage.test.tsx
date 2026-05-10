@@ -28,6 +28,7 @@ vi.mock('@/lib/supabase', () => ({
     auth: {
       getSession: (...args: unknown[]) => mockGetSession(...args),
       signInWithPassword: (...args: unknown[]) => mockSignInWithPassword(...args),
+      signUp: vi.fn(),
       signOut: vi.fn(),
       resetPasswordForEmail: vi.fn(),
       onAuthStateChange: (...args: unknown[]) => mockOnAuthStateChange(...args),
@@ -43,7 +44,7 @@ import { AuthProvider } from '@/providers/AuthProvider';
 import LoginPage from '@/pages/LoginPage';
 
 // ---------------------------------------------------------------------------
-// Helpers
+// Test fixtures
 // ---------------------------------------------------------------------------
 const MOCK_USER = { id: 'user-123', email: 'admin@test.edu' };
 
@@ -100,6 +101,13 @@ const renderLoginPage = () => {
 };
 
 // ---------------------------------------------------------------------------
+// Convenience selectors that match the new auth UI
+// ---------------------------------------------------------------------------
+const getEmailInput = () => screen.getByPlaceholderText('Enter your email address');
+const getPasswordInput = () => screen.getByPlaceholderText('Enter your password');
+const getSignInButton = () => screen.getByRole('button', { name: /^Sign In$/i });
+
+// ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
 describe('LoginPage', () => {
@@ -109,16 +117,19 @@ describe('LoginPage', () => {
     setupMocks();
   });
 
-  it('renders the login form with email and password fields', async () => {
+  it('renders the auth card with Login and Register tabs', async () => {
     renderLoginPage();
 
     await waitFor(() => {
-      expect(screen.getByText('Welcome to Edeviser')).toBeInTheDocument();
+      expect(screen.getByText('Welcome Back')).toBeInTheDocument();
     });
-    expect(screen.getByText('Sign in to your account')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('you@institution.edu')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Enter your password')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument();
+    expect(screen.getByText('Sign in to your account to continue')).toBeInTheDocument();
+    expect(getEmailInput()).toBeInTheDocument();
+    expect(getPasswordInput()).toBeInTheDocument();
+    expect(getSignInButton()).toBeInTheDocument();
+    // Tabs visible
+    expect(screen.getByRole('tab', { name: /login/i })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /register/i })).toBeInTheDocument();
   });
 
   it('has a "Forgot password?" link to /reset-password', async () => {
@@ -137,12 +148,12 @@ describe('LoginPage', () => {
     renderLoginPage();
 
     await waitFor(() => {
-      expect(screen.getByPlaceholderText('you@institution.edu')).toBeInTheDocument();
+      expect(getEmailInput()).toBeInTheDocument();
     });
 
     // Submit with empty email to trigger validation
-    await user.type(screen.getByPlaceholderText('Enter your password'), 'password123');
-    await user.click(screen.getByRole('button', { name: /sign in/i }));
+    await user.type(getPasswordInput(), 'password123');
+    await user.click(getSignInButton());
 
     await waitFor(() => {
       expect(screen.getByText(/invalid email/i)).toBeInTheDocument();
@@ -155,12 +166,12 @@ describe('LoginPage', () => {
     renderLoginPage();
 
     await waitFor(() => {
-      expect(screen.getByPlaceholderText('you@institution.edu')).toBeInTheDocument();
+      expect(getEmailInput()).toBeInTheDocument();
     });
 
-    await user.type(screen.getByPlaceholderText('you@institution.edu'), 'user@test.edu');
-    await user.type(screen.getByPlaceholderText('Enter your password'), 'short');
-    await user.click(screen.getByRole('button', { name: /sign in/i }));
+    await user.type(getEmailInput(), 'user@test.edu');
+    await user.type(getPasswordInput(), 'short');
+    await user.click(getSignInButton());
 
     await waitFor(() => {
       expect(screen.getByText(/at least 8 characters/i)).toBeInTheDocument();
@@ -185,12 +196,12 @@ describe('LoginPage', () => {
     renderLoginPage();
 
     await waitFor(() => {
-      expect(screen.getByPlaceholderText('you@institution.edu')).toBeInTheDocument();
+      expect(getEmailInput()).toBeInTheDocument();
     });
 
-    await user.type(screen.getByPlaceholderText('you@institution.edu'), 'admin@test.edu');
-    await user.type(screen.getByPlaceholderText('Enter your password'), 'password123');
-    await user.click(screen.getByRole('button', { name: /sign in/i }));
+    await user.type(getEmailInput(), 'admin@test.edu');
+    await user.type(getPasswordInput(), 'password123');
+    await user.click(getSignInButton());
 
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith('/admin', { replace: true });
@@ -207,12 +218,12 @@ describe('LoginPage', () => {
     renderLoginPage();
 
     await waitFor(() => {
-      expect(screen.getByPlaceholderText('you@institution.edu')).toBeInTheDocument();
+      expect(getEmailInput()).toBeInTheDocument();
     });
 
-    await user.type(screen.getByPlaceholderText('you@institution.edu'), 'bad@test.edu');
-    await user.type(screen.getByPlaceholderText('Enter your password'), 'wrongpass1');
-    await user.click(screen.getByRole('button', { name: /sign in/i }));
+    await user.type(getEmailInput(), 'bad@test.edu');
+    await user.type(getPasswordInput(), 'wrongpass1');
+    await user.click(getSignInButton());
 
     await waitFor(() => {
       expect(screen.getByText('Invalid email or password.')).toBeInTheDocument();
@@ -230,12 +241,12 @@ describe('LoginPage', () => {
     renderLoginPage();
 
     await waitFor(() => {
-      expect(screen.getByPlaceholderText('you@institution.edu')).toBeInTheDocument();
+      expect(getEmailInput()).toBeInTheDocument();
     });
 
-    await user.type(screen.getByPlaceholderText('you@institution.edu'), 'locked@test.edu');
-    await user.type(screen.getByPlaceholderText('Enter your password'), 'anypass123');
-    await user.click(screen.getByRole('button', { name: /sign in/i }));
+    await user.type(getEmailInput(), 'locked@test.edu');
+    await user.type(getPasswordInput(), 'anypass123');
+    await user.click(getSignInButton());
 
     await waitFor(() => {
       expect(screen.getByText(/temporarily locked/i)).toBeInTheDocument();
@@ -249,10 +260,10 @@ describe('LoginPage', () => {
     renderLoginPage();
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument();
+      expect(getSignInButton()).toBeInTheDocument();
     });
 
-    await user.click(screen.getByRole('button', { name: /sign in/i }));
+    await user.click(getSignInButton());
 
     await waitFor(() => {
       expect(screen.getByText(/invalid email address/i)).toBeInTheDocument();
