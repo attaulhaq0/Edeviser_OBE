@@ -555,7 +555,8 @@ export const runDesignTokensStage = async (): Promise<StageResult> => {
   const durationMs = Date.now() - startedAt;
 
   const worst = worstSeverity(allFindings);
-  const hardFail = worst === "Blocker" || worst === "Critical";
+  const hardFail =
+    worst === "Blocker" || worst === "Critical" || worst === "Major";
 
   return {
     name: "designTokens",

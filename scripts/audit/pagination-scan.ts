@@ -127,6 +127,7 @@ const loadExceptions = (
   const entries = baseline.fileLevel ?? [];
   const byFile = new Map<string, PaginationExceptionEntry>();
   for (const entry of entries) {
+    if (!entry || typeof entry.file !== "string") continue;
     byFile.set(entry.file.split("\\").join("/"), entry);
   }
 

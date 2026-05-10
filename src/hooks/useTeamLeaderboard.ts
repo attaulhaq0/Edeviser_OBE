@@ -76,6 +76,9 @@ export const useTeamLeaderboard = (
     },
     pollingFn,
     pollingInterval: 30_000,
+    // Only subscribe when courseId is available for course scope — an
+    // undefined filter would create an unfiltered subscription (Req 12.4).
+    enabled: scope !== "course" || !!courseId,
   });
 
   const query = useQuery({

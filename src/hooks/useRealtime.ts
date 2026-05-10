@@ -5,23 +5,30 @@
 // Validates: Requirements 2.10
 // =============================================================================
 
-import { useEffect, useRef, useState, useCallback } from 'react';
-import { supabase } from '@/lib/supabase';
-import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
+import { useEffect, useRef, useState, useCallback } from "react";
+import { supabase } from "@/lib/supabase";
+import type {
+  RealtimeChannel,
+  RealtimePostgresChangesPayload,
+} from "@supabase/supabase-js";
 
 interface RealtimeOptions {
   /** Postgres table to subscribe to */
   table: string;
   /** Event type filter (default: '*') */
-  event?: 'INSERT' | 'UPDATE' | 'DELETE' | '*';
+  event?: "INSERT" | "UPDATE" | "DELETE" | "*";
   /** PostgREST-style filter (e.g. `institution_id=eq.abc`) */
   filter?: string;
   /** Callback invoked on each realtime payload */
-  onPayload: (payload: RealtimePostgresChangesPayload<Record<string, unknown>>) => void;
+  onPayload: (
+    payload: RealtimePostgresChangesPayload<Record<string, unknown>>
+  ) => void;
   /** Optional polling function called as fallback when realtime is unavailable */
   pollingFn?: () => void;
   /** Polling interval in ms (default: 30 000) */
   pollingInterval?: number;
+  /** When false, skip the realtime subscription entirely (default: true) */
+  enabled?: boolean;
 }
 
 /**
@@ -32,8 +39,18 @@ interface RealtimeOptions {
  * - `isLive` state exposed to consumers for "Live updates paused" banner
  * - Full cleanup on unmount
  */
-export const useRealtime = (options: RealtimeOptions): { isLive: boolean; retryCount: number } => {
-  const { table, event = '*', filter, onPayload, pollingFn, pollingInterval = 30_000 } = options;
+export const useRealtime = (
+  options: RealtimeOptions
+): { isLive: boolean; retryCount: number } => {
+  const {
+    table,
+    event = "*",
+    filter,
+    onPayload,
+    pollingFn,
+    pollingInterval = 30_000,
+    enabled = true,
+  } = options;
 
   const [isLive, setIsLive] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
@@ -73,27 +90,33 @@ export const useRealtime = (options: RealtimeOptions): { isLive: boolean; retryC
   }, []);
 
   useEffect(() => {
+    // Skip subscription when disabled (e.g. required filter value not yet resolved)
+    if (!enabled) return;
+
     // Deduplicate: one channel per table+event+filter combo
-    const channelName = `${table}:${event}:${filter ?? 'all'}`;
+    const channelName = `${table}:${event}:${filter ?? "all"}`;
 
     const doSubscribe = () => {
       const channel = supabase
         .channel(channelName)
         .on(
-          'postgres_changes',
-          { event, schema: 'public', table, filter },
+          "postgres_changes",
+          { event, schema: "public", table, filter },
           (payload) => {
             onPayloadRef.current(payload);
-          },
+          }
         )
         .subscribe((status) => {
-          if (status === 'SUBSCRIBED') {
+          if (status === "SUBSCRIBED") {
             retryCountRef.current = 0;
             setRetryCount(0);
             stopPolling();
-          } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
             // Exponential backoff: 1s, 2s, 4s, 8s, … max 30s
-            const delay = Math.min(1000 * Math.pow(2, retryCountRef.current), 30_000);
+            const delay = Math.min(
+              1000 * Math.pow(2, retryCountRef.current),
+              30_000
+            );
             retryCountRef.current += 1;
             setRetryCount(retryCountRef.current);
             startPolling();
@@ -122,7 +145,7 @@ export const useRealtime = (options: RealtimeOptions): { isLive: boolean; retryC
       }
       stopPolling();
     };
-  }, [table, event, filter, startPolling, stopPolling]);
+  }, [table, event, filter, enabled, startPolling, stopPolling]);
 
   return { isLive, retryCount };
 };

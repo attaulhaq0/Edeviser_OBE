@@ -13,7 +13,7 @@ import {
   arbitraryChildOutcomeMappings,
   arbitraryOutcomeTree,
   arbitraryWeightPartition,
-} from "../_generators/outcomes";
+} from "@/__tests__/properties/_generators/outcomes";
 
 describe("Property 1 — outcome mapping weights sum to 100", () => {
   it("every generated weight partition sums to exactly 100", () => {

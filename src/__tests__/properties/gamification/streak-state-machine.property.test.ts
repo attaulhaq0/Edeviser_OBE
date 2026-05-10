@@ -17,7 +17,7 @@ import {
 import {
   arbitraryLoginTimeline,
   dateStringFor,
-} from "../_generators/loginTimeline";
+} from "@/__tests__/properties/_generators/loginTimeline";
 
 describe("Property 10 — streak state machine correctness", () => {
   it("same-day login never increments the streak", () => {

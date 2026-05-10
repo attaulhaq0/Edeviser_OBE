@@ -117,7 +117,8 @@ export const severityToVerdict = (
   // Every Critical needs its own signed-and-not-expired waiver.
   if (counts.critical > 0) {
     const validWaivers = waivers.filter((w) => isWaiverValid(w, now));
-    if (validWaivers.length < counts.critical) return "No-Go";
+    const uniqueWaivedIds = new Set(validWaivers.map((w) => w.findingId));
+    if (uniqueWaivedIds.size < counts.critical) return "No-Go";
     // At least one Critical waived → backlog, never a clean Go.
     return "Go-with-backlog";
   }

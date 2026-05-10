@@ -13,7 +13,7 @@ import {
   applyCron,
   arbitraryCronInput,
   type CronState,
-} from "../_generators/cronInputs";
+} from "@/__tests__/properties/_generators/cronInputs";
 
 describe("Property 14 — cron idempotency", () => {
   it("applyCron(applyCron(s, i), i) equals applyCron(s, i) for any initial state", () => {

@@ -111,7 +111,7 @@ const extractObjectLiteralBody = (
 };
 
 const TABLE_KEY_RE = /\btable\s*:\s*['"`]([^'"`]+)['"`]/;
-const FILTER_KEY_PRESENT_RE = /\bfilter\s*:/;
+const FILTER_KEY_PRESENT_RE = /\bfilter\s*:\s*(?!undefined\b)/;
 
 // Extract the line number of a match offset.
 const lineAt = (contents: string, offset: number): number =>
@@ -138,7 +138,7 @@ export const scanRealtimeFilters = (): readonly Finding[] => {
   const hooksRoot = resolve("src", "hooks");
   if (!existsSync(hooksRoot)) return [];
 
-  const files = walkFiles(hooksRoot, (name) => /\.ts$/.test(name)).filter(
+  const files = walkFiles(hooksRoot, (name) => /\.(ts|tsx)$/.test(name)).filter(
     isAuditSource
   );
   const findings: Finding[] = [];

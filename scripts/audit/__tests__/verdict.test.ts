@@ -162,7 +162,7 @@ describe("isWaiverValid", () => {
 
   it("returns false when severity is not Critical", () => {
     const w = validWaiver("x");
-    const w2 = { ...w, severity: "Critical" as const };
-    expect(isWaiverValid(w2)).toBe(true); // sanity check — Critical passes
+    const w2 = { ...w, severity: "Major" as const };
+    expect(isWaiverValid(w2 as unknown as Waiver)).toBe(false); // Major is not waivable
   });
 });

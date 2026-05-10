@@ -12,7 +12,7 @@ import fc from "fast-check";
 import {
   arbitraryOutcomeTree,
   type OutcomeMapping,
-} from "../_generators/outcomes";
+} from "@/__tests__/properties/_generators/outcomes";
 
 interface ParentWithMappings {
   readonly parentOutcomeId: string;

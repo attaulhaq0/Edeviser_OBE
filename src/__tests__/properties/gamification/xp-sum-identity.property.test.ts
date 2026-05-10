@@ -9,7 +9,7 @@
 import { describe, it, expect } from "vitest";
 import fc from "fast-check";
 
-import { arbitraryXpEventSequence } from "../_generators/xpEvents";
+import { arbitraryXpEventSequence } from "@/__tests__/properties/_generators/xpEvents";
 
 /** Pure reducer — mirrors the materialised view's SUM aggregate. */
 const xpTotal = (events: ReadonlyArray<{ amount: number }>): number =>

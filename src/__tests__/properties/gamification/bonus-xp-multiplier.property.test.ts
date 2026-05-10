@@ -11,7 +11,7 @@ import fc from "fast-check";
 
 import { applyBonusMultiplier } from "@/lib/xpLevelCalculator";
 import { XP_SCHEDULE } from "@/lib/xpSchedule";
-import { XP_SOURCE_NAMES } from "../_generators/xpEvents";
+import { XP_SOURCE_NAMES } from "@/__tests__/properties/_generators/xpEvents";
 
 describe("Property 8 — Bonus XP multiplier application", () => {
   it("applyBonusMultiplier(base, 1) is a no-op for every source in the schedule", () => {

@@ -72,12 +72,12 @@ export const arbitraryOutcomeTree = (): fc.Arbitrary<
     readonly mappings: ReadonlyArray<OutcomeMapping>;
   }>
 > =>
-  fc.array(
+  fc.uniqueArray(
     fc
       .record({
         childId: fc.uuid({ version: 4 }),
         mappings: arbitraryChildOutcomeMappings(),
       })
       .map((entry) => ({ childId: entry.childId, mappings: entry.mappings })),
-    { minLength: 1, maxLength: 8 }
+    { minLength: 1, maxLength: 8, selector: (e) => e.childId }
   );
