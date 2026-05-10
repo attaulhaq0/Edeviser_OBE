@@ -247,7 +247,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       return { success: true, redirectTo };
     },
     [fetchProfile]
-<<<<<<< Updated upstream
   );
 
   // -------------------------------------------------------------------
@@ -322,8 +321,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       return { success: true };
     },
     [fetchProfile]
-=======
->>>>>>> Stashed changes
   );
 
   // -------------------------------------------------------------------
@@ -368,10 +365,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       institutionId,
       isLoading,
       signIn,
-<<<<<<< Updated upstream
       signUp,
-=======
->>>>>>> Stashed changes
       signOut,
       resetPassword,
     ]

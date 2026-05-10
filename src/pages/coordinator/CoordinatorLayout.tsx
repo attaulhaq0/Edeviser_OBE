@@ -22,11 +22,7 @@ import {
   TrendingUp,
   Users,
 } from "lucide-react";
-<<<<<<< Updated upstream
 import { DashboardHeader } from "@/components/shared/DashboardHeader";
-=======
-import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
->>>>>>> Stashed changes
 
 const WelcomeTour = lazy(() => import("@/components/shared/WelcomeTour"));
 

@@ -28,11 +28,7 @@ import {
   Award,
   Store,
 } from "lucide-react";
-<<<<<<< Updated upstream
 import { DashboardHeader } from "@/components/shared/DashboardHeader";
-=======
-import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
->>>>>>> Stashed changes
 
 const navItems = [
   { to: "/admin/dashboard", icon: LayoutDashboard, label: "Dashboard" },
