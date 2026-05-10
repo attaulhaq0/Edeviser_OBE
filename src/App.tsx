@@ -1,18 +1,26 @@
-import { BrowserRouter } from 'react-router-dom';
-import { NuqsAdapter } from 'nuqs/adapters/react-router/v7';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { MotionConfig } from 'framer-motion';
-import * as Sentry from '@sentry/react';
-import { Toaster } from '@/components/ui/sonner';
-import { AuthProvider } from '@/providers/AuthProvider';
-import { ThemeProvider } from '@/providers/ThemeProvider';
-import ErrorBoundary from '@/components/shared/ErrorBoundary';
-import AppRouter from '@/router/AppRouter';
-import { initSentry } from '@/lib/sentry';
-import SkipToMain from '@/components/shared/SkipToMain';
-import { offlineQueue } from '@/lib/offlineQueue';
-import { toast } from 'sonner';
+import { BrowserRouter } from "react-router-dom";
+import { NuqsAdapter } from "nuqs/adapters/react-router/v7";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { MotionConfig } from "framer-motion";
+import * as Sentry from "@sentry/react";
+import { SpeedInsights } from "@vercel/speed-insights/react";
+import { Analytics } from "@vercel/analytics/react";
+import { Toaster } from "@/components/ui/sonner";
+import { AuthProvider } from "@/providers/AuthProvider";
+import { ThemeProvider } from "@/providers/ThemeProvider";
+import ErrorBoundary from "@/components/shared/ErrorBoundary";
+import AppRouter from "@/router/AppRouter";
+import { initSentry } from "@/lib/sentry";
+import SkipToMain from "@/components/shared/SkipToMain";
+import { offlineQueue } from "@/lib/offlineQueue";
+import { toast } from "sonner";
+import { lazy, Suspense } from "react";
+
+const ReactQueryDevtoolsLazy = lazy(() =>
+  import("@tanstack/react-query-devtools").then((m) => ({
+    default: m.ReactQueryDevtools,
+  }))
+);
 
 initSentry();
 
@@ -29,7 +37,12 @@ const queryClient = new QueryClient({
       gcTime: 30 * 60 * 1000, // 30 minutes
       retry: (failureCount, error) => {
         // Don't retry on 429 — respect rate limits
-        if (error && typeof error === 'object' && 'status' in error && (error as { status: number }).status === 429) {
+        if (
+          error &&
+          typeof error === "object" &&
+          "status" in error &&
+          (error as { status: number }).status === 429
+        ) {
           return false;
         }
         return failureCount < 3;
@@ -39,8 +52,13 @@ const queryClient = new QueryClient({
     },
     mutations: {
       onError: (error) => {
-        if (error && typeof error === 'object' && 'status' in error && (error as { status: number }).status === 429) {
-          toast.error('Too many requests. Please wait a moment.');
+        if (
+          error &&
+          typeof error === "object" &&
+          "status" in error &&
+          (error as { status: number }).status === 429
+        ) {
+          toast.error("Too many requests. Please wait a moment.");
         }
       },
     },
@@ -62,10 +80,16 @@ const App = () => (
                 </ThemeProvider>
               </AuthProvider>
             </MotionConfig>
-            <ReactQueryDevtools initialIsOpen={false} />
+            {import.meta.env.DEV && (
+              <Suspense>
+                <ReactQueryDevtoolsLazy initialIsOpen={false} />
+              </Suspense>
+            )}
           </QueryClientProvider>
         </NuqsAdapter>
       </BrowserRouter>
+      <SpeedInsights />
+      <Analytics />
     </ErrorBoundary>
   </Sentry.ErrorBoundary>
 );
