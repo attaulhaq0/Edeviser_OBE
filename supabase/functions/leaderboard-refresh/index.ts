@@ -33,13 +33,9 @@ serve(async (req) => {
       serviceRoleKey
     );
 
-    // The leaderboard_weekly materialized view is already refreshed every 5 min
-    // by pg_cron (see migration 20260222124808_add_cron_jobs.sql).
-    // This Edge Function serves as a manual trigger / Vercel cron fallback.
-    //
-    // NOTE: A dedicated DB function `refresh_leaderboard_weekly()` should be
-    // created via migration to safely wrap the REFRESH command. Until then,
-    // we query the view to confirm it's accessible and report its state.
+    // leaderboard_weekly is now a regular VIEW (not materialized).
+    // It computes on-demand from xp_transactions — no refresh needed.
+    // This Edge Function serves as a health check for the Vercel cron.
     const { data, error } = await supabase
       .from("leaderboard_weekly")
       .select("student_id", { count: "exact", head: true });
@@ -58,7 +54,7 @@ serve(async (req) => {
       JSON.stringify({
         success: true,
         message:
-          "Leaderboard view is accessible. Primary refresh is handled by pg_cron every 5 minutes.",
+          "Leaderboard view is accessible. It is a regular VIEW computed on-demand (no refresh needed).",
         checked_at: new Date().toISOString(),
       }),
       {
