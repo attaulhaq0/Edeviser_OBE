@@ -1,0 +1,12 @@
+{
+  "createdAt": null,
+  "lockedByCommit": null,
+  "description": "Baseline cold-start Time-To-Interactive per role dashboard. Populated by task 19.1 on first audit run. Enforced with a 120% ceiling per requirements.md §12.2.",
+  "roles": {
+    "admin": null,
+    "coordinator": null,
+    "teacher": null,
+    "student": null,
+    "parent": null
+  }
+}

@@ -44,3 +44,10 @@ test_*.txt
 # Playwright / test output
 playwright-report/
 test-results/
+
+# Pre-deployment audit output (artifacts from audit runs; baselines are committed)
+audit/output/
+
+# Signed waivers — gitignored so signed production-deploy waivers can't be
+# leaked via the repo. The committed template is audit/waivers.example.json.
+audit/waivers.json

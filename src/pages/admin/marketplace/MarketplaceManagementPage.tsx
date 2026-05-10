@@ -2,63 +2,79 @@
 // MarketplaceManagementPage — Admin item list with DataTable, CRUD actions
 // =============================================================================
 
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAdminMarketplaceItems, useToggleMarketplaceItem } from '@/hooks/useMarketplaceAdmin';
-import type { AdminMarketplaceItem } from '@/hooks/useMarketplaceAdmin';
-import { DataTable } from '@/components/shared/DataTable';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  useAdminMarketplaceItems,
+  useToggleMarketplaceItem,
+} from "@/hooks/useMarketplaceAdmin";
+import type { AdminMarketplaceItem } from "@/hooks/useMarketplaceAdmin";
+import { DataTable } from "@/components/shared/DataTable";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Plus, Search, MoreHorizontal, Pencil, ToggleLeft, ToggleRight, Store } from 'lucide-react';
-import type { ColumnDef } from '@tanstack/react-table';
-import ItemForm from '@/pages/admin/marketplace/ItemForm';
+} from "@/components/ui/dropdown-menu";
+import {
+  Plus,
+  Search,
+  MoreHorizontal,
+  Pencil,
+  ToggleLeft,
+  ToggleRight,
+  Store,
+} from "lucide-react";
+import type { ColumnDef } from "@tanstack/react-table";
+import ItemForm from "@/pages/admin/marketplace/ItemForm";
 
 const categoryLabels: Record<string, string> = {
-  cosmetic: 'Cosmetic',
-  educational_perk: 'Educational Perk',
-  power_up: 'Power-up',
+  cosmetic: "Cosmetic",
+  educational_perk: "Educational Perk",
+  power_up: "Power-up",
 };
 
 const stockLabels: Record<string, string> = {
-  unlimited: 'Unlimited',
-  limited: 'Limited',
-  one_per_student: 'One per Student',
+  unlimited: "Unlimited",
+  limited: "Limited",
+  one_per_student: "One per Student",
 };
 
 const MarketplaceManagementPage = () => {
   const navigate = useNavigate();
   const { data: items, isLoading } = useAdminMarketplaceItems();
   const toggleItem = useToggleMarketplaceItem();
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
-  const [editingItem, setEditingItem] = useState<AdminMarketplaceItem | null>(null);
+  const [editingItem, setEditingItem] = useState<AdminMarketplaceItem | null>(
+    null
+  );
 
-  const filteredItems = (items ?? []).filter((item) =>
-    item.name.toLowerCase().includes(search.toLowerCase()) ||
-    item.category.toLowerCase().includes(search.toLowerCase()),
+  const filteredItems = (items ?? []).filter(
+    (item) =>
+      item.name.toLowerCase().includes(search.toLowerCase()) ||
+      item.category.toLowerCase().includes(search.toLowerCase())
   );
 
   const columns: ColumnDef<AdminMarketplaceItem>[] = [
     {
-      accessorKey: 'name',
-      header: 'Name',
+      accessorKey: "name",
+      header: "Name",
       cell: ({ row }) => (
         <div>
           <p className="font-medium">{row.original.name}</p>
-          <p className="text-xs text-gray-500 truncate max-w-[200px]">{row.original.description}</p>
+          <p className="text-xs text-gray-500 truncate max-w-[200px]">
+            {row.original.description}
+          </p>
         </div>
       ),
     },
     {
-      accessorKey: 'category',
-      header: 'Category',
+      accessorKey: "category",
+      header: "Category",
       cell: ({ row }) => (
         <Badge className="text-xs bg-blue-50 text-blue-700 border-blue-200">
           {categoryLabels[row.original.category] ?? row.original.category}
@@ -66,60 +82,69 @@ const MarketplaceManagementPage = () => {
       ),
     },
     {
-      accessorKey: 'xp_price',
-      header: 'Price (XP)',
+      accessorKey: "xp_price",
+      header: "Price (XP)",
       cell: ({ row }) => (
-        <span className="font-semibold text-amber-600">{row.original.xp_price.toLocaleString()}</span>
-      ),
-    },
-    {
-      accessorKey: 'level_requirement',
-      header: 'Level Req.',
-      cell: ({ row }) => (
-        <span className="text-gray-600">
-          {row.original.level_requirement > 0 ? `Lv ${row.original.level_requirement}` : '—'}
+        <span className="font-semibold text-amber-600">
+          {row.original.xp_price.toLocaleString()}
         </span>
       ),
     },
     {
-      accessorKey: 'stock_type',
-      header: 'Stock',
+      accessorKey: "level_requirement",
+      header: "Level Req.",
+      cell: ({ row }) => (
+        <span className="text-gray-600">
+          {row.original.level_requirement > 0
+            ? `Lv ${row.original.level_requirement}`
+            : "—"}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "stock_type",
+      header: "Stock",
       cell: ({ row }) => (
         <span className="text-xs text-gray-600">
           {stockLabels[row.original.stock_type] ?? row.original.stock_type}
-          {row.original.stock_type === 'limited' && row.original.stock_quantity !== null && (
-            <span className="ms-1 text-gray-400">({row.original.stock_quantity})</span>
-          )}
+          {row.original.stock_type === "limited" &&
+            row.original.stock_quantity !== null && (
+              <span className="ms-1 text-gray-400">
+                ({row.original.stock_quantity})
+              </span>
+            )}
         </span>
       ),
     },
     {
-      accessorKey: 'total_purchases',
-      header: 'Purchases',
-      cell: ({ row }) => <span className="text-gray-600">{row.original.total_purchases}</span>,
+      accessorKey: "total_purchases",
+      header: "Purchases",
+      cell: ({ row }) => (
+        <span className="text-gray-600">{row.original.total_purchases}</span>
+      ),
     },
     {
-      accessorKey: 'is_active',
-      header: 'Status',
+      accessorKey: "is_active",
+      header: "Status",
       cell: ({ row }) => (
         <Badge
           className={
             row.original.is_active
-              ? 'text-xs bg-green-50 text-green-700 border-green-200'
-              : 'text-xs bg-gray-50 text-gray-500 border-gray-200'
+              ? "text-xs bg-green-50 text-green-700 border-green-200"
+              : "text-xs bg-gray-50 text-gray-500 border-gray-200"
           }
         >
-          {row.original.is_active ? 'Active' : 'Inactive'}
+          {row.original.is_active ? "Active" : "Inactive"}
         </Badge>
       ),
     },
     {
-      id: 'actions',
-      header: '',
+      id: "actions",
+      header: "",
       cell: ({ row }) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" aria-label="More actions">
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
@@ -173,20 +198,22 @@ const MarketplaceManagementPage = () => {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Store className="h-6 w-6 text-blue-600" />
-          <h1 className="text-2xl font-bold tracking-tight">Marketplace Items</h1>
+          <h1 className="text-2xl font-bold tracking-tight">
+            Marketplace Items
+          </h1>
         </div>
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
             size="sm"
-            onClick={() => navigate('/admin/marketplace/sales')}
+            onClick={() => navigate("/admin/marketplace/sales")}
           >
             Sale Events
           </Button>
           <Button
             variant="outline"
             size="sm"
-            onClick={() => navigate('/admin/marketplace/analytics')}
+            onClick={() => navigate("/admin/marketplace/analytics")}
           >
             Analytics
           </Button>

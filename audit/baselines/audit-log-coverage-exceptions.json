@@ -1,0 +1,19 @@
+{
+  "createdAt": "2026-05-08T00:00:00.000Z",
+  "lockedByCommit": "99a2344347d2683eb26eef93870adbf355d03622",
+  "description": "Explicit exceptions to the admin-mutation audit-log coverage rule (Req 13.5). Each entry documents WHY a mutation doesn't need logAuditEvent — usually because it's a student-facing content create where the user_id is already the author_id and traceability is intrinsic. Before adding an exception, confirm with a release engineer that the mutation is NOT an admin action.",
+  "fileLevel": [
+    {
+      "file": "src/hooks/useDiscussions.ts",
+      "rationale": "Discussion threads + replies are student-authored content. The author_id is part of the INSERT, so traceability is intrinsic. Moderation mutations (pin/lock/delete) below DO log — those are admin actions. Revisit when we split discussions into student vs moderation modules."
+    },
+    {
+      "file": "src/hooks/useSurveys.ts",
+      "rationale": "Survey question CRUD is teacher-scoped authoring + student response collection. The submitSurveyResponse mutation writes the student's own responses; question edits by teachers are scoped to their own surveys. Not admin-institution-wide. Revisit when institution-level survey moderation ships."
+    },
+    {
+      "file": "src/hooks/useMasteryRecovery.ts",
+      "rationale": "Mastery recovery activation is student-initiated (student requests a retry). The user_id and CLO are both scoped to the student's own data. Not an admin action."
+    }
+  ]
+}

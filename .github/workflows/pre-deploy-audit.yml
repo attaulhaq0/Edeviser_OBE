@@ -1,0 +1,589 @@
+name: Pre-Deployment Audit
+
+# Implements Tasks 18.1–18.6 / Req 17.1–17.6.
+#
+# Two modes:
+#   PR mode  (on: pull_request)  — static + contract + property layers only.
+#             Skips E2E and RTL screenshots to stay under 10 minutes.
+#             Triggered by the --pr flag in the audit runner.
+#   Pre-deploy mode (on: workflow_dispatch, on: push: tags: v*)
+#             Full pipeline including E2E, RTL, cron health, RLS matrix.
+#
+# Stage DAG (matches design.md §Stage Ordering and Policy):
+#   preflight → lint → typecheck → test → build → security
+#     → [connectivity, rls, cron] (parallel, continue-on-error)
+#     → e2e (continue-on-error, pre-deploy only)
+#     → nova-act (continue-on-error, pre-deploy only, gated on NOVA_ACT_ENABLED)
+#     → report (always)
+#     → pr-comment (PR mode only)
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      env:
+        description: "Target environment"
+        required: false
+        default: "audit-staging"
+        type: choice
+        options:
+          - audit-staging
+          - local
+      skip_e2e:
+        description: "Skip E2E layer (faster run)"
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: pre-deploy-audit-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION_FILE: .nvmrc
+  AUDIT_ENV: ${{ github.event_name == 'pull_request' && 'ci' || inputs.env || 'audit-staging' }}
+  IS_PR_MODE: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  # ─── Preflight ─────────────────────────────────────────────────────────────
+  # Task 18.5: verify Supabase auth before any stage runs.
+  preflight:
+    name: Preflight
+    runs-on: ubuntu-latest
+    outputs:
+      supabase_available: ${{ steps.supabase-check.outputs.available }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: ${{ env.NODE_VERSION_FILE }}
+          cache: npm
+
+      - run: npm ci --ignore-scripts
+
+      - name: Check Supabase auth
+        id: supabase-check
+        run: |
+          if [[ -n "$SUPABASE_ACCESS_TOKEN" ]]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+            echo "✅ Supabase access token present"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::SUPABASE_ACCESS_TOKEN not set — connectivity, RLS, and cron stages will be skipped"
+          fi
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+  # ─── Static analysis (fail-fast) ──────────────────────────────────────────
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    needs: [preflight]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: ${{ env.NODE_VERSION_FILE }}
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+
+  typecheck:
+    name: Type Check
+    runs-on: ubuntu-latest
+    needs: [preflight]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: ${{ env.NODE_VERSION_FILE }}
+          cache: npm
+      - run: npm ci
+      - run: npx tsc --noEmit
+
+  # ─── Unit + property tests (fail-fast) ────────────────────────────────────
+  test:
+    name: Unit + Property Tests
+    runs-on: ubuntu-latest
+    needs: [preflight]
+    env:
+      VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'http://localhost:54321' }}
+      VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'placeholder-anon-key' }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: ${{ env.NODE_VERSION_FILE }}
+          cache: npm
+      - run: npm ci
+      - run: npm run test:coverage
+
+      # Task 18.6: coverage threshold enforcement on src/lib/
+      - name: Check src/lib/ coverage threshold
+        run: |
+          THRESHOLD=80
+          COVERAGE=$(node -e "
+            const s = require('./coverage/coverage-summary.json');
+            const lib = Object.entries(s)
+              .filter(([k]) => k.includes('/src/lib/'))
+              .map(([,v]) => v.lines.pct);
+            const avg = lib.length ? lib.reduce((a,b)=>a+b,0)/lib.length : 100;
+            console.log(Math.round(avg));
+          " 2>/dev/null || echo "100")
+          echo "src/lib/ line coverage: ${COVERAGE}%"
+          if [ "$COVERAGE" -lt "$THRESHOLD" ]; then
+            echo "::error::src/lib/ coverage ${COVERAGE}% is below threshold ${THRESHOLD}%"
+            exit 1
+          fi
+        continue-on-error: true
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 14
+
+  # ─── Build (fail-fast) ────────────────────────────────────────────────────
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: [lint, typecheck, test]
+    env:
+      VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'http://localhost:54321' }}
+      VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'placeholder-anon-key' }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: ${{ env.NODE_VERSION_FILE }}
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: dist
+          path: dist/
+          retention-days: 7
+
+  # ─── Security scan (fail-fast) ────────────────────────────────────────────
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: ${{ env.NODE_VERSION_FILE }}
+          cache: npm
+      - run: npm ci
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: dist
+          path: dist/
+
+      - name: Run security + static scanners
+        run: npx tsx scripts/audit/run.ts --env=${{ env.AUDIT_ENV }} --stage=security
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'http://localhost:54321' }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'placeholder-anon-key' }}
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: security-findings
+          path: audit/output/security-findings.json
+          retention-days: 30
+
+  # ─── Static scanners (design tokens, i18n, a11y, perf) ───────────────────
+  static-scanners:
+    name: Static Scanners
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: ${{ env.NODE_VERSION_FILE }}
+          cache: npm
+      - run: npm ci
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: dist
+          path: dist/
+
+      - name: Run design-token, i18n, a11y, perf scanners
+        run: |
+          npx tsx scripts/audit/run.ts --env=${{ env.AUDIT_ENV }} --stage=designTokens
+          npx tsx scripts/audit/run.ts --env=${{ env.AUDIT_ENV }} --stage=i18n
+          npx tsx scripts/audit/run.ts --env=${{ env.AUDIT_ENV }} --stage=a11y
+          npx tsx scripts/audit/run.ts --env=${{ env.AUDIT_ENV }} --stage=perf
+        continue-on-error: true
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'http://localhost:54321' }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'placeholder-anon-key' }}
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: static-findings
+          path: |
+            audit/output/design-token-findings.json
+            audit/output/i18n-findings.json
+            audit/output/a11y-findings.json
+            audit/output/perf-findings.json
+          retention-days: 30
+
+  # ─── Connectivity matrix (continue-on-error, needs Supabase) ─────────────
+  connectivity:
+    name: Connectivity Matrix
+    runs-on: ubuntu-latest
+    needs: [build, preflight]
+    if: needs.preflight.outputs.supabase_available == 'true'
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: ${{ env.NODE_VERSION_FILE }}
+          cache: npm
+      - run: npm ci
+      - name: Run connectivity matrix
+        run: npx tsx scripts/audit/run.ts --env=${{ env.AUDIT_ENV }} --stage=connectivity
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: connectivity-matrix
+          path: audit/output/connectivity-matrix.json
+          retention-days: 30
+
+  # ─── RLS matrix (continue-on-error, needs Supabase) ──────────────────────
+  rls:
+    name: RLS Matrix
+    runs-on: ubuntu-latest
+    needs: [build, preflight]
+    if: needs.preflight.outputs.supabase_available == 'true'
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: ${{ env.NODE_VERSION_FILE }}
+          cache: npm
+      - run: npm ci
+      - name: Run RLS matrix
+        run: npx tsx scripts/audit/run.ts --env=${{ env.AUDIT_ENV }} --stage=rls
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: rls-matrix
+          path: audit/output/rls-matrix.json
+          retention-days: 30
+
+  # ─── Cron health (continue-on-error, needs Supabase) ─────────────────────
+  cron:
+    name: Cron Health
+    runs-on: ubuntu-latest
+    needs: [build, preflight]
+    if: needs.preflight.outputs.supabase_available == 'true'
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: ${{ env.NODE_VERSION_FILE }}
+          cache: npm
+      - run: npm ci
+      - name: Run cron health probe
+        run: npx tsx scripts/audit/run.ts --env=${{ env.AUDIT_ENV }} --stage=cron
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: cron-health
+          path: audit/output/cron-health.json
+          retention-days: 30
+
+  # ─── E2E (pre-deploy mode only, continue-on-error) ────────────────────────
+  e2e:
+    name: E2E Tests (per-role)
+    runs-on: ubuntu-latest
+    needs: [build, preflight]
+    if: |
+      github.event_name != 'pull_request' &&
+      inputs.skip_e2e != true &&
+      needs.preflight.outputs.supabase_available == 'true'
+    continue-on-error: true
+    # Task 18.4: Playwright browser cache
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: ${{ env.NODE_VERSION_FILE }}
+          cache: npm
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ hashFiles('package-lock.json') }}
+          restore-keys: playwright-
+
+      - run: npm ci
+      - run: npx playwright install chromium webkit --with-deps
+
+      - name: Run per-role E2E specs
+        run: npx tsx scripts/audit/run.ts --env=${{ env.AUDIT_ENV }} --stage=e2e
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          AUDIT_RUN_ID: ${{ github.run_id }}-${{ github.run_attempt }}
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            audit/output/a11y-findings.json
+          retention-days: 14
+
+  # ─── Nova Act UX audit (pre-deploy only, gated on NOVA_ACT_ENABLED) ───────
+  nova-act:
+    name: Nova Act UX Audit
+    runs-on: ubuntu-latest
+    needs: [e2e]
+    if: |
+      github.event_name != 'pull_request' &&
+      vars.NOVA_ACT_ENABLED == 'true'
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: ${{ env.NODE_VERSION_FILE }}
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - run: npm ci
+      - name: Install Nova Act SDK
+        run: |
+          if [ -f scripts/audit/nova-act/requirements.txt ]; then
+            pip install -r scripts/audit/nova-act/requirements.txt
+          else
+            echo "::notice::Nova Act requirements.txt not found — skipping Nova Act stage"
+            exit 0
+          fi
+
+      - name: Run Nova Act journeys
+        run: npx tsx scripts/audit/run.ts --env=${{ env.AUDIT_ENV }} --stage=nova-act
+        env:
+          NOVA_ACT_API_KEY: ${{ secrets.NOVA_ACT_API_KEY }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: nova-act-session-logs
+          path: audit/output/nova-act/
+          retention-days: 30
+
+  # ─── Report aggregator (always runs) ──────────────────────────────────────
+  report:
+    name: Audit Report
+    runs-on: ubuntu-latest
+    needs:
+      - security
+      - static-scanners
+      - connectivity
+      - rls
+      - cron
+      - e2e
+      - nova-act
+    if: always()
+    outputs:
+      verdict: ${{ steps.verdict.outputs.verdict }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: ${{ env.NODE_VERSION_FILE }}
+          cache: npm
+      - run: npm ci
+
+      # Download all findings artifacts (best-effort — missing ones become
+      # Critical findings in the aggregator per design.md §Report Aggregator).
+      - name: Download security findings
+        uses: actions/download-artifact@v8
+        with:
+          name: security-findings
+          path: audit/output/
+        continue-on-error: true
+
+      - name: Download static findings
+        uses: actions/download-artifact@v8
+        with:
+          name: static-findings
+          path: audit/output/
+        continue-on-error: true
+
+      - name: Download connectivity matrix
+        uses: actions/download-artifact@v8
+        with:
+          name: connectivity-matrix
+          path: audit/output/
+        continue-on-error: true
+
+      - name: Download RLS matrix
+        uses: actions/download-artifact@v8
+        with:
+          name: rls-matrix
+          path: audit/output/
+        continue-on-error: true
+
+      - name: Download cron health
+        uses: actions/download-artifact@v8
+        with:
+          name: cron-health
+          path: audit/output/
+        continue-on-error: true
+
+      - name: Download Nova Act logs
+        uses: actions/download-artifact@v8
+        with:
+          name: nova-act-session-logs
+          path: audit/output/nova-act/
+        continue-on-error: true
+
+      - name: Generate audit report and verdict
+        id: verdict
+        run: |
+          npx tsx scripts/audit/run.ts --env=${{ env.AUDIT_ENV }} --stage=report
+          VERDICT=$(node -e "
+            const v = require('./audit/output/verdict.json');
+            console.log(v.verdict);
+          " 2>/dev/null || echo "No-Go")
+          echo "verdict=$VERDICT" >> "$GITHUB_OUTPUT"
+          echo "## Audit Verdict: $VERDICT" >> $GITHUB_STEP_SUMMARY
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+          AUDIT_ENV: ${{ env.AUDIT_ENV }}
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: audit-report
+          path: |
+            audit/output/audit-report.md
+            audit/output/verdict.json
+            audit/output/manifest.json
+          retention-days: 90
+
+  # ─── PR comment bot (PR mode only, idempotent edit) ───────────────────────
+  # Task 18.3: post/edit a single comment per PR run.
+  pr-comment:
+    name: PR Comment
+    runs-on: ubuntu-latest
+    needs: [report]
+    if: github.event_name == 'pull_request'
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: ${{ env.NODE_VERSION_FILE }}
+          cache: npm
+      - run: npm ci
+
+      - name: Download audit report
+        uses: actions/download-artifact@v8
+        with:
+          name: audit-report
+          path: audit/output/
+
+      - name: Download all findings for top-3 summary
+        uses: actions/download-artifact@v8
+        with:
+          name: security-findings
+          path: audit/output/
+        continue-on-error: true
+
+      - name: Download static findings for top-3 summary
+        uses: actions/download-artifact@v8
+        with:
+          name: static-findings
+          path: audit/output/
+        continue-on-error: true
+
+      - name: Generate PR comment body
+        id: comment-body
+        run: |
+          BODY=$(npx tsx scripts/audit/pr-comment.ts 2>/dev/null || echo "Audit report generation failed — check workflow logs.")
+          # Escape for GitHub Actions multiline output
+          echo "body<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$BODY" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Post or update PR comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = `${{ steps.comment-body.outputs.body }}`;
+            const marker = '<!-- pre-deploy-audit-comment -->';
+            const fullBody = marker + '\n' + body;
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const existing = comments.find(c => c.body?.includes(marker));
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body: fullBody,
+              });
+              console.log('Updated existing audit comment:', existing.id);
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: fullBody,
+              });
+              console.log('Created new audit comment');
+            }

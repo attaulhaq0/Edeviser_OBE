@@ -1,0 +1,6 @@
+{
+  "createdAt": null,
+  "lockedByCommit": null,
+  "description": "Tables excluded from the RLS matrix because they are internal Supabase/Postgres infrastructure. Add table names here with a rationale comment.",
+  "excluded": ["schema_migrations", "supabase_migrations"]
+}

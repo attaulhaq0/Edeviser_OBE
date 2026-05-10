@@ -1,5 +1,5 @@
-import { useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   DndContext,
   closestCenter,
@@ -8,33 +8,33 @@ import {
   useSensor,
   useSensors,
   type DragEndEvent,
-} from '@dnd-kit/core';
+} from "@dnd-kit/core";
 import {
   SortableContext,
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
   arrayMove,
   useSortable,
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import { toast } from 'sonner';
-import { parseAsString, useQueryState } from 'nuqs';
-import { createColumns } from './columns';
-import { DataTable } from '@/components/shared/DataTable';
-import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
-import { usePLOs, useDeletePLO, useReorderPLOs } from '@/hooks/usePLOs';
-import { usePrograms } from '@/hooks/usePrograms';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Card } from '@/components/ui/card';
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { toast } from "sonner";
+import { parseAsString, useQueryState } from "nuqs";
+import { createColumns } from "./columns";
+import { DataTable } from "@/components/shared/DataTable";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import { usePLOs, useDeletePLO, useReorderPLOs } from "@/hooks/usePLOs";
+import { usePrograms } from "@/hooks/usePrograms";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import Shimmer from '@/components/shared/Shimmer';
+} from "@/components/ui/select";
+import Shimmer from "@/components/shared/Shimmer";
 import {
   Plus,
   GripVertical,
@@ -42,8 +42,8 @@ import {
   Check,
   X,
   Loader2,
-} from 'lucide-react';
-import type { LearningOutcome } from '@/types/app';
+} from "lucide-react";
+import type { LearningOutcome } from "@/types/app";
 
 // ─── Sortable Row ───────────────────────────────────────────────────────────
 
@@ -77,6 +77,7 @@ const SortableRow = ({ plo, index }: SortableRowProps) => {
       <button
         type="button"
         className="cursor-grab touch-none text-gray-400 hover:text-gray-600"
+        aria-label="Drag to reorder"
         {...attributes}
         {...listeners}
       >
@@ -107,14 +108,17 @@ const PLOListPage = () => {
   const [localOrder, setLocalOrder] = useState<LearningOutcome[] | null>(null);
   const [ploToDelete, setPloToDelete] = useState<LearningOutcome | null>(null);
   const [programFilter, setProgramFilter] = useQueryState(
-    'program',
-    parseAsString.withDefault(''),
+    "program",
+    parseAsString.withDefault("")
   );
   const [page, setPage] = useState(1);
 
   const { data: paginatedPrograms, isLoading: programsLoading } = usePrograms();
   const programs = paginatedPrograms?.data;
-  const { data: paginatedPLOs, isLoading } = usePLOs(programFilter || undefined, { page });
+  const { data: paginatedPLOs, isLoading } = usePLOs(
+    programFilter || undefined,
+    { page }
+  );
   const plos = paginatedPLOs?.data;
   const deleteMutation = useDeletePLO();
   const reorderMutation = useReorderPLOs();
@@ -123,7 +127,7 @@ const PLOListPage = () => {
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    }),
+    })
   );
 
   const displayItems = localOrder ?? plos ?? [];
@@ -148,12 +152,12 @@ const PLOListPage = () => {
       { items },
       {
         onSuccess: () => {
-          toast.success('PLO order saved');
+          toast.success("PLO order saved");
           setLocalOrder(null);
           setIsDragMode(false);
         },
         onError: (err) => toast.error(err.message),
-      },
+      }
     );
   }, [localOrder, reorderMutation]);
 
@@ -166,13 +170,13 @@ const PLOListPage = () => {
       const newIndex = localOrder.findIndex((i) => i.id === over.id);
       setLocalOrder(arrayMove(localOrder, oldIndex, newIndex));
     },
-    [localOrder],
+    [localOrder]
   );
 
   const columns = createColumns(
     (id) => navigate(`/coordinator/plos/${id}/edit`),
     (plo) => setPloToDelete(plo),
-    isDragMode,
+    isDragMode
   );
 
   return (
@@ -196,7 +200,7 @@ const PLOListPage = () => {
               </Button>
               <Button
                 className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 text-white"
-                onClick={() => navigate('/coordinator/plos/new')}
+                onClick={() => navigate("/coordinator/plos/new")}
               >
                 <Plus className="h-4 w-4" /> Add PLO
               </Button>
@@ -234,7 +238,10 @@ const PLOListPage = () => {
       <div className="flex items-center gap-4">
         <Select
           value={programFilter}
-          onValueChange={(val) => { setProgramFilter(val === 'all' ? '' : val); setPage(1); }}
+          onValueChange={(val) => {
+            setProgramFilter(val === "all" ? "" : val);
+            setPage(1);
+          }}
           disabled={programsLoading}
         >
           <SelectTrigger className="w-[260px] bg-white">

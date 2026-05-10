@@ -1,0 +1,3 @@
+# This directory holds per-role RTL layout screenshots captured by task 19.1.
+# Populated baselines are committed to git; the directory starts empty so the
+# first audit run has a place to land them.

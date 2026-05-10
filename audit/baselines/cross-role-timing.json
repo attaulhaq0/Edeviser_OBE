@@ -1,0 +1,12 @@
+{
+  "createdAt": null,
+  "lockedByCommit": null,
+  "description": "Configurable timing bounds for cross-role propagation flows. Defaults match requirements.md §3 and §6.3. Override only if staging is persistently slow and a stricter bound would cause false flakes.",
+  "bounds": {
+    "gradeToStudentXpMs": 60000,
+    "studentToParentMs": 60000,
+    "coordinatorToTeacherMs": 10000,
+    "adminToBonusXpMs": 5000,
+    "realtimeInsertDeliveryMs": 2000
+  }
+}

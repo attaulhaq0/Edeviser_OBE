@@ -2,26 +2,26 @@
 // GradeCategoryManager — Define weighted grade categories for a course
 // =============================================================================
 
-import { useState, useMemo } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import { useState, useMemo } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import {
   useGradeCategories,
   useCreateGradeCategory,
   useUpdateGradeCategory,
   useDeleteGradeCategory,
-} from '@/hooks/useGradebook';
-import type { GradeCategory } from '@/hooks/useGradebook';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+} from "@/hooks/useGradebook";
+import type { GradeCategory } from "@/hooks/useGradebook";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   Form,
   FormField,
@@ -29,19 +29,19 @@ import {
   FormLabel,
   FormControl,
   FormMessage,
-} from '@/components/ui/form';
-import { Badge } from '@/components/ui/badge';
-import { Plus, Pencil, Trash2, Loader2, AlertTriangle } from 'lucide-react';
-import { cn } from '@/lib/utils';
+} from "@/components/ui/form";
+import { Badge } from "@/components/ui/badge";
+import { Plus, Pencil, Trash2, Loader2, AlertTriangle } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 // ─── Schema ─────────────────────────────────────────────────────────────────
 
 const categoryFormSchema = z.object({
-  name: z.string().min(1, 'Category name is required').max(100),
+  name: z.string().min(1, "Category name is required").max(100),
   weight_percent: z
     .number()
-    .min(1, 'Weight must be at least 1%')
-    .max(100, 'Weight cannot exceed 100%'),
+    .min(1, "Weight must be at least 1%")
+    .max(100, "Weight cannot exceed 100%"),
 });
 
 type CategoryFormValues = z.infer<typeof categoryFormSchema>;
@@ -58,12 +58,14 @@ const GradeCategoryManager = ({ courseId }: GradeCategoryManagerProps) => {
   const { data: categories = [], isLoading } = useGradeCategories(courseId);
   const createMutation = useCreateGradeCategory();
   const deleteMutation = useDeleteGradeCategory();
-  const [editingCategory, setEditingCategory] = useState<GradeCategory | null>(null);
+  const [editingCategory, setEditingCategory] = useState<GradeCategory | null>(
+    null
+  );
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
   const totalWeight = useMemo(
     () => categories.reduce((sum, c) => sum + c.weight_percent, 0),
-    [categories],
+    [categories]
   );
 
   const remainingWeight = 100 - totalWeight;
@@ -71,17 +73,20 @@ const GradeCategoryManager = ({ courseId }: GradeCategoryManagerProps) => {
 
   const createForm = useForm<CategoryFormValues>({
     resolver: zodResolver(categoryFormSchema),
-    defaultValues: { name: '', weight_percent: 0 },
+    defaultValues: { name: "", weight_percent: 0 },
   });
 
   const openCreateDialog = () => {
-    createForm.reset({ name: '', weight_percent: Math.max(remainingWeight, 0) });
+    createForm.reset({
+      name: "",
+      weight_percent: Math.max(remainingWeight, 0),
+    });
     setCreateDialogOpen(true);
   };
 
   const handleCreate = (values: CategoryFormValues) => {
     if (totalWeight + values.weight_percent > 100) {
-      createForm.setError('weight_percent', {
+      createForm.setError("weight_percent", {
         message: `Weight would exceed 100%. Remaining: ${remainingWeight}%`,
       });
       return;
@@ -94,7 +99,12 @@ const GradeCategoryManager = ({ courseId }: GradeCategoryManagerProps) => {
         weight_percent: values.weight_percent,
         sort_order: categories.length,
       },
-      { onSuccess: () => { setCreateDialogOpen(false); createForm.reset(); } },
+      {
+        onSuccess: () => {
+          setCreateDialogOpen(false);
+          createForm.reset();
+        },
+      }
     );
   };
 
@@ -151,7 +161,8 @@ const GradeCategoryManager = ({ courseId }: GradeCategoryManagerProps) => {
         </div>
       ) : categories.length === 0 ? (
         <Card className="bg-white border-0 shadow-md rounded-xl p-6 text-center text-gray-500 text-sm">
-          No grade categories defined yet. Add categories to start building the gradebook.
+          No grade categories defined yet. Add categories to start building the
+          gradebook.
         </Card>
       ) : (
         <div className="space-y-2">
@@ -178,7 +189,11 @@ interface EditCategoryDialogProps {
   onClose: () => void;
 }
 
-const EditCategoryDialog = ({ category, categories, onClose }: EditCategoryDialogProps) => {
+const EditCategoryDialog = ({
+  category,
+  categories,
+  onClose,
+}: EditCategoryDialogProps) => {
   const updateMutation = useUpdateGradeCategory(category.id);
 
   const form = useForm<CategoryFormValues>({
@@ -195,7 +210,7 @@ const EditCategoryDialog = ({ category, categories, onClose }: EditCategoryDialo
 
   const handleUpdate = (values: CategoryFormValues) => {
     if (otherWeight + values.weight_percent > 100) {
-      form.setError('weight_percent', {
+      form.setError("weight_percent", {
         message: `Weight would exceed 100%. Max allowed: ${100 - otherWeight}%`,
       });
       return;
@@ -203,12 +218,17 @@ const EditCategoryDialog = ({ category, categories, onClose }: EditCategoryDialo
 
     updateMutation.mutate(
       { name: values.name, weight_percent: values.weight_percent },
-      { onSuccess: () => onClose() },
+      { onSuccess: () => onClose() }
     );
   };
 
   return (
-    <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
+    <Dialog
+      open
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
+    >
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Edit Category</DialogTitle>
@@ -233,7 +253,12 @@ interface CategoryFormProps {
   submitLabel: string;
 }
 
-const CategoryForm = ({ form, onSubmit, isPending, submitLabel }: CategoryFormProps) => (
+const CategoryForm = ({
+  form,
+  onSubmit,
+  isPending,
+  submitLabel,
+}: CategoryFormProps) => (
   <Form {...form}>
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
       <FormField
@@ -243,7 +268,10 @@ const CategoryForm = ({ form, onSubmit, isPending, submitLabel }: CategoryFormPr
           <FormItem>
             <FormLabel>Category Name</FormLabel>
             <FormControl>
-              <Input placeholder="e.g., Assignments, Quizzes, Midterm" {...field} />
+              <Input
+                placeholder="e.g., Assignments, Quizzes, Midterm"
+                {...field}
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -292,15 +320,24 @@ const WeightSummaryBar = ({
   <div className="space-y-1">
     <div className="flex items-center justify-between text-xs">
       <span className="text-gray-500">Total Weight</span>
-      <span className={cn('font-bold', isBalanced ? 'text-green-600' : 'text-amber-600')}>
+      <span
+        className={cn(
+          "font-bold",
+          isBalanced ? "text-green-600" : "text-amber-600"
+        )}
+      >
         {totalWeight}%
       </span>
     </div>
     <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
       <div
         className={cn(
-          'h-full rounded-full transition-all',
-          isBalanced ? 'bg-green-500' : totalWeight > 100 ? 'bg-red-500' : 'bg-amber-500',
+          "h-full rounded-full transition-all",
+          isBalanced
+            ? "bg-green-500"
+            : totalWeight > 100
+            ? "bg-red-500"
+            : "bg-amber-500"
         )}
         style={{ width: `${Math.min(totalWeight, 100)}%` }}
       />
@@ -325,7 +362,12 @@ interface CategoryCardProps {
   isDeleting: boolean;
 }
 
-const CategoryCard = ({ category, onEdit, onDelete, isDeleting }: CategoryCardProps) => (
+const CategoryCard = ({
+  category,
+  onEdit,
+  onDelete,
+  isDeleting,
+}: CategoryCardProps) => (
   <Card className="bg-white border-0 shadow-sm rounded-xl p-4 flex items-center justify-between">
     <div className="flex items-center gap-3">
       <Badge variant="secondary" className="text-xs font-bold">
@@ -334,10 +376,21 @@ const CategoryCard = ({ category, onEdit, onDelete, isDeleting }: CategoryCardPr
       <span className="text-sm font-medium">{category.name}</span>
     </div>
     <div className="flex items-center gap-1">
-      <Button variant="ghost" size="sm" onClick={onEdit}>
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={onEdit}
+        aria-label="Edit category"
+      >
         <Pencil className="h-4 w-4 text-gray-500" />
       </Button>
-      <Button variant="ghost" size="sm" onClick={onDelete} disabled={isDeleting}>
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={onDelete}
+        disabled={isDeleting}
+        aria-label="Delete category"
+      >
         <Trash2 className="h-4 w-4 text-red-500" />
       </Button>
     </div>

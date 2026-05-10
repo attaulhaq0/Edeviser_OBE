@@ -2,9 +2,9 @@
 // QuickStartChecklist — Onboarding checklist for new users
 // =============================================================================
 
-import { CheckCircle, Circle, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { CheckCircle, Circle, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface ChecklistItem {
   id: string;
@@ -30,10 +30,21 @@ const QuickStartChecklist = ({
   const progress = items.length > 0 ? (completedCount / items.length) * 100 : 0;
 
   return (
-    <div className={cn('rounded-xl border border-slate-200 bg-white p-4 space-y-3', className)}>
+    <div
+      className={cn(
+        "rounded-xl border border-slate-200 bg-white p-4 space-y-3",
+        className
+      )}
+    >
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-bold">Quick Start</h3>
-        <Button variant="ghost" size="sm" onClick={onDismiss} className="h-6 w-6 p-0">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onDismiss}
+          className="h-6 w-6 p-0"
+          aria-label="Dismiss checklist"
+        >
           <X className="h-4 w-4" />
         </Button>
       </div>
@@ -43,7 +54,9 @@ const QuickStartChecklist = ({
           style={{ width: `${progress}%` }}
         />
       </div>
-      <p className="text-xs text-gray-500">{completedCount}/{items.length} completed</p>
+      <p className="text-xs text-gray-500">
+        {completedCount}/{items.length} completed
+      </p>
       <ul className="space-y-2">
         {items.map((item) => (
           <li key={item.id}>
@@ -56,7 +69,9 @@ const QuickStartChecklist = ({
               ) : (
                 <Circle className="h-4 w-4 text-gray-300 shrink-0" />
               )}
-              <span className={cn(item.isCompleted && 'line-through text-gray-400')}>
+              <span
+                className={cn(item.isCompleted && "line-through text-gray-400")}
+              >
                 {item.label}
               </span>
             </button>

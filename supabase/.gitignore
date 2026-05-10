@@ -6,3 +6,7 @@
 .env.keys
 .env.local
 .env.*.local
+
+# Pre-deployment audit — real env files gitignored; .example is committed
+.env.audit-staging
+!.env.audit-staging.example

@@ -1,5 +1,5 @@
-import { useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   DndContext,
   closestCenter,
@@ -8,24 +8,24 @@ import {
   useSensor,
   useSensors,
   type DragEndEvent,
-} from '@dnd-kit/core';
+} from "@dnd-kit/core";
 import {
   SortableContext,
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
   arrayMove,
   useSortable,
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import { toast } from 'sonner';
-import { createColumns } from './columns';
-import { DataTable } from '@/components/shared/DataTable';
-import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
-import { useILOs, useDeleteILO, useReorderILOs } from '@/hooks/useILOs';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Card } from '@/components/ui/card';
-import Shimmer from '@/components/shared/Shimmer';
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { toast } from "sonner";
+import { createColumns } from "./columns";
+import { DataTable } from "@/components/shared/DataTable";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import { useILOs, useDeleteILO, useReorderILOs } from "@/hooks/useILOs";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
+import Shimmer from "@/components/shared/Shimmer";
 import {
   Plus,
   GripVertical,
@@ -34,9 +34,9 @@ import {
   X,
   AlertTriangle,
   Loader2,
-} from 'lucide-react';
-import { format } from 'date-fns';
-import type { LearningOutcome } from '@/types/app';
+} from "lucide-react";
+import { format } from "date-fns";
+import type { LearningOutcome } from "@/types/app";
 
 // ─── Soft limit for ILOs per institution (Req 12.4) ─────────────────────────
 const ILO_SOFT_LIMIT = 30;
@@ -73,6 +73,7 @@ const SortableRow = ({ ilo, index }: SortableRowProps) => {
       <button
         type="button"
         className="cursor-grab touch-none text-gray-400 hover:text-gray-600"
+        aria-label="Drag to reorder"
         {...attributes}
         {...listeners}
       >
@@ -92,7 +93,7 @@ const SortableRow = ({ ilo, index }: SortableRowProps) => {
         Active
       </Badge>
       <span className="text-xs text-gray-400">
-        {format(new Date(ilo.created_at), 'MMM d, yyyy')}
+        {format(new Date(ilo.created_at), "MMM d, yyyy")}
       </span>
     </div>
   );
@@ -116,7 +117,7 @@ const ILOListPage = () => {
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    }),
+    })
   );
 
   const displayItems = localOrder ?? ilos ?? [];
@@ -145,12 +146,12 @@ const ILOListPage = () => {
       { items },
       {
         onSuccess: () => {
-          toast.success('ILO order saved');
+          toast.success("ILO order saved");
           setLocalOrder(null);
           setIsDragMode(false);
         },
         onError: (err) => toast.error(err.message),
-      },
+      }
     );
   }, [localOrder, reorderMutation]);
 
@@ -164,13 +165,13 @@ const ILOListPage = () => {
       const newIndex = localOrder.findIndex((i) => i.id === over.id);
       setLocalOrder(arrayMove(localOrder, oldIndex, newIndex));
     },
-    [localOrder],
+    [localOrder]
   );
 
   const columns = createColumns(
     (id) => navigate(`/admin/outcomes/${id}/edit`),
     (ilo) => setIloToDelete(ilo),
-    isDragMode,
+    isDragMode
   );
 
   return (
@@ -194,7 +195,7 @@ const ILOListPage = () => {
               </Button>
               <Button
                 className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 text-white"
-                onClick={() => navigate('/admin/outcomes/new')}
+                onClick={() => navigate("/admin/outcomes/new")}
               >
                 <Plus className="h-4 w-4" /> Add ILO
               </Button>
