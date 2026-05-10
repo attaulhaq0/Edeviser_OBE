@@ -23,6 +23,8 @@
     "node": ">=20.0.0"
   },
   "dependencies": {
+    "@vercel/analytics": "^1.5.0",
+    "@vercel/speed-insights": "^1.2.0",
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
@@ -30,7 +32,6 @@
     "@sentry/react": "^10.51.0",
     "@supabase/supabase-js": "^2.105.1",
     "@tanstack/react-query": "^5.100.7",
-    "@tanstack/react-query-devtools": "^5.100.7",
     "@tanstack/react-table": "^8.21.3",
     "canvas-confetti": "^1.9.4",
     "class-variance-authority": "^0.7.1",
@@ -55,6 +56,7 @@
   "devDependencies": {
     "@axe-core/playwright": "4.11.3",
     "@axe-core/react": "^4.11.3",
+    "@tanstack/react-query-devtools": "^5.100.7",
     "@changesets/cli": "^2.31.0",
     "@eslint/js": "^9.39.3",
     "@fast-check/vitest": "^0.4.1",
