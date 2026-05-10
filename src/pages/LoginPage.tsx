@@ -39,7 +39,12 @@ const DEMO_ACCOUNTS = {
 
 type DemoRole = keyof typeof DEMO_ACCOUNTS;
 
-const DEMO_PASSWORD = "Edeviser2026!";
+// Demo password is sourced from Vite env so the literal never ships in the
+// production client bundle. `VITE_DEMO_PASSWORD` should only be set for
+// local / staging builds that ship with seeded demo accounts. When unset,
+// the Quick Demo Access panel is hidden entirely (see SHOW_DEMO_PANEL).
+const DEMO_PASSWORD = import.meta.env.VITE_DEMO_PASSWORD ?? "";
+const SHOW_DEMO_PANEL = DEMO_PASSWORD.length > 0;
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -54,21 +59,6 @@ const getRoleIcon = (role: string) => {
       return <GraduationCap className="w-4 h-4" />;
     default:
       return <User className="w-4 h-4" />;
-  }
-};
-
-const getRoleBadgeColor = (role: string) => {
-  switch (role) {
-    case "admin":
-      return "text-red-600 bg-red-50 border-red-200";
-    case "coordinator":
-      return "text-purple-600 bg-purple-50 border-purple-200";
-    case "teacher":
-      return "text-blue-600 bg-blue-50 border-blue-200";
-    case "student":
-      return "text-emerald-600 bg-emerald-50 border-emerald-200";
-    default:
-      return "text-gray-600 bg-gray-50 border-gray-200";
   }
 };
 
@@ -101,8 +91,6 @@ const LoginPage = () => {
       requestedRole: "student",
     },
   });
-
-  const selectedRole = signUpForm.watch("requestedRole");
 
   // -------------------------------------------------------------------
   // handlers
@@ -332,30 +320,36 @@ const LoginPage = () => {
                   </Button>
                 </form>
 
-                {/* Quick Demo Access */}
-                <div className="mt-4 pt-4 border-t border-gray-100">
-                  <div className="flex items-center justify-center gap-2 mb-3">
-                    <span className="text-xs font-bold text-gray-500 flex items-center gap-1">
-                      <span className="text-amber-500">⚡</span>
-                      {t("login.demoLabel")}
-                    </span>
+                {/* Quick Demo Access — only rendered when VITE_DEMO_PASSWORD
+                    is set (local / staging). Production builds leave the env
+                    var empty so the panel disappears entirely. */}
+                {SHOW_DEMO_PANEL && (
+                  <div className="mt-4 pt-4 border-t border-gray-100">
+                    <div className="flex items-center justify-center gap-2 mb-3">
+                      <span className="text-xs font-bold text-gray-500 flex items-center gap-1">
+                        <span className="text-amber-500">⚡</span>
+                        {t("login.demoLabel")}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      {(Object.keys(DEMO_ACCOUNTS) as DemoRole[]).map(
+                        (role) => (
+                          <Button
+                            key={role}
+                            type="button"
+                            variant="ghost"
+                            className="h-9 rounded-full border border-gray-200 bg-transparent hover:border-[#14b8a6] hover:bg-[#14b8a6]/5 hover:text-[#14b8a6] transition-all duration-300 text-gray-600 font-medium text-xs capitalize shadow-sm"
+                            onClick={() => handleDemoLogin(role)}
+                            disabled={isPending}
+                          >
+                            {getRoleIcon(role)}
+                            <span className="ms-2">{t(`roles.${role}`)}</span>
+                          </Button>
+                        )
+                      )}
+                    </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    {(Object.keys(DEMO_ACCOUNTS) as DemoRole[]).map((role) => (
-                      <Button
-                        key={role}
-                        type="button"
-                        variant="ghost"
-                        className="h-9 rounded-full border border-gray-200 bg-transparent hover:border-[#14b8a6] hover:bg-[#14b8a6]/5 hover:text-[#14b8a6] transition-all duration-300 text-gray-600 font-medium text-xs capitalize shadow-sm"
-                        onClick={() => handleDemoLogin(role)}
-                        disabled={isPending}
-                      >
-                        {getRoleIcon(role)}
-                        <span className="ms-2">{t(`roles.${role}`)}</span>
-                      </Button>
-                    ))}
-                  </div>
-                </div>
+                )}
               </TabsContent>
 
               {/* Register tab */}
@@ -364,7 +358,9 @@ const LoginPage = () => {
                   <h2 className="text-2xl font-bold text-gray-900">
                     {t("signup.title")}
                   </h2>
-                  <p className="text-sm text-gray-500">{t("signup.subtitle")}</p>
+                  <p className="text-sm text-gray-500">
+                    {t("signup.subtitle")}
+                  </p>
                 </div>
 
                 <form
@@ -523,44 +519,20 @@ const LoginPage = () => {
                       className="flex items-center gap-2 ms-1"
                     >
                       <Users className="w-3.5 h-3.5 text-[#14b8a6]" />
-                      {t("signup.role")}{" "}
-                      <span className="text-red-500">*</span>
+                      {t("signup.role")}
                     </Label>
-                    <select
+                    <div
                       id="signup-role"
-                      aria-label={t("signup.role")}
-                      className={`w-full h-10 px-3 rounded-xl border text-sm focus:outline-none focus:ring-2 focus:ring-[#14b8a6] appearance-none transition-colors ${
-                        selectedRole
-                          ? getRoleBadgeColor(selectedRole)
-                          : "border-gray-200 bg-gray-50/50 text-gray-500"
-                      }`}
-                      {...signUpForm.register("requestedRole")}
+                      className="w-full h-10 px-3 rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-700 text-sm flex items-center font-medium"
                     >
-                      <option
-                        value="student"
-                        className="text-emerald-600 font-medium"
-                      >
-                        {t("signup.roleStudent")}
-                      </option>
-                      <option
-                        value="teacher"
-                        className="text-blue-600 font-medium"
-                      >
-                        {t("signup.roleTeacher")}
-                      </option>
-                      <option
-                        value="coordinator"
-                        className="text-purple-600 font-medium"
-                      >
-                        {t("signup.roleCoordinator")}
-                      </option>
-                      <option
-                        value="admin"
-                        className="text-red-600 font-medium"
-                      >
-                        {t("signup.roleAdmin")}
-                      </option>
-                    </select>
+                      {t("signup.roleStudent")}
+                    </div>
+                    {/* Hidden input keeps the form value wired for Zod */}
+                    <input
+                      type="hidden"
+                      value="student"
+                      {...signUpForm.register("requestedRole")}
+                    />
                     <p className="text-[10px] text-gray-500 ms-1">
                       {t("signup.roleHint")}
                     </p>

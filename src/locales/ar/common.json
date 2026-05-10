@@ -147,5 +147,23 @@
   "profileMenu": "قائمة الملف الشخصي",
   "myProfile": "ملفي الشخصي",
   "profileSettings": "إعدادات الملف الشخصي",
-  "institutionSettings": "إعدادات المؤسسة"
+  "institutionSettings": "إعدادات المؤسسة",
+  "header": {
+    "user": "المستخدم",
+    "search": "بحث",
+    "searchPlaceholder": "ابحث في المقررات والتكليفات والإعلانات...",
+    "searchLoading": "جاري البحث…",
+    "searchEmpty": "لا توجد نتائج لـ “{{q}}”",
+    "searchType": {
+      "course": "مقرر",
+      "assignment": "تكليف",
+      "announcement": "إعلان"
+    },
+    "notifications": "الإشعارات",
+    "settings": "الإعدادات",
+    "profileMenu": "قائمة الملف الشخصي",
+    "myProfile": "ملفي الشخصي",
+    "profileSettings": "إعدادات الملف الشخصي",
+    "institutionSettings": "إعدادات المؤسسة"
+  }
 }
