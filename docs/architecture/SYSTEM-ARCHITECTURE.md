@@ -1,10 +1,12 @@
 # Edeviser — System Architecture Document
+
 **Version:** 2.0 | **Status:** Active | **Last Updated:** 2026-02-22
 **Owners:** Engineering Lead | **Reviewers:** CTO, Security, DevOps
 
 ---
 
 ## Table of Contents
+
 1. [Architecture Overview](#1-architecture-overview)
 2. [C4 Context Diagram (Level 1)](#2-c4-context-diagram-level-1)
 3. [C4 Container Diagram (Level 2)](#3-c4-container-diagram-level-2)
@@ -36,15 +38,15 @@ Edeviser follows a **Backend-as-a-Service (BaaS) + Edge Function** pattern to ma
 
 ### Architectural Decisions Log
 
-| Decision | Choice | Rationale | Date |
-|----------|--------|-----------|------|
-| **Multi-tenancy** | Single Supabase project + RLS | Fastest to build; RLS isolates institution data; revisit at 50+ institutions | 2026-01 |
-| **Evidence storage** | Append-only `evidence` table | Immutability required for accreditation audit trail | 2026-01 |
-| **Realtime stack** | Supabase Realtime (Phoenix channels) | Already in stack; sufficient for v1; upgrade to dedicated pub/sub at scale | 2026-01 |
-| **Deployment** | Vercel (Frontend) + Supabase (BaaS) | Zero-config CI/CD; optimal for small team | 2026-01 |
-| **State management** | TanStack Query (server state) | Caching, deduplication, background refetch out of the box | 2026-01 |
-| **PDF generation** | Supabase Edge Function + Puppeteer | Server-side ensures consistent rendering; avoids client-side PDF libraries | 2026-01 |
-| **File uploads** | Supabase Storage | Native integration; handles CDN, RLS on files, presigned URLs | 2026-01 |
+| Decision             | Choice                               | Rationale                                                                    | Date    |
+| -------------------- | ------------------------------------ | ---------------------------------------------------------------------------- | ------- |
+| **Multi-tenancy**    | Single Supabase project + RLS        | Fastest to build; RLS isolates institution data; revisit at 50+ institutions | 2026-01 |
+| **Evidence storage** | Append-only `evidence` table         | Immutability required for accreditation audit trail                          | 2026-01 |
+| **Realtime stack**   | Supabase Realtime (Phoenix channels) | Already in stack; sufficient for v1; upgrade to dedicated pub/sub at scale   | 2026-01 |
+| **Deployment**       | Vercel (Frontend) + Supabase (BaaS)  | Zero-config CI/CD; optimal for small team                                    | 2026-01 |
+| **State management** | TanStack Query (server state)        | Caching, deduplication, background refetch out of the box                    | 2026-01 |
+| **PDF generation**   | Supabase Edge Function + Puppeteer   | Server-side ensures consistent rendering; avoids client-side PDF libraries   | 2026-01 |
+| **File uploads**     | Supabase Storage                     | Native integration; handles CDN, RLS on files, presigned URLs                | 2026-01 |
 
 ---
 
@@ -1030,6 +1032,7 @@ Mystery badges have hidden conditions that are not announced in advance. They ar
 | 💯 Perfectionist | Achieve 100% on 3 consecutive rubric-graded assignments | Epic |
 
 **Display Rules:**
+
 - Unearned mystery badges show as silhouettes (`opacity-30 grayscale`) with "???" label
 - On unlock: `badge-pop` animation with confetti burst
 - Badge condition revealed only after earning
@@ -1038,14 +1041,14 @@ Mystery badges have hidden conditions that are not announced in advance. They ar
 
 ## 9.1 Scheduled Cron Jobs (pg_cron)
 
-| Job Name | Schedule | Edge Function | Description |
-|----------|----------|---------------|-------------|
-| `streak-risk-check` | Daily at 8 PM (UTC+5) | `streak-risk-check` | Identifies students with active streaks who haven't logged in today; sends email + in-app notification |
-| `streak-midnight-reset` | Daily at midnight (UTC+5) | `process-xp-event` | Increments streaks for students who logged in; resets streaks for those who didn't |
-| `weekly-summary` | Monday 8 AM (UTC+5) | `weekly-summary` | Sends weekly digest email: submissions count, XP earned, streak status |
-| `perfect-day-prompt` | Daily at 6 PM (UTC+5) | `perfect-day-nudge-cron` | Checks students with 3/4 habits completed; sends in-app notification for the missing habit |
-| `ai-at-risk-prediction` | Nightly at 2 AM (UTC+5) | `ai-at-risk-prediction` | Analyzes behavioral signals from `student_activity_log`; predicts at-risk students ≥7 days before due dates |
-| `leaderboard-refresh` | Every 5 minutes | — (SQL) | `REFRESH MATERIALIZED VIEW leaderboard_weekly` |
+| Job Name                | Schedule                  | Edge Function            | Description                                                                                                 |
+| ----------------------- | ------------------------- | ------------------------ | ----------------------------------------------------------------------------------------------------------- |
+| `streak-risk-check`     | Daily at 8 PM (UTC+5)     | `streak-risk-check`      | Identifies students with active streaks who haven't logged in today; sends email + in-app notification      |
+| `streak-midnight-reset` | Daily at midnight (UTC+5) | `process-xp-event`       | Increments streaks for students who logged in; resets streaks for those who didn't                          |
+| `weekly-summary`        | Monday 8 AM (UTC+5)       | `weekly-summary`         | Sends weekly digest email: submissions count, XP earned, streak status                                      |
+| `perfect-day-prompt`    | Daily at 6 PM (UTC+5)     | `perfect-day-nudge-cron` | Checks students with 3/4 habits completed; sends in-app notification for the missing habit                  |
+| `ai-at-risk-prediction` | Nightly at 2 AM (UTC+5)   | `ai-at-risk-prediction`  | Analyzes behavioral signals from `student_activity_log`; predicts at-risk students ≥7 days before due dates |
+| `leaderboard-refresh`   | Every 5 minutes           | — (SQL)                  | `REFRESH MATERIALIZED VIEW leaderboard_weekly`                                                              |
 
 ---
 
@@ -1054,12 +1057,14 @@ Mystery badges have hidden conditions that are not announced in advance. They ar
 ### API Conventions
 
 All data access flows through two mechanisms:
+
 1. **PostgREST (Supabase REST API):** Standard CRUD operations. Auth enforced via JWT + RLS.
 2. **Supabase Edge Functions:** Complex operations requiring multi-table writes, external service calls, or business logic that cannot be expressed in a single PostgREST call.
 
 ### Endpoint Catalog
 
 #### Auth (Supabase Managed)
+
 ```
 POST   /auth/v1/token?grant_type=password    Login
 POST   /auth/v1/recover                       Request password reset
@@ -1068,6 +1073,7 @@ GET    /auth/v1/user                          Get current user
 ```
 
 #### Core OBE Resources (PostgREST)
+
 ```
 # Learning Outcomes
 GET    /rest/v1/learning_outcomes             List (filtered via query params: ?type=eq.ILO)
@@ -1110,6 +1116,7 @@ PATCH  /rest/v1/notifications?id=eq.{id}      Mark as read
 ```
 
 #### Edge Functions
+
 ```
 POST   /functions/v1/grade-submission
   Body: { grade_id: uuid }
@@ -1165,24 +1172,29 @@ POST   /functions/v1/ai-feedback-draft
 
 ```typescript
 // /src/queries/useLearningOutcomes.ts
-export const useLearningOutcomes = (type: 'ILO' | 'PLO' | 'CLO', scopeId?: string) => {
+export const useLearningOutcomes = (
+  type: "ILO" | "PLO" | "CLO",
+  scopeId?: string
+) => {
   const { supabase } = useSupabase();
 
   return useQuery({
-    queryKey: ['learning_outcomes', type, scopeId],
+    queryKey: ["learning_outcomes", type, scopeId],
     queryFn: async () => {
       let query = supabase
-        .from('learning_outcomes')
-        .select(`
+        .from("learning_outcomes")
+        .select(
+          `
           *,
           outcome_mappings!source_outcome_id(target_outcome_id, weight),
           rubrics(id, title)
-        `)
-        .eq('type', type)
-        .order('sort_order');
+        `
+        )
+        .eq("type", type)
+        .order("sort_order");
 
-      if (type === 'CLO' && scopeId) query = query.eq('course_id', scopeId);
-      if (type === 'PLO' && scopeId) query = query.eq('program_id', scopeId);
+      if (type === "CLO" && scopeId) query = query.eq("course_id", scopeId);
+      if (type === "PLO" && scopeId) query = query.eq("program_id", scopeId);
 
       const { data, error } = await query;
       if (error) throw error;
@@ -1199,21 +1211,35 @@ export const useCreateOutcome = () => {
 
   return useMutation({
     mutationFn: async (payload: CreateOutcomePayload) => {
-      const { data, error } = await supabase.from('learning_outcomes').insert(payload).select().single();
+      const { data, error } = await supabase
+        .from("learning_outcomes")
+        .insert(payload)
+        .select()
+        .single();
       if (error) throw error;
       return data;
     },
     onMutate: async (newOutcome) => {
-      await queryClient.cancelQueries({ queryKey: ['learning_outcomes', newOutcome.type] });
-      const prev = queryClient.getQueryData(['learning_outcomes', newOutcome.type]);
-      queryClient.setQueryData(['learning_outcomes', newOutcome.type], (old: any[]) => [...old, { ...newOutcome, id: 'temp-' + Date.now() }]);
+      await queryClient.cancelQueries({
+        queryKey: ["learning_outcomes", newOutcome.type],
+      });
+      const prev = queryClient.getQueryData([
+        "learning_outcomes",
+        newOutcome.type,
+      ]);
+      queryClient.setQueryData(
+        ["learning_outcomes", newOutcome.type],
+        (old: any[]) => [...old, { ...newOutcome, id: "temp-" + Date.now() }]
+      );
       return { prev };
     },
     onError: (err, _, context) => {
-      queryClient.setQueryData(['learning_outcomes'], context?.prev);
+      queryClient.setQueryData(["learning_outcomes"], context?.prev);
     },
     onSettled: (_, __, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['learning_outcomes', variables.type] });
+      queryClient.invalidateQueries({
+        queryKey: ["learning_outcomes", variables.type],
+      });
     },
   });
 };
@@ -1252,18 +1278,18 @@ sequenceDiagram
 
 ### Security Layers
 
-| Layer | Control | Implementation |
-|-------|---------|---------------|
-| **Transport** | TLS 1.3 minimum | Vercel + Supabase enforce by default |
-| **Authentication** | JWT-based sessions | Supabase GoTrue; 15-min access token rotation |
-| **Token Storage** | Memory + httpOnly cookie | Access token in memory (not localStorage); refresh in httpOnly cookie |
-| **Authorization** | Database RLS | PostgreSQL policies; no application-layer trust |
-| **Input Validation** | Zod schemas | Client-side + Edge Function server-side |
-| **Rate Limiting** | Auth endpoint limiting | 5 attempts/15 min (Supabase config) |
-| **File Upload** | Type + size validation | MIME type check + 50MB limit in Supabase Storage rules |
-| **Audit Trail** | Immutable audit log | `audit_logs` table for all admin actions |
-| **Secret Management** | Environment variables only | Service role key never exposed to client; `.env` not committed |
-| **Dependency Security** | Automated scanning | GitHub Dependabot + scheduled Snyk scan |
+| Layer                   | Control                    | Implementation                                                        |
+| ----------------------- | -------------------------- | --------------------------------------------------------------------- |
+| **Transport**           | TLS 1.3 minimum            | Vercel + Supabase enforce by default                                  |
+| **Authentication**      | JWT-based sessions         | Supabase GoTrue; 15-min access token rotation                         |
+| **Token Storage**       | Memory + httpOnly cookie   | Access token in memory (not localStorage); refresh in httpOnly cookie |
+| **Authorization**       | Database RLS               | PostgreSQL policies; no application-layer trust                       |
+| **Input Validation**    | Zod schemas                | Client-side + Edge Function server-side                               |
+| **Rate Limiting**       | Auth endpoint limiting     | 5 attempts/15 min (Supabase config)                                   |
+| **File Upload**         | Type + size validation     | MIME type check + 50MB limit in Supabase Storage rules                |
+| **Audit Trail**         | Immutable audit log        | `audit_logs` table for all admin actions                              |
+| **Secret Management**   | Environment variables only | Service role key never exposed to client; `.env` not committed        |
+| **Dependency Security** | Automated scanning         | GitHub Dependabot + scheduled Snyk scan                               |
 
 ### Environment Variables
 
@@ -1284,41 +1310,48 @@ RESEND_API_KEY=re_...
 
 ### Monitoring Stack
 
-| Layer | Tool | Alert Channel |
-|-------|------|--------------|
-| **Frontend Errors** | Sentry (React SDK) | Slack #alerts |
-| **API Errors** | Supabase Dashboard + Sentry (Edge Functions) | Slack #alerts |
-| **Uptime** | BetterUptime (60s intervals) | SMS + Email |
-| **Performance** | Vercel Web Vitals + Lighthouse CI | GitHub PR checks |
-| **Database** | Supabase Dashboard (query latency, connection count) | Manual review |
-| **Edge Functions** | Supabase Edge Function logs | Supabase Dashboard |
+| Layer               | Tool                                                 | Alert Channel      |
+| ------------------- | ---------------------------------------------------- | ------------------ |
+| **Frontend Errors** | Sentry (React SDK)                                   | Slack #alerts      |
+| **API Errors**      | Supabase Dashboard + Sentry (Edge Functions)         | Slack #alerts      |
+| **Uptime**          | BetterUptime (60s intervals)                         | SMS + Email        |
+| **Performance**     | Vercel Web Vitals + Lighthouse CI                    | GitHub PR checks   |
+| **Database**        | Supabase Dashboard (query latency, connection count) | Manual review      |
+| **Edge Functions**  | Supabase Edge Function logs                          | Supabase Dashboard |
 
 ### Key Alerts
-| Alert | Condition | Action |
-|-------|-----------|--------|
-| High Error Rate | >1% API error rate over 5 min | Page on-call engineer |
-| Slow Evidence Rollup | Edge function >2s execution | Investigate index usage |
-| Streak Job Failed | Cron missed execution | Re-run manually; page engineering |
-| Storage Quota | >80% of Supabase Storage | Upgrade tier or implement cleanup policy |
-| Auth Spike | >100 failed logins in 1 min from single IP | Block IP, alert admin |
+
+| Alert                | Condition                                  | Action                                   |
+| -------------------- | ------------------------------------------ | ---------------------------------------- |
+| High Error Rate      | >1% API error rate over 5 min              | Page on-call engineer                    |
+| Slow Evidence Rollup | Edge function >2s execution                | Investigate index usage                  |
+| Streak Job Failed    | Cron missed execution                      | Re-run manually; page engineering        |
+| Storage Quota        | >80% of Supabase Storage                   | Upgrade tier or implement cleanup policy |
+| Auth Spike           | >100 failed logins in 1 min from single IP | Block IP, alert admin                    |
 
 ### Structured Logging (Edge Functions)
 
 ```typescript
 // All edge function logs follow this structured format
-const log = (level: 'info' | 'warn' | 'error', event: string, data?: Record<string, unknown>) => {
-  console.log(JSON.stringify({
-    timestamp: new Date().toISOString(),
-    level,
-    event,
-    service: 'edeviser-edge',
-    ...data,
-  }));
+const log = (
+  level: "info" | "warn" | "error",
+  event: string,
+  data?: Record<string, unknown>
+) => {
+  console.log(
+    JSON.stringify({
+      timestamp: new Date().toISOString(),
+      level,
+      event,
+      service: "edeviser-edge",
+      ...data,
+    })
+  );
 };
 
 // Usage
-log('info', 'evidence.created', { student_id, clo_id, score_percent });
-log('error', 'rollup.failed', { error: err.message, grade_id });
+log("info", "evidence.created", { student_id, clo_id, score_percent });
+log("error", "rollup.failed", { error: err.message, grade_id });
 ```
 
 ---
@@ -1362,6 +1395,7 @@ graph TB
 ```
 
 ### Supabase Region Selection
+
 - **Primary:** `ap-south-1` (Mumbai) — closest to South Asia target market.
 - **Failover:** Not configured in MVP; Supabase provides auto-failover within region.
 - **Phase 2:** Consider `ap-southeast-1` (Singapore) replica for Southeast Asia expansion.
@@ -1407,40 +1441,40 @@ jobs:
 
 ### Full Stack Summary
 
-| Layer | Technology | Version | Purpose |
-|-------|-----------|---------|---------|
-| **Frontend Framework** | React | 18 | Component-based UI |
-| **Build Tool** | Vite | 6 | Fast dev server + optimized production build |
-| **Language** | TypeScript | 5 | Type safety across frontend and edge functions |
-| **Styling** | Tailwind CSS | v4 | Utility-first CSS; design token integration |
-| **Component Library** | Shadcn/ui + Radix UI | Latest | Accessible, unstyled primitives + Edeviser overrides |
-| **Routing** | React Router | v7 | SPA navigation with role-based guards |
-| **Server State** | TanStack Query | 5 | Caching, deduplication, optimistic updates, background sync |
-| **Data Tables** | TanStack Table | Latest | Headless table logic for data-heavy views |
-| **Forms** | React Hook Form + Zod | Latest | Type-safe form validation |
-| **Client State** | Zustand | Latest | Lightweight client-side state management |
-| **Animation** | Framer Motion | 11 | Complex UI animations; gamification celebrations |
-| **Celebration Effects** | canvas-confetti | Latest | Confetti bursts on XP awards, level-ups, badge unlocks |
-| **Charts** | Recharts | Latest | Dashboard analytics and Bloom's distribution charts |
-| **Drag & Drop** | dnd-kit | Latest | Reorderable lists (PLO sort order, rubric criteria) |
-| **Dates** | date-fns | Latest | Date formatting and manipulation |
-| **Toasts** | Sonner | Latest | Toast notifications for all user feedback |
-| **URL State** | nuqs | Latest | URL-persisted filter/search state in list pages |
-| **Internationalization** | i18next + react-i18next | Latest | Multi-language support (English first, Urdu/Arabic Phase 2) |
-| **Icons** | Lucide React | Latest | Consistent icon set |
-| **Database** | Supabase PostgreSQL | 15 | Managed PostgreSQL with realtime |
-| **Auth** | Supabase Auth (GoTrue) | — | JWT-based sessions, RBAC |
-| **API** | Supabase PostgREST | — | Auto-generated REST API from DB schema |
-| **Edge Functions** | Supabase Edge (Deno) | — | Complex business logic, PDF gen, AI calls |
-| **Realtime** | Supabase Realtime | — | WebSocket-based live updates |
-| **File Storage** | Supabase Storage | — | Assignment files, PDFs; CDN delivery |
-| **Frontend Host** | Vercel | — | Global CDN, CI/CD, edge middleware |
-| **Email** | Resend | — | Transactional emails (Edge Functions only — not in React app) |
-| **Error Monitoring** | @sentry/react | Latest | Frontend error tracking + performance monitoring |
-| **Testing** | Vitest + React Testing Library | — | Unit and component tests |
-| **Property Testing** | fast-check | Latest | Property-based tests (min 100 iterations per property) |
-| **PDF Generation** | Puppeteer (in Edge Function) | Latest | Server-side accreditation report rendering |
-| **AI (Phase 2)** | OpenAI API / Anthropic API | — | AI Co-Pilot features |
+| Layer                    | Technology                     | Version | Purpose                                                       |
+| ------------------------ | ------------------------------ | ------- | ------------------------------------------------------------- |
+| **Frontend Framework**   | React                          | 18      | Component-based UI                                            |
+| **Build Tool**           | Vite                           | 6       | Fast dev server + optimized production build                  |
+| **Language**             | TypeScript                     | 5       | Type safety across frontend and edge functions                |
+| **Styling**              | Tailwind CSS                   | v4      | Utility-first CSS; design token integration                   |
+| **Component Library**    | Shadcn/ui + Radix UI           | Latest  | Accessible, unstyled primitives + Edeviser overrides          |
+| **Routing**              | React Router                   | v7      | SPA navigation with role-based guards                         |
+| **Server State**         | TanStack Query                 | 5       | Caching, deduplication, optimistic updates, background sync   |
+| **Data Tables**          | TanStack Table                 | Latest  | Headless table logic for data-heavy views                     |
+| **Forms**                | React Hook Form + Zod          | Latest  | Type-safe form validation                                     |
+| **Client State**         | Zustand                        | Latest  | Lightweight client-side state management                      |
+| **Animation**            | Framer Motion                  | 11      | Complex UI animations; gamification celebrations              |
+| **Celebration Effects**  | canvas-confetti                | Latest  | Confetti bursts on XP awards, level-ups, badge unlocks        |
+| **Charts**               | Recharts                       | Latest  | Dashboard analytics and Bloom's distribution charts           |
+| **Drag & Drop**          | dnd-kit                        | Latest  | Reorderable lists (PLO sort order, rubric criteria)           |
+| **Dates**                | date-fns                       | Latest  | Date formatting and manipulation                              |
+| **Toasts**               | Sonner                         | Latest  | Toast notifications for all user feedback                     |
+| **URL State**            | nuqs                           | Latest  | URL-persisted filter/search state in list pages               |
+| **Internationalization** | i18next + react-i18next        | Latest  | Multi-language support (English first, Urdu/Arabic Phase 2)   |
+| **Icons**                | Lucide React                   | Latest  | Consistent icon set                                           |
+| **Database**             | Supabase PostgreSQL            | 15      | Managed PostgreSQL with realtime                              |
+| **Auth**                 | Supabase Auth (GoTrue)         | —       | JWT-based sessions, RBAC                                      |
+| **API**                  | Supabase PostgREST             | —       | Auto-generated REST API from DB schema                        |
+| **Edge Functions**       | Supabase Edge (Deno)           | —       | Complex business logic, PDF gen, AI calls                     |
+| **Realtime**             | Supabase Realtime              | —       | WebSocket-based live updates                                  |
+| **File Storage**         | Supabase Storage               | —       | Assignment files, PDFs; CDN delivery                          |
+| **Frontend Host**        | Vercel                         | —       | Global CDN, CI/CD, edge middleware                            |
+| **Email**                | Resend                         | —       | Transactional emails (Edge Functions only — not in React app) |
+| **Error Monitoring**     | @sentry/react                  | Latest  | Frontend error tracking + performance monitoring              |
+| **Testing**              | Vitest + React Testing Library | —       | Unit and component tests                                      |
+| **Property Testing**     | fast-check                     | Latest  | Property-based tests (min 100 iterations per property)        |
+| **PDF Generation**       | Puppeteer (in Edge Function)   | Latest  | Server-side accreditation report rendering                    |
+| **AI (Phase 2)**         | OpenAI API / Anthropic API     | —       | AI Co-Pilot features                                          |
 
 ### Frontend Project Structure
 
@@ -1534,32 +1568,33 @@ jobs:
 
 ## 15. Scalability Roadmap
 
-| Scale Trigger | Symptom | Mitigation |
-|---------------|---------|------------|
-| **5,000+ students** | DB read latency increase | Add Supabase read replica; route analytics queries to replica |
-| **10,000+ students** | Leaderboard refresh too slow | Replace materialized view with Redis sorted set |
-| **50+ institutions** | RLS policy complexity; single project risk | Migrate to multi-project architecture (1 Supabase project per institution) |
-| **100+ concurrent graders** | Evidence rollup queue backlog | Introduce queue (pg_cron or external queue like Inngest) for rollup jobs |
-| **AI at scale** | AI API cost and latency | Implement request batching; add caching layer for common suggestions |
-| **File storage >100GB** | Cost and performance | Implement lifecycle policy; archive old submissions to cold storage |
+| Scale Trigger               | Symptom                                    | Mitigation                                                                 |
+| --------------------------- | ------------------------------------------ | -------------------------------------------------------------------------- |
+| **5,000+ students**         | DB read latency increase                   | Add Supabase read replica; route analytics queries to replica              |
+| **10,000+ students**        | Leaderboard refresh too slow               | Replace materialized view with Redis sorted set                            |
+| **50+ institutions**        | RLS policy complexity; single project risk | Migrate to multi-project architecture (1 Supabase project per institution) |
+| **100+ concurrent graders** | Evidence rollup queue backlog              | Introduce queue (pg_cron or external queue like Inngest) for rollup jobs   |
+| **AI at scale**             | AI API cost and latency                    | Implement request batching; add caching layer for common suggestions       |
+| **File storage >100GB**     | Cost and performance                       | Implement lifecycle policy; archive old submissions to cold storage        |
 
 ---
 
 ## 16. Disaster Recovery
 
-| Scenario | RTO | RPO | Recovery Procedure |
-|----------|-----|-----|-------------------|
-| **Frontend outage (Vercel)** | < 15 min | N/A | Vercel automatic failover; rollback via `vercel rollback` |
-| **Database corruption** | < 4 hours | < 1 hour | Supabase PITR (Point-in-Time Recovery) restore; validate evidence integrity |
-| **Supabase region outage** | < 4 hours | < 1 hour | Restore from daily backup to alternative region |
-| **Edge Function bug causing bad evidence** | < 2 hours | N/A | Roll back function via `supabase functions deploy --version`; evidence table is append-only — insert correction records |
-| **Compromised service role key** | < 30 min | N/A | Rotate key in Supabase dashboard; update Vercel/GitHub secrets; audit `audit_logs` for unauthorized operations |
-| **Bulk XP fraud detected** | < 1 hour | N/A | Admin reverts XP transactions (admin-only write with audit trail); `xp_transactions` log provides full audit |
+| Scenario                                   | RTO       | RPO      | Recovery Procedure                                                                                                      |
+| ------------------------------------------ | --------- | -------- | ----------------------------------------------------------------------------------------------------------------------- |
+| **Frontend outage (Vercel)**               | < 15 min  | N/A      | Vercel automatic failover; rollback via `vercel rollback`                                                               |
+| **Database corruption**                    | < 4 hours | < 1 hour | Supabase PITR (Point-in-Time Recovery) restore; validate evidence integrity                                             |
+| **Supabase region outage**                 | < 4 hours | < 1 hour | Restore from daily backup to alternative region                                                                         |
+| **Edge Function bug causing bad evidence** | < 2 hours | N/A      | Roll back function via `supabase functions deploy --version`; evidence table is append-only — insert correction records |
+| **Compromised service role key**           | < 30 min  | N/A      | Rotate key in Supabase dashboard; update Vercel/GitHub secrets; audit `audit_logs` for unauthorized operations          |
+| **Bulk XP fraud detected**                 | < 1 hour  | N/A      | Admin reverts XP transactions (admin-only write with audit trail); `xp_transactions` log provides full audit            |
 
 ### Backup Verification
+
 - Monthly: Restore Supabase backup to a staging project and verify data integrity with automated test queries.
 - Quarterly: Full disaster recovery drill (simulate region outage, restore from backup, verify app functionality).
 
 ---
 
-*Document maintained by the Edeviser Engineering Team. Architecture decisions require CTO sign-off. All changes tracked in Git history.*
+_Document maintained by the Edeviser Engineering Team. Architecture decisions require CTO sign-off. All changes tracked in Git history._

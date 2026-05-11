@@ -1,8 +1,8 @@
-import { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import { useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import {
   useQuiz,
   useCreateQuiz,
@@ -11,12 +11,12 @@ import {
   useCreateQuizQuestion,
   useUpdateQuizQuestion,
   useDeleteQuizQuestion,
-} from '@/hooks/useQuizzes';
-import type { QuizQuestion } from '@/hooks/useQuizzes';
-import { useCourses } from '@/hooks/useCourses';
-import { useCLOs } from '@/hooks/useCLOs';
-import { useAuth } from '@/hooks/useAuth';
-import { logAuditEvent } from '@/lib/auditLogger';
+} from "@/hooks/useQuizzes";
+import type { QuizQuestion } from "@/hooks/useQuizzes";
+import { useCourses } from "@/hooks/useCourses";
+import { useCLOs } from "@/hooks/useCLOs";
+import { useAuth } from "@/hooks/useAuth";
+import { logAuditEvent } from "@/lib/auditLogger";
 import {
   Form,
   FormField,
@@ -24,38 +24,44 @@ import {
   FormLabel,
   FormControl,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { ArrowLeft, Loader2, Plus, Trash2, Pencil } from 'lucide-react';
-import { toast } from 'sonner';
+} from "@/components/ui/dialog";
+import { ArrowLeft, Loader2, Plus, Trash2, Pencil } from "lucide-react";
+import { toast } from "sonner";
 
 // ─── Question Form Schema ────────────────────────────────────────────────────
 
 const questionFormSchema = z.object({
-  question_text: z.string().min(1, 'Question text is required'),
-  question_type: z.enum(['mcq_single', 'mcq_multi', 'true_false', 'short_answer', 'fill_blank']),
+  question_text: z.string().min(1, "Question text is required"),
+  question_type: z.enum([
+    "mcq_single",
+    "mcq_multi",
+    "true_false",
+    "short_answer",
+    "fill_blank",
+  ]),
   options: z.array(z.string()).nullable(),
   correct_answer: z.union([z.string(), z.array(z.string())]),
-  points: z.number().min(0, 'Points must be 0 or more'),
+  points: z.number().min(0, "Points must be 0 or more"),
   sort_order: z.number().int().min(0),
 });
 
@@ -64,11 +70,11 @@ type QuestionFormData = z.infer<typeof questionFormSchema>;
 // ─── Question Type Labels ────────────────────────────────────────────────────
 
 const QUESTION_TYPE_LABELS: Record<string, string> = {
-  mcq_single: 'MCQ (Single)',
-  mcq_multi: 'MCQ (Multi)',
-  true_false: 'True / False',
-  short_answer: 'Short Answer',
-  fill_blank: 'Fill in the Blank',
+  mcq_single: "MCQ (Single)",
+  mcq_multi: "MCQ (Multi)",
+  true_false: "True / False",
+  short_answer: "Short Answer",
+  fill_blank: "Fill in the Blank",
 };
 
 // ─── Question Dialog ─────────────────────────────────────────────────────────
@@ -91,7 +97,7 @@ const QuestionDialog = ({
   const createQuestion = useCreateQuizQuestion();
   const updateQuestion = useUpdateQuizQuestion();
   const [options, setOptions] = useState<string[]>(
-    existingQuestion?.options ?? ['', ''],
+    existingQuestion?.options ?? ["", ""]
   );
 
   const form = useForm<QuestionFormData>({
@@ -106,39 +112,42 @@ const QuestionDialog = ({
           sort_order: existingQuestion.sort_order,
         }
       : {
-          question_text: '',
-          question_type: 'mcq_single',
-          options: ['', ''],
-          correct_answer: '',
+          question_text: "",
+          question_type: "mcq_single",
+          options: ["", ""],
+          correct_answer: "",
           points: 1,
           sort_order: nextSortOrder,
         },
   });
 
-   
-  const questionType = form.watch('question_type');
+  const questionType = form.watch("question_type");
 
   const handleTypeChange = (type: string) => {
-    form.setValue('question_type', type as QuestionFormData['question_type']);
-    if (type === 'true_false') {
-      setOptions(['True', 'False']);
-      form.setValue('options', ['True', 'False']);
-      form.setValue('correct_answer', 'True');
-    } else if (type === 'short_answer' || type === 'fill_blank') {
+    form.setValue("question_type", type as QuestionFormData["question_type"]);
+    if (type === "true_false") {
+      setOptions(["True", "False"]);
+      form.setValue("options", ["True", "False"]);
+      form.setValue("correct_answer", "True");
+    } else if (type === "short_answer" || type === "fill_blank") {
       setOptions([]);
-      form.setValue('options', null);
-      form.setValue('correct_answer', '');
+      form.setValue("options", null);
+      form.setValue("correct_answer", "");
     } else {
       if (options.length < 2) {
-        setOptions(['', '']);
-        form.setValue('options', ['', '']);
+        setOptions(["", ""]);
+        form.setValue("options", ["", ""]);
       }
     }
   };
 
   const onSubmit = (data: QuestionFormData) => {
     const finalOptions =
-      data.question_type === 'short_answer' ? null : options.filter(Boolean).length > 0 ? options.filter(Boolean) : null;
+      data.question_type === "short_answer"
+        ? null
+        : options.filter(Boolean).length > 0
+        ? options.filter(Boolean)
+        : null;
 
     const payload = { ...data, options: finalOptions, quiz_id: quizId };
 
@@ -147,16 +156,16 @@ const QuestionDialog = ({
         { ...payload, id: existingQuestion.id },
         {
           onSuccess: () => {
-            toast.success('Question updated');
+            toast.success("Question updated");
             onOpenChange(false);
           },
           onError: (err) => toast.error(err.message),
-        },
+        }
       );
     } else {
       createQuestion.mutate(payload, {
         onSuccess: () => {
-          toast.success('Question added');
+          toast.success("Question added");
           onOpenChange(false);
         },
         onError: (err) => toast.error(err.message),
@@ -170,7 +179,9 @@ const QuestionDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{existingQuestion ? 'Edit Question' : 'Add Question'}</DialogTitle>
+          <DialogTitle>
+            {existingQuestion ? "Edit Question" : "Add Question"}
+          </DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -193,9 +204,13 @@ const QuestionDialog = ({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {Object.entries(QUESTION_TYPE_LABELS).map(([val, label]) => (
-                        <SelectItem key={val} value={val}>{label}</SelectItem>
-                      ))}
+                      {Object.entries(QUESTION_TYPE_LABELS).map(
+                        ([val, label]) => (
+                          <SelectItem key={val} value={val}>
+                            {label}
+                          </SelectItem>
+                        )
+                      )}
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -210,26 +225,33 @@ const QuestionDialog = ({
                 <FormItem>
                   <FormLabel>Question Text</FormLabel>
                   <FormControl>
-                    <Textarea rows={3} placeholder="Enter question..." {...field} />
+                    <Textarea
+                      rows={3}
+                      placeholder="Enter question..."
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            {(questionType === 'mcq_single' || questionType === 'mcq_multi') && (
+            {(questionType === "mcq_single" ||
+              questionType === "mcq_multi") && (
               <div className="space-y-2">
                 <Label>Options</Label>
                 {options.map((opt, idx) => (
                   <div key={idx} className="flex items-center gap-2">
-                    <span className="text-xs text-gray-400 w-6">{String.fromCharCode(65 + idx)}.</span>
+                    <span className="text-xs text-gray-400 w-6">
+                      {String.fromCharCode(65 + idx)}.
+                    </span>
                     <Input
                       value={opt}
                       onChange={(e) => {
                         const next = [...options];
                         next[idx] = e.target.value;
                         setOptions(next);
-                        form.setValue('options', next);
+                        form.setValue("options", next);
                       }}
                       placeholder={`Option ${String.fromCharCode(65 + idx)}`}
                     />
@@ -241,7 +263,7 @@ const QuestionDialog = ({
                         onClick={() => {
                           const next = options.filter((_, i) => i !== idx);
                           setOptions(next);
-                          form.setValue('options', next);
+                          form.setValue("options", next);
                         }}
                       >
                         <Trash2 className="h-4 w-4 text-red-500" />
@@ -255,8 +277,8 @@ const QuestionDialog = ({
                     variant="outline"
                     size="sm"
                     onClick={() => {
-                      setOptions([...options, '']);
-                      form.setValue('options', [...options, '']);
+                      setOptions([...options, ""]);
+                      form.setValue("options", [...options, ""]);
                     }}
                   >
                     <Plus className="h-4 w-4 me-1" /> Add Option
@@ -265,7 +287,7 @@ const QuestionDialog = ({
               </div>
             )}
 
-            {questionType === 'true_false' && (
+            {questionType === "true_false" && (
               <FormField
                 control={form.control}
                 name="correct_answer"
@@ -273,7 +295,7 @@ const QuestionDialog = ({
                   <FormItem>
                     <FormLabel>Correct Answer</FormLabel>
                     <Select
-                      value={typeof field.value === 'string' ? field.value : ''}
+                      value={typeof field.value === "string" ? field.value : ""}
                       onValueChange={field.onChange}
                     >
                       <FormControl>
@@ -292,7 +314,7 @@ const QuestionDialog = ({
               />
             )}
 
-            {questionType === 'mcq_single' && (
+            {questionType === "mcq_single" && (
               <FormField
                 control={form.control}
                 name="correct_answer"
@@ -300,7 +322,7 @@ const QuestionDialog = ({
                   <FormItem>
                     <FormLabel>Correct Answer</FormLabel>
                     <Select
-                      value={typeof field.value === 'string' ? field.value : ''}
+                      value={typeof field.value === "string" ? field.value : ""}
                       onValueChange={field.onChange}
                     >
                       <FormControl>
@@ -310,7 +332,9 @@ const QuestionDialog = ({
                       </FormControl>
                       <SelectContent>
                         {options.filter(Boolean).map((opt, idx) => (
-                          <SelectItem key={idx} value={opt}>{opt}</SelectItem>
+                          <SelectItem key={idx} value={opt}>
+                            {opt}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -320,16 +344,20 @@ const QuestionDialog = ({
               />
             )}
 
-            {questionType === 'mcq_multi' && (
+            {questionType === "mcq_multi" && (
               <FormField
                 control={form.control}
                 name="correct_answer"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Correct Answers (select all that apply)</FormLabel>
+                    <FormLabel>
+                      Correct Answers (select all that apply)
+                    </FormLabel>
                     <div className="space-y-2">
                       {options.filter(Boolean).map((opt, idx) => {
-                        const selected = Array.isArray(field.value) ? field.value : [];
+                        const selected = Array.isArray(field.value)
+                          ? field.value
+                          : [];
                         return (
                           <div key={idx} className="flex items-center gap-2">
                             <Checkbox
@@ -352,7 +380,8 @@ const QuestionDialog = ({
               />
             )}
 
-            {(questionType === 'short_answer' || questionType === 'fill_blank') && (
+            {(questionType === "short_answer" ||
+              questionType === "fill_blank") && (
               <FormField
                 control={form.control}
                 name="correct_answer"
@@ -362,7 +391,9 @@ const QuestionDialog = ({
                     <FormControl>
                       <Input
                         placeholder="Expected answer..."
-                        value={typeof field.value === 'string' ? field.value : ''}
+                        value={
+                          typeof field.value === "string" ? field.value : ""
+                        }
                         onChange={(e) => field.onChange(e.target.value)}
                       />
                     </FormControl>
@@ -397,7 +428,7 @@ const QuestionDialog = ({
               className="w-full bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 text-white"
             >
               {isPending && <Loader2 className="h-4 w-4 animate-spin me-1" />}
-              {existingQuestion ? 'Update Question' : 'Add Question'}
+              {existingQuestion ? "Update Question" : "Add Question"}
             </Button>
           </form>
         </Form>
@@ -409,14 +440,14 @@ const QuestionDialog = ({
 // ─── Quiz Builder Page ───────────────────────────────────────────────────────
 
 const quizMetaSchema = z.object({
-  title: z.string().min(1, 'Title is required').max(255),
+  title: z.string().min(1, "Title is required").max(255),
   description: z.string().optional(),
-  course_id: z.string().min(1, 'Course is required'),
-  clo_ids: z.array(z.string()).min(1, 'At least 1 CLO required'),
+  course_id: z.string().min(1, "Course is required"),
+  clo_ids: z.array(z.string()).min(1, "At least 1 CLO required"),
   time_limit_minutes: z.number().int().min(1).nullable(),
   max_attempts: z.number().int().min(1),
   is_published: z.boolean(),
-  due_date: z.string().min(1, 'Due date is required'),
+  due_date: z.string().min(1, "Due date is required"),
 });
 
 type QuizMetaFormData = z.infer<typeof quizMetaSchema>;
@@ -428,13 +459,16 @@ const QuizBuilder = () => {
   const isEditMode = !!id;
 
   const { data: existingQuiz, isLoading: isLoadingQuiz } = useQuiz(id);
-  const { data: questions, isLoading: isLoadingQuestions } = useQuizQuestions(id);
+  const { data: questions, isLoading: isLoadingQuestions } =
+    useQuizQuestions(id);
   const createQuiz = useCreateQuiz();
   const updateQuiz = useUpdateQuiz();
   const deleteQuestion = useDeleteQuizQuestion();
 
   const [questionDialogOpen, setQuestionDialogOpen] = useState(false);
-  const [editingQuestion, setEditingQuestion] = useState<QuizQuestion | undefined>();
+  const [editingQuestion, setEditingQuestion] = useState<
+    QuizQuestion | undefined
+  >();
 
   const { data: paginatedCourses, isLoading: isLoadingCourses } = useCourses();
   const courses = paginatedCourses?.data ?? [];
@@ -442,20 +476,21 @@ const QuizBuilder = () => {
   const form = useForm<QuizMetaFormData>({
     resolver: zodResolver(quizMetaSchema) as never,
     defaultValues: {
-      title: '',
-      description: '',
-      course_id: '',
+      title: "",
+      description: "",
+      course_id: "",
       clo_ids: [],
       time_limit_minutes: null,
       max_attempts: 1,
       is_published: false,
-      due_date: '',
+      due_date: "",
     },
   });
 
-   
-  const selectedCourseId = form.watch('course_id');
-  const { data: paginatedCLOs, isLoading: isLoadingCLOs } = useCLOs(selectedCourseId || undefined);
+  const selectedCourseId = form.watch("course_id");
+  const { data: paginatedCLOs, isLoading: isLoadingCLOs } = useCLOs(
+    selectedCourseId || undefined
+  );
   const clos = paginatedCLOs?.data ?? [];
 
   // Populate form when editing
@@ -463,35 +498,40 @@ const QuizBuilder = () => {
     if (existingQuiz) {
       form.reset({
         title: existingQuiz.title,
-        description: existingQuiz.description ?? '',
+        description: existingQuiz.description ?? "",
         course_id: existingQuiz.course_id,
         clo_ids: existingQuiz.clo_ids,
         time_limit_minutes: existingQuiz.time_limit_minutes,
         max_attempts: existingQuiz.max_attempts,
         is_published: existingQuiz.is_published,
-        due_date: existingQuiz.due_date?.slice(0, 16) ?? '',
+        due_date: existingQuiz.due_date?.slice(0, 16) ?? "",
       });
     }
   });
 
   // Re-populate when quiz data loads
-  if (existingQuiz && !form.formState.isDirty && form.getValues('title') === '' && existingQuiz.title) {
+  if (
+    existingQuiz &&
+    !form.formState.isDirty &&
+    form.getValues("title") === "" &&
+    existingQuiz.title
+  ) {
     form.reset({
       title: existingQuiz.title,
-      description: existingQuiz.description ?? '',
+      description: existingQuiz.description ?? "",
       course_id: existingQuiz.course_id,
       clo_ids: existingQuiz.clo_ids,
       time_limit_minutes: existingQuiz.time_limit_minutes,
       max_attempts: existingQuiz.max_attempts,
       is_published: existingQuiz.is_published,
-      due_date: existingQuiz.due_date?.includes('T')
+      due_date: existingQuiz.due_date?.includes("T")
         ? existingQuiz.due_date.slice(0, 16)
-        : existingQuiz.due_date ?? '',
+        : existingQuiz.due_date ?? "",
     });
   }
 
   const onSubmit = (data: QuizMetaFormData) => {
-    const isoDate = data.due_date.includes('Z')
+    const isoDate = data.due_date.includes("Z")
       ? data.due_date
       : new Date(data.due_date).toISOString();
 
@@ -501,7 +541,8 @@ const QuizBuilder = () => {
           id,
           title: data.title,
           description: data.description,
-          clo_ids: data.clo_ids as `${string}-${string}-${string}-${string}-${string}`[],
+          clo_ids:
+            data.clo_ids as `${string}-${string}-${string}-${string}-${string}`[],
           time_limit_minutes: data.time_limit_minutes,
           max_attempts: data.max_attempts,
           is_published: data.is_published,
@@ -509,11 +550,11 @@ const QuizBuilder = () => {
         },
         {
           onSuccess: () => {
-            toast.success('Quiz updated');
+            toast.success("Quiz updated");
             if (user?.id) {
               logAuditEvent({
-                action: 'update',
-                entity_type: 'quiz',
+                action: "update",
+                entity_type: "quiz",
                 entity_id: id,
                 changes: data,
                 performed_by: user.id,
@@ -521,14 +562,16 @@ const QuizBuilder = () => {
             }
           },
           onError: (err) => toast.error(err.message),
-        },
+        }
       );
     } else {
       createQuiz.mutate(
         {
           ...data,
-          course_id: data.course_id as `${string}-${string}-${string}-${string}-${string}`,
-          clo_ids: data.clo_ids as `${string}-${string}-${string}-${string}-${string}`[],
+          course_id:
+            data.course_id as `${string}-${string}-${string}-${string}-${string}`,
+          clo_ids:
+            data.clo_ids as `${string}-${string}-${string}-${string}-${string}`[],
           due_date: isoDate,
           questions: [],
           is_adaptive: false,
@@ -536,21 +579,22 @@ const QuizBuilder = () => {
         },
         {
           onSuccess: (result) => {
-            toast.success('Quiz created — now add questions');
+            toast.success("Quiz created — now add questions");
             if (user?.id) {
               logAuditEvent({
-                action: 'create',
-                entity_type: 'quiz',
-                entity_id: (result as { id: string })?.id ?? '',
+                action: "create",
+                entity_type: "quiz",
+                entity_id: (result as { id: string })?.id ?? "",
                 changes: data,
                 performed_by: user.id,
               });
             }
             const newId = (result as { id: string })?.id;
-            if (newId) navigate(`/teacher/quizzes/${newId}/build`, { replace: true });
+            if (newId)
+              navigate(`/teacher/quizzes/${newId}/build`, { replace: true });
           },
           onError: (err) => toast.error(err.message),
-        },
+        }
       );
     }
   };
@@ -560,9 +604,9 @@ const QuizBuilder = () => {
     deleteQuestion.mutate(
       { id: questionId, quiz_id: id },
       {
-        onSuccess: () => toast.success('Question removed'),
+        onSuccess: () => toast.success("Question removed"),
         onError: (err) => toast.error(err.message),
-      },
+      }
     );
   };
 
@@ -584,7 +628,7 @@ const QuizBuilder = () => {
           Back
         </Button>
         <h1 className="text-2xl font-bold tracking-tight">
-          {isEditMode ? 'Edit Quiz' : 'Create Quiz'}
+          {isEditMode ? "Edit Quiz" : "Create Quiz"}
         </h1>
       </div>
 
@@ -600,7 +644,10 @@ const QuizBuilder = () => {
                 <FormItem>
                   <FormLabel>Title</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g. Midterm Quiz — Data Structures" {...field} />
+                    <Input
+                      placeholder="e.g. Midterm Quiz — Data Structures"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -614,7 +661,11 @@ const QuizBuilder = () => {
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Textarea rows={2} placeholder="Describe the quiz objectives…" {...field} />
+                    <Textarea
+                      rows={2}
+                      placeholder="Describe the quiz objectives…"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -655,7 +706,9 @@ const QuizBuilder = () => {
               isLoadingCLOs ? (
                 <div className="animate-shimmer h-16 rounded-lg" />
               ) : clos.length === 0 ? (
-                <p className="text-sm text-gray-500">No CLOs found for this course.</p>
+                <p className="text-sm text-gray-500">
+                  No CLOs found for this course.
+                </p>
               ) : (
                 <FormField
                   control={form.control}
@@ -679,7 +732,9 @@ const QuizBuilder = () => {
                                       field.onChange(
                                         checked
                                           ? [...current, clo.id]
-                                          : current.filter((v: string) => v !== clo.id),
+                                          : current.filter(
+                                              (v: string) => v !== clo.id
+                                            )
                                       );
                                     }}
                                   />
@@ -698,7 +753,9 @@ const QuizBuilder = () => {
                 />
               )
             ) : (
-              <p className="text-sm text-gray-500">Select a course to see CLOs.</p>
+              <p className="text-sm text-gray-500">
+                Select a course to see CLOs.
+              </p>
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -712,7 +769,11 @@ const QuizBuilder = () => {
                       <Input
                         type="datetime-local"
                         {...field}
-                        value={field.value?.includes('T') ? field.value.slice(0, 16) : field.value}
+                        value={
+                          field.value?.includes("T")
+                            ? field.value.slice(0, 16)
+                            : field.value
+                        }
                       />
                     </FormControl>
                     <FormMessage />
@@ -730,8 +791,12 @@ const QuizBuilder = () => {
                         type="number"
                         min={1}
                         placeholder="30"
-                        value={field.value ?? ''}
-                        onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
+                        value={field.value ?? ""}
+                        onChange={(e) =>
+                          field.onChange(
+                            e.target.value ? Number(e.target.value) : null
+                          )
+                        }
                       />
                     </FormControl>
                     <FormMessage />
@@ -765,7 +830,10 @@ const QuizBuilder = () => {
               render={({ field }) => (
                 <div className="flex items-center justify-between gap-4 rounded-lg border border-slate-200 p-4">
                   <div className="space-y-0.5">
-                    <Label htmlFor="is-published" className="text-sm font-medium">
+                    <Label
+                      htmlFor="is-published"
+                      className="text-sm font-medium"
+                    >
                       Publish Quiz
                     </Label>
                     <p className="text-xs text-gray-500">
@@ -788,7 +856,7 @@ const QuizBuilder = () => {
               className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 text-white"
             >
               {isPending && <Loader2 className="h-4 w-4 animate-spin me-1" />}
-              {isEditMode ? 'Update Quiz' : 'Create Quiz'}
+              {isEditMode ? "Update Quiz" : "Create Quiz"}
             </Button>
           </form>
         </Form>
@@ -799,9 +867,14 @@ const QuizBuilder = () => {
         <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
           <div
             className="px-6 py-4 flex items-center justify-between"
-            style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+            style={{
+              background:
+                "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+            }}
           >
-            <h2 className="text-lg font-bold tracking-tight text-white">Questions</h2>
+            <h2 className="text-lg font-bold tracking-tight text-white">
+              Questions
+            </h2>
             <Button
               size="sm"
               variant="secondary"
@@ -833,9 +906,12 @@ const QuizBuilder = () => {
                     </p>
                     <div className="flex items-center gap-3 mt-1">
                       <span className="text-xs text-gray-400">
-                        {QUESTION_TYPE_LABELS[q.question_type] ?? q.question_type}
+                        {QUESTION_TYPE_LABELS[q.question_type] ??
+                          q.question_type}
                       </span>
-                      <span className="text-xs text-gray-400">{q.points} pts</span>
+                      <span className="text-xs text-gray-400">
+                        {q.points} pts
+                      </span>
                     </div>
                   </div>
                   <div className="flex items-center gap-1 shrink-0">

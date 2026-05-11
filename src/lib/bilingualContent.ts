@@ -9,11 +9,11 @@ export interface BilingualField {
  */
 export const resolveBilingualContent = (
   field: BilingualField,
-  activeLanguage: string,
+  activeLanguage: string
 ): string => {
-  const primary = activeLanguage === 'ar' ? field.ar : field.en;
-  const fallback = activeLanguage === 'ar' ? field.en : field.ar;
-  return primary?.trim() || fallback?.trim() || '';
+  const primary = activeLanguage === "ar" ? field.ar : field.en;
+  const fallback = activeLanguage === "ar" ? field.en : field.ar;
+  return primary?.trim() || fallback?.trim() || "";
 };
 
 /**
@@ -21,5 +21,5 @@ export const resolveBilingualContent = (
  */
 export const createBilingualField = (
   en: string | null,
-  ar: string | null,
+  ar: string | null
 ): BilingualField => ({ en, ar });

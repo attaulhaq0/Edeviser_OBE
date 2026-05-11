@@ -3,7 +3,7 @@
 // =============================================================================
 /* eslint-disable react-refresh/only-export-components */
 
-import { cn } from '@/lib/utils';
+import { cn } from "@/lib/utils";
 
 interface GradeCell {
   score: number | null;
@@ -30,12 +30,12 @@ interface GradebookMatrixProps {
 }
 
 function getCellColor(score: number | null, maxScore: number): string {
-  if (score === null) return 'bg-gray-50 text-gray-400';
+  if (score === null) return "bg-gray-50 text-gray-400";
   const pct = (score / maxScore) * 100;
-  if (pct >= 85) return 'bg-green-50 text-green-700';
-  if (pct >= 70) return 'bg-blue-50 text-blue-700';
-  if (pct >= 50) return 'bg-yellow-50 text-yellow-700';
-  return 'bg-red-50 text-red-700';
+  if (pct >= 85) return "bg-green-50 text-green-700";
+  if (pct >= 70) return "bg-blue-50 text-blue-700";
+  if (pct >= 50) return "bg-yellow-50 text-yellow-700";
+  return "bg-red-50 text-red-700";
 }
 
 const GradebookMatrix = ({
@@ -44,7 +44,12 @@ const GradebookMatrix = ({
   onCellClick,
   className,
 }: GradebookMatrixProps) => (
-  <div className={cn('overflow-auto rounded-xl border border-slate-200', className)}>
+  <div
+    className={cn(
+      "overflow-auto rounded-xl border border-slate-200",
+      className
+    )}
+  >
     <table className="w-full text-sm">
       <thead>
         <tr className="bg-slate-50">
@@ -52,9 +57,16 @@ const GradebookMatrix = ({
             Student
           </th>
           {assignments.map((a) => (
-            <th key={a.id} className="px-3 py-2 text-center font-medium text-gray-600 whitespace-nowrap">
-              <div className="truncate max-w-[100px]" title={a.title}>{a.title}</div>
-              <div className="text-[10px] text-gray-400 font-normal">/{a.maxScore}</div>
+            <th
+              key={a.id}
+              className="px-3 py-2 text-center font-medium text-gray-600 whitespace-nowrap"
+            >
+              <div className="truncate max-w-[100px]" title={a.title}>
+                {a.title}
+              </div>
+              <div className="text-[10px] text-gray-400 font-normal">
+                /{a.maxScore}
+              </div>
             </th>
           ))}
         </tr>
@@ -72,12 +84,12 @@ const GradebookMatrix = ({
                 <td
                   key={a.id}
                   className={cn(
-                    'px-3 py-2 text-center font-medium tabular-nums cursor-pointer hover:opacity-80 transition-opacity',
-                    getCellColor(score, a.maxScore),
+                    "px-3 py-2 text-center font-medium tabular-nums cursor-pointer hover:opacity-80 transition-opacity",
+                    getCellColor(score, a.maxScore)
                   )}
                   onClick={() => onCellClick?.(student.studentId, a.id)}
                 >
-                  {score !== null ? score : '—'}
+                  {score !== null ? score : "—"}
                 </td>
               );
             })}
@@ -90,4 +102,9 @@ const GradebookMatrix = ({
 
 export default GradebookMatrix;
 export { getCellColor };
-export type { GradebookMatrixProps, GradebookStudent, GradebookAssignment, GradeCell };
+export type {
+  GradebookMatrixProps,
+  GradebookStudent,
+  GradebookAssignment,
+  GradeCell,
+};

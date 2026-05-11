@@ -284,7 +284,6 @@ The AI-Powered Adaptive Quiz Generation feature extends the existing Quiz Module
 4. THE Platform SHALL NOT send student PII (full name, email, student ID) to the LLM provider during question generation; only course material content and pedagogical parameters SHALL be included in the prompt.
 5. All LLM API calls for question generation SHALL be logged to an internal monitoring table with: teacher_id, course_id, model used, token count, latency, and timestamp for cost tracking.
 
-
 ---
 
 ### SECTION I: Mastery Recovery Pathways

@@ -3,22 +3,22 @@
 // Validates: Requirements 31
 // =============================================================================
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 export type NotificationType =
-  | 'grade_released'
-  | 'new_assignment'
-  | 'badge_earned'
-  | 'streak_at_risk'
-  | 'at_risk_alert'
-  | 'peer_milestone'
-  | 'perfect_day_nudge'
-  | 'prerequisite_unlocked'
-  | 'digest';
+  | "grade_released"
+  | "new_assignment"
+  | "badge_earned"
+  | "streak_at_risk"
+  | "at_risk_alert"
+  | "peer_milestone"
+  | "perfect_day_nudge"
+  | "prerequisite_unlocked"
+  | "digest";
 
 export interface Notification {
   id: string;
@@ -40,10 +40,10 @@ export const useNotifications = (userId: string | undefined) => {
       if (!userId) return [];
 
       const { data, error } = await supabase
-        .from('notifications')
-        .select('id, user_id, type, title, body, is_read, metadata, created_at')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
+        .from("notifications")
+        .select("id, user_id, type, title, body, is_read, metadata, created_at")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
         .limit(50);
 
       if (error) throw error;
@@ -57,15 +57,15 @@ export const useNotifications = (userId: string | undefined) => {
 
 export const useUnreadCount = (userId: string | undefined) => {
   return useQuery({
-    queryKey: queryKeys.notifications.list({ userId, scope: 'unread-count' }),
+    queryKey: queryKeys.notifications.list({ userId, scope: "unread-count" }),
     queryFn: async (): Promise<number> => {
       if (!userId) return 0;
 
       const { count, error } = await supabase
-        .from('notifications')
-        .select('id', { count: 'exact', head: true })
-        .eq('user_id', userId)
-        .eq('is_read', false);
+        .from("notifications")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", userId)
+        .eq("is_read", false);
 
       if (error) throw error;
       return count ?? 0;
@@ -82,9 +82,9 @@ export const useMarkAsRead = () => {
   return useMutation({
     mutationFn: async (notificationId: string): Promise<void> => {
       const { error } = await supabase
-        .from('notifications')
+        .from("notifications")
         .update({ is_read: true })
-        .eq('id', notificationId);
+        .eq("id", notificationId);
 
       if (error) throw error;
     },
@@ -102,10 +102,10 @@ export const useMarkAllAsRead = () => {
   return useMutation({
     mutationFn: async (userId: string): Promise<void> => {
       const { error } = await supabase
-        .from('notifications')
+        .from("notifications")
         .update({ is_read: true })
-        .eq('user_id', userId)
-        .eq('is_read', false);
+        .eq("user_id", userId)
+        .eq("is_read", false);
 
       if (error) throw error;
     },
@@ -123,9 +123,9 @@ export const useDeleteNotification = () => {
   return useMutation({
     mutationFn: async (notificationId: string): Promise<void> => {
       const { error } = await supabase
-        .from('notifications')
+        .from("notifications")
         .delete()
-        .eq('id', notificationId);
+        .eq("id", notificationId);
 
       if (error) throw error;
     },

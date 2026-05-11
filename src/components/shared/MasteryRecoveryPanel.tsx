@@ -3,15 +3,15 @@
 // Validates: Requirements 19.1, 19.2, 19.3, 19.4, 19.5
 // =============================================================================
 
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
-import { isRecoveryComplete } from '@/lib/masteryRecovery';
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+import { isRecoveryComplete } from "@/lib/masteryRecovery";
 import {
   useRecoveryPathway,
   useCompleteRecoveryStep,
-} from '@/hooks/useMasteryRecovery';
+} from "@/hooks/useMasteryRecovery";
 import {
   BookOpen,
   BrainCircuit,
@@ -20,8 +20,8 @@ import {
   Loader2,
   RotateCcw,
   ExternalLink,
-} from 'lucide-react';
-import { toast } from 'sonner';
+} from "lucide-react";
+import { toast } from "sonner";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -73,7 +73,7 @@ const MasteryRecoveryPanel = ({
   const steps: RecoveryStep[] = [
     {
       number: 1,
-      title: 'AI Tutor Session',
+      title: "AI Tutor Session",
       description: `Review foundational concepts for "${cloTitle}" with the AI Tutor.`,
       icon: BrainCircuit,
       completed: aiTutorCompleted,
@@ -81,18 +81,19 @@ const MasteryRecoveryPanel = ({
     },
     {
       number: 2,
-      title: 'Practice Questions',
-      description: 'Complete practice questions at a lower difficulty level to rebuild understanding.',
+      title: "Practice Questions",
+      description:
+        "Complete practice questions at a lower difficulty level to rebuild understanding.",
       icon: BookOpen,
       completed: practiceCompleted,
       required: true,
     },
     {
       number: 3,
-      title: 'Peer Study Group',
+      title: "Peer Study Group",
       description: peerApplicable
-        ? 'Join a peer study group working on the same topic.'
-        : 'No active study groups available for this topic.',
+        ? "Join a peer study group working on the same topic."
+        : "No active study groups available for this topic.",
       icon: Users,
       completed: peerShown || !peerApplicable,
       required: false,
@@ -101,23 +102,27 @@ const MasteryRecoveryPanel = ({
 
   const handleCompleteAITutor = () => {
     completeStep.mutate(
-      { recovery_id: recoveryId, step: 'ai_tutor' },
+      { recovery_id: recoveryId, step: "ai_tutor" },
       {
-        onSuccess: () => toast.success('AI Tutor session marked as complete'),
+        onSuccess: () => toast.success("AI Tutor session marked as complete"),
         onError: (err) =>
-          toast.error(err instanceof Error ? err.message : 'Failed to update step'),
-      },
+          toast.error(
+            err instanceof Error ? err.message : "Failed to update step"
+          ),
+      }
     );
   };
 
   const handleCompletePractice = () => {
     completeStep.mutate(
-      { recovery_id: recoveryId, step: 'practice' },
+      { recovery_id: recoveryId, step: "practice" },
       {
-        onSuccess: () => toast.success('Practice questions marked as complete'),
+        onSuccess: () => toast.success("Practice questions marked as complete"),
         onError: (err) =>
-          toast.error(err instanceof Error ? err.message : 'Failed to update step'),
-      },
+          toast.error(
+            err instanceof Error ? err.message : "Failed to update step"
+          ),
+      }
     );
   };
 
@@ -127,7 +132,9 @@ const MasteryRecoveryPanel = ({
 
   if (isLoading) {
     return (
-      <Card className={cn('bg-white border-0 shadow-md rounded-xl p-6', className)}>
+      <Card
+        className={cn("bg-white border-0 shadow-md rounded-xl p-6", className)}
+      >
         <div className="flex items-center justify-center py-8">
           <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
         </div>
@@ -140,24 +147,32 @@ const MasteryRecoveryPanel = ({
   }
 
   return (
-    <Card className={cn('bg-white border-0 shadow-md rounded-xl overflow-hidden', className)}>
+    <Card
+      className={cn(
+        "bg-white border-0 shadow-md rounded-xl overflow-hidden",
+        className
+      )}
+    >
       {/* Gradient header */}
       <div
         className="px-6 py-4 flex items-center gap-2"
-        style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+        style={{
+          background:
+            "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+        }}
       >
         <RotateCcw className="h-5 w-5 text-white" />
         <h2 className="text-lg font-bold tracking-tight text-white">
           Recovery Pathway
         </h2>
         <Badge className="ml-auto bg-white/20 text-white border-0 text-xs font-bold tracking-wide uppercase">
-          {retryUnlocked ? 'Ready to Retry' : 'In Progress'}
+          {retryUnlocked ? "Ready to Retry" : "In Progress"}
         </Badge>
       </div>
 
       <div className="p-6 space-y-4">
         <p className="text-sm text-gray-600">
-          Complete the steps below to unlock your quiz retry for{' '}
+          Complete the steps below to unlock your quiz retry for{" "}
           <span className="font-semibold text-gray-900">{cloTitle}</span>.
         </p>
 
@@ -183,19 +198,19 @@ const MasteryRecoveryPanel = ({
             onClick={handleRetry}
             disabled={!retryUnlocked}
             className={cn(
-              'w-full',
+              "w-full",
               retryUnlocked
-                ? 'bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 text-white'
-                : 'bg-gray-100 text-gray-400 cursor-not-allowed',
+                ? "bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 text-white"
+                : "bg-gray-100 text-gray-400 cursor-not-allowed"
             )}
             aria-label={
               retryUnlocked
-                ? 'Retry quiz'
-                : 'Complete required steps to unlock retry'
+                ? "Retry quiz"
+                : "Complete required steps to unlock retry"
             }
           >
             <RotateCcw className="h-4 w-4" />
-            {retryUnlocked ? 'Retry Quiz' : 'Complete Steps to Unlock Retry'}
+            {retryUnlocked ? "Retry Quiz" : "Complete Steps to Unlock Retry"}
           </Button>
         </div>
       </div>
@@ -227,27 +242,23 @@ const StepCard = ({
   return (
     <div
       className={cn(
-        'flex items-start gap-4 rounded-lg border p-4 transition-colors',
+        "flex items-start gap-4 rounded-lg border p-4 transition-colors",
         step.completed
-          ? 'border-green-200 bg-green-50'
-          : 'border-slate-200 bg-slate-50',
+          ? "border-green-200 bg-green-50"
+          : "border-slate-200 bg-slate-50"
       )}
     >
       {/* Step number / check */}
       <div
         className={cn(
-          'flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold',
+          "flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold",
           step.completed
-            ? 'bg-green-500 text-white'
-            : 'bg-slate-200 text-gray-600',
+            ? "bg-green-500 text-white"
+            : "bg-slate-200 text-gray-600"
         )}
         aria-hidden="true"
       >
-        {step.completed ? (
-          <CheckCircle2 className="h-5 w-5" />
-        ) : (
-          step.number
-        )}
+        {step.completed ? <CheckCircle2 className="h-5 w-5" /> : step.number}
       </div>
 
       {/* Content */}
@@ -256,7 +267,10 @@ const StepCard = ({
           <Icon className="h-4 w-4 text-gray-500" />
           <h3 className="text-sm font-semibold text-gray-900">{step.title}</h3>
           {!step.required && (
-            <Badge variant="outline" className="text-xs text-gray-500 border-gray-300">
+            <Badge
+              variant="outline"
+              className="text-xs text-gray-500 border-gray-300"
+            >
               Optional
             </Badge>
           )}
@@ -268,12 +282,7 @@ const StepCard = ({
           <div className="mt-3">
             {step.number === 1 && (
               <div className="flex items-center gap-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  asChild
-                  className="text-xs"
-                >
+                <Button size="sm" variant="outline" asChild className="text-xs">
                   <a
                     href={`/student/ai-tutor?clo=${cloId}`}
                     target="_blank"
@@ -302,13 +311,10 @@ const StepCard = ({
 
             {step.number === 2 && (
               <div className="flex items-center gap-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  asChild
-                  className="text-xs"
-                >
-                  <a href={`/student/courses/${courseId}/practice?clo=${cloId}`}>
+                <Button size="sm" variant="outline" asChild className="text-xs">
+                  <a
+                    href={`/student/courses/${courseId}/practice?clo=${cloId}`}
+                  >
                     <BookOpen className="h-3.5 w-3.5" />
                     Start Practice
                   </a>
@@ -330,13 +336,10 @@ const StepCard = ({
             )}
 
             {step.number === 3 && peerApplicable && (
-              <Button
-                size="sm"
-                variant="outline"
-                asChild
-                className="text-xs"
-              >
-                <a href={`/student/courses/${courseId}/team-challenges?clo=${cloId}`}>
+              <Button size="sm" variant="outline" asChild className="text-xs">
+                <a
+                  href={`/student/courses/${courseId}/team-challenges?clo=${cloId}`}
+                >
                   <Users className="h-3.5 w-3.5" />
                   Browse Study Groups
                 </a>

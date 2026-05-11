@@ -11,7 +11,7 @@ export interface ActiveDiscount {
  * Returns 0 when no discounts are active.
  */
 export function getHighestDiscount(
-  activeDiscounts: readonly ActiveDiscount[],
+  activeDiscounts: readonly ActiveDiscount[]
 ): number {
   if (activeDiscounts.length === 0) return 0;
   return Math.max(...activeDiscounts.map((d) => d.discount_percentage));
@@ -27,11 +27,12 @@ export function getHighestDiscount(
  */
 export function computeSalePrice(
   basePrice: number,
-  activeDiscounts: readonly ActiveDiscount[],
+  activeDiscounts: readonly ActiveDiscount[]
 ): number {
   const maxDiscount = getHighestDiscount(activeDiscounts);
   if (maxDiscount === 0) return basePrice;
 
-  const discountedPrice = basePrice - Math.floor((basePrice * maxDiscount) / 100);
+  const discountedPrice =
+    basePrice - Math.floor((basePrice * maxDiscount) / 100);
   return Math.max(1, discountedPrice);
 }

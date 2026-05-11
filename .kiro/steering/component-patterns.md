@@ -9,21 +9,22 @@ inclusion: always
 Every page in the platform follows one of these patterns. Use the matching skeleton as a starting point.
 
 ### List Page Pattern
+
 Used for: User List, Program List, Course List, ILO/PLO/CLO List, Assignment List, etc.
 
 ```typescript
 // src/pages/{role}/{Entity}ListPage.tsx
-import { useSearchParams } from 'react-router-dom';
-import { parseAsString, useQueryState } from 'nuqs';
-import { columns } from './columns';
-import { DataTable } from '@/components/shared/DataTable';
-import { useEntityList } from '@/hooks/useEntity';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Plus, Search } from 'lucide-react';
+import { useSearchParams } from "react-router-dom";
+import { parseAsString, useQueryState } from "nuqs";
+import { columns } from "./columns";
+import { DataTable } from "@/components/shared/DataTable";
+import { useEntityList } from "@/hooks/useEntity";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Plus, Search } from "lucide-react";
 
 const EntityListPage = () => {
-  const [search, setSearch] = useQueryState('q', parseAsString.withDefault(''));
+  const [search, setSearch] = useQueryState("q", parseAsString.withDefault(""));
   const { data, isLoading } = useEntityList({ search });
 
   return (
@@ -59,37 +60,46 @@ export default EntityListPage;
 ```
 
 Key rules:
+
 - Always use `nuqs` for URL-persisted search/filter state
 - Always use TanStack Table via a shared `DataTable` component
 - One gradient CTA button max per page header
 - Loading state handled by `isLoading` from TanStack Query
 
 ### Form Page Pattern
+
 Used for: Create/Edit User, Program, Course, ILO, PLO, CLO, Assignment, etc.
 
 ```typescript
 // src/pages/{role}/{Entity}Form.tsx
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { createEntitySchema, type CreateEntityInput } from '@/lib/schemas';
-import { useCreateEntity } from '@/hooks/useEntity';
-import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { createEntitySchema, type CreateEntityInput } from "@/lib/schemas";
+import { useCreateEntity } from "@/hooks/useEntity";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 const EntityForm = () => {
   const form = useForm<CreateEntityInput>({
     resolver: zodResolver(createEntitySchema),
-    defaultValues: { name: '' },
+    defaultValues: { name: "" },
   });
   const mutation = useCreateEntity();
 
   const onSubmit = (data: CreateEntityInput) => {
     mutation.mutate(data, {
-      onSuccess: () => toast.success('Entity created'),
+      onSuccess: () => toast.success("Entity created"),
       onError: (err) => toast.error(err.message),
     });
   };
@@ -104,7 +114,9 @@ const EntityForm = () => {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Name</FormLabel>
-                <FormControl><Input {...field} /></FormControl>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -127,6 +139,7 @@ export default EntityForm;
 ```
 
 Key rules:
+
 - Always use React Hook Form + Zod resolver
 - Always use Shadcn Form components (FormField, FormItem, FormLabel, FormControl, FormMessage)
 - Always use Sonner for success/error toasts
@@ -134,19 +147,22 @@ Key rules:
 - Card wrapper: `bg-white border-0 shadow-md rounded-xl`
 
 ### Dashboard Page Pattern
+
 Used for: Admin Dashboard, Coordinator Dashboard, Teacher Dashboard, Student Dashboard
 
 ```typescript
 // src/pages/{role}/Dashboard.tsx
-import { Card } from '@/components/ui/card';
-import { useKPIData } from '@/hooks/useKPIData';
-import { Users, BookOpen, TrendingUp, AlertTriangle } from 'lucide-react';
+import { Card } from "@/components/ui/card";
+import { useKPIData } from "@/hooks/useKPIData";
+import { Users, BookOpen, TrendingUp, AlertTriangle } from "lucide-react";
 
 const KPICard = ({ icon: Icon, label, value, trend }: KPICardProps) => (
   <Card className="bg-white border-0 shadow-md rounded-xl p-4 group">
     <div className="flex items-center justify-between">
       <div>
-        <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">{label}</p>
+        <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
+          {label}
+        </p>
         <p className="text-2xl font-black mt-1">{value}</p>
       </div>
       <div className="p-2 rounded-lg bg-blue-50 group-hover:scale-110 transition-transform">
@@ -165,10 +181,26 @@ const Dashboard = () => {
 
       {/* KPI Row */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <KPICard icon={Users} label="Total Users" value={data?.totalUsers ?? 0} />
-        <KPICard icon={BookOpen} label="Active Courses" value={data?.activeCourses ?? 0} />
-        <KPICard icon={TrendingUp} label="Avg Attainment" value={`${data?.avgAttainment ?? 0}%`} />
-        <KPICard icon={AlertTriangle} label="At Risk" value={data?.atRiskCount ?? 0} />
+        <KPICard
+          icon={Users}
+          label="Total Users"
+          value={data?.totalUsers ?? 0}
+        />
+        <KPICard
+          icon={BookOpen}
+          label="Active Courses"
+          value={data?.activeCourses ?? 0}
+        />
+        <KPICard
+          icon={TrendingUp}
+          label="Avg Attainment"
+          value={`${data?.avgAttainment ?? 0}%`}
+        />
+        <KPICard
+          icon={AlertTriangle}
+          label="At Risk"
+          value={data?.atRiskCount ?? 0}
+        />
       </div>
 
       {/* Content sections below */}
@@ -180,6 +212,7 @@ export default Dashboard;
 ```
 
 Key rules:
+
 - KPI row: `grid grid-cols-2 md:grid-cols-4 gap-4`
 - KPI cards: `group` hover with icon scale transition
 - Metric label: `text-[10px] font-black tracking-widest uppercase`
@@ -187,18 +220,19 @@ Key rules:
 - Section gap: `space-y-6`
 
 ### Layout Pattern (Sidebar)
+
 Used for: Admin, Coordinator, Teacher layouts
 
 ```typescript
 // src/pages/{role}/{Role}Layout.tsx
-import { Outlet, NavLink } from 'react-router-dom';
-import { cn } from '@/lib/utils';
-import { LayoutDashboard, Users, BookOpen } from 'lucide-react';
+import { Outlet, NavLink } from "react-router-dom";
+import { cn } from "@/lib/utils";
+import { LayoutDashboard, Users, BookOpen } from "lucide-react";
 
 const navItems = [
-  { to: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/admin/users', icon: Users, label: 'Users' },
-  { to: '/admin/programs', icon: BookOpen, label: 'Programs' },
+  { to: "/admin/dashboard", icon: LayoutDashboard, label: "Dashboard" },
+  { to: "/admin/users", icon: Users, label: "Users" },
+  { to: "/admin/programs", icon: BookOpen, label: "Programs" },
 ];
 
 const AdminLayout = () => (
@@ -210,8 +244,10 @@ const AdminLayout = () => (
           to={to}
           className={({ isActive }) =>
             cn(
-              'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
-              isActive ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-slate-50'
+              "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+              isActive
+                ? "bg-blue-50 text-blue-600"
+                : "text-gray-600 hover:bg-slate-50"
             )
           }
         >
@@ -230,6 +266,7 @@ export default AdminLayout;
 ```
 
 Key rules:
+
 - Sidebar: `w-64` fixed width
 - Active nav: `bg-blue-50 text-blue-600`
 - Inactive nav: `text-gray-600 hover:bg-slate-50`
@@ -239,46 +276,54 @@ Key rules:
 ## Shared Component Usage
 
 ### When to use what
-| Need | Component | Location |
-|------|-----------|----------|
-| Data table with sort/filter/pagination | `DataTable` | `src/components/shared/DataTable.tsx` |
-| Form with validation | Shadcn `Form` + Zod | `src/components/ui/form.tsx` |
-| Modal/dialog | Shadcn `Dialog` | `src/components/ui/dialog.tsx` |
-| Side panel | Shadcn `Sheet` | `src/components/ui/sheet.tsx` |
-| Dropdown actions | Shadcn `DropdownMenu` | `src/components/ui/dropdown-menu.tsx` |
-| Toast notifications | `toast()` from Sonner | `import { toast } from 'sonner'` |
-| Tabs | Shadcn `Tabs` (pill style) | `src/components/ui/tabs.tsx` |
-| Badges/tags | Shadcn `Badge` | `src/components/ui/badge.tsx` |
-| Loading spinner | `Loader2` from Lucide | `import { Loader2 } from 'lucide-react'` |
-| Empty state | Custom `EmptyState` | `src/components/shared/EmptyState.tsx` |
-| Error boundary | Custom `ErrorBoundary` | `src/components/shared/ErrorBoundary.tsx` |
-| Shimmer loading | Custom `Shimmer` | `src/components/shared/Shimmer.tsx` |
+
+| Need                                   | Component                  | Location                                  |
+| -------------------------------------- | -------------------------- | ----------------------------------------- |
+| Data table with sort/filter/pagination | `DataTable`                | `src/components/shared/DataTable.tsx`     |
+| Form with validation                   | Shadcn `Form` + Zod        | `src/components/ui/form.tsx`              |
+| Modal/dialog                           | Shadcn `Dialog`            | `src/components/ui/dialog.tsx`            |
+| Side panel                             | Shadcn `Sheet`             | `src/components/ui/sheet.tsx`             |
+| Dropdown actions                       | Shadcn `DropdownMenu`      | `src/components/ui/dropdown-menu.tsx`     |
+| Toast notifications                    | `toast()` from Sonner      | `import { toast } from 'sonner'`          |
+| Tabs                                   | Shadcn `Tabs` (pill style) | `src/components/ui/tabs.tsx`              |
+| Badges/tags                            | Shadcn `Badge`             | `src/components/ui/badge.tsx`             |
+| Loading spinner                        | `Loader2` from Lucide      | `import { Loader2 } from 'lucide-react'`  |
+| Empty state                            | Custom `EmptyState`        | `src/components/shared/EmptyState.tsx`    |
+| Error boundary                         | Custom `ErrorBoundary`     | `src/components/shared/ErrorBoundary.tsx` |
+| Shimmer loading                        | Custom `Shimmer`           | `src/components/shared/Shimmer.tsx`       |
 
 ### Component-Level Loading (never full-page skeletons)
+
 ```typescript
 // Use shimmer placeholders per component, not full-page loaders
-{isLoading ? <Shimmer className="h-32 rounded-xl" /> : <ActualContent />}
+{
+  isLoading ? <Shimmer className="h-32 rounded-xl" /> : <ActualContent />;
+}
 ```
 
 ### Section Card with Gradient Header
+
 Used for: Dashboard content sections (Users by Role, Recent Activity, Grading Queue, etc.)
 
 ```typescript
 <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
   <div
     className="px-6 py-4 flex items-center gap-2"
-    style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+    style={{
+      background: "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+    }}
   >
     <Icon className="h-5 w-5 text-white" />
-    <h2 className="text-lg font-bold tracking-tight text-white">Section Title</h2>
+    <h2 className="text-lg font-bold tracking-tight text-white">
+      Section Title
+    </h2>
   </div>
-  <div className="p-6">
-    {/* Section content */}
-  </div>
+  <div className="p-6">{/* Section content */}</div>
 </Card>
 ```
 
 Key rules:
+
 - Card must have `overflow-hidden` for the gradient to clip to rounded corners
 - Header uses inline `style` for the brand gradient (not Tailwind class)
 - Icon and heading text are always white
@@ -286,12 +331,16 @@ Key rules:
 - Every dashboard section card uses this pattern — no plain white headers on section cards
 
 ### Welcome Hero Card
+
 Used for: Student and Parent dashboard hero sections
 
 ```typescript
 <Card
   className="border-0 shadow-lg rounded-xl overflow-hidden text-white"
-  style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #312e81 100%)' }}
+  style={{
+    background:
+      "linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #312e81 100%)",
+  }}
 >
   <div className="p-6">
     <h1 className="text-2xl font-bold tracking-tight">
@@ -303,6 +352,7 @@ Used for: Student and Parent dashboard hero sections
 ```
 
 Key rules:
+
 - Uses dark hero gradient (slate-900 → blue-800 → violet-900)
 - Subtitle text uses `text-white/70` for hierarchy
 - Optional right-side stats section for XP/Level display

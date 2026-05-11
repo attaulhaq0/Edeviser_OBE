@@ -33,7 +33,9 @@ export interface ResolveAutonomyInput {
  * 5. Student override L3 ("Just explain it"): use L3 but capped by teacher ceiling
  *    (the base level acts as the ceiling — student can't exceed it)
  */
-export function resolveAutonomyLevel(input: ResolveAutonomyInput): AutonomyLevel {
+export function resolveAutonomyLevel(
+  input: ResolveAutonomyInput
+): AutonomyLevel {
   const { assignmentAutonomy, cloAutonomy, studentOverride } = input;
 
   // Step 1-3: Determine the base (teacher-configured) level

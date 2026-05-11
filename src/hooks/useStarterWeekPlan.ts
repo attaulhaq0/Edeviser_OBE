@@ -1,9 +1,9 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import { ONBOARDING_XP } from '@/lib/onboardingConstants';
-import { awardXP } from '@/lib/xpClient';
-import type { XPSource } from '@/types/app';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import { ONBOARDING_XP } from "@/lib/onboardingConstants";
+import { awardXP } from "@/lib/xpClient";
+import type { XPSource } from "@/types/app";
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -11,18 +11,18 @@ export interface StarterWeekSession {
   id: string;
   student_id: string;
   course_id: string | null;
-  session_type: 'reading' | 'practice' | 'review' | 'exploration';
+  session_type: "reading" | "practice" | "review" | "exploration";
   suggested_date: string;
-  suggested_time_slot: 'morning' | 'afternoon' | 'evening';
+  suggested_time_slot: "morning" | "afternoon" | "evening";
   duration_minutes: number;
   description: string;
-  status: 'suggested' | 'accepted' | 'modified' | 'dismissed' | 'completed';
+  status: "suggested" | "accepted" | "modified" | "dismissed" | "completed";
   planner_entry_id: string | null;
   created_at: string;
   updated_at: string;
 }
 
-export type SessionStatus = StarterWeekSession['status'];
+export type SessionStatus = StarterWeekSession["status"];
 
 interface GenerateStarterWeekInput {
   student_id: string;
@@ -42,10 +42,10 @@ export const useStarterWeekSessions = (studentId: string) => {
     queryKey: queryKeys.onboarding.starterWeekSessions(studentId),
     queryFn: async (): Promise<StarterWeekSession[]> => {
       const { data, error } = await supabase
-        .from('starter_week_sessions')
-        .select('*')
-        .eq('student_id', studentId)
-        .order('suggested_date', { ascending: true });
+        .from("starter_week_sessions")
+        .select("*")
+        .eq("student_id", studentId)
+        .order("suggested_date", { ascending: true });
 
       if (error) throw error;
       return (data ?? []) as StarterWeekSession[];
@@ -66,28 +66,28 @@ export const useUpdateSessionStatus = () => {
       status: SessionStatus;
     }): Promise<StarterWeekSession> => {
       const { data, error } = await supabase
-        .from('starter_week_sessions')
+        .from("starter_week_sessions")
         .update({ status: params.status, updated_at: new Date().toISOString() })
-        .eq('id', params.id)
+        .eq("id", params.id)
         .select()
         .single();
 
       if (error) throw error;
 
       // 15.5: Award XP on starter session completion (non-blocking — DB update already succeeded)
-      if (params.status === 'completed') {
+      if (params.status === "completed") {
         try {
           await awardXP({
             studentId: params.studentId,
             xpAmount: ONBOARDING_XP.starter_session_complete,
-            source: 'starter_session_complete' as XPSource,
+            source: "starter_session_complete" as XPSource,
             referenceId: `starter_session:${params.id}`,
-            note: 'Starter week session completed',
+            note: "Starter week session completed",
           });
         } catch (xpError) {
           console.error(
             `[useUpdateSessionStatus] Failed to award XP for session ${params.id}, student ${params.studentId}, ref starter_session:${params.id}`,
-            xpError,
+            xpError
           );
           // Swallow — the session update already succeeded; XP is idempotent via referenceId
         }
@@ -109,17 +109,24 @@ export const useGenerateStarterWeek = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (input: GenerateStarterWeekInput): Promise<GenerateStarterWeekResult> => {
-      const { data, error } = await supabase.functions.invoke('generate-starter-week', {
-        body: input,
-      });
+    mutationFn: async (
+      input: GenerateStarterWeekInput
+    ): Promise<GenerateStarterWeekResult> => {
+      const { data, error } = await supabase.functions.invoke(
+        "generate-starter-week",
+        {
+          body: input,
+        }
+      );
 
       if (error) throw error;
       return data as GenerateStarterWeekResult;
     },
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({
-        queryKey: queryKeys.onboarding.starterWeekSessions(variables.student_id),
+        queryKey: queryKeys.onboarding.starterWeekSessions(
+          variables.student_id
+        ),
       });
     },
   });

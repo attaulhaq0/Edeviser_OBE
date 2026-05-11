@@ -19,7 +19,9 @@ export const updateAssignmentAutonomySchema = z.object({
   autonomy_level: autonomyLevelSchema,
 });
 
-export type UpdateAssignmentAutonomyInput = z.infer<typeof updateAssignmentAutonomySchema>;
+export type UpdateAssignmentAutonomyInput = z.infer<
+  typeof updateAssignmentAutonomySchema
+>;
 
 export const updateCLOAutonomySchema = z.object({
   clo_id: z.string().uuid(),
@@ -204,7 +206,10 @@ export interface TeacherHandoffRequest {
   clo_id: string | null;
   conversation_summary: string;
   suggested_intervention: string;
-  trigger_reason: "low_rag_confidence" | "repeated_question" | "low_satisfaction";
+  trigger_reason:
+    | "low_rag_confidence"
+    | "repeated_question"
+    | "low_satisfaction";
   student_consent: boolean;
   status: "pending" | "resolved" | "dismissed";
   teacher_response: string | null;

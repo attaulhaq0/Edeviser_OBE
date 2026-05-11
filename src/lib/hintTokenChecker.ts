@@ -2,7 +2,7 @@
 // hintTokenChecker — Check for active hint tokens before showing daily limit
 // =============================================================================
 
-import { supabase } from '@/lib/supabase';
+import { supabase } from "@/lib/supabase";
 
 export interface HintTokenStatus {
   hasActiveTokens: boolean;
@@ -15,7 +15,7 @@ export interface HintTokenStatus {
  * Hint tokens expire at midnight UTC on the day of purchase.
  */
 export async function getHintTokenStatus(
-  studentId: string,
+  studentId: string
 ): Promise<HintTokenStatus> {
   const todayStart = new Date();
   todayStart.setUTCHours(0, 0, 0, 0);
@@ -24,24 +24,34 @@ export async function getHintTokenStatus(
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await (supabase as any)
-    .from('xp_purchases')
-    .select('id, purchased_at, metadata, marketplace_items:item_id (sub_category)')
-    .eq('student_id', studentId)
-    .eq('status', 'active')
-    .gte('purchased_at', todayStart.toISOString())
-    .lte('purchased_at', todayEnd.toISOString());
+    .from("xp_purchases")
+    .select(
+      "id, purchased_at, metadata, marketplace_items:item_id (sub_category)"
+    )
+    .eq("student_id", studentId)
+    .eq("status", "active")
+    .gte("purchased_at", todayStart.toISOString())
+    .lte("purchased_at", todayEnd.toISOString());
 
   if (error || !data) {
-    return { hasActiveTokens: false, extraMessagesRemaining: 0, purchaseId: null };
+    return {
+      hasActiveTokens: false,
+      extraMessagesRemaining: 0,
+      purchaseId: null,
+    };
   }
 
   const hintTokens = (data as Array<Record<string, unknown>>).filter((row) => {
     const item = row.marketplace_items as Record<string, unknown> | null;
-    return item?.sub_category === 'hint_token';
+    return item?.sub_category === "hint_token";
   });
 
   if (hintTokens.length === 0) {
-    return { hasActiveTokens: false, extraMessagesRemaining: 0, purchaseId: null };
+    return {
+      hasActiveTokens: false,
+      extraMessagesRemaining: 0,
+      purchaseId: null,
+    };
   }
 
   // Each hint token pack provides 5 extra messages
@@ -69,7 +79,7 @@ export async function getHintTokenStatus(
 export function canSendTutorMessage(
   baseMessagesUsed: number,
   baseDailyLimit: number,
-  hintTokenStatus: HintTokenStatus,
+  hintTokenStatus: HintTokenStatus
 ): { allowed: boolean; usingHintToken: boolean; remainingMessages: number } {
   const baseRemaining = Math.max(0, baseDailyLimit - baseMessagesUsed);
 

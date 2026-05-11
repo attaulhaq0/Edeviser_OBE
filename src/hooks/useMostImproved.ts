@@ -3,5 +3,5 @@
 // Task 20.9 — Re-exports from useMostImprovedLeaderboard
 // =============================================================================
 
-export { useMostImprovedLeaderboard as useMostImproved } from '@/hooks/useMostImprovedLeaderboard';
-export type { MostImprovedEntry } from '@/lib/mostImprovedLeaderboard';
+export { useMostImprovedLeaderboard as useMostImproved } from "@/hooks/useMostImprovedLeaderboard";
+export type { MostImprovedEntry } from "@/lib/mostImprovedLeaderboard";

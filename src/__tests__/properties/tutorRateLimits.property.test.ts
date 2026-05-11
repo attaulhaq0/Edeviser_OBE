@@ -184,16 +184,23 @@ describe("Property 27 — Token budget enforcement", () => {
 
   it("P27c: sending is allowed only when both limits are within budget", () => {
     fc.assert(
-      fc.property(messageCountArb, tokenCountArb, (messageCount, tokenCount) => {
-        const status = computeUsageStatus(messageCount, tokenCount);
-        const allowed = canSendMessage(status);
+      fc.property(
+        messageCountArb,
+        tokenCountArb,
+        (messageCount, tokenCount) => {
+          const status = computeUsageStatus(messageCount, tokenCount);
+          const allowed = canSendMessage(status);
 
-        if (messageCount >= DAILY_MESSAGE_LIMIT || tokenCount >= DAILY_TOKEN_BUDGET) {
-          expect(allowed).toBe(false);
-        } else {
-          expect(allowed).toBe(true);
+          if (
+            messageCount >= DAILY_MESSAGE_LIMIT ||
+            tokenCount >= DAILY_TOKEN_BUDGET
+          ) {
+            expect(allowed).toBe(false);
+          } else {
+            expect(allowed).toBe(true);
+          }
         }
-      }),
+      ),
       { numRuns: 100 }
     );
   });

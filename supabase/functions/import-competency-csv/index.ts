@@ -1,12 +1,13 @@
 // Task 114.4: CSV import Edge Function for competency frameworks
 // Parses CSV, builds three-level hierarchy: Domain → Competency → Indicator
 
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 interface CSVRow {
@@ -19,14 +20,17 @@ interface CSVRow {
 }
 
 function parseCSV(content: string): CSVRow[] {
-  const lines = content.trim().split('\n');
+  const lines = content.trim().split("\n");
   if (lines.length < 2) return [];
 
-  const headers = lines[0].split(',').map((h) => h.trim().toLowerCase());
+  const headers = lines[0].split(",").map((h) => h.trim().toLowerCase());
   const requiredHeaders = [
-    'domain_code', 'domain_title',
-    'competency_code', 'competency_title',
-    'indicator_code', 'indicator_title',
+    "domain_code",
+    "domain_title",
+    "competency_code",
+    "competency_title",
+    "indicator_code",
+    "indicator_title",
   ];
 
   for (const req of requiredHeaders) {
@@ -37,11 +41,13 @@ function parseCSV(content: string): CSVRow[] {
 
   const rows: CSVRow[] = [];
   for (let i = 1; i < lines.length; i++) {
-    const values = lines[i].split(',').map((v) => v.trim());
+    const values = lines[i].split(",").map((v) => v.trim());
     if (values.length < headers.length) continue;
 
     const row: Record<string, string> = {};
-    headers.forEach((h, idx) => { row[h] = values[idx] ?? ''; });
+    headers.forEach((h, idx) => {
+      row[h] = values[idx] ?? "";
+    });
 
     if (!row.domain_code || !row.indicator_code) continue;
 
@@ -59,30 +65,36 @@ function parseCSV(content: string): CSVRow[] {
 }
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
   }
 
   try {
     const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
     const { framework_id, csv_content } = await req.json();
 
     if (!framework_id || !csv_content) {
       return new Response(
-        JSON.stringify({ error: 'framework_id and csv_content are required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        JSON.stringify({ error: "framework_id and csv_content are required" }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
       );
     }
 
     const rows = parseCSV(csv_content);
     if (rows.length === 0) {
       return new Response(
-        JSON.stringify({ error: 'No valid rows found in CSV' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        JSON.stringify({ error: "No valid rows found in CSV" }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
       );
     }
 
@@ -98,19 +110,19 @@ serve(async (req) => {
         // Upsert domain
         if (!domainMap.has(row.domain_code)) {
           const { data: domain, error: domErr } = await supabase
-            .from('competency_items')
+            .from("competency_items")
             .upsert(
               {
                 framework_id,
                 parent_id: null,
-                level: 'domain',
+                level: "domain",
                 code: row.domain_code,
                 title: row.domain_title,
                 sort_order: sortOrder++,
               },
-              { onConflict: 'framework_id,code' },
+              { onConflict: "framework_id,code" }
             )
-            .select('id')
+            .select("id")
             .single();
 
           if (domErr) {
@@ -124,23 +136,25 @@ serve(async (req) => {
         const domainId = domainMap.get(row.domain_code)!;
         if (!competencyMap.has(row.competency_code)) {
           const { data: comp, error: compErr } = await supabase
-            .from('competency_items')
+            .from("competency_items")
             .upsert(
               {
                 framework_id,
                 parent_id: domainId,
-                level: 'competency',
+                level: "competency",
                 code: row.competency_code,
                 title: row.competency_title,
                 sort_order: sortOrder++,
               },
-              { onConflict: 'framework_id,code' },
+              { onConflict: "framework_id,code" }
             )
-            .select('id')
+            .select("id")
             .single();
 
           if (compErr) {
-            errors.push(`Competency ${row.competency_code}: ${compErr.message}`);
+            errors.push(
+              `Competency ${row.competency_code}: ${compErr.message}`
+            );
             continue;
           }
           competencyMap.set(row.competency_code, comp.id);
@@ -149,17 +163,17 @@ serve(async (req) => {
         // Upsert indicator
         const competencyId = competencyMap.get(row.competency_code)!;
         const { error: indErr } = await supabase
-          .from('competency_items')
+          .from("competency_items")
           .upsert(
             {
               framework_id,
               parent_id: competencyId,
-              level: 'indicator',
+              level: "indicator",
               code: row.indicator_code,
               title: row.indicator_title,
               sort_order: sortOrder++,
             },
-            { onConflict: 'framework_id,code' },
+            { onConflict: "framework_id,code" }
           );
 
         if (indErr) {
@@ -180,12 +194,12 @@ serve(async (req) => {
         competencies: competencyMap.size,
         errors,
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
-    return new Response(
-      JSON.stringify({ error: (error as Error).message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-    );
+    return new Response(JSON.stringify({ error: (error as Error).message }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });

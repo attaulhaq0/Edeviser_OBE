@@ -1,18 +1,18 @@
-import { useState } from 'react';
-import { useForm, useWatch } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { toast } from 'sonner';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import { useState } from "react";
+import { useForm, useWatch } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { toast } from "sonner";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   Form,
   FormField,
@@ -20,29 +20,30 @@ import {
   FormLabel,
   FormControl,
   FormMessage,
-} from '@/components/ui/form';
+} from "@/components/ui/form";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
-import CQIStatusBadge from '@/components/shared/CQIStatusBadge';
-import type { CQIStatus } from '@/components/shared/CQIStatusBadge';
-import Shimmer from '@/components/shared/Shimmer';
+} from "@/components/ui/select";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import CQIStatusBadge from "@/components/shared/CQIStatusBadge";
+import type { CQIStatus } from "@/components/shared/CQIStatusBadge";
+import EmptyState from "@/components/shared/EmptyState";
+import Shimmer from "@/components/shared/Shimmer";
 import {
   useCQIPlans,
   useCreateCQIPlan,
   useUpdateCQIPlan,
   useDeleteCQIPlan,
-} from '@/hooks/useCQIPlans';
-import type { CQIActionPlan, CQIPlanStatus } from '@/hooks/useCQIPlans';
-import { useAuth } from '@/hooks/useAuth';
-import { usePrograms } from '@/hooks/usePrograms';
-import { useSemesters } from '@/hooks/useSemesters';
-import { usePLOs } from '@/hooks/usePLOs';
+} from "@/hooks/useCQIPlans";
+import type { CQIActionPlan, CQIPlanStatus } from "@/hooks/useCQIPlans";
+import { useAuth } from "@/hooks/useAuth";
+import { usePrograms } from "@/hooks/usePrograms";
+import { useSemesters } from "@/hooks/useSemesters";
+import { usePLOs } from "@/hooks/usePLOs";
 import {
   Plus,
   Pencil,
@@ -50,35 +51,41 @@ import {
   ClipboardCheck,
   Loader2,
   ArrowRight,
-} from 'lucide-react';
+} from "lucide-react";
 
 // ─── Schema ──────────────────────────────────────────────────────────────────
 
 const cqiPlanSchema = z.object({
-  program_id: z.string().min(1, 'Program is required'),
-  semester_id: z.string().min(1, 'Semester is required'),
-  outcome_id: z.string().min(1, 'Outcome is required'),
-  outcome_type: z.enum(['PLO', 'CLO']),
+  program_id: z.string().min(1, "Program is required"),
+  semester_id: z.string().min(1, "Semester is required"),
+  outcome_id: z.string().min(1, "Outcome is required"),
+  outcome_type: z.enum(["PLO", "CLO"]),
   baseline_attainment: z.coerce.number().min(0).max(100),
   target_attainment: z.coerce.number().min(0).max(100),
-  action_description: z.string().min(1, 'Action description is required').max(2000),
-  responsible_person: z.string().min(1, 'Responsible person is required').max(255),
+  action_description: z
+    .string()
+    .min(1, "Action description is required")
+    .max(2000),
+  responsible_person: z
+    .string()
+    .min(1, "Responsible person is required")
+    .max(255),
 });
 
 type CQIPlanFormData = z.infer<typeof cqiPlanSchema>;
 
 const STATUS_TRANSITIONS: Record<CQIPlanStatus, CQIPlanStatus | null> = {
-  planned: 'in_progress',
-  in_progress: 'completed',
-  completed: 'evaluated',
+  planned: "in_progress",
+  in_progress: "completed",
+  completed: "evaluated",
   evaluated: null,
 };
 
 const STATUS_ACTION_LABELS: Record<CQIPlanStatus, string> = {
-  planned: 'Start Implementation',
-  in_progress: 'Mark Completed',
-  completed: 'Evaluate',
-  evaluated: '',
+  planned: "Start Implementation",
+  in_progress: "Mark Completed",
+  completed: "Evaluate",
+  evaluated: "",
 };
 
 // ─── CQI Plan Form Dialog ────────────────────────────────────────────────────
@@ -89,7 +96,11 @@ interface CQIPlanFormDialogProps {
   plan?: CQIActionPlan | null;
 }
 
-const CQIPlanFormDialog = ({ open, onOpenChange, plan }: CQIPlanFormDialogProps) => {
+const CQIPlanFormDialog = ({
+  open,
+  onOpenChange,
+  plan,
+}: CQIPlanFormDialogProps) => {
   const { user } = useAuth();
   const isEdit = !!plan;
   const createMutation = useCreateCQIPlan();
@@ -101,18 +112,21 @@ const CQIPlanFormDialog = ({ open, onOpenChange, plan }: CQIPlanFormDialogProps)
   const form = useForm<CQIPlanFormData>({
     resolver: zodResolver(cqiPlanSchema) as never,
     defaultValues: {
-      program_id: plan?.program_id ?? '',
-      semester_id: plan?.semester_id ?? '',
-      outcome_id: plan?.outcome_id ?? '',
-      outcome_type: (plan?.outcome_type as 'PLO' | 'CLO') ?? 'PLO',
+      program_id: plan?.program_id ?? "",
+      semester_id: plan?.semester_id ?? "",
+      outcome_id: plan?.outcome_id ?? "",
+      outcome_type: (plan?.outcome_type as "PLO" | "CLO") ?? "PLO",
       baseline_attainment: plan?.baseline_attainment ?? 0,
       target_attainment: plan?.target_attainment ?? 70,
-      action_description: plan?.action_description ?? '',
-      responsible_person: plan?.responsible_person ?? '',
+      action_description: plan?.action_description ?? "",
+      responsible_person: plan?.responsible_person ?? "",
     },
   });
 
-  const selectedProgramId = useWatch({ control: form.control, name: 'program_id' });
+  const selectedProgramId = useWatch({
+    control: form.control,
+    name: "program_id",
+  });
   const { data: paginatedPLOs } = usePLOs(selectedProgramId || undefined);
   const outcomes = paginatedPLOs?.data ?? [];
 
@@ -130,24 +144,24 @@ const CQIPlanFormDialog = ({ open, onOpenChange, plan }: CQIPlanFormDialogProps)
         },
         {
           onSuccess: () => {
-            toast.success('CQI plan updated');
+            toast.success("CQI plan updated");
             onOpenChange(false);
             form.reset();
           },
           onError: (err) => toast.error(err.message),
-        },
+        }
       );
     } else {
       createMutation.mutate(
         { ...data, performedBy: user.id },
         {
           onSuccess: () => {
-            toast.success('CQI plan created');
+            toast.success("CQI plan created");
             onOpenChange(false);
             form.reset();
           },
           onError: (err) => toast.error(err.message),
-        },
+        }
       );
     }
   };
@@ -158,7 +172,9 @@ const CQIPlanFormDialog = ({ open, onOpenChange, plan }: CQIPlanFormDialogProps)
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>{isEdit ? 'Edit CQI Action Plan' : 'New CQI Action Plan'}</DialogTitle>
+          <DialogTitle>
+            {isEdit ? "Edit CQI Action Plan" : "New CQI Action Plan"}
+          </DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -171,11 +187,18 @@ const CQIPlanFormDialog = ({ open, onOpenChange, plan }: CQIPlanFormDialogProps)
                     <FormItem>
                       <FormLabel>Program</FormLabel>
                       <FormControl>
-                        <Select value={field.value} onValueChange={field.onChange}>
-                          <SelectTrigger><SelectValue placeholder="Select program" /></SelectTrigger>
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select program" />
+                          </SelectTrigger>
                           <SelectContent>
                             {programs.map((p) => (
-                              <SelectItem key={p.id} value={p.id}>{p.code} — {p.name}</SelectItem>
+                              <SelectItem key={p.id} value={p.id}>
+                                {p.code} — {p.name}
+                              </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
@@ -191,11 +214,18 @@ const CQIPlanFormDialog = ({ open, onOpenChange, plan }: CQIPlanFormDialogProps)
                     <FormItem>
                       <FormLabel>Semester</FormLabel>
                       <FormControl>
-                        <Select value={field.value} onValueChange={field.onChange}>
-                          <SelectTrigger><SelectValue placeholder="Select semester" /></SelectTrigger>
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select semester" />
+                          </SelectTrigger>
                           <SelectContent>
                             {(semesters ?? []).map((s) => (
-                              <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                              <SelectItem key={s.id} value={s.id}>
+                                {s.name}
+                              </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
@@ -211,8 +241,13 @@ const CQIPlanFormDialog = ({ open, onOpenChange, plan }: CQIPlanFormDialogProps)
                     <FormItem>
                       <FormLabel>Outcome Type</FormLabel>
                       <FormControl>
-                        <Select value={field.value} onValueChange={field.onChange}>
-                          <SelectTrigger><SelectValue /></SelectTrigger>
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="PLO">PLO</SelectItem>
                             <SelectItem value="CLO">CLO</SelectItem>
@@ -230,11 +265,18 @@ const CQIPlanFormDialog = ({ open, onOpenChange, plan }: CQIPlanFormDialogProps)
                     <FormItem>
                       <FormLabel>Outcome</FormLabel>
                       <FormControl>
-                        <Select value={field.value} onValueChange={field.onChange}>
-                          <SelectTrigger><SelectValue placeholder="Select outcome" /></SelectTrigger>
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select outcome" />
+                          </SelectTrigger>
                           <SelectContent>
                             {outcomes.map((o) => (
-                              <SelectItem key={o.id} value={o.id}>{o.title}</SelectItem>
+                              <SelectItem key={o.id} value={o.id}>
+                                {o.title}
+                              </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
@@ -250,7 +292,9 @@ const CQIPlanFormDialog = ({ open, onOpenChange, plan }: CQIPlanFormDialogProps)
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Baseline Attainment (%)</FormLabel>
-                        <FormControl><Input type="number" min={0} max={100} {...field} /></FormControl>
+                        <FormControl>
+                          <Input type="number" min={0} max={100} {...field} />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -261,7 +305,9 @@ const CQIPlanFormDialog = ({ open, onOpenChange, plan }: CQIPlanFormDialogProps)
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Target Attainment (%)</FormLabel>
-                        <FormControl><Input type="number" min={0} max={100} {...field} /></FormControl>
+                        <FormControl>
+                          <Input type="number" min={0} max={100} {...field} />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -275,7 +321,9 @@ const CQIPlanFormDialog = ({ open, onOpenChange, plan }: CQIPlanFormDialogProps)
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Action Description</FormLabel>
-                  <FormControl><Textarea rows={3} {...field} /></FormControl>
+                  <FormControl>
+                    <Textarea rows={3} {...field} />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -286,7 +334,9 @@ const CQIPlanFormDialog = ({ open, onOpenChange, plan }: CQIPlanFormDialogProps)
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Responsible Person</FormLabel>
-                  <FormControl><Input {...field} /></FormControl>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -298,7 +348,9 @@ const CQIPlanFormDialog = ({ open, onOpenChange, plan }: CQIPlanFormDialogProps)
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Target Attainment (%)</FormLabel>
-                    <FormControl><Input type="number" min={0} max={100} {...field} /></FormControl>
+                    <FormControl>
+                      <Input type="number" min={0} max={100} {...field} />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -310,7 +362,7 @@ const CQIPlanFormDialog = ({ open, onOpenChange, plan }: CQIPlanFormDialogProps)
               className="w-full bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
             >
               {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-              {isEdit ? 'Update Plan' : 'Create Plan'}
+              {isEdit ? "Update Plan" : "Create Plan"}
             </Button>
           </form>
         </Form>
@@ -331,13 +383,13 @@ const EvaluateDialog = ({ open, onOpenChange, plan }: EvaluateDialogProps) => {
   const { user } = useAuth();
   const updateMutation = useUpdateCQIPlan();
   const [resultAttainment, setResultAttainment] = useState<string>(
-    plan.result_attainment?.toString() ?? '',
+    plan.result_attainment?.toString() ?? ""
   );
 
   const handleEvaluate = () => {
     const value = Number(resultAttainment);
     if (isNaN(value) || value < 0 || value > 100) {
-      toast.error('Result attainment must be between 0 and 100');
+      toast.error("Result attainment must be between 0 and 100");
       return;
     }
     if (!user?.id) return;
@@ -345,17 +397,17 @@ const EvaluateDialog = ({ open, onOpenChange, plan }: EvaluateDialogProps) => {
     updateMutation.mutate(
       {
         id: plan.id,
-        status: 'evaluated',
+        status: "evaluated",
         result_attainment: value,
         performedBy: user.id,
       },
       {
         onSuccess: () => {
-          toast.success('CQI plan evaluated');
+          toast.success("CQI plan evaluated");
           onOpenChange(false);
         },
         onError: (err) => toast.error(err.message),
-      },
+      }
     );
   };
 
@@ -395,7 +447,9 @@ const EvaluateDialog = ({ open, onOpenChange, plan }: EvaluateDialogProps) => {
             disabled={updateMutation.isPending}
             className="w-full bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
           >
-            {updateMutation.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+            {updateMutation.isPending && (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            )}
             Submit Evaluation
           </Button>
         </div>
@@ -414,18 +468,28 @@ interface PlanRowProps {
   onEvaluate: (plan: CQIActionPlan) => void;
 }
 
-const PlanRow = ({ plan, onEdit, onDelete, onAdvanceStatus, onEvaluate }: PlanRowProps) => {
+const PlanRow = ({
+  plan,
+  onEdit,
+  onDelete,
+  onAdvanceStatus,
+  onEvaluate,
+}: PlanRowProps) => {
   const nextStatus = STATUS_TRANSITIONS[plan.status as CQIPlanStatus];
-  const isEvaluateTransition = plan.status === 'completed';
+  const isEvaluateTransition = plan.status === "completed";
 
   return (
     <div className="flex items-center justify-between p-4 border-b border-slate-100 last:border-b-0">
       <div className="flex-1 min-w-0 space-y-1">
         <div className="flex items-center gap-2">
           <CQIStatusBadge status={plan.status as CQIStatus} />
-          <span className="text-xs text-gray-400 uppercase">{plan.outcome_type}</span>
+          <span className="text-xs text-gray-400 uppercase">
+            {plan.outcome_type}
+          </span>
         </div>
-        <p className="text-sm font-medium truncate">{plan.action_description}</p>
+        <p className="text-sm font-medium truncate">
+          {plan.action_description}
+        </p>
         <div className="flex items-center gap-4 text-xs text-gray-500">
           <span>Baseline: {plan.baseline_attainment}%</span>
           <ArrowRight className="h-3 w-3" />
@@ -433,13 +497,21 @@ const PlanRow = ({ plan, onEdit, onDelete, onAdvanceStatus, onEvaluate }: PlanRo
           {plan.result_attainment !== null && (
             <>
               <ArrowRight className="h-3 w-3" />
-              <span className={plan.result_attainment >= plan.target_attainment ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}>
+              <span
+                className={
+                  plan.result_attainment >= plan.target_attainment
+                    ? "text-green-600 font-bold"
+                    : "text-red-600 font-bold"
+                }
+              >
                 Result: {plan.result_attainment}%
               </span>
             </>
           )}
         </div>
-        <p className="text-xs text-gray-400">Responsible: {plan.responsible_person}</p>
+        <p className="text-xs text-gray-400">
+          Responsible: {plan.responsible_person}
+        </p>
       </div>
       <div className="flex items-center gap-2 ms-4 shrink-0">
         {nextStatus && !isEvaluateTransition && (
@@ -452,11 +524,7 @@ const PlanRow = ({ plan, onEdit, onDelete, onAdvanceStatus, onEvaluate }: PlanRo
           </Button>
         )}
         {isEvaluateTransition && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onEvaluate(plan)}
-          >
+          <Button variant="outline" size="sm" onClick={() => onEvaluate(plan)}>
             Evaluate
           </Button>
         )}
@@ -482,7 +550,9 @@ const CQIManager = () => {
   const [formOpen, setFormOpen] = useState(false);
   const [editingPlan, setEditingPlan] = useState<CQIActionPlan | null>(null);
   const [deletingPlan, setDeletingPlan] = useState<CQIActionPlan | null>(null);
-  const [evaluatingPlan, setEvaluatingPlan] = useState<CQIActionPlan | null>(null);
+  const [evaluatingPlan, setEvaluatingPlan] = useState<CQIActionPlan | null>(
+    null
+  );
 
   const handleEdit = (plan: CQIActionPlan) => {
     setEditingPlan(plan);
@@ -496,9 +566,10 @@ const CQIManager = () => {
     updateMutation.mutate(
       { id: plan.id, status: nextStatus, performedBy: user.id },
       {
-        onSuccess: () => toast.success(`Status updated to ${nextStatus.replace('_', ' ')}`),
+        onSuccess: () =>
+          toast.success(`Status updated to ${nextStatus.replace("_", " ")}`),
         onError: (err) => toast.error(err.message),
-      },
+      }
     );
   };
 
@@ -508,11 +579,11 @@ const CQIManager = () => {
       { id: deletingPlan.id, performedBy: user.id },
       {
         onSuccess: () => {
-          toast.success('CQI plan deleted');
+          toast.success("CQI plan deleted");
           setDeletingPlan(null);
         },
         onError: (err) => toast.error(err.message),
-      },
+      }
     );
   };
 
@@ -521,7 +592,10 @@ const CQIManager = () => {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold tracking-tight">CQI Action Plans</h1>
         <Button
-          onClick={() => { setEditingPlan(null); setFormOpen(true); }}
+          onClick={() => {
+            setEditingPlan(null);
+            setFormOpen(true);
+          }}
           className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
         >
           <Plus className="h-4 w-4" /> New Plan
@@ -531,10 +605,15 @@ const CQIManager = () => {
       <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
         <div
           className="px-6 py-4 flex items-center gap-2"
-          style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+          style={{
+            background:
+              "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+          }}
         >
           <ClipboardCheck className="h-5 w-5 text-white" />
-          <h2 className="text-lg font-bold tracking-tight text-white">Action Plans</h2>
+          <h2 className="text-lg font-bold tracking-tight text-white">
+            Action Plans
+          </h2>
         </div>
         <div>
           {isLoading ? (
@@ -544,9 +623,12 @@ const CQIManager = () => {
               ))}
             </div>
           ) : !plans || plans.length === 0 ? (
-            <div className="p-8 text-center text-sm text-gray-500">
-              No CQI action plans yet. Create one to start closing the loop.
-            </div>
+            <EmptyState
+              icon={<ClipboardCheck className="h-8 w-8 text-gray-400" />}
+              title="No CQI Action Plans"
+              description="No CQI action plans yet. Create one to start closing the loop."
+              className="py-12"
+            />
           ) : (
             plans.map((plan) => (
               <PlanRow
@@ -576,7 +658,9 @@ const CQIManager = () => {
       {evaluatingPlan && (
         <EvaluateDialog
           open={!!evaluatingPlan}
-          onOpenChange={(open) => { if (!open) setEvaluatingPlan(null); }}
+          onOpenChange={(open) => {
+            if (!open) setEvaluatingPlan(null);
+          }}
           plan={evaluatingPlan}
         />
       )}
@@ -584,7 +668,9 @@ const CQIManager = () => {
       {/* Delete Confirmation */}
       <ConfirmDialog
         open={!!deletingPlan}
-        onOpenChange={(open) => { if (!open) setDeletingPlan(null); }}
+        onOpenChange={(open) => {
+          if (!open) setDeletingPlan(null);
+        }}
         title="Delete CQI Plan"
         description="Are you sure you want to delete this CQI action plan? This action cannot be undone."
         onConfirm={handleDelete}

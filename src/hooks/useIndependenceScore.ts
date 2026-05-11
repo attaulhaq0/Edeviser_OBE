@@ -2,9 +2,9 @@
 // useIndependenceScore — Hooks for fetching independence scores per student/CLO
 // =============================================================================
 
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -26,7 +26,12 @@ export interface IndependenceScoreResult {
  */
 export const useIndependenceScore = (studentId: string, cloId: string) => {
   return useQuery({
-    queryKey: [...queryKeys.tutorConversations.lists(), 'independence', studentId, cloId],
+    queryKey: [
+      ...queryKeys.tutorConversations.lists(),
+      "independence",
+      studentId,
+      cloId,
+    ],
     queryFn: async (): Promise<IndependenceScoreResult | null> => {
       if (!studentId || !cloId) return null;
 
@@ -45,16 +50,22 @@ export const useIndependenceScore = (studentId: string, cloId: string) => {
  */
 export const useIndependenceScores = (studentId: string, courseId: string) => {
   return useQuery({
-    queryKey: [...queryKeys.tutorConversations.lists(), 'independence', studentId, 'course', courseId],
+    queryKey: [
+      ...queryKeys.tutorConversations.lists(),
+      "independence",
+      studentId,
+      "course",
+      courseId,
+    ],
     queryFn: async (): Promise<IndependenceScoreResult[]> => {
       if (!studentId || !courseId) return [];
 
       // 1. Get all CLOs for this course
       const { data: clos, error: cloError } = await supabase
-        .from('learning_outcomes')
-        .select('id')
-        .eq('course_id', courseId)
-        .eq('type', 'CLO');
+        .from("learning_outcomes")
+        .select("id")
+        .eq("course_id", courseId)
+        .eq("type", "CLO");
 
       if (cloError) throw cloError;
       if (!clos || clos.length === 0) return [];
@@ -71,7 +82,7 @@ export const useIndependenceScores = (studentId: string, courseId: string) => {
 
 async function fetchIndependenceForCLOs(
   studentId: string,
-  cloIds: string[],
+  cloIds: string[]
 ): Promise<IndependenceScoreResult[]> {
   const results: IndependenceScoreResult[] = [];
 
@@ -79,31 +90,41 @@ async function fetchIndependenceForCLOs(
     // Get all submissions for this student that are linked to assignments covering this CLO
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: submissions, error: subError } = await (supabase as any)
-      .from('submissions')
-      .select('id, submitted_at, assignment_id')
-      .eq('student_id', studentId);
+      .from("submissions")
+      .select("id, submitted_at, assignment_id")
+      .eq("student_id", studentId);
 
     if (subError) {
-      console.error('Failed to fetch submissions:', subError.message);
-      results.push({ clo_id: cloId, score: 1.0, total_submissions: 0, ai_assisted_submissions: 0 });
+      console.error("Failed to fetch submissions:", subError.message);
+      results.push({
+        clo_id: cloId,
+        score: 1.0,
+        total_submissions: 0,
+        ai_assisted_submissions: 0,
+      });
       continue;
     }
 
     if (!submissions || submissions.length === 0) {
-      results.push({ clo_id: cloId, score: 1.0, total_submissions: 0, ai_assisted_submissions: 0 });
+      results.push({
+        clo_id: cloId,
+        score: 1.0,
+        total_submissions: 0,
+        ai_assisted_submissions: 0,
+      });
       continue;
     }
 
     // Get tutor conversations scoped to this CLO
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: conversations, error: convError } = await (supabase as any)
-      .from('tutor_conversations')
-      .select('id, created_at, updated_at, clo_scope')
-      .eq('student_id', studentId)
-      .contains('clo_scope', [cloId]);
+      .from("tutor_conversations")
+      .select("id, created_at, updated_at, clo_scope")
+      .eq("student_id", studentId)
+      .contains("clo_scope", [cloId]);
 
     if (convError) {
-      console.error('Failed to fetch conversations:', convError.message);
+      console.error("Failed to fetch conversations:", convError.message);
       results.push({
         clo_id: cloId,
         score: 1.0,
@@ -126,7 +147,7 @@ async function fetchIndependenceForCLOs(
           const convTime = new Date(conv.updated_at).getTime();
           const timeDiff = submittedAt - convTime;
           return timeDiff >= 0 && timeDiff <= ONE_HOUR_MS;
-        },
+        }
       );
 
       if (wasAiAssisted) {
@@ -135,7 +156,8 @@ async function fetchIndependenceForCLOs(
     }
 
     const totalSubmissions = submissions.length;
-    const score = totalSubmissions > 0 ? 1 - aiAssisted / totalSubmissions : 1.0;
+    const score =
+      totalSubmissions > 0 ? 1 - aiAssisted / totalSubmissions : 1.0;
 
     results.push({
       clo_id: cloId,

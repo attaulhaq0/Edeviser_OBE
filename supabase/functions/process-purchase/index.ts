@@ -33,10 +33,7 @@ interface PurchaseRPCResult {
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
-function jsonResponse(
-  body: Record<string, unknown>,
-  status = 200
-): Response {
+function jsonResponse(body: Record<string, unknown>, status = 200): Response {
   return new Response(JSON.stringify(body), {
     status,
     headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -80,7 +77,10 @@ serve(async (req) => {
 
     const itemId = body.item_id;
     if (!itemId || typeof itemId !== "string") {
-      return errorResponse("item_id is required and must be a UUID string", 400);
+      return errorResponse(
+        "item_id is required and must be a UUID string",
+        400
+      );
     }
 
     // Validate UUID format
@@ -138,7 +138,10 @@ serve(async (req) => {
 
     const institutionId = profile.institution_id;
     if (!institutionId) {
-      return errorResponse("Student is not associated with an institution", 400);
+      return errorResponse(
+        "Student is not associated with an institution",
+        400
+      );
     }
 
     // ── 3.1.2: Call process_marketplace_purchase RPC function ─────────────
@@ -153,13 +156,13 @@ serve(async (req) => {
     );
 
     if (rpcError) {
-      console.error("RPC process_marketplace_purchase failed:", rpcError.message);
-      return errorResponse(
-        "Purchase processing failed",
-        500,
-        undefined,
-        { detail: rpcError.message }
+      console.error(
+        "RPC process_marketplace_purchase failed:",
+        rpcError.message
       );
+      return errorResponse("Purchase processing failed", 500, undefined, {
+        detail: rpcError.message,
+      });
     }
 
     const result = rpcResult as PurchaseRPCResult;
@@ -181,12 +184,14 @@ serve(async (req) => {
 
       const errorMessages: Record<PurchaseErrorCode, string> = {
         INSUFFICIENT_BALANCE: "Insufficient XP balance for this purchase",
-        LEVEL_REQUIREMENT: "You do not meet the level requirement for this item",
+        LEVEL_REQUIREMENT:
+          "You do not meet the level requirement for this item",
         OUT_OF_STOCK: "This item is out of stock",
         ALREADY_OWNED: "You already own this item",
         ITEM_INACTIVE: "This item is no longer available",
         SALE_EXPIRED: "The sale for this item has expired",
-        MAX_INVENTORY: "You have reached the maximum inventory for this item type",
+        MAX_INVENTORY:
+          "You have reached the maximum inventory for this item type",
       };
 
       return errorResponse(

@@ -1,6 +1,11 @@
 import { z } from "zod";
 
-const cqiStatusSchema = z.enum(["planned", "in_progress", "completed", "evaluated"]);
+const cqiStatusSchema = z.enum([
+  "planned",
+  "in_progress",
+  "completed",
+  "evaluated",
+]);
 
 export const createCQIPlanSchema = z.object({
   program_id: z.uuid(),

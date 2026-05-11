@@ -2,9 +2,9 @@
 // useInventory — TanStack Query hook for student owned items
 // =============================================================================
 
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -18,7 +18,7 @@ export interface InventoryItem {
   icon_identifier: string;
   metadata: Record<string, unknown>;
   xp_cost: number;
-  status: 'active' | 'consumed' | 'expired' | 'refunded';
+  status: "active" | "consumed" | "expired" | "refunded";
   purchased_at: string;
   consumed_at: string | null;
 }
@@ -31,8 +31,9 @@ export const useInventory = (studentId: string) => {
     queryFn: async (): Promise<InventoryItem[]> => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error } = await (supabase as any)
-        .from('xp_purchases')
-        .select(`
+        .from("xp_purchases")
+        .select(
+          `
           id,
           item_id,
           xp_cost,
@@ -47,10 +48,11 @@ export const useInventory = (studentId: string) => {
             icon_identifier,
             metadata
           )
-        `)
-        .eq('student_id', studentId)
-        .neq('status', 'refunded')
-        .order('purchased_at', { ascending: false });
+        `
+        )
+        .eq("student_id", studentId)
+        .neq("status", "refunded")
+        .order("purchased_at", { ascending: false });
 
       if (error) throw error;
 
@@ -59,14 +61,14 @@ export const useInventory = (studentId: string) => {
         return {
           purchase_id: row.id as string,
           item_id: row.item_id as string,
-          item_name: (item?.name as string) ?? 'Unknown Item',
-          item_description: (item?.description as string) ?? '',
-          item_category: (item?.category as string) ?? '',
-          item_sub_category: (item?.sub_category as string) ?? '',
-          icon_identifier: (item?.icon_identifier as string) ?? 'package',
+          item_name: (item?.name as string) ?? "Unknown Item",
+          item_description: (item?.description as string) ?? "",
+          item_category: (item?.category as string) ?? "",
+          item_sub_category: (item?.sub_category as string) ?? "",
+          icon_identifier: (item?.icon_identifier as string) ?? "package",
           metadata: (item?.metadata ?? {}) as Record<string, unknown>,
           xp_cost: row.xp_cost as number,
-          status: row.status as 'active' | 'consumed' | 'expired' | 'refunded',
+          status: row.status as "active" | "consumed" | "expired" | "refunded",
           purchased_at: row.purchased_at as string,
           consumed_at: (row.consumed_at as string) ?? null,
         };

@@ -173,7 +173,6 @@
 - [x] 13.13 `src/__tests__/unit/completeProfilePage.test.tsx` — Remaining dimensions list, item counts, estimated time, bulk completion flow
 - [x] 13.14 `src/__tests__/unit/goalTemplates.test.ts` — SMART goal composition, difficulty classification from cohort rates
 
-
 ## 14. Progressive Profiling & Micro-Assessments
 
 - [x] 14.1 Implement micro-assessment schedule generation logic in process-onboarding Edge Function (14-day schedule based on MICRO_ASSESSMENT_SCHEDULE constant)

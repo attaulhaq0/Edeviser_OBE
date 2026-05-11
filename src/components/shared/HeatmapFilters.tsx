@@ -1,8 +1,8 @@
-import { parseAsString, useQueryState } from 'nuqs';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { cn } from '@/lib/utils';
-import { getFilterOptions } from '@/lib/heatmapUtils';
-import type { WellnessHabitType } from '@/types/habits';
+import { parseAsString, useQueryState } from "nuqs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
+import { getFilterOptions } from "@/lib/heatmapUtils";
+import type { WellnessHabitType } from "@/types/habits";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -19,20 +19,20 @@ export interface HeatmapFiltersProps {
 
 /** Map display label back to a URL-safe filter value. */
 const FILTER_VALUE_MAP: Record<string, string> = {
-  'All Habits': 'all',
-  Login: 'login',
-  Submit: 'submit',
-  Journal: 'journal',
-  Read: 'read',
-  Meditation: 'meditation',
-  Hydration: 'hydration',
-  Exercise: 'exercise',
-  Sleep: 'sleep',
+  "All Habits": "all",
+  Login: "login",
+  Submit: "submit",
+  Journal: "journal",
+  Read: "read",
+  Meditation: "meditation",
+  Hydration: "hydration",
+  Exercise: "exercise",
+  Sleep: "sleep",
 };
 
 /** Reverse lookup: filter value → display label. */
 const FILTER_LABEL_MAP: Record<string, string> = Object.fromEntries(
-  Object.entries(FILTER_VALUE_MAP).map(([k, v]) => [v, k]),
+  Object.entries(FILTER_VALUE_MAP).map(([k, v]) => [v, k])
 );
 
 // ---------------------------------------------------------------------------
@@ -44,8 +44,8 @@ const HeatmapFilters = ({
   onFilterChange,
 }: HeatmapFiltersProps) => {
   const [filter, setFilter] = useQueryState(
-    'habit',
-    parseAsString.withDefault('all'),
+    "habit",
+    parseAsString.withDefault("all")
   );
 
   const options = getFilterOptions(enabledWellnessHabits);
@@ -74,10 +74,10 @@ const HeatmapFilters = ({
               key={value}
               value={value}
               className={cn(
-                'rounded-xl border px-3 py-1.5 text-sm font-medium transition-colors',
+                "rounded-xl border px-3 py-1.5 text-sm font-medium transition-colors",
                 isActive
-                  ? 'bg-blue-600 text-white border-blue-600'
-                  : 'bg-white text-gray-600 border-gray-200 hover:bg-slate-50',
+                  ? "bg-blue-600 text-white border-blue-600"
+                  : "bg-white text-gray-600 border-gray-200 hover:bg-slate-50"
               )}
               data-testid={`filter-${value}`}
             >

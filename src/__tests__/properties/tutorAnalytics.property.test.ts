@@ -90,7 +90,10 @@ const dateArb = fc
   )
   .map(
     ([y, m, d]) =>
-      `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}T12:00:00Z`
+      `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(
+        2,
+        "0"
+      )}T12:00:00Z`
   );
 
 const conversationArb = (cloIds: string[]): fc.Arbitrary<ConversationRecord> =>
@@ -129,7 +132,9 @@ describe("Property 28 — Aggregation produces non-negative counts", () => {
 
           expect(result.total_conversations).toBeGreaterThanOrEqual(0);
           expect(result.total_messages).toBeGreaterThanOrEqual(0);
-          expect(result.avg_messages_per_conversation).toBeGreaterThanOrEqual(0);
+          expect(result.avg_messages_per_conversation).toBeGreaterThanOrEqual(
+            0
+          );
           expect(result.avg_satisfaction_rating).toBeGreaterThanOrEqual(0);
           expect(result.avg_satisfaction_rating).toBeLessThanOrEqual(1);
         }
@@ -141,10 +146,10 @@ describe("Property 28 — Aggregation produces non-negative counts", () => {
   it("P28b: total_conversations equals the count of input conversations", () => {
     fc.assert(
       fc.property(
-        fc.array(
-          conversationArb(["clo-1", "clo-2"]),
-          { minLength: 0, maxLength: 30 }
-        ),
+        fc.array(conversationArb(["clo-1", "clo-2"]), {
+          minLength: 0,
+          maxLength: 30,
+        }),
         (convs) => {
           const result = aggregateAnalytics(convs, [], new Map());
           expect(result.total_conversations).toBe(convs.length);
@@ -157,10 +162,7 @@ describe("Property 28 — Aggregation produces non-negative counts", () => {
   it("P28c: total_messages equals sum of all conversation message counts", () => {
     fc.assert(
       fc.property(
-        fc.array(
-          conversationArb(["clo-1"]),
-          { minLength: 0, maxLength: 20 }
-        ),
+        fc.array(conversationArb(["clo-1"]), { minLength: 0, maxLength: 20 }),
         (convs) => {
           const result = aggregateAnalytics(convs, [], new Map());
           const expectedTotal = convs.reduce(
@@ -181,10 +183,10 @@ describe("Property 29 — CLO ranking sorted by conversation count descending", 
   it("P29a: top_questioned_clos is sorted by conversation_count descending", () => {
     fc.assert(
       fc.property(
-        fc.array(
-          conversationArb(["clo-a", "clo-b", "clo-c", "clo-d"]),
-          { minLength: 1, maxLength: 30 }
-        ),
+        fc.array(conversationArb(["clo-a", "clo-b", "clo-c", "clo-d"]), {
+          minLength: 1,
+          maxLength: 30,
+        }),
         (convs) => {
           const cloLookup = new Map([
             ["clo-a", "CLO A"],
@@ -210,10 +212,10 @@ describe("Property 29 — CLO ranking sorted by conversation count descending", 
   it("P29b: each CLO count equals the number of conversations containing it", () => {
     fc.assert(
       fc.property(
-        fc.array(
-          conversationArb(["clo-x", "clo-y", "clo-z"]),
-          { minLength: 1, maxLength: 20 }
-        ),
+        fc.array(conversationArb(["clo-x", "clo-y", "clo-z"]), {
+          minLength: 1,
+          maxLength: 20,
+        }),
         (convs) => {
           const cloLookup = new Map([
             ["clo-x", "CLO X"],
@@ -241,15 +243,19 @@ describe("Property 30 — No PII in analytics output", () => {
   it("P30a: analytics response contains no student names, emails, or IDs", () => {
     fc.assert(
       fc.property(
-        fc.array(
-          conversationArb(["clo-1", "clo-2"]),
-          { minLength: 0, maxLength: 10 }
-        ),
+        fc.array(conversationArb(["clo-1", "clo-2"]), {
+          minLength: 0,
+          maxLength: 10,
+        }),
         (convs) => {
-          const result = aggregateAnalytics(convs, [], new Map([
-            ["clo-1", "Introduction to Programming"],
-            ["clo-2", "Data Structures"],
-          ]));
+          const result = aggregateAnalytics(
+            convs,
+            [],
+            new Map([
+              ["clo-1", "Introduction to Programming"],
+              ["clo-2", "Data Structures"],
+            ])
+          );
 
           const serialized = JSON.stringify(result);
 
@@ -276,10 +282,7 @@ describe("Property 31 — Daily counts have valid date format", () => {
   it("P31a: each usage_over_time entry has a valid YYYY-MM-DD date", () => {
     fc.assert(
       fc.property(
-        fc.array(
-          conversationArb(["clo-1"]),
-          { minLength: 1, maxLength: 20 }
-        ),
+        fc.array(conversationArb(["clo-1"]), { minLength: 1, maxLength: 20 }),
         (convs) => {
           const result = aggregateAnalytics(convs, [], new Map());
 
@@ -300,10 +303,7 @@ describe("Property 31 — Daily counts have valid date format", () => {
   it("P31b: each day's conversation_count is positive", () => {
     fc.assert(
       fc.property(
-        fc.array(
-          conversationArb(["clo-1"]),
-          { minLength: 1, maxLength: 20 }
-        ),
+        fc.array(conversationArb(["clo-1"]), { minLength: 1, maxLength: 20 }),
         (convs) => {
           const result = aggregateAnalytics(convs, [], new Map());
 
@@ -319,10 +319,7 @@ describe("Property 31 — Daily counts have valid date format", () => {
   it("P31c: sum of daily counts equals total conversations", () => {
     fc.assert(
       fc.property(
-        fc.array(
-          conversationArb(["clo-1"]),
-          { minLength: 1, maxLength: 20 }
-        ),
+        fc.array(conversationArb(["clo-1"]), { minLength: 1, maxLength: 20 }),
         (convs) => {
           const result = aggregateAnalytics(convs, [], new Map());
 

@@ -3,11 +3,11 @@
 // Task 3.2: list members with contribution status, add member, remove member
 // =============================================================================
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import { toast } from 'sonner';
-import type { ContributionStatus } from '@/lib/contributionThresholds';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import { toast } from "sonner";
+import type { ContributionStatus } from "@/lib/contributionThresholds";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -15,7 +15,7 @@ export interface TeamMember {
   id: string;
   team_id: string;
   student_id: string;
-  role: 'captain' | 'member';
+  role: "captain" | "member";
   joined_at: string;
   left_at: string | null;
   contribution_status: ContributionStatus;
@@ -30,12 +30,12 @@ export const useTeamMembers = (teamId?: string) => {
     queryKey: queryKeys.teamMembers.list({ teamId }),
     queryFn: async (): Promise<TeamMember[]> => {
       const { data, error } = await supabase
-        .from('team_members' as never)
-        .select('*')
-        .eq('team_id', teamId!)
-        .is('left_at', null)
-        .order('role', { ascending: true })
-        .order('joined_at', { ascending: true });
+        .from("team_members" as never)
+        .select("*")
+        .eq("team_id", teamId!)
+        .is("left_at", null)
+        .order("role", { ascending: true })
+        .order("joined_at", { ascending: true });
       if (error) throw error;
       return (data ?? []) as TeamMember[];
     },
@@ -48,7 +48,7 @@ export const useTeamMembers = (teamId?: string) => {
 interface AddMemberInput {
   team_id: string;
   student_id: string;
-  role?: 'captain' | 'member';
+  role?: "captain" | "member";
 }
 
 export const useAddTeamMember = () => {
@@ -56,19 +56,21 @@ export const useAddTeamMember = () => {
   return useMutation({
     mutationFn: async (input: AddMemberInput) => {
       const { data, error } = await supabase
-        .from('team_members' as never)
-        .insert({ role: 'member', ...input } as never)
+        .from("team_members" as never)
+        .insert({ role: "member", ...input } as never)
         .select()
         .single();
       if (error) throw error;
       return data as TeamMember;
     },
     onSuccess: (_data, variables) => {
-      qc.invalidateQueries({ queryKey: queryKeys.teamMembers.list({ teamId: variables.team_id }) });
+      qc.invalidateQueries({
+        queryKey: queryKeys.teamMembers.list({ teamId: variables.team_id }),
+      });
       qc.invalidateQueries({ queryKey: queryKeys.teams.lists() });
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Failed to add team member');
+      toast.error(error.message || "Failed to add team member");
     },
   });
 };
@@ -85,20 +87,22 @@ export const useRemoveTeamMember = () => {
   return useMutation({
     mutationFn: async ({ memberId }: RemoveMemberInput) => {
       const { data, error } = await supabase
-        .from('team_members' as never)
+        .from("team_members" as never)
         .update({ left_at: new Date().toISOString() } as never)
-        .eq('id', memberId)
+        .eq("id", memberId)
         .select()
         .single();
       if (error) throw error;
       return data as TeamMember;
     },
     onSuccess: (_data, variables) => {
-      qc.invalidateQueries({ queryKey: queryKeys.teamMembers.list({ teamId: variables.teamId }) });
+      qc.invalidateQueries({
+        queryKey: queryKeys.teamMembers.list({ teamId: variables.teamId }),
+      });
       qc.invalidateQueries({ queryKey: queryKeys.teams.lists() });
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Failed to remove team member');
+      toast.error(error.message || "Failed to remove team member");
     },
   });
 };

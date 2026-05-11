@@ -186,7 +186,7 @@ Additionally, the feature incorporates evidence-based profiling instruments (Sel
 
 1. THE Profile_Engine SHALL calculate each Trait_Score as: `(sum of weighted responses for dimension / max possible score for dimension) * 100`, rounded to the nearest integer.
 2. THE Profile_Engine SHALL calculate each VARK_Score as: `(count of selections for modality / total questions) * 100`, rounded to the nearest integer.
-3. THE sum of all 4 VARK_Scores SHALL NOT exceed 400 (since each question maps to exactly one modality, the sum equals 100 * number_of_modalities_selected / total_questions * 4, which simplifies to 400 when all questions are answered).
+3. THE sum of all 4 VARK_Scores SHALL NOT exceed 400 (since each question maps to exactly one modality, the sum equals 100 _ number_of_modalities_selected / total_questions _ 4, which simplifies to 400 when all questions are answered).
 4. FOR ALL valid sets of 25 personality responses, each Trait_Score SHALL be in the range [0, 100].
 5. FOR ALL valid sets of 16 learning style responses, each VARK_Score SHALL be in the range [0, 100].
 
@@ -316,7 +316,6 @@ Additionally, the feature incorporates evidence-based profiling instruments (Sel
 3. THE `onboarding_responses` table SHALL enforce a unique constraint on (student_id, question_id, assessment_version) to prevent duplicate storage.
 4. THE `student_profiles` table SHALL enforce a unique constraint on (student_id, assessment_version) to prevent duplicate profiles.
 5. THE `baseline_attainment` table SHALL enforce a unique constraint on (student_id, course_id, clo_id) with UPSERT semantics for re-assessment.
-
 
 ---
 

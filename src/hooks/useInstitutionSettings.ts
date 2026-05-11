@@ -2,17 +2,14 @@
 // useInstitutionSettings — TanStack Query hooks for institution settings & accreditations
 // =============================================================================
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import { logAuditEvent } from '@/lib/auditLogger';
-import { useAuth } from '@/hooks/useAuth';
-import { toast } from 'sonner';
-import type {
-  InstitutionSettings,
-  ProgramAccreditation,
-} from '@/types/app';
-import type { InstitutionSettingsFormData } from '@/lib/schemas/institutionSettings';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import { logAuditEvent } from "@/lib/auditLogger";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
+import type { InstitutionSettings, ProgramAccreditation } from "@/types/app";
+import type { InstitutionSettingsFormData } from "@/lib/schemas/institutionSettings";
 
 // ─── useInstitutionSettings — fetch current institution settings ─────────────
 
@@ -25,9 +22,9 @@ export const useInstitutionSettings = () => {
       if (!institutionId) return null;
 
       const { data, error } = await supabase
-        .from('institution_settings')
-        .select('*')
-        .eq('institution_id', institutionId)
+        .from("institution_settings")
+        .select("*")
+        .eq("institution_id", institutionId)
         .maybeSingle();
 
       if (error) throw error;
@@ -37,7 +34,6 @@ export const useInstitutionSettings = () => {
   });
 };
 
-
 // ─── useUpsertInstitutionSettings — create or update settings ────────────────
 
 export const useUpsertInstitutionSettings = () => {
@@ -45,14 +41,16 @@ export const useUpsertInstitutionSettings = () => {
   const { user, institutionId } = useAuth();
 
   return useMutation({
-    mutationFn: async (input: InstitutionSettingsFormData): Promise<InstitutionSettings> => {
-      if (!institutionId) throw new Error('No institution context');
+    mutationFn: async (
+      input: InstitutionSettingsFormData
+    ): Promise<InstitutionSettings> => {
+      if (!institutionId) throw new Error("No institution context");
 
       // Check if settings already exist
       const { data: existing } = await supabase
-        .from('institution_settings')
-        .select('id')
-        .eq('institution_id', institutionId)
+        .from("institution_settings")
+        .select("id")
+        .eq("institution_id", institutionId)
         .maybeSingle();
 
       const payload = {
@@ -63,23 +61,23 @@ export const useUpsertInstitutionSettings = () => {
         grade_scales: input.grade_scales,
         streak_sabbatical_enabled: input.streak_sabbatical_enabled ?? false,
         league_thresholds: input.league_thresholds ?? undefined,
-        default_language: input.default_language ?? 'en',
+        default_language: input.default_language ?? "en",
       };
 
       let result: InstitutionSettings;
 
       if (existing) {
         const { data, error } = await supabase
-          .from('institution_settings')
+          .from("institution_settings")
           .update(payload)
-          .eq('id', existing.id)
+          .eq("id", existing.id)
           .select()
           .single();
         if (error) throw error;
         result = data as unknown as InstitutionSettings;
       } else {
         const { data, error } = await supabase
-          .from('institution_settings')
+          .from("institution_settings")
           .insert(payload)
           .select()
           .single();
@@ -88,21 +86,23 @@ export const useUpsertInstitutionSettings = () => {
       }
 
       await logAuditEvent({
-        action: existing ? 'update' : 'create',
-        entity_type: 'institution_settings',
+        action: existing ? "update" : "create",
+        entity_type: "institution_settings",
         entity_id: result.id,
         changes: payload as unknown as Record<string, unknown>,
-        performed_by: user?.id ?? 'unknown',
+        performed_by: user?.id ?? "unknown",
       });
 
       return result;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.institutionSettings.all });
-      toast.success('Institution settings saved');
+      toast.success("Institution settings saved");
     },
     onError: (err) =>
-      toast.error(err instanceof Error ? err.message : 'Failed to save settings'),
+      toast.error(
+        err instanceof Error ? err.message : "Failed to save settings"
+      ),
   });
 };
 
@@ -115,10 +115,10 @@ export const useProgramAccreditations = (programId?: string) => {
       if (!programId) return [];
 
       const { data, error } = await supabase
-        .from('program_accreditations')
-        .select('*')
-        .eq('program_id', programId)
-        .order('created_at', { ascending: false });
+        .from("program_accreditations")
+        .select("*")
+        .eq("program_id", programId)
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
       return (data ?? []) as ProgramAccreditation[];
@@ -132,11 +132,16 @@ export const useProgramAccreditations = (programId?: string) => {
 export const useAllProgramAccreditations = () => {
   return useQuery({
     queryKey: queryKeys.programAccreditations.lists(),
-    queryFn: async (): Promise<(ProgramAccreditation & { program_name?: string; program_code?: string })[]> => {
+    queryFn: async (): Promise<
+      (ProgramAccreditation & {
+        program_name?: string;
+        program_code?: string;
+      })[]
+    > => {
       const { data, error } = await supabase
-        .from('program_accreditations')
-        .select('*, programs(name, code)')
-        .order('next_review_date', { ascending: true });
+        .from("program_accreditations")
+        .select("*, programs(name, code)")
+        .order("next_review_date", { ascending: true });
 
       if (error) throw error;
 
@@ -160,7 +165,7 @@ export interface CreateProgramAccreditationInput {
   framework_version?: string;
   accreditation_date?: string;
   next_review_date?: string;
-  status: 'active' | 'expired' | 'pending';
+  status: "active" | "expired" | "pending";
 }
 
 export const useCreateProgramAccreditation = () => {
@@ -168,9 +173,11 @@ export const useCreateProgramAccreditation = () => {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async (input: CreateProgramAccreditationInput): Promise<ProgramAccreditation> => {
+    mutationFn: async (
+      input: CreateProgramAccreditationInput
+    ): Promise<ProgramAccreditation> => {
       const { data, error } = await supabase
-        .from('program_accreditations')
+        .from("program_accreditations")
         .insert(input)
         .select()
         .single();
@@ -178,21 +185,23 @@ export const useCreateProgramAccreditation = () => {
       if (error) throw error;
 
       await logAuditEvent({
-        action: 'create',
-        entity_type: 'program_accreditation',
+        action: "create",
+        entity_type: "program_accreditation",
         entity_id: data.id,
         changes: input as unknown as Record<string, unknown>,
-        performed_by: user?.id ?? 'unknown',
+        performed_by: user?.id ?? "unknown",
       });
 
       return data as ProgramAccreditation;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.programAccreditations.all });
-      toast.success('Accreditation record created');
+      toast.success("Accreditation record created");
     },
     onError: (err) =>
-      toast.error(err instanceof Error ? err.message : 'Failed to create accreditation'),
+      toast.error(
+        err instanceof Error ? err.message : "Failed to create accreditation"
+      ),
   });
 };
 
@@ -203,32 +212,36 @@ export const useUpdateProgramAccreditation = (id: string) => {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async (input: Partial<CreateProgramAccreditationInput>): Promise<ProgramAccreditation> => {
+    mutationFn: async (
+      input: Partial<CreateProgramAccreditationInput>
+    ): Promise<ProgramAccreditation> => {
       const { data, error } = await supabase
-        .from('program_accreditations')
+        .from("program_accreditations")
         .update(input)
-        .eq('id', id)
+        .eq("id", id)
         .select()
         .single();
 
       if (error) throw error;
 
       await logAuditEvent({
-        action: 'update',
-        entity_type: 'program_accreditation',
+        action: "update",
+        entity_type: "program_accreditation",
         entity_id: id,
         changes: input as unknown as Record<string, unknown>,
-        performed_by: user?.id ?? 'unknown',
+        performed_by: user?.id ?? "unknown",
       });
 
       return data as ProgramAccreditation;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.programAccreditations.all });
-      toast.success('Accreditation record updated');
+      toast.success("Accreditation record updated");
     },
     onError: (err) =>
-      toast.error(err instanceof Error ? err.message : 'Failed to update accreditation'),
+      toast.error(
+        err instanceof Error ? err.message : "Failed to update accreditation"
+      ),
   });
 };
 
@@ -241,25 +254,27 @@ export const useDeleteProgramAccreditation = () => {
   return useMutation({
     mutationFn: async (id: string): Promise<void> => {
       const { error } = await supabase
-        .from('program_accreditations')
+        .from("program_accreditations")
         .delete()
-        .eq('id', id);
+        .eq("id", id);
 
       if (error) throw error;
 
       await logAuditEvent({
-        action: 'delete',
-        entity_type: 'program_accreditation',
+        action: "delete",
+        entity_type: "program_accreditation",
         entity_id: id,
         changes: null,
-        performed_by: user?.id ?? 'unknown',
+        performed_by: user?.id ?? "unknown",
       });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.programAccreditations.all });
-      toast.success('Accreditation record deleted');
+      toast.success("Accreditation record deleted");
     },
     onError: (err) =>
-      toast.error(err instanceof Error ? err.message : 'Failed to delete accreditation'),
+      toast.error(
+        err instanceof Error ? err.message : "Failed to delete accreditation"
+      ),
   });
 };

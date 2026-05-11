@@ -3,7 +3,7 @@
 // Task 4.4: ARIA progressbar role, aria-valuenow/min/max
 // =============================================================================
 
-import { cn } from '@/lib/utils';
+import { cn } from "@/lib/utils";
 
 export interface ChallengeProgressBarProps {
   current: number;
@@ -18,7 +18,7 @@ export interface ChallengeProgressBarProps {
 const ChallengeProgressBar = ({
   current,
   goal,
-  label = 'Challenge progress',
+  label = "Challenge progress",
   showPercentage = true,
   showValues = true,
   colorClass,
@@ -29,17 +29,18 @@ const ChallengeProgressBar = ({
   const percentage = Math.round((clampedCurrent / safeGoal) * 100);
   const isComplete = clampedCurrent >= safeGoal;
 
-  const barColor = colorClass
-    ?? (isComplete
-      ? 'bg-green-500'
+  const barColor =
+    colorClass ??
+    (isComplete
+      ? "bg-green-500"
       : percentage >= 75
-        ? 'bg-blue-500'
-        : percentage >= 50
-          ? 'bg-amber-500'
-          : 'bg-blue-400');
+      ? "bg-blue-500"
+      : percentage >= 50
+      ? "bg-amber-500"
+      : "bg-blue-400");
 
   return (
-    <div className={cn('space-y-1.5', className)}>
+    <div className={cn("space-y-1.5", className)}>
       {/* Header row */}
       {(showPercentage || showValues) && (
         <div className="flex items-center justify-between">
@@ -49,10 +50,12 @@ const ChallengeProgressBar = ({
             </span>
           )}
           {showPercentage && (
-            <span className={cn(
-              'text-xs font-bold tabular-nums',
-              isComplete ? 'text-green-600' : 'text-gray-600',
-            )}>
+            <span
+              className={cn(
+                "text-xs font-bold tabular-nums",
+                isComplete ? "text-green-600" : "text-gray-600"
+              )}
+            >
               {percentage}%
             </span>
           )}
@@ -68,8 +71,8 @@ const ChallengeProgressBar = ({
           aria-valuemax={safeGoal}
           aria-label={label}
           className={cn(
-            'h-full rounded-full transition-all duration-500 ease-out',
-            barColor,
+            "h-full rounded-full transition-all duration-500 ease-out",
+            barColor
           )}
           style={{ width: `${percentage}%` }}
         />

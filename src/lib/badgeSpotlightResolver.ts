@@ -38,12 +38,16 @@ function hashString(str: string): number {
  * ISO weeks start on Monday; week 1 contains the first Thursday of the year.
  */
 export function getISOWeekNumber(date: Date): number {
-  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const d = new Date(
+    Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
+  );
   // Set to nearest Thursday: current date + 4 - current day number (Monday=1, Sunday=7)
   const dayNum = d.getUTCDay() || 7;
   d.setUTCDate(d.getUTCDate() + 4 - dayNum);
   const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-  const weekNo = Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
+  const weekNo = Math.ceil(
+    ((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7
+  );
   return weekNo;
 }
 
@@ -65,13 +69,11 @@ export function resolveBadgeSpotlight(
   studentId: string,
   weekNumber: number,
   badges: BadgeDefinition[],
-  earnedGoldBadgeIds: string[] = [],
+  earnedGoldBadgeIds: string[] = []
 ): SpotlightResult {
   // Filter to eligible badges: not archived, not fully earned (gold)
   const goldSet = new Set(earnedGoldBadgeIds);
-  const eligible = badges.filter(
-    (b) => !b.isArchived && !goldSet.has(b.id),
-  );
+  const eligible = badges.filter((b) => !b.isArchived && !goldSet.has(b.id));
 
   if (eligible.length === 0) {
     return { badgeId: null, badgeName: null, weekNumber };

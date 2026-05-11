@@ -18,18 +18,18 @@ The system integrates with the existing React 18 + TypeScript stack, Shadcn/ui c
 
 ### Key Design Decisions
 
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| Translation loading | Bundled JSON imports (not HTTP fetch) | Small file count (2 languages × 7 namespaces = 14 files); avoids loading latency; Vite tree-shakes unused namespaces |
-| Namespace strategy | Role-based namespaces + `common` + `auth` | Matches existing page structure; enables lazy loading per role; keeps files under 50KB |
-| RTL approach | Tailwind logical properties + `dir` attribute on `<html>` | Tailwind v4 supports `ms-*`/`me-*` natively; Shadcn/ui Radix primitives respect `dir` attribute automatically |
-| Physical → Logical migration | Replace `ml-*`/`mr-*`/`pl-*`/`pr-*`/`left-*`/`right-*` with logical equivalents | One-time migration; all future code uses logical properties by default |
-| Font loading | Google Fonts `Noto Sans Arabic` with `display=swap` | Matches existing Noto Sans setup; no layout shift; Arabic glyphs load on demand |
-| Language persistence | `profiles.preferred_language` column | Server-side persistence; works across devices; aligns with existing profile pattern |
-| Bilingual content | Optional `_ar` suffix columns on key entities | Simple schema; no separate translation table; fallback logic in a pure utility function |
-| Number display | Western Arabic numerals (0-9) in both languages | Consistent with data model; avoids confusion in grades/XP; standard in Qatar education |
-| Date formatting | `date-fns` locale switching | Already in the stack; supports Arabic locale; consistent with existing date usage |
-| Pluralization | i18next built-in ICU plural rules for Arabic | Handles all 6 Arabic plural forms (zero, one, two, few, many, other) natively |
+| Decision                     | Choice                                                                          | Rationale                                                                                                            |
+| ---------------------------- | ------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| Translation loading          | Bundled JSON imports (not HTTP fetch)                                           | Small file count (2 languages × 7 namespaces = 14 files); avoids loading latency; Vite tree-shakes unused namespaces |
+| Namespace strategy           | Role-based namespaces + `common` + `auth`                                       | Matches existing page structure; enables lazy loading per role; keeps files under 50KB                               |
+| RTL approach                 | Tailwind logical properties + `dir` attribute on `<html>`                       | Tailwind v4 supports `ms-*`/`me-*` natively; Shadcn/ui Radix primitives respect `dir` attribute automatically        |
+| Physical → Logical migration | Replace `ml-*`/`mr-*`/`pl-*`/`pr-*`/`left-*`/`right-*` with logical equivalents | One-time migration; all future code uses logical properties by default                                               |
+| Font loading                 | Google Fonts `Noto Sans Arabic` with `display=swap`                             | Matches existing Noto Sans setup; no layout shift; Arabic glyphs load on demand                                      |
+| Language persistence         | `profiles.preferred_language` column                                            | Server-side persistence; works across devices; aligns with existing profile pattern                                  |
+| Bilingual content            | Optional `_ar` suffix columns on key entities                                   | Simple schema; no separate translation table; fallback logic in a pure utility function                              |
+| Number display               | Western Arabic numerals (0-9) in both languages                                 | Consistent with data model; avoids confusion in grades/XP; standard in Qatar education                               |
+| Date formatting              | `date-fns` locale switching                                                     | Already in the stack; supports Arabic locale; consistent with existing date usage                                    |
+| Pluralization                | i18next built-in ICU plural rules for Arabic                                    | Handles all 6 Arabic plural forms (zero, one, two, few, many, other) natively                                        |
 
 ## Architecture
 
@@ -121,56 +121,72 @@ src/
 Side-effect module imported in `main.tsx` before React renders. Configures i18next with all resources, plugins, and language detection.
 
 ```typescript
-import i18n from 'i18next';
-import { initReactI18next } from 'react-i18next';
+import i18n from "i18next";
+import { initReactI18next } from "react-i18next";
 
 // English namespaces
-import enCommon from '@/locales/en/common.json';
-import enAuth from '@/locales/en/auth.json';
-import enAdmin from '@/locales/en/admin.json';
-import enStudent from '@/locales/en/student.json';
-import enTeacher from '@/locales/en/teacher.json';
-import enCoordinator from '@/locales/en/coordinator.json';
-import enParent from '@/locales/en/parent.json';
+import enCommon from "@/locales/en/common.json";
+import enAuth from "@/locales/en/auth.json";
+import enAdmin from "@/locales/en/admin.json";
+import enStudent from "@/locales/en/student.json";
+import enTeacher from "@/locales/en/teacher.json";
+import enCoordinator from "@/locales/en/coordinator.json";
+import enParent from "@/locales/en/parent.json";
 
 // Arabic namespaces
-import arCommon from '@/locales/ar/common.json';
-import arAuth from '@/locales/ar/auth.json';
-import arAdmin from '@/locales/ar/admin.json';
-import arStudent from '@/locales/ar/student.json';
-import arTeacher from '@/locales/ar/teacher.json';
-import arCoordinator from '@/locales/ar/coordinator.json';
-import arParent from '@/locales/ar/parent.json';
+import arCommon from "@/locales/ar/common.json";
+import arAuth from "@/locales/ar/auth.json";
+import arAdmin from "@/locales/ar/admin.json";
+import arStudent from "@/locales/ar/student.json";
+import arTeacher from "@/locales/ar/teacher.json";
+import arCoordinator from "@/locales/ar/coordinator.json";
+import arParent from "@/locales/ar/parent.json";
 
-import { applyDirection } from '@/lib/directionManager';
+import { applyDirection } from "@/lib/directionManager";
 
-const savedLang = localStorage.getItem('edeviser-language');
+const savedLang = localStorage.getItem("edeviser-language");
 
 i18n.use(initReactI18next).init({
   resources: {
     en: {
-      common: enCommon, auth: enAuth, admin: enAdmin,
-      student: enStudent, teacher: enTeacher,
-      coordinator: enCoordinator, parent: enParent,
+      common: enCommon,
+      auth: enAuth,
+      admin: enAdmin,
+      student: enStudent,
+      teacher: enTeacher,
+      coordinator: enCoordinator,
+      parent: enParent,
     },
     ar: {
-      common: arCommon, auth: arAuth, admin: arAdmin,
-      student: arStudent, teacher: arTeacher,
-      coordinator: arCoordinator, parent: arParent,
+      common: arCommon,
+      auth: arAuth,
+      admin: arAdmin,
+      student: arStudent,
+      teacher: arTeacher,
+      coordinator: arCoordinator,
+      parent: arParent,
     },
   },
   lng: savedLang || undefined,
-  fallbackLng: 'en',
-  defaultNS: 'common',
-  ns: ['common', 'auth', 'admin', 'student', 'teacher', 'coordinator', 'parent'],
+  fallbackLng: "en",
+  defaultNS: "common",
+  ns: [
+    "common",
+    "auth",
+    "admin",
+    "student",
+    "teacher",
+    "coordinator",
+    "parent",
+  ],
   interpolation: { escapeValue: false }, // React already escapes
-  pluralSeparator: '_',
-  supportedLngs: ['en', 'ar'],
+  pluralSeparator: "_",
+  supportedLngs: ["en", "ar"],
 });
 
 // Apply direction on init and on every language change
 applyDirection(i18n.language);
-i18n.on('languageChanged', applyDirection);
+i18n.on("languageChanged", applyDirection);
 
 export default i18n;
 ```
@@ -180,20 +196,20 @@ export default i18n;
 Pure function that updates the HTML document element attributes and font stack based on the active language.
 
 ```typescript
-const RTL_LANGUAGES = ['ar', 'he', 'fa', 'ur'];
+const RTL_LANGUAGES = ["ar", "he", "fa", "ur"];
 
-export const getDirection = (language: string): 'rtl' | 'ltr' => {
-  return RTL_LANGUAGES.includes(language) ? 'rtl' : 'ltr';
+export const getDirection = (language: string): "rtl" | "ltr" => {
+  return RTL_LANGUAGES.includes(language) ? "rtl" : "ltr";
 };
 
 export const applyDirection = (language: string): void => {
   const dir = getDirection(language);
   const htmlEl = document.documentElement;
-  htmlEl.setAttribute('dir', dir);
-  htmlEl.setAttribute('lang', language);
+  htmlEl.setAttribute("dir", dir);
+  htmlEl.setAttribute("lang", language);
 
   // Add/remove Arabic font
-  if (dir === 'rtl') {
+  if (dir === "rtl") {
     htmlEl.style.fontFamily =
       '"Noto Sans Arabic", "Noto Sans", ui-sans-serif, system-ui, sans-serif';
   } else {
@@ -221,9 +237,9 @@ export const resolveBilingualContent = (
   field: BilingualField,
   activeLanguage: string
 ): string => {
-  const primary = activeLanguage === 'ar' ? field.ar : field.en;
-  const fallback = activeLanguage === 'ar' ? field.en : field.ar;
-  return primary?.trim() || fallback?.trim() || '';
+  const primary = activeLanguage === "ar" ? field.ar : field.en;
+  const fallback = activeLanguage === "ar" ? field.en : field.ar;
+  return primary?.trim() || fallback?.trim() || "";
 };
 
 /**
@@ -260,7 +276,8 @@ export const rtlIsolate = (text: string): string => {
  * Detects if a string starts with an RTL character.
  */
 export const startsWithRTL = (text: string): boolean => {
-  const rtlRegex = /^[\u0591-\u07FF\u200F\u202B\u202E\uFB1D-\uFDFD\uFE70-\uFEFC]/;
+  const rtlRegex =
+    /^[\u0591-\u07FF\u200F\u202B\u202E\uFB1D-\uFDFD\uFE70-\uFEFC]/;
   return rtlRegex.test(text.trim());
 };
 ```
@@ -270,10 +287,10 @@ export const startsWithRTL = (text: string): boolean => {
 Locale-aware date formatting wrapping `date-fns`.
 
 ```typescript
-import { format, formatDistanceToNow } from 'date-fns';
-import { enUS } from 'date-fns/locale/en-US';
-import { ar } from 'date-fns/locale/ar';
-import i18n from '@/lib/i18n';
+import { format, formatDistanceToNow } from "date-fns";
+import { enUS } from "date-fns/locale/en-US";
+import { ar } from "date-fns/locale/ar";
+import i18n from "@/lib/i18n";
 
 const localeMap: Record<string, Locale> = { en: enUS, ar };
 
@@ -281,14 +298,14 @@ const getLocale = (): Locale => localeMap[i18n.language] || enUS;
 
 export const formatLocalDate = (
   date: Date | string,
-  pattern: string = 'PPP'
+  pattern: string = "PPP"
 ): string => {
-  const d = typeof date === 'string' ? new Date(date) : date;
+  const d = typeof date === "string" ? new Date(date) : date;
   return format(d, pattern, { locale: getLocale() });
 };
 
 export const formatRelativeTime = (date: Date | string): string => {
-  const d = typeof date === 'string' ? new Date(date) : date;
+  const d = typeof date === "string" ? new Date(date) : date;
   return formatDistanceToNow(d, { addSuffix: true, locale: getLocale() });
 };
 ```
@@ -298,9 +315,9 @@ export const formatRelativeTime = (date: Date | string): string => {
 Locale-aware number formatting using `Intl.NumberFormat`.
 
 ```typescript
-import i18n from '@/lib/i18n';
+import i18n from "@/lib/i18n";
 
-const getLocale = (): string => (i18n.language === 'ar' ? 'ar-QA' : 'en-US');
+const getLocale = (): string => (i18n.language === "ar" ? "ar-QA" : "en-US");
 
 export const formatNumber = (value: number): string => {
   return new Intl.NumberFormat(getLocale()).format(value);
@@ -308,34 +325,36 @@ export const formatNumber = (value: number): string => {
 
 export const formatPercent = (value: number, decimals: number = 0): string => {
   return new Intl.NumberFormat(getLocale(), {
-    style: 'percent',
+    style: "percent",
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   }).format(value / 100);
 };
 
 export const formatCompact = (value: number): string => {
-  return new Intl.NumberFormat(getLocale(), { notation: 'compact' }).format(value);
+  return new Intl.NumberFormat(getLocale(), { notation: "compact" }).format(
+    value
+  );
 };
 ```
 
 ### Language Switcher Component: `src/components/shared/LanguageSwitcher.tsx`
 
 ```typescript
-import { useTranslation } from 'react-i18next';
-import { Button } from '@/components/ui/button';
+import { useTranslation } from "react-i18next";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Globe } from 'lucide-react';
-import { useUpdateLanguagePreference } from '@/hooks/useLanguagePreference';
+} from "@/components/ui/dropdown-menu";
+import { Globe } from "lucide-react";
+import { useUpdateLanguagePreference } from "@/hooks/useLanguagePreference";
 
 const languages = [
-  { code: 'en', label: 'English', nativeLabel: 'English' },
-  { code: 'ar', label: 'Arabic', nativeLabel: 'العربية' },
+  { code: "en", label: "English", nativeLabel: "English" },
+  { code: "ar", label: "Arabic", nativeLabel: "العربية" },
 ] as const;
 
 export const LanguageSwitcher = () => {
@@ -344,11 +363,12 @@ export const LanguageSwitcher = () => {
 
   const handleLanguageChange = (langCode: string) => {
     i18n.changeLanguage(langCode);
-    localStorage.setItem('edeviser-language', langCode);
+    localStorage.setItem("edeviser-language", langCode);
     updatePreference.mutate(langCode);
   };
 
-  const currentLang = languages.find((l) => l.code === i18n.language) || languages[0];
+  const currentLang =
+    languages.find((l) => l.code === i18n.language) || languages[0];
 
   return (
     <DropdownMenu>
@@ -363,7 +383,7 @@ export const LanguageSwitcher = () => {
           <DropdownMenuItem
             key={lang.code}
             onClick={() => handleLanguageChange(lang.code)}
-            className={i18n.language === lang.code ? 'bg-accent' : ''}
+            className={i18n.language === lang.code ? "bg-accent" : ""}
           >
             {lang.nativeLabel}
           </DropdownMenuItem>
@@ -377,22 +397,24 @@ export const LanguageSwitcher = () => {
 ### Language Preference Hook: `src/hooks/useLanguagePreference.ts`
 
 ```typescript
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
 
 export const useUpdateLanguagePreference = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (language: string) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
 
       const { error } = await supabase
-        .from('profiles')
+        .from("profiles")
         .update({ preferred_language: language })
-        .eq('id', user.id);
+        .eq("id", user.id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -525,24 +547,24 @@ useEffect(() => {
 
 All existing physical direction classes must be replaced with logical equivalents. The mapping:
 
-| Physical (LTR) | Logical (Bidirectional) | Notes |
-|----------------|------------------------|-------|
-| `ml-*` | `ms-*` | margin-inline-start |
-| `mr-*` | `me-*` | margin-inline-end |
-| `pl-*` | `ps-*` | padding-inline-start |
-| `pr-*` | `pe-*` | padding-inline-end |
-| `left-*` | `start-*` | inset-inline-start |
-| `right-*` | `end-*` | inset-inline-end |
-| `text-left` | `text-start` | text-align |
-| `text-right` | `text-end` | text-align |
-| `rounded-l-*` | `rounded-s-*` | border-radius start |
-| `rounded-r-*` | `rounded-e-*` | border-radius end |
-| `border-l-*` | `border-s-*` | border-inline-start |
-| `border-r-*` | `border-e-*` | border-inline-end |
-| `translate-x-*` | Keep + add `rtl:-translate-x-*` | Transform needs explicit RTL variant |
-| `rotate-*` (directional icons) | Add `rtl:-rotate-*` | Chevrons, arrows |
-| `space-x-*` | Keep (works with `dir`) | Flexbox gap respects direction |
-| `flex-row` | Keep (works with `dir`) | Flexbox respects direction |
+| Physical (LTR)                 | Logical (Bidirectional)         | Notes                                |
+| ------------------------------ | ------------------------------- | ------------------------------------ |
+| `ml-*`                         | `ms-*`                          | margin-inline-start                  |
+| `mr-*`                         | `me-*`                          | margin-inline-end                    |
+| `pl-*`                         | `ps-*`                          | padding-inline-start                 |
+| `pr-*`                         | `pe-*`                          | padding-inline-end                   |
+| `left-*`                       | `start-*`                       | inset-inline-start                   |
+| `right-*`                      | `end-*`                         | inset-inline-end                     |
+| `text-left`                    | `text-start`                    | text-align                           |
+| `text-right`                   | `text-end`                      | text-align                           |
+| `rounded-l-*`                  | `rounded-s-*`                   | border-radius start                  |
+| `rounded-r-*`                  | `rounded-e-*`                   | border-radius end                    |
+| `border-l-*`                   | `border-s-*`                    | border-inline-start                  |
+| `border-r-*`                   | `border-e-*`                    | border-inline-end                    |
+| `translate-x-*`                | Keep + add `rtl:-translate-x-*` | Transform needs explicit RTL variant |
+| `rotate-*` (directional icons) | Add `rtl:-rotate-*`             | Chevrons, arrows                     |
+| `space-x-*`                    | Keep (works with `dir`)         | Flexbox gap respects direction       |
+| `flex-row`                     | Keep (works with `dir`)         | Flexbox respects direction           |
 
 Tailwind v4 logical properties (`ms-*`, `me-*`, `ps-*`, `pe-*`, `start-*`, `end-*`) automatically flip based on the `dir` attribute on the parent/document.
 
@@ -580,24 +602,29 @@ Directional icons (chevrons, arrows, back/forward) need explicit RTL mirroring:
 
 ```typescript
 // Utility component for directional icons
-import { cn } from '@/lib/utils';
+import { cn } from "@/lib/utils";
 
 interface DirectionalIconProps {
   icon: React.ComponentType<{ className?: string }>;
   className?: string;
 }
 
-export const DirectionalIcon = ({ icon: Icon, className }: DirectionalIconProps) => (
-  <Icon className={cn('rtl:-scale-x-100', className)} />
+export const DirectionalIcon = ({
+  icon: Icon,
+  className,
+}: DirectionalIconProps) => (
+  <Icon className={cn("rtl:-scale-x-100", className)} />
 );
 ```
 
 Icons that should mirror in RTL:
+
 - `ChevronLeft` / `ChevronRight` (navigation arrows)
 - `ArrowLeft` / `ArrowRight` (back/forward)
 - `ExternalLink` (link indicator)
 
 Icons that should NOT mirror:
+
 - `Check`, `X`, `Plus`, `Minus` (universal)
 - `Search`, `Settings`, `Bell` (non-directional)
 - `Clock`, `Calendar` (non-directional)
@@ -655,16 +682,18 @@ No new RLS policies needed. The `preferred_language` column on `profiles` is cov
 ### Updated Zod Schema: `languagePrefs.ts`
 
 ```typescript
-import { z } from 'zod';
+import { z } from "zod";
 
-export const supportedLanguages = ['en', 'ar'] as const;
+export const supportedLanguages = ["en", "ar"] as const;
 export type SupportedLanguage = (typeof supportedLanguages)[number];
 
 export const languagePreferenceSchema = z.object({
   language: z.enum(supportedLanguages),
 });
 
-export type LanguagePreferenceFormData = z.infer<typeof languagePreferenceSchema>;
+export type LanguagePreferenceFormData = z.infer<
+  typeof languagePreferenceSchema
+>;
 ```
 
 ### Google Fonts Update: `index.html`
@@ -686,7 +715,8 @@ Add RTL-specific styles:
 /* ─── RTL Support ─────────────────────────────────────────────────────────── */
 
 [dir="rtl"] {
-  font-family: "Noto Sans Arabic", "Noto Sans", ui-sans-serif, system-ui, sans-serif;
+  font-family: "Noto Sans Arabic", "Noto Sans", ui-sans-serif, system-ui,
+    sans-serif;
 }
 
 /* Ensure Shadcn/ui dialogs and popovers respect direction */
@@ -824,7 +854,6 @@ for all .tsx files in src/components/ and src/pages/:
 
 Derived from: Requirement 6, Acceptance Criteria 8
 
-
 ---
 
 ## Cognitive Accessibility & Neurodivergent Learner Support (Gap Analysis Additions)
@@ -834,22 +863,24 @@ Derived from: Requirement 6, Acceptance Criteria 8
 Manages user accessibility preferences with persistence to profile (authenticated) and localStorage (fallback).
 
 ```typescript
-import { z } from 'zod';
+import { z } from "zod";
 
 export const accessibilityPreferencesSchema = z.object({
-  font_size: z.enum(['default', 'large', 'x-large']).default('default'),
+  font_size: z.enum(["default", "large", "x-large"]).default("default"),
   high_contrast: z.boolean().default(false),
   reduced_animations: z.boolean().default(false),
   dyslexia_font: z.boolean().default(false),
   simplified_view: z.boolean().default(false),
 });
 
-export type AccessibilityPreferences = z.infer<typeof accessibilityPreferencesSchema>;
+export type AccessibilityPreferences = z.infer<
+  typeof accessibilityPreferencesSchema
+>;
 
-const STORAGE_KEY = 'edeviser-accessibility-prefs';
+const STORAGE_KEY = "edeviser-accessibility-prefs";
 
 const DEFAULT_PREFS: AccessibilityPreferences = {
-  font_size: 'default',
+  font_size: "default",
   high_contrast: false,
   reduced_animations: false,
   dyslexia_font: false,
@@ -866,59 +897,65 @@ export const loadAccessibilityPreferences = (): AccessibilityPreferences => {
   }
 };
 
-export const saveAccessibilityPreferencesLocal = (prefs: AccessibilityPreferences): void => {
+export const saveAccessibilityPreferencesLocal = (
+  prefs: AccessibilityPreferences
+): void => {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs));
 };
 
-export const applyAccessibilityPreferences = (prefs: AccessibilityPreferences): void => {
+export const applyAccessibilityPreferences = (
+  prefs: AccessibilityPreferences
+): void => {
   const root = document.documentElement;
 
   // Font size
   const fontSizeMap: Record<string, string> = {
-    default: '16px',
-    large: '18px',
-    'x-large': '20px',
+    default: "16px",
+    large: "18px",
+    "x-large": "20px",
   };
-  root.style.fontSize = fontSizeMap[prefs.font_size] || '16px';
+  root.style.fontSize = fontSizeMap[prefs.font_size] || "16px";
 
   // High contrast
-  root.classList.toggle('high-contrast', prefs.high_contrast);
+  root.classList.toggle("high-contrast", prefs.high_contrast);
 
   // Reduced animations
-  root.classList.toggle('reduce-animations', prefs.reduced_animations);
+  root.classList.toggle("reduce-animations", prefs.reduced_animations);
 
   // Dyslexia font
-  root.classList.toggle('dyslexia-font', prefs.dyslexia_font);
+  root.classList.toggle("dyslexia-font", prefs.dyslexia_font);
 
   // Simplified view
-  root.classList.toggle('simplified-view', prefs.simplified_view);
+  root.classList.toggle("simplified-view", prefs.simplified_view);
 };
 ```
 
 ### Accessibility Preferences Hook: `src/hooks/useAccessibilityPreferences.ts`
 
 ```typescript
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
 import {
   type AccessibilityPreferences,
   loadAccessibilityPreferences,
   saveAccessibilityPreferencesLocal,
   applyAccessibilityPreferences,
-} from '@/lib/accessibilityPreferences';
+} from "@/lib/accessibilityPreferences";
 
 export const useAccessibilityPreferences = () => {
   return useQuery({
     queryKey: queryKeys.profile.accessibility(),
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return loadAccessibilityPreferences();
 
       const { data, error } = await supabase
-        .from('profiles')
-        .select('accessibility_preferences')
-        .eq('id', user.id)
+        .from("profiles")
+        .select("accessibility_preferences")
+        .eq("id", user.id)
         .maybeSingle();
       if (error) throw error;
       return data?.accessibility_preferences ?? loadAccessibilityPreferences();
@@ -935,18 +972,22 @@ export const useUpdateAccessibilityPreferences = () => {
       saveAccessibilityPreferencesLocal(prefs);
       applyAccessibilityPreferences(prefs);
 
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) return prefs;
 
       const { error } = await supabase
-        .from('profiles')
+        .from("profiles")
         .update({ accessibility_preferences: prefs })
-        .eq('id', user.id);
+        .eq("id", user.id);
       if (error) throw error;
       return prefs;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.profile.accessibility() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.profile.accessibility(),
+      });
     },
   });
 };
@@ -957,11 +998,14 @@ export const useUpdateAccessibilityPreferences = () => {
 Displays a non-intrusive banner when a page exceeds a complexity threshold, offering a simplified view.
 
 ```typescript
-import { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
-import { Button } from '@/components/ui/button';
-import { X, Eye } from 'lucide-react';
-import { useAccessibilityPreferences, useUpdateAccessibilityPreferences } from '@/hooks/useAccessibilityPreferences';
+import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
+import { Button } from "@/components/ui/button";
+import { X, Eye } from "lucide-react";
+import {
+  useAccessibilityPreferences,
+  useUpdateAccessibilityPreferences,
+} from "@/hooks/useAccessibilityPreferences";
 
 interface CognitiveLoadIndicatorProps {
   /** Number of visible sections/widgets on the page */
@@ -972,28 +1016,36 @@ interface CognitiveLoadIndicatorProps {
   pageId: string;
 }
 
-const DISMISSED_KEY = 'edeviser-cognitive-dismissed';
+const DISMISSED_KEY = "edeviser-cognitive-dismissed";
 
 export const CognitiveLoadIndicator = ({
   sectionCount,
   threshold = 6,
   pageId,
 }: CognitiveLoadIndicatorProps) => {
-  const { t } = useTranslation('common');
+  const { t } = useTranslation("common");
   const { data: prefs } = useAccessibilityPreferences();
   const updatePrefs = useUpdateAccessibilityPreferences();
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
-    const dismissedPages = JSON.parse(localStorage.getItem(DISMISSED_KEY) || '[]');
+    const dismissedPages = JSON.parse(
+      localStorage.getItem(DISMISSED_KEY) || "[]"
+    );
     if (dismissedPages.includes(pageId)) setDismissed(true);
   }, [pageId]);
 
-  if (dismissed || sectionCount <= threshold || prefs?.simplified_view) return null;
+  if (dismissed || sectionCount <= threshold || prefs?.simplified_view)
+    return null;
 
   const handleDismiss = () => {
-    const dismissedPages = JSON.parse(localStorage.getItem(DISMISSED_KEY) || '[]');
-    localStorage.setItem(DISMISSED_KEY, JSON.stringify([...dismissedPages, pageId]));
+    const dismissedPages = JSON.parse(
+      localStorage.getItem(DISMISSED_KEY) || "[]"
+    );
+    localStorage.setItem(
+      DISMISSED_KEY,
+      JSON.stringify([...dismissedPages, pageId])
+    );
     setDismissed(true);
   };
 
@@ -1009,13 +1061,23 @@ export const CognitiveLoadIndicator = ({
       role="status"
       className="flex items-center justify-between gap-4 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800"
     >
-      <p>{t('accessibility.cognitiveLoadMessage')}</p>
+      <p>{t("accessibility.cognitiveLoadMessage")}</p>
       <div className="flex items-center gap-2">
-        <Button variant="outline" size="sm" onClick={handleSimplify} className="gap-1">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleSimplify}
+          className="gap-1"
+        >
           <Eye className="h-4 w-4" />
-          {t('accessibility.simplifiedView')}
+          {t("accessibility.simplifiedView")}
         </Button>
-        <Button variant="ghost" size="sm" onClick={handleDismiss} aria-label={t('dismiss')}>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleDismiss}
+          aria-label={t("dismiss")}
+        >
           <X className="h-4 w-4" />
         </Button>
       </div>
@@ -1029,8 +1091,17 @@ export const CognitiveLoadIndicator = ({
 Context provider that manages Focus Mode state and provides it to the component tree.
 
 ```typescript
-import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
-import { useAccessibilityPreferences, useUpdateAccessibilityPreferences } from '@/hooks/useAccessibilityPreferences';
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  type ReactNode,
+} from "react";
+import {
+  useAccessibilityPreferences,
+  useUpdateAccessibilityPreferences,
+} from "@/hooks/useAccessibilityPreferences";
 
 interface FocusModeContextValue {
   isFocusMode: boolean;
@@ -1072,19 +1143,20 @@ export const FocusModeProvider = ({ children }: { children: ReactNode }) => {
 Manages font loading and switching for dyslexia-friendly font option.
 
 ```typescript
-const OPENDYSLEXIC_URL = 'https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/open-dyslexic-regular.woff2';
+const OPENDYSLEXIC_URL =
+  "https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/open-dyslexic-regular.woff2";
 
 let fontLoaded = false;
 
 export const loadDyslexiaFont = async (): Promise<void> => {
   if (fontLoaded) return;
   try {
-    const font = new FontFace('OpenDyslexic', `url(${OPENDYSLEXIC_URL})`);
+    const font = new FontFace("OpenDyslexic", `url(${OPENDYSLEXIC_URL})`);
     const loaded = await font.load();
     document.fonts.add(loaded);
     fontLoaded = true;
   } catch (error) {
-    console.error('Failed to load OpenDyslexic font:', error);
+    console.error("Failed to load OpenDyslexic font:", error);
   }
 };
 
@@ -1092,9 +1164,12 @@ export const applyDyslexiaFont = (enabled: boolean): void => {
   const root = document.documentElement;
   if (enabled) {
     loadDyslexiaFont();
-    root.style.setProperty('--font-body', '"OpenDyslexic", "Noto Sans", ui-sans-serif, system-ui, sans-serif');
+    root.style.setProperty(
+      "--font-body",
+      '"OpenDyslexic", "Noto Sans", ui-sans-serif, system-ui, sans-serif'
+    );
   } else {
-    root.style.removeProperty('--font-body');
+    root.style.removeProperty("--font-body");
   }
 };
 ```
@@ -1105,12 +1180,12 @@ Manages animation reduction that works alongside OS-level `prefers-reduced-motio
 
 ```typescript
 export const shouldReduceAnimations = (userPref: boolean): boolean => {
-  const osPref = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const osPref = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   return osPref || userPref;
 };
 
 export const applyAnimationReduction = (reduce: boolean): void => {
-  document.documentElement.classList.toggle('reduce-animations', reduce);
+  document.documentElement.classList.toggle("reduce-animations", reduce);
 };
 ```
 
@@ -1124,30 +1199,33 @@ Maps Bloom's Taxonomy levels to standardized Arabic educational terms (not liter
  * These terms align with established Arabic pedagogical vocabulary
  * used in Gulf Cooperation Council (GCC) educational standards.
  */
-export const BLOOMS_ARABIC_STANDARD: Record<string, { term: string; verbs: string[] }> = {
+export const BLOOMS_ARABIC_STANDARD: Record<
+  string,
+  { term: string; verbs: string[] }
+> = {
   remembering: {
-    term: 'التذكر',
-    verbs: ['يُعرِّف', 'يُسمِّي', 'يَسرُد', 'يَصِف', 'يُحدِّد', 'يَذكُر'],
+    term: "التذكر",
+    verbs: ["يُعرِّف", "يُسمِّي", "يَسرُد", "يَصِف", "يُحدِّد", "يَذكُر"],
   },
   understanding: {
-    term: 'الفهم',
-    verbs: ['يُفسِّر', 'يُلخِّص', 'يَشرَح', 'يُوضِّح', 'يُقارِن', 'يُصنِّف'],
+    term: "الفهم",
+    verbs: ["يُفسِّر", "يُلخِّص", "يَشرَح", "يُوضِّح", "يُقارِن", "يُصنِّف"],
   },
   applying: {
-    term: 'التطبيق',
-    verbs: ['يُطبِّق', 'يَستخدِم', 'يُنفِّذ', 'يَحُل', 'يُوظِّف', 'يُجرِّب'],
+    term: "التطبيق",
+    verbs: ["يُطبِّق", "يَستخدِم", "يُنفِّذ", "يَحُل", "يُوظِّف", "يُجرِّب"],
   },
   analyzing: {
-    term: 'التحليل',
-    verbs: ['يُحلِّل', 'يُقارِن', 'يُميِّز', 'يَفحَص', 'يَستنتِج', 'يُنظِّم'],
+    term: "التحليل",
+    verbs: ["يُحلِّل", "يُقارِن", "يُميِّز", "يَفحَص", "يَستنتِج", "يُنظِّم"],
   },
   evaluating: {
-    term: 'التقييم',
-    verbs: ['يُقيِّم', 'يَنقُد', 'يُبرِّر', 'يَحكُم', 'يُراجِع', 'يُدافِع'],
+    term: "التقييم",
+    verbs: ["يُقيِّم", "يَنقُد", "يُبرِّر", "يَحكُم", "يُراجِع", "يُدافِع"],
   },
   creating: {
-    term: 'الإبداع',
-    verbs: ['يُصمِّم', 'يَبتكِر', 'يُؤلِّف', 'يُخطِّط', 'يَبنِي', 'يُنتِج'],
+    term: "الإبداع",
+    verbs: ["يُصمِّم", "يَبتكِر", "يُؤلِّف", "يُخطِّط", "يَبنِي", "يُنتِج"],
   },
 };
 
@@ -1155,18 +1233,18 @@ export const BLOOMS_ARABIC_STANDARD: Record<string, { term: string; verbs: strin
  * Standardized Arabic OBE terminology for the Qatar education context.
  */
 export const OBE_ARABIC_TERMS: Record<string, string> = {
-  ILO: 'مخرجات التعلم المؤسسية',
-  PLO: 'مخرجات التعلم البرنامجية',
-  CLO: 'مخرجات التعلم للمقرر',
-  attainment: 'التحصيل',
-  excellent: 'ممتاز',
-  satisfactory: 'مُرضٍ',
-  developing: 'قيد التطوير',
-  notYet: 'لم يتحقق بعد',
-  curriculumMatrix: 'مصفوفة المنهج',
-  CQI: 'التحسين المستمر للجودة',
-  courseFile: 'ملف المقرر',
-  outcomeMapping: 'ربط المخرجات',
+  ILO: "مخرجات التعلم المؤسسية",
+  PLO: "مخرجات التعلم البرنامجية",
+  CLO: "مخرجات التعلم للمقرر",
+  attainment: "التحصيل",
+  excellent: "ممتاز",
+  satisfactory: "مُرضٍ",
+  developing: "قيد التطوير",
+  notYet: "لم يتحقق بعد",
+  curriculumMatrix: "مصفوفة المنهج",
+  CQI: "التحسين المستمر للجودة",
+  courseFile: "ملف المقرر",
+  outcomeMapping: "ربط المخرجات",
 };
 ```
 
@@ -1193,11 +1271,26 @@ The column is covered by existing profile RLS policies (users can read/update th
 
 /* Dyslexia-friendly font */
 .dyslexia-font {
-  font-family: var(--font-body, "OpenDyslexic", "Noto Sans", ui-sans-serif, system-ui, sans-serif);
+  font-family: var(
+    --font-body,
+    "OpenDyslexic",
+    "Noto Sans",
+    ui-sans-serif,
+    system-ui,
+    sans-serif
+  );
 }
 
 .dyslexia-font[dir="rtl"] {
-  font-family: var(--font-body, "OpenDyslexic", "Noto Sans Arabic", "Noto Sans", ui-sans-serif, system-ui, sans-serif);
+  font-family: var(
+    --font-body,
+    "OpenDyslexic",
+    "Noto Sans Arabic",
+    "Noto Sans",
+    ui-sans-serif,
+    system-ui,
+    sans-serif
+  );
 }
 
 /* High contrast mode */

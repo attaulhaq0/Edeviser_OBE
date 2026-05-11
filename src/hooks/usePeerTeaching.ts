@@ -4,11 +4,14 @@
 //            submit rating
 // =============================================================================
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import { toast } from 'sonner';
-import type { CreateTeachingMomentInput, RateTeachingMomentInput } from '@/lib/schemas/peerTeaching';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import { toast } from "sonner";
+import type {
+  CreateTeachingMomentInput,
+  RateTeachingMomentInput,
+} from "@/lib/schemas/peerTeaching";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -20,7 +23,7 @@ export interface PeerTeachingMoment {
   title: string;
   explanation_text: string;
   media_url: string | null;
-  status: 'active' | 'archived';
+  status: "active" | "archived";
   created_at: string;
 }
 
@@ -48,14 +51,14 @@ export const useTeachingMoments = (teamId?: string, cloId?: string) => {
     queryKey: queryKeys.peerTeachingMoments.list({ teamId, cloId }),
     queryFn: async (): Promise<PeerTeachingMoment[]> => {
       let query = supabase
-        .from('peer_teaching_moments' as never)
-        .select('*')
-        .eq('team_id', teamId!)
-        .eq('status', 'active')
-        .order('created_at', { ascending: false });
+        .from("peer_teaching_moments" as never)
+        .select("*")
+        .eq("team_id", teamId!)
+        .eq("status", "active")
+        .order("created_at", { ascending: false });
 
       if (cloId) {
-        query = query.eq('clo_id', cloId);
+        query = query.eq("clo_id", cloId);
       }
 
       const { data, error } = await query;
@@ -78,18 +81,18 @@ export const useCreateTeachingMoment = () => {
     mutationFn: async (input: CreateMomentPayload) => {
       // Check per-CLO limit: max 3 per student per CLO
       const { count, error: countError } = await supabase
-        .from('peer_teaching_moments' as never)
-        .select('id', { count: 'exact', head: true })
-        .eq('author_id', input.author_id)
-        .eq('clo_id', input.clo_id)
-        .eq('status', 'active');
+        .from("peer_teaching_moments" as never)
+        .select("id", { count: "exact", head: true })
+        .eq("author_id", input.author_id)
+        .eq("clo_id", input.clo_id)
+        .eq("status", "active");
       if (countError) throw countError;
       if ((count ?? 0) >= 3) {
-        throw new Error('Maximum of 3 teaching moments per CLO reached');
+        throw new Error("Maximum of 3 teaching moments per CLO reached");
       }
 
       const { data, error } = await supabase
-        .from('peer_teaching_moments' as never)
+        .from("peer_teaching_moments" as never)
         .insert(input as never)
         .select()
         .single();
@@ -98,11 +101,13 @@ export const useCreateTeachingMoment = () => {
     },
     onSuccess: (_data, variables) => {
       qc.invalidateQueries({
-        queryKey: queryKeys.peerTeachingMoments.list({ teamId: variables.team_id }),
+        queryKey: queryKeys.peerTeachingMoments.list({
+          teamId: variables.team_id,
+        }),
       });
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Failed to create teaching moment');
+      toast.error(error.message || "Failed to create teaching moment");
     },
   });
 };
@@ -119,9 +124,13 @@ interface RecordViewInput {
 export const useRecordView = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ teaching_moment_id, viewer_id, pre_view_attainment }: RecordViewInput) => {
+    mutationFn: async ({
+      teaching_moment_id,
+      viewer_id,
+      pre_view_attainment,
+    }: RecordViewInput) => {
       const { data, error } = await supabase
-        .from('teaching_moment_views' as never)
+        .from("teaching_moment_views" as never)
         .insert({
           teaching_moment_id,
           viewer_id,
@@ -134,11 +143,13 @@ export const useRecordView = () => {
     },
     onSuccess: (_data, variables) => {
       qc.invalidateQueries({
-        queryKey: queryKeys.peerTeachingMoments.list({ teamId: variables.teamId }),
+        queryKey: queryKeys.peerTeachingMoments.list({
+          teamId: variables.teamId,
+        }),
       });
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Failed to record view');
+      toast.error(error.message || "Failed to record view");
     },
   });
 };
@@ -153,9 +164,14 @@ interface SubmitRatingPayload extends RateTeachingMomentInput {
 export const useSubmitRating = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ teaching_moment_id, clarity_rating, helpfulness_rating, viewer_id }: SubmitRatingPayload) => {
+    mutationFn: async ({
+      teaching_moment_id,
+      clarity_rating,
+      helpfulness_rating,
+      viewer_id,
+    }: SubmitRatingPayload) => {
       const { data, error } = await supabase
-        .from('teaching_moment_ratings' as never)
+        .from("teaching_moment_ratings" as never)
         .upsert(
           {
             teaching_moment_id,
@@ -164,7 +180,7 @@ export const useSubmitRating = () => {
             helpfulness_rating,
             rated_at: new Date().toISOString(),
           } as never,
-          { onConflict: 'teaching_moment_id,viewer_id' },
+          { onConflict: "teaching_moment_id,viewer_id" }
         )
         .select()
         .single();
@@ -173,14 +189,18 @@ export const useSubmitRating = () => {
     },
     onSuccess: (_data, variables) => {
       qc.invalidateQueries({
-        queryKey: queryKeys.teachingMomentRatings.list({ momentId: variables.teaching_moment_id }),
+        queryKey: queryKeys.teachingMomentRatings.list({
+          momentId: variables.teaching_moment_id,
+        }),
       });
       qc.invalidateQueries({
-        queryKey: queryKeys.peerTeachingMoments.list({ teamId: variables.teamId }),
+        queryKey: queryKeys.peerTeachingMoments.list({
+          teamId: variables.teamId,
+        }),
       });
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Failed to submit rating');
+      toast.error(error.message || "Failed to submit rating");
     },
   });
 };
@@ -192,10 +212,10 @@ export const useMomentRatings = (momentId?: string) => {
     queryKey: queryKeys.teachingMomentRatings.list({ momentId }),
     queryFn: async (): Promise<TeachingMomentRating[]> => {
       const { data, error } = await supabase
-        .from('teaching_moment_ratings' as never)
-        .select('*')
-        .eq('teaching_moment_id', momentId!)
-        .order('rated_at', { ascending: false });
+        .from("teaching_moment_ratings" as never)
+        .select("*")
+        .eq("teaching_moment_id", momentId!)
+        .order("rated_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as TeachingMomentRating[];
     },

@@ -4,8 +4,8 @@ import {
   SheetHeader,
   SheetTitle,
   SheetDescription,
-} from '@/components/ui/sheet';
-import type { CompletedHabit } from '@/types/habits';
+} from "@/components/ui/sheet";
+import type { CompletedHabit } from "@/types/habits";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -25,22 +25,22 @@ export interface HabitMobileBottomSheetProps {
 // ---------------------------------------------------------------------------
 
 const HABIT_LABELS: Record<string, string> = {
-  login: 'Login',
-  submit: 'Submit',
-  journal: 'Journal',
-  read: 'Read',
-  meditation: 'Meditation',
-  hydration: 'Hydration',
-  exercise: 'Exercise',
-  sleep: 'Sleep',
+  login: "Login",
+  submit: "Submit",
+  journal: "Journal",
+  read: "Read",
+  meditation: "Meditation",
+  hydration: "Hydration",
+  exercise: "Exercise",
+  sleep: "Sleep",
 };
 
 function formatDate(dateStr: string): string {
-  const d = new Date(dateStr + 'T00:00:00');
-  return d.toLocaleDateString('en-US', {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
+  const d = new Date(dateStr + "T00:00:00");
+  return d.toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
   });
 }
 
@@ -56,15 +56,17 @@ const HabitMobileBottomSheet = ({
   open,
   onClose,
 }: HabitMobileBottomSheetProps) => {
-  const academic = habits.filter((h) => h.category === 'academic');
-  const wellness = habits.filter((h) => h.category === 'wellness');
+  const academic = habits.filter((h) => h.category === "academic");
+  const wellness = habits.filter((h) => h.category === "wellness");
   const isEmpty = habits.length === 0;
 
   return (
     <Sheet open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <SheetContent side="bottom" data-testid="habit-bottom-sheet">
         <SheetHeader>
-          <SheetTitle data-testid="bottom-sheet-date">{formatDate(date)}</SheetTitle>
+          <SheetTitle data-testid="bottom-sheet-date">
+            {formatDate(date)}
+          </SheetTitle>
           <SheetDescription className="sr-only">
             Habit details for {formatDate(date)}
           </SheetDescription>
@@ -72,7 +74,10 @@ const HabitMobileBottomSheet = ({
 
         <div className="px-4 pb-4">
           {isEmpty ? (
-            <p className="text-sm text-gray-500" data-testid="bottom-sheet-empty">
+            <p
+              className="text-sm text-gray-500"
+              data-testid="bottom-sheet-empty"
+            >
               No habits completed
             </p>
           ) : (
@@ -98,7 +103,10 @@ const HabitMobileBottomSheet = ({
               )}
 
               {wellness.length > 0 && (
-                <div className="mt-3" data-testid="bottom-sheet-wellness-section">
+                <div
+                  className="mt-3"
+                  data-testid="bottom-sheet-wellness-section"
+                >
                   <p className="text-[10px] font-black tracking-widest uppercase text-gray-400">
                     Wellness
                   </p>
@@ -118,14 +126,17 @@ const HabitMobileBottomSheet = ({
               )}
 
               <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
-                <span className="text-xs text-gray-500" data-testid="bottom-sheet-xp">
+                <span
+                  className="text-xs text-gray-500"
+                  data-testid="bottom-sheet-xp"
+                >
                   {xpEarned} XP earned
                 </span>
                 <span
                   className="text-xs font-medium"
                   data-testid="bottom-sheet-streak"
                 >
-                  {streakActive ? '🔥 Streak active' : 'Streak broken'}
+                  {streakActive ? "🔥 Streak active" : "Streak broken"}
                 </span>
               </div>
             </>

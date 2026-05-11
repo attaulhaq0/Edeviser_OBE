@@ -2,7 +2,10 @@
 // **Validates: Requirements 30.1, 30.4**
 
 import { describe, it, expect } from "vitest";
-import { createHandoffSchema, respondToHandoffSchema } from "@/lib/tutorSchemas";
+import {
+  createHandoffSchema,
+  respondToHandoffSchema,
+} from "@/lib/tutorSchemas";
 
 // ─── Pure logic helper (replicated from Edge Function) ──────────────────────
 
@@ -21,7 +24,7 @@ function shouldSuggestHandoff(signals: HandoffSignals): boolean {
 }
 
 function getHandoffReason(
-  signals: HandoffSignals,
+  signals: HandoffSignals
 ): "low_rag_confidence" | "repeated_question" | "low_satisfaction" | null {
   if (signals.avgSimilarityLast3 < 0.7) return "low_rag_confidence";
   if (signals.repeatedQuestionCount >= 3) return "repeated_question";
@@ -38,7 +41,7 @@ describe("tutorHandoffTrigger — shouldSuggestHandoff", () => {
         avgSimilarityLast3: 0.5,
         repeatedQuestionCount: 0,
         consecutiveThumbsDown: 0,
-      }),
+      })
     ).toBe(true);
   });
 
@@ -48,7 +51,7 @@ describe("tutorHandoffTrigger — shouldSuggestHandoff", () => {
         avgSimilarityLast3: 0.9,
         repeatedQuestionCount: 3,
         consecutiveThumbsDown: 0,
-      }),
+      })
     ).toBe(true);
   });
 
@@ -58,7 +61,7 @@ describe("tutorHandoffTrigger — shouldSuggestHandoff", () => {
         avgSimilarityLast3: 0.9,
         repeatedQuestionCount: 0,
         consecutiveThumbsDown: 3,
-      }),
+      })
     ).toBe(true);
   });
 
@@ -68,7 +71,7 @@ describe("tutorHandoffTrigger — shouldSuggestHandoff", () => {
         avgSimilarityLast3: 0.85,
         repeatedQuestionCount: 1,
         consecutiveThumbsDown: 1,
-      }),
+      })
     ).toBe(false);
   });
 
@@ -78,7 +81,7 @@ describe("tutorHandoffTrigger — shouldSuggestHandoff", () => {
         avgSimilarityLast3: 0.4,
         repeatedQuestionCount: 5,
         consecutiveThumbsDown: 4,
-      }),
+      })
     ).toBe(true);
   });
 
@@ -88,7 +91,7 @@ describe("tutorHandoffTrigger — shouldSuggestHandoff", () => {
         avgSimilarityLast3: 0.7,
         repeatedQuestionCount: 2,
         consecutiveThumbsDown: 2,
-      }),
+      })
     ).toBe(false);
   });
 
@@ -98,7 +101,7 @@ describe("tutorHandoffTrigger — shouldSuggestHandoff", () => {
         avgSimilarityLast3: 0.699,
         repeatedQuestionCount: 0,
         consecutiveThumbsDown: 0,
-      }),
+      })
     ).toBe(true);
   });
 });
@@ -112,7 +115,7 @@ describe("tutorHandoffTrigger — getHandoffReason", () => {
         avgSimilarityLast3: 0.5,
         repeatedQuestionCount: 0,
         consecutiveThumbsDown: 0,
-      }),
+      })
     ).toBe("low_rag_confidence");
   });
 
@@ -122,7 +125,7 @@ describe("tutorHandoffTrigger — getHandoffReason", () => {
         avgSimilarityLast3: 0.9,
         repeatedQuestionCount: 3,
         consecutiveThumbsDown: 0,
-      }),
+      })
     ).toBe("repeated_question");
   });
 
@@ -132,7 +135,7 @@ describe("tutorHandoffTrigger — getHandoffReason", () => {
         avgSimilarityLast3: 0.9,
         repeatedQuestionCount: 0,
         consecutiveThumbsDown: 3,
-      }),
+      })
     ).toBe("low_satisfaction");
   });
 
@@ -142,7 +145,7 @@ describe("tutorHandoffTrigger — getHandoffReason", () => {
         avgSimilarityLast3: 0.9,
         repeatedQuestionCount: 1,
         consecutiveThumbsDown: 1,
-      }),
+      })
     ).toBeNull();
   });
 
@@ -152,7 +155,7 @@ describe("tutorHandoffTrigger — getHandoffReason", () => {
         avgSimilarityLast3: 0.3,
         repeatedQuestionCount: 5,
         consecutiveThumbsDown: 5,
-      }),
+      })
     ).toBe("low_rag_confidence");
   });
 });

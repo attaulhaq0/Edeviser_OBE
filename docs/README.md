@@ -87,6 +87,7 @@ docs/
 ```
 
 **Root-level files kept intentionally:**
+
 - `README.md` — Standard project readme (stays at root by convention)
 - `AGENTS.md` — AI agent instructions (referenced by tooling, must stay at root)
 

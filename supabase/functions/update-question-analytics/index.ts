@@ -1,9 +1,10 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -38,7 +39,8 @@ interface QuestionBankRow {
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
-const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const UUID_REGEX =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const CALIBRATION_MIN_ATTEMPTS = 10;
 const DISCRIMINATION_MIN_ATTEMPTS = 20;
 const EMPIRICAL_WEIGHT_DENOMINATOR = 50;
@@ -48,42 +50,49 @@ const EMPIRICAL_WEIGHT_DENOMINATOR = 50;
 function computeCalibratedDifficulty(
   originalDifficulty: number,
   successRate: number,
-  totalAttempts: number,
+  totalAttempts: number
 ): number {
   const calibrated = 5.0 - 4.0 * successRate;
-  const empiricalWeight = Math.min(1.0, totalAttempts / EMPIRICAL_WEIGHT_DENOMINATOR);
-  return empiricalWeight * calibrated + (1 - empiricalWeight) * originalDifficulty;
+  const empiricalWeight = Math.min(
+    1.0,
+    totalAttempts / EMPIRICAL_WEIGHT_DENOMINATOR
+  );
+  return (
+    empiricalWeight * calibrated + (1 - empiricalWeight) * originalDifficulty
+  );
 }
 
 function determineQualityFlag(
   successRate: number,
   discriminationIndex: number,
-  totalAttempts: number,
+  totalAttempts: number
 ): string | null {
   if (totalAttempts < DISCRIMINATION_MIN_ATTEMPTS) return null;
-  if (discriminationIndex < 0.2) return 'low_discrimination';
-  if (successRate > 0.95) return 'too_easy';
-  if (successRate < 0.10) return 'too_hard';
-  return 'good';
+  if (discriminationIndex < 0.2) return "low_discrimination";
+  if (successRate > 0.95) return "too_easy";
+  if (successRate < 0.1) return "too_hard";
+  return "good";
 }
 
 // ─── Validation ─────────────────────────────────────────────────────────────
 
 function isValidUUID(value: unknown): value is string {
-  return typeof value === 'string' && UUID_REGEX.test(value);
+  return typeof value === "string" && UUID_REGEX.test(value);
 }
 
 function validatePayload(
-  payload: unknown,
-): { valid: true; data: UpdateAnalyticsRequest } | { valid: false; error: string } {
-  if (!payload || typeof payload !== 'object') {
-    return { valid: false, error: 'Request body must be a JSON object' };
+  payload: unknown
+):
+  | { valid: true; data: UpdateAnalyticsRequest }
+  | { valid: false; error: string } {
+  if (!payload || typeof payload !== "object") {
+    return { valid: false, error: "Request body must be a JSON object" };
   }
 
   const body = payload as Record<string, unknown>;
 
   if (!isValidUUID(body.quiz_attempt_id)) {
-    return { valid: false, error: 'quiz_attempt_id must be a valid UUID' };
+    return { valid: false, error: "quiz_attempt_id must be a valid UUID" };
   }
 
   return {
@@ -105,14 +114,28 @@ function parseAnswers(answers: unknown): Map<string, boolean> {
 
   if (Array.isArray(answers)) {
     for (const entry of answers) {
-      if (entry && typeof entry === 'object' && 'question_id' in entry && 'is_correct' in entry) {
+      if (
+        entry &&
+        typeof entry === "object" &&
+        "question_id" in entry &&
+        "is_correct" in entry
+      ) {
         map.set(String(entry.question_id), Boolean(entry.is_correct));
       }
     }
-  } else if (answers && typeof answers === 'object') {
-    for (const [questionId, value] of Object.entries(answers as Record<string, unknown>)) {
-      if (value && typeof value === 'object' && 'is_correct' in (value as Record<string, unknown>)) {
-        map.set(questionId, Boolean((value as Record<string, unknown>).is_correct));
+  } else if (answers && typeof answers === "object") {
+    for (const [questionId, value] of Object.entries(
+      answers as Record<string, unknown>
+    )) {
+      if (
+        value &&
+        typeof value === "object" &&
+        "is_correct" in (value as Record<string, unknown>)
+      ) {
+        map.set(
+          questionId,
+          Boolean((value as Record<string, unknown>).is_correct)
+        );
       }
     }
   }
@@ -130,9 +153,9 @@ function parsePerQuestionTimes(times: unknown): Map<string, number> {
     for (const entry of times) {
       if (
         entry &&
-        typeof entry === 'object' &&
-        'question_id' in entry &&
-        'response_time_ms' in entry
+        typeof entry === "object" &&
+        "question_id" in entry &&
+        "response_time_ms" in entry
       ) {
         map.set(String(entry.question_id), Number(entry.response_time_ms));
       }
@@ -152,13 +175,13 @@ function parsePerQuestionTimes(times: unknown): Map<string, number> {
 async function computeDiscriminationForQuestion(
   supabase: ReturnType<typeof createClient>,
   questionId: string,
-  cloId: string,
+  cloId: string
 ): Promise<number | null> {
   // Find all quiz_attempts that include this question
   const { data: attempts } = await supabase
-    .from('quiz_attempts')
-    .select('student_id, answers')
-    .not('answers', 'is', null);
+    .from("quiz_attempts")
+    .select("student_id, answers")
+    .not("answers", "is", null);
 
   if (!attempts || attempts.length === 0) return null;
 
@@ -188,15 +211,15 @@ async function computeDiscriminationForQuestion(
 
   // Fetch CLO attainment for these students
   const { data: attainments } = await supabase
-    .from('outcome_attainment')
-    .select('student_id, attainment_percentage')
-    .in('student_id', uniqueStudentIds)
-    .eq('outcome_id', cloId)
-    .eq('scope', 'clo');
+    .from("outcome_attainment")
+    .select("student_id, attainment_percentage")
+    .in("student_id", uniqueStudentIds)
+    .eq("outcome_id", cloId)
+    .eq("scope", "clo");
 
   // Build attainment map (default to 0 for students without attainment data)
   const attainmentMap = new Map<string, number>();
-  for (const a of (attainments ?? [])) {
+  for (const a of attainments ?? []) {
     attainmentMap.set(a.student_id, a.attainment_percentage ?? 0);
   }
 
@@ -225,40 +248,46 @@ async function computeDiscriminationForQuestion(
 // ─── Main Handler ───────────────────────────────────────────────────────────
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
   }
 
   try {
     // ── Auth: require service role or teacher/admin ──────────────────
-    const authHeader = req.headers.get('Authorization') ?? '';
-    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+    const authHeader = req.headers.get("Authorization") ?? "";
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
     const isServiceRole = serviceRoleKey && authHeader.includes(serviceRoleKey);
 
     if (!isServiceRole) {
       if (!authHeader) {
         return new Response(
-          JSON.stringify({ error: 'Missing authorization header' }),
-          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+          JSON.stringify({ error: "Missing authorization header" }),
+          {
+            status: 401,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
         );
       }
       const userClient = createClient(
-        Deno.env.get('SUPABASE_URL')!,
-        Deno.env.get('SUPABASE_ANON_KEY')!,
-        { global: { headers: { Authorization: authHeader } } },
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_ANON_KEY")!,
+        { global: { headers: { Authorization: authHeader } } }
       );
-      const { data: { user: caller }, error: authError } = await userClient.auth.getUser();
+      const {
+        data: { user: caller },
+        error: authError,
+      } = await userClient.auth.getUser();
       if (authError || !caller) {
-        return new Response(
-          JSON.stringify({ error: 'Unauthorized' }),
-          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-        );
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       }
     }
 
     const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
     // ── Step 1: Validate Request Payload ────────────────────────────────
@@ -267,10 +296,10 @@ serve(async (req) => {
     const validation = validatePayload(body);
 
     if (!validation.valid) {
-      return new Response(
-        JSON.stringify({ error: validation.error }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-      );
+      return new Response(JSON.stringify({ error: validation.error }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const { quiz_attempt_id } = validation.data;
@@ -278,26 +307,33 @@ serve(async (req) => {
     // ── Step 2: Fetch the quiz attempt record ───────────────────────────
 
     const { data: attempt, error: attemptError } = await supabase
-      .from('quiz_attempts')
-      .select('id, quiz_id, student_id, answers, question_sequence, per_question_times')
-      .eq('id', quiz_attempt_id)
+      .from("quiz_attempts")
+      .select(
+        "id, quiz_id, student_id, answers, question_sequence, per_question_times"
+      )
+      .eq("id", quiz_attempt_id)
       .maybeSingle();
 
     if (attemptError || !attempt) {
-      return new Response(
-        JSON.stringify({ error: 'Quiz attempt not found' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-      );
+      return new Response(JSON.stringify({ error: "Quiz attempt not found" }), {
+        status: 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    const questionSequence = (attempt.question_sequence ?? []) as QuestionSequenceEntry[];
+    const questionSequence = (attempt.question_sequence ??
+      []) as QuestionSequenceEntry[];
     const answersMap = parseAnswers(attempt.answers);
     const timesMap = parsePerQuestionTimes(attempt.per_question_times);
 
     if (questionSequence.length === 0) {
       return new Response(
-        JSON.stringify({ success: true, updated: 0, message: 'No questions in sequence' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        JSON.stringify({
+          success: true,
+          updated: 0,
+          message: "No questions in sequence",
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -307,9 +343,9 @@ serve(async (req) => {
 
     // Fetch question_bank rows for original difficulty ratings
     const { data: questionBankRows } = await supabase
-      .from('question_bank')
-      .select('id, difficulty_rating, clo_id')
-      .in('id', questionIds);
+      .from("question_bank")
+      .select("id, difficulty_rating, clo_id")
+      .in("id", questionIds);
 
     const questionBankMap = new Map<string, QuestionBankRow>();
     for (const row of (questionBankRows ?? []) as QuestionBankRow[]) {
@@ -318,9 +354,9 @@ serve(async (req) => {
 
     // Fetch existing analytics rows for these questions
     const { data: existingAnalytics } = await supabase
-      .from('question_analytics')
-      .select('*')
-      .in('question_id', questionIds);
+      .from("question_analytics")
+      .select("*")
+      .in("question_id", questionIds);
 
     const analyticsMap = new Map<string, AnalyticsRow>();
     for (const row of (existingAnalytics ?? []) as AnalyticsRow[]) {
@@ -356,7 +392,9 @@ serve(async (req) => {
       const prevAvgResponseTime = existing?.avg_response_time_seconds ?? 0;
 
       const newTotalAttempts = prevTotalAttempts + 1;
-      const newCorrectCount = isCorrect ? prevCorrectCount + 1 : prevCorrectCount;
+      const newCorrectCount = isCorrect
+        ? prevCorrectCount + 1
+        : prevCorrectCount;
 
       // ── 4b: Recalculate success_rate ────────────────────────────────
 
@@ -369,17 +407,19 @@ serve(async (req) => {
         const responseTimeSec = responseTimeMs / 1000;
         // Running average: ((prev_avg * prev_count) + new_value) / new_count
         newAvgResponseTime =
-          (prevAvgResponseTime * prevTotalAttempts + responseTimeSec) / newTotalAttempts;
+          (prevAvgResponseTime * prevTotalAttempts + responseTimeSec) /
+          newTotalAttempts;
       }
 
       // ── 4d: Calibrated difficulty (if total_attempts >= 10) ─────────
 
-      let newCalibratedDifficulty: number | null = existing?.calibrated_difficulty ?? null;
+      let newCalibratedDifficulty: number | null =
+        existing?.calibrated_difficulty ?? null;
       if (newTotalAttempts >= CALIBRATION_MIN_ATTEMPTS && qbRow) {
         newCalibratedDifficulty = computeCalibratedDifficulty(
           qbRow.difficulty_rating,
           newSuccessRate,
-          newTotalAttempts,
+          newTotalAttempts
         );
         // Round to 1 decimal place to match NUMERIC(3,1)
         newCalibratedDifficulty = Math.round(newCalibratedDifficulty * 10) / 10;
@@ -387,12 +427,13 @@ serve(async (req) => {
 
       // ── 4e: Discrimination index (if total_attempts >= 20) ──────────
 
-      let newDiscriminationIndex: number | null = existing?.discrimination_index ?? null;
+      let newDiscriminationIndex: number | null =
+        existing?.discrimination_index ?? null;
       if (newTotalAttempts >= DISCRIMINATION_MIN_ATTEMPTS && qbRow) {
         newDiscriminationIndex = await computeDiscriminationForQuestion(
           supabase,
           questionId,
-          qbRow.clo_id,
+          qbRow.clo_id
         );
       }
 
@@ -401,20 +442,21 @@ serve(async (req) => {
       const newQualityFlag = determineQualityFlag(
         newSuccessRate,
         newDiscriminationIndex ?? 0,
-        newTotalAttempts,
+        newTotalAttempts
       );
 
       // ── 4g: UPSERT question_analytics ───────────────────────────────
 
       const { error: upsertError } = await supabase
-        .from('question_analytics')
+        .from("question_analytics")
         .upsert(
           {
             question_id: questionId,
             total_attempts: newTotalAttempts,
             correct_count: newCorrectCount,
             success_rate: newSuccessRate,
-            avg_response_time_seconds: Math.round(newAvgResponseTime * 100) / 100,
+            avg_response_time_seconds:
+              Math.round(newAvgResponseTime * 100) / 100,
             calibrated_difficulty: newCalibratedDifficulty,
             discrimination_index: newDiscriminationIndex
               ? Math.round(newDiscriminationIndex * 10000) / 10000
@@ -422,13 +464,13 @@ serve(async (req) => {
             quality_flag: newQualityFlag,
             last_calculated_at: new Date().toISOString(),
           },
-          { onConflict: 'question_id' },
+          { onConflict: "question_id" }
         );
 
       if (upsertError) {
         console.error(
           `Failed to upsert analytics for question ${questionId}:`,
-          upsertError.message,
+          upsertError.message
         );
         continue;
       }
@@ -454,13 +496,16 @@ serve(async (req) => {
         updated: updatedSummary.length,
         analytics: updatedSummary,
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
-    console.error('Unhandled error in update-question-analytics:', (error as Error).message);
-    return new Response(
-      JSON.stringify({ error: (error as Error).message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+    console.error(
+      "Unhandled error in update-question-analytics:",
+      (error as Error).message
     );
+    return new Response(JSON.stringify({ error: (error as Error).message }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });

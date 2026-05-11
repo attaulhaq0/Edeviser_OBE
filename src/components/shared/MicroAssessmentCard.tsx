@@ -1,8 +1,8 @@
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Sparkles, Clock, X } from 'lucide-react';
-import { ONBOARDING_XP, MAX_MICRO_DISMISSALS } from '@/lib/onboardingConstants';
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Sparkles, Clock, X } from "lucide-react";
+import { ONBOARDING_XP, MAX_MICRO_DISMISSALS } from "@/lib/onboardingConstants";
 
 export interface MicroAssessmentCardProps {
   assessmentType: string;
@@ -13,11 +13,11 @@ export interface MicroAssessmentCardProps {
 }
 
 const TYPE_LABELS: Record<string, string> = {
-  personality: 'Personality',
-  self_efficacy: 'Self-Efficacy',
-  study_strategy: 'Study Strategy',
-  learning_style: 'Learning Style',
-  baseline_prompt: 'Baseline Test',
+  personality: "Personality",
+  self_efficacy: "Self-Efficacy",
+  study_strategy: "Study Strategy",
+  learning_style: "Learning Style",
+  baseline_prompt: "Baseline Test",
 };
 
 const MicroAssessmentCard = ({
@@ -39,11 +39,12 @@ const MicroAssessmentCard = ({
             <Sparkles className="h-4 w-4 text-blue-600" />
           </div>
           <div>
-            <p className="text-sm font-bold text-gray-900">Quick {label} Check</p>
+            <p className="text-sm font-bold text-gray-900">
+              Quick {label} Check
+            </p>
             <div className="flex items-center gap-2 mt-0.5">
               <span className="flex items-center gap-1 text-xs text-gray-500">
-                <Clock className="h-3 w-3" />
-                ~{estimatedMinutes} min
+                <Clock className="h-3 w-3" />~{estimatedMinutes} min
               </span>
               <Badge className="bg-amber-100 text-amber-700 border-amber-200 text-[10px]">
                 +{ONBOARDING_XP.micro_assessment} XP
@@ -62,7 +63,8 @@ const MicroAssessmentCard = ({
       </div>
 
       <p className="text-xs text-gray-500">
-        {questionCount} quick question{questionCount !== 1 ? 's' : ''} to refine your profile.
+        {questionCount} quick question{questionCount !== 1 ? "s" : ""} to refine
+        your profile.
       </p>
 
       <div className="flex items-center gap-2">

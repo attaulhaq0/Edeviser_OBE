@@ -1,9 +1,9 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import { MAX_MICRO_DISMISSALS, ONBOARDING_XP } from '@/lib/onboardingConstants';
-import { awardXP } from '@/lib/xpClient';
-import type { XPSource } from '@/types/app';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import { MAX_MICRO_DISMISSALS, ONBOARDING_XP } from "@/lib/onboardingConstants";
+import { awardXP } from "@/lib/xpClient";
+import type { XPSource } from "@/types/app";
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -13,7 +13,7 @@ export interface MicroAssessment {
   scheduled_day: number;
   assessment_type: string;
   question_ids: string[];
-  status: 'pending' | 'completed' | 'skipped' | 'dismissed';
+  status: "pending" | "completed" | "skipped" | "dismissed";
   dismissal_count: number;
   scheduled_at: string;
   completed_at: string | null;
@@ -27,10 +27,10 @@ export const useMicroAssessmentSchedule = (studentId: string) => {
     queryKey: queryKeys.onboarding.microAssessments(studentId),
     queryFn: async (): Promise<MicroAssessment[]> => {
       const { data, error } = await supabase
-        .from('micro_assessment_schedule')
-        .select('*')
-        .eq('student_id', studentId)
-        .order('scheduled_day', { ascending: true });
+        .from("micro_assessment_schedule")
+        .select("*")
+        .eq("student_id", studentId)
+        .order("scheduled_day", { ascending: true });
 
       if (error) throw error;
       return (data ?? []) as MicroAssessment[];
@@ -43,16 +43,16 @@ export const useMicroAssessmentSchedule = (studentId: string) => {
 
 export const useTodayMicroAssessment = (studentId: string) => {
   return useQuery({
-    queryKey: [...queryKeys.onboarding.microAssessments(studentId), 'today'],
+    queryKey: [...queryKeys.onboarding.microAssessments(studentId), "today"],
     queryFn: async (): Promise<MicroAssessment | null> => {
-      const today = new Date().toISOString().split('T')[0] ?? '';
+      const today = new Date().toISOString().split("T")[0] ?? "";
 
       const { data, error } = await supabase
-        .from('micro_assessment_schedule')
-        .select('*')
-        .eq('student_id', studentId)
-        .eq('scheduled_at', today)
-        .eq('status', 'pending')
+        .from("micro_assessment_schedule")
+        .select("*")
+        .eq("student_id", studentId)
+        .eq("scheduled_at", today)
+        .eq("status", "pending")
         .maybeSingle();
 
       if (error) throw error;
@@ -74,12 +74,12 @@ export const useCompleteMicroAssessment = () => {
     }): Promise<MicroAssessment> => {
       // 14.6: Mark micro-assessment as completed
       const { data, error } = await supabase
-        .from('micro_assessment_schedule')
+        .from("micro_assessment_schedule")
         .update({
-          status: 'completed',
+          status: "completed",
           completed_at: new Date().toISOString(),
         })
-        .eq('id', params.id)
+        .eq("id", params.id)
         .select()
         .single();
 
@@ -87,27 +87,28 @@ export const useCompleteMicroAssessment = () => {
 
       // 14.6: Recalculate profile_completeness based on total completed responses
       const { data: responseCounts } = await supabase
-        .from('onboarding_responses')
-        .select('question_id, onboarding_questions!inner(assessment_type)')
-        .eq('student_id', params.studentId);
+        .from("onboarding_responses")
+        .select("question_id, onboarding_questions!inner(assessment_type)")
+        .eq("student_id", params.studentId);
 
       if (responseCounts) {
         const typeCounts: Record<string, number> = {};
         for (const r of responseCounts) {
-          const type = (r.onboarding_questions as { assessment_type: string })?.assessment_type;
+          const type = (r.onboarding_questions as { assessment_type: string })
+            ?.assessment_type;
           if (type) typeCounts[type] = (typeCounts[type] ?? 0) + 1;
         }
 
         const { data: baselineData } = await supabase
-          .from('baseline_attainment')
-          .select('id')
-          .eq('student_id', params.studentId)
+          .from("baseline_attainment")
+          .select("id")
+          .eq("student_id", params.studentId)
           .limit(1);
 
-        const personalityItems = typeCounts['personality'] ?? 0;
-        const selfEfficacyItems = typeCounts['self_efficacy'] ?? 0;
-        const studyStrategyItems = typeCounts['study_strategy'] ?? 0;
-        const learningStyleItems = typeCounts['learning_style'] ?? 0;
+        const personalityItems = typeCounts["personality"] ?? 0;
+        const selfEfficacyItems = typeCounts["self_efficacy"] ?? 0;
+        const studyStrategyItems = typeCounts["study_strategy"] ?? 0;
+        const learningStyleItems = typeCounts["learning_style"] ?? 0;
         const baselineCourses = (baselineData?.length ?? 0) > 0 ? 1 : 0;
 
         const weights = {
@@ -123,9 +124,9 @@ export const useCompleteMicroAssessment = () => {
 
         // Upsert student_profiles with new completeness (insert if missing)
         const { error: profileError } = await supabase
-          .from('student_profiles')
+          .from("student_profiles")
           .update({ profile_completeness: newCompleteness })
-          .eq('student_id', params.studentId);
+          .eq("student_id", params.studentId);
 
         if (profileError) throw profileError;
 
@@ -133,19 +134,19 @@ export const useCompleteMicroAssessment = () => {
         if (newCompleteness >= 100) {
           // Check if bonus was already awarded
           const { data: existingBonus } = await supabase
-            .from('xp_transactions')
-            .select('id')
-            .eq('student_id', params.studentId)
-            .eq('source', 'profile_complete')
+            .from("xp_transactions")
+            .select("id")
+            .eq("student_id", params.studentId)
+            .eq("source", "profile_complete")
             .limit(1);
 
           if (!existingBonus || existingBonus.length === 0) {
             await awardXP({
               studentId: params.studentId,
               xpAmount: ONBOARDING_XP.profile_complete,
-              source: 'profile_complete' as XPSource,
+              source: "profile_complete" as XPSource,
               referenceId: `profile_complete:${params.studentId}`,
-              note: 'Profile completeness reached 100%',
+              note: "Profile completeness reached 100%",
             });
           }
         }
@@ -155,9 +156,9 @@ export const useCompleteMicroAssessment = () => {
       await awardXP({
         studentId: params.studentId,
         xpAmount: ONBOARDING_XP.micro_assessment,
-        source: 'micro_assessment' as XPSource,
+        source: "micro_assessment" as XPSource,
         referenceId: `micro:${params.id}`,
-        note: 'Micro-assessment completed',
+        note: "Micro-assessment completed",
       });
 
       return data as MicroAssessment;
@@ -188,15 +189,16 @@ export const useDismissMicroAssessment = () => {
       currentDismissals: number;
     }): Promise<MicroAssessment> => {
       const newCount = params.currentDismissals + 1;
-      const newStatus = newCount >= MAX_MICRO_DISMISSALS ? 'skipped' : 'dismissed';
+      const newStatus =
+        newCount >= MAX_MICRO_DISMISSALS ? "skipped" : "dismissed";
 
       const { data, error } = await supabase
-        .from('micro_assessment_schedule')
+        .from("micro_assessment_schedule")
         .update({
           dismissal_count: newCount,
           status: newStatus,
         })
-        .eq('id', params.id)
+        .eq("id", params.id)
         .select()
         .single();
 

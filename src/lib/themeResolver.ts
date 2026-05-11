@@ -24,15 +24,13 @@ export interface FrameMetadata {
  * Maps theme accent colours to CSS variables that override the default
  * design-system tokens on the student dashboard.
  */
-export function resolveThemeCSS(
-  theme: ThemeMetadata,
-): Record<string, string> {
+export function resolveThemeCSS(theme: ThemeMetadata): Record<string, string> {
   return {
-    '--theme-accent': theme.accent_primary,
-    '--theme-accent-dark': theme.accent_secondary,
-    '--theme-accent-bg': theme.accent_bg,
-    '--theme-gradient-start': theme.gradient_start,
-    '--theme-gradient-end': theme.gradient_end,
+    "--theme-accent": theme.accent_primary,
+    "--theme-accent-dark": theme.accent_secondary,
+    "--theme-accent-bg": theme.accent_bg,
+    "--theme-gradient-start": theme.gradient_start,
+    "--theme-gradient-end": theme.gradient_end,
   };
 }
 
@@ -41,24 +39,22 @@ export function resolveThemeCSS(
  *
  * Produces border and glow properties that wrap the student's profile picture.
  */
-export function resolveFrameCSS(
-  frame: FrameMetadata,
-): Record<string, string> {
+export function resolveFrameCSS(frame: FrameMetadata): Record<string, string> {
   const css: Record<string, string> = {
-    '--frame-border-color': frame.border_color,
-    '--frame-border-width': frame.border_width,
+    "--frame-border-color": frame.border_color,
+    "--frame-border-width": frame.border_width,
   };
 
   if (frame.border_style) {
-    css['--frame-border-style'] = frame.border_style;
+    css["--frame-border-style"] = frame.border_style;
   }
 
   if (frame.border_radius) {
-    css['--frame-border-radius'] = frame.border_radius;
+    css["--frame-border-radius"] = frame.border_radius;
   }
 
   if (frame.box_shadow) {
-    css['--frame-glow'] = frame.box_shadow;
+    css["--frame-glow"] = frame.box_shadow;
   }
 
   return css;

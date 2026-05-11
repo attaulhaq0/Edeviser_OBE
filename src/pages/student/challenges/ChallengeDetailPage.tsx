@@ -3,18 +3,20 @@
 // Task 6.2: hidden leaderboard for cooperative, completion banner
 // =============================================================================
 
-import { useParams, useNavigate } from 'react-router-dom';
-import { useState, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import { useAuth } from '@/hooks/useAuth';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import ChallengeProgressBar from '@/components/shared/ChallengeProgressBar';
-import ChallengeLeaderboard, { type LeaderboardParticipant } from '@/components/shared/ChallengeLeaderboard';
-import Shimmer from '@/components/shared/Shimmer';
+import { useParams, useNavigate } from "react-router-dom";
+import { useState, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import { useAuth } from "@/hooks/useAuth";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import ChallengeProgressBar from "@/components/shared/ChallengeProgressBar";
+import ChallengeLeaderboard, {
+  type LeaderboardParticipant,
+} from "@/components/shared/ChallengeLeaderboard";
+import Shimmer from "@/components/shared/Shimmer";
 import {
   ArrowLeft,
   Trophy,
@@ -22,7 +24,7 @@ import {
   Target,
   Handshake,
   CheckCircle2,
-} from 'lucide-react';
+} from "lucide-react";
 
 interface ChallengeDetail {
   id: string;
@@ -45,12 +47,12 @@ interface ProgressRecord {
 
 const useChallengeDetail = (challengeId?: string) => {
   return useQuery({
-    queryKey: queryKeys.challenges.detail(challengeId ?? ''),
+    queryKey: queryKeys.challenges.detail(challengeId ?? ""),
     queryFn: async (): Promise<ChallengeDetail | null> => {
       const { data, error } = await supabase
-        .from('social_challenges' as never)
-        .select('*')
-        .eq('id', challengeId!)
+        .from("social_challenges" as never)
+        .select("*")
+        .eq("id", challengeId!)
         .single();
       if (error) throw error;
       return data as ChallengeDetail;
@@ -61,13 +63,16 @@ const useChallengeDetail = (challengeId?: string) => {
 
 const useMyProgress = (challengeId?: string, userId?: string) => {
   return useQuery({
-    queryKey: queryKeys.challengeProgress.list({ challengeId, participantId: userId }),
+    queryKey: queryKeys.challengeProgress.list({
+      challengeId,
+      participantId: userId,
+    }),
     queryFn: async (): Promise<ProgressRecord | null> => {
       const { data, error } = await supabase
-        .from('challenge_progress' as never)
-        .select('current_progress, completed_at')
-        .eq('challenge_id', challengeId!)
-        .eq('participant_id', userId!)
+        .from("challenge_progress" as never)
+        .select("current_progress, completed_at")
+        .eq("challenge_id", challengeId!)
+        .eq("participant_id", userId!)
         .maybeSingle();
       if (error) throw error;
       return data as ProgressRecord | null;
@@ -81,18 +86,22 @@ const useLeaderboardParticipants = (challengeId?: string) => {
     queryKey: queryKeys.challengeLeaderboard.list({ challengeId }),
     queryFn: async (): Promise<LeaderboardParticipant[]> => {
       const { data, error } = await supabase
-        .from('challenge_progress' as never)
-        .select('participant_id, participant_type, current_progress, completed_at')
-        .eq('challenge_id', challengeId!)
-        .order('current_progress', { ascending: false });
+        .from("challenge_progress" as never)
+        .select(
+          "participant_id, participant_type, current_progress, completed_at"
+        )
+        .eq("challenge_id", challengeId!)
+        .order("current_progress", { ascending: false });
       if (error) throw error;
 
-      return ((data ?? []) as Array<{
-        participant_id: string;
-        participant_type: string;
-        current_progress: number;
-        completed_at: string | null;
-      }>).map((row, idx) => ({
+      return (
+        (data ?? []) as Array<{
+          participant_id: string;
+          participant_type: string;
+          current_progress: number;
+          completed_at: string | null;
+        }>
+      ).map((row, idx) => ({
         participantId: row.participant_id,
         displayName: `Participant ${idx + 1}`,
         currentProgress: row.current_progress,
@@ -114,16 +123,15 @@ const ChallengeDetailPage = () => {
   const { data: leaderboardParticipants } = useLeaderboardParticipants(id);
 
   const [now] = useState(() => Date.now());
-  const daysLeft = useMemo(
-    () => {
-      if (!challenge) return 0;
-      return Math.max(
-        0,
-        Math.ceil((new Date(challenge.end_date).getTime() - now) / (1000 * 60 * 60 * 24)),
-      );
-    },
-    [challenge, now],
-  );
+  const daysLeft = useMemo(() => {
+    if (!challenge) return 0;
+    return Math.max(
+      0,
+      Math.ceil(
+        (new Date(challenge.end_date).getTime() - now) / (1000 * 60 * 60 * 24)
+      )
+    );
+  }, [challenge, now]);
 
   if (isLoading) {
     return (
@@ -147,7 +155,7 @@ const ChallengeDetailPage = () => {
     );
   }
 
-  const isCooperative = challenge.challenge_type === 'cooperative';
+  const isCooperative = challenge.challenge_type === "cooperative";
   const isCompleted = !!myProgress?.completed_at;
 
   return (
@@ -163,9 +171,12 @@ const ChallengeDetailPage = () => {
           <div className="flex items-center gap-3">
             <CheckCircle2 className="h-6 w-6 text-green-600" />
             <div>
-              <p className="text-sm font-bold text-green-700">Challenge Completed!</p>
+              <p className="text-sm font-bold text-green-700">
+                Challenge Completed!
+              </p>
               <p className="text-xs text-green-600">
-                Completed on {new Date(myProgress!.completed_at!).toLocaleDateString()}
+                Completed on{" "}
+                {new Date(myProgress!.completed_at!).toLocaleDateString()}
               </p>
             </div>
           </div>
@@ -176,14 +187,19 @@ const ChallengeDetailPage = () => {
       <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
         <div
           className="px-6 py-4 flex items-center gap-2"
-          style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+          style={{
+            background:
+              "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+          }}
         >
           {isCooperative ? (
             <Handshake className="h-5 w-5 text-white" />
           ) : (
             <Trophy className="h-5 w-5 text-white" />
           )}
-          <h1 className="text-lg font-bold tracking-tight text-white">{challenge.title}</h1>
+          <h1 className="text-lg font-bold tracking-tight text-white">
+            {challenge.title}
+          </h1>
         </div>
         <div className="p-6 space-y-4">
           <p className="text-sm text-gray-600">{challenge.description}</p>
@@ -198,7 +214,7 @@ const ChallengeDetailPage = () => {
             <Badge className="text-xs bg-amber-50 text-amber-700 border-amber-200">
               +{challenge.reward_xp} XP
             </Badge>
-            {challenge.status === 'active' && (
+            {challenge.status === "active" && (
               <Badge className="text-xs bg-blue-50 text-blue-700 border-blue-200">
                 {daysLeft} days left
               </Badge>
@@ -208,11 +224,15 @@ const ChallengeDetailPage = () => {
           <div className="flex items-center gap-4 text-xs text-gray-500">
             <div className="flex items-center gap-1">
               <Calendar className="h-3 w-3" />
-              <span>Start: {new Date(challenge.start_date).toLocaleDateString()}</span>
+              <span>
+                Start: {new Date(challenge.start_date).toLocaleDateString()}
+              </span>
             </div>
             <div className="flex items-center gap-1">
               <Calendar className="h-3 w-3" />
-              <span>End: {new Date(challenge.end_date).toLocaleDateString()}</span>
+              <span>
+                End: {new Date(challenge.end_date).toLocaleDateString()}
+              </span>
             </div>
           </div>
 
@@ -235,10 +255,15 @@ const ChallengeDetailPage = () => {
         <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
           <div
             className="px-6 py-4 flex items-center gap-2"
-            style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+            style={{
+              background:
+                "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+            }}
           >
             <Trophy className="h-5 w-5 text-white" />
-            <h2 className="text-lg font-bold tracking-tight text-white">Leaderboard</h2>
+            <h2 className="text-lg font-bold tracking-tight text-white">
+              Leaderboard
+            </h2>
           </div>
           <div className="p-6">
             <ChallengeLeaderboard
@@ -254,8 +279,8 @@ const ChallengeDetailPage = () => {
         <Card className="bg-white border-0 shadow-md rounded-xl p-6 text-center">
           <Handshake className="h-8 w-8 text-green-500 mx-auto mb-2" />
           <p className="text-sm text-gray-500">
-            This is a cooperative challenge — everyone works together toward the goal.
-            No leaderboard is shown.
+            This is a cooperative challenge — everyone works together toward the
+            goal. No leaderboard is shown.
           </p>
         </Card>
       )}

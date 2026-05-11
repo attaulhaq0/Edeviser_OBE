@@ -1,6 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -14,13 +14,13 @@ export interface GoalSuggestionRecord {
   smart_achievable: string | null;
   smart_relevant: string | null;
   smart_timebound: string | null;
-  difficulty: 'easy' | 'moderate' | 'ambitious';
+  difficulty: "easy" | "moderate" | "ambitious";
   cohort_completion_rate: number | null;
-  status: 'suggested' | 'accepted' | 'modified' | 'dismissed';
+  status: "suggested" | "accepted" | "modified" | "dismissed";
   created_at: string;
 }
 
-type GoalStatus = GoalSuggestionRecord['status'];
+type GoalStatus = GoalSuggestionRecord["status"];
 
 interface GenerateGoalsInput {
   student_id: string;
@@ -39,11 +39,11 @@ export const useGoalSuggestions = (studentId: string, weekStart: string) => {
     queryKey: queryKeys.onboarding.goalSuggestions(studentId, weekStart),
     queryFn: async (): Promise<GoalSuggestionRecord[]> => {
       const { data, error } = await supabase
-        .from('goal_suggestions')
-        .select('*')
-        .eq('student_id', studentId)
-        .eq('week_start', weekStart)
-        .order('created_at', { ascending: true });
+        .from("goal_suggestions")
+        .select("*")
+        .eq("student_id", studentId)
+        .eq("week_start", weekStart)
+        .order("created_at", { ascending: true });
 
       if (error) throw error;
       return (data ?? []) as GoalSuggestionRecord[];
@@ -64,9 +64,9 @@ export const useAcceptGoal = () => {
       weekStart: string;
     }): Promise<GoalSuggestionRecord> => {
       const { data, error } = await supabase
-        .from('goal_suggestions')
-        .update({ status: 'accepted' as GoalStatus })
-        .eq('id', params.id)
+        .from("goal_suggestions")
+        .update({ status: "accepted" as GoalStatus })
+        .eq("id", params.id)
         .select()
         .single();
 
@@ -75,7 +75,10 @@ export const useAcceptGoal = () => {
     },
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({
-        queryKey: queryKeys.onboarding.goalSuggestions(variables.studentId, variables.weekStart),
+        queryKey: queryKeys.onboarding.goalSuggestions(
+          variables.studentId,
+          variables.weekStart
+        ),
       });
     },
   });
@@ -93,9 +96,9 @@ export const useDismissGoal = () => {
       weekStart: string;
     }): Promise<GoalSuggestionRecord> => {
       const { data, error } = await supabase
-        .from('goal_suggestions')
-        .update({ status: 'dismissed' as GoalStatus })
-        .eq('id', params.id)
+        .from("goal_suggestions")
+        .update({ status: "dismissed" as GoalStatus })
+        .eq("id", params.id)
         .select()
         .single();
 
@@ -104,7 +107,10 @@ export const useDismissGoal = () => {
     },
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({
-        queryKey: queryKeys.onboarding.goalSuggestions(variables.studentId, variables.weekStart),
+        queryKey: queryKeys.onboarding.goalSuggestions(
+          variables.studentId,
+          variables.weekStart
+        ),
       });
     },
   });
@@ -116,8 +122,10 @@ export const useGenerateGoalSuggestions = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (input: GenerateGoalsInput): Promise<GenerateGoalsResult> => {
-      const { data, error } = await supabase.functions.invoke('suggest-goals', {
+    mutationFn: async (
+      input: GenerateGoalsInput
+    ): Promise<GenerateGoalsResult> => {
+      const { data, error } = await supabase.functions.invoke("suggest-goals", {
         body: input,
       });
 
@@ -126,7 +134,10 @@ export const useGenerateGoalSuggestions = () => {
     },
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({
-        queryKey: queryKeys.onboarding.goalSuggestions(variables.student_id, variables.week_start),
+        queryKey: queryKeys.onboarding.goalSuggestions(
+          variables.student_id,
+          variables.week_start
+        ),
       });
     },
   });

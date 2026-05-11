@@ -1,116 +1,116 @@
-import { type ColumnDef } from '@tanstack/react-table';
-import { format } from 'date-fns';
-import { ArrowUpDown, MoreHorizontal, Pencil, XCircle } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { type ColumnDef } from "@tanstack/react-table";
+import { format } from "date-fns";
+import { ArrowUpDown, MoreHorizontal, Pencil, XCircle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import type { BonusXPEvent } from '@/hooks/useBonusEvents';
+} from "@/components/ui/dropdown-menu";
+import type { BonusXPEvent } from "@/hooks/useBonusEvents";
 
 // ─── Status derivation ──────────────────────────────────────────────────────
 
-type EventStatus = 'Active' | 'Scheduled' | 'Ended' | 'Inactive';
+type EventStatus = "Active" | "Scheduled" | "Ended" | "Inactive";
 
 const deriveStatus = (event: BonusXPEvent): EventStatus => {
-  if (!event.is_active) return 'Inactive';
+  if (!event.is_active) return "Inactive";
   const now = new Date();
   const start = event.starts_at ? new Date(event.starts_at) : null;
   const end = event.ends_at ? new Date(event.ends_at) : null;
-  if (start && end && now >= start && now <= end) return 'Active';
-  if (start && start > now) return 'Scheduled';
-  return 'Ended';
+  if (start && end && now >= start && now <= end) return "Active";
+  if (start && start > now) return "Scheduled";
+  return "Ended";
 };
 
 const statusBadgeStyles: Record<EventStatus, string> = {
-  Active: 'bg-green-50 text-green-600 border-green-200',
-  Scheduled: 'bg-blue-50 text-blue-600 border-blue-200',
-  Ended: 'bg-gray-50 text-gray-500 border-gray-200',
-  Inactive: 'bg-red-50 text-red-600 border-red-200',
+  Active: "bg-green-50 text-green-600 border-green-200",
+  Scheduled: "bg-blue-50 text-blue-600 border-blue-200",
+  Ended: "bg-gray-50 text-gray-500 border-gray-200",
+  Inactive: "bg-red-50 text-red-600 border-red-200",
 };
 
 // ─── Column factory ─────────────────────────────────────────────────────────
 
 export const createColumns = (
   onEdit: (event: BonusXPEvent) => void,
-  onDeactivate: (event: BonusXPEvent) => void,
+  onDeactivate: (event: BonusXPEvent) => void
 ): ColumnDef<BonusXPEvent>[] => [
   {
-    accessorKey: 'name',
+    accessorKey: "name",
     header: ({ column }) => (
       <Button
         variant="ghost"
         size="sm"
         className="-ms-3"
-        onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
       >
         Name
         <ArrowUpDown className="h-4 w-4" />
       </Button>
     ),
     cell: ({ row }) => (
-      <span className="font-medium">{row.getValue('name')}</span>
+      <span className="font-medium">{row.getValue("name")}</span>
     ),
   },
   {
-    accessorKey: 'xp_multiplier',
-    header: 'Multiplier',
+    accessorKey: "xp_multiplier",
+    header: "Multiplier",
     cell: ({ row }) => (
       <span className="font-medium text-amber-600">
-        {row.getValue<number>('xp_multiplier')}x
+        {row.getValue<number>("xp_multiplier")}x
       </span>
     ),
   },
   {
-    accessorKey: 'starts_at',
+    accessorKey: "starts_at",
     header: ({ column }) => (
       <Button
         variant="ghost"
         size="sm"
         className="-ms-3"
-        onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
       >
         Start Date
         <ArrowUpDown className="h-4 w-4" />
       </Button>
     ),
     cell: ({ row }) => {
-      const val = row.getValue<string | null>('starts_at');
+      const val = row.getValue<string | null>("starts_at");
       return (
         <span className="text-gray-500">
-          {val ? format(new Date(val), 'MMM d, yyyy h:mm a') : '—'}
+          {val ? format(new Date(val), "MMM d, yyyy h:mm a") : "—"}
         </span>
       );
     },
   },
   {
-    accessorKey: 'ends_at',
+    accessorKey: "ends_at",
     header: ({ column }) => (
       <Button
         variant="ghost"
         size="sm"
         className="-ms-3"
-        onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
       >
         End Date
         <ArrowUpDown className="h-4 w-4" />
       </Button>
     ),
     cell: ({ row }) => {
-      const val = row.getValue<string | null>('ends_at');
+      const val = row.getValue<string | null>("ends_at");
       return (
         <span className="text-gray-500">
-          {val ? format(new Date(val), 'MMM d, yyyy h:mm a') : '—'}
+          {val ? format(new Date(val), "MMM d, yyyy h:mm a") : "—"}
         </span>
       );
     },
   },
   {
-    id: 'status',
-    header: 'Status',
+    id: "status",
+    header: "Status",
     cell: ({ row }) => {
       const status = deriveStatus(row.original);
       return (
@@ -121,8 +121,8 @@ export const createColumns = (
     },
   },
   {
-    id: 'actions',
-    header: '',
+    id: "actions",
+    header: "",
     cell: ({ row }) => {
       const event = row.original;
       return (

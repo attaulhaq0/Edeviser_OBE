@@ -1,7 +1,7 @@
-import { Flame, Trophy, Calendar } from 'lucide-react';
-import { Card } from '@/components/ui/card';
-import { cn } from '@/lib/utils';
-import type { HeatmapSummary } from '@/types/habits';
+import { Flame, Trophy, Calendar } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+import type { HeatmapSummary } from "@/types/habits";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -24,7 +24,14 @@ interface KPICardProps {
   testId: string;
 }
 
-const KPICard = ({ icon: Icon, label, value, iconColor, iconBg, testId }: KPICardProps) => (
+const KPICard = ({
+  icon: Icon,
+  label,
+  value,
+  iconColor,
+  iconBg,
+  testId,
+}: KPICardProps) => (
   <Card
     className="bg-white border-0 shadow-md rounded-xl p-4 group"
     data-testid={testId}
@@ -40,11 +47,11 @@ const KPICard = ({ icon: Icon, label, value, iconColor, iconBg, testId }: KPICar
       </div>
       <div
         className={cn(
-          'p-2 rounded-lg group-hover:scale-110 transition-transform',
-          iconBg,
+          "p-2 rounded-lg group-hover:scale-110 transition-transform",
+          iconBg
         )}
       >
-        <Icon className={cn('h-5 w-5', iconColor)} />
+        <Icon className={cn("h-5 w-5", iconColor)} />
       </div>
     </div>
   </Card>
@@ -61,9 +68,10 @@ const HeatmapSummaryStats = ({
   sabbaticalDayCount,
 }: HeatmapSummaryStatsProps) => {
   // When sabbatical days are provided, display adjusted total active days label
-  const activeDaysLabel = sabbaticalDayCount != null && sabbaticalDayCount > 0
-    ? 'Active Days (excl. rest)'
-    : 'Total Active Days';
+  const activeDaysLabel =
+    sabbaticalDayCount != null && sabbaticalDayCount > 0
+      ? "Active Days (excl. rest)"
+      : "Total Active Days";
 
   return (
     <div className="grid grid-cols-3 gap-4" data-testid="heatmap-summary-stats">

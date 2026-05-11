@@ -5,18 +5,21 @@
 Design tokens are defined as CSS custom properties in `src/index.css` and extended via Tailwind CSS v4.
 
 ### Brand Colors
+
 - Brand Blue: `#3b82f6` (blue-500) — primary CTA, active states, links
 - Brand Blue Dark: `#2563eb` (blue-600) — hover states
 - Teal: `#14b8a6` (teal-500) — secondary accents, gradient start
 - Brand Gradient: `linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)` — card headers, primary buttons
 
 ### Semantic Colors
+
 - Success: `#22c55e` (green-500)
 - Warning: `#f59e0b` (amber-500)
 - Destructive: `#ef4444` (red-500)
 - Neutral: `#64748b` (slate-500)
 
 ### Surfaces
+
 - Background: white
 - Card: white with `shadow-md` or `shadow-lg`
 - Subtle: `slate-50`
@@ -39,18 +42,21 @@ Design tokens are defined as CSS custom properties in `src/index.css` and extend
 Built on Shadcn/ui (New York style, Radix primitives). Components live in `src/components/ui/`.
 
 ### Key Patterns
+
 - `cn()` utility from `src/lib/utils.ts` for merging Tailwind classes
 - CVA (class-variance-authority) for component variants
 - All interactive elements use Shadcn/ui — never raw HTML
 - Lucide React for icons (`h-5 w-5` in nav, `h-4 w-4` in buttons)
 
 ### Button Rules
+
 - Primary CTA: gradient `from-teal-500 to-blue-600` with `active:scale-95`
 - Max 1 gradient button per section
 - Loading state: `<Loader2 className="animate-spin" />`
 - Min touch target: 44x44px on mobile
 
 ### Card Rules
+
 - All cards: `bg-white border-0 shadow-md rounded-xl`
 - Main section cards: gradient header with `linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)`
 - Section card structure: `overflow-hidden` on Card, gradient header div with `px-6 py-4`, white icon + white heading text, content body in `<div className="p-6">`
@@ -58,11 +64,13 @@ Built on Shadcn/ui (New York style, Radix primitives). Components live in `src/c
 - KPI cards: `group` hover effects with scale/rotate icon transitions
 
 ### Tab Rules
+
 - Pill-style tabs with `gap-2`, `rounded-xl`
 - Active: solid `bg-blue-600 text-white` — never gradient
 - Inactive: `bg-white text-gray-600 border-gray-200`
 
 ## Prohibited Patterns
+
 - No pink, purple, violet, rose, fuchsia backgrounds on cards/tabs
 - No transparent/glassmorphism on data cards
 - No transparent SelectTrigger backgrounds
@@ -72,6 +80,7 @@ Built on Shadcn/ui (New York style, Radix primitives). Components live in `src/c
 ## Domain Color Coding
 
 ### Bloom's Taxonomy
+
 - Remember: `bg-purple-500 text-white`
 - Understand: `bg-blue-500 text-white`
 - Apply: `bg-green-500 text-white`
@@ -80,17 +89,20 @@ Built on Shadcn/ui (New York style, Radix primitives). Components live in `src/c
 - Create: `bg-red-500 text-white`
 
 ### Outcome Types
+
 - ILO: `bg-red-100 text-red-700 border-red-200`
 - PLO: `bg-blue-100 text-blue-700 border-blue-200`
 - CLO: `bg-green-100 text-green-700 border-green-200`
 
 ### Attainment Levels
+
 - Excellent (≥85%): `text-green-600 bg-green-50`
 - Satisfactory (70-84%): `text-blue-600 bg-blue-50`
 - Developing (50-69%): `text-yellow-600 bg-yellow-50`
 - Not Yet (<50%): `text-red-600 bg-red-50`
 
 ### Gamification
+
 - XP: `amber-500`
 - Streak: `red-500` to `orange-500` gradient
 - Leaderboard: Gold `yellow-400`, Silver `gray-400`, Bronze `amber-600`
@@ -112,6 +124,7 @@ Built on Shadcn/ui (New York style, Radix primitives). Components live in `src/c
 - Button press: `active:scale-95 transition-transform duration-100`
 
 ## Spacing & Layout
+
 - Standard card padding: `p-4`
 - Section gap: `gap-6`
 - KPI row: `grid grid-cols-2 md:grid-cols-4 gap-4`
@@ -119,12 +132,14 @@ Built on Shadcn/ui (New York style, Radix primitives). Components live in `src/c
 - Student: mobile-first, sidebar appears on `md:` breakpoint
 
 ## Icon System
+
 - Library: Lucide React
 - Navigation: `h-5 w-5`
 - Buttons: `h-4 w-4` with `gap-2`
 - Always pair icons with labels or tooltips
 
 ## Figma Integration
+
 - Treat Figma MCP output as design reference, not final code
 - Replace generic Tailwind with project design tokens
 - Reuse existing Shadcn/ui components

@@ -14,10 +14,18 @@ export const notificationPreferencesSchema = z.object({
   quiet_hours: z
     .object({
       enabled: z.boolean().default(false),
-      start: z.string().regex(/^\d{2}:\d{2}$/).default("22:00"),
-      end: z.string().regex(/^\d{2}:\d{2}$/).default("07:00"),
+      start: z
+        .string()
+        .regex(/^\d{2}:\d{2}$/)
+        .default("22:00"),
+      end: z
+        .string()
+        .regex(/^\d{2}:\d{2}$/)
+        .default("07:00"),
     })
     .optional(),
 });
 
-export type NotificationPreferencesFormData = z.infer<typeof notificationPreferencesSchema>;
+export type NotificationPreferencesFormData = z.infer<
+  typeof notificationPreferencesSchema
+>;

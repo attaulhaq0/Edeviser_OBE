@@ -1,5 +1,9 @@
-export type WellnessHabitType = 'meditation' | 'hydration' | 'exercise' | 'sleep';
-export type AcademicHabitType = 'login' | 'submit' | 'journal' | 'read';
+export type WellnessHabitType =
+  | "meditation"
+  | "hydration"
+  | "exercise"
+  | "sleep";
+export type AcademicHabitType = "login" | "submit" | "journal" | "read";
 export type HabitType = AcademicHabitType | WellnessHabitType;
 
 export interface HeatmapDay {
@@ -12,7 +16,7 @@ export interface HeatmapDay {
 
 export interface CompletedHabit {
   type: HabitType;
-  category: 'academic' | 'wellness';
+  category: "academic" | "wellness";
   value?: number;
   completedAt: string;
 }
@@ -128,7 +132,10 @@ export interface WellnessReminderConfig {
 }
 
 // Correlation Confidence Types
-export type CorrelationConfidenceLevel = 'early_pattern' | 'emerging_trend' | 'strong_pattern';
+export type CorrelationConfidenceLevel =
+  | "early_pattern"
+  | "emerging_trend"
+  | "strong_pattern";
 
 export interface CorrelationInsightWithConfidence extends CorrelationInsight {
   confidenceLevel: CorrelationConfidenceLevel;

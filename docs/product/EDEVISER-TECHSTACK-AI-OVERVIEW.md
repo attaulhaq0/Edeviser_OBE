@@ -21,6 +21,7 @@ h2 + *, h3 + *, h4 + * { page-break-before: avoid; }
 </style>
 
 # Edeviser — Tech Stack, AI & Product Cost Overview
+
 **Quick Reference for Founders, Team Members & Investors**
 
 **Version:** 1.0 | **Date:** April 2026
@@ -39,70 +40,70 @@ Target market: Private and semi-government universities in Qatar and the GCC reg
 
 ### Frontend
 
-| Technology | Role |
-|-----------|------|
-| React 18 + TypeScript (strict mode) | UI framework |
-| Vite 6 | Build tooling, HMR, bundling |
-| Tailwind CSS v4 + Shadcn/ui | Styling and component library |
-| TanStack Query v5 | Server state management, caching |
-| TanStack Table | Data tables with sort/filter/pagination |
-| React Router v7 | Role-based routing and guards |
-| React Hook Form + Zod | Forms and runtime validation |
-| Zustand | Client-side state management |
-| Framer Motion | Animations and micro-interactions |
-| Recharts | Charts and data visualization |
-| i18next + react-i18next | Internationalization (Arabic/English) |
-| Sentry | Error monitoring and performance tracing |
-| Sonner | Toast notifications |
-| nuqs | URL-persisted search/filter state |
-| dnd-kit | Drag and drop (rubric builder, outcome reordering) |
-| date-fns | Date manipulation |
-| canvas-confetti | Celebration effects (level-up, badge unlock) |
+| Technology                          | Role                                               |
+| ----------------------------------- | -------------------------------------------------- |
+| React 18 + TypeScript (strict mode) | UI framework                                       |
+| Vite 6                              | Build tooling, HMR, bundling                       |
+| Tailwind CSS v4 + Shadcn/ui         | Styling and component library                      |
+| TanStack Query v5                   | Server state management, caching                   |
+| TanStack Table                      | Data tables with sort/filter/pagination            |
+| React Router v7                     | Role-based routing and guards                      |
+| React Hook Form + Zod               | Forms and runtime validation                       |
+| Zustand                             | Client-side state management                       |
+| Framer Motion                       | Animations and micro-interactions                  |
+| Recharts                            | Charts and data visualization                      |
+| i18next + react-i18next             | Internationalization (Arabic/English)              |
+| Sentry                              | Error monitoring and performance tracing           |
+| Sonner                              | Toast notifications                                |
+| nuqs                                | URL-persisted search/filter state                  |
+| dnd-kit                             | Drag and drop (rubric builder, outcome reordering) |
+| date-fns                            | Date manipulation                                  |
+| canvas-confetti                     | Celebration effects (level-up, badge unlock)       |
 
 ### Backend (Supabase BaaS)
 
-| Technology | Role |
-|-----------|------|
-| PostgreSQL 15 | Primary database with Row Level Security on all tables |
-| Supabase Auth (GoTrue) | JWT-based authentication, session management |
-| Supabase Realtime | WebSocket-based live updates (leaderboard, grades, notifications) |
-| Supabase Storage | File uploads (assignments, avatars) with RLS |
-| Supabase Edge Functions (Deno) | Server-side business logic (25+ functions) |
-| pgvector | Vector embeddings for AI RAG pipeline |
-| pg_cron | Scheduled jobs (streak reset, at-risk signals, weekly summaries) |
-| pg_net | HTTP calls from database triggers |
-| PostgREST | Auto-generated REST API from database schema |
+| Technology                     | Role                                                              |
+| ------------------------------ | ----------------------------------------------------------------- |
+| PostgreSQL 15                  | Primary database with Row Level Security on all tables            |
+| Supabase Auth (GoTrue)         | JWT-based authentication, session management                      |
+| Supabase Realtime              | WebSocket-based live updates (leaderboard, grades, notifications) |
+| Supabase Storage               | File uploads (assignments, avatars) with RLS                      |
+| Supabase Edge Functions (Deno) | Server-side business logic (25+ functions)                        |
+| pgvector                       | Vector embeddings for AI RAG pipeline                             |
+| pg_cron                        | Scheduled jobs (streak reset, at-risk signals, weekly summaries)  |
+| pg_net                         | HTTP calls from database triggers                                 |
+| PostgREST                      | Auto-generated REST API from database schema                      |
 
 ### External Services
 
-| Service | Role | Monthly Cost (Pilot) |
-|---------|------|---------------------|
-| Vercel Pro | Frontend CDN, CI/CD, preview deployments | $20 |
-| OpenRouter (GPT-4o) | AI features (at-risk, suggestions, feedback, quizzes) | $60–80 |
-| OpenAI Embeddings | RAG vector embeddings (text-embedding-3-small/large) | $2–5 |
-| Resend Pro | Transactional email (streak reminders, grade notifications) | $20 |
-| Sentry | Production error monitoring | $29 |
+| Service             | Role                                                        | Monthly Cost (Pilot) |
+| ------------------- | ----------------------------------------------------------- | -------------------- |
+| Vercel Pro          | Frontend CDN, CI/CD, preview deployments                    | $20                  |
+| OpenRouter (GPT-4o) | AI features (at-risk, suggestions, feedback, quizzes)       | $60–80               |
+| OpenAI Embeddings   | RAG vector embeddings (text-embedding-3-small/large)        | $2–5                 |
+| Resend Pro          | Transactional email (streak reminders, grade notifications) | $20                  |
+| Sentry              | Production error monitoring                                 | $29                  |
 
 ### Dev Tooling
 
-| Tool | Role | Monthly Cost |
-|------|------|-------------|
-| Claude Code (Anthropic Max) | AI-assisted development | $200 |
-| Kiro IDE Max | Spec-driven development | $39 |
-| GitHub Enterprise Cloud (2 users) | Source control, CI/CD, Copilot | $42 |
-| CodeRabbit Pro | Automated PR review | $19 |
-| Figma Professional (2 editors) | UI/UX design and handoff | $30 |
-| Postman Basic | API testing | $14 |
+| Tool                              | Role                           | Monthly Cost |
+| --------------------------------- | ------------------------------ | ------------ |
+| Claude Code (Anthropic Max)       | AI-assisted development        | $200         |
+| Kiro IDE Max                      | Spec-driven development        | $39          |
+| GitHub Enterprise Cloud (2 users) | Source control, CI/CD, Copilot | $42          |
+| CodeRabbit Pro                    | Automated PR review            | $19          |
+| Figma Professional (2 editors)    | UI/UX design and handoff       | $30          |
+| Postman Basic                     | API testing                    | $14          |
 
 ### Testing
 
-| Tool | Role |
-|------|------|
-| Vitest | Unit and integration test runner |
-| fast-check | Property-based testing (min 100 iterations) |
-| Testing Library | React component testing |
-| Playwright | End-to-end testing |
-| k6 | Load testing |
+| Tool            | Role                                        |
+| --------------- | ------------------------------------------- |
+| Vitest          | Unit and integration test runner            |
+| fast-check      | Property-based testing (min 100 iterations) |
+| Testing Library | React component testing                     |
+| Playwright      | End-to-end testing                          |
+| k6              | Load testing                                |
 
 ---
 
@@ -111,6 +112,7 @@ Target market: Private and semi-government universities in Qatar and the GCC reg
 Edeviser runs 6 AI-powered features, all production-ready and backed by a feedback flywheel that improves accuracy over time.
 
 ### 1. At-Risk Early Warning
+
 - Analyzes behavioral signals (login frequency, submission timing, CLO attainment trends) from the student activity log
 - Flags students with high probability of failing a CLO, 7+ days before deadlines
 - Each prediction includes a probability score (0–100%) and contributing signal details
@@ -118,36 +120,43 @@ Edeviser runs 6 AI-powered features, all production-ready and backed by a feedba
 - Validated against actual grades for accuracy tracking (target: <20% false positive rate)
 
 ### 2. Personalized Module Suggestions
+
 - Identifies CLO attainment gaps per student and recommends specific learning resources
 - Includes social proof from historical cohort data (e.g., "Students who completed these exercises scored 34% higher on this CLO")
 - Student feedback (thumbs up/down) stored and fed back into model weighting
 
 ### 3. Assignment Feedback Drafts
+
 - Generates per-criterion rubric feedback comments based on submitted work
 - Teacher sees draft comments with accept/edit/reject controls per criterion
 - Available within 10 seconds of opening the grading view
 - Teacher actions stored for model improvement
 
 ### 4. Adaptive Quiz Generation
+
 - AI generates quiz questions aligned to specific CLOs and Bloom's Taxonomy levels
 - Question bank with difficulty calibration, discrimination index tracking, and quality flags
 - Adaptive quiz sessions adjust difficulty in real-time based on student performance
 - Post-quiz review with AI-generated explanations and confidence scoring
 
 ### 5. AI Tutor (RAG Pipeline) — Designed
+
 - Retrieval-Augmented Generation using pgvector for course-specific knowledge
 - Students ask questions and receive contextual answers grounded in course materials
 - Designed and spec'd; deployment planned for pilot phase
 
 ### 6. Habit Correlation Analysis
+
 - Computes correlations between student habits (login, submission, journaling, reading) and academic outcomes
 - Surfaces insights like "Students who journal 3+ times per week score 22% higher on CLO attainment"
 - Confidence badges on correlation strength
 
 ### AI Feedback Flywheel
+
 Every AI output collects structured feedback. Student ratings, teacher accept/edit/reject actions, and actual grade outcomes are stored in the `ai_feedback` table. This data feeds back into prompt engineering and model selection, creating a continuous improvement loop.
 
 ### AI Architecture Decisions
+
 - LLM calls routed through OpenRouter for provider flexibility (GPT-4o primary, fallback to Claude)
 - All AI processing happens in Supabase Edge Functions (server-side, never client-side)
 - Rate limiting on all AI endpoints to control costs
@@ -159,39 +168,39 @@ Every AI output collects structured feedback. Student ratings, teacher accept/ed
 
 ### Monthly Infrastructure (Pilot: 1 institution, 500 students)
 
-| Category | Monthly (USD) | Monthly (PKR) |
-|----------|--------------|--------------|
-| Supabase Pro + compute | $50 | PKR 14,000 |
-| Vercel Pro | $20 | PKR 5,600 |
-| AI/LLM APIs (GPT-4o) | $60–80 | PKR 16,800–22,400 |
-| AI Embeddings | $2–5 | PKR 560–1,400 |
-| Resend Pro (email) | $20 | PKR 5,600 |
-| Sentry (monitoring) | $29 | PKR 8,120 |
+| Category                 | Monthly (USD) | Monthly (PKR)          |
+| ------------------------ | ------------- | ---------------------- |
+| Supabase Pro + compute   | $50           | PKR 14,000             |
+| Vercel Pro               | $20           | PKR 5,600              |
+| AI/LLM APIs (GPT-4o)     | $60–80        | PKR 16,800–22,400      |
+| AI Embeddings            | $2–5          | PKR 560–1,400          |
+| Resend Pro (email)       | $20           | PKR 5,600              |
+| Sentry (monitoring)      | $29           | PKR 8,120              |
 | **Infrastructure total** | **~$181–206** | **~PKR 50,680–57,680** |
 
 ### Monthly Dev Tooling
 
-| Category | Monthly (USD) | Monthly (PKR) |
-|----------|--------------|--------------|
-| Claude Code + Kiro + GitHub + CodeRabbit + Figma + Postman | $344 | PKR 96,320 |
+| Category                                                   | Monthly (USD) | Monthly (PKR) |
+| ---------------------------------------------------------- | ------------- | ------------- |
+| Claude Code + Kiro + GitHub + CodeRabbit + Figma + Postman | $344          | PKR 96,320    |
 
 A single developer with this AI-augmented tooling stack maintains velocity equivalent to a 3-person team. Each tool replaces the need for additional engineering hires.
 
 ### Combined Monthly Burn
 
-| Scenario | Total/month (PKR) | Total/month (USD) |
-|----------|-------------------|-------------------|
-| Lean (essential tools only) | ~PKR 130,000 | ~$464 |
-| Standard (all tools) | ~PKR 151,000 | ~$539 |
-| Growth (3 institutions, 2K users) | ~PKR 175,000 | ~$625 |
+| Scenario                          | Total/month (PKR) | Total/month (USD) |
+| --------------------------------- | ----------------- | ----------------- |
+| Lean (essential tools only)       | ~PKR 130,000      | ~$464             |
+| Standard (all tools)              | ~PKR 151,000      | ~$539             |
+| Growth (3 institutions, 2K users) | ~PKR 175,000      | ~$625             |
 
 ### Scaling Path
 
-| Scale | Users | Infrastructure/mo |
-|-------|-------|-------------------|
-| Pilot | 500 | ~$180/mo |
-| Early Growth | 2,000 | ~$280/mo |
-| Growth | 10,000 | ~$535/mo |
+| Scale             | Users   | Infrastructure/mo                     |
+| ----------------- | ------- | ------------------------------------- |
+| Pilot             | 500     | ~$180/mo                              |
+| Early Growth      | 2,000   | ~$280/mo                              |
+| Growth            | 10,000  | ~$535/mo                              |
 | Enterprise (50K+) | 50,000+ | Migration to AWS/self-hosted Supabase |
 
 ### Capital Requirement
@@ -202,11 +211,11 @@ PKR 2M bridge capital covers Qatar market entry (~PKR 1.4M for founder relocatio
 
 ## Revenue Model
 
-| Tier | Students | Annual License | Implementation Fee |
-|------|----------|---------------|-------------------|
-| Starter | Up to 500 | $30K–50K | $10K |
-| Growth | 500–2,000 | $50K–100K | $20K |
-| Enterprise | 2,000+ | $100K–250K | $40K |
+| Tier       | Students  | Annual License | Implementation Fee |
+| ---------- | --------- | -------------- | ------------------ |
+| Starter    | Up to 500 | $30K–50K       | $10K               |
+| Growth     | 500–2,000 | $50K–100K      | $20K               |
+| Enterprise | 2,000+    | $100K–250K     | $40K               |
 
 A single discounted pilot contract (~PKR 4.2M/year) exceeds the entire PKR 2M bridge capital and makes the company self-sustaining on infrastructure costs.
 
@@ -288,27 +297,27 @@ Supabase gives a 2-person team the backend capabilities of a 6-person team at 1/
 
 ### The Migration Plan (When We Outgrow Supabase)
 
-| Trigger | Action | Timeline |
-|---------|--------|----------|
-| 50+ institutions or 50K+ users | Migrate to self-hosted Supabase on AWS (same codebase, own infrastructure) | 2-3 weeks |
-| Need for custom middleware/queuing | Add API Gateway + SQS in front of Supabase for specific endpoints | 1-2 weeks |
-| Enterprise compliance requirement | Move to AWS GovCloud with self-hosted Supabase | 4-6 weeks |
-| Realtime connection limits hit | Add dedicated WebSocket server (Socket.io on ECS) alongside Supabase | 1-2 weeks |
+| Trigger                            | Action                                                                     | Timeline  |
+| ---------------------------------- | -------------------------------------------------------------------------- | --------- |
+| 50+ institutions or 50K+ users     | Migrate to self-hosted Supabase on AWS (same codebase, own infrastructure) | 2-3 weeks |
+| Need for custom middleware/queuing | Add API Gateway + SQS in front of Supabase for specific endpoints          | 1-2 weeks |
+| Enterprise compliance requirement  | Move to AWS GovCloud with self-hosted Supabase                             | 4-6 weeks |
+| Realtime connection limits hit     | Add dedicated WebSocket server (Socket.io on ECS) alongside Supabase       | 1-2 weeks |
 
 The key insight: Supabase is PostgreSQL. Every query, every migration, every RLS policy works identically on self-hosted PostgreSQL. The migration is an infrastructure change, not a code rewrite.
 
 ### Cost Comparison (Monthly, for Edeviser at Pilot Scale)
 
-| Component | Supabase | AWS Equivalent | Custom Node.js |
-|-----------|----------|---------------|----------------|
-| Database | Included ($50 plan) | RDS: $50-100 | Managed DB: $30-60 |
-| Auth | Included | Cognito: $0-25 | Build from scratch |
-| Realtime | Included | API GW WebSocket + Lambda: $30-50 | Socket.io server: $20-40 |
-| Storage | Included | S3 + CloudFront: $10-20 | S3: $5-10 |
-| Edge Functions | Included | Lambda + API GW: $20-50 | VPS/Container: $20-50 |
-| Cron Jobs | Included (pg_cron) | EventBridge + Lambda: $5-10 | node-cron on server |
-| DevOps time | 0 hours/month | 20-40 hours/month | 10-20 hours/month |
-| **Total** | **$50/month** | **$150-300/month + DevOps** | **$100-200/month + DevOps** |
+| Component      | Supabase            | AWS Equivalent                    | Custom Node.js              |
+| -------------- | ------------------- | --------------------------------- | --------------------------- |
+| Database       | Included ($50 plan) | RDS: $50-100                      | Managed DB: $30-60          |
+| Auth           | Included            | Cognito: $0-25                    | Build from scratch          |
+| Realtime       | Included            | API GW WebSocket + Lambda: $30-50 | Socket.io server: $20-40    |
+| Storage        | Included            | S3 + CloudFront: $10-20           | S3: $5-10                   |
+| Edge Functions | Included            | Lambda + API GW: $20-50           | VPS/Container: $20-50       |
+| Cron Jobs      | Included (pg_cron)  | EventBridge + Lambda: $5-10       | node-cron on server         |
+| DevOps time    | 0 hours/month       | 20-40 hours/month                 | 10-20 hours/month           |
+| **Total**      | **$50/month**       | **$150-300/month + DevOps**       | **$100-200/month + DevOps** |
 
 ### Bottom Line
 
@@ -329,21 +338,21 @@ For a pre-revenue startup with a 2-person team, Supabase is the right choice tod
 
 ## Key Numbers
 
-| Metric | Value |
-|--------|-------|
-| Feature modules | 17+ |
-| Supabase Edge Functions | 25+ |
-| Database tables with RLS | 30+ |
-| Database migrations | 40+ |
-| React hooks | 120+ |
-| Shared UI components | 50+ |
-| Test files (unit + property) | 150+ |
-| Supported languages | Arabic, English (full RTL) |
-| User roles | 5 (admin, coordinator, teacher, student, parent) |
-| AI features | 6 (5 live, 1 designed) |
-| XP sources | 11+ |
-| Badge types | Standard, mystery, tiered, team |
-| Cron jobs | 10 (streak, at-risk, summaries, habits, etc.) |
+| Metric                       | Value                                            |
+| ---------------------------- | ------------------------------------------------ |
+| Feature modules              | 17+                                              |
+| Supabase Edge Functions      | 25+                                              |
+| Database tables with RLS     | 30+                                              |
+| Database migrations          | 40+                                              |
+| React hooks                  | 120+                                             |
+| Shared UI components         | 50+                                              |
+| Test files (unit + property) | 150+                                             |
+| Supported languages          | Arabic, English (full RTL)                       |
+| User roles                   | 5 (admin, coordinator, teacher, student, parent) |
+| AI features                  | 6 (5 live, 1 designed)                           |
+| XP sources                   | 11+                                              |
+| Badge types                  | Standard, mystery, tiered, team                  |
+| Cron jobs                    | 10 (streak, at-risk, summaries, habits, etc.)    |
 
 ---
 
@@ -357,4 +366,4 @@ For a pre-revenue startup with a 2-person team, Supabase is the right choice tod
 
 ---
 
-*Edeviser — April 2026*
+_Edeviser — April 2026_

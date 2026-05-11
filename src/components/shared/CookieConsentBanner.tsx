@@ -1,11 +1,15 @@
 // Task 86: Cookie consent banner
 // Fixed bottom banner, shown on first visit when no consent in localStorage
 
-import { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { getConsent, setConsent, initAnalyticsIfConsented } from '@/lib/analyticsConsent';
-import { Cookie } from 'lucide-react';
+import { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  getConsent,
+  setConsent,
+  initAnalyticsIfConsented,
+} from "@/lib/analyticsConsent";
+import { Cookie } from "lucide-react";
 
 // Initialize analytics on module load if already consented
 initAnalyticsIfConsented();
@@ -33,8 +37,9 @@ const CookieConsentBanner = () => {
           <div className="flex items-start gap-3 flex-1">
             <Cookie className="h-5 w-5 text-amber-500 mt-0.5 shrink-0" />
             <p className="text-sm text-gray-700">
-              We use cookies to improve your experience. Essential cookies are always active.
-              You can choose to enable analytics cookies to help us improve the platform.
+              We use cookies to improve your experience. Essential cookies are
+              always active. You can choose to enable analytics cookies to help
+              us improve the platform.
             </p>
           </div>
           <div className="flex gap-2 shrink-0">

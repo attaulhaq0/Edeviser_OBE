@@ -8,7 +8,7 @@ export interface XPTransaction {
 
 export interface XPPurchase {
   xp_cost: number;
-  status: 'active' | 'consumed' | 'expired' | 'refunded';
+  status: "active" | "consumed" | "expired" | "refunded";
 }
 
 /**
@@ -21,16 +21,13 @@ export interface XPPurchase {
  */
 export function computeXPBalance(
   transactions: readonly XPTransaction[],
-  purchases: readonly XPPurchase[],
+  purchases: readonly XPPurchase[]
 ): number {
-  const totalEarned = transactions.reduce(
-    (sum, tx) => sum + tx.xp_amount,
-    0,
-  );
+  const totalEarned = transactions.reduce((sum, tx) => sum + tx.xp_amount, 0);
 
   const totalSpent = purchases.reduce(
-    (sum, p) => (p.status !== 'refunded' ? sum + p.xp_cost : sum),
-    0,
+    (sum, p) => (p.status !== "refunded" ? sum + p.xp_cost : sum),
+    0
   );
 
   return Math.max(0, totalEarned - totalSpent);

@@ -1,9 +1,10 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -21,7 +22,7 @@ interface CorrelationInsight {
 }
 
 interface CorrelationInsightWithConfidence extends CorrelationInsight {
-  confidenceLevel: 'early_pattern' | 'emerging_trend' | 'strong_pattern';
+  confidenceLevel: "early_pattern" | "emerging_trend" | "strong_pattern";
   dataPointCount: number;
 }
 
@@ -35,16 +36,19 @@ interface CorrelationResponse {
 // ─── Validation ─────────────────────────────────────────────────────────────
 
 function validatePayload(
-  payload: unknown,
+  payload: unknown
 ): { valid: true; data: CorrelationPayload } | { valid: false; error: string } {
-  if (!payload || typeof payload !== 'object') {
-    return { valid: false, error: 'Request body must be a JSON object' };
+  if (!payload || typeof payload !== "object") {
+    return { valid: false, error: "Request body must be a JSON object" };
   }
 
   const p = payload as Record<string, unknown>;
 
-  if (!p.student_id || typeof p.student_id !== 'string') {
-    return { valid: false, error: 'student_id is required and must be a string' };
+  if (!p.student_id || typeof p.student_id !== "string") {
+    return {
+      valid: false,
+      error: "student_id is required and must be a string",
+    };
   }
 
   return {
@@ -69,14 +73,14 @@ const INSIGHT_TEMPLATES: Record<string, (habitLabel: string) => string> = {
 };
 
 const HABIT_LABELS: Record<string, string> = {
-  meditation: 'meditate',
-  hydration: 'stay hydrated',
-  exercise: 'exercise',
-  sleep: 'get enough sleep',
-  login: 'log in',
-  submit: 'submit work',
-  journal: 'journal',
-  read: 'read content',
+  meditation: "meditate",
+  hydration: "stay hydrated",
+  exercise: "exercise",
+  sleep: "get enough sleep",
+  login: "log in",
+  submit: "submit work",
+  journal: "journal",
+  read: "read content",
 };
 
 /**
@@ -87,12 +91,12 @@ const HABIT_LABELS: Record<string, string> = {
 export function computeCoOccurrenceRate(
   habitDates: Set<string>,
   eventDates: Set<string>,
-  allDates: Set<string>,
+  allDates: Set<string>
 ): number {
   if (habitDates.size === 0 || allDates.size === 0) return 0;
 
   const nonHabitDates = new Set(
-    [...allDates].filter((d) => !habitDates.has(d)),
+    [...allDates].filter((d) => !habitDates.has(d))
   );
 
   // Rate of event on habit days
@@ -107,7 +111,8 @@ export function computeCoOccurrenceRate(
   for (const d of nonHabitDates) {
     if (eventDates.has(d)) nonHabitEventCount++;
   }
-  const nonHabitRate = nonHabitDates.size > 0 ? nonHabitEventCount / nonHabitDates.size : 0;
+  const nonHabitRate =
+    nonHabitDates.size > 0 ? nonHabitEventCount / nonHabitDates.size : 0;
 
   // Strength: difference in rates, normalized to 0-1
   // If habit rate is higher than non-habit rate, there's a positive correlation
@@ -123,12 +128,15 @@ export function computeCoOccurrenceRate(
  */
 export function generateInsightDescription(
   habitType: string,
-  academicMetric: string,
+  academicMetric: string
 ): string {
   const habitLabel = HABIT_LABELS[habitType] ?? habitType;
   const template = INSIGHT_TEMPLATES[academicMetric];
   if (template) return template(habitLabel);
-  return `On days when you ${habitLabel}, your ${academicMetric.replace(/_/g, ' ')} tends to be higher`;
+  return `On days when you ${habitLabel}, your ${academicMetric.replace(
+    /_/g,
+    " "
+  )} tends to be higher`;
 }
 
 /**
@@ -136,7 +144,7 @@ export function generateInsightDescription(
  */
 export function hasMinimumData(
   allDates: Set<string>,
-  minimumDays: number = 14,
+  minimumDays: number = 14
 ): boolean {
   return allDates.size >= minimumDays;
 }
@@ -148,29 +156,31 @@ export function hasMinimumData(
 export function computeCorrelationInsights(
   habitDatesByType: Map<string, Set<string>>,
   submissionDates: Set<string>,
-  allDates: Set<string>,
+  allDates: Set<string>
 ): CorrelationInsight[] {
   const insights: CorrelationInsight[] = [];
 
   for (const [habitType, habitDates] of habitDatesByType) {
     // Compute co-occurrence with submission rate
-    const strength = computeCoOccurrenceRate(habitDates, submissionDates, allDates);
+    const strength = computeCoOccurrenceRate(
+      habitDates,
+      submissionDates,
+      allDates
+    );
 
     if (strength > 0.05) {
       insights.push({
         id: `${habitType}_submission_rate`,
         habitType,
-        academicMetric: 'submission_rate',
-        description: generateInsightDescription(habitType, 'submission_rate'),
+        academicMetric: "submission_rate",
+        description: generateInsightDescription(habitType, "submission_rate"),
         strength: Math.round(strength * 100) / 100,
       });
     }
   }
 
   // Sort by strength descending, return top 3
-  return insights
-    .sort((a, b) => b.strength - a.strength)
-    .slice(0, 3);
+  return insights.sort((a, b) => b.strength - a.strength).slice(0, 3);
 }
 
 // ─── Confidence Level Mapping ────────────────────────────────────────────────
@@ -180,17 +190,24 @@ export function computeCorrelationInsights(
  * Returns null for counts below the 30-day minimum threshold.
  */
 export function getConfidenceLevel(
-  dataPointCount: number,
-): 'early_pattern' | 'emerging_trend' | 'strong_pattern' | null {
+  dataPointCount: number
+): "early_pattern" | "emerging_trend" | "strong_pattern" | null {
   if (dataPointCount < 30) return null;
-  if (dataPointCount < 60) return 'early_pattern';
-  if (dataPointCount < 90) return 'emerging_trend';
-  return 'strong_pattern';
+  if (dataPointCount < 60) return "early_pattern";
+  if (dataPointCount < 90) return "emerging_trend";
+  return "strong_pattern";
 }
 
 // ─── Forbidden causal words validation ──────────────────────────────────────
 
-const FORBIDDEN_CAUSAL_WORDS = ['because', 'causes', 'caused', 'due to', 'results in', 'leads to'];
+const FORBIDDEN_CAUSAL_WORDS = [
+  "because",
+  "causes",
+  "caused",
+  "due to",
+  "results in",
+  "leads to",
+];
 
 export function containsCausalLanguage(text: string): boolean {
   const lower = text.toLowerCase();
@@ -200,50 +217,56 @@ export function containsCausalLanguage(text: string): boolean {
 // ─── Main Handler ───────────────────────────────────────────────────────────
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
   }
 
   try {
     // ── Auth: require authenticated user (student or service call) ───
-    const authHeader = req.headers.get('Authorization') ?? '';
-    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+    const authHeader = req.headers.get("Authorization") ?? "";
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
     const isServiceRole = serviceRoleKey && authHeader.includes(serviceRoleKey);
 
     if (!isServiceRole) {
       if (!authHeader) {
         return new Response(
-          JSON.stringify({ error: 'Missing authorization header' }),
-          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+          JSON.stringify({ error: "Missing authorization header" }),
+          {
+            status: 401,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
         );
       }
       const userClient = createClient(
-        Deno.env.get('SUPABASE_URL')!,
-        Deno.env.get('SUPABASE_ANON_KEY')!,
-        { global: { headers: { Authorization: authHeader } } },
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_ANON_KEY")!,
+        { global: { headers: { Authorization: authHeader } } }
       );
-      const { data: { user: caller }, error: authError } = await userClient.auth.getUser();
+      const {
+        data: { user: caller },
+        error: authError,
+      } = await userClient.auth.getUser();
       if (authError || !caller) {
-        return new Response(
-          JSON.stringify({ error: 'Unauthorized' }),
-          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-        );
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       }
     }
 
     const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
     const body = await req.json();
     const validation = validatePayload(body);
 
     if (!validation.valid) {
-      return new Response(
-        JSON.stringify({ error: validation.error }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-      );
+      return new Response(JSON.stringify({ error: validation.error }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const { student_id } = validation.data;
@@ -256,10 +279,10 @@ serve(async (req) => {
     let semesterEnd = `${now.getFullYear()}-12-31`;
 
     const { data: semester } = await supabase
-      .from('semesters')
-      .select('start_date, end_date')
-      .lte('start_date', todayStr)
-      .gte('end_date', todayStr)
+      .from("semesters")
+      .select("start_date, end_date")
+      .lte("start_date", todayStr)
+      .gte("end_date", todayStr)
       .maybeSingle();
 
     if (semester) {
@@ -270,51 +293,63 @@ serve(async (req) => {
     // ── Step 2: Fetch habit_logs (academic habits) ──────────────────────
 
     const { data: habitLogs, error: habitErr } = await supabase
-      .from('habit_logs')
-      .select('date, habit_type')
-      .eq('student_id', student_id)
-      .gte('date', semesterStart)
-      .lte('date', semesterEnd);
+      .from("habit_logs")
+      .select("date, habit_type")
+      .eq("student_id", student_id)
+      .gte("date", semesterStart)
+      .lte("date", semesterEnd);
 
     if (habitErr) {
-      console.error('Failed to fetch habit_logs:', habitErr.message);
+      console.error("Failed to fetch habit_logs:", habitErr.message);
       return new Response(
-        JSON.stringify({ error: 'Failed to fetch habit data' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        JSON.stringify({ error: "Failed to fetch habit data" }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
       );
     }
 
     // ── Step 3: Fetch wellness_habit_logs ────────────────────────────────
 
     const { data: wellnessLogs, error: wellnessErr } = await supabase
-      .from('wellness_habit_logs')
-      .select('date, wellness_type')
-      .eq('student_id', student_id)
-      .gte('date', semesterStart)
-      .lte('date', semesterEnd);
+      .from("wellness_habit_logs")
+      .select("date, wellness_type")
+      .eq("student_id", student_id)
+      .gte("date", semesterStart)
+      .lte("date", semesterEnd);
 
     if (wellnessErr) {
-      console.error('Failed to fetch wellness_habit_logs:', wellnessErr.message);
+      console.error(
+        "Failed to fetch wellness_habit_logs:",
+        wellnessErr.message
+      );
       return new Response(
-        JSON.stringify({ error: 'Failed to fetch wellness data' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        JSON.stringify({ error: "Failed to fetch wellness data" }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
       );
     }
 
     // ── Step 4: Fetch submissions ───────────────────────────────────────
 
     const { data: submissions, error: subErr } = await supabase
-      .from('submissions')
-      .select('submitted_at')
-      .eq('student_id', student_id)
-      .gte('submitted_at', `${semesterStart}T00:00:00Z`)
-      .lte('submitted_at', `${semesterEnd}T23:59:59Z`);
+      .from("submissions")
+      .select("submitted_at")
+      .eq("student_id", student_id)
+      .gte("submitted_at", `${semesterStart}T00:00:00Z`)
+      .lte("submitted_at", `${semesterEnd}T23:59:59Z`);
 
     if (subErr) {
-      console.error('Failed to fetch submissions:', subErr.message);
+      console.error("Failed to fetch submissions:", subErr.message);
       return new Response(
-        JSON.stringify({ error: 'Failed to fetch submission data' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        JSON.stringify({ error: "Failed to fetch submission data" }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
       );
     }
 
@@ -324,7 +359,7 @@ serve(async (req) => {
     const habitDatesByType = new Map<string, Set<string>>();
 
     // Academic habits
-    for (const log of (habitLogs ?? [])) {
+    for (const log of habitLogs ?? []) {
       const date = log.date as string;
       const type = log.habit_type as string;
       allDates.add(date);
@@ -333,7 +368,7 @@ serve(async (req) => {
     }
 
     // Wellness habits
-    for (const log of (wellnessLogs ?? [])) {
+    for (const log of wellnessLogs ?? []) {
       const date = log.date as string;
       const type = log.wellness_type as string;
       allDates.add(date);
@@ -343,7 +378,7 @@ serve(async (req) => {
 
     // Submission dates
     const submissionDates = new Set<string>();
-    for (const sub of (submissions ?? [])) {
+    for (const sub of submissions ?? []) {
       const date = (sub.submitted_at as string).slice(0, 10);
       submissionDates.add(date);
       allDates.add(date);
@@ -361,7 +396,7 @@ serve(async (req) => {
           insufficient_data: true,
           data_point_count: dayCount,
         }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -374,7 +409,7 @@ serve(async (req) => {
           days_until_ready: 30 - dayCount,
           data_point_count: dayCount,
         }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -383,16 +418,17 @@ serve(async (req) => {
     const insights = computeCorrelationInsights(
       habitDatesByType,
       submissionDates,
-      allDates,
+      allDates
     );
 
     const confidenceLevel = getConfidenceLevel(dayCount);
 
-    const insightsWithConfidence: CorrelationInsightWithConfidence[] = insights.map((insight) => ({
-      ...insight,
-      confidenceLevel: confidenceLevel!,
-      dataPointCount: dayCount,
-    }));
+    const insightsWithConfidence: CorrelationInsightWithConfidence[] =
+      insights.map((insight) => ({
+        ...insight,
+        confidenceLevel: confidenceLevel!,
+        dataPointCount: dayCount,
+      }));
 
     const response: CorrelationResponse = {
       insights: insightsWithConfidence,
@@ -400,14 +436,13 @@ serve(async (req) => {
       data_point_count: dayCount,
     };
 
-    return new Response(
-      JSON.stringify(response),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-    );
+    return new Response(JSON.stringify(response), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   } catch (error) {
-    return new Response(
-      JSON.stringify({ error: (error as Error).message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-    );
+    return new Response(JSON.stringify({ error: (error as Error).message }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });

@@ -1,29 +1,52 @@
 // Task 108.3: Data Import UI — CSV upload with type selector, preview, and results
 
-import { useState } from 'react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { useState } from "react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Upload, Download, Loader2, FileText, CheckCircle, XCircle } from 'lucide-react';
-import { toast } from 'sonner';
-import { useDataImport, type ImportResult } from '@/hooks/useDataImport';
+} from "@/components/ui/select";
+import {
+  Upload,
+  Download,
+  Loader2,
+  FileText,
+  CheckCircle,
+  XCircle,
+} from "lucide-react";
+import { toast } from "sonner";
+import { useDataImport, type ImportResult } from "@/hooks/useDataImport";
 
 const IMPORT_TYPES = [
-  { value: 'courses', label: 'Courses', template: '/docs/import-templates/courses.csv' },
-  { value: 'outcomes', label: 'Outcomes (ILO/PLO/CLO)', template: '/docs/import-templates/outcomes.csv' },
-  { value: 'grades', label: 'Grades', template: '/docs/import-templates/grades.csv' },
-  { value: 'enrollments', label: 'Enrollments', template: '/docs/import-templates/enrollments.csv' },
+  {
+    value: "courses",
+    label: "Courses",
+    template: "/docs/import-templates/courses.csv",
+  },
+  {
+    value: "outcomes",
+    label: "Outcomes (ILO/PLO/CLO)",
+    template: "/docs/import-templates/outcomes.csv",
+  },
+  {
+    value: "grades",
+    label: "Grades",
+    template: "/docs/import-templates/grades.csv",
+  },
+  {
+    value: "enrollments",
+    label: "Enrollments",
+    template: "/docs/import-templates/enrollments.csv",
+  },
 ] as const;
 
 const DataImportPage = () => {
-  const [importType, setImportType] = useState('');
+  const [importType, setImportType] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string[][]>([]);
   const importMutation = useDataImport();
@@ -35,8 +58,8 @@ const DataImportPage = () => {
 
     // Parse preview (first 5 rows)
     const text = await f.text();
-    const lines = text.trim().split('\n').slice(0, 6);
-    setPreview(lines.map((line) => line.split(',').map((v) => v.trim())));
+    const lines = text.trim().split("\n").slice(0, 6);
+    setPreview(lines.map((line) => line.split(",").map((v) => v.trim())));
   };
 
   const handleImport = async () => {
@@ -46,13 +69,15 @@ const DataImportPage = () => {
       { import_type: importType, csv_content: text },
       {
         onSuccess: (result: ImportResult) => {
-          toast.success(`Imported ${result.imported} of ${result.total_rows} rows`);
+          toast.success(
+            `Imported ${result.imported} of ${result.total_rows} rows`
+          );
           if (result.errors.length > 0) {
             toast.error(`${result.skipped} rows skipped — check error report`);
           }
         },
         onError: (err: Error) => toast.error(err.message),
-      },
+      }
     );
   };
 
@@ -66,7 +91,12 @@ const DataImportPage = () => {
       <Card className="bg-white border-0 shadow-md rounded-xl p-6">
         <div className="flex items-center gap-4">
           <div className="flex-1 max-w-xs">
-            <label htmlFor="import-type-select" className="text-sm font-medium text-gray-700 mb-1 block">Import Type</label>
+            <label
+              htmlFor="import-type-select"
+              className="text-sm font-medium text-gray-700 mb-1 block"
+            >
+              Import Type
+            </label>
             <Select value={importType} onValueChange={setImportType}>
               <SelectTrigger id="import-type-select" className="bg-white">
                 <SelectValue placeholder="Select type" />
@@ -102,11 +132,14 @@ const DataImportPage = () => {
           <div
             className="px-6 py-4 flex items-center gap-2"
             style={{
-              background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)',
+              background:
+                "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
             }}
           >
             <Upload className="h-5 w-5 text-white" />
-            <h2 className="text-lg font-bold tracking-tight text-white">Upload CSV</h2>
+            <h2 className="text-lg font-bold tracking-tight text-white">
+              Upload CSV
+            </h2>
           </div>
           <div className="p-6 space-y-4">
             <Input
@@ -139,7 +172,10 @@ const DataImportPage = () => {
                     {preview.slice(1).map((row, ri) => (
                       <tr key={ri}>
                         {row.map((cell, ci) => (
-                          <td key={ci} className="p-2 border border-slate-200 text-slate-700">
+                          <td
+                            key={ci}
+                            className="p-2 border border-slate-200 text-slate-700"
+                          >
                             {cell}
                           </td>
                         ))}
@@ -169,13 +205,17 @@ const DataImportPage = () => {
       {/* Results */}
       {importMutation.data && (
         <Card className="bg-white border-0 shadow-md rounded-xl p-6">
-          <h2 className="text-lg font-bold tracking-tight mb-4">Import Results</h2>
+          <h2 className="text-lg font-bold tracking-tight mb-4">
+            Import Results
+          </h2>
           <div className="grid grid-cols-3 gap-4 mb-4">
             <div className="text-center">
               <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
                 Total Rows
               </p>
-              <p className="text-2xl font-black">{importMutation.data.total_rows}</p>
+              <p className="text-2xl font-black">
+                {importMutation.data.total_rows}
+              </p>
             </div>
             <div className="text-center">
               <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
@@ -198,13 +238,15 @@ const DataImportPage = () => {
           {importMutation.data.errors.length > 0 && (
             <div className="space-y-1">
               <p className="text-sm font-medium text-red-600 mb-2">Errors:</p>
-              {importMutation.data.errors.map((err: { row: number; message: string }, i: number) => (
-                <div key={i} className="flex items-center gap-2 text-xs">
-                  <XCircle className="h-3 w-3 text-red-500 shrink-0" />
-                  <span className="text-slate-500">Row {err.row}:</span>
-                  <span className="text-slate-700">{err.message}</span>
-                </div>
-              ))}
+              {importMutation.data.errors.map(
+                (err: { row: number; message: string }, i: number) => (
+                  <div key={i} className="flex items-center gap-2 text-xs">
+                    <XCircle className="h-3 w-3 text-red-500 shrink-0" />
+                    <span className="text-slate-500">Row {err.row}:</span>
+                    <span className="text-slate-700">{err.message}</span>
+                  </div>
+                )
+              )}
             </div>
           )}
 

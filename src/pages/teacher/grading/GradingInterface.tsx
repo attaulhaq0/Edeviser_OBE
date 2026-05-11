@@ -1,8 +1,12 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { format } from 'date-fns';
-import { classifyAttainment, getAttainmentTextClass, getAttainmentBadgeStyle as getAttainmentBadgeStyleFromClassifier } from '@/lib/attainmentClassifier';
+import { useEffect, useMemo, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { format } from "date-fns";
+import {
+  classifyAttainment,
+  getAttainmentTextClass,
+  getAttainmentBadgeStyle as getAttainmentBadgeStyleFromClassifier,
+} from "@/lib/attainmentClassifier";
 import {
   ArrowLeft,
   Check,
@@ -15,30 +19,30 @@ import {
   Sparkles,
   User,
   X,
-} from 'lucide-react';
-import { toast } from 'sonner';
+} from "lucide-react";
+import { toast } from "sonner";
 
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Textarea } from '@/components/ui/textarea';
-import Shimmer from '@/components/shared/Shimmer';
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import Shimmer from "@/components/shared/Shimmer";
 
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import { cn } from '@/lib/utils';
-import { logActivity } from '@/lib/activityLogger';
-import { validateAtRiskPredictions } from '@/lib/predictionValidator';
-import { useSubmission } from '@/hooks/useSubmissions';
-import { useRubric } from '@/hooks/useRubrics';
-import type { RubricCriterion } from '@/hooks/useRubrics';
-import { useGrade, useCreateGrade } from '@/hooks/useGrades';
-import { useAuth } from '@/hooks/useAuth';
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import { cn } from "@/lib/utils";
+import { logActivity } from "@/lib/activityLogger";
+import { validateAtRiskPredictions } from "@/lib/predictionValidator";
+import { useSubmission } from "@/hooks/useSubmissions";
+import { useRubric } from "@/hooks/useRubrics";
+import type { RubricCriterion } from "@/hooks/useRubrics";
+import { useGrade, useCreateGrade } from "@/hooks/useGrades";
+import { useAuth } from "@/hooks/useAuth";
 import {
   useGenerateFeedbackDraft,
   useLogDraftAction,
-} from '@/hooks/useAIFeedbackDraft';
-import type { CriterionDraft } from '@/hooks/useAIFeedbackDraft';
+} from "@/hooks/useAIFeedbackDraft";
+import type { CriterionDraft } from "@/hooks/useAIFeedbackDraft";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -59,12 +63,12 @@ interface AssignmentForRubric {
 
 const useAssignmentForRubric = (assignmentId?: string) => {
   return useQuery({
-    queryKey: queryKeys.assignments.detail(assignmentId ?? ''),
+    queryKey: queryKeys.assignments.detail(assignmentId ?? ""),
     queryFn: async (): Promise<AssignmentForRubric | null> => {
       const { data, error } = await supabase
-        .from('assignments')
-        .select('id, title, total_marks, rubric_id, clo_weights')
-        .eq('id', assignmentId!)
+        .from("assignments")
+        .select("id, title, total_marks, rubric_id, clo_weights")
+        .eq("id", assignmentId!)
         .maybeSingle();
       if (error) throw error;
       return data as AssignmentForRubric | null;
@@ -80,27 +84,29 @@ function getScoreColor(percent: number): string {
 }
 
 function getAttainmentLabel(percent: number): string {
-  return classifyAttainment(percent).replace('_', ' ');
+  return classifyAttainment(percent).replace("_", " ");
 }
 
 function getAttainmentBadgeStyle(percent: number): string {
   return getAttainmentBadgeStyleFromClassifier(percent);
 }
 
-
 // ─── Sub-components ─────────────────────────────────────────────────────────
 
 interface SubmissionInfoPanelProps {
-  submission: NonNullable<ReturnType<typeof useSubmission>['data']>;
+  submission: NonNullable<ReturnType<typeof useSubmission>["data"]>;
   assignment: AssignmentForRubric | null | undefined;
 }
 
-const SubmissionInfoPanel = ({ submission, assignment }: SubmissionInfoPanelProps) => (
+const SubmissionInfoPanel = ({
+  submission,
+  assignment,
+}: SubmissionInfoPanelProps) => (
   <Card className="bg-white border-0 shadow-md rounded-xl p-6 space-y-5 h-fit">
     <div
       className="rounded-lg p-4"
       style={{
-        background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)',
+        background: "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
       }}
     >
       <h2 className="text-sm font-bold text-white">Submission Details</h2>
@@ -108,46 +114,56 @@ const SubmissionInfoPanel = ({ submission, assignment }: SubmissionInfoPanelProp
 
     {/* Student */}
     <div className="space-y-1">
-      <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">Student</p>
+      <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
+        Student
+      </p>
       <div className="flex items-center gap-2">
         <User className="h-4 w-4 text-gray-400" />
         <span className="text-sm font-medium">
-          {submission.profiles?.full_name ?? 'Unknown'}
+          {submission.profiles?.full_name ?? "Unknown"}
         </span>
       </div>
       <p className="text-xs text-gray-500 ps-6">
-        {submission.profiles?.email ?? ''}
+        {submission.profiles?.email ?? ""}
       </p>
     </div>
 
     {/* Assignment */}
     <div className="space-y-1">
-      <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">Assignment</p>
+      <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
+        Assignment
+      </p>
       <div className="flex items-center gap-2">
         <FileText className="h-4 w-4 text-gray-400" />
         <span className="text-sm font-medium">
-          {assignment?.title ?? submission.assignments?.title ?? 'Unknown'}
+          {assignment?.title ?? submission.assignments?.title ?? "Unknown"}
         </span>
       </div>
       <p className="text-xs text-gray-500 ps-6">
-        Total Marks: {assignment?.total_marks ?? submission.assignments?.total_marks ?? 0}
+        Total Marks:{" "}
+        {assignment?.total_marks ?? submission.assignments?.total_marks ?? 0}
       </p>
     </div>
 
     {/* Submitted At */}
     <div className="space-y-1">
-      <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">Submitted</p>
+      <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
+        Submitted
+      </p>
       <div className="flex items-center gap-2">
         <Clock className="h-4 w-4 text-gray-400" />
         <span className="text-sm">
-          {format(new Date(submission.submitted_at), 'MMM d, yyyy h:mm a')}
+          {format(new Date(submission.submitted_at), "MMM d, yyyy h:mm a")}
         </span>
       </div>
     </div>
 
     {/* Late indicator */}
     {submission.is_late && (
-      <Badge className="bg-red-100 text-red-700 border-red-200" variant="outline">
+      <Badge
+        className="bg-red-100 text-red-700 border-red-200"
+        variant="outline"
+      >
         Late Submission
       </Badge>
     )}
@@ -169,11 +185,20 @@ const SubmissionInfoPanel = ({ submission, assignment }: SubmissionInfoPanelProp
 interface RubricGridProps {
   criteria: RubricCriterion[];
   selections: Map<string, CellSelection>;
-  onCellSelect: (criterionId: string, levelIndex: number, points: number) => void;
+  onCellSelect: (
+    criterionId: string,
+    levelIndex: number,
+    points: number
+  ) => void;
   isReadOnly: boolean;
 }
 
-const RubricGrid = ({ criteria, selections, onCellSelect, isReadOnly }: RubricGridProps) => {
+const RubricGrid = ({
+  criteria,
+  selections,
+  onCellSelect,
+  isReadOnly,
+}: RubricGridProps) => {
   const levelLabels = useMemo(() => {
     if (criteria.length === 0) return [];
     const first = criteria[0];
@@ -205,32 +230,44 @@ const RubricGrid = ({ criteria, selections, onCellSelect, isReadOnly }: RubricGr
             {criteria.map((criterion) => (
               <tr key={criterion.id} className="border-t border-slate-100">
                 <td className="p-3 align-top">
-                  <span className="text-sm font-semibold">{criterion.criterion_name}</span>
+                  <span className="text-sm font-semibold">
+                    {criterion.criterion_name}
+                  </span>
                 </td>
                 {criterion.levels.map((level, levelIdx) => {
-                  const isSelected = selections.get(criterion.id)?.levelIndex === levelIdx;
+                  const isSelected =
+                    selections.get(criterion.id)?.levelIndex === levelIdx;
                   return (
                     <td key={levelIdx} className="p-2 align-top">
                       <button
                         type="button"
-                        onClick={() => onCellSelect(criterion.id, levelIdx, level.points)}
+                        onClick={() =>
+                          onCellSelect(criterion.id, levelIdx, level.points)
+                        }
                         disabled={isReadOnly}
                         aria-pressed={isSelected}
                         aria-label={`${criterion.criterion_name}: ${level.label} — ${level.points} points`}
                         className={cn(
-                          'w-full rounded-lg border-2 p-3 text-start transition-all focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-1',
+                          "w-full rounded-lg border-2 p-3 text-start transition-all focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-1",
                           isSelected
-                            ? 'border-blue-500 bg-blue-50'
-                            : 'border-slate-200 bg-white',
-                          !isReadOnly && !isSelected && 'hover:bg-slate-50 hover:border-slate-300',
-                          isReadOnly && 'cursor-default',
+                            ? "border-blue-500 bg-blue-50"
+                            : "border-slate-200 bg-white",
+                          !isReadOnly &&
+                            !isSelected &&
+                            "hover:bg-slate-50 hover:border-slate-300",
+                          isReadOnly && "cursor-default"
                         )}
                       >
                         <div className="flex items-center justify-between mb-1">
-                          <Badge className="bg-blue-100 text-blue-700 text-xs" variant="outline">
+                          <Badge
+                            className="bg-blue-100 text-blue-700 text-xs"
+                            variant="outline"
+                          >
                             {level.points} pts
                           </Badge>
-                          {isSelected && <Check className="h-4 w-4 text-blue-600" />}
+                          {isSelected && (
+                            <Check className="h-4 w-4 text-blue-600" />
+                          )}
                         </div>
                         <p className="text-xs text-gray-600 leading-relaxed">
                           {level.description}
@@ -248,10 +285,9 @@ const RubricGrid = ({ criteria, selections, onCellSelect, isReadOnly }: RubricGr
   );
 };
 
-
 // ─── AI Draft Types ─────────────────────────────────────────────────────────
 
-type DraftStatus = 'pending' | 'accepted' | 'editing' | 'rejected';
+type DraftStatus = "pending" | "accepted" | "editing" | "rejected";
 
 interface DraftState {
   criterion_id: string;
@@ -287,41 +323,57 @@ const AIDraftPanel = ({
   <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
     <div
       className="px-6 py-4 flex items-center gap-2"
-      style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+      style={{
+        background: "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+      }}
     >
       <Sparkles className="h-5 w-5 text-white" />
-      <h2 className="text-lg font-bold tracking-tight text-white">AI Feedback Drafts</h2>
+      <h2 className="text-lg font-bold tracking-tight text-white">
+        AI Feedback Drafts
+      </h2>
     </div>
     <div className="p-6 space-y-4">
       {drafts.map((draft) => (
         <div
           key={draft.criterion_id}
           className={cn(
-            'rounded-lg border p-4 space-y-3',
-            draft.status === 'accepted' && 'border-green-200 bg-green-50',
-            draft.status === 'rejected' && 'border-red-200 bg-red-50 opacity-60',
-            draft.status === 'editing' && 'border-blue-200 bg-blue-50',
-            draft.status === 'pending' && 'border-slate-200 bg-white',
+            "rounded-lg border p-4 space-y-3",
+            draft.status === "accepted" && "border-green-200 bg-green-50",
+            draft.status === "rejected" &&
+              "border-red-200 bg-red-50 opacity-60",
+            draft.status === "editing" && "border-blue-200 bg-blue-50",
+            draft.status === "pending" && "border-slate-200 bg-white"
           )}
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold">{draft.criterion_title}</span>
-              <Badge className="bg-amber-100 text-amber-700 border-amber-200 text-[10px]" variant="outline">
+              <span className="text-sm font-semibold">
+                {draft.criterion_title}
+              </span>
+              <Badge
+                className="bg-amber-100 text-amber-700 border-amber-200 text-[10px]"
+                variant="outline"
+              >
                 AI Draft
               </Badge>
-              {draft.status === 'accepted' && (
-                <Badge className="bg-green-100 text-green-700 border-green-200 text-[10px]" variant="outline">
+              {draft.status === "accepted" && (
+                <Badge
+                  className="bg-green-100 text-green-700 border-green-200 text-[10px]"
+                  variant="outline"
+                >
                   Accepted
                 </Badge>
               )}
-              {draft.status === 'rejected' && (
-                <Badge className="bg-red-100 text-red-700 border-red-200 text-[10px]" variant="outline">
+              {draft.status === "rejected" && (
+                <Badge
+                  className="bg-red-100 text-red-700 border-red-200 text-[10px]"
+                  variant="outline"
+                >
                   Rejected
                 </Badge>
               )}
             </div>
-            {draft.status === 'pending' && (
+            {draft.status === "pending" && (
               <div className="flex items-center gap-1">
                 <Button
                   variant="ghost"
@@ -354,11 +406,13 @@ const AIDraftPanel = ({
             )}
           </div>
 
-          {draft.status === 'editing' ? (
+          {draft.status === "editing" ? (
             <div className="space-y-2">
               <Textarea
                 value={draft.edited_comment}
-                onChange={(e) => onEditChange(draft.criterion_id, e.target.value)}
+                onChange={(e) =>
+                  onEditChange(draft.criterion_id, e.target.value)
+                }
                 rows={3}
                 className="text-sm"
               />
@@ -371,7 +425,9 @@ const AIDraftPanel = ({
               </Button>
             </div>
           ) : (
-            <p className="text-sm text-gray-700 leading-relaxed">{draft.draft_comment}</p>
+            <p className="text-sm text-gray-700 leading-relaxed">
+              {draft.draft_comment}
+            </p>
           )}
         </div>
       ))}
@@ -382,7 +438,10 @@ const AIDraftPanel = ({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="text-sm font-semibold">Overall Feedback</span>
-              <Badge className="bg-amber-100 text-amber-700 border-amber-200 text-[10px]" variant="outline">
+              <Badge
+                className="bg-amber-100 text-amber-700 border-amber-200 text-[10px]"
+                variant="outline"
+              >
                 AI Draft
               </Badge>
             </div>
@@ -396,7 +455,9 @@ const AIDraftPanel = ({
               <CheckCircle2 className="h-4 w-4 me-1" /> Use
             </Button>
           </div>
-          <p className="text-sm text-gray-700 leading-relaxed">{overallDraft}</p>
+          <p className="text-sm text-gray-700 leading-relaxed">
+            {overallDraft}
+          </p>
         </div>
       )}
     </div>
@@ -411,30 +472,38 @@ const GradingInterface = () => {
   const { user } = useAuth();
 
   // ── Data fetching ───────────────────────────────────────────────────────
-  const { data: submission, isLoading: submissionLoading } = useSubmission(submissionId);
+  const { data: submission, isLoading: submissionLoading } =
+    useSubmission(submissionId);
   const assignmentId = submission?.assignment_id;
-  const { data: assignment, isLoading: assignmentLoading } = useAssignmentForRubric(assignmentId);
-  const { data: rubric, isLoading: rubricLoading } = useRubric(assignment?.rubric_id ?? undefined);
-  const { data: existingGrade, isLoading: gradeLoading } = useGrade(submissionId);
+  const { data: assignment, isLoading: assignmentLoading } =
+    useAssignmentForRubric(assignmentId);
+  const { data: rubric, isLoading: rubricLoading } = useRubric(
+    assignment?.rubric_id ?? undefined
+  );
+  const { data: existingGrade, isLoading: gradeLoading } =
+    useGrade(submissionId);
   const createGrade = useCreateGrade();
   const generateDraft = useGenerateFeedbackDraft();
   const logDraftAction = useLogDraftAction();
 
   // ── Local state ─────────────────────────────────────────────────────────
-  const [selections, setSelections] = useState<Map<string, CellSelection>>(new Map());
-  const [feedback, setFeedback] = useState('');
+  const [selections, setSelections] = useState<Map<string, CellSelection>>(
+    new Map()
+  );
+  const [feedback, setFeedback] = useState("");
   const [aiDrafts, setAiDrafts] = useState<DraftState[]>([]);
-  const [aiOverallDraft, setAiOverallDraft] = useState('');
+  const [aiOverallDraft, setAiOverallDraft] = useState("");
 
   const isReadOnly = !!existingGrade;
-  const isLoading = submissionLoading || assignmentLoading || rubricLoading || gradeLoading;
+  const isLoading =
+    submissionLoading || assignmentLoading || rubricLoading || gradeLoading;
 
   // ── Activity logging: grading_start on mount ────────────────────────────
   useEffect(() => {
     if (submissionId && user?.id && !isReadOnly) {
       logActivity({
         student_id: user.id,
-        event_type: 'grading_start',
+        event_type: "grading_start",
         metadata: { submission_id: submissionId },
       });
     }
@@ -445,7 +514,10 @@ const GradingInterface = () => {
     if (!existingGrade) return new Map<string, CellSelection>();
     const map = new Map<string, CellSelection>();
     for (const sel of existingGrade.rubric_selections) {
-      map.set(sel.criterion_id, { levelIndex: sel.level_index, points: sel.points });
+      map.set(sel.criterion_id, {
+        levelIndex: sel.level_index,
+        points: sel.points,
+      });
     }
     return map;
   }, [existingGrade]);
@@ -460,10 +532,15 @@ const GradingInterface = () => {
   }, [activeSelections]);
 
   const totalMarks = assignment?.total_marks ?? 0;
-  const scorePercent = totalMarks > 0 ? Math.round((totalScore / totalMarks) * 100) : 0;
+  const scorePercent =
+    totalMarks > 0 ? Math.round((totalScore / totalMarks) * 100) : 0;
 
   // ── Handlers ────────────────────────────────────────────────────────────
-  const handleCellSelect = (criterionId: string, levelIndex: number, points: number) => {
+  const handleCellSelect = (
+    criterionId: string,
+    levelIndex: number,
+    points: number
+  ) => {
     if (isReadOnly) return;
     setSelections((prev) => {
       const next = new Map(prev);
@@ -479,18 +556,26 @@ const GradingInterface = () => {
 
   // ── AI Draft Handlers ───────────────────────────────────────────────────
   const handleGenerateAIDraft = () => {
-    if (!submissionId || !rubric || !submission?.student_id || selections.size === 0) return;
+    if (
+      !submissionId ||
+      !rubric ||
+      !submission?.student_id ||
+      selections.size === 0
+    )
+      return;
 
     const cloId = assignment?.clo_weights?.[0]?.clo_id;
     if (!cloId) {
-      toast.error('No CLO linked to this assignment');
+      toast.error("No CLO linked to this assignment");
       return;
     }
 
-    const rubricSelections = Array.from(selections.entries()).map(([criterionId, sel]) => ({
-      criterion_id: criterionId,
-      level_index: sel.levelIndex,
-    }));
+    const rubricSelections = Array.from(selections.entries()).map(
+      ([criterionId, sel]) => ({
+        criterion_id: criterionId,
+        level_index: sel.levelIndex,
+      })
+    );
 
     generateDraft.mutate(
       {
@@ -502,30 +587,40 @@ const GradingInterface = () => {
       },
       {
         onSuccess: (data) => {
-          const newDrafts: DraftState[] = data.criterion_drafts.map((d: CriterionDraft) => ({
-            criterion_id: d.criterion_id,
-            criterion_title: d.criterion_title,
-            draft_comment: d.draft_comment,
-            edited_comment: d.draft_comment,
-            status: 'pending' as DraftStatus,
-          }));
+          const newDrafts: DraftState[] = data.criterion_drafts.map(
+            (d: CriterionDraft) => ({
+              criterion_id: d.criterion_id,
+              criterion_title: d.criterion_title,
+              draft_comment: d.draft_comment,
+              edited_comment: d.draft_comment,
+              status: "pending" as DraftStatus,
+            })
+          );
           setAiDrafts(newDrafts);
           setAiOverallDraft(data.overall_draft);
-          toast.success('AI feedback drafts generated');
+          toast.success("AI feedback drafts generated");
         },
-        onError: (err) => toast.error(`Draft generation failed: ${err.message}`),
-      },
+        onError: (err) =>
+          toast.error(`Draft generation failed: ${err.message}`),
+      }
     );
   };
 
-  const logDraft = (criterionId: string, action: 'accepted' | 'edited' | 'rejected', text: string) => {
+  const logDraft = (
+    criterionId: string,
+    action: "accepted" | "edited" | "rejected",
+    text: string
+  ) => {
     if (!submission?.student_id) return;
     logDraftAction.mutate({
       student_id: submission.student_id,
-      suggestion_type: 'feedback_draft',
+      suggestion_type: "feedback_draft",
       suggestion_text: text,
-      suggestion_data: { criterion_id: criterionId, submission_id: submissionId },
-      feedback: action === 'rejected' ? 'thumbs_down' : 'thumbs_up',
+      suggestion_data: {
+        criterion_id: criterionId,
+        submission_id: submissionId,
+      },
+      feedback: action === "rejected" ? "thumbs_down" : "thumbs_up",
       validated_outcome: action,
     });
   };
@@ -533,26 +628,36 @@ const GradingInterface = () => {
   const handleAcceptDraft = (criterionId: string) => {
     const draft = aiDrafts.find((d) => d.criterion_id === criterionId);
     setAiDrafts((prev) =>
-      prev.map((d) => (d.criterion_id === criterionId ? { ...d, status: 'accepted' as DraftStatus } : d)),
+      prev.map((d) =>
+        d.criterion_id === criterionId
+          ? { ...d, status: "accepted" as DraftStatus }
+          : d
+      )
     );
     if (draft) {
       setFeedback((prev) => {
-        const prefix = prev ? `${prev}\n\n` : '';
+        const prefix = prev ? `${prev}\n\n` : "";
         return `${prefix}[${draft.criterion_title}]: ${draft.draft_comment}`;
       });
-      logDraft(criterionId, 'accepted', draft.draft_comment);
+      logDraft(criterionId, "accepted", draft.draft_comment);
     }
   };
 
   const handleEditDraft = (criterionId: string) => {
     setAiDrafts((prev) =>
-      prev.map((d) => (d.criterion_id === criterionId ? { ...d, status: 'editing' as DraftStatus } : d)),
+      prev.map((d) =>
+        d.criterion_id === criterionId
+          ? { ...d, status: "editing" as DraftStatus }
+          : d
+      )
     );
   };
 
   const handleEditChange = (criterionId: string, text: string) => {
     setAiDrafts((prev) =>
-      prev.map((d) => (d.criterion_id === criterionId ? { ...d, edited_comment: text } : d)),
+      prev.map((d) =>
+        d.criterion_id === criterionId ? { ...d, edited_comment: text } : d
+      )
     );
   };
 
@@ -562,31 +667,39 @@ const GradingInterface = () => {
     setAiDrafts((prev) =>
       prev.map((d) =>
         d.criterion_id === criterionId
-          ? { ...d, draft_comment: d.edited_comment, status: 'accepted' as DraftStatus }
-          : d,
-      ),
+          ? {
+              ...d,
+              draft_comment: d.edited_comment,
+              status: "accepted" as DraftStatus,
+            }
+          : d
+      )
     );
     setFeedback((prev) => {
-      const prefix = prev ? `${prev}\n\n` : '';
+      const prefix = prev ? `${prev}\n\n` : "";
       return `${prefix}[${draft.criterion_title}]: ${draft.edited_comment}`;
     });
-    logDraft(criterionId, 'edited', draft.edited_comment);
+    logDraft(criterionId, "edited", draft.edited_comment);
   };
 
   const handleRejectDraft = (criterionId: string) => {
     const draft = aiDrafts.find((d) => d.criterion_id === criterionId);
     setAiDrafts((prev) =>
-      prev.map((d) => (d.criterion_id === criterionId ? { ...d, status: 'rejected' as DraftStatus } : d)),
+      prev.map((d) =>
+        d.criterion_id === criterionId
+          ? { ...d, status: "rejected" as DraftStatus }
+          : d
+      )
     );
     if (draft) {
-      logDraft(criterionId, 'rejected', draft.draft_comment);
+      logDraft(criterionId, "rejected", draft.draft_comment);
     }
   };
 
   const handleAcceptOverallDraft = () => {
     if (aiOverallDraft) {
       setFeedback(aiOverallDraft);
-      toast.success('Overall draft applied to feedback');
+      toast.success("Overall draft applied to feedback");
     }
   };
 
@@ -599,11 +712,13 @@ const GradingInterface = () => {
       return;
     }
 
-    const rubricSelections = Array.from(selections.entries()).map(([criterionId, sel]) => ({
-      criterion_id: criterionId,
-      level_index: sel.levelIndex,
-      points: sel.points,
-    }));
+    const rubricSelections = Array.from(selections.entries()).map(
+      ([criterionId, sel]) => ({
+        criterion_id: criterionId,
+        level_index: sel.levelIndex,
+        points: sel.points,
+      })
+    );
 
     createGrade.mutate(
       {
@@ -621,7 +736,7 @@ const GradingInterface = () => {
           // automatically via a database trigger on the grades table.
           logActivity({
             student_id: user.id,
-            event_type: 'grading_end',
+            event_type: "grading_end",
             metadata: {
               submission_id: submissionId,
               total_score: totalScore,
@@ -632,17 +747,21 @@ const GradingInterface = () => {
           // Validate at-risk predictions for this student + assignment CLOs (fire-and-forget)
           // Requirement 49.2: validate predictions against actual grades
           if (submission?.student_id && assignment?.clo_weights) {
-            const cloIds = assignment.clo_weights.map((w: { clo_id: string }) => w.clo_id);
-            validateAtRiskPredictions(submission.student_id, cloIds).catch(() => {
-              // Fire-and-forget — never block the grading flow
-            });
+            const cloIds = assignment.clo_weights.map(
+              (w: { clo_id: string }) => w.clo_id
+            );
+            validateAtRiskPredictions(submission.student_id, cloIds).catch(
+              () => {
+                // Fire-and-forget — never block the grading flow
+              }
+            );
           }
 
-          toast.success('Grade submitted successfully');
-          navigate('/teacher/grading');
+          toast.success("Grade submitted successfully");
+          navigate("/teacher/grading");
         },
         onError: (err) => toast.error(err.message),
-      },
+      }
     );
   };
 
@@ -662,7 +781,7 @@ const GradingInterface = () => {
   if (!submission) {
     return (
       <div className="space-y-4">
-        <Button variant="ghost" onClick={() => navigate('/teacher/grading')}>
+        <Button variant="ghost" onClick={() => navigate("/teacher/grading")}>
           <ArrowLeft className="h-4 w-4" /> Back to Queue
         </Button>
         <Card className="bg-white border-0 shadow-md rounded-xl p-6">
@@ -676,14 +795,21 @@ const GradingInterface = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" onClick={() => navigate('/teacher/grading')}>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate("/teacher/grading")}
+        >
           <ArrowLeft className="h-4 w-4" /> Back to Queue
         </Button>
         <h1 className="text-2xl font-bold tracking-tight">
-          {isReadOnly ? 'Grade Review' : 'Grade Submission'}
+          {isReadOnly ? "Grade Review" : "Grade Submission"}
         </h1>
         {isReadOnly && (
-          <Badge className="bg-green-100 text-green-700 border-green-200" variant="outline">
+          <Badge
+            className="bg-green-100 text-green-700 border-green-200"
+            variant="outline"
+          >
             Graded
           </Badge>
         )}
@@ -704,7 +830,9 @@ const GradingInterface = () => {
             />
           ) : (
             <Card className="bg-white border-0 shadow-md rounded-xl p-6">
-              <p className="text-gray-500">No rubric linked to this assignment.</p>
+              <p className="text-gray-500">
+                No rubric linked to this assignment.
+              </p>
             </Card>
           )}
 
@@ -754,7 +882,12 @@ const GradingInterface = () => {
                 <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
                   Percentage
                 </p>
-                <p className={cn('text-2xl font-black mt-1', getScoreColor(scorePercent))}>
+                <p
+                  className={cn(
+                    "text-2xl font-black mt-1",
+                    getScoreColor(scorePercent)
+                  )}
+                >
                   {scorePercent}%
                 </p>
               </div>
@@ -763,7 +896,10 @@ const GradingInterface = () => {
                   Attainment
                 </p>
                 <Badge
-                  className={cn('mt-1 text-xs font-bold', getAttainmentBadgeStyle(scorePercent))}
+                  className={cn(
+                    "mt-1 text-xs font-bold",
+                    getAttainmentBadgeStyle(scorePercent)
+                  )}
                   variant="outline"
                 >
                   {getAttainmentLabel(scorePercent)}
@@ -779,7 +915,7 @@ const GradingInterface = () => {
             </label>
             {isReadOnly ? (
               <p className="text-sm text-gray-700 whitespace-pre-wrap">
-                {existingGrade?.overall_feedback || 'No feedback provided.'}
+                {existingGrade?.overall_feedback || "No feedback provided."}
               </p>
             ) : (
               <Textarea
@@ -800,10 +936,15 @@ const GradingInterface = () => {
                 disabled={createGrade.isPending || selections.size === 0}
                 className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
               >
-                {createGrade.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+                {createGrade.isPending && (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                )}
                 Submit Grade
               </Button>
-              <Button variant="outline" onClick={() => navigate('/teacher/grading')}>
+              <Button
+                variant="outline"
+                onClick={() => navigate("/teacher/grading")}
+              >
                 Cancel
               </Button>
             </div>

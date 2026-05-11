@@ -2,18 +2,18 @@
 
 ## Pipeline Stages
 
-| Stage | Code | Description | Typical Duration | Exit Criteria |
-|-------|------|-------------|-----------------|---------------|
-| Lead Identified | 1 | Institution identified as potential customer | Ongoing | Contact person identified |
-| Initial Outreach | 2 | First email/call/meeting made | 1–2 weeks | Response received |
-| Discovery Call | 3 | Needs assessment meeting completed | 1–2 weeks | Pain points documented, decision-maker identified |
-| Demo Scheduled | 4 | Product demo date confirmed | 1–2 weeks | Demo date set with stakeholders |
-| Demo Completed | 5 | Live demo delivered to stakeholders | 1 day | Feedback collected, interest confirmed |
-| Pilot Proposed | 6 | Pilot terms shared (scope, duration, pricing) | 1–2 weeks | Pilot proposal accepted |
-| Pilot Active | 7 | Pilot deployment running at institution | 2–3 months | Pilot success metrics met |
-| Contract Negotiation | 8 | Pricing and terms being finalized | 2–4 weeks | Contract draft agreed |
-| Contract Signed | 9 | Deal closed, contract executed | 1–2 weeks | Signed agreement received |
-| Lost / On Hold | 0 | Deal did not proceed or paused | — | Reason documented |
+| Stage                | Code | Description                                   | Typical Duration | Exit Criteria                                     |
+| -------------------- | ---- | --------------------------------------------- | ---------------- | ------------------------------------------------- |
+| Lead Identified      | 1    | Institution identified as potential customer  | Ongoing          | Contact person identified                         |
+| Initial Outreach     | 2    | First email/call/meeting made                 | 1–2 weeks        | Response received                                 |
+| Discovery Call       | 3    | Needs assessment meeting completed            | 1–2 weeks        | Pain points documented, decision-maker identified |
+| Demo Scheduled       | 4    | Product demo date confirmed                   | 1–2 weeks        | Demo date set with stakeholders                   |
+| Demo Completed       | 5    | Live demo delivered to stakeholders           | 1 day            | Feedback collected, interest confirmed            |
+| Pilot Proposed       | 6    | Pilot terms shared (scope, duration, pricing) | 1–2 weeks        | Pilot proposal accepted                           |
+| Pilot Active         | 7    | Pilot deployment running at institution       | 2–3 months       | Pilot success metrics met                         |
+| Contract Negotiation | 8    | Pricing and terms being finalized             | 2–4 weeks        | Contract draft agreed                             |
+| Contract Signed      | 9    | Deal closed, contract executed                | 1–2 weeks        | Signed agreement received                         |
+| Lost / On Hold       | 0    | Deal did not proceed or paused                | —                | Reason documented                                 |
 
 ## How to Use the CSV
 

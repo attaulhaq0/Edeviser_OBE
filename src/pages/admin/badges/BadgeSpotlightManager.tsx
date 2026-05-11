@@ -1,47 +1,78 @@
 // Task 151.3: Badge Spotlight Manager page
 // Requirement 134.2: Admin configures spotlight schedule
 
-import { useState } from 'react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Sparkles, Calendar, Loader2 } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Sparkles, Calendar, Loader2 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import MondayWeekPicker from "@/components/shared/MondayWeekPicker";
+import {
+  badgeSpotlightScheduleSchema,
+  type BadgeSpotlightSchedule,
+} from "@/lib/schemas/badgeSpotlight";
+import { z } from "zod";
 import {
   useBadgeSpotlightSchedule,
   useUpdateBadgeSpotlightSchedule,
-} from '@/hooks/useTieredBadges';
+} from "@/hooks/useTieredBadges";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const BADGE_CATEGORIES = [
-  'streak',
-  'academic',
-  'engagement',
-  'habit',
-  'blooms',
-  'team',
+  "streak",
+  "academic",
+  "engagement",
+  "habit",
+  "blooms",
+  "team",
 ];
 
 const BadgeSpotlightManager = () => {
   const { institutionId } = useAuth();
-  const [newCategory, setNewCategory] = useState('');
-  const [newWeekStart, setNewWeekStart] = useState('');
 
   const { data: schedule, isLoading } = useBadgeSpotlightSchedule(
-    institutionId ?? undefined,
+    institutionId ?? undefined
   );
   const updateMutation = useUpdateBadgeSpotlightSchedule();
 
-  const handleSchedule = () => {
-    if (!institutionId || !newWeekStart || !newCategory) return;
+  const form = useForm<
+    z.input<typeof badgeSpotlightScheduleSchema>,
+    unknown,
+    BadgeSpotlightSchedule
+  >({
+    resolver: zodResolver(badgeSpotlightScheduleSchema),
+    defaultValues: {
+      week_start: "",
+      category: "",
+      is_manual: true,
+    },
+  });
+
+  const handleSchedule = (data: BadgeSpotlightSchedule) => {
+    if (!institutionId) return;
     updateMutation.mutate(
-      { institutionId, week_start: newWeekStart, category: newCategory },
+      { institutionId, ...data },
       {
         onSuccess: () => {
-          setNewCategory('');
-          setNewWeekStart('');
+          form.reset();
         },
-      },
+      }
     );
   };
 
@@ -55,53 +86,78 @@ const BadgeSpotlightManager = () => {
       {/* Schedule Form */}
       <Card className="bg-white border-0 shadow-md rounded-xl p-6">
         <h2 className="text-sm font-bold mb-4">Schedule Spotlight</h2>
-        <div className="flex gap-3 items-end flex-wrap">
-          <div>
-            <label htmlFor="spotlight-week-start" className="text-xs text-gray-500">
-              Week Start (Monday)
-            </label>
-            <Input
-              id="spotlight-week-start"
-              type="date"
-              value={newWeekStart}
-              onChange={(e) => setNewWeekStart(e.target.value)}
-              className="mt-1"
-            />
-          </div>
-          <div className="flex-1 min-w-[200px]">
-            <label htmlFor="spotlight-category" className="text-xs text-gray-500">
-              Badge Category
-            </label>
-            <select
-              id="spotlight-category"
-              value={newCategory}
-              onChange={(e) => setNewCategory(e.target.value)}
-              className="mt-1 w-full rounded-md border border-gray-200 px-3 py-2 text-sm"
-            >
-              <option value="">Select category...</option>
-              {BADGE_CATEGORIES.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat.charAt(0).toUpperCase() + cat.slice(1)}
-                </option>
-              ))}
-            </select>
-          </div>
-          <Button
-            onClick={handleSchedule}
-            disabled={!newWeekStart || !newCategory || updateMutation.isPending}
-            className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(handleSchedule)}
+            className="space-y-4"
           >
-            {updateMutation.isPending && (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            )}
-            Schedule
-          </Button>
-        </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="week_start"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Week Start (Monday)</FormLabel>
+                    <FormControl>
+                      <MondayWeekPicker
+                        value={field.value ? new Date(field.value) : null}
+                        onChange={(date: Date) => {
+                          const dateStr = date.toISOString().split("T")[0];
+                          field.onChange(dateStr);
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="category"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Badge Category</FormLabel>
+                    <FormControl>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select category..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {BADGE_CATEGORIES.map((cat) => (
+                            <SelectItem key={cat} value={cat}>
+                              {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <Button
+              type="submit"
+              disabled={updateMutation.isPending}
+              className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
+            >
+              {updateMutation.isPending && (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              )}
+              Schedule
+            </Button>
+          </form>
+        </Form>
       </Card>
 
       {/* Category Preview */}
       <Card className="bg-white border-0 shadow-md rounded-xl p-6">
-        <h2 className="text-sm font-bold mb-4">Badge Categories & Tier Thresholds</h2>
+        <h2 className="text-sm font-bold mb-4">
+          Badge Categories & Tier Thresholds
+        </h2>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
           {BADGE_CATEGORIES.map((cat) => (
             <div
@@ -131,7 +187,7 @@ const BadgeSpotlightManager = () => {
           className="px-6 py-4"
           style={{
             background:
-              'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)',
+              "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
           }}
         >
           <div className="flex items-center gap-2">
@@ -166,7 +222,7 @@ const BadgeSpotlightManager = () => {
                     </p>
                   </div>
                   <Badge variant="outline" className="text-xs">
-                    {entry.is_manual ? 'Manual' : 'Auto'}
+                    {entry.is_manual ? "Manual" : "Auto"}
                   </Badge>
                 </div>
               ))}

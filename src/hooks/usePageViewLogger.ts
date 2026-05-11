@@ -1,7 +1,7 @@
-import { useEffect, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
-import { logActivity } from '@/lib/activityLogger';
+import { useEffect, useRef } from "react";
+import { useLocation } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { logActivity } from "@/lib/activityLogger";
 
 /**
  * Logs a `page_view` activity event whenever the student navigates to a new route.
@@ -15,17 +15,19 @@ export const usePageViewLogger = (): void => {
   const pageEnteredAtRef = useRef<number>(0);
 
   useEffect(() => {
-    if (!profile?.id || profile.role !== 'student') return;
+    if (!profile?.id || profile.role !== "student") return;
     if (pathname === prevPathRef.current) return;
 
     const now = Date.now();
 
     // Log the previous page with its duration
     if (prevPathRef.current !== null && pageEnteredAtRef.current > 0) {
-      const durationSeconds = Math.round((now - pageEnteredAtRef.current) / 1000);
+      const durationSeconds = Math.round(
+        (now - pageEnteredAtRef.current) / 1000
+      );
       logActivity({
         student_id: profile.id,
-        event_type: 'page_view',
+        event_type: "page_view",
         metadata: {
           path: prevPathRef.current,
           duration_seconds: durationSeconds,

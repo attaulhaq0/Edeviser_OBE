@@ -9,11 +9,11 @@
 ## Executive Summary
 
 | Severity | Count |
-|----------|-------|
-| CRITICAL | 3 |
-| HIGH | 4 |
-| MEDIUM | 5 |
-| LOW | 3 |
+| -------- | ----- |
+| CRITICAL | 3     |
+| HIGH     | 4     |
+| MEDIUM   | 5     |
+| LOW      | 3     |
 
 The most dangerous class of bug is **substring-based service-role key matching** (`authHeader.includes(serviceRoleKey)`) present in **13 edge functions** and the shared `_shared/auth.ts`. This pattern allows any user who can observe or guess part of the key to craft a header that passes the check. Combined with missing ownership verification in `check-badges` and `process-streak`, any authenticated student can manipulate another student's gamification data.
 
@@ -29,22 +29,22 @@ The most dangerous class of bug is **substring-based service-role key matching**
 
 **Affected files (all use the same pattern):**
 
-| File | Line |
-|------|------|
-| `supabase/functions/_shared/auth.ts` | 58 |
-| `supabase/functions/award-xp/index.ts` | 223 |
-| `supabase/functions/process-streak/index.ts` | 131 |
-| `supabase/functions/check-badges/index.ts` | 644 |
-| `supabase/functions/calculate-attainment-rollup/index.ts` | 48 |
-| `supabase/functions/send-email-notification/index.ts` | 238 |
-| `supabase/functions/check-login-rate/index.ts` | 218 |
-| `supabase/functions/weekly-summary-cron/index.ts` | 24 |
-| `supabase/functions/compute-habit-correlations/index.ts` | 211 |
-| `supabase/functions/update-question-analytics/index.ts` | 236 |
-| `supabase/functions/streak-risk-cron/index.ts` | 24 |
-| `supabase/functions/compute-at-risk-signals/index.ts` | 97 |
-| `supabase/functions/ai-module-suggestion/index.ts` | 212 |
-| `supabase/functions/ai-at-risk-prediction/index.ts` | 173 |
+| File                                                      | Line |
+| --------------------------------------------------------- | ---- |
+| `supabase/functions/_shared/auth.ts`                      | 58   |
+| `supabase/functions/award-xp/index.ts`                    | 223  |
+| `supabase/functions/process-streak/index.ts`              | 131  |
+| `supabase/functions/check-badges/index.ts`                | 644  |
+| `supabase/functions/calculate-attainment-rollup/index.ts` | 48   |
+| `supabase/functions/send-email-notification/index.ts`     | 238  |
+| `supabase/functions/check-login-rate/index.ts`            | 218  |
+| `supabase/functions/weekly-summary-cron/index.ts`         | 24   |
+| `supabase/functions/compute-habit-correlations/index.ts`  | 211  |
+| `supabase/functions/update-question-analytics/index.ts`   | 236  |
+| `supabase/functions/streak-risk-cron/index.ts`            | 24   |
+| `supabase/functions/compute-at-risk-signals/index.ts`     | 97   |
+| `supabase/functions/ai-module-suggestion/index.ts`        | 212  |
+| `supabase/functions/ai-at-risk-prediction/index.ts`       | 173  |
 
 **Vulnerable code pattern:**
 
@@ -66,7 +66,7 @@ const isServiceRole = serviceRoleKey && authHeader.includes(serviceRoleKey);
    ```
    This passes `authHeader.includes(serviceRoleKey)` and grants god-mode access to every protected function.
 
-**Why this is worse than it appears:** The Supabase service role key is a base64-encoded JWT. The `authHeader` value is typically `Bearer <token>`. The `includes()` call searches the *entire* header string, not just the token portion. A crafted header like `Bearer <key>` trivially matches.
+**Why this is worse than it appears:** The Supabase service role key is a base64-encoded JWT. The `authHeader` value is typically `Bearer <token>`. The `includes()` call searches the _entire_ header string, not just the token portion. A crafted header like `Bearer <key>` trivially matches.
 
 **Proposed fix — all 13 files + `_shared/auth.ts`:**
 
@@ -75,10 +75,10 @@ const isServiceRole = serviceRoleKey && authHeader.includes(serviceRoleKey);
 const isServiceRole = serviceRoleKey && authHeader.includes(serviceRoleKey);
 
 // AFTER (strict equality on extracted Bearer token):
-const bearerToken = authHeader.startsWith('Bearer ')
+const bearerToken = authHeader.startsWith("Bearer ")
   ? authHeader.slice(7).trim()
-  : '';
-const isServiceRole = serviceRoleKey !== '' && bearerToken === serviceRoleKey;
+  : "";
+const isServiceRole = serviceRoleKey !== "" && bearerToken === serviceRoleKey;
 ```
 
 ---
@@ -96,9 +96,14 @@ const isServiceRole = serviceRoleKey !== '' && bearerToken === serviceRoleKey;
 // Line 646-665: Auth only checks "is caller authenticated?" — not "does caller own student_id?"
 if (!isServiceRole) {
   // ...
-  const { data: { user: caller }, error: authError } = await userClient.auth.getUser();
+  const {
+    data: { user: caller },
+    error: authError,
+  } = await userClient.auth.getUser();
   if (authError || !caller) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+    });
   }
   // ❌ NO role check
   // ❌ NO ownership check (caller.id !== student_id)
@@ -124,15 +129,22 @@ const { student_id, trigger } = validation.data;
 
 ```typescript
 if (!isServiceRole) {
-  const { data: { user: caller }, error: authError } = await userClient.auth.getUser();
+  const {
+    data: { user: caller },
+    error: authError,
+  } = await userClient.auth.getUser();
   if (authError || !caller) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+    });
   }
   // Enforce ownership: only the student themselves or a teacher/admin can trigger
-  const callerRole = caller.app_metadata?.role ?? '';
-  if (caller.id !== student_id && !['teacher', 'admin'].includes(callerRole)) {
+  const callerRole = caller.app_metadata?.role ?? "";
+  if (caller.id !== student_id && !["teacher", "admin"].includes(callerRole)) {
     return new Response(
-      JSON.stringify({ error: 'Forbidden: cannot check badges for another student' }),
+      JSON.stringify({
+        error: "Forbidden: cannot check badges for another student",
+      }),
       { status: 403 }
     );
   }
@@ -154,9 +166,14 @@ if (!isServiceRole) {
 // Line 133-151: Same pattern — checks "authenticated?" but not "owns student_id?"
 if (!isServiceRole) {
   // ...
-  const { data: { user: caller }, error: authError } = await userClient.auth.getUser();
+  const {
+    data: { user: caller },
+    error: authError,
+  } = await userClient.auth.getUser();
   if (authError || !caller) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+    });
   }
   // ❌ NO caller.id === student_id check
 }
@@ -175,12 +192,13 @@ const { student_id } = validation.data;
 
 ```typescript
 if (!isServiceRole) {
-  const { data: { user: caller } } = await userClient.auth.getUser();
+  const {
+    data: { user: caller },
+  } = await userClient.auth.getUser();
   if (!caller || caller.id !== student_id) {
-    return new Response(
-      JSON.stringify({ error: 'Forbidden' }),
-      { status: 403 }
-    );
+    return new Response(JSON.stringify({ error: "Forbidden" }), {
+      status: 403,
+    });
   }
 }
 ```
@@ -195,19 +213,21 @@ if (!isServiceRole) {
 **Category:** Privilege Escalation
 **Affected files:**
 
-| File | Line | Role Check |
-|------|------|-----------|
-| `supabase/functions/send-email-notification/index.ts` | 253 | `role !== 'admin'` |
-| `supabase/functions/calculate-attainment-rollup/index.ts` | 69-70 | `!['teacher', 'admin'].includes(callerRole)` |
-| `supabase/functions/check-login-rate/index.ts` | 233-234 | `role !== 'admin'` |
-| `supabase/functions/_shared/auth.ts` | 34 | Returns `user_metadata.role` as authoritative |
+| File                                                      | Line    | Role Check                                    |
+| --------------------------------------------------------- | ------- | --------------------------------------------- |
+| `supabase/functions/send-email-notification/index.ts`     | 253     | `role !== 'admin'`                            |
+| `supabase/functions/calculate-attainment-rollup/index.ts` | 69-70   | `!['teacher', 'admin'].includes(callerRole)`  |
+| `supabase/functions/check-login-rate/index.ts`            | 233-234 | `role !== 'admin'`                            |
+| `supabase/functions/_shared/auth.ts`                      | 34      | Returns `user_metadata.role` as authoritative |
 
 **Vulnerable code pattern:**
 
 ```typescript
 // send-email-notification/index.ts:253
-const role = user.app_metadata?.role ?? user.user_metadata?.role ?? '';
-if (role !== 'admin') { /* reject */ }
+const role = user.app_metadata?.role ?? user.user_metadata?.role ?? "";
+if (role !== "admin") {
+  /* reject */
+}
 ```
 
 **Attack path:**
@@ -223,15 +243,15 @@ By default, Supabase allows authenticated users to update their own `user_metada
 
 ```typescript
 // NEVER trust user_metadata for authorization. Only use app_metadata (set server-side).
-const callerRole = caller.app_metadata?.role ?? '';
+const callerRole = caller.app_metadata?.role ?? "";
 
 // OR better: query the profiles table which is the source of truth
 const { data: profile } = await supabase
-  .from('profiles')
-  .select('role')
-  .eq('id', caller.id)
+  .from("profiles")
+  .select("role")
+  .eq("id", caller.id)
   .maybeSingle();
-const callerRole = profile?.role ?? '';
+const callerRole = profile?.role ?? "";
 ```
 
 ---
@@ -248,13 +268,15 @@ const callerRole = profile?.role ?? '';
 ```typescript
 // Only the 'clear' action requires auth (line 215-238).
 // 'check' and 'record_failure' are completely unauthenticated.
-if (action === 'clear') {
+if (action === "clear") {
   // auth check here
 }
 
 switch (action) {
-  case 'check':      return handleCheck(supabase, email);       // ← no auth
-  case 'record_failure': return handleRecordFailure(supabase, email); // ← no auth
+  case "check":
+    return handleCheck(supabase, email); // ← no auth
+  case "record_failure":
+    return handleRecordFailure(supabase, email); // ← no auth
 }
 ```
 
@@ -275,7 +297,7 @@ switch (action) {
 // Option C: Require the anon key + validate the email matches an active auth attempt
 
 // At minimum, add IP-based rate limiting:
-const clientIP = req.headers.get('x-forwarded-for') ?? 'unknown';
+const clientIP = req.headers.get("x-forwarded-for") ?? "unknown";
 // ... check if this IP has made > N requests in the last M seconds
 ```
 
@@ -378,15 +400,15 @@ serve(async (req) => {
 
 ```typescript
 // Option A: Require a shared secret header
-const healthSecret = req.headers.get('x-health-secret');
-if (healthSecret !== Deno.env.get('HEALTH_CHECK_SECRET')) {
-  return new Response('Forbidden', { status: 403 });
+const healthSecret = req.headers.get("x-health-secret");
+if (healthSecret !== Deno.env.get("HEALTH_CHECK_SECRET")) {
+  return new Response("Forbidden", { status: 403 });
 }
 
 // Option B: Use anon key instead of service role for the health check
 const supabase = createClient(
-  Deno.env.get('SUPABASE_URL')!,
-  Deno.env.get('SUPABASE_ANON_KEY')!,
+  Deno.env.get("SUPABASE_URL")!,
+  Deno.env.get("SUPABASE_ANON_KEY")!
 );
 ```
 
@@ -405,8 +427,9 @@ const supabase = createClient(
 
 ```typescript
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',      // ← allows any origin
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*", // ← allows any origin
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 ```
 
@@ -421,14 +444,19 @@ const corsHeaders = {
 **Proposed fix:**
 
 ```typescript
-const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') ?? 'https://edeviser.vercel.app').split(',');
+const ALLOWED_ORIGINS = (
+  Deno.env.get("ALLOWED_ORIGINS") ?? "https://edeviser.vercel.app"
+).split(",");
 
 function getCorsHeaders(req: Request) {
-  const origin = req.headers.get('Origin') ?? '';
+  const origin = req.headers.get("Origin") ?? "";
   return {
-    'Access-Control-Allow-Origin': ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0],
-    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-    'Vary': 'Origin',
+    "Access-Control-Allow-Origin": ALLOWED_ORIGINS.includes(origin)
+      ? origin
+      : ALLOWED_ORIGINS[0],
+    "Access-Control-Allow-Headers":
+      "authorization, x-client-info, apikey, content-type",
+    Vary: "Origin",
   };
 }
 ```
@@ -441,18 +469,20 @@ function getCorsHeaders(req: Request) {
 **Category:** Information Leakage
 **Affected files:**
 
-| File | Line | Leaked Info |
-|------|------|-------------|
-| `process-streak/index.ts` | 183 | `fetchErr.message` (Supabase/Postgres error) |
-| `check-badges/index.ts` | 694 | `fetchErr.message` |
-| `export-student-data/index.ts` | 69 | `(error as Error).message` |
-| `check-login-rate/index.ts` | 253 | `(error as Error).message` |
+| File                           | Line | Leaked Info                                  |
+| ------------------------------ | ---- | -------------------------------------------- |
+| `process-streak/index.ts`      | 183  | `fetchErr.message` (Supabase/Postgres error) |
+| `check-badges/index.ts`        | 694  | `fetchErr.message`                           |
+| `export-student-data/index.ts` | 69   | `(error as Error).message`                   |
+| `check-login-rate/index.ts`    | 253  | `(error as Error).message`                   |
 
 **Vulnerable code:**
 
 ```typescript
 // export-student-data/index.ts:69
-return new Response(JSON.stringify({ error: (error as Error).message }), { status: 500 });
+return new Response(JSON.stringify({ error: (error as Error).message }), {
+  status: 500,
+});
 ```
 
 **Attack path:**
@@ -465,11 +495,11 @@ return new Response(JSON.stringify({ error: (error as Error).message }), { statu
 
 ```typescript
 // Log the real error server-side, return a generic message to the client
-console.error('Internal error:', (error as Error).message);
-return new Response(
-  JSON.stringify({ error: 'Internal server error' }),
-  { status: 500, headers: corsHeaders }
-);
+console.error("Internal error:", (error as Error).message);
+return new Response(JSON.stringify({ error: "Internal server error" }), {
+  status: 500,
+  headers: corsHeaders,
+});
 ```
 
 ---
@@ -484,8 +514,12 @@ return new Response(
 **Vulnerable code:**
 
 ```typescript
-if (p.xp_amount === undefined || p.xp_amount === null || typeof p.xp_amount !== 'number') {
-  return { valid: false, error: 'xp_amount is required and must be a number' };
+if (
+  p.xp_amount === undefined ||
+  p.xp_amount === null ||
+  typeof p.xp_amount !== "number"
+) {
+  return { valid: false, error: "xp_amount is required and must be a number" };
 }
 // ❌ No range check — xp_amount can be negative, zero, or absurdly large
 ```
@@ -499,7 +533,10 @@ For self-triggered sources (`login`, `journal`), the server overrides the XP amo
 ```typescript
 const MAX_XP_PER_AWARD = 1000; // reasonable upper bound
 if (p.xp_amount < 0 || p.xp_amount > MAX_XP_PER_AWARD) {
-  return { valid: false, error: `xp_amount must be between 0 and ${MAX_XP_PER_AWARD}` };
+  return {
+    valid: false,
+    error: `xp_amount must be between 0 and ${MAX_XP_PER_AWARD}`,
+  };
 }
 ```
 
@@ -530,10 +567,12 @@ return raw ? JSON.parse(raw) : [];
 
 ```typescript
 // Add HMAC integrity check using a session-derived key
-import { createHmac } from 'crypto';
+import { createHmac } from "crypto";
 
 function signQueue(queue: QueuedEvent[], secret: string): string {
-  return createHmac('sha256', secret).update(JSON.stringify(queue)).digest('hex');
+  return createHmac("sha256", secret)
+    .update(JSON.stringify(queue))
+    .digest("hex");
 }
 
 // On save: store { events: [...], sig: signQueue(events, sessionKey) }
@@ -555,7 +594,10 @@ Alternatively, ensure all server-side handlers re-validate data and don't trust 
 ```typescript
 const { grade_id, submission_id } = payload;
 if (!grade_id || !submission_id) {
-  return new Response(JSON.stringify({ error: 'Missing grade_id or submission_id' }), { status: 400 });
+  return new Response(
+    JSON.stringify({ error: "Missing grade_id or submission_id" }),
+    { status: 400 }
+  );
 }
 // ❌ No format validation — accepts any string
 ```
@@ -565,14 +607,17 @@ if (!grade_id || !submission_id) {
 **Proposed fix:**
 
 ```typescript
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function isValidUUID(value: unknown): value is string {
-  return typeof value === 'string' && UUID_RE.test(value);
+  return typeof value === "string" && UUID_RE.test(value);
 }
 
 if (!isValidUUID(grade_id) || !isValidUUID(submission_id)) {
-  return new Response(JSON.stringify({ error: 'Invalid ID format' }), { status: 400 });
+  return new Response(JSON.stringify({ error: "Invalid ID format" }), {
+    status: 400,
+  });
 }
 ```
 
@@ -669,33 +714,33 @@ if (uploadErr) {
 
 ### Immediate (fix before next deploy)
 
-| ID | Fix | Effort |
-|----|-----|--------|
-| VULN-01 | Replace `includes()` with strict Bearer token equality in all 13 files + `_shared/auth.ts` | 1-2 hours |
-| VULN-02 | Add `caller.id === student_id` check in `check-badges` | 15 min |
-| VULN-03 | Add `caller.id === student_id` check in `process-streak` | 15 min |
-| VULN-04 | Remove `user_metadata` fallback from role checks; use `app_metadata` only or query `profiles` | 1 hour |
+| ID      | Fix                                                                                           | Effort    |
+| ------- | --------------------------------------------------------------------------------------------- | --------- |
+| VULN-01 | Replace `includes()` with strict Bearer token equality in all 13 files + `_shared/auth.ts`    | 1-2 hours |
+| VULN-02 | Add `caller.id === student_id` check in `check-badges`                                        | 15 min    |
+| VULN-03 | Add `caller.id === student_id` check in `process-streak`                                      | 15 min    |
+| VULN-04 | Remove `user_metadata` fallback from role checks; use `app_metadata` only or query `profiles` | 1 hour    |
 
 ### Short-term (within 1 week)
 
-| ID | Fix | Effort |
-|----|-----|--------|
+| ID      | Fix                                                                                 | Effort    |
+| ------- | ----------------------------------------------------------------------------------- | --------- |
 | VULN-05 | Add IP-based rate limiting or CAPTCHA to `check-login-rate` unauthenticated actions | 2-4 hours |
-| VULN-06 | Add HTML escaping + URL sanitization to all email templates | 1-2 hours |
-| VULN-07 | Protect health endpoint with a shared secret or switch to anon key | 30 min |
-| VULN-08 | Replace wildcard CORS with origin allowlist in all edge functions | 1-2 hours |
-| VULN-09 | Replace leaked error messages with generic "Internal server error" | 1 hour |
+| VULN-06 | Add HTML escaping + URL sanitization to all email templates                         | 1-2 hours |
+| VULN-07 | Protect health endpoint with a shared secret or switch to anon key                  | 30 min    |
+| VULN-08 | Replace wildcard CORS with origin allowlist in all edge functions                   | 1-2 hours |
+| VULN-09 | Replace leaked error messages with generic "Internal server error"                  | 1 hour    |
 
 ### Medium-term (within 1 month)
 
-| ID | Fix | Effort |
-|----|-----|--------|
-| VULN-10 | Add XP amount range validation | 30 min |
+| ID      | Fix                                                                         | Effort    |
+| ------- | --------------------------------------------------------------------------- | --------- |
+| VULN-10 | Add XP amount range validation                                              | 30 min    |
 | VULN-11 | Add HMAC integrity to offline queue OR re-validate all payloads server-side | 2-4 hours |
-| VULN-12 | Add UUID format validation to all edge function inputs | 1-2 hours |
-| VULN-13 | Audit all RLS policies for parity with frontend role guards | 4-8 hours |
-| VULN-14 | Extend Sentry breadcrumb scrubbing to `data` fields | 30 min |
-| VULN-15 | Pre-create storage buckets via migration | 30 min |
+| VULN-12 | Add UUID format validation to all edge function inputs                      | 1-2 hours |
+| VULN-13 | Audit all RLS policies for parity with frontend role guards                 | 4-8 hours |
+| VULN-14 | Extend Sentry breadcrumb scrubbing to `data` fields                         | 30 min    |
+| VULN-15 | Pre-create storage buckets via migration                                    | 30 min    |
 
 ---
 
@@ -711,45 +756,59 @@ Most vulnerabilities stem from each edge function implementing its own auth logi
 interface AuthContext {
   isServiceRole: boolean;
   userId: string | null;
-  role: string;  // from app_metadata only
+  role: string; // from app_metadata only
 }
 
-export async function authenticate(req: Request): Promise<AuthContext | Response> {
-  const authHeader = req.headers.get('Authorization') ?? '';
-  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+export async function authenticate(
+  req: Request
+): Promise<AuthContext | Response> {
+  const authHeader = req.headers.get("Authorization") ?? "";
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
   // Strict service-role check
-  const bearerToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : '';
+  const bearerToken = authHeader.startsWith("Bearer ")
+    ? authHeader.slice(7).trim()
+    : "";
   if (serviceRoleKey && bearerToken === serviceRoleKey) {
-    return { isServiceRole: true, userId: null, role: 'service_role' };
+    return { isServiceRole: true, userId: null, role: "service_role" };
   }
 
   // JWT user check
   if (!authHeader) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+    });
   }
 
   const userClient = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_ANON_KEY')!,
-    { global: { headers: { Authorization: authHeader } } },
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_ANON_KEY")!,
+    { global: { headers: { Authorization: authHeader } } }
   );
-  const { data: { user }, error } = await userClient.auth.getUser();
+  const {
+    data: { user },
+    error,
+  } = await userClient.auth.getUser();
   if (error || !user) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+    });
   }
 
   // Only trust app_metadata for role (server-set, not user-editable)
-  const role = user.app_metadata?.role ?? '';
+  const role = user.app_metadata?.role ?? "";
 
   return { isServiceRole: false, userId: user.id, role };
 }
 
-export function requireOwnership(auth: AuthContext, targetUserId: string): Response | null {
+export function requireOwnership(
+  auth: AuthContext,
+  targetUserId: string
+): Response | null {
   if (auth.isServiceRole) return null;
   if (auth.userId === targetUserId) return null;
-  if (['teacher', 'admin'].includes(auth.role)) return null;
-  return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403 });
+  if (["teacher", "admin"].includes(auth.role)) return null;
+  return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403 });
 }
 ```
 

@@ -1,19 +1,19 @@
-import { useParams, useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { baselineQuestionSchema } from '@/lib/onboardingSchemas';
-import type { z } from 'zod';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import { useParams, useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { baselineQuestionSchema } from "@/lib/onboardingSchemas";
+import type { z } from "zod";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Form,
   FormField,
@@ -21,14 +21,14 @@ import {
   FormLabel,
   FormControl,
   FormMessage,
-} from '@/components/ui/form';
-import { useCLOs } from '@/hooks/useCLOs';
-import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/lib/supabase';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { queryKeys } from '@/lib/queryKeys';
-import { Loader2, ArrowLeft } from 'lucide-react';
-import { toast } from 'sonner';
+} from "@/components/ui/form";
+import { useCLOs } from "@/hooks/useCLOs";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/lib/supabase";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { queryKeys } from "@/lib/queryKeys";
+import { Loader2, ArrowLeft } from "lucide-react";
+import { toast } from "sonner";
 
 type BaselineQuestionFormData = z.infer<typeof baselineQuestionSchema>;
 
@@ -43,22 +43,22 @@ const BaselineQuestionForm = () => {
   const form = useForm<BaselineQuestionFormData>({
     resolver: zodResolver(baselineQuestionSchema),
     defaultValues: {
-      question_text: '',
-      options: ['', '', '', ''],
+      question_text: "",
+      options: ["", "", "", ""],
       correct_option: 0,
-      clo_id: '',
-      difficulty_level: 'medium',
+      clo_id: "",
+      difficulty_level: "medium",
     },
   });
 
   const createQuestion = useMutation({
     mutationFn: async (data: BaselineQuestionFormData) => {
-      const institutionId = profile?.institution_id ?? '';
+      const institutionId = profile?.institution_id ?? "";
       const { data: result, error } = await supabase
-        .from('onboarding_questions')
+        .from("onboarding_questions")
         .insert({
           institution_id: institutionId,
-          assessment_type: 'baseline' as const,
+          assessment_type: "baseline" as const,
           question_text: data.question_text,
           options: data.options.map((text) => ({ option_text: text })),
           correct_option: data.correct_option,
@@ -75,9 +75,9 @@ const BaselineQuestionForm = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: queryKeys.onboarding.questions('baseline'),
+        queryKey: queryKeys.onboarding.questions("baseline"),
       });
-      toast.success('Baseline question created');
+      toast.success("Baseline question created");
       navigate(`/teacher/baseline/${courseId}`);
     },
     onError: (err) => toast.error(err.message),
@@ -98,7 +98,9 @@ const BaselineQuestionForm = () => {
         Back to Baseline
       </Button>
 
-      <h1 className="text-2xl font-bold tracking-tight">Add Baseline Question</h1>
+      <h1 className="text-2xl font-bold tracking-tight">
+        Add Baseline Question
+      </h1>
 
       <Card className="bg-white border-0 shadow-md rounded-xl p-6 max-w-2xl">
         <Form {...form}>
@@ -127,7 +129,10 @@ const BaselineQuestionForm = () => {
                   <FormItem>
                     <FormLabel>Option {idx + 1}</FormLabel>
                     <FormControl>
-                      <Input placeholder={`Answer option ${idx + 1}`} {...field} />
+                      <Input
+                        placeholder={`Answer option ${idx + 1}`}
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -215,7 +220,9 @@ const BaselineQuestionForm = () => {
               disabled={createQuestion.isPending}
               className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
             >
-              {createQuestion.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+              {createQuestion.isPending && (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              )}
               Save Question
             </Button>
           </form>

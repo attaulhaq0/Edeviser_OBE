@@ -4,9 +4,9 @@
 //            moments, average ratings)
 // =============================================================================
 
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -45,10 +45,10 @@ export const useTeachingImpact = (courseId?: string) => {
     queryFn: async (): Promise<TeachingImpactMetrics> => {
       // Get team IDs for this course
       const { data: teams, error: teamsError } = await supabase
-        .from('teams' as never)
-        .select('id')
-        .eq('course_id', courseId!)
-        .is('deleted_at', null);
+        .from("teams" as never)
+        .select("id")
+        .eq("course_id", courseId!)
+        .is("deleted_at", null);
       if (teamsError) throw teamsError;
 
       const teamIds = ((teams ?? []) as Array<{ id: string }>).map((t) => t.id);
@@ -65,10 +65,10 @@ export const useTeachingImpact = (courseId?: string) => {
 
       // Fetch all active teaching moments for these teams
       const { data: moments, error: momentsError } = await supabase
-        .from('peer_teaching_moments' as never)
-        .select('id, title, author_id, clo_id, team_id')
-        .in('team_id', teamIds)
-        .eq('status', 'active');
+        .from("peer_teaching_moments" as never)
+        .select("id, title, author_id, clo_id, team_id")
+        .in("team_id", teamIds)
+        .eq("status", "active");
       if (momentsError) throw momentsError;
 
       const momentList = (moments ?? []) as Array<{
@@ -94,21 +94,24 @@ export const useTeachingImpact = (courseId?: string) => {
 
       // Fetch views
       const { data: views, error: viewsError } = await supabase
-        .from('teaching_moment_views' as never)
-        .select('teaching_moment_id')
-        .in('teaching_moment_id', momentIds);
+        .from("teaching_moment_views" as never)
+        .select("teaching_moment_id")
+        .in("teaching_moment_id", momentIds);
       if (viewsError) throw viewsError;
 
       const viewCountMap = new Map<string, number>();
       for (const v of (views ?? []) as Array<{ teaching_moment_id: string }>) {
-        viewCountMap.set(v.teaching_moment_id, (viewCountMap.get(v.teaching_moment_id) ?? 0) + 1);
+        viewCountMap.set(
+          v.teaching_moment_id,
+          (viewCountMap.get(v.teaching_moment_id) ?? 0) + 1
+        );
       }
 
       // Fetch ratings
       const { data: ratings, error: ratingsError } = await supabase
-        .from('teaching_moment_ratings' as never)
-        .select('teaching_moment_id, clarity_rating, helpfulness_rating')
-        .in('teaching_moment_id', momentIds);
+        .from("teaching_moment_ratings" as never)
+        .select("teaching_moment_id, clarity_rating, helpfulness_rating")
+        .in("teaching_moment_id", momentIds);
       if (ratingsError) throw ratingsError;
 
       const ratingsList = (ratings ?? []) as Array<{
@@ -118,15 +121,22 @@ export const useTeachingImpact = (courseId?: string) => {
       }>;
 
       // Compute per-moment average ratings
-      const ratingsByMoment = new Map<string, { clarity: number[]; helpfulness: number[] }>();
+      const ratingsByMoment = new Map<
+        string,
+        { clarity: number[]; helpfulness: number[] }
+      >();
       for (const r of ratingsList) {
-        const existing = ratingsByMoment.get(r.teaching_moment_id) ?? { clarity: [], helpfulness: [] };
+        const existing = ratingsByMoment.get(r.teaching_moment_id) ?? {
+          clarity: [],
+          helpfulness: [],
+        };
         existing.clarity.push(r.clarity_rating);
         existing.helpfulness.push(r.helpfulness_rating);
         ratingsByMoment.set(r.teaching_moment_id, existing);
       }
 
-      const avg = (arr: number[]) => (arr.length > 0 ? arr.reduce((a, b) => a + b, 0) / arr.length : 0);
+      const avg = (arr: number[]) =>
+        arr.length > 0 ? arr.reduce((a, b) => a + b, 0) / arr.length : 0;
 
       // Build most-viewed moments (top 10)
       const mostViewedMoments: MostViewedMoment[] = momentList
@@ -146,9 +156,22 @@ export const useTeachingImpact = (courseId?: string) => {
         .slice(0, 10);
 
       // Build top peer teachers (by total views, top 10)
-      const teacherMap = new Map<string, { moments: string[]; views: number; clarity: number[]; helpfulness: number[] }>();
+      const teacherMap = new Map<
+        string,
+        {
+          moments: string[];
+          views: number;
+          clarity: number[];
+          helpfulness: number[];
+        }
+      >();
       for (const m of momentList) {
-        const existing = teacherMap.get(m.author_id) ?? { moments: [], views: 0, clarity: [], helpfulness: [] };
+        const existing = teacherMap.get(m.author_id) ?? {
+          moments: [],
+          views: 0,
+          clarity: [],
+          helpfulness: [],
+        };
         existing.moments.push(m.id);
         existing.views += viewCountMap.get(m.id) ?? 0;
         const momentRatings = ratingsByMoment.get(m.id);

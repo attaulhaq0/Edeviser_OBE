@@ -1,7 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import type { OnboardingStepId } from '@/lib/onboardingConstants';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import type { OnboardingStepId } from "@/lib/onboardingConstants";
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -47,9 +47,9 @@ export const useOnboardingProgress = (studentId: string) => {
     queryKey: queryKeys.onboarding.progress(studentId),
     queryFn: async (): Promise<OnboardingProgress | null> => {
       const { data, error } = await supabase
-        .from('onboarding_progress')
-        .select('*')
-        .eq('student_id', studentId)
+        .from("onboarding_progress")
+        .select("*")
+        .eq("student_id", studentId)
         .maybeSingle();
 
       if (error) throw error;
@@ -65,12 +65,18 @@ export const useUpdateProgress = (studentId: string) => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (input: UpdateProgressInput): Promise<OnboardingProgress> => {
+    mutationFn: async (
+      input: UpdateProgressInput
+    ): Promise<OnboardingProgress> => {
       const { data, error } = await supabase
-        .from('onboarding_progress')
+        .from("onboarding_progress")
         .upsert(
-          { student_id: studentId, ...input, updated_at: new Date().toISOString() },
-          { onConflict: 'student_id' },
+          {
+            student_id: studentId,
+            ...input,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "student_id" }
         )
         .select()
         .single();

@@ -7,6 +7,6 @@ export {
   useLeagueLeaderboard,
   useStudentLeagueTier,
   useStudentPercentileBand,
-} from '@/hooks/useLeagueLeaderboard';
+} from "@/hooks/useLeagueLeaderboard";
 
-export type { LeagueLeaderboardEntry } from '@/hooks/useLeagueLeaderboard';
+export type { LeagueLeaderboardEntry } from "@/hooks/useLeagueLeaderboard";

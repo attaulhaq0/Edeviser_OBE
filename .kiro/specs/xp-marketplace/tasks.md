@@ -134,7 +134,6 @@
 - [ ] 13.8 `src/__tests__/unit/processPurchase.test.ts` — Edge Function: success path, each error code
 - [ ] 13.9 `src/__tests__/unit/awardXpBoost.test.ts` — Modified award-xp: boost lookup, multiplier, metadata
 
-
 ## 14. Database Schema — Creative Expression & Unpredictability (Gap 1)
 
 - [ ] 14.1 Create migration: `student_content` table with content_type enum, status enum, reviewer fields, and indexes

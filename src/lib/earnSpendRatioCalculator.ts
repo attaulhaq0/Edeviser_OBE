@@ -10,7 +10,11 @@
  * - deflationary: ratio < 2 — too much spending relative to earning
  * - no_spending: no XP has been spent yet (ratio is undefined)
  */
-export type InflationStatus = 'healthy' | 'inflationary' | 'deflationary' | 'no_spending';
+export type InflationStatus =
+  | "healthy"
+  | "inflationary"
+  | "deflationary"
+  | "no_spending";
 
 export interface EarnSpendInput {
   /** Total XP earned across all students (non-negative) */
@@ -46,10 +50,10 @@ const HEALTHY_UPPER = 4;
  * Classify the inflation status based on the earn/spend ratio.
  */
 export function classifyInflation(ratio: number | null): InflationStatus {
-  if (ratio === null) return 'no_spending';
-  if (ratio >= HEALTHY_LOWER && ratio <= HEALTHY_UPPER) return 'healthy';
-  if (ratio > HEALTHY_UPPER) return 'inflationary';
-  return 'deflationary';
+  if (ratio === null) return "no_spending";
+  if (ratio >= HEALTHY_LOWER && ratio <= HEALTHY_UPPER) return "healthy";
+  if (ratio > HEALTHY_UPPER) return "inflationary";
+  return "deflationary";
 }
 
 /**
@@ -57,14 +61,14 @@ export function classifyInflation(ratio: number | null): InflationStatus {
  */
 export function getStatusLabel(status: InflationStatus): string {
   switch (status) {
-    case 'healthy':
-      return 'Healthy';
-    case 'inflationary':
-      return 'Inflationary';
-    case 'deflationary':
-      return 'Deflationary';
-    case 'no_spending':
-      return 'No spending yet';
+    case "healthy":
+      return "Healthy";
+    case "inflationary":
+      return "Inflationary";
+    case "deflationary":
+      return "Deflationary";
+    case "no_spending":
+      return "No spending yet";
   }
 }
 
@@ -81,9 +85,8 @@ export function computeEarnSpendRatio(input: EarnSpendInput): EarnSpendResult {
   const totalEarned = Math.max(0, input.totalEarned);
   const totalSpent = Math.max(0, input.totalSpent);
 
-  const ratio = totalSpent > 0
-    ? Math.round((totalEarned / totalSpent) * 100) / 100
-    : null;
+  const ratio =
+    totalSpent > 0 ? Math.round((totalEarned / totalSpent) * 100) / 100 : null;
 
   const status = classifyInflation(ratio);
   const statusLabel = getStatusLabel(status);

@@ -1,6 +1,6 @@
-import { Loader2 } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
-import { Button } from '@/components/ui/button';
+import { Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -8,7 +8,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -17,7 +17,7 @@ interface ConfirmDialogProps {
   description: string;
   confirmLabel?: string;
   cancelLabel?: string;
-  variant?: 'default' | 'destructive';
+  variant?: "default" | "destructive";
   isPending?: boolean;
   onConfirm: () => void;
 }
@@ -29,11 +29,11 @@ const ConfirmDialog = ({
   description,
   confirmLabel,
   cancelLabel,
-  variant = 'default',
+  variant = "default",
   isPending = false,
   onConfirm,
 }: ConfirmDialogProps) => {
-  const { t } = useTranslation('common');
+  const { t } = useTranslation("common");
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -48,15 +48,15 @@ const ConfirmDialog = ({
             onClick={() => onOpenChange(false)}
             disabled={isPending}
           >
-            {cancelLabel ?? t('buttons.cancel')}
+            {cancelLabel ?? t("buttons.cancel")}
           </Button>
           <Button
-            variant={variant === 'destructive' ? 'destructive' : 'default'}
+            variant={variant === "destructive" ? "destructive" : "default"}
             onClick={onConfirm}
             disabled={isPending}
           >
             {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-            {confirmLabel ?? t('buttons.confirm')}
+            {confirmLabel ?? t("buttons.confirm")}
           </Button>
         </DialogFooter>
       </DialogContent>

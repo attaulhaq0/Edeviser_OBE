@@ -1,10 +1,13 @@
-import { useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { csvRowSchema, type CSVRowData } from '@/lib/schemas/bulkImport';
-import { useBulkImportUsers, type BulkImportResult } from '@/hooks/useBulkImport';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import { csvRowSchema, type CSVRowData } from "@/lib/schemas/bulkImport";
+import {
+  useBulkImportUsers,
+  type BulkImportResult,
+} from "@/hooks/useBulkImport";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -12,7 +15,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 import {
   ArrowLeft,
   Upload,
@@ -21,8 +24,8 @@ import {
   CheckCircle2,
   XCircle,
   AlertTriangle,
-} from 'lucide-react';
-import { toast } from 'sonner';
+} from "lucide-react";
+import { toast } from "sonner";
 
 const MAX_ROWS = 1000;
 
@@ -34,26 +37,31 @@ interface ParsedRow {
   isValid: boolean;
 }
 
-type Step = 'upload' | 'preview' | 'result';
+type Step = "upload" | "preview" | "result";
 
 /** Simple CSV parser — handles quoted fields */
 const parseCSV = (text: string): Array<Record<string, string>> => {
-  const lines = text.trim().split('\n');
+  const lines = text.trim().split("\n");
   if (lines.length < 2) return [];
 
-  const headerLine = lines[0] ?? '';
-  const headers = headerLine
-    .split(',')
-    .map((h) => h.trim().toLowerCase().replace(/^["']|["']$/g, ''));
+  const headerLine = lines[0] ?? "";
+  const headers = headerLine.split(",").map((h) =>
+    h
+      .trim()
+      .toLowerCase()
+      .replace(/^["']|["']$/g, "")
+  );
 
   return lines
     .slice(1)
     .filter((line) => line.trim())
     .map((line) => {
-      const values = line.split(',').map((v) => v.trim().replace(/^["']|["']$/g, ''));
+      const values = line
+        .split(",")
+        .map((v) => v.trim().replace(/^["']|["']$/g, ""));
       const row: Record<string, string> = {};
       headers.forEach((header, i) => {
-        row[header] = values[i] ?? '';
+        row[header] = values[i] ?? "";
       });
       return row;
     });
@@ -63,18 +71,24 @@ const parseCSV = (text: string): Array<Record<string, string>> => {
 const validateRows = (rawRows: Array<Record<string, string>>): ParsedRow[] => {
   return rawRows.map((data, index) => {
     const result = csvRowSchema.safeParse({
-      email: data.email ?? '',
-      full_name: data.full_name ?? '',
-      role: data.role ?? '',
+      email: data.email ?? "",
+      full_name: data.full_name ?? "",
+      role: data.role ?? "",
       program_id: data.program_id || undefined,
     });
 
     if (result.success) {
-      return { rowNumber: index + 2, data, parsed: result.data, errors: [], isValid: true };
+      return {
+        rowNumber: index + 2,
+        data,
+        parsed: result.data,
+        errors: [],
+        isValid: true,
+      };
     }
 
     const errors = result.error.issues.map(
-      (issue) => `${issue.path.join('.')}: ${issue.message}`,
+      (issue) => `${issue.path.join(".")}: ${issue.message}`
     );
     return { rowNumber: index + 2, data, parsed: null, errors, isValid: false };
   });
@@ -82,15 +96,17 @@ const validateRows = (rawRows: Array<Record<string, string>>): ParsedRow[] => {
 
 const BulkImportPage = () => {
   const navigate = useNavigate();
-  const [step, setStep] = useState<Step>('upload');
+  const [step, setStep] = useState<Step>("upload");
   const [parsedRows, setParsedRows] = useState<ParsedRow[]>([]);
-  const [importResult, setImportResult] = useState<BulkImportResult | null>(null);
+  const [importResult, setImportResult] = useState<BulkImportResult | null>(
+    null
+  );
   const [isDragOver, setIsDragOver] = useState(false);
   const importMutation = useBulkImportUsers();
 
   const handleFile = useCallback((file: File) => {
-    if (!file.name.endsWith('.csv')) {
-      toast.error('Please upload a CSV file');
+    if (!file.name.endsWith(".csv")) {
+      toast.error("Please upload a CSV file");
       return;
     }
 
@@ -100,18 +116,20 @@ const BulkImportPage = () => {
       const rawRows = parseCSV(text);
 
       if (rawRows.length === 0) {
-        toast.error('CSV file is empty or has no data rows');
+        toast.error("CSV file is empty or has no data rows");
         return;
       }
 
       if (rawRows.length > MAX_ROWS) {
-        toast.error(`CSV exceeds maximum of ${MAX_ROWS} rows. Found ${rawRows.length} rows.`);
+        toast.error(
+          `CSV exceeds maximum of ${MAX_ROWS} rows. Found ${rawRows.length} rows.`
+        );
         return;
       }
 
       const validated = validateRows(rawRows);
       setParsedRows(validated);
-      setStep('preview');
+      setStep("preview");
     };
     reader.readAsText(file);
   }, []);
@@ -123,7 +141,7 @@ const BulkImportPage = () => {
       const file = e.dataTransfer.files[0];
       if (file) handleFile(file);
     },
-    [handleFile],
+    [handleFile]
   );
 
   const handleFileInput = useCallback(
@@ -131,7 +149,7 @@ const BulkImportPage = () => {
       const file = e.target.files?.[0];
       if (file) handleFile(file);
     },
-    [handleFile],
+    [handleFile]
   );
 
   const validRows = parsedRows.filter((r) => r.isValid);
@@ -144,7 +162,7 @@ const BulkImportPage = () => {
     importMutation.mutate(rows, {
       onSuccess: (result) => {
         setImportResult(result);
-        setStep('result');
+        setStep("result");
         toast.success(`${result.created} users imported successfully`);
       },
       onError: (err) => {
@@ -154,7 +172,7 @@ const BulkImportPage = () => {
   };
 
   const handleReset = () => {
-    setStep('upload');
+    setStep("upload");
     setParsedRows([]);
     setImportResult(null);
   };
@@ -163,18 +181,22 @@ const BulkImportPage = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" onClick={() => navigate('/admin/users')}>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate("/admin/users")}
+        >
           <ArrowLeft className="h-4 w-4" /> Back
         </Button>
         <h1 className="text-2xl font-bold tracking-tight">Bulk Import Users</h1>
       </div>
 
       {/* Step: Upload */}
-      {step === 'upload' && (
+      {step === "upload" && (
         <Card className="bg-white border-0 shadow-md rounded-xl p-8">
           <div
             className={`border-2 border-dashed rounded-xl p-12 text-center transition-colors ${
-              isDragOver ? 'border-blue-500 bg-blue-50' : 'border-slate-300'
+              isDragOver ? "border-blue-500 bg-blue-50" : "border-slate-300"
             }`}
             onDragOver={(e) => {
               e.preventDefault();
@@ -188,7 +210,8 @@ const BulkImportPage = () => {
               Drag and drop a CSV file here, or click to browse
             </p>
             <p className="text-xs text-slate-500 mb-4">
-              Required columns: email, full_name, role. Optional: program_id. Max {MAX_ROWS} rows.
+              Required columns: email, full_name, role. Optional: program_id.
+              Max {MAX_ROWS} rows.
             </p>
             <label htmlFor="csv-file-input">
               <span className="sr-only">Choose CSV file</span>
@@ -210,17 +233,25 @@ const BulkImportPage = () => {
       )}
 
       {/* Step: Preview */}
-      {step === 'preview' && (
+      {step === "preview" && (
         <div className="space-y-4">
           {/* Summary */}
           <div className="flex items-center gap-4">
-            <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200">
+            <Badge
+              variant="outline"
+              className="bg-green-50 text-green-600 border-green-200"
+            >
               {validRows.length} valid
             </Badge>
-            <Badge variant="outline" className="bg-red-50 text-red-600 border-red-200">
+            <Badge
+              variant="outline"
+              className="bg-red-50 text-red-600 border-red-200"
+            >
               {invalidRows.length} invalid
             </Badge>
-            <span className="text-sm text-slate-500">{parsedRows.length} total rows</span>
+            <span className="text-sm text-slate-500">
+              {parsedRows.length} total rows
+            </span>
           </div>
 
           {/* Preview Table */}
@@ -240,13 +271,18 @@ const BulkImportPage = () => {
                 </TableHeader>
                 <TableBody>
                   {parsedRows.map((row) => (
-                    <TableRow key={row.rowNumber} className={row.isValid ? '' : 'bg-red-50/50'}>
-                      <TableCell className="text-slate-500">{row.rowNumber}</TableCell>
+                    <TableRow
+                      key={row.rowNumber}
+                      className={row.isValid ? "" : "bg-red-50/50"}
+                    >
+                      <TableCell className="text-slate-500">
+                        {row.rowNumber}
+                      </TableCell>
                       <TableCell>{row.data.email}</TableCell>
                       <TableCell>{row.data.full_name}</TableCell>
                       <TableCell>{row.data.role}</TableCell>
                       <TableCell className="text-xs text-slate-500">
-                        {row.data.program_id || '—'}
+                        {row.data.program_id || "—"}
                       </TableCell>
                       <TableCell>
                         {row.isValid ? (
@@ -266,7 +302,7 @@ const BulkImportPage = () => {
                         )}
                       </TableCell>
                       <TableCell className="text-xs text-red-600">
-                        {row.errors.join('; ')}
+                        {row.errors.join("; ")}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -282,10 +318,16 @@ const BulkImportPage = () => {
               disabled={validRows.length === 0 || importMutation.isPending}
               className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 text-white"
             >
-              {importMutation.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+              {importMutation.isPending && (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              )}
               Import {validRows.length} Valid Users
             </Button>
-            <Button variant="outline" onClick={handleReset} disabled={importMutation.isPending}>
+            <Button
+              variant="outline"
+              onClick={handleReset}
+              disabled={importMutation.isPending}
+            >
               Cancel
             </Button>
           </div>
@@ -295,7 +337,8 @@ const BulkImportPage = () => {
             <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-50 text-amber-800 text-sm">
               <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
               <span>
-                {invalidRows.length} invalid rows will be skipped. Only valid rows will be imported.
+                {invalidRows.length} invalid rows will be skipped. Only valid
+                rows will be imported.
               </span>
             </div>
           )}
@@ -303,7 +346,7 @@ const BulkImportPage = () => {
       )}
 
       {/* Step: Result */}
-      {step === 'result' && importResult && (
+      {step === "result" && importResult && (
         <Card className="bg-white border-0 shadow-md rounded-xl p-8">
           <div className="text-center space-y-4">
             <CheckCircle2 className="h-12 w-12 text-green-500 mx-auto" />
@@ -331,7 +374,9 @@ const BulkImportPage = () => {
                     {importResult.errors.map((err) => (
                       <TableRow key={err.row}>
                         <TableCell>{err.row}</TableCell>
-                        <TableCell className="text-sm text-red-600">{err.message}</TableCell>
+                        <TableCell className="text-sm text-red-600">
+                          {err.message}
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -342,7 +387,7 @@ const BulkImportPage = () => {
 
           <div className="flex items-center gap-3 mt-6 justify-center">
             <Button
-              onClick={() => navigate('/admin/users')}
+              onClick={() => navigate("/admin/users")}
               className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 text-white"
             >
               View Users

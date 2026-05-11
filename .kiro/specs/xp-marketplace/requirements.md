@@ -392,7 +392,6 @@ The XP Marketplace feature expands the existing gamification engine in Edeviser 
 3. WHEN a Teacher revokes a deadline extension, THE Platform SHALL insert a refund record in `xp_purchases` with status "refunded" and restore the token to the student's inventory.
 4. THE Admin SHALL be able to export purchase history as CSV for compliance reporting.
 
-
 ---
 
 ### SECTION J: Creative Expression & Unpredictability (Octalysis Core Drives 3, 6, 7)

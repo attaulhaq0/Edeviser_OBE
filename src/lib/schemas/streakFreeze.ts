@@ -5,4 +5,6 @@ export const streakFreezePurchaseSchema = z.object({
   xp_cost: z.literal(200),
 });
 
-export type StreakFreezePurchaseData = z.infer<typeof streakFreezePurchaseSchema>;
+export type StreakFreezePurchaseData = z.infer<
+  typeof streakFreezePurchaseSchema
+>;

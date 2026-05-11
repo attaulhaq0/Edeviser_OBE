@@ -7,10 +7,10 @@
 // placeholders until the recovery alert card is integrated.
 // =============================================================================
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { MemoryRouter } from 'react-router-dom';
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { MemoryRouter } from "react-router-dom";
 
 // ─── Mocks ───────────────────────────────────────────────────────────────────
 
@@ -20,7 +20,7 @@ const mockBloomsDist = vi.fn();
 const mockHeatmap = vi.fn();
 const mockAtRiskStudents = vi.fn();
 
-vi.mock('@/hooks/useTeacherDashboard', () => ({
+vi.mock("@/hooks/useTeacherDashboard", () => ({
   useTeacherKPIs: () => mockTeacherKPIs(),
   useTeacherCLOAttainment: () => mockCLOAttainment(),
   useTeacherBloomsDistribution: () => mockBloomsDist(),
@@ -29,33 +29,43 @@ vi.mock('@/hooks/useTeacherDashboard', () => ({
   useSendNudge: () => ({ mutate: vi.fn(), isPending: false }),
 }));
 
-vi.mock('@/hooks/useAuth', () => ({
-  useAuth: () => ({ user: { id: 'teacher-1', role: 'teacher' } }),
+vi.mock("@/hooks/useAuth", () => ({
+  useAuth: () => ({ user: { id: "teacher-1", role: "teacher" } }),
 }));
 
-vi.mock('@/hooks/useCourses', () => ({
+vi.mock("@/hooks/useCourses", () => ({
   useCourses: () => ({
-    data: { data: [{ id: 'course-1', code: 'CS101', name: 'Intro CS', teacher_id: 'teacher-1' }] },
+    data: {
+      data: [
+        {
+          id: "course-1",
+          code: "CS101",
+          name: "Intro CS",
+          teacher_id: "teacher-1",
+        },
+      ],
+    },
     isLoading: false,
   }),
 }));
 
-vi.mock('@/hooks/useSubmissions', () => ({
+vi.mock("@/hooks/useSubmissions", () => ({
   usePendingSubmissions: () => ({ data: [], isLoading: false }),
 }));
 
-vi.mock('@/hooks/useRealtime', () => ({
+vi.mock("@/hooks/useRealtime", () => ({
   useRealtime: () => ({ isLive: true }),
 }));
 
-vi.mock('@/hooks/useAtRiskPredictions', () => ({
+vi.mock("@/hooks/useAtRiskPredictions", () => ({
   useAtRiskPredictions: () => ({ data: [], isLoading: false }),
   useSendAtRiskNudge: () => ({ mutate: vi.fn(), isPending: false }),
 }));
 
 // Recharts mocks to avoid rendering issues in test env
-vi.mock('recharts', () => ({
-  ResponsiveContainer: ({ children }: { children: React.ReactNode }) => children,
+vi.mock("recharts", () => ({
+  ResponsiveContainer: ({ children }: { children: React.ReactNode }) =>
+    children,
   BarChart: () => null,
   Bar: () => null,
   XAxis: () => null,
@@ -68,7 +78,7 @@ vi.mock('recharts', () => ({
   Legend: () => null,
 }));
 
-import TeacherDashboard from '@/pages/teacher/TeacherDashboard';
+import TeacherDashboard from "@/pages/teacher/TeacherDashboard";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -83,17 +93,23 @@ const renderDashboard = () => {
       <MemoryRouter>
         <TeacherDashboard />
       </MemoryRouter>
-    </QueryClientProvider>,
+    </QueryClientProvider>
   );
 };
 
 // ─── Tests ───────────────────────────────────────────────────────────────────
 
-describe('MasteryRecoveryAlertCard on TeacherDashboard', () => {
+describe("MasteryRecoveryAlertCard on TeacherDashboard", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockTeacherKPIs.mockReturnValue({
-      data: { pendingSubmissions: 0, gradedThisWeek: 0, avgAttainment: 70, atRiskCount: 0, totalStudents: 10 },
+      data: {
+        pendingSubmissions: 0,
+        gradedThisWeek: 0,
+        avgAttainment: 70,
+        atRiskCount: 0,
+        totalStudents: 10,
+      },
       isLoading: false,
     });
     mockCLOAttainment.mockReturnValue(defaultHookReturn);
@@ -102,48 +118,54 @@ describe('MasteryRecoveryAlertCard on TeacherDashboard', () => {
     mockAtRiskStudents.mockReturnValue({ data: [], isLoading: false });
   });
 
-  it('renders the teacher dashboard title', () => {
+  it("renders the teacher dashboard title", () => {
     renderDashboard();
-    expect(screen.getByText('dashboard.title')).toBeInTheDocument();
+    expect(screen.getByText("dashboard.title")).toBeInTheDocument();
   });
 
-  it('renders KPI cards with correct values', () => {
+  it("renders KPI cards with correct values", () => {
     renderDashboard();
-    expect(screen.getByText('dashboard.pendingSubmissions')).toBeInTheDocument();
-    expect(screen.getByText('dashboard.gradedThisWeek')).toBeInTheDocument();
-    expect(screen.getByText('dashboard.avgAttainment')).toBeInTheDocument();
-    expect(screen.getAllByText('dashboard.atRiskStudents').length).toBeGreaterThanOrEqual(1);
+    expect(
+      screen.getByText("dashboard.pendingSubmissions")
+    ).toBeInTheDocument();
+    expect(screen.getByText("dashboard.gradedThisWeek")).toBeInTheDocument();
+    expect(screen.getByText("dashboard.avgAttainment")).toBeInTheDocument();
+    expect(
+      screen.getAllByText("dashboard.atRiskStudents").length
+    ).toBeGreaterThanOrEqual(1);
   });
 
-  it('renders CLO Attainment section', () => {
+  it("renders CLO Attainment section", () => {
     renderDashboard();
-    expect(screen.getByText('dashboard.cloAttainment')).toBeInTheDocument();
+    expect(screen.getByText("dashboard.cloAttainment")).toBeInTheDocument();
   });
 
-  it('renders Bloom\'s Distribution section', () => {
+  it("renders Bloom's Distribution section", () => {
     renderDashboard();
-    expect(screen.getByText('dashboard.bloomsDistribution')).toBeInTheDocument();
+    expect(
+      screen.getByText("dashboard.bloomsDistribution")
+    ).toBeInTheDocument();
   });
 
-  it('renders Student Performance Heatmap section', () => {
+  it("renders Student Performance Heatmap section", () => {
     renderDashboard();
-    expect(screen.getByText('dashboard.studentHeatmap')).toBeInTheDocument();
+    expect(screen.getByText("dashboard.studentHeatmap")).toBeInTheDocument();
   });
 
-  it('renders Grading Queue section', () => {
+  it("renders Grading Queue section", () => {
     renderDashboard();
-    expect(screen.getByText('dashboard.gradingQueue')).toBeInTheDocument();
+    expect(screen.getByText("dashboard.gradingQueue")).toBeInTheDocument();
   });
 
-  it('shows empty state for grading queue when no pending submissions', () => {
+  it("shows empty state for grading queue when no pending submissions", () => {
     renderDashboard();
-    expect(screen.getByText('dashboard.noPending')).toBeInTheDocument();
+    expect(screen.getByText("dashboard.noPending")).toBeInTheDocument();
   });
 
-  it('renders shimmer placeholders when KPIs are loading', () => {
+  it("renders shimmer placeholders when KPIs are loading", () => {
     mockTeacherKPIs.mockReturnValue({ data: undefined, isLoading: true });
     const { container } = renderDashboard();
-    const shimmers = container.querySelectorAll('.animate-shimmer');
+    const shimmers = container.querySelectorAll(".animate-shimmer");
     expect(shimmers.length).toBeGreaterThanOrEqual(1);
   });
 });

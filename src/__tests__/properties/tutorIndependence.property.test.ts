@@ -25,9 +25,9 @@ describe("Property 49 — Independence score is between 0 and 1", () => {
           const score = calculateIndependenceScore(total, aiAssisted);
           expect(score).toBeGreaterThanOrEqual(0);
           expect(score).toBeLessThanOrEqual(1);
-        },
+        }
       ),
-      { numRuns: 100 },
+      { numRuns: 100 }
     );
   });
 });
@@ -37,14 +37,11 @@ describe("Property 49 — Independence score is between 0 and 1", () => {
 describe("Property 50 — 0 submissions yields score 1.0", () => {
   it("P50: when total submissions is 0, score is 1.0", () => {
     fc.assert(
-      fc.property(
-        fc.integer({ min: 0, max: 100 }),
-        (aiAssisted) => {
-          const score = calculateIndependenceScore(0, aiAssisted);
-          expect(score).toBe(1.0);
-        },
-      ),
-      { numRuns: 100 },
+      fc.property(fc.integer({ min: 0, max: 100 }), (aiAssisted) => {
+        const score = calculateIndependenceScore(0, aiAssisted);
+        expect(score).toBe(1.0);
+      }),
+      { numRuns: 100 }
     );
   });
 });
@@ -58,7 +55,7 @@ describe("Property 51 — All AI-assisted yields score 0.0", () => {
         const score = calculateIndependenceScore(total, total);
         expect(score).toBe(0.0);
       }),
-      { numRuns: 100 },
+      { numRuns: 100 }
     );
   });
 });
@@ -76,9 +73,9 @@ describe("Property 52 — Score equals 1 - (aiAssisted / total)", () => {
           const expected = 1 - clampedAi / total;
           const score = calculateIndependenceScore(total, clampedAi);
           expect(score).toBeCloseTo(expected, 10);
-        },
+        }
       ),
-      { numRuns: 100 },
+      { numRuns: 100 }
     );
   });
 });

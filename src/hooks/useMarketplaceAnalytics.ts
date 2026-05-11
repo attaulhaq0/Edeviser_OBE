@@ -2,9 +2,9 @@
 // useMarketplaceAnalytics — Admin analytics queries for marketplace
 // =============================================================================
 
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -34,15 +34,17 @@ export const useMarketplaceAnalytics = () => {
       // Fetch all purchases with item joins
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data: purchases, error } = await (supabase as any)
-        .from('xp_purchases')
-        .select(`
+        .from("xp_purchases")
+        .select(
+          `
           id,
           student_id,
           item_id,
           xp_cost,
           marketplace_items:item_id (name, category)
-        `)
-        .neq('status', 'refunded');
+        `
+        )
+        .neq("status", "refunded");
 
       if (error) throw error;
 
@@ -59,14 +61,17 @@ export const useMarketplaceAnalytics = () => {
         const studentId = row.student_id as string;
         const itemId = row.item_id as string;
         const item = row.marketplace_items as Record<string, unknown> | null;
-        const itemName = (item?.name as string) ?? 'Unknown';
-        const category = (item?.category as string) ?? 'unknown';
+        const itemName = (item?.name as string) ?? "Unknown";
+        const category = (item?.category as string) ?? "unknown";
 
         totalXPSpent += xpCost;
         buyerSet.add(studentId);
 
         // Item popularity
-        const existing = itemCountMap.get(itemId) ?? { name: itemName, count: 0 };
+        const existing = itemCountMap.get(itemId) ?? {
+          name: itemName,
+          count: 0,
+        };
         existing.count += 1;
         itemCountMap.set(itemId, existing);
 
@@ -79,7 +84,8 @@ export const useMarketplaceAnalytics = () => {
 
       const totalPurchases = rows.length;
       const uniqueBuyers = buyerSet.size;
-      const avgXPPerStudent = uniqueBuyers > 0 ? Math.round(totalXPSpent / uniqueBuyers) : 0;
+      const avgXPPerStudent =
+        uniqueBuyers > 0 ? Math.round(totalXPSpent / uniqueBuyers) : 0;
 
       // Top 10 popular items
       const popularItems = Array.from(itemCountMap.entries())

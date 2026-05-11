@@ -1,5 +1,5 @@
-import { Badge } from '@/components/ui/badge';
-import { ShieldAlert } from 'lucide-react';
+import { Badge } from "@/components/ui/badge";
+import { ShieldAlert } from "lucide-react";
 
 interface PlagiarismPlaceholderProps {
   score?: number | null;
@@ -7,7 +7,12 @@ interface PlagiarismPlaceholderProps {
 
 const PlagiarismPlaceholder = ({ score }: PlagiarismPlaceholderProps) => {
   if (score != null) {
-    const color = score > 30 ? 'text-red-600 bg-red-50' : score > 10 ? 'text-yellow-600 bg-yellow-50' : 'text-green-600 bg-green-50';
+    const color =
+      score > 30
+        ? "text-red-600 bg-red-50"
+        : score > 10
+        ? "text-yellow-600 bg-yellow-50"
+        : "text-green-600 bg-green-50";
     return (
       <Badge variant="outline" className={`${color} gap-1`}>
         <ShieldAlert className="h-3 w-3" />

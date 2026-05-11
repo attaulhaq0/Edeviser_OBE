@@ -304,7 +304,8 @@ export const BADGE_DEFINITIONS: BadgeDef[] = [
   {
     id: "self_reliant_scholar",
     name: "Self-Reliant Scholar",
-    description: "Maintained high independence from AI assistance across all CLOs",
+    description:
+      "Maintained high independence from AI assistance across all CLOs",
     icon: "🛡️",
     category: "academic",
     isMystery: false,

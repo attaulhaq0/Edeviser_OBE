@@ -1,6 +1,7 @@
 # Edeviser Project Conventions
 
 ## Tech Stack
+
 - React 18 + TypeScript (strict mode)
 - Vite 6 (bundler)
 - Tailwind CSS v4 + Shadcn/ui (styling & components)
@@ -21,6 +22,7 @@
 - @sentry/react (error monitoring & performance)
 
 ## File Structure
+
 - Components: `src/components/ui/` (Shadcn), `src/components/shared/` (custom shared)
 - Pages: `src/pages/{role}/` (admin, coordinator, teacher, student)
 - Hooks: `src/hooks/` (TanStack Query hooks, custom hooks)
@@ -31,6 +33,7 @@
 - Tests: `src/__tests__/properties/` and `src/__tests__/unit/`
 
 ## Coding Standards
+
 - Use `@/` path alias for all imports
 - Use Zod schemas for all form validation (shared between client and Edge Functions)
 - All database queries go through TanStack Query hooks, never raw supabase calls in components
@@ -42,6 +45,7 @@
 - Use nuqs for URL-persisted filter/search state in list pages
 
 ## Supabase Conventions
+
 - RLS enabled on ALL tables — no exceptions
 - Use `auth_user_role()` and `auth_institution_id()` helper functions in RLS policies
 - Edge Functions for complex server-side logic (bulk import, evidence rollup, PDF gen)
@@ -52,11 +56,13 @@
 - pg_net for HTTP calls from database triggers
 
 ## Edge Functions (Deno)
+
 - Resend (transactional email — used only in Edge Functions, not in React app)
 - Edge Functions run on Deno runtime — npm packages are NOT installed for them
 - Secrets stored via Supabase Dashboard or CLI: RESEND_API_KEY
 
 ## Testing
+
 - Vitest as test runner (`npm test` runs `vitest --run`)
 - Property-based tests with fast-check (min 100 iterations per property)
 - Component tests with Testing Library
@@ -64,6 +70,7 @@
 - Test files: `*.property.test.ts` and `*.test.ts`
 
 ## Environment Variables
+
 - `VITE_SUPABASE_URL` — Supabase project URL
 - `VITE_SUPABASE_ANON_KEY` — Supabase anon/publishable key
 - Stored in `.env.local` (gitignored)

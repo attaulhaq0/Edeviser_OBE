@@ -1,14 +1,14 @@
-import { Navigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
-import { Loader2 } from 'lucide-react';
-import type { UserRole } from '@/types/app';
+import { Navigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { Loader2 } from "lucide-react";
+import type { UserRole } from "@/types/app";
 
 const ROLE_DASHBOARD_MAP: Record<UserRole, string> = {
-  admin: '/admin/dashboard',
-  coordinator: '/coordinator/dashboard',
-  teacher: '/teacher/dashboard',
-  student: '/student/dashboard',
-  parent: '/parent/dashboard',
+  admin: "/admin/dashboard",
+  coordinator: "/coordinator/dashboard",
+  teacher: "/teacher/dashboard",
+  student: "/student/dashboard",
+  parent: "/parent/dashboard",
 };
 
 interface RouteGuardProps {
@@ -32,7 +32,7 @@ const RouteGuard = ({ allowedRoles, children }: RouteGuardProps) => {
   }
 
   if (!role || !allowedRoles.includes(role)) {
-    const redirectPath = role ? ROLE_DASHBOARD_MAP[role] : '/login';
+    const redirectPath = role ? ROLE_DASHBOARD_MAP[role] : "/login";
     return <Navigate to={redirectPath} replace />;
   }
 

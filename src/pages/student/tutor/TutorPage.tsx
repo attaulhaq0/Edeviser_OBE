@@ -2,21 +2,29 @@
 // TutorPage — Main tutor page with sidebar + chat layout
 // =============================================================================
 
-import { useState, useCallback } from 'react';
-import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { Menu, Bot } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent } from '@/components/ui/sheet';
-import { useTutorConversations, useCreateConversation, useDeleteConversation } from '@/hooks/useTutorConversations';
-import { useTutorMessages, useSendMessage, useRateMessage } from '@/hooks/useTutorMessages';
-import { useTutorUsage } from '@/hooks/useTutorUsage';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import { useQueryClient } from '@tanstack/react-query';
-import ChatPanel from '@/pages/student/tutor/ChatPanel';
-import ConversationSidebar from '@/pages/student/tutor/ConversationSidebar';
-import PersonaSelector from '@/pages/student/tutor/PersonaSelector';
-import type { TutorPersona, SourceCitation } from '@/lib/tutorSchemas';
+import { useState, useCallback } from "react";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
+import { Menu, Bot } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
+import {
+  useTutorConversations,
+  useCreateConversation,
+  useDeleteConversation,
+} from "@/hooks/useTutorConversations";
+import {
+  useTutorMessages,
+  useSendMessage,
+  useRateMessage,
+} from "@/hooks/useTutorMessages";
+import { useTutorUsage } from "@/hooks/useTutorUsage";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import { useQueryClient } from "@tanstack/react-query";
+import ChatPanel from "@/pages/student/tutor/ChatPanel";
+import ConversationSidebar from "@/pages/student/tutor/ConversationSidebar";
+import PersonaSelector from "@/pages/student/tutor/PersonaSelector";
+import type { TutorPersona, SourceCitation } from "@/lib/tutorSchemas";
 
 const TutorPage = () => {
   const { conversationId } = useParams<{ conversationId?: string }>();
@@ -24,18 +32,21 @@ const TutorPage = () => {
   const navigate = useNavigate();
 
   // Query params for contextual entry
-  const courseIdParam = searchParams.get('courseId') ?? undefined;
-  const cloIdsParam = searchParams.get('cloIds')?.split(',').filter(Boolean) ?? undefined;
+  const courseIdParam = searchParams.get("courseId") ?? undefined;
+  const cloIdsParam =
+    searchParams.get("cloIds")?.split(",").filter(Boolean) ?? undefined;
 
   // State
-  const [persona, setPersona] = useState<TutorPersona>('socratic_guide');
+  const [persona, setPersona] = useState<TutorPersona>("socratic_guide");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showPersonaPicker, setShowPersonaPicker] = useState(!conversationId);
 
   // Hooks
   const queryClient = useQueryClient();
-  const { data: conversations = [], isLoading: isLoadingConversations } = useTutorConversations(courseIdParam);
-  const { data: messages = [], isLoading: isLoadingMessages } = useTutorMessages(conversationId ?? '');
+  const { data: conversations = [], isLoading: isLoadingConversations } =
+    useTutorConversations(courseIdParam);
+  const { data: messages = [], isLoading: isLoadingMessages } =
+    useTutorMessages(conversationId ?? "");
   const { data: usage } = useTutorUsage();
   const createConversation = useCreateConversation();
   const deleteConversation = useDeleteConversation();
@@ -53,13 +64,14 @@ const TutorPage = () => {
   const shouldShowPersonaPicker = isNewConversation && showPersonaPicker;
 
   // Derive autonomy override from active conversation
-  const derivedAutonomyOverride = (activeConversation?.autonomy_override as 'L1' | 'L3' | null) ?? null;
+  const derivedAutonomyOverride =
+    (activeConversation?.autonomy_override as "L1" | "L3" | null) ?? null;
 
   // ─── Handlers ──────────────────────────────────────────────────────────────
 
   const handleNewConversation = useCallback(() => {
     setShowPersonaPicker(true);
-    navigate('/student/tutor');
+    navigate("/student/tutor");
     setSidebarOpen(false);
   }, [navigate]);
 
@@ -77,7 +89,7 @@ const TutorPage = () => {
       deleteConversation.mutate(id, {
         onSuccess: () => {
           if (conversationId === id) {
-            navigate('/student/tutor');
+            navigate("/student/tutor");
           }
         },
       });
@@ -104,7 +116,9 @@ const TutorPage = () => {
           },
           {
             onSuccess: (newConversation) => {
-              navigate(`/student/tutor/${newConversation.id}`, { replace: true });
+              navigate(`/student/tutor/${newConversation.id}`, {
+                replace: true,
+              });
               setShowPersonaPicker(false);
 
               sendMessage.mutate({
@@ -139,11 +153,23 @@ const TutorPage = () => {
         });
       }
     },
-    [conversationId, courseIdParam, cloIdsParam, derivedPersona, createConversation, sendMessage, navigate]
+    [
+      conversationId,
+      courseIdParam,
+      cloIdsParam,
+      derivedPersona,
+      createConversation,
+      sendMessage,
+      navigate,
+    ]
   );
 
   const handleRateMessage = useCallback(
-    (variables: { messageId: string; conversationId: string; rating: 'thumbs_up' | 'thumbs_down' }) => {
+    (variables: {
+      messageId: string;
+      conversationId: string;
+      rating: "thumbs_up" | "thumbs_down";
+    }) => {
       rateMessage.mutate(variables);
     },
     [rateMessage]
@@ -154,18 +180,20 @@ const TutorPage = () => {
   }, []);
 
   const handleAutonomyChange = useCallback(
-    (level: 'L1' | 'L3' | null) => {
+    (level: "L1" | "L3" | null) => {
       if (!conversationId) return;
 
       // Optimistically update the conversation's autonomy_override via Supabase
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (supabase as any)
-        .from('tutor_conversations')
+        .from("tutor_conversations")
         .update({ autonomy_override: level })
-        .eq('id', conversationId)
+        .eq("id", conversationId)
         .then(() => {
           // Invalidate conversations to reflect the change
-          queryClient.invalidateQueries({ queryKey: queryKeys.tutorConversations.lists() });
+          queryClient.invalidateQueries({
+            queryKey: queryKeys.tutorConversations.lists(),
+          });
         });
     },
     [conversationId, queryClient]
@@ -226,7 +254,9 @@ const TutorPage = () => {
                     <Bot className="h-8 w-8 text-white" />
                   </div>
                 </div>
-                <h2 className="text-xl font-bold text-gray-800">Start a new conversation</h2>
+                <h2 className="text-xl font-bold text-gray-800">
+                  Start a new conversation
+                </h2>
                 <p className="text-sm text-gray-500 mt-1">
                   Choose a tutoring style that works best for you
                 </p>

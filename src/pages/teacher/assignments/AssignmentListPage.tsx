@@ -1,30 +1,31 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
-import { parseAsString, useQueryState } from 'nuqs';
-import { createColumns } from './columns';
-import { DataTable } from '@/components/shared/DataTable';
-import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
-import { useAssignments, useDeleteAssignment } from '@/hooks/useAssignments';
-import type { AssignmentWithRelations } from '@/hooks/useAssignments';
-import { useCourses } from '@/hooks/useCourses';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { parseAsString, useQueryState } from "nuqs";
+import { createColumns } from "./columns";
+import { DataTable } from "@/components/shared/DataTable";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import { useAssignments, useDeleteAssignment } from "@/hooks/useAssignments";
+import type { AssignmentWithRelations } from "@/hooks/useAssignments";
+import { useCourses } from "@/hooks/useCourses";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Plus, Search } from 'lucide-react';
+} from "@/components/ui/select";
+import { Plus, Search } from "lucide-react";
+import { NoCourses } from "@/components/shared/EmptyState";
 
 const AssignmentListPage = () => {
   const navigate = useNavigate();
-  const [search, setSearch] = useQueryState('q', parseAsString.withDefault(''));
+  const [search, setSearch] = useQueryState("q", parseAsString.withDefault(""));
   const [courseFilter, setCourseFilter] = useQueryState(
-    'course',
-    parseAsString.withDefault(''),
+    "course",
+    parseAsString.withDefault("")
   );
   const [assignmentToDelete, setAssignmentToDelete] =
     useState<AssignmentWithRelations | null>(null);
@@ -34,7 +35,7 @@ const AssignmentListPage = () => {
   const courses = paginatedCourses?.data;
   const { data: paginatedAssignments, isLoading } = useAssignments(
     courseFilter || undefined,
-    { page },
+    { page }
   );
   const deleteMutation = useDeleteAssignment();
 
@@ -49,7 +50,7 @@ const AssignmentListPage = () => {
 
   const columns = createColumns(
     (id) => navigate(`/teacher/assignments/${id}/edit`),
-    (assignment) => setAssignmentToDelete(assignment),
+    (assignment) => setAssignmentToDelete(assignment)
   );
 
   return (
@@ -59,7 +60,7 @@ const AssignmentListPage = () => {
         <h1 className="text-2xl font-bold tracking-tight">Assignments</h1>
         <Button
           className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 text-white"
-          onClick={() => navigate('/teacher/assignments/new')}
+          onClick={() => navigate("/teacher/assignments/new")}
         >
           <Plus className="h-4 w-4" /> Add Assignment
         </Button>
@@ -78,7 +79,10 @@ const AssignmentListPage = () => {
         </div>
         <Select
           value={courseFilter}
-          onValueChange={(val) => { setCourseFilter(val === 'all' ? '' : val); setPage(1); }}
+          onValueChange={(val) => {
+            setCourseFilter(val === "all" ? "" : val);
+            setPage(1);
+          }}
           disabled={coursesLoading}
         >
           <SelectTrigger className="w-[260px] bg-white">
@@ -104,6 +108,11 @@ const AssignmentListPage = () => {
         pageSize={paginatedAssignments?.pageSize}
         totalCount={paginatedAssignments?.count}
         onPageChange={setPage}
+        emptyState={
+          filteredAssignments.length === 0 && !isLoading ? (
+            <NoCourses />
+          ) : undefined
+        }
       />
 
       {/* Delete Confirmation Dialog */}

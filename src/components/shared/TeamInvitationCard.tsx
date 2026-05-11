@@ -3,11 +3,11 @@
 // Task 4.7: keyboard accessible accept/decline buttons
 // =============================================================================
 
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
-import { Check, X, Users, Clock, Loader2 } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { Check, X, Users, Clock, Loader2 } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
 
 export interface TeamInvitationCardProps {
   teamName: string;
@@ -33,7 +33,9 @@ const TeamInvitationCard = ({
   const isPending = isAccepting || isDeclining;
 
   return (
-    <Card className={cn('bg-white border-0 shadow-md rounded-xl p-4', className)}>
+    <Card
+      className={cn("bg-white border-0 shadow-md rounded-xl p-4", className)}
+    >
       <div className="flex items-start gap-3">
         {/* Team icon */}
         <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
@@ -45,9 +47,7 @@ const TeamInvitationCard = ({
           <p className="text-sm font-semibold">
             Team Invitation: <span className="text-blue-600">{teamName}</span>
           </p>
-          <p className="text-xs text-gray-500 mt-0.5">
-            Invited by {invitedBy}
-          </p>
+          <p className="text-xs text-gray-500 mt-0.5">Invited by {invitedBy}</p>
           <div className="flex items-center gap-1 mt-1 text-[10px] text-gray-400">
             <Clock className="h-3 w-3" />
             {formatDistanceToNow(new Date(createdAt), { addSuffix: true })}

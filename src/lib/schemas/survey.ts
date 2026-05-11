@@ -12,7 +12,9 @@ export const createSurveySchema = z.object({
   type: z.enum(["course_exit", "graduate_exit", "employer"]),
   target_outcomes: z.array(z.uuid()),
   is_active: z.boolean().default(true),
-  questions: z.array(surveyQuestionSchema).min(1, "At least 1 question required"),
+  questions: z
+    .array(surveyQuestionSchema)
+    .min(1, "At least 1 question required"),
 });
 
 export const surveyResponseSchema = z.object({

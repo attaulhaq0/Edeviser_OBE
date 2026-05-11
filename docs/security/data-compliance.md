@@ -6,52 +6,52 @@ This document classifies all platform data by sensitivity level, audits logging/
 
 ### Tier 1 — PII (Personally Identifiable Information)
 
-| Table | PII Columns | Regulation |
-|-------|-------------|------------|
-| `profiles` | `email`, `full_name`, `avatar_url` | FERPA, GDPR |
-| `parent_student_links` | `parent_id` (links to profile) | FERPA |
+| Table                  | PII Columns                        | Regulation  |
+| ---------------------- | ---------------------------------- | ----------- |
+| `profiles`             | `email`, `full_name`, `avatar_url` | FERPA, GDPR |
+| `parent_student_links` | `parent_id` (links to profile)     | FERPA       |
 
 ### Tier 2 — Education Records (FERPA-Protected)
 
-| Table | Sensitive Columns | Notes |
-|-------|-------------------|-------|
-| `grades` | `score_percent`, `overall_feedback` | Linked to student via `submissions` |
-| `submissions` | `file_url`, `student_id` | Student work product |
-| `evidence` | `score_percent`, `attainment_level` | Immutable, append-only |
-| `outcome_attainment` | `attainment_percent`, `student_id` | CLO/PLO/ILO scores |
-| `journal_entries` | `body`, `student_id` | Reflective writing |
-| `student_activity_log` | `event_type`, `metadata` | Behavioral data |
-| `student_gamification` | `xp_total`, `streak_days` | Engagement metrics |
-| `xp_transactions` | `xp_amount`, `source` | XP ledger |
-| `student_badges` | `badge_id`, `awarded_at` | Achievement records |
-| `habit_logs` | `habit_type`, `date` | Daily habit tracking |
-| `quiz_attempts` | `score`, `answers` | Assessment data |
-| `attendance_records` | `status`, `student_id` | Attendance data |
-| `fee_payments` | `amount`, `status`, `student_id` | Financial records |
-| `survey_responses` | `answers`, `respondent_id` | Survey data |
-| `ai_feedback` | `suggestion_text`, `student_id` | AI-generated content |
-| `student_profiles` | All columns | Onboarding/profiling data |
+| Table                  | Sensitive Columns                   | Notes                               |
+| ---------------------- | ----------------------------------- | ----------------------------------- |
+| `grades`               | `score_percent`, `overall_feedback` | Linked to student via `submissions` |
+| `submissions`          | `file_url`, `student_id`            | Student work product                |
+| `evidence`             | `score_percent`, `attainment_level` | Immutable, append-only              |
+| `outcome_attainment`   | `attainment_percent`, `student_id`  | CLO/PLO/ILO scores                  |
+| `journal_entries`      | `body`, `student_id`                | Reflective writing                  |
+| `student_activity_log` | `event_type`, `metadata`            | Behavioral data                     |
+| `student_gamification` | `xp_total`, `streak_days`           | Engagement metrics                  |
+| `xp_transactions`      | `xp_amount`, `source`               | XP ledger                           |
+| `student_badges`       | `badge_id`, `awarded_at`            | Achievement records                 |
+| `habit_logs`           | `habit_type`, `date`                | Daily habit tracking                |
+| `quiz_attempts`        | `score`, `answers`                  | Assessment data                     |
+| `attendance_records`   | `status`, `student_id`              | Attendance data                     |
+| `fee_payments`         | `amount`, `status`, `student_id`    | Financial records                   |
+| `survey_responses`     | `answers`, `respondent_id`          | Survey data                         |
+| `ai_feedback`          | `suggestion_text`, `student_id`     | AI-generated content                |
+| `student_profiles`     | All columns                         | Onboarding/profiling data           |
 
 ### Tier 3 — Institutional/System Data (Non-PII)
 
-| Table | Notes |
-|-------|-------|
-| `institutions` | Org metadata |
-| `programs`, `courses`, `semesters` | Academic structure |
-| `learning_outcomes`, `outcome_mappings` | OBE curriculum |
-| `rubrics`, `rubric_criteria` | Assessment instruments |
-| `assignments` | Assignment definitions (no student data) |
-| `audit_logs` | Admin actions (PII-scrubbed via allowlist) |
-| `notifications` | Delivery metadata |
-| `bonus_xp_events` | Gamification config |
-| `announcements`, `course_modules`, `course_materials` | Content |
-| `discussion_threads`, `discussion_replies` | Forum content |
-| `class_sessions` | Schedule data |
-| `departments`, `academic_calendar_events` | Org structure |
-| `timetable_slots` | Scheduling |
-| `cqi_action_plans` | Quality improvement |
-| `institution_settings`, `program_accreditations` | Config |
-| `fee_structures` | Fee definitions (no student data) |
+| Table                                                 | Notes                                      |
+| ----------------------------------------------------- | ------------------------------------------ |
+| `institutions`                                        | Org metadata                               |
+| `programs`, `courses`, `semesters`                    | Academic structure                         |
+| `learning_outcomes`, `outcome_mappings`               | OBE curriculum                             |
+| `rubrics`, `rubric_criteria`                          | Assessment instruments                     |
+| `assignments`                                         | Assignment definitions (no student data)   |
+| `audit_logs`                                          | Admin actions (PII-scrubbed via allowlist) |
+| `notifications`                                       | Delivery metadata                          |
+| `bonus_xp_events`                                     | Gamification config                        |
+| `announcements`, `course_modules`, `course_materials` | Content                                    |
+| `discussion_threads`, `discussion_replies`            | Forum content                              |
+| `class_sessions`                                      | Schedule data                              |
+| `departments`, `academic_calendar_events`             | Org structure                              |
+| `timetable_slots`                                     | Scheduling                                 |
+| `cqi_action_plans`                                    | Quality improvement                        |
+| `institution_settings`, `program_accreditations`      | Config                                     |
+| `fee_structures`                                      | Fee definitions (no student data)          |
 
 ## 2. PII Audit: Sentry Error Monitoring
 
@@ -96,13 +96,13 @@ The activity logger (`src/lib/activityLogger.ts`) records behavioral events to `
 
 ### Metadata Examples
 
-| Event Type | Metadata Fields |
-|------------|----------------|
-| `page_view` | `{ page: string, course_id?: string }` |
-| `submission` | `{ assignment_id: string }` |
+| Event Type        | Metadata Fields                                        |
+| ----------------- | ------------------------------------------------------ |
+| `page_view`       | `{ page: string, course_id?: string }`                 |
+| `submission`      | `{ assignment_id: string }`                            |
 | `assignment_view` | `{ assignment_id: string, duration_seconds?: number }` |
-| `journal` | `{ journal_id: string, word_count: number }` |
-| `login` | `{}` (no metadata) |
+| `journal`         | `{ journal_id: string, word_count: number }`           |
+| `login`           | `{}` (no metadata)                                     |
 
 ## 5. Soft-Delete Workflow (User Deactivation)
 
@@ -130,6 +130,7 @@ The activity logger (`src/lib/activityLogger.ts`) records behavioral events to `
 ### FERPA Compliance
 
 FERPA requires institutions to maintain education records. Soft-delete satisfies this by:
+
 - Preventing unauthorized access (login disabled)
 - Preserving records for legitimate educational purposes
 - Maintaining audit trail of the deactivation action
@@ -163,10 +164,12 @@ FERPA requires institutions to maintain education records. Soft-delete satisfies
 ## 7. GDPR Right to Erasure
 
 Full data erasure is not implemented as a self-service feature because:
+
 - FERPA requires retention of education records
 - Institutions have legitimate interest in maintaining academic records
 
 For GDPR erasure requests from EU users:
+
 1. Institution admin receives the request
 2. Admin deactivates the user (soft-delete)
 3. For full erasure: admin contacts platform support for manual data removal

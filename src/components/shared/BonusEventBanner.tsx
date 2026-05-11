@@ -1,24 +1,26 @@
-import { useState, useEffect } from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
-import { Sparkles, Clock } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { useActiveBonusEvent } from '@/hooks/useBonusEvents';
+import { useState, useEffect } from "react";
+import { motion, useReducedMotion } from "framer-motion";
+import { Sparkles, Clock } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { useActiveBonusEvent } from "@/hooks/useBonusEvents";
 
 const useCountdown = (endDate: string): string => {
-  const [timeLeft, setTimeLeft] = useState('');
+  const [timeLeft, setTimeLeft] = useState("");
 
   useEffect(() => {
     const update = () => {
       const diff = new Date(endDate).getTime() - Date.now();
       if (diff <= 0) {
-        setTimeLeft('Ended');
+        setTimeLeft("Ended");
         return;
       }
       const hours = Math.floor(diff / 3600000);
       const minutes = Math.floor((diff % 3600000) / 60000);
       const seconds = Math.floor((diff % 60000) / 1000);
       setTimeLeft(
-        `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+        `${hours.toString().padStart(2, "0")}:${minutes
+          .toString()
+          .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`
       );
     };
     update();
@@ -39,7 +41,7 @@ const BonusEventBanner = () => {
     <BonusEventBannerContent
       title={event.name}
       multiplier={event.xp_multiplier}
-      endsAt={event.ends_at ?? ''}
+      endsAt={event.ends_at ?? ""}
       prefersReducedMotion={prefersReducedMotion ?? false}
     />
   );

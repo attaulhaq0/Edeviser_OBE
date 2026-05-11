@@ -1,14 +1,14 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 // ─── Mocks ──────────────────────────────────────────────────────────────────
 
 const mockLogActivity = vi.fn();
-vi.mock('@/lib/activityLogger', () => ({
+vi.mock("@/lib/activityLogger", () => ({
   logActivity: (...args: unknown[]) => mockLogActivity(...args),
 }));
 
 const mockUpsert = vi.fn().mockResolvedValue({ error: null });
-vi.mock('@/lib/supabase', () => ({
+vi.mock("@/lib/supabase", () => ({
   supabase: {
     from: () => ({
       upsert: (...args: unknown[]) => mockUpsert(...args),
@@ -17,18 +17,25 @@ vi.mock('@/lib/supabase', () => ({
 }));
 
 let mockProfile: { id: string; role: string } | null = null;
-vi.mock('@/hooks/useAuth', () => ({
+vi.mock("@/hooks/useAuth", () => ({
   useAuth: () => ({ profile: mockProfile }),
 }));
 
 const mockInvalidateQueries = vi.fn();
 const mockMutate = vi.fn();
 
-vi.mock('@tanstack/react-query', () => ({
-  useMutation: (opts: { mutationFn: (params: unknown) => Promise<void>; onSuccess?: () => void; onError?: (e: unknown) => void }) => {
+vi.mock("@tanstack/react-query", () => ({
+  useMutation: (opts: {
+    mutationFn: (params: unknown) => Promise<void>;
+    onSuccess?: () => void;
+    onError?: (e: unknown) => void;
+  }) => {
     // Store the mutationFn so mockMutate can call it
     mockMutate.mockImplementation((params: unknown) => {
-      opts.mutationFn(params).then(() => opts.onSuccess?.()).catch((e) => opts.onError?.(e));
+      opts
+        .mutationFn(params)
+        .then(() => opts.onSuccess?.())
+        .catch((e) => opts.onError?.(e));
     });
     return { mutate: mockMutate, isPending: false };
   },
@@ -37,18 +44,18 @@ vi.mock('@tanstack/react-query', () => ({
   }),
 }));
 
-vi.mock('@/lib/queryKeys', () => ({
+vi.mock("@/lib/queryKeys", () => ({
   queryKeys: {
-    habitLogs: { all: ['habitLogs'] },
+    habitLogs: { all: ["habitLogs"] },
   },
 }));
 
-import { renderHook, act } from '@testing-library/react';
-import { useReadHabitTimer } from '@/hooks/useReadHabitTimer';
+import { renderHook, act } from "@testing-library/react";
+import { useReadHabitTimer } from "@/hooks/useReadHabitTimer";
 
 // ─── Tests ──────────────────────────────────────────────────────────────────
 
-describe('useReadHabitTimer', () => {
+describe("useReadHabitTimer", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
@@ -60,46 +67,54 @@ describe('useReadHabitTimer', () => {
   });
 
   const defaultOptions = {
-    pageType: 'assignment_detail' as const,
-    pageId: 'assignment-123',
+    pageType: "assignment_detail" as const,
+    pageId: "assignment-123",
   };
 
-  it('does not start timer for non-student roles', () => {
-    mockProfile = { id: 'teacher-1', role: 'teacher' };
+  it("does not start timer for non-student roles", () => {
+    mockProfile = { id: "teacher-1", role: "teacher" };
     const { result } = renderHook(() => useReadHabitTimer(defaultOptions));
 
-    act(() => { vi.advanceTimersByTime(35_000); });
+    act(() => {
+      vi.advanceTimersByTime(35_000);
+    });
 
     expect(result.current.elapsedSeconds).toBe(0);
     expect(result.current.isCompleted).toBe(false);
     expect(mockMutate).not.toHaveBeenCalled();
   });
 
-  it('does not start timer when profile is null', () => {
+  it("does not start timer when profile is null", () => {
     mockProfile = null;
     const { result } = renderHook(() => useReadHabitTimer(defaultOptions));
 
-    act(() => { vi.advanceTimersByTime(35_000); });
+    act(() => {
+      vi.advanceTimersByTime(35_000);
+    });
 
     expect(result.current.elapsedSeconds).toBe(0);
     expect(mockMutate).not.toHaveBeenCalled();
   });
 
-  it('increments elapsed seconds each tick', () => {
-    mockProfile = { id: 'student-1', role: 'student' };
+  it("increments elapsed seconds each tick", () => {
+    mockProfile = { id: "student-1", role: "student" };
     const { result } = renderHook(() => useReadHabitTimer(defaultOptions));
 
-    act(() => { vi.advanceTimersByTime(5_000); });
+    act(() => {
+      vi.advanceTimersByTime(5_000);
+    });
 
     expect(result.current.elapsedSeconds).toBe(5);
     expect(result.current.isCompleted).toBe(false);
   });
 
-  it('marks habit as completed and calls mutation at 30 seconds', () => {
-    mockProfile = { id: 'student-1', role: 'student' };
+  it("marks habit as completed and calls mutation at 30 seconds", () => {
+    mockProfile = { id: "student-1", role: "student" };
     const { result } = renderHook(() => useReadHabitTimer(defaultOptions));
 
-    act(() => { vi.advanceTimersByTime(30_000); });
+    act(() => {
+      vi.advanceTimersByTime(30_000);
+    });
 
     expect(result.current.isCompleted).toBe(true);
     expect(result.current.elapsedSeconds).toBe(30);
@@ -107,68 +122,76 @@ describe('useReadHabitTimer', () => {
     // Should call mutation with student_id and habit_date
     expect(mockMutate).toHaveBeenCalledWith(
       expect.objectContaining({
-        student_id: 'student-1',
+        student_id: "student-1",
         habit_date: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
-      }),
+      })
     );
   });
 
-  it('logs activity with duration_seconds when habit completes', () => {
-    mockProfile = { id: 'student-1', role: 'student' };
+  it("logs activity with duration_seconds when habit completes", () => {
+    mockProfile = { id: "student-1", role: "student" };
     renderHook(() => useReadHabitTimer(defaultOptions));
 
-    act(() => { vi.advanceTimersByTime(30_000); });
+    act(() => {
+      vi.advanceTimersByTime(30_000);
+    });
 
     expect(mockLogActivity).toHaveBeenCalledWith(
       expect.objectContaining({
-        student_id: 'student-1',
-        event_type: 'page_view',
+        student_id: "student-1",
+        event_type: "page_view",
         metadata: expect.objectContaining({
-          page_type: 'assignment_detail',
-          page_id: 'assignment-123',
+          page_type: "assignment_detail",
+          page_id: "assignment-123",
           duration_seconds: 30,
           habit_completed: true,
         }),
-      }),
+      })
     );
   });
 
-  it('only fires habit completion once even after continued viewing', () => {
-    mockProfile = { id: 'student-1', role: 'student' };
+  it("only fires habit completion once even after continued viewing", () => {
+    mockProfile = { id: "student-1", role: "student" };
     renderHook(() => useReadHabitTimer(defaultOptions));
 
-    act(() => { vi.advanceTimersByTime(60_000); });
+    act(() => {
+      vi.advanceTimersByTime(60_000);
+    });
 
     // Should only call mutation once
     expect(mockMutate).toHaveBeenCalledTimes(1);
     expect(mockLogActivity).toHaveBeenCalledTimes(1);
   });
 
-  it('logs partial duration on unmount if habit not completed', () => {
-    mockProfile = { id: 'student-1', role: 'student' };
+  it("logs partial duration on unmount if habit not completed", () => {
+    mockProfile = { id: "student-1", role: "student" };
     const { unmount } = renderHook(() => useReadHabitTimer(defaultOptions));
 
-    act(() => { vi.advanceTimersByTime(10_000); });
+    act(() => {
+      vi.advanceTimersByTime(10_000);
+    });
 
     unmount();
 
     expect(mockLogActivity).toHaveBeenCalledWith(
       expect.objectContaining({
-        student_id: 'student-1',
-        event_type: 'page_view',
+        student_id: "student-1",
+        event_type: "page_view",
         metadata: expect.objectContaining({
           duration_seconds: 10,
           habit_completed: false,
         }),
-      }),
+      })
     );
   });
 
-  it('does not log partial duration on unmount if habit was completed', () => {
-    mockProfile = { id: 'student-1', role: 'student' };
+  it("does not log partial duration on unmount if habit was completed", () => {
+    mockProfile = { id: "student-1", role: "student" };
     const { unmount } = renderHook(() => useReadHabitTimer(defaultOptions));
 
-    act(() => { vi.advanceTimersByTime(30_000); });
+    act(() => {
+      vi.advanceTimersByTime(30_000);
+    });
 
     mockLogActivity.mockClear();
     unmount();

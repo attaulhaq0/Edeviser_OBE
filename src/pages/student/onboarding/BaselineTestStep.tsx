@@ -1,14 +1,14 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Timer, AlertTriangle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { useBaselineQuestions } from '@/hooks/useOnboardingQuestions';
-import { useBaselineTestConfig } from '@/hooks/useBaselineTests';
-import { useSaveResponses } from '@/hooks/useOnboardingResponses';
-import type { OnboardingQuestion } from '@/hooks/useOnboardingQuestions';
-import type { WizardStepProps } from './OnboardingWizard';
+import { useState, useCallback, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Timer, AlertTriangle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { useBaselineQuestions } from "@/hooks/useOnboardingQuestions";
+import { useBaselineTestConfig } from "@/hooks/useBaselineTests";
+import { useSaveResponses } from "@/hooks/useOnboardingResponses";
+import type { OnboardingQuestion } from "@/hooks/useOnboardingQuestions";
+import type { WizardStepProps } from "./OnboardingWizard";
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -28,7 +28,11 @@ interface AssessmentTimerProps {
   isPaused?: boolean;
 }
 
-const AssessmentTimer = ({ totalSeconds, onExpire, isPaused = false }: AssessmentTimerProps) => {
+const AssessmentTimer = ({
+  totalSeconds,
+  onExpire,
+  isPaused = false,
+}: AssessmentTimerProps) => {
   const [remaining, setRemaining] = useState(totalSeconds);
   const onExpireRef = useRef(onExpire);
 
@@ -60,8 +64,9 @@ const AssessmentTimer = ({ totalSeconds, onExpire, isPaused = false }: Assessmen
     const handleVisibility = () => {
       // Timer auto-pauses via isPaused or visibility — simplified here
     };
-    document.addEventListener('visibilitychange', handleVisibility);
-    return () => document.removeEventListener('visibilitychange', handleVisibility);
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () =>
+      document.removeEventListener("visibilitychange", handleVisibility);
   }, []);
 
   const minutes = Math.floor(remaining / 60);
@@ -71,13 +76,13 @@ const AssessmentTimer = ({ totalSeconds, onExpire, isPaused = false }: Assessmen
   return (
     <div
       className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-bold ${
-        isWarning ? 'bg-red-50 text-red-600' : 'bg-slate-100 text-gray-700'
+        isWarning ? "bg-red-50 text-red-600" : "bg-slate-100 text-gray-700"
       }`}
     >
       {isWarning && <AlertTriangle className="h-4 w-4" />}
       <Timer className="h-4 w-4" />
       <span>
-        {String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
+        {String(minutes).padStart(2, "0")}:{String(seconds).padStart(2, "0")}
       </span>
     </div>
   );
@@ -85,7 +90,9 @@ const AssessmentTimer = ({ totalSeconds, onExpire, isPaused = false }: Assessmen
 
 // ── Helpers ──────────────────────────────────────────────────────────
 
-const parseBaselineOptions = (question: OnboardingQuestion): BaselineOption[] => {
+const parseBaselineOptions = (
+  question: OnboardingQuestion
+): BaselineOption[] => {
   if (!Array.isArray(question.options)) return [];
   return question.options as BaselineOption[];
 };
@@ -105,7 +112,8 @@ const SingleCourseTest = ({
   assessmentVersion,
   onComplete,
 }: SingleCourseTestProps) => {
-  const { data: questions = [], isLoading: questionsLoading } = useBaselineQuestions(courseId);
+  const { data: questions = [], isLoading: questionsLoading } =
+    useBaselineQuestions(courseId);
   const { data: config } = useBaselineTestConfig(courseId);
   const saveResponses = useSaveResponses();
 
@@ -117,11 +125,13 @@ const SingleCourseTest = ({
   const timeLimitSeconds = (config?.time_limit_minutes ?? 15) * 60;
   const currentQuestion = questions[currentIndex];
   const totalQuestions = questions.length;
-  const currentAnswer = currentQuestion ? answers[currentQuestion.id] ?? null : null;
+  const currentAnswer = currentQuestion
+    ? answers[currentQuestion.id] ?? null
+    : null;
   const options = currentQuestion ? parseBaselineOptions(currentQuestion) : [];
 
   // Group questions by CLO for display
-  const currentCLO = currentQuestion?.clo_id ?? '';
+  const currentCLO = currentQuestion?.clo_id ?? "";
 
   const handleSubmit = useCallback(async () => {
     if (submitted) return;
@@ -136,7 +146,7 @@ const SingleCourseTest = ({
     try {
       await saveResponses.mutateAsync({
         student_id: studentId,
-        assessment_type: 'baseline',
+        assessment_type: "baseline",
         assessment_version: assessmentVersion,
         course_id: courseId,
         responses,
@@ -144,14 +154,23 @@ const SingleCourseTest = ({
     } finally {
       onComplete();
     }
-  }, [submitted, questions, answers, saveResponses, studentId, assessmentVersion, courseId, onComplete]);
+  }, [
+    submitted,
+    questions,
+    answers,
+    saveResponses,
+    studentId,
+    assessmentVersion,
+    courseId,
+    onComplete,
+  ]);
 
   const handleSelect = useCallback(
     (optionIndex: number) => {
       if (!currentQuestion || submitted) return;
       setAnswers((prev) => ({ ...prev, [currentQuestion.id]: optionIndex }));
     },
-    [currentQuestion, submitted],
+    [currentQuestion, submitted]
   );
 
   const handleNext = useCallback(() => {
@@ -182,7 +201,10 @@ const SingleCourseTest = ({
     return (
       <div className="py-16 text-center text-sm text-gray-500">
         No baseline questions available for this course.
-        <Button onClick={onComplete} className="mt-4 bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95">
+        <Button
+          onClick={onComplete}
+          className="mt-4 bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
+        >
           Continue
         </Button>
       </div>
@@ -194,7 +216,7 @@ const SingleCourseTest = ({
       {/* Timer */}
       <div className="mb-4 flex w-full max-w-md items-center justify-between">
         <Badge variant="outline" className="text-xs">
-          CLO: {currentCLO ? currentCLO.slice(0, 8) : 'General'}
+          CLO: {currentCLO ? currentCLO.slice(0, 8) : "General"}
         </Badge>
         <AssessmentTimer
           totalSeconds={timeLimitSeconds}
@@ -230,7 +252,11 @@ const SingleCourseTest = ({
             <p className="mb-6 text-sm font-medium text-gray-900">
               {currentQuestion?.question_text}
             </p>
-            <div className="flex flex-col gap-2" role="radiogroup" aria-label="Baseline options">
+            <div
+              className="flex flex-col gap-2"
+              role="radiogroup"
+              aria-label="Baseline options"
+            >
               {options.map((opt, idx) => {
                 const isSelected = currentAnswer === idx;
                 return (
@@ -243,16 +269,18 @@ const SingleCourseTest = ({
                     onClick={() => handleSelect(idx)}
                     className={`flex items-center gap-3 rounded-lg border px-4 py-3 text-start text-sm font-medium transition-colors ${
                       isSelected
-                        ? 'border-blue-500 bg-blue-50 text-blue-700'
-                        : 'border-slate-200 bg-white text-gray-700 hover:border-slate-300 hover:bg-slate-50'
+                        ? "border-blue-500 bg-blue-50 text-blue-700"
+                        : "border-slate-200 bg-white text-gray-700 hover:border-slate-300 hover:bg-slate-50"
                     }`}
                   >
                     <span
                       className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${
-                        isSelected ? 'border-blue-500' : 'border-slate-300'
+                        isSelected ? "border-blue-500" : "border-slate-300"
                       }`}
                     >
-                      {isSelected && <span className="h-2.5 w-2.5 rounded-full bg-blue-500" />}
+                      {isSelected && (
+                        <span className="h-2.5 w-2.5 rounded-full bg-blue-500" />
+                      )}
                     </span>
                     {opt.option_text}
                   </button>
@@ -280,9 +308,9 @@ const SingleCourseTest = ({
         >
           {currentIndex === totalQuestions - 1
             ? saveResponses.isPending
-              ? 'Submitting...'
-              : 'Submit'
-            : 'Next'}
+              ? "Submitting..."
+              : "Submit"
+            : "Next"}
         </Button>
       </div>
     </div>
@@ -305,7 +333,7 @@ export const BaselineTestStep = ({
     return null;
   }
 
-  const currentCourseId = courseIds[currentCourseIndex] ?? '';
+  const currentCourseId = courseIds[currentCourseIndex] ?? "";
 
   const handleCourseComplete = () => {
     if (currentCourseIndex < courseIds.length - 1) {

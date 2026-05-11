@@ -1,21 +1,21 @@
-import { useState, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
-import { ArrowLeft, Loader2, UserPlus } from 'lucide-react';
-import { createEnrollmentColumns } from './enrollmentColumns';
-import { DataTable } from '@/components/shared/DataTable';
-import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
-import { useCourse } from '@/hooks/useCourses';
+import { useState, useMemo } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { ArrowLeft, Loader2, UserPlus } from "lucide-react";
+import { createEnrollmentColumns } from "./enrollmentColumns";
+import { DataTable } from "@/components/shared/DataTable";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import { useCourse } from "@/hooks/useCourses";
 import {
   useEnrollments,
   useEnrollStudent,
   useUnenrollStudent,
   type EnrollmentWithProfile,
-} from '@/hooks/useEnrollments';
-import { useCourseSections } from '@/hooks/useCourseSections';
-import { useUsers } from '@/hooks/useUsers';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+} from "@/hooks/useEnrollments";
+import { useCourseSections } from "@/hooks/useCourseSections";
+import { useUsers } from "@/hooks/useUsers";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -23,30 +23,38 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 
 const CourseEnrollmentPage = () => {
   const { courseId } = useParams<{ courseId: string }>();
   const navigate = useNavigate();
 
   const [enrollDialogOpen, setEnrollDialogOpen] = useState(false);
-  const [selectedStudentId, setSelectedStudentId] = useState<string>('');
-  const [selectedSectionId, setSelectedSectionId] = useState<string>('');
-  const [unenrollTarget, setUnenrollTarget] = useState<EnrollmentWithProfile | null>(null);
+  const [selectedStudentId, setSelectedStudentId] = useState<string>("");
+  const [selectedSectionId, setSelectedSectionId] = useState<string>("");
+  const [unenrollTarget, setUnenrollTarget] =
+    useState<EnrollmentWithProfile | null>(null);
   const [page, setPage] = useState(1);
 
   const { data: course, isLoading: courseLoading } = useCourse(courseId);
-  const { data: paginatedEnrollments, isLoading: enrollmentsLoading } = useEnrollments(courseId, { page });
-  const enrollments = useMemo(() => paginatedEnrollments?.data ?? [], [paginatedEnrollments?.data]);
-  const { data: paginatedStudents } = useUsers({ role: 'student' });
-  const students = useMemo(() => paginatedStudents?.data ?? [], [paginatedStudents?.data]);
+  const { data: paginatedEnrollments, isLoading: enrollmentsLoading } =
+    useEnrollments(courseId, { page });
+  const enrollments = useMemo(
+    () => paginatedEnrollments?.data ?? [],
+    [paginatedEnrollments?.data]
+  );
+  const { data: paginatedStudents } = useUsers({ role: "student" });
+  const students = useMemo(
+    () => paginatedStudents?.data ?? [],
+    [paginatedStudents?.data]
+  );
   const { data: sections } = useCourseSections(courseId);
   const enrollMutation = useEnrollStudent();
   const unenrollMutation = useUnenrollStudent();
@@ -54,15 +62,13 @@ const CourseEnrollmentPage = () => {
   // Filter out students already enrolled (active or completed) from the enroll dialog
   const availableStudents = useMemo(() => {
     const enrolledIds = new Set(
-      enrollments
-        .filter((e) => e.status !== 'dropped')
-        .map((e) => e.student_id),
+      enrollments.filter((e) => e.status !== "dropped").map((e) => e.student_id)
     );
     return students.filter((s) => s.is_active && !enrolledIds.has(s.id));
   }, [students, enrollments]);
 
   const columns = createEnrollmentColumns((enrollment) =>
-    setUnenrollTarget(enrollment),
+    setUnenrollTarget(enrollment)
   );
 
   const handleEnroll = () => {
@@ -71,17 +77,20 @@ const CourseEnrollmentPage = () => {
       {
         student_id: selectedStudentId,
         course_id: courseId,
-        section_id: selectedSectionId && selectedSectionId !== 'none' ? selectedSectionId : undefined,
+        section_id:
+          selectedSectionId && selectedSectionId !== "none"
+            ? selectedSectionId
+            : undefined,
       },
       {
         onSuccess: () => {
-          toast.success('Student enrolled successfully');
+          toast.success("Student enrolled successfully");
           setEnrollDialogOpen(false);
-          setSelectedStudentId('');
-          setSelectedSectionId('');
+          setSelectedStudentId("");
+          setSelectedSectionId("");
         },
         onError: (err) => toast.error(err.message),
-      },
+      }
     );
   };
 
@@ -90,7 +99,9 @@ const CourseEnrollmentPage = () => {
     unenrollMutation.mutate(unenrollTarget.id, {
       onSuccess: () => {
         toast.success(
-          `${unenrollTarget.profiles?.full_name ?? 'Student'} has been unenrolled`,
+          `${
+            unenrollTarget.profiles?.full_name ?? "Student"
+          } has been unenrolled`
         );
         setUnenrollTarget(null);
       },
@@ -106,7 +117,7 @@ const CourseEnrollmentPage = () => {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navigate('/admin/courses')}
+            onClick={() => navigate("/admin/courses")}
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
@@ -154,12 +165,18 @@ const CourseEnrollmentPage = () => {
           <DialogHeader>
             <DialogTitle>Enroll Student</DialogTitle>
             <DialogDescription>
-              Select a student to enroll in{' '}
-              <span className="font-medium">{course?.name ?? 'this course'}</span>.
+              Select a student to enroll in{" "}
+              <span className="font-medium">
+                {course?.name ?? "this course"}
+              </span>
+              .
             </DialogDescription>
           </DialogHeader>
 
-          <Select value={selectedStudentId} onValueChange={setSelectedStudentId}>
+          <Select
+            value={selectedStudentId}
+            onValueChange={setSelectedStudentId}
+          >
             <SelectTrigger className="w-full bg-white">
               <SelectValue placeholder="Select a student…" />
             </SelectTrigger>
@@ -179,7 +196,10 @@ const CourseEnrollmentPage = () => {
           </Select>
 
           {sections && sections.length > 0 && (
-            <Select value={selectedSectionId} onValueChange={setSelectedSectionId}>
+            <Select
+              value={selectedSectionId}
+              onValueChange={setSelectedSectionId}
+            >
               <SelectTrigger className="w-full bg-white">
                 <SelectValue placeholder="Select a section (optional)" />
               </SelectTrigger>
@@ -189,7 +209,8 @@ const CourseEnrollmentPage = () => {
                   .filter((s) => s.is_active)
                   .map((s) => (
                     <SelectItem key={s.id} value={s.id}>
-                      Section {s.section_code} — {s.profiles?.full_name ?? 'Unassigned'}
+                      Section {s.section_code} —{" "}
+                      {s.profiles?.full_name ?? "Unassigned"}
                     </SelectItem>
                   ))}
               </SelectContent>
@@ -201,8 +222,8 @@ const CourseEnrollmentPage = () => {
               variant="outline"
               onClick={() => {
                 setEnrollDialogOpen(false);
-                setSelectedStudentId('');
-                setSelectedSectionId('');
+                setSelectedStudentId("");
+                setSelectedSectionId("");
               }}
               disabled={enrollMutation.isPending}
             >
@@ -227,7 +248,9 @@ const CourseEnrollmentPage = () => {
         open={!!unenrollTarget}
         onOpenChange={() => setUnenrollTarget(null)}
         title="Unenroll Student"
-        description={`Are you sure you want to unenroll "${unenrollTarget?.profiles?.full_name ?? 'this student'}" from the course? Their status will be set to dropped.`}
+        description={`Are you sure you want to unenroll "${
+          unenrollTarget?.profiles?.full_name ?? "this student"
+        }" from the course? Their status will be set to dropped.`}
         variant="destructive"
         confirmLabel="Unenroll"
         isPending={unenrollMutation.isPending}

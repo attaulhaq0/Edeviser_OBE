@@ -29,7 +29,7 @@ function shouldSuggestHandoff(signals: {
  * Identifies CLOs that are coverage gaps based on average RAG similarity.
  */
 function identifyCoverageGaps(
-  cloSimilarities: Array<{ clo_id: string; avgSimilarity: number }>,
+  cloSimilarities: Array<{ clo_id: string; avgSimilarity: number }>
 ): string[] {
   return cloSimilarities
     .filter((c) => c.avgSimilarity < 0.75)
@@ -54,7 +54,7 @@ describe("Property 53 — Handoff triggers on low RAG confidence", () => {
         });
         expect(result).toBe(true);
       }),
-      { numRuns: 100 },
+      { numRuns: 100 }
     );
   });
 
@@ -70,9 +70,9 @@ describe("Property 53 — Handoff triggers on low RAG confidence", () => {
             consecutiveThumbsDown: 0,
           });
           expect(result).toBe(true);
-        },
+        }
       ),
-      { numRuns: 100 },
+      { numRuns: 100 }
     );
   });
 
@@ -88,9 +88,9 @@ describe("Property 53 — Handoff triggers on low RAG confidence", () => {
             consecutiveThumbsDown: thumbsDown,
           });
           expect(result).toBe(true);
-        },
+        }
       ),
-      { numRuns: 100 },
+      { numRuns: 100 }
     );
   });
 
@@ -107,9 +107,9 @@ describe("Property 53 — Handoff triggers on low RAG confidence", () => {
             consecutiveThumbsDown: thumbsDown,
           });
           expect(result).toBe(false);
-        },
+        }
       ),
-      { numRuns: 100 },
+      { numRuns: 100 }
     );
   });
 });
@@ -134,7 +134,7 @@ describe("Property 54 — Student consent is required", () => {
         });
         expect(result.success).toBe(true);
       }),
-      { numRuns: 100 },
+      { numRuns: 100 }
     );
   });
 });
@@ -150,7 +150,7 @@ describe("Property 55 — Coverage gaps identify under-served CLOs", () => {
             clo_id: fc.uuid(),
             avgSimilarity: fc.double({ min: 0, max: 0.74, noNaN: true }),
           }),
-          { minLength: 1, maxLength: 10 },
+          { minLength: 1, maxLength: 10 }
         ),
         (clos) => {
           const gaps = identifyCoverageGaps(clos);
@@ -158,9 +158,9 @@ describe("Property 55 — Coverage gaps identify under-served CLOs", () => {
           for (const clo of clos) {
             expect(gaps).toContain(clo.clo_id);
           }
-        },
+        }
       ),
-      { numRuns: 100 },
+      { numRuns: 100 }
     );
   });
 
@@ -172,14 +172,14 @@ describe("Property 55 — Coverage gaps identify under-served CLOs", () => {
             clo_id: fc.uuid(),
             avgSimilarity: fc.double({ min: 0.75, max: 1, noNaN: true }),
           }),
-          { minLength: 1, maxLength: 10 },
+          { minLength: 1, maxLength: 10 }
         ),
         (clos) => {
           const gaps = identifyCoverageGaps(clos);
           expect(gaps.length).toBe(0);
-        },
+        }
       ),
-      { numRuns: 100 },
+      { numRuns: 100 }
     );
   });
 });

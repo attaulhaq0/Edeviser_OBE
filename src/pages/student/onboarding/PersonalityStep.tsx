@@ -1,22 +1,25 @@
-import { useState, useMemo, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Brain } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { usePersonalityQuestions } from '@/hooks/useOnboardingQuestions';
-import { useSaveResponses } from '@/hooks/useOnboardingResponses';
-import { BIG_FIVE_LABELS, DAY1_PERSONALITY_COUNT } from '@/lib/onboardingConstants';
-import type { OnboardingQuestion } from '@/hooks/useOnboardingQuestions';
-import type { WizardStepProps } from './OnboardingWizard';
+import { useState, useMemo, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Brain } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { usePersonalityQuestions } from "@/hooks/useOnboardingQuestions";
+import { useSaveResponses } from "@/hooks/useOnboardingResponses";
+import {
+  BIG_FIVE_LABELS,
+  DAY1_PERSONALITY_COUNT,
+} from "@/lib/onboardingConstants";
+import type { OnboardingQuestion } from "@/hooks/useOnboardingQuestions";
+import type { WizardStepProps } from "./OnboardingWizard";
 
 // ── Likert scale labels ──────────────────────────────────────────────
 
 const LIKERT_LABELS = [
-  'Strongly Disagree',
-  'Disagree',
-  'Neutral',
-  'Agree',
-  'Strongly Agree',
+  "Strongly Disagree",
+  "Disagree",
+  "Neutral",
+  "Agree",
+  "Strongly Agree",
 ] as const;
 
 // ── Inline LikertScale (shared component created in Task 6) ─────────
@@ -28,7 +31,11 @@ interface LikertScaleProps {
 }
 
 const LikertScale = ({ value, onChange, questionId }: LikertScaleProps) => (
-  <div className="flex flex-col gap-2" role="radiogroup" aria-label="Likert scale">
+  <div
+    className="flex flex-col gap-2"
+    role="radiogroup"
+    aria-label="Likert scale"
+  >
     {LIKERT_LABELS.map((label, idx) => {
       const optionValue = idx + 1;
       const isSelected = value === optionValue;
@@ -43,16 +50,18 @@ const LikertScale = ({ value, onChange, questionId }: LikertScaleProps) => (
           onClick={() => onChange(optionValue)}
           className={`flex items-center gap-3 rounded-lg border px-4 py-3 text-start text-sm font-medium transition-colors ${
             isSelected
-              ? 'border-blue-500 bg-blue-50 text-blue-700'
-              : 'border-slate-200 bg-white text-gray-700 hover:border-slate-300 hover:bg-slate-50'
+              ? "border-blue-500 bg-blue-50 text-blue-700"
+              : "border-slate-200 bg-white text-gray-700 hover:border-slate-300 hover:bg-slate-50"
           }`}
         >
           <span
             className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${
-              isSelected ? 'border-blue-500' : 'border-slate-300'
+              isSelected ? "border-blue-500" : "border-slate-300"
             }`}
           >
-            {isSelected && <span className="h-2.5 w-2.5 rounded-full bg-blue-500" />}
+            {isSelected && (
+              <span className="h-2.5 w-2.5 rounded-full bg-blue-500" />
+            )}
           </span>
           {label}
         </button>
@@ -61,11 +70,12 @@ const LikertScale = ({ value, onChange, questionId }: LikertScaleProps) => (
   </div>
 );
 
-
 // ── Helper: pick Day 1 subset (1 per dimension for O, C, E) ─────────
 
-const pickDay1Questions = (questions: OnboardingQuestion[]): OnboardingQuestion[] => {
-  const day1Dimensions = ['openness', 'conscientiousness', 'extraversion'];
+const pickDay1Questions = (
+  questions: OnboardingQuestion[]
+): OnboardingQuestion[] => {
+  const day1Dimensions = ["openness", "conscientiousness", "extraversion"];
   const picked: OnboardingQuestion[] = [];
   for (const dim of day1Dimensions) {
     const q = questions.find((q) => q.dimension === dim);
@@ -87,7 +97,7 @@ export const PersonalityStep = ({
 
   const questions = useMemo(
     () => (isDay1 ? pickDay1Questions(allQuestions) : allQuestions),
-    [isDay1, allQuestions],
+    [isDay1, allQuestions]
   );
 
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -96,18 +106,22 @@ export const PersonalityStep = ({
 
   const currentQuestion = questions[currentIndex];
   const totalQuestions = questions.length;
-  const currentAnswer = currentQuestion ? answers[currentQuestion.id] ?? null : null;
+  const currentAnswer = currentQuestion
+    ? answers[currentQuestion.id] ?? null
+    : null;
 
   const currentDimension = currentQuestion?.dimension
-    ? BIG_FIVE_LABELS[currentQuestion.dimension as keyof typeof BIG_FIVE_LABELS] ?? currentQuestion.dimension
-    : '';
+    ? BIG_FIVE_LABELS[
+        currentQuestion.dimension as keyof typeof BIG_FIVE_LABELS
+      ] ?? currentQuestion.dimension
+    : "";
 
   const handleSelect = useCallback(
     (value: number) => {
       if (!currentQuestion) return;
       setAnswers((prev) => ({ ...prev, [currentQuestion.id]: value }));
     },
-    [currentQuestion],
+    [currentQuestion]
   );
 
   const handleNext = useCallback(async () => {
@@ -123,14 +137,23 @@ export const PersonalityStep = ({
 
       await saveResponses.mutateAsync({
         student_id: studentId,
-        assessment_type: 'personality',
+        assessment_type: "personality",
         assessment_version: assessmentVersion,
         responses,
       });
 
       onComplete();
     }
-  }, [currentIndex, totalQuestions, questions, answers, saveResponses, studentId, assessmentVersion, onComplete]);
+  }, [
+    currentIndex,
+    totalQuestions,
+    questions,
+    answers,
+    saveResponses,
+    studentId,
+    assessmentVersion,
+    onComplete,
+  ]);
 
   const handleBack = useCallback(() => {
     if (currentIndex > 0) {
@@ -196,7 +219,7 @@ export const PersonalityStep = ({
             <LikertScale
               value={currentAnswer}
               onChange={handleSelect}
-              questionId={currentQuestion?.id ?? ''}
+              questionId={currentQuestion?.id ?? ""}
             />
           </Card>
         </motion.div>
@@ -219,9 +242,9 @@ export const PersonalityStep = ({
         >
           {currentIndex === totalQuestions - 1
             ? saveResponses.isPending
-              ? 'Saving...'
-              : 'Complete'
-            : 'Next'}
+              ? "Saving..."
+              : "Complete"
+            : "Next"}
         </Button>
       </div>
     </div>

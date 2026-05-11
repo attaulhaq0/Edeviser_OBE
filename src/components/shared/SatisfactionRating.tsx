@@ -2,10 +2,10 @@
 // SatisfactionRating — Thumbs up/down rating component for tutor messages
 // =============================================================================
 
-import { ThumbsUp, ThumbsDown } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
-import type { SatisfactionRating as SatisfactionRatingType } from '@/lib/tutorSchemas';
+import { ThumbsUp, ThumbsDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import type { SatisfactionRating as SatisfactionRatingType } from "@/lib/tutorSchemas";
 
 interface SatisfactionRatingProps {
   messageId: string;
@@ -32,19 +32,23 @@ const SatisfactionRating = ({
   };
 
   return (
-    <div className="flex items-center gap-1" role="group" aria-label="Rate this response">
+    <div
+      className="flex items-center gap-1"
+      role="group"
+      aria-label="Rate this response"
+    >
       <Button
         variant="ghost"
         size="icon-xs"
-        onClick={() => handleRate('thumbs_up')}
+        onClick={() => handleRate("thumbs_up")}
         disabled={isPending}
         aria-label="Thumbs up"
-        aria-pressed={currentRating === 'thumbs_up'}
+        aria-pressed={currentRating === "thumbs_up"}
         className={cn(
-          'transition-colors',
-          currentRating === 'thumbs_up'
-            ? 'text-green-600 bg-green-50 hover:bg-green-100'
-            : 'text-gray-400 hover:text-green-600 hover:bg-green-50'
+          "transition-colors",
+          currentRating === "thumbs_up"
+            ? "text-green-600 bg-green-50 hover:bg-green-100"
+            : "text-gray-400 hover:text-green-600 hover:bg-green-50"
         )}
       >
         <ThumbsUp className="h-3.5 w-3.5" />
@@ -52,15 +56,15 @@ const SatisfactionRating = ({
       <Button
         variant="ghost"
         size="icon-xs"
-        onClick={() => handleRate('thumbs_down')}
+        onClick={() => handleRate("thumbs_down")}
         disabled={isPending}
         aria-label="Thumbs down"
-        aria-pressed={currentRating === 'thumbs_down'}
+        aria-pressed={currentRating === "thumbs_down"}
         className={cn(
-          'transition-colors',
-          currentRating === 'thumbs_down'
-            ? 'text-red-600 bg-red-50 hover:bg-red-100'
-            : 'text-gray-400 hover:text-red-600 hover:bg-red-50'
+          "transition-colors",
+          currentRating === "thumbs_down"
+            ? "text-red-600 bg-red-50 hover:bg-red-100"
+            : "text-gray-400 hover:text-red-600 hover:bg-red-50"
         )}
       >
         <ThumbsDown className="h-3.5 w-3.5" />

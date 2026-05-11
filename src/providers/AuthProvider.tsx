@@ -23,6 +23,7 @@ import {
   loadAccessibilityPreferences,
   applyAccessibilityPreferences,
 } from "@/lib/accessibilityPreferences";
+import i18n from "@/lib/i18n";
 
 // ---------------------------------------------------------------------------
 // Role → dashboard path mapping
@@ -89,7 +90,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     async (userId: string): Promise<Profile | null> => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("*")
+        .select(
+          "id, email, full_name, role, institution_id, avatar_url, is_active, onboarding_completed, portfolio_public, theme_preference, language_preference, preferred_language, notification_preferences, last_seen_at, tos_accepted_at, tour_completed_at, status, created_at"
+        )
         .eq("id", userId)
         .maybeSingle();
 
@@ -118,6 +121,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       const userProfile = await fetchProfile(session.user.id);
       setProfile(userProfile);
+
+      // ThemeProvider handles theme_preference sync via its profilePref effect.
+      // We only need to sync language preference here.
+
+      // Hydrate language preference into i18n
+      if (userProfile?.language_preference) {
+        i18n.changeLanguage(userProfile.language_preference).catch(() => {
+          // Fire-and-forget — don't block session hydration
+        });
+      }
+
       setIsLoading(false);
     },
     [fetchProfile]

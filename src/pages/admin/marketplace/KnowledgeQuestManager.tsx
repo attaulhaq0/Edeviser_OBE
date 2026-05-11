@@ -3,20 +3,23 @@
 // Task 21.6
 // =============================================================================
 
-import { useState } from 'react';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Plus, Search, Loader2, BookOpen } from 'lucide-react';
-import { useAdminKnowledgeQuests } from '@/hooks/useKnowledgeQuestAdmin';
+import { useState } from "react";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Plus, Search, Loader2, BookOpen } from "lucide-react";
+import { useAdminKnowledgeQuests } from "@/hooks/useKnowledgeQuestAdmin";
 
 const KnowledgeQuestManager = () => {
   const { data: quests, isLoading } = useAdminKnowledgeQuests();
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
 
   const filteredQuests = (quests ?? []).filter((q) =>
-    (q as Record<string, unknown>).title?.toString().toLowerCase().includes(search.toLowerCase()),
+    (q as Record<string, unknown>).title
+      ?.toString()
+      .toLowerCase()
+      .includes(search.toLowerCase())
   );
 
   return (
@@ -55,7 +58,10 @@ const KnowledgeQuestManager = () => {
             const isUpcoming = now < startDate;
 
             return (
-              <Card key={q.id as string} className="bg-white border-0 shadow-md rounded-xl p-4">
+              <Card
+                key={q.id as string}
+                className="bg-white border-0 shadow-md rounded-xl p-4"
+              >
                 <div className="flex items-center gap-4">
                   <div className="p-2 rounded-lg bg-purple-50">
                     <BookOpen className="h-5 w-5 text-purple-600" />
@@ -66,22 +72,27 @@ const KnowledgeQuestManager = () => {
                       <Badge
                         className={
                           isActive
-                            ? 'bg-green-50 text-green-700 border-green-200'
+                            ? "bg-green-50 text-green-700 border-green-200"
                             : isUpcoming
-                              ? 'bg-blue-50 text-blue-700 border-blue-200'
-                              : 'bg-gray-50 text-gray-700 border-gray-200'
+                            ? "bg-blue-50 text-blue-700 border-blue-200"
+                            : "bg-gray-50 text-gray-700 border-gray-200"
                         }
                       >
-                        {isActive ? 'Active' : isUpcoming ? 'Upcoming' : 'Ended'}
+                        {isActive
+                          ? "Active"
+                          : isUpcoming
+                          ? "Upcoming"
+                          : "Ended"}
                       </Badge>
                     </div>
                     <p className="text-xs text-gray-500 mt-0.5 capitalize">
-                      {(q.quest_type as string).replace('_', ' ')}
+                      {(q.quest_type as string).replace("_", " ")}
                     </p>
                   </div>
                   <div className="text-end">
                     <p className="text-xs text-gray-400">
-                      {startDate.toLocaleDateString()} – {endDate.toLocaleDateString()}
+                      {startDate.toLocaleDateString()} –{" "}
+                      {endDate.toLocaleDateString()}
                     </p>
                   </div>
                 </div>

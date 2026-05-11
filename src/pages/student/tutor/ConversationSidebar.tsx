@@ -2,12 +2,12 @@
 // ConversationSidebar — Past conversations list with delete
 // =============================================================================
 
-import { useState } from 'react';
-import { Plus, Trash2, MessageSquare } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
-import { cn } from '@/lib/utils';
-import type { TutorConversation } from '@/lib/tutorSchemas';
+import { useState } from "react";
+import { Plus, Trash2, MessageSquare } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import { cn } from "@/lib/utils";
+import type { TutorConversation } from "@/lib/tutorSchemas";
 
 interface ConversationSidebarProps {
   conversations: TutorConversation[];
@@ -20,7 +20,7 @@ interface ConversationSidebarProps {
 }
 
 const truncatePreview = (text: string | null, maxLength = 60): string => {
-  if (!text) return 'New conversation';
+  if (!text) return "New conversation";
   if (text.length <= maxLength) return text;
   return `${text.slice(0, maxLength)}…`;
 };
@@ -33,11 +33,11 @@ const formatRelativeTime = (dateStr: string): string => {
   const diffHours = Math.floor(diffMs / 3_600_000);
   const diffDays = Math.floor(diffMs / 86_400_000);
 
-  if (diffMins < 1) return 'Just now';
+  if (diffMins < 1) return "Just now";
   if (diffMins < 60) return `${diffMins}m ago`;
   if (diffHours < 24) return `${diffHours}h ago`;
   if (diffDays < 7) return `${diffDays}d ago`;
-  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 };
 
 const ConversationSidebar = ({
@@ -72,7 +72,11 @@ const ConversationSidebar = ({
       </div>
 
       {/* Conversation list */}
-      <div className="flex-1 overflow-y-auto" role="list" aria-label="Past conversations">
+      <div
+        className="flex-1 overflow-y-auto"
+        role="list"
+        aria-label="Past conversations"
+      >
         {isLoading ? (
           <div className="p-4 space-y-3">
             {Array.from({ length: 4 }).map((_, i) => (
@@ -83,7 +87,9 @@ const ConversationSidebar = ({
           <div className="p-6 text-center">
             <MessageSquare className="h-8 w-8 text-gray-300 mx-auto mb-2" />
             <p className="text-sm text-gray-500">No conversations yet</p>
-            <p className="text-xs text-gray-400 mt-1">Start a new conversation to get help</p>
+            <p className="text-xs text-gray-400 mt-1">
+              Start a new conversation to get help
+            </p>
           </div>
         ) : (
           <div className="p-2 space-y-0.5">
@@ -94,18 +100,20 @@ const ConversationSidebar = ({
                 <button
                   key={conversation.id}
                   className={cn(
-                    'group flex items-start gap-2 rounded-lg px-3 py-2.5 cursor-pointer transition-colors w-full text-start',
+                    "group flex items-start gap-2 rounded-lg px-3 py-2.5 cursor-pointer transition-colors w-full text-start",
                     isActive
-                      ? 'bg-blue-50 text-blue-700'
-                      : 'text-gray-700 hover:bg-gray-50'
+                      ? "bg-blue-50 text-blue-700"
+                      : "text-gray-700 hover:bg-gray-50"
                   )}
                   onClick={() => onSelectConversation(conversation.id)}
-                  aria-label={`Conversation: ${truncatePreview(conversation.title)}`}
+                  aria-label={`Conversation: ${truncatePreview(
+                    conversation.title
+                  )}`}
                 >
                   <MessageSquare
                     className={cn(
-                      'h-4 w-4 mt-0.5 shrink-0',
-                      isActive ? 'text-blue-500' : 'text-gray-400'
+                      "h-4 w-4 mt-0.5 shrink-0",
+                      isActive ? "text-blue-500" : "text-gray-400"
                     )}
                   />
                   <div className="flex-1 min-w-0">
@@ -118,7 +126,8 @@ const ConversationSidebar = ({
                       </span>
                       {conversation.message_count > 0 && (
                         <span className="text-[10px] text-gray-400">
-                          · {conversation.message_count} msg{conversation.message_count !== 1 ? 's' : ''}
+                          · {conversation.message_count} msg
+                          {conversation.message_count !== 1 ? "s" : ""}
                         </span>
                       )}
                     </div>

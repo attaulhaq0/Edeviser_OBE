@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 /**
  * Validates required VITE_ environment variables at app startup.
@@ -7,10 +7,12 @@ import { z } from 'zod';
 const envSchema = z.object({
   VITE_SUPABASE_URL: z
     .string()
-    .url('VITE_SUPABASE_URL must be a valid URL (e.g. https://your-project.supabase.co)'),
+    .url(
+      "VITE_SUPABASE_URL must be a valid URL (e.g. https://your-project.supabase.co)"
+    ),
   VITE_SUPABASE_ANON_KEY: z
     .string()
-    .min(1, 'VITE_SUPABASE_ANON_KEY is required'),
+    .min(1, "VITE_SUPABASE_ANON_KEY is required"),
   VITE_SENTRY_DSN: z.string().optional(),
 });
 
@@ -25,8 +27,8 @@ export function validateEnv(): AppEnv {
 
   if (!result.success) {
     const missing = result.error.issues
-      .map((i) => `  • ${i.path.join('.')}: ${i.message}`)
-      .join('\n');
+      .map((i) => `  • ${i.path.join(".")}: ${i.message}`)
+      .join("\n");
     const msg = `[Edeviser] Missing or invalid environment variables:\n${missing}\n\nCopy .env.example to .env.local and fill in the values.`;
     console.error(msg);
     throw new Error(msg);

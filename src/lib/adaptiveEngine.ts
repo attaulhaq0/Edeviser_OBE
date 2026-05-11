@@ -1,10 +1,10 @@
 // ─── Adaptive Engine ─────────────────────────────────────────────────────────
 // Client-side ability estimation and difficulty targeting for adaptive quizzes.
 
-import type { AttainmentThresholdsConfig } from '@/types/app';
-import { DEFAULT_ATTAINMENT_THRESHOLDS } from '@/types/app';
+import type { AttainmentThresholdsConfig } from "@/types/app";
+import { DEFAULT_ATTAINMENT_THRESHOLDS } from "@/types/app";
 
-export type AbilityLevel = 'high' | 'medium' | 'low';
+export type AbilityLevel = "high" | "medium" | "low";
 
 /**
  * Maps CLO attainment percentage to ability level using configurable thresholds.
@@ -12,11 +12,11 @@ export type AbilityLevel = 'high' | 'medium' | 'low';
  */
 export function classifyAbility(
   attainmentPercent: number,
-  thresholds: AttainmentThresholdsConfig = DEFAULT_ATTAINMENT_THRESHOLDS,
+  thresholds: AttainmentThresholdsConfig = DEFAULT_ATTAINMENT_THRESHOLDS
 ): AbilityLevel {
-  if (attainmentPercent >= thresholds.excellent) return 'high';
-  if (attainmentPercent >= thresholds.developing) return 'medium';
-  return 'low';
+  if (attainmentPercent >= thresholds.excellent) return "high";
+  if (attainmentPercent >= thresholds.developing) return "medium";
+  return "low";
 }
 
 /**
@@ -25,9 +25,12 @@ export function classifyAbility(
  */
 export function abilityToTargetDifficulty(ability: AbilityLevel): number {
   switch (ability) {
-    case 'high': return 3.5;
-    case 'medium': return 2.5;
-    case 'low': return 1.5;
+    case "high":
+      return 3.5;
+    case "medium":
+      return 2.5;
+    case "low":
+      return 1.5;
   }
 }
 
@@ -40,7 +43,7 @@ export function adjustDifficulty(
   current: number,
   wasCorrect: boolean,
   stepUp = 0.3,
-  stepDown = 0.5,
+  stepDown = 0.5
 ): number {
   if (wasCorrect) return Math.min(5.0, current + stepUp);
   return Math.max(1.0, current - stepDown);
@@ -54,8 +57,11 @@ export function adjustDifficulty(
  */
 export function preferredBloomLevels(ability: AbilityLevel): number[] {
   switch (ability) {
-    case 'high': return [4, 5, 6];
-    case 'medium': return [2, 3, 4];
-    case 'low': return [1, 2];
+    case "high":
+      return [4, 5, 6];
+    case "medium":
+      return [2, 3, 4];
+    case "low":
+      return [1, 2];
   }
 }

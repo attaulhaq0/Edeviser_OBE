@@ -7,6 +7,9 @@ export {
   useBadgeSpotlight as useBadgeSpotlightQuery,
   useBadgeSpotlightSchedule,
   useUpdateBadgeSpotlightSchedule,
-} from '@/hooks/useTieredBadges';
+} from "@/hooks/useTieredBadges";
 
-export type { SpotlightData, SpotlightScheduleEntry } from '@/hooks/useTieredBadges';
+export type {
+  SpotlightData,
+  SpotlightScheduleEntry,
+} from "@/hooks/useTieredBadges";

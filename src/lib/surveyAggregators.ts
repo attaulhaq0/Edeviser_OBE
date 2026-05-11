@@ -1,7 +1,13 @@
 // Shared survey aggregation helpers used by SurveyResultsPage and tests
 // Extracted to avoid logic duplication between production and test code.
 
-export const LIKERT_LABELS = ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree'] as const;
+export const LIKERT_LABELS = [
+  "Strongly Disagree",
+  "Disagree",
+  "Neutral",
+  "Agree",
+  "Strongly Agree",
+] as const;
 
 export interface LikertAggregation {
   label: string;
@@ -18,7 +24,10 @@ export interface AggregableResponse {
   response_value: string;
 }
 
-export function aggregateLikert(responses: AggregableResponse[], questionId: string): LikertAggregation[] {
+export function aggregateLikert(
+  responses: AggregableResponse[],
+  questionId: string
+): LikertAggregation[] {
   const counts = new Map<string, number>();
   for (const label of LIKERT_LABELS) counts.set(label, 0);
 
@@ -28,10 +37,16 @@ export function aggregateLikert(responses: AggregableResponse[], questionId: str
     }
   }
 
-  return LIKERT_LABELS.map((label) => ({ label, count: counts.get(label) ?? 0 }));
+  return LIKERT_LABELS.map((label) => ({
+    label,
+    count: counts.get(label) ?? 0,
+  }));
 }
 
-export function aggregateMCQ(responses: AggregableResponse[], questionId: string): MCQAggregation[] {
+export function aggregateMCQ(
+  responses: AggregableResponse[],
+  questionId: string
+): MCQAggregation[] {
   const counts: Record<string, number> = {};
 
   for (const r of responses) {

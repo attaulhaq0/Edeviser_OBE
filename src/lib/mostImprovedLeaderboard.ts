@@ -21,7 +21,7 @@ export interface MostImprovedEntry {
  */
 export function calculateImprovement(
   current4WeekXP: number,
-  previous4WeekXP: number,
+  previous4WeekXP: number
 ): number | null {
   if (previous4WeekXP <= 0) return null;
   return ((current4WeekXP - previous4WeekXP) / previous4WeekXP) * 100;
@@ -37,11 +37,14 @@ export function rankMostImproved(
     student_name: string;
     current_4_week_xp: number;
     previous_4_week_xp: number;
-  }>,
+  }>
 ): MostImprovedEntry[] {
   return entries
     .map((e) => {
-      const improvement = calculateImprovement(e.current_4_week_xp, e.previous_4_week_xp);
+      const improvement = calculateImprovement(
+        e.current_4_week_xp,
+        e.previous_4_week_xp
+      );
       if (improvement === null) return null;
       return {
         ...e,

@@ -1,27 +1,24 @@
-import { useState } from 'react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
+import { useState } from "react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import Shimmer from '@/components/shared/Shimmer';
-import { usePrograms } from '@/hooks/usePrograms';
-import { useProgramAccreditations } from '@/hooks/useInstitutionSettings';
-import { useGenerateReport, type ReportTemplate } from '@/hooks/useAccreditationReport';
-import { toast } from 'sonner';
+} from "@/components/ui/select";
+import Shimmer from "@/components/shared/Shimmer";
+import { usePrograms } from "@/hooks/usePrograms";
+import { useProgramAccreditations } from "@/hooks/useInstitutionSettings";
 import {
-  FileText,
-  Download,
-  Mail,
-  Loader2,
-  CheckCircle2,
-} from 'lucide-react';
+  useGenerateReport,
+  type ReportTemplate,
+} from "@/hooks/useAccreditationReport";
+import { toast } from "sonner";
+import { FileText, Download, Mail, Loader2, CheckCircle2 } from "lucide-react";
 
 // ─── Semester stub (uses programs query for now) ────────────────────────────
 
@@ -37,33 +34,51 @@ const useSemesters = () => {
 
 // ─── Template options ───────────────────────────────────────────────────────
 
-const TEMPLATE_OPTIONS: Array<{ value: ReportTemplate; label: string; description: string }> = [
-  { value: 'ABET', label: 'ABET', description: 'Accreditation Board for Engineering and Technology' },
-  { value: 'HEC', label: 'HEC', description: 'Higher Education Commission (Pakistan)' },
-  { value: 'Generic', label: 'Generic', description: 'General accreditation report format' },
+const TEMPLATE_OPTIONS: Array<{
+  value: ReportTemplate;
+  label: string;
+  description: string;
+}> = [
+  {
+    value: "ABET",
+    label: "ABET",
+    description: "Accreditation Board for Engineering and Technology",
+  },
+  {
+    value: "HEC",
+    label: "HEC",
+    description: "Higher Education Commission (Pakistan)",
+  },
+  {
+    value: "Generic",
+    label: "Generic",
+    description: "General accreditation report format",
+  },
 ];
 
 /** PLO naming conventions per accreditation body */
 const PLO_NAMING: Record<string, string> = {
-  ABET: 'Student Outcomes',
-  HEC: 'PLOs',
-  QQA: 'Programme Learning Outcomes',
-  NCAAA: 'Programme Learning Outcomes',
-  AACSB: 'Learning Goals',
-  Generic: 'PLOs',
+  ABET: "Student Outcomes",
+  HEC: "PLOs",
+  QQA: "Programme Learning Outcomes",
+  NCAAA: "Programme Learning Outcomes",
+  AACSB: "Learning Goals",
+  Generic: "PLOs",
 };
 
 // ─── Report Generator Page ──────────────────────────────────────────────────
 
 const ReportGeneratorPage = () => {
-  const { data: programsResult, isLoading: programsLoading } = usePrograms({ pageSize: 100 });
+  const { data: programsResult, isLoading: programsLoading } = usePrograms({
+    pageSize: 100,
+  });
   const { data: semesters, isLoading: semestersLoading } = useSemesters();
   const generateMutation = useGenerateReport();
 
-  const [programId, setProgramId] = useState('');
-  const [semesterId, setSemesterId] = useState('');
-  const [template, setTemplate] = useState<ReportTemplate>('Generic');
-  const [emailTo, setEmailTo] = useState('');
+  const [programId, setProgramId] = useState("");
+  const [semesterId, setSemesterId] = useState("");
+  const [template, setTemplate] = useState<ReportTemplate>("Generic");
+  const [emailTo, setEmailTo] = useState("");
   const [lastResult, setLastResult] = useState<{
     download_url: string;
     file_name: string;
@@ -77,7 +92,9 @@ const ReportGeneratorPage = () => {
   const programs = programsResult?.data ?? [];
 
   // Fetch accreditations for the selected program to enable body-specific reports
-  const { data: programAccreditations } = useProgramAccreditations(programId || undefined);
+  const { data: programAccreditations } = useProgramAccreditations(
+    programId || undefined
+  );
 
   // Auto-select template based on program's accreditation body
   const handleProgramChange = (id: string) => {
@@ -85,17 +102,17 @@ const ReportGeneratorPage = () => {
     // If the program has accreditations, suggest the first body's template
     if (programAccreditations && programAccreditations.length > 0) {
       const first = programAccreditations[0];
-      if (first && ['ABET', 'HEC'].includes(first.accreditation_body)) {
+      if (first && ["ABET", "HEC"].includes(first.accreditation_body)) {
         setTemplate(first.accreditation_body as ReportTemplate);
       }
     }
   };
 
-  const ploLabel = PLO_NAMING[template] ?? 'PLOs';
+  const ploLabel = PLO_NAMING[template] ?? "PLOs";
 
   const handleGenerate = () => {
     if (!programId) {
-      toast.error('Please select a program');
+      toast.error("Please select a program");
       return;
     }
 
@@ -111,21 +128,23 @@ const ReportGeneratorPage = () => {
       {
         onSuccess: (result) => {
           setLastResult(result);
-          toast.success('Report generated successfully');
+          toast.success("Report generated successfully");
           if (emailTo) {
             toast.success(`Report link sent to ${emailTo}`);
           }
         },
         onError: (err) => {
-          toast.error(err instanceof Error ? err.message : 'Report generation failed');
+          toast.error(
+            err instanceof Error ? err.message : "Report generation failed"
+          );
         },
-      },
+      }
     );
   };
 
   const handleDownload = () => {
     if (lastResult?.download_url) {
-      window.open(lastResult.download_url, '_blank');
+      window.open(lastResult.download_url, "_blank");
     }
   };
 
@@ -134,17 +153,24 @@ const ReportGeneratorPage = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Accreditation Reports</h1>
+        <h1 className="text-2xl font-bold tracking-tight">
+          Accreditation Reports
+        </h1>
       </div>
 
       {/* Report Configuration Card */}
       <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
         <div
           className="px-6 py-4 flex items-center gap-2"
-          style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+          style={{
+            background:
+              "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+          }}
         >
           <FileText className="h-5 w-5 text-white" />
-          <h2 className="text-lg font-bold tracking-tight text-white">Generate Report</h2>
+          <h2 className="text-lg font-bold tracking-tight text-white">
+            Generate Report
+          </h2>
         </div>
         <div className="p-6 space-y-6">
           {isLoading ? (
@@ -198,7 +224,10 @@ const ReportGeneratorPage = () => {
               {/* Template Selector */}
               <div className="space-y-2">
                 <Label htmlFor="template-select">Report Template</Label>
-                <Select value={template} onValueChange={(v) => setTemplate(v as ReportTemplate)}>
+                <Select
+                  value={template}
+                  onValueChange={(v) => setTemplate(v as ReportTemplate)}
+                >
                   <SelectTrigger id="template-select" className="bg-white">
                     <SelectValue />
                   </SelectTrigger>
@@ -206,15 +235,20 @@ const ReportGeneratorPage = () => {
                     {TEMPLATE_OPTIONS.map((t) => (
                       <SelectItem key={t.value} value={t.value}>
                         <span className="font-medium">{t.label}</span>
-                        <span className="text-xs text-gray-500 ms-2">— {t.description}</span>
+                        <span className="text-xs text-gray-500 ms-2">
+                          — {t.description}
+                        </span>
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
                 {programAccreditations && programAccreditations.length > 0 && (
                   <p className="text-xs text-gray-500">
-                    This program has accreditations: {programAccreditations.map((a) => a.accreditation_body).join(', ')}.
-                    {' '}Using &quot;{ploLabel}&quot; naming convention.
+                    This program has accreditations:{" "}
+                    {programAccreditations
+                      .map((a) => a.accreditation_body)
+                      .join(", ")}
+                    . Using &quot;{ploLabel}&quot; naming convention.
                   </p>
                 )}
               </div>
@@ -248,7 +282,9 @@ const ReportGeneratorPage = () => {
                 ) : (
                   <FileText className="h-4 w-4" />
                 )}
-                {generateMutation.isPending ? 'Generating...' : 'Generate Report'}
+                {generateMutation.isPending
+                  ? "Generating..."
+                  : "Generate Report"}
               </Button>
             </>
           )}
@@ -260,10 +296,15 @@ const ReportGeneratorPage = () => {
         <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
           <div
             className="px-6 py-4 flex items-center gap-2"
-            style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+            style={{
+              background:
+                "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+            }}
           >
             <CheckCircle2 className="h-5 w-5 text-white" />
-            <h2 className="text-lg font-bold tracking-tight text-white">Report Ready</h2>
+            <h2 className="text-lg font-bold tracking-tight text-white">
+              Report Ready
+            </h2>
           </div>
           <div className="p-6 space-y-4">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
@@ -281,7 +322,7 @@ const ReportGeneratorPage = () => {
               </div>
               <div>
                 <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
-                  {PLO_NAMING[lastResult.template] ?? 'PLOs'}
+                  {PLO_NAMING[lastResult.template] ?? "PLOs"}
                 </p>
                 <p className="font-semibold mt-1">{lastResult.plo_count}</p>
               </div>

@@ -1,7 +1,7 @@
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import type { ComebackChallengeStatus } from '@/types/habits';
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import type { ComebackChallengeStatus } from "@/types/habits";
 
 /**
  * Fetches the active Comeback Challenge status for a student from
@@ -10,7 +10,11 @@ import type { ComebackChallengeStatus } from '@/types/habits';
  */
 export const useComebackChallengeStatus = (studentId: string | undefined) => {
   return useQuery({
-    queryKey: [...queryKeys.studentGamification.all, 'comebackChallenge', studentId ?? ''],
+    queryKey: [
+      ...queryKeys.studentGamification.all,
+      "comebackChallenge",
+      studentId ?? "",
+    ],
     enabled: !!studentId,
     queryFn: async (): Promise<ComebackChallengeStatus> => {
       if (!studentId) {
@@ -19,25 +23,36 @@ export const useComebackChallengeStatus = (studentId: string | undefined) => {
 
       try {
         const { data, error } = await supabase
-          .from('student_gamification')
-          .select('comeback_challenge_active, comeback_challenge_days_completed, comeback_challenge_start_date' as never)
-          .eq('student_id', studentId)
+          .from("student_gamification")
+          .select(
+            "comeback_challenge_active, comeback_challenge_days_completed, comeback_challenge_start_date" as never
+          )
+          .eq("student_id", studentId)
           .maybeSingle();
 
         if (error) throw error;
 
         if (!data) {
-          return { active: false, currentDay: 0, totalDays: 3, startDate: null };
+          return {
+            active: false,
+            currentDay: 0,
+            totalDays: 3,
+            startDate: null,
+          };
         }
 
         const row = data as unknown as Record<string, unknown>;
         return {
           active: row.comeback_challenge_active === true,
-          currentDay: typeof row.comeback_challenge_days_completed === 'number' ? row.comeback_challenge_days_completed : 0,
+          currentDay:
+            typeof row.comeback_challenge_days_completed === "number"
+              ? row.comeback_challenge_days_completed
+              : 0,
           totalDays: 3,
-          startDate: typeof row.comeback_challenge_start_date === 'string'
-            ? row.comeback_challenge_start_date
-            : null,
+          startDate:
+            typeof row.comeback_challenge_start_date === "string"
+              ? row.comeback_challenge_start_date
+              : null,
         };
       } catch {
         // Table columns may not exist yet — return inactive

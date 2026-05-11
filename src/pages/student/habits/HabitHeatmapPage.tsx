@@ -1,34 +1,60 @@
-import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { parseAsString, useQueryState } from 'nuqs';
-import { BarChart3, Settings2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import ErrorBoundary from '@/components/shared/ErrorBoundary';
-import HeatmapSummaryStats from '@/components/shared/HeatmapSummaryStats';
-import HeatmapFilters from '@/components/shared/HeatmapFilters';
-import HeatmapGrid from '@/components/shared/HeatmapGrid';
-import HeatmapTooltip from '@/components/shared/HeatmapTooltip';
-import HabitMobileBottomSheet from '@/components/shared/HabitMobileBottomSheet';
-import WellnessHabitLogger from '@/components/shared/WellnessHabitLogger';
-import WellnessTipCard from '@/components/shared/WellnessTipCard';
-import WellnessSettingsPanel from '@/components/shared/WellnessSettingsPanel';
-import Shimmer from '@/components/shared/Shimmer';
-import { useAuth } from '@/hooks/useAuth';
-import { useHeatmapData, useHeatmapSummary } from '@/hooks/useHeatmapData';
-import { useWellnessPreferences, useUpdateWellnessPreferences } from '@/hooks/useWellnessPreferences';
-import { useWellnessHabitLogs, useLogWellnessHabit } from '@/hooks/useWellnessHabits';
-import { useSemesterRange } from '@/hooks/useSemesterRange';
-import { useCurrentTip, useDismissOnboardingTip } from '@/hooks/useWellnessTips';
-import { useWellnessReminders, useUpdateWellnessReminder } from '@/hooks/useWellnessReminders';
-import { useWellnessGoals, useDailyProgress, useUpdateWellnessGoal } from '@/hooks/useWellnessGoals';
-import type { DateRange, WellnessHabitType, WellnessTarget } from '@/types/habits';
+import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import { parseAsString, useQueryState } from "nuqs";
+import { BarChart3, Settings2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import ErrorBoundary from "@/components/shared/ErrorBoundary";
+import HeatmapSummaryStats from "@/components/shared/HeatmapSummaryStats";
+import HeatmapFilters from "@/components/shared/HeatmapFilters";
+import HeatmapGrid from "@/components/shared/HeatmapGrid";
+import HeatmapTooltip from "@/components/shared/HeatmapTooltip";
+import HabitMobileBottomSheet from "@/components/shared/HabitMobileBottomSheet";
+import WellnessHabitLogger from "@/components/shared/WellnessHabitLogger";
+import WellnessTipCard from "@/components/shared/WellnessTipCard";
+import WellnessSettingsPanel from "@/components/shared/WellnessSettingsPanel";
+import Shimmer from "@/components/shared/Shimmer";
+import { useAuth } from "@/hooks/useAuth";
+import { useHeatmapData, useHeatmapSummary } from "@/hooks/useHeatmapData";
+import {
+  useWellnessPreferences,
+  useUpdateWellnessPreferences,
+} from "@/hooks/useWellnessPreferences";
+import {
+  useWellnessHabitLogs,
+  useLogWellnessHabit,
+} from "@/hooks/useWellnessHabits";
+import { useSemesterRange } from "@/hooks/useSemesterRange";
+import {
+  useCurrentTip,
+  useDismissOnboardingTip,
+} from "@/hooks/useWellnessTips";
+import {
+  useWellnessReminders,
+  useUpdateWellnessReminder,
+} from "@/hooks/useWellnessReminders";
+import {
+  useWellnessGoals,
+  useDailyProgress,
+  useUpdateWellnessGoal,
+} from "@/hooks/useWellnessGoals";
+import type {
+  DateRange,
+  WellnessHabitType,
+  WellnessTarget,
+} from "@/types/habits";
 
 // ---------------------------------------------------------------------------
 // Wellness Tip Display (per-habit)
 // ---------------------------------------------------------------------------
 
-const WellnessHabitTip = ({ habitType, studentId }: { habitType: WellnessHabitType; studentId: string }) => {
+const WellnessHabitTip = ({
+  habitType,
+  studentId,
+}: {
+  habitType: WellnessHabitType;
+  studentId: string;
+}) => {
   const { tip, isOnboarding } = useCurrentTip(habitType, studentId);
   const dismissMutation = useDismissOnboardingTip();
 
@@ -56,10 +82,11 @@ const HabitHeatmapContent = () => {
   const studentId = user?.id;
 
   // Semester range resolution
-  const { data: semesterRange, isLoading: semesterLoading } = useSemesterRange(studentId);
+  const { data: semesterRange, isLoading: semesterLoading } =
+    useSemesterRange(studentId);
 
   // URL-persisted filter
-  const [filter] = useQueryState('habit', parseAsString.withDefault('all'));
+  const [filter] = useQueryState("habit", parseAsString.withDefault("all"));
 
   // Settings panel toggle
   const [showSettings, setShowSettings] = useState(false);
@@ -67,13 +94,26 @@ const HabitHeatmapContent = () => {
   // Today's date for wellness logging
   const today = useMemo(() => {
     const d = new Date();
-    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    return (
+      d.getFullYear() +
+      "-" +
+      String(d.getMonth() + 1).padStart(2, "0") +
+      "-" +
+      String(d.getDate()).padStart(2, "0")
+    );
   }, []);
 
   // Data hooks
-  const resolvedRange: DateRange = semesterRange ?? { start: '', end: '' };
-  const { data: heatmapData, isLoading: heatmapLoading } = useHeatmapData(studentId, resolvedRange, filter);
-  const { data: summary, isLoading: summaryLoading } = useHeatmapSummary(studentId, heatmapData);
+  const resolvedRange: DateRange = semesterRange ?? { start: "", end: "" };
+  const { data: heatmapData, isLoading: heatmapLoading } = useHeatmapData(
+    studentId,
+    resolvedRange,
+    filter
+  );
+  const { data: summary, isLoading: summaryLoading } = useHeatmapSummary(
+    studentId,
+    heatmapData
+  );
   const { data: preferences } = useWellnessPreferences(studentId);
   const { data: todayLogs } = useWellnessHabitLogs(studentId, today);
   const updatePreferences = useUpdateWellnessPreferences();
@@ -95,12 +135,12 @@ const HabitHeatmapContent = () => {
 
   const hoveredDay = useMemo(
     () => heatmapData?.find((d) => d.date === hoveredDate) ?? null,
-    [heatmapData, hoveredDate],
+    [heatmapData, hoveredDate]
   );
 
   const selectedDay = useMemo(
     () => heatmapData?.find((d) => d.date === selectedDate) ?? null,
-    [heatmapData, selectedDate],
+    [heatmapData, selectedDate]
   );
 
   // Handlers
@@ -109,29 +149,48 @@ const HabitHeatmapContent = () => {
     const next = enabled
       ? [...enabledHabits, type]
       : enabledHabits.filter((h) => h !== type);
-    updatePreferences.mutate({ studentId, enabledHabits: next, parentVisibility });
+    updatePreferences.mutate({
+      studentId,
+      enabledHabits: next,
+      parentVisibility,
+    });
   };
 
   const handleToggleParentVisibility = (visible: boolean) => {
     if (!studentId) return;
-    updatePreferences.mutate({ studentId, enabledHabits, parentVisibility: visible });
+    updatePreferences.mutate({
+      studentId,
+      enabledHabits,
+      parentVisibility: visible,
+    });
   };
 
   const handleLogWellness = (type: WellnessHabitType, value?: number) => {
     if (!studentId) return;
-    logWellnessHabit.mutate({ studentId, wellnessType: type, value: value ?? null, date: today });
+    logWellnessHabit.mutate({
+      studentId,
+      wellnessType: type,
+      value: value ?? null,
+      date: today,
+    });
   };
 
-  const handleReminderToggle = (habitType: WellnessHabitType, enabled: boolean) => {
+  const handleReminderToggle = (
+    habitType: WellnessHabitType,
+    enabled: boolean
+  ) => {
     if (!studentId) return;
     updateReminder.mutate({
       studentId,
       habitType,
-      reminderTime: enabled ? '09:00' : null,
+      reminderTime: enabled ? "09:00" : null,
     });
   };
 
-  const handleReminderTimeChange = (habitType: WellnessHabitType, time: string) => {
+  const handleReminderTimeChange = (
+    habitType: WellnessHabitType,
+    time: string
+  ) => {
     if (!studentId) return;
     updateReminder.mutate({ studentId, habitType, reminderTime: time || null });
   };
@@ -214,7 +273,7 @@ const HabitHeatmapContent = () => {
 
       {/* Mobile Bottom Sheet */}
       <HabitMobileBottomSheet
-        date={selectedDay?.date ?? ''}
+        date={selectedDay?.date ?? ""}
         habits={selectedDay?.habits ?? []}
         xpEarned={0}
         streakActive={selectedDay ? selectedDay.academicCount > 0 : false}
@@ -226,9 +285,10 @@ const HabitHeatmapContent = () => {
       {enabledHabits.length > 0 && (
         <div className="space-y-3">
           {/* Wellness Tips */}
-          {studentId && enabledHabits.map((ht) => (
-            <WellnessHabitTip key={ht} habitType={ht} studentId={studentId} />
-          ))}
+          {studentId &&
+            enabledHabits.map((ht) => (
+              <WellnessHabitTip key={ht} habitType={ht} studentId={studentId} />
+            ))}
 
           <WellnessHabitLogger
             enabledHabits={enabledHabits}

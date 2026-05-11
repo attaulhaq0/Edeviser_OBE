@@ -1,9 +1,9 @@
-import { useMutation } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
+import { useMutation } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
-export type ReportTemplate = 'ABET' | 'HEC' | 'Generic';
+export type ReportTemplate = "ABET" | "HEC" | "Generic";
 
 export interface GenerateReportInput {
   program_id: string;
@@ -28,17 +28,21 @@ export interface GenerateReportResult {
 
 export const useGenerateReport = () => {
   return useMutation({
-    mutationFn: async (input: GenerateReportInput): Promise<GenerateReportResult> => {
+    mutationFn: async (
+      input: GenerateReportInput
+    ): Promise<GenerateReportResult> => {
       const { data, error } = await supabase.functions.invoke(
-        'generate-accreditation-report',
-        { body: input },
+        "generate-accreditation-report",
+        { body: input }
       );
 
       if (error) throw error;
 
       const result = data as GenerateReportResult;
       if (!result?.success) {
-        throw new Error((data as { error?: string })?.error ?? 'Report generation failed');
+        throw new Error(
+          (data as { error?: string })?.error ?? "Report generation failed"
+        );
       }
 
       return result;

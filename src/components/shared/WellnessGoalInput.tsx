@@ -1,17 +1,17 @@
-import { useState } from 'react';
-import { Target, Check } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { cn } from '@/lib/utils';
-import { WELLNESS_UNITS } from '@/lib/wellnessTips';
-import type { WellnessHabitType, WellnessTarget } from '@/types/habits';
+import { useState } from "react";
+import { Target, Check } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
+import { WELLNESS_UNITS } from "@/lib/wellnessTips";
+import type { WellnessHabitType, WellnessTarget } from "@/types/habits";
 
 const HABIT_LABELS: Record<WellnessHabitType, string> = {
-  meditation: 'Meditation',
-  hydration: 'Hydration',
-  exercise: 'Exercise',
-  sleep: 'Sleep',
+  meditation: "Meditation",
+  hydration: "Hydration",
+  exercise: "Exercise",
+  sleep: "Sleep",
 };
 
 export interface WellnessGoalInputProps {
@@ -31,7 +31,7 @@ const WellnessGoalInput = ({
 }: WellnessGoalInputProps) => {
   const unit = target?.unit ?? WELLNESS_UNITS[habitType];
   const [editValue, setEditValue] = useState<string>(
-    target?.targetValue?.toString() ?? '',
+    target?.targetValue?.toString() ?? ""
   );
   const [isEditing, setIsEditing] = useState(!target);
 
@@ -115,10 +115,10 @@ const WellnessGoalInput = ({
           >
             <div
               className={cn(
-                'h-full rounded-full transition-all duration-300',
+                "h-full rounded-full transition-all duration-300",
                 targetMet
-                  ? 'bg-gradient-to-r from-green-400 to-green-500'
-                  : 'bg-gradient-to-r from-teal-400 to-blue-500',
+                  ? "bg-gradient-to-r from-green-400 to-green-500"
+                  : "bg-gradient-to-r from-teal-400 to-blue-500"
               )}
               style={{ width: `${Math.min(progress, 100)}%` }}
             />

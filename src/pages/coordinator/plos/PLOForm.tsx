@@ -1,17 +1,17 @@
-import { useEffect, useState, useMemo } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useNavigate, useParams } from 'react-router-dom';
-import { createPLOSchema, type CreatePLOFormData } from '@/lib/schemas/plo';
+import { useEffect, useState, useMemo } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useNavigate, useParams } from "react-router-dom";
+import { createPLOSchema, type CreatePLOFormData } from "@/lib/schemas/plo";
 import {
   useCreatePLO,
   useUpdatePLO,
   usePLO,
   usePLOMappings,
   useUpdatePLOMappings,
-} from '@/hooks/usePLOs';
-import { useILOs } from '@/hooks/useILOs';
-import { usePrograms } from '@/hooks/usePrograms';
+} from "@/hooks/usePLOs";
+import { useILOs } from "@/hooks/useILOs";
+import { usePrograms } from "@/hooks/usePrograms";
 import {
   Form,
   FormField,
@@ -19,23 +19,23 @@ import {
   FormLabel,
   FormControl,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Loader2, Link2, AlertTriangle } from 'lucide-react';
-import { toast } from 'sonner';
-import { useTranslation } from 'react-i18next';
-import type { LearningOutcome } from '@/types/app';
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { ArrowLeft, Loader2, Link2, AlertTriangle } from "lucide-react";
+import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
+import type { LearningOutcome } from "@/types/app";
 
 // ─── ILO Mapping types ──────────────────────────────────────────────────────
 
@@ -49,25 +49,26 @@ interface ILOMappingEntry {
 
 const CreatePLODetailsForm = () => {
   const navigate = useNavigate();
-  const { t } = useTranslation('coordinator');
+  const { t } = useTranslation("coordinator");
   const createMutation = useCreatePLO();
-  const { data: paginatedPrograms, isLoading: isLoadingPrograms } = usePrograms();
+  const { data: paginatedPrograms, isLoading: isLoadingPrograms } =
+    usePrograms();
   const programs = paginatedPrograms?.data ?? [];
 
   const form = useForm<CreatePLOFormData>({
     resolver: zodResolver(createPLOSchema),
     defaultValues: {
-      title: '',
-      title_ar: '',
-      description: '',
-      program_id: '' as `${string}-${string}-${string}-${string}-${string}`,
+      title: "",
+      title_ar: "",
+      description: "",
+      program_id: "" as `${string}-${string}-${string}-${string}-${string}`,
     },
   });
 
   const onSubmit = (data: CreatePLOFormData) => {
     createMutation.mutate(data, {
       onSuccess: (plo) => {
-        toast.success('PLO created successfully');
+        toast.success("PLO created successfully");
         // Navigate to edit page so user can add ILO mappings
         navigate(`/coordinator/plos/${plo.id}/edit`);
       },
@@ -103,14 +104,14 @@ const CreatePLODetailsForm = () => {
             name="title_ar"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('bilingual.arabicTitle')}</FormLabel>
+                <FormLabel>{t("bilingual.arabicTitle")}</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder={t('bilingual.arabicTitlePlaceholder')}
+                    placeholder={t("bilingual.arabicTitlePlaceholder")}
                     dir="rtl"
                     maxLength={255}
                     {...field}
-                    value={field.value ?? ''}
+                    value={field.value ?? ""}
                   />
                 </FormControl>
                 <FormMessage />
@@ -179,7 +180,7 @@ const CreatePLODetailsForm = () => {
             <Button
               type="button"
               variant="outline"
-              onClick={() => navigate('/coordinator/plos')}
+              onClick={() => navigate("/coordinator/plos")}
             >
               Cancel
             </Button>
@@ -194,17 +195,17 @@ const CreatePLODetailsForm = () => {
 
 const EditPLODetailsForm = ({ ploId }: { ploId: string }) => {
   const navigate = useNavigate();
-  const { t } = useTranslation('coordinator');
+  const { t } = useTranslation("coordinator");
   const { data: existingPLO, isLoading } = usePLO(ploId);
   const updateMutation = useUpdatePLO(ploId);
 
   const form = useForm<CreatePLOFormData>({
     resolver: zodResolver(createPLOSchema),
     defaultValues: {
-      title: '',
-      title_ar: '',
-      description: '',
-      program_id: '' as `${string}-${string}-${string}-${string}-${string}`,
+      title: "",
+      title_ar: "",
+      description: "",
+      program_id: "" as `${string}-${string}-${string}-${string}-${string}`,
     },
   });
 
@@ -213,9 +214,12 @@ const EditPLODetailsForm = ({ ploId }: { ploId: string }) => {
       const plo = existingPLO as unknown as LearningOutcome;
       form.reset({
         title: plo.title,
-        title_ar: (plo as unknown as Record<string, unknown>).title_ar as string ?? '',
-        description: plo.description ?? '',
-        program_id: (plo.program_id ?? '') as `${string}-${string}-${string}-${string}-${string}`,
+        title_ar:
+          ((plo as unknown as Record<string, unknown>).title_ar as string) ??
+          "",
+        description: plo.description ?? "",
+        program_id: (plo.program_id ??
+          "") as `${string}-${string}-${string}-${string}-${string}`,
       });
     }
   }, [existingPLO, form]);
@@ -231,7 +235,7 @@ const EditPLODetailsForm = ({ ploId }: { ploId: string }) => {
   const onSubmit = (data: CreatePLOFormData) => {
     updateMutation.mutate(data, {
       onSuccess: () => {
-        toast.success('PLO updated successfully');
+        toast.success("PLO updated successfully");
       },
       onError: (err) => toast.error(err.message),
     });
@@ -265,14 +269,14 @@ const EditPLODetailsForm = ({ ploId }: { ploId: string }) => {
             name="title_ar"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('bilingual.arabicTitle')}</FormLabel>
+                <FormLabel>{t("bilingual.arabicTitle")}</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder={t('bilingual.arabicTitlePlaceholder')}
+                    placeholder={t("bilingual.arabicTitlePlaceholder")}
                     dir="rtl"
                     maxLength={255}
                     {...field}
-                    value={field.value ?? ''}
+                    value={field.value ?? ""}
                   />
                 </FormControl>
                 <FormMessage />
@@ -300,11 +304,16 @@ const EditPLODetailsForm = ({ ploId }: { ploId: string }) => {
 
           {/* Program is read-only in edit mode */}
           <div className="grid gap-2">
-            <label htmlFor="plo-program-readonly" className="text-sm font-medium">Program</label>
+            <label
+              htmlFor="plo-program-readonly"
+              className="text-sm font-medium"
+            >
+              Program
+            </label>
             <Input
               id="plo-program-readonly"
               value={
-                (existingPLO as unknown as LearningOutcome)?.program_id ?? ''
+                (existingPLO as unknown as LearningOutcome)?.program_id ?? ""
               }
               disabled
               className="bg-gray-50"
@@ -328,7 +337,7 @@ const EditPLODetailsForm = ({ ploId }: { ploId: string }) => {
             <Button
               type="button"
               variant="outline"
-              onClick={() => navigate('/coordinator/plos')}
+              onClick={() => navigate("/coordinator/plos")}
             >
               Cancel
             </Button>
@@ -359,10 +368,14 @@ const ILOMappingSection = ({ ploId }: { ploId: string }) => {
     return ilos.map((ilo) => {
       const override = overrides[ilo.id];
       if (override) {
-        return { ilo_id: ilo.id, weight: override.weight, enabled: override.enabled };
+        return {
+          ilo_id: ilo.id,
+          weight: override.weight,
+          enabled: override.enabled,
+        };
       }
       const existing = existingMappings.find(
-        (m) => m.source_outcome_id === ilo.id,
+        (m) => m.source_outcome_id === ilo.id
       );
       return {
         ilo_id: ilo.id,
@@ -374,16 +387,14 @@ const ILOMappingSection = ({ ploId }: { ploId: string }) => {
 
   const totalWeight = useMemo(
     () =>
-      mappings
-        .filter((m) => m.enabled)
-        .reduce((sum, m) => sum + m.weight, 0),
-    [mappings],
+      mappings.filter((m) => m.enabled).reduce((sum, m) => sum + m.weight, 0),
+    [mappings]
   );
 
   const weightStatus = useMemo(() => {
-    if (totalWeight > 1.0) return 'over';
-    if (totalWeight < 0.5) return 'under';
-    return 'ok';
+    if (totalWeight > 1.0) return "over";
+    if (totalWeight < 0.5) return "under";
+    return "ok";
   }, [totalWeight]);
 
   const handleToggle = (iloId: string) => {
@@ -424,19 +435,19 @@ const ILOMappingSection = ({ ploId }: { ploId: string }) => {
       { ploId, mappings: activeMappings },
       {
         onSuccess: () => {
-          toast.success('ILO mappings saved successfully');
-          if (weightStatus === 'under') {
+          toast.success("ILO mappings saved successfully");
+          if (weightStatus === "under") {
             toast.warning(
-              'Total ILO mapping weight is below 0.5. Consider adjusting weights for better outcome coverage.',
+              "Total ILO mapping weight is below 0.5. Consider adjusting weights for better outcome coverage."
             );
-          } else if (weightStatus === 'over') {
+          } else if (weightStatus === "over") {
             toast.warning(
-              'Total ILO mapping weight exceeds 1.0. Consider reducing weights.',
+              "Total ILO mapping weight exceeds 1.0. Consider reducing weights."
             );
           }
         },
         onError: (err) => toast.error(err.message),
-      },
+      }
     );
   };
 
@@ -482,8 +493,8 @@ const ILOMappingSection = ({ ploId }: { ploId: string }) => {
               key={ilo.id}
               className={`flex items-center gap-4 p-3 rounded-lg border transition-colors ${
                 isEnabled
-                  ? 'border-blue-200 bg-blue-50/50'
-                  : 'border-slate-200 bg-white'
+                  ? "border-blue-200 bg-blue-50/50"
+                  : "border-slate-200 bg-white"
               }`}
             >
               <button
@@ -491,8 +502,8 @@ const ILOMappingSection = ({ ploId }: { ploId: string }) => {
                 onClick={() => handleToggle(ilo.id)}
                 className={`shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
                   isEnabled
-                    ? 'bg-blue-600 border-blue-600 text-white'
-                    : 'border-gray-300 bg-white'
+                    ? "bg-blue-600 border-blue-600 text-white"
+                    : "border-gray-300 bg-white"
                 }`}
                 aria-label={`Toggle mapping for ${ilo.title}`}
               >
@@ -545,22 +556,22 @@ const ILOMappingSection = ({ ploId }: { ploId: string }) => {
         <span className="text-sm font-medium text-gray-600">Total Weight:</span>
         <Badge
           className={
-            weightStatus === 'ok'
-              ? 'bg-green-100 text-green-700'
-              : weightStatus === 'under'
-                ? 'bg-amber-100 text-amber-700'
-                : 'bg-red-100 text-red-700'
+            weightStatus === "ok"
+              ? "bg-green-100 text-green-700"
+              : weightStatus === "under"
+              ? "bg-amber-100 text-amber-700"
+              : "bg-red-100 text-red-700"
           }
         >
           {totalWeight.toFixed(1)}
         </Badge>
-        {weightStatus === 'under' && (
+        {weightStatus === "under" && (
           <span className="flex items-center gap-1 text-xs text-amber-600">
             <AlertTriangle className="h-3 w-3" />
             Sum is below 0.5
           </span>
         )}
-        {weightStatus === 'over' && (
+        {weightStatus === "over" && (
           <span className="flex items-center gap-1 text-xs text-red-600">
             <AlertTriangle className="h-3 w-3" />
             Sum exceeds 1.0
@@ -598,13 +609,13 @@ const PLOForm = () => {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => navigate('/coordinator/plos')}
+          onClick={() => navigate("/coordinator/plos")}
         >
           <ArrowLeft className="h-4 w-4" />
           Back
         </Button>
         <h1 className="text-2xl font-bold tracking-tight">
-          {isEditMode ? 'Edit PLO' : 'Create PLO'}
+          {isEditMode ? "Edit PLO" : "Create PLO"}
         </h1>
       </div>
 

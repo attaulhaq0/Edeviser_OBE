@@ -3,9 +3,9 @@
 // Task 4.5: medals, anonymous support, current user highlight
 // =============================================================================
 
-import { cn } from '@/lib/utils';
-import { Badge } from '@/components/ui/badge';
-import { Trophy, EyeOff } from 'lucide-react';
+import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { Trophy, EyeOff } from "lucide-react";
 
 export interface LeaderboardParticipant {
   participantId: string;
@@ -24,11 +24,12 @@ export interface ChallengeLeaderboardProps {
   className?: string;
 }
 
-const MEDAL_STYLES: Record<number, { icon: string; bg: string; text: string }> = {
-  1: { icon: '🥇', bg: 'bg-yellow-50', text: 'text-yellow-700' },
-  2: { icon: '🥈', bg: 'bg-gray-50', text: 'text-gray-600' },
-  3: { icon: '🥉', bg: 'bg-amber-50', text: 'text-amber-700' },
-};
+const MEDAL_STYLES: Record<number, { icon: string; bg: string; text: string }> =
+  {
+    1: { icon: "🥇", bg: "bg-yellow-50", text: "text-yellow-700" },
+    2: { icon: "🥈", bg: "bg-gray-50", text: "text-gray-600" },
+    3: { icon: "🥉", bg: "bg-amber-50", text: "text-amber-700" },
+  };
 
 const ChallengeLeaderboard = ({
   participants,
@@ -38,7 +39,12 @@ const ChallengeLeaderboard = ({
 }: ChallengeLeaderboardProps) => {
   if (participants.length === 0) {
     return (
-      <div className={cn('flex flex-col items-center justify-center py-8 text-center', className)}>
+      <div
+        className={cn(
+          "flex flex-col items-center justify-center py-8 text-center",
+          className
+        )}
+      >
         <Trophy className="h-8 w-8 text-gray-300 mb-2" />
         <p className="text-sm text-gray-400">No participants yet</p>
       </div>
@@ -46,11 +52,18 @@ const ChallengeLeaderboard = ({
   }
 
   return (
-    <div className={cn('space-y-1', className)} role="list" aria-label="Challenge leaderboard">
+    <div
+      className={cn("space-y-1", className)}
+      role="list"
+      aria-label="Challenge leaderboard"
+    >
       {participants.map((p) => {
         const isCurrentUser = p.participantId === currentUserId;
         const medal = MEDAL_STYLES[p.rank];
-        const pct = goalTarget > 0 ? Math.round((p.currentProgress / goalTarget) * 100) : 0;
+        const pct =
+          goalTarget > 0
+            ? Math.round((p.currentProgress / goalTarget) * 100)
+            : 0;
         const isComplete = p.completedAt !== null;
 
         return (
@@ -58,16 +71,20 @@ const ChallengeLeaderboard = ({
             key={p.participantId}
             role="listitem"
             className={cn(
-              'flex items-center gap-3 rounded-lg px-3 py-2 transition-colors',
-              isCurrentUser && 'bg-blue-50 ring-1 ring-blue-200',
-              !isCurrentUser && 'hover:bg-slate-50',
+              "flex items-center gap-3 rounded-lg px-3 py-2 transition-colors",
+              isCurrentUser && "bg-blue-50 ring-1 ring-blue-200",
+              !isCurrentUser && "hover:bg-slate-50"
             )}
           >
             {/* Rank */}
-            <div className={cn(
-              'h-8 w-8 rounded-full flex items-center justify-center shrink-0 text-sm font-bold',
-              medal ? `${medal.bg} ${medal.text}` : 'bg-gray-100 text-gray-500',
-            )}>
+            <div
+              className={cn(
+                "h-8 w-8 rounded-full flex items-center justify-center shrink-0 text-sm font-bold",
+                medal
+                  ? `${medal.bg} ${medal.text}`
+                  : "bg-gray-100 text-gray-500"
+              )}
+            >
               {medal ? (
                 <span aria-label={`Rank ${p.rank}`}>{medal.icon}</span>
               ) : (
@@ -81,15 +98,23 @@ const ChallengeLeaderboard = ({
                 {p.isAnonymous ? (
                   <>
                     <EyeOff className="h-3.5 w-3.5 text-gray-400" />
-                    <span className="text-sm font-medium text-gray-400 italic">Anonymous</span>
+                    <span className="text-sm font-medium text-gray-400 italic">
+                      Anonymous
+                    </span>
                   </>
                 ) : (
-                  <span className={cn(
-                    'text-sm font-medium truncate',
-                    isCurrentUser && 'font-bold text-blue-700',
-                  )}>
+                  <span
+                    className={cn(
+                      "text-sm font-medium truncate",
+                      isCurrentUser && "font-bold text-blue-700"
+                    )}
+                  >
                     {p.displayName}
-                    {isCurrentUser && <span className="text-xs font-normal text-blue-500 ms-1">(You)</span>}
+                    {isCurrentUser && (
+                      <span className="text-xs font-normal text-blue-500 ms-1">
+                        (You)
+                      </span>
+                    )}
                   </span>
                 )}
               </div>
@@ -98,8 +123,8 @@ const ChallengeLeaderboard = ({
                 <div className="flex-1 h-1.5 rounded-full bg-gray-100 overflow-hidden">
                   <div
                     className={cn(
-                      'h-full rounded-full transition-all duration-300',
-                      isComplete ? 'bg-green-500' : 'bg-blue-400',
+                      "h-full rounded-full transition-all duration-300",
+                      isComplete ? "bg-green-500" : "bg-blue-400"
                     )}
                     style={{ width: `${Math.min(pct, 100)}%` }}
                   />

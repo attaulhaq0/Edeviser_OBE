@@ -1,9 +1,10 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 // =============================================================================
@@ -14,43 +15,54 @@ const corsHeaders = {
 // =============================================================================
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
   }
 
   try {
     // ── Auth: cron secret or service role only ──────────────────────
-    const cronSecret = req.headers.get('x-cron-secret');
-    const expectedSecret = Deno.env.get('CRON_SECRET');
-    const authHeader = req.headers.get('Authorization') ?? '';
-    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+    const cronSecret = req.headers.get("x-cron-secret");
+    const expectedSecret = Deno.env.get("CRON_SECRET");
+    const authHeader = req.headers.get("Authorization") ?? "";
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
     const isServiceRole = serviceRoleKey && authHeader.includes(serviceRoleKey);
     const isCron = expectedSecret && cronSecret === expectedSecret;
 
     if (!isServiceRole && !isCron) {
       return new Response(
-        JSON.stringify({ error: 'Unauthorized: cron secret or service role required' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        JSON.stringify({
+          error: "Unauthorized: cron secret or service role required",
+        }),
+        {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
       );
     }
 
     const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
     // Step 1: Find all students with digest preference enabled
     const { data: digestProfiles, error: profilesErr } = await supabase
-      .from('profiles')
-      .select('id, email_preferences')
-      .eq('role', 'student')
-      .eq('is_active', true);
+      .from("profiles")
+      .select("id, email_preferences")
+      .eq("role", "student")
+      .eq("is_active", true);
 
     if (profilesErr) {
-      console.error('Failed to fetch profiles:', profilesErr.message);
+      console.error("Failed to fetch profiles:", profilesErr.message);
       return new Response(
-        JSON.stringify({ error: 'Failed to fetch profiles', detail: profilesErr.message }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        JSON.stringify({
+          error: "Failed to fetch profiles",
+          detail: profilesErr.message,
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
       );
     }
 
@@ -58,14 +70,21 @@ serve(async (req) => {
     const digestStudentIds = (digestProfiles ?? [])
       .filter((p: { email_preferences: Record<string, unknown> | null }) => {
         const prefs = p.email_preferences;
-        return prefs && (prefs as Record<string, unknown>).notification_digest === true;
+        return (
+          prefs &&
+          (prefs as Record<string, unknown>).notification_digest === true
+        );
       })
       .map((p: { id: string }) => p.id);
 
     if (digestStudentIds.length === 0) {
       return new Response(
-        JSON.stringify({ success: true, digests_created: 0, message: 'No digest subscribers' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        JSON.stringify({
+          success: true,
+          digests_created: 0,
+          message: "No digest subscribers",
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -79,15 +98,18 @@ serve(async (req) => {
     for (const studentId of digestStudentIds) {
       // Fetch unread, non-digest notifications from today
       const { data: unreadNotifications, error: fetchErr } = await supabase
-        .from('notifications')
-        .select('id, type, title, body, created_at')
-        .eq('user_id', studentId)
-        .eq('is_read', false)
-        .gte('created_at', todayStartISO)
-        .order('created_at', { ascending: false });
+        .from("notifications")
+        .select("id, type, title, body, created_at")
+        .eq("user_id", studentId)
+        .eq("is_read", false)
+        .gte("created_at", todayStartISO)
+        .order("created_at", { ascending: false });
 
       if (fetchErr) {
-        console.error(`Failed to fetch notifications for ${studentId}:`, fetchErr.message);
+        console.error(
+          `Failed to fetch notifications for ${studentId}:`,
+          fetchErr.message
+        );
         continue;
       }
 
@@ -96,7 +118,7 @@ serve(async (req) => {
       // Filter out any existing digest notifications to avoid recursion
       const nonDigestNotifications = unreadNotifications.filter(
         (n: { type: string; title: string }) =>
-          !(n.type === 'digest' || n.title.startsWith('Daily Digest')),
+          !(n.type === "digest" || n.title.startsWith("Daily Digest"))
       );
 
       if (nonDigestNotifications.length === 0) continue;
@@ -110,15 +132,17 @@ serve(async (req) => {
 
       const summaryParts: string[] = [];
       for (const [type, count] of typeCounts) {
-        summaryParts.push(`${count} ${type.replace(/_/g, ' ')}${count > 1 ? 's' : ''}`);
+        summaryParts.push(
+          `${count} ${type.replace(/_/g, " ")}${count > 1 ? "s" : ""}`
+        );
       }
 
-      const summaryBody = `Today's summary: ${summaryParts.join(', ')}`;
+      const summaryBody = `Today's summary: ${summaryParts.join(", ")}`;
 
       // Step 3: Create a single digest notification
-      const { error: insertErr } = await supabase.from('notifications').insert({
+      const { error: insertErr } = await supabase.from("notifications").insert({
         user_id: studentId,
-        type: 'digest',
+        type: "digest",
         title: `Daily Digest — ${nonDigestNotifications.length} notifications`,
         body: summaryBody,
         is_read: false,
@@ -126,24 +150,34 @@ serve(async (req) => {
           is_digest: true,
           notification_count: nonDigestNotifications.length,
           type_breakdown: Object.fromEntries(typeCounts),
-          aggregated_ids: nonDigestNotifications.map((n: { id: string }) => n.id),
+          aggregated_ids: nonDigestNotifications.map(
+            (n: { id: string }) => n.id
+          ),
         },
       });
 
       if (insertErr) {
-        console.error(`Failed to create digest for ${studentId}:`, insertErr.message);
+        console.error(
+          `Failed to create digest for ${studentId}:`,
+          insertErr.message
+        );
         continue;
       }
 
       // Step 4: Mark the individual notifications as read (delivered via digest)
-      const notificationIds = nonDigestNotifications.map((n: { id: string }) => n.id);
+      const notificationIds = nonDigestNotifications.map(
+        (n: { id: string }) => n.id
+      );
       const { error: updateErr } = await supabase
-        .from('notifications')
+        .from("notifications")
         .update({ is_read: true })
-        .in('id', notificationIds);
+        .in("id", notificationIds);
 
       if (updateErr) {
-        console.error(`Failed to mark notifications as read for ${studentId}:`, updateErr.message);
+        console.error(
+          `Failed to mark notifications as read for ${studentId}:`,
+          updateErr.message
+        );
       }
 
       digestsCreated++;
@@ -155,12 +189,12 @@ serve(async (req) => {
         digests_created: digestsCreated,
         total_subscribers: digestStudentIds.length,
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
-    return new Response(
-      JSON.stringify({ error: (error as Error).message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-    );
+    return new Response(JSON.stringify({ error: (error as Error).message }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });

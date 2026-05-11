@@ -111,7 +111,6 @@
 - [x] 13.4 Create `src/__tests__/unit/adaptiveQuizSession.test.tsx` — Progress bar, timer, one-at-a-time rendering
 - [x] 13.5 Create `src/__tests__/unit/postQuizReviewPage.test.tsx` — Explanation display, CLO badges, "Get Help" link
 
-
 ## Task 14: Mastery Recovery System
 
 - [x] 14.1 Create `mastery_recovery_pathways` table migration with all columns, constraints, indexes, and unique partial index on active sessions

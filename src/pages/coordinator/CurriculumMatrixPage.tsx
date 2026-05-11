@@ -1,19 +1,19 @@
-import { useState, useCallback } from 'react';
-import { usePrograms } from '@/hooks/usePrograms';
-import { useCurriculumMatrix } from '@/hooks/useCurriculumMatrix';
-import CurriculumMatrix from '@/components/shared/CurriculumMatrix';
-import CellDetailSheet from '@/components/shared/CellDetailSheet';
-import Shimmer from '@/components/shared/Shimmer';
-import { Button } from '@/components/ui/button';
-import { buildMatrixCsv, downloadCsv } from '@/lib/exportCurriculumMatrixCsv';
+import { useState, useCallback } from "react";
+import { usePrograms } from "@/hooks/usePrograms";
+import { useCurriculumMatrix } from "@/hooks/useCurriculumMatrix";
+import CurriculumMatrix from "@/components/shared/CurriculumMatrix";
+import CellDetailSheet from "@/components/shared/CellDetailSheet";
+import Shimmer from "@/components/shared/Shimmer";
+import { Button } from "@/components/ui/button";
+import { buildMatrixCsv, downloadCsv } from "@/lib/exportCurriculumMatrixCsv";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Download } from 'lucide-react';
+} from "@/components/ui/select";
+import { Download } from "lucide-react";
 
 interface SelectedCell {
   ploId: string;
@@ -21,11 +21,13 @@ interface SelectedCell {
 }
 
 const CurriculumMatrixPage = () => {
-  const [selectedProgramId, setSelectedProgramId] = useState<string>('');
+  const [selectedProgramId, setSelectedProgramId] = useState<string>("");
   const [selectedCell, setSelectedCell] = useState<SelectedCell | null>(null);
   const { data: paginatedPrograms, isLoading: programsLoading } = usePrograms();
   const programs = paginatedPrograms?.data;
-  const { data: matrixData } = useCurriculumMatrix(selectedProgramId || undefined);
+  const { data: matrixData } = useCurriculumMatrix(
+    selectedProgramId || undefined
+  );
 
   const selectedProgram = programs?.find((p) => p.id === selectedProgramId);
 
@@ -53,12 +55,23 @@ const CurriculumMatrixPage = () => {
 
       {/* Program selector + Export */}
       <div className="flex items-center gap-3">
-        <span id="program-selector-label" className="text-sm font-medium text-gray-700">Program</span>
+        <span
+          id="program-selector-label"
+          className="text-sm font-medium text-gray-700"
+        >
+          Program
+        </span>
         {programsLoading ? (
           <Shimmer className="h-9 w-64" />
         ) : (
-          <Select value={selectedProgramId} onValueChange={setSelectedProgramId}>
-            <SelectTrigger className="w-64 bg-white" aria-labelledby="program-selector-label">
+          <Select
+            value={selectedProgramId}
+            onValueChange={setSelectedProgramId}
+          >
+            <SelectTrigger
+              className="w-64 bg-white"
+              aria-labelledby="program-selector-label"
+            >
               <SelectValue placeholder="Select a program" />
             </SelectTrigger>
             <SelectContent>
@@ -83,7 +96,10 @@ const CurriculumMatrixPage = () => {
 
       {/* Matrix */}
       {selectedProgramId ? (
-        <CurriculumMatrix programId={selectedProgramId} onCellClick={handleCellClick} />
+        <CurriculumMatrix
+          programId={selectedProgramId}
+          onCellClick={handleCellClick}
+        />
       ) : (
         <div className="rounded-xl border border-slate-200 bg-white p-8 text-center text-sm text-gray-500">
           Select a program to view the curriculum matrix.

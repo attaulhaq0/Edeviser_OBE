@@ -31,7 +31,7 @@ export function getISOWeekStart(date: Date): Date {
  */
 export function computeWeeklyXP(
   transactions: Array<{ xp_amount: number; created_at: string }>,
-  referenceDate: Date = new Date(),
+  referenceDate: Date = new Date()
 ): WeeklyXP[] {
   const currentWeekStart = getISOWeekStart(referenceDate);
 

@@ -21,7 +21,7 @@
  */
 export function calculateIndependenceScore(
   totalSubmissions: number,
-  aiAssistedSubmissions: number,
+  aiAssistedSubmissions: number
 ): number {
   // No submissions means fully independent (no evidence of dependency)
   if (totalSubmissions <= 0) return 1.0;
@@ -29,7 +29,7 @@ export function calculateIndependenceScore(
   // Clamp AI-assisted count to valid range
   const clampedAiAssisted = Math.max(
     0,
-    Math.min(aiAssistedSubmissions, totalSubmissions),
+    Math.min(aiAssistedSubmissions, totalSubmissions)
   );
 
   const score = 1 - clampedAiAssisted / totalSubmissions;

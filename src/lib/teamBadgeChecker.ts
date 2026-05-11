@@ -9,14 +9,21 @@ export interface TeamBadgeState {
   team_streak_current: number;
 }
 
-export type TeamBadgeId = 'team_spirit' | 'unstoppable' | 'dream_team' | 'study_squad';
+export type TeamBadgeId =
+  | "team_spirit"
+  | "unstoppable"
+  | "dream_team"
+  | "study_squad";
 
 export interface TeamBadgeResult {
   badge_id: TeamBadgeId;
   eligible: boolean;
 }
 
-export const TEAM_BADGE_CONDITIONS: Record<TeamBadgeId, (state: TeamBadgeState) => boolean> = {
+export const TEAM_BADGE_CONDITIONS: Record<
+  TeamBadgeId,
+  (state: TeamBadgeState) => boolean
+> = {
   team_spirit: (state) => state.xp_total >= 500,
   unstoppable: (state) => state.challenge_wins >= 3,
   dream_team: (state) => state.all_members_perfect_day,
@@ -29,7 +36,7 @@ export const TEAM_BADGE_CONDITIONS: Record<TeamBadgeId, (state: TeamBadgeState) 
  */
 export function checkTeamBadgeEligibility(
   state: TeamBadgeState,
-  alreadyEarned: Set<string>,
+  alreadyEarned: Set<string>
 ): TeamBadgeResult[] {
   const results: TeamBadgeResult[] = [];
 
@@ -49,7 +56,7 @@ export function checkTeamBadgeEligibility(
  */
 export function awardTeamBadgesIdempotent(
   alreadyEarned: Set<string>,
-  newEligible: TeamBadgeResult[],
+  newEligible: TeamBadgeResult[]
 ): Set<string> {
   const result = new Set(alreadyEarned);
   for (const badge of newEligible) {

@@ -224,7 +224,8 @@ const accessibility = {
 // ─── Marketplace ──────────────────────────────────────────────────────────────
 const marketplace = {
   all: ["marketplace"] as const,
-  balance: (studentId: string) => ["marketplace", "balance", studentId] as const,
+  balance: (studentId: string) =>
+    ["marketplace", "balance", studentId] as const,
   items: (category?: string) =>
     category
       ? (["marketplace", "items", category] as const)
@@ -235,8 +236,7 @@ const marketplace = {
     ["marketplace", "equipped", studentId] as const,
   transactions: (filter?: string, page?: number) =>
     ["marketplace", "transactions", filter, page] as const,
-  boosts: (studentId: string) =>
-    ["marketplace", "boosts", studentId] as const,
+  boosts: (studentId: string) => ["marketplace", "boosts", studentId] as const,
   saleEvents: () => ["marketplace", "saleEvents"] as const,
   analytics: () => ["marketplace", "analytics"] as const,
 };

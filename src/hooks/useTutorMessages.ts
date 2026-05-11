@@ -2,19 +2,19 @@
 // useTutorMessages — TanStack Query hooks for tutor message history & streaming
 // =============================================================================
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import { sendTutorMessage, rateTutorMessage } from '@/lib/tutorApi';
-import { toast } from 'sonner';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import { sendTutorMessage, rateTutorMessage } from "@/lib/tutorApi";
+import { toast } from "sonner";
 import type {
   TutorMessage,
   SendMessageInput,
   SatisfactionRating,
   SourceCitation,
   LearningPlanUpdate,
-} from '@/lib/tutorSchemas';
-import type { SSECallbacks } from '@/lib/tutorApi';
+} from "@/lib/tutorSchemas";
+import type { SSECallbacks } from "@/lib/tutorApi";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -37,12 +37,12 @@ export const useTutorMessages = (conversationId: string) => {
       // regenerated yet. Using type assertion until `scripts/regen-types.ps1` is run.
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error } = await (supabase as any)
-        .from('tutor_messages')
+        .from("tutor_messages")
         .select(
-          'id, conversation_id, role, content, source_citations, image_urls, document_url, token_count, satisfaction_rating, flagged_integrity, autonomy_level, nudge_type, created_at'
+          "id, conversation_id, role, content, source_citations, image_urls, document_url, token_count, satisfaction_rating, flagged_integrity, autonomy_level, nudge_type, created_at"
         )
-        .eq('conversation_id', conversationId)
-        .order('created_at', { ascending: true });
+        .eq("conversation_id", conversationId)
+        .order("created_at", { ascending: true });
 
       if (error) throw error;
       return (data ?? []) as TutorMessage[];
@@ -59,7 +59,8 @@ export const useSendMessage = () => {
 
   return useMutation({
     mutationFn: async (options: SendMessageOptions): Promise<void> => {
-      const { input, onToken, onCitations, onDone, onPlanUpdate, signal } = options;
+      const { input, onToken, onCitations, onDone, onPlanUpdate, signal } =
+        options;
 
       // Optimistically append user message to cache
       if (input.conversation_id) {
@@ -67,7 +68,7 @@ export const useSendMessage = () => {
         const optimisticUserMessage: TutorMessage = {
           id: `temp-${Date.now()}`,
           conversation_id: conversationId,
-          role: 'user',
+          role: "user",
           content: input.message,
           source_citations: [],
           image_urls: input.image_urls ?? [],
@@ -93,7 +94,9 @@ export const useSendMessage = () => {
           // Invalidate messages to get the persisted version from DB
           if (input.conversation_id) {
             queryClient.invalidateQueries({
-              queryKey: queryKeys.tutorMessages.byConversation(input.conversation_id),
+              queryKey: queryKeys.tutorMessages.byConversation(
+                input.conversation_id
+              ),
             });
           }
           // Invalidate conversations list to update message_count and updated_at
@@ -110,10 +113,12 @@ export const useSendMessage = () => {
           // Revert optimistic update on error
           if (input.conversation_id) {
             queryClient.invalidateQueries({
-              queryKey: queryKeys.tutorMessages.byConversation(input.conversation_id),
+              queryKey: queryKeys.tutorMessages.byConversation(
+                input.conversation_id
+              ),
             });
           }
-          toast.error(error.message || 'Failed to send message');
+          toast.error(error.message || "Failed to send message");
         },
         onPlanUpdate: onPlanUpdate,
       };
@@ -134,15 +139,20 @@ export const useRateMessage = () => {
       conversationId: string;
       rating: SatisfactionRating;
     }): Promise<void> => {
-      await rateTutorMessage({ message_id: variables.messageId, rating: variables.rating });
+      await rateTutorMessage({
+        message_id: variables.messageId,
+        rating: variables.rating,
+      });
     },
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({
-        queryKey: queryKeys.tutorMessages.byConversation(variables.conversationId),
+        queryKey: queryKeys.tutorMessages.byConversation(
+          variables.conversationId
+        ),
       });
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Failed to rate message');
+      toast.error(error.message || "Failed to rate message");
     },
   });
 };

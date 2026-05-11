@@ -1,15 +1,15 @@
-import { useMemo } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import { toast } from 'sonner';
+import { useMemo } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import { toast } from "sonner";
 import {
   WELLNESS_TIPS,
   getCurrentWellnessTip,
   getOnboardingTip,
-} from '@/lib/wellnessTips';
-import { useWellnessPreferences } from '@/hooks/useWellnessPreferences';
-import type { WellnessHabitType, WellnessTip } from '@/types/habits';
+} from "@/lib/wellnessTips";
+import { useWellnessPreferences } from "@/hooks/useWellnessPreferences";
+import type { WellnessHabitType, WellnessTip } from "@/types/habits";
 
 /**
  * Returns the current tip for a given habit type.
@@ -17,7 +17,7 @@ import type { WellnessHabitType, WellnessTip } from '@/types/habits';
  */
 export const useCurrentTip = (
   habitType: WellnessHabitType,
-  studentId: string | undefined,
+  studentId: string | undefined
 ): { tip: WellnessTip | null; isOnboarding: boolean } => {
   const { data: preferences } = useWellnessPreferences(studentId);
 
@@ -51,30 +51,31 @@ export const useDismissOnboardingTip = () => {
     }) => {
       // Fetch current dismissed list
       const { data: current, error: fetchError } = await supabase
-        .from('student_wellness_preferences')
-        .select('dismissed_onboarding_tips')
-        .eq('student_id', studentId)
+        .from("student_wellness_preferences")
+        .select("dismissed_onboarding_tips")
+        .eq("student_id", studentId)
         .maybeSingle();
 
       if (fetchError) {
-        console.error('Failed to fetch dismissed tips:', fetchError.message);
+        console.error("Failed to fetch dismissed tips:", fetchError.message);
         throw fetchError;
       }
 
-      const existing: string[] = (current?.dismissed_onboarding_tips as string[]) ?? [];
+      const existing: string[] =
+        (current?.dismissed_onboarding_tips as string[]) ?? [];
       if (existing.includes(habitType)) return;
 
       const updated = [...existing, habitType];
 
       const { error } = await supabase
-        .from('student_wellness_preferences')
+        .from("student_wellness_preferences")
         .upsert(
           {
             student_id: studentId,
             dismissed_onboarding_tips: updated,
             updated_at: new Date().toISOString(),
           },
-          { onConflict: 'student_id' },
+          { onConflict: "student_id" }
         );
 
       if (error) throw error;
@@ -85,8 +86,8 @@ export const useDismissOnboardingTip = () => {
       });
     },
     onError: (error: Error) => {
-      toast.error('Failed to dismiss tip');
-      console.error('Dismiss onboarding tip error:', error);
+      toast.error("Failed to dismiss tip");
+      console.error("Dismiss onboarding tip error:", error);
     },
   });
 };

@@ -3,12 +3,12 @@
 // Task 18.3
 // =============================================================================
 
-import { useState } from 'react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
-import { Handshake, X, Loader2 } from 'lucide-react';
+import { useState } from "react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { Handshake, X, Loader2 } from "lucide-react";
 
 interface TeacherHandoffCardProps {
   /** Why the handoff was suggested */

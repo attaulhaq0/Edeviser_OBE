@@ -2,10 +2,10 @@
 // useMarketplace — TanStack Query hook for browsing marketplace items
 // =============================================================================
 
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import type { MarketplaceItemCategory } from '@/lib/marketplaceSchemas';
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import type { MarketplaceItemCategory } from "@/lib/marketplaceSchemas";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -18,7 +18,7 @@ export interface MarketplaceItem {
   sub_category: string;
   xp_price: number;
   level_requirement: number;
-  stock_type: 'unlimited' | 'limited' | 'one_per_student';
+  stock_type: "unlimited" | "limited" | "one_per_student";
   stock_quantity: number | null;
   icon_identifier: string;
   metadata: Record<string, unknown>;
@@ -39,14 +39,16 @@ export const useMarketplaceItems = (category?: string) => {
     queryFn: async (): Promise<MarketplaceItem[]> => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let query = (supabase as any)
-        .from('marketplace_items')
-        .select('id, institution_id, name, description, category, sub_category, xp_price, level_requirement, stock_type, stock_quantity, icon_identifier, metadata, is_active, created_at, updated_at')
-        .eq('is_active', true)
-        .order('category', { ascending: true })
-        .order('xp_price', { ascending: true });
+        .from("marketplace_items")
+        .select(
+          "id, institution_id, name, description, category, sub_category, xp_price, level_requirement, stock_type, stock_quantity, icon_identifier, metadata, is_active, created_at, updated_at"
+        )
+        .eq("is_active", true)
+        .order("category", { ascending: true })
+        .order("xp_price", { ascending: true });
 
       if (category) {
-        query = query.eq('category', category);
+        query = query.eq("category", category);
       }
 
       const { data: items, error } = await query;
@@ -58,10 +60,12 @@ export const useMarketplaceItems = (category?: string) => {
       const now = new Date().toISOString();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data: saleData, error: saleError } = await (supabase as any)
-        .from('sale_event_items')
-        .select('item_id, sale_event_id, sale_events:sale_event_id(discount_percentage, start_date, end_date)')
-        .filter('sale_events.start_date', 'lte', now)
-        .filter('sale_events.end_date', 'gt', now);
+        .from("sale_event_items")
+        .select(
+          "item_id, sale_event_id, sale_events:sale_event_id(discount_percentage, start_date, end_date)"
+        )
+        .filter("sale_events.start_date", "lte", now)
+        .filter("sale_events.end_date", "gt", now);
 
       // Build a map of item_id → highest discount
       const discountMap = new Map<string, number>();
@@ -80,9 +84,10 @@ export const useMarketplaceItems = (category?: string) => {
       return (items as Array<Record<string, unknown>>).map((item) => {
         const discount = discountMap.get(item.id as string) ?? 0;
         const basePrice = item.xp_price as number;
-        const effectivePrice = discount > 0
-          ? Math.max(1, basePrice - Math.floor(basePrice * discount / 100))
-          : basePrice;
+        const effectivePrice =
+          discount > 0
+            ? Math.max(1, basePrice - Math.floor((basePrice * discount) / 100))
+            : basePrice;
 
         return {
           id: item.id as string,
@@ -93,7 +98,10 @@ export const useMarketplaceItems = (category?: string) => {
           sub_category: item.sub_category as string,
           xp_price: basePrice,
           level_requirement: item.level_requirement as number,
-          stock_type: item.stock_type as 'unlimited' | 'limited' | 'one_per_student',
+          stock_type: item.stock_type as
+            | "unlimited"
+            | "limited"
+            | "one_per_student",
           stock_quantity: item.stock_quantity as number | null,
           icon_identifier: item.icon_identifier as string,
           metadata: (item.metadata ?? {}) as Record<string, unknown>,

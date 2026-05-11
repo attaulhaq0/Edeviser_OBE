@@ -2,8 +2,8 @@
 // Feature: team-challenges, Property 14: Reward uniqueness
 // **Validates: Requirements 12.1, 12.5, 12.6, 17.4**
 
-import { describe, it, expect } from 'vitest';
-import * as fc from 'fast-check';
+import { describe, it, expect } from "vitest";
+import * as fc from "fast-check";
 
 // ── Pure logic under test ────────────────────────────────────────────────────
 
@@ -12,14 +12,17 @@ interface RewardDistribution {
   xpAwarded: number;
 }
 
-function distributeTeamReward(memberIds: string[], rewardXp: number): RewardDistribution[] {
+function distributeTeamReward(
+  memberIds: string[],
+  rewardXp: number
+): RewardDistribution[] {
   return memberIds.map((id) => ({ memberId: id, xpAwarded: rewardXp }));
 }
 
 function grantReward(
   grantedRewards: Set<string>,
   challengeId: string,
-  participantId: string,
+  participantId: string
 ): boolean {
   const key = `${challengeId}:${participantId}`;
   if (grantedRewards.has(key)) return false;
@@ -29,8 +32,8 @@ function grantReward(
 
 // ── Property Tests ───────────────────────────────────────────────────────────
 
-describe('Property 13: Full XP to each team member', () => {
-  it('every member receives the full reward_xp amount', () => {
+describe("Property 13: Full XP to each team member", () => {
+  it("every member receives the full reward_xp amount", () => {
     fc.assert(
       fc.property(
         fc.uniqueArray(fc.uuid(), { minLength: 2, maxLength: 6 }),
@@ -41,30 +44,33 @@ describe('Property 13: Full XP to each team member', () => {
           for (const d of distributions) {
             expect(d.xpAwarded).toBe(rewardXp);
           }
-        },
+        }
       ),
-      { numRuns: 100 },
+      { numRuns: 100 }
     );
   });
 
-  it('total XP distributed equals reward_xp × member_count', () => {
+  it("total XP distributed equals reward_xp × member_count", () => {
     fc.assert(
       fc.property(
         fc.uniqueArray(fc.uuid(), { minLength: 2, maxLength: 6 }),
         fc.integer({ min: 50, max: 500 }),
         (memberIds, rewardXp) => {
           const distributions = distributeTeamReward(memberIds, rewardXp);
-          const totalXp = distributions.reduce((sum, d) => sum + d.xpAwarded, 0);
+          const totalXp = distributions.reduce(
+            (sum, d) => sum + d.xpAwarded,
+            0
+          );
           expect(totalXp).toBe(rewardXp * memberIds.length);
-        },
+        }
       ),
-      { numRuns: 100 },
+      { numRuns: 100 }
     );
   });
 });
 
-describe('Property 14: Reward uniqueness', () => {
-  it('reward is granted at most once per participant per challenge', () => {
+describe("Property 14: Reward uniqueness", () => {
+  it("reward is granted at most once per participant per challenge", () => {
     fc.assert(
       fc.property(fc.uuid(), fc.uuid(), (challengeId, participantId) => {
         const granted = new Set<string>();
@@ -73,11 +79,11 @@ describe('Property 14: Reward uniqueness', () => {
         expect(first).toBe(true);
         expect(second).toBe(false);
       }),
-      { numRuns: 100 },
+      { numRuns: 100 }
     );
   });
 
-  it('different participants can each receive reward for same challenge', () => {
+  it("different participants can each receive reward for same challenge", () => {
     fc.assert(
       fc.property(
         fc.uuid(),
@@ -88,9 +94,9 @@ describe('Property 14: Reward uniqueness', () => {
             expect(grantReward(granted, challengeId, pid)).toBe(true);
           }
           expect(granted.size).toBe(participantIds.length);
-        },
+        }
       ),
-      { numRuns: 100 },
+      { numRuns: 100 }
     );
   });
 });

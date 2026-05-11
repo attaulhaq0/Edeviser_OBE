@@ -1,6 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
 
 export interface StreakData {
   streak_count: number;
@@ -10,7 +10,7 @@ export interface StreakData {
 
 export const useStreak = () => {
   return useQuery({
-    queryKey: queryKeys.studentGamification.list({ scope: 'streak' }),
+    queryKey: queryKeys.studentGamification.list({ scope: "streak" }),
     queryFn: async (): Promise<StreakData | null> => {
       const {
         data: { user },
@@ -18,9 +18,9 @@ export const useStreak = () => {
       if (!user) return null;
 
       const { data, error } = await supabase
-        .from('student_gamification')
-        .select('streak_count, last_login_date, streak_freezes_available')
-        .eq('student_id', user.id)
+        .from("student_gamification")
+        .select("streak_count, last_login_date, streak_freezes_available")
+        .eq("student_id", user.id)
         .maybeSingle();
 
       if (error) throw error;

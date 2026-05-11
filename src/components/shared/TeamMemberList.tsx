@@ -3,18 +3,18 @@
 // Task 4.2: captain badge, XP contributions, contribution status indicators
 // =============================================================================
 
-import { cn } from '@/lib/utils';
-import { Badge } from '@/components/ui/badge';
-import { Crown, User } from 'lucide-react';
-import ContributionStatusBadge from '@/components/shared/ContributionStatusBadge';
-import type { ContributionStatus } from '@/lib/contributionThresholds';
+import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { Crown, User } from "lucide-react";
+import ContributionStatusBadge from "@/components/shared/ContributionStatusBadge";
+import type { ContributionStatus } from "@/lib/contributionThresholds";
 
 export interface TeamMemberItem {
   id: string;
   studentId: string;
   displayName: string;
   avatarUrl?: string | null;
-  role: 'captain' | 'member';
+  role: "captain" | "member";
   xpContribution: number;
   contributionStatus: ContributionStatus;
 }
@@ -25,18 +25,29 @@ export interface TeamMemberListProps {
   className?: string;
 }
 
-const TeamMemberList = ({ members, totalTeamXp = 0, className }: TeamMemberListProps) => {
+const TeamMemberList = ({
+  members,
+  totalTeamXp = 0,
+  className,
+}: TeamMemberListProps) => {
   const sorted = [...members].sort((a, b) => {
     // Captain first, then by XP descending
-    if (a.role === 'captain' && b.role !== 'captain') return -1;
-    if (a.role !== 'captain' && b.role === 'captain') return 1;
+    if (a.role === "captain" && b.role !== "captain") return -1;
+    if (a.role !== "captain" && b.role === "captain") return 1;
     return b.xpContribution - a.xpContribution;
   });
 
   return (
-    <div className={cn('space-y-2', className)} role="list" aria-label="Team members">
+    <div
+      className={cn("space-y-2", className)}
+      role="list"
+      aria-label="Team members"
+    >
       {sorted.map((member) => {
-        const pct = totalTeamXp > 0 ? Math.round((member.xpContribution / totalTeamXp) * 100) : 0;
+        const pct =
+          totalTeamXp > 0
+            ? Math.round((member.xpContribution / totalTeamXp) * 100)
+            : 0;
 
         return (
           <div
@@ -60,8 +71,10 @@ const TeamMemberList = ({ members, totalTeamXp = 0, className }: TeamMemberListP
             {/* Name + Role */}
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5">
-                <span className="text-sm font-medium truncate">{member.displayName}</span>
-                {member.role === 'captain' && (
+                <span className="text-sm font-medium truncate">
+                  {member.displayName}
+                </span>
+                {member.role === "captain" && (
                   <Badge
                     variant="outline"
                     className="text-[10px] font-bold text-amber-600 border-amber-300 bg-amber-50 gap-0.5 px-1.5"

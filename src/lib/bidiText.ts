@@ -18,6 +18,7 @@ export const rtlIsolate = (text: string): string => {
  * Detects if a string starts with an RTL character.
  */
 export const startsWithRTL = (text: string): boolean => {
-  const rtlRegex = /^[\u0591-\u07FF\u200F\u202B\u202E\uFB1D-\uFDFD\uFE70-\uFEFC]/;
+  const rtlRegex =
+    /^[\u0591-\u07FF\u200F\u202B\u202E\uFB1D-\uFDFD\uFE70-\uFEFC]/;
   return rtlRegex.test(text.trim());
 };

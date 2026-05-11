@@ -2,10 +2,10 @@
 // AnonymousToggle — Unit tests
 // =============================================================================
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 // ─── Mocks ───────────────────────────────────────────────────────────────────
 
@@ -14,7 +14,7 @@ let mockIsAnonymous = false;
 let mockIsLoadingStatus = false;
 let mockIsPending = false;
 
-vi.mock('@/hooks/useLeaderboard', () => ({
+vi.mock("@/hooks/useLeaderboard", () => ({
   useAnonymousStatus: () => ({
     data: { isAnonymous: mockIsAnonymous },
     isLoading: mockIsLoadingStatus,
@@ -27,7 +27,7 @@ vi.mock('@/hooks/useLeaderboard', () => ({
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-import AnonymousToggle from '@/components/shared/AnonymousToggle';
+import AnonymousToggle from "@/components/shared/AnonymousToggle";
 
 const createQueryClient = () =>
   new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -36,13 +36,13 @@ const renderComponent = () => {
   return render(
     <QueryClientProvider client={createQueryClient()}>
       <AnonymousToggle />
-    </QueryClientProvider>,
+    </QueryClientProvider>
   );
 };
 
 // ─── Tests ───────────────────────────────────────────────────────────────────
 
-describe('AnonymousToggle', () => {
+describe("AnonymousToggle", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockIsAnonymous = false;
@@ -53,42 +53,42 @@ describe('AnonymousToggle', () => {
   it('renders "You are visible" when not anonymous', () => {
     mockIsAnonymous = false;
     renderComponent();
-    expect(screen.getByText('You are visible')).toBeInTheDocument();
-    expect(screen.getByText('Go Anonymous')).toBeInTheDocument();
+    expect(screen.getByText("You are visible")).toBeInTheDocument();
+    expect(screen.getByText("Go Anonymous")).toBeInTheDocument();
   });
 
   it('renders "You are anonymous" when opted out', () => {
     mockIsAnonymous = true;
     renderComponent();
-    expect(screen.getByText('You are anonymous')).toBeInTheDocument();
-    expect(screen.getByText('Go Visible')).toBeInTheDocument();
+    expect(screen.getByText("You are anonymous")).toBeInTheDocument();
+    expect(screen.getByText("Go Visible")).toBeInTheDocument();
   });
 
-  it('calls toggle mutation when button is clicked', async () => {
+  it("calls toggle mutation when button is clicked", async () => {
     const user = userEvent.setup();
     renderComponent();
-    const btn = screen.getByRole('button');
+    const btn = screen.getByRole("button");
     await user.click(btn);
     expect(mockMutate).toHaveBeenCalledTimes(1);
   });
 
-  it('disables button when mutation is pending', () => {
+  it("disables button when mutation is pending", () => {
     mockIsPending = true;
     renderComponent();
-    const btn = screen.getByRole('button');
+    const btn = screen.getByRole("button");
     expect(btn).toBeDisabled();
   });
 
-  it('disables button when status is loading', () => {
+  it("disables button when status is loading", () => {
     mockIsLoadingStatus = true;
     renderComponent();
-    const btn = screen.getByRole('button');
+    const btn = screen.getByRole("button");
     expect(btn).toBeDisabled();
   });
 
-  it('shows loading indicator when status is loading', () => {
+  it("shows loading indicator when status is loading", () => {
     mockIsLoadingStatus = true;
     renderComponent();
-    expect(screen.getByText('...')).toBeInTheDocument();
+    expect(screen.getByText("...")).toBeInTheDocument();
   });
 });

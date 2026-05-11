@@ -3,6 +3,12 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from "https://esm.sh/zod@3.23.8";
+
+const PayloadSchema = z.object({
+  import_type: z.enum(["enrollments", "courses", "outcomes", "grades"]),
+  csv_content: z.string().min(1),
+});
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -83,17 +89,15 @@ serve(async (req) => {
     }
     // ── End auth ────────────────────────────────────────────────────────────
 
-    const { import_type, csv_content } = await req.json();
-
-    if (!import_type || !csv_content) {
-      return new Response(
-        JSON.stringify({ error: "import_type and csv_content are required" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+    const body = await req.json();
+    const parsed = PayloadSchema.safeParse(body);
+    if (!parsed.success) {
+      return new Response(JSON.stringify({ error: parsed.error.message }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
+    const { import_type, csv_content } = parsed.data;
 
     const rows = parseCSV(csv_content);
     const result: ImportResult = {

@@ -1,22 +1,22 @@
-import { useTranslation } from 'react-i18next';
-import { Card } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
+import { useTranslation } from "react-i18next";
+import { Card } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   useAccessibilityPreferences,
   useUpdateAccessibilityPreferences,
-} from '@/hooks/useAccessibilityPreferences';
-import type { AccessibilityPreferences } from '@/lib/accessibilityPreferences';
+} from "@/hooks/useAccessibilityPreferences";
+import type { AccessibilityPreferences } from "@/lib/accessibilityPreferences";
 
 export const AccessibilitySettingsPanel = () => {
-  const { t } = useTranslation('common');
+  const { t } = useTranslation("common");
   const { data: prefs } = useAccessibilityPreferences();
   const updatePrefs = useUpdateAccessibilityPreferences();
 
@@ -29,18 +29,18 @@ export const AccessibilitySettingsPanel = () => {
   return (
     <Card className="bg-white border-0 shadow-md rounded-xl p-6 space-y-6">
       <h2 className="text-lg font-bold tracking-tight">
-        {t('accessibility.title', { defaultValue: 'Accessibility Settings' })}
+        {t("accessibility.title", { defaultValue: "Accessibility Settings" })}
       </h2>
 
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <Label htmlFor="font-size">
-            {t('accessibility.fontSize', { defaultValue: 'Font Size' })}
+            {t("accessibility.fontSize", { defaultValue: "Font Size" })}
           </Label>
           <Select
             value={prefs.font_size}
             onValueChange={(v) =>
-              update({ font_size: v as AccessibilityPreferences['font_size'] })
+              update({ font_size: v as AccessibilityPreferences["font_size"] })
             }
           >
             <SelectTrigger id="font-size" className="w-32">
@@ -48,13 +48,13 @@ export const AccessibilitySettingsPanel = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="default">
-                {t('accessibility.fontDefault', { defaultValue: 'Default' })}
+                {t("accessibility.fontDefault", { defaultValue: "Default" })}
               </SelectItem>
               <SelectItem value="large">
-                {t('accessibility.fontLarge', { defaultValue: 'Large' })}
+                {t("accessibility.fontLarge", { defaultValue: "Large" })}
               </SelectItem>
               <SelectItem value="x-large">
-                {t('accessibility.fontXLarge', { defaultValue: 'Extra Large' })}
+                {t("accessibility.fontXLarge", { defaultValue: "Extra Large" })}
               </SelectItem>
             </SelectContent>
           </Select>
@@ -62,7 +62,7 @@ export const AccessibilitySettingsPanel = () => {
 
         <div className="flex items-center justify-between">
           <Label htmlFor="high-contrast">
-            {t('accessibility.highContrast', { defaultValue: 'High Contrast' })}
+            {t("accessibility.highContrast", { defaultValue: "High Contrast" })}
           </Label>
           <Switch
             id="high-contrast"
@@ -73,8 +73,8 @@ export const AccessibilitySettingsPanel = () => {
 
         <div className="flex items-center justify-between">
           <Label htmlFor="reduced-animations">
-            {t('accessibility.reducedAnimations', {
-              defaultValue: 'Reduced Animations',
+            {t("accessibility.reducedAnimations", {
+              defaultValue: "Reduced Animations",
             })}
           </Label>
           <Switch
@@ -86,8 +86,8 @@ export const AccessibilitySettingsPanel = () => {
 
         <div className="flex items-center justify-between">
           <Label htmlFor="dyslexia-font">
-            {t('accessibility.dyslexiaFont', {
-              defaultValue: 'Dyslexia-Friendly Font',
+            {t("accessibility.dyslexiaFont", {
+              defaultValue: "Dyslexia-Friendly Font",
             })}
           </Label>
           <Switch
@@ -99,8 +99,8 @@ export const AccessibilitySettingsPanel = () => {
 
         <div className="flex items-center justify-between">
           <Label htmlFor="simplified-view">
-            {t('accessibility.simplifiedView', {
-              defaultValue: 'Simplified View',
+            {t("accessibility.simplifiedView", {
+              defaultValue: "Simplified View",
             })}
           </Label>
           <Switch

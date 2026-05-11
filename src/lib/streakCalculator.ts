@@ -32,8 +32,8 @@ export const MILESTONE_XP: Record<number, number> = {
  * Returns the absolute difference in days.
  */
 export function daysBetween(dateA: string, dateB: string): number {
-  const a = new Date(dateA + 'T00:00:00Z');
-  const b = new Date(dateB + 'T00:00:00Z');
+  const a = new Date(dateA + "T00:00:00Z");
+  const b = new Date(dateB + "T00:00:00Z");
   return Math.floor(Math.abs(a.getTime() - b.getTime()) / 86_400_000);
 }
 
@@ -42,7 +42,9 @@ export function daysBetween(dateA: string, dateB: string): number {
  * Returns the milestone number if the count exactly matches, otherwise null.
  */
 export function checkMilestone(streakCount: number): number | null {
-  return STREAK_MILESTONES.includes(streakCount as typeof STREAK_MILESTONES[number])
+  return STREAK_MILESTONES.includes(
+    streakCount as (typeof STREAK_MILESTONES)[number]
+  )
     ? streakCount
     : null;
 }
@@ -89,7 +91,7 @@ export function processComebackChallenge(
   challengeState: ComebackChallengeState,
   streakBroken: boolean,
   lostStreak: number,
-  habitsCompletedToday: boolean,
+  habitsCompletedToday: boolean
 ): ComebackChallengeResult {
   // Case 1: Streak just broke — activate a new challenge
   if (streakBroken && lostStreak > 1) {
@@ -105,14 +107,16 @@ export function processComebackChallenge(
   // Case 2: Challenge is active — process daily progress
   if (challengeState.comeback_challenge_active) {
     if (habitsCompletedToday) {
-      const newDaysCompleted = challengeState.comeback_challenge_days_completed + 1;
+      const newDaysCompleted =
+        challengeState.comeback_challenge_days_completed + 1;
 
       // 3 days completed — challenge succeeded
       if (newDaysCompleted >= 3) {
         return {
           active: false,
           days_completed: 3,
-          streak_to_restore: challengeState.comeback_challenge_streak_to_restore,
+          streak_to_restore:
+            challengeState.comeback_challenge_streak_to_restore,
           just_completed: true,
           just_cancelled: false,
         };
@@ -152,9 +156,12 @@ export function processComebackChallenge(
  * Check if a given date is a Streak Sabbatical rest day (Saturday or Sunday).
  * Returns false when sabbatical is not enabled.
  */
-export function isStreakSabbaticalDay(sabbaticalEnabled: boolean, dateStr: string): boolean {
+export function isStreakSabbaticalDay(
+  sabbaticalEnabled: boolean,
+  dateStr: string
+): boolean {
   if (!sabbaticalEnabled) return false;
-  const d = new Date(dateStr + 'T00:00:00Z');
+  const d = new Date(dateStr + "T00:00:00Z");
   const day = d.getUTCDay();
   return day === 0 || day === 6; // Sunday = 0, Saturday = 6
 }
@@ -173,7 +180,7 @@ export function isStreakSabbaticalDay(sabbaticalEnabled: boolean, dateStr: strin
 export function calculateStreakUpdate(
   current: StreakState | null,
   todayUTC: string,
-  streakSabbaticalEnabled = false,
+  streakSabbaticalEnabled = false
 ): StreakResult {
   // No existing record — first login ever
   if (!current || !current.last_login_date) {
@@ -218,7 +225,7 @@ export function calculateStreakUpdate(
   let effectiveDayDiff = dayDiff;
   if (streakSabbaticalEnabled && dayDiff > 1) {
     let weekendDaysInGap = 0;
-    const gapStart = new Date(current.last_login_date + 'T00:00:00Z');
+    const gapStart = new Date(current.last_login_date + "T00:00:00Z");
     for (let i = 1; i < dayDiff; i++) {
       const checkDate = new Date(gapStart.getTime() + i * 86_400_000);
       const dow = checkDate.getUTCDay();

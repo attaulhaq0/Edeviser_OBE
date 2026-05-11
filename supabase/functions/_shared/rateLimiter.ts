@@ -29,7 +29,7 @@ export const checkRateLimit = (
   userId: string,
   functionName: string,
   limit: number = READ_LIMIT,
-  windowMs: number = DEFAULT_WINDOW_MS,
+  windowMs: number = DEFAULT_WINDOW_MS
 ): RateLimitResult => {
   const key = `${userId}:${functionName}`;
   const now = Date.now();

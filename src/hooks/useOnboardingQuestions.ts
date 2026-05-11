@@ -1,6 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -26,17 +26,17 @@ export interface OnboardingQuestion {
 
 const fetchQuestions = async (
   assessmentType: string,
-  courseId?: string,
+  courseId?: string
 ): Promise<OnboardingQuestion[]> => {
   let query = supabase
-    .from('onboarding_questions')
-    .select('*')
-    .eq('assessment_type', assessmentType)
-    .eq('is_active', true)
-    .order('sort_order', { ascending: true });
+    .from("onboarding_questions")
+    .select("*")
+    .eq("assessment_type", assessmentType)
+    .eq("is_active", true)
+    .order("sort_order", { ascending: true });
 
   if (courseId) {
-    query = query.eq('course_id', courseId);
+    query = query.eq("course_id", courseId);
   }
 
   const { data, error } = await query;
@@ -48,8 +48,8 @@ const fetchQuestions = async (
 
 export const usePersonalityQuestions = () => {
   return useQuery({
-    queryKey: queryKeys.onboarding.questions('personality'),
-    queryFn: () => fetchQuestions('personality'),
+    queryKey: queryKeys.onboarding.questions("personality"),
+    queryFn: () => fetchQuestions("personality"),
     staleTime: 5 * 60_000,
   });
 };
@@ -58,8 +58,8 @@ export const usePersonalityQuestions = () => {
 
 export const useLearningStyleQuestions = () => {
   return useQuery({
-    queryKey: queryKeys.onboarding.questions('learning_style'),
-    queryFn: () => fetchQuestions('learning_style'),
+    queryKey: queryKeys.onboarding.questions("learning_style"),
+    queryFn: () => fetchQuestions("learning_style"),
     staleTime: 5 * 60_000,
   });
 };
@@ -68,8 +68,8 @@ export const useLearningStyleQuestions = () => {
 
 export const useSelfEfficacyQuestions = () => {
   return useQuery({
-    queryKey: queryKeys.onboarding.questions('self_efficacy'),
-    queryFn: () => fetchQuestions('self_efficacy'),
+    queryKey: queryKeys.onboarding.questions("self_efficacy"),
+    queryFn: () => fetchQuestions("self_efficacy"),
     staleTime: 5 * 60_000,
   });
 };
@@ -78,8 +78,8 @@ export const useSelfEfficacyQuestions = () => {
 
 export const useStudyStrategyQuestions = () => {
   return useQuery({
-    queryKey: queryKeys.onboarding.questions('study_strategy'),
-    queryFn: () => fetchQuestions('study_strategy'),
+    queryKey: queryKeys.onboarding.questions("study_strategy"),
+    queryFn: () => fetchQuestions("study_strategy"),
     staleTime: 5 * 60_000,
   });
 };
@@ -89,7 +89,7 @@ export const useStudyStrategyQuestions = () => {
 export const useBaselineQuestions = (courseId: string) => {
   return useQuery({
     queryKey: queryKeys.onboarding.questions(`baseline_${courseId}`),
-    queryFn: () => fetchQuestions('baseline', courseId),
+    queryFn: () => fetchQuestions("baseline", courseId),
     enabled: !!courseId,
     staleTime: 5 * 60_000,
   });

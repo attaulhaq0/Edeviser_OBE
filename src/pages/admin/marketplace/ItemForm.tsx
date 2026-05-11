@@ -2,17 +2,17 @@
 // ItemForm — Create/edit marketplace item form with React Hook Form + Zod
 // =============================================================================
 
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   createMarketplaceItemSchema,
   type CreateMarketplaceItemInput,
-} from '@/lib/marketplaceSchemas';
+} from "@/lib/marketplaceSchemas";
 import {
   useCreateMarketplaceItem,
   useUpdateMarketplaceItem,
-} from '@/hooks/useMarketplaceAdmin';
-import type { AdminMarketplaceItem } from '@/hooks/useMarketplaceAdmin';
+} from "@/hooks/useMarketplaceAdmin";
+import type { AdminMarketplaceItem } from "@/hooks/useMarketplaceAdmin";
 import {
   Form,
   FormField,
@@ -20,40 +20,43 @@ import {
   FormLabel,
   FormControl,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { ArrowLeft, Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { ArrowLeft, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 interface ItemFormProps {
   item: AdminMarketplaceItem | null;
   onClose: () => void;
 }
 
-const subCategoryOptions: Record<string, Array<{ value: string; label: string }>> = {
+const subCategoryOptions: Record<
+  string,
+  Array<{ value: string; label: string }>
+> = {
   cosmetic: [
-    { value: 'profile_theme', label: 'Profile Theme' },
-    { value: 'avatar_frame', label: 'Avatar Frame' },
-    { value: 'display_title', label: 'Display Title' },
+    { value: "profile_theme", label: "Profile Theme" },
+    { value: "avatar_frame", label: "Avatar Frame" },
+    { value: "display_title", label: "Display Title" },
   ],
   educational_perk: [
-    { value: 'extra_quiz_attempt', label: 'Extra Quiz Attempt' },
-    { value: 'deadline_extension', label: 'Deadline Extension' },
-    { value: 'hint_token', label: 'Hint Token Pack' },
+    { value: "extra_quiz_attempt", label: "Extra Quiz Attempt" },
+    { value: "deadline_extension", label: "Deadline Extension" },
+    { value: "hint_token", label: "Hint Token Pack" },
   ],
   power_up: [
-    { value: 'xp_boost', label: 'XP Boost' },
-    { value: 'streak_shield', label: 'Streak Shield' },
+    { value: "xp_boost", label: "XP Boost" },
+    { value: "streak_shield", label: "Streak Shield" },
   ],
 };
 
@@ -68,30 +71,32 @@ const ItemForm = ({ item, onClose }: ItemFormProps) => {
       ? {
           name: item.name,
           description: item.description,
-          category: item.category as CreateMarketplaceItemInput['category'],
-          sub_category: item.sub_category as CreateMarketplaceItemInput['sub_category'],
+          category: item.category as CreateMarketplaceItemInput["category"],
+          sub_category:
+            item.sub_category as CreateMarketplaceItemInput["sub_category"],
           xp_price: item.xp_price,
           level_requirement: item.level_requirement,
-          stock_type: item.stock_type as CreateMarketplaceItemInput['stock_type'],
+          stock_type:
+            item.stock_type as CreateMarketplaceItemInput["stock_type"],
           stock_quantity: item.stock_quantity,
           icon_identifier: item.icon_identifier,
           metadata: item.metadata,
         }
       : {
-          name: '',
-          description: '',
-          category: 'cosmetic',
-          sub_category: 'profile_theme',
+          name: "",
+          description: "",
+          category: "cosmetic",
+          sub_category: "profile_theme",
           xp_price: 100,
           level_requirement: 0,
-          stock_type: 'unlimited',
+          stock_type: "unlimited",
           stock_quantity: null,
-          icon_identifier: 'sparkles',
+          icon_identifier: "sparkles",
         },
   });
 
-  const watchCategory = form.watch('category');
-  const watchStockType = form.watch('stock_type');
+  const watchCategory = form.watch("category");
+  const watchStockType = form.watch("stock_type");
 
   const onSubmit = (data: CreateMarketplaceItemInput) => {
     if (isEditing && item) {
@@ -99,16 +104,16 @@ const ItemForm = ({ item, onClose }: ItemFormProps) => {
         { itemId: item.id, data },
         {
           onSuccess: () => {
-            toast.success('Item updated');
+            toast.success("Item updated");
             onClose();
           },
           onError: (err) => toast.error(err.message),
-        },
+        }
       );
     } else {
       createItem.mutate(data, {
         onSuccess: () => {
-          toast.success('Item created');
+          toast.success("Item created");
           onClose();
         },
         onError: (err) => toast.error(err.message),
@@ -125,7 +130,7 @@ const ItemForm = ({ item, onClose }: ItemFormProps) => {
           <ArrowLeft className="h-4 w-4" /> Back
         </Button>
         <h1 className="text-2xl font-bold tracking-tight">
-          {isEditing ? 'Edit Item' : 'Create Item'}
+          {isEditing ? "Edit Item" : "Create Item"}
         </h1>
       </div>
 
@@ -153,7 +158,11 @@ const ItemForm = ({ item, onClose }: ItemFormProps) => {
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Describe the item..." rows={3} {...field} />
+                    <Textarea
+                      placeholder="Describe the item..."
+                      rows={3}
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -167,7 +176,10 @@ const ItemForm = ({ item, onClose }: ItemFormProps) => {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Category</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select category" />
@@ -175,7 +187,9 @@ const ItemForm = ({ item, onClose }: ItemFormProps) => {
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="cosmetic">Cosmetic</SelectItem>
-                        <SelectItem value="educational_perk">Educational Perk</SelectItem>
+                        <SelectItem value="educational_perk">
+                          Educational Perk
+                        </SelectItem>
                         <SelectItem value="power_up">Power-up</SelectItem>
                       </SelectContent>
                     </Select>
@@ -190,18 +204,23 @@ const ItemForm = ({ item, onClose }: ItemFormProps) => {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Sub-Category</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select sub-category" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {(subCategoryOptions[watchCategory] ?? []).map((opt) => (
-                          <SelectItem key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </SelectItem>
-                        ))}
+                        {(subCategoryOptions[watchCategory] ?? []).map(
+                          (opt) => (
+                            <SelectItem key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </SelectItem>
+                          )
+                        )}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -257,7 +276,10 @@ const ItemForm = ({ item, onClose }: ItemFormProps) => {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Stock Type</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select stock type" />
@@ -266,7 +288,9 @@ const ItemForm = ({ item, onClose }: ItemFormProps) => {
                       <SelectContent>
                         <SelectItem value="unlimited">Unlimited</SelectItem>
                         <SelectItem value="limited">Limited</SelectItem>
-                        <SelectItem value="one_per_student">One per Student</SelectItem>
+                        <SelectItem value="one_per_student">
+                          One per Student
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -274,7 +298,7 @@ const ItemForm = ({ item, onClose }: ItemFormProps) => {
                 )}
               />
 
-              {watchStockType === 'limited' && (
+              {watchStockType === "limited" && (
                 <FormField
                   control={form.control}
                   name="stock_quantity"
@@ -285,8 +309,12 @@ const ItemForm = ({ item, onClose }: ItemFormProps) => {
                         <Input
                           type="number"
                           min={1}
-                          value={field.value ?? ''}
-                          onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
+                          value={field.value ?? ""}
+                          onChange={(e) =>
+                            field.onChange(
+                              e.target.value ? Number(e.target.value) : null
+                            )
+                          }
                         />
                       </FormControl>
                       <FormMessage />
@@ -303,7 +331,10 @@ const ItemForm = ({ item, onClose }: ItemFormProps) => {
                 <FormItem>
                   <FormLabel>Icon Identifier</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g. sparkles, shield, zap" {...field} />
+                    <Input
+                      placeholder="e.g. sparkles, shield, zap"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -317,7 +348,7 @@ const ItemForm = ({ item, onClose }: ItemFormProps) => {
                 className="bg-gradient-to-r from-teal-500 to-blue-600 text-white active:scale-95 transition-transform duration-100"
               >
                 {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-                {isEditing ? 'Update Item' : 'Create Item'}
+                {isEditing ? "Update Item" : "Create Item"}
               </Button>
               <Button type="button" variant="outline" onClick={onClose}>
                 Cancel

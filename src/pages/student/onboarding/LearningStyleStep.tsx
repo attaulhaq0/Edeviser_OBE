@@ -1,12 +1,12 @@
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Layers, AlertTriangle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { useLearningStyleQuestions } from '@/hooks/useOnboardingQuestions';
-import { useSaveResponses } from '@/hooks/useOnboardingResponses';
-import type { OnboardingQuestion } from '@/hooks/useOnboardingQuestions';
-import type { WizardStepProps } from './OnboardingWizard';
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Layers, AlertTriangle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { useLearningStyleQuestions } from "@/hooks/useOnboardingQuestions";
+import { useSaveResponses } from "@/hooks/useOnboardingResponses";
+import type { OnboardingQuestion } from "@/hooks/useOnboardingQuestions";
+import type { WizardStepProps } from "./OnboardingWizard";
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -37,7 +37,9 @@ export const LearningStyleStep = ({
 
   const currentQuestion = questions[currentIndex];
   const totalQuestions = questions.length;
-  const currentAnswer = currentQuestion ? answers[currentQuestion.id] ?? null : null;
+  const currentAnswer = currentQuestion
+    ? answers[currentQuestion.id] ?? null
+    : null;
   const options = currentQuestion ? parseOptions(currentQuestion) : [];
 
   const handleSelect = (optionIndex: number) => {
@@ -58,7 +60,7 @@ export const LearningStyleStep = ({
 
       await saveResponses.mutateAsync({
         student_id: studentId,
-        assessment_type: 'learning_style',
+        assessment_type: "learning_style",
         assessment_version: assessmentVersion,
         responses,
       });
@@ -83,8 +85,8 @@ export const LearningStyleStep = ({
           Learning Style Assessment
         </h2>
         <p className="mt-2 max-w-sm text-sm text-gray-500">
-          This assessment will be delivered as short daily micro-assessments over your first two
-          weeks. You&apos;ll earn XP for each one!
+          This assessment will be delivered as short daily micro-assessments
+          over your first two weeks. You&apos;ll earn XP for each one!
         </p>
         <Button
           onClick={onComplete}
@@ -107,7 +109,8 @@ export const LearningStyleStep = ({
   if (totalQuestions === 0) {
     return (
       <div className="py-16 text-center text-sm text-gray-500">
-        No learning style questions available. Please contact your administrator.
+        No learning style questions available. Please contact your
+        administrator.
       </div>
     );
   }
@@ -126,9 +129,10 @@ export const LearningStyleStep = ({
       <Card className="mb-6 flex flex-row items-start gap-2 border-0 bg-amber-50 p-3 shadow-none">
         <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
         <p className="text-xs text-amber-800">
-          Learning style preferences are provided as a self-awareness exercise. Research does not
-          support matching instruction to VARK styles (Pashler et al., 2008). Your results will
-          not be used to restrict content delivery.
+          Learning style preferences are provided as a self-awareness exercise.
+          Research does not support matching instruction to VARK styles (Pashler
+          et al., 2008). Your results will not be used to restrict content
+          delivery.
         </p>
       </Card>
 
@@ -160,7 +164,11 @@ export const LearningStyleStep = ({
             <p className="mb-6 text-sm font-medium text-gray-900">
               {currentQuestion?.question_text}
             </p>
-            <div className="flex flex-col gap-2" role="radiogroup" aria-label="VARK options">
+            <div
+              className="flex flex-col gap-2"
+              role="radiogroup"
+              aria-label="VARK options"
+            >
               {options.map((opt, idx) => {
                 const isSelected = currentAnswer === idx;
                 return (
@@ -173,16 +181,18 @@ export const LearningStyleStep = ({
                     onClick={() => handleSelect(idx)}
                     className={`flex items-center gap-3 rounded-lg border px-4 py-3 text-start text-sm font-medium transition-colors ${
                       isSelected
-                        ? 'border-blue-500 bg-blue-50 text-blue-700'
-                        : 'border-slate-200 bg-white text-gray-700 hover:border-slate-300 hover:bg-slate-50'
+                        ? "border-blue-500 bg-blue-50 text-blue-700"
+                        : "border-slate-200 bg-white text-gray-700 hover:border-slate-300 hover:bg-slate-50"
                     }`}
                   >
                     <span
                       className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${
-                        isSelected ? 'border-blue-500' : 'border-slate-300'
+                        isSelected ? "border-blue-500" : "border-slate-300"
                       }`}
                     >
-                      {isSelected && <span className="h-2.5 w-2.5 rounded-full bg-blue-500" />}
+                      {isSelected && (
+                        <span className="h-2.5 w-2.5 rounded-full bg-blue-500" />
+                      )}
                     </span>
                     {opt.option_text}
                   </button>
@@ -210,9 +220,9 @@ export const LearningStyleStep = ({
         >
           {currentIndex === totalQuestions - 1
             ? saveResponses.isPending
-              ? 'Saving...'
-              : 'Complete'
-            : 'Next'}
+              ? "Saving..."
+              : "Complete"
+            : "Next"}
         </Button>
       </div>
     </div>

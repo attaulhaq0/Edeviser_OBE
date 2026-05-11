@@ -1,10 +1,10 @@
-import { useState } from 'react';
-import { ChevronRight, Trash2 } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import CLOProgressBar from '@/components/shared/CLOProgressBar';
-import type { LearningOutcome } from '@/types/app';
+import { useState } from "react";
+import { ChevronRight, Trash2 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import CLOProgressBar from "@/components/shared/CLOProgressBar";
+import type { LearningOutcome } from "@/types/app";
 
 interface SubCLORowProps {
   subCLO: LearningOutcome & { weight?: number };
@@ -35,17 +35,19 @@ const SubCLORow = ({
         >
           <ChevronRight
             className={cn(
-              'h-4 w-4 text-slate-400 transition-transform',
-              expanded && 'rotate-90',
+              "h-4 w-4 text-slate-400 transition-transform",
+              expanded && "rotate-90"
             )}
           />
         </button>
 
         <Badge variant="outline" className="text-xs font-mono">
-          {'SC'}
+          {"SC"}
         </Badge>
 
-        <span className="text-sm font-medium flex-1 truncate">{subCLO.title}</span>
+        <span className="text-sm font-medium flex-1 truncate">
+          {subCLO.title}
+        </span>
 
         {subCLO.weight !== undefined && (
           <span className="text-xs text-slate-500 tabular-nums">
@@ -57,12 +59,16 @@ const SubCLORow = ({
           <div className="w-24">
             <CLOProgressBar
               title={subCLO.title}
-              bloomsLevel={subCLO.blooms_level ?? 'remembering'}
+              bloomsLevel={subCLO.blooms_level ?? "remembering"}
               attainmentPercent={attainment}
               attainmentLevel={
-                attainment >= 85 ? 'Excellent' :
-                attainment >= 70 ? 'Satisfactory' :
-                attainment >= 50 ? 'Developing' : 'Not_Yet'
+                attainment >= 85
+                  ? "Excellent"
+                  : attainment >= 70
+                  ? "Satisfactory"
+                  : attainment >= 50
+                  ? "Developing"
+                  : "Not_Yet"
               }
             />
           </div>

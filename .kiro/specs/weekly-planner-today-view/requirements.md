@@ -300,7 +300,6 @@ The Weekly Planner & Today View feature adds a structured self-regulated learnin
 4. All interactive elements in the planner and focus mode SHALL meet a minimum touch target of 44×44 pixels on mobile.
 5. THE Focus_Mode completion audio notification SHALL be accompanied by a visual notification for users who cannot hear audio.
 
-
 ### SECTION I: Pre-Learning Rituals & Flow Optimization
 
 #### Requirement 22: Session Intent Step

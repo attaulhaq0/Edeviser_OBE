@@ -3,21 +3,21 @@
 // Task 5.4: name, member selection from enrollment roster
 // =============================================================================
 
-import { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { useAuth } from '@/hooks/useAuth';
-import { useCourses } from '@/hooks/useCourses';
-import { useCreateTeam, useUpdateTeam, useTeams } from '@/hooks/useTeams';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useAuth } from "@/hooks/useAuth";
+import { useCourses } from "@/hooks/useCourses";
+import { useCreateTeam, useUpdateTeam, useTeams } from "@/hooks/useTeams";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
   FormField,
@@ -25,21 +25,21 @@ import {
   FormLabel,
   FormControl,
   FormMessage,
-} from '@/components/ui/form';
+} from "@/components/ui/form";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import Shimmer from '@/components/shared/Shimmer';
-import { Loader2, ArrowLeft } from 'lucide-react';
-import { toast } from 'sonner';
+} from "@/components/ui/select";
+import Shimmer from "@/components/shared/Shimmer";
+import { Loader2, ArrowLeft } from "lucide-react";
+import { toast } from "sonner";
 
 const teamFormSchema = z.object({
-  name: z.string().min(2, 'Team name must be at least 2 characters').max(50),
-  course_id: z.string().uuid('Select a course'),
+  name: z.string().min(2, "Team name must be at least 2 characters").max(50),
+  course_id: z.string().uuid("Select a course"),
 });
 
 type TeamFormData = z.infer<typeof teamFormSchema>;
@@ -54,16 +54,18 @@ const useCourseRoster = (courseId?: string) => {
     queryKey: queryKeys.enrollments.list({ courseId, rosterAll: true }),
     queryFn: async (): Promise<RosterStudent[]> => {
       const { data, error } = await supabase
-        .from('student_courses')
-        .select('student_id, profiles!inner(full_name)')
-        .eq('course_id', courseId!)
-        .eq('status', 'active');
+        .from("student_courses")
+        .select("student_id, profiles!inner(full_name)")
+        .eq("course_id", courseId!)
+        .eq("status", "active");
       if (error) throw error;
 
-      return ((data ?? []) as Array<{
-        student_id: string;
-        profiles: { full_name: string };
-      }>).map((row) => ({
+      return (
+        (data ?? []) as Array<{
+          student_id: string;
+          profiles: { full_name: string };
+        }>
+      ).map((row) => ({
         student_id: row.student_id,
         full_name: row.profiles.full_name,
       }));
@@ -80,8 +82,9 @@ const TeamFormPage = () => {
   const { data: paginatedCourses } = useCourses();
 
   const teacherCourses = useMemo(
-    () => (paginatedCourses?.data ?? []).filter((c) => c.teacher_id === user?.id),
-    [paginatedCourses, user?.id],
+    () =>
+      (paginatedCourses?.data ?? []).filter((c) => c.teacher_id === user?.id),
+    [paginatedCourses, user?.id]
   );
 
   const createMutation = useCreateTeam();
@@ -90,12 +93,12 @@ const TeamFormPage = () => {
 
   const form = useForm<TeamFormData>({
     resolver: zodResolver(teamFormSchema),
-    defaultValues: { name: '', course_id: '' },
+    defaultValues: { name: "", course_id: "" },
   });
 
-  const selectedCourseId = form.watch('course_id');
+  const selectedCourseId = form.watch("course_id");
   const { data: roster, isLoading: rosterLoading } = useCourseRoster(
-    selectedCourseId || undefined,
+    selectedCourseId || undefined
   );
 
   // Load existing team data for edit mode
@@ -117,7 +120,7 @@ const TeamFormPage = () => {
     setSelectedMembers((prev) =>
       prev.includes(studentId)
         ? prev.filter((m) => m !== studentId)
-        : [...prev, studentId],
+        : [...prev, studentId]
     );
   };
 
@@ -130,31 +133,31 @@ const TeamFormPage = () => {
         { id, name: data.name },
         {
           onSuccess: () => {
-            toast.success('Team updated');
-            navigate('/teacher/teams');
+            toast.success("Team updated");
+            navigate("/teacher/teams");
           },
           onError: (err) => toast.error(err.message),
-        },
+        }
       );
     } else {
       if (!sizeValid) {
-        toast.error('Select 2-6 members for the team');
+        toast.error("Select 2-6 members for the team");
         return;
       }
       createMutation.mutate(
         {
           name: data.name,
           course_id: data.course_id,
-          created_by: user?.id ?? '',
+          created_by: user?.id ?? "",
           avatar_letter: data.name.charAt(0).toUpperCase(),
         },
         {
           onSuccess: () => {
-            toast.success('Team created');
-            navigate('/teacher/teams');
+            toast.success("Team created");
+            navigate("/teacher/teams");
           },
           onError: (err) => toast.error(err.message),
-        },
+        }
       );
     }
   };
@@ -167,13 +170,13 @@ const TeamFormPage = () => {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => navigate('/teacher/teams')}
+          onClick={() => navigate("/teacher/teams")}
           className="h-8 w-8 p-0"
         >
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <h1 className="text-2xl font-bold tracking-tight">
-          {isEditMode ? 'Edit Team' : 'Create Team'}
+          {isEditMode ? "Edit Team" : "Create Team"}
         </h1>
       </div>
 
@@ -226,13 +229,13 @@ const TeamFormPage = () => {
             {/* Member Selection (create mode only) */}
             {!isEditMode && selectedCourseId && (
               <div className="space-y-2">
-                <FormLabel>
-                  Select Members ({totalSize}/6)
-                </FormLabel>
+                <FormLabel>Select Members ({totalSize}/6)</FormLabel>
                 {rosterLoading ? (
                   <Shimmer className="h-24 rounded-lg" />
                 ) : !roster || roster.length === 0 ? (
-                  <p className="text-xs text-gray-500">No enrolled students found.</p>
+                  <p className="text-xs text-gray-500">
+                    No enrolled students found.
+                  </p>
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-60 overflow-y-auto border rounded-lg p-3">
                     {roster.map((student) => (
@@ -242,18 +245,25 @@ const TeamFormPage = () => {
                       >
                         <Checkbox
                           checked={selectedMembers.includes(student.student_id)}
-                          onCheckedChange={() => toggleMember(student.student_id)}
+                          onCheckedChange={() =>
+                            toggleMember(student.student_id)
+                          }
                           disabled={
-                            !selectedMembers.includes(student.student_id) && totalSize >= 6
+                            !selectedMembers.includes(student.student_id) &&
+                            totalSize >= 6
                           }
                         />
-                        <span className="text-sm font-medium">{student.full_name}</span>
+                        <span className="text-sm font-medium">
+                          {student.full_name}
+                        </span>
                       </label>
                     ))}
                   </div>
                 )}
                 {totalSize > 0 && totalSize < 2 && (
-                  <p className="text-xs text-amber-600">Select at least 2 members.</p>
+                  <p className="text-xs text-amber-600">
+                    Select at least 2 members.
+                  </p>
                 )}
               </div>
             )}
@@ -265,12 +275,12 @@ const TeamFormPage = () => {
                 className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
               >
                 {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-                {isEditMode ? 'Update Team' : 'Create Team'}
+                {isEditMode ? "Update Team" : "Create Team"}
               </Button>
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => navigate('/teacher/teams')}
+                onClick={() => navigate("/teacher/teams")}
               >
                 Cancel
               </Button>

@@ -1,42 +1,42 @@
-import { useParams } from 'react-router-dom';
-import { Check, X, CheckCheck, Inbox } from 'lucide-react';
-import { toast } from 'sonner';
+import { useParams } from "react-router-dom";
+import { Check, X, CheckCheck, Inbox } from "lucide-react";
+import { toast } from "sonner";
 
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
-import QuestionPreview from '@/components/shared/QuestionPreview';
-import DifficultyBadge from '@/components/shared/DifficultyBadge';
-import Shimmer from '@/components/shared/Shimmer';
+import QuestionPreview from "@/components/shared/QuestionPreview";
+import DifficultyBadge from "@/components/shared/DifficultyBadge";
+import Shimmer from "@/components/shared/Shimmer";
 
 import {
   useReviewQueue,
   useApproveQuestion,
   useRejectQuestion,
   useBulkApproveQuestions,
-} from '@/hooks/useReviewQueue';
-import { useCLOs } from '@/hooks/useCLOs';
-import type { QuestionBankRow } from '@/hooks/useQuestionBank';
+} from "@/hooks/useReviewQueue";
+import { useCLOs } from "@/hooks/useCLOs";
+import type { QuestionBankRow } from "@/hooks/useQuestionBank";
 
 // ─── Bloom's level helpers ──────────────────────────────────────────────────
 
 const BLOOM_LABELS: Record<number, string> = {
-  1: 'Remember',
-  2: 'Understand',
-  3: 'Apply',
-  4: 'Analyze',
-  5: 'Evaluate',
-  6: 'Create',
+  1: "Remember",
+  2: "Understand",
+  3: "Apply",
+  4: "Analyze",
+  5: "Evaluate",
+  6: "Create",
 };
 
 const BLOOM_COLORS: Record<number, string> = {
-  1: 'bg-purple-500 text-white',
-  2: 'bg-blue-500 text-white',
-  3: 'bg-green-500 text-white',
-  4: 'bg-yellow-500 text-gray-900',
-  5: 'bg-orange-500 text-white',
-  6: 'bg-red-500 text-white',
+  1: "bg-purple-500 text-white",
+  2: "bg-blue-500 text-white",
+  3: "bg-green-500 text-white",
+  4: "bg-yellow-500 text-gray-900",
+  5: "bg-orange-500 text-white",
+  6: "bg-red-500 text-white",
 };
 
 // ─── Grouping helper ────────────────────────────────────────────────────────
@@ -50,7 +50,7 @@ interface GroupedQuestions {
 
 const groupQuestions = (
   questions: QuestionBankRow[],
-  cloMap: Record<string, string>,
+  cloMap: Record<string, string>
 ): GroupedQuestions[] => {
   const map = new Map<string, GroupedQuestions>();
 
@@ -59,7 +59,7 @@ const groupQuestions = (
     if (!map.has(key)) {
       map.set(key, {
         cloId: q.clo_id,
-        cloTitle: cloMap[q.clo_id] ?? 'Unknown CLO',
+        cloTitle: cloMap[q.clo_id] ?? "Unknown CLO",
         bloomLevel: q.bloom_level,
         questions: [],
       });
@@ -68,7 +68,8 @@ const groupQuestions = (
   }
 
   return Array.from(map.values()).sort(
-    (a, b) => a.cloTitle.localeCompare(b.cloTitle) || a.bloomLevel - b.bloomLevel,
+    (a, b) =>
+      a.cloTitle.localeCompare(b.cloTitle) || a.bloomLevel - b.bloomLevel
   );
 };
 
@@ -83,7 +84,7 @@ interface SourceChunk {
 
 const ReviewQueuePage = () => {
   const { courseId } = useParams<{ courseId: string }>();
-  const { data: questions, isLoading } = useReviewQueue(courseId ?? '');
+  const { data: questions, isLoading } = useReviewQueue(courseId ?? "");
   const closQuery = useCLOs(courseId);
   const approveMutation = useApproveQuestion();
   const rejectMutation = useRejectQuestion();
@@ -98,7 +99,8 @@ const ReviewQueuePage = () => {
   const pendingQuestions = questions ?? [];
   const totalCount = pendingQuestions.length;
   const approvedCount = 0; // All items in the review queue are pending; approval rate is tracked across all generated
-  const approvalRate = totalCount > 0 ? `${approvedCount} / ${totalCount}` : '0 / 0';
+  const approvalRate =
+    totalCount > 0 ? `${approvedCount} / ${totalCount}` : "0 / 0";
 
   const groups = groupQuestions(pendingQuestions, cloMap);
 
@@ -106,9 +108,9 @@ const ReviewQueuePage = () => {
     approveMutation.mutate(
       { id },
       {
-        onSuccess: () => toast.success('Question approved'),
+        onSuccess: () => toast.success("Question approved"),
         onError: (err) => toast.error(err.message),
-      },
+      }
     );
   };
 
@@ -116,9 +118,9 @@ const ReviewQueuePage = () => {
     rejectMutation.mutate(
       { id },
       {
-        onSuccess: () => toast.success('Question rejected'),
+        onSuccess: () => toast.success("Question rejected"),
         onError: (err) => toast.error(err.message),
-      },
+      }
     );
   };
 
@@ -131,7 +133,7 @@ const ReviewQueuePage = () => {
       {
         onSuccess: (data) => toast.success(`Approved ${data.length} questions`),
         onError: (err) => toast.error(err.message),
-      },
+      }
     );
   };
 
@@ -155,7 +157,9 @@ const ReviewQueuePage = () => {
         <h1 className="text-2xl font-bold tracking-tight">Review Queue</h1>
         <Card className="bg-white border-0 shadow-md rounded-xl p-12 flex flex-col items-center justify-center gap-3">
           <Inbox className="h-10 w-10 text-gray-300" />
-          <p className="text-sm text-gray-500">No pending questions to review.</p>
+          <p className="text-sm text-gray-500">
+            No pending questions to review.
+          </p>
         </Card>
       </div>
     );
@@ -179,7 +183,7 @@ const ReviewQueuePage = () => {
           className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 transition-transform"
         >
           <CheckCheck className="h-4 w-4" />
-          {bulkApproveMutation.isPending ? 'Approving...' : 'Approve All'}
+          {bulkApproveMutation.isPending ? "Approving..." : "Approve All"}
         </Button>
       </div>
 
@@ -191,19 +195,23 @@ const ReviewQueuePage = () => {
             <div
               className="px-6 py-3 flex items-center gap-3"
               style={{
-                background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)',
+                background:
+                  "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
               }}
             >
               <h2 className="text-sm font-bold tracking-tight text-white flex-1">
                 {group.cloTitle}
               </h2>
               <Badge
-                className={`${BLOOM_COLORS[group.bloomLevel] ?? ''} text-xs font-bold tracking-wide uppercase border-transparent`}
+                className={`${
+                  BLOOM_COLORS[group.bloomLevel] ?? ""
+                } text-xs font-bold tracking-wide uppercase border-transparent`}
               >
                 {BLOOM_LABELS[group.bloomLevel] ?? `Level ${group.bloomLevel}`}
               </Badge>
               <span className="text-xs text-white/70 font-medium">
-                {group.questions.length} question{group.questions.length !== 1 ? 's' : ''}
+                {group.questions.length} question
+                {group.questions.length !== 1 ? "s" : ""}
               </span>
             </div>
           </Card>
@@ -255,10 +263,10 @@ const QuestionReviewCard = ({
           questionText={question.question_text}
           questionType={
             question.question_type as
-              | 'mcq'
-              | 'true_false'
-              | 'short_answer'
-              | 'fill_in_blank'
+              | "mcq"
+              | "true_false"
+              | "short_answer"
+              | "fill_in_blank"
           }
           options={
             Array.isArray(question.options)
@@ -272,9 +280,12 @@ const QuestionReviewCard = ({
         <div className="flex items-center gap-2 flex-wrap">
           <DifficultyBadge difficulty={question.difficulty_rating} />
           <Badge
-            className={`${BLOOM_COLORS[question.bloom_level] ?? ''} text-xs font-bold tracking-wide uppercase border-transparent`}
+            className={`${
+              BLOOM_COLORS[question.bloom_level] ?? ""
+            } text-xs font-bold tracking-wide uppercase border-transparent`}
           >
-            {BLOOM_LABELS[question.bloom_level] ?? `Level ${question.bloom_level}`}
+            {BLOOM_LABELS[question.bloom_level] ??
+              `Level ${question.bloom_level}`}
           </Badge>
         </div>
 

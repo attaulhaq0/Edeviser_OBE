@@ -1,11 +1,11 @@
-import { useParams } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Switch } from '@/components/ui/switch';
+import { useParams } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import {
   Form,
   FormField,
@@ -14,11 +14,14 @@ import {
   FormControl,
   FormMessage,
   FormDescription,
-} from '@/components/ui/form';
-import Shimmer from '@/components/shared/Shimmer';
-import { useBaselineTestConfig, useUpdateBaselineConfig } from '@/hooks/useBaselineTests';
-import { Settings, Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
+} from "@/components/ui/form";
+import Shimmer from "@/components/shared/Shimmer";
+import {
+  useBaselineTestConfig,
+  useUpdateBaselineConfig,
+} from "@/hooks/useBaselineTests";
+import { Settings, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 const configSchema = z.object({
   time_limit_minutes: z.number().int().min(5).max(60),
@@ -29,7 +32,7 @@ type ConfigFormData = z.infer<typeof configSchema>;
 
 const BaselineConfigPage = () => {
   const { courseId } = useParams<{ courseId: string }>();
-  const { data: config, isLoading } = useBaselineTestConfig(courseId ?? '');
+  const { data: config, isLoading } = useBaselineTestConfig(courseId ?? "");
   const updateConfig = useUpdateBaselineConfig();
 
   const form = useForm<ConfigFormData>({
@@ -45,9 +48,9 @@ const BaselineConfigPage = () => {
     updateConfig.mutate(
       { course_id: courseId, ...data },
       {
-        onSuccess: () => toast.success('Baseline test configuration saved'),
+        onSuccess: () => toast.success("Baseline test configuration saved"),
         onError: (err) => toast.error(err.message),
-      },
+      }
     );
   };
 
@@ -64,7 +67,9 @@ const BaselineConfigPage = () => {
     <div className="space-y-6">
       <div className="flex items-center gap-2">
         <Settings className="h-5 w-5 text-gray-600" />
-        <h1 className="text-2xl font-bold tracking-tight">Baseline Test Configuration</h1>
+        <h1 className="text-2xl font-bold tracking-tight">
+          Baseline Test Configuration
+        </h1>
       </div>
 
       <Card className="bg-white border-0 shadow-md rounded-xl p-6 max-w-2xl">
@@ -80,7 +85,8 @@ const BaselineConfigPage = () => {
                     <Input type="number" min={5} max={60} {...field} />
                   </FormControl>
                   <FormDescription>
-                    Students will have this many minutes to complete the baseline test (5–60).
+                    Students will have this many minutes to complete the
+                    baseline test (5–60).
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -95,11 +101,15 @@ const BaselineConfigPage = () => {
                   <div className="space-y-0.5">
                     <FormLabel className="text-base">Active</FormLabel>
                     <FormDescription>
-                      When active, the baseline test appears in the student onboarding flow.
+                      When active, the baseline test appears in the student
+                      onboarding flow.
                     </FormDescription>
                   </div>
                   <FormControl>
-                    <Switch checked={field.value} onCheckedChange={field.onChange} />
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
                   </FormControl>
                 </FormItem>
               )}
@@ -110,7 +120,9 @@ const BaselineConfigPage = () => {
               disabled={updateConfig.isPending}
               className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
             >
-              {updateConfig.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+              {updateConfig.isPending && (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              )}
               Save Configuration
             </Button>
           </form>

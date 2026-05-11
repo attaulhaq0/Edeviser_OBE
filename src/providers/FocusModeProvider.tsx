@@ -1,8 +1,14 @@
-import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  type ReactNode,
+} from "react";
 import {
   useAccessibilityPreferences,
   useUpdateAccessibilityPreferences,
-} from '@/hooks/useAccessibilityPreferences';
+} from "@/hooks/useAccessibilityPreferences";
 
 interface FocusModeContextValue {
   isFocusMode: boolean;

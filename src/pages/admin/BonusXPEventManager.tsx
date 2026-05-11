@@ -1,29 +1,29 @@
-import { useState, useCallback } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { parseAsString, useQueryState } from 'nuqs';
-import { toast } from 'sonner';
-import { format } from 'date-fns';
-import { z } from 'zod';
-import { createColumns } from './bonus-events/columns';
-import { DataTable } from '@/components/shared/DataTable';
-import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
+import { useState, useCallback } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { parseAsString, useQueryState } from "nuqs";
+import { toast } from "sonner";
+import { format } from "date-fns";
+import { z } from "zod";
+import { createColumns } from "./bonus-events/columns";
+import { DataTable } from "@/components/shared/DataTable";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import {
   useBonusEvents,
   useCreateBonusEvent,
   useUpdateBonusEvent,
   useDeleteBonusEvent,
   type BonusXPEvent,
-} from '@/hooks/useBonusEvents';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+} from "@/hooks/useBonusEvents";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   Form,
   FormField,
@@ -31,23 +31,21 @@ import {
   FormLabel,
   FormControl,
   FormMessage,
-} from '@/components/ui/form';
-import { Plus, Search, Loader2, Sparkles } from 'lucide-react';
+} from "@/components/ui/form";
+import { Plus, Search, Loader2, Sparkles } from "lucide-react";
 
 // ─── Form schema (all fields required — avoids .default() type mismatch) ────
 
 const bonusEventFormSchema = z.object({
-  name: z.string().min(1, 'Name is required').max(255),
+  name: z.string().min(1, "Name is required").max(255),
   event_type: z.string().min(1),
   xp_multiplier: z.number().positive(),
-  starts_at: z.string().min(1, 'Start date is required'),
-  ends_at: z.string().min(1, 'End date is required'),
+  starts_at: z.string().min(1, "Start date is required"),
+  ends_at: z.string().min(1, "End date is required"),
   is_active: z.boolean(),
 });
 
 type BonusEventFormValues = z.infer<typeof bonusEventFormSchema>;
-
-
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -66,7 +64,7 @@ const rangesOverlap = (
   startA: string,
   endA: string,
   startB: string,
-  endB: string,
+  endB: string
 ): boolean => {
   return startA < endB && endA > startB;
 };
@@ -88,17 +86,17 @@ const BonusEventFormDialog = ({
 }: BonusEventFormDialogProps) => {
   const isEditMode = !!editingEvent;
   const createMutation = useCreateBonusEvent();
-  const updateMutation = useUpdateBonusEvent(editingEvent?.id ?? '');
+  const updateMutation = useUpdateBonusEvent(editingEvent?.id ?? "");
   const isPending = createMutation.isPending || updateMutation.isPending;
 
   const form = useForm<BonusEventFormValues>({
     resolver: zodResolver(bonusEventFormSchema),
     defaultValues: {
-      name: '',
-      event_type: 'bonus_xp',
+      name: "",
+      event_type: "bonus_xp",
       xp_multiplier: 2,
-      starts_at: '',
-      ends_at: '',
+      starts_at: "",
+      ends_at: "",
       is_active: true,
     },
   });
@@ -111,23 +109,23 @@ const BonusEventFormDialog = ({
           name: editingEvent.name,
           event_type: editingEvent.event_type,
           xp_multiplier: editingEvent.xp_multiplier,
-          starts_at: editingEvent.starts_at ?? '',
-          ends_at: editingEvent.ends_at ?? '',
+          starts_at: editingEvent.starts_at ?? "",
+          ends_at: editingEvent.ends_at ?? "",
           is_active: editingEvent.is_active,
         });
       } else if (isOpen) {
         form.reset({
-          name: '',
-          event_type: 'bonus_xp',
+          name: "",
+          event_type: "bonus_xp",
           xp_multiplier: 2,
-          starts_at: '',
-          ends_at: '',
+          starts_at: "",
+          ends_at: "",
           is_active: true,
         });
       }
       onOpenChange(isOpen);
     },
-    [editingEvent, form, onOpenChange],
+    [editingEvent, form, onOpenChange]
   );
 
   const onSubmit = (data: BonusEventFormValues) => {
@@ -137,11 +135,16 @@ const BonusEventFormDialog = ({
         (ev) =>
           ev.is_active &&
           ev.id !== editingEvent?.id &&
-          rangesOverlap(data.starts_at, data.ends_at, ev.starts_at ?? '', ev.ends_at ?? ''),
+          rangesOverlap(
+            data.starts_at,
+            data.ends_at,
+            ev.starts_at ?? "",
+            ev.ends_at ?? ""
+          )
       );
       if (overlapping) {
         toast.error(
-          `Date range overlaps with "${overlapping.name}". Only one active event allowed per time period.`,
+          `Date range overlaps with "${overlapping.name}". Only one active event allowed per time period.`
         );
         return;
       }
@@ -150,7 +153,7 @@ const BonusEventFormDialog = ({
     if (isEditMode) {
       updateMutation.mutate(data, {
         onSuccess: () => {
-          toast.success('Bonus event updated');
+          toast.success("Bonus event updated");
           onOpenChange(false);
         },
         onError: (err) => toast.error(err.message),
@@ -158,7 +161,7 @@ const BonusEventFormDialog = ({
     } else {
       createMutation.mutate(data, {
         onSuccess: () => {
-          toast.success('Bonus event created');
+          toast.success("Bonus event created");
           onOpenChange(false);
         },
         onError: (err) => toast.error(err.message),
@@ -171,12 +174,12 @@ const BonusEventFormDialog = ({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>
-            {isEditMode ? 'Edit Bonus XP Event' : 'Create Bonus XP Event'}
+            {isEditMode ? "Edit Bonus XP Event" : "Create Bonus XP Event"}
           </DialogTitle>
           <DialogDescription>
             {isEditMode
-              ? 'Update the bonus XP event details.'
-              : 'Create a time-bounded XP multiplier event for students.'}
+              ? "Update the bonus XP event details."
+              : "Create a time-bounded XP multiplier event for students."}
           </DialogDescription>
         </DialogHeader>
 
@@ -209,7 +212,9 @@ const BonusEventFormDialog = ({
                       step={0.5}
                       placeholder="2"
                       {...field}
-                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                      onChange={(e) =>
+                        field.onChange(parseFloat(e.target.value) || 0)
+                      }
                     />
                   </FormControl>
                   <FormMessage />
@@ -226,10 +231,10 @@ const BonusEventFormDialog = ({
                   <FormControl>
                     <Input
                       type="datetime-local"
-                      value={field.value ? isoToDatetimeLocal(field.value) : ''}
+                      value={field.value ? isoToDatetimeLocal(field.value) : ""}
                       onChange={(e) => {
                         const val = e.target.value;
-                        field.onChange(val ? datetimeLocalToISO(val) : '');
+                        field.onChange(val ? datetimeLocalToISO(val) : "");
                       }}
                     />
                   </FormControl>
@@ -247,10 +252,10 @@ const BonusEventFormDialog = ({
                   <FormControl>
                     <Input
                       type="datetime-local"
-                      value={field.value ? isoToDatetimeLocal(field.value) : ''}
+                      value={field.value ? isoToDatetimeLocal(field.value) : ""}
                       onChange={(e) => {
                         const val = e.target.value;
-                        field.onChange(val ? datetimeLocalToISO(val) : '');
+                        field.onChange(val ? datetimeLocalToISO(val) : "");
                       }}
                     />
                   </FormControl>
@@ -293,7 +298,7 @@ const BonusEventFormDialog = ({
                 className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 text-white"
               >
                 {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-                {isEditMode ? 'Update' : 'Create'}
+                {isEditMode ? "Update" : "Create"}
               </Button>
             </div>
           </form>
@@ -306,10 +311,11 @@ const BonusEventFormDialog = ({
 // ─── Main Page ──────────────────────────────────────────────────────────────
 
 const BonusXPEventManager = () => {
-  const [search, setSearch] = useQueryState('q', parseAsString.withDefault(''));
+  const [search, setSearch] = useQueryState("q", parseAsString.withDefault(""));
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<BonusXPEvent | null>(null);
-  const [eventToDeactivate, setEventToDeactivate] = useState<BonusXPEvent | null>(null);
+  const [eventToDeactivate, setEventToDeactivate] =
+    useState<BonusXPEvent | null>(null);
 
   const { data, isLoading } = useBonusEvents({ search: search || undefined });
   const deleteMutation = useDeleteBonusEvent();

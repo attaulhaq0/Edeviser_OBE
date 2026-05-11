@@ -17,10 +17,9 @@ import {
 
 const autonomyLevelArb = fc.constantFrom<AutonomyLevel>("L1", "L2", "L3");
 const nullableAutonomyArb = fc.option(autonomyLevelArb, { nil: null });
-const studentOverrideArb = fc.option(
-  fc.constantFrom<"L1" | "L3">("L1", "L3"),
-  { nil: null },
-);
+const studentOverrideArb = fc.option(fc.constantFrom<"L1" | "L3">("L1", "L3"), {
+  nil: null,
+});
 
 const resolveInputArb: fc.Arbitrary<ResolveAutonomyInput> = fc.record({
   assignmentAutonomy: nullableAutonomyArb,
@@ -45,9 +44,9 @@ describe("Property 38 — Assignment autonomy takes precedence over CLO autonomy
             studentOverride: null,
           });
           expect(result).toBe(assignmentLevel);
-        },
+        }
       ),
-      { numRuns: 100 },
+      { numRuns: 100 }
     );
   });
 });
@@ -67,9 +66,9 @@ describe("Property 39 — Student L1 override always applies", () => {
             studentOverride: "L1",
           });
           expect(result).toBe("L1");
-        },
+        }
       ),
-      { numRuns: 100 },
+      { numRuns: 100 }
     );
   });
 });
@@ -95,9 +94,9 @@ describe("Property 40 — Student L3 override is capped by teacher ceiling", () 
 
           // Result must not exceed the teacher ceiling (base level)
           expect(resultIndex).toBeLessThanOrEqual(baseLevelIndex);
-        },
+        }
       ),
-      { numRuns: 100 },
+      { numRuns: 100 }
     );
   });
 });
@@ -124,7 +123,7 @@ describe("Property 42 — Resolved autonomy is always a valid AutonomyLevel", ()
         const result = resolveAutonomyLevel(input);
         expect(VALID_LEVELS).toContain(result);
       }),
-      { numRuns: 100 },
+      { numRuns: 100 }
     );
   });
 });

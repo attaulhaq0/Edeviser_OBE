@@ -1,6 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -35,24 +35,29 @@ export interface QuestionAnalyticsRow {
 
 // ─── useQuestionAnalytics — list analytics with joined question data ────────
 
-export const useQuestionAnalytics = (courseId: string, filters: AnalyticsFilters = {}) => {
+export const useQuestionAnalytics = (
+  courseId: string,
+  filters: AnalyticsFilters = {}
+) => {
   return useQuery({
     queryKey: queryKeys.questionAnalytics.list({ courseId, ...filters }),
     queryFn: async (): Promise<QuestionAnalyticsRow[]> => {
       let query = supabase
-        .from('question_analytics')
-        .select('*, question_bank!inner(id, course_id, clo_id, bloom_level, question_type, question_text, difficulty_rating, status)')
-        .eq('question_bank.course_id', courseId)
-        .order('total_attempts', { ascending: false });
+        .from("question_analytics")
+        .select(
+          "*, question_bank!inner(id, course_id, clo_id, bloom_level, question_type, question_text, difficulty_rating, status)"
+        )
+        .eq("question_bank.course_id", courseId)
+        .order("total_attempts", { ascending: false });
 
       if (filters.quality_flag) {
-        query = query.eq('quality_flag', filters.quality_flag);
+        query = query.eq("quality_flag", filters.quality_flag);
       }
       if (filters.clo_id) {
-        query = query.eq('question_bank.clo_id', filters.clo_id);
+        query = query.eq("question_bank.clo_id", filters.clo_id);
       }
       if (filters.bloom_level !== undefined) {
-        query = query.eq('question_bank.bloom_level', filters.bloom_level);
+        query = query.eq("question_bank.bloom_level", filters.bloom_level);
       }
 
       const { data, error } = await query;
@@ -71,9 +76,11 @@ export const useQuestionDetail = (questionId: string) => {
     queryKey: queryKeys.questionAnalytics.detail(questionId),
     queryFn: async (): Promise<QuestionAnalyticsRow | null> => {
       const { data, error } = await supabase
-        .from('question_analytics')
-        .select('*, question_bank!inner(id, course_id, clo_id, bloom_level, question_type, question_text, difficulty_rating, status)')
-        .eq('question_id', questionId)
+        .from("question_analytics")
+        .select(
+          "*, question_bank!inner(id, course_id, clo_id, bloom_level, question_type, question_text, difficulty_rating, status)"
+        )
+        .eq("question_id", questionId)
         .maybeSingle();
 
       if (error) throw error;

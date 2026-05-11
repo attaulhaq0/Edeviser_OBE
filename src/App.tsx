@@ -8,6 +8,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/providers/AuthProvider";
 import { ThemeProvider } from "@/providers/ThemeProvider";
+import { LanguageProvider } from "@/providers/LanguageProvider";
 import ErrorBoundary from "@/components/shared/ErrorBoundary";
 import AppRouter from "@/router/AppRouter";
 import { initSentry } from "@/lib/sentry";
@@ -73,11 +74,13 @@ const App = () => (
           <QueryClientProvider client={queryClient}>
             <MotionConfig reducedMotion="user">
               <AuthProvider>
-                <ThemeProvider>
-                  <SkipToMain />
-                  <AppRouter />
-                  <Toaster richColors position="top-right" />
-                </ThemeProvider>
+                <LanguageProvider>
+                  <ThemeProvider>
+                    <SkipToMain />
+                    <AppRouter />
+                    <Toaster richColors position="top-right" />
+                  </ThemeProvider>
+                </LanguageProvider>
               </AuthProvider>
             </MotionConfig>
             {import.meta.env.DEV && (

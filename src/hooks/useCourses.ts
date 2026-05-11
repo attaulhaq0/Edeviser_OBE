@@ -1,16 +1,17 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import { logAuditEvent } from '@/lib/auditLogger';
-import { useAuth } from '@/hooks/useAuth';
-import type { CreateCourseFormData, UpdateCourseFormData } from '@/lib/schemas/course';
-import type { Course } from '@/types/app';
-import type { Profile } from '@/types/app';
-import type { PaginatedResult } from '@/types/pagination';
-import { getPaginationRange } from '@/types/pagination';
-import { sanitizePostgrestValue } from '@/lib/sanitizeFilter';
-
-
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import { logAuditEvent } from "@/lib/auditLogger";
+import { useAuth } from "@/hooks/useAuth";
+import type {
+  CreateCourseFormData,
+  UpdateCourseFormData,
+} from "@/lib/schemas/course";
+import type { Course } from "@/types/app";
+import type { Profile } from "@/types/app";
+import type { PaginatedResult } from "@/types/pagination";
+import { getPaginationRange } from "@/types/pagination";
+import { sanitizePostgrestValue } from "@/lib/sanitizeFilter";
 
 // ─── Filter types ────────────────────────────────────────────────────────────
 
@@ -24,30 +25,40 @@ export interface CourseFilters {
 // ─── useCourses — list courses with optional search/program filter ───────────
 
 export const useCourses = (filters: CourseFilters = {}) => {
-  const { page, pageSize, from, to } = getPaginationRange(filters.page, filters.pageSize);
+  const { page, pageSize, from, to } = getPaginationRange(
+    filters.page,
+    filters.pageSize
+  );
 
   return useQuery({
-    queryKey: queryKeys.courses.list({ ...filters, page, pageSize } as Record<string, unknown>),
+    queryKey: queryKeys.courses.list({ ...filters, page, pageSize } as Record<
+      string,
+      unknown
+    >),
     queryFn: async (): Promise<PaginatedResult<Course>> => {
-      let query = supabase.from('courses')
-        .select('*', { count: 'exact' })
-        .order('created_at', { ascending: false })
+      let query = supabase
+        .from("courses")
+        .select("*", { count: "exact" })
+        .order("created_at", { ascending: false })
         .range(from, to);
 
       if (filters.programId) {
-        query = query.eq('program_id', filters.programId);
+        query = query.eq("program_id", filters.programId);
       }
 
       if (filters.search) {
         const safe = sanitizePostgrestValue(filters.search);
-        query = query.or(
-          `name.ilike.%${safe}%,code.ilike.%${safe}%`,
-        );
+        query = query.or(`name.ilike.%${safe}%,code.ilike.%${safe}%`);
       }
 
       const { data, error, count } = await query;
       if (error) throw error;
-      return { data: (data ?? []) as Course[], count: count ?? 0, page, pageSize };
+      return {
+        data: (data ?? []) as Course[],
+        count: count ?? 0,
+        page,
+        pageSize,
+      };
     },
     staleTime: 30_000,
   });
@@ -57,11 +68,12 @@ export const useCourses = (filters: CourseFilters = {}) => {
 
 export const useCourse = (id: string | undefined) => {
   return useQuery({
-    queryKey: queryKeys.courses.detail(id ?? ''),
+    queryKey: queryKeys.courses.detail(id ?? ""),
     queryFn: async (): Promise<Course | null> => {
-      const { data, error } = await supabase.from('courses')
-        .select('*')
-        .eq('id', id!)
+      const { data, error } = await supabase
+        .from("courses")
+        .select("*")
+        .eq("id", id!)
         .maybeSingle();
 
       if (error) throw error;
@@ -72,7 +84,6 @@ export const useCourse = (id: string | undefined) => {
   });
 };
 
-
 // ─── useCreateCourse — insert with audit logging ─────────────────────────────
 
 export const useCreateCourse = () => {
@@ -81,7 +92,8 @@ export const useCreateCourse = () => {
 
   return useMutation({
     mutationFn: async (data: CreateCourseFormData): Promise<Course> => {
-      const { data: result, error } = await supabase.from('courses')
+      const { data: result, error } = await supabase
+        .from("courses")
         .insert(data as never)
         .select()
         .single();
@@ -91,11 +103,11 @@ export const useCreateCourse = () => {
       const course = result as Course;
 
       await logAuditEvent({
-        action: 'create',
-        entity_type: 'course',
+        action: "create",
+        entity_type: "course",
         entity_id: course.id,
         changes: data as Record<string, unknown>,
-        performed_by: user?.id ?? 'unknown',
+        performed_by: user?.id ?? "unknown",
       });
 
       return course;
@@ -114,20 +126,21 @@ export const useUpdateCourse = (id: string) => {
 
   return useMutation({
     mutationFn: async (data: UpdateCourseFormData): Promise<Course> => {
-      const { data: result, error } = await supabase.from('courses')
+      const { data: result, error } = await supabase
+        .from("courses")
         .update(data)
-        .eq('id', id)
+        .eq("id", id)
         .select()
         .single();
 
       if (error) throw error;
 
       await logAuditEvent({
-        action: 'update',
-        entity_type: 'course',
+        action: "update",
+        entity_type: "course",
         entity_id: id,
         changes: data as Record<string, unknown>,
-        performed_by: user?.id ?? 'unknown',
+        performed_by: user?.id ?? "unknown",
       });
 
       return result as Course;
@@ -147,20 +160,21 @@ export const useSoftDeleteCourse = () => {
 
   return useMutation({
     mutationFn: async (id: string): Promise<Course> => {
-      const { data: result, error } = await supabase.from('courses')
+      const { data: result, error } = await supabase
+        .from("courses")
         .update({ is_active: false })
-        .eq('id', id)
+        .eq("id", id)
         .select()
         .single();
 
       if (error) throw error;
 
       await logAuditEvent({
-        action: 'soft_delete',
-        entity_type: 'course',
+        action: "soft_delete",
+        entity_type: "course",
         entity_id: id,
         changes: { is_active: false },
-        performed_by: user?.id ?? 'unknown',
+        performed_by: user?.id ?? "unknown",
       });
 
       return result as Course;
@@ -175,13 +189,14 @@ export const useSoftDeleteCourse = () => {
 
 export const useTeachers = () => {
   return useQuery({
-    queryKey: queryKeys.users.list({ role: 'teacher' }),
+    queryKey: queryKeys.users.list({ role: "teacher" }),
     queryFn: async (): Promise<Profile[]> => {
-      const { data, error } = await supabase.from('profiles')
-        .select('*')
-        .eq('role', 'teacher')
-        .eq('is_active', true)
-        .order('full_name', { ascending: true });
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("role", "teacher")
+        .eq("is_active", true)
+        .order("full_name", { ascending: true });
 
       if (error) throw error;
       return data as Profile[];

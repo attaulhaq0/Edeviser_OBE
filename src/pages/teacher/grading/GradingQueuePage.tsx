@@ -1,23 +1,33 @@
-import { parseAsString, useQueryState } from 'nuqs';
-import { useState } from 'react';
-import { DataTable } from '@/components/shared/DataTable';
-import { useSubmissions } from '@/hooks/useSubmissions';
-import { useCourses } from '@/hooks/useCourses';
-import { useAssignments } from '@/hooks/useAssignments';
-import { useCourseSections } from '@/hooks/useCourseSections';
-import { gradingQueueColumns } from './gradingQueueColumns';
+import { parseAsString, useQueryState } from "nuqs";
+import { useState } from "react";
+import { DataTable } from "@/components/shared/DataTable";
+import { useSubmissions } from "@/hooks/useSubmissions";
+import { useCourses } from "@/hooks/useCourses";
+import { useAssignments } from "@/hooks/useAssignments";
+import { useCourseSections } from "@/hooks/useCourseSections";
+import { gradingQueueColumns } from "./gradingQueueColumns";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
+import { NoCourses } from "@/components/shared/EmptyState";
 
 const GradingQueuePage = () => {
-  const [courseId, setCourseId] = useQueryState('course', parseAsString.withDefault(''));
-  const [assignmentId, setAssignmentId] = useQueryState('assignment', parseAsString.withDefault(''));
-  const [sectionId, setSectionId] = useQueryState('section', parseAsString.withDefault(''));
+  const [courseId, setCourseId] = useQueryState(
+    "course",
+    parseAsString.withDefault("")
+  );
+  const [assignmentId, setAssignmentId] = useQueryState(
+    "assignment",
+    parseAsString.withDefault("")
+  );
+  const [sectionId, setSectionId] = useQueryState(
+    "section",
+    parseAsString.withDefault("")
+  );
   const [page, setPage] = useState(1);
 
   const { data: paginatedCourses } = useCourses();
@@ -35,19 +45,19 @@ const GradingQueuePage = () => {
   const submissions = paginatedSubmissions?.data ?? [];
 
   const handleCourseChange = (value: string) => {
-    setCourseId(value === 'all' ? '' : value);
-    setAssignmentId('');
-    setSectionId('');
+    setCourseId(value === "all" ? "" : value);
+    setAssignmentId("");
+    setSectionId("");
     setPage(1);
   };
 
   const handleAssignmentChange = (value: string) => {
-    setAssignmentId(value === 'all' ? '' : value);
+    setAssignmentId(value === "all" ? "" : value);
     setPage(1);
   };
 
   const handleSectionChange = (value: string) => {
-    setSectionId(value === 'all' ? '' : value);
+    setSectionId(value === "all" ? "" : value);
     setPage(1);
   };
 
@@ -58,7 +68,7 @@ const GradingQueuePage = () => {
 
       {/* Filters */}
       <div className="flex items-center gap-4">
-        <Select value={courseId || 'all'} onValueChange={handleCourseChange}>
+        <Select value={courseId || "all"} onValueChange={handleCourseChange}>
           <SelectTrigger className="w-[220px] bg-white">
             <SelectValue placeholder="All Courses" />
           </SelectTrigger>
@@ -73,7 +83,7 @@ const GradingQueuePage = () => {
         </Select>
 
         <Select
-          value={assignmentId || 'all'}
+          value={assignmentId || "all"}
           onValueChange={handleAssignmentChange}
           disabled={!courseId}
         >
@@ -91,7 +101,7 @@ const GradingQueuePage = () => {
         </Select>
 
         <Select
-          value={sectionId || 'all'}
+          value={sectionId || "all"}
           onValueChange={handleSectionChange}
           disabled={!courseId}
         >
@@ -118,6 +128,9 @@ const GradingQueuePage = () => {
         pageSize={paginatedSubmissions?.pageSize}
         totalCount={paginatedSubmissions?.count}
         onPageChange={setPage}
+        emptyState={
+          submissions.length === 0 && !isLoading ? <NoCourses /> : undefined
+        }
       />
     </div>
   );

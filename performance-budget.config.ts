@@ -21,9 +21,9 @@ export const performanceBudget = {
    */
   dashboardLoad: {
     target: 1500, // milliseconds
-    metric: 'First Contentful Paint + Largest Contentful Paint',
-    enforcement: 'Lighthouse CI (lighthouserc.js)',
-    condition: '4G connection, cold cache, desktop preset',
+    metric: "First Contentful Paint + Largest Contentful Paint",
+    enforcement: "Lighthouse CI (lighthouserc.js)",
+    condition: "4G connection, cold cache, desktop preset",
   },
 
   /**
@@ -34,9 +34,9 @@ export const performanceBudget = {
    */
   attainmentRollup: {
     target: 500, // milliseconds
-    metric: 'Edge Function execution time (wall clock)',
-    enforcement: 'Supabase Edge Function execution logs',
-    edgeFunction: 'calculate-attainment-rollup',
+    metric: "Edge Function execution time (wall clock)",
+    enforcement: "Supabase Edge Function execution logs",
+    edgeFunction: "calculate-attainment-rollup",
   },
 
   /**
@@ -46,8 +46,8 @@ export const performanceBudget = {
    */
   apiResponseP95: {
     target: 300, // milliseconds
-    metric: 'p95 response time for read queries',
-    enforcement: 'Supabase dashboard monitoring, k6 load tests',
+    metric: "p95 response time for read queries",
+    enforcement: "Supabase dashboard monitoring, k6 load tests",
     concurrentUsers: 5000,
   },
 
@@ -57,8 +57,8 @@ export const performanceBudget = {
    */
   concurrentUsers: {
     target: 5000,
-    metric: 'Concurrent active users without degradation',
-    enforcement: 'k6 load tests before major releases',
+    metric: "Concurrent active users without degradation",
+    enforcement: "k6 load tests before major releases",
   },
 } as const;
 

@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   type ColumnDef,
   type SortingState,
@@ -7,7 +8,7 @@ import {
   getSortedRowModel,
   getPaginationRowModel,
   useReactTable,
-} from '@tanstack/react-table';
+} from "@tanstack/react-table";
 import {
   Table,
   TableBody,
@@ -15,10 +16,11 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import { ArrowUpDown } from 'lucide-react';
-import Shimmer from '@/components/shared/Shimmer';
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { ArrowUpDown } from "lucide-react";
+import Shimmer from "@/components/shared/Shimmer";
+import type { ReactNode } from "react";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -28,6 +30,7 @@ interface DataTableProps<TData, TValue> {
   pageSize?: number;
   totalCount?: number;
   onPageChange?: (page: number) => void;
+  emptyState?: ReactNode;
 }
 
 function DataTable<TData, TValue>({
@@ -38,13 +41,19 @@ function DataTable<TData, TValue>({
   pageSize,
   totalCount,
   onPageChange,
+  emptyState,
 }: DataTableProps<TData, TValue>) {
+  const { t } = useTranslation("common");
   const [sorting, setSorting] = useState<SortingState>([]);
 
-  const isServerPaginated = page !== undefined && totalCount !== undefined && onPageChange !== undefined;
-  const totalPages = isServerPaginated ? Math.max(1, Math.ceil(totalCount / (pageSize ?? 25))) : undefined;
+  const isServerPaginated =
+    page !== undefined &&
+    totalCount !== undefined &&
+    onPageChange !== undefined;
+  const totalPages = isServerPaginated
+    ? Math.max(1, Math.ceil(totalCount / (pageSize ?? 25)))
+    : undefined;
 
-   
   const table = useReactTable({
     data,
     columns,
@@ -52,7 +61,9 @@ function DataTable<TData, TValue>({
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    ...(isServerPaginated ? {} : { getPaginationRowModel: getPaginationRowModel() }),
+    ...(isServerPaginated
+      ? {}
+      : { getPaginationRowModel: getPaginationRowModel() }),
   });
 
   if (isLoading) {
@@ -65,9 +76,14 @@ function DataTable<TData, TValue>({
     );
   }
 
+  // Show empty state if no data and emptyState is provided
+  if (data.length === 0 && emptyState) {
+    return emptyState;
+  }
+
   return (
     <div className="space-y-4">
-      <div className="rounded-lg border bg-white">
+      <div className="rounded-lg border bg-background">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -78,7 +94,7 @@ function DataTable<TData, TValue>({
                       ? null
                       : flexRender(
                           header.column.columnDef.header,
-                          header.getContext(),
+                          header.getContext()
                         )}
                   </TableHead>
                 ))}
@@ -93,7 +109,7 @@ function DataTable<TData, TValue>({
                     <TableCell key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext(),
+                        cell.getContext()
                       )}
                     </TableCell>
                   ))}
@@ -105,7 +121,7 @@ function DataTable<TData, TValue>({
                   colSpan={columns.length}
                   className="h-24 text-center text-gray-500"
                 >
-                  No results found.
+                  {t("pagination.noResults", "No results found.")}
                 </TableCell>
               </TableRow>
             )}
@@ -116,8 +132,8 @@ function DataTable<TData, TValue>({
       {/* Pagination */}
       {isServerPaginated ? (
         <div className="flex items-center justify-between">
-          <p className="text-sm text-gray-500">
-            Page {page} of {totalPages}
+          <p className="text-sm text-muted-foreground">
+            {t("pagination.pageOf", { page, total: totalPages })}
           </p>
           <div className="flex items-center gap-2">
             <Button
@@ -126,7 +142,7 @@ function DataTable<TData, TValue>({
               onClick={() => onPageChange(page - 1)}
               disabled={page <= 1}
             >
-              Previous
+              {t("buttons.back", "Previous")}
             </Button>
             <Button
               variant="outline"
@@ -134,15 +150,17 @@ function DataTable<TData, TValue>({
               onClick={() => onPageChange(page + 1)}
               disabled={page >= (totalPages ?? 1)}
             >
-              Next
+              {t("buttons.next", "Next")}
             </Button>
           </div>
         </div>
       ) : (
         <div className="flex items-center justify-between">
-          <p className="text-sm text-gray-500">
-            Page {table.getState().pagination.pageIndex + 1} of{' '}
-            {table.getPageCount() || 1}
+          <p className="text-sm text-muted-foreground">
+            {t("pagination.pageOf", {
+              page: table.getState().pagination.pageIndex + 1,
+              total: table.getPageCount() || 1,
+            })}
           </p>
           <div className="flex items-center gap-2">
             <Button
@@ -151,7 +169,7 @@ function DataTable<TData, TValue>({
               onClick={() => table.previousPage()}
               disabled={!table.getCanPreviousPage()}
             >
-              Previous
+              {t("buttons.back", "Previous")}
             </Button>
             <Button
               variant="outline"
@@ -159,7 +177,7 @@ function DataTable<TData, TValue>({
               onClick={() => table.nextPage()}
               disabled={!table.getCanNextPage()}
             >
-              Next
+              {t("buttons.next", "Next")}
             </Button>
           </div>
         </div>

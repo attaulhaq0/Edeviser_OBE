@@ -2,7 +2,7 @@
 // PurchaseConfirmDialog — Confirmation dialog with balance preview
 // =============================================================================
 
-import { Coins, Loader2, AlertCircle } from 'lucide-react';
+import { Coins, Loader2, AlertCircle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -10,9 +10,9 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import type { MarketplaceItem } from '@/hooks/useMarketplace';
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import type { MarketplaceItem } from "@/hooks/useMarketplace";
 
 interface PurchaseConfirmDialogProps {
   item: MarketplaceItem | null;
@@ -75,7 +75,9 @@ const PurchaseConfirmDialog = ({
 
             <div className="flex items-center justify-between text-sm">
               <span className="text-gray-600">Current Balance</span>
-              <span className="font-semibold">{currentBalance.toLocaleString()} XP</span>
+              <span className="font-semibold">
+                {currentBalance.toLocaleString()} XP
+              </span>
             </div>
 
             <hr className="border-slate-200" />
@@ -83,7 +85,9 @@ const PurchaseConfirmDialog = ({
             <div className="flex items-center justify-between text-sm">
               <span className="text-gray-600">Remaining Balance</span>
               <span
-                className={`font-bold ${canAfford ? 'text-green-600' : 'text-red-500'}`}
+                className={`font-bold ${
+                  canAfford ? "text-green-600" : "text-red-500"
+                }`}
               >
                 {remainingBalance.toLocaleString()} XP
               </span>
@@ -95,7 +99,7 @@ const PurchaseConfirmDialog = ({
             <div className="flex items-center gap-2 rounded-xl bg-red-50 border border-red-200 px-4 py-3">
               <AlertCircle className="h-4 w-4 text-red-500 shrink-0" />
               <p className="text-xs text-red-700">
-                You don't have enough XP for this purchase. You need{' '}
+                You don't have enough XP for this purchase. You need{" "}
                 {Math.abs(remainingBalance).toLocaleString()} more XP.
               </p>
             </div>

@@ -3,30 +3,30 @@
 // Validates: Task 19.5 — 3-step display, step completion checkmarks, retry gating
 // =============================================================================
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 // ─── Mocks ───────────────────────────────────────────────────────────────────
 
 const mockUseRecoveryPathway = vi.fn();
 const mockUseCompleteRecoveryStep = vi.fn();
 
-vi.mock('@/hooks/useMasteryRecovery', () => ({
+vi.mock("@/hooks/useMasteryRecovery", () => ({
   useRecoveryPathway: (...args: unknown[]) => mockUseRecoveryPathway(...args),
   useCompleteRecoveryStep: () => mockUseCompleteRecoveryStep(),
 }));
 
-import MasteryRecoveryPanel from '@/components/shared/MasteryRecoveryPanel';
+import MasteryRecoveryPanel from "@/components/shared/MasteryRecoveryPanel";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const defaultProps = {
-  recoveryId: 'rec-1',
-  studentId: 'student-1',
-  cloId: 'clo-1',
-  cloTitle: 'Apply data structures',
-  courseId: 'course-1',
+  recoveryId: "rec-1",
+  studentId: "student-1",
+  cloId: "clo-1",
+  cloTitle: "Apply data structures",
+  courseId: "course-1",
 };
 
 const renderPanel = (props = {}) => {
@@ -36,29 +36,29 @@ const renderPanel = (props = {}) => {
   return render(
     <QueryClientProvider client={queryClient}>
       <MasteryRecoveryPanel {...defaultProps} {...props} />
-    </QueryClientProvider>,
+    </QueryClientProvider>
   );
 };
 
 const makePathway = (overrides: Record<string, unknown> = {}) => ({
-  id: 'rec-1',
-  student_id: 'student-1',
-  clo_id: 'clo-1',
-  course_id: 'course-1',
-  institution_id: 'inst-1',
+  id: "rec-1",
+  student_id: "student-1",
+  clo_id: "clo-1",
+  course_id: "course-1",
+  institution_id: "inst-1",
   failure_count: 2,
-  status: 'active',
+  status: "active",
   ai_tutor_completed: false,
   practice_completed: false,
   peer_suggestion_applicable: true,
   peer_suggestion_shown: false,
-  activated_at: '2025-01-15T10:00:00Z',
+  activated_at: "2025-01-15T10:00:00Z",
   ...overrides,
 });
 
 // ─── Tests ───────────────────────────────────────────────────────────────────
 
-describe('MasteryRecoveryPanel — 3-step display', () => {
+describe("MasteryRecoveryPanel — 3-step display", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockUseCompleteRecoveryStep.mockReturnValue({
@@ -67,62 +67,62 @@ describe('MasteryRecoveryPanel — 3-step display', () => {
     });
   });
 
-  it('renders all 3 recovery steps', () => {
+  it("renders all 3 recovery steps", () => {
     mockUseRecoveryPathway.mockReturnValue({
       data: makePathway(),
       isLoading: false,
     });
     renderPanel();
 
-    expect(screen.getByText('AI Tutor Session')).toBeInTheDocument();
-    expect(screen.getByText('Practice Questions')).toBeInTheDocument();
-    expect(screen.getByText('Peer Study Group')).toBeInTheDocument();
+    expect(screen.getByText("AI Tutor Session")).toBeInTheDocument();
+    expect(screen.getByText("Practice Questions")).toBeInTheDocument();
+    expect(screen.getByText("Peer Study Group")).toBeInTheDocument();
   });
 
-  it('renders Recovery Pathway header', () => {
+  it("renders Recovery Pathway header", () => {
     mockUseRecoveryPathway.mockReturnValue({
       data: makePathway(),
       isLoading: false,
     });
     renderPanel();
 
-    expect(screen.getByText('Recovery Pathway')).toBeInTheDocument();
+    expect(screen.getByText("Recovery Pathway")).toBeInTheDocument();
   });
 
-  it('displays CLO title in description', () => {
+  it("displays CLO title in description", () => {
     mockUseRecoveryPathway.mockReturnValue({
       data: makePathway(),
       isLoading: false,
     });
     renderPanel();
 
-    expect(screen.getByText('Apply data structures')).toBeInTheDocument();
+    expect(screen.getByText("Apply data structures")).toBeInTheDocument();
   });
 
-  it('marks Peer Study Group as optional', () => {
+  it("marks Peer Study Group as optional", () => {
     mockUseRecoveryPathway.mockReturnValue({
       data: makePathway(),
       isLoading: false,
     });
     renderPanel();
 
-    expect(screen.getByText('Optional')).toBeInTheDocument();
+    expect(screen.getByText("Optional")).toBeInTheDocument();
   });
 
-  it('returns null when pathway data is not found', () => {
+  it("returns null when pathway data is not found", () => {
     mockUseRecoveryPathway.mockReturnValue({
       data: null,
       isLoading: false,
     });
     const { container } = renderPanel();
 
-    expect(container.innerHTML).toBe('');
+    expect(container.innerHTML).toBe("");
   });
 });
 
 // ── Step completion checkmarks ──────────────────────────────────────────────
 
-describe('MasteryRecoveryPanel — Step completion checkmarks', () => {
+describe("MasteryRecoveryPanel — Step completion checkmarks", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockUseCompleteRecoveryStep.mockReturnValue({
@@ -131,7 +131,7 @@ describe('MasteryRecoveryPanel — Step completion checkmarks', () => {
     });
   });
 
-  it('shows green background for completed AI Tutor step', () => {
+  it("shows green background for completed AI Tutor step", () => {
     mockUseRecoveryPathway.mockReturnValue({
       data: makePathway({ ai_tutor_completed: true }),
       isLoading: false,
@@ -142,7 +142,7 @@ describe('MasteryRecoveryPanel — Step completion checkmarks', () => {
     expect(steps.length).toBeGreaterThanOrEqual(1);
   });
 
-  it('shows green background for completed Practice step', () => {
+  it("shows green background for completed Practice step", () => {
     mockUseRecoveryPathway.mockReturnValue({
       data: makePathway({ practice_completed: true }),
       isLoading: false,
@@ -153,9 +153,12 @@ describe('MasteryRecoveryPanel — Step completion checkmarks', () => {
     expect(greenSteps.length).toBeGreaterThanOrEqual(1);
   });
 
-  it('shows slate background for incomplete steps', () => {
+  it("shows slate background for incomplete steps", () => {
     mockUseRecoveryPathway.mockReturnValue({
-      data: makePathway({ ai_tutor_completed: false, practice_completed: false }),
+      data: makePathway({
+        ai_tutor_completed: false,
+        practice_completed: false,
+      }),
       isLoading: false,
     });
     const { container } = renderPanel();
@@ -164,7 +167,7 @@ describe('MasteryRecoveryPanel — Step completion checkmarks', () => {
     expect(slateSteps.length).toBeGreaterThanOrEqual(2);
   });
 
-  it('shows green circle with check icon for completed steps', () => {
+  it("shows green circle with check icon for completed steps", () => {
     mockUseRecoveryPathway.mockReturnValue({
       data: makePathway({ ai_tutor_completed: true, practice_completed: true }),
       isLoading: false,
@@ -178,7 +181,7 @@ describe('MasteryRecoveryPanel — Step completion checkmarks', () => {
 
 // ── Retry button gating ─────────────────────────────────────────────────────
 
-describe('MasteryRecoveryPanel — Retry button gating', () => {
+describe("MasteryRecoveryPanel — Retry button gating", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockUseCompleteRecoveryStep.mockReturnValue({
@@ -187,58 +190,76 @@ describe('MasteryRecoveryPanel — Retry button gating', () => {
     });
   });
 
-  it('disables retry button when no steps are completed', () => {
+  it("disables retry button when no steps are completed", () => {
     mockUseRecoveryPathway.mockReturnValue({
-      data: makePathway({ ai_tutor_completed: false, practice_completed: false }),
+      data: makePathway({
+        ai_tutor_completed: false,
+        practice_completed: false,
+      }),
       isLoading: false,
     });
     renderPanel();
 
-    const retryButton = screen.getByRole('button', { name: /complete.*steps.*unlock/i });
+    const retryButton = screen.getByRole("button", {
+      name: /complete.*steps.*unlock/i,
+    });
     expect(retryButton).toBeDisabled();
   });
 
-  it('disables retry button when only AI Tutor is completed', () => {
+  it("disables retry button when only AI Tutor is completed", () => {
     mockUseRecoveryPathway.mockReturnValue({
-      data: makePathway({ ai_tutor_completed: true, practice_completed: false }),
+      data: makePathway({
+        ai_tutor_completed: true,
+        practice_completed: false,
+      }),
       isLoading: false,
     });
     renderPanel();
 
-    const retryButton = screen.getByRole('button', { name: /complete.*steps.*unlock/i });
+    const retryButton = screen.getByRole("button", {
+      name: /complete.*steps.*unlock/i,
+    });
     expect(retryButton).toBeDisabled();
   });
 
-  it('disables retry button when only Practice is completed', () => {
+  it("disables retry button when only Practice is completed", () => {
     mockUseRecoveryPathway.mockReturnValue({
-      data: makePathway({ ai_tutor_completed: false, practice_completed: true }),
+      data: makePathway({
+        ai_tutor_completed: false,
+        practice_completed: true,
+      }),
       isLoading: false,
     });
     renderPanel();
 
-    const retryButton = screen.getByRole('button', { name: /complete.*steps.*unlock/i });
+    const retryButton = screen.getByRole("button", {
+      name: /complete.*steps.*unlock/i,
+    });
     expect(retryButton).toBeDisabled();
   });
 
-  it('enables retry button when both required steps are completed', () => {
+  it("enables retry button when both required steps are completed", () => {
     mockUseRecoveryPathway.mockReturnValue({
       data: makePathway({ ai_tutor_completed: true, practice_completed: true }),
       isLoading: false,
     });
     renderPanel();
 
-    const retryButton = screen.getByRole('button', { name: /retry quiz/i });
+    const retryButton = screen.getByRole("button", { name: /retry quiz/i });
     expect(retryButton).not.toBeDisabled();
   });
 
   it('shows "In Progress" badge when steps are incomplete', () => {
     mockUseRecoveryPathway.mockReturnValue({
-      data: makePathway({ ai_tutor_completed: false, practice_completed: false }),
+      data: makePathway({
+        ai_tutor_completed: false,
+        practice_completed: false,
+      }),
       isLoading: false,
     });
     renderPanel();
 
-    expect(screen.getByText('In Progress')).toBeInTheDocument();
+    expect(screen.getByText("In Progress")).toBeInTheDocument();
   });
 
   it('shows "Ready to Retry" badge when all required steps are complete', () => {
@@ -248,6 +269,6 @@ describe('MasteryRecoveryPanel — Retry button gating', () => {
     });
     renderPanel();
 
-    expect(screen.getByText('Ready to Retry')).toBeInTheDocument();
+    expect(screen.getByText("Ready to Retry")).toBeInTheDocument();
   });
 });

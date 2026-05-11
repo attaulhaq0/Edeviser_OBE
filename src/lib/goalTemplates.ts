@@ -1,14 +1,14 @@
-import { GOAL_DIFFICULTY_THRESHOLDS } from './onboardingConstants';
+import { GOAL_DIFFICULTY_THRESHOLDS } from "./onboardingConstants";
 
-export type GoalDifficulty = 'easy' | 'moderate' | 'ambitious';
+export type GoalDifficulty = "easy" | "moderate" | "ambitious";
 
 export function classifyDifficulty(
-  cohortCompletionRate: number,
+  cohortCompletionRate: number
 ): GoalDifficulty {
-  if (cohortCompletionRate >= GOAL_DIFFICULTY_THRESHOLDS.easy) return 'easy';
+  if (cohortCompletionRate >= GOAL_DIFFICULTY_THRESHOLDS.easy) return "easy";
   if (cohortCompletionRate >= GOAL_DIFFICULTY_THRESHOLDS.moderate)
-    return 'moderate';
-  return 'ambitious';
+    return "moderate";
+  return "ambitious";
 }
 
 export interface SmartGoalFields {
@@ -33,8 +33,7 @@ export function createGoalTemplate(params: {
   return {
     specific: params.suggestedAction,
     measurable: params.measurableTarget,
-    achievable:
-      'Based on your current progress and available study time',
+    achievable: "Based on your current progress and available study time",
     relevant: params.cloTitle
       ? `${params.courseName} — ${params.cloTitle}`
       : params.courseName,

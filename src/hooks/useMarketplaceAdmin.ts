@@ -2,12 +2,15 @@
 // useMarketplaceAdmin — Admin CRUD for marketplace items
 // =============================================================================
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import { useAuth } from '@/hooks/useAuth';
-import { toast } from 'sonner';
-import type { CreateMarketplaceItemInput, UpdateMarketplaceItemInput } from '@/lib/marketplaceSchemas';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
+import type {
+  CreateMarketplaceItemInput,
+  UpdateMarketplaceItemInput,
+} from "@/lib/marketplaceSchemas";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -35,21 +38,23 @@ export const useAdminMarketplaceItems = () => {
   const { institutionId } = useAuth();
 
   return useQuery({
-    queryKey: [...queryKeys.marketplace.all, 'admin', 'items'],
+    queryKey: [...queryKeys.marketplace.all, "admin", "items"],
     queryFn: async (): Promise<AdminMarketplaceItem[]> => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data: items, error } = await (supabase as any)
-        .from('marketplace_items')
-        .select('id, name, description, category, sub_category, xp_price, level_requirement, stock_type, stock_quantity, icon_identifier, metadata, is_active, created_at, updated_at')
-        .order('created_at', { ascending: false });
+        .from("marketplace_items")
+        .select(
+          "id, name, description, category, sub_category, xp_price, level_requirement, stock_type, stock_quantity, icon_identifier, metadata, is_active, created_at, updated_at"
+        )
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
 
       // Fetch purchase counts per item
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data: purchaseCounts, error: countError } = await (supabase as any)
-        .from('xp_purchases')
-        .select('item_id');
+        .from("xp_purchases")
+        .select("item_id");
 
       const countMap = new Map<string, number>();
       if (!countError && purchaseCounts) {
@@ -89,11 +94,11 @@ export const useCreateMarketplaceItem = () => {
 
   return useMutation({
     mutationFn: async (input: CreateMarketplaceItemInput): Promise<void> => {
-      if (!institutionId) throw new Error('No institution context');
+      if (!institutionId) throw new Error("No institution context");
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error } = await (supabase as any)
-        .from('marketplace_items')
+        .from("marketplace_items")
         .insert({
           ...input,
           institution_id: institutionId,
@@ -103,10 +108,10 @@ export const useCreateMarketplaceItem = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.marketplace.all });
-      toast.success('Marketplace item created');
+      toast.success("Marketplace item created");
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Failed to create item');
+      toast.error(error.message || "Failed to create item");
     },
   });
 };
@@ -123,18 +128,18 @@ export const useUpdateMarketplaceItem = () => {
     }): Promise<void> => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error } = await (supabase as any)
-        .from('marketplace_items')
+        .from("marketplace_items")
         .update({ ...variables.data, updated_at: new Date().toISOString() })
-        .eq('id', variables.itemId);
+        .eq("id", variables.itemId);
 
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.marketplace.all });
-      toast.success('Marketplace item updated');
+      toast.success("Marketplace item updated");
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Failed to update item');
+      toast.error(error.message || "Failed to update item");
     },
   });
 };
@@ -151,18 +156,21 @@ export const useToggleMarketplaceItem = () => {
     }): Promise<void> => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error } = await (supabase as any)
-        .from('marketplace_items')
-        .update({ is_active: variables.isActive, updated_at: new Date().toISOString() })
-        .eq('id', variables.itemId);
+        .from("marketplace_items")
+        .update({
+          is_active: variables.isActive,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", variables.itemId);
 
       if (error) throw error;
     },
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.marketplace.all });
-      toast.success(variables.isActive ? 'Item activated' : 'Item deactivated');
+      toast.success(variables.isActive ? "Item activated" : "Item deactivated");
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Failed to toggle item status');
+      toast.error(error.message || "Failed to toggle item status");
     },
   });
 };

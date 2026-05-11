@@ -2,8 +2,8 @@
 // LockedNode — Locked/prerequisite-gated assignment node for learning path
 // =============================================================================
 
-import { Lock } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Lock } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface LockedNodeProps {
   title: string;
@@ -22,8 +22,8 @@ const LockedNode = ({
 }: LockedNodeProps) => (
   <div
     className={cn(
-      'relative flex items-center gap-3 rounded-xl border border-dashed border-gray-300 bg-gray-50 p-4 opacity-60',
-      className,
+      "relative flex items-center gap-3 rounded-xl border border-dashed border-gray-300 bg-gray-50 p-4 opacity-60",
+      className
     )}
   >
     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-200">
@@ -35,7 +35,9 @@ const LockedNode = ({
         <p className="text-xs text-gray-400 mt-0.5">
           Requires {requiredAttainment ?? 70}% on {prerequisiteCLO}
           {currentAttainment != null && (
-            <span className="ms-1">(current: {Math.round(currentAttainment)}%)</span>
+            <span className="ms-1">
+              (current: {Math.round(currentAttainment)}%)
+            </span>
           )}
         </p>
       )}

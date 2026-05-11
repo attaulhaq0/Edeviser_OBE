@@ -1,27 +1,28 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { Card } from '@/components/ui/card';
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { Card } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import Shimmer from '@/components/shared/Shimmer';
-import CurriculumMatrix from '@/components/shared/CurriculumMatrix';
-import CellDetailSheet from '@/components/shared/CellDetailSheet';
-import { useCoordinatorKPIs } from '@/hooks/useCoordinatorDashboard';
-import { useRecoveryMetrics } from '@/hooks/useMasteryRecovery';
-import { useCQIPlanSummary, useCQIPlans } from '@/hooks/useCQIPlans';
-import CQIStatusBadge from '@/components/shared/CQIStatusBadge';
-import type { CQIStatus } from '@/components/shared/CQIStatusBadge';
-import { useAuth } from '@/hooks/useAuth';
-import { usePrograms } from '@/hooks/usePrograms';
-import { useCourses } from '@/hooks/useCourses';
-import { useCourseSections } from '@/hooks/useCourseSections';
-import SectionComparisonChart from '@/components/shared/SectionComparisonChart';
+} from "@/components/ui/select";
+import Shimmer from "@/components/shared/Shimmer";
+import WelcomeHero from "@/components/shared/WelcomeHero";
+import CurriculumMatrix from "@/components/shared/CurriculumMatrix";
+import CellDetailSheet from "@/components/shared/CellDetailSheet";
+import { useCoordinatorKPIs } from "@/hooks/useCoordinatorDashboard";
+import { useRecoveryMetrics } from "@/hooks/useMasteryRecovery";
+import { useCQIPlanSummary, useCQIPlans } from "@/hooks/useCQIPlans";
+import CQIStatusBadge from "@/components/shared/CQIStatusBadge";
+import type { CQIStatus } from "@/components/shared/CQIStatusBadge";
+import { useAuth } from "@/hooks/useAuth";
+import { usePrograms } from "@/hooks/usePrograms";
+import { useCourses } from "@/hooks/useCourses";
+import { useCourseSections } from "@/hooks/useCourseSections";
+import SectionComparisonChart from "@/components/shared/SectionComparisonChart";
 import {
   Target,
   GraduationCap,
@@ -41,7 +42,7 @@ import {
   BarChart3,
   Users,
   type LucideIcon,
-} from 'lucide-react';
+} from "lucide-react";
 
 // ─── KPI Card ───────────────────────────────────────────────────────────────
 
@@ -77,36 +78,38 @@ interface SelectedCell {
 // ─── Coordinator Dashboard ──────────────────────────────────────────────────
 
 const CoordinatorDashboard = () => {
-  const { t } = useTranslation('coordinator');
-  const { institutionId } = useAuth();
+  const { t } = useTranslation("coordinator");
+  const { institutionId, profile } = useAuth();
   const { data: kpis, isLoading: kpisLoading } = useCoordinatorKPIs();
-  const { data: recoveryMetrics, isLoading: recoveryLoading } = useRecoveryMetrics(institutionId ?? '');
+  const { data: recoveryMetrics, isLoading: recoveryLoading } =
+    useRecoveryMetrics(institutionId ?? "");
   const { data: paginatedPrograms, isLoading: programsLoading } = usePrograms();
   const programs = paginatedPrograms?.data;
   const { data: paginatedCourses } = useCourses();
   const courses = paginatedCourses?.data ?? [];
-  const [selectedProgramId, setSelectedProgramId] = useState<string>('');
+  const [selectedProgramId, setSelectedProgramId] = useState<string>("");
   const [selectedCell, setSelectedCell] = useState<SelectedCell | null>(null);
-  const [comparisonCourseId, setComparisonCourseId] = useState<string>('');
+  const [comparisonCourseId, setComparisonCourseId] = useState<string>("");
 
   // CQI plan summary for the first program
   const effectiveProgramIdForCQI =
-    selectedProgramId || (programs && programs.length > 0 ? (programs[0]?.id ?? '') : '');
+    selectedProgramId ||
+    (programs && programs.length > 0 ? programs[0]?.id ?? "" : "");
   const { data: cqiSummary, isLoading: cqiLoading } = useCQIPlanSummary(
-    effectiveProgramIdForCQI || undefined,
+    effectiveProgramIdForCQI || undefined
   );
   const { data: recentCQIPlans } = useCQIPlans(
-    effectiveProgramIdForCQI ? { program_id: effectiveProgramIdForCQI } : {},
+    effectiveProgramIdForCQI ? { program_id: effectiveProgramIdForCQI } : {}
   );
 
   // Sections for the selected comparison course
-  const { data: comparisonSections, isLoading: sectionsLoading } = useCourseSections(
-    comparisonCourseId || undefined,
-  );
+  const { data: comparisonSections, isLoading: sectionsLoading } =
+    useCourseSections(comparisonCourseId || undefined);
 
   // Auto-select first program when loaded
   const effectiveProgramId =
-    selectedProgramId || (programs && programs.length > 0 ? (programs[0]?.id ?? '') : '');
+    selectedProgramId ||
+    (programs && programs.length > 0 ? programs[0]?.id ?? "" : "");
 
   const handleCellClick = (ploId: string, courseId: string) => {
     setSelectedCell({ ploId, courseId });
@@ -114,7 +117,16 @@ const CoordinatorDashboard = () => {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold tracking-tight">{t('dashboard.title')}</h1>
+      {/* Welcome Hero */}
+      <WelcomeHero
+        name={profile?.full_name ?? "Coordinator"}
+        userRole="coordinator"
+        subtitle={t("dashboard.welcome.subtitle")}
+      />
+
+      <h1 className="text-2xl font-bold tracking-tight">
+        {t("dashboard.title")}
+      </h1>
 
       {/* KPI Row */}
       {kpisLoading ? (
@@ -124,21 +136,28 @@ const CoordinatorDashboard = () => {
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <KPICard icon={Target} label={t('dashboard.totalPLOs')} value={kpis?.totalPLOs ?? 0} />
+        <div
+          className="grid grid-cols-2 md:grid-cols-4 gap-4"
+          data-tour="kpi-row"
+        >
+          <KPICard
+            icon={Target}
+            label={t("dashboard.totalPLOs")}
+            value={kpis?.totalPLOs ?? 0}
+          />
           <KPICard
             icon={GraduationCap}
-            label={t('dashboard.activeCourses')}
+            label={t("dashboard.activeCourses")}
             value={kpis?.totalCourses ?? 0}
           />
           <KPICard
             icon={CheckCircle2}
-            label={t('dashboard.cloCoverage')}
+            label={t("dashboard.cloCoverage")}
             value={`${kpis?.cloCoveragePercent ?? 0}%`}
           />
           <KPICard
             icon={ClipboardCheck}
-            label={t('dashboard.teacherCompliance')}
+            label={t("dashboard.teacherCompliance")}
             value={`${kpis?.teacherCompliancePercent ?? 0}%`}
           />
         </div>
@@ -147,14 +166,22 @@ const CoordinatorDashboard = () => {
       {/* Two-column layout: Matrix + At-Risk */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Curriculum Matrix (2/3 width) */}
-        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden lg:col-span-2">
+        <Card
+          className="bg-white border-0 shadow-md rounded-xl overflow-hidden lg:col-span-2"
+          data-tour="curriculum-matrix"
+        >
           <div
             className="px-6 py-4 flex items-center justify-between"
-            style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+            style={{
+              background:
+                "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+            }}
           >
             <div className="flex items-center gap-2">
               <Grid3X3 className="h-5 w-5 text-white" />
-              <h2 className="text-lg font-bold tracking-tight text-white">{t('dashboard.curriculumMatrix')}</h2>
+              <h2 className="text-lg font-bold tracking-tight text-white">
+                {t("dashboard.curriculumMatrix")}
+              </h2>
             </div>
             <div className="flex items-center gap-3">
               {programsLoading ? (
@@ -165,7 +192,7 @@ const CoordinatorDashboard = () => {
                   onValueChange={setSelectedProgramId}
                 >
                   <SelectTrigger className="w-48 bg-white">
-                    <SelectValue placeholder={t('dashboard.selectProgram')} />
+                    <SelectValue placeholder={t("dashboard.selectProgram")} />
                   </SelectTrigger>
                   <SelectContent>
                     {programs?.map((program) => (
@@ -180,7 +207,7 @@ const CoordinatorDashboard = () => {
                 to="/coordinator/matrix"
                 className="inline-flex items-center gap-1 text-sm font-medium text-white/90 hover:text-white transition-colors whitespace-nowrap"
               >
-                {t('dashboard.viewFullMatrix')}
+                {t("dashboard.viewFullMatrix")}
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
@@ -193,7 +220,7 @@ const CoordinatorDashboard = () => {
               />
             ) : (
               <div className="rounded-xl border border-slate-200 bg-slate-50 p-8 text-center text-sm text-gray-500">
-                {t('dashboard.noProgramsAvailable')}
+                {t("dashboard.noProgramsAvailable")}
               </div>
             )}
           </div>
@@ -203,10 +230,15 @@ const CoordinatorDashboard = () => {
         <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
           <div
             className="px-6 py-4 flex items-center gap-2"
-            style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+            style={{
+              background:
+                "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+            }}
           >
             <AlertTriangle className="h-5 w-5 text-white" />
-            <h2 className="text-lg font-bold tracking-tight text-white">{t('dashboard.atRiskStudents')}</h2>
+            <h2 className="text-lg font-bold tracking-tight text-white">
+              {t("dashboard.atRiskStudents")}
+            </h2>
           </div>
           <div className="p-6">
             {kpisLoading ? (
@@ -217,7 +249,7 @@ const CoordinatorDashboard = () => {
                   <AlertTriangle className="h-8 w-8 text-amber-500" />
                 </div>
                 <p className="text-sm text-gray-500 max-w-[220px]">
-                  {t('dashboard.atRiskPending')}
+                  {t("dashboard.atRiskPending")}
                 </p>
               </div>
             )}
@@ -229,10 +261,15 @@ const CoordinatorDashboard = () => {
       <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
         <div
           className="px-6 py-4 flex items-center gap-2"
-          style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+          style={{
+            background:
+              "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+          }}
         >
           <RotateCcw className="h-5 w-5 text-white" />
-          <h2 className="text-lg font-bold tracking-tight text-white">{t('dashboard.recoveryPathways')}</h2>
+          <h2 className="text-lg font-bold tracking-tight text-white">
+            {t("dashboard.recoveryPathways")}
+          </h2>
         </div>
         <div className="p-6">
           {recoveryLoading ? (
@@ -245,23 +282,29 @@ const CoordinatorDashboard = () => {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <KPICard
                 icon={RotateCcw}
-                label={t('dashboard.totalActivations')}
+                label={t("dashboard.totalActivations")}
                 value={recoveryMetrics?.total_activations ?? 0}
               />
               <KPICard
                 icon={CheckCircle2}
-                label={t('dashboard.completionRate')}
-                value={`${Math.round((recoveryMetrics?.completion_rate ?? 0) * 100)}%`}
+                label={t("dashboard.completionRate")}
+                value={`${Math.round(
+                  (recoveryMetrics?.completion_rate ?? 0) * 100
+                )}%`}
               />
               <KPICard
                 icon={Clock}
-                label={t('dashboard.avgCompletionTime')}
-                value={`${(recoveryMetrics?.avg_completion_time_hours ?? 0).toFixed(1)}h`}
+                label={t("dashboard.avgCompletionTime")}
+                value={`${(
+                  recoveryMetrics?.avg_completion_time_hours ?? 0
+                ).toFixed(1)}h`}
               />
               <KPICard
                 icon={TrendingUp}
-                label={t('dashboard.retrySuccessRate')}
-                value={`${Math.round((recoveryMetrics?.retry_success_rate ?? 0) * 100)}%`}
+                label={t("dashboard.retrySuccessRate")}
+                value={`${Math.round(
+                  (recoveryMetrics?.retry_success_rate ?? 0) * 100
+                )}%`}
               />
             </div>
           )}
@@ -272,17 +315,22 @@ const CoordinatorDashboard = () => {
       <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
         <div
           className="px-6 py-4 flex items-center justify-between"
-          style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+          style={{
+            background:
+              "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+          }}
         >
           <div className="flex items-center gap-2">
             <FileCheck2 className="h-5 w-5 text-white" />
-            <h2 className="text-lg font-bold tracking-tight text-white">{t('dashboard.cqiActionPlans')}</h2>
+            <h2 className="text-lg font-bold tracking-tight text-white">
+              {t("dashboard.cqiActionPlans")}
+            </h2>
           </div>
           <Link
             to="/coordinator/cqi"
             className="inline-flex items-center gap-1 text-sm font-medium text-white/90 hover:text-white transition-colors whitespace-nowrap"
           >
-            {t('dashboard.viewAll')}
+            {t("dashboard.viewAll")}
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
@@ -296,10 +344,26 @@ const CoordinatorDashboard = () => {
           ) : (
             <>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                <KPICard icon={ClipboardCheck} label={t('dashboard.planned')} value={cqiSummary?.planned ?? 0} />
-                <KPICard icon={Clock} label={t('dashboard.inProgress')} value={cqiSummary?.in_progress ?? 0} />
-                <KPICard icon={CheckCircle2} label={t('dashboard.completed')} value={cqiSummary?.completed ?? 0} />
-                <KPICard icon={FileCheck2} label={t('dashboard.evaluated')} value={cqiSummary?.evaluated ?? 0} />
+                <KPICard
+                  icon={ClipboardCheck}
+                  label={t("dashboard.planned")}
+                  value={cqiSummary?.planned ?? 0}
+                />
+                <KPICard
+                  icon={Clock}
+                  label={t("dashboard.inProgress")}
+                  value={cqiSummary?.in_progress ?? 0}
+                />
+                <KPICard
+                  icon={CheckCircle2}
+                  label={t("dashboard.completed")}
+                  value={cqiSummary?.completed ?? 0}
+                />
+                <KPICard
+                  icon={FileCheck2}
+                  label={t("dashboard.evaluated")}
+                  value={cqiSummary?.evaluated ?? 0}
+                />
               </div>
               {recentCQIPlans && recentCQIPlans.length > 0 ? (
                 <div className="space-y-2">
@@ -311,9 +375,13 @@ const CoordinatorDashboard = () => {
                       <div className="flex-1 min-w-0 space-y-0.5">
                         <div className="flex items-center gap-2">
                           <CQIStatusBadge status={plan.status as CQIStatus} />
-                          <span className="text-xs text-gray-400 uppercase">{plan.outcome_type}</span>
+                          <span className="text-xs text-gray-400 uppercase">
+                            {plan.outcome_type}
+                          </span>
                         </div>
-                        <p className="text-sm truncate">{plan.action_description}</p>
+                        <p className="text-sm truncate">
+                          {plan.action_description}
+                        </p>
                       </div>
                       <div className="flex items-center gap-3 text-xs text-gray-500 ms-4 shrink-0">
                         <span>{plan.baseline_attainment}%</span>
@@ -322,7 +390,13 @@ const CoordinatorDashboard = () => {
                         {plan.result_attainment !== null && (
                           <>
                             <ArrowRight className="h-3 w-3" />
-                            <span className={plan.result_attainment >= plan.target_attainment ? 'text-green-600 font-bold' : 'text-red-600 font-bold'}>
+                            <span
+                              className={
+                                plan.result_attainment >= plan.target_attainment
+                                  ? "text-green-600 font-bold"
+                                  : "text-red-600 font-bold"
+                              }
+                            >
                               {plan.result_attainment}%
                             </span>
                           </>
@@ -333,7 +407,7 @@ const CoordinatorDashboard = () => {
                 </div>
               ) : (
                 <div className="rounded-xl border border-slate-200 bg-slate-50 p-8 text-center text-sm text-gray-500">
-                  {t('dashboard.noCqiPlans')}
+                  {t("dashboard.noCqiPlans")}
                 </div>
               )}
             </>
@@ -345,15 +419,23 @@ const CoordinatorDashboard = () => {
       <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
         <div
           className="px-6 py-4 flex items-center justify-between"
-          style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+          style={{
+            background:
+              "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+          }}
         >
           <div className="flex items-center gap-2">
             <Columns3 className="h-5 w-5 text-white" />
-            <h2 className="text-lg font-bold tracking-tight text-white">{t('dashboard.sectionComparison')}</h2>
+            <h2 className="text-lg font-bold tracking-tight text-white">
+              {t("dashboard.sectionComparison")}
+            </h2>
           </div>
-          <Select value={comparisonCourseId} onValueChange={setComparisonCourseId}>
+          <Select
+            value={comparisonCourseId}
+            onValueChange={setComparisonCourseId}
+          >
             <SelectTrigger className="w-48 bg-white">
-              <SelectValue placeholder={t('dashboard.selectCourse')} />
+              <SelectValue placeholder={t("dashboard.selectCourse")} />
             </SelectTrigger>
             <SelectContent>
               {courses.map((c) => (
@@ -367,13 +449,13 @@ const CoordinatorDashboard = () => {
         <div className="p-6">
           {!comparisonCourseId ? (
             <div className="rounded-xl border border-slate-200 bg-slate-50 p-8 text-center text-sm text-gray-500">
-              {t('dashboard.selectCourseToCompare')}
+              {t("dashboard.selectCourseToCompare")}
             </div>
           ) : sectionsLoading ? (
             <Shimmer className="h-32 rounded-xl" />
           ) : !comparisonSections || comparisonSections.length === 0 ? (
             <div className="rounded-xl border border-slate-200 bg-slate-50 p-8 text-center text-sm text-gray-500">
-              {t('dashboard.noSectionsFound')}
+              {t("dashboard.noSectionsFound")}
             </div>
           ) : (
             <SectionComparisonChart
@@ -388,13 +470,21 @@ const CoordinatorDashboard = () => {
       </Card>
 
       {/* OBE Visualization Quick Access — Requirement 106.1, 107.1, 108.1, 109.2, 110.6 */}
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+      <Card
+        className="bg-white border-0 shadow-md rounded-xl overflow-hidden"
+        data-tour="plo-management"
+      >
         <div
           className="px-6 py-4 flex items-center gap-2"
-          style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+          style={{
+            background:
+              "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+          }}
         >
           <BarChart3 className="h-5 w-5 text-white" />
-          <h2 className="text-lg font-bold tracking-tight text-white">{t('dashboard.obeVisualizations')}</h2>
+          <h2 className="text-lg font-bold tracking-tight text-white">
+            {t("dashboard.obeVisualizations")}
+          </h2>
         </div>
         <div className="p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           <Link
@@ -404,8 +494,12 @@ const CoordinatorDashboard = () => {
             <div className="p-2 rounded-lg bg-blue-100 group-hover:scale-110 transition-transform">
               <GitBranch className="h-5 w-5 text-blue-600" />
             </div>
-            <span className="text-sm font-semibold text-gray-700">{t('dashboard.sankeyDiagram')}</span>
-            <span className="text-xs text-gray-500">{t('dashboard.sankeyDesc')}</span>
+            <span className="text-sm font-semibold text-gray-700">
+              {t("dashboard.sankeyDiagram")}
+            </span>
+            <span className="text-xs text-gray-500">
+              {t("dashboard.sankeyDesc")}
+            </span>
           </Link>
           <Link
             to="/coordinator/gap-analysis"
@@ -414,8 +508,12 @@ const CoordinatorDashboard = () => {
             <div className="p-2 rounded-lg bg-amber-100 group-hover:scale-110 transition-transform">
               <Search className="h-5 w-5 text-amber-600" />
             </div>
-            <span className="text-sm font-semibold text-gray-700">{t('dashboard.gapAnalysis')}</span>
-            <span className="text-xs text-gray-500">{t('dashboard.gapAnalysisDesc')}</span>
+            <span className="text-sm font-semibold text-gray-700">
+              {t("dashboard.gapAnalysis")}
+            </span>
+            <span className="text-xs text-gray-500">
+              {t("dashboard.gapAnalysisDesc")}
+            </span>
           </Link>
           <Link
             to="/coordinator/coverage-heatmap"
@@ -424,8 +522,12 @@ const CoordinatorDashboard = () => {
             <div className="p-2 rounded-lg bg-green-100 group-hover:scale-110 transition-transform">
               <LayoutGrid className="h-5 w-5 text-green-600" />
             </div>
-            <span className="text-sm font-semibold text-gray-700">{t('dashboard.coverageHeatmap')}</span>
-            <span className="text-xs text-gray-500">{t('dashboard.coverageHeatmapDesc')}</span>
+            <span className="text-sm font-semibold text-gray-700">
+              {t("dashboard.coverageHeatmap")}
+            </span>
+            <span className="text-xs text-gray-500">
+              {t("dashboard.coverageHeatmapDesc")}
+            </span>
           </Link>
           <Link
             to="/coordinator/trends"
@@ -434,8 +536,12 @@ const CoordinatorDashboard = () => {
             <div className="p-2 rounded-lg bg-purple-100 group-hover:scale-110 transition-transform">
               <TrendingUp className="h-5 w-5 text-purple-600" />
             </div>
-            <span className="text-sm font-semibold text-gray-700">{t('dashboard.semesterTrends')}</span>
-            <span className="text-xs text-gray-500">{t('dashboard.semesterTrendsDesc')}</span>
+            <span className="text-sm font-semibold text-gray-700">
+              {t("dashboard.semesterTrends")}
+            </span>
+            <span className="text-xs text-gray-500">
+              {t("dashboard.semesterTrendsDesc")}
+            </span>
           </Link>
           <Link
             to="/coordinator/cohort-comparison"
@@ -444,8 +550,12 @@ const CoordinatorDashboard = () => {
             <div className="p-2 rounded-lg bg-red-100 group-hover:scale-110 transition-transform">
               <Users className="h-5 w-5 text-red-600" />
             </div>
-            <span className="text-sm font-semibold text-gray-700">{t('dashboard.cohortComparison')}</span>
-            <span className="text-xs text-gray-500">{t('dashboard.cohortComparisonDesc')}</span>
+            <span className="text-sm font-semibold text-gray-700">
+              {t("dashboard.cohortComparison")}
+            </span>
+            <span className="text-xs text-gray-500">
+              {t("dashboard.cohortComparisonDesc")}
+            </span>
           </Link>
         </div>
       </Card>

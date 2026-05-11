@@ -1,18 +1,18 @@
-import { useMemo } from 'react';
-import { toast } from 'sonner';
-import { ClipboardList, CheckCircle2 } from 'lucide-react';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { useAuth } from '@/hooks/useAuth';
+import { useMemo } from "react";
+import { toast } from "sonner";
+import { ClipboardList, CheckCircle2 } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/hooks/useAuth";
 import {
   useSurveys,
   useSurveyQuestions,
   useSubmitSurveyResponse,
   useHasRespondedToSurvey,
-} from '@/hooks/useSurveys';
-import type { Survey } from '@/hooks/useSurveys';
-import SurveyForm from '@/components/shared/SurveyForm';
-import type { SurveyQuestion as SurveyFormQuestion } from '@/components/shared/SurveyForm';
+} from "@/hooks/useSurveys";
+import type { Survey } from "@/hooks/useSurveys";
+import SurveyForm from "@/components/shared/SurveyForm";
+import type { SurveyQuestion as SurveyFormQuestion } from "@/components/shared/SurveyForm";
 
 // ─── Single Survey Card ─────────────────────────────────────────────────────
 
@@ -22,11 +22,11 @@ interface SurveyCardProps {
 
 const SurveyCard = ({ survey }: SurveyCardProps) => {
   const { user } = useAuth();
-  const { data: questions, isLoading: questionsLoading } = useSurveyQuestions(survey.id);
-  const { data: hasResponded, isLoading: checkLoading } = useHasRespondedToSurvey(
-    survey.id,
-    user?.id,
+  const { data: questions, isLoading: questionsLoading } = useSurveyQuestions(
+    survey.id
   );
+  const { data: hasResponded, isLoading: checkLoading } =
+    useHasRespondedToSurvey(survey.id, user?.id);
   const submitResponse = useSubmitSurveyResponse();
 
   const formQuestions: SurveyFormQuestion[] = useMemo(
@@ -37,21 +37,21 @@ const SurveyCard = ({ survey }: SurveyCardProps) => {
         questionType: q.question_type,
         options: q.options ?? undefined,
       })),
-    [questions],
+    [questions]
   );
 
   const handleSubmit = async (responses: Record<string, string>) => {
     if (!user?.id) return;
 
     const responseEntries = Object.entries(responses)
-      .filter(([, value]) => value.trim() !== '')
+      .filter(([, value]) => value.trim() !== "")
       .map(([questionId, value]) => ({
         question_id: questionId,
         response_value: value,
       }));
 
     if (responseEntries.length === 0) {
-      toast.error('Please answer at least one question');
+      toast.error("Please answer at least one question");
       return;
     }
 
@@ -61,9 +61,11 @@ const SurveyCard = ({ survey }: SurveyCardProps) => {
         respondent_id: user.id,
         responses: responseEntries,
       });
-      toast.success('Survey submitted! +15 XP');
+      toast.success("Survey submitted! +15 XP");
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to submit survey');
+      toast.error(
+        err instanceof Error ? err.message : "Failed to submit survey"
+      );
     }
   };
 
@@ -78,9 +80,13 @@ const SurveyCard = ({ survey }: SurveyCardProps) => {
           <CheckCircle2 className="h-5 w-5 text-green-500" />
           <div>
             <h3 className="text-sm font-bold">{survey.title}</h3>
-            <p className="text-xs text-gray-500">You have already completed this survey.</p>
+            <p className="text-xs text-gray-500">
+              You have already completed this survey.
+            </p>
           </div>
-          <Badge className="ml-auto bg-green-50 text-green-700 border-green-200">Completed</Badge>
+          <Badge className="ml-auto bg-green-50 text-green-700 border-green-200">
+            Completed
+          </Badge>
         </div>
       </Card>
     );
@@ -90,10 +96,15 @@ const SurveyCard = ({ survey }: SurveyCardProps) => {
     <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
       <div
         className="px-6 py-4 flex items-center gap-2"
-        style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+        style={{
+          background:
+            "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+        }}
       >
         <ClipboardList className="h-5 w-5 text-white" />
-        <h2 className="text-lg font-bold tracking-tight text-white">{survey.title}</h2>
+        <h2 className="text-lg font-bold tracking-tight text-white">
+          {survey.title}
+        </h2>
       </div>
       <div className="p-6">
         <SurveyForm
@@ -113,7 +124,7 @@ const SurveyResponsePage = () => {
 
   const activeSurveys = useMemo(
     () => (surveys ?? []).filter((s) => s.is_active),
-    [surveys],
+    [surveys]
   );
 
   return (
@@ -129,7 +140,9 @@ const SurveyResponsePage = () => {
       ) : !activeSurveys.length ? (
         <Card className="bg-white border-0 shadow-md rounded-xl p-8 text-center">
           <ClipboardList className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-sm text-gray-500">No surveys available at this time.</p>
+          <p className="text-sm text-gray-500">
+            No surveys available at this time.
+          </p>
         </Card>
       ) : (
         <div className="space-y-6">

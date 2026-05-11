@@ -1,5 +1,11 @@
-import { useRef, useState, useEffect, useCallback, useMemo } from 'react';
-import type { HeatmapDay, DateRange, StudentHabitLevel, ComebackChallengeStatus, StreakMilestone } from '@/types/habits';
+import { useRef, useState, useEffect, useCallback, useMemo } from "react";
+import type {
+  HeatmapDay,
+  DateRange,
+  StudentHabitLevel,
+  ComebackChallengeStatus,
+  StreakMilestone,
+} from "@/types/habits";
 import {
   getIntensityLevel,
   computeCellSize,
@@ -7,8 +13,11 @@ import {
   generateGridDimensions,
   isDateFuture,
   generateAriaLabel,
-} from '@/lib/heatmapUtils';
-import { getLevelAwareIntensityLevel, getLevelForDate } from '@/lib/levelAwareHeatmap';
+} from "@/lib/heatmapUtils";
+import {
+  getLevelAwareIntensityLevel,
+  getLevelForDate,
+} from "@/lib/levelAwareHeatmap";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -22,20 +31,20 @@ const MIN_CELL_SIZE = 12;
 const MOBILE_BREAKPOINT = 768;
 
 const DAY_LABELS: Array<{ label: string; row: number }> = [
-  { label: 'Mon', row: 0 },
-  { label: 'Wed', row: 2 },
-  { label: 'Fri', row: 4 },
+  { label: "Mon", row: 0 },
+  { label: "Wed", row: 2 },
+  { label: "Fri", row: 4 },
 ];
 
 const INTENSITY_COLORS: Record<number, string> = {
-  0: 'var(--heatmap-empty)',
-  1: 'var(--heatmap-level-1)',
-  2: 'var(--heatmap-level-2)',
-  3: 'var(--heatmap-level-3)',
-  4: 'var(--heatmap-level-4)',
+  0: "var(--heatmap-empty)",
+  1: "var(--heatmap-level-1)",
+  2: "var(--heatmap-level-2)",
+  3: "var(--heatmap-level-3)",
+  4: "var(--heatmap-level-4)",
 };
 
-const LEGEND_LABELS_DEFAULT = ['No activity', '', '', '', '4+ habits'];
+const LEGEND_LABELS_DEFAULT = ["No activity", "", "", "", "4+ habits"];
 
 /**
  * Generates level-relative legend labels.
@@ -45,7 +54,7 @@ const LEGEND_LABELS_DEFAULT = ['No activity', '', '', '', '4+ habits'];
 function getLegendLabels(studentLevel?: StudentHabitLevel): string[] {
   if (!studentLevel) return LEGEND_LABELS_DEFAULT;
   const max = studentLevel.currentLevel;
-  return ['No activity', '', '', '', `${max}/${max} habits`];
+  return ["No activity", "", "", "", `${max}/${max} habits`];
 }
 
 // ---------------------------------------------------------------------------
@@ -75,13 +84,12 @@ interface CellData {
   isFuture: boolean;
 }
 
-
 function buildCellGrid(
   data: HeatmapDay[],
-  semesterRange: DateRange,
+  semesterRange: DateRange
 ): CellData[] {
-  const start = new Date(semesterRange.start + 'T00:00:00');
-  const end = new Date(semesterRange.end + 'T00:00:00');
+  const start = new Date(semesterRange.start + "T00:00:00");
+  const end = new Date(semesterRange.end + "T00:00:00");
   const dataMap = new Map<string, number>();
   for (const d of data) {
     dataMap.set(d.date, d.totalCount);
@@ -94,10 +102,10 @@ function buildCellGrid(
   while (cursor <= end) {
     const dateStr =
       cursor.getFullYear() +
-      '-' +
-      String(cursor.getMonth() + 1).padStart(2, '0') +
-      '-' +
-      String(cursor.getDate()).padStart(2, '0');
+      "-" +
+      String(cursor.getMonth() + 1).padStart(2, "0") +
+      "-" +
+      String(cursor.getDate()).padStart(2, "0");
     const col = Math.floor(dayIndex / 7);
     const row = dayIndex % 7;
     cells.push({
@@ -123,13 +131,13 @@ function buildCellGrid(
  */
 function isComebackChallengeDate(
   date: string,
-  challenge: ComebackChallengeStatus | undefined,
+  challenge: ComebackChallengeStatus | undefined
 ): boolean {
   if (!challenge?.active || !challenge.startDate) return false;
-  const start = new Date(challenge.startDate + 'T00:00:00');
+  const start = new Date(challenge.startDate + "T00:00:00");
   const end = new Date(start);
   end.setDate(end.getDate() + 2); // 3 days total (0, 1, 2)
-  const d = new Date(date + 'T00:00:00');
+  const d = new Date(date + "T00:00:00");
   return d >= start && d <= end;
 }
 
@@ -138,20 +146,25 @@ function isComebackChallengeDate(
  */
 function getComebackDayNumber(
   date: string,
-  challenge: ComebackChallengeStatus,
+  challenge: ComebackChallengeStatus
 ): number {
   if (!challenge.startDate) return 0;
-  const start = new Date(challenge.startDate + 'T00:00:00');
-  const d = new Date(date + 'T00:00:00');
-  return Math.floor((d.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+  const start = new Date(challenge.startDate + "T00:00:00");
+  const d = new Date(date + "T00:00:00");
+  return (
+    Math.floor((d.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1
+  );
 }
 
 /**
  * Returns true if the date is a Saturday (6) or Sunday (0) — sabbatical rest day.
  */
-function isSabbaticalRestDay(date: string, sabbaticalEnabled: boolean): boolean {
+function isSabbaticalRestDay(
+  date: string,
+  sabbaticalEnabled: boolean
+): boolean {
   if (!sabbaticalEnabled) return false;
-  const dow = new Date(date + 'T00:00:00').getDay();
+  const dow = new Date(date + "T00:00:00").getDay();
   return dow === 0 || dow === 6;
 }
 
@@ -160,7 +173,7 @@ function isSabbaticalRestDay(date: string, sabbaticalEnabled: boolean): boolean 
  */
 function getMilestoneForDate(
   date: string,
-  milestones: StreakMilestone[] | undefined,
+  milestones: StreakMilestone[] | undefined
 ): StreakMilestone | undefined {
   if (!milestones) return undefined;
   return milestones.find((m) => m.achievedDate === date);
@@ -185,16 +198,17 @@ const HeatmapGrid = ({
   const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
   const cellRefs = useRef<Map<number, SVGRectElement>>(new Map());
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (typeof window === "undefined") return false;
+    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   });
 
   // Listen for prefers-reduced-motion changes
   useEffect(() => {
-    const mql = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const handler = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
-    mql.addEventListener('change', handler);
-    return () => mql.removeEventListener('change', handler);
+    const mql = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const handler = (e: MediaQueryListEvent) =>
+      setPrefersReducedMotion(e.matches);
+    mql.addEventListener("change", handler);
+    return () => mql.removeEventListener("change", handler);
   }, []);
 
   // ResizeObserver for responsive sizing
@@ -212,27 +226,24 @@ const HeatmapGrid = ({
 
   const { columns: numWeeks } = generateGridDimensions(
     semesterRange.start,
-    semesterRange.end,
+    semesterRange.end
   );
 
   const isMobile = containerWidth > 0 && containerWidth < MOBILE_BREAKPOINT;
   const cellSize = isMobile
     ? MIN_CELL_SIZE
     : containerWidth > 0
-      ? computeCellSize(
-          containerWidth - DAY_LABEL_WIDTH - CELL_GAP,
-          numWeeks,
-        )
-      : MIN_CELL_SIZE;
+    ? computeCellSize(containerWidth - DAY_LABEL_WIDTH - CELL_GAP, numWeeks)
+    : MIN_CELL_SIZE;
 
   const cells = useMemo(
     () => buildCellGrid(data, semesterRange),
-    [data, semesterRange],
+    [data, semesterRange]
   );
 
   const monthLabels = useMemo(
     () => generateMonthLabels(semesterRange.start, semesterRange.end),
-    [semesterRange.start, semesterRange.end],
+    [semesterRange.start, semesterRange.end]
   );
 
   const gridWidth = numWeeks * (cellSize + CELL_GAP);
@@ -249,20 +260,20 @@ const HeatmapGrid = ({
       let nextIndex: number | null = null;
 
       switch (e.key) {
-        case 'ArrowRight':
+        case "ArrowRight":
           nextIndex = index + 7;
           break;
-        case 'ArrowLeft':
+        case "ArrowLeft":
           nextIndex = index - 7;
           break;
-        case 'ArrowDown':
+        case "ArrowDown":
           nextIndex = index + 1;
           break;
-        case 'ArrowUp':
+        case "ArrowUp":
           nextIndex = index - 1;
           break;
-        case 'Enter':
-        case ' ':
+        case "Enter":
+        case " ":
           e.preventDefault();
           if (!cell.isFuture) {
             onCellClick?.(cell.date);
@@ -278,31 +289,28 @@ const HeatmapGrid = ({
         cellRefs.current.get(nextIndex)?.focus();
       }
     },
-    [cells, onCellClick],
+    [cells, onCellClick]
   );
 
-  const setCellRef = useCallback(
-    (index: number, el: SVGRectElement | null) => {
-      if (el) {
-        cellRefs.current.set(index, el);
-      } else {
-        cellRefs.current.delete(index);
-      }
-    },
-    [],
-  );
+  const setCellRef = useCallback((index: number, el: SVGRectElement | null) => {
+    if (el) {
+      cellRefs.current.set(index, el);
+    } else {
+      cellRefs.current.delete(index);
+    }
+  }, []);
 
   return (
     <div
       ref={containerRef}
-      className={isMobile ? 'overflow-x-auto' : ''}
+      className={isMobile ? "overflow-x-auto" : ""}
       style={
         {
-          '--heatmap-empty': '#e2e8f0',
-          '--heatmap-level-1': '#fed7aa',
-          '--heatmap-level-2': '#fdba74',
-          '--heatmap-level-3': '#f97316',
-          '--heatmap-level-4': '#ef4444',
+          "--heatmap-empty": "#e2e8f0",
+          "--heatmap-level-1": "#fed7aa",
+          "--heatmap-level-2": "#fdba74",
+          "--heatmap-level-3": "#f97316",
+          "--heatmap-level-4": "#ef4444",
         } as React.CSSProperties
       }
     >
@@ -331,7 +339,12 @@ const HeatmapGrid = ({
           <text
             key={`day-${label}`}
             x={0}
-            y={MONTH_LABEL_HEIGHT + row * (cellSize + CELL_GAP) + cellSize / 2 + 4}
+            y={
+              MONTH_LABEL_HEIGHT +
+              row * (cellSize + CELL_GAP) +
+              cellSize / 2 +
+              4
+            }
             fontSize={10}
             fill="#64748b"
             data-testid={`day-label-${label}`}
@@ -346,7 +359,10 @@ const HeatmapGrid = ({
           if (cell.isFuture) {
             intensity = 0;
           } else if (studentLevel) {
-            const levelOnDate = getLevelForDate(cell.date, studentLevel.levelHistory);
+            const levelOnDate = getLevelForDate(
+              cell.date,
+              studentLevel.levelHistory
+            );
             intensity = getLevelAwareIntensityLevel(cell.count, levelOnDate);
           } else {
             intensity = getIntensityLevel(cell.count);
@@ -356,8 +372,14 @@ const HeatmapGrid = ({
           const y = MONTH_LABEL_HEIGHT + cell.row * (cellSize + CELL_GAP);
           const isFocused = focusedIndex === index;
 
-          const isComeback = isComebackChallengeDate(cell.date, comebackChallenge);
-          const isSabbatical = isSabbaticalRestDay(cell.date, sabbaticalEnabled);
+          const isComeback = isComebackChallengeDate(
+            cell.date,
+            comebackChallenge
+          );
+          const isSabbatical = isSabbaticalRestDay(
+            cell.date,
+            sabbaticalEnabled
+          );
           const milestone = getMilestoneForDate(cell.date, milestones);
 
           return (
@@ -375,12 +397,14 @@ const HeatmapGrid = ({
                 aria-label={generateAriaLabel(cell.date, cell.count)}
                 aria-disabled={cell.isFuture}
                 role="gridcell"
-                tabIndex={isFocused || (focusedIndex === null && index === 0) ? 0 : -1}
+                tabIndex={
+                  isFocused || (focusedIndex === null && index === 0) ? 0 : -1
+                }
                 data-date={cell.date}
                 data-testid={`heatmap-cell-${cell.date}`}
                 style={
                   !prefersReducedMotion
-                    ? { transition: 'fill 0.15s ease, opacity 0.15s ease' }
+                    ? { transition: "fill 0.15s ease, opacity 0.15s ease" }
                     : undefined
                 }
                 onKeyDown={(e) => handleKeyDown(e, index)}
@@ -412,7 +436,10 @@ const HeatmapGrid = ({
                   strokeWidth={1.5}
                   strokeDasharray="3 2"
                   pointerEvents="none"
-                  aria-label={`Comeback Day ${getComebackDayNumber(cell.date, comebackChallenge!)}/3`}
+                  aria-label={`Comeback Day ${getComebackDayNumber(
+                    cell.date,
+                    comebackChallenge!
+                  )}/3`}
                   data-testid={`comeback-overlay-${cell.date}`}
                 />
               )}
@@ -428,7 +455,14 @@ const HeatmapGrid = ({
                       patternUnits="userSpaceOnUse"
                       patternTransform="rotate(45)"
                     >
-                      <line x1={0} y1={0} x2={0} y2={4} stroke="#94a3b8" strokeWidth={1} />
+                      <line
+                        x1={0}
+                        y1={0}
+                        x2={0}
+                        y2={4}
+                        stroke="#94a3b8"
+                        strokeWidth={1}
+                      />
                     </pattern>
                   </defs>
                   <rect

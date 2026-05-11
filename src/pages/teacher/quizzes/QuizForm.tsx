@@ -1,11 +1,11 @@
-import { useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useForm, useWatch } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { createQuizSchema, type CreateQuizFormData } from '@/lib/schemas/quiz';
-import { useQuiz, useCreateQuiz, useUpdateQuiz } from '@/hooks/useQuizzes';
-import { useCourses } from '@/hooks/useCourses';
-import { useCLOs } from '@/hooks/useCLOs';
+import { useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useForm, useWatch } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { createQuizSchema, type CreateQuizFormData } from "@/lib/schemas/quiz";
+import { useQuiz, useCreateQuiz, useUpdateQuiz } from "@/hooks/useQuizzes";
+import { useCourses } from "@/hooks/useCourses";
+import { useCLOs } from "@/hooks/useCLOs";
 import {
   Form,
   FormField,
@@ -13,24 +13,24 @@ import {
   FormLabel,
   FormControl,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { PracticeModeToggle } from '@/components/shared/PracticeModeToggle';
-import { ArrowLeft, Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { PracticeModeToggle } from "@/components/shared/PracticeModeToggle";
+import { ArrowLeft, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 // ─── Shared form fields ──────────────────────────────────────────────────────
 
@@ -41,15 +41,23 @@ interface QuizFormFieldsProps {
   isEditMode: boolean;
 }
 
-const QuizFormFields = ({ form, onSubmit, isPending, isEditMode }: QuizFormFieldsProps) => {
+const QuizFormFields = ({
+  form,
+  onSubmit,
+  isPending,
+  isEditMode,
+}: QuizFormFieldsProps) => {
   const navigate = useNavigate();
-  const selectedCourseId = useWatch({ control: form.control, name: 'course_id' });
-  const isAdaptive = useWatch({ control: form.control, name: 'is_adaptive' });
+  const selectedCourseId = useWatch({
+    control: form.control,
+    name: "course_id",
+  });
+  const isAdaptive = useWatch({ control: form.control, name: "is_adaptive" });
 
   const { data: paginatedCourses, isLoading: isLoadingCourses } = useCourses();
   const courses = paginatedCourses?.data ?? [];
   const { data: paginatedCLOs, isLoading: isLoadingCLOs } = useCLOs(
-    selectedCourseId || undefined,
+    selectedCourseId || undefined
   );
   const clos = paginatedCLOs?.data ?? [];
 
@@ -57,7 +65,7 @@ const QuizFormFields = ({ form, onSubmit, isPending, isEditMode }: QuizFormField
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit((data) => {
-          const isoDate = data.due_date.includes('Z')
+          const isoDate = data.due_date.includes("Z")
             ? data.due_date
             : new Date(data.due_date).toISOString();
           onSubmit({ ...data, due_date: isoDate });
@@ -66,7 +74,9 @@ const QuizFormFields = ({ form, onSubmit, isPending, isEditMode }: QuizFormField
       >
         {/* Section 1: Basic Details */}
         <Card className="bg-white border-0 shadow-md rounded-xl p-6">
-          <h2 className="text-lg font-bold tracking-tight mb-4">Basic Details</h2>
+          <h2 className="text-lg font-bold tracking-tight mb-4">
+            Basic Details
+          </h2>
           <div className="space-y-4">
             <FormField
               control={form.control}
@@ -75,7 +85,10 @@ const QuizFormFields = ({ form, onSubmit, isPending, isEditMode }: QuizFormField
                 <FormItem>
                   <FormLabel>Title</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g. Midterm Quiz — Data Structures" {...field} />
+                    <Input
+                      placeholder="e.g. Midterm Quiz — Data Structures"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -142,10 +155,10 @@ const QuizFormFields = ({ form, onSubmit, isPending, isEditMode }: QuizFormField
                         {...field}
                         value={
                           field.value
-                            ? field.value.includes('T')
+                            ? field.value.includes("T")
                               ? field.value.slice(0, 16)
                               : field.value
-                            : ''
+                            : ""
                         }
                       />
                     </FormControl>
@@ -167,9 +180,11 @@ const QuizFormFields = ({ form, onSubmit, isPending, isEditMode }: QuizFormField
                         placeholder="30"
                         {...field}
                         onChange={(e) =>
-                          field.onChange(e.target.value ? Number(e.target.value) : null)
+                          field.onChange(
+                            e.target.value ? Number(e.target.value) : null
+                          )
                         }
-                        value={field.value ?? ''}
+                        value={field.value ?? ""}
                       />
                     </FormControl>
                     <FormMessage />
@@ -208,7 +223,9 @@ const QuizFormFields = ({ form, onSubmit, isPending, isEditMode }: QuizFormField
             isLoadingCLOs ? (
               <div className="animate-shimmer h-20 rounded-lg" />
             ) : clos.length === 0 ? (
-              <p className="text-sm text-gray-500">No CLOs found for this course.</p>
+              <p className="text-sm text-gray-500">
+                No CLOs found for this course.
+              </p>
             ) : (
               <FormField
                 control={form.control}
@@ -231,7 +248,9 @@ const QuizFormFields = ({ form, onSubmit, isPending, isEditMode }: QuizFormField
                                     field.onChange(
                                       checked
                                         ? [...current, clo.id]
-                                        : current.filter((id: string) => id !== clo.id),
+                                        : current.filter(
+                                            (id: string) => id !== clo.id
+                                          )
                                     );
                                   }}
                                 />
@@ -250,13 +269,17 @@ const QuizFormFields = ({ form, onSubmit, isPending, isEditMode }: QuizFormField
               />
             )
           ) : (
-            <p className="text-sm text-gray-500">Select a course to see available CLOs.</p>
+            <p className="text-sm text-gray-500">
+              Select a course to see available CLOs.
+            </p>
           )}
         </Card>
 
         {/* Section 3: Quiz Settings — Adaptive & Practice Mode */}
         <Card className="bg-white border-0 shadow-md rounded-xl p-6">
-          <h2 className="text-lg font-bold tracking-tight mb-4">Quiz Settings</h2>
+          <h2 className="text-lg font-bold tracking-tight mb-4">
+            Quiz Settings
+          </h2>
           <div className="space-y-4">
             {/* Adaptive Mode Toggle */}
             <FormField
@@ -265,11 +288,15 @@ const QuizFormFields = ({ form, onSubmit, isPending, isEditMode }: QuizFormField
               render={({ field }) => (
                 <div className="flex items-center justify-between gap-4 rounded-lg border border-slate-200 p-4">
                   <div className="space-y-0.5">
-                    <Label htmlFor="is-adaptive" className="text-sm font-medium">
+                    <Label
+                      htmlFor="is-adaptive"
+                      className="text-sm font-medium"
+                    >
                       Enable Adaptive Mode
                     </Label>
                     <p className="text-xs text-gray-500">
-                      Questions adapt to each student's ability level in real time
+                      Questions adapt to each student's ability level in real
+                      time
                     </p>
                   </div>
                   <Switch
@@ -300,9 +327,13 @@ const QuizFormFields = ({ form, onSubmit, isPending, isEditMode }: QuizFormField
                           placeholder="2.5"
                           {...field}
                           onChange={(e) =>
-                            field.onChange(e.target.value ? Number(e.target.value) : undefined)
+                            field.onChange(
+                              e.target.value
+                                ? Number(e.target.value)
+                                : undefined
+                            )
                           }
-                          value={field.value ?? ''}
+                          value={field.value ?? ""}
                         />
                       </FormControl>
                       <FormMessage />
@@ -324,7 +355,9 @@ const QuizFormFields = ({ form, onSubmit, isPending, isEditMode }: QuizFormField
                             step={0.1}
                             placeholder="0.3"
                             {...field}
-                            onChange={(e) => field.onChange(Number(e.target.value))}
+                            onChange={(e) =>
+                              field.onChange(Number(e.target.value))
+                            }
                             value={field.value ?? 0.3}
                           />
                         </FormControl>
@@ -346,7 +379,9 @@ const QuizFormFields = ({ form, onSubmit, isPending, isEditMode }: QuizFormField
                             step={0.1}
                             placeholder="0.5"
                             {...field}
-                            onChange={(e) => field.onChange(Number(e.target.value))}
+                            onChange={(e) =>
+                              field.onChange(Number(e.target.value))
+                            }
                             value={field.value ?? 0.5}
                           />
                         </FormControl>
@@ -368,7 +403,9 @@ const QuizFormFields = ({ form, onSubmit, isPending, isEditMode }: QuizFormField
                             step={0.1}
                             placeholder="0.5"
                             {...field}
-                            onChange={(e) => field.onChange(Number(e.target.value))}
+                            onChange={(e) =>
+                              field.onChange(Number(e.target.value))
+                            }
                             value={field.value ?? 0.5}
                           />
                         </FormControl>
@@ -399,7 +436,10 @@ const QuizFormFields = ({ form, onSubmit, isPending, isEditMode }: QuizFormField
               render={({ field }) => (
                 <div className="flex items-center justify-between gap-4 rounded-lg border border-slate-200 p-4">
                   <div className="space-y-0.5">
-                    <Label htmlFor="is-published" className="text-sm font-medium">
+                    <Label
+                      htmlFor="is-published"
+                      className="text-sm font-medium"
+                    >
                       Publish Quiz
                     </Label>
                     <p className="text-xs text-gray-500">
@@ -426,13 +466,9 @@ const QuizFormFields = ({ form, onSubmit, isPending, isEditMode }: QuizFormField
             className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 text-white"
           >
             {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-            {isEditMode ? 'Update Quiz' : 'Create Quiz'}
+            {isEditMode ? "Update Quiz" : "Create Quiz"}
           </Button>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => navigate(-1)}
-          >
+          <Button type="button" variant="outline" onClick={() => navigate(-1)}>
             Cancel
           </Button>
         </div>
@@ -450,14 +486,14 @@ const CreateQuizForm = () => {
   const form = useForm<CreateQuizFormData>({
     resolver: zodResolver(createQuizSchema) as never,
     defaultValues: {
-      title: '',
-      description: '',
-      course_id: '' as `${string}-${string}-${string}-${string}-${string}`,
+      title: "",
+      description: "",
+      course_id: "" as `${string}-${string}-${string}-${string}-${string}`,
       clo_ids: [],
       time_limit_minutes: null,
       max_attempts: 1,
       is_published: false,
-      due_date: '',
+      due_date: "",
       questions: [],
       is_adaptive: false,
       adaptation_config: {
@@ -472,7 +508,7 @@ const CreateQuizForm = () => {
   const onSubmit = (data: CreateQuizFormData) => {
     createMutation.mutate(data, {
       onSuccess: () => {
-        toast.success('Quiz created successfully');
+        toast.success("Quiz created successfully");
         navigate(-1);
       },
       onError: (err) => toast.error(err.message),
@@ -499,14 +535,14 @@ const EditQuizForm = ({ quizId }: { quizId: string }) => {
   const form = useForm<CreateQuizFormData>({
     resolver: zodResolver(createQuizSchema) as never,
     defaultValues: {
-      title: '',
-      description: '',
-      course_id: '' as `${string}-${string}-${string}-${string}-${string}`,
+      title: "",
+      description: "",
+      course_id: "" as `${string}-${string}-${string}-${string}-${string}`,
       clo_ids: [],
       time_limit_minutes: null,
       max_attempts: 1,
       is_published: false,
-      due_date: '',
+      due_date: "",
       questions: [],
       is_adaptive: false,
       adaptation_config: {
@@ -520,12 +556,17 @@ const EditQuizForm = ({ quizId }: { quizId: string }) => {
 
   useEffect(() => {
     if (existing) {
-      const adaptConfig = existing.adaptation_config as Record<string, unknown> | null;
+      const adaptConfig = existing.adaptation_config as Record<
+        string,
+        unknown
+      > | null;
       form.reset({
         title: existing.title,
-        description: existing.description ?? '',
-        course_id: existing.course_id as `${string}-${string}-${string}-${string}-${string}`,
-        clo_ids: (existing.clo_ids ?? []) as `${string}-${string}-${string}-${string}-${string}`[],
+        description: existing.description ?? "",
+        course_id:
+          existing.course_id as `${string}-${string}-${string}-${string}-${string}`,
+        clo_ids: (existing.clo_ids ??
+          []) as `${string}-${string}-${string}-${string}-${string}`[],
         time_limit_minutes: existing.time_limit_minutes,
         max_attempts: existing.max_attempts,
         is_published: existing.is_published,
@@ -533,9 +574,12 @@ const EditQuizForm = ({ quizId }: { quizId: string }) => {
         questions: [], // Questions are managed separately
         is_adaptive: existing.is_adaptive,
         adaptation_config: {
-          initial_difficulty: (adaptConfig?.initial_difficulty as number) ?? undefined,
-          difficulty_step_up: (adaptConfig?.difficulty_step_up as number) ?? 0.3,
-          difficulty_step_down: (adaptConfig?.difficulty_step_down as number) ?? 0.5,
+          initial_difficulty:
+            (adaptConfig?.initial_difficulty as number) ?? undefined,
+          difficulty_step_up:
+            (adaptConfig?.difficulty_step_up as number) ?? 0.3,
+          difficulty_step_down:
+            (adaptConfig?.difficulty_step_down as number) ?? 0.5,
           difficulty_range: (adaptConfig?.difficulty_range as number) ?? 0.5,
         },
         practice_mode_enabled: existing.practice_mode_enabled,
@@ -556,11 +600,11 @@ const EditQuizForm = ({ quizId }: { quizId: string }) => {
       { id: quizId, ...data },
       {
         onSuccess: () => {
-          toast.success('Quiz updated successfully');
+          toast.success("Quiz updated successfully");
           navigate(-1);
         },
         onError: (err) => toast.error(err.message),
-      },
+      }
     );
   };
 
@@ -589,7 +633,7 @@ const QuizForm = () => {
           Back
         </Button>
         <h1 className="text-2xl font-bold tracking-tight">
-          {isEditMode ? 'Edit Quiz' : 'Create Quiz'}
+          {isEditMode ? "Edit Quiz" : "Create Quiz"}
         </h1>
       </div>
 

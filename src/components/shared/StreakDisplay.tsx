@@ -1,6 +1,6 @@
-import { Flame, Snowflake, Trophy, RefreshCw } from 'lucide-react';
-import { Card } from '@/components/ui/card';
-import { getNextMilestone, getMilestoneProgress } from '@/lib/streakMilestones';
+import { Flame, Snowflake, Trophy, RefreshCw } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { getNextMilestone, getMilestoneProgress } from "@/lib/streakMilestones";
 
 const TOTAL_ACTIVE_MILESTONES = [30, 60, 100, 200, 365] as const;
 
@@ -34,7 +34,10 @@ const StreakDisplay = ({
 }: StreakDisplayProps) => {
   if (compact) {
     return (
-      <div className="flex items-center gap-1.5" aria-label={`${streakCount} day streak`}>
+      <div
+        className="flex items-center gap-1.5"
+        aria-label={`${streakCount} day streak`}
+      >
         <Flame className="h-4 w-4 text-orange-500 animate-streak-flame" />
         <span className="text-sm font-bold text-orange-600">{streakCount}</span>
       </div>
@@ -44,10 +47,14 @@ const StreakDisplay = ({
   const nextMilestone = getNextMilestone(streakCount);
   const progress = getMilestoneProgress(streakCount);
   const showRangeFormat = streakSabbaticalEnabled && restDays > 0;
-  const showMilestoneCelebration = totalActiveDays > 0 && isTotalActiveMilestone(totalActiveDays);
+  const showMilestoneCelebration =
+    totalActiveDays > 0 && isTotalActiveMilestone(totalActiveDays);
 
   return (
-    <Card className="bg-white border-0 shadow-md rounded-xl p-4" data-focus-hide="true">
+    <Card
+      className="bg-white border-0 shadow-md rounded-xl p-4"
+      data-focus-hide="true"
+    >
       <div className="flex items-center gap-3">
         <div className="p-2 rounded-lg bg-orange-50">
           <Flame className="h-5 w-5 text-orange-500 animate-streak-flame" />
@@ -58,11 +65,16 @@ const StreakDisplay = ({
               {streakCount}
             </span>
             {showRangeFormat ? (
-              <span className="text-sm font-medium text-gray-500" data-testid="streak-range-label">
-                day streak, {restDays} rest day{restDays !== 1 ? 's' : ''}
+              <span
+                className="text-sm font-medium text-gray-500"
+                data-testid="streak-range-label"
+              >
+                day streak, {restDays} rest day{restDays !== 1 ? "s" : ""}
               </span>
             ) : (
-              <span className="text-sm font-medium text-gray-500">day streak</span>
+              <span className="text-sm font-medium text-gray-500">
+                day streak
+              </span>
             )}
           </div>
         </div>
@@ -70,28 +82,38 @@ const StreakDisplay = ({
         {streakFreezesAvailable > 0 && (
           <div
             className="flex items-center gap-0.5"
-            aria-label={`${streakFreezesAvailable} streak freeze${streakFreezesAvailable > 1 ? 's' : ''} available`}
+            aria-label={`${streakFreezesAvailable} streak freeze${
+              streakFreezesAvailable > 1 ? "s" : ""
+            } available`}
           >
-            {Array.from({ length: Math.min(streakFreezesAvailable, 2) }).map((_, i) => (
-              <Snowflake key={i} className="h-4 w-4 text-blue-400" />
-            ))}
+            {Array.from({ length: Math.min(streakFreezesAvailable, 2) }).map(
+              (_, i) => (
+                <Snowflake key={i} className="h-4 w-4 text-blue-400" />
+              )
+            )}
           </div>
         )}
       </div>
 
       {/* Total Active Days counter */}
       {totalActiveDays > 0 && (
-        <div className="mt-3 flex items-center gap-2" data-testid="total-active-days">
+        <div
+          className="mt-3 flex items-center gap-2"
+          data-testid="total-active-days"
+        >
           {showMilestoneCelebration ? (
             <Trophy className="h-4 w-4 text-amber-500 animate-badge-pop" />
           ) : (
             <Trophy className="h-4 w-4 text-gray-400" />
           )}
           <span className="text-xs font-medium text-gray-600">
-            {totalActiveDays} Total Active Day{totalActiveDays !== 1 ? 's' : ''}
+            {totalActiveDays} Total Active Day{totalActiveDays !== 1 ? "s" : ""}
           </span>
           {showMilestoneCelebration && (
-            <span className="text-xs font-bold text-amber-600 animate-xp-pulse" data-testid="active-days-milestone">
+            <span
+              className="text-xs font-bold text-amber-600 animate-xp-pulse"
+              data-testid="active-days-milestone"
+            >
               Milestone!
             </span>
           )}
@@ -100,10 +122,14 @@ const StreakDisplay = ({
 
       {/* Motivational message on streak reset */}
       {streakJustReset && totalActiveDays > 0 && (
-        <div className="mt-3 flex items-center gap-2 bg-blue-50 rounded-lg p-2.5" data-testid="streak-reset-message">
+        <div
+          className="mt-3 flex items-center gap-2 bg-blue-50 rounded-lg p-2.5"
+          data-testid="streak-reset-message"
+        >
           <RefreshCw className="h-4 w-4 text-blue-500 shrink-0" />
           <p className="text-xs text-blue-700 font-medium">
-            Your {totalActiveDays} total active days of learning are still an achievement
+            Your {totalActiveDays} total active days of learning are still an
+            achievement
           </p>
         </div>
       )}
@@ -114,7 +140,9 @@ const StreakDisplay = ({
             <span className="text-xs text-gray-500">
               Next milestone: {nextMilestone} days
             </span>
-            <span className="text-xs font-medium text-gray-600">{progress}%</span>
+            <span className="text-xs font-medium text-gray-600">
+              {progress}%
+            </span>
           </div>
           <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
             <div

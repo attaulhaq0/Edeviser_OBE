@@ -1,4 +1,4 @@
-import { cn } from '@/lib/utils';
+import { cn } from "@/lib/utils";
 
 export interface ConsistencyScoreRingProps {
   score: number; // 0-100
@@ -21,7 +21,10 @@ const ConsistencyScoreRing = ({
   const offset = circumference - (clamped / 100) * circumference;
 
   return (
-    <div className={cn('flex flex-col items-center gap-2', className)} data-testid="consistency-score-ring">
+    <div
+      className={cn("flex flex-col items-center gap-2", className)}
+      data-testid="consistency-score-ring"
+    >
       <svg
         width={size}
         height={size}

@@ -31,7 +31,10 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { useRealtime } from "@/hooks/useRealtime";
 import { queryKeys } from "@/lib/queryKeys";
-import { useLeaderboardCosmetics, type LeaderboardCosmeticData } from "@/hooks/useLeaderboardCosmetics";
+import {
+  useLeaderboardCosmetics,
+  type LeaderboardCosmeticData,
+} from "@/hooks/useLeaderboardCosmetics";
 import {
   useLeaderboard,
   useMyRank,
@@ -133,14 +136,17 @@ const LeaderboardRow = ({
     : `#${entry.rank}`;
 
   // Task 6.4: Default frame style for students with no equipped cosmetics
-  const frameStyle = showCosmetics && cosmetics?.avatarFrame
-    ? {
-        border: `${cosmetics.avatarFrame.border_width} ${cosmetics.avatarFrame.border_style ?? 'solid'} ${cosmetics.avatarFrame.border_color}`,
-        boxShadow: cosmetics.avatarFrame.box_shadow ?? 'none',
-      }
-    : {
-        border: '2px solid #e2e8f0',
-      };
+  const frameStyle =
+    showCosmetics && cosmetics?.avatarFrame
+      ? {
+          border: `${cosmetics.avatarFrame.border_width} ${
+            cosmetics.avatarFrame.border_style ?? "solid"
+          } ${cosmetics.avatarFrame.border_color}`,
+          boxShadow: cosmetics.avatarFrame.box_shadow ?? "none",
+        }
+      : {
+          border: "2px solid #e2e8f0",
+        };
 
   return (
     <div
@@ -755,7 +761,7 @@ const LeaderboardPage = () => {
   // Fetch cosmetics for leaderboard entries (Task 6.2)
   const leaderboardStudentIds = useMemo(
     () => entries.map((e) => e.student_id),
-    [entries],
+    [entries]
   );
   const { data: cosmeticsMap } = useLeaderboardCosmetics(leaderboardStudentIds);
 

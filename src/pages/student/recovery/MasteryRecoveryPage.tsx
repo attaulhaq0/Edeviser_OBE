@@ -1,17 +1,20 @@
-import { useParams, Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
-import MasteryRecoveryPanel from '@/components/shared/MasteryRecoveryPanel';
-import { useMasteryRecoveryStatus } from '@/hooks/useMasteryRecovery';
-import { useAuth } from '@/hooks/useAuth';
-import Shimmer from '@/components/shared/Shimmer';
+import { useParams, Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
+import MasteryRecoveryPanel from "@/components/shared/MasteryRecoveryPanel";
+import { useMasteryRecoveryStatus } from "@/hooks/useMasteryRecovery";
+import { useAuth } from "@/hooks/useAuth";
+import Shimmer from "@/components/shared/Shimmer";
 
 const MasteryRecoveryPage = () => {
   const { courseId, cloId } = useParams<{ courseId: string; cloId: string }>();
   const { user } = useAuth();
-  const studentId = user?.id ?? '';
+  const studentId = user?.id ?? "";
 
-  const { data: recovery, isLoading } = useMasteryRecoveryStatus(studentId, cloId ?? '');
+  const { data: recovery, isLoading } = useMasteryRecoveryStatus(
+    studentId,
+    cloId ?? ""
+  );
 
   if (isLoading) {
     return (
@@ -50,9 +53,9 @@ const MasteryRecoveryPage = () => {
       <MasteryRecoveryPanel
         recoveryId={recovery.id}
         studentId={studentId}
-        cloId={cloId ?? ''}
-        cloTitle={cloId ?? 'Unknown CLO'}
-        courseId={courseId ?? ''}
+        cloId={cloId ?? ""}
+        cloTitle={cloId ?? "Unknown CLO"}
+        courseId={courseId ?? ""}
         onRetryUnlocked={() => {
           window.location.href = `/student/dashboard`;
         }}

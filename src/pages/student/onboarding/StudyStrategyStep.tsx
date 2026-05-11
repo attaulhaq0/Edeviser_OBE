@@ -1,19 +1,25 @@
-import { useState, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { useStudyStrategyQuestions } from '@/hooks/useOnboardingQuestions';
-import { useSaveResponses } from '@/hooks/useOnboardingResponses';
-import type { WizardStepProps } from './OnboardingWizard';
+import { useState, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { BookOpen } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { useStudyStrategyQuestions } from "@/hooks/useOnboardingQuestions";
+import { useSaveResponses } from "@/hooks/useOnboardingResponses";
+import type { WizardStepProps } from "./OnboardingWizard";
 
-const STRATEGY_LABELS = ['Never', 'Rarely', 'Sometimes', 'Often', 'Always'] as const;
+const STRATEGY_LABELS = [
+  "Never",
+  "Rarely",
+  "Sometimes",
+  "Often",
+  "Always",
+] as const;
 
 const DIMENSION_LABELS: Record<string, string> = {
-  time_management: 'Time Management',
-  elaboration: 'Elaboration',
-  self_testing: 'Self-Testing',
-  help_seeking: 'Help-Seeking',
+  time_management: "Time Management",
+  elaboration: "Elaboration",
+  self_testing: "Self-Testing",
+  help_seeking: "Help-Seeking",
 };
 
 interface LikertScaleProps {
@@ -23,7 +29,11 @@ interface LikertScaleProps {
 }
 
 const LikertScale = ({ value, onChange, questionId }: LikertScaleProps) => (
-  <div className="flex flex-col gap-2" role="radiogroup" aria-label="Study strategy scale">
+  <div
+    className="flex flex-col gap-2"
+    role="radiogroup"
+    aria-label="Study strategy scale"
+  >
     {STRATEGY_LABELS.map((label, idx) => {
       const optionValue = idx + 1;
       const isSelected = value === optionValue;
@@ -38,16 +48,18 @@ const LikertScale = ({ value, onChange, questionId }: LikertScaleProps) => (
           onClick={() => onChange(optionValue)}
           className={`flex items-center gap-3 rounded-lg border px-4 py-3 text-start text-sm font-medium transition-colors ${
             isSelected
-              ? 'border-blue-500 bg-blue-50 text-blue-700'
-              : 'border-slate-200 bg-white text-gray-700 hover:border-slate-300 hover:bg-slate-50'
+              ? "border-blue-500 bg-blue-50 text-blue-700"
+              : "border-slate-200 bg-white text-gray-700 hover:border-slate-300 hover:bg-slate-50"
           }`}
         >
           <span
             className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${
-              isSelected ? 'border-blue-500' : 'border-slate-300'
+              isSelected ? "border-blue-500" : "border-slate-300"
             }`}
           >
-            {isSelected && <span className="h-2.5 w-2.5 rounded-full bg-blue-500" />}
+            {isSelected && (
+              <span className="h-2.5 w-2.5 rounded-full bg-blue-500" />
+            )}
           </span>
           {label}
         </button>
@@ -71,18 +83,20 @@ export const StudyStrategyStep = ({
 
   const currentQuestion = questions[currentIndex];
   const totalQuestions = questions.length;
-  const currentAnswer = currentQuestion ? answers[currentQuestion.id] ?? null : null;
+  const currentAnswer = currentQuestion
+    ? answers[currentQuestion.id] ?? null
+    : null;
 
   const currentDimension = currentQuestion?.dimension
     ? DIMENSION_LABELS[currentQuestion.dimension] ?? currentQuestion.dimension
-    : '';
+    : "";
 
   const handleSelect = useCallback(
     (value: number) => {
       if (!currentQuestion) return;
       setAnswers((prev) => ({ ...prev, [currentQuestion.id]: value }));
     },
-    [currentQuestion],
+    [currentQuestion]
   );
 
   const handleNext = useCallback(async () => {
@@ -97,14 +111,23 @@ export const StudyStrategyStep = ({
 
       await saveResponses.mutateAsync({
         student_id: studentId,
-        assessment_type: 'study_strategy',
+        assessment_type: "study_strategy",
         assessment_version: assessmentVersion,
         responses,
       });
 
       onComplete();
     }
-  }, [currentIndex, totalQuestions, questions, answers, saveResponses, studentId, assessmentVersion, onComplete]);
+  }, [
+    currentIndex,
+    totalQuestions,
+    questions,
+    answers,
+    saveResponses,
+    studentId,
+    assessmentVersion,
+    onComplete,
+  ]);
 
   const handleBack = useCallback(() => {
     if (currentIndex > 0) {
@@ -122,8 +145,8 @@ export const StudyStrategyStep = ({
           Study Strategy Inventory
         </h2>
         <p className="mt-2 max-w-sm text-sm text-gray-500">
-          This assessment will be delivered as short daily micro-assessments during your first two
-          weeks. You&apos;ll earn XP for each one!
+          This assessment will be delivered as short daily micro-assessments
+          during your first two weeks. You&apos;ll earn XP for each one!
         </p>
         <Button
           onClick={onComplete}
@@ -146,7 +169,8 @@ export const StudyStrategyStep = ({
   if (totalQuestions === 0) {
     return (
       <div className="py-16 text-center text-sm text-gray-500">
-        No study strategy questions available. Please contact your administrator.
+        No study strategy questions available. Please contact your
+        administrator.
       </div>
     );
   }
@@ -193,7 +217,7 @@ export const StudyStrategyStep = ({
             <LikertScale
               value={currentAnswer}
               onChange={handleSelect}
-              questionId={currentQuestion?.id ?? ''}
+              questionId={currentQuestion?.id ?? ""}
             />
           </Card>
         </motion.div>
@@ -215,9 +239,9 @@ export const StudyStrategyStep = ({
         >
           {currentIndex === totalQuestions - 1
             ? saveResponses.isPending
-              ? 'Saving...'
-              : 'Complete'
-            : 'Next'}
+              ? "Saving..."
+              : "Complete"
+            : "Next"}
         </Button>
       </div>
     </div>

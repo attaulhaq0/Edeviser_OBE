@@ -1,5 +1,5 @@
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 export interface PracticeModeToggleProps {
   checked: boolean;
@@ -7,7 +7,11 @@ export interface PracticeModeToggleProps {
   disabled?: boolean;
 }
 
-const PracticeModeToggle = ({ checked, onCheckedChange, disabled }: PracticeModeToggleProps) => {
+const PracticeModeToggle = ({
+  checked,
+  onCheckedChange,
+  disabled,
+}: PracticeModeToggleProps) => {
   return (
     <div className="flex items-center justify-between gap-4 rounded-lg border border-slate-200 p-4">
       <div className="space-y-0.5">

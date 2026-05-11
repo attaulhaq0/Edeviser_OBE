@@ -4,22 +4,22 @@ import {
   SheetHeader,
   SheetTitle,
   SheetDescription,
-} from '@/components/ui/sheet';
-import { Badge } from '@/components/ui/badge';
-import Shimmer from '@/components/shared/Shimmer';
-import { useCellDetail } from '@/hooks/useCurriculumMatrix';
-import { BookOpen, Layers } from 'lucide-react';
-import type { BloomsLevel } from '@/types/app';
+} from "@/components/ui/sheet";
+import { Badge } from "@/components/ui/badge";
+import Shimmer from "@/components/shared/Shimmer";
+import { useCellDetail } from "@/hooks/useCurriculumMatrix";
+import { BookOpen, Layers } from "lucide-react";
+import type { BloomsLevel } from "@/types/app";
 
 // ─── Bloom's badge color map (from design-system steering) ──────────────────
 
 const bloomsStyles: Record<BloomsLevel, string> = {
-  remembering: 'bg-purple-500 text-white',
-  understanding: 'bg-blue-500 text-white',
-  applying: 'bg-green-500 text-white',
-  analyzing: 'bg-yellow-500 text-gray-900',
-  evaluating: 'bg-orange-500 text-white',
-  creating: 'bg-red-500 text-white',
+  remembering: "bg-purple-500 text-white",
+  understanding: "bg-blue-500 text-white",
+  applying: "bg-green-500 text-white",
+  analyzing: "bg-yellow-500 text-gray-900",
+  evaluating: "bg-orange-500 text-white",
+  creating: "bg-red-500 text-white",
 };
 
 // ─── Props ──────────────────────────────────────────────────────────────────
@@ -33,10 +33,15 @@ interface CellDetailSheetProps {
 
 // ─── Component ──────────────────────────────────────────────────────────────
 
-const CellDetailSheet = ({ ploId, courseId, open, onOpenChange }: CellDetailSheetProps) => {
+const CellDetailSheet = ({
+  ploId,
+  courseId,
+  open,
+  onOpenChange,
+}: CellDetailSheetProps) => {
   const { data, isLoading } = useCellDetail(
     open ? ploId : undefined,
-    open ? courseId : undefined,
+    open ? courseId : undefined
   );
 
   return (
@@ -79,12 +84,12 @@ const CellDetailSheet = ({ ploId, courseId, open, onOpenChange }: CellDetailShee
                     key={clo.id}
                     className="rounded-lg border border-slate-200 bg-white p-3 space-y-1.5"
                   >
-                    <p className="text-sm font-medium text-gray-800">{clo.title}</p>
+                    <p className="text-sm font-medium text-gray-800">
+                      {clo.title}
+                    </p>
                     <div className="flex items-center gap-2">
                       {clo.blooms_level && (
-                        <Badge
-                          className={bloomsStyles[clo.blooms_level]}
-                        >
+                        <Badge className={bloomsStyles[clo.blooms_level]}>
                           {clo.blooms_level}
                         </Badge>
                       )}

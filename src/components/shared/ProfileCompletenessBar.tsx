@@ -1,12 +1,14 @@
-import { useNavigate } from 'react-router-dom';
-import { Badge } from '@/components/ui/badge';
-import { CheckCircle, ChevronRight } from 'lucide-react';
+import { useNavigate } from "react-router-dom";
+import { Badge } from "@/components/ui/badge";
+import { CheckCircle, ChevronRight } from "lucide-react";
 
 export interface ProfileCompletenessBarProps {
   completeness: number;
 }
 
-const ProfileCompletenessBar = ({ completeness }: ProfileCompletenessBarProps) => {
+const ProfileCompletenessBar = ({
+  completeness,
+}: ProfileCompletenessBarProps) => {
   const navigate = useNavigate();
   const clamped = Math.max(0, Math.min(100, completeness));
 
@@ -22,13 +24,15 @@ const ProfileCompletenessBar = ({ completeness }: ProfileCompletenessBarProps) =
   return (
     <button
       type="button"
-      onClick={() => navigate('/student/onboarding/complete-profile')}
+      onClick={() => navigate("/student/onboarding/complete-profile")}
       className="w-full rounded-xl bg-white shadow-md p-4 flex items-center gap-3 hover:shadow-lg transition-shadow group"
       aria-label={`Profile ${clamped}% complete. Tap to complete your profile.`}
     >
       <div className="flex-1 min-w-0 space-y-1.5">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-bold text-gray-700">Profile Completeness</span>
+          <span className="text-xs font-bold text-gray-700">
+            Profile Completeness
+          </span>
           <span className="text-xs font-bold text-blue-600">{clamped}%</span>
         </div>
         <div className="h-2 rounded-full bg-slate-100 overflow-hidden">

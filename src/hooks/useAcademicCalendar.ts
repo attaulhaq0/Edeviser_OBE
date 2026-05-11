@@ -1,8 +1,8 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import { logAuditEvent } from '@/lib/auditLogger';
-import { useAuth } from '@/hooks/useAuth';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import { logAuditEvent } from "@/lib/auditLogger";
+import { useAuth } from "@/hooks/useAuth";
 
 export interface AcademicCalendarEvent {
   id: string;
@@ -28,9 +28,9 @@ export const useAcademicCalendarEvents = () => {
     queryKey: queryKeys.academicCalendarEvents.all,
     queryFn: async (): Promise<AcademicCalendarEvent[]> => {
       const { data, error } = await supabase
-        .from('academic_calendar_events')
-        .select('*')
-        .order('start_date', { ascending: true });
+        .from("academic_calendar_events")
+        .select("*")
+        .order("start_date", { ascending: true });
       if (error) throw error;
       return (data ?? []) as AcademicCalendarEvent[];
     },
@@ -43,8 +43,10 @@ export const useCreateAcademicEvent = () => {
   return useMutation({
     mutationFn: async (input: CreateAcademicEventInput) => {
       const institutionId = user?.user_metadata?.institution_id;
-      if (!institutionId || typeof institutionId !== 'string') {
-        throw new Error('Missing institution_id — cannot create calendar event');
+      if (!institutionId || typeof institutionId !== "string") {
+        throw new Error(
+          "Missing institution_id — cannot create calendar event"
+        );
       }
       const insertPayload = {
         title: input.title,
@@ -55,15 +57,22 @@ export const useCreateAcademicEvent = () => {
         institution_id: institutionId,
       };
       const { data, error } = await supabase
-        .from('academic_calendar_events')
+        .from("academic_calendar_events")
         .insert(insertPayload)
         .select()
         .single();
       if (error) throw error;
-      await logAuditEvent({ action: 'create', entity_type: 'academic_calendar_event', entity_id: data.id, changes: input as unknown as Record<string, unknown>, performed_by: user?.id ?? '' });
+      await logAuditEvent({
+        action: "create",
+        entity_type: "academic_calendar_event",
+        entity_id: data.id,
+        changes: input as unknown as Record<string, unknown>,
+        performed_by: user?.id ?? "",
+      });
       return data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.academicCalendarEvents.all }),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: queryKeys.academicCalendarEvents.all }),
   });
 };
 
@@ -72,10 +81,20 @@ export const useDeleteAcademicEvent = () => {
   const { user } = useAuth();
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from('academic_calendar_events').delete().eq('id', id);
+      const { error } = await supabase
+        .from("academic_calendar_events")
+        .delete()
+        .eq("id", id);
       if (error) throw error;
-      await logAuditEvent({ action: 'delete', entity_type: 'academic_calendar_event', entity_id: id, changes: {}, performed_by: user?.id ?? '' });
+      await logAuditEvent({
+        action: "delete",
+        entity_type: "academic_calendar_event",
+        entity_id: id,
+        changes: {},
+        performed_by: user?.id ?? "",
+      });
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.academicCalendarEvents.all }),
+    onSuccess: () =>
+      qc.invalidateQueries({ queryKey: queryKeys.academicCalendarEvents.all }),
   });
 };

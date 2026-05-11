@@ -16,7 +16,7 @@ interface PlanUpdateRecord {
 function calculateAcceptanceRate(records: PlanUpdateRecord[]): number {
   if (records.length === 0) return 1.0; // No data → assume good
   const accepted = records.filter(
-    (r) => r.response === "accepted" || r.response === "modified",
+    (r) => r.response === "accepted" || r.response === "modified"
   ).length;
   return accepted / records.length;
 }
@@ -27,7 +27,7 @@ function calculateAcceptanceRate(records: PlanUpdateRecord[]): number {
  */
 function getAdaptiveThreshold(
   acceptanceRate: number,
-  previousSuggestionCount: number,
+  previousSuggestionCount: number
 ): number {
   if (previousSuggestionCount >= 10 && acceptanceRate < 0.3) {
     return 10;
@@ -41,9 +41,12 @@ function getAdaptiveThreshold(
 function shouldTriggerPlanUpdate(
   interactionCount: number,
   acceptanceRate: number,
-  previousSuggestionCount: number,
+  previousSuggestionCount: number
 ): boolean {
-  const threshold = getAdaptiveThreshold(acceptanceRate, previousSuggestionCount);
+  const threshold = getAdaptiveThreshold(
+    acceptanceRate,
+    previousSuggestionCount
+  );
   return interactionCount >= threshold;
 }
 

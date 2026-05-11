@@ -1,16 +1,14 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import { logAuditEvent } from '@/lib/auditLogger';
-import { useAuth } from '@/hooks/useAuth';
-import type { PaginatedResult } from '@/types/pagination';
-import { getPaginationRange } from '@/types/pagination';
-
-
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import { logAuditEvent } from "@/lib/auditLogger";
+import { useAuth } from "@/hooks/useAuth";
+import type { PaginatedResult } from "@/types/pagination";
+import { getPaginationRange } from "@/types/pagination";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
-export type EnrollmentStatus = 'active' | 'dropped' | 'completed';
+export type EnrollmentStatus = "active" | "dropped" | "completed";
 
 export interface Enrollment {
   id: string;
@@ -35,24 +33,36 @@ export interface EnrollStudentInput {
 
 // ─── useEnrollments — list enrollments for a course with student profiles ───
 
-export const useEnrollments = (courseId?: string, pagination?: { page?: number; pageSize?: number }) => {
-  const { page, pageSize, from, to } = getPaginationRange(pagination?.page, pagination?.pageSize);
+export const useEnrollments = (
+  courseId?: string,
+  pagination?: { page?: number; pageSize?: number }
+) => {
+  const { page, pageSize, from, to } = getPaginationRange(
+    pagination?.page,
+    pagination?.pageSize
+  );
 
   return useQuery({
     queryKey: queryKeys.enrollments.list({ courseId, page, pageSize }),
     queryFn: async (): Promise<PaginatedResult<EnrollmentWithProfile>> => {
-      let query = supabase.from('student_courses')
-        .select('*, profiles(id, full_name, email)', { count: 'exact' })
-        .order('enrolled_at', { ascending: false })
+      let query = supabase
+        .from("student_courses")
+        .select("*, profiles(id, full_name, email)", { count: "exact" })
+        .order("enrolled_at", { ascending: false })
         .range(from, to);
 
       if (courseId) {
-        query = query.eq('course_id', courseId);
+        query = query.eq("course_id", courseId);
       }
 
       const { data, error, count } = await query;
       if (error) throw error;
-      return { data: (data ?? []) as EnrollmentWithProfile[], count: count ?? 0, page, pageSize };
+      return {
+        data: (data ?? []) as EnrollmentWithProfile[],
+        count: count ?? 0,
+        page,
+        pageSize,
+      };
     },
   });
 };
@@ -61,11 +71,12 @@ export const useEnrollments = (courseId?: string, pagination?: { page?: number; 
 
 export const useEnrollment = (id?: string) => {
   return useQuery({
-    queryKey: queryKeys.enrollments.detail(id ?? ''),
+    queryKey: queryKeys.enrollments.detail(id ?? ""),
     queryFn: async (): Promise<EnrollmentWithProfile | null> => {
-      const { data, error } = await supabase.from('student_courses')
-        .select('*, profiles(id, full_name, email)')
-        .eq('id', id!)
+      const { data, error } = await supabase
+        .from("student_courses")
+        .select("*, profiles(id, full_name, email)")
+        .eq("id", id!)
         .maybeSingle();
 
       if (error) throw error;
@@ -83,7 +94,8 @@ export const useEnrollStudent = () => {
 
   return useMutation({
     mutationFn: async (input: EnrollStudentInput): Promise<Enrollment> => {
-      const { data, error } = await supabase.from('student_courses')
+      const { data, error } = await supabase
+        .from("student_courses")
         .insert({
           student_id: input.student_id,
           course_id: input.course_id,
@@ -97,17 +109,19 @@ export const useEnrollStudent = () => {
       const enrollment = data as Enrollment;
 
       await logAuditEvent({
-        action: 'create',
-        entity_type: 'enrollment',
+        action: "create",
+        entity_type: "enrollment",
         entity_id: enrollment.id,
         changes: { ...input },
-        performed_by: user?.id ?? 'unknown',
+        performed_by: user?.id ?? "unknown",
       });
 
       return enrollment;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.enrollments.lists() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.enrollments.lists(),
+      });
     },
   });
 };
@@ -120,9 +134,10 @@ export const useUnenrollStudent = () => {
 
   return useMutation({
     mutationFn: async (id: string): Promise<Enrollment> => {
-      const { data, error } = await supabase.from('student_courses')
-        .update({ status: 'dropped' })
-        .eq('id', id)
+      const { data, error } = await supabase
+        .from("student_courses")
+        .update({ status: "dropped" })
+        .eq("id", id)
         .select()
         .single();
 
@@ -131,17 +146,19 @@ export const useUnenrollStudent = () => {
       const enrollment = data as Enrollment;
 
       await logAuditEvent({
-        action: 'delete',
-        entity_type: 'enrollment',
+        action: "delete",
+        entity_type: "enrollment",
         entity_id: id,
-        changes: { status: 'dropped' },
-        performed_by: user?.id ?? 'unknown',
+        changes: { status: "dropped" },
+        performed_by: user?.id ?? "unknown",
       });
 
       return enrollment;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.enrollments.lists() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.enrollments.lists(),
+      });
     },
   });
 };
@@ -150,13 +167,14 @@ export const useUnenrollStudent = () => {
 
 export const useCourseStudents = (courseId?: string) => {
   return useQuery({
-    queryKey: queryKeys.enrollments.list({ courseId, status: 'active' }),
+    queryKey: queryKeys.enrollments.list({ courseId, status: "active" }),
     queryFn: async (): Promise<EnrollmentWithProfile[]> => {
-      const { data, error } = await supabase.from('student_courses')
-        .select('*, profiles(id, full_name, email)')
-        .eq('course_id', courseId!)
-        .eq('status', 'active')
-        .order('enrolled_at', { ascending: false });
+      const { data, error } = await supabase
+        .from("student_courses")
+        .select("*, profiles(id, full_name, email)")
+        .eq("course_id", courseId!)
+        .eq("status", "active")
+        .order("enrolled_at", { ascending: false });
 
       if (error) throw error;
       return data as EnrollmentWithProfile[];

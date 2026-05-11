@@ -79,7 +79,6 @@ const CreateSessionDialog = ({
     },
   });
 
-   
   const selectedCourseId = form.watch("courseId");
   const selectedCourse = courses.find((c) => c.id === selectedCourseId);
   const availableCLOs = selectedCourse?.clos ?? [];

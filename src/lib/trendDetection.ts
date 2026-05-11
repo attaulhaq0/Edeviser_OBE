@@ -18,7 +18,9 @@ export interface TrendResult {
 /**
  * Detect ≥10 percentage point drop between consecutive semesters.
  */
-export const detectDecliningTrend = (points: SemesterTrendPoint[]): { isDeclining: boolean; declineAmount: number } => {
+export const detectDecliningTrend = (
+  points: SemesterTrendPoint[]
+): { isDeclining: boolean; declineAmount: number } => {
   if (points.length < 2) return { isDeclining: false, declineAmount: 0 };
 
   for (let i = 1; i < points.length; i++) {

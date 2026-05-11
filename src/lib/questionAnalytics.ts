@@ -6,7 +6,7 @@
  * Returns Record<clo_id, percentage>.
  */
 export function computePerCLOScore(
-  answers: { clo_id: string; is_correct: boolean }[],
+  answers: { clo_id: string; is_correct: boolean }[]
 ): Record<string, number> {
   const totals: Record<string, number> = {};
   const corrects: Record<string, number> = {};
@@ -31,7 +31,7 @@ export function computePerCLOScore(
  */
 export function detectCLODiscrepancy(
   quizScorePercent: number,
-  cloAttainmentPercent: number,
+  cloAttainmentPercent: number
 ): boolean {
   return Math.abs(quizScorePercent - cloAttainmentPercent) > 15;
 }
@@ -50,8 +50,10 @@ export function computeApprovalRate(approved: number, total: number): number {
  * Awards 10 XP per qualifying question, capped at 50.
  */
 export function computeBonusXP(
-  correctQuestions: { difficulty_rating: number }[],
+  correctQuestions: { difficulty_rating: number }[]
 ): number {
-  const hardCount = correctQuestions.filter(q => q.difficulty_rating >= 4.0).length;
+  const hardCount = correctQuestions.filter(
+    (q) => q.difficulty_rating >= 4.0
+  ).length;
   return Math.min(hardCount * 10, 50);
 }

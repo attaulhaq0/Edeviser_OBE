@@ -1,9 +1,16 @@
-import * as Sentry from '@sentry/react';
+import * as Sentry from "@sentry/react";
 
 /** Regex patterns matching common PII tokens in strings. */
 const PII_PATTERNS: Array<{ pattern: RegExp; replacement: string }> = [
-  { pattern: /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, replacement: '[email]' },
-  { pattern: /\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi, replacement: '[uuid]' },
+  {
+    pattern: /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g,
+    replacement: "[email]",
+  },
+  {
+    pattern:
+      /\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi,
+    replacement: "[uuid]",
+  },
 ];
 
 /** Scrub PII from a string value. */
@@ -58,14 +65,16 @@ export function initSentry(): void {
         breadcrumb.message = scrubPII(breadcrumb.message);
       }
       // Strip query params from navigation breadcrumbs (may contain search terms with names)
-      if (breadcrumb.category === 'navigation' && breadcrumb.data?.to) {
-        const url = typeof breadcrumb.data.to === 'string' ? breadcrumb.data.to : '';
-        const qIdx = url.indexOf('?');
+      if (breadcrumb.category === "navigation" && breadcrumb.data?.to) {
+        const url =
+          typeof breadcrumb.data.to === "string" ? breadcrumb.data.to : "";
+        const qIdx = url.indexOf("?");
         if (qIdx !== -1) breadcrumb.data.to = url.slice(0, qIdx);
 
-        if (typeof breadcrumb.data?.from === 'string') {
-          const fIdx = breadcrumb.data.from.indexOf('?');
-          if (fIdx !== -1) breadcrumb.data.from = breadcrumb.data.from.slice(0, fIdx);
+        if (typeof breadcrumb.data?.from === "string") {
+          const fIdx = breadcrumb.data.from.indexOf("?");
+          if (fIdx !== -1)
+            breadcrumb.data.from = breadcrumb.data.from.slice(0, fIdx);
         }
       }
       return breadcrumb;

@@ -3,9 +3,9 @@
 // Steps: Create ILOs → Create Programs → Invite Coordinators → Invite Teachers
 // =============================================================================
 
-import { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Target,
   BookOpen,
@@ -15,11 +15,11 @@ import {
   ChevronRight,
   Loader2,
   type LucideIcon,
-} from 'lucide-react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { useCompleteOnboarding } from '@/hooks/useOnboarding';
-import { toast } from 'sonner';
+} from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { useCompleteOnboarding } from "@/hooks/useOnboarding";
+import { toast } from "sonner";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -56,39 +56,39 @@ const AdminOnboardingWizard = ({
   const steps: WizardStep[] = useMemo(
     () => [
       {
-        id: 'ilos',
-        title: 'Create ILOs',
-        description: 'Define your institution\'s learning outcomes',
+        id: "ilos",
+        title: "Create ILOs",
+        description: "Define your institution's learning outcomes",
         icon: Target,
-        route: '/admin/outcomes',
+        route: "/admin/outcomes",
         isCompleted: hasILOs,
       },
       {
-        id: 'programs',
-        title: 'Create Programs',
-        description: 'Set up academic programs for your institution',
+        id: "programs",
+        title: "Create Programs",
+        description: "Set up academic programs for your institution",
         icon: BookOpen,
-        route: '/admin/programs',
+        route: "/admin/programs",
         isCompleted: hasPrograms,
       },
       {
-        id: 'coordinators',
-        title: 'Invite Coordinators',
-        description: 'Add coordinators to manage programs',
+        id: "coordinators",
+        title: "Invite Coordinators",
+        description: "Add coordinators to manage programs",
         icon: UserPlus,
-        route: '/admin/users',
+        route: "/admin/users",
         isCompleted: hasCoordinators,
       },
       {
-        id: 'teachers',
-        title: 'Invite Teachers',
-        description: 'Add teachers to manage courses',
+        id: "teachers",
+        title: "Invite Teachers",
+        description: "Add teachers to manage courses",
         icon: Users,
-        route: '/admin/users',
+        route: "/admin/users",
         isCompleted: hasTeachers,
       },
     ],
-    [hasILOs, hasPrograms, hasCoordinators, hasTeachers],
+    [hasILOs, hasPrograms, hasCoordinators, hasTeachers]
   );
 
   const completedCount = steps.filter((s) => s.isCompleted).length;
@@ -102,11 +102,11 @@ const AdminOnboardingWizard = ({
   const handleComplete = () => {
     completeOnboarding.mutate(undefined, {
       onSuccess: () => {
-        toast.success('Onboarding complete! Welcome to Edeviser.');
+        toast.success("Onboarding complete! Welcome to Edeviser.");
         setDismissed(true);
         onDismiss?.();
       },
-      onError: (err) => toast.error(err?.message ?? 'An error occurred'),
+      onError: (err) => toast.error(err?.message ?? "An error occurred"),
     });
   };
 
@@ -116,10 +116,15 @@ const AdminOnboardingWizard = ({
     <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
       <div
         className="px-6 py-4 flex items-center gap-2"
-        style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+        style={{
+          background:
+            "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+        }}
       >
         <CheckCircle2 className="h-5 w-5 text-white" />
-        <h2 className="text-lg font-bold tracking-tight text-white">Setup Wizard</h2>
+        <h2 className="text-lg font-bold tracking-tight text-white">
+          Setup Wizard
+        </h2>
         <span className="ml-auto text-sm font-medium text-white/80">
           {completedCount}/{steps.length}
         </span>
@@ -131,7 +136,7 @@ const AdminOnboardingWizard = ({
             className="h-full rounded-full bg-gradient-to-r from-teal-500 to-blue-600"
             initial={{ width: 0 }}
             animate={{ width: `${progress}%` }}
-            transition={{ duration: 0.4, ease: 'easeOut' }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
           />
         </div>
 
@@ -152,7 +157,9 @@ const AdminOnboardingWizard = ({
                     <CheckCircle2 className="h-5 w-5 text-green-500" />
                   ) : (
                     <div className="h-5 w-5 rounded-full border-2 border-slate-300 flex items-center justify-center">
-                      <span className="text-xs font-bold text-slate-400">{index + 1}</span>
+                      <span className="text-xs font-bold text-slate-400">
+                        {index + 1}
+                      </span>
                     </div>
                   )}
                 </div>
@@ -173,7 +180,9 @@ const AdminOnboardingWizard = ({
             disabled={completeOnboarding.isPending}
             className="w-full bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
           >
-            {completeOnboarding.isPending && <Loader2 className="h-4 w-4 animate-spin me-2" />}
+            {completeOnboarding.isPending && (
+              <Loader2 className="h-4 w-4 animate-spin me-2" />
+            )}
             Complete Setup
           </Button>
         )}

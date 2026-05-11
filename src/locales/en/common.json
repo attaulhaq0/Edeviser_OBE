@@ -1,26 +1,69 @@
-{
+﻿{
   "nav": {
     "dashboard": "Dashboard",
     "users": "Users",
+    "departments": "Departments",
     "programs": "Programs",
     "courses": "Courses",
+    "semesters": "Semesters",
     "outcomes": "Outcomes",
+    "ilos": "ILOs",
+    "timetable": "Timetable",
+    "calendar": "Calendar",
+    "fees": "Fees",
+    "reports": "Reports",
+    "auditLog": "Audit Log",
+    "bonusXp": "Bonus XP",
+    "badgeSpotlight": "Badge Spotlight",
+    "marketplace": "Marketplace",
+    "surveys": "Surveys",
+    "settings": "Settings",
+    "plos": "PLOs",
+    "matrix": "Matrix",
+    "sankeyDiagram": "Sankey Diagram",
+    "gapAnalysis": "Gap Analysis",
+    "coverageHeatmap": "Coverage Heatmap",
+    "semesterTrends": "Semester Trends",
+    "cohortComparison": "Cohort Comparison",
+    "cqiPlans": "CQI Plans",
+    "courseFile": "Course File",
+    "clos": "CLOs",
+    "rubrics": "Rubrics",
     "assignments": "Assignments",
     "grading": "Grading",
-    "reports": "Reports",
-    "settings": "Settings",
+    "gradebook": "Gradebook",
+    "announcements": "Announcements",
+    "modules": "Modules",
+    "challenges": "Challenges",
+    "teams": "Teams",
+    "teamHealth": "Team Health",
+    "tutorAnalytics": "Tutor Analytics",
+    "tutorHandoffs": "Tutor Handoffs",
+    "baselineTests": "Baseline Tests",
+    "planner": "Planner",
+    "today": "Today",
+    "progress": "Progress",
+    "leaderboard": "Leaderboard",
+    "myTeam": "My Team",
+    "habits": "Habits",
+    "myContent": "My Content",
+    "journal": "Journal",
+    "aiTutor": "AI Tutor",
+    "portfolio": "Portfolio",
+    "children": "Children",
+    "attendance": "Attendance",
+    "studyPlan": "Study Plan",
     "profile": "Profile",
     "notifications": "Notifications",
-    "leaderboard": "Leaderboard",
-    "journal": "Journal",
-    "progress": "Progress",
-    "calendar": "Calendar",
-    "timetable": "Timetable",
     "discussions": "Discussions",
-    "attendance": "Attendance",
-    "quizzes": "Quizzes",
-    "gradebook": "Gradebook",
-    "auditLog": "Audit Log"
+    "quizzes": "Quizzes"
+  },
+  "emailVerification": {
+    "banner": "Please verify your email address to access all features.",
+    "resend": "Resend verification email",
+    "resendSuccess": "Verification email sent. Please check your inbox.",
+    "resendError": "Failed to resend verification email. Please try again.",
+    "dismiss": "Dismiss"
   },
   "buttons": {
     "save": "Save",
@@ -77,7 +120,9 @@
     "previous": "Previous",
     "next": "Next",
     "showing": "Showing {{from}} to {{to}} of {{total}}",
-    "rowsPerPage": "Rows per page"
+    "rowsPerPage": "Rows per page",
+    "noResults": "No results found.",
+    "pageOf": "Page {{page}} of {{total}}"
   },
   "confirmation": {
     "deleteTitle": "Are you sure?",
@@ -164,6 +209,100 @@
     "profileMenu": "Profile menu",
     "myProfile": "My Profile",
     "profileSettings": "Profile Settings",
-    "institutionSettings": "Institution Settings"
+    "institutionSettings": "Institution Settings",
+    "primaryNav": {
+      "label": "Primary navigation"
+    },
+    "unreadCount": "{{count}} unread notifications",
+    "notificationsLabel": "Notifications",
+    "markAllRead": "Mark all as read",
+    "emptyNotifications": {
+      "title": "No notifications",
+      "description": "You're all caught up!"
+    },
+    "groupLabel": {
+      "today": "Today",
+      "earlierThisWeek": "Earlier this week",
+      "older": "Older"
+    }
+  },
+  "notificationsCta": {
+    "viewGrade": "View Grade",
+    "openAssignment": "Open Assignment",
+    "viewBadge": "View Badge",
+    "viewStreak": "View Streak",
+    "viewProgress": "View Progress",
+    "viewLeaderboard": "View Leaderboard",
+    "viewHabits": "View Habits",
+    "viewAssignment": "View Assignment",
+    "viewAll": "View All"
+  },
+  "tour": {
+    "takeTour": "Take the tour",
+    "back": "Back",
+    "close": "Close",
+    "finish": "Finish",
+    "next": "Next",
+    "open": "Open the dialog",
+    "skip": "Skip tour"
+  },
+  "theme": {
+    "label": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "auth": {
+    "signedOut": "Signed out successfully",
+    "signOut": "Sign out"
+  },
+  "common": {
+    "error": "An error occurred. Please try again.",
+    "uploading": "Uploading...",
+    "cancel": "Cancel"
+  },
+  "weekPicker": {
+    "weekOf": "Week of",
+    "selectWeek": "Select a week"
+  },
+  "avatar": {
+    "title": "Profile Picture",
+    "description": "Upload a photo to personalize your profile.",
+    "current": "Current photo",
+    "preview": "Preview",
+    "dragDrop": "Drag and drop an image here",
+    "formats": "PNG, JPG, or WebP — max 2 MB",
+    "selectFile": "Choose file",
+    "upload": "Upload photo",
+    "uploadSuccess": "Profile picture updated",
+    "invalidType": "Please upload a PNG, JPG, or WebP image.",
+    "fileTooLarge": "File is too large. Maximum size is 2 MB."
+  },
+  "captcha": {
+    "devMode": "Captcha (dev mode — no VITE_CAPTCHA_SITE_KEY set)",
+    "bypass": "Bypass"
+  },
+  "profile": {
+    "myProfile": "My Profile"
+  },
+  "greeting": {
+    "morning": "Good morning",
+    "afternoon": "Good afternoon",
+    "evening": "Good evening",
+    "there": "there"
+  },
+  "tos": {
+    "title": "Terms of Service",
+    "description": "Please review and accept our Terms of Service and Privacy Policy to continue using the platform.",
+    "checkboxLabel": "I have read and agree to the",
+    "termsLink": "Terms of Service",
+    "and": "and",
+    "privacyLink": "Privacy Policy",
+    "acceptButton": "Accept",
+    "acceptSuccess": "Terms of Service accepted",
+    "acceptError": "Failed to accept Terms of Service. Please try again."
+  },
+  "notificationsGroup": {
+    "askTutor": "Ask Tutor"
   }
 }

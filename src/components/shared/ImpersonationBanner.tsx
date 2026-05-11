@@ -1,18 +1,23 @@
 // Task 88.2: Impersonation banner
 // Prominent top banner shown during impersonation with exit action
 
-import { useImpersonation } from '@/hooks/useImpersonation';
-import { Button } from '@/components/ui/button';
-import { Eye, X } from 'lucide-react';
+import { useImpersonation } from "@/hooks/useImpersonation";
+import { Button } from "@/components/ui/button";
+import { Eye, X } from "lucide-react";
 
 const formatTime = (seconds: number): string => {
   const m = Math.floor(seconds / 60);
   const s = seconds % 60;
-  return `${m}:${s.toString().padStart(2, '0')}`;
+  return `${m}:${s.toString().padStart(2, "0")}`;
 };
 
 const ImpersonationBanner = () => {
-  const { isImpersonating, impersonatedUser, timeRemaining, stopImpersonation } = useImpersonation();
+  const {
+    isImpersonating,
+    impersonatedUser,
+    timeRemaining,
+    stopImpersonation,
+  } = useImpersonation();
 
   if (!isImpersonating || !impersonatedUser) return null;
 
@@ -21,9 +26,12 @@ const ImpersonationBanner = () => {
       <div className="flex items-center gap-2 text-sm font-medium">
         <Eye className="h-4 w-4" />
         <span>
-          You are viewing as {impersonatedUser.full_name} — {impersonatedUser.role}
+          You are viewing as {impersonatedUser.full_name} —{" "}
+          {impersonatedUser.role}
         </span>
-        <span className="text-white/80">({formatTime(timeRemaining)} remaining)</span>
+        <span className="text-white/80">
+          ({formatTime(timeRemaining)} remaining)
+        </span>
       </div>
       <Button
         variant="ghost"

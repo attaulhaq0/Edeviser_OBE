@@ -2,7 +2,12 @@
 // Quiz Auto-Grader — Pure functions for client-side quiz grading
 // =============================================================================
 
-export type QuestionType = 'mcq_single' | 'mcq_multi' | 'true_false' | 'short_answer' | 'fill_blank';
+export type QuestionType =
+  | "mcq_single"
+  | "mcq_multi"
+  | "true_false"
+  | "short_answer"
+  | "fill_blank";
 
 export interface GradableQuestion {
   id: string;
@@ -24,7 +29,7 @@ export interface QuizGradeResult {
   totalPoints: number;
   totalAutoGradablePoints: number;
   hasManualQuestions: boolean;
-  gradingStatus: 'auto_graded' | 'pending_manual' | 'fully_graded';
+  gradingStatus: "auto_graded" | "pending_manual" | "fully_graded";
   scorePercent: number | null;
   perQuestion: QuestionGradeResult[];
 }
@@ -35,7 +40,7 @@ export interface QuizGradeResult {
  */
 export function gradeQuestion(
   question: GradableQuestion,
-  studentAnswer: string | string[] | undefined,
+  studentAnswer: string | string[] | undefined
 ): QuestionGradeResult {
   const { id, question_type, correct_answer, points } = question;
 
@@ -44,21 +49,24 @@ export function gradeQuestion(
       questionId: id,
       score: 0,
       maxPoints: points,
-      autoGradable: question_type !== 'short_answer',
-      isCorrect: question_type === 'short_answer' ? null : false,
+      autoGradable: question_type !== "short_answer",
+      isCorrect: question_type === "short_answer" ? null : false,
     };
   }
 
   switch (question_type) {
-    case 'mcq_single':
-    case 'true_false': {
-      const correct = typeof correct_answer === 'string'
-        ? correct_answer
-        : correct_answer[0] ?? '';
-      const answer = typeof studentAnswer === 'string'
-        ? studentAnswer
-        : studentAnswer[0] ?? '';
-      const isCorrect = answer.trim().toLowerCase() === correct.trim().toLowerCase();
+    case "mcq_single":
+    case "true_false": {
+      const correct =
+        typeof correct_answer === "string"
+          ? correct_answer
+          : correct_answer[0] ?? "";
+      const answer =
+        typeof studentAnswer === "string"
+          ? studentAnswer
+          : studentAnswer[0] ?? "";
+      const isCorrect =
+        answer.trim().toLowerCase() === correct.trim().toLowerCase();
       return {
         questionId: id,
         score: isCorrect ? points : 0,
@@ -68,14 +76,16 @@ export function gradeQuestion(
       };
     }
 
-    case 'mcq_multi': {
+    case "mcq_multi": {
       const correctSet = new Set(
-        (Array.isArray(correct_answer) ? correct_answer : [correct_answer])
-          .map((a) => a.trim().toLowerCase()),
+        (Array.isArray(correct_answer) ? correct_answer : [correct_answer]).map(
+          (a) => a.trim().toLowerCase()
+        )
       );
       const answerSet = new Set(
-        (Array.isArray(studentAnswer) ? studentAnswer : [studentAnswer])
-          .map((a) => a.trim().toLowerCase()),
+        (Array.isArray(studentAnswer) ? studentAnswer : [studentAnswer]).map(
+          (a) => a.trim().toLowerCase()
+        )
       );
       const isCorrect =
         correctSet.size === answerSet.size &&
@@ -89,14 +99,17 @@ export function gradeQuestion(
       };
     }
 
-    case 'fill_blank': {
-      const correct = typeof correct_answer === 'string'
-        ? correct_answer
-        : correct_answer[0] ?? '';
-      const answer = typeof studentAnswer === 'string'
-        ? studentAnswer
-        : studentAnswer[0] ?? '';
-      const isCorrect = answer.trim().toLowerCase() === correct.trim().toLowerCase();
+    case "fill_blank": {
+      const correct =
+        typeof correct_answer === "string"
+          ? correct_answer
+          : correct_answer[0] ?? "";
+      const answer =
+        typeof studentAnswer === "string"
+          ? studentAnswer
+          : studentAnswer[0] ?? "";
+      const isCorrect =
+        answer.trim().toLowerCase() === correct.trim().toLowerCase();
       return {
         questionId: id,
         score: isCorrect ? points : 0,
@@ -106,7 +119,7 @@ export function gradeQuestion(
       };
     }
 
-    case 'short_answer':
+    case "short_answer":
       return {
         questionId: id,
         score: 0,
@@ -132,7 +145,7 @@ export function gradeQuestion(
  */
 export function gradeQuiz(
   questions: GradableQuestion[],
-  answers: Record<string, string | string[]>,
+  answers: Record<string, string | string[]>
 ): QuizGradeResult {
   const perQuestion = questions.map((q) => gradeQuestion(q, answers[q.id]));
 
@@ -147,7 +160,7 @@ export function gradeQuiz(
     .reduce((sum, r) => sum + r.maxPoints, 0);
 
   const hasManualQuestions = perQuestion.some((r) => !r.autoGradable);
-  const gradingStatus = hasManualQuestions ? 'pending_manual' : 'fully_graded';
+  const gradingStatus = hasManualQuestions ? "pending_manual" : "fully_graded";
 
   const scorePercent =
     !hasManualQuestions && totalPoints > 0

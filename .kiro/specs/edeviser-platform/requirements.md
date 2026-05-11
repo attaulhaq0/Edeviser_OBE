@@ -907,7 +907,6 @@ Edeviser is a Human-Centric Outcome-Based Education (OBE) + Gamification platfor
 2. Load tests SHALL simulate the target of 5,000 concurrent users (Requirement 50.3).
 3. Load test results SHALL validate the p95 response time target of ≤300ms (Requirement 50.4).
 
-
 ---
 
 ### SECTION O: Platform Enhancements & Resilience
@@ -1354,7 +1353,6 @@ Edeviser is a Human-Centric Outcome-Based Education (OBE) + Gamification platfor
 6. THE Platform SHALL generate fee receipts as downloadable PDFs.
 7. WHEN an Admin creates or modifies a fee structure or records a payment, THE Audit_Logger SHALL record the action.
 
-
 ---
 
 ### SECTION T: Production Readiness & Infrastructure
@@ -1570,7 +1568,6 @@ Edeviser is a Human-Centric Outcome-Based Education (OBE) + Gamification platfor
 4. THE Platform SHALL provide a "Sign out all sessions" button that terminates all sessions including the current one, redirecting to the login page.
 5. THE Platform SHALL use the Supabase Auth admin API for session enumeration and termination.
 6. WHEN a user signs out other sessions, THE Audit_Logger SHALL log the action with the count of terminated sessions.
-
 
 ---
 
@@ -1885,7 +1882,6 @@ Edeviser is a Human-Centric Outcome-Based Education (OBE) + Gamification platfor
 3. WHEN an Improvement Bonus is awarded, THE Platform SHALL display a celebratory animation with the message "Great improvement on [CLO title]" and the bonus XP amount.
 4. THE Badge_System SHALL award a "Comeback Kid" badge when a student earns 3 Improvement Bonuses within a single semester.
 5. THE `xp_transactions` record for an Improvement Bonus SHALL include `action_type = 'improvement_bonus'` and a reference to the CLO and previous/current scores.
-
 
 ### SECTION W: Engagement Safeguards & Anti-Burnout
 

@@ -1,27 +1,27 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { MemoryRouter } from 'react-router-dom';
-import ReportGeneratorPage from '@/pages/admin/reports/ReportGeneratorPage';
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen, fireEvent } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { MemoryRouter } from "react-router-dom";
+import ReportGeneratorPage from "@/pages/admin/reports/ReportGeneratorPage";
 
 // ─── Mocks ──────────────────────────────────────────────────────────────────
 
 const mockMutate = vi.fn();
 let mockIsPending = false;
 
-vi.mock('@/hooks/useAccreditationReport', () => ({
+vi.mock("@/hooks/useAccreditationReport", () => ({
   useGenerateReport: () => ({
     mutate: mockMutate,
     isPending: mockIsPending,
   }),
 }));
 
-vi.mock('@/hooks/usePrograms', () => ({
+vi.mock("@/hooks/usePrograms", () => ({
   usePrograms: () => ({
     data: {
       data: [
-        { id: 'prog-1', name: 'Computer Science', code: 'CS' },
-        { id: 'prog-2', name: 'Electrical Engineering', code: 'EE' },
+        { id: "prog-1", name: "Computer Science", code: "CS" },
+        { id: "prog-2", name: "Electrical Engineering", code: "EE" },
       ],
       count: 2,
       page: 1,
@@ -34,7 +34,7 @@ vi.mock('@/hooks/usePrograms', () => ({
 const mockToastError = vi.fn();
 const mockToastSuccess = vi.fn();
 
-vi.mock('sonner', () => ({
+vi.mock("sonner", () => ({
   toast: {
     success: (...args: unknown[]) => mockToastSuccess(...args),
     error: (...args: unknown[]) => mockToastError(...args),
@@ -56,50 +56,52 @@ const createWrapper = () => {
 
 // ─── Tests ──────────────────────────────────────────────────────────────────
 
-describe('ReportGeneratorPage', () => {
+describe("ReportGeneratorPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockIsPending = false;
   });
 
-  it('renders the page title and form elements', () => {
+  it("renders the page title and form elements", () => {
     render(<ReportGeneratorPage />, { wrapper: createWrapper() });
 
-    expect(screen.getByText('Accreditation Reports')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Generate Report' })).toBeInTheDocument();
-    expect(screen.getByLabelText('Program')).toBeInTheDocument();
-    expect(screen.getByLabelText('Report Template')).toBeInTheDocument();
+    expect(screen.getByText("Accreditation Reports")).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Generate Report" })
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText("Program")).toBeInTheDocument();
+    expect(screen.getByLabelText("Report Template")).toBeInTheDocument();
     expect(screen.getByLabelText(/email delivery/i)).toBeInTheDocument();
   });
 
-  it('shows generate button', () => {
+  it("shows generate button", () => {
     render(<ReportGeneratorPage />, { wrapper: createWrapper() });
 
-    const btn = screen.getByRole('button', { name: /generate report/i });
+    const btn = screen.getByRole("button", { name: /generate report/i });
     expect(btn).toBeInTheDocument();
   });
 
-  it('does not call mutate when button is clicked while disabled (no program)', () => {
+  it("does not call mutate when button is clicked while disabled (no program)", () => {
     render(<ReportGeneratorPage />, { wrapper: createWrapper() });
 
-    const btn = screen.getByRole('button', { name: /generate report/i });
+    const btn = screen.getByRole("button", { name: /generate report/i });
     // Button is disabled when no program selected, so click is a no-op
     fireEvent.click(btn);
 
     expect(mockMutate).not.toHaveBeenCalled();
   });
 
-  it('does not render result card initially', () => {
+  it("does not render result card initially", () => {
     render(<ReportGeneratorPage />, { wrapper: createWrapper() });
 
-    expect(screen.queryByText('Report Ready')).not.toBeInTheDocument();
-    expect(screen.queryByText('Download PDF')).not.toBeInTheDocument();
+    expect(screen.queryByText("Report Ready")).not.toBeInTheDocument();
+    expect(screen.queryByText("Download PDF")).not.toBeInTheDocument();
   });
 
-  it('disables generate button when no program is selected', () => {
+  it("disables generate button when no program is selected", () => {
     render(<ReportGeneratorPage />, { wrapper: createWrapper() });
 
-    const btn = screen.getByRole('button', { name: /generate report/i });
+    const btn = screen.getByRole("button", { name: /generate report/i });
     expect(btn).toBeDisabled();
   });
 });

@@ -1,23 +1,23 @@
 // ── Onboarding Step Definitions ──────────────────────────────────────
 
 export const ONBOARDING_STEPS = [
-  'welcome',
-  'personality',
-  'self_efficacy',
-  'learning_style',
-  'study_strategy',
-  'baseline_select',
-  'baseline_test',
-  'summary',
+  "welcome",
+  "personality",
+  "self_efficacy",
+  "learning_style",
+  "study_strategy",
+  "baseline_select",
+  "baseline_test",
+  "summary",
 ] as const;
 
 export type OnboardingStepId = (typeof ONBOARDING_STEPS)[number];
 
 export const DAY1_STEPS = [
-  'welcome',
-  'personality',
-  'self_efficacy',
-  'summary',
+  "welcome",
+  "personality",
+  "self_efficacy",
+  "summary",
 ] as const;
 
 export type Day1StepId = (typeof DAY1_STEPS)[number];
@@ -46,45 +46,42 @@ export const REASSESSMENT_COOLDOWN_DAYS = 90;
 // ── Big Five Labels ──────────────────────────────────────────────────
 
 export const BIG_FIVE_LABELS = {
-  openness: 'Openness',
-  conscientiousness: 'Conscientiousness',
-  extraversion: 'Extraversion',
-  agreeableness: 'Agreeableness',
-  neuroticism: 'Neuroticism',
+  openness: "Openness",
+  conscientiousness: "Conscientiousness",
+  extraversion: "Extraversion",
+  agreeableness: "Agreeableness",
+  neuroticism: "Neuroticism",
 } as const;
 
 // ── VARK Descriptions ────────────────────────────────────────────────
 
 export const VARK_DESCRIPTIONS = {
   visual: {
-    label: 'Visual Learner',
+    label: "Visual Learner",
     description:
-      'You learn best through diagrams, charts, and spatial understanding',
-    icon: 'Eye',
+      "You learn best through diagrams, charts, and spatial understanding",
+    icon: "Eye",
   },
   auditory: {
-    label: 'Auditory Learner',
+    label: "Auditory Learner",
     description:
-      'You learn best through listening, discussions, and verbal explanations',
-    icon: 'Headphones',
+      "You learn best through listening, discussions, and verbal explanations",
+    icon: "Headphones",
   },
   read_write: {
-    label: 'Read/Write Learner',
-    description:
-      'You learn best through reading and writing activities',
-    icon: 'BookOpen',
+    label: "Read/Write Learner",
+    description: "You learn best through reading and writing activities",
+    icon: "BookOpen",
   },
   kinesthetic: {
-    label: 'Kinesthetic Learner',
-    description:
-      'You learn best through hands-on experience and practice',
-    icon: 'Hand',
+    label: "Kinesthetic Learner",
+    description: "You learn best through hands-on experience and practice",
+    icon: "Hand",
   },
   multimodal: {
-    label: 'Multimodal Learner',
-    description:
-      'You learn effectively through multiple modalities',
-    icon: 'Layers',
+    label: "Multimodal Learner",
+    description: "You learn effectively through multiple modalities",
+    icon: "Layers",
   },
 } as const;
 
@@ -92,19 +89,19 @@ export const VARK_DESCRIPTIONS = {
 
 /** Maps day number (2–14) to the assessment type delivered that day. */
 export const MICRO_ASSESSMENT_SCHEDULE: Record<number, string> = {
-  2: 'personality',
-  3: 'personality',
-  4: 'self_efficacy',
-  5: 'personality',
-  6: 'study_strategy',
-  7: 'study_strategy',
-  8: 'personality',
-  9: 'learning_style',
-  10: 'learning_style',
-  11: 'self_efficacy',
-  12: 'learning_style',
-  13: 'learning_style',
-  14: 'personality',
+  2: "personality",
+  3: "personality",
+  4: "self_efficacy",
+  5: "personality",
+  6: "study_strategy",
+  7: "study_strategy",
+  8: "personality",
+  9: "learning_style",
+  10: "learning_style",
+  11: "self_efficacy",
+  12: "learning_style",
+  13: "learning_style",
+  14: "personality",
 };
 
 export const MAX_MICRO_DISMISSALS = 3;
@@ -133,11 +130,11 @@ export const SELF_EFFICACY_TIER_THRESHOLDS = {
 // ── Profiling Dimensions ─────────────────────────────────────────────
 
 export const PROFILING_DIMENSIONS = [
-  'personality',
-  'self_efficacy',
-  'study_strategy',
-  'learning_style',
-  'baseline',
+  "personality",
+  "self_efficacy",
+  "study_strategy",
+  "learning_style",
+  "baseline",
 ] as const;
 
 export type ProfilingDimension = (typeof PROFILING_DIMENSIONS)[number];

@@ -2,26 +2,39 @@
 // Active/completed tabs, live progress bars (Supabase Realtime),
 // contribution leaderboard for course-wide, team progress for team-based
 
-import { useState, useCallback } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '@/hooks/useAuth';
-import { useStudentChallenges, useChallengeProgress, type Challenge, type ChallengeParticipant } from '@/hooks/useChallenges';
-import { useRealtime } from '@/hooks/useRealtime';
-import { queryKeys } from '@/lib/queryKeys';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import Shimmer from '@/components/shared/Shimmer';
-import { Trophy, Target, Users } from 'lucide-react';
+import { useState, useCallback } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/useAuth";
+import {
+  useStudentChallenges,
+  useChallengeProgress,
+  type Challenge,
+  type ChallengeParticipant,
+} from "@/hooks/useChallenges";
+import { useRealtime } from "@/hooks/useRealtime";
+import { queryKeys } from "@/lib/queryKeys";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import Shimmer from "@/components/shared/Shimmer";
+import { Trophy, Target, Users } from "lucide-react";
 
 // ─── Progress Bar ───────────────────────────────────────────────────────────
 
-const ProgressBar = ({ current, target }: { current: number; target: number }) => {
+const ProgressBar = ({
+  current,
+  target,
+}: {
+  current: number;
+  target: number;
+}) => {
   const pct = Math.min(100, Math.round((current / Math.max(target, 1)) * 100));
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between text-xs">
-        <span className="font-medium text-gray-600">{current} / {target}</span>
+        <span className="font-medium text-gray-600">
+          {current} / {target}
+        </span>
         <span className="font-bold text-blue-600">{pct}%</span>
       </div>
       <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
@@ -36,13 +49,23 @@ const ProgressBar = ({ current, target }: { current: number; target: number }) =
 
 // ─── Team Progress Display ──────────────────────────────────────────────────
 
-const TeamProgressDisplay = ({ participants, target }: { participants: ChallengeParticipant[]; target: number }) => {
-  const sorted = [...participants].sort((a, b) => b.current_progress - a.current_progress);
+const TeamProgressDisplay = ({
+  participants,
+  target,
+}: {
+  participants: ChallengeParticipant[];
+  target: number;
+}) => {
+  const sorted = [...participants].sort(
+    (a, b) => b.current_progress - a.current_progress
+  );
   return (
     <div className="mt-3 space-y-2">
       {sorted.map((p, idx) => (
         <div key={p.id} className="flex items-center gap-2">
-          <span className="text-xs font-bold text-gray-500 w-5">{idx + 1}.</span>
+          <span className="text-xs font-bold text-gray-500 w-5">
+            {idx + 1}.
+          </span>
           <div className="flex-1">
             <ProgressBar current={p.current_progress} target={target} />
           </div>
@@ -54,23 +77,38 @@ const TeamProgressDisplay = ({ participants, target }: { participants: Challenge
 
 // ─── Contribution Leaderboard ───────────────────────────────────────────────
 
-const ContributionLeaderboard = ({ participants, target }: { participants: ChallengeParticipant[]; target: number }) => {
-  const sorted = [...participants].sort((a, b) => b.current_progress - a.current_progress);
-  const totalProgress = participants.reduce((sum, p) => sum + p.current_progress, 0);
+const ContributionLeaderboard = ({
+  participants,
+  target,
+}: {
+  participants: ChallengeParticipant[];
+  target: number;
+}) => {
+  const sorted = [...participants].sort(
+    (a, b) => b.current_progress - a.current_progress
+  );
+  const totalProgress = participants.reduce(
+    (sum, p) => sum + p.current_progress,
+    0
+  );
 
   return (
     <div className="mt-3 space-y-3">
       <ProgressBar current={totalProgress} target={target} />
       <div className="space-y-1">
-        <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Top Contributors</p>
+        <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+          Top Contributors
+        </p>
         {sorted.slice(0, 5).map((p, idx) => {
-          const medals = ['🥇', '🥈', '🥉'];
+          const medals = ["🥇", "🥈", "🥉"];
           return (
             <div key={p.id} className="flex items-center justify-between py-1">
               <span className="text-xs font-medium text-gray-700">
                 {idx < 3 ? medals[idx] : `${idx + 1}.`} Participant
               </span>
-              <span className="text-xs font-bold text-amber-600">+{p.current_progress}</span>
+              <span className="text-xs font-bold text-amber-600">
+                +{p.current_progress}
+              </span>
             </div>
           );
         })}
@@ -83,40 +121,54 @@ const ContributionLeaderboard = ({ participants, target }: { participants: Chall
 
 const ChallengeCard = ({ challenge }: { challenge: Challenge }) => {
   const { data: participants } = useChallengeProgress(challenge.id);
-  const isTeam = challenge.challenge_type === 'team';
+  const isTeam = challenge.challenge_type === "team";
 
   return (
     <Card className="bg-white border-0 shadow-md rounded-xl p-4">
       <div className="flex items-start justify-between">
         <div className="flex items-start gap-3 flex-1">
           <div className="p-2 rounded-lg bg-amber-50">
-            {isTeam ? <Users className="h-4 w-4 text-amber-600" /> : <Target className="h-4 w-4 text-amber-600" />}
+            {isTeam ? (
+              <Users className="h-4 w-4 text-amber-600" />
+            ) : (
+              <Target className="h-4 w-4 text-amber-600" />
+            )}
           </div>
           <div className="flex-1">
             <p className="text-sm font-bold">{challenge.title}</p>
             {challenge.description && (
-              <p className="text-xs text-gray-500 mt-0.5">{challenge.description}</p>
+              <p className="text-xs text-gray-500 mt-0.5">
+                {challenge.description}
+              </p>
             )}
             <div className="flex gap-2 mt-2 flex-wrap">
               <Badge variant="outline" className="text-xs">
-                {isTeam ? 'Team' : 'Course-Wide'}
+                {isTeam ? "Team" : "Course-Wide"}
               </Badge>
               <Badge variant="outline" className="text-xs">
                 {challenge.goal_metric}: {challenge.goal_target}
               </Badge>
               <Badge className="text-xs bg-amber-50 text-amber-700 border-amber-200">
-                {challenge.reward_type === 'xp_bonus' ? `+${challenge.reward_value} XP` : 'Badge'}
+                {challenge.reward_type === "xp_bonus"
+                  ? `+${challenge.reward_value} XP`
+                  : "Badge"}
               </Badge>
             </div>
 
             {/* Live progress */}
-            {participants && participants.length > 0 && (
-              isTeam ? (
-                <TeamProgressDisplay participants={participants} target={challenge.goal_target} />
+            {participants &&
+              participants.length > 0 &&
+              (isTeam ? (
+                <TeamProgressDisplay
+                  participants={participants}
+                  target={challenge.goal_target}
+                />
               ) : (
-                <ContributionLeaderboard participants={participants} target={challenge.goal_target} />
-              )
-            )}
+                <ContributionLeaderboard
+                  participants={participants}
+                  target={challenge.goal_target}
+                />
+              ))}
           </div>
         </div>
       </div>
@@ -130,24 +182,28 @@ const ChallengeListView = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const { data: challenges, isLoading } = useStudentChallenges(user?.id);
-  const [activeTab, setActiveTab] = useState('active');
+  const [activeTab, setActiveTab] = useState("active");
 
   // Realtime subscription for challenge progress updates
   const handleProgressUpdate = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: queryKeys.challengeProgress.lists() });
-    queryClient.invalidateQueries({ queryKey: queryKeys.studentChallenges.lists() });
+    queryClient.invalidateQueries({
+      queryKey: queryKeys.challengeProgress.lists(),
+    });
+    queryClient.invalidateQueries({
+      queryKey: queryKeys.studentChallenges.lists(),
+    });
   }, [queryClient]);
 
   useRealtime({
-    table: 'challenge_participants',
-    event: '*',
+    table: "challenge_participants",
+    event: "*",
     onPayload: handleProgressUpdate,
     pollingFn: handleProgressUpdate,
     pollingInterval: 30_000,
   });
 
-  const active = (challenges ?? []).filter((c) => c.status === 'active');
-  const completed = (challenges ?? []).filter((c) => c.status === 'completed');
+  const active = (challenges ?? []).filter((c) => c.status === "active");
+  const completed = (challenges ?? []).filter((c) => c.status === "completed");
 
   if (isLoading) {
     return (
@@ -205,13 +261,17 @@ const ChallengeListView = () => {
             </Card>
           ) : (
             completed.map((c) => (
-              <Card key={c.id} className="bg-white border-0 shadow-md rounded-xl p-4 opacity-75">
+              <Card
+                key={c.id}
+                className="bg-white border-0 shadow-md rounded-xl p-4 opacity-75"
+              >
                 <div className="flex items-center gap-3">
                   <Trophy className="h-4 w-4 text-green-500" />
                   <div>
                     <p className="text-sm font-semibold">{c.title}</p>
                     <p className="text-xs text-gray-500">
-                      {c.challenge_type === 'team' ? 'Team' : 'Course-Wide'} · Completed
+                      {c.challenge_type === "team" ? "Team" : "Course-Wide"} ·
+                      Completed
                     </p>
                   </div>
                 </div>

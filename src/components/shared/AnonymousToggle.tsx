@@ -2,12 +2,12 @@
 // AnonymousToggle — Toggle leaderboard visibility with status indicator
 // =============================================================================
 
-import { useCallback } from 'react';
-import { Eye, EyeOff, Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
-import { useAnonymousStatus, useToggleAnonymous } from '@/hooks/useLeaderboard';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { useCallback } from "react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { useAnonymousStatus, useToggleAnonymous } from "@/hooks/useLeaderboard";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 const AnonymousToggle = () => {
   const { data: status, isLoading: isLoadingStatus } = useAnonymousStatus();
@@ -20,8 +20,8 @@ const AnonymousToggle = () => {
       onSuccess: (isNowAnonymous) => {
         toast.success(
           isNowAnonymous
-            ? 'You are now anonymous on the leaderboard'
-            : 'You are now visible on the leaderboard',
+            ? "You are now anonymous on the leaderboard"
+            : "You are now visible on the leaderboard"
         );
       },
       onError: (err: unknown) => {
@@ -37,11 +37,15 @@ const AnonymousToggle = () => {
     <div className="flex items-center gap-3">
       <span
         className={cn(
-          'text-sm font-medium',
-          isAnonymous ? 'text-gray-500' : 'text-green-600',
+          "text-sm font-medium",
+          isAnonymous ? "text-gray-500" : "text-green-600"
         )}
       >
-        {isLoadingStatus ? '...' : isAnonymous ? 'You are anonymous' : 'You are visible'}
+        {isLoadingStatus
+          ? "..."
+          : isAnonymous
+          ? "You are anonymous"
+          : "You are visible"}
       </span>
       <Button
         variant="outline"
@@ -49,10 +53,10 @@ const AnonymousToggle = () => {
         onClick={handleToggle}
         disabled={isPending}
         className={cn(
-          'gap-2',
+          "gap-2",
           isAnonymous
-            ? 'border-gray-300 text-gray-600'
-            : 'border-blue-300 text-blue-600',
+            ? "border-gray-300 text-gray-600"
+            : "border-blue-300 text-blue-600"
         )}
       >
         {isPending ? (
@@ -62,7 +66,7 @@ const AnonymousToggle = () => {
         ) : (
           <Eye className="h-4 w-4" />
         )}
-        {isAnonymous ? 'Go Visible' : 'Go Anonymous'}
+        {isAnonymous ? "Go Visible" : "Go Anonymous"}
       </Button>
     </div>
   );

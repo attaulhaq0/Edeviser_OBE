@@ -1,22 +1,22 @@
-import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   createCourseSchema,
   updateCourseSchema,
   type CreateCourseFormData,
   type UpdateCourseFormData,
-} from '@/lib/schemas/course';
+} from "@/lib/schemas/course";
 import {
   useCreateCourse,
   useUpdateCourse,
   useCourse,
   useTeachers,
-} from '@/hooks/useCourses';
-import { usePrograms } from '@/hooks/usePrograms';
-import { useSemesters } from '@/hooks/useSemesters';
-import { useAuth } from '@/hooks/useAuth';
+} from "@/hooks/useCourses";
+import { usePrograms } from "@/hooks/usePrograms";
+import { useSemesters } from "@/hooks/useSemesters";
+import { useAuth } from "@/hooks/useAuth";
 import {
   Form,
   FormField,
@@ -24,40 +24,42 @@ import {
   FormLabel,
   FormControl,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { ArrowLeft, Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
-import { useTranslation } from 'react-i18next';
-import type { Profile, Program, Semester } from '@/types/app';
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { ArrowLeft, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
+import type { Profile, Program, Semester } from "@/types/app";
 
 // ─── Create mode form ────────────────────────────────────────────────────────
 
 const CreateCourseForm = ({ institutionId }: { institutionId: string }) => {
   const navigate = useNavigate();
   const createMutation = useCreateCourse();
-  const { data: paginatedPrograms, isLoading: isLoadingPrograms } = usePrograms();
+  const { data: paginatedPrograms, isLoading: isLoadingPrograms } =
+    usePrograms();
   const programs = paginatedPrograms?.data ?? [];
   const { data: teachers = [], isLoading: isLoadingTeachers } = useTeachers();
-  const { data: semesters = [], isLoading: isLoadingSemesters } = useSemesters();
+  const { data: semesters = [], isLoading: isLoadingSemesters } =
+    useSemesters();
 
   const form = useForm<CreateCourseFormData>({
     resolver: zodResolver(createCourseSchema),
     defaultValues: {
-      name: '',
-      code: '',
-      program_id: '' as `${string}-${string}-${string}-${string}-${string}`,
-      semester_id: '' as `${string}-${string}-${string}-${string}-${string}`,
-      teacher_id: '' as `${string}-${string}-${string}-${string}-${string}`,
+      name: "",
+      code: "",
+      program_id: "" as `${string}-${string}-${string}-${string}-${string}`,
+      semester_id: "" as `${string}-${string}-${string}-${string}-${string}`,
+      teacher_id: "" as `${string}-${string}-${string}-${string}-${string}`,
       is_active: true,
     },
   });
@@ -65,8 +67,8 @@ const CreateCourseForm = ({ institutionId }: { institutionId: string }) => {
   const onSubmit = (data: CreateCourseFormData) => {
     createMutation.mutate(data, {
       onSuccess: () => {
-        toast.success('Course created successfully');
-        navigate('/admin/courses');
+        toast.success("Course created successfully");
+        navigate("/admin/courses");
       },
       onError: (err) => toast.error(err.message),
     });
@@ -96,13 +98,14 @@ const EditCourseForm = ({ courseId }: { courseId: string }) => {
   const { data: existingCourse, isLoading } = useCourse(courseId);
   const updateMutation = useUpdateCourse(courseId);
   const { data: teachers = [], isLoading: isLoadingTeachers } = useTeachers();
-  const { data: semesters = [], isLoading: isLoadingSemesters } = useSemesters();
+  const { data: semesters = [], isLoading: isLoadingSemesters } =
+    useSemesters();
 
   const form = useForm<UpdateCourseFormData>({
     resolver: zodResolver(updateCourseSchema),
     defaultValues: {
-      name: '',
-      code: '',
+      name: "",
+      code: "",
     },
   });
 
@@ -111,8 +114,12 @@ const EditCourseForm = ({ courseId }: { courseId: string }) => {
       form.reset({
         name: existingCourse.name,
         code: existingCourse.code,
-        teacher_id: (existingCourse.teacher_id ?? undefined) as `${string}-${string}-${string}-${string}-${string}` | undefined,
-        semester_id: (existingCourse.semester_id ?? undefined) as `${string}-${string}-${string}-${string}-${string}` | undefined,
+        teacher_id: (existingCourse.teacher_id ?? undefined) as
+          | `${string}-${string}-${string}-${string}-${string}`
+          | undefined,
+        semester_id: (existingCourse.semester_id ?? undefined) as
+          | `${string}-${string}-${string}-${string}-${string}`
+          | undefined,
         is_active: existingCourse.is_active,
       });
     }
@@ -129,8 +136,8 @@ const EditCourseForm = ({ courseId }: { courseId: string }) => {
   const onSubmit = (data: UpdateCourseFormData) => {
     updateMutation.mutate(data, {
       onSuccess: () => {
-        toast.success('Course updated successfully');
-        navigate('/admin/courses');
+        toast.success("Course updated successfully");
+        navigate("/admin/courses");
       },
       onError: (err) => toast.error(err.message),
     });
@@ -156,7 +163,9 @@ const EditCourseForm = ({ courseId }: { courseId: string }) => {
 
 // ─── Shared form fields ──────────────────────────────────────────────────────
 
-interface CourseFormFieldsProps<T extends CreateCourseFormData | UpdateCourseFormData> {
+interface CourseFormFieldsProps<
+  T extends CreateCourseFormData | UpdateCourseFormData
+> {
   form: ReturnType<typeof useForm<T>>;
   onSubmit: (data: T) => void;
   isPending: boolean;
@@ -172,7 +181,9 @@ interface CourseFormFieldsProps<T extends CreateCourseFormData | UpdateCourseFor
   isLoadingSemesters: boolean;
 }
 
-const CourseFormFields = <T extends CreateCourseFormData | UpdateCourseFormData>({
+const CourseFormFields = <
+  T extends CreateCourseFormData | UpdateCourseFormData
+>({
   form,
   onSubmit,
   isPending,
@@ -187,23 +198,28 @@ const CourseFormFields = <T extends CreateCourseFormData | UpdateCourseFormData>
   isLoadingSemesters,
 }: CourseFormFieldsProps<T>) => {
   const navigate = useNavigate();
-  const { t } = useTranslation('admin');
+  const { t } = useTranslation("admin");
 
   return (
     <Card className="bg-white border-0 shadow-md rounded-xl p-6 max-w-2xl">
       <Form {...form}>
         <form
-          onSubmit={form.handleSubmit(onSubmit as Parameters<typeof form.handleSubmit>[0])}
+          onSubmit={form.handleSubmit(
+            onSubmit as Parameters<typeof form.handleSubmit>[0]
+          )}
           className="space-y-6"
         >
           <FormField
             control={form.control}
-            name={'name' as never}
+            name={"name" as never}
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Course Name</FormLabel>
                 <FormControl>
-                  <Input placeholder="e.g. Data Structures and Algorithms" {...field} />
+                  <Input
+                    placeholder="e.g. Data Structures and Algorithms"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -212,16 +228,16 @@ const CourseFormFields = <T extends CreateCourseFormData | UpdateCourseFormData>
 
           <FormField
             control={form.control}
-            name={'name_ar' as never}
+            name={"name_ar" as never}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('bilingual.arabicName')}</FormLabel>
+                <FormLabel>{t("bilingual.arabicName")}</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder={t('bilingual.arabicNamePlaceholder')}
+                    placeholder={t("bilingual.arabicNamePlaceholder")}
                     dir="rtl"
                     {...field}
-                    value={(field.value as string) ?? ''}
+                    value={(field.value as string) ?? ""}
                   />
                 </FormControl>
                 <FormMessage />
@@ -234,7 +250,7 @@ const CourseFormFields = <T extends CreateCourseFormData | UpdateCourseFormData>
               {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
               <label className="text-sm font-medium">Course Code</label>
               <Input
-                value={existingCode ?? ''}
+                value={existingCode ?? ""}
                 disabled
                 className="bg-gray-50"
               />
@@ -245,7 +261,7 @@ const CourseFormFields = <T extends CreateCourseFormData | UpdateCourseFormData>
           ) : (
             <FormField
               control={form.control}
-              name={'code' as never}
+              name={"code" as never}
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Course Code</FormLabel>
@@ -263,7 +279,7 @@ const CourseFormFields = <T extends CreateCourseFormData | UpdateCourseFormData>
               {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
               <label className="text-sm font-medium">Program</label>
               <Input
-                value={existingProgram ?? ''}
+                value={existingProgram ?? ""}
                 disabled
                 className="bg-gray-50"
               />
@@ -274,7 +290,7 @@ const CourseFormFields = <T extends CreateCourseFormData | UpdateCourseFormData>
           ) : (
             <FormField
               control={form.control}
-              name={'program_id' as never}
+              name={"program_id" as never}
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Program</FormLabel>
@@ -304,7 +320,7 @@ const CourseFormFields = <T extends CreateCourseFormData | UpdateCourseFormData>
 
           <FormField
             control={form.control}
-            name={'teacher_id' as never}
+            name={"teacher_id" as never}
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Teacher</FormLabel>
@@ -333,7 +349,7 @@ const CourseFormFields = <T extends CreateCourseFormData | UpdateCourseFormData>
 
           <FormField
             control={form.control}
-            name={'semester_id' as never}
+            name={"semester_id" as never}
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Semester</FormLabel>
@@ -350,7 +366,8 @@ const CourseFormFields = <T extends CreateCourseFormData | UpdateCourseFormData>
                   <SelectContent>
                     {semesters.map((sem) => (
                       <SelectItem key={sem.id} value={sem.id}>
-                        {sem.name}{sem.is_active ? ' (Active)' : ''}
+                        {sem.name}
+                        {sem.is_active ? " (Active)" : ""}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -363,13 +380,13 @@ const CourseFormFields = <T extends CreateCourseFormData | UpdateCourseFormData>
           {/* Team Formation Mode (Task 5.5) */}
           <FormField
             control={form.control}
-            name={'team_formation_mode' as never}
+            name={"team_formation_mode" as never}
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Team Formation Mode</FormLabel>
                 <Select
                   onValueChange={field.onChange}
-                  value={(field.value as string) ?? 'teacher_assigned'}
+                  value={(field.value as string) ?? "teacher_assigned"}
                 >
                   <FormControl>
                     <SelectTrigger className="bg-white">
@@ -377,8 +394,12 @@ const CourseFormFields = <T extends CreateCourseFormData | UpdateCourseFormData>
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="teacher_assigned">Teacher Assigned</SelectItem>
-                    <SelectItem value="student_formed">Student Formed</SelectItem>
+                    <SelectItem value="teacher_assigned">
+                      Teacher Assigned
+                    </SelectItem>
+                    <SelectItem value="student_formed">
+                      Student Formed
+                    </SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -393,12 +414,12 @@ const CourseFormFields = <T extends CreateCourseFormData | UpdateCourseFormData>
               className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 text-white"
             >
               {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-              {isEditMode ? 'Update Course' : 'Create Course'}
+              {isEditMode ? "Update Course" : "Create Course"}
             </Button>
             <Button
               type="button"
               variant="outline"
-              onClick={() => navigate('/admin/courses')}
+              onClick={() => navigate("/admin/courses")}
             >
               Cancel
             </Button>
@@ -423,20 +444,20 @@ const CourseForm = () => {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => navigate('/admin/courses')}
+          onClick={() => navigate("/admin/courses")}
         >
           <ArrowLeft className="h-4 w-4" />
           Back
         </Button>
         <h1 className="text-2xl font-bold tracking-tight">
-          {isEditMode ? 'Edit Course' : 'Create Course'}
+          {isEditMode ? "Edit Course" : "Create Course"}
         </h1>
       </div>
 
       {isEditMode ? (
         <EditCourseForm courseId={id} />
       ) : (
-        <CreateCourseForm institutionId={institutionId ?? ''} />
+        <CreateCourseForm institutionId={institutionId ?? ""} />
       )}
     </div>
   );

@@ -1,36 +1,39 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { parseAsString, useQueryState } from 'nuqs';
-import { toast } from 'sonner';
-import { createColumns } from './columns';
-import { DataTable } from '@/components/shared/DataTable';
-import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
-import { useUsers, useSoftDeleteUser } from '@/hooks/useUsers';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Plus, Search, Filter, Upload } from 'lucide-react';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { parseAsString, useQueryState } from "nuqs";
+import { toast } from "sonner";
+import { createColumns } from "./columns";
+import { DataTable } from "@/components/shared/DataTable";
+import { NoUsers } from "@/components/shared/EmptyState";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import { useUsers, useSoftDeleteUser } from "@/hooks/useUsers";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Plus, Search, Filter, Upload } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import type { Profile } from '@/types/app';
+} from "@/components/ui/dropdown-menu";
+import type { Profile } from "@/types/app";
 
 const ROLE_OPTIONS: Array<{ label: string; value: string }> = [
-  { label: 'All Roles', value: '' },
-  { label: 'Admin', value: 'admin' },
-  { label: 'Coordinator', value: 'coordinator' },
-  { label: 'Teacher', value: 'teacher' },
-  { label: 'Student', value: 'student' },
-  { label: 'Parent', value: 'parent' },
+  { label: "All Roles", value: "" },
+  { label: "Admin", value: "admin" },
+  { label: "Coordinator", value: "coordinator" },
+  { label: "Teacher", value: "teacher" },
+  { label: "Student", value: "student" },
+  { label: "Parent", value: "parent" },
 ];
 
 const UserListPage = () => {
   const navigate = useNavigate();
-  const [search, setSearch] = useQueryState('q', parseAsString.withDefault(''));
-  const [role, setRole] = useQueryState('role', parseAsString.withDefault(''));
-  const [userToDeactivate, setUserToDeactivate] = useState<Profile | null>(null);
+  const [search, setSearch] = useQueryState("q", parseAsString.withDefault(""));
+  const [role, setRole] = useQueryState("role", parseAsString.withDefault(""));
+  const [userToDeactivate, setUserToDeactivate] = useState<Profile | null>(
+    null
+  );
 
   const [page, setPage] = useState(1);
 
@@ -44,11 +47,11 @@ const UserListPage = () => {
 
   const columns = createColumns(
     (id) => navigate(`/admin/users/${id}/edit`),
-    (user) => setUserToDeactivate(user),
+    (user) => setUserToDeactivate(user)
   );
 
   const activeRoleLabel =
-    ROLE_OPTIONS.find((o) => o.value === role)?.label ?? 'All Roles';
+    ROLE_OPTIONS.find((o) => o.value === role)?.label ?? "All Roles";
 
   return (
     <div className="space-y-6">
@@ -56,12 +59,16 @@ const UserListPage = () => {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold tracking-tight">Users</h1>
         <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={() => navigate('/admin/users/import')}>
+          <Button
+            variant="outline"
+            onClick={() => navigate("/admin/users/import")}
+          >
             <Upload className="h-4 w-4" /> Import CSV
           </Button>
           <Button
             className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 text-white"
-            onClick={() => navigate('/admin/users/new')}
+            onClick={() => navigate("/admin/users/new")}
+            data-tour="primary-action"
           >
             <Plus className="h-4 w-4" /> Add User
           </Button>
@@ -75,7 +82,10 @@ const UserListPage = () => {
           <Input
             placeholder="Search by name or email..."
             value={search}
-            onChange={(e) => { setSearch(e.target.value || null); setPage(1); }}
+            onChange={(e) => {
+              setSearch(e.target.value || null);
+              setPage(1);
+            }}
             className="ps-9"
           />
         </div>
@@ -91,7 +101,10 @@ const UserListPage = () => {
             {ROLE_OPTIONS.map((option) => (
               <DropdownMenuItem
                 key={option.value}
-                onClick={() => { setRole(option.value || null); setPage(1); }}
+                onClick={() => {
+                  setRole(option.value || null);
+                  setPage(1);
+                }}
               >
                 {option.label}
               </DropdownMenuItem>
@@ -109,6 +122,7 @@ const UserListPage = () => {
         pageSize={paginatedData?.pageSize}
         totalCount={paginatedData?.count}
         onPageChange={setPage}
+        emptyState={<NoUsers />}
       />
 
       {/* Deactivate Confirmation Dialog */}
@@ -124,7 +138,9 @@ const UserListPage = () => {
           if (!userToDeactivate) return;
           softDeleteMutation.mutate(userToDeactivate.id, {
             onSuccess: () => {
-              toast.success(`${userToDeactivate.full_name} has been deactivated`);
+              toast.success(
+                `${userToDeactivate.full_name} has been deactivated`
+              );
               setUserToDeactivate(null);
             },
             onError: (err) => {

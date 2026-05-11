@@ -4,8 +4,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, SkipForward, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { useOnboardingProgress } from "@/hooks/useOnboardingProgress";
-import { useUpdateProgress } from "@/hooks/useOnboardingProgress";
+import {
+  useOnboardingProgress,
+  useUpdateProgress,
+} from "@/hooks/useOnboardingProgress";
+import type { UpdateProgressInput } from "@/hooks/useOnboardingProgress";
 import { useProcessOnboarding } from "@/hooks/useStudentProfile";
 import { DAY1_STEPS, ONBOARDING_STEPS } from "@/lib/onboardingConstants";
 import type { OnboardingStepId } from "@/lib/onboardingConstants";
@@ -44,7 +47,9 @@ const SKIPPABLE_STEPS: Set<OnboardingStepId> = new Set([
 
 // ── Component ────────────────────────────────────────────────────────
 
-export const OnboardingWizard = ({ isDay1 = true }: OnboardingWizardProps) => {
+export const OnboardingWizard = ({
+  isDay1: isDay1Prop,
+}: OnboardingWizardProps) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const studentId = user?.id ?? "";
@@ -53,6 +58,26 @@ export const OnboardingWizard = ({ isDay1 = true }: OnboardingWizardProps) => {
     useOnboardingProgress(studentId);
   const updateProgress = useUpdateProgress(studentId);
   const processOnboarding = useProcessOnboarding();
+
+  // ── First-time-login detection (clause 2.14) ──────────────────────
+  // A student is on their first login if:
+  // - current_step === 'welcome' AND
+  // - all completion flags are false
+  const isFirstTimeLogin = useMemo(() => {
+    if (!progress) return true; // Default to first-time if no progress yet
+    return (
+      progress.current_step === "welcome" &&
+      !progress.personality_completed &&
+      !progress.learning_style_completed &&
+      !progress.self_efficacy_completed &&
+      !progress.study_strategy_completed &&
+      !progress.baseline_completed &&
+      !progress.day1_completed
+    );
+  }, [progress]);
+
+  // Determine if this is Day 1 phase based on first-time-login detection
+  const isDay1: boolean = isFirstTimeLogin ? true : isDay1Prop ?? false;
 
   const steps = useMemo<readonly OnboardingStepId[]>(
     () => (isDay1 ? DAY1_STEPS : ONBOARDING_STEPS),
@@ -65,27 +90,35 @@ export const OnboardingWizard = ({ isDay1 = true }: OnboardingWizardProps) => {
   const [direction, setDirection] = useState(1);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Resume from last saved step
+  // Resume from last saved step (only if not first-time login)
   useEffect(() => {
     if (!progress) return;
+
+    // For first-time login, always start at step 0 (welcome)
+    if (isFirstTimeLogin) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional: reset to welcome on first-time login
+      setCurrentStepIndex(0);
+      return;
+    }
+
+    // For resuming users, load from saved progress
     const savedStep = progress.current_step;
     const idx = steps.indexOf(savedStep);
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional: sync state from external progress data on mount
-    if (idx > 0) setCurrentStepIndex(idx);
+    if (idx >= 0) setCurrentStepIndex(idx);
     if (progress.skipped_sections.length > 0) {
       setSkippedSections(progress.skipped_sections);
     }
     if (progress.baseline_course_ids.length > 0) {
       setBaselineCourseIds(progress.baseline_course_ids);
     }
-  }, [progress, steps]);
+  }, [progress, steps, isFirstTimeLogin]);
 
   const currentStep = steps[currentStepIndex] as OnboardingStepId;
   const totalSteps = steps.length;
   const progressPercent = Math.round(
     ((currentStepIndex + 1) / totalSteps) * 100
   );
-  const assessmentVersion = progress?.assessment_version ?? 1;
+  const assessmentVersion: number = progress?.assessment_version ?? 1;
 
   // ── Navigation handlers ──────────────────────────────────────────
 
@@ -172,6 +205,11 @@ export const OnboardingWizard = ({ isDay1 = true }: OnboardingWizardProps) => {
   const handleConfirmProfile = useCallback(async () => {
     setIsProcessing(true);
     try {
+      // ── 2-Phase Completion Logic (clause 2.20) ──────────────────────
+      // Phase 1 (Day 1): complete DAY1_STEPS, set day1_completed=true
+      // Phase 2 (Later): complete remaining ONBOARDING_STEPS, set onboarding_completed=true
+      // The process_onboarding Edge Function handles updating profiles.onboarding_completed
+
       await processOnboarding.mutateAsync({
         student_id: studentId,
         assessment_version: assessmentVersion,
@@ -185,9 +223,21 @@ export const OnboardingWizard = ({ isDay1 = true }: OnboardingWizardProps) => {
         baseline_course_ids: baselineCourseIds,
         is_day1: isDay1,
       });
+
+      // Update progress with completion flags
+      const completionData = {
+        personality_completed: true as const,
+        learning_style_completed: true as const,
+        self_efficacy_completed: true as const,
+        study_strategy_completed: true as const,
+        baseline_completed: true as const,
+      };
       if (isDay1) {
-        updateProgress.mutate({ day1_completed: true });
+        (completionData as UpdateProgressInput).day1_completed = true;
       }
+      updateProgress.mutate(completionData as UpdateProgressInput);
+
+      // Optimistic navigation (clause 2.20: respond within 200ms)
       navigate("/student");
     } catch {
       // Error handled by mutation

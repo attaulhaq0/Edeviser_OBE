@@ -44,19 +44,19 @@ flowchart TD
 
 These are stable (≥1.0) packages with minor or patch bumps. No API changes expected.
 
-| Package | Current | Target | Type |
-|---------|---------|--------|------|
-| @axe-core/react | 4.11.2 | ≥4.11.3 | devDep |
-| @sentry/react | 10.49.0 | ≥10.51.0 | dep |
-| @supabase/supabase-js | 2.104.0 | ≥2.105.1 | dep |
-| @tanstack/react-query | 5.99.2 | ≥5.100.7 | dep |
-| @tanstack/react-query-devtools | 5.99.2 | ≥5.100.7 | dep |
-| @vercel/node | 5.6.20 | ≥5.7.15 | devDep |
-| axe-core | 4.11.1 | ≥4.11.4 | devDep |
-| globals | 17.5.0 | ≥17.6.0 | devDep |
-| jsdom | 29.0.2 | ≥29.1.1 | devDep |
-| react-hook-form | 7.73.1 | ≥7.74.0 | dep |
-| typescript-eslint | 8.59.0 | ≥8.59.1 | devDep |
+| Package                        | Current | Target   | Type   |
+| ------------------------------ | ------- | -------- | ------ |
+| @axe-core/react                | 4.11.2  | ≥4.11.3  | devDep |
+| @sentry/react                  | 10.49.0 | ≥10.51.0 | dep    |
+| @supabase/supabase-js          | 2.104.0 | ≥2.105.1 | dep    |
+| @tanstack/react-query          | 5.99.2  | ≥5.100.7 | dep    |
+| @tanstack/react-query-devtools | 5.99.2  | ≥5.100.7 | dep    |
+| @vercel/node                   | 5.6.20  | ≥5.7.15  | devDep |
+| axe-core                       | 4.11.1  | ≥4.11.4  | devDep |
+| globals                        | 17.5.0  | ≥17.6.0  | devDep |
+| jsdom                          | 29.0.2  | ≥29.1.1  | devDep |
+| react-hook-form                | 7.73.1  | ≥7.74.0  | dep    |
+| typescript-eslint              | 8.59.0  | ≥8.59.1  | devDep |
 
 **Strategy**: Run `npm update` for each package or batch `npm install` with explicit version ranges. Verify with lint + typecheck + test after install.
 
@@ -64,21 +64,24 @@ These are stable (≥1.0) packages with minor or patch bumps. No API changes exp
 
 These are pre-1.0 packages (where minor = breaking per semver) or packages with known API surface changes.
 
-| Package | Current | Target | Risk Factor |
-|---------|---------|--------|-------------|
-| @fast-check/vitest | 0.3.0 | 0.4.x | Pre-1.0 minor bump; potential API changes to `test.prop` |
-| react-i18next | 16.5.4 | 16.6.x | Minor bump with possible type changes |
-| shadcn (CLI) | 3.8.5 | latest | CLI tool, not runtime; low runtime risk |
+| Package            | Current | Target | Risk Factor                                              |
+| ------------------ | ------- | ------ | -------------------------------------------------------- |
+| @fast-check/vitest | 0.3.0   | 0.4.x  | Pre-1.0 minor bump; potential API changes to `test.prop` |
+| react-i18next      | 16.5.4  | 16.6.x | Minor bump with possible type changes                    |
+| shadcn (CLI)       | 3.8.5   | latest | CLI tool, not runtime; low runtime risk                  |
 
 **@fast-check/vitest 0.3 → 0.4 Migration**:
+
 - The `@fast-check/vitest` package wraps fast-check for Vitest integration. The 0.3→0.4 bump may change the `test.prop` API signature or configuration options.
 - Strategy: Upgrade, run the full property test suite (`src/__tests__/properties/**`), and fix any API changes. The underlying `fast-check` 4.7 package itself is a patch-level update and should be stable.
 
 **react-i18next 16.5 → 16.6 Migration**:
+
 - Minor version bump within a stable major. Likely type refinements only.
 - Strategy: Upgrade, run typecheck, verify i18n-related component tests pass.
 
 **shadcn CLI**:
+
 - This is a dev-time CLI tool for generating UI components. It does not affect runtime code.
 - Strategy: Upgrade, verify `npm run build` succeeds.
 
@@ -92,6 +95,7 @@ Key breaking changes from the [Vitest 4 migration guide](https://main.vitest.dev
 1. **Pool Rework**: `pool: 'forks'` still works, but `poolOptions` is removed. Top-level options replace nested pool config. The current config uses `pool: 'forks'` at the top level, which is fine. No `poolOptions` are used.
 
 2. **Coverage Changes**:
+
    - `coverage.all` is removed (was not explicitly set in our config).
    - `coverage.extensions` is removed (was not used).
    - `coverage.include` should be explicitly defined. Our config already has `coverage.include: ['src/**/*.{ts,tsx}']` — no change needed.
@@ -107,6 +111,7 @@ Key breaking changes from the [Vitest 4 migration guide](https://main.vitest.dev
 6. **Mock Changes**: `vi.fn().getMockName()` returns `vi.fn()` instead of `spy`. May affect snapshot tests that include mock names.
 
 **Migration Steps**:
+
 1. Update `vitest` and `@vitest/coverage-v8` to 4.x
 2. Update `@vitejs/plugin-react` if needed for compatibility
 3. Verify `vite.config.ts` test configuration — current config is compatible (no `poolOptions`, explicit `coverage.include`)
@@ -122,6 +127,7 @@ Key breaking changes from the [Vitest 4 migration guide](https://main.vitest.dev
 Key breaking changes from the [TypeScript 6.0 announcement](https://devblogs.microsoft.com/typescript/announcing-typescript-6.0/):
 
 1. **New Defaults** (most impactful):
+
    - `strict` defaults to `true` — our tsconfig already sets `"strict": true`, no impact.
    - `module` defaults to `esnext` — our tsconfig sets `"module": "ESNext"`, no impact.
    - `target` defaults to `es2025` — our tsconfig sets `"target": "ES2020"`, no impact (explicit value overrides default).
@@ -129,6 +135,7 @@ Key breaking changes from the [TypeScript 6.0 announcement](https://devblogs.mic
    - `types` defaults to `[]` — **this is the big one**. Our tsconfig does NOT set `"types"`. We need to add `"types": ["node"]` to avoid losing global type definitions from `@types/node`.
 
 2. **Deprecated Options**:
+
    - `moduleResolution: "bundler"` — our tsconfig uses `"moduleResolution": "bundler"`, which is fine.
    - `baseUrl` is deprecated — our tsconfig does NOT use `baseUrl`. We use `paths` with `"@/*": ["src/*"]` which works without `baseUrl` since TS 4.1.
    - `esModuleInterop` and `allowSyntheticDefaultImports` can no longer be `false` — we don't set these, so the new always-true default is fine.
@@ -136,6 +143,7 @@ Key breaking changes from the [TypeScript 6.0 announcement](https://devblogs.mic
 3. **Stricter Type Checking**: TS 6 may surface new type errors from improved inference. Strategy: run `npx tsc --noEmit`, fix any new errors.
 
 **Migration Steps**:
+
 1. Update `typescript` to 6.x
 2. Add `"types": ["node"]` to `tsconfig.json` `compilerOptions`
 3. Run `npx tsc --noEmit` and fix any new type errors
@@ -158,6 +166,7 @@ Key changes in lucide-react 1.x:
 4. **No UMD build**: Only ESM and CJS. Our Vite setup uses ESM, so no impact.
 
 **Migration Steps**:
+
 1. Update `lucide-react` to 1.x
 2. Run `npx tsc --noEmit` to catch any import errors from renamed/removed icons
 3. Fix any broken imports by mapping old icon names to 1.x equivalents
@@ -169,6 +178,7 @@ Key changes in lucide-react 1.x:
 Update `.github/dependabot.yml` to restrict npm updates to security-only PRs post-deployment.
 
 **Changes**:
+
 - Add `open-pull-requests-limit: 5` for npm (already present, keep as-is or reduce)
 - Remove the `groups.production-dependencies` grouping for minor/patch updates
 - Add `security-updates-only: true` or equivalent configuration to limit npm PRs to security advisories only
@@ -185,26 +195,26 @@ Update `.github/dependabot.yml` to restrict npm updates to security-only PRs pos
 
 No data model changes. This upgrade does not touch database schemas, migrations, RLS policies, or Edge Functions. The `src/types/database.ts` file is auto-generated and must not be modified.
 
-
 ## Error Handling
 
 ### Upgrade Failure Scenarios
 
-| Scenario | Detection | Mitigation |
-|----------|-----------|------------|
-| Safe patch breaks tests | `npm test` fails after Tier 1 | Revert specific package, pin to current version, document in PR |
-| @fast-check/vitest API change | Property tests fail after Tier 2 | Read changelog, update `test.prop` calls to match new API |
-| Vitest 4 config incompatibility | Tests fail to start after Tier 3a | Consult migration guide, update `vite.config.ts` test block |
-| Vitest 4 coverage threshold shift | `npm run test:coverage` fails | Adjust thresholds in `vite.config.ts` to match new V8 remapping |
-| TypeScript 6 new type errors | `npx tsc --noEmit` reports errors | Fix type errors in source code; add `"types": ["node"]` to tsconfig |
-| lucide-react icon removed/renamed | Build fails with import errors | Map old icon names to 1.x equivalents using lucide changelog |
-| Bundle size exceeds budget | CI bundle-size job fails | Investigate with `npm run analyze`, check for duplicate dependencies |
-| Peer dependency conflicts | `npm ci` warns about conflicts | Resolve by aligning versions or using `--legacy-peer-deps` as last resort |
-| Security vulnerability persists | `npm audit` still reports issues | Document vulnerability, risk assessment, and mitigation strategy |
+| Scenario                          | Detection                         | Mitigation                                                                |
+| --------------------------------- | --------------------------------- | ------------------------------------------------------------------------- |
+| Safe patch breaks tests           | `npm test` fails after Tier 1     | Revert specific package, pin to current version, document in PR           |
+| @fast-check/vitest API change     | Property tests fail after Tier 2  | Read changelog, update `test.prop` calls to match new API                 |
+| Vitest 4 config incompatibility   | Tests fail to start after Tier 3a | Consult migration guide, update `vite.config.ts` test block               |
+| Vitest 4 coverage threshold shift | `npm run test:coverage` fails     | Adjust thresholds in `vite.config.ts` to match new V8 remapping           |
+| TypeScript 6 new type errors      | `npx tsc --noEmit` reports errors | Fix type errors in source code; add `"types": ["node"]` to tsconfig       |
+| lucide-react icon removed/renamed | Build fails with import errors    | Map old icon names to 1.x equivalents using lucide changelog              |
+| Bundle size exceeds budget        | CI bundle-size job fails          | Investigate with `npm run analyze`, check for duplicate dependencies      |
+| Peer dependency conflicts         | `npm ci` warns about conflicts    | Resolve by aligning versions or using `--legacy-peer-deps` as last resort |
+| Security vulnerability persists   | `npm audit` still reports issues  | Document vulnerability, risk assessment, and mitigation strategy          |
 
 ### Rollback Strategy
 
 Each tier is committed separately. If a tier introduces unfixable regressions:
+
 1. `git revert` the tier's commit(s)
 2. Document the blocker in the PR description
 3. Proceed with remaining tiers that don't depend on the reverted one
@@ -241,18 +251,18 @@ After each tier, run in order:
 
 The full CI pipeline must pass on the upgrade branch:
 
-| CI Job | What It Verifies |
-|--------|-----------------|
-| `lint` | ESLint passes with zero warnings |
-| `typecheck` | TypeScript compiles with zero errors |
-| `test` | All 3624+ tests pass with coverage |
-| `build` | Production build succeeds |
-| `bundle-size` | Total gzipped JS ≤ 1200 KB |
-| `security-audit` | No high/critical vulnerabilities |
-| `lockfile-check` | `npm ci` succeeds without drift |
-| `lighthouse` | Lighthouse CI passes |
-| `e2e` | Playwright tests pass (if backend available) |
-| `sql-lint` | SQL migrations valid (unchanged) |
+| CI Job           | What It Verifies                             |
+| ---------------- | -------------------------------------------- |
+| `lint`           | ESLint passes with zero warnings             |
+| `typecheck`      | TypeScript compiles with zero errors         |
+| `test`           | All 3624+ tests pass with coverage           |
+| `build`          | Production build succeeds                    |
+| `bundle-size`    | Total gzipped JS ≤ 1200 KB                   |
+| `security-audit` | No high/critical vulnerabilities             |
+| `lockfile-check` | `npm ci` succeeds without drift              |
+| `lighthouse`     | Lighthouse CI passes                         |
+| `e2e`            | Playwright tests pass (if backend available) |
+| `sql-lint`       | SQL migrations valid (unchanged)             |
 
 #### Coverage Threshold Adjustment
 

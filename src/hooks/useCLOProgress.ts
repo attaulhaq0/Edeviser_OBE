@@ -2,11 +2,11 @@
 // useCLOProgress — TanStack Query hook for student CLO attainment data
 // =============================================================================
 
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import type { BloomsLevel, AttainmentLevel } from '@/types/app';
-import { classifyAttainment } from '@/lib/attainmentClassifier';
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import type { BloomsLevel, AttainmentLevel } from "@/types/app";
+import { classifyAttainment } from "@/lib/attainmentClassifier";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -35,16 +35,19 @@ export interface CLOProgressByCourse {
 
 export const useCLOProgress = (studentId?: string) => {
   return useQuery({
-    queryKey: queryKeys.outcomeAttainment.list({ studentId, scope: 'clo_progress' }),
+    queryKey: queryKeys.outcomeAttainment.list({
+      studentId,
+      scope: "clo_progress",
+    }),
     queryFn: async (): Promise<CLOProgressByCourse[]> => {
       if (!studentId) return [];
 
       // 1. Get enrolled courses for the student
       const { data: enrollments, error: enrollError } = await supabase
-        .from('student_courses')
-        .select('course_id')
-        .eq('student_id', studentId)
-        .eq('status', 'active');
+        .from("student_courses")
+        .select("course_id")
+        .eq("student_id", studentId)
+        .eq("status", "active");
 
       if (enrollError) throw enrollError;
       if (!enrollments || enrollments.length === 0) return [];
@@ -53,9 +56,9 @@ export const useCLOProgress = (studentId?: string) => {
 
       // 2. Get course names
       const { data: courses, error: courseError } = await supabase
-        .from('courses')
-        .select('id, name')
-        .in('id', courseIds);
+        .from("courses")
+        .select("id, name")
+        .in("id", courseIds);
 
       if (courseError) throw courseError;
 
@@ -66,11 +69,11 @@ export const useCLOProgress = (studentId?: string) => {
 
       // 3. Get CLOs for enrolled courses
       const { data: clos, error: cloError } = await supabase
-        .from('learning_outcomes')
-        .select('id, title, blooms_level, course_id')
-        .eq('type', 'CLO')
-        .in('course_id', courseIds)
-        .order('sort_order', { ascending: true });
+        .from("learning_outcomes")
+        .select("id, title, blooms_level, course_id")
+        .eq("type", "CLO")
+        .in("course_id", courseIds)
+        .order("sort_order", { ascending: true });
 
       if (cloError) throw cloError;
       if (!clos || clos.length === 0) return [];
@@ -79,15 +82,18 @@ export const useCLOProgress = (studentId?: string) => {
 
       // 4. Get attainment data for this student's CLOs
       const { data: attainments, error: attError } = await supabase
-        .from('outcome_attainment')
-        .select('outcome_id, attainment_percent, sample_count')
-        .eq('student_id', studentId)
-        .eq('scope', 'student_course')
-        .in('outcome_id', cloIds);
+        .from("outcome_attainment")
+        .select("outcome_id, attainment_percent, sample_count")
+        .eq("student_id", studentId)
+        .eq("scope", "student_course")
+        .in("outcome_id", cloIds);
 
       if (attError) throw attError;
 
-      const attainmentMap = new Map<string, { percent: number; samples: number }>();
+      const attainmentMap = new Map<
+        string,
+        { percent: number; samples: number }
+      >();
       for (const a of attainments ?? []) {
         attainmentMap.set(a.outcome_id, {
           percent: a.attainment_percent,
@@ -106,11 +112,11 @@ export const useCLOProgress = (studentId?: string) => {
         const entry: CLOProgressEntry = {
           clo_id: clo.id,
           clo_title: clo.title,
-          blooms_level: (clo.blooms_level ?? 'remembering') as BloomsLevel,
+          blooms_level: (clo.blooms_level ?? "remembering") as BloomsLevel,
           attainment_percent: att?.percent ?? null,
           attainment_level: att ? classifyAttainment(att.percent) : null,
           sample_count: att?.samples ?? 0,
-          course_name: courseMap.get(courseId) ?? 'Unknown Course',
+          course_name: courseMap.get(courseId) ?? "Unknown Course",
           course_id: courseId,
         };
 
@@ -124,7 +130,7 @@ export const useCLOProgress = (studentId?: string) => {
       for (const [courseId, entries] of courseGroupMap) {
         result.push({
           course_id: courseId,
-          course_name: courseMap.get(courseId) ?? 'Unknown Course',
+          course_name: courseMap.get(courseId) ?? "Unknown Course",
           entries,
         });
       }

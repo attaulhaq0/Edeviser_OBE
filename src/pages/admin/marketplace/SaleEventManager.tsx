@@ -2,23 +2,23 @@
 // SaleEventManager — Sale events list with status badges
 // =============================================================================
 
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useSaleEvents, useCancelSaleEvent } from '@/hooks/useSaleEvents';
-import type { SaleEvent } from '@/hooks/useSaleEvents';
-import { DataTable } from '@/components/shared/DataTable';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
-import { Plus, ArrowLeft, Tag, XCircle } from 'lucide-react';
-import { formatLocalDate } from '@/lib/formatDate';
-import type { ColumnDef } from '@tanstack/react-table';
-import SaleEventForm from '@/pages/admin/marketplace/SaleEventForm';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useSaleEvents, useCancelSaleEvent } from "@/hooks/useSaleEvents";
+import type { SaleEvent } from "@/hooks/useSaleEvents";
+import { DataTable } from "@/components/shared/DataTable";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import { Plus, ArrowLeft, Tag, XCircle } from "lucide-react";
+import { formatLocalDate } from "@/lib/formatDate";
+import type { ColumnDef } from "@tanstack/react-table";
+import SaleEventForm from "@/pages/admin/marketplace/SaleEventForm";
 
 const statusStyles: Record<string, string> = {
-  active: 'bg-green-50 text-green-700 border-green-200',
-  scheduled: 'bg-blue-50 text-blue-700 border-blue-200',
-  expired: 'bg-gray-50 text-gray-500 border-gray-200',
+  active: "bg-green-50 text-green-700 border-green-200",
+  scheduled: "bg-blue-50 text-blue-700 border-blue-200",
+  expired: "bg-gray-50 text-gray-500 border-gray-200",
 };
 
 const SaleEventManager = () => {
@@ -30,56 +30,64 @@ const SaleEventManager = () => {
 
   const columns: ColumnDef<SaleEvent>[] = [
     {
-      accessorKey: 'name',
-      header: 'Event Name',
-      cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
-    },
-    {
-      accessorKey: 'discount_percentage',
-      header: 'Discount',
+      accessorKey: "name",
+      header: "Event Name",
       cell: ({ row }) => (
-        <span className="font-semibold text-red-600">{row.original.discount_percentage}% off</span>
+        <span className="font-medium">{row.original.name}</span>
       ),
     },
     {
-      accessorKey: 'start_date',
-      header: 'Start',
+      accessorKey: "discount_percentage",
+      header: "Discount",
       cell: ({ row }) => (
-        <span className="text-gray-600 text-sm">
-          {formatLocalDate(row.original.start_date, 'MMM d, yyyy')}
+        <span className="font-semibold text-red-600">
+          {row.original.discount_percentage}% off
         </span>
       ),
     },
     {
-      accessorKey: 'end_date',
-      header: 'End',
+      accessorKey: "start_date",
+      header: "Start",
       cell: ({ row }) => (
         <span className="text-gray-600 text-sm">
-          {formatLocalDate(row.original.end_date, 'MMM d, yyyy')}
+          {formatLocalDate(row.original.start_date, "MMM d, yyyy")}
         </span>
       ),
     },
     {
-      accessorKey: 'item_ids',
-      header: 'Items',
+      accessorKey: "end_date",
+      header: "End",
       cell: ({ row }) => (
-        <span className="text-gray-600">{row.original.item_ids.length} item(s)</span>
+        <span className="text-gray-600 text-sm">
+          {formatLocalDate(row.original.end_date, "MMM d, yyyy")}
+        </span>
       ),
     },
     {
-      accessorKey: 'status',
-      header: 'Status',
+      accessorKey: "item_ids",
+      header: "Items",
       cell: ({ row }) => (
-        <Badge className={`text-xs ${statusStyles[row.original.status] ?? ''}`}>
-          {row.original.status.charAt(0).toUpperCase() + row.original.status.slice(1)}
+        <span className="text-gray-600">
+          {row.original.item_ids.length} item(s)
+        </span>
+      ),
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }) => (
+        <Badge className={`text-xs ${statusStyles[row.original.status] ?? ""}`}>
+          {row.original.status.charAt(0).toUpperCase() +
+            row.original.status.slice(1)}
         </Badge>
       ),
     },
     {
-      id: 'actions',
-      header: '',
+      id: "actions",
+      header: "",
       cell: ({ row }) =>
-        row.original.status === 'active' || row.original.status === 'scheduled' ? (
+        row.original.status === "active" ||
+        row.original.status === "scheduled" ? (
           <Button
             variant="ghost"
             size="sm"
@@ -100,7 +108,11 @@ const SaleEventManager = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm" onClick={() => navigate('/admin/marketplace')}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate("/admin/marketplace")}
+          >
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <Tag className="h-6 w-6 text-red-500" />

@@ -5,6 +5,7 @@
 The Edeviser platform audit uncovered 17 defects across type safety, data integrity, performance, security, UX, and observability. These bugs collectively degrade compile-time safety (25+ files casting to `any`), cause silent data staleness (ad-hoc query keys), display incorrect dashboard values (column name mismatches), degrade performance at scale (N+1 queries, unbounded fetches), leave compliance gaps (missing audit logs), and leave error monitoring uninitialized.
 
 The fix strategy groups defects into six categories and applies targeted, minimal changes:
+
 1. **Type Safety** (1.1): Regenerate `database.ts` types, remove `any` casts
 2. **Data Correctness** (1.2–1.4, 1.13, 1.16): Fix query keys, column names, XP constants, course name display
 3. **Performance** (1.5–1.7): Batch queries, batch reorder, add pagination
@@ -29,6 +30,7 @@ The fix strategy groups defects into six categories and applies targeted, minima
 The platform exhibits 17 distinct fault conditions grouped into six categories. The compound bug condition is:
 
 **Formal Specification:**
+
 ```
 FUNCTION isBugCondition(input)
   INPUT: input of type PlatformOperation
@@ -97,6 +99,7 @@ END FUNCTION
 ### Preservation Requirements
 
 **Unchanged Behaviors:**
+
 - `institutions` table queries continue to have full type inference (Req 3.1)
 - Hooks already using `queryKeys` factory (useUsers, useCourses, usePrograms, useILOs, usePLOs, etc.) continue with same key structure (Req 3.2)
 - Hooks already logging audit events (useUsers, usePrograms, useCourses, usePLOs, useILOs, useBonusEvents, useBulkImport) continue with same format (Req 3.3)
@@ -110,6 +113,7 @@ END FUNCTION
 
 **Scope:**
 All operations that do NOT match the 17 fault conditions should be completely unaffected. This includes:
+
 - All existing CRUD operations on properly-typed tables
 - All existing mutation hooks with audit logging
 - All edge functions with proper permission checks
@@ -271,7 +275,6 @@ _For any_ existing UI behavior (leaderboard display, toast notifications, provid
 
 **Validates: Requirements 3.6, 3.7, 3.10**
 
-
 ## Fix Implementation
 
 ### Changes Required
@@ -287,6 +290,7 @@ Assuming our root cause analysis is correct:
 **Files**: All 25+ hook files in `src/hooks/` that use the `any` cast pattern
 
 **Specific Changes**:
+
 1. **Remove `any` cast**: Delete `const db = supabase as unknown as { from: (table: string) => any }` from every hook file
 2. **Import typed client**: Use `import { supabase } from '@/lib/supabase'` directly — the client is already typed with `Database` generic
 3. **Remove manual type assertions**: Replace `(data as Array<{ ... }>)` casts with inferred types from the generated `Database` type
@@ -295,13 +299,16 @@ Assuming our root cause analysis is correct:
 ### Category 2: Data Correctness (Bugs 1.2, 1.3, 1.4, 1.13, 1.16)
 
 **File**: `src/hooks/useAdminDashboard.ts`
+
 - Replace `['admin', 'kpis']` with `queryKeys.adminDashboard.list({})` (add `adminDashboard` to factory)
 - Replace `['admin', 'recentAuditLogs', limit]` with `queryKeys.auditLogs.list({ limit })`
 
 **File**: `src/hooks/useTeacherDashboard.ts`
+
 - Replace ad-hoc keys with `queryKeys.teacherDashboard.list({})`
 
 **File**: `src/hooks/useStudentDashboard.ts`
+
 - Replace `['student', 'kpis', studentId]` with `queryKeys.studentGamification.detail(studentId)`
 - Replace `['student', 'upcomingDeadlines', studentId, limit]` with `queryKeys.assignments.list({ studentId, upcoming: true, limit })`
 - Fix `current_streak` → `streak_count`, `current_level` → `level` in gamification query
@@ -309,25 +316,30 @@ Assuming our root cause analysis is correct:
 - Join `assignments` to `courses` table: `.select('id, title, course_id, due_date, courses(name)')` to get actual course name
 
 **File**: `src/hooks/useCoordinatorDashboard.ts`
+
 - Replace ad-hoc keys with `queryKeys` factory
 
 **File**: `src/hooks/useParentDashboard.ts`
+
 - Replace `['parent', 'linkedChildren', parentId]` with `queryKeys.parentStudentLinks.list({ parentId })`
 - Replace `['parent', 'kpis', parentId]` with `queryKeys.parentStudentLinks.detail(parentId)`
 - Fix `current_streak` → `streak_count`, `current_level` → `level` in gamification reads
 
 **File**: `src/lib/xpSchedule.ts`
+
 - Change `submission: 50` → `submission: 25`
 - Change `grade: 25` → `grade: 15`
 - Change `streak_milestone: 100` → `streak_milestone: 50`
 - Change `first_attempt_bonus: 25` → `first_attempt_bonus: 10`
 
 **File**: `src/lib/queryKeys.ts`
+
 - Add missing dashboard-specific keys: `adminDashboard`, `coordinatorDashboard`, `studentDashboard`, `parentDashboard`
 
 ### Category 3: Performance (Bugs 1.5, 1.6, 1.7)
 
 **File**: `src/hooks/useParentDashboard.ts`
+
 - Replace per-child loop with batch queries:
   ```
   // Instead of: for (child of children) { query gamification; query enrollment; }
@@ -335,6 +347,7 @@ Assuming our root cause analysis is correct:
   ```
 
 **File**: `src/hooks/useCLOs.ts`, `src/hooks/usePLOs.ts`, `src/hooks/useILOs.ts`
+
 - Replace sequential `for` loop reorder with a single RPC call or batch upsert:
   ```
   // Instead of: for (item of items) { await db.from('clos').update({ sort_order }).eq('id', item.id) }
@@ -343,6 +356,7 @@ Assuming our root cause analysis is correct:
   ```
 
 **Files**: All list hooks (`useUsers`, `useCourses`, `useAssignments`, `useSubmissions`, `useAuditLogs`, etc.)
+
 - Add pagination parameters: `page: number`, `pageSize: number` (default 25)
 - Apply `.range(from, to)` to all list queries
 - Return `{ data, count, page, pageSize }` instead of raw array
@@ -350,42 +364,53 @@ Assuming our root cause analysis is correct:
 ### Category 4: Compliance & Resilience (Bugs 1.8, 1.9, 1.10, 1.14, 1.15)
 
 **File**: `src/hooks/useCLOs.ts` (useCreateCLO, useUpdateCLO, useDeleteCLO)
+
 - Add `logAuditEvent({ action: 'create'|'update'|'delete', entity_type: 'clo', entity_id, changes })` in `onSuccess` or after mutation
 
 **File**: `src/hooks/useAssignments.ts` (useCreateAssignment, useUpdateAssignment, useDeleteAssignment)
+
 - Add `logAuditEvent` calls matching existing pattern
 
 **File**: `src/hooks/useRubrics.ts` (useCreateRubric, useUpdateRubric, useDeleteRubric)
+
 - Add `logAuditEvent` calls
 
 **File**: `src/hooks/useEnrollments.ts` (useEnrollStudent, useUnenrollStudent)
+
 - Add `logAuditEvent` calls
 
 **File**: `src/hooks/useSubmissions.ts` (useCreateGrade, useCreateSubmission)
+
 - Add `logAuditEvent` calls
 
 **New File**: `src/components/shared/ErrorBoundary.tsx`
+
 - Create React error boundary with fallback UI showing error message and retry button
 - Style consistent with design system (Card with shadow, gradient header)
 
 **File**: `src/App.tsx`
+
 - Wrap `<AppRouter />` with `<ErrorBoundary>`
 - Add `Sentry.init()` call before component tree
 - Wrap with `Sentry.ErrorBoundary` as outer boundary
 
 **New File**: `src/lib/sentry.ts`
+
 - Initialize Sentry with DSN from `VITE_SENTRY_DSN` env var
 - Configure breadcrumbs for navigation and API calls
 - Set up performance monitoring
 
 **File**: `src/router/AppRouter.tsx`
+
 - Replace `LoadingFallback` full-page spinner with component-level shimmer:
   ```tsx
   const LoadingFallback = () => (
     <div className="p-6 space-y-4">
       <div className="h-8 w-48 rounded-lg animate-shimmer" />
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {[...Array(4)].map((_, i) => <div key={i} className="h-24 rounded-xl animate-shimmer" />)}
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="h-24 rounded-xl animate-shimmer" />
+        ))}
       </div>
       <div className="h-64 rounded-xl animate-shimmer" />
     </div>
@@ -393,6 +418,7 @@ Assuming our root cause analysis is correct:
   ```
 
 **New File**: `src/hooks/useRealtime.ts`
+
 - Create shared subscription manager with:
   - Channel deduplication (one channel per table+filter combo)
   - Reconnection with exponential backoff (1s, 2s, 4s, 8s, max 30s)
@@ -401,11 +427,13 @@ Assuming our root cause analysis is correct:
   - Cleanup on unmount
 
 **File**: `src/pages/student/leaderboard/LeaderboardPage.tsx`
+
 - Replace direct `supabase.channel()` subscription with `useRealtime` hook
 
 ### Category 5: Security (Bugs 1.11, 1.12, 1.17)
 
 **File**: `supabase/functions/award-xp/index.ts`
+
 - Add permission validation after payload validation:
   ```
   // Extract JWT from Authorization header
@@ -416,6 +444,7 @@ Assuming our root cause analysis is correct:
   ```
 
 **New File**: `src/lib/sanitizeFilter.ts`
+
 - Create utility to escape PostgREST special characters in user search input:
   ```typescript
   export function sanitizePostgrestValue(input: string): string {
@@ -424,19 +453,23 @@ Assuming our root cause analysis is correct:
   ```
 
 **Files**: `src/hooks/useUsers.ts`, `src/hooks/usePrograms.ts`, `src/hooks/useCourses.ts`, `src/hooks/useAuditLogs.ts`
+
 - Apply `sanitizePostgrestValue()` to all user-provided search strings before interpolation into `.or()` filters
 
 **New File**: `supabase/functions/check-login-rate/index.ts`
+
 - Create edge function for server-side rate limiting:
   - Track attempts in a `login_attempts` table (email, attempt_count, locked_until)
   - Check/increment on each login attempt
   - Return lock status and remaining time
 
 **File**: `src/lib/loginAttemptTracker.ts`
+
 - Keep client-side tracking as UX layer (immediate feedback)
 - Add server-side check before calling `supabase.auth.signInWithPassword()`
 
 **New Migration**: `supabase/migrations/XXXXXX_create_login_attempts_table.sql`
+
 - Create `login_attempts` table with columns: `email`, `attempt_count`, `locked_until`, `updated_at`
 - Add RLS policy: service_role only (no client access)
 
@@ -453,6 +486,7 @@ The testing strategy follows a two-phase approach: first, surface counterexample
 **Test Plan**: Write tests that exercise each defect category and assert the expected behavior. Run on UNFIXED code to observe failures.
 
 **Test Cases**:
+
 1. **Type Safety Test**: Import a hook and verify the Supabase client type includes column-level type checking (will fail — `any` cast removes types)
 2. **Query Key Test**: Call `useStudentKPIs` and verify the query key matches `queryKeys.studentGamification.detail(id)` (will fail — uses ad-hoc key)
 3. **Column Name Test**: Mock `student_gamification` with `streak_count` column and verify `useStudentKPIs` reads it (will fail — reads `current_streak`)
@@ -463,6 +497,7 @@ The testing strategy follows a two-phase approach: first, surface counterexample
 8. **Filter Injection Test**: Pass `name.ilike.%admin%,role.eq.admin` as search and verify it's escaped (will fail — raw interpolation)
 
 **Expected Counterexamples**:
+
 - Column reads return `undefined`/`null` instead of actual values
 - Query invalidation silently fails to refresh dashboard data
 - XP amounts are 2x the domain specification
@@ -473,6 +508,7 @@ The testing strategy follows a two-phase approach: first, surface counterexample
 **Goal**: Verify that for all inputs where the bug condition holds, the fixed functions produce the expected behavior.
 
 **Pseudocode:**
+
 ```
 FOR ALL input WHERE isBugCondition(input) DO
   result := fixedFunction(input)
@@ -485,6 +521,7 @@ END FOR
 **Goal**: Verify that for all inputs where the bug condition does NOT hold, the fixed functions produce the same result as the original functions.
 
 **Pseudocode:**
+
 ```
 FOR ALL input WHERE NOT isBugCondition(input) DO
   ASSERT originalFunction(input) = fixedFunction(input)
@@ -492,6 +529,7 @@ END FOR
 ```
 
 **Testing Approach**: Property-based testing is recommended for preservation checking because:
+
 - It generates many test cases automatically across the input domain
 - It catches edge cases that manual unit tests might miss
 - It provides strong guarantees that behavior is unchanged for all non-buggy inputs
@@ -499,6 +537,7 @@ END FOR
 **Test Plan**: Observe behavior on UNFIXED code first for non-bug inputs, then write property-based tests capturing that behavior.
 
 **Test Cases**:
+
 1. **Institutions Query Preservation**: Verify `institutions` table queries continue to have full type inference after `database.ts` regeneration
 2. **Existing Query Key Preservation**: Verify hooks already using `queryKeys` factory produce identical keys after dashboard hooks are migrated
 3. **Existing Audit Log Preservation**: Verify `useCreateUser`, `useCreateProgram`, `useCreateCourse` continue to call `logAuditEvent` with same format

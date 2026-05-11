@@ -1,7 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import type { Json } from '@/types/database';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import type { Json } from "@/types/database";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -73,33 +73,36 @@ export interface UpdateQuestionInput {
 
 // ─── useQuestionBank — list questions with optional filters ─────────────────
 
-export const useQuestionBank = (courseId: string, filters: QuestionBankFilters = {}) => {
+export const useQuestionBank = (
+  courseId: string,
+  filters: QuestionBankFilters = {}
+) => {
   return useQuery({
     queryKey: queryKeys.questionBank.list({ courseId, ...filters }),
     queryFn: async (): Promise<QuestionBankRow[]> => {
       let query = supabase
-        .from('question_bank')
-        .select('*')
-        .eq('course_id', courseId)
-        .order('created_at', { ascending: false });
+        .from("question_bank")
+        .select("*")
+        .eq("course_id", courseId)
+        .order("created_at", { ascending: false });
 
       if (filters.clo_id) {
-        query = query.eq('clo_id', filters.clo_id);
+        query = query.eq("clo_id", filters.clo_id);
       }
       if (filters.bloom_level !== undefined) {
-        query = query.eq('bloom_level', filters.bloom_level);
+        query = query.eq("bloom_level", filters.bloom_level);
       }
       if (filters.question_type) {
-        query = query.eq('question_type', filters.question_type);
+        query = query.eq("question_type", filters.question_type);
       }
       if (filters.status) {
-        query = query.eq('status', filters.status);
+        query = query.eq("status", filters.status);
       }
       if (filters.generation_source) {
-        query = query.eq('generation_source', filters.generation_source);
+        query = query.eq("generation_source", filters.generation_source);
       }
       if (filters.search) {
-        query = query.ilike('question_text', `%${filters.search}%`);
+        query = query.ilike("question_text", `%${filters.search}%`);
       }
 
       const { data, error } = await query;
@@ -117,9 +120,11 @@ export const useCreateQuestion = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (input: CreateQuestionInput): Promise<QuestionBankRow> => {
+    mutationFn: async (
+      input: CreateQuestionInput
+    ): Promise<QuestionBankRow> => {
       const { data, error } = await supabase
-        .from('question_bank')
+        .from("question_bank")
         .insert(input)
         .select()
         .single();
@@ -128,7 +133,9 @@ export const useCreateQuestion = () => {
       return data as QuestionBankRow;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.questionBank.lists() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.questionBank.lists(),
+      });
     },
   });
 };
@@ -139,13 +146,15 @@ export const useUpdateQuestion = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (input: UpdateQuestionInput): Promise<QuestionBankRow> => {
+    mutationFn: async (
+      input: UpdateQuestionInput
+    ): Promise<QuestionBankRow> => {
       const { id, ...fields } = input;
 
       const { data, error } = await supabase
-        .from('question_bank')
+        .from("question_bank")
         .update(fields)
-        .eq('id', id)
+        .eq("id", id)
         .select()
         .single();
 
@@ -153,7 +162,9 @@ export const useUpdateQuestion = () => {
       return data as QuestionBankRow;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.questionBank.lists() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.questionBank.lists(),
+      });
     },
   });
 };

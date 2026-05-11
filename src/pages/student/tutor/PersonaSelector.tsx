@@ -3,18 +3,18 @@
 // Supports auto-recommendation from Big Five profile (Req 26)
 // =============================================================================
 
-import { useState } from 'react';
-import { HelpCircle, ListChecks, Zap, Sparkles } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
-import type { TutorPersona } from '@/lib/tutorSchemas';
+import { useState } from "react";
+import { HelpCircle, ListChecks, Zap, Sparkles } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+import type { TutorPersona } from "@/lib/tutorSchemas";
 
 interface PersonaSelectorProps {
   selectedPersona: TutorPersona;
   onSelect: (persona: TutorPersona) => void;
   /** Inline mode shows compact buttons; full mode shows cards */
-  variant?: 'inline' | 'full';
+  variant?: "inline" | "full";
   /** Auto-recommended persona from Big Five profile */
   recommendedPersona?: TutorPersona | null;
 }
@@ -30,35 +30,35 @@ interface PersonaOption {
 
 const personas: PersonaOption[] = [
   {
-    id: 'socratic_guide',
-    label: 'Socratic Guide',
-    description: 'Asks probing questions to lead you to the answer',
+    id: "socratic_guide",
+    label: "Socratic Guide",
+    description: "Asks probing questions to lead you to the answer",
     icon: HelpCircle,
-    color: 'text-purple-600',
-    activeColor: 'bg-purple-50 border-purple-200 text-purple-700',
+    color: "text-purple-600",
+    activeColor: "bg-purple-50 border-purple-200 text-purple-700",
   },
   {
-    id: 'step_by_step_coach',
-    label: 'Step-by-Step Coach',
-    description: 'Breaks down problems into sequential steps',
+    id: "step_by_step_coach",
+    label: "Step-by-Step Coach",
+    description: "Breaks down problems into sequential steps",
     icon: ListChecks,
-    color: 'text-blue-600',
-    activeColor: 'bg-blue-50 border-blue-200 text-blue-700',
+    color: "text-blue-600",
+    activeColor: "bg-blue-50 border-blue-200 text-blue-700",
   },
   {
-    id: 'quick_explainer',
-    label: 'Quick Explainer',
-    description: 'Gives concise, direct explanations',
+    id: "quick_explainer",
+    label: "Quick Explainer",
+    description: "Gives concise, direct explanations",
     icon: Zap,
-    color: 'text-teal-600',
-    activeColor: 'bg-teal-50 border-teal-200 text-teal-700',
+    color: "text-teal-600",
+    activeColor: "bg-teal-50 border-teal-200 text-teal-700",
   },
 ];
 
 const PersonaSelector = ({
   selectedPersona,
   onSelect,
-  variant = 'inline',
+  variant = "inline",
   recommendedPersona,
 }: PersonaSelectorProps) => {
   const [showFullPicker, setShowFullPicker] = useState(false);
@@ -66,7 +66,7 @@ const PersonaSelector = ({
   // If there's a recommendation and user hasn't opened the full picker yet,
   // show the compact recommendation view in full variant
   const showRecommendation =
-    variant === 'full' &&
+    variant === "full" &&
     recommendedPersona &&
     !showFullPicker &&
     selectedPersona === recommendedPersona;
@@ -76,16 +76,20 @@ const PersonaSelector = ({
     if (recommended) {
       const Icon = recommended.icon;
       return (
-        <div className="space-y-3" role="group" aria-label="Recommended tutor persona">
+        <div
+          className="space-y-3"
+          role="group"
+          aria-label="Recommended tutor persona"
+        >
           <p className="text-sm font-medium text-gray-700">Your tutor style</p>
           <div
             className={cn(
-              'flex items-start gap-3 p-3 rounded-xl border-2 transition-all',
-              recommended.activeColor,
+              "flex items-start gap-3 p-3 rounded-xl border-2 transition-all",
+              recommended.activeColor
             )}
           >
             <div className="p-1.5 rounded-lg bg-white/60 shrink-0">
-              <Icon className={cn('h-4 w-4', recommended.color)} />
+              <Icon className={cn("h-4 w-4", recommended.color)} />
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
@@ -98,7 +102,9 @@ const PersonaSelector = ({
                   Recommended
                 </Badge>
               </div>
-              <p className="text-xs mt-0.5 opacity-80">{recommended.description}</p>
+              <p className="text-xs mt-0.5 opacity-80">
+                {recommended.description}
+              </p>
             </div>
           </div>
           <Button
@@ -114,10 +120,16 @@ const PersonaSelector = ({
     }
   }
 
-  if (variant === 'full') {
+  if (variant === "full") {
     return (
-      <div className="space-y-3" role="radiogroup" aria-label="Select tutor persona">
-        <p className="text-sm font-medium text-gray-700">Choose your tutor style</p>
+      <div
+        className="space-y-3"
+        role="radiogroup"
+        aria-label="Select tutor persona"
+      >
+        <p className="text-sm font-medium text-gray-700">
+          Choose your tutor style
+        </p>
         <div className="grid gap-2">
           {personas.map((persona) => {
             const Icon = persona.icon;
@@ -131,23 +143,33 @@ const PersonaSelector = ({
                 aria-checked={isSelected}
                 onClick={() => onSelect(persona.id)}
                 className={cn(
-                  'flex items-start gap-3 p-3 rounded-xl border-2 transition-all text-start',
+                  "flex items-start gap-3 p-3 rounded-xl border-2 transition-all text-start",
                   isSelected
                     ? persona.activeColor
-                    : 'border-gray-100 bg-white hover:border-gray-200'
+                    : "border-gray-100 bg-white hover:border-gray-200"
                 )}
               >
                 <div
                   className={cn(
-                    'p-1.5 rounded-lg shrink-0',
-                    isSelected ? 'bg-white/60' : 'bg-gray-50'
+                    "p-1.5 rounded-lg shrink-0",
+                    isSelected ? "bg-white/60" : "bg-gray-50"
                   )}
                 >
-                  <Icon className={cn('h-4 w-4', isSelected ? persona.color : 'text-gray-400')} />
+                  <Icon
+                    className={cn(
+                      "h-4 w-4",
+                      isSelected ? persona.color : "text-gray-400"
+                    )}
+                  />
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <p className={cn('text-sm font-semibold', isSelected ? '' : 'text-gray-800')}>
+                    <p
+                      className={cn(
+                        "text-sm font-semibold",
+                        isSelected ? "" : "text-gray-800"
+                      )}
+                    >
                       {persona.label}
                     </p>
                     {isRecommended && (
@@ -160,7 +182,12 @@ const PersonaSelector = ({
                       </Badge>
                     )}
                   </div>
-                  <p className={cn('text-xs mt-0.5', isSelected ? 'opacity-80' : 'text-gray-500')}>
+                  <p
+                    className={cn(
+                      "text-xs mt-0.5",
+                      isSelected ? "opacity-80" : "text-gray-500"
+                    )}
+                  >
                     {persona.description}
                   </p>
                 </div>
@@ -179,7 +206,11 @@ const PersonaSelector = ({
 
   // Inline variant — compact buttons for the chat header
   return (
-    <div className="flex items-center gap-1" role="radiogroup" aria-label="Tutor persona">
+    <div
+      className="flex items-center gap-1"
+      role="radiogroup"
+      aria-label="Tutor persona"
+    >
       {personas.map((persona) => {
         const Icon = persona.icon;
         const isSelected = selectedPersona === persona.id;
@@ -188,13 +219,13 @@ const PersonaSelector = ({
         return (
           <Button
             key={persona.id}
-            variant={isSelected ? 'secondary' : 'ghost'}
+            variant={isSelected ? "secondary" : "ghost"}
             size="sm"
             role="radio"
             aria-checked={isSelected}
             onClick={() => onSelect(persona.id)}
             className={cn(
-              'gap-1 text-xs h-7 px-2',
+              "gap-1 text-xs h-7 px-2",
               isSelected && persona.activeColor
             )}
           >

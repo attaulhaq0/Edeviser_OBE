@@ -1,7 +1,3 @@
-// =============================================================================
-// ExtraAttemptUsageTable — Teacher view for extra attempt token usage in quiz analytics
-// =============================================================================
-
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Ticket } from "lucide-react";

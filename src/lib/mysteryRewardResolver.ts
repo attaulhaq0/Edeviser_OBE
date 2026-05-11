@@ -7,7 +7,7 @@
 /**
  * Possible mystery box outcome types.
  */
-export type MysteryRewardType = 'double_xp' | 'cosmetic' | 'boost';
+export type MysteryRewardType = "double_xp" | "cosmetic" | "boost";
 
 export interface MysteryRewardWeight {
   type: MysteryRewardType;
@@ -29,26 +29,29 @@ export interface MysteryRewardOutcome {
  * 50% 2x XP, 30% cosmetic, 20% boost.
  */
 export const DEFAULT_MYSTERY_WEIGHTS: ReadonlyArray<MysteryRewardWeight> = [
-  { type: 'double_xp', weight: 50 },
-  { type: 'cosmetic', weight: 30 },
-  { type: 'boost', weight: 20 },
+  { type: "double_xp", weight: 50 },
+  { type: "cosmetic", weight: 30 },
+  { type: "boost", weight: 20 },
 ];
 
 /**
  * Labels and descriptions for each reward type.
  */
-const REWARD_META: Record<MysteryRewardType, { label: string; description: string }> = {
+const REWARD_META: Record<
+  MysteryRewardType,
+  { label: string; description: string }
+> = {
   double_xp: {
-    label: '2x XP Bonus',
-    description: 'Your next XP award is doubled!',
+    label: "2x XP Bonus",
+    description: "Your next XP award is doubled!",
   },
   cosmetic: {
-    label: 'Random Cosmetic',
-    description: 'You received a random cosmetic item for your profile!',
+    label: "Random Cosmetic",
+    description: "You received a random cosmetic item for your profile!",
   },
   boost: {
-    label: 'Temporary Boost',
-    description: 'You received a temporary XP boost!',
+    label: "Temporary Boost",
+    description: "You received a temporary XP boost!",
   },
 };
 
@@ -64,15 +67,18 @@ const REWARD_META: Record<MysteryRewardType, { label: string; description: strin
  */
 export function resolveMysteryReward(
   roll: number,
-  weights: ReadonlyArray<MysteryRewardWeight> = DEFAULT_MYSTERY_WEIGHTS,
+  weights: ReadonlyArray<MysteryRewardWeight> = DEFAULT_MYSTERY_WEIGHTS
 ): MysteryRewardOutcome {
   if (weights.length === 0) {
-    throw new Error('Mystery reward weights cannot be empty');
+    throw new Error("Mystery reward weights cannot be empty");
   }
 
-  const totalWeight = weights.reduce((sum, w) => sum + Math.max(0, w.weight), 0);
+  const totalWeight = weights.reduce(
+    (sum, w) => sum + Math.max(0, w.weight),
+    0
+  );
   if (totalWeight <= 0) {
-    throw new Error('Total mystery reward weight must be positive');
+    throw new Error("Total mystery reward weight must be positive");
   }
 
   // Clamp roll to [0, 1)
@@ -96,7 +102,7 @@ export function resolveMysteryReward(
   // Fallback to last entry (should not happen with valid inputs)
   const lastEntry = weights[weights.length - 1];
   if (!lastEntry) {
-    throw new Error('Mystery reward weights cannot be empty');
+    throw new Error("Mystery reward weights cannot be empty");
   }
   const meta = REWARD_META[lastEntry.type];
   return {
@@ -111,9 +117,12 @@ export function resolveMysteryReward(
  * Useful for displaying probabilities in the UI.
  */
 export function getRewardProbabilities(
-  weights: ReadonlyArray<MysteryRewardWeight> = DEFAULT_MYSTERY_WEIGHTS,
+  weights: ReadonlyArray<MysteryRewardWeight> = DEFAULT_MYSTERY_WEIGHTS
 ): Array<{ type: MysteryRewardType; probability: number }> {
-  const totalWeight = weights.reduce((sum, w) => sum + Math.max(0, w.weight), 0);
+  const totalWeight = weights.reduce(
+    (sum, w) => sum + Math.max(0, w.weight),
+    0
+  );
   if (totalWeight <= 0) return [];
 
   return weights.map((w) => ({

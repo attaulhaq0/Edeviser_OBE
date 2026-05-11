@@ -2,9 +2,9 @@
 // useLeaderboardCosmetics — Fetch equipped cosmetics for leaderboard rendering
 // =============================================================================
 
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -26,15 +26,18 @@ export interface LeaderboardCosmeticData {
 
 export const useLeaderboardCosmetics = (studentIds: string[]) => {
   return useQuery({
-    queryKey: queryKeys.leaderboardCosmetics.list({ studentIds: studentIds.slice(0, 5).join(',') }),
+    queryKey: queryKeys.leaderboardCosmetics.list({
+      studentIds: studentIds.slice(0, 5).join(","),
+    }),
     queryFn: async (): Promise<Map<string, LeaderboardCosmeticData>> => {
       if (studentIds.length === 0) return new Map();
 
       // Fetch equipped items for all students in the leaderboard
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error } = await (supabase as any)
-        .from('student_equipped_items')
-        .select(`
+        .from("student_equipped_items")
+        .select(
+          `
           student_id,
           slot,
           xp_purchases:purchase_id (
@@ -43,9 +46,10 @@ export const useLeaderboardCosmetics = (studentIds: string[]) => {
               name
             )
           )
-        `)
-        .in('student_id', studentIds)
-        .in('slot', ['avatar_frame', 'display_title']);
+        `
+        )
+        .in("student_id", studentIds)
+        .in("slot", ["avatar_frame", "display_title"]);
 
       if (error) throw error;
 
@@ -65,7 +69,8 @@ export const useLeaderboardCosmetics = (studentIds: string[]) => {
         const studentId = row.student_id as string;
         const slot = row.slot as string;
         const purchase = row.xp_purchases as Record<string, unknown> | null;
-        const item = (purchase?.marketplace_items as Record<string, unknown>) ?? {};
+        const item =
+          (purchase?.marketplace_items as Record<string, unknown>) ?? {};
         const metadata = (item.metadata ?? {}) as Record<string, unknown>;
 
         const existing = cosmeticMap.get(studentId) ?? {
@@ -74,17 +79,18 @@ export const useLeaderboardCosmetics = (studentIds: string[]) => {
           displayTitle: null,
         };
 
-        if (slot === 'avatar_frame') {
+        if (slot === "avatar_frame") {
           existing.avatarFrame = {
-            border_color: (metadata.border_color as string) ?? '#3b82f6',
-            border_width: (metadata.border_width as string) ?? '3px',
-            border_style: (metadata.border_style as string) ?? 'solid',
+            border_color: (metadata.border_color as string) ?? "#3b82f6",
+            border_width: (metadata.border_width as string) ?? "3px",
+            border_style: (metadata.border_style as string) ?? "solid",
             box_shadow: (metadata.box_shadow as string) ?? undefined,
           };
-        } else if (slot === 'display_title') {
+        } else if (slot === "display_title") {
           existing.displayTitle = {
-            title_text: (metadata.title_text as string) ?? (item.name as string) ?? '',
-            title_color: (metadata.title_color as string) ?? '#6366f1',
+            title_text:
+              (metadata.title_text as string) ?? (item.name as string) ?? "",
+            title_color: (metadata.title_color as string) ?? "#6366f1",
           };
         }
 

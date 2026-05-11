@@ -3,34 +3,34 @@
 // Task 18.5
 // =============================================================================
 
-import { useState, useMemo } from 'react';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
+import { useState, useMemo } from "react";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from '@/components/ui/dialog';
-import Shimmer from '@/components/shared/Shimmer';
-import GradientCardHeader from '@/components/shared/GradientCardHeader';
-import { useAuth } from '@/hooks/useAuth';
-import { useCourses } from '@/hooks/useCourses';
+} from "@/components/ui/dialog";
+import Shimmer from "@/components/shared/Shimmer";
+import GradientCardHeader from "@/components/shared/GradientCardHeader";
+import { useAuth } from "@/hooks/useAuth";
+import { useCourses } from "@/hooks/useCourses";
 import {
   useTeacherHandoffs,
   useRespondToHandoff,
-} from '@/hooks/useTeacherHandoffs';
-import { useTutorAnalytics } from '@/hooks/useTutorAnalytics';
+} from "@/hooks/useTeacherHandoffs";
+import { useTutorAnalytics } from "@/hooks/useTutorAnalytics";
 import {
   Handshake,
   MessageSquareWarning,
@@ -40,50 +40,61 @@ import {
   Clock,
   CheckCircle2,
   XCircle,
-} from 'lucide-react';
-import { toast } from 'sonner';
-import type { TeacherHandoffRequest } from '@/lib/tutorSchemas';
+} from "lucide-react";
+import { toast } from "sonner";
+import type { TeacherHandoffRequest } from "@/lib/tutorSchemas";
 
 // ─── Trigger Reason Badge ────────────────────────────────────────────────────
 
 const REASON_LABELS: Record<string, string> = {
-  low_rag_confidence: 'Low Confidence',
-  repeated_question: 'Repeated Question',
-  low_satisfaction: 'Low Satisfaction',
+  low_rag_confidence: "Low Confidence",
+  repeated_question: "Repeated Question",
+  low_satisfaction: "Low Satisfaction",
 };
 
 const REASON_COLORS: Record<string, string> = {
-  low_rag_confidence: 'bg-amber-100 text-amber-700',
-  repeated_question: 'bg-blue-100 text-blue-700',
-  low_satisfaction: 'bg-red-100 text-red-700',
+  low_rag_confidence: "bg-amber-100 text-amber-700",
+  repeated_question: "bg-blue-100 text-blue-700",
+  low_satisfaction: "bg-red-100 text-red-700",
 };
 
 const TriggerReasonBadge = ({ reason }: { reason: string }) => (
   <Badge
     variant="secondary"
-    className={`text-xs font-bold ${REASON_COLORS[reason] ?? 'bg-gray-100 text-gray-700'}`}
+    className={`text-xs font-bold ${
+      REASON_COLORS[reason] ?? "bg-gray-100 text-gray-700"
+    }`}
   >
     {REASON_LABELS[reason] ?? reason}
   </Badge>
 );
 
 const StatusBadge = ({ status }: { status: string }) => {
-  if (status === 'pending') {
+  if (status === "pending") {
     return (
-      <Badge variant="secondary" className="bg-yellow-100 text-yellow-700 text-xs font-bold">
+      <Badge
+        variant="secondary"
+        className="bg-yellow-100 text-yellow-700 text-xs font-bold"
+      >
         <Clock className="h-3 w-3 me-1" /> Pending
       </Badge>
     );
   }
-  if (status === 'resolved') {
+  if (status === "resolved") {
     return (
-      <Badge variant="secondary" className="bg-green-100 text-green-700 text-xs font-bold">
+      <Badge
+        variant="secondary"
+        className="bg-green-100 text-green-700 text-xs font-bold"
+      >
         <CheckCircle2 className="h-3 w-3 me-1" /> Resolved
       </Badge>
     );
   }
   return (
-    <Badge variant="secondary" className="bg-gray-100 text-gray-500 text-xs font-bold">
+    <Badge
+      variant="secondary"
+      className="bg-gray-100 text-gray-500 text-xs font-bold"
+    >
       <XCircle className="h-3 w-3 me-1" /> Dismissed
     </Badge>
   );
@@ -94,26 +105,31 @@ const StatusBadge = ({ status }: { status: string }) => {
 const TeacherHandoffPage = () => {
   const { user } = useAuth();
   const { data: paginatedCourses, isLoading: coursesLoading } = useCourses();
-  const [selectedCourseId, setSelectedCourseId] = useState<string>('');
+  const [selectedCourseId, setSelectedCourseId] = useState<string>("");
   const [respondDialogOpen, setRespondDialogOpen] = useState(false);
-  const [selectedHandoff, setSelectedHandoff] = useState<TeacherHandoffRequest | null>(null);
-  const [responseText, setResponseText] = useState('');
+  const [selectedHandoff, setSelectedHandoff] =
+    useState<TeacherHandoffRequest | null>(null);
+  const [responseText, setResponseText] = useState("");
 
   const teacherCourses = useMemo(
-    () => (paginatedCourses?.data ?? []).filter((c) => c.teacher_id === user?.id),
-    [paginatedCourses, user?.id],
+    () =>
+      (paginatedCourses?.data ?? []).filter((c) => c.teacher_id === user?.id),
+    [paginatedCourses, user?.id]
   );
 
   const effectiveCourseId =
-    selectedCourseId || (teacherCourses.length > 0 ? teacherCourses[0]!.id : '');
+    selectedCourseId ||
+    (teacherCourses.length > 0 ? teacherCourses[0]!.id : "");
 
-  const { data: handoffs, isLoading: handoffsLoading } = useTeacherHandoffs(effectiveCourseId);
-  const { data: analytics, isLoading: analyticsLoading } = useTutorAnalytics(effectiveCourseId);
+  const { data: handoffs, isLoading: handoffsLoading } =
+    useTeacherHandoffs(effectiveCourseId);
+  const { data: analytics, isLoading: analyticsLoading } =
+    useTutorAnalytics(effectiveCourseId);
   const respondMutation = useRespondToHandoff();
 
   const pendingHandoffs = useMemo(
-    () => (handoffs ?? []).filter((h) => h.status === 'pending'),
-    [handoffs],
+    () => (handoffs ?? []).filter((h) => h.status === "pending"),
+    [handoffs]
   );
 
   const isLoading = coursesLoading || handoffsLoading || analyticsLoading;
@@ -136,24 +152,31 @@ const TeacherHandoffPage = () => {
     // Derive from handoff data — students with multiple handoff requests
     const studentCounts = new Map<string, number>();
     for (const h of handoffs ?? []) {
-      studentCounts.set(h.student_id, (studentCounts.get(h.student_id) ?? 0) + 1);
+      studentCounts.set(
+        h.student_id,
+        (studentCounts.get(h.student_id) ?? 0) + 1
+      );
     }
     return [...studentCounts.values()].filter((count) => count >= 2).length;
   }, [handoffs]);
 
   const handleRespond = (handoff: TeacherHandoffRequest) => {
     setSelectedHandoff(handoff);
-    setResponseText('');
+    setResponseText("");
     setRespondDialogOpen(true);
   };
 
   const handleDismiss = (handoff: TeacherHandoffRequest) => {
     respondMutation.mutate(
-      { handoff_id: handoff.id, response_message: 'Dismissed', status: 'dismissed' },
       {
-        onSuccess: () => toast.success('Handoff dismissed'),
-        onError: (err) => toast.error(err.message),
+        handoff_id: handoff.id,
+        response_message: "Dismissed",
+        status: "dismissed",
       },
+      {
+        onSuccess: () => toast.success("Handoff dismissed"),
+        onError: (err) => toast.error(err.message),
+      }
     );
   };
 
@@ -163,12 +186,12 @@ const TeacherHandoffPage = () => {
       { handoff_id: selectedHandoff.id, response_message: responseText },
       {
         onSuccess: () => {
-          toast.success('Response sent to student');
+          toast.success("Response sent to student");
           setRespondDialogOpen(false);
           setSelectedHandoff(null);
         },
         onError: (err) => toast.error(err.message),
-      },
+      }
     );
   };
 
@@ -262,7 +285,10 @@ const TeacherHandoffPage = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* 18.5.2: Most-Asked Questions (anonymized) */}
         <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
-          <GradientCardHeader icon={MessageSquareWarning} title="Most-Asked Questions" />
+          <GradientCardHeader
+            icon={MessageSquareWarning}
+            title="Most-Asked Questions"
+          />
           <div className="p-6">
             {isLoading ? (
               <div className="space-y-3">
@@ -285,7 +311,9 @@ const TeacherHandoffPage = () => {
                       <span className="text-xs font-bold text-gray-400 w-5 shrink-0 text-end">
                         {idx + 1}
                       </span>
-                      <span className="text-sm font-medium truncate">{topic.topic}</span>
+                      <span className="text-sm font-medium truncate">
+                        {topic.topic}
+                      </span>
                     </div>
                     <span className="text-sm font-black text-blue-600 shrink-0 ms-3">
                       {topic.frequency}
@@ -299,7 +327,10 @@ const TeacherHandoffPage = () => {
 
         {/* 18.5.3: Low-Confidence Topics */}
         <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
-          <GradientCardHeader icon={ShieldAlert} title="Low-Confidence Topics" />
+          <GradientCardHeader
+            icon={ShieldAlert}
+            title="Low-Confidence Topics"
+          />
           <div className="p-6">
             {isLoading ? (
               <div className="space-y-3">
@@ -318,8 +349,13 @@ const TeacherHandoffPage = () => {
                     key={clo.clo_id}
                     className="flex items-center justify-between py-2 border-b border-slate-100 last:border-0"
                   >
-                    <span className="text-sm font-medium truncate">{clo.clo_title}</span>
-                    <Badge variant="secondary" className="bg-amber-100 text-amber-700 text-xs">
+                    <span className="text-sm font-medium truncate">
+                      {clo.clo_title}
+                    </span>
+                    <Badge
+                      variant="secondary"
+                      className="bg-amber-100 text-amber-700 text-xs"
+                    >
                       {clo.conversation_count} queries
                     </Badge>
                   </div>
@@ -337,9 +373,12 @@ const TeacherHandoffPage = () => {
               <Shimmer className="h-32 rounded-lg" />
             ) : (
               <div className="flex flex-col items-center justify-center h-32 text-center">
-                <p className="text-3xl font-black text-amber-600">{highDependencyCount}</p>
+                <p className="text-3xl font-black text-amber-600">
+                  {highDependencyCount}
+                </p>
                 <p className="text-sm text-gray-500 mt-1">
-                  student{highDependencyCount !== 1 ? 's' : ''} with multiple handoff requests
+                  student{highDependencyCount !== 1 ? "s" : ""} with multiple
+                  handoff requests
                 </p>
                 <p className="text-xs text-gray-400 mt-2">
                   Student identities are anonymized unless consent is given.
@@ -389,7 +428,9 @@ const TeacherHandoffPage = () => {
               onClick={handleSubmitResponse}
               className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
             >
-              {respondMutation.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+              {respondMutation.isPending && (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              )}
               Send Response
             </Button>
           </DialogFooter>

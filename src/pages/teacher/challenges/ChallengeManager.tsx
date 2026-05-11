@@ -40,6 +40,7 @@ import {
 import { Loader2, Plus, Trophy, X } from "lucide-react";
 import { toast } from "sonner";
 import { createColumns } from "./columns";
+import EmptyState from "@/components/shared/EmptyState";
 
 const ChallengeManager = () => {
   const { user } = useAuth();
@@ -566,6 +567,15 @@ const ChallengeManager = () => {
               columns={columns}
               data={(challenges ?? []) as unknown as Challenge[]}
               isLoading={isLoading}
+              emptyState={
+                (challenges ?? []).length === 0 && !isLoading ? (
+                  <EmptyState
+                    icon={<Trophy className="h-8 w-8 text-gray-400" />}
+                    title="No challenges yet"
+                    description="Create a challenge to motivate students in this course."
+                  />
+                ) : undefined
+              }
             />
           )}
         </div>

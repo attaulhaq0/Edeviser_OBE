@@ -1,8 +1,8 @@
-import { describe, it, expect } from 'vitest';
-import { emailPreferencesSchema } from '@/lib/schemas/emailPrefs';
+import { describe, it, expect } from "vitest";
+import { emailPreferencesSchema } from "@/lib/schemas/emailPrefs";
 
-describe('emailPreferencesSchema', () => {
-  it('accepts all-true preferences', () => {
+describe("emailPreferencesSchema", () => {
+  it("accepts all-true preferences", () => {
     const result = emailPreferencesSchema.safeParse({
       streak_risk: true,
       weekly_summary: true,
@@ -12,7 +12,7 @@ describe('emailPreferencesSchema', () => {
     expect(result.success).toBe(true);
   });
 
-  it('accepts all-false preferences (full opt-out)', () => {
+  it("accepts all-false preferences (full opt-out)", () => {
     const result = emailPreferencesSchema.safeParse({
       streak_risk: false,
       weekly_summary: false,
@@ -22,7 +22,7 @@ describe('emailPreferencesSchema', () => {
     expect(result.success).toBe(true);
   });
 
-  it('applies default values for missing fields (true for most, false for notification_digest)', () => {
+  it("applies default values for missing fields (true for most, false for notification_digest)", () => {
     const result = emailPreferencesSchema.safeParse({});
     expect(result.success).toBe(true);
     if (result.success) {
@@ -34,9 +34,9 @@ describe('emailPreferencesSchema', () => {
     }
   });
 
-  it('rejects non-boolean values', () => {
+  it("rejects non-boolean values", () => {
     const result = emailPreferencesSchema.safeParse({
-      streak_risk: 'yes',
+      streak_risk: "yes",
       weekly_summary: 1,
       new_assignment: null,
       grade_released: undefined,
@@ -45,7 +45,7 @@ describe('emailPreferencesSchema', () => {
     expect(result.success).toBe(false);
   });
 
-  it('accepts mixed true/false preferences', () => {
+  it("accepts mixed true/false preferences", () => {
     const result = emailPreferencesSchema.safeParse({
       streak_risk: false,
       weekly_summary: true,

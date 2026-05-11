@@ -3,10 +3,10 @@
 // Task 4.12: interactive star rating component
 // =============================================================================
 
-import { useState, useCallback } from 'react';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Star, Loader2 } from 'lucide-react';
+import { useState, useCallback } from "react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Star, Loader2 } from "lucide-react";
 
 export interface TeachingMomentRatingProps {
   onSubmit: (clarity: number, helpfulness: number) => void;
@@ -24,7 +24,12 @@ interface StarRatingProps {
   readOnly?: boolean;
 }
 
-const StarRating = ({ label, value, onChange, readOnly = false }: StarRatingProps) => {
+const StarRating = ({
+  label,
+  value,
+  onChange,
+  readOnly = false,
+}: StarRatingProps) => {
   const [hovered, setHovered] = useState(0);
 
   return (
@@ -45,32 +50,35 @@ const StarRating = ({ label, value, onChange, readOnly = false }: StarRatingProp
               type="button"
               role="radio"
               aria-checked={star === value}
-              aria-label={`${star} star${star !== 1 ? 's' : ''}`}
+              aria-label={`${star} star${star !== 1 ? "s" : ""}`}
               disabled={readOnly}
               className={cn(
-                'p-0.5 rounded transition-colors focus-visible:ring-2 focus-visible:ring-blue-400',
-                !readOnly && 'cursor-pointer hover:scale-110 transition-transform',
-                readOnly && 'cursor-default',
+                "p-0.5 rounded transition-colors focus-visible:ring-2 focus-visible:ring-blue-400",
+                !readOnly &&
+                  "cursor-pointer hover:scale-110 transition-transform",
+                readOnly && "cursor-default"
               )}
               onClick={() => !readOnly && onChange(star)}
               onMouseEnter={() => !readOnly && setHovered(star)}
               onKeyDown={(e) => {
                 if (readOnly) return;
-                if (e.key === 'ArrowRight' && value < 5) onChange(value + 1);
-                if (e.key === 'ArrowLeft' && value > 1) onChange(value - 1);
+                if (e.key === "ArrowRight" && value < 5) onChange(value + 1);
+                if (e.key === "ArrowLeft" && value > 1) onChange(value - 1);
               }}
             >
               <Star
                 className={cn(
-                  'h-5 w-5 transition-colors',
-                  isFilled ? 'text-amber-400 fill-amber-400' : 'text-gray-300',
+                  "h-5 w-5 transition-colors",
+                  isFilled ? "text-amber-400 fill-amber-400" : "text-gray-300"
                 )}
               />
             </button>
           );
         })}
         {value > 0 && (
-          <span className="text-xs text-gray-500 ms-1 tabular-nums">{value}/5</span>
+          <span className="text-xs text-gray-500 ms-1 tabular-nums">
+            {value}/5
+          </span>
         )}
       </div>
     </div>
@@ -97,7 +105,7 @@ const TeachingMomentRating = ({
   const canSubmit = clarity > 0 && helpfulness > 0 && !isPending && !readOnly;
 
   return (
-    <div className={cn('space-y-3', className)}>
+    <div className={cn("space-y-3", className)}>
       <StarRating
         label="Clarity"
         value={clarity}

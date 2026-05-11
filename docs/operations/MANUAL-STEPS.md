@@ -29,6 +29,7 @@ Requires Supabase CLI authenticated (`supabase login`). The script deploys all 3
 **Priority**: MEDIUM (Type safety)
 
 The `src/types/database.ts` file has the correct content in the IDE buffer but the disk file is corrupted. Save it (Ctrl+S) then:
+
 1. Remove `src/types/database-generated.ts`
 2. Revert `tsconfig.json` path override (remove `@/types/database` mapping and `exclude`)
 3. Revert `eslint.config.js` (remove `src/types/database.ts` from ignores)

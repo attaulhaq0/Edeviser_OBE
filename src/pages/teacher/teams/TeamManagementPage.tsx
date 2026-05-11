@@ -4,36 +4,30 @@
 // Task 5.3
 // =============================================================================
 
-import { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { parseAsString, useQueryState } from 'nuqs';
-import { useAuth } from '@/hooks/useAuth';
-import { useCourses } from '@/hooks/useCourses';
-import { useTeams, useSoftDeleteTeam } from '@/hooks/useTeams';
-import { useTeamHealthScores, type HealthStatus } from '@/hooks/useTeamHealth';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
+import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import { parseAsString, useQueryState } from "nuqs";
+import { useAuth } from "@/hooks/useAuth";
+import { useCourses } from "@/hooks/useCourses";
+import { useTeams, useSoftDeleteTeam } from "@/hooks/useTeams";
+import { useTeamHealthScores, type HealthStatus } from "@/hooks/useTeamHealth";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import TeamHealthBadge from '@/components/shared/TeamHealthBadge';
-import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
-import Shimmer from '@/components/shared/Shimmer';
-import {
-  Plus,
-  Search,
-  Users,
-  Pencil,
-  Trash2,
-  HeartPulse,
-} from 'lucide-react';
-import { toast } from 'sonner';
+} from "@/components/ui/select";
+import TeamHealthBadge from "@/components/shared/TeamHealthBadge";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import Shimmer from "@/components/shared/Shimmer";
+import EmptyState from "@/components/shared/EmptyState";
+import { Plus, Search, Users, Pencil, Trash2, HeartPulse } from "lucide-react";
+import { toast } from "sonner";
 
 const TeamManagementPage = () => {
   const navigate = useNavigate();
@@ -41,26 +35,36 @@ const TeamManagementPage = () => {
   const { data: paginatedCourses } = useCourses();
 
   const teacherCourses = useMemo(
-    () => (paginatedCourses?.data ?? []).filter((c) => c.teacher_id === user?.id),
-    [paginatedCourses, user?.id],
+    () =>
+      (paginatedCourses?.data ?? []).filter((c) => c.teacher_id === user?.id),
+    [paginatedCourses, user?.id]
   );
 
   const [selectedCourseId, setSelectedCourseId] = useQueryState(
-    'courseId',
-    parseAsString.withDefault(''),
+    "courseId",
+    parseAsString.withDefault("")
   );
-  const [search, setSearch] = useQueryState('q', parseAsString.withDefault(''));
-  const [healthFilter, setHealthFilter] = useState<string>('all');
+  const [search, setSearch] = useQueryState("q", parseAsString.withDefault(""));
+  const [healthFilter, setHealthFilter] = useState<string>("all");
   const [deleteTeamId, setDeleteTeamId] = useState<string | null>(null);
 
-  const effectiveCourseId = selectedCourseId || teacherCourses[0]?.id || '';
+  const effectiveCourseId = selectedCourseId || teacherCourses[0]?.id || "";
   const { data: teams, isLoading } = useTeams(effectiveCourseId || undefined);
-  const { data: healthScores } = useTeamHealthScores(effectiveCourseId || undefined);
+  const { data: healthScores } = useTeamHealthScores(
+    effectiveCourseId || undefined
+  );
   const deleteMutation = useSoftDeleteTeam();
 
   // Build health lookup
   const healthMap = useMemo(() => {
-    const map = new Map<string, { health_score: number; health_status: HealthStatus; cooperation_score: number }>();
+    const map = new Map<
+      string,
+      {
+        health_score: number;
+        health_status: HealthStatus;
+        cooperation_score: number;
+      }
+    >();
     (healthScores ?? []).forEach((h) => {
       map.set(h.team_id, {
         health_score: h.health_score,
@@ -80,7 +84,7 @@ const TeamManagementPage = () => {
       result = result.filter((t) => t.name.toLowerCase().includes(q));
     }
 
-    if (healthFilter && healthFilter !== 'all') {
+    if (healthFilter && healthFilter !== "all") {
       result = result.filter((t) => {
         const health = healthMap.get(t.id);
         return health?.health_status === healthFilter;
@@ -94,7 +98,7 @@ const TeamManagementPage = () => {
     if (!deleteTeamId) return;
     deleteMutation.mutate(deleteTeamId, {
       onSuccess: () => {
-        toast.success('Team deleted');
+        toast.success("Team deleted");
         setDeleteTeamId(null);
       },
       onError: (err) => toast.error(err.message),
@@ -105,7 +109,7 @@ const TeamManagementPage = () => {
   const healthCounts = useMemo(() => {
     const counts = { healthy: 0, needs_attention: 0, at_risk: 0 };
     (teams ?? []).forEach((t) => {
-      const status = healthMap.get(t.id)?.health_status ?? 'healthy';
+      const status = healthMap.get(t.id)?.health_status ?? "healthy";
       counts[status]++;
     });
     return counts;
@@ -117,7 +121,7 @@ const TeamManagementPage = () => {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold tracking-tight">Team Management</h1>
         <Button
-          onClick={() => navigate('/teacher/teams/new')}
+          onClick={() => navigate("/teacher/teams/new")}
           className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
         >
           <Plus className="h-4 w-4" /> New Team
@@ -127,16 +131,28 @@ const TeamManagementPage = () => {
       {/* Health Summary KPIs */}
       <div className="grid grid-cols-3 gap-4">
         <Card className="bg-white border-0 shadow-md rounded-xl p-4">
-          <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">Healthy</p>
-          <p className="text-2xl font-black text-green-600">{healthCounts.healthy}</p>
+          <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
+            Healthy
+          </p>
+          <p className="text-2xl font-black text-green-600">
+            {healthCounts.healthy}
+          </p>
         </Card>
         <Card className="bg-white border-0 shadow-md rounded-xl p-4">
-          <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">Needs Attention</p>
-          <p className="text-2xl font-black text-yellow-600">{healthCounts.needs_attention}</p>
+          <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
+            Needs Attention
+          </p>
+          <p className="text-2xl font-black text-yellow-600">
+            {healthCounts.needs_attention}
+          </p>
         </Card>
         <Card className="bg-white border-0 shadow-md rounded-xl p-4">
-          <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">At Risk</p>
-          <p className="text-2xl font-black text-red-600">{healthCounts.at_risk}</p>
+          <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
+            At Risk
+          </p>
+          <p className="text-2xl font-black text-red-600">
+            {healthCounts.at_risk}
+          </p>
         </Card>
       </div>
 
@@ -182,7 +198,10 @@ const TeamManagementPage = () => {
       <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
         <div
           className="px-6 py-4 flex items-center gap-2"
-          style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+          style={{
+            background:
+              "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+          }}
         >
           <Users className="h-5 w-5 text-white" />
           <h2 className="text-lg font-bold tracking-tight text-white">
@@ -191,7 +210,9 @@ const TeamManagementPage = () => {
         </div>
         <div className="p-6">
           {!effectiveCourseId ? (
-            <p className="text-sm text-gray-500 text-center py-6">Select a course to manage teams.</p>
+            <p className="text-sm text-gray-500 text-center py-6">
+              Select a course to manage teams.
+            </p>
           ) : isLoading ? (
             <div className="space-y-3">
               {Array.from({ length: 3 }).map((_, i) => (
@@ -199,7 +220,11 @@ const TeamManagementPage = () => {
               ))}
             </div>
           ) : filteredTeams.length === 0 ? (
-            <p className="text-sm text-gray-500 text-center py-6">No teams found.</p>
+            <EmptyState
+              icon={<Users className="h-8 w-8 text-gray-400" />}
+              title="No teams found"
+              description="No teams match your current filters. Try adjusting the search or health status filter."
+            />
           ) : (
             <div className="space-y-2">
               {filteredTeams.map((team) => {
@@ -214,7 +239,9 @@ const TeamManagementPage = () => {
                         {team.name.charAt(0).toUpperCase()}
                       </div>
                       <div className="min-w-0">
-                        <p className="text-sm font-semibold truncate">{team.name}</p>
+                        <p className="text-sm font-semibold truncate">
+                          {team.name}
+                        </p>
                         <div className="flex items-center gap-2 mt-0.5">
                           <span className="text-xs text-gray-500">
                             {team.member_count ?? 0} members
@@ -227,7 +254,9 @@ const TeamManagementPage = () => {
                     </div>
 
                     <div className="flex items-center gap-3">
-                      <TeamHealthBadge score={health?.health_score ?? team.health_score} />
+                      <TeamHealthBadge
+                        score={health?.health_score ?? team.health_score}
+                      />
                       {health && (
                         <Badge variant="outline" className="text-xs">
                           Co-op: {health.cooperation_score}
@@ -236,7 +265,9 @@ const TeamManagementPage = () => {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => navigate(`/teacher/teams/${team.id}/edit`)}
+                        onClick={() =>
+                          navigate(`/teacher/teams/${team.id}/edit`)
+                        }
                         className="h-8 w-8 p-0"
                       >
                         <Pencil className="h-4 w-4" />
@@ -261,7 +292,7 @@ const TeamManagementPage = () => {
       {/* Team Health Link */}
       <Button
         variant="outline"
-        onClick={() => navigate('/teacher/team-health')}
+        onClick={() => navigate("/teacher/team-health")}
         className="gap-2"
       >
         <HeartPulse className="h-4 w-4" />
@@ -271,7 +302,9 @@ const TeamManagementPage = () => {
       {/* Delete Confirmation */}
       <ConfirmDialog
         open={!!deleteTeamId}
-        onOpenChange={(open: boolean) => { if (!open) setDeleteTeamId(null); }}
+        onOpenChange={(open: boolean) => {
+          if (!open) setDeleteTeamId(null);
+        }}
         title="Delete Team"
         description="This will soft-delete the team. Historical data will be preserved."
         onConfirm={handleDelete}

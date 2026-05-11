@@ -1,20 +1,22 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { parseAsString, useQueryState } from 'nuqs';
-import { toast } from 'sonner';
-import { createColumns } from './columns';
-import { DataTable } from '@/components/shared/DataTable';
-import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
-import { usePrograms, useSoftDeleteProgram } from '@/hooks/usePrograms';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Plus, Search } from 'lucide-react';
-import type { Program } from '@/types/app';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { parseAsString, useQueryState } from "nuqs";
+import { toast } from "sonner";
+import { createColumns } from "./columns";
+import { DataTable } from "@/components/shared/DataTable";
+import { NoCourses } from "@/components/shared/EmptyState";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import { usePrograms, useSoftDeleteProgram } from "@/hooks/usePrograms";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Plus, Search } from "lucide-react";
+import type { Program } from "@/types/app";
 
 const ProgramListPage = () => {
   const navigate = useNavigate();
-  const [search, setSearch] = useQueryState('q', parseAsString.withDefault(''));
-  const [programToDeactivate, setProgramToDeactivate] = useState<Program | null>(null);
+  const [search, setSearch] = useQueryState("q", parseAsString.withDefault(""));
+  const [programToDeactivate, setProgramToDeactivate] =
+    useState<Program | null>(null);
   const [page, setPage] = useState(1);
 
   const { data: paginatedData, isLoading } = usePrograms({
@@ -26,7 +28,7 @@ const ProgramListPage = () => {
 
   const columns = createColumns(
     (id) => navigate(`/admin/programs/${id}/edit`),
-    (program) => setProgramToDeactivate(program),
+    (program) => setProgramToDeactivate(program)
   );
 
   return (
@@ -36,7 +38,7 @@ const ProgramListPage = () => {
         <h1 className="text-2xl font-bold tracking-tight">Programs</h1>
         <Button
           className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 text-white"
-          onClick={() => navigate('/admin/programs/new')}
+          onClick={() => navigate("/admin/programs/new")}
         >
           <Plus className="h-4 w-4" /> Add Program
         </Button>
@@ -49,7 +51,10 @@ const ProgramListPage = () => {
           <Input
             placeholder="Search by name or code..."
             value={search}
-            onChange={(e) => { setSearch(e.target.value || null); setPage(1); }}
+            onChange={(e) => {
+              setSearch(e.target.value || null);
+              setPage(1);
+            }}
             className="ps-9"
           />
         </div>
@@ -64,6 +69,7 @@ const ProgramListPage = () => {
         pageSize={paginatedData?.pageSize}
         totalCount={paginatedData?.count}
         onPageChange={setPage}
+        emptyState={<NoCourses />}
       />
 
       {/* Deactivate Confirmation Dialog */}

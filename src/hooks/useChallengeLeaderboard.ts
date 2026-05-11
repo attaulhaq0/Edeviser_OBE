@@ -3,15 +3,15 @@
 // Task 3.7: fetch challenge leaderboard sorted by progress desc, completion time
 // =============================================================================
 
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
 export interface ChallengeLeaderboardEntry {
   participant_id: string;
-  participant_type: 'team' | 'individual';
+  participant_type: "team" | "individual";
   current_progress: number;
   completed_at: string | null;
   rank: number;
@@ -24,11 +24,13 @@ export const useChallengeLeaderboard = (challengeId?: string) => {
     queryKey: queryKeys.challengeLeaderboard.list({ challengeId }),
     queryFn: async (): Promise<ChallengeLeaderboardEntry[]> => {
       const { data, error } = await supabase
-        .from('challenge_progress' as never)
-        .select('participant_id, participant_type, current_progress, completed_at')
-        .eq('challenge_id', challengeId!)
-        .order('current_progress', { ascending: false })
-        .order('completed_at', { ascending: true, nullsFirst: false });
+        .from("challenge_progress" as never)
+        .select(
+          "participant_id, participant_type, current_progress, completed_at"
+        )
+        .eq("challenge_id", challengeId!)
+        .order("current_progress", { ascending: false })
+        .order("completed_at", { ascending: true, nullsFirst: false });
       if (error) throw error;
 
       // Assign ranks — participants with same progress get same rank
@@ -37,7 +39,7 @@ export const useChallengeLeaderboard = (challengeId?: string) => {
 
       const rows = (data ?? []) as Array<{
         participant_id: string;
-        participant_type: 'team' | 'individual';
+        participant_type: "team" | "individual";
         current_progress: number;
         completed_at: string | null;
       }>;

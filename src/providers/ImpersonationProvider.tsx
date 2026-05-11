@@ -1,7 +1,15 @@
 // Task 88.1: Impersonation context provider
 // 30-minute auto-expire, read-only mode flag for blocking mutations
 
-import { createContext, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import {
+  createContext,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 
 const IMPERSONATION_DURATION_MS = 30 * 60 * 1000; // 30 minutes
 
@@ -30,8 +38,13 @@ export const ImpersonationContext = createContext<ImpersonationContextValue>({
   stopImpersonation: () => {},
 });
 
-export const ImpersonationProvider = ({ children }: { children: ReactNode }) => {
-  const [impersonatedUser, setImpersonatedUser] = useState<ImpersonatedUser | null>(null);
+export const ImpersonationProvider = ({
+  children,
+}: {
+  children: ReactNode;
+}) => {
+  const [impersonatedUser, setImpersonatedUser] =
+    useState<ImpersonatedUser | null>(null);
   const [timeRemaining, setTimeRemaining] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const expiryRef = useRef<number>(0);
@@ -58,14 +71,17 @@ export const ImpersonationProvider = ({ children }: { children: ReactNode }) => 
       setTimeRemaining(Math.ceil(IMPERSONATION_DURATION_MS / 1000));
 
       timerRef.current = setInterval(() => {
-        const remaining = Math.max(0, Math.ceil((expiryRef.current - Date.now()) / 1000));
+        const remaining = Math.max(
+          0,
+          Math.ceil((expiryRef.current - Date.now()) / 1000)
+        );
         setTimeRemaining(remaining);
         if (remaining <= 0) {
           stopImpersonation();
         }
       }, 1000);
     },
-    [clearTimer, stopImpersonation],
+    [clearTimer, stopImpersonation]
   );
 
   // Cleanup on unmount
@@ -82,7 +98,13 @@ export const ImpersonationProvider = ({ children }: { children: ReactNode }) => 
       startImpersonation,
       stopImpersonation,
     }),
-    [isImpersonating, impersonatedUser, timeRemaining, startImpersonation, stopImpersonation],
+    [
+      isImpersonating,
+      impersonatedUser,
+      timeRemaining,
+      startImpersonation,
+      stopImpersonation,
+    ]
   );
 
   return (

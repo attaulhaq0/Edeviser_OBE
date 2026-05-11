@@ -48,17 +48,17 @@
 
 ### Key Files
 
-| Layer | Path | Purpose |
-|-------|------|---------|
-| Supabase Client | `src/lib/supabase.ts` | Single client instance, auto-refresh, session persistence |
-| Query Keys | `src/lib/queryKeys.ts` | 50+ hierarchical key categories for TanStack Query |
-| Auth Provider | `src/providers/AuthProvider.tsx` | Session, profile fetch, role derivation, login lockout |
-| Route Guard | `src/router/RouteGuard.tsx` | Role-based route protection |
-| Audit Logger | `src/lib/auditLogger.ts` | PII-safe audit logging with field allowlists |
-| Activity Logger | `src/lib/activityLogger.ts` | Fire-and-forget student activity logging |
-| XP Client | `src/lib/xpClient.ts` | Wrapper for award-xp edge function |
-| Sentry | `src/lib/sentry.ts` | Error tracking with PII scrubbing |
-| Shared Auth | `supabase/functions/_shared/auth.ts` | JWT validation + cron auth for edge functions |
+| Layer           | Path                                 | Purpose                                                   |
+| --------------- | ------------------------------------ | --------------------------------------------------------- |
+| Supabase Client | `src/lib/supabase.ts`                | Single client instance, auto-refresh, session persistence |
+| Query Keys      | `src/lib/queryKeys.ts`               | 50+ hierarchical key categories for TanStack Query        |
+| Auth Provider   | `src/providers/AuthProvider.tsx`     | Session, profile fetch, role derivation, login lockout    |
+| Route Guard     | `src/router/RouteGuard.tsx`          | Role-based route protection                               |
+| Audit Logger    | `src/lib/auditLogger.ts`             | PII-safe audit logging with field allowlists              |
+| Activity Logger | `src/lib/activityLogger.ts`          | Fire-and-forget student activity logging                  |
+| XP Client       | `src/lib/xpClient.ts`                | Wrapper for award-xp edge function                        |
+| Sentry          | `src/lib/sentry.ts`                  | Error tracking with PII scrubbing                         |
+| Shared Auth     | `supabase/functions/_shared/auth.ts` | JWT validation + cron auth for edge functions             |
 
 ---
 
@@ -66,13 +66,14 @@
 
 ### 2.1 Authentication
 
-| Action | Source File | Method | Target | Data |
-|--------|-----------|--------|--------|------|
-| Sign In | `src/providers/AuthProvider.tsx` | `supabase.auth.signInWithPassword()` | Supabase Auth | email, password |
-| Reset Password | `src/pages/ResetPasswordPage.tsx` | `supabase.auth.resetPasswordForEmail()` | Supabase Auth | email |
-| Update Password | `src/pages/UpdatePasswordPage.tsx` | `supabase.auth.updateUser()` | Supabase Auth | password |
+| Action          | Source File                        | Method                                  | Target        | Data            |
+| --------------- | ---------------------------------- | --------------------------------------- | ------------- | --------------- |
+| Sign In         | `src/providers/AuthProvider.tsx`   | `supabase.auth.signInWithPassword()`    | Supabase Auth | email, password |
+| Reset Password  | `src/pages/ResetPasswordPage.tsx`  | `supabase.auth.resetPasswordForEmail()` | Supabase Auth | email           |
+| Update Password | `src/pages/UpdatePasswordPage.tsx` | `supabase.auth.updateUser()`            | Supabase Auth | password        |
 
 **Sign-In Flow Detail:**
+
 ```
 1. Client lockout check (localStorage)
 2. Server lockout check (check-login-rate edge function → login_attempts table)
@@ -87,45 +88,46 @@
 
 ### 2.2 Administration Domain
 
-| Hook | File | Method | Table | Data | Audit |
-|------|------|--------|-------|------|-------|
-| `useCreateUser` | `src/hooks/useUsers.ts` | `.insert()` | `profiles` | full_name, email, role, institution_id | Yes |
-| `useUpdateUser` | `src/hooks/useUsers.ts` | `.update()` | `profiles` | full_name, role | Yes |
-| `useSoftDeleteUser` | `src/hooks/useUsers.ts` | `.update()` | `profiles` | is_active = false | Yes |
-| `useBulkImportUsers` | `src/hooks/useBulkImport.ts` | Edge function | `bulk-import-users` | CSV rows (email, full_name, role, program_id) | Yes |
-| `useCreateCourse` | `src/hooks/useCourses.ts` | `.insert()` | `courses` | name, code, program_id, semester_id, teacher_id, is_active | Yes |
-| `useUpdateCourse` | `src/hooks/useCourses.ts` | `.update()` | `courses` | name, code, teacher_id, semester_id, is_active | Yes |
-| `useSoftDeleteCourse` | `src/hooks/useCourses.ts` | `.update()` | `courses` | is_active = false | Yes |
-| `useEnrollStudent` | `src/hooks/useEnrollments.ts` | `.insert()` | `student_courses` | student_id, course_id, section_id | Yes |
-| `useUnenrollStudent` | `src/hooks/useEnrollments.ts` | `.update()` | `student_courses` | status = 'dropped' | Yes |
+| Hook                  | File                          | Method        | Table               | Data                                                       | Audit |
+| --------------------- | ----------------------------- | ------------- | ------------------- | ---------------------------------------------------------- | ----- |
+| `useCreateUser`       | `src/hooks/useUsers.ts`       | `.insert()`   | `profiles`          | full_name, email, role, institution_id                     | Yes   |
+| `useUpdateUser`       | `src/hooks/useUsers.ts`       | `.update()`   | `profiles`          | full_name, role                                            | Yes   |
+| `useSoftDeleteUser`   | `src/hooks/useUsers.ts`       | `.update()`   | `profiles`          | is_active = false                                          | Yes   |
+| `useBulkImportUsers`  | `src/hooks/useBulkImport.ts`  | Edge function | `bulk-import-users` | CSV rows (email, full_name, role, program_id)              | Yes   |
+| `useCreateCourse`     | `src/hooks/useCourses.ts`     | `.insert()`   | `courses`           | name, code, program_id, semester_id, teacher_id, is_active | Yes   |
+| `useUpdateCourse`     | `src/hooks/useCourses.ts`     | `.update()`   | `courses`           | name, code, teacher_id, semester_id, is_active             | Yes   |
+| `useSoftDeleteCourse` | `src/hooks/useCourses.ts`     | `.update()`   | `courses`           | is_active = false                                          | Yes   |
+| `useEnrollStudent`    | `src/hooks/useEnrollments.ts` | `.insert()`   | `student_courses`   | student_id, course_id, section_id                          | Yes   |
+| `useUnenrollStudent`  | `src/hooks/useEnrollments.ts` | `.update()`   | `student_courses`   | status = 'dropped'                                         | Yes   |
 
 ### 2.3 Curriculum & Learning Outcomes Domain
 
-| Hook | File | Method | Table(s) | Data |
-|------|------|--------|----------|------|
-| `useCreateILO` | `src/hooks/useILOs.ts` | `.insert()` | `learning_outcomes` (type='ILO') | title, description, institution_id |
-| `useUpdateILO` | `src/hooks/useILOs.ts` | `.update()` | `learning_outcomes` | title, description |
-| `useDeleteILO` | `src/hooks/useILOs.ts` | `.delete()` | `learning_outcomes` | Dependency check on `outcome_mappings` first |
-| `useReorderILOs` | `src/hooks/useILOs.ts` | `.upsert()` | `learning_outcomes` | sort_order (batch) |
-| `useCreatePLO` | `src/hooks/usePLOs.ts` | `.insert()` | `learning_outcomes` (type='PLO') | title, description, program_id |
-| `useUpdatePLOMappings` | `src/hooks/usePLOs.ts` | `.delete()` + `.insert()` | `outcome_mappings` | PLO→ILO mappings with weights |
-| `useCreateCLO` | `src/hooks/useCLOs.ts` | `.insert()` + `.insert()` | `learning_outcomes` (type='CLO'), `outcome_mappings` | title, description, course_id, plo_mappings (weights) |
-| `useUpdateCLOMappings` | `src/hooks/useCLOs.ts` | `.delete()` + `.insert()` | `outcome_mappings` | CLO→PLO mappings with weights |
+| Hook                   | File                   | Method                    | Table(s)                                             | Data                                                  |
+| ---------------------- | ---------------------- | ------------------------- | ---------------------------------------------------- | ----------------------------------------------------- |
+| `useCreateILO`         | `src/hooks/useILOs.ts` | `.insert()`               | `learning_outcomes` (type='ILO')                     | title, description, institution_id                    |
+| `useUpdateILO`         | `src/hooks/useILOs.ts` | `.update()`               | `learning_outcomes`                                  | title, description                                    |
+| `useDeleteILO`         | `src/hooks/useILOs.ts` | `.delete()`               | `learning_outcomes`                                  | Dependency check on `outcome_mappings` first          |
+| `useReorderILOs`       | `src/hooks/useILOs.ts` | `.upsert()`               | `learning_outcomes`                                  | sort_order (batch)                                    |
+| `useCreatePLO`         | `src/hooks/usePLOs.ts` | `.insert()`               | `learning_outcomes` (type='PLO')                     | title, description, program_id                        |
+| `useUpdatePLOMappings` | `src/hooks/usePLOs.ts` | `.delete()` + `.insert()` | `outcome_mappings`                                   | PLO→ILO mappings with weights                         |
+| `useCreateCLO`         | `src/hooks/useCLOs.ts` | `.insert()` + `.insert()` | `learning_outcomes` (type='CLO'), `outcome_mappings` | title, description, course_id, plo_mappings (weights) |
+| `useUpdateCLOMappings` | `src/hooks/useCLOs.ts` | `.delete()` + `.insert()` | `outcome_mappings`                                   | CLO→PLO mappings with weights                         |
 
 ### 2.4 Teaching & Assessment Domain
 
-| Hook | File | Method | Table(s) | Data |
-|------|------|--------|----------|------|
-| `useCreateAssignment` | `src/hooks/useAssignments.ts` | `.insert()` | `assignments` | title, description, course_id, due_date, total_marks, clo_weights, late_window_hours, prerequisites |
-| `useCreateSubmission` | `src/hooks/useSubmissions.ts` | `.insert()` | `submissions` | assignment_id, student_id, file_url, is_late, institution_id |
-| `useUploadSubmissionFile` | `src/hooks/useSubmissions.ts` | Storage `.upload()` | Storage bucket | File binary + metadata (assignment_id, student_id) |
-| `useCreateGrade` | `src/hooks/useGrades.ts` | `.insert()` | `grades` | submission_id, rubric_selections, total_score, score_percent, overall_feedback, graded_by |
-| `useCreateRubric` | `src/hooks/useRubrics.ts` | `.insert()` + `.insert()` | `rubrics`, `rubric_criteria` | title, clo_id, is_template, criteria (levels, max_points) |
-| `useCreateQuiz` | `src/hooks/useQuizzes.ts` | `.insert()` | `quizzes` | course_id, title, clo_ids, time_limit_minutes, max_attempts, is_adaptive, adaptation_config, practice_mode_enabled |
-| `useCreateQuestion` | `src/hooks/useQuestionBank.ts` | `.insert()` | `question_bank` | course_id, clo_id, bloom_level, question_type, question_text, options, correct_answer, difficulty_rating, labels |
-| `useUpdateBaselineConfig` | `src/hooks/useBaselineTests.ts` | `.upsert()` | `baseline_test_config` | course_id, time_limit_minutes, is_active |
+| Hook                      | File                            | Method                    | Table(s)                     | Data                                                                                                               |
+| ------------------------- | ------------------------------- | ------------------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `useCreateAssignment`     | `src/hooks/useAssignments.ts`   | `.insert()`               | `assignments`                | title, description, course_id, due_date, total_marks, clo_weights, late_window_hours, prerequisites                |
+| `useCreateSubmission`     | `src/hooks/useSubmissions.ts`   | `.insert()`               | `submissions`                | assignment_id, student_id, file_url, is_late, institution_id                                                       |
+| `useUploadSubmissionFile` | `src/hooks/useSubmissions.ts`   | Storage `.upload()`       | Storage bucket               | File binary + metadata (assignment_id, student_id)                                                                 |
+| `useCreateGrade`          | `src/hooks/useGrades.ts`        | `.insert()`               | `grades`                     | submission_id, rubric_selections, total_score, score_percent, overall_feedback, graded_by                          |
+| `useCreateRubric`         | `src/hooks/useRubrics.ts`       | `.insert()` + `.insert()` | `rubrics`, `rubric_criteria` | title, clo_id, is_template, criteria (levels, max_points)                                                          |
+| `useCreateQuiz`           | `src/hooks/useQuizzes.ts`       | `.insert()`               | `quizzes`                    | course_id, title, clo_ids, time_limit_minutes, max_attempts, is_adaptive, adaptation_config, practice_mode_enabled |
+| `useCreateQuestion`       | `src/hooks/useQuestionBank.ts`  | `.insert()`               | `question_bank`              | course_id, clo_id, bloom_level, question_type, question_text, options, correct_answer, difficulty_rating, labels   |
+| `useUpdateBaselineConfig` | `src/hooks/useBaselineTests.ts` | `.upsert()`               | `baseline_test_config`       | course_id, time_limit_minutes, is_active                                                                           |
 
 **Grade → Attainment Cascade:**
+
 ```
 Teacher submits grade
   → grades table insert
@@ -140,15 +142,16 @@ Teacher submits grade
 
 ### 2.5 Student Domain
 
-| Hook | File | Method | Table(s) | Data |
-|------|------|--------|----------|------|
-| `useCreateJournalEntry` | `src/hooks/useJournal.ts` | `.insert()` | `journal_entries` | student_id, course_id, content, clo_id, is_shared |
-| `useLogWellnessHabit` | `src/hooks/useWellnessHabits.ts` | `.insert()` | `wellness_habit_logs` | student_id, date, wellness_type, value, completed_at |
-| `useUpdateWellnessGoal` | `src/hooks/useWellnessGoals.ts` | `.upsert()` | `student_wellness_preferences` | student_id, habit_targets (JSONB) |
-| `useSaveResponses` | `src/hooks/useOnboardingResponses.ts` | `.upsert()` | `onboarding_responses` | student_id, question_id, assessment_version, selected_option, score_contribution |
-| `useCompleteMicroAssessment` | `src/hooks/useMicroAssessments.ts` | `.update()` | `micro_assessment_schedule`, `student_profiles` | status='completed', profile_completeness recalculation |
+| Hook                         | File                                  | Method      | Table(s)                                        | Data                                                                             |
+| ---------------------------- | ------------------------------------- | ----------- | ----------------------------------------------- | -------------------------------------------------------------------------------- |
+| `useCreateJournalEntry`      | `src/hooks/useJournal.ts`             | `.insert()` | `journal_entries`                               | student_id, course_id, content, clo_id, is_shared                                |
+| `useLogWellnessHabit`        | `src/hooks/useWellnessHabits.ts`      | `.insert()` | `wellness_habit_logs`                           | student_id, date, wellness_type, value, completed_at                             |
+| `useUpdateWellnessGoal`      | `src/hooks/useWellnessGoals.ts`       | `.upsert()` | `student_wellness_preferences`                  | student_id, habit_targets (JSONB)                                                |
+| `useSaveResponses`           | `src/hooks/useOnboardingResponses.ts` | `.upsert()` | `onboarding_responses`                          | student_id, question_id, assessment_version, selected_option, score_contribution |
+| `useCompleteMicroAssessment` | `src/hooks/useMicroAssessments.ts`    | `.update()` | `micro_assessment_schedule`, `student_profiles` | status='completed', profile_completeness recalculation                           |
 
 **Wellness Habit Logging Chain:**
+
 ```
 Student logs habit
   → wellness_habit_logs INSERT
@@ -164,18 +167,18 @@ Student logs habit
 
 ### 2.6 Gamification Domain
 
-| Hook | File | Method | Table | Data |
-|------|------|--------|-------|------|
+| Hook                  | File                          | Method      | Table       | Data                                                                                                  |
+| --------------------- | ----------------------------- | ----------- | ----------- | ----------------------------------------------------------------------------------------------------- |
 | `useCreateBonusEvent` | `src/hooks/useBonusEvents.ts` | `.insert()` | `xp_events` | name, description, event_type, xp_multiplier, bonus_xp, starts_at, ends_at, is_active, institution_id |
-| `useUpdateBonusEvent` | `src/hooks/useBonusEvents.ts` | `.update()` | `xp_events` | All fields above |
-| `useDeleteBonusEvent` | `src/hooks/useBonusEvents.ts` | `.update()` | `xp_events` | is_active = false (soft delete) |
+| `useUpdateBonusEvent` | `src/hooks/useBonusEvents.ts` | `.update()` | `xp_events` | All fields above                                                                                      |
+| `useDeleteBonusEvent` | `src/hooks/useBonusEvents.ts` | `.update()` | `xp_events` | is_active = false (soft delete)                                                                       |
 
 ### 2.7 Verified Explanations (QA)
 
-| Hook | File | Method | Table | Data |
-|------|------|--------|-------|------|
+| Hook                    | File                                    | Method                    | Table                   | Data                                                                  |
+| ----------------------- | --------------------------------------- | ------------------------- | ----------------------- | --------------------------------------------------------------------- |
 | `useApproveExplanation` | `src/hooks/useExplanationConfidence.ts` | `.update()` + `.insert()` | `verified_explanations` | question_id, explanation_text, source='teacher_approved', verified_by |
-| `useEditExplanation` | `src/hooks/useExplanationConfidence.ts` | `.update()` + `.insert()` | `verified_explanations` | question_id, explanation_text, source='teacher_edited' |
+| `useEditExplanation`    | `src/hooks/useExplanationConfidence.ts` | `.update()` + `.insert()` | `verified_explanations` | question_id, explanation_text, source='teacher_edited'                |
 
 ---
 
@@ -195,35 +198,35 @@ Component → useQuery({ queryKey, queryFn, enabled, staleTime })
 
 ### 3.2 Key Read Patterns
 
-| Pattern | Example | Files |
-|---------|---------|-------|
-| Single row by user | `.eq('student_id', userId).maybeSingle()` | `useStreak.ts`, `useLevel.ts` |
-| Join with FK | `.select('*, profiles!fk_name(id, full_name)')` | `useSubmissions.ts` |
-| Multi-step fetch | Fetch IDs → fetch related data with `.in()` | `useCLOProgress.ts`, `useStudentDashboard.ts` |
-| Paginated | `.range(from, to)` with `{ count: 'exact' }` | `useSubmissions.ts` |
-| Ordered + limited | `.order('due_date').limit(5)` | `useStudentDashboard.ts` |
-| Complex filter | `.or('condition1,condition2')` | `useBloomsProgression.ts` |
+| Pattern            | Example                                         | Files                                         |
+| ------------------ | ----------------------------------------------- | --------------------------------------------- |
+| Single row by user | `.eq('student_id', userId).maybeSingle()`       | `useStreak.ts`, `useLevel.ts`                 |
+| Join with FK       | `.select('*, profiles!fk_name(id, full_name)')` | `useSubmissions.ts`                           |
+| Multi-step fetch   | Fetch IDs → fetch related data with `.in()`     | `useCLOProgress.ts`, `useStudentDashboard.ts` |
+| Paginated          | `.range(from, to)` with `{ count: 'exact' }`    | `useSubmissions.ts`                           |
+| Ordered + limited  | `.order('due_date').limit(5)`                   | `useStudentDashboard.ts`                      |
+| Complex filter     | `.or('condition1,condition2')`                  | `useBloomsProgression.ts`                     |
 
 ### 3.3 Read Flows by Domain
 
-| Domain | Primary Tables | Key Hooks |
-|--------|---------------|-----------|
-| Dashboard KPIs | `student_gamification`, `student_courses`, `submissions`, `outcome_attainment` | `useStudentKPIs`, `useTeacherDashboard`, `useParentDashboard` |
-| Leaderboard | `student_gamification`, `leaderboard_weekly` (materialized view) | `useLeaderboard`, `useMyRank` |
-| OBE/Attainment | `learning_outcomes`, `outcome_attainment`, `outcome_mappings` | `useCLOProgress`, `useOutcomeAttainment`, `useCurriculumMatrix` |
-| Assessment | `assignments`, `submissions`, `grades`, `rubrics`, `rubric_criteria` | `useAssignments`, `useSubmissions`, `usePendingSubmissions` |
-| Quizzes | `quizzes`, `question_bank`, `quiz_attempts`, `blooms_progression` | `useQuiz`, `useBloomsClimbState`, `useAdaptiveQuiz` |
-| Gamification | `student_gamification`, `xp_transactions`, `student_badges` | `useStreak`, `useLevel`, `useXP`, `useBadges` |
-| Wellness | `wellness_habit_logs`, `student_wellness_preferences` | `useWellnessHabits`, `useHeatmapData`, `useHabitAnalytics` |
-| Portfolio | `outcome_attainment`, `student_badges`, `journal_entries`, `xp_transactions` | `usePortfolio` |
-| Notifications | `notifications` | `useNotificationRealtime` |
+| Domain         | Primary Tables                                                                 | Key Hooks                                                       |
+| -------------- | ------------------------------------------------------------------------------ | --------------------------------------------------------------- |
+| Dashboard KPIs | `student_gamification`, `student_courses`, `submissions`, `outcome_attainment` | `useStudentKPIs`, `useTeacherDashboard`, `useParentDashboard`   |
+| Leaderboard    | `student_gamification`, `leaderboard_weekly` (materialized view)               | `useLeaderboard`, `useMyRank`                                   |
+| OBE/Attainment | `learning_outcomes`, `outcome_attainment`, `outcome_mappings`                  | `useCLOProgress`, `useOutcomeAttainment`, `useCurriculumMatrix` |
+| Assessment     | `assignments`, `submissions`, `grades`, `rubrics`, `rubric_criteria`           | `useAssignments`, `useSubmissions`, `usePendingSubmissions`     |
+| Quizzes        | `quizzes`, `question_bank`, `quiz_attempts`, `blooms_progression`              | `useQuiz`, `useBloomsClimbState`, `useAdaptiveQuiz`             |
+| Gamification   | `student_gamification`, `xp_transactions`, `student_badges`                    | `useStreak`, `useLevel`, `useXP`, `useBadges`                   |
+| Wellness       | `wellness_habit_logs`, `student_wellness_preferences`                          | `useWellnessHabits`, `useHeatmapData`, `useHabitAnalytics`      |
+| Portfolio      | `outcome_attainment`, `student_badges`, `journal_entries`, `xp_transactions`   | `usePortfolio`                                                  |
+| Notifications  | `notifications`                                                                | `useNotificationRealtime`                                       |
 
 ### 3.4 RPC Calls
 
-| Function | Hook | Purpose |
-|----------|------|---------|
-| `increment_streak_freezes` | `src/hooks/useStreakFreeze.ts` | Increment user's streak freeze count |
-| `health_check_ping` | `supabase/functions/health/index.ts` | DB connectivity check |
+| Function                   | Hook                                 | Purpose                              |
+| -------------------------- | ------------------------------------ | ------------------------------------ |
+| `increment_streak_freezes` | `src/hooks/useStreakFreeze.ts`       | Increment user's streak freeze count |
+| `health_check_ping`        | `supabase/functions/health/index.ts` | DB connectivity check                |
 
 ---
 
@@ -231,45 +234,46 @@ Component → useQuery({ queryKey, queryFn, enabled, staleTime })
 
 ### 4.1 User-Triggered Functions
 
-| Function | Trigger | Input | Reads | Writes | External APIs |
-|----------|---------|-------|-------|--------|---------------|
-| `award-xp` | Frontend mutation | `{ student_id, xp_amount, source, reference_id?, note? }` | `student_gamification`, `xp_events` (active bonuses) | `xp_transactions` INSERT, `student_gamification` UPDATE (xp_total, level) | None |
-| `check-badges` | After XP award / mutations | `{ student_id, trigger, context? }` | `student_gamification`, `submissions`, `grades`, `journal_entries`, `wellness_habit_logs`, `blooms_progression` | `student_badges` INSERT, triggers `award-xp` for badge XP | None |
-| `process-streak` | On student login | `{ student_id }` | `student_gamification` | `student_gamification` UPDATE (streak_count, last_login_date, freezes) | Invokes `award-xp` at milestones (7/14/30/60/100 days) |
-| `process-onboarding` | Onboarding completion | `{ student_id, assessment_version, skipped_sections, baseline_course_ids, is_day1 }` | `onboarding_responses`, `student_courses` | `student_profiles` UPDATE (Big Five, VARK, self-efficacy, study strategy), `micro_assessment_schedule` INSERT, `starter_week_sessions` INSERT | Invokes `award-xp`, `generate-starter-week` |
-| `calculate-attainment-rollup` | After grading | `{ grade_id, submission_id, total_score, score_percent, rubric_selections }` | `grades`, `submissions`, `assignments`, `rubric_criteria`, `learning_outcomes`, `outcome_mappings` | `outcome_evidence` INSERT, `outcome_attainment` UPSERT (CLO→PLO→ILO cascade), `notifications` INSERT | None |
-| `bulk-import-users` | Admin CSV upload | `{ rows: [{email, full_name, role, program_id?}] }` | `profiles` (check existing) | `auth.admin.createUser()`, `profiles` INSERT | Supabase Auth Admin API |
-| `export-student-data` | Student GDPR request | Auth header (student identity) | `profiles`, `grades`, `submissions`, `outcome_attainment`, `xp_transactions`, `journal_entries`, `student_badges`, `habit_logs` | Storage `reports` bucket upload | None |
-| `check-login-rate` | Sign-in flow | `{ email, action: 'check'|'record_failure'|'clear' }` | `login_attempts` | `login_attempts` UPSERT/DELETE | None |
-| `compute-habit-correlations` | Frontend on-demand | `{ student_id }` | `wellness_habit_logs`, `outcome_attainment`, `quiz_attempts` | None (returns insights) | None |
-| `suggest-goals` | Frontend on-demand | `{ student_id, week_start }` | `student_courses`, `courses`, `outcome_attainment`, `assignments` | None (returns suggestions) | None |
-| `generate-starter-week` | After onboarding | `{ student_id, self_efficacy_score, enrolled_course_ids }` | `courses`, `assignments` | `starter_week_sessions` INSERT | None |
+| Function                      | Trigger                    | Input                                                                                | Reads                                                                                                                           | Writes                                                                                                                                        | External APIs                                          |
+| ----------------------------- | -------------------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ | ------------------------------ | ---- |
+| `award-xp`                    | Frontend mutation          | `{ student_id, xp_amount, source, reference_id?, note? }`                            | `student_gamification`, `xp_events` (active bonuses)                                                                            | `xp_transactions` INSERT, `student_gamification` UPDATE (xp_total, level)                                                                     | None                                                   |
+| `check-badges`                | After XP award / mutations | `{ student_id, trigger, context? }`                                                  | `student_gamification`, `submissions`, `grades`, `journal_entries`, `wellness_habit_logs`, `blooms_progression`                 | `student_badges` INSERT, triggers `award-xp` for badge XP                                                                                     | None                                                   |
+| `process-streak`              | On student login           | `{ student_id }`                                                                     | `student_gamification`                                                                                                          | `student_gamification` UPDATE (streak_count, last_login_date, freezes)                                                                        | Invokes `award-xp` at milestones (7/14/30/60/100 days) |
+| `process-onboarding`          | Onboarding completion      | `{ student_id, assessment_version, skipped_sections, baseline_course_ids, is_day1 }` | `onboarding_responses`, `student_courses`                                                                                       | `student_profiles` UPDATE (Big Five, VARK, self-efficacy, study strategy), `micro_assessment_schedule` INSERT, `starter_week_sessions` INSERT | Invokes `award-xp`, `generate-starter-week`            |
+| `calculate-attainment-rollup` | After grading              | `{ grade_id, submission_id, total_score, score_percent, rubric_selections }`         | `grades`, `submissions`, `assignments`, `rubric_criteria`, `learning_outcomes`, `outcome_mappings`                              | `outcome_evidence` INSERT, `outcome_attainment` UPSERT (CLO→PLO→ILO cascade), `notifications` INSERT                                          | None                                                   |
+| `bulk-import-users`           | Admin CSV upload           | `{ rows: [{email, full_name, role, program_id?}] }`                                  | `profiles` (check existing)                                                                                                     | `auth.admin.createUser()`, `profiles` INSERT                                                                                                  | Supabase Auth Admin API                                |
+| `export-student-data`         | Student GDPR request       | Auth header (student identity)                                                       | `profiles`, `grades`, `submissions`, `outcome_attainment`, `xp_transactions`, `journal_entries`, `student_badges`, `habit_logs` | Storage `reports` bucket upload                                                                                                               | None                                                   |
+| `check-login-rate`            | Sign-in flow               | `{ email, action: 'check'                                                            | 'record_failure'                                                                                                                | 'clear' }`                                                                                                                                    | `login_attempts`                                       | `login_attempts` UPSERT/DELETE | None |
+| `compute-habit-correlations`  | Frontend on-demand         | `{ student_id }`                                                                     | `wellness_habit_logs`, `outcome_attainment`, `quiz_attempts`                                                                    | None (returns insights)                                                                                                                       | None                                                   |
+| `suggest-goals`               | Frontend on-demand         | `{ student_id, week_start }`                                                         | `student_courses`, `courses`, `outcome_attainment`, `assignments`                                                               | None (returns suggestions)                                                                                                                    | None                                                   |
+| `generate-starter-week`       | After onboarding           | `{ student_id, self_efficacy_score, enrolled_course_ids }`                           | `courses`, `assignments`                                                                                                        | `starter_week_sessions` INSERT                                                                                                                | None                                                   |
 
 ### 4.2 AI-Powered Functions
 
-| Function | Trigger | Input | Reads | Writes | External APIs |
-|----------|---------|-------|-------|--------|---------------|
-| `generate-quiz-questions` | Teacher request | `{ course_id, clo_ids, bloom_levels, question_count, question_types }` | `course_material_embeddings` (vector search), `learning_outcomes` | `question_bank` INSERT, `quiz_generation_logs` INSERT | OpenAI API (LLM generation) |
-| `select-adaptive-question` | During adaptive quiz | `{ quiz_id, quiz_attempt_id, previous_question_id?, previous_answer_correct? }` | `quiz_attempts`, `question_bank`, `question_analytics` | `quiz_attempts` UPDATE (question_sequence, difficulty_trajectory) | None |
-| `ai-at-risk-prediction` | pg_cron (3 AM daily) | None (cron-triggered) | `student_gamification` (at_risk_signals), `assignments`, `outcome_attainment` | `ai_feedback` INSERT (suggestion_type='at_risk_prediction') | None |
-| `ai-feedback-draft` | Teacher grading UI | `{ submission_id, rubric_selections }` | `submissions`, `assignments`, `rubric_criteria`, `learning_outcomes`, grades (historical) | None (returns draft) | OpenAI API (LLM drafting) |
-| `ai-module-suggestion` | On weak CLO detection | `{ student_id }` | `outcome_attainment`, `learning_outcomes` (prerequisites) | `ai_feedback` INSERT | None |
-| `update-question-analytics` | After quiz attempt | `{ quiz_attempt_id }` | `quiz_attempts`, `question_bank`, `question_analytics` | `question_analytics` UPSERT, `question_bank` UPDATE (calibrated difficulty) | None |
-| `generate-accreditation-report` | Coordinator/Admin | `{ program_id, semester_id?, template: 'ABET'|'HEC'|'Generic', chart_images? }` | `learning_outcomes`, `outcome_attainment`, `programs`, `courses` | Storage `reports` bucket (PDF upload), optional email via `send-email-notification` | jsPDF generation |
+| Function                        | Trigger               | Input                                                                           | Reads                                                                                     | Writes                                                                      | External APIs                                                    |
+| ------------------------------- | --------------------- | ------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- | ---------------------------------------------------------------- | ----------------------------------------------------------------------------------- | ---------------- |
+| `generate-quiz-questions`       | Teacher request       | `{ course_id, clo_ids, bloom_levels, question_count, question_types }`          | `course_material_embeddings` (vector search), `learning_outcomes`                         | `question_bank` INSERT, `quiz_generation_logs` INSERT                       | OpenAI API (LLM generation)                                      |
+| `select-adaptive-question`      | During adaptive quiz  | `{ quiz_id, quiz_attempt_id, previous_question_id?, previous_answer_correct? }` | `quiz_attempts`, `question_bank`, `question_analytics`                                    | `quiz_attempts` UPDATE (question_sequence, difficulty_trajectory)           | None                                                             |
+| `ai-at-risk-prediction`         | pg_cron (3 AM daily)  | None (cron-triggered)                                                           | `student_gamification` (at_risk_signals), `assignments`, `outcome_attainment`             | `ai_feedback` INSERT (suggestion_type='at_risk_prediction')                 | None                                                             |
+| `ai-feedback-draft`             | Teacher grading UI    | `{ submission_id, rubric_selections }`                                          | `submissions`, `assignments`, `rubric_criteria`, `learning_outcomes`, grades (historical) | None (returns draft)                                                        | OpenAI API (LLM drafting)                                        |
+| `ai-module-suggestion`          | On weak CLO detection | `{ student_id }`                                                                | `outcome_attainment`, `learning_outcomes` (prerequisites)                                 | `ai_feedback` INSERT                                                        | None                                                             |
+| `update-question-analytics`     | After quiz attempt    | `{ quiz_attempt_id }`                                                           | `quiz_attempts`, `question_bank`, `question_analytics`                                    | `question_analytics` UPSERT, `question_bank` UPDATE (calibrated difficulty) | None                                                             |
+| `generate-accreditation-report` | Coordinator/Admin     | `{ program_id, semester_id?, template: 'ABET'                                   | 'HEC'                                                                                     | 'Generic', chart_images? }`                                                 | `learning_outcomes`, `outcome_attainment`, `programs`, `courses` | Storage `reports` bucket (PDF upload), optional email via `send-email-notification` | jsPDF generation |
 
 ---
 
 ## 5. Cron / Scheduled Flows
 
-| Function | Schedule | Purpose | Reads | Writes |
-|----------|----------|---------|-------|--------|
-| `compute-at-risk-signals` | `0 2 * * *` (2 AM daily) | Compute at-risk signals for all students | `student_gamification` (last_login_date), `outcome_attainment`, `submissions`, `assignments` | `student_gamification` UPDATE (at_risk_signals JSONB) |
-| `ai-at-risk-prediction` | `0 3 * * *` (3 AM daily) | Predict CLO failure probability | `student_gamification`, `assignments`, `outcome_attainment` | `ai_feedback` INSERT |
-| `perfect-day-prompt` | `0 18 * * *` (6 PM daily) | Nudge students who completed 3/4 habits | `profiles`, `wellness_habit_logs`, `submissions`, `journal_entries`, `student_activity_log` | `notifications` INSERT |
-| `streak-risk-cron` | `0 20 * * *` (8 PM daily) | Warn students at risk of losing streaks | `student_gamification` (streak_count, last_login_date) | Invokes `send-email-notification` (streak_risk) |
-| `weekly-summary-cron` | `0 8 * * 1` (Mon 8 AM) | Weekly XP/badge/streak summary email | `profiles`, `xp_transactions`, `student_badges`, `student_gamification`, `submissions` | Invokes `send-email-notification` (weekly_summary) |
+| Function                  | Schedule                  | Purpose                                  | Reads                                                                                        | Writes                                                |
+| ------------------------- | ------------------------- | ---------------------------------------- | -------------------------------------------------------------------------------------------- | ----------------------------------------------------- |
+| `compute-at-risk-signals` | `0 2 * * *` (2 AM daily)  | Compute at-risk signals for all students | `student_gamification` (last_login_date), `outcome_attainment`, `submissions`, `assignments` | `student_gamification` UPDATE (at_risk_signals JSONB) |
+| `ai-at-risk-prediction`   | `0 3 * * *` (3 AM daily)  | Predict CLO failure probability          | `student_gamification`, `assignments`, `outcome_attainment`                                  | `ai_feedback` INSERT                                  |
+| `perfect-day-prompt`      | `0 18 * * *` (6 PM daily) | Nudge students who completed 3/4 habits  | `profiles`, `wellness_habit_logs`, `submissions`, `journal_entries`, `student_activity_log`  | `notifications` INSERT                                |
+| `streak-risk-cron`        | `0 20 * * *` (8 PM daily) | Warn students at risk of losing streaks  | `student_gamification` (streak_count, last_login_date)                                       | Invokes `send-email-notification` (streak_risk)       |
+| `weekly-summary-cron`     | `0 8 * * 1` (Mon 8 AM)    | Weekly XP/badge/streak summary email     | `profiles`, `xp_transactions`, `student_badges`, `student_gamification`, `submissions`       | Invokes `send-email-notification` (weekly_summary)    |
 
 **Cron Authentication:**
+
 ```
 All cron functions validate via:
   1. x-cron-secret header (matches CRON_SECRET env var)
@@ -311,6 +315,7 @@ Every supabase.from() query automatically includes:
 ```
 
 **RLS Helper Functions (defined in migration `20260222073710`):**
+
 - `auth_user_role()` → extracts role from profiles WHERE id = auth.uid()
 - `auth_institution_id()` → extracts institution_id from profiles WHERE id = auth.uid()
 
@@ -344,6 +349,7 @@ PII Scrubbing Pipeline:
 ### 7.1 Input Validation
 
 All forms use `react-hook-form` + `Zod` schemas:
+
 - Schema files: `src/lib/schemas/` (user, course, ilo, plo, clo, assignment, rubric, quiz, etc.)
 - Validation happens client-side before any Supabase call
 - Edge functions have their own `validatePayload()` functions
@@ -441,11 +447,12 @@ ai-at-risk-prediction (nightly 3 AM):
 
 ## 8. Real-time Subscriptions
 
-| Hook | Table | Event | Filter | Purpose |
-|------|-------|-------|--------|---------|
+| Hook                                          | Table           | Event  | Filter                | Purpose                          |
+| --------------------------------------------- | --------------- | ------ | --------------------- | -------------------------------- |
 | `useNotificationRealtime` (via `useRealtime`) | `notifications` | INSERT | `user_id=eq.{userId}` | Show toast for new notifications |
 
 **Resilience:**
+
 - Exponential backoff on channel errors: 1s → 2s → 4s → 8s → max 30s
 - Fallback to polling (30s interval) if WebSocket unavailable
 - Channel deduplication by `table:event:filter` composite key
@@ -489,26 +496,27 @@ Minimal/stub implementation (appears to be planned but not yet built).
 
 The `export-student-data` edge function queries tables that don't match migration-defined names:
 
-| Code Uses | Migration Defines | Impact |
-|-----------|------------------|--------|
-| `student_badges` | `badges` | Export will return empty array or error |
-| `habit_logs` | `wellness_habit_logs` | Export will return empty array or error |
-| `journal_entries.title`, `journal_entries.word_count` | Columns not in migration | Columns will be null or query error |
+| Code Uses                                             | Migration Defines        | Impact                                  |
+| ----------------------------------------------------- | ------------------------ | --------------------------------------- |
+| `student_badges`                                      | `badges`                 | Export will return empty array or error |
+| `habit_logs`                                          | `wellness_habit_logs`    | Export will return empty array or error |
+| `journal_entries.title`, `journal_entries.word_count` | Columns not in migration | Columns will be null or query error     |
 
 **File:** `supabase/functions/export-student-data/index.ts` (lines 44-50)
 
 ### 10.2 CRITICAL: Missing Database Objects
 
-| Object | Type | Referenced By | Impact |
-|--------|------|--------------|--------|
-| `course_material_embeddings` | Table | `generate-quiz-questions` (vector similarity search) | AI quiz generation will fail completely |
-| `health_check_ping` | RPC Function | `supabase/functions/health/index.ts` | Health check falls back to profiles query (degraded but functional) |
-| `reports` | Storage Bucket | `export-student-data`, `generate-accreditation-report` | Export/report upload fails; export-student-data has fallback `createBucket()` |
-| `increment_streak_freezes` | RPC Function | `src/hooks/useStreakFreeze.ts` | Streak freeze purchase will fail |
+| Object                       | Type           | Referenced By                                          | Impact                                                                        |
+| ---------------------------- | -------------- | ------------------------------------------------------ | ----------------------------------------------------------------------------- |
+| `course_material_embeddings` | Table          | `generate-quiz-questions` (vector similarity search)   | AI quiz generation will fail completely                                       |
+| `health_check_ping`          | RPC Function   | `supabase/functions/health/index.ts`                   | Health check falls back to profiles query (degraded but functional)           |
+| `reports`                    | Storage Bucket | `export-student-data`, `generate-accreditation-report` | Export/report upload fails; export-student-data has fallback `createBucket()` |
+| `increment_streak_freezes`   | RPC Function   | `src/hooks/useStreakFreeze.ts`                         | Streak freeze purchase will fail                                              |
 
 ### 10.3 CRITICAL: Broken Foreign Key
 
 `blooms_progression.clo_id` references `clos(id)` but the table is actually `learning_outcomes(id)`. This means:
+
 - Bloom's progression queries with joins may fail or return no data
 - `useBloomsProgression` hook may silently return empty results
 
@@ -516,22 +524,24 @@ The `export-student-data` edge function queries tables that don't match migratio
 
 Several hooks perform multi-step writes without transactions:
 
-| Hook | Steps | Risk |
-|------|-------|------|
-| `useCreateCLO` | 1. INSERT learning_outcomes 2. INSERT outcome_mappings | CLO created without mappings if step 2 fails |
-| `useUpdateCLOMappings` | 1. DELETE old mappings 2. INSERT new mappings | Mappings deleted but new ones not inserted if step 2 fails |
-| `useCreateRubric` | 1. INSERT rubrics 2. INSERT rubric_criteria | Rubric exists without criteria if step 2 fails |
-| `useDeleteRubric` | 1. DELETE criteria 2. DELETE rubric | Criteria deleted but rubric remains if step 2 fails |
+| Hook                   | Steps                                                  | Risk                                                       |
+| ---------------------- | ------------------------------------------------------ | ---------------------------------------------------------- |
+| `useCreateCLO`         | 1. INSERT learning_outcomes 2. INSERT outcome_mappings | CLO created without mappings if step 2 fails               |
+| `useUpdateCLOMappings` | 1. DELETE old mappings 2. INSERT new mappings          | Mappings deleted but new ones not inserted if step 2 fails |
+| `useCreateRubric`      | 1. INSERT rubrics 2. INSERT rubric_criteria            | Rubric exists without criteria if step 2 fails             |
+| `useDeleteRubric`      | 1. DELETE criteria 2. DELETE rubric                    | Criteria deleted but rubric remains if step 2 fails        |
 
 ### 10.5 HIGH: 19 Unused Tables (Schema Without Code)
 
 These tables exist in migrations but have zero frontend code:
 
 **LMS Block (completely unimplemented):**
+
 - `announcements`, `course_modules`, `course_materials`, `discussions`, `discussion_replies`
 - `attendance`, `timetables`
 
 **Institutional Management (completely unimplemented):**
+
 - `surveys`, `survey_questions`, `survey_responses`
 - `cqi_actions`, `accreditation_standards`, `accreditation_evidence`
 - `fee_structures`, `fee_payments`
@@ -539,6 +549,7 @@ These tables exist in migrations but have zero frontend code:
 ### 10.6 MEDIUM: Fire-and-Forget Edge Function Calls
 
 XP awards, badge checks, and activity logging use fire-and-forget patterns. Errors are caught and logged to console but:
+
 - No retry mechanism for failed XP awards
 - No reconciliation if badge check fails after XP was already awarded
 - Student could lose earned XP/badges silently
@@ -554,6 +565,7 @@ XP awards, badge checks, and activity logging use fire-and-forget patterns. Erro
 ### 10.9 LOW: Client-Side Multi-Step Queries
 
 `useCLOProgress`, `useStudentDashboard`, and `useLeaderboard` perform 3-5 sequential Supabase queries and join data client-side. This works but:
+
 - More network round-trips than necessary
 - No atomicity guarantee (data could change between queries)
 - Could be replaced with database views or RPC functions for better performance
@@ -561,6 +573,7 @@ XP awards, badge checks, and activity logging use fire-and-forget patterns. Erro
 ### 10.10 LOW: Duplicate Badge Definitions
 
 Badge definitions are duplicated between:
+
 - `src/lib/badgeDefinitions.ts` (frontend)
 - `supabase/functions/check-badges/index.ts` (edge function, hardcoded)
 
@@ -570,32 +583,32 @@ If badge XP values or conditions change, both must be updated manually.
 
 ## Appendix A: Complete Edge Function Catalog
 
-| # | Function | Auth | Trigger | Reads From | Writes To |
-|---|----------|------|---------|-----------|-----------|
-| 1 | `award-xp` | JWT | Frontend | `student_gamification`, `xp_events` | `xp_transactions`, `student_gamification` |
-| 2 | `check-badges` | JWT | Frontend | `student_gamification`, `submissions`, `grades`, `journal_entries`, `wellness_habit_logs`, `blooms_progression` | `student_badges` |
-| 3 | `calculate-attainment-rollup` | Service/Teacher/Admin | Frontend | `grades`, `submissions`, `assignments`, `rubric_criteria`, `learning_outcomes`, `outcome_mappings` | `outcome_evidence`, `outcome_attainment`, `notifications` |
-| 4 | `process-streak` | JWT | Login | `student_gamification` | `student_gamification` |
-| 5 | `process-onboarding` | JWT | Onboarding | `onboarding_responses`, `student_courses` | `student_profiles`, `micro_assessment_schedule` |
-| 6 | `bulk-import-users` | Admin JWT | Admin UI | `profiles` | Auth users, `profiles` |
-| 7 | `export-student-data` | Student JWT | Student UI | 7 tables | Storage `reports` |
-| 8 | `check-login-rate` | Any | Login | `login_attempts` | `login_attempts` |
-| 9 | `generate-quiz-questions` | Teacher JWT | Teacher UI | `course_material_embeddings`, `learning_outcomes` | `question_bank`, `quiz_generation_logs` |
-| 10 | `select-adaptive-question` | JWT | Quiz attempt | `quiz_attempts`, `question_bank`, `question_analytics` | `quiz_attempts` |
-| 11 | `ai-at-risk-prediction` | Cron | pg_cron 3AM | `student_gamification`, `assignments`, `outcome_attainment` | `ai_feedback` |
-| 12 | `ai-feedback-draft` | Teacher JWT | Grading UI | `submissions`, `assignments`, `rubric_criteria`, `learning_outcomes`, `grades` | None (returns draft) |
-| 13 | `ai-module-suggestion` | JWT | Weak CLO | `outcome_attainment`, `learning_outcomes` | `ai_feedback` |
-| 14 | `compute-at-risk-signals` | Cron | pg_cron 2AM | `student_gamification`, `outcome_attainment`, `submissions`, `assignments` | `student_gamification` |
-| 15 | `compute-habit-correlations` | JWT | On-demand | `wellness_habit_logs`, `outcome_attainment`, `quiz_attempts` | None |
-| 16 | `streak-risk-cron` | Cron | pg_cron 8PM | `student_gamification` | Invokes `send-email-notification` |
-| 17 | `weekly-summary-cron` | Cron | pg_cron Mon 8AM | `profiles`, `xp_transactions`, `student_badges`, `student_gamification`, `submissions` | Invokes `send-email-notification` |
-| 18 | `send-email-notification` | Service/Cron | Internal | `profiles` (email prefs) | External email API |
-| 19 | `suggest-goals` | JWT | On-demand | `student_courses`, `courses`, `outcome_attainment`, `assignments` | None |
-| 20 | `generate-starter-week` | JWT | Onboarding | `courses`, `assignments` | `starter_week_sessions` |
-| 21 | `perfect-day-prompt` | Cron | pg_cron 6PM | `profiles`, `wellness_habit_logs`, `submissions`, `journal_entries`, `student_activity_log` | `notifications` |
-| 22 | `update-question-analytics` | JWT | Post-quiz | `quiz_attempts`, `question_bank`, `question_analytics` | `question_analytics`, `question_bank` |
-| 23 | `generate-accreditation-report` | Coordinator/Admin JWT | Admin UI | `learning_outcomes`, `outcome_attainment`, `programs`, `courses` | Storage `reports` (PDF) |
-| 24 | `health` | None | Monitoring | `profiles` (fallback) | None |
+| #   | Function                        | Auth                  | Trigger         | Reads From                                                                                                      | Writes To                                                 |
+| --- | ------------------------------- | --------------------- | --------------- | --------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| 1   | `award-xp`                      | JWT                   | Frontend        | `student_gamification`, `xp_events`                                                                             | `xp_transactions`, `student_gamification`                 |
+| 2   | `check-badges`                  | JWT                   | Frontend        | `student_gamification`, `submissions`, `grades`, `journal_entries`, `wellness_habit_logs`, `blooms_progression` | `student_badges`                                          |
+| 3   | `calculate-attainment-rollup`   | Service/Teacher/Admin | Frontend        | `grades`, `submissions`, `assignments`, `rubric_criteria`, `learning_outcomes`, `outcome_mappings`              | `outcome_evidence`, `outcome_attainment`, `notifications` |
+| 4   | `process-streak`                | JWT                   | Login           | `student_gamification`                                                                                          | `student_gamification`                                    |
+| 5   | `process-onboarding`            | JWT                   | Onboarding      | `onboarding_responses`, `student_courses`                                                                       | `student_profiles`, `micro_assessment_schedule`           |
+| 6   | `bulk-import-users`             | Admin JWT             | Admin UI        | `profiles`                                                                                                      | Auth users, `profiles`                                    |
+| 7   | `export-student-data`           | Student JWT           | Student UI      | 7 tables                                                                                                        | Storage `reports`                                         |
+| 8   | `check-login-rate`              | Any                   | Login           | `login_attempts`                                                                                                | `login_attempts`                                          |
+| 9   | `generate-quiz-questions`       | Teacher JWT           | Teacher UI      | `course_material_embeddings`, `learning_outcomes`                                                               | `question_bank`, `quiz_generation_logs`                   |
+| 10  | `select-adaptive-question`      | JWT                   | Quiz attempt    | `quiz_attempts`, `question_bank`, `question_analytics`                                                          | `quiz_attempts`                                           |
+| 11  | `ai-at-risk-prediction`         | Cron                  | pg_cron 3AM     | `student_gamification`, `assignments`, `outcome_attainment`                                                     | `ai_feedback`                                             |
+| 12  | `ai-feedback-draft`             | Teacher JWT           | Grading UI      | `submissions`, `assignments`, `rubric_criteria`, `learning_outcomes`, `grades`                                  | None (returns draft)                                      |
+| 13  | `ai-module-suggestion`          | JWT                   | Weak CLO        | `outcome_attainment`, `learning_outcomes`                                                                       | `ai_feedback`                                             |
+| 14  | `compute-at-risk-signals`       | Cron                  | pg_cron 2AM     | `student_gamification`, `outcome_attainment`, `submissions`, `assignments`                                      | `student_gamification`                                    |
+| 15  | `compute-habit-correlations`    | JWT                   | On-demand       | `wellness_habit_logs`, `outcome_attainment`, `quiz_attempts`                                                    | None                                                      |
+| 16  | `streak-risk-cron`              | Cron                  | pg_cron 8PM     | `student_gamification`                                                                                          | Invokes `send-email-notification`                         |
+| 17  | `weekly-summary-cron`           | Cron                  | pg_cron Mon 8AM | `profiles`, `xp_transactions`, `student_badges`, `student_gamification`, `submissions`                          | Invokes `send-email-notification`                         |
+| 18  | `send-email-notification`       | Service/Cron          | Internal        | `profiles` (email prefs)                                                                                        | External email API                                        |
+| 19  | `suggest-goals`                 | JWT                   | On-demand       | `student_courses`, `courses`, `outcome_attainment`, `assignments`                                               | None                                                      |
+| 20  | `generate-starter-week`         | JWT                   | Onboarding      | `courses`, `assignments`                                                                                        | `starter_week_sessions`                                   |
+| 21  | `perfect-day-prompt`            | Cron                  | pg_cron 6PM     | `profiles`, `wellness_habit_logs`, `submissions`, `journal_entries`, `student_activity_log`                     | `notifications`                                           |
+| 22  | `update-question-analytics`     | JWT                   | Post-quiz       | `quiz_attempts`, `question_bank`, `question_analytics`                                                          | `question_analytics`, `question_bank`                     |
+| 23  | `generate-accreditation-report` | Coordinator/Admin JWT | Admin UI        | `learning_outcomes`, `outcome_attainment`, `programs`, `courses`                                                | Storage `reports` (PDF)                                   |
+| 24  | `health`                        | None                  | Monitoring      | `profiles` (fallback)                                                                                           | None                                                      |
 
 ## Appendix B: Daily Cron Timeline
 

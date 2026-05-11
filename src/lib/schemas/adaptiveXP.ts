@@ -1,6 +1,6 @@
 // Task 137.2: Adaptive XP Zod schemas
 
-import { z } from 'zod';
+import { z } from "zod";
 
 export const xpMultiplierSchema = z.object({
   level_multiplier: z.number().min(0.1).max(2.0),

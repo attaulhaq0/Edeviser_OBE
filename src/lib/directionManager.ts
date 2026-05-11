@@ -1,10 +1,10 @@
-const RTL_LANGUAGES = ['ar', 'he', 'fa', 'ur'];
+const RTL_LANGUAGES = ["ar", "he", "fa", "ur"];
 
 /**
  * Returns the text direction for a given language code.
  */
-export const getDirection = (language: string): 'rtl' | 'ltr' => {
-  return RTL_LANGUAGES.includes(language) ? 'rtl' : 'ltr';
+export const getDirection = (language: string): "rtl" | "ltr" => {
+  return RTL_LANGUAGES.includes(language) ? "rtl" : "ltr";
 };
 
 /**
@@ -14,10 +14,10 @@ export const getDirection = (language: string): 'rtl' | 'ltr' => {
 export const applyDirection = (language: string): void => {
   const dir = getDirection(language);
   const htmlEl = document.documentElement;
-  htmlEl.setAttribute('dir', dir);
-  htmlEl.setAttribute('lang', language);
+  htmlEl.setAttribute("dir", dir);
+  htmlEl.setAttribute("lang", language);
 
-  if (dir === 'rtl') {
+  if (dir === "rtl") {
     htmlEl.style.fontFamily =
       '"Noto Sans Arabic", "Noto Sans", ui-sans-serif, system-ui, sans-serif';
   } else {

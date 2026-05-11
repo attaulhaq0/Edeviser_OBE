@@ -1,6 +1,7 @@
 import { lazy, Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import RouteGuard from "@/router/RouteGuard";
+import ErrorBoundary from "@/components/shared/ErrorBoundary";
 
 // ---------------------------------------------------------------------------
 // Public pages (no auth required)
@@ -8,6 +9,8 @@ import RouteGuard from "@/router/RouteGuard";
 const LoginPage = lazy(() => import("@/pages/LoginPage"));
 const ResetPasswordPage = lazy(() => import("@/pages/ResetPasswordPage"));
 const UpdatePasswordPage = lazy(() => import("@/pages/UpdatePasswordPage"));
+const SignUpPage = lazy(() => import("@/pages/auth/SignUpPage"));
+const AcceptInvitePage = lazy(() => import("@/pages/auth/AcceptInvitePage"));
 
 // ---------------------------------------------------------------------------
 // Role layouts (lazy-loaded for code splitting)
@@ -27,6 +30,9 @@ const AdminDashboard = lazy(() => import("@/pages/admin/AdminDashboard"));
 const UserListPage = lazy(() => import("@/pages/admin/users/UserListPage"));
 const UserForm = lazy(() => import("@/pages/admin/users/UserForm"));
 const BulkImportPage = lazy(() => import("@/pages/admin/users/BulkImportPage"));
+const InviteUsersPage = lazy(
+  () => import("@/pages/admin/users/InviteUsersPage")
+);
 const ParentInvitePage = lazy(
   () => import("@/pages/admin/users/ParentInvitePage")
 );
@@ -198,9 +204,7 @@ const MasteryRecoveryPage = lazy(
 );
 
 // AI Tutor
-const TutorPage = lazy(
-  () => import("@/pages/student/tutor/TutorPage")
-);
+const TutorPage = lazy(() => import("@/pages/student/tutor/TutorPage"));
 const TutorAnalyticsPage = lazy(
   () => import("@/pages/teacher/tutor-analytics/TutorAnalyticsPage")
 );
@@ -290,9 +294,7 @@ const CreateTeamPage = lazy(
 const TeamManagementPage = lazy(
   () => import("@/pages/teacher/teams/TeamManagementPage")
 );
-const TeamFormPage = lazy(
-  () => import("@/pages/teacher/teams/TeamFormPage")
-);
+const TeamFormPage = lazy(() => import("@/pages/teacher/teams/TeamFormPage"));
 
 // Challenge Management (tasks 134-135)
 const ChallengeManager = lazy(
@@ -400,6 +402,42 @@ const InstitutionSettingsPage = lazy(
 const ProfilePage = lazy(() => import("@/pages/shared/ProfilePage"));
 
 // ---------------------------------------------------------------------------
+// Page-level error fallback
+// ---------------------------------------------------------------------------
+const PageErrorFallback = () => (
+  <div className="flex flex-col items-center justify-center min-h-[60vh] p-8 text-center">
+    <div className="rounded-full bg-red-50 p-4 mb-4">
+      <svg
+        className="h-8 w-8 text-red-500"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+        />
+      </svg>
+    </div>
+    <h2 className="text-lg font-bold text-gray-900 mb-2">
+      Page failed to load
+    </h2>
+    <p className="text-sm text-gray-500 mb-4">
+      Something went wrong loading this page.
+    </p>
+    <button
+      type="button"
+      onClick={() => window.location.reload()}
+      className="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors"
+    >
+      Reload page
+    </button>
+  </div>
+);
+
+// ---------------------------------------------------------------------------
 // Shared loading fallback
 // ---------------------------------------------------------------------------
 const LoadingFallback = () => (
@@ -419,322 +457,370 @@ const LoadingFallback = () => (
 // ---------------------------------------------------------------------------
 const AppRouter = () => (
   <main id="main-content" tabIndex={-1}>
-    <Suspense fallback={<LoadingFallback />}>
-      <Routes>
-        {/* Public routes */}
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/reset-password" element={<ResetPasswordPage />} />
-        <Route path="/update-password" element={<UpdatePasswordPage />} />
-        <Route path="/portfolio/:student_id" element={<PublicPortfolio />} />
-        <Route path="/terms" element={<TermsPage />} />
-        <Route path="/privacy" element={<PrivacyPage />} />
+    <ErrorBoundary fallback={<PageErrorFallback />}>
+      <Suspense fallback={<LoadingFallback />}>
+        <Routes>
+          {/* Public routes */}
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignUpPage />} />
+          <Route path="/accept-invite/:token" element={<AcceptInvitePage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/update-password" element={<UpdatePasswordPage />} />
+          <Route path="/portfolio/:student_id" element={<PublicPortfolio />} />
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
 
-        {/* Admin routes */}
-        <Route
-          path="/admin/*"
-          element={
-            <RouteGuard allowedRoles={["admin"]}>
-              <AdminLayout />
-            </RouteGuard>
-          }
-        >
-          <Route index element={<Navigate to="/admin/dashboard" replace />} />
-          <Route path="dashboard" element={<AdminDashboard />} />
-          <Route path="users" element={<UserListPage />} />
-          <Route path="users/new" element={<UserForm />} />
-          <Route path="users/import" element={<BulkImportPage />} />
-          <Route path="users/invite-parent" element={<ParentInvitePage />} />
-          <Route path="users/:id/edit" element={<UserForm />} />
-          <Route path="programs" element={<ProgramListPage />} />
-          <Route path="programs/new" element={<ProgramForm />} />
-          <Route path="programs/:id/edit" element={<ProgramForm />} />
-          <Route path="outcomes" element={<ILOListPage />} />
-          <Route path="outcomes/new" element={<ILOForm />} />
-          <Route path="outcomes/:id/edit" element={<ILOForm />} />
-          <Route path="audit-log" element={<AuditLogPage />} />
-          <Route path="bonus-events" element={<BonusXPEventManager />} />
-          <Route path="courses" element={<CourseListPage />} />
-          <Route path="courses/new" element={<CourseForm />} />
-          <Route path="courses/:id/edit" element={<CourseForm />} />
+          {/* Admin routes */}
           <Route
-            path="courses/:courseId/enrollment"
-            element={<CourseEnrollmentPage />}
-          />
-          <Route path="semesters" element={<SemesterManager />} />
-          <Route path="departments" element={<DepartmentManager />} />
-          <Route
-            path="onboarding/pending"
-            element={<PendingOnboardingPage />}
-          />
-          <Route path="reports" element={<ReportGeneratorPage />} />
-          <Route path="calendar" element={<AcademicCalendarManager />} />
-          <Route path="timetable" element={<TimetableManager />} />
-          <Route path="fees" element={<FeeManager />} />
-          <Route path="import" element={<DataImportPage />} />
-          <Route path="surveys" element={<SurveyManager />} />
-          <Route path="surveys/results" element={<SurveyResultsPage />} />
-          <Route
-            path="graduate-attributes"
-            element={<GraduateAttributeManager />}
-          />
-          <Route
-            path="competency-frameworks"
-            element={<CompetencyFrameworkManager />}
-          />
-          <Route
-            path="historical-evidence"
-            element={<HistoricalEvidenceDashboard />}
-          />
-          <Route path="badges/spotlight" element={<BadgeSpotlightManager />} />
-          <Route path="marketplace" element={<MarketplaceManagementPage />} />
-          <Route path="marketplace/sales" element={<SaleEventManager />} />
-          <Route path="marketplace/analytics" element={<MarketplaceAnalyticsPage />} />
-          <Route path="marketplace/quests" element={<KnowledgeQuestManager />} />
-          <Route path="marketplace/economist" element={<XPEconomistDashboard />} />
-          <Route path="settings/profile" element={<ProfilePage />} />
-          <Route
-            path="settings/institution"
-            element={<InstitutionSettingsPage />}
-          />
-        </Route>
+            path="/admin/*"
+            element={
+              <RouteGuard allowedRoles={["admin"]}>
+                <AdminLayout />
+              </RouteGuard>
+            }
+          >
+            <Route index element={<Navigate to="/admin/dashboard" replace />} />
+            <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="users" element={<UserListPage />} />
+            <Route path="users/new" element={<UserForm />} />
+            <Route path="users/import" element={<BulkImportPage />} />
+            <Route path="users/invite" element={<InviteUsersPage />} />
+            <Route path="users/invite-parent" element={<ParentInvitePage />} />
+            <Route path="users/:id/edit" element={<UserForm />} />
+            <Route path="programs" element={<ProgramListPage />} />
+            <Route path="programs/new" element={<ProgramForm />} />
+            <Route path="programs/:id/edit" element={<ProgramForm />} />
+            <Route path="outcomes" element={<ILOListPage />} />
+            <Route path="outcomes/new" element={<ILOForm />} />
+            <Route path="outcomes/:id/edit" element={<ILOForm />} />
+            <Route path="audit-log" element={<AuditLogPage />} />
+            <Route path="bonus-events" element={<BonusXPEventManager />} />
+            <Route path="courses" element={<CourseListPage />} />
+            <Route path="courses/new" element={<CourseForm />} />
+            <Route path="courses/:id/edit" element={<CourseForm />} />
+            <Route
+              path="courses/:courseId/enrollment"
+              element={<CourseEnrollmentPage />}
+            />
+            <Route path="semesters" element={<SemesterManager />} />
+            <Route path="departments" element={<DepartmentManager />} />
+            <Route
+              path="onboarding/pending"
+              element={<PendingOnboardingPage />}
+            />
+            <Route path="reports" element={<ReportGeneratorPage />} />
+            <Route path="calendar" element={<AcademicCalendarManager />} />
+            <Route path="timetable" element={<TimetableManager />} />
+            <Route path="fees" element={<FeeManager />} />
+            <Route path="import" element={<DataImportPage />} />
+            <Route path="surveys" element={<SurveyManager />} />
+            <Route path="surveys/results" element={<SurveyResultsPage />} />
+            <Route
+              path="graduate-attributes"
+              element={<GraduateAttributeManager />}
+            />
+            <Route
+              path="competency-frameworks"
+              element={<CompetencyFrameworkManager />}
+            />
+            <Route
+              path="historical-evidence"
+              element={<HistoricalEvidenceDashboard />}
+            />
+            <Route
+              path="badges/spotlight"
+              element={<BadgeSpotlightManager />}
+            />
+            <Route path="marketplace" element={<MarketplaceManagementPage />} />
+            <Route path="marketplace/sales" element={<SaleEventManager />} />
+            <Route
+              path="marketplace/analytics"
+              element={<MarketplaceAnalyticsPage />}
+            />
+            <Route
+              path="marketplace/quests"
+              element={<KnowledgeQuestManager />}
+            />
+            <Route
+              path="marketplace/economist"
+              element={<XPEconomistDashboard />}
+            />
+            <Route path="settings/profile" element={<ProfilePage />} />
+            <Route
+              path="settings/institution"
+              element={<InstitutionSettingsPage />}
+            />
+          </Route>
 
-        {/* Coordinator routes */}
-        <Route
-          path="/coordinator/*"
-          element={
-            <RouteGuard allowedRoles={["coordinator"]}>
-              <CoordinatorLayout />
-            </RouteGuard>
-          }
-        >
+          {/* Coordinator routes */}
           <Route
-            index
-            element={<Navigate to="/coordinator/dashboard" replace />}
-          />
-          <Route path="dashboard" element={<CoordinatorDashboard />} />
-          <Route path="plos" element={<PLOListPage />} />
-          <Route path="plos/new" element={<PLOForm />} />
-          <Route path="plos/:id/edit" element={<PLOForm />} />
-          <Route path="matrix" element={<CurriculumMatrixPage />} />
-          <Route path="cqi" element={<CQIManager />} />
-          <Route path="course-file" element={<CourseFileGenerator />} />
-          <Route path="sankey" element={<SankeyDiagramView />} />
-          <Route path="gap-analysis" element={<GapAnalysisView />} />
-          <Route path="coverage-heatmap" element={<CoverageHeatmapView />} />
-          <Route path="trends" element={<SemesterTrendView />} />
-          <Route path="cohort-comparison" element={<CohortComparisonView />} />
-          <Route path="timetable" element={<TimetableManager />} />
-          <Route path="settings/profile" element={<ProfilePage />} />
-        </Route>
+            path="/coordinator/*"
+            element={
+              <RouteGuard allowedRoles={["coordinator"]}>
+                <CoordinatorLayout />
+              </RouteGuard>
+            }
+          >
+            <Route
+              index
+              element={<Navigate to="/coordinator/dashboard" replace />}
+            />
+            <Route path="dashboard" element={<CoordinatorDashboard />} />
+            <Route path="plos" element={<PLOListPage />} />
+            <Route path="plos/new" element={<PLOForm />} />
+            <Route path="plos/:id/edit" element={<PLOForm />} />
+            <Route path="matrix" element={<CurriculumMatrixPage />} />
+            <Route path="cqi" element={<CQIManager />} />
+            <Route path="course-file" element={<CourseFileGenerator />} />
+            <Route path="sankey" element={<SankeyDiagramView />} />
+            <Route path="gap-analysis" element={<GapAnalysisView />} />
+            <Route path="coverage-heatmap" element={<CoverageHeatmapView />} />
+            <Route path="trends" element={<SemesterTrendView />} />
+            <Route
+              path="cohort-comparison"
+              element={<CohortComparisonView />}
+            />
+            <Route path="timetable" element={<TimetableManager />} />
+            <Route path="settings/profile" element={<ProfilePage />} />
+          </Route>
 
-        {/* Teacher routes */}
-        <Route
-          path="/teacher/*"
-          element={
-            <RouteGuard allowedRoles={["teacher"]}>
-              <TeacherLayout />
-            </RouteGuard>
-          }
-        >
-          <Route index element={<Navigate to="/teacher/dashboard" replace />} />
-          <Route path="dashboard" element={<TeacherDashboard />} />
-          <Route path="clos" element={<CLOListPage />} />
-          <Route path="clos/new" element={<CLOForm />} />
-          <Route path="clos/:id/edit" element={<CLOForm />} />
-          <Route path="rubrics" element={<RubricListPage />} />
-          <Route path="rubrics/new" element={<RubricBuilder />} />
-          <Route path="rubrics/:id/edit" element={<RubricBuilder />} />
-          <Route path="assignments" element={<AssignmentListPage />} />
-          <Route path="assignments/new" element={<AssignmentForm />} />
-          <Route path="assignments/:id/edit" element={<AssignmentForm />} />
-          <Route path="grading" element={<GradingQueuePage />} />
-          <Route path="grading/:submissionId" element={<GradingInterface />} />
-          <Route path="baseline/:courseId" element={<BaselineResultsPage />} />
+          {/* Teacher routes */}
           <Route
-            path="baseline/:courseId/config"
-            element={<BaselineConfigPage />}
-          />
-          <Route
-            path="baseline/:courseId/questions/new"
-            element={<BaselineQuestionForm />}
-          />
-          <Route
-            path="courses/:courseId/generate-questions"
-            element={<GenerateQuestionsPage />}
-          />
-          <Route
-            path="courses/:courseId/review-queue"
-            element={<ReviewQueuePage />}
-          />
-          <Route
-            path="courses/:courseId/question-bank"
-            element={<QuestionBankPage />}
-          />
-          <Route
-            path="courses/:courseId/question-analytics"
-            element={<QuestionAnalyticsDashboard />}
-          />
-          <Route
-            path="courses/:courseId/quiz-clo-correlation/:quizId"
-            element={<QuizCLOCorrelationPage />}
-          />
-          <Route path="courses/:courseId/quizzes/new" element={<QuizForm />} />
-          <Route
-            path="courses/:courseId/quizzes/:id/edit"
-            element={<QuizForm />}
-          />
-          <Route
-            path="courses/:courseId/explanation-review"
-            element={<ExplanationReviewPage />}
-          />
-          <Route path="announcements" element={<AnnouncementEditor />} />
-          <Route path="modules" element={<ModuleManager />} />
-          <Route
-            path="courses/:courseId/discussions"
-            element={<DiscussionModeration />}
-          />
-          <Route
-            path="courses/:courseId/discussions/:threadId"
-            element={<ThreadDetail />}
-          />
-          <Route path="attendance" element={<AttendanceMarker />} />
-          <Route path="attendance/report" element={<AttendanceReport />} />
-          <Route path="gradebook" element={<GradebookView />} />
-          <Route path="teams" element={<TeamManagementPage />} />
-          <Route path="teams/manage" element={<TeamManager />} />
-          <Route path="teams/new" element={<TeamFormPage />} />
-          <Route path="teams/:id/edit" element={<TeamFormPage />} />
-          <Route path="challenges" element={<TeacherChallengeListPage />} />
-          <Route path="challenges/manage" element={<ChallengeManager />} />
-          <Route path="challenges/new" element={<ChallengeFormPage />} />
-          <Route path="challenges/:id/edit" element={<ChallengeFormPage />} />
-          <Route path="team-health" element={<TeamHealthReportPage />} />
-          <Route path="clos/:cloId/sub-clos" element={<SubCLOManager />} />
-          <Route path="outcomes/sub-clos" element={<SubCLOManager />} />
-          <Route path="tutor-analytics" element={<TutorAnalyticsPage />} />
-          <Route path="content-review" element={<ContentReviewPage />} />
-          <Route path="tutor-handoffs" element={<TeacherHandoffPage />} />
-          <Route path="calendar" element={<CalendarView />} />
-          <Route path="timetable" element={<TimetableView />} />
-          <Route path="settings/profile" element={<ProfilePage />} />
-        </Route>
+            path="/teacher/*"
+            element={
+              <RouteGuard allowedRoles={["teacher"]}>
+                <TeacherLayout />
+              </RouteGuard>
+            }
+          >
+            <Route
+              index
+              element={<Navigate to="/teacher/dashboard" replace />}
+            />
+            <Route path="dashboard" element={<TeacherDashboard />} />
+            <Route path="clos" element={<CLOListPage />} />
+            <Route path="clos/new" element={<CLOForm />} />
+            <Route path="clos/:id/edit" element={<CLOForm />} />
+            <Route path="rubrics" element={<RubricListPage />} />
+            <Route path="rubrics/new" element={<RubricBuilder />} />
+            <Route path="rubrics/:id/edit" element={<RubricBuilder />} />
+            <Route path="assignments" element={<AssignmentListPage />} />
+            <Route path="assignments/new" element={<AssignmentForm />} />
+            <Route path="assignments/:id/edit" element={<AssignmentForm />} />
+            <Route path="grading" element={<GradingQueuePage />} />
+            <Route
+              path="grading/:submissionId"
+              element={<GradingInterface />}
+            />
+            <Route
+              path="baseline/:courseId"
+              element={<BaselineResultsPage />}
+            />
+            <Route
+              path="baseline/:courseId/config"
+              element={<BaselineConfigPage />}
+            />
+            <Route
+              path="baseline/:courseId/questions/new"
+              element={<BaselineQuestionForm />}
+            />
+            <Route
+              path="courses/:courseId/generate-questions"
+              element={<GenerateQuestionsPage />}
+            />
+            <Route
+              path="courses/:courseId/review-queue"
+              element={<ReviewQueuePage />}
+            />
+            <Route
+              path="courses/:courseId/question-bank"
+              element={<QuestionBankPage />}
+            />
+            <Route
+              path="courses/:courseId/question-analytics"
+              element={<QuestionAnalyticsDashboard />}
+            />
+            <Route
+              path="courses/:courseId/quiz-clo-correlation/:quizId"
+              element={<QuizCLOCorrelationPage />}
+            />
+            <Route
+              path="courses/:courseId/quizzes/new"
+              element={<QuizForm />}
+            />
+            <Route
+              path="courses/:courseId/quizzes/:id/edit"
+              element={<QuizForm />}
+            />
+            <Route
+              path="courses/:courseId/explanation-review"
+              element={<ExplanationReviewPage />}
+            />
+            <Route path="announcements" element={<AnnouncementEditor />} />
+            <Route path="modules" element={<ModuleManager />} />
+            <Route
+              path="courses/:courseId/discussions"
+              element={<DiscussionModeration />}
+            />
+            <Route
+              path="courses/:courseId/discussions/:threadId"
+              element={<ThreadDetail />}
+            />
+            <Route path="attendance" element={<AttendanceMarker />} />
+            <Route path="attendance/report" element={<AttendanceReport />} />
+            <Route path="gradebook" element={<GradebookView />} />
+            <Route path="teams" element={<TeamManagementPage />} />
+            <Route path="teams/manage" element={<TeamManager />} />
+            <Route path="teams/new" element={<TeamFormPage />} />
+            <Route path="teams/:id/edit" element={<TeamFormPage />} />
+            <Route path="challenges" element={<TeacherChallengeListPage />} />
+            <Route path="challenges/manage" element={<ChallengeManager />} />
+            <Route path="challenges/new" element={<ChallengeFormPage />} />
+            <Route path="challenges/:id/edit" element={<ChallengeFormPage />} />
+            <Route path="team-health" element={<TeamHealthReportPage />} />
+            <Route path="clos/:cloId/sub-clos" element={<SubCLOManager />} />
+            <Route path="outcomes/sub-clos" element={<SubCLOManager />} />
+            <Route path="tutor-analytics" element={<TutorAnalyticsPage />} />
+            <Route path="content-review" element={<ContentReviewPage />} />
+            <Route path="tutor-handoffs" element={<TeacherHandoffPage />} />
+            <Route path="calendar" element={<CalendarView />} />
+            <Route path="timetable" element={<TimetableView />} />
+            <Route path="settings/profile" element={<ProfilePage />} />
+          </Route>
 
-        {/* Student routes */}
-        <Route
-          path="/student/*"
-          element={
-            <RouteGuard allowedRoles={["student"]}>
-              <StudentLayout />
-            </RouteGuard>
-          }
-        >
-          <Route index element={<Navigate to="/student/dashboard" replace />} />
-          <Route path="dashboard" element={<StudentDashboard />} />
-          <Route path="assignments" element={<StudentAssignmentListPage />} />
+          {/* Student routes */}
           <Route
-            path="assignments/:id"
-            element={<StudentAssignmentDetailPage />}
-          />
-          <Route path="leaderboard" element={<LeaderboardPage />} />
-          <Route
-            path="onboarding/complete-profile"
-            element={<CompleteProfilePage />}
-          />
-          <Route path="habits" element={<HabitHeatmapPage />} />
-          <Route path="habits/analytics" element={<HabitAnalyticsPage />} />
-          <Route path="planner" element={<WeeklyPlannerPage />} />
-          <Route
-            path="planner/starter-week"
-            element={<StarterWeekPlanPage />}
-          />
-          <Route path="today" element={<TodayViewPage />} />
-          <Route path="settings/reassessment" element={<ReassessmentPage />} />
-          <Route
-            path="quizzes/:quizId/adaptive"
-            element={<AdaptiveQuizSession />}
-          />
-          <Route
-            path="quizzes/:quizId/review/:attemptId"
-            element={<PostQuizReview />}
-          />
-          <Route
-            path="courses/:courseId/recovery/:cloId"
-            element={<MasteryRecoveryPage />}
-          />
-          <Route path="settings/profile" element={<ProfileSettingsPage />} />
-          <Route path="xp-history" element={<XPHistory />} />
-          <Route path="portfolio" element={<StudentPortfolio />} />
-          <Route path="calendar" element={<CalendarView />} />
-          <Route path="timetable" element={<TimetableView />} />
-          <Route
-            path="notification-preferences"
-            element={<NotificationPreferences />}
-          />
-          <Route path="sessions" element={<SessionManagement />} />
-          <Route path="surveys" element={<SurveyResponsePage />} />
-          <Route
-            path="announcements/:announcementId"
-            element={<StudentAnnouncementDetail />}
-          />
-          <Route path="courses/:courseId" element={<StudentCourseDetail />} />
-          <Route
-            path="courses/:courseId/materials/:materialId"
-            element={<StudentCourseDetail />}
-          />
-          <Route
-            path="courses/:courseId/discussions"
-            element={<DiscussionForum />}
-          />
-          <Route
-            path="courses/:courseId/discussions/:threadId"
-            element={<ThreadDetail />}
-          />
-          <Route path="challenges" element={<ChallengeListView />} />
-          <Route path="challenges/list" element={<ChallengeListPage />} />
-          <Route path="challenges/:id" element={<ChallengeDetailPage />} />
-          <Route path="tutor" element={<TutorPage />} />
-          <Route path="tutor/:conversationId" element={<TutorPage />} />
-          <Route path="team" element={<StudentTeamPage />} />
-          <Route path="teams/:teamId" element={<TeamProfilePage />} />
-          <Route path="teams/new" element={<CreateTeamPage />} />
-          <Route path="marketplace" element={<StudentMarketplacePage />} />
-          <Route path="marketplace/my-items" element={<StudentMyItemsPage />} />
-          <Route path="marketplace/history" element={<StudentTransactionHistoryPage />} />
-          <Route path="content" element={<StudentContentPage />} />
-        </Route>
+            path="/student/*"
+            element={
+              <RouteGuard allowedRoles={["student"]}>
+                <StudentLayout />
+              </RouteGuard>
+            }
+          >
+            <Route
+              index
+              element={<Navigate to="/student/dashboard" replace />}
+            />
+            <Route path="dashboard" element={<StudentDashboard />} />
+            <Route path="assignments" element={<StudentAssignmentListPage />} />
+            <Route
+              path="assignments/:id"
+              element={<StudentAssignmentDetailPage />}
+            />
+            <Route path="leaderboard" element={<LeaderboardPage />} />
+            <Route
+              path="onboarding/complete-profile"
+              element={<CompleteProfilePage />}
+            />
+            <Route path="habits" element={<HabitHeatmapPage />} />
+            <Route path="habits/analytics" element={<HabitAnalyticsPage />} />
+            <Route path="planner" element={<WeeklyPlannerPage />} />
+            <Route
+              path="planner/starter-week"
+              element={<StarterWeekPlanPage />}
+            />
+            <Route path="today" element={<TodayViewPage />} />
+            <Route
+              path="settings/reassessment"
+              element={<ReassessmentPage />}
+            />
+            <Route
+              path="quizzes/:quizId/adaptive"
+              element={<AdaptiveQuizSession />}
+            />
+            <Route
+              path="quizzes/:quizId/review/:attemptId"
+              element={<PostQuizReview />}
+            />
+            <Route
+              path="courses/:courseId/recovery/:cloId"
+              element={<MasteryRecoveryPage />}
+            />
+            <Route path="settings/profile" element={<ProfileSettingsPage />} />
+            <Route path="xp-history" element={<XPHistory />} />
+            <Route path="portfolio" element={<StudentPortfolio />} />
+            <Route path="calendar" element={<CalendarView />} />
+            <Route path="timetable" element={<TimetableView />} />
+            <Route
+              path="notification-preferences"
+              element={<NotificationPreferences />}
+            />
+            <Route path="sessions" element={<SessionManagement />} />
+            <Route path="surveys" element={<SurveyResponsePage />} />
+            <Route
+              path="announcements/:announcementId"
+              element={<StudentAnnouncementDetail />}
+            />
+            <Route path="courses/:courseId" element={<StudentCourseDetail />} />
+            <Route
+              path="courses/:courseId/materials/:materialId"
+              element={<StudentCourseDetail />}
+            />
+            <Route
+              path="courses/:courseId/discussions"
+              element={<DiscussionForum />}
+            />
+            <Route
+              path="courses/:courseId/discussions/:threadId"
+              element={<ThreadDetail />}
+            />
+            <Route path="challenges" element={<ChallengeListView />} />
+            <Route path="challenges/list" element={<ChallengeListPage />} />
+            <Route path="challenges/:id" element={<ChallengeDetailPage />} />
+            <Route path="tutor" element={<TutorPage />} />
+            <Route path="tutor/:conversationId" element={<TutorPage />} />
+            <Route path="team" element={<StudentTeamPage />} />
+            <Route path="teams/:teamId" element={<TeamProfilePage />} />
+            <Route path="teams/new" element={<CreateTeamPage />} />
+            <Route path="marketplace" element={<StudentMarketplacePage />} />
+            <Route
+              path="marketplace/my-items"
+              element={<StudentMyItemsPage />}
+            />
+            <Route
+              path="marketplace/history"
+              element={<StudentTransactionHistoryPage />}
+            />
+            <Route path="content" element={<StudentContentPage />} />
+          </Route>
 
-        {/* Student focus mode (full-screen, outside StudentLayout) */}
-        <Route
-          path="/student/focus/:sessionId"
-          element={
-            <RouteGuard allowedRoles={["student"]}>
-              <FocusModePage />
-            </RouteGuard>
-          }
-        />
+          {/* Student focus mode (full-screen, outside StudentLayout) */}
+          <Route
+            path="/student/focus/:sessionId"
+            element={
+              <RouteGuard allowedRoles={["student"]}>
+                <FocusModePage />
+              </RouteGuard>
+            }
+          />
 
-        {/* Parent routes */}
-        <Route
-          path="/parent/*"
-          element={
-            <RouteGuard allowedRoles={["parent"]}>
-              <ParentLayout />
-            </RouteGuard>
-          }
-        >
-          <Route index element={<Navigate to="/parent/dashboard" replace />} />
-          <Route path="dashboard" element={<ParentDashboard />} />
-          <Route path="planner" element={<ParentPlannerView />} />
-          <Route path="planner/:studentId" element={<ParentPlannerView />} />
-        </Route>
+          {/* Parent routes */}
+          <Route
+            path="/parent/*"
+            element={
+              <RouteGuard allowedRoles={["parent"]}>
+                <ParentLayout />
+              </RouteGuard>
+            }
+          >
+            <Route
+              index
+              element={<Navigate to="/parent/dashboard" replace />}
+            />
+            <Route path="dashboard" element={<ParentDashboard />} />
+            <Route path="planner" element={<ParentPlannerView />} />
+            <Route path="planner/:studentId" element={<ParentPlannerView />} />
+            <Route path="settings/profile" element={<ProfilePage />} />
+          </Route>
 
-        {/* Root redirect */}
-        <Route path="/" element={<Navigate to="/login" replace />} />
+          {/* Root redirect */}
+          <Route path="/" element={<Navigate to="/login" replace />} />
 
-        {/* Catch-all */}
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
-    </Suspense>
+          {/* Catch-all */}
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+      </Suspense>
+    </ErrorBoundary>
   </main>
 );
 

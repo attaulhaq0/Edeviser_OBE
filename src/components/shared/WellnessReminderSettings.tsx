@@ -1,15 +1,15 @@
-import { Bell } from 'lucide-react';
-import { Switch } from '@/components/ui/switch';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { cn } from '@/lib/utils';
-import type { WellnessHabitType, WellnessReminderConfig } from '@/types/habits';
+import { Bell } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
+import type { WellnessHabitType, WellnessReminderConfig } from "@/types/habits";
 
 const HABIT_LABELS: Record<WellnessHabitType, string> = {
-  meditation: 'Meditation',
-  hydration: 'Hydration',
-  exercise: 'Exercise',
-  sleep: 'Sleep',
+  meditation: "Meditation",
+  hydration: "Hydration",
+  exercise: "Exercise",
+  sleep: "Sleep",
 };
 
 export interface WellnessReminderSettingsProps {
@@ -50,12 +50,12 @@ const WellnessReminderSettings = ({
             <Input
               data-testid={`reminder-time-${reminder.habitType}`}
               type="time"
-              value={reminder.reminderTime ?? ''}
+              value={reminder.reminderTime ?? ""}
               onChange={(e) => onTimeChange(reminder.habitType, e.target.value)}
               disabled={!reminder.enabled}
               className={cn(
-                'w-28 h-8 text-xs',
-                !reminder.enabled && 'opacity-50',
+                "w-28 h-8 text-xs",
+                !reminder.enabled && "opacity-50"
               )}
               aria-label={`${HABIT_LABELS[reminder.habitType]} reminder time`}
             />
@@ -63,7 +63,9 @@ const WellnessReminderSettings = ({
             <Switch
               data-testid={`reminder-toggle-${reminder.habitType}`}
               checked={reminder.enabled}
-              onCheckedChange={(checked) => onToggle(reminder.habitType, checked)}
+              onCheckedChange={(checked) =>
+                onToggle(reminder.habitType, checked)
+              }
               aria-label={`Enable ${HABIT_LABELS[reminder.habitType]} reminder`}
             />
           </div>
