@@ -6,6 +6,12 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from "https://esm.sh/zod@3.23.8";
+
+const PayloadSchema = z.object({
+  student_id: z.string().min(1),
+  institution_id: z.string().min(1),
+});
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -58,17 +64,15 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    const { student_id, institution_id } = await req.json();
-
-    if (!student_id || !institution_id) {
-      return new Response(
-        JSON.stringify({ error: "student_id and institution_id are required" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+    const body = await req.json();
+    const parsed = PayloadSchema.safeParse(body);
+    if (!parsed.success) {
+      return new Response(JSON.stringify({ error: parsed.error.message }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
+    const { student_id, institution_id } = parsed.data;
 
     // Fetch configurable weights from institution_settings
     const { data: settings } = await supabase

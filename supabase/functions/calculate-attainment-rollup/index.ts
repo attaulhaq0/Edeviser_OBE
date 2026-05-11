@@ -1,5 +1,20 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from "https://esm.sh/zod@3.23.8";
+
+const PayloadSchema = z.object({
+  grade_id: z.string().min(1),
+  submission_id: z.string().min(1),
+  total_score: z.number(),
+  score_percent: z.number(),
+  rubric_selections: z.array(
+    z.object({
+      criterion_id: z.string(),
+      level_index: z.number(),
+      points: z.number(),
+    })
+  ),
+});
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -97,18 +112,16 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    const payload: GradePayload = await req.json();
-    const { grade_id, submission_id } = payload;
-
-    if (!grade_id || !submission_id) {
-      return new Response(
-        JSON.stringify({ error: "Missing grade_id or submission_id" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+    const body = await req.json();
+    const parsed = PayloadSchema.safeParse(body);
+    if (!parsed.success) {
+      return new Response(JSON.stringify({ error: parsed.error.message }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
+    const payload: GradePayload = parsed.data;
+    const { grade_id, submission_id } = payload;
 
     // ── Step 1: Fetch grade context ───────────────────────────────────────
 

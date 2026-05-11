@@ -305,7 +305,7 @@ async function generateEmbeddings(
 
 // ─── Validation ─────────────────────────────────────────────────────────────
 
-function validateRequest(
+function validatePayload(
   body: unknown
 ): { valid: true; data: EmbedRequest } | { valid: false; error: string } {
   if (!body || typeof body !== "object") {
@@ -716,7 +716,7 @@ serve(async (req) => {
     }
 
     // ── File-Based Indexing Mode (3.2.1–3.2.7) ─────────────────────────
-    const validation = validateRequest(body);
+    const validation = validatePayload(body);
     if (!validation.valid) {
       return new Response(JSON.stringify({ error: validation.error }), {
         status: 400,

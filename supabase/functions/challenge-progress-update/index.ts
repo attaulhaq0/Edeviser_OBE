@@ -3,6 +3,14 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from "https://esm.sh/zod@3.23.8";
+
+const PayloadSchema = z.object({
+  student_id: z.string().min(1),
+  action_type: z.string().min(1),
+  course_id: z.string().min(1),
+  value: z.number().optional(),
+});
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -20,19 +28,15 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    const { student_id, action_type, course_id, value } = await req.json();
-
-    if (!student_id || !action_type || !course_id) {
-      return new Response(
-        JSON.stringify({
-          error: "student_id, action_type, and course_id are required",
-        }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+    const body = await req.json();
+    const parsed = PayloadSchema.safeParse(body);
+    if (!parsed.success) {
+      return new Response(JSON.stringify({ error: parsed.error.message }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
+    const { student_id, action_type, course_id, value } = parsed.data;
 
     // Map action_type to goal_metric
     const metricMap: Record<string, string> = {

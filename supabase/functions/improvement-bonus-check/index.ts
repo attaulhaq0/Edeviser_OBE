@@ -1,6 +1,13 @@
 // Task 139.1: Improvement Bonus Check Edge Function
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from "https://esm.sh/zod@3.23.8";
+
+const PayloadSchema = z.object({
+  student_id: z.string().min(1),
+  clo_id: z.string().min(1),
+  current_score_percent: z.number(),
+});
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -19,18 +26,15 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
-    const { student_id, clo_id, current_score_percent } = await req.json();
-    if (!student_id || !clo_id || current_score_percent === undefined) {
-      return new Response(
-        JSON.stringify({
-          error: "student_id, clo_id, and current_score_percent are required",
-        }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+    const body = await req.json();
+    const parsed = PayloadSchema.safeParse(body);
+    if (!parsed.success) {
+      return new Response(JSON.stringify({ error: parsed.error.message }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
+    const { student_id, clo_id, current_score_percent } = parsed.data;
     // Find previous evidence scores for same CLO and student
     const { data: prevEvidence, error: prevErr } = await supabase
       .from("evidence")

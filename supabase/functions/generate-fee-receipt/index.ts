@@ -1,6 +1,11 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { jsPDF } from "https://esm.sh/jspdf@2";
+import { z } from "https://esm.sh/zod@3.23.8";
+
+const PayloadSchema = z.object({
+  payment_id: z.string().min(1),
+});
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -18,14 +23,15 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    const { payment_id } = await req.json();
-
-    if (!payment_id) {
-      return new Response(JSON.stringify({ error: "payment_id required" }), {
+    const body = await req.json();
+    const parsed = PayloadSchema.safeParse(body);
+    if (!parsed.success) {
+      return new Response(JSON.stringify({ error: parsed.error.message }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    const { payment_id } = parsed.data;
 
     // Fetch payment details
     const { data: payment, error: payErr } = await supabase
