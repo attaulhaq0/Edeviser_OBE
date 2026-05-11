@@ -1,53 +1,53 @@
-import { parseAsString, useQueryState } from 'nuqs';
-import { useState } from 'react';
-import { type ColumnDef } from '@tanstack/react-table';
-import { format } from 'date-fns';
-import { DataTable, ArrowUpDown } from '@/components/shared/DataTable';
-import { useAuditLogs, type AuditLogRecord } from '@/hooks/useAuditLogs';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { parseAsString, useQueryState } from "nuqs";
+import { useState } from "react";
+import { type ColumnDef } from "@tanstack/react-table";
+import { format } from "date-fns";
+import { DataTable, ArrowUpDown } from "@/components/shared/DataTable";
+import { useAuditLogs, type AuditLogRecord } from "@/hooks/useAuditLogs";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Search } from 'lucide-react';
+} from "@/components/ui/select";
+import { Search } from "lucide-react";
 
 // ─── Action color mapping ────────────────────────────────────────────────────
 
 const ACTION_COLORS: Record<string, string> = {
-  create: 'bg-green-100 text-green-700',
-  update: 'bg-blue-100 text-blue-700',
-  soft_delete: 'bg-red-100 text-red-700',
-  login: 'bg-purple-100 text-purple-700',
+  create: "bg-green-100 text-green-700",
+  update: "bg-blue-100 text-blue-700",
+  soft_delete: "bg-red-100 text-red-700",
+  login: "bg-purple-100 text-purple-700",
 };
 
 const getActionColor = (action: string): string =>
-  ACTION_COLORS[action] ?? 'bg-gray-100 text-gray-700';
+  ACTION_COLORS[action] ?? "bg-gray-100 text-gray-700";
 
 // ─── Filter options ──────────────────────────────────────────────────────────
 
 const ACTION_OPTIONS = [
-  { label: 'All Actions', value: '_all' },
-  { label: 'Create', value: 'create' },
-  { label: 'Update', value: 'update' },
-  { label: 'Soft Delete', value: 'soft_delete' },
-  { label: 'Login', value: 'login' },
+  { label: "All Actions", value: "_all" },
+  { label: "Create", value: "create" },
+  { label: "Update", value: "update" },
+  { label: "Soft Delete", value: "soft_delete" },
+  { label: "Login", value: "login" },
 ];
 
 const ENTITY_TYPE_OPTIONS = [
-  { label: 'All Types', value: '_all' },
-  { label: 'User', value: 'user' },
-  { label: 'Program', value: 'program' },
-  { label: 'ILO', value: 'ilo' },
-  { label: 'PLO', value: 'plo' },
-  { label: 'CLO', value: 'clo' },
-  { label: 'Course', value: 'course' },
-  { label: 'Assignment', value: 'assignment' },
-  { label: 'Rubric', value: 'rubric' },
+  { label: "All Types", value: "_all" },
+  { label: "User", value: "user" },
+  { label: "Program", value: "program" },
+  { label: "ILO", value: "ilo" },
+  { label: "PLO", value: "plo" },
+  { label: "CLO", value: "clo" },
+  { label: "Course", value: "course" },
+  { label: "Assignment", value: "assignment" },
+  { label: "Rubric", value: "rubric" },
 ];
 
 // ─── Truncate helper ─────────────────────────────────────────────────────────
@@ -59,12 +59,12 @@ const truncate = (str: string, len: number = 12): string =>
 
 const columns: ColumnDef<AuditLogRecord, unknown>[] = [
   {
-    accessorKey: 'created_at',
+    accessorKey: "created_at",
     header: ({ column }) => (
       <Button
         variant="ghost"
         size="sm"
-        onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
       >
         Timestamp
         <ArrowUpDown className="ms-1 h-3 w-3" />
@@ -72,15 +72,15 @@ const columns: ColumnDef<AuditLogRecord, unknown>[] = [
     ),
     cell: ({ row }) => (
       <span className="text-sm text-gray-600 whitespace-nowrap">
-        {format(new Date(row.getValue('created_at')), 'MMM d, yyyy HH:mm')}
+        {format(new Date(row.getValue("created_at")), "MMM d, yyyy HH:mm")}
       </span>
     ),
   },
   {
-    accessorKey: 'action',
-    header: 'Action',
+    accessorKey: "action",
+    header: "Action",
     cell: ({ row }) => {
-      const action = row.getValue<string>('action');
+      const action = row.getValue<string>("action");
       return (
         <Badge className={getActionColor(action)} variant="secondary">
           {action}
@@ -89,38 +89,47 @@ const columns: ColumnDef<AuditLogRecord, unknown>[] = [
     },
   },
   {
-    accessorKey: 'target_type',
-    header: 'Entity Type',
+    accessorKey: "target_type",
+    header: "Entity Type",
     cell: ({ row }) => (
-      <Badge variant="outline">{row.getValue<string>('target_type')}</Badge>
+      <Badge variant="outline">{row.getValue<string>("target_type")}</Badge>
     ),
   },
   {
-    accessorKey: 'target_id',
-    header: 'Entity ID',
+    accessorKey: "target_id",
+    header: "Entity ID",
     cell: ({ row }) => (
-      <span className="font-mono text-xs text-gray-500" title={row.getValue<string>('target_id')}>
-        {truncate(row.getValue<string>('target_id'))}
+      <span
+        className="font-mono text-xs text-gray-500"
+        title={row.getValue<string>("target_id")}
+      >
+        {truncate(row.getValue<string>("target_id"))}
       </span>
     ),
   },
   {
-    accessorKey: 'actor_id',
-    header: 'Actor',
+    accessorKey: "actor_id",
+    header: "Actor",
     cell: ({ row }) => (
-      <span className="font-mono text-xs text-gray-500" title={row.getValue<string>('actor_id')}>
-        {truncate(row.getValue<string>('actor_id'))}
+      <span
+        className="font-mono text-xs text-gray-500"
+        title={row.getValue<string>("actor_id")}
+      >
+        {truncate(row.getValue<string>("actor_id"))}
       </span>
     ),
   },
   {
-    accessorKey: 'diff',
-    header: 'Details',
+    accessorKey: "diff",
+    header: "Details",
     cell: ({ row }) => {
-      const diff = row.getValue<Record<string, unknown> | null>('diff');
+      const diff = row.getValue<Record<string, unknown> | null>("diff");
       if (!diff) return <span className="text-gray-400">—</span>;
       return (
-        <pre className="text-xs text-gray-600 max-w-xs truncate" title={JSON.stringify(diff, null, 2)}>
+        <pre
+          className="text-xs text-gray-600 max-w-xs truncate"
+          title={JSON.stringify(diff, null, 2)}
+        >
           {JSON.stringify(diff)}
         </pre>
       );
@@ -131,9 +140,15 @@ const columns: ColumnDef<AuditLogRecord, unknown>[] = [
 // ─── Page component ──────────────────────────────────────────────────────────
 
 const AuditLogPage = () => {
-  const [search, setSearch] = useQueryState('q', parseAsString.withDefault(''));
-  const [action, setAction] = useQueryState('action', parseAsString.withDefault(''));
-  const [entityType, setEntityType] = useQueryState('type', parseAsString.withDefault(''));
+  const [search, setSearch] = useQueryState("q", parseAsString.withDefault(""));
+  const [action, setAction] = useQueryState(
+    "action",
+    parseAsString.withDefault("")
+  );
+  const [entityType, setEntityType] = useQueryState(
+    "type",
+    parseAsString.withDefault("")
+  );
   const [page, setPage] = useState(1);
 
   const { data: paginatedData, isLoading } = useAuditLogs({
@@ -157,14 +172,20 @@ const AuditLogPage = () => {
           <Input
             placeholder="Search action, type, or ID..."
             value={search}
-            onChange={(e) => { setSearch(e.target.value || null); setPage(1); }}
+            onChange={(e) => {
+              setSearch(e.target.value || null);
+              setPage(1);
+            }}
             className="ps-9"
           />
         </div>
 
         <Select
-          value={action || '_all'}
-          onValueChange={(v) => { setAction(v === '_all' ? null : v); setPage(1); }}
+          value={action || "_all"}
+          onValueChange={(v) => {
+            setAction(v === "_all" ? null : v);
+            setPage(1);
+          }}
         >
           <SelectTrigger className="w-[160px] bg-white">
             <SelectValue placeholder="All Actions" />
@@ -179,8 +200,11 @@ const AuditLogPage = () => {
         </Select>
 
         <Select
-          value={entityType || '_all'}
-          onValueChange={(v) => { setEntityType(v === '_all' ? null : v); setPage(1); }}
+          value={entityType || "_all"}
+          onValueChange={(v) => {
+            setEntityType(v === "_all" ? null : v);
+            setPage(1);
+          }}
         >
           <SelectTrigger className="w-[160px] bg-white">
             <SelectValue placeholder="All Types" />

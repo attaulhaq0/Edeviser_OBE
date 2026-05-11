@@ -1,8 +1,8 @@
-import { useMemo } from 'react';
-import { cn } from '@/lib/utils';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import type { RubricWithCriteria } from '@/hooks/useRubrics';
+import { useMemo } from "react";
+import { cn } from "@/lib/utils";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import type { RubricWithCriteria } from "@/hooks/useRubrics";
 
 interface RubricPreviewProps {
   rubric: RubricWithCriteria;
@@ -10,15 +10,19 @@ interface RubricPreviewProps {
   onCellClick?: (criterionId: string, levelIndex: number) => void;
 }
 
-const RubricPreview = ({ rubric, selectedCells, onCellClick }: RubricPreviewProps) => {
+const RubricPreview = ({
+  rubric,
+  selectedCells,
+  onCellClick,
+}: RubricPreviewProps) => {
   const sortedCriteria = useMemo(
     () => [...rubric.criteria].sort((a, b) => a.sort_order - b.sort_order),
-    [rubric.criteria],
+    [rubric.criteria]
   );
 
   const totalMaxScore = useMemo(
     () => sortedCriteria.reduce((sum, c) => sum + c.max_points, 0),
-    [sortedCriteria],
+    [sortedCriteria]
   );
 
   const levelLabels = useMemo(() => {
@@ -30,7 +34,9 @@ const RubricPreview = ({ rubric, selectedCells, onCellClick }: RubricPreviewProp
   if (sortedCriteria.length === 0) {
     return (
       <Card className="bg-white border-0 shadow-md rounded-xl p-6">
-        <p className="text-sm text-gray-500">No criteria defined for this rubric.</p>
+        <p className="text-sm text-gray-500">
+          No criteria defined for this rubric.
+        </p>
       </Card>
     );
   }
@@ -81,23 +87,23 @@ const RubricPreview = ({ rubric, selectedCells, onCellClick }: RubricPreviewProp
                     <td
                       key={levelIdx}
                       className={cn(
-                        'p-3 border align-top transition-colors',
+                        "p-3 border align-top transition-colors",
                         isSelected
-                          ? 'bg-blue-100 border-blue-500 border-2'
-                          : 'bg-white border-slate-200',
-                        isInteractive && 'cursor-pointer hover:bg-blue-50',
+                          ? "bg-blue-100 border-blue-500 border-2"
+                          : "bg-white border-slate-200",
+                        isInteractive && "cursor-pointer hover:bg-blue-50"
                       )}
                       onClick={
                         isInteractive
                           ? () => onCellClick(criterion.id, levelIdx)
                           : undefined
                       }
-                      role={isInteractive ? 'button' : undefined}
+                      role={isInteractive ? "button" : undefined}
                       tabIndex={isInteractive ? 0 : undefined}
                       onKeyDown={
                         isInteractive
                           ? (e) => {
-                              if (e.key === 'Enter' || e.key === ' ') {
+                              if (e.key === "Enter" || e.key === " ") {
                                 e.preventDefault();
                                 onCellClick(criterion.id, levelIdx);
                               }
@@ -107,10 +113,10 @@ const RubricPreview = ({ rubric, selectedCells, onCellClick }: RubricPreviewProp
                     >
                       <div className="space-y-2">
                         <p className="text-xs text-gray-600">
-                          {level.description || '—'}
+                          {level.description || "—"}
                         </p>
                         <Badge variant="secondary" className="text-xs">
-                          {level.points} pt{level.points !== 1 ? 's' : ''}
+                          {level.points} pt{level.points !== 1 ? "s" : ""}
                         </Badge>
                       </div>
                     </td>
@@ -125,7 +131,7 @@ const RubricPreview = ({ rubric, selectedCells, onCellClick }: RubricPreviewProp
                 className="p-3 text-end text-sm font-bold text-gray-700"
                 colSpan={levelLabels.length + 1}
               >
-                Total Score:{' '}
+                Total Score:{" "}
                 <span className="text-lg font-black text-blue-600">
                   {totalMaxScore}
                 </span>

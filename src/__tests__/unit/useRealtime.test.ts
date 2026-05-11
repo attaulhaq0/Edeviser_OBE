@@ -3,8 +3,8 @@
 // Validates: Requirements 2.10 (centralized subscription manager)
 // =============================================================================
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { renderHook, act } from "@testing-library/react";
 
 // ─── Supabase mock ───────────────────────────────────────────────────────────
 
@@ -30,7 +30,7 @@ const channelObj = {
   }),
 };
 
-vi.mock('@/lib/supabase', () => ({
+vi.mock("@/lib/supabase", () => ({
   supabase: {
     channel: vi.fn(() => channelObj),
   },
@@ -38,12 +38,12 @@ vi.mock('@/lib/supabase', () => ({
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-import { useRealtime } from '@/hooks/useRealtime';
-import { supabase } from '@/lib/supabase';
+import { useRealtime } from "@/hooks/useRealtime";
+import { supabase } from "@/lib/supabase";
 
 // ─── Tests ───────────────────────────────────────────────────────────────────
 
-describe('useRealtime', () => {
+describe("useRealtime", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
@@ -52,10 +52,12 @@ describe('useRealtime', () => {
     mockState.unsubscribeCalled = false;
 
     // Re-wire chainable returns after clearAllMocks
-    channelObj.on.mockImplementation((_type: string, _opts: unknown, cb: (payload: unknown) => void) => {
-      mockState.onPayloadCallback = cb;
-      return channelObj;
-    });
+    channelObj.on.mockImplementation(
+      (_type: string, _opts: unknown, cb: (payload: unknown) => void) => {
+        mockState.onPayloadCallback = cb;
+        return channelObj;
+      }
+    );
     channelObj.subscribe.mockImplementation((cb?: SubscribeCallback) => {
       mockState.subscribeCallback = cb ?? null;
       return channelObj;
@@ -69,63 +71,70 @@ describe('useRealtime', () => {
     vi.useRealTimers();
   });
 
-  it('creates a channel with deduplication key from table+event+filter', () => {
+  it("creates a channel with deduplication key from table+event+filter", () => {
     const onPayload = vi.fn();
     renderHook(() =>
       useRealtime({
-        table: 'student_gamification',
-        event: 'UPDATE',
-        filter: 'institution_id=eq.abc',
+        table: "student_gamification",
+        event: "UPDATE",
+        filter: "institution_id=eq.abc",
         onPayload,
-      }),
+      })
     );
 
-    expect(supabase.channel).toHaveBeenCalledWith('student_gamification:UPDATE:institution_id=eq.abc');
+    expect(supabase.channel).toHaveBeenCalledWith(
+      "student_gamification:UPDATE:institution_id=eq.abc"
+    );
   });
 
   it('uses default event * and filter "all" when not specified', () => {
     const onPayload = vi.fn();
     renderHook(() =>
       useRealtime({
-        table: 'my_table',
+        table: "my_table",
         onPayload,
-      }),
+      })
     );
 
-    expect(supabase.channel).toHaveBeenCalledWith('my_table:*:all');
+    expect(supabase.channel).toHaveBeenCalledWith("my_table:*:all");
   });
 
-  it('starts with isLive = true', () => {
+  it("starts with isLive = true", () => {
     const onPayload = vi.fn();
     const { result } = renderHook(() =>
-      useRealtime({ table: 'test', onPayload }),
+      useRealtime({ table: "test", onPayload })
     );
 
     expect(result.current.isLive).toBe(true);
   });
 
-  it('sets isLive = true when subscription succeeds', () => {
+  it("sets isLive = true when subscription succeeds", () => {
     const onPayload = vi.fn();
     const { result } = renderHook(() =>
-      useRealtime({ table: 'test', onPayload }),
+      useRealtime({ table: "test", onPayload })
     );
 
     act(() => {
-      mockState.subscribeCallback?.('SUBSCRIBED');
+      mockState.subscribeCallback?.("SUBSCRIBED");
     });
 
     expect(result.current.isLive).toBe(true);
   });
 
-  it('sets isLive = false on CHANNEL_ERROR and starts polling', () => {
+  it("sets isLive = false on CHANNEL_ERROR and starts polling", () => {
     const pollingFn = vi.fn();
     const onPayload = vi.fn();
     const { result } = renderHook(() =>
-      useRealtime({ table: 'test', onPayload, pollingFn, pollingInterval: 30_000 }),
+      useRealtime({
+        table: "test",
+        onPayload,
+        pollingFn,
+        pollingInterval: 30_000,
+      })
     );
 
     act(() => {
-      mockState.subscribeCallback?.('CHANNEL_ERROR');
+      mockState.subscribeCallback?.("CHANNEL_ERROR");
     });
 
     expect(result.current.isLive).toBe(false);
@@ -138,15 +147,13 @@ describe('useRealtime', () => {
     expect(pollingFn).toHaveBeenCalled();
   });
 
-  it('applies exponential backoff on reconnection: 1s, 2s, 4s', () => {
+  it("applies exponential backoff on reconnection: 1s, 2s, 4s", () => {
     const onPayload = vi.fn();
-    renderHook(() =>
-      useRealtime({ table: 'test', onPayload }),
-    );
+    renderHook(() => useRealtime({ table: "test", onPayload }));
 
     // First error → 1s backoff
     act(() => {
-      mockState.subscribeCallback?.('CHANNEL_ERROR');
+      mockState.subscribeCallback?.("CHANNEL_ERROR");
     });
     expect(channelObj.unsubscribe).not.toHaveBeenCalled();
 
@@ -161,7 +168,7 @@ describe('useRealtime', () => {
 
     // Second error → 2s backoff
     act(() => {
-      mockState.subscribeCallback?.('CHANNEL_ERROR');
+      mockState.subscribeCallback?.("CHANNEL_ERROR");
     });
 
     act(() => {
@@ -175,16 +182,14 @@ describe('useRealtime', () => {
     expect(channelObj.unsubscribe).toHaveBeenCalled();
   });
 
-  it('caps backoff at 30s', () => {
+  it("caps backoff at 30s", () => {
     const onPayload = vi.fn();
-    renderHook(() =>
-      useRealtime({ table: 'test', onPayload }),
-    );
+    renderHook(() => useRealtime({ table: "test", onPayload }));
 
     // Simulate many errors to push backoff past 30s
     for (let i = 0; i < 10; i++) {
       act(() => {
-        mockState.subscribeCallback?.('CHANNEL_ERROR');
+        mockState.subscribeCallback?.("CHANNEL_ERROR");
       });
       act(() => {
         vi.advanceTimersByTime(30_000);
@@ -194,7 +199,7 @@ describe('useRealtime', () => {
     // The backoff should be capped at 30s (Math.min(1000 * 2^10, 30000) = 30000)
     channelObj.unsubscribe.mockClear();
     act(() => {
-      mockState.subscribeCallback?.('CHANNEL_ERROR');
+      mockState.subscribeCallback?.("CHANNEL_ERROR");
     });
     act(() => {
       vi.advanceTimersByTime(30_000);
@@ -202,15 +207,13 @@ describe('useRealtime', () => {
     expect(channelObj.unsubscribe).toHaveBeenCalled();
   });
 
-  it('resets retry count on successful subscription', () => {
+  it("resets retry count on successful subscription", () => {
     const onPayload = vi.fn();
-    renderHook(() =>
-      useRealtime({ table: 'test', onPayload }),
-    );
+    renderHook(() => useRealtime({ table: "test", onPayload }));
 
     // Error → backoff
     act(() => {
-      mockState.subscribeCallback?.('CHANNEL_ERROR');
+      mockState.subscribeCallback?.("CHANNEL_ERROR");
     });
     act(() => {
       vi.advanceTimersByTime(1000);
@@ -218,13 +221,13 @@ describe('useRealtime', () => {
 
     // Successful reconnection
     act(() => {
-      mockState.subscribeCallback?.('SUBSCRIBED');
+      mockState.subscribeCallback?.("SUBSCRIBED");
     });
 
     // Next error should start at 1s again (retry count reset)
     channelObj.unsubscribe.mockClear();
     act(() => {
-      mockState.subscribeCallback?.('CHANNEL_ERROR');
+      mockState.subscribeCallback?.("CHANNEL_ERROR");
     });
     act(() => {
       vi.advanceTimersByTime(1000);
@@ -232,22 +235,27 @@ describe('useRealtime', () => {
     expect(channelObj.unsubscribe).toHaveBeenCalled();
   });
 
-  it('stops polling when subscription succeeds', () => {
+  it("stops polling when subscription succeeds", () => {
     const pollingFn = vi.fn();
     const onPayload = vi.fn();
     const { result } = renderHook(() =>
-      useRealtime({ table: 'test', onPayload, pollingFn, pollingInterval: 30_000 }),
+      useRealtime({
+        table: "test",
+        onPayload,
+        pollingFn,
+        pollingInterval: 30_000,
+      })
     );
 
     // Error → starts polling
     act(() => {
-      mockState.subscribeCallback?.('CHANNEL_ERROR');
+      mockState.subscribeCallback?.("CHANNEL_ERROR");
     });
     expect(result.current.isLive).toBe(false);
 
     // Successful reconnection → stops polling
     act(() => {
-      mockState.subscribeCallback?.('SUBSCRIBED');
+      mockState.subscribeCallback?.("SUBSCRIBED");
     });
     expect(result.current.isLive).toBe(true);
 
@@ -259,10 +267,10 @@ describe('useRealtime', () => {
     expect(pollingFn).not.toHaveBeenCalled();
   });
 
-  it('cleans up channel and timers on unmount', () => {
+  it("cleans up channel and timers on unmount", () => {
     const onPayload = vi.fn();
     const { unmount } = renderHook(() =>
-      useRealtime({ table: 'test', onPayload }),
+      useRealtime({ table: "test", onPayload })
     );
 
     unmount();
@@ -270,13 +278,11 @@ describe('useRealtime', () => {
     expect(channelObj.unsubscribe).toHaveBeenCalled();
   });
 
-  it('invokes onPayload callback when realtime event fires', () => {
+  it("invokes onPayload callback when realtime event fires", () => {
     const onPayload = vi.fn();
-    renderHook(() =>
-      useRealtime({ table: 'test', onPayload }),
-    );
+    renderHook(() => useRealtime({ table: "test", onPayload }));
 
-    const fakePayload = { eventType: 'UPDATE', new: { id: '1' } };
+    const fakePayload = { eventType: "UPDATE", new: { id: "1" } };
     act(() => {
       mockState.onPayloadCallback?.(fakePayload);
     });
@@ -284,15 +290,15 @@ describe('useRealtime', () => {
     expect(onPayload).toHaveBeenCalledWith(fakePayload);
   });
 
-  it('handles TIMED_OUT status same as CHANNEL_ERROR', () => {
+  it("handles TIMED_OUT status same as CHANNEL_ERROR", () => {
     const pollingFn = vi.fn();
     const onPayload = vi.fn();
     const { result } = renderHook(() =>
-      useRealtime({ table: 'test', onPayload, pollingFn }),
+      useRealtime({ table: "test", onPayload, pollingFn })
     );
 
     act(() => {
-      mockState.subscribeCallback?.('TIMED_OUT');
+      mockState.subscribeCallback?.("TIMED_OUT");
     });
 
     expect(result.current.isLive).toBe(false);

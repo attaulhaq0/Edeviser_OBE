@@ -4,11 +4,11 @@
 
 Edeviser uses three categories of secrets, each stored differently:
 
-| Category | Where stored | Accessed by |
-|----------|-------------|-------------|
-| Client env vars (`VITE_*`) | `.env.local` / Vercel env vars | Browser (public) |
-| Server env vars | Vercel env vars | Vercel API routes (cron) |
-| Edge Function secrets | Supabase Vault | Supabase Edge Functions |
+| Category                   | Where stored                   | Accessed by              |
+| -------------------------- | ------------------------------ | ------------------------ |
+| Client env vars (`VITE_*`) | `.env.local` / Vercel env vars | Browser (public)         |
+| Server env vars            | Vercel env vars                | Vercel API routes (cron) |
+| Edge Function secrets      | Supabase Vault                 | Supabase Edge Functions  |
 
 ## Client Environment Variables
 
@@ -71,11 +71,11 @@ supabase secrets list
 
 Set in **GitHub → Repository Settings → Secrets and variables → Actions**:
 
-| Secret | Purpose |
-|--------|---------|
-| `SENTRY_AUTH_TOKEN` | Upload source maps on deploy |
-| `SENTRY_ORG` | Sentry organization slug |
-| `SENTRY_PROJECT` | Sentry project slug |
+| Secret                  | Purpose                                      |
+| ----------------------- | -------------------------------------------- |
+| `SENTRY_AUTH_TOKEN`     | Upload source maps on deploy                 |
+| `SENTRY_ORG`            | Sentry organization slug                     |
+| `SENTRY_PROJECT`        | Sentry project slug                          |
 | `SUPABASE_ACCESS_TOKEN` | Type generation in CI (`supabase gen types`) |
 
 ## Secret Rotation

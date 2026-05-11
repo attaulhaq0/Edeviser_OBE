@@ -1,4 +1,4 @@
-import type { HeatmapDay, StreakMilestone } from '@/types/habits';
+import type { HeatmapDay, StreakMilestone } from "@/types/habits";
 
 const MILESTONES = [7, 14, 30, 60, 100] as const;
 

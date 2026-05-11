@@ -2,11 +2,11 @@
 // JournalEditor — Create/edit journal entries with contextual prompts
 // =============================================================================
 
-import { useState, useMemo, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import { useState, useMemo, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import {
   BookOpen,
   PenLine,
@@ -15,35 +15,35 @@ import {
   Lightbulb,
   X,
   ArrowLeft,
-} from 'lucide-react';
-import { toast } from 'sonner';
-import { useAuth } from '@/hooks/useAuth';
+} from "lucide-react";
+import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
 import {
   useJournalEntry,
   useCreateJournalEntry,
   useUpdateJournalEntry,
-} from '@/hooks/useJournal';
-import { useCLOs } from '@/hooks/useCLOs';
-import { useStudentCourseProgram } from '@/pages/student/leaderboard/useStudentCourseProgram';
+} from "@/hooks/useJournal";
+import { useCLOs } from "@/hooks/useCLOs";
+import { useStudentCourseProgram } from "@/pages/student/leaderboard/useStudentCourseProgram";
 import {
   generateJournalPrompt,
   type GeneratedJournalPrompt,
   type KolbQuestion,
-} from '@/lib/journalPromptGenerator';
-import { logActivity } from '@/lib/activityLogger';
-import { draftManager } from '@/lib/draftManager';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
+} from "@/lib/journalPromptGenerator";
+import { logActivity } from "@/lib/activityLogger";
+import { draftManager } from "@/lib/draftManager";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Form,
   FormField,
@@ -51,15 +51,15 @@ import {
   FormLabel,
   FormControl,
   FormMessage,
-} from '@/components/ui/form';
-import Shimmer from '@/components/shared/Shimmer';
+} from "@/components/ui/form";
+import Shimmer from "@/components/shared/Shimmer";
 
 // ─── Form Schema ─────────────────────────────────────────────────────────────
 
 const journalFormSchema = z.object({
-  course_id: z.string().min(1, 'Please select a course'),
+  course_id: z.string().min(1, "Please select a course"),
   clo_id: z.string().optional(),
-  content: z.string().min(50, 'Journal entry must be at least 50 characters'),
+  content: z.string().min(50, "Journal entry must be at least 50 characters"),
   is_shared: z.boolean(),
 });
 
@@ -81,11 +81,15 @@ const PromptCard = ({ prompt, onDismiss }: PromptCardProps) => (
   <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
     <div
       className="px-6 py-4 flex items-center justify-between"
-      style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+      style={{
+        background: "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+      }}
     >
       <div className="flex items-center gap-2">
         <Lightbulb className="h-5 w-5 text-white" />
-        <h3 className="text-lg font-bold tracking-tight text-white">Reflection Prompt</h3>
+        <h3 className="text-lg font-bold tracking-tight text-white">
+          Reflection Prompt
+        </h3>
       </div>
       <Button
         variant="ghost"
@@ -99,10 +103,15 @@ const PromptCard = ({ prompt, onDismiss }: PromptCardProps) => (
       </Button>
     </div>
     <div className="p-6 space-y-4">
-      <p className="text-sm text-gray-700 leading-relaxed">{prompt.promptText}</p>
+      <p className="text-sm text-gray-700 leading-relaxed">
+        {prompt.promptText}
+      </p>
       <div className="space-y-3">
         {prompt.questions.map((q: KolbQuestion, i: number) => (
-          <div key={i} className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+          <div
+            key={i}
+            className="rounded-lg border border-slate-200 bg-slate-50 p-3"
+          >
             <p className="text-xs font-bold tracking-wide uppercase text-teal-600 mb-1">
               {q.stage}
             </p>
@@ -119,20 +128,21 @@ const PromptCard = ({ prompt, onDismiss }: PromptCardProps) => (
 const JournalEditor = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const isEditMode = !!id && id !== 'new';
+  const isEditMode = !!id && id !== "new";
   const { user } = useAuth();
-  const userId = user?.id ?? '';
+  const userId = user?.id ?? "";
 
   // State
   const [promptDismissed, setPromptDismissed] = useState(false);
 
   // Fetch existing entry for edit mode
   const { data: existingEntry, isLoading: isLoadingEntry } = useJournalEntry(
-    isEditMode ? id : undefined,
+    isEditMode ? id : undefined
   );
 
   // Fetch student's enrolled courses
-  const { courses, isLoading: isLoadingCourses } = useStudentCourseProgram(userId);
+  const { courses, isLoading: isLoadingCourses } =
+    useStudentCourseProgram(userId);
 
   // Mutations
   const createMutation = useCreateJournalEntry();
@@ -142,9 +152,9 @@ const JournalEditor = () => {
   const form = useForm<JournalFormData>({
     resolver: zodResolver(journalFormSchema),
     defaultValues: {
-      course_id: '',
-      clo_id: '',
-      content: '',
+      course_id: "",
+      clo_id: "",
+      content: "",
       is_shared: false,
     },
   });
@@ -154,7 +164,7 @@ const JournalEditor = () => {
     if (existingEntry) {
       form.reset({
         course_id: existingEntry.course_id,
-        clo_id: existingEntry.clo_id ?? '',
+        clo_id: existingEntry.clo_id ?? "",
         content: existingEntry.content,
         is_shared: existingEntry.is_shared,
       });
@@ -162,13 +172,13 @@ const JournalEditor = () => {
   }, [existingEntry, form]);
 
   // Watch form values for live word count and CLO prompt
-   
-  const watchedContent = form.watch('content');
-  const watchedCourseId = form.watch('course_id');
-  const watchedCloId = form.watch('clo_id');
+
+  const watchedContent = form.watch("content");
+  const watchedCourseId = form.watch("course_id");
+  const watchedCloId = form.watch("clo_id");
 
   // ─── Draft auto-save & restore (new entries only) ──────────────────────────
-  const draftKey = `journal-draft-${watchedCourseId || 'new'}`;
+  const draftKey = `journal-draft-${watchedCourseId || "new"}`;
 
   // Restore draft on mount for new entries
   useEffect(() => {
@@ -186,12 +196,15 @@ const JournalEditor = () => {
     return stop;
   }, [draftKey, isEditMode, form]);
 
-  const wordCount = useMemo(() => countWords(watchedContent ?? ''), [watchedContent]);
-  const charCount = (watchedContent ?? '').length;
+  const wordCount = useMemo(
+    () => countWords(watchedContent ?? ""),
+    [watchedContent]
+  );
+  const charCount = (watchedContent ?? "").length;
 
   // Fetch CLOs for the selected course
   const { data: closData, isLoading: isLoadingCLOs } = useCLOs(
-    watchedCourseId || undefined,
+    watchedCourseId || undefined
   );
   const clos = useMemo(() => closData?.data ?? [], [closData]);
 
@@ -204,7 +217,7 @@ const JournalEditor = () => {
     return generateJournalPrompt({
       cloTitle: selectedCLO.title,
       bloomsLevel: selectedCLO.blooms_level,
-      attainmentLevel: 'Developing', // Default — real attainment would come from outcome_attainment
+      attainmentLevel: "Developing", // Default — real attainment would come from outcome_attainment
     });
   }, [watchedCloId, clos, promptDismissed]);
 
@@ -226,11 +239,11 @@ const JournalEditor = () => {
         {
           onSuccess: () => {
             draftManager.clearDraft(draftKey);
-            toast.success('Journal entry updated');
-            navigate('/student/journal');
+            toast.success("Journal entry updated");
+            navigate("/student/journal");
           },
           onError: (err) => toast.error(err.message),
-        },
+        }
       );
     } else {
       createMutation.mutate(
@@ -247,15 +260,15 @@ const JournalEditor = () => {
             if (userId) {
               logActivity({
                 student_id: userId,
-                event_type: 'journal',
+                event_type: "journal",
                 metadata: { course_id: data.course_id },
               });
             }
-            toast.success('Journal entry saved');
-            navigate('/student/journal');
+            toast.success("Journal entry saved");
+            navigate("/student/journal");
           },
           onError: (err) => toast.error(err.message),
-        },
+        }
       );
     }
   };
@@ -279,14 +292,14 @@ const JournalEditor = () => {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => navigate('/student/journal')}
+          onClick={() => navigate("/student/journal")}
           className="text-gray-500 hover:text-gray-700"
         >
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <BookOpen className="h-6 w-6 text-teal-500" />
         <h1 className="text-2xl font-bold tracking-tight">
-          {isEditMode ? 'Edit Entry' : 'New Journal Entry'}
+          {isEditMode ? "Edit Entry" : "New Journal Entry"}
         </h1>
       </div>
 
@@ -339,13 +352,13 @@ const JournalEditor = () => {
                 name="clo_id"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>
-                      Learning Outcome (optional)
-                    </FormLabel>
+                    <FormLabel>Learning Outcome (optional)</FormLabel>
                     <FormControl>
                       <Select
-                        value={field.value ?? ''}
-                        onValueChange={(v) => field.onChange(v === '__none__' ? '' : v)}
+                        value={field.value ?? ""}
+                        onValueChange={(v) =>
+                          field.onChange(v === "__none__" ? "" : v)
+                        }
                       >
                         <SelectTrigger className="w-full bg-white">
                           <SelectValue placeholder="Select a CLO for guided prompts" />
@@ -353,7 +366,9 @@ const JournalEditor = () => {
                         <SelectContent>
                           <SelectItem value="__none__">None</SelectItem>
                           {isLoadingCLOs ? (
-                            <SelectItem value="__loading__" disabled>Loading…</SelectItem>
+                            <SelectItem value="__loading__" disabled>
+                              Loading…
+                            </SelectItem>
                           ) : (
                             clos.map((clo) => (
                               <SelectItem key={clo.id} value={clo.id}>
@@ -429,7 +444,7 @@ const JournalEditor = () => {
             >
               {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
               <PenLine className="h-4 w-4" />
-              {isEditMode ? 'Update Entry' : 'Save Entry'}
+              {isEditMode ? "Update Entry" : "Save Entry"}
             </Button>
           </form>
         </Form>

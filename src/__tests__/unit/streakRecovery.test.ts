@@ -1,7 +1,7 @@
 // Task 154.1: Unit tests for Streak Recovery
 // Requirements: 124, 125, 126
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from "vitest";
 import {
   calculateStreakToRestore,
   processComebackChallenge,
@@ -9,13 +9,13 @@ import {
   calculateStreakUpdate,
   type ComebackChallengeState,
   type StreakState,
-} from '@/lib/streakCalculator';
+} from "@/lib/streakCalculator";
 
 // ─── Comeback Challenge Tests ────────────────────────────────────────────────
 
-describe('Comeback Challenge', () => {
-  describe('activation', () => {
-    it('activates when streak breaks with lost streak > 1', () => {
+describe("Comeback Challenge", () => {
+  describe("activation", () => {
+    it("activates when streak breaks with lost streak > 1", () => {
       const state: ComebackChallengeState = {
         comeback_challenge_active: false,
         comeback_challenge_days_completed: 0,
@@ -26,7 +26,7 @@ describe('Comeback Challenge', () => {
       expect(result.streak_to_restore).toBe(5);
     });
 
-    it('does not activate for lost streak of 1', () => {
+    it("does not activate for lost streak of 1", () => {
       const state: ComebackChallengeState = {
         comeback_challenge_active: false,
         comeback_challenge_days_completed: 0,
@@ -37,8 +37,8 @@ describe('Comeback Challenge', () => {
     });
   });
 
-  describe('day completion', () => {
-    it('increments days_completed when habits completed', () => {
+  describe("day completion", () => {
+    it("increments days_completed when habits completed", () => {
       const state: ComebackChallengeState = {
         comeback_challenge_active: true,
         comeback_challenge_days_completed: 1,
@@ -50,8 +50,8 @@ describe('Comeback Challenge', () => {
     });
   });
 
-  describe('streak restoration', () => {
-    it('restores streak after 3 days completed', () => {
+  describe("streak restoration", () => {
+    it("restores streak after 3 days completed", () => {
       const state: ComebackChallengeState = {
         comeback_challenge_active: true,
         comeback_challenge_days_completed: 2,
@@ -63,7 +63,7 @@ describe('Comeback Challenge', () => {
       expect(result.streak_to_restore).toBe(7);
     });
 
-    it('calculateStreakToRestore returns floor(lost/2)', () => {
+    it("calculateStreakToRestore returns floor(lost/2)", () => {
       expect(calculateStreakToRestore(10)).toBe(5);
       expect(calculateStreakToRestore(11)).toBe(5);
       expect(calculateStreakToRestore(0)).toBe(0);
@@ -72,8 +72,8 @@ describe('Comeback Challenge', () => {
     });
   });
 
-  describe('cancellation', () => {
-    it('cancels when habits not completed during active challenge', () => {
+  describe("cancellation", () => {
+    it("cancels when habits not completed during active challenge", () => {
       const state: ComebackChallengeState = {
         comeback_challenge_active: true,
         comeback_challenge_days_completed: 1,
@@ -89,45 +89,45 @@ describe('Comeback Challenge', () => {
 
 // ─── Streak Sabbatical Tests ─────────────────────────────────────────────────
 
-describe('Streak Sabbatical', () => {
-  describe('weekend exclusion', () => {
-    it('Saturday is a sabbatical day when enabled', () => {
-      expect(isStreakSabbaticalDay(true, '2025-01-04')).toBe(true); // Saturday
+describe("Streak Sabbatical", () => {
+  describe("weekend exclusion", () => {
+    it("Saturday is a sabbatical day when enabled", () => {
+      expect(isStreakSabbaticalDay(true, "2025-01-04")).toBe(true); // Saturday
     });
 
-    it('Sunday is a sabbatical day when enabled', () => {
-      expect(isStreakSabbaticalDay(true, '2025-01-05')).toBe(true); // Sunday
+    it("Sunday is a sabbatical day when enabled", () => {
+      expect(isStreakSabbaticalDay(true, "2025-01-05")).toBe(true); // Sunday
     });
 
-    it('Monday is not a sabbatical day', () => {
-      expect(isStreakSabbaticalDay(true, '2025-01-06')).toBe(false); // Monday
+    it("Monday is not a sabbatical day", () => {
+      expect(isStreakSabbaticalDay(true, "2025-01-06")).toBe(false); // Monday
     });
 
-    it('returns false when sabbatical disabled', () => {
-      expect(isStreakSabbaticalDay(false, '2025-01-04')).toBe(false); // Saturday
-      expect(isStreakSabbaticalDay(false, '2025-01-05')).toBe(false); // Sunday
+    it("returns false when sabbatical disabled", () => {
+      expect(isStreakSabbaticalDay(false, "2025-01-04")).toBe(false); // Saturday
+      expect(isStreakSabbaticalDay(false, "2025-01-05")).toBe(false); // Sunday
     });
   });
 
-  describe('streak preservation over weekends', () => {
-    it('preserves streak from Friday to Monday with sabbatical enabled', () => {
+  describe("streak preservation over weekends", () => {
+    it("preserves streak from Friday to Monday with sabbatical enabled", () => {
       const state: StreakState = {
         streak_count: 5,
-        last_login_date: '2025-01-03', // Friday
+        last_login_date: "2025-01-03", // Friday
         streak_freezes_available: 0,
       };
-      const result = calculateStreakUpdate(state, '2025-01-06', true); // Monday
+      const result = calculateStreakUpdate(state, "2025-01-06", true); // Monday
       expect(result.should_reset).toBe(false);
       expect(result.new_streak_count).toBe(6);
     });
 
-    it('resets streak from Friday to Monday without sabbatical', () => {
+    it("resets streak from Friday to Monday without sabbatical", () => {
       const state: StreakState = {
         streak_count: 5,
-        last_login_date: '2025-01-03', // Friday
+        last_login_date: "2025-01-03", // Friday
         streak_freezes_available: 0,
       };
-      const result = calculateStreakUpdate(state, '2025-01-06', false); // Monday
+      const result = calculateStreakUpdate(state, "2025-01-06", false); // Monday
       expect(result.should_reset).toBe(true);
       expect(result.new_streak_count).toBe(1);
     });
@@ -136,31 +136,31 @@ describe('Streak Sabbatical', () => {
 
 // ─── Total Active Days Tests ─────────────────────────────────────────────────
 
-describe('Total Active Days', () => {
-  it('increments on new day with habit completion', () => {
+describe("Total Active Days", () => {
+  it("increments on new day with habit completion", () => {
     let total = 0;
     // Simulate: new day, completed habit → increment
     total += 1;
     expect(total).toBe(1);
   });
 
-  it('does not increment on same-day login', () => {
+  it("does not increment on same-day login", () => {
     const state: StreakState = {
       streak_count: 5,
-      last_login_date: '2025-01-06',
+      last_login_date: "2025-01-06",
       streak_freezes_available: 0,
     };
-    const result = calculateStreakUpdate(state, '2025-01-06');
+    const result = calculateStreakUpdate(state, "2025-01-06");
     expect(result.is_new_day).toBe(false);
   });
 
-  it('increments on consecutive days', () => {
+  it("increments on consecutive days", () => {
     const state: StreakState = {
       streak_count: 5,
-      last_login_date: '2025-01-05',
+      last_login_date: "2025-01-05",
       streak_freezes_available: 0,
     };
-    const result = calculateStreakUpdate(state, '2025-01-06');
+    const result = calculateStreakUpdate(state, "2025-01-06");
     expect(result.is_new_day).toBe(true);
   });
 });

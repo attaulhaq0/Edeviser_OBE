@@ -2,8 +2,8 @@
 // useStudentCourseProgram — fetch enrolled courses & programs for leaderboard filters
 // =============================================================================
 
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
 
 interface CourseOption {
   id: string;
@@ -22,16 +22,16 @@ interface StudentCourseProgramData {
 
 export const useStudentCourseProgram = (studentId: string) => {
   const { data, isLoading } = useQuery({
-    queryKey: ['student', 'courseProgram', studentId],
+    queryKey: ["student", "courseProgram", studentId],
     queryFn: async (): Promise<StudentCourseProgramData> => {
       if (!studentId) return { courses: [], programs: [] };
 
       // Fetch enrolled courses
       const { data: enrollments, error: enrollError } = await supabase
-        .from('student_courses')
-        .select('course_id')
-        .eq('student_id', studentId)
-        .eq('status', 'active');
+        .from("student_courses")
+        .select("course_id")
+        .eq("student_id", studentId)
+        .eq("status", "active");
 
       if (enrollError) throw enrollError;
 
@@ -41,9 +41,9 @@ export const useStudentCourseProgram = (studentId: string) => {
 
       // Fetch course details with program info
       const { data: courseData, error: courseError } = await supabase
-        .from('courses')
-        .select('id, name, program_id')
-        .in('id', courseIds);
+        .from("courses")
+        .select("id, name, program_id")
+        .in("id", courseIds);
 
       if (courseError) throw courseError;
 
@@ -55,15 +55,17 @@ export const useStudentCourseProgram = (studentId: string) => {
       }));
 
       // Deduplicate program IDs
-      const programIds = [...new Set(typedCourses.map((c) => c.program_id).filter(Boolean))];
+      const programIds = [
+        ...new Set(typedCourses.map((c) => c.program_id).filter(Boolean)),
+      ];
 
       if (programIds.length === 0) return { courses, programs: [] };
 
       // Fetch program details
       const { data: programData, error: programError } = await supabase
-        .from('programs')
-        .select('id, name')
-        .in('id', programIds);
+        .from("programs")
+        .select("id, name")
+        .in("id", programIds);
 
       if (programError) throw programError;
 

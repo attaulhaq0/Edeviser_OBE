@@ -3,31 +3,34 @@
 // Task 131.4: All teams ranked by XP with Gold/Silver/Bronze styling
 // =============================================================================
 
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Medal, Trophy, Users } from 'lucide-react';
-import { useTeamLeaderboard, useMyTeamId } from '@/hooks/useTeamLeaderboard';
-import type { TeamLeaderboardEntry, TeamLeaderboardView } from '@/hooks/useTeamLeaderboard';
-import { useAuth } from '@/hooks/useAuth';
-import Shimmer from '@/components/shared/Shimmer';
-import ReconnectBanner from '@/components/shared/ReconnectBanner';
-import { cn } from '@/lib/utils';
-import { parseAsString, useQueryState } from 'nuqs';
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Medal, Trophy, Users } from "lucide-react";
+import { useTeamLeaderboard, useMyTeamId } from "@/hooks/useTeamLeaderboard";
+import type {
+  TeamLeaderboardEntry,
+  TeamLeaderboardView,
+} from "@/hooks/useTeamLeaderboard";
+import { useAuth } from "@/hooks/useAuth";
+import Shimmer from "@/components/shared/Shimmer";
+import ReconnectBanner from "@/components/shared/ReconnectBanner";
+import { cn } from "@/lib/utils";
+import { parseAsString, useQueryState } from "nuqs";
 
 // ─── Medal helpers ───────────────────────────────────────────────────────────
 
 const getMedalColor = (rank: number): string | null => {
-  if (rank === 1) return '#EAB308'; // gold
-  if (rank === 2) return '#9CA3AF'; // silver
-  if (rank === 3) return '#D97706'; // bronze
+  if (rank === 1) return "#EAB308"; // gold
+  if (rank === 2) return "#9CA3AF"; // silver
+  if (rank === 3) return "#D97706"; // bronze
   return null;
 };
 
 const getRankBg = (rank: number): string => {
-  if (rank === 1) return 'bg-yellow-50 border-yellow-200';
-  if (rank === 2) return 'bg-gray-50 border-gray-200';
-  if (rank === 3) return 'bg-amber-50 border-amber-200';
-  return 'bg-white border-slate-100';
+  if (rank === 1) return "bg-yellow-50 border-yellow-200";
+  if (rank === 2) return "bg-gray-50 border-gray-200";
+  if (rank === 3) return "bg-amber-50 border-amber-200";
+  return "bg-white border-slate-100";
 };
 
 // ─── TeamRow ─────────────────────────────────────────────────────────────────
@@ -44,9 +47,9 @@ const TeamRow = ({ entry, isCurrentTeam, showWeekly }: TeamRowProps) => {
   return (
     <div
       className={cn(
-        'flex items-center gap-4 px-4 py-3 rounded-xl border transition-colors',
+        "flex items-center gap-4 px-4 py-3 rounded-xl border transition-colors",
         getRankBg(entry.rank),
-        isCurrentTeam && 'ring-2 ring-blue-400',
+        isCurrentTeam && "ring-2 ring-blue-400"
       )}
     >
       {/* Rank */}
@@ -65,13 +68,18 @@ const TeamRow = ({ entry, isCurrentTeam, showWeekly }: TeamRowProps) => {
 
       {/* Team info */}
       <div className="flex-1 min-w-0">
-        <p className={cn(
-          'text-sm font-semibold truncate',
-          isCurrentTeam && 'text-blue-700',
-        )}>
+        <p
+          className={cn(
+            "text-sm font-semibold truncate",
+            isCurrentTeam && "text-blue-700"
+          )}
+        >
           {entry.team_name}
           {isCurrentTeam && (
-            <Badge variant="outline" className="ms-2 text-xs text-blue-600 border-blue-200">
+            <Badge
+              variant="outline"
+              className="ms-2 text-xs text-blue-600 border-blue-200"
+            >
               Your Team
             </Badge>
           )}
@@ -85,10 +93,13 @@ const TeamRow = ({ entry, isCurrentTeam, showWeekly }: TeamRowProps) => {
       {/* XP */}
       <div className="text-end shrink-0">
         <span className="text-sm font-bold text-amber-500">
-          {(showWeekly ? entry.xp_this_week : entry.xp_total).toLocaleString()} XP
+          {(showWeekly ? entry.xp_this_week : entry.xp_total).toLocaleString()}{" "}
+          XP
         </span>
         {!showWeekly && entry.xp_this_week > 0 && (
-          <p className="text-xs text-gray-400">+{entry.xp_this_week.toLocaleString()} this week</p>
+          <p className="text-xs text-gray-400">
+            +{entry.xp_this_week.toLocaleString()} this week
+          </p>
         )}
       </div>
     </div>
@@ -106,14 +117,19 @@ const TeamLeaderboard = ({ courseId }: TeamLeaderboardProps) => {
   const userId = user?.id;
 
   const [view, setView] = useQueryState(
-    'teamView',
-    parseAsString.withDefault('all_time'),
+    "teamView",
+    parseAsString.withDefault("all_time")
   );
 
   const typedView: TeamLeaderboardView =
-    view === 'weekly' ? 'weekly' : 'all_time';
+    view === "weekly" ? "weekly" : "all_time";
 
-  const { data: entries, isLoading, isLive, retryCount } = useTeamLeaderboard({ courseId });
+  const {
+    data: entries,
+    isLoading,
+    isLive,
+    retryCount,
+  } = useTeamLeaderboard({ courseId });
   const { data: myTeamId } = useMyTeamId(userId, courseId);
 
   if (!courseId) {
@@ -135,18 +151,18 @@ const TeamLeaderboard = ({ courseId }: TeamLeaderboardProps) => {
           <h2 className="text-lg font-bold tracking-tight">Team Leaderboard</h2>
         </div>
         <div className="flex gap-2">
-          {(['all_time', 'weekly'] as const).map((v) => (
+          {(["all_time", "weekly"] as const).map((v) => (
             <button
               key={v}
               onClick={() => setView(v)}
               className={cn(
-                'px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors',
+                "px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors",
                 typedView === v
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-white text-gray-600 border border-gray-200',
+                  ? "bg-blue-600 text-white"
+                  : "bg-white text-gray-600 border border-gray-200"
               )}
             >
-              {v === 'all_time' ? 'All Time' : 'Weekly'}
+              {v === "all_time" ? "All Time" : "Weekly"}
             </button>
           ))}
         </div>
@@ -155,10 +171,15 @@ const TeamLeaderboard = ({ courseId }: TeamLeaderboardProps) => {
       <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
         <div
           className="px-6 py-4 flex items-center gap-2"
-          style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+          style={{
+            background:
+              "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+          }}
         >
           <Users className="h-5 w-5 text-white" />
-          <h2 className="text-lg font-bold tracking-tight text-white">Team Rankings</h2>
+          <h2 className="text-lg font-bold tracking-tight text-white">
+            Team Rankings
+          </h2>
         </div>
         <div className="p-4 space-y-2">
           {isLoading ? (
@@ -175,7 +196,7 @@ const TeamLeaderboard = ({ courseId }: TeamLeaderboardProps) => {
                 key={entry.team_id}
                 entry={entry}
                 isCurrentTeam={entry.team_id === myTeamId}
-                showWeekly={typedView === 'weekly'}
+                showWeekly={typedView === "weekly"}
               />
             ))
           )}

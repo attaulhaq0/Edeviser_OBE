@@ -13,7 +13,7 @@ describe("tutorAutonomy — resolveAutonomyLevel edge cases", () => {
         assignmentAutonomy: "L1",
         cloAutonomy: "L3",
         studentOverride: null,
-      }),
+      })
     ).toBe("L1");
   });
 
@@ -23,7 +23,7 @@ describe("tutorAutonomy — resolveAutonomyLevel edge cases", () => {
         assignmentAutonomy: null,
         cloAutonomy: "L3",
         studentOverride: null,
-      }),
+      })
     ).toBe("L3");
   });
 
@@ -33,7 +33,7 @@ describe("tutorAutonomy — resolveAutonomyLevel edge cases", () => {
         assignmentAutonomy: null,
         cloAutonomy: null,
         studentOverride: null,
-      }),
+      })
     ).toBe("L2");
   });
 
@@ -45,7 +45,7 @@ describe("tutorAutonomy — resolveAutonomyLevel edge cases", () => {
         assignmentAutonomy: "L3",
         cloAutonomy: "L3",
         studentOverride: "L1",
-      }),
+      })
     ).toBe("L1");
   });
 
@@ -55,7 +55,7 @@ describe("tutorAutonomy — resolveAutonomyLevel edge cases", () => {
         assignmentAutonomy: "L1",
         cloAutonomy: null,
         studentOverride: "L1",
-      }),
+      })
     ).toBe("L1");
   });
 
@@ -65,7 +65,7 @@ describe("tutorAutonomy — resolveAutonomyLevel edge cases", () => {
         assignmentAutonomy: null,
         cloAutonomy: null,
         studentOverride: "L1",
-      }),
+      })
     ).toBe("L1");
   });
 
@@ -77,7 +77,7 @@ describe("tutorAutonomy — resolveAutonomyLevel edge cases", () => {
         assignmentAutonomy: "L1",
         cloAutonomy: null,
         studentOverride: "L3",
-      }),
+      })
     ).toBe("L1");
   });
 
@@ -87,7 +87,7 @@ describe("tutorAutonomy — resolveAutonomyLevel edge cases", () => {
         assignmentAutonomy: "L2",
         cloAutonomy: null,
         studentOverride: "L3",
-      }),
+      })
     ).toBe("L2");
   });
 
@@ -97,7 +97,7 @@ describe("tutorAutonomy — resolveAutonomyLevel edge cases", () => {
         assignmentAutonomy: "L3",
         cloAutonomy: null,
         studentOverride: "L3",
-      }),
+      })
     ).toBe("L3");
   });
 
@@ -107,7 +107,7 @@ describe("tutorAutonomy — resolveAutonomyLevel edge cases", () => {
         assignmentAutonomy: null,
         cloAutonomy: "L1",
         studentOverride: "L3",
-      }),
+      })
     ).toBe("L1");
   });
 
@@ -117,7 +117,7 @@ describe("tutorAutonomy — resolveAutonomyLevel edge cases", () => {
         assignmentAutonomy: null,
         cloAutonomy: null,
         studentOverride: "L3",
-      }),
+      })
     ).toBe("L2");
   });
 

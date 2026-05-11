@@ -4,11 +4,11 @@
 // with accept/modify/dismiss actions.
 // =============================================================================
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { cn } from '@/lib/utils';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 import {
   BookOpen,
   Calendar,
@@ -17,8 +17,8 @@ import {
   FileText,
   Pencil,
   X,
-} from 'lucide-react';
-import type { LearningPlanUpdate } from '@/lib/tutorSchemas';
+} from "lucide-react";
+import type { LearningPlanUpdate } from "@/lib/tutorSchemas";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -26,7 +26,7 @@ interface LearningPlanCardProps {
   planUpdate: LearningPlanUpdate;
   onRespond: (
     planUpdateId: string,
-    response: 'accepted' | 'modified' | 'dismissed',
+    response: "accepted" | "modified" | "dismissed",
     modifications?: string
   ) => void;
   isResponding?: boolean;
@@ -40,30 +40,30 @@ const LearningPlanCard = ({
   isResponding = false,
 }: LearningPlanCardProps) => {
   const [showModifyInput, setShowModifyInput] = useState(false);
-  const [modifications, setModifications] = useState('');
+  const [modifications, setModifications] = useState("");
   const [responded, setResponded] = useState(false);
 
   const handleAccept = () => {
     setResponded(true);
-    onRespond(planUpdate.id, 'accepted');
+    onRespond(planUpdate.id, "accepted");
   };
 
   const handleDismiss = () => {
     setResponded(true);
-    onRespond(planUpdate.id, 'dismissed');
+    onRespond(planUpdate.id, "dismissed");
   };
 
   const handleModifySubmit = () => {
     if (!modifications.trim()) return;
     setResponded(true);
-    onRespond(planUpdate.id, 'modified', modifications.trim());
+    onRespond(planUpdate.id, "modified", modifications.trim());
   };
 
   return (
     <div
       className="rounded-xl p-[2px]"
       style={{
-        background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)',
+        background: "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
       }}
     >
       <Card className="bg-white border-0 rounded-xl overflow-hidden shadow-none">
@@ -99,15 +99,17 @@ const LearningPlanCard = ({
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
                 Recommended Materials
               </p>
-              {planUpdate.recommended_materials.slice(0, 3).map((material, idx) => (
-                <div
-                  key={material.chunk_id || idx}
-                  className="flex items-center gap-2 text-sm text-slate-600"
-                >
-                  <FileText className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                  <span className="truncate">{material.source_filename}</span>
-                </div>
-              ))}
+              {planUpdate.recommended_materials
+                .slice(0, 3)
+                .map((material, idx) => (
+                  <div
+                    key={material.chunk_id || idx}
+                    className="flex items-center gap-2 text-sm text-slate-600"
+                  >
+                    <FileText className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                    <span className="truncate">{material.source_filename}</span>
+                  </div>
+                ))}
             </div>
           )}
 
@@ -115,9 +117,11 @@ const LearningPlanCard = ({
           <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4 text-blue-500 shrink-0" />
             <p className="text-sm font-medium text-slate-700">
-              {planUpdate.suggested_planner_sessions} planner{' '}
-              {planUpdate.suggested_planner_sessions === 1 ? 'session' : 'sessions'}/week
-              suggested
+              {planUpdate.suggested_planner_sessions} planner{" "}
+              {planUpdate.suggested_planner_sessions === 1
+                ? "session"
+                : "sessions"}
+              /week suggested
             </p>
           </div>
 
@@ -130,7 +134,7 @@ const LearningPlanCard = ({
                 placeholder="Describe your modifications..."
                 className="text-sm"
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleModifySubmit();
+                  if (e.key === "Enter") handleModifySubmit();
                 }}
               />
               <Button
@@ -152,7 +156,7 @@ const LearningPlanCard = ({
                 onClick={handleAccept}
                 disabled={isResponding}
                 className={cn(
-                  'bg-green-600 hover:bg-green-700 text-white active:scale-95 transition-transform duration-100'
+                  "bg-green-600 hover:bg-green-700 text-white active:scale-95 transition-transform duration-100"
                 )}
               >
                 <Check className="h-4 w-4" />

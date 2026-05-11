@@ -16,7 +16,10 @@ export function getRequiredHabitsForLevel(level: number): number {
  * Check if a student should be promoted to the next level.
  * Promotion occurs when habit_level_streak >= 7 and level < 3.
  */
-export function checkLevelPromotion(level: number, habitLevelStreak: number): boolean {
+export function checkLevelPromotion(
+  level: number,
+  habitLevelStreak: number
+): boolean {
   return habitLevelStreak >= 7 && level < 3;
 }
 

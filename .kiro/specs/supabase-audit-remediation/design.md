@@ -20,6 +20,7 @@ The Supabase audit report identified 8 remaining infrastructure-level defects af
 The bug manifests across 8 independent defect categories. Each defect is independently triggerable and independently fixable.
 
 **Formal Specification:**
+
 ```
 FUNCTION isBugCondition(input)
   INPUT: input of type SystemOperation
@@ -52,6 +53,7 @@ END FUNCTION
 ### Preservation Requirements
 
 **Unchanged Behaviors:**
+
 - The `health` Edge Function continues to return successful health check responses
 - Existing RLS policies on evidence, learning_outcomes, submissions, student_gamification, and audit_logs continue to enforce the same access control rules (only optimized with `(select auth.uid())`)
 - The 3 performance indexes already added (notifications unread, journal student+course, xp transactions student+source) continue to provide index-based lookups
@@ -62,6 +64,7 @@ END FUNCTION
 
 **Scope:**
 All inputs that do NOT involve the 8 defect categories should be completely unaffected. This includes:
+
 - All existing frontend functionality (components, hooks, routing)
 - All existing database queries that don't touch the modified policies
 - All existing cron job schedules and logic
@@ -86,7 +89,6 @@ Based on the audit report, the root causes are:
 7. **Exposed Materialized View**: Materialized views cannot have RLS policies. The `leaderboard_weekly` view was created without considering that it would be directly queryable via PostgREST.
 
 8. **Disabled Leaked Password Protection**: This is a Supabase Dashboard setting that defaults to disabled. It was never toggled on.
-
 
 ## Correctness Properties
 
@@ -134,6 +136,7 @@ notification-digest, perfect-day-prompt, exam-period-notify
 **File**: `supabase/migrations/XXXXXX_create_storage_buckets.sql`
 
 **Specific Changes**:
+
 1. Create `avatars` bucket — public read, 2MB limit, image MIME types only
 2. Create `submissions` bucket — private, 50MB limit, common document/archive MIME types
 3. Create `course-materials` bucket — private, 100MB limit, broad MIME types
@@ -148,9 +151,10 @@ notification-digest, perfect-day-prompt, exam-period-notify
 
 **File**: `supabase/migrations/XXXXXX_add_fk_indexes.sql`
 
-Cross-referencing the 107 total FKs from `docs/SUPABASE-RELATIONSHIPS-FK.md` against existing indexes, the following FK columns need indexes. Excluded: columns already covered by existing indexes (student_id on tables with `idx_*_student` indexes, columns in UNIQUE constraints, PK columns, and the 3 indexes from platform-audit-fixes).
+Cross-referencing the 107 total FKs from `docs/SUPABASE-RELATIONSHIPS-FK.md` against existing indexes, the following FK columns need indexes. Excluded: columns already covered by existing indexes (student*id on tables with `idx*\*\_student` indexes, columns in UNIQUE constraints, PK columns, and the 3 indexes from platform-audit-fixes).
 
 **Already indexed FK columns (39 covered):**
+
 - `profiles.institution_id` — covered by `idx_profiles_institution_id_covering`
 - `student_gamification.student_id` — covered by `idx_gamification_leaderboard` (and UNIQUE)
 - `xp_transactions.student_id` — covered by `idx_xp_transactions_student`
@@ -184,76 +188,76 @@ Cross-referencing the 107 total FKs from `docs/SUPABASE-RELATIONSHIPS-FK.md` aga
 
 **Unindexed FK columns requiring new indexes (68):**
 
-| # | Table | Column | References |
-|---|-------|--------|------------|
-| 1 | academic_calendar_events | institution_id | institutions |
-| 2 | academic_calendar_events | semester_id | semesters |
-| 3 | announcements | author_id | profiles |
-| 4 | announcements | course_id | courses |
-| 5 | assignments | course_id | courses |
-| 6 | assignments | created_by | profiles |
-| 7 | attendance_records | marked_by | profiles |
-| 8 | audit_logs | actor_id | profiles |
-| 9 | badges | student_id | profiles |
-| 10 | class_sessions | section_id | course_sections |
-| 11 | course_materials | module_id | course_modules |
-| 12 | course_modules | course_id | courses |
-| 13 | course_sections | course_id | courses |
-| 14 | course_sections | teacher_id | profiles |
-| 15 | courses | program_id | programs |
-| 16 | courses | semester_id | semesters |
-| 17 | courses | teacher_id | profiles |
-| 18 | cqi_action_plans | outcome_id | learning_outcomes |
-| 19 | cqi_action_plans | program_id | programs |
-| 20 | cqi_action_plans | semester_id | semesters |
-| 21 | departments | head_of_department_id | profiles |
-| 22 | departments | institution_id | institutions |
-| 23 | discussion_replies | author_id | profiles |
-| 24 | discussion_replies | thread_id | discussion_threads |
-| 25 | discussion_threads | author_id | profiles |
-| 26 | discussion_threads | course_id | courses |
-| 27 | evidence | clo_id | learning_outcomes |
-| 28 | evidence | grade_id | grades |
-| 29 | evidence | ilo_id | learning_outcomes |
-| 30 | evidence | plo_id | learning_outcomes |
-| 31 | evidence | submission_id | submissions |
-| 32 | fee_payments | fee_structure_id | fee_structures |
-| 33 | fee_structures | program_id | programs |
-| 34 | fee_structures | semester_id | semesters |
-| 35 | grade_categories | course_id | courses |
-| 36 | grades | graded_by | profiles |
-| 37 | grades | submission_id | submissions |
-| 38 | habit_tracking | student_id | profiles |
-| 39 | journal_entries | clo_id | learning_outcomes |
-| 40 | journal_entries | course_id | courses |
-| 41 | journal_entries | student_id | profiles |
-| 42 | learning_outcomes | course_id | courses |
-| 43 | learning_outcomes | created_by | profiles |
-| 44 | learning_outcomes | institution_id | institutions |
-| 45 | learning_outcomes | program_id | programs |
-| 46 | learning_path_nodes | assignment_id | assignments |
-| 47 | learning_path_nodes | course_id | courses |
-| 48 | learning_path_nodes | prerequisite_node_id | learning_path_nodes |
-| 49 | mastery_recovery_pathways | institution_id | institutions |
-| 50 | notifications | user_id | profiles |
-| 51 | onboarding_questions | clo_id | learning_outcomes |
-| 52 | onboarding_questions | course_id | courses |
-| 53 | onboarding_responses | question_id | onboarding_questions |
-| 54 | outcome_mappings | source_outcome_id | learning_outcomes |
-| 55 | outcome_mappings | target_outcome_id | learning_outcomes |
-| 56 | programs | coordinator_id | profiles |
-| 57 | programs | department_id | departments |
-| 58 | programs | institution_id | institutions |
-| 59 | question_bank | created_by | profiles |
-| 60 | question_bank | institution_id | institutions |
-| 61 | question_bank | parent_question_id | question_bank |
-| 62 | quiz_generation_logs | teacher_id | profiles |
-| 63 | quiz_questions | quiz_id | quizzes |
-| 64 | quizzes | course_id | courses |
-| 65 | rubric_criteria | rubric_id | rubrics |
-| 66 | rubrics | clo_id | learning_outcomes |
-| 67 | rubrics | created_by | profiles |
-| 68 | social_challenges | course_id | courses |
+| #   | Table                     | Column                | References           |
+| --- | ------------------------- | --------------------- | -------------------- |
+| 1   | academic_calendar_events  | institution_id        | institutions         |
+| 2   | academic_calendar_events  | semester_id           | semesters            |
+| 3   | announcements             | author_id             | profiles             |
+| 4   | announcements             | course_id             | courses              |
+| 5   | assignments               | course_id             | courses              |
+| 6   | assignments               | created_by            | profiles             |
+| 7   | attendance_records        | marked_by             | profiles             |
+| 8   | audit_logs                | actor_id              | profiles             |
+| 9   | badges                    | student_id            | profiles             |
+| 10  | class_sessions            | section_id            | course_sections      |
+| 11  | course_materials          | module_id             | course_modules       |
+| 12  | course_modules            | course_id             | courses              |
+| 13  | course_sections           | course_id             | courses              |
+| 14  | course_sections           | teacher_id            | profiles             |
+| 15  | courses                   | program_id            | programs             |
+| 16  | courses                   | semester_id           | semesters            |
+| 17  | courses                   | teacher_id            | profiles             |
+| 18  | cqi_action_plans          | outcome_id            | learning_outcomes    |
+| 19  | cqi_action_plans          | program_id            | programs             |
+| 20  | cqi_action_plans          | semester_id           | semesters            |
+| 21  | departments               | head_of_department_id | profiles             |
+| 22  | departments               | institution_id        | institutions         |
+| 23  | discussion_replies        | author_id             | profiles             |
+| 24  | discussion_replies        | thread_id             | discussion_threads   |
+| 25  | discussion_threads        | author_id             | profiles             |
+| 26  | discussion_threads        | course_id             | courses              |
+| 27  | evidence                  | clo_id                | learning_outcomes    |
+| 28  | evidence                  | grade_id              | grades               |
+| 29  | evidence                  | ilo_id                | learning_outcomes    |
+| 30  | evidence                  | plo_id                | learning_outcomes    |
+| 31  | evidence                  | submission_id         | submissions          |
+| 32  | fee_payments              | fee_structure_id      | fee_structures       |
+| 33  | fee_structures            | program_id            | programs             |
+| 34  | fee_structures            | semester_id           | semesters            |
+| 35  | grade_categories          | course_id             | courses              |
+| 36  | grades                    | graded_by             | profiles             |
+| 37  | grades                    | submission_id         | submissions          |
+| 38  | habit_tracking            | student_id            | profiles             |
+| 39  | journal_entries           | clo_id                | learning_outcomes    |
+| 40  | journal_entries           | course_id             | courses              |
+| 41  | journal_entries           | student_id            | profiles             |
+| 42  | learning_outcomes         | course_id             | courses              |
+| 43  | learning_outcomes         | created_by            | profiles             |
+| 44  | learning_outcomes         | institution_id        | institutions         |
+| 45  | learning_outcomes         | program_id            | programs             |
+| 46  | learning_path_nodes       | assignment_id         | assignments          |
+| 47  | learning_path_nodes       | course_id             | courses              |
+| 48  | learning_path_nodes       | prerequisite_node_id  | learning_path_nodes  |
+| 49  | mastery_recovery_pathways | institution_id        | institutions         |
+| 50  | notifications             | user_id               | profiles             |
+| 51  | onboarding_questions      | clo_id                | learning_outcomes    |
+| 52  | onboarding_questions      | course_id             | courses              |
+| 53  | onboarding_responses      | question_id           | onboarding_questions |
+| 54  | outcome_mappings          | source_outcome_id     | learning_outcomes    |
+| 55  | outcome_mappings          | target_outcome_id     | learning_outcomes    |
+| 56  | programs                  | coordinator_id        | profiles             |
+| 57  | programs                  | department_id         | departments          |
+| 58  | programs                  | institution_id        | institutions         |
+| 59  | question_bank             | created_by            | profiles             |
+| 60  | question_bank             | institution_id        | institutions         |
+| 61  | question_bank             | parent_question_id    | question_bank        |
+| 62  | quiz_generation_logs      | teacher_id            | profiles             |
+| 63  | quiz_questions            | quiz_id               | quizzes              |
+| 64  | quizzes                   | course_id             | courses              |
+| 65  | rubric_criteria           | rubric_id             | rubrics              |
+| 66  | rubrics                   | clo_id                | learning_outcomes    |
+| 67  | rubrics                   | created_by            | profiles             |
+| 68  | social_challenges         | course_id             | courses              |
 
 **Note on count**: Some FK columns from the relationships doc that appear "unindexed" are actually covered by composite indexes where the FK column is the leading column. The 68 count matches the audit report's finding. Additional columns like `social_challenges.created_by`, `starter_week_sessions.course_id`, `survey_questions.survey_id`, `survey_responses.question_id`, `survey_responses.respondent_id`, `survey_responses.survey_id`, `surveys.institution_id`, `timetable_slots.section_id`, `verified_explanations.institution_id`, `verified_explanations.verified_by`, `wellness_habit_logs.student_id`, `xp_events.institution_id`, `xp_transactions.team_id`, `semesters.institution_id`, `badge_spotlight_schedule.institution_id` are also unindexed but some may be covered by composite unique constraints. The migration will use `IF NOT EXISTS` for safety.
 
@@ -264,6 +268,7 @@ Cross-referencing the 107 total FKs from `docs/SUPABASE-RELATIONSHIPS-FK.md` aga
 **Pattern change**: Replace all occurrences of bare `auth.uid()` in RLS policy USING/WITH CHECK clauses with `(select auth.uid())`. Similarly replace bare `auth_user_role()` with `(select auth_user_role())` and bare `auth_institution_id()` with `(select auth_institution_id())`.
 
 This is a mechanical transformation:
+
 1. Query `pg_policies` to identify all policies using bare function calls
 2. For each policy, DROP and recreate with the subselect pattern
 3. The migration will be organized by table for readability
@@ -277,6 +282,7 @@ This is a mechanical transformation:
 **Specific Changes**: For tables with multiple permissive SELECT policies for the same role, merge into a single policy with OR conditions:
 
 Example for `announcements`:
+
 ```sql
 -- Before: separate teacher_read and student_read policies
 -- After: single authenticated_read policy
@@ -303,6 +309,7 @@ CREATE POLICY "announcements_read" ON announcements
 **File**: `supabase/migrations/XXXXXX_move_pgnet_to_extensions.sql`
 
 **Specific Changes**:
+
 ```sql
 -- Drop and recreate pg_net in extensions schema
 DROP EXTENSION IF EXISTS pg_net;
@@ -316,6 +323,7 @@ CREATE EXTENSION IF NOT EXISTS pg_net SCHEMA extensions;
 **File**: `supabase/migrations/XXXXXX_secure_leaderboard_view.sql`
 
 **Specific Changes**:
+
 1. Revoke direct SELECT on `leaderboard_weekly` from `anon` and `authenticated` roles
 2. Create a security-definer function `get_leaderboard(p_institution_id uuid)` that:
    - Verifies caller's institution matches `p_institution_id` via `auth_institution_id()`
@@ -342,6 +350,7 @@ The testing strategy follows a two-phase approach: first, surface counterexample
 **Test Plan**: Write property-based tests that verify the defective state exists. Run on UNFIXED code to observe failures.
 
 **Test Cases**:
+
 1. **Edge Function 404 Test**: Verify that invoking any non-health Edge Function returns an error (will fail on unfixed code — confirms functions aren't deployed)
 2. **Storage Bucket Missing Test**: Verify that listing storage buckets returns empty or doesn't include expected buckets (will fail on unfixed code)
 3. **FK Index Missing Test**: Query `pg_stat_user_indexes` to verify FK columns lack covering indexes (will fail on unfixed code)
@@ -350,6 +359,7 @@ The testing strategy follows a two-phase approach: first, surface counterexample
 6. **Leaderboard Exposure Test**: Verify `leaderboard_weekly` is directly queryable by anon role (will fail on unfixed code)
 
 **Expected Counterexamples**:
+
 - Edge Functions return 404/relay errors
 - Storage operations fail with bucket-not-found
 - `pg_indexes` shows no index on FK columns like `assignments.course_id`
@@ -360,6 +370,7 @@ The testing strategy follows a two-phase approach: first, surface counterexample
 **Goal**: Verify that for all inputs where the bug condition holds, the fixed system produces the expected behavior.
 
 **Pseudocode:**
+
 ```
 FOR ALL input WHERE isBugCondition(input) DO
   result := fixedSystem(input)
@@ -372,6 +383,7 @@ END FOR
 **Goal**: Verify that for all inputs where the bug condition does NOT hold, the fixed system produces the same result as the original system.
 
 **Pseudocode:**
+
 ```
 FOR ALL input WHERE NOT isBugCondition(input) DO
   ASSERT originalSystem(input) = fixedSystem(input)
@@ -379,6 +391,7 @@ END FOR
 ```
 
 **Testing Approach**: Property-based testing is recommended for preservation checking because:
+
 - It generates many test cases automatically across the input domain
 - It catches edge cases that manual unit tests might miss
 - It provides strong guarantees that behavior is unchanged for all non-buggy inputs
@@ -386,6 +399,7 @@ END FOR
 **Test Plan**: Observe behavior on UNFIXED code first for existing queries and RLS enforcement, then write property-based tests capturing that behavior.
 
 **Test Cases**:
+
 1. **Health Function Preservation**: Verify the health Edge Function continues to respond successfully after all other functions are deployed
 2. **Existing RLS Preservation**: Verify that existing RLS policies on evidence, learning_outcomes, submissions, student_gamification, audit_logs continue to enforce the same access rules after optimization
 3. **Existing Index Preservation**: Verify the 3 existing performance indexes continue to exist and function after the FK index migration

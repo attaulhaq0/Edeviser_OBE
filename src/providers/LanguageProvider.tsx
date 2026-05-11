@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -17,13 +18,13 @@ export type Language = "en" | "ar";
 interface LanguageContextValue {
   language: Language;
   direction: "ltr" | "rtl";
-  setLanguage: (lang: Language) => Promise<void>;
+  setLanguage: (lang: Language) => void;
 }
 
 const LanguageContext = createContext<LanguageContextValue>({
   language: "en",
   direction: "ltr",
-  setLanguage: async () => {},
+  setLanguage: () => {},
 });
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -35,6 +36,8 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
   const profileLang = ((profile?.preferred_language as Language) ||
     "en") as Language;
   const [language, setLanguageState] = useState<Language>(profileLang);
+  // Debounce timer ref — prevents multiple DB writes on rapid language changes
+  const dbWriteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const direction: "ltr" | "rtl" = language === "ar" ? "rtl" : "ltr";
 
@@ -43,7 +46,7 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
     applyDirection(language);
   }, [language]);
 
-  // Sync language when profile preference changes
+  // Sync language when profile preference changes (one-way: profile → state)
   useEffect(() => {
     if (profileLang !== language) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- Intentional: sync state from profile preference
@@ -54,28 +57,37 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profileLang]);
 
+  const userId = user?.id;
+
   const setLanguage = useCallback(
-    async (lang: Language) => {
+    (lang: Language) => {
       setLanguageState(lang);
-      i18n.changeLanguage(lang);
+      void i18n.changeLanguage(lang);
       localStorage.setItem("edeviser-language", lang);
       applyDirection(lang);
 
-      if (user?.id) {
-        await supabase
+      if (!userId) return;
+
+      // Debounce: cancel any pending write and schedule a new one after 800ms
+      if (dbWriteTimerRef.current) {
+        clearTimeout(dbWriteTimerRef.current);
+      }
+      dbWriteTimerRef.current = setTimeout(() => {
+        supabase
           .from("profiles")
           .update({ preferred_language: lang } as never)
-          .eq("id", user.id)
+          .eq("id", userId)
           .then(({ error }) => {
-            if (error)
+            if (error) {
               console.error(
                 "[LanguageProvider] Failed to save preference:",
                 error.message
               );
+            }
           });
-      }
+      }, 800);
     },
-    [i18n, user]
+    [i18n, userId]
   );
 
   const value = useMemo(

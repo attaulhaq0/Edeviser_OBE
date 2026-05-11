@@ -21,7 +21,7 @@ export interface BloomAttempt {
  */
 export function shouldAdvanceBloom(
   currentLevel: number,
-  consecutiveCorrectAtLevel: number,
+  consecutiveCorrectAtLevel: number
 ): number {
   if (consecutiveCorrectAtLevel >= 3 && currentLevel < 6) {
     return currentLevel + 1;
@@ -46,7 +46,7 @@ export function handleBloomRevert(
   currentLevel: number,
   previousLevel: number,
   wasCorrect: boolean,
-  justAdvanced: boolean,
+  justAdvanced: boolean
 ): number {
   if (!wasCorrect && justAdvanced) {
     return previousLevel;
@@ -68,7 +68,7 @@ export function highestBloomReached(attempts: BloomAttempt[]): number {
     if (attempt.correct) {
       correctCountByLevel.set(
         attempt.bloomLevel,
-        (correctCountByLevel.get(attempt.bloomLevel) ?? 0) + 1,
+        (correctCountByLevel.get(attempt.bloomLevel) ?? 0) + 1
       );
     }
   }

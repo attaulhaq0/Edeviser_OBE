@@ -2,9 +2,9 @@
 // Quiz Evidence Generator — Wires quiz scores into the CLO attainment pipeline
 // =============================================================================
 
-import { supabase } from '@/lib/supabase';
+import { supabase } from "@/lib/supabase";
 
-type AttainmentLevel = 'excellent' | 'satisfactory' | 'developing' | 'not_yet';
+type AttainmentLevel = "excellent" | "satisfactory" | "developing" | "not_yet";
 
 interface QuizEvidenceInput {
   attemptId: string;
@@ -20,7 +20,9 @@ interface QuizEvidenceInput {
  *
  * Creates one evidence record per linked CLO, then cascades the attainment rollup.
  */
-export async function generateQuizEvidence(input: QuizEvidenceInput): Promise<void> {
+export async function generateQuizEvidence(
+  input: QuizEvidenceInput
+): Promise<void> {
   const { attemptId, quizId, studentId, scorePercent, cloIds } = input;
 
   if (cloIds.length === 0) return;
@@ -36,25 +38,32 @@ export async function generateQuizEvidence(input: QuizEvidenceInput): Promise<vo
     attainment_level: attainmentLevel,
   }));
 
-  const { error: evidenceErr } = await (supabase.from('evidence') as unknown as {
-    insert: (v: unknown) => Promise<{ error: { message: string } | null }>;
-  }).insert(evidenceRows.map((r) => ({
-    ...r,
-    submission_id: attemptId, // re-use submission_id FK for quiz attempt reference
-    grade_id: attemptId, // re-use grade_id FK for quiz attempt reference
-    plo_id: null,
-    ilo_id: null,
-  })));
+  const { error: evidenceErr } = await (
+    supabase.from("evidence") as unknown as {
+      insert: (v: unknown) => Promise<{ error: { message: string } | null }>;
+    }
+  ).insert(
+    evidenceRows.map((r) => ({
+      ...r,
+      submission_id: attemptId, // re-use submission_id FK for quiz attempt reference
+      grade_id: attemptId, // re-use grade_id FK for quiz attempt reference
+      plo_id: null,
+      ilo_id: null,
+    }))
+  );
 
   if (evidenceErr) {
-    console.error('[QuizEvidence] Failed to insert evidence:', evidenceErr.message);
+    console.error(
+      "[QuizEvidence] Failed to insert evidence:",
+      evidenceErr.message
+    );
   }
 
   // Fetch the quiz's course_id for attainment rollup
   const { data: quiz } = await supabase
-    .from('quizzes')
-    .select('course_id')
-    .eq('id', quizId)
+    .from("quizzes")
+    .select("course_id")
+    .eq("id", quizId)
     .maybeSingle();
 
   if (!quiz) return;
@@ -63,37 +72,41 @@ export async function generateQuizEvidence(input: QuizEvidenceInput): Promise<vo
   for (const cloId of cloIds) {
     try {
       const { data: evidenceList } = await supabase
-        .from('evidence')
-        .select('score_percent')
-        .eq('student_id', studentId)
-        .eq('clo_id', cloId);
+        .from("evidence")
+        .select("score_percent")
+        .eq("student_id", studentId)
+        .eq("clo_id", cloId);
 
       if (!evidenceList || evidenceList.length === 0) continue;
 
       const avgPercent =
-        evidenceList.reduce((sum, e) => sum + (e.score_percent ?? 0), 0) / evidenceList.length;
+        evidenceList.reduce((sum, e) => sum + (e.score_percent ?? 0), 0) /
+        evidenceList.length;
 
-      await supabase.from('outcome_attainment').upsert(
+      await supabase.from("outcome_attainment").upsert(
         {
           outcome_id: cloId,
           student_id: studentId,
           course_id: quiz.course_id,
-          scope: 'student_course',
+          scope: "student_course",
           attainment_percent: Math.round(avgPercent * 100) / 100,
           sample_count: evidenceList.length,
           last_calculated_at: new Date().toISOString(),
         },
-        { onConflict: 'outcome_id,student_id,course_id,scope' },
+        { onConflict: "outcome_id,student_id,course_id,scope" }
       );
     } catch (err) {
-      console.error(`[QuizEvidence] CLO attainment upsert failed for ${cloId}:`, err);
+      console.error(
+        `[QuizEvidence] CLO attainment upsert failed for ${cloId}:`,
+        err
+      );
     }
   }
 }
 
 function classifyAttainment(percent: number): AttainmentLevel {
-  if (percent >= 85) return 'excellent';
-  if (percent >= 70) return 'satisfactory';
-  if (percent >= 50) return 'developing';
-  return 'not_yet';
+  if (percent >= 85) return "excellent";
+  if (percent >= 70) return "satisfactory";
+  if (percent >= 50) return "developing";
+  return "not_yet";
 }

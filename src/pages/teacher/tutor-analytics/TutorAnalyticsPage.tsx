@@ -2,20 +2,20 @@
 // TutorAnalyticsPage — Teacher analytics dashboard for AI Tutor usage
 // =============================================================================
 
-import { useState, useMemo } from 'react';
-import { Card } from '@/components/ui/card';
+import { useState, useMemo } from "react";
+import { Card } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import Shimmer from '@/components/shared/Shimmer';
-import GradientCardHeader from '@/components/shared/GradientCardHeader';
-import { useAuth } from '@/hooks/useAuth';
-import { useCourses } from '@/hooks/useCourses';
-import { useTutorAnalytics } from '@/hooks/useTutorAnalytics';
+} from "@/components/ui/select";
+import Shimmer from "@/components/shared/Shimmer";
+import GradientCardHeader from "@/components/shared/GradientCardHeader";
+import { useAuth } from "@/hooks/useAuth";
+import { useCourses } from "@/hooks/useCourses";
+import { useTutorAnalytics } from "@/hooks/useTutorAnalytics";
 import {
   MessageSquare,
   BarChart3,
@@ -26,7 +26,7 @@ import {
   AlertTriangle,
   FileText,
   type LucideIcon,
-} from 'lucide-react';
+} from "lucide-react";
 import {
   BarChart,
   Bar,
@@ -37,7 +37,7 @@ import {
   ResponsiveContainer,
   LineChart,
   Line,
-} from 'recharts';
+} from "recharts";
 
 // ─── KPI Card ───────────────────────────────────────────────────────────────
 
@@ -79,9 +79,11 @@ const CLOBarTooltip = ({ active, payload }: CLOBarTooltipProps) => {
   if (!item) return null;
   return (
     <div className="bg-white border border-slate-200 shadow-lg rounded-lg p-3 text-sm">
-      <p className="font-semibold truncate max-w-[220px]">{item.payload.clo_title}</p>
+      <p className="font-semibold truncate max-w-[220px]">
+        {item.payload.clo_title}
+      </p>
       <p className="font-black mt-1">
-        {item.value} conversation{item.value !== 1 ? 's' : ''}
+        {item.value} conversation{item.value !== 1 ? "s" : ""}
       </p>
     </div>
   );
@@ -106,7 +108,7 @@ const UsageLineTooltip = ({ active, payload }: UsageLineTooltipProps) => {
     <div className="bg-white border border-slate-200 shadow-lg rounded-lg p-3 text-sm">
       <p className="text-gray-500">{item.payload.date}</p>
       <p className="font-black mt-1">
-        {item.value} conversation{item.value !== 1 ? 's' : ''}
+        {item.value} conversation{item.value !== 1 ? "s" : ""}
       </p>
     </div>
   );
@@ -117,16 +119,18 @@ const UsageLineTooltip = ({ active, payload }: UsageLineTooltipProps) => {
 const TutorAnalyticsPage = () => {
   const { user } = useAuth();
   const { data: paginatedCourses, isLoading: coursesLoading } = useCourses();
-  const [selectedCourseId, setSelectedCourseId] = useState<string>('');
+  const [selectedCourseId, setSelectedCourseId] = useState<string>("");
 
   // Filter to teacher's own courses
   const teacherCourses = useMemo(
-    () => (paginatedCourses?.data ?? []).filter((c) => c.teacher_id === user?.id),
-    [paginatedCourses, user?.id],
+    () =>
+      (paginatedCourses?.data ?? []).filter((c) => c.teacher_id === user?.id),
+    [paginatedCourses, user?.id]
   );
 
   const effectiveCourseId =
-    selectedCourseId || (teacherCourses.length > 0 ? teacherCourses[0]!.id : '');
+    selectedCourseId ||
+    (teacherCourses.length > 0 ? teacherCourses[0]!.id : "");
 
   const { data: analytics, isLoading: analyticsLoading } =
     useTutorAnalytics(effectiveCourseId);
@@ -135,9 +139,9 @@ const TutorAnalyticsPage = () => {
   const cloChartData = useMemo(
     () =>
       [...(analytics?.top_questioned_clos ?? [])].sort(
-        (a, b) => b.conversation_count - a.conversation_count,
+        (a, b) => b.conversation_count - a.conversation_count
       ),
-    [analytics?.top_questioned_clos],
+    [analytics?.top_questioned_clos]
   );
 
   // Prepare usage over time data
@@ -149,13 +153,13 @@ const TutorAnalyticsPage = () => {
       (analytics?.top_questioned_clos ?? [])
         .filter((clo) => clo.conversation_count >= 3)
         .slice(0, 6),
-    [analytics?.top_questioned_clos],
+    [analytics?.top_questioned_clos]
   );
 
   // Material Effectiveness: most-cited course materials (derived from common topics)
   const materialEffectiveness = useMemo(
     () => (analytics?.common_topics ?? []).slice(0, 8),
-    [analytics?.common_topics],
+    [analytics?.common_topics]
   );
 
   const isLoading = coursesLoading || analyticsLoading;
@@ -164,7 +168,9 @@ const TutorAnalyticsPage = () => {
     <div className="space-y-6">
       {/* Page Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">AI Tutor Analytics</h1>
+        <h1 className="text-2xl font-bold tracking-tight">
+          AI Tutor Analytics
+        </h1>
       </div>
 
       {/* Course Selector */}
@@ -207,7 +213,7 @@ const TutorAnalyticsPage = () => {
           <KPICard
             icon={TrendingUp}
             label="Avg Messages / Conv"
-            value={analytics?.avg_messages_per_conversation?.toFixed(1) ?? '0'}
+            value={analytics?.avg_messages_per_conversation?.toFixed(1) ?? "0"}
           />
           <KPICard
             icon={ThumbsUp}
@@ -215,7 +221,7 @@ const TutorAnalyticsPage = () => {
             value={
               analytics?.avg_satisfaction_rating != null
                 ? `${(analytics.avg_satisfaction_rating * 100).toFixed(0)}%`
-                : '—'
+                : "—"
             }
           />
         </div>
@@ -241,7 +247,11 @@ const TutorAnalyticsPage = () => {
                   margin={{ top: 5, right: 30, left: 0, bottom: 5 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                  <XAxis type="number" tick={{ fontSize: 11 }} allowDecimals={false} />
+                  <XAxis
+                    type="number"
+                    tick={{ fontSize: 11 }}
+                    allowDecimals={false}
+                  />
                   <YAxis
                     type="category"
                     dataKey="clo_title"
@@ -274,7 +284,8 @@ const TutorAnalyticsPage = () => {
                   <Shimmer key={i} className="h-8 rounded-lg" />
                 ))}
               </div>
-            ) : !analytics?.common_topics || analytics.common_topics.length === 0 ? (
+            ) : !analytics?.common_topics ||
+              analytics.common_topics.length === 0 ? (
               <div className="flex items-center justify-center h-[300px] text-sm text-gray-500">
                 No topic data available yet.
               </div>
@@ -289,7 +300,9 @@ const TutorAnalyticsPage = () => {
                       <span className="text-xs font-bold text-gray-400 w-5 shrink-0 text-end">
                         {idx + 1}
                       </span>
-                      <span className="text-sm font-medium truncate">{topic.topic}</span>
+                      <span className="text-sm font-medium truncate">
+                        {topic.topic}
+                      </span>
                     </div>
                     <span className="text-sm font-black text-blue-600 shrink-0 ms-3">
                       {topic.frequency}
@@ -304,7 +317,10 @@ const TutorAnalyticsPage = () => {
 
       {/* Usage Over Time — Line Chart */}
       <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
-        <GradientCardHeader icon={CalendarDays} title="Usage Over Time (Last 30 Days)" />
+        <GradientCardHeader
+          icon={CalendarDays}
+          title="Usage Over Time (Last 30 Days)"
+        />
         <div className="p-6">
           {isLoading ? (
             <Shimmer className="h-[300px] rounded-xl" />
@@ -323,7 +339,7 @@ const TutorAnalyticsPage = () => {
                   dataKey="date"
                   tick={{ fontSize: 11 }}
                   tickFormatter={(v: string) => {
-                    const parts = v.split('-');
+                    const parts = v.split("-");
                     return parts.length >= 3 ? `${parts[1]}/${parts[2]}` : v;
                   }}
                 />
@@ -334,8 +350,8 @@ const TutorAnalyticsPage = () => {
                   dataKey="conversation_count"
                   stroke="#14B8A6"
                   strokeWidth={2}
-                  dot={{ fill: '#14B8A6', r: 3 }}
-                  activeDot={{ r: 5, fill: '#0382BD' }}
+                  dot={{ fill: "#14B8A6", r: 3 }}
+                  activeDot={{ r: 5, fill: "#0382BD" }}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -362,8 +378,9 @@ const TutorAnalyticsPage = () => {
             ) : (
               <div className="space-y-2">
                 <p className="text-xs text-gray-500 mb-3">
-                  CLOs with high query volume may indicate insufficient material coverage.
-                  Consider uploading additional materials for these topics.
+                  CLOs with high query volume may indicate insufficient material
+                  coverage. Consider uploading additional materials for these
+                  topics.
                 </p>
                 {coverageGaps.map((clo) => (
                   <div
@@ -400,7 +417,8 @@ const TutorAnalyticsPage = () => {
             ) : (
               <div className="space-y-2">
                 <p className="text-xs text-gray-500 mb-3">
-                  Most frequently referenced topics in AI Tutor responses, ranked by citation count.
+                  Most frequently referenced topics in AI Tutor responses,
+                  ranked by citation count.
                 </p>
                 {materialEffectiveness.map((item, idx) => (
                   <div
@@ -411,7 +429,9 @@ const TutorAnalyticsPage = () => {
                       <span className="text-xs font-bold text-gray-400 w-5 shrink-0 text-end">
                         {idx + 1}
                       </span>
-                      <span className="text-sm font-medium truncate">{item.topic}</span>
+                      <span className="text-sm font-medium truncate">
+                        {item.topic}
+                      </span>
                     </div>
                     <span className="text-sm font-black text-green-600 shrink-0 ms-3">
                       {item.frequency}

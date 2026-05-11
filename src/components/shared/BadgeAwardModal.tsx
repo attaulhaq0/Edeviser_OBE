@@ -1,14 +1,14 @@
-import { useEffect, useRef, useCallback, useSyncExternalStore } from 'react';
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
-import confetti from 'canvas-confetti';
+import { useEffect, useRef, useCallback, useSyncExternalStore } from "react";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import confetti from "canvas-confetti";
 import {
   Dialog,
   DialogContent,
   DialogTitle,
   DialogDescription,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Sparkles } from 'lucide-react';
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Sparkles } from "lucide-react";
 
 interface BadgeAwardModalProps {
   badge: {
@@ -57,7 +57,9 @@ function useDelayedFlag(active: boolean, delayMs: number): boolean {
   // useSyncExternalStore for tear-free reads
   const subscribe = useCallback((cb: () => void) => {
     listeners.current.add(cb);
-    return () => { listeners.current.delete(cb); };
+    return () => {
+      listeners.current.delete(cb);
+    };
   }, []);
 
   const getSnapshot = useCallback(() => value.current, []);
@@ -72,7 +74,8 @@ const BadgeAwardModal = ({ badge, isOpen, onClose }: BadgeAwardModalProps) => {
   const needsReveal = isOpen && badge.isMystery && !prefersReducedMotion;
   const timerRevealed = useDelayedFlag(needsReveal, MYSTERY_REVEAL_DELAY_MS);
 
-  const isRevealed = !badge.isMystery || (prefersReducedMotion ?? false) || timerRevealed;
+  const isRevealed =
+    !badge.isMystery || (prefersReducedMotion ?? false) || timerRevealed;
 
   const fireConfetti = useCallback(
     (opts?: { reveal?: boolean }) => {
@@ -84,11 +87,11 @@ const BadgeAwardModal = ({ badge, isOpen, onClose }: BadgeAwardModalProps) => {
         spread: isReveal ? 120 : 80,
         origin: { y: isReveal ? 0.5 : 0.6 },
         colors: isReveal
-          ? ['#f59e0b', '#eab308', '#fbbf24', '#a855f7', '#ec4899']
-          : ['#f59e0b', '#eab308', '#fbbf24', '#3b82f6', '#14b8a6'],
+          ? ["#f59e0b", "#eab308", "#fbbf24", "#a855f7", "#ec4899"]
+          : ["#f59e0b", "#eab308", "#fbbf24", "#3b82f6", "#14b8a6"],
       });
     },
-    [prefersReducedMotion],
+    [prefersReducedMotion]
   );
 
   // Fire initial confetti when modal opens
@@ -111,11 +114,11 @@ const BadgeAwardModal = ({ badge, isOpen, onClose }: BadgeAwardModalProps) => {
     }
   }, [isOpen, badge.isMystery, timerRevealed, fireConfetti]);
 
-  const displayIcon = isRevealed ? badge.icon : '❓';
-  const displayName = isRevealed ? badge.name : 'Mystery Badge Unlocked!';
+  const displayIcon = isRevealed ? badge.icon : "❓";
+  const displayName = isRevealed ? badge.name : "Mystery Badge Unlocked!";
   const displayDescription = isRevealed
     ? badge.description
-    : 'Revealing your achievement...';
+    : "Revealing your achievement...";
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -127,7 +130,7 @@ const BadgeAwardModal = ({ badge, isOpen, onClose }: BadgeAwardModalProps) => {
           {/* Badge icon */}
           <AnimatePresence mode="wait">
             <motion.div
-              key={isRevealed ? 'revealed' : 'hidden'}
+              key={isRevealed ? "revealed" : "hidden"}
               initial={
                 prefersReducedMotion ? undefined : { scale: 0, opacity: 0 }
               }
@@ -135,11 +138,9 @@ const BadgeAwardModal = ({ badge, isOpen, onClose }: BadgeAwardModalProps) => {
                 prefersReducedMotion ? undefined : { scale: 1, opacity: 1 }
               }
               exit={
-                prefersReducedMotion
-                  ? undefined
-                  : { scale: 0.5, opacity: 0 }
+                prefersReducedMotion ? undefined : { scale: 0.5, opacity: 0 }
               }
-              transition={{ type: 'spring', stiffness: 300, damping: 15 }}
+              transition={{ type: "spring", stiffness: 300, damping: 15 }}
               className="text-6xl animate-badge-pop"
               aria-hidden="true"
             >
@@ -158,9 +159,7 @@ const BadgeAwardModal = ({ badge, isOpen, onClose }: BadgeAwardModalProps) => {
                 animate={
                   prefersReducedMotion ? undefined : { opacity: 1, y: 0 }
                 }
-                exit={
-                  prefersReducedMotion ? undefined : { opacity: 0, y: -8 }
-                }
+                exit={prefersReducedMotion ? undefined : { opacity: 0, y: -8 }}
                 transition={{ duration: 0.25 }}
               >
                 {displayName}
@@ -173,12 +172,8 @@ const BadgeAwardModal = ({ badge, isOpen, onClose }: BadgeAwardModalProps) => {
             <AnimatePresence mode="wait">
               <motion.span
                 key={displayDescription}
-                initial={
-                  prefersReducedMotion ? undefined : { opacity: 0 }
-                }
-                animate={
-                  prefersReducedMotion ? undefined : { opacity: 1 }
-                }
+                initial={prefersReducedMotion ? undefined : { opacity: 0 }}
+                animate={prefersReducedMotion ? undefined : { opacity: 1 }}
                 exit={prefersReducedMotion ? undefined : { opacity: 0 }}
                 transition={{ duration: 0.2, delay: 0.1 }}
               >

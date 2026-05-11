@@ -1,10 +1,14 @@
-import { Brain, Droplets, Dumbbell, Moon, Eye } from 'lucide-react';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { cn } from '@/lib/utils';
-import WellnessReminderSettings from '@/components/shared/WellnessReminderSettings';
-import WellnessGoalInput from '@/components/shared/WellnessGoalInput';
-import type { WellnessHabitType, WellnessReminderConfig, WellnessTarget } from '@/types/habits';
+import { Brain, Droplets, Dumbbell, Moon, Eye } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
+import WellnessReminderSettings from "@/components/shared/WellnessReminderSettings";
+import WellnessGoalInput from "@/components/shared/WellnessGoalInput";
+import type {
+  WellnessHabitType,
+  WellnessReminderConfig,
+  WellnessTarget,
+} from "@/types/habits";
 
 export interface WellnessSettingsPanelProps {
   enabledHabits: WellnessHabitType[];
@@ -15,7 +19,10 @@ export interface WellnessSettingsPanelProps {
   onReminderToggle?: (habitType: WellnessHabitType, enabled: boolean) => void;
   onReminderTimeChange?: (habitType: WellnessHabitType, time: string) => void;
   goals?: WellnessTarget[];
-  goalProgress?: Record<string, { progress: number; logged: number; target: number; unit: string }>;
+  goalProgress?: Record<
+    string,
+    { progress: number; logged: number; target: number; unit: string }
+  >;
   onGoalSave?: (target: WellnessTarget) => void;
 }
 
@@ -26,27 +33,27 @@ const WELLNESS_HABITS: {
   icon: typeof Brain;
 }[] = [
   {
-    type: 'meditation',
-    label: 'Meditation',
-    description: 'Track daily meditation sessions (5+ minutes)',
+    type: "meditation",
+    label: "Meditation",
+    description: "Track daily meditation sessions (5+ minutes)",
     icon: Brain,
   },
   {
-    type: 'hydration',
-    label: 'Hydration',
-    description: 'Track daily water intake (8 glasses)',
+    type: "hydration",
+    label: "Hydration",
+    description: "Track daily water intake (8 glasses)",
     icon: Droplets,
   },
   {
-    type: 'exercise',
-    label: 'Exercise',
-    description: 'Track daily physical activity (30+ minutes)',
+    type: "exercise",
+    label: "Exercise",
+    description: "Track daily physical activity (30+ minutes)",
     icon: Dumbbell,
   },
   {
-    type: 'sleep',
-    label: 'Sleep',
-    description: 'Track nightly sleep duration (7+ hours)',
+    type: "sleep",
+    label: "Sleep",
+    description: "Track nightly sleep duration (7+ hours)",
     icon: Moon,
   },
 ];
@@ -77,20 +84,20 @@ const WellnessSettingsPanel = ({
               key={type}
               data-testid={`wellness-setting-${type}`}
               className={cn(
-                'flex items-center gap-3 rounded-xl border bg-white p-3 shadow-sm transition-colors',
-                enabled && 'border-blue-200 bg-blue-50/30',
+                "flex items-center gap-3 rounded-xl border bg-white p-3 shadow-sm transition-colors",
+                enabled && "border-blue-200 bg-blue-50/30"
               )}
             >
               <div
                 className={cn(
-                  'p-2 rounded-lg',
-                  enabled ? 'bg-blue-100' : 'bg-slate-50',
+                  "p-2 rounded-lg",
+                  enabled ? "bg-blue-100" : "bg-slate-50"
                 )}
               >
                 <Icon
                   className={cn(
-                    'h-4 w-4',
-                    enabled ? 'text-blue-600' : 'text-slate-500',
+                    "h-4 w-4",
+                    enabled ? "text-blue-600" : "text-slate-500"
                   )}
                 />
               </div>
@@ -133,13 +140,16 @@ const WellnessSettingsPanel = ({
       </div>
 
       {/* Reminders Section */}
-      {reminders && reminders.length > 0 && onReminderToggle && onReminderTimeChange && (
-        <WellnessReminderSettings
-          reminders={reminders}
-          onToggle={onReminderToggle}
-          onTimeChange={onReminderTimeChange}
-        />
-      )}
+      {reminders &&
+        reminders.length > 0 &&
+        onReminderToggle &&
+        onReminderTimeChange && (
+          <WellnessReminderSettings
+            reminders={reminders}
+            onToggle={onReminderToggle}
+            onTimeChange={onReminderTimeChange}
+          />
+        )}
 
       {/* Goals Section */}
       {onGoalSave && enabledHabits.length > 0 && (

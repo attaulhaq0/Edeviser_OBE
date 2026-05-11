@@ -2,7 +2,13 @@ import { z } from "zod";
 
 export const quizQuestionSchema = z.object({
   question_text: z.string().min(1, "Question text is required"),
-  question_type: z.enum(["mcq_single", "mcq_multi", "true_false", "short_answer", "fill_blank"]),
+  question_type: z.enum([
+    "mcq_single",
+    "mcq_multi",
+    "true_false",
+    "short_answer",
+    "fill_blank",
+  ]),
   options: z.array(z.string()).nullable(),
   correct_answer: z.union([z.string(), z.array(z.string())]),
   points: z.number().min(0),

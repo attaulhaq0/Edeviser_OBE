@@ -1,16 +1,16 @@
-import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   createILOSchema,
   updateILOSchema,
   type CreateILOFormData,
   type UpdateILOFormData,
-} from '@/lib/schemas/ilo';
-import { useCreateILO, useUpdateILO, useILO } from '@/hooks/useILOs';
-import { useTranslation } from 'react-i18next';
-import { useAuth } from '@/hooks/useAuth';
+} from "@/lib/schemas/ilo";
+import { useCreateILO, useUpdateILO, useILO } from "@/hooks/useILOs";
+import { useTranslation } from "react-i18next";
+import { useAuth } from "@/hooks/useAuth";
 import {
   Form,
   FormField,
@@ -18,14 +18,14 @@ import {
   FormLabel,
   FormControl,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { ArrowLeft, Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
-import type { LearningOutcome } from '@/types/app';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { ArrowLeft, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import type { LearningOutcome } from "@/types/app";
 
 // ─── Create mode form ────────────────────────────────────────────────────────
 
@@ -36,9 +36,9 @@ const CreateILOForm = ({ institutionId }: { institutionId: string }) => {
   const form = useForm<CreateILOFormData>({
     resolver: zodResolver(createILOSchema),
     defaultValues: {
-      title: '',
-      title_ar: '',
-      description: '',
+      title: "",
+      title_ar: "",
+      description: "",
       institution_id: institutionId,
     },
   });
@@ -48,11 +48,11 @@ const CreateILOForm = ({ institutionId }: { institutionId: string }) => {
       { ...data, institution_id: institutionId },
       {
         onSuccess: () => {
-          toast.success('ILO created successfully');
-          navigate('/admin/outcomes');
+          toast.success("ILO created successfully");
+          navigate("/admin/outcomes");
         },
         onError: (err) => toast.error(err.message),
-      },
+      }
     );
   };
 
@@ -76,9 +76,9 @@ const EditILOForm = ({ iloId }: { iloId: string }) => {
   const form = useForm<UpdateILOFormData>({
     resolver: zodResolver(updateILOSchema),
     defaultValues: {
-      title: '',
-      title_ar: '',
-      description: '',
+      title: "",
+      title_ar: "",
+      description: "",
     },
   });
 
@@ -87,8 +87,10 @@ const EditILOForm = ({ iloId }: { iloId: string }) => {
       const ilo = existingILO as unknown as LearningOutcome;
       form.reset({
         title: ilo.title,
-        title_ar: (ilo as unknown as Record<string, unknown>).title_ar as string ?? '',
-        description: ilo.description ?? '',
+        title_ar:
+          ((ilo as unknown as Record<string, unknown>).title_ar as string) ??
+          "",
+        description: ilo.description ?? "",
       });
     }
   }, [existingILO, form]);
@@ -104,8 +106,8 @@ const EditILOForm = ({ iloId }: { iloId: string }) => {
   const onSubmit = (data: UpdateILOFormData) => {
     updateMutation.mutate(data, {
       onSuccess: () => {
-        toast.success('ILO updated successfully');
-        navigate('/admin/outcomes');
+        toast.success("ILO updated successfully");
+        navigate("/admin/outcomes");
       },
       onError: (err) => toast.error(err.message),
     });
@@ -137,18 +139,20 @@ const ILOFormFields = <T extends CreateILOFormData | UpdateILOFormData>({
   isEditMode,
 }: ILOFormFieldsProps<T>) => {
   const navigate = useNavigate();
-  const { t } = useTranslation('admin');
+  const { t } = useTranslation("admin");
 
   return (
     <Card className="bg-white border-0 shadow-md rounded-xl p-6 max-w-2xl">
       <Form {...form}>
         <form
-          onSubmit={form.handleSubmit(onSubmit as Parameters<typeof form.handleSubmit>[0])}
+          onSubmit={form.handleSubmit(
+            onSubmit as Parameters<typeof form.handleSubmit>[0]
+          )}
           className="space-y-6"
         >
           <FormField
             control={form.control}
-            name={'title' as never}
+            name={"title" as never}
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Title</FormLabel>
@@ -165,16 +169,16 @@ const ILOFormFields = <T extends CreateILOFormData | UpdateILOFormData>({
 
           <FormField
             control={form.control}
-            name={'title_ar' as never}
+            name={"title_ar" as never}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('bilingual.arabicTitle')}</FormLabel>
+                <FormLabel>{t("bilingual.arabicTitle")}</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder={t('bilingual.arabicTitlePlaceholder')}
+                    placeholder={t("bilingual.arabicTitlePlaceholder")}
                     dir="rtl"
                     {...field}
-                    value={(field.value as string) ?? ''}
+                    value={(field.value as string) ?? ""}
                   />
                 </FormControl>
                 <FormMessage />
@@ -184,7 +188,7 @@ const ILOFormFields = <T extends CreateILOFormData | UpdateILOFormData>({
 
           <FormField
             control={form.control}
-            name={'description' as never}
+            name={"description" as never}
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Description</FormLabel>
@@ -207,12 +211,12 @@ const ILOFormFields = <T extends CreateILOFormData | UpdateILOFormData>({
               className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 text-white"
             >
               {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-              {isEditMode ? 'Update ILO' : 'Create ILO'}
+              {isEditMode ? "Update ILO" : "Create ILO"}
             </Button>
             <Button
               type="button"
               variant="outline"
-              onClick={() => navigate('/admin/outcomes')}
+              onClick={() => navigate("/admin/outcomes")}
             >
               Cancel
             </Button>
@@ -237,20 +241,20 @@ const ILOForm = () => {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => navigate('/admin/outcomes')}
+          onClick={() => navigate("/admin/outcomes")}
         >
           <ArrowLeft className="h-4 w-4" />
           Back
         </Button>
         <h1 className="text-2xl font-bold tracking-tight">
-          {isEditMode ? 'Edit ILO' : 'Create ILO'}
+          {isEditMode ? "Edit ILO" : "Create ILO"}
         </h1>
       </div>
 
       {isEditMode ? (
         <EditILOForm iloId={id} />
       ) : (
-        <CreateILOForm institutionId={institutionId ?? ''} />
+        <CreateILOForm institutionId={institutionId ?? ""} />
       )}
     </div>
   );

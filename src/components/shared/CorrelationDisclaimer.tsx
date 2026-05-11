@@ -1,4 +1,4 @@
-import { Info } from 'lucide-react';
+import { Info } from "lucide-react";
 
 const CorrelationDisclaimer = () => (
   <div
@@ -7,8 +7,8 @@ const CorrelationDisclaimer = () => (
   >
     <Info className="h-4 w-4 text-slate-500 shrink-0 mt-0.5" />
     <p className="text-xs text-slate-600">
-      These insights show patterns in your data, not cause-and-effect relationships. Many factors
-      influence academic performance.
+      These insights show patterns in your data, not cause-and-effect
+      relationships. Many factors influence academic performance.
     </p>
   </div>
 );

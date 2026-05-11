@@ -1,6 +1,6 @@
-import i18n from '@/lib/i18n';
+import i18n from "@/lib/i18n";
 
-const getLocale = (): string => (i18n.language === 'ar' ? 'ar-QA' : 'en-US');
+const getLocale = (): string => (i18n.language === "ar" ? "ar-QA" : "en-US");
 
 /**
  * Formats a number using the active i18n locale.
@@ -16,7 +16,7 @@ export const formatNumber = (value: number): string => {
  */
 export const formatPercent = (value: number, decimals: number = 0): string => {
   return new Intl.NumberFormat(getLocale(), {
-    style: 'percent',
+    style: "percent",
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   }).format(value / 100);
@@ -26,5 +26,7 @@ export const formatPercent = (value: number, decimals: number = 0): string => {
  * Formats a number in compact notation (e.g. 1.2K, 3.4M).
  */
 export const formatCompact = (value: number): string => {
-  return new Intl.NumberFormat(getLocale(), { notation: 'compact' }).format(value);
+  return new Intl.NumberFormat(getLocale(), { notation: "compact" }).format(
+    value
+  );
 };

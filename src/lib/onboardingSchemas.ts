@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 // ── Response Schemas ────────────────────────────────────────────────
 
@@ -32,17 +32,21 @@ export const studyStrategyResponseSchema = z.object({
 export const saveResponsesSchema = z.object({
   student_id: z.string().uuid(),
   assessment_type: z.enum([
-    'personality',
-    'learning_style',
-    'baseline',
-    'self_efficacy',
-    'study_strategy',
+    "personality",
+    "learning_style",
+    "baseline",
+    "self_efficacy",
+    "study_strategy",
   ]),
   assessment_version: z.number().int().min(1),
   course_id: z.string().uuid().optional(),
   responses: z
     .array(
-      z.union([likertResponseSchema, varkResponseSchema, baselineResponseSchema]),
+      z.union([
+        likertResponseSchema,
+        varkResponseSchema,
+        baselineResponseSchema,
+      ])
     )
     .min(1),
 });
@@ -52,12 +56,12 @@ export const processOnboardingSchema = z.object({
   assessment_version: z.number().int().min(1),
   skipped_sections: z.array(
     z.enum([
-      'personality',
-      'learning_style',
-      'baseline',
-      'self_efficacy',
-      'study_strategy',
-    ]),
+      "personality",
+      "learning_style",
+      "baseline",
+      "self_efficacy",
+      "study_strategy",
+    ])
   ),
   baseline_course_ids: z.array(z.string().uuid()),
   is_day1: z.boolean().default(false),
@@ -70,7 +74,7 @@ export const baselineQuestionSchema = z.object({
   options: z.array(z.string().min(1).max(500)).length(4),
   correct_option: z.number().int().min(0).max(3),
   clo_id: z.string().uuid(),
-  difficulty_level: z.enum(['easy', 'medium', 'hard']),
+  difficulty_level: z.enum(["easy", "medium", "hard"]),
 });
 
 export const baselineTestConfigSchema = z.object({
@@ -83,9 +87,9 @@ export const baselineTestConfigSchema = z.object({
 
 export const starterWeekSessionSchema = z.object({
   course_id: z.string().uuid().nullable(),
-  session_type: z.enum(['reading', 'practice', 'review', 'exploration']),
+  session_type: z.enum(["reading", "practice", "review", "exploration"]),
   suggested_date: z.string().date(),
-  suggested_time_slot: z.enum(['morning', 'afternoon', 'evening']),
+  suggested_time_slot: z.enum(["morning", "afternoon", "evening"]),
   duration_minutes: z.number().int().min(25).max(50),
   description: z.string().min(10).max(500),
 });
@@ -97,7 +101,7 @@ export const goalSuggestionSchema = z.object({
   smart_achievable: z.string().optional(),
   smart_relevant: z.string().optional(),
   smart_timebound: z.string().date().optional(),
-  difficulty: z.enum(['easy', 'moderate', 'ambitious']),
+  difficulty: z.enum(["easy", "moderate", "ambitious"]),
 });
 
 export const smartGoalTemplateSchema = z.object({

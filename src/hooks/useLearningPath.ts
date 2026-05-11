@@ -1,7 +1,7 @@
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import type { BloomsLevel } from '@/lib/schemas/clo';
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import type { BloomsLevel } from "@/lib/schemas/clo";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -9,7 +9,7 @@ export interface LearningPathNode {
   assignment_id: string;
   title: string;
   blooms_level: BloomsLevel;
-  status: 'locked' | 'available' | 'submitted' | 'graded';
+  status: "locked" | "available" | "submitted" | "graded";
   attainment_percent: number | null;
   prerequisite?: {
     clo_id: string;
@@ -65,10 +65,12 @@ export function buildLearningPathNodes(
   clos: RawCLO[],
   attainments: RawAttainment[],
   submissions: RawSubmission[],
-  grades: RawGrade[],
+  grades: RawGrade[]
 ): LearningPathNode[] {
   const cloMap = new Map(clos.map((c) => [c.id, c]));
-  const attainmentMap = new Map(attainments.map((a) => [a.outcome_id, a.attainment_percent]));
+  const attainmentMap = new Map(
+    attainments.map((a) => [a.outcome_id, a.attainment_percent])
+  );
   const submittedAssignments = new Set(submissions.map((s) => s.assignment_id));
   const gradedAssignments = new Set(grades.map((g) => g.assignment_id));
 
@@ -76,11 +78,11 @@ export function buildLearningPathNodes(
     // Determine Bloom's level from the first linked CLO
     const primaryCloId = assignment.clo_weights[0]?.clo_id;
     const primaryClo = primaryCloId ? cloMap.get(primaryCloId) : undefined;
-    const bloomsLevel: BloomsLevel = primaryClo?.blooms_level ?? 'remembering';
+    const bloomsLevel: BloomsLevel = primaryClo?.blooms_level ?? "remembering";
 
     // Check prerequisite status
     let isLocked = false;
-    let prerequisite: LearningPathNode['prerequisite'] = undefined;
+    let prerequisite: LearningPathNode["prerequisite"] = undefined;
 
     if (assignment.prerequisites && assignment.prerequisites.length > 0) {
       const prereq = assignment.prerequisites[0];
@@ -92,7 +94,7 @@ export function buildLearningPathNodes(
           isLocked = true;
           prerequisite = {
             clo_id: prereq.clo_id,
-            clo_title: prereqClo?.title ?? 'Unknown CLO',
+            clo_title: prereqClo?.title ?? "Unknown CLO",
             required_attainment: prereq.required_attainment,
             current_attainment: currentAttainment,
           };
@@ -101,15 +103,15 @@ export function buildLearningPathNodes(
     }
 
     // Determine status
-    let status: LearningPathNode['status'];
+    let status: LearningPathNode["status"];
     if (isLocked) {
-      status = 'locked';
+      status = "locked";
     } else if (gradedAssignments.has(assignment.id)) {
-      status = 'graded';
+      status = "graded";
     } else if (submittedAssignments.has(assignment.id)) {
-      status = 'submitted';
+      status = "submitted";
     } else {
-      status = 'available';
+      status = "available";
     }
 
     // Get attainment for the primary CLO
@@ -129,7 +131,8 @@ export function buildLearningPathNodes(
 
   // Sort by Bloom's level order, then by title for stability
   nodes.sort((a, b) => {
-    const levelDiff = BLOOMS_ORDER[a.blooms_level] - BLOOMS_ORDER[b.blooms_level];
+    const levelDiff =
+      BLOOMS_ORDER[a.blooms_level] - BLOOMS_ORDER[b.blooms_level];
     if (levelDiff !== 0) return levelDiff;
     return a.title.localeCompare(b.title);
   });
@@ -139,35 +142,42 @@ export function buildLearningPathNodes(
 
 // ─── useLearningPath — fetch and build learning path for a course ───────────
 
-export const useLearningPath = (courseId: string | undefined, studentId: string | undefined) => {
+export const useLearningPath = (
+  courseId: string | undefined,
+  studentId: string | undefined
+) => {
   return useQuery({
-    queryKey: queryKeys.assignments.list({ courseId, studentId, view: 'learningPath' }),
+    queryKey: queryKeys.assignments.list({
+      courseId,
+      studentId,
+      view: "learningPath",
+    }),
     queryFn: async (): Promise<LearningPathNode[]> => {
       if (!courseId || !studentId) return [];
 
       // Fetch assignments for the course
       const { data: assignments, error: assignErr } = await supabase
-        .from('assignments')
-        .select('id, title, prerequisites, clo_weights')
-        .eq('course_id', courseId);
+        .from("assignments")
+        .select("id, title, prerequisites, clo_weights")
+        .eq("course_id", courseId);
 
       if (assignErr) throw assignErr;
 
       // Fetch CLOs for the course
       const { data: clos, error: cloErr } = await supabase
-        .from('learning_outcomes')
-        .select('id, title, blooms_level')
-        .eq('type', 'CLO')
-        .eq('course_id', courseId);
+        .from("learning_outcomes")
+        .select("id, title, blooms_level")
+        .eq("type", "CLO")
+        .eq("course_id", courseId);
 
       if (cloErr) throw cloErr;
 
       // Fetch student's outcome attainment for prerequisite checking
       const { data: attainments, error: attErr } = await supabase
-        .from('outcome_attainment')
-        .select('outcome_id, attainment_percent')
-        .eq('student_id', studentId)
-        .eq('scope', 'student_course');
+        .from("outcome_attainment")
+        .select("outcome_id, attainment_percent")
+        .eq("student_id", studentId)
+        .eq("scope", "student_course");
 
       if (attErr) throw attErr;
 
@@ -178,24 +188,25 @@ export const useLearningPath = (courseId: string | undefined, studentId: string 
 
       if (assignmentIds.length > 0) {
         const { data: subs, error: subErr } = await supabase
-          .from('submissions')
-          .select('assignment_id, status')
-          .eq('student_id', studentId)
-          .in('assignment_id', assignmentIds);
+          .from("submissions")
+          .select("assignment_id, status")
+          .eq("student_id", studentId)
+          .in("assignment_id", assignmentIds);
 
         if (subErr) throw subErr;
         submissions = subs ?? [];
 
         const { data: gradeData, error: gradeErr } = await supabase
-          .from('grades')
-          .select('submission_id, submissions!inner(assignment_id)')
-          .in('submissions.assignment_id', assignmentIds);
+          .from("grades")
+          .select("submission_id, submissions!inner(assignment_id)")
+          .in("submissions.assignment_id", assignmentIds);
 
         if (gradeErr) throw gradeErr;
 
         grades = (gradeData ?? []).map((g) => ({
           submission_id: g.submission_id,
-          assignment_id: (g.submissions as unknown as { assignment_id: string }).assignment_id,
+          assignment_id: (g.submissions as unknown as { assignment_id: string })
+            .assignment_id,
         }));
       }
 
@@ -204,7 +215,7 @@ export const useLearningPath = (courseId: string | undefined, studentId: string 
         (clos ?? []) as RawCLO[],
         (attainments ?? []) as RawAttainment[],
         submissions,
-        grades,
+        grades
       );
     },
     enabled: !!courseId && !!studentId,

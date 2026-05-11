@@ -25,9 +25,9 @@ Imagine you and a friend are both editing the same Google Doc at the same time, 
 In Git terms:
 
 - You create a **branch** (a copy of the code) to work on a feature.
-- While you're working, someone else merges *their* changes into `main`.
+- While you're working, someone else merges _their_ changes into `main`.
 - Now your branch and `main` have **different versions of the same file**.
-- When you try to merge your branch back into `main`, Git says: *"I don't know which version is correct. You decide."*
+- When you try to merge your branch back into `main`, Git says: _"I don't know which version is correct. You decide."_
 
 ### What a Conflict Looks Like
 
@@ -55,15 +55,15 @@ Looking at the Edeviser git history, there's a very clear pattern. Here's what's
 
 Your repo has branches like:
 
-| Branch | What it does |
-|--------|-------------|
-| `feat/platform-tasks-27-33` | Platform features (CLO progress, XP, notifications) |
-| `feat/platform-tasks-33-37` | More platform features (AI, profiles) |
-| `feat/adaptive-quiz-generation` | Quiz engine |
-| `feat/adaptive-quiz-hooks-pages-tests` | Quiz UI + tests |
-| `feat/journal-learning-path` | Journal + learning path |
-| `feat/student-onboarding-profiling` | Onboarding wizard |
-| `feat/habit-heatmap` | Habit tracking |
+| Branch                                 | What it does                                        |
+| -------------------------------------- | --------------------------------------------------- |
+| `feat/platform-tasks-27-33`            | Platform features (CLO progress, XP, notifications) |
+| `feat/platform-tasks-33-37`            | More platform features (AI, profiles)               |
+| `feat/adaptive-quiz-generation`        | Quiz engine                                         |
+| `feat/adaptive-quiz-hooks-pages-tests` | Quiz UI + tests                                     |
+| `feat/journal-learning-path`           | Journal + learning path                             |
+| `feat/student-onboarding-profiling`    | Onboarding wizard                                   |
+| `feat/habit-heatmap`                   | Habit tracking                                      |
 
 All of these branches touch **shared files** like:
 
@@ -193,6 +193,7 @@ git push --force-with-lease
 ```
 
 **When to use rebase vs merge:**
+
 - Use **merge** if your PR is already open and others might be looking at it
 - Use **rebase** if your branch is local/personal and you want a clean history
 - When in doubt, use **merge** — it's safer
@@ -218,9 +219,9 @@ This gives you the correct, up-to-date version every time.
 
 The #1 cause of your conflicts is branches that live for days/weeks while other branches merge.
 
-| Instead of... | Do this... |
-|--------------|-----------|
-| One branch with 15 commits touching 30 files | 3 smaller branches, each touching 10 files |
+| Instead of...                                   | Do this...                                                   |
+| ----------------------------------------------- | ------------------------------------------------------------ |
+| One branch with 15 commits touching 30 files    | 3 smaller branches, each touching 10 files                   |
 | `feat/platform-tasks-27-33` (7 tasks in one PR) | `feat/task-27-clo-progress`, `feat/task-28-xp-history`, etc. |
 
 Smaller PRs = fewer files changed = fewer conflicts = faster reviews.
@@ -230,6 +231,7 @@ Smaller PRs = fewer files changed = fewer conflicts = faster reviews.
 If Branch B depends on files that Branch A changes, merge A first, then update B.
 
 For Edeviser, a good merge order would be:
+
 1. Database/schema changes first (they affect `database.ts`)
 2. Library/utility changes next (`src/lib/`)
 3. Hooks next (`src/hooks/`)
@@ -259,6 +261,7 @@ This tells Git: "For this file, always keep our version during merges" — then 
 ### Strategy 5: Avoid Editing the Same Shared Files
 
 If two features both need to add routes to `AppRouter.tsx`, coordinate:
+
 - Feature A adds its routes and merges first
 - Feature B pulls main, then adds its routes
 
@@ -295,6 +298,7 @@ Build only runs if ALL THREE above pass.
 **What it does:** Runs ESLint to check code style and catch common mistakes.
 
 **Why it fails:**
+
 - Unused imports or variables
 - Missing return types on functions
 - Using `any` type (your config likely bans this)
@@ -303,6 +307,7 @@ Build only runs if ALL THREE above pass.
 **Your config uses `--max-warnings 0`**, which means even a single warning fails the build. This is strict but good — it keeps the codebase clean.
 
 **How to fix locally:**
+
 ```bash
 # See all lint errors
 npm run lint
@@ -316,6 +321,7 @@ npx eslint . --fix
 **What it does:** Runs the TypeScript compiler to check all types are correct, without actually building anything.
 
 **Why it fails:**
+
 - A function expects `string` but you passed `number`
 - A property doesn't exist on a type (common after `database.ts` changes)
 - Missing imports
@@ -324,6 +330,7 @@ npx eslint . --fix
 **Common Edeviser scenario:** You add a new column to a Supabase table but forget to regenerate `database.ts`. Now your code references a column that TypeScript doesn't know about.
 
 **How to fix locally:**
+
 ```bash
 npx tsc --noEmit
 # Read the errors — they tell you exactly which file and line
@@ -334,6 +341,7 @@ npx tsc --noEmit
 **What it does:** Runs all your Vitest tests (unit tests + property-based tests).
 
 **Why it fails:**
+
 - A test assertion is wrong (expected X, got Y)
 - A component changed but the test wasn't updated
 - A mock is outdated (the function signature changed)
@@ -341,6 +349,7 @@ npx tsc --noEmit
 - Environment variables missing (the CI uses placeholder Supabase keys)
 
 **Your CI sets fallback env vars:**
+
 ```yaml
 VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'http://localhost:54321' }}
 VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'placeholder-anon-key' }}
@@ -349,6 +358,7 @@ VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'placeholder-anon-
 If your tests actually try to call Supabase (instead of mocking), they'll fail in CI because there's no real Supabase instance running.
 
 **How to fix locally:**
+
 ```bash
 npm test
 # Or run a specific test file:
@@ -360,6 +370,7 @@ npx vitest --run src/__tests__/unit/myTest.test.ts
 **What it does:** Compiles TypeScript and bundles the app with Vite. This only runs if lint, typecheck, and tests all pass.
 
 **Why it fails:**
+
 - Usually the same reasons as typecheck (since `tsc -b` runs first)
 - Import errors that only show up during bundling
 - Missing environment variables at build time
@@ -370,12 +381,12 @@ npx vitest --run src/__tests__/unit/myTest.test.ts
 
 Here's why:
 
-| Without CI | With CI |
-|-----------|---------|
+| Without CI                          | With CI                              |
+| ----------------------------------- | ------------------------------------ |
 | Broken code gets merged into `main` | Broken code is caught BEFORE merging |
-| You discover bugs in production | You discover bugs in your PR |
-| Other developers pull broken code | `main` stays clean and working |
-| "It works on my machine" problems | Same checks run on every machine |
+| You discover bugs in production     | You discover bugs in your PR         |
+| Other developers pull broken code   | `main` stays clean and working       |
+| "It works on my machine" problems   | Same checks run on every machine     |
 
 Think of CI as a safety net. Every failure it catches is a bug that **didn't** reach your users.
 
@@ -384,12 +395,14 @@ Think of CI as a safety net. Every failure it catches is a bug that **didn't** r
 There's no way to make CI "never fail" — and you wouldn't want that. But you can make it fail **less often**:
 
 **Run checks locally before pushing:**
+
 ```bash
 # Run all three checks locally (same as CI)
 npm run lint && npx tsc --noEmit && npm test
 ```
 
 **Create a pre-push hook** (runs automatically before every `git push`):
+
 ```bash
 # In your terminal:
 echo 'npm run lint && npx tsc --noEmit && npm test' > .git/hooks/pre-push
@@ -400,12 +413,12 @@ Now if any check fails locally, the push is blocked — saving you a round-trip 
 
 **Quick reference for common CI fixes:**
 
-| CI Error | Local Fix |
-|----------|-----------|
-| Lint: unused import | Remove the import or add `// eslint-disable-next-line` with justification |
-| Type: property does not exist | Regenerate `database.ts` or fix the type |
-| Test: expected X received Y | Update the test or fix the code |
-| Build: module not found | Check your import paths use `@/` alias |
+| CI Error                      | Local Fix                                                                 |
+| ----------------------------- | ------------------------------------------------------------------------- |
+| Lint: unused import           | Remove the import or add `// eslint-disable-next-line` with justification |
+| Type: property does not exist | Regenerate `database.ts` or fix the type                                  |
+| Test: expected X received Y   | Update the test or fix the code                                           |
+| Build: module not found       | Check your import paths use `@/` alias                                    |
 
 ---
 
@@ -428,16 +441,16 @@ Your `launch.json` looks like this:
 
 ```jsonc
 {
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Launch Program",
-            "skipFiles": ["<node_internals>/**"],
-            "program": "${file}"
-        }
-    ]
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Launch Program",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${file}"
+    }
+  ]
 }
 ```
 
@@ -466,21 +479,22 @@ Replace your `launch.json` with:
 
 ```jsonc
 {
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "type": "chrome",
-            "request": "launch",
-            "name": "Debug in Chrome",
-            "url": "http://localhost:5173",
-            "webRoot": "${workspaceFolder}/src",
-            "sourceMaps": true
-        }
-    ]
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "chrome",
+      "request": "launch",
+      "name": "Debug in Chrome",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}/src",
+      "sourceMaps": true
+    }
+  ]
 }
 ```
 
 How to use:
+
 1. Start your dev server in a terminal: `npm run dev`
 2. Press F5 (or the green Play button) — Chrome opens with debugger attached
 3. Set breakpoints in your `.tsx` files — they'll pause in the browser
@@ -491,30 +505,31 @@ Add this configuration for debugging Vitest tests:
 
 ```jsonc
 {
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "type": "chrome",
-            "request": "launch",
-            "name": "Debug in Chrome",
-            "url": "http://localhost:5173",
-            "webRoot": "${workspaceFolder}/src",
-            "sourceMaps": true
-        },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Debug Current Test",
-            "program": "${workspaceFolder}/node_modules/vitest/vitest.mjs",
-            "args": ["--run", "${relativeFile}"],
-            "console": "integratedTerminal",
-            "skipFiles": ["<node_internals>/**"]
-        }
-    ]
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "chrome",
+      "request": "launch",
+      "name": "Debug in Chrome",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}/src",
+      "sourceMaps": true
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug Current Test",
+      "program": "${workspaceFolder}/node_modules/vitest/vitest.mjs",
+      "args": ["--run", "${relativeFile}"],
+      "console": "integratedTerminal",
+      "skipFiles": ["<node_internals>/**"]
+    }
+  ]
 }
 ```
 
 How to use:
+
 1. Open a test file (e.g., `src/__tests__/unit/myTest.test.ts`)
 2. Select "Debug Current Test" from the dropdown
 3. Press F5 — the test runs with debugger attached
@@ -522,11 +537,11 @@ How to use:
 
 ### Quick Reference
 
-| I want to... | Use this |
-|-------------|----------|
-| See my app in the browser | `npm run dev` (no debugger needed) |
-| Debug a React component | "Debug in Chrome" config + breakpoints |
-| Debug a test | "Debug Current Test" config |
+| I want to...                | Use this                                       |
+| --------------------------- | ---------------------------------------------- |
+| See my app in the browser   | `npm run dev` (no debugger needed)             |
+| Debug a React component     | "Debug in Chrome" config + breakpoints         |
+| Debug a test                | "Debug Current Test" config                    |
 | Debug a plain `.ts` utility | "Debug Current Test" with a test that calls it |
 
 ---
@@ -552,4 +567,4 @@ DEBUGGING:
 
 ---
 
-*Generated for the Edeviser project. Last updated: March 2026.*
+_Generated for the Edeviser project. Last updated: March 2026._

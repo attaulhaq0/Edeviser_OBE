@@ -1,14 +1,14 @@
 // Task 66.4: Announcement detail view with Read habit timer (30+ seconds)
 // Requirements: 75.5
-import { useParams, useNavigate } from 'react-router-dom';
-import { useAnnouncement } from '@/hooks/useAnnouncements';
-import { useReadHabitTimer } from '@/hooks/useReadHabitTimer';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import Shimmer from '@/components/shared/Shimmer';
-import { ArrowLeft, Megaphone, Pin, Clock, CheckCircle2 } from 'lucide-react';
-import { format } from 'date-fns';
+import { useParams, useNavigate } from "react-router-dom";
+import { useAnnouncement } from "@/hooks/useAnnouncements";
+import { useReadHabitTimer } from "@/hooks/useReadHabitTimer";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import Shimmer from "@/components/shared/Shimmer";
+import { ArrowLeft, Megaphone, Pin, Clock, CheckCircle2 } from "lucide-react";
+import { format } from "date-fns";
 
 const AnnouncementDetail = () => {
   const { announcementId } = useParams<{ announcementId: string }>();
@@ -17,8 +17,8 @@ const AnnouncementDetail = () => {
 
   // Wire into Read habit — 30+ seconds of viewing counts as "Read" habit
   const { elapsedSeconds, isCompleted } = useReadHabitTimer({
-    pageType: 'assignment_detail', // reuse existing page type
-    pageId: announcementId ?? '',
+    pageType: "assignment_detail", // reuse existing page type
+    pageId: announcementId ?? "",
   });
 
   if (isLoading) {
@@ -34,7 +34,12 @@ const AnnouncementDetail = () => {
     return (
       <div className="text-center py-12">
         <p className="text-sm text-gray-500">Announcement not found.</p>
-        <Button variant="outline" size="sm" className="mt-4" onClick={() => navigate(-1)}>
+        <Button
+          variant="outline"
+          size="sm"
+          className="mt-4"
+          onClick={() => navigate(-1)}
+        >
           Go Back
         </Button>
       </div>
@@ -53,11 +58,16 @@ const AnnouncementDetail = () => {
       </Button>
 
       <Card
-        className={`bg-white border-0 shadow-md rounded-xl overflow-hidden ${announcement.is_pinned ? 'ring-1 ring-amber-200' : ''}`}
+        className={`bg-white border-0 shadow-md rounded-xl overflow-hidden ${
+          announcement.is_pinned ? "ring-1 ring-amber-200" : ""
+        }`}
       >
         <div
           className="px-6 py-4 flex items-center gap-2"
-          style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+          style={{
+            background:
+              "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+          }}
         >
           <Megaphone className="h-5 w-5 text-white" />
           <h1 className="text-lg font-bold tracking-tight text-white flex-1">
@@ -75,7 +85,11 @@ const AnnouncementDetail = () => {
           </div>
           <div className="flex items-center justify-between mt-6 pt-4 border-t border-slate-100">
             <p className="text-xs text-gray-400">
-              Posted {format(new Date(announcement.created_at), 'MMMM d, yyyy · h:mm a')}
+              Posted{" "}
+              {format(
+                new Date(announcement.created_at),
+                "MMMM d, yyyy · h:mm a"
+              )}
             </p>
             {/* Read habit progress indicator */}
             <div className="flex items-center gap-2">
@@ -85,7 +99,8 @@ const AnnouncementDetail = () => {
                 </Badge>
               ) : (
                 <Badge variant="outline" className="text-xs text-gray-400">
-                  <Clock className="h-3 w-3 me-1" /> {30 - elapsedSeconds}s to read habit
+                  <Clock className="h-3 w-3 me-1" /> {30 - elapsedSeconds}s to
+                  read habit
                 </Badge>
               )}
             </div>

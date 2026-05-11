@@ -3,10 +3,10 @@
 // Task 20.7
 // =============================================================================
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import { toast } from 'sonner';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import { toast } from "sonner";
 
 export interface ClassDonation {
   id: string;
@@ -14,7 +14,7 @@ export interface ClassDonation {
   resource_description: string;
   goal_amount: number;
   current_total: number;
-  status: 'active' | 'completed' | 'cancelled';
+  status: "active" | "completed" | "cancelled";
   created_at: string;
 }
 
@@ -23,12 +23,12 @@ export const useClassDonations = (courseId?: string) => {
     queryKey: queryKeys.donations.list({ courseId }),
     queryFn: async (): Promise<ClassDonation[]> => {
       let query = supabase
-        .from('class_donations')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .from("class_donations")
+        .select("*")
+        .order("created_at", { ascending: false });
 
       if (courseId) {
-        query = query.eq('course_id', courseId);
+        query = query.eq("course_id", courseId);
       }
 
       const { data, error } = await query;
@@ -52,7 +52,7 @@ export const useContributeToDonation = () => {
     }) => {
       // Insert contribution
       const { data, error } = await supabase
-        .from('class_donation_contributions')
+        .from("class_donation_contributions")
         .insert({
           donation_id: donationId,
           student_id: studentId,
@@ -63,13 +63,13 @@ export const useContributeToDonation = () => {
       if (error) throw error;
 
       // Insert corresponding xp_purchase for the XP sink
-      await supabase.from('xp_purchases').insert({
+      await supabase.from("xp_purchases").insert({
         student_id: studentId,
         item_id: null as unknown as string,
         xp_cost: xpAmount,
-        status: 'consumed',
+        status: "consumed",
         purchased_at: new Date().toISOString(),
-        metadata: { type: 'class_donation', donation_id: donationId },
+        metadata: { type: "class_donation", donation_id: donationId },
       } as never);
 
       return data;
@@ -77,7 +77,7 @@ export const useContributeToDonation = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.donations.all });
       qc.invalidateQueries({ queryKey: queryKeys.marketplace.all });
-      toast.success('Donation contributed!');
+      toast.success("Donation contributed!");
     },
     onError: (err) => toast.error((err as Error).message),
   });
@@ -93,14 +93,14 @@ export const useCreateClassDonation = () => {
       institutionId: string;
     }) => {
       const { data, error } = await supabase
-        .from('class_donations')
+        .from("class_donations")
         .insert({
           course_id: input.courseId,
           resource_description: input.resourceDescription,
           goal_amount: input.goalAmount,
           institution_id: input.institutionId,
           current_total: 0,
-          status: 'active',
+          status: "active",
         } as never)
         .select()
         .single();
@@ -109,7 +109,7 @@ export const useCreateClassDonation = () => {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.donations.all });
-      toast.success('Donation campaign created');
+      toast.success("Donation campaign created");
     },
     onError: (err) => toast.error((err as Error).message),
   });

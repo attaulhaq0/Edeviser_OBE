@@ -2,9 +2,9 @@
 // LevelProgress — XP progress bar with level info
 // =============================================================================
 
-import { motion, useReducedMotion } from 'framer-motion';
-import { TrendingUp } from 'lucide-react';
-import type { LevelData } from '@/hooks/useLevel';
+import { motion, useReducedMotion } from "framer-motion";
+import { TrendingUp } from "lucide-react";
+import type { LevelData } from "@/hooks/useLevel";
 
 interface LevelProgressProps {
   levelData: LevelData;
@@ -13,7 +13,14 @@ interface LevelProgressProps {
 
 const LevelProgress = ({ levelData, compact = false }: LevelProgressProps) => {
   const prefersReducedMotion = useReducedMotion();
-  const { level, title, xpTotal, xpForCurrentLevel, xpForNextLevel, progressPercent } = levelData;
+  const {
+    level,
+    title,
+    xpTotal,
+    xpForCurrentLevel,
+    xpForNextLevel,
+    progressPercent,
+  } = levelData;
   const isMaxLevel = xpForNextLevel <= xpForCurrentLevel;
 
   if (compact) {
@@ -30,9 +37,13 @@ const LevelProgress = ({ levelData, compact = false }: LevelProgressProps) => {
           <div className="mt-1 h-1.5 w-full rounded-full bg-slate-100 overflow-hidden">
             <motion.div
               className="h-full rounded-full bg-gradient-to-r from-blue-500 to-blue-600"
-              initial={prefersReducedMotion ? { width: `${progressPercent}%` } : { width: 0 }}
+              initial={
+                prefersReducedMotion
+                  ? { width: `${progressPercent}%` }
+                  : { width: 0 }
+              }
               animate={{ width: `${progressPercent}%` }}
-              transition={{ duration: 0.6, ease: 'easeOut' }}
+              transition={{ duration: 0.6, ease: "easeOut" }}
             />
           </div>
         </div>
@@ -53,7 +64,9 @@ const LevelProgress = ({ levelData, compact = false }: LevelProgressProps) => {
           </div>
         </div>
         <div className="text-end">
-          <p className="text-sm font-bold text-amber-600">{xpTotal.toLocaleString()} XP</p>
+          <p className="text-sm font-bold text-amber-600">
+            {xpTotal.toLocaleString()} XP
+          </p>
           {!isMaxLevel && (
             <p className="text-xs text-gray-400">
               {(xpForNextLevel - xpTotal).toLocaleString()} to next
@@ -65,9 +78,13 @@ const LevelProgress = ({ levelData, compact = false }: LevelProgressProps) => {
       <div className="h-2.5 w-full rounded-full bg-slate-100 overflow-hidden">
         <motion.div
           className="h-full rounded-full bg-gradient-to-r from-blue-500 to-blue-600"
-          initial={prefersReducedMotion ? { width: `${progressPercent}%` } : { width: 0 }}
+          initial={
+            prefersReducedMotion
+              ? { width: `${progressPercent}%` }
+              : { width: 0 }
+          }
           animate={{ width: `${progressPercent}%` }}
-          transition={{ duration: 0.8, ease: 'easeOut' }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
           role="progressbar"
           aria-valuenow={progressPercent}
           aria-valuemin={0}
@@ -78,8 +95,12 @@ const LevelProgress = ({ levelData, compact = false }: LevelProgressProps) => {
 
       {!isMaxLevel && (
         <div className="flex justify-between text-[10px] font-black tracking-widest uppercase text-gray-400">
-          <span>Lv {level} — {xpForCurrentLevel.toLocaleString()}</span>
-          <span>Lv {level + 1} — {xpForNextLevel.toLocaleString()}</span>
+          <span>
+            Lv {level} — {xpForCurrentLevel.toLocaleString()}
+          </span>
+          <span>
+            Lv {level + 1} — {xpForNextLevel.toLocaleString()}
+          </span>
         </div>
       )}
     </div>

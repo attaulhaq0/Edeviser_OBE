@@ -1,26 +1,69 @@
-{
+﻿{
   "nav": {
     "dashboard": "لوحة التحكم",
     "users": "المستخدمون",
+    "departments": "الأقسام",
     "programs": "البرامج",
     "courses": "المقررات",
+    "semesters": "الفصول الدراسية",
     "outcomes": "المخرجات",
+    "ilos": "مخرجات التعلم المؤسسية",
+    "timetable": "الجدول الدراسي",
+    "calendar": "التقويم",
+    "fees": "الرسوم",
+    "reports": "التقارير",
+    "auditLog": "سجل المراجعة",
+    "bonusXp": "نقاط إضافية",
+    "badgeSpotlight": "شارة مميزة",
+    "marketplace": "السوق",
+    "surveys": "الاستطلاعات",
+    "settings": "الإعدادات",
+    "plos": "مخرجات البرنامج",
+    "matrix": "المصفوفة",
+    "sankeyDiagram": "مخطط سانكي",
+    "gapAnalysis": "تحليل الفجوات",
+    "coverageHeatmap": "خريطة التغطية الحرارية",
+    "semesterTrends": "اتجاهات الفصل الدراسي",
+    "cohortComparison": "مقارنة المجموعات",
+    "cqiPlans": "خطط تحسين الجودة",
+    "courseFile": "ملف المقرر",
+    "clos": "مخرجات تعلم المقرر",
+    "rubrics": "معايير التقييم",
     "assignments": "التكليفات",
     "grading": "التقييم",
-    "reports": "التقارير",
-    "settings": "الإعدادات",
+    "gradebook": "سجل الدرجات",
+    "announcements": "الإعلانات",
+    "modules": "الوحدات",
+    "challenges": "التحديات",
+    "teams": "الفرق",
+    "teamHealth": "صحة الفريق",
+    "tutorAnalytics": "تحليلات المعلم الخاص",
+    "tutorHandoffs": "تسليمات المعلم الخاص",
+    "baselineTests": "الاختبارات التمهيدية",
+    "planner": "المخطط",
+    "today": "اليوم",
+    "progress": "التقدم",
+    "leaderboard": "لوحة المتصدرين",
+    "myTeam": "فريقي",
+    "habits": "العادات",
+    "myContent": "محتواي",
+    "journal": "اليومية",
+    "aiTutor": "المعلم الذكي",
+    "portfolio": "ملف الإنجازات",
+    "children": "الأبناء",
+    "attendance": "الحضور",
+    "studyPlan": "خطة الدراسة",
     "profile": "الملف الشخصي",
     "notifications": "الإشعارات",
-    "leaderboard": "لوحة المتصدرين",
-    "journal": "اليومية",
-    "progress": "التقدم",
-    "calendar": "التقويم",
-    "timetable": "الجدول الدراسي",
     "discussions": "المناقشات",
-    "attendance": "الحضور",
-    "quizzes": "الاختبارات",
-    "gradebook": "سجل الدرجات",
-    "auditLog": "سجل المراجعة"
+    "quizzes": "الاختبارات"
+  },
+  "emailVerification": {
+    "banner": "يرجى التحقق من عنوان بريدك الإلكتروني للوصول إلى جميع الميزات.",
+    "resend": "إعادة إرسال بريد التحقق",
+    "resendSuccess": "تم إرسال بريد التحقق. يرجى التحقق من صندوق الوارد.",
+    "resendError": "فشل إعادة إرسال بريد التحقق. يرجى المحاولة مرة أخرى.",
+    "dismiss": "إغلاق"
   },
   "buttons": {
     "save": "حفظ",
@@ -77,7 +120,9 @@
     "previous": "السابق",
     "next": "التالي",
     "showing": "عرض {{from}} إلى {{to}} من {{total}}",
-    "rowsPerPage": "صفوف لكل صفحة"
+    "rowsPerPage": "صفوف لكل صفحة",
+    "noResults": "لم يتم العثور على نتائج.",
+    "pageOf": "صفحة {{page}} من {{total}}"
   },
   "confirmation": {
     "deleteTitle": "هل أنت متأكد؟",
@@ -164,6 +209,100 @@
     "profileMenu": "قائمة الملف الشخصي",
     "myProfile": "ملفي الشخصي",
     "profileSettings": "إعدادات الملف الشخصي",
-    "institutionSettings": "إعدادات المؤسسة"
+    "institutionSettings": "إعدادات المؤسسة",
+    "primaryNav": {
+      "label": "التنقل الرئيسي"
+    },
+    "unreadCount": "{{count}} إشعار غير مقروء",
+    "notificationsLabel": "الإشعارات",
+    "markAllRead": "تحديد الكل كمقروء",
+    "emptyNotifications": {
+      "title": "لا توجد إشعارات",
+      "description": "أنت على اطلاع بكل شيء!"
+    },
+    "groupLabel": {
+      "today": "اليوم",
+      "earlierThisWeek": "في وقت سابق من هذا الأسبوع",
+      "older": "أقدم"
+    }
+  },
+  "notificationsCta": {
+    "viewGrade": "عرض الدرجة",
+    "openAssignment": "فتح التكليف",
+    "viewBadge": "عرض الشارة",
+    "viewStreak": "عرض السلسلة",
+    "viewProgress": "عرض التقدم",
+    "viewLeaderboard": "عرض لوحة المتصدرين",
+    "viewHabits": "عرض العادات",
+    "viewAssignment": "عرض التكليف",
+    "viewAll": "عرض الكل"
+  },
+  "tour": {
+    "takeTour": "ابدأ الجولة التعريفية",
+    "back": "رجوع",
+    "close": "إغلاق",
+    "finish": "إنهاء",
+    "next": "التالي",
+    "open": "فتح الحوار",
+    "skip": "تخطي الجولة"
+  },
+  "theme": {
+    "label": "المظهر",
+    "light": "فاتح",
+    "dark": "داكن",
+    "system": "تلقائي"
+  },
+  "auth": {
+    "signedOut": "تم تسجيل الخروج بنجاح",
+    "signOut": "تسجيل الخروج"
+  },
+  "common": {
+    "error": "حدث خطأ. يرجى المحاولة مرة أخرى.",
+    "uploading": "جاري الرفع...",
+    "cancel": "إلغاء"
+  },
+  "weekPicker": {
+    "weekOf": "أسبوع",
+    "selectWeek": "اختر أسبوعاً"
+  },
+  "avatar": {
+    "title": "الصورة الشخصية",
+    "description": "ارفع صورة لتخصيص ملفك الشخصي.",
+    "current": "الصورة الحالية",
+    "preview": "معاينة",
+    "dragDrop": "اسحب وأفلت صورة هنا",
+    "formats": "PNG أو JPG أو WebP — الحد الأقصى 2 ميغابايت",
+    "selectFile": "اختر ملفاً",
+    "upload": "رفع الصورة",
+    "uploadSuccess": "تم تحديث الصورة الشخصية",
+    "invalidType": "يرجى رفع صورة بصيغة PNG أو JPG أو WebP.",
+    "fileTooLarge": "الملف كبير جداً. الحد الأقصى 2 ميغابايت."
+  },
+  "captcha": {
+    "devMode": "كابتشا (وضع التطوير — لم يتم تعيين VITE_CAPTCHA_SITE_KEY)",
+    "bypass": "تجاوز"
+  },
+  "profile": {
+    "myProfile": "ملفي الشخصي"
+  },
+  "greeting": {
+    "morning": "صباح الخير",
+    "afternoon": "مساء الخير",
+    "evening": "مساء الخير",
+    "there": "هناك"
+  },
+  "tos": {
+    "title": "شروط الخدمة",
+    "description": "يرجى مراجعة شروط الخدمة وسياسة الخصوصية والموافقة عليها للمتابعة في استخدام المنصة.",
+    "checkboxLabel": "لقد قرأت وأوافق على",
+    "termsLink": "شروط الخدمة",
+    "and": "و",
+    "privacyLink": "سياسة الخصوصية",
+    "acceptButton": "قبول",
+    "acceptSuccess": "تم قبول شروط الخدمة",
+    "acceptError": "فشل قبول شروط الخدمة. يرجى المحاولة مرة أخرى."
+  },
+  "notificationsGroup": {
+    "askTutor": "اسأل المعلم الذكي"
   }
 }

@@ -2,7 +2,7 @@
 // Quiz XP Award — Awards XP on quiz completion (50 on-time, 25 if late)
 // =============================================================================
 
-import { supabase } from '@/lib/supabase';
+import { supabase } from "@/lib/supabase";
 
 const QUIZ_XP_ON_TIME = 50;
 const QUIZ_XP_LATE = 25;
@@ -29,11 +29,11 @@ export async function awardQuizXp(input: QuizXpInput): Promise<void> {
   const xpAmount = isLate ? QUIZ_XP_LATE : QUIZ_XP_ON_TIME;
 
   try {
-    const { error } = await supabase.functions.invoke('award-xp', {
+    const { error } = await supabase.functions.invoke("award-xp", {
       body: {
         student_id: studentId,
         xp_amount: xpAmount,
-        source: 'quiz_completion',
+        source: "quiz_completion",
         reference_id: `quiz:${quizId}:${attemptId}`,
         note: isLate
           ? `Late quiz completion: ${quizId}`
@@ -42,10 +42,10 @@ export async function awardQuizXp(input: QuizXpInput): Promise<void> {
     });
 
     if (error) {
-      console.error('[QuizXP] Failed to award XP:', error.message);
+      console.error("[QuizXP] Failed to award XP:", error.message);
     }
   } catch (err) {
-    console.error('[QuizXP] Unexpected error awarding XP:', err);
+    console.error("[QuizXP] Unexpected error awarding XP:", err);
   }
 }
 

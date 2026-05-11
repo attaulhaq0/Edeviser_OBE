@@ -21,25 +21,25 @@ The system integrates with the existing Supabase backend (PostgreSQL + RLS, Edge
 
 ### Key Design Decisions
 
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| XP Balance computation | Derived at query time: `SUM(xp_transactions.xp_amount) - SUM(xp_purchases.xp_cost)` | No denormalized balance column to drift; consistent with append-only ledger pattern |
-| Purchase atomicity | Edge Function with Supabase RPC wrapping a PL/pgSQL function | Single DB transaction for balance check + insert prevents double-spending race conditions |
-| Cosmetic slot system | `student_equipped_items` with unique constraint on `(student_id, slot)` | DB-enforced one-item-per-slot; simple equip = upsert, unequip = delete |
-| Sale price resolution | Computed at query time via join to active `sale_events` | No stale cached prices; Purchase Processor re-validates at transaction time |
-| XP Boost stacking | Student boost × Admin event multiplier (multiplicative) | Matches requirement 11.2; `award-xp` already handles admin multiplier, just adds student boost layer |
-| Streak shield | Reuses existing `streak_freezes_available` field | No new streak logic needed; marketplace just increments the counter |
-| Profile themes | Predefined CSS custom property overrides per theme | Stays within design system; no arbitrary colors; themes are JSON metadata on `marketplace_items` |
-| Stock management | `stock_quantity` decremented in purchase transaction | Atomic decrement in same transaction as purchase insert prevents overselling |
-| Hint token expiry | Midnight UTC on day of purchase | Simple date comparison; no background job needed for cleanup |
-| Dynamic pricing | pg_cron daily recalculation with bounded adjustments | Prevents runaway prices; admin retains control via enable/disable toggle and bounds |
-| Mystery reward box | Probability-based replacement of standard XP awards | 10% default rate keeps unpredictability without frustrating students expecting XP |
-| League tiers | Weekly recalculation via pg_cron on Sunday midnight UTC | Prevents constant tier churn; gives students a full week to compete within tier |
-| Badge tiers | Bronze → Silver → Gold progression stored in existing student_badges | Reuses existing badge infrastructure; tier column addition is backward-compatible |
-| Badge spotlight | Deterministic rotation via student_id hash | Different students see different badges; no server-side state needed for rotation |
-| Earn/spend ratio | Computed from existing xp_transactions + xp_purchases tables | No new aggregation tables; leverages existing append-only ledgers |
-| Student content | Separate `student_content` table with teacher approval workflow | Keeps user-generated content isolated from official curriculum content |
-| Knowledge quests | Admin-created with exclusive reward items | Exclusive rewards create scarcity (Core Drive 6); quest items not purchasable directly |
+| Decision               | Choice                                                                              | Rationale                                                                                            |
+| ---------------------- | ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| XP Balance computation | Derived at query time: `SUM(xp_transactions.xp_amount) - SUM(xp_purchases.xp_cost)` | No denormalized balance column to drift; consistent with append-only ledger pattern                  |
+| Purchase atomicity     | Edge Function with Supabase RPC wrapping a PL/pgSQL function                        | Single DB transaction for balance check + insert prevents double-spending race conditions            |
+| Cosmetic slot system   | `student_equipped_items` with unique constraint on `(student_id, slot)`             | DB-enforced one-item-per-slot; simple equip = upsert, unequip = delete                               |
+| Sale price resolution  | Computed at query time via join to active `sale_events`                             | No stale cached prices; Purchase Processor re-validates at transaction time                          |
+| XP Boost stacking      | Student boost × Admin event multiplier (multiplicative)                             | Matches requirement 11.2; `award-xp` already handles admin multiplier, just adds student boost layer |
+| Streak shield          | Reuses existing `streak_freezes_available` field                                    | No new streak logic needed; marketplace just increments the counter                                  |
+| Profile themes         | Predefined CSS custom property overrides per theme                                  | Stays within design system; no arbitrary colors; themes are JSON metadata on `marketplace_items`     |
+| Stock management       | `stock_quantity` decremented in purchase transaction                                | Atomic decrement in same transaction as purchase insert prevents overselling                         |
+| Hint token expiry      | Midnight UTC on day of purchase                                                     | Simple date comparison; no background job needed for cleanup                                         |
+| Dynamic pricing        | pg_cron daily recalculation with bounded adjustments                                | Prevents runaway prices; admin retains control via enable/disable toggle and bounds                  |
+| Mystery reward box     | Probability-based replacement of standard XP awards                                 | 10% default rate keeps unpredictability without frustrating students expecting XP                    |
+| League tiers           | Weekly recalculation via pg_cron on Sunday midnight UTC                             | Prevents constant tier churn; gives students a full week to compete within tier                      |
+| Badge tiers            | Bronze → Silver → Gold progression stored in existing student_badges                | Reuses existing badge infrastructure; tier column addition is backward-compatible                    |
+| Badge spotlight        | Deterministic rotation via student_id hash                                          | Different students see different badges; no server-side state needed for rotation                    |
+| Earn/spend ratio       | Computed from existing xp_transactions + xp_purchases tables                        | No new aggregation tables; leverages existing append-only ledgers                                    |
+| Student content        | Separate `student_content` table with teacher approval workflow                     | Keeps user-generated content isolated from official curriculum content                               |
+| Knowledge quests       | Admin-created with exclusive reward items                                           | Exclusive rewards create scarcity (Core Drive 6); quest items not purchasable directly               |
 
 ## Architecture
 
@@ -59,7 +59,7 @@ sequenceDiagram
     Student->>UI: Confirm purchase
     UI->>TQ: usePurchaseItem.mutate({ item_id })
     TQ->>EF: POST /process-purchase { item_id, student_id }
-    
+
     rect rgb(255, 245, 230)
         Note over EF, DB: Atomic Transaction
         EF->>DB: BEGIN TRANSACTION
@@ -170,7 +170,6 @@ supabase/functions/
 └── (existing) award-xp/index.ts    # Modified to check student_active_boosts
 ```
 
-
 ## Components and Interfaces
 
 ### Edge Function: `process-purchase`
@@ -180,25 +179,32 @@ The core Edge Function handling all marketplace purchases. Wraps validation and 
 ```typescript
 // Request payload
 interface PurchaseRequest {
-  item_id: string;       // marketplace_items.id
-  student_id: string;    // from JWT (validated server-side)
+  item_id: string; // marketplace_items.id
+  student_id: string; // from JWT (validated server-side)
 }
 
 // Response
 interface PurchaseResponse {
   success: boolean;
   purchase_id: string;
-  xp_cost: number;           // actual cost charged (may be discounted)
-  new_balance: number;        // updated XP balance after purchase
-  item_category: string;      // for client-side post-purchase routing
+  xp_cost: number; // actual cost charged (may be discounted)
+  new_balance: number; // updated XP balance after purchase
+  item_category: string; // for client-side post-purchase routing
   item_sub_category: string;
   error?: string;
-  error_code?: 'INSUFFICIENT_BALANCE' | 'LEVEL_REQUIREMENT' | 'OUT_OF_STOCK' 
-    | 'ALREADY_OWNED' | 'ITEM_INACTIVE' | 'SALE_EXPIRED' | 'MAX_INVENTORY';
+  error_code?:
+    | "INSUFFICIENT_BALANCE"
+    | "LEVEL_REQUIREMENT"
+    | "OUT_OF_STOCK"
+    | "ALREADY_OWNED"
+    | "ITEM_INACTIVE"
+    | "SALE_EXPIRED"
+    | "MAX_INVENTORY";
 }
 ```
 
 Processing pipeline:
+
 1. Validate JWT → extract `student_id` and `institution_id`
 2. Call `process_marketplace_purchase` RPC (PL/pgSQL function) which:
    a. Locks the student's purchase rows with `SELECT ... FOR UPDATE` to prevent concurrent purchases
@@ -226,10 +232,10 @@ The existing `award-xp` Edge Function is modified to check for active student-le
 
 // ── Step 1b: Check for active student XP boosts ──────────────────────
 const { data: activeBoosts, error: boostErr } = await supabase
-  .from('student_active_boosts')
-  .select('multiplier')
-  .eq('student_id', student_id)
-  .gt('expires_at', new Date().toISOString());
+  .from("student_active_boosts")
+  .select("multiplier")
+  .eq("student_id", student_id)
+  .gt("expires_at", new Date().toISOString());
 
 let studentBoostMultiplier = 1;
 if (!boostErr && activeBoosts && activeBoosts.length > 0) {
@@ -243,6 +249,7 @@ finalXP = Math.floor(xp_amount * studentBoostMultiplier * adminEventMultiplier);
 ```
 
 The `xp_transactions` record metadata is extended with a `boost_applied` field:
+
 ```typescript
 {
   student_id,
@@ -371,12 +378,14 @@ $$;
 ### React Components
 
 **MarketplacePage** — Main student marketplace:
+
 - Three category tabs (Cosmetic, Educational Perks, Power-ups) using pill-style Shadcn Tabs
 - XP balance displayed prominently at top via `XPBalanceBadge`
 - Grid of `ItemCard` components per category
 - Active sale events highlighted with `SaleBadge`
 
 **ItemCard** — Individual marketplace item:
+
 - Card with icon, name, description, XP price
 - Locked overlay with level requirement if student level is insufficient
 - "Owned" badge for `one_per_student` items already purchased
@@ -385,34 +394,40 @@ $$;
 - Remaining stock count for limited items
 
 **PurchaseConfirmDialog** — Shadcn Dialog for purchase confirmation:
+
 - Shows item name, XP cost (sale price if applicable), current balance, remaining balance
 - "Confirm" button calls `usePurchaseItem` mutation
 - Loading state with Loader2 spinner
 - Error display for insufficient balance, level gate, etc.
 
 **MyItemsPage** — Student inventory:
+
 - Grouped by category tabs
 - Cosmetics: "Equip" / "Unequip" toggle buttons
 - Educational Perks: remaining uses display, "Use" action buttons
 - Power-ups: active status with countdown timer, streak freeze count
 
 **TransactionHistoryPage** — Unified transaction history:
+
 - Combines earnings (xp_transactions) and spending (xp_purchases) in reverse chronological order
 - Filter tabs: All, Earnings, Spending
 - Paginated with 20 entries per page
 - Each entry shows date, amount (+/−), source/item name, category
 
 **XPBalanceBadge** — Persistent balance indicator:
+
 - Displayed in student sidebar navigation and marketplace header
 - Shows coin icon + formatted XP balance
 - Realtime updates via TanStack Query invalidation on purchase/XP award
 
 **ActiveBoostIndicator** — Boost countdown:
+
 - Shown on student dashboard when an XP boost is active
 - Countdown timer (mm:ss) until expiry
 - Pulsing animation using `animate-xp-pulse`
 
 **CosmeticPreview** — Theme/frame/title preview:
+
 - Renders a mini preview of how the cosmetic looks
 - Used in ItemCard and MyItemsPage
 
@@ -532,17 +547,30 @@ export const useToggleDynamicPricing = () => useMutation({...}); // admin action
 
 ```typescript
 // marketplaceSchemas.ts
-import { z } from 'zod';
+import { z } from "zod";
 
-export const marketplaceItemCategorySchema = z.enum(['cosmetic', 'educational_perk', 'power_up']);
-
-export const marketplaceItemSubCategorySchema = z.enum([
-  'profile_theme', 'avatar_frame', 'display_title',
-  'extra_quiz_attempt', 'deadline_extension', 'hint_token',
-  'xp_boost', 'streak_shield',
+export const marketplaceItemCategorySchema = z.enum([
+  "cosmetic",
+  "educational_perk",
+  "power_up",
 ]);
 
-export const stockTypeSchema = z.enum(['unlimited', 'limited', 'one_per_student']);
+export const marketplaceItemSubCategorySchema = z.enum([
+  "profile_theme",
+  "avatar_frame",
+  "display_title",
+  "extra_quiz_attempt",
+  "deadline_extension",
+  "hint_token",
+  "xp_boost",
+  "streak_shield",
+]);
+
+export const stockTypeSchema = z.enum([
+  "unlimited",
+  "limited",
+  "one_per_student",
+]);
 
 export const createMarketplaceItemSchema = z.object({
   name: z.string().min(1).max(100),
@@ -557,18 +585,20 @@ export const createMarketplaceItemSchema = z.object({
   metadata: z.record(z.unknown()).optional(),
 });
 
-export const updateMarketplaceItemSchema = createMarketplaceItemSchema.partial();
+export const updateMarketplaceItemSchema =
+  createMarketplaceItemSchema.partial();
 
-export const createSaleEventSchema = z.object({
-  name: z.string().min(1).max(100),
-  discount_percentage: z.number().int().min(5).max(90),
-  start_date: z.string().datetime(),
-  end_date: z.string().datetime(),
-  item_ids: z.array(z.string().uuid()).min(1),
-}).refine(
-  (data) => new Date(data.end_date) > new Date(data.start_date),
-  { message: 'End date must be after start date' }
-);
+export const createSaleEventSchema = z
+  .object({
+    name: z.string().min(1).max(100),
+    discount_percentage: z.number().int().min(5).max(90),
+    start_date: z.string().datetime(),
+    end_date: z.string().datetime(),
+    item_ids: z.array(z.string().uuid()).min(1),
+  })
+  .refine((data) => new Date(data.end_date) > new Date(data.start_date), {
+    message: "End date must be after start date",
+  });
 
 export const purchaseRequestSchema = z.object({
   item_id: z.string().uuid(),
@@ -579,34 +609,45 @@ export const deadlineExtensionSchema = z.object({
   assignment_id: z.string().uuid(),
 });
 
-export type CreateMarketplaceItemInput = z.infer<typeof createMarketplaceItemSchema>;
-export type UpdateMarketplaceItemInput = z.infer<typeof updateMarketplaceItemSchema>;
+export type CreateMarketplaceItemInput = z.infer<
+  typeof createMarketplaceItemSchema
+>;
+export type UpdateMarketplaceItemInput = z.infer<
+  typeof updateMarketplaceItemSchema
+>;
 export type CreateSaleEventInput = z.infer<typeof createSaleEventSchema>;
 export type PurchaseRequestInput = z.infer<typeof purchaseRequestSchema>;
 export type DeadlineExtensionInput = z.infer<typeof deadlineExtensionSchema>;
 
 // ── New schemas for gap analysis features ──────────────────────
 
-export const createKnowledgeQuestSchema = z.object({
-  title: z.string().min(1).max(200),
-  description: z.string().min(1),
-  quest_type: z.enum(['quiz_challenge', 'content_creation', 'peer_review']),
-  target_clo_ids: z.array(z.string().uuid()).default([]),
-  start_date: z.string().datetime(),
-  end_date: z.string().datetime(),
-  reward_type: z.enum(['item', 'xp']),
-  reward_item_id: z.string().uuid().nullable().default(null),
-  reward_xp_amount: z.number().int().positive().nullable().default(null),
-}).refine(
-  (data) => new Date(data.end_date) > new Date(data.start_date),
-  { message: 'End date must be after start date' }
-).refine(
-  (data) => (data.reward_type === 'item' && data.reward_item_id) || (data.reward_type === 'xp' && data.reward_xp_amount),
-  { message: 'Must specify reward_item_id for item rewards or reward_xp_amount for XP rewards' }
-);
+export const createKnowledgeQuestSchema = z
+  .object({
+    title: z.string().min(1).max(200),
+    description: z.string().min(1),
+    quest_type: z.enum(["quiz_challenge", "content_creation", "peer_review"]),
+    target_clo_ids: z.array(z.string().uuid()).default([]),
+    start_date: z.string().datetime(),
+    end_date: z.string().datetime(),
+    reward_type: z.enum(["item", "xp"]),
+    reward_item_id: z.string().uuid().nullable().default(null),
+    reward_xp_amount: z.number().int().positive().nullable().default(null),
+  })
+  .refine((data) => new Date(data.end_date) > new Date(data.start_date), {
+    message: "End date must be after start date",
+  })
+  .refine(
+    (data) =>
+      (data.reward_type === "item" && data.reward_item_id) ||
+      (data.reward_type === "xp" && data.reward_xp_amount),
+    {
+      message:
+        "Must specify reward_item_id for item rewards or reward_xp_amount for XP rewards",
+    }
+  );
 
 export const createStudentContentSchema = z.object({
-  content_type: z.enum(['study_plan', 'quiz_question', 'explanation_video']),
+  content_type: z.enum(["study_plan", "quiz_question", "explanation_video"]),
   clo_id: z.string().uuid().nullable().default(null),
   title: z.string().min(1).max(200),
   content_data: z.record(z.unknown()),
@@ -614,7 +655,7 @@ export const createStudentContentSchema = z.object({
 
 export const reviewStudentContentSchema = z.object({
   content_id: z.string().uuid(),
-  status: z.enum(['approved', 'rejected']),
+  status: z.enum(["approved", "rejected"]),
   feedback: z.string().max(1000).optional(),
 });
 
@@ -632,13 +673,20 @@ export const classDonationContributionSchema = z.object({
 export const bonusQuestionProbabilitySchema = z.number().int().min(5).max(30);
 export const mysteryBoxProbabilitySchema = z.number().int().min(5).max(20);
 
-export type CreateKnowledgeQuestInput = z.infer<typeof createKnowledgeQuestSchema>;
-export type CreateStudentContentInput = z.infer<typeof createStudentContentSchema>;
-export type ReviewStudentContentInput = z.infer<typeof reviewStudentContentSchema>;
+export type CreateKnowledgeQuestInput = z.infer<
+  typeof createKnowledgeQuestSchema
+>;
+export type CreateStudentContentInput = z.infer<
+  typeof createStudentContentSchema
+>;
+export type ReviewStudentContentInput = z.infer<
+  typeof reviewStudentContentSchema
+>;
 export type ClassDonationInput = z.infer<typeof classDonationSchema>;
-export type ClassDonationContributionInput = z.infer<typeof classDonationContributionSchema>;
+export type ClassDonationContributionInput = z.infer<
+  typeof classDonationContributionSchema
+>;
 ```
-
 
 ## Data Models
 
@@ -1207,6 +1255,7 @@ Profile themes are stored as JSON metadata on `marketplace_items`:
 ```
 
 Available predefined themes:
+
 - Ocean Blue (`sky-500` → `sky-700`)
 - Forest Green (`emerald-500` → `emerald-700`)
 - Sunset Orange (`orange-500` → `amber-600`)
@@ -1365,247 +1414,245 @@ $$;
 }
 ```
 
-
 ## Correctness Properties
 
-*A property is a characteristic or behavior that should hold true across all valid executions of a system — essentially, a formal statement about what the system should do. Properties serve as the bridge between human-readable specifications and machine-verifiable correctness guarantees.*
+_A property is a characteristic or behavior that should hold true across all valid executions of a system — essentially, a formal statement about what the system should do. Properties serve as the bridge between human-readable specifications and machine-verifiable correctness guarantees._
 
 ### Property 1: XP Balance computation correctness
 
-*For any* student with a set of XP transactions (earnings) and a set of XP purchases (spending), the computed XP balance must equal `SUM(xp_transactions.xp_amount) - SUM(xp_purchases.xp_cost where status != 'refunded')`. After any successful purchase of cost C, the new balance must equal the previous balance minus C.
+_For any_ student with a set of XP transactions (earnings) and a set of XP purchases (spending), the computed XP balance must equal `SUM(xp_transactions.xp_amount) - SUM(xp_purchases.xp_cost where status != 'refunded')`. After any successful purchase of cost C, the new balance must equal the previous balance minus C.
 
 **Validates: Requirements 1.1, 4.3, 22.1**
 
 ### Property 2: XP Balance non-negativity
 
-*For any* student, the displayed XP balance must be greater than or equal to 0. If the raw computation yields a negative value, the displayed balance must be exactly 0.
+_For any_ student, the displayed XP balance must be greater than or equal to 0. If the raw computation yields a negative value, the displayed balance must be exactly 0.
 
 **Validates: Requirements 1.6, 22.3**
 
 ### Property 3: Transaction history ordering
 
-*For any* set of mixed earning and spending transaction entries, the unified transaction history must be sorted by date in descending order (most recent first).
+_For any_ set of mixed earning and spending transaction entries, the unified transaction history must be sorted by date in descending order (most recent first).
 
 **Validates: Requirements 2.1**
 
 ### Property 4: Transaction entry contains required fields
 
-*For any* earning transaction entry, the rendered output must contain: date, XP amount, and source label. *For any* spending transaction entry, the rendered output must contain: date, XP cost, item name, and item category.
+_For any_ earning transaction entry, the rendered output must contain: date, XP amount, and source label. _For any_ spending transaction entry, the rendered output must contain: date, XP cost, item name, and item category.
 
 **Validates: Requirements 2.2, 2.3**
 
 ### Property 5: Transaction history filtering
 
-*For any* set of mixed earning and spending entries and a filter selection of "earnings", "spending", or "all", the returned entries must contain only entries matching the selected type (or all entries if "all" is selected).
+_For any_ set of mixed earning and spending entries and a filter selection of "earnings", "spending", or "all", the returned entries must contain only entries matching the selected type (or all entries if "all" is selected).
 
 **Validates: Requirements 2.5**
 
 ### Property 6: Purchase validation correctness
 
-*For any* student, marketplace item, and purchase attempt, the purchase validator must: (a) reject if XP balance < effective price, (b) reject if student level < item level requirement, (c) reject if item stock_type is "limited" and stock_quantity ≤ 0, (d) reject if stock_type is "one_per_student" and student already owns the item, (e) reject if item is inactive, (f) accept only when all conditions are satisfied.
+_For any_ student, marketplace item, and purchase attempt, the purchase validator must: (a) reject if XP balance < effective price, (b) reject if student level < item level requirement, (c) reject if item stock_type is "limited" and stock_quantity ≤ 0, (d) reject if stock_type is "one_per_student" and student already owns the item, (e) reject if item is inactive, (f) accept only when all conditions are satisfied.
 
 **Validates: Requirements 4.2, 4.5, 4.6, 3.3, 3.7**
 
 ### Property 7: Sale price resolution — highest discount wins
 
-*For any* marketplace item with one or more active sale events, the effective price must equal `max(1, original_price - floor(original_price × max_discount / 100))` where `max_discount` is the highest `discount_percentage` among all active sale events for that item. Discounts must never stack (no additive combination).
+_For any_ marketplace item with one or more active sale events, the effective price must equal `max(1, original_price - floor(original_price × max_discount / 100))` where `max_discount` is the highest `discount_percentage` among all active sale events for that item. Discounts must never stack (no additive combination).
 
 **Validates: Requirements 3.4, 14.5**
 
 ### Property 8: Cosmetic metadata resolves to valid CSS properties
 
-*For any* profile theme metadata object, the theme resolver must produce a non-empty set of CSS custom property overrides containing at minimum `accent_primary` and `accent_bg`. *For any* avatar frame metadata object, the frame resolver must produce valid CSS border properties (border-style, border-width, border-color).
+_For any_ profile theme metadata object, the theme resolver must produce a non-empty set of CSS custom property overrides containing at minimum `accent_primary` and `accent_bg`. _For any_ avatar frame metadata object, the frame resolver must produce valid CSS border properties (border-style, border-width, border-color).
 
 **Validates: Requirements 6.2, 7.1**
 
 ### Property 9: Equip/unequip round-trip restores default state
 
-*For any* cosmetic item and student, equipping and then unequipping the item must result in the student having no equipped item in that slot, and the dashboard must render with the default color palette.
+_For any_ cosmetic item and student, equipping and then unequipping the item must result in the student having no equipped item in that slot, and the dashboard must render with the default color palette.
 
 **Validates: Requirements 6.4**
 
 ### Property 10: One equipped item per cosmetic slot
 
-*For any* student and cosmetic slot (profile_theme, avatar_frame, display_title), at most one item can be equipped at a time. Equipping a new item in a slot that already has an equipped item must replace the previous item (not add alongside it).
+_For any_ student and cosmetic slot (profile_theme, avatar_frame, display_title), at most one item can be equipped at a time. Equipping a new item in a slot that already has an equipped item must replace the previous item (not add alongside it).
 
 **Validates: Requirements 6.5, 7.3**
 
 ### Property 11: Anonymous mode hides cosmetics on leaderboard
 
-*For any* student with `leaderboard_anonymous = true`, the leaderboard query must not include any equipped cosmetic data (avatar frame, display title) for that student. The leaderboard entry must render with default styling.
+_For any_ student with `leaderboard_anonymous = true`, the leaderboard query must not include any equipped cosmetic data (avatar frame, display title) for that student. The leaderboard entry must render with default styling.
 
 **Validates: Requirements 7.4, 19.4**
 
 ### Property 12: Extra quiz attempt extends limit by one
 
-*For any* quiz with a teacher-configured attempt limit of N, and a student who has used N attempts and owns an active extra quiz attempt token, the student must be allowed exactly one additional attempt (attempt N+1). Without the token, the student must be blocked.
+_For any_ quiz with a teacher-configured attempt limit of N, and a student who has used N attempts and owns an active extra quiz attempt token, the student must be allowed exactly one additional attempt (attempt N+1). Without the token, the student must be blocked.
 
 **Validates: Requirements 8.1**
 
 ### Property 13: Deadline extension adds exactly 24 hours
 
-*For any* assignment with an original deadline D, activating a deadline extension token must produce an extended deadline of exactly D + 24 hours. The `deadline_extensions` record must store both the original and extended deadlines.
+_For any_ assignment with an original deadline D, activating a deadline extension token must produce an extended deadline of exactly D + 24 hours. The `deadline_extensions` record must store both the original and extended deadlines.
 
 **Validates: Requirements 9.1**
 
 ### Property 14: Deadline revocation restores original deadline and refunds token
 
-*For any* active deadline extension, when a teacher revokes it, the extension record must be marked as `revoked = true`, the associated `xp_purchases` record must have status changed to `refunded`, and the student's effective deadline for that assignment must revert to the original deadline.
+_For any_ active deadline extension, when a teacher revokes it, the extension record must be marked as `revoked = true`, the associated `xp_purchases` record must have status changed to `refunded`, and the student's effective deadline for that assignment must revert to the original deadline.
 
 **Validates: Requirements 9.4, 23.3**
 
 ### Property 15: One deadline extension per student per assignment
 
-*For any* student and assignment, at most one non-revoked deadline extension can exist. Attempting to activate a second extension on the same assignment must be rejected.
+_For any_ student and assignment, at most one non-revoked deadline extension can exist. Attempting to activate a second extension on the same assignment must be rejected.
 
 **Validates: Requirements 9.5**
 
 ### Property 16: Hint token allowance computation
 
-*For any* student who purchases a hint token pack, their extra message allowance for the current calendar day (UTC) must increase by 5. When the student's base daily messages are exhausted and hint tokens are available, the next message must succeed and decrement the hint token count by 1.
+_For any_ student who purchases a hint token pack, their extra message allowance for the current calendar day (UTC) must increase by 5. When the student's base daily messages are exhausted and hint tokens are available, the next message must succeed and decrement the hint token count by 1.
 
 **Validates: Requirements 10.1, 10.3**
 
 ### Property 17: Hint token expiry at midnight UTC
 
-*For any* hint token pack purchased at time T, the tokens must be considered expired after midnight UTC of the calendar day containing T. After expiry, the tokens must not contribute to the student's message allowance.
+_For any_ hint token pack purchased at time T, the tokens must be considered expired after midnight UTC of the calendar day containing T. After expiry, the tokens must not contribute to the student's message allowance.
 
 **Validates: Requirements 10.4**
 
 ### Property 18: XP multiplier stacking formula
 
-*For any* base XP amount, student boost multiplier (from `student_active_boosts`), and admin event multiplier (from `bonus_xp_events`), the final XP awarded must equal `floor(base_xp × student_boost_multiplier × admin_event_multiplier)`. When no student boost is active, the student boost multiplier defaults to 1.
+_For any_ base XP amount, student boost multiplier (from `student_active_boosts`), and admin event multiplier (from `bonus_xp_events`), the final XP awarded must equal `floor(base_xp × student_boost_multiplier × admin_event_multiplier)`. When no student boost is active, the student boost multiplier defaults to 1.
 
 **Validates: Requirements 11.2, 18.2, 18.3**
 
 ### Property 19: One active XP boost at a time
 
-*For any* student, at most one non-expired XP boost can be active at any time. Attempting to activate a second boost while one is active must be rejected.
+_For any_ student, at most one non-expired XP boost can be active at any time. Attempting to activate a second boost while one is active must be rejected.
 
 **Validates: Requirements 11.7**
 
 ### Property 20: Streak shield increment with cap
 
-*For any* student with N streak freezes available (where N < 3), purchasing a streak shield must result in exactly N + 1 streak freezes. *For any* student with 3 streak freezes, the purchase must be rejected.
+_For any_ student with N streak freezes available (where N < 3), purchasing a streak shield must result in exactly N + 1 streak freezes. _For any_ student with 3 streak freezes, the purchase must be rejected.
 
 **Validates: Requirements 12.1, 12.3**
 
 ### Property 21: Price changes do not affect existing purchases
 
-*For any* marketplace item whose XP price is changed by an admin, all existing `xp_purchases` records for that item must retain their original `xp_cost` value (the cost at time of purchase).
+_For any_ marketplace item whose XP price is changed by an admin, all existing `xp_purchases` records for that item must retain their original `xp_cost` value (the cost at time of purchase).
 
 **Validates: Requirements 13.3**
 
 ### Property 22: Sale event discount percentage validation
 
-*For any* sale event creation request, the discount percentage must be between 5 and 90 inclusive. Values outside this range must be rejected by the schema validator.
+_For any_ sale event creation request, the discount percentage must be between 5 and 90 inclusive. Values outside this range must be rejected by the schema validator.
 
 **Validates: Requirements 14.1**
 
 ### Property 23: Analytics aggregation correctness
 
-*For any* set of XP purchases within an institution, the analytics must correctly compute: (a) total XP spent = SUM of all xp_cost, (b) total purchases = COUNT of all purchases, (c) unique buyers = COUNT DISTINCT student_id, (d) per-category totals must sum to the overall total. The "Most Popular Items" ranking must be sorted by purchase count descending.
+_For any_ set of XP purchases within an institution, the analytics must correctly compute: (a) total XP spent = SUM of all xp_cost, (b) total purchases = COUNT of all purchases, (c) unique buyers = COUNT DISTINCT student_id, (d) per-category totals must sum to the overall total. The "Most Popular Items" ranking must be sorted by purchase count descending.
 
 **Validates: Requirements 15.1, 15.2, 15.4**
 
 ### Property 24: Inventory item status resolution
 
-*For any* educational perk purchase, the remaining uses must equal the total purchased quantity minus the number with status "consumed". *For any* power-up purchase, the active status must be true if and only if the associated boost's `expires_at` is in the future.
+_For any_ educational perk purchase, the remaining uses must equal the total purchased quantity minus the number with status "consumed". _For any_ power-up purchase, the active status must be true if and only if the associated boost's `expires_at` is in the future.
 
 **Validates: Requirements 5.4, 5.5**
 
 ### Property 25: Marketplace item display contains required fields
 
-*For any* marketplace item, the rendered item card must contain: name, description, XP price, and availability status. If the item has a level requirement > 0, the level requirement must be displayed.
+_For any_ marketplace item, the rendered item card must contain: name, description, XP price, and availability status. If the item has a level requirement > 0, the level requirement must be displayed.
 
 **Validates: Requirements 3.2, 5.2**
 
 ### Property 26: Dynamic pricing bounded adjustment
 
-*For any* marketplace item with a base price P and a demand score, the dynamically adjusted price must satisfy: `0.5 × P ≤ dynamic_price ≤ 1.5 × P`. High-demand items (above 75th percentile) increase by up to 25%, low-demand items (below 25th percentile) decrease by up to 20%.
+_For any_ marketplace item with a base price P and a demand score, the dynamically adjusted price must satisfy: `0.5 × P ≤ dynamic_price ≤ 1.5 × P`. High-demand items (above 75th percentile) increase by up to 25%, low-demand items (below 25th percentile) decrease by up to 20%.
 
 **Validates: Requirements 28.2, 28.3, 28.4**
 
 ### Property 27: Earn/spend ratio computation correctness
 
-*For any* institution with total earned XP (E) and total spent XP (S), the earn/spend ratio must equal `E / S` when S > 0, and "∞" (displayed as "No spending yet") when S = 0. The inflation status must be "Healthy" when 2 ≤ ratio ≤ 4, "Inflationary" when ratio > 4, and "Deflationary" when ratio < 2.
+_For any_ institution with total earned XP (E) and total spent XP (S), the earn/spend ratio must equal `E / S` when S > 0, and "∞" (displayed as "No spending yet") when S = 0. The inflation status must be "Healthy" when 2 ≤ ratio ≤ 4, "Inflationary" when ratio > 4, and "Deflationary" when ratio < 2.
 
 **Validates: Requirements 27.1, 27.3**
 
 ### Property 28: Mystery reward box probability distribution
 
-*For any* mystery reward box resolution, the outcome must be one of: 2x XP (50% weight), random cosmetic (30% weight), or temporary boost (20% weight). Over 1000 resolutions, the distribution must approximate these weights within a 10% tolerance.
+_For any_ mystery reward box resolution, the outcome must be one of: 2x XP (50% weight), random cosmetic (30% weight), or temporary boost (20% weight). Over 1000 resolutions, the distribution must approximate these weights within a 10% tolerance.
 
 **Validates: Requirements 26.5, 26.6**
 
 ### Property 29: League tier assignment from percentiles
 
-*For any* set of students with cumulative XP values, league tier assignment must satisfy: top 5% → Diamond, next 15% → Gold, next 30% → Silver, bottom 50% → Bronze. Tier boundaries must be non-overlapping and exhaustive (every student gets exactly one tier).
+_For any_ set of students with cumulative XP values, league tier assignment must satisfy: top 5% → Diamond, next 15% → Gold, next 30% → Silver, bottom 50% → Bronze. Tier boundaries must be non-overlapping and exhaustive (every student gets exactly one tier).
 
 **Validates: Requirements 32.2, 32.4**
 
 ### Property 30: Percentile band display for non-top-10 students
 
-*For any* student ranked outside the top 10 on the leaderboard, the displayed rank must be a percentile band (top 10%, top 25%, top 50%, bottom 50%) and never an exact numeric rank. Students ranked in the top 10 must see their exact rank.
+_For any_ student ranked outside the top 10 on the leaderboard, the displayed rank must be a percentile band (top 10%, top 25%, top 50%, bottom 50%) and never an exact numeric rank. Students ranked in the top 10 must see their exact rank.
 
 **Validates: Requirements 32.1**
 
 ### Property 31: Badge tier progression is monotonic
 
-*For any* badge and student, the tier must progress only forward: Bronze → Silver → Gold. A student cannot earn Silver without first having Bronze, and cannot earn Gold without first having Silver. Tier downgrades are not permitted.
+_For any_ badge and student, the tier must progress only forward: Bronze → Silver → Gold. A student cannot earn Silver without first having Bronze, and cannot earn Gold without first having Silver. Tier downgrades are not permitted.
 
 **Validates: Requirements 33.2, 33.3, 33.4**
 
 ### Property 32: Badge spotlight deterministic rotation
 
-*For any* student_id and week number, the spotlighted badge must be deterministic (same student + same week = same badge). Different students should see different badges in the same week (with high probability for institutions with > 5 badges).
+_For any_ student_id and week number, the spotlighted badge must be deterministic (same student + same week = same badge). Different students should see different badges in the same week (with high probability for institutions with > 5 badges).
 
 **Validates: Requirements 34.2, 34.5**
 
 ### Property 33: Class donation progress invariant
 
-*For any* class donation campaign, the `current_total` must equal the SUM of all `class_donation_contributions.xp_amount` for that donation. When `current_total >= goal_amount`, the status must be "completed".
+_For any_ class donation campaign, the `current_total` must equal the SUM of all `class_donation_contributions.xp_amount` for that donation. When `current_total >= goal_amount`, the status must be "completed".
 
 **Validates: Requirements 29.1, 29.2**
 
 ### Property 34: Knowledge quest exclusivity
 
-*For any* knowledge quest with reward_type "item", the reward item must not be purchasable through the regular marketplace. The item must only be obtainable by completing the quest.
+_For any_ knowledge quest with reward_type "item", the reward item must not be purchasable through the regular marketplace. The item must only be obtainable by completing the quest.
 
 **Validates: Requirements 25.7**
 
 ### Property 35: Bonus question probability bounds
 
-*For any* institution with configured bonus question probability P (5–30%), the trigger rate over a large sample of study session completions must approximate P within a 5% tolerance. The probability must be clamped to the [5%, 30%] range regardless of admin input.
+_For any_ institution with configured bonus question probability P (5–30%), the trigger rate over a large sample of study session completions must approximate P within a 5% tolerance. The probability must be clamped to the [5%, 30%] range regardless of admin input.
 
 **Validates: Requirements 26.1, 26.8**
 
 ### Property 36: Personal best comparison correctness
 
-*For any* student with metrics for the current week (C) and previous week (P), the improvement delta must equal C - P. The direction indicator must be "up" when C > P, "down" when C < P, and "same" when C = P.
+_For any_ student with metrics for the current week (C) and previous week (P), the improvement delta must equal C - P. The direction indicator must be "up" when C > P, "down" when C < P, and "same" when C = P.
 
 **Validates: Requirements 30.2, 30.3**
 
 ### Property 37: Archived badges excluded from spotlight and checks
 
-*For any* badge with `is_archived = true`, the badge must not appear in the Badge Spotlight rotation and must not be evaluated by the badge check function. Archived badges must still be visible in the student's badge history if previously earned.
+_For any_ badge with `is_archived = true`, the badge must not appear in the Badge Spotlight rotation and must not be evaluated by the badge check function. Archived badges must still be visible in the student's badge history if previously earned.
 
 **Validates: Requirements 35.1, 35.6**
-
 
 ## Error Handling
 
 ### Purchase Processor Errors
 
-| Error Code | Condition | User Message | Recovery |
-|------------|-----------|-------------|----------|
-| `INSUFFICIENT_BALANCE` | XP balance < effective price | "Not enough XP. You need {shortfall} more XP." | Show current balance and price difference |
-| `LEVEL_REQUIREMENT` | Student level < item level gate | "You need to reach Level {required} to purchase this item." | Show current level and required level |
-| `OUT_OF_STOCK` | Limited item with stock_quantity = 0 | "This item is sold out." | Disable buy button, show "Sold Out" badge |
-| `ALREADY_OWNED` | One-per-student item already purchased | "You already own this item." | Show "Owned" badge, hide buy button |
-| `ITEM_INACTIVE` | Item deactivated between page load and purchase | "This item is no longer available." | Remove item from display on next refresh |
-| `SALE_EXPIRED` | Sale ended between page load and purchase | "The sale has ended. The current price is {new_price} XP." | Show updated price, let student re-confirm |
-| `MAX_INVENTORY` | Streak shield at max (3 freezes) | "You already have the maximum number of streak shields (3)." | Disable buy button |
+| Error Code             | Condition                                       | User Message                                                 | Recovery                                   |
+| ---------------------- | ----------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------ |
+| `INSUFFICIENT_BALANCE` | XP balance < effective price                    | "Not enough XP. You need {shortfall} more XP."               | Show current balance and price difference  |
+| `LEVEL_REQUIREMENT`    | Student level < item level gate                 | "You need to reach Level {required} to purchase this item."  | Show current level and required level      |
+| `OUT_OF_STOCK`         | Limited item with stock_quantity = 0            | "This item is sold out."                                     | Disable buy button, show "Sold Out" badge  |
+| `ALREADY_OWNED`        | One-per-student item already purchased          | "You already own this item."                                 | Show "Owned" badge, hide buy button        |
+| `ITEM_INACTIVE`        | Item deactivated between page load and purchase | "This item is no longer available."                          | Remove item from display on next refresh   |
+| `SALE_EXPIRED`         | Sale ended between page load and purchase       | "The sale has ended. The current price is {new_price} XP."   | Show updated price, let student re-confirm |
+| `MAX_INVENTORY`        | Streak shield at max (3 freezes)                | "You already have the maximum number of streak shields (3)." | Disable buy button                         |
 
 ### Edge Function Error Handling
 
@@ -1627,12 +1674,12 @@ $$;
 
 ### Deadline Extension Errors
 
-| Condition | Behavior |
-|-----------|----------|
-| Deadline already passed | Reject with "The deadline for this assignment has already passed." |
-| Extension already active | Reject with "You already have an extension on this assignment." |
-| Quiz closed by teacher | Reject with "This quiz has been closed and cannot accept new attempts." |
-| Token already consumed | Reject with "This token has already been used." |
+| Condition                | Behavior                                                                |
+| ------------------------ | ----------------------------------------------------------------------- |
+| Deadline already passed  | Reject with "The deadline for this assignment has already passed."      |
+| Extension already active | Reject with "You already have an extension on this assignment."         |
+| Quiz closed by teacher   | Reject with "This quiz has been closed and cannot accept new attempts." |
+| Token already consumed   | Reject with "This token has already been used."                         |
 
 ### Data Consistency
 
@@ -1660,52 +1707,52 @@ This feature uses both unit tests and property-based tests for comprehensive cov
 
 ### Property Test Files
 
-| File | Properties Covered |
-|------|-------------------|
-| `src/__tests__/properties/xpBalance.property.test.ts` | P1 (balance computation), P2 (non-negativity) |
-| `src/__tests__/properties/transactionHistory.property.test.ts` | P3 (ordering), P4 (required fields), P5 (filtering) |
-| `src/__tests__/properties/purchaseValidator.property.test.ts` | P6 (purchase validation) |
-| `src/__tests__/properties/salePriceCalculator.property.test.ts` | P7 (sale price resolution) |
-| `src/__tests__/properties/cosmeticResolver.property.test.ts` | P8 (CSS resolution), P9 (equip/unequip round-trip), P10 (one per slot) |
-| `src/__tests__/properties/deadlineExtension.property.test.ts` | P13 (24h extension), P14 (revocation), P15 (one per assignment) |
-| `src/__tests__/properties/hintTokens.property.test.ts` | P16 (allowance computation), P17 (expiry) |
-| `src/__tests__/properties/xpMultiplier.property.test.ts` | P18 (stacking formula) |
-| `src/__tests__/properties/marketplaceAdmin.property.test.ts` | P21 (price change immutability), P22 (discount validation), P23 (analytics aggregation) |
-| `src/__tests__/properties/inventoryStatus.property.test.ts` | P24 (status resolution), P25 (display fields) |
-| `src/__tests__/properties/boostAndStreak.property.test.ts` | P19 (one boost), P20 (streak shield cap) |
-| `src/__tests__/properties/leaderboardCosmetics.property.test.ts` | P11 (anonymous mode), P12 (extra quiz attempt) |
-| `src/__tests__/properties/dynamicPricing.property.test.ts` | P26 (bounded adjustment) |
-| `src/__tests__/properties/earnSpendRatio.property.test.ts` | P27 (ratio computation) |
-| `src/__tests__/properties/mysteryReward.property.test.ts` | P28 (probability distribution) |
-| `src/__tests__/properties/leagueTiers.property.test.ts` | P29 (tier assignment), P30 (percentile bands) |
-| `src/__tests__/properties/badgeTiers.property.test.ts` | P31 (monotonic progression), P32 (spotlight rotation) |
-| `src/__tests__/properties/classDonation.property.test.ts` | P33 (progress invariant) |
-| `src/__tests__/properties/knowledgeQuest.property.test.ts` | P34 (exclusivity) |
-| `src/__tests__/properties/bonusQuestion.property.test.ts` | P35 (probability bounds) |
-| `src/__tests__/properties/personalBest.property.test.ts` | P36 (comparison correctness) |
-| `src/__tests__/properties/badgeArchive.property.test.ts` | P37 (archived exclusion) |
+| File                                                             | Properties Covered                                                                      |
+| ---------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `src/__tests__/properties/xpBalance.property.test.ts`            | P1 (balance computation), P2 (non-negativity)                                           |
+| `src/__tests__/properties/transactionHistory.property.test.ts`   | P3 (ordering), P4 (required fields), P5 (filtering)                                     |
+| `src/__tests__/properties/purchaseValidator.property.test.ts`    | P6 (purchase validation)                                                                |
+| `src/__tests__/properties/salePriceCalculator.property.test.ts`  | P7 (sale price resolution)                                                              |
+| `src/__tests__/properties/cosmeticResolver.property.test.ts`     | P8 (CSS resolution), P9 (equip/unequip round-trip), P10 (one per slot)                  |
+| `src/__tests__/properties/deadlineExtension.property.test.ts`    | P13 (24h extension), P14 (revocation), P15 (one per assignment)                         |
+| `src/__tests__/properties/hintTokens.property.test.ts`           | P16 (allowance computation), P17 (expiry)                                               |
+| `src/__tests__/properties/xpMultiplier.property.test.ts`         | P18 (stacking formula)                                                                  |
+| `src/__tests__/properties/marketplaceAdmin.property.test.ts`     | P21 (price change immutability), P22 (discount validation), P23 (analytics aggregation) |
+| `src/__tests__/properties/inventoryStatus.property.test.ts`      | P24 (status resolution), P25 (display fields)                                           |
+| `src/__tests__/properties/boostAndStreak.property.test.ts`       | P19 (one boost), P20 (streak shield cap)                                                |
+| `src/__tests__/properties/leaderboardCosmetics.property.test.ts` | P11 (anonymous mode), P12 (extra quiz attempt)                                          |
+| `src/__tests__/properties/dynamicPricing.property.test.ts`       | P26 (bounded adjustment)                                                                |
+| `src/__tests__/properties/earnSpendRatio.property.test.ts`       | P27 (ratio computation)                                                                 |
+| `src/__tests__/properties/mysteryReward.property.test.ts`        | P28 (probability distribution)                                                          |
+| `src/__tests__/properties/leagueTiers.property.test.ts`          | P29 (tier assignment), P30 (percentile bands)                                           |
+| `src/__tests__/properties/badgeTiers.property.test.ts`           | P31 (monotonic progression), P32 (spotlight rotation)                                   |
+| `src/__tests__/properties/classDonation.property.test.ts`        | P33 (progress invariant)                                                                |
+| `src/__tests__/properties/knowledgeQuest.property.test.ts`       | P34 (exclusivity)                                                                       |
+| `src/__tests__/properties/bonusQuestion.property.test.ts`        | P35 (probability bounds)                                                                |
+| `src/__tests__/properties/personalBest.property.test.ts`         | P36 (comparison correctness)                                                            |
+| `src/__tests__/properties/badgeArchive.property.test.ts`         | P37 (archived exclusion)                                                                |
 
 ### Unit Test Files
 
-| File | Coverage |
-|------|----------|
-| `src/__tests__/unit/marketplaceSchemas.test.ts` | Zod schema validation (valid/invalid payloads for all schemas) |
-| `src/__tests__/unit/purchaseConfirmDialog.test.tsx` | Confirmation dialog rendering, error states |
-| `src/__tests__/unit/itemCard.test.tsx` | Item card rendering: locked, owned, sale, out-of-stock states |
-| `src/__tests__/unit/xpBalanceBadge.test.tsx` | Balance badge rendering, zero balance, loading state |
-| `src/__tests__/unit/activeBoostIndicator.test.tsx` | Countdown timer, expired state |
-| `src/__tests__/unit/marketplaceAdmin.test.tsx` | Admin CRUD form validation, item list rendering |
-| `src/__tests__/unit/saleEventForm.test.tsx` | Sale event form validation, date range checks |
-| `src/__tests__/unit/processPurchase.test.ts` | Edge Function: success path, each error code, edge cases |
-| `src/__tests__/unit/awardXpBoost.test.ts` | Modified award-xp: boost lookup, multiplier application, metadata recording |
-| `src/__tests__/unit/xpEconomistDashboard.test.tsx` | Earn/spend ratio display, inflation indicator, time-series chart |
-| `src/__tests__/unit/dynamicPricingCalculator.test.ts` | Dynamic price computation, bounds enforcement |
-| `src/__tests__/unit/bonusQuestionPopup.test.tsx` | Bonus question rendering, timer, answer submission |
-| `src/__tests__/unit/mysteryRewardBox.test.tsx` | Unboxing animation, reward display |
-| `src/__tests__/unit/knowledgeQuestManager.test.tsx` | Quest CRUD form, date validation |
-| `src/__tests__/unit/leagueTierBadge.test.tsx` | Tier badge rendering, promotion animation |
-| `src/__tests__/unit/personalBestCard.test.tsx` | Metric comparison, delta arrows |
-| `src/__tests__/unit/badgeSpotlightCard.test.tsx` | Spotlight rendering, progress display |
-| `src/__tests__/unit/classDonationProgress.test.tsx` | Progress bar, goal completion |
-| `src/__tests__/unit/studentContentForm.test.tsx` | Content creation form, type selection |
-| `src/__tests__/unit/badgeTierIndicator.test.tsx` | Bronze/Silver/Gold visual rendering |
+| File                                                  | Coverage                                                                    |
+| ----------------------------------------------------- | --------------------------------------------------------------------------- |
+| `src/__tests__/unit/marketplaceSchemas.test.ts`       | Zod schema validation (valid/invalid payloads for all schemas)              |
+| `src/__tests__/unit/purchaseConfirmDialog.test.tsx`   | Confirmation dialog rendering, error states                                 |
+| `src/__tests__/unit/itemCard.test.tsx`                | Item card rendering: locked, owned, sale, out-of-stock states               |
+| `src/__tests__/unit/xpBalanceBadge.test.tsx`          | Balance badge rendering, zero balance, loading state                        |
+| `src/__tests__/unit/activeBoostIndicator.test.tsx`    | Countdown timer, expired state                                              |
+| `src/__tests__/unit/marketplaceAdmin.test.tsx`        | Admin CRUD form validation, item list rendering                             |
+| `src/__tests__/unit/saleEventForm.test.tsx`           | Sale event form validation, date range checks                               |
+| `src/__tests__/unit/processPurchase.test.ts`          | Edge Function: success path, each error code, edge cases                    |
+| `src/__tests__/unit/awardXpBoost.test.ts`             | Modified award-xp: boost lookup, multiplier application, metadata recording |
+| `src/__tests__/unit/xpEconomistDashboard.test.tsx`    | Earn/spend ratio display, inflation indicator, time-series chart            |
+| `src/__tests__/unit/dynamicPricingCalculator.test.ts` | Dynamic price computation, bounds enforcement                               |
+| `src/__tests__/unit/bonusQuestionPopup.test.tsx`      | Bonus question rendering, timer, answer submission                          |
+| `src/__tests__/unit/mysteryRewardBox.test.tsx`        | Unboxing animation, reward display                                          |
+| `src/__tests__/unit/knowledgeQuestManager.test.tsx`   | Quest CRUD form, date validation                                            |
+| `src/__tests__/unit/leagueTierBadge.test.tsx`         | Tier badge rendering, promotion animation                                   |
+| `src/__tests__/unit/personalBestCard.test.tsx`        | Metric comparison, delta arrows                                             |
+| `src/__tests__/unit/badgeSpotlightCard.test.tsx`      | Spotlight rendering, progress display                                       |
+| `src/__tests__/unit/classDonationProgress.test.tsx`   | Progress bar, goal completion                                               |
+| `src/__tests__/unit/studentContentForm.test.tsx`      | Content creation form, type selection                                       |
+| `src/__tests__/unit/badgeTierIndicator.test.tsx`      | Bronze/Silver/Gold visual rendering                                         |

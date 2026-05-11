@@ -1,15 +1,13 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import { logAuditEvent } from '@/lib/auditLogger';
-import { useAuth } from '@/hooks/useAuth';
-import type { CreatePLOFormData } from '@/lib/schemas/plo';
-import type { LearningOutcome } from '@/types/app';
-import type { Database } from '@/types/database';
-import type { PaginatedResult } from '@/types/pagination';
-import { getPaginationRange } from '@/types/pagination';
-
-
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import { logAuditEvent } from "@/lib/auditLogger";
+import { useAuth } from "@/hooks/useAuth";
+import type { CreatePLOFormData } from "@/lib/schemas/plo";
+import type { LearningOutcome } from "@/types/app";
+import type { Database } from "@/types/database";
+import type { PaginatedResult } from "@/types/pagination";
+import { getPaginationRange } from "@/types/pagination";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -23,26 +21,38 @@ export interface OutcomeMapping {
 
 // ─── usePLOs — list PLOs, optionally filtered by program_id ─────────────────
 
-export const usePLOs = (programId?: string, pagination?: { page?: number; pageSize?: number }) => {
-  const { page, pageSize, from, to } = getPaginationRange(pagination?.page, pagination?.pageSize);
+export const usePLOs = (
+  programId?: string,
+  pagination?: { page?: number; pageSize?: number }
+) => {
+  const { page, pageSize, from, to } = getPaginationRange(
+    pagination?.page,
+    pagination?.pageSize
+  );
 
   return useQuery({
     queryKey: queryKeys.plos.list({ programId, page, pageSize }),
     queryFn: async (): Promise<PaginatedResult<LearningOutcome>> => {
-      let query = supabase.from('learning_outcomes')
-        .select('*', { count: 'exact' })
-        .eq('type', 'PLO')
-        .order('sort_order', { ascending: true })
+      let query = supabase
+        .from("learning_outcomes")
+        .select("*", { count: "exact" })
+        .eq("type", "PLO")
+        .order("sort_order", { ascending: true })
         .range(from, to);
 
       if (programId) {
-        query = query.eq('program_id', programId);
+        query = query.eq("program_id", programId);
       }
 
       const { data, error, count } = await query;
 
       if (error) throw error;
-      return { data: (data ?? []) as LearningOutcome[], count: count ?? 0, page, pageSize };
+      return {
+        data: (data ?? []) as LearningOutcome[],
+        count: count ?? 0,
+        page,
+        pageSize,
+      };
     },
   });
 };
@@ -51,11 +61,12 @@ export const usePLOs = (programId?: string, pagination?: { page?: number; pageSi
 
 export const usePLO = (id: string | undefined) => {
   return useQuery({
-    queryKey: queryKeys.plos.detail(id ?? ''),
+    queryKey: queryKeys.plos.detail(id ?? ""),
     queryFn: async (): Promise<LearningOutcome | null> => {
-      const { data, error } = await supabase.from('learning_outcomes')
-        .select('*')
-        .eq('id', id!)
+      const { data, error } = await supabase
+        .from("learning_outcomes")
+        .select("*")
+        .eq("id", id!)
         .maybeSingle();
 
       if (error) throw error;
@@ -73,8 +84,9 @@ export const useCreatePLO = () => {
 
   return useMutation({
     mutationFn: async (data: CreatePLOFormData): Promise<LearningOutcome> => {
-      const { data: result, error } = await supabase.from('learning_outcomes')
-        .insert({ ...data, type: 'PLO' } as never)
+      const { data: result, error } = await supabase
+        .from("learning_outcomes")
+        .insert({ ...data, type: "PLO" } as never)
         .select()
         .single();
 
@@ -83,11 +95,11 @@ export const useCreatePLO = () => {
       const plo = result as LearningOutcome;
 
       await logAuditEvent({
-        action: 'create',
-        entity_type: 'plo',
+        action: "create",
+        entity_type: "plo",
         entity_id: plo.id,
         changes: data,
-        performed_by: user?.id ?? 'unknown',
+        performed_by: user?.id ?? "unknown",
       });
 
       return plo;
@@ -106,22 +118,23 @@ export const useUpdatePLO = (id: string) => {
 
   return useMutation({
     mutationFn: async (
-      data: Partial<CreatePLOFormData>,
+      data: Partial<CreatePLOFormData>
     ): Promise<LearningOutcome> => {
-      const { data: result, error } = await supabase.from('learning_outcomes')
+      const { data: result, error } = await supabase
+        .from("learning_outcomes")
         .update(data)
-        .eq('id', id)
+        .eq("id", id)
         .select()
         .single();
 
       if (error) throw error;
 
       await logAuditEvent({
-        action: 'update',
-        entity_type: 'plo',
+        action: "update",
+        entity_type: "plo",
         entity_id: id,
         changes: data,
-        performed_by: user?.id ?? 'unknown',
+        performed_by: user?.id ?? "unknown",
       });
 
       return result as LearningOutcome;
@@ -142,44 +155,43 @@ export const useDeletePLO = () => {
   return useMutation({
     mutationFn: async (id: string): Promise<void> => {
       // Check for dependent CLOs via outcome_mappings
-      const { data: deps, error: depsError } = await supabase.from('outcome_mappings')
-        .select('id, target_outcome_id')
-        .eq('source_outcome_id', id);
+      const { data: deps, error: depsError } = await supabase
+        .from("outcome_mappings")
+        .select("id, target_outcome_id")
+        .eq("source_outcome_id", id);
 
       if (depsError) throw depsError;
 
       if (deps && (deps ?? []).length > 0) {
         // Fetch the dependent CLO titles for a helpful error message
-        const childIds = (deps ?? []).map(
-          (d) => d.target_outcome_id,
-        );
-        const { data: clos, error: cloError } = await supabase.from('learning_outcomes')
-          .select('id, title')
-          .in('id', childIds);
+        const childIds = (deps ?? []).map((d) => d.target_outcome_id);
+        const { data: clos, error: cloError } = await supabase
+          .from("learning_outcomes")
+          .select("id, title")
+          .in("id", childIds);
 
         if (cloError) throw cloError;
 
-        const cloNames = (clos ?? [])
-          .map((c) => c.title)
-          .join(', ');
+        const cloNames = (clos ?? []).map((c) => c.title).join(", ");
 
         throw new Error(
-          `Cannot delete PLO: it has mapped CLOs (${cloNames}). Remove the mappings first.`,
+          `Cannot delete PLO: it has mapped CLOs (${cloNames}). Remove the mappings first.`
         );
       }
 
-      const { error } = await supabase.from('learning_outcomes')
+      const { error } = await supabase
+        .from("learning_outcomes")
         .delete()
-        .eq('id', id);
+        .eq("id", id);
 
       if (error) throw error;
 
       await logAuditEvent({
-        action: 'delete',
-        entity_type: 'plo',
+        action: "delete",
+        entity_type: "plo",
         entity_id: id,
         changes: null,
-        performed_by: user?.id ?? 'unknown',
+        performed_by: user?.id ?? "unknown",
       });
     },
     onSuccess: () => {
@@ -195,7 +207,9 @@ export const useReorderPLOs = () => {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async (data: { items: Array<{ id: string; sort_order: number }> }): Promise<void> => {
+    mutationFn: async (data: {
+      items: Array<{ id: string; sort_order: number }>;
+    }): Promise<void> => {
       const updates = data.items.map((item, index) => ({
         id: item.id,
         sort_order: index,
@@ -204,20 +218,21 @@ export const useReorderPLOs = () => {
       // Partial upsert: ON CONFLICT (id) only updates sort_order.
       // Cast needed because Supabase Insert type requires `type` and `title`,
       // but PostgreSQL's ON CONFLICT clause correctly handles partial columns.
-      const { error } = await supabase.from('learning_outcomes')
+      const { error } = await supabase
+        .from("learning_outcomes")
         .upsert(
-          updates as Database['public']['Tables']['learning_outcomes']['Insert'][],
-          { onConflict: 'id' },
+          updates as Database["public"]["Tables"]["learning_outcomes"]["Insert"][],
+          { onConflict: "id" }
         );
 
       if (error) throw error;
 
       await logAuditEvent({
-        action: 'reorder',
-        entity_type: 'plo',
-        entity_id: 'batch',
+        action: "reorder",
+        entity_type: "plo",
+        entity_id: "batch",
         changes: { items: data.items },
-        performed_by: user?.id ?? 'unknown',
+        performed_by: user?.id ?? "unknown",
       });
     },
     onSuccess: () => {
@@ -232,9 +247,10 @@ export const usePLOMappings = (ploId: string | undefined) => {
   return useQuery({
     queryKey: queryKeys.outcomeMappings.list({ ploId }),
     queryFn: async (): Promise<OutcomeMapping[]> => {
-      const { data, error } = await supabase.from('outcome_mappings')
-        .select('*')
-        .eq('target_outcome_id', ploId!);
+      const { data, error } = await supabase
+        .from("outcome_mappings")
+        .select("*")
+        .eq("target_outcome_id", ploId!);
 
       if (error) throw error;
       return data as OutcomeMapping[];
@@ -255,9 +271,10 @@ export const useUpdatePLOMappings = () => {
       mappings: Array<{ source_outcome_id: string; weight: number }>;
     }): Promise<void> => {
       // Delete existing mappings for this PLO
-      const { error: deleteError } = await supabase.from('outcome_mappings')
+      const { error: deleteError } = await supabase
+        .from("outcome_mappings")
         .delete()
-        .eq('target_outcome_id', data.ploId);
+        .eq("target_outcome_id", data.ploId);
 
       if (deleteError) throw deleteError;
 
@@ -269,22 +286,25 @@ export const useUpdatePLOMappings = () => {
           weight: m.weight,
         }));
 
-        const { error: insertError } = await supabase.from('outcome_mappings')
+        const { error: insertError } = await supabase
+          .from("outcome_mappings")
           .insert(rows);
 
         if (insertError) throw insertError;
       }
 
       await logAuditEvent({
-        action: 'update',
-        entity_type: 'plo_mappings',
+        action: "update",
+        entity_type: "plo_mappings",
         entity_id: data.ploId,
         changes: { mappings: data.mappings },
-        performed_by: user?.id ?? 'unknown',
+        performed_by: user?.id ?? "unknown",
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.outcomeMappings.lists() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.outcomeMappings.lists(),
+      });
       queryClient.invalidateQueries({ queryKey: queryKeys.plos.lists() });
     },
   });

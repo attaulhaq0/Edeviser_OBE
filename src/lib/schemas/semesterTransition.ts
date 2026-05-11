@@ -8,4 +8,6 @@ export const semesterTransitionSchema = z.object({
   carry_forward_enrollments: z.boolean().default(false),
 });
 
-export type SemesterTransitionFormData = z.infer<typeof semesterTransitionSchema>;
+export type SemesterTransitionFormData = z.infer<
+  typeof semesterTransitionSchema
+>;

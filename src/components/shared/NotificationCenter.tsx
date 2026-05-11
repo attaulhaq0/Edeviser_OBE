@@ -3,8 +3,9 @@
 // Validates: Requirements 31.4
 // =============================================================================
 
-import { useCallback, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useCallback, useMemo } from "react";
+import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import {
   Bell,
   CheckCheck,
@@ -19,19 +20,22 @@ import {
   Unlock,
   Layers,
   Bot,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { useAuth } from '@/hooks/useAuth';
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
 import {
   useNotifications,
   useMarkAsRead,
   useMarkAllAsRead,
   useDeleteNotification,
-} from '@/hooks/useNotifications';
-import type { NotificationType } from '@/hooks/useNotifications';
-import { groupNotifications, type BatchedNotification } from '@/lib/notificationBatcher';
-import { formatDistanceToNow } from 'date-fns';
-import { cn } from '@/lib/utils';
+} from "@/hooks/useNotifications";
+import type { NotificationType } from "@/hooks/useNotifications";
+import {
+  groupNotifications,
+  type BatchedNotification,
+} from "@/lib/notificationBatcher";
+import { formatDistanceToNow } from "date-fns";
+import { cn } from "@/lib/utils";
 
 interface NotificationCenterProps {
   onClose: () => void;
@@ -50,6 +54,7 @@ const NOTIFICATION_ICONS: Record<NotificationType, React.ReactNode> = {
 };
 
 const NotificationCenter = ({ onClose: _onClose }: NotificationCenterProps) => {
+  const { t } = useTranslation("common");
   const { user } = useAuth();
   const navigate = useNavigate();
   const { data: notifications = [], isLoading } = useNotifications(user?.id);
@@ -62,7 +67,7 @@ const NotificationCenter = ({ onClose: _onClose }: NotificationCenterProps) => {
   // Group notifications by type when >3 of same type (Requirement 65.3)
   const groupedNotifications = useMemo(
     () => groupNotifications(notifications),
-    [notifications],
+    [notifications]
   );
 
   const handleNotificationClick = useCallback(
@@ -74,7 +79,7 @@ const NotificationCenter = ({ onClose: _onClose }: NotificationCenterProps) => {
         }
       }
     },
-    [markAsRead],
+    [markAsRead]
   );
 
   const handleMarkAllAsRead = useCallback(() => {
@@ -91,14 +96,16 @@ const NotificationCenter = ({ onClose: _onClose }: NotificationCenterProps) => {
         deleteNotification.mutate(n.id);
       }
     },
-    [deleteNotification],
+    [deleteNotification]
   );
 
   return (
     <div className="flex flex-col max-h-96">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b">
-        <h3 className="text-sm font-semibold">Notifications</h3>
+        <h3 className="text-sm font-semibold">
+          {t("header.notificationsLabel")}
+        </h3>
         {hasUnread && (
           <Button
             variant="ghost"
@@ -108,7 +115,7 @@ const NotificationCenter = ({ onClose: _onClose }: NotificationCenterProps) => {
             disabled={markAllAsRead.isPending}
           >
             <CheckCheck className="h-3 w-3 me-1" />
-            Mark all read
+            {t("header.markAllRead")}
           </Button>
         )}
       </div>
@@ -116,27 +123,38 @@ const NotificationCenter = ({ onClose: _onClose }: NotificationCenterProps) => {
       {/* Notification list */}
       <div className="overflow-y-auto flex-1">
         {isLoading ? (
-          <div className="p-4 text-center text-sm text-gray-500">Loading…</div>
+          <div className="p-4 text-center text-sm text-gray-500">
+            {t("status.loading")}
+          </div>
         ) : groupedNotifications.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-8 px-4">
             <Bell className="h-8 w-8 text-gray-300 mb-2" />
-            <p className="text-sm text-gray-500">No notifications yet</p>
+            <p className="text-sm text-gray-500">
+              {t("header.emptyNotifications.title")}
+            </p>
           </div>
         ) : (
           groupedNotifications.map((item, idx) => {
             const hasUnreadItems = item.items.some((n) => !n.is_read);
-            const mostRecent = item.items.length > 0 ? item.items[0] : undefined;
+            const mostRecent =
+              item.items.length > 0 ? item.items[0] : undefined;
             const timeAgo = mostRecent
-              ? formatDistanceToNow(new Date(mostRecent.created_at), { addSuffix: true })
-              : '';
+              ? formatDistanceToNow(new Date(mostRecent.created_at), {
+                  addSuffix: true,
+                })
+              : "";
 
             return (
               <button
-                key={item.is_grouped ? `group-${item.type}-${idx}` : mostRecent?.id ?? idx}
+                key={
+                  item.is_grouped
+                    ? `group-${item.type}-${idx}`
+                    : mostRecent?.id ?? idx
+                }
                 type="button"
                 className={cn(
-                  'flex items-start gap-3 px-4 py-3 cursor-pointer transition-colors hover:bg-slate-50 w-full text-start',
-                  hasUnreadItems && 'bg-blue-50/50',
+                  "flex items-start gap-3 px-4 py-3 cursor-pointer transition-colors hover:bg-slate-50 w-full text-start",
+                  hasUnreadItems && "bg-blue-50/50"
                 )}
                 onClick={() => handleNotificationClick(item)}
               >
@@ -153,39 +171,53 @@ const NotificationCenter = ({ onClose: _onClose }: NotificationCenterProps) => {
 
                 {/* Content */}
                 <div className="flex-1 min-w-0">
-                  <p className={`text-sm ${hasUnreadItems ? 'font-semibold' : 'font-medium'} text-gray-900 truncate`}>
+                  <p
+                    className={`text-sm ${
+                      hasUnreadItems ? "font-semibold" : "font-medium"
+                    } text-gray-900 truncate`}
+                  >
                     {item.title}
                   </p>
                   <p className="text-xs text-gray-500 line-clamp-2 mt-0.5">
                     {item.body}
                   </p>
                   {/* Requirement 10.3: "Ask Tutor" deep link for low-scoring grade notifications */}
-                  {!item.is_grouped && mostRecent?.metadata &&
-                    typeof mostRecent.metadata === 'object' &&
-                    'tutor_action_url' in mostRecent.metadata &&
-                    typeof (mostRecent.metadata as Record<string, unknown>).tutor_action_url === 'string' && (
-                    <button
-                      type="button"
-                      className="inline-flex items-center gap-1 mt-1 text-xs font-semibold text-teal-600 hover:text-teal-700 hover:underline"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const url = (mostRecent?.metadata as Record<string, unknown> | null)?.tutor_action_url;
-                        if (typeof url === 'string') {
-                          navigate(url);
-                        }
-                      }}
-                    >
-                      <Bot className="h-3 w-3" />
-                      Ask Tutor
-                    </button>
-                  )}
+                  {!item.is_grouped &&
+                    mostRecent?.metadata &&
+                    typeof mostRecent.metadata === "object" &&
+                    "tutor_action_url" in mostRecent.metadata &&
+                    typeof (mostRecent.metadata as Record<string, unknown>)
+                      .tutor_action_url === "string" && (
+                      <button
+                        type="button"
+                        className="inline-flex items-center gap-1 mt-1 text-xs font-semibold text-teal-600 hover:text-teal-700 hover:underline"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const url = (
+                            mostRecent?.metadata as Record<
+                              string,
+                              unknown
+                            > | null
+                          )?.tutor_action_url;
+                          if (typeof url === "string") {
+                            navigate(url);
+                          }
+                        }}
+                      >
+                        <Bot className="h-3 w-3" />
+                        {t("notificationsGroup.askTutor", "Ask Tutor")}
+                      </button>
+                    )}
                   <p className="text-[10px] text-gray-400 mt-1">{timeAgo}</p>
                 </div>
 
                 {/* Actions */}
                 <div className="shrink-0 flex items-center gap-1">
                   {hasUnreadItems && (
-                    <span className="h-2 w-2 rounded-full bg-blue-500" aria-label="Unread" />
+                    <span
+                      className="h-2 w-2 rounded-full bg-blue-500"
+                      aria-label="Unread"
+                    />
                   )}
                   <Button
                     variant="ghost"

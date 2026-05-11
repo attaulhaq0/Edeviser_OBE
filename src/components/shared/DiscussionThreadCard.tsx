@@ -2,8 +2,8 @@
 // DiscussionThreadCard — Discussion forum thread card
 // =============================================================================
 
-import { MessageSquare, Pin } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { MessageSquare, Pin } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface DiscussionThreadCardProps {
   title: string;
@@ -28,14 +28,19 @@ const DiscussionThreadCard = ({
 }: DiscussionThreadCardProps) => (
   <div
     className={cn(
-      'rounded-xl border border-slate-200 bg-white p-4 hover:shadow-sm transition-shadow cursor-pointer',
-      isPinned && 'border-blue-200 bg-blue-50/30',
-      className,
+      "rounded-xl border border-slate-200 bg-white p-4 hover:shadow-sm transition-shadow cursor-pointer",
+      isPinned && "border-blue-200 bg-blue-50/30",
+      className
     )}
     onClick={onClick}
     role="button"
     tabIndex={0}
-    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick?.(); } }}
+    onKeyDown={(e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        onClick?.();
+      }
+    }}
   >
     <div className="flex items-start gap-2">
       <div className="flex-1 min-w-0">

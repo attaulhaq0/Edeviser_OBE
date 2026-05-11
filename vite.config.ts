@@ -33,11 +33,41 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          "vendor-react": ["react", "react-dom", "react-router-dom"],
-          "vendor-query": ["@tanstack/react-query", "@tanstack/react-table"],
-          "vendor-charts": ["recharts"],
-          "vendor-motion": ["framer-motion"],
+        manualChunks: (id) => {
+          // Vendor chunks
+          if (
+            id.includes("node_modules/react") ||
+            id.includes("node_modules/react-dom")
+          ) {
+            return "vendor-react";
+          }
+          if (id.includes("node_modules/@tanstack")) {
+            return "vendor-query";
+          }
+          if (id.includes("node_modules/recharts")) {
+            return "vendor-charts";
+          }
+          if (id.includes("node_modules/framer-motion")) {
+            return "vendor-motion";
+          }
+
+          // Role dashboard chunks for code splitting (Task 74, clause 2.20)
+          // Each role dashboard is split into its own chunk to reduce initial bundle size
+          if (id.includes("pages/admin/AdminDashboard")) {
+            return "admin-dashboard";
+          }
+          if (id.includes("pages/coordinator/CoordinatorDashboard")) {
+            return "coordinator-dashboard";
+          }
+          if (id.includes("pages/teacher/TeacherDashboard")) {
+            return "teacher-dashboard";
+          }
+          if (id.includes("pages/student/StudentDashboard")) {
+            return "student-dashboard";
+          }
+          if (id.includes("pages/parent/ParentDashboard")) {
+            return "parent-dashboard";
+          }
         },
       },
     },

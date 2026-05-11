@@ -22,6 +22,7 @@ import { parseAsString, useQueryState } from "nuqs";
 import { createColumns } from "./columns";
 import { DataTable } from "@/components/shared/DataTable";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import { NoCourses } from "@/components/shared/EmptyState";
 import { usePLOs, useDeletePLO, useReorderPLOs } from "@/hooks/usePLOs";
 import { usePrograms } from "@/hooks/usePrograms";
 import { Button } from "@/components/ui/button";
@@ -265,6 +266,16 @@ const PLOListPage = () => {
             <Shimmer key={i} className="h-14 rounded-lg" />
           ))}
         </div>
+      ) : !displayItems.length ? (
+        <NoCourses>
+          <button
+            onClick={() => navigate("/coordinator/plos/new")}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-teal-500 to-blue-600 text-white font-semibold hover:shadow-lg transition-shadow"
+          >
+            <Plus className="h-4 w-4" />
+            Create PLO
+          </button>
+        </NoCourses>
       ) : isDragMode ? (
         <Card className="bg-white border-0 shadow-md rounded-xl p-4">
           <p className="text-xs text-gray-500 mb-3">

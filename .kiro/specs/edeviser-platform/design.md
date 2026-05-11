@@ -8,25 +8,25 @@ The platform is a React 18 SPA (TypeScript, Vite 6, Tailwind CSS v4, Shadcn/ui) 
 
 ### Key Design Decisions
 
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| Auth provider | Supabase GoTrue | Native JWT, bcrypt, token refresh built-in |
-| RBAC enforcement | PostgreSQL RLS + JWT claims | Security at data layer |
-| State management | TanStack Query v5 | Server-state caching, optimistic updates |
-| Form validation | React Hook Form + Zod | Schema-first, shared client/server |
-| Data tables | TanStack Table | Sorting, filtering, pagination logic layer |
-| URL state | nuqs | Type-safe URL search params for filters |
-| Routing | React Router v7 | Role-based guards |
-| Animations | Framer Motion + CSS keyframes | Gamification celebrations |
-| Charts | Recharts | Attainment heatmaps, Bloom's distribution |
-| Drag & drop | dnd-kit | ILO/PLO/CLO reorder |
-| Toasts | Sonner | Non-blocking notifications |
-| Realtime | Supabase Realtime (Phoenix) | Leaderboards, grades, notifications |
-| PDF generation | Edge Function + jspdf/jspdf-autotable | Lightweight, no cold-start issues in Deno |
-| File uploads | Supabase Storage | Native RLS on files |
-| Audit logging | Immutable `audit_logs` table | Append-only compliance |
-| i18n | i18next + react-i18next | English first, Urdu/Arabic ready |
-| Celebrations | canvas-confetti | XP/submission confetti effects |
+| Decision         | Choice                                | Rationale                                  |
+| ---------------- | ------------------------------------- | ------------------------------------------ |
+| Auth provider    | Supabase GoTrue                       | Native JWT, bcrypt, token refresh built-in |
+| RBAC enforcement | PostgreSQL RLS + JWT claims           | Security at data layer                     |
+| State management | TanStack Query v5                     | Server-state caching, optimistic updates   |
+| Form validation  | React Hook Form + Zod                 | Schema-first, shared client/server         |
+| Data tables      | TanStack Table                        | Sorting, filtering, pagination logic layer |
+| URL state        | nuqs                                  | Type-safe URL search params for filters    |
+| Routing          | React Router v7                       | Role-based guards                          |
+| Animations       | Framer Motion + CSS keyframes         | Gamification celebrations                  |
+| Charts           | Recharts                              | Attainment heatmaps, Bloom's distribution  |
+| Drag & drop      | dnd-kit                               | ILO/PLO/CLO reorder                        |
+| Toasts           | Sonner                                | Non-blocking notifications                 |
+| Realtime         | Supabase Realtime (Phoenix)           | Leaderboards, grades, notifications        |
+| PDF generation   | Edge Function + jspdf/jspdf-autotable | Lightweight, no cold-start issues in Deno  |
+| File uploads     | Supabase Storage                      | Native RLS on files                        |
+| Audit logging    | Immutable `audit_logs` table          | Append-only compliance                     |
+| i18n             | i18next + react-i18next               | English first, Urdu/Arabic ready           |
+| Celebrations     | canvas-confetti                       | XP/submission confetti effects             |
 
 ## Architecture
 
@@ -129,11 +129,12 @@ React SPA (Vercel CDN)
 ### Core Providers
 
 #### AuthProvider (`/src/providers/AuthProvider.tsx`)
+
 ```typescript
 interface AuthContextValue {
   user: User | null;
   profile: Profile | null;
-  role: 'admin' | 'coordinator' | 'teacher' | 'student' | 'parent' | null;
+  role: "admin" | "coordinator" | "teacher" | "student" | "parent" | null;
   institutionId: string | null;
   isLoading: boolean;
   signIn: (email: string, password: string) => Promise<AuthResult>;
@@ -143,11 +144,13 @@ interface AuthContextValue {
 ```
 
 #### QueryProvider (`/src/providers/QueryProvider.tsx`)
+
 Wraps app in `QueryClientProvider` with devtools in development.
 
 ### OBE Engine Components
 
 #### Rubric Builder (`/src/pages/teacher/rubrics/RubricBuilder.tsx`)
+
 ```typescript
 interface RubricFormData {
   title: string;
@@ -163,10 +166,15 @@ interface RubricFormData {
 ```
 
 #### Grading Interface (`/src/pages/teacher/grading/GradingInterface.tsx`)
+
 ```typescript
 interface GradeFormData {
   submission_id: string;
-  rubric_selections: Array<{ criterion_id: string; level_index: number; points: number }>;
+  rubric_selections: Array<{
+    criterion_id: string;
+    level_index: number;
+    points: number;
+  }>;
   total_score: number;
   score_percent: number;
   overall_feedback: string;
@@ -174,19 +182,34 @@ interface GradeFormData {
 ```
 
 #### Evidence Generator (Edge Function: `/supabase/functions/calculate-attainment-rollup/`)
+
 Triggered on grade insert. Creates immutable evidence records and cascades rollup through CLO → PLO → ILO.
 
 #### Report Generator (Edge Function: `/supabase/functions/generate-accreditation-report/`)
+
 Uses `jspdf` + `jspdf-autotable` for lightweight PDF generation in Deno Edge Functions. Puppeteer is not used due to cold-start overhead and memory constraints in serverless environments. The report aggregates outcome_attainment data, renders tables and charts into a PDF document, and uploads to Supabase Storage.
 
 ### Gamification Components
 
 #### XP Engine (Edge Function: `/supabase/functions/award-xp/`)
+
 ```typescript
 interface XPAwardPayload {
   student_id: string;
   xp_amount: number;
-  source: 'login' | 'submission' | 'badge' | 'admin_adjustment' | 'perfect_day' | 'first_attempt_bonus' | 'perfect_rubric' | 'bonus_event' | 'discussion_question' | 'discussion_answer' | 'survey_completion' | 'quiz_completion';
+  source:
+    | "login"
+    | "submission"
+    | "badge"
+    | "admin_adjustment"
+    | "perfect_day"
+    | "first_attempt_bonus"
+    | "perfect_rubric"
+    | "bonus_event"
+    | "discussion_question"
+    | "discussion_answer"
+    | "survey_completion"
+    | "quiz_completion";
   reference_id?: string;
   note?: string;
   bonus_multiplier?: number; // Applied during Bonus XP Weekend events
@@ -196,19 +219,22 @@ interface XPAwardPayload {
 Note: The architecture doc references this as `process-xp-event`. The canonical name used in implementation is `award-xp`. Both refer to the same Edge Function.
 
 #### Streak Processor (Edge Function: `/supabase/functions/process-streak/`)
+
 Called on daily login. Increments or resets streak, checks milestones.
 
 #### Badge Checker (Edge Function: `/supabase/functions/check-badges/`)
+
 Called after XP award, submission, or streak update. Checks all badge conditions idempotently. Supports mystery badges with hidden conditions (Speed Demon, Night Owl, Perfectionist).
 
 #### Habit Tracker (`/src/components/shared/HabitTracker.tsx`)
+
 ```typescript
 interface HabitTrackerProps {
   studentId: string;
   days?: number; // default 7
 }
 
-type HabitType = 'login' | 'submit' | 'journal' | 'read';
+type HabitType = "login" | "submit" | "journal" | "read";
 
 interface HabitLog {
   student_id: string;
@@ -219,6 +245,7 @@ interface HabitLog {
 ```
 
 #### Learning Path (`/src/pages/student/progress/LearningPath.tsx`)
+
 ```typescript
 interface LearningPathNode {
   assignment_id: string;
@@ -231,11 +258,12 @@ interface LearningPathNode {
     required_attainment: number; // percentage
     current_attainment: number;
   };
-  status: 'locked' | 'available' | 'submitted' | 'graded';
+  status: "locked" | "available" | "submitted" | "graded";
 }
 ```
 
 #### Bloom's Verb Guide (`/src/components/shared/BloomsVerbGuide.tsx`)
+
 ```typescript
 interface BloomsVerbGuideProps {
   selectedLevel: BloomsLevel | null;
@@ -243,16 +271,24 @@ interface BloomsVerbGuideProps {
 }
 
 const BLOOMS_VERBS: Record<BloomsLevel, string[]> = {
-  remembering: ['define', 'list', 'recall', 'identify', 'state', 'name'],
-  understanding: ['explain', 'describe', 'classify', 'summarize', 'paraphrase'],
-  applying: ['use', 'implement', 'execute', 'solve', 'demonstrate', 'construct'],
-  analyzing: ['compare', 'differentiate', 'examine', 'break down', 'infer'],
-  evaluating: ['judge', 'critique', 'defend', 'argue', 'assess', 'recommend'],
-  creating: ['design', 'develop', 'compose', 'build', 'formulate', 'produce'],
+  remembering: ["define", "list", "recall", "identify", "state", "name"],
+  understanding: ["explain", "describe", "classify", "summarize", "paraphrase"],
+  applying: [
+    "use",
+    "implement",
+    "execute",
+    "solve",
+    "demonstrate",
+    "construct",
+  ],
+  analyzing: ["compare", "differentiate", "examine", "break down", "infer"],
+  evaluating: ["judge", "critique", "defend", "argue", "assess", "recommend"],
+  creating: ["design", "develop", "compose", "build", "formulate", "produce"],
 };
 ```
 
 #### Contextual Journal Prompt Generator (`/src/lib/journalPromptGenerator.ts`)
+
 ```typescript
 interface JournalPromptContext {
   clo_title: string;
@@ -270,15 +306,25 @@ function generateJournalPrompt(context: JournalPromptContext): GeneratedPrompt;
 ```
 
 #### Email Notification Service (Edge Function: `/supabase/functions/send-email-notification/`)
+
 ```typescript
 interface EmailPayload {
   to: string;
-  template: 'streak_risk' | 'weekly_summary' | 'new_assignment' | 'grade_released' | 'bulk_import_invitation' | 'parent_grade_released' | 'parent_attendance_alert' | 'parent_at_risk_warning';
+  template:
+    | "streak_risk"
+    | "weekly_summary"
+    | "new_assignment"
+    | "grade_released"
+    | "bulk_import_invitation"
+    | "parent_grade_released"
+    | "parent_attendance_alert"
+    | "parent_at_risk_warning";
   data: Record<string, unknown>;
 }
 ```
 
 #### Bonus XP Event Manager (`/src/pages/admin/BonusXPEventManager.tsx`)
+
 ```typescript
 interface BonusXPEvent {
   id: string;
@@ -292,10 +338,22 @@ interface BonusXPEvent {
 ```
 
 #### Activity Logger (`/src/lib/activityLogger.ts`)
+
 ```typescript
 interface ActivityLogEntry {
   student_id: string;
-  event_type: 'login' | 'page_view' | 'submission' | 'journal' | 'streak_break' | 'assignment_view' | 'material_view' | 'announcement_view' | 'discussion_post' | 'quiz_attempt' | 'attendance_marked';
+  event_type:
+    | "login"
+    | "page_view"
+    | "submission"
+    | "journal"
+    | "streak_break"
+    | "assignment_view"
+    | "material_view"
+    | "announcement_view"
+    | "discussion_post"
+    | "quiz_attempt"
+    | "attendance_marked";
   metadata?: Record<string, unknown>;
 }
 
@@ -303,21 +361,25 @@ function logActivity(entry: ActivityLogEntry): Promise<void>;
 ```
 
 #### Peer Milestone Notification Service (wired into Badge Checker / Level System Edge Functions)
+
 ```typescript
 // Triggered inside award-xp / check-badges Edge Functions on milestone events
 interface PeerMilestonePayload {
   triggering_student_id: string;
-  milestone_type: 'level_up' | 'rare_badge' | 'streak_milestone';
+  milestone_type: "level_up" | "rare_badge" | "streak_milestone";
   milestone_detail: string; // e.g., "Level 8", "30-Day Legend", "Speed Demon"
   course_ids: string[]; // courses the student is enrolled in
 }
 
 // Creates notifications for all peers in shared courses (excluding triggering student)
 // Skips if triggering student is in anonymous leaderboard mode
-async function notifyPeersOfMilestone(payload: PeerMilestonePayload): Promise<void>;
+async function notifyPeersOfMilestone(
+  payload: PeerMilestonePayload
+): Promise<void>;
 ```
 
 #### Perfect Day Prompt Cron (Edge Function: `/supabase/functions/perfect-day-prompt/`)
+
 ```typescript
 // pg_cron → 0 18 * * * (6 PM daily)
 // Checks each active student's habit completion for the day
@@ -333,6 +395,7 @@ interface PerfectDayCheckResult {
 ```
 
 #### CLO Progress View (`/src/pages/student/progress/CLOProgressView.tsx`)
+
 ```typescript
 interface CLOProgressEntry {
   clo_id: string;
@@ -359,6 +422,7 @@ interface CLOEvidenceDetail {
 ```
 
 #### XP Transaction History Component (`/src/pages/student/progress/XPHistory.tsx`)
+
 ```typescript
 interface XPTransactionDisplay {
   id: string;
@@ -373,7 +437,7 @@ interface XPHistoryProps {
   studentId: string;
 }
 
-type XPFilterPeriod = 'today' | 'this_week' | 'this_month' | 'all_time';
+type XPFilterPeriod = "today" | "this_week" | "this_month" | "all_time";
 
 // Shows running total and per-source category summary
 ```
@@ -381,6 +445,7 @@ type XPFilterPeriod = 'today' | 'this_week' | 'this_month' | 'all_time';
 ### AI Co-Pilot Components
 
 #### AI Module Suggestion (Edge Function: `/supabase/functions/ai-module-suggestion/`)
+
 ```typescript
 interface ModuleSuggestion {
   id: string;
@@ -392,7 +457,7 @@ interface ModuleSuggestion {
   prerequisite_clo_title: string | null;
   suggestion_text: string;
   social_proof_text: string | null; // "Students who improved CLO-3 before CLO-4 scored 34% higher"
-  feedback: 'thumbs_up' | 'thumbs_down' | null;
+  feedback: "thumbs_up" | "thumbs_down" | null;
 }
 
 interface AISuggestionWidgetProps {
@@ -401,6 +466,7 @@ interface AISuggestionWidgetProps {
 ```
 
 #### AI At-Risk Early Warning (Edge Function: `/supabase/functions/ai-at-risk-prediction/`)
+
 ```typescript
 interface AtRiskPrediction {
   id: string;
@@ -410,12 +476,12 @@ interface AtRiskPrediction {
   at_risk_clo_title: string;
   probability_score: number; // 0-100
   contributing_signals: {
-    login_frequency: 'low' | 'medium' | 'high';
-    submission_pattern: 'early' | 'on_time' | 'late' | 'missed';
-    attainment_trend: 'improving' | 'declining' | 'stagnant';
+    login_frequency: "low" | "medium" | "high";
+    submission_pattern: "early" | "on_time" | "late" | "missed";
+    attainment_trend: "improving" | "declining" | "stagnant";
   };
   prediction_date: string;
-  validated_outcome: 'correct' | 'incorrect' | null;
+  validated_outcome: "correct" | "incorrect" | null;
 }
 
 interface AtRiskWidgetProps {
@@ -426,6 +492,7 @@ interface AtRiskWidgetProps {
 ```
 
 #### AI Feedback Draft Generation (Edge Function: `/supabase/functions/ai-feedback-draft/`)
+
 ```typescript
 interface FeedbackDraftRequest {
   submission_id: string;
@@ -439,7 +506,7 @@ interface FeedbackDraft {
   criterion_id: string;
   criterion_name: string;
   draft_comment: string;
-  status: 'pending' | 'accepted' | 'edited' | 'rejected';
+  status: "pending" | "accepted" | "edited" | "rejected";
 }
 
 interface FeedbackDraftResponse {
@@ -449,17 +516,19 @@ interface FeedbackDraftResponse {
 ```
 
 #### AI Feedback Thumbs Component (`/src/components/shared/AIFeedbackThumbs.tsx`)
+
 ```typescript
 interface AIFeedbackThumbsProps {
   feedbackId: string;
-  currentFeedback: 'thumbs_up' | 'thumbs_down' | null;
-  onFeedback: (feedback: 'thumbs_up' | 'thumbs_down') => Promise<void>;
+  currentFeedback: "thumbs_up" | "thumbs_down" | null;
+  onFeedback: (feedback: "thumbs_up" | "thumbs_down") => Promise<void>;
 }
 ```
 
 ### Platform Enhancement Components
 
 #### Student Portfolio Page (`/src/pages/student/portfolio/StudentPortfolio.tsx`)
+
 ```typescript
 interface StudentPortfolioProps {
   studentId: string;
@@ -498,6 +567,7 @@ interface SemesterAttainment {
 ```
 
 #### Streak Freeze Shop (`/src/components/shared/StreakFreezeShop.tsx`)
+
 ```typescript
 interface StreakFreezeShopProps {
   studentId: string;
@@ -512,10 +582,11 @@ interface StreakFreezeShopProps {
 ```
 
 #### Onboarding Components
+
 ```typescript
 // Admin Setup Wizard (`/src/components/shared/OnboardingWizard.tsx`)
 interface OnboardingWizardProps {
-  role: 'admin';
+  role: "admin";
   steps: OnboardingStep[];
   onComplete: () => Promise<void>;
 }
@@ -530,7 +601,7 @@ interface OnboardingStep {
 
 // Welcome Tour (`/src/components/shared/WelcomeTour.tsx`)
 interface WelcomeTourProps {
-  role: 'coordinator' | 'teacher' | 'student';
+  role: "coordinator" | "teacher" | "student";
   steps: TourStep[];
   onComplete: () => Promise<void>;
 }
@@ -539,7 +610,7 @@ interface TourStep {
   target: string; // CSS selector for highlight
   title: string;
   content: string;
-  placement: 'top' | 'bottom' | 'left' | 'right';
+  placement: "top" | "bottom" | "left" | "right";
 }
 
 // Quick Start Checklist (`/src/components/shared/QuickStartChecklist.tsx`)
@@ -558,10 +629,11 @@ interface ChecklistItem {
 ```
 
 #### Read Habit Timer (`/src/hooks/useReadHabitTimer.ts`)
+
 ```typescript
 interface UseReadHabitTimerOptions {
   studentId: string;
-  pageType: 'assignment_detail' | 'clo_progress';
+  pageType: "assignment_detail" | "clo_progress";
   pageId: string; // assignment_id or course_id
 }
 
@@ -576,11 +648,12 @@ interface UseReadHabitTimerReturn {
 ```
 
 #### Theme Provider (`/src/providers/ThemeProvider.tsx`)
+
 ```typescript
-type ThemePreference = 'light' | 'dark' | 'system';
+type ThemePreference = "light" | "dark" | "system";
 
 interface ThemeContextValue {
-  theme: 'light' | 'dark'; // resolved theme (never 'system')
+  theme: "light" | "dark"; // resolved theme (never 'system')
   preference: ThemePreference;
   setPreference: (pref: ThemePreference) => Promise<void>;
 }
@@ -591,6 +664,7 @@ interface ThemeContextValue {
 ```
 
 #### Dark Mode CSS Custom Properties (`/src/index.css`)
+
 ```css
 /* Light mode (default) */
 :root {
@@ -614,12 +688,17 @@ interface ThemeContextValue {
 ```
 
 #### Draft Manager (`/src/lib/draftManager.ts`)
+
 ```typescript
 interface DraftManager {
   saveDraft(key: string, content: unknown): void;
   loadDraft<T>(key: string): T | null;
   clearDraft(key: string): void;
-  startAutoSave(key: string, getContent: () => unknown, intervalMs?: number): () => void; // returns cleanup fn
+  startAutoSave(
+    key: string,
+    getContent: () => unknown,
+    intervalMs?: number
+  ): () => void; // returns cleanup fn
 }
 
 // Keys: `journal-draft-${courseId}`, `submission-draft-${assignmentId}`
@@ -628,17 +707,18 @@ interface DraftManager {
 ```
 
 #### Offline Queue (`/src/lib/offlineQueue.ts`)
+
 ```typescript
 interface QueuedEvent {
   id: string;
-  type: 'activity_log' | 'submission_upload';
+  type: "activity_log" | "submission_upload";
   payload: unknown;
   timestamp: string; // original event time
   retryCount: number;
 }
 
 interface OfflineQueue {
-  enqueue(event: Omit<QueuedEvent, 'id' | 'retryCount'>): void;
+  enqueue(event: Omit<QueuedEvent, "id" | "retryCount">): void;
   flush(): Promise<void>; // process all queued events
   getQueueSize(): number;
 }
@@ -649,10 +729,11 @@ interface OfflineQueue {
 ```
 
 #### Student Data Export (Edge Function: `/supabase/functions/export-student-data/`)
+
 ```typescript
 interface ExportRequest {
   student_id: string;
-  format: 'json' | 'csv';
+  format: "json" | "csv";
 }
 
 interface ExportResponse {
@@ -668,6 +749,7 @@ interface ExportResponse {
 ```
 
 #### Export Data Button (`/src/components/shared/ExportDataButton.tsx`)
+
 ```typescript
 interface ExportDataButtonProps {
   studentId: string;
@@ -679,12 +761,17 @@ interface ExportDataButtonProps {
 ```
 
 #### Notification Batcher (`/src/lib/notificationBatcher.ts`)
+
 ```typescript
 interface NotificationBatcher {
   shouldBatch(studentId: string, type: string): boolean;
   getBatchedCount(studentId: string, type: string, windowMs: number): number;
   hasReachedDailyLimit(studentId: string): boolean; // max 5 peer milestone per day
-  createBatchedNotification(studentId: string, type: string, items: string[]): NotificationPayload;
+  createBatchedNotification(
+    studentId: string,
+    type: string,
+    items: string[]
+  ): NotificationPayload;
 }
 
 // Batching window: 1 hour for peer milestones
@@ -693,6 +780,7 @@ interface NotificationBatcher {
 ```
 
 #### Notification Digest (Edge Function: `/supabase/functions/notification-digest/`)
+
 ```typescript
 // pg_cron → 0 20 * * * (8 PM daily)
 // For students with digest preference enabled:
@@ -702,6 +790,7 @@ interface NotificationBatcher {
 ```
 
 #### ErrorState Component (`/src/components/shared/ErrorState.tsx`)
+
 ```typescript
 interface ErrorStateProps {
   title?: string;
@@ -714,18 +803,20 @@ interface ErrorStateProps {
 ```
 
 #### Upload Progress Component (`/src/components/shared/UploadProgress.tsx`)
+
 ```typescript
 interface UploadProgressProps {
   progress: number; // 0-100
   fileName: string;
   fileSize: number; // bytes
-  status: 'uploading' | 'success' | 'error';
+  status: "uploading" | "success" | "error";
   onRetry?: () => void;
   onCancel?: () => void;
 }
 ```
 
 #### Reconnect Banner (`/src/components/shared/ReconnectBanner.tsx`)
+
 ```typescript
 interface ReconnectBannerProps {
   isDisconnected: boolean;
@@ -737,6 +828,7 @@ interface ReconnectBannerProps {
 ```
 
 #### Grading Stats Component (`/src/pages/teacher/dashboard/GradingStats.tsx`)
+
 ```typescript
 interface GradingStatsData {
   graded_this_week: number;
@@ -757,6 +849,7 @@ interface GradingStatsProps {
 ### Dashboard Components
 
 Each role dashboard follows the same layout pattern:
+
 1. Welcome Hero Card (gradient background, key metrics)
 2. KPI Cards Row (`grid grid-cols-2 md:grid-cols-4 gap-4`)
 3. Tab Navigation (pill-style)
@@ -765,6 +858,7 @@ Each role dashboard follows the same layout pattern:
 ### Institutional Management Components
 
 #### Semester Manager (`/src/pages/admin/semesters/SemesterManager.tsx`)
+
 ```typescript
 interface SemesterFormData {
   name: string;
@@ -787,6 +881,7 @@ interface Semester {
 ```
 
 #### Course Section Manager (`/src/pages/coordinator/courses/SectionManager.tsx`)
+
 ```typescript
 interface CourseSectionFormData {
   course_id: string;
@@ -813,9 +908,10 @@ interface SectionComparisonProps {
 ```
 
 #### Survey Module (`/src/pages/admin/surveys/SurveyManager.tsx`)
+
 ```typescript
-type SurveyType = 'course_exit' | 'graduate_exit' | 'employer';
-type QuestionType = 'likert' | 'mcq' | 'text';
+type SurveyType = "course_exit" | "graduate_exit" | "employer";
+type QuestionType = "likert" | "mcq" | "text";
 
 interface SurveyFormData {
   title: string;
@@ -839,14 +935,15 @@ interface SurveyResponseFormData {
 ```
 
 #### CQI Action Plan Manager (`/src/pages/coordinator/cqi/CQIManager.tsx`)
+
 ```typescript
-type CQIStatus = 'planned' | 'in_progress' | 'completed' | 'evaluated';
+type CQIStatus = "planned" | "in_progress" | "completed" | "evaluated";
 
 interface CQIActionPlanFormData {
   program_id: string;
   semester_id: string;
   outcome_id: string;
-  outcome_type: 'PLO' | 'CLO';
+  outcome_type: "PLO" | "CLO";
   baseline_attainment: number;
   target_attainment: number;
   action_description: string;
@@ -863,6 +960,7 @@ interface CQIActionPlan extends CQIActionPlanFormData {
 ```
 
 #### Institution Settings (`/src/pages/admin/settings/InstitutionSettings.tsx`)
+
 ```typescript
 interface InstitutionSettingsFormData {
   attainment_thresholds: {
@@ -871,7 +969,7 @@ interface InstitutionSettingsFormData {
     developing: number;
   };
   success_threshold: number;
-  accreditation_body: 'HEC' | 'QQA' | 'ABET' | 'NCAAA' | 'AACSB' | 'Generic';
+  accreditation_body: "HEC" | "QQA" | "ABET" | "NCAAA" | "AACSB" | "Generic";
   grade_scales: Array<{
     letter: string;
     min_percent: number;
@@ -882,6 +980,7 @@ interface InstitutionSettingsFormData {
 ```
 
 #### Announcement Editor (`/src/pages/teacher/announcements/AnnouncementEditor.tsx`)
+
 ```typescript
 interface AnnouncementFormData {
   course_id: string;
@@ -903,8 +1002,9 @@ interface Announcement {
 ```
 
 #### Course Module & Materials (`/src/pages/teacher/courses/ModuleManager.tsx`)
+
 ```typescript
-type MaterialType = 'file' | 'link' | 'video' | 'text';
+type MaterialType = "file" | "link" | "video" | "text";
 
 interface CourseModuleFormData {
   course_id: string;
@@ -928,6 +1028,7 @@ interface CourseMaterialFormData {
 ```
 
 #### Discussion Forum (`/src/pages/student/discussions/DiscussionForum.tsx`)
+
 ```typescript
 interface DiscussionThreadFormData {
   course_id: string;
@@ -965,9 +1066,10 @@ interface DiscussionReply {
 ```
 
 #### Attendance Tracker (`/src/pages/teacher/attendance/AttendanceMarker.tsx`)
+
 ```typescript
-type AttendanceStatus = 'present' | 'absent' | 'late' | 'excused';
-type SessionType = 'lecture' | 'lab' | 'tutorial';
+type AttendanceStatus = "present" | "absent" | "late" | "excused";
+type SessionType = "lecture" | "lab" | "tutorial";
 
 interface ClassSessionFormData {
   section_id: string;
@@ -988,8 +1090,14 @@ interface AttendanceReportProps {
 ```
 
 #### Quiz Builder (`/src/pages/teacher/quizzes/QuizBuilder.tsx`)
+
 ```typescript
-type QuizQuestionType = 'mcq_single' | 'mcq_multi' | 'true_false' | 'short_answer' | 'fill_blank';
+type QuizQuestionType =
+  | "mcq_single"
+  | "mcq_multi"
+  | "true_false"
+  | "short_answer"
+  | "fill_blank";
 
 interface QuizFormData {
   course_id: string;
@@ -1030,6 +1138,7 @@ interface QuizAttempt {
 ```
 
 #### Gradebook (`/src/pages/teacher/gradebook/GradebookView.tsx`)
+
 ```typescript
 interface GradeCategoryFormData {
   course_id: string;
@@ -1064,8 +1173,14 @@ interface GradebookViewProps {
 ```
 
 #### Calendar View (`/src/pages/shared/CalendarView.tsx`)
+
 ```typescript
-type CalendarEventSource = 'assignment' | 'quiz' | 'class_session' | 'academic_calendar' | 'announcement';
+type CalendarEventSource =
+  | "assignment"
+  | "quiz"
+  | "class_session"
+  | "academic_calendar"
+  | "announcement";
 
 interface CalendarEvent {
   id: string;
@@ -1079,14 +1194,15 @@ interface CalendarEvent {
 }
 
 interface CalendarViewProps {
-  role: 'student' | 'teacher';
+  role: "student" | "teacher";
   userId: string;
 }
 ```
 
 #### Timetable View (`/src/pages/shared/TimetableView.tsx`)
+
 ```typescript
-type SlotType = 'lecture' | 'lab' | 'tutorial';
+type SlotType = "lecture" | "lab" | "tutorial";
 
 interface TimetableSlot {
   id: string;
@@ -1101,12 +1217,13 @@ interface TimetableSlot {
 }
 
 interface TimetableViewProps {
-  role: 'student' | 'teacher';
+  role: "student" | "teacher";
   userId: string;
 }
 ```
 
 #### Department Manager (`/src/pages/admin/departments/DepartmentManager.tsx`)
+
 ```typescript
 interface DepartmentFormData {
   name: string;
@@ -1125,8 +1242,15 @@ interface Department {
 ```
 
 #### Academic Calendar Manager (`/src/pages/admin/calendar/AcademicCalendarManager.tsx`)
+
 ```typescript
-type AcademicEventType = 'semester_start' | 'semester_end' | 'exam_period' | 'holiday' | 'registration' | 'custom';
+type AcademicEventType =
+  | "semester_start"
+  | "semester_end"
+  | "exam_period"
+  | "holiday"
+  | "registration"
+  | "custom";
 
 interface AcademicCalendarEventFormData {
   semester_id: string;
@@ -1139,6 +1263,7 @@ interface AcademicCalendarEventFormData {
 ```
 
 #### Transcript Generator (Edge Function: `/supabase/functions/generate-transcript/`)
+
 ```typescript
 interface TranscriptRequest {
   student_id: string;
@@ -1146,7 +1271,12 @@ interface TranscriptRequest {
 }
 
 interface TranscriptData {
-  student_info: { name: string; email: string; program: string; department: string };
+  student_info: {
+    name: string;
+    email: string;
+    program: string;
+    department: string;
+  };
   semesters: Array<{
     semester_name: string;
     courses: Array<{
@@ -1155,7 +1285,10 @@ interface TranscriptData {
       grade_categories: Array<{ name: string; weight: number; score: number }>;
       final_grade: number;
       letter_grade: string;
-      clo_attainment_summary: Array<{ clo_title: string; attainment_percent: number }>;
+      clo_attainment_summary: Array<{
+        clo_title: string;
+        attainment_percent: number;
+      }>;
     }>;
     semester_gpa: number;
   }>;
@@ -1169,6 +1302,7 @@ interface TranscriptResponse {
 ```
 
 #### Course File Generator (Edge Function: `/supabase/functions/generate-course-file/`)
+
 ```typescript
 interface CourseFileRequest {
   course_id: string;
@@ -1177,7 +1311,7 @@ interface CourseFileRequest {
 
 interface CourseFileResponse {
   download_url: string;
-  file_type: 'pdf' | 'zip';
+  file_type: "pdf" | "zip";
   generated_at: string;
 }
 
@@ -1186,6 +1320,7 @@ interface CourseFileResponse {
 ```
 
 #### Parent Dashboard (`/src/pages/parent/ParentDashboard.tsx`)
+
 ```typescript
 interface ParentDashboardProps {
   parentId: string;
@@ -1194,14 +1329,22 @@ interface ParentDashboardProps {
 interface LinkedStudent {
   student_id: string;
   student_name: string;
-  relationship: 'parent' | 'guardian';
+  relationship: "parent" | "guardian";
   program_name: string;
 }
 
 interface ParentStudentView {
-  grades: Array<{ course_name: string; final_grade: number; letter_grade: string }>;
+  grades: Array<{
+    course_name: string;
+    final_grade: number;
+    letter_grade: string;
+  }>;
   attendance: Array<{ course_name: string; attendance_percent: number }>;
-  clo_progress: Array<{ clo_title: string; attainment_percent: number; course_name: string }>;
+  clo_progress: Array<{
+    clo_title: string;
+    attainment_percent: number;
+    course_name: string;
+  }>;
   habits: Array<{ date: string; habit_type: string; completed: boolean }>;
   xp_total: number;
   level: number;
@@ -1210,9 +1353,10 @@ interface ParentStudentView {
 ```
 
 #### Fee Manager (`/src/pages/admin/fees/FeeManager.tsx`)
+
 ```typescript
-type FeeType = 'tuition' | 'lab' | 'library' | 'exam';
-type PaymentStatus = 'pending' | 'paid' | 'overdue' | 'waived';
+type FeeType = "tuition" | "lab" | "library" | "exam";
+type PaymentStatus = "pending" | "paid" | "overdue" | "waived";
 
 interface FeeStructureFormData {
   program_id: string;
@@ -1245,57 +1389,57 @@ interface FeeCollectionSummary {
 
 ```typescript
 // Reusable across all dashboards
-AttainmentBar        // Color-coded progress bar
-BloomsPill           // Bloom's taxonomy level badge
-OutcomeTypeBadge     // ILO/PLO/CLO colored badge
-XPDisplay            // Amber XP chip
-StreakDisplay         // Flame animation streak counter
-BadgeCard            // Badge with emoji and label
-LevelProgress        // XP progress bar with level info
-LeaderboardRow       // Ranked student row
-KPICard              // Metric card with icon and hover effect
-GradientCardHeader   // Brand gradient header for section cards
-HabitGrid            // 7-day × 4-habit color-coded grid
-LockedNode           // Locked assignment node with prerequisite tooltip
-BloomsVerbGuide      // Verb suggestion panel for CLO builder
-MysteryBadge         // Hidden badge with reveal animation
-BonusEventBanner     // Active bonus XP event banner
-AIFeedbackThumbs     // Thumbs up/down for AI suggestions
-AISuggestionCard     // AI module suggestion card with feedback
-AtRiskStudentRow     // AI at-risk prediction row with nudge button
-CLOProgressBar       // Per-CLO attainment bar with Bloom's color
-XPTransactionRow     // Single XP transaction display row
-Shimmer              // Loading skeleton
-EmptyState           // Empty state with icon and CTA
-DataTable            // TanStack Table wrapper with sorting/filtering
-ConfirmDialog        // Destructive action confirmation
-ErrorState           // Reusable error display with retry button
-UploadProgress       // File upload progress bar with percentage
-ReconnectBanner      // "Live updates paused — Reconnecting..." banner
-StreakFreezeShop     // Streak Freeze purchase UI with inventory display
-ExportDataButton     // GDPR data export trigger with format selector
-QuickStartChecklist  // Persistent onboarding checklist per role
-SurveyForm           // Reusable survey response form (Likert/MCQ/text)
-AttendanceGrid       // Session × student attendance marking grid
-QuizQuestionCard     // Single quiz question display with answer input
-GradebookMatrix      // Students × assessments weighted grade matrix
-TimetableGrid        // Weekly day × time slot grid
-AnnouncementCard     // Course announcement display card with markdown
-MaterialItem         // Course material list item (file/link/video/text)
-DiscussionThreadCard // Discussion thread preview card
-CalendarEventCard    // Calendar event display with course color coding
-CQIStatusBadge       // CQI action plan status pill (planned/in_progress/completed/evaluated)
-SectionComparisonChart // Side-by-side section attainment comparison
-FeeStatusBadge       // Fee payment status pill (pending/paid/overdue/waived)
-ParentStudentCard    // Parent view of linked student summary
-LanguageSelector     // Language dropdown (English/Urdu/Arabic) with RTL toggle
-PWAInstallPrompt     // Mobile install prompt for PWA
-CookieConsentBanner  // GDPR cookie consent with Accept/Reject/Manage options
-ToSAcceptanceDialog  // Terms of Service acceptance gate on first login
-ImpersonationBanner  // "Viewing as [user]" banner during admin impersonation
-SearchCommand        // Global search (Cmd+K) with category-grouped results
-PlagiarismPlaceholder // Plagiarism check placeholder in grading interface
-ImageCompressor      // Client-side avatar compression utility display
+AttainmentBar; // Color-coded progress bar
+BloomsPill; // Bloom's taxonomy level badge
+OutcomeTypeBadge; // ILO/PLO/CLO colored badge
+XPDisplay; // Amber XP chip
+StreakDisplay; // Flame animation streak counter
+BadgeCard; // Badge with emoji and label
+LevelProgress; // XP progress bar with level info
+LeaderboardRow; // Ranked student row
+KPICard; // Metric card with icon and hover effect
+GradientCardHeader; // Brand gradient header for section cards
+HabitGrid; // 7-day × 4-habit color-coded grid
+LockedNode; // Locked assignment node with prerequisite tooltip
+BloomsVerbGuide; // Verb suggestion panel for CLO builder
+MysteryBadge; // Hidden badge with reveal animation
+BonusEventBanner; // Active bonus XP event banner
+AIFeedbackThumbs; // Thumbs up/down for AI suggestions
+AISuggestionCard; // AI module suggestion card with feedback
+AtRiskStudentRow; // AI at-risk prediction row with nudge button
+CLOProgressBar; // Per-CLO attainment bar with Bloom's color
+XPTransactionRow; // Single XP transaction display row
+Shimmer; // Loading skeleton
+EmptyState; // Empty state with icon and CTA
+DataTable; // TanStack Table wrapper with sorting/filtering
+ConfirmDialog; // Destructive action confirmation
+ErrorState; // Reusable error display with retry button
+UploadProgress; // File upload progress bar with percentage
+ReconnectBanner; // "Live updates paused — Reconnecting..." banner
+StreakFreezeShop; // Streak Freeze purchase UI with inventory display
+ExportDataButton; // GDPR data export trigger with format selector
+QuickStartChecklist; // Persistent onboarding checklist per role
+SurveyForm; // Reusable survey response form (Likert/MCQ/text)
+AttendanceGrid; // Session × student attendance marking grid
+QuizQuestionCard; // Single quiz question display with answer input
+GradebookMatrix; // Students × assessments weighted grade matrix
+TimetableGrid; // Weekly day × time slot grid
+AnnouncementCard; // Course announcement display card with markdown
+MaterialItem; // Course material list item (file/link/video/text)
+DiscussionThreadCard; // Discussion thread preview card
+CalendarEventCard; // Calendar event display with course color coding
+CQIStatusBadge; // CQI action plan status pill (planned/in_progress/completed/evaluated)
+SectionComparisonChart; // Side-by-side section attainment comparison
+FeeStatusBadge; // Fee payment status pill (pending/paid/overdue/waived)
+ParentStudentCard; // Parent view of linked student summary
+LanguageSelector; // Language dropdown (English/Urdu/Arabic) with RTL toggle
+PWAInstallPrompt; // Mobile install prompt for PWA
+CookieConsentBanner; // GDPR cookie consent with Accept/Reject/Manage options
+ToSAcceptanceDialog; // Terms of Service acceptance gate on first login
+ImpersonationBanner; // "Viewing as [user]" banner during admin impersonation
+SearchCommand; // Global search (Cmd+K) with category-grouped results
+PlagiarismPlaceholder; // Plagiarism check placeholder in grading interface
+ImageCompressor; // Client-side avatar compression utility display
 ```
 
 ## Data Models
@@ -1303,6 +1447,7 @@ ImageCompressor      // Client-side avatar compression utility display
 ### Complete Database Schema
 
 All tables from the architecture document (Section 5) are implemented:
+
 - `institutions`, `profiles`, `programs`, `courses`, `student_courses`
 - `learning_outcomes`, `outcome_mappings`
 - `rubrics`, `rubric_criteria`
@@ -1319,6 +1464,7 @@ All tables from the architecture document (Section 5) are implemented:
 Note: The `profiles` table includes an `email_preferences` jsonb column (default: all notifications enabled) for per-user email opt-out settings (see Requirement 39). It also includes `onboarding_completed` boolean (default false, Requirement 60), `portfolio_public` boolean (default false, Requirement 58), and `theme_preference` text (default 'system', Requirement 62).
 
 New tables for institutional management and LMS features:
+
 - `semesters` (Requirement 68)
 - `departments` (Requirement 83)
 - `course_sections` (Requirement 69)
@@ -1340,6 +1486,7 @@ New tables for institutional management and LMS features:
 Column additions: `courses.semester_id`, `programs.department_id`, `student_courses.section_id`.
 
 Note: `outcome_attainment` requires a unique index for UPSERT rollup logic:
+
 ```sql
 CREATE UNIQUE INDEX idx_attainment_unique ON outcome_attainment(
   outcome_id,
@@ -1354,17 +1501,25 @@ CREATE UNIQUE INDEX idx_attainment_unique ON outcome_attainment(
 AI Co-Pilot types exported from `src/types/ai.ts`:
 
 ```typescript
-export type AISuggestionType = 'module_suggestion' | 'at_risk_prediction' | 'feedback_draft';
-export type AIFeedbackValue = 'thumbs_up' | 'thumbs_down';
-export type AtRiskSignalLevel = 'low' | 'medium' | 'high';
-export type SubmissionPattern = 'early' | 'on_time' | 'late' | 'missed';
-export type AttainmentTrend = 'improving' | 'declining' | 'stagnant';
-export type FeedbackDraftStatus = 'pending' | 'accepted' | 'edited' | 'rejected';
+export type AISuggestionType =
+  | "module_suggestion"
+  | "at_risk_prediction"
+  | "feedback_draft";
+export type AIFeedbackValue = "thumbs_up" | "thumbs_down";
+export type AtRiskSignalLevel = "low" | "medium" | "high";
+export type SubmissionPattern = "early" | "on_time" | "late" | "missed";
+export type AttainmentTrend = "improving" | "declining" | "stagnant";
+export type FeedbackDraftStatus =
+  | "pending"
+  | "accepted"
+  | "edited"
+  | "rejected";
 ```
 
 ### New Table Schemas
 
 #### `habit_logs`
+
 ```sql
 CREATE TABLE habit_logs (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -1380,6 +1535,7 @@ ALTER TABLE habit_logs ENABLE ROW LEVEL SECURITY;
 Note: The architecture doc uses a single-row-per-day model with boolean columns. The normalized model above (one row per habit type per day) is the chosen implementation because it's more flexible for querying individual habit completion and avoids schema changes when adding new habit types. The `is_perfect_day` check is computed at query time: `COUNT(DISTINCT habit_type) = 4 WHERE date = CURRENT_DATE`.
 
 #### `bonus_xp_events`
+
 ```sql
 CREATE TABLE bonus_xp_events (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -1396,6 +1552,7 @@ ALTER TABLE bonus_xp_events ENABLE ROW LEVEL SECURITY;
 ```
 
 #### `student_activity_log`
+
 ```sql
 CREATE TABLE student_activity_log (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -1409,6 +1566,7 @@ ALTER TABLE student_activity_log ENABLE ROW LEVEL SECURITY;
 ```
 
 #### `ai_feedback` (Phase 2 — schema only)
+
 ```sql
 CREATE TABLE ai_feedback (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -1444,6 +1602,7 @@ ALTER TABLE profiles ADD COLUMN theme_preference text NOT NULL DEFAULT 'system'
 #### New Tables for Institutional Management & LMS Features
 
 #### `semesters`
+
 ```sql
 CREATE TABLE semesters (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -1461,6 +1620,7 @@ ALTER TABLE semesters ENABLE ROW LEVEL SECURITY;
 ```
 
 #### `departments`
+
 ```sql
 CREATE TABLE departments (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -1475,6 +1635,7 @@ ALTER TABLE departments ENABLE ROW LEVEL SECURITY;
 ```
 
 #### `course_sections`
+
 ```sql
 CREATE TABLE course_sections (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -1490,6 +1651,7 @@ ALTER TABLE course_sections ENABLE ROW LEVEL SECURITY;
 ```
 
 #### `surveys`
+
 ```sql
 CREATE TABLE surveys (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -1504,6 +1666,7 @@ ALTER TABLE surveys ENABLE ROW LEVEL SECURITY;
 ```
 
 #### `survey_questions`
+
 ```sql
 CREATE TABLE survey_questions (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -1518,6 +1681,7 @@ ALTER TABLE survey_questions ENABLE ROW LEVEL SECURITY;
 ```
 
 #### `survey_responses`
+
 ```sql
 CREATE TABLE survey_responses (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -1532,6 +1696,7 @@ ALTER TABLE survey_responses ENABLE ROW LEVEL SECURITY;
 ```
 
 #### `cqi_action_plans`
+
 ```sql
 CREATE TABLE cqi_action_plans (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -1552,6 +1717,7 @@ ALTER TABLE cqi_action_plans ENABLE ROW LEVEL SECURITY;
 ```
 
 #### `institution_settings`
+
 ```sql
 CREATE TABLE institution_settings (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -1566,6 +1732,7 @@ ALTER TABLE institution_settings ENABLE ROW LEVEL SECURITY;
 ```
 
 #### `program_accreditations`
+
 ```sql
 CREATE TABLE program_accreditations (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -1581,6 +1748,7 @@ ALTER TABLE program_accreditations ENABLE ROW LEVEL SECURITY;
 ```
 
 #### `announcements`
+
 ```sql
 CREATE TABLE announcements (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -1597,6 +1765,7 @@ CREATE INDEX idx_announcements_course ON announcements(course_id, is_pinned DESC
 ```
 
 #### `course_modules`
+
 ```sql
 CREATE TABLE course_modules (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -1611,6 +1780,7 @@ ALTER TABLE course_modules ENABLE ROW LEVEL SECURITY;
 ```
 
 #### `course_materials`
+
 ```sql
 CREATE TABLE course_materials (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -1629,6 +1799,7 @@ ALTER TABLE course_materials ENABLE ROW LEVEL SECURITY;
 ```
 
 #### `discussion_threads`
+
 ```sql
 CREATE TABLE discussion_threads (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -1645,6 +1816,7 @@ CREATE INDEX idx_discussion_threads_course ON discussion_threads(course_id, is_p
 ```
 
 #### `discussion_replies`
+
 ```sql
 CREATE TABLE discussion_replies (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -1658,6 +1830,7 @@ ALTER TABLE discussion_replies ENABLE ROW LEVEL SECURITY;
 ```
 
 #### `class_sessions`
+
 ```sql
 CREATE TABLE class_sessions (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -1672,6 +1845,7 @@ ALTER TABLE class_sessions ENABLE ROW LEVEL SECURITY;
 ```
 
 #### `attendance_records`
+
 ```sql
 CREATE TABLE attendance_records (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -1687,6 +1861,7 @@ CREATE INDEX idx_attendance_student ON attendance_records(student_id, session_id
 ```
 
 #### `quizzes`
+
 ```sql
 CREATE TABLE quizzes (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -1704,6 +1879,7 @@ ALTER TABLE quizzes ENABLE ROW LEVEL SECURITY;
 ```
 
 #### `quiz_questions`
+
 ```sql
 CREATE TABLE quiz_questions (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -1719,6 +1895,7 @@ ALTER TABLE quiz_questions ENABLE ROW LEVEL SECURITY;
 ```
 
 #### `quiz_attempts`
+
 ```sql
 CREATE TABLE quiz_attempts (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -1736,6 +1913,7 @@ CREATE INDEX idx_quiz_attempts_student ON quiz_attempts(student_id, quiz_id);
 ```
 
 #### `grade_categories`
+
 ```sql
 CREATE TABLE grade_categories (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -1749,6 +1927,7 @@ ALTER TABLE grade_categories ENABLE ROW LEVEL SECURITY;
 ```
 
 #### `timetable_slots`
+
 ```sql
 CREATE TABLE timetable_slots (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -1764,6 +1943,7 @@ ALTER TABLE timetable_slots ENABLE ROW LEVEL SECURITY;
 ```
 
 #### `academic_calendar_events`
+
 ```sql
 CREATE TABLE academic_calendar_events (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -1780,6 +1960,7 @@ ALTER TABLE academic_calendar_events ENABLE ROW LEVEL SECURITY;
 ```
 
 #### `parent_student_links`
+
 ```sql
 CREATE TABLE parent_student_links (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -1794,6 +1975,7 @@ ALTER TABLE parent_student_links ENABLE ROW LEVEL SECURITY;
 ```
 
 #### `fee_structures`
+
 ```sql
 CREATE TABLE fee_structures (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -1809,6 +1991,7 @@ ALTER TABLE fee_structures ENABLE ROW LEVEL SECURITY;
 ```
 
 #### `fee_payments`
+
 ```sql
 CREATE TABLE fee_payments (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -1839,6 +2022,7 @@ ALTER TABLE student_courses ADD COLUMN section_id uuid REFERENCES course_section
 Note: The `xp_transactions.source` CHECK constraint should be updated to include `'streak_freeze_purchase'`, `'discussion_question'`, `'discussion_answer'`, `'survey_completion'`, and `'quiz_completion'` as valid source values. The `student_activity_log.event_type` CHECK constraint should be updated to include `'grading_start'`, `'grading_end'`, `'material_view'`, `'announcement_view'`, `'discussion_post'`, `'quiz_attempt'`, and `'attendance_marked'` event types.
 
 #### Leaderboard Materialized View
+
 ```sql
 CREATE MATERIALIZED VIEW leaderboard_weekly AS
 SELECT
@@ -1856,9 +2040,11 @@ ORDER BY sg.xp_total DESC;
 
 CREATE UNIQUE INDEX idx_leaderboard_weekly_student ON leaderboard_weekly(student_id);
 ```
+
 Refreshed every 5 minutes via pg_cron: `SELECT cron.schedule('leaderboard-refresh', '*/5 * * * *', 'REFRESH MATERIALIZED VIEW CONCURRENTLY leaderboard_weekly');`
 
 #### Assignment prerequisites (column addition)
+
 ```sql
 ALTER TABLE assignments ADD COLUMN prerequisites jsonb DEFAULT '[]';
 -- Format: [{ "clo_id": "uuid", "min_attainment_percent": 70 }]
@@ -1936,12 +2122,19 @@ courseFile.ts     — courseFileRequestSchema
 
 ```typescript
 export const BLOOMS_VERBS = {
-  remembering: ['define', 'list', 'recall', 'identify', 'state', 'name'],
-  understanding: ['explain', 'describe', 'classify', 'summarize', 'paraphrase'],
-  applying: ['use', 'implement', 'execute', 'solve', 'demonstrate', 'construct'],
-  analyzing: ['compare', 'differentiate', 'examine', 'break down', 'infer'],
-  evaluating: ['judge', 'critique', 'defend', 'argue', 'assess', 'recommend'],
-  creating: ['design', 'develop', 'compose', 'build', 'formulate', 'produce'],
+  remembering: ["define", "list", "recall", "identify", "state", "name"],
+  understanding: ["explain", "describe", "classify", "summarize", "paraphrase"],
+  applying: [
+    "use",
+    "implement",
+    "execute",
+    "solve",
+    "demonstrate",
+    "construct",
+  ],
+  analyzing: ["compare", "differentiate", "examine", "break down", "infer"],
+  evaluating: ["judge", "critique", "defend", "argue", "assess", "recommend"],
+  creating: ["design", "develop", "compose", "build", "formulate", "produce"],
 } as const;
 ```
 
@@ -1952,147 +2145,195 @@ Hierarchical keys for all entities: users, programs, courses, enrollments, ilos,
 ## Correctness Properties
 
 ### Properties 1–18 (from MVP — retained)
+
 Properties 1–18 covering auth, RBAC, routing, user management, bulk import, and ILO management remain unchanged.
 
 ### Property 19: PLO-ILO mapping weight validation
+
 For any PLO with ILO mappings, the system should warn if total weight < 0.5.
 
 ### Property 20: CLO requires PLO mapping before assignment linking
+
 For any CLO without a PLO mapping, attempting to link it to an assignment should fail.
 
 ### Property 21: Rubric minimum structure
+
 For any rubric, it must have ≥2 criteria and ≥2 performance levels.
 
 ### Property 22: Grade triggers evidence creation
+
 For any grade insert, an evidence record should be created within 500ms with correct CLO/PLO/ILO chain.
 
 ### Property 23: Evidence immutability
+
 For any evidence record, UPDATE and DELETE operations should be denied.
 
 ### Property 24: Attainment rollup accuracy
+
 For any set of evidence records, CLO attainment should equal the average score_percent, and PLO/ILO attainment should equal the weighted average of child attainments.
 
 ### Property 25: XP ledger consistency
+
 For any student, `student_gamification.xp_total` should equal the sum of all `xp_transactions.xp_amount` for that student.
 
 ### Property 26: Badge idempotency
+
 For any badge trigger that fires multiple times, the badge should only be awarded once.
 
 ### Property 27: Streak calculation correctness
+
 For any sequence of login dates, streak_current should reflect the longest consecutive run ending at the most recent login.
 
 ### Property 28: Leaderboard ordering
+
 For any leaderboard query, results should be ordered by xp_total descending with correct rank assignment.
 
 ### Property 29: Habit tracker Perfect Day detection
+
 For any student with all 4 habit types (login, submit, journal, read) completed on the same calendar day, the system should award exactly 50 bonus XP once.
 
 ### Property 30: Bonus XP event multiplier application
+
 For any active bonus_xp_event with multiplier M, all XP awards during the event window should be multiplied by M. XP awards outside the window should be unaffected.
 
 ### Property 31: Assignment prerequisite gating
+
 For any assignment with prerequisites `[{clo_id, min_attainment_percent}]`, a student whose attainment for that CLO is below the threshold should be denied submission. A student at or above the threshold should be allowed.
 
 ### Property 32: First-Attempt Bonus idempotency
+
 For any assignment where a student's first submission scores ≥50%, the 25 XP First-Attempt Bonus should be awarded exactly once. Subsequent submissions for the same assignment should not re-trigger the bonus.
 
 ### Property 33: Mystery badge hidden condition
+
 For any mystery badge, the badge condition should not be visible to students before earning. After earning, the badge and its description should be visible on the student's profile.
 
 ### Property 34: Activity log append-only integrity
+
 For any record in `student_activity_log`, UPDATE and DELETE operations should be denied (same immutability pattern as evidence).
 
 ### Property 35: Journal prompt Kolb's Cycle alignment
+
 For any generated journal prompt, the prompt should contain exactly 3–4 reflection questions, and each question should map to one stage of Kolb's Experiential Learning Cycle (Concrete Experience, Reflective Observation, Abstract Conceptualization, Active Experimentation).
 
 ### Property 36: Peer milestone notification scoping
+
 For any student level-up event, peer notifications should be created only for students sharing at least one active course enrollment with the leveled-up student. Students in anonymous leaderboard mode should not trigger peer notifications.
 
 ### Property 37: Perfect Day prompt notification accuracy
+
 For any student with exactly 3 of 4 habits completed at 6 PM check time, the notification should identify the correct missing habit. Students with 0–2 or 4 completed habits should not receive the notification.
 
 ### Property 38: AI module suggestion CLO gap detection
+
 For any student with CLO attainment below 70%, the AI module suggestion should identify that CLO as a gap. For any student with all CLOs at or above 70%, no gap suggestions should be generated.
 
 ### Property 39: AI at-risk prediction timeliness
+
 For any at-risk prediction, the prediction date should be ≥7 days before the next assignment due date for the at-risk CLO. Predictions generated <7 days before due date should be flagged as late warnings.
 
 ### Property 40: AI feedback flywheel data integrity
+
 For any AI suggestion stored in `ai_feedback`, the `suggestion_type` should be one of: `module_suggestion`, `at_risk_prediction`, `feedback_draft`. Every record should have a non-null `suggestion_text` and valid `student_id`.
 
 ### Property 41: Streak Freeze consumption correctness
+
 For any student with `streak_freezes_available > 0` who misses a day, the streak should NOT reset and the freeze count should decrement by 1. For any student with `streak_freezes_available = 0` who misses a day, the streak should reset to 0.
 
 ### Property 42: Streak Freeze purchase constraints
+
 For any Streak Freeze purchase, the student must have ≥200 XP balance and `streak_freezes_available < 2`. A purchase should decrement XP by 200 and increment `streak_freezes_available` by 1. Purchases when balance < 200 or freezes ≥ 2 should be rejected.
 
 ### Property 43: Notification rate limiting
+
 For any student, the number of peer milestone notifications received in a 24-hour period should not exceed 5. Excess notifications within the window should be batched or dropped.
 
 ### Property 44: Notification batching correctness
+
 For any set of peer milestone events occurring within a 1-hour window for the same recipient student, the system should produce at most 1 grouped notification summarizing all milestones, not individual notifications per event.
 
 ### Property 45: Offline queue flush integrity
+
 For any set of activity log events queued in localStorage while offline, flushing the queue when online should result in all events being inserted into `student_activity_log` with their original timestamps preserved. The queue should be empty after a successful flush.
 
 ### Property 46: Journal draft auto-save round-trip
+
 For any journal entry draft saved to localStorage, restoring the draft should produce content identical to what was saved. Drafts should be cleared from localStorage only after successful server-side save.
 
 ### Property 47: Student data export completeness
+
 For any student data export, the exported data should contain records from all student-scoped tables (grades, attainment, xp_transactions, journal_entries, badges, habit_logs). The count of exported records per table should match the count of records in the database for that student.
 
 ### Property 48: Dark mode token consistency
+
 For any CSS custom property defined in the light theme, a corresponding dark theme value must exist. Switching themes should not produce any unstyled or invisible elements (all text must have sufficient contrast against its background in both modes).
 
 ### Property 49: Read habit timer accuracy
+
 For any student viewing a qualifying page (assignment detail or CLO progress), the "Read" habit should be marked complete if and only if the cumulative view duration on qualifying pages reaches ≥30 seconds within the same calendar day. Durations below 30 seconds should not trigger completion.
 
 ### Property 50: Grading time calculation correctness
+
 For any graded submission where both `grading_start` and `grading_end` activity log events exist, the calculated grading time should equal the difference between the two timestamps. Submissions without a `grading_start` event should be excluded from average grading time calculations.
 
 ### Property 51: Semester active uniqueness
+
 For any institution, at most one semester should have `is_active = true` at any time. Activating a new semester should deactivate the previously active semester.
 
 ### Property 52: Course section CLO sharing
+
 For any course with multiple sections, all sections should share the same CLOs, rubrics, and assignments. Section-specific data (enrollments, submissions, grades) should be isolated per section.
 
 ### Property 53: Survey response uniqueness
+
 For any survey, each respondent should have at most one response per question. Duplicate submissions for the same survey by the same respondent should be rejected.
 
 ### Property 54: CQI action plan lifecycle
+
 For any CQI action plan transitioning to `evaluated` status, a `result_attainment` value must be present. Plans without `result_attainment` should not be allowed to reach `evaluated` status.
 
 ### Property 55: Configurable threshold consistency
+
 For any institution_settings record, the attainment thresholds must satisfy: `developing < satisfactory < excellent` and all values must be between 0 and 100. All attainment level calculations across the platform should use these configured values instead of hardcoded defaults.
 
 ### Property 56: Grade category weight sum
+
 For any course, the sum of all `grade_categories.weight_percent` should equal exactly 100. Adding a category that would cause the sum to exceed 100 should be rejected.
 
 ### Property 57: Quiz auto-grading correctness
+
 For any quiz attempt with MCQ/true-false/fill-in-blank questions, the auto-graded score should equal the sum of points for questions where the student's answer matches the correct_answer. Short answer questions should remain unscored until manually graded.
 
 ### Property 58: Quiz attempt limit enforcement
+
 For any quiz with `max_attempts = N`, a student should have at most N `quiz_attempts` records. Attempts beyond the limit should be rejected.
 
 ### Property 59: Attendance percentage calculation
+
 For any student in a course section, attendance percentage should equal `(present_count + late_count) / total_sessions * 100`. Students below 75% should be flagged.
 
 ### Property 60: Discussion XP award correctness
+
 For any discussion thread created by a student, exactly 10 XP should be awarded once. For any reply marked as correct answer, exactly 15 XP should be awarded to the reply author once. Unmarking an answer should not revoke XP.
 
 ### Property 61: Calendar event aggregation completeness
+
 For any student's calendar view, the displayed events should include all assignments, quizzes, class sessions, and academic calendar events from all enrolled courses. No events should be missing or duplicated.
 
 ### Property 62: Parent portal data isolation
+
 For any parent user, data access should be restricted to students linked via verified `parent_student_links` records. Unverified links should not grant data access. Parents should have read-only access with no mutation capabilities.
 
 ### Property 63: Fee payment status consistency
+
 For any fee payment, if `payment_date > fee_structure.due_date` and `status = 'pending'`, the status should be automatically updated to `overdue`. Payments with `status = 'paid'` should have `amount_paid > 0`.
 
 ### Property 64: Course file content completeness
+
 For any generated course file, the output should contain all required sections: syllabus, CLO-PLO mapping, assessment instruments, sample student work (best/average/worst), CLO attainment analysis, and teacher reflection. Missing sections should be flagged in the output.
 
 ### Property 65: Semester scoping integrity
+
 For any report, analytics query, or attainment rollup, results should be scoped to the specified semester_id. Data from other semesters should not leak into the results. Deactivated semester data should be read-only.
 
 ## Seed Data Strategy
@@ -2105,11 +2346,11 @@ Implemented as a Supabase Edge Function (`seed-demo-data`) or a standalone SQL s
 
 ### Data Distribution
 
-| Category | Count | Characteristics |
-|----------|-------|-----------------|
-| At-risk students | 10 | Low login frequency (1–2×/week), declining CLO attainment, late/missed submissions, short/no streaks |
-| High performers | 15 | Daily logins, high scores (80–100%), long streaks (30–100 days), all badges, frequent journal entries |
-| Average students | 25 | Mixed login patterns (3–5×/week), moderate scores (50–80%), intermittent streaks, some badges |
+| Category         | Count | Characteristics                                                                                       |
+| ---------------- | ----- | ----------------------------------------------------------------------------------------------------- |
+| At-risk students | 10    | Low login frequency (1–2×/week), declining CLO attainment, late/missed submissions, short/no streaks  |
+| High performers  | 15    | Daily logins, high scores (80–100%), long streaks (30–100 days), all badges, frequent journal entries |
+| Average students | 25    | Mixed login patterns (3–5×/week), moderate scores (50–80%), intermittent streaks, some badges         |
 
 ### Generated Data Per Student
 
@@ -2158,10 +2399,12 @@ pg_cron is only available on Supabase Pro plan or self-hosted instances. For fre
 ```
 
 Additional cron job for fee overdue check:
+
 ```json
 { "path": "/api/cron/fee-overdue-check", "schedule": "0 6 * * *" }
 ```
-```
+
+````
 
 Each Vercel Cron route is a thin API route that authenticates with a `CRON_SECRET` and calls the corresponding Supabase Edge Function.
 
@@ -2221,9 +2464,10 @@ jobs:
       - run: npx tsc --noEmit
       - run: npx vitest --run
       - run: npx vite build
-```
+````
 
 Vercel handles deployment automatically via GitHub integration:
+
 - Push to `main` → production deployment
 - Pull request → preview deployment with unique URL
 
@@ -2248,6 +2492,7 @@ The health check verifies database connectivity with a lightweight `SELECT 1` qu
 ### Uptime Monitoring
 
 Integrate with BetterUptime or Checkly:
+
 - Monitor the health check endpoint every 60 seconds
 - Alert via Slack/email on 2 consecutive failures
 - Track uptime against the 99.9% SLA target (Requirement 53.1)
@@ -2255,6 +2500,7 @@ Integrate with BetterUptime or Checkly:
 ### Load Testing (k6)
 
 k6 scripts in `/load-tests/` directory covering:
+
 - `login.js` — Authentication flow under load
 - `submission.js` — Assignment submission with file upload
 - `grading-pipeline.js` — Grade submission → evidence → rollup chain
@@ -2268,55 +2514,57 @@ Target: 5,000 virtual users, p95 response time ≤300ms.
 
 All error handling from the MVP design is retained. Additional error scenarios:
 
-| Scenario | Handling |
-|----------|----------|
-| Rubric with <2 criteria | "Rubric must have at least 2 criteria" (Zod) |
-| Assignment due date in past | "Due date must be at least 24 hours in the future" |
-| Submission after late window | "Submission deadline has passed" (403) |
-| Evidence creation failure | Retry once; if failed, log to error table and alert admin |
-| XP award failure | Retry once; log to dead letter queue |
-| PDF generation timeout | Return partial result with "Report generation timed out" (jspdf) |
-| Realtime connection lost | Auto-reconnect with exponential backoff; show "Reconnecting..." banner |
-| Prerequisite not met | "Assignment locked: requires CLO-X attainment ≥ Y%" (visual locked node) |
-| Bonus XP event overlap | "A bonus event is already active for this time window" (Zod) |
-| Resend email delivery failure | Retry 3× with exponential backoff; log to dead letter queue |
-| Habit log duplicate | UNIQUE constraint on (student_id, date, habit_type) — upsert silently |
-| Activity log write failure | Fire-and-forget with console.error; never block user flow |
-| AI suggestion generation failure | Show "Suggestions unavailable" placeholder; retry on next dashboard load |
-| AI at-risk prediction timeout | Skip student; log to error table; process remaining students |
-| AI feedback draft generation failure | Show "AI draft unavailable" with manual feedback fallback |
-| Peer notification for anonymous student | Silently skip; do not create notification |
-| Perfect Day prompt cron failure | Log error; students miss nudge but no data loss |
-| Streak Freeze purchase — insufficient XP | "Insufficient XP balance. You need 200 XP to purchase a Streak Freeze." |
-| Streak Freeze purchase — max reached | "You already have 2 Streak Freezes. Use one before purchasing another." |
-| Data export timeout | "Export is taking longer than expected. Please try again." (30s limit) |
-| Draft auto-save failure | Silent — retry on next interval; never block editing |
-| Offline queue flush failure | Retry up to 3 times; dead-letter remaining events with console.error |
-| Onboarding tour dismissed early | Mark current step as last seen; resume from that step on next login |
-| Theme toggle failure | Apply theme locally; retry profile update silently |
-| Grading time tracking gap | Exclude from average if grading_start event missing |
-| Semester overlap | "A semester with overlapping dates already exists for this institution" |
-| Semester deactivation with active courses | Preserve data as read-only, block new submissions |
-| Section capacity exceeded | "Section is full. Maximum capacity of N students reached." |
-| Survey duplicate response | "You have already completed this survey" (UNIQUE constraint) |
-| CQI evaluated without result | "Result attainment is required when marking a CQI plan as evaluated" |
-| Grade category weight overflow | "Total category weights exceed 100%. Current total: N%" |
-| Quiz attempt limit exceeded | "Maximum attempts (N) reached for this quiz" |
-| Quiz time limit expired | Auto-submit with current answers when time runs out |
-| Attendance duplicate marking | UNIQUE constraint on (session_id, student_id) — upsert |
-| Assignment due date on holiday | "Due date falls on a holiday. Suggested next available date: [date]" |
-| Parent accessing unlinked student | RLS denies access — HTTP 403 |
-| Fee payment overdue auto-flag | pg_cron daily check updates pending → overdue when past due_date |
-| Course file generation timeout | "Course file generation timed out. Please try again." (30s limit) |
-| Transcript generation failure | "Transcript generation failed. Please contact support." |
-| Discussion thread in inactive course | "Discussions are closed for this course" |
+| Scenario                                  | Handling                                                                 |
+| ----------------------------------------- | ------------------------------------------------------------------------ |
+| Rubric with <2 criteria                   | "Rubric must have at least 2 criteria" (Zod)                             |
+| Assignment due date in past               | "Due date must be at least 24 hours in the future"                       |
+| Submission after late window              | "Submission deadline has passed" (403)                                   |
+| Evidence creation failure                 | Retry once; if failed, log to error table and alert admin                |
+| XP award failure                          | Retry once; log to dead letter queue                                     |
+| PDF generation timeout                    | Return partial result with "Report generation timed out" (jspdf)         |
+| Realtime connection lost                  | Auto-reconnect with exponential backoff; show "Reconnecting..." banner   |
+| Prerequisite not met                      | "Assignment locked: requires CLO-X attainment ≥ Y%" (visual locked node) |
+| Bonus XP event overlap                    | "A bonus event is already active for this time window" (Zod)             |
+| Resend email delivery failure             | Retry 3× with exponential backoff; log to dead letter queue              |
+| Habit log duplicate                       | UNIQUE constraint on (student_id, date, habit_type) — upsert silently    |
+| Activity log write failure                | Fire-and-forget with console.error; never block user flow                |
+| AI suggestion generation failure          | Show "Suggestions unavailable" placeholder; retry on next dashboard load |
+| AI at-risk prediction timeout             | Skip student; log to error table; process remaining students             |
+| AI feedback draft generation failure      | Show "AI draft unavailable" with manual feedback fallback                |
+| Peer notification for anonymous student   | Silently skip; do not create notification                                |
+| Perfect Day prompt cron failure           | Log error; students miss nudge but no data loss                          |
+| Streak Freeze purchase — insufficient XP  | "Insufficient XP balance. You need 200 XP to purchase a Streak Freeze."  |
+| Streak Freeze purchase — max reached      | "You already have 2 Streak Freezes. Use one before purchasing another."  |
+| Data export timeout                       | "Export is taking longer than expected. Please try again." (30s limit)   |
+| Draft auto-save failure                   | Silent — retry on next interval; never block editing                     |
+| Offline queue flush failure               | Retry up to 3 times; dead-letter remaining events with console.error     |
+| Onboarding tour dismissed early           | Mark current step as last seen; resume from that step on next login      |
+| Theme toggle failure                      | Apply theme locally; retry profile update silently                       |
+| Grading time tracking gap                 | Exclude from average if grading_start event missing                      |
+| Semester overlap                          | "A semester with overlapping dates already exists for this institution"  |
+| Semester deactivation with active courses | Preserve data as read-only, block new submissions                        |
+| Section capacity exceeded                 | "Section is full. Maximum capacity of N students reached."               |
+| Survey duplicate response                 | "You have already completed this survey" (UNIQUE constraint)             |
+| CQI evaluated without result              | "Result attainment is required when marking a CQI plan as evaluated"     |
+| Grade category weight overflow            | "Total category weights exceed 100%. Current total: N%"                  |
+| Quiz attempt limit exceeded               | "Maximum attempts (N) reached for this quiz"                             |
+| Quiz time limit expired                   | Auto-submit with current answers when time runs out                      |
+| Attendance duplicate marking              | UNIQUE constraint on (session_id, student_id) — upsert                   |
+| Assignment due date on holiday            | "Due date falls on a holiday. Suggested next available date: [date]"     |
+| Parent accessing unlinked student         | RLS denies access — HTTP 403                                             |
+| Fee payment overdue auto-flag             | pg_cron daily check updates pending → overdue when past due_date         |
+| Course file generation timeout            | "Course file generation timed out. Please try again." (30s limit)        |
+| Transcript generation failure             | "Transcript generation failed. Please contact support."                  |
+| Discussion thread in inactive course      | "Discussions are closed for this course"                                 |
 
 ## Testing Strategy
 
 ### Expanded Property-Based Tests (65 properties total)
+
 All 18 MVP properties retained + 10 OBE/gamification properties + 7 habit/reward/path/activity/journal properties + 5 AI Co-Pilot properties + 10 platform enhancement properties (streak freeze, notification batching, offline queue, draft saving, data export, dark mode, read habit timer, grading time) + 15 institutional management & LMS properties (semester scoping, section CLO sharing, survey uniqueness, CQI lifecycle, threshold consistency, grade category weights, quiz auto-grading, quiz attempt limits, attendance calculation, discussion XP, calendar aggregation, parent data isolation, fee status, course file completeness, semester integrity).
 
 ### Integration Tests
+
 - End-to-end grading → evidence → rollup pipeline
 - XP award → level check → badge check pipeline
 - Submission → XP → streak → leaderboard update pipeline
@@ -2331,6 +2579,7 @@ All 18 MVP properties retained + 10 OBE/gamification properties + 7 habit/reward
 - Parent link verification → data access → notification pipeline
 
 ### Test Organization
+
 ```
 src/__tests__/
 ├── properties/
@@ -2453,7 +2702,6 @@ src/__tests__/
     └── parent-data-access.test.ts
 ```
 
-
 ---
 
 ## Production Readiness & Infrastructure (Requirements 88–102)
@@ -2461,16 +2709,17 @@ src/__tests__/
 ### New Components
 
 #### RTL / Language Provider (`/src/providers/LanguageProvider.tsx`)
+
 ```typescript
-type LanguageCode = 'en' | 'ur' | 'ar';
+type LanguageCode = "en" | "ur" | "ar";
 
 interface LanguageContextValue {
   language: LanguageCode;
-  direction: 'ltr' | 'rtl';
+  direction: "ltr" | "rtl";
   setLanguage: (lang: LanguageCode) => Promise<void>;
 }
 
-const RTL_LANGUAGES: LanguageCode[] = ['ur', 'ar'];
+const RTL_LANGUAGES: LanguageCode[] = ["ur", "ar"];
 
 // Sets dir="rtl" on <html> when language is Urdu or Arabic
 // Loads corresponding translation file via i18next
@@ -2478,6 +2727,7 @@ const RTL_LANGUAGES: LanguageCode[] = ['ur', 'ar'];
 ```
 
 #### Language Selector (`/src/components/shared/LanguageSelector.tsx`)
+
 ```typescript
 interface LanguageSelectorProps {
   currentLanguage: LanguageCode;
@@ -2489,17 +2739,26 @@ interface LanguageSelectorProps {
 ```
 
 #### RTL CSS Utilities (`/src/styles/rtl.css`)
+
 ```css
 /* RTL-aware utilities — applied when html[dir="rtl"] */
 [dir="rtl"] .rtl\:space-x-reverse > :not([hidden]) ~ :not([hidden]) {
   --tw-space-x-reverse: 1;
 }
-[dir="rtl"] .rtl\:flex-row-reverse { flex-direction: row-reverse; }
-[dir="rtl"] .rtl\:text-right { text-align: right; }
-[dir="rtl"] .sidebar { right: 0; left: auto; }
+[dir="rtl"] .rtl\:flex-row-reverse {
+  flex-direction: row-reverse;
+}
+[dir="rtl"] .rtl\:text-right {
+  text-align: right;
+}
+[dir="rtl"] .sidebar {
+  right: 0;
+  left: auto;
+}
 ```
 
 #### PWA Install Prompt (`/src/components/shared/PWAInstallPrompt.tsx`)
+
 ```typescript
 interface PWAInstallPromptProps {
   onDismiss: () => void;
@@ -2511,6 +2770,7 @@ interface PWAInstallPromptProps {
 ```
 
 #### Service Worker (`/public/sw.js`)
+
 ```typescript
 // Cache-first strategy for app shell (HTML, CSS, JS bundles)
 // Network-first for API calls (never caches Supabase responses)
@@ -2519,8 +2779,9 @@ interface PWAInstallPromptProps {
 ```
 
 #### Cookie Consent Banner (`/src/components/shared/CookieConsentBanner.tsx`)
+
 ```typescript
-type ConsentStatus = 'accepted_all' | 'rejected_non_essential' | 'custom';
+type ConsentStatus = "accepted_all" | "rejected_non_essential" | "custom";
 
 interface CookieConsent {
   status: ConsentStatus;
@@ -2540,6 +2801,7 @@ interface CookieConsentBannerProps {
 ```
 
 #### Terms of Service / Privacy Policy Pages
+
 ```typescript
 // Route: /terms — TermsOfServicePage (`/src/pages/public/TermsPage.tsx`)
 // Route: /privacy — PrivacyPolicyPage (`/src/pages/public/PrivacyPage.tsx`)
@@ -2555,6 +2817,7 @@ interface ToSAcceptanceDialogProps {
 ```
 
 #### Admin Impersonation (`/src/components/shared/ImpersonationBanner.tsx`)
+
 ```typescript
 interface ImpersonationContextValue {
   isImpersonating: boolean;
@@ -2572,6 +2835,7 @@ interface ImpersonationContextValue {
 ```
 
 #### Bulk Data Operations
+
 ```typescript
 // Grade Export (`/src/pages/teacher/gradebook/GradeExport.tsx`)
 interface GradeExportProps {
@@ -2597,11 +2861,12 @@ interface SemesterTransitionProps {
 ```
 
 #### Edge Function Rate Limiter (`/supabase/functions/_shared/rateLimiter.ts`)
+
 ```typescript
 interface RateLimitConfig {
-  readLimit: number;   // 100 per minute
-  writeLimit: number;  // 30 per minute
-  windowMs: number;    // 60000 (1 minute)
+  readLimit: number; // 100 per minute
+  writeLimit: number; // 30 per minute
+  windowMs: number; // 60000 (1 minute)
 }
 
 interface RateLimitResult {
@@ -2616,14 +2881,21 @@ interface RateLimitResult {
 ```
 
 #### Security Headers Configuration (`vercel.json` headers section)
+
 ```json
 {
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://*.supabase.co; connect-src 'self' https://*.supabase.co wss://*.supabase.co" },
-        { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains" },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://*.supabase.co; connect-src 'self' https://*.supabase.co wss://*.supabase.co"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=31536000; includeSubDomains"
+        },
         { "key": "X-Frame-Options", "value": "DENY" },
         { "key": "X-Content-Type-Options", "value": "nosniff" },
         { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
@@ -2634,8 +2906,14 @@ interface RateLimitResult {
 ```
 
 #### Global Search (`/src/components/shared/SearchCommand.tsx`)
+
 ```typescript
-type SearchCategory = 'courses' | 'assignments' | 'students' | 'announcements' | 'materials';
+type SearchCategory =
+  | "courses"
+  | "assignments"
+  | "students"
+  | "announcements"
+  | "materials";
 
 interface SearchResult {
   id: string;
@@ -2658,28 +2936,33 @@ interface SearchCommandProps {
 ```
 
 #### Image Compressor (`/src/lib/imageCompressor.ts`)
+
 ```typescript
 interface CompressOptions {
-  maxWidth: number;   // 256
-  maxHeight: number;  // 256
-  maxSizeKB: number;  // 500
-  quality: number;    // 0.8
+  maxWidth: number; // 256
+  maxHeight: number; // 256
+  maxSizeKB: number; // 500
+  quality: number; // 0.8
 }
 
-async function compressImage(file: File, options: CompressOptions): Promise<File>;
+async function compressImage(
+  file: File,
+  options: CompressOptions
+): Promise<File>;
 
 // Uses canvas API for client-side compression
 // Returns compressed File object ready for upload
 ```
 
 #### Notification Preferences Page (`/src/pages/shared/NotificationPreferences.tsx`)
+
 ```typescript
 interface NotificationPreferences {
-  muted_courses: string[];  // course_ids
+  muted_courses: string[]; // course_ids
   quiet_hours: {
     enabled: boolean;
     start: string; // "22:00"
-    end: string;   // "07:00"
+    end: string; // "07:00"
   };
 }
 
@@ -2689,10 +2972,11 @@ interface NotificationPreferences {
 ```
 
 #### Session Management Page (`/src/pages/shared/SessionManagement.tsx`)
+
 ```typescript
 interface ActiveSession {
   id: string;
-  device_type: 'desktop' | 'mobile' | 'tablet';
+  device_type: "desktop" | "mobile" | "tablet";
   browser: string;
   ip_address: string; // masked: "192.168.x.x"
   last_active: string;
@@ -2710,6 +2994,7 @@ interface SessionManagementProps {
 ```
 
 #### Plagiarism Placeholder UI (`/src/components/shared/PlagiarismPlaceholder.tsx`)
+
 ```typescript
 interface PlagiarismPlaceholderProps {
   plagiarismScore: number | null;
@@ -2814,75 +3099,91 @@ Add to `/src/lib/queryKeys.ts`: `globalSearch`, `activeSessions`, `impersonation
 
 ### Updated Error Handling
 
-| Scenario | Handling |
-|----------|----------|
-| RTL language selected | Apply `dir="rtl"` immediately; fallback to English if translation file fails to load |
-| PWA install prompt dismissed | Store dismissal in localStorage; do not re-prompt for 30 days |
-| Service worker cache miss | Fall back to network; show "You are offline" if both fail |
-| Rate limit exceeded | Return HTTP 429 with `Retry-After` header; show "Too many requests" toast |
-| CSP violation | Log to Sentry via `report-uri` directive |
-| Cookie consent not given | Block analytics scripts; core functionality unaffected |
-| ToS not accepted | Block all protected routes; redirect to ToS dialog |
-| Impersonation expired | Auto-exit to admin dashboard; show "Impersonation session expired" toast |
-| Impersonation mutation attempt | Block with "Read-only mode during impersonation" error |
-| Bulk import invalid rows | Show error list with row numbers; process valid rows only |
-| Semester transition duplicate | "Course already exists in target semester" — skip duplicates |
-| Global search no results | Show "No results found" empty state |
-| Image compression failure | Upload original file with warning "Image could not be optimized" |
-| Plagiarism API not configured | Show "Plagiarism check: Not configured" placeholder |
-| Quiet hours notification held | Queue notification; deliver after quiet hours end |
-| Session termination failure | "Could not sign out session. Please try again." |
+| Scenario                       | Handling                                                                             |
+| ------------------------------ | ------------------------------------------------------------------------------------ |
+| RTL language selected          | Apply `dir="rtl"` immediately; fallback to English if translation file fails to load |
+| PWA install prompt dismissed   | Store dismissal in localStorage; do not re-prompt for 30 days                        |
+| Service worker cache miss      | Fall back to network; show "You are offline" if both fail                            |
+| Rate limit exceeded            | Return HTTP 429 with `Retry-After` header; show "Too many requests" toast            |
+| CSP violation                  | Log to Sentry via `report-uri` directive                                             |
+| Cookie consent not given       | Block analytics scripts; core functionality unaffected                               |
+| ToS not accepted               | Block all protected routes; redirect to ToS dialog                                   |
+| Impersonation expired          | Auto-exit to admin dashboard; show "Impersonation session expired" toast             |
+| Impersonation mutation attempt | Block with "Read-only mode during impersonation" error                               |
+| Bulk import invalid rows       | Show error list with row numbers; process valid rows only                            |
+| Semester transition duplicate  | "Course already exists in target semester" — skip duplicates                         |
+| Global search no results       | Show "No results found" empty state                                                  |
+| Image compression failure      | Upload original file with warning "Image could not be optimized"                     |
+| Plagiarism API not configured  | Show "Plagiarism check: Not configured" placeholder                                  |
+| Quiet hours notification held  | Queue notification; deliver after quiet hours end                                    |
+| Session termination failure    | "Could not sign out session. Please try again."                                      |
 
 ### Correctness Properties (66–80)
 
 ### Property 66: RTL layout direction correctness
+
 For any user with `language_preference` set to 'ur' or 'ar', the `<html>` element should have `dir="rtl"`. For any user with `language_preference` set to 'en', the `<html>` element should have `dir="ltr"`. Switching language should update the direction without page refresh.
 
 ### Property 67: PWA manifest validity
+
 The web app manifest (`public/manifest.json`) should contain all required fields: `name`, `short_name`, `icons` (at least 192×192 and 512×512), `start_url`, `display: standalone`, `theme_color`, and `background_color`. The manifest should be valid JSON parseable without errors.
 
 ### Property 68: Rate limiting enforcement
+
 For any user making more than 100 read requests or 30 write requests within a 60-second window to any Edge Function, the system should return HTTP 429 for all subsequent requests until the window resets. The `Retry-After` header value should be a positive integer ≤60.
 
 ### Property 69: Security headers presence
+
 For any HTTP response served by the platform, the response headers should include: `Content-Security-Policy`, `Strict-Transport-Security`, `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, and `Referrer-Policy: strict-origin-when-cross-origin`. No security header should be missing from any response.
 
 ### Property 70: Cookie consent blocking
+
 While a user has not given analytics consent (no `edeviser_cookie_consent` in localStorage or analytics=false), no analytics tracking scripts should be loaded or executed. After consent is given with analytics=true, analytics scripts should load.
 
 ### Property 71: ToS acceptance gate
+
 For any user with `tos_accepted_at = null`, navigation to any protected route should be blocked and redirected to the ToS acceptance dialog. After acceptance, `tos_accepted_at` should be a non-null timestamp and all protected routes should be accessible.
 
 ### Property 72: Impersonation read-only enforcement
+
 While an admin is impersonating another user, all mutation operations (create, update, delete) should be blocked and return an error. Read operations should return data scoped to the impersonated user. Impersonation should auto-expire after 30 minutes.
 
 ### Property 73: Bulk grade export completeness
+
 For any grade export of a course/section, the exported CSV should contain one row per enrolled student with all assessment scores, category subtotals, final grade, and letter grade. The count of rows should equal the count of enrolled students.
 
 ### Property 74: Global search result scoping
+
 For any search query by a student, results should only include content from courses the student is enrolled in. For any search query by a teacher, results should only include content from courses the teacher is assigned to. Admin searches should be scoped to the admin's institution.
 
 ### Property 75: Image compression constraints
+
 For any avatar image processed by the compressor, the output file size should be ≤500KB and dimensions should be ≤256×256 pixels. The output should be a valid image file (JPEG or PNG).
 
 ### Property 76: Notification quiet hours enforcement
+
 For any non-critical notification generated during a user's quiet hours, the notification should not be delivered until quiet hours end. Critical notifications (grade released, at-risk alert) should be delivered immediately regardless of quiet hours.
 
 ### Property 77: Session management correctness
+
 For any "sign out other sessions" action, all sessions except the current one should be terminated. The current session should remain active. For any "sign out all sessions" action, all sessions including the current one should be terminated.
 
 ### Property 78: Plagiarism score column integrity
+
 For any submission record, `plagiarism_score` should be either null (not configured) or a numeric value between 0 and 100 inclusive. No other values should be accepted.
 
 ### Property 79: Semester transition data integrity
+
 For any semester transition operation, the target semester should contain copies of all courses, CLOs, rubrics, and grade categories from the source semester. The source semester data should remain unchanged. No student-specific data (enrollments, submissions, grades) should be copied.
 
 ### Property 80: Per-course notification muting
+
 For any user with a course in their `muted_courses` list, no in-app notifications from that course should be delivered. Notifications from non-muted courses should be delivered normally. Muting/unmuting should take effect immediately.
 
 ### Updated Test Organization
 
 Add to `src/__tests__/properties/`:
+
 ```
 ├── rtl-language.property.test.ts      # Property 66
 ├── pwa-manifest.property.test.ts      # Property 67
@@ -2902,6 +3203,7 @@ Add to `src/__tests__/properties/`:
 ```
 
 Add to `src/__tests__/unit/`:
+
 ```
 ├── rtl-language.test.ts
 ├── pwa.test.ts
@@ -2919,6 +3221,7 @@ Add to `src/__tests__/unit/`:
 ```
 
 Add to `src/__tests__/integration/`:
+
 ```
 ├── impersonation-audit.test.ts
 ├── bulk-export-pipeline.test.ts
@@ -2928,7 +3231,6 @@ Add to `src/__tests__/integration/`:
 ### Updated Testing Strategy
 
 All 18 MVP properties retained + 10 OBE/gamification properties + 7 habit/reward/path/activity/journal properties + 5 AI Co-Pilot properties + 10 platform enhancement properties + 15 institutional management & LMS properties + 15 production readiness properties (RTL layout, PWA manifest, rate limiting, security headers, cookie consent, ToS gate, impersonation read-only, bulk export completeness, global search scoping, image compression, quiet hours, session management, plagiarism column, semester transition, notification muting) = 80 total correctness properties.
-
 
 ---
 
@@ -3018,6 +3320,7 @@ CREATE UNIQUE INDEX idx_mv_historical_evidence ON mv_historical_evidence(semeste
 ### Components and Interfaces
 
 #### Sub-CLO Manager (`/src/pages/teacher/outcomes/SubCLOManager.tsx`)
+
 ```typescript
 interface SubCLOFormData {
   parent_outcome_id: string; // parent CLO id
@@ -3034,7 +3337,7 @@ interface SubCLO {
   description: string;
   code: string;
   weight: number;
-  type: 'SUB_CLO';
+  type: "SUB_CLO";
   created_at: string;
 }
 
@@ -3049,6 +3352,7 @@ interface SubCLOListProps {
 ```
 
 #### Graduate Attribute Manager (`/src/pages/admin/graduate-attributes/GraduateAttributeManager.tsx`)
+
 ```typescript
 interface GraduateAttributeFormData {
   title: string;
@@ -3082,6 +3386,7 @@ interface GraduateAttributeAttainmentCard {
 ```
 
 #### Competency Framework Manager (`/src/pages/admin/competency-frameworks/CompetencyFrameworkManager.tsx`)
+
 ```typescript
 interface CompetencyFrameworkFormData {
   name: string;
@@ -3098,7 +3403,7 @@ interface CompetencyFramework {
   created_at: string;
 }
 
-type CompetencyItemLevel = 'domain' | 'competency' | 'indicator';
+type CompetencyItemLevel = "domain" | "competency" | "indicator";
 
 interface CompetencyItemFormData {
   framework_id: string;
@@ -3121,7 +3426,7 @@ interface CompetencyItem {
 interface CompetencyOutcomeMappingFormData {
   competency_item_id: string;
   outcome_id: string;
-  outcome_type: 'ILO' | 'PLO' | 'CLO';
+  outcome_type: "ILO" | "PLO" | "CLO";
 }
 
 interface CompetencyCSVRow {
@@ -3135,13 +3440,14 @@ interface CompetencyCSVRow {
 ```
 
 #### Sankey Diagram View (`/src/pages/coordinator/sankey/SankeyDiagramView.tsx`)
+
 ```typescript
 interface SankeyNode {
   id: string;
   label: string;
-  type: 'ILO' | 'PLO' | 'CLO';
+  type: "ILO" | "PLO" | "CLO";
   attainment_percent: number | null;
-  attainment_level: AttainmentLevel | 'unmapped' | null;
+  attainment_level: AttainmentLevel | "unmapped" | null;
 }
 
 interface SankeyLink {
@@ -3166,14 +3472,19 @@ interface SankeyDiagramProps {
 ```
 
 #### Gap Analysis View (`/src/pages/coordinator/gap-analysis/GapAnalysisView.tsx`)
+
 ```typescript
-type GapStatus = 'fully_mapped' | 'partially_mapped' | 'unmapped' | 'no_evidence';
+type GapStatus =
+  | "fully_mapped"
+  | "partially_mapped"
+  | "unmapped"
+  | "no_evidence";
 
 interface GapAnalysisNode {
   outcome_id: string;
   outcome_title: string;
   outcome_code: string;
-  outcome_type: 'ILO' | 'PLO' | 'CLO';
+  outcome_type: "ILO" | "PLO" | "CLO";
   status: GapStatus;
   mapped_children_count: number;
   total_children_count: number;
@@ -3208,8 +3519,9 @@ interface GapAnalysisViewProps {
 ```
 
 #### Coverage Heatmap View (`/src/pages/coordinator/coverage-heatmap/CoverageHeatmapView.tsx`)
+
 ```typescript
-type HeatmapColorMode = 'evidence_count' | 'attainment_percent';
+type HeatmapColorMode = "evidence_count" | "attainment_percent";
 
 interface HeatmapCell {
   clo_id: string;
@@ -3235,6 +3547,7 @@ interface CoverageHeatmapProps {
 ```
 
 #### Semester Trend View (`/src/pages/coordinator/trends/SemesterTrendView.tsx`)
+
 ```typescript
 interface SemesterTrendDataPoint {
   semester_id: string;
@@ -3246,7 +3559,7 @@ interface SemesterTrendDataPoint {
 
 interface SemesterTrendViewProps {
   outcomeId?: string;
-  outcomeType?: 'CLO' | 'PLO' | 'ILO';
+  outcomeType?: "CLO" | "PLO" | "ILO";
 }
 
 // Line chart: attainment % over semesters (up to 8 semesters)
@@ -3257,9 +3570,10 @@ interface SemesterTrendViewProps {
 ```
 
 #### Cohort Comparison View (`/src/pages/coordinator/cohort-comparison/CohortComparisonView.tsx`)
+
 ```typescript
 type CohortDefinition = {
-  type: 'semester' | 'section' | 'enrollment_year';
+  type: "semester" | "section" | "enrollment_year";
   value: string;
   label: string;
 };
@@ -3289,10 +3603,11 @@ interface CohortComparisonViewProps {
 ```
 
 #### Historical Evidence Dashboard (`/src/pages/admin/historical-evidence/HistoricalEvidenceDashboard.tsx`)
+
 ```typescript
 interface HistoricalEvidenceStats {
   total_evidence_records: number;
-  avg_attainment_by_level: Record<'CLO' | 'PLO' | 'ILO', number>;
+  avg_attainment_by_level: Record<"CLO" | "PLO" | "ILO", number>;
   attainment_distribution: Record<AttainmentLevel, number>;
 }
 
@@ -3368,6 +3683,7 @@ historicalEvidence.ts    — historicalEvidenceFilterSchema
 ### Data Models
 
 #### `graduate_attributes` (Requirement 104)
+
 ```sql
 CREATE TABLE graduate_attributes (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -3388,6 +3704,7 @@ CREATE POLICY "All roles read graduate attributes" ON graduate_attributes
 ```
 
 #### `graduate_attribute_mappings` (Requirement 104)
+
 ```sql
 CREATE TABLE graduate_attribute_mappings (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -3411,6 +3728,7 @@ CREATE POLICY "All roles read GA mappings" ON graduate_attribute_mappings
 ```
 
 #### `competency_frameworks` (Requirement 105)
+
 ```sql
 CREATE TABLE competency_frameworks (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -3430,6 +3748,7 @@ CREATE POLICY "All roles read competency frameworks" ON competency_frameworks
 ```
 
 #### `competency_items` (Requirement 105)
+
 ```sql
 CREATE TABLE competency_items (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -3456,6 +3775,7 @@ CREATE POLICY "All roles read competency items" ON competency_items
 ```
 
 #### `competency_outcome_mappings` (Requirement 105)
+
 ```sql
 CREATE TABLE competency_outcome_mappings (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -3486,6 +3806,7 @@ CREATE POLICY "All roles read competency-outcome mappings" ON competency_outcome
 ```
 
 #### `semester_attainment_snapshots` (Requirement 109)
+
 ```sql
 CREATE TABLE semester_attainment_snapshots (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -3514,6 +3835,7 @@ CREATE POLICY "Coordinator/Admin read snapshots" ON semester_attainment_snapshot
 #### Column Additions for Sub-CLOs (Requirement 103)
 
 The existing `learning_outcomes` table already supports hierarchical outcomes. Sub-CLOs use:
+
 ```sql
 -- learning_outcomes already has: id, type, parent_outcome_id, course_id, program_id, institution_id
 -- Add weight column for Sub-CLO contribution to parent CLO
@@ -3547,20 +3869,19 @@ CREATE TRIGGER trg_validate_sub_clo
 ### New Shared Components
 
 ```typescript
-SubCLORow             // Expandable Sub-CLO row beneath parent CLO
-GraduateAttributeCard // GA attainment card for Admin dashboard
-CompetencyTree        // Hierarchical Domain → Competency → Indicator tree view
-SankeyChart           // Reusable Sankey diagram component (Recharts or D3)
-GapStatusBadge        // Color-coded gap status indicator (green/yellow/red/gray)
-HeatmapGrid           // Reusable heatmap matrix with drill-down
-TrendLineChart        // Multi-series line chart for semester trends
-CohortBarChart        // Grouped bar chart for cohort comparison
-StackedAreaChart      // Stacked area chart for historical evidence distribution
-DecliningTrendBadge   // Warning badge for ≥10pp attainment decline
-SignificantGapLabel   // Red "Significant Gap" label for cohort comparison
-CompetencyAlignmentMatrix // Competency × Outcome alignment matrix with coverage indicators
+SubCLORow; // Expandable Sub-CLO row beneath parent CLO
+GraduateAttributeCard; // GA attainment card for Admin dashboard
+CompetencyTree; // Hierarchical Domain → Competency → Indicator tree view
+SankeyChart; // Reusable Sankey diagram component (Recharts or D3)
+GapStatusBadge; // Color-coded gap status indicator (green/yellow/red/gray)
+HeatmapGrid; // Reusable heatmap matrix with drill-down
+TrendLineChart; // Multi-series line chart for semester trends
+CohortBarChart; // Grouped bar chart for cohort comparison
+StackedAreaChart; // Stacked area chart for historical evidence distribution
+DecliningTrendBadge; // Warning badge for ≥10pp attainment decline
+SignificantGapLabel; // Red "Significant Gap" label for cohort comparison
+CompetencyAlignmentMatrix; // Competency × Outcome alignment matrix with coverage indicators
 ```
-
 
 ---
 
@@ -3604,21 +3925,45 @@ This section extends the Habit Core with 4 new habit types (Collaborate, Practic
 
 ```typescript
 // Team leaderboard: subscribe to team_gamification changes
-supabase.channel('team-leaderboard')
-  .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'team_gamification' }, handleTeamXPUpdate)
+supabase
+  .channel("team-leaderboard")
+  .on(
+    "postgres_changes",
+    { event: "UPDATE", schema: "public", table: "team_gamification" },
+    handleTeamXPUpdate
+  )
   .subscribe();
 
 // Challenge progress: subscribe to social_challenge_progress changes
-supabase.channel('challenge-progress')
-  .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'social_challenges', filter: `status=eq.active` }, handleChallengeUpdate)
+supabase
+  .channel("challenge-progress")
+  .on(
+    "postgres_changes",
+    {
+      event: "UPDATE",
+      schema: "public",
+      table: "social_challenges",
+      filter: `status=eq.active`,
+    },
+    handleChallengeUpdate
+  )
   .subscribe();
 ```
 
 ### Components and Interfaces
 
 #### Extended Habit Tracker (`/src/components/shared/HabitTracker.tsx` — updated)
+
 ```typescript
-type HabitType = 'login' | 'submit' | 'journal' | 'read' | 'collaborate' | 'practice' | 'review' | 'mentor';
+type HabitType =
+  | "login"
+  | "submit"
+  | "journal"
+  | "read"
+  | "collaborate"
+  | "practice"
+  | "review"
+  | "mentor";
 
 // Updated: 8 habits in 7-day grid
 // Perfect Day threshold updated: 6 of 8 habits
@@ -3627,6 +3972,7 @@ type HabitType = 'login' | 'submit' | 'journal' | 'read' | 'collaborate' | 'prac
 ```
 
 #### Team Manager (`/src/pages/teacher/teams/TeamManager.tsx`)
+
 ```typescript
 interface TeamFormData {
   name: string;
@@ -3665,10 +4011,15 @@ interface AutoGenerateTeamsFormData {
 ```
 
 #### Challenge Manager (`/src/pages/teacher/challenges/ChallengeManager.tsx`)
+
 ```typescript
-type ChallengeType = 'team' | 'course_wide';
-type ChallengeGoalMetric = 'total_xp' | 'habits_completed' | 'assignments_submitted' | 'quiz_score_avg';
-type ChallengeStatus = 'draft' | 'active' | 'completed' | 'cancelled';
+type ChallengeType = "team" | "course_wide";
+type ChallengeGoalMetric =
+  | "total_xp"
+  | "habits_completed"
+  | "assignments_submitted"
+  | "quiz_score_avg";
+type ChallengeStatus = "draft" | "active" | "completed" | "cancelled";
 
 interface ChallengeFormData {
   title: string;
@@ -3679,7 +4030,7 @@ interface ChallengeFormData {
   end_date: string;
   goal_metric: ChallengeGoalMetric;
   goal_target: number;
-  reward_type: 'xp_bonus' | 'badge';
+  reward_type: "xp_bonus" | "badge";
   reward_value: number; // XP amount or badge_id reference
   team_ids?: string[]; // for team challenges, min 2, max 20
 }
@@ -3694,7 +4045,7 @@ interface SocialChallenge extends ChallengeFormData {
 interface ChallengeProgress {
   challenge_id: string;
   participant_id: string; // team_id or student_id
-  participant_type: 'team' | 'student';
+  participant_type: "team" | "student";
   current_progress: number;
   goal_target: number;
   progress_percent: number;
@@ -3706,6 +4057,7 @@ interface ChallengeManagerProps {
 ```
 
 #### Challenge List View (`/src/pages/student/challenges/ChallengeListView.tsx`)
+
 ```typescript
 interface ChallengeListViewProps {
   studentId: string;
@@ -3719,6 +4071,7 @@ interface ChallengeListViewProps {
 ```
 
 #### Team Dashboard Card (`/src/components/shared/TeamDashboardCard.tsx`)
+
 ```typescript
 interface TeamDashboardCardProps {
   teamId: string;
@@ -3731,6 +4084,7 @@ interface TeamDashboardCardProps {
 ```
 
 #### Team Leaderboard (`/src/pages/student/leaderboard/TeamLeaderboard.tsx`)
+
 ```typescript
 interface TeamLeaderboardEntry {
   rank: number;
@@ -3746,7 +4100,7 @@ interface TeamLeaderboardEntry {
 interface TeamLeaderboardProps {
   courseId: string;
   studentId: string;
-  view: 'weekly' | 'all_time';
+  view: "weekly" | "all_time";
 }
 
 // Real-time updates via Supabase Realtime
@@ -3756,6 +4110,7 @@ interface TeamLeaderboardProps {
 ```
 
 #### Team Badge Display (`/src/components/shared/TeamBadgeDisplay.tsx`)
+
 ```typescript
 interface TeamBadge {
   badge_id: string;
@@ -3772,6 +4127,7 @@ interface TeamBadge {
 ```
 
 #### Adaptive XP Display (`/src/components/shared/AdaptiveXPDisplay.tsx`)
+
 ```typescript
 interface AdaptiveXPDisplayProps {
   studentId: string;
@@ -3785,6 +4141,7 @@ interface AdaptiveXPDisplayProps {
 ```
 
 #### Improvement Bonus Celebration (`/src/components/shared/ImprovementBonusCelebration.tsx`)
+
 ```typescript
 interface ImprovementBonusCelebrationProps {
   cloTitle: string;
@@ -3842,6 +4199,7 @@ improvementBonus.ts  — improvementBonusSchema
 ### Data Models
 
 #### Updated `habit_logs` type constraint (Requirement 112)
+
 ```sql
 ALTER TABLE habit_logs DROP CONSTRAINT IF EXISTS habit_logs_habit_type_check;
 ALTER TABLE habit_logs ADD CONSTRAINT habit_logs_habit_type_check
@@ -3849,6 +4207,7 @@ ALTER TABLE habit_logs ADD CONSTRAINT habit_logs_habit_type_check
 ```
 
 #### `teams` (Requirement 115)
+
 ```sql
 CREATE TABLE teams (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -3873,6 +4232,7 @@ CREATE POLICY "Students read teams in enrolled courses" ON teams
 ```
 
 #### `team_members` (Requirement 115)
+
 ```sql
 CREATE TABLE team_members (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -3940,6 +4300,7 @@ CREATE POLICY "Students read team members in own course" ON team_members
 ```
 
 #### `team_gamification` (Requirements 116, 119)
+
 ```sql
 CREATE TABLE team_gamification (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -3969,6 +4330,7 @@ CREATE POLICY "Read team gamification in enrolled courses" ON team_gamification
 ```
 
 #### `social_challenges` (Requirements 113, 114)
+
 ```sql
 CREATE TABLE social_challenges (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -4019,6 +4381,7 @@ CREATE POLICY "Students read challenges in enrolled courses" ON social_challenge
 ```
 
 #### `challenge_participants` (Requirements 113, 114)
+
 ```sql
 CREATE TABLE challenge_participants (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -4042,6 +4405,7 @@ CREATE POLICY "Read challenge participants in enrolled courses" ON challenge_par
 ```
 
 #### Updated `xp_transactions` columns (Requirements 116, 120, 121, 122, 123)
+
 ```sql
 -- Add team XP tracking
 ALTER TABLE xp_transactions ADD COLUMN scope text NOT NULL DEFAULT 'individual'
@@ -4064,6 +4428,7 @@ ALTER TABLE xp_transactions ADD COLUMN clo_id uuid REFERENCES learning_outcomes(
 ```
 
 #### Updated `badges` table for team scope (Requirement 118)
+
 ```sql
 ALTER TABLE badges ADD COLUMN scope text NOT NULL DEFAULT 'individual'
   CHECK (scope IN ('individual', 'team'));
@@ -4081,10 +4446,10 @@ ALTER TABLE badges ADD COLUMN team_id uuid REFERENCES teams(id);
 ```typescript
 // Level-based multiplier table (Requirement 120)
 const LEVEL_MULTIPLIERS: Record<string, number> = {
-  '1-5': 1.2,    // encouragement bonus
-  '6-10': 1.0,   // baseline
-  '11-15': 0.9,  // slight reduction
-  '16-20': 0.8,  // experienced reduction
+  "1-5": 1.2, // encouragement bonus
+  "6-10": 1.0, // baseline
+  "11-15": 0.9, // slight reduction
+  "16-20": 0.8, // experienced reduction
 };
 
 function getLevelMultiplier(level: number): number {
@@ -4151,228 +4516,262 @@ function checkImprovementBonus(
 ### New Shared Components
 
 ```typescript
-TeamCard              // Team summary card with avatar, members, XP pool
-TeamMemberAvatar      // Small avatar with tooltip for team member
-ChallengeCard         // Challenge card with progress bar and countdown
-ChallengeProgressBar  // Animated progress bar toward goal target
-ContributionLeaderboard // Individual contribution ranking within course-wide challenge
-TeamStreakDisplay      // Team streak flame icon with count
-TeamBadgeCard         // Team badge display card
-XPMultiplierBadge     // Current XP multiplier indicator
-DiminishingReturnsBadge // "Reduced XP" warning indicator
-DifficultyBonusBadge  // Bloom's level difficulty bonus indicator on assignment detail
-ImprovementBonusCelebration // Celebratory animation for improvement bonus
-AutoGenerateTeamsDialog // Dialog for auto-generating balanced teams
-ChallengeCountdown    // Countdown timer for active challenges
+TeamCard; // Team summary card with avatar, members, XP pool
+TeamMemberAvatar; // Small avatar with tooltip for team member
+ChallengeCard; // Challenge card with progress bar and countdown
+ChallengeProgressBar; // Animated progress bar toward goal target
+ContributionLeaderboard; // Individual contribution ranking within course-wide challenge
+TeamStreakDisplay; // Team streak flame icon with count
+TeamBadgeCard; // Team badge display card
+XPMultiplierBadge; // Current XP multiplier indicator
+DiminishingReturnsBadge; // "Reduced XP" warning indicator
+DifficultyBonusBadge; // Bloom's level difficulty bonus indicator on assignment detail
+ImprovementBonusCelebration; // Celebratory animation for improvement bonus
+AutoGenerateTeamsDialog; // Dialog for auto-generating balanced teams
+ChallengeCountdown; // Countdown timer for active challenges
 ```
-
 
 ---
 
 ### Error Handling (Sections U & V)
 
-| Scenario | Handling |
-|----------|----------|
-| Sub-CLO weight sum ≠ 1.0 | Block assignment linkage; show "Sub-CLO weights must sum to 1.0 (current: X.XX)" |
-| Sub-CLO deletion with evidence | Block deletion; show "Cannot delete: X evidence records depend on this Sub-CLO" |
-| Sub-CLO parent is not a CLO | Reject with "Sub-CLO parent must be a CLO" |
-| Graduate Attribute code duplicate | "A Graduate Attribute with this code already exists" |
-| Competency CSV malformed | Show row-level errors; process valid rows only |
-| Competency indicator unmapped | Display "Unmapped" warning in alignment matrix |
-| Sankey diagram data too large | Paginate or aggregate; show "Showing top N outcomes" |
-| Gap analysis no outcomes | Show empty state: "No outcomes defined for this program" |
-| Heatmap cell zero coverage | Highlight with dashed border pattern |
-| Semester trend no data | Show "No trend data available — at least 2 semesters required" |
-| Cohort comparison insufficient sample | Hide Cohen's d; show "Sample size too small for statistical comparison" |
-| Historical evidence query timeout | Show partial results with "Loading more data..." indicator |
-| Team name duplicate in course | "A team with this name already exists in this course" |
-| Team size limit exceeded | "Team cannot have more than 6 members" |
-| Student already in team | "Student is already a member of another team in this course" |
-| Team size below minimum | "Team must have at least 2 members" |
-| Challenge < 2 teams at start | Auto-cancel; notify teacher "Challenge cancelled: fewer than 2 teams" |
-| Course-wide challenge limit | "Maximum 3 active course-wide challenges per course" |
-| Challenge end date in past | "End date must be in the future" |
-| Team XP direct transfer attempt | "Direct XP transfers between individual and team pools are not allowed" |
-| Diminishing returns active | Show "Reduced XP" indicator with current multiplier |
-| Improvement bonus no previous score | Skip bonus check; no previous assessment to compare |
-| Adaptive XP calculation overflow | Cap final_xp at 9999 per transaction |
+| Scenario                              | Handling                                                                         |
+| ------------------------------------- | -------------------------------------------------------------------------------- |
+| Sub-CLO weight sum ≠ 1.0              | Block assignment linkage; show "Sub-CLO weights must sum to 1.0 (current: X.XX)" |
+| Sub-CLO deletion with evidence        | Block deletion; show "Cannot delete: X evidence records depend on this Sub-CLO"  |
+| Sub-CLO parent is not a CLO           | Reject with "Sub-CLO parent must be a CLO"                                       |
+| Graduate Attribute code duplicate     | "A Graduate Attribute with this code already exists"                             |
+| Competency CSV malformed              | Show row-level errors; process valid rows only                                   |
+| Competency indicator unmapped         | Display "Unmapped" warning in alignment matrix                                   |
+| Sankey diagram data too large         | Paginate or aggregate; show "Showing top N outcomes"                             |
+| Gap analysis no outcomes              | Show empty state: "No outcomes defined for this program"                         |
+| Heatmap cell zero coverage            | Highlight with dashed border pattern                                             |
+| Semester trend no data                | Show "No trend data available — at least 2 semesters required"                   |
+| Cohort comparison insufficient sample | Hide Cohen's d; show "Sample size too small for statistical comparison"          |
+| Historical evidence query timeout     | Show partial results with "Loading more data..." indicator                       |
+| Team name duplicate in course         | "A team with this name already exists in this course"                            |
+| Team size limit exceeded              | "Team cannot have more than 6 members"                                           |
+| Student already in team               | "Student is already a member of another team in this course"                     |
+| Team size below minimum               | "Team must have at least 2 members"                                              |
+| Challenge < 2 teams at start          | Auto-cancel; notify teacher "Challenge cancelled: fewer than 2 teams"            |
+| Course-wide challenge limit           | "Maximum 3 active course-wide challenges per course"                             |
+| Challenge end date in past            | "End date must be in the future"                                                 |
+| Team XP direct transfer attempt       | "Direct XP transfers between individual and team pools are not allowed"          |
+| Diminishing returns active            | Show "Reduced XP" indicator with current multiplier                              |
+| Improvement bonus no previous score   | Skip bonus check; no previous assessment to compare                              |
+| Adaptive XP calculation overflow      | Cap final_xp at 9999 per transaction                                             |
 
 ### Correctness Properties (81–100)
 
-*A property is a characteristic or behavior that should hold true across all valid executions of a system — essentially, a formal statement about what the system should do. Properties serve as the bridge between human-readable specifications and machine-verifiable correctness guarantees.*
+_A property is a characteristic or behavior that should hold true across all valid executions of a system — essentially, a formal statement about what the system should do. Properties serve as the bridge between human-readable specifications and machine-verifiable correctness guarantees._
 
 ### Property 81: Sub-CLO weight sum constraint
-*For any* CLO with one or more Sub-CLOs, the sum of all Sub-CLO weights must equal 1.0 (within floating-point tolerance of ±0.001). Assignment linkage to the parent CLO should be blocked when the weight sum deviates from 1.0.
+
+_For any_ CLO with one or more Sub-CLOs, the sum of all Sub-CLO weights must equal 1.0 (within floating-point tolerance of ±0.001). Assignment linkage to the parent CLO should be blocked when the weight sum deviates from 1.0.
 
 **Validates: Requirements 103.1, 103.2**
 
 ### Property 82: Sub-CLO weighted rollup accuracy
-*For any* CLO with Sub-CLOs, the parent CLO attainment should equal the weighted average of its Sub-CLO attainments: `sum(sub_clo_attainment × sub_clo_weight)`. When no Sub-CLOs exist, the CLO attainment should be calculated directly from evidence as before.
+
+_For any_ CLO with Sub-CLOs, the parent CLO attainment should equal the weighted average of its Sub-CLO attainments: `sum(sub_clo_attainment × sub_clo_weight)`. When no Sub-CLOs exist, the CLO attainment should be calculated directly from evidence as before.
 
 **Validates: Requirements 103.4**
 
 ### Property 83: Sub-CLO deletion protection
-*For any* Sub-CLO with one or more linked evidence records, deletion should be rejected. The error response should include the count of dependent evidence records.
+
+_For any_ Sub-CLO with one or more linked evidence records, deletion should be rejected. The error response should include the count of dependent evidence records.
 
 **Validates: Requirements 103.5**
 
 ### Property 84: Graduate Attribute weighted rollup accuracy
-*For any* Graduate Attribute with one or more ILO mappings, the GA attainment should equal the weighted average of mapped ILO attainments: `sum(ilo_attainment × mapping_weight)`.
+
+_For any_ Graduate Attribute with one or more ILO mappings, the GA attainment should equal the weighted average of mapped ILO attainments: `sum(ilo_attainment × mapping_weight)`.
 
 **Validates: Requirements 104.2, 104.3**
 
 ### Property 85: Graduate Attribute audit logging
-*For any* create, update, or delete operation on a Graduate Attribute, an audit log record should be created with the correct action type and before/after snapshots. The audit log count for GA operations should equal the count of GA mutations performed.
+
+_For any_ create, update, or delete operation on a Graduate Attribute, an audit log record should be created with the correct action type and before/after snapshots. The audit log count for GA operations should equal the count of GA mutations performed.
 
 **Validates: Requirements 104.6**
 
 ### Property 86: Competency hierarchy level consistency
-*For any* competency item in a framework, the hierarchy levels must follow: Domain (no parent or parent is null) → Competency (parent is Domain) → Indicator (parent is Competency). An Indicator cannot be a parent of another item. A Domain cannot have a Domain parent.
+
+_For any_ competency item in a framework, the hierarchy levels must follow: Domain (no parent or parent is null) → Competency (parent is Domain) → Indicator (parent is Competency). An Indicator cannot be a parent of another item. A Domain cannot have a Domain parent.
 
 **Validates: Requirements 105.1**
 
 ### Property 87: Competency CSV import round-trip
-*For any* valid competency CSV with Domain/Competency/Indicator rows, importing the CSV and then querying the resulting competency_items should produce a hierarchy that matches the original CSV structure: same codes, titles, and parent-child relationships.
+
+_For any_ valid competency CSV with Domain/Competency/Indicator rows, importing the CSV and then querying the resulting competency_items should produce a hierarchy that matches the original CSV structure: same codes, titles, and parent-child relationships.
 
 **Validates: Requirements 105.4**
 
 ### Property 88: Unmapped competency indicator flagging
-*For any* competency indicator with zero entries in competency_outcome_mappings, the indicator should be flagged as "Unmapped" in the alignment matrix. Indicators with at least one mapping should not be flagged.
+
+_For any_ competency indicator with zero entries in competency_outcome_mappings, the indicator should be flagged as "Unmapped" in the alignment matrix. Indicators with at least one mapping should not be flagged.
 
 **Validates: Requirements 105.6**
 
 ### Property 89: Sankey data transformation correctness
-*For any* set of ILO → PLO → CLO outcome mappings with weights, the Sankey data transformation should produce: (a) one node per outcome with the correct attainment-based color (green/blue/yellow/red/gray), and (b) one link per mapping with width proportional to the mapping weight. The total number of links should equal the total number of outcome_mappings records in scope.
+
+_For any_ set of ILO → PLO → CLO outcome mappings with weights, the Sankey data transformation should produce: (a) one node per outcome with the correct attainment-based color (green/blue/yellow/red/gray), and (b) one link per mapping with width proportional to the mapping weight. The total number of links should equal the total number of outcome_mappings records in scope.
 
 **Validates: Requirements 106.1, 106.4**
 
 ### Property 90: Gap status classification correctness
-*For any* outcome (ILO, PLO, or CLO), the gap status should be classified as: "Fully Mapped" when all expected child mappings exist and evidence is present; "Partially Mapped" when some but not all child mappings exist; "Unmapped" when zero child mappings exist; "No Evidence" when mappings exist but zero evidence records exist in the current semester. Additionally, any PLO with fewer than 2 mapped CLOs should be flagged as "Under-Mapped", and any CLO with zero linked assessments in the current semester should be flagged as "Unassessed".
+
+_For any_ outcome (ILO, PLO, or CLO), the gap status should be classified as: "Fully Mapped" when all expected child mappings exist and evidence is present; "Partially Mapped" when some but not all child mappings exist; "Unmapped" when zero child mappings exist; "No Evidence" when mappings exist but zero evidence records exist in the current semester. Additionally, any PLO with fewer than 2 mapped CLOs should be flagged as "Under-Mapped", and any CLO with zero linked assessments in the current semester should be flagged as "Unassessed".
 
 **Validates: Requirements 107.1, 107.2, 107.3**
 
 ### Property 91: Coverage heatmap data integrity
-*For any* CLO × Course intersection in the heatmap matrix, the evidence count should equal the actual count of evidence records for that CLO in that course. The color assignment should follow the sequential scale: white (0) → light blue (1–5) → dark blue (6+) for evidence count mode, and the attainment-level color scale for attainment mode.
+
+_For any_ CLO × Course intersection in the heatmap matrix, the evidence count should equal the actual count of evidence records for that CLO in that course. The color assignment should follow the sequential scale: white (0) → light blue (1–5) → dark blue (6+) for evidence count mode, and the attainment-level color scale for attainment mode.
 
 **Validates: Requirements 108.1, 108.2**
 
 ### Property 92: Semester attainment snapshot completeness
-*For any* semester close operation, a snapshot record should be created for every CLO, PLO, and ILO that has evidence in that semester. The snapshot's avg_attainment should equal the average of all student attainment records for that outcome in that semester.
+
+_For any_ semester close operation, a snapshot record should be created for every CLO, PLO, and ILO that has evidence in that semester. The snapshot's avg_attainment should equal the average of all student attainment records for that outcome in that semester.
 
 **Validates: Requirements 109.1**
 
 ### Property 93: Declining trend detection
-*For any* pair of consecutive semester attainment snapshots for the same outcome, if the attainment drops by 10 percentage points or more, the outcome should be flagged with a "Declining Trend" warning. Drops of less than 10 percentage points should not trigger the warning.
+
+_For any_ pair of consecutive semester attainment snapshots for the same outcome, if the attainment drops by 10 percentage points or more, the outcome should be flagged with a "Declining Trend" warning. Drops of less than 10 percentage points should not trigger the warning.
 
 **Validates: Requirements 109.3**
 
 ### Property 94: Cohort comparison average attainment and gap detection
-*For any* cohort comparison between two or more cohorts, the average attainment per outcome per cohort should equal the mean of all student attainment records in that cohort for that outcome. When any cohort's average is 15 or more percentage points below another cohort for the same outcome, it should be flagged as "Significant Gap".
+
+_For any_ cohort comparison between two or more cohorts, the average attainment per outcome per cohort should equal the mean of all student attainment records in that cohort for that outcome. When any cohort's average is 15 or more percentage points below another cohort for the same outcome, it should be flagged as "Significant Gap".
 
 **Validates: Requirements 110.2, 110.5**
 
 ### Property 95: Cohen's d effect size calculation
-*For any* two-cohort comparison where both cohorts have sample sizes of 20 or more students, Cohen's d should be calculated as `(mean1 - mean2) / pooled_std_dev`. The pooled standard deviation should use the standard formula: `sqrt(((n1-1)*s1² + (n2-1)*s2²) / (n1+n2-2))`. Cohen's d should not be calculated when either cohort has fewer than 20 students.
+
+_For any_ two-cohort comparison where both cohorts have sample sizes of 20 or more students, Cohen's d should be calculated as `(mean1 - mean2) / pooled_std_dev`. The pooled standard deviation should use the standard formula: `sqrt(((n1-1)*s1² + (n2-1)*s2²) / (n1+n2-2))`. Cohen's d should not be calculated when either cohort has fewer than 20 students.
 
 **Validates: Requirements 110.3**
 
 ### Property 96: Historical evidence attainment distribution
-*For any* semester in the historical evidence view, the sum of Excellent + Satisfactory + Developing + Not_Yet counts should equal the total evidence count for that semester. The proportion of each level should be correctly calculated as `level_count / total_count`.
+
+_For any_ semester in the historical evidence view, the sum of Excellent + Satisfactory + Developing + Not_Yet counts should equal the total evidence count for that semester. The proportion of each level should be correctly calculated as `level_count / total_count`.
 
 **Validates: Requirements 111.1, 111.2**
 
 ### Property 97: Extended habit type validation
-*For any* habit log record, the habit_type must be one of the 8 valid types: login, submit, journal, read, collaborate, practice, review, mentor. Records with any other habit_type should be rejected.
+
+_For any_ habit log record, the habit_type must be one of the 8 valid types: login, submit, journal, read, collaborate, practice, review, mentor. Records with any other habit_type should be rejected.
 
 **Validates: Requirements 112.1**
 
 ### Property 98: Extended habit completion triggers
-*For any* student who posts a discussion question or answer, the Collaborate habit should be marked complete for that day. *For any* student who completes a quiz attempt, the Practice habit should be marked complete. *For any* student who submits a peer review, the Review habit should be marked complete. *For any* student whose discussion answer is marked correct by a teacher, the Mentor habit should be marked complete. Each extended habit completion should award exactly 15 XP.
+
+_For any_ student who posts a discussion question or answer, the Collaborate habit should be marked complete for that day. _For any_ student who completes a quiz attempt, the Practice habit should be marked complete. _For any_ student who submits a peer review, the Review habit should be marked complete. _For any_ student whose discussion answer is marked correct by a teacher, the Mentor habit should be marked complete. Each extended habit completion should award exactly 15 XP.
 
 **Validates: Requirements 112.2, 112.3, 112.4, 112.5, 112.6**
 
 ### Property 99: Updated Perfect Day threshold
-*For any* student on a given day, a Perfect Day is achieved if and only if the count of distinct completed habit types is ≥ 6 (out of 8). The Perfect Day bonus XP (50 XP) should be awarded exactly once per qualifying day.
+
+_For any_ student on a given day, a Perfect Day is achieved if and only if the count of distinct completed habit types is ≥ 6 (out of 8). The Perfect Day bonus XP (50 XP) should be awarded exactly once per qualifying day.
 
 **Validates: Requirements 112.8**
 
 ### Property 100: Team membership constraints
-*For any* team, the member count must be between 2 and 6 inclusive. *For any* student within a single course, they should be a member of at most one team. Adding a 7th member should be rejected. Adding a student who is already on another team in the same course should be rejected.
+
+_For any_ team, the member count must be between 2 and 6 inclusive. _For any_ student within a single course, they should be a member of at most one team. Adding a 7th member should be rejected. Adding a student who is already on another team in the same course should be rejected.
 
 **Validates: Requirements 115.2, 115.3**
 
 ### Property 101: Auto-generated team balance
-*For any* auto-generation of teams from N students with target team size S, the resulting teams should have sizes that differ by at most 1 (balanced distribution). Every enrolled student should be assigned to exactly one team.
+
+_For any_ auto-generation of teams from N students with target team size S, the resulting teams should have sizes that differ by at most 1 (balanced distribution). Every enrolled student should be assigned to exactly one team.
 
 **Validates: Requirements 115.4**
 
 ### Property 102: Team XP split correctness
-*For any* XP award to a student who is a team member, the student's individual XP balance should increase by the full award amount, and the team's XP pool should increase by `floor(award_amount / 2)`. A separate xp_transactions record with `scope = 'team'` should be created for the team contribution.
+
+_For any_ XP award to a student who is a team member, the student's individual XP balance should increase by the full award amount, and the team's XP pool should increase by `floor(award_amount / 2)`. A separate xp_transactions record with `scope = 'team'` should be created for the team contribution.
 
 **Validates: Requirements 116.1, 116.4**
 
 ### Property 103: Team leaderboard ordering and completeness
-*For any* team leaderboard query within a course, all teams in that course should be present, ordered by team XP descending (weekly or all-time). Each entry should include: rank, team name, avatar letter, member count, total XP, and weekly XP.
+
+_For any_ team leaderboard query within a course, all teams in that course should be present, ordered by team XP descending (weekly or all-time). Each entry should include: rank, team name, avatar letter, member count, total XP, and weekly XP.
 
 **Validates: Requirements 117.1, 117.2**
 
 ### Property 104: Team badge idempotency
-*For any* team badge trigger (Team Spirit at 500 XP, Unstoppable at 3 challenge wins, Dream Team on shared Perfect Day, Study Squad at 7-day streak) that fires multiple times for the same team, the badge should be awarded exactly once. The badge record should have `scope = 'team'`.
+
+_For any_ team badge trigger (Team Spirit at 500 XP, Unstoppable at 3 challenge wins, Dream Team on shared Perfect Day, Study Squad at 7-day streak) that fires multiple times for the same team, the badge should be awarded exactly once. The badge record should have `scope = 'team'`.
 
 **Validates: Requirements 118.2, 118.5**
 
 ### Property 105: Team streak calculation
-*For any* team, the team streak should increment by 1 when ALL team members log in on the same calendar day. When any team member misses a day (no login record), the team streak should reset to 0. The `streak_longest` should always be ≥ `streak_current`.
+
+_For any_ team, the team streak should increment by 1 when ALL team members log in on the same calendar day. When any team member misses a day (no login record), the team streak should reset to 0. The `streak_longest` should always be ≥ `streak_current`.
 
 **Validates: Requirements 119.1, 119.2**
 
 ### Property 106: Team streak milestone rewards
-*For any* team reaching streak milestones of 7, 14, or 30 days, the corresponding team badge should be awarded and the team XP pool should receive the correct bonus (100, 250, or 500 XP respectively). Each milestone reward should be awarded exactly once.
+
+_For any_ team reaching streak milestones of 7, 14, or 30 days, the corresponding team badge should be awarded and the team XP pool should receive the correct bonus (100, 250, or 500 XP respectively). Each milestone reward should be awarded exactly once.
 
 **Validates: Requirements 119.5**
 
 ### Property 107: Adaptive XP formula correctness
-*For any* XP award, the final XP should equal `floor(base_xp × level_multiplier × difficulty_multiplier × diminishing_multiplier)` where: level_multiplier is 1.2 for levels 1–5, 1.0 for 6–10, 0.9 for 11–15, 0.8 for 16–20; difficulty_multiplier follows Bloom's taxonomy (Remembering 1.0 through Creating 1.5); and diminishing_multiplier decreases by 0.2 per repetition (min 0.2) for non-milestone actions. For assignments linked to multiple CLOs, the highest Bloom's level determines the difficulty multiplier.
+
+_For any_ XP award, the final XP should equal `floor(base_xp × level_multiplier × difficulty_multiplier × diminishing_multiplier)` where: level_multiplier is 1.2 for levels 1–5, 1.0 for 6–10, 0.9 for 11–15, 0.8 for 16–20; difficulty_multiplier follows Bloom's taxonomy (Remembering 1.0 through Creating 1.5); and diminishing_multiplier decreases by 0.2 per repetition (min 0.2) for non-milestone actions. For assignments linked to multiple CLOs, the highest Bloom's level determines the difficulty multiplier.
 
 **Validates: Requirements 120.1, 120.2, 121.1, 121.2**
 
 ### Property 108: XP transaction auditability
-*For any* xp_transactions record created by the Adaptive XP Engine, the record should contain: base_xp, final_xp, level_multiplier, difficulty_multiplier, and diminishing_multiplier. The relationship `final_xp = floor(base_xp × level_multiplier × difficulty_multiplier × diminishing_multiplier)` should hold for every record.
+
+_For any_ xp_transactions record created by the Adaptive XP Engine, the record should contain: base_xp, final_xp, level_multiplier, difficulty_multiplier, and diminishing_multiplier. The relationship `final_xp = floor(base_xp × level_multiplier × difficulty_multiplier × diminishing_multiplier)` should hold for every record.
 
 **Validates: Requirements 120.3, 121.4**
 
 ### Property 109: Diminishing returns mechanics
-*For any* student performing repeated actions of the same type within a rolling 24-hour window, the diminishing multiplier should be: 1.0 (1st), 0.8 (2nd), 0.6 (3rd), 0.4 (4th), 0.2 (5th+). After 24 hours from the first action in the window, the multiplier should reset to 1.0 for that action type. Milestone rewards (streak milestones, badge awards, level-up bonuses) should always receive a 1.0 diminishing multiplier regardless of repetition count.
+
+_For any_ student performing repeated actions of the same type within a rolling 24-hour window, the diminishing multiplier should be: 1.0 (1st), 0.8 (2nd), 0.6 (3rd), 0.4 (4th), 0.2 (5th+). After 24 hours from the first action in the window, the multiplier should reset to 1.0 for that action type. Milestone rewards (streak milestones, badge awards, level-up bonuses) should always receive a 1.0 diminishing multiplier regardless of repetition count.
 
 **Validates: Requirements 122.1, 122.4, 122.5**
 
 ### Property 110: Improvement bonus correctness
-*For any* student whose CLO attainment improves by 15 or more percentage points compared to their previous evidence score on the same CLO, an Improvement Bonus of exactly 50 XP should be awarded with `action_type = 'improvement_bonus'`. Improvements of less than 15 percentage points should not trigger the bonus. The xp_transactions record should reference the CLO and include previous and current scores.
+
+_For any_ student whose CLO attainment improves by 15 or more percentage points compared to their previous evidence score on the same CLO, an Improvement Bonus of exactly 50 XP should be awarded with `action_type = 'improvement_bonus'`. Improvements of less than 15 percentage points should not trigger the bonus. The xp_transactions record should reference the CLO and include previous and current scores.
 
 **Validates: Requirements 123.1, 123.2, 123.5**
 
 ### Property 111: Comeback Kid badge threshold
-*For any* student who earns 3 or more Improvement Bonuses within a single semester, the "Comeback Kid" badge should be awarded exactly once. Students with fewer than 3 Improvement Bonuses in a semester should not receive the badge.
+
+_For any_ student who earns 3 or more Improvement Bonuses within a single semester, the "Comeback Kid" badge should be awarded exactly once. Students with fewer than 3 Improvement Bonuses in a semester should not receive the badge.
 
 **Validates: Requirements 123.4**
 
 ### Property 112: Challenge creation constraints
-*For any* social challenge, all required fields (title, description, challenge_type, start/end date, goal_metric, goal_target, reward) must be present. For team-based challenges, the assigned team count must be between 2 and 20 inclusive. Challenges with fewer than 2 teams at the start date should be auto-cancelled.
+
+_For any_ social challenge, all required fields (title, description, challenge_type, start/end date, goal_metric, goal_target, reward) must be present. For team-based challenges, the assigned team count must be between 2 and 20 inclusive. Challenges with fewer than 2 teams at the start date should be auto-cancelled.
 
 **Validates: Requirements 113.1, 113.2, 113.6**
 
 ### Property 113: Course-wide challenge participation and reward distribution
-*For any* course-wide challenge, all enrolled students in the course should be participants. The aggregate progress should equal the sum of individual contributions. When the goal is achieved, the reward should be distributed only to students who contributed at least one qualifying action. Active course-wide challenges per course should not exceed 3.
+
+_For any_ course-wide challenge, all enrolled students in the course should be participants. The aggregate progress should equal the sum of individual contributions. When the goal is achieved, the reward should be distributed only to students who contributed at least one qualifying action. Active course-wide challenges per course should not exceed 3.
 
 **Validates: Requirements 114.1, 114.2, 114.3, 114.5**
 
 ### Property 114: Challenge 90% notification trigger
-*For any* course-wide challenge that reaches 90% of the goal target, a notification should be sent to all enrolled students. The notification should not be sent again if progress fluctuates around the 90% mark (send once per challenge).
+
+_For any_ course-wide challenge that reaches 90% of the goal target, a notification should be sent to all enrolled students. The notification should not be sent again if progress fluctuates around the 90% mark (send once per challenge).
 
 **Validates: Requirements 114.6**
 
 ### Property 115: Team challenge reward atomicity
-*For any* completed team-based challenge, the winning team(s) should be determined by highest progress toward the goal. The reward should be distributed to all members of the winning team(s) atomically — either all members receive the reward or none do.
+
+_For any_ completed team-based challenge, the winning team(s) should be determined by highest progress toward the goal. The reward should be distributed to all members of the winning team(s) atomically — either all members receive the reward or none do.
 
 **Validates: Requirements 113.4**
 
@@ -4383,6 +4782,7 @@ All 80 existing properties retained + 35 new properties (81–115) covering OBE 
 ### New Test Organization
 
 Add to `src/__tests__/properties/`:
+
 ```
 ├── sub-clo.property.test.ts           # Properties 81, 82, 83
 ├── graduate-attributes.property.test.ts # Properties 84, 85
@@ -4405,6 +4805,7 @@ Add to `src/__tests__/properties/`:
 ```
 
 Add to `src/__tests__/unit/`:
+
 ```
 ├── sub-clo.test.ts
 ├── graduate-attributes.test.ts
@@ -4427,6 +4828,7 @@ Add to `src/__tests__/unit/`:
 ```
 
 Add to `src/__tests__/integration/`:
+
 ```
 ├── sub-clo-rollup-pipeline.test.ts
 ├── graduate-attribute-rollup.test.ts
@@ -4445,25 +4847,38 @@ All property tests use `fast-check` with minimum 100 iterations per property. Ea
 
 ```typescript
 // Example: src/__tests__/properties/adaptive-xp.property.test.ts
-import * as fc from 'fast-check';
+import * as fc from "fast-check";
 
-describe('Adaptive XP Engine', () => {
+describe("Adaptive XP Engine", () => {
   // Feature: edeviser-platform, Property 107: Adaptive XP formula correctness
-  it('should calculate final XP using correct formula with all multipliers', () => {
+  it("should calculate final XP using correct formula with all multipliers", () => {
     fc.assert(
       fc.property(
-        fc.integer({ min: 1, max: 100 }),  // base_xp
-        fc.integer({ min: 1, max: 20 }),   // level
-        fc.constantFrom('remembering', 'understanding', 'applying', 'analyzing', 'evaluating', 'creating'),
-        fc.integer({ min: 1, max: 10 }),   // repeat count
-        fc.boolean(),                       // is milestone
+        fc.integer({ min: 1, max: 100 }), // base_xp
+        fc.integer({ min: 1, max: 20 }), // level
+        fc.constantFrom(
+          "remembering",
+          "understanding",
+          "applying",
+          "analyzing",
+          "evaluating",
+          "creating"
+        ),
+        fc.integer({ min: 1, max: 10 }), // repeat count
+        fc.boolean(), // is milestone
         (baseXP, level, bloomsLevel, repeatCount, isMilestone) => {
-          const result = calculateFinalXP(baseXP, level, [bloomsLevel], repeatCount, isMilestone);
+          const result = calculateFinalXP(
+            baseXP,
+            level,
+            [bloomsLevel],
+            repeatCount,
+            isMilestone
+          );
           const expected = Math.floor(
             baseXP *
-            getLevelMultiplier(level) *
-            BLOOMS_MULTIPLIERS[bloomsLevel] *
-            (isMilestone ? 1.0 : getDiminishingMultiplier(repeatCount))
+              getLevelMultiplier(level) *
+              BLOOMS_MULTIPLIERS[bloomsLevel] *
+              (isMilestone ? 1.0 : getDiminishingMultiplier(repeatCount))
           );
           expect(result).toBe(expected);
         }
@@ -4516,6 +4931,7 @@ This section addresses research-backed gaps in the gamification engine: streak b
 ### Components and Interfaces
 
 #### Comeback Challenge Banner (`/src/components/shared/ComebackChallengeBanner.tsx`)
+
 ```typescript
 interface ComebackChallengeState {
   is_active: boolean;
@@ -4538,6 +4954,7 @@ interface ComebackChallengeBannerProps {
 ```
 
 #### Updated StreakDisplay (`/src/components/shared/StreakDisplay.tsx` — updated)
+
 ```typescript
 interface StreakDisplayProps {
   currentStreak: number;
@@ -4553,6 +4970,7 @@ interface StreakDisplayProps {
 ```
 
 #### Habit Difficulty Level Indicator (`/src/components/shared/HabitDifficultyIndicator.tsx`)
+
 ```typescript
 type HabitDifficultyLevel = 1 | 2 | 3;
 
@@ -4569,8 +4987,9 @@ interface HabitDifficultyIndicatorProps {
 ```
 
 #### Updated Leaderboard Page (`/src/pages/student/leaderboard/LeaderboardPage.tsx` — updated)
+
 ```typescript
-type LeaderboardMode = 'top_xp' | 'personal_best' | 'most_improved' | 'league';
+type LeaderboardMode = "top_xp" | "personal_best" | "most_improved" | "league";
 
 interface PersonalBestEntry {
   week_label: string; // "Week of Jan 6"
@@ -4589,7 +5008,7 @@ interface MostImprovedEntry {
   is_anonymous: boolean;
 }
 
-type LeagueTier = 'bronze' | 'silver' | 'gold' | 'diamond';
+type LeagueTier = "bronze" | "silver" | "gold" | "diamond";
 
 interface LeagueTierConfig {
   tier: LeagueTier;
@@ -4611,7 +5030,7 @@ interface LeagueLeaderboardEntry {
   is_anonymous: boolean;
 }
 
-type PercentileBand = 'top_10' | 'top_25' | 'top_50' | 'bottom_50';
+type PercentileBand = "top_10" | "top_25" | "top_50" | "bottom_50";
 
 interface LeaderboardEntry {
   rank: number;
@@ -4628,10 +5047,11 @@ interface LeaderboardEntry {
 ```
 
 #### League Tier Badge (`/src/components/shared/LeagueTierBadge.tsx`)
+
 ```typescript
 interface LeagueTierBadgeProps {
   tier: LeagueTier;
-  size: 'sm' | 'md' | 'lg';
+  size: "sm" | "md" | "lg";
 }
 
 // Bronze: amber-600 border, bronze shield icon
@@ -4642,6 +5062,7 @@ interface LeagueTierBadgeProps {
 ```
 
 #### League Promotion Celebration (`/src/components/shared/LeaguePromotionCelebration.tsx`)
+
 ```typescript
 interface LeaguePromotionCelebrationProps {
   previousTier: LeagueTier;
@@ -4656,8 +5077,9 @@ interface LeaguePromotionCelebrationProps {
 ```
 
 #### Updated BadgeCollection (`/src/components/shared/BadgeCollection.tsx` — updated)
+
 ```typescript
-type BadgeTier = 'bronze' | 'silver' | 'gold';
+type BadgeTier = "bronze" | "silver" | "gold";
 
 interface TieredBadge {
   category: string;
@@ -4685,6 +5107,7 @@ interface BadgeCollectionProps {
 ```
 
 #### Badge Spotlight Card (`/src/components/shared/BadgeSpotlightCard.tsx`)
+
 ```typescript
 interface BadgeSpotlightCardProps {
   category: string;
@@ -4704,6 +5127,7 @@ interface BadgeSpotlightCardProps {
 ```
 
 #### Badge Spotlight Manager (`/src/pages/admin/badges/BadgeSpotlightManager.tsx`)
+
 ```typescript
 interface BadgeSpotlightSchedule {
   week_start: string; // ISO date (Monday)
@@ -4830,6 +5254,7 @@ badgeSpotlight.ts        — badgeSpotlightScheduleSchema
 ### Updated Edge Function Logic
 
 #### process-streak (updated for Streak Recovery)
+
 ```typescript
 // On daily login:
 // 1. Check if Streak Sabbatical is enabled and today is Saturday/Sunday → skip streak check
@@ -4843,7 +5268,10 @@ badgeSpotlight.ts        — badgeSpotlightScheduleSchema
 //    c. If days_completed = 3: restore streak, deactivate challenge, check Comeback Kid badge
 //    d. If no: cancel challenge, reset to 0
 
-function checkStreakSabbatical(institutionSettings: InstitutionSettings, date: Date): boolean {
+function checkStreakSabbatical(
+  institutionSettings: InstitutionSettings,
+  date: Date
+): boolean {
   if (!institutionSettings.streak_sabbatical_enabled) return false;
   const day = date.getUTCDay();
   return day === 0 || day === 6; // Sunday or Saturday
@@ -4855,12 +5283,18 @@ function calculateStreakToRestore(lostStreak: number): number {
 ```
 
 #### perfect-day-nudge-cron (updated for Habit Difficulty Levels)
+
 ```typescript
-function getPerfectDayThreshold(habitDifficultyLevel: HabitDifficultyLevel): number {
+function getPerfectDayThreshold(
+  habitDifficultyLevel: HabitDifficultyLevel
+): number {
   switch (habitDifficultyLevel) {
-    case 1: return 1; // login only
-    case 2: return 2; // login + one other
-    case 3: return 6; // 6 of 8 habits
+    case 1:
+      return 1; // login only
+    case 2:
+      return 2; // login + one other
+    case 3:
+      return 6; // 6 of 8 habits
   }
 }
 
@@ -4871,6 +5305,7 @@ function getNudgeThreshold(habitDifficultyLevel: HabitDifficultyLevel): number {
 ```
 
 #### check-badges (updated for Badge Tiers)
+
 ```typescript
 // Badge tier progression logic:
 // 1. For each badge category, check if student meets next tier threshold
@@ -4888,15 +5323,15 @@ function checkBadgeTierProgression(
   const thresholds = BADGE_TIER_THRESHOLDS[category];
   if (!thresholds) return null;
 
-  if (currentTier === 'gold') return null; // already max
-  if (currentTier === 'silver' && meetsThreshold(metrics, thresholds.gold)) {
-    return { shouldUpgrade: true, newTier: 'gold' };
+  if (currentTier === "gold") return null; // already max
+  if (currentTier === "silver" && meetsThreshold(metrics, thresholds.gold)) {
+    return { shouldUpgrade: true, newTier: "gold" };
   }
-  if (currentTier === 'bronze' && meetsThreshold(metrics, thresholds.silver)) {
-    return { shouldUpgrade: true, newTier: 'silver' };
+  if (currentTier === "bronze" && meetsThreshold(metrics, thresholds.silver)) {
+    return { shouldUpgrade: true, newTier: "silver" };
   }
   if (currentTier === null && meetsThreshold(metrics, thresholds.bronze)) {
-    return { shouldUpgrade: true, newTier: 'bronze' };
+    return { shouldUpgrade: true, newTier: "bronze" };
   }
   return null;
 }
@@ -4910,21 +5345,27 @@ function checkBadgeTierProgression(
 // League: filter by XP range thresholds, rank by weekly XP
 // Percentile Band: calculate rank / total_students * 100
 
-function calculatePercentileBand(rank: number, totalStudents: number): PercentileBand | null {
+function calculatePercentileBand(
+  rank: number,
+  totalStudents: number
+): PercentileBand | null {
   if (rank <= 10) return null; // show exact rank
   const percentile = (rank / totalStudents) * 100;
-  if (percentile <= 10) return 'top_10';
-  if (percentile <= 25) return 'top_25';
-  if (percentile <= 50) return 'top_50';
-  return 'bottom_50';
+  if (percentile <= 10) return "top_10";
+  if (percentile <= 25) return "top_25";
+  if (percentile <= 50) return "top_50";
+  return "bottom_50";
 }
 
-function getLeagueTier(cumulativeXP: number, thresholds: LeagueTierConfig[]): LeagueTier {
+function getLeagueTier(
+  cumulativeXP: number,
+  thresholds: LeagueTierConfig[]
+): LeagueTier {
   // thresholds sorted by min_xp descending
   for (const t of thresholds.sort((a, b) => b.min_xp - a.min_xp)) {
     if (cumulativeXP >= t.min_xp) return t.tier;
   }
-  return 'bronze';
+  return "bronze";
 }
 
 function calculateMostImproved(
@@ -4938,102 +5379,118 @@ function calculateMostImproved(
 
 ### Error Handling (Section W)
 
-| Scenario | Handling |
-|----------|----------|
-| Comeback Challenge already active | "You already have an active Comeback Challenge" — block duplicate |
-| Comeback Challenge day missed | Cancel challenge; show "Comeback Challenge ended — keep going, you'll get it next time" |
-| Streak Sabbatical toggle during active streak | Apply from next calendar day; do not retroactively modify current streak |
-| Habit level promotion at max level | No-op; Level 3 students remain at Level 3 |
-| Habit level streak reset | Reset `habit_level_streak` to 0; do not demote level |
-| Personal Best no history | Show "Complete your first week to see your Personal Best" empty state |
-| Most Improved division by zero | Exclude student from ranking; show "Not enough history" |
-| League Tier threshold change | Recalculate all student tiers on next leaderboard query; no retroactive XP adjustments |
-| League Promotion during impersonation | Block; read-only mode |
-| Badge tier upgrade during spotlight | Apply 2x XP bonus to the badge award XP |
-| Badge pin limit exceeded (>3) | "You can pin a maximum of 3 badges. Unpin one first." |
-| Badge Spotlight no manual selection | Auto-rotate alphabetically; show "Auto-selected" label |
-| Badge archive with pinned badge | Pinned badges are never auto-archived |
+| Scenario                                      | Handling                                                                                |
+| --------------------------------------------- | --------------------------------------------------------------------------------------- |
+| Comeback Challenge already active             | "You already have an active Comeback Challenge" — block duplicate                       |
+| Comeback Challenge day missed                 | Cancel challenge; show "Comeback Challenge ended — keep going, you'll get it next time" |
+| Streak Sabbatical toggle during active streak | Apply from next calendar day; do not retroactively modify current streak                |
+| Habit level promotion at max level            | No-op; Level 3 students remain at Level 3                                               |
+| Habit level streak reset                      | Reset `habit_level_streak` to 0; do not demote level                                    |
+| Personal Best no history                      | Show "Complete your first week to see your Personal Best" empty state                   |
+| Most Improved division by zero                | Exclude student from ranking; show "Not enough history"                                 |
+| League Tier threshold change                  | Recalculate all student tiers on next leaderboard query; no retroactive XP adjustments  |
+| League Promotion during impersonation         | Block; read-only mode                                                                   |
+| Badge tier upgrade during spotlight           | Apply 2x XP bonus to the badge award XP                                                 |
+| Badge pin limit exceeded (>3)                 | "You can pin a maximum of 3 badges. Unpin one first."                                   |
+| Badge Spotlight no manual selection           | Auto-rotate alphabetically; show "Auto-selected" label                                  |
+| Badge archive with pinned badge               | Pinned badges are never auto-archived                                                   |
 
 ### Correctness Properties (101–115)
 
 ### Property 101: Comeback Challenge streak restoration accuracy
-*For any* student who completes a 3-day Comeback Challenge, the restored streak should equal `floor(lost_streak_value / 2)`. The restored streak should never exceed the original lost streak value. A student who fails any day should have their streak remain at 0.
+
+_For any_ student who completes a 3-day Comeback Challenge, the restored streak should equal `floor(lost_streak_value / 2)`. The restored streak should never exceed the original lost streak value. A student who fails any day should have their streak remain at 0.
 
 **Validates: Requirements 124.2, 124.3, 124.4**
 
 ### Property 102: Streak Sabbatical weekend exclusion
-*For any* institution with `streak_sabbatical_enabled = true`, a student's streak should not be reset for missing Saturday or Sunday logins. The streak should only be evaluated on weekdays (Monday–Friday). When sabbatical is disabled, all 7 days count toward streak requirements.
+
+_For any_ institution with `streak_sabbatical_enabled = true`, a student's streak should not be reset for missing Saturday or Sunday logins. The streak should only be evaluated on weekdays (Monday–Friday). When sabbatical is disabled, all 7 days count toward streak requirements.
 
 **Validates: Requirements 125.1, 125.2**
 
 ### Property 103: Total Active Days monotonic increment
-*For any* student, `total_active_days` should be monotonically non-decreasing. It should increment by exactly 1 on each day the student completes at least one habit, and should never decrease.
+
+_For any_ student, `total_active_days` should be monotonically non-decreasing. It should increment by exactly 1 on each day the student completes at least one habit, and should never decrease.
 
 **Validates: Requirements 126.2, 126.3**
 
 ### Property 104: Habit Difficulty Level promotion correctness
-*For any* student at Habit Difficulty Level L (where L < 3), completing all required habits for 7 consecutive days should promote the student to Level L+1. Missing a day should reset `habit_level_streak` to 0 but should not change `habit_difficulty_level`.
+
+_For any_ student at Habit Difficulty Level L (where L < 3), completing all required habits for 7 consecutive days should promote the student to Level L+1. Missing a day should reset `habit_level_streak` to 0 but should not change `habit_difficulty_level`.
 
 **Validates: Requirements 127.3, 127.5**
 
 ### Property 105: Relative Perfect Day threshold
-*For any* student at Habit Difficulty Level 1, Perfect Day requires 1 habit. At Level 2, Perfect Day requires 2 habits. At Level 3, Perfect Day requires 6 of 8 habits. The Perfect Day XP award (50 XP) should be the same regardless of level.
+
+_For any_ student at Habit Difficulty Level 1, Perfect Day requires 1 habit. At Level 2, Perfect Day requires 2 habits. At Level 3, Perfect Day requires 6 of 8 habits. The Perfect Day XP award (50 XP) should be the same regardless of level.
 
 **Validates: Requirements 128.1, 128.2, 128.3, 128.5**
 
 ### Property 106: Personal Best leaderboard data integrity
-*For any* student's Personal Best view, the weekly XP values should equal the sum of `xp_transactions.xp_amount` for that student within each ISO week. The "is_personal_best" flag should be true for exactly one week (the week with the highest XP).
+
+_For any_ student's Personal Best view, the weekly XP values should equal the sum of `xp_transactions.xp_amount` for that student within each ISO week. The "is_personal_best" flag should be true for exactly one week (the week with the highest XP).
 
 **Validates: Requirements 129.1, 129.2**
 
 ### Property 107: Most Improved calculation correctness
-*For any* student with non-zero XP in the previous 4-week period, the improvement percentage should equal `(current_4_week_xp - previous_4_week_xp) / previous_4_week_xp * 100`. Students with zero previous XP should be excluded from the ranking.
+
+_For any_ student with non-zero XP in the previous 4-week period, the improvement percentage should equal `(current_4_week_xp - previous_4_week_xp) / previous_4_week_xp * 100`. Students with zero previous XP should be excluded from the ranking.
 
 **Validates: Requirements 130.2, 130.3**
 
 ### Property 108: Percentile band assignment correctness
-*For any* leaderboard with N students, a student at rank R should be assigned: exact rank if R ≤ 10, "Top 10%" if R/N ≤ 0.10, "Top 25%" if R/N ≤ 0.25, "Top 50%" if R/N ≤ 0.50, "Bottom 50%" otherwise. The band assignment should be mutually exclusive.
+
+_For any_ leaderboard with N students, a student at rank R should be assigned: exact rank if R ≤ 10, "Top 10%" if R/N ≤ 0.10, "Top 25%" if R/N ≤ 0.25, "Top 50%" if R/N ≤ 0.50, "Bottom 50%" otherwise. The band assignment should be mutually exclusive.
 
 **Validates: Requirements 131.1, 131.2, 131.3**
 
 ### Property 109: League Tier assignment correctness
-*For any* student with cumulative XP, the League Tier should be determined by the configured thresholds: Bronze (0–499), Silver (500–1499), Gold (1500–3999), Diamond (4000+). The tier should update immediately when XP crosses a threshold boundary.
+
+_For any_ student with cumulative XP, the League Tier should be determined by the configured thresholds: Bronze (0–499), Silver (500–1499), Gold (1500–3999), Diamond (4000+). The tier should update immediately when XP crosses a threshold boundary.
 
 **Validates: Requirements 132.1, 132.5**
 
 ### Property 110: League Promotion XP bonus idempotence
-*For any* League Tier promotion event, exactly 100 XP should be awarded. The promotion bonus should be awarded exactly once per tier transition — re-querying the leaderboard should not trigger duplicate bonuses.
+
+_For any_ League Tier promotion event, exactly 100 XP should be awarded. The promotion bonus should be awarded exactly once per tier transition — re-querying the leaderboard should not trigger duplicate bonuses.
 
 **Validates: Requirements 132.4**
 
 ### Property 111: Badge tier progression monotonicity
-*For any* badge category, a student's tier should only progress upward: null → bronze → silver → gold. A student should never be downgraded to a lower tier. Only the highest earned tier should be stored per category per student.
+
+_For any_ badge category, a student's tier should only progress upward: null → bronze → silver → gold. A student should never be downgraded to a lower tier. Only the highest earned tier should be stored per category per student.
 
 **Validates: Requirements 133.3, 133.5**
 
 ### Property 112: Badge Spotlight XP bonus application
-*For any* badge earned or upgraded during the spotlight week for the spotlighted category, the XP award should be exactly 2x the standard badge XP. Badges in non-spotlighted categories should receive standard XP (1x).
+
+_For any_ badge earned or upgraded during the spotlight week for the spotlighted category, the XP award should be exactly 2x the standard badge XP. Badges in non-spotlighted categories should receive standard XP (1x).
 
 **Validates: Requirements 134.1, 134.5**
 
 ### Property 113: Badge archive threshold
-*For any* badge not upgraded in the last 90 days and not pinned, the badge should be moved to the archived section. Pinned badges should never be auto-archived regardless of age.
+
+_For any_ badge not upgraded in the last 90 days and not pinned, the badge should be moved to the archived section. Pinned badges should never be auto-archived regardless of age.
 
 **Validates: Requirements 135.3, 135.4**
 
 ### Property 114: Badge pin limit enforcement
-*For any* student, the number of pinned badges should never exceed 3. Attempting to pin a 4th badge should be rejected.
+
+_For any_ student, the number of pinned badges should never exceed 3. Attempting to pin a 4th badge should be rejected.
 
 **Validates: Requirements 135.4**
 
 ### Property 115: Active badge collection size limit
-*For any* student with more than 12 badges, the Active section should display at most 12 badges (including pinned badges). Remaining badges should appear in the Archived section.
+
+_For any_ student with more than 12 badges, the Active section should display at most 12 badges (including pinned badges). Remaining badges should appear in the Archived section.
 
 **Validates: Requirements 135.1, 135.2**
 
 ### Updated Test Organization
 
 Add to `src/__tests__/properties/`:
+
 ```
 ├── comeback-challenge.property.test.ts    # Property 101
 ├── streak-sabbatical.property.test.ts     # Property 102
@@ -5049,6 +5506,7 @@ Add to `src/__tests__/properties/`:
 ```
 
 Add to `src/__tests__/unit/`:
+
 ```
 ├── comebackChallenge.test.ts
 ├── streakSabbatical.test.ts

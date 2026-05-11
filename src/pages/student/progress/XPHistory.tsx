@@ -3,35 +3,38 @@
 // Requirements: 45.1, 45.2, 45.4
 // =============================================================================
 
-import { parseAsStringLiteral, useQueryState } from 'nuqs';
-import { format } from 'date-fns';
-import { motion } from 'framer-motion';
-import { Coins, TrendingUp, ArrowLeft } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import Shimmer from '@/components/shared/Shimmer';
-import { useAuth } from '@/hooks/useAuth';
+import { parseAsStringLiteral, useQueryState } from "nuqs";
+import { format } from "date-fns";
+import { motion } from "framer-motion";
+import { Coins, TrendingUp, ArrowLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import Shimmer from "@/components/shared/Shimmer";
+import { useAuth } from "@/hooks/useAuth";
 import {
   useXPHistory,
   useXPCategorySummary,
   type XPFilterPeriod,
   type XPTransactionDisplay,
   type XPCategorySummary,
-} from '@/hooks/useXPHistory';
+} from "@/hooks/useXPHistory";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const PERIOD_OPTIONS: { value: XPFilterPeriod; label: string }[] = [
-  { value: 'today', label: 'Today' },
-  { value: 'this_week', label: 'This Week' },
-  { value: 'this_month', label: 'This Month' },
-  { value: 'all_time', label: 'All Time' },
+  { value: "today", label: "Today" },
+  { value: "this_week", label: "This Week" },
+  { value: "this_month", label: "This Month" },
+  { value: "all_time", label: "All Time" },
 ];
 
-const PERIOD_VALUES = PERIOD_OPTIONS.map((o) => o.value) as [XPFilterPeriod, ...XPFilterPeriod[]];
+const PERIOD_VALUES = PERIOD_OPTIONS.map((o) => o.value) as [
+  XPFilterPeriod,
+  ...XPFilterPeriod[]
+];
 
 // ─── Transaction Row ─────────────────────────────────────────────────────────
 
@@ -53,18 +56,21 @@ const TransactionRow = ({ tx, index }: TransactionRowProps) => {
       <div className="min-w-0 flex-1">
         <p className="text-sm font-medium truncate">{tx.source_label}</p>
         {tx.reference_description && (
-          <p className="text-xs text-gray-500 truncate">{tx.reference_description}</p>
+          <p className="text-xs text-gray-500 truncate">
+            {tx.reference_description}
+          </p>
         )}
         <p className="text-xs text-gray-400 mt-0.5">
-          {format(new Date(tx.created_at), 'MMM d, yyyy · h:mm a')}
+          {format(new Date(tx.created_at), "MMM d, yyyy · h:mm a")}
         </p>
       </div>
       <span
         className={`text-sm font-bold tabular-nums shrink-0 ms-4 ${
-          isPositive ? 'text-amber-600' : 'text-red-500'
+          isPositive ? "text-amber-600" : "text-red-500"
         }`}
       >
-        {isPositive ? '+' : ''}{tx.xp_amount} XP
+        {isPositive ? "+" : ""}
+        {tx.xp_amount} XP
       </span>
     </motion.div>
   );
@@ -77,33 +83,49 @@ interface CategorySummaryProps {
   runningTotal: number;
 }
 
-const CategorySummary = ({ categories, runningTotal }: CategorySummaryProps) => (
+const CategorySummary = ({
+  categories,
+  runningTotal,
+}: CategorySummaryProps) => (
   <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
     <div
       className="px-6 py-4 flex items-center justify-between"
-      style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+      style={{
+        background: "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+      }}
     >
       <div className="flex items-center gap-2">
         <TrendingUp className="h-5 w-5 text-white" />
         <h2 className="text-lg font-bold tracking-tight text-white">Summary</h2>
       </div>
       <div className="text-end">
-        <p className="text-2xl font-black text-white">{runningTotal.toLocaleString()} XP</p>
-        <p className="text-[10px] font-black tracking-widest uppercase text-white/60">Total</p>
+        <p className="text-2xl font-black text-white">
+          {runningTotal.toLocaleString()} XP
+        </p>
+        <p className="text-[10px] font-black tracking-widest uppercase text-white/60">
+          Total
+        </p>
       </div>
     </div>
     <div className="p-6">
       {categories.length === 0 ? (
-        <p className="text-sm text-gray-400 text-center py-2">No transactions in this period.</p>
+        <p className="text-sm text-gray-400 text-center py-2">
+          No transactions in this period.
+        </p>
       ) : (
         <div className="space-y-3">
           {categories.map((cat) => {
-            const pct = runningTotal > 0 ? Math.round((cat.total_xp / runningTotal) * 100) : 0;
+            const pct =
+              runningTotal > 0
+                ? Math.round((cat.total_xp / runningTotal) * 100)
+                : 0;
             return (
               <div key={cat.source} className="flex items-center gap-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm font-medium truncate">{cat.source_label}</span>
+                    <span className="text-sm font-medium truncate">
+                      {cat.source_label}
+                    </span>
                     <span className="text-xs text-gray-500 shrink-0 ms-2">
                       {cat.total_xp.toLocaleString()} XP · {cat.count}×
                     </span>
@@ -132,12 +154,18 @@ const XPHistory = () => {
   const studentId = user?.id;
 
   const [period, setPeriod] = useQueryState(
-    'period',
-    parseAsStringLiteral(PERIOD_VALUES).withDefault('all_time'),
+    "period",
+    parseAsStringLiteral(PERIOD_VALUES).withDefault("all_time")
   );
 
-  const { data: transactions, isLoading: txLoading } = useXPHistory(studentId, period);
-  const { data: summary, isLoading: summaryLoading } = useXPCategorySummary(studentId, period);
+  const { data: transactions, isLoading: txLoading } = useXPHistory(
+    studentId,
+    period
+  );
+  const { data: summary, isLoading: summaryLoading } = useXPCategorySummary(
+    studentId,
+    period
+  );
 
   const isLoading = txLoading || summaryLoading;
 
@@ -148,7 +176,7 @@ const XPHistory = () => {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => navigate('/student/dashboard')}
+          onClick={() => navigate("/student/dashboard")}
           className="shrink-0"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -160,10 +188,17 @@ const XPHistory = () => {
       </div>
 
       {/* Period Filter Tabs */}
-      <Tabs value={period} onValueChange={(v) => setPeriod(v as XPFilterPeriod)}>
+      <Tabs
+        value={period}
+        onValueChange={(v) => setPeriod(v as XPFilterPeriod)}
+      >
         <TabsList className="gap-2 rounded-xl">
           {PERIOD_OPTIONS.map((opt) => (
-            <TabsTrigger key={opt.value} value={opt.value} className="rounded-xl text-sm">
+            <TabsTrigger
+              key={opt.value}
+              value={opt.value}
+              className="rounded-xl text-sm"
+            >
               {opt.label}
             </TabsTrigger>
           ))}
@@ -190,10 +225,15 @@ const XPHistory = () => {
             <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
               <div
                 className="px-6 py-4 flex items-center gap-2"
-                style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+                style={{
+                  background:
+                    "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+                }}
               >
                 <Coins className="h-5 w-5 text-white" />
-                <h2 className="text-lg font-bold tracking-tight text-white">Transactions</h2>
+                <h2 className="text-lg font-bold tracking-tight text-white">
+                  Transactions
+                </h2>
                 {transactions && (
                   <Badge className="ml-auto bg-white/20 text-white border-0 text-xs">
                     {transactions.length}
@@ -207,7 +247,8 @@ const XPHistory = () => {
                       <Coins className="h-8 w-8 text-amber-500" />
                     </div>
                     <p className="text-sm text-gray-500">
-                      No XP transactions for this period. Keep learning to earn XP!
+                      No XP transactions for this period. Keep learning to earn
+                      XP!
                     </p>
                   </div>
                 ) : (

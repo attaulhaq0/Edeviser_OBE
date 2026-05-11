@@ -2,14 +2,14 @@
 // useEquippedItems — TanStack Query hooks for cosmetic equip/unequip
 // =============================================================================
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import { toast } from 'sonner';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import { toast } from "sonner";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-export type CosmeticSlot = 'profile_theme' | 'avatar_frame' | 'display_title';
+export type CosmeticSlot = "profile_theme" | "avatar_frame" | "display_title";
 
 export interface EquippedItem {
   id: string;
@@ -32,8 +32,9 @@ export const useEquippedItems = (studentId: string) => {
     queryFn: async (): Promise<EquippedItem[]> => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error } = await (supabase as any)
-        .from('student_equipped_items')
-        .select(`
+        .from("student_equipped_items")
+        .select(
+          `
           id,
           student_id,
           purchase_id,
@@ -47,23 +48,25 @@ export const useEquippedItems = (studentId: string) => {
               metadata
             )
           )
-        `)
-        .eq('student_id', studentId);
+        `
+        )
+        .eq("student_id", studentId);
 
       if (error) throw error;
 
       return ((data ?? []) as Array<Record<string, unknown>>).map((row) => {
         const purchase = row.xp_purchases as Record<string, unknown> | null;
-        const item = (purchase?.marketplace_items as Record<string, unknown>) ?? {};
+        const item =
+          (purchase?.marketplace_items as Record<string, unknown>) ?? {};
         return {
           id: row.id as string,
           student_id: row.student_id as string,
           purchase_id: row.purchase_id as string,
           slot: row.slot as CosmeticSlot,
           equipped_at: row.equipped_at as string,
-          item_name: (item.name as string) ?? 'Unknown',
-          item_sub_category: (item.sub_category as string) ?? '',
-          icon_identifier: (item.icon_identifier as string) ?? 'sparkles',
+          item_name: (item.name as string) ?? "Unknown",
+          item_sub_category: (item.sub_category as string) ?? "",
+          icon_identifier: (item.icon_identifier as string) ?? "sparkles",
           metadata: (item.metadata ?? {}) as Record<string, unknown>,
         };
       });
@@ -86,7 +89,7 @@ export const useEquipItem = () => {
     }): Promise<void> => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error } = await (supabase as any)
-        .from('student_equipped_items')
+        .from("student_equipped_items")
         .upsert(
           {
             student_id: variables.studentId,
@@ -94,7 +97,7 @@ export const useEquipItem = () => {
             slot: variables.slot,
             equipped_at: new Date().toISOString(),
           },
-          { onConflict: 'student_id,slot' }
+          { onConflict: "student_id,slot" }
         );
 
       if (error) throw error;
@@ -103,10 +106,10 @@ export const useEquipItem = () => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.marketplace.equipped(variables.studentId),
       });
-      toast.success('Item equipped!');
+      toast.success("Item equipped!");
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Failed to equip item');
+      toast.error(error.message || "Failed to equip item");
     },
   });
 };
@@ -123,10 +126,10 @@ export const useUnequipItem = () => {
     }): Promise<void> => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error } = await (supabase as any)
-        .from('student_equipped_items')
+        .from("student_equipped_items")
         .delete()
-        .eq('student_id', variables.studentId)
-        .eq('slot', variables.slot);
+        .eq("student_id", variables.studentId)
+        .eq("slot", variables.slot);
 
       if (error) throw error;
     },
@@ -134,10 +137,10 @@ export const useUnequipItem = () => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.marketplace.equipped(variables.studentId),
       });
-      toast.success('Item unequipped');
+      toast.success("Item unequipped");
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Failed to unequip item');
+      toast.error(error.message || "Failed to unequip item");
     },
   });
 };

@@ -1,7 +1,7 @@
-import { cn } from '@/lib/utils';
-import { useCurriculumMatrix } from '@/hooks/useCurriculumMatrix';
-import type { CellData } from '@/hooks/useCurriculumMatrix';
-import Shimmer from '@/components/shared/Shimmer';
+import { cn } from "@/lib/utils";
+import { useCurriculumMatrix } from "@/hooks/useCurriculumMatrix";
+import type { CellData } from "@/hooks/useCurriculumMatrix";
+import Shimmer from "@/components/shared/Shimmer";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -12,16 +12,19 @@ interface CurriculumMatrixProps {
 
 // ─── Status color map ───────────────────────────────────────────────────────
 
-const statusStyles: Record<CellData['status'], string> = {
-  green: 'bg-green-100 text-green-700',
-  yellow: 'bg-yellow-100 text-yellow-700',
-  red: 'bg-red-100 text-red-700',
-  gray: 'bg-gray-100 text-gray-400',
+const statusStyles: Record<CellData["status"], string> = {
+  green: "bg-green-100 text-green-700",
+  yellow: "bg-yellow-100 text-yellow-700",
+  red: "bg-red-100 text-red-700",
+  gray: "bg-gray-100 text-gray-400",
 };
 
 // ─── Component ──────────────────────────────────────────────────────────────
 
-const CurriculumMatrix = ({ programId, onCellClick }: CurriculumMatrixProps) => {
+const CurriculumMatrix = ({
+  programId,
+  onCellClick,
+}: CurriculumMatrixProps) => {
   const { data, isLoading } = useCurriculumMatrix(programId);
 
   if (isLoading) {
@@ -36,7 +39,8 @@ const CurriculumMatrix = ({ programId, onCellClick }: CurriculumMatrixProps) => 
   if (!data || data.plos.length === 0 || data.courses.length === 0) {
     return (
       <div className="rounded-xl border border-slate-200 bg-white p-8 text-center text-sm text-gray-500">
-        No PLOs or courses found for this program. Add PLOs and courses to see the curriculum matrix.
+        No PLOs or courses found for this program. Add PLOs and courses to see
+        the curriculum matrix.
       </div>
     );
   }
@@ -63,8 +67,14 @@ const CurriculumMatrix = ({ programId, onCellClick }: CurriculumMatrixProps) => 
         </thead>
         <tbody>
           {plos.map((plo) => (
-            <tr key={plo.id} className="border-b border-slate-100 last:border-b-0">
-              <td className="sticky start-0 z-10 bg-white border-e border-slate-200 px-4 py-3 font-medium text-gray-700 max-w-[200px] truncate" title={plo.title}>
+            <tr
+              key={plo.id}
+              className="border-b border-slate-100 last:border-b-0"
+            >
+              <td
+                className="sticky start-0 z-10 bg-white border-e border-slate-200 px-4 py-3 font-medium text-gray-700 max-w-[200px] truncate"
+                title={plo.title}
+              >
                 {plo.title}
               </td>
               {courses.map((course) => {
@@ -77,10 +87,10 @@ const CurriculumMatrix = ({ programId, onCellClick }: CurriculumMatrixProps) => 
                       type="button"
                       onClick={() => onCellClick?.(plo.id, course.id)}
                       className={cn(
-                        'inline-flex h-9 w-9 items-center justify-center rounded-lg text-sm font-bold transition-transform hover:scale-110',
+                        "inline-flex h-9 w-9 items-center justify-center rounded-lg text-sm font-bold transition-transform hover:scale-110",
                         statusStyles[cell.status],
-                        onCellClick && 'cursor-pointer',
-                        !onCellClick && 'cursor-default',
+                        onCellClick && "cursor-pointer",
+                        !onCellClick && "cursor-default"
                       )}
                       title={`${cell.cloCount} CLO(s) mapped`}
                     >

@@ -133,57 +133,57 @@ Per design.md §5 (migration file plan) and ADR-12 … ADR-17 (multi-institution
   - _Design: ADR-16_
   - _Requirements: 2.11_
 
-- [ ] 9. Migration `supabase/migrations/20260901000004_seed_demo_data.sql` — scale-realistic seed
+- [x] 9. Migration `supabase/migrations/20260901000004_seed_demo_data.sql` — scale-realistic seed
 
   - **Shape**: 3 institutions × (500 students + 50 teachers + 5 coordinators + 2 admins + 200 parents) = ~2,271 profiles total, with full 6-month history so dashboards never render empty in demo/staging.
   - Use deterministic UUIDs (`uuid_generate_v5(namespace, name)`) so reruns are idempotent.
-  - [ ] 9.1 Seed institutions
+  - [x] 9.1 Seed institutions
     - 3 rows with distinct `slug`s, `join_mode`s (one `open`, one `invite_only`, one `domain_restricted` with a sample `allowed_email_domains`), and placeholder `logo_url`s.
     - _Design: §5.4, ADR-13_
     - _Requirements: 2.11_
-  - [ ] 9.2 Seed profiles
+  - [x] 9.2 Seed profiles
     - Per institution: 500 students, 50 teachers, 5 coordinators, 2 admins, 200 parents.
     - Deterministic `full_name`, `email` (domain-aligned with `allowed_email_domains` of the domain-restricted institution), `role`, `institution_id`, `status = 'active'`, `theme_preference = 'system'`, `language_preference` mixed en/ar, `tour_completed_at = NULL` (tour will launch on first login per role).
     - _Design: §5.4, ADR-13, ADR-14_
     - _Requirements: 2.15, 2.21_
-  - [ ] 9.3 Seed programs + courses
+  - [x] 9.3 Seed programs + courses
     - 5 programs × 4 courses per institution (60 courses total) aligned to Qatar MOEHE program naming.
     - _Design: §5.4_
     - _Requirements: 2.22_
-  - [ ] 9.4 Seed semesters
+  - [x] 9.4 Seed semesters
     - Current semester + 1 past semester per institution, with realistic start/end dates.
     - _Design: §5.4_
     - _Requirements: 2.22_
-  - [ ] 9.5 Seed ILO/PLO/CLO chains with `outcome_mappings`
+  - [x] 9.5 Seed ILO/PLO/CLO chains with `outcome_mappings`
     - 6 ILOs per institution, 4 PLOs per program linked to ILOs (weights sum to 100 per child), 5 CLOs per course linked to PLOs (weights sum to 100 per child).
     - Enforce the domain rule: all `outcome_mappings.weight` for a given child-to-parent relationship sum to 100.
     - _Design: §5.4; domain-knowledge.md (OBE)_
     - _Requirements: 2.22_
-  - [ ] 9.6 Seed assignments + evidence + xp_transactions
+  - [x] 9.6 Seed assignments + evidence + xp_transactions
     - 6 months of history: 2 assignments per course per month × 60 courses × 500 students.
     - Per evidence row: deterministic score, `created_at` spread across the 6-month window.
     - `xp_transactions` derived to produce realistic leaderboard/level distributions.
     - _Design: §5.4; domain-knowledge.md (OBE, gamification)_
     - _Requirements: 2.22_
-  - [ ] 9.7 Seed habit_tracking + grades + notifications + audit_logs
+  - [x] 9.7 Seed habit_tracking + grades + notifications + audit_logs
     - Habit tracking: 6 months of daily rows per student (some perfect days, some partials, some missed).
     - Grades: released grades for every submitted assignment.
     - Notifications: 10 per student across the 6-month window.
     - Audit logs: representative admin/coordinator actions per institution.
     - _Design: §5.4_
     - _Requirements: 2.22, 2.23_
-  - [ ] 9.8 Seed badge spotlight history + leaderboard state
+  - [x] 9.8 Seed badge spotlight history + leaderboard state
     - Weekly badge spotlight rows for the past 12 weeks per institution (`week_start` = valid Mondays).
     - Materialized-view refresh so `leaderboard` queries return populated data on cold mount.
     - _Design: §5.4, §8.7_
     - _Requirements: 2.22_
-  - [ ] 9.9 Onboarding progress seeding — **bugfix 2.14 anchor**
+  - [x] 9.9 Onboarding progress seeding — **bugfix 2.14 anchor**
     - For a single designated demo student account (documented in seed comments), set `onboarding_progress.current_step = 'welcome'` with all completion flags false so the first-time-login path can be demonstrated from step 1.
     - For every other student: randomize `current_step` across valid values to test the resume path without conflating it with first-time-login detection.
     - _Design: §5.4, §8.8; ADR-13_
     - _Requirements: 2.14_
 
-- [ ] 10. Regenerate `src/types/database.ts` via the protected script
+- [x] 10. Regenerate `src/types/database.ts` via the protected script
   - Run `pwsh scripts/regen-types.ps1` (Windows) or `bash scripts/regen-types.sh` (macOS / Linux).
   - **Do not** use `npx supabase gen types … > src/types/database.ts` directly (corrupts the file on Windows per `types-regeneration.md`).
   - Verify file contains `export type Database` and size > 1 KB before committing.
@@ -194,7 +194,7 @@ Per design.md §5 (migration file plan) and ADR-12 … ADR-17 (multi-institution
 
 ## Phase 2 — Shared primitives: stores, hooks, lib (Tasks 11 – 22)
 
-- [ ] 11. Create `src/stores/themeStore.ts` (Zustand)
+- [x] 11. Create `src/stores/themeStore.ts` (Zustand)
 
   - Slice: `{ themeMode: 'light' | 'dark' | 'system', setThemeMode(mode), effectiveTheme: 'light' | 'dark' (derived) }`.
   - Persist to `localStorage` (unauth) and to `profiles.theme_preference` (auth) via a subscribe-to-authStore bridge.
@@ -202,7 +202,7 @@ Per design.md §5 (migration file plan) and ADR-12 … ADR-17 (multi-institution
   - _Design: ADR-01_
   - _Requirements: 2.10_
 
-- [ ] 12. Create `src/stores/tourStore.ts` (Zustand)
+- [x] 12. Create `src/stores/tourStore.ts` (Zustand)
 
   - Slice: `{ tourActive: boolean, currentRoleTourId: UserRole | null, tourFeatureFlag: boolean, start(role), skip(), complete(role) }`.
   - `tourFeatureFlag` defaults to `false`; flipped to `true` globally in Task 90.
@@ -210,14 +210,14 @@ Per design.md §5 (migration file plan) and ADR-12 … ADR-17 (multi-institution
   - _Design: ADR-02_
   - _Requirements: 2.15_
 
-- [ ] 13. Create `src/hooks/useTheme.ts`
+- [x] 13. Create `src/hooks/useTheme.ts`
 
   - Thin hook around `themeStore` exposing `{ themeMode, effectiveTheme, setThemeMode }`.
   - Writes to Supabase only when `auth.user` exists (uses `useStandardMutation` from Task 19 for error mapping).
   - _Design: ADR-01_
   - _Requirements: 2.10_
 
-- [ ] 14. Create `src/hooks/useOptimisticToggle.ts`
+- [x] 14. Create `src/hooks/useOptimisticToggle.ts`
 
   - Signature: `useOptimisticToggle<TRow>({ queryKey, mutationFn, field }): { isChecked, onToggle, isOptimistic }`.
   - Implements TanStack Query `onMutate` → `onError` rollback → `onSettled` invalidate pattern.
@@ -225,7 +225,7 @@ Per design.md §5 (migration file plan) and ADR-12 … ADR-17 (multi-institution
   - _Design: ADR-10_
   - _Requirements: 2.25_
 
-- [ ] 15. Create `src/hooks/useGuidedTour.ts`
+- [x] 15. Create `src/hooks/useGuidedTour.ts`
 
   - Wraps `tourStore` + `react-joyride` `Joyride` instance; exposes `{ steps, run, stepIndex, onCallback }`.
   - Reads role from `AuthProvider`, selects the matching `{role}TourSteps` from `src/lib/tours/`.
@@ -234,7 +234,7 @@ Per design.md §5 (migration file plan) and ADR-12 … ADR-17 (multi-institution
   - _Design: ADR-02_
   - _Requirements: 2.15_
 
-- [ ] 16. Create `src/hooks/useAvatarUpload.ts`
+- [x] 16. Create `src/hooks/useAvatarUpload.ts`
 
   - Accepts `{ file: File }`; validates type/size with `avatarUploadSchema` (Task 21).
   - Resizes to ≤ 512×512 @ ≤ 150 KB via `browser-image-compression`.
@@ -244,14 +244,14 @@ Per design.md §5 (migration file plan) and ADR-12 … ADR-17 (multi-institution
   - _Design: ADR-04, ADR-15_
   - _Requirements: 2.18_
 
-- [ ] 17. Create `src/hooks/useInstitutionBrowse.ts`
+- [x] 17. Create `src/hooks/useInstitutionBrowse.ts`
 
   - Public-anon query on `institutions_public` view (slug, name, logo_url, join_mode).
   - Used by the signup institution-picker step; cached aggressively (5 min staleTime).
   - _Design: ADR-13_
   - _Requirements: 2.11_
 
-- [ ] 18. Create `src/hooks/useInviteUsers.ts`
+- [x] 18. Create `src/hooks/useInviteUsers.ts`
 
   - `useMutation` for bulk invite: `{ institution_id, invites: [{ email, role }, ...] }`.
   - Calls the `send-invitation-email` Edge Function.
@@ -259,14 +259,14 @@ Per design.md §5 (migration file plan) and ADR-12 … ADR-17 (multi-institution
   - _Design: ADR-12_
   - _Requirements: 2.11_
 
-- [ ] 19. Create `src/hooks/useStandardMutation.ts`
+- [x] 19. Create `src/hooks/useStandardMutation.ts`
 
   - Wrapper around `useMutation` that auto-applies `mapSupabaseError` in `onError`, emits Sonner toast, logs raw error to Sentry (if configured).
   - Backward-compatible: existing `useMutation` call sites can migrate incrementally.
   - _Design: ADR-05_
   - _Requirements: 2.19_
 
-- [ ] 20. Create `src/lib/mapSupabaseError.ts`
+- [x] 20. Create `src/lib/mapSupabaseError.ts`
 
   - Pure function `mapSupabaseError(err): { code: string; userMessage: string; fieldPath?: string }`.
   - Switch on PG codes 23505 (unique), 23503 (FK), 23502 (not-null), 23514 (check), 42501 (RLS).
@@ -275,7 +275,7 @@ Per design.md §5 (migration file plan) and ADR-12 … ADR-17 (multi-institution
   - _Design: ADR-05_
   - _Requirements: 2.19, 2.26_
 
-- [ ] 21. Create `src/lib/schemas/avatarUpload.ts` + `src/lib/schemas/invitation.ts`
+- [x] 21. Create `src/lib/schemas/avatarUpload.ts` + `src/lib/schemas/invitation.ts`
 
   - `avatarUploadSchema`: file type ∈ {png, jpg, webp}, size ≤ 2 MB.
   - `invitationSchema`: email, role ∈ enum, institution_id uuid; bulk variant accepts an array.
@@ -283,7 +283,7 @@ Per design.md §5 (migration file plan) and ADR-12 … ADR-17 (multi-institution
   - _Design: ADR-04, ADR-12_
   - _Requirements: 2.11, 2.18, 2.19_
 
-- [ ] 22. Create `src/lib/i18nHelpers.ts`
+- [x] 22. Create `src/lib/i18nHelpers.ts`
   - Intl formatters factory: `formatDate(value, locale)`, `formatNumber(value, locale)`, `formatRelativeTime(value, locale)`, with `ar-QA` defaults (Arabic-Indic numerals, Arabic month names, Hijri-compatible formatting where relevant).
   - Single source of truth — call sites never instantiate `Intl.DateTimeFormat` directly.
   - _Design: ADR-11_
@@ -293,7 +293,7 @@ Per design.md §5 (migration file plan) and ADR-12 … ADR-17 (multi-institution
 
 ## Phase 2 — Shared components (Tasks 23 – 35)
 
-- [ ] 23. Create `src/components/shared/WelcomeHero.tsx`
+- [x] 23. Create `src/components/shared/WelcomeHero.tsx`
 
   - Props: `{ name: string; role: UserRole; subtitle: string; stats?: ReactNode }`.
   - Renders the dark hero gradient (`linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #312e81 100%)`) with white text per design-system.md.
@@ -302,7 +302,7 @@ Per design.md §5 (migration file plan) and ADR-12 … ADR-17 (multi-institution
   - _Design: ADR-07, §8.1_
   - _Requirements: 2.21_
 
-- [ ] 24. Create `src/components/shared/TopBar.tsx`
+- [x] 24. Create `src/components/shared/TopBar.tsx`
 
   - Layout: `[left slot: breadcrumb / page title] … [right cluster: LanguageSwitcher] [ProfileDropdown] [SettingsIcon]` with RTL mirror.
   - Replaces the bespoke top bar in each role layout.
@@ -310,7 +310,7 @@ Per design.md §5 (migration file plan) and ADR-12 … ADR-17 (multi-institution
   - _Design: ADR-02, §8.2_
   - _Requirements: 2.13, 2.16_
 
-- [ ] 25. Create `src/components/shared/ProfileDropdown.tsx`
+- [x] 25. Create `src/components/shared/ProfileDropdown.tsx`
 
   - Avatar + full name + chevron; Shadcn `DropdownMenu` with items:
     - My Profile (routes to `/{role}/profile`)
@@ -321,7 +321,7 @@ Per design.md §5 (migration file plan) and ADR-12 … ADR-17 (multi-institution
   - _Design: ADR-02, §8.3_
   - _Requirements: 2.12, 2.13, 2.18_
 
-- [ ] 26. Create `src/components/shared/AvatarUpload.tsx`
+- [x] 26. Create `src/components/shared/AvatarUpload.tsx`
 
   - Shadcn Card + dropzone, wired to `useAvatarUpload`.
   - Previews the resized image before upload confirmation.
@@ -329,21 +329,21 @@ Per design.md §5 (migration file plan) and ADR-12 … ADR-17 (multi-institution
   - _Design: ADR-04_
   - _Requirements: 2.18_
 
-- [ ] 27. Create `src/components/shared/ThemeToggle.tsx`
+- [x] 27. Create `src/components/shared/ThemeToggle.tsx`
 
   - Tri-state (light / dark / system) segmented control backed by `useTheme`.
   - Honors `prefers-color-scheme` when `themeMode === 'system'`.
   - _Design: ADR-01_
   - _Requirements: 2.10_
 
-- [ ] 28. Create `src/components/shared/GuidedTour.tsx`
+- [x] 28. Create `src/components/shared/GuidedTour.tsx`
 
   - Wraps `react-joyride`; consumes `useGuidedTour`.
   - Tour dialog styling respects both light and dark themes and RTL; `prefers-reduced-motion` disables the `Joyride` transitions.
   - _Design: ADR-02, §8.4_
   - _Requirements: 2.15_
 
-- [ ] 29. Create `src/components/shared/MondayWeekPicker.tsx`
+- [x] 29. Create `src/components/shared/MondayWeekPicker.tsx`
 
   - Shadcn `Popover` + `react-day-picker` configured to disable non-Monday days (`disabled={(day) => day.getDay() !== 1}`).
   - Zod refinement used in every consuming form: `z.date().refine((d) => d.getDay() === 1, 'Week start must be a Monday')`.
@@ -351,7 +351,7 @@ Per design.md §5 (migration file plan) and ADR-12 … ADR-17 (multi-institution
   - _Design: ADR-05, §8.9_
   - _Requirements: 2.19_
 
-- [ ] 30. Extend `src/components/shared/EmptyState.tsx`
+- [x] 30. Extend `src/components/shared/EmptyState.tsx`
 
   - Export shape `{ icon: LucideIcon; title: string; description: string; cta?: { label: string; onClick: () => void } }`.
   - Ship 8 named variants as named exports: `NoCourses`, `NoProgress`, `NoUsers`, `NoNotifications`, `NoBadges`, `NoEvidence`, `NoMarketplaceItems`, `NoLinkedStudents`.
@@ -359,7 +359,7 @@ Per design.md §5 (migration file plan) and ADR-12 … ADR-17 (multi-institution
   - _Design: ADR-08, §8.6_
   - _Requirements: 2.22, 2.26_
 
-- [ ] 31. Update `src/index.css` — full dark-mode HSL token pass (ADR-01)
+- [x] 31. Update `src/index.css` — full dark-mode HSL token pass (ADR-01)
 
   - Extend `:root` (light) and `.dark` (dark) blocks with complete HSL variables for `--background`, `--foreground`, `--card`, `--card-foreground`, `--popover`, `--popover-foreground`, `--primary`, `--primary-foreground`, `--secondary`, `--secondary-foreground`, `--muted`, `--muted-foreground`, `--accent`, `--accent-foreground`, `--destructive`, `--destructive-foreground`, `--border`, `--input`, `--ring`.
   - Confirm Tailwind v4 `@custom-variant dark (&:where(.dark, .dark *))` is present (already in file per design.md §8.1).
@@ -367,7 +367,7 @@ Per design.md §5 (migration file plan) and ADR-12 … ADR-17 (multi-institution
   - _Design: ADR-01, §8.1_
   - _Requirements: 2.10, 3.1, 3.4, 3.7, 3.8_
 
-- [ ] 32. Modify Shadcn UI surfaces for dark-mode token compliance
+- [x] 32. Modify Shadcn UI surfaces for dark-mode token compliance
 
   - Files: `src/components/ui/dialog.tsx`, `src/components/ui/sheet.tsx`, `src/components/ui/popover.tsx`, `src/components/ui/dropdown-menu.tsx`, `src/components/ui/select.tsx`.
   - Force `bg-background` (or `bg-popover` where appropriate) and `text-foreground` / `text-popover-foreground` instead of stray `bg-white text-black` literals.
@@ -375,7 +375,7 @@ Per design.md §5 (migration file plan) and ADR-12 … ADR-17 (multi-institution
   - _Design: §8.1, §8.6_
   - _Requirements: 2.5, 2.10_
 
-- [ ] 33. Modify `src/components/shared/DataTable.tsx`
+- [x] 33. Modify `src/components/shared/DataTable.tsx`
 
   - Header row `bg-muted text-foreground` (always visible; no hover-only visibility).
   - Body rows `text-foreground` on `bg-background`, alternating zebra via `even:bg-muted/40` optional.
@@ -383,7 +383,7 @@ Per design.md §5 (migration file plan) and ADR-12 … ADR-17 (multi-institution
   - _Design: §8.6_
   - _Requirements: 2.7, 2.8_
 
-- [ ] 34. Create role-specific tour step arrays
+- [x] 34. Create role-specific tour step arrays
 
   - Files (one per role): `src/lib/tours/adminTour.ts`, `coordinatorTour.ts`, `teacherTour.ts`, `studentTour.ts`, `parentTour.ts`.
   - Each exports `{role}TourSteps: Step[]` with 7 steps targeting `data-tour` anchors: top-bar → sidebar nav → KPI row → primary action → role-specific card → language/theme switcher → profile dropdown.
@@ -391,7 +391,7 @@ Per design.md §5 (migration file plan) and ADR-12 … ADR-17 (multi-institution
   - _Design: ADR-02, §8.5_
   - _Requirements: 2.15, 2.26_
 
-- [ ] 35. Install npm dependencies
+- [x] 35. Install npm dependencies
   - Runtime: `react-joyride`, `browser-image-compression`, `react-day-picker` (verify not already present).
   - Dev: `i18next-cli`.
   - Pinned to exact versions; run `npm install --save-exact <pkg>@<version>`.
@@ -402,7 +402,7 @@ Per design.md §5 (migration file plan) and ADR-12 … ADR-17 (multi-institution
 
 ## Phase 2 — Auth surfaces (Tasks 36 – 45)
 
-- [ ] 36. Create `src/pages/auth/SignUpPage.tsx` + `src/lib/schemas/signUpSchema.ts`
+- [x] 36. Create `src/pages/auth/SignUpPage.tsx` + `src/lib/schemas/signUpSchema.ts`
 
   - Two-step wizard:
     - **Step 1**: choose institution — Shadcn `Command` list populated from `useInstitutionBrowse` with logo + name + slug + join-mode badge.
@@ -416,7 +416,7 @@ Per design.md §5 (migration file plan) and ADR-12 … ADR-17 (multi-institution
   - _Design: ADR-03, ADR-13, ADR-14, §8.3_
   - _Requirements: 2.11_
 
-- [ ] 37. Create `src/pages/auth/AcceptInvitePage.tsx`
+- [x] 37. Create `src/pages/auth/AcceptInvitePage.tsx`
 
   - Route: `/accept-invite/:token`.
   - On mount, calls `rpc('get_invitation_by_token', { token })` (SECURITY DEFINER function from Task 5).
@@ -426,7 +426,7 @@ Per design.md §5 (migration file plan) and ADR-12 … ADR-17 (multi-institution
   - _Design: ADR-12_
   - _Requirements: 2.11_
 
-- [ ] 38. Create `src/pages/admin/users/InviteUsersPage.tsx`
+- [x] 38. Create `src/pages/admin/users/InviteUsersPage.tsx`
 
   - Admin-only (guarded by `RouteGuard role="admin"`).
   - Bulk CSV invite: drag-drop or paste; Zod `invitationSchema.array()`.
@@ -434,7 +434,7 @@ Per design.md §5 (migration file plan) and ADR-12 … ADR-17 (multi-institution
   - _Design: ADR-12_
   - _Requirements: 2.11_
 
-- [ ] 39. Create `supabase/functions/send-invitation-email/index.ts`
+- [x] 39. Create `supabase/functions/send-invitation-email/index.ts`
 
   - Deno Edge Function following the standard pattern (CORS preflight, service-role client, structured JSON error).
   - Input: `{ institution_id, invites: [{ email, role }] }`.
@@ -444,14 +444,14 @@ Per design.md §5 (migration file plan) and ADR-12 … ADR-17 (multi-institution
   - _Design: ADR-12, ADR-16_
   - _Requirements: 2.11_
 
-- [ ] 40. Modify `src/pages/LoginPage.tsx`
+- [x] 40. Modify `src/pages/LoginPage.tsx`
 
   - Add "Create account" link below the sign-in form → routes to `/signup`.
   - Respect locale (ar link uses Arabic label via `t('login.createAccount')`).
   - _Design: ADR-03, §8.3_
   - _Requirements: 2.11_
 
-- [ ] 41. Modify `src/router/AppRouter.tsx`
+- [x] 41. Modify `src/router/AppRouter.tsx`
 
   - Register routes: `/signup`, `/accept-invite/:token`, `/admin/users/invite`.
   - `/signup` and `/accept-invite/:token` are public (no `RouteGuard`).
@@ -459,7 +459,7 @@ Per design.md §5 (migration file plan) and ADR-12 … ADR-17 (multi-institution
   - _Design: ADR-03, ADR-12, §8.3_
   - _Requirements: 2.11_
 
-- [ ] 42. Modify `src/providers/AuthProvider.tsx`
+- [x] 42. Modify `src/providers/AuthProvider.tsx`
 
   - Extend the profile fetch to include `avatar_url`, `tour_completed_at`, `theme_preference`, `language_preference`, `status`.
   - Push `theme_preference` + `language_preference` into `themeStore` + `i18n.changeLanguage()` on session hydrate.
@@ -467,7 +467,7 @@ Per design.md §5 (migration file plan) and ADR-12 … ADR-17 (multi-institution
   - _Design: ADR-01, ADR-02, ADR-11, ADR-14_
   - _Requirements: 2.10, 2.11, 2.15, 2.18, 2.26_
 
-- [ ] 43. Signup rate-limit Edge Function middleware
+- [x] 43. Signup rate-limit Edge Function middleware
 
   - File: `supabase/functions/_shared/rateLimitMiddleware.ts` (shared helper for Edge Functions).
   - Checks `rate_limit_events` for the caller's IP over the configured window; rejects with 429 if exceeded.
@@ -476,7 +476,7 @@ Per design.md §5 (migration file plan) and ADR-12 … ADR-17 (multi-institution
   - _Design: ADR-16_
   - _Requirements: 2.11_
 
-- [ ] 44. Email-verification banner (ADR-14)
+- [x] 44. Email-verification banner (ADR-14)
 
   - Shared component `src/components/shared/EmailVerificationBanner.tsx` rendered by every role layout when `profile.status === 'pending_verification'`.
   - Provides a "Resend verification email" button that calls `supabase.auth.resend({ type: 'signup', email })`.
@@ -484,7 +484,7 @@ Per design.md §5 (migration file plan) and ADR-12 … ADR-17 (multi-institution
   - _Design: ADR-14_
   - _Requirements: 2.11_
 
-- [ ] 45. Integrate hCaptcha/Turnstile (ADR-16)
+- [x] 45. Integrate hCaptcha/Turnstile (ADR-16)
   - Add component `src/components/shared/CaptchaChallenge.tsx` rendered conditionally on `/signup` and `/accept-invite` when the caller's IP has logged ≥ 3 signup events in the last hour (read via `rpc('check_rate_limit_approaching', …)`).
   - Passes the token to the Supabase auth call; server-side `signup-rate-check` Edge Function verifies the token via the provider's verify endpoint.
   - Env: `VITE_CAPTCHA_SITE_KEY`; server secret in Supabase Dashboard.
@@ -495,7 +495,7 @@ Per design.md §5 (migration file plan) and ADR-12 … ADR-17 (multi-institution
 
 ## Phase 3 — Admin dashboard (Tasks 46 – 50)
 
-- [ ] 46. AdminLayout: adopt `<TopBar />`; remove QuickStartChecklist mount
+- [x] 46. AdminLayout: adopt `<TopBar />`; remove QuickStartChecklist mount
 
   - File: `src/pages/admin/AdminLayout.tsx`.
   - Replace bespoke top-bar markup with `<TopBar />` (Task 24).
@@ -504,7 +504,7 @@ Per design.md §5 (migration file plan) and ADR-12 … ADR-17 (multi-institution
   - _Design: ADR-02, ADR-07, §8.2_
   - _Requirements: 2.9, 2.12, 2.13, 2.16_
 
-- [ ] 47. AdminDashboard: add `<WelcomeHero />` as first child
+- [x] 47. AdminDashboard: add `<WelcomeHero />` as first child
 
   - File: `src/pages/admin/AdminDashboard.tsx`.
   - Insert `<WelcomeHero role="admin" name={profile.full_name} subtitle={t('admin.welcome.subtitle')} />` as the first child of the outer `<div className="space-y-6">`.
@@ -513,21 +513,21 @@ Per design.md §5 (migration file plan) and ADR-12 … ADR-17 (multi-institution
   - _Design: ADR-07, §8.1_
   - _Requirements: 2.21_
 
-- [ ] 48. Admin list pages: insert `<EmptyState />` on every list/grid with `data?.length === 0`
+- [x] 48. Admin list pages: insert `<EmptyState />` on every list/grid with `data?.length === 0`
 
   - Files touched: `AdminUsersPage.tsx`, `AdminProgramsPage.tsx`, `AdminCoursesPage.tsx`, `AdminBadgesPage.tsx`, `AdminBonusXPPage.tsx`, `AdminBadgeSpotlightPage.tsx`, `AdminGameSlotsPage.tsx`, `AdminMarketplacePage.tsx`, `AdminAuditLogPage.tsx`, `AdminPendingOnboardingPage.tsx`, `AdminNotificationsPage.tsx`, and any other admin list view.
   - Use the appropriate named `EmptyState` variant from Task 30.
   - _Design: ADR-08, §8.6_
   - _Requirements: 2.22_
 
-- [ ] 49. Admin backend-bound switches: adopt `useOptimisticToggle`
+- [x] 49. Admin backend-bound switches: adopt `useOptimisticToggle`
 
   - Audit Shadcn `Switch` usages bound to mutations in admin pages (e.g., feature toggles on Admin Settings, course publish flags); migrate to `useOptimisticToggle`.
   - Confirm adjacent Loader2 renders while `isOptimistic === true` without disabling the switch.
   - _Design: ADR-10_
   - _Requirements: 2.25_
 
-- [ ] 50. Admin guided tour: wire `<GuidedTour />` with `adminTourSteps`
+- [x] 50. Admin guided tour: wire `<GuidedTour />` with `adminTourSteps`
   - Mount `<GuidedTour />` inside `AdminLayout`.
   - Ensure `data-tour="…"` anchors are present on: top-bar cluster (from Task 24), sidebar nav items, KPI row (Task 47), Invite Users CTA, Settings icon.
   - Tour auto-starts when `tourFeatureFlag === true && !profile.tour_completed_at && currentRoleTourId === 'admin'`.
@@ -538,33 +538,33 @@ Per design.md §5 (migration file plan) and ADR-12 … ADR-17 (multi-institution
 
 ## Phase 3 — Coordinator dashboard (Tasks 51 – 55)
 
-- [ ] 51. CoordinatorLayout: adopt `<TopBar />`; remove QuickStartChecklist mount
+- [x] 51. CoordinatorLayout: adopt `<TopBar />`; remove QuickStartChecklist mount
 
   - File: `src/pages/coordinator/CoordinatorLayout.tsx`.
   - Same substitutions as Task 46.
   - _Design: ADR-02, §8.2_
   - _Requirements: 2.9, 2.12, 2.13, 2.16_
 
-- [ ] 52. CoordinatorDashboard: add `<WelcomeHero />` as first child
+- [x] 52. CoordinatorDashboard: add `<WelcomeHero />` as first child
 
   - File: `src/pages/coordinator/CoordinatorDashboard.tsx`.
   - `<WelcomeHero role="coordinator" name={profile.full_name} subtitle={t('coordinator.welcome.subtitle')} />`.
   - _Design: ADR-07, §8.1_
   - _Requirements: 2.21_
 
-- [ ] 53. Coordinator list pages: insert `<EmptyState />` on every list/grid
+- [x] 53. Coordinator list pages: insert `<EmptyState />` on every list/grid
 
   - Files: `CoordinatorProgramsPage.tsx`, `CoordinatorCurriculumMatrixPage.tsx`, `CoordinatorPLOsPage.tsx`, `CoordinatorCQIPage.tsx`, `CoordinatorCourseFilesPage.tsx`, and any other coordinator list view.
   - _Design: ADR-08_
   - _Requirements: 2.22_
 
-- [ ] 54. Coordinator backend-bound switches: adopt `useOptimisticToggle`
+- [x] 54. Coordinator backend-bound switches: adopt `useOptimisticToggle`
 
   - Audit and migrate (e.g., PLO publish flags, CQI action-plan status toggles).
   - _Design: ADR-10_
   - _Requirements: 2.25_
 
-- [ ] 55. Coordinator guided tour: wire `<GuidedTour />` with `coordinatorTourSteps`
+- [x] 55. Coordinator guided tour: wire `<GuidedTour />` with `coordinatorTourSteps`
   - `data-tour` anchors on Curriculum Matrix, CQI action plans, PLO list, etc.
   - _Design: ADR-02, §8.5_
   - _Requirements: 2.15_
@@ -573,31 +573,31 @@ Per design.md §5 (migration file plan) and ADR-12 … ADR-17 (multi-institution
 
 ## Phase 3 — Teacher dashboard (Tasks 56 – 60)
 
-- [ ] 56. TeacherLayout: adopt `<TopBar />`; remove QuickStartChecklist mount
+- [x] 56. TeacherLayout: adopt `<TopBar />`; remove QuickStartChecklist mount
 
   - File: `src/pages/teacher/TeacherLayout.tsx`.
   - _Design: ADR-02, §8.2_
   - _Requirements: 2.9, 2.12, 2.13, 2.16_
 
-- [ ] 57. TeacherDashboard: add `<WelcomeHero />` as first child
+- [x] 57. TeacherDashboard: add `<WelcomeHero />` as first child
 
   - File: `src/pages/teacher/TeacherDashboard.tsx`.
   - _Design: ADR-07_
   - _Requirements: 2.21_
 
-- [ ] 58. Teacher list pages: insert `<EmptyState />` on every list/grid
+- [x] 58. Teacher list pages: insert `<EmptyState />` on every list/grid
 
   - Files: `TeacherCoursesPage.tsx`, `TeacherAssignmentsPage.tsx`, `TeacherGradingQueuePage.tsx`, `TeacherCLOsPage.tsx`, `TeacherRubricsPage.tsx`, and any other teacher list view.
   - _Design: ADR-08_
   - _Requirements: 2.22_
 
-- [ ] 59. Teacher backend-bound switches: adopt `useOptimisticToggle`
+- [x] 59. Teacher backend-bound switches: adopt `useOptimisticToggle`
 
   - E.g., assignment publish flag, rubric lock toggle.
   - _Design: ADR-10_
   - _Requirements: 2.25_
 
-- [ ] 60. Teacher guided tour: wire `<GuidedTour />` with `teacherTourSteps`
+- [x] 60. Teacher guided tour: wire `<GuidedTour />` with `teacherTourSteps`
   - `data-tour` anchors on Grading Queue, Assignments, Rubrics, CLOs.
   - _Design: ADR-02, §8.5_
   - _Requirements: 2.15_
@@ -606,32 +606,32 @@ Per design.md §5 (migration file plan) and ADR-12 … ADR-17 (multi-institution
 
 ## Phase 3 — Parent dashboard (Tasks 61 – 65)
 
-- [ ] 61. ParentLayout: adopt `<TopBar />`; remove QuickStartChecklist mount
+- [x] 61. ParentLayout: adopt `<TopBar />`; remove QuickStartChecklist mount
 
   - File: `src/pages/parent/ParentLayout.tsx`.
   - _Design: ADR-02, §8.2_
   - _Requirements: 2.9, 2.12, 2.13, 2.16_
 
-- [ ] 62. ParentDashboard: add `<WelcomeHero />` as first child
+- [x] 62. ParentDashboard: add `<WelcomeHero />` as first child
 
   - File: `src/pages/parent/ParentDashboard.tsx`.
   - _Design: ADR-07_
   - _Requirements: 2.21_
 
-- [ ] 63. Parent list views: insert `<EmptyState />` on every list/grid
+- [x] 63. Parent list views: insert `<EmptyState />` on every list/grid
 
   - Files: `ParentLinkedStudentsPage.tsx`, `ParentProgressPage.tsx`, `ParentNotificationsPage.tsx`, any other parent list view.
   - Use `NoLinkedStudents` variant when parent has no linked students.
   - _Design: ADR-08_
   - _Requirements: 2.22_
 
-- [ ] 64. Parent backend-bound switches: adopt `useOptimisticToggle`
+- [x] 64. Parent backend-bound switches: adopt `useOptimisticToggle`
 
   - E.g., notification opt-in per linked student.
   - _Design: ADR-10_
   - _Requirements: 2.25_
 
-- [ ] 65. Parent guided tour: wire `<GuidedTour />` with `parentTourSteps`
+- [x] 65. Parent guided tour: wire `<GuidedTour />` with `parentTourSteps`
   - `data-tour` anchors on Linked Students, Progress overview, Notification preferences.
   - _Design: ADR-02, §8.5_
   - _Requirements: 2.15_
@@ -642,7 +642,7 @@ Per design.md §5 (migration file plan) and ADR-12 … ADR-17 (multi-institution
 
 Student goes last because of coupling with onboarding wizard (clause 2.14 + 2.20).
 
-- [ ] 66. StudentOnboardingWizard: first-time-login detection + 2-phase complete (clauses 2.14, 2.20)
+- [x] 66. StudentOnboardingWizard: first-time-login detection + 2-phase complete (clauses 2.14, 2.20)
 
   - File: `src/pages/student/onboarding/OnboardingWizard.tsx`.
   - Add first-time-login check: compare `profile.created_at` to `profile.onboarding_progress.updated_at`; if `onboarding_progress` has not been advanced by an authenticated action, force `current_step = 'welcome'` regardless of seeded value.
@@ -652,13 +652,13 @@ Student goes last because of coupling with onboarding wizard (clause 2.14 + 2.20
   - _Design: ADR-06, §8.8_
   - _Requirements: 2.14, 2.20_
 
-- [ ] 67. StudentLayout: adopt `<TopBar />`; remove QuickStartChecklist mount
+- [x] 67. StudentLayout: adopt `<TopBar />`; remove QuickStartChecklist mount
 
   - File: `src/pages/student/StudentLayout.tsx`.
   - _Design: ADR-02, §8.2_
   - _Requirements: 2.9, 2.12, 2.13, 2.16_
 
-- [ ] 68. StudentDashboard: keep existing hero, thread through `<WelcomeHero />`; parallelize cold queries; lazy-mount below-fold sections (clause 2.20)
+- [x] 68. StudentDashboard: keep existing hero, thread through `<WelcomeHero />`; parallelize cold queries; lazy-mount below-fold sections (clause 2.20)
 
   - File: `src/pages/student/StudentDashboard.tsx`.
   - Migrate existing student greeting into `<WelcomeHero role="student" … stats={<XpLevelStreakChips />} />` to preserve Student hero output (clause 3.21) while standardizing across roles.
@@ -667,7 +667,7 @@ Student goes last because of coupling with onboarding wizard (clause 2.14 + 2.20
   - _Design: ADR-06, ADR-07, §8.1, §8.10_
   - _Requirements: 2.20, 2.21_
 
-- [ ] 69. Student list/grid pages: insert `<EmptyState />` on every list/grid; habit heatmap fixes (clauses 2.22, 2.23, 2.24)
+- [x] 69. Student list/grid pages: insert `<EmptyState />` on every list/grid; habit heatmap fixes (clauses 2.22, 2.23, 2.24)
 
   - Files: `StudentCoursesPage.tsx`, `StudentProgressPage.tsx`, `StudentAssignmentsPage.tsx`, `StudentLeaderboardPage.tsx`, `StudentBadgesPage.tsx`, `StudentMarketplacePage.tsx`, `StudentEvidencePage.tsx`, `StudentNotificationsFeed.tsx`, and any other student list view.
   - **Habit heatmap legend fix (clause 2.23)**: correct the card padding so the legend swatch row is not clipped; wrap the swatch row in `<div className="flex items-center gap-2 flex-wrap">` with explicit `min-w-0` to prevent truncation.
@@ -675,7 +675,7 @@ Student goes last because of coupling with onboarding wizard (clause 2.14 + 2.20
   - _Design: ADR-08, ADR-09, §8.6_
   - _Requirements: 2.22, 2.23, 2.24_
 
-- [ ] 70. Student guided tour + remaining micro-fixes (clauses 2.15, 2.25)
+- [x] 70. Student guided tour + remaining micro-fixes (clauses 2.15, 2.25)
   - Wire `<GuidedTour />` with `studentTourSteps`; `data-tour` anchors on XP card, streak card, leaderboard, habit heatmap, assignments.
   - Migrate Wellness opt-in and Public profile switches to `useOptimisticToggle` (clause 2.25).
   - _Design: ADR-02, ADR-10, §8.5_
@@ -685,7 +685,7 @@ Student goes last because of coupling with onboarding wizard (clause 2.14 + 2.20
 
 ## Phase 3 — Targeted fixes (Tasks 71 – 74)
 
-- [ ] 71. Admin Pending Onboarding Remind button (clause 2.17)
+- [x] 71. Admin Pending Onboarding Remind button (clause 2.17)
 
   - File: `src/pages/admin/AdminPendingOnboardingPage.tsx`.
   - Wire the Remind button to `send-onboarding-reminder` Edge Function via `useStandardMutation`; disable + Loader2 during call; Sonner success toast with recipient email; error toast with backend message; server-side dedupe per `(student_id, hour_bucket)` in the Edge Function.
@@ -693,7 +693,7 @@ Student goes last because of coupling with onboarding wizard (clause 2.14 + 2.20
   - _Design: §8.7_
   - _Requirements: 2.17_
 
-- [ ] 72. Badge Spotlight: MondayWeekPicker + Zod Monday refinement (clause 2.19)
+- [x] 72. Badge Spotlight: MondayWeekPicker + Zod Monday refinement (clause 2.19)
 
   - Files: `src/pages/admin/AdminBadgeSpotlightPage.tsx`, `src/pages/admin/BadgeSpotlightForm.tsx`.
   - Replace any free-form date input for `week_start` with `<MondayWeekPicker />` (Task 29).
@@ -702,7 +702,7 @@ Student goes last because of coupling with onboarding wizard (clause 2.14 + 2.20
   - _Design: ADR-05, §8.9_
   - _Requirements: 2.19_
 
-- [ ] 73. Profile pages: wire `<AvatarUpload />` across all roles (clause 2.18)
+- [x] 73. Profile pages: wire `<AvatarUpload />` across all roles (clause 2.18)
 
   - Files: `src/pages/admin/AdminProfilePage.tsx`, `src/pages/coordinator/CoordinatorProfilePage.tsx`, `src/pages/teacher/TeacherProfilePage.tsx`, `src/pages/student/StudentProfilePage.tsx`, `src/pages/parent/ParentProfilePage.tsx`.
   - Insert `<AvatarUpload />` in each profile page's identity card.
@@ -710,7 +710,7 @@ Student goes last because of coupling with onboarding wizard (clause 2.14 + 2.20
   - _Design: ADR-04, ADR-15_
   - _Requirements: 2.18_
 
-- [ ] 74. `vite.config.ts`: route-level code-splitting for the 5 role dashboards (clause 2.20 TTI target)
+- [x] 74. `vite.config.ts`: route-level code-splitting for the 5 role dashboards (clause 2.20 TTI target)
   - Configure `manualChunks` or rely on `React.lazy` route imports in `AppRouter.tsx` so the initial bundle does not ship all five role trees.
   - Verify TTI target < 1500 ms on cold student dashboard load (validated by property test 89).
   - _Design: ADR-06, §8.10_
@@ -720,20 +720,20 @@ Student goes last because of coupling with onboarding wizard (clause 2.14 + 2.20
 
 ## Phase 4 — i18n coverage (Tasks 75 – 82)
 
-- [ ] 75. Install + configure `i18next-cli`
+- [x] 75. Install + configure `i18next-cli`
 
   - Create `i18next-cli.config.ts` at repo root with `input: ['src/**/*.{ts,tsx}']`, `output: 'src/locales/{{lng}}/{{ns}}.json'`, `otherLngs: ['ar']`, `translationMemory: 'src/locales/_translation-memory.json'`.
   - _Design: ADR-11, ADR-17_
   - _Requirements: 2.26_
 
-- [ ] 76. Extract all `t()` calls
+- [x] 76. Extract all `t()` calls
 
   - Run `npx i18next-cli extract` and commit the updated `src/locales/en/*.json` files.
   - Confirm the extractor surfaces every namespace used across the codebase.
   - _Design: ADR-11_
   - _Requirements: 2.26_
 
-- [ ] 77. Write Qatar MOEHE MSA glossary
+- [x] 77. Write Qatar MOEHE MSA glossary
 
   - File: `src/locales/ar/glossary.md`.
   - Formal Qatar Ministry of Education and Higher Education (MOEHE) MSA terminology for OBE/accreditation concepts: ILO / PLO / CLO, Bloom's Taxonomy levels (Remembering … Creating), assessment, curriculum, accreditation, CQI, attainment, evidence, etc.
@@ -741,35 +741,35 @@ Student goes last because of coupling with onboarding wizard (clause 2.14 + 2.20
   - _Design: ADR-11_
   - _Requirements: 2.26_
 
-- [ ] 78. Translate missing `ar.json` keys per glossary
+- [x] 78. Translate missing `ar.json` keys per glossary
 
   - Files: `src/locales/ar/*.json` for each namespace.
   - Every key present in `en/*.json` must have an `ar` counterpart (validated by property test 84).
   - _Design: ADR-11_
   - _Requirements: 2.26_
 
-- [ ] 79. Refactor hard-coded English JSX text to use `t()`
+- [x] 79. Refactor hard-coded English JSX text to use `t()`
 
   - Sweep `src/pages/**/*.tsx` and `src/components/**/*.tsx`.
   - Every JSX text node that isn't in the allowlist (Task 82) must route through `t()`.
   - _Design: ADR-11_
   - _Requirements: 2.26_
 
-- [ ] 80. Commit `src/locales/_translation-memory.json` (ADR-17)
+- [x] 80. Commit `src/locales/_translation-memory.json` (ADR-17)
 
   - Auto-generated by `i18next-cli` on extraction.
   - Preserves past translations across refactors so future renames don't lose translator work.
   - _Design: ADR-17_
   - _Requirements: 2.26_
 
-- [ ] 81. Wire Intl formatters
+- [x] 81. Wire Intl formatters
 
   - Replace every bespoke `Intl.DateTimeFormat` / `Intl.NumberFormat` / `Intl.RelativeTimeFormat` call with the helpers from `src/lib/i18nHelpers.ts` (Task 22).
   - Confirm `ar-QA` is the locale tag in Arabic (not generic `ar`).
   - _Design: ADR-11_
   - _Requirements: 2.26_
 
-- [ ] 82. Update `audit/baselines/i18n-allowlist.json` with technical strings
+- [x] 82. Update `audit/baselines/i18n-allowlist.json` with technical strings
   - Append: `MB`, `KB`, `%`, `URL`, `Edeviser`, `ILO`, `PLO`, `CLO`, `XP`, `CQI` (and any other technical acronyms / brand names that intentionally remain untranslated).
   - This allowlist is consumed by property test 84.
   - _Design: ADR-11_
@@ -781,7 +781,7 @@ Student goes last because of coupling with onboarding wizard (clause 2.14 + 2.20
 
 Each property test encodes the per-clause fix-checking AND preservation predicates per design.md §2 (`clause_2_n_holds(X)` ∧ `clause_3_n_holds(X_original, X_fixed)`). `fast-check` with minimum 100 iterations per project convention.
 
-- [ ] 83. `src/__tests__/properties/uiConsistency.property.test.ts`
+- [x] 83. `src/__tests__/properties/uiConsistency.property.test.ts`
 
   - **Property 2: Preservation** — Design-System Compliance (clauses 1.1–1.10, 2.1–2.10, 3.1–3.10)
   - **IMPORTANT**: These tests PASS on the fixed code and document the observed non-buggy behavior to be preserved.
@@ -792,7 +792,7 @@ Each property test encodes the per-clause fix-checking AND preservation predicat
   - _Design: ADR-01, ADR-08, §2, §6_
   - _Requirements: 2.1–2.10, 3.1–3.10_
 
-- [ ] 84. `src/__tests__/properties/i18nCoverage.property.test.ts`
+- [x] 84. `src/__tests__/properties/i18nCoverage.property.test.ts`
 
   - **Property 3: Preservation** — Arabic Translation Coverage (clauses 1.26, 2.26, 3.26)
   - AST scan of `src/pages/**/*.tsx` and `src/components/**/*.tsx`: every JSX text node routes through `t()`, excepting entries in `audit/baselines/i18n-allowlist.json` (Task 82).
@@ -802,7 +802,7 @@ Each property test encodes the per-clause fix-checking AND preservation predicat
   - _Design: ADR-11_
   - _Requirements: 2.26, 3.26_
 
-- [ ] 85. `src/__tests__/properties/authSurfaces.property.test.ts`
+- [x] 85. `src/__tests__/properties/authSurfaces.property.test.ts`
 
   - **Property 4: Preservation** — Auth + Profile + Settings Affordances (clauses 1.11–1.13, 1.16, 2.11–2.13, 2.16, 3.11–3.13, 3.16)
   - Render each role layout; assert `TopBar` exposes language switcher → profile dropdown → Settings icon in that order (and RTL-mirrored in Arabic).
@@ -813,7 +813,7 @@ Each property test encodes the per-clause fix-checking AND preservation predicat
   - _Design: ADR-02, ADR-03, ADR-12, ADR-13_
   - _Requirements: 2.11–2.13, 2.16, 3.11–3.13, 3.16_
 
-- [ ] 86. `src/__tests__/properties/onboardingFirstStep.property.test.ts`
+- [x] 86. `src/__tests__/properties/onboardingFirstStep.property.test.ts`
 
   - **Property 5: Preservation** — First-Time Student Onboarding (clauses 1.14, 2.14, 3.14)
   - fast-check property: for any profile where `onboarding_progress.updated_at === profile.created_at` (never advanced), the wizard renders at step 1 (`welcome`) regardless of any seeded `current_step`.
@@ -822,7 +822,7 @@ Each property test encodes the per-clause fix-checking AND preservation predicat
   - _Design: ADR-06, §8.8_
   - _Requirements: 2.14, 2.20, 3.14_
 
-- [ ] 87. `src/__tests__/properties/emptyStateCoverage.property.test.ts`
+- [x] 87. `src/__tests__/properties/emptyStateCoverage.property.test.ts`
 
   - **Property 6: Preservation** — Empty State on Every List/Grid (clauses 1.22, 2.22, 3.22)
   - fast-check property: for every page in the enumerated list-surface registry (admin + coordinator + teacher + parent + student list pages from tasks 48, 53, 58, 63, 69), when `data` is `[]` the rendered tree contains an `<EmptyState>` with non-empty `title` + `description`.
@@ -830,7 +830,7 @@ Each property test encodes the per-clause fix-checking AND preservation predicat
   - _Design: ADR-08_
   - _Requirements: 2.22, 3.22_
 
-- [ ] 88. `src/__tests__/properties/optimisticToggle.property.test.ts`
+- [x] 88. `src/__tests__/properties/optimisticToggle.property.test.ts`
 
   - **Property 7: Preservation** — Optimistic Backend-Bound Toggles (clauses 1.25, 2.25, 3.25)
   - fast-check property: for every `Switch` wired to a mutation (registry of Wellness opt-in, Public profile, admin/coordinator/teacher switches from tasks 49/54/59/64/70), clicking the switch updates the UI synchronously (optimistic); on mutation error the UI rolls back.
@@ -838,7 +838,7 @@ Each property test encodes the per-clause fix-checking AND preservation predicat
   - _Design: ADR-10_
   - _Requirements: 2.25, 3.25_
 
-- [ ] 89. `src/__tests__/properties/darkModeTokens.property.test.ts`
+- [x] 89. `src/__tests__/properties/darkModeTokens.property.test.ts`
   - **Property 8: Preservation** — Dark-Mode Token Swap + Hero Gradient Containment (clauses 1.10, 2.10, 3.1, 3.4, 3.7, 3.8)
   - fast-check property over every route × {`.dark` toggled on, off}: CSS variables `--background`, `--foreground`, `--card`, `--card-foreground`, `--popover`, `--popover-foreground`, `--muted-foreground` differ between `.dark` and `:root` (prevents "dark mode didn't swap" regression).
   - Brand CTA text always `rgb(255,255,255)` in both themes.
@@ -850,7 +850,7 @@ Each property test encodes the per-clause fix-checking AND preservation predicat
 
 ## Phase 5 — QuickStart cleanup + tour activation (Tasks 90 – 92)
 
-- [ ] 90. Flip `tourFeatureFlag` to `true` globally
+- [x] 90. Flip `tourFeatureFlag` to `true` globally
 
   - File: `src/stores/tourStore.ts`.
   - Change the default from `false` to `true`; update the `localStorage` migration so users with a previously-stored `false` get upgraded to `true` on next hydrate.
@@ -858,7 +858,7 @@ Each property test encodes the per-clause fix-checking AND preservation predicat
   - _Design: ADR-02_
   - _Requirements: 2.15_
 
-- [ ] 91. Delete `src/components/shared/QuickStartChecklist.tsx` + all references
+- [x] 91. Delete `src/components/shared/QuickStartChecklist.tsx` + all references
 
   - Remove the component file.
   - Sweep `src/pages/**` for any remaining import; remove stale JSX.
@@ -866,7 +866,7 @@ Each property test encodes the per-clause fix-checking AND preservation predicat
   - _Design: ADR-02, §8.5_
   - _Requirements: 2.15_
 
-- [ ] 92. Delete `src/components/shared/WelcomeTour.tsx` + all references
+- [x] 92. Delete `src/components/shared/WelcomeTour.tsx` + all references
   - Remove the deprecated bespoke tour component (superseded by `<GuidedTour />`).
   - Sweep for imports; run `npx tsc --noEmit`.
   - _Design: ADR-02_
@@ -876,14 +876,14 @@ Each property test encodes the per-clause fix-checking AND preservation predicat
 
 ## Phase 5-6 — Cleanup + monitoring + final verification (Tasks 93 – 95)
 
-- [ ] 93. Delete `src/__tests__/properties/uiConsistencyBugCondition.property.test.ts`
+- [x] 93. Delete `src/__tests__/properties/uiConsistencyBugCondition.property.test.ts`
 
   - Removes the Task 1 exploration test, which by design asserts the presence of the bug.
   - After Tasks 83–89 pass, the bug no longer exists; leaving this test would poison CI.
   - _Design: §2, §6_
   - _Requirements: bugfix workflow § exploration cleanup_
 
-- [ ] 94. Add Vercel Analytics + Sentry alerting for SLO breaches
+- [x] 94. Add Vercel Analytics + Sentry alerting for SLO breaches
 
   - Vercel Analytics already wired — confirm it captures Web Vitals (LCP, FID, CLS) per route.
   - Sentry alert rules:
@@ -895,7 +895,7 @@ Each property test encodes the per-clause fix-checking AND preservation predicat
   - _Design: ADR-06, ADR-16, §7 Phase 6_
   - _Requirements: 2.11, 2.20_
 
-- [ ] 95. Final integration verification
+- [x] 95. Final integration verification
   - Run in order (per `pre-push-checks.md`):
     1. `npm run lint` — zero warnings.
     2. `npx tsc --noEmit` — zero errors.
@@ -922,7 +922,7 @@ Each property test encodes the per-clause fix-checking AND preservation predicat
 
 > Added 2026-05-10 after PR #124 audit feedback. Covers bugfix.md clauses 1.27 / 2.27 / 3.27, 1.28 / 2.28 / 3.28, 1.29 / 2.29 / 3.29, 1.30 / 2.30 / 3.30. Design anchors: ADR-18, ADR-19, ADR-20, ADR-21 and §3.5 (notification type enum). Phase 7 MUST land after Phases 2 + 3 — shared primitives (`ProfileDropdown`, `GuidedTour` anchors, `NotificationBell`) depend on Phase 2 infrastructure and role layouts being on the shared `TopBar` makes the migration to `GlobalHeader` a one-file swap per role.
 
-- [ ] 96. Create `src/lib/navItems.ts`
+- [x] 96. Create `src/lib/navItems.ts`
 
   - Export `navItems: Record<UserRole, NavItem[]>` where `NavItem = { to: string; labelKey: string; icon: LucideIcon }`.
   - Admin: Dashboard, Users, Programs, Courses, Outcomes, Audit Log, Invite Users.
@@ -934,7 +934,7 @@ Each property test encodes the per-clause fix-checking AND preservation predicat
   - _Design: ADR-18, §4 Table A_
   - _Requirements: 2.27_
 
-- [ ] 97. Create `src/components/shared/GlobalHeader.tsx`
+- [x] 97. Create `src/components/shared/GlobalHeader.tsx`
 
   - Two-row primitive per ADR-18:
     - **Row 1** (`w-full px-6 py-3 flex items-center gap-4 border-b border-border bg-white dark:bg-background`): brand logo (`Link to={routes.dashboard}`, `h-10 w-auto`), `flex-1` spacer, `md:block` global search input (migrate the existing search from `DashboardHeader` / `TopBar`), `LanguageSwitcher`, `<NotificationBell />` (Task 98), `<ProfileDropdown />` (from Task 25, updated in Task 99).
@@ -947,7 +947,7 @@ Each property test encodes the per-clause fix-checking AND preservation predicat
   - _Design: ADR-18, ADR-21, §4 Table A_
   - _Requirements: 2.27, 2.30, 3.27, 3.30_
 
-- [ ] 98. Create `src/components/shared/NotificationBell.tsx`
+- [x] 98. Create `src/components/shared/NotificationBell.tsx`
 
   - Bell icon button (Lucide `Bell`, `h-5 w-5`) with unread badge overlay:
     - Reads `useUnreadCount(user.id)` from `src/hooks/useNotifications.ts`.
@@ -964,7 +964,7 @@ Each property test encodes the per-clause fix-checking AND preservation predicat
   - _Design: ADR-20, §3.5_
   - _Requirements: 2.29, 3.29_
 
-- [ ] 99. Modify `src/components/shared/ProfileDropdown.tsx` — fold Settings entries in, migrate tour anchor
+- [x] 99. Modify `src/components/shared/ProfileDropdown.tsx` — fold Settings entries in, migrate tour anchor
 
   - Remove any `<SettingsIcon />` references in callers (Task 100).
   - Dropdown items (in this order):
@@ -978,7 +978,7 @@ Each property test encodes the per-clause fix-checking AND preservation predicat
   - _Design: ADR-19_
   - _Requirements: 2.28, 3.28_
 
-- [ ] 100. Create `src/lib/notificationCta.ts`
+- [x] 100. Create `src/lib/notificationCta.ts`
 
   - Pure function `resolveNotificationCta(n: Notification, role: UserRole): { labelKey: string; route: string } | null`.
   - Switch over `n.type` (full role-aware enum from ADR-20 §3.5) and derive route + `labelKey` from `n.metadata`:
@@ -1006,7 +1006,7 @@ Each property test encodes the per-clause fix-checking AND preservation predicat
   - _Design: ADR-20 §3.5, §4 Table A_
   - _Requirements: 2.29, 3.29_
 
-- [ ] 101. Migration `supabase/migrations/2026<tbd>_notifications_role_aware_types.sql`
+- [x] 101. Migration `supabase/migrations/2026<tbd>_notifications_role_aware_types.sql`
 
   - Extend `notifications.type` CHECK constraint with the full union (ADR-20 §3.5) — use `ALTER TABLE … DROP CONSTRAINT IF EXISTS … ADD CONSTRAINT …` so re-runs are safe.
   - Create `public.notifications_type_role_guard()` trigger function (`SECURITY DEFINER`, `search_path = public`) that on `BEFORE INSERT` looks up `profiles.role` by `NEW.user_id` and raises `ERRCODE = 42501` if `NEW.type` is not in the role's allowed set (hard-coded `ROLE_TO_ALLOWED_TYPES` map).
@@ -1019,7 +1019,7 @@ Each property test encodes the per-clause fix-checking AND preservation predicat
   - _Design: ADR-20 §3.5, §5 new migration row_
   - _Requirements: 2.29, 3.29_
 
-- [ ] 102. Create role-aware notification emitters (Edge Functions + triggers + pg_cron)
+- [x] 102. Create role-aware notification emitters (Edge Functions + triggers + pg_cron)
 
   - **Database triggers** (new migrations, one per domain event, timestamps continue the `2026<tbd>` sequence):
     - `grades AFTER INSERT` → emit `grade_released` to the grade's `student_id`.
@@ -1040,7 +1040,7 @@ Each property test encodes the per-clause fix-checking AND preservation predicat
   - _Design: ADR-20_
   - _Requirements: 2.29, 3.29_
 
-- [ ] 103. Migrate every role layout to `GlobalHeader` (ADR-18) + remove sidebars
+- [x] 103. Migrate every role layout to `GlobalHeader` (ADR-18) + remove sidebars
 
   - Files: `src/pages/admin/AdminLayout.tsx`, `src/pages/coordinator/CoordinatorLayout.tsx`, `src/pages/teacher/TeacherLayout.tsx`, `src/pages/student/StudentLayout.tsx`, `src/pages/parent/ParentLayout.tsx`.
   - Each layout reduces to:
@@ -1060,7 +1060,7 @@ Each property test encodes the per-clause fix-checking AND preservation predicat
   - _Design: ADR-18, ADR-19, §4 Table B_
   - _Requirements: 2.27, 2.28, 2.30, 3.27, 3.28, 3.30_
 
-- [ ] 104. Update i18n keys for the new header + notifications
+- [x] 104. Update i18n keys for the new header + notifications
 
   - Add to `src/locales/en/common.json` and `src/locales/ar/common.json`:
     - `common:header.primaryNav.{dashboard, users, programs, courses, outcomes, auditLog, inviteUsers, curriculumMatrix, cqi, classes, assignments, grading, surveys, announcements, journal, gamification, planner, linkedStudents, fees, messages, progress}` (every `labelKey` from Task 96).
@@ -1077,7 +1077,7 @@ Each property test encodes the per-clause fix-checking AND preservation predicat
   - _Design: ADR-11, ADR-18, ADR-20_
   - _Requirements: 2.26, 2.27, 2.29_
 
-- [ ] 105. Property test — full-width header structure + duplicate-settings removal (clauses 2.27, 2.28, 3.27, 3.28)
+- [x] 105. Property test — full-width header structure + duplicate-settings removal (clauses 2.27, 2.28, 3.27, 3.28)
 
   - File: `src/__tests__/properties/globalHeader.property.test.ts`.
   - **Property: Full-width header** — mount each role layout under `fc.constantFrom(...roles)` + `fc.constantFrom('en', 'ar')`; assert: (a) the `<header role="banner">` element has computed width equal to `document.documentElement.clientWidth` (no `max-w-*` wrapper); (b) the brand logo's bounding box is at the logical-start edge of the header; (c) exactly one `<nav aria-label="…primaryNav…">` is rendered as Row 2; (d) no legacy `<aside className="w-64 …">` appears in the DOM; (e) under `dir="rtl"`, the right-cluster group is at the logical-end edge (viewport left) and the primary-nav first item is at the logical-start edge (viewport right).
@@ -1086,7 +1086,7 @@ Each property test encodes the per-clause fix-checking AND preservation predicat
   - _Design: ADR-18, ADR-19_
   - _Requirements: 2.27, 2.28, 2.30, 3.27, 3.28, 3.30_
 
-- [ ] 106. Property test — notification bell end-to-end (clauses 2.29, 3.29)
+- [x] 106. Property test — notification bell end-to-end (clauses 2.29, 3.29)
 
   - File: `src/__tests__/properties/notificationBell.property.test.ts`.
   - **Property: Role-aware emission** — for each `role ∈ {admin, coordinator, teacher, student, parent}`, generate a random `type ∈ allowed[role]` and assert the bell popover renders a row whose icon + title + CTA matches the `resolveNotificationCta(type, role)` output; conversely, generate a `type ∉ allowed[role]` and assert the database INSERT is rejected with `ERRCODE = 42501` (defense-in-depth — the mock Supabase stub emulates the guard trigger).
@@ -1098,7 +1098,7 @@ Each property test encodes the per-clause fix-checking AND preservation predicat
   - _Design: ADR-20_
   - _Requirements: 2.29, 3.29_
 
-- [ ] 107. Wire tour steps to the new header anchors (update existing tour arrays from Task 34)
+- [x] 107. Wire tour steps to the new header anchors (update existing tour arrays from Task 34)
 
   - Files: `src/lib/tours/{admin|coordinator|teacher|student|parent}Tour.ts`.
   - Replace anchors `data-tour="top-bar"`, `data-tour="profile"`, `data-tour="settings"`, `data-tour="sidebar-nav"` with the GlobalHeader equivalents: `data-tour="top-bar"` (Row 1 header), `data-tour="primary-nav"` (Row 2 nav), `data-tour="notification-bell"`, `data-tour="profile"` (profile dropdown trigger), `data-tour="settings"` (now on "Profile Settings" dropdown item per Task 99).
@@ -1106,7 +1106,7 @@ Each property test encodes the per-clause fix-checking AND preservation predicat
   - _Design: ADR-18, ADR-19, §8.5_
   - _Requirements: 2.15, 2.27, 2.28_
 
-- [ ] 108. Delete legacy `TopBar.tsx` + `DashboardHeader.tsx` sidebar/header usages
+- [x] 108. Delete legacy `TopBar.tsx` + `DashboardHeader.tsx` sidebar/header usages
   - After Task 103 migrates every layout to `GlobalHeader`, `src/components/shared/TopBar.tsx` is orphaned.
   - Delete `src/components/shared/TopBar.tsx`.
   - Evaluate `src/components/shared/DashboardHeader.tsx`: if unused after Task 103 (grepSearch confirms zero imports), delete it too. If still used by any non-layout surface (onboarding, print view, etc.), leave it alone and document why.
@@ -1129,7 +1129,7 @@ Each property test encodes the per-clause fix-checking AND preservation predicat
 
 > Added 2026-05-10 to cover bugfix clauses **1.31 / 2.31 / 3.31** (duplicate sidebar Profile item) and **1.32 / 2.32 / 3.32** (Admin dashboard black-area root cause). These tasks are intentionally small, ship independently of Phase 7, and are collapsed naturally into Phase 7 when `GlobalHeader` replaces the per-role sidebars (Task 103). Their purpose is to close two visible regressions immediately instead of waiting for the full chrome reshape.
 
-- [ ] 109. Remove duplicate Profile entry from every role sidebar nav
+- [x] 109. Remove duplicate Profile entry from every role sidebar nav
 
   - Files: `src/pages/admin/AdminLayout.tsx`, `src/pages/coordinator/CoordinatorLayout.tsx`, `src/pages/teacher/TeacherLayout.tsx`, `src/pages/student/StudentLayout.tsx`, `src/pages/parent/ParentLayout.tsx`.
   - In each file's `navItems` array, delete the entry whose `to` matches the role's profile route (e.g. `{ to: "/admin/settings/profile", icon: UserCircle, label: "Profile" }`).
@@ -1140,16 +1140,16 @@ Each property test encodes the per-clause fix-checking AND preservation predicat
   - _Design: ADR-22_
   - _Requirements: 2.31, 3.31_
 
-- [ ] 110. Fix Admin (and cross-role) dashboard black-area root cause
+- [x] 110. Fix Admin (and cross-role) dashboard black-area root cause
 
   - Files: `src/index.css`; every role layout under `src/pages/{admin,coordinator,teacher,student,parent}/{Role}Layout.tsx`; optionally `src/pages/admin/AdminDashboard.tsx` if it carries a stray hard-coded `bg-*` utility on a wrapper.
-  - [ ] 110.1 Document-level page background
+  - [x] 110.1 Document-level page background
     - In `src/index.css`, add inside the base layer: `body { background-color: hsl(var(--background)); }` so the document itself carries the design-system background token. Confirms that any DOM node whose parent has not set a background inherits the tone rather than the OS / browser default.
     - Do NOT change existing `:root` / `.dark` HSL variable values in this task — those are owned by Task 31.
-  - [ ] 110.2 Role-layout `<main>` background + `min-h-screen`
+  - [x] 110.2 Role-layout `<main>` background + `min-h-screen`
     - In each `{Role}Layout.tsx`, the outer flex container is currently `<div className="flex h-screen">` with the main as `<main className="flex-1 overflow-auto bg-slate-50">`. Swap to `<div className="flex min-h-screen">` and `<main className="flex-1 min-h-screen overflow-auto bg-slate-50 dark:bg-background">` so (a) the layout can grow beyond the viewport when content is taller than the viewport without the main getting clipped, and (b) the main always covers at least the full viewport height, closing the black-void gap below short content.
     - Verify the sidebar side still has `bg-white` / `bg-card` as today — the sidebar column is NOT the bleed source; only the `<main>` area is.
-  - [ ] 110.3 Property test — no hard-coded dark utilities on dashboard surfaces
+  - [x] 110.3 Property test — no hard-coded dark utilities on dashboard surfaces
     - Extend `src/__tests__/properties/darkModeTokens.property.test.ts` (from Task 88) with a new property: for every dashboard page (`src/pages/{admin,coordinator,teacher,student,parent}/*Dashboard.tsx`) AST-scan the JSX for `className` strings that match `/bg-(black|gray-900|slate-900|neutral-900|zinc-900)\b/` — fail the build if any match is found outside a deliberately-declared hero wrapper (allowlist: components inside `WelcomeHero.tsx`). This guarantees clause 1.32 (c) can never regress.
   - Verification:
     - `npm run lint` — zero warnings.
@@ -1159,7 +1159,7 @@ Each property test encodes the per-clause fix-checking AND preservation predicat
   - _Design: ADR-23_
   - _Requirements: 2.32, 3.32_
 
-- [ ] 111. Property test — single profile entry point in the chrome (clauses 2.31, 3.31)
+- [x] 111. Property test — single profile entry point in the chrome (clauses 2.31, 3.31)
   - File: `src/__tests__/properties/chromeEntryPoints.property.test.ts` (new; may be co-located with `globalHeader.property.test.ts` from Task 105 if preferred).
   - **Property: Exactly one Profile entry** — for each `role ∈ roles`, mount the role layout; assert that the number of DOM links whose `href` matches `/{role}/settings/profile` (or `/{role}/profile` for parent) is exactly 1. That single link must be inside the header's profile dropdown (Radix `role="menu"` descendant), not inside the sidebar nav.
   - **Property: No orphan Profile NavLink** — assert no `<a>` / `<NavLink>` with `to` matching the profile route exists inside any `<aside>` element on any role layout.

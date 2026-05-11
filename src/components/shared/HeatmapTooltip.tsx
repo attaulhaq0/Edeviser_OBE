@@ -1,5 +1,5 @@
-import { cn } from '@/lib/utils';
-import type { CompletedHabit, StreakMilestone } from '@/types/habits';
+import { cn } from "@/lib/utils";
+import type { CompletedHabit, StreakMilestone } from "@/types/habits";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -22,22 +22,22 @@ export interface HeatmapTooltipProps {
 // ---------------------------------------------------------------------------
 
 const HABIT_LABELS: Record<string, string> = {
-  login: 'Login',
-  submit: 'Submit',
-  journal: 'Journal',
-  read: 'Read',
-  meditation: 'Meditation',
-  hydration: 'Hydration',
-  exercise: 'Exercise',
-  sleep: 'Sleep',
+  login: "Login",
+  submit: "Submit",
+  journal: "Journal",
+  read: "Read",
+  meditation: "Meditation",
+  hydration: "Hydration",
+  exercise: "Exercise",
+  sleep: "Sleep",
 };
 
 function formatDate(dateStr: string): string {
-  const d = new Date(dateStr + 'T00:00:00');
-  return d.toLocaleDateString('en-US', {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
+  const d = new Date(dateStr + "T00:00:00");
+  return d.toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
   });
 }
 
@@ -56,25 +56,24 @@ const HeatmapTooltip = ({
   isSabbaticalRestDay: isSabbatical,
   milestone,
 }: HeatmapTooltipProps) => {
-  const academic = habits.filter((h) => h.category === 'academic');
-  const wellness = habits.filter((h) => h.category === 'wellness');
+  const academic = habits.filter((h) => h.category === "academic");
+  const wellness = habits.filter((h) => h.category === "wellness");
   const isEmpty = habits.length === 0;
 
   return (
     <div
       className={cn(
-        'bg-white border border-slate-200 shadow-lg rounded-xl p-4 min-w-[220px] max-w-[280px] z-50',
-        position ? 'absolute' : 'relative',
+        "bg-white border border-slate-200 shadow-lg rounded-xl p-4 min-w-[220px] max-w-[280px] z-50",
+        position ? "absolute" : "relative"
       )}
-      style={
-        position
-          ? { left: position.x, top: position.y }
-          : undefined
-      }
+      style={position ? { left: position.x, top: position.y } : undefined}
       role="tooltip"
       data-testid="heatmap-tooltip"
     >
-      <p className="text-sm font-semibold text-gray-900" data-testid="tooltip-date">
+      <p
+        className="text-sm font-semibold text-gray-900"
+        data-testid="tooltip-date"
+      >
         {formatDate(date)}
       </p>
 
@@ -158,11 +157,8 @@ const HeatmapTooltip = ({
             <span className="text-xs text-gray-500" data-testid="tooltip-xp">
               {xpEarned} XP earned
             </span>
-            <span
-              className="text-xs font-medium"
-              data-testid="tooltip-streak"
-            >
-              {streakActive ? '🔥 Streak active' : 'Streak broken'}
+            <span className="text-xs font-medium" data-testid="tooltip-streak">
+              {streakActive ? "🔥 Streak active" : "Streak broken"}
             </span>
           </div>
         </>

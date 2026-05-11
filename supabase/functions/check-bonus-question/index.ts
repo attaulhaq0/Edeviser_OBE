@@ -59,18 +59,16 @@ serve(async (req) => {
       // Roll the dice
       const roll = Math.random() * 100;
       if (roll >= probability) {
-        return new Response(
-          JSON.stringify({ triggered: false }),
-          {
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
-        );
+        return new Response(JSON.stringify({ triggered: false }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       }
 
       // Task 19.2.2: CLO-relevant question selection
       // Find a CLO from the student's active courses to generate a relevant question
       let selectedCloId: string | null = null;
-      let questionText = "What is the key concept you learned in your most recent study session?";
+      let questionText =
+        "What is the key concept you learned in your most recent study session?";
       let questionType = "open_ended";
 
       if (course_id) {
@@ -132,18 +130,16 @@ serve(async (req) => {
         // Award surprise XP via xp_transactions
         const referenceId = `bonus_question:${student_id}:${Date.now()}`;
 
-        const { error: xpErr } = await supabase
-          .from("xp_transactions")
-          .insert({
-            student_id,
-            xp_amount: BONUS_XP_REWARD,
-            source: "bonus_event",
-            reference_id: referenceId,
-            note: "Bonus question reward",
-            base_xp: BONUS_XP_REWARD,
-            final_xp: BONUS_XP_REWARD,
-            multipliers: { bonus_question: true },
-          });
+        const { error: xpErr } = await supabase.from("xp_transactions").insert({
+          student_id,
+          xp_amount: BONUS_XP_REWARD,
+          source: "bonus_event",
+          reference_id: referenceId,
+          note: "Bonus question reward",
+          base_xp: BONUS_XP_REWARD,
+          final_xp: BONUS_XP_REWARD,
+          multipliers: { bonus_question: true },
+        });
 
         if (xpErr) {
           console.error("Bonus question XP award failed:", xpErr.message);
@@ -183,7 +179,8 @@ serve(async (req) => {
         JSON.stringify({
           correct: false,
           xp_awarded: 0,
-          feedback: "Good try! Provide a more detailed answer next time for bonus XP.",
+          feedback:
+            "Good try! Provide a more detailed answer next time for bonus XP.",
         }),
         {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -199,12 +196,9 @@ serve(async (req) => {
       }
     );
   } catch (error) {
-    return new Response(
-      JSON.stringify({ error: (error as Error).message }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    return new Response(JSON.stringify({ error: (error as Error).message }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });

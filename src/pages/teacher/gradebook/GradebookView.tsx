@@ -2,64 +2,70 @@
 // GradebookView — Students × assessments matrix with weighted grades
 // =============================================================================
 
-import { useMemo } from 'react';
-import { parseAsString, useQueryState } from 'nuqs';
-import { useGradebookMatrix, useGradeCategories } from '@/hooks/useGradebook';
-import { useInstitutionSettings } from '@/hooks/useInstitutionSettings';
-import { useCourses } from '@/hooks/useCourses';
-import { useCourseSections } from '@/hooks/useCourseSections';
-import { mapToLetterGrade } from '@/lib/letterGradeMapper';
-import type { GradeScale } from '@/types/app';
-import { DEFAULT_GRADE_SCALES } from '@/types/app';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { useMemo } from "react";
+import { parseAsString, useQueryState } from "nuqs";
+import { useGradebookMatrix, useGradeCategories } from "@/hooks/useGradebook";
+import { useInstitutionSettings } from "@/hooks/useInstitutionSettings";
+import { useCourses } from "@/hooks/useCourses";
+import { useCourseSections } from "@/hooks/useCourseSections";
+import { mapToLetterGrade } from "@/lib/letterGradeMapper";
+import type { GradeScale } from "@/types/app";
+import { DEFAULT_GRADE_SCALES } from "@/types/app";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Loader2, BookOpen, Settings } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import GradeCategoryManager from '@/pages/teacher/gradebook/GradeCategoryManager';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+} from "@/components/ui/select";
+import { Loader2, BookOpen, Settings } from "lucide-react";
+import { cn } from "@/lib/utils";
+import GradeCategoryManager from "@/pages/teacher/gradebook/GradeCategoryManager";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import EmptyState from "@/components/shared/EmptyState";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
 function getGradeColor(percent: number): string {
-  if (percent >= 85) return 'text-green-600';
-  if (percent >= 70) return 'text-blue-600';
-  if (percent >= 50) return 'text-yellow-600';
-  return 'text-red-600';
+  if (percent >= 85) return "text-green-600";
+  if (percent >= 70) return "text-blue-600";
+  if (percent >= 50) return "text-yellow-600";
+  return "text-red-600";
 }
 
 function getCellBg(score: number | null, maxScore: number): string {
-  if (score === null) return 'bg-gray-50 text-gray-400';
+  if (score === null) return "bg-gray-50 text-gray-400";
   const pct = (score / maxScore) * 100;
-  if (pct >= 85) return 'bg-green-50 text-green-700';
-  if (pct >= 70) return 'bg-blue-50 text-blue-700';
-  if (pct >= 50) return 'bg-yellow-50 text-yellow-700';
-  return 'bg-red-50 text-red-700';
+  if (pct >= 85) return "bg-green-50 text-green-700";
+  if (pct >= 70) return "bg-blue-50 text-blue-700";
+  if (pct >= 50) return "bg-yellow-50 text-yellow-700";
+  return "bg-red-50 text-red-700";
 }
 
 // ─── Component ──────────────────────────────────────────────────────────────
 
 const GradebookView = () => {
-  const [courseId, setCourseId] = useQueryState('course', parseAsString.withDefault(''));
-  const [sectionId, setSectionId] = useQueryState('section', parseAsString.withDefault(''));
+  const [courseId, setCourseId] = useQueryState(
+    "course",
+    parseAsString.withDefault("")
+  );
+  const [sectionId, setSectionId] = useQueryState(
+    "section",
+    parseAsString.withDefault("")
+  );
 
   const { data: coursesResult, isLoading: coursesLoading } = useCourses();
   const courses = coursesResult?.data ?? [];
   const { data: sections = [] } = useCourseSections(courseId || undefined);
   const { data: categories = [] } = useGradeCategories(courseId || undefined);
-  const { data: gradebookData = [], isLoading: gradebookLoading } = useGradebookMatrix(
-    courseId || undefined,
-    sectionId || undefined,
-  );
+  const { data: gradebookData = [], isLoading: gradebookLoading } =
+    useGradebookMatrix(courseId || undefined, sectionId || undefined);
   const { data: settings } = useInstitutionSettings();
 
-  const gradeScales: GradeScale[] = settings?.grade_scales ?? DEFAULT_GRADE_SCALES;
+  const gradeScales: GradeScale[] =
+    settings?.grade_scales ?? DEFAULT_GRADE_SCALES;
 
   // Resolve letter grades using institution grade scales
   const enrichedData = useMemo(
@@ -68,7 +74,7 @@ const GradebookView = () => {
         ...entry,
         letter_grade: mapToLetterGrade(entry.final_weighted_grade, gradeScales),
       })),
-    [gradebookData, gradeScales],
+    [gradebookData, gradeScales]
   );
 
   const totalWeight = categories.reduce((sum, c) => sum + c.weight_percent, 0);
@@ -83,7 +89,13 @@ const GradebookView = () => {
 
       {/* Filters */}
       <div className="flex items-center gap-4">
-        <Select value={courseId} onValueChange={(v) => { setCourseId(v); setSectionId(''); }}>
+        <Select
+          value={courseId}
+          onValueChange={(v) => {
+            setCourseId(v);
+            setSectionId("");
+          }}
+        >
           <SelectTrigger className="w-[260px] bg-white">
             <SelectValue placeholder="Select course" />
           </SelectTrigger>
@@ -116,7 +128,9 @@ const GradebookView = () => {
       {!courseId ? (
         <Card className="bg-white border-0 shadow-md rounded-xl p-12 text-center">
           <BookOpen className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-          <p className="text-sm text-gray-500">Select a course to view the gradebook.</p>
+          <p className="text-sm text-gray-500">
+            Select a course to view the gradebook.
+          </p>
         </Card>
       ) : (
         <Tabs defaultValue="matrix">
@@ -139,7 +153,8 @@ const GradebookView = () => {
             {!isBalanced && categories.length > 0 && (
               <div className="mb-4 flex items-center gap-2 rounded-lg bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-700">
                 <Settings className="h-4 w-4" />
-                Category weights don&apos;t sum to 100% ({totalWeight}%). Configure categories first.
+                Category weights don&apos;t sum to 100% ({totalWeight}%).
+                Configure categories first.
               </div>
             )}
 
@@ -149,9 +164,11 @@ const GradebookView = () => {
               </div>
             ) : enrichedData.length === 0 ? (
               <Card className="bg-white border-0 shadow-md rounded-xl p-12 text-center">
-                <p className="text-sm text-gray-500">
-                  No enrolled students or grades found for this course.
-                </p>
+                <EmptyState
+                  icon={<BookOpen className="h-8 w-8 text-gray-400" />}
+                  title="No grades found"
+                  description="No enrolled students or grades found for this course."
+                />
               </Card>
             ) : (
               <GradebookTable data={enrichedData} categories={categories} />
@@ -211,10 +228,10 @@ const GradebookTable = ({ data, categories }: GradebookTableProps) => {
               Student
             </th>
             {categories.map((cat) => {
-              const colCount =
-                firstRow
-                  ? (firstRow.categories.find((c) => c.category_id === cat.id)?.assessments.length ?? 0) + 1
-                  : 1;
+              const colCount = firstRow
+                ? (firstRow.categories.find((c) => c.category_id === cat.id)
+                    ?.assessments.length ?? 0) + 1
+                : 1;
               return (
                 <th
                   key={cat.id}
@@ -254,10 +271,15 @@ const GradebookTable = ({ data, categories }: GradebookTableProps) => {
                     key={a.id}
                     className="px-2 py-1 text-center font-medium text-gray-500 whitespace-nowrap border-s border-slate-100"
                   >
-                    <div className="truncate max-w-[90px] text-xs" title={a.title}>
+                    <div
+                      className="truncate max-w-[90px] text-xs"
+                      title={a.title}
+                    >
                       {a.title}
                     </div>
-                    <div className="text-[10px] text-gray-400 font-normal">/{a.max_score}</div>
+                    <div className="text-[10px] text-gray-400 font-normal">
+                      /{a.max_score}
+                    </div>
                   </th>
                 )),
                 <th
@@ -272,7 +294,10 @@ const GradebookTable = ({ data, categories }: GradebookTableProps) => {
         </thead>
         <tbody>
           {data.map((student) => (
-            <tr key={student.student_id} className="border-t border-slate-100 hover:bg-slate-50/50">
+            <tr
+              key={student.student_id}
+              className="border-t border-slate-100 hover:bg-slate-50/50"
+            >
               <td className="sticky start-0 bg-white px-4 py-2 font-medium truncate max-w-[160px] z-10">
                 {student.student_name}
               </td>
@@ -281,11 +306,11 @@ const GradebookTable = ({ data, categories }: GradebookTableProps) => {
                   <td
                     key={a.id}
                     className={cn(
-                      'px-2 py-2 text-center font-medium tabular-nums border-s border-slate-100',
-                      getCellBg(a.score, a.max_score),
+                      "px-2 py-2 text-center font-medium tabular-nums border-s border-slate-100",
+                      getCellBg(a.score, a.max_score)
                     )}
                   >
-                    {a.score !== null ? a.score : '—'}
+                    {a.score !== null ? a.score : "—"}
                   </td>
                 )),
                 <td
@@ -305,14 +330,14 @@ const GradebookTable = ({ data, categories }: GradebookTableProps) => {
               <td className="px-3 py-2 text-center border-s border-slate-200">
                 <Badge
                   className={cn(
-                    'text-xs font-bold',
+                    "text-xs font-bold",
                     student.final_weighted_grade >= 85
-                      ? 'bg-green-50 text-green-600 border-green-200'
+                      ? "bg-green-50 text-green-600 border-green-200"
                       : student.final_weighted_grade >= 70
-                        ? 'bg-blue-50 text-blue-600 border-blue-200'
-                        : student.final_weighted_grade >= 50
-                          ? 'bg-yellow-50 text-yellow-600 border-yellow-200'
-                          : 'bg-red-50 text-red-600 border-red-200',
+                      ? "bg-blue-50 text-blue-600 border-blue-200"
+                      : student.final_weighted_grade >= 50
+                      ? "bg-yellow-50 text-yellow-600 border-yellow-200"
+                      : "bg-red-50 text-red-600 border-red-200"
                   )}
                   variant="outline"
                 >

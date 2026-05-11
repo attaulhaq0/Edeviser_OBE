@@ -1,18 +1,18 @@
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   Form,
   FormField,
@@ -20,41 +20,55 @@ import {
   FormLabel,
   FormControl,
   FormMessage,
-} from '@/components/ui/form';
+} from "@/components/ui/form";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import Shimmer from '@/components/shared/Shimmer';
-import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
+} from "@/components/ui/select";
+import Shimmer from "@/components/shared/Shimmer";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import {
   useAllProgramAccreditations,
   useCreateProgramAccreditation,
   useDeleteProgramAccreditation,
   type CreateProgramAccreditationInput,
-} from '@/hooks/useInstitutionSettings';
-import { usePrograms } from '@/hooks/usePrograms';
-import { Shield, Plus, Trash2, Loader2, AlertTriangle, Calendar } from 'lucide-react';
-import { format, differenceInDays } from 'date-fns';
+} from "@/hooks/useInstitutionSettings";
+import { usePrograms } from "@/hooks/usePrograms";
+import {
+  Shield,
+  Plus,
+  Trash2,
+  Loader2,
+  AlertTriangle,
+  Calendar,
+} from "lucide-react";
+import { format, differenceInDays } from "date-fns";
 
-const ACCREDITATION_BODIES = ['HEC', 'QQA', 'ABET', 'NCAAA', 'AACSB', 'Generic'] as const;
+const ACCREDITATION_BODIES = [
+  "HEC",
+  "QQA",
+  "ABET",
+  "NCAAA",
+  "AACSB",
+  "Generic",
+] as const;
 
 const STATUS_STYLES: Record<string, string> = {
-  active: 'bg-green-50 text-green-700 border-green-200',
-  expired: 'bg-red-50 text-red-700 border-red-200',
-  pending: 'bg-yellow-50 text-yellow-700 border-yellow-200',
+  active: "bg-green-50 text-green-700 border-green-200",
+  expired: "bg-red-50 text-red-700 border-red-200",
+  pending: "bg-yellow-50 text-yellow-700 border-yellow-200",
 };
 
 const accreditationFormSchema = z.object({
-  program_id: z.string().min(1, 'Program is required'),
-  accreditation_body: z.string().min(1, 'Accreditation body is required'),
+  program_id: z.string().min(1, "Program is required"),
+  accreditation_body: z.string().min(1, "Accreditation body is required"),
   framework_version: z.string().optional(),
   accreditation_date: z.string().optional(),
   next_review_date: z.string().optional(),
-  status: z.enum(['active', 'expired', 'pending']),
+  status: z.enum(["active", "expired", "pending"]),
 });
 
 type AccreditationFormData = z.infer<typeof accreditationFormSchema>;
@@ -73,12 +87,12 @@ const ProgramAccreditationManager = () => {
   const form = useForm<AccreditationFormData>({
     resolver: zodResolver(accreditationFormSchema),
     defaultValues: {
-      program_id: '',
-      accreditation_body: '',
-      framework_version: '',
-      accreditation_date: '',
-      next_review_date: '',
-      status: 'pending',
+      program_id: "",
+      accreditation_body: "",
+      framework_version: "",
+      accreditation_date: "",
+      next_review_date: "",
+      status: "pending",
     },
   });
 
@@ -131,16 +145,25 @@ const ProgramAccreditationManager = () => {
         <div className="rounded-xl bg-amber-50 p-4 space-y-2">
           <div className="flex items-center gap-2">
             <AlertTriangle className="h-4 w-4 text-amber-600" />
-            <p className="text-sm font-semibold text-amber-800">Upcoming Accreditation Reviews</p>
+            <p className="text-sm font-semibold text-amber-800">
+              Upcoming Accreditation Reviews
+            </p>
           </div>
           {upcomingReviews.map((a) => (
-            <div key={a.id} className="flex items-center justify-between text-sm">
+            <div
+              key={a.id}
+              className="flex items-center justify-between text-sm"
+            >
               <span className="text-amber-700">
-                {a.program_name ?? 'Unknown'} — {a.accreditation_body}
+                {a.program_name ?? "Unknown"} — {a.accreditation_body}
               </span>
               <span className="text-amber-600 text-xs">
-                Review: {a.next_review_date ? format(new Date(a.next_review_date), 'MMM d, yyyy') : '—'}
-                {' '}({differenceInDays(new Date(a.next_review_date!), new Date())} days)
+                Review:{" "}
+                {a.next_review_date
+                  ? format(new Date(a.next_review_date), "MMM d, yyyy")
+                  : "—"}{" "}
+                ({differenceInDays(new Date(a.next_review_date!), new Date())}{" "}
+                days)
               </span>
             </div>
           ))}
@@ -151,7 +174,10 @@ const ProgramAccreditationManager = () => {
       <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
         <div
           className="px-6 py-4 flex items-center justify-between"
-          style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+          style={{
+            background:
+              "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+          }}
         >
           <div className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-white" />
@@ -186,24 +212,34 @@ const ProgramAccreditationManager = () => {
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-semibold">
-                        {acc.program_name ?? 'Unknown'} ({acc.program_code ?? '—'})
+                        {acc.program_name ?? "Unknown"} (
+                        {acc.program_code ?? "—"})
                       </span>
-                      <Badge variant="outline" className={STATUS_STYLES[acc.status] ?? ''}>
+                      <Badge
+                        variant="outline"
+                        className={STATUS_STYLES[acc.status] ?? ""}
+                      >
                         {acc.status}
                       </Badge>
                     </div>
                     <div className="flex items-center gap-4 text-xs text-gray-500">
                       <span>{acc.accreditation_body}</span>
-                      {acc.framework_version && <span>v{acc.framework_version}</span>}
+                      {acc.framework_version && (
+                        <span>v{acc.framework_version}</span>
+                      )}
                       {acc.accreditation_date && (
                         <span className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
-                          {format(new Date(acc.accreditation_date), 'MMM yyyy')}
+                          {format(new Date(acc.accreditation_date), "MMM yyyy")}
                         </span>
                       )}
                       {acc.next_review_date && (
                         <span>
-                          Next review: {format(new Date(acc.next_review_date), 'MMM d, yyyy')}
+                          Next review:{" "}
+                          {format(
+                            new Date(acc.next_review_date),
+                            "MMM d, yyyy"
+                          )}
                         </span>
                       )}
                     </div>
@@ -349,7 +385,9 @@ const ProgramAccreditationManager = () => {
                   disabled={createMutation.isPending}
                   className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
                 >
-                  {createMutation.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+                  {createMutation.isPending && (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  )}
                   Add Accreditation
                 </Button>
               </DialogFooter>

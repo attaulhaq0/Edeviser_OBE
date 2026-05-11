@@ -1,6 +1,9 @@
 {
   "dashboard": {
     "title": "Coordinator Dashboard",
+    "welcome": {
+      "subtitle": "Monitor program outcomes, track attainment, and drive continuous quality improvement."
+    },
     "totalPLOs": "Total PLOs",
     "activeCourses": "Active Courses",
     "cloCoverage": "CLO Coverage",

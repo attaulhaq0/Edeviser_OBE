@@ -1,8 +1,14 @@
-import { useEffect } from 'react';
-import { useForm, useFieldArray } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { institutionSettingsSchema, type InstitutionSettingsFormData } from '@/lib/schemas/institutionSettings';
-import { useInstitutionSettings, useUpsertInstitutionSettings } from '@/hooks/useInstitutionSettings';
+import { useEffect } from "react";
+import { useForm, useFieldArray } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  institutionSettingsSchema,
+  type InstitutionSettingsFormData,
+} from "@/lib/schemas/institutionSettings";
+import {
+  useInstitutionSettings,
+  useUpsertInstitutionSettings,
+} from "@/hooks/useInstitutionSettings";
 import {
   Form,
   FormField,
@@ -11,55 +17,78 @@ import {
   FormControl,
   FormDescription,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import Shimmer from '@/components/shared/Shimmer';
-import ProgramAccreditationManager from '@/components/shared/ProgramAccreditationManager';
-import { Switch } from '@/components/ui/switch';
-import { useTranslation } from 'react-i18next';
-import { Loader2, Settings, GraduationCap, Plus, Trash2, Flame, Trophy, Globe } from 'lucide-react';
-import { DEFAULT_GRADE_SCALES, type AccreditationBody } from '@/types/app';
-import { DEFAULT_LEAGUE_THRESHOLDS } from '@/lib/leagueTier';
+} from "@/components/ui/select";
+import Shimmer from "@/components/shared/Shimmer";
+import ProgramAccreditationManager from "@/components/shared/ProgramAccreditationManager";
+import { Switch } from "@/components/ui/switch";
+import { useTranslation } from "react-i18next";
+import {
+  Loader2,
+  Settings,
+  GraduationCap,
+  Plus,
+  Trash2,
+  Flame,
+  Trophy,
+  Globe,
+} from "lucide-react";
+import { DEFAULT_GRADE_SCALES, type AccreditationBody } from "@/types/app";
+import { DEFAULT_LEAGUE_THRESHOLDS } from "@/lib/leagueTier";
 
-const ACCREDITATION_BODIES: Array<{ value: AccreditationBody; label: string }> = [
-  { value: 'HEC', label: 'HEC — Higher Education Commission' },
-  { value: 'QQA', label: 'QQA — Quality Assurance Authority' },
-  { value: 'ABET', label: 'ABET — Accreditation Board for Engineering & Technology' },
-  { value: 'NCAAA', label: 'NCAAA — National Commission for Academic Accreditation' },
-  { value: 'AACSB', label: 'AACSB — Association to Advance Collegiate Schools of Business' },
-  { value: 'Generic', label: 'Generic — General Format' },
-];
+const ACCREDITATION_BODIES: Array<{ value: AccreditationBody; label: string }> =
+  [
+    { value: "HEC", label: "HEC — Higher Education Commission" },
+    { value: "QQA", label: "QQA — Quality Assurance Authority" },
+    {
+      value: "ABET",
+      label: "ABET — Accreditation Board for Engineering & Technology",
+    },
+    {
+      value: "NCAAA",
+      label: "NCAAA — National Commission for Academic Accreditation",
+    },
+    {
+      value: "AACSB",
+      label: "AACSB — Association to Advance Collegiate Schools of Business",
+    },
+    { value: "Generic", label: "Generic — General Format" },
+  ];
 
 const InstitutionSettings = () => {
-  const { t } = useTranslation('admin');
+  const { t } = useTranslation("admin");
   const { data: settings, isLoading } = useInstitutionSettings();
   const mutation = useUpsertInstitutionSettings();
 
   const form = useForm<InstitutionSettingsFormData>({
     resolver: zodResolver(institutionSettingsSchema),
     defaultValues: {
-      attainment_thresholds: { excellent: 85, satisfactory: 70, developing: 50 },
+      attainment_thresholds: {
+        excellent: 85,
+        satisfactory: 70,
+        developing: 50,
+      },
       success_threshold: 70,
-      accreditation_body: 'Generic',
+      accreditation_body: "Generic",
       grade_scales: DEFAULT_GRADE_SCALES,
       streak_sabbatical_enabled: false,
       league_thresholds: DEFAULT_LEAGUE_THRESHOLDS,
-      default_language: 'en',
+      default_language: "en",
     },
   });
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
-    name: 'grade_scales',
+    name: "grade_scales",
   });
 
   useEffect(() => {
@@ -70,8 +99,11 @@ const InstitutionSettings = () => {
         accreditation_body: settings.accreditation_body,
         grade_scales: settings.grade_scales,
         streak_sabbatical_enabled: settings.streak_sabbatical_enabled ?? false,
-        league_thresholds: settings.league_thresholds ?? DEFAULT_LEAGUE_THRESHOLDS,
-        default_language: (settings.default_language === 'ar' ? 'ar' : 'en') as 'en' | 'ar',
+        league_thresholds:
+          settings.league_thresholds ?? DEFAULT_LEAGUE_THRESHOLDS,
+        default_language: (settings.default_language === "ar" ? "ar" : "en") as
+          | "en"
+          | "ar",
       });
     }
   }, [settings, form]);
@@ -80,8 +112,9 @@ const InstitutionSettings = () => {
     // Validate threshold ordering: developing < satisfactory < excellent
     const { excellent, satisfactory, developing } = data.attainment_thresholds;
     if (developing >= satisfactory || satisfactory >= excellent) {
-      form.setError('attainment_thresholds.developing', {
-        message: 'Thresholds must satisfy: developing < satisfactory < excellent',
+      form.setError("attainment_thresholds.developing", {
+        message:
+          "Thresholds must satisfy: developing < satisfactory < excellent",
       });
       return;
     }
@@ -100,7 +133,9 @@ const InstitutionSettings = () => {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold tracking-tight">Institution Settings</h1>
+      <h1 className="text-2xl font-bold tracking-tight">
+        Institution Settings
+      </h1>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -108,7 +143,10 @@ const InstitutionSettings = () => {
           <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
             <div
               className="px-6 py-4 flex items-center gap-2"
-              style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+              style={{
+                background:
+                  "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+              }}
             >
               <Settings className="h-5 w-5 text-white" />
               <h2 className="text-lg font-bold tracking-tight text-white">
@@ -117,7 +155,9 @@ const InstitutionSettings = () => {
             </div>
             <div className="p-6 space-y-4">
               <p className="text-sm text-gray-500">
-                Configure the percentage thresholds for attainment level classification across all dashboards, reports, and AI predictions.
+                Configure the percentage thresholds for attainment level
+                classification across all dashboards, reports, and AI
+                predictions.
               </p>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <FormField
@@ -132,7 +172,9 @@ const InstitutionSettings = () => {
                           min={0}
                           max={100}
                           {...field}
-                          onChange={(e) => field.onChange(Number(e.target.value))}
+                          onChange={(e) =>
+                            field.onChange(Number(e.target.value))
+                          }
                           data-testid="threshold-excellent"
                         />
                       </FormControl>
@@ -153,7 +195,9 @@ const InstitutionSettings = () => {
                           min={0}
                           max={100}
                           {...field}
-                          onChange={(e) => field.onChange(Number(e.target.value))}
+                          onChange={(e) =>
+                            field.onChange(Number(e.target.value))
+                          }
                           data-testid="threshold-satisfactory"
                         />
                       </FormControl>
@@ -174,7 +218,9 @@ const InstitutionSettings = () => {
                           min={0}
                           max={100}
                           {...field}
-                          onChange={(e) => field.onChange(Number(e.target.value))}
+                          onChange={(e) =>
+                            field.onChange(Number(e.target.value))
+                          }
                           data-testid="threshold-developing"
                         />
                       </FormControl>
@@ -202,7 +248,9 @@ const InstitutionSettings = () => {
                       />
                     </FormControl>
                     <FormDescription>
-                      Percentage of students who must achieve Satisfactory or above for a PLO to be considered &quot;met&quot;. Default: 70%
+                      Percentage of students who must achieve Satisfactory or
+                      above for a PLO to be considered &quot;met&quot;. Default:
+                      70%
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -215,7 +263,10 @@ const InstitutionSettings = () => {
           <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
             <div
               className="px-6 py-4 flex items-center gap-2"
-              style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+              style={{
+                background:
+                  "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+              }}
             >
               <GraduationCap className="h-5 w-5 text-white" />
               <h2 className="text-lg font-bold tracking-tight text-white">
@@ -231,7 +282,10 @@ const InstitutionSettings = () => {
                     <FormLabel>Primary Accreditation Body</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
-                        <SelectTrigger className="bg-white" data-testid="accreditation-body-select">
+                        <SelectTrigger
+                          className="bg-white"
+                          data-testid="accreditation-body-select"
+                        >
                           <SelectValue placeholder="Select accreditation body" />
                         </SelectTrigger>
                       </FormControl>
@@ -244,7 +298,8 @@ const InstitutionSettings = () => {
                       </SelectContent>
                     </Select>
                     <FormDescription>
-                      Determines the default report template and PLO naming conventions.
+                      Determines the default report template and PLO naming
+                      conventions.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -257,7 +312,10 @@ const InstitutionSettings = () => {
           <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
             <div
               className="px-6 py-4 flex items-center gap-2"
-              style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+              style={{
+                background:
+                  "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+              }}
             >
               <GraduationCap className="h-5 w-5 text-white" />
               <h2 className="text-lg font-bold tracking-tight text-white">
@@ -266,12 +324,16 @@ const InstitutionSettings = () => {
             </div>
             <div className="p-6 space-y-4">
               <p className="text-sm text-gray-500">
-                Configure letter grade mapping for the gradebook. Each row defines a letter grade with its percentage range and GPA points.
+                Configure letter grade mapping for the gradebook. Each row
+                defines a letter grade with its percentage range and GPA points.
               </p>
 
               <div className="space-y-3">
                 {fields.map((field, index) => (
-                  <div key={field.id} className="grid grid-cols-5 gap-3 items-end">
+                  <div
+                    key={field.id}
+                    className="grid grid-cols-5 gap-3 items-end"
+                  >
                     <FormField
                       control={form.control}
                       name={`grade_scales.${index}.letter`}
@@ -279,7 +341,11 @@ const InstitutionSettings = () => {
                         <FormItem>
                           {index === 0 && <FormLabel>Letter</FormLabel>}
                           <FormControl>
-                            <Input {...f} placeholder="A" data-testid={`grade-letter-${index}`} />
+                            <Input
+                              {...f}
+                              placeholder="A"
+                              data-testid={`grade-letter-${index}`}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -297,7 +363,9 @@ const InstitutionSettings = () => {
                               min={0}
                               max={100}
                               {...f}
-                              onChange={(e) => f.onChange(Number(e.target.value))}
+                              onChange={(e) =>
+                                f.onChange(Number(e.target.value))
+                              }
                               data-testid={`grade-min-${index}`}
                             />
                           </FormControl>
@@ -317,7 +385,9 @@ const InstitutionSettings = () => {
                               min={0}
                               max={100}
                               {...f}
-                              onChange={(e) => f.onChange(Number(e.target.value))}
+                              onChange={(e) =>
+                                f.onChange(Number(e.target.value))
+                              }
                               data-testid={`grade-max-${index}`}
                             />
                           </FormControl>
@@ -338,7 +408,9 @@ const InstitutionSettings = () => {
                               max={4}
                               step={0.1}
                               {...f}
-                              onChange={(e) => f.onChange(Number(e.target.value))}
+                              onChange={(e) =>
+                                f.onChange(Number(e.target.value))
+                              }
                               data-testid={`grade-gpa-${index}`}
                             />
                           </FormControl>
@@ -365,7 +437,14 @@ const InstitutionSettings = () => {
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => append({ letter: '', min_percent: 0, max_percent: 0, gpa_points: 0 })}
+                onClick={() =>
+                  append({
+                    letter: "",
+                    min_percent: 0,
+                    max_percent: 0,
+                    gpa_points: 0,
+                  })
+                }
                 data-testid="add-grade-scale"
               >
                 <Plus className="h-4 w-4" />
@@ -378,7 +457,10 @@ const InstitutionSettings = () => {
           <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
             <div
               className="px-6 py-4 flex items-center gap-2"
-              style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+              style={{
+                background:
+                  "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+              }}
             >
               <Flame className="h-5 w-5 text-white" />
               <h2 className="text-lg font-bold tracking-tight text-white">
@@ -396,7 +478,9 @@ const InstitutionSettings = () => {
                         Enable Streak Sabbatical
                       </FormLabel>
                       <FormDescription className="text-xs text-gray-500">
-                        When enabled, weekends (Saturday &amp; Sunday) will not count toward streak requirements. Changes apply from the next calendar day.
+                        When enabled, weekends (Saturday &amp; Sunday) will not
+                        count toward streak requirements. Changes apply from the
+                        next calendar day.
                       </FormDescription>
                     </div>
                     <FormControl>
@@ -416,7 +500,10 @@ const InstitutionSettings = () => {
           <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
             <div
               className="px-6 py-4 flex items-center gap-2"
-              style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+              style={{
+                background:
+                  "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+              }}
             >
               <Trophy className="h-5 w-5 text-white" />
               <h2 className="text-lg font-bold tracking-tight text-white">
@@ -425,7 +512,8 @@ const InstitutionSettings = () => {
             </div>
             <div className="p-6 space-y-4">
               <p className="text-sm text-gray-500">
-                Configure the cumulative XP thresholds for each League Tier. Students are assigned to tiers based on their total XP.
+                Configure the cumulative XP thresholds for each League Tier.
+                Students are assigned to tiers based on their total XP.
               </p>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <FormField
@@ -439,7 +527,9 @@ const InstitutionSettings = () => {
                           type="number"
                           min={0}
                           {...field}
-                          onChange={(e) => field.onChange(Number(e.target.value))}
+                          onChange={(e) =>
+                            field.onChange(Number(e.target.value))
+                          }
                           data-testid="league-bronze"
                         />
                       </FormControl>
@@ -459,7 +549,9 @@ const InstitutionSettings = () => {
                           type="number"
                           min={0}
                           {...field}
-                          onChange={(e) => field.onChange(Number(e.target.value))}
+                          onChange={(e) =>
+                            field.onChange(Number(e.target.value))
+                          }
                           data-testid="league-silver"
                         />
                       </FormControl>
@@ -479,7 +571,9 @@ const InstitutionSettings = () => {
                           type="number"
                           min={0}
                           {...field}
-                          onChange={(e) => field.onChange(Number(e.target.value))}
+                          onChange={(e) =>
+                            field.onChange(Number(e.target.value))
+                          }
                           data-testid="league-gold"
                         />
                       </FormControl>
@@ -499,7 +593,9 @@ const InstitutionSettings = () => {
                           type="number"
                           min={0}
                           {...field}
-                          onChange={(e) => field.onChange(Number(e.target.value))}
+                          onChange={(e) =>
+                            field.onChange(Number(e.target.value))
+                          }
                           data-testid="league-diamond"
                         />
                       </FormControl>
@@ -516,11 +612,14 @@ const InstitutionSettings = () => {
           <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
             <div
               className="px-6 py-4 flex items-center gap-2"
-              style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+              style={{
+                background:
+                  "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+              }}
             >
               <Globe className="h-5 w-5 text-white" />
               <h2 className="text-lg font-bold tracking-tight text-white">
-                {t('settings.defaultLanguage')}
+                {t("settings.defaultLanguage")}
               </h2>
             </div>
             <div className="p-6">
@@ -529,20 +628,32 @@ const InstitutionSettings = () => {
                 name="default_language"
                 render={({ field }) => (
                   <FormItem className="max-w-md">
-                    <FormLabel>{t('settings.defaultLanguage')}</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value ?? 'en'}>
+                    <FormLabel>{t("settings.defaultLanguage")}</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value ?? "en"}
+                    >
                       <FormControl>
-                        <SelectTrigger className="bg-white" data-testid="default-language-select">
-                          <SelectValue placeholder={t('settings.defaultLanguage')} />
+                        <SelectTrigger
+                          className="bg-white"
+                          data-testid="default-language-select"
+                        >
+                          <SelectValue
+                            placeholder={t("settings.defaultLanguage")}
+                          />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="en">{t('settings.english')}</SelectItem>
-                        <SelectItem value="ar">{t('settings.arabic')}</SelectItem>
+                        <SelectItem value="en">
+                          {t("settings.english")}
+                        </SelectItem>
+                        <SelectItem value="ar">
+                          {t("settings.arabic")}
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                     <FormDescription>
-                      {t('settings.defaultLanguageDesc')}
+                      {t("settings.defaultLanguageDesc")}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>

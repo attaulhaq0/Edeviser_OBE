@@ -1,9 +1,10 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -51,21 +52,21 @@ interface FeedbackDraftResponse {
 // ─── Feedback Template Helpers ──────────────────────────────────────────────
 
 const BLOOMS_LABELS: Record<string, string> = {
-  remembering: 'Remembering',
-  understanding: 'Understanding',
-  applying: 'Applying',
-  analyzing: 'Analyzing',
-  evaluating: 'Evaluating',
-  creating: 'Creating',
+  remembering: "Remembering",
+  understanding: "Understanding",
+  applying: "Applying",
+  analyzing: "Analyzing",
+  evaluating: "Evaluating",
+  creating: "Creating",
 };
 
 const BLOOMS_ACTION_PHRASES: Record<string, string> = {
-  remembering: 'recalling and identifying key concepts',
-  understanding: 'explaining and interpreting ideas',
-  applying: 'applying concepts to new situations',
-  analyzing: 'breaking down and examining relationships',
-  evaluating: 'making judgments and defending positions',
-  creating: 'producing original and innovative work',
+  remembering: "recalling and identifying key concepts",
+  understanding: "explaining and interpreting ideas",
+  applying: "applying concepts to new situations",
+  analyzing: "breaking down and examining relationships",
+  evaluating: "making judgments and defending positions",
+  creating: "producing original and innovative work",
 };
 
 /**
@@ -75,14 +76,14 @@ const BLOOMS_ACTION_PHRASES: Record<string, string> = {
  */
 export function getPerformanceTier(
   levelIndex: number,
-  totalLevels: number,
-): 'top' | 'upper' | 'mid' | 'low' {
-  if (totalLevels <= 1) return 'top';
+  totalLevels: number
+): "top" | "upper" | "mid" | "low" {
+  if (totalLevels <= 1) return "top";
   const ratio = levelIndex / (totalLevels - 1);
-  if (ratio >= 0.9) return 'top';
-  if (ratio >= 0.6) return 'upper';
-  if (ratio >= 0.3) return 'mid';
-  return 'low';
+  if (ratio >= 0.9) return "top";
+  if (ratio >= 0.6) return "upper";
+  if (ratio >= 0.3) return "mid";
+  return "low";
 }
 
 /**
@@ -98,31 +99,31 @@ export function buildCriterionDraft(
   levelIndex: number,
   totalLevels: number,
   cloContext: CLOContext | null,
-  historicalThemes: string[],
+  historicalThemes: string[]
 ): string {
   const tier = getPerformanceTier(levelIndex, totalLevels);
   const parts: string[] = [];
 
   // Opening based on performance tier
   switch (tier) {
-    case 'top':
+    case "top":
       parts.push(
-        `Excellent work on ${criterionName}. Your response demonstrates strong mastery at the "${selectedLevel.label}" level.`,
+        `Excellent work on ${criterionName}. Your response demonstrates strong mastery at the "${selectedLevel.label}" level.`
       );
       break;
-    case 'upper':
+    case "upper":
       parts.push(
-        `Good effort on ${criterionName}. You've reached the "${selectedLevel.label}" level, showing solid understanding.`,
+        `Good effort on ${criterionName}. You've reached the "${selectedLevel.label}" level, showing solid understanding.`
       );
       break;
-    case 'mid':
+    case "mid":
       parts.push(
-        `Adequate work on ${criterionName}. At the "${selectedLevel.label}" level, there is room for growth.`,
+        `Adequate work on ${criterionName}. At the "${selectedLevel.label}" level, there is room for growth.`
       );
       break;
-    case 'low':
+    case "low":
       parts.push(
-        `${criterionName} needs improvement. At the "${selectedLevel.label}" level, significant development is needed.`,
+        `${criterionName} needs improvement. At the "${selectedLevel.label}" level, significant development is needed.`
       );
       break;
   }
@@ -134,15 +135,15 @@ export function buildCriterionDraft(
 
   // Add CLO-aligned guidance
   if (cloContext) {
-    const bloomsKey = cloContext.blooms_level?.toLowerCase() ?? '';
+    const bloomsKey = cloContext.blooms_level?.toLowerCase() ?? "";
     const actionPhrase = BLOOMS_ACTION_PHRASES[bloomsKey];
-    if (actionPhrase && (tier === 'mid' || tier === 'low')) {
+    if (actionPhrase && (tier === "mid" || tier === "low")) {
       parts.push(
-        `To improve, focus on ${actionPhrase} as required by the "${cloContext.title}" learning outcome.`,
+        `To improve, focus on ${actionPhrase} as required by the "${cloContext.title}" learning outcome.`
       );
-    } else if (actionPhrase && (tier === 'top' || tier === 'upper')) {
+    } else if (actionPhrase && (tier === "top" || tier === "upper")) {
       parts.push(
-        `This aligns well with the "${cloContext.title}" outcome's focus on ${actionPhrase}.`,
+        `This aligns well with the "${cloContext.title}" outcome's focus on ${actionPhrase}.`
       );
     }
   }
@@ -150,12 +151,14 @@ export function buildCriterionDraft(
   // Add historical pattern note if available
   if (historicalThemes.length > 0) {
     const theme = historicalThemes[0];
-    if (tier === 'mid' || tier === 'low') {
-      parts.push(`Note: Previous feedback has highlighted similar areas — "${theme}". Consider reviewing past guidance.`);
+    if (tier === "mid" || tier === "low") {
+      parts.push(
+        `Note: Previous feedback has highlighted similar areas — "${theme}". Consider reviewing past guidance.`
+      );
     }
   }
 
-  return parts.join(' ');
+  return parts.join(" ");
 }
 
 /**
@@ -165,44 +168,59 @@ export function buildCriterionDraft(
 export function buildOverallDraft(
   criterionResults: Array<{
     criterionName: string;
-    tier: 'top' | 'upper' | 'mid' | 'low';
+    tier: "top" | "upper" | "mid" | "low";
     levelLabel: string;
   }>,
-  cloContext: CLOContext | null,
+  cloContext: CLOContext | null
 ): string {
-  const strengths = criterionResults.filter((c) => c.tier === 'top' || c.tier === 'upper');
-  const improvements = criterionResults.filter((c) => c.tier === 'mid' || c.tier === 'low');
+  const strengths = criterionResults.filter(
+    (c) => c.tier === "top" || c.tier === "upper"
+  );
+  const improvements = criterionResults.filter(
+    (c) => c.tier === "mid" || c.tier === "low"
+  );
 
   const parts: string[] = [];
 
   if (strengths.length > 0) {
-    const names = strengths.map((s) => s.criterionName).join(', ');
+    const names = strengths.map((s) => s.criterionName).join(", ");
     parts.push(`Strengths: Strong performance in ${names}.`);
   }
 
   if (improvements.length > 0) {
-    const names = improvements.map((s) => s.criterionName).join(', ');
-    parts.push(`Areas for improvement: ${names} need${improvements.length === 1 ? 's' : ''} further development.`);
+    const names = improvements.map((s) => s.criterionName).join(", ");
+    parts.push(
+      `Areas for improvement: ${names} need${
+        improvements.length === 1 ? "s" : ""
+      } further development.`
+    );
   }
 
   if (cloContext) {
-    const bloomsLabel = BLOOMS_LABELS[cloContext.blooms_level?.toLowerCase() ?? ''] ?? '';
+    const bloomsLabel =
+      BLOOMS_LABELS[cloContext.blooms_level?.toLowerCase() ?? ""] ?? "";
     if (bloomsLabel) {
       parts.push(
-        `This assessment targets the "${cloContext.title}" outcome at the ${bloomsLabel} level of Bloom's Taxonomy.`,
+        `This assessment targets the "${cloContext.title}" outcome at the ${bloomsLabel} level of Bloom's Taxonomy.`
       );
     }
   }
 
   if (strengths.length === criterionResults.length) {
-    parts.push('Overall, this is a well-executed submission. Keep up the excellent work.');
+    parts.push(
+      "Overall, this is a well-executed submission. Keep up the excellent work."
+    );
   } else if (improvements.length === criterionResults.length) {
-    parts.push('Overall, this submission needs significant revision. Please review the rubric criteria and resubmit if possible.');
+    parts.push(
+      "Overall, this submission needs significant revision. Please review the rubric criteria and resubmit if possible."
+    );
   } else {
-    parts.push('Continue building on your strengths while addressing the identified areas for improvement.');
+    parts.push(
+      "Continue building on your strengths while addressing the identified areas for improvement."
+    );
   }
 
-  return parts.join(' ');
+  return parts.join(" ");
 }
 
 /**
@@ -210,7 +228,7 @@ export function buildOverallDraft(
  * Looks at past overall_feedback strings and finds common short phrases.
  */
 export function extractHistoricalThemes(
-  historicalFeedback: HistoricalFeedback[],
+  historicalFeedback: HistoricalFeedback[]
 ): string[] {
   const feedbackTexts = historicalFeedback
     .map((h) => h.overall_feedback)
@@ -248,83 +266,118 @@ export function extractHistoricalThemes(
 // ─── Main Handler ───────────────────────────────────────────────────────────
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
   }
 
   try {
     // ── Auth: require teacher or admin ───────────────────────────────
-    const authHeader = req.headers.get('Authorization') ?? '';
+    const authHeader = req.headers.get("Authorization") ?? "";
     if (!authHeader) {
       return new Response(
-        JSON.stringify({ error: 'Missing authorization header' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        JSON.stringify({ error: "Missing authorization header" }),
+        {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
       );
     }
     const userClient = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_ANON_KEY')!,
-      { global: { headers: { Authorization: authHeader } } },
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } }
     );
-    const { data: { user: caller }, error: authError } = await userClient.auth.getUser();
+    const {
+      data: { user: caller },
+      error: authError,
+    } = await userClient.auth.getUser();
     if (authError || !caller) {
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-      );
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
-    const callerRole = caller.app_metadata?.role ?? caller.user_metadata?.role ?? '';
-    if (!['teacher', 'admin'].includes(callerRole)) {
+    const callerRole =
+      caller.app_metadata?.role ?? caller.user_metadata?.role ?? "";
+    if (!["teacher", "admin"].includes(callerRole)) {
       return new Response(
-        JSON.stringify({ error: 'Forbidden: teacher or admin role required' }),
-        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        JSON.stringify({ error: "Forbidden: teacher or admin role required" }),
+        {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
       );
     }
 
     const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    const { submission_id, rubric_id, rubric_selections, student_id, clo_id } = await req.json();
+    const { submission_id, rubric_id, rubric_selections, student_id, clo_id } =
+      await req.json();
 
     // ── Validate required fields ────────────────────────────────────────
-    if (!submission_id || !rubric_id || !rubric_selections || !student_id || !clo_id) {
+    if (
+      !submission_id ||
+      !rubric_id ||
+      !rubric_selections ||
+      !student_id ||
+      !clo_id
+    ) {
       return new Response(
         JSON.stringify({
-          error: 'Missing required fields: submission_id, rubric_id, rubric_selections, student_id, clo_id',
+          error:
+            "Missing required fields: submission_id, rubric_id, rubric_selections, student_id, clo_id",
         }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
       );
     }
 
     if (!Array.isArray(rubric_selections) || rubric_selections.length === 0) {
       return new Response(
-        JSON.stringify({ error: 'rubric_selections must be a non-empty array' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        JSON.stringify({
+          error: "rubric_selections must be a non-empty array",
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
       );
     }
 
     // ── Step 1: Fetch rubric criteria ───────────────────────────────────
 
     const { data: criteria, error: criteriaErr } = await supabase
-      .from('rubric_criteria')
-      .select('id, criterion_name, levels, max_points, sort_order')
-      .eq('rubric_id', rubric_id)
-      .order('sort_order', { ascending: true });
+      .from("rubric_criteria")
+      .select("id, criterion_name, levels, max_points, sort_order")
+      .eq("rubric_id", rubric_id)
+      .order("sort_order", { ascending: true });
 
     if (criteriaErr) {
-      console.error('Failed to fetch rubric criteria:', criteriaErr.message);
+      console.error("Failed to fetch rubric criteria:", criteriaErr.message);
       return new Response(
-        JSON.stringify({ error: 'Failed to fetch rubric criteria', detail: criteriaErr.message }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        JSON.stringify({
+          error: "Failed to fetch rubric criteria",
+          detail: criteriaErr.message,
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
       );
     }
 
     if (!criteria || criteria.length === 0) {
       return new Response(
-        JSON.stringify({ error: 'No criteria found for the specified rubric' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        JSON.stringify({ error: "No criteria found for the specified rubric" }),
+        {
+          status: 404,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
       );
     }
 
@@ -345,13 +398,13 @@ serve(async (req) => {
     let cloContext: CLOContext | null = null;
 
     const { data: cloData, error: cloErr } = await supabase
-      .from('learning_outcomes')
-      .select('title, blooms_level')
-      .eq('id', clo_id)
+      .from("learning_outcomes")
+      .select("title, blooms_level")
+      .eq("id", clo_id)
       .maybeSingle();
 
     if (cloErr) {
-      console.error('Failed to fetch CLO context:', cloErr.message);
+      console.error("Failed to fetch CLO context:", cloErr.message);
       // Non-fatal: continue without CLO context
     } else if (cloData) {
       cloContext = { title: cloData.title, blooms_level: cloData.blooms_level };
@@ -361,9 +414,9 @@ serve(async (req) => {
 
     // Historical feedback is fetched by looking at past grades for this student's submissions
     const { data: studentSubmissions } = await supabase
-      .from('submissions')
-      .select('id')
-      .eq('student_id', student_id)
+      .from("submissions")
+      .select("id")
+      .eq("student_id", student_id)
       .limit(20);
 
     let historicalThemes: string[] = [];
@@ -372,15 +425,17 @@ serve(async (req) => {
       const submissionIds = studentSubmissions.map((s: { id: string }) => s.id);
 
       const { data: pastGrades } = await supabase
-        .from('grades')
-        .select('overall_feedback, rubric_selections')
-        .in('submission_id', submissionIds)
-        .not('overall_feedback', 'is', null)
-        .order('graded_at', { ascending: false })
+        .from("grades")
+        .select("overall_feedback, rubric_selections")
+        .in("submission_id", submissionIds)
+        .not("overall_feedback", "is", null)
+        .order("graded_at", { ascending: false })
         .limit(10);
 
       if (pastGrades && pastGrades.length > 0) {
-        historicalThemes = extractHistoricalThemes(pastGrades as HistoricalFeedback[]);
+        historicalThemes = extractHistoricalThemes(
+          pastGrades as HistoricalFeedback[]
+        );
       }
     }
 
@@ -389,7 +444,7 @@ serve(async (req) => {
     const criterionDrafts: CriterionDraft[] = [];
     const criterionResults: Array<{
       criterionName: string;
-      tier: 'top' | 'upper' | 'mid' | 'low';
+      tier: "top" | "upper" | "mid" | "low";
       levelLabel: string;
     }> = [];
 
@@ -411,7 +466,7 @@ serve(async (req) => {
         levelIndex,
         levels.length,
         cloContext,
-        historicalThemes,
+        historicalThemes
       );
 
       criterionDrafts.push({
@@ -438,15 +493,14 @@ serve(async (req) => {
       overall_draft: overallDraft,
     };
 
-    return new Response(
-      JSON.stringify({ success: true, ...response }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-    );
+    return new Response(JSON.stringify({ success: true, ...response }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   } catch (error) {
-    console.error('ai-feedback-draft error:', (error as Error).message);
-    return new Response(
-      JSON.stringify({ error: (error as Error).message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-    );
+    console.error("ai-feedback-draft error:", (error as Error).message);
+    return new Response(JSON.stringify({ error: (error as Error).message }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });

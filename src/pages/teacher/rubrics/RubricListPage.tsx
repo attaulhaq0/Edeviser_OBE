@@ -1,19 +1,20 @@
-import { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { parseAsString, useQueryState } from 'nuqs';
-import { Plus, Search } from 'lucide-react';
-import { toast } from 'sonner';
-import { DataTable } from '@/components/shared/DataTable';
-import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { useRubrics, useDeleteRubric, useCopyRubric } from '@/hooks/useRubrics';
-import type { Rubric } from '@/hooks/useRubrics';
-import { createColumns } from './columns';
+import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { parseAsString, useQueryState } from "nuqs";
+import { Plus, Search } from "lucide-react";
+import { toast } from "sonner";
+import { DataTable } from "@/components/shared/DataTable";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useRubrics, useDeleteRubric, useCopyRubric } from "@/hooks/useRubrics";
+import type { Rubric } from "@/hooks/useRubrics";
+import { createColumns } from "./columns";
+import { NoCourses } from "@/components/shared/EmptyState";
 
 const RubricListPage = () => {
   const navigate = useNavigate();
-  const [search, setSearch] = useQueryState('q', parseAsString.withDefault(''));
+  const [search, setSearch] = useQueryState("q", parseAsString.withDefault(""));
   const [page, setPage] = useState(1);
   const { data: paginatedData, isLoading } = useRubrics(undefined, { page });
   const deleteMutation = useDeleteRubric();
@@ -35,12 +36,12 @@ const RubricListPage = () => {
         (rubric) => setDeleteTarget(rubric),
         (rubric) => {
           copyMutation.mutate(rubric.id, {
-            onSuccess: () => toast.success('Rubric copied'),
+            onSuccess: () => toast.success("Rubric copied"),
             onError: (err) => toast.error(err.message),
           });
-        },
+        }
       ),
-    [navigate, copyMutation],
+    [navigate, copyMutation]
   );
 
   return (
@@ -48,7 +49,7 @@ const RubricListPage = () => {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold tracking-tight">Rubrics</h1>
         <Button
-          onClick={() => navigate('/teacher/rubrics/new')}
+          onClick={() => navigate("/teacher/rubrics/new")}
           className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
         >
           <Plus className="h-4 w-4" /> New Rubric
@@ -75,6 +76,9 @@ const RubricListPage = () => {
         pageSize={paginatedData?.pageSize}
         totalCount={paginatedData?.count}
         onPageChange={setPage}
+        emptyState={
+          filtered.length === 0 && !isLoading ? <NoCourses /> : undefined
+        }
       />
 
       <ConfirmDialog
@@ -89,7 +93,7 @@ const RubricListPage = () => {
           if (!deleteTarget) return;
           deleteMutation.mutate(deleteTarget.id, {
             onSuccess: () => {
-              toast.success('Rubric deleted');
+              toast.success("Rubric deleted");
               setDeleteTarget(null);
             },
             onError: (err) => toast.error(err.message),

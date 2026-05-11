@@ -3,17 +3,17 @@
 // Task 21.4
 // =============================================================================
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from "react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Sparkles, Clock } from 'lucide-react';
-import { useSubmitBonusAnswer } from '@/hooks/useBonusQuestion';
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Loader2, Sparkles, Clock } from "lucide-react";
+import { useSubmitBonusAnswer } from "@/hooks/useBonusQuestion";
 
 interface BonusQuestionPopupProps {
   open: boolean;
@@ -36,9 +36,13 @@ const BonusQuestionPopup = ({
   studentId,
   institutionId,
 }: BonusQuestionPopupProps) => {
-  const [answer, setAnswer] = useState('');
+  const [answer, setAnswer] = useState("");
   const [timeLeft, setTimeLeft] = useState(question.time_limit_seconds);
-  const [result, setResult] = useState<{ correct: boolean; xp_awarded: number; feedback: string } | null>(null);
+  const [result, setResult] = useState<{
+    correct: boolean;
+    xp_awarded: number;
+    feedback: string;
+  } | null>(null);
   const submitAnswer = useSubmitBonusAnswer();
 
   // Reset state when dialog opens/closes
@@ -69,11 +73,11 @@ const BonusQuestionPopup = ({
       },
       {
         onSuccess: (data) => setResult(data),
-      },
+      }
     );
   }, [answer, studentId, institutionId, question.clo_id, submitAnswer]);
 
-  const timerColor = timeLeft <= 10 ? 'text-red-500' : 'text-gray-500';
+  const timerColor = timeLeft <= 10 ? "text-red-500" : "text-gray-500";
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
@@ -91,7 +95,9 @@ const BonusQuestionPopup = ({
               <span className="text-xs font-bold text-amber-600">
                 +{question.xp_reward} XP reward
               </span>
-              <div className={`flex items-center gap-1 text-sm font-mono ${timerColor}`}>
+              <div
+                className={`flex items-center gap-1 text-sm font-mono ${timerColor}`}
+              >
                 <Clock className="h-4 w-4" />
                 {timeLeft}s
               </div>
@@ -113,11 +119,15 @@ const BonusQuestionPopup = ({
               </Button>
               <Button
                 size="sm"
-                disabled={!answer.trim() || timeLeft === 0 || submitAnswer.isPending}
+                disabled={
+                  !answer.trim() || timeLeft === 0 || submitAnswer.isPending
+                }
                 onClick={handleSubmit}
                 className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
               >
-                {submitAnswer.isPending && <Loader2 className="h-3 w-3 animate-spin" />}
+                {submitAnswer.isPending && (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                )}
                 Submit
               </Button>
             </div>
@@ -128,11 +138,11 @@ const BonusQuestionPopup = ({
           </div>
         ) : (
           <div className="text-center space-y-3 py-4">
-            <div className={`text-4xl ${result.correct ? '' : 'opacity-50'}`}>
-              {result.correct ? '🎉' : '😅'}
+            <div className={`text-4xl ${result.correct ? "" : "opacity-50"}`}>
+              {result.correct ? "🎉" : "😅"}
             </div>
             <p className="text-sm font-bold">
-              {result.correct ? `+${result.xp_awarded} XP!` : 'No XP this time'}
+              {result.correct ? `+${result.xp_awarded} XP!` : "No XP this time"}
             </p>
             <p className="text-xs text-gray-500">{result.feedback}</p>
             <Button size="sm" onClick={onClose}>

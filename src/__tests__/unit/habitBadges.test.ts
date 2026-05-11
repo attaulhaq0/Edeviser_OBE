@@ -1,13 +1,15 @@
-import { describe, it, expect } from 'vitest';
-import {
-  getBadgeById,
-  getBadgesByCategory,
-} from '@/lib/badgeDefinitions';
+import { describe, it, expect } from "vitest";
+import { getBadgeById, getBadgesByCategory } from "@/lib/badgeDefinitions";
 
 // ─── Edge Function constants (mirrored for testing) ─────────────────────────
 
 const VALID_TRIGGERS = [
-  'xp_award', 'submission', 'streak_update', 'grade', 'journal', 'habit_log',
+  "xp_award",
+  "submission",
+  "streak_update",
+  "grade",
+  "journal",
+  "habit_log",
 ] as const;
 
 const BADGE_XP: Record<string, number> = {
@@ -37,7 +39,7 @@ const BADGE_XP: Record<string, number> = {
  */
 function countActiveDays(
   academicDates: string[],
-  wellnessDates: string[],
+  wellnessDates: string[]
 ): number {
   const all = new Set([...academicDates, ...wellnessDates]);
   return all.size;
@@ -70,7 +72,7 @@ function longestConsecutiveRun(sortedDates: string[]): number {
  */
 function countFullSpectrumDays(
   perfectAcademicDates: string[],
-  wellnessDates: string[],
+  wellnessDates: string[]
 ): number {
   const wellnessSet = new Set(wellnessDates);
   let count = 0;
@@ -96,170 +98,172 @@ function generateConsecutiveDates(startDate: string, count: number): string[] {
 
 // ─── Tests ──────────────────────────────────────────────────────────────────
 
-describe('Habit Badge Trigger Validation', () => {
-  it('habit_log is a valid trigger', () => {
-    expect(VALID_TRIGGERS).toContain('habit_log');
+describe("Habit Badge Trigger Validation", () => {
+  it("habit_log is a valid trigger", () => {
+    expect(VALID_TRIGGERS).toContain("habit_log");
   });
 
-  it('all original triggers remain valid', () => {
-    expect(VALID_TRIGGERS).toContain('xp_award');
-    expect(VALID_TRIGGERS).toContain('submission');
-    expect(VALID_TRIGGERS).toContain('streak_update');
-    expect(VALID_TRIGGERS).toContain('grade');
-    expect(VALID_TRIGGERS).toContain('journal');
+  it("all original triggers remain valid", () => {
+    expect(VALID_TRIGGERS).toContain("xp_award");
+    expect(VALID_TRIGGERS).toContain("submission");
+    expect(VALID_TRIGGERS).toContain("streak_update");
+    expect(VALID_TRIGGERS).toContain("grade");
+    expect(VALID_TRIGGERS).toContain("journal");
   });
 });
 
-describe('Habit Master Badge — 30+ active days', () => {
-  it('awards badge when exactly 30 active days', () => {
-    const dates = generateConsecutiveDates('2025-01-01', 30);
+describe("Habit Master Badge — 30+ active days", () => {
+  it("awards badge when exactly 30 active days", () => {
+    const dates = generateConsecutiveDates("2025-01-01", 30);
     expect(countActiveDays(dates, [])).toBe(30);
   });
 
-  it('awards badge when more than 30 active days', () => {
-    const dates = generateConsecutiveDates('2025-01-01', 45);
+  it("awards badge when more than 30 active days", () => {
+    const dates = generateConsecutiveDates("2025-01-01", 45);
     expect(countActiveDays(dates, [])).toBeGreaterThanOrEqual(30);
   });
 
-  it('does not award badge with fewer than 30 active days', () => {
-    const dates = generateConsecutiveDates('2025-01-01', 29);
+  it("does not award badge with fewer than 30 active days", () => {
+    const dates = generateConsecutiveDates("2025-01-01", 29);
     expect(countActiveDays(dates, [])).toBeLessThan(30);
   });
 
-  it('counts wellness-only days toward active days', () => {
-    const academicDates = generateConsecutiveDates('2025-01-01', 20);
-    const wellnessDates = generateConsecutiveDates('2025-01-21', 10);
+  it("counts wellness-only days toward active days", () => {
+    const academicDates = generateConsecutiveDates("2025-01-01", 20);
+    const wellnessDates = generateConsecutiveDates("2025-01-21", 10);
     expect(countActiveDays(academicDates, wellnessDates)).toBe(30);
   });
 
-  it('deduplicates overlapping academic and wellness dates', () => {
-    const academicDates = generateConsecutiveDates('2025-01-01', 30);
-    const wellnessDates = generateConsecutiveDates('2025-01-01', 30);
+  it("deduplicates overlapping academic and wellness dates", () => {
+    const academicDates = generateConsecutiveDates("2025-01-01", 30);
+    const wellnessDates = generateConsecutiveDates("2025-01-01", 30);
     expect(countActiveDays(academicDates, wellnessDates)).toBe(30);
   });
 
-  it('has correct XP reward of 100', () => {
-    expect(BADGE_XP['habit_master']).toBe(100);
+  it("has correct XP reward of 100", () => {
+    expect(BADGE_XP["habit_master"]).toBe(100);
   });
 });
 
-describe('Wellness Warrior Badge — 14 consecutive wellness days', () => {
-  it('awards badge with exactly 14 consecutive days', () => {
-    const dates = generateConsecutiveDates('2025-02-01', 14);
+describe("Wellness Warrior Badge — 14 consecutive wellness days", () => {
+  it("awards badge with exactly 14 consecutive days", () => {
+    const dates = generateConsecutiveDates("2025-02-01", 14);
     expect(longestConsecutiveRun(dates)).toBe(14);
   });
 
-  it('awards badge with more than 14 consecutive days', () => {
-    const dates = generateConsecutiveDates('2025-02-01', 20);
+  it("awards badge with more than 14 consecutive days", () => {
+    const dates = generateConsecutiveDates("2025-02-01", 20);
     expect(longestConsecutiveRun(dates)).toBeGreaterThanOrEqual(14);
   });
 
-  it('does not award badge with 13 consecutive days', () => {
-    const dates = generateConsecutiveDates('2025-02-01', 13);
+  it("does not award badge with 13 consecutive days", () => {
+    const dates = generateConsecutiveDates("2025-02-01", 13);
     expect(longestConsecutiveRun(dates)).toBeLessThan(14);
   });
 
-  it('handles gaps correctly — finds longest run', () => {
-    const run1 = generateConsecutiveDates('2025-01-01', 10);
-    const run2 = generateConsecutiveDates('2025-01-15', 14);
+  it("handles gaps correctly — finds longest run", () => {
+    const run1 = generateConsecutiveDates("2025-01-01", 10);
+    const run2 = generateConsecutiveDates("2025-01-15", 14);
     const allDates = [...run1, ...run2].sort();
     expect(longestConsecutiveRun(allDates)).toBe(14);
   });
 
-  it('handles duplicate dates in input', () => {
-    const dates = generateConsecutiveDates('2025-02-01', 14);
+  it("handles duplicate dates in input", () => {
+    const dates = generateConsecutiveDates("2025-02-01", 14);
     const withDupes = [...dates, ...dates]; // each date appears twice
     expect(longestConsecutiveRun(withDupes)).toBe(14);
   });
 
-  it('returns 0 for empty input', () => {
+  it("returns 0 for empty input", () => {
     expect(longestConsecutiveRun([])).toBe(0);
   });
 
-  it('has correct XP reward of 75', () => {
-    expect(BADGE_XP['wellness_warrior']).toBe(75);
+  it("has correct XP reward of 75", () => {
+    expect(BADGE_XP["wellness_warrior"]).toBe(75);
   });
 });
 
-describe('Full Spectrum Badge — 7 days with all academic + wellness', () => {
-  it('awards badge with exactly 7 full spectrum days', () => {
-    const perfectDates = generateConsecutiveDates('2025-03-01', 7);
-    const wellnessDates = generateConsecutiveDates('2025-03-01', 7);
+describe("Full Spectrum Badge — 7 days with all academic + wellness", () => {
+  it("awards badge with exactly 7 full spectrum days", () => {
+    const perfectDates = generateConsecutiveDates("2025-03-01", 7);
+    const wellnessDates = generateConsecutiveDates("2025-03-01", 7);
     expect(countFullSpectrumDays(perfectDates, wellnessDates)).toBe(7);
   });
 
-  it('awards badge with more than 7 full spectrum days', () => {
-    const perfectDates = generateConsecutiveDates('2025-03-01', 10);
-    const wellnessDates = generateConsecutiveDates('2025-03-01', 10);
-    expect(countFullSpectrumDays(perfectDates, wellnessDates)).toBeGreaterThanOrEqual(7);
+  it("awards badge with more than 7 full spectrum days", () => {
+    const perfectDates = generateConsecutiveDates("2025-03-01", 10);
+    const wellnessDates = generateConsecutiveDates("2025-03-01", 10);
+    expect(
+      countFullSpectrumDays(perfectDates, wellnessDates)
+    ).toBeGreaterThanOrEqual(7);
   });
 
-  it('does not award badge with fewer than 7 full spectrum days', () => {
-    const perfectDates = generateConsecutiveDates('2025-03-01', 6);
-    const wellnessDates = generateConsecutiveDates('2025-03-01', 6);
+  it("does not award badge with fewer than 7 full spectrum days", () => {
+    const perfectDates = generateConsecutiveDates("2025-03-01", 6);
+    const wellnessDates = generateConsecutiveDates("2025-03-01", 6);
     expect(countFullSpectrumDays(perfectDates, wellnessDates)).toBeLessThan(7);
   });
 
-  it('only counts days present in both sets', () => {
-    const perfectDates = generateConsecutiveDates('2025-03-01', 10);
-    const wellnessDates = generateConsecutiveDates('2025-03-05', 10);
+  it("only counts days present in both sets", () => {
+    const perfectDates = generateConsecutiveDates("2025-03-01", 10);
+    const wellnessDates = generateConsecutiveDates("2025-03-05", 10);
     // Overlap: Mar 5-10 = 6 days
     expect(countFullSpectrumDays(perfectDates, wellnessDates)).toBe(6);
   });
 
-  it('returns 0 when no wellness dates overlap', () => {
-    const perfectDates = generateConsecutiveDates('2025-03-01', 10);
-    const wellnessDates = generateConsecutiveDates('2025-04-01', 10);
+  it("returns 0 when no wellness dates overlap", () => {
+    const perfectDates = generateConsecutiveDates("2025-03-01", 10);
+    const wellnessDates = generateConsecutiveDates("2025-04-01", 10);
     expect(countFullSpectrumDays(perfectDates, wellnessDates)).toBe(0);
   });
 
-  it('has correct XP reward of 150', () => {
-    expect(BADGE_XP['full_spectrum']).toBe(150);
+  it("has correct XP reward of 150", () => {
+    expect(BADGE_XP["full_spectrum"]).toBe(150);
   });
 });
 
-describe('Badge Definitions — habit badges', () => {
-  it('includes habit_master badge definition', () => {
-    const badge = getBadgeById('habit_master');
+describe("Badge Definitions — habit badges", () => {
+  it("includes habit_master badge definition", () => {
+    const badge = getBadgeById("habit_master");
     expect(badge).toBeDefined();
-    expect(badge!.name).toBe('Habit Master');
-    expect(badge!.icon).toBe('🏆');
-    expect(badge!.category).toBe('habit');
+    expect(badge!.name).toBe("Habit Master");
+    expect(badge!.icon).toBe("🏆");
+    expect(badge!.category).toBe("habit");
     expect(badge!.xpReward).toBe(100);
     expect(badge!.isMystery).toBe(false);
   });
 
-  it('includes wellness_warrior badge definition', () => {
-    const badge = getBadgeById('wellness_warrior');
+  it("includes wellness_warrior badge definition", () => {
+    const badge = getBadgeById("wellness_warrior");
     expect(badge).toBeDefined();
-    expect(badge!.name).toBe('Wellness Warrior');
-    expect(badge!.icon).toBe('🧘');
-    expect(badge!.category).toBe('habit');
+    expect(badge!.name).toBe("Wellness Warrior");
+    expect(badge!.icon).toBe("🧘");
+    expect(badge!.category).toBe("habit");
     expect(badge!.xpReward).toBe(75);
     expect(badge!.isMystery).toBe(false);
   });
 
-  it('includes full_spectrum badge definition', () => {
-    const badge = getBadgeById('full_spectrum');
+  it("includes full_spectrum badge definition", () => {
+    const badge = getBadgeById("full_spectrum");
     expect(badge).toBeDefined();
-    expect(badge!.name).toBe('Full Spectrum');
-    expect(badge!.icon).toBe('🌈');
-    expect(badge!.category).toBe('habit');
+    expect(badge!.name).toBe("Full Spectrum");
+    expect(badge!.icon).toBe("🌈");
+    expect(badge!.category).toBe("habit");
     expect(badge!.xpReward).toBe(150);
     expect(badge!.isMystery).toBe(false);
   });
 
-  it('all three habit badges are in the habit category', () => {
-    const habitBadges = getBadgesByCategory('habit');
+  it("all three habit badges are in the habit category", () => {
+    const habitBadges = getBadgesByCategory("habit");
     expect(habitBadges.length).toBe(3);
     const ids = habitBadges.map((b) => b.id);
-    expect(ids).toContain('habit_master');
-    expect(ids).toContain('wellness_warrior');
-    expect(ids).toContain('full_spectrum');
+    expect(ids).toContain("habit_master");
+    expect(ids).toContain("wellness_warrior");
+    expect(ids).toContain("full_spectrum");
   });
 
-  it('habit badges have meaningful descriptions', () => {
-    const habitBadges = getBadgesByCategory('habit');
+  it("habit badges have meaningful descriptions", () => {
+    const habitBadges = getBadgesByCategory("habit");
     for (const badge of habitBadges) {
       expect(badge.description.length).toBeGreaterThan(10);
       expect(badge.condition.length).toBeGreaterThan(5);

@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from "vitest";
 
 // ─── Replicate pure helpers from the Edge Function for unit testing ──────────
 // Edge Functions run on Deno and can't be imported directly in Vitest.
@@ -25,35 +25,35 @@ interface HistoricalFeedback {
 // ─── Constants ──────────────────────────────────────────────────────────────
 
 const BLOOMS_LABELS: Record<string, string> = {
-  remembering: 'Remembering',
-  understanding: 'Understanding',
-  applying: 'Applying',
-  analyzing: 'Analyzing',
-  evaluating: 'Evaluating',
-  creating: 'Creating',
+  remembering: "Remembering",
+  understanding: "Understanding",
+  applying: "Applying",
+  analyzing: "Analyzing",
+  evaluating: "Evaluating",
+  creating: "Creating",
 };
 
 const BLOOMS_ACTION_PHRASES: Record<string, string> = {
-  remembering: 'recalling and identifying key concepts',
-  understanding: 'explaining and interpreting ideas',
-  applying: 'applying concepts to new situations',
-  analyzing: 'breaking down and examining relationships',
-  evaluating: 'making judgments and defending positions',
-  creating: 'producing original and innovative work',
+  remembering: "recalling and identifying key concepts",
+  understanding: "explaining and interpreting ideas",
+  applying: "applying concepts to new situations",
+  analyzing: "breaking down and examining relationships",
+  evaluating: "making judgments and defending positions",
+  creating: "producing original and innovative work",
 };
 
 // ─── Replicated Pure Functions ──────────────────────────────────────────────
 
 function getPerformanceTier(
   levelIndex: number,
-  totalLevels: number,
-): 'top' | 'upper' | 'mid' | 'low' {
-  if (totalLevels <= 1) return 'top';
+  totalLevels: number
+): "top" | "upper" | "mid" | "low" {
+  if (totalLevels <= 1) return "top";
   const ratio = levelIndex / (totalLevels - 1);
-  if (ratio >= 0.9) return 'top';
-  if (ratio >= 0.6) return 'upper';
-  if (ratio >= 0.3) return 'mid';
-  return 'low';
+  if (ratio >= 0.9) return "top";
+  if (ratio >= 0.6) return "upper";
+  if (ratio >= 0.3) return "mid";
+  return "low";
 }
 
 function buildCriterionDraft(
@@ -62,30 +62,30 @@ function buildCriterionDraft(
   levelIndex: number,
   totalLevels: number,
   cloContext: CLOContext | null,
-  historicalThemes: string[],
+  historicalThemes: string[]
 ): string {
   const tier = getPerformanceTier(levelIndex, totalLevels);
   const parts: string[] = [];
 
   switch (tier) {
-    case 'top':
+    case "top":
       parts.push(
-        `Excellent work on ${criterionName}. Your response demonstrates strong mastery at the "${selectedLevel.label}" level.`,
+        `Excellent work on ${criterionName}. Your response demonstrates strong mastery at the "${selectedLevel.label}" level.`
       );
       break;
-    case 'upper':
+    case "upper":
       parts.push(
-        `Good effort on ${criterionName}. You've reached the "${selectedLevel.label}" level, showing solid understanding.`,
+        `Good effort on ${criterionName}. You've reached the "${selectedLevel.label}" level, showing solid understanding.`
       );
       break;
-    case 'mid':
+    case "mid":
       parts.push(
-        `Adequate work on ${criterionName}. At the "${selectedLevel.label}" level, there is room for growth.`,
+        `Adequate work on ${criterionName}. At the "${selectedLevel.label}" level, there is room for growth.`
       );
       break;
-    case 'low':
+    case "low":
       parts.push(
-        `${criterionName} needs improvement. At the "${selectedLevel.label}" level, significant development is needed.`,
+        `${criterionName} needs improvement. At the "${selectedLevel.label}" level, significant development is needed.`
       );
       break;
   }
@@ -95,74 +95,91 @@ function buildCriterionDraft(
   }
 
   if (cloContext) {
-    const bloomsKey = cloContext.blooms_level?.toLowerCase() ?? '';
+    const bloomsKey = cloContext.blooms_level?.toLowerCase() ?? "";
     const actionPhrase = BLOOMS_ACTION_PHRASES[bloomsKey];
-    if (actionPhrase && (tier === 'mid' || tier === 'low')) {
+    if (actionPhrase && (tier === "mid" || tier === "low")) {
       parts.push(
-        `To improve, focus on ${actionPhrase} as required by the "${cloContext.title}" learning outcome.`,
+        `To improve, focus on ${actionPhrase} as required by the "${cloContext.title}" learning outcome.`
       );
-    } else if (actionPhrase && (tier === 'top' || tier === 'upper')) {
+    } else if (actionPhrase && (tier === "top" || tier === "upper")) {
       parts.push(
-        `This aligns well with the "${cloContext.title}" outcome's focus on ${actionPhrase}.`,
+        `This aligns well with the "${cloContext.title}" outcome's focus on ${actionPhrase}.`
       );
     }
   }
 
   if (historicalThemes.length > 0) {
     const theme = historicalThemes[0];
-    if (tier === 'mid' || tier === 'low') {
-      parts.push(`Note: Previous feedback has highlighted similar areas — "${theme}". Consider reviewing past guidance.`);
+    if (tier === "mid" || tier === "low") {
+      parts.push(
+        `Note: Previous feedback has highlighted similar areas — "${theme}". Consider reviewing past guidance.`
+      );
     }
   }
 
-  return parts.join(' ');
+  return parts.join(" ");
 }
 
 function buildOverallDraft(
   criterionResults: Array<{
     criterionName: string;
-    tier: 'top' | 'upper' | 'mid' | 'low';
+    tier: "top" | "upper" | "mid" | "low";
     levelLabel: string;
   }>,
-  cloContext: CLOContext | null,
+  cloContext: CLOContext | null
 ): string {
-  const strengths = criterionResults.filter((c) => c.tier === 'top' || c.tier === 'upper');
-  const improvements = criterionResults.filter((c) => c.tier === 'mid' || c.tier === 'low');
+  const strengths = criterionResults.filter(
+    (c) => c.tier === "top" || c.tier === "upper"
+  );
+  const improvements = criterionResults.filter(
+    (c) => c.tier === "mid" || c.tier === "low"
+  );
 
   const parts: string[] = [];
 
   if (strengths.length > 0) {
-    const names = strengths.map((s) => s.criterionName).join(', ');
+    const names = strengths.map((s) => s.criterionName).join(", ");
     parts.push(`Strengths: Strong performance in ${names}.`);
   }
 
   if (improvements.length > 0) {
-    const names = improvements.map((s) => s.criterionName).join(', ');
-    parts.push(`Areas for improvement: ${names} need${improvements.length === 1 ? 's' : ''} further development.`);
+    const names = improvements.map((s) => s.criterionName).join(", ");
+    parts.push(
+      `Areas for improvement: ${names} need${
+        improvements.length === 1 ? "s" : ""
+      } further development.`
+    );
   }
 
   if (cloContext) {
-    const bloomsLabel = BLOOMS_LABELS[cloContext.blooms_level?.toLowerCase() ?? ''] ?? '';
+    const bloomsLabel =
+      BLOOMS_LABELS[cloContext.blooms_level?.toLowerCase() ?? ""] ?? "";
     if (bloomsLabel) {
       parts.push(
-        `This assessment targets the "${cloContext.title}" outcome at the ${bloomsLabel} level of Bloom's Taxonomy.`,
+        `This assessment targets the "${cloContext.title}" outcome at the ${bloomsLabel} level of Bloom's Taxonomy.`
       );
     }
   }
 
   if (strengths.length === criterionResults.length) {
-    parts.push('Overall, this is a well-executed submission. Keep up the excellent work.');
+    parts.push(
+      "Overall, this is a well-executed submission. Keep up the excellent work."
+    );
   } else if (improvements.length === criterionResults.length) {
-    parts.push('Overall, this submission needs significant revision. Please review the rubric criteria and resubmit if possible.');
+    parts.push(
+      "Overall, this submission needs significant revision. Please review the rubric criteria and resubmit if possible."
+    );
   } else {
-    parts.push('Continue building on your strengths while addressing the identified areas for improvement.');
+    parts.push(
+      "Continue building on your strengths while addressing the identified areas for improvement."
+    );
   }
 
-  return parts.join(' ');
+  return parts.join(" ");
 }
 
 function extractHistoricalThemes(
-  historicalFeedback: HistoricalFeedback[],
+  historicalFeedback: HistoricalFeedback[]
 ): string[] {
   const feedbackTexts = historicalFeedback
     .map((h) => h.overall_feedback)
@@ -197,277 +214,304 @@ function extractHistoricalThemes(
 // ─── Test Data ──────────────────────────────────────────────────────────────
 
 const sampleLevels: CriterionLevel[] = [
-  { label: 'Beginning', description: 'Minimal understanding shown', points: 1 },
-  { label: 'Developing', description: 'Partial understanding with gaps', points: 2 },
-  { label: 'Proficient', description: 'Solid understanding demonstrated', points: 3 },
-  { label: 'Exemplary', description: 'Exceptional mastery shown', points: 4 },
+  { label: "Beginning", description: "Minimal understanding shown", points: 1 },
+  {
+    label: "Developing",
+    description: "Partial understanding with gaps",
+    points: 2,
+  },
+  {
+    label: "Proficient",
+    description: "Solid understanding demonstrated",
+    points: 3,
+  },
+  { label: "Exemplary", description: "Exceptional mastery shown", points: 4 },
 ];
 
 const sampleCLO: CLOContext = {
-  title: 'Apply data structures to solve problems',
-  blooms_level: 'applying',
+  title: "Apply data structures to solve problems",
+  blooms_level: "applying",
 };
 
 // ─── Tests ──────────────────────────────────────────────────────────────────
 
-describe('ai-feedback-draft helpers', () => {
-  describe('getPerformanceTier', () => {
+describe("ai-feedback-draft helpers", () => {
+  describe("getPerformanceTier", () => {
     it('should return "top" for the highest level in a 4-level rubric', () => {
-      expect(getPerformanceTier(3, 4)).toBe('top');
+      expect(getPerformanceTier(3, 4)).toBe("top");
     });
 
     it('should return "low" for the lowest level in a 4-level rubric', () => {
-      expect(getPerformanceTier(0, 4)).toBe('low');
+      expect(getPerformanceTier(0, 4)).toBe("low");
     });
 
     it('should return "upper" for level 2 in a 4-level rubric', () => {
-      expect(getPerformanceTier(2, 4)).toBe('upper');
+      expect(getPerformanceTier(2, 4)).toBe("upper");
     });
 
     it('should return "mid" for level 1 in a 4-level rubric', () => {
-      expect(getPerformanceTier(1, 4)).toBe('mid');
+      expect(getPerformanceTier(1, 4)).toBe("mid");
     });
 
     it('should return "top" when there is only 1 level', () => {
-      expect(getPerformanceTier(0, 1)).toBe('top');
+      expect(getPerformanceTier(0, 1)).toBe("top");
     });
 
     it('should return "top" for the highest level in a 2-level rubric', () => {
-      expect(getPerformanceTier(1, 2)).toBe('top');
+      expect(getPerformanceTier(1, 2)).toBe("top");
     });
 
     it('should return "low" for the lowest level in a 2-level rubric', () => {
-      expect(getPerformanceTier(0, 2)).toBe('low');
+      expect(getPerformanceTier(0, 2)).toBe("low");
     });
   });
 
-  describe('buildCriterionDraft', () => {
+  describe("buildCriterionDraft", () => {
     it('should generate "Excellent" opening for top-tier performance', () => {
       const result = buildCriterionDraft(
-        'Critical Thinking',
+        "Critical Thinking",
         sampleLevels[3]!,
         3,
         4,
         null,
-        [],
+        []
       );
-      expect(result).toContain('Excellent work on Critical Thinking');
+      expect(result).toContain("Excellent work on Critical Thinking");
       expect(result).toContain('"Exemplary"');
     });
 
     it('should generate "Good effort" opening for upper-tier performance', () => {
       const result = buildCriterionDraft(
-        'Research Quality',
+        "Research Quality",
         sampleLevels[2]!,
         2,
         4,
         null,
-        [],
+        []
       );
-      expect(result).toContain('Good effort on Research Quality');
+      expect(result).toContain("Good effort on Research Quality");
       expect(result).toContain('"Proficient"');
     });
 
     it('should generate "Adequate" opening for mid-tier performance', () => {
       const result = buildCriterionDraft(
-        'Writing Clarity',
+        "Writing Clarity",
         sampleLevels[1]!,
         1,
         4,
         null,
-        [],
+        []
       );
-      expect(result).toContain('Adequate work on Writing Clarity');
+      expect(result).toContain("Adequate work on Writing Clarity");
       expect(result).toContain('"Developing"');
     });
 
     it('should generate "needs improvement" opening for low-tier performance', () => {
       const result = buildCriterionDraft(
-        'Organization',
+        "Organization",
         sampleLevels[0]!,
         0,
         4,
         null,
-        [],
+        []
       );
-      expect(result).toContain('Organization needs improvement');
+      expect(result).toContain("Organization needs improvement");
       expect(result).toContain('"Beginning"');
     });
 
-    it('should include level description when present', () => {
+    it("should include level description when present", () => {
       const result = buildCriterionDraft(
-        'Analysis',
+        "Analysis",
         sampleLevels[2]!,
         2,
         4,
         null,
-        [],
+        []
       );
-      expect(result).toContain('Specifically: Solid understanding demonstrated');
+      expect(result).toContain(
+        "Specifically: Solid understanding demonstrated"
+      );
     });
 
-    it('should include CLO improvement guidance for low-tier with CLO context', () => {
+    it("should include CLO improvement guidance for low-tier with CLO context", () => {
       const result = buildCriterionDraft(
-        'Problem Solving',
+        "Problem Solving",
         sampleLevels[0]!,
         0,
         4,
         sampleCLO,
-        [],
+        []
       );
-      expect(result).toContain('To improve, focus on applying concepts to new situations');
+      expect(result).toContain(
+        "To improve, focus on applying concepts to new situations"
+      );
       expect(result).toContain('"Apply data structures to solve problems"');
     });
 
-    it('should include CLO alignment note for top-tier with CLO context', () => {
+    it("should include CLO alignment note for top-tier with CLO context", () => {
       const result = buildCriterionDraft(
-        'Problem Solving',
+        "Problem Solving",
         sampleLevels[3]!,
         3,
         4,
         sampleCLO,
-        [],
+        []
       );
-      expect(result).toContain('This aligns well with');
-      expect(result).toContain('applying concepts to new situations');
+      expect(result).toContain("This aligns well with");
+      expect(result).toContain("applying concepts to new situations");
     });
 
-    it('should include historical theme note for low-tier performance', () => {
+    it("should include historical theme note for low-tier performance", () => {
       const result = buildCriterionDraft(
-        'Citations',
+        "Citations",
         sampleLevels[0]!,
         0,
         4,
         null,
-        ['needs more supporting evidence'],
+        ["needs more supporting evidence"]
       );
-      expect(result).toContain('Previous feedback has highlighted similar areas');
-      expect(result).toContain('needs more supporting evidence');
+      expect(result).toContain(
+        "Previous feedback has highlighted similar areas"
+      );
+      expect(result).toContain("needs more supporting evidence");
     });
 
-    it('should NOT include historical theme note for top-tier performance', () => {
+    it("should NOT include historical theme note for top-tier performance", () => {
       const result = buildCriterionDraft(
-        'Citations',
+        "Citations",
         sampleLevels[3]!,
         3,
         4,
         null,
-        ['needs more supporting evidence'],
+        ["needs more supporting evidence"]
       );
-      expect(result).not.toContain('Previous feedback');
+      expect(result).not.toContain("Previous feedback");
     });
 
-    it('should handle null CLO context gracefully', () => {
+    it("should handle null CLO context gracefully", () => {
       const result = buildCriterionDraft(
-        'Criterion A',
+        "Criterion A",
         sampleLevels[1]!,
         1,
         4,
         null,
-        [],
+        []
       );
-      expect(result).not.toContain('learning outcome');
-      expect(result).toContain('Adequate work on Criterion A');
+      expect(result).not.toContain("learning outcome");
+      expect(result).toContain("Adequate work on Criterion A");
     });
 
-    it('should handle empty level description', () => {
-      const emptyDescLevel: CriterionLevel = { label: 'Pass', description: '', points: 1 };
-      const result = buildCriterionDraft('Test', emptyDescLevel, 0, 2, null, []);
-      expect(result).not.toContain('Specifically:');
+    it("should handle empty level description", () => {
+      const emptyDescLevel: CriterionLevel = {
+        label: "Pass",
+        description: "",
+        points: 1,
+      };
+      const result = buildCriterionDraft(
+        "Test",
+        emptyDescLevel,
+        0,
+        2,
+        null,
+        []
+      );
+      expect(result).not.toContain("Specifically:");
     });
   });
 
-  describe('buildOverallDraft', () => {
-    it('should list strengths when top/upper criteria exist', () => {
+  describe("buildOverallDraft", () => {
+    it("should list strengths when top/upper criteria exist", () => {
       const result = buildOverallDraft(
         [
-          { criterionName: 'Analysis', tier: 'top', levelLabel: 'Exemplary' },
-          { criterionName: 'Writing', tier: 'upper', levelLabel: 'Proficient' },
+          { criterionName: "Analysis", tier: "top", levelLabel: "Exemplary" },
+          { criterionName: "Writing", tier: "upper", levelLabel: "Proficient" },
         ],
-        null,
+        null
       );
-      expect(result).toContain('Strengths: Strong performance in Analysis, Writing');
-      expect(result).toContain('well-executed submission');
+      expect(result).toContain(
+        "Strengths: Strong performance in Analysis, Writing"
+      );
+      expect(result).toContain("well-executed submission");
     });
 
-    it('should list areas for improvement when mid/low criteria exist', () => {
+    it("should list areas for improvement when mid/low criteria exist", () => {
       const result = buildOverallDraft(
         [
-          { criterionName: 'Research', tier: 'low', levelLabel: 'Beginning' },
-          { criterionName: 'Citations', tier: 'mid', levelLabel: 'Developing' },
+          { criterionName: "Research", tier: "low", levelLabel: "Beginning" },
+          { criterionName: "Citations", tier: "mid", levelLabel: "Developing" },
         ],
-        null,
+        null
       );
-      expect(result).toContain('Areas for improvement: Research, Citations');
-      expect(result).toContain('significant revision');
+      expect(result).toContain("Areas for improvement: Research, Citations");
+      expect(result).toContain("significant revision");
     });
 
-    it('should include both strengths and improvements for mixed results', () => {
+    it("should include both strengths and improvements for mixed results", () => {
       const result = buildOverallDraft(
         [
-          { criterionName: 'Analysis', tier: 'top', levelLabel: 'Exemplary' },
-          { criterionName: 'Writing', tier: 'low', levelLabel: 'Beginning' },
+          { criterionName: "Analysis", tier: "top", levelLabel: "Exemplary" },
+          { criterionName: "Writing", tier: "low", levelLabel: "Beginning" },
         ],
-        null,
+        null
       );
-      expect(result).toContain('Strengths');
-      expect(result).toContain('Areas for improvement');
-      expect(result).toContain('Continue building on your strengths');
+      expect(result).toContain("Strengths");
+      expect(result).toContain("Areas for improvement");
+      expect(result).toContain("Continue building on your strengths");
     });
 
     it('should use singular "needs" for single improvement area', () => {
       const result = buildOverallDraft(
         [
-          { criterionName: 'Analysis', tier: 'top', levelLabel: 'Exemplary' },
-          { criterionName: 'Writing', tier: 'low', levelLabel: 'Beginning' },
+          { criterionName: "Analysis", tier: "top", levelLabel: "Exemplary" },
+          { criterionName: "Writing", tier: "low", levelLabel: "Beginning" },
         ],
-        null,
+        null
       );
-      expect(result).toContain('Writing needs further development');
+      expect(result).toContain("Writing needs further development");
     });
 
     it('should use plural "need" for multiple improvement areas', () => {
       const result = buildOverallDraft(
         [
-          { criterionName: 'Research', tier: 'low', levelLabel: 'Beginning' },
-          { criterionName: 'Citations', tier: 'mid', levelLabel: 'Developing' },
+          { criterionName: "Research", tier: "low", levelLabel: "Beginning" },
+          { criterionName: "Citations", tier: "mid", levelLabel: "Developing" },
         ],
-        null,
+        null
       );
-      expect(result).toContain('need further development');
+      expect(result).toContain("need further development");
     });
 
-    it('should include CLO context with Bloom\'s level when provided', () => {
+    it("should include CLO context with Bloom's level when provided", () => {
       const result = buildOverallDraft(
-        [{ criterionName: 'Analysis', tier: 'top', levelLabel: 'Exemplary' }],
-        sampleCLO,
+        [{ criterionName: "Analysis", tier: "top", levelLabel: "Exemplary" }],
+        sampleCLO
       );
       expect(result).toContain('"Apply data structures to solve problems"');
-      expect(result).toContain('Applying level');
+      expect(result).toContain("Applying level");
       expect(result).toContain("Bloom's Taxonomy");
     });
 
-    it('should handle null CLO context', () => {
+    it("should handle null CLO context", () => {
       const result = buildOverallDraft(
-        [{ criterionName: 'Analysis', tier: 'top', levelLabel: 'Exemplary' }],
-        null,
+        [{ criterionName: "Analysis", tier: "top", levelLabel: "Exemplary" }],
+        null
       );
       expect(result).not.toContain("Bloom's Taxonomy");
     });
 
-    it('should handle empty criterion results', () => {
+    it("should handle empty criterion results", () => {
       const result = buildOverallDraft([], null);
       // With 0 criteria, strengths === total (both 0), so it's treated as all-strengths
-      expect(result).toContain('well-executed submission');
+      expect(result).toContain("well-executed submission");
     });
   });
 
-  describe('extractHistoricalThemes', () => {
-    it('should return empty array when no feedback exists', () => {
+  describe("extractHistoricalThemes", () => {
+    it("should return empty array when no feedback exists", () => {
       expect(extractHistoricalThemes([])).toEqual([]);
     });
 
-    it('should return empty array when all feedback is null', () => {
+    it("should return empty array when all feedback is null", () => {
       const feedback: HistoricalFeedback[] = [
         { overall_feedback: null, rubric_selections: null },
         { overall_feedback: null, rubric_selections: null },
@@ -475,50 +519,80 @@ describe('ai-feedback-draft helpers', () => {
       expect(extractHistoricalThemes(feedback)).toEqual([]);
     });
 
-    it('should extract recurring sentences from multiple feedback entries', () => {
+    it("should extract recurring sentences from multiple feedback entries", () => {
       const feedback: HistoricalFeedback[] = [
-        { overall_feedback: 'Good work overall. Needs more supporting evidence in arguments.', rubric_selections: null },
-        { overall_feedback: 'Solid effort. Needs more supporting evidence in arguments.', rubric_selections: null },
-        { overall_feedback: 'Improving steadily. Keep it up.', rubric_selections: null },
+        {
+          overall_feedback:
+            "Good work overall. Needs more supporting evidence in arguments.",
+          rubric_selections: null,
+        },
+        {
+          overall_feedback:
+            "Solid effort. Needs more supporting evidence in arguments.",
+          rubric_selections: null,
+        },
+        {
+          overall_feedback: "Improving steadily. Keep it up.",
+          rubric_selections: null,
+        },
       ];
       const themes = extractHistoricalThemes(feedback);
       expect(themes.length).toBeGreaterThan(0);
-      expect(themes[0]).toContain('needs more supporting evidence in arguments');
+      expect(themes[0]).toContain(
+        "needs more supporting evidence in arguments"
+      );
     });
 
-    it('should not return sentences that appear only once', () => {
+    it("should not return sentences that appear only once", () => {
       const feedback: HistoricalFeedback[] = [
-        { overall_feedback: 'Unique feedback sentence one here.', rubric_selections: null },
-        { overall_feedback: 'Completely different feedback two here.', rubric_selections: null },
+        {
+          overall_feedback: "Unique feedback sentence one here.",
+          rubric_selections: null,
+        },
+        {
+          overall_feedback: "Completely different feedback two here.",
+          rubric_selections: null,
+        },
       ];
       const themes = extractHistoricalThemes(feedback);
       expect(themes).toEqual([]);
     });
 
-    it('should return at most 3 themes', () => {
-      const repeatedSentence = (n: number) => `This is recurring theme number ${n} in feedback`;
+    it("should return at most 3 themes", () => {
+      const repeatedSentence = (n: number) =>
+        `This is recurring theme number ${n} in feedback`;
       const feedback: HistoricalFeedback[] = [
-        { overall_feedback: `${repeatedSentence(1)}. ${repeatedSentence(2)}. ${repeatedSentence(3)}. ${repeatedSentence(4)}.`, rubric_selections: null },
-        { overall_feedback: `${repeatedSentence(1)}. ${repeatedSentence(2)}. ${repeatedSentence(3)}. ${repeatedSentence(4)}.`, rubric_selections: null },
+        {
+          overall_feedback: `${repeatedSentence(1)}. ${repeatedSentence(
+            2
+          )}. ${repeatedSentence(3)}. ${repeatedSentence(4)}.`,
+          rubric_selections: null,
+        },
+        {
+          overall_feedback: `${repeatedSentence(1)}. ${repeatedSentence(
+            2
+          )}. ${repeatedSentence(3)}. ${repeatedSentence(4)}.`,
+          rubric_selections: null,
+        },
       ];
       const themes = extractHistoricalThemes(feedback);
       expect(themes.length).toBeLessThanOrEqual(3);
     });
 
-    it('should ignore very short sentences', () => {
+    it("should ignore very short sentences", () => {
       const feedback: HistoricalFeedback[] = [
-        { overall_feedback: 'Good. Needs work.', rubric_selections: null },
-        { overall_feedback: 'Good. Needs work.', rubric_selections: null },
+        { overall_feedback: "Good. Needs work.", rubric_selections: null },
+        { overall_feedback: "Good. Needs work.", rubric_selections: null },
       ];
       const themes = extractHistoricalThemes(feedback);
       // "Good" and "Needs work" are both < 10 chars, so no themes
       expect(themes).toEqual([]);
     });
 
-    it('should handle empty string feedback', () => {
+    it("should handle empty string feedback", () => {
       const feedback: HistoricalFeedback[] = [
-        { overall_feedback: '', rubric_selections: null },
-        { overall_feedback: '   ', rubric_selections: null },
+        { overall_feedback: "", rubric_selections: null },
+        { overall_feedback: "   ", rubric_selections: null },
       ];
       expect(extractHistoricalThemes(feedback)).toEqual([]);
     });

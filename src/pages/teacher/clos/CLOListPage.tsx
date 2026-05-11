@@ -1,37 +1,41 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
-import { parseAsString, useQueryState } from 'nuqs';
-import { createColumns } from './columns';
-import { DataTable } from '@/components/shared/DataTable';
-import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
-import { useCLOs, useDeleteCLO } from '@/hooks/useCLOs';
-import { useCourses } from '@/hooks/useCourses';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { parseAsString, useQueryState } from "nuqs";
+import { createColumns } from "./columns";
+import { DataTable } from "@/components/shared/DataTable";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import { useCLOs, useDeleteCLO } from "@/hooks/useCLOs";
+import { useCourses } from "@/hooks/useCourses";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Plus, Search } from 'lucide-react';
-import type { LearningOutcome } from '@/types/app';
+} from "@/components/ui/select";
+import { Plus, Search } from "lucide-react";
+import type { LearningOutcome } from "@/types/app";
+import { NoCourses } from "@/components/shared/EmptyState";
 
 const CLOListPage = () => {
   const navigate = useNavigate();
-  const [search, setSearch] = useQueryState('q', parseAsString.withDefault(''));
+  const [search, setSearch] = useQueryState("q", parseAsString.withDefault(""));
   const [courseFilter, setCourseFilter] = useQueryState(
-    'course',
-    parseAsString.withDefault(''),
+    "course",
+    parseAsString.withDefault("")
   );
   const [cloToDelete, setCloToDelete] = useState<LearningOutcome | null>(null);
   const [page, setPage] = useState(1);
 
   const { data: paginatedCourses, isLoading: coursesLoading } = useCourses();
   const courses = paginatedCourses?.data;
-  const { data: paginatedCLOs, isLoading } = useCLOs(courseFilter || undefined, { page });
+  const { data: paginatedCLOs, isLoading } = useCLOs(
+    courseFilter || undefined,
+    { page }
+  );
   const deleteMutation = useDeleteCLO();
 
   const filteredCLOs = (paginatedCLOs?.data ?? []).filter((clo) => {
@@ -45,7 +49,7 @@ const CLOListPage = () => {
 
   const columns = createColumns(
     (id) => navigate(`/teacher/clos/${id}/edit`),
-    (clo) => setCloToDelete(clo),
+    (clo) => setCloToDelete(clo)
   );
 
   return (
@@ -57,7 +61,7 @@ const CLOListPage = () => {
         </h1>
         <Button
           className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 text-white"
-          onClick={() => navigate('/teacher/clos/new')}
+          onClick={() => navigate("/teacher/clos/new")}
         >
           <Plus className="h-4 w-4" /> Add CLO
         </Button>
@@ -76,7 +80,10 @@ const CLOListPage = () => {
         </div>
         <Select
           value={courseFilter}
-          onValueChange={(val) => { setCourseFilter(val === 'all' ? '' : val); setPage(1); }}
+          onValueChange={(val) => {
+            setCourseFilter(val === "all" ? "" : val);
+            setPage(1);
+          }}
           disabled={coursesLoading}
         >
           <SelectTrigger className="w-[260px] bg-white">
@@ -102,6 +109,9 @@ const CLOListPage = () => {
         pageSize={paginatedCLOs?.pageSize}
         totalCount={paginatedCLOs?.count}
         onPageChange={setPage}
+        emptyState={
+          filteredCLOs.length === 0 && !isLoading ? <NoCourses /> : undefined
+        }
       />
 
       {/* Delete Confirmation Dialog */}

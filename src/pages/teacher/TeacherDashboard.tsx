@@ -1,33 +1,34 @@
-import { useState, useMemo, useCallback } from 'react';
-import { Link } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
+import { useState, useMemo, useCallback } from "react";
+import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import Shimmer from '@/components/shared/Shimmer';
-import RealtimeStatusBanner from '@/components/shared/RealtimeStatusBanner';
-import { useAuth } from '@/hooks/useAuth';
-import { useCourses } from '@/hooks/useCourses';
-import { useCourseSections } from '@/hooks/useCourseSections';
-import { usePendingSubmissions } from '@/hooks/useSubmissions';
-import { useRealtime } from '@/hooks/useRealtime';
-import { queryKeys } from '@/lib/queryKeys';
-import { useQueryClient } from '@tanstack/react-query';
+} from "@/components/ui/select";
+import Shimmer from "@/components/shared/Shimmer";
+import RealtimeStatusBanner from "@/components/shared/RealtimeStatusBanner";
+import WelcomeHero from "@/components/shared/WelcomeHero";
+import { useAuth } from "@/hooks/useAuth";
+import { useCourses } from "@/hooks/useCourses";
+import { useCourseSections } from "@/hooks/useCourseSections";
+import { usePendingSubmissions } from "@/hooks/useSubmissions";
+import { useRealtime } from "@/hooks/useRealtime";
+import { queryKeys } from "@/lib/queryKeys";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   useTeacherKPIs,
   useTeacherCLOAttainment,
@@ -35,12 +36,12 @@ import {
   useStudentPerformanceHeatmap,
   useAtRiskStudents,
   useSendNudge,
-} from '@/hooks/useTeacherDashboard';
-import type { AtRiskStudent } from '@/hooks/useTeacherDashboard';
-import type { BloomsLevel } from '@/types/app';
-import AIAtRiskWidget from '@/components/shared/AIAtRiskWidget';
-import { useTeamHealthScores } from '@/hooks/useTeamHealth';
-import GradingStats from '@/pages/teacher/dashboard/GradingStats';
+} from "@/hooks/useTeacherDashboard";
+import type { AtRiskStudent } from "@/hooks/useTeacherDashboard";
+import type { BloomsLevel } from "@/types/app";
+import AIAtRiskWidget from "@/components/shared/AIAtRiskWidget";
+import { useTeamHealthScores } from "@/hooks/useTeamHealth";
+import GradingStats from "@/pages/teacher/dashboard/GradingStats";
 import {
   ClipboardList,
   CheckSquare,
@@ -53,8 +54,8 @@ import {
   Send,
   Loader2,
   type LucideIcon,
-} from 'lucide-react';
-import { toast } from 'sonner';
+} from "lucide-react";
+import { toast } from "sonner";
 import {
   BarChart,
   Bar,
@@ -67,22 +68,23 @@ import {
   Pie,
   Cell,
   Legend,
-} from 'recharts';
-import { formatDistanceToNow } from 'date-fns';
-import { getAttainmentColor as getAttainmentColorFromClassifier, classifyAttainment } from '@/lib/attainmentClassifier';
+} from "recharts";
+import { formatDistanceToNow } from "date-fns";
+import {
+  getAttainmentColor as getAttainmentColorFromClassifier,
+  classifyAttainment,
+} from "@/lib/attainmentClassifier";
 
 // ─── Bloom's Color Map ──────────────────────────────────────────────────────
 
 const BLOOMS_COLORS: Record<BloomsLevel, string> = {
-  remembering: '#a855f7',   // purple-500
-  understanding: '#3b82f6', // blue-500
-  applying: '#22c55e',      // green-500
-  analyzing: '#eab308',     // yellow-500
-  evaluating: '#f97316',    // orange-500
-  creating: '#ef4444',      // red-500
+  remembering: "#a855f7", // purple-500
+  understanding: "#3b82f6", // blue-500
+  applying: "#22c55e", // green-500
+  analyzing: "#eab308", // yellow-500
+  evaluating: "#f97316", // orange-500
+  creating: "#ef4444", // red-500
 };
-
-
 
 // ─── Attainment color helpers ───────────────────────────────────────────────
 
@@ -91,8 +93,8 @@ const getAttainmentColor = (percent: number): string => {
 };
 
 const getAttainmentLabel = (percent: number): string => {
-  if (percent < 0) return '—';
-  return classifyAttainment(percent).replace('_', ' ');
+  if (percent < 0) return "—";
+  return classifyAttainment(percent).replace("_", " ");
 };
 
 // ─── KPI Card ───────────────────────────────────────────────────────────────
@@ -123,7 +125,10 @@ const KPICard = ({ icon: Icon, label, value }: KPICardProps) => (
 
 interface BarTooltipProps {
   active?: boolean;
-  payload?: Array<{ value: number; payload: { clo_title: string; blooms_level: BloomsLevel } }>;
+  payload?: Array<{
+    value: number;
+    payload: { clo_title: string; blooms_level: BloomsLevel };
+  }>;
 }
 
 const CLOBarTooltip = ({ active, payload }: BarTooltipProps) => {
@@ -132,7 +137,9 @@ const CLOBarTooltip = ({ active, payload }: BarTooltipProps) => {
   if (!item) return null;
   return (
     <div className="bg-white border border-slate-200 shadow-lg rounded-lg p-3 text-sm">
-      <p className="font-semibold truncate max-w-[200px]">{item.payload.clo_title}</p>
+      <p className="font-semibold truncate max-w-[200px]">
+        {item.payload.clo_title}
+      </p>
       <p className="text-gray-500">{item.payload.blooms_level}</p>
       <p className="font-black mt-1">{item.value}%</p>
     </div>
@@ -142,16 +149,16 @@ const CLOBarTooltip = ({ active, payload }: BarTooltipProps) => {
 // ─── At-Risk Student Card ───────────────────────────────────────────────────
 
 const AtRiskStudentCard = () => {
-  const { t } = useTranslation('teacher');
+  const { t } = useTranslation("teacher");
   const { data: atRiskStudents, isLoading } = useAtRiskStudents();
   const nudgeMutation = useSendNudge();
   const [nudgeTarget, setNudgeTarget] = useState<AtRiskStudent | null>(null);
-  const [nudgeMessage, setNudgeMessage] = useState('');
+  const [nudgeMessage, setNudgeMessage] = useState("");
 
   const openNudgeDialog = (student: AtRiskStudent) => {
     setNudgeTarget(student);
     setNudgeMessage(
-      `Hi ${student.full_name}, we noticed you haven't been active recently. Let us know if you need help!`,
+      `Hi ${student.full_name}, we noticed you haven't been active recently. Let us know if you need help!`
     );
   };
 
@@ -161,14 +168,18 @@ const AtRiskStudentCard = () => {
       { studentId: nudgeTarget.id, message: nudgeMessage },
       {
         onSuccess: () => {
-          toast.success(t('dashboard.nudgeSent', { name: nudgeTarget.full_name }));
+          toast.success(
+            t("dashboard.nudgeSent", { name: nudgeTarget.full_name })
+          );
           setNudgeTarget(null);
-          setNudgeMessage('');
+          setNudgeMessage("");
         },
         onError: (err) => {
-          toast.error(err instanceof Error ? err.message : t('dashboard.nudgeFailed'));
+          toast.error(
+            err instanceof Error ? err.message : t("dashboard.nudgeFailed")
+          );
         },
-      },
+      }
     );
   };
 
@@ -177,7 +188,9 @@ const AtRiskStudentCard = () => {
       <Card className="bg-white border-0 shadow-md rounded-xl p-6">
         <div className="flex items-center gap-2 mb-4">
           <AlertTriangle className="h-5 w-5 text-blue-600" />
-          <h2 className="text-lg font-bold tracking-tight">{t('dashboard.atRiskStudents')}</h2>
+          <h2 className="text-lg font-bold tracking-tight">
+            {t("dashboard.atRiskStudents")}
+          </h2>
         </div>
         {isLoading ? (
           <div className="space-y-3">
@@ -190,9 +203,7 @@ const AtRiskStudentCard = () => {
             <div className="p-3 rounded-full bg-green-50 mb-3">
               <CheckSquare className="h-8 w-8 text-green-500" />
             </div>
-            <p className="text-sm text-gray-500">
-              {t('dashboard.noAtRisk')}
-            </p>
+            <p className="text-sm text-gray-500">{t("dashboard.noAtRisk")}</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -202,16 +213,18 @@ const AtRiskStudentCard = () => {
                 className="flex items-center justify-between py-2 border-b border-slate-100 last:border-0"
               >
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium truncate">{student.full_name}</p>
+                  <p className="text-sm font-medium truncate">
+                    {student.full_name}
+                  </p>
                   <div className="flex flex-wrap items-center gap-1.5 mt-1">
                     {student.risk_reasons.map((reason) => (
                       <Badge
                         key={reason}
                         variant="outline"
                         className={
-                          reason.includes('Inactive')
-                            ? 'bg-red-50 text-red-600 border-red-200 text-xs'
-                            : 'bg-amber-50 text-amber-600 border-amber-200 text-xs'
+                          reason.includes("Inactive")
+                            ? "bg-red-50 text-red-600 border-red-200 text-xs"
+                            : "bg-amber-50 text-amber-600 border-amber-200 text-xs"
                         }
                       >
                         {reason}
@@ -219,7 +232,9 @@ const AtRiskStudentCard = () => {
                     ))}
                     {student.days_inactive > 0 && (
                       <span className="text-xs text-gray-400">
-                        {t('dashboard.daysInactive', { count: student.days_inactive })}
+                        {t("dashboard.daysInactive", {
+                          count: student.days_inactive,
+                        })}
                       </span>
                     )}
                   </div>
@@ -231,7 +246,7 @@ const AtRiskStudentCard = () => {
                   onClick={() => openNudgeDialog(student)}
                 >
                   <Send className="h-4 w-4" />
-                  {t('dashboard.nudge')}
+                  {t("dashboard.nudge")}
                 </Button>
               </div>
             ))}
@@ -240,16 +255,23 @@ const AtRiskStudentCard = () => {
       </Card>
 
       {/* Nudge Dialog */}
-      <Dialog open={!!nudgeTarget} onOpenChange={(open) => { if (!open) setNudgeTarget(null); }}>
+      <Dialog
+        open={!!nudgeTarget}
+        onOpenChange={(open) => {
+          if (!open) setNudgeTarget(null);
+        }}
+      >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t('dashboard.sendNudgeTo', { name: nudgeTarget?.full_name })}</DialogTitle>
+            <DialogTitle>
+              {t("dashboard.sendNudgeTo", { name: nudgeTarget?.full_name })}
+            </DialogTitle>
           </DialogHeader>
           <Textarea
             value={nudgeMessage}
             onChange={(e) => setNudgeMessage(e.target.value)}
             rows={4}
-            placeholder={t('dashboard.nudgePlaceholder')}
+            placeholder={t("dashboard.nudgePlaceholder")}
           />
           <DialogFooter>
             <Button
@@ -257,15 +279,17 @@ const AtRiskStudentCard = () => {
               onClick={() => setNudgeTarget(null)}
               disabled={nudgeMutation.isPending}
             >
-              {t('dashboard.cancel')}
+              {t("dashboard.cancel")}
             </Button>
             <Button
               onClick={handleSendNudge}
               disabled={nudgeMutation.isPending || !nudgeMessage.trim()}
               className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
             >
-              {nudgeMutation.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-              {t('dashboard.nudge')}
+              {nudgeMutation.isPending && (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              )}
+              {t("dashboard.nudge")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -279,11 +303,15 @@ const AtRiskStudentCard = () => {
 // ─── Team Health Summary Widget (Task 8.5) ──────────────────────────────────
 
 const TeamHealthSummaryWidget = ({ courseId }: { courseId: string }) => {
-  const { t } = useTranslation('teacher');
+  const { t } = useTranslation("teacher");
   const { data: healthScores } = useTeamHealthScores(courseId || undefined);
 
-  const atRiskCount = (healthScores ?? []).filter((t) => t.health_status === 'at_risk').length;
-  const needsAttentionCount = (healthScores ?? []).filter((t) => t.health_status === 'needs_attention').length;
+  const atRiskCount = (healthScores ?? []).filter(
+    (t) => t.health_status === "at_risk"
+  ).length;
+  const needsAttentionCount = (healthScores ?? []).filter(
+    (t) => t.health_status === "needs_attention"
+  ).length;
   const totalTeams = (healthScores ?? []).length;
 
   if (totalTeams === 0) return null;
@@ -292,32 +320,45 @@ const TeamHealthSummaryWidget = ({ courseId }: { courseId: string }) => {
     <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
       <div
         className="px-6 py-4 flex items-center justify-between"
-        style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+        style={{
+          background:
+            "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+        }}
       >
         <div className="flex items-center gap-2">
           <AlertTriangle className="h-5 w-5 text-white" />
-          <h2 className="text-lg font-bold tracking-tight text-white">{t('dashboard.teamHealth')}</h2>
+          <h2 className="text-lg font-bold tracking-tight text-white">
+            {t("dashboard.teamHealth")}
+          </h2>
         </div>
         <Link
           to="/teacher/team-health"
           className="inline-flex items-center gap-1 text-sm font-medium text-white/80 hover:text-white transition-colors"
         >
-          {t('dashboard.viewReport')}
+          {t("dashboard.viewReport")}
           <ArrowRight className="h-4 w-4" />
         </Link>
       </div>
       <div className="p-6">
         <div className="grid grid-cols-3 gap-4">
           <div className="text-center">
-            <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">{t('dashboard.totalTeams')}</p>
+            <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
+              {t("dashboard.totalTeams")}
+            </p>
             <p className="text-2xl font-black">{totalTeams}</p>
           </div>
           <div className="text-center">
-            <p className="text-[10px] font-black tracking-widest uppercase text-yellow-600">{t('dashboard.needsAttention')}</p>
-            <p className="text-2xl font-black text-yellow-600">{needsAttentionCount}</p>
+            <p className="text-[10px] font-black tracking-widest uppercase text-yellow-600">
+              {t("dashboard.needsAttention")}
+            </p>
+            <p className="text-2xl font-black text-yellow-600">
+              {needsAttentionCount}
+            </p>
           </div>
           <div className="text-center">
-            <p className="text-[10px] font-black tracking-widest uppercase text-red-600">{t('dashboard.atRiskLabel')}</p>
+            <p className="text-[10px] font-black tracking-widest uppercase text-red-600">
+              {t("dashboard.atRiskLabel")}
+            </p>
             <p className="text-2xl font-black text-red-600">{atRiskCount}</p>
           </div>
         </div>
@@ -327,34 +368,44 @@ const TeamHealthSummaryWidget = ({ courseId }: { courseId: string }) => {
 };
 
 const TeacherDashboard = () => {
-  const { t } = useTranslation('teacher');
-  const { user } = useAuth();
+  const { t } = useTranslation("teacher");
+  const { user, profile } = useAuth();
   const queryClient = useQueryClient();
   const { data: paginatedCourses, isLoading: coursesLoading } = useCourses();
-  const [selectedCourseId, setSelectedCourseId] = useState<string>('');
-  const [selectedSectionId, setSelectedSectionId] = useState<string>('');
+  const [selectedCourseId, setSelectedCourseId] = useState<string>("");
+  const [selectedSectionId, setSelectedSectionId] = useState<string>("");
 
   // Filter to teacher's own courses
   const teacherCourses = useMemo(
-    () => (paginatedCourses?.data ?? []).filter((c) => c.teacher_id === user?.id),
-    [paginatedCourses, user?.id],
+    () =>
+      (paginatedCourses?.data ?? []).filter((c) => c.teacher_id === user?.id),
+    [paginatedCourses, user?.id]
   );
 
-  const effectiveCourseId = selectedCourseId || (teacherCourses.length > 0 ? teacherCourses[0]!.id : '');
+  const effectiveCourseId =
+    selectedCourseId ||
+    (teacherCourses.length > 0 ? teacherCourses[0]!.id : "");
 
   // Sections for the selected course
-  const { data: courseSections } = useCourseSections(effectiveCourseId || undefined);
+  const { data: courseSections } = useCourseSections(
+    effectiveCourseId || undefined
+  );
 
   // Filter sections to those assigned to this teacher
   const teacherSections = useMemo(
-    () => (courseSections ?? []).filter((s) => s.teacher_id === user?.id && s.is_active),
-    [courseSections, user?.id],
+    () =>
+      (courseSections ?? []).filter(
+        (s) => s.teacher_id === user?.id && s.is_active
+      ),
+    [courseSections, user?.id]
   );
 
   // Realtime: invalidate grading queue when new submissions arrive
   const handleGradingPayload = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: queryKeys.submissions.lists() });
-    queryClient.invalidateQueries({ queryKey: queryKeys.teacherDashboard.lists() });
+    queryClient.invalidateQueries({
+      queryKey: queryKeys.teacherDashboard.lists(),
+    });
   }, [queryClient]);
 
   const handleGradingPolling = useCallback(() => {
@@ -362,27 +413,39 @@ const TeacherDashboard = () => {
   }, [queryClient]);
 
   const { isLive, retryCount } = useRealtime({
-    table: 'submissions',
-    event: 'INSERT',
+    table: "submissions",
+    event: "INSERT",
     onPayload: handleGradingPayload,
     pollingFn: handleGradingPolling,
     pollingInterval: 30_000,
   });
 
   const { data: kpis, isLoading: kpisLoading } = useTeacherKPIs();
-  const { data: cloAttainment, isLoading: cloLoading } = useTeacherCLOAttainment(effectiveCourseId);
-  const { data: bloomsDist, isLoading: bloomsLoading } = useTeacherBloomsDistribution();
-  const { data: heatmapData, isLoading: heatmapLoading } = useStudentPerformanceHeatmap(effectiveCourseId);
-  const { data: pendingSubmissions, isLoading: pendingLoading } = usePendingSubmissions();
+  const { data: cloAttainment, isLoading: cloLoading } =
+    useTeacherCLOAttainment(effectiveCourseId);
+  const { data: bloomsDist, isLoading: bloomsLoading } =
+    useTeacherBloomsDistribution();
+  const { data: heatmapData, isLoading: heatmapLoading } =
+    useStudentPerformanceHeatmap(effectiveCourseId);
+  const { data: pendingSubmissions, isLoading: pendingLoading } =
+    usePendingSubmissions();
 
   // Derive unique students and CLOs for heatmap grid
   const heatmapGrid = useMemo(() => {
-    if (!heatmapData || heatmapData.length === 0) return { students: [] as string[], clos: [] as string[], lookup: new Map<string, number>() };
+    if (!heatmapData || heatmapData.length === 0)
+      return {
+        students: [] as string[],
+        clos: [] as string[],
+        lookup: new Map<string, number>(),
+      };
     const students = [...new Set(heatmapData.map((c) => c.student_name))];
     const clos = [...new Set(heatmapData.map((c) => c.clo_title))];
     const lookup = new Map<string, number>();
     for (const cell of heatmapData) {
-      lookup.set(`${cell.student_name}:${cell.clo_title}`, cell.attainment_percent);
+      lookup.set(
+        `${cell.student_name}:${cell.clo_title}`,
+        cell.attainment_percent
+      );
     }
     return { students, clos, lookup };
   }, [heatmapData]);
@@ -390,12 +453,21 @@ const TeacherDashboard = () => {
   // Recent pending submissions (top 5)
   const recentPending = useMemo(
     () => (pendingSubmissions ?? []).slice(0, 5),
-    [pendingSubmissions],
+    [pendingSubmissions]
   );
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold tracking-tight">{t('dashboard.title')}</h1>
+      {/* Welcome Hero */}
+      <WelcomeHero
+        name={profile?.full_name ?? "Teacher"}
+        userRole="teacher"
+        subtitle={t("dashboard.welcome.subtitle")}
+      />
+
+      <h1 className="text-2xl font-bold tracking-tight">
+        {t("dashboard.title")}
+      </h1>
 
       {/* Live updates status */}
       <RealtimeStatusBanner isLive={isLive} retryCount={retryCount} />
@@ -408,11 +480,30 @@ const TeacherDashboard = () => {
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <KPICard icon={ClipboardList} label={t('dashboard.pendingSubmissions')} value={kpis?.pendingSubmissions ?? 0} />
-          <KPICard icon={CheckSquare} label={t('dashboard.gradedThisWeek')} value={kpis?.gradedThisWeek ?? 0} />
-          <KPICard icon={TrendingUp} label={t('dashboard.avgAttainment')} value={`${kpis?.avgAttainment ?? 0}%`} />
-          <KPICard icon={AlertTriangle} label={t('dashboard.atRiskStudents')} value={kpis?.atRiskCount ?? 0} />
+        <div
+          className="grid grid-cols-2 md:grid-cols-4 gap-4"
+          data-tour="kpi-row"
+        >
+          <KPICard
+            icon={ClipboardList}
+            label={t("dashboard.pendingSubmissions")}
+            value={kpis?.pendingSubmissions ?? 0}
+          />
+          <KPICard
+            icon={CheckSquare}
+            label={t("dashboard.gradedThisWeek")}
+            value={kpis?.gradedThisWeek ?? 0}
+          />
+          <KPICard
+            icon={TrendingUp}
+            label={t("dashboard.avgAttainment")}
+            value={`${kpis?.avgAttainment ?? 0}%`}
+          />
+          <KPICard
+            icon={AlertTriangle}
+            label={t("dashboard.atRiskStudents")}
+            value={kpis?.atRiskCount ?? 0}
+          />
         </div>
       )}
 
@@ -425,11 +516,11 @@ const TeacherDashboard = () => {
             value={effectiveCourseId}
             onValueChange={(v) => {
               setSelectedCourseId(v);
-              setSelectedSectionId('');
+              setSelectedSectionId("");
             }}
           >
             <SelectTrigger className="w-56 bg-white">
-              <SelectValue placeholder={t('dashboard.selectCourse')} />
+              <SelectValue placeholder={t("dashboard.selectCourse")} />
             </SelectTrigger>
             <SelectContent>
               {teacherCourses.map((course) => (
@@ -442,15 +533,18 @@ const TeacherDashboard = () => {
         )}
 
         {teacherSections.length > 0 && (
-          <Select value={selectedSectionId} onValueChange={setSelectedSectionId}>
+          <Select
+            value={selectedSectionId}
+            onValueChange={setSelectedSectionId}
+          >
             <SelectTrigger className="w-48 bg-white">
-              <SelectValue placeholder={t('dashboard.allSections')} />
+              <SelectValue placeholder={t("dashboard.allSections")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">{t('dashboard.allSections')}</SelectItem>
+              <SelectItem value="all">{t("dashboard.allSections")}</SelectItem>
               {teacherSections.map((s) => (
                 <SelectItem key={s.id} value={s.id}>
-                  {t('dashboard.section', { code: s.section_code })}
+                  {t("dashboard.section", { code: s.section_code })}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -464,28 +558,38 @@ const TeacherDashboard = () => {
         <Card className="bg-white border-0 shadow-md rounded-xl p-6 lg:col-span-2">
           <div className="flex items-center gap-2 mb-4">
             <BarChart3 className="h-5 w-5 text-blue-600" />
-            <h2 className="text-lg font-bold tracking-tight">{t('dashboard.cloAttainment')}</h2>
+            <h2 className="text-lg font-bold tracking-tight">
+              {t("dashboard.cloAttainment")}
+            </h2>
           </div>
           {cloLoading ? (
             <Shimmer className="h-[300px] rounded-xl" />
           ) : !cloAttainment || cloAttainment.length === 0 ? (
             <div className="flex items-center justify-center h-[300px] text-sm text-gray-500">
-              {t('dashboard.noCloData')}
+              {t("dashboard.noCloData")}
             </div>
           ) : (
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={cloAttainment} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+              <BarChart
+                data={cloAttainment}
+                margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
+              >
                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                 <XAxis
                   dataKey="clo_title"
                   tick={{ fontSize: 11 }}
-                  tickFormatter={(v: string) => v.length > 15 ? `${v.slice(0, 15)}…` : v}
+                  tickFormatter={(v: string) =>
+                    v.length > 15 ? `${v.slice(0, 15)}…` : v
+                  }
                 />
                 <YAxis domain={[0, 100]} tick={{ fontSize: 11 }} />
                 <Tooltip content={<CLOBarTooltip />} />
                 <Bar dataKey="avg_attainment" radius={[4, 4, 0, 0]}>
                   {cloAttainment.map((entry, idx) => (
-                    <Cell key={idx} fill={BLOOMS_COLORS[entry.blooms_level] ?? '#64748b'} />
+                    <Cell
+                      key={idx}
+                      fill={BLOOMS_COLORS[entry.blooms_level] ?? "#64748b"}
+                    />
                   ))}
                 </Bar>
               </BarChart>
@@ -497,13 +601,15 @@ const TeacherDashboard = () => {
         <Card className="bg-white border-0 shadow-md rounded-xl p-6">
           <div className="flex items-center gap-2 mb-4">
             <PieChartIcon className="h-5 w-5 text-blue-600" />
-            <h2 className="text-lg font-bold tracking-tight">{t('dashboard.bloomsDistribution')}</h2>
+            <h2 className="text-lg font-bold tracking-tight">
+              {t("dashboard.bloomsDistribution")}
+            </h2>
           </div>
           {bloomsLoading ? (
             <Shimmer className="h-[300px] rounded-xl" />
           ) : !bloomsDist || bloomsDist.length === 0 ? (
             <div className="flex items-center justify-center h-[300px] text-sm text-gray-500">
-              {t('dashboard.noClosDefined')}
+              {t("dashboard.noClosDefined")}
             </div>
           ) : (
             <ResponsiveContainer width="100%" height={300}>
@@ -515,11 +621,14 @@ const TeacherDashboard = () => {
                   cx="50%"
                   cy="50%"
                   outerRadius={90}
-                  label={({ name, value }) => `${String(name ?? '')}: ${value}`}
+                  label={({ name, value }) => `${String(name ?? "")}: ${value}`}
                   labelLine={false}
                 >
                   {bloomsDist.map((entry, idx) => (
-                    <Cell key={idx} fill={BLOOMS_COLORS[entry.level] ?? '#64748b'} />
+                    <Cell
+                      key={idx}
+                      fill={BLOOMS_COLORS[entry.level] ?? "#64748b"}
+                    />
                   ))}
                 </Pie>
                 <Legend />
@@ -534,13 +643,15 @@ const TeacherDashboard = () => {
       <Card className="bg-white border-0 shadow-md rounded-xl p-6">
         <div className="flex items-center gap-2 mb-4">
           <Grid3X3 className="h-5 w-5 text-blue-600" />
-          <h2 className="text-lg font-bold tracking-tight">{t('dashboard.studentHeatmap')}</h2>
+          <h2 className="text-lg font-bold tracking-tight">
+            {t("dashboard.studentHeatmap")}
+          </h2>
         </div>
         {heatmapLoading ? (
           <Shimmer className="h-48 rounded-xl" />
         ) : heatmapGrid.students.length === 0 ? (
           <div className="flex items-center justify-center py-12 text-sm text-gray-500">
-            {t('dashboard.noHeatmapData')}
+            {t("dashboard.noHeatmapData")}
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -548,7 +659,7 @@ const TeacherDashboard = () => {
               <thead>
                 <tr>
                   <th className="text-start py-2 px-3 text-xs font-semibold text-gray-500 sticky start-0 bg-white">
-                    {t('dashboard.student')}
+                    {t("dashboard.student")}
                   </th>
                   {heatmapGrid.clos.map((clo) => (
                     <th
@@ -568,15 +679,20 @@ const TeacherDashboard = () => {
                       {student}
                     </td>
                     {heatmapGrid.clos.map((clo) => {
-                      const val = heatmapGrid.lookup.get(`${student}:${clo}`) ?? -1;
+                      const val =
+                        heatmapGrid.lookup.get(`${student}:${clo}`) ?? -1;
                       return (
                         <td key={clo} className="py-2 px-2 text-center">
                           <div
                             className="inline-flex items-center justify-center w-12 h-8 rounded text-xs font-bold text-white"
                             style={{ backgroundColor: getAttainmentColor(val) }}
-                            title={`${val >= 0 ? `${val}% — ${getAttainmentLabel(val)}` : 'No data'}`}
+                            title={`${
+                              val >= 0
+                                ? `${val}% — ${getAttainmentLabel(val)}`
+                                : "No data"
+                            }`}
                           >
-                            {val >= 0 ? `${val}%` : '—'}
+                            {val >= 0 ? `${val}%` : "—"}
                           </div>
                         </td>
                       );
@@ -588,24 +704,39 @@ const TeacherDashboard = () => {
             {/* Legend */}
             <div className="flex items-center gap-4 mt-4 text-xs text-gray-500">
               <div className="flex items-center gap-1">
-                <div className="w-3 h-3 rounded" style={{ backgroundColor: '#22c55e' }} />
-                <span>{t('dashboard.heatmapLegend.excellent')}</span>
+                <div
+                  className="w-3 h-3 rounded"
+                  style={{ backgroundColor: "#22c55e" }}
+                />
+                <span>{t("dashboard.heatmapLegend.excellent")}</span>
               </div>
               <div className="flex items-center gap-1">
-                <div className="w-3 h-3 rounded" style={{ backgroundColor: '#3b82f6' }} />
-                <span>{t('dashboard.heatmapLegend.satisfactory')}</span>
+                <div
+                  className="w-3 h-3 rounded"
+                  style={{ backgroundColor: "#3b82f6" }}
+                />
+                <span>{t("dashboard.heatmapLegend.satisfactory")}</span>
               </div>
               <div className="flex items-center gap-1">
-                <div className="w-3 h-3 rounded" style={{ backgroundColor: '#eab308' }} />
-                <span>{t('dashboard.heatmapLegend.developing')}</span>
+                <div
+                  className="w-3 h-3 rounded"
+                  style={{ backgroundColor: "#eab308" }}
+                />
+                <span>{t("dashboard.heatmapLegend.developing")}</span>
               </div>
               <div className="flex items-center gap-1">
-                <div className="w-3 h-3 rounded" style={{ backgroundColor: '#ef4444' }} />
-                <span>{t('dashboard.heatmapLegend.notYet')}</span>
+                <div
+                  className="w-3 h-3 rounded"
+                  style={{ backgroundColor: "#ef4444" }}
+                />
+                <span>{t("dashboard.heatmapLegend.notYet")}</span>
               </div>
               <div className="flex items-center gap-1">
-                <div className="w-3 h-3 rounded" style={{ backgroundColor: '#e5e7eb' }} />
-                <span>{t('dashboard.heatmapLegend.noData')}</span>
+                <div
+                  className="w-3 h-3 rounded"
+                  style={{ backgroundColor: "#e5e7eb" }}
+                />
+                <span>{t("dashboard.heatmapLegend.noData")}</span>
               </div>
             </div>
           </div>
@@ -624,17 +755,22 @@ const TeacherDashboard = () => {
       {/* Bottom Row: Grading Queue + At-Risk Students */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Grading Queue */}
-        <Card className="bg-white border-0 shadow-md rounded-xl p-6">
+        <Card
+          className="bg-white border-0 shadow-md rounded-xl p-6"
+          data-tour="grading-queue"
+        >
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <ClipboardList className="h-5 w-5 text-blue-600" />
-              <h2 className="text-lg font-bold tracking-tight">{t('dashboard.gradingQueue')}</h2>
+              <h2 className="text-lg font-bold tracking-tight">
+                {t("dashboard.gradingQueue")}
+              </h2>
             </div>
             <Link
               to="/teacher/grading"
               className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
             >
-              {t('dashboard.viewAll')}
+              {t("dashboard.viewAll")}
               <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
@@ -646,7 +782,7 @@ const TeacherDashboard = () => {
             </div>
           ) : recentPending.length === 0 ? (
             <div className="flex items-center justify-center py-8 text-sm text-gray-500">
-              {t('dashboard.noPending')}
+              {t("dashboard.noPending")}
             </div>
           ) : (
             <div className="space-y-3">
@@ -657,20 +793,26 @@ const TeacherDashboard = () => {
                 >
                   <div className="min-w-0">
                     <p className="text-sm font-medium truncate">
-                      {sub.profiles?.full_name ?? t('dashboard.unknownStudent')}
+                      {sub.profiles?.full_name ?? t("dashboard.unknownStudent")}
                     </p>
                     <p className="text-xs text-gray-500 truncate">
-                      {sub.assignments?.title ?? t('dashboard.unknownAssignment')}
+                      {sub.assignments?.title ??
+                        t("dashboard.unknownAssignment")}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
                     {sub.is_late && (
-                      <Badge variant="outline" className="bg-red-50 text-red-600 border-red-200 text-xs">
-                        {t('dashboard.late')}
+                      <Badge
+                        variant="outline"
+                        className="bg-red-50 text-red-600 border-red-200 text-xs"
+                      >
+                        {t("dashboard.late")}
                       </Badge>
                     )}
                     <span className="text-xs text-gray-400 whitespace-nowrap">
-                      {formatDistanceToNow(new Date(sub.submitted_at), { addSuffix: true })}
+                      {formatDistanceToNow(new Date(sub.submitted_at), {
+                        addSuffix: true,
+                      })}
                     </span>
                   </div>
                 </div>

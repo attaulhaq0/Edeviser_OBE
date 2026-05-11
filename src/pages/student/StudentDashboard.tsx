@@ -1,53 +1,67 @@
-import { useNavigate } from 'react-router-dom';
-import { useCallback } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useQueryClient, useQuery } from '@tanstack/react-query';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import Shimmer from '@/components/shared/Shimmer';
-import RealtimeStatusBanner from '@/components/shared/RealtimeStatusBanner';
-import ProfileSummaryCard from '@/components/shared/ProfileSummaryCard';
-import MicroAssessmentCard from '@/components/shared/MicroAssessmentCard';
-import ProfileCompletenessBar from '@/components/shared/ProfileCompletenessBar';
-import StarterWeekHeroCard from '@/components/shared/StarterWeekHeroCard';
-import StreakFreezeShop from '@/components/shared/StreakFreezeShop';
-import AdaptiveXPDisplay from '@/components/shared/AdaptiveXPDisplay';
-import TeamDashboardCard from '@/components/shared/TeamDashboardCard';
-import HabitTracker from '@/components/shared/HabitTracker';
-import StreakDisplay from '@/components/shared/StreakDisplay';
-import ComebackChallengeBanner from '@/components/shared/ComebackChallengeBanner';
-import HabitDifficultyIndicator from '@/components/shared/HabitDifficultyIndicator';
-import TutorEntryButton from '@/components/shared/TutorEntryButton';
-import IndependenceScoreBadge from '@/components/shared/IndependenceScoreBadge';
-import ActiveBoostIndicator from '@/components/shared/ActiveBoostIndicator';
-import XPBalanceBadge from '@/components/shared/XPBalanceBadge';
-import { useAuth } from '@/hooks/useAuth';
-import { useStudentKPIs, useUpcomingDeadlines } from '@/hooks/useStudentDashboard';
-import { useCLOProgress } from '@/hooks/useCLOProgress';
-import { useIndependenceScores } from '@/hooks/useIndependenceScore';
-import { useStudentProfile } from '@/hooks/useStudentProfile';
-import { useTodayMicroAssessment, useCompleteMicroAssessment, useDismissMicroAssessment } from '@/hooks/useMicroAssessments';
-import { useProfileCompleteness } from '@/hooks/useProfileCompleteness';
-import { useStarterWeekSessions } from '@/hooks/useStarterWeekPlan';
-import { useOnboardingProgress } from '@/hooks/useOnboardingProgress';
-import { useRealtime } from '@/hooks/useRealtime';
-import { useStreakFreezeInventory, usePurchaseStreakFreeze } from '@/hooks/useStreakFreeze';
-import { useComebackChallenge, useCancelComebackChallenge } from '@/hooks/useComebackChallenge';
-import { useHabitDifficultyLevel } from '@/hooks/useHabitDifficulty';
-import { useInstitutionSettings } from '@/hooks/useInstitutionSettings';
-import { useStudentAnnouncements } from '@/hooks/useAnnouncements';
-import { useStudentAttendance } from '@/hooks/useAttendance';
-import { useStudentChallenges } from '@/hooks/useChallenges';
-import { useMyTeamId } from '@/hooks/useTeamLeaderboard';
-import { useTeams, useTeamGamification } from '@/hooks/useTeams';
-import { useBadgeSpotlight, useTieredBadges } from '@/hooks/useTieredBadges';
-import { useStudentLeagueTier } from '@/hooks/useLeagueLeaderboard';
-import BadgeSpotlightCard from '@/components/shared/BadgeSpotlightCard';
-import LeagueTierBadge from '@/components/shared/LeagueTierBadge';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import { getDeadlineUrgency } from '@/hooks/useCalendar';
+import { useNavigate } from "react-router-dom";
+import { useCallback } from "react";
+import { useTranslation } from "react-i18next";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import Shimmer from "@/components/shared/Shimmer";
+import RealtimeStatusBanner from "@/components/shared/RealtimeStatusBanner";
+import ProfileSummaryCard from "@/components/shared/ProfileSummaryCard";
+import MicroAssessmentCard from "@/components/shared/MicroAssessmentCard";
+import ProfileCompletenessBar from "@/components/shared/ProfileCompletenessBar";
+import StarterWeekHeroCard from "@/components/shared/StarterWeekHeroCard";
+import StreakFreezeShop from "@/components/shared/StreakFreezeShop";
+import AdaptiveXPDisplay from "@/components/shared/AdaptiveXPDisplay";
+import TeamDashboardCard from "@/components/shared/TeamDashboardCard";
+import HabitTracker from "@/components/shared/HabitTracker";
+import StreakDisplay from "@/components/shared/StreakDisplay";
+import ComebackChallengeBanner from "@/components/shared/ComebackChallengeBanner";
+import HabitDifficultyIndicator from "@/components/shared/HabitDifficultyIndicator";
+import TutorEntryButton from "@/components/shared/TutorEntryButton";
+import IndependenceScoreBadge from "@/components/shared/IndependenceScoreBadge";
+import ActiveBoostIndicator from "@/components/shared/ActiveBoostIndicator";
+import XPBalanceBadge from "@/components/shared/XPBalanceBadge";
+import WelcomeHero from "@/components/shared/WelcomeHero";
+import { useAuth } from "@/hooks/useAuth";
+import {
+  useStudentKPIs,
+  useUpcomingDeadlines,
+} from "@/hooks/useStudentDashboard";
+import { useCLOProgress } from "@/hooks/useCLOProgress";
+import { useIndependenceScores } from "@/hooks/useIndependenceScore";
+import { useStudentProfile } from "@/hooks/useStudentProfile";
+import {
+  useTodayMicroAssessment,
+  useCompleteMicroAssessment,
+  useDismissMicroAssessment,
+} from "@/hooks/useMicroAssessments";
+import { useProfileCompleteness } from "@/hooks/useProfileCompleteness";
+import { useStarterWeekSessions } from "@/hooks/useStarterWeekPlan";
+import { useOnboardingProgress } from "@/hooks/useOnboardingProgress";
+import { useRealtime } from "@/hooks/useRealtime";
+import {
+  useStreakFreezeInventory,
+  usePurchaseStreakFreeze,
+} from "@/hooks/useStreakFreeze";
+import {
+  useComebackChallenge,
+  useCancelComebackChallenge,
+} from "@/hooks/useComebackChallenge";
+import { useHabitDifficultyLevel } from "@/hooks/useHabitDifficulty";
+import { useInstitutionSettings } from "@/hooks/useInstitutionSettings";
+import { useStudentAnnouncements } from "@/hooks/useAnnouncements";
+import { useStudentAttendance } from "@/hooks/useAttendance";
+import { useStudentChallenges } from "@/hooks/useChallenges";
+import { useMyTeamId } from "@/hooks/useTeamLeaderboard";
+import { useTeams, useTeamGamification } from "@/hooks/useTeams";
+import { useBadgeSpotlight, useTieredBadges } from "@/hooks/useTieredBadges";
+import { useStudentLeagueTier } from "@/hooks/useLeagueLeaderboard";
+import BadgeSpotlightCard from "@/components/shared/BadgeSpotlightCard";
+import LeagueTierBadge from "@/components/shared/LeagueTierBadge";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import { getDeadlineUrgency } from "@/hooks/useCalendar";
 import {
   BookOpen,
   CheckCircle2,
@@ -64,11 +78,11 @@ import {
   Users,
   type LucideIcon,
   Target,
-} from 'lucide-react';
-import { formatLocalDate } from '@/lib/formatDate';
-import { formatNumber, formatPercent } from '@/lib/formatNumber';
-import { differenceInDays } from 'date-fns';
-import { toast } from 'sonner';
+} from "lucide-react";
+import { formatLocalDate } from "@/lib/formatDate";
+import { formatNumber, formatPercent } from "@/lib/formatNumber";
+import { differenceInDays } from "date-fns";
+import { toast } from "sonner";
 
 // ─── KPI Card ───────────────────────────────────────────────────────────────
 
@@ -88,8 +102,14 @@ const KPICard = ({ icon: Icon, label, value, accent }: KPICardProps) => (
         </p>
         <p className="text-2xl font-black mt-1">{value}</p>
       </div>
-      <div className={`p-2 rounded-lg ${accent ?? 'bg-blue-50'} group-hover:scale-110 transition-transform`}>
-        <Icon className={`h-5 w-5 ${accent ? 'text-white' : 'text-blue-600'}`} />
+      <div
+        className={`p-2 rounded-lg ${
+          accent ?? "bg-blue-50"
+        } group-hover:scale-110 transition-transform`}
+      >
+        <Icon
+          className={`h-5 w-5 ${accent ? "text-white" : "text-blue-600"}`}
+        />
       </div>
     </div>
   </Card>
@@ -100,9 +120,12 @@ const KPICard = ({ icon: Icon, label, value, accent }: KPICardProps) => (
 // ─── Announcements Section ──────────────────────────────────────────────────
 
 const AnnouncementsSection = ({ studentId }: { studentId: string }) => {
-  const { t } = useTranslation('student');
+  const { t } = useTranslation("student");
   const navigate = useNavigate();
-  const { data: announcements, isLoading } = useStudentAnnouncements(studentId, 5);
+  const { data: announcements, isLoading } = useStudentAnnouncements(
+    studentId,
+    5
+  );
 
   if (isLoading) {
     return <Shimmer className="h-32 rounded-xl" />;
@@ -114,10 +137,15 @@ const AnnouncementsSection = ({ studentId }: { studentId: string }) => {
     <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
       <div
         className="px-6 py-4 flex items-center gap-2"
-        style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+        style={{
+          background:
+            "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+        }}
       >
         <Megaphone className="h-5 w-5 text-white" />
-        <h2 className="text-lg font-bold tracking-tight text-white">{t('dashboard.recentAnnouncements')}</h2>
+        <h2 className="text-lg font-bold tracking-tight text-white">
+          {t("dashboard.recentAnnouncements")}
+        </h2>
       </div>
       <div className="p-6 space-y-3">
         {announcements.map((a) => (
@@ -127,15 +155,21 @@ const AnnouncementsSection = ({ studentId }: { studentId: string }) => {
             onClick={() => navigate(`/student/announcements/${a.id}`)}
             role="button"
             tabIndex={0}
-            onKeyDown={(e) => { if (e.key === 'Enter') navigate(`/student/announcements/${a.id}`); }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") navigate(`/student/announcements/${a.id}`);
+            }}
           >
-            <Megaphone className={`h-4 w-4 mt-0.5 shrink-0 ${a.is_pinned ? 'text-amber-500' : 'text-gray-400'}`} />
+            <Megaphone
+              className={`h-4 w-4 mt-0.5 shrink-0 ${
+                a.is_pinned ? "text-amber-500" : "text-gray-400"
+              }`}
+            />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium truncate">{a.title}</p>
               <p className="text-xs text-gray-500 line-clamp-1">{a.content}</p>
             </div>
             <span className="text-xs text-gray-400 whitespace-nowrap">
-              {formatLocalDate(a.created_at, 'MMM d')}
+              {formatLocalDate(a.created_at, "MMM d")}
             </span>
           </div>
         ))}
@@ -147,27 +181,36 @@ const AnnouncementsSection = ({ studentId }: { studentId: string }) => {
 // ─── Main Component ─────────────────────────────────────────────────────────
 
 const StudentDashboard = () => {
-  const { t } = useTranslation('student');
+  const { t } = useTranslation("student");
   const navigate = useNavigate();
   const { user, profile } = useAuth();
-  const studentId = user?.id ?? '';
+  const studentId = user?.id ?? "";
   const queryClient = useQueryClient();
   const { data: kpis, isLoading: kpisLoading } = useStudentKPIs(user?.id);
-  const { data: deadlines, isLoading: deadlinesLoading } = useUpcomingDeadlines(user?.id, 5);
+  const { data: deadlines, isLoading: deadlinesLoading } = useUpcomingDeadlines(
+    user?.id,
+    5
+  );
 
   // Realtime: invalidate XP/streak/level queries when student_gamification changes
   const handleGamificationPayload = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: queryKeys.studentGamification.detail(studentId) });
-    queryClient.invalidateQueries({ queryKey: queryKeys.studentDashboard.lists() });
+    queryClient.invalidateQueries({
+      queryKey: queryKeys.studentGamification.detail(studentId),
+    });
+    queryClient.invalidateQueries({
+      queryKey: queryKeys.studentDashboard.lists(),
+    });
   }, [queryClient, studentId]);
 
   const handleGamificationPolling = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: queryKeys.studentGamification.detail(studentId) });
+    queryClient.invalidateQueries({
+      queryKey: queryKeys.studentGamification.detail(studentId),
+    });
   }, [queryClient, studentId]);
 
   const { isLive, retryCount } = useRealtime({
-    table: 'student_gamification',
-    event: 'UPDATE',
+    table: "student_gamification",
+    event: "UPDATE",
     filter: studentId ? `student_id=eq.${studentId}` : undefined,
     onPayload: handleGamificationPayload,
     pollingFn: handleGamificationPolling,
@@ -194,13 +237,18 @@ const StudentDashboard = () => {
 
   // Institution settings for Streak Sabbatical — Requirement 125
   const { data: institutionSettings } = useInstitutionSettings();
-  const streakSabbaticalEnabled = institutionSettings?.streak_sabbatical_enabled ?? false;
+  const streakSabbaticalEnabled =
+    institutionSettings?.streak_sabbatical_enabled ?? false;
 
   // Habit Difficulty Level — Requirement 127.6
-  const { data: habitDifficultyData } = useHabitDifficultyLevel(studentId || undefined);
+  const { data: habitDifficultyData } = useHabitDifficultyLevel(
+    studentId || undefined
+  );
 
   // Badge Spotlight — Requirement 134.4
-  const { data: spotlightData } = useBadgeSpotlight(profile?.institution_id ?? undefined);
+  const { data: spotlightData } = useBadgeSpotlight(
+    profile?.institution_id ?? undefined
+  );
   const { data: tieredBadgesData } = useTieredBadges(studentId || undefined);
 
   // CLO Progress for "Get Help" buttons — Requirement 10.2
@@ -209,18 +257,18 @@ const StudentDashboard = () => {
   // Independence scores for CLOs — Requirement 28
   const independenceCourseId = cloProgressData?.[0]?.course_id;
   const { data: independenceScores } = useIndependenceScores(
-    studentId || '',
-    independenceCourseId ?? '',
+    studentId || "",
+    independenceCourseId ?? ""
   );
   const independenceMap = new Map(
-    (independenceScores ?? []).map((s) => [s.clo_id, s.score]),
+    (independenceScores ?? []).map((s) => [s.clo_id, s.score])
   );
 
   // League Tier — Requirement 132.3
   const { data: leagueTierData } = useStudentLeagueTier(studentId || undefined);
 
   const spotlightBadge = tieredBadgesData?.find(
-    (b) => b.category === spotlightData?.category,
+    (b) => b.category === spotlightData?.category
   );
   const spotlightDaysRemaining = (() => {
     const now = new Date();
@@ -229,21 +277,26 @@ const StudentDashboard = () => {
   })();
 
   // Attendance data
-  const { data: attendanceCourses, isLoading: attendanceLoading } = useStudentAttendance(studentId || undefined);
+  const { data: attendanceCourses, isLoading: attendanceLoading } =
+    useStudentAttendance(studentId || undefined);
 
   // Active challenges for dashboard section
-  const { data: studentChallenges } = useStudentChallenges(studentId || undefined);
-  const activeChallenges = (studentChallenges ?? []).filter((c) => c.status === 'active');
+  const { data: studentChallenges } = useStudentChallenges(
+    studentId || undefined
+  );
+  const activeChallenges = (studentChallenges ?? []).filter(
+    (c) => c.status === "active"
+  );
 
   // Team data for dashboard card — Requirement 112.7
   const firstCourseQuery = useQuery({
     queryKey: queryKeys.enrollments.list({ studentId, first: true }),
     queryFn: async (): Promise<string | null> => {
       const { data, error } = await supabase
-        .from('student_courses')
-        .select('course_id')
-        .eq('student_id', studentId)
-        .eq('status', 'active')
+        .from("student_courses")
+        .select("course_id")
+        .eq("student_id", studentId)
+        .eq("status", "active")
         .limit(1)
         .maybeSingle();
       if (error) throw error;
@@ -270,16 +323,10 @@ const StudentDashboard = () => {
   })();
 
   // Determine if student deferred onboarding (not completed, account > 1 day old)
-  const showDeferredBanner = !onboardingCompleted && profile?.created_at
-    ? differenceInDays(new Date(), new Date(profile.created_at)) >= 1
-    : false;
-
-  const greeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return t('dashboard.greeting.morning');
-    if (hour < 17) return t('dashboard.greeting.afternoon');
-    return t('dashboard.greeting.evening');
-  };
+  const showDeferredBanner =
+    !onboardingCompleted && profile?.created_at
+      ? differenceInDays(new Date(), new Date(profile.created_at)) >= 1
+      : false;
 
   return (
     <div className="space-y-6">
@@ -291,17 +338,19 @@ const StudentDashboard = () => {
         <Card className="border-0 shadow-md rounded-xl p-4 bg-amber-50 flex items-center gap-3">
           <Bell className="h-5 w-5 text-amber-600 shrink-0" />
           <div className="flex-1">
-            <p className="text-sm font-semibold text-amber-800">{t('dashboard.completeOnboarding')}</p>
+            <p className="text-sm font-semibold text-amber-800">
+              {t("dashboard.completeOnboarding")}
+            </p>
             <p className="text-xs text-amber-600">
-              {t('dashboard.completeOnboardingDesc')}
+              {t("dashboard.completeOnboardingDesc")}
             </p>
           </div>
           <Button
             size="sm"
-            onClick={() => navigate('/student/onboarding')}
+            onClick={() => navigate("/student/onboarding")}
             className="bg-gradient-to-r from-teal-500 to-blue-600 text-white text-xs font-semibold active:scale-95 transition-transform duration-100"
           >
-            {t('dashboard.startNow')}
+            {t("dashboard.startNow")}
           </Button>
         </Card>
       )}
@@ -326,45 +375,49 @@ const StudentDashboard = () => {
       )}
 
       {/* 7.5 — Starter Week Hero Card */}
-      {onboardingCompleted && day1Completed && starterSessions && starterSessions.length > 0 && (
-        <StarterWeekHeroCard
-          sessions={starterSessions}
-          onViewPlan={() => navigate('/student/planner/starter-week')}
-          isPostWeek={isPostWeek}
-        />
-      )}
+      {onboardingCompleted &&
+        day1Completed &&
+        starterSessions &&
+        starterSessions.length > 0 && (
+          <StarterWeekHeroCard
+            sessions={starterSessions}
+            onViewPlan={() => navigate("/student/planner/starter-week")}
+            isPostWeek={isPostWeek}
+          />
+        )}
 
       {/* Welcome Hero Card */}
-      <Card
-        className="border-0 shadow-lg rounded-xl overflow-hidden text-white"
-        style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #312e81 100%)' }}
-      >
-        <div className="p-6 flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">
-              {greeting()}, {profile?.full_name?.split(' ')[0] ?? 'Student'} 👋
-            </h1>
-            <p className="text-sm text-white/70 mt-1">
-              {t('dashboard.momentum')}
-            </p>
-          </div>
-          <div className="hidden md:flex items-center gap-4">
+      <WelcomeHero
+        name={profile?.full_name ?? "Student"}
+        userRole="student"
+        subtitle={t("dashboard.momentum")}
+        stats={
+          <div className="flex items-center gap-4">
             <div className="text-center">
               <p className="text-2xl font-black">{kpis?.totalXP ?? 0}</p>
-              <p className="text-[10px] font-black tracking-widest uppercase text-white/60">{t('dashboard.xp')}</p>
+              <p className="text-[10px] font-black tracking-widest uppercase text-white/60">
+                {t("dashboard.xp")}
+              </p>
             </div>
             <div className="w-px h-10 bg-white/20" />
             <div className="text-center">
-              <p className="text-2xl font-black">{t('dashboard.level', { level: kpis?.currentLevel ?? 1 })}</p>
-              <p className="text-[10px] font-black tracking-widest uppercase text-white/60">{t('dashboard.levelLabel')}</p>
+              <p className="text-2xl font-black">
+                {t("dashboard.level", { level: kpis?.currentLevel ?? 1 })}
+              </p>
+              <p className="text-[10px] font-black tracking-widest uppercase text-white/60">
+                {t("dashboard.levelLabel")}
+              </p>
             </div>
             <div className="w-px h-10 bg-white/20" />
             <div className="text-center">
-              <XPBalanceBadge size="sm" className="bg-white/10 border-white/20 text-white" />
+              <XPBalanceBadge
+                size="sm"
+                className="bg-white/10 border-white/20 text-white"
+              />
             </div>
           </div>
-        </div>
-      </Card>
+        }
+      />
 
       {/* Active XP Boost Indicator — Marketplace Integration */}
       {studentId && <ActiveBoostIndicator className="mx-auto" />}
@@ -378,25 +431,30 @@ const StudentDashboard = () => {
       )}
 
       {/* 7.6 — Complete Assessment prompt for skipped sections */}
-      {onboardingCompleted && hasSkippedSections && !studentProfile?.personality_traits && !studentProfile?.learning_style && (
-        <Card className="border-0 shadow-md rounded-xl p-4 bg-blue-50 flex items-center gap-3">
-          <AlertCircle className="h-5 w-5 text-blue-600 shrink-0" />
-          <div className="flex-1">
-            <p className="text-sm font-semibold text-blue-800">{t('dashboard.completeAssessment')}</p>
-            <p className="text-xs text-blue-600">
-              {t('dashboard.completeAssessmentDesc')}
-            </p>
-          </div>
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => navigate('/student/onboarding/complete-profile')}
-            className="text-xs border-blue-300 text-blue-700"
-          >
-            {t('dashboard.completeNow')}
-          </Button>
-        </Card>
-      )}
+      {onboardingCompleted &&
+        hasSkippedSections &&
+        !studentProfile?.personality_traits &&
+        !studentProfile?.learning_style && (
+          <Card className="border-0 shadow-md rounded-xl p-4 bg-blue-50 flex items-center gap-3">
+            <AlertCircle className="h-5 w-5 text-blue-600 shrink-0" />
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-blue-800">
+                {t("dashboard.completeAssessment")}
+              </p>
+              <p className="text-xs text-blue-600">
+                {t("dashboard.completeAssessmentDesc")}
+              </p>
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => navigate("/student/onboarding/complete-profile")}
+              className="text-xs border-blue-300 text-blue-700"
+            >
+              {t("dashboard.completeNow")}
+            </Button>
+          </Card>
+        )}
 
       {/* KPI Row */}
       {kpisLoading ? (
@@ -406,15 +464,30 @@ const StudentDashboard = () => {
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <KPICard icon={BookOpen} label={t('dashboard.courses')} value={formatNumber(kpis?.enrolledCourses ?? 0)} />
-          <KPICard icon={CheckCircle2} label={t('dashboard.completed')} value={formatNumber(kpis?.completedAssignments ?? 0)} />
+        <div
+          className="grid grid-cols-2 md:grid-cols-4 gap-4"
+          data-tour="kpi-row"
+        >
+          <KPICard
+            icon={BookOpen}
+            label={t("dashboard.courses")}
+            value={formatNumber(kpis?.enrolledCourses ?? 0)}
+          />
+          <KPICard
+            icon={CheckCircle2}
+            label={t("dashboard.completed")}
+            value={formatNumber(kpis?.completedAssignments ?? 0)}
+          />
           <KPICard
             icon={TrendingUp}
-            label={t('dashboard.avgAttainment')}
+            label={t("dashboard.avgAttainment")}
             value={formatPercent(kpis?.avgAttainment ?? 0)}
           />
-          <KPICard icon={Flame} label={t('dashboard.streak')} value={`${kpis?.currentStreak ?? 0}d`} />
+          <KPICard
+            icon={Flame}
+            label={t("dashboard.streak")}
+            value={`${kpis?.currentStreak ?? 0}d`}
+          />
         </div>
       )}
 
@@ -442,13 +515,15 @@ const StudentDashboard = () => {
       )}
 
       {/* Streak Display with Sabbatical range and Total Active Days — Requirements 126.1, 126.2 */}
-      <StreakDisplay
-        streakCount={kpis?.currentStreak ?? 0}
-        streakFreezesAvailable={freezeData?.freezes ?? 0}
-        streakSabbaticalEnabled={streakSabbaticalEnabled}
-        restDays={0}
-        totalActiveDays={kpis?.totalActiveDays ?? 0}
-      />
+      <div data-tour="xp-streak">
+        <StreakDisplay
+          streakCount={kpis?.currentStreak ?? 0}
+          streakFreezesAvailable={freezeData?.freezes ?? 0}
+          streakSabbaticalEnabled={streakSabbaticalEnabled}
+          restDays={0}
+          totalActiveDays={kpis?.totalActiveDays ?? 0}
+        />
+      </div>
 
       {/* Two-column layout: Upcoming Deadlines + Quick Stats */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -456,10 +531,15 @@ const StudentDashboard = () => {
         <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
           <div
             className="px-6 py-4 flex items-center gap-2"
-            style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+            style={{
+              background:
+                "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+            }}
           >
             <CalendarClock className="h-5 w-5 text-white" />
-            <h2 className="text-lg font-bold tracking-tight text-white">{t('dashboard.upcomingDeadlines')}</h2>
+            <h2 className="text-lg font-bold tracking-tight text-white">
+              {t("dashboard.upcomingDeadlines")}
+            </h2>
           </div>
           <div className="p-6">
             {deadlinesLoading ? (
@@ -473,9 +553,9 @@ const StudentDashboard = () => {
                 {(deadlines ?? []).map((d) => {
                   const urgency = getDeadlineUrgency(d.due_date);
                   const urgencyStyles = {
-                    red: 'bg-red-50 text-red-700 border-red-200',
-                    yellow: 'bg-yellow-50 text-yellow-700 border-yellow-200',
-                    green: 'bg-green-50 text-green-700 border-green-200',
+                    red: "bg-red-50 text-red-700 border-red-200",
+                    yellow: "bg-yellow-50 text-yellow-700 border-yellow-200",
+                    green: "bg-green-50 text-green-700 border-green-200",
                   };
                   return (
                     <div
@@ -483,11 +563,17 @@ const StudentDashboard = () => {
                       className="flex items-center justify-between py-2 border-b border-slate-100 last:border-0"
                     >
                       <div className="min-w-0">
-                        <p className="text-sm font-medium truncate">{d.title}</p>
-                        <p className="text-xs text-gray-500 truncate">{d.course_name}</p>
+                        <p className="text-sm font-medium truncate">
+                          {d.title}
+                        </p>
+                        <p className="text-xs text-gray-500 truncate">
+                          {d.course_name}
+                        </p>
                       </div>
-                      <Badge className={`text-xs whitespace-nowrap ${urgencyStyles[urgency]}`}>
-                        {formatLocalDate(d.due_date, 'MMM d')}
+                      <Badge
+                        className={`text-xs whitespace-nowrap ${urgencyStyles[urgency]}`}
+                      >
+                        {formatLocalDate(d.due_date, "MMM d")}
                       </Badge>
                     </div>
                   );
@@ -498,7 +584,9 @@ const StudentDashboard = () => {
                 <div className="p-3 rounded-full bg-green-50 mb-3">
                   <CheckCircle2 className="h-8 w-8 text-green-500" />
                 </div>
-                <p className="text-sm text-gray-500">{t('dashboard.noDeadlines')}</p>
+                <p className="text-sm text-gray-500">
+                  {t("dashboard.noDeadlines")}
+                </p>
               </div>
             )}
           </div>
@@ -509,35 +597,58 @@ const StudentDashboard = () => {
           <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
             <div
               className="px-6 py-4 flex items-center gap-2"
-              style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+              style={{
+                background:
+                  "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+              }}
             >
               <Star className="h-5 w-5 text-white" />
-              <h2 className="text-lg font-bold tracking-tight text-white">{t('dashboard.yourProgress')}</h2>
+              <h2 className="text-lg font-bold tracking-tight text-white">
+                {t("dashboard.yourProgress")}
+              </h2>
             </div>
             <div className="p-6 space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-600">{t('dashboard.totalXP')}</span>
-                <span className="text-sm font-bold text-amber-600">{kpis?.totalXP ?? 0} {t('dashboard.xp')}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-600">{t('dashboard.currentLevel')}</span>
-                <span className="text-sm font-bold">{t('dashboard.levelLabel')} {kpis?.currentLevel ?? 1}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-600">{t('dashboard.loginStreak')}</span>
-                <span className="text-sm font-bold text-red-500">
-                  {t('dashboard.daysStreak', { count: kpis?.currentStreak ?? 0 })}
+                <span className="text-sm font-medium text-gray-600">
+                  {t("dashboard.totalXP")}
+                </span>
+                <span className="text-sm font-bold text-amber-600">
+                  {kpis?.totalXP ?? 0} {t("dashboard.xp")}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-600">{t('dashboard.assignmentsDone')}</span>
-                <span className="text-sm font-bold">{kpis?.completedAssignments ?? 0}</span>
+                <span className="text-sm font-medium text-gray-600">
+                  {t("dashboard.currentLevel")}
+                </span>
+                <span className="text-sm font-bold">
+                  {t("dashboard.levelLabel")} {kpis?.currentLevel ?? 1}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-600">
+                  {t("dashboard.loginStreak")}
+                </span>
+                <span className="text-sm font-bold text-red-500">
+                  {t("dashboard.daysStreak", {
+                    count: kpis?.currentStreak ?? 0,
+                  })}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-600">
+                  {t("dashboard.assignmentsDone")}
+                </span>
+                <span className="text-sm font-bold">
+                  {kpis?.completedAssignments ?? 0}
+                </span>
               </div>
 
               {/* League Tier Badge — Requirement 132.3 */}
               {leagueTierData && (
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-600">{t('dashboard.leagueTier')}</span>
+                  <span className="text-sm font-medium text-gray-600">
+                    {t("dashboard.leagueTier")}
+                  </span>
                   <LeagueTierBadge tier={leagueTierData.tier} size="sm" />
                 </div>
               )}
@@ -552,11 +663,11 @@ const StudentDashboard = () => {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => navigate('/student/xp-history')}
+                onClick={() => navigate("/student/xp-history")}
                 className="w-full mt-2 text-xs font-semibold text-amber-600 border-amber-200 hover:bg-amber-50"
               >
                 <Coins className="h-4 w-4 me-1" />
-                {t('dashboard.viewXPHistory')}
+                {t("dashboard.viewXPHistory")}
               </Button>
             </div>
           </Card>
@@ -569,7 +680,11 @@ const StudentDashboard = () => {
               try {
                 await purchaseFreeze.mutateAsync(studentId);
               } catch (err) {
-                toast.error(err instanceof Error ? err.message : 'Failed to purchase streak freeze');
+                toast.error(
+                  err instanceof Error
+                    ? err.message
+                    : "Failed to purchase streak freeze"
+                );
               }
             }}
           />
@@ -580,67 +695,90 @@ const StudentDashboard = () => {
       <AnnouncementsSection studentId={studentId} />
 
       {/* CLO Attainment Progress — Requirement 10.2 */}
-      {cloProgressData && cloProgressData.length > 0 && (() => {
-        const lowCLOs = cloProgressData.flatMap((course) =>
-          course.entries
-            .filter((e) => e.attainment_percent !== null && e.attainment_percent < 70)
-            .map((e) => ({ ...e, course_name: course.course_name }))
-        );
-        if (lowCLOs.length === 0) return null;
-        return (
-          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
-            <div
-              className="px-6 py-4 flex items-center gap-2"
-              style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
-            >
-              <Target className="h-5 w-5 text-white" />
-              <h2 className="text-lg font-bold tracking-tight text-white">{t('dashboard.closNeedingAttention')}</h2>
-            </div>
-            <div className="p-6 space-y-4">
-              {lowCLOs.slice(0, 6).map((clo) => (
-                <div key={clo.clo_id} className="space-y-1">
-                  <div className="flex items-center justify-between">
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium truncate">{clo.clo_title}</p>
-                      <p className="text-xs text-gray-500">{clo.course_name}</p>
+      {cloProgressData &&
+        cloProgressData.length > 0 &&
+        (() => {
+          const lowCLOs = cloProgressData.flatMap((course) =>
+            course.entries
+              .filter(
+                (e) =>
+                  e.attainment_percent !== null && e.attainment_percent < 70
+              )
+              .map((e) => ({ ...e, course_name: course.course_name }))
+          );
+          if (lowCLOs.length === 0) return null;
+          return (
+            <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+              <div
+                className="px-6 py-4 flex items-center gap-2"
+                style={{
+                  background:
+                    "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+                }}
+              >
+                <Target className="h-5 w-5 text-white" />
+                <h2 className="text-lg font-bold tracking-tight text-white">
+                  {t("dashboard.closNeedingAttention")}
+                </h2>
+              </div>
+              <div className="p-6 space-y-4">
+                {lowCLOs.slice(0, 6).map((clo) => (
+                  <div key={clo.clo_id} className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium truncate">
+                          {clo.clo_title}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {clo.course_name}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className="text-xs font-bold text-red-600">
+                          {Math.round(clo.attainment_percent ?? 0)}%
+                        </span>
+                        {independenceMap.has(clo.clo_id) && (
+                          <IndependenceScoreBadge
+                            score={independenceMap.get(clo.clo_id)!}
+                          />
+                        )}
+                        <TutorEntryButton
+                          courseId={clo.course_id}
+                          cloIds={[clo.clo_id]}
+                          compact
+                          label={`Get Help with ${clo.clo_title}`}
+                        />
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <span className="text-xs font-bold text-red-600">
-                        {Math.round(clo.attainment_percent ?? 0)}%
-                      </span>
-                      {independenceMap.has(clo.clo_id) && (
-                        <IndependenceScoreBadge score={independenceMap.get(clo.clo_id)!} />
-                      )}
-                      <TutorEntryButton
-                        courseId={clo.course_id}
-                        cloIds={[clo.clo_id]}
-                        compact
-                        label={`Get Help with ${clo.clo_title}`}
+                    <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-red-400 transition-all duration-300"
+                        style={{
+                          width: `${Math.round(clo.attainment_percent ?? 0)}%`,
+                        }}
                       />
                     </div>
                   </div>
-                  <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-red-400 transition-all duration-300"
-                      style={{ width: `${Math.round(clo.attainment_percent ?? 0)}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </Card>
-        );
-      })()}
+                ))}
+              </div>
+            </Card>
+          );
+        })()}
 
       {/* Team Dashboard Card — Requirement 112.7 */}
       {myTeam && (
         <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
           <div
             className="px-6 py-4 flex items-center gap-2"
-            style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+            style={{
+              background:
+                "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+            }}
           >
             <Users className="h-5 w-5 text-white" />
-            <h2 className="text-lg font-bold tracking-tight text-white">{t('dashboard.myTeam')}</h2>
+            <h2 className="text-lg font-bold tracking-tight text-white">
+              {t("dashboard.myTeam")}
+            </h2>
           </div>
           <div className="p-6">
             <TeamDashboardCard team={myTeam} gamification={teamGamification} />
@@ -653,29 +791,39 @@ const StudentDashboard = () => {
         <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
           <div
             className="px-6 py-4 flex items-center gap-2"
-            style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+            style={{
+              background:
+                "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+            }}
           >
             <Trophy className="h-5 w-5 text-white" />
-            <h2 className="text-lg font-bold tracking-tight text-white">{t('dashboard.challenges')}</h2>
+            <h2 className="text-lg font-bold tracking-tight text-white">
+              {t("dashboard.challenges")}
+            </h2>
           </div>
           <div className="p-6 space-y-3">
             {activeChallenges.slice(0, 3).map((c) => (
               <div
                 key={c.id}
                 className="flex items-center justify-between py-2 border-b border-slate-100 last:border-0 cursor-pointer hover:bg-slate-50 rounded-lg px-2 -mx-2 transition-colors"
-                onClick={() => navigate('/student/challenges')}
+                onClick={() => navigate("/student/challenges")}
                 role="button"
                 tabIndex={0}
-                onKeyDown={(e) => { if (e.key === 'Enter') navigate('/student/challenges'); }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") navigate("/student/challenges");
+                }}
               >
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium truncate">{c.title}</p>
                   <p className="text-xs text-gray-500">
-                    {c.challenge_type === 'team' ? t('dashboard.team') : t('dashboard.courseWide')} · {c.goal_metric}
+                    {c.challenge_type === "team"
+                      ? t("dashboard.team")
+                      : t("dashboard.courseWide")}{" "}
+                    · {c.goal_metric}
                   </p>
                 </div>
                 <Badge className="text-xs bg-amber-50 text-amber-700 border-amber-200 whitespace-nowrap">
-                  {t('dashboard.target')}: {c.goal_target}
+                  {t("dashboard.target")}: {c.goal_target}
                 </Badge>
               </div>
             ))}
@@ -683,10 +831,12 @@ const StudentDashboard = () => {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => navigate('/student/challenges')}
+                onClick={() => navigate("/student/challenges")}
                 className="w-full text-xs font-semibold text-blue-600 border-blue-200 hover:bg-blue-50"
               >
-                {t('dashboard.viewAllChallenges', { count: activeChallenges.length })}
+                {t("dashboard.viewAllChallenges", {
+                  count: activeChallenges.length,
+                })}
               </Button>
             )}
           </div>
@@ -700,14 +850,22 @@ const StudentDashboard = () => {
         <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
           <div
             className="px-6 py-4 flex items-center gap-2"
-            style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+            style={{
+              background:
+                "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+            }}
           >
             <ClipboardCheck className="h-5 w-5 text-white" />
-            <h2 className="text-lg font-bold tracking-tight text-white">{t('dashboard.attendance')}</h2>
+            <h2 className="text-lg font-bold tracking-tight text-white">
+              {t("dashboard.attendance")}
+            </h2>
           </div>
           <div className="p-6 space-y-3">
             {attendanceCourses.map((c) => (
-              <div key={c.courseId} className="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
+              <div
+                key={c.courseId}
+                className="flex items-center justify-between py-2 border-b border-slate-100 last:border-0"
+              >
                 <div className="min-w-0">
                   <p className="text-sm font-medium truncate">{c.courseName}</p>
                   <p className="text-xs text-gray-500">
@@ -717,8 +875,8 @@ const StudentDashboard = () => {
                 <Badge
                   className={`text-xs font-bold ${
                     c.attendancePercent < 75
-                      ? 'bg-red-50 text-red-700 border-red-200'
-                      : 'bg-green-50 text-green-700 border-green-200'
+                      ? "bg-red-50 text-red-700 border-red-200"
+                      : "bg-green-50 text-green-700 border-green-200"
                   }`}
                 >
                   {c.attendancePercent}%
@@ -730,7 +888,11 @@ const StudentDashboard = () => {
       ) : null}
 
       {/* Daily Habit Tracker — 8 habits — Requirement 120.5 */}
-      {studentId && <HabitTracker studentId={studentId} />}
+      {studentId && (
+        <div data-tour="habits-tracker">
+          <HabitTracker studentId={studentId} />
+        </div>
+      )}
 
       {/* Habit Difficulty Level Indicator — Requirement 127.6 */}
       {studentId && habitDifficultyData && (
@@ -750,8 +912,10 @@ const StudentDashboard = () => {
           selfEfficacy={studentProfile.self_efficacy}
           studyStrategies={studentProfile.study_strategies}
           hasSkippedSections={hasSkippedSections}
-          onRetake={() => navigate('/student/settings/reassessment')}
-          onCompleteRemaining={() => navigate('/student/onboarding/complete-profile')}
+          onRetake={() => navigate("/student/settings/reassessment")}
+          onCompleteRemaining={() =>
+            navigate("/student/onboarding/complete-profile")
+          }
         />
       )}
     </div>

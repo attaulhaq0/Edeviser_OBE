@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from "vitest";
 
 // ─── Replicate pure helpers from the Edge Function for unit testing ──────────
 // Edge Functions run on Deno and can't be imported directly in Vitest.
@@ -7,11 +7,11 @@ import { describe, it, expect } from 'vitest';
 // ─── Types ──────────────────────────────────────────────────────────────────
 
 type MaterialType =
-  | 'lecture_notes'
-  | 'slides'
-  | 'assignment_description'
-  | 'rubric_criteria'
-  | 'other';
+  | "lecture_notes"
+  | "slides"
+  | "assignment_description"
+  | "rubric_criteria"
+  | "other";
 
 interface EmbedRequest {
   file_url: string;
@@ -29,7 +29,7 @@ interface AutoIndexRequest {
   course_id: string;
   clo_ids?: string[];
   bloom_level?: string;
-  material_type: 'assignment_description' | 'rubric_criteria';
+  material_type: "assignment_description" | "rubric_criteria";
   source_filename: string;
   source_material_id?: string;
   institution_id?: string;
@@ -54,11 +54,11 @@ const LARGE_DOCUMENT_PAGE_THRESHOLD = 100;
 const CHARS_PER_PAGE_ESTIMATE = 2000;
 
 const VALID_MATERIAL_TYPES: MaterialType[] = [
-  'lecture_notes',
-  'slides',
-  'assignment_description',
-  'rubric_criteria',
-  'other',
+  "lecture_notes",
+  "slides",
+  "assignment_description",
+  "rubric_criteria",
+  "other",
 ];
 
 // ─── Replicated Pure Functions ──────────────────────────────────────────────
@@ -110,10 +110,10 @@ function chunkText(text: string): TextChunk[] {
   const flushChunk = (): void => {
     if (currentSentences.length === 0) return;
 
-    const chunkTextContent = currentSentences.join(' ');
+    const chunkTextContent = currentSentences.join(" ");
     const firstIdx = sentences.indexOf(currentSentences[0]!);
     const lastIdx = sentences.indexOf(
-      currentSentences[currentSentences.length - 1]!,
+      currentSentences[currentSentences.length - 1]!
     );
 
     const startOffset = firstIdx >= 0 ? sentenceOffsets[firstIdx]! : 0;
@@ -192,57 +192,57 @@ function chunkText(text: string): TextChunk[] {
 }
 
 function validateRequest(
-  body: unknown,
+  body: unknown
 ): { valid: true; data: EmbedRequest } | { valid: false; error: string } {
-  if (!body || typeof body !== 'object') {
-    return { valid: false, error: 'Request body must be a JSON object' };
+  if (!body || typeof body !== "object") {
+    return { valid: false, error: "Request body must be a JSON object" };
   }
 
   const req = body as Record<string, unknown>;
 
-  if (!req.file_url || typeof req.file_url !== 'string') {
-    return { valid: false, error: 'file_url is required and must be a string' };
+  if (!req.file_url || typeof req.file_url !== "string") {
+    return { valid: false, error: "file_url is required and must be a string" };
   }
 
-  if (!req.course_id || typeof req.course_id !== 'string') {
+  if (!req.course_id || typeof req.course_id !== "string") {
     return {
       valid: false,
-      error: 'course_id is required and must be a string',
+      error: "course_id is required and must be a string",
     };
   }
 
-  if (!req.source_filename || typeof req.source_filename !== 'string') {
+  if (!req.source_filename || typeof req.source_filename !== "string") {
     return {
       valid: false,
-      error: 'source_filename is required and must be a string',
+      error: "source_filename is required and must be a string",
     };
   }
 
-  if (!req.material_type || typeof req.material_type !== 'string') {
+  if (!req.material_type || typeof req.material_type !== "string") {
     return {
       valid: false,
-      error: 'material_type is required and must be a string',
+      error: "material_type is required and must be a string",
     };
   }
 
   if (!VALID_MATERIAL_TYPES.includes(req.material_type as MaterialType)) {
     return {
       valid: false,
-      error: `material_type must be one of: ${VALID_MATERIAL_TYPES.join(', ')}`,
+      error: `material_type must be one of: ${VALID_MATERIAL_TYPES.join(", ")}`,
     };
   }
 
   if (req.clo_ids !== undefined) {
     if (
       !Array.isArray(req.clo_ids) ||
-      !req.clo_ids.every((id: unknown) => typeof id === 'string')
+      !req.clo_ids.every((id: unknown) => typeof id === "string")
     ) {
-      return { valid: false, error: 'clo_ids must be an array of strings' };
+      return { valid: false, error: "clo_ids must be an array of strings" };
     }
   }
 
-  if (req.bloom_level !== undefined && typeof req.bloom_level !== 'string') {
-    return { valid: false, error: 'bloom_level must be a string' };
+  if (req.bloom_level !== undefined && typeof req.bloom_level !== "string") {
+    return { valid: false, error: "bloom_level must be a string" };
   }
 
   return {
@@ -262,72 +262,74 @@ function validateRequest(
 }
 
 function validateAutoIndexRequest(
-  body: unknown,
+  body: unknown
 ): { valid: true; data: AutoIndexRequest } | { valid: false; error: string } {
-  if (!body || typeof body !== 'object') {
-    return { valid: false, error: 'Request body must be a JSON object' };
+  if (!body || typeof body !== "object") {
+    return { valid: false, error: "Request body must be a JSON object" };
   }
 
   const req = body as Record<string, unknown>;
 
-  if (!req.course_id || typeof req.course_id !== 'string') {
+  if (!req.course_id || typeof req.course_id !== "string") {
     return {
       valid: false,
-      error: 'course_id is required and must be a string',
+      error: "course_id is required and must be a string",
     };
   }
 
-  if (!req.title || typeof req.title !== 'string') {
-    return { valid: false, error: 'title is required and must be a string' };
+  if (!req.title || typeof req.title !== "string") {
+    return { valid: false, error: "title is required and must be a string" };
   }
 
-  if (!req.material_type || typeof req.material_type !== 'string') {
+  if (!req.material_type || typeof req.material_type !== "string") {
     return {
       valid: false,
-      error: 'material_type is required and must be a string',
+      error: "material_type is required and must be a string",
     };
   }
 
   const validAutoTypes: MaterialType[] = [
-    'assignment_description',
-    'rubric_criteria',
+    "assignment_description",
+    "rubric_criteria",
   ];
   if (!validAutoTypes.includes(req.material_type as MaterialType)) {
     return {
       valid: false,
-      error: `material_type for auto-indexing must be one of: ${validAutoTypes.join(', ')}`,
+      error: `material_type for auto-indexing must be one of: ${validAutoTypes.join(
+        ", "
+      )}`,
     };
   }
 
-  if (!req.source_filename || typeof req.source_filename !== 'string') {
+  if (!req.source_filename || typeof req.source_filename !== "string") {
     return {
       valid: false,
-      error: 'source_filename is required and must be a string',
+      error: "source_filename is required and must be a string",
     };
   }
 
   if (req.clo_ids !== undefined) {
     if (
       !Array.isArray(req.clo_ids) ||
-      !req.clo_ids.every((id: unknown) => typeof id === 'string')
+      !req.clo_ids.every((id: unknown) => typeof id === "string")
     ) {
-      return { valid: false, error: 'clo_ids must be an array of strings' };
+      return { valid: false, error: "clo_ids must be an array of strings" };
     }
   }
 
-  if (req.description !== undefined && typeof req.description !== 'string') {
-    return { valid: false, error: 'description must be a string' };
+  if (req.description !== undefined && typeof req.description !== "string") {
+    return { valid: false, error: "description must be a string" };
   }
 
   if (req.rubric_criteria !== undefined) {
     if (!Array.isArray(req.rubric_criteria)) {
-      return { valid: false, error: 'rubric_criteria must be an array' };
+      return { valid: false, error: "rubric_criteria must be an array" };
     }
     for (const criterion of req.rubric_criteria) {
       if (
         !criterion ||
-        typeof criterion !== 'object' ||
-        typeof (criterion as Record<string, unknown>).criterion !== 'string'
+        typeof criterion !== "object" ||
+        typeof (criterion as Record<string, unknown>).criterion !== "string"
       ) {
         return {
           valid: false,
@@ -345,8 +347,8 @@ function validateAutoIndexRequest(
       clo_ids: (req.clo_ids as string[] | undefined) ?? [],
       bloom_level: req.bloom_level as string | undefined,
       material_type: req.material_type as
-        | 'assignment_description'
-        | 'rubric_criteria',
+        | "assignment_description"
+        | "rubric_criteria",
       source_filename: req.source_filename as string,
       source_material_id: req.source_material_id as string | undefined,
       institution_id: req.institution_id as string | undefined,
@@ -376,74 +378,76 @@ function assembleAutoIndexText(req: AutoIndexRequest): string {
       }
       return rc.criterion;
     });
-    sections.push('Rubric Criteria:\n' + criteriaLines.join('\n'));
+    sections.push("Rubric Criteria:\n" + criteriaLines.join("\n"));
   }
 
-  return sections.join('\n\n');
+  return sections.join("\n\n");
 }
 
 // ─── Tests ──────────────────────────────────────────────────────────────────
 
-describe('embed-course-material: Token Estimation', () => {
-  it('returns 0 for empty string', () => {
-    expect(estimateTokenCount('')).toBe(0);
+describe("embed-course-material: Token Estimation", () => {
+  it("returns 0 for empty string", () => {
+    expect(estimateTokenCount("")).toBe(0);
   });
 
-  it('estimates tokens as ceil(length / 4)', () => {
-    expect(estimateTokenCount('hello')).toBe(2); // ceil(5/4) = 2
-    expect(estimateTokenCount('abcd')).toBe(1); // ceil(4/4) = 1
-    expect(estimateTokenCount('a')).toBe(1); // max(1, ceil(1/4)) = 1
+  it("estimates tokens as ceil(length / 4)", () => {
+    expect(estimateTokenCount("hello")).toBe(2); // ceil(5/4) = 2
+    expect(estimateTokenCount("abcd")).toBe(1); // ceil(4/4) = 1
+    expect(estimateTokenCount("a")).toBe(1); // max(1, ceil(1/4)) = 1
   });
 
-  it('returns at least 1 for non-empty text', () => {
-    expect(estimateTokenCount('x')).toBeGreaterThanOrEqual(1);
+  it("returns at least 1 for non-empty text", () => {
+    expect(estimateTokenCount("x")).toBeGreaterThanOrEqual(1);
   });
 });
 
-describe('embed-course-material: Sentence Splitting', () => {
-  it('returns empty array for empty string', () => {
-    expect(splitIntoSentences('')).toEqual([]);
+describe("embed-course-material: Sentence Splitting", () => {
+  it("returns empty array for empty string", () => {
+    expect(splitIntoSentences("")).toEqual([]);
   });
 
-  it('splits on sentence-ending punctuation', () => {
-    const result = splitIntoSentences('Hello world. How are you? Fine!');
+  it("splits on sentence-ending punctuation", () => {
+    const result = splitIntoSentences("Hello world. How are you? Fine!");
     expect(result).toHaveLength(3);
-    expect(result[0]).toBe('Hello world.');
-    expect(result[1]).toBe('How are you?');
-    expect(result[2]).toBe('Fine!');
+    expect(result[0]).toBe("Hello world.");
+    expect(result[1]).toBe("How are you?");
+    expect(result[2]).toBe("Fine!");
   });
 
-  it('handles text without sentence endings', () => {
-    const result = splitIntoSentences('No punctuation here');
+  it("handles text without sentence endings", () => {
+    const result = splitIntoSentences("No punctuation here");
     expect(result).toHaveLength(1);
-    expect(result[0]).toBe('No punctuation here');
+    expect(result[0]).toBe("No punctuation here");
   });
 });
 
-describe('embed-course-material: Text Chunking (3.2.2)', () => {
-  it('returns empty array for empty text', () => {
-    expect(chunkText('')).toEqual([]);
-    expect(chunkText('   ')).toEqual([]);
+describe("embed-course-material: Text Chunking (3.2.2)", () => {
+  it("returns empty array for empty text", () => {
+    expect(chunkText("")).toEqual([]);
+    expect(chunkText("   ")).toEqual([]);
   });
 
-  it('returns single chunk for short text', () => {
-    const text = 'This is a short text.';
+  it("returns single chunk for short text", () => {
+    const text = "This is a short text.";
     const chunks = chunkText(text);
     expect(chunks).toHaveLength(1);
     expect(chunks[0]!.text).toBe(text);
     // TextChunk uses start_offset, not chunk_index
-    expect('chunk_index' in chunks[0]!).toBe(false);
+    expect("chunk_index" in chunks[0]!).toBe(false);
     expect(chunks[0]!.token_count_estimate).toBeGreaterThan(0);
   });
 
-  it('produces multiple chunks for long text', () => {
+  it("produces multiple chunks for long text", () => {
     // Generate text that exceeds MAX_TOKENS_PER_CHUNK (500 tokens ≈ 2000 chars)
     const sentences = Array.from(
       { length: 50 },
       (_, i) =>
-        `This is sentence number ${i + 1} which contains some meaningful content about the topic.`,
+        `This is sentence number ${
+          i + 1
+        } which contains some meaningful content about the topic.`
     );
-    const text = sentences.join(' ');
+    const text = sentences.join(" ");
     const chunks = chunkText(text);
 
     expect(chunks.length).toBeGreaterThan(1);
@@ -455,29 +459,31 @@ describe('embed-course-material: Text Chunking (3.2.2)', () => {
     }
   });
 
-  it('chunk token counts do not exceed MAX_TOKENS_PER_CHUNK', () => {
+  it("chunk token counts do not exceed MAX_TOKENS_PER_CHUNK", () => {
     const sentences = Array.from(
       { length: 80 },
       (_, i) =>
-        `Sentence ${i + 1} discusses important concepts in computer science and mathematics.`,
+        `Sentence ${
+          i + 1
+        } discusses important concepts in computer science and mathematics.`
     );
-    const text = sentences.join(' ');
+    const text = sentences.join(" ");
     const chunks = chunkText(text);
 
     for (const chunk of chunks) {
       // Allow small overflow due to sentence boundary preservation
       expect(chunk.token_count_estimate).toBeLessThanOrEqual(
-        MAX_TOKENS_PER_CHUNK + 50,
+        MAX_TOKENS_PER_CHUNK + 50
       );
     }
   });
 
-  it('preserves all text content across chunks', () => {
+  it("preserves all text content across chunks", () => {
     const sentences = Array.from(
       { length: 30 },
-      (_, i) => `Point ${i + 1} is about learning outcomes.`,
+      (_, i) => `Point ${i + 1} is about learning outcomes.`
     );
-    const text = sentences.join(' ');
+    const text = sentences.join(" ");
     const chunks = chunkText(text);
 
     // Every sentence should appear in at least one chunk
@@ -488,98 +494,98 @@ describe('embed-course-material: Text Chunking (3.2.2)', () => {
   });
 });
 
-describe('embed-course-material: Request Validation (3.2.1)', () => {
+describe("embed-course-material: Request Validation (3.2.1)", () => {
   const validRequest = {
-    file_url: 'https://example.com/file.pdf',
-    course_id: 'course-123',
-    source_filename: 'lecture.pdf',
-    material_type: 'lecture_notes',
+    file_url: "https://example.com/file.pdf",
+    course_id: "course-123",
+    source_filename: "lecture.pdf",
+    material_type: "lecture_notes",
   };
 
-  it('accepts a valid request', () => {
+  it("accepts a valid request", () => {
     const result = validateRequest(validRequest);
     expect(result.valid).toBe(true);
     if (result.valid) {
       expect(result.data.file_url).toBe(validRequest.file_url);
       expect(result.data.course_id).toBe(validRequest.course_id);
-      expect(result.data.material_type).toBe('lecture_notes');
+      expect(result.data.material_type).toBe("lecture_notes");
     }
   });
 
-  it('rejects null body', () => {
+  it("rejects null body", () => {
     const result = validateRequest(null);
     expect(result.valid).toBe(false);
   });
 
-  it('rejects missing file_url', () => {
+  it("rejects missing file_url", () => {
     const result = validateRequest({
-      course_id: 'c1',
-      source_filename: 'f.pdf',
-      material_type: 'other',
+      course_id: "c1",
+      source_filename: "f.pdf",
+      material_type: "other",
     });
     expect(result.valid).toBe(false);
-    if (!result.valid) expect(result.error).toContain('file_url');
+    if (!result.valid) expect(result.error).toContain("file_url");
   });
 
-  it('rejects missing course_id', () => {
+  it("rejects missing course_id", () => {
     const result = validateRequest({
-      file_url: 'url',
-      source_filename: 'f.pdf',
-      material_type: 'other',
+      file_url: "url",
+      source_filename: "f.pdf",
+      material_type: "other",
     });
     expect(result.valid).toBe(false);
-    if (!result.valid) expect(result.error).toContain('course_id');
+    if (!result.valid) expect(result.error).toContain("course_id");
   });
 
-  it('rejects missing source_filename', () => {
+  it("rejects missing source_filename", () => {
     const result = validateRequest({
-      file_url: 'url',
-      course_id: 'c1',
-      material_type: 'other',
+      file_url: "url",
+      course_id: "c1",
+      material_type: "other",
     });
     expect(result.valid).toBe(false);
-    if (!result.valid) expect(result.error).toContain('source_filename');
+    if (!result.valid) expect(result.error).toContain("source_filename");
   });
 
-  it('rejects invalid material_type', () => {
+  it("rejects invalid material_type", () => {
     const result = validateRequest({
       ...validRequest,
-      material_type: 'invalid_type',
+      material_type: "invalid_type",
     });
     expect(result.valid).toBe(false);
-    if (!result.valid) expect(result.error).toContain('material_type');
+    if (!result.valid) expect(result.error).toContain("material_type");
   });
 
-  it('accepts all valid material types', () => {
+  it("accepts all valid material types", () => {
     for (const mt of VALID_MATERIAL_TYPES) {
       const result = validateRequest({ ...validRequest, material_type: mt });
       expect(result.valid).toBe(true);
     }
   });
 
-  it('rejects non-array clo_ids', () => {
-    const result = validateRequest({ ...validRequest, clo_ids: 'not-array' });
+  it("rejects non-array clo_ids", () => {
+    const result = validateRequest({ ...validRequest, clo_ids: "not-array" });
     expect(result.valid).toBe(false);
-    if (!result.valid) expect(result.error).toContain('clo_ids');
+    if (!result.valid) expect(result.error).toContain("clo_ids");
   });
 
-  it('rejects clo_ids with non-string elements', () => {
+  it("rejects clo_ids with non-string elements", () => {
     const result = validateRequest({ ...validRequest, clo_ids: [123] });
     expect(result.valid).toBe(false);
   });
 
-  it('accepts optional clo_ids array', () => {
+  it("accepts optional clo_ids array", () => {
     const result = validateRequest({
       ...validRequest,
-      clo_ids: ['clo-1', 'clo-2'],
+      clo_ids: ["clo-1", "clo-2"],
     });
     expect(result.valid).toBe(true);
     if (result.valid) {
-      expect(result.data.clo_ids).toEqual(['clo-1', 'clo-2']);
+      expect(result.data.clo_ids).toEqual(["clo-1", "clo-2"]);
     }
   });
 
-  it('defaults clo_ids to empty array when not provided', () => {
+  it("defaults clo_ids to empty array when not provided", () => {
     const result = validateRequest(validRequest);
     expect(result.valid).toBe(true);
     if (result.valid) {
@@ -587,7 +593,7 @@ describe('embed-course-material: Request Validation (3.2.1)', () => {
     }
   });
 
-  it('parses reindex flag correctly', () => {
+  it("parses reindex flag correctly", () => {
     const result = validateRequest({ ...validRequest, reindex: true });
     expect(result.valid).toBe(true);
     if (result.valid) {
@@ -595,7 +601,7 @@ describe('embed-course-material: Request Validation (3.2.1)', () => {
     }
   });
 
-  it('defaults reindex to false', () => {
+  it("defaults reindex to false", () => {
     const result = validateRequest(validRequest);
     expect(result.valid).toBe(true);
     if (result.valid) {
@@ -604,84 +610,85 @@ describe('embed-course-material: Request Validation (3.2.1)', () => {
   });
 });
 
-describe('embed-course-material: Auto-Index Validation (3.2.8)', () => {
+describe("embed-course-material: Auto-Index Validation (3.2.8)", () => {
   const validAutoRequest = {
-    course_id: 'course-123',
-    title: 'Assignment 1: Data Structures',
-    material_type: 'assignment_description',
-    source_filename: 'assignment-1',
+    course_id: "course-123",
+    title: "Assignment 1: Data Structures",
+    material_type: "assignment_description",
+    source_filename: "assignment-1",
   };
 
-  it('accepts a valid auto-index request', () => {
+  it("accepts a valid auto-index request", () => {
     const result = validateAutoIndexRequest(validAutoRequest);
     expect(result.valid).toBe(true);
     if (result.valid) {
       expect(result.data.title).toBe(validAutoRequest.title);
-      expect(result.data.material_type).toBe('assignment_description');
+      expect(result.data.material_type).toBe("assignment_description");
     }
   });
 
-  it('rejects missing title', () => {
+  it("rejects missing title", () => {
     const { title, ...noTitle } = validAutoRequest;
     void title; // intentionally omitted from noTitle
     const result = validateAutoIndexRequest(noTitle);
     expect(result.valid).toBe(false);
-    if (!result.valid) expect(result.error).toContain('title');
+    if (!result.valid) expect(result.error).toContain("title");
   });
 
-  it('rejects missing course_id', () => {
+  it("rejects missing course_id", () => {
     const { course_id, ...noCourse } = validAutoRequest;
     void course_id; // intentionally omitted from noCourse
     const result = validateAutoIndexRequest(noCourse);
     expect(result.valid).toBe(false);
-    if (!result.valid) expect(result.error).toContain('course_id');
+    if (!result.valid) expect(result.error).toContain("course_id");
   });
 
-  it('rejects invalid material_type for auto-indexing', () => {
+  it("rejects invalid material_type for auto-indexing", () => {
     const result = validateAutoIndexRequest({
       ...validAutoRequest,
-      material_type: 'lecture_notes',
+      material_type: "lecture_notes",
     });
     expect(result.valid).toBe(false);
-    if (!result.valid) expect(result.error).toContain('material_type');
+    if (!result.valid) expect(result.error).toContain("material_type");
   });
 
-  it('accepts rubric_criteria material type', () => {
+  it("accepts rubric_criteria material type", () => {
     const result = validateAutoIndexRequest({
       ...validAutoRequest,
-      material_type: 'rubric_criteria',
+      material_type: "rubric_criteria",
     });
     expect(result.valid).toBe(true);
   });
 
-  it('accepts optional description', () => {
+  it("accepts optional description", () => {
     const result = validateAutoIndexRequest({
       ...validAutoRequest,
-      description: 'Implement a binary search tree.',
+      description: "Implement a binary search tree.",
     });
     expect(result.valid).toBe(true);
     if (result.valid) {
-      expect(result.data.description).toBe(
-        'Implement a binary search tree.',
-      );
+      expect(result.data.description).toBe("Implement a binary search tree.");
     }
   });
 
-  it('rejects non-string description', () => {
+  it("rejects non-string description", () => {
     const result = validateAutoIndexRequest({
       ...validAutoRequest,
       description: 123,
     });
     expect(result.valid).toBe(false);
-    if (!result.valid) expect(result.error).toContain('description');
+    if (!result.valid) expect(result.error).toContain("description");
   });
 
-  it('accepts valid rubric_criteria array', () => {
+  it("accepts valid rubric_criteria array", () => {
     const result = validateAutoIndexRequest({
       ...validAutoRequest,
       rubric_criteria: [
-        { criterion: 'Correctness', description: 'Code produces correct output' },
-        { criterion: 'Style' },
+        {
+          criterion: "Correctness",
+          description: "Code produces correct output",
+        },
+        { criterion: "Style" },
       ],
     });
     expect(result.valid).toBe(true);
@@ -690,118 +697,122 @@ describe('embed-course-material: Auto-Index Validation (3.2.8)', () => {
     }
   });
 
-  it('rejects rubric_criteria with missing criterion field', () => {
+  it("rejects rubric_criteria with missing criterion field", () => {
     const result = validateAutoIndexRequest({
       ...validAutoRequest,
-      rubric_criteria: [{ description: 'Missing criterion field' }],
+      rubric_criteria: [{ description: "Missing criterion field" }],
     });
     expect(result.valid).toBe(false);
-    if (!result.valid) expect(result.error).toContain('criterion');
+    if (!result.valid) expect(result.error).toContain("criterion");
   });
 
-  it('rejects non-array rubric_criteria', () => {
+  it("rejects non-array rubric_criteria", () => {
     const result = validateAutoIndexRequest({
       ...validAutoRequest,
-      rubric_criteria: 'not-array',
+      rubric_criteria: "not-array",
     });
     expect(result.valid).toBe(false);
   });
 });
 
-describe('embed-course-material: Auto-Index Text Assembly (3.2.8)', () => {
-  it('assembles text from title only', () => {
+describe("embed-course-material: Auto-Index Text Assembly (3.2.8)", () => {
+  it("assembles text from title only", () => {
     const result = assembleAutoIndexText({
-      course_id: 'c1',
-      title: 'Assignment 1',
-      material_type: 'assignment_description',
-      source_filename: 'a1',
+      course_id: "c1",
+      title: "Assignment 1",
+      material_type: "assignment_description",
+      source_filename: "a1",
     });
-    expect(result).toBe('Assignment 1');
+    expect(result).toBe("Assignment 1");
   });
 
-  it('assembles text from title and description', () => {
+  it("assembles text from title and description", () => {
     const result = assembleAutoIndexText({
-      course_id: 'c1',
-      title: 'Assignment 1',
-      description: 'Implement a linked list.',
-      material_type: 'assignment_description',
-      source_filename: 'a1',
+      course_id: "c1",
+      title: "Assignment 1",
+      description: "Implement a linked list.",
+      material_type: "assignment_description",
+      source_filename: "a1",
     });
-    expect(result).toContain('Assignment 1');
-    expect(result).toContain('Implement a linked list.');
+    expect(result).toContain("Assignment 1");
+    expect(result).toContain("Implement a linked list.");
   });
 
-  it('assembles text from title, description, and rubric criteria', () => {
+  it("assembles text from title, description, and rubric criteria", () => {
     const result = assembleAutoIndexText({
-      course_id: 'c1',
-      title: 'Final Project',
-      description: 'Build a web application.',
-      material_type: 'assignment_description',
-      source_filename: 'fp',
+      course_id: "c1",
+      title: "Final Project",
+      description: "Build a web application.",
+      material_type: "assignment_description",
+      source_filename: "fp",
       rubric_criteria: [
-        { criterion: 'Functionality', description: 'App works correctly' },
-        { criterion: 'Design', description: 'Clean UI' },
+        { criterion: "Functionality", description: "App works correctly" },
+        { criterion: "Design", description: "Clean UI" },
       ],
     });
-    expect(result).toContain('Final Project');
-    expect(result).toContain('Build a web application.');
-    expect(result).toContain('Rubric Criteria:');
-    expect(result).toContain('Functionality: App works correctly');
-    expect(result).toContain('Design: Clean UI');
+    expect(result).toContain("Final Project");
+    expect(result).toContain("Build a web application.");
+    expect(result).toContain("Rubric Criteria:");
+    expect(result).toContain("Functionality: App works correctly");
+    expect(result).toContain("Design: Clean UI");
   });
 
-  it('handles rubric criteria without descriptions', () => {
+  it("handles rubric criteria without descriptions", () => {
     const result = assembleAutoIndexText({
-      course_id: 'c1',
-      title: 'Quiz 1',
-      material_type: 'rubric_criteria',
-      source_filename: 'q1',
+      course_id: "c1",
+      title: "Quiz 1",
+      material_type: "rubric_criteria",
+      source_filename: "q1",
       rubric_criteria: [
-        { criterion: 'Accuracy' },
-        { criterion: 'Completeness' },
+        { criterion: "Accuracy" },
+        { criterion: "Completeness" },
       ],
     });
-    expect(result).toContain('Accuracy');
-    expect(result).toContain('Completeness');
+    expect(result).toContain("Accuracy");
+    expect(result).toContain("Completeness");
     // Criteria without descriptions should not have "criterion: description" format
-    expect(result).not.toContain('Accuracy:');
-    expect(result).not.toContain('Completeness:');
+    expect(result).not.toContain("Accuracy:");
+    expect(result).not.toContain("Completeness:");
   });
 
-  it('skips empty description', () => {
+  it("skips empty description", () => {
     const result = assembleAutoIndexText({
-      course_id: 'c1',
-      title: 'Test',
-      description: '   ',
-      material_type: 'assignment_description',
-      source_filename: 't',
+      course_id: "c1",
+      title: "Test",
+      description: "   ",
+      material_type: "assignment_description",
+      source_filename: "t",
     });
-    expect(result).toBe('Test');
+    expect(result).toBe("Test");
   });
 
-  it('skips empty rubric_criteria array', () => {
+  it("skips empty rubric_criteria array", () => {
     const result = assembleAutoIndexText({
-      course_id: 'c1',
-      title: 'Test',
-      material_type: 'assignment_description',
-      source_filename: 't',
+      course_id: "c1",
+      title: "Test",
+      material_type: "assignment_description",
+      source_filename: "t",
       rubric_criteria: [],
     });
-    expect(result).toBe('Test');
+    expect(result).toBe("Test");
   });
 });
 
-describe('embed-course-material: Large Document Detection (3.2.5)', () => {
-  it('detects documents over 100 pages', () => {
+describe("embed-course-material: Large Document Detection (3.2.5)", () => {
+  it("detects documents over 100 pages", () => {
     // 100 pages * 2000 chars/page = 200,000 chars
-    const largeText = 'x'.repeat(200_001);
-    const estimatedPages = Math.ceil(largeText.length / CHARS_PER_PAGE_ESTIMATE);
+    const largeText = "x".repeat(200_001);
+    const estimatedPages = Math.ceil(
+      largeText.length / CHARS_PER_PAGE_ESTIMATE
+    );
     expect(estimatedPages).toBeGreaterThan(LARGE_DOCUMENT_PAGE_THRESHOLD);
   });
 
-  it('does not flag small documents', () => {
-    const smallText = 'x'.repeat(1000);
-    const estimatedPages = Math.ceil(smallText.length / CHARS_PER_PAGE_ESTIMATE);
+  it("does not flag small documents", () => {
+    const smallText = "x".repeat(1000);
+    const estimatedPages = Math.ceil(
+      smallText.length / CHARS_PER_PAGE_ESTIMATE
+    );
     expect(estimatedPages).toBeLessThanOrEqual(LARGE_DOCUMENT_PAGE_THRESHOLD);
   });
 });

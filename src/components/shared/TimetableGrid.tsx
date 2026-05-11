@@ -2,7 +2,7 @@
 // TimetableGrid — Weekly timetable grid
 // =============================================================================
 
-import { cn } from '@/lib/utils';
+import { cn } from "@/lib/utils";
 
 interface TimetableEntry {
   id: string;
@@ -19,18 +19,18 @@ interface TimetableGridProps {
   className?: string;
 }
 
-const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 
 const DAY_COLORS = [
-  'bg-blue-50 border-blue-200 text-blue-700',
-  'bg-green-50 border-green-200 text-green-700',
-  'bg-purple-50 border-purple-200 text-purple-700',
-  'bg-amber-50 border-amber-200 text-amber-700',
-  'bg-teal-50 border-teal-200 text-teal-700',
+  "bg-blue-50 border-blue-200 text-blue-700",
+  "bg-green-50 border-green-200 text-green-700",
+  "bg-purple-50 border-purple-200 text-purple-700",
+  "bg-amber-50 border-amber-200 text-amber-700",
+  "bg-teal-50 border-teal-200 text-teal-700",
 ];
 
 const TimetableGrid = ({ entries, className }: TimetableGridProps) => (
-  <div className={cn('grid grid-cols-5 gap-2', className)}>
+  <div className={cn("grid grid-cols-5 gap-2", className)}>
     {DAYS.map((day, dayIdx) => (
       <div key={day} className="space-y-2">
         <h4 className="text-xs font-bold tracking-widest uppercase text-gray-500 text-center py-2">
@@ -43,12 +43,14 @@ const TimetableGrid = ({ entries, className }: TimetableGridProps) => (
             <div
               key={entry.id}
               className={cn(
-                'rounded-lg border p-2 text-xs space-y-0.5',
-                entry.color ?? DAY_COLORS[dayIdx % DAY_COLORS.length],
+                "rounded-lg border p-2 text-xs space-y-0.5",
+                entry.color ?? DAY_COLORS[dayIdx % DAY_COLORS.length]
               )}
             >
               <p className="font-semibold truncate">{entry.courseName}</p>
-              <p className="opacity-70">{entry.startTime} – {entry.endTime}</p>
+              <p className="opacity-70">
+                {entry.startTime} – {entry.endTime}
+              </p>
               {entry.room && <p className="opacity-60">{entry.room}</p>}
             </div>
           ))}

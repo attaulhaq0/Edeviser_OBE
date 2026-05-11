@@ -2,9 +2,9 @@
 // Focus Mode Timer — localStorage Persistence
 // =============================================================================
 
-import type { TimerPersistState } from '@/types/planner';
+import type { TimerPersistState } from "@/types/planner";
 
-const TIMER_STATE_KEY = 'edeviser_focus_timer';
+const TIMER_STATE_KEY = "edeviser_focus_timer";
 
 /** Persist timer state to localStorage. */
 export function persistTimerState(state: TimerPersistState): void {

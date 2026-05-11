@@ -4,7 +4,7 @@
 // Validates: Requirements 32, 53.5, 66.4
 // =============================================================================
 
-import ReconnectBanner from '@/components/shared/ReconnectBanner';
+import ReconnectBanner from "@/components/shared/ReconnectBanner";
 
 interface RealtimeStatusBannerProps {
   /** Whether the realtime connection is live */
@@ -13,7 +13,10 @@ interface RealtimeStatusBannerProps {
   retryCount?: number;
 }
 
-const RealtimeStatusBanner = ({ isLive, retryCount = 0 }: RealtimeStatusBannerProps) => (
+const RealtimeStatusBanner = ({
+  isLive,
+  retryCount = 0,
+}: RealtimeStatusBannerProps) => (
   <ReconnectBanner isDisconnected={!isLive} retryCount={retryCount} />
 );
 

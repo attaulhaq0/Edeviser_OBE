@@ -1,32 +1,34 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { parseAsString, useQueryState } from 'nuqs';
-import { toast } from 'sonner';
-import { createColumns } from './columns';
-import { DataTable } from '@/components/shared/DataTable';
-import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
-import { useCourses, useSoftDeleteCourse } from '@/hooks/useCourses';
-import { usePrograms } from '@/hooks/usePrograms';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { parseAsString, useQueryState } from "nuqs";
+import { toast } from "sonner";
+import { createColumns } from "./columns";
+import { DataTable } from "@/components/shared/DataTable";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import { useCourses, useSoftDeleteCourse } from "@/hooks/useCourses";
+import { usePrograms } from "@/hooks/usePrograms";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Plus, Search } from 'lucide-react';
-import type { Course } from '@/types/app';
+} from "@/components/ui/select";
+import { Plus, Search } from "lucide-react";
+import type { Course } from "@/types/app";
 
 const CourseListPage = () => {
   const navigate = useNavigate();
-  const [search, setSearch] = useQueryState('q', parseAsString.withDefault(''));
+  const [search, setSearch] = useQueryState("q", parseAsString.withDefault(""));
   const [programFilter, setProgramFilter] = useQueryState(
-    'program',
-    parseAsString.withDefault(''),
+    "program",
+    parseAsString.withDefault("")
   );
-  const [courseToDeactivate, setCourseToDeactivate] = useState<Course | null>(null);
+  const [courseToDeactivate, setCourseToDeactivate] = useState<Course | null>(
+    null
+  );
   const [page, setPage] = useState(1);
 
   const { data: paginatedCourses, isLoading } = useCourses({
@@ -42,7 +44,7 @@ const CourseListPage = () => {
   const columns = createColumns(
     (course) => navigate(`/admin/courses/${course.id}/edit`),
     (course) => setCourseToDeactivate(course),
-    (course) => navigate(`/admin/courses/${course.id}/enrollment`),
+    (course) => navigate(`/admin/courses/${course.id}/enrollment`)
   );
 
   return (
@@ -52,7 +54,7 @@ const CourseListPage = () => {
         <h1 className="text-2xl font-bold tracking-tight">Courses</h1>
         <Button
           className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 text-white"
-          onClick={() => navigate('/admin/courses/new')}
+          onClick={() => navigate("/admin/courses/new")}
         >
           <Plus className="h-4 w-4" /> Add Course
         </Button>
@@ -65,14 +67,17 @@ const CourseListPage = () => {
           <Input
             placeholder="Search by name or code..."
             value={search}
-            onChange={(e) => { setSearch(e.target.value || null); setPage(1); }}
+            onChange={(e) => {
+              setSearch(e.target.value || null);
+              setPage(1);
+            }}
             className="ps-9"
           />
         </div>
         <Select
-          value={programFilter || '__all__'}
+          value={programFilter || "__all__"}
           onValueChange={(value) => {
-            setProgramFilter(value === '__all__' ? null : value);
+            setProgramFilter(value === "__all__" ? null : value);
             setPage(1);
           }}
         >

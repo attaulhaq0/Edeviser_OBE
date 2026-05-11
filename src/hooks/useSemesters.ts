@@ -1,10 +1,10 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import { logAuditEvent } from '@/lib/auditLogger';
-import { useAuth } from '@/hooks/useAuth';
-import { toast } from 'sonner';
-import type { Semester } from '@/types/app';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import { logAuditEvent } from "@/lib/auditLogger";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
+import type { Semester } from "@/types/app";
 
 // ─── useSemesters — list all semesters ───────────────────────────────────────
 
@@ -13,9 +13,9 @@ export const useSemesters = () => {
     queryKey: queryKeys.semesters.lists(),
     queryFn: async (): Promise<Semester[]> => {
       const { data, error } = await supabase
-        .from('semesters')
-        .select('*')
-        .order('start_date', { ascending: false });
+        .from("semesters")
+        .select("*")
+        .order("start_date", { ascending: false });
       if (error) throw error;
       return (data ?? []) as Semester[];
     },
@@ -29,9 +29,9 @@ export const useActiveSemester = () => {
     queryKey: queryKeys.semesters.list({ active: true }),
     queryFn: async (): Promise<Semester | null> => {
       const { data, error } = await supabase
-        .from('semesters')
-        .select('*')
-        .eq('is_active', true)
+        .from("semesters")
+        .select("*")
+        .eq("is_active", true)
         .maybeSingle();
       if (error) throw error;
       return data as Semester | null;
@@ -43,12 +43,12 @@ export const useActiveSemester = () => {
 
 export const useSemester = (id: string | undefined) => {
   return useQuery({
-    queryKey: queryKeys.semesters.detail(id ?? ''),
+    queryKey: queryKeys.semesters.detail(id ?? ""),
     queryFn: async (): Promise<Semester | null> => {
       const { data, error } = await supabase
-        .from('semesters')
-        .select('*')
-        .eq('id', id!)
+        .from("semesters")
+        .select("*")
+        .eq("id", id!)
         .maybeSingle();
       if (error) throw error;
       return data as Semester | null;
@@ -56,7 +56,6 @@ export const useSemester = (id: string | undefined) => {
     enabled: !!id,
   });
 };
-
 
 // ─── useCreateSemester — insert with audit logging ───────────────────────────
 
@@ -78,35 +77,38 @@ export const useCreateSemester = () => {
       // If setting as active, deactivate all others first (single-active enforcement)
       if (input.is_active) {
         const { error: deactivateError } = await supabase
-          .from('semesters')
+          .from("semesters")
           .update({ is_active: false })
-          .eq('institution_id', input.institution_id)
-          .eq('is_active', true);
+          .eq("institution_id", input.institution_id)
+          .eq("is_active", true);
         if (deactivateError) throw deactivateError;
       }
 
       const { data, error } = await supabase
-        .from('semesters')
+        .from("semesters")
         .insert(input)
         .select()
         .single();
       if (error) throw error;
 
       await logAuditEvent({
-        action: 'create',
-        entity_type: 'semester',
+        action: "create",
+        entity_type: "semester",
         entity_id: data.id,
         changes: input as unknown as Record<string, unknown>,
-        performed_by: user?.id ?? 'unknown',
+        performed_by: user?.id ?? "unknown",
       });
 
       return data as Semester;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.semesters.all });
-      toast.success('Semester created');
+      toast.success("Semester created");
     },
-    onError: (err) => toast.error(err instanceof Error ? err.message : 'Failed to create semester'),
+    onError: (err) =>
+      toast.error(
+        err instanceof Error ? err.message : "Failed to create semester"
+      ),
   });
 };
 
@@ -129,37 +131,40 @@ export const useUpdateSemester = (id: string) => {
       // If activating, deactivate all others first (single-active enforcement)
       if (input.is_active && institutionId) {
         const { error: deactivateError } = await supabase
-          .from('semesters')
+          .from("semesters")
           .update({ is_active: false })
-          .eq('institution_id', institutionId)
-          .eq('is_active', true)
-          .neq('id', id);
+          .eq("institution_id", institutionId)
+          .eq("is_active", true)
+          .neq("id", id);
         if (deactivateError) throw deactivateError;
       }
 
       const { data, error } = await supabase
-        .from('semesters')
+        .from("semesters")
         .update(input)
-        .eq('id', id)
+        .eq("id", id)
         .select()
         .single();
       if (error) throw error;
 
       await logAuditEvent({
-        action: 'update',
-        entity_type: 'semester',
+        action: "update",
+        entity_type: "semester",
         entity_id: id,
         changes: input as unknown as Record<string, unknown>,
-        performed_by: user?.id ?? 'unknown',
+        performed_by: user?.id ?? "unknown",
       });
 
       return data as Semester;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.semesters.all });
-      toast.success('Semester updated');
+      toast.success("Semester updated");
     },
-    onError: (err) => toast.error(err instanceof Error ? err.message : 'Failed to update semester'),
+    onError: (err) =>
+      toast.error(
+        err instanceof Error ? err.message : "Failed to update semester"
+      ),
   });
 };
 
@@ -171,22 +176,25 @@ export const useDeleteSemester = () => {
 
   return useMutation({
     mutationFn: async (id: string): Promise<void> => {
-      const { error } = await supabase.from('semesters').delete().eq('id', id);
+      const { error } = await supabase.from("semesters").delete().eq("id", id);
       if (error) throw error;
 
       await logAuditEvent({
-        action: 'delete',
-        entity_type: 'semester',
+        action: "delete",
+        entity_type: "semester",
         entity_id: id,
         changes: null,
-        performed_by: user?.id ?? 'unknown',
+        performed_by: user?.id ?? "unknown",
       });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.semesters.all });
-      toast.success('Semester deleted');
+      toast.success("Semester deleted");
     },
-    onError: (err) => toast.error(err instanceof Error ? err.message : 'Failed to delete semester'),
+    onError: (err) =>
+      toast.error(
+        err instanceof Error ? err.message : "Failed to delete semester"
+      ),
   });
 };
 
@@ -197,39 +205,48 @@ export const useToggleSemesterActive = () => {
   const { user, institutionId } = useAuth();
 
   return useMutation({
-    mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }): Promise<Semester> => {
+    mutationFn: async ({
+      id,
+      is_active,
+    }: {
+      id: string;
+      is_active: boolean;
+    }): Promise<Semester> => {
       // If activating, deactivate all others first
       if (is_active && institutionId) {
         const { error: deactivateError } = await supabase
-          .from('semesters')
+          .from("semesters")
           .update({ is_active: false })
-          .eq('institution_id', institutionId)
-          .eq('is_active', true);
+          .eq("institution_id", institutionId)
+          .eq("is_active", true);
         if (deactivateError) throw deactivateError;
       }
 
       const { data, error } = await supabase
-        .from('semesters')
+        .from("semesters")
         .update({ is_active })
-        .eq('id', id)
+        .eq("id", id)
         .select()
         .single();
       if (error) throw error;
 
       await logAuditEvent({
-        action: 'update',
-        entity_type: 'semester',
+        action: "update",
+        entity_type: "semester",
         entity_id: id,
         changes: { is_active },
-        performed_by: user?.id ?? 'unknown',
+        performed_by: user?.id ?? "unknown",
       });
 
       return data as Semester;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.semesters.all });
-      toast.success('Semester status updated');
+      toast.success("Semester status updated");
     },
-    onError: (err) => toast.error(err instanceof Error ? err.message : 'Failed to update semester'),
+    onError: (err) =>
+      toast.error(
+        err instanceof Error ? err.message : "Failed to update semester"
+      ),
   });
 };

@@ -116,7 +116,6 @@ blockquote { border-left: 3px solid var(--teal); background: var(--teal-soft); m
 .df { margin-top: 28px; padding-top: 12px; border-top: 2px solid var(--teal); text-align: center; font-size: 10px; color: var(--mute); }
 </style>
 
-
 <!-- ══════════ COVER ══════════ -->
 <div class="cover">
 <img class="cover-logo" src="../public/logos/e deviser logo 2.jpg" alt="Edeviser" />
@@ -134,31 +133,29 @@ blockquote { border-left: 3px solid var(--teal); background: var(--teal-soft); m
 </div>
 </div>
 
-
 <!-- ══════════ TOC ══════════ -->
 <div class="ns">
 <span class="sl">Navigation</span>
 
 ## Table of Contents
 
-| # | Section | Focus |
-|---|---------|-------|
-| 1 | Strategy Overview | Why characters, not corporate posts |
-| 2 | The Edeviser Character Cast | 5 mascots and their roles |
-| 3 | Design System for Posts | Visual constants, colors, typography |
-| 4 | Content Pillars | 6 rotating themes across 14 days |
-| 5 | The 14-Day Post Calendar | Day-by-day detailed playbook |
-| 6 | Post Summary Table | Quick reference for designer |
-| 7 | Brand Consistency Rules | What ties it all together |
-| 8 | Engagement Playbook | Post-publishing actions |
-| 9 | Post-14-Day Continuation | What comes next |
+| #   | Section                     | Focus                                |
+| --- | --------------------------- | ------------------------------------ |
+| 1   | Strategy Overview           | Why characters, not corporate posts  |
+| 2   | The Edeviser Character Cast | 5 mascots and their roles            |
+| 3   | Design System for Posts     | Visual constants, colors, typography |
+| 4   | Content Pillars             | 6 rotating themes across 14 days     |
+| 5   | The 14-Day Post Calendar    | Day-by-day detailed playbook         |
+| 6   | Post Summary Table          | Quick reference for designer         |
+| 7   | Brand Consistency Rules     | What ties it all together            |
+| 8   | Engagement Playbook         | Post-publishing actions              |
+| 9   | Post-14-Day Continuation    | What comes next                      |
 
 <div class="hb">
   <h3>🦊 The Core Idea</h3>
   <p>Edeviser is not a faceless platform. It is a world populated by characters that represent the real people in higher education. Every post features these characters in situations that faculty, students, and administrators instantly recognize. The humor is knowing, not silly. The information is real, not dumbed down. The vibe is "the friend who works in education and actually gets it."</p>
 </div>
 </div>
-
 
 <!-- ══════════ S1: STRATEGY ══════════ -->
 <div class="ns">
@@ -210,7 +207,6 @@ Duolingo turned a green owl into a cultural icon with 80M+ DAU. We are applying 
 <div class="co co-o"><strong>🦊 No hard sell until Day 7.</strong> The first 6 posts build credibility and emotional connection. The product concept appears on Day 7 as a natural answer to the problems raised. This is the Duolingo playbook: earn attention first, then reveal what you are building.</div>
 </div>
 
-
 <!-- ══════════ S2: CHARACTERS ══════════ -->
 <div class="ns">
 <span class="sl">Brand Identity</span>
@@ -257,17 +253,16 @@ Duolingo turned a green owl into a cultural icon with 80M+ DAU. We are applying 
 
 ### Character Visual Specifications (For Designer)
 
-| Character | Color Palette | Key Props | Expression Range | Visual Style |
-|-----------|--------------|-----------|-----------------|-------------|
-| **Foxi** | Teal-to-blue gradient fur (brand colors) | Tiny graduation cap tilted sideways, clipboard | Confident, mischievous, warm, pointing, waving | Minimalist flat illustration. Expressive eyes. |
-| **Prof. Hoot** | Warm brown tones | Round glasses, coffee mug (always), messy feathers | Exhausted, relieved, surprised, dead-inside-but-professional | Dark circles under eyes. Relatable. |
-| **Dean Talon** | Gold and navy tones | Subtle tie, tablet showing dashboards | Strategic, confident, impressed, concerned | Sharp, well-groomed. Executive energy. |
-| **Saqr** | Teal accents, elegant | Subtle keffiyeh-inspired pattern, curriculum map | Proud, thoughtful, presenting, bridging | Elegant. Cultural without being stereotypical. |
-| **Noor** | Bright amber eyes (XP color) | Headphones around neck, phone in hand | Curious, bored, determined, celebrating, confident | Young, energetic. Digital-native body language. |
+| Character      | Color Palette                            | Key Props                                          | Expression Range                                             | Visual Style                                    |
+| -------------- | ---------------------------------------- | -------------------------------------------------- | ------------------------------------------------------------ | ----------------------------------------------- |
+| **Foxi**       | Teal-to-blue gradient fur (brand colors) | Tiny graduation cap tilted sideways, clipboard     | Confident, mischievous, warm, pointing, waving               | Minimalist flat illustration. Expressive eyes.  |
+| **Prof. Hoot** | Warm brown tones                         | Round glasses, coffee mug (always), messy feathers | Exhausted, relieved, surprised, dead-inside-but-professional | Dark circles under eyes. Relatable.             |
+| **Dean Talon** | Gold and navy tones                      | Subtle tie, tablet showing dashboards              | Strategic, confident, impressed, concerned                   | Sharp, well-groomed. Executive energy.          |
+| **Saqr**       | Teal accents, elegant                    | Subtle keffiyeh-inspired pattern, curriculum map   | Proud, thoughtful, presenting, bridging                      | Elegant. Cultural without being stereotypical.  |
+| **Noor**       | Bright amber eyes (XP color)             | Headphones around neck, phone in hand              | Curious, bored, determined, celebrating, confident           | Young, energetic. Digital-native body language. |
 
 <div class="co co-b"><strong>Illustration Style:</strong> Flat, minimal detail, expressive poses. Think Headspace meets Duolingo. Not cartoonish, not corporate. Characters should feel warm and approachable on LinkedIn — professional enough for deans, fun enough for students.</div>
 </div>
-
 
 <!-- ══════════ S3: DESIGN SYSTEM ══════════ -->
 <div class="ns">
@@ -289,33 +284,33 @@ Duolingo turned a green owl into a cultural icon with 80M+ DAU. We are applying 
 
 ### Typography & Layout
 
-| Element | Specification |
-|---------|--------------|
-| Font | Clean sans-serif (Inter or Noto Sans). Bold headlines, light body. Arabic: Noto Sans Arabic |
-| Carousel frame | Consistent border/margin. Edeviser logo watermark bottom-right. Slide number indicator top-right |
-| Single post frame | Character + bold text overlay. Gradient background (brand teal-to-blue or dark navy) |
-| Carousel size | 1080×1080px (square) or 1080×1350px (portrait, higher engagement) |
-| Single post size | 1200×1200px (square) |
+| Element           | Specification                                                                                    |
+| ----------------- | ------------------------------------------------------------------------------------------------ |
+| Font              | Clean sans-serif (Inter or Noto Sans). Bold headlines, light body. Arabic: Noto Sans Arabic      |
+| Carousel frame    | Consistent border/margin. Edeviser logo watermark bottom-right. Slide number indicator top-right |
+| Single post frame | Character + bold text overlay. Gradient background (brand teal-to-blue or dark navy)             |
+| Carousel size     | 1080×1080px (square) or 1080×1350px (portrait, higher engagement)                                |
+| Single post size  | 1200×1200px (square)                                                                             |
 
 ### Recurring Visual Motifs
 
-| Motif | Where It Appears | Purpose |
-|-------|-----------------|---------|
-| XP sparkles (amber) | Student-focused slides | Gamification visual language |
-| Streak flames (red-orange) | Habit/engagement slides | Energy, momentum |
-| Bloom's color pills | OBE educational slides | Domain expertise signal |
-| Graduation caps | Cover slides, celebrations | Education context |
-| Coffee mugs | Prof. Hoot scenes | Faculty relatability |
-| Doha skyline (stylized) | Gulf-focused posts | Regional grounding |
+| Motif                      | Where It Appears             | Purpose                          |
+| -------------------------- | ---------------------------- | -------------------------------- |
+| XP sparkles (amber)        | Student-focused slides       | Gamification visual language     |
+| Streak flames (red-orange) | Habit/engagement slides      | Energy, momentum                 |
+| Bloom's color pills        | OBE educational slides       | Domain expertise signal          |
+| Graduation caps            | Cover slides, celebrations   | Education context                |
+| Coffee mugs                | Prof. Hoot scenes            | Faculty relatability             |
+| Doha skyline (stylized)    | Gulf-focused posts           | Regional grounding               |
 | Islamic geometric patterns | Border accents on Gulf posts | Cultural respect, not decoration |
 
 ### Brand Gradients (Match Product)
 
-| Gradient | CSS | Usage |
-|----------|-----|-------|
-| Brand Primary | `linear-gradient(93.65deg, #14B8A6 5%, #0382BD 79%)` | Card headers, CTA slides |
-| Hero Dark | `linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #312e81 100%)` | Cover slides, dramatic moments |
-| Warm Sunrise | Teal → Amber → Gold | Hopeful/celebratory slides |
+| Gradient      | CSS                                                              | Usage                          |
+| ------------- | ---------------------------------------------------------------- | ------------------------------ |
+| Brand Primary | `linear-gradient(93.65deg, #14B8A6 5%, #0382BD 79%)`             | Card headers, CTA slides       |
+| Hero Dark     | `linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #312e81 100%)` | Cover slides, dramatic moments |
+| Warm Sunrise  | Teal → Amber → Gold                                              | Hopeful/celebratory slides     |
 
 <div class="co"><strong>Logo Placement:</strong> Edeviser logo appears as a small watermark (bottom-right) on every carousel slide and every single-image post. On cover slides and CTA slides, the logo is larger and centered. The logo from <code>public/logos/e deviser logo 2.jpg</code> is the primary mark.</div>
 
@@ -330,7 +325,6 @@ Duolingo turned a green owl into a cultural icon with 80M+ DAU. We are applying 
 - Character names Saqr (صقر) and Noor (نور) always include Arabic script on first mention
 </div>
 
-
 <!-- ══════════ S4: CONTENT PILLARS ══════════ -->
 <div class="ns">
 <span class="sl">Content Strategy</span>
@@ -339,21 +333,20 @@ Duolingo turned a green owl into a cultural icon with 80M+ DAU. We are applying 
 
 <p class="ns-sub">6 rotating themes that ensure every audience segment is covered across the 14 days.</p>
 
-| Pillar | What It Covers | Character Lead | Target Audience |
-|--------|---------------|----------------|-----------------|
-| **OBE Reality Check** | The broken state of OBE implementation, what ABET actually requires vs. what we do | Prof. Hoot, Saqr | Faculty, coordinators |
-| **Student Experience** | Why students are disengaged, the feedback loop problem, gamification as a solution | Noor, Foxi | Students, progressive faculty |
-| **Institutional Intelligence** | Data-driven decisions, accreditation readiness, admin dashboards | Dean Talon, Foxi | Deans, VPs, administrators |
-| **Gulf Focus** | Qatar/GCC education landscape, QNV 2030, bilingual challenges, regional OBE mandates | Saqr, Dean Talon | Gulf education leaders |
-| **Product Glimpse** | Subtle feature reveals through character stories, never a product screenshot dump | Foxi (narrator) | All audiences |
-| **Company Milestone** | Qatar incorporation, team updates, founder journey | All characters | Network, investors, partners |
+| Pillar                         | What It Covers                                                                       | Character Lead   | Target Audience               |
+| ------------------------------ | ------------------------------------------------------------------------------------ | ---------------- | ----------------------------- |
+| **OBE Reality Check**          | The broken state of OBE implementation, what ABET actually requires vs. what we do   | Prof. Hoot, Saqr | Faculty, coordinators         |
+| **Student Experience**         | Why students are disengaged, the feedback loop problem, gamification as a solution   | Noor, Foxi       | Students, progressive faculty |
+| **Institutional Intelligence** | Data-driven decisions, accreditation readiness, admin dashboards                     | Dean Talon, Foxi | Deans, VPs, administrators    |
+| **Gulf Focus**                 | Qatar/GCC education landscape, QNV 2030, bilingual challenges, regional OBE mandates | Saqr, Dean Talon | Gulf education leaders        |
+| **Product Glimpse**            | Subtle feature reveals through character stories, never a product screenshot dump    | Foxi (narrator)  | All audiences                 |
+| **Company Milestone**          | Qatar incorporation, team updates, founder journey                                   | All characters   | Network, investors, partners  |
 
 <div class="hb">
   <h3>🎯 Posting Rhythm</h3>
   <p>14 posts over 14 days (1 post/day). Mix: 6 carousels + 8 single-image posts. Best times for Gulf LinkedIn: Sunday–Thursday, 8–10 AM GST or 12–1 PM GST. Qatar incorporation announcement lands on Day 8 after building audience context.</p>
 </div>
 </div>
-
 
 <!-- ══════════ S5: THE 14 POSTS ══════════ -->
 <div class="ns">
@@ -373,15 +366,15 @@ Duolingo turned a green owl into a cultural icon with 80M+ DAU. We are applying 
 
 > Every university visit. Same conversation. CLOs. PLOs. PEOs. Bloom's C1 to C6. Every question tagged. Every mark entered part by part. We built a machine. But the machine is eating us. MIT does not do it this way. ABET does not require it. So why are we? Swipe to see what OBE was supposed to be vs. what it became.
 
-| Slide | Content | Design Direction for Designer |
-|-------|---------|-------------------------------|
-| 1 (Cover) | "The OBE Machine Is Eating Us" | Dark navy gradient. Prof. Hoot slumped over desk buried in papers, coffee spilled. Papers have tiny CLO/PLO labels. Edeviser logo bottom-right. Dramatic, moody lighting. |
-| 2 | "What faculty actually do every semester:" — Tag every question to a Bloom's verb, enter marks part by part, map CLOs to PLOs, fill compliance spreadsheets | Prof. Hoot running on a hamster wheel made of spreadsheet cells. Each spoke labeled with an OBE task. Teal accent lines. |
-| 3 | "What ABET actually requires:" — A systematic process. Evidence of outcomes. Honest corrective action. That is it. | Clean, minimal. Three teal checkmarks. Foxi in corner holding magnifying glass, pointing at the simplicity. |
-| 4 | "The hyper-granular approach is a regional interpretation, not a universal ABET mandate." | Split: left = tangled web of mappings (chaotic, red-tinted). Right = clean simple flow (calm, teal-tinted). Saqr in middle gesturing toward clean side. |
-| 5 | "How MIT, Carnegie Mellon, and Stanford do OBE:" — Focus on meaningful evidence. Assess at program level. No verb policing. | Three stylized university crests. Prof. Hoot looking through binoculars, surprised. Speech bubble: "Wait, they don't do this?" |
-| 6 | "OBE in its original spirit: Rigorous without being punishing. Better graduates, not better paperwork." | Warm, hopeful. Noor and Prof. Hoot standing together, smiling. Sunrise gradient (teal to amber). |
-| 7 (CTA) | "We are building something that brings OBE back to its purpose. Follow along." | Brand gradient background. Foxi centered, waving. Edeviser logo prominent. |
+| Slide     | Content                                                                                                                                                     | Design Direction for Designer                                                                                                                                             |
+| --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 (Cover) | "The OBE Machine Is Eating Us"                                                                                                                              | Dark navy gradient. Prof. Hoot slumped over desk buried in papers, coffee spilled. Papers have tiny CLO/PLO labels. Edeviser logo bottom-right. Dramatic, moody lighting. |
+| 2         | "What faculty actually do every semester:" — Tag every question to a Bloom's verb, enter marks part by part, map CLOs to PLOs, fill compliance spreadsheets | Prof. Hoot running on a hamster wheel made of spreadsheet cells. Each spoke labeled with an OBE task. Teal accent lines.                                                  |
+| 3         | "What ABET actually requires:" — A systematic process. Evidence of outcomes. Honest corrective action. That is it.                                          | Clean, minimal. Three teal checkmarks. Foxi in corner holding magnifying glass, pointing at the simplicity.                                                               |
+| 4         | "The hyper-granular approach is a regional interpretation, not a universal ABET mandate."                                                                   | Split: left = tangled web of mappings (chaotic, red-tinted). Right = clean simple flow (calm, teal-tinted). Saqr in middle gesturing toward clean side.                   |
+| 5         | "How MIT, Carnegie Mellon, and Stanford do OBE:" — Focus on meaningful evidence. Assess at program level. No verb policing.                                 | Three stylized university crests. Prof. Hoot looking through binoculars, surprised. Speech bubble: "Wait, they don't do this?"                                            |
+| 6         | "OBE in its original spirit: Rigorous without being punishing. Better graduates, not better paperwork."                                                     | Warm, hopeful. Noor and Prof. Hoot standing together, smiling. Sunrise gradient (teal to amber).                                                                          |
+| 7 (CTA)   | "We are building something that brings OBE back to its purpose. Follow along."                                                                              | Brand gradient background. Foxi centered, waving. Edeviser logo prominent.                                                                                                |
 
 <div class="divider"></div>
 
@@ -405,14 +398,14 @@ Duolingo turned a green owl into a cultural icon with 80M+ DAU. We are applying 
 
 > We talk about CLOs, PLOs, and accreditation all day. But have you asked your students what they experience? Here is what Noor sees. Swipe. It might change how you think about your next semester.
 
-| Slide | Content | Design Direction |
-|-------|---------|-----------------|
-| 1 (Cover) | "What Your Students Actually Experience" | Dark navy. Noor centered, looking at phone, confused. Phone screen glowing. |
-| 2 | Timeline: Monday submits → 3 weeks of nothing → Gets a grade. No feedback. Just a number. | Timeline flowing downward. Noor waiting at each node, progressively more bored. Grade drops as cold red number. |
-| 3 | "She does not know which skills she is building. She does not know how this connects to her career." | Three question marks floating around Noor: "What skill?", "Why this?", "Am I growing?". Muted palette. |
-| 4 | "The institution has all the data. But none of it reaches the student." | Split screen: Left = Dean Talon's dashboard full of charts. Right = Noor's empty screen. Wall between them. |
-| 5 | "What if the student could see their own growth? What if every submission felt like progress?" | Bright, hopeful. Noor smiling, phone showing XP bar, streak flame, CLO progress. Foxi next to her. Teal-to-amber gradient. |
-| 6 (CTA) | "The feedback loop is broken. We are fixing it. Follow Edeviser." | Brand gradient. Foxi and Noor together. Edeviser logo. |
+| Slide     | Content                                                                                              | Design Direction                                                                                                           |
+| --------- | ---------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| 1 (Cover) | "What Your Students Actually Experience"                                                             | Dark navy. Noor centered, looking at phone, confused. Phone screen glowing.                                                |
+| 2         | Timeline: Monday submits → 3 weeks of nothing → Gets a grade. No feedback. Just a number.            | Timeline flowing downward. Noor waiting at each node, progressively more bored. Grade drops as cold red number.            |
+| 3         | "She does not know which skills she is building. She does not know how this connects to her career." | Three question marks floating around Noor: "What skill?", "Why this?", "Am I growing?". Muted palette.                     |
+| 4         | "The institution has all the data. But none of it reaches the student."                              | Split screen: Left = Dean Talon's dashboard full of charts. Right = Noor's empty screen. Wall between them.                |
+| 5         | "What if the student could see their own growth? What if every submission felt like progress?"       | Bright, hopeful. Noor smiling, phone showing XP bar, streak flame, CLO progress. Foxi next to her. Teal-to-amber gradient. |
+| 6 (CTA)   | "The feedback loop is broken. We are fixing it. Follow Edeviser."                                    | Brand gradient. Foxi and Noor together. Edeviser logo.                                                                     |
 
 <div class="divider"></div>
 
@@ -436,15 +429,15 @@ Duolingo turned a green owl into a cultural icon with 80M+ DAU. We are applying 
 
 > This might be controversial. After studying how MIT, Stanford, and Carnegie Mellon implement OBE under ABET, we found something surprising. 5 things you are probably doing that ABET does not mandate. Save this for your next curriculum committee meeting.
 
-| Slide | Content | Design Direction |
-|-------|---------|-----------------|
-| 1 (Cover) | "5 Things ABET Does NOT Require (That You Are Probably Doing)" | Bold red "NOT" on white. Foxi holding clipboard with items crossed out. Prof. Hoot in background, shocked. |
-| 2 | "1. Question-level CLO tagging." | Big red X over exam paper with tiny CLO tags. Foxi pointing with "nope" expression. |
-| 3 | "2. Bloom's verb policing for every assessment." | Prof. Hoot erasing whiteboard of Bloom's verbs. Relief on face. Foxi thumbs up. |
-| 4 | "3. Part-by-part mark entry into OBE software." | Massive spreadsheet being crumpled into ball. Foxi tossing it into bin. |
-| 5 | "4. Mapping every single assessment to every single CLO." | Left: overwhelming spider web. Right: clean sampled approach. |
-| 6 | "5. Identical OBE processes across all departments." | Different department icons (gear, chart, flask) each with own simple flow. |
-| 7 (CTA) | "OBE should serve graduates, not generate paperwork. Follow Edeviser." | Warm gradient. All characters in a line. Foxi center. Edeviser logo. |
+| Slide     | Content                                                                | Design Direction                                                                                           |
+| --------- | ---------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| 1 (Cover) | "5 Things ABET Does NOT Require (That You Are Probably Doing)"         | Bold red "NOT" on white. Foxi holding clipboard with items crossed out. Prof. Hoot in background, shocked. |
+| 2         | "1. Question-level CLO tagging."                                       | Big red X over exam paper with tiny CLO tags. Foxi pointing with "nope" expression.                        |
+| 3         | "2. Bloom's verb policing for every assessment."                       | Prof. Hoot erasing whiteboard of Bloom's verbs. Relief on face. Foxi thumbs up.                            |
+| 4         | "3. Part-by-part mark entry into OBE software."                        | Massive spreadsheet being crumpled into ball. Foxi tossing it into bin.                                    |
+| 5         | "4. Mapping every single assessment to every single CLO."              | Left: overwhelming spider web. Right: clean sampled approach.                                              |
+| 6         | "5. Identical OBE processes across all departments."                   | Different department icons (gear, chart, flask) each with own simple flow.                                 |
+| 7 (CTA)   | "OBE should serve graduates, not generate paperwork. Follow Edeviser." | Warm gradient. All characters in a line. Foxi center. Edeviser logo.                                       |
 
 <div class="divider"></div>
 
@@ -468,16 +461,16 @@ Duolingo turned a green owl into a cultural icon with 80M+ DAU. We are applying 
 
 > What if accreditation compliance and student engagement were not two separate problems? What if every time a teacher graded, the system auto-generated evidence AND rewarded the student? We call it the Dual-Engine Architecture. Swipe to see how it works. No screenshots. Just the idea.
 
-| Slide | Content | Design Direction |
-|-------|---------|-----------------|
-| 1 (Cover) | "What if compliance and engagement were the same thing?" | Dark navy. Foxi holding two glowing orbs: teal (compliance), amber (engagement). |
-| 2 | "Today, universities run two separate machines that do not talk to each other." | Two disconnected gears. Prof. Hoot operating one, Noor stuck in other. Red X between. |
-| 3 | "Engine 1: OBE Core. Grade → Evidence → CLO → PLO → ILO → Report. Always ready." | Clean flow diagram. Foxi walking along path. Teal color scheme. |
-| 4 | "Engine 2: Habit Core. Submit → XP → Streak → Badge → Progress bar fills." | Noor's journey with gamification elements. Amber/gold scheme. |
-| 5 | "The magic: they are the same event." | Two gears now interlocked, spinning. Green glow. Foxi conducting on top. |
-| 6 | "For the teacher: Grade once. Evidence auto-generated. No separate OBE form." | Prof. Hoot relaxed, feet up, coffee in hand. Single checkmark floating. |
-| 7 | "For the student: Every submission feels like progress." | Noor jumping with joy. Phone glowing with XP/level/streak. Confetti. |
-| 8 (CTA) | "Compliance generates engagement. Engagement generates evidence. One loop. Edeviser." | Brand gradient. Interlocked gears as symbol. All 5 characters in row. Edeviser logo prominent. |
+| Slide     | Content                                                                               | Design Direction                                                                               |
+| --------- | ------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| 1 (Cover) | "What if compliance and engagement were the same thing?"                              | Dark navy. Foxi holding two glowing orbs: teal (compliance), amber (engagement).               |
+| 2         | "Today, universities run two separate machines that do not talk to each other."       | Two disconnected gears. Prof. Hoot operating one, Noor stuck in other. Red X between.          |
+| 3         | "Engine 1: OBE Core. Grade → Evidence → CLO → PLO → ILO → Report. Always ready."      | Clean flow diagram. Foxi walking along path. Teal color scheme.                                |
+| 4         | "Engine 2: Habit Core. Submit → XP → Streak → Badge → Progress bar fills."            | Noor's journey with gamification elements. Amber/gold scheme.                                  |
+| 5         | "The magic: they are the same event."                                                 | Two gears now interlocked, spinning. Green glow. Foxi conducting on top.                       |
+| 6         | "For the teacher: Grade once. Evidence auto-generated. No separate OBE form."         | Prof. Hoot relaxed, feet up, coffee in hand. Single checkmark floating.                        |
+| 7         | "For the student: Every submission feels like progress."                              | Noor jumping with joy. Phone glowing with XP/level/streak. Confetti.                           |
+| 8 (CTA)   | "Compliance generates engagement. Engagement generates evidence. One loop. Edeviser." | Brand gradient. Interlocked gears as symbol. All 5 characters in row. Edeviser logo prominent. |
 
 <div class="divider"></div>
 
@@ -504,14 +497,14 @@ Duolingo turned a green owl into a cultural icon with 80M+ DAU. We are applying 
 
 > Deans and QA directors: this one is for you. We studied what ABET, AACSB, and NCAAA actually evaluate. It is simpler than you think. 6 slides. Save this before your next self-study.
 
-| Slide | Content | Design Direction |
-|-------|---------|-----------------|
-| 1 (Cover) | "What Accreditation Bodies Actually Want to See" | Dean Talon adjusting glasses, looking at document. Professional, authoritative. Dark navy. |
-| 2 | "1. Evidence that graduates achieve program outcomes." | Dean Talon pointing at simple evidence chain. Icons: student work, survey, data chart. |
-| 3 | "2. A systematic process. Key word: systematic. Not exhaustive." | Foxi drawing cycle: Plan → Assess → Analyze → Improve. Circle diagram. |
-| 4 | "3. Closing the loop. Did you use the data? Did anything change?" | Loop diagram. Arrow to "improve" is broken. Foxi repairing with wrench. |
-| 5 | "4. Faculty engagement in the process. Not data entry. Discussion and decisions." | Prof. Hoot in meeting, engaged and talking (not buried in spreadsheets). |
-| 6 (CTA) | "Accreditation is about improvement, not documentation. That is what we do." | Brand gradient. Dean Talon and Foxi side by side. Edeviser logo. |
+| Slide     | Content                                                                           | Design Direction                                                                           |
+| --------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| 1 (Cover) | "What Accreditation Bodies Actually Want to See"                                  | Dean Talon adjusting glasses, looking at document. Professional, authoritative. Dark navy. |
+| 2         | "1. Evidence that graduates achieve program outcomes."                            | Dean Talon pointing at simple evidence chain. Icons: student work, survey, data chart.     |
+| 3         | "2. A systematic process. Key word: systematic. Not exhaustive."                  | Foxi drawing cycle: Plan → Assess → Analyze → Improve. Circle diagram.                     |
+| 4         | "3. Closing the loop. Did you use the data? Did anything change?"                 | Loop diagram. Arrow to "improve" is broken. Foxi repairing with wrench.                    |
+| 5         | "4. Faculty engagement in the process. Not data entry. Discussion and decisions." | Prof. Hoot in meeting, engaged and talking (not buried in spreadsheets).                   |
+| 6 (CTA)   | "Accreditation is about improvement, not documentation. That is what we do."      | Brand gradient. Dean Talon and Foxi side by side. Edeviser logo.                           |
 
 <div class="divider"></div>
 
@@ -535,15 +528,15 @@ Duolingo turned a green owl into a cultural icon with 80M+ DAU. We are applying 
 
 > This is Noor. Start of semester: invisible. Average grades. No engagement. By week 8: top 10% of her program. Not because the content changed. Because the system changed. Swipe to see what happened.
 
-| Slide | Content | Design Direction |
-|-------|---------|-----------------|
-| 1 (Cover) | "The Student Nobody Saw Coming" | Dark, moody. Noor's silhouette barely visible. Mysterious. |
-| 2 | "Week 1: First login. 10 XP. A small flame: Day 1 streak." | Noor looking at phone, mildly curious. Tiny flame. Muted colors. |
-| 3 | "Week 2: On-time submission. 50 XP. 7-day streak. Badge: 7-Day Warrior." | Noor smiling, showing phone to friend. Badge animation. Colors warming. |
-| 4 | "Week 4: Checks CLO progress. First time she sees which skills she is building." | Noor looking at progress dashboard. CLO bars visible. Focused, determined. |
-| 5 | "Week 6: First reflection journal. 20 XP. She has never reflected on her learning before." | Noor writing on phone. Warm, contemplative mood. |
-| 6 | "Week 8: Level 5. Top 10%. 30-day streak. 4 badges. Teacher notices." | Noor standing tall. Badges floating. Leaderboard showing her name. Prof. Hoot impressed in background. |
-| 7 (CTA) | "Noor did not change. The system around her did. That is what Edeviser builds." | All characters. Noor center. Brand gradient. Edeviser logo. |
+| Slide     | Content                                                                                    | Design Direction                                                                                       |
+| --------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------ |
+| 1 (Cover) | "The Student Nobody Saw Coming"                                                            | Dark, moody. Noor's silhouette barely visible. Mysterious.                                             |
+| 2         | "Week 1: First login. 10 XP. A small flame: Day 1 streak."                                 | Noor looking at phone, mildly curious. Tiny flame. Muted colors.                                       |
+| 3         | "Week 2: On-time submission. 50 XP. 7-day streak. Badge: 7-Day Warrior."                   | Noor smiling, showing phone to friend. Badge animation. Colors warming.                                |
+| 4         | "Week 4: Checks CLO progress. First time she sees which skills she is building."           | Noor looking at progress dashboard. CLO bars visible. Focused, determined.                             |
+| 5         | "Week 6: First reflection journal. 20 XP. She has never reflected on her learning before." | Noor writing on phone. Warm, contemplative mood.                                                       |
+| 6         | "Week 8: Level 5. Top 10%. 30-day streak. 4 badges. Teacher notices."                      | Noor standing tall. Badges floating. Leaderboard showing her name. Prof. Hoot impressed in background. |
+| 7 (CTA)   | "Noor did not change. The system around her did. That is what Edeviser builds."            | All characters. Noor center. Brand gradient. Edeviser logo.                                            |
 
 <div class="divider"></div>
 
@@ -567,14 +560,14 @@ Duolingo turned a green owl into a cultural icon with 80M+ DAU. We are applying 
 
 > The Gulf is investing billions in education. QNV 2030. Saudi Vision 2030. UAE Centennial 2071. Every institution chasing accreditation. But the tools have not caught up with the ambition. Swipe. This is why we moved to Qatar.
 
-| Slide | Content | Design Direction |
-|-------|---------|-----------------|
-| 1 (Cover) | "OBE: Gulf Edition vs. Global Reality" | Stylized geometric Gulf map. Saqr on Qatar. Foxi on globe. |
-| 2 | "The Gulf ambition: World-class graduates. $7.2B GCC EdTech by 2027." | Saqr presenting data. Gold and teal infographic. Upward arrows. |
-| 3 | "The current reality: Manual processes. Spreadsheets. Faculty burnout." | Contrast: ambition (gold, upward) vs. reality (grey, flat). Honest. |
-| 4 | "Global best practice: Program-level assessment. Sampling. Faculty-led improvement." | Three stylized flags. Simple flows. Foxi as tour guide. |
-| 5 | "The Gulf opportunity: Leapfrog. Build the right approach from the start." | Saqr and Foxi pointing forward. Arabic and English side by side. Bright, optimistic. |
-| 6 (CTA) | "We moved to Qatar because this is where the future of education is being built." | Brand gradient. Subtle Islamic geometric border. Bilingual. Edeviser logo. |
+| Slide     | Content                                                                              | Design Direction                                                                     |
+| --------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------ |
+| 1 (Cover) | "OBE: Gulf Edition vs. Global Reality"                                               | Stylized geometric Gulf map. Saqr on Qatar. Foxi on globe.                           |
+| 2         | "The Gulf ambition: World-class graduates. $7.2B GCC EdTech by 2027."                | Saqr presenting data. Gold and teal infographic. Upward arrows.                      |
+| 3         | "The current reality: Manual processes. Spreadsheets. Faculty burnout."              | Contrast: ambition (gold, upward) vs. reality (grey, flat). Honest.                  |
+| 4         | "Global best practice: Program-level assessment. Sampling. Faculty-led improvement." | Three stylized flags. Simple flows. Foxi as tour guide.                              |
+| 5         | "The Gulf opportunity: Leapfrog. Build the right approach from the start."           | Saqr and Foxi pointing forward. Arabic and English side by side. Bright, optimistic. |
+| 6 (CTA)   | "We moved to Qatar because this is where the future of education is being built."    | Brand gradient. Subtle Islamic geometric border. Bilingual. Edeviser logo.           |
 
 <div class="divider"></div>
 
@@ -590,8 +583,8 @@ Duolingo turned a green owl into a cultural icon with 80M+ DAU. We are applying 
 > 14 days ago, we started a conversation. About OBE that serves graduates, not paperwork. About students who deserve to see their own growth. About faculty who should teach, not do data entry. About a Gulf region building the future of education. This is just the beginning. Foxi, Prof. Hoot, Dean Talon, Saqr, and Noor are not going anywhere. Neither are we. Follow Edeviser. هذه مجرد البداية.
 
 **Design Direction:** All 5 characters walking together toward a horizon. Foxi in front, looking back at viewer with warm smile and wave. Sunrise/sunset gradient (teal to amber to gold). Cinematic, wide format. Emotional but not cheesy. Characters walking INTO the future, Foxi inviting you along. Text top: "This is just the beginning." Arabic at bottom. Edeviser logo centered below characters.
-</div>
 
+</div>
 
 <!-- ══════════ S6: SUMMARY TABLE ══════════ -->
 <div class="ns">
@@ -599,24 +592,24 @@ Duolingo turned a green owl into a cultural icon with 80M+ DAU. We are applying 
 
 ## 6. Post Summary Table (Designer Cheat Sheet)
 
-| Day | Type | Title | Lead Character | Slides | Pillar | Mood |
-|-----|------|-------|---------------|--------|--------|------|
-| 1 | Carousel | The OBE Machine Is Eating Us | Prof. Hoot | 7 | OBE Reality Check | Dramatic, empathetic |
-| 2 | Single | The Bloom's Verb Debate | Prof. Hoot | — | OBE Reality (humor) | Funny, relatable |
-| 3 | Carousel | What Your Students Actually Experience | Noor | 6 | Student Experience | Eye-opening, emotional |
-| 4 | Single | Gulf Education Fact | Saqr | — | Gulf Focus | Professional, bilingual |
-| 5 | Carousel | 5 Things ABET Does NOT Require | Foxi + Prof. Hoot | 7 | OBE Reality (educational) | Bold, shareable |
-| 6 | Single | The Grading Night | Prof. Hoot + Noor | — | Faculty + Student | Empathetic, moody |
-| 7 | Carousel | The Dual-Engine | Foxi (narrator) | 8 | Product Glimpse | Visionary, exciting |
-| 8 | Single | We Are Now in Qatar 🇶🇦 | All characters | — | Company Milestone | Celebratory, professional |
-| 9 | Carousel | What Accreditation Bodies Want | Dean Talon + Foxi | 6 | Institutional Intel | Authoritative, practical |
-| 10 | Single | Foxi's Hot Take | Foxi | — | OBE Reality (opinion) | Bold, provocative |
-| 11 | Carousel | The Student Nobody Saw Coming | Noor | 7 | Student + Gamification | Storytelling, inspiring |
-| 12 | Single | The Dean's Dashboard Dream | Dean Talon | — | Institutional Intel | Aspirational, clean |
-| 13 | Carousel | OBE: Gulf Edition vs. Global Reality | Saqr + Foxi | 6 | Gulf Focus | Regional, ambitious |
-| 14 | Single | Foxi's Promise | All characters | — | Brand / All | Warm, cinematic, hopeful |
-</div>
+| Day | Type     | Title                                  | Lead Character    | Slides | Pillar                    | Mood                      |
+| --- | -------- | -------------------------------------- | ----------------- | ------ | ------------------------- | ------------------------- |
+| 1   | Carousel | The OBE Machine Is Eating Us           | Prof. Hoot        | 7      | OBE Reality Check         | Dramatic, empathetic      |
+| 2   | Single   | The Bloom's Verb Debate                | Prof. Hoot        | —      | OBE Reality (humor)       | Funny, relatable          |
+| 3   | Carousel | What Your Students Actually Experience | Noor              | 6      | Student Experience        | Eye-opening, emotional    |
+| 4   | Single   | Gulf Education Fact                    | Saqr              | —      | Gulf Focus                | Professional, bilingual   |
+| 5   | Carousel | 5 Things ABET Does NOT Require         | Foxi + Prof. Hoot | 7      | OBE Reality (educational) | Bold, shareable           |
+| 6   | Single   | The Grading Night                      | Prof. Hoot + Noor | —      | Faculty + Student         | Empathetic, moody         |
+| 7   | Carousel | The Dual-Engine                        | Foxi (narrator)   | 8      | Product Glimpse           | Visionary, exciting       |
+| 8   | Single   | We Are Now in Qatar 🇶🇦                 | All characters    | —      | Company Milestone         | Celebratory, professional |
+| 9   | Carousel | What Accreditation Bodies Want         | Dean Talon + Foxi | 6      | Institutional Intel       | Authoritative, practical  |
+| 10  | Single   | Foxi's Hot Take                        | Foxi              | —      | OBE Reality (opinion)     | Bold, provocative         |
+| 11  | Carousel | The Student Nobody Saw Coming          | Noor              | 7      | Student + Gamification    | Storytelling, inspiring   |
+| 12  | Single   | The Dean's Dashboard Dream             | Dean Talon        | —      | Institutional Intel       | Aspirational, clean       |
+| 13  | Carousel | OBE: Gulf Edition vs. Global Reality   | Saqr + Foxi       | 6      | Gulf Focus                | Regional, ambitious       |
+| 14  | Single   | Foxi's Promise                         | All characters    | —      | Brand / All               | Warm, cinematic, hopeful  |
 
+</div>
 
 <!-- ══════════ S7: BRAND RULES ══════════ -->
 <div class="ns">
@@ -676,7 +669,6 @@ Duolingo turned a green owl into a cultural icon with 80M+ DAU. We are applying 
 <div class="co co-o"><strong>What This Is NOT:</strong> Not corporate announcements with stock photos. Not alternating funny/serious with no connection. Not product screenshots with feature lists. Not "we are excited to announce" energy. Not English-only ignoring the Gulf. Not talking AT the audience but WITH them through characters they recognize.</div>
 </div>
 
-
 <!-- ══════════ S8: ENGAGEMENT ══════════ -->
 <div class="ns">
 <span class="sl">Post-Publishing</span>
@@ -694,11 +686,11 @@ Duolingo turned a green owl into a cultural icon with 80M+ DAU. We are applying 
 
 ### Hashtag Strategy
 
-| Always Use (Brand) | Rotate By Topic | Gulf-Specific |
-|-------------------|----------------|---------------|
-| #Edeviser | #OBE #BloomsTaxonomy | #Qatar #QNV2030 |
-| #EdTech | #Accreditation #ABET | #GulfEducation |
-| #HigherEducation | #FacultyLife #StudentSuccess | #NCAAA #AACSB |
+| Always Use (Brand) | Rotate By Topic              | Gulf-Specific   |
+| ------------------ | ---------------------------- | --------------- |
+| #Edeviser          | #OBE #BloomsTaxonomy         | #Qatar #QNV2030 |
+| #EdTech            | #Accreditation #ABET         | #GulfEducation  |
+| #HigherEducation   | #FacultyLife #StudentSuccess | #NCAAA #AACSB   |
 
 ### Target Metrics (14-Day Sprint)
 
@@ -710,7 +702,6 @@ Duolingo turned a green owl into a cultural icon with 80M+ DAU. We are applying 
   <div class="st"><div class="st-v">5+</div><div class="st-l">Educator DMs</div></div>
 </div>
 </div>
-
 
 <!-- ══════════ S9: CONTINUATION ══════════ -->
 <div class="ns">

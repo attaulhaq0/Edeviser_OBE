@@ -1,24 +1,26 @@
 // Task 94.2: Notification preferences page
 // Per-course mute toggles + quiet hours configuration
 
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Switch } from '@/components/ui/switch';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { useAuth } from '@/hooks/useAuth';
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
 import {
   useNotificationPreferences,
   useUpdateNotificationPreferences,
   type NotificationPreferences as NotifPrefs,
-} from '@/hooks/useNotificationPreferences';
-import { useCourses } from '@/hooks/useCourses';
-import { toast } from 'sonner';
-import { Loader2, Bell, Moon } from 'lucide-react';
+} from "@/hooks/useNotificationPreferences";
+import { useCourses } from "@/hooks/useCourses";
+import { toast } from "sonner";
+import { Loader2, Bell, Moon } from "lucide-react";
 
 const NotificationPreferences = () => {
   const { user } = useAuth();
-  const { data: prefs, isLoading: prefsLoading } = useNotificationPreferences(user?.id);
+  const { data: prefs, isLoading: prefsLoading } = useNotificationPreferences(
+    user?.id
+  );
   const { data: coursesData, isLoading: coursesLoading } = useCourses();
   const updateMutation = useUpdateNotificationPreferences();
 
@@ -43,9 +45,9 @@ const NotificationPreferences = () => {
     updateMutation.mutate(
       { userId: user.id, preferences: effectivePrefs },
       {
-        onSuccess: () => toast.success('Preferences saved'),
+        onSuccess: () => toast.success("Preferences saved"),
         onError: (err) => toast.error(err.message),
-      },
+      }
     );
   };
 
@@ -59,7 +61,9 @@ const NotificationPreferences = () => {
 
   return (
     <div className="space-y-6 max-w-2xl">
-      <h1 className="text-2xl font-bold tracking-tight">Notification Preferences</h1>
+      <h1 className="text-2xl font-bold tracking-tight">
+        Notification Preferences
+      </h1>
 
       {/* Per-course mute toggles */}
       <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
@@ -72,8 +76,13 @@ const NotificationPreferences = () => {
             <p className="text-sm text-gray-500">No courses enrolled</p>
           )}
           {courses.map((course) => (
-            <div key={course.id} className="flex items-center justify-between py-1">
-              <span className="text-sm font-medium text-gray-700">{course.name}</span>
+            <div
+              key={course.id}
+              className="flex items-center justify-between py-1"
+            >
+              <span className="text-sm font-medium text-gray-700">
+                {course.name}
+              </span>
               <Switch
                 checked={!effectivePrefs.muted_courses.includes(course.id)}
                 onCheckedChange={() => handleToggleMute(course.id)}
@@ -91,13 +100,18 @@ const NotificationPreferences = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-gray-700">Enable quiet hours</span>
+            <span className="text-sm font-medium text-gray-700">
+              Enable quiet hours
+            </span>
             <Switch
               checked={effectivePrefs.quiet_hours.enabled}
               onCheckedChange={(checked) =>
                 setLocalPrefs({
                   ...effectivePrefs,
-                  quiet_hours: { ...effectivePrefs.quiet_hours, enabled: checked },
+                  quiet_hours: {
+                    ...effectivePrefs.quiet_hours,
+                    enabled: checked,
+                  },
                 })
               }
             />
@@ -106,7 +120,9 @@ const NotificationPreferences = () => {
           {effectivePrefs.quiet_hours.enabled && (
             <div className="flex items-center gap-4">
               <div className="space-y-1">
-                <label htmlFor="quiet-start" className="text-xs text-gray-500">Start</label>
+                <label htmlFor="quiet-start" className="text-xs text-gray-500">
+                  Start
+                </label>
                 <Input
                   id="quiet-start"
                   type="time"
@@ -114,14 +130,19 @@ const NotificationPreferences = () => {
                   onChange={(e) =>
                     setLocalPrefs({
                       ...effectivePrefs,
-                      quiet_hours: { ...effectivePrefs.quiet_hours, start: e.target.value },
+                      quiet_hours: {
+                        ...effectivePrefs.quiet_hours,
+                        start: e.target.value,
+                      },
                     })
                   }
                   className="w-32"
                 />
               </div>
               <div className="space-y-1">
-                <label htmlFor="quiet-end" className="text-xs text-gray-500">End</label>
+                <label htmlFor="quiet-end" className="text-xs text-gray-500">
+                  End
+                </label>
                 <Input
                   id="quiet-end"
                   type="time"
@@ -129,7 +150,10 @@ const NotificationPreferences = () => {
                   onChange={(e) =>
                     setLocalPrefs({
                       ...effectivePrefs,
-                      quiet_hours: { ...effectivePrefs.quiet_hours, end: e.target.value },
+                      quiet_hours: {
+                        ...effectivePrefs.quiet_hours,
+                        end: e.target.value,
+                      },
                     })
                   }
                   className="w-32"
@@ -145,7 +169,9 @@ const NotificationPreferences = () => {
         disabled={updateMutation.isPending}
         className="bg-gradient-to-r from-teal-500 to-blue-600 text-white active:scale-95"
       >
-        {updateMutation.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+        {updateMutation.isPending && (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        )}
         Save Preferences
       </Button>
     </div>

@@ -24,18 +24,18 @@ This report presents a systematic gap analysis of the Edeviser OBE education pla
 
 **The 10 Foundational Pillars:**
 
-| # | Pillar | Key Reference |
-|---|--------|---------------|
-| 1 | Outcome-Based Education | Spady, 1994 |
-| 2 | Rubrics | Andrade, 2000 |
-| 3 | Bloom's Taxonomy | Bloom, 1956; Anderson & Krathwohl, 2001 |
-| 4 | Agentic AI (LLMs + RAG) | Contemporary LLM research |
-| 5 | Self-Regulated Learning | Zimmerman, 1989 |
-| 6 | BJ Fogg Behavior Model | Fogg, 2009 — B=MAP |
-| 7 | Hooked Model | Nir Eyal, 2014 |
-| 8 | Gamification / Octalysis | Yu-kai Chou |
-| 9 | Flow Theory | Csikszentmihalyi, 1990 |
-| 10 | Reflection Journaling | Kolb, 1984 |
+| #   | Pillar                   | Key Reference                           |
+| --- | ------------------------ | --------------------------------------- |
+| 1   | Outcome-Based Education  | Spady, 1994                             |
+| 2   | Rubrics                  | Andrade, 2000                           |
+| 3   | Bloom's Taxonomy         | Bloom, 1956; Anderson & Krathwohl, 2001 |
+| 4   | Agentic AI (LLMs + RAG)  | Contemporary LLM research               |
+| 5   | Self-Regulated Learning  | Zimmerman, 1989                         |
+| 6   | BJ Fogg Behavior Model   | Fogg, 2009 — B=MAP                      |
+| 7   | Hooked Model             | Nir Eyal, 2014                          |
+| 8   | Gamification / Octalysis | Yu-kai Chou                             |
+| 9   | Flow Theory              | Csikszentmihalyi, 1990                  |
+| 10  | Reflection Journaling    | Kolb, 1984                              |
 
 **Key Finding:** The specs are individually comprehensive but lack cross-feature orchestration and do not fully leverage the pedagogical research behind the 10 pillars. The most critical gaps are reliance on debunked VARK learning styles, onboarding drop-off risk, missing mastery recovery pathways, incomplete BJ Fogg behavior model application, and no unified student journey orchestration.
 
@@ -59,7 +59,7 @@ This report presents a systematic gap analysis of the Edeviser OBE education pla
 
 **1. VARK Validity Crisis**
 
-The onboarding spec relies heavily on VARK learning styles as a core input to the personalization engine. This is a significant scientific risk. Pashler et al. (2008, "Learning Styles: Concepts and Evidence," *Psychological Science in the Public Interest*) conducted a comprehensive review and found **no consistent evidence** that matching instruction to VARK learning styles improves outcomes. The "meshing hypothesis" — the idea that students learn better when taught in their preferred modality — has been repeatedly debunked across multiple rigorous studies. VARK is widely criticized in educational psychology as a neuromyth (Dekker et al., 2012).
+The onboarding spec relies heavily on VARK learning styles as a core input to the personalization engine. This is a significant scientific risk. Pashler et al. (2008, "Learning Styles: Concepts and Evidence," _Psychological Science in the Public Interest_) conducted a comprehensive review and found **no consistent evidence** that matching instruction to VARK learning styles improves outcomes. The "meshing hypothesis" — the idea that students learn better when taught in their preferred modality — has been repeatedly debunked across multiple rigorous studies. VARK is widely criticized in educational psychology as a neuromyth (Dekker et al., 2012).
 
 - **Risk:** Building personalization algorithms on an invalidated framework wastes development effort and may actively mislead students into believing they can only learn one way, reducing metacognitive flexibility.
 - **Recommendation:** Replace VARK as a primary input to adaptive algorithms. Use evidence-based alternatives: self-efficacy scales (Bandura, 1997), study strategy inventories such as LASSI (Weinstein et al., 2002), or metacognitive awareness inventories (MAI, Schraw & Dennison, 1994). Retain VARK as an optional self-awareness exercise only — clearly labeled as "not scientifically validated for instruction matching."
@@ -275,10 +275,12 @@ With a 100-word minimum and 20 XP reward, the system is vulnerable to **XP farmi
 **1. Octalysis Imbalance — Over-Reliance on Extrinsic Motivation**
 
 Yu-kai Chou's Octalysis framework identifies 8 core drives that motivate human behavior. The current specs heavily leverage:
+
 - **Core Drive 2** (Development & Accomplishment) — XP, levels, badges, progress bars
 - **Core Drive 5** (Social Influence & Relatedness) — leaderboards, team challenges, peer milestones
 
 But they significantly underuse:
+
 - **Core Drive 3** (Empowerment of Creativity & Feedback) — students have no creative expression beyond purchasing cosmetics. They cannot create, share, or customize learning experiences.
 - **Core Drive 6** (Scarcity & Impatience) — limited-time marketplace items exist but aren't leveraged for learning activities.
 - **Core Drive 7** (Unpredictability & Curiosity) — mystery badges exist but are minimal. The platform is highly predictable.
@@ -440,23 +442,24 @@ The platform collects **extensive behavioral data**: activity logs, personality 
 The following matrix rates how well each spec addresses each of the 10 foundational pillars.
 
 **Rating Key:**
+
 - ✅ **Strong** — Fully addressed with clear implementation details
 - 🟡 **Partial** — Mentioned or partially addressed, but gaps exist
 - 🟠 **Weak** — Minimal coverage, significant gaps
 - ❌ **Missing** — Not addressed at all
 
-| Pillar | edeviser-platform | student-onboarding | weekly-planner | habit-heatmap | ai-tutor-rag | adaptive-quiz | xp-marketplace | team-challenges | i18n-rtl |
-|--------|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
-| 1. OBE (Spady) | ✅ | 🟡 | 🟠 | ❌ | 🟡 | ✅ | ❌ | 🟠 | ❌ |
-| 2. Rubrics (Andrade) | ✅ | ❌ | ❌ | ❌ | 🟠 | 🟡 | ❌ | ❌ | ❌ |
-| 3. Bloom's Taxonomy | ✅ | 🟡 | 🟠 | ❌ | 🟡 | ✅ | ❌ | 🟡 | ❌ |
-| 4. Agentic AI | 🟠 | 🟡 | 🟠 | ❌ | ✅ | ✅ | ❌ | ❌ | ❌ |
-| 5. Self-Regulated Learning | 🟡 | 🟡 | 🟡 | 🟠 | 🟠 | 🟠 | ❌ | ❌ | ❌ |
-| 6. BJ Fogg (B=MAP) | 🟠 | 🟠 | 🟠 | 🟡 | ❌ | ❌ | 🟠 | ❌ | ❌ |
-| 7. Hooked Model | 🟡 | 🟠 | 🟡 | 🟡 | 🟡 | 🟡 | 🟡 | 🟡 | ❌ |
-| 8. Octalysis | 🟡 | ❌ | 🟠 | 🟠 | ❌ | 🟠 | 🟡 | 🟡 | ❌ |
-| 9. Flow Theory | 🟠 | ❌ | 🟡 | ❌ | 🟠 | 🟠 | ❌ | ❌ | ❌ |
-| 10. Reflection (Kolb) | 🟠 | ❌ | 🟡 | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Pillar                     | edeviser-platform | student-onboarding | weekly-planner | habit-heatmap | ai-tutor-rag | adaptive-quiz | xp-marketplace | team-challenges | i18n-rtl |
+| -------------------------- | :---------------: | :----------------: | :------------: | :-----------: | :----------: | :-----------: | :------------: | :-------------: | :------: |
+| 1. OBE (Spady)             |        ✅         |         🟡         |       🟠       |      ❌       |      🟡      |      ✅       |       ❌       |       🟠        |    ❌    |
+| 2. Rubrics (Andrade)       |        ✅         |         ❌         |       ❌       |      ❌       |      🟠      |      🟡       |       ❌       |       ❌        |    ❌    |
+| 3. Bloom's Taxonomy        |        ✅         |         🟡         |       🟠       |      ❌       |      🟡      |      ✅       |       ❌       |       🟡        |    ❌    |
+| 4. Agentic AI              |        🟠         |         🟡         |       🟠       |      ❌       |      ✅      |      ✅       |       ❌       |       ❌        |    ❌    |
+| 5. Self-Regulated Learning |        🟡         |         🟡         |       🟡       |      🟠       |      🟠      |      🟠       |       ❌       |       ❌        |    ❌    |
+| 6. BJ Fogg (B=MAP)         |        🟠         |         🟠         |       🟠       |      🟡       |      ❌      |      ❌       |       🟠       |       ❌        |    ❌    |
+| 7. Hooked Model            |        🟡         |         🟠         |       🟡       |      🟡       |      🟡      |      🟡       |       🟡       |       🟡        |    ❌    |
+| 8. Octalysis               |        🟡         |         ❌         |       🟠       |      🟠       |      ❌      |      🟠       |       🟡       |       🟡        |    ❌    |
+| 9. Flow Theory             |        🟠         |         ❌         |       🟡       |      ❌       |      🟠      |      🟠       |       ❌       |       ❌        |    ❌    |
+| 10. Reflection (Kolb)      |        🟠         |         ❌         |       🟡       |      ❌       |      ❌      |      ❌       |       ❌       |       ❌        |    ❌    |
 
 ### Key Findings from the Matrix
 
@@ -476,18 +479,18 @@ The following matrix rates how well each spec addresses each of the 10 foundatio
 
 Ranked by impact on learning outcomes and implementation feasibility:
 
-| Rank | Recommendation | Impact | Effort | Phase |
-|:----:|----------------|:------:|:------:|:-----:|
-| 1 | Replace VARK with evidence-based profiling instruments (self-efficacy, metacognitive awareness) | HIGH | MEDIUM | 1 |
-| 2 | Implement progressive onboarding to reduce drop-off (5–7 questions Day 1, drip the rest over 2 weeks) | HIGH | LOW | 1 |
-| 3 | Add mastery recovery pathways for students stuck at prerequisite gates | HIGH | MEDIUM | 3 |
-| 4 | Add AI-generated "Starter Week" plan connecting onboarding results to the weekly planner | HIGH | MEDIUM | 1 |
-| 5 | Implement habit difficulty levels per BJ Fogg's Tiny Habits (Level 1 → Level 3 graduation) | MEDIUM | LOW | 4 |
-| 6 | Add streak recovery system (Comeback Challenge, Streak Sabbatical, range display) | MEDIUM | LOW | 4 |
-| 7 | Add Practice Mode for low-stakes formative assessment (no grade impact, reduced XP) | HIGH | MEDIUM | 3 |
-| 8 | Balance Octalysis core drives — add Core Drives 3, 6, and 7 to gamification | MEDIUM | HIGH | 6 |
-| 9 | Add AI Learning Advisor for proactive study plan adjustments based on tutor interaction patterns | HIGH | HIGH | 8 |
-| 10 | Create Student Journey Orchestrator connecting all features into a personalized learning path | HIGHEST | HIGHEST | All |
+| Rank | Recommendation                                                                                        | Impact  | Effort  | Phase |
+| :--: | ----------------------------------------------------------------------------------------------------- | :-----: | :-----: | :---: |
+|  1   | Replace VARK with evidence-based profiling instruments (self-efficacy, metacognitive awareness)       |  HIGH   | MEDIUM  |   1   |
+|  2   | Implement progressive onboarding to reduce drop-off (5–7 questions Day 1, drip the rest over 2 weeks) |  HIGH   |   LOW   |   1   |
+|  3   | Add mastery recovery pathways for students stuck at prerequisite gates                                |  HIGH   | MEDIUM  |   3   |
+|  4   | Add AI-generated "Starter Week" plan connecting onboarding results to the weekly planner              |  HIGH   | MEDIUM  |   1   |
+|  5   | Implement habit difficulty levels per BJ Fogg's Tiny Habits (Level 1 → Level 3 graduation)            | MEDIUM  |   LOW   |   4   |
+|  6   | Add streak recovery system (Comeback Challenge, Streak Sabbatical, range display)                     | MEDIUM  |   LOW   |   4   |
+|  7   | Add Practice Mode for low-stakes formative assessment (no grade impact, reduced XP)                   |  HIGH   | MEDIUM  |   3   |
+|  8   | Balance Octalysis core drives — add Core Drives 3, 6, and 7 to gamification                           | MEDIUM  |  HIGH   |   6   |
+|  9   | Add AI Learning Advisor for proactive study plan adjustments based on tutor interaction patterns      |  HIGH   |  HIGH   |   8   |
+|  10  | Create Student Journey Orchestrator connecting all features into a personalized learning path         | HIGHEST | HIGHEST |  All  |
 
 ### Implementation Phasing
 
@@ -517,4 +520,4 @@ Addressing these gaps before full implementation — particularly the quick wins
 
 ---
 
-*This report was prepared as part of the Edeviser platform development process. All research citations follow APA conventions. Recommendations are prioritized for the Qatar/South Asia higher education market context.*
+_This report was prepared as part of the Edeviser platform development process. All research citations follow APA conventions. Recommendations are prioritized for the Qatar/South Asia higher education market context._

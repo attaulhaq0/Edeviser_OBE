@@ -1,20 +1,20 @@
-import { Link } from 'react-router-dom';
-import { ArrowLeft, Download, BarChart3, Info, TrendingUp } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import ErrorBoundary from '@/components/shared/ErrorBoundary';
-import Shimmer from '@/components/shared/Shimmer';
-import ConsistencyScoreRing from '@/components/shared/ConsistencyScoreRing';
-import HabitCompletionChart from '@/components/shared/HabitCompletionChart';
-import BestDayChart from '@/components/shared/BestDayChart';
-import CorrelationInsightCard from '@/components/shared/CorrelationInsightCard';
-import CorrelationDisclaimer from '@/components/shared/CorrelationDisclaimer';
-import LevelProgressionChart from '@/components/shared/LevelProgressionChart';
-import { useAuth } from '@/hooks/useAuth';
-import { useSemesterRange } from '@/hooks/useSemesterRange';
-import { useHeatmapData } from '@/hooks/useHeatmapData';
-import { useWellnessPreferences } from '@/hooks/useWellnessPreferences';
-import { useStudentHabitLevel } from '@/hooks/useStudentHabitLevel';
+import { Link } from "react-router-dom";
+import { ArrowLeft, Download, BarChart3, Info, TrendingUp } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import ErrorBoundary from "@/components/shared/ErrorBoundary";
+import Shimmer from "@/components/shared/Shimmer";
+import ConsistencyScoreRing from "@/components/shared/ConsistencyScoreRing";
+import HabitCompletionChart from "@/components/shared/HabitCompletionChart";
+import BestDayChart from "@/components/shared/BestDayChart";
+import CorrelationInsightCard from "@/components/shared/CorrelationInsightCard";
+import CorrelationDisclaimer from "@/components/shared/CorrelationDisclaimer";
+import LevelProgressionChart from "@/components/shared/LevelProgressionChart";
+import { useAuth } from "@/hooks/useAuth";
+import { useSemesterRange } from "@/hooks/useSemesterRange";
+import { useHeatmapData } from "@/hooks/useHeatmapData";
+import { useWellnessPreferences } from "@/hooks/useWellnessPreferences";
+import { useStudentHabitLevel } from "@/hooks/useStudentHabitLevel";
 import {
   useWeeklyCompletionRates,
   useMonthlyCompletionRates,
@@ -24,10 +24,10 @@ import {
   useLevelAwareMonthlyCompletionRates,
   useLevelAwareAcademicWeeklyRates,
   useLevelAwareAcademicMonthlyRates,
-} from '@/hooks/useHabitAnalytics';
-import { useHabitCorrelations } from '@/hooks/useHabitCorrelations';
-import { useHabitExport } from '@/hooks/useHabitExport';
-import type { DateRange } from '@/types/habits';
+} from "@/hooks/useHabitAnalytics";
+import { useHabitCorrelations } from "@/hooks/useHabitCorrelations";
+import { useHabitExport } from "@/hooks/useHabitExport";
+import type { DateRange } from "@/types/habits";
 
 // ---------------------------------------------------------------------------
 // Page Content (inside ErrorBoundary)
@@ -37,12 +37,13 @@ const HabitAnalyticsContent = () => {
   const { user } = useAuth();
   const studentId = user?.id;
 
-  const { data: semesterRange, isLoading: semesterLoading } = useSemesterRange(studentId);
-  const resolvedRange: DateRange = semesterRange ?? { start: '', end: '' };
+  const { data: semesterRange, isLoading: semesterLoading } =
+    useSemesterRange(studentId);
+  const resolvedRange: DateRange = semesterRange ?? { start: "", end: "" };
 
   const { data: heatmapData, isLoading: heatmapLoading } = useHeatmapData(
     studentId,
-    resolvedRange,
+    resolvedRange
   );
   const { data: preferences } = useWellnessPreferences(studentId);
   const enabledWellness = preferences?.enabledHabits ?? [];
@@ -60,31 +61,59 @@ const HabitAnalyticsContent = () => {
   const hasLevelHistory = levelHistory.length > 0;
 
   // Fallback (non-level-aware) hooks
-  const fallbackWeekly = useWeeklyCompletionRates(heatmapData, allPossiblePerDay);
-  const fallbackMonthly = useMonthlyCompletionRates(heatmapData, allPossiblePerDay);
-  const fallbackAcademicWeekly = useWeeklyCompletionRates(heatmapData, academicPossiblePerDay);
-  const fallbackAcademicMonthly = useMonthlyCompletionRates(heatmapData, academicPossiblePerDay);
+  const fallbackWeekly = useWeeklyCompletionRates(
+    heatmapData,
+    allPossiblePerDay
+  );
+  const fallbackMonthly = useMonthlyCompletionRates(
+    heatmapData,
+    allPossiblePerDay
+  );
+  const fallbackAcademicWeekly = useWeeklyCompletionRates(
+    heatmapData,
+    academicPossiblePerDay
+  );
+  const fallbackAcademicMonthly = useMonthlyCompletionRates(
+    heatmapData,
+    academicPossiblePerDay
+  );
 
   // Level-aware hooks
-  const levelWeekly = useLevelAwareWeeklyCompletionRates(heatmapData, levelHistory, enabledWellness.length);
-  const levelMonthly = useLevelAwareMonthlyCompletionRates(heatmapData, levelHistory, enabledWellness.length);
-  const levelAcademicWeekly = useLevelAwareAcademicWeeklyRates(heatmapData, levelHistory);
-  const levelAcademicMonthly = useLevelAwareAcademicMonthlyRates(heatmapData, levelHistory);
+  const levelWeekly = useLevelAwareWeeklyCompletionRates(
+    heatmapData,
+    levelHistory,
+    enabledWellness.length
+  );
+  const levelMonthly = useLevelAwareMonthlyCompletionRates(
+    heatmapData,
+    levelHistory,
+    enabledWellness.length
+  );
+  const levelAcademicWeekly = useLevelAwareAcademicWeeklyRates(
+    heatmapData,
+    levelHistory
+  );
+  const levelAcademicMonthly = useLevelAwareAcademicMonthlyRates(
+    heatmapData,
+    levelHistory
+  );
 
   // Use level-aware rates when level history is available
   const weeklyData = hasLevelHistory ? levelWeekly : fallbackWeekly;
   const monthlyData = hasLevelHistory ? levelMonthly : fallbackMonthly;
-  const academicWeekly = hasLevelHistory ? levelAcademicWeekly : fallbackAcademicWeekly;
-  const academicMonthly = hasLevelHistory ? levelAcademicMonthly : fallbackAcademicMonthly;
+  const academicWeekly = hasLevelHistory
+    ? levelAcademicWeekly
+    : fallbackAcademicWeekly;
+  const academicMonthly = hasLevelHistory
+    ? levelAcademicMonthly
+    : fallbackAcademicMonthly;
 
   const consistencyScore = useConsistencyScore(heatmapData);
   const { averages } = useBestDayOfWeek(heatmapData);
 
   // Correlations
-  const {
-    data: correlationResult,
-    isLoading: correlationsLoading,
-  } = useHabitCorrelations(studentId);
+  const { data: correlationResult, isLoading: correlationsLoading } =
+    useHabitCorrelations(studentId);
 
   // CSV export
   const { exportCSV } = useHabitExport({
@@ -132,24 +161,40 @@ const HabitAnalyticsContent = () => {
           <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
             <div
               className="px-6 py-4 flex items-center gap-2"
-              style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+              style={{
+                background:
+                  "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+              }}
             >
               <BarChart3 className="h-5 w-5 text-white" />
-              <h2 className="text-lg font-bold tracking-tight text-white">Consistency</h2>
+              <h2 className="text-lg font-bold tracking-tight text-white">
+                Consistency
+              </h2>
             </div>
             <div className="p-6 flex justify-center">
-              <ConsistencyScoreRing score={consistencyScore} label="Consistency Score" />
+              <ConsistencyScoreRing
+                score={consistencyScore}
+                label="Consistency Score"
+              />
             </div>
           </Card>
 
           {/* Level Progression */}
-          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden" data-testid="level-progression-section">
+          <Card
+            className="bg-white border-0 shadow-md rounded-xl overflow-hidden"
+            data-testid="level-progression-section"
+          >
             <div
               className="px-6 py-4 flex items-center gap-2"
-              style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+              style={{
+                background:
+                  "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+              }}
             >
               <TrendingUp className="h-5 w-5 text-white" />
-              <h2 className="text-lg font-bold tracking-tight text-white">Level Progression</h2>
+              <h2 className="text-lg font-bold tracking-tight text-white">
+                Level Progression
+              </h2>
             </div>
             <div className="p-6">
               <LevelProgressionChart
@@ -163,10 +208,15 @@ const HabitAnalyticsContent = () => {
           <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
             <div
               className="px-6 py-4 flex items-center gap-2"
-              style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+              style={{
+                background:
+                  "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+              }}
             >
               <BarChart3 className="h-5 w-5 text-white" />
-              <h2 className="text-lg font-bold tracking-tight text-white">Completion Rates</h2>
+              <h2 className="text-lg font-bold tracking-tight text-white">
+                Completion Rates
+              </h2>
             </div>
             <div className="p-6">
               <HabitCompletionChart
@@ -182,10 +232,15 @@ const HabitAnalyticsContent = () => {
           <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
             <div
               className="px-6 py-4 flex items-center gap-2"
-              style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+              style={{
+                background:
+                  "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+              }}
             >
               <BarChart3 className="h-5 w-5 text-white" />
-              <h2 className="text-lg font-bold tracking-tight text-white">Best Day of Week</h2>
+              <h2 className="text-lg font-bold tracking-tight text-white">
+                Best Day of Week
+              </h2>
             </div>
             <div className="p-6">
               <BestDayChart data={averages} />
@@ -196,10 +251,15 @@ const HabitAnalyticsContent = () => {
           <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
             <div
               className="px-6 py-4 flex items-center gap-2"
-              style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+              style={{
+                background:
+                  "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+              }}
             >
               <BarChart3 className="h-5 w-5 text-white" />
-              <h2 className="text-lg font-bold tracking-tight text-white">Insights</h2>
+              <h2 className="text-lg font-bold tracking-tight text-white">
+                Insights
+              </h2>
             </div>
             <div className="p-6 space-y-3">
               {correlationsLoading ? (
@@ -213,15 +273,22 @@ const HabitAnalyticsContent = () => {
                   <p className="text-sm text-blue-700">
                     {correlationResult.daysUntilReady != null
                       ? `Almost there — ${correlationResult.daysUntilReady} more days of data needed for insights`
-                      : 'Keep tracking — insights appear after 2 weeks of data'}
+                      : "Keep tracking — insights appear after 2 weeks of data"}
                   </p>
                 </div>
-              ) : correlationResult?.insights && correlationResult.insights.length > 0 ? (
+              ) : correlationResult?.insights &&
+                correlationResult.insights.length > 0 ? (
                 <>
                   <CorrelationDisclaimer />
-                  <div className="space-y-3" data-testid="correlation-insights-list">
+                  <div
+                    className="space-y-3"
+                    data-testid="correlation-insights-list"
+                  >
                     {correlationResult.insights.slice(0, 3).map((insight) => (
-                      <CorrelationInsightCard key={insight.id} insight={insight} />
+                      <CorrelationInsightCard
+                        key={insight.id}
+                        insight={insight}
+                      />
                     ))}
                   </div>
                 </>

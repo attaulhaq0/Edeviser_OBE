@@ -1,17 +1,19 @@
-import { Sparkles, Clock, Star, ArrowRight } from 'lucide-react';
-import { motion } from 'framer-motion';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { ONBOARDING_XP } from '@/lib/onboardingConstants';
-import type { WizardStepProps } from './OnboardingWizard';
+import { Sparkles, Clock, Star, ArrowRight } from "lucide-react";
+import { motion } from "framer-motion";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { ONBOARDING_XP } from "@/lib/onboardingConstants";
+import type { WizardStepProps } from "./OnboardingWizard";
 
 // ── Component ────────────────────────────────────────────────────────
 
 export const WelcomeStep = ({ isDay1, onComplete }: WizardStepProps) => {
-  const timeEstimate = isDay1 ? 'Under 3 minutes' : '10–15 minutes';
+  const timeEstimate = isDay1 ? "Under 3 minutes" : "10–15 minutes";
   const totalXP = isDay1
-    ? ONBOARDING_XP.personality + ONBOARDING_XP.self_efficacy + ONBOARDING_XP.complete
+    ? ONBOARDING_XP.personality +
+      ONBOARDING_XP.self_efficacy +
+      ONBOARDING_XP.complete
     : ONBOARDING_XP.personality +
       ONBOARDING_XP.learning_style +
       ONBOARDING_XP.self_efficacy +
@@ -23,7 +25,7 @@ export const WelcomeStep = ({ isDay1, onComplete }: WizardStepProps) => {
       <motion.div
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.4, ease: 'easeOut' }}
+        transition={{ duration: 0.4, ease: "easeOut" }}
         className="mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-500 to-blue-600"
       >
         <Sparkles className="h-10 w-10 text-white" />
@@ -35,7 +37,7 @@ export const WelcomeStep = ({ isDay1, onComplete }: WizardStepProps) => {
       <p className="mt-2 max-w-md text-sm text-gray-500">
         {isDay1
           ? "Let's get to know you with a few quick questions so we can personalize your learning experience."
-          : 'Complete your full profile to unlock personalized learning paths, AI recommendations, and more.'}
+          : "Complete your full profile to unlock personalized learning paths, AI recommendations, and more."}
       </p>
 
       {/* Info cards */}
@@ -45,9 +47,13 @@ export const WelcomeStep = ({ isDay1, onComplete }: WizardStepProps) => {
             <Clock className="h-5 w-5 text-blue-600" />
           </div>
           <div className="text-start">
-            <p className="text-sm font-semibold text-gray-900">{timeEstimate}</p>
+            <p className="text-sm font-semibold text-gray-900">
+              {timeEstimate}
+            </p>
             <p className="text-xs text-gray-500">
-              {isDay1 ? 'Just 7 quick questions' : 'Full personality, learning style & baseline tests'}
+              {isDay1
+                ? "Just 7 quick questions"
+                : "Full personality, learning style & baseline tests"}
             </p>
           </div>
         </Card>
@@ -57,7 +63,9 @@ export const WelcomeStep = ({ isDay1, onComplete }: WizardStepProps) => {
             <Star className="h-5 w-5 text-amber-600" />
           </div>
           <div className="text-start">
-            <p className="text-sm font-semibold text-gray-900">Earn up to {totalXP} XP</p>
+            <p className="text-sm font-semibold text-gray-900">
+              Earn up to {totalXP} XP
+            </p>
             <p className="text-xs text-gray-500">
               Start your gamification journey from day one
             </p>
@@ -71,13 +79,28 @@ export const WelcomeStep = ({ isDay1, onComplete }: WizardStepProps) => {
           What we&apos;ll cover
         </p>
         <ul className="mt-3 space-y-2">
-          <StepPreview label="Personality traits" description="Understand how you learn and work" />
-          <StepPreview label="Self-efficacy" description="Your confidence across academic areas" />
+          <StepPreview
+            label="Personality traits"
+            description="Understand how you learn and work"
+          />
+          <StepPreview
+            label="Self-efficacy"
+            description="Your confidence across academic areas"
+          />
           {!isDay1 && (
             <>
-              <StepPreview label="Learning style" description="Discover your VARK preferences" />
-              <StepPreview label="Study strategies" description="Identify your study habits" />
-              <StepPreview label="Baseline tests" description="Measure your starting knowledge" />
+              <StepPreview
+                label="Learning style"
+                description="Discover your VARK preferences"
+              />
+              <StepPreview
+                label="Study strategies"
+                description="Identify your study habits"
+              />
+              <StepPreview
+                label="Baseline tests"
+                description="Measure your starting knowledge"
+              />
             </>
           )}
         </ul>
@@ -100,7 +123,13 @@ export const WelcomeStep = ({ isDay1, onComplete }: WizardStepProps) => {
 
 // ── Sub-component ────────────────────────────────────────────────────
 
-const StepPreview = ({ label, description }: { label: string; description: string }) => (
+const StepPreview = ({
+  label,
+  description,
+}: {
+  label: string;
+  description: string;
+}) => (
   <li className="flex items-start gap-2">
     <div className="mt-1 h-2 w-2 shrink-0 rounded-full bg-gradient-to-r from-teal-500 to-blue-600" />
     <div>

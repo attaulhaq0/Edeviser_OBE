@@ -3,19 +3,19 @@
 // Task 5.2: name input, member selection from roster
 // =============================================================================
 
-import { useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { useAuth } from '@/hooks/useAuth';
-import { useCreateTeam } from '@/hooks/useTeams';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
+import { useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useAuth } from "@/hooks/useAuth";
+import { useCreateTeam } from "@/hooks/useTeams";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
   FormField,
@@ -23,22 +23,22 @@ import {
   FormLabel,
   FormControl,
   FormMessage,
-} from '@/components/ui/form';
+} from "@/components/ui/form";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import Shimmer from '@/components/shared/Shimmer';
-import { Loader2, Users, ArrowLeft } from 'lucide-react';
-import { toast } from 'sonner';
-import { useState } from 'react';
+} from "@/components/ui/select";
+import Shimmer from "@/components/shared/Shimmer";
+import { Loader2, Users, ArrowLeft } from "lucide-react";
+import { toast } from "sonner";
+import { useState } from "react";
 
 const createTeamFormSchema = z.object({
-  name: z.string().min(2, 'Team name must be at least 2 characters').max(50),
-  course_id: z.string().uuid('Select a course'),
+  name: z.string().min(2, "Team name must be at least 2 characters").max(50),
+  course_id: z.string().uuid("Select a course"),
 });
 
 type CreateTeamFormData = z.infer<typeof createTeamFormSchema>;
@@ -54,20 +54,20 @@ const useStudentFormedCourses = (studentId?: string) => {
     queryKey: queryKeys.enrollments.list({ studentId, studentFormed: true }),
     queryFn: async (): Promise<CourseOption[]> => {
       const { data: enrollments, error: enrollError } = await supabase
-        .from('student_courses')
-        .select('course_id')
-        .eq('student_id', studentId!)
-        .eq('status', 'active');
+        .from("student_courses")
+        .select("course_id")
+        .eq("student_id", studentId!)
+        .eq("status", "active");
       if (enrollError) throw enrollError;
 
       const courseIds = (enrollments ?? []).map((e) => e.course_id);
       if (courseIds.length === 0) return [];
 
       const { data, error } = await supabase
-        .from('courses')
-        .select('id, name, team_formation_mode')
-        .in('id', courseIds)
-        .eq('team_formation_mode', 'student_formed');
+        .from("courses")
+        .select("id, name, team_formation_mode")
+        .in("id", courseIds)
+        .eq("team_formation_mode", "student_formed");
       if (error) throw error;
       return (data ?? []) as CourseOption[];
     },
@@ -85,17 +85,19 @@ const useCourseRoster = (courseId?: string, excludeStudentId?: string) => {
     queryKey: queryKeys.enrollments.list({ courseId, roster: true }),
     queryFn: async (): Promise<RosterStudent[]> => {
       const { data, error } = await supabase
-        .from('student_courses')
-        .select('student_id, profiles!inner(full_name)')
-        .eq('course_id', courseId!)
-        .eq('status', 'active')
-        .neq('student_id', excludeStudentId ?? '');
+        .from("student_courses")
+        .select("student_id, profiles!inner(full_name)")
+        .eq("course_id", courseId!)
+        .eq("status", "active")
+        .neq("student_id", excludeStudentId ?? "");
       if (error) throw error;
 
-      return ((data ?? []) as Array<{
-        student_id: string;
-        profiles: { full_name: string };
-      }>).map((row) => ({
+      return (
+        (data ?? []) as Array<{
+          student_id: string;
+          profiles: { full_name: string };
+        }>
+      ).map((row) => ({
         student_id: row.student_id,
         full_name: row.profiles.full_name,
       }));
@@ -107,25 +109,27 @@ const useCourseRoster = (courseId?: string, excludeStudentId?: string) => {
 const CreateTeamPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const studentId = user?.id ?? '';
-  const { data: courses, isLoading: coursesLoading } = useStudentFormedCourses(studentId || undefined);
+  const studentId = user?.id ?? "";
+  const { data: courses, isLoading: coursesLoading } = useStudentFormedCourses(
+    studentId || undefined
+  );
   const createMutation = useCreateTeam();
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
 
   const form = useForm<CreateTeamFormData>({
     resolver: zodResolver(createTeamFormSchema),
-    defaultValues: { name: '', course_id: '' },
+    defaultValues: { name: "", course_id: "" },
   });
 
-  const selectedCourseId = form.watch('course_id');
+  const selectedCourseId = form.watch("course_id");
   const { data: roster, isLoading: rosterLoading } = useCourseRoster(
     selectedCourseId || undefined,
-    studentId,
+    studentId
   );
 
   const toggleMember = (id: string) => {
     setSelectedMembers((prev) =>
-      prev.includes(id) ? prev.filter((m) => m !== id) : [...prev, id],
+      prev.includes(id) ? prev.filter((m) => m !== id) : [...prev, id]
     );
   };
 
@@ -135,7 +139,7 @@ const CreateTeamPage = () => {
 
   const onSubmit = (data: CreateTeamFormData) => {
     if (!sizeValid) {
-      toast.error('Team must have 2-6 members (including you)');
+      toast.error("Team must have 2-6 members (including you)");
       return;
     }
 
@@ -149,11 +153,11 @@ const CreateTeamPage = () => {
       },
       {
         onSuccess: (team) => {
-          toast.success('Team created! You are the captain.');
+          toast.success("Team created! You are the captain.");
           navigate(`/student/teams/${team.id}`);
         },
         onError: (err) => toast.error(err.message),
-      },
+      }
     );
   };
 
@@ -232,7 +236,9 @@ const CreateTeamPage = () => {
                   {rosterLoading ? (
                     <Shimmer className="h-24 rounded-lg" />
                   ) : !roster || roster.length === 0 ? (
-                    <p className="text-xs text-gray-500">No available students in this course.</p>
+                    <p className="text-xs text-gray-500">
+                      No available students in this course.
+                    </p>
                   ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto border rounded-lg p-3">
                       {roster.map((student) => (
@@ -241,19 +247,28 @@ const CreateTeamPage = () => {
                           className="flex items-center gap-2 p-2 rounded-lg hover:bg-slate-50 cursor-pointer"
                         >
                           <Checkbox
-                            checked={selectedMembers.includes(student.student_id)}
-                            onCheckedChange={() => toggleMember(student.student_id)}
+                            checked={selectedMembers.includes(
+                              student.student_id
+                            )}
+                            onCheckedChange={() =>
+                              toggleMember(student.student_id)
+                            }
                             disabled={
-                              !selectedMembers.includes(student.student_id) && totalSize >= 6
+                              !selectedMembers.includes(student.student_id) &&
+                              totalSize >= 6
                             }
                           />
-                          <span className="text-sm font-medium">{student.full_name}</span>
+                          <span className="text-sm font-medium">
+                            {student.full_name}
+                          </span>
                         </label>
                       ))}
                     </div>
                   )}
                   {totalSize < 2 && (
-                    <p className="text-xs text-amber-600">Select at least 1 member (team needs 2-6 total).</p>
+                    <p className="text-xs text-amber-600">
+                      Select at least 1 member (team needs 2-6 total).
+                    </p>
                   )}
                 </div>
               )}
@@ -263,7 +278,9 @@ const CreateTeamPage = () => {
                 disabled={createMutation.isPending || !sizeValid}
                 className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
               >
-                {createMutation.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+                {createMutation.isPending && (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                )}
                 Create Team
               </Button>
             </form>

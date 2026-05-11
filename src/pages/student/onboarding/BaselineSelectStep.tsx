@@ -1,11 +1,11 @@
-import { useState, useCallback, useEffect } from 'react';
-import { ClipboardCheck, Clock, FileQuestion } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { supabase } from '@/lib/supabase';
-import { useQuery } from '@tanstack/react-query';
-import { queryKeys } from '@/lib/queryKeys';
-import type { WizardStepProps } from './OnboardingWizard';
+import { useState, useCallback, useEffect } from "react";
+import { ClipboardCheck, Clock, FileQuestion } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { supabase } from "@/lib/supabase";
+import { useQuery } from "@tanstack/react-query";
+import { queryKeys } from "@/lib/queryKeys";
+import type { WizardStepProps } from "./OnboardingWizard";
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -24,38 +24,42 @@ interface BaselineSelectStepProps extends WizardStepProps {
 
 const useEnrolledCoursesWithBaseline = (studentId: string) => {
   return useQuery({
-    queryKey: [...queryKeys.onboarding.baselineTests('enrolled'), studentId],
+    queryKey: [...queryKeys.onboarding.baselineTests("enrolled"), studentId],
     queryFn: async (): Promise<CourseWithBaseline[]> => {
       // Fetch student's enrolled courses
       const { data: enrollments, error: enrollError } = await supabase
-        .from('student_courses')
-        .select('course_id, courses(id, name)')
-        .eq('student_id', studentId)
-        .eq('status', 'active');
+        .from("student_courses")
+        .select("course_id, courses(id, name)")
+        .eq("student_id", studentId)
+        .eq("status", "active");
 
       if (enrollError) throw enrollError;
       if (!enrollments?.length) return [];
 
-      const courseIds = enrollments.map((e: Record<string, unknown>) => e.course_id as string);
+      const courseIds = enrollments.map(
+        (e: Record<string, unknown>) => e.course_id as string
+      );
 
       // Fetch active baseline configs for those courses
       const { data: configs, error: configError } = await supabase
-        .from('baseline_test_config')
-        .select('course_id, time_limit_minutes')
-        .in('course_id', courseIds)
-        .eq('is_active', true);
+        .from("baseline_test_config")
+        .select("course_id, time_limit_minutes")
+        .in("course_id", courseIds)
+        .eq("is_active", true);
 
       if (configError) throw configError;
       if (!configs?.length) return [];
 
       // Fetch question counts per course
-      const activeCourseIds = configs.map((c: Record<string, unknown>) => c.course_id as string);
+      const activeCourseIds = configs.map(
+        (c: Record<string, unknown>) => c.course_id as string
+      );
       const { data: questions, error: qError } = await supabase
-        .from('onboarding_questions')
-        .select('course_id')
-        .eq('assessment_type', 'baseline')
-        .eq('is_active', true)
-        .in('course_id', activeCourseIds);
+        .from("onboarding_questions")
+        .select("course_id")
+        .eq("assessment_type", "baseline")
+        .eq("is_active", true)
+        .in("course_id", activeCourseIds);
 
       if (qError) throw qError;
 
@@ -70,15 +74,20 @@ const useEnrolledCoursesWithBaseline = (studentId: string) => {
       for (const e of enrollments) {
         const course = e.courses as Record<string, unknown> | null;
         if (course) {
-          courseMap.set(e.course_id as string, (course.name as string) ?? 'Unknown Course');
+          courseMap.set(
+            e.course_id as string,
+            (course.name as string) ?? "Unknown Course"
+          );
         }
       }
 
       return configs
-        .filter((c: Record<string, unknown>) => questionCounts.has(c.course_id as string))
+        .filter((c: Record<string, unknown>) =>
+          questionCounts.has(c.course_id as string)
+        )
         .map((c: Record<string, unknown>) => ({
           course_id: c.course_id as string,
-          course_name: courseMap.get(c.course_id as string) ?? 'Unknown Course',
+          course_name: courseMap.get(c.course_id as string) ?? "Unknown Course",
           time_limit_minutes: (c.time_limit_minutes as number) ?? 15,
           question_count: questionCounts.get(c.course_id as string) ?? 0,
         }));
@@ -95,7 +104,8 @@ export const BaselineSelectStep = ({
   studentId,
   onCoursesSelected,
 }: BaselineSelectStepProps) => {
-  const { data: courses = [], isLoading } = useEnrolledCoursesWithBaseline(studentId);
+  const { data: courses = [], isLoading } =
+    useEnrolledCoursesWithBaseline(studentId);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   // In Day 1 mode, baseline tests are skipped
@@ -146,8 +156,8 @@ export const BaselineSelectStep = ({
           Baseline Tests
         </h2>
         <p className="mt-2 max-w-sm text-sm text-gray-500">
-          No baseline tests are available for your enrolled courses yet. Your teachers may add them
-          later.
+          No baseline tests are available for your enrolled courses yet. Your
+          teachers may add them later.
         </p>
         <Button
           onClick={handleSkip}
@@ -169,8 +179,8 @@ export const BaselineSelectStep = ({
       </div>
 
       <p className="mb-6 max-w-md text-center text-sm text-gray-500">
-        Select courses to take a quick diagnostic test. This helps us understand your starting
-        knowledge level for each course.
+        Select courses to take a quick diagnostic test. This helps us understand
+        your starting knowledge level for each course.
       </p>
 
       <div className="w-full max-w-md space-y-3">
@@ -180,25 +190,41 @@ export const BaselineSelectStep = ({
             <Card
               key={course.course_id}
               className={`cursor-pointer border-0 p-4 shadow-md rounded-xl transition-colors ${
-                isSelected ? 'bg-blue-50 ring-2 ring-blue-500' : 'bg-white hover:bg-slate-50'
+                isSelected
+                  ? "bg-blue-50 ring-2 ring-blue-500"
+                  : "bg-white hover:bg-slate-50"
               }`}
               onClick={() => toggleCourse(course.course_id)}
             >
               <div className="flex items-start gap-3">
                 <span
                   className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 transition-colors ${
-                    isSelected ? 'border-blue-500 bg-blue-500' : 'border-slate-300'
+                    isSelected
+                      ? "border-blue-500 bg-blue-500"
+                      : "border-slate-300"
                   }`}
                   aria-hidden="true"
                 >
                   {isSelected && (
-                    <svg className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    <svg
+                      className="h-3 w-3 text-white"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={3}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M5 13l4 4L19 7"
+                      />
                     </svg>
                   )}
                 </span>
                 <div className="flex-1">
-                  <p className="text-sm font-semibold text-gray-900">{course.course_name}</p>
+                  <p className="text-sm font-semibold text-gray-900">
+                    {course.course_name}
+                  </p>
                   <div className="mt-1 flex items-center gap-4 text-xs text-gray-500">
                     <span className="flex items-center gap-1">
                       <FileQuestion className="h-3.5 w-3.5" />

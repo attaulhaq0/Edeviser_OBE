@@ -1,17 +1,17 @@
 const OPENDYSLEXIC_URL =
-  'https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/open-dyslexic-regular.woff2';
+  "https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/open-dyslexic-regular.woff2";
 
 let fontLoaded = false;
 
 export const loadDyslexiaFont = async (): Promise<void> => {
   if (fontLoaded) return;
   try {
-    const font = new FontFace('OpenDyslexic', `url(${OPENDYSLEXIC_URL})`);
+    const font = new FontFace("OpenDyslexic", `url(${OPENDYSLEXIC_URL})`);
     const loaded = await font.load();
     document.fonts.add(loaded);
     fontLoaded = true;
   } catch (error) {
-    console.error('Failed to load OpenDyslexic font:', error);
+    console.error("Failed to load OpenDyslexic font:", error);
   }
 };
 
@@ -20,11 +20,11 @@ export const applyDyslexiaFont = (enabled: boolean): void => {
   if (enabled) {
     loadDyslexiaFont();
     root.style.setProperty(
-      '--font-body',
-      '"OpenDyslexic", "Noto Sans", ui-sans-serif, system-ui, sans-serif',
+      "--font-body",
+      '"OpenDyslexic", "Noto Sans", ui-sans-serif, system-ui, sans-serif'
     );
   } else {
-    root.style.removeProperty('--font-body');
+    root.style.removeProperty("--font-body");
   }
 };
 

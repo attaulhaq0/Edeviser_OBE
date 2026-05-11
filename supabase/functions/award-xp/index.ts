@@ -269,8 +269,7 @@ function validatePayload(
         : undefined,
       is_milestone:
         typeof p.is_milestone === "boolean" ? p.is_milestone : undefined,
-      course_id:
-        typeof p.course_id === "string" ? p.course_id : undefined,
+      course_id: typeof p.course_id === "string" ? p.course_id : undefined,
       challenge_id:
         typeof p.challenge_id === "string" ? p.challenge_id : undefined,
       participant_type:
@@ -1285,7 +1284,11 @@ serve(async (req) => {
 
     let mysteryRewardTriggered = false;
 
-    if (finalXP > 0 && source !== "league_promotion" && source !== "bonus_event") {
+    if (
+      finalXP > 0 &&
+      source !== "league_promotion" &&
+      source !== "bonus_event"
+    ) {
       try {
         // Fetch mystery box probability from institution settings
         const { data: studentProfileForMystery } = await supabase
@@ -1301,10 +1304,14 @@ serve(async (req) => {
             .eq("institution_id", studentProfileForMystery.institution_id)
             .maybeSingle();
 
-          const rawMysterySettings = mysterySettings as Record<string, unknown> | null;
+          const rawMysterySettings = mysterySettings as Record<
+            string,
+            unknown
+          > | null;
           let mysteryProbability = 10; // default 10%
           if (rawMysterySettings?.mystery_box_probability) {
-            const configured = rawMysterySettings.mystery_box_probability as number;
+            const configured =
+              rawMysterySettings.mystery_box_probability as number;
             mysteryProbability = Math.max(5, Math.min(20, configured));
           }
 
@@ -1314,7 +1321,10 @@ serve(async (req) => {
           }
         }
       } catch (mysteryErr) {
-        console.error("Mystery reward box check failed (non-blocking):", mysteryErr);
+        console.error(
+          "Mystery reward box check failed (non-blocking):",
+          mysteryErr
+        );
       }
     }
 

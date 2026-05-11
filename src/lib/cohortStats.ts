@@ -11,11 +11,15 @@ export interface CohortData {
  * Calculate Cohen's d effect size between two cohorts.
  * Only valid when both cohorts have n ≥ 20.
  */
-export const calculateCohensD = (cohort1: CohortData, cohort2: CohortData): number | null => {
+export const calculateCohensD = (
+  cohort1: CohortData,
+  cohort2: CohortData
+): number | null => {
   if (cohort1.n < 20 || cohort2.n < 20) return null;
 
   const pooledVariance =
-    ((cohort1.n - 1) * cohort1.stdDev ** 2 + (cohort2.n - 1) * cohort2.stdDev ** 2) /
+    ((cohort1.n - 1) * cohort1.stdDev ** 2 +
+      (cohort2.n - 1) * cohort2.stdDev ** 2) /
     (cohort1.n + cohort2.n - 2);
 
   const pooledStdDev = Math.sqrt(pooledVariance);
@@ -33,8 +37,8 @@ export const hasSignificantGap = (mean1: number, mean2: number): boolean => {
 
 export const interpretCohensD = (d: number): string => {
   const abs = Math.abs(d);
-  if (abs < 0.2) return 'Negligible';
-  if (abs < 0.5) return 'Small';
-  if (abs < 0.8) return 'Medium';
-  return 'Large';
+  if (abs < 0.2) return "Negligible";
+  if (abs < 0.5) return "Small";
+  if (abs < 0.8) return "Medium";
+  return "Large";
 };

@@ -2,8 +2,8 @@
 // letterGradeMapper — Maps percentage scores to letter grades using grade_scales
 // =============================================================================
 
-import type { GradeScale } from '@/types/app';
-import { DEFAULT_GRADE_SCALES } from '@/types/app';
+import type { GradeScale } from "@/types/app";
+import { DEFAULT_GRADE_SCALES } from "@/types/app";
 
 /**
  * Maps a percentage score to a letter grade using the institution's grade scale.
@@ -12,7 +12,7 @@ import { DEFAULT_GRADE_SCALES } from '@/types/app';
  */
 export function mapToLetterGrade(
   percent: number,
-  gradeScales: GradeScale[] = DEFAULT_GRADE_SCALES,
+  gradeScales: GradeScale[] = DEFAULT_GRADE_SCALES
 ): string {
   const scales = gradeScales.length > 0 ? gradeScales : DEFAULT_GRADE_SCALES;
   const sorted = [...scales].sort((a, b) => b.min_percent - a.min_percent);
@@ -25,7 +25,7 @@ export function mapToLetterGrade(
 
   // If no match found (shouldn't happen with proper scales), return lowest grade
   const lowest = sorted[sorted.length - 1];
-  return lowest?.letter ?? 'F';
+  return lowest?.letter ?? "F";
 }
 
 /**
@@ -33,7 +33,7 @@ export function mapToLetterGrade(
  */
 export function mapToGpaPoints(
   percent: number,
-  gradeScales: GradeScale[] = DEFAULT_GRADE_SCALES,
+  gradeScales: GradeScale[] = DEFAULT_GRADE_SCALES
 ): number {
   const scales = gradeScales.length > 0 ? gradeScales : DEFAULT_GRADE_SCALES;
   const sorted = [...scales].sort((a, b) => b.min_percent - a.min_percent);

@@ -109,7 +109,9 @@ function validatePayload(
   ) {
     return {
       valid: false,
-      error: `event_type is required and must be one of: ${VALID_EVENT_TYPES.join(", ")}`,
+      error: `event_type is required and must be one of: ${VALID_EVENT_TYPES.join(
+        ", "
+      )}`,
     };
   }
 
@@ -165,10 +167,7 @@ async function computeAcademicProgress(
     .lte("graded_at", endDate)
     .in(
       "assignment_id",
-      supabase
-        .from("assignments")
-        .select("id")
-        .eq("course_id", courseId)
+      supabase.from("assignments").select("id").eq("course_id", courseId)
     );
 
   if (error) {
@@ -825,12 +824,9 @@ serve(async (req) => {
     );
   } catch (error) {
     console.error("update-challenge-progress error:", error);
-    return new Response(
-      JSON.stringify({ error: (error as Error).message }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    return new Response(JSON.stringify({ error: (error as Error).message }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });

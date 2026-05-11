@@ -46,25 +46,164 @@ interface AnalyticsResponse {
 // Common English stop words filtered out during topic extraction
 
 const STOP_WORDS = new Set([
-  "a", "an", "the", "and", "or", "but", "in", "on", "at", "to", "for",
-  "of", "with", "by", "from", "is", "it", "its", "this", "that", "was",
-  "are", "be", "been", "being", "have", "has", "had", "do", "does", "did",
-  "will", "would", "could", "should", "may", "might", "shall", "can",
-  "not", "no", "nor", "so", "if", "then", "than", "too", "very", "just",
-  "about", "above", "after", "again", "all", "also", "am", "any", "as",
-  "because", "before", "below", "between", "both", "during", "each",
-  "few", "further", "get", "got", "he", "her", "here", "hers", "herself",
-  "him", "himself", "his", "how", "i", "im", "into", "me", "more", "most",
-  "my", "myself", "now", "only", "other", "our", "ours", "ourselves",
-  "out", "over", "own", "same", "she", "some", "such", "them", "themselves",
-  "there", "these", "they", "those", "through", "under", "until", "up",
-  "us", "we", "what", "when", "where", "which", "while", "who", "whom",
-  "why", "you", "your", "yours", "yourself", "yourselves",
+  "a",
+  "an",
+  "the",
+  "and",
+  "or",
+  "but",
+  "in",
+  "on",
+  "at",
+  "to",
+  "for",
+  "of",
+  "with",
+  "by",
+  "from",
+  "is",
+  "it",
+  "its",
+  "this",
+  "that",
+  "was",
+  "are",
+  "be",
+  "been",
+  "being",
+  "have",
+  "has",
+  "had",
+  "do",
+  "does",
+  "did",
+  "will",
+  "would",
+  "could",
+  "should",
+  "may",
+  "might",
+  "shall",
+  "can",
+  "not",
+  "no",
+  "nor",
+  "so",
+  "if",
+  "then",
+  "than",
+  "too",
+  "very",
+  "just",
+  "about",
+  "above",
+  "after",
+  "again",
+  "all",
+  "also",
+  "am",
+  "any",
+  "as",
+  "because",
+  "before",
+  "below",
+  "between",
+  "both",
+  "during",
+  "each",
+  "few",
+  "further",
+  "get",
+  "got",
+  "he",
+  "her",
+  "here",
+  "hers",
+  "herself",
+  "him",
+  "himself",
+  "his",
+  "how",
+  "i",
+  "im",
+  "into",
+  "me",
+  "more",
+  "most",
+  "my",
+  "myself",
+  "now",
+  "only",
+  "other",
+  "our",
+  "ours",
+  "ourselves",
+  "out",
+  "over",
+  "own",
+  "same",
+  "she",
+  "some",
+  "such",
+  "them",
+  "themselves",
+  "there",
+  "these",
+  "they",
+  "those",
+  "through",
+  "under",
+  "until",
+  "up",
+  "us",
+  "we",
+  "what",
+  "when",
+  "where",
+  "which",
+  "while",
+  "who",
+  "whom",
+  "why",
+  "you",
+  "your",
+  "yours",
+  "yourself",
+  "yourselves",
   // Common chat filler words
-  "hi", "hello", "hey", "thanks", "thank", "please", "okay", "ok", "yes",
-  "yeah", "no", "sure", "like", "know", "think", "want", "need", "help",
-  "question", "understand", "explain", "dont", "doesnt", "didnt", "cant",
-  "wont", "isnt", "arent", "wasnt", "werent", "havent", "hasnt", "hadnt",
+  "hi",
+  "hello",
+  "hey",
+  "thanks",
+  "thank",
+  "please",
+  "okay",
+  "ok",
+  "yes",
+  "yeah",
+  "no",
+  "sure",
+  "like",
+  "know",
+  "think",
+  "want",
+  "need",
+  "help",
+  "question",
+  "understand",
+  "explain",
+  "dont",
+  "doesnt",
+  "didnt",
+  "cant",
+  "wont",
+  "isnt",
+  "arent",
+  "wasnt",
+  "werent",
+  "havent",
+  "hasnt",
+  "hadnt",
 ]);
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -74,7 +213,7 @@ const STOP_WORDS = new Set([
  */
 function isValidUUID(value: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-    value,
+    value
   );
 }
 
@@ -93,7 +232,7 @@ function isValidDate(value: string): boolean {
  */
 export function extractCommonTopics(
   messages: Array<{ content: string }>,
-  topN: number = 15,
+  topN: number = 15
 ): CommonTopic[] {
   const wordFrequency = new Map<string, number>();
 
@@ -151,14 +290,14 @@ serve(async (req) => {
         {
           status: 401,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
+        }
       );
     }
 
     const userClient = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_ANON_KEY")!,
-      { global: { headers: { Authorization: authHeader } } },
+      { global: { headers: { Authorization: authHeader } } }
     );
 
     const {
@@ -172,7 +311,7 @@ serve(async (req) => {
         {
           status: 401,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
+        }
       );
     }
 
@@ -188,7 +327,7 @@ serve(async (req) => {
         {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
+        }
       );
     }
 
@@ -201,13 +340,12 @@ serve(async (req) => {
       ) {
         return new Response(
           JSON.stringify({
-            error:
-              "Invalid date_range: start and end must be valid ISO dates",
+            error: "Invalid date_range: start and end must be valid ISO dates",
           }),
           {
             status: 400,
             headers: { ...corsHeaders, "Content-Type": "application/json" },
-          },
+          }
         );
       }
     }
@@ -216,7 +354,7 @@ serve(async (req) => {
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
     const { data: course, error: courseError } = await supabase
@@ -226,13 +364,10 @@ serve(async (req) => {
       .maybeSingle();
 
     if (courseError || !course) {
-      return new Response(
-        JSON.stringify({ error: "Course not found" }),
-        {
-          status: 404,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
+      return new Response(JSON.stringify({ error: "Course not found" }), {
+        status: 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     // Check teacher owns the course OR user is an admin
@@ -253,7 +388,7 @@ serve(async (req) => {
         {
           status: 403,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
+        }
       );
     }
 
@@ -287,10 +422,7 @@ serve(async (req) => {
 
     const totalConversations = conversations?.length ?? 0;
     const totalMessages =
-      conversations?.reduce(
-        (sum, c) => sum + (c.message_count ?? 0),
-        0,
-      ) ?? 0;
+      conversations?.reduce((sum, c) => sum + (c.message_count ?? 0), 0) ?? 0;
     const avgMessagesPerConversation =
       totalConversations > 0
         ? Math.round((totalMessages / totalConversations) * 100) / 100
@@ -309,13 +441,13 @@ serve(async (req) => {
 
       if (ratingError) {
         throw new Error(
-          `Failed to fetch satisfaction ratings: ${ratingError.message}`,
+          `Failed to fetch satisfaction ratings: ${ratingError.message}`
         );
       }
 
       if (ratedMessages && ratedMessages.length > 0) {
         const positiveCount = ratedMessages.filter(
-          (m) => m.satisfaction_rating === "thumbs_up",
+          (m) => m.satisfaction_rating === "thumbs_up"
         ).length;
         avgSatisfactionRating =
           Math.round((positiveCount / ratedMessages.length) * 100) / 100;
@@ -357,7 +489,7 @@ serve(async (req) => {
         clo_id: cloId,
         clo_title: cloTitleMap.get(cloId) ?? "Unknown CLO",
         conversation_count: count,
-      }),
+      })
     );
 
     // ── Step 7: Common Topics Extraction (3.3.3) ──────────────────────
@@ -374,7 +506,7 @@ serve(async (req) => {
 
       if (msgError) {
         throw new Error(
-          `Failed to fetch messages for topic extraction: ${msgError.message}`,
+          `Failed to fetch messages for topic extraction: ${msgError.message}`
         );
       }
 
@@ -388,9 +520,7 @@ serve(async (req) => {
     const usageStart = body.date_range?.start
       ? new Date(body.date_range.start)
       : new Date(thirtyDaysAgo);
-    const usageEnd = body.date_range?.end
-      ? new Date(body.date_range.end)
-      : now;
+    const usageEnd = body.date_range?.end ? new Date(body.date_range.end) : now;
 
     // Build a map of date -> count from conversations (already fetched)
     const dailyCounts = new Map<string, number>();
@@ -439,14 +569,12 @@ serve(async (req) => {
     console.error("tutor-analytics error:", error);
     return new Response(
       JSON.stringify({
-        error: error instanceof Error
-          ? error.message
-          : "Internal server error",
+        error: error instanceof Error ? error.message : "Internal server error",
       }),
       {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-      },
+      }
     );
   }
 });

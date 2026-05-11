@@ -7,7 +7,7 @@
 /**
  * League tier names (lowercase for DB storage).
  */
-export type LeagueTier = 'diamond' | 'gold' | 'silver' | 'bronze';
+export type LeagueTier = "diamond" | "gold" | "silver" | "bronze";
 
 export interface StudentXP {
   studentId: string;
@@ -26,11 +26,14 @@ export interface TierAssignment {
  * Tier thresholds as percentile rank cutoffs.
  * PERCENT_RANK() returns 0 for the top student and approaches 1 for the lowest.
  */
-const TIER_THRESHOLDS: ReadonlyArray<{ maxPercentile: number; tier: LeagueTier }> = [
-  { maxPercentile: 0.05, tier: 'diamond' },
-  { maxPercentile: 0.20, tier: 'gold' },
-  { maxPercentile: 0.50, tier: 'silver' },
-  { maxPercentile: 1.00, tier: 'bronze' },
+const TIER_THRESHOLDS: ReadonlyArray<{
+  maxPercentile: number;
+  tier: LeagueTier;
+}> = [
+  { maxPercentile: 0.05, tier: "diamond" },
+  { maxPercentile: 0.2, tier: "gold" },
+  { maxPercentile: 0.5, tier: "silver" },
+  { maxPercentile: 1.0, tier: "bronze" },
 ];
 
 /**
@@ -44,7 +47,7 @@ export function assignTierFromPercentile(percentileRank: number): LeagueTier {
   for (const { maxPercentile, tier } of TIER_THRESHOLDS) {
     if (clamped <= maxPercentile) return tier;
   }
-  return 'bronze';
+  return "bronze";
 }
 
 /**
@@ -54,19 +57,27 @@ export function assignTierFromPercentile(percentileRank: number): LeagueTier {
  * PERCENT_RANK = (rank - 1) / (N - 1) where rank is 0-based dense rank.
  * For a single student, percentile rank is 0.
  */
-function computePercentileRanks(students: StudentXP[]): Array<{ studentId: string; xpTotal: number; percentileRank: number }> {
+function computePercentileRanks(
+  students: StudentXP[]
+): Array<{ studentId: string; xpTotal: number; percentileRank: number }> {
   if (students.length === 0) return [];
 
   const first = students[0];
   if (students.length === 1 && first) {
-    return [{ studentId: first.studentId, xpTotal: first.xpTotal, percentileRank: 0 }];
+    return [
+      { studentId: first.studentId, xpTotal: first.xpTotal, percentileRank: 0 },
+    ];
   }
 
   // Sort descending by XP
   const sorted = [...students].sort((a, b) => b.xpTotal - a.xpTotal);
   const n = sorted.length;
 
-  const result: Array<{ studentId: string; xpTotal: number; percentileRank: number }> = [];
+  const result: Array<{
+    studentId: string;
+    xpTotal: number;
+    percentileRank: number;
+  }> = [];
 
   for (let i = 0; i < n; i++) {
     const current = sorted[i];

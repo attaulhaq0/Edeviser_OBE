@@ -1,10 +1,10 @@
-import { useMemo } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import { toast } from 'sonner';
-import { useWellnessPreferences } from '@/hooks/useWellnessPreferences';
-import type { WellnessHabitType, WellnessReminderConfig } from '@/types/habits';
+import { useMemo } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import { toast } from "sonner";
+import { useWellnessPreferences } from "@/hooks/useWellnessPreferences";
+import type { WellnessHabitType, WellnessReminderConfig } from "@/types/habits";
 
 /**
  * Returns reminder configs for all enabled habits.
@@ -44,17 +44,20 @@ export const useUpdateWellnessReminder = () => {
     }) => {
       // Fetch current reminder_times
       const { data: current, error: fetchError } = await supabase
-        .from('student_wellness_preferences')
-        .select('reminder_times')
-        .eq('student_id', studentId)
+        .from("student_wellness_preferences")
+        .select("reminder_times")
+        .eq("student_id", studentId)
         .maybeSingle();
 
       if (fetchError) {
-        console.error('Failed to fetch reminder times:', fetchError.message);
+        console.error("Failed to fetch reminder times:", fetchError.message);
         throw fetchError;
       }
 
-      const existing = (current?.reminder_times ?? {}) as Record<string, string | null>;
+      const existing = (current?.reminder_times ?? {}) as Record<
+        string,
+        string | null
+      >;
       const updated = { ...existing };
 
       if (reminderTime) {
@@ -64,14 +67,14 @@ export const useUpdateWellnessReminder = () => {
       }
 
       const { error } = await supabase
-        .from('student_wellness_preferences')
+        .from("student_wellness_preferences")
         .upsert(
           {
             student_id: studentId,
             reminder_times: updated,
             updated_at: new Date().toISOString(),
           },
-          { onConflict: 'student_id' },
+          { onConflict: "student_id" }
         );
 
       if (error) throw error;
@@ -80,11 +83,11 @@ export const useUpdateWellnessReminder = () => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.wellness.preferences(variables.studentId),
       });
-      toast.success('Reminder updated');
+      toast.success("Reminder updated");
     },
     onError: (error: Error) => {
-      toast.error('Failed to update reminder');
-      console.error('Update reminder error:', error);
+      toast.error("Failed to update reminder");
+      console.error("Update reminder error:", error);
     },
   });
 };

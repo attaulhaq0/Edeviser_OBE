@@ -76,14 +76,11 @@ describe("Property 23 — Academic integrity detection", () => {
 
   it("P23c: empty or whitespace messages are not flagged", () => {
     fc.assert(
-      fc.property(
-        fc.constantFrom("", "   ", "\n", "\t"),
-        (message) => {
-          const result = detectIntegrityViolation(message);
-          expect(result.flagged).toBe(false);
-          expect(result.matchedKeywords.length).toBe(0);
-        }
-      ),
+      fc.property(fc.constantFrom("", "   ", "\n", "\t"), (message) => {
+        const result = detectIntegrityViolation(message);
+        expect(result.flagged).toBe(false);
+        expect(result.matchedKeywords.length).toBe(0);
+      }),
       { numRuns: 100 }
     );
   });
@@ -129,21 +126,18 @@ describe("Property 23 — Academic integrity detection", () => {
 
   it("P23f: result always has the correct shape", () => {
     fc.assert(
-      fc.property(
-        fc.oneof(flaggedMessageArb, normalQuestionArb),
-        (message) => {
-          const result = detectIntegrityViolation(message);
-          expect(typeof result.flagged).toBe("boolean");
-          expect(Array.isArray(result.matchedKeywords)).toBe(true);
+      fc.property(fc.oneof(flaggedMessageArb, normalQuestionArb), (message) => {
+        const result = detectIntegrityViolation(message);
+        expect(typeof result.flagged).toBe("boolean");
+        expect(Array.isArray(result.matchedKeywords)).toBe(true);
 
-          // If flagged, must have keywords; if not flagged, must have empty keywords
-          if (result.flagged) {
-            expect(result.matchedKeywords.length).toBeGreaterThan(0);
-          } else {
-            expect(result.matchedKeywords.length).toBe(0);
-          }
+        // If flagged, must have keywords; if not flagged, must have empty keywords
+        if (result.flagged) {
+          expect(result.matchedKeywords.length).toBeGreaterThan(0);
+        } else {
+          expect(result.matchedKeywords.length).toBe(0);
         }
-      ),
+      }),
       { numRuns: 100 }
     );
   });

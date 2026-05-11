@@ -1,11 +1,11 @@
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import {
   Form,
   FormField,
@@ -13,49 +13,57 @@ import {
   FormLabel,
   FormControl,
   FormMessage,
-} from '@/components/ui/form';
+} from "@/components/ui/form";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
-import { Clock, Plus, Trash2, Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
-import Shimmer from '@/components/shared/Shimmer';
-import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
+} from "@/components/ui/dialog";
+import { Clock, Plus, Trash2, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import Shimmer from "@/components/shared/Shimmer";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import {
   useSectionTimetableSlots,
   useCreateTimetableSlot,
   useDeleteTimetableSlot,
-} from '@/hooks/useTimetable';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
+} from "@/hooks/useTimetable";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
 
-const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const DAYS = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
 
 const SLOT_TYPE_STYLES: Record<string, string> = {
-  lecture: 'bg-blue-100 text-blue-700',
-  lab: 'bg-green-100 text-green-700',
-  tutorial: 'bg-purple-100 text-purple-700',
+  lecture: "bg-blue-100 text-blue-700",
+  lab: "bg-green-100 text-green-700",
+  tutorial: "bg-purple-100 text-purple-700",
 };
 
 const timetableSlotSchema = z.object({
-  section_id: z.string().min(1, 'Section is required'),
+  section_id: z.string().min(1, "Section is required"),
   day_of_week: z.number().min(0).max(6),
-  start_time: z.string().min(1, 'Start time is required'),
-  end_time: z.string().min(1, 'End time is required'),
+  start_time: z.string().min(1, "Start time is required"),
+  end_time: z.string().min(1, "End time is required"),
   room: z.string().optional(),
-  slot_type: z.enum(['lecture', 'lab', 'tutorial']),
+  slot_type: z.enum(["lecture", "lab", "tutorial"]),
 });
 
 type TimetableSlotFormData = z.infer<typeof timetableSlotSchema>;
@@ -66,14 +74,16 @@ const useSectionsWithCourses = () => {
     queryKey: queryKeys.courseSections.lists(),
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('course_sections')
-        .select('id, section_code, course_id, courses(name)')
-        .order('section_code');
+        .from("course_sections")
+        .select("id, section_code, course_id, courses(name)")
+        .order("section_code");
       if (error) throw error;
       return (data ?? []).map((s) => ({
         id: s.id,
-        label: `${(s.courses as { name: string } | null)?.name ?? 'Course'} — Section ${s.section_code}`,
-        course_name: (s.courses as { name: string } | null)?.name ?? '',
+        label: `${
+          (s.courses as { name: string } | null)?.name ?? "Course"
+        } — Section ${s.section_code}`,
+        course_name: (s.courses as { name: string } | null)?.name ?? "",
         section_code: s.section_code,
       }));
     },
@@ -82,26 +92,26 @@ const useSectionsWithCourses = () => {
 };
 
 const TimetableManager = () => {
-  const [selectedSection, setSelectedSection] = useState<string>('');
+  const [selectedSection, setSelectedSection] = useState<string>("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
-  const { data: sections = [], isLoading: sectionsLoading } = useSectionsWithCourses();
-  const { data: slots = [], isLoading: slotsLoading } = useSectionTimetableSlots(
-    selectedSection || undefined,
-  );
+  const { data: sections = [], isLoading: sectionsLoading } =
+    useSectionsWithCourses();
+  const { data: slots = [], isLoading: slotsLoading } =
+    useSectionTimetableSlots(selectedSection || undefined);
   const createSlot = useCreateTimetableSlot();
   const deleteSlot = useDeleteTimetableSlot();
 
   const form = useForm<TimetableSlotFormData>({
     resolver: zodResolver(timetableSlotSchema),
     defaultValues: {
-      section_id: '',
+      section_id: "",
       day_of_week: 1,
-      start_time: '09:00',
-      end_time: '10:00',
-      room: '',
-      slot_type: 'lecture',
+      start_time: "09:00",
+      end_time: "10:00",
+      room: "",
+      slot_type: "lecture",
     },
   });
 
@@ -117,12 +127,12 @@ const TimetableManager = () => {
       },
       {
         onSuccess: () => {
-          toast.success('Timetable slot created');
+          toast.success("Timetable slot created");
           setDialogOpen(false);
           form.reset();
         },
         onError: (err) => toast.error(err.message),
-      },
+      }
     );
   };
 
@@ -130,7 +140,7 @@ const TimetableManager = () => {
     if (!deleteTarget) return;
     deleteSlot.mutate(deleteTarget, {
       onSuccess: () => {
-        toast.success('Slot deleted');
+        toast.success("Slot deleted");
         setDeleteTarget(null);
       },
       onError: (err) => toast.error(err.message),
@@ -140,7 +150,9 @@ const TimetableManager = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Timetable Management</h1>
+        <h1 className="text-2xl font-bold tracking-tight">
+          Timetable Management
+        </h1>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95">
@@ -152,20 +164,30 @@ const TimetableManager = () => {
               <DialogTitle>Add Timetable Slot</DialogTitle>
             </DialogHeader>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-4"
+              >
                 <FormField
                   control={form.control}
                   name="section_id"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Section</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
                         <FormControl>
-                          <SelectTrigger><SelectValue placeholder="Select section" /></SelectTrigger>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select section" />
+                          </SelectTrigger>
                         </FormControl>
                         <SelectContent>
                           {sections.map((s) => (
-                            <SelectItem key={s.id} value={s.id}>{s.label}</SelectItem>
+                            <SelectItem key={s.id} value={s.id}>
+                              {s.label}
+                            </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
@@ -179,13 +201,20 @@ const TimetableManager = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Day</FormLabel>
-                      <Select onValueChange={(v) => field.onChange(Number(v))} value={String(field.value)}>
+                      <Select
+                        onValueChange={(v) => field.onChange(Number(v))}
+                        value={String(field.value)}
+                      >
                         <FormControl>
-                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
                         </FormControl>
                         <SelectContent>
                           {DAYS.map((d, i) => (
-                            <SelectItem key={i} value={String(i)}>{d}</SelectItem>
+                            <SelectItem key={i} value={String(i)}>
+                              {d}
+                            </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
@@ -200,7 +229,9 @@ const TimetableManager = () => {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Start Time</FormLabel>
-                        <FormControl><Input type="time" {...field} /></FormControl>
+                        <FormControl>
+                          <Input type="time" {...field} />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -211,7 +242,9 @@ const TimetableManager = () => {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>End Time</FormLabel>
-                        <FormControl><Input type="time" {...field} /></FormControl>
+                        <FormControl>
+                          <Input type="time" {...field} />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -223,7 +256,9 @@ const TimetableManager = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Room (optional)</FormLabel>
-                      <FormControl><Input placeholder="e.g. Room 301" {...field} /></FormControl>
+                      <FormControl>
+                        <Input placeholder="e.g. Room 301" {...field} />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -234,9 +269,14 @@ const TimetableManager = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Slot Type</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
                         <FormControl>
-                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
                         </FormControl>
                         <SelectContent>
                           <SelectItem value="lecture">Lecture</SelectItem>
@@ -253,7 +293,9 @@ const TimetableManager = () => {
                   disabled={createSlot.isPending}
                   className="w-full bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
                 >
-                  {createSlot.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+                  {createSlot.isPending && (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  )}
                   Create Slot
                 </Button>
               </form>
@@ -265,7 +307,12 @@ const TimetableManager = () => {
       {/* Section filter */}
       <Card className="bg-white border-0 shadow-md rounded-xl p-4">
         <div className="flex items-center gap-4">
-          <label htmlFor="section-filter" className="text-sm font-medium text-gray-600">Filter by Section:</label>
+          <label
+            htmlFor="section-filter"
+            className="text-sm font-medium text-gray-600"
+          >
+            Filter by Section:
+          </label>
           {sectionsLoading ? (
             <Shimmer className="h-9 w-64 rounded-lg" />
           ) : (
@@ -275,7 +322,9 @@ const TimetableManager = () => {
               </SelectTrigger>
               <SelectContent>
                 {sections.map((s) => (
-                  <SelectItem key={s.id} value={s.id}>{s.label}</SelectItem>
+                  <SelectItem key={s.id} value={s.id}>
+                    {s.label}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -287,10 +336,15 @@ const TimetableManager = () => {
       <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
         <div
           className="px-6 py-4 flex items-center gap-2"
-          style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+          style={{
+            background:
+              "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+          }}
         >
           <Clock className="h-5 w-5 text-white" />
-          <h2 className="text-lg font-bold tracking-tight text-white">Timetable Slots</h2>
+          <h2 className="text-lg font-bold tracking-tight text-white">
+            Timetable Slots
+          </h2>
         </div>
         <div className="p-6">
           {slotsLoading ? (
@@ -315,13 +369,21 @@ const TimetableManager = () => {
                       {DAYS[slot.day_of_week]}
                     </span>
                     <span className="text-sm text-slate-600 font-mono">
-                      {slot.start_time?.slice(0, 5)} – {slot.end_time?.slice(0, 5)}
+                      {slot.start_time?.slice(0, 5)} –{" "}
+                      {slot.end_time?.slice(0, 5)}
                     </span>
-                    <Badge className={`text-[10px] ${SLOT_TYPE_STYLES[slot.slot_type] ?? 'bg-gray-100 text-gray-700'}`}>
+                    <Badge
+                      className={`text-[10px] ${
+                        SLOT_TYPE_STYLES[slot.slot_type] ??
+                        "bg-gray-100 text-gray-700"
+                      }`}
+                    >
                       {slot.slot_type}
                     </Badge>
                     {slot.room && (
-                      <span className="text-xs text-slate-400">{slot.room}</span>
+                      <span className="text-xs text-slate-400">
+                        {slot.room}
+                      </span>
                     )}
                   </div>
                   <Button
@@ -341,7 +403,9 @@ const TimetableManager = () => {
 
       <ConfirmDialog
         open={!!deleteTarget}
-        onOpenChange={(open: boolean) => { if (!open) setDeleteTarget(null); }}
+        onOpenChange={(open: boolean) => {
+          if (!open) setDeleteTarget(null);
+        }}
         title="Delete Timetable Slot"
         description="Are you sure you want to delete this timetable slot? This action cannot be undone."
         onConfirm={handleDelete}

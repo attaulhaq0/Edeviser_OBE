@@ -411,7 +411,9 @@ function validateAutoIndexRequest(
   if (!validAutoTypes.includes(req.material_type as MaterialType)) {
     return {
       valid: false,
-      error: `material_type for auto-indexing must be one of: ${validAutoTypes.join(", ")}`,
+      error: `material_type for auto-indexing must be one of: ${validAutoTypes.join(
+        ", "
+      )}`,
     };
   }
 
@@ -460,7 +462,9 @@ function validateAutoIndexRequest(
       course_id: req.course_id as string,
       clo_ids: (req.clo_ids as string[] | undefined) ?? [],
       bloom_level: req.bloom_level as string | undefined,
-      material_type: req.material_type as "assignment_description" | "rubric_criteria",
+      material_type: req.material_type as
+        | "assignment_description"
+        | "rubric_criteria",
       source_filename: req.source_filename as string,
       source_material_id: req.source_material_id as string | undefined,
       institution_id: req.institution_id as string | undefined,
@@ -563,13 +567,10 @@ serve(async (req) => {
       // ── Auto-Indexing Mode (3.2.8) ──────────────────────────────────────
       const autoValidation = validateAutoIndexRequest(body);
       if (!autoValidation.valid) {
-        return new Response(
-          JSON.stringify({ error: autoValidation.error }),
-          {
-            status: 400,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
-        );
+        return new Response(JSON.stringify({ error: autoValidation.error }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       }
 
       const autoReq = autoValidation.data;
@@ -585,13 +586,10 @@ serve(async (req) => {
         .maybeSingle();
 
       if (autoCourseError || !autoCourseData) {
-        return new Response(
-          JSON.stringify({ error: "Course not found" }),
-          {
-            status: 404,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
-        );
+        return new Response(JSON.stringify({ error: "Course not found" }), {
+          status: 404,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       }
 
       autoInstitutionId = autoInstitutionId ?? autoCourseData.institution_id;

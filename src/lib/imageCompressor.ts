@@ -9,7 +9,7 @@ export const compressImage = (
   file: File,
   maxWidth: number = DEFAULT_MAX_WIDTH,
   maxHeight: number = DEFAULT_MAX_HEIGHT,
-  quality: number = DEFAULT_QUALITY,
+  quality: number = DEFAULT_QUALITY
 ): Promise<File> => {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -28,13 +28,13 @@ export const compressImage = (
         height = Math.round(height * ratio);
       }
 
-      const canvas = document.createElement('canvas');
+      const canvas = document.createElement("canvas");
       canvas.width = width;
       canvas.height = height;
 
-      const ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext("2d");
       if (!ctx) {
-        reject(new Error('Failed to get canvas 2d context'));
+        reject(new Error("Failed to get canvas 2d context"));
         return;
       }
 
@@ -46,7 +46,7 @@ export const compressImage = (
         canvas.toBlob(
           (blob) => {
             if (!blob) {
-              reject(new Error('Canvas toBlob returned null'));
+              reject(new Error("Canvas toBlob returned null"));
               return;
             }
 
@@ -57,13 +57,13 @@ export const compressImage = (
             }
 
             const compressed = new File([blob], file.name, {
-              type: 'image/jpeg',
+              type: "image/jpeg",
               lastModified: Date.now(),
             });
             resolve(compressed);
           },
-          'image/jpeg',
-          currentQuality,
+          "image/jpeg",
+          currentQuality
         );
       };
 
@@ -72,7 +72,7 @@ export const compressImage = (
 
     img.onerror = () => {
       URL.revokeObjectURL(url);
-      reject(new Error('Failed to load image'));
+      reject(new Error("Failed to load image"));
     };
 
     img.src = url;

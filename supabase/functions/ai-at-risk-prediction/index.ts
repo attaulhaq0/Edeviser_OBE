@@ -1,9 +1,10 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 // ─── pg_cron schedule: 0 3 * * * (nightly 3 AM) ────────────────────────────
@@ -27,8 +28,8 @@ const MIN_DAYS_BEFORE_DUE = 7; // Predict ≥7 days before due date
 
 interface AtRiskSignals {
   days_since_last_login: number;
-  clo_attainment_trend: 'improving' | 'declining' | 'stagnant';
-  submission_pattern: 'early' | 'on_time' | 'late' | 'missed';
+  clo_attainment_trend: "improving" | "declining" | "stagnant";
+  submission_pattern: "early" | "on_time" | "late" | "missed";
   computed_at: string;
 }
 
@@ -66,21 +67,28 @@ export function scoreLoginFrequency(daysSinceLastLogin: number): number {
 /**
  * Classify login frequency for contributing signals display.
  */
-export function classifyLoginFrequency(daysSinceLastLogin: number): 'low' | 'medium' | 'high' {
-  if (daysSinceLastLogin <= 3) return 'high';
-  if (daysSinceLastLogin <= 7) return 'medium';
-  return 'low';
+export function classifyLoginFrequency(
+  daysSinceLastLogin: number
+): "low" | "medium" | "high" {
+  if (daysSinceLastLogin <= 3) return "high";
+  if (daysSinceLastLogin <= 7) return "medium";
+  return "low";
 }
 
 /**
  * Score attainment trend signal (0–100).
  * Higher score = higher risk.
  */
-export function scoreAttainmentTrend(trend: 'improving' | 'declining' | 'stagnant'): number {
+export function scoreAttainmentTrend(
+  trend: "improving" | "declining" | "stagnant"
+): number {
   switch (trend) {
-    case 'improving': return 10;
-    case 'stagnant': return 50;
-    case 'declining': return 90;
+    case "improving":
+      return 10;
+    case "stagnant":
+      return 50;
+    case "declining":
+      return 90;
   }
 }
 
@@ -88,12 +96,18 @@ export function scoreAttainmentTrend(trend: 'improving' | 'declining' | 'stagnan
  * Score submission pattern signal (0–100).
  * Higher score = higher risk.
  */
-export function scoreSubmissionPattern(pattern: 'early' | 'on_time' | 'late' | 'missed'): number {
+export function scoreSubmissionPattern(
+  pattern: "early" | "on_time" | "late" | "missed"
+): number {
   switch (pattern) {
-    case 'early': return 5;
-    case 'on_time': return 20;
-    case 'late': return 65;
-    case 'missed': return 95;
+    case "early":
+      return 5;
+    case "on_time":
+      return 20;
+    case "late":
+      return 65;
+    case "missed":
+      return 95;
   }
 }
 
@@ -106,7 +120,7 @@ export function calculateRiskProbability(
   loginScore: number,
   trendScore: number,
   patternScore: number,
-  currentAttainment: number | null,
+  currentAttainment: number | null
 ): number {
   const baseScore =
     loginScore * WEIGHT_LOGIN_FREQUENCY +
@@ -126,7 +140,9 @@ export function calculateRiskProbability(
     }
   }
 
-  const finalScore = Math.round(Math.min(100, Math.max(0, baseScore * attainmentModifier)));
+  const finalScore = Math.round(
+    Math.min(100, Math.max(0, baseScore * attainmentModifier))
+  );
   return finalScore;
 }
 
@@ -137,52 +153,54 @@ export function buildPredictionText(
   studentName: string,
   cloTitle: string,
   probability: number,
-  loginFreq: 'low' | 'medium' | 'high',
-  trend: 'improving' | 'declining' | 'stagnant',
-  pattern: 'early' | 'on_time' | 'late' | 'missed',
+  loginFreq: "low" | "medium" | "high",
+  trend: "improving" | "declining" | "stagnant",
+  pattern: "early" | "on_time" | "late" | "missed"
 ): string {
   const signals: string[] = [];
-  if (loginFreq === 'low') signals.push('low login frequency');
-  if (trend === 'declining') signals.push('declining attainment trend');
-  if (trend === 'stagnant') signals.push('stagnant attainment trend');
-  if (pattern === 'late') signals.push('late submission pattern');
-  if (pattern === 'missed') signals.push('missed submissions');
+  if (loginFreq === "low") signals.push("low login frequency");
+  if (trend === "declining") signals.push("declining attainment trend");
+  if (trend === "stagnant") signals.push("stagnant attainment trend");
+  if (pattern === "late") signals.push("late submission pattern");
+  if (pattern === "missed") signals.push("missed submissions");
 
-  const signalText = signals.length > 0
-    ? ` Key signals: ${signals.join(', ')}.`
-    : '';
+  const signalText =
+    signals.length > 0 ? ` Key signals: ${signals.join(", ")}.` : "";
 
-  return (
-    `${studentName} has a ${probability}% probability of failing "${cloTitle}".${signalText}`
-  );
+  return `${studentName} has a ${probability}% probability of failing "${cloTitle}".${signalText}`;
 }
 
 // ─── Main Handler ───────────────────────────────────────────────────────────
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
   }
 
   try {
     // ── Auth: cron secret or service role only ──────────────────────
-    const cronSecret = req.headers.get('x-cron-secret');
-    const expectedSecret = Deno.env.get('CRON_SECRET');
-    const authHeader = req.headers.get('Authorization') ?? '';
-    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+    const cronSecret = req.headers.get("x-cron-secret");
+    const expectedSecret = Deno.env.get("CRON_SECRET");
+    const authHeader = req.headers.get("Authorization") ?? "";
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
     const isServiceRole = serviceRoleKey && authHeader.includes(serviceRoleKey);
     const isCron = expectedSecret && cronSecret === expectedSecret;
 
     if (!isServiceRole && !isCron) {
       return new Response(
-        JSON.stringify({ error: 'Unauthorized: cron secret or service role required' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        JSON.stringify({
+          error: "Unauthorized: cron secret or service role required",
+        }),
+        {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
       );
     }
 
     const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
     const nowISO = new Date().toISOString();
@@ -191,21 +209,31 @@ serve(async (req) => {
     // ── Step 1: Fetch all students with pre-computed at-risk signals ────
 
     const { data: students, error: studentsErr } = await supabase
-      .from('student_gamification')
-      .select('student_id, at_risk_signals');
+      .from("student_gamification")
+      .select("student_id, at_risk_signals");
 
     if (studentsErr) {
-      console.error('Failed to fetch students:', studentsErr.message);
+      console.error("Failed to fetch students:", studentsErr.message);
       return new Response(
-        JSON.stringify({ error: 'Failed to fetch students', detail: studentsErr.message }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        JSON.stringify({
+          error: "Failed to fetch students",
+          detail: studentsErr.message,
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
       );
     }
 
     if (!students || students.length === 0) {
       return new Response(
-        JSON.stringify({ success: true, predictions_made: 0, message: 'No students found' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        JSON.stringify({
+          success: true,
+          predictions_made: 0,
+          message: "No students found",
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -219,16 +247,22 @@ serve(async (req) => {
       .slice(0, 10);
 
     const { data: upcomingAssignments, error: assignErr } = await supabase
-      .from('assignments')
-      .select('id, course_id, due_date, clo_ids')
-      .gte('due_date', minDueDate)
-      .lte('due_date', maxDueDate);
+      .from("assignments")
+      .select("id, course_id, due_date, clo_ids")
+      .gte("due_date", minDueDate)
+      .lte("due_date", maxDueDate);
 
     if (assignErr) {
-      console.error('Failed to fetch assignments:', assignErr.message);
+      console.error("Failed to fetch assignments:", assignErr.message);
       return new Response(
-        JSON.stringify({ error: 'Failed to fetch assignments', detail: assignErr.message }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        JSON.stringify({
+          error: "Failed to fetch assignments",
+          detail: assignErr.message,
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
       );
     }
 
@@ -237,9 +271,9 @@ serve(async (req) => {
         JSON.stringify({
           success: true,
           predictions_made: 0,
-          message: 'No upcoming assignments in prediction window',
+          message: "No upcoming assignments in prediction window",
         }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -247,7 +281,8 @@ serve(async (req) => {
     const courseCloMap = new Map<string, Set<string>>();
     for (const assignment of upcomingAssignments) {
       if (!assignment.clo_ids || assignment.clo_ids.length === 0) continue;
-      const existing = courseCloMap.get(assignment.course_id) ?? new Set<string>();
+      const existing =
+        courseCloMap.get(assignment.course_id) ?? new Set<string>();
       for (const cloId of assignment.clo_ids) {
         existing.add(cloId);
       }
@@ -256,24 +291,26 @@ serve(async (req) => {
 
     // ── Step 3: Fetch CLO details for all relevant CLOs ─────────────────
 
-    const allCloIds = [...new Set([...courseCloMap.values()].flatMap((s) => [...s]))];
+    const allCloIds = [
+      ...new Set([...courseCloMap.values()].flatMap((s) => [...s])),
+    ];
 
     if (allCloIds.length === 0) {
       return new Response(
         JSON.stringify({
           success: true,
           predictions_made: 0,
-          message: 'No CLOs linked to upcoming assignments',
+          message: "No CLOs linked to upcoming assignments",
         }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     const { data: cloDetails } = await supabase
-      .from('learning_outcomes')
-      .select('id, title')
-      .in('id', allCloIds)
-      .eq('type', 'CLO');
+      .from("learning_outcomes")
+      .select("id, title")
+      .in("id", allCloIds)
+      .eq("type", "CLO");
 
     const cloTitleMap = new Map<string, string>();
     for (const clo of cloDetails ?? []) {
@@ -285,13 +322,13 @@ serve(async (req) => {
     const studentIds = students.map((s: StudentWithSignals) => s.student_id);
 
     const { data: profiles } = await supabase
-      .from('profiles')
-      .select('id, full_name')
-      .in('id', studentIds);
+      .from("profiles")
+      .select("id, full_name")
+      .in("id", studentIds);
 
     const nameMap = new Map<string, string>();
     for (const p of profiles ?? []) {
-      nameMap.set(p.id, p.full_name ?? 'Unknown Student');
+      nameMap.set(p.id, p.full_name ?? "Unknown Student");
     }
 
     // ── Step 5: Fetch enrollments to know which students are in which courses
@@ -299,11 +336,11 @@ serve(async (req) => {
     const courseIds = [...courseCloMap.keys()];
 
     const { data: enrollments } = await supabase
-      .from('student_courses')
-      .select('student_id, course_id')
-      .in('student_id', studentIds)
-      .in('course_id', courseIds)
-      .eq('status', 'active');
+      .from("student_courses")
+      .select("student_id, course_id")
+      .in("student_id", studentIds)
+      .in("course_id", courseIds)
+      .eq("status", "active");
 
     // Build student → courses map
     const studentCourseMap = new Map<string, string[]>();
@@ -316,16 +353,19 @@ serve(async (req) => {
     // ── Step 6: Fetch current CLO attainment for all students ───────────
 
     const { data: attainmentRecords } = await supabase
-      .from('outcome_attainment')
-      .select('student_id, outcome_id, attainment_percent')
-      .in('student_id', studentIds)
-      .in('outcome_id', allCloIds)
-      .eq('scope', 'student_course');
+      .from("outcome_attainment")
+      .select("student_id, outcome_id, attainment_percent")
+      .in("student_id", studentIds)
+      .in("outcome_id", allCloIds)
+      .eq("scope", "student_course");
 
     // Build student+clo → attainment map
     const attainmentMap = new Map<string, number>();
     for (const a of attainmentRecords ?? []) {
-      attainmentMap.set(`${a.student_id}:${a.outcome_id}`, a.attainment_percent);
+      attainmentMap.set(
+        `${a.student_id}:${a.outcome_id}`,
+        a.attainment_percent
+      );
     }
 
     // ── Step 7: Generate predictions ────────────────────────────────────
@@ -342,45 +382,55 @@ serve(async (req) => {
         const enrolledCourses = studentCourseMap.get(student.student_id) ?? [];
         if (enrolledCourses.length === 0) continue;
 
-        const studentName = nameMap.get(student.student_id) ?? 'Unknown Student';
+        const studentName =
+          nameMap.get(student.student_id) ?? "Unknown Student";
 
         for (const courseId of enrolledCourses) {
           const cloIds = courseCloMap.get(courseId);
           if (!cloIds) continue;
 
           for (const cloId of cloIds) {
-            const cloTitle = cloTitleMap.get(cloId) ?? 'Unknown CLO';
-            const currentAttainment = attainmentMap.get(`${student.student_id}:${cloId}`) ?? null;
+            const cloTitle = cloTitleMap.get(cloId) ?? "Unknown CLO";
+            const currentAttainment =
+              attainmentMap.get(`${student.student_id}:${cloId}`) ?? null;
 
             // Score each signal
-            const loginScore = scoreLoginFrequency(signals.days_since_last_login);
-            const trendScore = scoreAttainmentTrend(signals.clo_attainment_trend);
-            const patternScore = scoreSubmissionPattern(signals.submission_pattern);
+            const loginScore = scoreLoginFrequency(
+              signals.days_since_last_login
+            );
+            const trendScore = scoreAttainmentTrend(
+              signals.clo_attainment_trend
+            );
+            const patternScore = scoreSubmissionPattern(
+              signals.submission_pattern
+            );
 
             // Calculate overall probability
             const probability = calculateRiskProbability(
               loginScore,
               trendScore,
               patternScore,
-              currentAttainment,
+              currentAttainment
             );
 
             // Only store predictions above threshold
             if (probability < PREDICTION_THRESHOLD) continue;
 
-            const loginFreq = classifyLoginFrequency(signals.days_since_last_login);
+            const loginFreq = classifyLoginFrequency(
+              signals.days_since_last_login
+            );
             const suggestionText = buildPredictionText(
               studentName,
               cloTitle,
               probability,
               loginFreq,
               signals.clo_attainment_trend,
-              signals.submission_pattern,
+              signals.submission_pattern
             );
 
             predictions.push({
               student_id: student.student_id,
-              suggestion_type: 'at_risk_prediction',
+              suggestion_type: "at_risk_prediction",
               suggestion_text: suggestionText,
               suggestion_data: {
                 at_risk_clo_id: cloId,
@@ -398,7 +448,10 @@ serve(async (req) => {
           }
         }
       } catch (err) {
-        errors.push({ student_id: student.student_id, error: (err as Error).message });
+        errors.push({
+          student_id: student.student_id,
+          error: (err as Error).message,
+        });
       }
     }
 
@@ -406,14 +459,20 @@ serve(async (req) => {
 
     if (predictions.length > 0) {
       const { error: insertErr } = await supabase
-        .from('ai_feedback')
+        .from("ai_feedback")
         .insert(predictions);
 
       if (insertErr) {
-        console.error('Failed to store predictions:', insertErr.message);
+        console.error("Failed to store predictions:", insertErr.message);
         return new Response(
-          JSON.stringify({ error: 'Failed to store predictions', detail: insertErr.message }),
-          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+          JSON.stringify({
+            error: "Failed to store predictions",
+            detail: insertErr.message,
+          }),
+          {
+            status: 500,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
         );
       }
 
@@ -429,13 +488,13 @@ serve(async (req) => {
         students_processed: students.length,
         errors: errors.length > 0 ? errors : undefined,
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
-    console.error('ai-at-risk-prediction error:', (error as Error).message);
-    return new Response(
-      JSON.stringify({ error: (error as Error).message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-    );
+    console.error("ai-at-risk-prediction error:", (error as Error).message);
+    return new Response(JSON.stringify({ error: (error as Error).message }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });

@@ -21,8 +21,17 @@ export const institutionSettingsSchema = z.object({
     developing: z.number().min(0).max(100),
   }),
   success_threshold: z.number().min(0).max(100),
-  accreditation_body: z.enum(["HEC", "QQA", "ABET", "NCAAA", "AACSB", "Generic"]),
-  grade_scales: z.array(gradeScaleSchema).min(1, "At least one grade scale is required"),
+  accreditation_body: z.enum([
+    "HEC",
+    "QQA",
+    "ABET",
+    "NCAAA",
+    "AACSB",
+    "Generic",
+  ]),
+  grade_scales: z
+    .array(gradeScaleSchema)
+    .min(1, "At least one grade scale is required"),
   streak_sabbatical_enabled: z.boolean(),
   league_thresholds: leagueThresholdsSchema.optional(),
   default_language: z.enum(["en", "ar"]).optional(),
@@ -30,4 +39,6 @@ export const institutionSettingsSchema = z.object({
 
 export type GradeScaleData = z.infer<typeof gradeScaleSchema>;
 export type LeagueThresholdsData = z.infer<typeof leagueThresholdsSchema>;
-export type InstitutionSettingsFormData = z.infer<typeof institutionSettingsSchema>;
+export type InstitutionSettingsFormData = z.infer<
+  typeof institutionSettingsSchema
+>;

@@ -1,71 +1,92 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { parseAsString, useQueryState } from 'nuqs';
-import { useStudentAssignments } from '@/hooks/useSubmissions';
-import type { StudentAssignment } from '@/hooks/useSubmissions';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { parseAsString, useQueryState } from "nuqs";
+import { useStudentAssignments } from "@/hooks/useSubmissions";
+import type { StudentAssignment } from "@/hooks/useSubmissions";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import Shimmer from '@/components/shared/Shimmer';
-import { ClipboardList, Search, Calendar } from 'lucide-react';
-import { format, isPast, addHours } from 'date-fns';
+} from "@/components/ui/select";
+import Shimmer from "@/components/shared/Shimmer";
+import EmptyState from "@/components/shared/EmptyState";
+import { ClipboardList, Search, Calendar } from "lucide-react";
+import { format, isPast, addHours } from "date-fns";
 
 // ─── Status helpers ─────────────────────────────────────────────────────────
 
-type AssignmentStatus = 'submitted' | 'pending' | 'late' | 'overdue';
+type AssignmentStatus = "submitted" | "pending" | "late" | "overdue";
 
-const getAssignmentStatus = (assignment: StudentAssignment): AssignmentStatus => {
+const getAssignmentStatus = (
+  assignment: StudentAssignment
+): AssignmentStatus => {
   if (assignment.submissions && assignment.submissions.length > 0) {
     const first = assignment.submissions[0]!;
-    return first.is_late ? 'late' : 'submitted';
+    return first.is_late ? "late" : "submitted";
   }
   const dueDate = new Date(assignment.due_date);
   const lateDeadline = addHours(dueDate, assignment.late_window_hours);
-  if (isPast(lateDeadline)) return 'overdue';
-  if (isPast(dueDate)) return 'late';
-  return 'pending';
+  if (isPast(lateDeadline)) return "overdue";
+  if (isPast(dueDate)) return "late";
+  return "pending";
 };
 
-const statusConfig: Record<AssignmentStatus, { label: string; className: string }> = {
-  submitted: { label: 'Submitted', className: 'bg-green-100 text-green-700 border-green-200' },
-  pending: { label: 'Pending', className: 'bg-yellow-100 text-yellow-700 border-yellow-200' },
-  late: { label: 'Late', className: 'bg-orange-100 text-orange-700 border-orange-200' },
-  overdue: { label: 'Overdue', className: 'bg-red-100 text-red-700 border-red-200' },
+const statusConfig: Record<
+  AssignmentStatus,
+  { label: string; className: string }
+> = {
+  submitted: {
+    label: "Submitted",
+    className: "bg-green-100 text-green-700 border-green-200",
+  },
+  pending: {
+    label: "Pending",
+    className: "bg-yellow-100 text-yellow-700 border-yellow-200",
+  },
+  late: {
+    label: "Late",
+    className: "bg-orange-100 text-orange-700 border-orange-200",
+  },
+  overdue: {
+    label: "Overdue",
+    className: "bg-red-100 text-red-700 border-red-200",
+  },
 };
 
 // ─── AssignmentListPage ─────────────────────────────────────────────────────
 
 const AssignmentListPage = () => {
   const navigate = useNavigate();
-  const [search, setSearch] = useQueryState('q', parseAsString.withDefault(''));
-  const [courseFilter, setCourseFilter] = useState<string>('all');
+  const [search, setSearch] = useQueryState("q", parseAsString.withDefault(""));
+  const [courseFilter, setCourseFilter] = useState<string>("all");
   const { data: assignments, isLoading } = useStudentAssignments(
-    courseFilter !== 'all' ? courseFilter : undefined,
+    courseFilter !== "all" ? courseFilter : undefined
   );
 
   // Derive unique courses from assignments for the filter dropdown
   const courseOptions = (() => {
     if (!assignments) return [];
     const seen = new Map<string, boolean>();
-    return assignments.reduce<Array<{ id: string; label: string }>>((acc, a) => {
-      if (!seen.has(a.course_id)) {
-        seen.set(a.course_id, true);
-        acc.push({ id: a.course_id, label: a.course_id });
-      }
-      return acc;
-    }, []);
+    return assignments.reduce<Array<{ id: string; label: string }>>(
+      (acc, a) => {
+        if (!seen.has(a.course_id)) {
+          seen.set(a.course_id, true);
+          acc.push({ id: a.course_id, label: a.course_id });
+        }
+        return acc;
+      },
+      []
+    );
   })();
 
   // Filter by search term
   const filtered = (assignments ?? []).filter((a) =>
-    a.title.toLowerCase().includes(search.toLowerCase()),
+    a.title.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -112,12 +133,11 @@ const AssignmentListPage = () => {
         </div>
       ) : filtered.length === 0 ? (
         <Card className="bg-white border-0 shadow-md rounded-xl">
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <div className="p-3 rounded-full bg-blue-50 mb-3">
-              <ClipboardList className="h-8 w-8 text-blue-500" />
-            </div>
-            <p className="text-sm text-gray-500">No assignments found.</p>
-          </div>
+          <EmptyState
+            icon={<ClipboardList className="h-8 w-8 text-gray-400" />}
+            title="No assignments found"
+            description="You don't have any assignments yet."
+          />
         </Card>
       ) : (
         <div className="space-y-3">
@@ -128,15 +148,22 @@ const AssignmentListPage = () => {
               <Card
                 key={assignment.id}
                 className="bg-white border-0 shadow-md rounded-xl p-4 cursor-pointer hover:shadow-lg transition-shadow"
-                onClick={() => navigate(`/student/assignments/${assignment.id}`)}
+                onClick={() =>
+                  navigate(`/student/assignments/${assignment.id}`)
+                }
               >
                 <div className="flex items-center justify-between gap-4">
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold truncate">{assignment.title}</p>
+                    <p className="text-sm font-semibold truncate">
+                      {assignment.title}
+                    </p>
                     <div className="flex items-center gap-3 mt-1">
                       <span className="flex items-center gap-1 text-xs text-gray-500">
                         <Calendar className="h-3 w-3" />
-                        {format(new Date(assignment.due_date), 'MMM d, yyyy h:mm a')}
+                        {format(
+                          new Date(assignment.due_date),
+                          "MMM d, yyyy h:mm a"
+                        )}
                       </span>
                       <span className="text-xs text-gray-400">
                         {assignment.total_marks} marks

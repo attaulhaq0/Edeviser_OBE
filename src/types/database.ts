@@ -57,6 +57,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "academic_calendar_events_institution_id_fkey";
+            columns: ["institution_id"];
+            isOneToOne: false;
+            referencedRelation: "institutions_public";
+            referencedColumns: ["id"];
+          },
+          {
             foreignKeyName: "academic_calendar_events_semester_id_fkey";
             columns: ["semester_id"];
             isOneToOne: false;
@@ -461,6 +468,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "institutions";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "badge_definitions_institution_id_fkey";
+            columns: ["institution_id"];
+            isOneToOne: false;
+            referencedRelation: "institutions_public";
+            referencedColumns: ["id"];
           }
         ];
       };
@@ -495,6 +509,13 @@ export type Database = {
             columns: ["institution_id"];
             isOneToOne: false;
             referencedRelation: "institutions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "badge_spotlight_schedule_institution_id_fkey";
+            columns: ["institution_id"];
+            isOneToOne: false;
+            referencedRelation: "institutions_public";
             referencedColumns: ["id"];
           }
         ];
@@ -655,6 +676,30 @@ export type Database = {
           }
         ];
       };
+      blocked_ips: {
+        Row: {
+          blocked_by: string | null;
+          blocked_until: string;
+          created_at: string;
+          ip_address: unknown;
+          reason: string;
+        };
+        Insert: {
+          blocked_by?: string | null;
+          blocked_until: string;
+          created_at?: string;
+          ip_address: unknown;
+          reason: string;
+        };
+        Update: {
+          blocked_by?: string | null;
+          blocked_until?: string;
+          created_at?: string;
+          ip_address?: unknown;
+          reason?: string;
+        };
+        Relationships: [];
+      };
       blooms_progression: {
         Row: {
           bloom_challenger_awarded: boolean;
@@ -715,6 +760,13 @@ export type Database = {
             columns: ["institution_id"];
             isOneToOne: false;
             referencedRelation: "institutions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "blooms_progression_institution_id_fkey";
+            columns: ["institution_id"];
+            isOneToOne: false;
+            referencedRelation: "institutions_public";
             referencedColumns: ["id"];
           },
           {
@@ -909,6 +961,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "institutions";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "class_donations_institution_id_fkey";
+            columns: ["institution_id"];
+            isOneToOne: false;
+            referencedRelation: "institutions_public";
+            referencedColumns: ["id"];
           }
         ];
       };
@@ -981,6 +1040,13 @@ export type Database = {
             columns: ["institution_id"];
             isOneToOne: false;
             referencedRelation: "institutions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "competency_frameworks_institution_id_fkey";
+            columns: ["institution_id"];
+            isOneToOne: false;
+            referencedRelation: "institutions_public";
             referencedColumns: ["id"];
           }
         ];
@@ -1137,6 +1203,13 @@ export type Database = {
             columns: ["institution_id"];
             isOneToOne: false;
             referencedRelation: "institutions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "course_material_embeddings_institution_id_fkey";
+            columns: ["institution_id"];
+            isOneToOne: false;
+            referencedRelation: "institutions_public";
             referencedColumns: ["id"];
           },
           {
@@ -1527,6 +1600,13 @@ export type Database = {
             columns: ["institution_id"];
             isOneToOne: false;
             referencedRelation: "institutions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "departments_institution_id_fkey";
+            columns: ["institution_id"];
+            isOneToOne: false;
+            referencedRelation: "institutions_public";
             referencedColumns: ["id"];
           }
         ];
@@ -2054,6 +2134,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "institutions";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "graduate_attributes_institution_id_fkey";
+            columns: ["institution_id"];
+            isOneToOne: false;
+            referencedRelation: "institutions_public";
+            referencedColumns: ["id"];
           }
         ];
       };
@@ -2221,35 +2308,102 @@ export type Database = {
             isOneToOne: true;
             referencedRelation: "institutions";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "institution_settings_institution_id_fkey";
+            columns: ["institution_id"];
+            isOneToOne: true;
+            referencedRelation: "institutions_public";
+            referencedColumns: ["id"];
           }
         ];
       };
       institutions: {
         Row: {
           accreditation_body: string | null;
+          allowed_email_domains: string[];
           created_at: string;
           id: string;
+          join_mode: string;
           logo_url: string | null;
           name: string;
           settings: Json;
+          slug: string;
         };
         Insert: {
           accreditation_body?: string | null;
+          allowed_email_domains?: string[];
           created_at?: string;
           id?: string;
+          join_mode?: string;
           logo_url?: string | null;
           name: string;
           settings?: Json;
+          slug: string;
         };
         Update: {
           accreditation_body?: string | null;
+          allowed_email_domains?: string[];
           created_at?: string;
           id?: string;
+          join_mode?: string;
           logo_url?: string | null;
           name?: string;
           settings?: Json;
+          slug?: string;
         };
         Relationships: [];
+      };
+      invitations: {
+        Row: {
+          created_at: string;
+          created_by: string;
+          email: string;
+          expires_at: string;
+          id: string;
+          institution_id: string;
+          role: Database["public"]["Enums"]["user_role"];
+          token: string;
+          used_at: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          created_by: string;
+          email: string;
+          expires_at?: string;
+          id?: string;
+          institution_id: string;
+          role: Database["public"]["Enums"]["user_role"];
+          token: string;
+          used_at?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string;
+          email?: string;
+          expires_at?: string;
+          id?: string;
+          institution_id?: string;
+          role?: Database["public"]["Enums"]["user_role"];
+          token?: string;
+          used_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "invitations_institution_id_fkey";
+            columns: ["institution_id"];
+            isOneToOne: false;
+            referencedRelation: "institutions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "invitations_institution_id_fkey";
+            columns: ["institution_id"];
+            isOneToOne: false;
+            referencedRelation: "institutions_public";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       journal_entries: {
         Row: {
@@ -2371,6 +2525,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "knowledge_quests_institution_id_fkey";
+            columns: ["institution_id"];
+            isOneToOne: false;
+            referencedRelation: "institutions_public";
+            referencedColumns: ["id"];
+          },
+          {
             foreignKeyName: "knowledge_quests_reward_item_id_fkey";
             columns: ["reward_item_id"];
             isOneToOne: false;
@@ -2451,6 +2612,13 @@ export type Database = {
             columns: ["institution_id"];
             isOneToOne: false;
             referencedRelation: "institutions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "learning_outcomes_institution_id_fkey";
+            columns: ["institution_id"];
+            isOneToOne: false;
+            referencedRelation: "institutions_public";
             referencedColumns: ["id"];
           },
           {
@@ -2597,6 +2765,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "institutions";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "marketplace_items_institution_id_fkey";
+            columns: ["institution_id"];
+            isOneToOne: false;
+            referencedRelation: "institutions_public";
+            referencedColumns: ["id"];
           }
         ];
       };
@@ -2687,6 +2862,13 @@ export type Database = {
             columns: ["institution_id"];
             isOneToOne: false;
             referencedRelation: "institutions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "mastery_recovery_pathways_institution_id_fkey";
+            columns: ["institution_id"];
+            isOneToOne: false;
+            referencedRelation: "institutions_public";
             referencedColumns: ["id"];
           },
           {
@@ -2926,6 +3108,13 @@ export type Database = {
             columns: ["institution_id"];
             isOneToOne: false;
             referencedRelation: "institutions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "onboarding_questions_institution_id_fkey";
+            columns: ["institution_id"];
+            isOneToOne: false;
+            referencedRelation: "institutions_public";
             referencedColumns: ["id"];
           }
         ];
@@ -3267,6 +3456,7 @@ export type Database = {
           avatar_url: string | null;
           created_at: string;
           email: string;
+          email_verified_at: string | null;
           full_name: string;
           id: string;
           institution_id: string;
@@ -3279,14 +3469,17 @@ export type Database = {
           preferred_language: string | null;
           role: Database["public"]["Enums"]["user_role"];
           search_vector: unknown;
+          status: string;
           theme_preference: string;
           tos_accepted_at: string | null;
+          tour_completed_at: string | null;
         };
         Insert: {
           accessibility_preferences?: Json | null;
           avatar_url?: string | null;
           created_at?: string;
           email: string;
+          email_verified_at?: string | null;
           full_name: string;
           id: string;
           institution_id: string;
@@ -3299,14 +3492,17 @@ export type Database = {
           preferred_language?: string | null;
           role?: Database["public"]["Enums"]["user_role"];
           search_vector?: unknown;
+          status?: string;
           theme_preference?: string;
           tos_accepted_at?: string | null;
+          tour_completed_at?: string | null;
         };
         Update: {
           accessibility_preferences?: Json | null;
           avatar_url?: string | null;
           created_at?: string;
           email?: string;
+          email_verified_at?: string | null;
           full_name?: string;
           id?: string;
           institution_id?: string;
@@ -3319,8 +3515,10 @@ export type Database = {
           preferred_language?: string | null;
           role?: Database["public"]["Enums"]["user_role"];
           search_vector?: unknown;
+          status?: string;
           theme_preference?: string;
           tos_accepted_at?: string | null;
+          tour_completed_at?: string | null;
         };
         Relationships: [
           {
@@ -3328,6 +3526,13 @@ export type Database = {
             columns: ["institution_id"];
             isOneToOne: false;
             referencedRelation: "institutions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "profiles_institution_id_fkey";
+            columns: ["institution_id"];
+            isOneToOne: false;
+            referencedRelation: "institutions_public";
             referencedColumns: ["id"];
           }
         ];
@@ -3430,6 +3635,13 @@ export type Database = {
             columns: ["institution_id"];
             isOneToOne: false;
             referencedRelation: "institutions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "programs_institution_id_fkey";
+            columns: ["institution_id"];
+            isOneToOne: false;
+            referencedRelation: "institutions_public";
             referencedColumns: ["id"];
           }
         ];
@@ -3581,6 +3793,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "question_bank_institution_id_fkey";
+            columns: ["institution_id"];
+            isOneToOne: false;
+            referencedRelation: "institutions_public";
+            referencedColumns: ["id"];
+          },
+          {
             foreignKeyName: "question_bank_parent_question_id_fkey";
             columns: ["parent_question_id"];
             isOneToOne: false;
@@ -3723,6 +3942,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "quiz_generation_logs_institution_id_fkey";
+            columns: ["institution_id"];
+            isOneToOne: false;
+            referencedRelation: "institutions_public";
+            referencedColumns: ["id"];
+          },
+          {
             foreignKeyName: "quiz_generation_logs_teacher_id_fkey";
             columns: ["teacher_id"];
             isOneToOne: false;
@@ -3827,6 +4053,33 @@ export type Database = {
             referencedColumns: ["id"];
           }
         ];
+      };
+      rate_limit_events: {
+        Row: {
+          event_type: string;
+          id: number;
+          ip_address: unknown;
+          metadata: Json;
+          occurred_at: string;
+          user_id: string | null;
+        };
+        Insert: {
+          event_type: string;
+          id?: number;
+          ip_address: unknown;
+          metadata?: Json;
+          occurred_at?: string;
+          user_id?: string | null;
+        };
+        Update: {
+          event_type?: string;
+          id?: number;
+          ip_address?: unknown;
+          metadata?: Json;
+          occurred_at?: string;
+          user_id?: string | null;
+        };
+        Relationships: [];
       };
       reflection_digests: {
         Row: {
@@ -4209,6 +4462,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "institutions";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sale_events_institution_id_fkey";
+            columns: ["institution_id"];
+            isOneToOne: false;
+            referencedRelation: "institutions_public";
+            referencedColumns: ["id"];
           }
         ];
       };
@@ -4249,6 +4509,13 @@ export type Database = {
             columns: ["institution_id"];
             isOneToOne: false;
             referencedRelation: "institutions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "semesters_institution_id_fkey";
+            columns: ["institution_id"];
+            isOneToOne: false;
+            referencedRelation: "institutions_public";
             referencedColumns: ["id"];
           }
         ];
@@ -4473,6 +4740,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "institutions";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "social_challenges_institution_id_fkey";
+            columns: ["institution_id"];
+            isOneToOne: false;
+            referencedRelation: "institutions_public";
+            referencedColumns: ["id"];
           }
         ];
       };
@@ -4672,6 +4946,13 @@ export type Database = {
             columns: ["institution_id"];
             isOneToOne: false;
             referencedRelation: "institutions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "student_content_institution_id_fkey";
+            columns: ["institution_id"];
+            isOneToOne: false;
+            referencedRelation: "institutions_public";
             referencedColumns: ["id"];
           },
           {
@@ -4904,6 +5185,13 @@ export type Database = {
             columns: ["institution_id"];
             isOneToOne: false;
             referencedRelation: "institutions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "student_profiles_institution_id_fkey";
+            columns: ["institution_id"];
+            isOneToOne: false;
+            referencedRelation: "institutions_public";
             referencedColumns: ["id"];
           },
           {
@@ -5312,6 +5600,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "institutions";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "surveys_institution_id_fkey";
+            columns: ["institution_id"];
+            isOneToOne: false;
+            referencedRelation: "institutions_public";
+            referencedColumns: ["id"];
           }
         ];
       };
@@ -5387,6 +5682,13 @@ export type Database = {
             columns: ["institution_id"];
             isOneToOne: false;
             referencedRelation: "institutions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "teacher_handoff_requests_institution_id_fkey";
+            columns: ["institution_id"];
+            isOneToOne: false;
+            referencedRelation: "institutions_public";
             referencedColumns: ["id"];
           },
           {
@@ -5739,6 +6041,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "institutions";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "teams_institution_id_fkey";
+            columns: ["institution_id"];
+            isOneToOne: false;
+            referencedRelation: "institutions_public";
+            referencedColumns: ["id"];
           }
         ];
       };
@@ -5842,6 +6151,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "tutor_conversations_institution_id_fkey";
+            columns: ["institution_id"];
+            isOneToOne: false;
+            referencedRelation: "institutions_public";
+            referencedColumns: ["id"];
+          },
+          {
             foreignKeyName: "tutor_conversations_student_id_fkey";
             columns: ["student_id"];
             isOneToOne: false;
@@ -5906,6 +6222,13 @@ export type Database = {
             columns: ["institution_id"];
             isOneToOne: false;
             referencedRelation: "institutions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "tutor_llm_logs_institution_id_fkey";
+            columns: ["institution_id"];
+            isOneToOne: false;
+            referencedRelation: "institutions_public";
             referencedColumns: ["id"];
           },
           {
@@ -6045,6 +6368,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "tutor_plan_updates_institution_id_fkey";
+            columns: ["institution_id"];
+            isOneToOne: false;
+            referencedRelation: "institutions_public";
+            referencedColumns: ["id"];
+          },
+          {
             foreignKeyName: "tutor_plan_updates_student_id_fkey";
             columns: ["student_id"];
             isOneToOne: false;
@@ -6087,6 +6417,13 @@ export type Database = {
             columns: ["institution_id"];
             isOneToOne: false;
             referencedRelation: "institutions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "tutor_usage_limits_institution_id_fkey";
+            columns: ["institution_id"];
+            isOneToOne: false;
+            referencedRelation: "institutions_public";
             referencedColumns: ["id"];
           },
           {
@@ -6138,6 +6475,13 @@ export type Database = {
             columns: ["institution_id"];
             isOneToOne: false;
             referencedRelation: "institutions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "verified_explanations_institution_id_fkey";
+            columns: ["institution_id"];
+            isOneToOne: false;
+            referencedRelation: "institutions_public";
             referencedColumns: ["id"];
           },
           {
@@ -6291,6 +6635,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "institutions";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "xp_events_institution_id_fkey";
+            columns: ["institution_id"];
+            isOneToOne: false;
+            referencedRelation: "institutions_public";
+            referencedColumns: ["id"];
           }
         ];
       };
@@ -6334,6 +6685,13 @@ export type Database = {
             columns: ["institution_id"];
             isOneToOne: false;
             referencedRelation: "institutions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "xp_purchases_institution_id_fkey";
+            columns: ["institution_id"];
+            isOneToOne: false;
+            referencedRelation: "institutions_public";
             referencedColumns: ["id"];
           },
           {
@@ -6414,32 +6772,29 @@ export type Database = {
       };
     };
     Views: {
-      leaderboard_weekly: {
+      institutions_public: {
         Row: {
-          full_name: string | null;
-          global_rank: number | null;
-          institution_id: string | null;
-          level: number | null;
-          streak_current: number | null;
-          student_id: string | null;
-          xp_total: number | null;
+          id: string | null;
+          join_mode: string | null;
+          logo_url: string | null;
+          name: string | null;
+          slug: string | null;
         };
-        Relationships: [
-          {
-            foreignKeyName: "profiles_institution_id_fkey";
-            columns: ["institution_id"];
-            isOneToOne: false;
-            referencedRelation: "institutions";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "student_gamification_student_id_fkey";
-            columns: ["student_id"];
-            isOneToOne: true;
-            referencedRelation: "profiles";
-            referencedColumns: ["id"];
-          }
-        ];
+        Insert: {
+          id?: string | null;
+          join_mode?: string | null;
+          logo_url?: string | null;
+          name?: string | null;
+          slug?: string | null;
+        };
+        Update: {
+          id?: string | null;
+          join_mode?: string | null;
+          logo_url?: string | null;
+          name?: string | null;
+          slug?: string | null;
+        };
+        Relationships: [];
       };
     };
     Functions: {
@@ -6447,6 +6802,16 @@ export type Database = {
       auth_user_role: { Args: never; Returns: string };
       badge_auto_archive: { Args: never; Returns: undefined };
       badge_spotlight_auto_rotate: { Args: never; Returns: undefined };
+      check_rate_limit_approaching: {
+        Args: {
+          p_event_type?: string;
+          p_ip_address: unknown;
+          p_threshold?: number;
+          p_window_minutes?: number;
+        };
+        Returns: boolean;
+      };
+      consume_invitation: { Args: { p_token: string }; Returns: boolean };
       delete_department_if_no_programs: {
         Args: { dept_id: string };
         Returns: boolean;
@@ -6468,6 +6833,17 @@ export type Database = {
       get_effective_price: {
         Args: { p_institution_id: string; p_item_id: string };
         Returns: number;
+      };
+      get_invitation_by_token: {
+        Args: { p_token: string };
+        Returns: {
+          email: string;
+          expires_at: string;
+          id: string;
+          institution_id: string;
+          institution_name: string;
+          role: Database["public"]["Enums"]["user_role"];
+        }[];
       };
       get_leaderboard: {
         Args: { p_institution_id: string };

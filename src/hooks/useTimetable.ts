@@ -1,7 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { useAuth } from '@/hooks/useAuth';
-import { queryKeys } from '@/lib/queryKeys';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/hooks/useAuth";
+import { queryKeys } from "@/lib/queryKeys";
 
 export interface TimetableSlot {
   id: string;
@@ -23,12 +23,18 @@ export interface CreateTimetableSlotInput {
   start_time: string;
   end_time: string;
   room?: string;
-  slot_type: 'lecture' | 'lab' | 'tutorial';
+  slot_type: "lecture" | "lab" | "tutorial";
 }
 
 const SLOT_COLORS = [
-  '#3b82f6', '#8b5cf6', '#22c55e', '#f59e0b',
-  '#ef4444', '#14b8a6', '#ec4899', '#6366f1',
+  "#3b82f6",
+  "#8b5cf6",
+  "#22c55e",
+  "#f59e0b",
+  "#ef4444",
+  "#14b8a6",
+  "#ec4899",
+  "#6366f1",
 ];
 
 /**
@@ -46,60 +52,66 @@ export const useTimetableSlots = () => {
 
       let sectionIds: string[] = [];
 
-      if (role === 'student') {
+      if (role === "student") {
         // Get sections from enrolled courses
         const { data: enrollments } = await supabase
-          .from('student_courses')
-          .select('section_id')
-          .eq('student_id', user.id)
-          .not('section_id', 'is', null);
+          .from("student_courses")
+          .select("section_id")
+          .eq("student_id", user.id)
+          .not("section_id", "is", null);
         sectionIds = (enrollments ?? [])
           .map((e) => e.section_id)
           .filter((id): id is string => !!id);
-      } else if (role === 'teacher') {
+      } else if (role === "teacher") {
         // Get sections assigned to teacher
         const { data: sections } = await supabase
-          .from('course_sections')
-          .select('id')
-          .eq('teacher_id', user.id);
+          .from("course_sections")
+          .select("id")
+          .eq("teacher_id", user.id);
         sectionIds = (sections ?? []).map((s) => s.id);
       }
 
       if (sectionIds.length === 0) {
         // Fallback: fetch all visible slots (RLS will scope)
         const { data, error } = await supabase
-          .from('timetable_slots')
-          .select('*')
-          .order('day_of_week')
-          .order('start_time');
+          .from("timetable_slots")
+          .select("*")
+          .order("day_of_week")
+          .order("start_time");
         if (error) throw error;
         return (data ?? []) as TimetableSlot[];
       }
 
       // Fetch slots for the user's sections
       const { data: slots, error } = await supabase
-        .from('timetable_slots')
-        .select('*')
-        .in('section_id', sectionIds)
-        .order('day_of_week')
-        .order('start_time');
+        .from("timetable_slots")
+        .select("*")
+        .in("section_id", sectionIds)
+        .order("day_of_week")
+        .order("start_time");
       if (error) throw error;
 
       // Fetch section + course info for enrichment
       const { data: sections } = await supabase
-        .from('course_sections')
-        .select('id, section_code, course_id, courses(name)')
-        .in('id', sectionIds);
+        .from("course_sections")
+        .select("id, section_code, course_id, courses(name)")
+        .in("id", sectionIds);
 
-      const sectionMap = new Map<string, { section_code: string; course_name: string; course_id: string }>();
+      const sectionMap = new Map<
+        string,
+        { section_code: string; course_name: string; course_id: string }
+      >();
       const courseColorMap = new Map<string, string>();
       let colorIdx = 0;
 
       (sections ?? []).forEach((s) => {
-        const courseName = (s.courses as { name: string } | null)?.name ?? '';
+        const courseName = (s.courses as { name: string } | null)?.name ?? "";
         const courseId = s.course_id as string;
         if (!courseColorMap.has(courseId)) {
-          courseColorMap.set(courseId, SLOT_COLORS[colorIdx % SLOT_COLORS.length] ?? '#3b82f6');
+          courseColorMap.set(
+            courseId,
+            SLOT_COLORS[colorIdx % SLOT_COLORS.length] ?? "#3b82f6"
+          );
           colorIdx++;
         }
         sectionMap.set(s.id, {
@@ -113,10 +125,12 @@ export const useTimetableSlots = () => {
         const info = sectionMap.get(slot.section_id);
         return {
           ...slot,
-          course_name: info?.course_name ?? '',
-          section_code: info?.section_code ?? '',
-          course_id: info?.course_id ?? '',
-          color: info?.course_id ? courseColorMap.get(info.course_id) : undefined,
+          course_name: info?.course_name ?? "",
+          section_code: info?.section_code ?? "",
+          course_id: info?.course_id ?? "",
+          color: info?.course_id
+            ? courseColorMap.get(info.course_id)
+            : undefined,
         } as TimetableSlot;
       });
     },
@@ -130,15 +144,15 @@ export const useTimetableSlots = () => {
  */
 export const useSectionTimetableSlots = (sectionId: string | undefined) => {
   return useQuery({
-    queryKey: queryKeys.timetableSlots.detail(sectionId ?? ''),
+    queryKey: queryKeys.timetableSlots.detail(sectionId ?? ""),
     queryFn: async (): Promise<TimetableSlot[]> => {
       if (!sectionId) return [];
       const { data, error } = await supabase
-        .from('timetable_slots')
-        .select('*')
-        .eq('section_id', sectionId)
-        .order('day_of_week')
-        .order('start_time');
+        .from("timetable_slots")
+        .select("*")
+        .eq("section_id", sectionId)
+        .order("day_of_week")
+        .order("start_time");
       if (error) throw error;
       return (data ?? []) as TimetableSlot[];
     },
@@ -155,7 +169,7 @@ export const useCreateTimetableSlot = () => {
   return useMutation({
     mutationFn: async (input: CreateTimetableSlotInput) => {
       const { data, error } = await supabase
-        .from('timetable_slots')
+        .from("timetable_slots")
         .insert(input)
         .select()
         .single();
@@ -174,11 +188,14 @@ export const useCreateTimetableSlot = () => {
 export const useUpdateTimetableSlot = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, ...input }: Partial<CreateTimetableSlotInput> & { id: string }) => {
+    mutationFn: async ({
+      id,
+      ...input
+    }: Partial<CreateTimetableSlotInput> & { id: string }) => {
       const { data, error } = await supabase
-        .from('timetable_slots')
+        .from("timetable_slots")
         .update(input)
-        .eq('id', id)
+        .eq("id", id)
         .select()
         .single();
       if (error) throw error;
@@ -198,9 +215,9 @@ export const useDeleteTimetableSlot = () => {
   return useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from('timetable_slots')
+        .from("timetable_slots")
         .delete()
-        .eq('id', id);
+        .eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {

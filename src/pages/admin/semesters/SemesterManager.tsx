@@ -1,26 +1,26 @@
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import {
   useSemesters,
   useCreateSemester,
   useUpdateSemester,
   useDeleteSemester,
   useToggleSemesterActive,
-} from '@/hooks/useSemesters';
-import { useAuth } from '@/hooks/useAuth';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Switch } from '@/components/ui/switch';
+} from "@/hooks/useSemesters";
+import { useAuth } from "@/hooks/useAuth";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   Form,
   FormField,
@@ -28,30 +28,32 @@ import {
   FormLabel,
   FormControl,
   FormMessage,
-} from '@/components/ui/form';
-import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
-import Shimmer from '@/components/shared/Shimmer';
-import { Plus, Pencil, Trash2, Calendar, Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
-import type { Semester } from '@/types/app';
+} from "@/components/ui/form";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import Shimmer from "@/components/shared/Shimmer";
+import { Plus, Pencil, Trash2, Calendar, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import type { Semester } from "@/types/app";
 
 // ─── Schema ──────────────────────────────────────────────────────────────────
 
-const semesterFormSchema = z.object({
-  name: z.string().min(1, 'Semester name is required').max(255),
-  code: z.string().min(1, 'Semester code is required').max(50),
-  start_date: z.string().min(1, 'Start date is required'),
-  end_date: z.string().min(1, 'End date is required'),
-  is_active: z.boolean(),
-}).superRefine((data, ctx) => {
-  if (new Date(data.end_date) <= new Date(data.start_date)) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: 'End date must be after start date',
-      path: ['end_date'],
-    });
-  }
-});
+const semesterFormSchema = z
+  .object({
+    name: z.string().min(1, "Semester name is required").max(255),
+    code: z.string().min(1, "Semester code is required").max(50),
+    start_date: z.string().min(1, "Start date is required"),
+    end_date: z.string().min(1, "End date is required"),
+    is_active: z.boolean(),
+  })
+  .superRefine((data, ctx) => {
+    if (new Date(data.end_date) <= new Date(data.start_date)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "End date must be after start date",
+        path: ["end_date"],
+      });
+    }
+  });
 
 type SemesterFormData = z.infer<typeof semesterFormSchema>;
 
@@ -64,18 +66,23 @@ interface SemesterFormDialogProps {
   institutionId: string;
 }
 
-const SemesterFormDialog = ({ open, onOpenChange, semester, institutionId }: SemesterFormDialogProps) => {
+const SemesterFormDialog = ({
+  open,
+  onOpenChange,
+  semester,
+  institutionId,
+}: SemesterFormDialogProps) => {
   const isEdit = !!semester;
   const createMutation = useCreateSemester();
-  const updateMutation = useUpdateSemester(semester?.id ?? '');
+  const updateMutation = useUpdateSemester(semester?.id ?? "");
 
   const form = useForm<SemesterFormData>({
     resolver: zodResolver(semesterFormSchema),
     defaultValues: {
-      name: semester?.name ?? '',
-      code: isEdit ? (semester?.code ?? '') : '',
-      start_date: semester?.start_date ?? '',
-      end_date: semester?.end_date ?? '',
+      name: semester?.name ?? "",
+      code: isEdit ? semester?.code ?? "" : "",
+      start_date: semester?.start_date ?? "",
+      end_date: semester?.end_date ?? "",
       is_active: semester?.is_active ?? false,
     },
   });
@@ -96,7 +103,7 @@ const SemesterFormDialog = ({ open, onOpenChange, semester, institutionId }: Sem
             onOpenChange(false);
             form.reset();
           },
-        },
+        }
       );
     }
   };
@@ -107,7 +114,9 @@ const SemesterFormDialog = ({ open, onOpenChange, semester, institutionId }: Sem
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{isEdit ? 'Edit Semester' : 'Create Semester'}</DialogTitle>
+          <DialogTitle>
+            {isEdit ? "Edit Semester" : "Create Semester"}
+          </DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -131,7 +140,11 @@ const SemesterFormDialog = ({ open, onOpenChange, semester, institutionId }: Sem
                 <FormItem>
                   <FormLabel>Code</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g. F25" {...field} disabled={isEdit} />
+                    <Input
+                      placeholder="e.g. F25"
+                      {...field}
+                      disabled={isEdit}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -170,15 +183,24 @@ const SemesterFormDialog = ({ open, onOpenChange, semester, institutionId }: Sem
               name="is_active"
               render={({ field }) => (
                 <FormItem className="flex items-center justify-between rounded-lg border p-3">
-                  <FormLabel className="text-sm font-medium">Active Semester</FormLabel>
+                  <FormLabel className="text-sm font-medium">
+                    Active Semester
+                  </FormLabel>
                   <FormControl>
-                    <Switch checked={field.value} onCheckedChange={field.onChange} />
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
                   </FormControl>
                 </FormItem>
               )}
             />
             <div className="flex justify-end gap-3 pt-2">
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+              >
                 Cancel
               </Button>
               <Button
@@ -187,7 +209,7 @@ const SemesterFormDialog = ({ open, onOpenChange, semester, institutionId }: Sem
                 className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 text-white"
               >
                 {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-                {isEdit ? 'Update' : 'Create'}
+                {isEdit ? "Update" : "Create"}
               </Button>
             </div>
           </form>
@@ -207,7 +229,13 @@ interface SemesterRowProps {
   isToggling: boolean;
 }
 
-const SemesterRow = ({ semester, onEdit, onDelete, onToggleActive, isToggling }: SemesterRowProps) => (
+const SemesterRow = ({
+  semester,
+  onEdit,
+  onDelete,
+  onToggleActive,
+  isToggling,
+}: SemesterRowProps) => (
   <Card className="bg-white border-0 shadow-md rounded-xl p-4">
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-4 min-w-0">
@@ -217,9 +245,13 @@ const SemesterRow = ({ semester, onEdit, onDelete, onToggleActive, isToggling }:
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <p className="text-sm font-semibold truncate">{semester.name}</p>
-            <Badge variant="outline" className="text-xs">{semester.code ?? ''}</Badge>
+            <Badge variant="outline" className="text-xs">
+              {semester.code ?? ""}
+            </Badge>
             {semester.is_active && (
-              <Badge className="bg-green-100 text-green-700 border-green-200 text-xs">Active</Badge>
+              <Badge className="bg-green-100 text-green-700 border-green-200 text-xs">
+                Active
+              </Badge>
             )}
           </div>
           <p className="text-xs text-gray-500 mt-0.5">
@@ -234,7 +266,12 @@ const SemesterRow = ({ semester, onEdit, onDelete, onToggleActive, isToggling }:
           disabled={isToggling}
           aria-label={`Toggle ${semester.name} active status`}
         />
-        <Button variant="ghost" size="sm" onClick={() => onEdit(semester)} aria-label={`Edit ${semester.name}`}>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => onEdit(semester)}
+          aria-label={`Edit ${semester.name}`}
+        >
           <Pencil className="h-4 w-4" />
         </Button>
         <Button
@@ -287,7 +324,7 @@ const SemesterManager = () => {
 
   const handleToggleActive = (id: string, is_active: boolean) => {
     if (!is_active) {
-      toast.info('Deactivated semester data preserved as read-only');
+      toast.info("Deactivated semester data preserved as read-only");
     }
     toggleMutation.mutate({ id, is_active });
   };
@@ -313,7 +350,9 @@ const SemesterManager = () => {
       ) : (semesters ?? []).length === 0 ? (
         <Card className="bg-white border-0 shadow-md rounded-xl p-8 text-center">
           <Calendar className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-          <p className="text-sm text-gray-500">No semesters yet. Create your first semester to get started.</p>
+          <p className="text-sm text-gray-500">
+            No semesters yet. Create your first semester to get started.
+          </p>
         </Card>
       ) : (
         <div className="space-y-3">
@@ -334,7 +373,7 @@ const SemesterManager = () => {
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         semester={editingSemester}
-        institutionId={institutionId ?? ''}
+        institutionId={institutionId ?? ""}
       />
 
       <ConfirmDialog

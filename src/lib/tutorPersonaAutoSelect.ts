@@ -2,8 +2,8 @@
 // tutorPersonaAutoSelect — Big Five personality to tutor persona mapping
 // =============================================================================
 
-import type { TutorPersona } from '@/lib/tutorSchemas';
-import type { BigFiveTraits } from '@/lib/scoreCalculator';
+import type { TutorPersona } from "@/lib/tutorSchemas";
+import type { BigFiveTraits } from "@/lib/scoreCalculator";
 
 /**
  * Percentile threshold for considering a trait "high".
@@ -30,14 +30,14 @@ export interface PersonaAutoSelectResult {
  * @returns The recommended persona and optional tone modifier, or null if profile is missing
  */
 export function autoSelectPersona(
-  bigFiveProfile: BigFiveTraits | null | undefined,
+  bigFiveProfile: BigFiveTraits | null | undefined
 ): PersonaAutoSelectResult | null {
   if (!bigFiveProfile) return null;
 
   // Consider only the traits that map to personas
   const traits: Array<{ trait: string; score: number }> = [
-    { trait: 'openness', score: bigFiveProfile.openness },
-    { trait: 'conscientiousness', score: bigFiveProfile.conscientiousness },
+    { trait: "openness", score: bigFiveProfile.openness },
+    { trait: "conscientiousness", score: bigFiveProfile.conscientiousness },
   ];
 
   // Sort by score descending — highest percentile wins when multiple are high
@@ -46,23 +46,23 @@ export function autoSelectPersona(
   const dominant = traits[0] as { trait: string; score: number };
   let persona: TutorPersona;
 
-  if (dominant.trait === 'openness' && dominant.score >= HIGH_TRAIT_THRESHOLD) {
-    persona = 'socratic_guide';
+  if (dominant.trait === "openness" && dominant.score >= HIGH_TRAIT_THRESHOLD) {
+    persona = "socratic_guide";
   } else if (
-    dominant.trait === 'conscientiousness' &&
+    dominant.trait === "conscientiousness" &&
     dominant.score >= HIGH_TRAIT_THRESHOLD
   ) {
-    persona = 'step_by_step_coach';
+    persona = "step_by_step_coach";
   } else {
-    persona = 'quick_explainer';
+    persona = "quick_explainer";
   }
 
   // High neuroticism adds a supportive tone modifier regardless of persona
   let toneModifier: string | undefined;
   if (bigFiveProfile.neuroticism >= HIGH_TRAIT_THRESHOLD) {
     toneModifier =
-      'Use an especially warm, encouraging, and supportive tone. ' +
-      'Validate the student\'s effort frequently. Avoid language that could feel critical or pressuring.';
+      "Use an especially warm, encouraging, and supportive tone. " +
+      "Validate the student's effort frequently. Avoid language that could feel critical or pressuring.";
   }
 
   return { persona, toneModifier };

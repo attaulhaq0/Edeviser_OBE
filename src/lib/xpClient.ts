@@ -2,8 +2,8 @@
 // XP Client — Fire-and-forget XP award via the award-xp Edge Function
 // =============================================================================
 
-import { supabase } from '@/lib/supabase';
-import type { XPSource } from '@/types/app';
+import { supabase } from "@/lib/supabase";
+import type { XPSource } from "@/types/app";
 
 export interface AwardXPParams {
   studentId: string;
@@ -25,9 +25,11 @@ export interface AwardXPResult {
  * Fire-and-forget XP award via the award-xp Edge Function.
  * Never blocks user-facing flows — errors are logged silently.
  */
-export async function awardXP(params: AwardXPParams): Promise<AwardXPResult | null> {
+export async function awardXP(
+  params: AwardXPParams
+): Promise<AwardXPResult | null> {
   try {
-    const { data, error } = await supabase.functions.invoke('award-xp', {
+    const { data, error } = await supabase.functions.invoke("award-xp", {
       body: {
         student_id: params.studentId,
         xp_amount: params.xpAmount,
@@ -38,13 +40,13 @@ export async function awardXP(params: AwardXPParams): Promise<AwardXPResult | nu
     });
 
     if (error) {
-      console.error('[XP Client] Award failed:', error.message);
+      console.error("[XP Client] Award failed:", error.message);
       return null;
     }
 
     return data as AwardXPResult;
   } catch (err) {
-    console.error('[XP Client] Unexpected error:', err);
+    console.error("[XP Client] Unexpected error:", err);
     return null;
   }
 }

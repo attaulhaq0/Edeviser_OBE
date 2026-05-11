@@ -102,9 +102,11 @@ describe("Property 13 — Context window limited to last 10 messages", () => {
   it("P13a: context window contains at most 10 messages", () => {
     fc.assert(
       fc.property(
-        fc.uuid().chain((id) =>
-          fc.array(messageArb(id), { minLength: 0, maxLength: 50 })
-        ),
+        fc
+          .uuid()
+          .chain((id) =>
+            fc.array(messageArb(id), { minLength: 0, maxLength: 50 })
+          ),
         (messages) => {
           const context = selectContextMessages(messages);
           expect(context.length).toBeLessThanOrEqual(CONTEXT_WINDOW_SIZE);
@@ -117,9 +119,11 @@ describe("Property 13 — Context window limited to last 10 messages", () => {
   it("P13b: context window contains exactly min(N, 10) messages", () => {
     fc.assert(
       fc.property(
-        fc.uuid().chain((id) =>
-          fc.array(messageArb(id), { minLength: 0, maxLength: 50 })
-        ),
+        fc
+          .uuid()
+          .chain((id) =>
+            fc.array(messageArb(id), { minLength: 0, maxLength: 50 })
+          ),
         (messages) => {
           const context = selectContextMessages(messages);
           const expected = Math.min(messages.length, CONTEXT_WINDOW_SIZE);
@@ -133,9 +137,11 @@ describe("Property 13 — Context window limited to last 10 messages", () => {
   it("P13c: context window contains the most recent messages", () => {
     fc.assert(
       fc.property(
-        fc.uuid().chain((id) =>
-          fc.array(messageArb(id), { minLength: 1, maxLength: 50 })
-        ),
+        fc
+          .uuid()
+          .chain((id) =>
+            fc.array(messageArb(id), { minLength: 1, maxLength: 50 })
+          ),
         (messages) => {
           const context = selectContextMessages(messages);
 
@@ -159,9 +165,11 @@ describe("Property 13 — Context window limited to last 10 messages", () => {
   it("P13d: context messages are ordered chronologically", () => {
     fc.assert(
       fc.property(
-        fc.uuid().chain((id) =>
-          fc.array(messageArb(id), { minLength: 2, maxLength: 30 })
-        ),
+        fc
+          .uuid()
+          .chain((id) =>
+            fc.array(messageArb(id), { minLength: 2, maxLength: 30 })
+          ),
         (messages) => {
           const context = selectContextMessages(messages);
 

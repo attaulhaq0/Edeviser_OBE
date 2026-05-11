@@ -4,10 +4,10 @@
 //            filter by has-inactive-members
 // =============================================================================
 
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import type { ContributionStatus } from '@/lib/contributionThresholds';
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import type { ContributionStatus } from "@/lib/contributionThresholds";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -35,18 +35,22 @@ export const useContributionStatus = (teamId?: string) => {
     queryKey: queryKeys.contributionStatus.list({ teamId }),
     queryFn: async (): Promise<ContributionMetric[]> => {
       const { data, error } = await supabase
-        .from('team_members' as never)
-        .select('id, team_id, student_id, contribution_status, contribution_status_since, consecutive_low_days')
-        .eq('team_id', teamId!)
-        .is('left_at', null)
-        .order('contribution_status', { ascending: true });
+        .from("team_members" as never)
+        .select(
+          "id, team_id, student_id, contribution_status, contribution_status_since, consecutive_low_days"
+        )
+        .eq("team_id", teamId!)
+        .is("left_at", null)
+        .order("contribution_status", { ascending: true });
       if (error) throw error;
       return ((data ?? []) as Array<Record<string, unknown>>).map((row) => ({
         member_id: row.id as string,
         team_id: row.team_id as string,
         student_id: row.student_id as string,
         contribution_status: row.contribution_status as ContributionStatus,
-        contribution_status_since: row.contribution_status_since as string | null,
+        contribution_status_since: row.contribution_status_since as
+          | string
+          | null,
         consecutive_low_days: row.consecutive_low_days as number,
       }));
     },
@@ -58,18 +62,18 @@ export const useContributionStatus = (teamId?: string) => {
 
 export const useTeamsContributionSummary = (
   courseId?: string,
-  filterInactive?: boolean,
+  filterInactive?: boolean
 ) => {
   return useQuery({
     queryKey: queryKeys.contributionStatus.list({ courseId, filterInactive }),
     queryFn: async (): Promise<TeamContributionSummary[]> => {
       // Fetch teams for the course
       const { data: teams, error: teamsError } = await supabase
-        .from('teams' as never)
-        .select('id, name')
-        .eq('course_id', courseId!)
-        .is('deleted_at', null)
-        .order('name');
+        .from("teams" as never)
+        .select("id, name")
+        .eq("course_id", courseId!)
+        .is("deleted_at", null)
+        .order("name");
       if (teamsError) throw teamsError;
       if (!teams || teams.length === 0) return [];
 
@@ -77,10 +81,12 @@ export const useTeamsContributionSummary = (
 
       // Fetch all active members with contribution data
       const { data: members, error: membersError } = await supabase
-        .from('team_members' as never)
-        .select('id, team_id, student_id, contribution_status, contribution_status_since, consecutive_low_days')
-        .in('team_id', teamIds)
-        .is('left_at', null);
+        .from("team_members" as never)
+        .select(
+          "id, team_id, student_id, contribution_status, contribution_status_since, consecutive_low_days"
+        )
+        .in("team_id", teamIds)
+        .is("left_at", null);
       if (membersError) throw membersError;
 
       // Group members by team
@@ -92,7 +98,9 @@ export const useTeamsContributionSummary = (
           team_id: teamId,
           student_id: row.student_id as string,
           contribution_status: row.contribution_status as ContributionStatus,
-          contribution_status_since: row.contribution_status_since as string | null,
+          contribution_status_since: row.contribution_status_since as
+            | string
+            | null,
           consecutive_low_days: row.consecutive_low_days as number,
         };
         const existing = membersByTeam.get(teamId) ?? [];
@@ -109,8 +117,12 @@ export const useTeamsContributionSummary = (
           team_id: t.id,
           team_name: t.name,
           members: teamMembers,
-          has_inactive_members: teamMembers.some((m) => m.contribution_status === 'inactive'),
-          has_warning_members: teamMembers.some((m) => m.contribution_status === 'warning'),
+          has_inactive_members: teamMembers.some(
+            (m) => m.contribution_status === "inactive"
+          ),
+          has_warning_members: teamMembers.some(
+            (m) => m.contribution_status === "warning"
+          ),
         };
       });
 

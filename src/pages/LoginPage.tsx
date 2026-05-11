@@ -320,6 +320,19 @@ const LoginPage = () => {
                   </Button>
                 </form>
 
+                {/* Create account link */}
+                <div className="text-center pt-4 border-t border-gray-100">
+                  <p className="text-sm text-gray-600">
+                    {t("login.noAccount")}{" "}
+                    <Link
+                      to="/signup"
+                      className="font-medium text-[#14b8a6] hover:text-[#0d9488] transition-colors"
+                    >
+                      {t("login.createAccount")}
+                    </Link>
+                  </p>
+                </div>
+
                 {/* Quick Demo Access — only rendered when VITE_DEMO_PASSWORD
                     is set (local / staging). Production builds leave the env
                     var empty so the panel disappears entirely. */}

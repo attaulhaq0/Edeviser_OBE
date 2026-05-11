@@ -2,12 +2,12 @@
 // useGradebook — TanStack Query hooks for grade categories & gradebook matrix
 // =============================================================================
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import { logAuditEvent } from '@/lib/auditLogger';
-import { useAuth } from '@/hooks/useAuth';
-import { toast } from 'sonner';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import { logAuditEvent } from "@/lib/auditLogger";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -36,7 +36,7 @@ export interface UpdateGradeCategoryInput {
 export interface GradebookAssessment {
   id: string;
   title: string;
-  type: 'assignment' | 'quiz';
+  type: "assignment" | "quiz";
   score: number | null;
   max_score: number;
 }
@@ -64,10 +64,10 @@ export const useGradeCategories = (courseId?: string) => {
     queryKey: queryKeys.gradeCategories.list({ courseId }),
     queryFn: async (): Promise<GradeCategory[]> => {
       const { data, error } = await supabase
-        .from('grade_categories')
-        .select('*')
-        .eq('course_id', courseId!)
-        .order('sort_order', { ascending: true });
+        .from("grade_categories")
+        .select("*")
+        .eq("course_id", courseId!)
+        .order("sort_order", { ascending: true });
 
       if (error) throw error;
       return (data ?? []) as GradeCategory[];
@@ -83,9 +83,11 @@ export const useCreateGradeCategory = () => {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async (input: CreateGradeCategoryInput): Promise<GradeCategory> => {
+    mutationFn: async (
+      input: CreateGradeCategoryInput
+    ): Promise<GradeCategory> => {
       const { data, error } = await supabase
-        .from('grade_categories')
+        .from("grade_categories")
         .insert({
           course_id: input.course_id,
           name: input.name,
@@ -100,22 +102,26 @@ export const useCreateGradeCategory = () => {
       const category = data as GradeCategory;
 
       await logAuditEvent({
-        action: 'create',
-        entity_type: 'grade_category',
+        action: "create",
+        entity_type: "grade_category",
         entity_id: category.id,
         changes: { ...input },
-        performed_by: user?.id ?? 'unknown',
+        performed_by: user?.id ?? "unknown",
       });
 
       return category;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.gradeCategories.lists() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.gradeCategories.lists(),
+      });
       queryClient.invalidateQueries({ queryKey: queryKeys.gradebook.lists() });
-      toast.success('Grade category created');
+      toast.success("Grade category created");
     },
     onError: (err) =>
-      toast.error(err instanceof Error ? err.message : 'Failed to create grade category'),
+      toast.error(
+        err instanceof Error ? err.message : "Failed to create grade category"
+      ),
   });
 };
 
@@ -126,33 +132,39 @@ export const useUpdateGradeCategory = (id: string) => {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async (input: UpdateGradeCategoryInput): Promise<GradeCategory> => {
+    mutationFn: async (
+      input: UpdateGradeCategoryInput
+    ): Promise<GradeCategory> => {
       const { data, error } = await supabase
-        .from('grade_categories')
+        .from("grade_categories")
         .update(input)
-        .eq('id', id)
+        .eq("id", id)
         .select()
         .single();
 
       if (error) throw error;
 
       await logAuditEvent({
-        action: 'update',
-        entity_type: 'grade_category',
+        action: "update",
+        entity_type: "grade_category",
         entity_id: id,
         changes: input as Record<string, unknown>,
-        performed_by: user?.id ?? 'unknown',
+        performed_by: user?.id ?? "unknown",
       });
 
       return data as GradeCategory;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.gradeCategories.lists() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.gradeCategories.lists(),
+      });
       queryClient.invalidateQueries({ queryKey: queryKeys.gradebook.lists() });
-      toast.success('Grade category updated');
+      toast.success("Grade category updated");
     },
     onError: (err) =>
-      toast.error(err instanceof Error ? err.message : 'Failed to update grade category'),
+      toast.error(
+        err instanceof Error ? err.message : "Failed to update grade category"
+      ),
   });
 };
 
@@ -165,27 +177,31 @@ export const useDeleteGradeCategory = () => {
   return useMutation({
     mutationFn: async (id: string): Promise<void> => {
       const { error } = await supabase
-        .from('grade_categories')
+        .from("grade_categories")
         .delete()
-        .eq('id', id);
+        .eq("id", id);
 
       if (error) throw error;
 
       await logAuditEvent({
-        action: 'delete',
-        entity_type: 'grade_category',
+        action: "delete",
+        entity_type: "grade_category",
         entity_id: id,
         changes: null,
-        performed_by: user?.id ?? 'unknown',
+        performed_by: user?.id ?? "unknown",
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.gradeCategories.lists() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.gradeCategories.lists(),
+      });
       queryClient.invalidateQueries({ queryKey: queryKeys.gradebook.lists() });
-      toast.success('Grade category deleted');
+      toast.success("Grade category deleted");
     },
     onError: (err) =>
-      toast.error(err instanceof Error ? err.message : 'Failed to delete grade category'),
+      toast.error(
+        err instanceof Error ? err.message : "Failed to delete grade category"
+      ),
   });
 };
 
@@ -205,26 +221,29 @@ export const useGradebookMatrix = (courseId?: string, sectionId?: string) => {
 
       // 1. Fetch grade categories
       const { data: rawCategories, error: catError } = await supabase
-        .from('grade_categories')
-        .select('*')
-        .eq('course_id', courseId)
-        .order('sort_order', { ascending: true });
+        .from("grade_categories")
+        .select("*")
+        .eq("course_id", courseId)
+        .order("sort_order", { ascending: true });
 
       if (catError) throw catError;
       const categories = (rawCategories ?? []) as GradeCategory[];
 
       // 2. Fetch enrolled students (optionally filtered by section)
       let enrollmentQuery = supabase
-        .from('student_courses')
-        .select('student_id, profiles!student_courses_student_id_fkey(id, full_name)')
-        .eq('course_id', courseId)
-        .eq('status', 'active');
+        .from("student_courses")
+        .select(
+          "student_id, profiles!student_courses_student_id_fkey(id, full_name)"
+        )
+        .eq("course_id", courseId)
+        .eq("status", "active");
 
       if (sectionId) {
-        enrollmentQuery = enrollmentQuery.eq('section_id', sectionId);
+        enrollmentQuery = enrollmentQuery.eq("section_id", sectionId);
       }
 
-      const { data: rawEnrollments, error: enrollError } = await enrollmentQuery;
+      const { data: rawEnrollments, error: enrollError } =
+        await enrollmentQuery;
       if (enrollError) throw enrollError;
 
       const enrollments = (rawEnrollments ?? []) as unknown as Array<{
@@ -238,10 +257,10 @@ export const useGradebookMatrix = (courseId?: string, sectionId?: string) => {
 
       // 3. Fetch assignments
       const { data: rawAssignments, error: assignError } = await supabase
-        .from('assignments')
-        .select('id, title, total_marks')
-        .eq('course_id', courseId)
-        .order('created_at', { ascending: true });
+        .from("assignments")
+        .select("id, title, total_marks")
+        .eq("course_id", courseId)
+        .order("created_at", { ascending: true });
 
       if (assignError) throw assignError;
 
@@ -253,11 +272,11 @@ export const useGradebookMatrix = (courseId?: string, sectionId?: string) => {
 
       // 4. Fetch quizzes
       const { data: rawQuizzes, error: quizError } = await supabase
-        .from('quizzes')
-        .select('id, title')
-        .eq('course_id', courseId)
-        .eq('is_published', true)
-        .order('created_at', { ascending: true });
+        .from("quizzes")
+        .select("id, title")
+        .eq("course_id", courseId)
+        .eq("is_published", true)
+        .order("created_at", { ascending: true });
 
       if (quizError) throw quizError;
 
@@ -268,13 +287,18 @@ export const useGradebookMatrix = (courseId?: string, sectionId?: string) => {
 
       // 5. Fetch grades via submissions
       const { data: rawGrades, error: gradeError } = await supabase
-        .from('grades')
-        .select('total_score, score_percent, submissions!inner(student_id, assignment_id)')
-        .in('submissions.student_id', studentIds);
+        .from("grades")
+        .select(
+          "total_score, score_percent, submissions!inner(student_id, assignment_id)"
+        )
+        .in("submissions.student_id", studentIds);
 
       if (gradeError) throw gradeError;
 
-      const gradeMap = new Map<string, { totalScore: number; scorePercent: number }>();
+      const gradeMap = new Map<
+        string,
+        { totalScore: number; scorePercent: number }
+      >();
       for (const g of rawGrades ?? []) {
         const grade = g as unknown as {
           total_score: number;
@@ -282,7 +306,10 @@ export const useGradebookMatrix = (courseId?: string, sectionId?: string) => {
           submissions: { student_id: string; assignment_id: string };
         };
         const key = `${grade.submissions.student_id}:${grade.submissions.assignment_id}`;
-        gradeMap.set(key, { totalScore: grade.total_score, scorePercent: grade.score_percent });
+        gradeMap.set(key, {
+          totalScore: grade.total_score,
+          scorePercent: grade.score_percent,
+        });
       }
 
       // 6. Fetch quiz attempts (best score per student per quiz)
@@ -291,11 +318,11 @@ export const useGradebookMatrix = (courseId?: string, sectionId?: string) => {
 
       if (quizIds.length > 0) {
         const { data: rawAttempts, error: attemptError } = await supabase
-          .from('quiz_attempts')
-          .select('quiz_id, student_id, score')
-          .in('quiz_id', quizIds)
-          .in('student_id', studentIds)
-          .not('score', 'is', null);
+          .from("quiz_attempts")
+          .select("quiz_id, student_id, score")
+          .in("quiz_id", quizIds)
+          .in("student_id", studentIds)
+          .not("score", "is", null);
 
         if (attemptError) throw attemptError;
 
@@ -327,18 +354,18 @@ export const useGradebookMatrix = (courseId?: string, sectionId?: string) => {
 
       if (categories.length === 0) {
         effectiveCategories.push({
-          id: 'all',
-          name: 'All Assessments',
+          id: "all",
+          name: "All Assessments",
           weight_percent: 100,
           assignmentIds: assignments.map((a) => a.id),
           quizIds: quizList.map((q) => q.id),
         });
       } else {
         const quizCatIds = categories
-          .filter((c) => c.name.toLowerCase().includes('quiz'))
+          .filter((c) => c.name.toLowerCase().includes("quiz"))
           .map((c) => c.id);
         const assignCatIds = categories
-          .filter((c) => !c.name.toLowerCase().includes('quiz'))
+          .filter((c) => !c.name.toLowerCase().includes("quiz"))
           .map((c) => c.id);
 
         for (const cat of categories) {
@@ -350,23 +377,31 @@ export const useGradebookMatrix = (courseId?: string, sectionId?: string) => {
             assignmentIds: isQuizCat
               ? []
               : assignCatIds.length === 1 || assignCatIds[0] === cat.id
-                ? assignments.map((a) => a.id)
-                : [],
+              ? assignments.map((a) => a.id)
+              : [],
             quizIds: isQuizCat ? quizList.map((q) => q.id) : [],
           });
         }
 
         // If no quiz category exists, put quizzes in the first category
         const hasQuizCat = quizCatIds.length > 0;
-        if (!hasQuizCat && effectiveCategories.length > 0 && quizList.length > 0) {
+        if (
+          !hasQuizCat &&
+          effectiveCategories.length > 0 &&
+          quizList.length > 0
+        ) {
           const first = effectiveCategories[0];
           if (first) first.quizIds = quizList.map((q) => q.id);
         }
 
         // If no assignment category got assignments, put them in the first non-quiz category
-        const hasAssignments = effectiveCategories.some((c) => c.assignmentIds.length > 0);
+        const hasAssignments = effectiveCategories.some(
+          (c) => c.assignmentIds.length > 0
+        );
         if (!hasAssignments && assignments.length > 0) {
-          const firstNonQuiz = effectiveCategories.find((c) => !quizCatIds.includes(c.id));
+          const firstNonQuiz = effectiveCategories.find(
+            (c) => !quizCatIds.includes(c.id)
+          );
           if (firstNonQuiz) {
             firstNonQuiz.assignmentIds = assignments.map((a) => a.id);
           } else {
@@ -382,52 +417,57 @@ export const useGradebookMatrix = (courseId?: string, sectionId?: string) => {
 
       const entries: GradebookEntry[] = enrollments.map((enrollment) => {
         const studentId = enrollment.student_id;
-        const studentName = enrollment.profiles?.full_name ?? 'Unknown';
+        const studentName = enrollment.profiles?.full_name ?? "Unknown";
 
-        const catEntries: GradebookCategoryEntry[] = effectiveCategories.map((cat) => {
-          const assessments: GradebookAssessment[] = [
-            ...cat.assignmentIds.map((aId) => {
-              const assignment = assignmentLookup.get(aId);
-              const gradeData = gradeMap.get(`${studentId}:${aId}`);
-              return {
-                id: aId,
-                title: assignment?.title ?? 'Unknown',
-                type: 'assignment' as const,
-                score: gradeData?.totalScore ?? null,
-                max_score: assignment?.total_marks ?? 100,
-              };
-            }),
-            ...cat.quizIds.map((qId) => {
-              const quiz = quizLookup.get(qId);
-              const bestScore = quizScoreMap.get(`${studentId}:${qId}`);
-              return {
-                id: qId,
-                title: quiz?.title ?? 'Unknown',
-                type: 'quiz' as const,
-                score: bestScore ?? null,
-                max_score: 100,
-              };
-            }),
-          ];
+        const catEntries: GradebookCategoryEntry[] = effectiveCategories.map(
+          (cat) => {
+            const assessments: GradebookAssessment[] = [
+              ...cat.assignmentIds.map((aId) => {
+                const assignment = assignmentLookup.get(aId);
+                const gradeData = gradeMap.get(`${studentId}:${aId}`);
+                return {
+                  id: aId,
+                  title: assignment?.title ?? "Unknown",
+                  type: "assignment" as const,
+                  score: gradeData?.totalScore ?? null,
+                  max_score: assignment?.total_marks ?? 100,
+                };
+              }),
+              ...cat.quizIds.map((qId) => {
+                const quiz = quizLookup.get(qId);
+                const bestScore = quizScoreMap.get(`${studentId}:${qId}`);
+                return {
+                  id: qId,
+                  title: quiz?.title ?? "Unknown",
+                  type: "quiz" as const,
+                  score: bestScore ?? null,
+                  max_score: 100,
+                };
+              }),
+            ];
 
-          const graded = assessments.filter((a) => a.score !== null);
-          const subtotalPercent =
-            graded.length > 0
-              ? graded.reduce((sum, a) => sum + (a.score! / a.max_score) * 100, 0) / graded.length
-              : 0;
+            const graded = assessments.filter((a) => a.score !== null);
+            const subtotalPercent =
+              graded.length > 0
+                ? graded.reduce(
+                    (sum, a) => sum + (a.score! / a.max_score) * 100,
+                    0
+                  ) / graded.length
+                : 0;
 
-          return {
-            category_id: cat.id,
-            category_name: cat.name,
-            weight_percent: cat.weight_percent,
-            assessments,
-            subtotal_percent: Math.round(subtotalPercent * 100) / 100,
-          };
-        });
+            return {
+              category_id: cat.id,
+              category_name: cat.name,
+              weight_percent: cat.weight_percent,
+              assessments,
+              subtotal_percent: Math.round(subtotalPercent * 100) / 100,
+            };
+          }
+        );
 
         const finalWeightedGrade = catEntries.reduce(
           (sum, cat) => sum + (cat.subtotal_percent * cat.weight_percent) / 100,
-          0,
+          0
         );
 
         return {
@@ -435,7 +475,7 @@ export const useGradebookMatrix = (courseId?: string, sectionId?: string) => {
           student_name: studentName,
           categories: catEntries,
           final_weighted_grade: Math.round(finalWeightedGrade * 100) / 100,
-          letter_grade: '', // Resolved by the view using institution grade scales
+          letter_grade: "", // Resolved by the view using institution grade scales
         };
       });
 

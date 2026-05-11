@@ -167,7 +167,6 @@ blockquote { border-left: 3px solid var(--teal); background: var(--teal-soft); m
 .df { margin-top: 28px; padding-top: 12px; border-top: 2px solid var(--teal); text-align: center; font-size: 10px; color: var(--mute); }
 </style>
 
-
 <!-- ══════════ COVER ══════════ -->
 <div class="cover">
 <img class="cover-logo" src="../public/logos/e deviser logo 2.jpg" alt="Edeviser" />
@@ -191,20 +190,20 @@ blockquote { border-left: 3px solid var(--teal); background: var(--teal-soft); m
 
 ## Table of Contents
 
-| # | Section | Focus |
-|---|---------|-------|
-| 1 | Market Landscape | Qatar HE market sizing and dynamics |
-| 2 | Institutional Journey Map | End-to-end lifecycle from lead to referral |
-| 3 | Acquisition Engine | How we enter institutions |
-| 4 | The Pilot Playbook | Getting live in 1–2 weeks |
-| 5 | Retention Architecture | Three dependency layers |
-| 6 | Expansion Mechanics | Course → Department → Campus → Network |
-| 7 | Product → Growth Mapping | Feature-to-outcome alignment |
-| 8 | Pricing & Revenue Model | Tier structure and revenue timeline |
-| 9 | Competitive Moat | Five defensibility layers |
-| 10 | Risk Matrix | Probability × impact analysis |
-| 11 | 12-Month Timeline | Quarter-by-quarter milestones |
-| 12 | The Growth Equation | Summary formula |
+| #   | Section                   | Focus                                      |
+| --- | ------------------------- | ------------------------------------------ |
+| 1   | Market Landscape          | Qatar HE market sizing and dynamics        |
+| 2   | Institutional Journey Map | End-to-end lifecycle from lead to referral |
+| 3   | Acquisition Engine        | How we enter institutions                  |
+| 4   | The Pilot Playbook        | Getting live in 1–2 weeks                  |
+| 5   | Retention Architecture    | Three dependency layers                    |
+| 6   | Expansion Mechanics       | Course → Department → Campus → Network     |
+| 7   | Product → Growth Mapping  | Feature-to-outcome alignment               |
+| 8   | Pricing & Revenue Model   | Tier structure and revenue timeline        |
+| 9   | Competitive Moat          | Five defensibility layers                  |
+| 10  | Risk Matrix               | Probability × impact analysis              |
+| 11  | 12-Month Timeline         | Quarter-by-quarter milestones              |
+| 12  | The Growth Equation       | Summary formula                            |
 
 <div class="hb">
   <h3>🦊 The Core Question This Document Answers</h3>
@@ -231,37 +230,36 @@ blockquote { border-left: 3px solid var(--teal); background: var(--teal-soft); m
 
 <div class="co"><strong>Cluster Market Advantage:</strong> All 12 universities and 30+ colleges are in a single metropolitan area (Doha). One success story reaches every decision-maker through shared accreditation bodies, faculty mobility, and Ministry mandates.</div>
 
-| Factor | Detail |
-|--------|--------|
-| OBE Mandate | CNA-Q requires all institutions to demonstrate outcome-based curriculum alignment |
+| Factor                 | Detail                                                                              |
+| ---------------------- | ----------------------------------------------------------------------------------- |
+| OBE Mandate            | CNA-Q requires all institutions to demonstrate outcome-based curriculum alignment   |
 | Accreditation Pressure | ABET, AACSB, QAA visits are cyclical — institutions prepare 12–18 months in advance |
-| Language | Arabic/English bilingual mandatory — Edeviser ships with full i18n from day 1 |
-| QNV 2030 | Qatar National Vision prioritizes education quality and knowledge economy |
-| No Incumbent | No dominant OBE + engagement platform exists in the region |
-| Budget | Qatar HE institutions have strong per-student technology budgets |
+| Language               | Arabic/English bilingual mandatory — Edeviser ships with full i18n from day 1       |
+| QNV 2030               | Qatar National Vision prioritizes education quality and knowledge economy           |
+| No Incumbent           | No dominant OBE + engagement platform exists in the region                          |
+| Budget                 | Qatar HE institutions have strong per-student technology budgets                    |
 
 <div class="divider"></div>
 
 ### Target Pipeline
 
-| Institution | Type | Students | Tier | Accreditation | Priority |
-|-------------|------|---------|------|---------------|----------|
-| Qatar University | Public | 15,000 | Enterprise | CNA-Q / ABET | High |
-| Univ. of Doha for Science & Tech | Public | 8,000 | Growth | CNA-Q | High |
-| Hamad Bin Khalifa University | Private | 3,000 | Growth | QAA | High |
-| Lusail University | Private | 5,000 | Growth | CNA-Q | Medium |
-| College of North Atlantic — Qatar | Technical | 6,000 | Growth | CNA-Q | Medium |
-| Weill Cornell Medicine — Qatar | Medical | 1,500 | Growth | ABET / LCME | Medium |
-| Carnegie Mellon — Qatar | Branch | 500 | Starter | ABET | Low |
-| Texas A&M — Qatar | Branch | 800 | Starter | ABET | Low |
-| Georgetown — Qatar | Branch | 300 | Starter | MSCHE | Low |
-| Northwestern — Qatar | Branch | 400 | Starter | HLC | Low |
-| Community College of Qatar | Community | 4,000 | Growth | CNA-Q | Medium |
-| Ahmed Bin Mohammed Military College | Military | 2,000 | Growth | Government | Low |
+| Institution                         | Type      | Students | Tier       | Accreditation | Priority |
+| ----------------------------------- | --------- | -------- | ---------- | ------------- | -------- |
+| Qatar University                    | Public    | 15,000   | Enterprise | CNA-Q / ABET  | High     |
+| Univ. of Doha for Science & Tech    | Public    | 8,000    | Growth     | CNA-Q         | High     |
+| Hamad Bin Khalifa University        | Private   | 3,000    | Growth     | QAA           | High     |
+| Lusail University                   | Private   | 5,000    | Growth     | CNA-Q         | Medium   |
+| College of North Atlantic — Qatar   | Technical | 6,000    | Growth     | CNA-Q         | Medium   |
+| Weill Cornell Medicine — Qatar      | Medical   | 1,500    | Growth     | ABET / LCME   | Medium   |
+| Carnegie Mellon — Qatar             | Branch    | 500      | Starter    | ABET          | Low      |
+| Texas A&M — Qatar                   | Branch    | 800      | Starter    | ABET          | Low      |
+| Georgetown — Qatar                  | Branch    | 300      | Starter    | MSCHE         | Low      |
+| Northwestern — Qatar                | Branch    | 400      | Starter    | HLC           | Low      |
+| Community College of Qatar          | Community | 4,000    | Growth     | CNA-Q         | Medium   |
+| Ahmed Bin Mohammed Military College | Military  | 2,000    | Growth     | Government    | Low      |
 
 <div class="co co-b"><strong>Total Addressable Pipeline:</strong> $620K–$1.8M ARR across 12 institutions. First 3 high-priority institutions alone represent $225K ARR.</div>
 </div>
-
 
 <!-- ══════════ S2: JOURNEY MAP ══════════ -->
 <div class="ns">
@@ -282,15 +280,15 @@ blockquote { border-left: 3px solid var(--teal); background: var(--teal-soft); m
   <span class="js">Referral</span>
 </div>
 
-| Phase | Duration | Key Milestone | Risk |
-|-------|----------|---------------|------|
-| First Contact → Discovery | 1–2 weeks | Decision-maker identified, pain confirmed | Low |
-| Discovery → Pilot Agreement | 2–4 weeks | 1 course, 1 teacher, 30–100 students | Medium |
-| Pilot Setup | 3–5 days | Course structure uploaded, students onboarded | Low |
-| Pilot Running | 2–4 weeks | Daily usage data, engagement metrics | Medium |
-| Pilot Review → Dept. Decision | 2–4 weeks | Results presentation to dean | Medium |
-| Department Rollout | 1 semester | 5–15 courses, multiple teachers | Low |
-| Campus Rollout | 1–2 semesters | Admin dashboard, accreditation reports | Low |
+| Phase                         | Duration      | Key Milestone                                 | Risk   |
+| ----------------------------- | ------------- | --------------------------------------------- | ------ |
+| First Contact → Discovery     | 1–2 weeks     | Decision-maker identified, pain confirmed     | Low    |
+| Discovery → Pilot Agreement   | 2–4 weeks     | 1 course, 1 teacher, 30–100 students          | Medium |
+| Pilot Setup                   | 3–5 days      | Course structure uploaded, students onboarded | Low    |
+| Pilot Running                 | 2–4 weeks     | Daily usage data, engagement metrics          | Medium |
+| Pilot Review → Dept. Decision | 2–4 weeks     | Results presentation to dean                  | Medium |
+| Department Rollout            | 1 semester    | 5–15 courses, multiple teachers               | Low    |
+| Campus Rollout                | 1–2 semesters | Admin dashboard, accreditation reports        | Low    |
 
 <div class="divider"></div>
 
@@ -319,12 +317,12 @@ blockquote { border-left: 3px solid var(--teal); background: var(--teal-soft); m
 
 ### 3.1 Entry Points
 
-| Entry Point | Their Pain | Our Wedge |
-|-------------|-----------|-----------|
+| Entry Point                       | Their Pain                                                    | Our Wedge                                                               |
+| --------------------------------- | ------------------------------------------------------------- | ----------------------------------------------------------------------- |
 | **Program Coordinator** (Primary) | Accreditation in 6–12 months, CLO-PLO mapping in spreadsheets | "Upload your course structure. We auto-generate the curriculum matrix." |
-| **QA Director / Admin** | Manual report compilation, scattered data | "One-click accreditation report export with evidence citations." |
-| **Department Head** | Low engagement, no visibility into underperforming courses | "See which CLOs students are failing — in real time." |
-| **Individual Teacher** | Grading is tedious, OBE reporting feels like extra work | "Grade once with the rubric — evidence + XP happen automatically." |
+| **QA Director / Admin**           | Manual report compilation, scattered data                     | "One-click accreditation report export with evidence citations."        |
+| **Department Head**               | Low engagement, no visibility into underperforming courses    | "See which CLOs students are failing — in real time."                   |
+| **Individual Teacher**            | Grading is tedious, OBE reporting feels like extra work       | "Grade once with the rubric — evidence + XP happen automatically."      |
 
 <div class="co"><strong>Primary target: Program Coordinator or QA Director.</strong> They own the accreditation pain and have budget authority or direct access to the dean.</div>
 
@@ -338,6 +336,7 @@ blockquote { border-left: 3px solid var(--teal); background: var(--teal-soft); m
 </div>
 
 **The hook sequence:**
+
 1. **Pain:** "Your teachers grade, then separately fill out OBE compliance forms. That's double work."
 2. **Value:** "Grade using a rubric → evidence auto-generated → attainment updates instantly → accreditation report is one click."
 3. **Bonus:** "Students see progress in real time — XP, streaks, skill bars — they engage more, generating richer data."
@@ -348,18 +347,17 @@ blockquote { border-left: 3px solid var(--teal); background: var(--teal-soft); m
 
 ### 3.3 Pilot Success Criteria
 
-| Metric | Target | Product Feature |
-|--------|--------|-----------------|
-| Student daily login rate | >50% enrolled | Activity logger + admin dashboard |
-| On-time submission rate | >70% | Assignment submission tracking |
-| Average streak length | >5 days | Streak display, gamification engine |
-| Teacher grading turnaround | <48 hours | Grading interface analytics |
-| Evidence coverage | 100% graded | Automatic evidence generation |
-| CLO attainment visibility | Real-time | Attainment rollup, CLO progress bars |
+| Metric                     | Target        | Product Feature                      |
+| -------------------------- | ------------- | ------------------------------------ |
+| Student daily login rate   | >50% enrolled | Activity logger + admin dashboard    |
+| On-time submission rate    | >70%          | Assignment submission tracking       |
+| Average streak length      | >5 days       | Streak display, gamification engine  |
+| Teacher grading turnaround | <48 hours     | Grading interface analytics          |
+| Evidence coverage          | 100% graded   | Automatic evidence generation        |
+| CLO attainment visibility  | Real-time     | Attainment rollup, CLO progress bars |
 
 <div class="co"><strong>The killer metric:</strong> "In 2 weeks, you have a live curriculum matrix with real attainment data — something that used to take a semester of manual data collection."</div>
 </div>
-
 
 <!-- ══════════ S4: PILOT ══════════ -->
 <div class="ns">
@@ -369,16 +367,16 @@ blockquote { border-left: 3px solid var(--teal); background: var(--teal-soft); m
 
 <p class="ns-sub">Getting a pilot live in 3–5 days. Scope: 1 course, 1 teacher, 30–100 students, 2–4 weeks.</p>
 
-| Day | Action | Product Feature |
-|-----|--------|-----------------|
-| Day 1 | Admin account + institution settings | Admin onboarding wizard |
-| Day 1 | Teacher account, assigned to course | User provisioning |
-| Day 2 | Teacher creates CLOs with Bloom's levels | CLO form + Bloom's verb guide |
-| Day 2 | CLOs mapped to PLOs | Outcome mappings + weight validation |
-| Day 3 | 2–3 assignments with rubrics linked to CLOs | Assignment form, rubric builder |
-| Day 3 | Students bulk-imported via CSV | Bulk CSV import |
-| Day 4 | Students complete onboarding (<3 min) | Onboarding wizard |
-| Day 5 | First assignment goes live | Submission flow, XP awards |
+| Day   | Action                                      | Product Feature                      |
+| ----- | ------------------------------------------- | ------------------------------------ |
+| Day 1 | Admin account + institution settings        | Admin onboarding wizard              |
+| Day 1 | Teacher account, assigned to course         | User provisioning                    |
+| Day 2 | Teacher creates CLOs with Bloom's levels    | CLO form + Bloom's verb guide        |
+| Day 2 | CLOs mapped to PLOs                         | Outcome mappings + weight validation |
+| Day 3 | 2–3 assignments with rubrics linked to CLOs | Assignment form, rubric builder      |
+| Day 3 | Students bulk-imported via CSV              | Bulk CSV import                      |
+| Day 4 | Students complete onboarding (<3 min)       | Onboarding wizard                    |
+| Day 5 | First assignment goes live                  | Submission flow, XP awards           |
 
 <div class="cr">
   <div class="cd"><div class="cd-h">Zero Infrastructure</div><div class="cd-t">SaaS-Ready</div><div class="cd-b">No servers to provision. Supabase-hosted, Vercel-deployed. Institution gets a URL and credentials.</div></div>
@@ -386,12 +384,13 @@ blockquote { border-left: 3px solid var(--teal); background: var(--teal-soft); m
   <div class="cd"><div class="cd-h">Bilingual</div><div class="cd-t">Arabic + English</div><div class="cd-b">Full i18n from day 1. RTL layout support. No localization barrier for Qatar.</div></div>
 </div>
 
-| Week | Focus | Success Signal |
-|------|-------|----------------|
-| Week 1 | Activation — onboard, first submissions | >60% login rate, first evidence records |
-| Week 2 | Engagement — streaks forming, XP accumulating | >40% with 5+ day streaks |
-| Week 3 | Evidence — curriculum matrix populating | 100% evidence coverage on graded work |
-| Week 4 | Proof — results compiled | Accreditation report exportable |
+| Week   | Focus                                         | Success Signal                          |
+| ------ | --------------------------------------------- | --------------------------------------- |
+| Week 1 | Activation — onboard, first submissions       | >60% login rate, first evidence records |
+| Week 2 | Engagement — streaks forming, XP accumulating | >40% with 5+ day streaks                |
+| Week 3 | Evidence — curriculum matrix populating       | 100% evidence coverage on graded work   |
+| Week 4 | Proof — results compiled                      | Accreditation report exportable         |
+
 </div>
 
 <!-- ══════════ S5: RETENTION ══════════ -->
@@ -412,37 +411,37 @@ blockquote { border-left: 3px solid var(--teal); background: var(--teal-soft); m
 
 ### Habit Formation Features
 
-| Feature | Mechanism | Lock-In Type |
-|---------|----------|-------------|
-| Streak system | Loss aversion — losing a 30-day streak hurts | Behavioral habit |
-| Badge collection | Sunk cost of earned achievements | Achievement investment |
-| Level progression | Level 12 student won't restart at Level 1 | Progress investment |
-| Leaderboard position | Social status within peer group | Social identity |
-| Daily habit tracker | Login/Submit/Journal/Read becomes routine | Behavioral routine |
-| Team challenges | Social accountability | Social obligation |
+| Feature              | Mechanism                                    | Lock-In Type           |
+| -------------------- | -------------------------------------------- | ---------------------- |
+| Streak system        | Loss aversion — losing a 30-day streak hurts | Behavioral habit       |
+| Badge collection     | Sunk cost of earned achievements             | Achievement investment |
+| Level progression    | Level 12 student won't restart at Level 1    | Progress investment    |
+| Leaderboard position | Social status within peer group              | Social identity        |
+| Daily habit tracker  | Login/Submit/Journal/Read becomes routine    | Behavioral routine     |
+| Team challenges      | Social accountability                        | Social obligation      |
 
 ### Workflow Integration
 
-| Feature | Time Saved | Replaces |
-|---------|-----------|----------|
-| Rubric grading → auto evidence | 30+ min/assignment/section | Manual OBE data entry |
-| AI feedback drafts | 5–10 min/student/assignment | Writing feedback from scratch |
-| At-risk early warning | 7 days earlier detection | Manual student monitoring |
-| Adaptive quiz generation | Hours of question creation | Manual question writing |
+| Feature                        | Time Saved                  | Replaces                      |
+| ------------------------------ | --------------------------- | ----------------------------- |
+| Rubric grading → auto evidence | 30+ min/assignment/section  | Manual OBE data entry         |
+| AI feedback drafts             | 5–10 min/student/assignment | Writing feedback from scratch |
+| At-risk early warning          | 7 days earlier detection    | Manual student monitoring     |
+| Adaptive quiz generation       | Hours of question creation  | Manual question writing       |
 
 <div class="co"><strong>The Flywheel:</strong> Teacher grades with rubric → Evidence auto-generated → Student sees CLO progress + earns XP → Student engages more → More evidence → Richer attainment data → Better accreditation reports → Institution renews → More courses → Cycle accelerates.</div>
 
 ### Retention Signals
 
-| Signal | Healthy | At Risk | Intervention |
-|--------|---------|---------|-------------|
-| Teacher weekly active | >80% | <50% | 1:1 training session |
-| Student DAU/MAU | >60% | <30% | Review gamification tuning |
-| Evidence generation | Matches grading 1:1 | Gaps | Check rubric usage |
-| 7-day streak rate | >40% students | <20% | Review notifications |
-| Assignment creation | Steady/increasing | Declining | Teacher reverting to old LMS |
-</div>
+| Signal                | Healthy             | At Risk   | Intervention                 |
+| --------------------- | ------------------- | --------- | ---------------------------- |
+| Teacher weekly active | >80%                | <50%      | 1:1 training session         |
+| Student DAU/MAU       | >60%                | <30%      | Review gamification tuning   |
+| Evidence generation   | Matches grading 1:1 | Gaps      | Check rubric usage           |
+| 7-day streak rate     | >40% students       | <20%      | Review notifications         |
+| Assignment creation   | Steady/increasing   | Declining | Teacher reverting to old LMS |
 
+</div>
 
 <!-- ══════════ S6: EXPANSION ══════════ -->
 <div class="ns">
@@ -463,12 +462,12 @@ blockquote { border-left: 3px solid var(--teal); background: var(--teal-soft); m
 
 **Trigger:** Pilot results show measurable improvement in engagement and evidence coverage.
 
-| Feature | Why It Pulls Expansion | Value at Scale |
-|---------|----------------------|----------------|
-| Curriculum matrix (PLO × Course) | Only valuable with multiple courses | Shows gaps across department |
-| Cross-course CLO heatmap | Meaningless with 1 course | Identifies curriculum holes |
-| Coordinator dashboard | Boring with 1 course, actionable with 10 | Aggregated intelligence |
-| Gap analysis view | Requires multi-course data | Accreditation preparation |
+| Feature                          | Why It Pulls Expansion                   | Value at Scale               |
+| -------------------------------- | ---------------------------------------- | ---------------------------- |
+| Curriculum matrix (PLO × Course) | Only valuable with multiple courses      | Shows gaps across department |
+| Cross-course CLO heatmap         | Meaningless with 1 course                | Identifies curriculum holes  |
+| Coordinator dashboard            | Boring with 1 course, actionable with 10 | Aggregated intelligence      |
+| Gap analysis view                | Requires multi-course data               | Accreditation preparation    |
 
 <div class="co"><strong>🦉 Key Insight:</strong> The coordinator dashboard is intentionally designed to be most valuable at department scale. This creates natural pull for expansion.</div>
 
@@ -480,12 +479,12 @@ New capabilities: Admin dashboard with institution-wide KPIs, accreditation repo
 
 ### Stage 3: Campus → Multi-Institution (Year 2+)
 
-| Channel | Mechanism | Product Tie-In |
-|---------|-----------|---------------|
-| Case study | Published results from pilot | Admin dashboard exports |
-| Accreditation referral | CNA-Q evaluators see Edeviser reports | Report templates |
-| University network | Qatar's 12 universities are tightly connected | Same product, new tenant |
-| Faculty mobility | Teachers move between institutions | Same UX, same workflow |
+| Channel                | Mechanism                                     | Product Tie-In           |
+| ---------------------- | --------------------------------------------- | ------------------------ |
+| Case study             | Published results from pilot                  | Admin dashboard exports  |
+| Accreditation referral | CNA-Q evaluators see Edeviser reports         | Report templates         |
+| University network     | Qatar's 12 universities are tightly connected | Same product, new tenant |
+| Faculty mobility       | Teachers move between institutions            | Same UX, same workflow   |
 
 <div class="hb">
   <h3>🦊 Win 1 → Present at CNA-Q Workshop → 3 Approach Us</h3>
@@ -503,42 +502,42 @@ New capabilities: Admin dashboard with institution-wide KPIs, accreditation repo
 
 ### What Drives Adoption (First 2 Weeks)
 
-| Product Feature | Why It Drives Adoption | Time to Value |
-|-----------------|----------------------|---------------|
-| Bulk CSV import | 100 students in 2 minutes | Minutes |
-| Rubric builder + templates | First assignment in 5 minutes | Minutes |
-| Auto evidence generation | First grade → first evidence record | Seconds |
-| Curriculum matrix | Live CLO coverage — replaces spreadsheets | After 2–3 assignments |
-| Student onboarding wizard | 7 questions, <3 min | Minutes |
-| Arabic/English bilingual | No localization barrier | Immediate |
+| Product Feature            | Why It Drives Adoption                    | Time to Value         |
+| -------------------------- | ----------------------------------------- | --------------------- |
+| Bulk CSV import            | 100 students in 2 minutes                 | Minutes               |
+| Rubric builder + templates | First assignment in 5 minutes             | Minutes               |
+| Auto evidence generation   | First grade → first evidence record       | Seconds               |
+| Curriculum matrix          | Live CLO coverage — replaces spreadsheets | After 2–3 assignments |
+| Student onboarding wizard  | 7 questions, <3 min                       | Minutes               |
+| Arabic/English bilingual   | No localization barrier                   | Immediate             |
 
 <div class="divider"></div>
 
 ### What Drives Retention (Weeks 2–8)
 
-| Product Feature | Dependency Created | Who It Locks In |
-|-----------------|-------------------|-----------------|
-| Streak system + freeze | Loss aversion | Student |
-| XP + levels + badges | Sunk cost | Student |
-| AI feedback drafts | Time savings | Teacher |
-| Immutable evidence trail | Data gravity | Institution |
-| Adaptive quizzes | Flow state | Student |
-| Team challenges | Social obligation | Student |
+| Product Feature          | Dependency Created | Who It Locks In |
+| ------------------------ | ------------------ | --------------- |
+| Streak system + freeze   | Loss aversion      | Student         |
+| XP + levels + badges     | Sunk cost          | Student         |
+| AI feedback drafts       | Time savings       | Teacher         |
+| Immutable evidence trail | Data gravity       | Institution     |
+| Adaptive quizzes         | Flow state         | Student         |
+| Team challenges          | Social obligation  | Student         |
 
 <div class="divider"></div>
 
 ### What Drives Expansion (Month 2+)
 
-| Product Feature | Who It Convinces | Why It Pulls Expansion |
-|-----------------|-----------------|----------------------|
-| Curriculum matrix (multi-course) | Coordinator | Only valuable with 5+ courses |
-| Admin dashboard | Admin / Dean | Only valuable with multiple departments |
-| Accreditation report export | QA Director | Replaces weeks of manual work |
-| Gap analysis view | Coordinator | Identifies curriculum holes |
-| Graduate attribute tracking | QA Director | National qualification framework |
-| Course file generation | Teacher / Coordinator | Massive time saver at scale |
-</div>
+| Product Feature                  | Who It Convinces      | Why It Pulls Expansion                  |
+| -------------------------------- | --------------------- | --------------------------------------- |
+| Curriculum matrix (multi-course) | Coordinator           | Only valuable with 5+ courses           |
+| Admin dashboard                  | Admin / Dean          | Only valuable with multiple departments |
+| Accreditation report export      | QA Director           | Replaces weeks of manual work           |
+| Gap analysis view                | Coordinator           | Identifies curriculum holes             |
+| Graduate attribute tracking      | QA Director           | National qualification framework        |
+| Course file generation           | Teacher / Coordinator | Massive time saver at scale             |
 
+</div>
 
 <!-- ══════════ S8: PRICING ══════════ -->
 <div class="ns">
@@ -556,12 +555,12 @@ New capabilities: Admin dashboard with institution-wide KPIs, accreditation repo
 
 <div class="co"><strong>Volume incentive:</strong> A department paying $50K for 500 students ($100/student) sees the rate drop to $50/student at campus scale.</div>
 
-| Period | Institutions | ARR (USD) | Milestone |
-|--------|-------------|-----------|-----------|
-| Q4 2026 | 1 (pilot) | ~$15K | First paid contract |
-| Q2 2027 | 3 | ~$120K | Department-level at 2 institutions |
-| Q4 2027 | 5 | ~$250K | Campus rollout at lead institution |
-| Q2 2028 | 8 | ~$500K | Multi-institution, GCC expansion |
+| Period  | Institutions | ARR (USD) | Milestone                          |
+| ------- | ------------ | --------- | ---------------------------------- |
+| Q4 2026 | 1 (pilot)    | ~$15K     | First paid contract                |
+| Q2 2027 | 3            | ~$120K    | Department-level at 2 institutions |
+| Q4 2027 | 5            | ~$250K    | Campus rollout at lead institution |
+| Q2 2028 | 8            | ~$500K    | Multi-institution, GCC expansion   |
 
 <div class="sr">
   <div class="st"><div class="st-v">$15K</div><div class="st-l">First Contract</div></div>
@@ -579,13 +578,13 @@ New capabilities: Admin dashboard with institution-wide KPIs, accreditation repo
 
 <p class="ns-sub">Five layers of defensibility that compound over time.</p>
 
-| Moat Layer | What It Is | Why Competitors Can't Replicate |
-|------------|-----------|-------------------------------|
-| **Dual-engine fusion** | Compliance + engagement in one loop | Requires deep domain knowledge of both |
-| **Immutable evidence** | Append-only, auditable records | 2 semesters = switching loses audit trail |
-| **Behavioral lock-in** | Streaks, XP, badges, levels | Students/teachers resist losing progress |
-| **Accreditation alignment** | Templates for CNA-Q, ABET, HEC | Body-specific knowledge, first-mover in Qatar |
-| **Cluster dynamics** | 12 universities in 1 city | Win 2–3 and word-of-mouth does the rest |
+| Moat Layer                  | What It Is                          | Why Competitors Can't Replicate               |
+| --------------------------- | ----------------------------------- | --------------------------------------------- |
+| **Dual-engine fusion**      | Compliance + engagement in one loop | Requires deep domain knowledge of both        |
+| **Immutable evidence**      | Append-only, auditable records      | 2 semesters = switching loses audit trail     |
+| **Behavioral lock-in**      | Streaks, XP, badges, levels         | Students/teachers resist losing progress      |
+| **Accreditation alignment** | Templates for CNA-Q, ABET, HEC      | Body-specific knowledge, first-mover in Qatar |
+| **Cluster dynamics**        | 12 universities in 1 city           | Win 2–3 and word-of-mouth does the rest       |
 
 <div class="hb">
   <h3>🦉 The Moat Deepens With Time</h3>
@@ -596,12 +595,13 @@ New capabilities: Admin dashboard with institution-wide KPIs, accreditation repo
 
 ### Competitive Landscape
 
-| Competitor Type | Examples | What They Don't Do |
-|----------------|---------|-------------------|
-| Traditional LMS | Moodle, Blackboard, Canvas | No OBE mapping, no gamification, no evidence automation |
-| OBE-Only Tools | Xitracs, AEFIS, Watermark | No engagement, no gamification, no real-time feedback |
-| Gamification | Classcraft, Kahoot | No OBE compliance, no evidence, no accreditation reports |
-| **Edeviser** | — | **The only platform where grading = evidence = XP = accreditation** |
+| Competitor Type | Examples                   | What They Don't Do                                                  |
+| --------------- | -------------------------- | ------------------------------------------------------------------- |
+| Traditional LMS | Moodle, Blackboard, Canvas | No OBE mapping, no gamification, no evidence automation             |
+| OBE-Only Tools  | Xitracs, AEFIS, Watermark  | No engagement, no gamification, no real-time feedback               |
+| Gamification    | Classcraft, Kahoot         | No OBE compliance, no evidence, no accreditation reports            |
+| **Edeviser**    | —                          | **The only platform where grading = evidence = XP = accreditation** |
+
 </div>
 
 <!-- ══════════ S10: RISK ══════════ -->
@@ -612,16 +612,16 @@ New capabilities: Admin dashboard with institution-wide KPIs, accreditation repo
 
 <p class="ns-sub">Honest assessment of what could go wrong and how we address each scenario.</p>
 
-| Risk | Prob. | Impact | Mitigation |
-|------|-------|--------|------------|
-| Procurement cycles slow (3–6 mo) | High | High | Pilot-first bypasses procurement — pilot is free |
-| Teachers resist new tools | High | High | Near-zero friction: grade with rubric = done |
-| Students don't engage | Medium | Medium | Core value is compliance. Gamification is bonus |
-| Competitor enters Qatar | Low | High | Production-ready now. 12+ months to replicate |
-| Accreditation changes | Medium | Medium | Configurable templates. CQI module adapts |
-| Pilot doesn't convert | Medium | High | Target institutions with imminent accreditation |
-| Data privacy concerns | Medium | High | RLS on every table, FERPA-aligned |
-| Arabic localization | Medium | Medium | Native review, RTL-first design |
+| Risk                             | Prob.  | Impact | Mitigation                                       |
+| -------------------------------- | ------ | ------ | ------------------------------------------------ |
+| Procurement cycles slow (3–6 mo) | High   | High   | Pilot-first bypasses procurement — pilot is free |
+| Teachers resist new tools        | High   | High   | Near-zero friction: grade with rubric = done     |
+| Students don't engage            | Medium | Medium | Core value is compliance. Gamification is bonus  |
+| Competitor enters Qatar          | Low    | High   | Production-ready now. 12+ months to replicate    |
+| Accreditation changes            | Medium | Medium | Configurable templates. CQI module adapts        |
+| Pilot doesn't convert            | Medium | High   | Target institutions with imminent accreditation  |
+| Data privacy concerns            | Medium | High   | RLS on every table, FERPA-aligned                |
+| Arabic localization              | Medium | Medium | Native review, RTL-first design                  |
 
 <div class="sr">
   <div class="st" style="border-top: 3px solid #ef4444;"><div class="st-v" style="color:#ef4444;">2</div><div class="st-l">High × High</div></div>
@@ -631,7 +631,6 @@ New capabilities: Admin dashboard with institution-wide KPIs, accreditation repo
 
 <div class="co co-o"><strong>🦊 The two high-risk items (procurement + teacher resistance) are both addressed by the same strategy:</strong> free pilot with near-zero teacher friction.</div>
 </div>
-
 
 <!-- ══════════ S11: TIMELINE ══════════ -->
 <div class="ns">
@@ -664,14 +663,14 @@ New capabilities: Admin dashboard with institution-wide KPIs, accreditation repo
 
 ### Milestone Summary
 
-| Month | Milestone | Revenue |
-|-------|-----------|---------|
-| 1–3 | Qatar setup complete, legal entity operational | — |
-| 4–6 | Pilot running at 1 university | — |
-| 6–7 | Bridge reimbursement, runway extends to 12+ months | — |
-| 7–8 | First paid contract signed | ~$15K ARR |
-| 9–10 | Second institution pilot, department expansion | ~$50K ARR |
-| 12 | Commercial operations, 2–3 institutions | ~$120K ARR |
+| Month | Milestone                                          | Revenue    |
+| ----- | -------------------------------------------------- | ---------- |
+| 1–3   | Qatar setup complete, legal entity operational     | —          |
+| 4–6   | Pilot running at 1 university                      | —          |
+| 6–7   | Bridge reimbursement, runway extends to 12+ months | —          |
+| 7–8   | First paid contract signed                         | ~$15K ARR  |
+| 9–10  | Second institution pilot, department expansion     | ~$50K ARR  |
+| 12    | Commercial operations, 2–3 institutions            | ~$120K ARR |
 
 <div class="sr">
   <div class="st"><div class="st-v">3–5</div><div class="st-l">Days to Pilot</div></div>
@@ -698,12 +697,14 @@ New capabilities: Admin dashboard with institution-wide KPIs, accreditation repo
   <div>
 
 ### What We Sell (Acquisition)
+
 - Accreditation compliance automation
 - "Grade once, report automatically"
 - Zero-infrastructure SaaS deployment
 - Arabic/English bilingual from day 1
 
 ### What Keeps Them (Retention)
+
 - Immutable evidence trail (data gravity)
 - Student streaks, XP, badges (lock-in)
 - Teacher workflow efficiency (time savings)
@@ -713,12 +714,14 @@ New capabilities: Admin dashboard with institution-wide KPIs, accreditation repo
   <div>
 
 ### What Grows Them (Expansion)
+
 - Coordinator dashboard (valuable at scale)
 - Cross-program analytics
 - Accreditation report export
 - Graduate attribute tracking
 
 ### What Spreads Us (Referral)
+
 - Case studies from pilot institutions
 - CNA-Q workshop presentations
 - Faculty mobility between institutions

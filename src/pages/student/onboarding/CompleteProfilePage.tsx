@@ -1,6 +1,6 @@
-import { useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import {
   Brain,
   Shield,
@@ -12,48 +12,59 @@ import {
   ChevronRight,
   CheckCircle,
   ArrowLeft,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { useAuth } from '@/hooks/useAuth';
-import { useProfileCompleteness } from '@/hooks/useProfileCompleteness';
-import { useStudentProfile } from '@/hooks/useStudentProfile';
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/hooks/useAuth";
+import { useProfileCompleteness } from "@/hooks/useProfileCompleteness";
+import { useStudentProfile } from "@/hooks/useStudentProfile";
 import {
   getRemainingDimensions,
   getEstimatedTimeMinutes,
   getProfileDimensions,
-} from '@/lib/profileCompleteness';
-import type { ProfileCompletenessInput } from '@/lib/profileCompleteness';
-import type { BigFiveTraits, VARKProfile, SelfEfficacyProfile, StudyStrategyProfile } from '@/lib/scoreCalculator';
+} from "@/lib/profileCompleteness";
+import type { ProfileCompletenessInput } from "@/lib/profileCompleteness";
+import type {
+  BigFiveTraits,
+  VARKProfile,
+  SelfEfficacyProfile,
+  StudyStrategyProfile,
+} from "@/lib/scoreCalculator";
 
 // ── Dimension metadata ───────────────────────────────────────────────
 
-const DIMENSION_META: Record<string, { label: string; icon: React.ReactNode; description: string }> = {
+const DIMENSION_META: Record<
+  string,
+  { label: string; icon: React.ReactNode; description: string }
+> = {
   personality: {
-    label: 'Personality Traits',
+    label: "Personality Traits",
     icon: <Brain className="h-5 w-5 text-purple-500" />,
-    description: 'Big Five personality assessment — understand how you learn and work',
+    description:
+      "Big Five personality assessment — understand how you learn and work",
   },
   self_efficacy: {
-    label: 'Self-Efficacy',
+    label: "Self-Efficacy",
     icon: <Shield className="h-5 w-5 text-blue-500" />,
-    description: 'Academic confidence across different domains',
+    description: "Academic confidence across different domains",
   },
   study_strategy: {
-    label: 'Study Strategies',
+    label: "Study Strategies",
     icon: <BookOpen className="h-5 w-5 text-green-500" />,
-    description: 'Time management, elaboration, self-testing, and help-seeking habits',
+    description:
+      "Time management, elaboration, self-testing, and help-seeking habits",
   },
   learning_style: {
-    label: 'Learning Style (VARK)',
+    label: "Learning Style (VARK)",
     icon: <Layers className="h-5 w-5 text-amber-500" />,
-    description: 'Self-awareness exercise — discover your learning preferences',
+    description: "Self-awareness exercise — discover your learning preferences",
   },
   baseline: {
-    label: 'Baseline Tests',
+    label: "Baseline Tests",
     icon: <ClipboardCheck className="h-5 w-5 text-red-500" />,
-    description: 'Diagnostic tests to measure your starting knowledge per course',
+    description:
+      "Diagnostic tests to measure your starting knowledge per course",
   },
 };
 
@@ -65,7 +76,7 @@ const deriveCompletenessInput = (
     learning_style: VARKProfile | null;
     self_efficacy: SelfEfficacyProfile | null;
     study_strategies: StudyStrategyProfile | null;
-  } | null,
+  } | null
 ): ProfileCompletenessInput => {
   if (!profile) {
     return {
@@ -109,29 +120,29 @@ const deriveCompletenessInput = (
 export const CompleteProfilePage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const studentId = user?.id ?? '';
+  const studentId = user?.id ?? "";
 
   const { data: completenessData } = useProfileCompleteness(studentId);
   const { data: profile } = useStudentProfile(studentId);
 
   const completenessInput = useMemo(
     () => deriveCompletenessInput(profile ?? null),
-    [profile],
+    [profile]
   );
 
   const allDimensions = useMemo(
     () => getProfileDimensions(completenessInput),
-    [completenessInput],
+    [completenessInput]
   );
 
   const remaining = useMemo(
     () => getRemainingDimensions(completenessInput),
-    [completenessInput],
+    [completenessInput]
   );
 
   const estimatedMinutes = useMemo(
     () => getEstimatedTimeMinutes(remaining),
-    [remaining],
+    [remaining]
   );
 
   const completeness = completenessData?.profile_completeness ?? 0;
@@ -141,7 +152,7 @@ export const CompleteProfilePage = () => {
       {/* Back button */}
       <Button
         variant="ghost"
-        onClick={() => navigate('/student')}
+        onClick={() => navigate("/student")}
         className="mb-4 gap-1 text-gray-500"
       >
         <ArrowLeft className="h-4 w-4" />
@@ -158,22 +169,25 @@ export const CompleteProfilePage = () => {
       {/* Progress bar */}
       <Card className="mt-6 border-0 bg-white p-4 shadow-md rounded-xl">
         <div className="flex items-center justify-between">
-          <span className="text-sm font-semibold text-gray-900">Profile Completeness</span>
-          <span className="text-sm font-bold text-blue-600">{completeness}%</span>
+          <span className="text-sm font-semibold text-gray-900">
+            Profile Completeness
+          </span>
+          <span className="text-sm font-bold text-blue-600">
+            {completeness}%
+          </span>
         </div>
         <div className="mt-2 h-3 w-full overflow-hidden rounded-full bg-slate-100">
           <motion.div
             className="h-full rounded-full bg-gradient-to-r from-teal-500 to-blue-600"
             initial={{ width: 0 }}
             animate={{ width: `${completeness}%` }}
-            transition={{ duration: 0.5, ease: 'easeOut' }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
           />
         </div>
         {remaining.length > 0 && (
           <div className="mt-2 flex items-center gap-3 text-xs text-gray-500">
             <span className="flex items-center gap-1">
-              <Clock className="h-3.5 w-3.5" />
-              ~{estimatedMinutes} min remaining
+              <Clock className="h-3.5 w-3.5" />~{estimatedMinutes} min remaining
             </span>
             <span className="flex items-center gap-1">
               <Star className="h-3.5 w-3.5 text-amber-500" />
@@ -195,7 +209,9 @@ export const CompleteProfilePage = () => {
             <Card
               key={dim.dimension}
               className={`border-0 p-4 shadow-md rounded-xl transition-colors ${
-                isComplete ? 'bg-green-50' : 'bg-white hover:bg-slate-50 cursor-pointer'
+                isComplete
+                  ? "bg-green-50"
+                  : "bg-white hover:bg-slate-50 cursor-pointer"
               }`}
             >
               <div className="flex items-center gap-3">
@@ -204,7 +220,9 @@ export const CompleteProfilePage = () => {
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <p className="text-sm font-semibold text-gray-900">{meta.label}</p>
+                    <p className="text-sm font-semibold text-gray-900">
+                      {meta.label}
+                    </p>
                     {isComplete ? (
                       <Badge className="bg-green-100 text-green-700 hover:bg-green-100">
                         <CheckCircle className="me-1 h-3 w-3" />
@@ -212,11 +230,13 @@ export const CompleteProfilePage = () => {
                       </Badge>
                     ) : (
                       <Badge variant="outline" className="text-[10px]">
-                        {itemsLeft} item{itemsLeft !== 1 ? 's' : ''} left
+                        {itemsLeft} item{itemsLeft !== 1 ? "s" : ""} left
                       </Badge>
                     )}
                   </div>
-                  <p className="mt-0.5 text-xs text-gray-500">{meta.description}</p>
+                  <p className="mt-0.5 text-xs text-gray-500">
+                    {meta.description}
+                  </p>
                 </div>
                 {!isComplete && (
                   <ChevronRight className="h-5 w-5 shrink-0 text-gray-400" />
@@ -242,8 +262,8 @@ export const CompleteProfilePage = () => {
           <CheckCircle className="mx-auto h-10 w-10" />
           <h2 className="mt-2 text-lg font-bold">Profile Complete!</h2>
           <p className="mt-1 text-sm text-white/80">
-            You&apos;ve completed all profiling dimensions. Your learning experience is fully
-            personalized.
+            You&apos;ve completed all profiling dimensions. Your learning
+            experience is fully personalized.
           </p>
         </Card>
       )}

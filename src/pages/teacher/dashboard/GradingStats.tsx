@@ -1,13 +1,13 @@
-import { Card } from '@/components/ui/card';
-import Shimmer from '@/components/shared/Shimmer';
-import { useGradingStats } from '@/hooks/useGradingStats';
+import { Card } from "@/components/ui/card";
+import Shimmer from "@/components/shared/Shimmer";
+import { useGradingStats } from "@/hooks/useGradingStats";
 import {
   CheckSquare,
   Clock,
   Inbox,
   Flame,
   type LucideIcon,
-} from 'lucide-react';
+} from "lucide-react";
 import {
   LineChart,
   Line,
@@ -16,12 +16,12 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-} from 'recharts';
+} from "recharts";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
 function formatGradingTime(seconds: number): string {
-  if (seconds === 0) return '—';
+  if (seconds === 0) return "—";
   if (seconds < 60) return `${seconds}s`;
   const mins = Math.floor(seconds / 60);
   const secs = seconds % 60;
@@ -98,10 +98,22 @@ const GradingStats = ({ teacherId }: GradingStatsProps) => {
 
       {/* KPI Row */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard icon={CheckSquare} label="Graded This Week" value={data.gradedThisWeek} />
-        <StatCard icon={Clock} label="Avg Time" value={formatGradingTime(data.avgGradingTimeSeconds)} />
+        <StatCard
+          icon={CheckSquare}
+          label="Graded This Week"
+          value={data.gradedThisWeek}
+        />
+        <StatCard
+          icon={Clock}
+          label="Avg Time"
+          value={formatGradingTime(data.avgGradingTimeSeconds)}
+        />
         <StatCard icon={Inbox} label="Pending" value={data.pendingCount} />
-        <StatCard icon={Flame} label="Grading Streak" value={`${data.gradingStreak}d`} />
+        <StatCard
+          icon={Flame}
+          label="Grading Streak"
+          value={`${data.gradingStreak}d`}
+        />
       </div>
 
       {/* Velocity Trend Chart */}
@@ -111,7 +123,10 @@ const GradingStats = ({ teacherId }: GradingStatsProps) => {
             Grading Velocity (Last 30 Days)
           </p>
           <ResponsiveContainer width="100%" height={200}>
-            <LineChart data={data.velocityTrend} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+            <LineChart
+              data={data.velocityTrend}
+              margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
+            >
               <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
               <XAxis
                 dataKey="date"
@@ -125,7 +140,7 @@ const GradingStats = ({ teacherId }: GradingStatsProps) => {
                 dataKey="count"
                 stroke="#3b82f6"
                 strokeWidth={2}
-                dot={{ r: 3, fill: '#3b82f6' }}
+                dot={{ r: 3, fill: "#3b82f6" }}
                 activeDot={{ r: 5 }}
               />
             </LineChart>

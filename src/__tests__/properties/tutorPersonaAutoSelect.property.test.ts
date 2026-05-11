@@ -29,7 +29,13 @@ describe("Property 47 — High Openness maps to socratic_guide", () => {
         scoreArb,
         scoreArb,
         scoreArb,
-        (openness, conscientiousness, extraversion, agreeableness, neuroticism) => {
+        (
+          openness,
+          conscientiousness,
+          extraversion,
+          agreeableness,
+          neuroticism
+        ) => {
           // Ensure openness is strictly higher than conscientiousness
           const profile: BigFiveTraits = {
             openness,
@@ -41,9 +47,9 @@ describe("Property 47 — High Openness maps to socratic_guide", () => {
           const result = autoSelectPersona(profile);
           expect(result).not.toBeNull();
           expect(result!.persona).toBe("socratic_guide");
-        },
+        }
       ),
-      { numRuns: 100 },
+      { numRuns: 100 }
     );
   });
 
@@ -55,7 +61,13 @@ describe("Property 47 — High Openness maps to socratic_guide", () => {
         scoreArb,
         scoreArb,
         scoreArb,
-        (conscientiousness, openness, extraversion, agreeableness, neuroticism) => {
+        (
+          conscientiousness,
+          openness,
+          extraversion,
+          agreeableness,
+          neuroticism
+        ) => {
           const profile: BigFiveTraits = {
             openness: Math.min(openness, conscientiousness - 1),
             conscientiousness,
@@ -66,9 +78,9 @@ describe("Property 47 — High Openness maps to socratic_guide", () => {
           const result = autoSelectPersona(profile);
           expect(result).not.toBeNull();
           expect(result!.persona).toBe("step_by_step_coach");
-        },
+        }
       ),
-      { numRuns: 100 },
+      { numRuns: 100 }
     );
   });
 
@@ -80,7 +92,13 @@ describe("Property 47 — High Openness maps to socratic_guide", () => {
         scoreArb,
         scoreArb,
         scoreArb,
-        (openness, conscientiousness, extraversion, agreeableness, neuroticism) => {
+        (
+          openness,
+          conscientiousness,
+          extraversion,
+          agreeableness,
+          neuroticism
+        ) => {
           const profile: BigFiveTraits = {
             openness,
             conscientiousness,
@@ -91,9 +109,9 @@ describe("Property 47 — High Openness maps to socratic_guide", () => {
           const result = autoSelectPersona(profile);
           expect(result).not.toBeNull();
           expect(result!.persona).toBe("quick_explainer");
-        },
+        }
       ),
-      { numRuns: 100 },
+      { numRuns: 100 }
     );
   });
 });

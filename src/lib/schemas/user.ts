@@ -1,6 +1,12 @@
 import { z } from "zod";
 
-const userRoleSchema = z.enum(["admin", "coordinator", "teacher", "student", "parent"]);
+const userRoleSchema = z.enum([
+  "admin",
+  "coordinator",
+  "teacher",
+  "student",
+  "parent",
+]);
 
 export const createUserSchema = z.object({
   email: z.email("Invalid email address"),

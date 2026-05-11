@@ -13,6 +13,7 @@ h2 + *, h3 + *, h4 + * { page-break-before: avoid; }
 </style>
 
 # Edeviser AI Tooling Stack — CodeRabbit vs Google Jules vs GitHub Copilot
+
 ## How Each Tool Serves Our Codebase & Why We Need All Three
 
 **Version:** 1.0 | **Date:** April 2026 | **Purpose:** Internal team reference
@@ -21,15 +22,15 @@ h2 + *, h3 + *, h4 + * { page-break-before: avoid; }
 
 ## 1. THE THREE TOOLS AT A GLANCE
 
-| | CodeRabbit | Google Jules | GitHub Copilot |
-|---|---|---|---|
-| **Role** | PR Reviewer | Async Coding Agent | Real-time Pair Programmer |
-| **Analogy** | Senior dev reviewing your PR | Junior dev working overnight | Co-pilot sitting next to you |
-| **Trigger** | Automatically on every PR | You assign tasks or it suggests | As you type in your editor |
-| **Output** | Comments on your PR | Creates branches and PRs with code | Inline code suggestions |
-| **Writes code?** | No — only reviews | Yes — full implementations | Yes — autocomplete and chat |
-| **Cost** | $19/seat/month | Free tier (100 sessions/day) | $21/user/month (Enterprise) |
-| **Our cost** | $19/month | $0 (free tier) | $42/month (2 users) |
+|                  | CodeRabbit                   | Google Jules                       | GitHub Copilot               |
+| ---------------- | ---------------------------- | ---------------------------------- | ---------------------------- |
+| **Role**         | PR Reviewer                  | Async Coding Agent                 | Real-time Pair Programmer    |
+| **Analogy**      | Senior dev reviewing your PR | Junior dev working overnight       | Co-pilot sitting next to you |
+| **Trigger**      | Automatically on every PR    | You assign tasks or it suggests    | As you type in your editor   |
+| **Output**       | Comments on your PR          | Creates branches and PRs with code | Inline code suggestions      |
+| **Writes code?** | No — only reviews            | Yes — full implementations         | Yes — autocomplete and chat  |
+| **Cost**         | $19/seat/month               | Free tier (100 sessions/day)       | $21/user/month (Enterprise)  |
+| **Our cost**     | $19/month                    | $0 (free tier)                     | $42/month (2 users)          |
 
 ---
 
@@ -193,12 +194,12 @@ GitHub Copilot (even Enterprise) does NOT do what Jules does. Copilot is autocom
 
 ## 7. COST JUSTIFICATION
 
-| Tool | Monthly Cost | What It Replaces |
-|------|-------------|-----------------|
-| CodeRabbit | $19 | 2-3 hours/week of manual PR review |
-| Google Jules | $0 (free tier) | 5-10 hours/week of grunt work (test writing, string extraction, dep updates) |
-| GitHub Copilot | $42 (2 users) | 30-40% faster coding velocity |
-| **Total** | **$61/month** | **Equivalent to ~20 hours/week of developer time** |
+| Tool           | Monthly Cost   | What It Replaces                                                             |
+| -------------- | -------------- | ---------------------------------------------------------------------------- |
+| CodeRabbit     | $19            | 2-3 hours/week of manual PR review                                           |
+| Google Jules   | $0 (free tier) | 5-10 hours/week of grunt work (test writing, string extraction, dep updates) |
+| GitHub Copilot | $42 (2 users)  | 30-40% faster coding velocity                                                |
+| **Total**      | **$61/month**  | **Equivalent to ~20 hours/week of developer time**                           |
 
 At $61/month, these three tools together save roughly 80 hours/month of developer time. That's a 130:1 return on investment at even a modest $10/hour developer rate.
 
@@ -206,15 +207,15 @@ At $61/month, these three tools together save roughly 80 hours/month of develope
 
 ## 8. WHAT EACH TOOL READS FROM OUR REPO
 
-| File | CodeRabbit | Jules | Copilot |
-|------|-----------|-------|---------|
-| `.coderabbit.yaml` | Yes (primary config) | No | No |
-| `AGENTS.md` | No | Yes (primary context) | Yes (reads for context) |
-| `.kiro/steering/*.md` | No | No | No (Kiro-specific) |
-| `package.json` | Yes (dep analysis) | Yes (npm ci) | Yes (autocomplete) |
-| `tsconfig.json` | Yes (TS rules) | Yes (tsc --noEmit) | Yes (type inference) |
-| `.github/workflows/ci.yml` | No | Yes (CI Fixer) | No |
-| Source code | Yes (diff only) | Yes (full repo) | Yes (open files + context) |
+| File                       | CodeRabbit           | Jules                 | Copilot                    |
+| -------------------------- | -------------------- | --------------------- | -------------------------- |
+| `.coderabbit.yaml`         | Yes (primary config) | No                    | No                         |
+| `AGENTS.md`                | No                   | Yes (primary context) | Yes (reads for context)    |
+| `.kiro/steering/*.md`      | No                   | No                    | No (Kiro-specific)         |
+| `package.json`             | Yes (dep analysis)   | Yes (npm ci)          | Yes (autocomplete)         |
+| `tsconfig.json`            | Yes (TS rules)       | Yes (tsc --noEmit)    | Yes (type inference)       |
+| `.github/workflows/ci.yml` | No                   | Yes (CI Fixer)        | No                         |
+| Source code                | Yes (diff only)      | Yes (full repo)       | Yes (open files + context) |
 
 ---
 
@@ -230,4 +231,4 @@ The total cost ($61/month) is less than 1 hour of a contractor's time. For a 2-p
 
 ---
 
-*Edeviser — April 2026 — INTERNAL*
+_Edeviser — April 2026 — INTERNAL_

@@ -3,9 +3,12 @@
 // Task 4.11: title, text 50-500 chars, optional media URL, Zod validation
 // =============================================================================
 
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { createTeachingMomentSchema, type CreateTeachingMomentInput } from '@/lib/schemas/peerTeaching';
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  createTeachingMomentSchema,
+  type CreateTeachingMomentInput,
+} from "@/lib/schemas/peerTeaching";
 import {
   Form,
   FormField,
@@ -14,11 +17,11 @@ import {
   FormControl,
   FormMessage,
   FormDescription,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
-import { Loader2, BookOpen } from 'lucide-react';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Loader2, BookOpen } from "lucide-react";
 
 export interface PeerTeachingMomentFormProps {
   teamId: string;
@@ -40,13 +43,13 @@ const PeerTeachingMomentForm = ({
     defaultValues: {
       team_id: teamId,
       clo_id: cloId,
-      title: '',
-      explanation_text: '',
+      title: "",
+      explanation_text: "",
       media_url: null,
     },
   });
 
-  const explanationText = form.watch('explanation_text');
+  const explanationText = form.watch("explanation_text");
   const charCount = explanationText?.length ?? 0;
 
   const handleSubmit = (data: CreateTeachingMomentInput) => {
@@ -70,7 +73,10 @@ const PeerTeachingMomentForm = ({
               <FormItem>
                 <FormLabel>Title</FormLabel>
                 <FormControl>
-                  <Input placeholder="e.g., Understanding Binary Search" {...field} />
+                  <Input
+                    placeholder="e.g., Understanding Binary Search"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -113,12 +119,13 @@ const PeerTeachingMomentForm = ({
                     type="url"
                     placeholder="https://..."
                     {...field}
-                    value={field.value ?? ''}
+                    value={field.value ?? ""}
                     onChange={(e) => field.onChange(e.target.value || null)}
                   />
                 </FormControl>
                 <FormDescription>
-                  Link to a video, audio, or diagram that supports your explanation
+                  Link to a video, audio, or diagram that supports your
+                  explanation
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -126,8 +133,8 @@ const PeerTeachingMomentForm = ({
           />
 
           {/* Hidden fields */}
-          <input type="hidden" {...form.register('team_id')} />
-          <input type="hidden" {...form.register('clo_id')} />
+          <input type="hidden" {...form.register("team_id")} />
+          <input type="hidden" {...form.register("clo_id")} />
 
           <Button
             type="submit"

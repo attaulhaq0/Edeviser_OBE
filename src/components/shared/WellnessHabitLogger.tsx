@@ -1,16 +1,19 @@
-import { useState } from 'react';
-import { Brain, Droplets, Dumbbell, Moon, Check } from 'lucide-react';
-import { Switch } from '@/components/ui/switch';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { cn } from '@/lib/utils';
-import type { WellnessHabitType, WellnessHabitLog } from '@/types/habits';
+import { useState } from "react";
+import { Brain, Droplets, Dumbbell, Moon, Check } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
+import type { WellnessHabitType, WellnessHabitLog } from "@/types/habits";
 
 export interface WellnessHabitLoggerProps {
   enabledHabits: WellnessHabitType[];
   todayLogs: WellnessHabitLog[];
   onLog: (type: WellnessHabitType, value?: number) => void;
-  dailyProgress?: Record<string, { progress: number; logged: number; target: number; unit: string }>;
+  dailyProgress?: Record<
+    string,
+    { progress: number; logged: number; target: number; unit: string }
+  >;
 }
 
 const HABIT_CONFIG: Record<
@@ -18,27 +21,27 @@ const HABIT_CONFIG: Record<
   { label: string; description: string; unit: string; icon: typeof Brain }
 > = {
   meditation: {
-    label: 'Meditation',
-    description: '5+ minute session',
-    unit: 'minutes',
+    label: "Meditation",
+    description: "5+ minute session",
+    unit: "minutes",
     icon: Brain,
   },
   hydration: {
-    label: 'Hydration',
-    description: '8 glasses of water',
-    unit: 'glasses',
+    label: "Hydration",
+    description: "8 glasses of water",
+    unit: "glasses",
     icon: Droplets,
   },
   exercise: {
-    label: 'Exercise',
-    description: '30+ minute activity',
-    unit: 'minutes',
+    label: "Exercise",
+    description: "30+ minute activity",
+    unit: "minutes",
     icon: Dumbbell,
   },
   sleep: {
-    label: 'Sleep',
-    description: '7+ hours logged',
-    unit: 'hours',
+    label: "Sleep",
+    description: "7+ hours logged",
+    unit: "hours",
     icon: Moon,
   },
 };
@@ -49,7 +52,9 @@ const WellnessHabitLogger = ({
   onLog,
   dailyProgress,
 }: WellnessHabitLoggerProps) => {
-  const [values, setValues] = useState<Partial<Record<WellnessHabitType, string>>>({});
+  const [values, setValues] = useState<
+    Partial<Record<WellnessHabitType, string>>
+  >({});
 
   const isLogged = (type: WellnessHabitType): boolean =>
     todayLogs.some((log) => log.wellnessType === type);
@@ -58,7 +63,10 @@ const WellnessHabitLogger = ({
     if (isLogged(type)) return;
     const raw = values[type];
     const numericValue = raw ? parseFloat(raw) : undefined;
-    onLog(type, numericValue && !isNaN(numericValue) ? numericValue : undefined);
+    onLog(
+      type,
+      numericValue && !isNaN(numericValue) ? numericValue : undefined
+    );
   };
 
   const handleValueChange = (type: WellnessHabitType, val: string) => {
@@ -84,20 +92,20 @@ const WellnessHabitLogger = ({
               key={type}
               data-testid={`wellness-habit-${type}`}
               className={cn(
-                'flex items-center gap-3 rounded-xl border bg-white p-3 shadow-sm transition-colors',
-                logged && 'bg-green-50 border-green-200',
+                "flex items-center gap-3 rounded-xl border bg-white p-3 shadow-sm transition-colors",
+                logged && "bg-green-50 border-green-200"
               )}
             >
               <div
                 className={cn(
-                  'p-2 rounded-lg',
-                  logged ? 'bg-green-100' : 'bg-slate-50',
+                  "p-2 rounded-lg",
+                  logged ? "bg-green-100" : "bg-slate-50"
                 )}
               >
                 <Icon
                   className={cn(
-                    'h-4 w-4',
-                    logged ? 'text-green-600' : 'text-slate-500',
+                    "h-4 w-4",
+                    logged ? "text-green-600" : "text-slate-500"
                   )}
                 />
               </div>
@@ -112,17 +120,19 @@ const WellnessHabitLogger = ({
                         {prog.logged}/{prog.target} {prog.unit}
                       </span>
                       {prog.progress >= 100 && (
-                        <span className="text-green-600 font-medium text-xs">✓ Target met</span>
+                        <span className="text-green-600 font-medium text-xs">
+                          ✓ Target met
+                        </span>
                       )}
                     </div>
                     <div className="h-1.5 w-full rounded-full bg-gray-100 overflow-hidden">
                       <div
                         data-testid={`wellness-progress-bar-${type}`}
                         className={cn(
-                          'h-full rounded-full transition-all duration-300',
+                          "h-full rounded-full transition-all duration-300",
                           prog.progress >= 100
-                            ? 'bg-green-400'
-                            : 'bg-gradient-to-r from-teal-400 to-blue-500',
+                            ? "bg-green-400"
+                            : "bg-gradient-to-r from-teal-400 to-blue-500"
                         )}
                         style={{ width: `${Math.min(prog.progress, 100)}%` }}
                       />
@@ -137,7 +147,7 @@ const WellnessHabitLogger = ({
                   type="number"
                   min={0}
                   placeholder={config.unit}
-                  value={values[type] ?? ''}
+                  value={values[type] ?? ""}
                   onChange={(e) => handleValueChange(type, e.target.value)}
                   disabled={logged}
                   className="w-20 h-8 text-xs"

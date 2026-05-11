@@ -2,9 +2,9 @@
 // useActiveBoosts — TanStack Query hook for active XP boost status
 // =============================================================================
 
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -26,11 +26,11 @@ export const useActiveBoosts = (studentId: string) => {
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error } = await (supabase as any)
-        .from('student_active_boosts')
-        .select('id, boost_type, multiplier, activated_at, expires_at')
-        .eq('student_id', studentId)
-        .gt('expires_at', now)
-        .order('expires_at', { ascending: true });
+        .from("student_active_boosts")
+        .select("id, boost_type, multiplier, activated_at, expires_at")
+        .eq("student_id", studentId)
+        .gt("expires_at", now)
+        .order("expires_at", { ascending: true });
 
       if (error) throw error;
 

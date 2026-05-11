@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
-import confetti from 'canvas-confetti';
-import { Star, TrendingUp } from 'lucide-react';
+import { useEffect, useRef, useState, useCallback } from "react";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import confetti from "canvas-confetti";
+import { Star, TrendingUp } from "lucide-react";
 
 interface XPAwardToastProps {
   xpAmount: number;
@@ -60,7 +60,7 @@ const XPAwardToast = ({
       particleCount: 30,
       spread: 60,
       origin: { y: 0.8 },
-      colors: ['#f59e0b', '#eab308', '#fbbf24'],
+      colors: ["#f59e0b", "#eab308", "#fbbf24"],
     });
   }, [prefersReducedMotion]);
 
@@ -86,7 +86,7 @@ const XPAwardToast = ({
           initial={prefersReducedMotion ? undefined : { opacity: 0, y: 20 }}
           animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
           exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, y: -10 }}
-          transition={{ duration: 0.3, ease: 'easeOut' }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
           className="bg-white border-0 shadow-lg rounded-xl p-4 w-64"
           role="status"
           aria-live="polite"

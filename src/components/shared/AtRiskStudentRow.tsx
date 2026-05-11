@@ -3,10 +3,10 @@
 // Validates: Requirements 47.3, 47.4
 // =============================================================================
 
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Send, Loader2 } from 'lucide-react';
-import type { ContributingSignals } from '@/hooks/useAtRiskPredictions';
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Send, Loader2 } from "lucide-react";
+import type { ContributingSignals } from "@/hooks/useAtRiskPredictions";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -23,33 +23,35 @@ interface AtRiskStudentRowProps {
 
 const getSignalBadge = (label: string, value: string) => {
   const colorMap: Record<string, string> = {
-    low: 'bg-red-50 text-red-600 border-red-200',
-    medium: 'bg-yellow-50 text-yellow-600 border-yellow-200',
-    high: 'bg-green-50 text-green-600 border-green-200',
-    early: 'bg-green-50 text-green-600 border-green-200',
-    on_time: 'bg-blue-50 text-blue-600 border-blue-200',
-    late: 'bg-yellow-50 text-yellow-600 border-yellow-200',
-    missed: 'bg-red-50 text-red-600 border-red-200',
-    improving: 'bg-green-50 text-green-600 border-green-200',
-    declining: 'bg-red-50 text-red-600 border-red-200',
-    stagnant: 'bg-yellow-50 text-yellow-600 border-yellow-200',
+    low: "bg-red-50 text-red-600 border-red-200",
+    medium: "bg-yellow-50 text-yellow-600 border-yellow-200",
+    high: "bg-green-50 text-green-600 border-green-200",
+    early: "bg-green-50 text-green-600 border-green-200",
+    on_time: "bg-blue-50 text-blue-600 border-blue-200",
+    late: "bg-yellow-50 text-yellow-600 border-yellow-200",
+    missed: "bg-red-50 text-red-600 border-red-200",
+    improving: "bg-green-50 text-green-600 border-green-200",
+    declining: "bg-red-50 text-red-600 border-red-200",
+    stagnant: "bg-yellow-50 text-yellow-600 border-yellow-200",
   };
 
   return (
     <Badge
       key={`${label}-${value}`}
       variant="outline"
-      className={`text-[10px] ${colorMap[value] ?? 'bg-gray-50 text-gray-600 border-gray-200'}`}
+      className={`text-[10px] ${
+        colorMap[value] ?? "bg-gray-50 text-gray-600 border-gray-200"
+      }`}
     >
-      {label}: {value.replace('_', ' ')}
+      {label}: {value.replace("_", " ")}
     </Badge>
   );
 };
 
 const getProbabilityColor = (score: number): string => {
-  if (score >= 75) return 'text-red-600 bg-red-50';
-  if (score >= 50) return 'text-yellow-600 bg-yellow-50';
-  return 'text-blue-600 bg-blue-50';
+  if (score >= 75) return "text-red-600 bg-red-50";
+  if (score >= 50) return "text-yellow-600 bg-yellow-50";
+  return "text-blue-600 bg-blue-50";
 };
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -80,9 +82,12 @@ const AtRiskStudentRow = ({
           CLO: {cloTitle}
         </p>
         <div className="flex flex-wrap items-center gap-1">
-          {getSignalBadge('Login', contributingSignals.login_frequency)}
-          {getSignalBadge('Submissions', contributingSignals.submission_pattern)}
-          {getSignalBadge('Trend', contributingSignals.attainment_trend)}
+          {getSignalBadge("Login", contributingSignals.login_frequency)}
+          {getSignalBadge(
+            "Submissions",
+            contributingSignals.submission_pattern
+          )}
+          {getSignalBadge("Trend", contributingSignals.attainment_trend)}
         </div>
       </div>
       <Button

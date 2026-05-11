@@ -1,17 +1,17 @@
 // Task 52: Read Habit Timer — tracks 30s of reading to mark 'read' habit
 // Requirements: 61.1, 61.2, 61.4
-import { useEffect, useRef, useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import { logActivity } from '@/lib/activityLogger';
+import { useEffect, useRef, useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import { logActivity } from "@/lib/activityLogger";
 
 const READ_THRESHOLD_SECONDS = 30;
 const TICK_INTERVAL_MS = 1_000;
 
 export interface UseReadHabitTimerOptions {
-  pageType: 'assignment_detail' | 'clo_progress';
+  pageType: "assignment_detail" | "clo_progress";
   pageId: string;
 }
 
@@ -24,8 +24,8 @@ export interface UseReadHabitTimerReturn {
 function getLocalDateString(): string {
   const today = new Date();
   const yyyy = today.getFullYear();
-  const mm = String(today.getMonth() + 1).padStart(2, '0');
-  const dd = String(today.getDate()).padStart(2, '0');
+  const mm = String(today.getMonth() + 1).padStart(2, "0");
+  const dd = String(today.getDate()).padStart(2, "0");
   return `${yyyy}-${mm}-${dd}`;
 }
 
@@ -39,7 +39,7 @@ function getLocalDateString(): string {
  * viewing time is lost.
  */
 export const useReadHabitTimer = (
-  options: UseReadHabitTimerOptions,
+  options: UseReadHabitTimerOptions
 ): UseReadHabitTimerReturn => {
   const { profile } = useAuth();
   const queryClient = useQueryClient();
@@ -63,10 +63,14 @@ export const useReadHabitTimer = (
   const upsertMutation = useMutation({
     mutationFn: async (params: { student_id: string; habit_date: string }) => {
       const { error } = await supabase
-        .from('habit_tracking')
+        .from("habit_tracking")
         .upsert(
-          { student_id: params.student_id, habit_date: params.habit_date, read_content: true },
-          { onConflict: 'student_id,habit_date' },
+          {
+            student_id: params.student_id,
+            habit_date: params.habit_date,
+            read_content: true,
+          },
+          { onConflict: "student_id,habit_date" }
         );
       if (error) throw error;
     },
@@ -77,7 +81,10 @@ export const useReadHabitTimer = (
       }
     },
     onError: (error) => {
-      console.error('[useReadHabitTimer] Failed to upsert habit_tracking:', error instanceof Error ? error.message : error);
+      console.error(
+        "[useReadHabitTimer] Failed to upsert habit_tracking:",
+        error instanceof Error ? error.message : error
+      );
     },
   });
 
@@ -87,7 +94,7 @@ export const useReadHabitTimer = (
   }, [upsertMutation]);
 
   useEffect(() => {
-    if (!profile?.id || profile.role !== 'student') return;
+    if (!profile?.id || profile.role !== "student") return;
 
     // Reset refs on mount
     elapsedRef.current = 0;
@@ -97,7 +104,10 @@ export const useReadHabitTimer = (
       elapsedRef.current += 1;
       setElapsedSeconds(elapsedRef.current);
 
-      if (!completedRef.current && elapsedRef.current >= READ_THRESHOLD_SECONDS) {
+      if (
+        !completedRef.current &&
+        elapsedRef.current >= READ_THRESHOLD_SECONDS
+      ) {
         completedRef.current = true;
         setIsCompleted(true);
 
@@ -107,12 +117,15 @@ export const useReadHabitTimer = (
         const todayStr = getLocalDateString();
 
         // Mark read_content habit for today via TanStack mutation
-        upsertRef.current.mutate({ student_id: studentId, habit_date: todayStr });
+        upsertRef.current.mutate({
+          student_id: studentId,
+          habit_date: todayStr,
+        });
 
         // Log activity with duration_seconds metadata
         logActivity({
           student_id: studentId,
-          event_type: 'page_view',
+          event_type: "page_view",
           metadata: {
             page_type: optionsRef.current.pageType,
             page_id: optionsRef.current.pageId,
@@ -131,7 +144,7 @@ export const useReadHabitTimer = (
       if (studentId && !completedRef.current && elapsedRef.current > 0) {
         logActivity({
           student_id: studentId,
-          event_type: 'page_view',
+          event_type: "page_view",
           metadata: {
             page_type: optionsRef.current.pageType,
             page_id: optionsRef.current.pageId,

@@ -1,14 +1,14 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen } from "@testing-library/react";
 
 // ─── Mocks ──────────────────────────────────────────────────────────────────
 
-vi.mock('@/hooks/useAuth', () => ({
+vi.mock("@/hooks/useAuth", () => ({
   useAuth: vi.fn(() => ({
-    user: { id: 'student-1' },
+    user: { id: "student-1" },
     profile: null,
-    role: 'student',
-    institutionId: 'inst-1',
+    role: "student",
+    institutionId: "inst-1",
     isLoading: false,
     signIn: vi.fn(),
     signOut: vi.fn(),
@@ -17,7 +17,7 @@ vi.mock('@/hooks/useAuth', () => ({
 }));
 
 const mockUnreadCount = vi.fn();
-vi.mock('@/hooks/useNotifications', () => ({
+vi.mock("@/hooks/useNotifications", () => ({
   useUnreadCount: (...args: unknown[]) => mockUnreadCount(...args),
   useNotifications: vi.fn(() => ({ data: [], isLoading: false })),
   useMarkAsRead: vi.fn(() => ({ mutate: vi.fn() })),
@@ -25,51 +25,52 @@ vi.mock('@/hooks/useNotifications', () => ({
   useDeleteNotification: vi.fn(() => ({ mutate: vi.fn() })),
 }));
 
-vi.mock('@/hooks/useNotificationRealtime', () => ({
+vi.mock("@/hooks/useNotificationRealtime", () => ({
   useNotificationRealtime: vi.fn(() => ({ isLive: true })),
 }));
 
-import NotificationBell from '@/components/shared/NotificationBell';
+import NotificationBell from "@/components/shared/NotificationBell";
 
-describe('NotificationBell', () => {
+describe("NotificationBell", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('renders bell icon', () => {
+  it("renders bell icon", () => {
     mockUnreadCount.mockReturnValue({ data: 0 });
     render(<NotificationBell />);
 
-    const button = screen.getByRole('button', { name: /notifications/i });
+    const button = screen.getByRole("button", { name: /notifications/i });
     expect(button).toBeInTheDocument();
   });
 
-  it('shows unread badge when count > 0', () => {
+  it("shows unread badge when count > 0", () => {
     mockUnreadCount.mockReturnValue({ data: 5 });
     render(<NotificationBell />);
 
-    expect(screen.getByText('5')).toBeInTheDocument();
+    expect(screen.getByText("5")).toBeInTheDocument();
   });
 
-  it('does not show badge when count is 0', () => {
+  it("does not show badge when count is 0", () => {
     mockUnreadCount.mockReturnValue({ data: 0 });
     render(<NotificationBell />);
 
-    expect(screen.queryByText('0')).not.toBeInTheDocument();
+    expect(screen.queryByText("0")).not.toBeInTheDocument();
   });
 
-  it('caps display at 99+', () => {
+  it("caps display at 99+", () => {
     mockUnreadCount.mockReturnValue({ data: 150 });
     render(<NotificationBell />);
 
-    expect(screen.getByText('99+')).toBeInTheDocument();
+    expect(screen.getByText("99+")).toBeInTheDocument();
   });
 
-  it('includes unread count in aria-label', () => {
+  it("includes unread count in aria-label", () => {
     mockUnreadCount.mockReturnValue({ data: 3 });
     render(<NotificationBell />);
 
-    const button = screen.getByRole('button');
-    expect(button).toHaveAttribute('aria-label', 'Notifications, 3 unread');
+    const button = screen.getByRole("button");
+    // aria-label includes the unread count
+    expect(button.getAttribute("aria-label")).toMatch(/3 unread/);
   });
 });

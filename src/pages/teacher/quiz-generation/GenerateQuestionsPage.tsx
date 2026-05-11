@@ -1,16 +1,16 @@
-import { useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Loader2, Sparkles, Check, X, AlertTriangle } from 'lucide-react';
-import { toast } from 'sonner';
+import { useState } from "react";
+import { useParams } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Loader2, Sparkles, Check, X, AlertTriangle } from "lucide-react";
+import { toast } from "sonner";
 
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import {
   Form,
   FormField,
@@ -18,24 +18,29 @@ import {
   FormLabel,
   FormControl,
   FormMessage,
-} from '@/components/ui/form';
+} from "@/components/ui/form";
 
-import QuestionPreview from '@/components/shared/QuestionPreview';
-import DifficultyBadge from '@/components/shared/DifficultyBadge';
+import QuestionPreview from "@/components/shared/QuestionPreview";
+import DifficultyBadge from "@/components/shared/DifficultyBadge";
 
-import { useCLOs } from '@/hooks/useCLOs';
-import { useGenerateQuestions } from '@/hooks/useGenerateQuestions';
-import type { GenerateQuestionsResponse, GeneratedQuestion } from '@/hooks/useGenerateQuestions';
-import { useApproveQuestion, useRejectQuestion } from '@/hooks/useReviewQueue';
+import { useCLOs } from "@/hooks/useCLOs";
+import { useGenerateQuestions } from "@/hooks/useGenerateQuestions";
+import type {
+  GenerateQuestionsResponse,
+  GeneratedQuestion,
+} from "@/hooks/useGenerateQuestions";
+import { useApproveQuestion, useRejectQuestion } from "@/hooks/useReviewQueue";
 
 // ─── Form schema (client-side, adds course_id at submit time) ───────────────
 
 const formSchema = z.object({
-  clo_ids: z.array(z.string().uuid()).min(1, 'Select at least one CLO'),
-  bloom_levels: z.array(z.number().int().min(1).max(6)).min(1, 'Select at least one Bloom\'s level'),
+  clo_ids: z.array(z.string().uuid()).min(1, "Select at least one CLO"),
+  bloom_levels: z
+    .array(z.number().int().min(1).max(6))
+    .min(1, "Select at least one Bloom's level"),
   question_types: z
-    .array(z.enum(['mcq', 'true_false', 'short_answer', 'fill_in_blank']))
-    .min(1, 'Select at least one question type'),
+    .array(z.enum(["mcq", "true_false", "short_answer", "fill_in_blank"]))
+    .min(1, "Select at least one question type"),
   question_count: z.number().int().min(1).max(50),
 });
 
@@ -44,19 +49,19 @@ type FormValues = z.infer<typeof formSchema>;
 // ─── Constants ──────────────────────────────────────────────────────────────
 
 const BLOOM_LEVELS = [
-  { value: 1, label: 'Remembering' },
-  { value: 2, label: 'Understanding' },
-  { value: 3, label: 'Applying' },
-  { value: 4, label: 'Analyzing' },
-  { value: 5, label: 'Evaluating' },
-  { value: 6, label: 'Creating' },
+  { value: 1, label: "Remembering" },
+  { value: 2, label: "Understanding" },
+  { value: 3, label: "Applying" },
+  { value: 4, label: "Analyzing" },
+  { value: 5, label: "Evaluating" },
+  { value: 6, label: "Creating" },
 ] as const;
 
 const QUESTION_TYPES = [
-  { value: 'mcq' as const, label: 'MCQ' },
-  { value: 'true_false' as const, label: 'True/False' },
-  { value: 'short_answer' as const, label: 'Short Answer' },
-  { value: 'fill_in_blank' as const, label: 'Fill in Blank' },
+  { value: "mcq" as const, label: "MCQ" },
+  { value: "true_false" as const, label: "True/False" },
+  { value: "short_answer" as const, label: "Short Answer" },
+  { value: "fill_in_blank" as const, label: "Fill in Blank" },
 ] as const;
 
 // ─── Page Component ─────────────────────────────────────────────────────────
@@ -93,9 +98,9 @@ const GenerateQuestionsPage = () => {
           toast.success(`Generated ${data.questions.length} questions`);
         },
         onError: (err) => {
-          toast.error(err.message || 'Failed to generate questions');
+          toast.error(err.message || "Failed to generate questions");
         },
-      },
+      }
     );
   };
 
@@ -103,9 +108,9 @@ const GenerateQuestionsPage = () => {
     approveMutation.mutate(
       { id: questionId },
       {
-        onSuccess: () => toast.success('Question approved'),
+        onSuccess: () => toast.success("Question approved"),
         onError: (err) => toast.error(err.message),
-      },
+      }
     );
   };
 
@@ -113,9 +118,9 @@ const GenerateQuestionsPage = () => {
     rejectMutation.mutate(
       { id: questionId },
       {
-        onSuccess: () => toast.success('Question rejected'),
+        onSuccess: () => toast.success("Question rejected"),
         onError: (err) => toast.error(err.message),
-      },
+      }
     );
   };
 
@@ -150,7 +155,9 @@ const GenerateQuestionsPage = () => {
                                     field.onChange(
                                       checked
                                         ? [...field.value, clo.id]
-                                        : field.value.filter((v: string) => v !== clo.id),
+                                        : field.value.filter(
+                                            (v: string) => v !== clo.id
+                                          )
                                     );
                                   }}
                                 />
@@ -163,7 +170,9 @@ const GenerateQuestionsPage = () => {
                         />
                       ))}
                       {clos.length === 0 && (
-                        <p className="text-xs text-gray-500">No CLOs found for this course.</p>
+                        <p className="text-xs text-gray-500">
+                          No CLOs found for this course.
+                        </p>
                       )}
                     </div>
                     <FormMessage />
@@ -193,7 +202,9 @@ const GenerateQuestionsPage = () => {
                                     field.onChange(
                                       checked
                                         ? [...field.value, level.value]
-                                        : field.value.filter((v: number) => v !== level.value),
+                                        : field.value.filter(
+                                            (v: number) => v !== level.value
+                                          )
                                     );
                                   }}
                                 />
@@ -233,7 +244,9 @@ const GenerateQuestionsPage = () => {
                                     field.onChange(
                                       checked
                                         ? [...field.value, type.value]
-                                        : field.value.filter((v: string) => v !== type.value),
+                                        : field.value.filter(
+                                            (v: string) => v !== type.value
+                                          )
                                     );
                                   }}
                                 />
@@ -283,7 +296,9 @@ const GenerateQuestionsPage = () => {
                 ) : (
                   <Sparkles className="h-4 w-4" />
                 )}
-                {generateMutation.isPending ? 'Generating...' : 'Generate Questions'}
+                {generateMutation.isPending
+                  ? "Generating..."
+                  : "Generate Questions"}
               </Button>
             </form>
           </Form>
@@ -297,7 +312,9 @@ const GenerateQuestionsPage = () => {
                 <AlertTriangle className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
                 <div className="space-y-1">
                   {result.warnings.map((warning, i) => (
-                    <p key={i} className="text-sm text-yellow-800">{warning}</p>
+                    <p key={i} className="text-sm text-yellow-800">
+                      {warning}
+                    </p>
                   ))}
                 </div>
               </div>
@@ -364,8 +381,16 @@ const GeneratedQuestionCard = ({
       <div className="p-4 space-y-3">
         <QuestionPreview
           questionText={question.question_text}
-          questionType={question.question_type as 'mcq' | 'true_false' | 'short_answer' | 'fill_in_blank'}
-          options={question.options?.map(({ key, text }) => ({ key, text })) ?? null}
+          questionType={
+            question.question_type as
+              | "mcq"
+              | "true_false"
+              | "short_answer"
+              | "fill_in_blank"
+          }
+          options={
+            question.options?.map(({ key, text }) => ({ key, text })) ?? null
+          }
           disabled
         />
 

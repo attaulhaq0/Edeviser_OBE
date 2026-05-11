@@ -11,13 +11,10 @@ import { sendMessageSchema } from "@/lib/tutorSchemas";
 describe("Property 20 — Text input validation (1–2000 chars)", () => {
   it("P20a: valid messages (1–2000 chars) pass validation", () => {
     fc.assert(
-      fc.property(
-        fc.string({ minLength: 1, maxLength: 2000 }),
-        (message) => {
-          const result = sendMessageSchema.safeParse({ message });
-          expect(result.success).toBe(true);
-        }
-      ),
+      fc.property(fc.string({ minLength: 1, maxLength: 2000 }), (message) => {
+        const result = sendMessageSchema.safeParse({ message });
+        expect(result.success).toBe(true);
+      }),
       { numRuns: 100 }
     );
   });
@@ -42,13 +39,10 @@ describe("Property 20 — Text input validation (1–2000 chars)", () => {
 
   it("P20d: exactly 2000 chars is accepted", () => {
     fc.assert(
-      fc.property(
-        fc.stringMatching(/^[a-zA-Z0-9 ]{2000}$/),
-        (message) => {
-          const result = sendMessageSchema.safeParse({ message });
-          expect(result.success).toBe(true);
-        }
-      ),
+      fc.property(fc.stringMatching(/^[a-zA-Z0-9 ]{2000}$/), (message) => {
+        const result = sendMessageSchema.safeParse({ message });
+        expect(result.success).toBe(true);
+      }),
       { numRuns: 100 }
     );
   });
@@ -120,7 +114,13 @@ describe("Property 21 — File attachment validation", () => {
 
     fc.assert(
       fc.property(
-        fc.constantFrom("file.gif", "image.bmp", "photo.webp", "pic.tiff", "doc.svg"),
+        fc.constantFrom(
+          "file.gif",
+          "image.bmp",
+          "photo.webp",
+          "pic.tiff",
+          "doc.svg"
+        ),
         (filename) => {
           expect(isValidImageFormat(filename)).toBe(false);
         }
@@ -137,12 +137,9 @@ describe("Property 21 — File attachment validation", () => {
       sizeBytes <= MAX_IMAGE_SIZE;
 
     fc.assert(
-      fc.property(
-        fc.integer({ min: 1, max: MAX_IMAGE_SIZE }),
-        (size) => {
-          expect(isValidImageSize(size)).toBe(true);
-        }
-      ),
+      fc.property(fc.integer({ min: 1, max: MAX_IMAGE_SIZE }), (size) => {
+        expect(isValidImageSize(size)).toBe(true);
+      }),
       { numRuns: 100 }
     );
   });
@@ -173,12 +170,9 @@ describe("Property 21 — File attachment validation", () => {
     };
 
     fc.assert(
-      fc.property(
-        fc.constantFrom("report.pdf", "essay.docx"),
-        (filename) => {
-          expect(isValidDocFormat(filename)).toBe(true);
-        }
-      ),
+      fc.property(fc.constantFrom("report.pdf", "essay.docx"), (filename) => {
+        expect(isValidDocFormat(filename)).toBe(true);
+      }),
       { numRuns: 100 }
     );
   });
@@ -192,7 +186,13 @@ describe("Property 21 — File attachment validation", () => {
 
     fc.assert(
       fc.property(
-        fc.constantFrom("file.txt", "data.csv", "sheet.xlsx", "doc.pptx", "image.png"),
+        fc.constantFrom(
+          "file.txt",
+          "data.csv",
+          "sheet.xlsx",
+          "doc.pptx",
+          "image.png"
+        ),
         (filename) => {
           expect(isValidDocFormat(filename)).toBe(false);
         }
@@ -207,12 +207,9 @@ describe("Property 21 — File attachment validation", () => {
       sizeBytes <= MAX_DOC_SIZE;
 
     fc.assert(
-      fc.property(
-        fc.integer({ min: 1, max: MAX_DOC_SIZE }),
-        (size) => {
-          expect(isValidDocSize(size)).toBe(true);
-        }
-      ),
+      fc.property(fc.integer({ min: 1, max: MAX_DOC_SIZE }), (size) => {
+        expect(isValidDocSize(size)).toBe(true);
+      }),
       { numRuns: 100 }
     );
   });

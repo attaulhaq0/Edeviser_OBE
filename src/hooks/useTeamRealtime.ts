@@ -3,10 +3,10 @@
 // Task 3.9: scoped by institution, with polling fallback
 // =============================================================================
 
-import { useCallback } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
-import { queryKeys } from '@/lib/queryKeys';
-import { useRealtime } from '@/hooks/useRealtime';
+import { useCallback } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { queryKeys } from "@/lib/queryKeys";
+import { useRealtime } from "@/hooks/useRealtime";
 
 // ─── useTeamRealtime ─────────────────────────────────────────────────────────
 
@@ -20,13 +20,15 @@ export const useTeamRealtime = (institutionId?: string) => {
 
   const invalidateTeamQueries = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: queryKeys.teams.lists() });
-    queryClient.invalidateQueries({ queryKey: queryKeys.teamLeaderboard.lists() });
+    queryClient.invalidateQueries({
+      queryKey: queryKeys.teamLeaderboard.lists(),
+    });
     queryClient.invalidateQueries({ queryKey: queryKeys.teamMembers.lists() });
   }, [queryClient]);
 
   const { isLive, retryCount } = useRealtime({
-    table: 'teams',
-    event: '*',
+    table: "teams",
+    event: "*",
     filter: institutionId ? `institution_id=eq.${institutionId}` : undefined,
     onPayload: invalidateTeamQueries,
     pollingFn: invalidateTeamQueries,

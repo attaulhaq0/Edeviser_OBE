@@ -1,11 +1,11 @@
 // Task 151.2: Badge Spotlight Card component
 // Requirement 134.4: Student Dashboard spotlight card
 
-import { useMemo } from 'react';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Sparkles } from 'lucide-react';
-import type { BadgeTier } from '@/hooks/useTieredBadges';
+import { useMemo } from "react";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Sparkles } from "lucide-react";
+import type { BadgeTier } from "@/hooks/useTieredBadges";
 
 interface BadgeSpotlightCardProps {
   category: string;
@@ -15,9 +15,9 @@ interface BadgeSpotlightCardProps {
 }
 
 const TIER_BORDER_COLORS: Record<BadgeTier, string> = {
-  bronze: 'border-amber-600',
-  silver: 'border-gray-400',
-  gold: 'border-yellow-400',
+  bronze: "border-amber-600",
+  silver: "border-gray-400",
+  gold: "border-yellow-400",
 };
 
 const BadgeSpotlightCard = ({
@@ -28,7 +28,7 @@ const BadgeSpotlightCard = ({
 }: BadgeSpotlightCardProps) => {
   const progressPercent = useMemo(
     () => Math.min(Math.round(progress * 100), 100),
-    [progress],
+    [progress]
   );
 
   return (
@@ -50,7 +50,9 @@ const BadgeSpotlightCard = ({
               2x XP Bonus this week
             </Badge>
           </div>
-          <p className="text-xs text-purple-600 mt-0.5 capitalize">{category}</p>
+          <p className="text-xs text-purple-600 mt-0.5 capitalize">
+            {category}
+          </p>
 
           {currentTier && (
             <div
@@ -76,8 +78,11 @@ const BadgeSpotlightCard = ({
           </div>
 
           {/* Countdown */}
-          <p className="text-[10px] text-gray-400 mt-1.5" data-testid="spotlight-countdown">
-            {daysRemaining} day{daysRemaining !== 1 ? 's' : ''} remaining
+          <p
+            className="text-[10px] text-gray-400 mt-1.5"
+            data-testid="spotlight-countdown"
+          >
+            {daysRemaining} day{daysRemaining !== 1 ? "s" : ""} remaining
           </p>
         </div>
       </div>

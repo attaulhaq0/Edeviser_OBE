@@ -6,7 +6,7 @@
 /**
  * Demand level classification based on purchase frequency percentiles.
  */
-export type DemandLevel = 'low' | 'normal' | 'high';
+export type DemandLevel = "low" | "normal" | "high";
 
 export interface DynamicPricingInput {
   /** Base XP price of the item */
@@ -46,11 +46,11 @@ const MAX_MULTIPLIER = 1.5;
 export function classifyDemand(
   purchaseCount: number,
   p25: number,
-  p75: number,
+  p75: number
 ): DemandLevel {
-  if (purchaseCount > p75) return 'high';
-  if (purchaseCount < p25) return 'low';
-  return 'normal';
+  if (purchaseCount > p75) return "high";
+  if (purchaseCount < p25) return "low";
+  return "normal";
 }
 
 /**
@@ -62,14 +62,16 @@ export function classifyDemand(
  *
  * The result is always an integer ≥ 1 and within [50%, 150%] of base price.
  */
-export function computeDynamicPrice(input: DynamicPricingInput): DynamicPricingResult {
+export function computeDynamicPrice(
+  input: DynamicPricingInput
+): DynamicPricingResult {
   const { basePrice, purchaseCount, p25, p75 } = input;
 
   // Guard: base price must be positive
   if (basePrice <= 0) {
     return {
       dynamicPrice: 1,
-      demandLevel: 'normal',
+      demandLevel: "normal",
       multiplier: 1,
       isAdjusted: false,
     };
@@ -79,13 +81,13 @@ export function computeDynamicPrice(input: DynamicPricingInput): DynamicPricingR
 
   let multiplier = 1;
 
-  if (demandLevel === 'high') {
+  if (demandLevel === "high") {
     // Scale linearly from 1.0 at p75 to MAX_MULTIPLIER at 2×p75
     const range = Math.max(p75, 1); // avoid division by zero
     const excess = purchaseCount - p75;
     const scale = Math.min(excess / range, 1); // cap at 1
     multiplier = 1 + scale * (MAX_MULTIPLIER - 1);
-  } else if (demandLevel === 'low') {
+  } else if (demandLevel === "low") {
     // Scale linearly from 1.0 at p25 down to MIN_MULTIPLIER at 0
     const range = Math.max(p25, 1); // avoid division by zero
     const deficit = p25 - purchaseCount;
@@ -103,6 +105,6 @@ export function computeDynamicPrice(input: DynamicPricingInput): DynamicPricingR
     dynamicPrice,
     demandLevel,
     multiplier,
-    isAdjusted: demandLevel !== 'normal',
+    isAdjusted: demandLevel !== "normal",
   };
 }

@@ -22,6 +22,7 @@
 All 82 custom hooks live in a single flat directory `src/hooks/` with no subdirectories or domain grouping.
 
 **Domains mixed together at the same level:**
+
 - OBE/Academic: `useAssignments`, `useCLOs`, `useCourses`, `useGrades`, `useILOs`, `usePLOs`, `useRubrics`, `useSubmissions`
 - Gamification: `useXP`, `useBadges`, `useStreaks`, `useStreakFreeze`, `useBonusEvents`, `useLeaderboard`
 - Wellness: `useWellnessGoals`, `useWellnessPreferences`, `useWellnessReminders`, `useWellnessTips`, `useWellnessXpConfig`
@@ -40,6 +41,7 @@ All 82 custom hooks live in a single flat directory `src/hooks/` with no subdire
 `src/lib/` contains 45 files mixing pure utilities, domain business logic, and infrastructure code at the same level.
 
 **Business logic in lib/:**
+
 - `badgeDefinitions.ts` -- badge catalog and rules
 - `bloomsClimb.ts` -- gamification progression logic
 - `scoreCalculator.ts` -- onboarding scoring
@@ -48,6 +50,7 @@ All 82 custom hooks live in a single flat directory `src/hooks/` with no subdire
 - `exportCurriculumMatrixCsv.ts` -- curriculum matrix CSV generation
 
 **Infrastructure in lib/:**
+
 - `supabase.ts` -- DB client
 - `sentry.ts` -- error tracking
 - `offlineQueue.ts` -- offline request queuing
@@ -56,6 +59,7 @@ All 82 custom hooks live in a single flat directory `src/hooks/` with no subdire
 - `loginAttemptTracker.ts` -- rate limiting
 
 **Pure utilities in lib/:**
+
 - `utils.ts` -- general helpers
 - `queryKeys.ts` -- React Query key factory
 
@@ -76,6 +80,7 @@ export * from "./wellnessXpAmount"
 ```
 
 **Problem:** Any file that imports from `@/lib/schemas` gets the namespace of all 51 modules. This:
+
 - Defeats tree-shaking in development (bundler must parse all 51 modules to resolve a single import)
 - Creates implicit coupling: adding a new schema with a conflicting export name breaks unrelated consumers
 - Makes it impossible to tell from an import statement which specific schema domain a file depends on
@@ -86,10 +91,10 @@ export * from "./wellnessXpAmount"
 
 Two journal pages import a hook defined inside the leaderboard page directory:
 
-| Consumer | Imports from |
-|---|---|
+| Consumer                                        | Imports from                                          |
+| ----------------------------------------------- | ----------------------------------------------------- |
 | `src/pages/student/journal/JournalListPage.tsx` | `@/pages/student/leaderboard/useStudentCourseProgram` |
-| `src/pages/student/journal/JournalEditor.tsx` | `@/pages/student/leaderboard/useStudentCourseProgram` |
+| `src/pages/student/journal/JournalEditor.tsx`   | `@/pages/student/leaderboard/useStudentCourseProgram` |
 
 **Problem:** `useStudentCourseProgram` is a page-scoped utility inside `pages/student/leaderboard/` but is consumed by an entirely different page domain (`journal/`). This creates a horizontal dependency between sibling page directories. If the leaderboard page is refactored, moved, or deleted, the journal pages break. Shared logic consumed by multiple pages should not live inside a specific page's directory.
 
@@ -99,11 +104,11 @@ Two journal pages import a hook defined inside the leaderboard page directory:
 
 The role-to-dashboard-path mapping is defined independently in three files:
 
-| File | Location |
-|---|---|
-| `src/providers/AuthProvider.tsx` | Used for post-login redirect |
-| `src/router/RouteGuard.tsx` | Used for unauthorized redirect |
-| `SECURITY-AUDIT-REPORT.md` | Documented as a known pattern |
+| File                             | Location                       |
+| -------------------------------- | ------------------------------ |
+| `src/providers/AuthProvider.tsx` | Used for post-login redirect   |
+| `src/router/RouteGuard.tsx`      | Used for unauthorized redirect |
+| `SECURITY-AUDIT-REPORT.md`       | Documented as a known pattern  |
 
 **Problem:** Single source of truth violation. If a new role is added or a dashboard path changes, all locations must be updated in sync. There is no compile-time guarantee they stay consistent.
 
@@ -129,6 +134,7 @@ The role-to-dashboard-path mapping is defined independently in three files:
 ## 8. Router Monolith (247 lines, 80+ lazy imports) (MEDIUM)
 
 `src/router/AppRouter.tsx` is a single 247-line file containing:
+
 - **80 lazy-loaded component imports** (lines 8-83)
 - **66 route definitions** across 5 role groups (lines 106-242)
 - An inline `LoadingFallback` component (lines 88-98)
@@ -142,6 +148,7 @@ The role-to-dashboard-path mapping is defined independently in three files:
 `src/components/shared/` contains 92 component files with no subdirectory grouping.
 
 **Domains mixed together:**
+
 - AI widgets: `AIAtRiskWidget`, `AISuggestionCard`, `AIFeedbackThumbs`
 - Wellness: `WellnessSettingsPanel`, `WellnessReminderSettings`, `WellnessGoalInput`
 - Charts/Data: `CorrelationInsightCard`, `CorrelationConfidenceBadge`, `Shimmer`
@@ -149,6 +156,7 @@ The role-to-dashboard-path mapping is defined independently in three files:
 - Forms: various form-related components
 
 **Internal coupling within shared/:**
+
 - `AIAtRiskWidget` imports `Shimmer` and `AtRiskStudentRow`
 - `AISuggestionCard` imports `AIFeedbackThumbs`
 - `CorrelationInsightCard` imports `CorrelationConfidenceBadge`
@@ -163,10 +171,11 @@ The role-to-dashboard-path mapping is defined independently in three files:
 `src/providers/ThemeProvider.tsx` imports `useAuth` from `@/hooks/useAuth`:
 
 ```typescript
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from "@/hooks/useAuth";
 ```
 
 **Problem:** ThemeProvider is a presentation-layer concern that depends on the auth layer to read the user's theme preference. This creates a coupling where:
+
 - ThemeProvider cannot be used outside of the AuthProvider tree
 - Theme functionality is blocked until auth resolves
 - The provider hierarchy is implicitly ordered (AuthProvider must wrap ThemeProvider) but this constraint is not enforced or documented
@@ -199,24 +208,25 @@ useWellnessTips       --> useWellnessPreferences
 
 ## Summary Table
 
-| # | Issue | Severity | Scope |
-|---|---|---|---|
-| 1 | Hub-and-spoke `useAuth` dependency (23 hooks) | HIGH | `src/hooks/` |
-| 2 | Flat hook directory (82 files, no grouping) | HIGH | `src/hooks/` |
-| 3 | Flat lib directory (45 files, mixed concerns) | HIGH | `src/lib/` |
-| 4 | Monolithic schemas barrel (51 re-exports) | MEDIUM | `src/lib/schemas/index.ts` |
-| 5 | Cross-page imports (journal -> leaderboard) | MEDIUM | `src/pages/student/` |
-| 6 | Duplicate `ROLE_DASHBOARD_MAP` (3 locations) | MEDIUM | `src/providers/`, `src/router/` |
-| 7 | Monolithic type file (565 lines, all domains) | MEDIUM | `src/types/app.ts` |
-| 8 | Router monolith (247 lines, 80+ imports) | MEDIUM | `src/router/AppRouter.tsx` |
-| 9 | Flat shared components (92 files) | MEDIUM | `src/components/shared/` |
-| 10 | ThemeProvider depends on auth hook (+ dead code) | LOW | `src/providers/ThemeProvider.tsx` |
-| 11 | Centralized query keys, distributed queries | LOW | `src/lib/queryKeys.ts` |
-| 12 | Wellness hook chain coupling | LOW | `src/hooks/useWellness*.ts` |
+| #   | Issue                                            | Severity | Scope                             |
+| --- | ------------------------------------------------ | -------- | --------------------------------- |
+| 1   | Hub-and-spoke `useAuth` dependency (23 hooks)    | HIGH     | `src/hooks/`                      |
+| 2   | Flat hook directory (82 files, no grouping)      | HIGH     | `src/hooks/`                      |
+| 3   | Flat lib directory (45 files, mixed concerns)    | HIGH     | `src/lib/`                        |
+| 4   | Monolithic schemas barrel (51 re-exports)        | MEDIUM   | `src/lib/schemas/index.ts`        |
+| 5   | Cross-page imports (journal -> leaderboard)      | MEDIUM   | `src/pages/student/`              |
+| 6   | Duplicate `ROLE_DASHBOARD_MAP` (3 locations)     | MEDIUM   | `src/providers/`, `src/router/`   |
+| 7   | Monolithic type file (565 lines, all domains)    | MEDIUM   | `src/types/app.ts`                |
+| 8   | Router monolith (247 lines, 80+ imports)         | MEDIUM   | `src/router/AppRouter.tsx`        |
+| 9   | Flat shared components (92 files)                | MEDIUM   | `src/components/shared/`          |
+| 10  | ThemeProvider depends on auth hook (+ dead code) | LOW      | `src/providers/ThemeProvider.tsx` |
+| 11  | Centralized query keys, distributed queries      | LOW      | `src/lib/queryKeys.ts`            |
+| 12  | Wellness hook chain coupling                     | LOW      | `src/hooks/useWellness*.ts`       |
 
 ---
 
 **What is NOT a problem (verified clean):**
+
 - No direct Supabase calls in pages or components (all DB access goes through hooks)
 - No circular dependencies detected between modules
 - Edge functions (20+) have zero imports from `src/` -- complete isolation

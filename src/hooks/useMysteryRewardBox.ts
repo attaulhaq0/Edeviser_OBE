@@ -3,13 +3,13 @@
 // Task 20.5
 // =============================================================================
 
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
 
 export interface MysteryRewardResult {
   success: boolean;
-  outcome_type: 'double_xp' | 'cosmetic' | 'boost';
+  outcome_type: "double_xp" | "cosmetic" | "boost";
   reward_details: Record<string, unknown>;
 }
 
@@ -23,12 +23,15 @@ export const useResolveMysteryReward = () => {
       studentId: string;
       institutionId: string;
     }): Promise<MysteryRewardResult> => {
-      const { data, error } = await supabase.functions.invoke('resolve-mystery-reward', {
-        body: {
-          student_id: studentId,
-          institution_id: institutionId,
-        },
-      });
+      const { data, error } = await supabase.functions.invoke(
+        "resolve-mystery-reward",
+        {
+          body: {
+            student_id: studentId,
+            institution_id: institutionId,
+          },
+        }
+      );
       if (error) throw error;
       return data as MysteryRewardResult;
     },

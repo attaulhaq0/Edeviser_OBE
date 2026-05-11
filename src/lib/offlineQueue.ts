@@ -1,5 +1,5 @@
 // Task 54: Offline Queue — queue events when offline, flush on reconnect
-const QUEUE_KEY = 'edeviser_offline_queue';
+const QUEUE_KEY = "edeviser_offline_queue";
 const MAX_RETRIES = 3;
 
 interface QueuedEvent {
@@ -14,11 +14,17 @@ function getQueue(): QueuedEvent[] {
   try {
     const raw = localStorage.getItem(QUEUE_KEY);
     return raw ? JSON.parse(raw) : [];
-  } catch { return []; }
+  } catch {
+    return [];
+  }
 }
 
 function saveQueue(queue: QueuedEvent[]): void {
-  try { localStorage.setItem(QUEUE_KEY, JSON.stringify(queue)); } catch { /* ignore */ }
+  try {
+    localStorage.setItem(QUEUE_KEY, JSON.stringify(queue));
+  } catch {
+    /* ignore */
+  }
 }
 
 type FlushHandler = (payload: unknown) => Promise<void>;
@@ -51,7 +57,11 @@ export const offlineQueue = {
 
     for (const event of queue) {
       const handler = handlers.get(event.handler);
-      if (!handler) { remaining.push(event); failed++; continue; }
+      if (!handler) {
+        remaining.push(event);
+        failed++;
+        continue;
+      }
       try {
         await handler(event.payload);
         flushed++;
@@ -67,10 +77,16 @@ export const offlineQueue = {
   },
 
   init(): () => void {
-    const handler = () => { offlineQueue.flush().catch((err) => console.error('[OfflineQueue] flush failed:', err)); };
-    window.addEventListener('online', handler);
-    return () => window.removeEventListener('online', handler);
+    const handler = () => {
+      offlineQueue
+        .flush()
+        .catch((err) => console.error("[OfflineQueue] flush failed:", err));
+    };
+    window.addEventListener("online", handler);
+    return () => window.removeEventListener("online", handler);
   },
 
-  size(): number { return getQueue().length; },
+  size(): number {
+    return getQueue().length;
+  },
 };

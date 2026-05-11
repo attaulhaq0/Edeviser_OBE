@@ -2,11 +2,14 @@
 // SaleEventForm — Create/edit sale event with item multi-select
 // =============================================================================
 
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { createSaleEventSchema, type CreateSaleEventInput } from '@/lib/marketplaceSchemas';
-import { useCreateSaleEvent } from '@/hooks/useSaleEvents';
-import { useAdminMarketplaceItems } from '@/hooks/useMarketplaceAdmin';
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  createSaleEventSchema,
+  type CreateSaleEventInput,
+} from "@/lib/marketplaceSchemas";
+import { useCreateSaleEvent } from "@/hooks/useSaleEvents";
+import { useAdminMarketplaceItems } from "@/hooks/useMarketplaceAdmin";
 import {
   Form,
   FormField,
@@ -14,13 +17,13 @@ import {
   FormLabel,
   FormControl,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowLeft, Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ArrowLeft, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 interface SaleEventFormProps {
   onClose: () => void;
@@ -34,7 +37,7 @@ const SaleEventForm = ({ onClose }: SaleEventFormProps) => {
   const form = useForm<CreateSaleEventInput>({
     resolver: zodResolver(createSaleEventSchema) as never,
     defaultValues: {
-      name: '',
+      name: "",
       discount_percentage: 20,
       start_date: new Date().toISOString(),
       end_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
@@ -42,12 +45,12 @@ const SaleEventForm = ({ onClose }: SaleEventFormProps) => {
     },
   });
 
-  const selectedItemIds = form.watch('item_ids');
+  const selectedItemIds = form.watch("item_ids");
 
   const onSubmit = (data: CreateSaleEventInput) => {
     createSale.mutate(data, {
       onSuccess: () => {
-        toast.success('Sale event created');
+        toast.success("Sale event created");
         onClose();
       },
       onError: (err) => toast.error(err.message),
@@ -55,15 +58,15 @@ const SaleEventForm = ({ onClose }: SaleEventFormProps) => {
   };
 
   const toggleItem = (itemId: string) => {
-    const current = form.getValues('item_ids');
+    const current = form.getValues("item_ids");
     if (current.includes(itemId)) {
       form.setValue(
-        'item_ids',
+        "item_ids",
         current.filter((id) => id !== itemId),
-        { shouldValidate: true },
+        { shouldValidate: true }
       );
     } else {
-      form.setValue('item_ids', [...current, itemId], { shouldValidate: true });
+      form.setValue("item_ids", [...current, itemId], { shouldValidate: true });
     }
   };
 
@@ -123,8 +126,10 @@ const SaleEventForm = ({ onClose }: SaleEventFormProps) => {
                     <FormControl>
                       <Input
                         type="datetime-local"
-                        value={field.value ? field.value.slice(0, 16) : ''}
-                        onChange={(e) => field.onChange(new Date(e.target.value).toISOString())}
+                        value={field.value ? field.value.slice(0, 16) : ""}
+                        onChange={(e) =>
+                          field.onChange(new Date(e.target.value).toISOString())
+                        }
                       />
                     </FormControl>
                     <FormMessage />
@@ -141,8 +146,10 @@ const SaleEventForm = ({ onClose }: SaleEventFormProps) => {
                     <FormControl>
                       <Input
                         type="datetime-local"
-                        value={field.value ? field.value.slice(0, 16) : ''}
-                        onChange={(e) => field.onChange(new Date(e.target.value).toISOString())}
+                        value={field.value ? field.value.slice(0, 16) : ""}
+                        onChange={(e) =>
+                          field.onChange(new Date(e.target.value).toISOString())
+                        }
                       />
                     </FormControl>
                     <FormMessage />
@@ -156,10 +163,14 @@ const SaleEventForm = ({ onClose }: SaleEventFormProps) => {
               name="item_ids"
               render={() => (
                 <FormItem>
-                  <FormLabel>Select Items ({selectedItemIds.length} selected)</FormLabel>
+                  <FormLabel>
+                    Select Items ({selectedItemIds.length} selected)
+                  </FormLabel>
                   <div className="border border-slate-200 rounded-lg max-h-60 overflow-y-auto p-3 space-y-2">
                     {activeItems.length === 0 ? (
-                      <p className="text-sm text-gray-500">No active items available.</p>
+                      <p className="text-sm text-gray-500">
+                        No active items available.
+                      </p>
                     ) : (
                       activeItems.map((item) => (
                         <label
@@ -173,8 +184,12 @@ const SaleEventForm = ({ onClose }: SaleEventFormProps) => {
                             onCheckedChange={() => toggleItem(item.id)}
                           />
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate">{item.name}</p>
-                            <p className="text-xs text-gray-500">{item.xp_price} XP · {item.category}</p>
+                            <p className="text-sm font-medium truncate">
+                              {item.name}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {item.xp_price} XP · {item.category}
+                            </p>
                           </div>
                         </label>
                       ))
@@ -191,7 +206,9 @@ const SaleEventForm = ({ onClose }: SaleEventFormProps) => {
                 disabled={createSale.isPending}
                 className="bg-gradient-to-r from-teal-500 to-blue-600 text-white active:scale-95 transition-transform duration-100"
               >
-                {createSale.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+                {createSale.isPending && (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                )}
                 Create Sale Event
               </Button>
               <Button type="button" variant="outline" onClick={onClose}>

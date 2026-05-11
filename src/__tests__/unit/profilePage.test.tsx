@@ -4,16 +4,16 @@
 // Tests the shared Profile page for all roles (Req 8, 39.2)
 // =============================================================================
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen, waitFor, fireEvent } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 // ─── Mocks ──────────────────────────────────────────────────────────────────
 
 const mockMaybeSingle = vi.fn();
 const mockUpdate = vi.fn();
 
-vi.mock('@/lib/supabase', () => ({
+vi.mock("@/lib/supabase", () => ({
   supabase: {
     from: vi.fn(() => ({
       select: vi.fn(() => ({
@@ -29,54 +29,59 @@ vi.mock('@/lib/supabase', () => ({
       }),
     })),
     functions: {
-      invoke: vi.fn().mockResolvedValue({ data: { download_url: 'https://example.com/export.json' }, error: null }),
+      invoke: vi
+        .fn()
+        .mockResolvedValue({
+          data: { download_url: "https://example.com/export.json" },
+          error: null,
+        }),
     },
   },
 }));
 
 const mockProfile = {
-  id: 'user-1',
-  email: 'user@test.com',
-  full_name: 'Test User',
-  role: 'admin' as const,
+  id: "user-1",
+  email: "user@test.com",
+  full_name: "Test User",
+  role: "admin" as const,
   avatar_url: null as string | null,
 };
 
-vi.mock('@/hooks/useAuth', () => ({
+vi.mock("@/hooks/useAuth", () => ({
   useAuth: () => ({
-    user: { id: 'user-1' },
+    user: { id: "user-1" },
     profile: mockProfile,
   }),
 }));
 
-vi.mock('sonner', () => ({
+vi.mock("sonner", () => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }));
 
 const mockSetTheme = vi.fn();
-vi.mock('@/providers/ThemeProvider', () => ({
+vi.mock("@/providers/ThemeProvider", () => ({
   useTheme: () => ({
-    theme: 'system' as const,
-    resolvedTheme: 'light' as const,
+    theme: "system" as const,
+    resolvedTheme: "light" as const,
     setTheme: mockSetTheme,
   }),
   ThemePreference: {},
 }));
 
 const mockUploadAvatarFile = vi.fn();
-vi.mock('@/lib/fileUpload', () => ({
+vi.mock("@/lib/fileUpload", () => ({
   uploadAvatarFile: (...args: unknown[]) => mockUploadAvatarFile(...args),
   FileValidationError: class FileValidationError extends Error {
     constructor(message: string) {
       super(message);
-      this.name = 'FileValidationError';
+      this.name = "FileValidationError";
     }
   },
 }));
 
-import ProfilePage from '@/pages/shared/ProfilePage';
-import { FileValidationError } from '@/lib/fileUpload';
-import { toast } from 'sonner';
+import ProfilePage from "@/pages/shared/ProfilePage";
+import { FileValidationError } from "@/lib/fileUpload";
+import { toast } from "sonner";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -93,7 +98,7 @@ const renderPage = () => {
   return render(
     <QueryClientProvider client={queryClient}>
       <ProfilePage />
-    </QueryClientProvider>,
+    </QueryClientProvider>
   );
 };
 
@@ -104,11 +109,11 @@ const createFile = (name: string, type: string, sizeKB = 100): File => {
 
 // ─── Tests ──────────────────────────────────────────────────────────────────
 
-describe('ProfilePage', () => {
+describe("ProfilePage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockProfile.avatar_url = null;
-    mockProfile.role = 'admin' as const;
+    mockProfile.role = "admin" as const;
     mockMaybeSingle.mockResolvedValue({
       data: {
         email_preferences: {
@@ -122,157 +127,171 @@ describe('ProfilePage', () => {
     });
   });
 
-  it('renders the page title', () => {
+  it("renders the page title", () => {
     renderPage();
-    expect(screen.getByText('Profile Settings')).toBeDefined();
+    expect(screen.getByText("Profile Settings")).toBeDefined();
   });
 
-  it('renders the profile section header', () => {
+  it("renders the profile section header", () => {
     renderPage();
-    expect(screen.getByText('Profile')).toBeDefined();
+    expect(screen.getByText("Profile")).toBeDefined();
   });
 
-  it('displays the user full name', () => {
+  it("displays the user full name", () => {
     renderPage();
-    expect(screen.getByText('Test User')).toBeDefined();
+    expect(screen.getByText("Test User")).toBeDefined();
   });
 
-  it('displays the user email', () => {
+  it("displays the user email", () => {
     renderPage();
-    expect(screen.getByText('user@test.com')).toBeDefined();
+    expect(screen.getByText("user@test.com")).toBeDefined();
   });
 
-  it('displays the user role', () => {
+  it("displays the user role", () => {
     renderPage();
-    expect(screen.getByText('admin')).toBeDefined();
+    expect(screen.getByText("admin")).toBeDefined();
   });
 
-  it('renders the EmailPreferencesSection', async () => {
+  it("renders the EmailPreferencesSection", async () => {
     renderPage();
     await waitFor(() => {
-      expect(screen.getByText('Email Notifications')).toBeDefined();
+      expect(screen.getByText("Email Notifications")).toBeDefined();
     });
   });
 
-  it('shows fallback icon when no avatar_url is set', () => {
+  it("shows fallback icon when no avatar_url is set", () => {
     renderPage();
-    const fallback = document.querySelector('.bg-blue-50.rounded-full');
+    const fallback = document.querySelector(".bg-blue-50.rounded-full");
     expect(fallback).not.toBeNull();
   });
 
-  it('renders avatar image when avatar_url is set', () => {
-    mockProfile.avatar_url = 'https://example.com/avatar.jpg';
+  it("renders avatar image when avatar_url is set", () => {
+    mockProfile.avatar_url = "https://example.com/avatar.jpg";
     renderPage();
-    const img = screen.getByAltText('Test User');
+    const img = screen.getByAltText("Test User");
     expect(img).toBeDefined();
-    expect(img.getAttribute('src')).toBe('https://example.com/avatar.jpg');
+    expect(img.getAttribute("src")).toBe("https://example.com/avatar.jpg");
   });
 
-  it('renders an upload avatar button', () => {
+  it("renders an upload avatar button", () => {
     renderPage();
-    const btn = screen.getByRole('button', { name: /upload avatar/i });
+    const btn = screen.getByRole("button", { name: /upload avatar/i });
     expect(btn).toBeDefined();
   });
 
-  it('has a hidden file input with correct accept types', () => {
+  it("has a hidden file input with correct accept types", () => {
     renderPage();
-    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+    const input = document.querySelector(
+      'input[type="file"]'
+    ) as HTMLInputElement;
     expect(input).not.toBeNull();
-    expect(input.accept).toBe('image/jpeg,image/png,image/gif,image/webp');
-    expect(input.className).toContain('hidden');
+    expect(input.accept).toBe("image/jpeg,image/png,image/gif,image/webp");
+    expect(input.className).toContain("hidden");
   });
 
-  it('uploads avatar and shows success toast on valid file', async () => {
-    mockUploadAvatarFile.mockResolvedValue('https://storage.example.com/avatar.png');
+  it("uploads avatar and shows success toast on valid file", async () => {
+    mockUploadAvatarFile.mockResolvedValue(
+      "https://storage.example.com/avatar.png"
+    );
 
     renderPage();
-    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
-    const file = createFile('photo.png', 'image/png');
+    const input = document.querySelector(
+      'input[type="file"]'
+    ) as HTMLInputElement;
+    const file = createFile("photo.png", "image/png");
 
     fireEvent.change(input, { target: { files: [file] } });
 
     await waitFor(() => {
       expect(mockUploadAvatarFile).toHaveBeenCalledWith({
         file,
-        userId: 'user-1',
+        userId: "user-1",
       });
     });
 
     await waitFor(() => {
       expect(mockUpdate).toHaveBeenCalledWith({
-        avatar_url: 'https://storage.example.com/avatar.png',
+        avatar_url: "https://storage.example.com/avatar.png",
       });
     });
 
     await waitFor(() => {
-      expect(toast.success).toHaveBeenCalledWith('Avatar updated');
+      expect(toast.success).toHaveBeenCalledWith("Avatar updated");
     });
   });
 
-  it('shows validation error toast when file is invalid', async () => {
+  it("shows validation error toast when file is invalid", async () => {
     mockUploadAvatarFile.mockRejectedValue(
-      new FileValidationError('File size exceeds the 2MB limit. Your file is 3.0MB.'),
+      new FileValidationError(
+        "File size exceeds the 2MB limit. Your file is 3.0MB."
+      )
     );
 
     renderPage();
-    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
-    const file = createFile('big.png', 'image/png', 3000);
+    const input = document.querySelector(
+      'input[type="file"]'
+    ) as HTMLInputElement;
+    const file = createFile("big.png", "image/png", 3000);
 
     fireEvent.change(input, { target: { files: [file] } });
 
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith(
-        'File size exceeds the 2MB limit. Your file is 3.0MB.',
+        "File size exceeds the 2MB limit. Your file is 3.0MB."
       );
     });
   });
 
-  it('shows generic error toast on upload failure', async () => {
-    mockUploadAvatarFile.mockRejectedValue(new Error('Network error'));
+  it("shows generic error toast on upload failure", async () => {
+    mockUploadAvatarFile.mockRejectedValue(new Error("Network error"));
 
     renderPage();
-    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
-    const file = createFile('photo.png', 'image/png');
+    const input = document.querySelector(
+      'input[type="file"]'
+    ) as HTMLInputElement;
+    const file = createFile("photo.png", "image/png");
 
     fireEvent.change(input, { target: { files: [file] } });
 
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith(
-        'Failed to upload avatar. Please try again.',
+        "Failed to upload avatar. Please try again."
       );
     });
   });
 
-  it('renders the Appearance section with theme toggle buttons', () => {
+  it("renders the Appearance section with theme toggle buttons", () => {
     renderPage();
-    expect(screen.getByText('Appearance')).toBeDefined();
-    expect(screen.getByRole('radio', { name: /light/i })).toBeDefined();
-    expect(screen.getByRole('radio', { name: /dark/i })).toBeDefined();
-    expect(screen.getByRole('radio', { name: /system/i })).toBeDefined();
+    expect(screen.getByText("Appearance")).toBeDefined();
+    expect(screen.getByRole("radio", { name: /light/i })).toBeDefined();
+    expect(screen.getByRole("radio", { name: /dark/i })).toBeDefined();
+    expect(screen.getByRole("radio", { name: /system/i })).toBeDefined();
   });
 
-  it('calls setTheme when a theme button is clicked', () => {
+  it("calls setTheme when a theme button is clicked", () => {
     renderPage();
-    fireEvent.click(screen.getByRole('radio', { name: /dark/i }));
-    expect(mockSetTheme).toHaveBeenCalledWith('dark');
+    fireEvent.click(screen.getByRole("radio", { name: /dark/i }));
+    expect(mockSetTheme).toHaveBeenCalledWith("dark");
   });
 
-  it('marks the current theme as checked', () => {
+  it("marks the current theme as checked", () => {
     renderPage();
-    const systemBtn = screen.getByRole('radio', { name: /system/i });
-    expect(systemBtn.getAttribute('aria-checked')).toBe('true');
+    const systemBtn = screen.getByRole("radio", { name: /system/i });
+    expect(systemBtn.getAttribute("aria-checked")).toBe("true");
   });
 
-  it('does not render Data Export section for non-student roles', () => {
-    mockProfile.role = 'admin' as const;
+  it("does not render Data Export section for non-student roles", () => {
+    mockProfile.role = "admin" as const;
     renderPage();
-    expect(screen.queryByText('Data Export')).toBeNull();
+    expect(screen.queryByText("Data Export")).toBeNull();
   });
 
-  it('renders Data Export section for student role', () => {
-    mockProfile.role = 'student' as 'admin';
+  it("renders Data Export section for student role", () => {
+    mockProfile.role = "student" as "admin";
     renderPage();
-    expect(screen.getByText('Data Export')).toBeDefined();
-    expect(screen.getByRole('button', { name: /download my data/i })).toBeDefined();
+    expect(screen.getByText("Data Export")).toBeDefined();
+    expect(
+      screen.getByRole("button", { name: /download my data/i })
+    ).toBeDefined();
   });
 });

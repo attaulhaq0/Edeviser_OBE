@@ -3,7 +3,7 @@
 // Idempotent: cannot be awarded twice for same semester
 
 export const COMEBACK_KID_THRESHOLD = 3;
-export const COMEBACK_KID_BADGE_ID = 'comeback_kid';
+export const COMEBACK_KID_BADGE_ID = "comeback_kid";
 
 export interface ComebackKidInput {
   existingBadgeIds: Set<string>;

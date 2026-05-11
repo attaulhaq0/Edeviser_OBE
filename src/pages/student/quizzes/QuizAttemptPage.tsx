@@ -1,19 +1,23 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import {
   useQuiz,
   useQuizQuestions,
   useQuizAttempts,
   useSubmitQuizAttempt,
-} from '@/hooks/useQuizzes';
-import { useAuth } from '@/hooks/useAuth';
-import { getActiveExtraAttemptToken, consumeExtraAttemptToken, canAttemptQuiz } from '@/lib/extraQuizAttempt';
-import QuizQuestionCard from '@/components/shared/QuizQuestionCard';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { ArrowLeft, Clock, Loader2, AlertTriangle, Ticket } from 'lucide-react';
-import { toast } from 'sonner';
+} from "@/hooks/useQuizzes";
+import { useAuth } from "@/hooks/useAuth";
+import {
+  getActiveExtraAttemptToken,
+  consumeExtraAttemptToken,
+  canAttemptQuiz,
+} from "@/lib/extraQuizAttempt";
+import QuizQuestionCard from "@/components/shared/QuizQuestionCard";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { ArrowLeft, Clock, Loader2, AlertTriangle, Ticket } from "lucide-react";
+import { toast } from "sonner";
 
 // ─── Timer Hook ──────────────────────────────────────────────────────────────
 
@@ -55,7 +59,9 @@ function useCountdown(totalSeconds: number | null, onExpire: () => void) {
 
   const minutes = Math.floor(remaining / 60);
   const seconds = remaining % 60;
-  const display = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  const display = `${String(minutes).padStart(2, "0")}:${String(
+    seconds
+  ).padStart(2, "0")}`;
   const isLow = remaining > 0 && remaining <= 60;
 
   return { remaining, display, isLow };
@@ -67,11 +73,15 @@ const QuizAttemptPage = () => {
   const { quizId } = useParams<{ quizId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const studentId = user?.id ?? '';
+  const studentId = user?.id ?? "";
 
   const { data: quiz, isLoading: isLoadingQuiz } = useQuiz(quizId);
-  const { data: questions, isLoading: isLoadingQuestions } = useQuizQuestions(quizId);
-  const { data: attempts, isLoading: isLoadingAttempts } = useQuizAttempts(quizId, studentId);
+  const { data: questions, isLoading: isLoadingQuestions } =
+    useQuizQuestions(quizId);
+  const { data: attempts, isLoading: isLoadingAttempts } = useQuizAttempts(
+    quizId,
+    studentId
+  );
   const submitAttempt = useSubmitQuizAttempt();
 
   const [answers, setAnswers] = useState<Record<string, string | string[]>>({});
@@ -81,11 +91,13 @@ const QuizAttemptPage = () => {
 
   const attemptCount = attempts?.length ?? 0;
   const maxAttempts = quiz?.max_attempts ?? 1;
-  const timeLimitSeconds = quiz?.time_limit_minutes ? quiz.time_limit_minutes * 60 : null;
+  const timeLimitSeconds = quiz?.time_limit_minutes
+    ? quiz.time_limit_minutes * 60
+    : null;
 
   // Check for extra quiz attempt token from marketplace
   const { data: extraTokenData } = useQuery({
-    queryKey: ['marketplace', 'extraAttemptToken', studentId, quizId],
+    queryKey: ["marketplace", "extraAttemptToken", studentId, quizId],
     queryFn: () => getActiveExtraAttemptToken(studentId),
     enabled: !!studentId && attemptCount >= maxAttempts,
   });
@@ -104,7 +116,7 @@ const QuizAttemptPage = () => {
         try {
           await consumeExtraAttemptToken(extraTokenData.purchaseId);
         } catch {
-          toast.error('Failed to consume extra attempt token');
+          toast.error("Failed to consume extra attempt token");
           setSubmitted(false);
           return;
         }
@@ -120,22 +132,32 @@ const QuizAttemptPage = () => {
         },
         {
           onSuccess: () => {
-            toast.success('Quiz submitted successfully');
+            toast.success("Quiz submitted successfully");
           },
           onError: (err) => {
             toast.error(err.message);
             setSubmitted(false);
           },
-        },
+        }
       );
     };
 
     doSubmit();
-  }, [submitted, quizId, studentId, answers, startedAt, attemptCount, submitAttempt, isUsingExtraToken, extraTokenData]);
+  }, [
+    submitted,
+    quizId,
+    studentId,
+    answers,
+    startedAt,
+    attemptCount,
+    submitAttempt,
+    isUsingExtraToken,
+    extraTokenData,
+  ]);
 
   const { display: timerDisplay, isLow: timerIsLow } = useCountdown(
     started ? timeLimitSeconds : null,
-    handleSubmit,
+    handleSubmit
   );
 
   const handleAnswer = (questionId: string, answer: string) => {
@@ -169,9 +191,12 @@ const QuizAttemptPage = () => {
       <div className="space-y-6 max-w-3xl mx-auto">
         <Card className="bg-white border-0 shadow-md rounded-xl p-8 text-center">
           <div className="text-4xl mb-4">✅</div>
-          <h2 className="text-xl font-bold tracking-tight mb-2">Quiz Submitted</h2>
+          <h2 className="text-xl font-bold tracking-tight mb-2">
+            Quiz Submitted
+          </h2>
           <p className="text-sm text-gray-500 mb-6">
-            Your answers have been recorded. Auto-gradable questions are scored immediately.
+            Your answers have been recorded. Auto-gradable questions are scored
+            immediately.
           </p>
           <Button variant="outline" onClick={() => navigate(-1)}>
             Back to Quizzes
@@ -195,11 +220,13 @@ const QuizAttemptPage = () => {
           <AlertTriangle className="h-10 w-10 text-amber-500 mx-auto mb-4" />
           <h2 className="text-lg font-bold mb-2">Maximum Attempts Reached</h2>
           <p className="text-sm text-gray-500">
-            You have used all {maxAttempts} attempt{maxAttempts > 1 ? 's' : ''} for this quiz.
+            You have used all {maxAttempts} attempt{maxAttempts > 1 ? "s" : ""}{" "}
+            for this quiz.
           </p>
           <p className="text-xs text-gray-400 mt-2">
             <Ticket className="inline h-3 w-3 me-1" />
-            Purchase an Extra Quiz Attempt token from the Marketplace to try again.
+            Purchase an Extra Quiz Attempt token from the Marketplace to try
+            again.
           </p>
         </Card>
       </div>
@@ -217,17 +244,20 @@ const QuizAttemptPage = () => {
           <h1 className="text-2xl font-bold tracking-tight">{quiz.title}</h1>
         </div>
         <Card className="bg-white border-0 shadow-md rounded-xl p-8">
-          <h2 className="text-lg font-bold tracking-tight mb-4">Quiz Information</h2>
+          <h2 className="text-lg font-bold tracking-tight mb-4">
+            Quiz Information
+          </h2>
           <div className="space-y-2 text-sm text-gray-600 mb-6">
             {quiz.description && <p>{quiz.description}</p>}
             <p>Questions: {questions?.length ?? 0}</p>
             <p>
-              Total Points:{' '}
+              Total Points:{" "}
               {questions?.reduce((sum, q) => sum + q.points, 0) ?? 0}
             </p>
             {quiz.time_limit_minutes && (
               <p className="flex items-center gap-1">
-                <Clock className="h-4 w-4" /> Time Limit: {quiz.time_limit_minutes} minutes
+                <Clock className="h-4 w-4" /> Time Limit:{" "}
+                {quiz.time_limit_minutes} minutes
               </p>
             )}
             <p>
@@ -255,13 +285,15 @@ const QuizAttemptPage = () => {
     <div className="space-y-6 max-w-3xl mx-auto">
       {/* Header with timer */}
       <div className="flex items-center justify-between sticky top-0 z-10 bg-slate-50 py-3">
-        <h1 className="text-xl font-bold tracking-tight truncate">{quiz.title}</h1>
+        <h1 className="text-xl font-bold tracking-tight truncate">
+          {quiz.title}
+        </h1>
         {timeLimitSeconds && (
           <div
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-bold ${
               timerIsLow
-                ? 'bg-red-50 text-red-600 animate-pulse'
-                : 'bg-blue-50 text-blue-600'
+                ? "bg-red-50 text-red-600 animate-pulse"
+                : "bg-blue-50 text-blue-600"
             }`}
           >
             <Clock className="h-4 w-4" />
@@ -277,8 +309,8 @@ const QuizAttemptPage = () => {
           questionNumber={idx + 1}
           questionText={q.question_text}
           questionType={
-            q.question_type === 'mcq_single' || q.question_type === 'mcq_multi'
-              ? 'mcq'
+            q.question_type === "mcq_single" || q.question_type === "mcq_multi"
+              ? "mcq"
               : q.question_type
           }
           options={q.options ?? undefined}
@@ -295,7 +327,9 @@ const QuizAttemptPage = () => {
           disabled={submitAttempt.isPending}
           className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 text-white"
         >
-          {submitAttempt.isPending && <Loader2 className="h-4 w-4 animate-spin me-1" />}
+          {submitAttempt.isPending && (
+            <Loader2 className="h-4 w-4 animate-spin me-1" />
+          )}
           Submit Quiz
         </Button>
       </div>

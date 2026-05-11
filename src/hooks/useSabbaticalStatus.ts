@@ -1,6 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
 
 /**
  * Fetches whether Streak Sabbatical is enabled for a student from
@@ -9,16 +9,16 @@ import { queryKeys } from '@/lib/queryKeys';
  */
 export const useSabbaticalStatus = (studentId: string | undefined) => {
   return useQuery({
-    queryKey: queryKeys.studentGamification.sabbatical(studentId ?? ''),
+    queryKey: queryKeys.studentGamification.sabbatical(studentId ?? ""),
     enabled: !!studentId,
     queryFn: async (): Promise<boolean> => {
       if (!studentId) return false;
 
       try {
         const { data, error } = await supabase
-          .from('student_gamification')
-          .select('sabbatical_enabled' as never)
-          .eq('student_id', studentId)
+          .from("student_gamification")
+          .select("sabbatical_enabled" as never)
+          .eq("student_id", studentId)
           .maybeSingle();
 
         if (error) throw error;

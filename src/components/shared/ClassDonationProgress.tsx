@@ -3,12 +3,15 @@
 // Task 22.2
 // =============================================================================
 
-import { useMemo } from 'react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Heart, Loader2 } from 'lucide-react';
-import { useContributeToDonation, type ClassDonation } from '@/hooks/useClassDonations';
-import { useAuth } from '@/hooks/useAuth';
+import { useMemo } from "react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Heart, Loader2 } from "lucide-react";
+import {
+  useContributeToDonation,
+  type ClassDonation,
+} from "@/hooks/useClassDonations";
+import { useAuth } from "@/hooks/useAuth";
 
 interface ClassDonationProgressProps {
   donation: ClassDonation;
@@ -19,11 +22,15 @@ const ClassDonationProgress = ({ donation }: ClassDonationProgressProps) => {
   const contribute = useContributeToDonation();
 
   const progressPercent = useMemo(
-    () => Math.min(100, Math.round((donation.current_total / donation.goal_amount) * 100)),
-    [donation.current_total, donation.goal_amount],
+    () =>
+      Math.min(
+        100,
+        Math.round((donation.current_total / donation.goal_amount) * 100)
+      ),
+    [donation.current_total, donation.goal_amount]
   );
 
-  const isCompleted = donation.status === 'completed' || progressPercent >= 100;
+  const isCompleted = donation.status === "completed" || progressPercent >= 100;
 
   const handleContribute = () => {
     if (!profile?.id) return;
@@ -45,7 +52,9 @@ const ClassDonationProgress = ({ donation }: ClassDonationProgressProps) => {
         </div>
         <div className="flex-1 min-w-0">
           <h3 className="text-sm font-bold">Class Donation</h3>
-          <p className="text-xs text-gray-500 mt-0.5">{donation.resource_description}</p>
+          <p className="text-xs text-gray-500 mt-0.5">
+            {donation.resource_description}
+          </p>
 
           <div className="mt-3">
             <div className="flex items-center justify-between text-[10px] text-gray-500">
@@ -59,7 +68,9 @@ const ClassDonationProgress = ({ donation }: ClassDonationProgressProps) => {
                 data-testid="donation-progress-bar"
               />
             </div>
-            <p className="text-[10px] text-gray-400 mt-1">{progressPercent}% complete</p>
+            <p className="text-[10px] text-gray-400 mt-1">
+              {progressPercent}% complete
+            </p>
           </div>
 
           {!isCompleted && (
@@ -70,13 +81,17 @@ const ClassDonationProgress = ({ donation }: ClassDonationProgressProps) => {
               disabled={contribute.isPending}
               onClick={handleContribute}
             >
-              {contribute.isPending && <Loader2 className="h-3 w-3 animate-spin" />}
+              {contribute.isPending && (
+                <Loader2 className="h-3 w-3 animate-spin" />
+              )}
               <Heart className="h-3 w-3" /> Donate 10 XP
             </Button>
           )}
 
           {isCompleted && (
-            <p className="text-xs font-bold text-green-600 mt-2">🎉 Goal reached!</p>
+            <p className="text-xs font-bold text-green-600 mt-2">
+              🎉 Goal reached!
+            </p>
           )}
         </div>
       </div>

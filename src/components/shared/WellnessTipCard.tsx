@@ -1,7 +1,7 @@
-import { Lightbulb, ExternalLink, X } from 'lucide-react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import type { WellnessTip } from '@/types/habits';
+import { Lightbulb, ExternalLink, X } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import type { WellnessTip } from "@/types/habits";
 
 export interface WellnessTipCardProps {
   tip: WellnessTip;
@@ -9,7 +9,11 @@ export interface WellnessTipCardProps {
   onDismiss?: () => void;
 }
 
-const WellnessTipCard = ({ tip, isOnboarding, onDismiss }: WellnessTipCardProps) => {
+const WellnessTipCard = ({
+  tip,
+  isOnboarding,
+  onDismiss,
+}: WellnessTipCardProps) => {
   return (
     <Card
       data-testid="wellness-tip-card"
@@ -38,7 +42,7 @@ const WellnessTipCard = ({ tip, isOnboarding, onDismiss }: WellnessTipCardProps)
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                {tip.resourceLabel ?? 'Learn more'}
+                {tip.resourceLabel ?? "Learn more"}
                 <ExternalLink className="h-3 w-3" />
               </a>
             </Button>

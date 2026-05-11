@@ -1,8 +1,8 @@
 ═══════════════════════════════════════════════════════════════
-  EDEVISER PRE-DEPLOYMENT AUDIT REPORT
-  Date: 2025-07-18
-  Auditor: Kiro (Automated READ-ONLY Audit)
-  Mode: READ-ONLY (no code changes made)
+EDEVISER PRE-DEPLOYMENT AUDIT REPORT
+Date: 2025-07-18
+Auditor: Kiro (Automated READ-ONLY Audit)
+Mode: READ-ONLY (no code changes made)
 ═══════════════════════════════════════════════════════════════
 
 ## Executive Summary
@@ -73,40 +73,40 @@ The Edeviser platform is in strong shape for deployment. The CI pipeline passes 
 
 ## 📊 METRICS
 
-| Metric | Value |
-|---|---|
-| Bundle size (total) | 3.59 MB |
-| Largest chunk | `index-BFy-7U_X.js` — 547.48 KB (158.05 KB gzip) |
-| vendor-react | 181.02 KB (59.50 KB gzip) |
-| vendor-query | 98.15 KB (27.59 KB gzip) |
-| vendor-charts | 434.58 KB (124.57 KB gzip) |
-| vendor-motion | 128.34 KB (42.17 KB gzip) |
-| Route count | 126 |
-| Edge Functions (code) | 47 (excluding `_shared/`) |
-| DB Tables (types file) | 123 |
-| Hooks total | 185 |
-| console.log count (prod) | 0 |
-| console.error count (prod) | 67 |
-| TODO/FIXME count | 6 (all in planner pages) |
-| npm audit high/critical | 6 high, 0 critical |
-| Test count | 4514 passed / 1 failed (4515 total) |
-| Lint warnings | 0 |
-| TypeScript errors | 0 |
+| Metric                        | Value                                                                                                                      |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Bundle size (total)           | 3.59 MB                                                                                                                    |
+| Largest chunk                 | `index-BFy-7U_X.js` — 547.48 KB (158.05 KB gzip)                                                                           |
+| vendor-react                  | 181.02 KB (59.50 KB gzip)                                                                                                  |
+| vendor-query                  | 98.15 KB (27.59 KB gzip)                                                                                                   |
+| vendor-charts                 | 434.58 KB (124.57 KB gzip)                                                                                                 |
+| vendor-motion                 | 128.34 KB (42.17 KB gzip)                                                                                                  |
+| Route count                   | 126                                                                                                                        |
+| Edge Functions (code)         | 47 (excluding `_shared/`)                                                                                                  |
+| DB Tables (types file)        | 123                                                                                                                        |
+| Hooks total                   | 185                                                                                                                        |
+| console.log count (prod)      | 0                                                                                                                          |
+| console.error count (prod)    | 67                                                                                                                         |
+| TODO/FIXME count              | 6 (all in planner pages)                                                                                                   |
+| npm audit high/critical       | 6 high, 0 critical                                                                                                         |
+| Test count                    | 4514 passed / 1 failed (4515 total)                                                                                        |
+| Lint warnings                 | 0                                                                                                                          |
+| TypeScript errors             | 0                                                                                                                          |
 | Supabase performance advisors | 12 unindexed FKs (INFO), ~40 auth_rls_initplan (WARN), ~100+ multiple_permissive_policies (WARN), 1 duplicate index (WARN) |
-| Migration files | 168 (chronologically ordered ✅) |
-| Vercel cron jobs | 9 configured |
-| i18n locale files | en: 8, ar: 8 (matched ✅) |
+| Migration files               | 168 (chronologically ordered ✅)                                                                                           |
+| Vercel cron jobs              | 9 configured                                                                                                               |
+| i18n locale files             | en: 8, ar: 8 (matched ✅)                                                                                                  |
 
 ## 📋 DETAILED FINDINGS BY PART
 
 ### Part 1: CI Pipeline
 
-| Command | Status | Details |
-|---|---|---|
-| `npm run lint` | ✅ PASS | 0 warnings, 0 errors |
-| `npx tsc --noEmit` | ✅ PASS | 0 errors |
+| Command             | Status    | Details                                                                                                  |
+| ------------------- | --------- | -------------------------------------------------------------------------------------------------------- |
+| `npm run lint`      | ✅ PASS   | 0 warnings, 0 errors                                                                                     |
+| `npx tsc --noEmit`  | ✅ PASS   | 0 errors                                                                                                 |
 | `npm test -- --run` | ⚠️ 1 FAIL | 4514 passed, 1 failed (personalBest.property.test.ts — RangeError: Invalid time value in date generator) |
-| `npm run build` | ✅ PASS | Built in 13.24s, 3.59 MB total |
+| `npm run build`     | ✅ PASS   | Built in 13.24s, 3.59 MB total                                                                           |
 
 Build output: `dist/index.html` exists ✅, `dist/assets/` contains JS and CSS chunks ✅. Total dist size 3.59 MB (under 10 MB threshold ✅).
 
@@ -115,6 +115,7 @@ Vite warning: 2 chunks exceed 500 KB after minification (`vendor-charts` at 434.
 ### Part 2: Vercel Configuration
 
 **2.1 — vercel.json** ✅
+
 - SPA rewrite: `"source": "/((?!assets/).*)"` → `"/index.html"` ✅
 - API rewrite: `"/api/(.*)"` → `"/api/$1"` ✅
 - Security headers: HSTS ✅, X-Frame-Options: DENY ✅, X-Content-Type-Options: nosniff ✅, Referrer-Policy ✅, Permissions-Policy ✅, CSP ✅
@@ -124,26 +125,28 @@ Vite warning: 2 chunks exceed 500 KB after minification (`vendor-charts` at 434.
 
 **2.2 — Cron Cross-Reference**
 
-| Cron Path | Expected File | Status |
-|---|---|---|
-| `/api/cron/streak-risk` | `api/cron/streak-risk.ts` | ✅ EXISTS |
-| `/api/cron/weekly-summary` | `api/cron/weekly-summary.ts` | ✅ EXISTS |
-| `/api/cron/compute-at-risk` | `api/cron/compute-at-risk.ts` | ✅ EXISTS |
-| `/api/cron/perfect-day-prompt` | `api/cron/perfect-day-prompt.ts` | ✅ EXISTS |
-| `/api/cron/streak-reset` | `api/cron/streak-reset.ts` | ✅ EXISTS |
-| `/api/cron/leaderboard-refresh` | `api/cron/leaderboard-refresh.ts` | ✅ EXISTS |
+| Cron Path                         | Expected File                       | Status    |
+| --------------------------------- | ----------------------------------- | --------- |
+| `/api/cron/streak-risk`           | `api/cron/streak-risk.ts`           | ✅ EXISTS |
+| `/api/cron/weekly-summary`        | `api/cron/weekly-summary.ts`        | ✅ EXISTS |
+| `/api/cron/compute-at-risk`       | `api/cron/compute-at-risk.ts`       | ✅ EXISTS |
+| `/api/cron/perfect-day-prompt`    | `api/cron/perfect-day-prompt.ts`    | ✅ EXISTS |
+| `/api/cron/streak-reset`          | `api/cron/streak-reset.ts`          | ✅ EXISTS |
+| `/api/cron/leaderboard-refresh`   | `api/cron/leaderboard-refresh.ts`   | ✅ EXISTS |
 | `/api/cron/ai-at-risk-prediction` | `api/cron/ai-at-risk-prediction.ts` | ✅ EXISTS |
-| `/api/cron/notification-digest` | `api/cron/notification-digest.ts` | ✅ EXISTS |
-| `/api/cron/fee-overdue-check` | `api/cron/fee-overdue-check.ts` | ✅ EXISTS |
+| `/api/cron/notification-digest`   | `api/cron/notification-digest.ts`   | ✅ EXISTS |
+| `/api/cron/fee-overdue-check`     | `api/cron/fee-overdue-check.ts`     | ✅ EXISTS |
 
 ⚠️ `api/cron/exam-period-notify.ts` exists on disk but is NOT listed in `vercel.json` crons.
 
 **2.3 — vite.config.ts** ✅
+
 - `base` not set (defaults to `/`) ✅
 - `@` alias resolves to `./src` ✅
 - Test environment: `happy-dom` ✅
 
 **2.4 — Environment Variables** ✅
+
 - `.env.example` documents all required vars ✅
 - `git ls-files .env*` returns only `.env.example` ✅
 - `.env` and `.env.local` in `.gitignore` ✅
@@ -155,13 +158,13 @@ All lazy-loaded page components resolve to existing files on disk. Verified all 
 
 **3.2 — Role Coverage** ✅
 
-| Role | Layout | Dashboard Route | RouteGuard | Status |
-|---|---|---|---|---|
-| admin | AdminLayout ✅ | /admin/dashboard ✅ | allowedRoles=["admin"] ✅ | ✅ |
-| coordinator | CoordinatorLayout ✅ | /coordinator/dashboard ✅ | allowedRoles=["coordinator"] ✅ | ✅ |
-| teacher | TeacherLayout ✅ | /teacher/dashboard ✅ | allowedRoles=["teacher"] ✅ | ✅ |
-| student | StudentLayout ✅ | /student/dashboard ✅ | allowedRoles=["student"] ✅ | ✅ |
-| parent | ParentLayout ✅ | /parent/dashboard ✅ | allowedRoles=["parent"] ✅ | ✅ |
+| Role        | Layout               | Dashboard Route           | RouteGuard                      | Status |
+| ----------- | -------------------- | ------------------------- | ------------------------------- | ------ |
+| admin       | AdminLayout ✅       | /admin/dashboard ✅       | allowedRoles=["admin"] ✅       | ✅     |
+| coordinator | CoordinatorLayout ✅ | /coordinator/dashboard ✅ | allowedRoles=["coordinator"] ✅ | ✅     |
+| teacher     | TeacherLayout ✅     | /teacher/dashboard ✅     | allowedRoles=["teacher"] ✅     | ✅     |
+| student     | StudentLayout ✅     | /student/dashboard ✅     | allowedRoles=["student"] ✅     | ✅     |
+| parent      | ParentLayout ✅      | /parent/dashboard ✅      | allowedRoles=["parent"] ✅      | ✅     |
 
 **3.3 — Public Routes** ✅
 No RouteGuard on: `/login`, `/reset-password`, `/update-password`, `/portfolio/:student_id`, `/terms`, `/privacy` ✅
@@ -178,6 +181,7 @@ No orphaned pages detected — all page files in `src/pages/` are imported in `A
 Frontend invokes ~30+ distinct Edge Functions. Most have matching folders in `supabase/functions/`.
 
 ⚠️ **Missing Edge Functions called by frontend:**
+
 - `send-onboarding-reminder` — called in `PendingOnboardingPage.tsx`
 - `bulk-grade-export` — called in `useBulkOperations.ts`
 - `semester-transition` — called in `useBulkOperations.ts`
@@ -185,6 +189,7 @@ Frontend invokes ~30+ distinct Edge Functions. Most have matching folders in `su
 ### Part 5: Database ↔ Frontend Type Sync
 
 **5.1 — File Health** ✅
+
 - File size: 176 KB (5,921 lines) — well above 50 KB threshold ✅
 - Starts with `export type Json =` ✅
 - Contains `export type Database =` ✅
@@ -193,6 +198,7 @@ Frontend invokes ~30+ distinct Edge Functions. Most have matching folders in `su
 ### Part 6: Security
 
 **6.1 — Hardcoded Secrets Scan** ✅
+
 - No `supabase.co` URLs in `src/` (only in test files and env validation error messages) ✅
 - No `sb-`, `sbp_`, `eyJ`, `sk-`, `sk-ant-` patterns in production code ✅
 - `SUPABASE_SERVICE_ROLE_KEY` only referenced in test file (`cronAuth.test.ts`) ✅
@@ -207,6 +213,7 @@ No security-level blockers from Supabase advisors. No tables found without RLS e
 No `console.log` statements containing `password`, `token`, `key`, `secret`, or `credential` in production code.
 
 **6.5 — CSP Validation** ✅
+
 - `script-src 'self'` (no `unsafe-eval`) ✅
 - `frame-ancestors 'none'` ✅
 - `connect-src` includes all required domains ✅
@@ -214,6 +221,7 @@ No `console.log` statements containing `password`, `token`, `key`, `secret`, or 
 ### Part 7: Supabase Production Readiness
 
 **7.1 — Performance Advisors**
+
 - **12 Unindexed Foreign Keys** (INFO): `blooms_progression` (2), `review_schedules` (3), `teacher_handoff_requests` (3), `tutor_llm_logs` (1), `tutor_plan_updates` (3)
 - **~40 Auth RLS InitPlan** (WARN): Multiple tables have RLS policies that re-evaluate `auth.*()` per row
 - **100+ Multiple Permissive Policies** (WARN): Many tables have overlapping permissive policies for the same role+action (replicated across `anon`, `authenticated`, `authenticator`, `cli_login_postgres`, `dashboard_user`, `supabase_privileged_role`)
@@ -232,21 +240,25 @@ No `console.log` statements containing `password`, `token`, `key`, `secret`, or 
 
 **8.2 — TODO/FIXME/HACK Comments**
 6 TODO comments found in production code (all in planner pages):
+
 - `WeeklyPlannerPage.tsx`: 3 TODOs (open edit dialog, confirm + delete)
 - `TodayViewPage.tsx`: 3 TODOs (open edit dialog, confirm + delete)
 
 **8.3 — Console Statement Count**
+
 - `console.log`: 0 in production code ✅
 - `console.warn`: 0 in production code ✅
 - `console.error`: 67 in production code (appropriate error handling)
 
 **8.4 — Package.json Audit** ✅
+
 - No `file:` or `link:` dependencies ✅
 - All versions use `^` pinning ✅
 - `node_modules/` in `.gitignore` ✅
 - npm audit: 14 vulnerabilities (3 low, 5 moderate, 6 high) — all in devDependencies
 
 **8.5 — Git Cleanliness** ✅
+
 - `git ls-files .env*` → only `.env.example` ✅
 - `.claude/worktrees/` in `.gitignore` ✅
 
@@ -275,13 +287,13 @@ Sentry initialized in `App.tsx` via `initSentry()` ✅. `Sentry.ErrorBoundary` w
 
 ### Part 10: Dashboard Import Verification
 
-| Dashboard | File | Status |
-|---|---|---|
-| Admin | `src/pages/admin/AdminDashboard.tsx` | ✅ EXISTS, builds successfully |
+| Dashboard   | File                                             | Status                         |
+| ----------- | ------------------------------------------------ | ------------------------------ |
+| Admin       | `src/pages/admin/AdminDashboard.tsx`             | ✅ EXISTS, builds successfully |
 | Coordinator | `src/pages/coordinator/CoordinatorDashboard.tsx` | ✅ EXISTS, builds successfully |
-| Teacher | `src/pages/teacher/TeacherDashboard.tsx` | ✅ EXISTS, builds successfully |
-| Student | `src/pages/student/StudentDashboard.tsx` | ✅ EXISTS, builds successfully |
-| Parent | `src/pages/parent/ParentDashboard.tsx` | ✅ EXISTS, builds successfully |
+| Teacher     | `src/pages/teacher/TeacherDashboard.tsx`         | ✅ EXISTS, builds successfully |
+| Student     | `src/pages/student/StudentDashboard.tsx`         | ✅ EXISTS, builds successfully |
+| Parent      | `src/pages/parent/ParentDashboard.tsx`           | ✅ EXISTS, builds successfully |
 
 All dashboard imports verified via successful build (no chunk-load errors).
 
@@ -294,6 +306,7 @@ All dashboard imports verified via successful build (no chunk-load errors).
 `src/lib/offlineQueue.ts` exists with localStorage persistence, auto-flush on `online` event, max 3 retries per event.
 
 **11.3 — Accessibility** ✅
+
 - `index.html` has `lang="en"` ✅
 - `<main id="main-content" tabIndex={-1}>` in AppRouter ✅
 - `SkipToMain` component rendered before AppRouter ✅
@@ -305,6 +318,7 @@ All dashboard imports verified via successful build (no chunk-load errors).
 English and Arabic locale files match 1:1 (8 files each): `admin.json`, `ai.json`, `auth.json`, `common.json`, `coordinator.json`, `gamification.json`, `student.json`, `teacher.json`.
 
 **11.5 — Performance Patterns** ✅
+
 - TanStack Query with 5-minute staleTime and 30-minute gcTime ✅
 - Retry with exponential backoff, 429 rate-limit awareness ✅
 - Manual chunks for vendor splitting ✅
@@ -360,6 +374,7 @@ English and Arabic locale files match 1:1 (8 files each): `admin.json`, `ai.json
 The platform has zero deploy blockers. The build succeeds, TypeScript compiles cleanly, lint passes with zero warnings, and 99.98% of tests pass (4514/4515). All routes resolve, all role guards are correct, no secrets are exposed, and all critical runtime providers are properly configured.
 
 **Address post-deploy (priority order):**
+
 1. Fix the flaky `personalBest.property.test.ts` date generator
 2. Create missing Edge Functions (`send-onboarding-reminder`, `bulk-grade-export`, `semester-transition`) or disable their UI triggers
 3. Remove hardcoded fallbacks in `supabase.ts`

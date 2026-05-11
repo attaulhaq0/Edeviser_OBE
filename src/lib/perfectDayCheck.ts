@@ -4,5 +4,10 @@ export const isPerfectDay = (academicHabits: {
   journal: boolean;
   read: boolean;
 }): boolean => {
-  return academicHabits.login && academicHabits.submit && academicHabits.journal && academicHabits.read;
+  return (
+    academicHabits.login &&
+    academicHabits.submit &&
+    academicHabits.journal &&
+    academicHabits.read
+  );
 };

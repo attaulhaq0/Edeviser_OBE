@@ -9,4 +9,6 @@ export const programAccreditationSchema = z.object({
   status: z.enum(["active", "expired", "pending"]).default("pending"),
 });
 
-export type ProgramAccreditationFormData = z.infer<typeof programAccreditationSchema>;
+export type ProgramAccreditationFormData = z.infer<
+  typeof programAccreditationSchema
+>;

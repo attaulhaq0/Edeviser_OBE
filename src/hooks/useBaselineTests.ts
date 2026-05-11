@@ -1,6 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -39,9 +39,9 @@ export const useBaselineTestConfig = (courseId: string) => {
     queryKey: queryKeys.onboarding.baselineTests(courseId),
     queryFn: async (): Promise<BaselineTestConfig | null> => {
       const { data, error } = await supabase
-        .from('baseline_test_config')
-        .select('*')
-        .eq('course_id', courseId)
+        .from("baseline_test_config")
+        .select("*")
+        .eq("course_id", courseId)
         .maybeSingle();
 
       if (error) throw error;
@@ -58,10 +58,10 @@ export const useBaselineResults = (courseId: string) => {
     queryKey: queryKeys.onboarding.baselineResults(courseId),
     queryFn: async (): Promise<BaselineAttainment[]> => {
       const { data, error } = await supabase
-        .from('baseline_attainment')
-        .select('*')
-        .eq('course_id', courseId)
-        .order('created_at', { ascending: false });
+        .from("baseline_attainment")
+        .select("*")
+        .eq("course_id", courseId)
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
       return (data ?? []) as BaselineAttainment[];
@@ -74,12 +74,12 @@ export const useBaselineResults = (courseId: string) => {
 
 export const useCourseBaselineStats = (courseId: string) => {
   return useQuery({
-    queryKey: [...queryKeys.onboarding.baselineResults(courseId), 'stats'],
+    queryKey: [...queryKeys.onboarding.baselineResults(courseId), "stats"],
     queryFn: async (): Promise<CourseBaselineStats[]> => {
       const { data, error } = await supabase
-        .from('baseline_attainment')
-        .select('clo_id, score')
-        .eq('course_id', courseId);
+        .from("baseline_attainment")
+        .select("clo_id, score")
+        .eq("course_id", courseId);
 
       if (error) throw error;
 
@@ -110,11 +110,14 @@ export const useUpdateBaselineConfig = () => {
 
   return useMutation({
     mutationFn: async (
-      input: Pick<BaselineTestConfig, 'course_id' | 'time_limit_minutes' | 'is_active'>,
+      input: Pick<
+        BaselineTestConfig,
+        "course_id" | "time_limit_minutes" | "is_active"
+      >
     ): Promise<BaselineTestConfig> => {
       const { data, error } = await supabase
-        .from('baseline_test_config')
-        .upsert(input, { onConflict: 'course_id' })
+        .from("baseline_test_config")
+        .upsert(input, { onConflict: "course_id" })
         .select()
         .single();
 

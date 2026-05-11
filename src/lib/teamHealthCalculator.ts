@@ -2,8 +2,8 @@
 // Computes Gini coefficient, engagement trends, and composite health scores.
 // Used by the weekly health computation cron job (Monday 02:00 UTC).
 
-export type EngagementTrend = 'rising' | 'stable' | 'declining';
-export type HealthStatus = 'healthy' | 'needs_attention' | 'at_risk';
+export type EngagementTrend = "rising" | "stable" | "declining";
+export type HealthStatus = "healthy" | "needs_attention" | "at_risk";
 
 export interface TeamHealthInput {
   /** XP contributions per member for the current evaluation period */
@@ -81,21 +81,21 @@ export function computeGiniCoefficient(values: number[]): number {
  */
 export function detectEngagementTrend(
   thisWeekXp: number,
-  lastWeekXp: number,
+  lastWeekXp: number
 ): EngagementTrend {
   if (lastWeekXp === 0) {
-    return thisWeekXp > 0 ? 'rising' : 'stable';
+    return thisWeekXp > 0 ? "rising" : "stable";
   }
 
   const changeRatio = (thisWeekXp - lastWeekXp) / lastWeekXp;
 
   if (changeRatio > TREND_INCREASE_THRESHOLD) {
-    return 'rising';
+    return "rising";
   }
   if (changeRatio < -TREND_DECREASE_THRESHOLD) {
-    return 'declining';
+    return "declining";
   }
-  return 'stable';
+  return "stable";
 }
 
 /**
@@ -107,11 +107,11 @@ export function detectEngagementTrend(
  */
 export function trendToScore(trend: EngagementTrend): number {
   switch (trend) {
-    case 'rising':
+    case "rising":
       return 100;
-    case 'stable':
+    case "stable":
       return 60;
-    case 'declining':
+    case "declining":
       return 20;
   }
 }
@@ -125,12 +125,12 @@ export function trendToScore(trend: EngagementTrend): number {
  */
 export function classifyHealthStatus(healthScore: number): HealthStatus {
   if (healthScore >= 70) {
-    return 'healthy';
+    return "healthy";
   }
   if (healthScore >= 40) {
-    return 'needs_attention';
+    return "needs_attention";
   }
-  return 'at_risk';
+  return "at_risk";
 }
 
 /**
@@ -149,7 +149,7 @@ export function computeTeamHealth(input: TeamHealthInput): TeamHealthResult {
   const giniCoefficient = computeGiniCoefficient(input.memberXpContributions);
   const engagementTrend = detectEngagementTrend(
     input.thisWeekXp,
-    input.lastWeekXp,
+    input.lastWeekXp
   );
   const trendScore = trendToScore(engagementTrend);
 

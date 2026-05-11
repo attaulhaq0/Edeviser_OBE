@@ -1,22 +1,22 @@
-import { useNavigate } from 'react-router-dom';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import Shimmer from '@/components/shared/Shimmer';
-import GoalSuggestionPanel from '@/components/shared/GoalSuggestionPanel';
-import SmartGoalForm from '@/components/shared/SmartGoalForm';
-import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from "react-router-dom";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import Shimmer from "@/components/shared/Shimmer";
+import GoalSuggestionPanel from "@/components/shared/GoalSuggestionPanel";
+import SmartGoalForm from "@/components/shared/SmartGoalForm";
+import { useAuth } from "@/hooks/useAuth";
 import {
   useStarterWeekSessions,
   useUpdateSessionStatus,
-} from '@/hooks/useStarterWeekPlan';
+} from "@/hooks/useStarterWeekPlan";
 import {
   useGoalSuggestions,
   useAcceptGoal,
   useDismissGoal,
   useGenerateGoalSuggestions,
-} from '@/hooks/useGoalSuggestions';
-import { useCourses } from '@/hooks/useCourses';
+} from "@/hooks/useGoalSuggestions";
+import { useCourses } from "@/hooks/useCourses";
 import {
   CalendarDays,
   Clock,
@@ -31,19 +31,31 @@ import {
   Sparkles,
   ArrowLeft,
   Target,
-} from 'lucide-react';
-import { format, startOfWeek, differenceInDays, parseISO, isValid } from 'date-fns';
-import { useState } from 'react';
-import type { StarterWeekSession, SessionStatus } from '@/hooks/useStarterWeekPlan';
-import type { GoalDifficulty } from '@/lib/goalTemplates';
-import { toast } from 'sonner';
+} from "lucide-react";
+import {
+  format,
+  startOfWeek,
+  differenceInDays,
+  parseISO,
+  isValid,
+} from "date-fns";
+import { useState } from "react";
+import type {
+  StarterWeekSession,
+  SessionStatus,
+} from "@/hooks/useStarterWeekPlan";
+import type { GoalDifficulty } from "@/lib/goalTemplates";
+import { toast } from "sonner";
 
 // ── Helper: safe date format ────────────────────────────────────────────────
 
-const safeDateFormat = (dateStr: string | null | undefined, fmt: string): string => {
-  if (!dateStr) return 'TBD';
+const safeDateFormat = (
+  dateStr: string | null | undefined,
+  fmt: string
+): string => {
+  if (!dateStr) return "TBD";
   const parsed = parseISO(dateStr);
-  return isValid(parsed) ? format(parsed, fmt) : 'TBD';
+  return isValid(parsed) ? format(parsed, fmt) : "TBD";
 };
 
 // ── Session type icons ──────────────────────────────────────────────────────
@@ -56,19 +68,20 @@ const SESSION_TYPE_ICONS: Record<string, typeof BookOpen> = {
 };
 
 const SESSION_TYPE_COLORS: Record<string, string> = {
-  reading: 'bg-blue-50 text-blue-600',
-  practice: 'bg-green-50 text-green-600',
-  review: 'bg-amber-50 text-amber-600',
-  exploration: 'bg-purple-50 text-purple-600',
+  reading: "bg-blue-50 text-blue-600",
+  practice: "bg-green-50 text-green-600",
+  review: "bg-amber-50 text-amber-600",
+  exploration: "bg-purple-50 text-purple-600",
 };
 
-const STATUS_BADGES: Record<SessionStatus, { label: string; classes: string }> = {
-  suggested: { label: 'Suggested', classes: 'bg-slate-100 text-slate-600' },
-  accepted: { label: 'Accepted', classes: 'bg-blue-100 text-blue-700' },
-  modified: { label: 'Modified', classes: 'bg-amber-100 text-amber-700' },
-  dismissed: { label: 'Dismissed', classes: 'bg-gray-100 text-gray-500' },
-  completed: { label: 'Completed', classes: 'bg-green-100 text-green-700' },
-};
+const STATUS_BADGES: Record<SessionStatus, { label: string; classes: string }> =
+  {
+    suggested: { label: "Suggested", classes: "bg-slate-100 text-slate-600" },
+    accepted: { label: "Accepted", classes: "bg-blue-100 text-blue-700" },
+    modified: { label: "Modified", classes: "bg-amber-100 text-amber-700" },
+    dismissed: { label: "Dismissed", classes: "bg-gray-100 text-gray-500" },
+    completed: { label: "Completed", classes: "bg-green-100 text-green-700" },
+  };
 
 // ── Session Card ────────────────────────────────────────────────────────────
 
@@ -82,9 +95,11 @@ const SessionCard = ({
   isPending: boolean;
 }) => {
   const Icon = SESSION_TYPE_ICONS[session.session_type] ?? BookOpen;
-  const colorClass = SESSION_TYPE_COLORS[session.session_type] ?? 'bg-slate-50 text-slate-600';
+  const colorClass =
+    SESSION_TYPE_COLORS[session.session_type] ?? "bg-slate-50 text-slate-600";
   const statusConfig = STATUS_BADGES[session.status];
-  const isActionable = session.status === 'suggested' || session.status === 'accepted';
+  const isActionable =
+    session.status === "suggested" || session.status === "accepted";
 
   return (
     <Card className="bg-white border-0 shadow-sm rounded-xl p-4 space-y-3">
@@ -97,10 +112,15 @@ const SessionCard = ({
             <p className="text-sm font-medium text-gray-900 capitalize">
               {session.session_type} Session
             </p>
-            <p className="text-xs text-gray-500 truncate">{session.description}</p>
+            <p className="text-xs text-gray-500 truncate">
+              {session.description}
+            </p>
           </div>
         </div>
-        <Badge variant="outline" className={`text-[10px] shrink-0 ${statusConfig.classes}`}>
+        <Badge
+          variant="outline"
+          className={`text-[10px] shrink-0 ${statusConfig.classes}`}
+        >
           {statusConfig.label}
         </Badge>
       </div>
@@ -108,7 +128,7 @@ const SessionCard = ({
       <div className="flex items-center gap-4 text-xs text-gray-500">
         <span className="flex items-center gap-1">
           <CalendarDays className="h-3 w-3" />
-          {safeDateFormat(session.suggested_date, 'EEE, MMM d')}
+          {safeDateFormat(session.suggested_date, "EEE, MMM d")}
         </span>
         <span className="flex items-center gap-1">
           <Clock className="h-3 w-3" />
@@ -117,7 +137,7 @@ const SessionCard = ({
         <span className="capitalize">{session.suggested_time_slot}</span>
       </div>
 
-      {session.status === 'suggested' && (
+      {session.status === "suggested" && (
         <Badge className="bg-blue-50 text-blue-600 border-blue-200 text-[10px]">
           <Sparkles className="h-3 w-3 me-1" />
           AI Suggested
@@ -126,10 +146,10 @@ const SessionCard = ({
 
       {isActionable && (
         <div className="flex items-center gap-2 pt-1">
-          {session.status === 'suggested' && (
+          {session.status === "suggested" && (
             <Button
               size="sm"
-              onClick={() => onStatusChange(session.id, 'accepted')}
+              onClick={() => onStatusChange(session.id, "accepted")}
               disabled={isPending}
               className="bg-gradient-to-r from-teal-500 to-blue-600 text-white text-xs font-semibold active:scale-95"
             >
@@ -140,7 +160,7 @@ const SessionCard = ({
           <Button
             size="sm"
             variant="outline"
-            onClick={() => onStatusChange(session.id, 'completed')}
+            onClick={() => onStatusChange(session.id, "completed")}
             disabled={isPending}
             className="text-xs"
           >
@@ -150,7 +170,7 @@ const SessionCard = ({
           <Button
             size="sm"
             variant="ghost"
-            onClick={() => onStatusChange(session.id, 'dismissed')}
+            onClick={() => onStatusChange(session.id, "dismissed")}
             disabled={isPending}
             className="text-xs text-gray-400"
           >
@@ -160,7 +180,7 @@ const SessionCard = ({
         </div>
       )}
 
-      {session.status === 'completed' && (
+      {session.status === "completed" && (
         <div className="flex items-center gap-1 text-xs text-green-600">
           <CheckCircle className="h-3 w-3" />
           Completed — +15 XP earned
@@ -175,14 +195,18 @@ const SessionCard = ({
 const StarterWeekPlanPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const studentId = user?.id ?? '';
+  const studentId = user?.id ?? "";
 
   const { data: sessions, isLoading } = useStarterWeekSessions(studentId);
   const updateStatus = useUpdateSessionStatus();
 
   // Goal suggestions
-  const weekStart = format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd');
-  const { data: goalSuggestions = [], isLoading: goalsLoading } = useGoalSuggestions(studentId, weekStart);
+  const weekStart = format(
+    startOfWeek(new Date(), { weekStartsOn: 1 }),
+    "yyyy-MM-dd"
+  );
+  const { data: goalSuggestions = [], isLoading: goalsLoading } =
+    useGoalSuggestions(studentId, weekStart);
   const acceptGoal = useAcceptGoal();
   const dismissGoal = useDismissGoal();
   const generateGoals = useGenerateGoalSuggestions();
@@ -203,11 +227,12 @@ const StarterWeekPlanPage = () => {
       { id, studentId, status },
       {
         onSuccess: () => {
-          if (status === 'completed') toast.success('Session completed! +15 XP');
-          else if (status === 'accepted') toast.success('Session accepted');
+          if (status === "completed")
+            toast.success("Session completed! +15 XP");
+          else if (status === "accepted") toast.success("Session accepted");
         },
         onError: (err) => toast.error(err.message),
-      },
+      }
     );
   };
 
@@ -215,9 +240,9 @@ const StarterWeekPlanPage = () => {
     generateGoals.mutate(
       { student_id: studentId, week_start: weekStart },
       {
-        onSuccess: () => toast.success('Goal suggestions generated'),
+        onSuccess: () => toast.success("Goal suggestions generated"),
         onError: (err) => toast.error(err.message),
-      },
+      }
     );
   };
 
@@ -230,15 +255,20 @@ const StarterWeekPlanPage = () => {
       .map((d) => parseISO(d))
       .filter((d) => isValid(d));
     if (validDates.length === 0) return false;
-    const earliest = validDates.reduce((min, d) => (d < min ? d : min), validDates[0]!);
+    const earliest = validDates.reduce(
+      (min, d) => (d < min ? d : min),
+      validDates[0]!
+    );
     return differenceInDays(new Date(), earliest) >= 7;
   })();
 
-  const completedCount = sessions?.filter((s) => s.status === 'completed').length ?? 0;
+  const completedCount =
+    sessions?.filter((s) => s.status === "completed").length ?? 0;
   const totalCount = sessions?.length ?? 0;
-  const completedMinutes = sessions
-    ?.filter((s) => s.status === 'completed')
-    .reduce((sum, s) => sum + s.duration_minutes, 0) ?? 0;
+  const completedMinutes =
+    sessions
+      ?.filter((s) => s.status === "completed")
+      .reduce((sum, s) => sum + s.duration_minutes, 0) ?? 0;
 
   const courseOptions = (coursesData?.data ?? []).map((c) => ({
     id: c.id,
@@ -249,11 +279,16 @@ const StarterWeekPlanPage = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <Button variant="ghost" size="sm" onClick={() => navigate('/student/dashboard')} aria-label="Back to dashboard">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate("/student/dashboard")}
+          aria-label="Back to dashboard"
+        >
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <h1 className="text-2xl font-bold tracking-tight">
-          {isPostWeek ? 'Starter Week Summary' : 'Your Starter Week Plan'}
+          {isPostWeek ? "Starter Week Summary" : "Your Starter Week Plan"}
         </h1>
       </div>
 
@@ -262,22 +297,37 @@ const StarterWeekPlanPage = () => {
         <Card className="bg-white border-0 shadow-md rounded-xl p-6 space-y-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
-              <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">Sessions</p>
-              <p className="text-2xl font-black">{completedCount}/{totalCount}</p>
-            </div>
-            <div>
-              <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">Completion</p>
+              <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
+                Sessions
+              </p>
               <p className="text-2xl font-black">
-                {totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0}%
+                {completedCount}/{totalCount}
               </p>
             </div>
             <div>
-              <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">Study Time</p>
+              <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
+                Completion
+              </p>
+              <p className="text-2xl font-black">
+                {totalCount > 0
+                  ? Math.round((completedCount / totalCount) * 100)
+                  : 0}
+                %
+              </p>
+            </div>
+            <div>
+              <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
+                Study Time
+              </p>
               <p className="text-2xl font-black">{completedMinutes}m</p>
             </div>
             <div>
-              <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">XP Earned</p>
-              <p className="text-2xl font-black text-amber-600">{completedCount * 15}</p>
+              <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
+                XP Earned
+              </p>
+              <p className="text-2xl font-black text-amber-600">
+                {completedCount * 15}
+              </p>
             </div>
           </div>
         </Card>
@@ -302,7 +352,9 @@ const StarterWeekPlanPage = () => {
           ))}
           {(sessions ?? []).length === 0 && (
             <Card className="bg-white border-0 shadow-md rounded-xl p-8 text-center">
-              <p className="text-sm text-gray-500">No starter week sessions generated yet.</p>
+              <p className="text-sm text-gray-500">
+                No starter week sessions generated yet.
+              </p>
             </Card>
           )}
         </div>
@@ -323,7 +375,7 @@ const StarterWeekPlanPage = () => {
               className="bg-gradient-to-r from-teal-500 to-blue-600 text-white text-xs font-semibold active:scale-95"
             >
               <Sparkles className="h-3 w-3" />
-              {generateGoals.isPending ? 'Generating...' : 'Get Suggestions'}
+              {generateGoals.isPending ? "Generating..." : "Get Suggestions"}
             </Button>
           )}
         </div>
@@ -340,9 +392,10 @@ const StarterWeekPlanPage = () => {
             acceptGoal.mutate(
               { id, studentId, weekStart },
               {
-                onSuccess: () => toast.success('Goal accepted'),
-                onError: (err) => toast.error(`Failed to accept goal: ${err.message}`),
-              },
+                onSuccess: () => toast.success("Goal accepted"),
+                onError: (err) =>
+                  toast.error(`Failed to accept goal: ${err.message}`),
+              }
             )
           }
           onEdit={() => {
@@ -352,9 +405,10 @@ const StarterWeekPlanPage = () => {
             dismissGoal.mutate(
               { id, studentId, weekStart },
               {
-                onSuccess: () => toast.success('Goal dismissed'),
-                onError: (err) => toast.error(`Failed to dismiss goal: ${err.message}`),
-              },
+                onSuccess: () => toast.success("Goal dismissed"),
+                onError: (err) =>
+                  toast.error(`Failed to dismiss goal: ${err.message}`),
+              }
             )
           }
           isLoading={goalsLoading || generateGoals.isPending}
@@ -365,7 +419,9 @@ const StarterWeekPlanPage = () => {
           <SmartGoalForm
             courses={courseOptions}
             onSubmit={(data) => {
-              toast.success('Goal created: ' + data.composedText.slice(0, 60) + '...');
+              toast.success(
+                "Goal created: " + data.composedText.slice(0, 60) + "..."
+              );
               setShowSmartForm(false);
             }}
           />

@@ -1,12 +1,14 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import type { Database } from '@/types/database';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import type { Database } from "@/types/database";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
-type VerifiedExplanationRow = Database['public']['Tables']['verified_explanations']['Row'];
-type VerifiedExplanationInsert = Database['public']['Tables']['verified_explanations']['Insert'];
+type VerifiedExplanationRow =
+  Database["public"]["Tables"]["verified_explanations"]["Row"];
+type VerifiedExplanationInsert =
+  Database["public"]["Tables"]["verified_explanations"]["Insert"];
 
 export interface ApproveExplanationInput {
   institution_id: string;
@@ -44,9 +46,9 @@ export const useExplanationConfidence = (questionId: string) => {
     queryKey: queryKeys.explanationConfidence.detail(questionId),
     queryFn: async (): Promise<number | null> => {
       const { data, error } = await supabase
-        .from('question_bank')
-        .select('explanation_confidence')
-        .eq('id', questionId)
+        .from("question_bank")
+        .select("explanation_confidence")
+        .eq("id", questionId)
         .maybeSingle();
 
       if (error) throw error;
@@ -56,7 +58,6 @@ export const useExplanationConfidence = (questionId: string) => {
   });
 };
 
-
 // ─── useVerifiedExplanation — fetch active verified explanation for a question ─
 
 export const useVerifiedExplanation = (questionId: string) => {
@@ -64,10 +65,10 @@ export const useVerifiedExplanation = (questionId: string) => {
     queryKey: queryKeys.verifiedExplanations.detail(questionId),
     queryFn: async (): Promise<VerifiedExplanationRow | null> => {
       const { data, error } = await supabase
-        .from('verified_explanations')
-        .select('*')
-        .eq('question_id', questionId)
-        .eq('is_active', true)
+        .from("verified_explanations")
+        .select("*")
+        .eq("question_id", questionId)
+        .eq("is_active", true)
         .maybeSingle();
 
       if (error) throw error;
@@ -83,25 +84,27 @@ export const useApproveExplanation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (input: ApproveExplanationInput): Promise<VerifiedExplanationRow> => {
+    mutationFn: async (
+      input: ApproveExplanationInput
+    ): Promise<VerifiedExplanationRow> => {
       // Deactivate any existing active explanation for this question
       await supabase
-        .from('verified_explanations')
+        .from("verified_explanations")
         .update({ is_active: false, updated_at: new Date().toISOString() })
-        .eq('question_id', input.question_id)
-        .eq('is_active', true);
+        .eq("question_id", input.question_id)
+        .eq("is_active", true);
 
       const insertData: VerifiedExplanationInsert = {
         institution_id: input.institution_id,
         question_id: input.question_id,
         explanation_text: input.explanation_text,
-        source: 'teacher_approved',
+        source: "teacher_approved",
         verified_by: input.verified_by,
         is_active: true,
       };
 
       const { data, error } = await supabase
-        .from('verified_explanations')
+        .from("verified_explanations")
         .insert(insertData)
         .select()
         .single();
@@ -126,25 +129,27 @@ export const useEditExplanation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (input: EditExplanationInput): Promise<VerifiedExplanationRow> => {
+    mutationFn: async (
+      input: EditExplanationInput
+    ): Promise<VerifiedExplanationRow> => {
       // Deactivate any existing active explanation for this question
       await supabase
-        .from('verified_explanations')
+        .from("verified_explanations")
         .update({ is_active: false, updated_at: new Date().toISOString() })
-        .eq('question_id', input.question_id)
-        .eq('is_active', true);
+        .eq("question_id", input.question_id)
+        .eq("is_active", true);
 
       const insertData: VerifiedExplanationInsert = {
         institution_id: input.institution_id,
         question_id: input.question_id,
         explanation_text: input.explanation_text,
-        source: 'teacher_edited',
+        source: "teacher_edited",
         verified_by: input.verified_by,
         is_active: true,
       };
 
       const { data, error } = await supabase
-        .from('verified_explanations')
+        .from("verified_explanations")
         .insert(insertData)
         .select()
         .single();
@@ -171,8 +176,9 @@ export const useExplanationReviewQueue = (courseId: string) => {
     queryFn: async (): Promise<ReviewQueueItem[]> => {
       // Fetch questions with their analytics joined
       const { data, error } = await supabase
-        .from('question_bank')
-        .select(`
+        .from("question_bank")
+        .select(
+          `
           id,
           course_id,
           clo_id,
@@ -185,9 +191,10 @@ export const useExplanationReviewQueue = (courseId: string) => {
             success_rate,
             total_attempts
           )
-        `)
-        .eq('course_id', courseId)
-        .eq('status', 'approved');
+        `
+        )
+        .eq("course_id", courseId)
+        .eq("status", "approved");
 
       if (error) throw error;
 
@@ -206,8 +213,18 @@ export const useExplanationReviewQueue = (courseId: string) => {
           );
         })
         .sort((a, b) => {
-          const aAttempts = (a.question_analytics as unknown as { total_attempts: number } | null)?.total_attempts ?? 0;
-          const bAttempts = (b.question_analytics as unknown as { total_attempts: number } | null)?.total_attempts ?? 0;
+          const aAttempts =
+            (
+              a.question_analytics as unknown as {
+                total_attempts: number;
+              } | null
+            )?.total_attempts ?? 0;
+          const bAttempts =
+            (
+              b.question_analytics as unknown as {
+                total_attempts: number;
+              } | null
+            )?.total_attempts ?? 0;
           return bAttempts - aAttempts; // desc
         })
         .map((q) => ({

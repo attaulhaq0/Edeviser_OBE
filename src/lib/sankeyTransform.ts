@@ -3,7 +3,7 @@
 export interface SankeyNode {
   name: string;
   id: string;
-  type: 'ILO' | 'PLO' | 'CLO';
+  type: "ILO" | "PLO" | "CLO";
   attainment: number;
   color: string;
 }
@@ -28,28 +28,36 @@ interface OutcomeAttainment {
 
 interface Outcome {
   id: string;
-  type: 'ILO' | 'PLO' | 'CLO';
+  type: "ILO" | "PLO" | "CLO";
   title: string;
 }
 
 const getAttainmentColor = (score: number): string => {
-  if (score >= 85) return '#22c55e'; // green — Excellent
-  if (score >= 70) return '#3b82f6'; // blue — Satisfactory
-  if (score >= 50) return '#f59e0b'; // yellow — Developing
-  if (score > 0) return '#ef4444';   // red — Not Yet
-  return '#94a3b8';                   // gray — Unmapped
+  if (score >= 85) return "#22c55e"; // green — Excellent
+  if (score >= 70) return "#3b82f6"; // blue — Satisfactory
+  if (score >= 50) return "#f59e0b"; // yellow — Developing
+  if (score > 0) return "#ef4444"; // red — Not Yet
+  return "#94a3b8"; // gray — Unmapped
 };
 
 export const transformToSankey = (
   outcomes: Outcome[],
   mappings: OutcomeMapping[],
-  attainments: OutcomeAttainment[],
+  attainments: OutcomeAttainment[]
 ): { nodes: SankeyNode[]; links: SankeyLink[] } => {
-  const attMap = new Map(attainments.map((a) => [a.outcome_id, a.score_percent]));
+  const attMap = new Map(
+    attainments.map((a) => [a.outcome_id, a.score_percent])
+  );
 
   const nodes: SankeyNode[] = outcomes.map((o) => {
     const att = attMap.get(o.id) ?? 0;
-    return { name: o.title, id: o.id, type: o.type, attainment: att, color: getAttainmentColor(att) };
+    return {
+      name: o.title,
+      id: o.id,
+      type: o.type,
+      attainment: att,
+      color: getAttainmentColor(att),
+    };
   });
 
   const nodeIndex = new Map(nodes.map((n, i) => [n.id, i]));

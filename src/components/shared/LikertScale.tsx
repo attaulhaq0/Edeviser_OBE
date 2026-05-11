@@ -1,12 +1,12 @@
-import { useCallback, useRef } from 'react';
-import { cn } from '@/lib/utils';
+import { useCallback, useRef } from "react";
+import { cn } from "@/lib/utils";
 
 const LIKERT_LABELS = [
-  'Strongly Disagree',
-  'Disagree',
-  'Neutral',
-  'Agree',
-  'Strongly Agree',
+  "Strongly Disagree",
+  "Disagree",
+  "Neutral",
+  "Agree",
+  "Strongly Agree",
 ] as const;
 
 export interface LikertScaleProps {
@@ -36,22 +36,25 @@ const LikertScale = ({
       const max = labels.length;
       const min = 1;
 
-      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+      if (e.key === "ArrowRight" || e.key === "ArrowDown") {
         e.preventDefault();
         next = current < max ? current + 1 : max;
         if (next < min) next = min;
-      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
         e.preventDefault();
         next = current > min ? current - 1 : min;
       }
 
       if (next !== null) {
         onChange(next);
-        const buttons = groupRef.current?.querySelectorAll<HTMLButtonElement>('[role="radio"]');
+        const buttons =
+          groupRef.current?.querySelectorAll<HTMLButtonElement>(
+            '[role="radio"]'
+          );
         buttons?.[next - 1]?.focus();
       }
     },
-    [value, onChange, disabled, labels],
+    [value, onChange, disabled, labels]
   );
 
   return (
@@ -79,12 +82,12 @@ const LikertScale = ({
             disabled={disabled}
             onClick={() => !disabled && onChange(optionValue)}
             className={cn(
-              'flex flex-col items-center gap-1.5 rounded-lg px-3 py-2 transition-colors min-w-[72px]',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2',
+              "flex flex-col items-center gap-1.5 rounded-lg px-3 py-2 transition-colors min-w-[72px]",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2",
               isSelected
-                ? 'bg-blue-600 text-white shadow-md'
-                : 'bg-slate-50 text-gray-600 hover:bg-slate-100',
-              disabled && 'opacity-50 cursor-not-allowed',
+                ? "bg-blue-600 text-white shadow-md"
+                : "bg-slate-50 text-gray-600 hover:bg-slate-100",
+              disabled && "opacity-50 cursor-not-allowed"
             )}
           >
             <span className="text-sm font-bold">{optionValue}</span>

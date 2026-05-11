@@ -15,19 +15,20 @@ export interface ChallengeTypeConfig {
 }
 
 export type ChallengeTypeKey =
-  | 'academic'
-  | 'habit'
-  | 'xp_race'
-  | 'blooms_climb'
-  | 'cooperative';
+  | "academic"
+  | "habit"
+  | "xp_race"
+  | "blooms_climb"
+  | "cooperative";
 
 export const CHALLENGE_TYPES: Record<ChallengeTypeKey, ChallengeTypeConfig> = {
   academic: {
-    key: 'academic',
-    label: 'Academic',
-    description: 'Complete a target number of assignments within the challenge period',
-    goalDescription: 'Complete N assignments',
-    goalUnit: 'assignments',
+    key: "academic",
+    label: "Academic",
+    description:
+      "Complete a target number of assignments within the challenge period",
+    goalDescription: "Complete N assignments",
+    goalUnit: "assignments",
     fixedGoal: null,
     validationRules: {
       minGoal: 1,
@@ -35,11 +36,12 @@ export const CHALLENGE_TYPES: Record<ChallengeTypeKey, ChallengeTypeConfig> = {
     },
   },
   habit: {
-    key: 'habit',
-    label: 'Habit',
-    description: 'Maintain a daily streak for a target number of days during the challenge',
-    goalDescription: 'Maintain a streak for N days',
-    goalUnit: 'days',
+    key: "habit",
+    label: "Habit",
+    description:
+      "Maintain a daily streak for a target number of days during the challenge",
+    goalDescription: "Maintain a streak for N days",
+    goalUnit: "days",
     fixedGoal: null,
     validationRules: {
       minGoal: 1,
@@ -47,11 +49,11 @@ export const CHALLENGE_TYPES: Record<ChallengeTypeKey, ChallengeTypeConfig> = {
     },
   },
   xp_race: {
-    key: 'xp_race',
-    label: 'XP Race',
-    description: 'First participant to earn the target XP amount wins the race',
-    goalDescription: 'First to earn N XP',
-    goalUnit: 'XP',
+    key: "xp_race",
+    label: "XP Race",
+    description: "First participant to earn the target XP amount wins the race",
+    goalDescription: "First to earn N XP",
+    goalUnit: "XP",
     fixedGoal: null,
     validationRules: {
       minGoal: 50,
@@ -59,12 +61,12 @@ export const CHALLENGE_TYPES: Record<ChallengeTypeKey, ChallengeTypeConfig> = {
     },
   },
   blooms_climb: {
-    key: 'blooms_climb',
+    key: "blooms_climb",
     label: "Bloom's Climb",
     description:
-      'Complete at least one assignment at each of the 6 Bloom\'s Taxonomy levels (Remembering through Creating)',
-    goalDescription: 'Complete all 6 Bloom\'s levels',
-    goalUnit: 'levels',
+      "Complete at least one assignment at each of the 6 Bloom's Taxonomy levels (Remembering through Creating)",
+    goalDescription: "Complete all 6 Bloom's levels",
+    goalUnit: "levels",
     fixedGoal: 6,
     validationRules: {
       minGoal: 6,
@@ -72,12 +74,12 @@ export const CHALLENGE_TYPES: Record<ChallengeTypeKey, ChallengeTypeConfig> = {
     },
   },
   cooperative: {
-    key: 'cooperative',
-    label: 'Cooperative',
+    key: "cooperative",
+    label: "Cooperative",
     description:
-      'Team collectively works toward a shared goal without competing against other teams',
-    goalDescription: 'Team collectively reaches the shared goal',
-    goalUnit: 'units',
+      "Team collectively works toward a shared goal without competing against other teams",
+    goalDescription: "Team collectively reaches the shared goal",
+    goalUnit: "units",
     fixedGoal: null,
     validationRules: {
       minGoal: 1,
@@ -104,7 +106,7 @@ export function hasFixedGoal(key: ChallengeTypeKey): boolean {
 /** Validate a goal target for a given challenge type */
 export function validateGoalTarget(
   key: ChallengeTypeKey,
-  goalTarget: number,
+  goalTarget: number
 ): boolean {
   const config = CHALLENGE_TYPES[key];
   if (config.fixedGoal !== null) {

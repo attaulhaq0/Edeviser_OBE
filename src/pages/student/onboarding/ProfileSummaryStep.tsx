@@ -1,9 +1,20 @@
-import { useMemo } from 'react';
-import { motion } from 'framer-motion';
-import { CheckCircle, Loader2, AlertTriangle, Eye, Headphones, BookOpen, Hand, Layers, Shield, BarChart3 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { useMemo } from "react";
+import { motion } from "framer-motion";
+import {
+  CheckCircle,
+  Loader2,
+  AlertTriangle,
+  Eye,
+  Headphones,
+  BookOpen,
+  Hand,
+  Layers,
+  Shield,
+  BarChart3,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import {
   Radar,
   RadarChart,
@@ -11,11 +22,15 @@ import {
   PolarAngleAxis,
   PolarRadiusAxis,
   ResponsiveContainer,
-} from 'recharts';
-import { useStudentProfile } from '@/hooks/useStudentProfile';
-import { BIG_FIVE_LABELS, VARK_DESCRIPTIONS } from '@/lib/onboardingConstants';
-import type { BigFiveTraits, VARKProfile, SelfEfficacyProfile } from '@/lib/scoreCalculator';
-import type { WizardStepProps } from './OnboardingWizard';
+} from "recharts";
+import { useStudentProfile } from "@/hooks/useStudentProfile";
+import { BIG_FIVE_LABELS, VARK_DESCRIPTIONS } from "@/lib/onboardingConstants";
+import type {
+  BigFiveTraits,
+  VARKProfile,
+  SelfEfficacyProfile,
+} from "@/lib/scoreCalculator";
+import type { WizardStepProps } from "./OnboardingWizard";
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -49,10 +64,10 @@ const buildRadarData = (traits: BigFiveTraits | null) => {
 // ── Self-Efficacy Labels ─────────────────────────────────────────────
 
 const EFFICACY_LABELS: Record<string, string> = {
-  overall: 'Overall',
-  general_academic: 'General Academic',
-  course_specific: 'Course-Specific',
-  self_regulated_learning: 'Self-Regulated Learning',
+  overall: "Overall",
+  general_academic: "General Academic",
+  course_specific: "Course-Specific",
+  self_regulated_learning: "Self-Regulated Learning",
 };
 
 // ── Component ────────────────────────────────────────────────────────
@@ -66,14 +81,16 @@ export const ProfileSummaryStep = ({
 }: ProfileSummaryStepProps) => {
   const { data: profile } = useStudentProfile(studentId);
 
-  const personalitySkipped = skippedSections.includes('personality');
-  const learningStyleSkipped = skippedSections.includes('learning_style') || isDay1;
-  const selfEfficacySkipped = skippedSections.includes('self_efficacy');
-  const studyStrategySkipped = skippedSections.includes('study_strategy') || isDay1;
+  const personalitySkipped = skippedSections.includes("personality");
+  const learningStyleSkipped =
+    skippedSections.includes("learning_style") || isDay1;
+  const selfEfficacySkipped = skippedSections.includes("self_efficacy");
+  const studyStrategySkipped =
+    skippedSections.includes("study_strategy") || isDay1;
 
   const radarData = useMemo(
     () => buildRadarData(profile?.personality_traits ?? null),
-    [profile?.personality_traits],
+    [profile?.personality_traits]
   );
 
   const varkProfile = profile?.learning_style as VARKProfile | null;
@@ -91,12 +108,12 @@ export const ProfileSummaryStep = ({
       </motion.div>
 
       <h2 className="text-lg font-bold tracking-tight text-gray-900">
-        {isDay1 ? 'Your Preliminary Profile' : 'Your Profile Summary'}
+        {isDay1 ? "Your Preliminary Profile" : "Your Profile Summary"}
       </h2>
       <p className="mt-1 max-w-md text-center text-sm text-gray-500">
         {isDay1
           ? "Here's a quick snapshot based on your Day 1 responses. You'll complete the rest over the next two weeks."
-          : 'Review your assessment results below. You can retake assessments later from your settings.'}
+          : "Review your assessment results below. You can retake assessments later from your settings."}
       </p>
 
       <div className="mt-6 w-full max-w-md space-y-4">
@@ -105,7 +122,9 @@ export const ProfileSummaryStep = ({
           <SkippedSection label="Personality Traits" />
         ) : (
           <Card className="border-0 bg-white p-4 shadow-md rounded-xl">
-            <h3 className="mb-2 text-sm font-bold text-gray-900">Personality Traits</h3>
+            <h3 className="mb-2 text-sm font-bold text-gray-900">
+              Personality Traits
+            </h3>
             {isDay1 && (
               <p className="mb-2 text-xs text-gray-500">
                 Preliminary results — based on 3 of 25 questions
@@ -113,10 +132,23 @@ export const ProfileSummaryStep = ({
             )}
             {radarData.length > 0 ? (
               <ResponsiveContainer width="100%" height={220}>
-                <RadarChart data={radarData} cx="50%" cy="50%" outerRadius="70%">
+                <RadarChart
+                  data={radarData}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius="70%"
+                >
                   <PolarGrid stroke="#e2e8f0" />
-                  <PolarAngleAxis dataKey="trait" tick={{ fontSize: 11, fill: '#64748b' }} />
-                  <PolarRadiusAxis angle={90} domain={[0, 100]} tick={false} axisLine={false} />
+                  <PolarAngleAxis
+                    dataKey="trait"
+                    tick={{ fontSize: 11, fill: "#64748b" }}
+                  />
+                  <PolarRadiusAxis
+                    angle={90}
+                    domain={[0, 100]}
+                    tick={false}
+                    axisLine={false}
+                  />
                   <Radar
                     name="Score"
                     dataKey="score"
@@ -128,7 +160,9 @@ export const ProfileSummaryStep = ({
                 </RadarChart>
               </ResponsiveContainer>
             ) : (
-              <p className="py-4 text-center text-xs text-gray-400">No data available</p>
+              <p className="py-4 text-center text-xs text-gray-400">
+                No data available
+              </p>
             )}
           </Card>
         )}
@@ -161,26 +195,34 @@ export const ProfileSummaryStep = ({
                           style={{ width: `${value}%` }}
                         />
                       </div>
-                      <span className="text-xs font-bold text-gray-700">{value}%</span>
+                      <span className="text-xs font-bold text-gray-700">
+                        {value}%
+                      </span>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="py-2 text-center text-xs text-gray-400">No data available</p>
+              <p className="py-2 text-center text-xs text-gray-400">
+                No data available
+              </p>
             )}
           </Card>
         )}
 
         {/* VARK Learning Style — self-awareness only */}
         {learningStyleSkipped ? (
-          <SkippedSection label="Learning Style (VARK)" note="Available via micro-assessments" />
+          <SkippedSection
+            label="Learning Style (VARK)"
+            note="Available via micro-assessments"
+          />
         ) : varkProfile ? (
           <Card className="border-0 bg-white p-4 shadow-md rounded-xl">
             <div className="mb-2 flex items-center gap-2">
               {VARK_ICONS[varkProfile.dominant_style]}
               <h3 className="text-sm font-bold text-gray-900">
-                {VARK_DESCRIPTIONS[varkProfile.dominant_style]?.label ?? 'Learning Style'}
+                {VARK_DESCRIPTIONS[varkProfile.dominant_style]?.label ??
+                  "Learning Style"}
               </h3>
             </div>
             <p className="mb-3 text-xs text-gray-500">
@@ -197,7 +239,10 @@ export const ProfileSummaryStep = ({
 
         {/* Study Strategies */}
         {studyStrategySkipped && (
-          <SkippedSection label="Study Strategies" note="Available via micro-assessments" />
+          <SkippedSection
+            label="Study Strategies"
+            note="Available via micro-assessments"
+          />
         )}
       </div>
 
@@ -215,15 +260,15 @@ export const ProfileSummaryStep = ({
         ) : (
           <>
             <CheckCircle className="h-4 w-4" />
-            {isDay1 ? 'Complete & Go to Dashboard' : 'Confirm & Continue'}
+            {isDay1 ? "Complete & Go to Dashboard" : "Confirm & Continue"}
           </>
         )}
       </Button>
 
       {isDay1 && (
         <p className="mt-3 max-w-sm text-center text-xs text-gray-400">
-          You&apos;ll complete the remaining assessments through short daily micro-assessments over
-          the next two weeks.
+          You&apos;ll complete the remaining assessments through short daily
+          micro-assessments over the next two weeks.
         </p>
       )}
     </div>

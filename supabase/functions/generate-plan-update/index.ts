@@ -52,13 +52,10 @@ serve(async (req) => {
   }
 
   if (req.method !== "POST") {
-    return new Response(
-      JSON.stringify({ error: "Method not allowed" }),
-      {
-        status: 405,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    return new Response(JSON.stringify({ error: "Method not allowed" }), {
+      status: 405,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 
   try {
@@ -211,7 +208,9 @@ serve(async (req) => {
         messageContext || "(no recent messages)",
         "",
         retrievedChunks.length > 0
-          ? `Available materials:\n${retrievedChunks.map((c, i) => `${i + 1}. ${c.source_filename}`).join("\n")}`
+          ? `Available materials:\n${retrievedChunks
+              .map((c, i) => `${i + 1}. ${c.source_filename}`)
+              .join("\n")}`
           : "",
         "",
         "Respond with ONLY a JSON object (no markdown, no code fences) with these fields:",
@@ -248,10 +247,8 @@ serve(async (req) => {
 
           try {
             const parsed = JSON.parse(content);
-            studyTimeRecommendation =
-              parsed.study_time_recommendation ?? "";
-            suggestedPlannerSessions =
-              parsed.suggested_planner_sessions ?? 2;
+            studyTimeRecommendation = parsed.study_time_recommendation ?? "";
+            suggestedPlannerSessions = parsed.suggested_planner_sessions ?? 2;
           } catch {
             // If JSON parsing fails, use the raw content as recommendation
             studyTimeRecommendation = content.trim();
@@ -333,12 +330,9 @@ serve(async (req) => {
     });
   } catch (error) {
     console.error("generate-plan-update error:", (error as Error).message);
-    return new Response(
-      JSON.stringify({ error: (error as Error).message }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    return new Response(JSON.stringify({ error: (error as Error).message }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });

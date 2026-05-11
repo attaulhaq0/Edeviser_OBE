@@ -1,10 +1,10 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, act, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { render, screen, act, fireEvent } from "@testing-library/react";
 
 // ---------------------------------------------------------------------------
 // Mock framer-motion
 // ---------------------------------------------------------------------------
-vi.mock('framer-motion', () => ({
+vi.mock("framer-motion", () => ({
   motion: {
     div: ({
       children,
@@ -38,29 +38,29 @@ vi.mock('framer-motion', () => ({
 // ---------------------------------------------------------------------------
 // Mock canvas-confetti
 // ---------------------------------------------------------------------------
-vi.mock('canvas-confetti', () => ({
+vi.mock("canvas-confetti", () => ({
   default: vi.fn(),
 }));
 
-import BadgeAwardModal from '@/components/shared/BadgeAwardModal';
+import BadgeAwardModal from "@/components/shared/BadgeAwardModal";
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 const normalBadge = {
-  id: 'streak_7',
-  name: '7-Day Warrior',
-  description: '7-day login streak',
-  icon: '🔥',
+  id: "streak_7",
+  name: "7-Day Warrior",
+  description: "7-day login streak",
+  icon: "🔥",
   isMystery: false,
   xpReward: 50,
 };
 
 const mysteryBadge = {
-  id: 'speed_demon',
-  name: 'Speed Demon',
-  description: 'Submit within 1 hour of publish',
-  icon: '⚡',
+  id: "speed_demon",
+  name: "Speed Demon",
+  description: "Submit within 1 hour of publish",
+  icon: "⚡",
   isMystery: true,
   xpReward: 75,
 };
@@ -68,7 +68,7 @@ const mysteryBadge = {
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
-describe('BadgeAwardModal', () => {
+describe("BadgeAwardModal", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers();
@@ -78,79 +78,79 @@ describe('BadgeAwardModal', () => {
     vi.useRealTimers();
   });
 
-  it('displays badge name and description', () => {
+  it("displays badge name and description", () => {
     render(
-      <BadgeAwardModal badge={normalBadge} isOpen={true} onClose={vi.fn()} />,
+      <BadgeAwardModal badge={normalBadge} isOpen={true} onClose={vi.fn()} />
     );
 
-    expect(screen.getByText('7-Day Warrior')).toBeInTheDocument();
-    expect(screen.getByText('7-day login streak')).toBeInTheDocument();
+    expect(screen.getByText("7-Day Warrior")).toBeInTheDocument();
+    expect(screen.getByText("7-day login streak")).toBeInTheDocument();
   });
 
-  it('displays XP reward amount', () => {
+  it("displays XP reward amount", () => {
     render(
-      <BadgeAwardModal badge={normalBadge} isOpen={true} onClose={vi.fn()} />,
+      <BadgeAwardModal badge={normalBadge} isOpen={true} onClose={vi.fn()} />
     );
 
-    expect(screen.getByTestId('xp-reward')).toHaveTextContent('+50 XP');
+    expect(screen.getByTestId("xp-reward")).toHaveTextContent("+50 XP");
   });
 
-  it('shows mystery placeholder initially for mystery badges', () => {
+  it("shows mystery placeholder initially for mystery badges", () => {
     render(
-      <BadgeAwardModal badge={mysteryBadge} isOpen={true} onClose={vi.fn()} />,
+      <BadgeAwardModal badge={mysteryBadge} isOpen={true} onClose={vi.fn()} />
     );
 
-    expect(screen.getByText('Mystery Badge Unlocked!')).toBeInTheDocument();
-    expect(screen.getByText('❓')).toBeInTheDocument();
+    expect(screen.getByText("Mystery Badge Unlocked!")).toBeInTheDocument();
+    expect(screen.getByText("❓")).toBeInTheDocument();
   });
 
-  it('reveals mystery badge after delay', () => {
+  it("reveals mystery badge after delay", () => {
     render(
-      <BadgeAwardModal badge={mysteryBadge} isOpen={true} onClose={vi.fn()} />,
+      <BadgeAwardModal badge={mysteryBadge} isOpen={true} onClose={vi.fn()} />
     );
 
     // Before reveal
-    expect(screen.getByText('Mystery Badge Unlocked!')).toBeInTheDocument();
+    expect(screen.getByText("Mystery Badge Unlocked!")).toBeInTheDocument();
 
     // Advance past the reveal delay
     act(() => {
       vi.advanceTimersByTime(1100);
     });
 
-    expect(screen.getByText('Speed Demon')).toBeInTheDocument();
-    expect(screen.getByText('⚡')).toBeInTheDocument();
+    expect(screen.getByText("Speed Demon")).toBeInTheDocument();
+    expect(screen.getByText("⚡")).toBeInTheDocument();
   });
 
-  it('calls onClose when dismiss button is clicked', () => {
+  it("calls onClose when dismiss button is clicked", () => {
     const onClose = vi.fn();
     render(
-      <BadgeAwardModal badge={normalBadge} isOpen={true} onClose={onClose} />,
+      <BadgeAwardModal badge={normalBadge} isOpen={true} onClose={onClose} />
     );
 
-    fireEvent.click(screen.getByRole('button', { name: 'Awesome!' }));
+    fireEvent.click(screen.getByRole("button", { name: "Awesome!" }));
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it('renders an accessible dialog role', () => {
+  it("renders an accessible dialog role", () => {
     render(
-      <BadgeAwardModal badge={normalBadge} isOpen={true} onClose={vi.fn()} />,
+      <BadgeAwardModal badge={normalBadge} isOpen={true} onClose={vi.fn()} />
     );
 
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
   });
 
-  it('does not render when isOpen is false', () => {
+  it("does not render when isOpen is false", () => {
     render(
-      <BadgeAwardModal badge={normalBadge} isOpen={false} onClose={vi.fn()} />,
+      <BadgeAwardModal badge={normalBadge} isOpen={false} onClose={vi.fn()} />
     );
 
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
-  it('fires confetti on open', async () => {
-    const confettiMock = await import('canvas-confetti');
+  it("fires confetti on open", async () => {
+    const confettiMock = await import("canvas-confetti");
     render(
-      <BadgeAwardModal badge={normalBadge} isOpen={true} onClose={vi.fn()} />,
+      <BadgeAwardModal badge={normalBadge} isOpen={true} onClose={vi.fn()} />
     );
 
     expect(confettiMock.default).toHaveBeenCalledTimes(1);

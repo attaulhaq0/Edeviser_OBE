@@ -1,8 +1,8 @@
-import { useState } from 'react';
-import { useForm, useFieldArray, useWatch } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { toast } from 'sonner';
+import { useState } from "react";
+import { useForm, useFieldArray, useWatch } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { toast } from "sonner";
 import {
   Plus,
   Loader2,
@@ -12,25 +12,25 @@ import {
   EyeOff,
   GripVertical,
   ClipboardList,
-} from 'lucide-react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
+} from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Form,
   FormField,
@@ -38,8 +38,8 @@ import {
   FormLabel,
   FormControl,
   FormMessage,
-} from '@/components/ui/form';
-import { useAuth } from '@/hooks/useAuth';
+} from "@/components/ui/form";
+import { useAuth } from "@/hooks/useAuth";
 import {
   useSurveys,
   useSurvey,
@@ -49,38 +49,49 @@ import {
   useDeleteSurvey,
   useCreateSurveyQuestion,
   useDeleteSurveyQuestion,
-} from '@/hooks/useSurveys';
-import type { SurveyType, Survey } from '@/hooks/useSurveys';
-import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
+} from "@/hooks/useSurveys";
+import type { SurveyType, Survey } from "@/hooks/useSurveys";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 
 // ─── Schemas ────────────────────────────────────────────────────────────────
 
 const questionSchema = z.object({
-  question_text: z.string().min(1, 'Question text is required'),
-  question_type: z.enum(['likert', 'mcq', 'text']),
+  question_text: z.string().min(1, "Question text is required"),
+  question_type: z.enum(["likert", "mcq", "text"]),
   options: z.string().optional(),
 });
 
 const surveySchema = z.object({
-  title: z.string().min(1, 'Title is required').max(255),
-  type: z.enum(['course_exit', 'graduate_exit', 'employer']),
+  title: z.string().min(1, "Title is required").max(255),
+  type: z.enum(["course_exit", "graduate_exit", "employer"]),
   is_active: z.boolean(),
-  questions: z.array(questionSchema).min(1, 'At least one question is required'),
+  questions: z
+    .array(questionSchema)
+    .min(1, "At least one question is required"),
 });
 
 type SurveyFormData = z.infer<typeof surveySchema>;
 
 const SURVEY_TYPE_LABELS: Record<SurveyType, string> = {
-  course_exit: 'Course Exit',
-  graduate_exit: 'Graduate Exit',
-  employer: 'Employer',
+  course_exit: "Course Exit",
+  graduate_exit: "Graduate Exit",
+  employer: "Employer",
 };
 
 // ─── MCQ Options Field (extracted to use useWatch safely) ───────────────────
 
-const McqOptionsField = ({ control, index }: { control: ReturnType<typeof useForm<SurveyFormData>>['control']; index: number }) => {
-  const questionType = useWatch({ control, name: `questions.${index}.question_type` as const });
-  if (questionType !== 'mcq') return null;
+const McqOptionsField = ({
+  control,
+  index,
+}: {
+  control: ReturnType<typeof useForm<SurveyFormData>>["control"];
+  index: number;
+}) => {
+  const questionType = useWatch({
+    control,
+    name: `questions.${index}.question_type` as const,
+  });
+  if (questionType !== "mcq") return null;
   return (
     <FormField
       control={control}
@@ -106,7 +117,11 @@ interface SurveyFormDialogProps {
   editSurveyId?: string;
 }
 
-const SurveyFormDialog = ({ open, onOpenChange, editSurveyId }: SurveyFormDialogProps) => {
+const SurveyFormDialog = ({
+  open,
+  onOpenChange,
+  editSurveyId,
+}: SurveyFormDialogProps) => {
   const { user, institutionId } = useAuth();
   const { data: existingSurvey } = useSurvey(editSurveyId);
   const { data: existingQuestions } = useSurveyQuestions(editSurveyId);
@@ -118,31 +133,36 @@ const SurveyFormDialog = ({ open, onOpenChange, editSurveyId }: SurveyFormDialog
   const form = useForm<SurveyFormData>({
     resolver: zodResolver(surveySchema),
     defaultValues: {
-      title: '',
-      type: 'course_exit',
+      title: "",
+      type: "course_exit",
       is_active: true,
-      questions: [{ question_text: '', question_type: 'likert', options: '' }],
+      questions: [{ question_text: "", question_type: "likert", options: "" }],
     },
-    values: editSurveyId && existingSurvey
-      ? {
-          title: existingSurvey.title,
-          type: existingSurvey.type,
-          is_active: existingSurvey.is_active,
-          questions: (existingQuestions ?? []).map((q) => ({
-            question_text: q.question_text,
-            question_type: q.question_type,
-            options: q.options?.join(', ') ?? '',
-          })),
-        }
-      : undefined,
+    values:
+      editSurveyId && existingSurvey
+        ? {
+            title: existingSurvey.title,
+            type: existingSurvey.type,
+            is_active: existingSurvey.is_active,
+            questions: (existingQuestions ?? []).map((q) => ({
+              question_text: q.question_text,
+              question_type: q.question_type,
+              options: q.options?.join(", ") ?? "",
+            })),
+          }
+        : undefined,
   });
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
-    name: 'questions',
+    name: "questions",
   });
 
-  const isPending = createSurvey.isPending || updateSurvey.isPending || createQuestion.isPending || deleteQuestion.isPending;
+  const isPending =
+    createSurvey.isPending ||
+    updateSurvey.isPending ||
+    createQuestion.isPending ||
+    deleteQuestion.isPending;
 
   const onSubmit = async (data: SurveyFormData) => {
     if (!user?.id || !institutionId) return;
@@ -159,13 +179,20 @@ const SurveyFormDialog = ({ open, onOpenChange, editSurveyId }: SurveyFormDialog
 
         // Delete old questions and re-create
         for (const q of existingQuestions ?? []) {
-          await deleteQuestion.mutateAsync({ id: q.id, surveyId: editSurveyId });
+          await deleteQuestion.mutateAsync({
+            id: q.id,
+            surveyId: editSurveyId,
+          });
         }
         for (let i = 0; i < data.questions.length; i++) {
           const q = data.questions[i]!;
-          const options = q.question_type === 'mcq' && q.options
-            ? q.options.split(',').map((o) => o.trim()).filter(Boolean)
-            : null;
+          const options =
+            q.question_type === "mcq" && q.options
+              ? q.options
+                  .split(",")
+                  .map((o) => o.trim())
+                  .filter(Boolean)
+              : null;
           await createQuestion.mutateAsync({
             survey_id: editSurveyId,
             question_text: q.question_text,
@@ -174,7 +201,7 @@ const SurveyFormDialog = ({ open, onOpenChange, editSurveyId }: SurveyFormDialog
             sort_order: i + 1,
           });
         }
-        toast.success('Survey updated');
+        toast.success("Survey updated");
       } else {
         const survey = await createSurvey.mutateAsync({
           institution_id: institutionId,
@@ -187,9 +214,13 @@ const SurveyFormDialog = ({ open, onOpenChange, editSurveyId }: SurveyFormDialog
 
         for (let i = 0; i < data.questions.length; i++) {
           const q = data.questions[i]!;
-          const options = q.question_type === 'mcq' && q.options
-            ? q.options.split(',').map((o) => o.trim()).filter(Boolean)
-            : null;
+          const options =
+            q.question_type === "mcq" && q.options
+              ? q.options
+                  .split(",")
+                  .map((o) => o.trim())
+                  .filter(Boolean)
+              : null;
           await createQuestion.mutateAsync({
             survey_id: survey.id,
             question_text: q.question_text,
@@ -198,12 +229,12 @@ const SurveyFormDialog = ({ open, onOpenChange, editSurveyId }: SurveyFormDialog
             sort_order: i + 1,
           });
         }
-        toast.success('Survey created');
+        toast.success("Survey created");
       }
       onOpenChange(false);
       form.reset();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to save survey');
+      toast.error(err instanceof Error ? err.message : "Failed to save survey");
     }
   };
 
@@ -211,7 +242,9 @@ const SurveyFormDialog = ({ open, onOpenChange, editSurveyId }: SurveyFormDialog
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{editSurveyId ? 'Edit Survey' : 'Create Survey'}</DialogTitle>
+          <DialogTitle>
+            {editSurveyId ? "Edit Survey" : "Create Survey"}
+          </DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -221,7 +254,12 @@ const SurveyFormDialog = ({ open, onOpenChange, editSurveyId }: SurveyFormDialog
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Title</FormLabel>
-                  <FormControl><Input {...field} placeholder="e.g. Course Exit Survey — Fall 2025" /></FormControl>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      placeholder="e.g. Course Exit Survey — Fall 2025"
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -242,7 +280,9 @@ const SurveyFormDialog = ({ open, onOpenChange, editSurveyId }: SurveyFormDialog
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="course_exit">Course Exit</SelectItem>
-                        <SelectItem value="graduate_exit">Graduate Exit</SelectItem>
+                        <SelectItem value="graduate_exit">
+                          Graduate Exit
+                        </SelectItem>
                         <SelectItem value="employer">Employer</SelectItem>
                       </SelectContent>
                     </Select>
@@ -258,7 +298,7 @@ const SurveyFormDialog = ({ open, onOpenChange, editSurveyId }: SurveyFormDialog
                   <FormItem>
                     <FormLabel>Status</FormLabel>
                     <Select
-                      onValueChange={(v) => field.onChange(v === 'true')}
+                      onValueChange={(v) => field.onChange(v === "true")}
                       value={String(field.value)}
                     >
                       <FormControl>
@@ -285,21 +325,37 @@ const SurveyFormDialog = ({ open, onOpenChange, editSurveyId }: SurveyFormDialog
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => append({ question_text: '', question_type: 'likert', options: '' })}
+                  onClick={() =>
+                    append({
+                      question_text: "",
+                      question_type: "likert",
+                      options: "",
+                    })
+                  }
                 >
                   <Plus className="h-4 w-4" /> Add Question
                 </Button>
               </div>
 
               {fields.map((field, index) => (
-                <Card key={field.id} className="bg-slate-50 border border-slate-200 rounded-lg p-4 space-y-3">
+                <Card
+                  key={field.id}
+                  className="bg-slate-50 border border-slate-200 rounded-lg p-4 space-y-3"
+                >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <GripVertical className="h-4 w-4 text-gray-400" />
-                      <span className="text-xs font-bold text-gray-500">Q{index + 1}</span>
+                      <span className="text-xs font-bold text-gray-500">
+                        Q{index + 1}
+                      </span>
                     </div>
                     {fields.length > 1 && (
-                      <Button type="button" variant="ghost" size="sm" onClick={() => remove(index)}>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => remove(index)}
+                      >
                         <Trash2 className="h-4 w-4 text-red-500" />
                       </Button>
                     )}
@@ -311,7 +367,11 @@ const SurveyFormDialog = ({ open, onOpenChange, editSurveyId }: SurveyFormDialog
                     render={({ field: f }) => (
                       <FormItem>
                         <FormControl>
-                          <Textarea {...f} placeholder="Enter question text..." rows={2} />
+                          <Textarea
+                            {...f}
+                            placeholder="Enter question text..."
+                            rows={2}
+                          />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -351,7 +411,7 @@ const SurveyFormDialog = ({ open, onOpenChange, editSurveyId }: SurveyFormDialog
               className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
             >
               {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-              {editSurveyId ? 'Update Survey' : 'Create Survey'}
+              {editSurveyId ? "Update Survey" : "Create Survey"}
             </Button>
           </form>
         </Form>
@@ -390,20 +450,29 @@ const SurveyManager = () => {
         is_active: !survey.is_active,
         performedBy: user.id,
       });
-      toast.success(survey.is_active ? 'Survey unpublished' : 'Survey published');
+      toast.success(
+        survey.is_active ? "Survey unpublished" : "Survey published"
+      );
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to update survey');
+      toast.error(
+        err instanceof Error ? err.message : "Failed to update survey"
+      );
     }
   };
 
   const handleDelete = async () => {
     if (!deleteTarget || !user?.id) return;
     try {
-      await deleteSurvey.mutateAsync({ id: deleteTarget.id, performedBy: user.id });
-      toast.success('Survey deleted');
+      await deleteSurvey.mutateAsync({
+        id: deleteTarget.id,
+        performedBy: user.id,
+      });
+      toast.success("Survey deleted");
       setDeleteTarget(null);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to delete survey');
+      toast.error(
+        err instanceof Error ? err.message : "Failed to delete survey"
+      );
     }
   };
 
@@ -428,32 +497,59 @@ const SurveyManager = () => {
       ) : !surveys?.length ? (
         <Card className="bg-white border-0 shadow-md rounded-xl p-8 text-center">
           <ClipboardList className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-sm text-gray-500">No surveys yet. Create your first survey to collect indirect assessment data.</p>
+          <p className="text-sm text-gray-500">
+            No surveys yet. Create your first survey to collect indirect
+            assessment data.
+          </p>
         </Card>
       ) : (
         <div className="space-y-3">
           {surveys.map((survey) => (
-            <Card key={survey.id} className="bg-white border-0 shadow-md rounded-xl p-4">
+            <Card
+              key={survey.id}
+              className="bg-white border-0 shadow-md rounded-xl p-4"
+            >
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <h3 className="text-sm font-bold">{survey.title}</h3>
-                    <Badge variant={survey.is_active ? 'default' : 'secondary'} className="text-xs">
-                      {survey.is_active ? 'Published' : 'Draft'}
+                    <Badge
+                      variant={survey.is_active ? "default" : "secondary"}
+                      className="text-xs"
+                    >
+                      {survey.is_active ? "Published" : "Draft"}
                     </Badge>
                   </div>
                   <p className="text-xs text-gray-500">
-                    {SURVEY_TYPE_LABELS[survey.type]} · Created {new Date(survey.created_at).toLocaleDateString()}
+                    {SURVEY_TYPE_LABELS[survey.type]} · Created{" "}
+                    {new Date(survey.created_at).toLocaleDateString()}
                   </p>
                 </div>
                 <div className="flex items-center gap-1">
-                  <Button variant="ghost" size="sm" onClick={() => handleToggleActive(survey)} title={survey.is_active ? 'Unpublish' : 'Publish'}>
-                    {survey.is_active ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleToggleActive(survey)}
+                    title={survey.is_active ? "Unpublish" : "Publish"}
+                  >
+                    {survey.is_active ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={() => handleEdit(survey)}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleEdit(survey)}
+                  >
                     <Pencil className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={() => setDeleteTarget(survey)}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setDeleteTarget(survey)}
+                  >
                     <Trash2 className="h-4 w-4 text-red-500" />
                   </Button>
                 </div>

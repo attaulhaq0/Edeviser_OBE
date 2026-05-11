@@ -24,11 +24,10 @@ export interface RecoveryPathway {
 export function countMasteryFailures(
   attempts: QuizAttemptCLOResult[],
   cloId: string,
-  masteryThreshold: number = 70,
+  masteryThreshold: number = 70
 ): number {
-  return attempts.filter(
-    (a) => (a.clo_scores[cloId] ?? 0) < masteryThreshold,
-  ).length;
+  return attempts.filter((a) => (a.clo_scores[cloId] ?? 0) < masteryThreshold)
+    .length;
 }
 
 /**
@@ -41,7 +40,7 @@ export function countMasteryFailures(
  */
 export function shouldActivateRecovery(
   failureCount: number,
-  threshold: number = 2,
+  threshold: number = 2
 ): boolean {
   return failureCount >= threshold;
 }

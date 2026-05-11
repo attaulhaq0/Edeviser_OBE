@@ -1,6 +1,6 @@
 // Task 145.2: Habit Difficulty Level Zod schema
 
-import { z } from 'zod';
+import { z } from "zod";
 
 export const habitDifficultyLevelSchema = z.object({
   level: z.union([z.literal(1), z.literal(2), z.literal(3)]),

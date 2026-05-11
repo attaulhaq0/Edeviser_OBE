@@ -3,10 +3,10 @@
 // Task 3.10: with polling fallback
 // =============================================================================
 
-import { useCallback } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
-import { queryKeys } from '@/lib/queryKeys';
-import { useRealtime } from '@/hooks/useRealtime';
+import { useCallback } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { queryKeys } from "@/lib/queryKeys";
+import { useRealtime } from "@/hooks/useRealtime";
 
 // ─── useChallengeRealtime ────────────────────────────────────────────────────
 
@@ -19,8 +19,12 @@ export const useChallengeRealtime = (challengeId?: string) => {
   const queryClient = useQueryClient();
 
   const invalidateChallengeQueries = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: queryKeys.challengeProgress.lists() });
-    queryClient.invalidateQueries({ queryKey: queryKeys.challengeLeaderboard.lists() });
+    queryClient.invalidateQueries({
+      queryKey: queryKeys.challengeProgress.lists(),
+    });
+    queryClient.invalidateQueries({
+      queryKey: queryKeys.challengeLeaderboard.lists(),
+    });
     if (challengeId) {
       queryClient.invalidateQueries({
         queryKey: queryKeys.challengeProgress.detail(challengeId),
@@ -29,8 +33,8 @@ export const useChallengeRealtime = (challengeId?: string) => {
   }, [queryClient, challengeId]);
 
   const { isLive, retryCount } = useRealtime({
-    table: 'challenge_progress',
-    event: '*',
+    table: "challenge_progress",
+    event: "*",
     filter: challengeId ? `challenge_id=eq.${challengeId}` : undefined,
     onPayload: invalidateChallengeQueries,
     pollingFn: invalidateChallengeQueries,

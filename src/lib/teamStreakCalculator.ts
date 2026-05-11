@@ -2,7 +2,7 @@
 // Team Streak Calculator — Pure functions for team streak logic
 // =============================================================================
 
-import { daysBetween } from '@/lib/streakCalculator';
+import { daysBetween } from "@/lib/streakCalculator";
 
 export interface TeamStreakState {
   streak_current: number;
@@ -30,7 +30,7 @@ export interface TeamStreakResult {
 export function calculateTeamStreakUpdate(
   current: TeamStreakState | null,
   todayUTC: string,
-  allMembersLoggedIn: boolean,
+  allMembersLoggedIn: boolean
 ): TeamStreakResult {
   // No existing record
   if (!current || !current.last_streak_date) {
@@ -111,7 +111,9 @@ export interface TeamStreakMilestoneResult {
  * Check if a team streak milestone was reached.
  * Returns the milestone details if the new streak count exactly matches a milestone.
  */
-export function checkTeamStreakMilestone(newStreakCount: number): TeamStreakMilestoneResult {
+export function checkTeamStreakMilestone(
+  newStreakCount: number
+): TeamStreakMilestoneResult {
   const xp = TEAM_STREAK_MILESTONES[newStreakCount];
   if (xp !== undefined) {
     return {

@@ -1,25 +1,29 @@
-import { AnimatePresence, motion } from 'framer-motion';
-import { Info } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { BLOOMS_VERBS, BLOOMS_COLORS } from '@/lib/bloomsVerbs';
-import { BLOOMS_ARABIC_STANDARD } from '@/lib/bloomsArabicTerminology';
-import type { BloomsLevel } from '@/lib/schemas/clo';
-import { cn } from '@/lib/utils';
-import { useTranslation } from 'react-i18next';
+import { AnimatePresence, motion } from "framer-motion";
+import { Info } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { BLOOMS_VERBS, BLOOMS_COLORS } from "@/lib/bloomsVerbs";
+import { BLOOMS_ARABIC_STANDARD } from "@/lib/bloomsArabicTerminology";
+import type { BloomsLevel } from "@/lib/schemas/clo";
+import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 interface BloomsVerbGuideProps {
   selectedLevel?: BloomsLevel;
   onVerbClick: (verb: string) => void;
 }
 
-const BloomsVerbGuide = ({ selectedLevel, onVerbClick }: BloomsVerbGuideProps) => {
+const BloomsVerbGuide = ({
+  selectedLevel,
+  onVerbClick,
+}: BloomsVerbGuideProps) => {
   const { i18n } = useTranslation();
 
   if (!selectedLevel) return null;
 
-  const isArabic = i18n.language === 'ar';
+  const isArabic = i18n.language === "ar";
   const verbs = isArabic
-    ? (BLOOMS_ARABIC_STANDARD[selectedLevel]?.verbs ?? BLOOMS_VERBS[selectedLevel])
+    ? BLOOMS_ARABIC_STANDARD[selectedLevel]?.verbs ??
+      BLOOMS_VERBS[selectedLevel]
     : BLOOMS_VERBS[selectedLevel];
   const colors = BLOOMS_COLORS[selectedLevel];
 
@@ -35,7 +39,9 @@ const BloomsVerbGuide = ({ selectedLevel, onVerbClick }: BloomsVerbGuideProps) =
       >
         <div className="flex items-center gap-1.5 mb-2">
           <Info className="h-3.5 w-3.5 text-gray-400" />
-          <span className="text-xs font-medium text-gray-500">Suggested Verbs</span>
+          <span className="text-xs font-medium text-gray-500">
+            Suggested Verbs
+          </span>
         </div>
         <div className="flex flex-wrap gap-1.5">
           {verbs.map((verb) => (
@@ -45,13 +51,13 @@ const BloomsVerbGuide = ({ selectedLevel, onVerbClick }: BloomsVerbGuideProps) =
                 colors.bg,
                 colors.text,
                 colors.hover,
-                'cursor-pointer select-none border-0 transition-colors',
+                "cursor-pointer select-none border-0 transition-colors"
               )}
               onClick={() => onVerbClick(verb)}
               role="button"
               tabIndex={0}
               onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
+                if (e.key === "Enter" || e.key === " ") {
                   e.preventDefault();
                   onVerbClick(verb);
                 }

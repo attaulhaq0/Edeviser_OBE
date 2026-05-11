@@ -1,7 +1,7 @@
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import type { DateRange } from '@/types/habits';
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import type { DateRange } from "@/types/habits";
 
 /**
  * Resolves the current semester date range for the heatmap.
@@ -10,7 +10,7 @@ import type { DateRange } from '@/types/habits';
  */
 export const useSemesterRange = (studentId: string | undefined) => {
   return useQuery({
-    queryKey: [...queryKeys.semesters.all, 'current', studentId ?? ''],
+    queryKey: [...queryKeys.semesters.all, "current", studentId ?? ""],
     enabled: !!studentId,
     staleTime: 1000 * 60 * 30, // 30 min — semester range rarely changes
     queryFn: async (): Promise<DateRange> => {
@@ -18,11 +18,11 @@ export const useSemesterRange = (studentId: string | undefined) => {
 
       // Attempt to find the active semester that contains today
       const { data, error } = await supabase
-        .from('semesters')
-        .select('start_date, end_date')
-        .lte('start_date', today)
-        .gte('end_date', today)
-        .order('start_date', { ascending: false })
+        .from("semesters")
+        .select("start_date, end_date")
+        .lte("start_date", today)
+        .gte("end_date", today)
+        .order("start_date", { ascending: false })
         .limit(1)
         .maybeSingle();
 

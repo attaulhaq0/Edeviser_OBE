@@ -2,13 +2,16 @@
 // ChatMessage — Message bubble with markdown, citations, and rating
 // =============================================================================
 
-import { useState, useCallback } from 'react';
-import { Bot, User } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
-import SatisfactionRating from '@/components/shared/SatisfactionRating';
-import SourceCitationPanel from '@/components/shared/SourceCitationPanel';
-import type { TutorMessage, SatisfactionRating as SatisfactionRatingType } from '@/lib/tutorSchemas';
+import { useState, useCallback } from "react";
+import { Bot, User } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+import SatisfactionRating from "@/components/shared/SatisfactionRating";
+import SourceCitationPanel from "@/components/shared/SourceCitationPanel";
+import type {
+  TutorMessage,
+  SatisfactionRating as SatisfactionRatingType,
+} from "@/lib/tutorSchemas";
 
 interface ChatMessageProps {
   message: TutorMessage;
@@ -52,18 +55,24 @@ const renderContent = (
 /** Minimal markdown renderer for bold, italic, code blocks, and lists */
 const SimpleMarkdown = ({ text }: { text: string }) => {
   // Handle code blocks
-  if (text.includes('```')) {
+  if (text.includes("```")) {
     const segments = text.split(/(```[\s\S]*?```)/g);
     return (
       <>
         {segments.map((segment, i) => {
-          if (segment.startsWith('```') && segment.endsWith('```')) {
+          if (segment.startsWith("```") && segment.endsWith("```")) {
             const codeContent = segment.slice(3, -3);
             // Remove optional language identifier from first line
-            const firstNewline = codeContent.indexOf('\n');
-            const code = firstNewline > -1 ? codeContent.slice(firstNewline + 1) : codeContent;
+            const firstNewline = codeContent.indexOf("\n");
+            const code =
+              firstNewline > -1
+                ? codeContent.slice(firstNewline + 1)
+                : codeContent;
             return (
-              <pre key={i} className="my-2 rounded-lg bg-gray-900 text-gray-100 p-3 text-xs overflow-x-auto">
+              <pre
+                key={i}
+                className="my-2 rounded-lg bg-gray-900 text-gray-100 p-3 text-xs overflow-x-auto"
+              >
                 <code>{code.trim()}</code>
               </pre>
             );
@@ -80,7 +89,7 @@ const SimpleMarkdown = ({ text }: { text: string }) => {
 /** Handle inline markdown: bold, italic, inline code, line breaks */
 const InlineMarkdown = ({ text }: { text: string }) => {
   // Split by lines to handle lists and paragraphs
-  const lines = text.split('\n');
+  const lines = text.split("\n");
 
   return (
     <>
@@ -88,7 +97,7 @@ const InlineMarkdown = ({ text }: { text: string }) => {
         const trimmed = line.trim();
 
         // Unordered list items
-        if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+        if (trimmed.startsWith("- ") || trimmed.startsWith("* ")) {
           return (
             <div key={i} className="flex gap-2 ps-2">
               <span className="text-gray-400 shrink-0">•</span>
@@ -102,7 +111,9 @@ const InlineMarkdown = ({ text }: { text: string }) => {
         if (orderedMatch) {
           return (
             <div key={i} className="flex gap-2 ps-2">
-              <span className="text-gray-400 shrink-0 min-w-4 text-end">{orderedMatch[1]}.</span>
+              <span className="text-gray-400 shrink-0 min-w-4 text-end">
+                {orderedMatch[1]}.
+              </span>
               <span>{renderInline(trimmed.slice(orderedMatch[0].length))}</span>
             </div>
           );
@@ -110,11 +121,18 @@ const InlineMarkdown = ({ text }: { text: string }) => {
 
         // Empty lines become spacing
         if (!trimmed) {
-          return i > 0 && i < lines.length - 1 ? <div key={i} className="h-2" /> : null;
+          return i > 0 && i < lines.length - 1 ? (
+            <div key={i} className="h-2" />
+          ) : null;
         }
 
         // Regular text
-        return <span key={i}>{renderInline(line)}{i < lines.length - 1 ? ' ' : ''}</span>;
+        return (
+          <span key={i}>
+            {renderInline(line)}
+            {i < lines.length - 1 ? " " : ""}
+          </span>
+        );
       })}
     </>
   );
@@ -125,15 +143,22 @@ const renderInline = (text: string): React.ReactNode => {
   // Bold
   const parts = text.split(/(\*\*[^*]+\*\*)/g);
   return parts.map((part, i) => {
-    if (part.startsWith('**') && part.endsWith('**')) {
-      return <strong key={i} className="font-semibold">{part.slice(2, -2)}</strong>;
+    if (part.startsWith("**") && part.endsWith("**")) {
+      return (
+        <strong key={i} className="font-semibold">
+          {part.slice(2, -2)}
+        </strong>
+      );
     }
     // Inline code
     const codeParts = part.split(/(`[^`]+`)/g);
     return codeParts.map((cp, j) => {
-      if (cp.startsWith('`') && cp.endsWith('`')) {
+      if (cp.startsWith("`") && cp.endsWith("`")) {
         return (
-          <code key={`${i}-${j}`} className="px-1 py-0.5 rounded bg-gray-100 text-gray-800 text-xs font-mono">
+          <code
+            key={`${i}-${j}`}
+            className="px-1 py-0.5 rounded bg-gray-100 text-gray-800 text-xs font-mono"
+          >
             {cp.slice(1, -1)}
           </code>
         );
@@ -141,7 +166,7 @@ const renderInline = (text: string): React.ReactNode => {
       // Italic
       const italicParts = cp.split(/(\*[^*]+\*)/g);
       return italicParts.map((ip, k) => {
-        if (ip.startsWith('*') && ip.endsWith('*') && !ip.startsWith('**')) {
+        if (ip.startsWith("*") && ip.endsWith("*") && !ip.startsWith("**")) {
           return <em key={`${i}-${j}-${k}`}>{ip.slice(1, -1)}</em>;
         }
         return <span key={`${i}-${j}-${k}`}>{ip}</span>;
@@ -150,10 +175,14 @@ const renderInline = (text: string): React.ReactNode => {
   });
 };
 
-const ChatMessage = ({ message, onRate, isRatingPending }: ChatMessageProps) => {
+const ChatMessage = ({
+  message,
+  onRate,
+  isRatingPending,
+}: ChatMessageProps) => {
   const [expandedCitation, setExpandedCitation] = useState<number | null>(null);
-  const isUser = message.role === 'user';
-  const isAssistant = message.role === 'assistant';
+  const isUser = message.role === "user";
+  const isAssistant = message.role === "assistant";
 
   const handleCitationClick = useCallback((index: number) => {
     setExpandedCitation((prev) => (prev === index ? null : index));
@@ -161,15 +190,18 @@ const ChatMessage = ({ message, onRate, isRatingPending }: ChatMessageProps) => 
 
   return (
     <div
-      className={cn('flex gap-3 max-w-full', isUser ? 'flex-row-reverse' : 'flex-row')}
+      className={cn(
+        "flex gap-3 max-w-full",
+        isUser ? "flex-row-reverse" : "flex-row"
+      )}
       role="article"
-      aria-label={`${isUser ? 'Your' : 'Tutor'} message`}
+      aria-label={`${isUser ? "Your" : "Tutor"} message`}
     >
       {/* Avatar */}
       <div
         className={cn(
-          'shrink-0 h-8 w-8 rounded-full flex items-center justify-center',
-          isUser ? 'bg-blue-100' : 'bg-gradient-to-br from-teal-500 to-blue-600'
+          "shrink-0 h-8 w-8 rounded-full flex items-center justify-center",
+          isUser ? "bg-blue-100" : "bg-gradient-to-br from-teal-500 to-blue-600"
         )}
         aria-hidden="true"
       >
@@ -181,13 +213,18 @@ const ChatMessage = ({ message, onRate, isRatingPending }: ChatMessageProps) => 
       </div>
 
       {/* Message content */}
-      <div className={cn('flex flex-col max-w-[80%] min-w-0', isUser ? 'items-end' : 'items-start')}>
+      <div
+        className={cn(
+          "flex flex-col max-w-[80%] min-w-0",
+          isUser ? "items-end" : "items-start"
+        )}
+      >
         <div
           className={cn(
-            'rounded-2xl px-4 py-2.5 text-sm leading-relaxed',
+            "rounded-2xl px-4 py-2.5 text-sm leading-relaxed",
             isUser
-              ? 'bg-blue-600 text-white rounded-br-md'
-              : 'bg-white border border-gray-100 shadow-sm text-gray-800 rounded-bl-md'
+              ? "bg-blue-600 text-white rounded-br-md"
+              : "bg-white border border-gray-100 shadow-sm text-gray-800 rounded-bl-md"
           )}
         >
           {isUser ? (
@@ -225,7 +262,10 @@ const ChatMessage = ({ message, onRate, isRatingPending }: ChatMessageProps) => 
 
         {/* Integrity flag */}
         {message.flagged_integrity && isAssistant && (
-          <Badge variant="outline" className="mt-1 text-[10px] text-amber-600 border-amber-200 bg-amber-50">
+          <Badge
+            variant="outline"
+            className="mt-1 text-[10px] text-amber-600 border-amber-200 bg-amber-50"
+          >
             Academic integrity guidance
           </Badge>
         )}
@@ -257,7 +297,10 @@ const ChatMessage = ({ message, onRate, isRatingPending }: ChatMessageProps) => 
 
         {/* Timestamp */}
         <span className="text-[10px] text-gray-400 mt-1 px-1">
-          {new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          {new Date(message.created_at).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
         </span>
       </div>
     </div>

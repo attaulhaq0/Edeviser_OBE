@@ -4,9 +4,9 @@
 // Feature: xp-marketplace
 // =============================================================================
 
-import { describe, it, expect } from 'vitest';
-import * as fc from 'fast-check';
-import { computeWeeklyXP } from '@/lib/personalBestLeaderboard';
+import { describe, it, expect } from "vitest";
+import * as fc from "fast-check";
+import { computeWeeklyXP } from "@/lib/personalBestLeaderboard";
 
 /**
  * Safe ISO date string arbitrary that avoids RangeError: Invalid time value.
@@ -14,8 +14,8 @@ import { computeWeeklyXP } from '@/lib/personalBestLeaderboard';
  */
 const safeISODateArb = fc
   .integer({
-    min: new Date('2020-01-01T00:00:00.000Z').getTime(),
-    max: new Date('2030-12-31T23:59:59.999Z').getTime(),
+    min: new Date("2020-01-01T00:00:00.000Z").getTime(),
+    max: new Date("2030-12-31T23:59:59.999Z").getTime(),
   })
   .map((ms) => new Date(ms).toISOString());
 
@@ -23,8 +23,8 @@ const safeISODateArb = fc
  * **Validates: Requirements 129.1**
  * P36: Personal best comparison is correct — exactly one week is marked as personal best.
  */
-describe('P36: Personal best comparison correctness', () => {
-  it('exactly one week is marked as personal best when there is XP', () => {
+describe("P36: Personal best comparison correctness", () => {
+  it("exactly one week is marked as personal best when there is XP", () => {
     const referenceDate = new Date();
     fc.assert(
       fc.property(
@@ -33,7 +33,7 @@ describe('P36: Personal best comparison correctness', () => {
             xp_amount: fc.integer({ min: 1, max: 100 }),
             created_at: safeISODateArb,
           }),
-          { minLength: 1, maxLength: 50 },
+          { minLength: 1, maxLength: 50 }
         ),
         (transactions) => {
           const weeks = computeWeeklyXP(transactions, referenceDate);
@@ -49,18 +49,18 @@ describe('P36: Personal best comparison correctness', () => {
               expect(w.xp).toBeLessThanOrEqual(bestWeek.xp);
             }
           }
-        },
+        }
       ),
-      { numRuns: 100 },
+      { numRuns: 100 }
     );
   });
 
-  it('returns 8 weeks (7 historical + current)', () => {
+  it("returns 8 weeks (7 historical + current)", () => {
     const weeks = computeWeeklyXP([]);
     expect(weeks.length).toBe(8);
   });
 
-  it('exactly one week is marked as current week', () => {
+  it("exactly one week is marked as current week", () => {
     const weeks = computeWeeklyXP([]);
     const currentWeeks = weeks.filter((w) => w.isCurrentWeek);
     expect(currentWeeks.length).toBe(1);

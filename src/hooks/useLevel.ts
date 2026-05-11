@@ -2,10 +2,10 @@
 // useLevel — TanStack Query hook for student level data
 // =============================================================================
 
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import { calculateLevel, LEVEL_THRESHOLDS } from '@/lib/xpLevelCalculator';
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import { calculateLevel, LEVEL_THRESHOLDS } from "@/lib/xpLevelCalculator";
 
 export interface LevelData {
   level: number;
@@ -27,13 +27,14 @@ export function computeLevelData(xpTotal: number): LevelData {
   const xpForCurrentLevel = currentThreshold?.xpRequired ?? 0;
   const xpForNextLevel = nextThreshold?.xpRequired ?? xpForCurrentLevel;
   const range = xpForNextLevel - xpForCurrentLevel;
-  const progressPercent = range > 0
-    ? Math.min(Math.round(((xpTotal - xpForCurrentLevel) / range) * 100), 100)
-    : 100;
+  const progressPercent =
+    range > 0
+      ? Math.min(Math.round(((xpTotal - xpForCurrentLevel) / range) * 100), 100)
+      : 100;
 
   return {
     level,
-    title: currentThreshold?.title ?? 'Newcomer',
+    title: currentThreshold?.title ?? "Newcomer",
     xpTotal,
     xpForCurrentLevel,
     xpForNextLevel,
@@ -43,16 +44,16 @@ export function computeLevelData(xpTotal: number): LevelData {
 
 export const useLevel = (studentId: string | undefined) => {
   return useQuery({
-    queryKey: queryKeys.studentGamification.list({ scope: 'level', studentId }),
+    queryKey: queryKeys.studentGamification.list({ scope: "level", studentId }),
     queryFn: async (): Promise<LevelData> => {
       if (!studentId) {
         return computeLevelData(0);
       }
 
       const { data, error } = await supabase
-        .from('student_gamification')
-        .select('xp_total')
-        .eq('student_id', studentId)
+        .from("student_gamification")
+        .select("xp_total")
+        .eq("student_id", studentId)
         .maybeSingle();
 
       if (error) throw error;

@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from "vitest";
 
 /**
  * Tests for the Bloom's badge check logic integrated into the
@@ -29,14 +29,14 @@ interface BloomsProgressionRow {
  */
 function deriveBloomsBadges(
   progressions: BloomsProgressionRow[],
-  existingBadgeIds: Set<string>,
+  existingBadgeIds: Set<string>
 ): string[] {
   const newBadges: string[] = [];
 
   if (
-    existingBadgeIds.has('bloom_explorer') &&
-    existingBadgeIds.has('bloom_challenger') &&
-    existingBadgeIds.has('bloom_pioneer')
+    existingBadgeIds.has("bloom_explorer") &&
+    existingBadgeIds.has("bloom_challenger") &&
+    existingBadgeIds.has("bloom_pioneer")
   ) {
     return newBadges;
   }
@@ -53,98 +53,158 @@ function deriveBloomsBadges(
     if (row.bloom_pioneer_awarded) hasPioneer = true;
   }
 
-  if (hasExplorer && !existingBadgeIds.has('bloom_explorer')) {
-    newBadges.push('bloom_explorer');
+  if (hasExplorer && !existingBadgeIds.has("bloom_explorer")) {
+    newBadges.push("bloom_explorer");
   }
-  if (hasChallenger && !existingBadgeIds.has('bloom_challenger')) {
-    newBadges.push('bloom_challenger');
+  if (hasChallenger && !existingBadgeIds.has("bloom_challenger")) {
+    newBadges.push("bloom_challenger");
   }
-  if (hasPioneer && !existingBadgeIds.has('bloom_pioneer')) {
-    newBadges.push('bloom_pioneer');
+  if (hasPioneer && !existingBadgeIds.has("bloom_pioneer")) {
+    newBadges.push("bloom_pioneer");
   }
 
   return newBadges;
 }
 
 describe("Bloom's Badge Check Logic (check-badges Edge Function)", () => {
-  describe('deriveBloomsBadges', () => {
-    it('returns empty when no progression rows exist', () => {
+  describe("deriveBloomsBadges", () => {
+    it("returns empty when no progression rows exist", () => {
       const result = deriveBloomsBadges([], new Set());
       expect(result).toEqual([]);
     });
 
-    it('awards bloom_explorer when explorer flag is set', () => {
+    it("awards bloom_explorer when explorer flag is set", () => {
       const progressions: BloomsProgressionRow[] = [
-        { bloom_explorer_awarded: true, bloom_challenger_awarded: false, bloom_pioneer_awarded: false },
+        {
+          bloom_explorer_awarded: true,
+          bloom_challenger_awarded: false,
+          bloom_pioneer_awarded: false,
+        },
       ];
       const result = deriveBloomsBadges(progressions, new Set());
-      expect(result).toEqual(['bloom_explorer']);
+      expect(result).toEqual(["bloom_explorer"]);
     });
 
-    it('awards bloom_challenger when challenger flag is set', () => {
+    it("awards bloom_challenger when challenger flag is set", () => {
       const progressions: BloomsProgressionRow[] = [
-        { bloom_explorer_awarded: false, bloom_challenger_awarded: true, bloom_pioneer_awarded: false },
+        {
+          bloom_explorer_awarded: false,
+          bloom_challenger_awarded: true,
+          bloom_pioneer_awarded: false,
+        },
       ];
       const result = deriveBloomsBadges(progressions, new Set());
-      expect(result).toEqual(['bloom_challenger']);
+      expect(result).toEqual(["bloom_challenger"]);
     });
 
-    it('awards bloom_pioneer when pioneer flag is set', () => {
+    it("awards bloom_pioneer when pioneer flag is set", () => {
       const progressions: BloomsProgressionRow[] = [
-        { bloom_explorer_awarded: false, bloom_challenger_awarded: false, bloom_pioneer_awarded: true },
+        {
+          bloom_explorer_awarded: false,
+          bloom_challenger_awarded: false,
+          bloom_pioneer_awarded: true,
+        },
       ];
       const result = deriveBloomsBadges(progressions, new Set());
-      expect(result).toEqual(['bloom_pioneer']);
+      expect(result).toEqual(["bloom_pioneer"]);
     });
 
-    it('awards all three badges when all flags are set', () => {
+    it("awards all three badges when all flags are set", () => {
       const progressions: BloomsProgressionRow[] = [
-        { bloom_explorer_awarded: true, bloom_challenger_awarded: true, bloom_pioneer_awarded: true },
+        {
+          bloom_explorer_awarded: true,
+          bloom_challenger_awarded: true,
+          bloom_pioneer_awarded: true,
+        },
       ];
       const result = deriveBloomsBadges(progressions, new Set());
-      expect(result).toEqual(['bloom_explorer', 'bloom_challenger', 'bloom_pioneer']);
+      expect(result).toEqual([
+        "bloom_explorer",
+        "bloom_challenger",
+        "bloom_pioneer",
+      ]);
     });
 
-    it('skips badges that already exist in student_badges', () => {
+    it("skips badges that already exist in student_badges", () => {
       const progressions: BloomsProgressionRow[] = [
-        { bloom_explorer_awarded: true, bloom_challenger_awarded: true, bloom_pioneer_awarded: true },
+        {
+          bloom_explorer_awarded: true,
+          bloom_challenger_awarded: true,
+          bloom_pioneer_awarded: true,
+        },
       ];
-      const existing = new Set(['bloom_explorer', 'bloom_challenger']);
+      const existing = new Set(["bloom_explorer", "bloom_challenger"]);
       const result = deriveBloomsBadges(progressions, existing);
-      expect(result).toEqual(['bloom_pioneer']);
+      expect(result).toEqual(["bloom_pioneer"]);
     });
 
-    it('returns empty when all badges already awarded (early exit)', () => {
+    it("returns empty when all badges already awarded (early exit)", () => {
       const progressions: BloomsProgressionRow[] = [
-        { bloom_explorer_awarded: true, bloom_challenger_awarded: true, bloom_pioneer_awarded: true },
+        {
+          bloom_explorer_awarded: true,
+          bloom_challenger_awarded: true,
+          bloom_pioneer_awarded: true,
+        },
       ];
-      const existing = new Set(['bloom_explorer', 'bloom_challenger', 'bloom_pioneer']);
+      const existing = new Set([
+        "bloom_explorer",
+        "bloom_challenger",
+        "bloom_pioneer",
+      ]);
       const result = deriveBloomsBadges(progressions, existing);
       expect(result).toEqual([]);
     });
 
-    it('aggregates flags across multiple CLO progression rows', () => {
+    it("aggregates flags across multiple CLO progression rows", () => {
       const progressions: BloomsProgressionRow[] = [
-        { bloom_explorer_awarded: true, bloom_challenger_awarded: false, bloom_pioneer_awarded: false },
-        { bloom_explorer_awarded: false, bloom_challenger_awarded: true, bloom_pioneer_awarded: false },
-        { bloom_explorer_awarded: false, bloom_challenger_awarded: false, bloom_pioneer_awarded: true },
+        {
+          bloom_explorer_awarded: true,
+          bloom_challenger_awarded: false,
+          bloom_pioneer_awarded: false,
+        },
+        {
+          bloom_explorer_awarded: false,
+          bloom_challenger_awarded: true,
+          bloom_pioneer_awarded: false,
+        },
+        {
+          bloom_explorer_awarded: false,
+          bloom_challenger_awarded: false,
+          bloom_pioneer_awarded: true,
+        },
       ];
       const result = deriveBloomsBadges(progressions, new Set());
-      expect(result).toEqual(['bloom_explorer', 'bloom_challenger', 'bloom_pioneer']);
+      expect(result).toEqual([
+        "bloom_explorer",
+        "bloom_challenger",
+        "bloom_pioneer",
+      ]);
     });
 
-    it('handles rows where no flags are set', () => {
+    it("handles rows where no flags are set", () => {
       const progressions: BloomsProgressionRow[] = [
-        { bloom_explorer_awarded: false, bloom_challenger_awarded: false, bloom_pioneer_awarded: false },
-        { bloom_explorer_awarded: false, bloom_challenger_awarded: false, bloom_pioneer_awarded: false },
+        {
+          bloom_explorer_awarded: false,
+          bloom_challenger_awarded: false,
+          bloom_pioneer_awarded: false,
+        },
+        {
+          bloom_explorer_awarded: false,
+          bloom_challenger_awarded: false,
+          bloom_pioneer_awarded: false,
+        },
       ];
       const result = deriveBloomsBadges(progressions, new Set());
       expect(result).toEqual([]);
     });
 
-    it('is idempotent — calling twice with same data returns same result', () => {
+    it("is idempotent — calling twice with same data returns same result", () => {
       const progressions: BloomsProgressionRow[] = [
-        { bloom_explorer_awarded: true, bloom_challenger_awarded: true, bloom_pioneer_awarded: false },
+        {
+          bloom_explorer_awarded: true,
+          bloom_challenger_awarded: true,
+          bloom_pioneer_awarded: false,
+        },
       ];
       const existing = new Set<string>();
       const first = deriveBloomsBadges(progressions, existing);
@@ -152,13 +212,17 @@ describe("Bloom's Badge Check Logic (check-badges Edge Function)", () => {
       expect(first).toEqual(second);
     });
 
-    it('does not award explorer if only challenger is flagged', () => {
+    it("does not award explorer if only challenger is flagged", () => {
       const progressions: BloomsProgressionRow[] = [
-        { bloom_explorer_awarded: false, bloom_challenger_awarded: true, bloom_pioneer_awarded: false },
+        {
+          bloom_explorer_awarded: false,
+          bloom_challenger_awarded: true,
+          bloom_pioneer_awarded: false,
+        },
       ];
       const result = deriveBloomsBadges(progressions, new Set());
-      expect(result).not.toContain('bloom_explorer');
-      expect(result).toContain('bloom_challenger');
+      expect(result).not.toContain("bloom_explorer");
+      expect(result).toContain("bloom_challenger");
     });
   });
 });

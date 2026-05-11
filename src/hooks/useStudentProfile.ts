@@ -1,8 +1,13 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import type { ProcessOnboardingInput } from '@/lib/onboardingSchemas';
-import type { BigFiveTraits, VARKProfile, SelfEfficacyProfile, StudyStrategyProfile } from '@/lib/scoreCalculator';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import type { ProcessOnboardingInput } from "@/lib/onboardingSchemas";
+import type {
+  BigFiveTraits,
+  VARKProfile,
+  SelfEfficacyProfile,
+  StudyStrategyProfile,
+} from "@/lib/scoreCalculator";
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -27,7 +32,10 @@ export interface ProcessOnboardingResult {
     learning_style: VARKProfile | null;
     self_efficacy: SelfEfficacyProfile | null;
     study_strategies: StudyStrategyProfile | null;
-    baseline_scores: Array<{ course_id: string; clo_scores: Array<{ clo_id: string; score: number }> }>;
+    baseline_scores: Array<{
+      course_id: string;
+      clo_scores: Array<{ clo_id: string; score: number }>;
+    }>;
     profile_completeness: number;
   };
   xp_awarded: number;
@@ -41,10 +49,10 @@ export const useStudentProfile = (studentId: string) => {
     queryKey: queryKeys.onboarding.studentProfile(studentId),
     queryFn: async (): Promise<StudentProfile | null> => {
       const { data, error } = await supabase
-        .from('student_profiles')
-        .select('*')
-        .eq('student_id', studentId)
-        .order('assessment_version', { ascending: false })
+        .from("student_profiles")
+        .select("*")
+        .eq("student_id", studentId)
+        .order("assessment_version", { ascending: false })
         .limit(1)
         .maybeSingle();
 
@@ -61,10 +69,15 @@ export const useProcessOnboarding = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (input: ProcessOnboardingInput): Promise<ProcessOnboardingResult> => {
-      const { data, error } = await supabase.functions.invoke('process-onboarding', {
-        body: input,
-      });
+    mutationFn: async (
+      input: ProcessOnboardingInput
+    ): Promise<ProcessOnboardingResult> => {
+      const { data, error } = await supabase.functions.invoke(
+        "process-onboarding",
+        {
+          body: input,
+        }
+      );
 
       if (error) throw error;
       return data as ProcessOnboardingResult;
@@ -77,10 +90,14 @@ export const useProcessOnboarding = () => {
         queryKey: queryKeys.onboarding.progress(variables.student_id),
       });
       queryClient.invalidateQueries({
-        queryKey: queryKeys.onboarding.profileCompleteness(variables.student_id),
+        queryKey: queryKeys.onboarding.profileCompleteness(
+          variables.student_id
+        ),
       });
       queryClient.invalidateQueries({
-        queryKey: queryKeys.onboarding.starterWeekSessions(variables.student_id),
+        queryKey: queryKeys.onboarding.starterWeekSessions(
+          variables.student_id
+        ),
       });
     },
   });

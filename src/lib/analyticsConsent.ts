@@ -1,7 +1,7 @@
 // Task 86.2: Analytics consent utilities
 // Manages cookie consent state in localStorage and conditionally initializes Sentry
 
-const CONSENT_KEY = 'edeviser_cookie_consent';
+const CONSENT_KEY = "edeviser_cookie_consent";
 
 export interface CookieConsent {
   essential: boolean;
@@ -13,7 +13,10 @@ export const getConsent = (): CookieConsent | null => {
     const raw = localStorage.getItem(CONSENT_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as CookieConsent;
-    if (typeof parsed.essential !== 'boolean' || typeof parsed.analytics !== 'boolean') {
+    if (
+      typeof parsed.essential !== "boolean" ||
+      typeof parsed.analytics !== "boolean"
+    ) {
       return null;
     }
     return parsed;
@@ -35,7 +38,7 @@ export const initAnalyticsIfConsented = (): void => {
   if (!hasAnalyticsConsent()) return;
 
   // Lazily initialize Sentry only when analytics consent is granted
-  import('@sentry/react')
+  import("@sentry/react")
     .then((Sentry) => {
       if (Sentry.isInitialized()) return;
       Sentry.init({
@@ -47,6 +50,6 @@ export const initAnalyticsIfConsented = (): void => {
       });
     })
     .catch((err) => {
-      console.error('[analyticsConsent] Failed to initialize Sentry:', err);
+      console.error("[analyticsConsent] Failed to initialize Sentry:", err);
     });
 };

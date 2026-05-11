@@ -1,11 +1,15 @@
-import { useMemo } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import { toast } from 'sonner';
-import { useWellnessPreferences } from '@/hooks/useWellnessPreferences';
-import { WELLNESS_UNITS, computeWellnessProgress } from '@/lib/wellnessTips';
-import type { WellnessHabitType, WellnessTarget, WellnessHabitLog } from '@/types/habits';
+import { useMemo } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import { toast } from "sonner";
+import { useWellnessPreferences } from "@/hooks/useWellnessPreferences";
+import { WELLNESS_UNITS, computeWellnessProgress } from "@/lib/wellnessTips";
+import type {
+  WellnessHabitType,
+  WellnessTarget,
+  WellnessHabitLog,
+} from "@/types/habits";
 
 /**
  * Returns wellness targets for all enabled habits.
@@ -33,12 +37,18 @@ export const useWellnessGoals = (studentId: string | undefined) => {
  */
 export const useDailyProgress = (
   studentId: string | undefined,
-  todayLogs: WellnessHabitLog[],
+  todayLogs: WellnessHabitLog[]
 ) => {
   const { data: preferences } = useWellnessPreferences(studentId);
 
-  return useMemo((): Record<WellnessHabitType, { progress: number; logged: number; target: number; unit: string }> => {
-    const result = {} as Record<WellnessHabitType, { progress: number; logged: number; target: number; unit: string }>;
+  return useMemo((): Record<
+    WellnessHabitType,
+    { progress: number; logged: number; target: number; unit: string }
+  > => {
+    const result = {} as Record<
+      WellnessHabitType,
+      { progress: number; logged: number; target: number; unit: string }
+    >;
     if (!preferences) return result;
 
     const habitTargets = preferences.habitTargets ?? {};
@@ -83,17 +93,20 @@ export const useUpdateWellnessGoal = () => {
       unit: string;
     }) => {
       const { data: current, error: fetchError } = await supabase
-        .from('student_wellness_preferences')
-        .select('habit_targets')
-        .eq('student_id', studentId)
+        .from("student_wellness_preferences")
+        .select("habit_targets")
+        .eq("student_id", studentId)
         .maybeSingle();
 
       if (fetchError) {
-        console.error('Failed to fetch habit targets:', fetchError.message);
+        console.error("Failed to fetch habit targets:", fetchError.message);
         throw fetchError;
       }
 
-      const existing = (current?.habit_targets ?? {}) as Record<string, { value: number; unit: string }>;
+      const existing = (current?.habit_targets ?? {}) as Record<
+        string,
+        { value: number; unit: string }
+      >;
       const updated = {
         ...existing,
         [habitType]: { value: targetValue, unit },
@@ -105,14 +118,14 @@ export const useUpdateWellnessGoal = () => {
       }
 
       const { error } = await supabase
-        .from('student_wellness_preferences')
+        .from("student_wellness_preferences")
         .upsert(
           {
             student_id: studentId,
             habit_targets: updated,
             updated_at: new Date().toISOString(),
           },
-          { onConflict: 'student_id' },
+          { onConflict: "student_id" }
         );
 
       if (error) throw error;
@@ -121,11 +134,11 @@ export const useUpdateWellnessGoal = () => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.wellness.preferences(variables.studentId),
       });
-      toast.success('Goal updated');
+      toast.success("Goal updated");
     },
     onError: (error: Error) => {
-      toast.error('Failed to update goal');
-      console.error('Update goal error:', error);
+      toast.error("Failed to update goal");
+      console.error("Update goal error:", error);
     },
   });
 };

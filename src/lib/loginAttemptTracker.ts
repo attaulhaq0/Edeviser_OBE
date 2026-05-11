@@ -5,9 +5,9 @@
 // via the check-login-rate Edge Function provides tamper-proof enforcement.
 // ---------------------------------------------------------------------------
 
-import { supabase } from '@/lib/supabase';
+import { supabase } from "@/lib/supabase";
 
-const STORAGE_PREFIX = 'login_attempts_';
+const STORAGE_PREFIX = "login_attempts_";
 const MAX_ATTEMPTS = 5;
 const LOCKOUT_DURATION_MS = 15 * 60 * 1000; // 15 minutes
 
@@ -43,10 +43,10 @@ function readRecord(email: string): AttemptRecord {
     if (!raw) return { count: 0, lockedUntil: null };
     const parsed: unknown = JSON.parse(raw);
     if (
-      typeof parsed === 'object' &&
+      typeof parsed === "object" &&
       parsed !== null &&
-      'count' in parsed &&
-      typeof (parsed as AttemptRecord).count === 'number'
+      "count" in parsed &&
+      typeof (parsed as AttemptRecord).count === "number"
     ) {
       return parsed as AttemptRecord;
     }
@@ -121,9 +121,9 @@ export function clearAttempts(email: string): void {
 
 async function callRateLimitEdgeFunction(
   email: string,
-  action: 'check' | 'record_failure' | 'clear',
+  action: "check" | "record_failure" | "clear"
 ): Promise<unknown> {
-  const { data, error } = await supabase.functions.invoke('check-login-rate', {
+  const { data, error } = await supabase.functions.invoke("check-login-rate", {
     body: { email: email.toLowerCase().trim(), action },
   });
 
@@ -141,15 +141,15 @@ async function callRateLimitEdgeFunction(
  * if the edge function is unavailable (returns unlocked).
  */
 export async function checkServerRateLimit(
-  email: string,
+  email: string
 ): Promise<ServerRateLimitCheckResult> {
-  const result = await callRateLimitEdgeFunction(email, 'check');
+  const result = await callRateLimitEdgeFunction(email, "check");
 
   if (
     result &&
-    typeof result === 'object' &&
-    'locked' in result &&
-    typeof (result as ServerRateLimitCheckResult).locked === 'boolean'
+    typeof result === "object" &&
+    "locked" in result &&
+    typeof (result as ServerRateLimitCheckResult).locked === "boolean"
   ) {
     return result as ServerRateLimitCheckResult;
   }
@@ -163,15 +163,15 @@ export async function checkServerRateLimit(
  * Returns updated lock status. Falls back gracefully.
  */
 export async function recordServerFailedAttempt(
-  email: string,
+  email: string
 ): Promise<ServerRecordFailureResult> {
-  const result = await callRateLimitEdgeFunction(email, 'record_failure');
+  const result = await callRateLimitEdgeFunction(email, "record_failure");
 
   if (
     result &&
-    typeof result === 'object' &&
-    'locked' in result &&
-    typeof (result as ServerRecordFailureResult).locked === 'boolean'
+    typeof result === "object" &&
+    "locked" in result &&
+    typeof (result as ServerRecordFailureResult).locked === "boolean"
   ) {
     return result as ServerRecordFailureResult;
   }
@@ -183,14 +183,16 @@ export async function recordServerFailedAttempt(
  * Clear server-side login attempts for an email (call on successful login).
  * Falls back gracefully if the edge function is unavailable.
  */
-export async function clearServerAttempts(email: string): Promise<ServerClearResult> {
-  const result = await callRateLimitEdgeFunction(email, 'clear');
+export async function clearServerAttempts(
+  email: string
+): Promise<ServerClearResult> {
+  const result = await callRateLimitEdgeFunction(email, "clear");
 
   if (
     result &&
-    typeof result === 'object' &&
-    'cleared' in result &&
-    typeof (result as ServerClearResult).cleared === 'boolean'
+    typeof result === "object" &&
+    "cleared" in result &&
+    typeof (result as ServerClearResult).cleared === "boolean"
   ) {
     return result as ServerClearResult;
   }

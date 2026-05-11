@@ -7,4 +7,6 @@ export const createAnnouncementSchema = z.object({
   is_pinned: z.boolean().default(false),
 });
 
-export type CreateAnnouncementFormData = z.infer<typeof createAnnouncementSchema>;
+export type CreateAnnouncementFormData = z.infer<
+  typeof createAnnouncementSchema
+>;

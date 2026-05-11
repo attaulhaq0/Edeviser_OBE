@@ -1,17 +1,21 @@
-import { useEffect, useState, useMemo } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useNavigate, useParams } from 'react-router-dom';
-import { createCLOSchema, type CreateCLOFormData, type BloomsLevel } from '@/lib/schemas/clo';
+import { useEffect, useState, useMemo } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useNavigate, useParams } from "react-router-dom";
+import {
+  createCLOSchema,
+  type CreateCLOFormData,
+  type BloomsLevel,
+} from "@/lib/schemas/clo";
 import {
   useCreateCLO,
   useUpdateCLO,
   useCLO,
   useCLOMappings,
   useUpdateCLOMappings,
-} from '@/hooks/useCLOs';
-import { useCourses } from '@/hooks/useCourses';
-import { usePLOs } from '@/hooks/usePLOs';
+} from "@/hooks/useCLOs";
+import { useCourses } from "@/hooks/useCourses";
+import { usePLOs } from "@/hooks/usePLOs";
 import {
   Form,
   FormField,
@@ -19,34 +23,38 @@ import {
   FormLabel,
   FormControl,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Loader2, Link2, AlertTriangle, Bot } from 'lucide-react';
-import { toast } from 'sonner';
-import { useTranslation } from 'react-i18next';
-import BloomsVerbGuide from '@/components/shared/BloomsVerbGuide';
-import type { LearningOutcome } from '@/types/app';
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { ArrowLeft, Loader2, Link2, AlertTriangle, Bot } from "lucide-react";
+import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
+import BloomsVerbGuide from "@/components/shared/BloomsVerbGuide";
+import type { LearningOutcome } from "@/types/app";
 
 // ─── Bloom's level config ───────────────────────────────────────────────────
 
-const BLOOMS_LEVELS: Array<{ value: BloomsLevel; label: string; color: string }> = [
-  { value: 'remembering', label: 'Remembering', color: 'bg-purple-500' },
-  { value: 'understanding', label: 'Understanding', color: 'bg-blue-500' },
-  { value: 'applying', label: 'Applying', color: 'bg-green-500' },
-  { value: 'analyzing', label: 'Analyzing', color: 'bg-yellow-500' },
-  { value: 'evaluating', label: 'Evaluating', color: 'bg-orange-500' },
-  { value: 'creating', label: 'Creating', color: 'bg-red-500' },
+const BLOOMS_LEVELS: Array<{
+  value: BloomsLevel;
+  label: string;
+  color: string;
+}> = [
+  { value: "remembering", label: "Remembering", color: "bg-purple-500" },
+  { value: "understanding", label: "Understanding", color: "bg-blue-500" },
+  { value: "applying", label: "Applying", color: "bg-green-500" },
+  { value: "analyzing", label: "Analyzing", color: "bg-yellow-500" },
+  { value: "evaluating", label: "Evaluating", color: "bg-orange-500" },
+  { value: "creating", label: "Creating", color: "bg-red-500" },
 ];
 
 // ─── PLO Mapping types ──────────────────────────────────────────────────────
@@ -61,7 +69,7 @@ interface PLOMappingEntry {
 
 const CreateCLODetailsForm = () => {
   const navigate = useNavigate();
-  const { t } = useTranslation('teacher');
+  const { t } = useTranslation("teacher");
   const createMutation = useCreateCLO();
   const { data: paginatedCourses, isLoading: isLoadingCourses } = useCourses();
   const courses = paginatedCourses?.data ?? [];
@@ -69,30 +77,33 @@ const CreateCLODetailsForm = () => {
   const form = useForm<CreateCLOFormData>({
     resolver: zodResolver(createCLOSchema),
     defaultValues: {
-      title: '',
-      title_ar: '',
-      description: '',
-      course_id: '' as `${string}-${string}-${string}-${string}-${string}`,
+      title: "",
+      title_ar: "",
+      description: "",
+      course_id: "" as `${string}-${string}-${string}-${string}-${string}`,
       blooms_level: undefined,
-      tutor_autonomy_level: 'L2',
+      tutor_autonomy_level: "L2",
     },
   });
 
-   
-  const watchedBloomsLevel = form.watch('blooms_level');
+  const watchedBloomsLevel = form.watch("blooms_level");
 
   const handleVerbClick = (verb: string) => {
-    const currentTitle = form.getValues('title');
+    const currentTitle = form.getValues("title");
     const capitalizedVerb = verb.charAt(0).toUpperCase() + verb.slice(1);
-    form.setValue('title', currentTitle ? `${capitalizedVerb} ${currentTitle}` : capitalizedVerb, {
-      shouldValidate: true,
-    });
+    form.setValue(
+      "title",
+      currentTitle ? `${capitalizedVerb} ${currentTitle}` : capitalizedVerb,
+      {
+        shouldValidate: true,
+      }
+    );
   };
 
   const onSubmit = (data: CreateCLOFormData) => {
     createMutation.mutate(data, {
       onSuccess: (clo) => {
-        toast.success('CLO created successfully');
+        toast.success("CLO created successfully");
         navigate(`/teacher/clos/${clo.id}/edit`);
       },
       onError: (err) => toast.error(err.message),
@@ -127,14 +138,14 @@ const CreateCLODetailsForm = () => {
             name="title_ar"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('bilingual.arabicTitle')}</FormLabel>
+                <FormLabel>{t("bilingual.arabicTitle")}</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder={t('bilingual.arabicTitlePlaceholder')}
+                    placeholder={t("bilingual.arabicTitlePlaceholder")}
                     dir="rtl"
                     maxLength={255}
                     {...field}
-                    value={field.value ?? ''}
+                    value={field.value ?? ""}
                   />
                 </FormControl>
                 <FormMessage />
@@ -205,7 +216,9 @@ const CreateCLODetailsForm = () => {
                     {BLOOMS_LEVELS.map((level) => (
                       <SelectItem key={level.value} value={level.value}>
                         <span className="flex items-center gap-2">
-                          <span className={`inline-block h-2.5 w-2.5 rounded-full ${level.color}`} />
+                          <span
+                            className={`inline-block h-2.5 w-2.5 rounded-full ${level.color}`}
+                          />
                           {level.label}
                         </span>
                       </SelectItem>
@@ -217,7 +230,10 @@ const CreateCLODetailsForm = () => {
             )}
           />
 
-          <BloomsVerbGuide selectedLevel={watchedBloomsLevel} onVerbClick={handleVerbClick} />
+          <BloomsVerbGuide
+            selectedLevel={watchedBloomsLevel}
+            onVerbClick={handleVerbClick}
+          />
 
           {/* AI Tutor Autonomy Level */}
           <FormField
@@ -229,7 +245,10 @@ const CreateCLODetailsForm = () => {
                   <Bot className="h-4 w-4 text-blue-600" />
                   <FormLabel>AI Tutor Autonomy Level</FormLabel>
                 </div>
-                <Select onValueChange={field.onChange} value={field.value ?? 'L2'}>
+                <Select
+                  onValueChange={field.onChange}
+                  value={field.value ?? "L2"}
+                >
                   <FormControl>
                     <SelectTrigger className="bg-white">
                       <SelectValue placeholder="Select autonomy level" />
@@ -242,7 +261,8 @@ const CreateCLODetailsForm = () => {
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-gray-500 mt-1">
-                  Controls how much direct help the AI Tutor provides for this CLO.
+                  Controls how much direct help the AI Tutor provides for this
+                  CLO.
                 </p>
                 <FormMessage />
               </FormItem>
@@ -263,7 +283,7 @@ const CreateCLODetailsForm = () => {
             <Button
               type="button"
               variant="outline"
-              onClick={() => navigate('/teacher/clos')}
+              onClick={() => navigate("/teacher/clos")}
             >
               Cancel
             </Button>
@@ -278,19 +298,19 @@ const CreateCLODetailsForm = () => {
 
 const EditCLODetailsForm = ({ cloId }: { cloId: string }) => {
   const navigate = useNavigate();
-  const { t } = useTranslation('teacher');
+  const { t } = useTranslation("teacher");
   const { data: existingCLO, isLoading } = useCLO(cloId);
   const updateMutation = useUpdateCLO(cloId);
 
   const form = useForm<CreateCLOFormData>({
     resolver: zodResolver(createCLOSchema),
     defaultValues: {
-      title: '',
-      title_ar: '',
-      description: '',
-      course_id: '' as `${string}-${string}-${string}-${string}-${string}`,
+      title: "",
+      title_ar: "",
+      description: "",
+      course_id: "" as `${string}-${string}-${string}-${string}-${string}`,
       blooms_level: undefined,
-      tutor_autonomy_level: 'L2',
+      tutor_autonomy_level: "L2",
     },
   });
 
@@ -299,12 +319,20 @@ const EditCLODetailsForm = ({ cloId }: { cloId: string }) => {
       const clo = existingCLO as unknown as LearningOutcome;
       form.reset({
         title: clo.title,
-        title_ar: (clo as unknown as Record<string, unknown>).title_ar as string ?? '',
-        description: clo.description ?? '',
-        course_id: (clo.course_id ?? '') as `${string}-${string}-${string}-${string}-${string}`,
-        blooms_level: (clo.blooms_level?.toLowerCase() ?? undefined) as BloomsLevel | undefined,
+        title_ar:
+          ((clo as unknown as Record<string, unknown>).title_ar as string) ??
+          "",
+        description: clo.description ?? "",
+        course_id: (clo.course_id ??
+          "") as `${string}-${string}-${string}-${string}-${string}`,
+        blooms_level: (clo.blooms_level?.toLowerCase() ?? undefined) as
+          | BloomsLevel
+          | undefined,
         tutor_autonomy_level:
-          (clo as unknown as Record<string, unknown>).tutor_autonomy_level as 'L1' | 'L2' | 'L3' ?? 'L2',
+          ((clo as unknown as Record<string, unknown>).tutor_autonomy_level as
+            | "L1"
+            | "L2"
+            | "L3") ?? "L2",
       });
     }
   }, [existingCLO, form]);
@@ -319,21 +347,26 @@ const EditCLODetailsForm = ({ cloId }: { cloId: string }) => {
 
   const onSubmit = (data: CreateCLOFormData) => {
     updateMutation.mutate(data, {
-      onSuccess: () => toast.success('CLO updated successfully'),
+      onSuccess: () => toast.success("CLO updated successfully"),
       onError: (err) => toast.error(err.message),
     });
   };
 
-   
-  const currentBloomsLevel = form.watch('blooms_level');
-  const bloomsConfig = BLOOMS_LEVELS.find((l) => l.value === currentBloomsLevel);
+  const currentBloomsLevel = form.watch("blooms_level");
+  const bloomsConfig = BLOOMS_LEVELS.find(
+    (l) => l.value === currentBloomsLevel
+  );
 
   const handleVerbClick = (verb: string) => {
-    const currentTitle = form.getValues('title');
+    const currentTitle = form.getValues("title");
     const capitalizedVerb = verb.charAt(0).toUpperCase() + verb.slice(1);
-    form.setValue('title', currentTitle ? `${capitalizedVerb} ${currentTitle}` : capitalizedVerb, {
-      shouldValidate: true,
-    });
+    form.setValue(
+      "title",
+      currentTitle ? `${capitalizedVerb} ${currentTitle}` : capitalizedVerb,
+      {
+        shouldValidate: true,
+      }
+    );
   };
 
   return (
@@ -364,14 +397,14 @@ const EditCLODetailsForm = ({ cloId }: { cloId: string }) => {
             name="title_ar"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('bilingual.arabicTitle')}</FormLabel>
+                <FormLabel>{t("bilingual.arabicTitle")}</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder={t('bilingual.arabicTitlePlaceholder')}
+                    placeholder={t("bilingual.arabicTitlePlaceholder")}
                     dir="rtl"
                     maxLength={255}
                     {...field}
-                    value={field.value ?? ''}
+                    value={field.value ?? ""}
                   />
                 </FormControl>
                 <FormMessage />
@@ -399,11 +432,16 @@ const EditCLODetailsForm = ({ cloId }: { cloId: string }) => {
 
           {/* Course is read-only in edit mode */}
           <div className="grid gap-2">
-            <label htmlFor="clo-course-readonly" className="text-sm font-medium">Course</label>
+            <label
+              htmlFor="clo-course-readonly"
+              className="text-sm font-medium"
+            >
+              Course
+            </label>
             <Input
               id="clo-course-readonly"
               value={
-                (existingCLO as unknown as LearningOutcome)?.course_id ?? ''
+                (existingCLO as unknown as LearningOutcome)?.course_id ?? ""
               }
               disabled
               className="bg-gray-50"
@@ -429,7 +467,9 @@ const EditCLODetailsForm = ({ cloId }: { cloId: string }) => {
                     {BLOOMS_LEVELS.map((level) => (
                       <SelectItem key={level.value} value={level.value}>
                         <span className="flex items-center gap-2">
-                          <span className={`inline-block h-2.5 w-2.5 rounded-full ${level.color}`} />
+                          <span
+                            className={`inline-block h-2.5 w-2.5 rounded-full ${level.color}`}
+                          />
                           {level.label}
                         </span>
                       </SelectItem>
@@ -438,7 +478,9 @@ const EditCLODetailsForm = ({ cloId }: { cloId: string }) => {
                 </Select>
                 {bloomsConfig && (
                   <div className="mt-1">
-                    <Badge className={`${bloomsConfig.color} text-white text-xs`}>
+                    <Badge
+                      className={`${bloomsConfig.color} text-white text-xs`}
+                    >
                       {bloomsConfig.label}
                     </Badge>
                   </div>
@@ -448,7 +490,10 @@ const EditCLODetailsForm = ({ cloId }: { cloId: string }) => {
             )}
           />
 
-          <BloomsVerbGuide selectedLevel={currentBloomsLevel} onVerbClick={handleVerbClick} />
+          <BloomsVerbGuide
+            selectedLevel={currentBloomsLevel}
+            onVerbClick={handleVerbClick}
+          />
 
           {/* AI Tutor Autonomy Level */}
           <FormField
@@ -460,7 +505,10 @@ const EditCLODetailsForm = ({ cloId }: { cloId: string }) => {
                   <Bot className="h-4 w-4 text-blue-600" />
                   <FormLabel>AI Tutor Autonomy Level</FormLabel>
                 </div>
-                <Select onValueChange={field.onChange} value={field.value ?? 'L2'}>
+                <Select
+                  onValueChange={field.onChange}
+                  value={field.value ?? "L2"}
+                >
                   <FormControl>
                     <SelectTrigger className="bg-white">
                       <SelectValue placeholder="Select autonomy level" />
@@ -473,7 +521,8 @@ const EditCLODetailsForm = ({ cloId }: { cloId: string }) => {
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-gray-500 mt-1">
-                  Controls how much direct help the AI Tutor provides for this CLO.
+                  Controls how much direct help the AI Tutor provides for this
+                  CLO.
                 </p>
                 <FormMessage />
               </FormItem>
@@ -494,7 +543,7 @@ const EditCLODetailsForm = ({ cloId }: { cloId: string }) => {
             <Button
               type="button"
               variant="outline"
-              onClick={() => navigate('/teacher/clos')}
+              onClick={() => navigate("/teacher/clos")}
             >
               Cancel
             </Button>
@@ -507,7 +556,13 @@ const EditCLODetailsForm = ({ cloId }: { cloId: string }) => {
 
 // ─── PLO Mapping Section ────────────────────────────────────────────────────
 
-const PLOMappingSection = ({ cloId, programId }: { cloId: string; programId: string | undefined }) => {
+const PLOMappingSection = ({
+  cloId,
+  programId,
+}: {
+  cloId: string;
+  programId: string | undefined;
+}) => {
   const { data: paginatedPLOs, isLoading: isLoadingPLOs } = usePLOs(programId);
   const plos = useMemo(() => paginatedPLOs?.data ?? [], [paginatedPLOs?.data]);
   const { data: existingMappings = [], isLoading: isLoadingMappings } =
@@ -524,10 +579,14 @@ const PLOMappingSection = ({ cloId, programId }: { cloId: string; programId: str
     return plos.map((plo) => {
       const override = overrides[plo.id];
       if (override) {
-        return { plo_id: plo.id, weight: override.weight, enabled: override.enabled };
+        return {
+          plo_id: plo.id,
+          weight: override.weight,
+          enabled: override.enabled,
+        };
       }
       const existing = existingMappings.find(
-        (m) => m.source_outcome_id === plo.id,
+        (m) => m.source_outcome_id === plo.id
       );
       return {
         plo_id: plo.id,
@@ -539,16 +598,14 @@ const PLOMappingSection = ({ cloId, programId }: { cloId: string; programId: str
 
   const totalWeight = useMemo(
     () =>
-      mappings
-        .filter((m) => m.enabled)
-        .reduce((sum, m) => sum + m.weight, 0),
-    [mappings],
+      mappings.filter((m) => m.enabled).reduce((sum, m) => sum + m.weight, 0),
+    [mappings]
   );
 
   const weightStatus = useMemo(() => {
-    if (totalWeight > 1.0) return 'over';
-    if (totalWeight < 0.5) return 'under';
-    return 'ok';
+    if (totalWeight > 1.0) return "over";
+    if (totalWeight < 0.5) return "under";
+    return "ok";
   }, [totalWeight]);
 
   const handleToggle = (ploId: string) => {
@@ -589,19 +646,19 @@ const PLOMappingSection = ({ cloId, programId }: { cloId: string; programId: str
       { cloId, mappings: activeMappings },
       {
         onSuccess: () => {
-          toast.success('PLO mappings saved successfully');
-          if (weightStatus === 'under') {
+          toast.success("PLO mappings saved successfully");
+          if (weightStatus === "under") {
             toast.warning(
-              'Total PLO mapping weight is below 0.5. Consider adjusting weights for better outcome coverage.',
+              "Total PLO mapping weight is below 0.5. Consider adjusting weights for better outcome coverage."
             );
-          } else if (weightStatus === 'over') {
+          } else if (weightStatus === "over") {
             toast.warning(
-              'Total PLO mapping weight exceeds 1.0. Consider reducing weights.',
+              "Total PLO mapping weight exceeds 1.0. Consider reducing weights."
             );
           }
         },
         onError: (err) => toast.error(err.message),
-      },
+      }
     );
   };
 
@@ -610,7 +667,8 @@ const PLOMappingSection = ({ cloId, programId }: { cloId: string; programId: str
       <Card className="bg-white border-0 shadow-md rounded-xl p-6 max-w-2xl">
         <h2 className="text-lg font-bold tracking-tight mb-2">PLO Mappings</h2>
         <p className="text-sm text-gray-500">
-          Unable to determine the program for this course. PLO mappings are unavailable.
+          Unable to determine the program for this course. PLO mappings are
+          unavailable.
         </p>
       </Card>
     );
@@ -631,7 +689,8 @@ const PLOMappingSection = ({ cloId, programId }: { cloId: string; programId: str
       <Card className="bg-white border-0 shadow-md rounded-xl p-6 max-w-2xl">
         <h2 className="text-lg font-bold tracking-tight mb-2">PLO Mappings</h2>
         <p className="text-sm text-gray-500">
-          No PLOs have been created for this program yet. Ask your coordinator to create PLOs first.
+          No PLOs have been created for this program yet. Ask your coordinator
+          to create PLOs first.
         </p>
       </Card>
     );
@@ -658,8 +717,8 @@ const PLOMappingSection = ({ cloId, programId }: { cloId: string; programId: str
               key={plo.id}
               className={`flex items-center gap-4 p-3 rounded-lg border transition-colors ${
                 isEnabled
-                  ? 'border-blue-200 bg-blue-50/50'
-                  : 'border-slate-200 bg-white'
+                  ? "border-blue-200 bg-blue-50/50"
+                  : "border-slate-200 bg-white"
               }`}
             >
               <button
@@ -667,8 +726,8 @@ const PLOMappingSection = ({ cloId, programId }: { cloId: string; programId: str
                 onClick={() => handleToggle(plo.id)}
                 className={`shrink-0 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
                   isEnabled
-                    ? 'bg-blue-600 border-blue-600 text-white'
-                    : 'border-gray-300 bg-white'
+                    ? "bg-blue-600 border-blue-600 text-white"
+                    : "border-gray-300 bg-white"
                 }`}
                 aria-label={`Toggle mapping for ${plo.title}`}
               >
@@ -721,22 +780,22 @@ const PLOMappingSection = ({ cloId, programId }: { cloId: string; programId: str
         <span className="text-sm font-medium text-gray-600">Total Weight:</span>
         <Badge
           className={
-            weightStatus === 'ok'
-              ? 'bg-green-100 text-green-700'
-              : weightStatus === 'under'
-                ? 'bg-amber-100 text-amber-700'
-                : 'bg-red-100 text-red-700'
+            weightStatus === "ok"
+              ? "bg-green-100 text-green-700"
+              : weightStatus === "under"
+              ? "bg-amber-100 text-amber-700"
+              : "bg-red-100 text-red-700"
           }
         >
           {totalWeight.toFixed(1)}
         </Badge>
-        {weightStatus === 'under' && (
+        {weightStatus === "under" && (
           <span className="flex items-center gap-1 text-xs text-amber-600">
             <AlertTriangle className="h-3 w-3" />
             Sum is below 0.5
           </span>
         )}
-        {weightStatus === 'over' && (
+        {weightStatus === "over" && (
           <span className="flex items-center gap-1 text-xs text-red-600">
             <AlertTriangle className="h-3 w-3" />
             Sum exceeds 1.0
@@ -771,7 +830,10 @@ const CLOForm = () => {
   // In edit mode, fetch the CLO to resolve its course → program for PLO mapping
   const { data: existingCLO } = useCLO(id);
   const { data: paginatedCoursesForEdit } = useCourses();
-  const courses = useMemo(() => paginatedCoursesForEdit?.data ?? [], [paginatedCoursesForEdit?.data]);
+  const courses = useMemo(
+    () => paginatedCoursesForEdit?.data ?? [],
+    [paginatedCoursesForEdit?.data]
+  );
 
   // Resolve program_id from the CLO's course
   const programId = useMemo(() => {
@@ -787,13 +849,13 @@ const CLOForm = () => {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => navigate('/teacher/clos')}
+          onClick={() => navigate("/teacher/clos")}
         >
           <ArrowLeft className="h-4 w-4" />
           Back
         </Button>
         <h1 className="text-2xl font-bold tracking-tight">
-          {isEditMode ? 'Edit CLO' : 'Create CLO'}
+          {isEditMode ? "Edit CLO" : "Create CLO"}
         </h1>
       </div>
 

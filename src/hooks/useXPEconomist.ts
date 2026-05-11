@@ -3,34 +3,37 @@
 // Task 20.1
 // =============================================================================
 
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import { computeEarnSpendRatio, type EarnSpendResult } from '@/lib/earnSpendRatioCalculator';
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import {
+  computeEarnSpendRatio,
+  type EarnSpendResult,
+} from "@/lib/earnSpendRatioCalculator";
 
 export const useEarnSpendRatio = (institutionId?: string) => {
   return useQuery({
-    queryKey: queryKeys.economist.list({ institutionId, type: 'ratio' }),
+    queryKey: queryKeys.economist.list({ institutionId, type: "ratio" }),
     queryFn: async (): Promise<EarnSpendResult> => {
       const { data: earnData, error: earnErr } = await supabase
-        .from('xp_transactions')
-        .select('xp_amount');
+        .from("xp_transactions")
+        .select("xp_amount");
       if (earnErr) throw earnErr;
 
       const totalEarned = (earnData ?? []).reduce(
         (sum, row) => sum + (row.xp_amount ?? 0),
-        0,
+        0
       );
 
       const { data: spendData, error: spendErr } = await supabase
-        .from('xp_purchases')
-        .select('xp_cost')
-        .neq('status', 'refunded');
+        .from("xp_purchases")
+        .select("xp_cost")
+        .neq("status", "refunded");
       if (spendErr) throw spendErr;
 
       const totalSpent = (spendData ?? []).reduce(
         (sum, row) => sum + (row.xp_cost ?? 0),
-        0,
+        0
       );
 
       return computeEarnSpendRatio({ totalEarned, totalSpent });
@@ -48,23 +51,27 @@ export interface XPVelocityPoint {
 
 export const useXPVelocity = (institutionId?: string, weeks = 8) => {
   return useQuery({
-    queryKey: queryKeys.economist.list({ institutionId, type: 'velocity', weeks }),
+    queryKey: queryKeys.economist.list({
+      institutionId,
+      type: "velocity",
+      weeks,
+    }),
     queryFn: async (): Promise<XPVelocityPoint[]> => {
       const now = new Date();
       const startDate = new Date(now);
       startDate.setDate(startDate.getDate() - weeks * 7);
 
       const { data: earnData, error: earnErr } = await supabase
-        .from('xp_transactions')
-        .select('xp_amount, created_at')
-        .gte('created_at', startDate.toISOString());
+        .from("xp_transactions")
+        .select("xp_amount, created_at")
+        .gte("created_at", startDate.toISOString());
       if (earnErr) throw earnErr;
 
       const { data: spendData, error: spendErr } = await supabase
-        .from('xp_purchases')
-        .select('xp_cost, purchased_at')
-        .neq('status', 'refunded')
-        .gte('purchased_at', startDate.toISOString());
+        .from("xp_purchases")
+        .select("xp_cost, purchased_at")
+        .neq("status", "refunded")
+        .gte("purchased_at", startDate.toISOString());
       if (spendErr) throw spendErr;
 
       const points: XPVelocityPoint[] = [];

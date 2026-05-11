@@ -1,12 +1,12 @@
-import { Card } from '@/components/ui/card';
-import { cn } from '@/lib/utils';
-import LikertScale from '@/components/shared/LikertScale';
+import { Card } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+import LikertScale from "@/components/shared/LikertScale";
 
 export interface QuestionCardProps {
   questionText: string;
   questionNumber?: number;
   totalQuestions?: number;
-  mode: 'likert' | 'radio';
+  mode: "likert" | "radio";
   /** Radio options — required when mode is 'radio' */
   options?: string[];
   selectedValue: number | null;
@@ -38,11 +38,14 @@ const QuestionCard = ({
         </p>
       )}
 
-      <p className="text-sm font-medium text-gray-900 leading-relaxed" id={`q-${questionId}`}>
+      <p
+        className="text-sm font-medium text-gray-900 leading-relaxed"
+        id={`q-${questionId}`}
+      >
         {questionText}
       </p>
 
-      {mode === 'likert' && (
+      {mode === "likert" && (
         <LikertScale
           value={selectedValue}
           onChange={onSelect}
@@ -52,7 +55,7 @@ const QuestionCard = ({
         />
       )}
 
-      {mode === 'radio' && (
+      {mode === "radio" && (
         <div
           role="radiogroup"
           aria-labelledby={`q-${questionId}`}
@@ -69,12 +72,12 @@ const QuestionCard = ({
                 disabled={disabled}
                 onClick={() => !disabled && onSelect(index)}
                 className={cn(
-                  'w-full text-start rounded-lg px-4 py-3 text-sm font-medium transition-colors',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2',
+                  "w-full text-start rounded-lg px-4 py-3 text-sm font-medium transition-colors",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2",
                   isSelected
-                    ? 'bg-blue-600 text-white shadow-md'
-                    : 'bg-slate-50 text-gray-700 hover:bg-slate-100',
-                  disabled && 'opacity-50 cursor-not-allowed',
+                    ? "bg-blue-600 text-white shadow-md"
+                    : "bg-slate-50 text-gray-700 hover:bg-slate-100",
+                  disabled && "opacity-50 cursor-not-allowed"
                 )}
               >
                 {option}

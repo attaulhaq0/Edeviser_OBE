@@ -1,11 +1,11 @@
 // Task 67.1: Discussion TanStack Query hooks — CRUD for threads and replies
 // Requirements: 77
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import { logAuditEvent } from '@/lib/auditLogger';
-import { awardXP } from '@/lib/xpClient';
-import { XP_SCHEDULE } from '@/lib/xpSchedule';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import { logAuditEvent } from "@/lib/auditLogger";
+import { awardXP } from "@/lib/xpClient";
+import { XP_SCHEDULE } from "@/lib/xpSchedule";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -86,13 +86,17 @@ export const useDiscussionThreads = (courseId: string | undefined) => {
     queryFn: async () => {
       if (!courseId) return [];
       const { data, error } = await supabase
-        .from('discussion_threads')
-        .select('id, course_id, title, content, author_id, is_pinned, is_resolved, created_at, updated_at')
-        .eq('course_id', courseId)
-        .order('is_pinned', { ascending: false })
-        .order('created_at', { ascending: false });
+        .from("discussion_threads")
+        .select(
+          "id, course_id, title, content, author_id, is_pinned, is_resolved, created_at, updated_at"
+        )
+        .eq("course_id", courseId)
+        .order("is_pinned", { ascending: false })
+        .order("created_at", { ascending: false });
       if (error) throw error;
-      return (data ?? []).map((r) => castThread(r as unknown as Record<string, unknown>));
+      return (data ?? []).map((r) =>
+        castThread(r as unknown as Record<string, unknown>)
+      );
     },
     enabled: !!courseId,
   });
@@ -100,16 +104,20 @@ export const useDiscussionThreads = (courseId: string | undefined) => {
 
 export const useDiscussionThread = (threadId: string | undefined) => {
   return useQuery({
-    queryKey: queryKeys.discussionThreads.detail(threadId ?? ''),
+    queryKey: queryKeys.discussionThreads.detail(threadId ?? ""),
     queryFn: async () => {
       if (!threadId) return null;
       const { data, error } = await supabase
-        .from('discussion_threads')
-        .select('id, course_id, title, content, author_id, is_pinned, is_resolved, created_at, updated_at')
-        .eq('id', threadId)
+        .from("discussion_threads")
+        .select(
+          "id, course_id, title, content, author_id, is_pinned, is_resolved, created_at, updated_at"
+        )
+        .eq("id", threadId)
         .maybeSingle();
       if (error) throw error;
-      return data ? castThread(data as unknown as Record<string, unknown>) : null;
+      return data
+        ? castThread(data as unknown as Record<string, unknown>)
+        : null;
     },
     enabled: !!threadId,
   });
@@ -123,12 +131,16 @@ export const useDiscussionReplies = (threadId: string | undefined) => {
     queryFn: async () => {
       if (!threadId) return [];
       const { data, error } = await supabase
-        .from('discussion_replies')
-        .select('id, thread_id, content, author_id, is_answer, created_at, updated_at')
-        .eq('thread_id', threadId)
-        .order('created_at', { ascending: true });
+        .from("discussion_replies")
+        .select(
+          "id, thread_id, content, author_id, is_answer, created_at, updated_at"
+        )
+        .eq("thread_id", threadId)
+        .order("created_at", { ascending: true });
       if (error) throw error;
-      return (data ?? []).map((r) => castReply(r as unknown as Record<string, unknown>));
+      return (data ?? []).map((r) =>
+        castReply(r as unknown as Record<string, unknown>)
+      );
     },
     enabled: !!threadId,
   });
@@ -141,7 +153,7 @@ export const useCreateThread = () => {
   return useMutation({
     mutationFn: async (input: CreateThreadInput) => {
       const { data, error } = await supabase
-        .from('discussion_threads')
+        .from("discussion_threads")
         .insert({
           course_id: input.course_id,
           title: input.title,
@@ -154,17 +166,23 @@ export const useCreateThread = () => {
       return castThread(data as unknown as Record<string, unknown>);
     },
     onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.discussionThreads.list({ courseId: variables.course_id }) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.discussionThreads.lists() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.discussionThreads.list({
+          courseId: variables.course_id,
+        }),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.discussionThreads.lists(),
+      });
 
       // Task 67.4: Award 10 XP for creating a thread (fire-and-forget)
       // Requirements: 77.4
       awardXP({
         studentId: variables.author_id,
         xpAmount: XP_SCHEDULE.discussion_question,
-        source: 'discussion_question',
+        source: "discussion_question",
         referenceId: _data.id,
-        note: 'Created discussion thread',
+        note: "Created discussion thread",
       }).catch(() => {
         // XP award is fire-and-forget — don't block the main flow
       });
@@ -177,7 +195,7 @@ export const useCreateReply = () => {
   return useMutation({
     mutationFn: async (input: CreateReplyInput) => {
       const { data, error } = await supabase
-        .from('discussion_replies')
+        .from("discussion_replies")
         .insert({
           thread_id: input.thread_id,
           content: input.content,
@@ -189,7 +207,11 @@ export const useCreateReply = () => {
       return castReply(data as unknown as Record<string, unknown>);
     },
     onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.discussionReplies.list({ threadId: variables.thread_id }) });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.discussionReplies.list({
+          threadId: variables.thread_id,
+        }),
+      });
     },
   });
 };
@@ -199,22 +221,32 @@ export const useCreateReply = () => {
 export const useTogglePinThread = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ threadId, isPinned, performedBy }: { threadId: string; isPinned: boolean; performedBy: string }) => {
+    mutationFn: async ({
+      threadId,
+      isPinned,
+      performedBy,
+    }: {
+      threadId: string;
+      isPinned: boolean;
+      performedBy: string;
+    }) => {
       const { error } = await supabase
-        .from('discussion_threads')
+        .from("discussion_threads")
         .update({ is_pinned: isPinned })
-        .eq('id', threadId);
+        .eq("id", threadId);
       if (error) throw error;
       await logAuditEvent({
-        action: isPinned ? 'pin' : 'unpin',
-        entity_type: 'discussion_thread',
+        action: isPinned ? "pin" : "unpin",
+        entity_type: "discussion_thread",
         entity_id: threadId,
         changes: { is_pinned: isPinned },
         performed_by: performedBy,
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.discussionThreads.lists() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.discussionThreads.lists(),
+      });
     },
   });
 };
@@ -222,30 +254,45 @@ export const useTogglePinThread = () => {
 export const useMarkAnswer = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ replyId, threadId, performedBy }: { replyId: string; threadId: string; performedBy: string; replyAuthorId?: string }) => {
+    mutationFn: async ({
+      replyId,
+      threadId,
+      performedBy,
+    }: {
+      replyId: string;
+      threadId: string;
+      performedBy: string;
+      replyAuthorId?: string;
+    }) => {
       // Mark the reply as answer
       const { error: replyErr } = await supabase
-        .from('discussion_replies')
+        .from("discussion_replies")
         .update({ is_answer: true })
-        .eq('id', replyId);
+        .eq("id", replyId);
       if (replyErr) throw replyErr;
       // Mark thread as resolved
       const { error: threadErr } = await supabase
-        .from('discussion_threads')
+        .from("discussion_threads")
         .update({ is_resolved: true })
-        .eq('id', threadId);
+        .eq("id", threadId);
       if (threadErr) throw threadErr;
       await logAuditEvent({
-        action: 'mark_answer',
-        entity_type: 'discussion_reply',
+        action: "mark_answer",
+        entity_type: "discussion_reply",
         entity_id: replyId,
         changes: { is_answer: true, thread_resolved: true },
         performed_by: performedBy,
       });
     },
     onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.discussionReplies.list({ threadId: variables.threadId }) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.discussionThreads.lists() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.discussionReplies.list({
+          threadId: variables.threadId,
+        }),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.discussionThreads.lists(),
+      });
 
       // Task 67.4: Award 15 XP to the reply author for correct answer (fire-and-forget)
       // Requirements: 77.5
@@ -253,9 +300,9 @@ export const useMarkAnswer = () => {
         awardXP({
           studentId: variables.replyAuthorId,
           xpAmount: XP_SCHEDULE.discussion_answer,
-          source: 'discussion_answer',
+          source: "discussion_answer",
           referenceId: variables.replyId,
-          note: 'Answer marked as correct',
+          note: "Answer marked as correct",
         }).catch(() => {
           // XP award is fire-and-forget — don't block the main flow
         });
@@ -267,22 +314,30 @@ export const useMarkAnswer = () => {
 export const useDeleteThread = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ threadId, performedBy }: { threadId: string; performedBy: string }) => {
+    mutationFn: async ({
+      threadId,
+      performedBy,
+    }: {
+      threadId: string;
+      performedBy: string;
+    }) => {
       const { error } = await supabase
-        .from('discussion_threads')
+        .from("discussion_threads")
         .delete()
-        .eq('id', threadId);
+        .eq("id", threadId);
       if (error) throw error;
       await logAuditEvent({
-        action: 'delete',
-        entity_type: 'discussion_thread',
+        action: "delete",
+        entity_type: "discussion_thread",
         entity_id: threadId,
         changes: null,
         performed_by: performedBy,
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.discussionThreads.lists() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.discussionThreads.lists(),
+      });
     },
   });
 };
@@ -290,22 +345,30 @@ export const useDeleteThread = () => {
 export const useDeleteReply = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (input: { replyId: string; threadId: string; performedBy: string }) => {
+    mutationFn: async (input: {
+      replyId: string;
+      threadId: string;
+      performedBy: string;
+    }) => {
       const { error } = await supabase
-        .from('discussion_replies')
+        .from("discussion_replies")
         .delete()
-        .eq('id', input.replyId);
+        .eq("id", input.replyId);
       if (error) throw error;
       await logAuditEvent({
-        action: 'delete',
-        entity_type: 'discussion_reply',
+        action: "delete",
+        entity_type: "discussion_reply",
         entity_id: input.replyId,
         changes: null,
         performed_by: input.performedBy,
       });
     },
     onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.discussionReplies.list({ threadId: variables.threadId }) });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.discussionReplies.list({
+          threadId: variables.threadId,
+        }),
+      });
     },
   });
 };

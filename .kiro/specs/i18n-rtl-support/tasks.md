@@ -133,7 +133,6 @@
 - [x] 15.8 Create `src/__tests__/unit/directionManager.test.ts` — unit test: applyDirection sets correct dir/lang attributes
 - [x] 15.9 Create `src/__tests__/unit/formatDate.test.ts` — unit test: formatLocalDate returns correct locale-formatted strings
 
-
 ## 16. Cognitive Accessibility
 
 - [x] 16.1 Create `src/lib/accessibilityPreferences.ts` — accessibility preferences manager with Zod schema, localStorage persistence, and `applyAccessibilityPreferences()` function that toggles CSS classes on document root

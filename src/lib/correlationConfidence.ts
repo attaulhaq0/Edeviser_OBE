@@ -1,4 +1,4 @@
-import type { CorrelationConfidenceLevel } from '@/types/habits';
+import type { CorrelationConfidenceLevel } from "@/types/habits";
 
 /**
  * Maps a data point count to a correlation confidence level.
@@ -9,12 +9,12 @@ import type { CorrelationConfidenceLevel } from '@/types/habits';
  * - 90+ → 'strong_pattern'
  */
 export function getCorrelationConfidenceLevel(
-  dataPointCount: number,
+  dataPointCount: number
 ): CorrelationConfidenceLevel | null {
   if (dataPointCount < 30) return null;
-  if (dataPointCount < 60) return 'early_pattern';
-  if (dataPointCount < 90) return 'emerging_trend';
-  return 'strong_pattern';
+  if (dataPointCount < 60) return "early_pattern";
+  if (dataPointCount < 90) return "emerging_trend";
+  return "strong_pattern";
 }
 
 // ---------------------------------------------------------------------------
@@ -36,7 +36,9 @@ export interface CorrelationThresholdResult {
  * This is the canonical threshold logic used by the
  * compute-habit-correlations Edge Function.
  */
-export function applyCorrelationThreshold(dayCount: number): CorrelationThresholdResult {
+export function applyCorrelationThreshold(
+  dayCount: number
+): CorrelationThresholdResult {
   if (dayCount < 14) {
     return { insights: [], insufficient_data: true };
   }

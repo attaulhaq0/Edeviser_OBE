@@ -1,6 +1,6 @@
-import { Component, type ReactNode, type ErrorInfo } from 'react';
-import ErrorState from '@/components/shared/ErrorState';
-import { AlertTriangle } from 'lucide-react';
+import { Component, type ReactNode, type ErrorInfo } from "react";
+import ErrorState from "@/components/shared/ErrorState";
+import { AlertTriangle } from "lucide-react";
 
 interface Props {
   children: ReactNode;
@@ -23,13 +23,19 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-    console.error('ErrorBoundary caught:', error, errorInfo);
+    console.error("ErrorBoundary caught:", error, errorInfo);
     // Task 97.2: Report to Sentry if initialized
-    import('@sentry/react').then((Sentry) => {
-      if (Sentry.isInitialized()) {
-        Sentry.captureException(error, { extra: { componentStack: errorInfo.componentStack } });
-      }
-    }).catch(() => { /* Sentry not available */ });
+    import("@sentry/react")
+      .then((Sentry) => {
+        if (Sentry.isInitialized()) {
+          Sentry.captureException(error, {
+            extra: { componentStack: errorInfo.componentStack },
+          });
+        }
+      })
+      .catch(() => {
+        /* Sentry not available */
+      });
   }
 
   handleRetry = (): void => {
@@ -44,7 +50,9 @@ class ErrorBoundary extends Component<Props, State> {
         <div className="flex items-center justify-center min-h-[200px] p-6">
           <ErrorState
             title="Something went wrong"
-            message={this.state.error?.message ?? 'An unexpected error occurred.'}
+            message={
+              this.state.error?.message ?? "An unexpected error occurred."
+            }
             icon={<AlertTriangle className="h-8 w-8 text-red-500" />}
             onRetry={this.handleRetry}
             retryLabel="Try Again"

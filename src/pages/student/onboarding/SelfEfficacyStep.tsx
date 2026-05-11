@@ -1,22 +1,22 @@
-import { useState, useMemo, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Shield } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { useSelfEfficacyQuestions } from '@/hooks/useOnboardingQuestions';
-import { useSaveResponses } from '@/hooks/useOnboardingResponses';
-import { DAY1_SELF_EFFICACY_COUNT } from '@/lib/onboardingConstants';
-import type { OnboardingQuestion } from '@/hooks/useOnboardingQuestions';
-import type { WizardStepProps } from './OnboardingWizard';
+import { useState, useMemo, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Shield } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { useSelfEfficacyQuestions } from "@/hooks/useOnboardingQuestions";
+import { useSaveResponses } from "@/hooks/useOnboardingResponses";
+import { DAY1_SELF_EFFICACY_COUNT } from "@/lib/onboardingConstants";
+import type { OnboardingQuestion } from "@/hooks/useOnboardingQuestions";
+import type { WizardStepProps } from "./OnboardingWizard";
 
 // ── Likert scale labels for self-efficacy ────────────────────────────
 
 const EFFICACY_LABELS = [
-  'Not at all confident',
-  'Slightly confident',
-  'Moderately confident',
-  'Very confident',
-  'Extremely confident',
+  "Not at all confident",
+  "Slightly confident",
+  "Moderately confident",
+  "Very confident",
+  "Extremely confident",
 ] as const;
 
 // ── Inline LikertScale (shared component created in Task 6) ─────────
@@ -34,7 +34,11 @@ const LikertScale = ({
   questionId,
   labels = EFFICACY_LABELS,
 }: LikertScaleProps) => (
-  <div className="flex flex-col gap-2" role="radiogroup" aria-label="Self-efficacy scale">
+  <div
+    className="flex flex-col gap-2"
+    role="radiogroup"
+    aria-label="Self-efficacy scale"
+  >
     {labels.map((label, idx) => {
       const optionValue = idx + 1;
       const isSelected = value === optionValue;
@@ -49,16 +53,18 @@ const LikertScale = ({
           onClick={() => onChange(optionValue)}
           className={`flex items-center gap-3 rounded-lg border px-4 py-3 text-start text-sm font-medium transition-colors ${
             isSelected
-              ? 'border-blue-500 bg-blue-50 text-blue-700'
-              : 'border-slate-200 bg-white text-gray-700 hover:border-slate-300 hover:bg-slate-50'
+              ? "border-blue-500 bg-blue-50 text-blue-700"
+              : "border-slate-200 bg-white text-gray-700 hover:border-slate-300 hover:bg-slate-50"
           }`}
         >
           <span
             className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${
-              isSelected ? 'border-blue-500' : 'border-slate-300'
+              isSelected ? "border-blue-500" : "border-slate-300"
             }`}
           >
-            {isSelected && <span className="h-2.5 w-2.5 rounded-full bg-blue-500" />}
+            {isSelected && (
+              <span className="h-2.5 w-2.5 rounded-full bg-blue-500" />
+            )}
           </span>
           {label}
         </button>
@@ -67,12 +73,13 @@ const LikertScale = ({
   </div>
 );
 
-
 // ── Helper: pick Day 1 subset ────────────────────────────────────────
 
-const DAY1_DOMAINS = ['general_academic', 'self_regulated_learning'];
+const DAY1_DOMAINS = ["general_academic", "self_regulated_learning"];
 
-const pickDay1Questions = (questions: OnboardingQuestion[]): OnboardingQuestion[] => {
+const pickDay1Questions = (
+  questions: OnboardingQuestion[]
+): OnboardingQuestion[] => {
   const picked: OnboardingQuestion[] = [];
   for (const domain of DAY1_DOMAINS) {
     const q = questions.find((q) => q.dimension === domain);
@@ -94,7 +101,7 @@ export const SelfEfficacyStep = ({
 
   const questions = useMemo(
     () => (isDay1 ? pickDay1Questions(allQuestions) : allQuestions),
-    [isDay1, allQuestions],
+    [isDay1, allQuestions]
   );
 
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -103,14 +110,16 @@ export const SelfEfficacyStep = ({
 
   const currentQuestion = questions[currentIndex];
   const totalQuestions = questions.length;
-  const currentAnswer = currentQuestion ? answers[currentQuestion.id] ?? null : null;
+  const currentAnswer = currentQuestion
+    ? answers[currentQuestion.id] ?? null
+    : null;
 
   const handleSelect = useCallback(
     (value: number) => {
       if (!currentQuestion) return;
       setAnswers((prev) => ({ ...prev, [currentQuestion.id]: value }));
     },
-    [currentQuestion],
+    [currentQuestion]
   );
 
   const handleNext = useCallback(async () => {
@@ -126,14 +135,23 @@ export const SelfEfficacyStep = ({
 
       await saveResponses.mutateAsync({
         student_id: studentId,
-        assessment_type: 'self_efficacy',
+        assessment_type: "self_efficacy",
         assessment_version: assessmentVersion,
         responses,
       });
 
       onComplete();
     }
-  }, [currentIndex, totalQuestions, questions, answers, saveResponses, studentId, assessmentVersion, onComplete]);
+  }, [
+    currentIndex,
+    totalQuestions,
+    questions,
+    answers,
+    saveResponses,
+    studentId,
+    assessmentVersion,
+    onComplete,
+  ]);
 
   const handleBack = useCallback(() => {
     if (currentIndex > 0) {
@@ -203,7 +221,7 @@ export const SelfEfficacyStep = ({
             <LikertScale
               value={currentAnswer}
               onChange={handleSelect}
-              questionId={currentQuestion?.id ?? ''}
+              questionId={currentQuestion?.id ?? ""}
             />
           </Card>
         </motion.div>
@@ -226,9 +244,9 @@ export const SelfEfficacyStep = ({
         >
           {currentIndex === totalQuestions - 1
             ? saveResponses.isPending
-              ? 'Saving...'
-              : 'Complete'
-            : 'Next'}
+              ? "Saving..."
+              : "Complete"
+            : "Next"}
         </Button>
       </div>
     </div>

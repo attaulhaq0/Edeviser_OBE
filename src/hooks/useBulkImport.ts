@@ -1,8 +1,8 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import { logAuditEvent } from '@/lib/auditLogger';
-import { useAuth } from '@/hooks/useAuth';
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import { logAuditEvent } from "@/lib/auditLogger";
+import { useAuth } from "@/hooks/useAuth";
 
 export interface BulkImportResult {
   created: number;
@@ -22,9 +22,12 @@ export const useBulkImportUsers = () => {
 
   return useMutation({
     mutationFn: async (rows: BulkImportRow[]): Promise<BulkImportResult> => {
-      const { data, error } = await supabase.functions.invoke('bulk-import-users', {
-        body: { rows },
-      });
+      const { data, error } = await supabase.functions.invoke(
+        "bulk-import-users",
+        {
+          body: { rows },
+        }
+      );
 
       if (error) throw error;
 
@@ -32,11 +35,11 @@ export const useBulkImportUsers = () => {
 
       if (result.created > 0) {
         await logAuditEvent({
-          action: 'bulk_import',
-          entity_type: 'user',
-          entity_id: 'bulk',
+          action: "bulk_import",
+          entity_type: "user",
+          entity_id: "bulk",
           changes: { count: result.created, errors: result.errors.length },
-          performed_by: user?.id ?? 'unknown',
+          performed_by: user?.id ?? "unknown",
         });
       }
 

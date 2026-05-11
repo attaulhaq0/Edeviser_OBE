@@ -1,7 +1,7 @@
-import { format, formatDistanceToNow, type Locale } from 'date-fns';
-import { enUS } from 'date-fns/locale/en-US';
-import { ar } from 'date-fns/locale/ar';
-import i18n from '@/lib/i18n';
+import { format, formatDistanceToNow, type Locale } from "date-fns";
+import { enUS } from "date-fns/locale/en-US";
+import { ar } from "date-fns/locale/ar";
+import i18n from "@/lib/i18n";
 
 const localeMap: Record<string, Locale> = { en: enUS, ar };
 
@@ -14,9 +14,9 @@ const getLocale = (): Locale => localeMap[i18n.language] || enUS;
  */
 export const formatLocalDate = (
   date: Date | string,
-  pattern: string = 'PPP',
+  pattern: string = "PPP"
 ): string => {
-  const d = typeof date === 'string' ? new Date(date) : date;
+  const d = typeof date === "string" ? new Date(date) : date;
   return format(d, pattern, { locale: getLocale() });
 };
 
@@ -24,6 +24,6 @@ export const formatLocalDate = (
  * Formats a date as a relative time string (e.g. "3 hours ago").
  */
 export const formatRelativeTime = (date: Date | string): string => {
-  const d = typeof date === 'string' ? new Date(date) : date;
+  const d = typeof date === "string" ? new Date(date) : date;
   return formatDistanceToNow(d, { addSuffix: true, locale: getLocale() });
 };

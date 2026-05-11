@@ -3,7 +3,7 @@
 // Validates: Requirements 49.2
 // =============================================================================
 
-import { supabase } from '@/lib/supabase';
+import { supabase } from "@/lib/supabase";
 
 /** Threshold below which a student is considered "at risk" (prediction was correct). */
 const AT_RISK_THRESHOLD = 70;
@@ -25,7 +25,7 @@ export interface PredictionValidationResult {
  */
 export async function validateAtRiskPredictions(
   studentId: string,
-  cloIds: string[],
+  cloIds: string[]
 ): Promise<PredictionValidationResult> {
   const result: PredictionValidationResult = { updatedCount: 0, errors: [] };
 
@@ -34,11 +34,11 @@ export async function validateAtRiskPredictions(
   try {
     // 1. Fetch unvalidated at-risk predictions for this student
     const { data: predictions, error: predError } = await supabase
-      .from('ai_feedback')
-      .select('id, suggestion_data')
-      .eq('student_id', studentId)
-      .eq('suggestion_type', 'at_risk_prediction')
-      .is('validated_outcome', null);
+      .from("ai_feedback")
+      .select("id, suggestion_data")
+      .eq("student_id", studentId)
+      .eq("suggestion_type", "at_risk_prediction")
+      .is("validated_outcome", null);
 
     if (predError) {
       result.errors.push(`Failed to fetch predictions: ${predError.message}`);
@@ -60,16 +60,18 @@ export async function validateAtRiskPredictions(
     const relevantCloIds = [
       ...new Set(
         relevantPredictions.map(
-          (p) => (p.suggestion_data as Record<string, unknown>).at_risk_clo_id as string,
-        ),
+          (p) =>
+            (p.suggestion_data as Record<string, unknown>)
+              .at_risk_clo_id as string
+        )
       ),
     ];
 
     const { data: attainments, error: attError } = await supabase
-      .from('outcome_attainment')
-      .select('outcome_id, attainment_percent')
-      .eq('student_id', studentId)
-      .in('outcome_id', relevantCloIds);
+      .from("outcome_attainment")
+      .select("outcome_id, attainment_percent")
+      .eq("student_id", studentId)
+      .in("outcome_id", relevantCloIds);
 
     if (attError) {
       result.errors.push(`Failed to fetch attainment: ${attError.message}`);
@@ -77,31 +79,41 @@ export async function validateAtRiskPredictions(
     }
 
     const attainmentMap = new Map<string, number>(
-      (attainments ?? []).map((a) => [a.outcome_id as string, a.attainment_percent as number]),
+      (attainments ?? []).map((a) => [
+        a.outcome_id as string,
+        a.attainment_percent as number,
+      ])
     );
 
     // 4. Validate each prediction
     for (const prediction of relevantPredictions) {
-      const cloId = (prediction.suggestion_data as Record<string, unknown>).at_risk_clo_id as string;
+      const cloId = (prediction.suggestion_data as Record<string, unknown>)
+        .at_risk_clo_id as string;
       const attainment = attainmentMap.get(cloId);
 
       // If no attainment record exists yet, treat as at-risk (correct prediction)
       const validatedOutcome =
-        attainment === undefined || attainment < AT_RISK_THRESHOLD ? 'correct' : 'incorrect';
+        attainment === undefined || attainment < AT_RISK_THRESHOLD
+          ? "correct"
+          : "incorrect";
 
       const { error: updateError } = await supabase
-        .from('ai_feedback')
+        .from("ai_feedback")
         .update({ validated_outcome: validatedOutcome })
-        .eq('id', prediction.id);
+        .eq("id", prediction.id);
 
       if (updateError) {
-        result.errors.push(`Failed to update prediction ${prediction.id}: ${updateError.message}`);
+        result.errors.push(
+          `Failed to update prediction ${prediction.id}: ${updateError.message}`
+        );
       } else {
         result.updatedCount++;
       }
     }
   } catch (err) {
-    result.errors.push(`Unexpected error: ${err instanceof Error ? err.message : String(err)}`);
+    result.errors.push(
+      `Unexpected error: ${err instanceof Error ? err.message : String(err)}`
+    );
   }
 
   return result;

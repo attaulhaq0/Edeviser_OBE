@@ -1,7 +1,7 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import type { SaveResponsesInput } from '@/lib/onboardingSchemas';
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import type { SaveResponsesInput } from "@/lib/onboardingSchemas";
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -21,7 +21,9 @@ export const useSaveResponses = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (input: SaveResponsesInput): Promise<OnboardingResponse[]> => {
+    mutationFn: async (
+      input: SaveResponsesInput
+    ): Promise<OnboardingResponse[]> => {
       const rows = input.responses.map((r) => ({
         student_id: input.student_id,
         question_id: r.question_id,
@@ -30,8 +32,10 @@ export const useSaveResponses = () => {
       }));
 
       const { data, error } = await supabase
-        .from('onboarding_responses')
-        .upsert(rows, { onConflict: 'student_id,question_id,assessment_version' })
+        .from("onboarding_responses")
+        .upsert(rows, {
+          onConflict: "student_id,question_id,assessment_version",
+        })
         .select();
 
       if (error) throw error;
@@ -41,7 +45,7 @@ export const useSaveResponses = () => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.onboarding.responses(
           variables.student_id,
-          variables.assessment_version,
+          variables.assessment_version
         ),
       });
     },

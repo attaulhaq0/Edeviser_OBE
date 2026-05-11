@@ -2,14 +2,14 @@
 // ItemCard — Marketplace item card with locked/owned/sale/out-of-stock states
 // =============================================================================
 
-import { Lock, Check, Coins, Package } from 'lucide-react';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import SaleBadge from '@/components/shared/SaleBadge';
-import CosmeticPreview from '@/components/shared/CosmeticPreview';
-import type { MarketplaceItem } from '@/hooks/useMarketplace';
-import { cn } from '@/lib/utils';
+import { Lock, Check, Coins, Package } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import SaleBadge from "@/components/shared/SaleBadge";
+import CosmeticPreview from "@/components/shared/CosmeticPreview";
+import type { MarketplaceItem } from "@/hooks/useMarketplace";
+import { cn } from "@/lib/utils";
 
 // ─── Icon map ────────────────────────────────────────────────────────────────
 
@@ -23,7 +23,7 @@ import {
   Zap,
   Shield,
   Sparkles,
-} from 'lucide-react';
+} from "lucide-react";
 
 const ICON_MAP: Record<string, React.ElementType> = {
   palette: Palette,
@@ -49,19 +49,25 @@ interface ItemCardProps {
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
-const ItemCard = ({ item, studentLevel, isOwned, onPurchase }: ItemCardProps) => {
+const ItemCard = ({
+  item,
+  studentLevel,
+  isOwned,
+  onPurchase,
+}: ItemCardProps) => {
   const isLocked = item.level_requirement > studentLevel;
-  const isOutOfStock = item.stock_type === 'limited' && (item.stock_quantity ?? 0) <= 0;
+  const isOutOfStock =
+    item.stock_type === "limited" && (item.stock_quantity ?? 0) <= 0;
   const hasSale = item.sale_discount > 0;
-  const isCosmetic = item.category === 'cosmetic';
+  const isCosmetic = item.category === "cosmetic";
 
   const IconComponent = ICON_MAP[item.icon_identifier] ?? Sparkles;
 
   return (
     <Card
       className={cn(
-        'bg-white border-0 shadow-md rounded-xl overflow-hidden relative transition-transform hover:scale-[1.02]',
-        isLocked && 'opacity-60',
+        "bg-white border-0 shadow-md rounded-xl overflow-hidden relative transition-transform hover:scale-[1.02]",
+        isLocked && "opacity-60"
       )}
     >
       {/* Sale badge */}
@@ -100,8 +106,12 @@ const ItemCard = ({ item, studentLevel, isOwned, onPurchase }: ItemCardProps) =>
       {/* Content */}
       <div className="p-4 space-y-3">
         <div>
-          <h3 className="text-sm font-bold text-gray-900 truncate">{item.name}</h3>
-          <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{item.description}</p>
+          <h3 className="text-sm font-bold text-gray-900 truncate">
+            {item.name}
+          </h3>
+          <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">
+            {item.description}
+          </p>
         </div>
 
         {/* Price */}
@@ -124,7 +134,7 @@ const ItemCard = ({ item, studentLevel, isOwned, onPurchase }: ItemCardProps) =>
         </div>
 
         {/* Stock info */}
-        {item.stock_type === 'limited' && !isOutOfStock && (
+        {item.stock_type === "limited" && !isOutOfStock && (
           <p className="text-xs text-gray-500">
             {item.stock_quantity} remaining
           </p>

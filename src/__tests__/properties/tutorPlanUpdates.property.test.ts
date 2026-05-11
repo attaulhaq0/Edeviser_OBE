@@ -16,10 +16,12 @@ import type { LearningPlanUpdate } from "@/lib/tutorSchemas";
 function shouldTriggerPlanUpdate(
   interactionCountOnClo: number,
   acceptanceRate: number | null,
-  previousSuggestionCount: number,
+  previousSuggestionCount: number
 ): boolean {
   const threshold =
-    previousSuggestionCount >= 10 && acceptanceRate !== null && acceptanceRate < 0.3
+    previousSuggestionCount >= 10 &&
+    acceptanceRate !== null &&
+    acceptanceRate < 0.3
       ? 10
       : 5;
   return interactionCountOnClo >= threshold;
@@ -63,27 +65,21 @@ const planUpdateArb: fc.Arbitrary<LearningPlanUpdate> = fc.record({
 describe("Property 43 — Plan update triggers at 5+ interactions", () => {
   it("P43a: triggers when interaction count >= 5 (default threshold)", () => {
     fc.assert(
-      fc.property(
-        fc.integer({ min: 5, max: 50 }),
-        (count) => {
-          const result = shouldTriggerPlanUpdate(count, null, 0);
-          expect(result).toBe(true);
-        },
-      ),
-      { numRuns: 100 },
+      fc.property(fc.integer({ min: 5, max: 50 }), (count) => {
+        const result = shouldTriggerPlanUpdate(count, null, 0);
+        expect(result).toBe(true);
+      }),
+      { numRuns: 100 }
     );
   });
 
   it("P43b: does not trigger when interaction count < 5 (default threshold)", () => {
     fc.assert(
-      fc.property(
-        fc.integer({ min: 0, max: 4 }),
-        (count) => {
-          const result = shouldTriggerPlanUpdate(count, null, 0);
-          expect(result).toBe(false);
-        },
-      ),
-      { numRuns: 100 },
+      fc.property(fc.integer({ min: 0, max: 4 }), (count) => {
+        const result = shouldTriggerPlanUpdate(count, null, 0);
+        expect(result).toBe(false);
+      }),
+      { numRuns: 100 }
     );
   });
 });
@@ -96,7 +92,7 @@ describe("Property 44 — Plan update contains required fields", () => {
       fc.property(planUpdateArb, (update) => {
         expect(isValidPlanUpdate(update)).toBe(true);
       }),
-      { numRuns: 100 },
+      { numRuns: 100 }
     );
   });
 });
@@ -117,9 +113,9 @@ describe("Property 46 — Adaptive frequency threshold", () => {
           // With 10+ interactions, SHOULD trigger
           const resultAt10 = shouldTriggerPlanUpdate(10, rate, prevCount);
           expect(resultAt10).toBe(true);
-        },
+        }
       ),
-      { numRuns: 100 },
+      { numRuns: 100 }
     );
   });
 
@@ -131,9 +127,9 @@ describe("Property 46 — Adaptive frequency threshold", () => {
         (rate, prevCount) => {
           const resultAt5 = shouldTriggerPlanUpdate(5, rate, prevCount);
           expect(resultAt5).toBe(true);
-        },
+        }
       ),
-      { numRuns: 100 },
+      { numRuns: 100 }
     );
   });
 
@@ -145,9 +141,9 @@ describe("Property 46 — Adaptive frequency threshold", () => {
         (rate, prevCount) => {
           const resultAt5 = shouldTriggerPlanUpdate(5, rate, prevCount);
           expect(resultAt5).toBe(true);
-        },
+        }
       ),
-      { numRuns: 100 },
+      { numRuns: 100 }
     );
   });
 });

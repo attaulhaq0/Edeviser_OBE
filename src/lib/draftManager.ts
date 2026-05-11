@@ -1,11 +1,16 @@
 // Task 54: Draft Manager — auto-save drafts to localStorage
-const PREFIX = 'edeviser_draft_';
+const PREFIX = "edeviser_draft_";
 
 export const draftManager = {
   saveDraft(key: string, content: unknown): void {
     try {
-      localStorage.setItem(`${PREFIX}${key}`, JSON.stringify({ content, savedAt: Date.now() }));
-    } catch { /* quota exceeded — silently fail */ }
+      localStorage.setItem(
+        `${PREFIX}${key}`,
+        JSON.stringify({ content, savedAt: Date.now() })
+      );
+    } catch {
+      /* quota exceeded — silently fail */
+    }
   },
 
   loadDraft<T = unknown>(key: string): T | null {
@@ -14,18 +19,24 @@ export const draftManager = {
       if (!raw) return null;
       const parsed = JSON.parse(raw);
       return parsed.content as T;
-    } catch { return null; }
+    } catch {
+      return null;
+    }
   },
 
   clearDraft(key: string): void {
     try {
       localStorage.removeItem(`${PREFIX}${key}`);
     } catch (err) {
-      console.error('[DraftManager] clearDraft failed:', err);
+      console.error("[DraftManager] clearDraft failed:", err);
     }
   },
 
-  startAutoSave(key: string, getContent: () => unknown, intervalMs = 30_000): () => void {
+  startAutoSave(
+    key: string,
+    getContent: () => unknown,
+    intervalMs = 30_000
+  ): () => void {
     const timer = setInterval(() => {
       const content = getContent();
       if (content != null) draftManager.saveDraft(key, content);

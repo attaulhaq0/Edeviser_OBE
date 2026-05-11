@@ -2,11 +2,11 @@
 // StreakFreezeShop — Streak freeze purchase UI (costs 200 XP)
 // =============================================================================
 
-import { Snowflake, Loader2 } from 'lucide-react';
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
-import { cn } from '@/lib/utils';
+import { Snowflake, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import { cn } from "@/lib/utils";
 
 interface StreakFreezeShopProps {
   currentXP: number;
@@ -26,7 +26,8 @@ const StreakFreezeShop = ({
 }: StreakFreezeShopProps) => {
   const [isPurchasing, setIsPurchasing] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const canPurchase = currentXP >= FREEZE_COST && freezesAvailable < MAX_FREEZES;
+  const canPurchase =
+    currentXP >= FREEZE_COST && freezesAvailable < MAX_FREEZES;
 
   const handleConfirmedPurchase = async () => {
     setIsPurchasing(true);
@@ -39,7 +40,12 @@ const StreakFreezeShop = ({
   };
 
   return (
-    <div className={cn('rounded-xl border border-slate-200 bg-white p-4 space-y-3', className)}>
+    <div
+      className={cn(
+        "rounded-xl border border-slate-200 bg-white p-4 space-y-3",
+        className
+      )}
+    >
       <div className="flex items-center gap-2">
         <Snowflake className="h-5 w-5 text-blue-500" />
         <span className="text-sm font-bold">Streak Freeze</span>
@@ -52,8 +58,8 @@ const StreakFreezeShop = ({
           <Snowflake
             key={i}
             className={cn(
-              'h-6 w-6',
-              i < freezesAvailable ? 'text-blue-500' : 'text-gray-200',
+              "h-6 w-6",
+              i < freezesAvailable ? "text-blue-500" : "text-gray-200"
             )}
           />
         ))}
@@ -71,7 +77,9 @@ const StreakFreezeShop = ({
         Buy for {FREEZE_COST} XP
       </Button>
       {currentXP < FREEZE_COST && (
-        <p className="text-xs text-red-500">Not enough XP ({currentXP}/{FREEZE_COST})</p>
+        <p className="text-xs text-red-500">
+          Not enough XP ({currentXP}/{FREEZE_COST})
+        </p>
       )}
 
       <ConfirmDialog

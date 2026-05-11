@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from "vitest";
 import {
   buildLearningPathNodes,
   type RawAssignment,
@@ -6,18 +6,22 @@ import {
   type RawAttainment,
   type RawSubmission,
   type RawGrade,
-} from '@/hooks/useLearningPath';
-import type { BloomsLevel } from '@/lib/schemas/clo';
+} from "@/hooks/useLearningPath";
+import type { BloomsLevel } from "@/lib/schemas/clo";
 
 // ─── Helper factories ───────────────────────────────────────────────────────
 
 const first = <T,>(arr: T[]): T => {
   const item = arr[0];
-  if (item === undefined) throw new Error('Expected non-empty array');
+  if (item === undefined) throw new Error("Expected non-empty array");
   return item;
 };
 
-const makeCLO = (id: string, level: BloomsLevel, title = `CLO ${id}`): RawCLO => ({
+const makeCLO = (
+  id: string,
+  level: BloomsLevel,
+  title = `CLO ${id}`
+): RawCLO => ({
   id,
   title,
   blooms_level: level,
@@ -27,7 +31,7 @@ const makeAssignment = (
   id: string,
   title: string,
   cloId: string,
-  prerequisites: RawAssignment['prerequisites'] = null,
+  prerequisites: RawAssignment["prerequisites"] = null
 ): RawAssignment => ({
   id,
   title,
@@ -37,126 +41,156 @@ const makeAssignment = (
 
 // ─── buildLearningPathNodes tests ───────────────────────────────────────────
 
-describe('buildLearningPathNodes', () => {
+describe("buildLearningPathNodes", () => {
   const clos: RawCLO[] = [
-    makeCLO('clo-1', 'remembering', 'Recall Basics'),
-    makeCLO('clo-2', 'applying', 'Apply Concepts'),
-    makeCLO('clo-3', 'creating', 'Create Project'),
+    makeCLO("clo-1", "remembering", "Recall Basics"),
+    makeCLO("clo-2", "applying", "Apply Concepts"),
+    makeCLO("clo-3", "creating", "Create Project"),
   ];
 
-  it('orders nodes by Blooms level (Remembering to Creating)', () => {
+  it("orders nodes by Blooms level (Remembering to Creating)", () => {
     const assignments: RawAssignment[] = [
-      makeAssignment('a3', 'Final Project', 'clo-3'),
-      makeAssignment('a1', 'Quiz 1', 'clo-1'),
-      makeAssignment('a2', 'Lab Exercise', 'clo-2'),
+      makeAssignment("a3", "Final Project", "clo-3"),
+      makeAssignment("a1", "Quiz 1", "clo-1"),
+      makeAssignment("a2", "Lab Exercise", "clo-2"),
     ];
 
     const nodes = buildLearningPathNodes(assignments, clos, [], [], []);
 
     expect(nodes.map((n) => n.blooms_level)).toEqual([
-      'remembering',
-      'applying',
-      'creating',
+      "remembering",
+      "applying",
+      "creating",
     ]);
     expect(nodes.map((n) => n.title)).toEqual([
-      'Quiz 1',
-      'Lab Exercise',
-      'Final Project',
+      "Quiz 1",
+      "Lab Exercise",
+      "Final Project",
     ]);
   });
 
-  it('marks nodes as available when no prerequisites', () => {
+  it("marks nodes as available when no prerequisites", () => {
     const assignments: RawAssignment[] = [
-      makeAssignment('a1', 'Quiz 1', 'clo-1'),
+      makeAssignment("a1", "Quiz 1", "clo-1"),
     ];
 
     const nodes = buildLearningPathNodes(assignments, clos, [], [], []);
 
-    expect(first(nodes).status).toBe('available');
+    expect(first(nodes).status).toBe("available");
   });
 
-  it('marks nodes as locked when prerequisite attainment is not met', () => {
+  it("marks nodes as locked when prerequisite attainment is not met", () => {
     const assignments: RawAssignment[] = [
-      makeAssignment('a2', 'Lab Exercise', 'clo-2', [
-        { clo_id: 'clo-1', required_attainment: 70 },
+      makeAssignment("a2", "Lab Exercise", "clo-2", [
+        { clo_id: "clo-1", required_attainment: 70 },
       ]),
     ];
     const attainments: RawAttainment[] = [
-      { outcome_id: 'clo-1', attainment_percent: 50 },
+      { outcome_id: "clo-1", attainment_percent: 50 },
     ];
 
-    const nodes = buildLearningPathNodes(assignments, clos, attainments, [], []);
+    const nodes = buildLearningPathNodes(
+      assignments,
+      clos,
+      attainments,
+      [],
+      []
+    );
 
-    expect(first(nodes).status).toBe('locked');
+    expect(first(nodes).status).toBe("locked");
     expect(first(nodes).prerequisite).toEqual({
-      clo_id: 'clo-1',
-      clo_title: 'Recall Basics',
+      clo_id: "clo-1",
+      clo_title: "Recall Basics",
       required_attainment: 70,
       current_attainment: 50,
     });
   });
 
-  it('marks nodes as available when prerequisite attainment is met', () => {
+  it("marks nodes as available when prerequisite attainment is met", () => {
     const assignments: RawAssignment[] = [
-      makeAssignment('a2', 'Lab Exercise', 'clo-2', [
-        { clo_id: 'clo-1', required_attainment: 70 },
+      makeAssignment("a2", "Lab Exercise", "clo-2", [
+        { clo_id: "clo-1", required_attainment: 70 },
       ]),
     ];
     const attainments: RawAttainment[] = [
-      { outcome_id: 'clo-1', attainment_percent: 75 },
+      { outcome_id: "clo-1", attainment_percent: 75 },
     ];
 
-    const nodes = buildLearningPathNodes(assignments, clos, attainments, [], []);
+    const nodes = buildLearningPathNodes(
+      assignments,
+      clos,
+      attainments,
+      [],
+      []
+    );
 
-    expect(first(nodes).status).toBe('available');
+    expect(first(nodes).status).toBe("available");
     expect(first(nodes).prerequisite).toBeUndefined();
   });
 
-  it('marks nodes as submitted when a submission exists', () => {
+  it("marks nodes as submitted when a submission exists", () => {
     const assignments: RawAssignment[] = [
-      makeAssignment('a1', 'Quiz 1', 'clo-1'),
+      makeAssignment("a1", "Quiz 1", "clo-1"),
     ];
     const submissions: RawSubmission[] = [
-      { assignment_id: 'a1', status: 'submitted' },
+      { assignment_id: "a1", status: "submitted" },
     ];
 
-    const nodes = buildLearningPathNodes(assignments, clos, [], submissions, []);
+    const nodes = buildLearningPathNodes(
+      assignments,
+      clos,
+      [],
+      submissions,
+      []
+    );
 
-    expect(first(nodes).status).toBe('submitted');
+    expect(first(nodes).status).toBe("submitted");
   });
 
-  it('marks nodes as graded when a grade exists', () => {
+  it("marks nodes as graded when a grade exists", () => {
     const assignments: RawAssignment[] = [
-      makeAssignment('a1', 'Quiz 1', 'clo-1'),
+      makeAssignment("a1", "Quiz 1", "clo-1"),
     ];
     const submissions: RawSubmission[] = [
-      { assignment_id: 'a1', status: 'graded' },
+      { assignment_id: "a1", status: "graded" },
     ];
     const grades: RawGrade[] = [
-      { submission_id: 'sub-1', assignment_id: 'a1' },
+      { submission_id: "sub-1", assignment_id: "a1" },
     ];
 
-    const nodes = buildLearningPathNodes(assignments, clos, [], submissions, grades);
+    const nodes = buildLearningPathNodes(
+      assignments,
+      clos,
+      [],
+      submissions,
+      grades
+    );
 
-    expect(first(nodes).status).toBe('graded');
+    expect(first(nodes).status).toBe("graded");
   });
 
-  it('includes attainment_percent from outcome_attainment', () => {
+  it("includes attainment_percent from outcome_attainment", () => {
     const assignments: RawAssignment[] = [
-      makeAssignment('a1', 'Quiz 1', 'clo-1'),
+      makeAssignment("a1", "Quiz 1", "clo-1"),
     ];
     const attainments: RawAttainment[] = [
-      { outcome_id: 'clo-1', attainment_percent: 82 },
+      { outcome_id: "clo-1", attainment_percent: 82 },
     ];
 
-    const nodes = buildLearningPathNodes(assignments, clos, attainments, [], []);
+    const nodes = buildLearningPathNodes(
+      assignments,
+      clos,
+      attainments,
+      [],
+      []
+    );
 
     expect(first(nodes).attainment_percent).toBe(82);
   });
 
-  it('returns null attainment_percent when no attainment data exists', () => {
+  it("returns null attainment_percent when no attainment data exists", () => {
     const assignments: RawAssignment[] = [
-      makeAssignment('a1', 'Quiz 1', 'clo-1'),
+      makeAssignment("a1", "Quiz 1", "clo-1"),
     ];
 
     const nodes = buildLearningPathNodes(assignments, clos, [], [], []);
@@ -164,48 +198,56 @@ describe('buildLearningPathNodes', () => {
     expect(first(nodes).attainment_percent).toBeNull();
   });
 
-  it('defaults to remembering when CLO has no blooms_level', () => {
-    const noBlooms: RawCLO[] = [{ id: 'clo-x', title: 'Unknown', blooms_level: null }];
+  it("defaults to remembering when CLO has no blooms_level", () => {
+    const noBlooms: RawCLO[] = [
+      { id: "clo-x", title: "Unknown", blooms_level: null },
+    ];
     const assignments: RawAssignment[] = [
-      makeAssignment('a1', 'Task', 'clo-x'),
+      makeAssignment("a1", "Task", "clo-x"),
     ];
 
     const nodes = buildLearningPathNodes(assignments, noBlooms, [], [], []);
 
-    expect(first(nodes).blooms_level).toBe('remembering');
+    expect(first(nodes).blooms_level).toBe("remembering");
   });
 
-  it('treats missing attainment as 0 for prerequisite check', () => {
+  it("treats missing attainment as 0 for prerequisite check", () => {
     const assignments: RawAssignment[] = [
-      makeAssignment('a2', 'Lab', 'clo-2', [
-        { clo_id: 'clo-1', required_attainment: 70 },
+      makeAssignment("a2", "Lab", "clo-2", [
+        { clo_id: "clo-1", required_attainment: 70 },
       ]),
     ];
 
     const nodes = buildLearningPathNodes(assignments, clos, [], [], []);
 
-    expect(first(nodes).status).toBe('locked');
+    expect(first(nodes).status).toBe("locked");
     expect(first(nodes).prerequisite?.current_attainment).toBe(0);
   });
 
-  it('returns empty array for empty assignments', () => {
+  it("returns empty array for empty assignments", () => {
     const nodes = buildLearningPathNodes([], clos, [], [], []);
     expect(nodes).toEqual([]);
   });
 
-  it('sorts assignments at the same Blooms level alphabetically', () => {
+  it("sorts assignments at the same Blooms level alphabetically", () => {
     const sameLevelClos: RawCLO[] = [
-      makeCLO('clo-a', 'applying', 'CLO A'),
-      makeCLO('clo-b', 'applying', 'CLO B'),
+      makeCLO("clo-a", "applying", "CLO A"),
+      makeCLO("clo-b", "applying", "CLO B"),
     ];
     const assignments: RawAssignment[] = [
-      makeAssignment('a2', 'Zebra Task', 'clo-b'),
-      makeAssignment('a1', 'Alpha Task', 'clo-a'),
+      makeAssignment("a2", "Zebra Task", "clo-b"),
+      makeAssignment("a1", "Alpha Task", "clo-a"),
     ];
 
-    const nodes = buildLearningPathNodes(assignments, sameLevelClos, [], [], []);
+    const nodes = buildLearningPathNodes(
+      assignments,
+      sameLevelClos,
+      [],
+      [],
+      []
+    );
 
-    expect(nodes.map((n) => n.title)).toEqual(['Alpha Task', 'Zebra Task']);
+    expect(nodes.map((n) => n.title)).toEqual(["Alpha Task", "Zebra Task"]);
   });
 });
 
@@ -218,17 +260,19 @@ describe('buildLearningPathNodes', () => {
 // Since LearningPath uses useLearningPath internally, we test the rendered
 // output by importing the component parts directly.
 
-describe('LearningPath component rendering', () => {
+describe("LearningPath component rendering", () => {
   // We dynamically import to avoid module-level mock issues
-  it('renders empty state when no nodes', async () => {
+  it("renders empty state when no nodes", async () => {
     // Import the default export
-    const { default: LearningPath } = await import('@/pages/student/progress/LearningPath');
+    const { default: LearningPath } = await import(
+      "@/pages/student/progress/LearningPath"
+    );
 
     // Mock the hook by rendering with a wrapper that provides QueryClient
     // For unit tests, we test the pure logic above. Component rendering
     // is validated via the buildLearningPathNodes output.
     // This test validates the component can be imported without errors.
     expect(LearningPath).toBeDefined();
-    expect(typeof LearningPath).toBe('function');
+    expect(typeof LearningPath).toBe("function");
   }, 15_000);
 });

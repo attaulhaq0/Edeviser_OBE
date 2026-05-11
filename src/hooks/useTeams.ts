@@ -3,10 +3,10 @@
 // Task 3.1: list teams by course, create team, update team, soft-delete team
 // =============================================================================
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import { toast } from 'sonner';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import { toast } from "sonner";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -22,7 +22,7 @@ export interface Team {
   streak_last_active_date: string | null;
   cooperation_score: number;
   health_score: number;
-  health_status: 'healthy' | 'needs_attention' | 'at_risk';
+  health_status: "healthy" | "needs_attention" | "at_risk";
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -37,11 +37,11 @@ export const useTeams = (courseId?: string) => {
     queryKey: queryKeys.teams.list({ courseId }),
     queryFn: async (): Promise<Team[]> => {
       const { data, error } = await supabase
-        .from('teams' as never)
-        .select('*')
-        .eq('course_id', courseId!)
-        .is('deleted_at', null)
-        .order('name');
+        .from("teams" as never)
+        .select("*")
+        .eq("course_id", courseId!)
+        .is("deleted_at", null)
+        .order("name");
       if (error) throw error;
       return (data ?? []) as Team[];
     },
@@ -65,7 +65,7 @@ export const useCreateTeam = () => {
   return useMutation({
     mutationFn: async (input: CreateTeamInput) => {
       const { data, error } = await supabase
-        .from('teams' as never)
+        .from("teams" as never)
         .insert(input as never)
         .select()
         .single();
@@ -76,7 +76,7 @@ export const useCreateTeam = () => {
       qc.invalidateQueries({ queryKey: queryKeys.teams.lists() });
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Failed to create team');
+      toast.error(error.message || "Failed to create team");
     },
   });
 };
@@ -94,9 +94,9 @@ export const useUpdateTeam = () => {
   return useMutation({
     mutationFn: async ({ id, ...updates }: UpdateTeamInput) => {
       const { data, error } = await supabase
-        .from('teams' as never)
+        .from("teams" as never)
         .update({ ...updates, updated_at: new Date().toISOString() } as never)
-        .eq('id', id)
+        .eq("id", id)
         .select()
         .single();
       if (error) throw error;
@@ -106,7 +106,7 @@ export const useUpdateTeam = () => {
       qc.invalidateQueries({ queryKey: queryKeys.teams.lists() });
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Failed to update team');
+      toast.error(error.message || "Failed to update team");
     },
   });
 };
@@ -129,9 +129,9 @@ export const useTeamGamification = (teamId?: string) => {
     queryKey: queryKeys.teamGamification.list({ teamId }),
     queryFn: async (): Promise<TeamGamification | null> => {
       const { data, error } = await supabase
-        .from('team_gamification' as never)
-        .select('*')
-        .eq('team_id', teamId!)
+        .from("team_gamification" as never)
+        .select("*")
+        .eq("team_id", teamId!)
         .maybeSingle();
       if (error) throw error;
       return data as TeamGamification | null;
@@ -143,18 +143,25 @@ export const useTeamGamification = (teamId?: string) => {
 export const useAutoGenerateTeams = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (params: { course_id: string; team_size: number; created_by: string }) => {
+    mutationFn: async (params: {
+      course_id: string;
+      team_size: number;
+      created_by: string;
+    }) => {
       const { data: enrollments } = await supabase
-        .from('student_courses')
-        .select('student_id')
-        .eq('course_id', params.course_id);
+        .from("student_courses")
+        .select("student_id")
+        .eq("course_id", params.course_id);
 
       const studentIds = (enrollments ?? []).map((e) => e.student_id);
-      if (studentIds.length === 0) throw new Error('No enrolled students');
+      if (studentIds.length === 0) throw new Error("No enrolled students");
 
       const shuffled = [...studentIds].sort(() => Math.random() - 0.5);
       const teamCount = Math.ceil(shuffled.length / params.team_size);
-      const teamBuckets: string[][] = Array.from({ length: teamCount }, () => []);
+      const teamBuckets: string[][] = Array.from(
+        { length: teamCount },
+        () => []
+      );
 
       shuffled.forEach((id, i) => {
         teamBuckets[i % teamCount]!.push(id);
@@ -163,7 +170,7 @@ export const useAutoGenerateTeams = () => {
       let created = 0;
       for (let i = 0; i < teamBuckets.length; i++) {
         const { data: team, error } = await supabase
-          .from('teams' as never)
+          .from("teams" as never)
           .insert({
             name: `Team ${i + 1}`,
             course_id: params.course_id,
@@ -179,7 +186,7 @@ export const useAutoGenerateTeams = () => {
           student_id: studentId,
         }));
         const { error: memberError } = await supabase
-          .from('team_members' as never)
+          .from("team_members" as never)
           .insert(members as never);
         if (memberError) throw memberError;
         created++;
@@ -191,7 +198,7 @@ export const useAutoGenerateTeams = () => {
       qc.invalidateQueries({ queryKey: queryKeys.teams.lists() });
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Failed to auto-generate teams');
+      toast.error(error.message || "Failed to auto-generate teams");
     },
   });
 };
@@ -203,9 +210,12 @@ export const useSoftDeleteTeam = () => {
   return useMutation({
     mutationFn: async (teamId: string) => {
       const { data, error } = await supabase
-        .from('teams' as never)
-        .update({ deleted_at: new Date().toISOString(), updated_at: new Date().toISOString() } as never)
-        .eq('id', teamId)
+        .from("teams" as never)
+        .update({
+          deleted_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        } as never)
+        .eq("id", teamId)
         .select()
         .single();
       if (error) throw error;
@@ -216,7 +226,7 @@ export const useSoftDeleteTeam = () => {
       qc.invalidateQueries({ queryKey: queryKeys.teamMembers.lists() });
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Failed to delete team');
+      toast.error(error.message || "Failed to delete team");
     },
   });
 };

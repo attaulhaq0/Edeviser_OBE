@@ -1,13 +1,15 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { logAuditEvent } from '@/lib/auditLogger';
-import { queryKeys } from '@/lib/queryKeys';
-import type { Database } from '@/types/database';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { logAuditEvent } from "@/lib/auditLogger";
+import { queryKeys } from "@/lib/queryKeys";
+import type { Database } from "@/types/database";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
-type MasteryRecoveryRow = Database['public']['Tables']['mastery_recovery_pathways']['Row'];
-type MasteryRecoveryInsert = Database['public']['Tables']['mastery_recovery_pathways']['Insert'];
+type MasteryRecoveryRow =
+  Database["public"]["Tables"]["mastery_recovery_pathways"]["Row"];
+type MasteryRecoveryInsert =
+  Database["public"]["Tables"]["mastery_recovery_pathways"]["Insert"];
 
 export interface ActivateRecoveryInput {
   institution_id: string;
@@ -19,7 +21,7 @@ export interface ActivateRecoveryInput {
 
 export interface CompleteRecoveryStepInput {
   recovery_id: string;
-  step: 'ai_tutor' | 'practice';
+  step: "ai_tutor" | "practice";
 }
 
 export interface RecoveryMetrics {
@@ -36,11 +38,11 @@ export const useMasteryRecoveryStatus = (studentId: string, cloId: string) => {
     queryKey: queryKeys.masteryRecovery.status(studentId, cloId),
     queryFn: async (): Promise<MasteryRecoveryRow | null> => {
       const { data, error } = await supabase
-        .from('mastery_recovery_pathways')
-        .select('*')
-        .eq('student_id', studentId)
-        .eq('clo_id', cloId)
-        .eq('status', 'active')
+        .from("mastery_recovery_pathways")
+        .select("*")
+        .eq("student_id", studentId)
+        .eq("clo_id", cloId)
+        .eq("status", "active")
         .maybeSingle();
 
       if (error) throw error;
@@ -50,7 +52,6 @@ export const useMasteryRecoveryStatus = (studentId: string, cloId: string) => {
   });
 };
 
-
 // ─── useRecoveryPathway — fetch a specific recovery session by id ───────────
 
 export const useRecoveryPathway = (recoverySessionId: string) => {
@@ -58,9 +59,9 @@ export const useRecoveryPathway = (recoverySessionId: string) => {
     queryKey: queryKeys.masteryRecovery.detail(recoverySessionId),
     queryFn: async (): Promise<MasteryRecoveryRow | null> => {
       const { data, error } = await supabase
-        .from('mastery_recovery_pathways')
-        .select('*')
-        .eq('id', recoverySessionId)
+        .from("mastery_recovery_pathways")
+        .select("*")
+        .eq("id", recoverySessionId)
         .maybeSingle();
 
       if (error) throw error;
@@ -76,18 +77,20 @@ export const useActivateRecovery = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (input: ActivateRecoveryInput): Promise<MasteryRecoveryRow> => {
+    mutationFn: async (
+      input: ActivateRecoveryInput
+    ): Promise<MasteryRecoveryRow> => {
       const insertData: MasteryRecoveryInsert = {
         institution_id: input.institution_id,
         student_id: input.student_id,
         clo_id: input.clo_id,
         course_id: input.course_id,
         failure_count: input.failure_count ?? 2,
-        status: 'active',
+        status: "active",
       };
 
       const { data, error } = await supabase
-        .from('mastery_recovery_pathways')
+        .from("mastery_recovery_pathways")
         .insert(insertData)
         .select()
         .single();
@@ -97,7 +100,10 @@ export const useActivateRecovery = () => {
     },
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({
-        queryKey: queryKeys.masteryRecovery.status(variables.student_id, variables.clo_id),
+        queryKey: queryKeys.masteryRecovery.status(
+          variables.student_id,
+          variables.clo_id
+        ),
       });
       queryClient.invalidateQueries({
         queryKey: queryKeys.masteryRecovery.metrics(variables.institution_id),
@@ -112,18 +118,20 @@ export const useCompleteRecoveryStep = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (input: CompleteRecoveryStepInput): Promise<MasteryRecoveryRow> => {
+    mutationFn: async (
+      input: CompleteRecoveryStepInput
+    ): Promise<MasteryRecoveryRow> => {
       const now = new Date().toISOString();
 
       const updateFields =
-        input.step === 'ai_tutor'
+        input.step === "ai_tutor"
           ? { ai_tutor_completed: true, ai_tutor_completed_at: now }
           : { practice_completed: true, practice_completed_at: now };
 
       const { data, error } = await supabase
-        .from('mastery_recovery_pathways')
+        .from("mastery_recovery_pathways")
         .update({ ...updateFields, updated_at: now })
-        .eq('id', input.recovery_id)
+        .eq("id", input.recovery_id)
         .select()
         .single();
 
@@ -132,9 +140,9 @@ export const useCompleteRecoveryStep = () => {
       // If both steps are now complete, mark the pathway as completed
       if (data.ai_tutor_completed && data.practice_completed) {
         const { data: completed, error: completeError } = await supabase
-          .from('mastery_recovery_pathways')
-          .update({ status: 'completed', completed_at: now, updated_at: now })
-          .eq('id', input.recovery_id)
+          .from("mastery_recovery_pathways")
+          .update({ status: "completed", completed_at: now, updated_at: now })
+          .eq("id", input.recovery_id)
           .select()
           .single();
 
@@ -143,8 +151,8 @@ export const useCompleteRecoveryStep = () => {
         // Audit log: recovery pathway completion (non-blocking)
         try {
           await logAuditEvent({
-            action: 'recovery_completed',
-            entity_type: 'mastery_recovery_pathway',
+            action: "recovery_completed",
+            entity_type: "mastery_recovery_pathway",
             entity_id: input.recovery_id,
             changes: {
               student_id: completed.student_id,
@@ -155,7 +163,10 @@ export const useCompleteRecoveryStep = () => {
             performed_by: completed.student_id,
           });
         } catch (auditErr) {
-          console.error('[AuditLog] Failed to log recovery completion:', auditErr);
+          console.error(
+            "[AuditLog] Failed to log recovery completion:",
+            auditErr
+          );
         }
 
         return completed;
@@ -164,7 +175,9 @@ export const useCompleteRecoveryStep = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.masteryRecovery.all });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.masteryRecovery.all,
+      });
     },
   });
 };
@@ -176,9 +189,9 @@ export const useRecoveryMetrics = (institutionId: string) => {
     queryKey: queryKeys.masteryRecovery.metrics(institutionId),
     queryFn: async (): Promise<RecoveryMetrics> => {
       const { data, error } = await supabase
-        .from('mastery_recovery_pathways')
-        .select('id, status, activated_at, completed_at, retry_outcome')
-        .eq('institution_id', institutionId);
+        .from("mastery_recovery_pathways")
+        .select("id, status, activated_at, completed_at, retry_outcome")
+        .eq("institution_id", institutionId);
 
       if (error) throw error;
 
@@ -195,7 +208,7 @@ export const useRecoveryMetrics = (institutionId: string) => {
       }
 
       // Completion rate: completed / total
-      const completedRows = rows.filter((r) => r.status === 'completed');
+      const completedRows = rows.filter((r) => r.status === "completed");
       const completionRate = completedRows.length / totalActivations;
 
       // Average completion time in hours
@@ -209,12 +222,15 @@ export const useRecoveryMetrics = (institutionId: string) => {
 
       const avgCompletionTimeHours =
         completionTimes.length > 0
-          ? completionTimes.reduce((sum, t) => sum + t, 0) / completionTimes.length
+          ? completionTimes.reduce((sum, t) => sum + t, 0) /
+            completionTimes.length
           : 0;
 
       // Retry success rate: pass / (pass + fail) among those who retried
       const retriedRows = rows.filter((r) => r.retry_outcome !== null);
-      const retrySuccessCount = retriedRows.filter((r) => r.retry_outcome === 'pass').length;
+      const retrySuccessCount = retriedRows.filter(
+        (r) => r.retry_outcome === "pass"
+      ).length;
       const retrySuccessRate =
         retriedRows.length > 0 ? retrySuccessCount / retriedRows.length : 0;
 

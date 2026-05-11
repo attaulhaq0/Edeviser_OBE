@@ -1,12 +1,10 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import { logAuditEvent } from '@/lib/auditLogger';
-import { useAuth } from '@/hooks/useAuth';
-import type { CreateBonusEventFormData } from '@/lib/schemas/bonusXPEvent';
-import { sanitizePostgrestValue } from '@/lib/sanitizeFilter';
-
-
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import { logAuditEvent } from "@/lib/auditLogger";
+import { useAuth } from "@/hooks/useAuth";
+import type { CreateBonusEventFormData } from "@/lib/schemas/bonusXPEvent";
+import { sanitizePostgrestValue } from "@/lib/sanitizeFilter";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -34,13 +32,14 @@ export const useBonusEvents = (filters: BonusEventFilters = {}) => {
   return useQuery({
     queryKey: queryKeys.bonusXPEvents.list(filters as Record<string, unknown>),
     queryFn: async (): Promise<BonusXPEvent[]> => {
-      let query = supabase.from('xp_events')
-        .select('*')
-        .order('starts_at', { ascending: false });
+      let query = supabase
+        .from("xp_events")
+        .select("*")
+        .order("starts_at", { ascending: false });
 
       if (filters.search) {
         const safe = sanitizePostgrestValue(filters.search);
-        query = query.ilike('name', `%${safe}%`);
+        query = query.ilike("name", `%${safe}%`);
       }
 
       const { data, error } = await query;
@@ -55,11 +54,12 @@ export const useBonusEvents = (filters: BonusEventFilters = {}) => {
 
 export const useBonusEvent = (id: string | undefined) => {
   return useQuery({
-    queryKey: queryKeys.bonusXPEvents.detail(id ?? ''),
+    queryKey: queryKeys.bonusXPEvents.detail(id ?? ""),
     queryFn: async (): Promise<BonusXPEvent | null> => {
-      const { data, error } = await supabase.from('xp_events')
-        .select('*')
-        .eq('id', id!)
+      const { data, error } = await supabase
+        .from("xp_events")
+        .select("*")
+        .eq("id", id!)
         .maybeSingle();
 
       if (error) throw error;
@@ -78,11 +78,12 @@ export const useActiveBonusEvent = () => {
     queryFn: async (): Promise<BonusXPEvent | null> => {
       const now = new Date().toISOString();
 
-      const { data, error } = await supabase.from('xp_events')
-        .select('*')
-        .eq('is_active', true)
-        .lte('starts_at', now)
-        .gte('ends_at', now)
+      const { data, error } = await supabase
+        .from("xp_events")
+        .select("*")
+        .eq("is_active", true)
+        .lte("starts_at", now)
+        .gte("ends_at", now)
         .maybeSingle();
 
       if (error) throw error;
@@ -99,8 +100,11 @@ export const useCreateBonusEvent = () => {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async (data: CreateBonusEventFormData): Promise<BonusXPEvent> => {
-      const { data: result, error } = await supabase.from('xp_events')
+    mutationFn: async (
+      data: CreateBonusEventFormData
+    ): Promise<BonusXPEvent> => {
+      const { data: result, error } = await supabase
+        .from("xp_events")
         .insert(data)
         .select()
         .single();
@@ -110,17 +114,19 @@ export const useCreateBonusEvent = () => {
       const event = result as BonusXPEvent;
 
       await logAuditEvent({
-        action: 'create',
-        entity_type: 'bonus_xp_event',
+        action: "create",
+        entity_type: "bonus_xp_event",
         entity_id: event.id,
         changes: data as Record<string, unknown>,
-        performed_by: user?.id ?? 'unknown',
+        performed_by: user?.id ?? "unknown",
       });
 
       return event;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.bonusXPEvents.lists() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.bonusXPEvents.lists(),
+      });
     },
   });
 };
@@ -132,28 +138,35 @@ export const useUpdateBonusEvent = (id: string) => {
   const { user } = useAuth();
 
   return useMutation({
-    mutationFn: async (data: Partial<CreateBonusEventFormData>): Promise<BonusXPEvent> => {
-      const { data: result, error } = await supabase.from('xp_events')
+    mutationFn: async (
+      data: Partial<CreateBonusEventFormData>
+    ): Promise<BonusXPEvent> => {
+      const { data: result, error } = await supabase
+        .from("xp_events")
         .update(data)
-        .eq('id', id)
+        .eq("id", id)
         .select()
         .single();
 
       if (error) throw error;
 
       await logAuditEvent({
-        action: 'update',
-        entity_type: 'bonus_xp_event',
+        action: "update",
+        entity_type: "bonus_xp_event",
         entity_id: id,
         changes: data as Record<string, unknown>,
-        performed_by: user?.id ?? 'unknown',
+        performed_by: user?.id ?? "unknown",
       });
 
       return result as BonusXPEvent;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.bonusXPEvents.lists() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.bonusXPEvents.detail(id) });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.bonusXPEvents.lists(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.bonusXPEvents.detail(id),
+      });
     },
   });
 };
@@ -166,26 +179,29 @@ export const useDeleteBonusEvent = () => {
 
   return useMutation({
     mutationFn: async (id: string): Promise<BonusXPEvent> => {
-      const { data: result, error } = await supabase.from('xp_events')
+      const { data: result, error } = await supabase
+        .from("xp_events")
         .update({ is_active: false })
-        .eq('id', id)
+        .eq("id", id)
         .select()
         .single();
 
       if (error) throw error;
 
       await logAuditEvent({
-        action: 'soft_delete',
-        entity_type: 'bonus_xp_event',
+        action: "soft_delete",
+        entity_type: "bonus_xp_event",
         entity_id: id,
         changes: { is_active: false },
-        performed_by: user?.id ?? 'unknown',
+        performed_by: user?.id ?? "unknown",
       });
 
       return result as BonusXPEvent;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.bonusXPEvents.lists() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.bonusXPEvents.lists(),
+      });
     },
   });
 };

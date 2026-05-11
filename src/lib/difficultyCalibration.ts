@@ -12,11 +12,13 @@
 export function computeCalibratedDifficulty(
   originalDifficulty: number,
   successRate: number,
-  totalAttempts: number,
+  totalAttempts: number
 ): number {
   const calibrated = 5.0 - 4.0 * successRate;
   const empiricalWeight = Math.min(1.0, totalAttempts / 50);
-  return empiricalWeight * calibrated + (1 - empiricalWeight) * originalDifficulty;
+  return (
+    empiricalWeight * calibrated + (1 - empiricalWeight) * originalDifficulty
+  );
 }
 
 /**
@@ -25,7 +27,7 @@ export function computeCalibratedDifficulty(
  */
 export function computeDiscriminationIndex(
   topGroupSuccessRate: number,
-  bottomGroupSuccessRate: number,
+  bottomGroupSuccessRate: number
 ): number {
   return topGroupSuccessRate - bottomGroupSuccessRate;
 }
@@ -37,11 +39,11 @@ export function computeDiscriminationIndex(
 export function determineQualityFlag(
   successRate: number,
   discriminationIndex: number,
-  totalAttempts: number,
+  totalAttempts: number
 ): string | null {
   if (totalAttempts < 20) return null;
-  if (discriminationIndex < 0.2) return 'low_discrimination';
-  if (successRate > 0.95) return 'too_easy';
-  if (successRate < 0.10) return 'too_hard';
-  return 'good';
+  if (discriminationIndex < 0.2) return "low_discrimination";
+  if (successRate > 0.95) return "too_easy";
+  if (successRate < 0.1) return "too_hard";
+  return "good";
 }

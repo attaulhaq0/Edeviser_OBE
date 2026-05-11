@@ -32,14 +32,14 @@ export function countInWindow(
   studentId: string,
   type: string,
   windowMs: number,
-  referenceTime: Date = new Date(),
+  referenceTime: Date = new Date()
 ): number {
   const cutoff = referenceTime.getTime() - windowMs;
   return notifications.filter(
     (n) =>
       n.user_id === studentId &&
       n.type === type &&
-      new Date(n.created_at).getTime() >= cutoff,
+      new Date(n.created_at).getTime() >= cutoff
   ).length;
 }
 
@@ -48,10 +48,12 @@ export function shouldBatch(
   studentId: string,
   type: string,
   windowMs: number = PEER_MILESTONE_BATCH_WINDOW_MS,
-  referenceTime: Date = new Date(),
+  referenceTime: Date = new Date()
 ): boolean {
-  if (type !== 'peer_milestone') return false;
-  return countInWindow(notifications, studentId, type, windowMs, referenceTime) > 0;
+  if (type !== "peer_milestone") return false;
+  return (
+    countInWindow(notifications, studentId, type, windowMs, referenceTime) > 0
+  );
 }
 
 const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
@@ -59,14 +61,14 @@ const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
 export function hasReachedDailyLimit(
   notifications: NotificationRecord[],
   studentId: string,
-  referenceTime: Date = new Date(),
+  referenceTime: Date = new Date()
 ): boolean {
   const count = countInWindow(
     notifications,
     studentId,
-    'peer_milestone',
+    "peer_milestone",
     TWENTY_FOUR_HOURS_MS,
-    referenceTime,
+    referenceTime
   );
   return count >= PEER_MILESTONE_DAILY_LIMIT;
 }
@@ -74,24 +76,24 @@ export function hasReachedDailyLimit(
 export function canCreatePeerMilestone(
   notifications: NotificationRecord[],
   studentId: string,
-  referenceTime: Date = new Date(),
+  referenceTime: Date = new Date()
 ): boolean {
   return !hasReachedDailyLimit(notifications, studentId, referenceTime);
 }
 
 const TYPE_LABELS: Record<string, string> = {
-  grade_released: 'new grades released',
-  new_assignment: 'new assignments posted',
-  badge_earned: 'badges earned',
-  streak_at_risk: 'streak alerts',
-  at_risk_alert: 'at-risk alerts',
-  peer_milestone: 'classmate milestones',
-  perfect_day_nudge: 'perfect day nudges',
-  prerequisite_unlocked: 'prerequisites unlocked',
+  grade_released: "new grades released",
+  new_assignment: "new assignments posted",
+  badge_earned: "badges earned",
+  streak_at_risk: "streak alerts",
+  at_risk_alert: "at-risk alerts",
+  peer_milestone: "classmate milestones",
+  perfect_day_nudge: "perfect day nudges",
+  prerequisite_unlocked: "prerequisites unlocked",
 };
 
 export function groupNotifications(
-  notifications: NotificationRecord[],
+  notifications: NotificationRecord[]
 ): BatchedNotification[] {
   const byType = new Map<string, NotificationRecord[]>();
   for (const n of notifications) {
@@ -104,15 +106,16 @@ export function groupNotifications(
 
   for (const [type, items] of byType) {
     if (items.length > GROUPING_THRESHOLD) {
-      const label = TYPE_LABELS[type] ?? type + ' notifications';
+      const label = TYPE_LABELS[type] ?? type + " notifications";
       result.push({
         type,
-        title: items.length + ' ' + label,
-        body: 'You have ' + items.length + ' ' + label,
+        title: items.length + " " + label,
+        body: "You have " + items.length + " " + label,
         count: items.length,
         is_grouped: true,
         items: items.sort(
-          (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+          (a, b) =>
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         ),
       });
     } else {
@@ -120,7 +123,7 @@ export function groupNotifications(
         result.push({
           type: item.type,
           title: item.title,
-          body: item.body ?? '',
+          body: item.body ?? "",
           count: 1,
           is_grouped: false,
           items: [item],
@@ -133,13 +136,16 @@ export function groupNotifications(
     const aFirst = a.items[0];
     const bFirst = b.items[0];
     if (!aFirst || !bFirst) return 0;
-    return new Date(bFirst.created_at).getTime() - new Date(aFirst.created_at).getTime();
+    return (
+      new Date(bFirst.created_at).getTime() -
+      new Date(aFirst.created_at).getTime()
+    );
   });
 }
 
 export function createBatchedPeerMilestonePayload(
   studentId: string,
-  milestoneDescriptions: string[],
+  milestoneDescriptions: string[]
 ): {
   user_id: string;
   type: string;
@@ -150,17 +156,15 @@ export function createBatchedPeerMilestonePayload(
 } {
   const count = milestoneDescriptions.length;
   const title =
-    count === 1
-      ? 'Classmate Milestone'
-      : count + ' Classmate Milestones';
+    count === 1 ? "Classmate Milestone" : count + " Classmate Milestones";
   const body =
     count === 1
-      ? (milestoneDescriptions[0] ?? '')
-      : count + ' classmates achieved milestones recently!';
+      ? milestoneDescriptions[0] ?? ""
+      : count + " classmates achieved milestones recently!";
 
   return {
     user_id: studentId,
-    type: 'peer_milestone',
+    type: "peer_milestone",
     title,
     body,
     is_read: false,

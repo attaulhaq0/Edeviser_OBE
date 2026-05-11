@@ -1,6 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -47,13 +47,13 @@ export const useBloomsProgression = (studentId: string, courseId: string) => {
     queryKey: queryKeys.bloomsProgression.progression(studentId, courseId),
     queryFn: async (): Promise<BloomsProgressionRecord[]> => {
       const { data, error } = await supabase
-        .from('blooms_progression' as never)
+        .from("blooms_progression" as never)
         .select(
-          'id, student_id, clo_id, course_id, highest_bloom_level, correct_count_at_highest, bloom_explorer_awarded, bloom_challenger_awarded, bloom_pioneer_awarded, updated_at',
+          "id, student_id, clo_id, course_id, highest_bloom_level, correct_count_at_highest, bloom_explorer_awarded, bloom_challenger_awarded, bloom_pioneer_awarded, updated_at"
         )
-        .eq('student_id', studentId)
-        .eq('course_id', courseId)
-        .order('highest_bloom_level', { ascending: false });
+        .eq("student_id", studentId)
+        .eq("course_id", courseId)
+        .order("highest_bloom_level", { ascending: false });
 
       if (error) throw error;
 
@@ -71,9 +71,9 @@ export const useBloomsClimbState = (quizAttemptId: string) => {
     queryKey: queryKeys.bloomsProgression.climbState(quizAttemptId),
     queryFn: async (): Promise<BloomsClimbState | null> => {
       const { data, error } = await supabase
-        .from('quiz_attempts')
-        .select('blooms_climb_state')
-        .eq('id', quizAttemptId)
+        .from("quiz_attempts")
+        .select("blooms_climb_state")
+        .eq("id", quizAttemptId)
         .maybeSingle();
 
       if (error) throw error;
@@ -85,9 +85,15 @@ export const useBloomsClimbState = (quizAttemptId: string) => {
       if (!state || Object.keys(state).length === 0) return null;
 
       return {
-        current_level: (state.current_level ?? state.current_bloom_level ?? 1) as number,
-        consecutive_correct: (state.consecutive_correct ?? state.consecutive_correct_at_level ?? 0) as number,
-        transitions: (state.transitions ?? state.bloom_transitions ?? []) as BloomsClimbState['transitions'],
+        current_level: (state.current_level ??
+          state.current_bloom_level ??
+          1) as number,
+        consecutive_correct: (state.consecutive_correct ??
+          state.consecutive_correct_at_level ??
+          0) as number,
+        transitions: (state.transitions ??
+          state.bloom_transitions ??
+          []) as BloomsClimbState["transitions"],
         highest_level_reached: (state.highest_level_reached ?? 1) as number,
       };
     },
@@ -103,13 +109,13 @@ export const useBloomsPioneerBadges = (studentId: string) => {
     queryKey: queryKeys.bloomsProgression.badges(studentId),
     queryFn: async (): Promise<BloomsBadgeRecord[]> => {
       const { data, error } = await supabase
-        .from('blooms_progression' as never)
+        .from("blooms_progression" as never)
         .select(
-          'id, student_id, clo_id, course_id, highest_bloom_level, bloom_explorer_awarded, bloom_challenger_awarded, bloom_pioneer_awarded',
+          "id, student_id, clo_id, course_id, highest_bloom_level, bloom_explorer_awarded, bloom_challenger_awarded, bloom_pioneer_awarded"
         )
-        .eq('student_id', studentId)
+        .eq("student_id", studentId)
         .or(
-          'bloom_explorer_awarded.eq.true,bloom_challenger_awarded.eq.true,bloom_pioneer_awarded.eq.true',
+          "bloom_explorer_awarded.eq.true,bloom_challenger_awarded.eq.true,bloom_pioneer_awarded.eq.true"
         );
 
       if (error) throw error;

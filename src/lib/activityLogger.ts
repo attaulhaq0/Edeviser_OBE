@@ -1,7 +1,7 @@
-import { supabase } from '@/lib/supabase';
-import { offlineQueue } from '@/lib/offlineQueue';
-import type { ActivityLogEventType } from '@/types/app';
-import type { Json } from '@/types/database';
+import { supabase } from "@/lib/supabase";
+import { offlineQueue } from "@/lib/offlineQueue";
+import type { ActivityLogEventType } from "@/types/app";
+import type { Json } from "@/types/database";
 
 export interface ActivityLogEntry {
   student_id: string;
@@ -15,7 +15,7 @@ export interface ActivityLogEntry {
  */
 const persistActivity = async (payload: unknown): Promise<void> => {
   const entry = payload as ActivityLogEntry;
-  const { error } = await supabase.from('student_activity_log').insert({
+  const { error } = await supabase.from("student_activity_log").insert({
     student_id: entry.student_id,
     event_type: entry.event_type,
     metadata: (entry.metadata ?? null) as Json,
@@ -24,7 +24,7 @@ const persistActivity = async (payload: unknown): Promise<void> => {
 };
 
 // Register the handler so the offline queue can flush activity events
-offlineQueue.registerHandler('activity_log', persistActivity);
+offlineQueue.registerHandler("activity_log", persistActivity);
 
 /**
  * Fire-and-forget logging of student behavioral events to `student_activity_log`.
@@ -33,8 +33,8 @@ offlineQueue.registerHandler('activity_log', persistActivity);
  */
 export const logActivity = async (entry: ActivityLogEntry): Promise<void> => {
   // Queue when offline
-  if (typeof navigator !== 'undefined' && !navigator.onLine) {
-    offlineQueue.enqueue('activity_log', entry);
+  if (typeof navigator !== "undefined" && !navigator.onLine) {
+    offlineQueue.enqueue("activity_log", entry);
     return;
   }
 
@@ -42,7 +42,7 @@ export const logActivity = async (entry: ActivityLogEntry): Promise<void> => {
     await persistActivity(entry);
   } catch (err) {
     // Network error at runtime — queue for later
-    offlineQueue.enqueue('activity_log', entry);
-    console.error('[ActivityLogger] Queued for offline retry:', err);
+    offlineQueue.enqueue("activity_log", entry);
+    console.error("[ActivityLogger] Queued for offline retry:", err);
   }
 };

@@ -1,6 +1,6 @@
-import { useMemo } from 'react';
-import type { HeatmapDay, StreakMilestone } from '@/types/habits';
-import { detectStreakMilestones } from '@/lib/streakMilestones';
+import { useMemo } from "react";
+import type { HeatmapDay, StreakMilestone } from "@/types/habits";
+import { detectStreakMilestones } from "@/lib/streakMilestones";
 
 /**
  * Computes achieved streak milestone dates from heatmap data using
@@ -8,7 +8,7 @@ import { detectStreakMilestones } from '@/lib/streakMilestones';
  * — no database query needed.
  */
 export const useStreakMilestones = (
-  heatmapData: HeatmapDay[] | undefined,
+  heatmapData: HeatmapDay[] | undefined
 ): StreakMilestone[] => {
   return useMemo(() => {
     if (!heatmapData || heatmapData.length === 0) return [];

@@ -1,4 +1,4 @@
-import type { LevelProgressionPoint } from '@/types/habits';
+import type { LevelProgressionPoint } from "@/types/habits";
 
 /**
  * Returns the max number of academic habits expected per day for a given level.
@@ -18,7 +18,7 @@ export const getLevelMaxHabits = (level: 1 | 2 | 3 | 4): number => level;
  */
 export const getLevelAwareIntensityLevel = (
   count: number,
-  levelMax: number,
+  levelMax: number
 ): number => {
   if (count === 0 || levelMax === 0) return 0;
   const ratio = count / levelMax;
@@ -36,7 +36,7 @@ export const getLevelAwareIntensityLevel = (
  */
 export const getLevelForDate = (
   date: string,
-  history: LevelProgressionPoint[],
+  history: LevelProgressionPoint[]
 ): 1 | 2 | 3 | 4 => {
   let level: 1 | 2 | 3 | 4 = 4;
   for (const point of history) {
@@ -57,7 +57,7 @@ export const getLevelForDate = (
 export const computeLevelRelativeConsistencyScore = (
   days: Array<{ date: string; academicCount: number }>,
   levelHistory: LevelProgressionPoint[],
-  sabbaticalDates: Set<string>,
+  sabbaticalDates: Set<string>
 ): number => {
   const eligibleDays = days.filter((d) => !sabbaticalDates.has(d.date));
   if (eligibleDays.length === 0) return 0;

@@ -1,9 +1,10 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -13,18 +14,22 @@ interface GradePayload {
   submission_id: string;
   total_score: number;
   score_percent: number;
-  rubric_selections: Array<{ criterion_id: string; level_index: number; points: number }>;
+  rubric_selections: Array<{
+    criterion_id: string;
+    level_index: number;
+    points: number;
+  }>;
 }
 
-type AttainmentLevel = 'Excellent' | 'Satisfactory' | 'Developing' | 'Not_Yet';
+type AttainmentLevel = "Excellent" | "Satisfactory" | "Developing" | "Not_Yet";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
 function classifyAttainment(percent: number): AttainmentLevel {
-  if (percent >= 85) return 'Excellent';
-  if (percent >= 70) return 'Satisfactory';
-  if (percent >= 50) return 'Developing';
-  return 'Not_Yet';
+  if (percent >= 85) return "Excellent";
+  if (percent >= 70) return "Satisfactory";
+  if (percent >= 50) return "Developing";
+  return "Not_Yet";
 }
 
 // ─── Performance Target ─────────────────────────────────────────────────────
@@ -37,47 +42,59 @@ function classifyAttainment(percent: number): AttainmentLevel {
 // ─── Main Handler ───────────────────────────────────────────────────────────
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
   }
 
   try {
     // ── Auth: require service role or teacher/admin ──────────────────
-    const authHeader = req.headers.get('Authorization') ?? '';
-    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+    const authHeader = req.headers.get("Authorization") ?? "";
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
     const isServiceRole = serviceRoleKey && authHeader.includes(serviceRoleKey);
 
     if (!isServiceRole) {
       if (!authHeader) {
         return new Response(
-          JSON.stringify({ error: 'Missing authorization header' }),
-          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+          JSON.stringify({ error: "Missing authorization header" }),
+          {
+            status: 401,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
         );
       }
       const userClient = createClient(
-        Deno.env.get('SUPABASE_URL')!,
-        Deno.env.get('SUPABASE_ANON_KEY')!,
-        { global: { headers: { Authorization: authHeader } } },
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_ANON_KEY")!,
+        { global: { headers: { Authorization: authHeader } } }
       );
-      const { data: { user: caller }, error: authError } = await userClient.auth.getUser();
+      const {
+        data: { user: caller },
+        error: authError,
+      } = await userClient.auth.getUser();
       if (authError || !caller) {
-        return new Response(
-          JSON.stringify({ error: 'Unauthorized' }),
-          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-        );
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       }
-      const callerRole = caller.app_metadata?.role ?? caller.user_metadata?.role ?? '';
-      if (!['teacher', 'admin'].includes(callerRole)) {
+      const callerRole =
+        caller.app_metadata?.role ?? caller.user_metadata?.role ?? "";
+      if (!["teacher", "admin"].includes(callerRole)) {
         return new Response(
-          JSON.stringify({ error: 'Forbidden: teacher or admin role required' }),
-          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+          JSON.stringify({
+            error: "Forbidden: teacher or admin role required",
+          }),
+          {
+            status: 403,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
         );
       }
     }
 
     const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
     const payload: GradePayload = await req.json();
@@ -85,60 +102,87 @@ serve(async (req) => {
 
     if (!grade_id || !submission_id) {
       return new Response(
-        JSON.stringify({ error: 'Missing grade_id or submission_id' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        JSON.stringify({ error: "Missing grade_id or submission_id" }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
       );
     }
 
     // ── Step 1: Fetch grade context ───────────────────────────────────────
 
     const { data: grade, error: gradeError } = await supabase
-      .from('grades')
-      .select('id, submission_id, total_score, score_percent, rubric_selections, graded_at')
-      .eq('id', grade_id)
+      .from("grades")
+      .select(
+        "id, submission_id, total_score, score_percent, rubric_selections, graded_at"
+      )
+      .eq("id", grade_id)
       .maybeSingle();
 
     if (gradeError || !grade) {
       return new Response(
-        JSON.stringify({ error: 'Grade not found', detail: gradeError?.message }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        JSON.stringify({
+          error: "Grade not found",
+          detail: gradeError?.message,
+        }),
+        {
+          status: 404,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
       );
     }
 
     const { data: submission, error: subError } = await supabase
-      .from('submissions')
-      .select('id, assignment_id, student_id')
-      .eq('id', submission_id)
+      .from("submissions")
+      .select("id, assignment_id, student_id")
+      .eq("id", submission_id)
       .maybeSingle();
 
     if (subError || !submission) {
       return new Response(
-        JSON.stringify({ error: 'Submission not found', detail: subError?.message }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        JSON.stringify({
+          error: "Submission not found",
+          detail: subError?.message,
+        }),
+        {
+          status: 404,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
       );
     }
 
     const { data: assignment, error: assignError } = await supabase
-      .from('assignments')
-      .select('id, course_id, clo_weights, total_marks')
-      .eq('id', submission.assignment_id)
+      .from("assignments")
+      .select("id, course_id, clo_weights, total_marks")
+      .eq("id", submission.assignment_id)
       .maybeSingle();
 
     if (assignError || !assignment) {
       return new Response(
-        JSON.stringify({ error: 'Assignment not found', detail: assignError?.message }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        JSON.stringify({
+          error: "Assignment not found",
+          detail: assignError?.message,
+        }),
+        {
+          status: 404,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
       );
     }
 
     const studentId: string = submission.student_id;
     const courseId: string = assignment.course_id;
-    const cloWeights: Array<{ clo_id: string; weight: number }> = assignment.clo_weights ?? [];
+    const cloWeights: Array<{ clo_id: string; weight: number }> =
+      assignment.clo_weights ?? [];
 
     if (cloWeights.length === 0) {
       return new Response(
-        JSON.stringify({ success: true, message: 'No CLO weights on assignment — nothing to roll up' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        JSON.stringify({
+          success: true,
+          message: "No CLO weights on assignment — nothing to roll up",
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -156,11 +200,11 @@ serve(async (req) => {
     }));
 
     const { error: evidenceError } = await supabase
-      .from('evidence')
+      .from("evidence")
       .insert(evidenceRows);
 
     if (evidenceError) {
-      console.error('Evidence insert failed:', evidenceError.message);
+      console.error("Evidence insert failed:", evidenceError.message);
       // Continue with rollup even if evidence insert fails (idempotency)
     }
 
@@ -174,10 +218,10 @@ serve(async (req) => {
       try {
         // Check if this CLO has Sub-CLOs (Task 109.4)
         const { data: subCLOs } = await supabase
-          .from('learning_outcomes')
-          .select('id, weight')
-          .eq('type', 'SUB_CLO')
-          .eq('parent_outcome_id', cloId);
+          .from("learning_outcomes")
+          .select("id, weight")
+          .eq("type", "SUB_CLO")
+          .eq("parent_outcome_id", cloId);
 
         let avgPercent: number;
         let sampleCount: number;
@@ -190,11 +234,11 @@ serve(async (req) => {
 
           for (const subCLO of subCLOs) {
             const { data: subAtt } = await supabase
-              .from('outcome_attainment')
-              .select('attainment_percent, sample_count')
-              .eq('outcome_id', subCLO.id)
-              .eq('student_id', studentId)
-              .eq('scope', 'student_course')
+              .from("outcome_attainment")
+              .select("attainment_percent, sample_count")
+              .eq("outcome_id", subCLO.id)
+              .eq("student_id", studentId)
+              .eq("scope", "student_course")
               .maybeSingle();
 
             if (subAtt && subAtt.attainment_percent != null) {
@@ -210,48 +254,57 @@ serve(async (req) => {
         } else {
           // No Sub-CLOs: direct evidence calculation (existing behavior)
           const { data: evidenceList, error: evListErr } = await supabase
-            .from('evidence')
-            .select('score_percent')
-            .eq('student_id', studentId)
-            .eq('clo_id', cloId);
+            .from("evidence")
+            .select("score_percent")
+            .eq("student_id", studentId)
+            .eq("clo_id", cloId);
 
           if (evListErr || !evidenceList || evidenceList.length === 0) {
-            console.error(`No evidence found for CLO ${cloId}:`, evListErr?.message);
+            console.error(
+              `No evidence found for CLO ${cloId}:`,
+              evListErr?.message
+            );
             continue;
           }
 
           avgPercent =
-            evidenceList.reduce((sum: number, e: { score_percent: number }) => sum + e.score_percent, 0) /
-            evidenceList.length;
+            evidenceList.reduce(
+              (sum: number, e: { score_percent: number }) =>
+                sum + e.score_percent,
+              0
+            ) / evidenceList.length;
           sampleCount = evidenceList.length;
         }
 
         // UPSERT CLO attainment
         const { error: upsertErr } = await supabase
-          .from('outcome_attainment')
+          .from("outcome_attainment")
           .upsert(
             {
               outcome_id: cloId,
               student_id: studentId,
               course_id: courseId,
-              scope: 'student_course',
+              scope: "student_course",
               attainment_percent: Math.round(avgPercent * 100) / 100,
               sample_count: sampleCount,
               last_calculated_at: new Date().toISOString(),
             },
-            { onConflict: 'outcome_id,student_id,course_id,scope' },
+            { onConflict: "outcome_id,student_id,course_id,scope" }
           );
 
         if (upsertErr) {
-          console.error(`CLO attainment upsert failed for ${cloId}:`, upsertErr.message);
+          console.error(
+            `CLO attainment upsert failed for ${cloId}:`,
+            upsertErr.message
+          );
           continue;
         }
 
         // Collect PLO mappings for this CLO
         const { data: ploMappings } = await supabase
-          .from('outcome_mappings')
-          .select('target_outcome_id, weight')
-          .eq('source_outcome_id', cloId);
+          .from("outcome_mappings")
+          .select("target_outcome_id, weight")
+          .eq("source_outcome_id", cloId);
 
         if (ploMappings) {
           for (const m of ploMappings) {
@@ -269,9 +322,9 @@ serve(async (req) => {
       try {
         // Fetch all CLO→PLO mappings for this PLO
         const { data: cloMappings } = await supabase
-          .from('outcome_mappings')
-          .select('source_outcome_id, weight')
-          .eq('target_outcome_id', ploId);
+          .from("outcome_mappings")
+          .select("source_outcome_id, weight")
+          .eq("target_outcome_id", ploId);
 
         if (!cloMappings || cloMappings.length === 0) continue;
 
@@ -282,11 +335,11 @@ serve(async (req) => {
         for (const mapping of cloMappings) {
           // Fetch CLO attainment for this student
           const { data: cloAtt } = await supabase
-            .from('outcome_attainment')
-            .select('attainment_percent, sample_count')
-            .eq('outcome_id', mapping.source_outcome_id)
-            .eq('student_id', studentId)
-            .eq('scope', 'student_course')
+            .from("outcome_attainment")
+            .select("attainment_percent, sample_count")
+            .eq("outcome_id", mapping.source_outcome_id)
+            .eq("student_id", studentId)
+            .eq("scope", "student_course")
             .maybeSingle();
 
           if (cloAtt && cloAtt.attainment_percent != null) {
@@ -302,30 +355,33 @@ serve(async (req) => {
         const ploPercent = weightedSum / totalWeight;
 
         const { error: ploUpsertErr } = await supabase
-          .from('outcome_attainment')
+          .from("outcome_attainment")
           .upsert(
             {
               outcome_id: ploId,
               student_id: studentId,
               course_id: courseId,
-              scope: 'course',
+              scope: "course",
               attainment_percent: Math.round(ploPercent * 100) / 100,
               sample_count: totalSamples,
               last_calculated_at: new Date().toISOString(),
             },
-            { onConflict: 'outcome_id,student_id,course_id,scope' },
+            { onConflict: "outcome_id,student_id,course_id,scope" }
           );
 
         if (ploUpsertErr) {
-          console.error(`PLO attainment upsert failed for ${ploId}:`, ploUpsertErr.message);
+          console.error(
+            `PLO attainment upsert failed for ${ploId}:`,
+            ploUpsertErr.message
+          );
           continue;
         }
 
         // Collect ILO mappings for this PLO
         const { data: iloMappings } = await supabase
-          .from('outcome_mappings')
-          .select('target_outcome_id')
-          .eq('source_outcome_id', ploId);
+          .from("outcome_mappings")
+          .select("target_outcome_id")
+          .eq("source_outcome_id", ploId);
 
         if (iloMappings) {
           for (const m of iloMappings) {
@@ -343,9 +399,9 @@ serve(async (req) => {
       try {
         // Fetch all PLO→ILO mappings for this ILO
         const { data: ploMappings } = await supabase
-          .from('outcome_mappings')
-          .select('source_outcome_id, weight')
-          .eq('target_outcome_id', iloId);
+          .from("outcome_mappings")
+          .select("source_outcome_id, weight")
+          .eq("target_outcome_id", iloId);
 
         if (!ploMappings || ploMappings.length === 0) continue;
 
@@ -356,11 +412,11 @@ serve(async (req) => {
         for (const mapping of ploMappings) {
           // Fetch PLO attainment for this student
           const { data: ploAtt } = await supabase
-            .from('outcome_attainment')
-            .select('attainment_percent, sample_count')
-            .eq('outcome_id', mapping.source_outcome_id)
-            .eq('student_id', studentId)
-            .eq('scope', 'course')
+            .from("outcome_attainment")
+            .select("attainment_percent, sample_count")
+            .eq("outcome_id", mapping.source_outcome_id)
+            .eq("student_id", studentId)
+            .eq("scope", "course")
             .maybeSingle();
 
           if (ploAtt && ploAtt.attainment_percent != null) {
@@ -376,22 +432,25 @@ serve(async (req) => {
         const iloPercent = weightedSum / totalWeight;
 
         const { error: iloUpsertErr } = await supabase
-          .from('outcome_attainment')
+          .from("outcome_attainment")
           .upsert(
             {
               outcome_id: iloId,
               student_id: studentId,
               course_id: courseId,
-              scope: 'program',
+              scope: "program",
               attainment_percent: Math.round(iloPercent * 100) / 100,
               sample_count: totalSamples,
               last_calculated_at: new Date().toISOString(),
             },
-            { onConflict: 'outcome_id,student_id,course_id,scope' },
+            { onConflict: "outcome_id,student_id,course_id,scope" }
           );
 
         if (iloUpsertErr) {
-          console.error(`ILO attainment upsert failed for ${iloId}:`, iloUpsertErr.message);
+          console.error(
+            `ILO attainment upsert failed for ${iloId}:`,
+            iloUpsertErr.message
+          );
         }
       } catch (err) {
         console.error(`ILO rollup error for ${iloId}:`, err);
@@ -405,13 +464,16 @@ serve(async (req) => {
       const iloIdArray = Array.from(affectedIloIds);
       if (iloIdArray.length > 0) {
         const { data: gaMappings } = await supabase
-          .from('graduate_attribute_mappings')
-          .select('graduate_attribute_id, ilo_id, weight')
-          .in('ilo_id', iloIdArray);
+          .from("graduate_attribute_mappings")
+          .select("graduate_attribute_id, ilo_id, weight")
+          .in("ilo_id", iloIdArray);
 
         if (gaMappings && gaMappings.length > 0) {
           // Group by GA
-          const gaGroups = new Map<string, Array<{ ilo_id: string; weight: number }>>();
+          const gaGroups = new Map<
+            string,
+            Array<{ ilo_id: string; weight: number }>
+          >();
           for (const m of gaMappings) {
             const existing = gaGroups.get(m.graduate_attribute_id) ?? [];
             existing.push({ ilo_id: m.ilo_id, weight: m.weight });
@@ -424,11 +486,11 @@ serve(async (req) => {
 
             for (const mapping of mappings) {
               const { data: iloAtt } = await supabase
-                .from('outcome_attainment')
-                .select('attainment_percent')
-                .eq('outcome_id', mapping.ilo_id)
-                .eq('student_id', studentId)
-                .eq('scope', 'program')
+                .from("outcome_attainment")
+                .select("attainment_percent")
+                .eq("outcome_id", mapping.ilo_id)
+                .eq("student_id", studentId)
+                .eq("scope", "program")
                 .maybeSingle();
 
               if (iloAtt && iloAtt.attainment_percent != null) {
@@ -439,26 +501,24 @@ serve(async (req) => {
 
             if (totalWeight > 0) {
               const gaPercent = weightedSum / totalWeight;
-              await supabase
-                .from('outcome_attainment')
-                .upsert(
-                  {
-                    outcome_id: gaId,
-                    student_id: studentId,
-                    course_id: courseId,
-                    scope: 'institution',
-                    attainment_percent: Math.round(gaPercent * 100) / 100,
-                    sample_count: mappings.length,
-                    last_calculated_at: new Date().toISOString(),
-                  },
-                  { onConflict: 'outcome_id,student_id,course_id,scope' },
-                );
+              await supabase.from("outcome_attainment").upsert(
+                {
+                  outcome_id: gaId,
+                  student_id: studentId,
+                  course_id: courseId,
+                  scope: "institution",
+                  attainment_percent: Math.round(gaPercent * 100) / 100,
+                  sample_count: mappings.length,
+                  last_calculated_at: new Date().toISOString(),
+                },
+                { onConflict: "outcome_id,student_id,course_id,scope" }
+              );
             }
           }
         }
       }
     } catch (err) {
-      console.error('GA rollup error:', err);
+      console.error("GA rollup error:", err);
     }
 
     // ── Step 7: Insert notification for student ───────────────────────────
@@ -473,23 +533,25 @@ serve(async (req) => {
 
       // Requirement 10.3: Include "Ask Tutor" deep link for low-scoring submissions (below 70%)
       if (grade.score_percent < 70 && cloWeights.length > 0) {
-        const cloIdList = cloWeights.map((cw: { clo_id: string }) => cw.clo_id).join(',');
-        notificationMetadata.tutor_action_url =
-          `/student/tutor?courseId=${courseId}&cloIds=${cloIdList}`;
+        const cloIdList = cloWeights
+          .map((cw: { clo_id: string }) => cw.clo_id)
+          .join(",");
+        notificationMetadata.tutor_action_url = `/student/tutor?courseId=${courseId}&cloIds=${cloIdList}`;
       }
 
-      await supabase.from('notifications').insert({
+      await supabase.from("notifications").insert({
         user_id: studentId,
-        type: 'grade_released',
-        title: 'Grade Released',
-        body: grade.score_percent < 70
-          ? 'Your assignment has been graded. Need help improving? Ask the AI Tutor.'
-          : 'Your assignment has been graded',
+        type: "grade_released",
+        title: "Grade Released",
+        body:
+          grade.score_percent < 70
+            ? "Your assignment has been graded. Need help improving? Ask the AI Tutor."
+            : "Your assignment has been graded",
         metadata: notificationMetadata,
         read: false,
       });
     } catch (err) {
-      console.error('Notification insert failed:', err);
+      console.error("Notification insert failed:", err);
     }
 
     // ── Response ──────────────────────────────────────────────────────────
@@ -502,12 +564,12 @@ serve(async (req) => {
         plo_count: affectedPloIds.size,
         ilo_count: affectedIloIds.size,
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
-    return new Response(
-      JSON.stringify({ error: (error as Error).message }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-    );
+    return new Response(JSON.stringify({ error: (error as Error).message }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });

@@ -90,16 +90,13 @@ describe("Property 32 — XP award threshold (3+ messages triggers 15 XP)", () =
 
   it("P32c: conversations that already awarded XP get 0 XP regardless of message count", () => {
     fc.assert(
-      fc.property(
-        fc.integer({ min: 0, max: 100 }),
-        (messageCount) => {
-          const xp = computeEngagementXP({
-            studentMessageCount: messageCount,
-            xpAwarded: true,
-          });
-          expect(xp).toBe(0);
-        }
-      ),
+      fc.property(fc.integer({ min: 0, max: 100 }), (messageCount) => {
+        const xp = computeEngagementXP({
+          studentMessageCount: messageCount,
+          xpAwarded: true,
+        });
+        expect(xp).toBe(0);
+      }),
       { numRuns: 100 }
     );
   });
@@ -165,31 +162,25 @@ describe("Property 33 — Rating XP cap (max 3 ratings/day × 5 XP)", () => {
 
   it("P33c: total daily rating XP never exceeds 15 (3 × 5)", () => {
     fc.assert(
-      fc.property(
-        fc.integer({ min: 0, max: 50 }),
-        (ratingsGiven) => {
-          const totalXP = computeTotalDailyRatingXP(ratingsGiven);
-          expect(totalXP).toBeLessThanOrEqual(
-            MAX_RATING_XP_PER_DAY * TUTOR_RATING_XP
-          );
-          expect(totalXP).toBeLessThanOrEqual(15);
-        }
-      ),
+      fc.property(fc.integer({ min: 0, max: 50 }), (ratingsGiven) => {
+        const totalXP = computeTotalDailyRatingXP(ratingsGiven);
+        expect(totalXP).toBeLessThanOrEqual(
+          MAX_RATING_XP_PER_DAY * TUTOR_RATING_XP
+        );
+        expect(totalXP).toBeLessThanOrEqual(15);
+      }),
       { numRuns: 100 }
     );
   });
 
   it("P33d: total daily rating XP equals min(ratings, 3) × 5", () => {
     fc.assert(
-      fc.property(
-        fc.integer({ min: 0, max: 50 }),
-        (ratingsGiven) => {
-          const totalXP = computeTotalDailyRatingXP(ratingsGiven);
-          const expected =
-            Math.min(ratingsGiven, MAX_RATING_XP_PER_DAY) * TUTOR_RATING_XP;
-          expect(totalXP).toBe(expected);
-        }
-      ),
+      fc.property(fc.integer({ min: 0, max: 50 }), (ratingsGiven) => {
+        const totalXP = computeTotalDailyRatingXP(ratingsGiven);
+        const expected =
+          Math.min(ratingsGiven, MAX_RATING_XP_PER_DAY) * TUTOR_RATING_XP;
+        expect(totalXP).toBe(expected);
+      }),
       { numRuns: 100 }
     );
   });

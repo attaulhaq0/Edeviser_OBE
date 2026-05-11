@@ -1,13 +1,11 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import { logAuditEvent } from '@/lib/auditLogger';
-import { useAuth } from '@/hooks/useAuth';
-import type { CreateAssignmentFormData } from '@/lib/schemas/assignment';
-import type { PaginatedResult } from '@/types/pagination';
-import { getPaginationRange } from '@/types/pagination';
-
-
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import { logAuditEvent } from "@/lib/auditLogger";
+import { useAuth } from "@/hooks/useAuth";
+import type { CreateAssignmentFormData } from "@/lib/schemas/assignment";
+import type { PaginatedResult } from "@/types/pagination";
+import { getPaginationRange } from "@/types/pagination";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -30,39 +28,51 @@ export interface AssignmentWithRelations extends Assignment {
 
 // ─── useAssignments — list assignments, optionally filtered by course_id ────
 
-export const useAssignments = (courseId?: string, pagination?: { page?: number; pageSize?: number }) => {
-  const { page, pageSize, from, to } = getPaginationRange(pagination?.page, pagination?.pageSize);
+export const useAssignments = (
+  courseId?: string,
+  pagination?: { page?: number; pageSize?: number }
+) => {
+  const { page, pageSize, from, to } = getPaginationRange(
+    pagination?.page,
+    pagination?.pageSize
+  );
 
   return useQuery({
     queryKey: queryKeys.assignments.list({ courseId, page, pageSize }),
     queryFn: async (): Promise<PaginatedResult<AssignmentWithRelations>> => {
-      let query = supabase.from('assignments')
-        .select('*, rubrics(title)', { count: 'exact' })
-        .order('due_date', { ascending: true })
+      let query = supabase
+        .from("assignments")
+        .select("*, rubrics(title)", { count: "exact" })
+        .order("due_date", { ascending: true })
         .range(from, to);
 
       if (courseId) {
-        query = query.eq('course_id', courseId);
+        query = query.eq("course_id", courseId);
       }
 
       const { data, error, count } = await query;
 
       if (error) throw error;
-      return { data: (data ?? []) as unknown as AssignmentWithRelations[], count: count ?? 0, page, pageSize };
+      return {
+        data: (data ?? []) as unknown as AssignmentWithRelations[],
+        count: count ?? 0,
+        page,
+        pageSize,
+      };
     },
   });
 };
-
 
 // ─── useAssignment — single assignment detail with rubric join ──────────────
 
 export const useAssignment = (id?: string) => {
   return useQuery({
-    queryKey: queryKeys.assignments.detail(id ?? ''),
+    queryKey: queryKeys.assignments.detail(id ?? ""),
     queryFn: async (): Promise<AssignmentWithRelations | null> => {
-      const { data, error } = await supabase.from('assignments')
-        .select('*, rubrics(title)')
-        .eq('id', id!)
+      const { data, error } = await supabase
+        .from("assignments")
+        .select("*, rubrics(title)")
+        .eq("id", id!)
         .maybeSingle();
 
       if (error) throw error;
@@ -83,7 +93,8 @@ export const useCreateAssignment = () => {
       // NOTE: tutor_autonomy_level column exists in DB but database.ts types have not been
       // regenerated yet. Using type assertion until `scripts/regen-types.ps1` is run.
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data: result, error } = await (supabase as any).from('assignments')
+      const { data: result, error } = await (supabase as any)
+        .from("assignments")
         .insert(data)
         .select()
         .single();
@@ -93,17 +104,19 @@ export const useCreateAssignment = () => {
       const assignment = result as unknown as Assignment;
 
       await logAuditEvent({
-        action: 'create',
-        entity_type: 'assignment',
+        action: "create",
+        entity_type: "assignment",
         entity_id: assignment.id,
         changes: data,
-        performed_by: user?.id ?? 'unknown',
+        performed_by: user?.id ?? "unknown",
       });
 
       return assignment;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.assignments.lists() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.assignments.lists(),
+      });
     },
   });
 };
@@ -116,30 +129,35 @@ export const useUpdateAssignment = (id: string) => {
 
   return useMutation({
     mutationFn: async (
-      data: Partial<CreateAssignmentFormData>,
+      data: Partial<CreateAssignmentFormData>
     ): Promise<Assignment> => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data: result, error } = await (supabase as any).from('assignments')
+      const { data: result, error } = await (supabase as any)
+        .from("assignments")
         .update(data)
-        .eq('id', id)
+        .eq("id", id)
         .select()
         .single();
 
       if (error) throw error;
 
       await logAuditEvent({
-        action: 'update',
-        entity_type: 'assignment',
+        action: "update",
+        entity_type: "assignment",
         entity_id: id,
         changes: data,
-        performed_by: user?.id ?? 'unknown',
+        performed_by: user?.id ?? "unknown",
       });
 
       return result as unknown as Assignment;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.assignments.lists() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.assignments.detail(id) });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.assignments.lists(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.assignments.detail(id),
+      });
     },
   });
 };
@@ -152,22 +170,25 @@ export const useDeleteAssignment = () => {
 
   return useMutation({
     mutationFn: async (id: string): Promise<void> => {
-      const { error } = await supabase.from('assignments')
+      const { error } = await supabase
+        .from("assignments")
         .delete()
-        .eq('id', id);
+        .eq("id", id);
 
       if (error) throw error;
 
       await logAuditEvent({
-        action: 'delete',
-        entity_type: 'assignment',
+        action: "delete",
+        entity_type: "assignment",
         entity_id: id,
         changes: {},
-        performed_by: user?.id ?? 'unknown',
+        performed_by: user?.id ?? "unknown",
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.assignments.lists() });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.assignments.lists(),
+      });
     },
   });
 };

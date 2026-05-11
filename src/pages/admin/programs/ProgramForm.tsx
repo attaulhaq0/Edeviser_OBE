@@ -1,17 +1,21 @@
-import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   createProgramSchema,
   updateProgramSchema,
   type CreateProgramFormData,
   type UpdateProgramFormData,
-} from '@/lib/schemas/program';
-import { useCreateProgram, useUpdateProgram, useProgram } from '@/hooks/usePrograms';
-import { useCoordinators } from '@/hooks/useUsers';
-import { useDepartments } from '@/hooks/useDepartments';
-import { useAuth } from '@/hooks/useAuth';
+} from "@/lib/schemas/program";
+import {
+  useCreateProgram,
+  useUpdateProgram,
+  useProgram,
+} from "@/hooks/usePrograms";
+import { useCoordinators } from "@/hooks/useUsers";
+import { useDepartments } from "@/hooks/useDepartments";
+import { useAuth } from "@/hooks/useAuth";
 import {
   Form,
   FormField,
@@ -19,38 +23,40 @@ import {
   FormLabel,
   FormControl,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { ArrowLeft, Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
-import { useTranslation } from 'react-i18next';
-import type { Profile, Program } from '@/types/app';
-import type { Department } from '@/hooks/useDepartments';
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { ArrowLeft, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
+import type { Profile, Program } from "@/types/app";
+import type { Department } from "@/hooks/useDepartments";
 
 // ─── Create mode form ────────────────────────────────────────────────────────
 
 const CreateProgramForm = ({ institutionId }: { institutionId: string }) => {
   const navigate = useNavigate();
   const createMutation = useCreateProgram();
-  const { data: coordinators = [], isLoading: isLoadingCoordinators } = useCoordinators();
-  const { data: departments = [], isLoading: isLoadingDepartments } = useDepartments();
+  const { data: coordinators = [], isLoading: isLoadingCoordinators } =
+    useCoordinators();
+  const { data: departments = [], isLoading: isLoadingDepartments } =
+    useDepartments();
 
   const form = useForm<CreateProgramFormData>({
     resolver: zodResolver(createProgramSchema),
     defaultValues: {
-      name: '',
-      code: '',
-      description: '',
+      name: "",
+      code: "",
+      description: "",
       institution_id: institutionId,
     },
   });
@@ -60,11 +66,11 @@ const CreateProgramForm = ({ institutionId }: { institutionId: string }) => {
       { ...data, institution_id: institutionId },
       {
         onSuccess: () => {
-          toast.success('Program created successfully');
-          navigate('/admin/programs');
+          toast.success("Program created successfully");
+          navigate("/admin/programs");
         },
         onError: (err) => toast.error(err.message),
-      },
+      }
     );
   };
 
@@ -88,15 +94,17 @@ const EditProgramForm = ({ programId }: { programId: string }) => {
   const navigate = useNavigate();
   const { data: existingProgram, isLoading } = useProgram(programId);
   const updateMutation = useUpdateProgram(programId);
-  const { data: coordinators = [], isLoading: isLoadingCoordinators } = useCoordinators();
-  const { data: departments = [], isLoading: isLoadingDepartments } = useDepartments();
+  const { data: coordinators = [], isLoading: isLoadingCoordinators } =
+    useCoordinators();
+  const { data: departments = [], isLoading: isLoadingDepartments } =
+    useDepartments();
 
   const form = useForm<UpdateProgramFormData>({
     resolver: zodResolver(updateProgramSchema),
     defaultValues: {
-      name: '',
-      code: '',
-      description: '',
+      name: "",
+      code: "",
+      description: "",
     },
   });
 
@@ -106,7 +114,7 @@ const EditProgramForm = ({ programId }: { programId: string }) => {
       form.reset({
         name: program.name,
         code: program.code,
-        description: program.description ?? '',
+        description: program.description ?? "",
         coordinator_id: program.coordinator_id ?? undefined,
         department_id: program.department_id ?? undefined,
       });
@@ -126,8 +134,8 @@ const EditProgramForm = ({ programId }: { programId: string }) => {
   const onSubmit = (data: UpdateProgramFormData) => {
     updateMutation.mutate(data, {
       onSuccess: () => {
-        toast.success('Program updated successfully');
-        navigate('/admin/programs');
+        toast.success("Program updated successfully");
+        navigate("/admin/programs");
       },
       onError: (err) => toast.error(err.message),
     });
@@ -150,7 +158,9 @@ const EditProgramForm = ({ programId }: { programId: string }) => {
 
 // ─── Shared form fields ──────────────────────────────────────────────────────
 
-interface ProgramFormFieldsProps<T extends CreateProgramFormData | UpdateProgramFormData> {
+interface ProgramFormFieldsProps<
+  T extends CreateProgramFormData | UpdateProgramFormData
+> {
   form: ReturnType<typeof useForm<T>>;
   onSubmit: (data: T) => void;
   isPending: boolean;
@@ -162,7 +172,9 @@ interface ProgramFormFieldsProps<T extends CreateProgramFormData | UpdateProgram
   isLoadingDepartments: boolean;
 }
 
-const ProgramFormFields = <T extends CreateProgramFormData | UpdateProgramFormData>({
+const ProgramFormFields = <
+  T extends CreateProgramFormData | UpdateProgramFormData
+>({
   form,
   onSubmit,
   isPending,
@@ -174,23 +186,28 @@ const ProgramFormFields = <T extends CreateProgramFormData | UpdateProgramFormDa
   isLoadingDepartments,
 }: ProgramFormFieldsProps<T>) => {
   const navigate = useNavigate();
-  const { t } = useTranslation('admin');
+  const { t } = useTranslation("admin");
 
   return (
     <Card className="bg-white border-0 shadow-md rounded-xl p-6 max-w-2xl">
       <Form {...form}>
         <form
-          onSubmit={form.handleSubmit(onSubmit as Parameters<typeof form.handleSubmit>[0])}
+          onSubmit={form.handleSubmit(
+            onSubmit as Parameters<typeof form.handleSubmit>[0]
+          )}
           className="space-y-6"
         >
           <FormField
             control={form.control}
-            name={'name' as never}
+            name={"name" as never}
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Program Name</FormLabel>
                 <FormControl>
-                  <Input placeholder="e.g. Bachelor of Computer Science" {...field} />
+                  <Input
+                    placeholder="e.g. Bachelor of Computer Science"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -199,16 +216,16 @@ const ProgramFormFields = <T extends CreateProgramFormData | UpdateProgramFormDa
 
           <FormField
             control={form.control}
-            name={'name_ar' as never}
+            name={"name_ar" as never}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('bilingual.arabicName')}</FormLabel>
+                <FormLabel>{t("bilingual.arabicName")}</FormLabel>
                 <FormControl>
                   <Input
-                    placeholder={t('bilingual.arabicNamePlaceholder')}
+                    placeholder={t("bilingual.arabicNamePlaceholder")}
                     dir="rtl"
                     {...field}
-                    value={(field.value as string) ?? ''}
+                    value={(field.value as string) ?? ""}
                   />
                 </FormControl>
                 <FormMessage />
@@ -221,7 +238,7 @@ const ProgramFormFields = <T extends CreateProgramFormData | UpdateProgramFormDa
               {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
               <label className="text-sm font-medium">Program Code</label>
               <Input
-                value={existingCode ?? ''}
+                value={existingCode ?? ""}
                 disabled
                 className="bg-gray-50"
               />
@@ -232,7 +249,7 @@ const ProgramFormFields = <T extends CreateProgramFormData | UpdateProgramFormDa
           ) : (
             <FormField
               control={form.control}
-              name={'code' as never}
+              name={"code" as never}
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Program Code</FormLabel>
@@ -247,7 +264,7 @@ const ProgramFormFields = <T extends CreateProgramFormData | UpdateProgramFormDa
 
           <FormField
             control={form.control}
-            name={'description' as never}
+            name={"description" as never}
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Description</FormLabel>
@@ -265,13 +282,15 @@ const ProgramFormFields = <T extends CreateProgramFormData | UpdateProgramFormDa
 
           <FormField
             control={form.control}
-            name={'coordinator_id' as never}
+            name={"coordinator_id" as never}
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Coordinator</FormLabel>
                 <Select
-                  onValueChange={(value) => field.onChange(value === '__none__' ? undefined : value)}
-                  value={(field.value as string) ?? '__none__'}
+                  onValueChange={(value) =>
+                    field.onChange(value === "__none__" ? undefined : value)
+                  }
+                  value={(field.value as string) ?? "__none__"}
                   disabled={isLoadingCoordinators}
                 >
                   <FormControl>
@@ -295,13 +314,15 @@ const ProgramFormFields = <T extends CreateProgramFormData | UpdateProgramFormDa
 
           <FormField
             control={form.control}
-            name={'department_id' as never}
+            name={"department_id" as never}
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Department</FormLabel>
                 <Select
-                  onValueChange={(value) => field.onChange(value === '__none__' ? undefined : value)}
-                  value={(field.value as string) ?? '__none__'}
+                  onValueChange={(value) =>
+                    field.onChange(value === "__none__" ? undefined : value)
+                  }
+                  value={(field.value as string) ?? "__none__"}
                   disabled={isLoadingDepartments}
                 >
                   <FormControl>
@@ -330,12 +351,12 @@ const ProgramFormFields = <T extends CreateProgramFormData | UpdateProgramFormDa
               className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 text-white"
             >
               {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-              {isEditMode ? 'Update Program' : 'Create Program'}
+              {isEditMode ? "Update Program" : "Create Program"}
             </Button>
             <Button
               type="button"
               variant="outline"
-              onClick={() => navigate('/admin/programs')}
+              onClick={() => navigate("/admin/programs")}
             >
               Cancel
             </Button>
@@ -360,20 +381,20 @@ const ProgramForm = () => {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => navigate('/admin/programs')}
+          onClick={() => navigate("/admin/programs")}
         >
           <ArrowLeft className="h-4 w-4" />
           Back
         </Button>
         <h1 className="text-2xl font-bold tracking-tight">
-          {isEditMode ? 'Edit Program' : 'Create Program'}
+          {isEditMode ? "Edit Program" : "Create Program"}
         </h1>
       </div>
 
       {isEditMode ? (
         <EditProgramForm programId={id} />
       ) : (
-        <CreateProgramForm institutionId={institutionId ?? ''} />
+        <CreateProgramForm institutionId={institutionId ?? ""} />
       )}
     </div>
   );

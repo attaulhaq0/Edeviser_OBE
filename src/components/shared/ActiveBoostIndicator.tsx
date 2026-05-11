@@ -2,11 +2,11 @@
 // ActiveBoostIndicator — Boost countdown timer with pulse animation
 // =============================================================================
 
-import { useState, useEffect } from 'react';
-import { Zap } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
-import { useActiveBoosts } from '@/hooks/useActiveBoosts';
-import { cn } from '@/lib/utils';
+import { useState, useEffect } from "react";
+import { Zap } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { useActiveBoosts } from "@/hooks/useActiveBoosts";
+import { cn } from "@/lib/utils";
 
 interface ActiveBoostIndicatorProps {
   className?: string;
@@ -14,9 +14,9 @@ interface ActiveBoostIndicatorProps {
 
 const ActiveBoostIndicator = ({ className }: ActiveBoostIndicatorProps) => {
   const { user } = useAuth();
-  const { data: boosts } = useActiveBoosts(user?.id ?? '');
+  const { data: boosts } = useActiveBoosts(user?.id ?? "");
   const activeBoost = boosts?.[0];
-  const [timeLeft, setTimeLeft] = useState(() => activeBoost ? '' : '');
+  const [timeLeft, setTimeLeft] = useState(() => (activeBoost ? "" : ""));
 
   useEffect(() => {
     if (!activeBoost) return;
@@ -27,13 +27,13 @@ const ActiveBoostIndicator = ({ className }: ActiveBoostIndicatorProps) => {
       const diff = expiresAt - now;
 
       if (diff <= 0) {
-        setTimeLeft('Expired');
+        setTimeLeft("Expired");
         return;
       }
 
       const minutes = Math.floor(diff / 60_000);
       const seconds = Math.floor((diff % 60_000) / 1000);
-      setTimeLeft(`${minutes}:${seconds.toString().padStart(2, '0')}`);
+      setTimeLeft(`${minutes}:${seconds.toString().padStart(2, "0")}`);
     };
 
     updateTimer();
@@ -41,13 +41,13 @@ const ActiveBoostIndicator = ({ className }: ActiveBoostIndicatorProps) => {
     return () => clearInterval(interval);
   }, [activeBoost]);
 
-  if (!activeBoost || timeLeft === 'Expired') return null;
+  if (!activeBoost || timeLeft === "Expired") return null;
 
   return (
     <div
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-full bg-purple-50 border border-purple-200 px-3 py-1.5 text-sm font-semibold text-purple-700 animate-xp-pulse',
-        className,
+        "inline-flex items-center gap-1.5 rounded-full bg-purple-50 border border-purple-200 px-3 py-1.5 text-sm font-semibold text-purple-700 animate-xp-pulse",
+        className
       )}
     >
       <Zap className="h-4 w-4 text-purple-500" />

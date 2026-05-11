@@ -3,10 +3,10 @@
 // Task 3.16: fetch weekly team health report with recommendations
 // =============================================================================
 
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import type { HealthStatus, EngagementTrend } from '@/hooks/useTeamHealth';
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import type { HealthStatus, EngagementTrend } from "@/hooks/useTeamHealth";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -36,27 +36,35 @@ export interface TeamHealthReport {
 function generateRecommendations(
   healthScore: number,
   giniCoefficient: number,
-  engagementTrend: EngagementTrend,
+  engagementTrend: EngagementTrend
 ): { issues: string[]; recommendations: string[] } {
   const issues: string[] = [];
   const recommendations: string[] = [];
 
   if (giniCoefficient > 0.4) {
-    issues.push('High inequality in member contributions');
-    recommendations.push('Consider redistributing tasks to balance workload across team members');
+    issues.push("High inequality in member contributions");
+    recommendations.push(
+      "Consider redistributing tasks to balance workload across team members"
+    );
   }
 
-  if (engagementTrend === 'declining') {
-    issues.push('Declining engagement trend');
-    recommendations.push('Schedule a team check-in to identify and address disengagement factors');
+  if (engagementTrend === "declining") {
+    issues.push("Declining engagement trend");
+    recommendations.push(
+      "Schedule a team check-in to identify and address disengagement factors"
+    );
   }
 
   if (healthScore < 40) {
-    issues.push('Team health score is critically low');
-    recommendations.push('Consider team restructuring or targeted intervention');
+    issues.push("Team health score is critically low");
+    recommendations.push(
+      "Consider team restructuring or targeted intervention"
+    );
   } else if (healthScore < 70) {
-    issues.push('Team health score needs attention');
-    recommendations.push('Monitor team closely and encourage collaborative activities');
+    issues.push("Team health score needs attention");
+    recommendations.push(
+      "Monitor team closely and encourage collaborative activities"
+    );
   }
 
   return { issues, recommendations };
@@ -70,10 +78,10 @@ export const useTeamHealthReport = (courseId?: string) => {
     queryFn: async (): Promise<TeamHealthReport> => {
       // Fetch all teams for the course
       const { data: teams, error: teamsError } = await supabase
-        .from('teams' as never)
-        .select('id, name, health_score, health_status')
-        .eq('course_id', courseId!)
-        .is('deleted_at', null);
+        .from("teams" as never)
+        .select("id, name, health_score, health_status")
+        .eq("course_id", courseId!)
+        .is("deleted_at", null);
       if (teamsError) throw teamsError;
 
       const teamList = (teams ?? []) as Array<{
@@ -89,14 +97,14 @@ export const useTeamHealthReport = (courseId?: string) => {
       let atRiskCount = 0;
 
       for (const t of teamList) {
-        if (t.health_status === 'healthy') healthyCount++;
-        else if (t.health_status === 'needs_attention') needsAttentionCount++;
-        else if (t.health_status === 'at_risk') atRiskCount++;
+        if (t.health_status === "healthy") healthyCount++;
+        else if (t.health_status === "needs_attention") needsAttentionCount++;
+        else if (t.health_status === "at_risk") atRiskCount++;
       }
 
       // Fetch latest snapshots for flagged teams (needs_attention or at_risk)
       const flaggedTeamIds = teamList
-        .filter((t) => t.health_status !== 'healthy')
+        .filter((t) => t.health_status !== "healthy")
         .map((t) => t.id);
 
       const flaggedTeams: FlaggedTeam[] = [];
@@ -104,18 +112,23 @@ export const useTeamHealthReport = (courseId?: string) => {
       if (flaggedTeamIds.length > 0) {
         // Get latest snapshot for each flagged team
         const { data: snapshots, error: snapshotsError } = await supabase
-          .from('team_health_snapshots' as never)
-          .select('team_id, health_score, gini_coefficient, engagement_trend, computed_at')
-          .in('team_id', flaggedTeamIds)
-          .order('computed_at', { ascending: false });
+          .from("team_health_snapshots" as never)
+          .select(
+            "team_id, health_score, gini_coefficient, engagement_trend, computed_at"
+          )
+          .in("team_id", flaggedTeamIds)
+          .order("computed_at", { ascending: false });
         if (snapshotsError) throw snapshotsError;
 
         // Get latest snapshot per team
-        const latestSnapshots = new Map<string, {
-          health_score: number;
-          gini_coefficient: number;
-          engagement_trend: EngagementTrend;
-        }>();
+        const latestSnapshots = new Map<
+          string,
+          {
+            health_score: number;
+            gini_coefficient: number;
+            engagement_trend: EngagementTrend;
+          }
+        >();
 
         for (const s of (snapshots ?? []) as Array<{
           team_id: string;
@@ -132,14 +145,14 @@ export const useTeamHealthReport = (courseId?: string) => {
           }
         }
 
-        for (const t of teamList.filter((t) => t.health_status !== 'healthy')) {
+        for (const t of teamList.filter((t) => t.health_status !== "healthy")) {
           const snapshot = latestSnapshots.get(t.id);
           const gini = snapshot?.gini_coefficient ?? 0;
-          const trend = snapshot?.engagement_trend ?? 'stable';
+          const trend = snapshot?.engagement_trend ?? "stable";
           const { issues, recommendations } = generateRecommendations(
             t.health_score,
             gini,
-            trend,
+            trend
           );
 
           flaggedTeams.push({
@@ -156,7 +169,11 @@ export const useTeamHealthReport = (courseId?: string) => {
 
         // Sort: at_risk first, then needs_attention
         flaggedTeams.sort((a, b) => {
-          const statusOrder: Record<HealthStatus, number> = { at_risk: 0, needs_attention: 1, healthy: 2 };
+          const statusOrder: Record<HealthStatus, number> = {
+            at_risk: 0,
+            needs_attention: 1,
+            healthy: 2,
+          };
           return statusOrder[a.health_status] - statusOrder[b.health_status];
         });
       }

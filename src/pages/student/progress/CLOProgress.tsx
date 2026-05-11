@@ -3,21 +3,21 @@
 // Requirements: 44.1, 44.2, 44.3, 44.4, 44.5
 // =============================================================================
 
-import { useState, useCallback } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
-import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen, GraduationCap, FileText, Loader2 } from 'lucide-react';
-import { format } from 'date-fns';
-import { Card } from '@/components/ui/card';
-import Shimmer from '@/components/shared/Shimmer';
-import CLOProgressBar from '@/components/shared/CLOProgressBar';
-import { useAuth } from '@/hooks/useAuth';
-import { useCLOProgress } from '@/hooks/useCLOProgress';
-import { useCLOEvidence } from '@/hooks/useCLOEvidence';
-import { useRealtime } from '@/hooks/useRealtime';
-import { useReadHabitTimer } from '@/hooks/useReadHabitTimer';
-import { queryKeys } from '@/lib/queryKeys';
-import type { CLOEvidenceRecord } from '@/hooks/useCLOEvidence';
+import { useState, useCallback } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { motion, AnimatePresence } from "framer-motion";
+import { BookOpen, GraduationCap, FileText, Loader2 } from "lucide-react";
+import { format } from "date-fns";
+import { Card } from "@/components/ui/card";
+import Shimmer from "@/components/shared/Shimmer";
+import CLOProgressBar from "@/components/shared/CLOProgressBar";
+import { useAuth } from "@/hooks/useAuth";
+import { useCLOProgress } from "@/hooks/useCLOProgress";
+import { useCLOEvidence } from "@/hooks/useCLOEvidence";
+import { useRealtime } from "@/hooks/useRealtime";
+import { useReadHabitTimer } from "@/hooks/useReadHabitTimer";
+import { queryKeys } from "@/lib/queryKeys";
+import type { CLOEvidenceRecord } from "@/hooks/useCLOEvidence";
 
 // ─── Evidence Panel ──────────────────────────────────────────────────────────
 
@@ -55,12 +55,16 @@ const EvidencePanel = ({ cloId, studentId }: EvidencePanelProps) => {
         >
           <div className="flex items-center gap-2 min-w-0">
             <FileText className="h-4 w-4 text-gray-400 shrink-0" />
-            <span className="font-medium truncate">{record.assignment_title}</span>
+            <span className="font-medium truncate">
+              {record.assignment_title}
+            </span>
           </div>
           <div className="flex items-center gap-3 shrink-0">
-            <span className="font-bold tabular-nums">{Math.round(record.score_percent)}%</span>
+            <span className="font-bold tabular-nums">
+              {Math.round(record.score_percent)}%
+            </span>
             <span className="text-xs text-gray-500">
-              {format(new Date(record.created_at), 'MMM d, yyyy')}
+              {format(new Date(record.created_at), "MMM d, yyyy")}
             </span>
           </div>
         </div>
@@ -80,8 +84,8 @@ const CLOProgress = () => {
 
   // Track read habit — fires after 30s of viewing CLO progress
   useReadHabitTimer({
-    pageType: 'clo_progress',
-    pageId: studentId ?? '',
+    pageType: "clo_progress",
+    pageId: studentId ?? "",
   });
 
   // Realtime: invalidate CLO progress queries when outcome_attainment changes
@@ -102,8 +106,8 @@ const CLOProgress = () => {
   }, [queryClient]);
 
   useRealtime({
-    table: 'outcome_attainment',
-    event: '*',
+    table: "outcome_attainment",
+    event: "*",
     filter: studentId ? `student_id=eq.${studentId}` : undefined,
     onPayload: handleRealtimePayload,
     pollingFn: handlePollingFallback,
@@ -137,7 +141,8 @@ const CLOProgress = () => {
               <GraduationCap className="h-8 w-8 text-blue-500" />
             </div>
             <p className="text-sm text-gray-500">
-              No CLO progress data yet. Enroll in courses and complete assessments to see your progress.
+              No CLO progress data yet. Enroll in courses and complete
+              assessments to see your progress.
             </p>
           </div>
         </Card>
@@ -160,7 +165,10 @@ const CLOProgress = () => {
             {/* Course header */}
             <div
               className="px-6 py-4 flex items-center gap-2"
-              style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+              style={{
+                background:
+                  "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+              }}
             >
               <BookOpen className="h-5 w-5 text-white" />
               <h3 className="text-lg font-bold tracking-tight text-white">
@@ -192,13 +200,16 @@ const CLOProgress = () => {
                           <motion.div
                             key="evidence"
                             initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: 'auto', opacity: 1 }}
+                            animate={{ height: "auto", opacity: 1 }}
                             exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.25, ease: 'easeInOut' }}
+                            transition={{ duration: 0.25, ease: "easeInOut" }}
                             className="overflow-hidden"
                           >
                             <div className="mt-2 ms-2 border-s-2 border-slate-200 ps-3">
-                              <EvidencePanel cloId={entry.clo_id} studentId={studentId} />
+                              <EvidencePanel
+                                cloId={entry.clo_id}
+                                studentId={studentId}
+                              />
                             </div>
                           </motion.div>
                         )}

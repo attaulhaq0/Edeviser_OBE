@@ -4,17 +4,17 @@
 // Feature: edeviser-platform, Task 54.7
 // =============================================================================
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { createElement, type ReactNode } from 'react';
-import { useOptimisticXP, useOptimisticStreak } from '@/hooks/useOptimisticXP';
-import { queryKeys } from '@/lib/queryKeys';
-import type { StudentKPIData } from '@/hooks/useStudentDashboard';
-import type { LevelData } from '@/hooks/useLevel';
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { renderHook, act } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { createElement, type ReactNode } from "react";
+import { useOptimisticXP, useOptimisticStreak } from "@/hooks/useOptimisticXP";
+import { queryKeys } from "@/lib/queryKeys";
+import type { StudentKPIData } from "@/hooks/useStudentDashboard";
+import type { LevelData } from "@/hooks/useLevel";
 
 // Mock the xpClient
-vi.mock('@/lib/xpClient', () => ({
+vi.mock("@/lib/xpClient", () => ({
   awardXP: vi.fn().mockResolvedValue({
     success: true,
     xp_awarded: 25,
@@ -24,14 +24,14 @@ vi.mock('@/lib/xpClient', () => ({
   }),
 }));
 
-const STUDENT_ID = 'student-1';
+const STUDENT_ID = "student-1";
 
 const createWrapper = (queryClient: QueryClient) => {
   return ({ children }: { children: ReactNode }) =>
     createElement(QueryClientProvider, { client: queryClient }, children);
 };
 
-describe('useOptimisticXP', () => {
+describe("useOptimisticXP", () => {
   let queryClient: QueryClient;
 
   beforeEach(() => {
@@ -41,7 +41,7 @@ describe('useOptimisticXP', () => {
     });
   });
 
-  it('optimistically updates KPI cache with new XP amount', async () => {
+  it("optimistically updates KPI cache with new XP amount", async () => {
     const kpiKey = queryKeys.studentGamification.detail(STUDENT_ID);
     const initialKPI: StudentKPIData = {
       enrolledCourses: 3,
@@ -62,7 +62,7 @@ describe('useOptimisticXP', () => {
       await result.current.awardXPOptimistic({
         studentId: STUDENT_ID,
         xpAmount: 25,
-        source: 'submission',
+        source: "submission",
       });
     });
 
@@ -71,11 +71,14 @@ describe('useOptimisticXP', () => {
     expect(updatedKPI?.totalXP).toBe(125);
   });
 
-  it('optimistically updates Level cache', async () => {
-    const levelKey = queryKeys.studentGamification.list({ scope: 'level', studentId: STUDENT_ID });
+  it("optimistically updates Level cache", async () => {
+    const levelKey = queryKeys.studentGamification.list({
+      scope: "level",
+      studentId: STUDENT_ID,
+    });
     const initialLevel: LevelData = {
       level: 2,
-      title: 'Explorer',
+      title: "Explorer",
       xpTotal: 100,
       xpForCurrentLevel: 100,
       xpForNextLevel: 250,
@@ -91,7 +94,7 @@ describe('useOptimisticXP', () => {
       await result.current.awardXPOptimistic({
         studentId: STUDENT_ID,
         xpAmount: 50,
-        source: 'submission',
+        source: "submission",
       });
     });
 
@@ -99,8 +102,8 @@ describe('useOptimisticXP', () => {
     expect(updatedLevel?.xpTotal).toBe(150);
   });
 
-  it('rolls back on failure', async () => {
-    const { awardXP } = await import('@/lib/xpClient');
+  it("rolls back on failure", async () => {
+    const { awardXP } = await import("@/lib/xpClient");
     (awardXP as ReturnType<typeof vi.fn>).mockResolvedValueOnce(null);
 
     const kpiKey = queryKeys.studentGamification.detail(STUDENT_ID);
@@ -123,7 +126,7 @@ describe('useOptimisticXP', () => {
       await result.current.awardXPOptimistic({
         studentId: STUDENT_ID,
         xpAmount: 25,
-        source: 'submission',
+        source: "submission",
       });
     });
 
@@ -133,7 +136,7 @@ describe('useOptimisticXP', () => {
   });
 });
 
-describe('useOptimisticStreak', () => {
+describe("useOptimisticStreak", () => {
   let queryClient: QueryClient;
 
   beforeEach(() => {
@@ -147,7 +150,7 @@ describe('useOptimisticStreak', () => {
     vi.useRealTimers();
   });
 
-  it('optimistically increments streak counter', () => {
+  it("optimistically increments streak counter", () => {
     const kpiKey = queryKeys.studentGamification.detail(STUDENT_ID);
     const initialKPI: StudentKPIData = {
       enrolledCourses: 3,

@@ -1,32 +1,32 @@
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import {
   useDepartments,
   useCreateDepartment,
   useUpdateDepartment,
   useDeleteDepartment,
   type Department,
-} from '@/hooks/useDepartments';
-import { useAuth } from '@/hooks/useAuth';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
+} from "@/hooks/useDepartments";
+import { useAuth } from "@/hooks/useAuth";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Form,
   FormField,
@@ -34,20 +34,20 @@ import {
   FormLabel,
   FormControl,
   FormMessage,
-} from '@/components/ui/form';
-import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
-import Shimmer from '@/components/shared/Shimmer';
-import { Plus, Pencil, Trash2, Building2, Loader2 } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import type { Profile } from '@/types/app';
+} from "@/components/ui/form";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import Shimmer from "@/components/shared/Shimmer";
+import { Plus, Pencil, Trash2, Building2, Loader2 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import type { Profile } from "@/types/app";
 
 // ─── Schema ──────────────────────────────────────────────────────────────────
 
 const departmentFormSchema = z.object({
-  name: z.string().min(1, 'Department name is required').max(255),
-  code: z.string().min(1, 'Department code is required').max(50),
+  name: z.string().min(1, "Department name is required").max(255),
+  code: z.string().min(1, "Department code is required").max(50),
   head_of_department_id: z.string().optional(),
 });
 
@@ -57,14 +57,14 @@ type DepartmentFormData = z.infer<typeof departmentFormSchema>;
 
 const useStaffMembers = () => {
   return useQuery({
-    queryKey: queryKeys.users.list({ role: 'staff_for_hod' }),
+    queryKey: queryKeys.users.list({ role: "staff_for_hod" }),
     queryFn: async (): Promise<Profile[]> => {
       const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .in('role', ['teacher', 'coordinator', 'admin'])
-        .eq('is_active', true)
-        .order('full_name', { ascending: true });
+        .from("profiles")
+        .select("*")
+        .in("role", ["teacher", "coordinator", "admin"])
+        .eq("is_active", true)
+        .order("full_name", { ascending: true });
       if (error) throw error;
       return data as Profile[];
     },
@@ -81,17 +81,22 @@ interface DepartmentFormDialogProps {
   institutionId: string;
 }
 
-const DepartmentFormDialog = ({ open, onOpenChange, department, institutionId }: DepartmentFormDialogProps) => {
+const DepartmentFormDialog = ({
+  open,
+  onOpenChange,
+  department,
+  institutionId,
+}: DepartmentFormDialogProps) => {
   const isEdit = !!department;
   const createMutation = useCreateDepartment();
-  const updateMutation = useUpdateDepartment(department?.id ?? '');
+  const updateMutation = useUpdateDepartment(department?.id ?? "");
   const { data: staff = [], isLoading: isLoadingStaff } = useStaffMembers();
 
   const form = useForm<DepartmentFormData>({
     resolver: zodResolver(departmentFormSchema),
     defaultValues: {
-      name: department?.name ?? '',
-      code: department?.code ?? '',
+      name: department?.name ?? "",
+      code: department?.code ?? "",
       head_of_department_id: department?.head_of_department_id ?? undefined,
     },
   });
@@ -109,7 +114,7 @@ const DepartmentFormDialog = ({ open, onOpenChange, department, institutionId }:
             onOpenChange(false);
             form.reset();
           },
-        },
+        }
       );
     } else {
       createMutation.mutate(
@@ -124,7 +129,7 @@ const DepartmentFormDialog = ({ open, onOpenChange, department, institutionId }:
             onOpenChange(false);
             form.reset();
           },
-        },
+        }
       );
     }
   };
@@ -135,7 +140,9 @@ const DepartmentFormDialog = ({ open, onOpenChange, department, institutionId }:
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{isEdit ? 'Edit Department' : 'Create Department'}</DialogTitle>
+          <DialogTitle>
+            {isEdit ? "Edit Department" : "Create Department"}
+          </DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -172,8 +179,10 @@ const DepartmentFormDialog = ({ open, onOpenChange, department, institutionId }:
                 <FormItem>
                   <FormLabel>Head of Department</FormLabel>
                   <Select
-                    onValueChange={(value) => field.onChange(value === '__none__' ? undefined : value)}
-                    value={field.value ?? '__none__'}
+                    onValueChange={(value) =>
+                      field.onChange(value === "__none__" ? undefined : value)
+                    }
+                    value={field.value ?? "__none__"}
                     disabled={isLoadingStaff}
                   >
                     <FormControl>
@@ -195,7 +204,11 @@ const DepartmentFormDialog = ({ open, onOpenChange, department, institutionId }:
               )}
             />
             <div className="flex justify-end gap-3 pt-2">
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+              >
                 Cancel
               </Button>
               <Button
@@ -204,7 +217,7 @@ const DepartmentFormDialog = ({ open, onOpenChange, department, institutionId }:
                 className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 text-white"
               >
                 {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-                {isEdit ? 'Update' : 'Create'}
+                {isEdit ? "Update" : "Create"}
               </Button>
             </div>
           </form>
@@ -222,7 +235,11 @@ interface DepartmentRowProps {
   onDelete: (id: string) => void;
 }
 
-const DepartmentRow = ({ department, onEdit, onDelete }: DepartmentRowProps) => (
+const DepartmentRow = ({
+  department,
+  onEdit,
+  onDelete,
+}: DepartmentRowProps) => (
   <Card className="bg-white border-0 shadow-md rounded-xl p-4">
     <div className="flex items-center justify-between">
       <div className="flex items-center gap-4 min-w-0">
@@ -232,18 +249,32 @@ const DepartmentRow = ({ department, onEdit, onDelete }: DepartmentRowProps) => 
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <p className="text-sm font-semibold truncate">{department.name}</p>
-            <Badge variant="outline" className="text-xs">{department.code}</Badge>
+            <Badge variant="outline" className="text-xs">
+              {department.code}
+            </Badge>
           </div>
           <p className="text-xs text-gray-500 mt-0.5">
-            {department.head_of_department_id ? 'HoD assigned' : 'No HoD assigned'}
+            {department.head_of_department_id
+              ? "HoD assigned"
+              : "No HoD assigned"}
           </p>
         </div>
       </div>
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="sm" onClick={() => onEdit(department)} aria-label={`Edit ${department.name}`}>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => onEdit(department)}
+          aria-label={`Edit ${department.name}`}
+        >
           <Pencil className="h-4 w-4" />
         </Button>
-        <Button variant="ghost" size="sm" onClick={() => onDelete(department.id)} aria-label={`Delete ${department.name}`}>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => onDelete(department.id)}
+          aria-label={`Delete ${department.name}`}
+        >
           <Trash2 className="h-4 w-4 text-red-500" />
         </Button>
       </div>
@@ -259,7 +290,9 @@ const DepartmentManager = () => {
   const deleteMutation = useDeleteDepartment();
 
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingDepartment, setEditingDepartment] = useState<Department | null>(null);
+  const [editingDepartment, setEditingDepartment] = useState<Department | null>(
+    null
+  );
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const handleEdit = (department: Department) => {
@@ -305,7 +338,9 @@ const DepartmentManager = () => {
       ) : (departments ?? []).length === 0 ? (
         <Card className="bg-white border-0 shadow-md rounded-xl p-8 text-center">
           <Building2 className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-          <p className="text-sm text-gray-500">No departments yet. Create your first department to get started.</p>
+          <p className="text-sm text-gray-500">
+            No departments yet. Create your first department to get started.
+          </p>
         </Card>
       ) : (
         <div className="space-y-3">
@@ -324,7 +359,7 @@ const DepartmentManager = () => {
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         department={editingDepartment}
-        institutionId={institutionId ?? ''}
+        institutionId={institutionId ?? ""}
       />
 
       <ConfirmDialog

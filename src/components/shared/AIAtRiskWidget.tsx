@@ -3,39 +3,41 @@
 // Validates: Requirements 47.3, 47.4
 // =============================================================================
 
-import { useState } from 'react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
+import { useState } from "react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from '@/components/ui/dialog';
-import Shimmer from '@/components/shared/Shimmer';
-import AtRiskStudentRow from '@/components/shared/AtRiskStudentRow';
+} from "@/components/ui/dialog";
+import Shimmer from "@/components/shared/Shimmer";
+import AtRiskStudentRow from "@/components/shared/AtRiskStudentRow";
 import {
   useAtRiskPredictions,
   useSendAtRiskNudge,
-} from '@/hooks/useAtRiskPredictions';
-import type { AIAtRiskPrediction } from '@/hooks/useAtRiskPredictions';
-import { Sparkles, CheckSquare, Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
+} from "@/hooks/useAtRiskPredictions";
+import type { AIAtRiskPrediction } from "@/hooks/useAtRiskPredictions";
+import { Sparkles, CheckSquare, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
 const AIAtRiskWidget = () => {
   const { data: predictions, isLoading } = useAtRiskPredictions();
   const nudgeMutation = useSendAtRiskNudge();
-  const [nudgeTarget, setNudgeTarget] = useState<AIAtRiskPrediction | null>(null);
-  const [nudgeMessage, setNudgeMessage] = useState('');
+  const [nudgeTarget, setNudgeTarget] = useState<AIAtRiskPrediction | null>(
+    null
+  );
+  const [nudgeMessage, setNudgeMessage] = useState("");
 
   const openNudgeDialog = (prediction: AIAtRiskPrediction) => {
     setNudgeTarget(prediction);
     setNudgeMessage(
-      `Hi ${prediction.student_name}, we noticed you may need some extra support with "${prediction.suggestion_data.at_risk_clo_title}". Let us know how we can help!`,
+      `Hi ${prediction.student_name}, we noticed you may need some extra support with "${prediction.suggestion_data.at_risk_clo_title}". Let us know how we can help!`
     );
   };
 
@@ -47,12 +49,14 @@ const AIAtRiskWidget = () => {
         onSuccess: () => {
           toast.success(`Nudge sent to ${nudgeTarget.student_name}`);
           setNudgeTarget(null);
-          setNudgeMessage('');
+          setNudgeMessage("");
         },
         onError: (err) => {
-          toast.error(err instanceof Error ? err.message : 'Failed to send nudge');
+          toast.error(
+            err instanceof Error ? err.message : "Failed to send nudge"
+          );
         },
-      },
+      }
     );
   };
 
@@ -62,7 +66,10 @@ const AIAtRiskWidget = () => {
         {/* Gradient header */}
         <div
           className="px-6 py-4 flex items-center gap-2"
-          style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+          style={{
+            background:
+              "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+          }}
         >
           <Sparkles className="h-5 w-5 text-white" />
           <h2 className="text-lg font-bold tracking-tight text-white">
@@ -93,8 +100,12 @@ const AIAtRiskWidget = () => {
                   key={prediction.id}
                   studentName={prediction.student_name}
                   cloTitle={prediction.suggestion_data.at_risk_clo_title}
-                  probabilityScore={prediction.suggestion_data.probability_score}
-                  contributingSignals={prediction.suggestion_data.contributing_signals}
+                  probabilityScore={
+                    prediction.suggestion_data.probability_score
+                  }
+                  contributingSignals={
+                    prediction.suggestion_data.contributing_signals
+                  }
                   onSendNudge={() => openNudgeDialog(prediction)}
                   isNudging={
                     nudgeMutation.isPending &&
@@ -137,7 +148,9 @@ const AIAtRiskWidget = () => {
               disabled={nudgeMutation.isPending || !nudgeMessage.trim()}
               className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
             >
-              {nudgeMutation.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+              {nudgeMutation.isPending && (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              )}
               Send Nudge
             </Button>
           </DialogFooter>

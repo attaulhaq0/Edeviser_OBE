@@ -1,8 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  resolveAutonomyLevel,
-  type AutonomyLevel,
-} from "@/lib/tutorAutonomy";
+import { resolveAutonomyLevel, type AutonomyLevel } from "@/lib/tutorAutonomy";
 
 describe("resolveAutonomyLevel", () => {
   // ─── Base level resolution (no student override) ─────────────────────

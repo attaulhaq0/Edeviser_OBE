@@ -1,11 +1,11 @@
-import { useParams } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Plus, Loader2, AlertTriangle } from 'lucide-react';
-import { toast } from 'sonner';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { useParams } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Plus, Loader2, AlertTriangle } from "lucide-react";
+import { toast } from "sonner";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Form,
   FormField,
@@ -13,13 +13,21 @@ import {
   FormLabel,
   FormControl,
   FormMessage,
-} from '@/components/ui/form';
-import SubCLORow from '@/components/shared/SubCLORow';
-import { useCLO } from '@/hooks/useCLOs';
-import { useSubCLOs, useCreateSubCLO, useDeleteSubCLO } from '@/hooks/useSubCLOs';
-import { subCLOSchema, isWeightSumValid, type SubCLOFormData } from '@/lib/schemas/subCLO';
-import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
-import { useState } from 'react';
+} from "@/components/ui/form";
+import SubCLORow from "@/components/shared/SubCLORow";
+import { useCLO } from "@/hooks/useCLOs";
+import {
+  useSubCLOs,
+  useCreateSubCLO,
+  useDeleteSubCLO,
+} from "@/hooks/useSubCLOs";
+import {
+  subCLOSchema,
+  isWeightSumValid,
+  type SubCLOFormData,
+} from "@/lib/schemas/subCLO";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import { useState } from "react";
 
 const SubCLOManager = () => {
   const { cloId } = useParams<{ cloId: string }>();
@@ -32,14 +40,16 @@ const SubCLOManager = () => {
   const form = useForm<SubCLOFormData>({
     resolver: zodResolver(subCLOSchema),
     defaultValues: {
-      title: '',
-      code: '',
+      title: "",
+      code: "",
       weight: 0,
-      parent_outcome_id: cloId ?? '',
+      parent_outcome_id: cloId ?? "",
     },
   });
 
-  const currentWeights = subCLOs.map((sc) => (sc as { weight?: number }).weight ?? 0);
+  const currentWeights = subCLOs.map(
+    (sc) => (sc as { weight?: number }).weight ?? 0
+  );
   const weightSum = currentWeights.reduce((a, b) => a + b, 0);
   const weightsValid = isWeightSumValid(currentWeights);
 
@@ -48,11 +58,16 @@ const SubCLOManager = () => {
       { ...data, parent_outcome_id: cloId! },
       {
         onSuccess: () => {
-          toast.success('Sub-CLO created');
-          form.reset({ title: '', code: '', weight: 0, parent_outcome_id: cloId ?? '' });
+          toast.success("Sub-CLO created");
+          form.reset({
+            title: "",
+            code: "",
+            weight: 0,
+            parent_outcome_id: cloId ?? "",
+          });
         },
         onError: (err) => toast.error(err.message),
-      },
+      }
     );
   };
 
@@ -62,14 +77,14 @@ const SubCLOManager = () => {
       { id: deleteTarget, parentCloId: cloId },
       {
         onSuccess: () => {
-          toast.success('Sub-CLO deleted');
+          toast.success("Sub-CLO deleted");
           setDeleteTarget(null);
         },
         onError: (err) => {
           toast.error(err.message);
           setDeleteTarget(null);
         },
-      },
+      }
     );
   };
 
@@ -90,8 +105,8 @@ const SubCLOManager = () => {
         <span
           className={
             weightsValid || subCLOs.length === 0
-              ? 'text-green-600 font-semibold'
-              : 'text-amber-600 font-semibold'
+              ? "text-green-600 font-semibold"
+              : "text-amber-600 font-semibold"
           }
         >
           {(weightSum * 100).toFixed(1)}% / 100%
@@ -154,7 +169,9 @@ const SubCLOManager = () => {
                         min="0"
                         max="1"
                         {...field}
-                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                        onChange={(e) =>
+                          field.onChange(parseFloat(e.target.value) || 0)
+                        }
                       />
                     </FormControl>
                     <FormMessage />

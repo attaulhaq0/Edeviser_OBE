@@ -85,7 +85,10 @@ const INTEGRITY_PATTERNS: Array<{ pattern: RegExp; keyword: string }> = [
   { pattern: /\bfinish my\b/i, keyword: "finish my" },
   { pattern: /\bfinish this for me\b/i, keyword: "finish this for me" },
   { pattern: /\bdo it for me\b/i, keyword: "do it for me" },
-  { pattern: /\bjust tell me the answer\b/i, keyword: "just tell me the answer" },
+  {
+    pattern: /\bjust tell me the answer\b/i,
+    keyword: "just tell me the answer",
+  },
   { pattern: /\bcopy paste\b/i, keyword: "copy paste" },
   { pattern: /\bsubmit for me\b/i, keyword: "submit for me" },
 ];
@@ -238,7 +241,6 @@ function detectIntegrityViolation(message: string): {
   return { flagged: matchedKeywords.length > 0, matchedKeywords };
 }
 
-
 // ─── SSE Helpers ────────────────────────────────────────────────────────────
 
 function sseEvent(type: string, data: unknown): string {
@@ -258,8 +260,7 @@ function buildCLOContext(cloAttainments: CLOAttainment[]): string {
   const lines: string[] = ["STUDENT CLO PROGRESS:"];
 
   for (const clo of cloAttainments) {
-    const status =
-      clo.attainment_percentage < 70 ? "⚠ NEEDS IMPROVEMENT" : "✓";
+    const status = clo.attainment_percentage < 70 ? "⚠ NEEDS IMPROVEMENT" : "✓";
     lines.push(
       `- ${clo.clo_title} (Bloom: ${clo.bloom_level}): ${clo.attainment_percentage}% ${status}`
     );
@@ -485,7 +486,6 @@ async function fetchWithRetry(
   throw lastError ?? new Error("All retry attempts exhausted");
 }
 
-
 // ─── Main Handler ───────────────────────────────────────────────────────────
 
 serve(async (req) => {
@@ -496,13 +496,10 @@ serve(async (req) => {
 
   // Only accept POST
   if (req.method !== "POST") {
-    return new Response(
-      JSON.stringify({ error: "Method not allowed" }),
-      {
-        status: 405,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    return new Response(JSON.stringify({ error: "Method not allowed" }), {
+      status: 405,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 
   // ── 3.1.1: JWT Validation and Course Enrollment Check ─────────────────
@@ -557,24 +554,18 @@ serve(async (req) => {
   try {
     body = await req.json();
   } catch {
-    return new Response(
-      JSON.stringify({ error: "Invalid JSON body" }),
-      {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    return new Response(JSON.stringify({ error: "Invalid JSON body" }), {
+      status: 400,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 
   const validation = validateRequest(body);
   if (!validation.valid) {
-    return new Response(
-      JSON.stringify({ error: validation.error }),
-      {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    return new Response(JSON.stringify({ error: validation.error }), {
+      status: 400,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 
   const chatReq = validation.data;
@@ -835,8 +826,8 @@ serve(async (req) => {
   let cloAutonomy: AutonomyLevel | null = null;
 
   // Check if conversation is scoped to CLOs that have autonomy settings
-  const cloScope = chatReq.clo_scope ??
-    (existingConversation?.clo_scope as string[]) ?? [];
+  const cloScope =
+    chatReq.clo_scope ?? (existingConversation?.clo_scope as string[]) ?? [];
 
   // Fetch assignment autonomy level if CLOs are scoped to an assignment
   if (cloScope.length > 0 && courseId) {
@@ -869,7 +860,8 @@ serve(async (req) => {
     }
   }
 
-  const studentOverride = chatReq.autonomy_override ??
+  const studentOverride =
+    chatReq.autonomy_override ??
     (existingConversation?.autonomy_override as "L1" | "L3" | null) ??
     null;
 
@@ -952,8 +944,7 @@ serve(async (req) => {
   let retrievedChunks: RetrievedChunk[] = [];
 
   if (courseId) {
-    const matchCloIds =
-      cloScope.length > 0 ? cloScope : null;
+    const matchCloIds = cloScope.length > 0 ? cloScope : null;
 
     const { data: chunks, error: searchErr } = await supabase.rpc(
       "search_course_materials",
@@ -1047,14 +1038,77 @@ serve(async (req) => {
       // significant word overlap (>40% of words in common)
       const extractWords = (text: string): Set<string> => {
         const stopWords = new Set([
-          "the", "a", "an", "is", "are", "was", "were", "be", "been", "being",
-          "have", "has", "had", "do", "does", "did", "will", "would", "could",
-          "should", "may", "might", "can", "shall", "i", "me", "my", "we",
-          "you", "your", "he", "she", "it", "they", "them", "this", "that",
-          "what", "how", "why", "when", "where", "which", "who", "to", "of",
-          "in", "for", "on", "with", "at", "by", "from", "and", "or", "but",
-          "not", "no", "so", "if", "about", "help", "please", "explain",
-          "understand", "know", "think", "need", "want", "get", "make",
+          "the",
+          "a",
+          "an",
+          "is",
+          "are",
+          "was",
+          "were",
+          "be",
+          "been",
+          "being",
+          "have",
+          "has",
+          "had",
+          "do",
+          "does",
+          "did",
+          "will",
+          "would",
+          "could",
+          "should",
+          "may",
+          "might",
+          "can",
+          "shall",
+          "i",
+          "me",
+          "my",
+          "we",
+          "you",
+          "your",
+          "he",
+          "she",
+          "it",
+          "they",
+          "them",
+          "this",
+          "that",
+          "what",
+          "how",
+          "why",
+          "when",
+          "where",
+          "which",
+          "who",
+          "to",
+          "of",
+          "in",
+          "for",
+          "on",
+          "with",
+          "at",
+          "by",
+          "from",
+          "and",
+          "or",
+          "but",
+          "not",
+          "no",
+          "so",
+          "if",
+          "about",
+          "help",
+          "please",
+          "explain",
+          "understand",
+          "know",
+          "think",
+          "need",
+          "want",
+          "get",
+          "make",
         ]);
         return new Set(
           text
@@ -1065,8 +1119,8 @@ serve(async (req) => {
         );
       };
 
-      const wordSets = recentUserMessages.map(
-        (m: { content: string }) => extractWords(m.content)
+      const wordSets = recentUserMessages.map((m: { content: string }) =>
+        extractWords(m.content)
       );
 
       // Find common words across all 3 messages
@@ -1120,7 +1174,6 @@ serve(async (req) => {
 
   // Add current user message
   llmMessages.push({ role: "user", content: chatReq.message });
-
 
   // ── 3.1.6: LLM Streaming via OpenRouter with SSE Response ─────────────
 
@@ -1265,9 +1318,7 @@ serve(async (req) => {
             material_type: chunk.material_type,
             similarity_score: chunk.similarity,
           }));
-          controller.enqueue(
-            encoder.encode(sseEvent("citations", citations))
-          );
+          controller.enqueue(encoder.encode(sseEvent("citations", citations)));
         }
 
         // Send independence nudge event if triggered (17.2)
@@ -1389,7 +1440,7 @@ serve(async (req) => {
 
         // Update conversation message count and updated_at
         const newMessageCount =
-          (existingConversation?.message_count as number ?? 0) + 2;
+          ((existingConversation?.message_count as number) ?? 0) + 2;
 
         await supabase
           .from("tutor_conversations")
@@ -1442,11 +1493,15 @@ serve(async (req) => {
         ) {
           // Award tutor engagement XP
           try {
-            const awardXpUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/award-xp`;
+            const awardXpUrl = `${Deno.env.get(
+              "SUPABASE_URL"
+            )}/functions/v1/award-xp`;
             await fetch(awardXpUrl, {
               method: "POST",
               headers: {
-                Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+                Authorization: `Bearer ${Deno.env.get(
+                  "SUPABASE_SERVICE_ROLE_KEY"
+                )}`,
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
@@ -1499,9 +1554,15 @@ serve(async (req) => {
           }
 
           // 2. Repeated questions (3+ user messages with similar content)
-          if (!handoffReason && contextMessages && contextMessages.length >= 4) {
+          if (
+            !handoffReason &&
+            contextMessages &&
+            contextMessages.length >= 4
+          ) {
             const userMsgs = contextMessages
-              .filter((m: { role: string; content: string }) => m.role === "user")
+              .filter(
+                (m: { role: string; content: string }) => m.role === "user"
+              )
               .map((m: { content: string }) => m.content.toLowerCase().trim());
 
             if (userMsgs.length >= 3) {
@@ -1509,14 +1570,69 @@ serve(async (req) => {
               // Simple similarity: check if messages share >50% of significant words
               const extractSignificantWords = (text: string): Set<string> => {
                 const stopWords = new Set([
-                  "the", "a", "an", "is", "are", "was", "were", "be", "been",
-                  "have", "has", "had", "do", "does", "did", "will", "would",
-                  "could", "should", "may", "might", "can", "i", "me", "my",
-                  "we", "you", "your", "he", "she", "it", "they", "them",
-                  "this", "that", "what", "how", "why", "when", "where",
-                  "which", "who", "to", "of", "in", "for", "on", "with", "at",
-                  "by", "from", "and", "or", "but", "not", "no", "so", "if",
-                  "about", "help", "please", "explain", "understand",
+                  "the",
+                  "a",
+                  "an",
+                  "is",
+                  "are",
+                  "was",
+                  "were",
+                  "be",
+                  "been",
+                  "have",
+                  "has",
+                  "had",
+                  "do",
+                  "does",
+                  "did",
+                  "will",
+                  "would",
+                  "could",
+                  "should",
+                  "may",
+                  "might",
+                  "can",
+                  "i",
+                  "me",
+                  "my",
+                  "we",
+                  "you",
+                  "your",
+                  "he",
+                  "she",
+                  "it",
+                  "they",
+                  "them",
+                  "this",
+                  "that",
+                  "what",
+                  "how",
+                  "why",
+                  "when",
+                  "where",
+                  "which",
+                  "who",
+                  "to",
+                  "of",
+                  "in",
+                  "for",
+                  "on",
+                  "with",
+                  "at",
+                  "by",
+                  "from",
+                  "and",
+                  "or",
+                  "but",
+                  "not",
+                  "no",
+                  "so",
+                  "if",
+                  "about",
+                  "help",
+                  "please",
+                  "explain",
+                  "understand",
                 ]);
                 return new Set(
                   text
@@ -1527,12 +1643,19 @@ serve(async (req) => {
               };
 
               const wordSets = lastThree.map(extractSignificantWords);
-              if (wordSets[0].size > 0 && wordSets[1].size > 0 && wordSets[2].size > 0) {
+              if (
+                wordSets[0].size > 0 &&
+                wordSets[1].size > 0 &&
+                wordSets[2].size > 0
+              ) {
                 const commonWords = [...wordSets[0]].filter(
                   (w) => wordSets[1].has(w) && wordSets[2].has(w)
                 );
-                const minSize = Math.min(...wordSets.map((s: Set<string>) => s.size));
-                const overlapRatio = minSize > 0 ? commonWords.length / minSize : 0;
+                const minSize = Math.min(
+                  ...wordSets.map((s: Set<string>) => s.size)
+                );
+                const overlapRatio =
+                  minSize > 0 ? commonWords.length / minSize : 0;
 
                 if (overlapRatio >= 0.5 && commonWords.length >= 2) {
                   handoffReason = "repeated_question";
@@ -1634,11 +1757,15 @@ serve(async (req) => {
                 recentCount % triggerThreshold === 0
               ) {
                 // Invoke generate-plan-update Edge Function
-                const planUpdateUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/generate-plan-update`;
+                const planUpdateUrl = `${Deno.env.get(
+                  "SUPABASE_URL"
+                )}/functions/v1/generate-plan-update`;
                 const planResponse = await fetch(planUpdateUrl, {
                   method: "POST",
                   headers: {
-                    Authorization: `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")}`,
+                    Authorization: `Bearer ${Deno.env.get(
+                      "SUPABASE_SERVICE_ROLE_KEY"
+                    )}`,
                     "Content-Type": "application/json",
                   },
                   body: JSON.stringify({

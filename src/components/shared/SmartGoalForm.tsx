@@ -1,7 +1,10 @@
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { smartGoalTemplateSchema, type SmartGoalTemplate } from '@/lib/onboardingSchemas';
-import { composeGoalText } from '@/lib/goalTemplates';
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  smartGoalTemplateSchema,
+  type SmartGoalTemplate,
+} from "@/lib/onboardingSchemas";
+import { composeGoalText } from "@/lib/goalTemplates";
 import {
   Form,
   FormField,
@@ -9,18 +12,18 @@ import {
   FormLabel,
   FormControl,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Loader2 } from 'lucide-react';
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Loader2 } from "lucide-react";
 
 export interface CourseOption {
   id: string;
@@ -39,17 +42,17 @@ export interface SmartGoalFormProps {
 
 const SmartGoalForm = ({
   courses,
-  defaultRelevant = '',
-  defaultTimebound = '',
+  defaultRelevant = "",
+  defaultTimebound = "",
   onSubmit,
   isPending = false,
 }: SmartGoalFormProps) => {
   const form = useForm<SmartGoalTemplate>({
     resolver: zodResolver(smartGoalTemplateSchema),
     defaultValues: {
-      specific: '',
-      measurable: '',
-      achievable: '',
+      specific: "",
+      measurable: "",
+      achievable: "",
       relevant: defaultRelevant,
       timebound: defaultTimebound,
     },
@@ -62,7 +65,9 @@ const SmartGoalForm = ({
 
   return (
     <Card className="bg-white border-0 shadow-md rounded-xl p-6">
-      <h3 className="text-sm font-bold text-gray-900 mb-4">SMART Goal Template</h3>
+      <h3 className="text-sm font-bold text-gray-900 mb-4">
+        SMART Goal Template
+      </h3>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
           <FormField
@@ -74,7 +79,10 @@ const SmartGoalForm = ({
                   Specific — What will you accomplish?
                 </FormLabel>
                 <FormControl>
-                  <Input placeholder="e.g., Complete all practice problems for Chapter 3" {...field} />
+                  <Input
+                    placeholder="e.g., Complete all practice problems for Chapter 3"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -90,7 +98,10 @@ const SmartGoalForm = ({
                   Measurable — How will you track progress?
                 </FormLabel>
                 <FormControl>
-                  <Input placeholder="e.g., Score at least 80% on the practice quiz" {...field} />
+                  <Input
+                    placeholder="e.g., Score at least 80% on the practice quiz"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -106,7 +117,10 @@ const SmartGoalForm = ({
                   Achievable — Why is this realistic?
                 </FormLabel>
                 <FormControl>
-                  <Input placeholder="e.g., Based on my current progress and available study time" {...field} />
+                  <Input
+                    placeholder="e.g., Based on my current progress and available study time"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -121,7 +135,10 @@ const SmartGoalForm = ({
                 <FormLabel className="text-xs font-bold text-gray-700">
                   Relevant — Which course or outcome?
                 </FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
                   <FormControl>
                     <SelectTrigger className="bg-white">
                       <SelectValue placeholder="Select a course" />

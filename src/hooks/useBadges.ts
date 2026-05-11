@@ -1,6 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
 
 export interface StudentBadge {
   badge_key: string;
@@ -19,10 +19,10 @@ export const useStudentBadges = () => {
       if (!user) return [];
 
       const { data, error } = await supabase
-        .from('badges')
-        .select('badge_key, badge_name, emoji, awarded_at')
-        .eq('student_id', user.id)
-        .order('awarded_at', { ascending: false });
+        .from("badges")
+        .select("badge_key, badge_name, emoji, awarded_at")
+        .eq("student_id", user.id)
+        .order("awarded_at", { ascending: false });
 
       if (error) throw error;
       return (data ?? []) as StudentBadge[];

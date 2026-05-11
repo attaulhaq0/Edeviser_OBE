@@ -1,30 +1,32 @@
-import { useState } from 'react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
+import { useState } from "react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import Shimmer from '@/components/shared/Shimmer';
-import { useCourses } from '@/hooks/useCourses';
-import { useSemesters } from '@/hooks/useSemesters';
-import { useGenerateCourseFile } from '@/hooks/useCourseFile';
-import { toast } from 'sonner';
-import { FileText, Download, Loader2, CheckCircle2 } from 'lucide-react';
+} from "@/components/ui/select";
+import Shimmer from "@/components/shared/Shimmer";
+import { useCourses } from "@/hooks/useCourses";
+import { useSemesters } from "@/hooks/useSemesters";
+import { useGenerateCourseFile } from "@/hooks/useCourseFile";
+import { toast } from "sonner";
+import { FileText, Download, Loader2, CheckCircle2 } from "lucide-react";
 
 // ─── Course File Generator Page ─────────────────────────────────────────────
 
 const CourseFileGenerator = () => {
-  const { data: coursesResult, isLoading: coursesLoading } = useCourses({ pageSize: 200 });
+  const { data: coursesResult, isLoading: coursesLoading } = useCourses({
+    pageSize: 200,
+  });
   const { data: semesters, isLoading: semestersLoading } = useSemesters();
   const generateMutation = useGenerateCourseFile();
 
-  const [courseId, setCourseId] = useState('');
-  const [semesterId, setSemesterId] = useState('');
+  const [courseId, setCourseId] = useState("");
+  const [semesterId, setSemesterId] = useState("");
   const [lastResult, setLastResult] = useState<{
     download_url: string;
     course_name: string;
@@ -38,11 +40,11 @@ const CourseFileGenerator = () => {
 
   const handleGenerate = () => {
     if (!courseId) {
-      toast.error('Please select a course');
+      toast.error("Please select a course");
       return;
     }
     if (!semesterId) {
-      toast.error('Please select a semester');
+      toast.error("Please select a semester");
       return;
     }
 
@@ -59,35 +61,44 @@ const CourseFileGenerator = () => {
             semester: result.semester,
             generated_at: result.generated_at,
           });
-          toast.success('Course file generated successfully');
+          toast.success("Course file generated successfully");
         },
         onError: (err) => {
-          toast.error(err instanceof Error ? err.message : 'Course file generation failed');
+          toast.error(
+            err instanceof Error ? err.message : "Course file generation failed"
+          );
         },
-      },
+      }
     );
   };
 
   const handleDownload = () => {
     if (lastResult?.download_url) {
-      window.open(lastResult.download_url, '_blank');
+      window.open(lastResult.download_url, "_blank");
     }
   };
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Course File Generator</h1>
+        <h1 className="text-2xl font-bold tracking-tight">
+          Course File Generator
+        </h1>
       </div>
 
       {/* Configuration Card */}
       <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
         <div
           className="px-6 py-4 flex items-center gap-2"
-          style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+          style={{
+            background:
+              "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+          }}
         >
           <FileText className="h-5 w-5 text-white" />
-          <h2 className="text-lg font-bold tracking-tight text-white">Generate Course File</h2>
+          <h2 className="text-lg font-bold tracking-tight text-white">
+            Generate Course File
+          </h2>
         </div>
         <div className="p-6 space-y-6">
           {isLoading ? (
@@ -144,7 +155,9 @@ const CourseFileGenerator = () => {
               {/* Generate Button */}
               <Button
                 onClick={handleGenerate}
-                disabled={generateMutation.isPending || !courseId || !semesterId}
+                disabled={
+                  generateMutation.isPending || !courseId || !semesterId
+                }
                 className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
               >
                 {generateMutation.isPending ? (
@@ -152,7 +165,9 @@ const CourseFileGenerator = () => {
                 ) : (
                   <FileText className="h-4 w-4" />
                 )}
-                {generateMutation.isPending ? 'Generating...' : 'Generate Course File'}
+                {generateMutation.isPending
+                  ? "Generating..."
+                  : "Generate Course File"}
               </Button>
             </>
           )}
@@ -164,10 +179,15 @@ const CourseFileGenerator = () => {
         <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
           <div
             className="px-6 py-4 flex items-center gap-2"
-            style={{ background: 'linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)' }}
+            style={{
+              background:
+                "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+            }}
           >
             <CheckCircle2 className="h-5 w-5 text-white" />
-            <h2 className="text-lg font-bold tracking-tight text-white">Course File Ready</h2>
+            <h2 className="text-lg font-bold tracking-tight text-white">
+              Course File Ready
+            </h2>
           </div>
           <div className="p-6 space-y-4">
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">

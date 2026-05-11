@@ -1,29 +1,35 @@
-import { type ColumnDef } from '@tanstack/react-table';
-import { format } from 'date-fns';
-import { ArrowUpDown, GripVertical, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { type ColumnDef } from "@tanstack/react-table";
+import { format } from "date-fns";
+import {
+  ArrowUpDown,
+  GripVertical,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import type { LearningOutcome } from '@/types/app';
+} from "@/components/ui/dropdown-menu";
+import type { LearningOutcome } from "@/types/app";
 
 // ─── Column factory — accepts onEdit and onDelete callbacks ─────────────────
 
 export const createColumns = (
   onEdit: (id: string) => void,
   onDelete: (ilo: LearningOutcome) => void,
-  isDragMode: boolean,
+  isDragMode: boolean
 ): ColumnDef<LearningOutcome>[] => {
   const cols: ColumnDef<LearningOutcome>[] = [];
 
   if (isDragMode) {
     cols.push({
-      id: 'drag-handle',
-      header: '',
+      id: "drag-handle",
+      header: "",
       cell: () => (
         <GripVertical className="h-4 w-4 text-gray-400 cursor-grab" />
       ),
@@ -33,78 +39,78 @@ export const createColumns = (
 
   cols.push(
     {
-      accessorKey: 'sort_order',
-      header: '#',
+      accessorKey: "sort_order",
+      header: "#",
       cell: ({ row }) => (
         <span className="text-gray-500 text-sm font-medium">
-          {(row.getValue('sort_order') as number) + 1}
+          {(row.getValue("sort_order") as number) + 1}
         </span>
       ),
       size: 50,
     },
     {
-      accessorKey: 'title',
+      accessorKey: "title",
       header: ({ column }) => (
         <Button
           variant="ghost"
           size="sm"
           className="-ms-3"
-          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           Title
           <ArrowUpDown className="h-4 w-4" />
         </Button>
       ),
       cell: ({ row }) => (
-        <span className="font-medium">{row.getValue('title')}</span>
+        <span className="font-medium">{row.getValue("title")}</span>
       ),
     },
     {
-      accessorKey: 'description',
-      header: 'Description',
+      accessorKey: "description",
+      header: "Description",
       cell: ({ row }) => {
-        const desc = row.getValue('description') as string | null;
+        const desc = row.getValue("description") as string | null;
         return (
           <span className="text-gray-500 text-sm line-clamp-1">
-            {desc || '—'}
+            {desc || "—"}
           </span>
         );
       },
     },
     {
-      accessorKey: 'is_active',
-      header: 'Status',
+      accessorKey: "is_active",
+      header: "Status",
       cell: ({ row }) => {
-        const isActive = row.getValue('is_active') as boolean;
+        const isActive = row.getValue("is_active") as boolean;
         return (
           <Badge
             variant="outline"
             className={
               isActive
-                ? 'bg-green-50 text-green-600 border-green-200'
-                : 'bg-red-50 text-red-600 border-red-200'
+                ? "bg-green-50 text-green-600 border-green-200"
+                : "bg-red-50 text-red-600 border-red-200"
             }
           >
-            {isActive ? 'Active' : 'Inactive'}
+            {isActive ? "Active" : "Inactive"}
           </Badge>
         );
       },
     },
     {
-      accessorKey: 'created_at',
-      header: 'Created',
+      accessorKey: "created_at",
+      header: "Created",
       cell: ({ row }) => {
-        const date = row.getValue('created_at') as string;
+        const date = row.getValue("created_at") as string;
         return (
           <span className="text-gray-500">
-            {format(new Date(date), 'MMM d, yyyy')}
+            {format(new Date(date), "MMM d, yyyy")}
           </span>
         );
       },
     },
     {
-      id: 'actions',
-      header: '',
+      id: "actions",
+      header: "",
       cell: ({ row }) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -128,7 +134,7 @@ export const createColumns = (
           </DropdownMenuContent>
         </DropdownMenu>
       ),
-    },
+    }
   );
 
   return cols;

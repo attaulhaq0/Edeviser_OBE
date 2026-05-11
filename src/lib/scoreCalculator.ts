@@ -14,11 +14,11 @@ export interface VARKProfile {
   read_write: number;
   kinesthetic: number;
   dominant_style:
-    | 'visual'
-    | 'auditory'
-    | 'read_write'
-    | 'kinesthetic'
-    | 'multimodal';
+    | "visual"
+    | "auditory"
+    | "read_write"
+    | "kinesthetic"
+    | "multimodal";
 }
 
 export interface SelfEfficacyProfile {
@@ -85,7 +85,7 @@ const TOTAL_STUDY_STRATEGY_ITEMS = 8;
 const TOTAL_LEARNING_STYLE_ITEMS = 16;
 
 function computeDimensionScore(
-  responses: Array<{ selected_option: number }>,
+  responses: Array<{ selected_option: number }>
 ): number {
   if (responses.length === 0) return 0;
   const sum = responses.reduce((acc, r) => acc + r.selected_option, 0);
@@ -106,7 +106,7 @@ function computeDimensionScore(
  * Supports partial scores (e.g., Day 1 has only 3 questions).
  */
 export function calculateBigFiveScores(
-  responses: PersonalityResponse[],
+  responses: PersonalityResponse[]
 ): BigFiveTraits {
   const computeDim = (dim: string): number => {
     const dimResponses = responses.filter((r) => r.dimension === dim);
@@ -121,11 +121,11 @@ export function calculateBigFiveScores(
   };
 
   return {
-    openness: computeDim('openness'),
-    conscientiousness: computeDim('conscientiousness'),
-    extraversion: computeDim('extraversion'),
-    agreeableness: computeDim('agreeableness'),
-    neuroticism: computeDim('neuroticism'),
+    openness: computeDim("openness"),
+    conscientiousness: computeDim("conscientiousness"),
+    extraversion: computeDim("extraversion"),
+    agreeableness: computeDim("agreeableness"),
+    neuroticism: computeDim("neuroticism"),
   };
 }
 
@@ -140,7 +140,7 @@ export function calculateBigFiveScores(
  */
 export function calculateVARKScores(
   responses: VARKResponseInput[],
-  totalQuestions: number,
+  totalQuestions: number
 ): VARKProfile {
   let visual = 0;
   let auditory = 0;
@@ -149,16 +149,16 @@ export function calculateVARKScores(
 
   for (const r of responses) {
     switch (r.selected_modality) {
-      case 'visual':
+      case "visual":
         visual++;
         break;
-      case 'auditory':
+      case "auditory":
         auditory++;
         break;
-      case 'read_write':
+      case "read_write":
         readWrite++;
         break;
-      case 'kinesthetic':
+      case "kinesthetic":
         kinesthetic++;
         break;
     }
@@ -176,20 +176,30 @@ export function calculateVARKScores(
     kinesthetic: kinestheticScore,
   } as const;
 
-  const maxScore = Math.max(visualScore, auditoryScore, readWriteScore, kinestheticScore);
-
-  type Modality = 'visual' | 'auditory' | 'read_write' | 'kinesthetic';
-  const modalities: Modality[] = ['visual', 'auditory', 'read_write', 'kinesthetic'];
-  const topModalities = modalities.filter(
-    (m) => maxScore - scores[m] <= MULTIMODAL_THRESHOLD,
+  const maxScore = Math.max(
+    visualScore,
+    auditoryScore,
+    readWriteScore,
+    kinestheticScore
   );
 
-  let dominant_style: VARKProfile['dominant_style'];
+  type Modality = "visual" | "auditory" | "read_write" | "kinesthetic";
+  const modalities: Modality[] = [
+    "visual",
+    "auditory",
+    "read_write",
+    "kinesthetic",
+  ];
+  const topModalities = modalities.filter(
+    (m) => maxScore - scores[m] <= MULTIMODAL_THRESHOLD
+  );
+
+  let dominant_style: VARKProfile["dominant_style"];
   if (topModalities.length >= 2) {
-    dominant_style = 'multimodal';
+    dominant_style = "multimodal";
   } else {
     dominant_style = modalities.reduce((a, b) =>
-      scores[a] > scores[b] ? a : b,
+      scores[a] > scores[b] ? a : b
     );
   }
 
@@ -206,7 +216,7 @@ export function calculateVARKScores(
  * Unanswered questions are treated as incorrect (score 0).
  */
 export function calculateBaselineScores(
-  responses: BaselineResponseInput[],
+  responses: BaselineResponseInput[]
 ): BaselineResult[] {
   const cloMap = new Map<string, { total: number; correct: number }>();
 
@@ -236,7 +246,7 @@ export function calculateBaselineScores(
  * Supports partial scores (Day 1: 2 items).
  */
 export function calculateSelfEfficacyScores(
-  responses: SelfEfficacyResponseInput[],
+  responses: SelfEfficacyResponseInput[]
 ): SelfEfficacyProfile {
   const byDomain = (domain: string) =>
     computeDimensionScore(responses.filter((r) => r.domain === domain));
@@ -247,9 +257,9 @@ export function calculateSelfEfficacyScores(
 
   return {
     overall,
-    general_academic: byDomain('general_academic'),
-    course_specific: byDomain('course_specific'),
-    self_regulated_learning: byDomain('self_regulated_learning'),
+    general_academic: byDomain("general_academic"),
+    course_specific: byDomain("course_specific"),
+    self_regulated_learning: byDomain("self_regulated_learning"),
   };
 }
 
@@ -260,16 +270,16 @@ export function calculateSelfEfficacyScores(
  * Dimension score = (sum of items in dimension / (count * 5)) * 100, rounded
  */
 export function calculateStudyStrategyScores(
-  responses: StudyStrategyResponseInput[],
+  responses: StudyStrategyResponseInput[]
 ): StudyStrategyProfile {
   const byDim = (dim: string) =>
     computeDimensionScore(responses.filter((r) => r.dimension === dim));
 
   return {
-    time_management: byDim('time_management'),
-    elaboration: byDim('elaboration'),
-    self_testing: byDim('self_testing'),
-    help_seeking: byDim('help_seeking'),
+    time_management: byDim("time_management"),
+    elaboration: byDim("elaboration"),
+    self_testing: byDim("self_testing"),
+    help_seeking: byDim("help_seeking"),
   };
 }
 
@@ -286,14 +296,27 @@ export function calculateStudyStrategyScores(
  * Total = (sum of dimension fractions / 5) * 100, rounded
  */
 export function calculateProfileCompleteness(
-  input: ProfileCompletenessInput,
+  input: ProfileCompletenessInput
 ): number {
-  const personality = Math.min(input.personality_items / TOTAL_PERSONALITY_ITEMS, 1);
-  const selfEfficacy = Math.min(input.self_efficacy_items / TOTAL_SELF_EFFICACY_ITEMS, 1);
-  const studyStrategies = Math.min(input.study_strategy_items / TOTAL_STUDY_STRATEGY_ITEMS, 1);
-  const learningStyle = Math.min(input.learning_style_items / TOTAL_LEARNING_STYLE_ITEMS, 1);
+  const personality = Math.min(
+    input.personality_items / TOTAL_PERSONALITY_ITEMS,
+    1
+  );
+  const selfEfficacy = Math.min(
+    input.self_efficacy_items / TOTAL_SELF_EFFICACY_ITEMS,
+    1
+  );
+  const studyStrategies = Math.min(
+    input.study_strategy_items / TOTAL_STUDY_STRATEGY_ITEMS,
+    1
+  );
+  const learningStyle = Math.min(
+    input.learning_style_items / TOTAL_LEARNING_STYLE_ITEMS,
+    1
+  );
   const baseline = input.baseline_courses > 0 ? 1 : 0;
 
-  const total = personality + selfEfficacy + studyStrategies + learningStyle + baseline;
+  const total =
+    personality + selfEfficacy + studyStrategies + learningStyle + baseline;
   return Math.round((total / 5) * 100);
 }

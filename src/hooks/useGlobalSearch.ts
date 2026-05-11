@@ -1,13 +1,13 @@
 // Task 92.3: Global search hook — full-text search across courses, assignments, announcements
 
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
-import type { UserRole } from '@/types/app';
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
+import type { UserRole } from "@/types/app";
 
 export interface SearchResult {
   id: string;
-  type: 'course' | 'assignment' | 'announcement';
+  type: "course" | "assignment" | "announcement";
   title: string;
   description: string | null;
   url: string;
@@ -15,15 +15,15 @@ export interface SearchResult {
 
 const searchCourses = async (query: string): Promise<SearchResult[]> => {
   const { data, error } = await supabase
-    .from('courses')
-    .select('id, name, code')
+    .from("courses")
+    .select("id, name, code")
     .or(`name.ilike.%${query}%,code.ilike.%${query}%`)
     .limit(5);
 
   if (error) throw error;
   return (data ?? []).map((c) => ({
     id: c.id,
-    type: 'course' as const,
+    type: "course" as const,
     title: `${c.code} — ${c.name}`,
     description: null,
     url: `/courses/${c.id}`,
@@ -32,15 +32,15 @@ const searchCourses = async (query: string): Promise<SearchResult[]> => {
 
 const searchAssignments = async (query: string): Promise<SearchResult[]> => {
   const { data, error } = await supabase
-    .from('assignments')
-    .select('id, title, description')
-    .ilike('title', `%${query}%`)
+    .from("assignments")
+    .select("id, title, description")
+    .ilike("title", `%${query}%`)
     .limit(5);
 
   if (error) throw error;
   return (data ?? []).map((a) => ({
     id: a.id,
-    type: 'assignment' as const,
+    type: "assignment" as const,
     title: a.title,
     description: a.description,
     url: `/assignments/${a.id}`,
@@ -49,15 +49,15 @@ const searchAssignments = async (query: string): Promise<SearchResult[]> => {
 
 const searchAnnouncements = async (query: string): Promise<SearchResult[]> => {
   const { data, error } = await supabase
-    .from('announcements')
-    .select('id, title, content')
-    .ilike('title', `%${query}%`)
+    .from("announcements")
+    .select("id, title, content")
+    .ilike("title", `%${query}%`)
     .limit(5);
 
   if (error) throw error;
   return (data ?? []).map((a) => ({
     id: a.id,
-    type: 'announcement' as const,
+    type: "announcement" as const,
     title: a.title,
     description: a.content ? String(a.content).slice(0, 100) : null,
     url: `/announcements/${a.id}`,

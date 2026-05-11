@@ -1,47 +1,46 @@
-import { useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { Check, Pencil, Loader2, ClipboardCheck } from 'lucide-react';
-import { toast } from 'sonner';
+import { useState } from "react";
+import { useParams } from "react-router-dom";
+import { Check, Pencil, Loader2, ClipboardCheck } from "lucide-react";
+import { toast } from "sonner";
 
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 
-import GradientCardHeader from '@/components/shared/GradientCardHeader';
-import ExplanationConfidenceBadge from '@/components/shared/ExplanationConfidenceBadge';
-import DifficultyBadge from '@/components/shared/DifficultyBadge';
-import Shimmer from '@/components/shared/Shimmer';
-import EmptyState from '@/components/shared/EmptyState';
+import GradientCardHeader from "@/components/shared/GradientCardHeader";
+import ExplanationConfidenceBadge from "@/components/shared/ExplanationConfidenceBadge";
+import DifficultyBadge from "@/components/shared/DifficultyBadge";
+import Shimmer from "@/components/shared/Shimmer";
+import EmptyState from "@/components/shared/EmptyState";
 
 import {
   useExplanationReviewQueue,
   useApproveExplanation,
   useEditExplanation,
-} from '@/hooks/useExplanationConfidence';
-import type { ReviewQueueItem } from '@/hooks/useExplanationConfidence';
-import { useAuth } from '@/hooks/useAuth';
+} from "@/hooks/useExplanationConfidence";
+import type { ReviewQueueItem } from "@/hooks/useExplanationConfidence";
+import { useAuth } from "@/hooks/useAuth";
 
 // ─── Bloom's level helpers ──────────────────────────────────────────────────
 
 const BLOOM_LABELS: Record<number, string> = {
-  1: 'Remember',
-  2: 'Understand',
-  3: 'Apply',
-  4: 'Analyze',
-  5: 'Evaluate',
-  6: 'Create',
+  1: "Remember",
+  2: "Understand",
+  3: "Apply",
+  4: "Analyze",
+  5: "Evaluate",
+  6: "Create",
 };
 
 const BLOOM_COLORS: Record<number, string> = {
-  1: 'bg-purple-500 text-white',
-  2: 'bg-blue-500 text-white',
-  3: 'bg-green-500 text-white',
-  4: 'bg-yellow-500 text-gray-900',
-  5: 'bg-orange-500 text-white',
-  6: 'bg-red-500 text-white',
+  1: "bg-purple-500 text-white",
+  2: "bg-blue-500 text-white",
+  3: "bg-green-500 text-white",
+  4: "bg-yellow-500 text-gray-900",
+  5: "bg-orange-500 text-white",
+  6: "bg-red-500 text-white",
 };
-
 
 // ─── Explanation Review Card ────────────────────────────────────────────────
 
@@ -61,7 +60,7 @@ const ExplanationReviewCard = ({
   isSaving,
 }: ExplanationReviewCardProps) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [editText, setEditText] = useState(item.explanation ?? '');
+  const [editText, setEditText] = useState(item.explanation ?? "");
 
   const analytics = item.question_analytics;
   const successRate = analytics?.success_rate;
@@ -69,7 +68,7 @@ const ExplanationReviewCard = ({
 
   const handleSave = () => {
     if (!editText.trim()) {
-      toast.error('Explanation cannot be empty');
+      toast.error("Explanation cannot be empty");
       return;
     }
     onSaveEdit(item, editText.trim());
@@ -77,7 +76,7 @@ const ExplanationReviewCard = ({
   };
 
   const handleCancel = () => {
-    setEditText(item.explanation ?? '');
+    setEditText(item.explanation ?? "");
     setIsEditing(false);
   };
 
@@ -93,7 +92,9 @@ const ExplanationReviewCard = ({
         <div className="flex items-center gap-2 flex-wrap">
           <DifficultyBadge difficulty={item.difficulty_rating} />
           <Badge
-            className={`${BLOOM_COLORS[item.bloom_level] ?? ''} text-xs font-bold tracking-wide uppercase border-transparent`}
+            className={`${
+              BLOOM_COLORS[item.bloom_level] ?? ""
+            } text-xs font-bold tracking-wide uppercase border-transparent`}
           >
             {BLOOM_LABELS[item.bloom_level] ?? `Level ${item.bloom_level}`}
           </Badge>
@@ -112,7 +113,7 @@ const ExplanationReviewCard = ({
             <p className="text-sm font-bold text-gray-900">
               {successRate !== null && successRate !== undefined
                 ? `${(successRate * 100).toFixed(0)}%`
-                : '—'}
+                : "—"}
             </p>
           </div>
           <div>
@@ -130,7 +131,7 @@ const ExplanationReviewCard = ({
               AI Explanation
             </p>
             <p className="text-xs text-gray-600 leading-relaxed">
-              {item.explanation ?? 'No explanation available.'}
+              {item.explanation ?? "No explanation available."}
             </p>
           </div>
         )}
@@ -203,7 +204,7 @@ const ExplanationReviewCard = ({
 const ExplanationReviewPage = () => {
   const { courseId } = useParams<{ courseId: string }>();
   const { user, institutionId } = useAuth();
-  const { data: queue, isLoading } = useExplanationReviewQueue(courseId ?? '');
+  const { data: queue, isLoading } = useExplanationReviewQueue(courseId ?? "");
   const approveMutation = useApproveExplanation();
   const editMutation = useEditExplanation();
 
@@ -218,9 +219,9 @@ const ExplanationReviewPage = () => {
         verified_by: user.id,
       },
       {
-        onSuccess: () => toast.success('Explanation approved'),
+        onSuccess: () => toast.success("Explanation approved"),
         onError: (err) => toast.error(err.message),
-      },
+      }
     );
   };
 
@@ -235,9 +236,9 @@ const ExplanationReviewPage = () => {
         verified_by: user.id,
       },
       {
-        onSuccess: () => toast.success('Explanation updated'),
+        onSuccess: () => toast.success("Explanation updated"),
         onError: (err) => toast.error(err.message),
-      },
+      }
     );
   };
 
@@ -261,7 +262,10 @@ const ExplanationReviewPage = () => {
     return (
       <div className="space-y-6">
         <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
-          <GradientCardHeader icon={ClipboardCheck} title="Review Explanations" />
+          <GradientCardHeader
+            icon={ClipboardCheck}
+            title="Review Explanations"
+          />
           <div className="p-6">
             <EmptyState
               title="No explanations to review"
@@ -281,7 +285,7 @@ const ExplanationReviewPage = () => {
       <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
         <GradientCardHeader icon={ClipboardCheck} title="Review Explanations">
           <span className="text-xs text-white/70 font-medium">
-            {items.length} question{items.length !== 1 ? 's' : ''} to review
+            {items.length} question{items.length !== 1 ? "s" : ""} to review
           </span>
         </GradientCardHeader>
       </Card>

@@ -1,23 +1,23 @@
-import { useEffect, useState, useMemo } from 'react';
-import { useForm, useFieldArray, useWatch } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useNavigate, useParams } from 'react-router-dom';
-import { z } from 'zod';
+import { useEffect, useState, useMemo } from "react";
+import { useForm, useFieldArray, useWatch } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useNavigate, useParams } from "react-router-dom";
+import { z } from "zod";
 import {
   createAssignmentSchema,
   type CreateAssignmentFormData,
-} from '@/lib/schemas/assignment';
+} from "@/lib/schemas/assignment";
 import {
   useAssignment,
   useCreateAssignment,
   useUpdateAssignment,
-} from '@/hooks/useAssignments';
-import { useCourses } from '@/hooks/useCourses';
-import { useCLOs } from '@/hooks/useCLOs';
-import { useAcademicCalendarEvents } from '@/hooks/useAcademicCalendar';
-import { BLOOMS_COLORS } from '@/lib/bloomsVerbs';
-import type { BloomsLevel } from '@/lib/schemas/clo';
-import type { LearningOutcome } from '@/types/app';
+} from "@/hooks/useAssignments";
+import { useCourses } from "@/hooks/useCourses";
+import { useCLOs } from "@/hooks/useCLOs";
+import { useAcademicCalendarEvents } from "@/hooks/useAcademicCalendar";
+import { BLOOMS_COLORS } from "@/lib/bloomsVerbs";
+import type { BloomsLevel } from "@/lib/schemas/clo";
+import type { LearningOutcome } from "@/types/app";
 import {
   Form,
   FormField,
@@ -25,22 +25,30 @@ import {
   FormLabel,
   FormControl,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Loader2, Plus, Trash2, ChevronDown, ChevronRight, Bot } from 'lucide-react';
-import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  ArrowLeft,
+  Loader2,
+  Plus,
+  Trash2,
+  ChevronDown,
+  ChevronRight,
+  Bot,
+} from "lucide-react";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 // ─── Form data type using z.input to handle defaults ─────────────────────────
 
@@ -54,7 +62,10 @@ const BloomsBadge = ({ level }: { level: string | null }) => {
   const colors = BLOOMS_COLORS[key];
   if (!colors) return null;
   return (
-    <Badge variant="outline" className={cn(colors.bg, colors.text, 'border-0 text-xs')}>
+    <Badge
+      variant="outline"
+      className={cn(colors.bg, colors.text, "border-0 text-xs")}
+    >
       {level}
     </Badge>
   );
@@ -68,14 +79,22 @@ interface CLOWeightSectionProps {
   form: ReturnType<typeof useForm<AssignmentFormData>>;
 }
 
-const CLOWeightSection = ({ clos, isLoadingCLOs, form }: CLOWeightSectionProps) => {
+const CLOWeightSection = ({
+  clos,
+  isLoadingCLOs,
+  form,
+}: CLOWeightSectionProps) => {
   const { fields, append, remove } = useFieldArray({
     control: form.control,
-    name: 'clo_weights',
+    name: "clo_weights",
   });
 
-  const watchedWeights = useWatch({ control: form.control, name: 'clo_weights' }) ?? [];
-  const totalWeight = watchedWeights.reduce((sum, w) => sum + (Number(w?.weight) || 0), 0);
+  const watchedWeights =
+    useWatch({ control: form.control, name: "clo_weights" }) ?? [];
+  const totalWeight = watchedWeights.reduce(
+    (sum, w) => sum + (Number(w?.weight) || 0),
+    0
+  );
   const selectedCloIds = watchedWeights.map((w) => w?.clo_id).filter(Boolean);
 
   const toggleCLO = (clo: LearningOutcome) => {
@@ -83,7 +102,10 @@ const CLOWeightSection = ({ clos, isLoadingCLOs, form }: CLOWeightSectionProps) 
     if (idx >= 0) {
       remove(idx);
     } else if (fields.length < 3) {
-      append({ clo_id: clo.id as `${string}-${string}-${string}-${string}-${string}`, weight: 0 });
+      append({
+        clo_id: clo.id as `${string}-${string}-${string}-${string}-${string}`,
+        weight: 0,
+      });
     }
   };
 
@@ -92,7 +114,11 @@ const CLOWeightSection = ({ clos, isLoadingCLOs, form }: CLOWeightSectionProps) 
   }
 
   if (clos.length === 0) {
-    return <p className="text-sm text-gray-500">No CLOs found for this course. Create CLOs first.</p>;
+    return (
+      <p className="text-sm text-gray-500">
+        No CLOs found for this course. Create CLOs first.
+      </p>
+    );
   }
 
   return (
@@ -105,8 +131,8 @@ const CLOWeightSection = ({ clos, isLoadingCLOs, form }: CLOWeightSectionProps) 
           <div
             key={clo.id}
             className={cn(
-              'flex items-center gap-3 rounded-lg border p-3 transition-colors',
-              isSelected ? 'border-blue-300 bg-blue-50/50' : 'border-slate-200',
+              "flex items-center gap-3 rounded-lg border p-3 transition-colors",
+              isSelected ? "border-blue-300 bg-blue-50/50" : "border-slate-200"
             )}
           >
             <input
@@ -119,7 +145,9 @@ const CLOWeightSection = ({ clos, isLoadingCLOs, form }: CLOWeightSectionProps) 
             />
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium truncate">{clo.title}</span>
+                <span className="text-sm font-medium truncate">
+                  {clo.title}
+                </span>
                 <BloomsBadge level={clo.blooms_level} />
               </div>
             </div>
@@ -137,7 +165,9 @@ const CLOWeightSection = ({ clos, isLoadingCLOs, form }: CLOWeightSectionProps) 
                           max={100}
                           className="w-20 h-8 text-sm"
                           {...field}
-                          onChange={(e) => field.onChange(Number(e.target.value))}
+                          onChange={(e) =>
+                            field.onChange(Number(e.target.value))
+                          }
                           value={field.value ?? 0}
                         />
                       </FormControl>
@@ -159,12 +189,11 @@ const CLOWeightSection = ({ clos, isLoadingCLOs, form }: CLOWeightSectionProps) 
         </span>
         <span
           className={cn(
-            'text-sm font-semibold',
-            totalWeight === 100 ? 'text-green-600' : 'text-amber-600',
+            "text-sm font-semibold",
+            totalWeight === 100 ? "text-green-600" : "text-amber-600"
           )}
         >
-          Total: {totalWeight}%
-          {totalWeight !== 100 && ' (should be 100%)'}
+          Total: {totalWeight}%{totalWeight !== 100 && " (should be 100%)"}
         </span>
       </div>
     </div>
@@ -182,7 +211,7 @@ const PrerequisiteSection = ({ clos, form }: PrerequisiteSectionProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const { fields, append, remove } = useFieldArray({
     control: form.control,
-    name: 'prerequisites',
+    name: "prerequisites",
   });
 
   return (
@@ -192,14 +221,19 @@ const PrerequisiteSection = ({ clos, form }: PrerequisiteSectionProps) => {
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-gray-900"
       >
-        {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+        {isOpen ? (
+          <ChevronDown className="h-4 w-4" />
+        ) : (
+          <ChevronRight className="h-4 w-4" />
+        )}
         Prerequisite Gates ({fields.length})
       </button>
 
       {isOpen && (
         <div className="space-y-3 ps-6">
           <p className="text-xs text-gray-500">
-            Students must achieve the required attainment on a CLO before accessing this assignment.
+            Students must achieve the required attainment on a CLO before
+            accessing this assignment.
           </p>
 
           {fields.map((field, index) => (
@@ -209,7 +243,10 @@ const PrerequisiteSection = ({ clos, form }: PrerequisiteSectionProps) => {
                 name={`prerequisites.${index}.clo_id`}
                 render={({ field: selectField }) => (
                   <FormItem className="flex-1 space-y-0">
-                    <Select onValueChange={selectField.onChange} value={selectField.value}>
+                    <Select
+                      onValueChange={selectField.onChange}
+                      value={selectField.value}
+                    >
                       <FormControl>
                         <SelectTrigger className="bg-white h-8 text-sm">
                           <SelectValue placeholder="Select CLO" />
@@ -245,7 +282,9 @@ const PrerequisiteSection = ({ clos, form }: PrerequisiteSectionProps) => {
                           className="w-20 h-8 text-sm"
                           placeholder="Min %"
                           {...numField}
-                          onChange={(e) => numField.onChange(Number(e.target.value))}
+                          onChange={(e) =>
+                            numField.onChange(Number(e.target.value))
+                          }
                           value={numField.value ?? 0}
                         />
                       </FormControl>
@@ -274,7 +313,8 @@ const PrerequisiteSection = ({ clos, form }: PrerequisiteSectionProps) => {
             size="sm"
             onClick={() =>
               append({
-                clo_id: '' as `${string}-${string}-${string}-${string}-${string}`,
+                clo_id:
+                  "" as `${string}-${string}-${string}-${string}-${string}`,
                 required_attainment: 70,
               })
             }
@@ -305,12 +345,15 @@ const AssignmentFormFields = ({
 }: AssignmentFormFieldsProps) => {
   const navigate = useNavigate();
 
-  const selectedCourseId = useWatch({ control: form.control, name: 'course_id' });
-  const watchedDueDate = useWatch({ control: form.control, name: 'due_date' });
+  const selectedCourseId = useWatch({
+    control: form.control,
+    name: "course_id",
+  });
+  const watchedDueDate = useWatch({ control: form.control, name: "due_date" });
   const { data: paginatedCourses, isLoading: isLoadingCourses } = useCourses();
   const courses = paginatedCourses?.data ?? [];
   const { data: paginatedCLOs, isLoading: isLoadingCLOs } = useCLOs(
-    selectedCourseId || undefined,
+    selectedCourseId || undefined
   );
   const clos = paginatedCLOs?.data ?? [];
   const { data: calendarEvents = [] } = useAcademicCalendarEvents();
@@ -319,10 +362,11 @@ const AssignmentFormFields = ({
   const holidayWarning = useMemo(() => {
     if (!watchedDueDate) return null;
     const dueDateStr = watchedDueDate.slice(0, 10);
-    const holidays = calendarEvents.filter((e) => e.event_type === 'holiday');
+    const holidays = calendarEvents.filter((e) => e.event_type === "holiday");
     const matchingHoliday = holidays.find((h) => {
       if (dueDateStr === h.start_date) return true;
-      if (h.end_date && dueDateStr >= h.start_date && dueDateStr <= h.end_date) return true;
+      if (h.end_date && dueDateStr >= h.start_date && dueDateStr <= h.end_date)
+        return true;
       return false;
     });
     if (!matchingHoliday) return null;
@@ -337,8 +381,8 @@ const AssignmentFormFields = ({
   // Reset CLO weights when course changes
   useEffect(() => {
     if (selectedCourseId && !isEditMode) {
-      form.setValue('clo_weights', []);
-      form.setValue('prerequisites', []);
+      form.setValue("clo_weights", []);
+      form.setValue("prerequisites", []);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCourseId]);
@@ -348,7 +392,7 @@ const AssignmentFormFields = ({
       <form
         onSubmit={form.handleSubmit((data) => {
           // Convert datetime-local to ISO string
-          const isoDate = data.due_date.includes('Z')
+          const isoDate = data.due_date.includes("Z")
             ? data.due_date
             : new Date(data.due_date).toISOString();
           onSubmit({ ...data, due_date: isoDate });
@@ -357,7 +401,9 @@ const AssignmentFormFields = ({
       >
         {/* Section 1: Basic Details */}
         <Card className="bg-white border-0 shadow-md rounded-xl p-6">
-          <h2 className="text-lg font-bold tracking-tight mb-4">Basic Details</h2>
+          <h2 className="text-lg font-bold tracking-tight mb-4">
+            Basic Details
+          </h2>
           <div className="space-y-4">
             <FormField
               control={form.control}
@@ -366,7 +412,10 @@ const AssignmentFormFields = ({
                 <FormItem>
                   <FormLabel>Title</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g. Binary Search Tree Implementation" {...field} />
+                    <Input
+                      placeholder="e.g. Binary Search Tree Implementation"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -433,16 +482,18 @@ const AssignmentFormFields = ({
                         {...field}
                         value={
                           field.value
-                            ? field.value.includes('T')
+                            ? field.value.includes("T")
                               ? field.value.slice(0, 16)
                               : field.value
-                            : ''
+                            : ""
                         }
                       />
                     </FormControl>
                     {holidayWarning && (
                       <p className="text-xs text-amber-600 mt-1">
-                        ⚠️ This date falls on a holiday ({holidayWarning.holiday}). Consider moving to {holidayWarning.suggestedDate}.
+                        ⚠️ This date falls on a holiday (
+                        {holidayWarning.holiday}). Consider moving to{" "}
+                        {holidayWarning.suggestedDate}.
                       </p>
                     )}
                     <FormMessage />
@@ -463,7 +514,7 @@ const AssignmentFormFields = ({
                         placeholder="100"
                         {...field}
                         onChange={(e) => field.onChange(Number(e.target.value))}
-                        value={field.value ?? ''}
+                        value={field.value ?? ""}
                       />
                     </FormControl>
                     <FormMessage />
@@ -507,7 +558,9 @@ const AssignmentFormFields = ({
               form={form}
             />
           ) : (
-            <p className="text-sm text-gray-500">Select a course to see available CLOs.</p>
+            <p className="text-sm text-gray-500">
+              Select a course to see available CLOs.
+            </p>
           )}
         </Card>
 
@@ -515,12 +568,16 @@ const AssignmentFormFields = ({
         <Card className="bg-white border-0 shadow-md rounded-xl p-6">
           <h2 className="text-lg font-bold tracking-tight mb-4">
             Prerequisite Gates
-            <span className="text-sm font-normal text-gray-500 ms-2">(Optional)</span>
+            <span className="text-sm font-normal text-gray-500 ms-2">
+              (Optional)
+            </span>
           </h2>
           {selectedCourseId ? (
             <PrerequisiteSection clos={clos} form={form} />
           ) : (
-            <p className="text-sm text-gray-500">Select a course to configure prerequisites.</p>
+            <p className="text-sm text-gray-500">
+              Select a course to configure prerequisites.
+            </p>
           )}
         </Card>
 
@@ -528,7 +585,9 @@ const AssignmentFormFields = ({
         <Card className="bg-white border-0 shadow-md rounded-xl p-6">
           <div className="flex items-center gap-2 mb-4">
             <Bot className="h-5 w-5 text-blue-600" />
-            <h2 className="text-lg font-bold tracking-tight">AI Tutor Settings</h2>
+            <h2 className="text-lg font-bold tracking-tight">
+              AI Tutor Settings
+            </h2>
           </div>
           <FormField
             control={form.control}
@@ -536,7 +595,10 @@ const AssignmentFormFields = ({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>AI Tutor Autonomy Level</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value ?? 'L1'}>
+                <Select
+                  onValueChange={field.onChange}
+                  value={field.value ?? "L1"}
+                >
                   <FormControl>
                     <SelectTrigger className="bg-white">
                       <SelectValue placeholder="Select autonomy level" />
@@ -549,7 +611,8 @@ const AssignmentFormFields = ({
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-gray-500 mt-1">
-                  Controls how much direct help the AI Tutor provides for this assignment.
+                  Controls how much direct help the AI Tutor provides for this
+                  assignment.
                 </p>
                 <FormMessage />
               </FormItem>
@@ -565,12 +628,12 @@ const AssignmentFormFields = ({
             className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 text-white"
           >
             {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-            {isEditMode ? 'Update Assignment' : 'Create Assignment'}
+            {isEditMode ? "Update Assignment" : "Create Assignment"}
           </Button>
           <Button
             type="button"
             variant="outline"
-            onClick={() => navigate('/teacher/assignments')}
+            onClick={() => navigate("/teacher/assignments")}
           >
             Cancel
           </Button>
@@ -589,23 +652,23 @@ const CreateAssignmentForm = () => {
   const form = useForm<AssignmentFormData>({
     resolver: zodResolver(createAssignmentSchema),
     defaultValues: {
-      title: '',
-      description: '',
-      course_id: '' as `${string}-${string}-${string}-${string}-${string}`,
-      due_date: '',
+      title: "",
+      description: "",
+      course_id: "" as `${string}-${string}-${string}-${string}-${string}`,
+      due_date: "",
       total_marks: undefined as unknown as number,
       clo_weights: [],
       late_window_hours: 24,
       prerequisites: [],
-      tutor_autonomy_level: 'L1',
+      tutor_autonomy_level: "L1",
     },
   });
 
   const onSubmit = (data: AssignmentFormData) => {
     createMutation.mutate(data as CreateAssignmentFormData, {
       onSuccess: () => {
-        toast.success('Assignment created successfully');
-        navigate('/teacher/assignments');
+        toast.success("Assignment created successfully");
+        navigate("/teacher/assignments");
       },
       onError: (err) => toast.error(err.message),
     });
@@ -631,15 +694,15 @@ const EditAssignmentForm = ({ assignmentId }: { assignmentId: string }) => {
   const form = useForm<AssignmentFormData>({
     resolver: zodResolver(createAssignmentSchema),
     defaultValues: {
-      title: '',
-      description: '',
-      course_id: '' as `${string}-${string}-${string}-${string}-${string}`,
-      due_date: '',
+      title: "",
+      description: "",
+      course_id: "" as `${string}-${string}-${string}-${string}-${string}`,
+      due_date: "",
       total_marks: undefined as unknown as number,
       clo_weights: [],
       late_window_hours: 24,
       prerequisites: [],
-      tutor_autonomy_level: 'L1',
+      tutor_autonomy_level: "L1",
     },
   });
 
@@ -648,20 +711,24 @@ const EditAssignmentForm = ({ assignmentId }: { assignmentId: string }) => {
       form.reset({
         title: existing.title,
         description: existing.description,
-        course_id: existing.course_id as `${string}-${string}-${string}-${string}-${string}`,
+        course_id:
+          existing.course_id as `${string}-${string}-${string}-${string}-${string}`,
         due_date: existing.due_date,
         total_marks: existing.total_marks,
         clo_weights: (existing.clo_weights ?? []).map((w) => ({
-          clo_id: w.clo_id as `${string}-${string}-${string}-${string}-${string}`,
+          clo_id:
+            w.clo_id as `${string}-${string}-${string}-${string}-${string}`,
           weight: w.weight,
         })),
         late_window_hours: existing.late_window_hours,
         prerequisites: (existing.prerequisites ?? []).map((p) => ({
-          clo_id: p.clo_id as `${string}-${string}-${string}-${string}-${string}`,
+          clo_id:
+            p.clo_id as `${string}-${string}-${string}-${string}-${string}`,
           required_attainment: p.required_attainment,
         })),
         tutor_autonomy_level:
-          (existing as unknown as Record<string, unknown>).tutor_autonomy_level as 'L1' | 'L2' | 'L3' ?? 'L1',
+          ((existing as unknown as Record<string, unknown>)
+            .tutor_autonomy_level as "L1" | "L2" | "L3") ?? "L1",
       });
     }
   }, [existing, form]);
@@ -677,8 +744,8 @@ const EditAssignmentForm = ({ assignmentId }: { assignmentId: string }) => {
   const onSubmit = (data: AssignmentFormData) => {
     updateMutation.mutate(data as Partial<CreateAssignmentFormData>, {
       onSuccess: () => {
-        toast.success('Assignment updated successfully');
-        navigate('/teacher/assignments');
+        toast.success("Assignment updated successfully");
+        navigate("/teacher/assignments");
       },
       onError: (err) => toast.error(err.message),
     });
@@ -707,13 +774,13 @@ const AssignmentForm = () => {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => navigate('/teacher/assignments')}
+          onClick={() => navigate("/teacher/assignments")}
         >
           <ArrowLeft className="h-4 w-4" />
           Back
         </Button>
         <h1 className="text-2xl font-bold tracking-tight">
-          {isEditMode ? 'Edit Assignment' : 'Create Assignment'}
+          {isEditMode ? "Edit Assignment" : "Create Assignment"}
         </h1>
       </div>
 

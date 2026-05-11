@@ -1,9 +1,9 @@
-import { isPast, addHours, formatDistanceToNow } from 'date-fns';
+import { isPast, addHours, formatDistanceToNow } from "date-fns";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
 export interface DeadlineStatus {
-  window: 'open' | 'late_window' | 'closed';
+  window: "open" | "late_window" | "closed";
   isLate: boolean;
   canSubmit: boolean;
   dueDate: Date;
@@ -27,7 +27,7 @@ export interface DeadlineStatus {
 export function getDeadlineStatus(
   dueDate: string,
   lateWindowHours: number,
-  extendedDueDate?: string | null,
+  extendedDueDate?: string | null
 ): DeadlineStatus {
   const isExtended = !!extendedDueDate;
   const effectiveDueDate = extendedDueDate ?? dueDate;
@@ -36,7 +36,7 @@ export function getDeadlineStatus(
 
   if (!isPast(due)) {
     return {
-      window: 'open',
+      window: "open",
       isLate: false,
       canSubmit: true,
       dueDate: due,
@@ -48,7 +48,7 @@ export function getDeadlineStatus(
 
   if (!isPast(lateDeadline)) {
     return {
-      window: 'late_window',
+      window: "late_window",
       isLate: true,
       canSubmit: true,
       dueDate: due,
@@ -59,12 +59,12 @@ export function getDeadlineStatus(
   }
 
   return {
-    window: 'closed',
+    window: "closed",
     isLate: false,
     canSubmit: false,
     dueDate: due,
     lateDeadline,
-    timeRemaining: 'Closed',
+    timeRemaining: "Closed",
     isExtended,
   };
 }
