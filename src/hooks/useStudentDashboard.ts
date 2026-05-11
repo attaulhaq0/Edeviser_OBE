@@ -35,22 +35,40 @@ export const useStudentKPIs = (studentId: string | undefined) => {
         };
       }
 
-      const { count: enrolledCourses } = await supabase
-        .from("student_courses")
-        .select("*", { count: "exact", head: true })
-        .eq("student_id", studentId);
-
-      const { count: completedAssignments } = await supabase
-        .from("submissions")
-        .select("*", { count: "exact", head: true })
-        .eq("student_id", studentId)
-        .eq("status", "graded");
-
-      const { data: attainmentData } = await supabase
-        .from("outcome_attainment")
-        .select("attainment_percent")
-        .eq("student_id", studentId)
-        .eq("scope", "student_course");
+      // ⚡ Bolt: Batch independent queries to reduce total latency.
+      // Expected impact: Reduces TTI (Time to Interactive) for the dashboard by parallelizing 5 network requests.
+      const [
+        { count: enrolledCourses },
+        { count: completedAssignments },
+        { data: attainmentData },
+        { data: gamification },
+        tadRowData,
+      ] = await Promise.all([
+        supabase
+          .from("student_courses")
+          .select("*", { count: "exact", head: true })
+          .eq("student_id", studentId),
+        supabase
+          .from("submissions")
+          .select("*", { count: "exact", head: true })
+          .eq("student_id", studentId)
+          .eq("status", "graded"),
+        supabase
+          .from("outcome_attainment")
+          .select("attainment_percent")
+          .eq("student_id", studentId)
+          .eq("scope", "student_course"),
+        supabase
+          .from("student_gamification")
+          .select("streak_current, level, xp_total")
+          .eq("student_id", studentId)
+          .maybeSingle(),
+        supabase
+          .from("student_gamification")
+          .select("total_active_days" as never)
+          .eq("student_id", studentId)
+          .maybeSingle(),
+      ]);
 
       const typedAttainment = attainmentData ?? [];
       const avgAttainment =
@@ -63,28 +81,10 @@ export const useStudentKPIs = (studentId: string | undefined) => {
             )
           : 0;
 
-      const { data: gamification } = await supabase
-        .from("student_gamification")
-        .select("streak_current, level, xp_total")
-        .eq("student_id", studentId)
-        .maybeSingle();
-
       const gamRow = gamification;
-
-      // total_active_days may not exist in generated types yet
-      let totalActiveDaysVal = 0;
-      try {
-        const { data: tadRow } = await supabase
-          .from("student_gamification")
-          .select("total_active_days" as never)
-          .eq("student_id", studentId)
-          .maybeSingle();
-        const val = (tadRow as Record<string, unknown> | null)
-          ?.total_active_days;
-        totalActiveDaysVal = typeof val === "number" ? val : 0;
-      } catch {
-        // Column may not exist yet
-      }
+      const val = ((tadRowData?.data || {}) as Record<string, unknown>)
+        ?.total_active_days;
+      const totalActiveDaysVal = typeof val === "number" ? val : 0;
 
       return {
         enrolledCourses: enrolledCourses ?? 0,
