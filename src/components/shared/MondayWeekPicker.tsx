@@ -9,7 +9,7 @@ import { Calendar } from "lucide-react";
 import { DayPicker } from "react-day-picker";
 import { format, endOfWeek } from "date-fns";
 import { useTranslation } from "react-i18next";
-import "react-day-picker/dist/style.css";
+import "react-day-picker/src/style.css";
 
 export interface MondayWeekPickerProps {
   value: Date | null;

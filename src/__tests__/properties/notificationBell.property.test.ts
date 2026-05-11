@@ -203,7 +203,7 @@ describe("notificationBell.property.test — notification bell end-to-end (claus
     if (!content) return;
 
     expect(content).toContain("NotificationBell");
-    expect(content).toContain("from '@/components/shared/NotificationBell'");
+    expect(content).toContain('from "@/components/shared/NotificationBell"');
   });
 
   /**

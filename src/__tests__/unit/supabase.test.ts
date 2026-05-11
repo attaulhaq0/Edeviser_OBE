@@ -11,7 +11,7 @@ describe("Supabase client singleton", () => {
     const source = fs.readFileSync("src/lib/supabase.ts", "utf-8");
 
     expect(source).toContain(
-      "import { createClient } from '@supabase/supabase-js'"
+      'import { createClient } from "@supabase/supabase-js"'
     );
     expect(source).toContain("VITE_SUPABASE_URL");
     expect(source).toContain("VITE_SUPABASE_ANON_KEY");
@@ -30,7 +30,7 @@ describe("Supabase client singleton", () => {
   it("uses @/ path alias for database type import", async () => {
     const fs = await import("fs");
     const source = fs.readFileSync("src/lib/supabase.ts", "utf-8");
-    expect(source).toContain("from '@/types/database'");
+    expect(source).toContain('from "@/types/database"');
     expect(source).not.toContain("from '../types/database'");
   });
 
