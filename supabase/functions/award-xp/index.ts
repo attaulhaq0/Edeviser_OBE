@@ -925,19 +925,19 @@ serve(async (req) => {
 
     if (source !== "practice_quiz") {
       const { data: bonusEvents, error: bonusErr } = await supabase
-        .from("bonus_xp_events")
-        .select("multiplier")
-        .lte("start_date", new Date().toISOString())
-        .gte("end_date", new Date().toISOString());
+        .from("xp_events")
+        .select("xp_multiplier")
+        .eq("is_active", true)
+        .lte("starts_at", new Date().toISOString())
+        .gte("ends_at", new Date().toISOString());
 
       if (bonusErr) {
         console.error("Bonus event query failed:", bonusErr.message);
-        // Continue without multiplier — don't block XP award
       }
 
       if (bonusEvents && bonusEvents.length > 0) {
         const maxMultiplier = Math.max(
-          ...bonusEvents.map((e: { multiplier: number }) => e.multiplier)
+          ...bonusEvents.map((e: { xp_multiplier: number }) => e.xp_multiplier)
         );
         if (maxMultiplier > 1) {
           bonusEventMultiplier = maxMultiplier;

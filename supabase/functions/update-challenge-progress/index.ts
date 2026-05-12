@@ -320,8 +320,9 @@ async function computeBloomsClimbProgress(
 
   // Fetch the Bloom's levels for these CLOs
   const { data: clos, error: cloErr } = await supabase
-    .from("clos")
+    .from("learning_outcomes")
     .select("id, blooms_level")
+    .eq("type", "clo")
     .in("id", [...cloIds]);
 
   if (cloErr) {

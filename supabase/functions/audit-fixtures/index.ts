@@ -262,7 +262,7 @@ const handleSeed = async (req: Request): Promise<Response> => {
         { onConflict: "id" }
       );
       // Enroll student in course
-      await supabase.from("enrollments").upsert(
+      await supabase.from("student_courses").upsert(
         {
           student_id: studentId,
           course_id: AUDIT_COURSE_ID,
@@ -352,9 +352,10 @@ const handleSeed = async (req: Request): Promise<Response> => {
       { onConflict: "id" }
     );
     // ILO
-    await supabase.from("ilos").upsert(
+    await supabase.from("learning_outcomes").upsert(
       {
         id: AUDIT_ILO_ID,
+        type: "ilo",
         title: "Audit ILO 1",
         institution_id: AUDIT_INSTITUTION_ID,
         description: "Audit ILO for pre-deployment testing",
@@ -362,9 +363,10 @@ const handleSeed = async (req: Request): Promise<Response> => {
       { onConflict: "id" }
     );
     // PLO
-    await supabase.from("plos").upsert(
+    await supabase.from("learning_outcomes").upsert(
       {
         id: AUDIT_PLO_ID,
+        type: "plo",
         title: "Audit PLO 1",
         program_id: AUDIT_PROGRAM_ID,
         institution_id: AUDIT_INSTITUTION_ID,
@@ -385,13 +387,14 @@ const handleSeed = async (req: Request): Promise<Response> => {
       { onConflict: "child_id,parent_id" }
     );
     // CLO-0 (Remembering — prerequisite)
-    await supabase.from("clos").upsert(
+    await supabase.from("learning_outcomes").upsert(
       {
         id: AUDIT_CLO_PREREQ_ID,
+        type: "clo",
         title: "Audit CLO 0 — Remembering",
         course_id: AUDIT_COURSE_ID,
         institution_id: AUDIT_INSTITUTION_ID,
-        bloom_level: "Remembering",
+        blooms_level: "Remembering",
         description: "Prerequisite CLO",
       },
       { onConflict: "id" }
@@ -409,13 +412,14 @@ const handleSeed = async (req: Request): Promise<Response> => {
       { onConflict: "child_id,parent_id" }
     );
     // CLO-1 (Applying — target)
-    await supabase.from("clos").upsert(
+    await supabase.from("learning_outcomes").upsert(
       {
         id: AUDIT_CLO_TARGET_ID,
+        type: "clo",
         title: "Audit CLO 1 — Applying",
         course_id: AUDIT_COURSE_ID,
         institution_id: AUDIT_INSTITUTION_ID,
-        bloom_level: "Applying",
+        blooms_level: "Applying",
         description: "Target CLO",
       },
       { onConflict: "id" }
@@ -651,14 +655,15 @@ const handleBonusXpEvent = async (req: Request): Promise<Response> => {
   const { multiplier, startsAt, endsAt } = parsed.data;
 
   const { data, error } = await supabase
-    .from("bonus_xp_events")
+    .from("xp_events")
     .insert({
-      multiplier,
+      xp_multiplier: multiplier,
       starts_at: startsAt,
       ends_at: endsAt,
       institution_id: AUDIT_INSTITUTION_ID,
       name: `Audit Bonus XP Event (${multiplier}x)`,
-      created_by: null, // service-role insert
+      event_type: "bonus_weekend",
+      is_active: true,
     })
     .select("id")
     .single();
