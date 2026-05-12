@@ -40,7 +40,7 @@ import {
 import { Loader2, Plus, Trophy, X } from "lucide-react";
 import { toast } from "sonner";
 import { createColumns } from "./columns";
-import EmptyState from "@/components/shared/EmptyState";
+import { NoChallenges, InlineNoTeams } from "@/components/shared/EmptyState";
 
 const ChallengeManager = () => {
   const { user } = useAuth();
@@ -486,9 +486,7 @@ const ChallengeManager = () => {
                     selected
                   </Label>
                   {!teams || teams.length === 0 ? (
-                    <p className="text-xs text-gray-500">
-                      No teams found for this course. Create teams first.
-                    </p>
+                    <InlineNoTeams />
                   ) : (
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-48 overflow-y-auto border rounded-lg p-3">
                       {teams.map((team) => (
@@ -544,12 +542,11 @@ const ChallengeManager = () => {
       )}
 
       {/* Challenges Data Table */}
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
         <div
           className="px-6 py-4 flex items-center gap-2"
           style={{
-            background:
-              "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+            background: "var(--brand-gradient)",
           }}
         >
           <Trophy className="h-5 w-5 text-white" />
@@ -569,11 +566,7 @@ const ChallengeManager = () => {
               isLoading={isLoading}
               emptyState={
                 (challenges ?? []).length === 0 && !isLoading ? (
-                  <EmptyState
-                    icon={<Trophy className="h-8 w-8 text-gray-400" />}
-                    title="No challenges yet"
-                    description="Create a challenge to motivate students in this course."
-                  />
+                  <NoChallenges />
                 ) : undefined
               }
             />

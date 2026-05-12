@@ -17,6 +17,7 @@ import { queryKeys } from "@/lib/queryKeys";
 import { computePerCLOScore } from "@/lib/questionAnalytics";
 import QuestionPreview from "@/components/shared/QuestionPreview";
 import ExplanationConfidenceBadge from "@/components/shared/ExplanationConfidenceBadge";
+import { InlineNoCLOs } from "@/components/shared/EmptyState";
 import {
   useVerifiedExplanation,
   useExplanationConfidence,
@@ -262,12 +263,11 @@ const PostQuizReview = () => {
       </div>
 
       {/* Per-CLO Score Breakdown */}
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
         <div
           className="px-6 py-4 flex items-center gap-2"
           style={{
-            background:
-              "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+            background: "var(--brand-gradient)",
           }}
         >
           <h2 className="text-lg font-bold tracking-tight text-white">
@@ -302,20 +302,17 @@ const PostQuizReview = () => {
               </div>
             </div>
           ))}
-          {Object.keys(perCLOScores).length === 0 && (
-            <p className="text-sm text-gray-400">No CLO data available.</p>
-          )}
+          {Object.keys(perCLOScores).length === 0 && <InlineNoCLOs />}
         </div>
       </Card>
 
       {/* Bloom's Progression */}
       {climbState && uniqueCloIds.length > 0 && (
-        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
           <div
             className="px-6 py-4 flex items-center gap-2"
             style={{
-              background:
-                "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+              background: "var(--brand-gradient)",
             }}
           >
             <TrendingUp className="h-5 w-5 text-white" />

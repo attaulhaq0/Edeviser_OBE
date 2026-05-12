@@ -231,7 +231,7 @@ const ParentPlannerView = () => {
 
       {/* Calendar Grid — read-only */}
       <Card
-        className="bg-white border-0 shadow-md rounded-xl overflow-hidden"
+        className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0"
         data-tour="planner"
       >
         <GradientCardHeader icon={CalendarDays} title="Weekly Schedule" />

@@ -14,8 +14,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import Shimmer from "@/components/shared/Shimmer";
-import EmptyState from "@/components/shared/EmptyState";
-import { ClipboardList, Search, Calendar } from "lucide-react";
+import { NoAssignments } from "@/components/shared/EmptyState";
+import { Search, Calendar } from "lucide-react";
 import { format, isPast, addHours } from "date-fns";
 
 // ─── Status helpers ─────────────────────────────────────────────────────────
@@ -132,13 +132,7 @@ const AssignmentListPage = () => {
           ))}
         </div>
       ) : filtered.length === 0 ? (
-        <Card className="bg-white border-0 shadow-md rounded-xl">
-          <EmptyState
-            icon={<ClipboardList className="h-8 w-8 text-gray-400" />}
-            title="No assignments found"
-            description="You don't have any assignments yet."
-          />
-        </Card>
+        <NoAssignments />
       ) : (
         <div className="space-y-3">
           {filtered.map((assignment) => {

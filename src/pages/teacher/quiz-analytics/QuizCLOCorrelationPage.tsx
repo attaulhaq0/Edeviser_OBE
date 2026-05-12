@@ -24,6 +24,10 @@ import { Badge } from "@/components/ui/badge";
 import { useQuizCLOCorrelation } from "@/hooks/useQuizCLOCorrelation";
 import { useCLOs } from "@/hooks/useCLOs";
 import { detectCLODiscrepancy } from "@/lib/questionAnalytics";
+import {
+  InlineNoCorrelationData,
+  InlineNoBloomsData,
+} from "@/components/shared/EmptyState";
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -261,12 +265,11 @@ const QuizCLOCorrelationPage = () => {
       </div>
 
       {/* Per-CLO Comparison Chart */}
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
         <div
           className="px-6 py-4 flex items-center gap-2"
           style={{
-            background:
-              "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+            background: "var(--brand-gradient)",
           }}
         >
           <BarChart3 className="h-5 w-5 text-white" />
@@ -276,9 +279,7 @@ const QuizCLOCorrelationPage = () => {
         </div>
         <div className="p-6">
           {comparisonData.length === 0 ? (
-            <p className="text-sm text-gray-500 text-center py-8">
-              No CLO correlation data available yet.
-            </p>
+            <InlineNoCorrelationData />
           ) : (
             <>
               <ResponsiveContainer width="100%" height={320}>
@@ -349,12 +350,11 @@ const QuizCLOCorrelationPage = () => {
       </Card>
 
       {/* Bloom's Distribution Chart */}
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
         <div
           className="px-6 py-4 flex items-center gap-2"
           style={{
-            background:
-              "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+            background: "var(--brand-gradient)",
           }}
         >
           <BarChart3 className="h-5 w-5 text-white" />
@@ -364,9 +364,7 @@ const QuizCLOCorrelationPage = () => {
         </div>
         <div className="p-6">
           {bloomsData.every((b) => b.count === 0) ? (
-            <p className="text-sm text-gray-500 text-center py-8">
-              No Bloom&apos;s distribution data available yet.
-            </p>
+            <InlineNoBloomsData />
           ) : (
             <ResponsiveContainer width="100%" height={280}>
               <BarChart

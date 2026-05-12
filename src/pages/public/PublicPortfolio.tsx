@@ -8,6 +8,10 @@ import { useParams } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { usePublicPortfolio } from "@/hooks/usePortfolio";
 import GradientCardHeader from "@/components/shared/GradientCardHeader";
+import {
+  InlineNoAttainmentData,
+  InlineNoBadges,
+} from "@/components/shared/EmptyState";
 import { Award, BookOpen, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -103,13 +107,11 @@ const PublicPortfolio = () => {
         </Card>
 
         {/* CLO Attainment Levels */}
-        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
           <GradientCardHeader icon={BookOpen} title="CLO Attainment" />
           <div className="p-6">
             {data.clos.length === 0 ? (
-              <p className="text-sm text-gray-400">
-                No attainment data available.
-              </p>
+              <InlineNoAttainmentData />
             ) : (
               <div className="space-y-2">
                 {data.clos.map((clo, i) => (
@@ -136,11 +138,11 @@ const PublicPortfolio = () => {
         </Card>
 
         {/* Badge Collection */}
-        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
           <GradientCardHeader icon={Award} title="Badges" />
           <div className="p-6">
             {data.badges.length === 0 ? (
-              <p className="text-sm text-gray-400">No badges earned yet.</p>
+              <InlineNoBadges />
             ) : (
               <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
                 {data.badges.map((b) => (

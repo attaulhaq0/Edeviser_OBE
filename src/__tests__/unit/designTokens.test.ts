@@ -31,7 +31,7 @@ describe("Design Tokens — src/index.css", () => {
   describe("Brand Gradient", () => {
     it("defines --brand-gradient with correct teal-to-blue gradient", () => {
       expect(indexCss).toContain(
-        "--brand-gradient: linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)"
+        "--brand-gradient: linear-gradient(135deg, #14B8A6 0%, #0382BD 100%)"
       );
     });
 

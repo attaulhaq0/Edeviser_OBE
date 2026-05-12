@@ -13,6 +13,7 @@ import type {
 } from "@/hooks/useTeamLeaderboard";
 import { useAuth } from "@/hooks/useAuth";
 import Shimmer from "@/components/shared/Shimmer";
+import { InlineNoTeams } from "@/components/shared/EmptyState";
 import ReconnectBanner from "@/components/shared/ReconnectBanner";
 import { cn } from "@/lib/utils";
 import { parseAsString, useQueryState } from "nuqs";
@@ -168,12 +169,11 @@ const TeamLeaderboard = ({ courseId }: TeamLeaderboardProps) => {
         </div>
       </div>
 
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
         <div
           className="px-6 py-4 flex items-center gap-2"
           style={{
-            background:
-              "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+            background: "var(--brand-gradient)",
           }}
         >
           <Users className="h-5 w-5 text-white" />
@@ -187,9 +187,7 @@ const TeamLeaderboard = ({ courseId }: TeamLeaderboardProps) => {
               <Shimmer key={i} className="h-14 rounded-xl" />
             ))
           ) : !entries || entries.length === 0 ? (
-            <p className="text-sm text-gray-500 text-center py-8">
-              No teams found for this course.
-            </p>
+            <InlineNoTeams />
           ) : (
             entries.map((entry) => (
               <TeamRow

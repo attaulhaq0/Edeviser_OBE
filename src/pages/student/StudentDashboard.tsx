@@ -134,12 +134,11 @@ const AnnouncementsSection = ({ studentId }: { studentId: string }) => {
   if (!announcements || announcements.length === 0) return null;
 
   return (
-    <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+    <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
       <div
         className="px-6 py-4 flex items-center gap-2"
         style={{
-          background:
-            "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+          background: "var(--brand-gradient)",
         }}
       >
         <Megaphone className="h-5 w-5 text-white" />
@@ -528,12 +527,11 @@ const StudentDashboard = () => {
       {/* Two-column layout: Upcoming Deadlines + Quick Stats */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Upcoming Deadlines */}
-        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
           <div
             className="px-6 py-4 flex items-center gap-2"
             style={{
-              background:
-                "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+              background: "var(--brand-gradient)",
             }}
           >
             <CalendarClock className="h-5 w-5 text-white" />
@@ -594,12 +592,11 @@ const StudentDashboard = () => {
 
         {/* Gamification Summary + Streak Freeze */}
         <div className="space-y-4">
-          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
             <div
               className="px-6 py-4 flex items-center gap-2"
               style={{
-                background:
-                  "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+                background: "var(--brand-gradient)",
               }}
             >
               <Star className="h-5 w-5 text-white" />
@@ -708,12 +705,11 @@ const StudentDashboard = () => {
           );
           if (lowCLOs.length === 0) return null;
           return (
-            <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+            <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
               <div
                 className="px-6 py-4 flex items-center gap-2"
                 style={{
-                  background:
-                    "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+                  background: "var(--brand-gradient)",
                 }}
               >
                 <Target className="h-5 w-5 text-white" />
@@ -767,12 +763,11 @@ const StudentDashboard = () => {
 
       {/* Team Dashboard Card — Requirement 112.7 */}
       {myTeam && (
-        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
           <div
             className="px-6 py-4 flex items-center gap-2"
             style={{
-              background:
-                "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+              background: "var(--brand-gradient)",
             }}
           >
             <Users className="h-5 w-5 text-white" />
@@ -788,12 +783,11 @@ const StudentDashboard = () => {
 
       {/* Active Challenges — Requirement 113.5 */}
       {activeChallenges.length > 0 && (
-        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
           <div
             className="px-6 py-4 flex items-center gap-2"
             style={{
-              background:
-                "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+              background: "var(--brand-gradient)",
             }}
           >
             <Trophy className="h-5 w-5 text-white" />
@@ -847,12 +841,11 @@ const StudentDashboard = () => {
       {attendanceLoading ? (
         <Shimmer className="h-40 rounded-xl" />
       ) : attendanceCourses && attendanceCourses.length > 0 ? (
-        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
           <div
             className="px-6 py-4 flex items-center gap-2"
             style={{
-              background:
-                "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+              background: "var(--brand-gradient)",
             }}
           >
             <ClipboardCheck className="h-5 w-5 text-white" />

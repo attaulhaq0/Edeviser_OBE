@@ -24,6 +24,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { useStudentProfile } from "@/hooks/useStudentProfile";
+import { InlineNoData } from "@/components/shared/EmptyState";
 import { BIG_FIVE_LABELS, VARK_DESCRIPTIONS } from "@/lib/onboardingConstants";
 import type {
   BigFiveTraits,
@@ -160,9 +161,7 @@ export const ProfileSummaryStep = ({
                 </RadarChart>
               </ResponsiveContainer>
             ) : (
-              <p className="py-4 text-center text-xs text-gray-400">
-                No data available
-              </p>
+              <InlineNoData />
             )}
           </Card>
         )}
@@ -203,9 +202,7 @@ export const ProfileSummaryStep = ({
                 ))}
               </div>
             ) : (
-              <p className="py-2 text-center text-xs text-gray-400">
-                No data available
-              </p>
+              <InlineNoData />
             )}
           </Card>
         )}

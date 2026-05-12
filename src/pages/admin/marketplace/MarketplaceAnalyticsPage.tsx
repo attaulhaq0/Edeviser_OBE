@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Shimmer from "@/components/shared/Shimmer";
+import { InlineNoData } from "@/components/shared/EmptyState";
 import {
   ArrowLeft,
   Coins,
@@ -135,12 +136,11 @@ const MarketplaceAnalyticsPage = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Popular Items */}
-        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
           <div
             className="px-6 py-4 flex items-center gap-2"
             style={{
-              background:
-                "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+              background: "var(--brand-gradient)",
             }}
           >
             <ShoppingCart className="h-5 w-5 text-white" />
@@ -179,12 +179,11 @@ const MarketplaceAnalyticsPage = () => {
         </Card>
 
         {/* Category Breakdown */}
-        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
           <div
             className="px-6 py-4 flex items-center gap-2"
             style={{
-              background:
-                "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+              background: "var(--brand-gradient)",
             }}
           >
             <BarChart3 className="h-5 w-5 text-white" />
@@ -194,9 +193,7 @@ const MarketplaceAnalyticsPage = () => {
           </div>
           <div className="p-6">
             {(analytics?.categoryBreakdown ?? []).length === 0 ? (
-              <p className="text-sm text-gray-500 text-center py-4">
-                No data available.
-              </p>
+              <InlineNoData />
             ) : (
               <div className="space-y-4">
                 {(analytics?.categoryBreakdown ?? []).map((cat) => {

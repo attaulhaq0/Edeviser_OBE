@@ -158,12 +158,11 @@ const HabitAnalyticsContent = () => {
       ) : (
         <>
           {/* Consistency Score */}
-          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
             <div
               className="px-6 py-4 flex items-center gap-2"
               style={{
-                background:
-                  "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+                background: "var(--brand-gradient)",
               }}
             >
               <BarChart3 className="h-5 w-5 text-white" />
@@ -181,14 +180,13 @@ const HabitAnalyticsContent = () => {
 
           {/* Level Progression */}
           <Card
-            className="bg-white border-0 shadow-md rounded-xl overflow-hidden"
+            className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0"
             data-testid="level-progression-section"
           >
             <div
               className="px-6 py-4 flex items-center gap-2"
               style={{
-                background:
-                  "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+                background: "var(--brand-gradient)",
               }}
             >
               <TrendingUp className="h-5 w-5 text-white" />
@@ -205,12 +203,11 @@ const HabitAnalyticsContent = () => {
           </Card>
 
           {/* Completion Rates */}
-          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
             <div
               className="px-6 py-4 flex items-center gap-2"
               style={{
-                background:
-                  "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+                background: "var(--brand-gradient)",
               }}
             >
               <BarChart3 className="h-5 w-5 text-white" />
@@ -229,12 +226,11 @@ const HabitAnalyticsContent = () => {
           </Card>
 
           {/* Best Day of Week */}
-          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
             <div
               className="px-6 py-4 flex items-center gap-2"
               style={{
-                background:
-                  "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+                background: "var(--brand-gradient)",
               }}
             >
               <BarChart3 className="h-5 w-5 text-white" />
@@ -248,12 +244,11 @@ const HabitAnalyticsContent = () => {
           </Card>
 
           {/* Correlation Insights */}
-          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
             <div
               className="px-6 py-4 flex items-center gap-2"
               style={{
-                background:
-                  "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+                background: "var(--brand-gradient)",
               }}
             >
               <BarChart3 className="h-5 w-5 text-white" />

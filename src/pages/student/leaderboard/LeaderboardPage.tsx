@@ -70,6 +70,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import Shimmer from "@/components/shared/Shimmer";
+import {
+  InlineNoXPData,
+  InlineNoImprovementData,
+  InlineNoLeaderboardData,
+} from "@/components/shared/EmptyState";
 import AnonymousToggle from "@/components/shared/AnonymousToggle";
 import ReconnectBanner from "@/components/shared/ReconnectBanner";
 import { cn } from "@/lib/utils";
@@ -252,12 +257,11 @@ const MyRankCard = ({
     : "—";
 
   return (
-    <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+    <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
       <div
         className="px-6 py-4 flex items-center gap-2"
         style={{
-          background:
-            "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+          background: "var(--brand-gradient)",
         }}
       >
         <Trophy className="h-5 w-5 text-white" />
@@ -322,11 +326,7 @@ const PersonalBestChart = ({ studentId }: PersonalBestChartProps) => {
   }
 
   if (!weeks || weeks.length === 0) {
-    return (
-      <p className="text-sm text-gray-500 text-center py-8">
-        No XP data available yet. Start earning XP to see your personal best!
-      </p>
-    );
+    return <InlineNoXPData />;
   }
 
   const currentWeek = weeks.find((w) => w.isCurrentWeek);
@@ -343,12 +343,11 @@ const PersonalBestChart = ({ studentId }: PersonalBestChartProps) => {
         </div>
       )}
 
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
         <div
           className="px-6 py-4 flex items-center gap-2"
           style={{
-            background:
-              "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+            background: "var(--brand-gradient)",
           }}
         >
           <BarChart3 className="h-5 w-5 text-white" />
@@ -440,21 +439,15 @@ const MostImprovedList = ({
   }
 
   if (!entries || entries.length === 0) {
-    return (
-      <p className="text-sm text-gray-500 text-center py-8">
-        No improvement data available yet. Keep earning XP to see who is
-        improving the most!
-      </p>
-    );
+    return <InlineNoImprovementData />;
   }
 
   return (
-    <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+    <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
       <div
         className="px-6 py-4 flex items-center gap-2"
         style={{
-          background:
-            "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+          background: "var(--brand-gradient)",
         }}
       >
         <TrendingUp className="h-5 w-5 text-white" />
@@ -571,12 +564,11 @@ const LeagueLeaderboardList = ({
         <LeagueTierBadge tier={currentTier} size="lg" />
       </div>
 
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
         <div
           className="px-6 py-4 flex items-center gap-2"
           style={{
-            background:
-              "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+            background: "var(--brand-gradient)",
           }}
         >
           <Shield className="h-5 w-5 text-white" />
@@ -586,9 +578,7 @@ const LeagueLeaderboardList = ({
         </div>
         <div className="p-4 space-y-2">
           {!entries || entries.length === 0 ? (
-            <p className="text-sm text-gray-500 text-center py-8">
-              No students in your league tier yet.
-            </p>
+            <InlineNoLeaderboardData />
           ) : (
             entries.map((entry) => {
               const isCurrentUser = entry.student_id === currentUserId;
@@ -970,12 +960,11 @@ const LeaderboardPage = () => {
                 totalStudents={totalStudents}
               />
 
-              <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+              <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
                 <div
                   className="px-6 py-4 flex items-center gap-2"
                   style={{
-                    background:
-                      "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+                    background: "var(--brand-gradient)",
                   }}
                 >
                   <Medal className="h-5 w-5 text-white" />
@@ -989,9 +978,7 @@ const LeaderboardPage = () => {
                       <Shimmer key={i} className="h-14 rounded-xl" />
                     ))
                   ) : entries.length === 0 ? (
-                    <p className="text-sm text-gray-500 text-center py-8">
-                      No leaderboard data available yet.
-                    </p>
+                    <InlineNoLeaderboardData />
                   ) : (
                     entries.map((entry) => (
                       <LeaderboardRow

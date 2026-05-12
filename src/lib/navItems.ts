@@ -28,7 +28,6 @@ import {
   Award,
   Store,
   ClipboardList,
-  Settings,
   Grid3X3,
   GitBranch,
   Search,
@@ -83,11 +82,6 @@ const adminNavItems: NavItem[] = [
   },
   { to: "/admin/marketplace", labelKey: "nav.marketplace", icon: Store },
   { to: "/admin/surveys", labelKey: "nav.surveys", icon: ClipboardList },
-  {
-    to: "/admin/settings/institution",
-    labelKey: "nav.settings",
-    icon: Settings,
-  },
 ];
 
 const coordinatorNavItems: NavItem[] = [

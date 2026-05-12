@@ -86,8 +86,7 @@ const GuidedTour = () => {
           width: 380,
         },
         buttonNext: {
-          background:
-            "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+          background: "var(--brand-gradient)",
           color: "#ffffff",
           borderRadius: "8px",
           padding: "8px 16px",

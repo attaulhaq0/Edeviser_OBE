@@ -111,7 +111,7 @@ const WeeklyGoalPanel = ({
   };
 
   return (
-    <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+    <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
       <GradientCardHeader icon={Target} title="Weekly Goals">
         {isEditable && !isEditing && (
           <Button

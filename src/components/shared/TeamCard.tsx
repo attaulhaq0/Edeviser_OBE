@@ -55,7 +55,7 @@ const TeamCard = ({
     <div
       className="px-4 py-3 flex items-center gap-3"
       style={{
-        background: "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+        background: "var(--brand-gradient)",
       }}
     >
       <div className="h-9 w-9 rounded-full bg-white/20 flex items-center justify-center text-sm font-bold text-white shrink-0">
