@@ -106,7 +106,7 @@ serve(async (req) => {
           .from("student_badges")
           .select("id", { count: "exact", head: true })
           .eq("student_id", student.id)
-          .gte("earned_at", weekAgoISO);
+          .gte("awarded_at", weekAgoISO);
 
         // Get current streak
         const { data: gamification } = await supabase

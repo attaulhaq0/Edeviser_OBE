@@ -73,9 +73,10 @@ serve(async (req) => {
 
       if (course_id) {
         const { data: clos } = await supabase
-          .from("clos")
+          .from("learning_outcomes")
           .select("id, title")
           .eq("course_id", course_id)
+          .eq("type", "clo")
           .limit(10);
 
         if (clos && clos.length > 0) {
