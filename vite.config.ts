@@ -25,11 +25,12 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  esbuild: isTest
-    ? undefined
-    : {
-        drop: ["console", "debugger"],
-      },
+  esbuild:
+    isTest || process.env.NODE_ENV !== "production"
+      ? undefined
+      : {
+          drop: ["console", "debugger"],
+        },
   build: {
     rollupOptions: {
       output: {
