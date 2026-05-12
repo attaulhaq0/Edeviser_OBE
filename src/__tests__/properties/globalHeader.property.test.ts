@@ -81,14 +81,16 @@ describe("globalHeader.property.test — full-width header + single settings ent
   });
 
   /**
-   * Property: GlobalHeader has data-tour="primary-nav" on Row 2 nav
+   * Property: GlobalHeader has data-tour="top-bar", Sidebar has data-tour="primary-nav"
    */
-  it('GlobalHeader exposes data-tour="primary-nav" on the nav element', () => {
-    const content = readFileSafe("src/components/shared/GlobalHeader.tsx");
-    if (!content) return;
+  it("exposes data-tour attributes on header and sidebar", () => {
+    const header = readFileSafe("src/components/shared/GlobalHeader.tsx");
+    if (!header) return;
+    expect(header).toContain('data-tour="top-bar"');
 
-    expect(content).toContain('data-tour="primary-nav"');
-    expect(content).toContain('data-tour="top-bar"');
+    const sidebar = readFileSafe("src/components/shared/Sidebar.tsx");
+    if (!sidebar) return;
+    expect(sidebar).toContain('data-tour="primary-nav"');
   });
 
   /**

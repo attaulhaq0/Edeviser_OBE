@@ -192,11 +192,13 @@ describe("StudentPortfolio", () => {
       isLoading: false,
     });
     await renderPortfolio();
-    expect(screen.getByText("No CLO attainment data yet.")).toBeInTheDocument();
-    expect(screen.getByText("No badges earned yet.")).toBeInTheDocument();
+    expect(
+      screen.getByText("empty.noAttainmentData.title")
+    ).toBeInTheDocument();
+    expect(screen.getByText("empty.noBadges.title")).toBeInTheDocument();
     expect(screen.getByText("No journal entries yet.")).toBeInTheDocument();
-    expect(screen.getByText("No XP data yet.")).toBeInTheDocument();
-    expect(screen.getByText("No semester data yet.")).toBeInTheDocument();
+    expect(screen.getByText("empty.noXPData.title")).toBeInTheDocument();
+    expect(screen.getByText("empty.noSemesters.title")).toBeInTheDocument();
   });
 
   it("renders public profile toggle", async () => {
