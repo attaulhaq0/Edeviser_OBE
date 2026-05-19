@@ -156,7 +156,7 @@ SELECT
   institution_id,
   full_name,
   email,
-  role,
+  role::public.user_role,
   'active',
   'system',
   CASE WHEN (ROW_NUMBER() OVER (PARTITION BY institution_id ORDER BY profile_id)) % 3 = 0 THEN 'ar' ELSE 'en' END,
