@@ -18,15 +18,17 @@
 -- =============================================================================
 
 -- Step 1: Unschedule ALL existing cron jobs
-DO $
+DO $$
 DECLARE
   job_record RECORD;
 BEGIN
-  FOR job_record IN SELECT jobid FROM cron.job
-  LOOP
-    PERFORM cron.unschedule(job_record.jobid);
-  END LOOP;
-END $;
+  IF to_regclass('cron.job') IS NOT NULL THEN
+    FOR job_record IN SELECT jobid FROM cron.job
+    LOOP
+      PERFORM cron.unschedule(job_record.jobid);
+    END LOOP;
+  END IF;
+END $$;
 
 -- Step 2: Drop the materialized view (the main source of timeouts)
 DROP MATERIALIZED VIEW IF EXISTS leaderboard_weekly CASCADE;
