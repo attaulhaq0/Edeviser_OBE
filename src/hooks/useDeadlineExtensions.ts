@@ -104,18 +104,24 @@ export const useActivateDeadlineExtension = () => {
 
           // Insert notification for teacher
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          await (supabase as any).from("notifications").insert({
-            user_id: teacherId,
-            type: "deadline_extension",
-            title: "Deadline Extension Activated",
-            body: `${studentName} used a deadline extension token on "${assignmentTitle}". New deadline: ${extendedDeadline.toLocaleDateString()}.`,
-            metadata: {
-              student_id: user.id,
-              assignment_id: input.assignmentId,
-              original_deadline: originalDeadline.toISOString(),
-              extended_deadline: extendedDeadline.toISOString(),
-            },
-          });
+          const { error: notificationError } = await (supabase as any)
+            .from("notifications")
+            .insert({
+              user_id: teacherId,
+              type: "deadline_extension",
+              title: "Deadline Extension Activated",
+              body: `${studentName} used a deadline extension token on "${assignmentTitle}". New deadline: ${extendedDeadline.toLocaleDateString()}.`,
+              metadata: {
+                student_id: user.id,
+                assignment_id: input.assignmentId,
+                original_deadline: originalDeadline.toISOString(),
+                extended_deadline: extendedDeadline.toISOString(),
+              },
+            });
+
+          if (notificationError) {
+            console.error("Failed to insert notification:", notificationError);
+          }
         }
       }
     },

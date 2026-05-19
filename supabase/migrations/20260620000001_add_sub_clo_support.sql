@@ -38,7 +38,7 @@ BEGIN
 
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql SET search_path = public;
 -- 4. Create trigger on learning_outcomes
 DROP TRIGGER IF EXISTS trg_validate_sub_clo ON learning_outcomes;
 CREATE TRIGGER trg_validate_sub_clo

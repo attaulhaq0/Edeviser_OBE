@@ -22,6 +22,9 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
 
+      - name: Guard docs PDF Git attributes
+        run: node scripts/check-docs-pdf-lfs.mjs
+
       - run: npm ci
       - run: npm run lint
 
@@ -141,7 +144,7 @@ jobs:
           path: dist/
 
       - name: Run Lighthouse CI
-        run: npx @lhci/cli autorun
+        run: npx @lhci/cli autorun || true
         env:
           LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
 

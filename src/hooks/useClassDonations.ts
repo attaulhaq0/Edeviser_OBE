@@ -63,14 +63,18 @@ export const useContributeToDonation = () => {
       if (error) throw error;
 
       // Insert corresponding xp_purchase for the XP sink
-      await supabase.from("xp_purchases").insert({
-        student_id: studentId,
-        item_id: null as unknown as string,
-        xp_cost: xpAmount,
-        status: "consumed",
-        purchased_at: new Date().toISOString(),
-        metadata: { type: "class_donation", donation_id: donationId },
-      } as never);
+      const { error: purchaseError } = await supabase
+        .from("xp_purchases")
+        .insert({
+          student_id: studentId,
+          item_id: null as unknown as string,
+          xp_cost: xpAmount,
+          status: "consumed",
+          purchased_at: new Date().toISOString(),
+          metadata: { type: "class_donation", donation_id: donationId },
+        } as never);
+
+      if (purchaseError) throw purchaseError;
 
       return data;
     },
