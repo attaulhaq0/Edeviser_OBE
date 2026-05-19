@@ -5,10 +5,28 @@
 -- Deterministic UUIDs via uuid_generate_v5 for idempotency
 -- ============================================================
 
+-- This seed migration is timestamped before the signup hardening migration that
+-- formally adds these columns. Re-assert the prerequisites idempotently so a
+-- fresh preview database can replay migrations in timestamp order.
+ALTER TABLE public.institutions
+  ADD COLUMN IF NOT EXISTS slug text,
+  ADD COLUMN IF NOT EXISTS allowed_email_domains text[] NOT NULL DEFAULT '{}',
+  ADD COLUMN IF NOT EXISTS join_mode text
+    CHECK (join_mode IN ('open', 'invite_only', 'domain_restricted'))
+    NOT NULL
+    DEFAULT 'invite_only';
+
+ALTER TABLE public.profiles
+  ADD COLUMN IF NOT EXISTS status text
+    CHECK (status IN ('active', 'pending_verification', 'suspended'))
+    NOT NULL
+    DEFAULT 'active',
+  ADD COLUMN IF NOT EXISTS email_verified_at timestamptz;
+
 -- ============================================================
 -- 9.1 SEED INSTITUTIONS (3 rows)
 -- ============================================================
-INSERT INTO institutions (id, name, slug, join_mode, logo_url, is_active, created_at)
+INSERT INTO institutions (id, name, slug, join_mode, logo_url, created_at)
 VALUES
   (
     uuid_generate_v5(uuid_nil(), 'institution-open-demo'),
@@ -16,7 +34,6 @@ VALUES
     'open-demo-university',
     'open',
     'https://via.placeholder.com/200x100?text=Open+Demo',
-    true,
     now()
   ),
   (
@@ -25,7 +42,6 @@ VALUES
     'invite-only-academy',
     'invite_only',
     'https://via.placeholder.com/200x100?text=Invite+Academy',
-    true,
     now()
   ),
   (
@@ -34,7 +50,6 @@ VALUES
     'qatar-moehe-demo',
     'domain_restricted',
     'https://via.placeholder.com/200x100?text=Qatar+MOEHE',
-    true,
     now()
   )
 ON CONFLICT (slug) DO NOTHING;
