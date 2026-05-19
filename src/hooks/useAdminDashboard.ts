@@ -210,12 +210,11 @@ export const useDepartmentAnalytics = () => {
       // Aggregate per department
       const deptStats = new Map<
         string,
-        { ploScores: number[]; iloScores: number[]; programIds: Set<string> }
+        { ploScores: number[]; programIds: Set<string> }
       >();
       for (const dept of departments) {
         deptStats.set(dept.id, {
           ploScores: [],
-          iloScores: [],
           programIds: new Set(),
         });
       }
@@ -228,6 +227,7 @@ export const useDepartmentAnalytics = () => {
       }
 
       // Aggregate attainment scores
+      const globalIloScores: number[] = [];
       for (const att of attainments ?? []) {
         const outcome = outcomeMap.get(att.outcome_id);
         if (!outcome || att.attainment_percent == null) continue;
@@ -238,11 +238,9 @@ export const useDepartmentAnalytics = () => {
             deptStats.get(deptId)!.ploScores.push(att.attainment_percent);
           }
         }
-        // ILO attainment is institution-wide, distribute to all departments
+        // ILO attainment is institution-wide, collect globally
         if (outcome.type === "ILO") {
-          for (const [, stats] of deptStats) {
-            stats.iloScores.push(att.attainment_percent);
-          }
+          globalIloScores.push(att.attainment_percent);
         }
       }
 
@@ -251,13 +249,15 @@ export const useDepartmentAnalytics = () => {
           ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length)
           : 0;
 
+      const avgGlobalIlo = avg(globalIloScores);
+
       return departments.map((dept) => {
         const stats = deptStats.get(dept.id)!;
         return {
           department_id: dept.id,
           department_name: dept.name,
           avg_plo_attainment: avg(stats.ploScores),
-          avg_ilo_attainment: avg(stats.iloScores),
+          avg_ilo_attainment: avgGlobalIlo,
           program_count: stats.programIds.size,
         };
       });
