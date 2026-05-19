@@ -52,7 +52,7 @@ VALUES
     'https://via.placeholder.com/200x100?text=Qatar+MOEHE',
     now()
   )
-ON CONFLICT (id) DO NOTHING;
+ON CONFLICT DO NOTHING;
 
 -- Update domain restrictions for the domain-restricted institution
 UPDATE institutions
@@ -164,7 +164,7 @@ SELECT
   now(),
   now()
 FROM all_profiles
-ON CONFLICT (email) DO NOTHING;
+ON CONFLICT DO NOTHING;
 
 -- ============================================================
 -- 9.3 SEED PROGRAMS + COURSES (5 programs × 4 courses per institution = 60 courses total)
@@ -202,12 +202,12 @@ courses_gen AS (
 INSERT INTO programs (id, institution_id, name, code, created_at)
 SELECT DISTINCT institution_id, institution_id, name, code, now()
 FROM programs_gen
-ON CONFLICT (code, institution_id) DO NOTHING;
+ON CONFLICT DO NOTHING;
 
 INSERT INTO courses (id, program_id, name, code, description, created_at)
 SELECT course_id, program_id, name, code, description, now()
 FROM courses_gen
-ON CONFLICT (code, program_id) DO NOTHING;
+ON CONFLICT DO NOTHING;
 
 -- ============================================================
 -- 9.4 SEED SEMESTERS (current + 1 past per institution)
@@ -239,7 +239,7 @@ SELECT
   false,
   now()
 FROM institutions_cte
-ON CONFLICT (code, institution_id) DO NOTHING;
+ON CONFLICT DO NOTHING;
 
 -- ============================================================
 -- 9.5 SEED ILO/PLO/CLO CHAINS WITH OUTCOME_MAPPINGS
@@ -297,15 +297,15 @@ clos_gen AS (
 
 INSERT INTO learning_outcomes (id, institution_id, outcome_type, name, code, bloom_level, created_at)
 SELECT ilo_id, institution_id, 'ILO', name, code, NULL, now() FROM ilos_gen
-ON CONFLICT (code, institution_id) DO NOTHING;
+ON CONFLICT DO NOTHING;
 
 INSERT INTO learning_outcomes (id, institution_id, outcome_type, name, code, bloom_level, created_at)
 SELECT plo_id, institution_id, 'PLO', name, code, NULL, now() FROM plos_gen
-ON CONFLICT (code, institution_id) DO NOTHING;
+ON CONFLICT DO NOTHING;
 
 INSERT INTO learning_outcomes (id, institution_id, outcome_type, name, code, bloom_level, created_at)
 SELECT clo_id, (SELECT institution_id FROM programs WHERE id = program_id LIMIT 1), 'CLO', name, code, bloom_level, now() FROM clos_gen
-ON CONFLICT (code, institution_id) DO NOTHING;
+ON CONFLICT DO NOTHING;
 
 -- Seed outcome_mappings: PLO → ILO (weights sum to 100)
 WITH plos_cte AS (
@@ -335,7 +335,7 @@ SELECT
   END as weight,
   now()
 FROM plo_ilo_pairs
-ON CONFLICT (child_outcome_id, parent_outcome_id) DO NOTHING;
+ON CONFLICT DO NOTHING;
 
 -- Seed outcome_mappings: CLO → PLO (weights sum to 100)
 WITH clos_cte AS (
@@ -365,7 +365,7 @@ SELECT
   END as weight,
   now()
 FROM clo_plo_pairs
-ON CONFLICT (child_outcome_id, parent_outcome_id) DO NOTHING;
+ON CONFLICT DO NOTHING;
 
 -- ============================================================
 -- 9.6 SEED ASSIGNMENTS + EVIDENCE + XP_TRANSACTIONS
@@ -403,7 +403,7 @@ assignments_gen AS (
 INSERT INTO assignments (id, course_id, name, code, due_date, created_at)
 SELECT assignment_id, course_id, name, code, due_date, now()
 FROM assignments_gen
-ON CONFLICT (code, course_id) DO NOTHING;
+ON CONFLICT DO NOTHING;
 
 -- Seed evidence (submissions + grades for each student per assignment)
 WITH assignments_cte AS (
@@ -427,7 +427,7 @@ evidence_gen AS (
 INSERT INTO evidence (id, assignment_id, student_id, score, created_at)
 SELECT evidence_id, assignment_id, student_id, score, created_at
 FROM evidence_gen
-ON CONFLICT (assignment_id, student_id) DO NOTHING;
+ON CONFLICT DO NOTHING;
 
 -- Seed xp_transactions (derived from evidence scores)
 WITH evidence_cte AS (
@@ -451,7 +451,7 @@ xp_gen AS (
 INSERT INTO xp_transactions (id, student_id, event_type, xp_amount, created_at)
 SELECT xp_id, student_id, event_type, xp_amount, created_at
 FROM xp_gen
-ON CONFLICT (id) DO NOTHING;
+ON CONFLICT DO NOTHING;
 
 -- ============================================================
 -- 9.7 SEED HABIT_TRACKING + GRADES + NOTIFICATIONS + AUDIT_LOGS
@@ -481,7 +481,7 @@ habits_gen AS (
 INSERT INTO habit_tracking (id, student_id, habit_date, login_completed, submit_completed, journal_completed, read_completed, created_at)
 SELECT habit_id, student_id, habit_date, login_completed, submit_completed, journal_completed, read_completed, created_at
 FROM habits_gen
-ON CONFLICT (student_id, habit_date) DO NOTHING;
+ON CONFLICT DO NOTHING;
 
 -- Seed grades (released grades for every submitted assignment)
 WITH evidence_cte AS (
@@ -496,7 +496,7 @@ SELECT
   evidence_cte.id::timestamp,
   now()
 FROM evidence_cte
-ON CONFLICT (evidence_id) DO NOTHING;
+ON CONFLICT DO NOTHING;
 
 -- Seed notifications (10 per student across 6-month window)
 WITH students_cte AS (
@@ -523,7 +523,7 @@ notifications_gen AS (
 INSERT INTO notifications (id, user_id, institution_id, notification_type, title, body, created_at, is_read)
 SELECT notification_id, user_id, institution_id, notification_type, title, body, created_at, is_read
 FROM notifications_gen
-ON CONFLICT (id) DO NOTHING;
+ON CONFLICT DO NOTHING;
 
 -- Seed audit_logs (representative admin/coordinator actions)
 WITH admins_cte AS (
@@ -546,7 +546,7 @@ audit_gen AS (
 INSERT INTO audit_logs (id, institution_id, performed_by, event_type, entity_type, entity_id, changes, created_at)
 SELECT audit_id, institution_id, performed_by, event_type, entity_type, entity_id, changes, created_at
 FROM audit_gen
-ON CONFLICT (id) DO NOTHING;
+ON CONFLICT DO NOTHING;
 
 -- ============================================================
 -- 9.8 SEED BADGE SPOTLIGHT HISTORY + LEADERBOARD STATE
@@ -575,7 +575,7 @@ INSERT INTO badge_spotlight_schedule (id, institution_id, week_start, badge_name
 SELECT badge_spotlight_id, institution_id, week_start, badge_name, badge_code, now()
 FROM badge_spotlight_gen
 WHERE EXTRACT(dow FROM week_start) = 1
-ON CONFLICT (institution_id, week_start) DO NOTHING;
+ON CONFLICT DO NOTHING;
 
 -- Refresh materialized view for leaderboard
 REFRESH MATERIALIZED VIEW CONCURRENTLY leaderboard;
@@ -612,7 +612,7 @@ SELECT
   false,
   now()
 FROM demo_student
-ON CONFLICT (student_id) DO NOTHING;
+ON CONFLICT DO NOTHING;
 
 INSERT INTO onboarding_progress (id, student_id, current_step, welcome_completed, baseline_completed, learning_style_completed, goal_setting_completed, dashboard_tour_completed, created_at)
 SELECT
@@ -627,4 +627,4 @@ SELECT
   now()
 FROM other_students
 CROSS JOIN steps
-ON CONFLICT (student_id) DO NOTHING;
+ON CONFLICT DO NOTHING;
