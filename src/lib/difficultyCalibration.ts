@@ -16,9 +16,9 @@ export function computeCalibratedDifficulty(
 ): number {
   const calibrated = 5.0 - 4.0 * successRate;
   const empiricalWeight = Math.min(1.0, totalAttempts / 50);
-  const blended =
-    empiricalWeight * calibrated + (1 - empiricalWeight) * originalDifficulty;
-  return Math.max(1.0, Math.min(5.0, blended));
+  return (
+    empiricalWeight * calibrated + (1 - empiricalWeight) * originalDifficulty
+  );
 }
 
 /**

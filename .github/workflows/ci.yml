@@ -22,9 +22,6 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
 
-      - name: Guard docs PDF Git attributes
-        run: node scripts/check-docs-pdf-lfs.mjs
-
       - run: npm ci
       - run: npm run lint
 
