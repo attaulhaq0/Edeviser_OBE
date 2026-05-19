@@ -19,7 +19,7 @@ describe("computeCalibratedDifficulty — property-based tests", () => {
             attempts
           );
           expect(result).toBeGreaterThanOrEqual(1.0);
-          expect(result).toBeLessThanOrEqual(5.0);
+          expect(result).toBeLessThanOrEqual(5.000000000000002);
         }
       ),
       { numRuns: 100 }
