@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import EmptyState from "@/components/shared/EmptyState";
+import { NoOutcomes } from "@/components/shared/EmptyState";
 import Shimmer from "@/components/shared/Shimmer";
 import {
   AlertTriangle,
@@ -117,12 +117,11 @@ const GapAnalysisView = () => {
         </div>
       )}
 
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
         <div
           className="px-6 py-4 flex items-center gap-2"
           style={{
-            background:
-              "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+            background: "var(--brand-gradient)",
           }}
         >
           <Search className="h-5 w-5 text-white" />
@@ -138,12 +137,7 @@ const GapAnalysisView = () => {
           ) : isLoading ? (
             <Shimmer className="h-64 rounded-lg" />
           ) : !gaps || gaps.length === 0 ? (
-            <EmptyState
-              icon={<Search className="h-8 w-8 text-gray-400" />}
-              title="No Outcomes Found"
-              description="No outcomes found for this program. Add PLOs and CLOs to begin gap analysis."
-              className="py-12"
-            />
+            <NoOutcomes className="py-12" />
           ) : (
             <div className="space-y-2">
               {gaps.map((gap) => {

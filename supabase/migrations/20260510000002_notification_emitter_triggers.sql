@@ -95,11 +95,25 @@ BEGIN
 END;
 $$;
 
-DROP TRIGGER IF EXISTS trg_grade_released_notify ON public.grades;
-CREATE TRIGGER trg_grade_released_notify
-  AFTER INSERT OR UPDATE OF is_released ON public.grades
-  FOR EACH ROW
-  EXECUTE FUNCTION public.trg_grade_released_notify();
+DO $$
+BEGIN
+  IF to_regclass('public.grades') IS NOT NULL THEN
+    DROP TRIGGER IF EXISTS trg_grade_released_notify ON public.grades;
+  END IF;
+
+  IF EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'grades'
+      AND column_name = 'is_released'
+  ) THEN
+    CREATE TRIGGER trg_grade_released_notify
+      AFTER INSERT OR UPDATE OF is_released ON public.grades
+      FOR EACH ROW
+      EXECUTE FUNCTION public.trg_grade_released_notify();
+  END IF;
+END $$;
 
 -- ─── Trigger 2: new_assignment → enrolled students ───────────────────────────
 CREATE OR REPLACE FUNCTION public.trg_new_assignment_notify()

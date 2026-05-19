@@ -48,7 +48,7 @@ const ModuleSection = ({
   const publishedMaterials = (materials ?? []).filter((m) => m.is_published);
 
   return (
-    <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+    <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
       <div
         className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-slate-50 transition-colors"
         onClick={() => setExpanded(!expanded)}
@@ -248,12 +248,11 @@ const CourseDetail = () => {
             <Shimmer className="h-24 rounded-xl" />
           ) : (
             (announcements ?? []).length > 0 && (
-              <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+              <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
                 <div
                   className="px-6 py-4 flex items-center gap-2"
                   style={{
-                    background:
-                      "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+                    background: "var(--brand-gradient)",
                   }}
                 >
                   <Megaphone className="h-5 w-5 text-white" />

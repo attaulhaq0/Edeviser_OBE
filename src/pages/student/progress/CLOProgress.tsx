@@ -6,10 +6,11 @@
 import { useState, useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
-import { BookOpen, GraduationCap, FileText, Loader2 } from "lucide-react";
+import { BookOpen, FileText, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { Card } from "@/components/ui/card";
 import Shimmer from "@/components/shared/Shimmer";
+import { NoCLOs, InlineNoCLOs } from "@/components/shared/EmptyState";
 import CLOProgressBar from "@/components/shared/CLOProgressBar";
 import { useAuth } from "@/hooks/useAuth";
 import { useCLOProgress } from "@/hooks/useCLOProgress";
@@ -135,17 +136,7 @@ const CLOProgress = () => {
     return (
       <div className="space-y-6">
         <h2 className="text-2xl font-bold tracking-tight">CLO Progress</h2>
-        <Card className="bg-white border-0 shadow-md rounded-xl">
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <div className="p-3 rounded-full bg-blue-50 mb-3">
-              <GraduationCap className="h-8 w-8 text-blue-500" />
-            </div>
-            <p className="text-sm text-gray-500">
-              No CLO progress data yet. Enroll in courses and complete
-              assessments to see your progress.
-            </p>
-          </div>
-        </Card>
+        <NoCLOs />
       </div>
     );
   }
@@ -161,13 +152,12 @@ const CLOProgress = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: groupIdx * 0.08 }}
         >
-          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
             {/* Course header */}
             <div
               className="px-6 py-4 flex items-center gap-2"
               style={{
-                background:
-                  "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+                background: "var(--brand-gradient)",
               }}
             >
               <BookOpen className="h-5 w-5 text-white" />
@@ -179,9 +169,7 @@ const CLOProgress = () => {
             {/* CLO entries */}
             <div className="p-6 space-y-4">
               {group.entries.length === 0 ? (
-                <p className="text-sm text-gray-400 italic text-center py-4">
-                  No CLOs defined for this course yet.
-                </p>
+                <InlineNoCLOs />
               ) : (
                 group.entries.map((entry) => {
                   const isExpanded = expandedCloId === entry.clo_id;

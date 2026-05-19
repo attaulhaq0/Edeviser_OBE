@@ -57,7 +57,7 @@ BEGIN
   NEW.updated_at = now();
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql SET search_path = public;
 CREATE TRIGGER trg_graduate_attributes_updated_at
   BEFORE UPDATE ON graduate_attributes
   FOR EACH ROW

@@ -24,7 +24,7 @@ import { Loader2, BookOpen, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import GradeCategoryManager from "@/pages/teacher/gradebook/GradeCategoryManager";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import EmptyState from "@/components/shared/EmptyState";
+import { NoStudents } from "@/components/shared/EmptyState";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -163,13 +163,7 @@ const GradebookView = () => {
                 <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
               </div>
             ) : enrichedData.length === 0 ? (
-              <Card className="bg-white border-0 shadow-md rounded-xl p-12 text-center">
-                <EmptyState
-                  icon={<BookOpen className="h-8 w-8 text-gray-400" />}
-                  title="No grades found"
-                  description="No enrolled students or grades found for this course."
-                />
-              </Card>
+              <NoStudents />
             ) : (
               <GradebookTable data={enrichedData} categories={categories} />
             )}

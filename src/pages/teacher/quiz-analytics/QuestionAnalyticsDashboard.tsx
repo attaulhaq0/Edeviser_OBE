@@ -31,7 +31,7 @@ import {
 } from "@/hooks/useQuestionAnalytics";
 import { useCLOs } from "@/hooks/useCLOs";
 import { createAnalyticsColumns } from "./columns";
-import EmptyState from "@/components/shared/EmptyState";
+import { NoData } from "@/components/shared/EmptyState";
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -221,11 +221,7 @@ const QuestionAnalyticsDashboard = () => {
         isLoading={isLoading}
         emptyState={
           (analyticsRows ?? []).length === 0 && !isLoading ? (
-            <EmptyState
-              icon={<BarChart3 className="h-8 w-8 text-gray-400" />}
-              title="No analytics data"
-              description="No question analytics found for the selected filters. Try adjusting the filters or run a quiz to generate data."
-            />
+            <NoData />
           ) : undefined
         }
       />

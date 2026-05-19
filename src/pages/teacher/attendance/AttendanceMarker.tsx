@@ -36,6 +36,7 @@ import type {
   AttendanceStatus,
 } from "@/components/shared/AttendanceGrid";
 import Shimmer from "@/components/shared/Shimmer";
+import { InlineNoSessions } from "@/components/shared/EmptyState";
 
 import { useAuth } from "@/hooks/useAuth";
 import { useCourses } from "@/hooks/useCourses";
@@ -284,12 +285,11 @@ const AttendanceMarker = () => {
           {/* Left: Create Session + Session List */}
           <div className="space-y-4">
             {/* Create Session Form */}
-            <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+            <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
               <div
                 className="px-6 py-4 flex items-center gap-2"
                 style={{
-                  background:
-                    "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+                  background: "var(--brand-gradient)",
                 }}
               >
                 <Plus className="h-5 w-5 text-white" />
@@ -370,12 +370,11 @@ const AttendanceMarker = () => {
             </Card>
 
             {/* Session List */}
-            <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+            <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
               <div
                 className="px-6 py-4 flex items-center gap-2"
                 style={{
-                  background:
-                    "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+                  background: "var(--brand-gradient)",
                 }}
               >
                 <CalendarCheck className="h-5 w-5 text-white" />
@@ -391,9 +390,7 @@ const AttendanceMarker = () => {
                     ))}
                   </div>
                 ) : (sessions ?? []).length === 0 ? (
-                  <p className="text-sm text-gray-500 text-center py-4">
-                    No sessions yet
-                  </p>
+                  <InlineNoSessions />
                 ) : (
                   <div className="space-y-1">
                     {(sessions ?? []).map((s) => (
@@ -427,12 +424,11 @@ const AttendanceMarker = () => {
           {/* Right: Attendance Grid */}
           <div className="lg:col-span-2">
             {selectedSessionId ? (
-              <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+              <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
                 <div
                   className="px-6 py-4 flex items-center justify-between"
                   style={{
-                    background:
-                      "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+                    background: "var(--brand-gradient)",
                   }}
                 >
                   <div className="flex items-center gap-2">

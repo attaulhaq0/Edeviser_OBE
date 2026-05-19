@@ -534,21 +534,26 @@ const LoginPage = () => {
                       <Users className="w-3.5 h-3.5 text-[#14b8a6]" />
                       {t("signup.role")}
                     </Label>
-                    <div
+                    <select
                       id="signup-role"
-                      className="w-full h-10 px-3 rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-700 text-sm flex items-center font-medium"
-                    >
-                      {t("signup.roleStudent")}
-                    </div>
-                    {/* Hidden input keeps the form value wired for Zod */}
-                    <input
-                      type="hidden"
-                      value="student"
+                      className="w-full h-10 px-3 rounded-xl border border-gray-200 bg-gray-50/50 text-sm font-medium text-gray-700 focus:bg-white focus:border-[#14b8a6] focus:ring-[#14b8a6]/20 focus:outline-none transition-all appearance-none cursor-pointer"
                       {...signUpForm.register("requestedRole")}
-                    />
-                    <p className="text-[10px] text-gray-500 ms-1">
-                      {t("signup.roleHint")}
-                    </p>
+                    >
+                      <option value="student">{t("roles.student")}</option>
+                      <option value="teacher">{t("roles.teacher")}</option>
+                      <option value="coordinator">
+                        {t("roles.coordinator")}
+                      </option>
+                      <option value="admin">{t("roles.admin")}</option>
+                      <option value="parent">
+                        {t("roles.parent", "Parent")}
+                      </option>
+                    </select>
+                    {signUpForm.formState.errors.requestedRole && (
+                      <p className="text-xs text-red-600 ms-1">
+                        {signUpForm.formState.errors.requestedRole.message}
+                      </p>
+                    )}
                   </div>
 
                   <Button

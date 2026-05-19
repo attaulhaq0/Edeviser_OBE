@@ -304,5 +304,147 @@
   },
   "notificationsGroup": {
     "askTutor": "Ask Tutor"
+  },
+  "empty": {
+    "noCourses": {
+      "title": "No Courses Yet",
+      "description": "Courses will appear here once they are created and assigned."
+    },
+    "noProgress": {
+      "title": "No Progress Data",
+      "description": "Start completing activities to track your learning progress."
+    },
+    "noUsers": {
+      "title": "No Users Found",
+      "description": "Invite users to your institution to get started."
+    },
+    "noNotifications": {
+      "title": "No Notifications",
+      "description": "You're all caught up! New notifications will appear here."
+    },
+    "noBadges": {
+      "title": "No Badges Earned",
+      "description": "Complete challenges and milestones to earn badges."
+    },
+    "noEvidence": {
+      "title": "No Evidence Yet",
+      "description": "Student submissions and assessment evidence will appear here."
+    },
+    "noMarketplaceItems": {
+      "title": "No Items Available",
+      "description": "Marketplace items will appear here once they are listed."
+    },
+    "noLinkedStudents": {
+      "title": "No Linked Students",
+      "description": "Ask your institution's admin to link student accounts."
+    },
+    "noTeams": {
+      "title": "No Teams Yet",
+      "description": "Create teams to organize students into collaborative groups."
+    },
+    "noChallenges": {
+      "title": "No Challenges Yet",
+      "description": "Create challenges to engage students with team-based activities."
+    },
+    "noOutcomes": {
+      "title": "No Outcomes Found",
+      "description": "Add learning outcomes to begin mapping and analysis."
+    },
+    "noQuestions": {
+      "title": "No Questions Yet",
+      "description": "Add or generate questions to build your question bank."
+    },
+    "noResults": {
+      "title": "No Results Yet",
+      "description": "Results will appear here once students complete their assessments."
+    },
+    "noData": {
+      "title": "No Data Available",
+      "description": "Data will populate here as activities are completed."
+    },
+    "noSessions": {
+      "title": "No Sessions Yet",
+      "description": "Create sessions to begin tracking attendance."
+    },
+    "noSurveys": {
+      "title": "No Surveys Yet",
+      "description": "Create your first survey to collect feedback."
+    },
+    "noSemesters": {
+      "title": "No Semesters Yet",
+      "description": "Create your first semester to get started."
+    },
+    "noTimetable": {
+      "title": "No Timetable Slots",
+      "description": "Add timetable slots to organize the schedule."
+    },
+    "noResponses": {
+      "title": "No Responses Yet",
+      "description": "Responses will appear here once participants submit."
+    },
+    "noAssignments": {
+      "title": "No Assignments Yet",
+      "description": "Assignments will appear here once they are created."
+    },
+    "noCLOs": {
+      "title": "No CLOs Found",
+      "description": "Course learning outcomes will appear here once created."
+    },
+    "noPLOs": {
+      "title": "No PLOs Created",
+      "description": "Ask your coordinator to create program learning outcomes first."
+    },
+    "noILOs": {
+      "title": "No ILOs Created",
+      "description": "Ask your admin to create institutional learning outcomes first."
+    },
+    "noStudents": {
+      "title": "No Students Found",
+      "description": "Enrolled students will appear here."
+    },
+    "noRubrics": {
+      "title": "No Rubrics Yet",
+      "description": "Create rubrics to standardize your grading criteria."
+    },
+    "noActionPlans": {
+      "title": "No Action Plans Yet",
+      "description": "Create a CQI action plan to start closing the loop."
+    },
+    "noAttendance": {
+      "title": "No Attendance Records",
+      "description": "Create sessions and mark attendance to see records here."
+    },
+    "noXPData": {
+      "title": "No XP Data Yet",
+      "description": "Start earning XP to see your personal best here."
+    },
+    "noImprovementData": {
+      "title": "No Improvement Data",
+      "description": "Keep earning XP to see who is improving the most."
+    },
+    "noLeaderboardData": {
+      "title": "No Leaderboard Data",
+      "description": "Leaderboard entries will appear as students earn XP."
+    },
+    "noCorrelationData": {
+      "title": "No Correlation Data",
+      "description": "CLO correlation data will appear once quizzes are completed."
+    },
+    "noBloomsData": {
+      "title": "No Bloom's Data",
+      "description": "Bloom's level distribution will appear as quiz data is collected."
+    },
+    "noUsageData": {
+      "title": "No Usage Data",
+      "description": "Usage trends will appear as students interact with the tutor."
+    },
+    "noCitationData": {
+      "title": "No Citation Data",
+      "description": "Material citations will appear as the AI Tutor references content."
+    },
+    "noAttainmentData": {
+      "title": "No Attainment Data",
+      "description": "CLO attainment will appear as assessments are completed."
+    }
   }
 }

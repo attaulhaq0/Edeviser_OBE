@@ -31,6 +31,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { PracticeModeToggle } from "@/components/shared/PracticeModeToggle";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { InlineNoCLOs } from "@/components/shared/EmptyState";
 
 // ─── Shared form fields ──────────────────────────────────────────────────────
 
@@ -223,9 +224,7 @@ const QuizFormFields = ({
             isLoadingCLOs ? (
               <div className="animate-shimmer h-20 rounded-lg" />
             ) : clos.length === 0 ? (
-              <p className="text-sm text-gray-500">
-                No CLOs found for this course.
-              </p>
+              <InlineNoCLOs />
             ) : (
               <FormField
                 control={form.control}

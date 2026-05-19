@@ -41,13 +41,13 @@ export const signUpSchema = z
         `Password must be at least ${PASSWORD_MIN} characters`
       ),
     confirmPassword: z.string().min(1, "Please confirm your password"),
-    // Self-signup can ONLY create a student account. The handle_new_user()
-    // trigger already forces role='student' server-side; restricting the
-    // client schema prevents the UI from advertising impossible choices and
-    // stops the literal string "admin"/"coordinator"/"teacher" from ever
-    // reaching metadata.role (where it would only be ignored anyway).
-    // Non-student onboarding flows through /accept-invite/:token.
-    requestedRole: z.literal("student"),
+    requestedRole: z.enum([
+      "student",
+      "teacher",
+      "coordinator",
+      "admin",
+      "parent",
+    ]),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",

@@ -22,6 +22,7 @@ import {
 
 import QuestionPreview from "@/components/shared/QuestionPreview";
 import DifficultyBadge from "@/components/shared/DifficultyBadge";
+import { InlineNoCLOs } from "@/components/shared/EmptyState";
 
 import { useCLOs } from "@/hooks/useCLOs";
 import { useGenerateQuestions } from "@/hooks/useGenerateQuestions";
@@ -169,11 +170,7 @@ const GenerateQuestionsPage = () => {
                           )}
                         />
                       ))}
-                      {clos.length === 0 && (
-                        <p className="text-xs text-gray-500">
-                          No CLOs found for this course.
-                        </p>
-                      )}
+                      {clos.length === 0 && <InlineNoCLOs />}
                     </div>
                     <FormMessage />
                   </FormItem>

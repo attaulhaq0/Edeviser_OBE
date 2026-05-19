@@ -25,7 +25,7 @@ import {
 import Shimmer from "@/components/shared/Shimmer";
 import { Plus, Loader2, Users, Shuffle } from "lucide-react";
 import { toast } from "sonner";
-import EmptyState from "@/components/shared/EmptyState";
+import { NoTeams } from "@/components/shared/EmptyState";
 import { useAuth } from "@/hooks/useAuth";
 import { useCourses } from "@/hooks/useCourses";
 import {
@@ -108,12 +108,11 @@ const TeamManager = () => {
         </Select>
       </div>
 
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
         <div
           className="px-6 py-4 flex items-center gap-2"
           style={{
-            background:
-              "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+            background: "var(--brand-gradient)",
           }}
         >
           <Users className="h-5 w-5 text-white" />
@@ -127,11 +126,7 @@ const TeamManager = () => {
           ) : isLoading ? (
             <Shimmer className="h-32 rounded-lg" />
           ) : teams.length === 0 ? (
-            <EmptyState
-              icon={<Users className="h-8 w-8 text-gray-400" />}
-              title="No teams yet"
-              description="Create a team manually or use auto-generate to assign students."
-            />
+            <NoTeams />
           ) : (
             <div className="space-y-2">
               {teams.map((team) => (

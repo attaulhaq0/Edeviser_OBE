@@ -18,8 +18,7 @@ import { useQuestionBank } from "@/hooks/useQuestionBank";
 import { useQuestionAnalytics } from "@/hooks/useQuestionAnalytics";
 import { useCLOs } from "@/hooks/useCLOs";
 import { createColumns, type QuestionWithAnalytics } from "./columns";
-import EmptyState from "@/components/shared/EmptyState";
-import { FileText } from "lucide-react";
+import { NoQuestions } from "@/components/shared/EmptyState";
 
 // ─── Bloom's filter options ─────────────────────────────────────────────────
 
@@ -248,13 +247,7 @@ const QuestionBankPage = () => {
         data={enrichedData}
         isLoading={isLoading}
         emptyState={
-          enrichedData.length === 0 && !isLoading ? (
-            <EmptyState
-              icon={<FileText className="h-8 w-8 text-gray-400" />}
-              title="No questions found"
-              description="No questions match your current filters. Try adjusting the filters or generate new questions."
-            />
-          ) : undefined
+          enrichedData.length === 0 && !isLoading ? <NoQuestions /> : undefined
         }
       />
     </div>

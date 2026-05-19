@@ -116,8 +116,7 @@ const TeamProfilePage = () => {
         <div
           className="h-12 w-12 rounded-full flex items-center justify-center text-lg font-bold text-white shrink-0"
           style={{
-            background:
-              "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+            background: "var(--brand-gradient)",
           }}
         >
           {team.name.charAt(0).toUpperCase()}
@@ -184,12 +183,11 @@ const TeamProfilePage = () => {
       </div>
 
       {/* Members Section */}
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
         <div
           className="px-6 py-4 flex items-center gap-2"
           style={{
-            background:
-              "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+            background: "var(--brand-gradient)",
           }}
         >
           <Users className="h-5 w-5 text-white" />
@@ -204,12 +202,11 @@ const TeamProfilePage = () => {
 
       {/* Badges Section */}
       {badgeItems.length > 0 && (
-        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
           <div
             className="px-6 py-4 flex items-center gap-2"
             style={{
-              background:
-                "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+              background: "var(--brand-gradient)",
             }}
           >
             <Trophy className="h-5 w-5 text-white" />
@@ -225,12 +222,11 @@ const TeamProfilePage = () => {
 
       {/* Active Challenges */}
       {activeChallenges.length > 0 && (
-        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
           <div
             className="px-6 py-4 flex items-center gap-2"
             style={{
-              background:
-                "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+              background: "var(--brand-gradient)",
             }}
           >
             <Target className="h-5 w-5 text-white" />
@@ -266,12 +262,11 @@ const TeamProfilePage = () => {
 
       {/* Teaching Moments Section */}
       {teachingMoments.length > 0 && (
-        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
           <div
             className="px-6 py-4 flex items-center gap-2"
             style={{
-              background:
-                "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+              background: "var(--brand-gradient)",
             }}
           >
             <BookOpen className="h-5 w-5 text-white" />
@@ -296,12 +291,11 @@ const TeamProfilePage = () => {
 
       {/* Replacement Votes Section (Task 5.6) */}
       {(openVotes.length > 0 || (isCaptain && inactiveMembers.length > 0)) && (
-        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
           <div
             className="px-6 py-4 flex items-center gap-2"
             style={{
-              background:
-                "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+              background: "var(--brand-gradient)",
             }}
           >
             <Vote className="h-5 w-5 text-white" />

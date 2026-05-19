@@ -38,6 +38,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { InlineNoCLOs } from "@/components/shared/EmptyState";
 import {
   ArrowLeft,
   Loader2,
@@ -114,11 +115,7 @@ const CLOWeightSection = ({
   }
 
   if (clos.length === 0) {
-    return (
-      <p className="text-sm text-gray-500">
-        No CLOs found for this course. Create CLOs first.
-      </p>
-    );
+    return <InlineNoCLOs />;
   }
 
   return (

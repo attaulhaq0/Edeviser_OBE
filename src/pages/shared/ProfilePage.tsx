@@ -82,12 +82,11 @@ const ProfilePage = () => {
       <h1 className="text-2xl font-bold tracking-tight">Profile Settings</h1>
 
       {/* Profile Info Card */}
-      <Card className="bg-white dark:bg-slate-900 border-0 shadow-md rounded-xl overflow-hidden">
+      <Card className="bg-white dark:bg-slate-900 border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
         <div
           className="px-6 py-4 flex items-center gap-2"
           style={{
-            background:
-              "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+            background: "var(--brand-gradient)",
           }}
         >
           <User className="h-5 w-5 text-white" />
@@ -152,12 +151,11 @@ const ProfilePage = () => {
       </Card>
 
       {/* Theme Preference */}
-      <Card className="bg-white dark:bg-slate-900 border-0 shadow-md rounded-xl overflow-hidden">
+      <Card className="bg-white dark:bg-slate-900 border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
         <div
           className="px-6 py-4 flex items-center gap-2"
           style={{
-            background:
-              "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+            background: "var(--brand-gradient)",
           }}
         >
           <Sun className="h-5 w-5 text-white" />
@@ -208,12 +206,11 @@ const ProfilePage = () => {
 
       {/* GDPR Data Export — students only */}
       {profile?.role === "student" && user && (
-        <Card className="bg-white dark:bg-slate-900 border-0 shadow-md rounded-xl overflow-hidden">
+        <Card className="bg-white dark:bg-slate-900 border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
           <div
             className="px-6 py-4 flex items-center gap-2"
             style={{
-              background:
-                "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+              background: "var(--brand-gradient)",
             }}
           >
             <Shield className="h-5 w-5 text-white" />
@@ -271,12 +268,11 @@ const TranscriptSection = ({ studentId }: { studentId: string }) => {
   };
 
   return (
-    <Card className="bg-white dark:bg-slate-900 border-0 shadow-md rounded-xl overflow-hidden">
+    <Card className="bg-white dark:bg-slate-900 border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
       <div
         className="px-6 py-4 flex items-center gap-2"
         style={{
-          background:
-            "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+          background: "var(--brand-gradient)",
         }}
       >
         <FileDown className="h-5 w-5 text-white" />
@@ -339,12 +335,11 @@ const FeeStatusSection = ({ studentId }: { studentId: string }) => {
   if (fees.length === 0) return null;
 
   return (
-    <Card className="bg-white dark:bg-slate-900 border-0 shadow-md rounded-xl overflow-hidden">
+    <Card className="bg-white dark:bg-slate-900 border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
       <div
         className="px-6 py-4 flex items-center gap-2"
         style={{
-          background:
-            "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+          background: "var(--brand-gradient)",
         }}
       >
         <DollarSign className="h-5 w-5 text-white" />

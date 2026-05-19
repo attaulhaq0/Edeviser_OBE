@@ -25,7 +25,7 @@ import {
 import TeamHealthBadge from "@/components/shared/TeamHealthBadge";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import Shimmer from "@/components/shared/Shimmer";
-import EmptyState from "@/components/shared/EmptyState";
+import { NoTeams } from "@/components/shared/EmptyState";
 import { Plus, Search, Users, Pencil, Trash2, HeartPulse } from "lucide-react";
 import { toast } from "sonner";
 
@@ -195,12 +195,11 @@ const TeamManagementPage = () => {
       </div>
 
       {/* Teams List */}
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
         <div
           className="px-6 py-4 flex items-center gap-2"
           style={{
-            background:
-              "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+            background: "var(--brand-gradient)",
           }}
         >
           <Users className="h-5 w-5 text-white" />
@@ -220,11 +219,7 @@ const TeamManagementPage = () => {
               ))}
             </div>
           ) : filteredTeams.length === 0 ? (
-            <EmptyState
-              icon={<Users className="h-8 w-8 text-gray-400" />}
-              title="No teams found"
-              description="No teams match your current filters. Try adjusting the search or health status filter."
-            />
+            <NoTeams />
           ) : (
             <div className="space-y-2">
               {filteredTeams.map((team) => {

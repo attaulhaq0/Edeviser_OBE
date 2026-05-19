@@ -1,4 +1,4 @@
-﻿import { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -6,6 +6,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { usePortfolio, useTogglePortfolioPublic } from "@/hooks/usePortfolio";
 import GradientCardHeader from "@/components/shared/GradientCardHeader";
 import BloomsPill from "@/components/shared/BloomsPill";
+import {
+  InlineNoAttainmentData,
+  InlineNoBadges,
+  InlineNoXPData,
+  InlineNoSemesters,
+} from "@/components/shared/EmptyState";
 import {
   Award,
   BookOpen,
@@ -172,12 +178,10 @@ export default function StudentPortfolio() {
         />
       </div>
 
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
         <GradientCardHeader icon={BookOpen} title="CLO Mastery" />
         <div className="p-6 space-y-6">
-          {closByCourse.length === 0 && (
-            <p className="text-sm text-gray-400">No CLO attainment data yet.</p>
-          )}
+          {closByCourse.length === 0 && <InlineNoAttainmentData />}
           {closByCourse.map(([courseName, clos]) => (
             <div key={courseName}>
               <h3 className="text-sm font-bold text-gray-700 mb-3">
@@ -212,11 +216,11 @@ export default function StudentPortfolio() {
         </div>
       </Card>
 
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
         <GradientCardHeader icon={Award} title="Badge Collection" />
         <div className="p-6">
           {(data?.badges ?? []).length === 0 ? (
-            <p className="text-sm text-gray-400">No badges earned yet.</p>
+            <InlineNoBadges />
           ) : (
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
               {data?.badges.map((b) => (
@@ -240,7 +244,7 @@ export default function StudentPortfolio() {
         </div>
       </Card>
 
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
         <GradientCardHeader icon={PenLine} title="Journal Entries" />
         <div className="p-6">
           {(data?.journals ?? []).length === 0 ? (
@@ -270,11 +274,11 @@ export default function StudentPortfolio() {
         </div>
       </Card>
 
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
         <GradientCardHeader icon={TrendingUp} title="XP Timeline" />
         <div className="p-6">
           {(data?.xpTimeline ?? []).length === 0 ? (
-            <p className="text-sm text-gray-400">No XP data yet.</p>
+            <InlineNoXPData />
           ) : (
             <ResponsiveContainer width="100%" height={280}>
               <LineChart data={data?.xpTimeline}>
@@ -308,11 +312,11 @@ export default function StudentPortfolio() {
         </div>
       </Card>
 
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
         <GradientCardHeader icon={BarChart3} title="Attainment Growth" />
         <div className="p-6">
           {(data?.semesterAttainments ?? []).length === 0 ? (
-            <p className="text-sm text-gray-400">No semester data yet.</p>
+            <InlineNoSemesters />
           ) : (
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={data?.semesterAttainments}>

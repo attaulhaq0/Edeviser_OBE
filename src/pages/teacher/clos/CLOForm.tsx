@@ -37,6 +37,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Loader2, Link2, AlertTriangle, Bot } from "lucide-react";
+import { InlineNoPLOs } from "@/components/shared/EmptyState";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import BloomsVerbGuide from "@/components/shared/BloomsVerbGuide";
@@ -688,10 +689,7 @@ const PLOMappingSection = ({
     return (
       <Card className="bg-white border-0 shadow-md rounded-xl p-6 max-w-2xl">
         <h2 className="text-lg font-bold tracking-tight mb-2">PLO Mappings</h2>
-        <p className="text-sm text-gray-500">
-          No PLOs have been created for this program yet. Ask your coordinator
-          to create PLOs first.
-        </p>
+        <InlineNoPLOs />
       </Card>
     );
   }

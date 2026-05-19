@@ -25,7 +25,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import Shimmer from "@/components/shared/Shimmer";
-import EmptyState from "@/components/shared/EmptyState";
+import { NoAttendance } from "@/components/shared/EmptyState";
 
 import { useAuth } from "@/hooks/useAuth";
 import { useCourses } from "@/hooks/useCourses";
@@ -175,12 +175,11 @@ const AttendanceReport = () => {
           )}
 
           {/* Full Report Table */}
-          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
             <div
               className="px-6 py-4 flex items-center gap-2"
               style={{
-                background:
-                  "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+                background: "var(--brand-gradient)",
               }}
             >
               <BarChart3 className="h-5 w-5 text-white" />
@@ -196,11 +195,7 @@ const AttendanceReport = () => {
                   ))}
                 </div>
               ) : (summary ?? []).length === 0 ? (
-                <EmptyState
-                  icon={<BarChart3 className="h-8 w-8 text-gray-400" />}
-                  title="No attendance data"
-                  description="No attendance records found for this section. Create sessions and mark attendance first."
-                />
+                <NoAttendance />
               ) : (
                 <Table>
                   <TableHeader>

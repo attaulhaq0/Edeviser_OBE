@@ -102,81 +102,87 @@ const SubmissionInfoPanel = ({
   submission,
   assignment,
 }: SubmissionInfoPanelProps) => (
-  <Card className="bg-white border-0 shadow-md rounded-xl p-6 space-y-5 h-fit">
+  <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0 h-fit">
     <div
-      className="rounded-lg p-4"
+      className="px-6 py-4"
       style={{
-        background: "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+        background: "var(--brand-gradient)",
       }}
     >
       <h2 className="text-sm font-bold text-white">Submission Details</h2>
     </div>
 
-    {/* Student */}
-    <div className="space-y-1">
-      <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
-        Student
-      </p>
-      <div className="flex items-center gap-2">
-        <User className="h-4 w-4 text-gray-400" />
-        <span className="text-sm font-medium">
-          {submission.profiles?.full_name ?? "Unknown"}
-        </span>
+    <div className="p-6 space-y-5">
+      {/* Student */}
+      <div className="space-y-1">
+        <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
+          Student
+        </p>
+        <div className="flex items-center gap-2">
+          <User className="h-4 w-4 text-gray-400" />
+          <span className="text-sm font-medium">
+            {submission.profiles?.full_name ?? "Unknown"}
+          </span>
+        </div>
+        <p className="text-xs text-gray-500 ps-6">
+          {submission.profiles?.email ?? ""}
+        </p>
       </div>
-      <p className="text-xs text-gray-500 ps-6">
-        {submission.profiles?.email ?? ""}
-      </p>
-    </div>
 
-    {/* Assignment */}
-    <div className="space-y-1">
-      <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
-        Assignment
-      </p>
-      <div className="flex items-center gap-2">
-        <FileText className="h-4 w-4 text-gray-400" />
-        <span className="text-sm font-medium">
-          {assignment?.title ?? submission.assignments?.title ?? "Unknown"}
-        </span>
+      {/* Assignment */}
+      <div className="space-y-1">
+        <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
+          Assignment
+        </p>
+        <div className="flex items-center gap-2">
+          <FileText className="h-4 w-4 text-gray-400" />
+          <span className="text-sm font-medium">
+            {assignment?.title ?? submission.assignments?.title ?? "Unknown"}
+          </span>
+        </div>
+        <p className="text-xs text-gray-500 ps-6">
+          Total Marks:{" "}
+          {assignment?.total_marks ?? submission.assignments?.total_marks ?? 0}
+        </p>
       </div>
-      <p className="text-xs text-gray-500 ps-6">
-        Total Marks:{" "}
-        {assignment?.total_marks ?? submission.assignments?.total_marks ?? 0}
-      </p>
-    </div>
 
-    {/* Submitted At */}
-    <div className="space-y-1">
-      <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
-        Submitted
-      </p>
-      <div className="flex items-center gap-2">
-        <Clock className="h-4 w-4 text-gray-400" />
-        <span className="text-sm">
-          {format(new Date(submission.submitted_at), "MMM d, yyyy h:mm a")}
-        </span>
+      {/* Submitted At */}
+      <div className="space-y-1">
+        <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
+          Submitted
+        </p>
+        <div className="flex items-center gap-2">
+          <Clock className="h-4 w-4 text-gray-400" />
+          <span className="text-sm">
+            {format(new Date(submission.submitted_at), "MMM d, yyyy h:mm a")}
+          </span>
+        </div>
       </div>
+
+      {/* Late indicator */}
+      {submission.is_late && (
+        <Badge
+          className="bg-red-100 text-red-700 border-red-200"
+          variant="outline"
+        >
+          Late Submission
+        </Badge>
+      )}
+
+      {/* File link */}
+      {submission.file_url && (
+        <Button variant="outline" size="sm" className="w-full" asChild>
+          <a
+            href={submission.file_url}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <ExternalLink className="h-4 w-4" />
+            View Submission File
+          </a>
+        </Button>
+      )}
     </div>
-
-    {/* Late indicator */}
-    {submission.is_late && (
-      <Badge
-        className="bg-red-100 text-red-700 border-red-200"
-        variant="outline"
-      >
-        Late Submission
-      </Badge>
-    )}
-
-    {/* File link */}
-    {submission.file_url && (
-      <Button variant="outline" size="sm" className="w-full" asChild>
-        <a href={submission.file_url} target="_blank" rel="noopener noreferrer">
-          <ExternalLink className="h-4 w-4" />
-          View Submission File
-        </a>
-      </Button>
-    )}
   </Card>
 );
 
@@ -320,11 +326,11 @@ const AIDraftPanel = ({
   onEditConfirm,
   onAcceptOverall,
 }: AIDraftPanelProps) => (
-  <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+  <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
     <div
       className="px-6 py-4 flex items-center gap-2"
       style={{
-        background: "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+        background: "var(--brand-gradient)",
       }}
     >
       <Sparkles className="h-5 w-5 text-white" />

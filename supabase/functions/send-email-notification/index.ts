@@ -130,7 +130,7 @@ function renderTemplate(
             <p>Log in before midnight to keep your streak alive! 🔥</p>
             <a href="${
               data.login_url ?? "#"
-            }" style="display: inline-block; padding: 12px 24px; background: linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">Log In Now</a>
+            }" style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, #14B8A6 0%, #0382BD 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">Log In Now</a>
           </div>
         `,
       };
@@ -158,7 +158,7 @@ function renderTemplate(
             <p>Keep up the great work! 🎉</p>
             <a href="${
               data.dashboard_url ?? "#"
-            }" style="display: inline-block; padding: 12px 24px; background: linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">View Dashboard</a>
+            }" style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, #14B8A6 0%, #0382BD 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">View Dashboard</a>
           </div>
         `,
       };
@@ -183,7 +183,7 @@ function renderTemplate(
             </div>
             <a href="${
               data.assignment_url ?? "#"
-            }" style="display: inline-block; padding: 12px 24px; background: linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">View Assignment</a>
+            }" style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, #14B8A6 0%, #0382BD 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">View Assignment</a>
           </div>
         `,
       };
@@ -207,7 +207,7 @@ function renderTemplate(
             </div>
             <a href="${
               data.grade_url ?? "#"
-            }" style="display: inline-block; padding: 12px 24px; background: linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">View Feedback</a>
+            }" style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, #14B8A6 0%, #0382BD 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">View Feedback</a>
           </div>
         `,
       };
@@ -227,7 +227,7 @@ function renderTemplate(
             <p>Click below to set up your account:</p>
             <a href="${
               data.invite_url ?? "#"
-            }" style="display: inline-block; padding: 12px 24px; background: linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">Set Up Account</a>
+            }" style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, #14B8A6 0%, #0382BD 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">Set Up Account</a>
           </div>
         `,
       };
@@ -254,7 +254,7 @@ function renderTemplate(
             </div>
             <a href="${
               data.dashboard_url ?? "#"
-            }" style="display: inline-block; padding: 12px 24px; background: linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">View Dashboard</a>
+            }" style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, #14B8A6 0%, #0382BD 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">View Dashboard</a>
           </div>
         `,
       };
@@ -279,7 +279,7 @@ function renderTemplate(
             <p>Please encourage regular attendance to support their academic success.</p>
             <a href="${
               data.dashboard_url ?? "#"
-            }" style="display: inline-block; padding: 12px 24px; background: linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">View Dashboard</a>
+            }" style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, #14B8A6 0%, #0382BD 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">View Dashboard</a>
           </div>
         `,
       };
@@ -308,7 +308,7 @@ function renderTemplate(
             <p>We recommend reaching out to the student and their teacher to discuss support options.</p>
             <a href="${
               data.dashboard_url ?? "#"
-            }" style="display: inline-block; padding: 12px 24px; background: linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">View Dashboard</a>
+            }" style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, #14B8A6 0%, #0382BD 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">View Dashboard</a>
           </div>
         `,
       };

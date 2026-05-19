@@ -25,7 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import Shimmer from "@/components/shared/Shimmer";
-import EmptyState from "@/components/shared/EmptyState";
+import { NoChallenges } from "@/components/shared/EmptyState";
 import { Plus, Search, Trophy, Pencil, XCircle, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -119,12 +119,11 @@ const TeacherChallengeListPage = () => {
       </div>
 
       {/* Challenges List */}
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
         <div
           className="px-6 py-4 flex items-center gap-2"
           style={{
-            background:
-              "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+            background: "var(--brand-gradient)",
           }}
         >
           <Trophy className="h-5 w-5 text-white" />
@@ -144,11 +143,7 @@ const TeacherChallengeListPage = () => {
               ))}
             </div>
           ) : filteredChallenges.length === 0 ? (
-            <EmptyState
-              icon={<Trophy className="h-8 w-8 text-gray-400" />}
-              title="No challenges found"
-              description="No challenges match your search. Try a different query or create a new challenge."
-            />
+            <NoChallenges />
           ) : (
             <div className="space-y-2">
               {filteredChallenges.map((challenge) => (

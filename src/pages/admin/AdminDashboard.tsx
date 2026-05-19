@@ -176,14 +176,13 @@ const AdminDashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Users by Role */}
         <Card
-          className="bg-white border-0 shadow-md rounded-xl overflow-hidden"
+          className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0"
           data-tour="section-card"
         >
           <div
             className="px-6 py-4 flex items-center gap-2"
             style={{
-              background:
-                "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+              background: "var(--brand-gradient)",
             }}
           >
             <Users className="h-5 w-5 text-white" />
@@ -227,12 +226,11 @@ const AdminDashboard = () => {
         </Card>
 
         {/* Recent Activity Feed */}
-        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
           <div
             className="px-6 py-4 flex items-center gap-2"
             style={{
-              background:
-                "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+              background: "var(--brand-gradient)",
             }}
           >
             <Activity className="h-5 w-5 text-white" />
@@ -279,12 +277,11 @@ const AdminDashboard = () => {
       </div>
 
       {/* PLO Heatmap Placeholder */}
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
         <div
           className="px-6 py-4 flex items-center gap-2"
           style={{
-            background:
-              "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+            background: "var(--brand-gradient)",
           }}
         >
           <BarChart3 className="h-5 w-5 text-white" />
@@ -298,12 +295,11 @@ const AdminDashboard = () => {
       </Card>
 
       {/* AI Co-Pilot Performance */}
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
         <div
           className="px-6 py-4 flex items-center gap-2"
           style={{
-            background:
-              "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+            background: "var(--brand-gradient)",
           }}
         >
           <Brain className="h-5 w-5 text-white" />
@@ -385,12 +381,11 @@ const AdminDashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Graduate Attribute Overview */}
         <Link to="/admin/graduate-attributes" className="block">
-          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden hover:shadow-lg transition-shadow h-full">
+          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden hover:shadow-lg transition-shadow h-full gap-0 py-0">
             <div
               className="px-6 py-4 flex items-center gap-2"
               style={{
-                background:
-                  "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+                background: "var(--brand-gradient)",
               }}
             >
               <Award className="h-5 w-5 text-white" />
@@ -417,12 +412,11 @@ const AdminDashboard = () => {
 
         {/* Historical Evidence Dashboard */}
         <Link to="/admin/historical-evidence" className="block">
-          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden hover:shadow-lg transition-shadow h-full">
+          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden hover:shadow-lg transition-shadow h-full gap-0 py-0">
             <div
               className="px-6 py-4 flex items-center gap-2"
               style={{
-                background:
-                  "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+                background: "var(--brand-gradient)",
               }}
             >
               <Database className="h-5 w-5 text-white" />
@@ -449,12 +443,11 @@ const AdminDashboard = () => {
 
         {/* Competency Framework */}
         <Link to="/admin/competency-frameworks" className="block">
-          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden hover:shadow-lg transition-shadow h-full">
+          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden hover:shadow-lg transition-shadow h-full gap-0 py-0">
             <div
               className="px-6 py-4 flex items-center gap-2"
               style={{
-                background:
-                  "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+                background: "var(--brand-gradient)",
               }}
             >
               <Network className="h-5 w-5 text-white" />

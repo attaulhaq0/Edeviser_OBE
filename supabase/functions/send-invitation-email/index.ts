@@ -136,7 +136,7 @@ serve(async (req) => {
             subject: `You're invited to join ${institution.name} on Edeviser`,
             html: `
               <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                <div style="background: linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%); padding: 40px 20px; text-align: center; border-radius: 12px 12px 0 0;">
+                <div style="background: linear-gradient(135deg, #14B8A6 0%, #0382BD 100%); padding: 40px 20px; text-align: center; border-radius: 12px 12px 0 0;">
                   <h1 style="color: white; margin: 0; font-size: 28px; font-weight: bold;">Welcome to Edeviser</h1>
                 </div>
                 <div style="background: white; padding: 40px 20px; border-radius: 0 0 12px 12px; border: 1px solid #e5e7eb; border-top: none;">
@@ -150,7 +150,7 @@ serve(async (req) => {
                     Click the button below to accept your invitation and create your account:
                   </p>
                   <div style="text-align: center; margin: 30px 0;">
-                    <a href="${inviteLink}" style="display: inline-block; background: linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%); color: white; padding: 12px 32px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 16px;">
+                    <a href="${inviteLink}" style="display: inline-block; background: linear-gradient(135deg, #14B8A6 0%, #0382BD 100%); color: white; padding: 12px 32px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 16px;">
                       Accept Invitation
                     </a>
                   </div>

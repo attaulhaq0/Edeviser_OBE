@@ -17,7 +17,7 @@ import {
   getEvidenceCountColor,
   getAttainmentColor,
 } from "@/lib/coverageHeatmap";
-import EmptyState from "@/components/shared/EmptyState";
+import { NoData } from "@/components/shared/EmptyState";
 import Shimmer from "@/components/shared/Shimmer";
 import { Grid3X3 } from "lucide-react";
 
@@ -73,12 +73,11 @@ const CoverageHeatmapView = () => {
         </div>
       </div>
 
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
         <div
           className="px-6 py-4 flex items-center gap-2"
           style={{
-            background:
-              "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+            background: "var(--brand-gradient)",
           }}
         >
           <Grid3X3 className="h-5 w-5 text-white" />
@@ -94,12 +93,7 @@ const CoverageHeatmapView = () => {
           ) : isLoading ? (
             <Shimmer className="h-64 rounded-lg" />
           ) : !matrix || matrix.clo_ids.length === 0 ? (
-            <EmptyState
-              icon={<Grid3X3 className="h-8 w-8 text-gray-400" />}
-              title="No Coverage Data"
-              description="No CLO coverage data available for this program. Map CLOs to courses to populate the heatmap."
-              className="py-12"
-            />
+            <NoData className="py-12" />
           ) : (
             <table className="w-full text-xs border-collapse min-w-[600px]">
               <thead>

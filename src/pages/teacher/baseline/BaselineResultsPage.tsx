@@ -19,7 +19,7 @@ import {
   Cell,
 } from "recharts";
 import { BarChart3, Users, Plus, Settings, ArrowLeft } from "lucide-react";
-import EmptyState from "@/components/shared/EmptyState";
+import { NoResults } from "@/components/shared/EmptyState";
 
 const COLORS = [
   "#3b82f6",
@@ -105,12 +105,11 @@ const BaselineResultsPage = () => {
       </Card>
 
       {/* Per-CLO Bar Chart */}
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
         <div
           className="px-6 py-4 flex items-center gap-2"
           style={{
-            background:
-              "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+            background: "var(--brand-gradient)",
           }}
         >
           <BarChart3 className="h-5 w-5 text-white" />
@@ -160,13 +159,7 @@ const BaselineResultsPage = () => {
               </ResponsiveContainer>
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center py-12 text-gray-400">
-              <EmptyState
-                icon={<BarChart3 className="h-8 w-8 text-gray-400" />}
-                title="No baseline results yet"
-                description="Students haven't completed the baseline test yet. Configure and activate the test to get started."
-              />
-            </div>
+            <NoResults />
           )}
         </div>
       </Card>
