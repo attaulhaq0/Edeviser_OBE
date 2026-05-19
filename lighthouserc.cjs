@@ -12,8 +12,6 @@ module.exports = {
           throughputKbps: 1638.4,
           cpuSlowdownMultiplier: 4,
         },
-        // Required for Chrome to run in CI (Docker/GitHub Actions sandbox)
-        chromeFlags: '--no-sandbox --disable-dev-shm-usage --disable-gpu',
       },
     },
     assert: {

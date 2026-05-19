@@ -99,7 +99,7 @@ export const useTeacherKPIs = () => {
         supabase
           .from("student_courses")
           .select("student_id")
-          .in("course_id", courseIds)
+          .in("course_id", courseIds),
       ]);
 
       const submissions = allSubmissions ?? [];
