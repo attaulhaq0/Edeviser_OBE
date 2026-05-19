@@ -37,7 +37,8 @@ export default defineConfig({
         manualChunks: (id) => {
           // Vendor chunks
           if (
-            id.includes("node_modules/react") ||
+            id.includes("node_modules/react/") ||
+            id.includes("node_modules/@radix-ui") ||
             id.includes("node_modules/react-dom")
           ) {
             return "vendor-react";

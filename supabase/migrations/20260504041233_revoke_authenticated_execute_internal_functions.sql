@@ -1,47 +1,26 @@
--- W3: REVOKE EXECUTE on internal-only SECURITY DEFINER functions.
+-- W3: REVOKE EXECUTE on internal-only SECURITY DEFINER functions
 -- These functions are called by cron jobs and edge functions via service_role,
--- not by regular authenticated users via PostgREST RPC.
-DO $$
-DECLARE
-  target text;
-  fn regprocedure;
-BEGIN
-  FOR target IN
-    SELECT signature
-    FROM (
-      VALUES
-        ('public.increment_team_xp(uuid, integer)'),
-        ('public.recalculate_dynamic_prices(uuid)'),
-        ('public.recalculate_league_tiers(uuid)'),
-        ('public.expire_stale_recovery_sessions()'),
-        ('public.badge_auto_archive()'),
-        ('public.badge_spotlight_auto_rotate()'),
-        ('public.rls_auto_enable()'),
-        ('public.trigger_attainment_rollup()'),
-        ('public.is_pgcron_available()')
-    ) AS targets(signature)
-  LOOP
-    fn := to_regprocedure(target);
-    IF fn IS NOT NULL THEN
-      EXECUTE format('REVOKE EXECUTE ON FUNCTION %s FROM authenticated', fn);
-    END IF;
-  END LOOP;
+-- NOT by regular authenticated users via PostgREST RPC.
 
-  FOR target IN
-    SELECT signature
-    FROM (
-      VALUES
-        ('public.expire_stale_recovery_sessions()'),
-        ('public.badge_auto_archive()'),
-        ('public.badge_spotlight_auto_rotate()'),
-        ('public.rls_auto_enable()'),
-        ('public.trigger_attainment_rollup()'),
-        ('public.is_pgcron_available()')
-    ) AS targets(signature)
-  LOOP
-    fn := to_regprocedure(target);
-    IF fn IS NOT NULL THEN
-      EXECUTE format('REVOKE EXECUTE ON FUNCTION %s FROM anon', fn);
-    END IF;
-  END LOOP;
-END $$;
+-- Functions that were incorrectly re-granted to authenticated in previous migration
+REVOKE EXECUTE ON FUNCTION public.increment_team_xp(uuid, integer) FROM authenticated;
+REVOKE EXECUTE ON FUNCTION public.recalculate_dynamic_prices(uuid) FROM authenticated;
+REVOKE EXECUTE ON FUNCTION public.recalculate_league_tiers(uuid) FROM authenticated;
+
+-- Function that was never addressed in any previous REVOKE migration
+REVOKE EXECUTE ON FUNCTION public.expire_stale_recovery_sessions() FROM authenticated;
+REVOKE EXECUTE ON FUNCTION public.expire_stale_recovery_sessions() FROM anon;
+
+-- Re-revoke from authenticated for safety (idempotent)
+REVOKE EXECUTE ON FUNCTION public.badge_auto_archive() FROM authenticated;
+REVOKE EXECUTE ON FUNCTION public.badge_spotlight_auto_rotate() FROM authenticated;
+REVOKE EXECUTE ON FUNCTION public.rls_auto_enable() FROM authenticated;
+REVOKE EXECUTE ON FUNCTION public.trigger_attainment_rollup() FROM authenticated;
+REVOKE EXECUTE ON FUNCTION public.is_pgcron_available() FROM authenticated;
+
+-- Re-revoke from anon for safety (idempotent)
+REVOKE EXECUTE ON FUNCTION public.badge_auto_archive() FROM anon;
+REVOKE EXECUTE ON FUNCTION public.badge_spotlight_auto_rotate() FROM anon;
+REVOKE EXECUTE ON FUNCTION public.rls_auto_enable() FROM anon;
+REVOKE EXECUTE ON FUNCTION public.trigger_attainment_rollup() FROM anon;
+REVOKE EXECUTE ON FUNCTION public.is_pgcron_available() FROM anon;;
