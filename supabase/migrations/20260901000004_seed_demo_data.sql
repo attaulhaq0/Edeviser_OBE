@@ -52,7 +52,7 @@ VALUES
     'https://via.placeholder.com/200x100?text=Qatar+MOEHE',
     now()
   )
-ON CONFLICT (slug) DO NOTHING;
+ON CONFLICT (id) DO NOTHING;
 
 -- Update domain restrictions for the domain-restricted institution
 UPDATE institutions
