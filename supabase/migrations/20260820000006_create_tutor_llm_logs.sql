@@ -21,3 +21,5 @@ CREATE TABLE IF NOT EXISTS tutor_llm_logs (
 CREATE INDEX IF NOT EXISTS idx_llm_logs_institution ON tutor_llm_logs (institution_id, created_at DESC);
 -- Index for per-conversation log lookups
 CREATE INDEX IF NOT EXISTS idx_llm_logs_conversation ON tutor_llm_logs (conversation_id);
+-- FK index required by the pre-deployment audit baseline.
+CREATE INDEX IF NOT EXISTS idx_tutor_llm_logs_student_id ON tutor_llm_logs (student_id);
