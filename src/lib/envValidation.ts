@@ -18,7 +18,7 @@ const envSchema = z.object({
 
 export type AppEnv = z.infer<typeof envSchema>;
 
-export function validateEnv(): AppEnv {
+export function validateEnv(): AppEnv | null {
   const result = envSchema.safeParse({
     VITE_SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL,
     VITE_SUPABASE_ANON_KEY: import.meta.env.VITE_SUPABASE_ANON_KEY,
@@ -31,7 +31,7 @@ export function validateEnv(): AppEnv {
       .join("\n");
     const msg = `[Edeviser] Missing or invalid environment variables:\n${missing}\n\nCopy .env.example to .env.local and fill in the values.`;
     console.error(msg);
-    throw new Error(msg);
+    return null;
   }
 
   return result.data;
