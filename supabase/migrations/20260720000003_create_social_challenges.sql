@@ -78,7 +78,7 @@ BEGIN
   END IF;
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql SET search_path = public;
 DROP TRIGGER IF EXISTS trg_enforce_max_active_challenges ON social_challenges;
 CREATE TRIGGER trg_enforce_max_active_challenges
   BEFORE INSERT OR UPDATE ON social_challenges

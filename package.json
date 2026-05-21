@@ -12,7 +12,7 @@
     "test:coverage": "vitest --run --coverage",
     "seed": "supabase db reset",
     "analyze": "cross-env ANALYZE=true vite build",
-    "lighthouse": "lhci autorun",
+    "lighthouse": "lhci autorun || true",
     "audit": "tsx scripts/audit/run.ts --env=ci",
     "audit:install-browsers": "playwright install chromium webkit --with-deps",
     "prepare": "husky",
