@@ -256,7 +256,7 @@ serve(async (req) => {
     // ── Auth: require service role or teacher/admin ──────────────────
     const authHeader = req.headers.get("Authorization") ?? "";
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-    const isServiceRole = serviceRoleKey && authHeader.includes(serviceRoleKey);
+    const isServiceRole = serviceRoleKey && authHeader.replace("Bearer ", "") === serviceRoleKey;
 
     if (!isServiceRole) {
       if (!authHeader) {
