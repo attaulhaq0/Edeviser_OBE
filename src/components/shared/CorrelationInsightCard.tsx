@@ -93,8 +93,7 @@ const CorrelationInsightCard = ({ insight }: CorrelationInsightCardProps) => {
                 className="h-full rounded-full transition-all duration-300"
                 style={{
                   width: `${strengthPercent}%`,
-                  background:
-                    "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+                  background: "var(--brand-gradient)",
                 }}
                 data-testid="strength-bar"
               />

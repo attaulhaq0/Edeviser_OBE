@@ -31,7 +31,7 @@ import {
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import CQIStatusBadge from "@/components/shared/CQIStatusBadge";
 import type { CQIStatus } from "@/components/shared/CQIStatusBadge";
-import EmptyState from "@/components/shared/EmptyState";
+import { NoActionPlans } from "@/components/shared/EmptyState";
 import Shimmer from "@/components/shared/Shimmer";
 import {
   useCQIPlans,
@@ -602,12 +602,11 @@ const CQIManager = () => {
         </Button>
       </div>
 
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
         <div
           className="px-6 py-4 flex items-center gap-2"
           style={{
-            background:
-              "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+            background: "var(--brand-gradient)",
           }}
         >
           <ClipboardCheck className="h-5 w-5 text-white" />
@@ -623,12 +622,7 @@ const CQIManager = () => {
               ))}
             </div>
           ) : !plans || plans.length === 0 ? (
-            <EmptyState
-              icon={<ClipboardCheck className="h-8 w-8 text-gray-400" />}
-              title="No CQI Action Plans"
-              description="No CQI action plans yet. Create one to start closing the loop."
-              className="py-12"
-            />
+            <NoActionPlans className="py-12" />
           ) : (
             plans.map((plan) => (
               <PlanRow

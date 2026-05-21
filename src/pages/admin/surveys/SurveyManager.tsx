@@ -11,7 +11,6 @@ import {
   Eye,
   EyeOff,
   GripVertical,
-  ClipboardList,
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -52,6 +51,7 @@ import {
 } from "@/hooks/useSurveys";
 import type { SurveyType, Survey } from "@/hooks/useSurveys";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import { NoSurveys } from "@/components/shared/EmptyState";
 
 // ─── Schemas ────────────────────────────────────────────────────────────────
 
@@ -495,13 +495,7 @@ const SurveyManager = () => {
           ))}
         </div>
       ) : !surveys?.length ? (
-        <Card className="bg-white border-0 shadow-md rounded-xl p-8 text-center">
-          <ClipboardList className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-sm text-gray-500">
-            No surveys yet. Create your first survey to collect indirect
-            assessment data.
-          </p>
-        </Card>
+        <NoSurveys />
       ) : (
         <div className="space-y-3">
           {surveys.map((survey) => (

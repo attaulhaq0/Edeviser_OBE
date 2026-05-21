@@ -12,6 +12,7 @@ import {
 } from "@/hooks/useSurveys";
 import type { Survey } from "@/hooks/useSurveys";
 import SurveyForm from "@/components/shared/SurveyForm";
+import { NoSurveys } from "@/components/shared/EmptyState";
 import type { SurveyQuestion as SurveyFormQuestion } from "@/components/shared/SurveyForm";
 
 // ─── Single Survey Card ─────────────────────────────────────────────────────
@@ -93,12 +94,11 @@ const SurveyCard = ({ survey }: SurveyCardProps) => {
   }
 
   return (
-    <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+    <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
       <div
         className="px-6 py-4 flex items-center gap-2"
         style={{
-          background:
-            "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+          background: "var(--brand-gradient)",
         }}
       >
         <ClipboardList className="h-5 w-5 text-white" />
@@ -138,12 +138,7 @@ const SurveyResponsePage = () => {
           ))}
         </div>
       ) : !activeSurveys.length ? (
-        <Card className="bg-white border-0 shadow-md rounded-xl p-8 text-center">
-          <ClipboardList className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-sm text-gray-500">
-            No surveys available at this time.
-          </p>
-        </Card>
+        <NoSurveys />
       ) : (
         <div className="space-y-6">
           {activeSurveys.map((survey) => (

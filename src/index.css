@@ -135,99 +135,144 @@
 
 :root {
   /* === BRAND COLORS === */
-  --brand-primary: #3b82f6;           /* Blue-500 — primary CTA, active states, links */
-  --brand-primary-dark: #2563eb;      /* Blue-600 — hover states */
-  --brand-secondary: #14b8a6;         /* Teal-500 — secondary accents, gradient start */
-  --brand-secondary-dark: #0d9488;    /* Teal-600 — teal hover states */
-  --gradient-start: #14b8a6;          /* Teal */
-  --gradient-end: #0382bd;            /* Blue */
+  --brand-primary: #3b82f6; /* Blue-500 — primary CTA, active states, links */
+  --brand-primary-dark: #2563eb; /* Blue-600 — hover states */
+  --brand-secondary: #14b8a6; /* Teal-500 — secondary accents, gradient start */
+  --brand-secondary-dark: #0d9488; /* Teal-600 — teal hover states */
+  --gradient-start: #14b8a6; /* Teal */
+  --gradient-end: #0382bd; /* Blue */
 
   /* === GRADIENTS === */
-  --brand-gradient: linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%);
-  --hero-gradient: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #312e81 100%);
+  --brand-gradient: linear-gradient(135deg, #14b8a6 0%, #0382bd 100%);
+  --hero-gradient: linear-gradient(
+    135deg,
+    #0f172a 0%,
+    #1e3a8a 50%,
+    #312e81 100%
+  );
 
   /* === SEMANTIC COLORS === */
-  --color-success: #22c55e;           /* Green-500 — completed states, pass grades */
-  --color-warning: #f59e0b;           /* Amber-500 — at-risk alerts, approaching deadline */
+  --color-success: #22c55e; /* Green-500 — completed states, pass grades */
+  --color-warning: #f59e0b; /* Amber-500 — at-risk alerts, approaching deadline */
   --color-destructive-brand: #ef4444; /* Red-500 — errors, delete actions, failed states */
-  --color-neutral: #64748b;           /* Slate-500 — secondary text, inactive elements */
+  --color-neutral: #64748b; /* Slate-500 — secondary text, inactive elements */
 
   /* === SURFACE COLORS === */
-  --surface-background: #ffffff;      /* Page background */
-  --surface-card: #ffffff;            /* Card backgrounds */
-  --surface-subtle: #f8fafc;          /* Slate-50 — alternate row, inner containers */
-  --surface-border: #e2e8f0;          /* Slate-200 — card borders, dividers */
-  --surface-input-border: #d1d5db;    /* Gray-300 — form input borders */
+  --surface-background: #ffffff; /* Page background */
+  --surface-card: #ffffff; /* Card backgrounds */
+  --surface-subtle: #f8fafc; /* Slate-50 — alternate row, inner containers */
+  --surface-border: #e2e8f0; /* Slate-200 — card borders, dividers */
+  --surface-input-border: #d1d5db; /* Gray-300 — form input borders */
 
   /* === TYPOGRAPHY === */
-  --font-mono: 'Menlo', 'Monaco', 'Consolas', 'Courier New', monospace;
+  --font-mono: "Menlo", "Monaco", "Consolas", "Courier New", monospace;
 
   /* === SHADOWS === */
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1),
+    0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1),
+    0 8px 10px -6px rgb(0 0 0 / 0.1);
 
   /* === GAMIFICATION XP BAR === */
-  --xp-track: #e2e8f0;               /* Gray track */
-  --xp-fill: #14b8a6;                /* Teal fill */
+  --xp-track: #e2e8f0; /* Gray track */
+  --xp-fill: #14b8a6; /* Teal fill */
 
   /* === TEXT COLORS (design-doc tokens) === */
-  --text-primary: #0f172a;            /* Slate-900 */
-  --text-secondary: #64748b;          /* Slate-500 */
+  --text-primary: #0f172a; /* Slate-900 */
+  --text-secondary: #64748b; /* Slate-500 */
 }
 
 /* ─── Dark Mode Brand Overrides ───────────────────────────────────────────── */
 
 .dark {
-  --surface-background: #020617;      /* Slate-950 */
-  --surface-card: #0f172a;            /* Slate-900 */
-  --surface-subtle: #1e293b;          /* Slate-800 */
-  --surface-border: #334155;          /* Slate-700 */
-  --surface-input-border: #475569;    /* Slate-600 */
+  --surface-background: #020617; /* Slate-950 */
+  --surface-card: #0f172a; /* Slate-900 */
+  --surface-subtle: #1e293b; /* Slate-800 */
+  --surface-border: #334155; /* Slate-700 */
+  --surface-input-border: #475569; /* Slate-600 */
 
-  --text-primary: #f1f5f9;            /* Slate-100 */
-  --text-secondary: #94a3b8;          /* Slate-400 */
+  --text-primary: #f1f5f9; /* Slate-100 */
+  --text-secondary: #94a3b8; /* Slate-400 */
 
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.2);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.3);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.3);
-  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.3), 0 8px 10px -6px rgb(0 0 0 / 0.3);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.3),
+    0 4px 6px -4px rgb(0 0 0 / 0.3);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.3),
+    0 8px 10px -6px rgb(0 0 0 / 0.3);
 
-  --xp-track: #334155;                /* Slate-700 */
+  --xp-track: #334155; /* Slate-700 */
 }
 
 /* ─── Custom Keyframes ────────────────────────────────────────────────────── */
 
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 @keyframes xp-pulse {
-  0%, 100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.15); opacity: 0.85; }
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 0.85;
+  }
 }
 
 @keyframes badge-pop {
-  0% { transform: scale(0); opacity: 0; }
-  60% { transform: scale(1.2); opacity: 1; }
-  100% { transform: scale(1); opacity: 1; }
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
 }
 
 @keyframes streak-flame {
-  0%, 100% { transform: scaleY(1) rotate(-2deg); }
-  50% { transform: scaleY(1.15) rotate(2deg); }
+  0%,
+  100% {
+    transform: scaleY(1) rotate(-2deg);
+  }
+  50% {
+    transform: scaleY(1.15) rotate(2deg);
+  }
 }
 
 @keyframes fade-in-up {
-  0% { opacity: 0; transform: translateY(8px); }
-  100% { opacity: 1; transform: translateY(0); }
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .animate-shimmer {
@@ -262,15 +307,39 @@
 }
 
 @keyframes node-unlock {
-  0% { transform: scale(0.8); opacity: 0.5; box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
-  50% { transform: scale(1.1); opacity: 1; box-shadow: 0 0 16px 4px rgba(59, 130, 246, 0.4); }
-  100% { transform: scale(1); opacity: 1; box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+  0% {
+    transform: scale(0.8);
+    opacity: 0.5;
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+    box-shadow: 0 0 16px 4px rgba(59, 130, 246, 0.4);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+  }
 }
 
 @keyframes mystery-reveal {
-  0% { transform: rotateY(90deg) scale(0.8); opacity: 0; filter: brightness(2); }
-  50% { transform: rotateY(-10deg) scale(1.05); opacity: 1; filter: brightness(1.5); }
-  100% { transform: rotateY(0deg) scale(1); opacity: 1; filter: brightness(1); }
+  0% {
+    transform: rotateY(90deg) scale(0.8);
+    opacity: 0;
+    filter: brightness(2);
+  }
+  50% {
+    transform: rotateY(-10deg) scale(1.05);
+    opacity: 1;
+    filter: brightness(1.5);
+  }
+  100% {
+    transform: rotateY(0deg) scale(1);
+    opacity: 1;
+    filter: brightness(1);
+  }
 }
 
 .animate-node-unlock {
@@ -299,7 +368,8 @@
 /* ─── RTL Support ─────────────────────────────────────────────────────────── */
 
 [dir="rtl"] {
-  font-family: "Noto Sans Arabic", "Noto Sans", ui-sans-serif, system-ui, sans-serif;
+  font-family: "Noto Sans Arabic", "Noto Sans", ui-sans-serif, system-ui,
+    sans-serif;
 }
 
 /* Ensure Shadcn/ui dialogs and popovers respect direction */
@@ -349,11 +419,26 @@
 
 /* Dyslexia-friendly font */
 .dyslexia-font {
-  font-family: var(--font-body, "OpenDyslexic", "Noto Sans", ui-sans-serif, system-ui, sans-serif);
+  font-family: var(
+    --font-body,
+    "OpenDyslexic",
+    "Noto Sans",
+    ui-sans-serif,
+    system-ui,
+    sans-serif
+  );
 }
 
 .dyslexia-font[dir="rtl"] {
-  font-family: var(--font-body, "OpenDyslexic", "Noto Sans Arabic", "Noto Sans", ui-sans-serif, system-ui, sans-serif);
+  font-family: var(
+    --font-body,
+    "OpenDyslexic",
+    "Noto Sans Arabic",
+    "Noto Sans",
+    ui-sans-serif,
+    system-ui,
+    sans-serif
+  );
 }
 
 /* High contrast mode */

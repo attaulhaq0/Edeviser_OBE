@@ -140,12 +140,11 @@ const InstitutionSettings = () => {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           {/* Attainment Thresholds Card */}
-          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
             <div
               className="px-6 py-4 flex items-center gap-2"
               style={{
-                background:
-                  "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+                background: "var(--brand-gradient)",
               }}
             >
               <Settings className="h-5 w-5 text-white" />
@@ -260,12 +259,11 @@ const InstitutionSettings = () => {
           </Card>
 
           {/* Accreditation Body Card */}
-          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
             <div
               className="px-6 py-4 flex items-center gap-2"
               style={{
-                background:
-                  "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+                background: "var(--brand-gradient)",
               }}
             >
               <GraduationCap className="h-5 w-5 text-white" />
@@ -309,12 +307,11 @@ const InstitutionSettings = () => {
           </Card>
 
           {/* Grade Scales Card */}
-          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
             <div
               className="px-6 py-4 flex items-center gap-2"
               style={{
-                background:
-                  "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+                background: "var(--brand-gradient)",
               }}
             >
               <GraduationCap className="h-5 w-5 text-white" />
@@ -454,12 +451,11 @@ const InstitutionSettings = () => {
           </Card>
 
           {/* Streak Sabbatical Card — Requirement 125.3, 125.4 */}
-          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
             <div
               className="px-6 py-4 flex items-center gap-2"
               style={{
-                background:
-                  "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+                background: "var(--brand-gradient)",
               }}
             >
               <Flame className="h-5 w-5 text-white" />
@@ -497,12 +493,11 @@ const InstitutionSettings = () => {
           </Card>
 
           {/* League Tier Thresholds Card — Requirement 132.5 */}
-          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
             <div
               className="px-6 py-4 flex items-center gap-2"
               style={{
-                background:
-                  "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+                background: "var(--brand-gradient)",
               }}
             >
               <Trophy className="h-5 w-5 text-white" />
@@ -609,12 +604,11 @@ const InstitutionSettings = () => {
           </Card>
 
           {/* Default Language Card */}
-          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
             <div
               className="px-6 py-4 flex items-center gap-2"
               style={{
-                background:
-                  "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+                background: "var(--brand-gradient)",
               }}
             >
               <Globe className="h-5 w-5 text-white" />

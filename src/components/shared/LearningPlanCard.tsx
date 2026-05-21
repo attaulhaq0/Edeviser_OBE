@@ -63,7 +63,7 @@ const LearningPlanCard = ({
     <div
       className="rounded-xl p-[2px]"
       style={{
-        background: "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+        background: "var(--brand-gradient)",
       }}
     >
       <Card className="bg-white border-0 rounded-xl overflow-hidden shadow-none">

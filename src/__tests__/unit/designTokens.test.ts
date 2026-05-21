@@ -31,14 +31,15 @@ describe("Design Tokens — src/index.css", () => {
   describe("Brand Gradient", () => {
     it("defines --brand-gradient with correct teal-to-blue gradient", () => {
       expect(indexCss).toContain(
-        "--brand-gradient: linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)"
+        "--brand-gradient: linear-gradient(135deg, #14b8a6 0%, #0382bd 100%)"
       );
     });
 
     it("defines --hero-gradient for dashboard hero cards", () => {
-      expect(indexCss).toContain(
-        "--hero-gradient: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #312e81 100%)"
-      );
+      expect(indexCss).toContain("--hero-gradient: linear-gradient(");
+      expect(indexCss).toContain("#0f172a 0%");
+      expect(indexCss).toContain("#1e3a8a 50%");
+      expect(indexCss).toContain("#312e81 100%");
     });
   });
 
@@ -84,7 +85,7 @@ describe("Design Tokens — src/index.css", () => {
     });
 
     it("defines --font-mono for code/technical text", () => {
-      expect(indexCss).toContain("--font-mono: 'Menlo'");
+      expect(indexCss).toContain('--font-mono: "Menlo"');
     });
   });
 

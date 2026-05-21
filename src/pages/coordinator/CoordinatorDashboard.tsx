@@ -167,14 +167,13 @@ const CoordinatorDashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Curriculum Matrix (2/3 width) */}
         <Card
-          className="bg-white border-0 shadow-md rounded-xl overflow-hidden lg:col-span-2"
+          className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0 lg:col-span-2"
           data-tour="curriculum-matrix"
         >
           <div
             className="px-6 py-4 flex items-center justify-between"
             style={{
-              background:
-                "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+              background: "var(--brand-gradient)",
             }}
           >
             <div className="flex items-center gap-2">
@@ -227,12 +226,11 @@ const CoordinatorDashboard = () => {
         </Card>
 
         {/* At-Risk Students (1/3 width) */}
-        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
           <div
             className="px-6 py-4 flex items-center gap-2"
             style={{
-              background:
-                "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+              background: "var(--brand-gradient)",
             }}
           >
             <AlertTriangle className="h-5 w-5 text-white" />
@@ -258,12 +256,11 @@ const CoordinatorDashboard = () => {
       </div>
 
       {/* Recovery Pathway Metrics */}
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
         <div
           className="px-6 py-4 flex items-center gap-2"
           style={{
-            background:
-              "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+            background: "var(--brand-gradient)",
           }}
         >
           <RotateCcw className="h-5 w-5 text-white" />
@@ -312,12 +309,11 @@ const CoordinatorDashboard = () => {
       </Card>
 
       {/* CQI Action Plans Section */}
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
         <div
           className="px-6 py-4 flex items-center justify-between"
           style={{
-            background:
-              "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+            background: "var(--brand-gradient)",
           }}
         >
           <div className="flex items-center gap-2">
@@ -416,12 +412,11 @@ const CoordinatorDashboard = () => {
       </Card>
 
       {/* Section Comparison */}
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
         <div
           className="px-6 py-4 flex items-center justify-between"
           style={{
-            background:
-              "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+            background: "var(--brand-gradient)",
           }}
         >
           <div className="flex items-center gap-2">
@@ -471,14 +466,13 @@ const CoordinatorDashboard = () => {
 
       {/* OBE Visualization Quick Access — Requirement 106.1, 107.1, 108.1, 109.2, 110.6 */}
       <Card
-        className="bg-white border-0 shadow-md rounded-xl overflow-hidden"
+        className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0"
         data-tour="plo-management"
       >
         <div
           className="px-6 py-4 flex items-center gap-2"
           style={{
-            background:
-              "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+            background: "var(--brand-gradient)",
           }}
         >
           <BarChart3 className="h-5 w-5 text-white" />

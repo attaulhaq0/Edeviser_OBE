@@ -31,6 +31,7 @@ import {
 import { Clock, Plus, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import Shimmer from "@/components/shared/Shimmer";
+import { InlineNoTimetable } from "@/components/shared/EmptyState";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import {
   useSectionTimetableSlots,
@@ -333,12 +334,11 @@ const TimetableManager = () => {
       </Card>
 
       {/* Slots list */}
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
         <div
           className="px-6 py-4 flex items-center gap-2"
           style={{
-            background:
-              "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+            background: "var(--brand-gradient)",
           }}
         >
           <Clock className="h-5 w-5 text-white" />
@@ -354,9 +354,7 @@ const TimetableManager = () => {
               Select a section to view and manage its timetable slots.
             </p>
           ) : slots.length === 0 ? (
-            <p className="text-sm text-gray-500 text-center py-8">
-              No timetable slots for this section yet.
-            </p>
+            <InlineNoTimetable />
           ) : (
             <div className="space-y-2">
               {slots.map((slot) => (

@@ -12,7 +12,7 @@ import GradientCardHeader from "@/components/shared/GradientCardHeader";
 import ExplanationConfidenceBadge from "@/components/shared/ExplanationConfidenceBadge";
 import DifficultyBadge from "@/components/shared/DifficultyBadge";
 import Shimmer from "@/components/shared/Shimmer";
-import EmptyState from "@/components/shared/EmptyState";
+import { NoData } from "@/components/shared/EmptyState";
 
 import {
   useExplanationReviewQueue,
@@ -81,7 +81,7 @@ const ExplanationReviewCard = ({
   };
 
   return (
-    <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+    <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
       <div className="p-4 space-y-3">
         {/* Question text */}
         <p className="text-sm font-medium text-gray-900 leading-relaxed">
@@ -261,16 +261,13 @@ const ExplanationReviewPage = () => {
   if (items.length === 0) {
     return (
       <div className="space-y-6">
-        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
           <GradientCardHeader
             icon={ClipboardCheck}
             title="Review Explanations"
           />
           <div className="p-6">
-            <EmptyState
-              title="No explanations to review"
-              description="Frequently-missed questions with AI explanations needing review will appear here."
-            />
+            <NoData />
           </div>
         </Card>
       </div>
@@ -282,7 +279,7 @@ const ExplanationReviewPage = () => {
   return (
     <div className="space-y-6">
       {/* Header card */}
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
         <GradientCardHeader icon={ClipboardCheck} title="Review Explanations">
           <span className="text-xs text-white/70 font-medium">
             {items.length} question{items.length !== 1 ? "s" : ""} to review

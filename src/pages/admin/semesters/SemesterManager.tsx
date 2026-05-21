@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/form";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import Shimmer from "@/components/shared/Shimmer";
+import { NoSemesters } from "@/components/shared/EmptyState";
 import { Plus, Pencil, Trash2, Calendar, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import type { Semester } from "@/types/app";
@@ -348,12 +349,7 @@ const SemesterManager = () => {
           ))}
         </div>
       ) : (semesters ?? []).length === 0 ? (
-        <Card className="bg-white border-0 shadow-md rounded-xl p-8 text-center">
-          <Calendar className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-          <p className="text-sm text-gray-500">
-            No semesters yet. Create your first semester to get started.
-          </p>
-        </Card>
+        <NoSemesters />
       ) : (
         <div className="space-y-3">
           {(semesters ?? []).map((semester) => (

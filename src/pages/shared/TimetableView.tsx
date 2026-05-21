@@ -43,12 +43,11 @@ const TimetableView = () => {
         <h1 className="text-2xl font-bold tracking-tight">Timetable</h1>
       </div>
 
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
         <div
           className="px-6 py-4 flex items-center gap-2"
           style={{
-            background:
-              "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+            background: "var(--brand-gradient)",
           }}
         >
           <Clock className="h-5 w-5 text-white" />

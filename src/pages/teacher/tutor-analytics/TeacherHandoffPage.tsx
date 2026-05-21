@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/dialog";
 import Shimmer from "@/components/shared/Shimmer";
 import GradientCardHeader from "@/components/shared/GradientCardHeader";
+import { InlineNoData } from "@/components/shared/EmptyState";
 import { useAuth } from "@/hooks/useAuth";
 import { useCourses } from "@/hooks/useCourses";
 import {
@@ -221,7 +222,7 @@ const TeacherHandoffPage = () => {
       ) : null}
 
       {/* 18.5.1: Pending Handoff Requests */}
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
         <GradientCardHeader icon={Handshake} title="Pending Handoff Requests" />
         <div className="p-6">
           {isLoading ? (
@@ -284,7 +285,7 @@ const TeacherHandoffPage = () => {
       {/* Bottom Grid: Most-Asked Questions + Low-Confidence Topics + High AI Dependency */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* 18.5.2: Most-Asked Questions (anonymized) */}
-        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
           <GradientCardHeader
             icon={MessageSquareWarning}
             title="Most-Asked Questions"
@@ -297,9 +298,7 @@ const TeacherHandoffPage = () => {
                 ))}
               </div>
             ) : mostAskedQuestions.length === 0 ? (
-              <div className="flex items-center justify-center h-32 text-sm text-gray-500">
-                No data available yet.
-              </div>
+              <InlineNoData className="h-32" />
             ) : (
               <div className="space-y-2 max-h-[300px] overflow-y-auto">
                 {mostAskedQuestions.map((topic, idx) => (
@@ -326,7 +325,7 @@ const TeacherHandoffPage = () => {
         </Card>
 
         {/* 18.5.3: Low-Confidence Topics */}
-        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
           <GradientCardHeader
             icon={ShieldAlert}
             title="Low-Confidence Topics"
@@ -366,7 +365,7 @@ const TeacherHandoffPage = () => {
         </Card>
 
         {/* 18.5.4: High AI Dependency Students (anonymized) */}
-        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
           <GradientCardHeader icon={Users} title="High AI Dependency" />
           <div className="p-6">
             {isLoading ? (

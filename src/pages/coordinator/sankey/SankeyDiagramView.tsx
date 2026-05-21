@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import EmptyState from "@/components/shared/EmptyState";
+import { NoOutcomes } from "@/components/shared/EmptyState";
 import Shimmer from "@/components/shared/Shimmer";
 import { GitBranch } from "lucide-react";
 
@@ -44,12 +44,11 @@ const SankeyDiagramView = () => {
         </Select>
       </div>
 
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
         <div
           className="px-6 py-4 flex items-center gap-2"
           style={{
-            background:
-              "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+            background: "var(--brand-gradient)",
           }}
         >
           <GitBranch className="h-5 w-5 text-white" />
@@ -65,12 +64,7 @@ const SankeyDiagramView = () => {
           ) : isLoading ? (
             <Shimmer className="h-64 rounded-lg" />
           ) : !sankeyData || sankeyData.nodes.length === 0 ? (
-            <EmptyState
-              icon={<GitBranch className="h-8 w-8 text-gray-400" />}
-              title="No Outcome Data"
-              description="No outcome mapping data available for this program. Map CLOs to PLOs and PLOs to ILOs to view the flow diagram."
-              className="py-12"
-            />
+            <NoOutcomes className="py-12" />
           ) : (
             <div className="space-y-4">
               <div className="flex gap-8 justify-center text-xs text-slate-500">

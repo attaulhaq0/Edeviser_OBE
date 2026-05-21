@@ -4,6 +4,8 @@ module.exports = {
     collect: {
       staticDistDir: './dist',
       numberOfRuns: 3,
+      // Required for Chrome to run in CI (Docker/GitHub Actions sandbox)
+      chromeFlags: '--no-sandbox --disable-dev-shm-usage --disable-gpu',
       settings: {
         preset: 'desktop',
         onlyCategories: ['performance', 'accessibility', 'best-practices', 'seo'],
@@ -12,6 +14,8 @@ module.exports = {
           throughputKbps: 1638.4,
           cpuSlowdownMultiplier: 4,
         },
+        // Required for Chrome to run in CI (Docker/GitHub Actions sandbox)
+        chromeFlags: '--no-sandbox --disable-dev-shm-usage --disable-gpu',
       },
     },
     assert: {

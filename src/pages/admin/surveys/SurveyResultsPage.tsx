@@ -29,6 +29,10 @@ import {
 } from "@/hooks/useSurveys";
 import type { SurveyQuestion, SurveyResponse } from "@/hooks/useSurveys";
 import {
+  InlineNoResponses,
+  InlineNoQuestions,
+} from "@/components/shared/EmptyState";
+import {
   aggregateLikert,
   aggregateMCQ,
   LIKERT_LABELS,
@@ -151,7 +155,7 @@ const QuestionResult = ({
       </p>
       <div className="max-h-48 overflow-y-auto space-y-2">
         {questionResponses.length === 0 ? (
-          <p className="text-xs text-gray-400 italic">No responses yet</p>
+          <InlineNoResponses />
         ) : (
           questionResponses.map((r) => (
             <div
@@ -260,12 +264,11 @@ const SurveyResultsPage = () => {
           </div>
 
           {/* Per-question results */}
-          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
             <div
               className="px-6 py-4 flex items-center gap-2"
               style={{
-                background:
-                  "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+                background: "var(--brand-gradient)",
               }}
             >
               <ClipboardList className="h-5 w-5 text-white" />
@@ -282,11 +285,7 @@ const SurveyResultsPage = () => {
                   index={i}
                 />
               ))}
-              {!questions?.length && (
-                <p className="text-sm text-gray-500 text-center py-4">
-                  No questions found for this survey.
-                </p>
-              )}
+              {!questions?.length && <InlineNoQuestions />}
             </div>
           </Card>
         </>

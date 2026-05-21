@@ -293,7 +293,7 @@ const TodayTimeline = ({
   const hasItems = sectionOrder.some((key) => grouped[key].length > 0);
 
   return (
-    <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+    <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
       <GradientCardHeader icon={Clock} title="Today's Timeline" />
       <div className="p-6 space-y-4">
         {/* Timeline Sections */}

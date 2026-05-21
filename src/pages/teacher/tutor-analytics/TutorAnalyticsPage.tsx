@@ -13,6 +13,12 @@ import {
 } from "@/components/ui/select";
 import Shimmer from "@/components/shared/Shimmer";
 import GradientCardHeader from "@/components/shared/GradientCardHeader";
+import {
+  InlineNoCLOs,
+  InlineNoData,
+  InlineNoUsageData,
+  InlineNoCitationData,
+} from "@/components/shared/EmptyState";
 import { useAuth } from "@/hooks/useAuth";
 import { useCourses } from "@/hooks/useCourses";
 import { useTutorAnalytics } from "@/hooks/useTutorAnalytics";
@@ -230,15 +236,13 @@ const TutorAnalyticsPage = () => {
       {/* Charts Row: Top Questioned CLOs (2/3) + Common Topics (1/3) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Top Questioned CLOs — Horizontal Bar Chart */}
-        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden lg:col-span-2">
+        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0 lg:col-span-2">
           <GradientCardHeader icon={BarChart3} title="Top Questioned CLOs" />
           <div className="p-6">
             {isLoading ? (
               <Shimmer className="h-[300px] rounded-xl" />
             ) : cloChartData.length === 0 ? (
-              <div className="flex items-center justify-center h-[300px] text-sm text-gray-500">
-                No CLO conversation data available yet.
-              </div>
+              <InlineNoCLOs className="h-[300px]" />
             ) : (
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart
@@ -275,7 +279,7 @@ const TutorAnalyticsPage = () => {
         </Card>
 
         {/* Common Topics — Frequency List */}
-        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
           <GradientCardHeader icon={Hash} title="Common Topics" />
           <div className="p-6">
             {isLoading ? (
@@ -286,9 +290,7 @@ const TutorAnalyticsPage = () => {
               </div>
             ) : !analytics?.common_topics ||
               analytics.common_topics.length === 0 ? (
-              <div className="flex items-center justify-center h-[300px] text-sm text-gray-500">
-                No topic data available yet.
-              </div>
+              <InlineNoData className="h-[300px]" />
             ) : (
               <div className="space-y-2 max-h-[300px] overflow-y-auto">
                 {analytics.common_topics.map((topic, idx) => (
@@ -316,7 +318,7 @@ const TutorAnalyticsPage = () => {
       </div>
 
       {/* Usage Over Time — Line Chart */}
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
         <GradientCardHeader
           icon={CalendarDays}
           title="Usage Over Time (Last 30 Days)"
@@ -325,9 +327,7 @@ const TutorAnalyticsPage = () => {
           {isLoading ? (
             <Shimmer className="h-[300px] rounded-xl" />
           ) : usageData.length === 0 ? (
-            <div className="flex items-center justify-center h-[300px] text-sm text-gray-500">
-              No usage data available yet.
-            </div>
+            <InlineNoUsageData className="h-[300px]" />
           ) : (
             <ResponsiveContainer width="100%" height={300}>
               <LineChart
@@ -362,7 +362,7 @@ const TutorAnalyticsPage = () => {
       {/* Coverage Gaps + Material Effectiveness Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Coverage Gaps — CLOs with avg RAG similarity < 0.75 */}
-        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
           <GradientCardHeader icon={AlertTriangle} title="Coverage Gaps" />
           <div className="p-6">
             {isLoading ? (
@@ -401,7 +401,7 @@ const TutorAnalyticsPage = () => {
         </Card>
 
         {/* Material Effectiveness — Most-cited course materials */}
-        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
           <GradientCardHeader icon={FileText} title="Material Effectiveness" />
           <div className="p-6">
             {isLoading ? (
@@ -411,9 +411,7 @@ const TutorAnalyticsPage = () => {
                 ))}
               </div>
             ) : materialEffectiveness.length === 0 ? (
-              <div className="flex items-center justify-center h-[200px] text-sm text-gray-500">
-                No citation data available yet.
-              </div>
+              <InlineNoCitationData className="h-[200px]" />
             ) : (
               <div className="space-y-2">
                 <p className="text-xs text-gray-500 mb-3">

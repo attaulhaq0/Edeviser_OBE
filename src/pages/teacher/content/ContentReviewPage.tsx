@@ -12,7 +12,7 @@ import {
   useReviewStudentContent,
 } from "@/hooks/useStudentContent";
 import { useAuth } from "@/hooks/useAuth";
-import EmptyState from "@/components/shared/EmptyState";
+import { NoData } from "@/components/shared/EmptyState";
 
 const ContentReviewPage = () => {
   const { profile } = useAuth();
@@ -41,11 +41,7 @@ const ContentReviewPage = () => {
           <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
         </div>
       ) : pendingContent.length === 0 ? (
-        <EmptyState
-          icon={<FileText className="h-8 w-8 text-gray-400" />}
-          title="No content pending review"
-          description="All student content has been reviewed. Check back later."
-        />
+        <NoData />
       ) : (
         <div className="grid gap-4">
           {pendingContent.map((item) => (

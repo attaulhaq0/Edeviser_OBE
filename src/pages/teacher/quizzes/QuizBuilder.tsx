@@ -47,6 +47,10 @@ import {
 } from "@/components/ui/dialog";
 import { ArrowLeft, Loader2, Plus, Trash2, Pencil } from "lucide-react";
 import { toast } from "sonner";
+import {
+  InlineNoCLOs,
+  InlineNoQuestions,
+} from "@/components/shared/EmptyState";
 
 // ─── Question Form Schema ────────────────────────────────────────────────────
 
@@ -706,9 +710,7 @@ const QuizBuilder = () => {
               isLoadingCLOs ? (
                 <div className="animate-shimmer h-16 rounded-lg" />
               ) : clos.length === 0 ? (
-                <p className="text-sm text-gray-500">
-                  No CLOs found for this course.
-                </p>
+                <InlineNoCLOs />
               ) : (
                 <FormField
                   control={form.control}
@@ -864,12 +866,11 @@ const QuizBuilder = () => {
 
       {/* Questions Section — only in edit mode */}
       {isEditMode && id && (
-        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
+        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
           <div
             className="px-6 py-4 flex items-center justify-between"
             style={{
-              background:
-                "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
+              background: "var(--brand-gradient)",
             }}
           >
             <h2 className="text-lg font-bold tracking-tight text-white">
@@ -890,9 +891,7 @@ const QuizBuilder = () => {
             {isLoadingQuestions ? (
               <div className="animate-shimmer h-24 rounded-lg" />
             ) : !questions || questions.length === 0 ? (
-              <p className="text-sm text-gray-500 text-center py-4">
-                No questions yet. Click "Add Question" to get started.
-              </p>
+              <InlineNoQuestions />
             ) : (
               questions.map((q, idx) => (
                 <div
