@@ -65,7 +65,7 @@ export function authenticateCronRequest(req: Request): {
   // Also accept service role key in Authorization header (for internal calls)
   const authHeader = req.headers.get("Authorization") ?? "";
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-  if (serviceRoleKey && authHeader.includes(serviceRoleKey)) {
+  if (serviceRoleKey && authHeader.replace("Bearer ", "") === serviceRoleKey) {
     return { authorized: true, error: null };
   }
 

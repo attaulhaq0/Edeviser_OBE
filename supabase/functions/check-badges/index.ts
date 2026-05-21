@@ -1639,11 +1639,12 @@ serve(async (req) => {
   }
 
   try {
-    // ── Auth: require service role or teacher/admin ──────────────────
+    // ── Auth: require service role or the student themselves ─────────
     const authHeader = req.headers.get("Authorization") ?? "";
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-    const isServiceRole = serviceRoleKey && authHeader.includes(serviceRoleKey);
+    const isServiceRole = serviceRoleKey && authHeader.replace("Bearer ", "") === serviceRoleKey;
 
+    let callerId: string | null = null;
     if (!isServiceRole) {
       if (!authHeader) {
         return new Response(
@@ -1669,6 +1670,7 @@ serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
+      callerId = caller.id;
     }
 
     const supabase = createClient(
@@ -1687,6 +1689,14 @@ serve(async (req) => {
     }
 
     const { student_id, trigger, team_id } = validation.data;
+
+    // Ownership check: non-service-role callers can only check their own badges
+    if (!isServiceRole && callerId !== student_id) {
+      return new Response(
+        JSON.stringify({ error: "Forbidden: can only check your own badges" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     // ── Step 1: Fetch existing badges for this student ──────────────────
 

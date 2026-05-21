@@ -386,8 +386,9 @@ serve(async (req) => {
     // ── Auth: require service role or authenticated student ──────────
     const authHeader = req.headers.get("Authorization") ?? "";
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-    const isServiceRole = serviceRoleKey && authHeader.includes(serviceRoleKey);
+    const isServiceRole = serviceRoleKey && authHeader.replace("Bearer ", "") === serviceRoleKey;
 
+    let callerId: string | null = null;
     if (!isServiceRole) {
       if (!authHeader) {
         return new Response(
@@ -413,6 +414,7 @@ serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
+      callerId = caller.id;
     }
 
     const supabase = createClient(
@@ -431,6 +433,15 @@ serve(async (req) => {
     }
 
     const { student_id } = validation.data;
+
+    // Ownership check: non-service-role callers can only process their own streak
+    if (!isServiceRole && callerId !== student_id) {
+      return new Response(
+        JSON.stringify({ error: "Forbidden: can only process your own streak" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const todayUTC = getTodayUTC();
 
     // ── Step 1: Fetch current gamification record ───────────────────────

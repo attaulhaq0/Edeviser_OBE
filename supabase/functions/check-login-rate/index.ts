@@ -237,7 +237,7 @@ serve(async (req) => {
       const authHeader = req.headers.get("Authorization") ?? "";
       const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
       const isServiceRole =
-        serviceRoleKey && authHeader.includes(serviceRoleKey);
+        serviceRoleKey && authHeader.replace("Bearer ", "") === serviceRoleKey;
 
       if (!isServiceRole) {
         if (!authHeader) {
