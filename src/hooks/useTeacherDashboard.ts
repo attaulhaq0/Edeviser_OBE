@@ -64,35 +64,49 @@ export const useTeacherKPIs = () => {
         };
       }
 
-      // 1. Pending submissions (no grade record)
-      const { data: allSubmissions } = await supabase
-        .from("submissions")
-        .select(
-          "id, assignment_id, assignments!inner(course_id), grades:grades(id)"
-        )
-        .in("assignments.course_id", courseIds);
+      const weekAgo = new Date();
+      weekAgo.setDate(weekAgo.getDate() - 7);
+
+      // ⚡ Bolt: Batch independent queries to reduce total latency.
+      // Expected impact: Faster dashboard load by parallelizing 5 queries.
+      const [
+        { data: allSubmissions },
+        { count: gradedThisWeek },
+        { data: attainmentData },
+        { count: totalStudents },
+        { data: enrolledStudents },
+      ] = await Promise.all([
+        supabase
+          .from("submissions")
+          .select(
+            "id, assignment_id, assignments!inner(course_id), grades:grades(id)"
+          )
+          .in("assignments.course_id", courseIds),
+        supabase
+          .from("grades")
+          .select("*", { count: "exact", head: true })
+          .eq("graded_by", teacherId)
+          .gte("created_at", weekAgo.toISOString()),
+        supabase
+          .from("outcome_attainment")
+          .select("attainment_percent")
+          .eq("scope", "student_course")
+          .in("course_id", courseIds),
+        supabase
+          .from("student_courses")
+          .select("*", { count: "exact", head: true })
+          .in("course_id", courseIds),
+        supabase
+          .from("student_courses")
+          .select("student_id")
+          .in("course_id", courseIds),
+      ]);
 
       const submissions = allSubmissions ?? [];
 
       const pendingSubmissions = submissions.filter(
         (s) => !s.grades || (Array.isArray(s.grades) && s.grades.length === 0)
       ).length;
-
-      // 2. Graded this week
-      const weekAgo = new Date();
-      weekAgo.setDate(weekAgo.getDate() - 7);
-      const { count: gradedThisWeek } = await supabase
-        .from("grades")
-        .select("*", { count: "exact", head: true })
-        .eq("graded_by", teacherId)
-        .gte("created_at", weekAgo.toISOString());
-
-      // 3. Average attainment across teacher's courses
-      const { data: attainmentData } = await supabase
-        .from("outcome_attainment")
-        .select("attainment_percent")
-        .eq("scope", "student_course")
-        .in("course_id", courseIds);
 
       const attainments = attainmentData ?? [];
       const avgAttainment =
@@ -103,18 +117,8 @@ export const useTeacherKPIs = () => {
             )
           : 0;
 
-      // 4. Total enrolled students
-      const { count: totalStudents } = await supabase
-        .from("student_courses")
-        .select("*", { count: "exact", head: true })
-        .in("course_id", courseIds);
-
       // 5. At-risk count: students not logged in 7+ days OR <50% on 2+ CLOs
       let atRiskCount = 0;
-      const { data: enrolledStudents } = await supabase
-        .from("student_courses")
-        .select("student_id")
-        .in("course_id", courseIds);
 
       const studentIds = [
         ...new Set((enrolledStudents ?? []).map((s) => s.student_id)),

@@ -51,3 +51,10 @@ BEGIN
   -- Service role bypasses RLS by default, so no explicit policy needed.
 
 END $$;
+
+CREATE INDEX IF NOT EXISTS idx_tutor_plan_updates_conversation_id
+  ON tutor_plan_updates (conversation_id);
+CREATE INDEX IF NOT EXISTS idx_tutor_plan_updates_course_id
+  ON tutor_plan_updates (course_id);
+CREATE INDEX IF NOT EXISTS idx_tutor_plan_updates_institution_id
+  ON tutor_plan_updates (institution_id);
