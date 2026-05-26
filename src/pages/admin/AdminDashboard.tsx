@@ -11,6 +11,7 @@ import {
 } from "@/hooks/useAdminDashboard";
 import { useAIPerformance } from "@/hooks/useAIPerformance";
 import { useAuth } from "@/hooks/useAuth";
+import { useDeferredMount } from "@/hooks/useDeferredMount";
 import {
   Users,
   UserCheck,
@@ -72,10 +73,17 @@ const AdminDashboard = () => {
   const { t } = useTranslation("admin");
   const { profile } = useAuth();
   const navigate = useNavigate();
+  const deferredReady = useDeferredMount(500);
   const { data: kpis, isLoading: kpisLoading } = useAdminKPIs();
-  const { data: auditLogs, isLoading: logsLoading } = useRecentAuditLogs(10);
-  const { data: onboardingAnalytics } = useOnboardingAnalytics();
-  const { data: aiPerformance, isLoading: aiLoading } = useAIPerformance();
+  const { data: auditLogs, isLoading: logsLoading } = useRecentAuditLogs(10, {
+    enabled: deferredReady,
+  });
+  const { data: onboardingAnalytics } = useOnboardingAnalytics({
+    enabled: deferredReady,
+  });
+  const { data: aiPerformance, isLoading: aiLoading } = useAIPerformance({
+    enabled: deferredReady,
+  });
 
   return (
     <div className="space-y-6">

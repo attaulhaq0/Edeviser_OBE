@@ -392,6 +392,9 @@ const StudentAnnouncementDetail = lazy(
 const StudentCourseDetail = lazy(
   () => import("@/pages/student/courses/CourseDetail")
 );
+const StudentCoursesListPage = lazy(
+  () => import("@/pages/student/courses/StudentCoursesPage")
+);
 
 // Institution Settings
 const InstitutionSettingsPage = lazy(
@@ -751,6 +754,7 @@ const AppRouter = () => (
               path="announcements/:announcementId"
               element={<StudentAnnouncementDetail />}
             />
+            <Route path="courses" element={<StudentCoursesListPage />} />
             <Route path="courses/:courseId" element={<StudentCourseDetail />} />
             <Route
               path="courses/:courseId/materials/:materialId"
