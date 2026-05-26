@@ -85,7 +85,7 @@ VALUES ('transcripts', 'transcripts', false)
 ON CONFLICT (id) DO NOTHING;
 
 -- Storage policies for reports bucket
-CREATE POLICY "reports_admin_upload"
+CREATE POLICY "reports_bucket_admin_upload"
   ON storage.objects FOR INSERT TO authenticated
   WITH CHECK (
     bucket_id = 'reports'
@@ -95,7 +95,7 @@ CREATE POLICY "reports_admin_upload"
     )
   );
 
-CREATE POLICY "reports_admin_read"
+CREATE POLICY "reports_bucket_admin_read"
   ON storage.objects FOR SELECT TO authenticated
   USING (
     bucket_id = 'reports'
