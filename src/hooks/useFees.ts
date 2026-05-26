@@ -50,7 +50,7 @@ export const useFeePayments = (feeStructureId?: string) => {
       let q = supabase
         .from("fee_payments")
         .select("*")
-        .order("paid_at", { ascending: false });
+        .order("payment_date", { ascending: false });
       if (feeStructureId) q = q.eq("fee_structure_id", feeStructureId);
       const { data, error } = await q;
       if (error) throw error;

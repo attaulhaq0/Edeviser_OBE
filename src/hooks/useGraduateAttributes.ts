@@ -10,23 +10,23 @@ import { useAuth } from "@/hooks/useAuth";
 export interface GraduateAttribute {
   id: string;
   institution_id: string;
-  title: string;
+  name: string;
   description: string | null;
-  code: string;
+  sort_order: number;
   created_at: string;
 }
 
 export interface GraduateAttributeMapping {
   id: string;
   graduate_attribute_id: string;
-  ilo_id: string;
+  outcome_id: string;
   weight: number;
 }
 
 export interface GAAttainment {
   attribute_id: string;
-  title: string;
-  code: string;
+  name: string;
+  description: string | null;
   avg_attainment: number;
   mapped_ilo_count: number;
 }
@@ -66,9 +66,9 @@ export const useCreateGraduateAttribute = () => {
   const { user } = useAuth();
   return useMutation({
     mutationFn: async (input: {
-      title: string;
+      name: string;
       description?: string;
-      code: string;
+      sort_order?: number;
     }) => {
       const { data, error } = await supabase
         .from("graduate_attributes" as never)
@@ -102,9 +102,9 @@ export const useUpdateGraduateAttribute = () => {
       ...input
     }: {
       id: string;
-      title?: string;
+      name?: string;
       description?: string;
-      code?: string;
+      sort_order?: number;
     }) => {
       const { data, error } = await supabase
         .from("graduate_attributes" as never)
@@ -156,28 +156,28 @@ export const useGraduateAttributeAttainment = (institutionId?: string) => {
     queryFn: async (): Promise<GAAttainment[]> => {
       const { data: attrs } = await supabase
         .from("graduate_attributes" as never)
-        .select("id, title, code")
+        .select("id, name, description")
         .eq("institution_id", institutionId!);
       if (!attrs) return [];
 
       const results: GAAttainment[] = [];
       for (const attr of attrs as Array<{
         id: string;
-        title: string;
-        code: string;
+        name: string;
+        description: string | null;
       }>) {
         const { data: mappings } = await supabase
           .from("graduate_attribute_mappings" as never)
-          .select("ilo_id, weight")
+          .select("outcome_id, weight")
           .eq("graduate_attribute_id", attr.id);
         const iloIds = (
-          (mappings ?? []) as Array<{ ilo_id: string; weight: number }>
-        ).map((m) => m.ilo_id);
+          (mappings ?? []) as Array<{ outcome_id: string; weight: number }>
+        ).map((m) => m.outcome_id);
         if (iloIds.length === 0) {
           results.push({
             attribute_id: attr.id,
-            title: attr.title,
-            code: attr.code,
+            name: attr.name,
+            description: attr.description,
             avg_attainment: 0,
             mapped_ilo_count: 0,
           });
@@ -185,30 +185,30 @@ export const useGraduateAttributeAttainment = (institutionId?: string) => {
         }
         const { data: attainments } = await supabase
           .from("outcome_attainment" as never)
-          .select("outcome_id, score_percent")
+          .select("outcome_id, attainment_percent")
           .in("outcome_id", iloIds);
         const attMap = new Map(
           (
             (attainments ?? []) as Array<{
               outcome_id: string;
-              score_percent: number;
+              attainment_percent: number;
             }>
-          ).map((a) => [a.outcome_id, a.score_percent])
+          ).map((a) => [a.outcome_id, a.attainment_percent])
         );
         let weightedSum = 0;
         let totalWeight = 0;
         for (const m of (mappings ?? []) as Array<{
-          ilo_id: string;
+          outcome_id: string;
           weight: number;
         }>) {
-          const score = attMap.get(m.ilo_id) ?? 0;
+          const score = attMap.get(m.outcome_id) ?? 0;
           weightedSum += score * m.weight;
           totalWeight += m.weight;
         }
         results.push({
           attribute_id: attr.id,
-          title: attr.title,
-          code: attr.code,
+          name: attr.name,
+          description: attr.description,
           avg_attainment: totalWeight > 0 ? weightedSum / totalWeight : 0,
           mapped_ilo_count: iloIds.length,
         });
