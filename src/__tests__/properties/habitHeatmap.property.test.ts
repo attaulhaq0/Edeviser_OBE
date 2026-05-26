@@ -275,17 +275,29 @@ describe("Habit Heatmap Properties", () => {
     );
   });
 
-  // Feature: habit-heatmap, Property 10: Cell size minimum
-  it("Property 10: computeCellSize returns max(floor(width/weeks), 12)", () => {
+  // Feature: habit-heatmap, Property 10: Cell size bounds (min 12, max 16)
+  // Updated 2026-05-30 to fix the heatmap "zoom" feedback loop:
+  // computeCellSize now accounts for the 2px gap between cells AND caps
+  // the max cell size at 16px so the SVG can never exceed its container.
+  it("Property 10: computeCellSize returns a value between 12 and 16 inclusive", () => {
     fc.assert(
       fc.property(
         fc.integer({ min: 1, max: 5000 }),
         fc.integer({ min: 1, max: 52 }),
         (containerWidth, numWeeks) => {
           const cellSize = computeCellSize(containerWidth, numWeeks);
-          const expected = Math.max(Math.floor(containerWidth / numWeeks), 12);
-          expect(cellSize).toBe(expected);
           expect(cellSize).toBeGreaterThanOrEqual(12);
+          expect(cellSize).toBeLessThanOrEqual(16);
+
+          // The total horizontal footprint must never exceed the container.
+          // This is the invariant that prevents the ResizeObserver loop.
+          const CELL_GAP = 2;
+          const totalWidth = numWeeks * (cellSize + CELL_GAP);
+          // When the container is too narrow for even the minimum cells,
+          // we still return 12 (mobile path will scroll horizontally).
+          if (cellSize > 12) {
+            expect(totalWidth).toBeLessThanOrEqual(containerWidth);
+          }
         }
       ),
       { numRuns: 100 }

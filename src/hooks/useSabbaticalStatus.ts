@@ -3,9 +3,10 @@ import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
 
 /**
- * Fetches whether Streak Sabbatical is enabled for a student from
- * the student_gamification table. Returns false when no data is found
- * or the query fails.
+ * Fetches whether Streak Sabbatical is enabled for the student's institution.
+ * The setting lives on `institution_settings.streak_sabbatical_enabled` —
+ * NOT on `student_gamification` as previously assumed. This was a critical
+ * silent-failure bug.
  */
 export const useSabbaticalStatus = (studentId: string | undefined) => {
   return useQuery({
@@ -15,20 +16,25 @@ export const useSabbaticalStatus = (studentId: string | undefined) => {
       if (!studentId) return false;
 
       try {
-        const { data, error } = await supabase
-          .from("student_gamification")
-          .select("sabbatical_enabled" as never)
-          .eq("student_id", studentId)
+        // 1. Look up the student's institution
+        const { data: profile, error: profileErr } = await supabase
+          .from("profiles")
+          .select("institution_id")
+          .eq("id", studentId)
           .maybeSingle();
 
-        if (error) throw error;
+        if (profileErr || !profile?.institution_id) return false;
 
-        if (!data) return false;
+        // 2. Read the institution-level setting
+        const { data: settings, error: settingsErr } = await supabase
+          .from("institution_settings")
+          .select("streak_sabbatical_enabled")
+          .eq("institution_id", profile.institution_id)
+          .maybeSingle();
 
-        const row = data as unknown as Record<string, unknown>;
-        return row.sabbatical_enabled === true;
+        if (settingsErr || !settings) return false;
+        return settings.streak_sabbatical_enabled === true;
       } catch {
-        // Column may not exist yet — return disabled
         return false;
       }
     },
