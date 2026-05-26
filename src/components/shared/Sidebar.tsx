@@ -35,7 +35,7 @@ const Sidebar = () => {
           "fixed top-14 start-0 z-[99] flex h-[calc(100vh-3.5rem)] w-52 flex-col border-e border-border bg-white dark:bg-background transition-transform duration-200 ease-in-out",
           mobileOpen
             ? "translate-x-0"
-            : "-translate-x-full rtl:translate-x-full lg:translate-x-0"
+            : "max-lg:-translate-x-full max-lg:rtl:translate-x-full lg:translate-x-0"
         )}
       >
         {/* Mobile close button */}
