@@ -29,6 +29,7 @@ import { Textarea } from "@/components/ui/textarea";
 import Shimmer from "@/components/shared/Shimmer";
 
 import { supabase } from "@/lib/supabase";
+import { getSignedUrl } from "@/lib/storageUrl";
 import { queryKeys } from "@/lib/queryKeys";
 import { cn } from "@/lib/utils";
 import { logActivity } from "@/lib/activityLogger";
@@ -169,17 +170,22 @@ const SubmissionInfoPanel = ({
         </Badge>
       )}
 
-      {/* File link */}
+      {/* File link — submissions bucket is private, so we generate a fresh
+          signed URL on click rather than trusting submission.file_url to be a
+          live URL. See src/lib/storageUrl.ts. */}
       {submission.file_url && (
-        <Button variant="outline" size="sm" className="w-full" asChild>
-          <a
-            href={submission.file_url}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <ExternalLink className="h-4 w-4" />
-            View Submission File
-          </a>
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-full"
+          onClick={async () => {
+            const url = await getSignedUrl("submissions", submission.file_url!);
+            if (url) window.open(url, "_blank", "noopener,noreferrer");
+            else toast.error("Could not generate file link. Try again.");
+          }}
+        >
+          <ExternalLink className="h-4 w-4" />
+          View Submission File
         </Button>
       )}
     </div>
