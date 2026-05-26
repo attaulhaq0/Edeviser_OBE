@@ -77,17 +77,17 @@ export const useLeagueLeaderboard = (
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data: weeklyData, error: weeklyErr } = await (supabase as any)
         .from("leaderboard_weekly")
-        .select("student_id, xp_total")
+        .select("student_id, weekly_xp")
         .in("student_id", studentIds);
       if (weeklyErr) throw weeklyErr;
 
       const weeklyMap = new Map<string, number>();
       for (const w of (weeklyData ?? []) as Array<{
         student_id: string;
-        xp_total: number | null;
+        weekly_xp: number | null;
       }>) {
         const sid = w.student_id;
-        if (sid) weeklyMap.set(sid, w.xp_total ?? 0);
+        if (sid) weeklyMap.set(sid, w.weekly_xp ?? 0);
       }
 
       // Fetch names

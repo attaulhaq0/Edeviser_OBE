@@ -27,8 +27,7 @@ import {
 } from "@/hooks/useGraduateAttributes";
 
 const schema = z.object({
-  title: z.string().min(1, "Title is required"),
-  code: z.string().min(1, "Code is required"),
+  name: z.string().min(1, "Name is required"),
   description: z.string().optional(),
 });
 
@@ -43,7 +42,7 @@ const GraduateAttributeManager = () => {
 
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
-    defaultValues: { title: "", code: "", description: "" },
+    defaultValues: { name: "", description: "" },
   });
 
   const onSubmit = (data: z.infer<typeof schema>) => {
@@ -87,10 +86,7 @@ const GraduateAttributeManager = () => {
                   className="flex items-center justify-between p-3 rounded-lg border border-slate-100 hover:bg-slate-50"
                 >
                   <div>
-                    <span className="text-xs font-mono text-slate-400 me-2">
-                      {attr.code}
-                    </span>
-                    <span className="text-sm font-medium">{attr.title}</span>
+                    <span className="text-sm font-medium">{attr.name}</span>
                     {attr.description && (
                       <p className="text-xs text-slate-500 mt-0.5">
                         {attr.description}
@@ -118,34 +114,22 @@ const GraduateAttributeManager = () => {
         </h2>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="code"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Code</FormLabel>
-                    <FormControl>
-                      <Input placeholder="GA1" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="title"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Title</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Name</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Critical Thinking, Communication, etc."
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="description"

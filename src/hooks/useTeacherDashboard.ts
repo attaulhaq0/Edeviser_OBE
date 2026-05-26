@@ -86,7 +86,7 @@ export const useTeacherKPIs = () => {
           .from("grades")
           .select("*", { count: "exact", head: true })
           .eq("graded_by", teacherId)
-          .gte("created_at", weekAgo.toISOString()),
+          .gte("graded_at", weekAgo.toISOString()),
         supabase
           .from("outcome_attainment")
           .select("attainment_percent")

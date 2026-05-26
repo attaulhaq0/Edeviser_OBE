@@ -88,7 +88,7 @@ export const useDiscussionThreads = (courseId: string | undefined) => {
       const { data, error } = await supabase
         .from("discussion_threads")
         .select(
-          "id, course_id, title, content, author_id, is_pinned, is_resolved, created_at, updated_at"
+          "id, course_id, title, content, author_id, is_pinned, is_resolved, created_at"
         )
         .eq("course_id", courseId)
         .order("is_pinned", { ascending: false })
@@ -110,7 +110,7 @@ export const useDiscussionThread = (threadId: string | undefined) => {
       const { data, error } = await supabase
         .from("discussion_threads")
         .select(
-          "id, course_id, title, content, author_id, is_pinned, is_resolved, created_at, updated_at"
+          "id, course_id, title, content, author_id, is_pinned, is_resolved, created_at"
         )
         .eq("id", threadId)
         .maybeSingle();
@@ -133,7 +133,7 @@ export const useDiscussionReplies = (threadId: string | undefined) => {
       const { data, error } = await supabase
         .from("discussion_replies")
         .select(
-          "id, thread_id, content, author_id, is_answer, created_at, updated_at"
+          "id, thread_id, content, author_id, is_answer, created_at"
         )
         .eq("thread_id", threadId)
         .order("created_at", { ascending: true });
