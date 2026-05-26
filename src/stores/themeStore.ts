@@ -70,9 +70,9 @@ const applyThemeClass = (effectiveTheme: EffectiveTheme) => {
 export const useThemeStore = create<ThemeStore>((set, get) => {
   // Initialize from localStorage
   const storedThemeMode = (() => {
-    if (typeof localStorage === "undefined") return "system";
+    if (typeof localStorage === "undefined") return "light";
     const stored = localStorage.getItem("theme-mode");
-    return (stored as ThemeMode) || "system";
+    return (stored as ThemeMode) || "light";
   })();
 
   const initialEffectiveTheme = resolveEffectiveTheme(storedThemeMode);
@@ -143,7 +143,7 @@ export const setupThemeAuthBridge = (auth: AuthContextValue) => {
   // When auth state changes, sync theme from profile
   if (auth.user && auth.profile) {
     const profileTheme = (auth.profile.theme_preference ||
-      "system") as ThemeMode;
+      "light") as ThemeMode;
     useThemeStore.setState({ themeMode: profileTheme });
     const effectiveTheme = resolveEffectiveTheme(profileTheme);
     useThemeStore.setState({ effectiveTheme });

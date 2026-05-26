@@ -3,6 +3,7 @@
 @import "shadcn/tailwind.css";
 
 @custom-variant dark (&:is(.dark *));
+@custom-variant rtl (&:where([dir="rtl"], [dir="rtl"] *));
 
 @theme {
   --font-sans: "Noto Sans", ui-sans-serif, system-ui, sans-serif;

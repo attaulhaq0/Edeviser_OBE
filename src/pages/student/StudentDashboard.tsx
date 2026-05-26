@@ -57,6 +57,7 @@ import { useMyTeamId } from "@/hooks/useTeamLeaderboard";
 import { useTeams, useTeamGamification } from "@/hooks/useTeams";
 import { useBadgeSpotlight, useTieredBadges } from "@/hooks/useTieredBadges";
 import { useStudentLeagueTier } from "@/hooks/useLeagueLeaderboard";
+import { useDeferredMount } from "@/hooks/useDeferredMount";
 import BadgeSpotlightCard from "@/components/shared/BadgeSpotlightCard";
 import LeagueTierBadge from "@/components/shared/LeagueTierBadge";
 import { supabase } from "@/lib/supabase";
@@ -185,6 +186,15 @@ const StudentDashboard = () => {
   const { user, profile } = useAuth();
   const studentId = user?.id ?? "";
   const queryClient = useQueryClient();
+
+  // PERF: Defer non-critical hooks until after first paint to reduce
+  // thundering herd of 27 parallel queries on dashboard mount.
+  // Critical (above-fold): kpis, deadlines, profile, completeness — these fire immediately.
+  // Deferred: micro-assessments, badges, teams, attendance, challenges,
+  // announcements, league tier, etc. fire after ~500ms.
+  const deferredReady = useDeferredMount(500);
+  const deferredStudentId = deferredReady ? studentId : undefined;
+
   const { data: kpis, isLoading: kpisLoading } = useStudentKPIs(user?.id);
   const { data: deadlines, isLoading: deadlinesLoading } = useUpcomingDeadlines(
     user?.id,
@@ -219,19 +229,19 @@ const StudentDashboard = () => {
   // Onboarding-related hooks
   const onboardingCompleted = profile?.onboarding_completed === true;
   const { data: studentProfile } = useStudentProfile(studentId);
-  const { data: todayMicro } = useTodayMicroAssessment(studentId);
+  const { data: todayMicro } = useTodayMicroAssessment(deferredStudentId ?? "");
   const completeMicro = useCompleteMicroAssessment();
   const dismissMicro = useDismissMicroAssessment();
   const { data: completenessData } = useProfileCompleteness(studentId);
-  const { data: starterSessions } = useStarterWeekSessions(studentId);
+  const { data: starterSessions } = useStarterWeekSessions(deferredStudentId ?? "");
   const { data: progress } = useOnboardingProgress(studentId);
 
   // Streak Freeze hooks
-  const { data: freezeData } = useStreakFreezeInventory(studentId);
+  const { data: freezeData } = useStreakFreezeInventory(deferredStudentId ?? "");
   const purchaseFreeze = usePurchaseStreakFreeze();
 
   // Comeback Challenge hooks — Requirement 124.5
-  const { data: comebackData } = useComebackChallenge(studentId || undefined);
+  const { data: comebackData } = useComebackChallenge(deferredStudentId);
   const cancelComeback = useCancelComebackChallenge();
 
   // Institution settings for Streak Sabbatical — Requirement 125
@@ -241,22 +251,22 @@ const StudentDashboard = () => {
 
   // Habit Difficulty Level — Requirement 127.6
   const { data: habitDifficultyData } = useHabitDifficultyLevel(
-    studentId || undefined
+    deferredStudentId
   );
 
   // Badge Spotlight — Requirement 134.4
   const { data: spotlightData } = useBadgeSpotlight(
-    profile?.institution_id ?? undefined
+    deferredReady ? profile?.institution_id ?? undefined : undefined
   );
-  const { data: tieredBadgesData } = useTieredBadges(studentId || undefined);
+  const { data: tieredBadgesData } = useTieredBadges(deferredStudentId);
 
   // CLO Progress for "Get Help" buttons — Requirement 10.2
-  const { data: cloProgressData } = useCLOProgress(studentId || undefined);
+  const { data: cloProgressData } = useCLOProgress(deferredStudentId);
 
   // Independence scores for CLOs — Requirement 28
   const independenceCourseId = cloProgressData?.[0]?.course_id;
   const { data: independenceScores } = useIndependenceScores(
-    studentId || "",
+    deferredStudentId ?? "",
     independenceCourseId ?? ""
   );
   const independenceMap = new Map(
@@ -264,7 +274,7 @@ const StudentDashboard = () => {
   );
 
   // League Tier — Requirement 132.3
-  const { data: leagueTierData } = useStudentLeagueTier(studentId || undefined);
+  const { data: leagueTierData } = useStudentLeagueTier(deferredStudentId);
 
   const spotlightBadge = tieredBadgesData?.find(
     (b) => b.category === spotlightData?.category
@@ -277,11 +287,11 @@ const StudentDashboard = () => {
 
   // Attendance data
   const { data: attendanceCourses, isLoading: attendanceLoading } =
-    useStudentAttendance(studentId || undefined);
+    useStudentAttendance(deferredStudentId);
 
   // Active challenges for dashboard section
   const { data: studentChallenges } = useStudentChallenges(
-    studentId || undefined
+    deferredStudentId
   );
   const activeChallenges = (studentChallenges ?? []).filter(
     (c) => c.status === "active"
@@ -301,10 +311,10 @@ const StudentDashboard = () => {
       if (error) throw error;
       return (data as { course_id: string } | null)?.course_id ?? null;
     },
-    enabled: !!studentId,
+    enabled: !!studentId && deferredReady,
   });
   const firstCourseId = firstCourseQuery.data ?? undefined;
-  const { data: myTeamId } = useMyTeamId(studentId || undefined, firstCourseId);
+  const { data: myTeamId } = useMyTeamId(deferredStudentId, firstCourseId);
   const { data: teamsData } = useTeams(firstCourseId);
   const myTeam = (teamsData ?? []).find((t) => t.id === myTeamId);
   const { data: teamGamification } = useTeamGamification(myTeamId ?? undefined);
