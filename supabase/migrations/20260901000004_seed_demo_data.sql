@@ -64,6 +64,55 @@ WHERE slug = 'qatar-moehe-demo';
 -- Per institution: 500 students + 50 teachers + 5 coordinators + 2 admins + 200 parents
 -- ============================================================
 
+-- Step 9.2.0: Insert skeleton auth.users rows for the deterministic demo IDs
+-- so the FK from public.profiles.id -> auth.users(id) is satisfied on a fresh
+-- database (e.g. Supabase preview branches). Production is unaffected — these
+-- IDs already exist there and ON CONFLICT DO NOTHING makes the insert a no-op.
+-- The skeletons have empty passwords; they're not loginable. Real demo accounts
+-- in production were created via the normal signup flow.
+DO $$
+DECLARE
+  v_inst RECORD;
+  v_role_count RECORD;
+  v_i INT;
+  v_uuid UUID;
+  v_email TEXT;
+BEGIN
+  FOR v_inst IN
+    SELECT id, slug FROM institutions
+    WHERE slug IN ('open-demo-university', 'invite-only-academy', 'qatar-moehe-demo')
+  LOOP
+    FOR v_role_count IN
+      SELECT * FROM (VALUES
+        ('student', 500),
+        ('teacher', 50),
+        ('coordinator', 5),
+        ('admin', 2),
+        ('parent', 200)
+      ) AS t(role_name, role_count)
+    LOOP
+      FOR v_i IN 1..v_role_count.role_count LOOP
+        v_uuid := uuid_generate_v5(v_inst.id, v_role_count.role_name || '-' || v_i::text);
+        v_email := v_role_count.role_name || v_i::text || '@' || v_inst.slug || '.demo';
+        INSERT INTO auth.users (
+          id, email, instance_id, aud, role, encrypted_password,
+          email_confirmed_at, created_at, updated_at, raw_app_meta_data,
+          raw_user_meta_data, is_super_admin
+        )
+        VALUES (
+          v_uuid, v_email,
+          '00000000-0000-0000-0000-000000000000'::uuid,
+          'authenticated', 'authenticated', '',
+          now(), now(), now(),
+          '{"provider":"email","providers":["email"]}'::jsonb,
+          '{}'::jsonb, false
+        )
+        ON CONFLICT (id) DO NOTHING;
+      END LOOP;
+    END LOOP;
+  END LOOP;
+END $$;
+
 -- Helper CTE to generate all institutions
 WITH institutions_cte AS (
   SELECT id, slug FROM institutions WHERE slug IN ('open-demo-university', 'invite-only-academy', 'qatar-moehe-demo')
