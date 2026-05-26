@@ -85,10 +85,9 @@ export const useCompleteSession = () => {
             continue;
           }
 
-          // Get public URL
-          const {
-            data: { publicUrl },
-          } = supabase.storage.from("session-evidence").getPublicUrl(filePath);
+          // session-evidence is a private bucket. Store the storage path —
+          // consumers must call getSignedUrl("session-evidence", file_url)
+          // at READ time. See src/lib/storageUrl.ts.
 
           // 3. Insert evidence record
           const { error: evidenceError } = await supabase
@@ -96,7 +95,7 @@ export const useCompleteSession = () => {
             .insert({
               session_id: sessionId,
               student_id: user.id,
-              file_url: publicUrl,
+              file_url: filePath,
               file_name: file.name,
               file_size_bytes: file.size,
               mime_type: file.type,

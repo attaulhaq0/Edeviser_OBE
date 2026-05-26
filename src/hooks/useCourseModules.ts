@@ -459,8 +459,8 @@ export const uploadMaterialFile = async (
     .from(MATERIAL_BUCKET)
     .upload(path, file);
   if (error) throw new Error(`Upload failed: ${error.message}`);
-  const { data: urlData } = supabase.storage
-    .from(MATERIAL_BUCKET)
-    .getPublicUrl(path);
-  return urlData.publicUrl;
+  // course-materials is a private bucket. Return the storage path —
+  // consumers must call getSignedUrl("course-materials", path) at READ time.
+  // See src/lib/storageUrl.ts.
+  return path;
 };
