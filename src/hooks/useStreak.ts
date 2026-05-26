@@ -19,12 +19,20 @@ export const useStreak = () => {
 
       const { data, error } = await supabase
         .from("student_gamification")
-        .select("streak_count, last_login_date, streak_freezes_available")
+        .select("streak_current, last_login_date, streak_freezes_available")
         .eq("student_id", user.id)
         .maybeSingle();
 
       if (error) throw error;
-      return data as StreakData | null;
+      if (!data) return null;
+
+      // Map streak_current → streak_count for the public StreakData interface
+      // so existing consumers stay backward-compatible.
+      return {
+        streak_count: data.streak_current,
+        last_login_date: data.last_login_date,
+        streak_freezes_available: data.streak_freezes_available,
+      };
     },
   });
 };
