@@ -244,7 +244,157 @@
     "finish": "Finish",
     "next": "Next",
     "open": "Open the dialog",
-    "skip": "Skip tour"
+    "skip": "Skip tour",
+    "student": {
+      "step1": {
+        "title": "Welcome to your dashboard",
+        "content": "This is your home base. Find notifications, your XP, and your daily streak right here at the top."
+      },
+      "step2": {
+        "title": "Your navigation",
+        "content": "Jump between courses, planner, journal, leaderboard, and more from the sidebar."
+      },
+      "step3": {
+        "title": "Daily greeting",
+        "content": "A quick personal welcome and your most important next action live in this hero card."
+      },
+      "step4": {
+        "title": "Your key stats",
+        "content": "Track XP, level, streak, and habits at a glance — everything that drives your progress."
+      },
+      "step5": {
+        "title": "Daily habits",
+        "content": "Hit Login, Submit, Journal, and Read every day to chase a Perfect Day and unlock bonus XP."
+      },
+      "step6": {
+        "title": "XP and streaks",
+        "content": "Watch your XP climb in real time. Keep your streak alive — every day matters."
+      },
+      "step7": {
+        "title": "Profile and settings",
+        "content": "Switch language, theme, or sign out from your profile menu in the top right."
+      }
+    },
+    "teacher": {
+      "step1": {
+        "title": "Welcome, teacher",
+        "content": "This is your control room. Notifications, students, and live activity surface right here at the top."
+      },
+      "step2": {
+        "title": "Your tools",
+        "content": "Open courses, assignments, grading, outcomes, and analytics from the sidebar."
+      },
+      "step3": {
+        "title": "Class snapshot",
+        "content": "See pending grading, attainment trends, and at-risk students at a glance."
+      },
+      "step4": {
+        "title": "Define learning outcomes",
+        "content": "Create CLOs aligned to Bloom's levels — these power every rubric, attainment chart, and report."
+      },
+      "step5": {
+        "title": "Build rubrics",
+        "content": "Drag-and-drop rubric criteria, link them to CLOs, and reuse across assignments."
+      },
+      "step6": {
+        "title": "Grading queue",
+        "content": "Submissions land here in priority order. AI-assisted feedback drafts speed up your turnaround."
+      },
+      "step7": {
+        "title": "Language and profile",
+        "content": "Toggle Arabic or English and access your profile from the top right."
+      }
+    },
+    "coordinator": {
+      "step1": {
+        "title": "Welcome, coordinator",
+        "content": "Program oversight starts here. Notifications, alerts, and quick actions are at the top."
+      },
+      "step2": {
+        "title": "Program tools",
+        "content": "Manage programs, PLOs, courses, CQI plans, and accreditation reports from the sidebar."
+      },
+      "step3": {
+        "title": "Program health",
+        "content": "Coverage gaps, attainment trends, and at-risk indicators across your programs."
+      },
+      "step4": {
+        "title": "Curriculum matrix",
+        "content": "See which CLOs cover each PLO across courses. Spot gaps and overlaps in seconds."
+      },
+      "step5": {
+        "title": "Manage PLOs",
+        "content": "Create, edit, and weight Program Learning Outcomes — and map them to ILOs."
+      },
+      "step6": {
+        "title": "Language and theme",
+        "content": "Switch between English and Arabic, or toggle dark mode anytime."
+      },
+      "step7": {
+        "title": "Profile menu",
+        "content": "Profile, preferences, and sign out are in the top-right menu."
+      }
+    },
+    "parent": {
+      "step1": {
+        "title": "Welcome, parent",
+        "content": "Stay close to your child's progress. Notifications and alerts are right here at the top."
+      },
+      "step2": {
+        "title": "Family hub",
+        "content": "Access children, progress, attendance, fees, and messages from the sidebar."
+      },
+      "step3": {
+        "title": "Child snapshot",
+        "content": "Quick KPIs across all your linked children — attendance, grades, streaks, and risk signals."
+      },
+      "step4": {
+        "title": "Linked children",
+        "content": "Switch between children to view their individual dashboards in detail."
+      },
+      "step5": {
+        "title": "Fees and billing",
+        "content": "View invoices, payment status, and download receipts whenever you need them."
+      },
+      "step6": {
+        "title": "Planner",
+        "content": "See your child's upcoming assignments and exams so you can plan ahead together."
+      },
+      "step7": {
+        "title": "Profile menu",
+        "content": "Settings, language, and sign-out live in the top-right menu."
+      }
+    },
+    "admin": {
+      "step1": {
+        "title": "Welcome, admin",
+        "content": "Institution-wide controls start here. Live notifications and alerts are at the top."
+      },
+      "step2": {
+        "title": "Admin tools",
+        "content": "Users, programs, settings, audit logs, and analytics are all in the sidebar."
+      },
+      "step3": {
+        "title": "Institution health",
+        "content": "Total users, active courses, average attainment, and at-risk counts at a glance."
+      },
+      "step4": {
+        "title": "Primary action",
+        "content": "Add users, create programs, or trigger bulk imports right from the dashboard header."
+      },
+      "step5": {
+        "title": "Section cards",
+        "content": "Each card here drills into a deeper view — users by role, recent activity, audit trail, and more."
+      },
+      "step6": {
+        "title": "Language and theme",
+        "content": "Toggle Arabic or English and switch dark mode anytime."
+      },
+      "step7": {
+        "title": "Profile menu",
+        "content": "Profile, preferences, and sign-out are in the top-right menu."
+      }
+    }
   },
   "theme": {
     "label": "Theme",

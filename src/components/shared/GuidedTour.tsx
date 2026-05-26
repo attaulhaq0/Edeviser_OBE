@@ -20,7 +20,6 @@ const GuidedTour = () => {
   const {
     steps,
     run,
-    stepIndex,
     onCallback,
     shouldAutoStart,
     isCompleted,
@@ -64,11 +63,14 @@ const GuidedTour = () => {
     return null;
   }
 
+  // We intentionally do NOT pass stepIndex here. The hook returns 0 as a
+  // placeholder, but passing it makes Joyride a controlled component that
+  // never advances on Next clicks. Letting Joyride manage stepIndex
+  // internally (uncontrolled) is what makes navigation work.
   return (
     <Joyride
       steps={steps}
       run={run}
-      stepIndex={stepIndex}
       callback={handleJoyrideCallback}
       continuous
       showSkipButton

@@ -36,35 +36,46 @@ import type {
 
 const DIMENSION_META: Record<
   string,
-  { label: string; icon: React.ReactNode; description: string }
+  {
+    label: string;
+    icon: React.ReactNode;
+    description: string;
+    /** OnboardingStepId in the wizard URL `?step=` param */
+    stepId: string;
+  }
 > = {
   personality: {
     label: "Personality Traits",
     icon: <Brain className="h-5 w-5 text-purple-500" />,
     description:
       "Big Five personality assessment — understand how you learn and work",
+    stepId: "personality",
   },
   self_efficacy: {
     label: "Self-Efficacy",
     icon: <Shield className="h-5 w-5 text-blue-500" />,
     description: "Academic confidence across different domains",
+    stepId: "self_efficacy",
   },
   study_strategy: {
     label: "Study Strategies",
     icon: <BookOpen className="h-5 w-5 text-green-500" />,
     description:
       "Time management, elaboration, self-testing, and help-seeking habits",
+    stepId: "study_strategy",
   },
   learning_style: {
     label: "Learning Style (VARK)",
     icon: <Layers className="h-5 w-5 text-amber-500" />,
     description: "Self-awareness exercise — discover your learning preferences",
+    stepId: "learning_style",
   },
   baseline: {
     label: "Baseline Tests",
     icon: <ClipboardCheck className="h-5 w-5 text-red-500" />,
     description:
       "Diagnostic tests to measure your starting knowledge per course",
+    stepId: "baseline_select",
   },
 };
 
@@ -208,10 +219,27 @@ export const CompleteProfilePage = () => {
           return (
             <Card
               key={dim.dimension}
+              role={!isComplete ? "button" : undefined}
+              tabIndex={!isComplete ? 0 : undefined}
+              onClick={
+                isComplete
+                  ? undefined
+                  : () => navigate(`/student/onboarding?step=${meta.stepId}`)
+              }
+              onKeyDown={
+                isComplete
+                  ? undefined
+                  : (e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        navigate(`/student/onboarding?step=${meta.stepId}`);
+                      }
+                    }
+              }
               className={`border-0 p-4 shadow-md rounded-xl transition-colors ${
                 isComplete
                   ? "bg-green-50"
-                  : "bg-white hover:bg-slate-50 cursor-pointer"
+                  : "bg-white hover:bg-slate-50 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
               }`}
             >
               <div className="flex items-center gap-3">
