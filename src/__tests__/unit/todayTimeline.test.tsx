@@ -52,6 +52,10 @@ vi.mock("@/hooks/usePlannerTasks", () => ({
     mutate: vi.fn(),
     isPending: false,
   }),
+  useDeletePlannerTask: () => ({
+    mutate: vi.fn(),
+    isPending: false,
+  }),
 }));
 
 vi.mock("@/hooks/useReviewSchedule", () => ({

@@ -23,7 +23,11 @@ import { useWeeklyPlannerData } from "@/hooks/useWeeklyPlanner";
 import { useWeeklyProgressSummary } from "@/hooks/useWeeklyProgress";
 import { useStudyTimeTrend } from "@/hooks/useStudyTimeAnalytics";
 import { useCreateStudySession } from "@/hooks/useStudySessions";
-import { useCreatePlannerTask, useCompleteTask } from "@/hooks/usePlannerTasks";
+import {
+  useCreatePlannerTask,
+  useCompleteTask,
+  useDeletePlannerTask,
+} from "@/hooks/usePlannerTasks";
 import { useSaveWeeklyGoals } from "@/hooks/useWeeklyGoals";
 import { useSaveWeeklyReflection } from "@/hooks/useSessionReflections";
 import {
@@ -104,6 +108,7 @@ const WeeklyPlannerPage = () => {
   const createSession = useCreateStudySession();
   const createTask = useCreatePlannerTask();
   const completeTask = useCompleteTask();
+  const deleteTask = useDeletePlannerTask();
   const saveGoals = useSaveWeeklyGoals();
   const saveWeeklyReflection = useSaveWeeklyReflection();
 
@@ -156,9 +161,14 @@ const WeeklyPlannerPage = () => {
     [navigate]
   );
 
-  const handleSessionEdit = useCallback((_session: StudySession) => {
-    toast.info("Edit feature coming soon");
-  }, []);
+  const handleSessionEdit = useCallback(
+    (session: StudySession) => {
+      // Edit-in-place is not yet a dialog; jump to focus mode where the
+      // session can be started or the user can delete + recreate it.
+      navigate(`/student/focus/${session.id}`);
+    },
+    [navigate]
+  );
 
   const handleTaskToggle = useCallback(
     (task: PlannerTask) => {
@@ -169,13 +179,40 @@ const WeeklyPlannerPage = () => {
     [completeTask]
   );
 
-  const handleTaskEdit = useCallback((_task: PlannerTask) => {
-    toast.info("Edit feature coming soon");
-  }, []);
+  const handleTaskEdit = useCallback(
+    (task: PlannerTask) => {
+      // Until the full edit dialog ships, the only inline edit is toggling
+      // status. Click on the row's checkbox is the canonical action; the
+      // pencil icon falls back to that.
+      if (task.status === "pending") {
+        completeTask.mutate(task.id, {
+          onSuccess: () => toast.success("Task marked complete"),
+        });
+      } else {
+        toast.info(
+          "This task is already complete. Use Delete to remove it or Reopen via the calendar."
+        );
+      }
+    },
+    [completeTask]
+  );
 
-  const handleTaskDelete = useCallback((_task: PlannerTask) => {
-    toast.info("Delete feature coming soon");
-  }, []);
+  const handleTaskDelete = useCallback(
+    (task: PlannerTask) => {
+      if (
+        !window.confirm(
+          `Delete task "${task.title}"? This cannot be undone.`
+        )
+      ) {
+        return;
+      }
+      deleteTask.mutate(task.id, {
+        onSuccess: () => toast.success("Task deleted"),
+        onError: (err) => toast.error((err as Error).message),
+      });
+    },
+    [deleteTask]
+  );
 
   const handleDayClick = useCallback((date: string) => {
     setSelectedDate(date);

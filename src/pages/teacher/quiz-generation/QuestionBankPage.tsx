@@ -1,7 +1,6 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { parseAsString, useQueryState } from "nuqs";
 import { Plus, Search } from "lucide-react";
-import { toast } from "sonner";
 
 import { DataTable } from "@/components/shared/DataTable";
 import { Button } from "@/components/ui/button";
@@ -54,6 +53,7 @@ const SOURCE_OPTIONS = [
 
 const QuestionBankPage = () => {
   const { courseId } = useParams<{ courseId: string }>();
+  const navigate = useNavigate();
 
   // URL-persisted filter state
   const [search, setSearch] = useQueryState("q", parseAsString.withDefault(""));
@@ -137,9 +137,11 @@ const QuestionBankPage = () => {
         <h1 className="text-2xl font-bold tracking-tight">Question Bank</h1>
         <Button
           className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 text-white"
-          onClick={() => toast.info("Manual question creation coming soon")}
+          onClick={() =>
+            navigate(`/teacher/courses/${courseId}/generate-questions`)
+          }
         >
-          <Plus className="h-4 w-4" /> Add Question
+          <Plus className="h-4 w-4" /> Add Questions
         </Button>
       </div>
 

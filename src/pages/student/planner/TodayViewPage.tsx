@@ -17,7 +17,11 @@ import { ReviewSessionBadge } from "@/components/shared/ReviewSessionBadge";
 import { useAuth } from "@/hooks/useAuth";
 import { useTodayViewData } from "@/hooks/useTodayView";
 import { useCreateStudySession } from "@/hooks/useStudySessions";
-import { useCreatePlannerTask, useCompleteTask } from "@/hooks/usePlannerTasks";
+import {
+  useCreatePlannerTask,
+  useCompleteTask,
+  useDeletePlannerTask,
+} from "@/hooks/usePlannerTasks";
 import {
   useWeeklyReviews,
   useCreateReviewSession,
@@ -61,6 +65,7 @@ const TodayViewPage = () => {
   // ─── Mutations ────────────────────────────────────────────────────────────
   const createTask = useCreatePlannerTask();
   const completeTask = useCompleteTask();
+  const deleteTask = useDeletePlannerTask();
   const createSession = useCreateStudySession();
   const createReviewSession = useCreateReviewSession();
   const skipReview = useSkipReview();
@@ -121,9 +126,12 @@ const TodayViewPage = () => {
     [navigate]
   );
 
-  const handleSessionEdit = useCallback((_session: StudySession) => {
-    toast.info("Edit feature coming soon");
-  }, []);
+  const handleSessionEdit = useCallback(
+    (session: StudySession) => {
+      navigate(`/student/focus/${session.id}`);
+    },
+    [navigate]
+  );
 
   const handleTaskToggle = useCallback(
     (task: PlannerTask) => {
@@ -134,13 +142,37 @@ const TodayViewPage = () => {
     [completeTask]
   );
 
-  const handleTaskEdit = useCallback((_task: PlannerTask) => {
-    toast.info("Edit feature coming soon");
-  }, []);
+  const handleTaskEdit = useCallback(
+    (task: PlannerTask) => {
+      if (task.status === "pending") {
+        completeTask.mutate(task.id, {
+          onSuccess: () => toast.success("Task marked complete"),
+        });
+      } else {
+        toast.info(
+          "This task is already complete. Use Delete to remove it."
+        );
+      }
+    },
+    [completeTask]
+  );
 
-  const handleTaskDelete = useCallback((_task: PlannerTask) => {
-    toast.info("Delete feature coming soon");
-  }, []);
+  const handleTaskDelete = useCallback(
+    (task: PlannerTask) => {
+      if (
+        !window.confirm(
+          `Delete task "${task.title}"? This cannot be undone.`
+        )
+      ) {
+        return;
+      }
+      deleteTask.mutate(task.id, {
+        onSuccess: () => toast.success("Task deleted"),
+        onError: (err) => toast.error((err as Error).message),
+      });
+    },
+    [deleteTask]
+  );
 
   const handleQuickAddSubmit = useCallback(
     (data: CreatePlannerTaskInput) => {
