@@ -2,7 +2,7 @@
 
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Flame, Users, Trophy } from "lucide-react";
+import { Flame, Users } from "lucide-react";
 import type { Team, TeamGamification } from "@/hooks/useTeams";
 import TeamBadgeDisplay from "@/components/shared/TeamBadgeDisplay";
 
@@ -41,8 +41,7 @@ const TeamDashboardCard = ({
     </div>
 
     {/* Team Streak Display */}
-    {gamification &&
-      (gamification.streak_current > 0 || gamification.streak_longest > 0) && (
+    {gamification && gamification.streak_count > 0 && (
         <div
           className="mt-3 flex items-center gap-3 px-1"
           data-testid="team-streak-display"
@@ -56,22 +55,13 @@ const TeamDashboardCard = ({
                 className="text-lg font-black bg-gradient-to-r from-red-500 to-orange-500 bg-clip-text text-transparent"
                 data-testid="team-streak-current"
               >
-                {gamification.streak_current}
+                {gamification.streak_count}
               </span>
               <span className="text-[10px] font-medium text-gray-500">
                 day streak
               </span>
             </div>
           </div>
-          {gamification.streak_longest > 0 && (
-            <div
-              className="flex items-center gap-1 text-xs text-gray-400"
-              data-testid="team-streak-longest"
-            >
-              <Trophy className="h-3 w-3" />
-              <span>Best: {gamification.streak_longest}d</span>
-            </div>
-          )}
         </div>
       )}
 

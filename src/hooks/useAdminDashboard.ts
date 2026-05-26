@@ -59,7 +59,7 @@ export const useAdminKPIs = () => {
   });
 };
 
-export const useRecentAuditLogs = (limit: number = 10) => {
+export const useRecentAuditLogs = (limit: number = 10, options?: { enabled?: boolean }) => {
   return useQuery({
     queryKey: queryKeys.auditLogs.list({ limit }),
     queryFn: async (): Promise<AuditLogEntry[]> => {
@@ -73,6 +73,7 @@ export const useRecentAuditLogs = (limit: number = 10) => {
       return (data ?? []) as unknown as AuditLogEntry[];
     },
     staleTime: 30_000,
+    enabled: options?.enabled ?? true,
   });
 };
 
@@ -84,7 +85,7 @@ export interface OnboardingAnalytics {
   completionRate: number;
 }
 
-export const useOnboardingAnalytics = () => {
+export const useOnboardingAnalytics = (options?: { enabled?: boolean }) => {
   return useQuery({
     queryKey: [...queryKeys.adminDashboard.lists(), "onboarding"],
     queryFn: async (): Promise<OnboardingAnalytics> => {
@@ -115,6 +116,7 @@ export const useOnboardingAnalytics = () => {
       };
     },
     staleTime: 30_000,
+    enabled: options?.enabled ?? true,
   });
 };
 

@@ -119,22 +119,32 @@ export interface TeamGamification {
   id: string;
   team_id: string;
   xp_total: number;
-  xp_this_week: number;
-  streak_current: number;
-  streak_longest: number;
+  streak_count: number;
 }
 
+/**
+ * Reads team gamification data directly from `teams` table.
+ * The previously-referenced `team_gamification` table does not exist in
+ * production — XP and streak fields live on `teams` itself.
+ */
 export const useTeamGamification = (teamId?: string) => {
   return useQuery({
     queryKey: queryKeys.teamGamification.list({ teamId }),
     queryFn: async (): Promise<TeamGamification | null> => {
       const { data, error } = await supabase
-        .from("team_gamification" as never)
-        .select("*")
-        .eq("team_id", teamId!)
+        .from("teams" as never)
+        .select("id, xp_total, streak_count")
+        .eq("id", teamId!)
         .maybeSingle();
       if (error) throw error;
-      return data as TeamGamification | null;
+      if (!data) return null;
+      const row = data as Record<string, unknown>;
+      return {
+        id: row.id as string,
+        team_id: row.id as string,
+        xp_total: (row.xp_total as number) ?? 0,
+        streak_count: (row.streak_count as number) ?? 0,
+      };
     },
     enabled: !!teamId,
   });

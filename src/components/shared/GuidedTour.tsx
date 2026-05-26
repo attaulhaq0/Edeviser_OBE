@@ -81,42 +81,72 @@ const GuidedTour = () => {
           zIndex: 10000,
           arrowColor: "#ffffff",
           backgroundColor: "#ffffff",
-          overlayColor: "rgba(0, 0, 0, 0.5)",
+          overlayColor: "rgba(15, 23, 42, 0.6)",
           textColor: "#1e293b",
-          width: 380,
+          width: 400,
         },
         buttonNext: {
-          background: "var(--brand-gradient)",
+          background:
+            "linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)",
           color: "#ffffff",
-          borderRadius: "8px",
-          padding: "8px 16px",
+          borderRadius: "10px",
+          padding: "10px 20px",
           fontSize: "14px",
           fontWeight: "600",
+          border: "none",
+          boxShadow: "0 2px 8px rgba(20, 184, 166, 0.3)",
+          transition: "transform 100ms",
         },
         buttonBack: {
           color: "#64748b",
-          marginRight: "8px",
+          marginInlineEnd: "8px",
+          fontSize: "14px",
+          fontWeight: "500",
         },
         buttonSkip: {
           color: "#94a3b8",
           fontSize: "13px",
+          fontWeight: "500",
+        },
+        buttonClose: {
+          width: "16px",
+          height: "16px",
+          color: "#94a3b8",
         },
         tooltip: {
-          borderRadius: "12px",
-          boxShadow: "0 10px 40px rgba(0,0,0,0.15)",
+          borderRadius: "16px",
+          boxShadow:
+            "0 20px 50px -10px rgba(15, 23, 42, 0.25), 0 0 0 1px rgba(15, 23, 42, 0.05)",
+          padding: "24px",
+        },
+        tooltipContainer: {
+          textAlign: "start",
         },
         tooltipTitle: {
-          fontSize: "16px",
+          fontSize: "18px",
           fontWeight: "700",
           color: "#0f172a",
+          marginBottom: "8px",
+          letterSpacing: "-0.01em",
         },
         tooltipContent: {
           fontSize: "14px",
           color: "#475569",
           lineHeight: "1.6",
+          padding: "8px 0 16px 0",
+        },
+        tooltipFooter: {
+          marginTop: "16px",
+          paddingTop: "16px",
+          borderTop: "1px solid #e2e8f0",
         },
         spotlight: {
-          borderRadius: "8px",
+          borderRadius: "12px",
+          boxShadow:
+            "0 0 0 4px rgba(59, 130, 246, 0.15), 0 0 0 8px rgba(59, 130, 246, 0.08)",
+        },
+        beacon: {
+          // Hide default beacon — we use auto-launch
         },
       }}
       locale={{

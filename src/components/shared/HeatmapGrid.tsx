@@ -211,17 +211,31 @@ const HeatmapGrid = ({
     return () => mql.removeEventListener("change", handler);
   }, []);
 
-  // ResizeObserver for responsive sizing
+  // ResizeObserver for responsive sizing.
+  // We round the width to the nearest pixel and only update state when it
+  // actually changes — this prevents fractional-pixel oscillations from
+  // creating a feedback loop with the SVG content.
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
+
+    let rafId: number | null = null;
     const observer = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        setContainerWidth(entry.contentRect.width);
-      }
+      // Throttle updates via requestAnimationFrame to ride out rapid bursts
+      // (e.g. after the SVG renders and the parent re-flows).
+      if (rafId !== null) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        for (const entry of entries) {
+          const newWidth = Math.floor(entry.contentRect.width);
+          setContainerWidth((prev) => (prev === newWidth ? prev : newWidth));
+        }
+      });
     });
     observer.observe(el);
-    return () => observer.disconnect();
+    return () => {
+      if (rafId !== null) cancelAnimationFrame(rafId);
+      observer.disconnect();
+    };
   }, []);
 
   const { columns: numWeeks } = generateGridDimensions(
@@ -303,7 +317,7 @@ const HeatmapGrid = ({
   return (
     <div
       ref={containerRef}
-      className={isMobile ? "overflow-x-auto" : ""}
+      className={`w-full max-w-full ${isMobile ? "overflow-x-auto" : "overflow-hidden"}`}
       style={
         {
           "--heatmap-empty": "#e2e8f0",
@@ -317,6 +331,9 @@ const HeatmapGrid = ({
       <svg
         width={svgWidth}
         height={svgHeight}
+        viewBox={`0 0 ${svgWidth} ${svgHeight}`}
+        preserveAspectRatio="xMinYMid meet"
+        style={{ maxWidth: "100%", height: "auto", display: "block" }}
         role="grid"
         aria-label="Habit heatmap grid"
       >

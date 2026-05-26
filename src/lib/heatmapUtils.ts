@@ -86,7 +86,15 @@ export const computeCellSize = (
   numWeeks: number
 ): number => {
   if (numWeeks <= 0) return 12;
-  return Math.max(Math.floor(containerWidth / numWeeks), 12);
+  // Account for the per-cell gap (2px) when calculating cell size.
+  // Total horizontal space = numWeeks * cellSize + numWeeks * CELL_GAP
+  // → cellSize = (containerWidth - numWeeks * CELL_GAP) / numWeeks
+  const CELL_GAP = 2;
+  const available = Math.max(0, containerWidth - numWeeks * CELL_GAP);
+  // Cap at 16px so cells stay visually square; floor the result so subpixel
+  // rounding can't push the SVG wider than the container (which would cause
+  // a ResizeObserver feedback loop).
+  return Math.max(Math.min(Math.floor(available / numWeeks), 16), 12);
 };
 
 export const generateMonthLabels = (

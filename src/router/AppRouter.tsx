@@ -392,6 +392,27 @@ const StudentAnnouncementDetail = lazy(
 const StudentCourseDetail = lazy(
   () => import("@/pages/student/courses/CourseDetail")
 );
+const StudentCoursesListPage = lazy(
+  () => import("@/pages/student/courses/StudentCoursesPage")
+);
+const StudentProgressPage = lazy(
+  () => import("@/pages/student/progress/StudentProgressPage")
+);
+const StudentJournalPage = lazy(
+  () => import("@/pages/student/journal/StudentJournalPage")
+);
+const ParentChildrenPage = lazy(
+  () => import("@/pages/parent/ParentChildrenPage")
+);
+const ParentProgressPage = lazy(
+  () => import("@/pages/parent/ParentProgressPage")
+);
+const ParentAttendancePage = lazy(
+  () => import("@/pages/parent/ParentAttendancePage")
+);
+const BaselineCoursesListPage = lazy(
+  () => import("@/pages/teacher/baseline/BaselineCoursesListPage")
+);
 
 // Institution Settings
 const InstitutionSettingsPage = lazy(
@@ -624,6 +645,7 @@ const AppRouter = () => (
               path="baseline/:courseId/questions/new"
               element={<BaselineQuestionForm />}
             />
+            <Route path="baseline" element={<BaselineCoursesListPage />} />
             <Route
               path="courses/:courseId/generate-questions"
               element={<GenerateQuestionsPage />}
@@ -751,7 +773,10 @@ const AppRouter = () => (
               path="announcements/:announcementId"
               element={<StudentAnnouncementDetail />}
             />
+            <Route path="courses" element={<StudentCoursesListPage />} />
             <Route path="courses/:courseId" element={<StudentCourseDetail />} />
+            <Route path="progress" element={<StudentProgressPage />} />
+            <Route path="journal" element={<StudentJournalPage />} />
             <Route
               path="courses/:courseId/materials/:materialId"
               element={<StudentCourseDetail />}
@@ -808,6 +833,9 @@ const AppRouter = () => (
               element={<Navigate to="/parent/dashboard" replace />}
             />
             <Route path="dashboard" element={<ParentDashboard />} />
+            <Route path="children" element={<ParentChildrenPage />} />
+            <Route path="progress" element={<ParentProgressPage />} />
+            <Route path="attendance" element={<ParentAttendancePage />} />
             <Route path="planner" element={<ParentPlannerView />} />
             <Route path="planner/:studentId" element={<ParentPlannerView />} />
             <Route path="settings/profile" element={<ProfilePage />} />

@@ -20,7 +20,7 @@ export interface AIPerformanceMetrics {
 
 // ─── useAIPerformance ────────────────────────────────────────────────────────
 
-export const useAIPerformance = () => {
+export const useAIPerformance = (options?: { enabled?: boolean }) => {
   return useQuery({
     queryKey: [...queryKeys.aiFeedback.lists(), "performance"],
     queryFn: async (): Promise<AIPerformanceMetrics> => {
@@ -80,5 +80,6 @@ export const useAIPerformance = () => {
       };
     },
     staleTime: 30_000,
+    enabled: options?.enabled ?? true,
   });
 };
