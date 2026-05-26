@@ -71,7 +71,8 @@ export const useSaveWeeklyGoals = () => {
         throw new Error("Maximum 3 goals per week");
       }
 
-      // Upsert each goal (unique constraint on student_id + week_start_date + goal_type)
+      // Upsert each goal (unique constraint on student_id + week_start_date + goal_type
+      // — see migration 20260902000002_weekly_goals_unique_constraint.sql)
       const results: WeeklyGoal[] = [];
 
       for (const goal of goals) {
