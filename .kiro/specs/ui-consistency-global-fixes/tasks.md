@@ -1,40 +1,33 @@
 # Implementation Plan — UI Consistency Global Fixes
 
-> **Anchors (single source of truth):**
->
-> - Bugfix requirements: `.kiro/specs/ui-consistency-global-fixes/bugfix.md` (clauses 1.1–1.26 / 2.1–2.26 / 3.1–3.26)
-> - Technical design: `.kiro/specs/ui-consistency-global-fixes/design.md` (ADR-01 … ADR-17, §5 migrations, §7 rollout, §8 per-surface specs)
-> - Design system: `.kiro/steering/design-system.md`, `.kiro/steering/component-patterns.md`
+## Overview
 
-## 7-Phase Rollout (per design.md §7 + ADRs 18–21 addendum)
+This plan implements 111 tasks across 7 phases to fix 26 UI consistency defects. It covers database migrations, shared design-system primitives, auth surfaces, role dashboard adoption, i18n coverage, property-based tests, monitoring, and a full-width global header with role-based notifications.
 
-| Phase                                                                                            | Scope                                                                                                                                                                                                                                                                                                                       | Task range |
-| ------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
-| **1. Database foundation**                                                                       | Migrations (8) + seed data (scale-realistic: 3 institutions × ~757 users each, 6 months history) + regenerate `database.ts`                                                                                                                                                                                                 | 2 – 10     |
-| **2. Shared primitives + auth surfaces**                                                         | Zustand stores, shared hooks, `mapSupabaseError`, Zod schemas, i18n helpers, shared components (`WelcomeHero`, `TopBar`, `ProfileDropdown`, `AvatarUpload`, `ThemeToggle`, `GuidedTour`, `MondayWeekPicker`), dark-mode token pass, signup / accept-invite / invite-users pages, rate-limit middleware, hCaptcha            | 11 – 45    |
-| **3. Role dashboards + targeted fixes**                                                          | Admin → Coordinator → Teacher → Parent → Student dashboards adopt `TopBar` / `WelcomeHero` / `EmptyState` / `useOptimisticToggle` / role tour; Remind button, Badge Spotlight Monday picker, profile avatar wiring, route-level code splitting                                                                              | 46 – 74    |
-| **4. i18n coverage**                                                                             | `i18next-cli` extraction, Qatar MOEHE glossary (MSA), Arabic translation sweep, Intl formatters (`ar-QA`), translation memory, AST-based coverage gate                                                                                                                                                                      | 75 – 82    |
-| **5. Property tests + tour activation + exploration cleanup**                                    | Seven property test files covering clauses 1.x/2.x/3.x; flip `tourFeatureFlag=true`; delete `QuickStartChecklist` + `WelcomeTour`; delete Task 1's exploration test                                                                                                                                                         | 83 – 93    |
-| **6. Monitoring + final verification**                                                           | Vercel Analytics + Sentry SLO alerts, full test / lint / tsc sweep, deployment verification, CodeRabbit review                                                                                                                                                                                                              | 94 – 95    |
-| **7. Full-width global header + unified settings + role-based notifications** (added 2026-05-10) | `GlobalHeader` (full-width two-row chrome), `NotificationBell` with role-targeted backend pipeline, profile-dropdown consolidates Settings, role-aware notification type enum + guard trigger + emitters (DB triggers + pg_cron + Edge Functions), migrate all 5 role layouts to `GlobalHeader`, delete legacy `TopBar.tsx` | 96 – 108   |
-| **7.5. Transitional hot-fixes** (added 2026-05-10)                                               | Remove duplicate Profile entry from every role sidebar nav (ahead of `GlobalHeader` rollout); fix Admin dashboard black-area root cause via `body` background + `min-h-screen` + hard-coded-dark-utility scan; single-profile-entry property test                                                                           | 109 – 111  |
+## Task Dependency Graph
 
-## Feature flag — `tourFeatureFlag` (Zustand, ADR-02)
+```json
+{
+  "waves": [
+    { "ids": ["1"] },
+    { "ids": ["2", "3", "4", "5", "6", "7", "8", "9"] },
+    { "ids": ["10"] },
+    { "ids": ["11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22"] },
+    { "ids": ["23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35"] },
+    { "ids": ["36", "37", "38", "39", "40", "41", "42", "43", "44", "45"] },
+    { "ids": ["46", "47", "48", "49", "50", "51", "52", "53", "54", "55", "56", "57", "58", "59", "60", "61", "62", "63", "64", "65", "66", "67", "68", "69", "70", "71", "72", "73", "74"] },
+    { "ids": ["75", "76", "77", "78", "79", "80", "81", "82"] },
+    { "ids": ["83", "84", "85", "86", "87", "88", "89", "90", "91", "92", "93"] },
+    { "ids": ["94", "95"] },
+    { "ids": ["96", "97", "98", "99", "100", "101", "102", "103", "104", "105", "106", "107", "108"] },
+    { "ids": ["109", "110", "111"] }
+  ]
+}
+```
 
-- **Default: `false`** throughout Phases 2, 3, and 4 so the guided tour does not compete with in-flight design-system / auth / i18n fixes.
-- **Flipped to `true` globally in Task 90** (Phase 5), after every consumer surface has adopted `TopBar`, `WelcomeHero`, `EmptyState`, and `data-tour` anchors.
-- Persisted to `localStorage` during rollout; gated to the tour-complete check in `profiles.tour_completed_at` once on.
+## Tasks
 
-## Task-numbering conventions
-
-- `- [ ] N.M` — required task. Check off when merged + CI green.
-- `- [ ]* N.M` — optional/nice-to-have task (none in this plan; every task is required for scalability-first rollout).
-- **Property N: Type — [Title]** labels on property tests enable per-property hover status in Kiro.
-- Every task lists the files it touches, the bugfix.md clause(s) it satisfies, and the design.md ADR/section it implements.
-
----
-
-## Task 1 — Bug condition exploration test (MUST FAIL on unfixed code)
+### Phase 0 — Exploration
 
 - [x] 1. Write bug condition exploration property test
   - **Property 1: Bug Condition** — UI Consistency Global Defects (C(X) from design.md §2)
@@ -56,7 +49,7 @@
 
 ---
 
-## Phase 1 — Database migrations + seed (Tasks 2 – 10)
+### Phase 1 — Database migrations + seed (Tasks 2 – 10)
 
 Per design.md §5 (migration file plan) and ADR-12 … ADR-17 (multi-institution scalability, email verification, CDN avatars, rate limiting, translation memory).
 
@@ -192,7 +185,7 @@ Per design.md §5 (migration file plan) and ADR-12 … ADR-17 (multi-institution
 
 ---
 
-## Phase 2 — Shared primitives: stores, hooks, lib (Tasks 11 – 22)
+### Phase 2 — Shared primitives: stores, hooks, lib (Tasks 11 – 22)
 
 - [x] 11. Create `src/stores/themeStore.ts` (Zustand)
 
@@ -291,7 +284,7 @@ Per design.md §5 (migration file plan) and ADR-12 … ADR-17 (multi-institution
 
 ---
 
-## Phase 2 — Shared components (Tasks 23 – 35)
+### Phase 2 — Shared components (Tasks 23 – 35)
 
 - [x] 23. Create `src/components/shared/WelcomeHero.tsx`
 
@@ -400,7 +393,7 @@ Per design.md §5 (migration file plan) and ADR-12 … ADR-17 (multi-institution
 
 ---
 
-## Phase 2 — Auth surfaces (Tasks 36 – 45)
+### Phase 2 — Auth surfaces (Tasks 36 – 45)
 
 - [x] 36. Create `src/pages/auth/SignUpPage.tsx` + `src/lib/schemas/signUpSchema.ts`
 
@@ -493,7 +486,7 @@ Per design.md §5 (migration file plan) and ADR-12 … ADR-17 (multi-institution
 
 ---
 
-## Phase 3 — Admin dashboard (Tasks 46 – 50)
+### Phase 3 — Admin dashboard (Tasks 46 – 50)
 
 - [x] 46. AdminLayout: adopt `<TopBar />`; remove QuickStartChecklist mount
 
@@ -536,7 +529,7 @@ Per design.md §5 (migration file plan) and ADR-12 … ADR-17 (multi-institution
 
 ---
 
-## Phase 3 — Coordinator dashboard (Tasks 51 – 55)
+### Phase 3 — Coordinator dashboard (Tasks 51 – 55)
 
 - [x] 51. CoordinatorLayout: adopt `<TopBar />`; remove QuickStartChecklist mount
 
@@ -571,7 +564,7 @@ Per design.md §5 (migration file plan) and ADR-12 … ADR-17 (multi-institution
 
 ---
 
-## Phase 3 — Teacher dashboard (Tasks 56 – 60)
+### Phase 3 — Teacher dashboard (Tasks 56 – 60)
 
 - [x] 56. TeacherLayout: adopt `<TopBar />`; remove QuickStartChecklist mount
 
@@ -604,7 +597,7 @@ Per design.md §5 (migration file plan) and ADR-12 … ADR-17 (multi-institution
 
 ---
 
-## Phase 3 — Parent dashboard (Tasks 61 – 65)
+### Phase 3 — Parent dashboard (Tasks 61 – 65)
 
 - [x] 61. ParentLayout: adopt `<TopBar />`; remove QuickStartChecklist mount
 
@@ -638,7 +631,7 @@ Per design.md §5 (migration file plan) and ADR-12 … ADR-17 (multi-institution
 
 ---
 
-## Phase 3 — Student dashboard (last; onboarding-coupled) (Tasks 66 – 70)
+### Phase 3 — Student dashboard (last; onboarding-coupled) (Tasks 66 – 70)
 
 Student goes last because of coupling with onboarding wizard (clause 2.14 + 2.20).
 
@@ -683,7 +676,7 @@ Student goes last because of coupling with onboarding wizard (clause 2.14 + 2.20
 
 ---
 
-## Phase 3 — Targeted fixes (Tasks 71 – 74)
+### Phase 3 — Targeted fixes (Tasks 71 – 74)
 
 - [x] 71. Admin Pending Onboarding Remind button (clause 2.17)
 
@@ -718,7 +711,7 @@ Student goes last because of coupling with onboarding wizard (clause 2.14 + 2.20
 
 ---
 
-## Phase 4 — i18n coverage (Tasks 75 – 82)
+### Phase 4 — i18n coverage (Tasks 75 – 82)
 
 - [x] 75. Install + configure `i18next-cli`
 
@@ -777,7 +770,7 @@ Student goes last because of coupling with onboarding wizard (clause 2.14 + 2.20
 
 ---
 
-## Phase 4-5 — Property tests (MUST PASS after fixes) (Tasks 83 – 89)
+### Phase 4-5 — Property tests (MUST PASS after fixes) (Tasks 83 – 89)
 
 Each property test encodes the per-clause fix-checking AND preservation predicates per design.md §2 (`clause_2_n_holds(X)` ∧ `clause_3_n_holds(X_original, X_fixed)`). `fast-check` with minimum 100 iterations per project convention.
 
@@ -848,7 +841,7 @@ Each property test encodes the per-clause fix-checking AND preservation predicat
 
 ---
 
-## Phase 5 — QuickStart cleanup + tour activation (Tasks 90 – 92)
+### Phase 5 — QuickStart cleanup + tour activation (Tasks 90 – 92)
 
 - [x] 90. Flip `tourFeatureFlag` to `true` globally
 
@@ -874,7 +867,7 @@ Each property test encodes the per-clause fix-checking AND preservation predicat
 
 ---
 
-## Phase 5-6 — Cleanup + monitoring + final verification (Tasks 93 – 95)
+### Phase 5-6 — Cleanup + monitoring + final verification (Tasks 93 – 95)
 
 - [x] 93. Delete `src/__tests__/properties/uiConsistencyBugCondition.property.test.ts`
 
@@ -908,7 +901,9 @@ Each property test encodes the per-clause fix-checking AND preservation predicat
 
 ---
 
-## Cross-cutting notes
+## Notes
+
+### Cross-cutting notes
 
 - **Task 1's exploration test is deleted in Task 93.** It exists to prove the bug exists on the pre-fix codebase; keeping it past Phase 5 would fail CI by design.
 - **`tourFeatureFlag` stays `false` through Phases 2–4** so the guided tour does not compete with design-system / auth / i18n fixes during development, then flips on in Task 90.
@@ -918,7 +913,7 @@ Each property test encodes the per-clause fix-checking AND preservation predicat
 
 ---
 
-## Phase 7 — Full-width global header + unified settings + role-based notifications (Tasks 96 – 108)
+### Phase 7 — Full-width global header + unified settings + role-based notifications (Tasks 96 – 108)
 
 > Added 2026-05-10 after PR #124 audit feedback. Covers bugfix.md clauses 1.27 / 2.27 / 3.27, 1.28 / 2.28 / 3.28, 1.29 / 2.29 / 3.29, 1.30 / 2.30 / 3.30. Design anchors: ADR-18, ADR-19, ADR-20, ADR-21 and §3.5 (notification type enum). Phase 7 MUST land after Phases 2 + 3 — shared primitives (`ProfileDropdown`, `GuidedTour` anchors, `NotificationBell`) depend on Phase 2 infrastructure and role layouts being on the shared `TopBar` makes the migration to `GlobalHeader` a one-file swap per role.
 
@@ -1116,7 +1111,7 @@ Each property test encodes the per-clause fix-checking AND preservation predicat
 
 ---
 
-## Phase 7 rollout notes
+### Phase 7 rollout notes
 
 - Phase 7 lands **after** Phases 2 + 3 complete. Do not start Task 96 until the per-role dashboards already consume the shared primitives (`WelcomeHero`, `EmptyState`, `useOptimisticToggle`, role tour wiring) — otherwise the layout migration in Task 103 has to revisit each dashboard twice.
 - Phase 7 is **additive** for existing users: nobody loses a route, the `notifications` table keeps all existing rows, and the `notification_preferences` email channel continues working unchanged (ADR-20 emits additional in-app rows, does not replace email).
@@ -1125,7 +1120,7 @@ Each property test encodes the per-clause fix-checking AND preservation predicat
 
 ---
 
-## Phase 7.5 — Transitional hot-fixes (land ahead of GlobalHeader rollout) — Tasks 109 – 111
+### Phase 7.5 — Transitional hot-fixes (land ahead of GlobalHeader rollout) — Tasks 109 – 111
 
 > Added 2026-05-10 to cover bugfix clauses **1.31 / 2.31 / 3.31** (duplicate sidebar Profile item) and **1.32 / 2.32 / 3.32** (Admin dashboard black-area root cause). These tasks are intentionally small, ship independently of Phase 7, and are collapsed naturally into Phase 7 when `GlobalHeader` replaces the per-role sidebars (Task 103). Their purpose is to close two visible regressions immediately instead of waiting for the full chrome reshape.
 
@@ -1169,7 +1164,7 @@ Each property test encodes the per-clause fix-checking AND preservation predicat
 
 ---
 
-## Phase 7.5 rollout notes
+### Phase 7.5 rollout notes
 
 - Task 109 is a one-file-per-role mechanical edit; it ships independently and takes precedence over Task 103 (which removes the entire sidebar). When Task 103 lands, the nav array doesn't need to be re-edited because Task 109 already deleted the Profile entry.
 - Task 110 is orthogonal to Phase 7 and remains useful even after `GlobalHeader` replaces the sidebars — the `min-h-screen` + `body { background-color: ... }` contract is the correct long-term layout shape.

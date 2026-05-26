@@ -17,6 +17,7 @@ import Shimmer from "@/components/shared/Shimmer";
 import UploadProgress from "@/components/shared/UploadProgress";
 import ErrorState from "@/components/shared/ErrorState";
 import { toast } from "sonner";
+import { getSignedUrl } from "@/lib/storageUrl";
 import {
   ClipboardList,
   Calendar,
@@ -439,14 +440,22 @@ const AssignmentDetailPage = () => {
                 </div>
                 <div>
                   <p className="text-xs text-gray-500">File</p>
-                  <a
-                    href={mySubmission.file_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <button
+                    type="button"
                     className="text-blue-600 hover:underline font-medium text-sm"
+                    onClick={async () => {
+                      if (!mySubmission.file_url) return;
+                      const url = await getSignedUrl(
+                        "submissions",
+                        mySubmission.file_url
+                      );
+                      if (url)
+                        window.open(url, "_blank", "noopener,noreferrer");
+                      else toast.error("Could not open file. Try again.");
+                    }}
                   >
                     View Submission
-                  </a>
+                  </button>
                 </div>
               </div>
               {mySubmission.is_late && (

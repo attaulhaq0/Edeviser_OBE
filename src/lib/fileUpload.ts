@@ -102,11 +102,10 @@ export async function uploadSubmissionFile(
     throw new Error(`Upload failed: ${error.message}`);
   }
 
-  const { data: urlData } = supabase.storage
-    .from(BUCKET_NAME)
-    .getPublicUrl(path);
-
-  return urlData.publicUrl;
+  // Return the storage path. The `submissions` bucket is private, so
+  // consumers must call getSignedUrl("submissions", path) at READ time.
+  // See src/lib/storageUrl.ts.
+  return path;
 }
 
 // ─── Avatar Upload ──────────────────────────────────────────────────────────

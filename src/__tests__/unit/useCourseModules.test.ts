@@ -220,20 +220,20 @@ describe("useCourseModules hooks — queryFn / mutationFn logic", () => {
       );
     });
 
-    it("uploads valid file and returns public URL", async () => {
+    it("uploads valid file and returns the storage path", async () => {
       const validFile = new File(["content"], "slides.pdf", {
         type: "application/pdf",
       });
       Object.defineProperty(validFile, "size", { value: 1024 });
 
       mockUpload.mockResolvedValue({ error: null });
-      mockGetPublicUrl.mockReturnValue({
-        data: { publicUrl: "https://storage.example.com/slides.pdf" },
-      });
 
       const url = await uploadMaterialFile(validFile, "course-1");
 
-      expect(url).toBe("https://storage.example.com/slides.pdf");
+      // course-materials is a private bucket; we now return the storage path
+      // and consumers must call getSignedUrl() at READ time. The path format
+      // is `${courseId}/${timestamp}_${safeName}` per useCourseModules.ts.
+      expect(url).toMatch(/^course-1\/\d+_slides\.pdf$/);
       expect(mockUpload).toHaveBeenCalled();
     });
   });
