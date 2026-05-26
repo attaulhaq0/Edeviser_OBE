@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, SkipForward, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -51,6 +51,7 @@ export const OnboardingWizard = ({
   isDay1: isDay1Prop,
 }: OnboardingWizardProps) => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
   const studentId = user?.id ?? "";
 
@@ -112,6 +113,24 @@ export const OnboardingWizard = ({
       setBaselineCourseIds(progress.baseline_course_ids);
     }
   }, [progress, steps, isFirstTimeLogin]);
+
+  // Jump to specific step when ?step=<id> is provided in the URL.
+  // This lets CompleteProfilePage link directly to a dimension's step
+  // (e.g. /student/onboarding?step=personality).
+  const stepParam = searchParams.get("step") as OnboardingStepId | null;
+  useEffect(() => {
+    if (!stepParam) return;
+    const idx = steps.indexOf(stepParam);
+    if (idx >= 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: jump-to-step from URL param
+      setCurrentStepIndex(idx);
+      // Clear the param so refresh / back-nav don't reapply it.
+      const next = new URLSearchParams(searchParams);
+      next.delete("step");
+      setSearchParams(next, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only run on initial param resolution
+  }, [stepParam, steps]);
 
   const currentStep = steps[currentStepIndex] as OnboardingStepId;
   const totalSteps = steps.length;

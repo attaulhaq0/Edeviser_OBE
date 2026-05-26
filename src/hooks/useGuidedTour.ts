@@ -1,4 +1,5 @@
 import { useCallback, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { useTourStore } from "@/stores/tourStore";
 import { useAuth } from "@/hooks/useAuth";
 import type { UserRole } from "@/types/app";
@@ -109,6 +110,7 @@ const getTourStepsForRole = (role: UserRole): TourStep[] => {
  * ```
  */
 export const useGuidedTour = (roleOverride?: UserRole): UseGuidedTourReturn => {
+  const { t } = useTranslation("common");
   const { user, profile } = useAuth();
   const tourActive = useTourStore((state) => state.tourActive);
   const tourFeatureFlag = useTourStore((state) => state.tourFeatureFlag);
@@ -119,11 +121,26 @@ export const useGuidedTour = (roleOverride?: UserRole): UseGuidedTourReturn => {
   // Get the user's role (use override if provided, otherwise use profile role)
   const userRole = (roleOverride || profile?.role) as UserRole | undefined;
 
-  // Get tour steps for the current role
+  // Get tour steps for the current role and translate the i18n keys.
+  // The raw step objects in src/lib/tours/*.ts store i18n keys (e.g.
+  // "tour.student.step1.title") so we look them up here against common.json.
+  // If a key is missing, t() returns the key itself, which is what was
+  // showing in the UI before this fix.
   const steps = useMemo(() => {
     if (!userRole || !tourFeatureFlag) return [];
-    return getTourStepsForRole(userRole);
-  }, [userRole, tourFeatureFlag]);
+    const rawSteps = getTourStepsForRole(userRole);
+    return rawSteps.map((step) => ({
+      ...step,
+      content:
+        typeof step.content === "string"
+          ? t(step.content, { defaultValue: step.content })
+          : step.content,
+      title:
+        typeof step.title === "string"
+          ? t(step.title, { defaultValue: step.title })
+          : step.title,
+    }));
+  }, [userRole, tourFeatureFlag, t]);
 
   // Determine if tour should run
   // Tour runs if:

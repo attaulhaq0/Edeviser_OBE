@@ -116,6 +116,9 @@ const LeaderboardPage = lazy(
 const CompleteProfilePage = lazy(
   () => import("@/pages/student/onboarding/CompleteProfilePage")
 );
+const OnboardingWizardPage = lazy(
+  () => import("@/pages/student/onboarding/OnboardingWizard")
+);
 const ReassessmentPage = lazy(
   () => import("@/pages/student/settings/ReassessmentPage")
 );
@@ -734,6 +737,7 @@ const AppRouter = () => (
               path="onboarding/complete-profile"
               element={<CompleteProfilePage />}
             />
+            <Route path="onboarding" element={<OnboardingWizardPage />} />
             <Route path="habits" element={<HabitHeatmapPage />} />
             <Route path="habits/analytics" element={<HabitAnalyticsPage />} />
             <Route path="planner" element={<WeeklyPlannerPage />} />
