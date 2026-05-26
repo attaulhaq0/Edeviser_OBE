@@ -105,7 +105,8 @@ BEGIN
           'authenticated', 'authenticated', '',
           now(), now(), now(),
           '{"provider":"email","providers":["email"]}'::jsonb,
-          '{}'::jsonb, false
+          jsonb_build_object('institution_id', v_inst.id::text, 'full_name', initcap(v_role_count.role_name) || ' ' || v_i::text),
+          false
         )
         ON CONFLICT (id) DO NOTHING;
       END LOOP;
