@@ -5,6 +5,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import "@/lib/i18n";
 import type {
   StudySession,
   PlannerTask,
@@ -49,6 +50,10 @@ vi.mock("@/hooks/usePlannerTasks", () => ({
     isPending: false,
   }),
   useCompleteTask: () => ({
+    mutate: vi.fn(),
+    isPending: false,
+  }),
+  useDeletePlannerTask: () => ({
     mutate: vi.fn(),
     isPending: false,
   }),
@@ -462,19 +467,19 @@ describe("TodayViewPage", () => {
     expect(screen.getByText("Today")).toBeInTheDocument();
   });
 
-  it("renders Quick Add button", () => {
+  it("renders Add task button", () => {
     render(<TodayViewPage />);
 
     expect(
-      screen.getByRole("button", { name: /quick add/i })
+      screen.getByRole("button", { name: /add task/i })
     ).toBeInTheDocument();
   });
 
-  it("renders Start Unplanned Session button", () => {
+  it("renders Start session button", () => {
     render(<TodayViewPage />);
 
     expect(
-      screen.getByRole("button", { name: /start unplanned session/i })
+      screen.getByRole("button", { name: /start session/i })
     ).toBeInTheDocument();
   });
 
@@ -492,11 +497,11 @@ describe("TodayViewPage", () => {
     expect(screen.getByText("Today's Timeline")).toBeInTheDocument();
   });
 
-  it("opens Quick Add dialog when button is clicked", async () => {
+  it("opens Add task dialog when button is clicked", async () => {
     const user = userEvent.setup();
     render(<TodayViewPage />);
 
-    const quickAddBtn = screen.getByRole("button", { name: /quick add/i });
+    const quickAddBtn = screen.getByRole("button", { name: /add task/i });
     await user.click(quickAddBtn);
 
     // Dialog title and submit button both say "Create Task" — use role to target heading

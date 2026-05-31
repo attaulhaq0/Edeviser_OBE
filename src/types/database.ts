@@ -176,6 +176,7 @@ export type Database = {
           is_late_allowed: boolean;
           late_window_hours: number;
           prerequisites: Json | null;
+          rubric_id: string | null;
           search_vector: unknown;
           title: string;
           total_marks: number;
@@ -193,6 +194,7 @@ export type Database = {
           is_late_allowed?: boolean;
           late_window_hours?: number;
           prerequisites?: Json | null;
+          rubric_id?: string | null;
           search_vector?: unknown;
           title: string;
           total_marks: number;
@@ -210,6 +212,7 @@ export type Database = {
           is_late_allowed?: boolean;
           late_window_hours?: number;
           prerequisites?: Json | null;
+          rubric_id?: string | null;
           search_vector?: unknown;
           title?: string;
           total_marks?: number;
@@ -229,6 +232,13 @@ export type Database = {
             columns: ["created_by"];
             isOneToOne: false;
             referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "assignments_rubric_id_fkey";
+            columns: ["rubric_id"];
+            isOneToOne: false;
+            referencedRelation: "rubrics";
             referencedColumns: ["id"];
           }
         ];
@@ -1361,6 +1371,7 @@ export type Database = {
         Row: {
           academic_year: string;
           code: string;
+          color: string | null;
           created_at: string;
           id: string;
           is_active: boolean;
@@ -1376,6 +1387,7 @@ export type Database = {
         Insert: {
           academic_year: string;
           code: string;
+          color?: string | null;
           created_at?: string;
           id?: string;
           is_active?: boolean;
@@ -1391,6 +1403,7 @@ export type Database = {
         Update: {
           academic_year?: string;
           code?: string;
+          color?: string | null;
           created_at?: string;
           id?: string;
           is_active?: boolean;
@@ -2020,6 +2033,7 @@ export type Database = {
           graded_at: string;
           graded_by: string;
           id: string;
+          is_released: boolean;
           overall_feedback: string | null;
           rubric_selections: Json;
           score_percent: number;
@@ -2030,6 +2044,7 @@ export type Database = {
           graded_at?: string;
           graded_by: string;
           id?: string;
+          is_released?: boolean;
           overall_feedback?: string | null;
           rubric_selections?: Json;
           score_percent: number;
@@ -2040,6 +2055,7 @@ export type Database = {
           graded_at?: string;
           graded_by?: string;
           id?: string;
+          is_released?: boolean;
           overall_feedback?: string | null;
           rubric_selections?: Json;
           score_percent?: number;
@@ -2267,9 +2283,12 @@ export type Database = {
           attainment_thresholds: Json;
           created_at: string;
           default_language: string;
+          dynamic_pricing_enabled: boolean;
           grade_scales: Json;
           id: string;
           institution_id: string;
+          leaderboard_min_cohort_size: number;
+          leaderboard_page_size: number;
           league_thresholds: Json | null;
           streak_sabbatical_enabled: boolean | null;
           success_threshold: number;
@@ -2280,9 +2299,12 @@ export type Database = {
           attainment_thresholds?: Json;
           created_at?: string;
           default_language?: string;
+          dynamic_pricing_enabled?: boolean;
           grade_scales?: Json;
           id?: string;
           institution_id: string;
+          leaderboard_min_cohort_size?: number;
+          leaderboard_page_size?: number;
           league_thresholds?: Json | null;
           streak_sabbatical_enabled?: boolean | null;
           success_threshold?: number;
@@ -2293,9 +2315,12 @@ export type Database = {
           attainment_thresholds?: Json;
           created_at?: string;
           default_language?: string;
+          dynamic_pricing_enabled?: boolean;
           grade_scales?: Json;
           id?: string;
           institution_id?: string;
+          leaderboard_min_cohort_size?: number;
+          leaderboard_page_size?: number;
           league_thresholds?: Json | null;
           streak_sabbatical_enabled?: boolean | null;
           success_threshold?: number;
@@ -3049,7 +3074,9 @@ export type Database = {
           institution_id: string;
           is_active: boolean;
           options: Json | null;
+          options_ar: Json | null;
           question_text: string;
+          question_text_ar: string | null;
           sort_order: number;
           updated_at: string;
           weight: number | null;
@@ -3066,7 +3093,9 @@ export type Database = {
           institution_id: string;
           is_active?: boolean;
           options?: Json | null;
+          options_ar?: Json | null;
           question_text: string;
+          question_text_ar?: string | null;
           sort_order?: number;
           updated_at?: string;
           weight?: number | null;
@@ -3083,7 +3112,9 @@ export type Database = {
           institution_id?: string;
           is_active?: boolean;
           options?: Json | null;
+          options_ar?: Json | null;
           question_text?: string;
+          question_text_ar?: string | null;
           sort_order?: number;
           updated_at?: string;
           weight?: number | null;
@@ -3456,6 +3487,7 @@ export type Database = {
           avatar_url: string | null;
           created_at: string;
           email: string;
+          email_preferences: Json | null;
           email_verified_at: string | null;
           full_name: string;
           id: string;
@@ -3466,6 +3498,7 @@ export type Database = {
           notification_preferences: Json;
           onboarding_completed: boolean;
           portfolio_public: boolean;
+          portfolio_sharing_permitted: boolean;
           preferred_language: string | null;
           role: Database["public"]["Enums"]["user_role"];
           search_vector: unknown;
@@ -3479,6 +3512,7 @@ export type Database = {
           avatar_url?: string | null;
           created_at?: string;
           email: string;
+          email_preferences?: Json | null;
           email_verified_at?: string | null;
           full_name: string;
           id: string;
@@ -3489,6 +3523,7 @@ export type Database = {
           notification_preferences?: Json;
           onboarding_completed?: boolean;
           portfolio_public?: boolean;
+          portfolio_sharing_permitted?: boolean;
           preferred_language?: string | null;
           role?: Database["public"]["Enums"]["user_role"];
           search_vector?: unknown;
@@ -3502,6 +3537,7 @@ export type Database = {
           avatar_url?: string | null;
           created_at?: string;
           email?: string;
+          email_preferences?: Json | null;
           email_verified_at?: string | null;
           full_name?: string;
           id?: string;
@@ -3512,6 +3548,7 @@ export type Database = {
           notification_preferences?: Json;
           onboarding_completed?: boolean;
           portfolio_public?: boolean;
+          portfolio_sharing_permitted?: boolean;
           preferred_language?: string | null;
           role?: Database["public"]["Enums"]["user_role"];
           search_vector?: unknown;
@@ -5963,6 +6000,7 @@ export type Database = {
       };
       teams: {
         Row: {
+          avatar_letter: string | null;
           captain_id: string;
           cooperation_score: number;
           course_id: string;
@@ -5980,6 +6018,7 @@ export type Database = {
           xp_total: number;
         };
         Insert: {
+          avatar_letter?: string | null;
           captain_id: string;
           cooperation_score?: number;
           course_id: string;
@@ -5997,6 +6036,7 @@ export type Database = {
           xp_total?: number;
         };
         Update: {
+          avatar_letter?: string | null;
           captain_id?: string;
           cooperation_score?: number;
           course_id?: string;
@@ -6100,6 +6140,7 @@ export type Database = {
           is_active: boolean;
           message_count: number;
           persona: string;
+          recommended_persona: string | null;
           student_id: string;
           title: string | null;
           updated_at: string;
@@ -6115,6 +6156,7 @@ export type Database = {
           is_active?: boolean;
           message_count?: number;
           persona?: string;
+          recommended_persona?: string | null;
           student_id: string;
           title?: string | null;
           updated_at?: string;
@@ -6130,6 +6172,7 @@ export type Database = {
           is_active?: boolean;
           message_count?: number;
           persona?: string;
+          recommended_persona?: string | null;
           student_id?: string;
           title?: string | null;
           updated_at?: string;
@@ -6512,7 +6555,7 @@ export type Database = {
           target_value: number | null;
           updated_at: string | null;
           week_start: string;
-          week_start_date: string | null;
+          week_start_date: string;
         };
         Insert: {
           created_at?: string | null;
@@ -6525,7 +6568,7 @@ export type Database = {
           target_value?: number | null;
           updated_at?: string | null;
           week_start: string;
-          week_start_date?: string | null;
+          week_start_date: string;
         };
         Update: {
           created_at?: string | null;
@@ -6538,7 +6581,7 @@ export type Database = {
           target_value?: number | null;
           updated_at?: string | null;
           week_start?: string;
-          week_start_date?: string | null;
+          week_start_date?: string;
         };
         Relationships: [
           {
@@ -6796,8 +6839,25 @@ export type Database = {
         };
         Relationships: [];
       };
+      leaderboard_weekly: {
+        Row: {
+          rank: number | null;
+          student_id: string | null;
+          weekly_xp: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "xp_transactions_student_id_fkey";
+            columns: ["student_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
     };
     Functions: {
+      anonymize_user: { Args: { p_user_id: string }; Returns: Json };
       auth_institution_id: { Args: never; Returns: string };
       auth_user_role: { Args: never; Returns: string };
       badge_auto_archive: { Args: never; Returns: undefined };
@@ -6815,6 +6875,17 @@ export type Database = {
       delete_department_if_no_programs: {
         Args: { dept_id: string };
         Returns: boolean;
+      };
+      emit_notification: {
+        Args: {
+          p_body?: string;
+          p_dedup_key?: string;
+          p_metadata?: Json;
+          p_title: string;
+          p_type: string;
+          p_user_id: string;
+        };
+        Returns: undefined;
       };
       expire_stale_recovery_sessions: { Args: never; Returns: number };
       get_badge_spotlight: {
@@ -6856,6 +6927,18 @@ export type Database = {
           xp_total: number;
         }[];
       };
+      get_leaderboard_page: {
+        Args: { p_institution_id: string; p_limit: number; p_offset: number };
+        Returns: {
+          eligible_count: number;
+          full_name: string;
+          global_rank: number;
+          level: number;
+          streak_current: number;
+          student_id: string;
+          xp_total: number;
+        }[];
+      };
       get_wellness_aggregate_stats: {
         Args: { p_institution_id: string };
         Returns: {
@@ -6865,12 +6948,37 @@ export type Database = {
         }[];
       };
       get_xp_balance: { Args: { p_student_id: string }; Returns: number };
+      get_xp_transactions_page: {
+        Args: {
+          p_filter: string;
+          p_limit: number;
+          p_offset: number;
+          p_student_id: string;
+        };
+        Returns: {
+          amount: number;
+          category: string;
+          id: string;
+          kind: string;
+          label: string;
+          occurred_at: string;
+          total_count: number;
+        }[];
+      };
       health_check_ping: { Args: never; Returns: boolean };
       increment_team_xp: {
         Args: { p_amount: number; p_team_id: string };
         Returns: undefined;
       };
       is_pgcron_available: { Args: never; Returns: boolean };
+      is_portfolio_publicly_accessible: {
+        Args: { p_student_id: string };
+        Returns: boolean;
+      };
+      portfolio_public_access: {
+        Args: { p_student_id: string };
+        Returns: string;
+      };
       process_marketplace_purchase: {
         Args: {
           p_institution_id: string;

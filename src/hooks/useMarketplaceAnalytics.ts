@@ -32,8 +32,7 @@ export const useMarketplaceAnalytics = () => {
     queryKey: queryKeys.marketplace.analytics(),
     queryFn: async (): Promise<MarketplaceAnalyticsData> => {
       // Fetch all purchases with item joins
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data: purchases, error } = await (supabase as any)
+      const { data: purchases, error } = await supabase
         .from("xp_purchases")
         .select(
           `
@@ -48,7 +47,7 @@ export const useMarketplaceAnalytics = () => {
 
       if (error) throw error;
 
-      const rows = (purchases ?? []) as Array<Record<string, unknown>>;
+      const rows = purchases ?? [];
 
       // Compute aggregates
       let totalXPSpent = 0;
@@ -57,12 +56,15 @@ export const useMarketplaceAnalytics = () => {
       const categoryMap = new Map<string, { purchases: number; xp: number }>();
 
       for (const row of rows) {
-        const xpCost = row.xp_cost as number;
-        const studentId = row.student_id as string;
-        const itemId = row.item_id as string;
-        const item = row.marketplace_items as Record<string, unknown> | null;
-        const itemName = (item?.name as string) ?? "Unknown";
-        const category = (item?.category as string) ?? "unknown";
+        const xpCost = row.xp_cost;
+        const studentId = row.student_id;
+        const itemId = row.item_id;
+        // The embedded `marketplace_items` relation is a to-one object or null.
+        const item = Array.isArray(row.marketplace_items)
+          ? row.marketplace_items[0]
+          : row.marketplace_items;
+        const itemName = item?.name ?? "Unknown";
+        const category = item?.category ?? "unknown";
 
         totalXPSpent += xpCost;
         buyerSet.add(studentId);

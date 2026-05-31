@@ -1,26 +1,24 @@
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useGatedMotion } from "@/lib/motionGate";
 import { BookOpen } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import AssessmentIntro from "@/components/shared/AssessmentIntro";
 import { useStudyStrategyQuestions } from "@/hooks/useOnboardingQuestions";
 import { useSaveResponses } from "@/hooks/useOnboardingResponses";
+import { useAssessmentIntro } from "@/hooks/useAssessmentIntro";
+import { shouldRenderAssessmentBody } from "@/lib/assessmentIntro";
 import type { WizardStepProps } from "./OnboardingWizard";
 
-const STRATEGY_LABELS = [
-  "Never",
-  "Rarely",
-  "Sometimes",
-  "Often",
-  "Always",
+const STRATEGY_KEYS = [
+  "never",
+  "rarely",
+  "sometimes",
+  "often",
+  "always",
 ] as const;
-
-const DIMENSION_LABELS: Record<string, string> = {
-  time_management: "Time Management",
-  elaboration: "Elaboration",
-  self_testing: "Self-Testing",
-  help_seeking: "Help-Seeking",
-};
 
 interface LikertScaleProps {
   value: number | null;
@@ -28,45 +26,49 @@ interface LikertScaleProps {
   questionId: string;
 }
 
-const LikertScale = ({ value, onChange, questionId }: LikertScaleProps) => (
-  <div
-    className="flex flex-col gap-2"
-    role="radiogroup"
-    aria-label="Study strategy scale"
-  >
-    {STRATEGY_LABELS.map((label, idx) => {
-      const optionValue = idx + 1;
-      const isSelected = value === optionValue;
-      return (
-        <button
-          key={optionValue}
-          type="button"
-          role="radio"
-          aria-checked={isSelected}
-          aria-label={label}
-          id={`${questionId}-option-${optionValue}`}
-          onClick={() => onChange(optionValue)}
-          className={`flex items-center gap-3 rounded-lg border px-4 py-3 text-start text-sm font-medium transition-colors ${
-            isSelected
-              ? "border-blue-500 bg-blue-50 text-blue-700"
-              : "border-slate-200 bg-white text-gray-700 hover:border-slate-300 hover:bg-slate-50"
-          }`}
-        >
-          <span
-            className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${
-              isSelected ? "border-blue-500" : "border-slate-300"
+const LikertScale = ({ value, onChange, questionId }: LikertScaleProps) => {
+  const { t } = useTranslation("student");
+  return (
+    <div
+      className="flex flex-col gap-2"
+      role="radiogroup"
+      aria-label={t("onboarding.studyStrategy.scaleLabel")}
+    >
+      {STRATEGY_KEYS.map((labelKey, idx) => {
+        const optionValue = idx + 1;
+        const isSelected = value === optionValue;
+        const label = t(`onboarding.studyStrategy.likert.${labelKey}`);
+        return (
+          <button
+            key={optionValue}
+            type="button"
+            role="radio"
+            aria-checked={isSelected}
+            aria-label={label}
+            id={`${questionId}-option-${optionValue}`}
+            onClick={() => onChange(optionValue)}
+            className={`flex items-center gap-3 rounded-lg border px-4 py-3 text-start text-sm font-medium transition-colors ${
+              isSelected
+                ? "border-blue-500 bg-blue-50 text-blue-700"
+                : "border-slate-200 bg-white text-gray-700 hover:border-slate-300 hover:bg-slate-50"
             }`}
           >
-            {isSelected && (
-              <span className="h-2.5 w-2.5 rounded-full bg-blue-500" />
-            )}
-          </span>
-          {label}
-        </button>
-      );
-    })}
-  </div>
-);
+            <span
+              className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${
+                isSelected ? "border-blue-500" : "border-slate-300"
+              }`}
+            >
+              {isSelected && (
+                <span className="h-2.5 w-2.5 rounded-full bg-blue-500" />
+              )}
+            </span>
+            {label}
+          </button>
+        );
+      })}
+    </div>
+  );
+};
 
 export const StudyStrategyStep = ({
   isDay1,
@@ -74,8 +76,16 @@ export const StudyStrategyStep = ({
   studentId,
   assessmentVersion,
 }: WizardStepProps) => {
+  const { t } = useTranslation("student");
+  const introContent = useAssessmentIntro("study_strategy");
+  const motionGate = useGatedMotion();
   const { data: questions = [], isLoading } = useStudyStrategyQuestions();
   const saveResponses = useSaveResponses();
+
+  // R17.2a — gate the assessment body until the benefit + estimated-time
+  // intro is shown and the student begins.
+  const [hasBegun, setHasBegun] = useState(false);
+  const handleBegin = useCallback(() => setHasBegun(true), []);
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
@@ -88,7 +98,9 @@ export const StudyStrategyStep = ({
     : null;
 
   const currentDimension = currentQuestion?.dimension
-    ? DIMENSION_LABELS[currentQuestion.dimension] ?? currentQuestion.dimension
+    ? t(`onboarding.studyStrategy.dimensions.${currentQuestion.dimension}`, {
+        defaultValue: currentQuestion.dimension,
+      })
     : "";
 
   const handleSelect = useCallback(
@@ -142,17 +154,16 @@ export const StudyStrategyStep = ({
       <div className="flex flex-col items-center py-16 text-center">
         <BookOpen className="mb-4 h-10 w-10 text-blue-400" />
         <h2 className="text-lg font-bold tracking-tight text-gray-900">
-          Study Strategy Inventory
+          {t("onboarding.studyStrategy.day1.title")}
         </h2>
         <p className="mt-2 max-w-sm text-sm text-gray-500">
-          This assessment will be delivered as short daily micro-assessments
-          during your first two weeks. You&apos;ll earn XP for each one!
+          {t("onboarding.studyStrategy.day1.body")}
         </p>
         <Button
           onClick={onComplete}
           className="mt-6 bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
         >
-          Continue
+          {t("onboarding.studyStrategy.day1.continue")}
         </Button>
       </div>
     );
@@ -169,9 +180,27 @@ export const StudyStrategyStep = ({
   if (totalQuestions === 0) {
     return (
       <div className="py-16 text-center text-sm text-gray-500">
-        No study strategy questions available. Please contact your
-        administrator.
+        {t("onboarding.studyStrategy.noQuestions")}
       </div>
+    );
+  }
+
+  // R17 — benefit-oriented framing gates the assessment body until the
+  // benefit + estimated time are shown and the student begins (R17.2a).
+  if (
+    !shouldRenderAssessmentBody({
+      hasBegun,
+      benefits: introContent.benefits,
+      estimatedTime: introContent.estimatedTime,
+    })
+  ) {
+    return (
+      <AssessmentIntro
+        icon={BookOpen}
+        content={introContent}
+        beginLabel={t("onboarding.assessmentIntro.begin")}
+        onBegin={handleBegin}
+      />
     );
   }
 
@@ -180,23 +209,27 @@ export const StudyStrategyStep = ({
       <div className="mb-6 flex items-center gap-2">
         <BookOpen className="h-5 w-5 text-blue-600" />
         <h2 className="text-lg font-bold tracking-tight text-gray-900">
-          Study Strategy Inventory
+          {t("onboarding.studyStrategy.title")}
         </h2>
       </div>
 
       <p className="mb-1 max-w-md text-center text-xs text-gray-500">
-        Rate how often you use each study strategy.
+        {t("onboarding.studyStrategy.instructions")}
       </p>
 
       <p className="mb-2 text-xs font-bold uppercase tracking-widest text-gray-400">
-        {currentDimension} — Question {currentIndex + 1} of {totalQuestions}
+        {t("onboarding.studyStrategy.dimensionProgress", {
+          dimension: currentDimension,
+          current: currentIndex + 1,
+          total: totalQuestions,
+        })}
       </p>
 
       <div className="mb-6 h-1.5 w-full max-w-md overflow-hidden rounded-full bg-slate-100">
         <motion.div
           className="h-full rounded-full bg-gradient-to-r from-teal-500 to-blue-600"
           animate={{ width: `${((currentIndex + 1) / totalQuestions) * 100}%` }}
-          transition={{ duration: 0.2 }}
+          transition={motionGate.transition({ duration: 0.2 })}
         />
       </div>
 
@@ -204,10 +237,13 @@ export const StudyStrategyStep = ({
         <motion.div
           key={currentQuestion?.id}
           custom={direction}
-          initial={{ opacity: 0, x: direction * 30 }}
+          initial={motionGate.enter(
+            { opacity: 0, x: direction * 30 },
+            { opacity: 1, x: 0 }
+          )}
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: direction * -30 }}
-          transition={{ duration: 0.2 }}
+          transition={motionGate.transition({ duration: 0.2 })}
           className="w-full max-w-md"
         >
           <Card className="border-0 bg-white p-6 shadow-md rounded-xl">
@@ -230,7 +266,7 @@ export const StudyStrategyStep = ({
           disabled={currentIndex === 0}
           className="text-gray-500"
         >
-          Previous
+          {t("onboarding.studyStrategy.previous")}
         </Button>
         <Button
           onClick={handleNext}
@@ -239,9 +275,9 @@ export const StudyStrategyStep = ({
         >
           {currentIndex === totalQuestions - 1
             ? saveResponses.isPending
-              ? "Saving..."
-              : "Complete"
-            : "Next"}
+              ? t("onboarding.studyStrategy.saving")
+              : t("onboarding.studyStrategy.complete")
+            : t("onboarding.studyStrategy.next")}
         </Button>
       </div>
     </div>

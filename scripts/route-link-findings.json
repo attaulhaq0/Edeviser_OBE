@@ -1,0 +1,17 @@
+{
+  "count": 1,
+  "byUrl": {
+    "/student": [
+      {
+        "file": "src/pages/student/onboarding/CompleteProfilePage.tsx",
+        "url": "/student",
+        "line": 166
+      },
+      {
+        "file": "src/pages/student/onboarding/OnboardingWizard.tsx",
+        "url": "/student",
+        "line": 260
+      }
+    ]
+  }
+}

@@ -74,18 +74,14 @@ export const useLeagueLeaderboard = (
 
       // Fetch weekly XP from leaderboard_weekly
       const studentIds = tieredStudents.map((s) => s.student_id);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data: weeklyData, error: weeklyErr } = await (supabase as any)
+      const { data: weeklyData, error: weeklyErr } = await supabase
         .from("leaderboard_weekly")
         .select("student_id, weekly_xp")
         .in("student_id", studentIds);
       if (weeklyErr) throw weeklyErr;
 
       const weeklyMap = new Map<string, number>();
-      for (const w of (weeklyData ?? []) as Array<{
-        student_id: string;
-        weekly_xp: number | null;
-      }>) {
+      for (const w of weeklyData ?? []) {
         const sid = w.student_id;
         if (sid) weeklyMap.set(sid, w.weekly_xp ?? 0);
       }

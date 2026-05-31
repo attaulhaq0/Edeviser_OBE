@@ -1,8 +1,17 @@
 // Task 67.1: Discussion TanStack Query hooks — CRUD for threads and replies
 // Requirements: 77
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+//
+// Task 7.10: bounded, paginated thread fetch with load-more capability.
+// Requirements: 34.2, 34.3
+import {
+  useQuery,
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
+import { hasMore, toRange } from "@/lib/pagination";
 import { logAuditEvent } from "@/lib/auditLogger";
 import { awardXP } from "@/lib/xpClient";
 import { XP_SCHEDULE } from "@/lib/xpSchedule";
@@ -47,6 +56,20 @@ export interface CreateReplyInput {
   author_id: string;
 }
 
+/** One bounded page of discussion threads plus paging metadata. */
+export interface DiscussionThreadsPage {
+  threads: DiscussionThread[];
+  /** 1-based page number this result represents. */
+  page: number;
+  /** Exact total count of matching threads across all pages. */
+  total: number;
+  /** Whether at least one more thread exists beyond this page. */
+  hasMore: boolean;
+}
+
+/** Default threads per page; bounds the discussions fetch (R34.2). */
+export const DISCUSSION_PAGE_SIZE = 20;
+
 // ─── Cast helpers ───────────────────────────────────────────────────────────
 
 function castThread(row: Record<string, unknown>): DiscussionThread {
@@ -80,24 +103,38 @@ function castReply(row: Record<string, unknown>): DiscussionReply {
 
 // ─── Thread Queries ─────────────────────────────────────────────────────────
 
-export const useDiscussionThreads = (courseId: string | undefined) => {
-  return useQuery({
+export const useDiscussionThreads = (
+  courseId: string | undefined,
+  pageSize: number = DISCUSSION_PAGE_SIZE
+) => {
+  return useInfiniteQuery({
     queryKey: queryKeys.discussionThreads.list({ courseId }),
-    queryFn: async () => {
-      if (!courseId) return [];
-      const { data, error } = await supabase
+    initialPageParam: 1,
+    queryFn: async ({ pageParam }): Promise<DiscussionThreadsPage> => {
+      const page = pageParam;
+      if (!courseId) {
+        return { threads: [], page, total: 0, hasMore: false };
+      }
+      const { from, to } = toRange(page, pageSize);
+      const { data, error, count } = await supabase
         .from("discussion_threads")
         .select(
-          "id, course_id, title, content, author_id, is_pinned, is_resolved, created_at"
+          "id, course_id, title, content, author_id, is_pinned, is_resolved, created_at",
+          { count: "exact" }
         )
         .eq("course_id", courseId)
         .order("is_pinned", { ascending: false })
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .range(from, to);
       if (error) throw error;
-      return (data ?? []).map((r) =>
+      const total = count ?? 0;
+      const threads = (data ?? []).map((r) =>
         castThread(r as unknown as Record<string, unknown>)
       );
+      return { threads, page, total, hasMore: hasMore(page, pageSize, total) };
     },
+    getNextPageParam: (lastPage) =>
+      lastPage.hasMore ? lastPage.page + 1 : undefined,
     enabled: !!courseId,
   });
 };
@@ -132,9 +169,7 @@ export const useDiscussionReplies = (threadId: string | undefined) => {
       if (!threadId) return [];
       const { data, error } = await supabase
         .from("discussion_replies")
-        .select(
-          "id, thread_id, content, author_id, is_answer, created_at"
-        )
+        .select("id, thread_id, content, author_id, is_answer, created_at")
         .eq("thread_id", threadId)
         .order("created_at", { ascending: true });
       if (error) throw error;

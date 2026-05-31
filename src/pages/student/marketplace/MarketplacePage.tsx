@@ -4,7 +4,13 @@
 
 import { useState, useMemo } from "react";
 import { parseAsString, useQueryState } from "nuqs";
-import { ShoppingBag, Palette, GraduationCap, Zap } from "lucide-react";
+import {
+  ShoppingBag,
+  Palette,
+  GraduationCap,
+  Zap,
+  Loader2,
+} from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useXPBalance } from "@/hooks/useXPBalance";
 import {
@@ -14,11 +20,13 @@ import {
 import { useInventory } from "@/hooks/useInventory";
 import { usePurchaseItem } from "@/hooks/usePurchase";
 import { useLevel } from "@/hooks/useLevel";
+import { Button } from "@/components/ui/button";
 import XPBalanceBadge from "@/components/shared/XPBalanceBadge";
 import ActiveBoostIndicator from "@/components/shared/ActiveBoostIndicator";
 import ItemCard from "@/pages/student/marketplace/ItemCard";
 import PurchaseConfirmDialog from "@/pages/student/marketplace/PurchaseConfirmDialog";
 import Shimmer from "@/components/shared/Shimmer";
+import { NoMarketplaceItems } from "@/components/shared/EmptyState";
 import { cn } from "@/lib/utils";
 
 // ─── Category tabs ───────────────────────────────────────────────────────────
@@ -46,8 +54,16 @@ const MarketplacePage = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
 
   const { data: balanceData } = useXPBalance(userId);
-  const { data: items, isLoading: isLoadingItems } = useMarketplaceItems(
-    category === "all" ? undefined : category
+  const {
+    data: itemsPages,
+    isLoading: isLoadingItems,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  } = useMarketplaceItems(category === "all" ? undefined : category);
+  const items = useMemo(
+    () => itemsPages?.pages.flatMap((p) => p.items) ?? [],
+    [itemsPages]
   );
   const { data: inventory } = useInventory(userId);
   const { data: levelData } = useLevel(userId);
@@ -125,27 +141,41 @@ const MarketplacePage = () => {
             <Shimmer key={i} className="h-64 rounded-xl" />
           ))}
         </div>
-      ) : !items || items.length === 0 ? (
-        <div className="text-center py-12">
-          <ShoppingBag className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-sm text-gray-500">
-            No items available in this category.
-          </p>
-        </div>
+      ) : items.length === 0 ? (
+        <NoMarketplaceItems />
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {items.map((item) => (
-            <ItemCard
-              key={item.id}
-              item={item}
-              studentLevel={studentLevel}
-              isOwned={
-                item.stock_type === "one_per_student" &&
-                ownedItemIds.has(item.id)
-              }
-              onPurchase={handlePurchaseClick}
-            />
-          ))}
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {items.map((item) => (
+              <ItemCard
+                key={item.id}
+                item={item}
+                studentLevel={studentLevel}
+                isOwned={
+                  item.stock_type === "one_per_student" &&
+                  ownedItemIds.has(item.id)
+                }
+                onPurchase={handlePurchaseClick}
+              />
+            ))}
+          </div>
+          {hasNextPage && (
+            <div className="flex justify-center">
+              <Button
+                variant="outline"
+                onClick={() => fetchNextPage()}
+                disabled={isFetchingNextPage}
+              >
+                {isFetchingNextPage ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" /> Loading...
+                  </>
+                ) : (
+                  "Load more"
+                )}
+              </Button>
+            </div>
+          )}
         </div>
       )}
 

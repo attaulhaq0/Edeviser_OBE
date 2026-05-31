@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,11 +13,13 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { supabase } from "@/lib/supabase";
-import { queryKeys } from "@/lib/queryKeys";
+import { computeScore } from "@/lib/quizScore";
+import { deriveCorrectness } from "@/lib/quizCorrectness";
+import { createIdempotentRunner } from "@/lib/idempotentRunner";
 import QuestionPreview from "@/components/shared/QuestionPreview";
 import PracticeModeBanner from "@/components/shared/PracticeModeBanner";
 import { usePracticeModeConfig } from "@/hooks/usePracticeMode";
+import { useQuizRecoveryBlock } from "@/hooks/useQuizRecoveryBlock";
 import { useAuth } from "@/hooks/useAuth";
 import {
   useStartAdaptiveQuiz,
@@ -51,6 +53,7 @@ const DEFAULT_TIME_LIMIT = 1800; // 30 minutes
 const AdaptiveQuizSession = () => {
   const { quizId } = useParams<{ quizId: string }>();
   const navigate = useNavigate();
+  const { t } = useTranslation("student");
 
   const startQuiz = useStartAdaptiveQuiz();
   const selectNext = useSelectNextQuestion();
@@ -61,37 +64,8 @@ const AdaptiveQuizSession = () => {
   const isPracticeMode = practiceModeConfig?.practice_mode_enabled ?? false;
 
   // ─── Active recovery check ────────────────────────────────────────────────
-  const { data: activeRecovery, isLoading: recoveryLoading } = useQuery({
-    queryKey: [...queryKeys.masteryRecovery.all, "quiz-block", quizId],
-    queryFn: async () => {
-      if (!user?.id || !quizId) return null;
-
-      // Fetch quiz CLO IDs
-      const { data: quiz, error: quizError } = await supabase
-        .from("quizzes")
-        .select("clo_ids")
-        .eq("id", quizId)
-        .maybeSingle();
-
-      if (quizError || !quiz) return null;
-
-      const cloIds = (quiz.clo_ids ?? []) as string[];
-      if (cloIds.length === 0) return null;
-
-      // Check for active recovery on any of the quiz's CLOs
-      const { data: recoveries, error: recoveryError } = await supabase
-        .from("mastery_recovery_pathways")
-        .select("id, clo_id, course_id, status")
-        .eq("student_id", user.id)
-        .eq("status", "active")
-        .in("clo_id", cloIds)
-        .limit(1);
-
-      if (recoveryError || !recoveries || recoveries.length === 0) return null;
-      return recoveries[0];
-    },
-    enabled: !!quizId && !!user?.id,
-  });
+  const { data: activeRecovery, isLoading: recoveryLoading } =
+    useQuizRecoveryBlock(quizId, user?.id);
 
   const [session, setSession] = useState<SessionState | null>(null);
   const [selectedAnswer, setSelectedAnswer] = useState<string>("");
@@ -102,8 +76,19 @@ const AdaptiveQuizSession = () => {
   const [practiceFeedback, setPracticeFeedback] =
     useState<PracticeFeedback | null>(null);
 
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const hasInitialized = useRef(false);
+  // Latest-ref pattern: always points at the most recent `finalizeQuiz` closure
+  // so the timer effect can finalize with current session state without listing
+  // `finalizeQuiz` in its dependency array (R3.1, R3.2).
+  const finalizeRef = useRef<() => Promise<void>>();
+  // Latest-ref for the translation function so the timer effect can localize the
+  // "time up" toast without listing `t` in its dependency array (keeps the
+  // single-interval-per-attempt invariant from R3.1/R3.4 intact).
+  const tRef = useRef(t);
+  // Double-finalize guard: ensures finalization runs at most once across timer
+  // expiry, unmount, and manual submit (R3.4). The at-most-once logic lives in
+  // the pure `createIdempotentRunner` helper so it is testable in isolation.
+  const finalizeGuardRef = useRef(createIdempotentRunner());
 
   const initSession = async () => {
     if (!quizId) return;
@@ -127,61 +112,73 @@ const AdaptiveQuizSession = () => {
       setTimeRemaining(DEFAULT_TIME_LIMIT);
       setInitializing(false);
     } catch {
-      toast.error("Failed to start quiz. Please try again.");
+      toast.error(t("quiz.toast.startFailed"));
       setInitializing(false);
     }
   };
 
   const finalizeQuiz = async () => {
     if (!session) return;
+    // Guard against duplicate finalization (timer expiry racing with unmount or
+    // a manual submit). The runner claims the guard synchronously and runs the
+    // submission at most once; a failed submission releases the guard so a retry
+    // is possible (R3.4).
     try {
-      const totalQuestions = session.currentQuestion?.total_questions ?? 1;
-      const score =
-        totalQuestions > 0
-          ? Math.round((session.totalCorrect / totalQuestions) * 100)
-          : 0;
+      await finalizeGuardRef.current.run(async () => {
+        const totalQuestions = session.currentQuestion?.total_questions ?? 1;
+        // Score is computed from the current session state at the moment of
+        // finalization, so timer expiry uses live answers, never stale ones
+        // (R3.1, R3.3).
+        const score = computeScore(session.totalCorrect, totalQuestions);
 
-      await submitAttempt.mutateAsync({
-        quiz_attempt_id: session.attemptId,
-        answers: session.answers,
-        score,
-        ...(isPracticeMode ? { mode: "practice" as const } : {}),
-      });
+        await submitAttempt.mutateAsync({
+          quiz_attempt_id: session.attemptId,
+          answers: session.answers,
+          score,
+          ...(isPracticeMode ? { mode: "practice" as const } : {}),
+        });
 
-      navigate(`/student/quizzes/${quizId}/review/${session.attemptId}`, {
-        replace: true,
+        navigate(`/student/quizzes/${quizId}/review/${session.attemptId}`, {
+          replace: true,
+        });
       });
     } catch {
-      toast.error("Failed to submit quiz. Please try again.");
+      // The runner already released the guard so finalization can be retried.
+      toast.error(t("quiz.toast.submitFailed"));
     }
   };
 
-  const handleTimeExpired = useCallback(async () => {
-    if (!session) return;
-    toast.info("Time is up! Submitting your quiz...");
-    await finalizeQuiz();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session]);
+  // Keep the latest `finalizeQuiz` closure in a ref so the timer effect always
+  // invokes the current routine (current session state) without depending on it
+  // in its dependency array — this removes the stale-closure risk and the need
+  // for an `eslint-disable` (R3.2).
+  useEffect(() => {
+    finalizeRef.current = finalizeQuiz;
+    tRef.current = t;
+  });
 
   // ─── Timer ──────────────────────────────────────────────────────────────────
+  // Keyed on the attempt id so a single interval runs per attempt. On expiry it
+  // finalizes via the latest-ref (current session state) exactly once, and the
+  // interval is always cleared on unmount or attempt change (R3.1, R3.4).
   useEffect(() => {
-    if (!session) return;
+    if (!session?.attemptId) return;
 
-    timerRef.current = setInterval(() => {
+    const intervalId = setInterval(() => {
       setTimeRemaining((prev) => {
         if (prev <= 1) {
-          clearInterval(timerRef.current!);
-          handleTimeExpired();
+          clearInterval(intervalId);
+          if (!finalizeGuardRef.current.hasCompleted) {
+            toast.info(tRef.current("quiz.toast.timeUp"));
+            void finalizeRef.current?.();
+          }
           return 0;
         }
         return prev - 1;
       });
     }, 1000);
 
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => clearInterval(intervalId);
   }, [session?.attemptId]);
 
   // ─── Initialize session ─────────────────────────────────────────────────────
@@ -196,14 +193,22 @@ const AdaptiveQuizSession = () => {
   const handleSubmitAnswer = async () => {
     if (!session?.currentQuestion || !quizId || isSubmitting) return;
     if (!selectedAnswer) {
-      toast.warning("Please select an answer before submitting.");
+      toast.warning(t("quiz.toast.selectAnswer"));
       return;
     }
 
     setIsSubmitting(true);
     const responseTimeMs = Date.now() - session.questionStartTime;
     const questionId = session.currentQuestion.question.id;
-    const wasCorrect = true; // Server determines correctness; we pass the answer
+    // Derive correctness from real evidence (server-evaluated value when the
+    // backend provides one, else equality against the question's correct
+    // answer) — never a hardcoded `true` (R2.1, R2.6). This single value drives
+    // the feedback UI, the recorded `previous_answer_correct`, and the
+    // correct-count increment so they always agree (R2.4).
+    const wasCorrect = deriveCorrectness({
+      selectedAnswer,
+      correctAnswer: session.currentQuestion.question.correct_answer,
+    });
 
     const updatedAnswers = { ...session.answers, [questionId]: selectedAnswer };
     const updatedTimes = {
@@ -221,7 +226,17 @@ const AdaptiveQuizSession = () => {
       });
 
       if (isPracticeMode) {
-        // In practice mode, show feedback before advancing
+        // In practice mode, show feedback before advancing. Record the same
+        // derived correctness into the running correct-count so the finalized
+        // score matches the feedback the student saw.
+        setSession((prev) =>
+          prev
+            ? {
+                ...prev,
+                totalCorrect: prev.totalCorrect + (wasCorrect ? 1 : 0),
+              }
+            : prev
+        );
         setPracticeFeedback({
           wasCorrect,
           selectedAnswer,
@@ -234,11 +249,13 @@ const AdaptiveQuizSession = () => {
         return;
       }
 
+      const updatedTotalCorrect = session.totalCorrect + (wasCorrect ? 1 : 0);
+
       if (response.session_complete) {
         const totalQuestions = response.total_questions;
         const score =
           totalQuestions > 0
-            ? Math.round((session.totalCorrect / totalQuestions) * 100)
+            ? Math.round((updatedTotalCorrect / totalQuestions) * 100)
             : 0;
 
         await submitAttempt.mutateAsync({
@@ -261,12 +278,13 @@ const AdaptiveQuizSession = () => {
               responseTimes: updatedTimes,
               currentQuestion: response,
               questionStartTime: Date.now(),
+              totalCorrect: updatedTotalCorrect,
             }
           : prev
       );
       setSelectedAnswer("");
     } catch {
-      toast.error("Failed to load next question. Please try again.");
+      toast.error(t("quiz.toast.nextFailed"));
     } finally {
       setIsSubmitting(false);
     }
@@ -294,7 +312,7 @@ const AdaptiveQuizSession = () => {
           replace: true,
         });
       } catch {
-        toast.error("Failed to submit quiz. Please try again.");
+        toast.error(t("quiz.toast.submitFailed"));
       }
       return;
     }
@@ -328,16 +346,17 @@ const AdaptiveQuizSession = () => {
         <div className="p-3 rounded-full bg-amber-50">
           <ShieldAlert className="h-8 w-8 text-amber-500" />
         </div>
-        <h2 className="text-lg font-bold tracking-tight">Recovery Required</h2>
+        <h2 className="text-lg font-bold tracking-tight">
+          {t("quiz.recovery.title")}
+        </h2>
         <p className="text-sm text-gray-500 max-w-sm">
-          You have an active mastery recovery pathway for a CLO linked to this
-          quiz. Complete the recovery steps before retrying.
+          {t("quiz.recovery.body")}
         </p>
         <Link
           to={`/student/courses/${activeRecovery.course_id}/recovery/${activeRecovery.clo_id}`}
         >
           <Button className="bg-gradient-to-r from-teal-500 to-blue-600 text-white active:scale-95">
-            Go to Recovery Pathway
+            {t("quiz.recovery.cta")}
           </Button>
         </Link>
       </div>
@@ -349,9 +368,7 @@ const AdaptiveQuizSession = () => {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
         <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-        <p className="text-sm font-medium text-gray-500">
-          Preparing your adaptive quiz...
-        </p>
+        <p className="text-sm font-medium text-gray-500">{t("quiz.loading")}</p>
       </div>
     );
   }
@@ -361,7 +378,7 @@ const AdaptiveQuizSession = () => {
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
         <AlertCircle className="h-8 w-8 text-red-500" />
         <p className="text-sm font-medium text-gray-500">
-          Unable to load quiz. Please go back and try again.
+          {t("quiz.unableToLoad")}
         </p>
       </div>
     );
@@ -372,6 +389,17 @@ const AdaptiveQuizSession = () => {
   const progressPercent = (question_number / total_questions) * 100;
   const isLowTime = timeRemaining < 60;
 
+  // Correct-answer reveal for practice feedback (R2.2). The current question is
+  // the one just answered (it only advances on "Next"), so its `correct_answer`
+  // is the answer to reveal. For MCQ we surface the option's text; otherwise the
+  // raw answer value.
+  const correctAnswerKey = question.correct_answer ?? null;
+  const correctAnswerText =
+    question.question_type === "mcq" && question.options
+      ? question.options.find((o) => o.key === correctAnswerKey)?.text ??
+        correctAnswerKey
+      : correctAnswerKey;
+
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       {/* Practice Mode Banner */}
@@ -381,7 +409,10 @@ const AdaptiveQuizSession = () => {
       <Card className="bg-white border-0 shadow-md rounded-xl p-4">
         <div className="flex items-center justify-between mb-3">
           <p className="text-sm font-semibold text-gray-700">
-            Question {question_number} of {total_questions}
+            {t("quiz.questionProgress", {
+              number: question_number,
+              total: total_questions,
+            })}
           </p>
           <div
             className={cn(
@@ -417,6 +448,8 @@ const AdaptiveQuizSession = () => {
         selectedAnswer={practiceFeedback?.selectedAnswer ?? selectedAnswer}
         onAnswerChange={practiceFeedback ? undefined : setSelectedAnswer}
         disabled={!!practiceFeedback}
+        showCorrectAnswer={!!practiceFeedback && correctAnswerKey != null}
+        correctAnswer={correctAnswerKey ?? undefined}
       />
 
       {/* Practice Mode Feedback */}
@@ -428,11 +461,10 @@ const AdaptiveQuizSession = () => {
                 <CheckCircle2 className="h-6 w-6 text-green-500 shrink-0" />
                 <div>
                   <p className="text-sm font-semibold text-green-700">
-                    Correct!
+                    {t("quiz.feedback.correctTitle")}
                   </p>
                   <p className="text-xs text-gray-500 mt-0.5">
-                    Great job — check the post-quiz review for a detailed
-                    explanation.
+                    {t("quiz.feedback.correctBody")}
                   </p>
                 </div>
               </>
@@ -441,11 +473,24 @@ const AdaptiveQuizSession = () => {
                 <XCircle className="h-6 w-6 text-red-500 shrink-0" />
                 <div>
                   <p className="text-sm font-semibold text-red-700">
-                    Incorrect
+                    {t("quiz.feedback.incorrectTitle")}
                   </p>
-                  <p className="text-xs text-gray-500 mt-0.5">
-                    Review the correct answer and explanation after the quiz.
-                  </p>
+                  {correctAnswerText != null && correctAnswerText !== "" ? (
+                    <p
+                      className="text-xs text-gray-500 mt-0.5"
+                      data-testid="practice-correct-answer-reveal"
+                    >
+                      {t("quiz.feedback.correctAnswerRevealPrefix")}{" "}
+                      <span className="font-semibold text-gray-700">
+                        {correctAnswerText}
+                      </span>
+                      .
+                    </p>
+                  ) : (
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      {t("quiz.feedback.reviewLater")}
+                    </p>
+                  )}
                 </div>
               </>
             )}
@@ -461,8 +506,8 @@ const AdaptiveQuizSession = () => {
             className="bg-gradient-to-r from-teal-500 to-blue-600 text-white px-8 py-2 active:scale-95 transition-transform duration-100"
           >
             {practiceFeedback.isSessionComplete
-              ? "Finish Quiz"
-              : "Next Question"}
+              ? t("quiz.finishQuiz")
+              : t("quiz.nextQuestion")}
           </Button>
         ) : (
           <Button
@@ -473,12 +518,12 @@ const AdaptiveQuizSession = () => {
             {isSubmitting ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Loading...
+                {t("quiz.loadingButton")}
               </>
             ) : question_number === total_questions ? (
-              "Finish Quiz"
+              t("quiz.finishQuiz")
             ) : (
-              "Submit Answer"
+              t("quiz.submitAnswer")
             )}
           </Button>
         )}

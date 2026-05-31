@@ -18,6 +18,7 @@ import {
 import StudySessionCard from "@/components/shared/StudySessionCard";
 import PlannerTaskItem from "@/components/shared/PlannerTaskItem";
 import DeadlineItem from "@/components/shared/DeadlineItem";
+import SuggestedSessionItem from "@/components/shared/SuggestedSessionItem";
 import { ReviewSessionBadge } from "@/components/shared/ReviewSessionBadge";
 import { sortTasksByPriority } from "@/lib/plannerUtils";
 import type {
@@ -25,6 +26,7 @@ import type {
   StudySession,
   PlannerTask,
   ReviewSchedule,
+  SuggestedStudySession,
 } from "@/types/planner";
 
 interface WeeklyCalendarGridProps {
@@ -39,6 +41,7 @@ interface WeeklyCalendarGridProps {
   onDayClick?: (date: string) => void;
   onStartReview?: (review: ReviewSchedule) => void;
   onSkipReview?: (reviewId: string) => void;
+  onPlanSuggestion?: (suggestion: SuggestedStudySession) => void;
   readOnly?: boolean;
 }
 
@@ -187,6 +190,7 @@ interface DayColumnProps {
   onDayClick?: (date: string) => void;
   onStartReview?: (review: ReviewSchedule) => void;
   onSkipReview?: (reviewId: string) => void;
+  onPlanSuggestion?: (suggestion: SuggestedStudySession) => void;
   readOnly?: boolean;
 }
 
@@ -201,6 +205,7 @@ const DayColumn = ({
   onDayClick,
   onStartReview,
   onSkipReview,
+  onPlanSuggestion,
   readOnly = false,
 }: DayColumnProps) => {
   const sortedTasks = useMemo(
@@ -284,11 +289,27 @@ const DayColumn = ({
           <DeadlineItem key={deadline.id} deadline={deadline} compact />
         ))}
 
-        {/* Empty state */}
+        {/* Suggested study session (empty days only) */}
         {day.sessions.length === 0 &&
           day.tasks.length === 0 &&
           dayReviews.length === 0 &&
-          day.deadlines.length === 0 && (
+          day.deadlines.length === 0 &&
+          (day.suggestions?.length ?? 0) > 0 &&
+          day.suggestions!.map((suggestion) => (
+            <SuggestedSessionItem
+              key={suggestion.id}
+              suggestion={suggestion}
+              onPlan={readOnly ? undefined : onPlanSuggestion}
+              compact
+            />
+          ))}
+
+        {/* Empty state — only when there is genuinely nothing to surface */}
+        {day.sessions.length === 0 &&
+          day.tasks.length === 0 &&
+          dayReviews.length === 0 &&
+          day.deadlines.length === 0 &&
+          (day.suggestions?.length ?? 0) === 0 && (
             <p className="py-4 text-center text-[11px] text-gray-400">
               No items
             </p>
@@ -311,6 +332,7 @@ interface MobileDayViewProps {
   onTaskDelete?: (task: PlannerTask) => void;
   onStartReview?: (review: ReviewSchedule) => void;
   onSkipReview?: (reviewId: string) => void;
+  onPlanSuggestion?: (suggestion: SuggestedStudySession) => void;
   readOnly?: boolean;
 }
 
@@ -325,6 +347,7 @@ const MobileDayView = ({
   onTaskDelete,
   onStartReview,
   onSkipReview,
+  onPlanSuggestion,
   readOnly = false,
 }: MobileDayViewProps) => {
   const todayIndex = weekData.findIndex((d) => d.date === today);
@@ -447,10 +470,25 @@ const MobileDayView = ({
           <DeadlineItem key={deadline.id} deadline={deadline} />
         ))}
 
+        {/* Suggested study session (empty days only) */}
         {selectedDay.sessions.length === 0 &&
           selectedDay.tasks.length === 0 &&
           mobileReviews.length === 0 &&
-          selectedDay.deadlines.length === 0 && (
+          selectedDay.deadlines.length === 0 &&
+          (selectedDay.suggestions?.length ?? 0) > 0 &&
+          selectedDay.suggestions!.map((suggestion) => (
+            <SuggestedSessionItem
+              key={suggestion.id}
+              suggestion={suggestion}
+              onPlan={readOnly ? undefined : onPlanSuggestion}
+            />
+          ))}
+
+        {selectedDay.sessions.length === 0 &&
+          selectedDay.tasks.length === 0 &&
+          mobileReviews.length === 0 &&
+          selectedDay.deadlines.length === 0 &&
+          (selectedDay.suggestions?.length ?? 0) === 0 && (
             <p className="py-8 text-center text-sm text-gray-400">
               Nothing planned for this day
             </p>
@@ -474,6 +512,7 @@ const WeeklyCalendarGrid = ({
   onDayClick,
   onStartReview,
   onSkipReview,
+  onPlanSuggestion,
   readOnly = false,
 }: WeeklyCalendarGridProps) => {
   const reviewsByDate = useMemo(() => groupReviewsByDate(reviews), [reviews]);
@@ -495,6 +534,7 @@ const WeeklyCalendarGrid = ({
             onDayClick={onDayClick}
             onStartReview={onStartReview}
             onSkipReview={onSkipReview}
+            onPlanSuggestion={onPlanSuggestion}
             readOnly={readOnly}
           />
         ))}
@@ -513,6 +553,7 @@ const WeeklyCalendarGrid = ({
           onTaskDelete={onTaskDelete}
           onStartReview={onStartReview}
           onSkipReview={onSkipReview}
+          onPlanSuggestion={onPlanSuggestion}
           readOnly={readOnly}
         />
       </div>

@@ -20,10 +20,18 @@ const DiscussionModeration = () => {
   const { courseId } = useParams<{ courseId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { data: threads, isLoading } = useDiscussionThreads(courseId);
+  const {
+    data: threadsPages,
+    isLoading,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  } = useDiscussionThreads(courseId);
   const togglePin = useTogglePinThread();
   const deleteThread = useDeleteThread();
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+
+  const threads = threadsPages?.pages.flatMap((p) => p.threads) ?? [];
 
   const handlePin = (threadId: string, currentlyPinned: boolean) => {
     if (!user?.id) return;
@@ -65,7 +73,7 @@ const DiscussionModeration = () => {
             <div key={i} className="h-20 rounded-xl animate-shimmer" />
           ))}
         </div>
-      ) : (threads ?? []).length === 0 ? (
+      ) : threads.length === 0 ? (
         <Card className="bg-white border-0 shadow-md rounded-xl p-8 text-center">
           <MessageSquare className="h-10 w-10 text-gray-300 mx-auto mb-3" />
           <p className="text-sm text-gray-500">
@@ -74,7 +82,7 @@ const DiscussionModeration = () => {
         </Card>
       ) : (
         <div className="space-y-3">
-          {(threads ?? []).map((thread) => (
+          {threads.map((thread) => (
             <Card
               key={thread.id}
               className={cn(
@@ -146,6 +154,17 @@ const DiscussionModeration = () => {
               </div>
             </Card>
           ))}
+          {hasNextPage && (
+            <div className="flex justify-center pt-2">
+              <Button
+                variant="outline"
+                onClick={() => fetchNextPage()}
+                disabled={isFetchingNextPage}
+              >
+                {isFetchingNextPage ? "Loading..." : "Load more"}
+              </Button>
+            </div>
+          )}
         </div>
       )}
 

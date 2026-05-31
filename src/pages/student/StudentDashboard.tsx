@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { useQueryClient, useQuery } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -60,7 +60,10 @@ import { useStudentLeagueTier } from "@/hooks/useLeagueLeaderboard";
 import { useDeferredMount } from "@/hooks/useDeferredMount";
 import BadgeSpotlightCard from "@/components/shared/BadgeSpotlightCard";
 import LeagueTierBadge from "@/components/shared/LeagueTierBadge";
-import { supabase } from "@/lib/supabase";
+import PrimaryCTA, {
+  type PrimaryCtaAction,
+} from "@/components/shared/PrimaryCTA";
+import { useFirstEnrolledCourseId } from "@/hooks/useFirstEnrolledCourse";
 import { queryKeys } from "@/lib/queryKeys";
 import { getDeadlineUrgency } from "@/hooks/useCalendar";
 import {
@@ -70,13 +73,14 @@ import {
   Flame,
   Star,
   CalendarClock,
-  AlertCircle,
-  Bell,
   Coins,
   Megaphone,
   ClipboardCheck,
   Trophy,
   Users,
+  UserCircle,
+  FileCheck,
+  MessageSquare,
   type LucideIcon,
   Target,
 } from "lucide-react";
@@ -233,11 +237,15 @@ const StudentDashboard = () => {
   const completeMicro = useCompleteMicroAssessment();
   const dismissMicro = useDismissMicroAssessment();
   const { data: completenessData } = useProfileCompleteness(studentId);
-  const { data: starterSessions } = useStarterWeekSessions(deferredStudentId ?? "");
+  const { data: starterSessions } = useStarterWeekSessions(
+    deferredStudentId ?? ""
+  );
   const { data: progress } = useOnboardingProgress(studentId);
 
   // Streak Freeze hooks
-  const { data: freezeData } = useStreakFreezeInventory(deferredStudentId ?? "");
+  const { data: freezeData } = useStreakFreezeInventory(
+    deferredStudentId ?? ""
+  );
   const purchaseFreeze = usePurchaseStreakFreeze();
 
   // Comeback Challenge hooks — Requirement 124.5
@@ -250,9 +258,8 @@ const StudentDashboard = () => {
     institutionSettings?.streak_sabbatical_enabled ?? false;
 
   // Habit Difficulty Level — Requirement 127.6
-  const { data: habitDifficultyData } = useHabitDifficultyLevel(
-    deferredStudentId
-  );
+  const { data: habitDifficultyData } =
+    useHabitDifficultyLevel(deferredStudentId);
 
   // Badge Spotlight — Requirement 134.4
   const { data: spotlightData } = useBadgeSpotlight(
@@ -290,28 +297,17 @@ const StudentDashboard = () => {
     useStudentAttendance(deferredStudentId);
 
   // Active challenges for dashboard section
-  const { data: studentChallenges } = useStudentChallenges(
-    deferredStudentId
-  );
+  const { data: studentChallenges } = useStudentChallenges(deferredStudentId);
   const activeChallenges = (studentChallenges ?? []).filter(
     (c) => c.status === "active"
   );
 
   // Team data for dashboard card — Requirement 112.7
-  const firstCourseQuery = useQuery({
-    queryKey: queryKeys.enrollments.list({ studentId, first: true }),
-    queryFn: async (): Promise<string | null> => {
-      const { data, error } = await supabase
-        .from("student_courses")
-        .select("course_id")
-        .eq("student_id", studentId)
-        .eq("status", "active")
-        .limit(1)
-        .maybeSingle();
-      if (error) throw error;
-      return (data as { course_id: string } | null)?.course_id ?? null;
-    },
-    enabled: !!studentId && deferredReady,
+  // First active course is resolved through the shared `useFirstEnrolledCourseId`
+  // hook (also consumed by StudentTeamPage); the fetch is deferred until after
+  // first paint to match the dashboard's non-critical-query strategy.
+  const firstCourseQuery = useFirstEnrolledCourseId(studentId || undefined, {
+    enabled: deferredReady,
   });
   const firstCourseId = firstCourseQuery.data ?? undefined;
   const { data: myTeamId } = useMyTeamId(deferredStudentId, firstCourseId);
@@ -337,32 +333,112 @@ const StudentDashboard = () => {
       ? differenceInDays(new Date(), new Date(profile.created_at)) >= 1
       : false;
 
+  // R16 — Single prioritized dashboard CTA.
+  // The previously-stacked "Complete onboarding" and "Complete assessment"
+  // banners are now candidate actions fed to `primaryCtaSelector` (via
+  // PrimaryCTA), alongside Submit Assignment, Continue Course, and Review
+  // Feedback. Only `applicable` candidates are considered; the selector picks
+  // the single dominant CTA and orders the rest as subordinate secondaries.
+  // When the top candidate stops applying (e.g. profile completed), the next
+  // applicable candidate is promoted automatically. Lower priority = higher
+  // precedence.
+  const nextDeadline = (deadlines ?? [])[0];
+  const enrolledCourses = kpis?.enrolledCourses ?? 0;
+  const completedAssignments = kpis?.completedAssignments ?? 0;
+
+  // "Complete Profile" covers both the deferred-onboarding case (not yet
+  // completed) and the skipped-sections case (completed but sections skipped);
+  // the two are mutually exclusive, so a single candidate carries the right
+  // destination and copy for whichever applies.
+  const profileDeferred = showDeferredBanner;
+  const profileHasSkipped =
+    onboardingCompleted &&
+    hasSkippedSections &&
+    !studentProfile?.personality_traits &&
+    !studentProfile?.learning_style;
+  const profileApplicable = profileDeferred || profileHasSkipped;
+
+  const ctaActions = useMemo<PrimaryCtaAction[]>(
+    () => [
+      {
+        id: "complete-profile",
+        priority: 0,
+        applicable: profileApplicable,
+        icon: UserCircle,
+        href: profileDeferred
+          ? "/student/onboarding"
+          : "/student/onboarding/complete-profile",
+        label: profileDeferred
+          ? t("dashboard.primaryCta.completeProfile.label")
+          : t("dashboard.primaryCta.finishProfile.label"),
+        description: profileDeferred
+          ? t("dashboard.primaryCta.completeProfile.description")
+          : t("dashboard.primaryCta.finishProfile.description"),
+        ctaLabel: profileDeferred
+          ? t("dashboard.primaryCta.completeProfile.cta")
+          : t("dashboard.primaryCta.finishProfile.cta"),
+      },
+      {
+        id: "submit-assignment",
+        priority: 1,
+        applicable: Boolean(nextDeadline),
+        icon: FileCheck,
+        href: nextDeadline
+          ? `/student/assignments/${nextDeadline.id}`
+          : "/student/assignments",
+        label: t("dashboard.primaryCta.submitAssignment.label"),
+        description: nextDeadline
+          ? t("dashboard.primaryCta.submitAssignment.description", {
+              title: nextDeadline.title,
+            })
+          : undefined,
+        ctaLabel: t("dashboard.primaryCta.submitAssignment.cta"),
+      },
+      {
+        id: "continue-course",
+        priority: 2,
+        applicable: enrolledCourses > 0,
+        icon: BookOpen,
+        href: "/student/courses",
+        label: t("dashboard.primaryCta.continueCourse.label"),
+        description: t("dashboard.primaryCta.continueCourse.description"),
+        ctaLabel: t("dashboard.primaryCta.continueCourse.cta"),
+      },
+      {
+        id: "review-feedback",
+        priority: 3,
+        applicable: completedAssignments > 0,
+        icon: MessageSquare,
+        href: "/student/progress",
+        label: t("dashboard.primaryCta.reviewFeedback.label"),
+        description: t("dashboard.primaryCta.reviewFeedback.description"),
+        ctaLabel: t("dashboard.primaryCta.reviewFeedback.cta"),
+      },
+    ],
+    [
+      t,
+      profileApplicable,
+      profileDeferred,
+      nextDeadline,
+      enrolledCourses,
+      completedAssignments,
+    ]
+  );
+
   return (
     <div className="space-y-6">
       {/* Live updates status */}
       <RealtimeStatusBanner isLive={isLive} retryCount={retryCount} />
 
-      {/* 7.7 — Onboarding deferred reminder banner */}
-      {showDeferredBanner && (
-        <Card className="border-0 shadow-md rounded-xl p-4 bg-amber-50 flex items-center gap-3">
-          <Bell className="h-5 w-5 text-amber-600 shrink-0" />
-          <div className="flex-1">
-            <p className="text-sm font-semibold text-amber-800">
-              {t("dashboard.completeOnboarding")}
-            </p>
-            <p className="text-xs text-amber-600">
-              {t("dashboard.completeOnboardingDesc")}
-            </p>
-          </div>
-          <Button
-            size="sm"
-            onClick={() => navigate("/student/onboarding")}
-            className="bg-gradient-to-r from-teal-500 to-blue-600 text-white text-xs font-semibold active:scale-95 transition-transform duration-100"
-          >
-            {t("dashboard.startNow")}
-          </Button>
-        </Card>
-      )}
+      {/* R16 — Single prioritized dashboard call-to-action.
+          Replaces the previously-stacked onboarding/assessment banners with one
+          dominant CTA chosen by `primaryCtaSelector`; remaining applicable
+          candidates render as visually subordinate secondary actions. */}
+      <PrimaryCTA
+        actions={ctaActions}
+        regionLabel={t("dashboard.primaryCta.region")}
+        heading={t("dashboard.primaryCta.heading")}
+      />
 
       {/* 7.3 — Micro-assessment prompt (first 14 days) */}
       {onboardingCompleted && todayMicro && (
@@ -438,32 +514,6 @@ const StudentDashboard = () => {
       {onboardingCompleted && profileCompleteness >= 100 && (
         <ProfileCompletenessBar completeness={100} />
       )}
-
-      {/* 7.6 — Complete Assessment prompt for skipped sections */}
-      {onboardingCompleted &&
-        hasSkippedSections &&
-        !studentProfile?.personality_traits &&
-        !studentProfile?.learning_style && (
-          <Card className="border-0 shadow-md rounded-xl p-4 bg-blue-50 flex items-center gap-3">
-            <AlertCircle className="h-5 w-5 text-blue-600 shrink-0" />
-            <div className="flex-1">
-              <p className="text-sm font-semibold text-blue-800">
-                {t("dashboard.completeAssessment")}
-              </p>
-              <p className="text-xs text-blue-600">
-                {t("dashboard.completeAssessmentDesc")}
-              </p>
-            </div>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => navigate("/student/onboarding/complete-profile")}
-              className="text-xs border-blue-300 text-blue-700"
-            >
-              {t("dashboard.completeNow")}
-            </Button>
-          </Card>
-        )}
 
       {/* KPI Row */}
       {kpisLoading ? (

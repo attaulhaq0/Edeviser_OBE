@@ -15,7 +15,8 @@ import {
   FormControl,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/shared/PasswordInput";
+import { PasswordVisibilityGroup } from "@/components/shared/PasswordVisibilityGroup";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -105,58 +106,62 @@ const UpdatePasswordPage = () => {
                 onSubmit={form.handleSubmit(onSubmit)}
                 className="space-y-6"
               >
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        {t("updatePassword.newPasswordLabel")}
-                      </FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Lock className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                          <Input
-                            type="password"
-                            placeholder={t(
-                              "updatePassword.passwordPlaceholder",
-                              "Minimum 8 characters"
-                            )}
-                            className="ps-9"
-                            {...field}
-                          />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="confirmPassword"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        {t("updatePassword.confirmPasswordLabel")}
-                      </FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Lock className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                          <Input
-                            type="password"
-                            placeholder={t(
-                              "updatePassword.confirmPlaceholder",
-                              "Re-enter your password"
-                            )}
-                            className="ps-9"
-                            {...field}
-                          />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <PasswordVisibilityGroup>
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          {t("updatePassword.newPasswordLabel")}
+                        </FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Lock className="absolute start-3 top-1/2 z-10 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <PasswordInput
+                              groupId="update-password"
+                              autoComplete="new-password"
+                              placeholder={t(
+                                "updatePassword.passwordPlaceholder",
+                                "Minimum 8 characters"
+                              )}
+                              className="ps-9"
+                              {...field}
+                            />
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="confirmPassword"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          {t("updatePassword.confirmPasswordLabel")}
+                        </FormLabel>
+                        <FormControl>
+                          <div className="relative">
+                            <Lock className="absolute start-3 top-1/2 z-10 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <PasswordInput
+                              groupId="update-confirmPassword"
+                              autoComplete="new-password"
+                              placeholder={t(
+                                "updatePassword.confirmPlaceholder",
+                                "Re-enter your password"
+                              )}
+                              className="ps-9"
+                              {...field}
+                            />
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </PasswordVisibilityGroup>
                 <Button
                   type="submit"
                   disabled={isPending}

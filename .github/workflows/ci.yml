@@ -202,7 +202,12 @@ jobs:
 
       - name: Check bundle size with per-chunk breakdown
         run: |
-          MAX_SIZE_KB=1200
+          # Total gzipped JS budget across ALL chunks (including lazy-loaded
+          # route chunks, not just initial load). Initial dashboard load is
+          # enforced separately by Lighthouse CI. Raised to 1300KB after the
+          # student-experience remediation added many new code-split routes
+          # (planner, journal, leaderboard, habits, tutor, marketplace, teams).
+          MAX_SIZE_KB=1300
           echo "## Bundle Size Report" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Chunk | Raw (KB) | Gzipped (KB) |" >> $GITHUB_STEP_SUMMARY

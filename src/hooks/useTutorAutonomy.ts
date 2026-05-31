@@ -8,6 +8,18 @@ import { queryKeys } from "@/lib/queryKeys";
 import { toast } from "sonner";
 import type { AutonomyLevel } from "@/lib/tutorSchemas";
 
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+/**
+ * Narrows a nullable string column (`tutor_autonomy_level`, stored as plain
+ * text in the schema) to the strict `AutonomyLevel` union, returning `null`
+ * for absent or unrecognized values.
+ */
+const toAutonomyLevel = (
+  value: string | null | undefined
+): AutonomyLevel | null =>
+  value === "L1" || value === "L2" || value === "L3" ? value : null;
+
 // ─── useAssignmentAutonomy — read tutor_autonomy_level from assignments ──────
 
 export const useAssignmentAutonomy = (assignmentId: string | undefined) => {
@@ -16,17 +28,14 @@ export const useAssignmentAutonomy = (assignmentId: string | undefined) => {
     queryFn: async (): Promise<AutonomyLevel | null> => {
       if (!assignmentId) return null;
 
-      // NOTE: tutor_autonomy_level column exists in DB but database.ts types have not been
-      // regenerated yet. Using type assertion until `scripts/regen-types.ps1` is run.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("assignments")
         .select("tutor_autonomy_level")
         .eq("id", assignmentId)
         .maybeSingle();
 
       if (error) throw error;
-      return (data?.tutor_autonomy_level as AutonomyLevel) ?? null;
+      return toAutonomyLevel(data?.tutor_autonomy_level);
     },
     enabled: !!assignmentId,
     staleTime: 60_000,
@@ -46,8 +55,7 @@ export const useUpdateAssignmentAutonomy = () => {
       assignmentId: string;
       autonomyLevel: AutonomyLevel;
     }) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("assignments")
         .update({ tutor_autonomy_level: autonomyLevel })
         .eq("id", assignmentId)
@@ -84,17 +92,14 @@ export const useCLOAutonomy = (cloId: string | undefined) => {
     queryFn: async (): Promise<AutonomyLevel | null> => {
       if (!cloId) return null;
 
-      // NOTE: tutor_autonomy_level column exists in DB but database.ts types have not been
-      // regenerated yet. Using type assertion until `scripts/regen-types.ps1` is run.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("learning_outcomes")
         .select("tutor_autonomy_level")
         .eq("id", cloId)
         .maybeSingle();
 
       if (error) throw error;
-      return (data?.tutor_autonomy_level as AutonomyLevel) ?? null;
+      return toAutonomyLevel(data?.tutor_autonomy_level);
     },
     enabled: !!cloId,
     staleTime: 60_000,
@@ -114,8 +119,7 @@ export const useUpdateCLOAutonomy = () => {
       cloId: string;
       autonomyLevel: AutonomyLevel;
     }) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("learning_outcomes")
         .update({ tutor_autonomy_level: autonomyLevel })
         .eq("id", cloId)

@@ -10,6 +10,57 @@ import { toast } from "sonner";
 import type { TutorConversation, TutorPersona } from "@/lib/tutorSchemas";
 import { planUpdateResponseSchema } from "@/lib/tutorSchemas";
 import { autoSelectPersona } from "@/lib/tutorPersonaAutoSelect";
+import type { Database } from "@/types/database";
+
+type TutorConversationRow =
+  Database["public"]["Tables"]["tutor_conversations"]["Row"];
+
+// ─── Row mapper ──────────────────────────────────────────────────────────────
+
+const isTutorPersona = (value: string): value is TutorPersona =>
+  value === "socratic_guide" ||
+  value === "step_by_step_coach" ||
+  value === "quick_explainer";
+
+/**
+ * Narrows a loosely-typed `tutor_conversations` row (string `persona`,
+ * string `autonomy_override`) into the strict `TutorConversation` domain type.
+ */
+const mapTutorConversationRow = (
+  row: Pick<
+    TutorConversationRow,
+    | "id"
+    | "student_id"
+    | "institution_id"
+    | "course_id"
+    | "persona"
+    | "title"
+    | "clo_scope"
+    | "message_count"
+    | "xp_awarded"
+    | "is_active"
+    | "autonomy_override"
+    | "created_at"
+    | "updated_at"
+  >
+): TutorConversation => ({
+  id: row.id,
+  student_id: row.student_id,
+  institution_id: row.institution_id,
+  course_id: row.course_id,
+  persona: isTutorPersona(row.persona) ? row.persona : "socratic_guide",
+  title: row.title,
+  clo_scope: row.clo_scope ?? [],
+  message_count: row.message_count,
+  xp_awarded: row.xp_awarded,
+  is_active: row.is_active,
+  autonomy_override:
+    row.autonomy_override === "L1" || row.autonomy_override === "L3"
+      ? row.autonomy_override
+      : null,
+  created_at: row.created_at,
+  updated_at: row.updated_at,
+});
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -44,24 +95,22 @@ export const useTutorConversations = (courseId?: string) => {
     queryFn: async (): Promise<TutorConversation[]> => {
       if (!user) return [];
 
-      // NOTE: tutor_conversations table exists in DB but database.ts types have not been
-      // regenerated yet. Using type assertion until `scripts/regen-types.ps1` is run.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      let query = (supabase as any)
+      let query = supabase
         .from("tutor_conversations")
         .select(
           "id, student_id, institution_id, course_id, persona, title, clo_scope, message_count, xp_awarded, is_active, autonomy_override, created_at, updated_at"
         )
-        .eq("student_id", user.id)
-        .order("updated_at", { ascending: false });
+        .eq("student_id", user.id);
 
       if (courseId) {
         query = query.eq("course_id", courseId);
       }
 
-      const { data, error } = await query;
+      const { data, error } = await query.order("updated_at", {
+        ascending: false,
+      });
       if (error) throw error;
-      return (data ?? []) as TutorConversation[];
+      return (data ?? []).map(mapTutorConversationRow);
     },
     enabled: !!user,
     staleTime: 30_000,
@@ -93,10 +142,7 @@ export const useCreateConversation = () => {
         }
       }
 
-      // NOTE: tutor_conversations table exists in DB but database.ts types have not been
-      // regenerated yet. Using type assertion until `scripts/regen-types.ps1` is run.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("tutor_conversations")
         .insert({
           student_id: user.id,
@@ -111,7 +157,7 @@ export const useCreateConversation = () => {
 
       if (error) throw error;
       return {
-        ...(data as TutorConversation),
+        ...mapTutorConversationRow(data),
         recommendedPersona,
       };
     },
@@ -138,8 +184,7 @@ export const useDeleteConversation = () => {
 
   return useMutation({
     mutationFn: async (conversationId: string): Promise<void> => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from("tutor_conversations")
         .delete()
         .eq("id", conversationId);
@@ -173,8 +218,7 @@ export const useRespondToPlanUpdate = () => {
       // Validate input with Zod schema
       const parsed = planUpdateResponseSchema.parse(input);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from("tutor_plan_updates")
         .update({
           response: parsed.response,

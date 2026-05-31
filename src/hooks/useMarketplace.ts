@@ -1,11 +1,18 @@
 // =============================================================================
 // useMarketplace — TanStack Query hook for browsing marketplace items
 // =============================================================================
+//
+// Task 7.10: bounded, paginated item fetch with load-more capability.
+// Requirements: 34.1, 34.3
 
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
-import type { MarketplaceItemCategory } from "@/lib/marketplaceSchemas";
+import { hasMore, toRange } from "@/lib/pagination";
+import {
+  marketplaceItemCategorySchema,
+  type MarketplaceItemCategory,
+} from "@/lib/marketplaceSchemas";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -31,39 +38,80 @@ export interface MarketplaceItem {
   effective_price: number;
 }
 
+/** One bounded page of marketplace items plus paging metadata. */
+export interface MarketplaceItemsPage {
+  items: MarketplaceItem[];
+  /** 1-based page number this result represents. */
+  page: number;
+  /** Exact total count of matching items across all pages. */
+  total: number;
+  /** Whether at least one more item exists beyond this page. */
+  hasMore: boolean;
+}
+
+/** Default items per page; bounds the marketplace fetch (R34.1). */
+export const MARKETPLACE_PAGE_SIZE = 24;
+
 // ─── useMarketplaceItems — browse items with optional category filter ────────
 
-export const useMarketplaceItems = (category?: string) => {
-  return useQuery({
+export const useMarketplaceItems = (
+  category?: string,
+  pageSize: number = MARKETPLACE_PAGE_SIZE
+) => {
+  return useInfiniteQuery({
     queryKey: queryKeys.marketplace.items(category),
-    queryFn: async (): Promise<MarketplaceItem[]> => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      let query = (supabase as any)
+    initialPageParam: 1,
+    queryFn: async ({ pageParam }): Promise<MarketplaceItemsPage> => {
+      const page = pageParam;
+      const { from, to } = toRange(page, pageSize);
+
+      // Validate the optional category filter against the generated enum so the
+      // typed query builder accepts it; an unrecognized value is ignored.
+      const categoryFilter = marketplaceItemCategorySchema.safeParse(category);
+
+      let query = supabase
         .from("marketplace_items")
         .select(
-          "id, institution_id, name, description, category, sub_category, xp_price, level_requirement, stock_type, stock_quantity, icon_identifier, metadata, is_active, created_at, updated_at"
+          "id, institution_id, name, description, category, sub_category, xp_price, level_requirement, stock_type, stock_quantity, icon_identifier, metadata, is_active, created_at, updated_at",
+          { count: "exact" }
         )
-        .eq("is_active", true)
-        .order("category", { ascending: true })
-        .order("xp_price", { ascending: true });
+        .eq("is_active", true);
 
-      if (category) {
-        query = query.eq("category", category);
+      if (categoryFilter.success) {
+        query = query.eq("category", categoryFilter.data);
       }
 
-      const { data: items, error } = await query;
+      const {
+        data: items,
+        error,
+        count,
+      } = await query
+        .order("category", { ascending: true })
+        .order("xp_price", { ascending: true })
+        .order("id", { ascending: true })
+        .range(from, to);
       if (error) throw error;
 
-      if (!items || items.length === 0) return [];
+      const total = count ?? 0;
 
-      // Fetch active sale events to compute discounts
+      if (!items || items.length === 0) {
+        return {
+          items: [],
+          page,
+          total,
+          hasMore: hasMore(page, pageSize, total),
+        };
+      }
+
+      // Fetch active sale events for the items on this page to compute discounts.
+      const pageItemIds = items.map((item) => item.id);
       const now = new Date().toISOString();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data: saleData, error: saleError } = await (supabase as any)
+      const { data: saleData, error: saleError } = await supabase
         .from("sale_event_items")
         .select(
           "item_id, sale_event_id, sale_events:sale_event_id(discount_percentage, start_date, end_date)"
         )
+        .in("item_id", pageItemIds)
         .filter("sale_events.start_date", "lte", now)
         .filter("sale_events.end_date", "gt", now);
 
@@ -71,7 +119,10 @@ export const useMarketplaceItems = (category?: string) => {
       const discountMap = new Map<string, number>();
       if (!saleError && saleData) {
         for (const row of saleData) {
-          const saleEvent = row.sale_events;
+          // The embedded `sale_events` relation is an object (to-one) or null.
+          const saleEvent = Array.isArray(row.sale_events)
+            ? row.sale_events[0]
+            : row.sale_events;
           if (!saleEvent) continue;
           const discount = saleEvent.discount_percentage ?? 0;
           const current = discountMap.get(row.item_id) ?? 0;
@@ -81,38 +132,44 @@ export const useMarketplaceItems = (category?: string) => {
         }
       }
 
-      return (items as Array<Record<string, unknown>>).map((item) => {
-        const discount = discountMap.get(item.id as string) ?? 0;
-        const basePrice = item.xp_price as number;
+      const mapped: MarketplaceItem[] = items.map((item) => {
+        const discount = discountMap.get(item.id) ?? 0;
+        const basePrice = item.xp_price;
         const effectivePrice =
           discount > 0
             ? Math.max(1, basePrice - Math.floor((basePrice * discount) / 100))
             : basePrice;
 
         return {
-          id: item.id as string,
-          institution_id: item.institution_id as string,
-          name: item.name as string,
-          description: item.description as string,
-          category: item.category as MarketplaceItemCategory,
-          sub_category: item.sub_category as string,
+          id: item.id,
+          institution_id: item.institution_id,
+          name: item.name,
+          description: item.description,
+          category: item.category,
+          sub_category: item.sub_category,
           xp_price: basePrice,
-          level_requirement: item.level_requirement as number,
-          stock_type: item.stock_type as
-            | "unlimited"
-            | "limited"
-            | "one_per_student",
-          stock_quantity: item.stock_quantity as number | null,
-          icon_identifier: item.icon_identifier as string,
+          level_requirement: item.level_requirement,
+          stock_type: item.stock_type,
+          stock_quantity: item.stock_quantity,
+          icon_identifier: item.icon_identifier,
           metadata: (item.metadata ?? {}) as Record<string, unknown>,
-          is_active: item.is_active as boolean,
-          created_at: item.created_at as string,
-          updated_at: item.updated_at as string,
+          is_active: item.is_active,
+          created_at: item.created_at,
+          updated_at: item.updated_at,
           sale_discount: discount,
           effective_price: effectivePrice,
         };
       });
+
+      return {
+        items: mapped,
+        page,
+        total,
+        hasMore: hasMore(page, pageSize, total),
+      };
     },
+    getNextPageParam: (lastPage) =>
+      lastPage.hasMore ? lastPage.page + 1 : undefined,
     staleTime: 30_000,
   });
 };

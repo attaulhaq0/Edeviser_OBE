@@ -8,7 +8,7 @@ import { parseAsString, useQueryState } from "nuqs";
 import { BookOpen, PenLine, Share2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useJournalEntries, type JournalEntry } from "@/hooks/useJournal";
-import { useStudentCourseProgram } from "@/pages/student/leaderboard/useStudentCourseProgram";
+import { useStudentCourseProgram } from "@/hooks/useStudentCourseProgram";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

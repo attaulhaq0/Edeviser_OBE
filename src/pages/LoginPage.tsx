@@ -8,6 +8,8 @@ import { signUpSchema, type SignUpFormData } from "@/lib/schemas/signUp";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/shared/PasswordInput";
+import { PasswordVisibilityGroup } from "@/components/shared/PasswordVisibilityGroup";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -292,9 +294,8 @@ const LoginPage = () => {
                         {t("login.forgotPassword")}
                       </Link>
                     </div>
-                    <Input
+                    <PasswordInput
                       id="login-password"
-                      type="password"
                       autoComplete="current-password"
                       placeholder={t("login.passwordPlaceholder")}
                       className="rounded-xl border-gray-200 bg-gray-50/50 focus:bg-white focus:border-[#14b8a6] focus:ring-[#14b8a6]/20 transition-all h-11 ps-4"
@@ -476,54 +477,59 @@ const LoginPage = () => {
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1">
-                      <Label
-                        htmlFor="signup-password"
-                        className="flex items-center gap-2 ms-1"
-                      >
-                        <Lock className="w-3.5 h-3.5 text-[#14b8a6]" />
-                        {t("signup.password")}
-                      </Label>
-                      <Input
-                        id="signup-password"
-                        type="password"
-                        autoComplete="new-password"
-                        placeholder={t("signup.passwordPlaceholder")}
-                        className="rounded-xl border-gray-200 bg-gray-50/50 focus:bg-white focus:border-[#14b8a6] focus:ring-[#14b8a6]/20 transition-all h-10 ps-4"
-                        aria-invalid={!!signUpForm.formState.errors.password}
-                        {...signUpForm.register("password")}
-                      />
-                      {signUpForm.formState.errors.password && (
-                        <p className="text-xs text-red-600 ms-1">
-                          {signUpForm.formState.errors.password.message}
-                        </p>
-                      )}
-                    </div>
-                    <div className="space-y-1">
-                      <Label
-                        htmlFor="signup-confirmPassword"
-                        className="flex items-center gap-2 ms-1"
-                      >
-                        <CheckCircle2 className="w-3.5 h-3.5 text-[#14b8a6]" />
-                        {t("signup.confirmPassword")}
-                      </Label>
-                      <Input
-                        id="signup-confirmPassword"
-                        type="password"
-                        autoComplete="new-password"
-                        placeholder={t("signup.confirmPasswordPlaceholder")}
-                        className="rounded-xl border-gray-200 bg-gray-50/50 focus:bg-white focus:border-[#14b8a6] focus:ring-[#14b8a6]/20 transition-all h-10 ps-4"
-                        aria-invalid={
-                          !!signUpForm.formState.errors.confirmPassword
-                        }
-                        {...signUpForm.register("confirmPassword")}
-                      />
-                      {signUpForm.formState.errors.confirmPassword && (
-                        <p className="text-xs text-red-600 ms-1">
-                          {signUpForm.formState.errors.confirmPassword.message}
-                        </p>
-                      )}
-                    </div>
+                    <PasswordVisibilityGroup>
+                      <div className="space-y-1">
+                        <Label
+                          htmlFor="signup-password"
+                          className="flex items-center gap-2 ms-1"
+                        >
+                          <Lock className="w-3.5 h-3.5 text-[#14b8a6]" />
+                          {t("signup.password")}
+                        </Label>
+                        <PasswordInput
+                          id="signup-password"
+                          groupId="signup-password"
+                          autoComplete="new-password"
+                          placeholder={t("signup.passwordPlaceholder")}
+                          className="rounded-xl border-gray-200 bg-gray-50/50 focus:bg-white focus:border-[#14b8a6] focus:ring-[#14b8a6]/20 transition-all h-10 ps-4"
+                          aria-invalid={!!signUpForm.formState.errors.password}
+                          {...signUpForm.register("password")}
+                        />
+                        {signUpForm.formState.errors.password && (
+                          <p className="text-xs text-red-600 ms-1">
+                            {signUpForm.formState.errors.password.message}
+                          </p>
+                        )}
+                      </div>
+                      <div className="space-y-1">
+                        <Label
+                          htmlFor="signup-confirmPassword"
+                          className="flex items-center gap-2 ms-1"
+                        >
+                          <CheckCircle2 className="w-3.5 h-3.5 text-[#14b8a6]" />
+                          {t("signup.confirmPassword")}
+                        </Label>
+                        <PasswordInput
+                          id="signup-confirmPassword"
+                          groupId="signup-confirmPassword"
+                          autoComplete="new-password"
+                          placeholder={t("signup.confirmPasswordPlaceholder")}
+                          className="rounded-xl border-gray-200 bg-gray-50/50 focus:bg-white focus:border-[#14b8a6] focus:ring-[#14b8a6]/20 transition-all h-10 ps-4"
+                          aria-invalid={
+                            !!signUpForm.formState.errors.confirmPassword
+                          }
+                          {...signUpForm.register("confirmPassword")}
+                        />
+                        {signUpForm.formState.errors.confirmPassword && (
+                          <p className="text-xs text-red-600 ms-1">
+                            {
+                              signUpForm.formState.errors.confirmPassword
+                                .message
+                            }
+                          </p>
+                        )}
+                      </div>
+                    </PasswordVisibilityGroup>
                   </div>
 
                   <div className="space-y-1">

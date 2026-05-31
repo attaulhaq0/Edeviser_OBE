@@ -1,8 +1,111 @@
 import type {
   HeatmapDay,
+  HabitType,
   WellnessHabitType,
   DayOfWeekData,
 } from "@/types/habits";
+import { XP_SCHEDULE } from "@/lib/xpSchedule";
+import type { XPSource } from "@/types/app";
+
+/**
+ * XP transaction sources that represent daily-habit completions. Used to scope
+ * the per-day XP shown on the heatmap to habit-earned XP only (R7.4), excluding
+ * unrelated sources such as quiz/grade/badge XP.
+ */
+export const HABIT_XP_SOURCES: readonly XPSource[] = [
+  "login",
+  "submission",
+  "journal",
+  "perfect_day",
+  "wellness_habit",
+] as const;
+
+const HABIT_XP_SOURCE_SET = new Set<string>(HABIT_XP_SOURCES);
+
+/** XP awarded for completing all four academic habits in a single day. */
+export const PERFECT_DAY_XP = XP_SCHEDULE.perfect_day;
+
+/** Number of academic habits tracked per day (Login, Submit, Journal, Read). */
+export const ACADEMIC_HABITS_PER_DAY = 4;
+
+export interface HabitXpRecord {
+  source: string;
+  amount: number;
+  /** ISO date string (YYYY-MM-DD) the XP was recorded on. */
+  date: string;
+}
+
+/**
+ * Aggregates habit-related XP transactions into a per-date total. Only sources
+ * in {@link HABIT_XP_SOURCES} contribute, so the value shown for a day equals
+ * the XP recorded for that day's habit completions (R7.1, R7.4).
+ */
+export const aggregateHabitXpByDate = (
+  records: HabitXpRecord[]
+): Record<string, number> => {
+  const byDate: Record<string, number> = {};
+  for (const record of records) {
+    if (!HABIT_XP_SOURCE_SET.has(record.source)) continue;
+    if (!record.date) continue;
+    byDate[record.date] = (byDate[record.date] ?? 0) + record.amount;
+  }
+  return byDate;
+};
+
+export interface HabitSummary {
+  /** Habit type completed most often across the period, or null when none. */
+  bestHabit: HabitType | null;
+  /** Completion count for the best habit. */
+  bestHabitCount: number;
+  /** Overall academic-habit completion rate as a percentage (0–100). */
+  completionRate: number;
+}
+
+// Fixed evaluation order gives a deterministic best-habit tie-break.
+const HABIT_PRIORITY: HabitType[] = [
+  "login",
+  "submit",
+  "journal",
+  "read",
+  "meditation",
+  "hydration",
+  "exercise",
+  "sleep",
+];
+
+/**
+ * Computes the best-performing habit and overall completion rate across the
+ * provided days (R7.2). Completion rate is based on the four academic habits.
+ */
+export const computeHabitSummary = (days: HeatmapDay[]): HabitSummary => {
+  const counts = new Map<HabitType, number>();
+  let academicCompletions = 0;
+
+  for (const day of days) {
+    academicCompletions += day.academicCount;
+    for (const habit of day.habits) {
+      counts.set(habit.type, (counts.get(habit.type) ?? 0) + 1);
+    }
+  }
+
+  let bestHabit: HabitType | null = null;
+  let bestHabitCount = 0;
+  for (const habit of HABIT_PRIORITY) {
+    const count = counts.get(habit) ?? 0;
+    if (count > bestHabitCount) {
+      bestHabit = habit;
+      bestHabitCount = count;
+    }
+  }
+
+  const completionRate = computeCompletionRate(
+    academicCompletions,
+    ACADEMIC_HABITS_PER_DAY,
+    days.length
+  );
+
+  return { bestHabit, bestHabitCount, completionRate };
+};
 
 export const getIntensityLevel = (count: number): number => {
   if (count === 0) return 0;

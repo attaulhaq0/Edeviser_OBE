@@ -67,6 +67,54 @@ const savedLang =
     ? localStorage.getItem("edeviser-language")
     : null;
 
+/**
+ * Visible marker prepended to the resolved text when a key cannot be resolved
+ * for the active language (R29.3a). The Arabic-speaking student must see that a
+ * translation is missing rather than silently getting the raw key or English.
+ */
+export const MISSING_TRANSLATION_MARKER = "⚠ ";
+
+/**
+ * Reports a missing key / failed translation resolution. While the active
+ * language is Arabic, a missing key or translation-service failure on an
+ * internationalized page must be surfaced rather than silently rendering the
+ * raw key or the English fallback (R29.3a). We:
+ *   1. log it (always), and
+ *   2. drop a Sentry breadcrumb when monitoring is initialized,
+ * so the failure is observable in production without crashing the surface.
+ */
+const reportMissingTranslation = (
+  lngs: readonly string[],
+  ns: string,
+  key: string
+): void => {
+  const active = (lngs[0] ?? "").split("-")[0];
+  // Only Arabic users are guaranteed surfacing per R29.3a; for the English
+  // base language a missing key is a development-time issue caught by the
+  // en/ar key-parity audit instead.
+  if (active !== "ar") return;
+
+  const detail = `[i18n] missing translation: ns="${ns}" key="${key}" lng="${active}"`;
+  if (typeof console !== "undefined") {
+    console.error(detail);
+  }
+
+  // Best-effort Sentry breadcrumb; never let monitoring failures bubble up.
+  void import("@sentry/react")
+    .then((Sentry) => {
+      if (Sentry.isInitialized()) {
+        Sentry.addBreadcrumb({
+          category: "i18n",
+          level: "warning",
+          message: detail,
+        });
+      }
+    })
+    .catch(() => {
+      /* monitoring unavailable — the console error above is the fallback */
+    });
+};
+
 i18n.use(initReactI18next).init({
   resources,
   lng: savedLang || "en",
@@ -78,6 +126,21 @@ i18n.use(initReactI18next).init({
   },
   pluralSeparator: "_",
   supportedLngs: ["en", "ar"],
+  saveMissing: true,
+  // Surface (don't silently swallow) missing keys / translation-service
+  // failures while Arabic is active (R29.3a). The handler reports the gap and
+  // returns a visibly-marked string so the user is never shown a bare key or a
+  // silent English fallback masquerading as a real Arabic translation.
+  parseMissingKeyHandler: (key, defaultValue) => {
+    const active = (i18n.language ?? "").split("-")[0];
+    if (active === "ar") {
+      return `${MISSING_TRANSLATION_MARKER}${defaultValue ?? key}`;
+    }
+    return defaultValue ?? key;
+  },
+  missingKeyHandler: (lngs, ns, key) => {
+    reportMissingTranslation(lngs, ns, key);
+  },
 });
 
 // Apply direction on init and on every language change

@@ -37,7 +37,7 @@ export const useParticipantProgress = (
     queryKey: queryKeys.challengeProgress.list({ challengeId, participantId }),
     queryFn: async (): Promise<ChallengeProgressRecord | null> => {
       const { data, error } = await supabase
-        .from("challenge_progress" as never)
+        .from("challenge_progress")
         .select("*")
         .eq("challenge_id", challengeId!)
         .eq("participant_id", participantId!)

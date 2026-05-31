@@ -4,6 +4,9 @@ node_modules/
 # Build output
 dist/
 
+# Vercel local project linking (contains project/org IDs — not for the repo)
+.vercel/
+
 # Environment variables
 .env
 .env.local
@@ -57,3 +60,14 @@ audit/waivers.json
 
 # Local prototype folder — reference UI scaffolded by hand, not part of the app
 loginsignup/
+
+# Demo capture media (rendered videos, audio, frames, screenshots, slides) —
+# generated locally via the demo:* scripts, kept local only, never committed
+docs/demo-capture/
+
+# Generated business/demo documents — kept local only, not committed to the repo
+docs/business/EDEVISER-BUSINESS-PLAN.html
+docs/business/EDEVISER-DEMO-STORYBOARD.html
+docs/pdf/business/EDEVISER-BUSINESS-PLAN.pdf
+docs/pdf/business/EDEVISER-DEMO-STORYBOARD.pdf
+docs/pdf/Student Profile - Google Docs.pdf

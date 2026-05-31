@@ -1,10 +1,28 @@
 // =============================================================================
 // useLeaderboard — TanStack Query hooks for leaderboard data
 // =============================================================================
+//
+// Task 7.2: the institution leaderboard is fetched through the paginated,
+// opt-out-aware `get_leaderboard_page` RPC instead of the old whole-institution
+// `get_leaderboard` fetch + client-side top-50 slice. The RPC:
+//   - is institution-scoped (raises on `auth_institution_id()` mismatch),
+//   - excludes opted-out students set-based (no `getOptOutStudentIds` scan),
+//   - returns one ranked page plus the total eligible cohort count.
+// The eligible count drives the min-cohort gate (`leaderboardState`) using the
+// institution's configurable `leaderboard_min_cohort_size`, and pagination is
+// computed with the shared `pagination.ts` helpers so paging is never capped at
+// a fixed 50. Requirements: 6.1, 6.3, 6.5, 32.1, 32.2, 32.3.
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  useQuery,
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
+import { leaderboardState, type LeaderboardState } from "@/lib/leaderboardGate";
+import { hasMore } from "@/lib/pagination";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -20,11 +38,57 @@ export interface LeaderboardEntry {
 export type LeaderboardFilter = "course" | "program" | "all";
 export type LeaderboardTimeframe = "weekly" | "all_time";
 
+/**
+ * Resolved leaderboard payload exposed to the page.
+ *
+ * `state` carries the min-cohort gate decision; when `locked`, `entries` is
+ * empty so no rank or medal can ever be rendered for an ineligible cohort
+ * (R6.1, R6.4). `eligibleCount` is the total non-opted-out cohort size returned
+ * by the RPC, independent of the current page.
+ */
+export interface LeaderboardData {
+  entries: LeaderboardEntry[];
+  eligibleCount: number;
+  state: LeaderboardState;
+  minCohortSize: number;
+  pageSize: number;
+}
+
+/**
+ * Return contract of `useLeaderboard`. Mirrors the parts of a TanStack Query
+ * result the leaderboard page relies on (`data`/`isLoading`) and adds the
+ * "load more" affordance for paging beyond the first page (R32.2).
+ */
+export interface UseLeaderboardResult {
+  data: LeaderboardData;
+  isLoading: boolean;
+  isError: boolean;
+  error: unknown;
+  hasMore: boolean;
+  fetchNextPage: () => void;
+  isFetchingNextPage: boolean;
+}
+
 interface MyRankData {
   rank: number;
   xp_total: number;
   level: number;
 }
+
+interface LeaderboardSettings {
+  minCohortSize: number;
+  pageSize: number;
+}
+
+interface LeaderboardPageResult {
+  entries: LeaderboardEntry[];
+  eligibleCount: number;
+}
+
+// Mirror the `institution_settings` column defaults so the gate stays sane if a
+// row has not been provisioned yet (configurable per institution — R6.3).
+const DEFAULT_MIN_COHORT_SIZE = 5;
+const DEFAULT_PAGE_SIZE = 50;
 
 // ─── useLeaderboard ──────────────────────────────────────────────────────────
 
@@ -34,144 +98,124 @@ export const useLeaderboard = (
   courseId?: string,
   programId?: string,
   institutionId?: string | null
-) => {
-  return useQuery({
+): UseLeaderboardResult => {
+  // The configurable min-cohort threshold and page size live in
+  // institution_settings (R6.3, R32.2); read them via the existing
+  // institution-scoped read policy.
+  const settingsQuery = useQuery({
+    queryKey: queryKeys.institutionSettings.detail(
+      institutionId ?? "no-institution"
+    ),
+    queryFn: (): Promise<LeaderboardSettings> =>
+      fetchLeaderboardSettings(institutionId as string),
+    enabled: Boolean(institutionId),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const pageSize = settingsQuery.data?.pageSize ?? DEFAULT_PAGE_SIZE;
+  const minCohortSize =
+    settingsQuery.data?.minCohortSize ?? DEFAULT_MIN_COHORT_SIZE;
+
+  // Institution-scoped paginated leaderboard. The RPC handles opt-out exclusion
+  // and ranking; `filter`/`timeframe`/`courseId`/`programId` participate in the
+  // query key so cache entries stay separated per selection.
+  const infinite = useInfiniteQuery({
     queryKey: queryKeys.leaderboard.list({
+      scope: "page",
       filter,
       timeframe,
       courseId,
       programId,
       institutionId,
+      pageSize,
     }),
-    queryFn: async (): Promise<LeaderboardEntry[]> => {
-      if (timeframe === "weekly") {
-        return fetchWeeklyLeaderboard(
-          filter,
-          courseId,
-          programId,
-          institutionId ?? undefined
-        );
-      }
-      return fetchAllTimeLeaderboard(filter, courseId, programId);
+    queryFn: ({ pageParam }): Promise<LeaderboardPageResult> =>
+      fetchLeaderboardPage(institutionId as string, pageSize, pageParam),
+    initialPageParam: 0,
+    getNextPageParam: (_lastPage, allPages) => {
+      const eligibleCount = allPages[0]?.eligibleCount ?? 0;
+      const loaded = allPages.reduce((sum, p) => sum + p.entries.length, 0);
+      // `hasMore` is 1-based on the page index; after N loaded pages we ask
+      // whether a row exists beyond page N. The next offset is the count of
+      // rows already loaded.
+      return hasMore(allPages.length, pageSize, eligibleCount)
+        ? loaded
+        : undefined;
     },
+    enabled: Boolean(institutionId) && settingsQuery.isSuccess,
   });
+
+  const pages = infinite.data?.pages ?? [];
+  const eligibleCount = pages[0]?.eligibleCount ?? 0;
+  const state = leaderboardState(eligibleCount, minCohortSize);
+
+  // R6.1/R6.4: while locked, surface no ranked rows so the UI cannot award a
+  // position or medal regardless of how it renders. Opt-out exclusion (R6.5,
+  // R32.4) is already enforced inside the RPC.
+  const entries = state === "unlocked" ? pages.flatMap((p) => p.entries) : [];
+
+  return {
+    data: { entries, eligibleCount, state, minCohortSize, pageSize },
+    isLoading:
+      (Boolean(institutionId) && settingsQuery.isLoading) || infinite.isLoading,
+    isError: settingsQuery.isError || infinite.isError,
+    error: settingsQuery.error ?? infinite.error,
+    hasMore: state === "unlocked" && (infinite.hasNextPage ?? false),
+    fetchNextPage: () => {
+      void infinite.fetchNextPage();
+    },
+    isFetchingNextPage: infinite.isFetchingNextPage,
+  };
 };
 
-// ─── Weekly leaderboard (security-definer RPC) ──────────────────────────────
+// ─── Leaderboard data fetchers ───────────────────────────────────────────────
 
-async function fetchWeeklyLeaderboard(
-  filter: LeaderboardFilter,
-  courseId?: string,
-  programId?: string,
-  institutionId?: string
-): Promise<LeaderboardEntry[]> {
-  if (!institutionId) return [];
+async function fetchLeaderboardSettings(
+  institutionId: string
+): Promise<LeaderboardSettings> {
+  const { data, error } = await supabase
+    .from("institution_settings")
+    .select("leaderboard_min_cohort_size, leaderboard_page_size")
+    .eq("institution_id", institutionId)
+    .maybeSingle();
 
-  // Use the get_leaderboard RPC which enforces institution scoping and
-  // filters out opted-out students via SECURITY DEFINER
-  const { data, error } = await supabase.rpc("get_leaderboard", {
+  if (error) throw error;
+
+  return {
+    minCohortSize: data?.leaderboard_min_cohort_size ?? DEFAULT_MIN_COHORT_SIZE,
+    pageSize: data?.leaderboard_page_size ?? DEFAULT_PAGE_SIZE,
+  };
+}
+
+async function fetchLeaderboardPage(
+  institutionId: string,
+  pageSize: number,
+  offset: number
+): Promise<LeaderboardPageResult> {
+  const { data, error } = await supabase.rpc("get_leaderboard_page", {
     p_institution_id: institutionId,
+    p_limit: pageSize,
+    p_offset: offset,
   });
 
   if (error) throw error;
 
-  let rows = (data ?? []).map((d: Record<string, unknown>) => ({
-    student_id: (d.student_id as string) ?? "",
-    full_name: (d.full_name as string) ?? "",
-    xp_total: (d.xp_total as number) ?? 0,
-    level: (d.level as number) ?? 0,
-    streak_current: (d.streak_current as number) ?? 0,
-    global_rank: (d.global_rank as number) ?? 0,
-  }));
+  const rows = data ?? [];
+  // `eligible_count` is the same window count on every row; read it from the
+  // first row of the page (0 when the cohort/page is empty).
+  const firstRow = rows[0];
+  const eligibleCount = firstRow ? Number(firstRow.eligible_count) : 0;
 
-  // Apply course/program filter client-side (RPC returns institution-scoped data)
-  if (filter === "course" && courseId) {
-    const studentIds = await getStudentIdsByCourse(courseId);
-    if (studentIds.length === 0) return [];
-    const idSet = new Set(studentIds);
-    rows = rows.filter((r) => idSet.has(r.student_id));
-  } else if (filter === "program" && programId) {
-    const studentIds = await getStudentIdsByProgram(programId);
-    if (studentIds.length === 0) return [];
-    const idSet = new Set(studentIds);
-    rows = rows.filter((r) => idSet.has(r.student_id));
-  }
-
-  // Sort by xp descending and take top 50
-  rows.sort((a, b) => b.xp_total - a.xp_total);
-  rows = rows.slice(0, 50);
-
-  // Assign ranks (opt-out already filtered by RPC, no need for anonymous masking)
-  return rows.map((row, index) => ({
+  const entries: LeaderboardEntry[] = rows.map((row) => ({
     student_id: row.student_id,
     full_name: row.full_name,
-    xp_total: row.xp_total,
+    xp_total: Number(row.xp_total),
     level: row.level,
     streak_current: row.streak_current,
-    rank: index + 1,
-  }));
-}
-
-// ─── All-time leaderboard (direct query) ─────────────────────────────────────
-
-async function fetchAllTimeLeaderboard(
-  filter: LeaderboardFilter,
-  courseId?: string,
-  programId?: string
-): Promise<LeaderboardEntry[]> {
-  let studentIdFilter: string[] | null = null;
-
-  if (filter === "course" && courseId) {
-    studentIdFilter = await getStudentIdsByCourse(courseId);
-    if (studentIdFilter.length === 0) return [];
-  } else if (filter === "program" && programId) {
-    studentIdFilter = await getStudentIdsByProgram(programId);
-    if (studentIdFilter.length === 0) return [];
-  }
-
-  let query = supabase
-    .from("student_gamification")
-    .select("student_id, xp_total, level, streak_current")
-    .order("xp_total", { ascending: false })
-    .limit(50);
-
-  if (studentIdFilter) {
-    query = query.in("student_id", studentIdFilter);
-  }
-
-  const { data: gamData, error: gamError } = await query;
-  if (gamError) throw gamError;
-
-  const rows = gamData ?? [];
-
-  if (rows.length === 0) return [];
-
-  // Fetch profile names for these students
-  const ids = rows.map((r) => r.student_id);
-  const { data: profileData, error: profileError } = await supabase
-    .from("profiles")
-    .select("id, full_name")
-    .in("id", ids);
-
-  if (profileError) throw profileError;
-
-  const nameMap = new Map<string, string>();
-  for (const p of profileData ?? []) {
-    nameMap.set(p.id, p.full_name);
-  }
-
-  const optOutIds = await getOptOutStudentIds();
-
-  const merged = rows.map((r) => ({
-    student_id: r.student_id,
-    full_name: nameMap.get(r.student_id) ?? "Unknown",
-    xp_total: r.xp_total,
-    level: r.level,
-    streak_current: r.streak_current,
-    global_rank: 0,
+    rank: Number(row.global_rank),
   }));
 
-  return assignRanks(merged, optOutIds);
+  return { entries, eligibleCount };
 }
 
 // ─── useMyRank ───────────────────────────────────────────────────────────────
@@ -374,35 +418,4 @@ async function getStudentIdsByProgram(programId: string): Promise<string[]> {
   // Deduplicate student IDs (a student may be in multiple courses)
   const unique = [...new Set((data ?? []).map((r) => r.student_id))];
   return unique;
-}
-
-async function getOptOutStudentIds(): Promise<Set<string>> {
-  const { data, error } = await supabase
-    .from("student_gamification")
-    .select("student_id")
-    .eq("leaderboard_anonymous", true);
-
-  if (error) throw error;
-  return new Set((data ?? []).map((r) => r.student_id));
-}
-
-function assignRanks(
-  rows: Array<{
-    student_id: string;
-    full_name: string;
-    xp_total: number;
-    level: number;
-    streak_current: number;
-    global_rank: number;
-  }>,
-  optOutIds: Set<string>
-): LeaderboardEntry[] {
-  return rows.map((row, index) => ({
-    student_id: row.student_id,
-    full_name: optOutIds.has(row.student_id) ? "Anonymous" : row.full_name,
-    xp_total: row.xp_total,
-    level: row.level,
-    streak_current: row.streak_current,
-    rank: index + 1,
-  }));
 }

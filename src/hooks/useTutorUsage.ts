@@ -26,10 +26,7 @@ export const useTutorUsage = () => {
     queryFn: async (): Promise<TutorUsageStatus> => {
       if (!user) throw new Error("Not authenticated");
 
-      // NOTE: tutor_usage_limits table exists in DB but database.ts types have not been
-      // regenerated yet. Using type assertion until `scripts/regen-types.ps1` is run.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("tutor_usage_limits")
         .select("message_count, token_count")
         .eq("student_id", user.id)

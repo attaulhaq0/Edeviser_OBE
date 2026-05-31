@@ -1,15 +1,24 @@
 // =============================================================================
 // TransactionHistoryPage — Unified history with filter tabs and pagination
+//
+// Pages through all entries via `useTransactionHistory` (source-level
+// pagination). On query failure the view surfaces a Sonner toast and an error
+// panel, and refuses to render any transactions rather than showing a
+// truncated/partial list (Requirements 33.1a, 33.2, 33.3).
 // =============================================================================
 
+import { useEffect } from "react";
 import {
   History,
   ArrowUpRight,
   ArrowDownRight,
   ChevronLeft,
   ChevronRight,
+  AlertTriangle,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { parseAsString, parseAsInteger, useQueryState } from "nuqs";
+import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Shimmer from "@/components/shared/Shimmer";
@@ -20,19 +29,18 @@ import {
   type TransactionFilter,
   type TransactionEntry,
 } from "@/hooks/useTransactionHistory";
+import { formatLocalDate } from "@/lib/formatDate";
 import { cn } from "@/lib/utils";
 
-// ─── Filter tabs ─────────────────────────────────────────────────────────────
+// ─── Constants ───────────────────────────────────────────────────────────────
 
-const FILTERS: Array<{ value: TransactionFilter; label: string }> = [
-  { value: "all", label: "All" },
-  { value: "earnings", label: "Earnings" },
-  { value: "spending", label: "Spending" },
-];
+const PAGE_SIZE = 20;
+const FILTER_VALUES: TransactionFilter[] = ["all", "earnings", "spending"];
 
 // ─── Transaction Row ─────────────────────────────────────────────────────────
 
 const TransactionRow = ({ entry }: { entry: TransactionEntry }) => {
+  const { t } = useTranslation("gamification");
   const isEarning = entry.type === "earning";
 
   return (
@@ -55,13 +63,7 @@ const TransactionRow = ({ entry }: { entry: TransactionEntry }) => {
           {entry.label}
         </p>
         <p className="text-xs text-gray-500">
-          {new Date(entry.date).toLocaleDateString(undefined, {
-            year: "numeric",
-            month: "short",
-            day: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
+          {formatLocalDate(entry.date, "PPp")}
         </p>
       </div>
 
@@ -72,7 +74,7 @@ const TransactionRow = ({ entry }: { entry: TransactionEntry }) => {
         )}
       >
         {isEarning ? "+" : "−"}
-        {entry.amount.toLocaleString()} XP
+        {entry.amount.toLocaleString()} {t("transactions.unit")}
       </span>
     </div>
   );
@@ -81,6 +83,7 @@ const TransactionRow = ({ entry }: { entry: TransactionEntry }) => {
 // ─── Component ───────────────────────────────────────────────────────────────
 
 const TransactionHistoryPage = () => {
+  const { t } = useTranslation("gamification");
   const { user } = useAuth();
   const userId = user?.id ?? "";
 
@@ -93,7 +96,19 @@ const TransactionHistoryPage = () => {
   const typedFilter: TransactionFilter =
     filter === "earnings" || filter === "spending" ? filter : "all";
 
-  const { data, isLoading } = useTransactionHistory(userId, typedFilter, page);
+  const { data, isLoading, isError } = useTransactionHistory(
+    userId,
+    typedFilter,
+    page
+  );
+
+  // Surface the failure once per error transition. The view refuses to show any
+  // transactions in this state (no truncated/partial list) — R33.1a.
+  useEffect(() => {
+    if (isError) {
+      toast.error(t("transactions.error.toast"));
+    }
+  }, [isError, t]);
 
   return (
     <div className="space-y-6">
@@ -102,7 +117,7 @@ const TransactionHistoryPage = () => {
         <div className="flex items-center gap-3">
           <History className="h-6 w-6 text-blue-600" />
           <h1 className="text-2xl font-bold tracking-tight">
-            Transaction History
+            {t("transactions.title")}
           </h1>
         </div>
         <XPBalanceBadge size="lg" />
@@ -110,27 +125,41 @@ const TransactionHistoryPage = () => {
 
       {/* Filter Tabs */}
       <div className="flex gap-2">
-        {FILTERS.map((f) => (
+        {FILTER_VALUES.map((value) => (
           <button
-            key={f.value}
+            key={value}
             onClick={() => {
-              setFilter(f.value);
+              setFilter(value);
               setPage(0);
             }}
             className={cn(
               "px-4 py-1.5 rounded-xl text-sm font-semibold transition-colors",
-              typedFilter === f.value
+              typedFilter === value
                 ? "bg-blue-600 text-white"
                 : "bg-white text-gray-600 border border-gray-200 hover:bg-slate-50"
             )}
           >
-            {f.label}
+            {t(`transactions.filters.${value}`)}
           </button>
         ))}
       </div>
 
       {/* Transaction List */}
-      {isLoading ? (
+      {isError ? (
+        // Failure: refuse to display transactions, show an error panel (R33.1a).
+        <div
+          role="alert"
+          className="flex flex-col items-center justify-center py-12 text-center"
+        >
+          <AlertTriangle className="h-12 w-12 text-red-400 mb-3" />
+          <p className="text-sm font-semibold text-gray-900">
+            {t("transactions.error.title")}
+          </p>
+          <p className="text-sm text-gray-500 mt-1 max-w-sm">
+            {t("transactions.error.body")}
+          </p>
+        </div>
+      ) : isLoading ? (
         <div className="space-y-2">
           {Array.from({ length: 6 }).map((_, i) => (
             <Shimmer key={i} className="h-16 rounded-xl" />
@@ -139,7 +168,7 @@ const TransactionHistoryPage = () => {
       ) : !data || data.entries.length === 0 ? (
         <div className="text-center py-12">
           <History className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-sm text-gray-500">No transactions found.</p>
+          <p className="text-sm text-gray-500">{t("transactions.empty")}</p>
         </div>
       ) : (
         <>
@@ -152,8 +181,11 @@ const TransactionHistoryPage = () => {
           {/* Pagination */}
           <div className="flex items-center justify-between">
             <p className="text-xs text-gray-500">
-              Showing {page * 20 + 1}–
-              {Math.min((page + 1) * 20, data.totalCount)} of {data.totalCount}
+              {t("transactions.showing", {
+                from: page * PAGE_SIZE + 1,
+                to: Math.min((page + 1) * PAGE_SIZE, data.totalCount),
+                total: data.totalCount,
+              })}
             </p>
             <div className="flex gap-2">
               <Button
@@ -163,7 +195,7 @@ const TransactionHistoryPage = () => {
                 onClick={() => setPage(Math.max(0, page - 1))}
               >
                 <ChevronLeft className="h-4 w-4" />
-                Previous
+                {t("transactions.previous")}
               </Button>
               <Button
                 variant="outline"
@@ -171,7 +203,7 @@ const TransactionHistoryPage = () => {
                 disabled={!data.hasMore}
                 onClick={() => setPage(page + 1)}
               >
-                Next
+                {t("transactions.next")}
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>

@@ -103,12 +103,31 @@ export interface SessionReflection {
 // Planner View Interfaces
 // -----------------------------------------------------------------------------
 
+/**
+ * A derived, non-persisted study-session suggestion surfaced on otherwise-empty
+ * planner days (R19.2). Carries only structured data — the consumer is
+ * responsible for any user-facing, localized labels.
+ */
+export interface SuggestedStudySession {
+  /** Deterministic synthetic id, e.g. `suggestion-2025-06-18`. */
+  id: string;
+  /** Day the suggestion belongs to (YYYY-MM-DD). */
+  date: string;
+  /** Course the suggested session is scoped to, or null when none is known. */
+  courseId: string | null;
+  courseName: string | null;
+  /** Suggested focus-block length in minutes. */
+  durationMinutes: number;
+}
+
 export interface WeekDay {
   date: string;
   sessions: StudySession[];
   tasks: PlannerTask[];
   deadlines: UpcomingDeadline[];
   isToday: boolean;
+  /** Derived suggestions shown only when the day has no real items (R19.2). */
+  suggestions?: SuggestedStudySession[];
 }
 
 export interface TimelineItem {

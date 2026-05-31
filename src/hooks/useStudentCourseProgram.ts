@@ -1,9 +1,16 @@
 // =============================================================================
 // useStudentCourseProgram — fetch enrolled courses & programs for leaderboard filters
+//
+// Relocated from `src/pages/student/leaderboard/useStudentCourseProgram.ts`
+// into `src/hooks/` so all student data-access lives in the hooks layer, and
+// switched to the standard `queryKeys` factory for its query key.
+//
+// _Requirements: 25.1, 25.2, 25.3, 25.3a, 25.4_
 // =============================================================================
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
 
 interface CourseOption {
   id: string;
@@ -22,7 +29,7 @@ interface StudentCourseProgramData {
 
 export const useStudentCourseProgram = (studentId: string) => {
   const { data, isLoading } = useQuery({
-    queryKey: ["student", "courseProgram", studentId],
+    queryKey: queryKeys.enrollments.list({ studentId, view: "courseProgram" }),
     queryFn: async (): Promise<StudentCourseProgramData> => {
       if (!studentId) return { courses: [], programs: [] };
 

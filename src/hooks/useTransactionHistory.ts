@@ -1,10 +1,21 @@
 // =============================================================================
-// useTransactionHistory — Unified XP transaction history with pagination
+// useTransactionHistory — Unified XP transaction history with real pagination
+//
+// Backed by the `get_xp_transactions_page` RPC (Requirements 33.1, 33.2, 33.3):
+// a STABLE/SECURITY-INVOKER SQL UNION of earnings (`xp_transactions`) and
+// non-refunded spending (`xp_purchases`), ordered by `occurred_at DESC`, that
+// returns a single page plus an exact `total_count`. Pagination happens at the
+// source — there is no `.range(0, 200)` cap and no client-side truncation.
+//
+// On RPC failure the query throws, so the consuming view surfaces an error and
+// refuses to display any transactions rather than falling back to a fixed cap
+// (Requirement 33.1a).
 // =============================================================================
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
+import { hasMore as hasMorePages } from "@/lib/pagination";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -29,6 +40,13 @@ const PAGE_SIZE = 20;
 
 // ─── useTransactionHistory — combined earnings + spending ────────────────────
 
+/**
+ * Paginated unified XP transaction history for a single student.
+ *
+ * @param studentId - the student whose history to read (query disabled when empty).
+ * @param filter - `all | earnings | spending`.
+ * @param page - zero-based page index (matches the consuming page's nuqs state).
+ */
 export const useTransactionHistory = (
   studentId: string,
   filter: TransactionFilter = "all",
@@ -37,75 +55,46 @@ export const useTransactionHistory = (
   return useQuery({
     queryKey: queryKeys.marketplace.transactions(filter, page),
     queryFn: async (): Promise<TransactionHistoryResult> => {
-      const entries: TransactionEntry[] = [];
       const offset = page * PAGE_SIZE;
 
-      if (filter === "all" || filter === "earnings") {
-        const { data: earnings, error: earningsError } = await supabase
-          .from("xp_transactions")
-          .select("id, xp_amount, source, note, created_at")
-          .eq("student_id", studentId)
-          .order("created_at", { ascending: false })
-          .range(0, 200);
+      // Source-level pagination via the unified RPC. RLS restricts rows to the
+      // caller, so a student only ever sees their own transactions.
+      const { data, error } = await supabase.rpc("get_xp_transactions_page", {
+        p_student_id: studentId,
+        p_filter: filter,
+        p_limit: PAGE_SIZE,
+        p_offset: offset,
+      });
 
-        if (earningsError) throw earningsError;
+      // Surface the failure so the view refuses to show transactions rather
+      // than silently truncating (R33.1a). No `.range(0, 200)` fallback.
+      if (error) throw error;
 
-        for (const row of earnings ?? []) {
-          entries.push({
-            id: `earn-${row.id}`,
-            type: "earning",
-            amount: row.xp_amount,
-            label: formatSource(row.source, row.note),
-            category: row.source,
-            date: row.created_at,
-          });
-        }
-      }
+      const rows = data ?? [];
 
-      if (filter === "all" || filter === "spending") {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data: spending, error: spendingError } = await (supabase as any)
-          .from("xp_purchases")
-          .select(
-            `
-            id,
-            xp_cost,
-            purchased_at,
-            marketplace_items:item_id (name, category)
-          `
-          )
-          .eq("student_id", studentId)
-          .neq("status", "refunded")
-          .order("purchased_at", { ascending: false })
-          .range(0, 200);
+      // The RPC repeats the exact `total_count` on every row. An empty page
+      // (offset beyond the end) yields no rows and therefore a count of 0.
+      const [firstRow] = rows;
+      const totalCount = firstRow?.total_count ?? 0;
 
-        if (spendingError) throw spendingError;
-
-        for (const row of (spending ?? []) as Array<Record<string, unknown>>) {
-          const item = row.marketplace_items as Record<string, unknown> | null;
-          entries.push({
-            id: `spend-${row.id}`,
-            type: "spending",
-            amount: row.xp_cost as number,
-            label: (item?.name as string) ?? "Marketplace Purchase",
-            category: (item?.category as string) ?? "purchase",
-            date: row.purchased_at as string,
-          });
-        }
-      }
-
-      // Sort by date descending
-      entries.sort(
-        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-      );
-
-      const totalCount = entries.length;
-      const paged = entries.slice(offset, offset + PAGE_SIZE);
+      const entries: TransactionEntry[] = rows.map((row) => {
+        const type: TransactionEntry["type"] =
+          row.kind === "spending" ? "spending" : "earning";
+        return {
+          id: row.id,
+          type,
+          amount: row.amount,
+          label: type === "earning" ? formatSource(row.category) : row.label,
+          category: row.category,
+          date: row.occurred_at,
+        };
+      });
 
       return {
-        entries: paged,
+        entries,
         totalCount,
-        hasMore: offset + PAGE_SIZE < totalCount,
+        // `hasMore` uses 1-based pages; the consumer page index is zero-based.
+        hasMore: hasMorePages(page + 1, PAGE_SIZE, totalCount),
       };
     },
     enabled: !!studentId,
@@ -115,7 +104,12 @@ export const useTransactionHistory = (
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function formatSource(source: string, note: string | null): string {
+/**
+ * Maps an earning source key to a human-readable label. Spending labels come
+ * straight from the RPC (the marketplace item name). This client-side mapping
+ * is interim; localization keyed by `category` moves to the UI under R29.
+ */
+function formatSource(source: string): string {
   const labels: Record<string, string> = {
     login: "Login Bonus",
     submission: "Assignment Submission",
@@ -136,5 +130,5 @@ function formatSource(source: string, note: string | null): string {
     team_bonus: "Team Bonus",
   };
 
-  return labels[source] ?? note ?? source;
+  return labels[source] ?? source;
 }

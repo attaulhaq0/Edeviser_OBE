@@ -6,6 +6,7 @@
 
 import { useState, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -17,7 +18,11 @@ import { ReviewSessionBadge } from "@/components/shared/ReviewSessionBadge";
 import { useAuth } from "@/hooks/useAuth";
 import { useTodayViewData } from "@/hooks/useTodayView";
 import { useCreateStudySession } from "@/hooks/useStudySessions";
-import { useCreatePlannerTask, useCompleteTask } from "@/hooks/usePlannerTasks";
+import {
+  useCreatePlannerTask,
+  useCompleteTask,
+  useDeletePlannerTask,
+} from "@/hooks/usePlannerTasks";
 import {
   useWeeklyReviews,
   useCreateReviewSession,
@@ -44,6 +49,7 @@ import { toast } from "sonner";
 
 const TodayViewPage = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation("student");
   const { user } = useAuth();
   const studentId = user?.id;
 
@@ -61,6 +67,7 @@ const TodayViewPage = () => {
   // ─── Mutations ────────────────────────────────────────────────────────────
   const createTask = useCreatePlannerTask();
   const completeTask = useCompleteTask();
+  const deleteTask = useDeletePlannerTask();
   const createSession = useCreateStudySession();
   const createReviewSession = useCreateReviewSession();
   const skipReview = useSkipReview();
@@ -121,9 +128,12 @@ const TodayViewPage = () => {
     [navigate]
   );
 
-  const handleSessionEdit = useCallback((_session: StudySession) => {
-    toast.info("Edit feature coming soon");
-  }, []);
+  const handleSessionEdit = useCallback(
+    (session: StudySession) => {
+      navigate(`/student/focus/${session.id}`);
+    },
+    [navigate]
+  );
 
   const handleTaskToggle = useCallback(
     (task: PlannerTask) => {
@@ -134,13 +144,33 @@ const TodayViewPage = () => {
     [completeTask]
   );
 
-  const handleTaskEdit = useCallback((_task: PlannerTask) => {
-    toast.info("Edit feature coming soon");
-  }, []);
+  const handleTaskEdit = useCallback(
+    (task: PlannerTask) => {
+      if (task.status === "pending") {
+        completeTask.mutate(task.id, {
+          onSuccess: () => toast.success("Task marked complete"),
+        });
+      } else {
+        toast.info("This task is already complete. Use Delete to remove it.");
+      }
+    },
+    [completeTask]
+  );
 
-  const handleTaskDelete = useCallback((_task: PlannerTask) => {
-    toast.info("Delete feature coming soon");
-  }, []);
+  const handleTaskDelete = useCallback(
+    (task: PlannerTask) => {
+      if (
+        !window.confirm(`Delete task "${task.title}"? This cannot be undone.`)
+      ) {
+        return;
+      }
+      deleteTask.mutate(task.id, {
+        onSuccess: () => toast.success("Task deleted"),
+        onError: (err) => toast.error((err as Error).message),
+      });
+    },
+    [deleteTask]
+  );
 
   const handleQuickAddSubmit = useCallback(
     (data: CreatePlannerTaskInput) => {
@@ -247,7 +277,7 @@ const TodayViewPage = () => {
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Quick Add Task */}
+          {/* Add Task */}
           <Button
             variant="outline"
             size="sm"
@@ -255,10 +285,10 @@ const TodayViewPage = () => {
             onClick={() => setQuickAddOpen(true)}
           >
             <Plus className="h-3.5 w-3.5" />
-            Quick Add
+            {t("planner.actions.addTask")}
           </Button>
 
-          {/* Start Unplanned Session */}
+          {/* Start Session */}
           <Button
             size="sm"
             className="h-9 gap-1.5 bg-gradient-to-r from-teal-500 to-blue-600 text-xs active:scale-95"
@@ -270,7 +300,7 @@ const TodayViewPage = () => {
             ) : (
               <Play className="h-3.5 w-3.5" />
             )}
-            Start Unplanned Session
+            {t("planner.actions.startSession")}
           </Button>
         </div>
       </div>

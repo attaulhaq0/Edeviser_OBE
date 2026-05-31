@@ -22,6 +22,23 @@ export interface LeaderboardCosmeticData {
   } | null;
 }
 
+/**
+ * Narrows a Supabase `Json` value to a plain string-keyed record. Returns an
+ * empty record for arrays, primitives, or null so callers can read optional
+ * cosmetic fields without unsafe casts.
+ */
+const asRecord = (value: unknown): Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+
+/** Reads an optional string field from a narrowed metadata record. */
+const readString = (
+  record: Record<string, unknown>,
+  key: string
+): string | undefined =>
+  typeof record[key] === "string" ? (record[key] as string) : undefined;
+
 // ─── useLeaderboardCosmetics — batch fetch cosmetics for leaderboard entries ─
 
 export const useLeaderboardCosmetics = (studentIds: string[]) => {
@@ -33,8 +50,7 @@ export const useLeaderboardCosmetics = (studentIds: string[]) => {
       if (studentIds.length === 0) return new Map();
 
       // Fetch equipped items for all students in the leaderboard
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("student_equipped_items")
         .select(
           `
@@ -64,14 +80,18 @@ export const useLeaderboardCosmetics = (studentIds: string[]) => {
         });
       }
 
-      // Populate from query results
-      for (const row of (data ?? []) as Array<Record<string, unknown>>) {
-        const studentId = row.student_id as string;
-        const slot = row.slot as string;
-        const purchase = row.xp_purchases as Record<string, unknown> | null;
-        const item =
-          (purchase?.marketplace_items as Record<string, unknown>) ?? {};
-        const metadata = (item.metadata ?? {}) as Record<string, unknown>;
+      // Populate from query results. Embedded relations are to-one objects (or
+      // null); a missing join collapses to empty metadata via `asRecord`.
+      for (const row of data ?? []) {
+        const studentId = row.student_id;
+        const slot = row.slot;
+        const purchase = Array.isArray(row.xp_purchases)
+          ? row.xp_purchases[0]
+          : row.xp_purchases;
+        const item = Array.isArray(purchase?.marketplace_items)
+          ? purchase?.marketplace_items[0]
+          : purchase?.marketplace_items;
+        const metadata = asRecord(item?.metadata);
 
         const existing = cosmeticMap.get(studentId) ?? {
           studentId,
@@ -81,16 +101,15 @@ export const useLeaderboardCosmetics = (studentIds: string[]) => {
 
         if (slot === "avatar_frame") {
           existing.avatarFrame = {
-            border_color: (metadata.border_color as string) ?? "#3b82f6",
-            border_width: (metadata.border_width as string) ?? "3px",
-            border_style: (metadata.border_style as string) ?? "solid",
-            box_shadow: (metadata.box_shadow as string) ?? undefined,
+            border_color: readString(metadata, "border_color") ?? "#3b82f6",
+            border_width: readString(metadata, "border_width") ?? "3px",
+            border_style: readString(metadata, "border_style") ?? "solid",
+            box_shadow: readString(metadata, "box_shadow"),
           };
         } else if (slot === "display_title") {
           existing.displayTitle = {
-            title_text:
-              (metadata.title_text as string) ?? (item.name as string) ?? "",
-            title_color: (metadata.title_color as string) ?? "#6366f1",
+            title_text: readString(metadata, "title_text") ?? item?.name ?? "",
+            title_color: readString(metadata, "title_color") ?? "#6366f1",
           };
         }
 

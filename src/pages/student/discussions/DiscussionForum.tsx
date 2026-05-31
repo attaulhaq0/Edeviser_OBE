@@ -41,7 +41,13 @@ const DiscussionForum = () => {
   const { user } = useAuth();
   const [search] = useQueryState("q", parseAsString.withDefault(""));
   const [dialogOpen, setDialogOpen] = useState(false);
-  const { data: threads, isLoading } = useDiscussionThreads(courseId);
+  const {
+    data: threadsPages,
+    isLoading,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  } = useDiscussionThreads(courseId);
   const createThread = useCreateThread();
 
   const form = useForm<CreateThreadFormData>({
@@ -49,7 +55,8 @@ const DiscussionForum = () => {
     defaultValues: { course_id: courseId ?? "", title: "", content: "" },
   });
 
-  const filtered = (threads ?? []).filter(
+  const threads = threadsPages?.pages.flatMap((p) => p.threads) ?? [];
+  const filtered = threads.filter(
     (t) =>
       !search ||
       t.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -174,6 +181,17 @@ const DiscussionForum = () => {
               }
             />
           ))}
+          {hasNextPage && (
+            <div className="flex justify-center pt-2">
+              <Button
+                variant="outline"
+                onClick={() => fetchNextPage()}
+                disabled={isFetchingNextPage}
+              >
+                {isFetchingNextPage ? "Loading..." : "Load more"}
+              </Button>
+            </div>
+          )}
         </div>
       )}
     </div>

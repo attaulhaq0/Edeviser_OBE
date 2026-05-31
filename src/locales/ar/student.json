@@ -42,7 +42,56 @@
     "courseWide": "على مستوى المقرر",
     "viewAllChallenges": "عرض جميع التحديات ({{count}})",
     "attendance": "الحضور",
-    "leagueTier": "فئة الدوري"
+    "leagueTier": "فئة الدوري",
+    "primaryCta": {
+      "region": "الإجراء التالي الموصى به",
+      "heading": "خطوتك التالية",
+      "completeProfile": {
+        "label": "أكمل التهيئة",
+        "description": "أكمل ملفك الشخصي لفتح التوصيات المخصصة وكسب نقاط الخبرة.",
+        "cta": "ابدأ الآن"
+      },
+      "finishProfile": {
+        "label": "أكمل التقييم",
+        "description": "تخطيت بعض الأقسام أثناء التهيئة. أكملها للحصول على تخصيص كامل.",
+        "cta": "أكمل الآن"
+      },
+      "submitAssignment": {
+        "label": "سلّم تكليفك التالي",
+        "description": "{{title}} مستحق قريباً — سلّمه لتبقى على المسار الصحيح.",
+        "cta": "افتح التكليف"
+      },
+      "continueCourse": {
+        "label": "تابع مقررك",
+        "description": "تابع من حيث توقفت وحافظ على زخمك.",
+        "cta": "عرض المقررات"
+      },
+      "reviewFeedback": {
+        "label": "راجع ملاحظاتك",
+        "description": "اطّلع على أحدث درجاتك وملاحظاتك لتتعلم من عملك.",
+        "cta": "عرض التقدم"
+      }
+    }
+  },
+  "team": {
+    "title": "فريقي",
+    "unassignedTitle": "لست في فريق بعد",
+    "howItWorksDescription": "تتيح لك الفرق التعلم جنباً إلى جنب مع زملائك — تكسبون نقاط الخبرة معاً، وترتقون في لوحة صدارة الفرق، وتخوضون تحديات مشتركة. انضم إلى فريق موجود أو أنشئ فريقك الخاص للبدء.",
+    "joinOrCreate": "انضم إلى فريق أو أنشئ فريقاً",
+    "teacherAssignNote": "قد يقوم معلمك أيضاً بتعيينك في فريق لمقررك."
+  },
+  "courses": {
+    "title": "مقرراتي",
+    "subtitle": "اطّلع على مقرراتك المسجّلة وتقدّمك وتكليفاتك.",
+    "taughtBy": "يدرّسه",
+    "progress": "التقدّم",
+    "progressLabel": "تقدّم المقرر: {{percent}}%",
+    "nextUp": "التالي",
+    "due": "يستحق في {{date}}",
+    "noDueDate": "لا يوجد موعد نهائي",
+    "noUpcomingWork": "لا توجد مهام قادمة",
+    "attainment": "التحصيل",
+    "assignments": "التكليفات"
   },
   "assignments": {
     "title": "التكليفات",
@@ -61,17 +110,364 @@
     "evidence": "الأدلة",
     "noAssessments": "لا توجد تقييمات بعد"
   },
+  "heatmap": {
+    "plainSummary": {
+      "title": "كيف تسير عاداتك",
+      "empty": "لم تسجّل أي عادات بعد. اختر عادة صغيرة لتبدأ بها اليوم!",
+      "completion": "لقد حافظت على {{rate}}٪ من عاداتك اليومية.",
+      "bestHabit": "أقوى عاداتك هي {{habit}}.",
+      "streak": "أنت في سلسلة من {{count}} يوم — واصل التقدم!",
+      "encourage": "كل خطوة صغيرة لها قيمة. واصل التقدم!"
+    },
+    "habitLabels": {
+      "login": "تسجيل الدخول",
+      "submit": "تسليم العمل",
+      "journal": "كتابة اليومية",
+      "read": "القراءة",
+      "meditation": "التأمل",
+      "hydration": "شرب الماء",
+      "exercise": "التمارين",
+      "sleep": "النوم"
+    }
+  },
   "journal": {
     "title": "يومية التأمل",
     "newEntry": "إدخال جديد",
     "wordCount": "{{count}} كلمة",
     "minWords": "الحد الأدنى 50 كلمة",
-    "saved": "تم حفظ إدخال اليومية."
+    "saved": "تم حفظ إدخال اليومية.",
+    "prompts": {
+      "title": "محفزات التأمل",
+      "hint": "اختر محفزاً للبدء، أو اكتب بحرية أدناه.",
+      "guided": "تأمل موجّه",
+      "use": "استخدم هذا المحفز",
+      "learned": "ماذا تعلمت اليوم؟",
+      "confused": "ما الذي أربكني؟",
+      "proud": "بماذا أفتخر؟"
+    }
   },
   "leaderboard": {
     "title": "لوحة المتصدرين",
     "yourRank": "ترتيبك",
     "anonymous": "الوضع المجهول",
-    "anonymousHint": "اسمك مخفي عن الطلاب الآخرين"
+    "anonymousHint": "اسمك مخفي عن الطلاب الآخرين",
+    "rankings": {
+      "title": "الترتيب",
+      "loadMore": "تحميل المزيد"
+    },
+    "locked": {
+      "title": "تُفتح لوحة المتصدرين عند انضمام المزيد من الطلاب",
+      "description": "بمجرد انضمام المزيد من الطلاب إلى مجموعتك، ستظهر هنا الترتيبات والميداليات. واصل كسب نقاط الخبرة في هذه الأثناء!"
+    }
+  },
+  "portfolio": {
+    "title": "ملف إنجازاتي",
+    "publicProfile": "ملف عام",
+    "togglePublicAria": "تبديل الملف العام",
+    "copyLinkAria": "نسخ الرابط القابل للمشاركة",
+    "copyLink": "نسخ الرابط",
+    "copied": "تم النسخ",
+    "permissionRequired": "تتطلب المشاركة العامة إذن المدرسة. يبقى ملفك خاصاً حتى تقوم مدرستك بتفعيله.",
+    "toast": {
+      "madePublic": "أصبح ملفك عاماً الآن",
+      "madePrivate": "تم ضبط الملف على خاص",
+      "linkCopied": "تم نسخ الرابط إلى الحافظة",
+      "permissionDenied": "المشاركة العامة غير مفعّلة لحسابك بعد. اطلب من مدرستك منح الإذن."
+    },
+    "kpi": {
+      "totalXP": "إجمالي نقاط الخبرة",
+      "level": "المستوى",
+      "closMastered": "المخرجات المتقنة",
+      "badgesEarned": "الأوسمة المكتسبة"
+    },
+    "sections": {
+      "cloMastery": "إتقان مخرجات التعلم",
+      "badgeCollection": "مجموعة الأوسمة",
+      "journalEntries": "مدخلات اليومية",
+      "xpTimeline": "الجدول الزمني لنقاط الخبرة",
+      "attainmentGrowth": "نمو التحصيل"
+    },
+    "friendly": {
+      "skillsTitle": "المهارات المتقنة",
+      "strengths": "نقاط القوة",
+      "areasImproving": "مجالات التحسّن",
+      "strengthsHint": "ما تتقنه ببراعة",
+      "areasImprovingHint": "ما تعمل على تطويره لاحقاً"
+    },
+    "noJournals": "لا توجد مدخلات في اليومية بعد.",
+    "general": "عام",
+    "chart": {
+      "cumulativeXP": "نقاط الخبرة التراكمية",
+      "xpValue": "{{value}} نقطة خبرة",
+      "avgAttainment": "متوسط التحصيل"
+    },
+    "attainmentLevels": {
+      "Excellent": "ممتاز",
+      "Satisfactory": "مُرضٍ",
+      "Developing": "قيد التطور",
+      "Not_Yet": "لم يتحقق بعد"
+    }
+  },
+  "onboarding": {
+    "assessmentIntro": {
+      "begin": "ابدأ",
+      "personality": {
+        "title": "اكتشف كيف تتعلّم على أفضل وجه",
+        "description": "أسئلة سريعة قليلة تكشف كيف تعمل وتدرس على أفضل وجه.",
+        "estimatedTime": "حوالي دقيقة واحدة",
+        "benefit1": "توصيات دراسية مخصّصة لك",
+        "benefit2": "ردود المعلّم الذكي مُخصّصة لطريقة تعلّمك",
+        "benefit3": "اكسب نقاط خبرة إضافية لإكمال ملفك الشخصي"
+      },
+      "learning_style": {
+        "title": "اكتشف أسلوب تعلّمك",
+        "description": "استكشف الطرق التي تستوعب بها الأفكار الجديدة وتتذكّرها.",
+        "estimatedTime": "حوالي 3 دقائق",
+        "benefit1": "نصائح دراسية تناسب تفضيلاتك",
+        "benefit2": "شروحات المعلّم الذكي بالصيغة التي تناسبك",
+        "benefit3": "اكسب نقاط خبرة إضافية لإكمال هذا التقييم"
+      },
+      "self_efficacy": {
+        "title": "فحص الثقة الأكاديمية",
+        "description": "أخبرنا بمدى ثقتك حتى ندعمك بشكل أفضل.",
+        "estimatedTime": "حوالي دقيقة واحدة",
+        "benefit1": "تشجيع وأهداف مضبوطة على المستوى المناسب لك",
+        "benefit2": "دعم المعلّم الذكي يركّز حيث ترغب في التطوّر",
+        "benefit3": "اكسب نقاط خبرة إضافية لإكمال هذا الفحص"
+      },
+      "study_strategy": {
+        "title": "طوّر عاداتك الدراسية",
+        "description": "شاركنا كيف تدرس الآن حتى نقترح ما ينجح معك.",
+        "estimatedTime": "حوالي دقيقتين",
+        "benefit1": "توصيات مخصّصة لاستراتيجيات الدراسة",
+        "benefit2": "إرشاد المعلّم الذكي مضبوط على عاداتك",
+        "benefit3": "اكسب نقاط خبرة إضافية لإكمال هذا التقييم"
+      }
+    },
+    "selfEfficacy": {
+      "title": "فحص الثقة الأكاديمية",
+      "instructions": "قيّم مدى ثقتك تجاه كل عبارة.",
+      "questionProgress": "السؤال {{current}} من {{total}}",
+      "previous": "السابق",
+      "next": "التالي",
+      "complete": "إنهاء",
+      "saving": "جارٍ الحفظ..."
+    },
+    "personality": {
+      "title": "تقييم الشخصية",
+      "dimensionProgress": "{{dimension}} — السؤال {{current}} من {{total}}",
+      "scaleLabel": "مقياس ليكرت",
+      "previous": "السابق",
+      "next": "التالي",
+      "complete": "إنهاء",
+      "saving": "جارٍ الحفظ...",
+      "noQuestions": "لا توجد أسئلة شخصية متاحة. يرجى التواصل مع المسؤول.",
+      "dimensions": {
+        "openness": "الانفتاح",
+        "conscientiousness": "يقظة الضمير",
+        "extraversion": "الانبساط",
+        "agreeableness": "المقبولية",
+        "neuroticism": "العصابية"
+      },
+      "likert": {
+        "stronglyDisagree": "لا أوافق بشدة",
+        "disagree": "لا أوافق",
+        "neutral": "محايد",
+        "agree": "أوافق",
+        "stronglyAgree": "أوافق بشدة"
+      }
+    },
+    "learningStyle": {
+      "title": "تفضيلات أسلوب التعلم",
+      "instructions": "اختر الخيار الذي يناسبك أكثر.",
+      "questionProgress": "السؤال {{current}} من {{total}}",
+      "scaleLabel": "خيارات VARK",
+      "previous": "السابق",
+      "next": "التالي",
+      "complete": "إنهاء",
+      "saving": "جارٍ الحفظ...",
+      "noQuestions": "لا توجد أسئلة أسلوب تعلم متاحة. يرجى التواصل مع المسؤول.",
+      "disclaimer": "تُقدَّم تفضيلات أسلوب التعلم كتمرين للوعي الذاتي. لا تدعم الأبحاث مطابقة التدريس مع أنماط VARK (باشلر وآخرون، 2008). لن تُستخدم نتائجك لتقييد تقديم المحتوى.",
+      "day1": {
+        "title": "تقييم أسلوب التعلم",
+        "body": "سيُقدَّم هذا التقييم على شكل تقييمات يومية قصيرة خلال أسبوعيك الأولين. ستكسب نقاط خبرة عن كل واحد منها!",
+        "continue": "متابعة"
+      }
+    },
+    "studyStrategy": {
+      "title": "جرد استراتيجيات الدراسة",
+      "instructions": "قيّم كم مرة تستخدم كل استراتيجية دراسة.",
+      "dimensionProgress": "{{dimension}} — السؤال {{current}} من {{total}}",
+      "scaleLabel": "مقياس استراتيجيات الدراسة",
+      "previous": "السابق",
+      "next": "التالي",
+      "complete": "إنهاء",
+      "saving": "جارٍ الحفظ...",
+      "noQuestions": "لا توجد أسئلة استراتيجيات دراسة متاحة. يرجى التواصل مع المسؤول.",
+      "likert": {
+        "never": "أبداً",
+        "rarely": "نادراً",
+        "sometimes": "أحياناً",
+        "often": "غالباً",
+        "always": "دائماً"
+      },
+      "dimensions": {
+        "time_management": "إدارة الوقت",
+        "elaboration": "التفصيل",
+        "self_testing": "الاختبار الذاتي",
+        "help_seeking": "طلب المساعدة"
+      },
+      "day1": {
+        "title": "جرد استراتيجيات الدراسة",
+        "body": "سيُقدَّم هذا التقييم على شكل تقييمات يومية قصيرة خلال أسبوعيك الأولين. ستكسب نقاط خبرة عن كل واحد منها!",
+        "continue": "متابعة"
+      }
+    },
+    "fallback": {
+      "noQuestionsTitle": "لا حاجة لفحص الثقة الآن",
+      "noQuestionsBody": "لا توجد أسئلة ثقة لك في الوقت الحالي. يمكنك متابعة بقية خطوات الإعداد.",
+      "systemIssueTitle": "تعذّر تحميل هذه الخطوة",
+      "systemIssueBody": "حدث خطأ أثناء تحميل هذه الأسئلة. يمكنك المتابعة وسنحاول مرة أخرى لاحقاً.",
+      "continue": "متابعة"
+    },
+    "microAssessment": {
+      "title": "فحص سريع لـ{{type}}",
+      "types": {
+        "personality": "الشخصية",
+        "self_efficacy": "الكفاءة الذاتية",
+        "study_strategy": "استراتيجية الدراسة",
+        "learning_style": "أسلوب التعلم",
+        "baseline_prompt": "الاختبار المبدئي"
+      },
+      "estimatedMinutes": "~{{minutes}} دقيقة",
+      "description_one": "سؤال سريع واحد لتحسين ملفك الشخصي.",
+      "description_other": "{{count}} أسئلة سريعة لتحسين ملفك الشخصي.",
+      "completeNow": "أكمل الآن",
+      "remindLater": "ذكّرني لاحقاً",
+      "dismiss": "تجاهل التقييم السريع",
+      "lastChance": "الفرصة الأخيرة — سيتم تخطي هذا إذا تم تجاهله مرة أخرى."
+    }
+  },
+  "planner": {
+    "actions": {
+      "addTask": "إضافة مهمة",
+      "startSession": "بدء جلسة"
+    },
+    "suggestion": {
+      "label": "جلسة دراسة مقترحة",
+      "withCourse": "جلسة دراسة: {{course}}",
+      "duration": "فترة تركيز {{minutes}} دقيقة",
+      "plan": "خطّط للجلسة",
+      "ariaPlan": "خطّط لجلسة دراسة مدتها {{minutes}} دقيقة"
+    },
+    "goals": {
+      "exampleHeading": "أفكار أهداف للبدء",
+      "exampleHint": "حدّد هدفاً أدناه لتتابع أسبوعك.",
+      "setGoals": "تحديد الأهداف",
+      "types": {
+        "study_hours": "ساعات الدراسة",
+        "sessions_completed": "الجلسات",
+        "tasks_completed": "المهام"
+      },
+      "target": {
+        "study_hours": "{{count}} ساعات",
+        "sessions_completed": "{{count}} جلسات",
+        "tasks_completed": "{{count}} مهام"
+      }
+    }
+  },
+  "quiz": {
+    "loading": "جارٍ تجهيز اختبارك التكيفي...",
+    "unableToLoad": "تعذّر تحميل الاختبار. يرجى العودة والمحاولة مرة أخرى.",
+    "questionProgress": "السؤال {{number}} من {{total}}",
+    "loadingButton": "جارٍ التحميل...",
+    "submitAnswer": "إرسال الإجابة",
+    "nextQuestion": "السؤال التالي",
+    "finishQuiz": "إنهاء الاختبار",
+    "recovery": {
+      "title": "التعافي مطلوب",
+      "body": "لديك مسار تعافٍ نشط لإتقان مخرج تعلم مرتبط بهذا الاختبار. أكمل خطوات التعافي قبل إعادة المحاولة.",
+      "cta": "اذهب إلى مسار التعافي"
+    },
+    "toast": {
+      "startFailed": "تعذّر بدء الاختبار. يرجى المحاولة مرة أخرى.",
+      "submitFailed": "تعذّر إرسال الاختبار. يرجى المحاولة مرة أخرى.",
+      "nextFailed": "تعذّر تحميل السؤال التالي. يرجى المحاولة مرة أخرى.",
+      "selectAnswer": "يرجى اختيار إجابة قبل الإرسال.",
+      "timeUp": "انتهى الوقت! جارٍ إرسال اختبارك..."
+    },
+    "feedback": {
+      "correctTitle": "إجابة صحيحة!",
+      "correctBody": "أحسنت — اطّلع على مراجعة ما بعد الاختبار للحصول على شرح مفصّل.",
+      "incorrectTitle": "إجابة خاطئة",
+      "correctAnswerRevealPrefix": "الإجابة الصحيحة هي",
+      "reviewLater": "راجع الإجابة الصحيحة والشرح بعد الاختبار."
+    },
+    "review": {
+      "title": "مراجعة الاختبار",
+      "loading": "جارٍ تحميل مراجعة الاختبار...",
+      "loadFailed": "تعذّر تحميل مراجعة الاختبار. يرجى المحاولة مرة أخرى.",
+      "backToDashboard": "العودة إلى لوحة التحكم",
+      "overallScore": "الدرجة الإجمالية:",
+      "perCloBreakdown": "تفصيل الدرجات حسب مخرجات التعلم",
+      "bloomsProgression": "التدرّج في تصنيف بلوم",
+      "questionLabel": "السؤال {{number}}",
+      "correct": "صحيحة",
+      "incorrect": "خاطئة",
+      "verifiedExplanation": "شرح موثّق",
+      "aiExplanation": "شرح الذكاء الاصطناعي",
+      "getHelp": "احصل على مساعدة في هذا الموضوع",
+      "bloomLevel": "المستوى {{level}}"
+    }
+  },
+  "createTeam": {
+    "back": "العودة",
+    "title": "إنشاء فريق",
+    "noCoursesAvailable": "لا توجد مقررات بها فرق يشكّلها الطلاب متاحة.",
+    "courseLabel": "المقرر",
+    "selectCourse": "اختر مقرراً",
+    "teamNameLabel": "اسم الفريق",
+    "teamNamePlaceholder": "مثال: محاربو البرمجة",
+    "inviteMembers": "دعوة الأعضاء ({{current}}/6 بما فيهم أنت)",
+    "noAvailableStudents": "لا يوجد طلاب متاحون في هذا المقرر.",
+    "selectAtLeastOne": "اختر عضواً واحداً على الأقل (يحتاج الفريق إلى 2-6 أعضاء).",
+    "submit": "إنشاء فريق",
+    "validation": {
+      "nameMin": "يجب أن يكون اسم الفريق حرفين على الأقل",
+      "courseRequired": "اختر مقرراً"
+    },
+    "toast": {
+      "sizeInvalid": "يجب أن يضم الفريق من 2 إلى 6 أعضاء (بما فيهم أنت)",
+      "created": "تم إنشاء الفريق! أنت القائد."
+    }
+  },
+  "surveys": {
+    "title": "الاستبيانات",
+    "alreadyCompleted": "لقد أكملت هذا الاستبيان بالفعل.",
+    "completed": "مكتمل",
+    "toast": {
+      "answerAtLeastOne": "يرجى الإجابة على سؤال واحد على الأقل",
+      "submitted": "تم إرسال الاستبيان! +15 نقطة خبرة",
+      "submitFailed": "تعذّر إرسال الاستبيان"
+    }
+  },
+  "publicPortfolio": {
+    "subtitle": "ملف التعلم للطالب",
+    "totalXP": "إجمالي نقاط الخبرة",
+    "level": "المستوى",
+    "sections": {
+      "cloAttainment": "تحصيل مخرجات التعلم",
+      "badges": "الأوسمة"
+    },
+    "poweredBy": "مُشغّل بواسطة إيديفايزر",
+    "error": {
+      "forbiddenTitle": "الملف غير متاح",
+      "forbiddenBody": "هذا الملف خاص. لم يقم الطالب بتفعيل المشاركة العامة، أو لم تمنح مدرسته الإذن.",
+      "notFoundTitle": "الملف غير موجود",
+      "notFoundBody": "تعذّر العثور على ملف لهذا الرابط. ربما تمت إزالته أو أن الرابط غير صحيح.",
+      "missingIdTitle": "الملف غير متاح",
+      "missingIdBody": "لم يتم تقديم معرّف الطالب.",
+      "code": "خطأ {{status}}"
+    }
   }
 }

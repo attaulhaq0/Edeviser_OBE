@@ -7,6 +7,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter } from "react-router-dom";
+import "@/lib/i18n";
 
 // ─── Mocks ───────────────────────────────────────────────────────────────────
 

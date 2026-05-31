@@ -7,6 +7,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
+import "@/lib/i18n";
 
 // ─── Hook mocks ──────────────────────────────────────────────────────────────
 
@@ -235,8 +236,8 @@ describe("PostQuizReview", () => {
     const hrefs = helpLinks.map((link) =>
       link.closest("a")?.getAttribute("href")
     );
-    expect(hrefs).toContain("/student/ai-tutor?clo=clo-1");
-    expect(hrefs).toContain("/student/ai-tutor?clo=clo-2");
+    expect(hrefs).toContain("/student/tutor?cloIds=clo-1");
+    expect(hrefs).toContain("/student/tutor?cloIds=clo-2");
   });
 
   it('labels AI explanations with "AI Explanation" heading', async () => {

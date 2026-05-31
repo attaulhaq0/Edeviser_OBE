@@ -283,7 +283,7 @@ const StepCard = ({
               <div className="flex items-center gap-2">
                 <Button size="sm" variant="outline" asChild className="text-xs">
                   <a
-                    href={`/student/ai-tutor?clo=${cloId}`}
+                    href={`/student/tutor?cloIds=${cloId}`}
                     target="_blank"
                     rel="noopener noreferrer"
                   >

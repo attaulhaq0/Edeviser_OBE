@@ -15,6 +15,10 @@ export interface HeatmapTooltipProps {
   comebackDayNumber?: number;
   isSabbaticalRestDay?: boolean;
   milestone?: StreakMilestone;
+  /** Whether this day qualifies as a Perfect Day (all 4 academic habits). */
+  isPerfectDay?: boolean;
+  /** XP awarded for a Perfect Day, shown as reward context (R7.3). */
+  perfectDayXp?: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -55,6 +59,8 @@ const HeatmapTooltip = ({
   comebackDayNumber,
   isSabbaticalRestDay: isSabbatical,
   milestone,
+  isPerfectDay,
+  perfectDayXp,
 }: HeatmapTooltipProps) => {
   const academic = habits.filter((h) => h.category === "academic");
   const wellness = habits.filter((h) => h.category === "wellness");
@@ -104,6 +110,19 @@ const HeatmapTooltip = ({
           data-testid="tooltip-milestone-label"
         >
           {milestone.days}-Day Streak Milestone 🎉
+        </p>
+      )}
+
+      {/* Perfect Day reward context */}
+      {isPerfectDay && (
+        <p
+          className="text-xs font-medium text-amber-600 mt-1"
+          data-testid="tooltip-perfect-day-label"
+        >
+          ⭐ Perfect Day
+          {perfectDayXp != null && perfectDayXp > 0
+            ? ` · +${perfectDayXp} XP bonus`
+            : ""}
         </p>
       )}
 

@@ -1,7 +1,6 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useQuery } from "@tanstack/react-query";
-import { PenLine, Plus, BookOpen, Calendar } from "lucide-react";
+import { PenLine, Plus, BookOpen, Calendar, Lightbulb } from "lucide-react";
 import { format } from "date-fns";
 
 import { Card } from "@/components/ui/card";
@@ -28,43 +27,26 @@ import { Label } from "@/components/ui/label";
 import Shimmer from "@/components/shared/Shimmer";
 import EmptyState from "@/components/shared/EmptyState";
 import { useAuth } from "@/hooks/useAuth";
+import { useJournalEntries, useCreateJournalEntry } from "@/hooks/useJournal";
+import { useJournalCourseOptions } from "@/hooks/useJournalCourseOptions";
+import { useCLOs } from "@/hooks/useCLOs";
 import {
-  useJournalEntries,
-  useCreateJournalEntry,
-} from "@/hooks/useJournal";
-import { supabase } from "@/lib/supabase";
-import { queryKeys } from "@/lib/queryKeys";
+  generateJournalPrompt,
+  type GeneratedJournalPrompt,
+} from "@/lib/journalPromptGenerator";
+import {
+  REFLECTION_PROMPT_TEMPLATES,
+  seedContentWithPrompt,
+} from "@/lib/reflectionPrompts";
 import { toast } from "sonner";
 
-interface CourseOption {
-  id: string;
-  name: string;
-  code: string;
-}
-
-const useEnrolledCourseOptions = (studentId: string | undefined) => {
-  return useQuery({
-    queryKey: queryKeys.enrollments.list({ studentId, view: "journal" }),
-    queryFn: async (): Promise<CourseOption[]> => {
-      if (!studentId) return [];
-      const { data, error } = await supabase
-        .from("student_courses")
-        .select("course_id, courses!inner(id, name, code)")
-        .eq("student_id", studentId)
-        .eq("status", "active");
-      if (error) throw error;
-      return (data ?? []).map((row) => {
-        const c = row.courses as unknown as {
-          id: string;
-          name: string;
-          code: string;
-        };
-        return c;
-      });
-    },
-    enabled: !!studentId,
-    staleTime: 60_000,
-  });
+/**
+ * Builds the seed text for a CLO-contextual guided prompt: the intro followed
+ * by the Kolb reflection questions as scaffolding.
+ */
+const buildGuidedSeed = (prompt: GeneratedJournalPrompt): string => {
+  const questions = prompt.questions.map((q) => `• ${q.question}`).join("\n");
+  return `${prompt.promptText}\n\n${questions}`;
 };
 
 const StudentJournalPage = () => {
@@ -77,12 +59,43 @@ const StudentJournalPage = () => {
   const [content, setContent] = useState("");
 
   const { data: entries, isLoading: entriesLoading } = useJournalEntries();
-  const { data: courses } = useEnrolledCourseOptions(studentId);
+  const { data: courses } = useJournalCourseOptions(studentId);
   const createEntry = useCreateJournalEntry();
+
+  // CLOs for the selected course drive the existing CLO-contextual prompt
+  // generator. Matches the pattern used in JournalEditor.
+  const { data: closData } = useCLOs(selectedCourse || undefined);
+  const clos = useMemo(() => closData?.data ?? [], [closData]);
+
+  // Build a guided, CLO-contextual prompt when context is available. When no
+  // course/CLO context exists — or the generator is otherwise unavailable —
+  // this is null and the page falls back to the static templates + free-text
+  // (basic unguided journal), so journaling always remains possible (R10.3a).
+  const guidedPrompt = useMemo((): GeneratedJournalPrompt | null => {
+    if (!selectedCourse) return null;
+    const cloWithBlooms = clos.find((c) => c.blooms_level);
+    if (!cloWithBlooms || !cloWithBlooms.blooms_level) return null;
+    try {
+      return generateJournalPrompt({
+        cloTitle: cloWithBlooms.title,
+        bloomsLevel: cloWithBlooms.blooms_level,
+        // Real attainment would come from outcome_attainment; "Developing"
+        // is a neutral default that yields the full set of reflection stages.
+        attainmentLevel: "Developing",
+      });
+    } catch {
+      // Generator unavailable — fall back to the unguided journal (R10.3a).
+      return null;
+    }
+  }, [selectedCourse, clos]);
 
   const wordCount = content.trim().split(/\s+/).filter(Boolean).length;
 
   const courseLookup = new Map((courses ?? []).map((c) => [c.id, c]));
+
+  const handleSelectTemplate = (promptText: string) => {
+    setContent((prev) => seedContentWithPrompt(prev, promptText));
+  };
 
   const handleSubmit = async () => {
     if (!selectedCourse || content.trim().length === 0) return;
@@ -96,7 +109,8 @@ const StudentJournalPage = () => {
       setSelectedCourse("");
       setIsCreating(false);
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to save entry";
+      const message =
+        err instanceof Error ? err.message : "Failed to save entry";
       toast.error(message);
     }
   };
@@ -122,7 +136,7 @@ const StudentJournalPage = () => {
               {t("journal.newEntry", "New Entry")}
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
                 {t("journal.dialog.title", "New Journal Entry")}
@@ -160,6 +174,65 @@ const StudentJournalPage = () => {
                   </SelectContent>
                 </Select>
               </div>
+
+              {/* Reflection prompt templates — always available so the journal
+                  is guided rather than a bare textbox (R10.1, R10.2). */}
+              <div className="space-y-2">
+                <Label>
+                  {t("journal.prompts.title", "Reflection prompts")}
+                </Label>
+                <p className="text-xs text-gray-500">
+                  {t(
+                    "journal.prompts.hint",
+                    "Pick a prompt to get started, or just write freely below."
+                  )}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {REFLECTION_PROMPT_TEMPLATES.map((template) => {
+                    const promptText = t(template.i18nKey);
+                    return (
+                      <Button
+                        key={template.id}
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="rounded-full"
+                        onClick={() => handleSelectTemplate(promptText)}
+                      >
+                        <Lightbulb className="h-3.5 w-3.5 me-1.5 text-amber-500" />
+                        {promptText}
+                      </Button>
+                    );
+                  })}
+                </div>
+
+                {/* CLO-contextual guided prompt from the existing generator,
+                    shown only when course/CLO context is available (R10.3). */}
+                {guidedPrompt && (
+                  <div className="rounded-lg border border-teal-200 bg-teal-50 p-3 space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-xs font-bold tracking-wide uppercase text-teal-700">
+                        {t("journal.prompts.guided", "Guided reflection")}
+                      </p>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 text-teal-700 hover:bg-teal-100"
+                        onClick={() =>
+                          handleSelectTemplate(buildGuidedSeed(guidedPrompt))
+                        }
+                      >
+                        {t("journal.prompts.use", "Use this prompt")}
+                      </Button>
+                    </div>
+                    <p className="text-sm text-gray-700 leading-relaxed">
+                      {guidedPrompt.promptText}
+                    </p>
+                  </div>
+                )}
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="content">
                   {t("journal.dialog.content", "Reflection")}
@@ -175,8 +248,7 @@ const StudentJournalPage = () => {
                   )}
                 />
                 <p className="text-xs text-gray-500">
-                  {wordCount}{" "}
-                  {t("journal.dialog.words", "words")}
+                  {wordCount} {t("journal.dialog.words", "words")}
                   {wordCount >= 50 && (
                     <span className="ms-2 text-green-600 font-semibold">
                       ✓ {t("journal.dialog.xpEarned", "+20 XP eligible")}
@@ -237,7 +309,10 @@ const StudentJournalPage = () => {
                 <div className="flex items-start justify-between gap-3 mb-3">
                   <div className="flex items-center gap-2">
                     {course ? (
-                      <Badge variant="outline" className="text-[10px] font-bold">
+                      <Badge
+                        variant="outline"
+                        className="text-[10px] font-bold"
+                      >
                         <BookOpen className="h-3 w-3 me-1" />
                         {course.code}
                       </Badge>

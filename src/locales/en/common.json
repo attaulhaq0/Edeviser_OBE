@@ -56,7 +56,13 @@
     "profile": "Profile",
     "notifications": "Notifications",
     "discussions": "Discussions",
-    "quizzes": "Quizzes"
+    "quizzes": "Quizzes",
+    "groups": {
+      "learn": "Learn",
+      "growth": "Growth",
+      "community": "Community",
+      "tools": "Tools"
+    }
   },
   "emailVerification": {
     "banner": "Please verify your email address to access all features.",
@@ -147,6 +153,103 @@
     "satisfactory": "Satisfactory",
     "developing": "Developing",
     "notYet": "Not Yet"
+  },
+  "attainmentInfo": {
+    "triggerLabel": "What does this attainment percentage mean?",
+    "title": "Understanding Attainment",
+    "description": "Attainment shows how well you've mastered your course learning outcomes.",
+    "bandsHeading": "Levels",
+    "ranges": {
+      "excellent": "{{min}}% and above",
+      "satisfactory": "{{min}}–{{max}}%",
+      "developing": "{{min}}–{{max}}%",
+      "notYet": "Below {{threshold}}%"
+    }
+  },
+  "mascot": {
+    "regionLabel": "Edi the learning coach",
+    "moments": {
+      "welcome": {
+        "title": "Hi, I'm Edi!",
+        "message": "I'll be your coach along the way. Let's set up your learning journey together."
+      },
+      "assessmentIntro": {
+        "title": "A quick check-in",
+        "message": "Answer honestly — there are no wrong answers here. This helps me personalize your experience."
+      },
+      "emptyState": {
+        "title": "Nothing here yet",
+        "message": "This is where things will show up once you get started. Take the first step and I'll cheer you on."
+      },
+      "firstXp": {
+        "title": "Your first XP!",
+        "message": "Nice work — you just earned your first experience points. Keep it up and watch your level grow."
+      },
+      "firstEnrollment": {
+        "title": "You're enrolled!",
+        "message": "Welcome to your first course. Explore the lessons and I'll help you stay on track."
+      },
+      "password": {
+        "title": "Keeping you safe",
+        "message": "Pick a password you'll remember. Tap the eye icon any time to check what you typed."
+      }
+    }
+  },
+  "timetable": {
+    "title": "Timetable",
+    "weeklySchedule": "Weekly Schedule",
+    "time": "Time",
+    "class": "Class",
+    "sectionLabel": "Section {{code}}",
+    "days": {
+      "0": "Sunday",
+      "1": "Monday",
+      "2": "Tuesday",
+      "3": "Wednesday",
+      "4": "Thursday",
+      "5": "Friday",
+      "6": "Saturday"
+    },
+    "slotType": {
+      "lecture": "LEC",
+      "lab": "LAB",
+      "tutorial": "TUT"
+    },
+    "now": {
+      "happeningNow": "Happening now",
+      "upNext": "Up next",
+      "endsIn": "Ends in {{time}}",
+      "startsIn": "Starts in {{time}}",
+      "room": "Room {{room}}",
+      "noUpcoming": "No upcoming classes",
+      "noUpcomingHint": "You're all caught up — no classes are scheduled right now."
+    },
+    "remaining": {
+      "days": "{{value}}d",
+      "hours": "{{value}}h",
+      "minutes": "{{value}}m",
+      "lessThanMinute": "less than a minute"
+    }
+  },
+  "calendar": {
+    "title": "Calendar",
+    "subtitle": "A read-only view of your upcoming deadlines.",
+    "readOnlyNotice": "This calendar is read-only. To add or edit tasks and study sessions, use your Planner and Today views.",
+    "monthly": "Monthly",
+    "weekly": "Weekly",
+    "previous": "Previous",
+    "next": "Next",
+    "noEvents": "No events",
+    "moreEvents": "+{{n}} more",
+    "daysShort": {
+      "0": "Sun",
+      "1": "Mon",
+      "2": "Tue",
+      "3": "Wed",
+      "4": "Thu",
+      "5": "Fri",
+      "6": "Sat"
+    }
   },
   "parentDashboard": {
     "greeting": {

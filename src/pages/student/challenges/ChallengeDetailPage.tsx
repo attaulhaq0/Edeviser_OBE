@@ -4,18 +4,19 @@
 // =============================================================================
 
 import { useParams, useNavigate } from "react-router-dom";
-import { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
-import { queryKeys } from "@/lib/queryKeys";
+import { useState, useMemo, useEffect } from "react";
+import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
+import { useChallengeDetail } from "@/hooks/useChallengeDetail";
+import {
+  useMyChallengeProgress,
+  useChallengeLeaderboardParticipants,
+} from "@/hooks/useChallengeParticipation";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import ChallengeProgressBar from "@/components/shared/ChallengeProgressBar";
-import ChallengeLeaderboard, {
-  type LeaderboardParticipant,
-} from "@/components/shared/ChallengeLeaderboard";
+import ChallengeLeaderboard from "@/components/shared/ChallengeLeaderboard";
 import Shimmer from "@/components/shared/Shimmer";
 import {
   ArrowLeft,
@@ -24,103 +25,26 @@ import {
   Target,
   Handshake,
   CheckCircle2,
+  AlertCircle,
 } from "lucide-react";
-
-interface ChallengeDetail {
-  id: string;
-  title: string;
-  description: string;
-  challenge_type: string;
-  participation_mode: string;
-  goal_target: number;
-  start_date: string;
-  end_date: string;
-  reward_xp: number;
-  reward_badge_id: string | null;
-  status: string;
-}
-
-interface ProgressRecord {
-  current_progress: number;
-  completed_at: string | null;
-}
-
-const useChallengeDetail = (challengeId?: string) => {
-  return useQuery({
-    queryKey: queryKeys.challenges.detail(challengeId ?? ""),
-    queryFn: async (): Promise<ChallengeDetail | null> => {
-      const { data, error } = await supabase
-        .from("social_challenges" as never)
-        .select("*")
-        .eq("id", challengeId!)
-        .single();
-      if (error) throw error;
-      return data as ChallengeDetail;
-    },
-    enabled: !!challengeId,
-  });
-};
-
-const useMyProgress = (challengeId?: string, userId?: string) => {
-  return useQuery({
-    queryKey: queryKeys.challengeProgress.list({
-      challengeId,
-      participantId: userId,
-    }),
-    queryFn: async (): Promise<ProgressRecord | null> => {
-      const { data, error } = await supabase
-        .from("challenge_progress" as never)
-        .select("current_progress, completed_at")
-        .eq("challenge_id", challengeId!)
-        .eq("participant_id", userId!)
-        .maybeSingle();
-      if (error) throw error;
-      return data as ProgressRecord | null;
-    },
-    enabled: !!challengeId && !!userId,
-  });
-};
-
-const useLeaderboardParticipants = (challengeId?: string) => {
-  return useQuery({
-    queryKey: queryKeys.challengeLeaderboard.list({ challengeId }),
-    queryFn: async (): Promise<LeaderboardParticipant[]> => {
-      const { data, error } = await supabase
-        .from("challenge_progress" as never)
-        .select(
-          "participant_id, participant_type, current_progress, completed_at"
-        )
-        .eq("challenge_id", challengeId!)
-        .order("current_progress", { ascending: false });
-      if (error) throw error;
-
-      return (
-        (data ?? []) as Array<{
-          participant_id: string;
-          participant_type: string;
-          current_progress: number;
-          completed_at: string | null;
-        }>
-      ).map((row, idx) => ({
-        participantId: row.participant_id,
-        displayName: `Participant ${idx + 1}`,
-        currentProgress: row.current_progress,
-        goalTarget: 0,
-        completedAt: row.completed_at,
-        rank: idx + 1,
-      }));
-    },
-    enabled: !!challengeId,
-  });
-};
 
 const ChallengeDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { data: challenge, isLoading } = useChallengeDetail(id);
-  const { data: myProgress } = useMyProgress(id, user?.id);
-  const { data: leaderboardParticipants } = useLeaderboardParticipants(id);
+  const { data: challenge, isLoading, isError, error } = useChallengeDetail(id);
+  const { data: myProgress } = useMyChallengeProgress(id, user?.id);
+  const { data: leaderboardParticipants } =
+    useChallengeLeaderboardParticipants(id);
+
+  // R28.2 / R28.3a: a genuine query failure surfaces BOTH a toast and a
+  // dedicated error UI state — distinct from the graceful not-found state that
+  // a `null` (zero-row) result produces. Toast fires once per error.
+  useEffect(() => {
+    if (isError) {
+      toast.error("Failed to load this challenge. Please try again.");
+    }
+  }, [isError, error]);
 
   const [now] = useState(() => Date.now());
   const daysLeft = useMemo(() => {
@@ -142,6 +66,27 @@ const ChallengeDetailPage = () => {
     );
   }
 
+  // R28.2: query failure → dedicated error state (distinct from not-found).
+  if (isError) {
+    return (
+      <div className="space-y-6">
+        <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
+          <ArrowLeft className="h-4 w-4 me-1" /> Back
+        </Button>
+        <Card className="bg-white border-0 shadow-md rounded-xl p-8 text-center">
+          <AlertCircle className="h-8 w-8 text-red-500 mx-auto mb-2" />
+          <p className="text-sm font-semibold text-gray-700">
+            Something went wrong
+          </p>
+          <p className="text-sm text-gray-500">
+            We couldn't load this challenge. Please try again.
+          </p>
+        </Card>
+      </div>
+    );
+  }
+
+  // R27.2: zero-row result → graceful not-found state (never throws).
   if (!challenge) {
     return (
       <div className="space-y-6">

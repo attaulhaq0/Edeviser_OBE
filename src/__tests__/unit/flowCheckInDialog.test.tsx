@@ -156,7 +156,7 @@ describe("FlowCheckInDialog", () => {
       expect(screen.getByRole("link", { name: /open ai tutor/i })).toBeTruthy();
     });
 
-    it("renders AI Tutor link pointing to /student/ai-tutor", async () => {
+    it("renders AI Tutor link pointing to /student/tutor", async () => {
       const user = userEvent.setup();
       renderDialog();
 
@@ -164,7 +164,7 @@ describe("FlowCheckInDialog", () => {
 
       const link = screen.getByRole("link", { name: /open ai tutor/i });
       expect(link).toBeTruthy();
-      expect(link.getAttribute("href")).toBe("/student/ai-tutor");
+      expect(link.getAttribute("href")).toBe("/student/tutor");
     });
   });
 

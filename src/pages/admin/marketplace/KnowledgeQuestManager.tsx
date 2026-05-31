@@ -8,12 +8,52 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Plus, Search, Loader2, BookOpen } from "lucide-react";
-import { useAdminKnowledgeQuests } from "@/hooks/useKnowledgeQuestAdmin";
+import {
+  useAdminKnowledgeQuests,
+  useCreateKnowledgeQuest,
+} from "@/hooks/useKnowledgeQuestAdmin";
 
 const KnowledgeQuestManager = () => {
   const { data: quests, isLoading } = useAdminKnowledgeQuests();
+  const createQuest = useCreateKnowledgeQuest();
   const [search, setSearch] = useState("");
+  const [dialogOpen, setDialogOpen] = useState(false);
+  // Compute defaults inside useState initializer so they are pure on render.
+  const [form, setForm] = useState(() => {
+    const todayDate = new Date().toISOString().slice(0, 10);
+    const oneWeekDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .slice(0, 10);
+    return {
+      title: "",
+      description: "",
+      quest_type: "quiz_challenge" as
+        | "quiz_challenge"
+        | "content_creation"
+        | "peer_review",
+      start_date: todayDate,
+      end_date: oneWeekDate,
+      reward_xp_amount: 100,
+    };
+  });
 
   const filteredQuests = (quests ?? []).filter((q) =>
     (q as Record<string, unknown>).title
@@ -22,13 +62,178 @@ const KnowledgeQuestManager = () => {
       .includes(search.toLowerCase())
   );
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.title.trim() || !form.description.trim()) return;
+    createQuest.mutate(
+      {
+        title: form.title,
+        description: form.description,
+        quest_type: form.quest_type,
+        target_clo_ids: [],
+        // Convert YYYY-MM-DD to ISO datetime (start of day, end of day UTC)
+        start_date: new Date(form.start_date).toISOString(),
+        end_date: new Date(form.end_date + "T23:59:59").toISOString(),
+        reward_type: "xp",
+        reward_item_id: null,
+        reward_xp_amount: form.reward_xp_amount,
+      },
+      {
+        onSuccess: () => {
+          setDialogOpen(false);
+          const todayDate = new Date().toISOString().slice(0, 10);
+          const oneWeekDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+            .toISOString()
+            .slice(0, 10);
+          setForm({
+            title: "",
+            description: "",
+            quest_type: "quiz_challenge",
+            start_date: todayDate,
+            end_date: oneWeekDate,
+            reward_xp_amount: 100,
+          });
+        },
+      }
+    );
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold tracking-tight">Knowledge Quests</h1>
-        <Button className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95">
-          <Plus className="h-4 w-4" /> Create Quest
-        </Button>
+
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95">
+              <Plus className="h-4 w-4" /> Create Quest
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>New Knowledge Quest</DialogTitle>
+            </DialogHeader>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="quest-title">Title</Label>
+                <Input
+                  id="quest-title"
+                  value={form.title}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, title: e.target.value }))
+                  }
+                  required
+                  placeholder="e.g., Master the Periodic Table"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="quest-description">Description</Label>
+                <Textarea
+                  id="quest-description"
+                  value={form.description}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, description: e.target.value }))
+                  }
+                  required
+                  rows={3}
+                  placeholder="What students will accomplish"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label>Quest type</Label>
+                <Select
+                  value={form.quest_type}
+                  onValueChange={(value) =>
+                    setForm((f) => ({
+                      ...f,
+                      quest_type: value as typeof f.quest_type,
+                    }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="quiz_challenge">
+                      Quiz Challenge
+                    </SelectItem>
+                    <SelectItem value="content_creation">
+                      Content Creation
+                    </SelectItem>
+                    <SelectItem value="peer_review">Peer Review</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="quest-start">Starts</Label>
+                  <Input
+                    id="quest-start"
+                    type="date"
+                    value={form.start_date}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, start_date: e.target.value }))
+                    }
+                    required
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="quest-end">Ends</Label>
+                  <Input
+                    id="quest-end"
+                    type="date"
+                    value={form.end_date}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, end_date: e.target.value }))
+                    }
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="quest-xp">Reward XP</Label>
+                <Input
+                  id="quest-xp"
+                  type="number"
+                  min={1}
+                  value={form.reward_xp_amount}
+                  onChange={(e) =>
+                    setForm((f) => ({
+                      ...f,
+                      reward_xp_amount: Number(e.target.value),
+                    }))
+                  }
+                  required
+                />
+              </div>
+
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setDialogOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={createQuest.isPending}
+                  className="bg-gradient-to-r from-teal-500 to-blue-600"
+                >
+                  {createQuest.isPending && (
+                    <Loader2 className="h-4 w-4 animate-spin me-2" />
+                  )}
+                  Create
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="flex items-center gap-4">
@@ -47,6 +252,14 @@ const KnowledgeQuestManager = () => {
         <div className="flex justify-center py-12">
           <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
         </div>
+      ) : filteredQuests.length === 0 ? (
+        <Card className="bg-white border-0 shadow-md rounded-xl p-12 text-center">
+          <BookOpen className="h-10 w-10 text-gray-300 mx-auto mb-3" />
+          <p className="text-sm text-gray-500">
+            No knowledge quests yet. Create one to engage students with focused
+            learning challenges.
+          </p>
+        </Card>
       ) : (
         <div className="grid gap-4">
           {filteredQuests.map((quest) => {

@@ -14,6 +14,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import Shimmer from "@/components/shared/Shimmer";
+import { NoChallenges } from "@/components/shared/EmptyState";
 import { Trophy, Target, Users, Handshake, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -186,9 +187,7 @@ const ChallengeListPage = () => {
 
         <TabsContent value="active" className="mt-4 space-y-3">
           {active.length === 0 ? (
-            <Card className="bg-white border-0 shadow-md rounded-xl p-8 text-center text-gray-500 text-sm">
-              No active challenges right now.
-            </Card>
+            <NoChallenges />
           ) : (
             active.map((c) => (
               <ChallengeCard
@@ -202,9 +201,7 @@ const ChallengeListPage = () => {
 
         <TabsContent value="upcoming" className="mt-4 space-y-3">
           {upcoming.length === 0 ? (
-            <Card className="bg-white border-0 shadow-md rounded-xl p-8 text-center text-gray-500 text-sm">
-              No upcoming challenges.
-            </Card>
+            <NoChallenges />
           ) : (
             upcoming.map((c) => (
               <ChallengeCard
@@ -218,9 +215,7 @@ const ChallengeListPage = () => {
 
         <TabsContent value="completed" className="mt-4 space-y-3">
           {completed.length === 0 ? (
-            <Card className="bg-white border-0 shadow-md rounded-xl p-8 text-center text-gray-500 text-sm">
-              No completed challenges yet.
-            </Card>
+            <NoChallenges />
           ) : (
             completed.map((c) => (
               <ChallengeCard

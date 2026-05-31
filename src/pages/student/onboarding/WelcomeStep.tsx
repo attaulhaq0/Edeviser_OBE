@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import Mascot from "@/components/shared/Mascot";
 import { ONBOARDING_XP } from "@/lib/onboardingConstants";
 import type { WizardStepProps } from "./OnboardingWizard";
 
@@ -39,6 +40,10 @@ export const WelcomeStep = ({ isDay1, onComplete }: WizardStepProps) => {
           ? "Let's get to know you with a few quick questions so we can personalize your learning experience."
           : "Complete your full profile to unlock personalized learning paths, AI recommendations, and more."}
       </p>
+
+      {/* Mascot coaching at the welcome moment (R35.1). Renders nothing when
+          mascot guidance is disabled or inactive (R35.4, R35.5). */}
+      <Mascot moment="welcome" className="mt-6 w-full max-w-sm" />
 
       {/* Info cards */}
       <div className="mt-8 grid w-full max-w-sm gap-3">

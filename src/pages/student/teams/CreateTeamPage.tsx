@@ -7,11 +7,13 @@ import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/hooks/useAuth";
 import { useCreateTeam } from "@/hooks/useTeams";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
-import { queryKeys } from "@/lib/queryKeys";
+import {
+  useStudentFormedCourses,
+  useCourseRoster,
+} from "@/hooks/useTeamFormation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,78 +38,14 @@ import { Loader2, Users, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
 
-const createTeamFormSchema = z.object({
-  name: z.string().min(2, "Team name must be at least 2 characters").max(50),
-  course_id: z.string().uuid("Select a course"),
-});
-
-type CreateTeamFormData = z.infer<typeof createTeamFormSchema>;
-
-interface CourseOption {
-  id: string;
+interface CreateTeamFormData {
   name: string;
-  team_formation_mode: string;
+  course_id: string;
 }
-
-const useStudentFormedCourses = (studentId?: string) => {
-  return useQuery({
-    queryKey: queryKeys.enrollments.list({ studentId, studentFormed: true }),
-    queryFn: async (): Promise<CourseOption[]> => {
-      const { data: enrollments, error: enrollError } = await supabase
-        .from("student_courses")
-        .select("course_id")
-        .eq("student_id", studentId!)
-        .eq("status", "active");
-      if (enrollError) throw enrollError;
-
-      const courseIds = (enrollments ?? []).map((e) => e.course_id);
-      if (courseIds.length === 0) return [];
-
-      const { data, error } = await supabase
-        .from("courses")
-        .select("id, name, team_formation_mode")
-        .in("id", courseIds)
-        .eq("team_formation_mode", "student_formed");
-      if (error) throw error;
-      return (data ?? []) as CourseOption[];
-    },
-    enabled: !!studentId,
-  });
-};
-
-interface RosterStudent {
-  student_id: string;
-  full_name: string;
-}
-
-const useCourseRoster = (courseId?: string, excludeStudentId?: string) => {
-  return useQuery({
-    queryKey: queryKeys.enrollments.list({ courseId, roster: true }),
-    queryFn: async (): Promise<RosterStudent[]> => {
-      const { data, error } = await supabase
-        .from("student_courses")
-        .select("student_id, profiles!inner(full_name)")
-        .eq("course_id", courseId!)
-        .eq("status", "active")
-        .neq("student_id", excludeStudentId ?? "");
-      if (error) throw error;
-
-      return (
-        (data ?? []) as Array<{
-          student_id: string;
-          profiles: { full_name: string };
-        }>
-      ).map((row) => ({
-        student_id: row.student_id,
-        full_name: row.profiles.full_name,
-      }));
-    },
-    enabled: !!courseId,
-  });
-};
 
 const CreateTeamPage = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation("student");
   const { user } = useAuth();
   const studentId = user?.id ?? "";
   const { data: courses, isLoading: coursesLoading } = useStudentFormedCourses(
@@ -117,7 +55,12 @@ const CreateTeamPage = () => {
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
 
   const form = useForm<CreateTeamFormData>({
-    resolver: zodResolver(createTeamFormSchema),
+    resolver: zodResolver(
+      z.object({
+        name: z.string().min(2, t("createTeam.validation.nameMin")).max(50),
+        course_id: z.string().uuid(t("createTeam.validation.courseRequired")),
+      })
+    ),
     defaultValues: { name: "", course_id: "" },
   });
 
@@ -139,7 +82,7 @@ const CreateTeamPage = () => {
 
   const onSubmit = (data: CreateTeamFormData) => {
     if (!sizeValid) {
-      toast.error("Team must have 2-6 members (including you)");
+      toast.error(t("createTeam.toast.sizeInvalid"));
       return;
     }
 
@@ -153,7 +96,7 @@ const CreateTeamPage = () => {
       },
       {
         onSuccess: (team) => {
-          toast.success("Team created! You are the captain.");
+          toast.success(t("createTeam.toast.created"));
           navigate(`/student/teams/${team.id}`);
         },
         onError: (err) => toast.error(err.message),
@@ -169,10 +112,13 @@ const CreateTeamPage = () => {
           size="sm"
           onClick={() => navigate(-1)}
           className="h-8 w-8 p-0"
+          aria-label={t("createTeam.back")}
         >
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <h1 className="text-2xl font-bold tracking-tight">Create Team</h1>
+        <h1 className="text-2xl font-bold tracking-tight">
+          {t("createTeam.title")}
+        </h1>
       </div>
 
       {coursesLoading ? (
@@ -181,7 +127,7 @@ const CreateTeamPage = () => {
         <Card className="bg-white border-0 shadow-md rounded-xl p-8 text-center">
           <Users className="h-8 w-8 text-gray-400 mx-auto mb-2" />
           <p className="text-sm text-gray-500">
-            No courses with student-formed teams available.
+            {t("createTeam.noCoursesAvailable")}
           </p>
         </Card>
       ) : (
@@ -193,11 +139,13 @@ const CreateTeamPage = () => {
                 name="course_id"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Course</FormLabel>
+                    <FormLabel>{t("createTeam.courseLabel")}</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger className="bg-white">
-                          <SelectValue placeholder="Select a course" />
+                          <SelectValue
+                            placeholder={t("createTeam.selectCourse")}
+                          />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -218,9 +166,12 @@ const CreateTeamPage = () => {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Team Name</FormLabel>
+                    <FormLabel>{t("createTeam.teamNameLabel")}</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g. Code Warriors" {...field} />
+                      <Input
+                        placeholder={t("createTeam.teamNamePlaceholder")}
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -231,13 +182,13 @@ const CreateTeamPage = () => {
               {selectedCourseId && (
                 <div className="space-y-2">
                   <FormLabel>
-                    Invite Members ({totalSize}/6 including you)
+                    {t("createTeam.inviteMembers", { current: totalSize })}
                   </FormLabel>
                   {rosterLoading ? (
                     <Shimmer className="h-24 rounded-lg" />
                   ) : !roster || roster.length === 0 ? (
                     <p className="text-xs text-gray-500">
-                      No available students in this course.
+                      {t("createTeam.noAvailableStudents")}
                     </p>
                   ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto border rounded-lg p-3">
@@ -267,7 +218,7 @@ const CreateTeamPage = () => {
                   )}
                   {totalSize < 2 && (
                     <p className="text-xs text-amber-600">
-                      Select at least 1 member (team needs 2-6 total).
+                      {t("createTeam.selectAtLeastOne")}
                     </p>
                   )}
                 </div>
@@ -281,7 +232,7 @@ const CreateTeamPage = () => {
                 {createMutation.isPending && (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 )}
-                Create Team
+                {t("createTeam.submit")}
               </Button>
             </form>
           </Form>

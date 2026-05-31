@@ -24,5 +24,119 @@
     "edit": "Edit",
     "reject": "Reject",
     "overallFeedback": "Overall Feedback Draft"
+  },
+  "tutor": {
+    "page": {
+      "title": "AI Tutor",
+      "openConversations": "Open conversations",
+      "newConversationTitle": "Start a new conversation",
+      "newConversationSubtitle": "Choose a tutoring style that works best for you",
+      "personaHint": "You can change the persona at any time during the conversation"
+    },
+    "states": {
+      "unavailable": {
+        "title": "AI Tutor unavailable",
+        "message": "The tutor can't be reached right now. Please try again in a few minutes."
+      },
+      "notEnrolled": {
+        "title": "Not enrolled in this course",
+        "message": "You're not enrolled in this course yet, so the tutor can't help here. Check with your teacher about enrollment."
+      },
+      "noEmbeddings": {
+        "title": "Still learning this course",
+        "message": "The tutor hasn't finished studying this course's materials yet. Please check back soon."
+      },
+      "rateLimited": {
+        "title": "Daily limit reached",
+        "message": "You've reached your tutor message limit for today. It resets at midnight.",
+        "reset": "Resets {{hint}}."
+      },
+      "error": {
+        "title": "Something went wrong",
+        "message": "The AI Tutor ran into a problem. Please try again."
+      },
+      "retry": "Try again"
+    },
+    "chat": {
+      "title": "AI Tutor",
+      "emptyTitle": "How can I help you today?",
+      "emptyBody": "Ask me about your course materials, assignments, or any concept you need help understanding.",
+      "messagesLabel": "Chat messages",
+      "typingLabel": "Tutor is typing",
+      "userMessageLabel": "Your message",
+      "tutorMessageLabel": "Tutor message",
+      "messagesRemaining": "You have {{count}} messages remaining today.",
+      "limitReached": "You've reached your daily message limit. It resets at midnight.",
+      "tokenBudgetExceeded": "Your daily token budget has been exceeded. Please try again tomorrow.",
+      "attachImage": "Attach image",
+      "attachImages": "Attach images",
+      "attachDocument": "Attach document",
+      "removeImage": "Remove image {{index}}",
+      "removeDocument": "Remove document",
+      "attachmentAlt": "Attachment {{index}}",
+      "messageInput": "Message input",
+      "sendMessage": "Send message",
+      "inputPlaceholder": "Ask a question...",
+      "inputPlaceholderDisabled": "Daily limit reached",
+      "citationLabel": "Citation {{number}}",
+      "documentAttached": "Document attached",
+      "integrityGuidance": "Academic integrity guidance",
+      "errors": {
+        "imageType": "{{name}}: Only JPG and PNG images are supported",
+        "imageSize": "{{name}}: Image must be under 5MB",
+        "maxImages": "Maximum {{count}} images allowed",
+        "docType": "Only PDF and DOCX documents are supported",
+        "docSize": "Document must be under 10MB",
+        "uploadFailed": "Failed to upload attachment. Please try again."
+      }
+    },
+    "sidebar": {
+      "newConversation": "New Conversation",
+      "pastConversations": "Past conversations",
+      "noConversations": "No conversations yet",
+      "noConversationsHint": "Start a new conversation to get help",
+      "newConversationPreview": "New conversation",
+      "conversationLabel": "Conversation: {{title}}",
+      "messageCount_one": "{{count}} msg",
+      "messageCount_other": "{{count}} msgs",
+      "deleteConversation": "Delete conversation",
+      "deleteTitle": "Delete conversation",
+      "deleteDescription": "This will permanently delete this conversation and all its messages. This action cannot be undone.",
+      "deleteConfirm": "Delete",
+      "relativeTime": {
+        "justNow": "Just now",
+        "minutesAgo": "{{count}}m ago",
+        "hoursAgo": "{{count}}h ago",
+        "daysAgo": "{{count}}d ago"
+      }
+    },
+    "persona": {
+      "yourStyle": "Your tutor style",
+      "chooseStyle": "Choose your tutor style",
+      "selectLabel": "Select tutor persona",
+      "groupLabel": "Tutor persona",
+      "recommendedGroupLabel": "Recommended tutor persona",
+      "recommended": "Recommended",
+      "changeStyle": "Change tutor style",
+      "socratic_guide": {
+        "label": "Socratic Guide",
+        "description": "Asks probing questions to lead you to the answer"
+      },
+      "step_by_step_coach": {
+        "label": "Step-by-Step Coach",
+        "description": "Breaks down problems into sequential steps"
+      },
+      "quick_explainer": {
+        "label": "Quick Explainer",
+        "description": "Gives concise, direct explanations"
+      }
+    },
+    "autonomy": {
+      "groupLabel": "Tutor autonomy level",
+      "figureItOut": "Figure it out",
+      "figureItOutLabel": "Figure it out — hints only",
+      "justExplain": "Just explain it",
+      "justExplainLabel": "Just explain it — direct explanation"
+    }
   }
 }

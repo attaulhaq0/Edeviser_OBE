@@ -6,6 +6,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { I18nextProvider } from "react-i18next";
+import i18n from "@/lib/i18n";
 
 // ─── Mocks ───────────────────────────────────────────────────────────────────
 
@@ -145,11 +147,49 @@ vi.mock("@/hooks/useRealtime", () => ({
   useRealtime: () => ({ isLive: true, retryCount: 0 }),
 }));
 
+// Mutable leaderboard hook result so individual tests can flip locked/unlocked
+// state and the "load more" affordance.
+const leaderboardHookState = vi.hoisted(() => ({
+  current: null as unknown,
+}));
+
 vi.mock("@/hooks/useLeaderboard", () => ({
-  useLeaderboard: () => ({ data: mockLeaderboardData, isLoading: false }),
+  useLeaderboard: () => leaderboardHookState.current,
   useMyRank: () => ({ data: mockMyRank, isLoading: false }),
   useAnonymousStatus: () => ({ data: { isAnonymous: false } }),
 }));
+
+const unlockedLeaderboardResult = {
+  data: {
+    entries: mockLeaderboardData,
+    eligibleCount: mockLeaderboardData.length,
+    state: "unlocked" as const,
+    minCohortSize: 5,
+    pageSize: 50,
+  },
+  isLoading: false,
+  isError: false,
+  error: null,
+  hasMore: false,
+  fetchNextPage: () => {},
+  isFetchingNextPage: false,
+};
+
+const lockedLeaderboardResult = {
+  data: {
+    entries: [],
+    eligibleCount: 1,
+    state: "locked" as const,
+    minCohortSize: 5,
+    pageSize: 50,
+  },
+  isLoading: false,
+  isError: false,
+  error: null,
+  hasMore: false,
+  fetchNextPage: () => {},
+  isFetchingNextPage: false,
+};
 
 vi.mock("@/hooks/usePersonalBestLeaderboard", () => ({
   usePersonalBestLeaderboard: () => ({ data: mockWeeklyXP, isLoading: false }),
@@ -182,7 +222,7 @@ vi.mock("@/components/shared/AnonymousToggle", () => ({
   default: () => <div data-testid="anonymous-toggle">AnonymousToggle</div>,
 }));
 
-vi.mock("@/pages/student/leaderboard/useStudentCourseProgram", () => ({
+vi.mock("@/hooks/useStudentCourseProgram", () => ({
   useStudentCourseProgram: () => ({
     courses: [{ id: "c1", name: "Math 101" }],
     programs: [{ id: "p1", name: "CS Program" }],
@@ -243,11 +283,13 @@ const createQueryClient = () =>
 
 const renderPage = () => {
   return render(
-    <QueryClientProvider client={createQueryClient()}>
-      <MemoryRouter initialEntries={["/student/leaderboard"]}>
-        <LeaderboardPage />
-      </MemoryRouter>
-    </QueryClientProvider>
+    <I18nextProvider i18n={i18n}>
+      <QueryClientProvider client={createQueryClient()}>
+        <MemoryRouter initialEntries={["/student/leaderboard"]}>
+          <LeaderboardPage />
+        </MemoryRouter>
+      </QueryClientProvider>
+    </I18nextProvider>
   );
 };
 
@@ -256,6 +298,7 @@ const renderPage = () => {
 describe("LeaderboardPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    leaderboardHookState.current = unlockedLeaderboardResult;
   });
 
   it("renders the page title with Trophy icon", () => {
@@ -340,9 +383,9 @@ describe("LeaderboardPage", () => {
     expect(screen.getByTestId("anonymous-toggle")).toBeInTheDocument();
   });
 
-  it("renders Top 50 section header", () => {
+  it("renders rankings section header", () => {
     renderPage();
-    expect(screen.getByText("Top 50")).toBeInTheDocument();
+    expect(screen.getByText("Rankings")).toBeInTheDocument();
   });
 
   it("renders League tab in navigation", () => {
@@ -361,5 +404,38 @@ describe("LeaderboardPage", () => {
         within(aliceRow as HTMLElement).getByText("30")
       ).toBeInTheDocument();
     }
+  });
+
+  it("shows the locked state with no medals or rankings when below the cohort minimum", () => {
+    leaderboardHookState.current = lockedLeaderboardResult;
+    const { container } = renderPage();
+
+    // Locked panel copy is shown
+    expect(
+      screen.getByText("Leaderboard unlocks when more students join")
+    ).toBeInTheDocument();
+
+    // No ranked rows / rankings header / personal rank card are rendered
+    expect(screen.queryByText("Rankings")).not.toBeInTheDocument();
+    expect(screen.queryByText("Your Rank")).not.toBeInTheDocument();
+    expect(screen.queryByText("Alice")).not.toBeInTheDocument();
+    expect(screen.queryByText("Bob")).not.toBeInTheDocument();
+
+    // R6.4: no medal is awarded to any student while locked. The medal icon
+    // (Lucide `lucide-medal`) is used for the top-3 ranks and the rankings
+    // header — none of these may render in the locked state.
+    expect(container.querySelectorAll(".lucide-medal")).toHaveLength(0);
+  });
+
+  it("renders medal icons for top-3 ranks once the leaderboard is unlocked", () => {
+    // Sanity counterpart to the locked assertion: when unlocked, the medal
+    // icon appears (ranks 1–3 plus the rankings header), proving the locked
+    // state's zero-medal assertion is meaningful rather than always-true.
+    leaderboardHookState.current = unlockedLeaderboardResult;
+    const { container } = renderPage();
+
+    expect(container.querySelectorAll(".lucide-medal").length).toBeGreaterThan(
+      0
+    );
   });
 });

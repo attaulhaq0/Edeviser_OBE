@@ -3,6 +3,7 @@
 // =============================================================================
 
 import { Lightbulb, BookOpen } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -20,6 +21,8 @@ const AutonomyToggle = ({
   onChange,
   disabled = false,
 }: AutonomyToggleProps) => {
+  const { t } = useTranslation("ai");
+
   const handleClick = (level: "L1" | "L3") => {
     if (disabled) return;
     // Clicking the active button deselects it (sets to null = use default)
@@ -30,14 +33,14 @@ const AutonomyToggle = ({
     <div
       className="flex items-center gap-1"
       role="radiogroup"
-      aria-label="Tutor autonomy level"
+      aria-label={t("tutor.autonomy.groupLabel")}
     >
       <Button
         variant="outline"
         size="sm"
         role="radio"
         aria-checked={value === "L1"}
-        aria-label="Figure it out — hints only"
+        aria-label={t("tutor.autonomy.figureItOutLabel")}
         disabled={disabled}
         onClick={() => handleClick("L1")}
         className={cn(
@@ -48,7 +51,9 @@ const AutonomyToggle = ({
         )}
       >
         <Lightbulb className="h-3.5 w-3.5" />
-        <span className="hidden sm:inline">Figure it out</span>
+        <span className="hidden sm:inline">
+          {t("tutor.autonomy.figureItOut")}
+        </span>
       </Button>
 
       <Button
@@ -56,7 +61,7 @@ const AutonomyToggle = ({
         size="sm"
         role="radio"
         aria-checked={value === "L3"}
-        aria-label="Just explain it — direct explanation"
+        aria-label={t("tutor.autonomy.justExplainLabel")}
         disabled={disabled}
         onClick={() => handleClick("L3")}
         className={cn(
@@ -67,7 +72,9 @@ const AutonomyToggle = ({
         )}
       >
         <BookOpen className="h-3.5 w-3.5" />
-        <span className="hidden sm:inline">Just explain it</span>
+        <span className="hidden sm:inline">
+          {t("tutor.autonomy.justExplain")}
+        </span>
       </Button>
     </div>
   );
