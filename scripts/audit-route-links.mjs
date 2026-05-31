@@ -65,13 +65,16 @@ function matchesRoute(url) {
   const clean = url.split("?")[0].replace(/\/$/, "") || "/";
 
   for (const pat of fullPaths) {
-    // Convert ":param" to a single segment regex
+    // Escape all regex metacharacters (including backslashes) first, then
+    // re-introduce the wildcard and ":param" segment placeholders. Escaping
+    // up front avoids incomplete-sanitization issues where backslashes or
+    // other special characters in the pattern could alter the regex.
+    const escaped = pat.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const re = new RegExp(
       "^" +
-        pat
-          .replace(/\*/g, ".*")
-          .replace(/:(\w+)/g, "[^/]+")
-          .replace(/\//g, "\\/") +
+        escaped
+          .replace(/\\\*/g, ".*") // escaped "\*" wildcard -> match anything
+          .replace(/:(\w+)/g, "[^/]+") + // ":param" -> single path segment
         "$"
     );
     if (re.test(clean)) return pat;
@@ -133,5 +136,9 @@ for (const [url, hits] of sorted) {
 
 writeFileSync(
   "scripts/route-link-findings.json",
-  JSON.stringify({ count: sorted.length, byUrl: Object.fromEntries(sorted) }, null, 2)
+  JSON.stringify(
+    { count: sorted.length, byUrl: Object.fromEntries(sorted) },
+    null,
+    2
+  )
 );

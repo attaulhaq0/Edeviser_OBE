@@ -120,11 +120,14 @@ describe("2. Storage bucket creation migration", () => {
     fc.assert(
       fc.property(fc.constantFrom(...requiredBuckets), (bucketName: string) => {
         // At least one migration must INSERT into storage.buckets with this bucket name
+        // Escape all regex metacharacters (including backslashes) in the bucket
+        // name before interpolating it into the pattern.
+        const escapedBucket = bucketName.replace(
+          /[.*+?^${}()|[\]\\-]/g,
+          "\\$&"
+        );
         const pattern = new RegExp(
-          `INSERT\\s+INTO\\s+storage\\.buckets[\\s\\S]*?${bucketName.replace(
-            /-/g,
-            "\\-"
-          )}`,
+          `INSERT\\s+INTO\\s+storage\\.buckets[\\s\\S]*?${escapedBucket}`,
           "i"
         );
         expect(pattern.test(allMigrationContent)).toBe(true);
