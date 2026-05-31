@@ -2,99 +2,14 @@ import { useState, useCallback, useEffect } from "react";
 import { ClipboardCheck, Clock, FileQuestion } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { supabase } from "@/lib/supabase";
-import { useQuery } from "@tanstack/react-query";
-import { queryKeys } from "@/lib/queryKeys";
+import { useEnrolledCoursesWithBaseline } from "@/hooks/useBaselineCourses";
 import type { WizardStepProps } from "./OnboardingWizard";
 
 // ── Types ────────────────────────────────────────────────────────────
 
-interface CourseWithBaseline {
-  course_id: string;
-  course_name: string;
-  time_limit_minutes: number;
-  question_count: number;
-}
-
 interface BaselineSelectStepProps extends WizardStepProps {
   onCoursesSelected: (courseIds: string[]) => void;
 }
-
-// ── Hook: fetch enrolled courses with active baseline tests ──────────
-
-const useEnrolledCoursesWithBaseline = (studentId: string) => {
-  return useQuery({
-    queryKey: [...queryKeys.onboarding.baselineTests("enrolled"), studentId],
-    queryFn: async (): Promise<CourseWithBaseline[]> => {
-      // Fetch student's enrolled courses
-      const { data: enrollments, error: enrollError } = await supabase
-        .from("student_courses")
-        .select("course_id, courses(id, name)")
-        .eq("student_id", studentId)
-        .eq("status", "active");
-
-      if (enrollError) throw enrollError;
-      if (!enrollments?.length) return [];
-
-      const courseIds = enrollments.map(
-        (e: Record<string, unknown>) => e.course_id as string
-      );
-
-      // Fetch active baseline configs for those courses
-      const { data: configs, error: configError } = await supabase
-        .from("baseline_test_config")
-        .select("course_id, time_limit_minutes")
-        .in("course_id", courseIds)
-        .eq("is_active", true);
-
-      if (configError) throw configError;
-      if (!configs?.length) return [];
-
-      // Fetch question counts per course
-      const activeCourseIds = configs.map(
-        (c: Record<string, unknown>) => c.course_id as string
-      );
-      const { data: questions, error: qError } = await supabase
-        .from("onboarding_questions")
-        .select("course_id")
-        .eq("assessment_type", "baseline")
-        .eq("is_active", true)
-        .in("course_id", activeCourseIds);
-
-      if (qError) throw qError;
-
-      const questionCounts = new Map<string, number>();
-      for (const q of questions ?? []) {
-        const cid = q.course_id as string;
-        questionCounts.set(cid, (questionCounts.get(cid) ?? 0) + 1);
-      }
-
-      // Build result
-      const courseMap = new Map<string, string>();
-      for (const e of enrollments) {
-        const course = e.courses as Record<string, unknown> | null;
-        if (course) {
-          courseMap.set(
-            e.course_id as string,
-            (course.name as string) ?? "Unknown Course"
-          );
-        }
-      }
-
-      return configs
-        .filter((c: Record<string, unknown>) =>
-          questionCounts.has(c.course_id as string)
-        )
-        .map((c: Record<string, unknown>) => ({
-          course_id: c.course_id as string,
-          course_name: courseMap.get(c.course_id as string) ?? "Unknown Course",
-          time_limit_minutes: (c.time_limit_minutes as number) ?? 15,
-          question_count: questionCounts.get(c.course_id as string) ?? 0,
-        }));
-    },
-    enabled: !!studentId,
-  });
-};
 
 // ── Component ────────────────────────────────────────────────────────
 

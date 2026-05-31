@@ -234,7 +234,7 @@ const XPHistory = () => {
                   Transactions
                 </h2>
                 {transactions && (
-                  <Badge className="ml-auto bg-white/20 text-white border-0 text-xs">
+                  <Badge className="ms-auto bg-white/20 text-white border-0 text-xs">
                     {transactions.length}
                   </Badge>
                 )}

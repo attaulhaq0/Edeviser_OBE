@@ -24,7 +24,7 @@ export const useChallengeLeaderboard = (challengeId?: string) => {
     queryKey: queryKeys.challengeLeaderboard.list({ challengeId }),
     queryFn: async (): Promise<ChallengeLeaderboardEntry[]> => {
       const { data, error } = await supabase
-        .from("challenge_progress" as never)
+        .from("challenge_progress")
         .select(
           "participant_id, participant_type, current_progress, completed_at"
         )
@@ -37,12 +37,16 @@ export const useChallengeLeaderboard = (challengeId?: string) => {
       const entries: ChallengeLeaderboardEntry[] = [];
       let currentRank = 1;
 
-      const rows = (data ?? []) as Array<{
-        participant_id: string;
-        participant_type: "team" | "individual";
-        current_progress: number;
-        completed_at: string | null;
-      }>;
+      // `participant_type` is a plain string column in the DB; narrow it to the
+      // domain union, defaulting unknown values to "individual".
+      const rows = (data ?? []).map((row) => ({
+        participant_id: row.participant_id,
+        participant_type: (row.participant_type === "team"
+          ? "team"
+          : "individual") as "team" | "individual",
+        current_progress: row.current_progress,
+        completed_at: row.completed_at,
+      }));
 
       for (let i = 0; i < rows.length; i++) {
         const row = rows[i]!;

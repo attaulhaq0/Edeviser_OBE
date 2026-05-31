@@ -63,10 +63,3 @@ BEGIN
   END IF;
 END
 $$;
-
-CREATE INDEX IF NOT EXISTS idx_teacher_handoff_requests_conversation_id
-  ON teacher_handoff_requests (conversation_id);
-CREATE INDEX IF NOT EXISTS idx_teacher_handoff_requests_course_id
-  ON teacher_handoff_requests (course_id);
-CREATE INDEX IF NOT EXISTS idx_teacher_handoff_requests_institution_id
-  ON teacher_handoff_requests (institution_id);

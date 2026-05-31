@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import { ClipboardList, CheckCircle2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +23,7 @@ interface SurveyCardProps {
 }
 
 const SurveyCard = ({ survey }: SurveyCardProps) => {
+  const { t } = useTranslation("student");
   const { user } = useAuth();
   const { data: questions, isLoading: questionsLoading } = useSurveyQuestions(
     survey.id
@@ -52,7 +54,7 @@ const SurveyCard = ({ survey }: SurveyCardProps) => {
       }));
 
     if (responseEntries.length === 0) {
-      toast.error("Please answer at least one question");
+      toast.error(t("surveys.toast.answerAtLeastOne"));
       return;
     }
 
@@ -62,10 +64,10 @@ const SurveyCard = ({ survey }: SurveyCardProps) => {
         respondent_id: user.id,
         responses: responseEntries,
       });
-      toast.success("Survey submitted! +15 XP");
+      toast.success(t("surveys.toast.submitted"));
     } catch (err) {
       toast.error(
-        err instanceof Error ? err.message : "Failed to submit survey"
+        err instanceof Error ? err.message : t("surveys.toast.submitFailed")
       );
     }
   };
@@ -82,11 +84,11 @@ const SurveyCard = ({ survey }: SurveyCardProps) => {
           <div>
             <h3 className="text-sm font-bold">{survey.title}</h3>
             <p className="text-xs text-gray-500">
-              You have already completed this survey.
+              {t("surveys.alreadyCompleted")}
             </p>
           </div>
-          <Badge className="ml-auto bg-green-50 text-green-700 border-green-200">
-            Completed
+          <Badge className="ms-auto bg-green-50 text-green-700 border-green-200">
+            {t("surveys.completed")}
           </Badge>
         </div>
       </Card>
@@ -120,6 +122,7 @@ const SurveyCard = ({ survey }: SurveyCardProps) => {
 // ─── Main Page ──────────────────────────────────────────────────────────────
 
 const SurveyResponsePage = () => {
+  const { t } = useTranslation("student");
   const { data: surveys, isLoading } = useSurveys();
 
   const activeSurveys = useMemo(
@@ -129,7 +132,9 @@ const SurveyResponsePage = () => {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold tracking-tight">Surveys</h1>
+      <h1 className="text-2xl font-bold tracking-tight">
+        {t("surveys.title")}
+      </h1>
 
       {isLoading ? (
         <div className="space-y-4">

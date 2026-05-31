@@ -1,5 +1,5 @@
 import { useParams, Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,9 +12,8 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { supabase } from "@/lib/supabase";
-import { queryKeys } from "@/lib/queryKeys";
 import { computePerCLOScore } from "@/lib/questionAnalytics";
+import { useQuizReview, type ReviewQuestion } from "@/hooks/useQuizReview";
 import QuestionPreview from "@/components/shared/QuestionPreview";
 import ExplanationConfidenceBadge from "@/components/shared/ExplanationConfidenceBadge";
 import { InlineNoCLOs } from "@/components/shared/EmptyState";
@@ -27,13 +26,13 @@ import { useBloomsClimbState } from "@/hooks/useBloomsProgression";
 
 // ─── Bloom's level helpers ────────────────────────────────────────────────────
 
-const BLOOM_LABELS: Record<number, string> = {
-  1: "Remembering",
-  2: "Understanding",
-  3: "Applying",
-  4: "Analyzing",
-  5: "Evaluating",
-  6: "Creating",
+const BLOOM_LABEL_KEYS: Record<number, string> = {
+  1: "blooms.remembering",
+  2: "blooms.understanding",
+  3: "blooms.applying",
+  4: "blooms.analyzing",
+  5: "blooms.evaluating",
+  6: "blooms.creating",
 };
 
 const BLOOM_BADGE_COLORS: Record<number, string> = {
@@ -46,103 +45,6 @@ const BLOOM_BADGE_COLORS: Record<number, string> = {
 };
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-
-interface ReviewQuestion {
-  id: string;
-  question_text: string;
-  question_type: "mcq" | "true_false" | "short_answer" | "fill_in_blank";
-  options: { key: string; text: string }[] | null;
-  correct_answer: { value: string; explanation?: string };
-  explanation: string | null;
-  bloom_level: number;
-  clo_id: string;
-  clo_title?: string;
-}
-
-interface QuizReviewData {
-  attempt: {
-    id: string;
-    quiz_id: string;
-    score: number;
-    answers: Record<string, string>;
-    question_sequence: { question_id: string }[];
-  };
-  questions: ReviewQuestion[];
-}
-
-// ─── Inline useQuizReview hook ────────────────────────────────────────────────
-
-const useQuizReview = (
-  _quizId: string | undefined,
-  attemptId: string | undefined
-) => {
-  return useQuery<QuizReviewData>({
-    queryKey: [...queryKeys.quizAttempts.detail(attemptId ?? ""), "review"],
-    queryFn: async (): Promise<QuizReviewData> => {
-      if (!attemptId) throw new Error("Missing attemptId");
-
-      // Fetch the quiz attempt
-      const { data: attempt, error: attemptError } = await supabase
-        .from("quiz_attempts")
-        .select("id, quiz_id, score, answers, question_sequence")
-        .eq("id", attemptId)
-        .maybeSingle();
-
-      if (attemptError) throw attemptError;
-      if (!attempt) throw new Error("Quiz attempt not found");
-
-      const rawSequence = (attempt.question_sequence ?? []) as {
-        question_id: string;
-      }[];
-      const rawAnswers = (attempt.answers ?? {}) as Record<string, string>;
-
-      const parsedAttempt: QuizReviewData["attempt"] = {
-        id: attempt.id,
-        quiz_id: attempt.quiz_id,
-        score: attempt.score ?? 0,
-        answers: rawAnswers,
-        question_sequence: rawSequence,
-      };
-
-      // Extract question IDs from the sequence
-      const questionIds: string[] = rawSequence.map((q) => q.question_id);
-
-      if (questionIds.length === 0) {
-        return { attempt: parsedAttempt, questions: [] };
-      }
-
-      // Fetch questions from question_bank
-      const { data: questions, error: questionsError } = await supabase
-        .from("question_bank")
-        .select(
-          "id, question_text, question_type, options, correct_answer, explanation, bloom_level, clo_id"
-        )
-        .in("id", questionIds);
-
-      if (questionsError) throw questionsError;
-
-      // Order questions by sequence and map to typed ReviewQuestion
-      const questionMap = new Map((questions ?? []).map((q) => [q.id, q]));
-      const orderedQuestions: ReviewQuestion[] = questionIds
-        .map((qId) => questionMap.get(qId))
-        .filter((q): q is NonNullable<typeof q> => q != null)
-        .map((q) => ({
-          id: q.id,
-          question_text: q.question_text,
-          question_type: q.question_type as ReviewQuestion["question_type"],
-          options: q.options as ReviewQuestion["options"],
-          correct_answer: q.correct_answer as ReviewQuestion["correct_answer"],
-          explanation: q.explanation,
-          bloom_level: q.bloom_level,
-          clo_id: q.clo_id,
-          clo_title: q.clo_id,
-        }));
-
-      return { attempt: parsedAttempt, questions: orderedQuestions };
-    },
-    enabled: !!attemptId,
-  });
-};
 
 // ─── Attainment color helper ──────────────────────────────────────────────────
 
@@ -169,6 +71,7 @@ const QuestionExplanation = ({
   questionId,
   aiExplanation,
 }: QuestionExplanationProps) => {
+  const { t } = useTranslation("student");
   const { data: verifiedExplanation } = useVerifiedExplanation(questionId);
   const { data: confidence } = useExplanationConfidence(questionId);
 
@@ -183,7 +86,9 @@ const QuestionExplanation = ({
     <div className="bg-blue-50 rounded-lg px-4 py-3">
       <div className="flex items-center gap-2 mb-1">
         <p className="text-xs font-bold tracking-wide uppercase text-blue-600">
-          {isVerified ? "Verified Explanation" : "AI Explanation"}
+          {isVerified
+            ? t("quiz.review.verifiedExplanation")
+            : t("quiz.review.aiExplanation")}
         </p>
         <ExplanationConfidenceBadge
           confidence={confidence ?? null}
@@ -198,6 +103,7 @@ const QuestionExplanation = ({
 // ─── Component ────────────────────────────────────────────────────────────────
 
 const PostQuizReview = () => {
+  const { t } = useTranslation("student");
   const { quizId, attemptId } = useParams<{
     quizId: string;
     attemptId: string;
@@ -210,7 +116,7 @@ const PostQuizReview = () => {
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
         <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
         <p className="text-sm font-medium text-gray-500">
-          Loading quiz review...
+          {t("quiz.review.loading")}
         </p>
       </div>
     );
@@ -221,10 +127,10 @@ const PostQuizReview = () => {
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
         <XCircle className="h-8 w-8 text-red-500" />
         <p className="text-sm font-medium text-gray-500">
-          Failed to load quiz review. Please try again.
+          {t("quiz.review.loadFailed")}
         </p>
         <Link to="/student/dashboard">
-          <Button variant="outline">Back to Dashboard</Button>
+          <Button variant="outline">{t("quiz.review.backToDashboard")}</Button>
         </Link>
       </div>
     );
@@ -254,9 +160,11 @@ const PostQuizReview = () => {
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Quiz Review</h1>
+          <h1 className="text-2xl font-bold tracking-tight">
+            {t("quiz.review.title")}
+          </h1>
           <p className="text-sm text-gray-500 mt-1">
-            Overall Score:{" "}
+            {t("quiz.review.overallScore")}{" "}
             <span className="font-bold text-gray-900">{attempt.score}%</span>
           </p>
         </div>
@@ -271,7 +179,7 @@ const PostQuizReview = () => {
           }}
         >
           <h2 className="text-lg font-bold tracking-tight text-white">
-            Per-CLO Score Breakdown
+            {t("quiz.review.perCloBreakdown")}
           </h2>
         </div>
         <div className="p-6 space-y-4">
@@ -317,7 +225,7 @@ const PostQuizReview = () => {
           >
             <TrendingUp className="h-5 w-5 text-white" />
             <h2 className="text-lg font-bold tracking-tight text-white">
-              Bloom's Progression
+              {t("quiz.review.bloomsProgression")}
             </h2>
           </div>
           <div className="p-6">
@@ -339,8 +247,10 @@ const PostQuizReview = () => {
       {questions.map((question: ReviewQuestion, index: number) => {
         const studentAnswer = attempt.answers[question.id] ?? "";
         const isCorrect = studentAnswer === question.correct_answer.value;
-        const bloomLabel =
-          BLOOM_LABELS[question.bloom_level] ?? `Level ${question.bloom_level}`;
+        const bloomLabelKey = BLOOM_LABEL_KEYS[question.bloom_level];
+        const bloomLabel = bloomLabelKey
+          ? t(bloomLabelKey, { ns: "common" })
+          : t("quiz.review.bloomLevel", { level: question.bloom_level });
         const bloomColor =
           BLOOM_BADGE_COLORS[question.bloom_level] ?? "bg-gray-500 text-white";
 
@@ -352,17 +262,21 @@ const PostQuizReview = () => {
             {/* Question number + correct/incorrect indicator */}
             <div className="flex items-center justify-between">
               <p className="text-sm font-semibold text-gray-700">
-                Question {index + 1}
+                {t("quiz.review.questionLabel", { number: index + 1 })}
               </p>
               {isCorrect ? (
                 <div className="flex items-center gap-1.5 text-green-600">
                   <CheckCircle2 className="h-5 w-5" />
-                  <span className="text-sm font-semibold">Correct</span>
+                  <span className="text-sm font-semibold">
+                    {t("quiz.review.correct")}
+                  </span>
                 </div>
               ) : (
                 <div className="flex items-center gap-1.5 text-red-600">
                   <XCircle className="h-5 w-5" />
-                  <span className="text-sm font-semibold">Incorrect</span>
+                  <span className="text-sm font-semibold">
+                    {t("quiz.review.incorrect")}
+                  </span>
                 </div>
               )}
             </div>
@@ -406,11 +320,11 @@ const PostQuizReview = () => {
             {/* Get Help link (shown for incorrect answers) */}
             {!isCorrect && (
               <Link
-                to={`/student/ai-tutor?clo=${question.clo_id}`}
+                to={`/student/tutor?cloIds=${question.clo_id}`}
                 className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
               >
                 <HelpCircle className="h-4 w-4" />
-                Get Help with this topic
+                {t("quiz.review.getHelp")}
               </Link>
             )}
           </Card>
@@ -422,7 +336,7 @@ const PostQuizReview = () => {
         <Link to="/student/dashboard">
           <Button variant="outline" className="gap-2">
             <ArrowLeft className="h-4 w-4" />
-            Back to Dashboard
+            {t("quiz.review.backToDashboard")}
           </Button>
         </Link>
       </div>

@@ -90,7 +90,7 @@ export const useTeamLeaderboard = (
     }),
     queryFn: async (): Promise<TeamLeaderboardEntry[]> => {
       let teamQuery = supabase
-        .from("teams" as never)
+        .from("teams")
         .select(
           "id, name, xp_total, streak_count, cooperation_score, health_score, course_id, avatar_letter"
         )
@@ -114,33 +114,23 @@ export const useTeamLeaderboard = (
       if (teamsError) throw teamsError;
       if (!teams || teams.length === 0) return [];
 
-      const teamIds = (teams as Array<{ id: string }>).map((t) => t.id);
+      const teamIds = teams.map((t) => t.id);
 
       // Fetch member counts (active members only)
       const { data: members, error: memError } = await supabase
-        .from("team_members" as never)
+        .from("team_members")
         .select("team_id")
         .in("team_id", teamIds)
         .is("left_at", null);
       if (memError) throw memError;
 
       const countMap = new Map<string, number>();
-      for (const m of (members ?? []) as Array<{ team_id: string }>) {
+      for (const m of members ?? []) {
         countMap.set(m.team_id, (countMap.get(m.team_id) ?? 0) + 1);
       }
 
       // Build entries
-      const entries: TeamLeaderboardEntry[] = (
-        teams as Array<{
-          id: string;
-          name: string;
-          avatar_letter: string;
-          xp_total: number;
-          streak_count: number;
-          cooperation_score: number;
-          health_score: number;
-        }>
-      ).map((t) => ({
+      const entries: TeamLeaderboardEntry[] = teams.map((t) => ({
         team_id: t.id,
         team_name: t.name,
         avatar_letter: t.avatar_letter ?? t.name.charAt(0).toUpperCase(),
@@ -172,17 +162,17 @@ export const useMyTeamId = (studentId?: string, courseId?: string) => {
     queryKey: queryKeys.teamMembers.list({ studentId, courseId }),
     queryFn: async (): Promise<string | null> => {
       const { data: teams, error: teamsErr } = await supabase
-        .from("teams" as never)
+        .from("teams")
         .select("id")
         .eq("course_id", courseId!)
         .is("deleted_at", null);
       if (teamsErr) throw teamsErr;
       if (!teams || teams.length === 0) return null;
 
-      const teamIds = (teams as Array<{ id: string }>).map((t) => t.id);
+      const teamIds = teams.map((t) => t.id);
 
       const { data: membership, error: memErr } = await supabase
-        .from("team_members" as never)
+        .from("team_members")
         .select("team_id")
         .eq("student_id", studentId!)
         .in("team_id", teamIds)
@@ -191,7 +181,7 @@ export const useMyTeamId = (studentId?: string, courseId?: string) => {
         .maybeSingle();
       if (memErr) throw memErr;
 
-      return (membership as { team_id: string } | null)?.team_id ?? null;
+      return membership?.team_id ?? null;
     },
     enabled: !!studentId && !!courseId,
     staleTime: 60_000,

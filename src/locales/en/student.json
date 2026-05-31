@@ -42,7 +42,56 @@
     "courseWide": "Course-Wide",
     "viewAllChallenges": "View All Challenges ({{count}})",
     "attendance": "Attendance",
-    "leagueTier": "League Tier"
+    "leagueTier": "League Tier",
+    "primaryCta": {
+      "region": "Recommended next action",
+      "heading": "Your next step",
+      "completeProfile": {
+        "label": "Complete your onboarding",
+        "description": "Finish your profile to unlock personalized recommendations and earn XP.",
+        "cta": "Start Now"
+      },
+      "finishProfile": {
+        "label": "Complete your assessment",
+        "description": "You skipped some sections during onboarding. Complete them to get full personalization.",
+        "cta": "Complete Now"
+      },
+      "submitAssignment": {
+        "label": "Submit your next assignment",
+        "description": "{{title}} is due soon — submit it to stay on track.",
+        "cta": "Open Assignment"
+      },
+      "continueCourse": {
+        "label": "Continue your course",
+        "description": "Pick up where you left off and keep your momentum going.",
+        "cta": "View Courses"
+      },
+      "reviewFeedback": {
+        "label": "Review your feedback",
+        "description": "See your latest grades and feedback to learn from your work.",
+        "cta": "View Progress"
+      }
+    }
+  },
+  "team": {
+    "title": "My Team",
+    "unassignedTitle": "You're not on a team yet",
+    "howItWorksDescription": "Teams let you learn alongside classmates — you earn XP together, climb the team leaderboard, and take on shared challenges. Join an existing team or create your own to get started.",
+    "joinOrCreate": "Join or create a team",
+    "teacherAssignNote": "Your teacher may also assign you to a team for your course."
+  },
+  "courses": {
+    "title": "My Courses",
+    "subtitle": "View your enrolled courses, progress, and assignments.",
+    "taughtBy": "Taught by",
+    "progress": "Progress",
+    "progressLabel": "Course progress: {{percent}}%",
+    "nextUp": "Next up",
+    "due": "Due {{date}}",
+    "noDueDate": "No due date",
+    "noUpcomingWork": "No upcoming work",
+    "attainment": "Attainment",
+    "assignments": "Assignments"
   },
   "assignments": {
     "title": "Assignments",
@@ -61,17 +110,364 @@
     "evidence": "Evidence",
     "noAssessments": "No assessments yet"
   },
+  "heatmap": {
+    "plainSummary": {
+      "title": "How your habits are going",
+      "empty": "You haven't logged any habits yet. Pick one small habit to start today!",
+      "completion": "You've kept up {{rate}}% of your daily habits.",
+      "bestHabit": "Your strongest habit is {{habit}}.",
+      "streak": "You're on a {{count}}-day streak — keep it going!",
+      "encourage": "Every small step counts. Keep it up!"
+    },
+    "habitLabels": {
+      "login": "logging in",
+      "submit": "submitting work",
+      "journal": "journaling",
+      "read": "reading",
+      "meditation": "meditation",
+      "hydration": "hydration",
+      "exercise": "exercise",
+      "sleep": "sleep"
+    }
+  },
   "journal": {
     "title": "Reflection Journal",
     "newEntry": "New Entry",
     "wordCount": "{{count}} words",
     "minWords": "Minimum 50 words required",
-    "saved": "Journal entry saved."
+    "saved": "Journal entry saved.",
+    "prompts": {
+      "title": "Reflection prompts",
+      "hint": "Pick a prompt to get started, or just write freely below.",
+      "guided": "Guided reflection",
+      "use": "Use this prompt",
+      "learned": "What did I learn today?",
+      "confused": "What confused me?",
+      "proud": "What am I proud of?"
+    }
   },
   "leaderboard": {
     "title": "Leaderboard",
     "yourRank": "Your Rank",
     "anonymous": "Anonymous Mode",
-    "anonymousHint": "Your name is hidden from other students"
+    "anonymousHint": "Your name is hidden from other students",
+    "rankings": {
+      "title": "Rankings",
+      "loadMore": "Load more"
+    },
+    "locked": {
+      "title": "Leaderboard unlocks when more students join",
+      "description": "Once more students join your cohort, rankings and medals will appear here. Keep earning XP in the meantime!"
+    }
+  },
+  "portfolio": {
+    "title": "My Portfolio",
+    "publicProfile": "Public Profile",
+    "togglePublicAria": "Toggle public portfolio",
+    "copyLinkAria": "Copy shareable link",
+    "copyLink": "Copy Link",
+    "copied": "Copied",
+    "permissionRequired": "Public sharing requires school permission. Your portfolio stays private until your school turns it on.",
+    "toast": {
+      "madePublic": "Portfolio is now public",
+      "madePrivate": "Portfolio set to private",
+      "linkCopied": "Link copied to clipboard",
+      "permissionDenied": "Public sharing isn't enabled for your account yet. Ask your school to grant permission."
+    },
+    "kpi": {
+      "totalXP": "Total XP",
+      "level": "Level",
+      "closMastered": "CLOs Mastered",
+      "badgesEarned": "Badges Earned"
+    },
+    "sections": {
+      "cloMastery": "CLO Mastery",
+      "badgeCollection": "Badge Collection",
+      "journalEntries": "Journal Entries",
+      "xpTimeline": "XP Timeline",
+      "attainmentGrowth": "Attainment Growth"
+    },
+    "friendly": {
+      "skillsTitle": "Skills mastered",
+      "strengths": "Strengths",
+      "areasImproving": "Areas improving",
+      "strengthsHint": "What you're great at",
+      "areasImprovingHint": "What you're working on next"
+    },
+    "noJournals": "No journal entries yet.",
+    "general": "General",
+    "chart": {
+      "cumulativeXP": "Cumulative XP",
+      "xpValue": "{{value}} XP",
+      "avgAttainment": "Avg Attainment"
+    },
+    "attainmentLevels": {
+      "Excellent": "Excellent",
+      "Satisfactory": "Satisfactory",
+      "Developing": "Developing",
+      "Not_Yet": "Not Yet"
+    }
+  },
+  "onboarding": {
+    "assessmentIntro": {
+      "begin": "Begin",
+      "personality": {
+        "title": "Discover How You Learn Best",
+        "description": "A few quick questions reveal how you work and study best.",
+        "estimatedTime": "About 1 minute",
+        "benefit1": "Personalized study recommendations tailored to you",
+        "benefit2": "AI Tutor responses customized to how you learn",
+        "benefit3": "Earn bonus XP for completing your profile"
+      },
+      "learning_style": {
+        "title": "Find Your Learning Style",
+        "description": "Explore the ways you take in and remember new ideas.",
+        "estimatedTime": "About 3 minutes",
+        "benefit1": "Study tips matched to your preferences",
+        "benefit2": "AI Tutor explanations in the format that works for you",
+        "benefit3": "Earn bonus XP for completing this assessment"
+      },
+      "self_efficacy": {
+        "title": "Academic Confidence Check",
+        "description": "Tell us how confident you feel so we can support you better.",
+        "estimatedTime": "About 1 minute",
+        "benefit1": "Encouragement and goals set at the right level for you",
+        "benefit2": "AI Tutor support focused where you want to grow",
+        "benefit3": "Earn bonus XP for completing this check"
+      },
+      "study_strategy": {
+        "title": "Sharpen Your Study Habits",
+        "description": "Share how you study today so we can suggest what works.",
+        "estimatedTime": "About 2 minutes",
+        "benefit1": "Personalized study-strategy recommendations",
+        "benefit2": "AI Tutor coaching tuned to your habits",
+        "benefit3": "Earn bonus XP for completing this assessment"
+      }
+    },
+    "microAssessment": {
+      "title": "Quick {{type}} Check",
+      "types": {
+        "personality": "Personality",
+        "self_efficacy": "Self-Efficacy",
+        "study_strategy": "Study Strategy",
+        "learning_style": "Learning Style",
+        "baseline_prompt": "Baseline Test"
+      },
+      "estimatedMinutes": "~{{minutes}} min",
+      "description_one": "{{count}} quick question to refine your profile.",
+      "description_other": "{{count}} quick questions to refine your profile.",
+      "completeNow": "Complete Now",
+      "remindLater": "Remind Me Later",
+      "dismiss": "Dismiss micro-assessment",
+      "lastChance": "Last chance — this will be skipped if dismissed again."
+    },
+    "selfEfficacy": {
+      "title": "Academic Confidence Check",
+      "instructions": "Rate how confident you feel about each statement.",
+      "questionProgress": "Question {{current}} of {{total}}",
+      "previous": "Previous",
+      "next": "Next",
+      "complete": "Complete",
+      "saving": "Saving..."
+    },
+    "personality": {
+      "title": "Personality Assessment",
+      "dimensionProgress": "{{dimension}} — Question {{current}} of {{total}}",
+      "scaleLabel": "Likert scale",
+      "previous": "Previous",
+      "next": "Next",
+      "complete": "Complete",
+      "saving": "Saving...",
+      "noQuestions": "No personality questions available. Please contact your administrator.",
+      "dimensions": {
+        "openness": "Openness",
+        "conscientiousness": "Conscientiousness",
+        "extraversion": "Extraversion",
+        "agreeableness": "Agreeableness",
+        "neuroticism": "Neuroticism"
+      },
+      "likert": {
+        "stronglyDisagree": "Strongly Disagree",
+        "disagree": "Disagree",
+        "neutral": "Neutral",
+        "agree": "Agree",
+        "stronglyAgree": "Strongly Agree"
+      }
+    },
+    "learningStyle": {
+      "title": "Learning Style Preferences",
+      "instructions": "Choose the option that best fits you.",
+      "questionProgress": "Question {{current}} of {{total}}",
+      "scaleLabel": "VARK options",
+      "previous": "Previous",
+      "next": "Next",
+      "complete": "Complete",
+      "saving": "Saving...",
+      "noQuestions": "No learning style questions available. Please contact your administrator.",
+      "disclaimer": "Learning style preferences are provided as a self-awareness exercise. Research does not support matching instruction to VARK styles (Pashler et al., 2008). Your results will not be used to restrict content delivery.",
+      "day1": {
+        "title": "Learning Style Assessment",
+        "body": "This assessment will be delivered as short daily micro-assessments over your first two weeks. You'll earn XP for each one!",
+        "continue": "Continue"
+      }
+    },
+    "studyStrategy": {
+      "title": "Study Strategy Inventory",
+      "instructions": "Rate how often you use each study strategy.",
+      "dimensionProgress": "{{dimension}} — Question {{current}} of {{total}}",
+      "scaleLabel": "Study strategy scale",
+      "previous": "Previous",
+      "next": "Next",
+      "complete": "Complete",
+      "saving": "Saving...",
+      "noQuestions": "No study strategy questions available. Please contact your administrator.",
+      "likert": {
+        "never": "Never",
+        "rarely": "Rarely",
+        "sometimes": "Sometimes",
+        "often": "Often",
+        "always": "Always"
+      },
+      "dimensions": {
+        "time_management": "Time Management",
+        "elaboration": "Elaboration",
+        "self_testing": "Self-Testing",
+        "help_seeking": "Help-Seeking"
+      },
+      "day1": {
+        "title": "Study Strategy Inventory",
+        "body": "This assessment will be delivered as short daily micro-assessments during your first two weeks. You'll earn XP for each one!",
+        "continue": "Continue"
+      }
+    },
+    "fallback": {
+      "noQuestionsTitle": "No confidence check needed right now",
+      "noQuestionsBody": "There are no confidence questions for you at the moment. You can continue with the rest of your setup.",
+      "systemIssueTitle": "We couldn't load this step",
+      "systemIssueBody": "Something went wrong loading these questions. You can keep going and we'll try again later.",
+      "continue": "Continue"
+    }
+  },
+  "planner": {
+    "actions": {
+      "addTask": "Add task",
+      "startSession": "Start session"
+    },
+    "suggestion": {
+      "label": "Suggested study session",
+      "withCourse": "Study session: {{course}}",
+      "duration": "{{minutes}} min focus block",
+      "plan": "Plan session",
+      "ariaPlan": "Plan a {{minutes}} minute study session"
+    },
+    "goals": {
+      "exampleHeading": "Goal ideas to get started",
+      "exampleHint": "Set a goal below to track your week.",
+      "setGoals": "Set goals",
+      "types": {
+        "study_hours": "Study Hours",
+        "sessions_completed": "Sessions",
+        "tasks_completed": "Tasks"
+      },
+      "target": {
+        "study_hours": "{{count}} hours",
+        "sessions_completed": "{{count}} sessions",
+        "tasks_completed": "{{count}} tasks"
+      }
+    }
+  },
+  "quiz": {
+    "loading": "Preparing your adaptive quiz...",
+    "unableToLoad": "Unable to load quiz. Please go back and try again.",
+    "questionProgress": "Question {{number}} of {{total}}",
+    "loadingButton": "Loading...",
+    "submitAnswer": "Submit Answer",
+    "nextQuestion": "Next Question",
+    "finishQuiz": "Finish Quiz",
+    "recovery": {
+      "title": "Recovery Required",
+      "body": "You have an active mastery recovery pathway for a CLO linked to this quiz. Complete the recovery steps before retrying.",
+      "cta": "Go to Recovery Pathway"
+    },
+    "toast": {
+      "startFailed": "Failed to start quiz. Please try again.",
+      "submitFailed": "Failed to submit quiz. Please try again.",
+      "nextFailed": "Failed to load next question. Please try again.",
+      "selectAnswer": "Please select an answer before submitting.",
+      "timeUp": "Time is up! Submitting your quiz..."
+    },
+    "feedback": {
+      "correctTitle": "Correct!",
+      "correctBody": "Great job — check the post-quiz review for a detailed explanation.",
+      "incorrectTitle": "Incorrect",
+      "correctAnswerRevealPrefix": "The correct answer is",
+      "reviewLater": "Review the correct answer and explanation after the quiz."
+    },
+    "review": {
+      "title": "Quiz Review",
+      "loading": "Loading quiz review...",
+      "loadFailed": "Failed to load quiz review. Please try again.",
+      "backToDashboard": "Back to Dashboard",
+      "overallScore": "Overall Score:",
+      "perCloBreakdown": "Per-CLO Score Breakdown",
+      "bloomsProgression": "Bloom's Progression",
+      "questionLabel": "Question {{number}}",
+      "correct": "Correct",
+      "incorrect": "Incorrect",
+      "verifiedExplanation": "Verified Explanation",
+      "aiExplanation": "AI Explanation",
+      "getHelp": "Get Help with this topic",
+      "bloomLevel": "Level {{level}}"
+    }
+  },
+  "createTeam": {
+    "back": "Go back",
+    "title": "Create Team",
+    "noCoursesAvailable": "No courses with student-formed teams available.",
+    "courseLabel": "Course",
+    "selectCourse": "Select a course",
+    "teamNameLabel": "Team Name",
+    "teamNamePlaceholder": "e.g. Code Warriors",
+    "inviteMembers": "Invite Members ({{current}}/6 including you)",
+    "noAvailableStudents": "No available students in this course.",
+    "selectAtLeastOne": "Select at least 1 member (team needs 2-6 total).",
+    "submit": "Create Team",
+    "validation": {
+      "nameMin": "Team name must be at least 2 characters",
+      "courseRequired": "Select a course"
+    },
+    "toast": {
+      "sizeInvalid": "Team must have 2-6 members (including you)",
+      "created": "Team created! You are the captain."
+    }
+  },
+  "surveys": {
+    "title": "Surveys",
+    "alreadyCompleted": "You have already completed this survey.",
+    "completed": "Completed",
+    "toast": {
+      "answerAtLeastOne": "Please answer at least one question",
+      "submitted": "Survey submitted! +15 XP",
+      "submitFailed": "Failed to submit survey"
+    }
+  },
+  "publicPortfolio": {
+    "subtitle": "Student Learning Portfolio",
+    "totalXP": "Total XP",
+    "level": "Level",
+    "sections": {
+      "cloAttainment": "CLO Attainment",
+      "badges": "Badges"
+    },
+    "poweredBy": "Powered by Edeviser",
+    "error": {
+      "forbiddenTitle": "Portfolio Not Available",
+      "forbiddenBody": "This portfolio is private. The student has not enabled public sharing, or their school has not granted permission.",
+      "notFoundTitle": "Portfolio Not Found",
+      "notFoundBody": "We could not find a portfolio for this link. It may have been removed or the link may be incorrect.",
+      "missingIdTitle": "Portfolio Not Available",
+      "missingIdBody": "No student ID was provided.",
+      "code": "Error {{status}}"
+    }
   }
 }

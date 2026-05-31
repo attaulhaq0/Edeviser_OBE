@@ -1,15 +1,19 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { TrendingUp, Target, Award, BookOpen, ChevronRight } from "lucide-react";
+import {
+  TrendingUp,
+  Target,
+  Award,
+  BookOpen,
+  ChevronRight,
+} from "lucide-react";
 
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Shimmer from "@/components/shared/Shimmer";
 import { NoData } from "@/components/shared/EmptyState";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/lib/supabase";
-import { queryKeys } from "@/lib/queryKeys";
+import { useStudentProgress } from "@/hooks/useStudentProgress";
 
 const ProgressBar = ({ value }: { value: number }) => (
   <div className="h-2 w-full overflow-hidden rounded-full bg-gray-100">
@@ -20,159 +24,13 @@ const ProgressBar = ({ value }: { value: number }) => (
   </div>
 );
 
-interface CourseProgress {
-  course_id: string;
-  course_name: string;
-  course_code: string;
-  attainment_percent: number;
-  clo_count: number;
-  evidence_count: number;
-}
-
-interface ProgressSummary {
-  totalCourses: number;
-  averageAttainment: number;
-  excellentCount: number;
-  satisfactoryCount: number;
-  developingCount: number;
-  notYetCount: number;
-  perCourse: CourseProgress[];
-}
-
-const useStudentProgress = (studentId: string | undefined) => {
-  return useQuery({
-    queryKey: queryKeys.outcomeAttainment.list({ studentId, view: "progress" }),
-    queryFn: async (): Promise<ProgressSummary> => {
-      if (!studentId) {
-        return {
-          totalCourses: 0,
-          averageAttainment: 0,
-          excellentCount: 0,
-          satisfactoryCount: 0,
-          developingCount: 0,
-          notYetCount: 0,
-          perCourse: [],
-        };
-      }
-
-      // Enrolled courses with course details
-      const { data: enrollments, error: enrollErr } = await supabase
-        .from("student_courses")
-        .select(`course_id, courses!inner(id, name, code)`)
-        .eq("student_id", studentId)
-        .eq("status", "active");
-
-      if (enrollErr) throw enrollErr;
-      if (!enrollments || enrollments.length === 0) {
-        return {
-          totalCourses: 0,
-          averageAttainment: 0,
-          excellentCount: 0,
-          satisfactoryCount: 0,
-          developingCount: 0,
-          notYetCount: 0,
-          perCourse: [],
-        };
-      }
-
-      const courseIds = enrollments.map((e) => e.course_id);
-
-      // Per-course attainment in one query
-      const { data: attainment } = await supabase
-        .from("outcome_attainment")
-        .select("course_id, attainment_percent, sample_count")
-        .eq("student_id", studentId)
-        .in("course_id", courseIds)
-        .eq("scope", "student_course");
-
-      const courseAttainmentMap = new Map<
-        string,
-        { sum: number; count: number; samples: number }
-      >();
-      for (const row of attainment ?? []) {
-        if (!row.course_id) continue;
-        const cur = courseAttainmentMap.get(row.course_id) ?? {
-          sum: 0,
-          count: 0,
-          samples: 0,
-        };
-        cur.sum += row.attainment_percent;
-        cur.count += 1;
-        cur.samples += row.sample_count ?? 0;
-        courseAttainmentMap.set(row.course_id, cur);
-      }
-
-      // Count CLOs per course
-      const { data: clos } = await supabase
-        .from("learning_outcomes")
-        .select("course_id")
-        .in("course_id", courseIds)
-        .eq("type", "CLO");
-
-      const cloCountMap = new Map<string, number>();
-      for (const row of clos ?? []) {
-        if (!row.course_id) continue;
-        cloCountMap.set(row.course_id, (cloCountMap.get(row.course_id) ?? 0) + 1);
-      }
-
-      const perCourse: CourseProgress[] = enrollments.map((e) => {
-        const course = e.courses as unknown as {
-          id: string;
-          name: string;
-          code: string;
-        };
-        const att = courseAttainmentMap.get(course.id);
-        const avg = att && att.count > 0 ? Math.round(att.sum / att.count) : 0;
-        return {
-          course_id: course.id,
-          course_name: course.name,
-          course_code: course.code,
-          attainment_percent: avg,
-          clo_count: cloCountMap.get(course.id) ?? 0,
-          evidence_count: att?.samples ?? 0,
-        };
-      });
-
-      const totalCourses = perCourse.length;
-      const averageAttainment =
-        totalCourses > 0
-          ? Math.round(
-              perCourse.reduce((s, c) => s + c.attainment_percent, 0) /
-                totalCourses
-            )
-          : 0;
-      const excellentCount = perCourse.filter(
-        (c) => c.attainment_percent >= 85
-      ).length;
-      const satisfactoryCount = perCourse.filter(
-        (c) => c.attainment_percent >= 70 && c.attainment_percent < 85
-      ).length;
-      const developingCount = perCourse.filter(
-        (c) => c.attainment_percent >= 50 && c.attainment_percent < 70
-      ).length;
-      const notYetCount = perCourse.filter(
-        (c) => c.attainment_percent < 50
-      ).length;
-
-      return {
-        totalCourses,
-        averageAttainment,
-        excellentCount,
-        satisfactoryCount,
-        developingCount,
-        notYetCount,
-        perCourse,
-      };
-    },
-    enabled: !!studentId,
-    staleTime: 60_000,
-  });
-};
-
 const attainmentLevel = (percent: number) => {
-  if (percent >= 85) return { label: "Excellent", color: "text-green-700 bg-green-50" };
-  if (percent >= 70) return { label: "Satisfactory", color: "text-blue-700 bg-blue-50" };
-  if (percent >= 50) return { label: "Developing", color: "text-yellow-700 bg-yellow-50" };
+  if (percent >= 85)
+    return { label: "Excellent", color: "text-green-700 bg-green-50" };
+  if (percent >= 70)
+    return { label: "Satisfactory", color: "text-blue-700 bg-blue-50" };
+  if (percent >= 50)
+    return { label: "Developing", color: "text-yellow-700 bg-yellow-50" };
   return { label: "Not Yet", color: "text-red-700 bg-red-50" };
 };
 
@@ -195,7 +53,9 @@ const KPICard = ({
         </p>
         <p className="text-2xl font-black mt-1">{value}</p>
       </div>
-      <div className={`p-2 rounded-lg ${iconBg} group-hover:scale-110 transition-transform`}>
+      <div
+        className={`p-2 rounded-lg ${iconBg} group-hover:scale-110 transition-transform`}
+      >
         <Icon className="h-5 w-5" />
       </div>
     </div>
@@ -286,10 +146,15 @@ const StudentProgressPage = () => {
                     <div className="flex items-center gap-4 p-3 rounded-lg border border-gray-100 hover:border-blue-200 hover:bg-slate-50 transition-colors">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <Badge variant="outline" className="text-[10px] font-bold">
+                          <Badge
+                            variant="outline"
+                            className="text-[10px] font-bold"
+                          >
                             {course.course_code}
                           </Badge>
-                          <span className={`text-xs font-semibold px-2 py-0.5 rounded-md ${level.color}`}>
+                          <span
+                            className={`text-xs font-semibold px-2 py-0.5 rounded-md ${level.color}`}
+                          >
                             {level.label}
                           </span>
                         </div>
@@ -300,7 +165,9 @@ const StudentProgressPage = () => {
                           <ProgressBar value={course.attainment_percent} />
                         </div>
                         <p className="text-xs text-gray-500 mt-1">
-                          {course.clo_count} {t("progress.clos", "CLOs")} · {course.evidence_count} {t("progress.evidence", "evidence")}
+                          {course.clo_count} {t("progress.clos", "CLOs")} ·{" "}
+                          {course.evidence_count}{" "}
+                          {t("progress.evidence", "evidence")}
                         </p>
                       </div>
                       <div className="text-end">

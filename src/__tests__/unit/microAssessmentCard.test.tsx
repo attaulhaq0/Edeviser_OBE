@@ -1,12 +1,16 @@
 // @vitest-environment happy-dom
 // =============================================================================
 // MicroAssessmentCard — Unit tests
-// Card rendering, complete/dismiss actions, dismissal counter, skip after 3
+// Card rendering, complete/dismiss actions, dismissal counter, skip after 3.
+// Strings are routed through i18next (en + ar); tests render within the app
+// i18n instance and assert the localized copy.
 // =============================================================================
 
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { I18nextProvider } from "react-i18next";
+import i18n from "@/lib/i18n";
 import MicroAssessmentCard, {
   type MicroAssessmentCardProps,
 } from "@/components/shared/MicroAssessmentCard";
@@ -23,11 +27,19 @@ const defaults: MicroAssessmentCardProps = {
 };
 
 const renderCard = (overrides: Partial<MicroAssessmentCardProps> = {}) =>
-  render(<MicroAssessmentCard {...defaults} {...overrides} />);
+  render(
+    <I18nextProvider i18n={i18n}>
+      <MicroAssessmentCard {...defaults} {...overrides} />
+    </I18nextProvider>
+  );
 
 // ─── Tests ───────────────────────────────────────────────────────────────────
 
 describe("MicroAssessmentCard", () => {
+  beforeEach(async () => {
+    await i18n.changeLanguage("en");
+  });
+
   // ── Rendering ────────────────────────────────────────────────────────────
 
   describe("rendering", () => {
@@ -128,6 +140,18 @@ describe("MicroAssessmentCard", () => {
       renderCard({ dismissalCount: MAX_MICRO_DISMISSALS });
       // remainingDismissals = 0, condition is > 0 && <= 1
       expect(screen.queryByText(/last chance/i)).toBeNull();
+    });
+  });
+
+  // ── Bilingual (en + ar) ────────────────────────────────────────────────────
+
+  describe("localization", () => {
+    it("renders the prompt in Arabic", async () => {
+      await i18n.changeLanguage("ar");
+      renderCard({ assessmentType: "personality", questionCount: 3 });
+      expect(screen.getByText("فحص سريع لـالشخصية")).toBeTruthy();
+      expect(screen.getByText("أكمل الآن")).toBeTruthy();
+      expect(screen.getByText("ذكّرني لاحقاً")).toBeTruthy();
     });
   });
 });

@@ -54,11 +54,29 @@ import {
   GraduationCap as GraduationCapIcon,
 } from "lucide-react";
 import type { UserRole } from "@/types/app";
+import type { NavGroup } from "@/lib/navGroups";
 
 export interface NavItem {
   to: string;
   labelKey: string;
   icon: LucideIcon;
+  /**
+   * Task 22.1 (R20.1, R20.2): the labeled student-navigation section this item
+   * belongs to. Optional because grouping applies to the student navigation
+   * only — admin/coordinator/teacher/parent items leave this undefined. Student
+   * items are validated against {@link REQUIRED_NAV_GROUPS} via `assertNavGroup`
+   * (e.g. the AI Tutor item must belong to `learn`, R20.6).
+   */
+  group?: NavGroup;
+  /**
+   * Task 22.3 (R23.3): the item is kept (it still provides a student-relevant
+   * function) but de-emphasized relative to core learning items. The sidebar
+   * sinks de-emphasized items to the bottom of their section and renders them
+   * with subdued styling. Used for "My Content", which students can use to
+   * author study plans / quiz questions but which is secondary to the core
+   * learning items (Courses, Assignments, AI Tutor).
+   */
+  deEmphasized?: boolean;
 }
 
 const adminNavItems: NavItem[] = [
@@ -170,28 +188,110 @@ const studentNavItems: NavItem[] = [
     to: "/student/dashboard",
     labelKey: "nav.dashboard",
     icon: LayoutDashboard,
+    group: "learn",
   },
-  { to: "/student/courses", labelKey: "nav.courses", icon: BookOpen },
+  {
+    to: "/student/courses",
+    labelKey: "nav.courses",
+    icon: BookOpen,
+    group: "learn",
+  },
   {
     to: "/student/assignments",
     labelKey: "nav.assignments",
     icon: ClipboardListIcon,
+    group: "learn",
   },
-  { to: "/student/planner", labelKey: "nav.planner", icon: CalendarDays },
-  { to: "/student/today", labelKey: "nav.today", icon: CalendarCheck },
-  { to: "/student/progress", labelKey: "nav.progress", icon: TrendingUp },
-  { to: "/student/leaderboard", labelKey: "nav.leaderboard", icon: Trophy },
-  { to: "/student/challenges", labelKey: "nav.challenges", icon: Swords },
-  { to: "/student/team", labelKey: "nav.myTeam", icon: Users },
-  { to: "/student/habits", labelKey: "nav.habits", icon: Grid3X3 },
-  { to: "/student/marketplace", labelKey: "nav.marketplace", icon: Store },
-  { to: "/student/content", labelKey: "nav.myContent", icon: FileText },
-  { to: "/student/journal", labelKey: "nav.journal", icon: PenLine },
-  { to: "/student/tutor", labelKey: "nav.aiTutor", icon: Bot },
-  { to: "/student/calendar", labelKey: "nav.calendar", icon: Calendar },
-  { to: "/student/timetable", labelKey: "nav.timetable", icon: Clock },
-  { to: "/student/portfolio", labelKey: "nav.portfolio", icon: Star },
-  { to: "/student/surveys", labelKey: "nav.surveys", icon: FileQuestion },
+  {
+    to: "/student/planner",
+    labelKey: "nav.planner",
+    icon: CalendarDays,
+    group: "tools",
+  },
+  {
+    to: "/student/today",
+    labelKey: "nav.today",
+    icon: CalendarCheck,
+    group: "tools",
+  },
+  {
+    to: "/student/progress",
+    labelKey: "nav.progress",
+    icon: TrendingUp,
+    group: "growth",
+  },
+  {
+    to: "/student/leaderboard",
+    labelKey: "nav.leaderboard",
+    icon: Trophy,
+    group: "community",
+  },
+  {
+    to: "/student/challenges",
+    labelKey: "nav.challenges",
+    icon: Swords,
+    group: "growth",
+  },
+  {
+    to: "/student/team",
+    labelKey: "nav.myTeam",
+    icon: Users,
+    group: "community",
+  },
+  {
+    to: "/student/habits",
+    labelKey: "nav.habits",
+    icon: Grid3X3,
+    group: "growth",
+  },
+  {
+    to: "/student/marketplace",
+    labelKey: "nav.marketplace",
+    icon: Store,
+    group: "growth",
+  },
+  {
+    to: "/student/content",
+    labelKey: "nav.myContent",
+    icon: FileText,
+    group: "learn",
+    // R23.3: "My Content" lets students author study plans / quiz questions, so
+    // it has student value and is kept — but it is secondary to the core
+    // learning items, so it is de-emphasized (sunk + subdued) rather than
+    // removed.
+    deEmphasized: true,
+  },
+  {
+    to: "/student/journal",
+    labelKey: "nav.journal",
+    icon: PenLine,
+    group: "tools",
+  },
+  { to: "/student/tutor", labelKey: "nav.aiTutor", icon: Bot, group: "learn" },
+  {
+    to: "/student/calendar",
+    labelKey: "nav.calendar",
+    icon: Calendar,
+    group: "tools",
+  },
+  {
+    to: "/student/timetable",
+    labelKey: "nav.timetable",
+    icon: Clock,
+    group: "tools",
+  },
+  {
+    to: "/student/portfolio",
+    labelKey: "nav.portfolio",
+    icon: Star,
+    group: "growth",
+  },
+  {
+    to: "/student/surveys",
+    labelKey: "nav.surveys",
+    icon: FileQuestion,
+    group: "tools",
+  },
 ];
 
 const parentNavItems: NavItem[] = [

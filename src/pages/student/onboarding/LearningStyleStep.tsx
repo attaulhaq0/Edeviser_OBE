@@ -1,10 +1,15 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useGatedMotion } from "@/lib/motionGate";
 import { Layers, AlertTriangle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import AssessmentIntro from "@/components/shared/AssessmentIntro";
 import { useLearningStyleQuestions } from "@/hooks/useOnboardingQuestions";
 import { useSaveResponses } from "@/hooks/useOnboardingResponses";
+import { useAssessmentIntro } from "@/hooks/useAssessmentIntro";
+import { shouldRenderAssessmentBody } from "@/lib/assessmentIntro";
 import type { OnboardingQuestion } from "@/hooks/useOnboardingQuestions";
 import type { WizardStepProps } from "./OnboardingWizard";
 
@@ -28,8 +33,16 @@ export const LearningStyleStep = ({
   studentId,
   assessmentVersion,
 }: WizardStepProps) => {
+  const { t } = useTranslation("student");
+  const introContent = useAssessmentIntro("learning_style");
+  const motionGate = useGatedMotion();
   const { data: questions = [], isLoading } = useLearningStyleQuestions();
   const saveResponses = useSaveResponses();
+
+  // R17.2a — gate the assessment body until the benefit + estimated-time
+  // intro is shown and the student begins.
+  const [hasBegun, setHasBegun] = useState(false);
+  const handleBegin = useCallback(() => setHasBegun(true), []);
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
@@ -82,17 +95,16 @@ export const LearningStyleStep = ({
       <div className="flex flex-col items-center py-16 text-center">
         <Layers className="mb-4 h-10 w-10 text-blue-400" />
         <h2 className="text-lg font-bold tracking-tight text-gray-900">
-          Learning Style Assessment
+          {t("onboarding.learningStyle.day1.title")}
         </h2>
         <p className="mt-2 max-w-sm text-sm text-gray-500">
-          This assessment will be delivered as short daily micro-assessments
-          over your first two weeks. You&apos;ll earn XP for each one!
+          {t("onboarding.learningStyle.day1.body")}
         </p>
         <Button
           onClick={onComplete}
           className="mt-6 bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
         >
-          Continue
+          {t("onboarding.learningStyle.day1.continue")}
         </Button>
       </div>
     );
@@ -109,9 +121,27 @@ export const LearningStyleStep = ({
   if (totalQuestions === 0) {
     return (
       <div className="py-16 text-center text-sm text-gray-500">
-        No learning style questions available. Please contact your
-        administrator.
+        {t("onboarding.learningStyle.noQuestions")}
       </div>
+    );
+  }
+
+  // R17 — benefit-oriented framing gates the assessment body until the
+  // benefit + estimated time are shown and the student begins (R17.2a).
+  if (
+    !shouldRenderAssessmentBody({
+      hasBegun,
+      benefits: introContent.benefits,
+      estimatedTime: introContent.estimatedTime,
+    })
+  ) {
+    return (
+      <AssessmentIntro
+        icon={Layers}
+        content={introContent}
+        beginLabel={t("onboarding.assessmentIntro.begin")}
+        onBegin={handleBegin}
+      />
     );
   }
 
@@ -121,7 +151,7 @@ export const LearningStyleStep = ({
       <div className="mb-4 flex items-center gap-2">
         <Layers className="h-5 w-5 text-blue-600" />
         <h2 className="text-lg font-bold tracking-tight text-gray-900">
-          Learning Style Preferences
+          {t("onboarding.learningStyle.title")}
         </h2>
       </div>
 
@@ -129,15 +159,15 @@ export const LearningStyleStep = ({
       <Card className="mb-6 flex flex-row items-start gap-2 border-0 bg-amber-50 p-3 shadow-none">
         <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
         <p className="text-xs text-amber-800">
-          Learning style preferences are provided as a self-awareness exercise.
-          Research does not support matching instruction to VARK styles (Pashler
-          et al., 2008). Your results will not be used to restrict content
-          delivery.
+          {t("onboarding.learningStyle.disclaimer")}
         </p>
       </Card>
 
       <p className="mb-2 text-xs font-bold uppercase tracking-widest text-gray-400">
-        Question {currentIndex + 1} of {totalQuestions}
+        {t("onboarding.learningStyle.questionProgress", {
+          current: currentIndex + 1,
+          total: totalQuestions,
+        })}
       </p>
 
       {/* Question progress */}
@@ -145,7 +175,7 @@ export const LearningStyleStep = ({
         <motion.div
           className="h-full rounded-full bg-gradient-to-r from-teal-500 to-blue-600"
           animate={{ width: `${((currentIndex + 1) / totalQuestions) * 100}%` }}
-          transition={{ duration: 0.2 }}
+          transition={motionGate.transition({ duration: 0.2 })}
         />
       </div>
 
@@ -154,10 +184,13 @@ export const LearningStyleStep = ({
         <motion.div
           key={currentQuestion?.id}
           custom={direction}
-          initial={{ opacity: 0, x: direction * 30 }}
+          initial={motionGate.enter(
+            { opacity: 0, x: direction * 30 },
+            { opacity: 1, x: 0 }
+          )}
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: direction * -30 }}
-          transition={{ duration: 0.2 }}
+          transition={motionGate.transition({ duration: 0.2 })}
           className="w-full max-w-md"
         >
           <Card className="border-0 bg-white p-6 shadow-md rounded-xl">
@@ -167,7 +200,7 @@ export const LearningStyleStep = ({
             <div
               className="flex flex-col gap-2"
               role="radiogroup"
-              aria-label="VARK options"
+              aria-label={t("onboarding.learningStyle.scaleLabel")}
             >
               {options.map((opt, idx) => {
                 const isSelected = currentAnswer === idx;
@@ -211,7 +244,7 @@ export const LearningStyleStep = ({
           disabled={currentIndex === 0}
           className="text-gray-500"
         >
-          Previous
+          {t("onboarding.learningStyle.previous")}
         </Button>
         <Button
           onClick={handleNext}
@@ -220,9 +253,9 @@ export const LearningStyleStep = ({
         >
           {currentIndex === totalQuestions - 1
             ? saveResponses.isPending
-              ? "Saving..."
-              : "Complete"
-            : "Next"}
+              ? t("onboarding.learningStyle.saving")
+              : t("onboarding.learningStyle.complete")
+            : t("onboarding.learningStyle.next")}
         </Button>
       </div>
     </div>

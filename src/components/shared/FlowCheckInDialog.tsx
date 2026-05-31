@@ -1,7 +1,7 @@
 // =============================================================================
 // FlowCheckInDialog — Pomodoro break check-in: in_the_zone / stuck / too_easy.
 // Saves response via useSaveFlowCheckIn, then shows conditional follow-up:
-//   • "Stuck"    → AI Tutor link (/student/ai-tutor)
+//   • "Stuck"    → AI Tutor link (/student/tutor)
 //   • "Too easy" → Bloom's level-up suggestion
 //   • "In zone"  → Encouragement message
 // =============================================================================
@@ -162,7 +162,7 @@ const FlowCheckInDialog = ({
             <p className="mt-1 text-xs text-amber-800">
               The AI Tutor can walk you through the concept step by step.
             </p>
-            <Link to="/student/ai-tutor">
+            <Link to="/student/tutor">
               <Button
                 className="mt-3 gap-2 bg-gradient-to-r from-amber-500 to-orange-600 active:scale-95"
                 size="sm"

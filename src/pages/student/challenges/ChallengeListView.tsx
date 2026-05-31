@@ -17,6 +17,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import Shimmer from "@/components/shared/Shimmer";
+import { NoChallenges } from "@/components/shared/EmptyState";
 import { Trophy, Target, Users } from "lucide-react";
 
 // ─── Progress Bar ───────────────────────────────────────────────────────────
@@ -246,9 +247,7 @@ const ChallengeListView = () => {
 
         <TabsContent value="active" className="mt-4 space-y-3">
           {active.length === 0 ? (
-            <Card className="bg-white border-0 shadow-md rounded-xl p-8 text-center text-gray-500 text-sm">
-              No active challenges right now.
-            </Card>
+            <NoChallenges />
           ) : (
             active.map((c) => <ChallengeCard key={c.id} challenge={c} />)
           )}
@@ -256,9 +255,7 @@ const ChallengeListView = () => {
 
         <TabsContent value="completed" className="mt-4 space-y-3">
           {completed.length === 0 ? (
-            <Card className="bg-white border-0 shadow-md rounded-xl p-8 text-center text-gray-500 text-sm">
-              No completed challenges yet.
-            </Card>
+            <NoChallenges />
           ) : (
             completed.map((c) => (
               <Card

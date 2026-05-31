@@ -15,7 +15,19 @@ export interface SSECallbacks {
   onToken: (token: string) => void;
   onCitations: (citations: SourceCitation[]) => void;
   onDone: (data: { message_id: string; tokens_used: number }) => void;
-  onError: (error: { code: string; message: string }) => void;
+  /**
+   * Called on any tutor failure. Threads the HTTP status (when a response was
+   * received) and a network-error flag (when the request never reached the
+   * backend) so the caller can map the failure to a `TutorUiState` via
+   * `mapTutorError`. `httpStatus` is absent for SSE `error` events, which
+   * arrive over an otherwise-200 stream and are distinguished by `code`.
+   */
+  onError: (error: {
+    code: string;
+    message: string;
+    httpStatus?: number;
+    networkError?: boolean;
+  }) => void;
   onPlanUpdate?: (data: LearningPlanUpdate) => void;
   onIndependenceNudge?: (data: { message: string }) => void;
   onHandoffSuggestion?: (data: { reason: string; message: string }) => void;
@@ -74,12 +86,26 @@ export const sendTutorMessage = async (
   const headers = await getAuthHeaders();
   const url = getEdgeFunctionUrl("chat-with-tutor");
 
-  const response = await fetch(url, {
-    method: "POST",
-    headers,
-    body: JSON.stringify(input),
-    signal,
-  });
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      method: "POST",
+      headers,
+      body: JSON.stringify(input),
+      signal,
+    });
+  } catch (err) {
+    // The request never reached the backend (offline, DNS, CORS, undeployed
+    // function, aborted network). Surface a network-error signal so the caller
+    // can render the "unavailable" state rather than a silent failure.
+    callbacks.onError({
+      code: "network_error",
+      message:
+        err instanceof Error ? err.message : "Failed to reach the AI Tutor",
+      networkError: true,
+    });
+    return;
+  }
 
   if (!response.ok) {
     const errorBody = await response.json().catch(() => ({
@@ -89,6 +115,7 @@ export const sendTutorMessage = async (
     callbacks.onError({
       code: errorBody.code ?? String(response.status),
       message: errorBody.message ?? response.statusText,
+      httpStatus: response.status,
     });
     return;
   }

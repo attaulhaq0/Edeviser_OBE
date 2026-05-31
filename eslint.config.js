@@ -43,5 +43,15 @@ export default tseslint.config(
       "@typescript-eslint/no-explicit-any": "warn",
       "react-hooks/incompatible-library": "off",
     },
+  },
+  {
+    // Remotion compositions are rendered headlessly (not part of the Vite
+    // Fast-Refresh dev surface), so the "only export components" rule — which
+    // exists to protect HMR — does not apply. These files intentionally export
+    // timing constants (FPS/FRAMES/TOTAL) alongside their composition.
+    files: ["remotion/**/*.{ts,tsx}"],
+    rules: {
+      "react-refresh/only-export-components": "off",
+    },
   }
 );

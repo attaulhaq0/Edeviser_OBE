@@ -5,6 +5,7 @@
 
 import { useState } from "react";
 import { HelpCircle, ListChecks, Zap, Sparkles } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -21,8 +22,6 @@ interface PersonaSelectorProps {
 
 interface PersonaOption {
   id: TutorPersona;
-  label: string;
-  description: string;
   icon: typeof HelpCircle;
   color: string;
   activeColor: string;
@@ -31,24 +30,18 @@ interface PersonaOption {
 const personas: PersonaOption[] = [
   {
     id: "socratic_guide",
-    label: "Socratic Guide",
-    description: "Asks probing questions to lead you to the answer",
     icon: HelpCircle,
     color: "text-purple-600",
     activeColor: "bg-purple-50 border-purple-200 text-purple-700",
   },
   {
     id: "step_by_step_coach",
-    label: "Step-by-Step Coach",
-    description: "Breaks down problems into sequential steps",
     icon: ListChecks,
     color: "text-blue-600",
     activeColor: "bg-blue-50 border-blue-200 text-blue-700",
   },
   {
     id: "quick_explainer",
-    label: "Quick Explainer",
-    description: "Gives concise, direct explanations",
     icon: Zap,
     color: "text-teal-600",
     activeColor: "bg-teal-50 border-teal-200 text-teal-700",
@@ -61,6 +54,7 @@ const PersonaSelector = ({
   variant = "inline",
   recommendedPersona,
 }: PersonaSelectorProps) => {
+  const { t } = useTranslation("ai");
   const [showFullPicker, setShowFullPicker] = useState(false);
 
   // If there's a recommendation and user hasn't opened the full picker yet,
@@ -79,9 +73,11 @@ const PersonaSelector = ({
         <div
           className="space-y-3"
           role="group"
-          aria-label="Recommended tutor persona"
+          aria-label={t("tutor.persona.recommendedGroupLabel")}
         >
-          <p className="text-sm font-medium text-gray-700">Your tutor style</p>
+          <p className="text-sm font-medium text-gray-700">
+            {t("tutor.persona.yourStyle")}
+          </p>
           <div
             className={cn(
               "flex items-start gap-3 p-3 rounded-xl border-2 transition-all",
@@ -93,17 +89,19 @@ const PersonaSelector = ({
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <p className="text-sm font-semibold">{recommended.label}</p>
+                <p className="text-sm font-semibold">
+                  {t(`tutor.persona.${recommended.id}.label`)}
+                </p>
                 <Badge
                   variant="secondary"
                   className="bg-amber-100 text-amber-700 border-amber-200 text-[10px] font-bold gap-1 px-1.5 py-0"
                 >
                   <Sparkles className="h-3 w-3" />
-                  Recommended
+                  {t("tutor.persona.recommended")}
                 </Badge>
               </div>
               <p className="text-xs mt-0.5 opacity-80">
-                {recommended.description}
+                {t(`tutor.persona.${recommended.id}.description`)}
               </p>
             </div>
           </div>
@@ -113,7 +111,7 @@ const PersonaSelector = ({
             className="text-xs text-gray-500 hover:text-gray-700"
             onClick={() => setShowFullPicker(true)}
           >
-            Change tutor style
+            {t("tutor.persona.changeStyle")}
           </Button>
         </div>
       );
@@ -125,10 +123,10 @@ const PersonaSelector = ({
       <div
         className="space-y-3"
         role="radiogroup"
-        aria-label="Select tutor persona"
+        aria-label={t("tutor.persona.selectLabel")}
       >
         <p className="text-sm font-medium text-gray-700">
-          Choose your tutor style
+          {t("tutor.persona.chooseStyle")}
         </p>
         <div className="grid gap-2">
           {personas.map((persona) => {
@@ -170,7 +168,7 @@ const PersonaSelector = ({
                         isSelected ? "" : "text-gray-800"
                       )}
                     >
-                      {persona.label}
+                      {t(`tutor.persona.${persona.id}.label`)}
                     </p>
                     {isRecommended && (
                       <Badge
@@ -178,7 +176,7 @@ const PersonaSelector = ({
                         className="bg-amber-100 text-amber-700 border-amber-200 text-[10px] font-bold gap-1 px-1.5 py-0"
                       >
                         <Sparkles className="h-3 w-3" />
-                        Recommended
+                        {t("tutor.persona.recommended")}
                       </Badge>
                     )}
                   </div>
@@ -188,7 +186,7 @@ const PersonaSelector = ({
                       isSelected ? "opacity-80" : "text-gray-500"
                     )}
                   >
-                    {persona.description}
+                    {t(`tutor.persona.${persona.id}.description`)}
                   </p>
                 </div>
                 {isSelected && (
@@ -209,7 +207,7 @@ const PersonaSelector = ({
     <div
       className="flex items-center gap-1"
       role="radiogroup"
-      aria-label="Tutor persona"
+      aria-label={t("tutor.persona.groupLabel")}
     >
       {personas.map((persona) => {
         const Icon = persona.icon;
@@ -230,7 +228,9 @@ const PersonaSelector = ({
             )}
           >
             <Icon className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">{persona.label}</span>
+            <span className="hidden sm:inline">
+              {t(`tutor.persona.${persona.id}.label`)}
+            </span>
             {isRecommended && isSelected && (
               <Sparkles className="h-3 w-3 text-amber-500" />
             )}

@@ -6,7 +6,6 @@
 
 import { useState, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import FocusTimer from "@/components/shared/FocusTimer";
 import SessionCompletionForm from "@/components/shared/SessionCompletionForm";
@@ -15,49 +14,9 @@ import Shimmer from "@/components/shared/Shimmer";
 import { useFocusTimer } from "@/hooks/useFocusTimer";
 import { useSessionIntent } from "@/hooks/useSessionIntent";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/lib/supabase";
-import { queryKeys } from "@/lib/queryKeys";
-import type { StudySession } from "@/types/planner";
+import { useStudySession } from "@/hooks/useStudySessions";
 import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
-
-// ─── Session Fetch ───────────────────────────────────────────────────────────
-
-function useStudySession(sessionId: string | undefined) {
-  return useQuery({
-    queryKey: queryKeys.studySessions.detail(sessionId ?? ""),
-    queryFn: async (): Promise<StudySession | null> => {
-      if (!sessionId) return null;
-      const { data, error } = await supabase
-        .from("study_sessions")
-        .select("*")
-        .eq("id", sessionId)
-        .maybeSingle();
-      if (error) throw error;
-      if (!data) return null;
-
-      return {
-        id: data.id as string,
-        studentId: data.student_id as string,
-        courseId: data.course_id as string,
-        title: data.title as string,
-        description: (data.description as string) ?? null,
-        plannedDate: data.planned_date as string,
-        plannedStartTime: data.planned_start_time as string,
-        plannedDurationMinutes: data.planned_duration_minutes as number,
-        actualStartAt: (data.actual_start_at as string) ?? null,
-        actualEndAt: (data.actual_end_at as string) ?? null,
-        actualDurationMinutes: (data.actual_duration_minutes as number) ?? null,
-        timerMode: data.timer_mode as StudySession["timerMode"],
-        status: data.status as StudySession["status"],
-        satisfactionRating: (data.satisfaction_rating as number) ?? null,
-        cloIds: (data.clo_ids as string[]) ?? null,
-        createdAt: data.created_at as string,
-      };
-    },
-    enabled: !!sessionId,
-  });
-}
 
 // ─── Main Page ───────────────────────────────────────────────────────────────
 

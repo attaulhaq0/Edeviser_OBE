@@ -15,6 +15,32 @@ import type {
   LearningPlanUpdate,
 } from "@/lib/tutorSchemas";
 import type { SSECallbacks } from "@/lib/tutorApi";
+import type { Database } from "@/types/database";
+
+type TutorMessageRow = Database["public"]["Tables"]["tutor_messages"]["Row"];
+
+// ─── Citation narrowing ──────────────────────────────────────────────────────
+
+/**
+ * Type guard validating that an unknown value matches the `SourceCitation`
+ * shape. The DB stores citations as `Json`, so each element is validated before
+ * it is surfaced to the UI — no unsafe cast is used.
+ */
+const isSourceCitation = (value: unknown): value is SourceCitation => {
+  if (typeof value !== "object" || value === null) return false;
+  const c = value as Record<string, unknown>;
+  return (
+    typeof c.chunk_id === "string" &&
+    typeof c.chunk_text === "string" &&
+    typeof c.source_filename === "string" &&
+    typeof c.material_type === "string" &&
+    typeof c.similarity_score === "number"
+  );
+};
+
+/** Narrows a `Json | null` citations column into a `SourceCitation[]`. */
+const parseSourceCitations = (value: unknown): SourceCitation[] =>
+  Array.isArray(value) ? value.filter(isSourceCitation) : [];
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -24,8 +50,48 @@ export interface SendMessageOptions {
   onCitations?: (citations: SourceCitation[]) => void;
   onDone?: (data: { message_id: string; tokens_used: number }) => void;
   onPlanUpdate?: (data: LearningPlanUpdate) => void;
+  /**
+   * Surfaces the raw backend failure signal (HTTP status / SSE error code /
+   * network-error flag) so the caller can map it to a `TutorUiState` via
+   * `mapTutorError`. Called in addition to the default error toast.
+   */
+  onErrorSignal?: (signal: {
+    code: string;
+    message: string;
+    httpStatus?: number;
+    networkError?: boolean;
+  }) => void;
   signal?: AbortSignal;
 }
+
+// ─── Row mapper ──────────────────────────────────────────────────────────────
+
+/**
+ * Narrows a loosely-typed `tutor_messages` row (string columns + `Json`
+ * citations) into the strict `TutorMessage` domain type. The DB stores `role`,
+ * `satisfaction_rating`, `autonomy_level`, and `nudge_type` as plain strings;
+ * this mapper restores the discriminated-union shape the UI relies on.
+ */
+const mapTutorMessageRow = (row: TutorMessageRow): TutorMessage => ({
+  id: row.id,
+  conversation_id: row.conversation_id,
+  role: row.role === "user" ? "user" : "assistant",
+  content: row.content,
+  source_citations: parseSourceCitations(row.source_citations),
+  image_urls: row.image_urls ?? [],
+  document_url: row.document_url,
+  token_count: row.token_count,
+  satisfaction_rating: row.satisfaction_rating as SatisfactionRating | null,
+  flagged_integrity: row.flagged_integrity,
+  autonomy_level:
+    row.autonomy_level === "L1" ||
+    row.autonomy_level === "L2" ||
+    row.autonomy_level === "L3"
+      ? row.autonomy_level
+      : null,
+  nudge_type: row.nudge_type === "independence" ? "independence" : null,
+  created_at: row.created_at,
+});
 
 // ─── useTutorMessages — fetch message history for a conversation ─────────────
 
@@ -33,10 +99,7 @@ export const useTutorMessages = (conversationId: string) => {
   return useQuery({
     queryKey: queryKeys.tutorMessages.byConversation(conversationId),
     queryFn: async (): Promise<TutorMessage[]> => {
-      // NOTE: tutor_messages table exists in DB but database.ts types have not been
-      // regenerated yet. Using type assertion until `scripts/regen-types.ps1` is run.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("tutor_messages")
         .select(
           "id, conversation_id, role, content, source_citations, image_urls, document_url, token_count, satisfaction_rating, flagged_integrity, autonomy_level, nudge_type, created_at"
@@ -45,7 +108,7 @@ export const useTutorMessages = (conversationId: string) => {
         .order("created_at", { ascending: true });
 
       if (error) throw error;
-      return (data ?? []) as TutorMessage[];
+      return (data ?? []).map(mapTutorMessageRow);
     },
     enabled: !!conversationId,
     staleTime: 30_000,
@@ -59,8 +122,15 @@ export const useSendMessage = () => {
 
   return useMutation({
     mutationFn: async (options: SendMessageOptions): Promise<void> => {
-      const { input, onToken, onCitations, onDone, onPlanUpdate, signal } =
-        options;
+      const {
+        input,
+        onToken,
+        onCitations,
+        onDone,
+        onPlanUpdate,
+        onErrorSignal,
+        signal,
+      } = options;
 
       // Optimistically append user message to cache
       if (input.conversation_id) {
@@ -118,6 +188,13 @@ export const useSendMessage = () => {
               ),
             });
           }
+          // Surface the raw signal so the page can render a distinct state.
+          onErrorSignal?.({
+            code: error.code,
+            message: error.message,
+            httpStatus: error.httpStatus,
+            networkError: error.networkError,
+          });
           toast.error(error.message || "Failed to send message");
         },
         onPlanUpdate: onPlanUpdate,

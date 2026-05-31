@@ -3,6 +3,26 @@
 // =============================================================================
 
 import { z } from "zod";
+import type { Json } from "@/types/database";
+
+// ─── JSON value ──────────────────────────────────────────────────────────────
+
+/**
+ * Recursive schema for an arbitrary JSON value, typed to match the Supabase
+ * generated `Json` type. Used for freeform `metadata`/`content_data` columns so
+ * the inferred payload type is assignable to the database `Json` column without
+ * an `as` cast.
+ */
+export const jsonValueSchema: z.ZodType<Json> = z.lazy(() =>
+  z.union([
+    z.string(),
+    z.number(),
+    z.boolean(),
+    z.null(),
+    z.array(jsonValueSchema),
+    z.record(z.string(), jsonValueSchema),
+  ])
+);
 
 // ─── Enums ───────────────────────────────────────────────────────────────────
 

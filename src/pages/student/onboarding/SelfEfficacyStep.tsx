@@ -1,10 +1,15 @@
 import { useState, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Shield } from "lucide-react";
+import { useGatedMotion } from "@/lib/motionGate";
+import { Shield, Info } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import AssessmentIntro from "@/components/shared/AssessmentIntro";
 import { useSelfEfficacyQuestions } from "@/hooks/useOnboardingQuestions";
 import { useSaveResponses } from "@/hooks/useOnboardingResponses";
+import { useAssessmentIntro } from "@/hooks/useAssessmentIntro";
+import { shouldRenderAssessmentBody } from "@/lib/assessmentIntro";
 import { DAY1_SELF_EFFICACY_COUNT } from "@/lib/onboardingConstants";
 import type { OnboardingQuestion } from "@/hooks/useOnboardingQuestions";
 import type { WizardStepProps } from "./OnboardingWizard";
@@ -88,6 +93,42 @@ const pickDay1Questions = (
   return picked.slice(0, DAY1_SELF_EFFICACY_COUNT);
 };
 
+// ── Fallback panel ───────────────────────────────────────────────────
+// Shared, non-alarming fallback used for both the genuine zero-data case
+// (no questions seeded for this institution) and the distinct system-issue
+// case (the questions query failed). In both cases the student is never
+// blocked: an explicit Continue advances the onboarding sequence.
+
+interface FallbackPanelProps {
+  title: string;
+  body: string;
+  continueLabel: string;
+  onContinue: () => void;
+}
+
+const FallbackPanel = ({
+  title,
+  body,
+  continueLabel,
+  onContinue,
+}: FallbackPanelProps) => (
+  <div className="flex flex-col items-center py-12 text-center">
+    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-blue-50">
+      <Info className="h-6 w-6 text-blue-600" />
+    </div>
+    <h2 className="mb-2 text-lg font-bold tracking-tight text-gray-900">
+      {title}
+    </h2>
+    <p className="mb-6 max-w-md text-sm text-gray-500">{body}</p>
+    <Button
+      onClick={onContinue}
+      className="gap-1 bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
+    >
+      {continueLabel}
+    </Button>
+  </div>
+);
+
 // ── Component ────────────────────────────────────────────────────────
 
 export const SelfEfficacyStep = ({
@@ -96,13 +137,29 @@ export const SelfEfficacyStep = ({
   studentId,
   assessmentVersion,
 }: WizardStepProps) => {
-  const { data: allQuestions = [], isLoading } = useSelfEfficacyQuestions();
+  const { t } = useTranslation("student");
+  const introContent = useAssessmentIntro("self_efficacy");
+  const motionGate = useGatedMotion();
+  const {
+    data: allQuestions = [],
+    isLoading,
+    isError,
+  } = useSelfEfficacyQuestions();
   const saveResponses = useSaveResponses();
 
-  const questions = useMemo(
-    () => (isDay1 ? pickDay1Questions(allQuestions) : allQuestions),
-    [isDay1, allQuestions]
-  );
+  // R17.2a — the assessment body stays gated until the student begins, which
+  // is only possible after the benefit + estimated-time intro is displayed.
+  const [hasBegun, setHasBegun] = useState(false);
+  const handleBegin = useCallback(() => setHasBegun(true), []);
+
+  const questions = useMemo(() => {
+    if (allQuestions.length === 0) return [];
+    if (!isDay1) return allQuestions;
+    // Day-1 short path: present the focused subset, but never collapse to an
+    // empty assessment when the institution genuinely has questions.
+    const day1 = pickDay1Questions(allQuestions);
+    return day1.length > 0 ? day1 : allQuestions;
+  }, [isDay1, allQuestions]);
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
@@ -168,11 +225,51 @@ export const SelfEfficacyStep = ({
     );
   }
 
+  // System issue: a query error means questions may exist but could not be
+  // loaded. Surface this distinctly from the genuine zero-data case and never
+  // show the "no questions" copy here (R11.4a, R11.4b). The student is never
+  // blocked — an explicit Continue advances the onboarding sequence.
+  if (isError) {
+    return (
+      <FallbackPanel
+        title={t("onboarding.fallback.systemIssueTitle")}
+        body={t("onboarding.fallback.systemIssueBody")}
+        continueLabel={t("onboarding.fallback.continue")}
+        onContinue={onComplete}
+      />
+    );
+  }
+
+  // Genuine zero-data: the query succeeded but the institution has no
+  // self-efficacy questions seeded. Show a non-alarming fallback (never an
+  // admin-contact error) and allow the student to continue (R11.3, R11.4).
   if (totalQuestions === 0) {
     return (
-      <div className="py-16 text-center text-sm text-gray-500">
-        No self-efficacy questions available. Please contact your administrator.
-      </div>
+      <FallbackPanel
+        title={t("onboarding.fallback.noQuestionsTitle")}
+        body={t("onboarding.fallback.noQuestionsBody")}
+        continueLabel={t("onboarding.fallback.continue")}
+        onContinue={onComplete}
+      />
+    );
+  }
+
+  // R17 — benefit-oriented framing. The assessment body is gated until the
+  // student has seen the benefits + estimated time and chosen to begin (R17.2a).
+  if (
+    !shouldRenderAssessmentBody({
+      hasBegun,
+      benefits: introContent.benefits,
+      estimatedTime: introContent.estimatedTime,
+    })
+  ) {
+    return (
+      <AssessmentIntro
+        icon={Shield}
+        content={introContent}
+        beginLabel={t("onboarding.assessmentIntro.begin")}
+        onBegin={handleBegin}
+      />
     );
   }
 
@@ -182,16 +279,19 @@ export const SelfEfficacyStep = ({
       <div className="mb-6 flex items-center gap-2">
         <Shield className="h-5 w-5 text-blue-600" />
         <h2 className="text-lg font-bold tracking-tight text-gray-900">
-          Self-Efficacy Assessment
+          {t("onboarding.selfEfficacy.title")}
         </h2>
       </div>
 
       <p className="mb-1 max-w-md text-center text-xs text-gray-500">
-        Rate how confident you feel about each statement.
+        {t("onboarding.selfEfficacy.instructions")}
       </p>
 
       <p className="mb-2 text-xs font-bold uppercase tracking-widest text-gray-400">
-        Question {currentIndex + 1} of {totalQuestions}
+        {t("onboarding.selfEfficacy.questionProgress", {
+          current: currentIndex + 1,
+          total: totalQuestions,
+        })}
       </p>
 
       {/* Question progress */}
@@ -199,7 +299,7 @@ export const SelfEfficacyStep = ({
         <motion.div
           className="h-full rounded-full bg-gradient-to-r from-teal-500 to-blue-600"
           animate={{ width: `${((currentIndex + 1) / totalQuestions) * 100}%` }}
-          transition={{ duration: 0.2 }}
+          transition={motionGate.transition({ duration: 0.2 })}
         />
       </div>
 
@@ -208,10 +308,13 @@ export const SelfEfficacyStep = ({
         <motion.div
           key={currentQuestion?.id}
           custom={direction}
-          initial={{ opacity: 0, x: direction * 30 }}
+          initial={motionGate.enter(
+            { opacity: 0, x: direction * 30 },
+            { opacity: 1, x: 0 }
+          )}
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: direction * -30 }}
-          transition={{ duration: 0.2 }}
+          transition={motionGate.transition({ duration: 0.2 })}
           className="w-full max-w-md"
         >
           <Card className="border-0 bg-white p-6 shadow-md rounded-xl">
@@ -235,7 +338,7 @@ export const SelfEfficacyStep = ({
           disabled={currentIndex === 0}
           className="text-gray-500"
         >
-          Previous
+          {t("onboarding.selfEfficacy.previous")}
         </Button>
         <Button
           onClick={handleNext}
@@ -244,9 +347,9 @@ export const SelfEfficacyStep = ({
         >
           {currentIndex === totalQuestions - 1
             ? saveResponses.isPending
-              ? "Saving..."
-              : "Complete"
-            : "Next"}
+              ? t("onboarding.selfEfficacy.saving")
+              : t("onboarding.selfEfficacy.complete")
+            : t("onboarding.selfEfficacy.next")}
         </Button>
       </div>
     </div>

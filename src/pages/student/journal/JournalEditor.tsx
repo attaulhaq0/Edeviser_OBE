@@ -24,7 +24,7 @@ import {
   useUpdateJournalEntry,
 } from "@/hooks/useJournal";
 import { useCLOs } from "@/hooks/useCLOs";
-import { useStudentCourseProgram } from "@/pages/student/leaderboard/useStudentCourseProgram";
+import { useStudentCourseProgram } from "@/hooks/useStudentCourseProgram";
 import {
   generateJournalPrompt,
   type GeneratedJournalPrompt,

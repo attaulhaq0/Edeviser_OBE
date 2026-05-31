@@ -24,6 +24,14 @@ export interface SelectQuestionResponse {
     options: { key: string; text: string }[] | null;
     bloom_level: number;
     clo_id: string;
+    /**
+     * The question's correct answer, when the backend exposes it for
+     * client-side correctness derivation (see `deriveCorrectness`). The
+     * adaptive selection function may strip this for graded security; when it
+     * is absent, correctness derivation has no evidence and resolves to
+     * "incorrect" rather than a hardcoded "correct" (R2.6).
+     */
+    correct_answer?: string | null;
   };
   question_number: number;
   total_questions: number;

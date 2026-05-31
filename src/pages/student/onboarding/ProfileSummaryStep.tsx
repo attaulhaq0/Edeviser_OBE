@@ -279,7 +279,7 @@ const SkippedSection = ({ label, note }: { label: string; note?: string }) => (
     <div className="flex items-center gap-2">
       <BarChart3 className="h-4 w-4 text-gray-400" />
       <h3 className="text-sm font-medium text-gray-500">{label}</h3>
-      <Badge variant="outline" className="ml-auto text-[10px]">
+      <Badge variant="outline" className="ms-auto text-[10px]">
         Skipped
       </Badge>
     </div>

@@ -14,6 +14,8 @@ import {
   BarChart3,
   Shield,
   Crown,
+  Lock,
+  Loader2,
 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useReducedMotion } from "framer-motion";
@@ -50,7 +52,7 @@ import {
   useStudentLeagueTier,
   useStudentPercentileBand,
 } from "@/hooks/useLeagueLeaderboard";
-import { useStudentCourseProgram } from "./useStudentCourseProgram";
+import { useStudentCourseProgram } from "@/hooks/useStudentCourseProgram";
 import TeamLeaderboard from "@/pages/student/leaderboard/TeamLeaderboard";
 import { useTeamRealtime } from "@/hooks/useTeamRealtime";
 import LeagueTierBadge from "@/components/shared/LeagueTierBadge";
@@ -70,7 +72,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import Shimmer from "@/components/shared/Shimmer";
-import {
+import EmptyState, {
   InlineNoXPData,
   InlineNoImprovementData,
   InlineNoLeaderboardData,
@@ -634,10 +636,30 @@ const LeagueLeaderboardList = ({
   );
 };
 
+// ─── LeaderboardLockedState ──────────────────────────────────────────────────
+
+/**
+ * Min-cohort "locked" panel (R6.1, R6.4). Rendered while the gate is locked so
+ * the surface never shows a rank, medal, or any student name — which also keeps
+ * the anonymous opt-out invariant trivially satisfied in the locked state
+ * (R6.5): no rows are rendered at all.
+ */
+const LeaderboardLockedState = () => {
+  const { t } = useTranslation("student");
+
+  return (
+    <EmptyState
+      icon={<Lock className="h-8 w-8 text-gray-400" />}
+      title={t("leaderboard.locked.title")}
+      description={t("leaderboard.locked.description")}
+    />
+  );
+};
+
 // ─── LeaderboardPage ─────────────────────────────────────────────────────────
 
 const LeaderboardPage = () => {
-  useTranslation("student");
+  const { t } = useTranslation("student");
   const { user, institutionId } = useAuth();
   const userId = user?.id ?? "";
   const queryClient = useQueryClient();
@@ -730,14 +752,19 @@ const LeaderboardPage = () => {
     ? (timeframe as LeaderboardTimeframe)
     : "all_time";
 
-  const { data: leaderboardData, isLoading: isLoadingLeaderboard } =
-    useLeaderboard(
-      typedFilter,
-      typedTimeframe,
-      effectiveCourseId,
-      effectiveProgramId,
-      institutionId
-    );
+  const {
+    data: leaderboardData,
+    isLoading: isLoadingLeaderboard,
+    hasMore: hasMoreEntries,
+    fetchNextPage: fetchMoreEntries,
+    isFetchingNextPage: isFetchingMoreEntries,
+  } = useLeaderboard(
+    typedFilter,
+    typedTimeframe,
+    effectiveCourseId,
+    effectiveProgramId,
+    institutionId
+  );
 
   const { data: myRankData, isLoading: isLoadingMyRank } = useMyRank(
     typedFilter,
@@ -746,7 +773,13 @@ const LeaderboardPage = () => {
     effectiveProgramId
   );
 
-  const entries = useMemo(() => leaderboardData ?? [], [leaderboardData]);
+  // The hook gates rankings behind the min-cohort `state`; when locked it
+  // returns no entries so no rank/medal can render (R6.1, R6.4). The page reads
+  // `state` directly to render the "unlocks when more students join" panel and
+  // to suppress the personal rank card while locked.
+  const leaderboardGateState = leaderboardData.state;
+  const isLeaderboardLocked = leaderboardGateState === "locked";
+  const entries = useMemo(() => leaderboardData.entries, [leaderboardData]);
 
   // Fetch cosmetics for leaderboard entries (Task 6.2)
   const leaderboardStudentIds = useMemo(
@@ -862,136 +895,169 @@ const LeaderboardPage = () => {
           ) : (
             <>
               {/* Top XP — original leaderboard content */}
-              <Tabs value={filter} onValueChange={(v) => setFilter(v)}>
-                <div className="flex items-center justify-between flex-wrap gap-4">
-                  <TabsList className="gap-2 bg-transparent p-0">
-                    {FILTER_OPTIONS.map((opt) => (
-                      <TabsTrigger
-                        key={opt.value}
-                        value={opt.value}
-                        className={cn(
-                          "rounded-xl border px-4 py-1.5 text-sm font-medium transition-colors",
-                          filter === opt.value
-                            ? "bg-blue-600 text-white border-blue-600"
-                            : "bg-white text-gray-600 border-gray-200 hover:bg-slate-50"
-                        )}
-                      >
-                        {opt.label}
-                      </TabsTrigger>
-                    ))}
-                  </TabsList>
-
-                  <div className="flex items-center gap-2">
-                    {TIMEFRAME_OPTIONS.map((opt) => (
-                      <Button
-                        key={opt.value}
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setTimeframe(opt.value)}
-                        className={cn(
-                          "rounded-xl text-sm font-medium",
-                          timeframe === opt.value
-                            ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700 hover:text-white"
-                            : "bg-white text-gray-600 border-gray-200"
-                        )}
-                      >
-                        {opt.label}
-                      </Button>
-                    ))}
-                  </div>
+              {isLoadingLeaderboard ? (
+                <div className="space-y-2">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Shimmer key={i} className="h-14 rounded-xl" />
+                  ))}
                 </div>
-
-                <TabsContent value="course" className="mt-4">
-                  {!isLoadingContext && courses.length > 0 && (
-                    <Select
-                      value={effectiveCourseId ?? ""}
-                      onValueChange={(v) => setSelectedCourseId(v)}
-                    >
-                      <SelectTrigger className="w-64 bg-white">
-                        <SelectValue placeholder="Select a course" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {courses.map((c: { id: string; name: string }) => (
-                          <SelectItem key={c.id} value={c.id}>
-                            {c.name}
-                          </SelectItem>
+              ) : isLeaderboardLocked ? (
+                // R6.1/R6.4: locked cohort → no rank card, no rankings, no
+                // medals. The personal rank card is intentionally suppressed so
+                // no position is awarded while the leaderboard is locked.
+                <LeaderboardLockedState />
+              ) : (
+                <>
+                  <Tabs value={filter} onValueChange={(v) => setFilter(v)}>
+                    <div className="flex items-center justify-between flex-wrap gap-4">
+                      <TabsList className="gap-2 bg-transparent p-0">
+                        {FILTER_OPTIONS.map((opt) => (
+                          <TabsTrigger
+                            key={opt.value}
+                            value={opt.value}
+                            className={cn(
+                              "rounded-xl border px-4 py-1.5 text-sm font-medium transition-colors",
+                              filter === opt.value
+                                ? "bg-blue-600 text-white border-blue-600"
+                                : "bg-white text-gray-600 border-gray-200 hover:bg-slate-50"
+                            )}
+                          >
+                            {opt.label}
+                          </TabsTrigger>
                         ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                  {!isLoadingContext && courses.length === 0 && (
-                    <p className="text-sm text-gray-500">
-                      No enrolled courses found.
-                    </p>
-                  )}
-                </TabsContent>
+                      </TabsList>
 
-                <TabsContent value="program" className="mt-4">
-                  {!isLoadingContext && programs.length > 0 && (
-                    <Select
-                      value={effectiveProgramId ?? ""}
-                      onValueChange={(v) => setSelectedProgramId(v)}
-                    >
-                      <SelectTrigger className="w-64 bg-white">
-                        <SelectValue placeholder="Select a program" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {programs.map((p: { id: string; name: string }) => (
-                          <SelectItem key={p.id} value={p.id}>
-                            {p.name}
-                          </SelectItem>
+                      <div className="flex items-center gap-2">
+                        {TIMEFRAME_OPTIONS.map((opt) => (
+                          <Button
+                            key={opt.value}
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setTimeframe(opt.value)}
+                            className={cn(
+                              "rounded-xl text-sm font-medium",
+                              timeframe === opt.value
+                                ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700 hover:text-white"
+                                : "bg-white text-gray-600 border-gray-200"
+                            )}
+                          >
+                            {opt.label}
+                          </Button>
                         ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                  {!isLoadingContext && programs.length === 0 && (
-                    <p className="text-sm text-gray-500">No programs found.</p>
-                  )}
-                </TabsContent>
+                      </div>
+                    </div>
 
-                <TabsContent value="all" />
-              </Tabs>
+                    <TabsContent value="course" className="mt-4">
+                      {!isLoadingContext && courses.length > 0 && (
+                        <Select
+                          value={effectiveCourseId ?? ""}
+                          onValueChange={(v) => setSelectedCourseId(v)}
+                        >
+                          <SelectTrigger className="w-64 bg-white">
+                            <SelectValue placeholder="Select a course" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {courses.map((c: { id: string; name: string }) => (
+                              <SelectItem key={c.id} value={c.id}>
+                                {c.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                      {!isLoadingContext && courses.length === 0 && (
+                        <p className="text-sm text-gray-500">
+                          No enrolled courses found.
+                        </p>
+                      )}
+                    </TabsContent>
 
-              <MyRankCard
-                rank={myRankData?.rank ?? null}
-                xpTotal={myRankData?.xp_total ?? 0}
-                level={myRankData?.level ?? 1}
-                isLoading={isLoadingMyRank}
-                totalStudents={totalStudents}
-              />
+                    <TabsContent value="program" className="mt-4">
+                      {!isLoadingContext && programs.length > 0 && (
+                        <Select
+                          value={effectiveProgramId ?? ""}
+                          onValueChange={(v) => setSelectedProgramId(v)}
+                        >
+                          <SelectTrigger className="w-64 bg-white">
+                            <SelectValue placeholder="Select a program" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {programs.map((p: { id: string; name: string }) => (
+                              <SelectItem key={p.id} value={p.id}>
+                                {p.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                      {!isLoadingContext && programs.length === 0 && (
+                        <p className="text-sm text-gray-500">
+                          No programs found.
+                        </p>
+                      )}
+                    </TabsContent>
 
-              <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-                <div
-                  className="px-6 py-4 flex items-center gap-2"
-                  style={{
-                    background: "var(--brand-gradient)",
-                  }}
-                >
-                  <Medal className="h-5 w-5 text-white" />
-                  <h2 className="text-lg font-bold tracking-tight text-white">
-                    Top 50
-                  </h2>
-                </div>
-                <div className="p-4 space-y-2">
-                  {isLoadingLeaderboard ? (
-                    Array.from({ length: 5 }).map((_, i) => (
-                      <Shimmer key={i} className="h-14 rounded-xl" />
-                    ))
-                  ) : entries.length === 0 ? (
-                    <InlineNoLeaderboardData />
-                  ) : (
-                    entries.map((entry) => (
-                      <LeaderboardRow
-                        key={entry.student_id}
-                        entry={entry}
-                        isCurrentUser={entry.student_id === userId}
-                        totalStudents={totalStudents}
-                        cosmetics={cosmeticsMap?.get(entry.student_id) ?? null}
-                      />
-                    ))
-                  )}
-                </div>
-              </Card>
+                    <TabsContent value="all" />
+                  </Tabs>
+
+                  <MyRankCard
+                    rank={myRankData?.rank ?? null}
+                    xpTotal={myRankData?.xp_total ?? 0}
+                    level={myRankData?.level ?? 1}
+                    isLoading={isLoadingMyRank}
+                    totalStudents={totalStudents}
+                  />
+
+                  <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
+                    <div
+                      className="px-6 py-4 flex items-center gap-2"
+                      style={{
+                        background: "var(--brand-gradient)",
+                      }}
+                    >
+                      <Medal className="h-5 w-5 text-white" />
+                      <h2 className="text-lg font-bold tracking-tight text-white">
+                        {t("leaderboard.rankings.title")}
+                      </h2>
+                    </div>
+                    <div className="p-4 space-y-2">
+                      {entries.length === 0 ? (
+                        <InlineNoLeaderboardData />
+                      ) : (
+                        <>
+                          {entries.map((entry) => (
+                            <LeaderboardRow
+                              key={entry.student_id}
+                              entry={entry}
+                              isCurrentUser={entry.student_id === userId}
+                              totalStudents={totalStudents}
+                              cosmetics={
+                                cosmeticsMap?.get(entry.student_id) ?? null
+                              }
+                            />
+                          ))}
+                          {hasMoreEntries && (
+                            <div className="flex justify-center pt-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => fetchMoreEntries()}
+                                disabled={isFetchingMoreEntries}
+                                className="rounded-xl text-sm font-medium"
+                              >
+                                {isFetchingMoreEntries && (
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                )}
+                                {t("leaderboard.rankings.loadMore")}
+                              </Button>
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </Card>
+                </>
+              )}
             </>
           )}
         </>

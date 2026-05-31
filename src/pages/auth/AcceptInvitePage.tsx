@@ -8,6 +8,8 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/shared/PasswordInput";
+import { PasswordVisibilityGroup } from "@/components/shared/PasswordVisibilityGroup";
 import { Card } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
@@ -317,55 +319,60 @@ const AcceptInvitePage = () => {
                       )}
                     />
 
-                    {/* Password */}
-                    <FormField
-                      control={form.control}
-                      name="password"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="flex items-center gap-2 ms-1">
-                            <Lock className="w-4 h-4 text-[#14b8a6]" />
-                            {t("acceptInvite.password")}
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              type="password"
-                              placeholder={t(
-                                "acceptInvite.passwordPlaceholder"
-                              )}
-                              className="rounded-xl border-gray-200 bg-gray-50/50 focus:bg-white focus:border-[#14b8a6] focus:ring-[#14b8a6]/20 transition-all h-11 ps-4"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    {/* Password fields (mutual-exclusion visibility group) */}
+                    <PasswordVisibilityGroup>
+                      {/* Password */}
+                      <FormField
+                        control={form.control}
+                        name="password"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="flex items-center gap-2 ms-1">
+                              <Lock className="w-4 h-4 text-[#14b8a6]" />
+                              {t("acceptInvite.password")}
+                            </FormLabel>
+                            <FormControl>
+                              <PasswordInput
+                                groupId="accept-invite-password"
+                                autoComplete="new-password"
+                                placeholder={t(
+                                  "acceptInvite.passwordPlaceholder"
+                                )}
+                                className="rounded-xl border-gray-200 bg-gray-50/50 focus:bg-white focus:border-[#14b8a6] focus:ring-[#14b8a6]/20 transition-all h-11 ps-4"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
-                    {/* Confirm Password */}
-                    <FormField
-                      control={form.control}
-                      name="confirmPassword"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="flex items-center gap-2 ms-1">
-                            <Lock className="w-4 h-4 text-[#14b8a6]" />
-                            {t("acceptInvite.confirmPassword")}
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              type="password"
-                              placeholder={t(
-                                "acceptInvite.confirmPasswordPlaceholder"
-                              )}
-                              className="rounded-xl border-gray-200 bg-gray-50/50 focus:bg-white focus:border-[#14b8a6] focus:ring-[#14b8a6]/20 transition-all h-11 ps-4"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                      {/* Confirm Password */}
+                      <FormField
+                        control={form.control}
+                        name="confirmPassword"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="flex items-center gap-2 ms-1">
+                              <Lock className="w-4 h-4 text-[#14b8a6]" />
+                              {t("acceptInvite.confirmPassword")}
+                            </FormLabel>
+                            <FormControl>
+                              <PasswordInput
+                                groupId="accept-invite-confirmPassword"
+                                autoComplete="new-password"
+                                placeholder={t(
+                                  "acceptInvite.confirmPasswordPlaceholder"
+                                )}
+                                className="rounded-xl border-gray-200 bg-gray-50/50 focus:bg-white focus:border-[#14b8a6] focus:ring-[#14b8a6]/20 transition-all h-11 ps-4"
+                                {...field}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </PasswordVisibilityGroup>
 
                     {/* Submit button */}
                     <Button

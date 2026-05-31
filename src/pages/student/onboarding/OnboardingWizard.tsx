@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { useGatedMotion } from "@/lib/motionGate";
 import { ChevronLeft, ChevronRight, SkipForward, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -59,6 +60,7 @@ export const OnboardingWizard = ({
     useOnboardingProgress(studentId);
   const updateProgress = useUpdateProgress(studentId);
   const processOnboarding = useProcessOnboarding();
+  const motionGate = useGatedMotion();
 
   // ── First-time-login detection (clause 2.14) ──────────────────────
   // A student is on their first login if:
@@ -366,9 +368,15 @@ export const OnboardingWizard = ({
           <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
             <motion.div
               className="h-full rounded-full bg-gradient-to-r from-teal-500 to-blue-600"
-              initial={{ width: 0 }}
+              initial={motionGate.enter(
+                { width: 0 },
+                { width: `${progressPercent}%` }
+              )}
               animate={{ width: `${progressPercent}%` }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
+              transition={motionGate.transition({
+                duration: 0.3,
+                ease: "easeOut",
+              })}
             />
           </div>
         </div>
@@ -381,10 +389,13 @@ export const OnboardingWizard = ({
             <motion.div
               key={currentStep}
               custom={direction}
-              initial={{ opacity: 0, x: direction * 40 }}
+              initial={motionGate.enter(
+                { opacity: 0, x: direction * 40 },
+                { opacity: 1, x: 0 }
+              )}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: direction * -40 }}
-              transition={{ duration: 0.2 }}
+              transition={motionGate.transition({ duration: 0.2 })}
             >
               {renderStep()}
             </motion.div>

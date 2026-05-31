@@ -36,8 +36,7 @@ export const usePurchaseStreakFreeze = () => {
   return useMutation({
     mutationFn: async (studentId: string) => {
       // Find the streak_shield marketplace item for this student's institution
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data: items, error: itemError } = await (supabase as any)
+      const { data: items, error: itemError } = await supabase
         .from("marketplace_items")
         .select("id")
         .eq("sub_category", "streak_shield")
@@ -46,9 +45,7 @@ export const usePurchaseStreakFreeze = () => {
 
       if (itemError) throw itemError;
 
-      const streakShieldItem = (
-        items as Array<Record<string, unknown>> | null
-      )?.[0];
+      const streakShieldItem = items?.[0];
 
       if (streakShieldItem) {
         // Route through the marketplace Purchase_Processor Edge Function
@@ -56,7 +53,7 @@ export const usePurchaseStreakFreeze = () => {
           "process-purchase",
           {
             body: {
-              item_id: streakShieldItem.id as string,
+              item_id: streakShieldItem.id,
               student_id: studentId,
             },
           }

@@ -1,9 +1,16 @@
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
-import { usePortfolio, useTogglePortfolioPublic } from "@/hooks/usePortfolio";
+import {
+  usePortfolio,
+  usePortfolioSharingPermission,
+  useTogglePortfolioPublic,
+  type PortfolioCLO,
+} from "@/hooks/usePortfolio";
+import { useApproachableWording } from "@/hooks/useApproachableWording";
 import GradientCardHeader from "@/components/shared/GradientCardHeader";
 import BloomsPill from "@/components/shared/BloomsPill";
 import {
@@ -20,6 +27,7 @@ import {
   BarChart3,
   Copy,
   Check,
+  Lock,
 } from "lucide-react";
 import {
   LineChart,
@@ -66,22 +74,65 @@ const KPICard = ({ icon: Icon, label, value }: KPICardProps) => (
   </Card>
 );
 
+interface CloRowProps {
+  clo: PortfolioCLO;
+}
+
+const CloRow = ({ clo }: CloRowProps) => {
+  const { t } = useTranslation("student");
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-lg border border-slate-100 p-3">
+      <div className="flex items-center gap-2 min-w-0">
+        <BloomsPill level={clo.blooms_level} />
+        <span className="text-sm font-medium text-gray-800 truncate">
+          {clo.clo_title}
+        </span>
+      </div>
+      <span
+        className={cn(
+          "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold shrink-0",
+          ATTAINMENT_STYLES[clo.attainment_level]
+        )}
+      >
+        {t(`portfolio.attainmentLevels.${clo.attainment_level}`)} (
+        {clo.attainment_percent}%)
+      </span>
+    </div>
+  );
+};
+
 export default function StudentPortfolio() {
+  const { t } = useTranslation("student");
+  const tw = useApproachableWording("student");
   const { user, profile } = useAuth();
   const studentId = user?.id;
   const { data, isLoading } = usePortfolio(studentId);
+  const { data: sharingPermitted = false } =
+    usePortfolioSharingPermission(studentId);
   const toggleMutation = useTogglePortfolioPublic();
   const [copied, setCopied] = useState(false);
   const isPublic = profile?.portfolio_public ?? false;
 
   const handleTogglePublic = () => {
     if (!studentId) return;
+    const nextPublic = !isPublic;
+
+    // R24.1/R24.2: enabling public sharing requires admin-granted permission.
+    // Without it, keep the portfolio private and explain that school permission
+    // is required rather than attempting (and silently failing) the toggle.
+    if (nextPublic && !sharingPermitted) {
+      toast.error(t("portfolio.toast.permissionDenied"));
+      return;
+    }
+
     toggleMutation.mutate(
-      { userId: studentId, isPublic: !isPublic },
+      { userId: studentId, isPublic: nextPublic },
       {
-        onSuccess: () =>
+        onSuccess: (result) =>
           toast.success(
-            isPublic ? "Portfolio set to private" : "Portfolio is now public"
+            result.isPublic
+              ? t("portfolio.toast.madePublic")
+              : t("portfolio.toast.madePrivate")
           ),
         onError: (err) => toast.error(err.message),
       }
@@ -93,7 +144,7 @@ export default function StudentPortfolio() {
     const url = `${window.location.origin}/portfolio/${studentId}`;
     navigator.clipboard.writeText(url);
     setCopied(true);
-    toast.success("Link copied to clipboard");
+    toast.success(t("portfolio.toast.linkCopied"));
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -107,6 +158,21 @@ export default function StudentPortfolio() {
     }
     return Array.from(map.entries());
   }, [cloList]);
+
+  // Younger-student grouping (R22.2): "Strengths" are outcomes the student is
+  // meeting (Excellent/Satisfactory); "Areas improving" are the rest.
+  const splitByFriendlyGroup = (clos: typeof cloList) => {
+    const strengths = clos.filter(
+      (c) =>
+        c.attainment_level === "Excellent" ||
+        c.attainment_level === "Satisfactory"
+    );
+    const areasImproving = clos.filter(
+      (c) =>
+        c.attainment_level === "Developing" || c.attainment_level === "Not_Yet"
+    );
+    return { strengths, areasImproving };
+  };
 
   if (isLoading) {
     return (
@@ -125,7 +191,9 @@ export default function StudentPortfolio() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
-        <h1 className="text-2xl font-bold tracking-tight">My Portfolio</h1>
+        <h1 className="text-2xl font-bold tracking-tight">
+          {t("portfolio.title")}
+        </h1>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <Switch
@@ -133,91 +201,122 @@ export default function StudentPortfolio() {
               checked={isPublic}
               onCheckedChange={handleTogglePublic}
               disabled={toggleMutation.isPending}
-              aria-label="Toggle public portfolio"
+              aria-label={t("portfolio.togglePublicAria")}
             />
             <Label
               htmlFor="portfolio-public"
               className="text-sm font-medium text-gray-600"
             >
-              Public Profile
+              {t("portfolio.publicProfile")}
             </Label>
           </div>
           {isPublic && (
             <button
               onClick={handleCopyLink}
               className="flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
-              aria-label="Copy shareable link"
+              aria-label={t("portfolio.copyLinkAria")}
             >
               {copied ? (
                 <Check className="h-4 w-4" />
               ) : (
                 <Copy className="h-4 w-4" />
               )}
-              {copied ? "Copied" : "Copy Link"}
+              {copied ? t("portfolio.copied") : t("portfolio.copyLink")}
             </button>
           )}
         </div>
       </div>
 
+      {!isPublic && !sharingPermitted && (
+        <div
+          role="note"
+          className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm font-medium text-amber-800"
+        >
+          <Lock className="h-4 w-4 mt-0.5 shrink-0" aria-hidden="true" />
+          <span>{t("portfolio.permissionRequired")}</span>
+        </div>
+      )}
+
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <KPICard
           icon={TrendingUp}
-          label="Total XP"
+          label={t("portfolio.kpi.totalXP")}
           value={(data?.totalXP ?? 0).toLocaleString()}
         />
-        <KPICard icon={Award} label="Level" value={data?.level ?? 1} />
+        <KPICard
+          icon={Award}
+          label={t("portfolio.kpi.level")}
+          value={data?.level ?? 1}
+        />
         <KPICard
           icon={BookOpen}
-          label="CLOs Mastered"
+          label={t("portfolio.kpi.closMastered")}
           value={data?.clos.length ?? 0}
         />
         <KPICard
           icon={Award}
-          label="Badges Earned"
+          label={t("portfolio.kpi.badgesEarned")}
           value={data?.badges.length ?? 0}
         />
       </div>
 
       <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-        <GradientCardHeader icon={BookOpen} title="CLO Mastery" />
+        <GradientCardHeader
+          icon={BookOpen}
+          title={tw("portfolio.friendly.skillsTitle")}
+        />
         <div className="p-6 space-y-6">
           {closByCourse.length === 0 && <InlineNoAttainmentData />}
-          {closByCourse.map(([courseName, clos]) => (
-            <div key={courseName}>
-              <h3 className="text-sm font-bold text-gray-700 mb-3">
-                {courseName}
-              </h3>
-              <div className="space-y-2">
-                {clos.map((clo) => (
-                  <div
-                    key={clo.clo_id}
-                    className="flex items-center justify-between gap-3 rounded-lg border border-slate-100 p-3"
-                  >
-                    <div className="flex items-center gap-2 min-w-0">
-                      <BloomsPill level={clo.blooms_level} />
-                      <span className="text-sm font-medium text-gray-800 truncate">
-                        {clo.clo_title}
-                      </span>
+          {closByCourse.map(([courseName, clos]) => {
+            const { strengths, areasImproving } = splitByFriendlyGroup(clos);
+            return (
+              <div key={courseName}>
+                <h3 className="text-sm font-bold text-gray-700 mb-3">
+                  {courseName}
+                </h3>
+                <div className="space-y-4">
+                  {strengths.length > 0 && (
+                    <div>
+                      <p className="text-xs font-bold tracking-wide uppercase text-green-700">
+                        {tw("portfolio.friendly.strengths")}
+                      </p>
+                      <p className="text-xs text-gray-500 mb-2">
+                        {tw("portfolio.friendly.strengthsHint")}
+                      </p>
+                      <div className="space-y-2">
+                        {strengths.map((clo) => (
+                          <CloRow key={clo.clo_id} clo={clo} />
+                        ))}
+                      </div>
                     </div>
-                    <span
-                      className={cn(
-                        "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold shrink-0",
-                        ATTAINMENT_STYLES[clo.attainment_level]
-                      )}
-                    >
-                      {clo.attainment_level.replace("_", " ")} (
-                      {clo.attainment_percent}%)
-                    </span>
-                  </div>
-                ))}
+                  )}
+                  {areasImproving.length > 0 && (
+                    <div>
+                      <p className="text-xs font-bold tracking-wide uppercase text-yellow-700">
+                        {tw("portfolio.friendly.areasImproving")}
+                      </p>
+                      <p className="text-xs text-gray-500 mb-2">
+                        {tw("portfolio.friendly.areasImprovingHint")}
+                      </p>
+                      <div className="space-y-2">
+                        {areasImproving.map((clo) => (
+                          <CloRow key={clo.clo_id} clo={clo} />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </Card>
 
       <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-        <GradientCardHeader icon={Award} title="Badge Collection" />
+        <GradientCardHeader
+          icon={Award}
+          title={t("portfolio.sections.badgeCollection")}
+        />
         <div className="p-6">
           {(data?.badges ?? []).length === 0 ? (
             <InlineNoBadges />
@@ -245,10 +344,13 @@ export default function StudentPortfolio() {
       </Card>
 
       <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-        <GradientCardHeader icon={PenLine} title="Journal Entries" />
+        <GradientCardHeader
+          icon={PenLine}
+          title={t("portfolio.sections.journalEntries")}
+        />
         <div className="p-6">
           {(data?.journals ?? []).length === 0 ? (
-            <p className="text-sm text-gray-400">No journal entries yet.</p>
+            <p className="text-sm text-gray-400">{t("portfolio.noJournals")}</p>
           ) : (
             <div className="space-y-3">
               {data?.journals.map((j) => (
@@ -261,7 +363,7 @@ export default function StudentPortfolio() {
                       {j.content_preview}
                     </p>
                     <p className="text-xs text-gray-500">
-                      {j.course_name ?? "General"}
+                      {j.course_name ?? t("portfolio.general")}
                     </p>
                   </div>
                   <span className="text-xs text-gray-400 shrink-0">
@@ -275,7 +377,10 @@ export default function StudentPortfolio() {
       </Card>
 
       <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-        <GradientCardHeader icon={TrendingUp} title="XP Timeline" />
+        <GradientCardHeader
+          icon={TrendingUp}
+          title={t("portfolio.sections.xpTimeline")}
+        />
         <div className="p-6">
           {(data?.xpTimeline ?? []).length === 0 ? (
             <InlineNoXPData />
@@ -294,8 +399,10 @@ export default function StudentPortfolio() {
                     format(new Date(v as string), "MMM d, yyyy")
                   }
                   formatter={(value) => [
-                    `${Number(value).toLocaleString()} XP`,
-                    "Cumulative XP",
+                    t("portfolio.chart.xpValue", {
+                      value: Number(value).toLocaleString(),
+                    }),
+                    t("portfolio.chart.cumulativeXP"),
                   ]}
                 />
                 <Line
@@ -313,7 +420,10 @@ export default function StudentPortfolio() {
       </Card>
 
       <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-        <GradientCardHeader icon={BarChart3} title="Attainment Growth" />
+        <GradientCardHeader
+          icon={BarChart3}
+          title={t("portfolio.sections.attainmentGrowth")}
+        />
         <div className="p-6">
           {(data?.semesterAttainments ?? []).length === 0 ? (
             <InlineNoSemesters />
@@ -331,7 +441,10 @@ export default function StudentPortfolio() {
                   tickFormatter={(v) => `${v}%`}
                 />
                 <Tooltip
-                  formatter={(value) => [`${value}%`, "Avg Attainment"]}
+                  formatter={(value) => [
+                    `${value}%`,
+                    t("portfolio.chart.avgAttainment"),
+                  ]}
                 />
                 <Bar
                   dataKey="average_attainment"

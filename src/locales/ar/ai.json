@@ -24,5 +24,119 @@
     "edit": "تعديل",
     "reject": "رفض",
     "overallFeedback": "مسودة التغذية الراجعة الشاملة"
+  },
+  "tutor": {
+    "page": {
+      "title": "المعلم الذكي",
+      "openConversations": "فتح المحادثات",
+      "newConversationTitle": "ابدأ محادثة جديدة",
+      "newConversationSubtitle": "اختر أسلوب التدريس الذي يناسبك أكثر",
+      "personaHint": "يمكنك تغيير الشخصية في أي وقت أثناء المحادثة"
+    },
+    "states": {
+      "unavailable": {
+        "title": "المعلم الذكي غير متاح",
+        "message": "تعذّر الوصول إلى المعلم الذكي حالياً. يرجى المحاولة مرة أخرى بعد بضع دقائق."
+      },
+      "notEnrolled": {
+        "title": "غير مسجّل في هذه المادة",
+        "message": "أنت غير مسجّل في هذه المادة بعد، لذا لا يمكن للمعلم الذكي مساعدتك هنا. تواصل مع معلّمك بشأن التسجيل."
+      },
+      "noEmbeddings": {
+        "title": "ما زال يتعلّم هذه المادة",
+        "message": "لم ينتهِ المعلم الذكي من دراسة محتوى هذه المادة بعد. يرجى العودة قريباً."
+      },
+      "rateLimited": {
+        "title": "تم بلوغ الحد اليومي",
+        "message": "لقد وصلت إلى حد رسائل المعلم الذكي لهذا اليوم. ستتم إعادة التعيين عند منتصف الليل.",
+        "reset": "تتم إعادة التعيين {{hint}}."
+      },
+      "error": {
+        "title": "حدث خطأ ما",
+        "message": "واجه المعلم الذكي مشكلة. يرجى المحاولة مرة أخرى."
+      },
+      "retry": "حاول مرة أخرى"
+    },
+    "chat": {
+      "title": "المعلم الذكي",
+      "emptyTitle": "كيف يمكنني مساعدتك اليوم؟",
+      "emptyBody": "اسألني عن محتوى مادتك أو تكليفاتك أو أي مفهوم تحتاج إلى مساعدة في فهمه.",
+      "messagesLabel": "رسائل المحادثة",
+      "typingLabel": "المعلم الذكي يكتب",
+      "userMessageLabel": "رسالتك",
+      "tutorMessageLabel": "رسالة المعلم الذكي",
+      "messagesRemaining": "لديك {{count}} رسالة متبقية اليوم.",
+      "limitReached": "لقد وصلت إلى حد الرسائل اليومي. ستتم إعادة التعيين عند منتصف الليل.",
+      "tokenBudgetExceeded": "تم تجاوز ميزانيتك اليومية من الرموز. يرجى المحاولة مرة أخرى غداً.",
+      "attachImage": "إرفاق صورة",
+      "attachImages": "إرفاق صور",
+      "attachDocument": "إرفاق مستند",
+      "removeImage": "إزالة الصورة {{index}}",
+      "removeDocument": "إزالة المستند",
+      "attachmentAlt": "مرفق {{index}}",
+      "messageInput": "إدخال الرسالة",
+      "sendMessage": "إرسال الرسالة",
+      "inputPlaceholder": "اطرح سؤالاً...",
+      "inputPlaceholderDisabled": "تم بلوغ الحد اليومي",
+      "citationLabel": "مرجع {{number}}",
+      "documentAttached": "تم إرفاق مستند",
+      "integrityGuidance": "إرشادات النزاهة الأكاديمية",
+      "errors": {
+        "imageType": "{{name}}: يُدعم فقط صور JPG وPNG",
+        "imageSize": "{{name}}: يجب أن تكون الصورة أقل من 5 ميغابايت",
+        "maxImages": "يُسمح بحد أقصى {{count}} صور",
+        "docType": "يُدعم فقط مستندات PDF وDOCX",
+        "docSize": "يجب أن يكون المستند أقل من 10 ميغابايت",
+        "uploadFailed": "تعذّر رفع المرفق. يرجى المحاولة مرة أخرى."
+      }
+    },
+    "sidebar": {
+      "newConversation": "محادثة جديدة",
+      "pastConversations": "المحادثات السابقة",
+      "noConversations": "لا توجد محادثات بعد",
+      "noConversationsHint": "ابدأ محادثة جديدة للحصول على المساعدة",
+      "newConversationPreview": "محادثة جديدة",
+      "conversationLabel": "محادثة: {{title}}",
+      "messageCount_one": "{{count}} رسالة",
+      "messageCount_other": "{{count}} رسائل",
+      "deleteConversation": "حذف المحادثة",
+      "deleteTitle": "حذف المحادثة",
+      "deleteDescription": "سيؤدي هذا إلى حذف هذه المحادثة وجميع رسائلها نهائياً. لا يمكن التراجع عن هذا الإجراء.",
+      "deleteConfirm": "حذف",
+      "relativeTime": {
+        "justNow": "الآن",
+        "minutesAgo": "منذ {{count}} دقيقة",
+        "hoursAgo": "منذ {{count}} ساعة",
+        "daysAgo": "منذ {{count}} يوم"
+      }
+    },
+    "persona": {
+      "yourStyle": "أسلوب معلّمك",
+      "chooseStyle": "اختر أسلوب معلّمك",
+      "selectLabel": "اختر شخصية المعلم الذكي",
+      "groupLabel": "شخصية المعلم الذكي",
+      "recommendedGroupLabel": "شخصية المعلم الذكي الموصى بها",
+      "recommended": "موصى به",
+      "changeStyle": "تغيير أسلوب المعلّم",
+      "socratic_guide": {
+        "label": "المرشد السقراطي",
+        "description": "يطرح أسئلة استقصائية ليقودك إلى الإجابة"
+      },
+      "step_by_step_coach": {
+        "label": "المدرّب خطوة بخطوة",
+        "description": "يقسّم المسائل إلى خطوات متسلسلة"
+      },
+      "quick_explainer": {
+        "label": "الشارح السريع",
+        "description": "يقدّم شروحات موجزة ومباشرة"
+      }
+    },
+    "autonomy": {
+      "groupLabel": "مستوى استقلالية المعلم الذكي",
+      "figureItOut": "دعني أكتشف بنفسي",
+      "figureItOutLabel": "دعني أكتشف بنفسي — تلميحات فقط",
+      "justExplain": "اشرح لي مباشرة",
+      "justExplainLabel": "اشرح لي مباشرة — شرح مباشر"
+    }
   }
 }

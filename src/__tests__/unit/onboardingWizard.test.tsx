@@ -255,6 +255,7 @@ vi.mock("framer-motion", () => ({
   AnimatePresence: ({ children }: { children: React.ReactNode }) => (
     <>{children}</>
   ),
+  useReducedMotion: () => false,
 }));
 
 function filterDomProps(props: Record<string, unknown>) {
@@ -300,6 +301,55 @@ describe("OnboardingWizard", () => {
     // The spinner is a Loader2 icon with animate-spin class
     const spinner = document.querySelector(".animate-spin");
     expect(spinner).toBeInTheDocument();
+  });
+
+  // ── Short-path default (Task 18.2 / R14.1) ───────────────────────
+  // A first-time student (progress at "welcome", no completion flags) must
+  // default to the Day-1 short path — the 4-step DAY1_STEPS sequence — even
+  // when no `isDay1` prop is supplied, so the full battery is never
+  // front-loaded in a single sitting.
+
+  describe("Short-path default (R14.1)", () => {
+    it("defaults to the Day-1 short path (4 steps) for a first-time login with no isDay1 prop", () => {
+      // defaultProgress is a first-time login: current_step "welcome", all
+      // completion flags false → isFirstTimeLogin === true.
+      renderWizard();
+      expect(screen.getByText("Step 1 of 4")).toBeInTheDocument();
+      expect(screen.getByTestId("welcome-step")).toBeInTheDocument();
+    });
+
+    it("does not front-load the full 8-step battery for a first-time login", async () => {
+      const user = userEvent.setup();
+      renderWizard();
+
+      // Walk the entire default sequence: it should be welcome → personality
+      // → self_efficacy → summary, with none of the deferred steps present.
+      await user.click(screen.getByRole("button", { name: /next/i }));
+      await waitFor(() =>
+        expect(screen.getByTestId("personality-step")).toBeInTheDocument()
+      );
+
+      await user.click(screen.getByRole("button", { name: /next/i }));
+      await waitFor(() =>
+        expect(screen.getByTestId("self-efficacy-step")).toBeInTheDocument()
+      );
+
+      await user.click(screen.getByRole("button", { name: /next/i }));
+      await waitFor(() =>
+        expect(screen.getByTestId("summary-step")).toBeInTheDocument()
+      );
+
+      // The deferred (progressive-profiling) steps must never have appeared.
+      expect(
+        screen.queryByTestId("learning-style-step")
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByTestId("study-strategy-step")
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByTestId("baseline-select-step")
+      ).not.toBeInTheDocument();
+    });
   });
 
   // ── Day 1 mode ───────────────────────────────────────────────────

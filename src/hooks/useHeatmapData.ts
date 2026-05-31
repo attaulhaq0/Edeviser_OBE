@@ -1,7 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
-import { computeLongestStreak } from "@/lib/heatmapUtils";
+import {
+  computeLongestStreak,
+  aggregateHabitXpByDate,
+} from "@/lib/heatmapUtils";
 import type {
   DateRange,
   HeatmapDay,
@@ -168,6 +171,52 @@ export const useHeatmapData = (
       }
 
       return days;
+    },
+  });
+};
+
+/**
+ * Fetches habit-related XP transactions for the student within the semester
+ * range and aggregates them into a per-date total. Backs the heatmap tooltip
+ * and bottom sheet so each day shows its actually-recorded habit XP rather than
+ * a hardcoded zero (R7.1, R7.4).
+ */
+export const useHeatmapXpByDate = (
+  studentId: string | undefined,
+  semesterRange: DateRange
+) => {
+  return useQuery({
+    queryKey: queryKeys.heatmap.xpByDate(
+      studentId ?? "",
+      semesterRange.start,
+      semesterRange.end
+    ),
+    enabled: !!studentId && !!semesterRange.start && !!semesterRange.end,
+    queryFn: async (): Promise<Record<string, number>> => {
+      if (!studentId) return {};
+
+      const startIso = semesterRange.start + "T00:00:00.000Z";
+      // Include the entire end day by extending to the next midnight.
+      const endExclusive = new Date(semesterRange.end + "T00:00:00.000Z");
+      endExclusive.setUTCDate(endExclusive.getUTCDate() + 1);
+
+      const { data, error } = await supabase
+        .from("xp_transactions")
+        .select("source, xp_amount, created_at")
+        .eq("student_id", studentId)
+        .gte("created_at", startIso)
+        .lt("created_at", endExclusive.toISOString());
+
+      if (error) throw error;
+
+      const records = (data ?? []).map((row) => ({
+        source: row.source,
+        amount: row.xp_amount,
+        date:
+          typeof row.created_at === "string" ? row.created_at.slice(0, 10) : "",
+      }));
+
+      return aggregateHabitXpByDate(records);
     },
   });
 };

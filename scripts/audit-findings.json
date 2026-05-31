@@ -1,0 +1,68 @@
+{
+  "schema_table_count": 126,
+  "phantom_tables": [],
+  "findings_total": 7,
+  "by_table_column": {
+    "profiles.email_preferences": [
+      {
+        "file": "src\\hooks\\useEmailPreferences.ts",
+        "table": "profiles",
+        "column": "email_preferences",
+        "kind": "select",
+        "line": 26
+      },
+      {
+        "file": "src\\hooks\\useEmailPreferences.ts",
+        "table": "profiles",
+        "column": "email_preferences",
+        "kind": "update",
+        "line": 45
+      }
+    ],
+    "institution_settings.dynamic_pricing_enabled": [
+      {
+        "file": "src\\hooks\\useDynamicPricing.ts",
+        "table": "institution_settings",
+        "column": "dynamic_pricing_enabled",
+        "kind": "update",
+        "line": 55
+      }
+    ],
+    "teams.avatar_letter": [
+      {
+        "file": "src\\hooks\\useTeamLeaderboard.ts",
+        "table": "teams",
+        "column": "avatar_letter",
+        "kind": "select",
+        "line": 94
+      }
+    ],
+    "courses.course_id": [
+      {
+        "file": "src\\hooks\\useTeamLeaderboard.ts",
+        "table": "courses",
+        "column": "course_id",
+        "kind": "in",
+        "line": 110
+      }
+    ],
+    "tutor_conversations.recommended_persona": [
+      {
+        "file": "src\\hooks\\useTutorConversations.ts",
+        "table": "tutor_conversations",
+        "column": "recommended_persona",
+        "kind": "insert",
+        "line": 101
+      }
+    ],
+    "assignments.rubric_id": [
+      {
+        "file": "src\\pages\\teacher\\grading\\GradingInterface.tsx",
+        "table": "assignments",
+        "column": "rubric_id",
+        "kind": "select",
+        "line": 71
+      }
+    ]
+  }
+}

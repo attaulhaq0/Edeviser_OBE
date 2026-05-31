@@ -13,6 +13,7 @@ import {
   Bot,
   Info,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +22,7 @@ import { cn } from "@/lib/utils";
 import ChatMessage from "@/components/shared/ChatMessage";
 import PersonaSelector from "@/pages/student/tutor/PersonaSelector";
 import AutonomyToggle from "@/components/shared/AutonomyToggle";
+import { useTutorAttachmentUpload } from "@/hooks/useTutorAttachmentUpload";
 import type {
   TutorMessage,
   TutorPersona,
@@ -88,11 +90,15 @@ const ChatPanel = ({
   autonomyOverride,
   onAutonomyChange,
 }: ChatPanelProps) => {
+  const { t } = useTranslation("ai");
   const [inputValue, setInputValue] = useState("");
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [documentFile, setDocumentFile] = useState<File | null>(null);
   const [streamingContent, setStreamingContent] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+
+  const { uploadAttachment } = useTutorAttachmentUpload();
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -113,6 +119,7 @@ const ChatPanel = ({
     !isOverLimit &&
     !isSending &&
     !isStreaming &&
+    !isUploading &&
     !isInputDisabled;
 
   // Auto-scroll to bottom on new messages or streaming content
@@ -138,11 +145,11 @@ const ChatPanel = ({
 
       for (const file of files) {
         if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
-          toast.error(`${file.name}: Only JPG and PNG images are supported`);
+          toast.error(t("tutor.chat.errors.imageType", { name: file.name }));
           continue;
         }
         if (file.size > MAX_IMAGE_SIZE) {
-          toast.error(`${file.name}: Image must be under 5MB`);
+          toast.error(t("tutor.chat.errors.imageSize", { name: file.name }));
           continue;
         }
         validFiles.push(file);
@@ -151,7 +158,7 @@ const ChatPanel = ({
       setImageFiles((prev) => {
         const combined = [...prev, ...validFiles].slice(0, MAX_IMAGES);
         if (prev.length + validFiles.length > MAX_IMAGES) {
-          toast.error(`Maximum ${MAX_IMAGES} images allowed`);
+          toast.error(t("tutor.chat.errors.maxImages", { count: MAX_IMAGES }));
         }
         return combined;
       });
@@ -159,7 +166,7 @@ const ChatPanel = ({
       // Reset input so the same file can be re-selected
       e.target.value = "";
     },
-    []
+    [t]
   );
 
   const handleDocSelect = useCallback(
@@ -168,12 +175,12 @@ const ChatPanel = ({
       if (!file) return;
 
       if (!ACCEPTED_DOC_TYPES.includes(file.type)) {
-        toast.error("Only PDF and DOCX documents are supported");
+        toast.error(t("tutor.chat.errors.docType"));
         e.target.value = "";
         return;
       }
       if (file.size > MAX_DOC_SIZE) {
-        toast.error("Document must be under 10MB");
+        toast.error(t("tutor.chat.errors.docSize"));
         e.target.value = "";
         return;
       }
@@ -181,7 +188,7 @@ const ChatPanel = ({
       setDocumentFile(file);
       e.target.value = "";
     },
-    []
+    [t]
   );
 
   const removeImage = useCallback((index: number) => {
@@ -194,10 +201,41 @@ const ChatPanel = ({
 
   // ─── Send Handler ──────────────────────────────────────────────────────────
 
-  const handleSend = useCallback(() => {
+  const handleSend = useCallback(async () => {
     if (!canSend) return;
 
     const message = inputValue.trim();
+    const imagesToUpload = imageFiles;
+    const docToUpload = documentFile;
+
+    let imageUrls: string[] = [];
+    let documentUrl: string | undefined;
+
+    // Upload any attachments first. If an upload fails, surface the error and
+    // abort the send (keeping the message + attachments for retry) so we never
+    // pass an empty or undefined reference for a file the student attached.
+    if (imagesToUpload.length > 0 || docToUpload) {
+      setIsUploading(true);
+      try {
+        imageUrls = await Promise.all(
+          imagesToUpload.map((file) => uploadAttachment(file))
+        );
+        if (docToUpload) {
+          documentUrl = await uploadAttachment(docToUpload);
+        }
+      } catch (err) {
+        toast.error(
+          err instanceof Error
+            ? err.message
+            : t("tutor.chat.errors.uploadFailed")
+        );
+        return; // abort the send; composer state is preserved for retry
+      } finally {
+        setIsUploading(false);
+      }
+    }
+
+    // Only clear the composer once any uploads have succeeded.
     setInputValue("");
     setImageFiles([]);
     setDocumentFile(null);
@@ -206,10 +244,8 @@ const ChatPanel = ({
 
     onSendMessage({
       message,
-      // In a real implementation, files would be uploaded to Supabase Storage first
-      // and their URLs passed here. For now we pass empty arrays.
-      imageUrls: [],
-      documentUrl: undefined,
+      imageUrls: imageUrls.length > 0 ? imageUrls : undefined,
+      documentUrl,
       onToken: (token) => {
         setStreamingContent((prev) => prev + token);
       },
@@ -221,13 +257,21 @@ const ChatPanel = ({
         setIsStreaming(false);
       },
     });
-  }, [canSend, inputValue, onSendMessage]);
+  }, [
+    canSend,
+    inputValue,
+    imageFiles,
+    documentFile,
+    uploadAttachment,
+    onSendMessage,
+    t,
+  ]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
       if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
-        handleSend();
+        void handleSend();
       }
     },
     [handleSend]
@@ -243,7 +287,9 @@ const ChatPanel = ({
           <div className="p-1.5 rounded-lg bg-gradient-to-br from-teal-500 to-blue-600">
             <Bot className="h-4 w-4 text-white" />
           </div>
-          <span className="text-sm font-semibold text-gray-800">AI Tutor</span>
+          <span className="text-sm font-semibold text-gray-800">
+            {t("tutor.chat.title")}
+          </span>
         </div>
         <div className="flex items-center gap-2">
           <PersonaSelector
@@ -269,7 +315,9 @@ const ChatPanel = ({
         >
           <AlertTriangle className="h-4 w-4 text-amber-700 shrink-0" />
           <p className="text-xs font-medium text-amber-700">
-            You have {usage.remaining_messages} messages remaining today.
+            {t("tutor.chat.messagesRemaining", {
+              count: usage.remaining_messages,
+            })}
           </p>
         </div>
       )}
@@ -278,7 +326,7 @@ const ChatPanel = ({
       <div
         className="flex-1 overflow-y-auto px-4 py-4 space-y-4"
         role="log"
-        aria-label="Chat messages"
+        aria-label={t("tutor.chat.messagesLabel")}
       >
         {isLoadingMessages ? (
           <div className="space-y-4">
@@ -309,11 +357,10 @@ const ChatPanel = ({
               <Bot className="h-10 w-10 text-teal-600" />
             </div>
             <h3 className="text-lg font-bold text-gray-800">
-              How can I help you today?
+              {t("tutor.chat.emptyTitle")}
             </h3>
             <p className="text-sm text-gray-500 mt-1 max-w-sm">
-              Ask me about your course materials, assignments, or any concept
-              you need help understanding.
+              {t("tutor.chat.emptyBody")}
             </p>
           </div>
         ) : (
@@ -355,7 +402,10 @@ const ChatPanel = ({
                   <Bot className="h-4 w-4 text-white" />
                 </div>
                 <div className="bg-white border border-gray-100 shadow-sm rounded-2xl rounded-bl-md px-4 py-3">
-                  <div className="flex gap-1.5" aria-label="Tutor is typing">
+                  <div
+                    className="flex gap-1.5"
+                    aria-label={t("tutor.chat.typingLabel")}
+                  >
                     <span className="h-2 w-2 rounded-full bg-gray-300 animate-bounce [animation-delay:0ms]" />
                     <span className="h-2 w-2 rounded-full bg-gray-300 animate-bounce [animation-delay:150ms]" />
                     <span className="h-2 w-2 rounded-full bg-gray-300 animate-bounce [animation-delay:300ms]" />
@@ -377,13 +427,13 @@ const ChatPanel = ({
               <div key={i} className="relative group">
                 <img
                   src={URL.createObjectURL(file)}
-                  alt={`Attachment ${i + 1}`}
+                  alt={t("tutor.chat.attachmentAlt", { index: i + 1 })}
                   className="h-16 w-16 rounded-lg object-cover border border-gray-200"
                 />
                 <button
                   onClick={() => removeImage(i)}
                   className="absolute -top-1.5 -end-1.5 h-5 w-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                  aria-label={`Remove image ${i + 1}`}
+                  aria-label={t("tutor.chat.removeImage", { index: i + 1 })}
                 >
                   <X className="h-3 w-3" />
                 </button>
@@ -403,7 +453,7 @@ const ChatPanel = ({
                 <button
                   onClick={removeDocument}
                   className="absolute -top-1.5 -end-1.5 h-5 w-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                  aria-label="Remove document"
+                  aria-label={t("tutor.chat.removeDocument")}
                 >
                   <X className="h-3 w-3" />
                 </button>
@@ -420,8 +470,7 @@ const ChatPanel = ({
           >
             <Info className="h-4 w-4 text-gray-500 shrink-0" />
             <p className="text-sm text-gray-500 font-medium">
-              You&apos;ve reached your daily message limit. It resets at
-              midnight.
+              {t("tutor.chat.limitReached")}
             </p>
           </div>
         )}
@@ -434,8 +483,7 @@ const ChatPanel = ({
           >
             <AlertTriangle className="h-4 w-4 text-red-700 shrink-0" />
             <p className="text-sm text-red-700 font-medium">
-              Your daily token budget has been exceeded. Please try again
-              tomorrow.
+              {t("tutor.chat.tokenBudgetExceeded")}
             </p>
           </div>
         )}
@@ -451,14 +499,18 @@ const ChatPanel = ({
               multiple
               className="hidden"
               onChange={handleImageSelect}
-              aria-label="Attach images"
+              aria-label={t("tutor.chat.attachImages")}
             />
             <Button
               variant="ghost"
               size="icon-sm"
               onClick={() => imageInputRef.current?.click()}
-              disabled={isInputDisabled || imageFiles.length >= MAX_IMAGES}
-              aria-label="Attach image"
+              disabled={
+                isInputDisabled ||
+                isUploading ||
+                imageFiles.length >= MAX_IMAGES
+              }
+              aria-label={t("tutor.chat.attachImage")}
               className="text-gray-400 hover:text-gray-600"
             >
               <ImagePlus className="h-4 w-4" />
@@ -470,14 +522,14 @@ const ChatPanel = ({
               accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
               className="hidden"
               onChange={handleDocSelect}
-              aria-label="Attach document"
+              aria-label={t("tutor.chat.attachDocument")}
             />
             <Button
               variant="ghost"
               size="icon-sm"
               onClick={() => docInputRef.current?.click()}
-              disabled={isInputDisabled || documentFile !== null}
-              aria-label="Attach document"
+              disabled={isInputDisabled || isUploading || documentFile !== null}
+              aria-label={t("tutor.chat.attachDocument")}
               className="text-gray-400 hover:text-gray-600"
             >
               <FileUp className="h-4 w-4" />
@@ -492,7 +544,9 @@ const ChatPanel = ({
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder={
-                isInputDisabled ? "Daily limit reached" : "Ask a question..."
+                isInputDisabled
+                  ? t("tutor.chat.inputPlaceholderDisabled")
+                  : t("tutor.chat.inputPlaceholder")
               }
               disabled={isInputDisabled}
               rows={1}
@@ -501,7 +555,7 @@ const ChatPanel = ({
                 isInputDisabled &&
                   "bg-slate-100 text-gray-500 cursor-not-allowed"
               )}
-              aria-label="Message input"
+              aria-label={t("tutor.chat.messageInput")}
             />
             {/* Character counter */}
             {charCount > MAX_MESSAGE_LENGTH * 0.8 && (
@@ -518,13 +572,13 @@ const ChatPanel = ({
 
           {/* Send button */}
           <Button
-            onClick={handleSend}
+            onClick={() => void handleSend()}
             disabled={!canSend}
             size="icon"
             className="shrink-0 bg-gradient-to-r from-teal-500 to-blue-600 text-white active:scale-95 transition-transform duration-100 disabled:opacity-50"
-            aria-label="Send message"
+            aria-label={t("tutor.chat.sendMessage")}
           >
-            {isSending || isStreaming ? (
+            {isSending || isStreaming || isUploading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
               <Send className="h-4 w-4" />

@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import ErrorBoundary from "@/components/shared/ErrorBoundary";
 import HeatmapSummaryStats from "@/components/shared/HeatmapSummaryStats";
+import HeatmapHabitSummary from "@/components/shared/HeatmapHabitSummary";
+import HeatmapPlainSummary from "@/components/shared/HeatmapPlainSummary";
 import HeatmapFilters from "@/components/shared/HeatmapFilters";
 import HeatmapGrid from "@/components/shared/HeatmapGrid";
 import HeatmapTooltip from "@/components/shared/HeatmapTooltip";
@@ -15,7 +17,11 @@ import WellnessTipCard from "@/components/shared/WellnessTipCard";
 import WellnessSettingsPanel from "@/components/shared/WellnessSettingsPanel";
 import Shimmer from "@/components/shared/Shimmer";
 import { useAuth } from "@/hooks/useAuth";
-import { useHeatmapData, useHeatmapSummary } from "@/hooks/useHeatmapData";
+import {
+  useHeatmapData,
+  useHeatmapSummary,
+  useHeatmapXpByDate,
+} from "@/hooks/useHeatmapData";
 import {
   useWellnessPreferences,
   useUpdateWellnessPreferences,
@@ -25,6 +31,11 @@ import {
   useLogWellnessHabit,
 } from "@/hooks/useWellnessHabits";
 import { useSemesterRange } from "@/hooks/useSemesterRange";
+import {
+  computeHabitSummary,
+  PERFECT_DAY_XP,
+  ACADEMIC_HABITS_PER_DAY,
+} from "@/lib/heatmapUtils";
 import {
   useCurrentTip,
   useDismissOnboardingTip,
@@ -114,6 +125,7 @@ const HabitHeatmapContent = () => {
     studentId,
     heatmapData
   );
+  const { data: xpByDate } = useHeatmapXpByDate(studentId, resolvedRange);
   const { data: preferences } = useWellnessPreferences(studentId);
   const { data: todayLogs } = useWellnessHabitLogs(studentId, today);
   const updatePreferences = useUpdateWellnessPreferences();
@@ -142,6 +154,20 @@ const HabitHeatmapContent = () => {
     () => heatmapData?.find((d) => d.date === selectedDate) ?? null,
     [heatmapData, selectedDate]
   );
+
+  // Best-habit + completion-rate summary across the visible period (R7.2)
+  const habitSummary = useMemo(
+    () => computeHabitSummary(heatmapData ?? []),
+    [heatmapData]
+  );
+
+  // Per-day recorded habit XP (R7.1, R7.4) and Perfect Day detection (R7.3)
+  const hoveredXp = hoveredDate ? xpByDate?.[hoveredDate] ?? 0 : 0;
+  const selectedXp = selectedDate ? xpByDate?.[selectedDate] ?? 0 : 0;
+  const hoveredIsPerfectDay =
+    (hoveredDay?.academicCount ?? 0) >= ACADEMIC_HABITS_PER_DAY;
+  const selectedIsPerfectDay =
+    (selectedDay?.academicCount ?? 0) >= ACADEMIC_HABITS_PER_DAY;
 
   // Handlers
   const handleToggleHabit = (type: WellnessHabitType, enabled: boolean) => {
@@ -246,6 +272,19 @@ const HabitHeatmapContent = () => {
         />
       ) : null}
 
+      {/* Best-habit + completion-rate summary */}
+      {!summaryLoading && heatmapData ? (
+        <HeatmapHabitSummary summary={habitSummary} />
+      ) : null}
+
+      {/* Plain-language summary for younger students (R22.1) */}
+      {!summaryLoading && heatmapData ? (
+        <HeatmapPlainSummary
+          summary={habitSummary}
+          currentStreak={summary?.currentStreak ?? 0}
+        />
+      ) : null}
+
       {/* Filters */}
       <HeatmapFilters enabledWellnessHabits={enabledHabits} />
 
@@ -264,8 +303,10 @@ const HabitHeatmapContent = () => {
             <HeatmapTooltip
               date={hoveredDay.date}
               habits={hoveredDay.habits}
-              xpEarned={0}
+              xpEarned={hoveredXp}
               streakActive={hoveredDay.academicCount > 0}
+              isPerfectDay={hoveredIsPerfectDay}
+              perfectDayXp={PERFECT_DAY_XP}
             />
           )}
         </Card>
@@ -275,8 +316,10 @@ const HabitHeatmapContent = () => {
       <HabitMobileBottomSheet
         date={selectedDay?.date ?? ""}
         habits={selectedDay?.habits ?? []}
-        xpEarned={0}
+        xpEarned={selectedXp}
         streakActive={selectedDay ? selectedDay.academicCount > 0 : false}
+        isPerfectDay={selectedIsPerfectDay}
+        perfectDayXp={PERFECT_DAY_XP}
         open={!!selectedDate}
         onClose={() => setSelectedDate(null)}
       />

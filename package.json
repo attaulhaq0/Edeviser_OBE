@@ -17,7 +17,12 @@
     "audit:install-browsers": "playwright install chromium webkit --with-deps",
     "prepare": "husky",
     "changeset": "changeset",
-    "version": "changeset version"
+    "version": "changeset version",
+    "demo:capture": "node scripts/demo-capture.mjs",
+    "demo:frames": "node scripts/demo-build-frames.mjs",
+    "demo:voice": "powershell -ExecutionPolicy Bypass -File scripts/demo-tts.ps1",
+    "demo:assemble": "node scripts/demo-assemble.mjs",
+    "demo:video": "npm run demo:capture && npm run demo:frames && npm run demo:voice && npm run demo:assemble"
   },
   "engines": {
     "node": ">=20.0.0"
@@ -66,6 +71,9 @@
     "@fast-check/vitest": "^0.4.1",
     "@lhci/cli": "^0.15.1",
     "@playwright/test": "^1.59.1",
+    "@remotion/bundler": "^4.0.469",
+    "@remotion/cli": "^4.0.469",
+    "@remotion/renderer": "^4.0.469",
     "@tailwindcss/vite": "^4.2.4",
     "@tanstack/react-query-devtools": "^5.100.7",
     "@testing-library/dom": "10.4.0",
@@ -73,6 +81,7 @@
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
     "@types/canvas-confetti": "^1.9.0",
+    "@types/fluent-ffmpeg": "^2.1.28",
     "@types/node": "^25.6.0",
     "@types/pixelmatch": "5.2.6",
     "@types/pngjs": "6.0.5",
@@ -88,6 +97,8 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "fast-check": "^4.7.0",
+    "ffmpeg-static": "^5.3.0",
+    "fluent-ffmpeg": "^2.1.3",
     "globals": "^17.6.0",
     "happy-dom": "^20.7.0",
     "husky": "^9.1.7",
@@ -96,6 +107,7 @@
     "lint-staged": "^16.4.0",
     "pixelmatch": "7.2.0",
     "pngjs": "7.0.0",
+    "remotion": "^4.0.469",
     "rollup-plugin-visualizer": "^7.0.1",
     "shadcn": "^4.6.0",
     "tailwindcss": "^4.2.0",

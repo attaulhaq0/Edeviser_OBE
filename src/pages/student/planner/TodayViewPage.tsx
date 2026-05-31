@@ -6,6 +6,7 @@
 
 import { useState, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -48,6 +49,7 @@ import { toast } from "sonner";
 
 const TodayViewPage = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation("student");
   const { user } = useAuth();
   const studentId = user?.id;
 
@@ -149,9 +151,7 @@ const TodayViewPage = () => {
           onSuccess: () => toast.success("Task marked complete"),
         });
       } else {
-        toast.info(
-          "This task is already complete. Use Delete to remove it."
-        );
+        toast.info("This task is already complete. Use Delete to remove it.");
       }
     },
     [completeTask]
@@ -160,9 +160,7 @@ const TodayViewPage = () => {
   const handleTaskDelete = useCallback(
     (task: PlannerTask) => {
       if (
-        !window.confirm(
-          `Delete task "${task.title}"? This cannot be undone.`
-        )
+        !window.confirm(`Delete task "${task.title}"? This cannot be undone.`)
       ) {
         return;
       }
@@ -279,7 +277,7 @@ const TodayViewPage = () => {
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Quick Add Task */}
+          {/* Add Task */}
           <Button
             variant="outline"
             size="sm"
@@ -287,10 +285,10 @@ const TodayViewPage = () => {
             onClick={() => setQuickAddOpen(true)}
           >
             <Plus className="h-3.5 w-3.5" />
-            Quick Add
+            {t("planner.actions.addTask")}
           </Button>
 
-          {/* Start Unplanned Session */}
+          {/* Start Session */}
           <Button
             size="sm"
             className="h-9 gap-1.5 bg-gradient-to-r from-teal-500 to-blue-600 text-xs active:scale-95"
@@ -302,7 +300,7 @@ const TodayViewPage = () => {
             ) : (
               <Play className="h-3.5 w-3.5" />
             )}
-            Start Unplanned Session
+            {t("planner.actions.startSession")}
           </Button>
         </div>
       </div>

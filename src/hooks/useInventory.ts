@@ -29,8 +29,7 @@ export const useInventory = (studentId: string) => {
   return useQuery({
     queryKey: queryKeys.marketplace.inventory(studentId),
     queryFn: async (): Promise<InventoryItem[]> => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("xp_purchases")
         .select(
           `
@@ -56,21 +55,23 @@ export const useInventory = (studentId: string) => {
 
       if (error) throw error;
 
-      return ((data ?? []) as Array<Record<string, unknown>>).map((row) => {
-        const item = row.marketplace_items as Record<string, unknown> | null;
+      return (data ?? []).map((row) => {
+        const item = Array.isArray(row.marketplace_items)
+          ? row.marketplace_items[0]
+          : row.marketplace_items;
         return {
-          purchase_id: row.id as string,
-          item_id: row.item_id as string,
-          item_name: (item?.name as string) ?? "Unknown Item",
-          item_description: (item?.description as string) ?? "",
-          item_category: (item?.category as string) ?? "",
-          item_sub_category: (item?.sub_category as string) ?? "",
-          icon_identifier: (item?.icon_identifier as string) ?? "package",
+          purchase_id: row.id,
+          item_id: row.item_id,
+          item_name: item?.name ?? "Unknown Item",
+          item_description: item?.description ?? "",
+          item_category: item?.category ?? "",
+          item_sub_category: item?.sub_category ?? "",
+          icon_identifier: item?.icon_identifier ?? "package",
           metadata: (item?.metadata ?? {}) as Record<string, unknown>,
-          xp_cost: row.xp_cost as number,
-          status: row.status as "active" | "consumed" | "expired" | "refunded",
-          purchased_at: row.purchased_at as string,
-          consumed_at: (row.consumed_at as string) ?? null,
+          xp_cost: row.xp_cost,
+          status: row.status,
+          purchased_at: row.purchased_at,
+          consumed_at: row.consumed_at ?? null,
         };
       });
     },

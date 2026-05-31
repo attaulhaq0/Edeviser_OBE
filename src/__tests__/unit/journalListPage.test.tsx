@@ -63,7 +63,7 @@ vi.mock("@/hooks/useJournal", () => ({
   }),
 }));
 
-vi.mock("@/pages/student/leaderboard/useStudentCourseProgram", () => ({
+vi.mock("@/hooks/useStudentCourseProgram", () => ({
   useStudentCourseProgram: () => ({
     courses: mockCourses,
     programs: [],

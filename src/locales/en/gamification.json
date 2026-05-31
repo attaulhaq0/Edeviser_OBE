@@ -44,6 +44,24 @@
     "silver": "Silver",
     "bronze": "Bronze"
   },
+  "transactions": {
+    "title": "Transaction History",
+    "filters": {
+      "all": "All",
+      "earnings": "Earnings",
+      "spending": "Spending"
+    },
+    "empty": "No transactions found.",
+    "showing": "Showing {{from}}–{{to}} of {{total}}",
+    "previous": "Previous",
+    "next": "Next",
+    "unit": "XP",
+    "error": {
+      "title": "Couldn't load your transactions",
+      "body": "We couldn't load your transaction history right now. Please try again.",
+      "toast": "Failed to load transaction history"
+    }
+  },
   "habits": {
     "title": "Daily Habits",
     "login": "Login",

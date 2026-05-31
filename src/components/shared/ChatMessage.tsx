@@ -4,6 +4,7 @@
 
 import { useState, useCallback } from "react";
 import { Bot, User } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import SatisfactionRating from "@/components/shared/SatisfactionRating";
@@ -23,9 +24,12 @@ interface ChatMessageProps {
   isRatingPending?: boolean;
 }
 
+type TFn = (key: string, options?: Record<string, unknown>) => string;
+
 /** Parse markdown-like content into simple rendered elements */
 const renderContent = (
   content: string,
+  t: TFn,
   onCitationClick?: (index: number) => void
 ): React.ReactNode => {
   // Split content into segments, handling citation markers [1], [2], etc.
@@ -40,7 +44,9 @@ const renderContent = (
           key={i}
           onClick={() => onCitationClick?.(citationIndex)}
           className="inline-flex items-center justify-center h-4 min-w-4 px-1 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold hover:bg-blue-200 transition-colors align-super ms-0.5 me-0.5"
-          aria-label={`Citation ${citationMatch[1]}`}
+          aria-label={t("tutor.chat.citationLabel", {
+            number: citationMatch[1],
+          })}
         >
           {citationMatch[1]}
         </button>
@@ -180,6 +186,7 @@ const ChatMessage = ({
   onRate,
   isRatingPending,
 }: ChatMessageProps) => {
+  const { t } = useTranslation("ai");
   const [expandedCitation, setExpandedCitation] = useState<number | null>(null);
   const isUser = message.role === "user";
   const isAssistant = message.role === "assistant";
@@ -195,7 +202,11 @@ const ChatMessage = ({
         isUser ? "flex-row-reverse" : "flex-row"
       )}
       role="article"
-      aria-label={`${isUser ? "Your" : "Tutor"} message`}
+      aria-label={
+        isUser
+          ? t("tutor.chat.userMessageLabel")
+          : t("tutor.chat.tutorMessageLabel")
+      }
     >
       {/* Avatar */}
       <div
@@ -231,7 +242,7 @@ const ChatMessage = ({
             <p className="whitespace-pre-wrap break-words">{message.content}</p>
           ) : (
             <div className="whitespace-pre-wrap break-words">
-              {renderContent(message.content, handleCitationClick)}
+              {renderContent(message.content, t, handleCitationClick)}
             </div>
           )}
 
@@ -242,7 +253,7 @@ const ChatMessage = ({
                 <img
                   key={i}
                   src={url}
-                  alt={`Attachment ${i + 1}`}
+                  alt={t("tutor.chat.attachmentAlt", { index: i + 1 })}
                   className="rounded-lg max-h-48 max-w-48 object-cover"
                   loading="lazy"
                 />
@@ -254,7 +265,7 @@ const ChatMessage = ({
           {message.document_url && (
             <div className="mt-2">
               <Badge variant="outline" className="text-xs gap-1">
-                📎 Document attached
+                📎 {t("tutor.chat.documentAttached")}
               </Badge>
             </div>
           )}
@@ -266,7 +277,7 @@ const ChatMessage = ({
             variant="outline"
             className="mt-1 text-[10px] text-amber-600 border-amber-200 bg-amber-50"
           >
-            Academic integrity guidance
+            {t("tutor.chat.integrityGuidance")}
           </Badge>
         )}
 

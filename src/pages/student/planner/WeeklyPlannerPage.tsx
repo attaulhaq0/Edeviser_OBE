@@ -5,6 +5,7 @@
 
 import { useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { format, parseISO, addDays } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -20,6 +21,7 @@ import CreateTaskDialog from "@/components/shared/CreateTaskDialog";
 import Shimmer from "@/components/shared/Shimmer";
 import { useAuth } from "@/hooks/useAuth";
 import { useWeeklyPlannerData } from "@/hooks/useWeeklyPlanner";
+import { useStudentCourses } from "@/hooks/useStudentCourses";
 import { useWeeklyProgressSummary } from "@/hooks/useWeeklyProgress";
 import { useStudyTimeTrend } from "@/hooks/useStudyTimeAnalytics";
 import { useCreateStudySession } from "@/hooks/useStudySessions";
@@ -41,12 +43,21 @@ import {
   isWeekInPast,
   calculateGoalProgress,
 } from "@/lib/plannerUtils";
+import {
+  buildPlannerWeek,
+  getExampleGoals,
+  getPlannerLocalizationState,
+  type SuggestionCourse,
+} from "@/lib/weeklyPlannerContent";
+import i18n from "@/lib/i18n";
 import type {
   WeekDay,
   StudySession,
   PlannerTask,
   GoalProgress,
+  SuggestedStudySession,
 } from "@/types/planner";
+import type { ExampleGoalDisplay } from "@/components/shared/WeeklyGoalPanel";
 import type {
   CreateStudySessionInput,
   CreatePlannerTaskInput,
@@ -63,6 +74,7 @@ import { toast } from "sonner";
 
 const WeeklyPlannerPage = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation("student");
   const { user } = useAuth();
   const studentId = user?.id;
 
@@ -89,6 +101,15 @@ const WeeklyPlannerPage = () => {
   const { sessions, tasks, deadlines, goals, isLoading } = useWeeklyPlannerData(
     studentId,
     currentWeekStart
+  );
+
+  // Enrolled courses power suggested study sessions and dialog course pickers
+  // (reuses the batched `useStudentCourses` hook — no per-card N+1).
+  const { data: enrolledCourses } = useStudentCourses(studentId);
+
+  const suggestionCourses: SuggestionCourse[] = useMemo(
+    () => (enrolledCourses ?? []).map((c) => ({ id: c.id, name: c.name })),
+    [enrolledCourses]
   );
 
   // ─── Progress & Analytics Data ────────────────────────────────────────────
@@ -124,28 +145,20 @@ const WeeklyPlannerPage = () => {
   const [selectedDate, setSelectedDate] = useState(todayStr);
 
   // ─── Build WeekDay[] ────────────────────────────────────────────────────────
-  const weekData: WeekDay[] = useMemo(() => {
-    const days: WeekDay[] = [];
-    const start = parseISO(currentWeekStart);
-
-    for (let i = 0; i < 7; i++) {
-      const date = format(addDays(start, i), "yyyy-MM-dd");
-      days.push({
-        date,
-        sessions: sessions.filter((s) => s.plannedDate === date),
-        tasks: tasks.filter((t) => t.dueDate === date),
-        deadlines: deadlines.filter((d) => {
-          try {
-            return d.dueDate.startsWith(date);
-          } catch {
-            return false;
-          }
-        }),
-        isToday: date === todayStr,
-      });
-    }
-    return days;
-  }, [currentWeekStart, sessions, tasks, deadlines, todayStr]);
+  // Derived assignments/deadlines per day plus suggested study sessions on
+  // otherwise-empty days come from the pure `buildPlannerWeek` helper (R19.1/2).
+  const weekData: WeekDay[] = useMemo(
+    () =>
+      buildPlannerWeek({
+        weekStartDate: currentWeekStart,
+        todayStr,
+        sessions,
+        tasks,
+        deadlines,
+        courses: suggestionCourses,
+      }),
+    [currentWeekStart, todayStr, sessions, tasks, deadlines, suggestionCourses]
+  );
 
   // ─── Goal Progress ──────────────────────────────────────────────────────────
   const goalProgress: GoalProgress[] = useMemo(
@@ -200,9 +213,7 @@ const WeeklyPlannerPage = () => {
   const handleTaskDelete = useCallback(
     (task: PlannerTask) => {
       if (
-        !window.confirm(
-          `Delete task "${task.title}"? This cannot be undone.`
-        )
+        !window.confirm(`Delete task "${task.title}"? This cannot be undone.`)
       ) {
         return;
       }
@@ -236,6 +247,49 @@ const WeeklyPlannerPage = () => {
     [createTask]
   );
 
+  // Planning a suggested session opens the create dialog pre-dated to that day;
+  // the student can confirm the course/details before it is persisted (R19.2).
+  const handlePlanSuggestion = useCallback(
+    (suggestion: SuggestedStudySession) => {
+      setSelectedDate(suggestion.date);
+      setSessionDialogOpen(true);
+    },
+    []
+  );
+
+  // ─── Derived / Suggested Content Localization (R19.5/6/7) ────────────────────
+  // Derived planner content and actions must be available in both en + ar.
+  // If exactly one pack is present, withhold planner actions; if neither is
+  // present, hide planner content entirely.
+  const localizationState = useMemo(
+    () =>
+      getPlannerLocalizationState((lng) =>
+        i18n.hasResourceBundle(lng, "student")
+      ),
+    []
+  );
+  const actionsEnabled = localizationState === "ready";
+
+  // Localized example goals shown when the student has set no weekly goals.
+  const exampleGoals: ExampleGoalDisplay[] = useMemo(
+    () =>
+      getExampleGoals().map((g) => ({
+        label: t(`planner.goals.types.${g.goalType}`),
+        targetText: t(`planner.goals.target.${g.goalType}`, {
+          count: g.targetValue,
+        }),
+      })),
+    [t]
+  );
+  const exampleGoalsCopy = useMemo(
+    () => ({
+      heading: t("planner.goals.exampleHeading"),
+      hint: t("planner.goals.exampleHint"),
+      cta: t("planner.goals.setGoals"),
+    }),
+    [t]
+  );
+
   // ─── Render ─────────────────────────────────────────────────────────────────
   if (isLoading) {
     return (
@@ -245,6 +299,12 @@ const WeeklyPlannerPage = () => {
         <Shimmer className="h-40 rounded-xl" />
       </div>
     );
+  }
+
+  // R19.7: if neither language pack is available, hide planner content entirely
+  // rather than render unlocalized text.
+  if (localizationState === "hidden") {
+    return null;
   }
 
   return (
@@ -292,30 +352,34 @@ const WeeklyPlannerPage = () => {
             </Button>
           </div>
 
-          {/* Add buttons */}
-          <Button
-            size="sm"
-            className="h-8 gap-1 bg-gradient-to-r from-teal-500 to-blue-600 text-xs active:scale-95"
-            onClick={() => {
-              setSelectedDate(todayStr);
-              setSessionDialogOpen(true);
-            }}
-          >
-            <Plus className="h-3.5 w-3.5" />
-            Session
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-8 gap-1 text-xs"
-            onClick={() => {
-              setSelectedDate(todayStr);
-              setTaskDialogOpen(true);
-            }}
-          >
-            <Plus className="h-3.5 w-3.5" />
-            Task
-          </Button>
+          {/* Add buttons — withheld until both en + ar packs are available */}
+          {actionsEnabled && (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 gap-1 text-xs"
+                onClick={() => {
+                  setSelectedDate(todayStr);
+                  setTaskDialogOpen(true);
+                }}
+              >
+                <Plus className="h-3.5 w-3.5" />
+                {t("planner.actions.addTask")}
+              </Button>
+              <Button
+                size="sm"
+                className="h-8 gap-1 bg-gradient-to-r from-teal-500 to-blue-600 text-xs active:scale-95"
+                onClick={() => {
+                  setSelectedDate(todayStr);
+                  setSessionDialogOpen(true);
+                }}
+              >
+                <Plus className="h-3.5 w-3.5" />
+                {t("planner.actions.startSession")}
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
@@ -329,6 +393,7 @@ const WeeklyPlannerPage = () => {
         onTaskEdit={handleTaskEdit}
         onTaskDelete={handleTaskDelete}
         onDayClick={handleDayClick}
+        onPlanSuggestion={actionsEnabled ? handlePlanSuggestion : undefined}
       />
 
       {/* Goals + Tabs Row */}
@@ -340,8 +405,10 @@ const WeeklyPlannerPage = () => {
             progress={goalProgress}
             weekStartDate={currentWeekStart}
             onSave={(goalInputs) => saveGoals.mutate(goalInputs)}
-            isEditable={!isPast}
+            isEditable={!isPast && actionsEnabled}
             isPending={saveGoals.isPending}
+            exampleGoals={exampleGoals}
+            exampleGoalsCopy={exampleGoalsCopy}
           />
         </div>
 
@@ -439,7 +506,7 @@ const WeeklyPlannerPage = () => {
         open={sessionDialogOpen}
         onOpenChange={setSessionDialogOpen}
         defaultDate={selectedDate}
-        courses={[]}
+        courses={suggestionCourses}
         onSubmit={handleCreateSession}
         isPending={createSession.isPending}
       />
@@ -447,7 +514,7 @@ const WeeklyPlannerPage = () => {
         open={taskDialogOpen}
         onOpenChange={setTaskDialogOpen}
         defaultDate={selectedDate}
-        courses={[]}
+        courses={suggestionCourses}
         onSubmit={handleCreateTask}
         isPending={createTask.isPending}
       />

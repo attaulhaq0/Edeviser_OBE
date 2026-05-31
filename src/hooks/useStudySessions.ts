@@ -2,7 +2,7 @@
 // useStudySessions — CRUD mutations for study sessions
 // =============================================================================
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
 import { useAuth } from "@/hooks/useAuth";
@@ -33,8 +33,37 @@ function mapSession(row: Record<string, unknown>): StudySession {
   };
 }
 
-// ─── Invalidation helper ─────────────────────────────────────────────────────
+// ─── useStudySession — fetch a single study session by id ────────────────────
 
+/**
+ * Fetch one study session by id, mapped to the `StudySession` domain shape.
+ *
+ * Relocated from the in-page `useStudySession` hook in `FocusModePage.tsx`.
+ * Uses `.maybeSingle()` so a missing session resolves to `null` (zero-or-one
+ * row) rather than throwing; a genuine query failure still surfaces as the
+ * query's error state.
+ *
+ * _Requirements: 25.1, 25.2, 25.3, 25.3a, 25.4_
+ */
+export const useStudySession = (sessionId: string | undefined) => {
+  return useQuery({
+    queryKey: queryKeys.studySessions.detail(sessionId ?? ""),
+    queryFn: async (): Promise<StudySession | null> => {
+      if (!sessionId) return null;
+      const { data, error } = await supabase
+        .from("study_sessions")
+        .select("*")
+        .eq("id", sessionId)
+        .maybeSingle();
+      if (error) throw error;
+      if (!data) return null;
+      return mapSession(data as Record<string, unknown>);
+    },
+    enabled: !!sessionId,
+  });
+};
+
+// ─── Invalidation helper ─────────────────────────────────────────────────────
 function invalidateSessionQueries(
   queryClient: ReturnType<typeof useQueryClient>
 ) {

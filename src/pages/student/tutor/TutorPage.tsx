@@ -4,9 +4,11 @@
 
 import { useState, useCallback } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Menu, Bot } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
+import ErrorBoundary from "@/components/shared/ErrorBoundary";
 import {
   useTutorConversations,
   useCreateConversation,
@@ -18,10 +20,10 @@ import {
   useRateMessage,
 } from "@/hooks/useTutorMessages";
 import { useTutorUsage } from "@/hooks/useTutorUsage";
-import { supabase } from "@/lib/supabase";
-import { queryKeys } from "@/lib/queryKeys";
-import { useQueryClient } from "@tanstack/react-query";
+import { useUpdateConversationAutonomy } from "@/hooks/useUpdateConversationAutonomy";
+import { mapTutorError, type TutorUiState } from "@/lib/tutorStatus";
 import ChatPanel from "@/pages/student/tutor/ChatPanel";
+import TutorStatePanel from "@/pages/student/tutor/TutorStatePanel";
 import ConversationSidebar from "@/pages/student/tutor/ConversationSidebar";
 import PersonaSelector from "@/pages/student/tutor/PersonaSelector";
 import type { TutorPersona, SourceCitation } from "@/lib/tutorSchemas";
@@ -30,6 +32,7 @@ const TutorPage = () => {
   const { conversationId } = useParams<{ conversationId?: string }>();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { t } = useTranslation("ai");
 
   // Query params for contextual entry
   const courseIdParam = searchParams.get("courseId") ?? undefined;
@@ -40,9 +43,12 @@ const TutorPage = () => {
   const [persona, setPersona] = useState<TutorPersona>("socratic_guide");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showPersonaPicker, setShowPersonaPicker] = useState(!conversationId);
+  // Backend-derived tutor availability state. `ready` keeps the live chat
+  // surface; any failure signal is mapped via `mapTutorError` to a distinct
+  // panel (R4.2, R4.3, R4.4) with a guaranteed `error` fallback (R4.2a).
+  const [tutorState, setTutorState] = useState<TutorUiState>({ kind: "ready" });
 
   // Hooks
-  const queryClient = useQueryClient();
   const { data: conversations = [], isLoading: isLoadingConversations } =
     useTutorConversations(courseIdParam);
   const { data: messages = [], isLoading: isLoadingMessages } =
@@ -52,6 +58,7 @@ const TutorPage = () => {
   const deleteConversation = useDeleteConversation();
   const sendMessage = useSendMessage();
   const rateMessage = useRateMessage();
+  const updateAutonomy = useUpdateConversationAutonomy();
 
   // Derive persona from active conversation
   const activeConversation = conversationId
@@ -106,6 +113,19 @@ const TutorPage = () => {
       onCitations: (citations: SourceCitation[]) => void;
       onDone: (data: { message_id: string; tokens_used: number }) => void;
     }) => {
+      // Optimistically assume the tutor is reachable; a failure signal will
+      // flip this to a distinct state via `mapTutorError`.
+      setTutorState({ kind: "ready" });
+
+      const handleErrorSignal = (signal: {
+        code: string;
+        message: string;
+        httpStatus?: number;
+        networkError?: boolean;
+      }) => {
+        setTutorState(mapTutorError(signal));
+      };
+
       // If no active conversation, create one first
       if (!conversationId) {
         createConversation.mutate(
@@ -134,7 +154,14 @@ const TutorPage = () => {
                 onToken: input.onToken,
                 onCitations: input.onCitations,
                 onDone: input.onDone,
+                onErrorSignal: handleErrorSignal,
               });
+            },
+            onError: () => {
+              // Creating the conversation failed before any message could be
+              // sent — treat as an unavailable backend rather than a silent
+              // failure (R4.2).
+              setTutorState({ kind: "unavailable" });
             },
           }
         );
@@ -150,6 +177,7 @@ const TutorPage = () => {
           onToken: input.onToken,
           onCitations: input.onCitations,
           onDone: input.onDone,
+          onErrorSignal: handleErrorSignal,
         });
       }
     },
@@ -179,24 +207,22 @@ const TutorPage = () => {
     setPersona(newPersona);
   }, []);
 
+  // Dismiss a recoverable tutor state so the student can try again.
+  const handleRetryTutor = useCallback(() => {
+    setTutorState({ kind: "ready" });
+  }, []);
+
   const handleAutonomyChange = useCallback(
     (level: "L1" | "L3" | null) => {
       if (!conversationId) return;
 
-      // Optimistically update the conversation's autonomy_override via Supabase
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (supabase as any)
-        .from("tutor_conversations")
-        .update({ autonomy_override: level })
-        .eq("id", conversationId)
-        .then(() => {
-          // Invalidate conversations to reflect the change
-          queryClient.invalidateQueries({
-            queryKey: queryKeys.tutorConversations.lists(),
-          });
-        });
+      // Typed update of the conversation's autonomy_override. The hook
+      // invalidates tutor-conversation queries on success and surfaces any
+      // failure via a Sonner toast, so failed operations are never silently
+      // discarded (R28.1, R28.3).
+      updateAutonomy.mutate({ conversationId, level });
     },
-    [conversationId, queryClient]
+    [conversationId, updateAutonomy]
   );
 
   // ─── Sidebar Content ──────────────────────────────────────────────────────
@@ -237,11 +263,13 @@ const TutorPage = () => {
             variant="ghost"
             size="icon-sm"
             onClick={() => setSidebarOpen(true)}
-            aria-label="Open conversations"
+            aria-label={t("tutor.page.openConversations")}
           >
             <Menu className="h-5 w-5" />
           </Button>
-          <span className="text-sm font-semibold text-gray-800">AI Tutor</span>
+          <span className="text-sm font-semibold text-gray-800">
+            {t("tutor.page.title")}
+          </span>
         </div>
 
         {/* Persona picker for new conversations */}
@@ -255,10 +283,10 @@ const TutorPage = () => {
                   </div>
                 </div>
                 <h2 className="text-xl font-bold text-gray-800">
-                  Start a new conversation
+                  {t("tutor.page.newConversationTitle")}
                 </h2>
                 <p className="text-sm text-gray-500 mt-1">
-                  Choose a tutoring style that works best for you
+                  {t("tutor.page.newConversationSubtitle")}
                 </p>
               </div>
 
@@ -269,26 +297,53 @@ const TutorPage = () => {
               />
 
               <p className="text-xs text-gray-400 text-center">
-                You can change the persona at any time during the conversation
+                {t("tutor.page.personaHint")}
               </p>
             </div>
           </div>
         ) : (
-          <ChatPanel
-            messages={messages}
-            isLoadingMessages={isLoadingMessages}
-            conversationId={conversationId}
-            courseId={courseIdParam}
-            persona={derivedPersona}
-            onPersonaChange={handlePersonaChange}
-            onSendMessage={handleSendMessage}
-            onRateMessage={handleRateMessage}
-            isSending={sendMessage.isPending || createConversation.isPending}
-            isRatingPending={rateMessage.isPending}
-            usage={usage}
-            autonomyOverride={derivedAutonomyOverride}
-            onAutonomyChange={handleAutonomyChange}
-          />
+          // The chat area is wrapped in an ErrorBoundary so the guaranteed
+          // fallback error display renders even if tutor-state detection or the
+          // chat itself throws (R4.2a).
+          <ErrorBoundary
+            fallback={
+              <div className="flex-1 flex items-center justify-center p-6">
+                <TutorStatePanel
+                  state={{
+                    kind: "error",
+                    message: "",
+                  }}
+                />
+              </div>
+            }
+          >
+            {tutorState.kind !== "ready" ? (
+              <div className="flex-1 flex items-center justify-center p-6">
+                <TutorStatePanel
+                  state={tutorState}
+                  onRetry={handleRetryTutor}
+                />
+              </div>
+            ) : (
+              <ChatPanel
+                messages={messages}
+                isLoadingMessages={isLoadingMessages}
+                conversationId={conversationId}
+                courseId={courseIdParam}
+                persona={derivedPersona}
+                onPersonaChange={handlePersonaChange}
+                onSendMessage={handleSendMessage}
+                onRateMessage={handleRateMessage}
+                isSending={
+                  sendMessage.isPending || createConversation.isPending
+                }
+                isRatingPending={rateMessage.isPending}
+                usage={usage}
+                autonomyOverride={derivedAutonomyOverride}
+                onAutonomyChange={handleAutonomyChange}
+              />
+            )}
+          </ErrorBoundary>
         )}
       </div>
     </div>

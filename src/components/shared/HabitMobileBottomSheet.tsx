@@ -18,6 +18,10 @@ export interface HabitMobileBottomSheetProps {
   streakActive: boolean;
   open: boolean;
   onClose: () => void;
+  /** Whether this day qualifies as a Perfect Day (all 4 academic habits). */
+  isPerfectDay?: boolean;
+  /** XP awarded for a Perfect Day, shown as reward context (R7.3). */
+  perfectDayXp?: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -55,6 +59,8 @@ const HabitMobileBottomSheet = ({
   streakActive,
   open,
   onClose,
+  isPerfectDay,
+  perfectDayXp,
 }: HabitMobileBottomSheetProps) => {
   const academic = habits.filter((h) => h.category === "academic");
   const wellness = habits.filter((h) => h.category === "wellness");
@@ -73,6 +79,17 @@ const HabitMobileBottomSheet = ({
         </SheetHeader>
 
         <div className="px-4 pb-4">
+          {isPerfectDay && (
+            <p
+              className="text-xs font-medium text-amber-600 mb-2"
+              data-testid="bottom-sheet-perfect-day-label"
+            >
+              ⭐ Perfect Day
+              {perfectDayXp != null && perfectDayXp > 0
+                ? ` · +${perfectDayXp} XP bonus`
+                : ""}
+            </p>
+          )}
           {isEmpty ? (
             <p
               className="text-sm text-gray-500"

@@ -27,7 +27,15 @@ import {
   Trash2,
   Loader2,
   CheckCircle2,
+  Lightbulb,
 } from "lucide-react";
+
+interface ExampleGoalDisplay {
+  /** Localized goal-type label, e.g. "Study Hours". */
+  label: string;
+  /** Localized target text, e.g. "5 hours". */
+  targetText: string;
+}
 
 interface WeeklyGoalPanelProps {
   goals: WeeklyGoal[];
@@ -36,6 +44,14 @@ interface WeeklyGoalPanelProps {
   onSave: (goals: CreateWeeklyGoalInput[]) => void;
   isEditable?: boolean;
   isPending?: boolean;
+  /**
+   * Example goals to display when the student has set none, guiding
+   * goal-setting (R19.4). Already localized by the consumer. When omitted, the
+   * panel falls back to its plain empty state.
+   */
+  exampleGoals?: ExampleGoalDisplay[];
+  /** Localized copy for the example-goals block. */
+  exampleGoalsCopy?: { heading: string; hint: string; cta: string };
 }
 
 interface GoalDraft {
@@ -62,6 +78,8 @@ const WeeklyGoalPanel = ({
   onSave,
   isEditable = true,
   isPending = false,
+  exampleGoals,
+  exampleGoalsCopy,
 }: WeeklyGoalPanelProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [drafts, setDrafts] = useState<GoalDraft[]>([]);
@@ -201,23 +219,68 @@ const WeeklyGoalPanel = ({
           </>
         ) : goals.length === 0 ? (
           /* Empty state */
-          <div className="text-center py-4">
-            <Target className="mx-auto h-8 w-8 text-gray-300" />
-            <p className="mt-2 text-sm text-gray-500">
-              No goals set for this week
-            </p>
-            {isEditable && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="mt-3 h-8 gap-1 text-xs"
-                onClick={startEditing}
-              >
-                <Plus className="h-3.5 w-3.5" />
-                Set Goals
-              </Button>
-            )}
-          </div>
+          exampleGoals && exampleGoals.length > 0 ? (
+            <div className="space-y-3">
+              <div className="flex items-start gap-2 rounded-lg border border-dashed border-teal-300 bg-teal-50/40 p-3">
+                <Lightbulb className="mt-0.5 h-4 w-4 shrink-0 text-teal-500" />
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-gray-800">
+                    {exampleGoalsCopy?.heading ?? "Goal ideas to get started"}
+                  </p>
+                  <p className="mt-0.5 text-xs text-gray-500">
+                    {exampleGoalsCopy?.hint ??
+                      "Set a goal below to track your week."}
+                  </p>
+                </div>
+              </div>
+
+              <ul className="space-y-2">
+                {exampleGoals.map((example, index) => (
+                  <li
+                    key={index}
+                    className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2"
+                  >
+                    <span className="text-sm font-medium text-gray-700">
+                      {example.label}
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      {example.targetText}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+
+              {isEditable && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 w-full gap-1 text-xs"
+                  onClick={startEditing}
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  {exampleGoalsCopy?.cta ?? "Set Goals"}
+                </Button>
+              )}
+            </div>
+          ) : (
+            <div className="text-center py-4">
+              <Target className="mx-auto h-8 w-8 text-gray-300" />
+              <p className="mt-2 text-sm text-gray-500">
+                No goals set for this week
+              </p>
+              {isEditable && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-3 h-8 gap-1 text-xs"
+                  onClick={startEditing}
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  Set Goals
+                </Button>
+              )}
+            </div>
+          )
         ) : (
           /* Display mode with progress */
           progress.map((gp) => (
@@ -262,4 +325,4 @@ const WeeklyGoalPanel = ({
 };
 
 export default WeeklyGoalPanel;
-export type { WeeklyGoalPanelProps };
+export type { WeeklyGoalPanelProps, ExampleGoalDisplay };
