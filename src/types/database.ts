@@ -346,6 +346,7 @@ export type Database = {
           created_at: string;
           diff: Json | null;
           id: string;
+          institution_id: string | null;
           ip_address: unknown;
           target_id: string | null;
           target_type: string;
@@ -356,6 +357,7 @@ export type Database = {
           created_at?: string;
           diff?: Json | null;
           id?: string;
+          institution_id?: string | null;
           ip_address?: unknown;
           target_id?: string | null;
           target_type: string;
@@ -366,6 +368,7 @@ export type Database = {
           created_at?: string;
           diff?: Json | null;
           id?: string;
+          institution_id?: string | null;
           ip_address?: unknown;
           target_id?: string | null;
           target_type?: string;
@@ -376,6 +379,20 @@ export type Database = {
             columns: ["actor_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "audit_logs_institution_id_fkey";
+            columns: ["institution_id"];
+            isOneToOne: false;
+            referencedRelation: "institutions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "audit_logs_institution_id_fkey";
+            columns: ["institution_id"];
+            isOneToOne: false;
+            referencedRelation: "institutions_public";
             referencedColumns: ["id"];
           }
         ];
@@ -6872,6 +6889,10 @@ export type Database = {
         Returns: boolean;
       };
       consume_invitation: { Args: { p_token: string }; Returns: boolean };
+      course_material_institution: {
+        Args: { p_object_name: string };
+        Returns: string;
+      };
       delete_department_if_no_programs: {
         Args: { dept_id: string };
         Returns: boolean;
@@ -6994,6 +7015,15 @@ export type Database = {
       recalculate_league_tiers: {
         Args: { p_institution_id: string };
         Returns: undefined;
+      };
+      rls_isolation_violations: {
+        Args: never;
+        Returns: {
+          cmd: string;
+          policy_name: string;
+          reason: string;
+          table_name: string;
+        }[];
       };
       search_course_materials: {
         Args: {

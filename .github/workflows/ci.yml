@@ -305,3 +305,19 @@ jobs:
             exit 1
           fi
           echo "- **All migrations passed validation**" >> $GITHUB_STEP_SUMMARY
+
+  rls-guard:
+    name: RLS Multi-Tenant Isolation Guard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      - name: Verify no cross-institution RLS leaks in migrations
+        run: npx vitest --run src/__tests__/properties/rlsInstitutionIsolation.property.test.ts

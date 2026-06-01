@@ -65,6 +65,7 @@ import PrimaryCTA, {
 } from "@/components/shared/PrimaryCTA";
 import { useFirstEnrolledCourseId } from "@/hooks/useFirstEnrolledCourse";
 import { queryKeys } from "@/lib/queryKeys";
+import { ONBOARDING_XP } from "@/lib/onboardingConstants";
 import { getDeadlineUrgency } from "@/hooks/useCalendar";
 import {
   BookOpen,
@@ -446,15 +447,36 @@ const StudentDashboard = () => {
           assessmentType={todayMicro.assessment_type}
           questionCount={todayMicro.question_ids.length}
           dismissalCount={todayMicro.dismissal_count}
+          isPending={completeMicro.isPending || dismissMicro.isPending}
           onComplete={() =>
-            completeMicro.mutate({ id: todayMicro.id, studentId })
+            completeMicro.mutate(
+              { id: todayMicro.id, studentId },
+              {
+                onSuccess: () =>
+                  toast.success(
+                    t("onboarding.microAssessment.completed", {
+                      amount: ONBOARDING_XP.micro_assessment,
+                    })
+                  ),
+                onError: () =>
+                  toast.error(t("onboarding.microAssessment.completeError")),
+              }
+            )
           }
           onDismiss={() =>
-            dismissMicro.mutate({
-              id: todayMicro.id,
-              studentId,
-              currentDismissals: todayMicro.dismissal_count,
-            })
+            dismissMicro.mutate(
+              {
+                id: todayMicro.id,
+                studentId,
+                currentDismissals: todayMicro.dismissal_count,
+              },
+              {
+                onSuccess: () =>
+                  toast.success(t("onboarding.microAssessment.remindedLater")),
+                onError: () =>
+                  toast.error(t("onboarding.microAssessment.dismissError")),
+              }
+            )
           }
         />
       )}

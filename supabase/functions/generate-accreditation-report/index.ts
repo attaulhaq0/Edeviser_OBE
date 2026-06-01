@@ -746,7 +746,13 @@ serve(async (req) => {
 
     // ── Upload to Supabase Storage ────────────────────────────────────────
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-    const fileName = `reports/${program.code}_${template}_${timestamp}.pdf`;
+    // Institution-prefixed path: the first folder is the owning institution id
+    // so the `reports` bucket can be RLS-scoped per tenant (see the
+    // reports_institution_read storage policy). Falls back to "reports" only if
+    // the program somehow has no institution (should not happen — program is
+    // validated above).
+    const institutionPrefix = program.institution_id ?? "reports";
+    const fileName = `${institutionPrefix}/${program.code}_${template}_${timestamp}.pdf`;
 
     const { error: uploadErr } = await supabase.storage
       .from("reports")
