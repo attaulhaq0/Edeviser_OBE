@@ -18,5 +18,12 @@ END $$;
 REVOKE EXECUTE ON FUNCTION public.is_pgcron_available() FROM anon;
 REVOKE EXECUTE ON FUNCTION public.recalculate_dynamic_prices(uuid) FROM anon;
 REVOKE EXECUTE ON FUNCTION public.recalculate_league_tiers(uuid) FROM anon;
-REVOKE EXECUTE ON FUNCTION public.rls_auto_enable() FROM anon;
+-- Guarded (replay-only): rls_auto_enable() is NOT created by any migration in the chain
+-- (it exists on live via the platform/Part-C), so a bare REVOKE aborts a fresh replay
+-- with 42883. Skip when absent; applies normally on live where it exists.
+DO $$ BEGIN
+  IF to_regprocedure('public.rls_auto_enable()') IS NOT NULL THEN
+    EXECUTE 'REVOKE EXECUTE ON FUNCTION public.rls_auto_enable() FROM anon';
+  END IF;
+END $$;
 REVOKE EXECUTE ON FUNCTION public.trigger_attainment_rollup() FROM anon;;

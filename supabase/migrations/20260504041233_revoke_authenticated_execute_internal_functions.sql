@@ -21,13 +21,23 @@ REVOKE EXECUTE ON FUNCTION public.expire_stale_recovery_sessions() FROM anon;
 -- Re-revoke from authenticated for safety (idempotent)
 REVOKE EXECUTE ON FUNCTION public.badge_auto_archive() FROM authenticated;
 REVOKE EXECUTE ON FUNCTION public.badge_spotlight_auto_rotate() FROM authenticated;
-REVOKE EXECUTE ON FUNCTION public.rls_auto_enable() FROM authenticated;
+-- Guarded (replay-only): rls_auto_enable() is not created by any migration in the chain.
+DO $$ BEGIN
+  IF to_regprocedure('public.rls_auto_enable()') IS NOT NULL THEN
+    EXECUTE 'REVOKE EXECUTE ON FUNCTION public.rls_auto_enable() FROM authenticated';
+  END IF;
+END $$;
 REVOKE EXECUTE ON FUNCTION public.trigger_attainment_rollup() FROM authenticated;
 REVOKE EXECUTE ON FUNCTION public.is_pgcron_available() FROM authenticated;
 
 -- Re-revoke from anon for safety (idempotent)
 REVOKE EXECUTE ON FUNCTION public.badge_auto_archive() FROM anon;
 REVOKE EXECUTE ON FUNCTION public.badge_spotlight_auto_rotate() FROM anon;
-REVOKE EXECUTE ON FUNCTION public.rls_auto_enable() FROM anon;
+-- Guarded (replay-only): rls_auto_enable() is not created by any migration in the chain.
+DO $$ BEGIN
+  IF to_regprocedure('public.rls_auto_enable()') IS NOT NULL THEN
+    EXECUTE 'REVOKE EXECUTE ON FUNCTION public.rls_auto_enable() FROM anon';
+  END IF;
+END $$;
 REVOKE EXECUTE ON FUNCTION public.trigger_attainment_rollup() FROM anon;
 REVOKE EXECUTE ON FUNCTION public.is_pgcron_available() FROM anon;;

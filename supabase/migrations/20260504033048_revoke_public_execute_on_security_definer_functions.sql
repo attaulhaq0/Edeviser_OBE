@@ -4,7 +4,13 @@ REVOKE EXECUTE ON FUNCTION public.badge_auto_archive() FROM public;
 REVOKE EXECUTE ON FUNCTION public.badge_spotlight_auto_rotate() FROM public;
 REVOKE EXECUTE ON FUNCTION public.delete_department_if_no_programs(uuid) FROM public;
 REVOKE EXECUTE ON FUNCTION public.is_pgcron_available() FROM public;
-REVOKE EXECUTE ON FUNCTION public.rls_auto_enable() FROM public;
+-- Guarded (replay-only): rls_auto_enable() is not created by any migration in the chain;
+-- bare REVOKE aborts a fresh replay with 42883. Skip when absent; applies on live.
+DO $$ BEGIN
+  IF to_regprocedure('public.rls_auto_enable()') IS NOT NULL THEN
+    EXECUTE 'REVOKE EXECUTE ON FUNCTION public.rls_auto_enable() FROM public';
+  END IF;
+END $$;
 REVOKE EXECUTE ON FUNCTION public.trigger_attainment_rollup() FROM public;
 
 -- These are called by authenticated users via frontend RPC — keep authenticated, revoke anon

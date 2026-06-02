@@ -102,13 +102,17 @@ function main() {
       if (!m) continue;
       const fn = m[2].toLowerCase();
       const createdAt = created.get(fn);
-      // Only a problem if the function is created LATER in the chain.
-      if (createdAt !== undefined && fileTs < createdAt) {
+      // A problem if the function is created LATER in the chain (createdAt > fileTs),
+      // OR is NEVER created anywhere in the chain (createdAt === undefined). Both abort
+      // a fresh replay with 42883 — on production the function happens to exist (created
+      // by an extension, the platform, or an out-of-band/live-only definition), which is
+      // exactly why this hides until a clean rebuild.
+      if (createdAt === undefined || fileTs < createdAt) {
         problems.push({
           file,
           line: i + 1,
           fn,
-          createdAt,
+          createdAt: createdAt ?? "(never created in chain)",
           stmt: m[1].toUpperCase(),
         });
       }
