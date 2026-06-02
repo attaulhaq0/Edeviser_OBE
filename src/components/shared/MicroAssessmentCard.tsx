@@ -11,6 +11,9 @@ export interface MicroAssessmentCardProps {
   onComplete: () => void;
   onDismiss: () => void;
   dismissalCount: number;
+  /** While a complete/dismiss mutation is in flight, disable both actions so
+   * the card reflects progress rather than appearing unresponsive. */
+  isPending?: boolean;
 }
 
 /** Assessment types that have a dedicated localized label. */
@@ -28,6 +31,7 @@ const MicroAssessmentCard = ({
   onComplete,
   onDismiss,
   dismissalCount,
+  isPending = false,
 }: MicroAssessmentCardProps) => {
   const { t } = useTranslation(["student", "gamification"]);
 
@@ -69,8 +73,9 @@ const MicroAssessmentCard = ({
         <button
           type="button"
           onClick={onDismiss}
+          disabled={isPending}
           aria-label={t("onboarding.microAssessment.dismiss")}
-          className="p-1 rounded-md text-gray-400 hover:text-gray-600 hover:bg-slate-50 transition-colors"
+          className="p-1 rounded-md text-gray-400 hover:text-gray-600 hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <X className="h-4 w-4" />
         </button>
@@ -86,6 +91,7 @@ const MicroAssessmentCard = ({
         <Button
           size="sm"
           onClick={onComplete}
+          disabled={isPending}
           className="bg-gradient-to-r from-teal-500 to-blue-600 text-white text-xs font-semibold active:scale-95 transition-transform duration-100"
         >
           {t("onboarding.microAssessment.completeNow")}
@@ -94,6 +100,7 @@ const MicroAssessmentCard = ({
           variant="ghost"
           size="sm"
           onClick={onDismiss}
+          disabled={isPending}
           className="text-xs text-gray-500"
         >
           {t("onboarding.microAssessment.remindLater")}

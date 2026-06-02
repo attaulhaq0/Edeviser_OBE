@@ -31,6 +31,7 @@
       "openConversations": "Open conversations",
       "newConversationTitle": "Start a new conversation",
       "newConversationSubtitle": "Choose a tutoring style that works best for you",
+      "startChatting": "Start chatting",
       "personaHint": "You can change the persona at any time during the conversation"
     },
     "states": {

@@ -1,0 +1,27 @@
+-- Task 17 (migration-history-reconciliation): drop the dead, broken get_leaderboard(uuid) RPC.
+--
+-- Source_Of_Truth_Decision: DROP.
+-- The single-arg get_leaderboard(uuid) RPC selects lw.full_name, lw.institution_id,
+-- lw.xp_total, lw.level, lw.streak_current, lw.global_rank FROM leaderboard_weekly,
+-- but the live leaderboard_weekly view has only (student_id, weekly_xp, rank) since
+-- migration 20260520063903 reshaped it. The RPC would therefore raise an
+-- "undefined column" error if ever invoked. It is dead code:
+--   * no src/ runtime caller (supabase.rpc("get_leaderboard", ...) does not exist;
+--     the only mention is a historical comment in src/hooks/useLeaderboard.ts and
+--     the auto-generated src/types/database.ts),
+--   * no Edge Function / api/ caller,
+--   * no other DB function calls it,
+--   * no cron job references it.
+-- The canonical, working path is get_leaderboard_page(uuid,integer,integer), used by
+-- src/hooks/useLeaderboard.ts, which queries student_gamification + profiles directly
+-- and excludes leaderboard_anonymous students set-based (anonymity opt-out preserved).
+--
+-- The bare leaderboard_weekly view is intentionally retained UNCHANGED: it exposes
+-- only student_id (UUID) + weekly_xp + rank (no names, and not even the
+-- leaderboard_anonymous flag), it is security_invoker=true so RLS on xp_transactions
+-- governs direct callers (a student sees only their own row; staff see institution
+-- scope), and src/hooks/useLeagueLeaderboard.ts reads it directly and applies its own
+-- name-redaction ("Anonymous") for opted-out students while preserving their anonymous
+-- ranking -- the intended domain behavior. Excluding opted-out students from the view
+-- would break that ranking and would not improve name-anonymity (no names are exposed).
+DROP FUNCTION IF EXISTS public.get_leaderboard(uuid);;

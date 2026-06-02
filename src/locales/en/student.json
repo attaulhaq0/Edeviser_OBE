@@ -259,7 +259,11 @@
       "completeNow": "Complete Now",
       "remindLater": "Remind Me Later",
       "dismiss": "Dismiss micro-assessment",
-      "lastChance": "Last chance — this will be skipped if dismissed again."
+      "lastChance": "Last chance — this will be skipped if dismissed again.",
+      "completed": "Nice! +{{amount}} XP — profile updated.",
+      "completeError": "Could not complete the check. Please try again.",
+      "remindedLater": "No problem — we'll remind you later.",
+      "dismissError": "Could not update the check. Please try again."
     },
     "selfEfficacy": {
       "title": "Academic Confidence Check",

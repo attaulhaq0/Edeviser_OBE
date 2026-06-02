@@ -1,10 +1,10 @@
--- Migration: Create tables referenced in code but missing from schema
--- Fixes: student_habit_levels, student_habit_level_history, team_gamification
--- Also: adds missing avatar_letter column to teams
+-- Forward additive migration (migration-history-reconciliation Task 3)
+-- Mirrors local 20260901000010 + 20260901000011 EXACTLY, with one hardening change:
+--   fn_track_habit_level_change deployed SECURITY DEFINER + SET search_path = '' (public.-qualified body)
+-- No destructive operations. All CREATE ... IF NOT EXISTS / ON CONFLICT DO NOTHING.
 
 -- ============================================================================
--- 1. student_habit_levels — tracks each student's current habit difficulty level
--- Used by: useStudentHabitLevel.ts (line 20)
+-- 1. student_habit_levels
 -- ============================================================================
 CREATE TABLE IF NOT EXISTS public.student_habit_levels (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -36,8 +36,7 @@ CREATE POLICY "student_habit_levels_update"
   USING (student_id = (select auth.uid()));
 
 -- ============================================================================
--- 2. student_habit_level_history — audit trail of level changes
--- Used by: useStudentHabitLevel.ts (line 49), useHeatmapData.ts (line 230)
+-- 2. student_habit_level_history
 -- ============================================================================
 CREATE TABLE IF NOT EXISTS public.student_habit_level_history (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -67,8 +66,7 @@ CREATE POLICY "student_habit_level_history_insert"
   WITH CHECK (student_id = (select auth.uid()));
 
 -- ============================================================================
--- 3. team_gamification — per-team XP / streak aggregates
--- Used by: useTeams.ts (line 132, useTeamGamification hook)
+-- 3. team_gamification
 -- ============================================================================
 CREATE TABLE IF NOT EXISTS public.team_gamification (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -100,18 +98,79 @@ CREATE POLICY "team_gamification_update"
   USING (true);
 
 -- ============================================================================
--- 4. Add missing avatar_letter column to teams table
--- Used by: useTeams.ts (line 176, useAutoGenerateTeams)
+-- 4. teams.avatar_letter (already present on live; IF NOT EXISTS no-op for parity)
 -- ============================================================================
 ALTER TABLE public.teams ADD COLUMN IF NOT EXISTS avatar_letter text DEFAULT '';
 
 -- ============================================================================
--- 5. Trigger: auto-insert level history row when student_habit_levels changes
+-- 5. student_badges
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS public.student_badges (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  student_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  badge_id text NOT NULL,
+  awarded_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE(student_id, badge_id)
+);
+
+ALTER TABLE public.student_badges ENABLE ROW LEVEL SECURITY;
+
+CREATE INDEX IF NOT EXISTS idx_student_badges_student
+  ON public.student_badges (student_id);
+
+CREATE INDEX IF NOT EXISTS idx_student_badges_badge
+  ON public.student_badges (badge_id);
+
+CREATE POLICY "student_badges_select"
+  ON public.student_badges FOR SELECT TO authenticated
+  USING (
+    student_id = (select auth.uid())
+    OR EXISTS (
+      SELECT 1 FROM public.profiles
+      WHERE id = (select auth.uid()) AND role IN ('admin', 'teacher', 'coordinator')
+    )
+  );
+
+CREATE POLICY "student_badges_insert"
+  ON public.student_badges FOR INSERT TO authenticated
+  WITH CHECK (true);
+
+-- ============================================================================
+-- 6. quiz_clos
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS public.quiz_clos (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  quiz_id uuid NOT NULL REFERENCES public.quizzes(id) ON DELETE CASCADE,
+  clo_id uuid NOT NULL REFERENCES public.learning_outcomes(id) ON DELETE CASCADE,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE(quiz_id, clo_id)
+);
+
+ALTER TABLE public.quiz_clos ENABLE ROW LEVEL SECURITY;
+
+CREATE INDEX IF NOT EXISTS idx_quiz_clos_quiz
+  ON public.quiz_clos (quiz_id);
+
+CREATE POLICY "quiz_clos_select"
+  ON public.quiz_clos FOR SELECT TO authenticated
+  USING (true);
+
+CREATE POLICY "quiz_clos_insert"
+  ON public.quiz_clos FOR INSERT TO authenticated
+  WITH CHECK (true);
+
+CREATE POLICY "quiz_clos_delete"
+  ON public.quiz_clos FOR DELETE TO authenticated
+  USING (true);
+
+-- ============================================================================
+-- 7. Trigger function fn_track_habit_level_change (HARDENED: search_path = '')
 -- ============================================================================
 CREATE OR REPLACE FUNCTION public.fn_track_habit_level_change()
 RETURNS trigger
 LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path = ''
 AS $$
 BEGIN
   IF OLD.current_level IS DISTINCT FROM NEW.current_level THEN
@@ -129,3 +188,58 @@ CREATE TRIGGER trg_track_habit_level_change
   AFTER UPDATE ON public.student_habit_levels
   FOR EACH ROW
   EXECUTE FUNCTION public.fn_track_habit_level_change();
+
+-- ============================================================================
+-- 8. Storage buckets: reports + transcripts (private) + RLS policies
+-- ============================================================================
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('reports', 'reports', false)
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('transcripts', 'transcripts', false)
+ON CONFLICT (id) DO NOTHING;
+
+CREATE POLICY "reports_bucket_admin_upload"
+  ON storage.objects FOR INSERT TO authenticated
+  WITH CHECK (
+    bucket_id = 'reports'
+    AND EXISTS (
+      SELECT 1 FROM public.profiles
+      WHERE id = (select auth.uid()) AND role IN ('admin', 'coordinator')
+    )
+  );
+
+CREATE POLICY "reports_bucket_admin_read"
+  ON storage.objects FOR SELECT TO authenticated
+  USING (
+    bucket_id = 'reports'
+    AND EXISTS (
+      SELECT 1 FROM public.profiles
+      WHERE id = (select auth.uid()) AND role IN ('admin', 'coordinator', 'teacher')
+    )
+  );
+
+CREATE POLICY "transcripts_admin_upload"
+  ON storage.objects FOR INSERT TO authenticated
+  WITH CHECK (
+    bucket_id = 'transcripts'
+    AND EXISTS (
+      SELECT 1 FROM public.profiles
+      WHERE id = (select auth.uid()) AND role IN ('admin', 'coordinator')
+    )
+  );
+
+CREATE POLICY "transcripts_read"
+  ON storage.objects FOR SELECT TO authenticated
+  USING (
+    bucket_id = 'transcripts'
+    AND (
+      EXISTS (
+        SELECT 1 FROM public.profiles
+        WHERE id = (select auth.uid()) AND role IN ('admin', 'coordinator', 'teacher')
+      )
+      OR (select auth.uid())::text = (storage.foldername(name))[1]
+    )
+  );
+;

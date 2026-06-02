@@ -207,6 +207,16 @@ const TutorPage = () => {
     setPersona(newPersona);
   }, []);
 
+  // Dismiss the persona picker to reveal the chat surface so the student can
+  // begin chatting. The selected persona is held in state and flows through
+  // `derivedPersona` into both the chat and the lazily-created conversation, so
+  // no message needs to be sent first. Without this, the picker had no path
+  // forward (its options only set the persona), leaving "new conversation" with
+  // no way to actually open the chat.
+  const handleStartChatting = useCallback(() => {
+    setShowPersonaPicker(false);
+  }, []);
+
   // Dismiss a recoverable tutor state so the student can try again.
   const handleRetryTutor = useCallback(() => {
     setTutorState({ kind: "ready" });
@@ -295,6 +305,13 @@ const TutorPage = () => {
                 onSelect={handlePersonaChange}
                 variant="full"
               />
+
+              <Button
+                className="w-full bg-gradient-to-r from-teal-500 to-blue-600 text-white active:scale-95"
+                onClick={handleStartChatting}
+              >
+                {t("tutor.page.startChatting")}
+              </Button>
 
               <p className="text-xs text-gray-400 text-center">
                 {t("tutor.page.personaHint")}

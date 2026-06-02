@@ -746,7 +746,13 @@ serve(async (req) => {
 
     // ── Upload to Supabase Storage ────────────────────────────────────────
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-    const fileName = `reports/${program.code}_${template}_${timestamp}.pdf`;
+    // Institution-prefixed path: the first folder is the owning institution id
+    // so the `reports` bucket can be RLS-scoped per tenant (see the
+    // reports_institution_read storage policy). Falls back to "reports" only if
+    // the program somehow has no institution (should not happen — program is
+    // validated above).
+    const institutionPrefix = program.institution_id ?? "reports";
+    const fileName = `${institutionPrefix}/${program.code}_${template}_${timestamp}.pdf`;
 
     const { error: uploadErr } = await supabase.storage
       .from("reports")
@@ -756,42 +762,20 @@ serve(async (req) => {
       });
 
     if (uploadErr) {
-      // Try creating the bucket if it doesn't exist
-      if (
-        uploadErr.message?.includes("not found") ||
-        uploadErr.message?.includes("Bucket")
-      ) {
-        await supabase.storage.createBucket("reports", { public: false });
-        const { error: retryErr } = await supabase.storage
-          .from("reports")
-          .upload(fileName, pdfBytes, {
-            contentType: "application/pdf",
-            upsert: false,
-          });
-        if (retryErr) {
-          return new Response(
-            JSON.stringify({
-              error: "Failed to upload report",
-              detail: retryErr.message,
-            }),
-            {
-              status: 500,
-              headers: { ...corsHeaders, "Content-Type": "application/json" },
-            }
-          );
+      // The `reports` bucket is provisioned (private, institution-scoped RLS)
+      // as part of the migration-history reconciliation deploy, so an upload
+      // failure here is a genuine error rather than a missing bucket — surface
+      // it directly instead of self-creating an unpoliced bucket at runtime.
+      return new Response(
+        JSON.stringify({
+          error: "Failed to upload report",
+          detail: uploadErr.message,
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
-      } else {
-        return new Response(
-          JSON.stringify({
-            error: "Failed to upload report",
-            detail: uploadErr.message,
-          }),
-          {
-            status: 500,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
-        );
-      }
+      );
     }
 
     // ── Generate signed download URL ──────────────────────────────────────

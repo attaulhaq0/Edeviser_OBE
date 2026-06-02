@@ -70,4 +70,7 @@ docs/business/EDEVISER-BUSINESS-PLAN.html
 docs/business/EDEVISER-DEMO-STORYBOARD.html
 docs/pdf/business/EDEVISER-BUSINESS-PLAN.pdf
 docs/pdf/business/EDEVISER-DEMO-STORYBOARD.pdf
+
+# Local QA reference PDFs (manual test captures / Google-Docs exports) — kept local only
+docs/pdf/QA/
 docs/pdf/Student Profile - Google Docs.pdf

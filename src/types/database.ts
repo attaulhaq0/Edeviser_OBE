@@ -346,6 +346,7 @@ export type Database = {
           created_at: string;
           diff: Json | null;
           id: string;
+          institution_id: string | null;
           ip_address: unknown;
           target_id: string | null;
           target_type: string;
@@ -356,6 +357,7 @@ export type Database = {
           created_at?: string;
           diff?: Json | null;
           id?: string;
+          institution_id?: string | null;
           ip_address?: unknown;
           target_id?: string | null;
           target_type: string;
@@ -366,6 +368,7 @@ export type Database = {
           created_at?: string;
           diff?: Json | null;
           id?: string;
+          institution_id?: string | null;
           ip_address?: unknown;
           target_id?: string | null;
           target_type?: string;
@@ -376,6 +379,20 @@ export type Database = {
             columns: ["actor_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "audit_logs_institution_id_fkey";
+            columns: ["institution_id"];
+            isOneToOne: false;
+            referencedRelation: "institutions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "audit_logs_institution_id_fkey";
+            columns: ["institution_id"];
+            isOneToOne: false;
+            referencedRelation: "institutions_public";
             referencedColumns: ["id"];
           }
         ];
@@ -3908,6 +3925,42 @@ export type Database = {
           }
         ];
       };
+      quiz_clos: {
+        Row: {
+          clo_id: string;
+          created_at: string;
+          id: string;
+          quiz_id: string;
+        };
+        Insert: {
+          clo_id: string;
+          created_at?: string;
+          id?: string;
+          quiz_id: string;
+        };
+        Update: {
+          clo_id?: string;
+          created_at?: string;
+          id?: string;
+          quiz_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "quiz_clos_clo_id_fkey";
+            columns: ["clo_id"];
+            isOneToOne: false;
+            referencedRelation: "learning_outcomes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "quiz_clos_quiz_id_fkey";
+            columns: ["quiz_id"];
+            isOneToOne: false;
+            referencedRelation: "quizzes";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
       quiz_generation_logs: {
         Row: {
           chunks_retrieved: number;
@@ -4924,6 +4977,35 @@ export type Database = {
           }
         ];
       };
+      student_badges: {
+        Row: {
+          awarded_at: string;
+          badge_id: string;
+          id: string;
+          student_id: string;
+        };
+        Insert: {
+          awarded_at?: string;
+          badge_id: string;
+          id?: string;
+          student_id: string;
+        };
+        Update: {
+          awarded_at?: string;
+          badge_id?: string;
+          id?: string;
+          student_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "student_badges_student_id_fkey";
+            columns: ["student_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
       student_content: {
         Row: {
           clo_id: string | null;
@@ -5169,6 +5251,67 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "student_gamification_student_id_fkey";
+            columns: ["student_id"];
+            isOneToOne: true;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      student_habit_level_history: {
+        Row: {
+          changed_at: string;
+          id: string;
+          new_level: number;
+          previous_level: number | null;
+          student_id: string;
+        };
+        Insert: {
+          changed_at?: string;
+          id?: string;
+          new_level: number;
+          previous_level?: number | null;
+          student_id: string;
+        };
+        Update: {
+          changed_at?: string;
+          id?: string;
+          new_level?: number;
+          previous_level?: number | null;
+          student_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "student_habit_level_history_student_id_fkey";
+            columns: ["student_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      student_habit_levels: {
+        Row: {
+          current_level: number;
+          id: string;
+          student_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          current_level?: number;
+          id?: string;
+          student_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          current_level?: number;
+          id?: string;
+          student_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "student_habit_levels_student_id_fkey";
             columns: ["student_id"];
             isOneToOne: true;
             referencedRelation: "profiles";
@@ -5849,6 +5992,47 @@ export type Database = {
             foreignKeyName: "team_badges_team_id_fkey";
             columns: ["team_id"];
             isOneToOne: false;
+            referencedRelation: "teams";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      team_gamification: {
+        Row: {
+          id: string;
+          last_streak_date: string | null;
+          streak_current: number;
+          streak_longest: number;
+          team_id: string;
+          updated_at: string;
+          xp_this_week: number;
+          xp_total: number;
+        };
+        Insert: {
+          id?: string;
+          last_streak_date?: string | null;
+          streak_current?: number;
+          streak_longest?: number;
+          team_id: string;
+          updated_at?: string;
+          xp_this_week?: number;
+          xp_total?: number;
+        };
+        Update: {
+          id?: string;
+          last_streak_date?: string | null;
+          streak_current?: number;
+          streak_longest?: number;
+          team_id?: string;
+          updated_at?: string;
+          xp_this_week?: number;
+          xp_total?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "team_gamification_team_id_fkey";
+            columns: ["team_id"];
+            isOneToOne: true;
             referencedRelation: "teams";
             referencedColumns: ["id"];
           }
@@ -6872,6 +7056,10 @@ export type Database = {
         Returns: boolean;
       };
       consume_invitation: { Args: { p_token: string }; Returns: boolean };
+      course_material_institution: {
+        Args: { p_object_name: string };
+        Returns: string;
+      };
       delete_department_if_no_programs: {
         Args: { dept_id: string };
         Returns: boolean;
@@ -6914,17 +7102,6 @@ export type Database = {
           institution_id: string;
           institution_name: string;
           role: Database["public"]["Enums"]["user_role"];
-        }[];
-      };
-      get_leaderboard: {
-        Args: { p_institution_id: string };
-        Returns: {
-          full_name: string;
-          global_rank: number;
-          level: number;
-          streak_current: number;
-          student_id: string;
-          xp_total: number;
         }[];
       };
       get_leaderboard_page: {
@@ -6975,6 +7152,10 @@ export type Database = {
         Args: { p_student_id: string };
         Returns: boolean;
       };
+      parent_has_verified_link: {
+        Args: { p_student_id: string };
+        Returns: boolean;
+      };
       portfolio_public_access: {
         Args: { p_student_id: string };
         Returns: string;
@@ -6994,6 +7175,15 @@ export type Database = {
       recalculate_league_tiers: {
         Args: { p_institution_id: string };
         Returns: undefined;
+      };
+      rls_isolation_violations: {
+        Args: never;
+        Returns: {
+          cmd: string;
+          policy_name: string;
+          reason: string;
+          table_name: string;
+        }[];
       };
       search_course_materials: {
         Args: {

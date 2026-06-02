@@ -25,6 +25,30 @@ const HABIT_LABELS: Record<HabitType, string> = {
 
 // ─── Habit Difficulty Level helpers (Req 128.4) ─────────────────────────────
 
+// The live `student_gamification.habit_difficulty_level` column is TEXT,
+// CHECK-constrained to {starter, intermediate, advanced, master}. Map it to an
+// ordinal (1..4) so the numeric threshold helpers below work correctly. This
+// function is read-only here (perfect-day-prompt never writes the column).
+const HABIT_LEVEL_TIERS = [
+  "starter",
+  "intermediate",
+  "advanced",
+  "master",
+] as const;
+
+function habitLevelTextToOrdinal(value: unknown): number {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return Math.min(Math.max(Math.trunc(value), 1), HABIT_LEVEL_TIERS.length);
+  }
+  if (typeof value === "string") {
+    const idx = HABIT_LEVEL_TIERS.indexOf(
+      value as (typeof HABIT_LEVEL_TIERS)[number]
+    );
+    if (idx >= 0) return idx + 1;
+  }
+  return 1; // default to "starter"
+}
+
 function getPerfectDayThreshold(habitDifficultyLevel: number): number {
   if (habitDifficultyLevel <= 1) return 1;
   if (habitDifficultyLevel === 2) return 2;
@@ -112,7 +136,11 @@ serve(async (req) => {
 
     const studentLevelMap = new Map<string, number>();
     for (const row of gamificationRows ?? []) {
-      studentLevelMap.set(row.student_id, row.habit_difficulty_level ?? 1);
+      // DB column is TEXT (starter|intermediate|advanced|master); map to ordinal.
+      studentLevelMap.set(
+        row.student_id,
+        habitLevelTextToOrdinal(row.habit_difficulty_level)
+      );
     }
 
     const { data: habitLogs, error: habitsErr } = await supabase
@@ -181,7 +209,7 @@ serve(async (req) => {
             user_id: student.id,
             type: "perfect_day_nudge",
             title: "Almost a Perfect Day! ✨",
-            message: `You're 1 habit away from a Perfect Day! ✨ Complete your ${missingLabel} to earn 50 bonus XP.`,
+            body: `You're 1 habit away from a Perfect Day! ✨ Complete your ${missingLabel} to earn 50 bonus XP.`,
             is_read: false,
             metadata: {
               missing_habit: missingHabit,

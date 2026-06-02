@@ -31,6 +31,7 @@
       "openConversations": "فتح المحادثات",
       "newConversationTitle": "ابدأ محادثة جديدة",
       "newConversationSubtitle": "اختر أسلوب التدريس الذي يناسبك أكثر",
+      "startChatting": "ابدأ المحادثة",
       "personaHint": "يمكنك تغيير الشخصية في أي وقت أثناء المحادثة"
     },
     "states": {

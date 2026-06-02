@@ -62,7 +62,6 @@
     { "path": "/api/cron/leaderboard-refresh", "schedule": "0 12 * * *" },
     { "path": "/api/cron/ai-at-risk-prediction", "schedule": "0 3 * * *" },
     { "path": "/api/cron/notification-digest", "schedule": "0 20 * * *" },
-    { "path": "/api/cron/fee-overdue-check", "schedule": "0 6 * * *" },
     { "path": "/api/cron/exam-period-notify", "schedule": "0 8 * * *" }
   ]
 }

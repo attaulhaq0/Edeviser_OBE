@@ -22,7 +22,8 @@ serve(async (req) => {
     const expectedSecret = Deno.env.get("CRON_SECRET");
     const authHeader = req.headers.get("Authorization") ?? "";
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-    const isServiceRole = serviceRoleKey && authHeader.replace("Bearer ", "") === serviceRoleKey;
+    const isServiceRole =
+      serviceRoleKey && authHeader.replace("Bearer ", "") === serviceRoleKey;
     const isCron = expectedSecret && cronSecret === expectedSecret;
 
     if (!isServiceRole && !isCron) {
@@ -44,12 +45,13 @@ serve(async (req) => {
 
     const todayUTC = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
 
-    // Find students with active streaks (streak_count > 0) whose
+    // Find students with active streaks (streak_current > 0) whose
     // last_login_date is NOT today — meaning they haven't logged in yet.
+    // NOTE: the live DB column is `streak_current` (NOT `streak_count`).
     const { data: atRiskStudents, error: queryErr } = await supabase
       .from("student_gamification")
-      .select("student_id, streak_count")
-      .gt("streak_count", 0)
+      .select("student_id, streak_current")
+      .gt("streak_current", 0)
       .neq("last_login_date", todayUTC);
 
     if (queryErr) {
@@ -124,7 +126,9 @@ serve(async (req) => {
             template: "streak_risk",
             data: {
               student_name: profile.full_name,
-              streak_count: student.streak_count,
+              // Outbound email template key remains `streak_count` for
+              // backward-compat; value comes from the live `streak_current` column.
+              streak_count: student.streak_current,
               login_url: loginUrl,
             },
           },

@@ -487,7 +487,7 @@ async function notifyPeersOfLevelUp(
       user_id: peerId,
       type: "peer_milestone",
       title: "Classmate Leveled Up",
-      message,
+      body: message,
       is_read: false,
       metadata: {
         milestone_type: "level_up",

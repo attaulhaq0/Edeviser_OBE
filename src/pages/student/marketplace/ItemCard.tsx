@@ -67,6 +67,11 @@ const ItemCard = ({
     <Card
       className={cn(
         "bg-white border-0 shadow-md rounded-xl overflow-hidden relative transition-transform hover:scale-[1.02]",
+        // Flex column + h-full so every card fills its grid row to equal height
+        // and the action button can be pinned to the bottom (mt-auto), keeping
+        // all "Buy Now" buttons aligned across cards regardless of how long the
+        // name/description/price/stock rows are.
+        "flex flex-col h-full",
         isLocked && "opacity-60"
       )}
     >
@@ -104,7 +109,7 @@ const ItemCard = ({
       </div>
 
       {/* Content */}
-      <div className="p-4 space-y-3">
+      <div className="p-4 space-y-3 flex flex-col flex-1">
         <div>
           <h3 className="text-sm font-bold text-gray-900 truncate">
             {item.name}
@@ -148,29 +153,31 @@ const ItemCard = ({
           </div>
         )}
 
-        {/* Action button */}
-        {isOutOfStock ? (
-          <Button disabled className="w-full" variant="outline" size="sm">
-            Out of Stock
-          </Button>
-        ) : isOwned ? (
-          <Button disabled className="w-full" variant="outline" size="sm">
-            Already Owned
-          </Button>
-        ) : isLocked ? (
-          <Button disabled className="w-full" variant="outline" size="sm">
-            <Lock className="h-4 w-4 me-1" />
-            Locked
-          </Button>
-        ) : (
-          <Button
-            onClick={() => onPurchase(item)}
-            className="w-full bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 text-white"
-            size="sm"
-          >
-            Buy Now
-          </Button>
-        )}
+        {/* Action button — pinned to the bottom so all cards' CTAs align */}
+        <div className="mt-auto pt-1">
+          {isOutOfStock ? (
+            <Button disabled className="w-full" variant="outline" size="sm">
+              Out of Stock
+            </Button>
+          ) : isOwned ? (
+            <Button disabled className="w-full" variant="outline" size="sm">
+              Already Owned
+            </Button>
+          ) : isLocked ? (
+            <Button disabled className="w-full" variant="outline" size="sm">
+              <Lock className="h-4 w-4 me-1" />
+              Locked
+            </Button>
+          ) : (
+            <Button
+              onClick={() => onPurchase(item)}
+              className="w-full bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 text-white"
+              size="sm"
+            >
+              Buy Now
+            </Button>
+          )}
+        </div>
       </div>
     </Card>
   );
