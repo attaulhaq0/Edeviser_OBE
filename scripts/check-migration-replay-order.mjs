@@ -62,6 +62,30 @@ function buildCreateMap(files) {
 }
 
 /**
+ * Build a map: table name -> earliest migration that CREATEs it (in `public`).
+ * Used to detect references to a table BEFORE the migration that creates it. We only
+ * track tables created in the chain, and only flag references to those (created-later)
+ * — platform/extension tables (auth.*, storage.*, cron.*, realtime.*) are intentionally
+ * not tracked, so referencing them never false-positives.
+ */
+function buildTableCreateMap(files) {
+  /** @type {Map<string,string>} */
+  const created = new Map();
+  const createRe =
+    /CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?(?:public\.)?"?([a-z0-9_]+)"?/gi;
+  for (const file of files) {
+    const txt = readFileSync(join(MIGRATIONS_DIR, file), "utf8");
+    let m;
+    while ((m = createRe.exec(txt)) !== null) {
+      const tbl = m[1].toLowerCase();
+      const t = ts(file);
+      if (!created.has(tbl) || t < created.get(tbl)) created.set(tbl, t);
+    }
+  }
+  return created;
+}
+
+/**
  * Mask out spans that cannot hard-abort on a missing function, so they are not flagged:
  *   - DROP FUNCTION [IF EXISTS] ... (the whole statement)
  *   - DO $$ ... $$ blocks (the established to_regprocedure(...) guard pattern)
@@ -83,12 +107,24 @@ function maskSafeSpans(txt) {
 function main() {
   const files = listMigrations();
   const created = buildCreateMap(files);
+  const tableCreated = buildTableCreateMap(files);
 
   // Statements that HARD-ABORT if the target function does not yet exist.
   const refRe =
     /^\s*(ALTER\s+FUNCTION|REVOKE\s+EXECUTE\s+ON\s+FUNCTION|GRANT\s+EXECUTE\s+ON\s+FUNCTION|COMMENT\s+ON\s+FUNCTION)\s+(?:public\.)?"?([a-z0-9_]+)"?/i;
 
-  /** @type {{file:string,line:number,fn:string,createdAt:string,stmt:string}[]} */
+  // Statements that reference a TABLE and HARD-ABORT if it does not yet exist. We only
+  // flag references whose target table IS created somewhere in the chain but LATER than
+  // this migration (platform/extension tables are never tracked, so never false-flagged).
+  const tableRefRe =
+    /^\s*(?:CREATE\s+(?:UNIQUE\s+)?INDEX|ALTER\s+TABLE|CREATE\s+POLICY|CREATE\s+TRIGGER|COMMENT\s+ON\s+(?:TABLE|COLUMN))\b/i;
+  const onTableRe = /\bON\s+(?:public\.)?"?([a-z0-9_]+)"?/i;
+  const alterTableRe =
+    /^\s*ALTER\s+TABLE\s+(?:IF\s+EXISTS\s+)?(?:ONLY\s+)?(?:public\.)?"?([a-z0-9_]+)"?/i;
+  const commentTableRe =
+    /^\s*COMMENT\s+ON\s+TABLE\s+(?:public\.)?"?([a-z0-9_]+)"?/i;
+
+  /** @type {{file:string,line:number,name:string,createdAt:string,stmt:string,kind:string}[]} */
   const problems = [];
 
   for (const file of files) {
@@ -98,22 +134,53 @@ function main() {
     );
     const lines = masked.split("\n");
     for (let i = 0; i < lines.length; i++) {
-      const m = refRe.exec(lines[i]);
-      if (!m) continue;
-      const fn = m[2].toLowerCase();
-      const createdAt = created.get(fn);
-      // A problem if the function is created LATER in the chain (createdAt > fileTs),
-      // OR is NEVER created anywhere in the chain (createdAt === undefined). Both abort
-      // a fresh replay with 42883 — on production the function happens to exist (created
-      // by an extension, the platform, or an out-of-band/live-only definition), which is
-      // exactly why this hides until a clean rebuild.
-      if (createdAt === undefined || fileTs < createdAt) {
+      const line = lines[i];
+
+      // ── function references ──────────────────────────────────────────────
+      const m = refRe.exec(line);
+      if (m) {
+        const fn = m[2].toLowerCase();
+        const createdAt = created.get(fn);
+        // Problem if the function is created LATER in the chain, OR is NEVER created
+        // anywhere in the chain. Both abort a fresh replay with 42883 — production has
+        // the function (extension/platform/live-only), which is why this hides until a
+        // clean rebuild.
+        if (createdAt === undefined || fileTs < createdAt) {
+          problems.push({
+            file,
+            line: i + 1,
+            name: `${fn}()`,
+            createdAt: createdAt ?? "(never created in chain)",
+            stmt: m[1].toUpperCase().replace(/\s+/g, " "),
+            kind: "function",
+          });
+        }
+        continue;
+      }
+
+      // ── table references ─────────────────────────────────────────────────
+      if (!tableRefRe.test(line)) continue;
+      let tbl;
+      const a = alterTableRe.exec(line);
+      const c = commentTableRe.exec(line);
+      if (a) tbl = a[1];
+      else if (c) tbl = c[1];
+      else {
+        const on = onTableRe.exec(line);
+        if (on) tbl = on[1];
+      }
+      if (!tbl) continue;
+      tbl = tbl.toLowerCase();
+      const tblCreatedAt = tableCreated.get(tbl);
+      // Only flag when the table IS created in the chain but LATER than this reference.
+      if (tblCreatedAt !== undefined && fileTs < tblCreatedAt) {
         problems.push({
           file,
           line: i + 1,
-          fn,
-          createdAt: createdAt ?? "(never created in chain)",
-          stmt: m[1].toUpperCase(),
+          name: tbl,
+          createdAt: tblCreatedAt,
+          stmt: line.trim().slice(0, 52).replace(/\s+/g, " "),
+          kind: "table",
         });
       }
     }
@@ -122,20 +189,23 @@ function main() {
   const checked = files.length;
   if (problems.length === 0) {
     console.log(
-      `✓ migration replay-order: CLEAN — ${checked} migrations, no too-early function references.`
+      `✓ migration replay-order: CLEAN — ${checked} migrations, no too-early function or table references.`
     );
     process.exit(0);
   }
 
+  const fnCount = problems.filter((p) => p.kind === "function").length;
+  const tblCount = problems.filter((p) => p.kind === "table").length;
   console.error(
-    `✗ migration replay-order: ${problems.length} too-early function reference(s) found.\n` +
-      `  These abort a fresh replay (Supabase Preview / clean rebuild) with 42883 even though\n` +
-      `  production is unaffected. Fix by hardening the function at its CREATE site instead, or\n` +
-      `  guard the statement with a DO $$ ... to_regprocedure(...) IS NOT NULL ... $$ block.\n`
+    `✗ migration replay-order: ${problems.length} too-early reference(s) found ` +
+      `(${fnCount} function, ${tblCount} table).\n` +
+      `  These abort a fresh replay (Supabase Preview / clean rebuild) with 42883/42P01\n` +
+      `  even though production is unaffected. Fix by moving the CREATE earlier, hardening\n` +
+      `  the object at its CREATE site, or guarding with a DO $$ ... IS NOT NULL ... $$ block.\n`
   );
   for (const p of problems) {
     console.error(
-      `  ${p.file}:${p.line}  ${p.stmt} ${p.fn}()  but earliest CREATE is ${p.createdAt}`
+      `  [${p.kind}] ${p.file}:${p.line}  ${p.name}  — referenced before CREATE at ${p.createdAt}  (\`${p.stmt}\`)`
     );
   }
   process.exit(1);
