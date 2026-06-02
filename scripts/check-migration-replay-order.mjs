@@ -117,12 +117,14 @@ function main() {
   // flag references whose target table IS created somewhere in the chain but LATER than
   // this migration (platform/extension tables are never tracked, so never false-flagged).
   const tableRefRe =
-    /^\s*(?:CREATE\s+(?:UNIQUE\s+)?INDEX|ALTER\s+TABLE|CREATE\s+POLICY|CREATE\s+TRIGGER|COMMENT\s+ON\s+(?:TABLE|COLUMN))\b/i;
+    /^\s*(?:CREATE\s+(?:UNIQUE\s+)?INDEX|ALTER\s+TABLE|CREATE\s+POLICY|CREATE\s+TRIGGER|COMMENT\s+ON\s+(?:TABLE|COLUMN)|ALTER\s+PUBLICATION\s+\w+\s+ADD\s+TABLE)\b/i;
   const onTableRe = /\bON\s+(?:public\.)?"?([a-z0-9_]+)"?/i;
   const alterTableRe =
     /^\s*ALTER\s+TABLE\s+(?:IF\s+EXISTS\s+)?(?:ONLY\s+)?(?:public\.)?"?([a-z0-9_]+)"?/i;
   const commentTableRe =
     /^\s*COMMENT\s+ON\s+TABLE\s+(?:public\.)?"?([a-z0-9_]+)"?/i;
+  const pubAddTableRe =
+    /^\s*ALTER\s+PUBLICATION\s+\w+\s+ADD\s+TABLE\s+(?:ONLY\s+)?(?:public\.)?"?([a-z0-9_]+)"?/i;
 
   /** @type {{file:string,line:number,name:string,createdAt:string,stmt:string,kind:string}[]} */
   const problems = [];
@@ -163,8 +165,10 @@ function main() {
       let tbl;
       const a = alterTableRe.exec(line);
       const c = commentTableRe.exec(line);
+      const p = pubAddTableRe.exec(line);
       if (a) tbl = a[1];
       else if (c) tbl = c[1];
+      else if (p) tbl = p[1];
       else {
         const on = onTableRe.exec(line);
         if (on) tbl = on[1];
