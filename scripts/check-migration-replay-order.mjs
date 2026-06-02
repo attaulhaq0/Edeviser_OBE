@@ -134,9 +134,24 @@ function main() {
     const masked = maskSafeSpans(
       readFileSync(join(MIGRATIONS_DIR, file), "utf8")
     );
-    const lines = masked.split("\n");
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
+    const rawLines = masked.split("\n");
+    // A single physical line may hold MULTIPLE statements separated by `;`
+    // (e.g. "ALTER TABLE a ...; ALTER TABLE b ...;"). Split each line into
+    // statement fragments so a later statement on the same line is not missed.
+    // We keep the physical line number for reporting.
+    /** @type {{ line: number, text: string }[]} */
+    const fragments = [];
+    for (let i = 0; i < rawLines.length; i++) {
+      for (const frag of rawLines[i].split(";")) {
+        const text = frag.trim();
+        if (text) fragments.push({ line: i + 1, text });
+      }
+    }
+
+    for (const { line: lineNo, text: frag } of fragments) {
+      // Prefix with a sentinel so the `^\s*` anchors in the statement regexes match
+      // the START of the fragment (it was already trimmed).
+      const line = frag;
 
       // ── function references ──────────────────────────────────────────────
       const m = refRe.exec(line);
@@ -150,7 +165,7 @@ function main() {
         if (createdAt === undefined || fileTs < createdAt) {
           problems.push({
             file,
-            line: i + 1,
+            line: lineNo,
             name: `${fn}()`,
             createdAt: createdAt ?? "(never created in chain)",
             stmt: m[1].toUpperCase().replace(/\s+/g, " "),
@@ -180,7 +195,7 @@ function main() {
       if (tblCreatedAt !== undefined && fileTs < tblCreatedAt) {
         problems.push({
           file,
-          line: i + 1,
+          line: lineNo,
           name: tbl,
           createdAt: tblCreatedAt,
           stmt: line.trim().slice(0, 52).replace(/\s+/g, " "),
