@@ -2,7 +2,7 @@
 DROP POLICY IF EXISTS audit_logs_admin_insert ON public.audit_logs;
 CREATE POLICY "audit_logs_authenticated_insert" ON public.audit_logs
   FOR INSERT TO authenticated
-  WITH CHECK (actor_id = (select auth.uid()));
+  WITH CHECK (actor_id = auth.uid());
 
 -- Also fix the demo student missing gamification row (FIX #5 partial)
 INSERT INTO student_gamification (student_id, xp_total, level, streak_current, streak_longest, last_login_date)

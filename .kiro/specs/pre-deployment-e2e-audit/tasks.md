@@ -667,7 +667,7 @@ Five roles — **Admin, Coordinator, Teacher, Student, Parent** — each receive
     - `audit/output/rls-matrix.md` as a `role × table` grid with `✅ / ❌ / ➖` cells and per-role pass/fail summary.
     - _Requirements: 5.7, 16.1_
 
-- [-] 10. Design token checker
+- [x] 10. Design token checker
 
   - AST-driven static scan enforcing the design-system prohibitions from `.kiro/steering/design-system.md`.
   - _Requirements: 9.1, 9.2, 9.3, 9.7, 9.8_
@@ -711,7 +711,7 @@ Five roles — **Admin, Coordinator, Teacher, Student, Parent** — each receive
     - Emit JSON + Markdown findings at `audit/output/design-token-findings.{json,md}`.
     - _Requirements: 9.1, 9.2_
 
-- [-] 11. i18n / RTL checker
+- [x] 11. i18n / RTL checker
 
   - Key-parity diff, untranslated-literal scan, per-role RTL screenshot baseline, locale-aware formatter tests.
   - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5_
@@ -786,7 +786,7 @@ Five roles — **Admin, Coordinator, Teacher, Student, Parent** — each receive
     - Emit findings to `audit/output/cron-health.json` per the `design.md` schema.
     - _Requirements: 15.3, 15.4_
 
-- [-] 13. Security and secret-boundary scan
+- [x] 13. Security and secret-boundary scan
 
   - Built-bundle pattern scan, VITE\_ env allowlist, zodResolver presence, Edge Function body validation, admin mutation audit-log coverage.
   - _Requirements: 13.1, 13.2, 13.3, 13.4, 13.5, 13.6, 13.7_
@@ -824,7 +824,7 @@ Five roles — **Admin, Coordinator, Teacher, Student, Parent** — each receive
     - Playwright spec: force JWT expiry via cookie mutation; make a request; assert the client performs one silent refresh; on simulated failure assert redirect to `/login`.
     - _Requirements: 13.6_
 
-- [-] 14. Performance budget
+- [x] 14. Performance budget
 
   - Bundle size measurement, per-role TTI spec, pagination AST scan, realtime filter AST scan, N+1 detection.
   - _Requirements: 12.1, 12.2, 12.3, 12.4, 12.5, 12.6_
@@ -877,7 +877,7 @@ Five roles — **Admin, Coordinator, Teacher, Student, Parent** — each receive
     - Assert ≥ 4.5:1 for normal text, ≥ 3:1 for large text (Bloom badges are uppercase `text-xs font-bold` → treat as normal).
     - _Requirements: 11.4_
 
-- [-] 16. Report aggregator and verdict emitter
+- [x] 16. Report aggregator and verdict emitter
 
   - Single pure function `severityToVerdict` (Property 15) + a Markdown report generator.
   - _Requirements: 16.1, 16.2, 16.3, 16.4, 16.5, 16.6, 16.7, 16.8_

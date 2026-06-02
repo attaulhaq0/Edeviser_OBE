@@ -153,9 +153,9 @@ serve(async (req) => {
               (s: { student_id: string }) => ({
                 user_id: s.student_id,
                 title: "Challenge Almost Complete!",
-                message: `Almost there — ${progressPercent}% of the goal reached.`,
+                body: `Almost there — ${progressPercent}% of the goal reached.`,
                 type: "challenge_90_percent",
-                reference_id: challenge.id,
+                metadata: { challenge_id: challenge.id },
                 is_read: false,
               })
             );

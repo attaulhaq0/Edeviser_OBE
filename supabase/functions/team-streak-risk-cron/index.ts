@@ -82,7 +82,7 @@ serve(async (req) => {
         user_id: memberId,
         type: "team_streak_risk",
         title: "Team Streak at Risk",
-        message: `Your team streak is at risk — ${missingNames} hasn't logged in today.`,
+        body: `Your team streak is at risk — ${missingNames} hasn't logged in today.`,
         is_read: false,
         metadata: { team_id: team.team_id, missing_members: missingMembers },
       }));

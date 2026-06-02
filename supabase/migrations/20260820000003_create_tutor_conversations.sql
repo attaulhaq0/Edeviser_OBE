@@ -26,8 +26,13 @@ CREATE INDEX IF NOT EXISTS idx_conversations_course ON tutor_conversations (cour
 -- Index for institution-scoped analytics
 CREATE INDEX IF NOT EXISTS idx_conversations_institution ON tutor_conversations (institution_id, created_at DESC);
 -- Trigger: keep updated_at current on every UPDATE so idx_conversations_student ordering is accurate
+-- Hardened (db-function-search-path-qualification Task 5.x): SET search_path=''
+-- + public.-qualified to match the LIVE production body so a fresh replay does
+-- not re-emit these functions in db diff. Replay-only edit.
 CREATE OR REPLACE FUNCTION set_tutor_conversations_updated_at()
-RETURNS TRIGGER LANGUAGE plpgsql AS $$
+RETURNS TRIGGER LANGUAGE plpgsql
+SET search_path TO ''
+AS $$
 BEGIN
   NEW.updated_at = now();
   RETURN NEW;
@@ -39,24 +44,26 @@ CREATE TRIGGER trg_tutor_conversations_updated_at
   FOR EACH ROW EXECUTE FUNCTION set_tutor_conversations_updated_at();
 -- Trigger: keep message_count in sync with tutor_messages inserts/deletes
 CREATE OR REPLACE FUNCTION sync_tutor_conversation_stats()
-RETURNS TRIGGER LANGUAGE plpgsql AS $$
+RETURNS TRIGGER LANGUAGE plpgsql
+SET search_path TO ''
+AS $$
 BEGIN
   IF TG_OP = 'INSERT' THEN
-    UPDATE tutor_conversations
+    UPDATE public.tutor_conversations
     SET message_count = message_count + 1,
         updated_at    = now()
     WHERE id = NEW.conversation_id;
   ELSIF TG_OP = 'DELETE' THEN
-    UPDATE tutor_conversations
+    UPDATE public.tutor_conversations
     SET message_count = GREATEST(message_count - 1, 0),
         updated_at    = now()
     WHERE id = OLD.conversation_id;
   ELSIF TG_OP = 'UPDATE' AND NEW.conversation_id IS DISTINCT FROM OLD.conversation_id THEN
-    UPDATE tutor_conversations
+    UPDATE public.tutor_conversations
     SET message_count = GREATEST(message_count - 1, 0),
         updated_at    = now()
     WHERE id = OLD.conversation_id;
-    UPDATE tutor_conversations
+    UPDATE public.tutor_conversations
     SET message_count = message_count + 1,
         updated_at    = now()
     WHERE id = NEW.conversation_id;

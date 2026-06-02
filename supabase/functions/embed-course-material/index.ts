@@ -521,11 +521,11 @@ async function notifyTeacher(
   try {
     await supabase.from("notifications").insert({
       user_id: teacherId,
-      institution_id: institutionId,
       title,
-      message,
+      body: message,
       type: "system",
-      read: false,
+      metadata: { institution_id: institutionId },
+      is_read: false,
     });
   } catch {
     // Non-critical — log but don't fail the main operation

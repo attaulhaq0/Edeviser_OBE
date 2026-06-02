@@ -4,7 +4,7 @@ CREATE POLICY "admins_read_audit_runs" ON public.audit_runs
   USING (
     EXISTS (
       SELECT 1 FROM public.profiles
-      WHERE id = (select auth.uid()) AND role = 'admin'
+      WHERE id = auth.uid() AND role = 'admin'
     )
   );
 
@@ -14,7 +14,7 @@ CREATE POLICY "admins_read_audit_findings" ON public.audit_findings
   USING (
     EXISTS (
       SELECT 1 FROM public.profiles
-      WHERE id = (select auth.uid()) AND role = 'admin'
+      WHERE id = auth.uid() AND role = 'admin'
     )
   );
 
@@ -23,6 +23,6 @@ CREATE POLICY "staff_read_invitations" ON public.invitations
   FOR SELECT TO authenticated
   USING (
     institution_id IN (
-      SELECT institution_id FROM public.profiles WHERE id = (select auth.uid())
+      SELECT institution_id FROM public.profiles WHERE id = auth.uid()
     )
   );;

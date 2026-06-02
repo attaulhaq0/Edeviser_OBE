@@ -22,7 +22,8 @@ serve(async (req) => {
     const expectedSecret = Deno.env.get("CRON_SECRET");
     const authHeader = req.headers.get("Authorization") ?? "";
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-    const isServiceRole = serviceRoleKey && authHeader.replace("Bearer ", "") === serviceRoleKey;
+    const isServiceRole =
+      serviceRoleKey && authHeader.replace("Bearer ", "") === serviceRoleKey;
     const isCron = expectedSecret && cronSecret === expectedSecret;
 
     if (!isServiceRole && !isCron) {
@@ -111,7 +112,8 @@ serve(async (req) => {
         // Get current streak
         const { data: gamification } = await supabase
           .from("student_gamification")
-          .select("streak_count")
+          // live column is `streak_current` (not `streak_count`)
+          .select("streak_current")
           .eq("student_id", student.id)
           .maybeSingle();
 
@@ -130,7 +132,7 @@ serve(async (req) => {
               student_name: student.full_name,
               xp_earned: xpEarned,
               badges_earned: badgesEarned ?? 0,
-              streak_count: gamification?.streak_count ?? 0,
+              streak_count: gamification?.streak_current ?? 0,
               submissions_count: submissionsCount ?? 0,
               dashboard_url: dashboardUrl,
             },

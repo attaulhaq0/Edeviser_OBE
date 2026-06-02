@@ -3,7 +3,14 @@
 -- NOT by regular authenticated users via PostgREST RPC.
 
 -- Functions that were incorrectly re-granted to authenticated in previous migration
-REVOKE EXECUTE ON FUNCTION public.increment_team_xp(uuid, integer) FROM authenticated;
+-- Guarded (db-function-search-path-qualification Task 6, replay-only):
+-- increment_team_xp(uuid,integer) is CREATEd later in the chain (20260720000012),
+-- so a bare REVOKE here aborts a fresh replay with 42883. Skip if not yet present.
+DO $$ BEGIN
+  IF to_regprocedure('public.increment_team_xp(uuid, integer)') IS NOT NULL THEN
+    EXECUTE 'REVOKE EXECUTE ON FUNCTION public.increment_team_xp(uuid, integer) FROM authenticated';
+  END IF;
+END $$;
 REVOKE EXECUTE ON FUNCTION public.recalculate_dynamic_prices(uuid) FROM authenticated;
 REVOKE EXECUTE ON FUNCTION public.recalculate_league_tiers(uuid) FROM authenticated;
 

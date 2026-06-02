@@ -214,13 +214,14 @@ async function checkStreakBadges(
 
   const { data: gamification } = await supabase
     .from("student_gamification")
-    .select("streak_count")
+    // live column is `streak_current` (not `streak_count`)
+    .select("streak_current")
     .eq("student_id", studentId)
     .maybeSingle();
 
   if (!gamification) return newBadges;
 
-  const streakCount = gamification.streak_count ?? 0;
+  const streakCount = gamification.streak_current ?? 0;
   const streakBadges: Array<{ id: string; threshold: number }> = [
     { id: "streak_7", threshold: 7 },
     { id: "streak_14", threshold: 14 },
@@ -1008,7 +1009,7 @@ async function awardTeamBadges(
           user_id: m.student_id,
           type: "team_badge",
           title: "Team Badge Earned!",
-          message: `Your team earned the ${
+          body: `Your team earned the ${
             TEAM_BADGE_NAMES[badgeId] ?? badgeId
           } badge! ${TEAM_BADGE_EMOJIS[badgeId] ?? "🏅"}`,
           is_read: false,
@@ -1458,7 +1459,7 @@ async function notifyPeersOfRareBadge(
         user_id: peerId,
         type: "peer_milestone",
         title: "Badge Achievement",
-        message,
+        body: message,
         is_read: false,
         metadata: {
           milestone_type: "rare_badge",
@@ -1609,10 +1610,11 @@ async function computeCategoryMetrics(
   // Streak: current streak count
   const { data: gamification } = await supabase
     .from("student_gamification")
-    .select("streak_count")
+    // live column is `streak_current` (not `streak_count`)
+    .select("streak_current")
     .eq("student_id", studentId)
     .maybeSingle();
-  metrics.streak = gamification?.streak_count ?? 0;
+  metrics.streak = gamification?.streak_current ?? 0;
 
   // Wellness: count of wellness habit log days
   const { count: wellnessCount } = await supabase
@@ -1642,7 +1644,8 @@ serve(async (req) => {
     // ── Auth: require service role or the student themselves ─────────
     const authHeader = req.headers.get("Authorization") ?? "";
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-    const isServiceRole = serviceRoleKey && authHeader.replace("Bearer ", "") === serviceRoleKey;
+    const isServiceRole =
+      serviceRoleKey && authHeader.replace("Bearer ", "") === serviceRoleKey;
 
     let callerId: string | null = null;
     if (!isServiceRole) {
@@ -1694,7 +1697,10 @@ serve(async (req) => {
     if (!isServiceRole && callerId !== student_id) {
       return new Response(
         JSON.stringify({ error: "Forbidden: can only check your own badges" }),
-        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
       );
     }
 

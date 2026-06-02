@@ -21,16 +21,16 @@ ALTER TABLE habit_logs ENABLE ROW LEVEL SECURITY;
 -- Student: SELECT/INSERT/UPDATE own rows
 CREATE POLICY "student_select_own" ON habit_logs
   FOR SELECT TO authenticated
-  USING (auth_user_role() = 'student' AND student_id = (select auth.uid()));
+  USING (auth_user_role() = 'student' AND student_id = auth.uid());
 
 CREATE POLICY "student_insert_own" ON habit_logs
   FOR INSERT TO authenticated
-  WITH CHECK (auth_user_role() = 'student' AND student_id = (select auth.uid()));
+  WITH CHECK (auth_user_role() = 'student' AND student_id = auth.uid());
 
 CREATE POLICY "student_update_own" ON habit_logs
   FOR UPDATE TO authenticated
-  USING (auth_user_role() = 'student' AND student_id = (select auth.uid()))
-  WITH CHECK (auth_user_role() = 'student' AND student_id = (select auth.uid()));
+  USING (auth_user_role() = 'student' AND student_id = auth.uid())
+  WITH CHECK (auth_user_role() = 'student' AND student_id = auth.uid());
 
 -- Parent: SELECT linked student rows via parent_student_links
 CREATE POLICY "parent_select_linked" ON habit_logs
@@ -39,7 +39,7 @@ CREATE POLICY "parent_select_linked" ON habit_logs
     auth_user_role() = 'parent'
     AND student_id IN (
       SELECT psl.student_id FROM parent_student_links psl
-      WHERE psl.parent_id = (select auth.uid()) AND psl.verified = true
+      WHERE psl.parent_id = auth.uid() AND psl.verified = true
     )
   );
 

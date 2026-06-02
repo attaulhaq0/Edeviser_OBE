@@ -51,13 +51,18 @@ CREATE POLICY "role_select_ga_mappings" ON graduate_attribute_mappings
     )
   );
 -- 6. Updated_at trigger
+-- Hardened (db-function-search-path-qualification Task 5.x): SET search_path=''
+-- to match the LIVE production body so a fresh replay does not re-emit. Replay-only.
 CREATE OR REPLACE FUNCTION update_graduate_attributes_updated_at()
-RETURNS trigger AS $$
+RETURNS trigger
+LANGUAGE plpgsql
+SET search_path TO ''
+AS $$
 BEGIN
   NEW.updated_at = now();
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 CREATE TRIGGER trg_graduate_attributes_updated_at
   BEFORE UPDATE ON graduate_attributes
   FOR EACH ROW

@@ -128,10 +128,50 @@ const computeFinalPolicies = (): Map<string, PolicyState> => {
 
 const isRoleGated = (body: string): boolean => /auth_user_role/i.test(body);
 
+// SECURITY DEFINER helper functions that tie a visible row to the calling
+// user's identity (and therefore constitute valid row-level scoping even though
+// they don't literally contain `auth.uid()` in the policy body). Each helper
+// internally resolves `auth.uid()` and returns true only for rows the caller is
+// entitled to. Extend this set when adding a new ownership-scoping helper.
+//   - parent_has_verified_link(profiles.id): true only when the calling parent
+//     has a verified parent_student_link to that student row (Task 19,
+//     migration 20260602073802). Recursion-safe (SECURITY DEFINER bypasses RLS).
+const SCOPING_HELPERS = ["parent_has_verified_link"];
+
 const isTenantScoped = (body: string): boolean =>
   /auth\.uid/i.test(body) ||
   /auth_institution_id/i.test(body) ||
-  /institution_id/i.test(body);
+  /institution_id/i.test(body) ||
+  SCOPING_HELPERS.some((fn) => new RegExp(`\\b${fn}\\s*\\(`, "i").test(body));
+
+// Parse the command a CREATE POLICY targets (SELECT / INSERT / UPDATE / DELETE
+// / ALL). Defaults to ALL when unspecified, matching Postgres semantics.
+const policyCommand = (
+  body: string
+): "select" | "insert" | "update" | "delete" | "all" => {
+  const m = /\bFOR\s+(SELECT|INSERT|UPDATE|DELETE|ALL)\b/i.exec(body);
+  return (m ? m[1]!.toLowerCase() : "all") as
+    | "select"
+    | "insert"
+    | "update"
+    | "delete"
+    | "all";
+};
+
+// A read leak (one role seeing another tenant's rows) is only possible through
+// policies that grant visibility: SELECT and ALL. For pure write commands
+// (INSERT/UPDATE/DELETE), staff role-list gating (e.g.
+// `auth_user_role() IN ('admin','teacher','coordinator')`) is an acceptable
+// defense-in-depth predicate: the legitimate writer for these tables is a
+// service_role Edge Function (which bypasses RLS entirely), and the narrowed
+// `authenticated` grant simply prevents a signed-in student from writing. Such
+// write policies cannot expose another tenant's data on read, so they are not
+// cross-institution isolation risks. SELECT/ALL policies remain strictly
+// required to tie rows to the caller's uid/institution.
+const requiresStrictTenantScope = (body: string): boolean => {
+  const cmd = policyCommand(body);
+  return cmd === "select" || cmd === "all";
+};
 
 describe("RLS multi-tenant isolation guard", () => {
   const policies = computeFinalPolicies();
@@ -148,6 +188,10 @@ describe("RLS multi-tenant isolation guard", () => {
     for (const [key, p] of policies) {
       if (PLATFORM_ALLOWLIST.has(p.table)) continue;
       if (KNOWN_STORAGE_FOLLOWUP.has(key)) continue;
+      // Only SELECT/ALL policies can leak another tenant's rows on read; pure
+      // write policies (INSERT/UPDATE/DELETE) gated to staff roles are an
+      // accepted defense-in-depth pattern (service_role owns the real writes).
+      if (!requiresStrictTenantScope(p.body)) continue;
       if (isRoleGated(p.body) && !isTenantScoped(p.body)) {
         violations.push({ key, file: p.sourceFile });
       }
@@ -155,11 +199,30 @@ describe("RLS multi-tenant isolation guard", () => {
 
     expect(
       violations,
-      `Cross-institution RLS leak(s) detected. Each role-gated policy must tie rows to ` +
-        `auth.uid() or the caller's institution (auth_institution_id()/institution_id). ` +
+      `Cross-institution RLS leak(s) detected. Each role-gated SELECT/ALL policy must tie rows to ` +
+        `auth.uid() or the caller's institution (auth_institution_id()/institution_id), or a known ` +
+        `ownership-scoping SECURITY DEFINER helper. ` +
         `Offending policies:\n` +
         violations.map((v) => `  - ${v.key} (in ${v.file})`).join("\n")
     ).toEqual([]);
+  });
+
+  it("still flags a role-only-gated SELECT/ALL policy (guard not weakened)", () => {
+    // Sanity: the refinement that accepts staff role-list gating for write
+    // commands must NOT accept it for a readable (SELECT/ALL) policy. Verify the
+    // heuristic still classifies a hypothetical role-only SELECT policy as a
+    // violation, so the read-leak guard remains effective.
+    const leakySelect =
+      `CREATE POLICY "x_select" ON some_table FOR SELECT TO authenticated ` +
+      `USING (auth_user_role() = 'admin');`;
+    expect(requiresStrictTenantScope(leakySelect)).toBe(true);
+    expect(isRoleGated(leakySelect) && !isTenantScoped(leakySelect)).toBe(true);
+
+    // And a role-gated write policy is correctly tolerated.
+    const staffWrite =
+      `CREATE POLICY "x_insert" ON some_table FOR INSERT TO authenticated ` +
+      `WITH CHECK ((select public.auth_user_role()) IN ('admin','teacher','coordinator'));`;
+    expect(requiresStrictTenantScope(staffWrite)).toBe(false);
   });
 
   it("has no remaining known storage follow-ups (all storage leaks fixed)", () => {

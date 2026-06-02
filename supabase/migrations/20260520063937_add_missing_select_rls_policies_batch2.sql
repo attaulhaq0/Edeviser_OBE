@@ -4,19 +4,19 @@ CREATE POLICY "admins_read_tutor_llm_logs" ON public.tutor_llm_logs
   USING (
     EXISTS (
       SELECT 1 FROM public.profiles
-      WHERE id = (select auth.uid()) AND role = 'admin'
+      WHERE id = auth.uid() AND role = 'admin'
     )
   );
 
 -- 7. tutor_plan_updates: student reads own plan updates
 CREATE POLICY "users_read_own_plan_updates" ON public.tutor_plan_updates
   FOR SELECT TO authenticated
-  USING (student_id = (select auth.uid()));
+  USING (student_id = auth.uid());
 
 -- 8. teacher_handoff_requests: teacher reads own handoffs
 CREATE POLICY "teachers_read_own_handoffs" ON public.teacher_handoff_requests
   FOR SELECT TO authenticated
-  USING (teacher_id = (select auth.uid()));
+  USING (teacher_id = auth.uid());
 
 -- 9. course_material_embeddings: anyone enrolled can read (for RAG search)
 CREATE POLICY "authenticated_read_embeddings" ON public.course_material_embeddings
@@ -26,4 +26,4 @@ CREATE POLICY "authenticated_read_embeddings" ON public.course_material_embeddin
 -- 10. habit_logs: student reads own habit logs
 CREATE POLICY "users_read_own_habit_logs" ON public.habit_logs
   FOR SELECT TO authenticated
-  USING (student_id = (select auth.uid()));;
+  USING (student_id = auth.uid());;

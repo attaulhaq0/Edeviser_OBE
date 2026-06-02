@@ -4,10 +4,16 @@
 -- Requirements: 134.3, 134.6
 
 -- Create the auto-rotate function
-CREATE OR REPLACE FUNCTION badge_spotlight_auto_rotate()
+-- NOTE (db-function-search-path-qualification, Task 5.6/12 replay-only fix):
+-- This is the LAST definition of badge_spotlight_auto_rotate() in the migration
+-- chain, so a fresh replay ends here. It must match the LIVE production body
+-- (Part C 20260601110014): hardened with SET search_path='' and public.-qualified
+-- table references. Replay-only edit; never re-run against production.
+CREATE OR REPLACE FUNCTION public.badge_spotlight_auto_rotate()
 RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path TO ''
 AS $$
 DECLARE
   inst RECORD;
@@ -22,10 +28,10 @@ BEGIN
   current_monday := date_trunc('week', now())::date;
 
   -- Iterate over all institutions
-  FOR inst IN SELECT id FROM institutions LOOP
+  FOR inst IN SELECT id FROM public.institutions LOOP
     -- Check if there's already a manual selection for this week
     SELECT EXISTS(
-      SELECT 1 FROM badge_spotlight_schedule
+      SELECT 1 FROM public.badge_spotlight_schedule
       WHERE institution_id = inst.id
         AND week_start = current_monday
     ) INTO has_manual;
@@ -40,7 +46,7 @@ BEGIN
 
     -- Get the last spotlight category for this institution
     SELECT category INTO last_category
-    FROM badge_spotlight_schedule
+    FROM public.badge_spotlight_schedule
     WHERE institution_id = inst.id
     ORDER BY week_start DESC
     LIMIT 1;
@@ -58,7 +64,7 @@ BEGIN
     END IF;
 
     -- Insert the auto-rotated spotlight
-    INSERT INTO badge_spotlight_schedule (institution_id, week_start, category, is_manual)
+    INSERT INTO public.badge_spotlight_schedule (institution_id, week_start, category, is_manual)
     VALUES (inst.id, current_monday, next_category, false)
     ON CONFLICT (institution_id, week_start) DO NOTHING;
   END LOOP;

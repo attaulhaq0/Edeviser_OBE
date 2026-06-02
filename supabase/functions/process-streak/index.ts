@@ -21,6 +21,10 @@ interface StreakState {
   comeback_challenge_days_completed: number;
   comeback_challenge_streak_to_restore: number;
   total_active_days: number;
+  // Internal ordinal (1=starter … 4=master) derived from the live TEXT column
+  // `habit_difficulty_level`. The DB column is text, CHECK-constrained to
+  // {starter, intermediate, advanced, master}; we map it to an ordinal here so
+  // all numeric level logic works, and map back to text before persisting.
   habit_difficulty_level: number;
   habit_level_streak: number;
 }
@@ -48,6 +52,44 @@ function daysBetween(dateA: string, dateB: string): number {
 function getTodayUTC(): string {
   const now = new Date();
   return now.toISOString().slice(0, 10); // YYYY-MM-DD
+}
+
+// ─── Habit Difficulty Level mapping ──────────────────────────────────────────
+// The live `student_gamification.habit_difficulty_level` column is TEXT,
+// CHECK-constrained to {starter, intermediate, advanced, master}. Internally we
+// reason about the level as an ordinal (1..4). These helpers convert between the
+// two representations so the DB write always stores a valid TEXT tier and the
+// CHECK constraint is never violated.
+
+const HABIT_LEVEL_TIERS = [
+  "starter",
+  "intermediate",
+  "advanced",
+  "master",
+] as const;
+
+/** Map the live TEXT tier (or legacy/unknown value) to an ordinal 1..4. */
+function habitLevelTextToOrdinal(value: unknown): number {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    // Defensive: tolerate any legacy numeric value already in range.
+    return Math.min(Math.max(Math.trunc(value), 1), HABIT_LEVEL_TIERS.length);
+  }
+  if (typeof value === "string") {
+    const idx = HABIT_LEVEL_TIERS.indexOf(
+      value as (typeof HABIT_LEVEL_TIERS)[number]
+    );
+    if (idx >= 0) return idx + 1;
+  }
+  return 1; // default to "starter"
+}
+
+/** Map an ordinal 1..4 back to the TEXT tier expected by the DB CHECK. */
+function habitLevelOrdinalToText(ordinal: number): string {
+  const idx = Math.min(
+    Math.max(Math.trunc(ordinal), 1),
+    HABIT_LEVEL_TIERS.length
+  );
+  return HABIT_LEVEL_TIERS[idx - 1];
 }
 
 // ─── Comeback Challenge Helpers ─────────────────────────────────────────────
@@ -180,7 +222,7 @@ async function notifyPeersOfStreakMilestone(
     user_id: peerId,
     type: "peer_milestone",
     title: "Streak Achievement",
-    message,
+    body: message,
     is_read: false,
     metadata: {
       milestone_type: "streak_milestone",
@@ -353,7 +395,7 @@ async function processTeamStreaks(
         user_id: memberId,
         type: "team_streak_milestone",
         title: "Team Streak Milestone!",
-        message: `Your team hit a ${newStreak}-day streak! 🔥 +${milestoneXP} XP`,
+        body: `Your team hit a ${newStreak}-day streak! 🔥 +${milestoneXP} XP`,
         is_read: false,
         metadata: {
           team_id: teamId,
@@ -386,7 +428,8 @@ serve(async (req) => {
     // ── Auth: require service role or authenticated student ──────────
     const authHeader = req.headers.get("Authorization") ?? "";
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-    const isServiceRole = serviceRoleKey && authHeader.replace("Bearer ", "") === serviceRoleKey;
+    const isServiceRole =
+      serviceRoleKey && authHeader.replace("Bearer ", "") === serviceRoleKey;
 
     let callerId: string | null = null;
     if (!isServiceRole) {
@@ -437,8 +480,13 @@ serve(async (req) => {
     // Ownership check: non-service-role callers can only process their own streak
     if (!isServiceRole && callerId !== student_id) {
       return new Response(
-        JSON.stringify({ error: "Forbidden: can only process your own streak" }),
-        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({
+          error: "Forbidden: can only process your own streak",
+        }),
+        {
+          status: 403,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
       );
     }
 
@@ -448,8 +496,11 @@ serve(async (req) => {
 
     const { data: current, error: fetchErr } = await supabase
       .from("student_gamification")
+      // NOTE: the live column is `streak_current` (NOT `streak_count`); we map
+      // it onto the internal `StreakState.streak_count` field below so the rest
+      // of the streak logic and the JSON response shape stay unchanged.
       .select(
-        "streak_count, last_login_date, streak_freezes_available, comeback_challenge_active, comeback_challenge_days_completed, comeback_challenge_streak_to_restore, total_active_days, habit_difficulty_level, habit_level_streak"
+        "streak_current, last_login_date, streak_freezes_available, comeback_challenge_active, comeback_challenge_days_completed, comeback_challenge_streak_to_restore, total_active_days, habit_difficulty_level, habit_level_streak"
       )
       .eq("student_id", student_id)
       .maybeSingle();
@@ -470,7 +521,7 @@ serve(async (req) => {
 
     const state: StreakState | null = current
       ? {
-          streak_count: current.streak_count ?? 0,
+          streak_count: current.streak_current ?? 0,
           last_login_date: current.last_login_date ?? null,
           streak_freezes_available: current.streak_freezes_available ?? 0,
           comeback_challenge_active: current.comeback_challenge_active ?? false,
@@ -479,7 +530,9 @@ serve(async (req) => {
           comeback_challenge_streak_to_restore:
             current.comeback_challenge_streak_to_restore ?? 0,
           total_active_days: current.total_active_days ?? 0,
-          habit_difficulty_level: current.habit_difficulty_level ?? 1,
+          habit_difficulty_level: habitLevelTextToOrdinal(
+            current.habit_difficulty_level
+          ),
           habit_level_streak: current.habit_level_streak ?? 0,
         }
       : null;
@@ -690,13 +743,17 @@ serve(async (req) => {
 
     const updateData: Record<string, unknown> = {
       student_id,
-      streak_count: newStreakCount,
+      // live column is `streak_current` (not `streak_count`)
+      streak_current: newStreakCount,
       last_login_date: todayUTC,
       comeback_challenge_active: comebackActive,
       comeback_challenge_days_completed: comebackDaysCompleted,
       comeback_challenge_streak_to_restore: comebackStreakToRestore,
       total_active_days: totalActiveDays,
-      habit_difficulty_level: habitDifficultyLevel,
+      // Persist as TEXT tier (CHECK: starter|intermediate|advanced|master).
+      // `habitDifficultyLevel` is an internal ordinal (1..4); map it back to text
+      // so the live CHECK constraint is never violated.
+      habit_difficulty_level: habitLevelOrdinalToText(habitDifficultyLevel),
       habit_level_streak: habitLevelStreak,
     };
 

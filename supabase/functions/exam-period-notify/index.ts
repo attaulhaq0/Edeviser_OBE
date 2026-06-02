@@ -77,7 +77,7 @@ serve(async (req) => {
       const notifications = students.map((s: { id: string }) => ({
         user_id: s.id,
         title: "Exam Period Approaching",
-        message: `${event.title} starts in 5 days (${event.start_date}). Good luck with your preparation!`,
+        body: `${event.title} starts in 5 days (${event.start_date}). Good luck with your preparation!`,
         type: "exam_period_reminder",
         is_read: false,
       }));

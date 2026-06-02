@@ -306,6 +306,13 @@ jobs:
           fi
           echo "- **All migrations passed validation**" >> $GITHUB_STEP_SUMMARY
 
+      - name: Replay-order integrity (no too-early function refs — guards Supabase Preview)
+        # A migration must never ALTER/REVOKE/GRANT/COMMENT a function (or attach a trigger
+        # that EXECUTEs one) before the migration that CREATEs it. Such ordering aborts a
+        # fresh replay (Supabase Preview / clean rebuild) with 42883 even though production
+        # is fine. This catches that class statically, before the Supabase Preview check.
+        run: node scripts/check-migration-replay-order.mjs
+
   rls-guard:
     name: RLS Multi-Tenant Isolation Guard
     runs-on: ubuntu-latest

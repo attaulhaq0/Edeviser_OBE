@@ -762,42 +762,20 @@ serve(async (req) => {
       });
 
     if (uploadErr) {
-      // Try creating the bucket if it doesn't exist
-      if (
-        uploadErr.message?.includes("not found") ||
-        uploadErr.message?.includes("Bucket")
-      ) {
-        await supabase.storage.createBucket("reports", { public: false });
-        const { error: retryErr } = await supabase.storage
-          .from("reports")
-          .upload(fileName, pdfBytes, {
-            contentType: "application/pdf",
-            upsert: false,
-          });
-        if (retryErr) {
-          return new Response(
-            JSON.stringify({
-              error: "Failed to upload report",
-              detail: retryErr.message,
-            }),
-            {
-              status: 500,
-              headers: { ...corsHeaders, "Content-Type": "application/json" },
-            }
-          );
+      // The `reports` bucket is provisioned (private, institution-scoped RLS)
+      // as part of the migration-history reconciliation deploy, so an upload
+      // failure here is a genuine error rather than a missing bucket — surface
+      // it directly instead of self-creating an unpoliced bucket at runtime.
+      return new Response(
+        JSON.stringify({
+          error: "Failed to upload report",
+          detail: uploadErr.message,
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
-      } else {
-        return new Response(
-          JSON.stringify({
-            error: "Failed to upload report",
-            detail: uploadErr.message,
-          }),
-          {
-            status: 500,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
-        );
-      }
+      );
     }
 
     // ── Generate signed download URL ──────────────────────────────────────
