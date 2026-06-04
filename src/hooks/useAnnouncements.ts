@@ -326,6 +326,25 @@ export const useUploadAnnouncementAttachment = () => {
         )
         .single();
       if (error) throw error;
+      // Audit trail: uploading an attachment is a teacher mutation on shared
+      // course content, so it is recorded (domain-knowledge.md — audit logs are
+      // append-only). The actor is resolved from the authenticated session so
+      // call sites need not thread the id through.
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        await logAuditEvent({
+          action: "create",
+          entity_type: "announcement_attachment",
+          entity_id: data.id,
+          changes: {
+            announcement_id: announcementId,
+            file_name: uploaded.file_name,
+          },
+          performed_by: user.id,
+        });
+      }
       return data;
     },
     onSuccess: (_data, variables) => {
@@ -369,6 +388,16 @@ export const useMarkAnnouncementRead = () => {
           { onConflict: "announcement_id,student_id" }
         );
       if (error) throw error;
+      // Audit trail (domain-knowledge.md — audit logs are append-only). A read
+      // receipt is idempotent (one row per student+announcement via the upsert
+      // conflict target), so this is low-volume. The student is the actor.
+      await logAuditEvent({
+        action: "read",
+        entity_type: "announcement_read",
+        entity_id: announcementId,
+        changes: { announcement_id: announcementId, student_id: studentId },
+        performed_by: studentId,
+      });
     },
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({

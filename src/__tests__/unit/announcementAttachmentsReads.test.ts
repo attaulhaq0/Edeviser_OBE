@@ -15,13 +15,25 @@ const mockSelect = vi.fn();
 const mockSingle = vi.fn();
 const mockStorageUpload = vi.fn();
 const mockCreateSignedUrl = vi.fn();
+// Declared via vi.hoisted so they exist before the hoisted vi.mock factory runs.
+const { mockGetUser, mockAuditInsert } = vi.hoisted(() => ({
+  mockGetUser: vi.fn(),
+  mockAuditInsert: vi.fn(),
+}));
 
 vi.mock("@/lib/supabase", () => ({
   supabase: {
-    from: vi.fn(() => ({
-      upsert: mockUpsert,
-      insert: mockInsert,
-    })),
+    // Table-aware: audit_logs inserts resolve cleanly (logAuditEvent awaits the
+    // insert result directly); all other tables use the upsert/insert spies.
+    from: vi.fn((table: string) => {
+      if (table === "audit_logs") {
+        return { insert: mockAuditInsert };
+      }
+      return { upsert: mockUpsert, insert: mockInsert };
+    }),
+    auth: {
+      getUser: mockGetUser,
+    },
     storage: {
       from: vi.fn(() => ({
         upload: mockStorageUpload,
@@ -103,6 +115,8 @@ describe("useUploadAnnouncementAttachment", () => {
     vi.clearAllMocks();
     mockInsert.mockReturnValue({ select: mockSelect });
     mockSelect.mockReturnValue({ single: mockSingle });
+    mockAuditInsert.mockResolvedValue({ error: null });
+    mockGetUser.mockResolvedValue({ data: { user: { id: "teacher-1" } } });
   });
 
   it("validates first and never uploads an oversized file", async () => {
@@ -164,6 +178,16 @@ describe("useUploadAnnouncementAttachment", () => {
     expect(insertedRow.content_type).toBe("application/pdf");
     expect(insertedRow.size_bytes).toBe(1000);
     expect(created.id).toBe("att-1");
+
+    // Audit trail: the upload is recorded with the resolved actor (Req 13.5).
+    expect(mockAuditInsert).toHaveBeenCalledTimes(1);
+    const auditRow = mockAuditInsert.mock.calls[0]?.[0] as Record<
+      string,
+      unknown
+    >;
+    expect(auditRow.action).toBe("create");
+    expect(auditRow.target_type).toBe("announcement_attachment");
+    expect(auditRow.actor_id).toBe("teacher-1");
   });
 
   it("does not insert metadata when the storage upload fails", async () => {
@@ -190,6 +214,8 @@ describe("useMarkAnnouncementRead", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockUpsert.mockResolvedValue({ error: null });
+    mockAuditInsert.mockResolvedValue({ error: null });
+    mockGetUser.mockResolvedValue({ data: { user: { id: "student-1" } } });
   });
 
   it("upserts announcement_reads with the conflict target for idempotency", async () => {
@@ -206,6 +232,15 @@ describe("useMarkAnnouncementRead", () => {
       { announcement_id: "ann-1", student_id: "student-1" },
       { onConflict: "announcement_id,student_id" }
     );
+
+    // Audit trail: the read receipt is recorded with the student as actor.
+    expect(mockAuditInsert).toHaveBeenCalledTimes(1);
+    const auditRow = mockAuditInsert.mock.calls[0]?.[0] as Record<
+      string,
+      unknown
+    >;
+    expect(auditRow.target_type).toBe("announcement_read");
+    expect(auditRow.actor_id).toBe("student-1");
   });
 
   it("throws when the upsert returns an error", async () => {
