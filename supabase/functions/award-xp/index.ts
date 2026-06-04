@@ -1328,6 +1328,43 @@ serve(async (req) => {
       }
     }
 
+    // ── Step 13: Trigger badge evaluation (fire-and-forget) ─────────────
+    // The core academic/engagement loop awards XP through this function, so this
+    // is the single chokepoint that drives badge checks (domain rule: "Badges
+    // are checked idempotently after XP award, submission, or streak update").
+    // check-badges is idempotent (UNIQUE(student_id, badge_key)), so the few
+    // client hooks that ALSO invoke it cause no double-award. CRITICAL: we never
+    // re-trigger for source='badge' (check-badges awards badge XP through this
+    // very function — that would loop) nor for purely systemic sources.
+    const BADGE_TRIGGER_BY_SOURCE: Record<string, string> = {
+      login: "xp_award",
+      submission: "submission",
+      grade: "grade",
+      journal: "journal",
+      streak: "streak_update",
+      streak_milestone: "streak_update",
+      perfect_day: "habit_log",
+      first_attempt: "submission",
+      perfect_rubric: "grade",
+      quiz_completion: "grade",
+      study_session: "study_session",
+    };
+    if (finalXP > 0) {
+      const badgeTrigger = BADGE_TRIGGER_BY_SOURCE[source];
+      if (badgeTrigger) {
+        supabase.functions
+          .invoke("check-badges", {
+            body: { student_id, trigger: badgeTrigger },
+          })
+          .catch((err: unknown) => {
+            console.error(
+              "Badge check failed (non-blocking):",
+              (err as Error)?.message ?? err
+            );
+          });
+      }
+    }
+
     // ── Response ──────────────────────────────────────────────────────────
 
     return new Response(
