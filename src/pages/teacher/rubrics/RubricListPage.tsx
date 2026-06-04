@@ -5,6 +5,7 @@ import { Plus, Search } from "lucide-react";
 import { toast } from "sonner";
 import { DataTable } from "@/components/shared/DataTable";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import RubricPreviewDialog from "@/components/shared/RubricPreviewDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useRubrics, useDeleteRubric, useCopyRubric } from "@/hooks/useRubrics";
@@ -21,6 +22,7 @@ const RubricListPage = () => {
   const copyMutation = useCopyRubric();
 
   const [deleteTarget, setDeleteTarget] = useState<Rubric | null>(null);
+  const [previewTarget, setPreviewTarget] = useState<Rubric | null>(null);
 
   const filtered = useMemo(() => {
     const items = paginatedData?.data ?? [];
@@ -39,7 +41,8 @@ const RubricListPage = () => {
             onSuccess: () => toast.success("Rubric copied"),
             onError: (err) => toast.error(err.message),
           });
-        }
+        },
+        (rubric) => setPreviewTarget(rubric)
       ),
     [navigate, copyMutation]
   );
@@ -99,6 +102,12 @@ const RubricListPage = () => {
             onError: (err) => toast.error(err.message),
           });
         }}
+      />
+
+      <RubricPreviewDialog
+        rubricId={previewTarget?.id ?? null}
+        open={!!previewTarget}
+        onOpenChange={(open) => !open && setPreviewTarget(null)}
       />
     </div>
   );

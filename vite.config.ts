@@ -1,5 +1,5 @@
-/// <reference types="vitest/config" />
 import { defineConfig } from "vite";
+import { configDefaults } from "vitest/config";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { visualizer } from "rollup-plugin-visualizer";
@@ -82,6 +82,14 @@ export default defineConfig({
       "src/**/*.{test,property.test}.ts",
       "src/**/*.{test,property.test}.tsx",
       "scripts/audit/__tests__/**/*.test.ts",
+    ],
+    // The RLS integration smoke suite is an isolated project run only via
+    // `npm run test:rls` (vitest.integration.config.ts). It performs real DB
+    // inserts against a Supabase preview branch and must NEVER be collected by
+    // the fast, hermetic unit/property run (`npm test`).
+    exclude: [
+      ...configDefaults.exclude,
+      "src/__tests__/integration-rls/**",
     ],
     pool: "forks",
     css: false,

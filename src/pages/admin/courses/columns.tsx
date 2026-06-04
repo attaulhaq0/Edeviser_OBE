@@ -14,6 +14,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { resolveName } from "@/lib/db/resolveName";
+import type { CourseWithRelations } from "@/hooks/useCourses";
 import type { Course } from "@/types/app";
 
 // ─── Column factory — accepts onEdit, onDeactivate, and onManageEnrollment callbacks ─
@@ -22,7 +24,7 @@ export const createColumns = (
   onEdit: (course: Course) => void,
   onDeactivate: (course: Course) => void,
   onManageEnrollment?: (course: Course) => void
-): ColumnDef<Course>[] => [
+): ColumnDef<CourseWithRelations>[] => [
   {
     accessorKey: "name",
     header: ({ column }) => (
@@ -45,20 +47,20 @@ export const createColumns = (
     header: "Code",
   },
   {
-    accessorKey: "program_id",
+    id: "program",
     header: "Program",
     cell: ({ row }) => (
-      <span className="text-gray-500 truncate max-w-[120px] inline-block">
-        {row.getValue("program_id") as string}
+      <span className="text-gray-500 truncate max-w-[160px] inline-block">
+        {resolveName(row.original.programs?.name)}
       </span>
     ),
   },
   {
-    accessorKey: "teacher_id",
+    id: "teacher",
     header: "Teacher",
     cell: ({ row }) => (
-      <span className="text-gray-500 truncate max-w-[120px] inline-block">
-        {row.getValue("teacher_id") as string}
+      <span className="text-gray-500 truncate max-w-[160px] inline-block">
+        {resolveName(row.original.teacher?.full_name)}
       </span>
     ),
   },

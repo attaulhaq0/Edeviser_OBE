@@ -31,6 +31,15 @@ export interface RubricWithCriteria extends Rubric {
   criteria: RubricCriterion[];
 }
 
+/**
+ * A rubric list row with its CLO embedded via the `rubrics_clo_id_fkey` to-one
+ * join (Req 5.3). Resolved in the same round trip as the list query (no N+1,
+ * Req 5.5); the column renders the CLO title through `resolveName` (Req 5.6).
+ */
+export interface RubricWithRelations extends Rubric {
+  learning_outcomes: { title: string } | null;
+}
+
 interface CreateRubricInput {
   title: string;
   clo_id: string;
@@ -56,7 +65,7 @@ export const useRubrics = (
 
   return useQuery({
     queryKey: queryKeys.rubrics.list({ courseId, page, pageSize }),
-    queryFn: async (): Promise<PaginatedResult<Rubric>> => {
+    queryFn: async (): Promise<PaginatedResult<RubricWithRelations>> => {
       if (courseId) {
         // Get CLO ids for this course, then filter rubrics
         const { data: clos, error: closError } = await supabase
@@ -72,14 +81,16 @@ export const useRubrics = (
 
         const { data, error, count } = await supabase
           .from("rubrics")
-          .select("*", { count: "exact" })
+          .select("*, learning_outcomes!rubrics_clo_id_fkey(title)", {
+            count: "exact",
+          })
           .in("clo_id", cloIds)
           .order("created_at", { ascending: false })
           .range(from, to);
 
         if (error) throw error;
         return {
-          data: (data ?? []) as Rubric[],
+          data: (data ?? []) as unknown as RubricWithRelations[],
           count: count ?? 0,
           page,
           pageSize,
@@ -88,13 +99,15 @@ export const useRubrics = (
 
       const { data, error, count } = await supabase
         .from("rubrics")
-        .select("*", { count: "exact" })
+        .select("*, learning_outcomes!rubrics_clo_id_fkey(title)", {
+          count: "exact",
+        })
         .order("created_at", { ascending: false })
         .range(from, to);
 
       if (error) throw error;
       return {
-        data: (data ?? []) as Rubric[],
+        data: (data ?? []) as unknown as RubricWithRelations[],
         count: count ?? 0,
         page,
         pageSize,

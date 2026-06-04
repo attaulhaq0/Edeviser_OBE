@@ -1,0 +1,30 @@
+{
+  "//": "Declared_Object_Check manifest (Req 20). Each entry names a DB object that a spec/task declares as created; scripts/check-declared-objects.mjs verifies every entry exists in the target (preview/CI) schema and fails — naming the object and its declaringTask — if any is missing. Part A/B migration tasks append their entries here as they land (e.g. send_teacher_nudge @ 9.2, mv_historical_evidence @ 12.2, fan_out_announcement_notifications @ 24.2), so DO NOT add those until their tasks create the object — they are intentionally 'red-first'.",
+  "//schema": "objects[]: { type: 'materialized_view' | 'function' | 'table' | 'view' | 'index', name: string, declaringTask: string, schema?: string (defaults to 'public') }",
+  "//example": {
+    "type": "materialized_view",
+    "name": "mv_historical_evidence",
+    "declaringTask": "qa-partner-review-remediation 12.2",
+    "schema": "public"
+  },
+  "objects": [
+    {
+      "type": "function",
+      "name": "send_teacher_nudge",
+      "declaringTask": "qa-partner-review-remediation 9.2",
+      "schema": "public"
+    },
+    {
+      "type": "materialized_view",
+      "name": "mv_historical_evidence",
+      "declaringTask": "qa-partner-review-remediation 12.2",
+      "schema": "public"
+    },
+    {
+      "type": "function",
+      "name": "fan_out_announcement_notifications",
+      "declaringTask": "qa-partner-review-remediation 24.2",
+      "schema": "public"
+    }
+  ]
+}

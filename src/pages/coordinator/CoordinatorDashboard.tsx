@@ -21,8 +21,9 @@ import type { CQIStatus } from "@/components/shared/CQIStatusBadge";
 import { useAuth } from "@/hooks/useAuth";
 import { usePrograms } from "@/hooks/usePrograms";
 import { useCourses } from "@/hooks/useCourses";
-import { useCourseSections } from "@/hooks/useCourseSections";
+import { useSectionAttainment } from "@/hooks/useSectionAttainment";
 import SectionComparisonChart from "@/components/shared/SectionComparisonChart";
+import SectionDrillDownDialog from "@/components/shared/SectionDrillDownDialog";
 import {
   Target,
   GraduationCap,
@@ -90,6 +91,9 @@ const CoordinatorDashboard = () => {
   const [selectedProgramId, setSelectedProgramId] = useState<string>("");
   const [selectedCell, setSelectedCell] = useState<SelectedCell | null>(null);
   const [comparisonCourseId, setComparisonCourseId] = useState<string>("");
+  const [drillDownSectionId, setDrillDownSectionId] = useState<string | null>(
+    null
+  );
 
   // CQI plan summary for the first program
   const effectiveProgramIdForCQI =
@@ -102,9 +106,9 @@ const CoordinatorDashboard = () => {
     effectiveProgramIdForCQI ? { program_id: effectiveProgramIdForCQI } : {}
   );
 
-  // Sections for the selected comparison course
-  const { data: comparisonSections, isLoading: sectionsLoading } =
-    useCourseSections(comparisonCourseId || undefined);
+  // Sections + real attainment for the selected comparison course
+  const { data: sectionAttainment, isLoading: sectionsLoading } =
+    useSectionAttainment(comparisonCourseId || undefined);
 
   // Auto-select first program when loaded
   const effectiveProgramId =
@@ -448,17 +452,22 @@ const CoordinatorDashboard = () => {
             </div>
           ) : sectionsLoading ? (
             <Shimmer className="h-32 rounded-xl" />
-          ) : !comparisonSections || comparisonSections.length === 0 ? (
+          ) : !sectionAttainment || sectionAttainment.length === 0 ? (
             <div className="rounded-xl border border-slate-200 bg-slate-50 p-8 text-center text-sm text-gray-500">
               {t("dashboard.noSectionsFound")}
             </div>
           ) : (
             <SectionComparisonChart
-              sections={comparisonSections.map((s) => ({
+              sections={sectionAttainment.map((s) => ({
+                sectionId: s.section_id,
                 sectionCode: s.section_code,
-                attainmentPercent: 0, // Attainment data populated once evidence exists
-                studentCount: s.capacity,
+                attainmentPercent: s.attainment_percent,
+                studentCount: s.student_count,
+                sampleCount: s.sample_count,
               }))}
+              onSectionClick={(section) =>
+                setDrillDownSectionId(section.sectionId ?? null)
+              }
             />
           )}
         </div>
@@ -561,6 +570,16 @@ const CoordinatorDashboard = () => {
         open={selectedCell !== null}
         onOpenChange={(open) => {
           if (!open) setSelectedCell(null);
+        }}
+      />
+
+      {/* Section Comparison Drill-Down */}
+      <SectionDrillDownDialog
+        courseId={comparisonCourseId || undefined}
+        sectionId={drillDownSectionId ?? undefined}
+        open={drillDownSectionId !== null}
+        onOpenChange={(open) => {
+          if (!open) setDrillDownSectionId(null);
         }}
       />
     </div>

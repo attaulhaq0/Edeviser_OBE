@@ -6,6 +6,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
+import { pickColumns } from "@/lib/db/pickColumns";
+import { TEAMS_INSERT_COLUMNS } from "@/lib/db/insertColumns";
 import { toast } from "sonner";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -51,22 +53,24 @@ export const useTeams = (courseId?: string) => {
 
 // ─── useCreateTeam ───────────────────────────────────────────────────────────
 
-interface CreateTeamInput {
+// Feature: qa-partner-review-remediation — Req 3
+export interface CreateTeamInput {
   name: string;
   course_id: string;
-  institution_id?: string;
-  captain_id?: string;
+  institution_id: string; // was optional → now required (NOT NULL)
+  captain_id: string; // was optional → now required (NOT NULL)
   created_by: string;
-  avatar_letter?: string;
+  avatar_letter?: string; // nullable in schema → stays optional
 }
 
 export const useCreateTeam = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (input: CreateTeamInput) => {
+      const row = pickColumns(input, TEAMS_INSERT_COLUMNS);
       const { data, error } = await supabase
-        .from("teams" as never)
-        .insert(input as never)
+        .from("teams")
+        .insert(row)
         .select()
         .single();
       if (error) throw error;
@@ -157,6 +161,7 @@ export const useAutoGenerateTeams = () => {
       course_id: string;
       team_size: number;
       created_by: string;
+      institution_id: string;
     }) => {
       const { data: enrollments } = await supabase
         .from("student_courses")
@@ -179,20 +184,33 @@ export const useAutoGenerateTeams = () => {
 
       let created = 0;
       for (let i = 0; i < teamBuckets.length; i++) {
-        const { data: team, error } = await supabase
-          .from("teams" as never)
-          .insert({
+        const bucket = teamBuckets[i]!;
+        const captainId = bucket[0];
+        if (!captainId) continue; // empty bucket — nothing to create
+
+        // Whitelist + typed insert (no `as never`): the first bucket member is
+        // the captain, and institution_id comes from the caller's institution.
+        const row = pickColumns(
+          {
             name: `Team ${i + 1}`,
             course_id: params.course_id,
+            institution_id: params.institution_id,
+            captain_id: captainId,
             created_by: params.created_by,
             avatar_letter: String(i + 1),
-          } as never)
+          } satisfies CreateTeamInput,
+          TEAMS_INSERT_COLUMNS
+        );
+        const { data: team, error } = await supabase
+          .from("teams")
+          .insert(row)
           .select()
           .single();
         if (error) throw error;
+        if (!team) throw new Error("Team insert returned no row");
 
-        const members = teamBuckets[i]!.map((studentId) => ({
-          team_id: (team as { id: string }).id,
+        const members = bucket.map((studentId) => ({
+          team_id: team.id,
           student_id: studentId,
         }));
         const { error: memberError } = await supabase

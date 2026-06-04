@@ -7,6 +7,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
+import { pickColumns } from "@/lib/db/pickColumns";
+import { SOCIAL_CHALLENGES_INSERT_COLUMNS } from "@/lib/db/insertColumns";
 import { toast } from "sonner";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -88,31 +90,38 @@ export const useActiveXpRaceCount = (courseId?: string) => {
 
 // ─── useCreateChallenge ──────────────────────────────────────────────────────
 
-interface CreateChallengePayload {
+// Feature: qa-partner-review-remediation — Req 2
+// Typed input for challenge creation. The loose `[key: string]: unknown` index
+// signature was removed so the generated `social_challenges` Insert type can do
+// its job once the `as never` casts are dropped. `xp_race_acknowledged` is a
+// UI-only acknowledgment-gate field (see `src/lib/schemas/challenge.ts`) and is
+// never a real column — `pickColumns` strips it before the insert.
+export interface CreateChallengeInput {
   course_id: string;
   institution_id?: string;
   created_by: string;
-  title?: string;
-  description?: string;
-  challenge_type?: string;
-  participation_mode?: string;
-  goal_target?: number;
-  start_date?: string;
-  end_date?: string;
-  reward_xp?: number;
+  title: string;
+  description: string;
+  challenge_type: ChallengeType;
+  participation_mode: ParticipationMode;
+  goal_target: number;
+  start_date: string;
+  end_date: string;
+  reward_xp: number;
   reward_badge_id?: string | null;
+  status?: ChallengeStatus;
+  /** UI-only confirmation gate — not a column of `social_challenges`. */
   xp_race_acknowledged?: boolean;
-  [key: string]: unknown;
 }
 
 export const useCreateChallenge = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (input: CreateChallengePayload) => {
+    mutationFn: async (input: CreateChallengeInput) => {
       // XP Race limit check: max 2 concurrent per course
       if (input.challenge_type === "xp_race") {
         const { count, error: countError } = await supabase
-          .from("social_challenges" as never)
+          .from("social_challenges")
           .select("id", { count: "exact", head: true })
           .eq("course_id", input.course_id)
           .eq("challenge_type", "xp_race")
@@ -125,9 +134,22 @@ export const useCreateChallenge = () => {
         }
       }
 
+      const { institution_id } = input;
+      if (!institution_id) {
+        throw new Error("Challenge requires an institution");
+      }
+
+      // Whitelist to real columns only — drops `xp_race_acknowledged` and any
+      // other non-column field. The narrowed `institution_id` (NOT NULL) is
+      // guaranteed present above.
+      const row = pickColumns(
+        { ...input, institution_id },
+        SOCIAL_CHALLENGES_INSERT_COLUMNS
+      );
+
       const { data, error } = await supabase
-        .from("social_challenges" as never)
-        .insert(input as never)
+        .from("social_challenges")
+        .insert(row)
         .select()
         .single();
       if (error) throw error;

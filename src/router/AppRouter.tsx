@@ -76,6 +76,7 @@ const CurriculumMatrixPage = lazy(
 const TeacherDashboard = lazy(() => import("@/pages/teacher/TeacherDashboard"));
 const CLOListPage = lazy(() => import("@/pages/teacher/clos/CLOListPage"));
 const CLOForm = lazy(() => import("@/pages/teacher/clos/CLOForm"));
+const CLODetailPage = lazy(() => import("@/pages/teacher/clos/CLODetailPage"));
 const RubricListPage = lazy(
   () => import("@/pages/teacher/rubrics/RubricListPage")
 );
@@ -300,9 +301,6 @@ const TeamManagementPage = lazy(
 const TeamFormPage = lazy(() => import("@/pages/teacher/teams/TeamFormPage"));
 
 // Challenge Management (tasks 134-135)
-const ChallengeManager = lazy(
-  () => import("@/pages/teacher/challenges/ChallengeManager")
-);
 const ChallengeListView = lazy(
   () => import("@/pages/student/challenges/ChallengeListView")
 );
@@ -424,6 +422,7 @@ const InstitutionSettingsPage = lazy(
 
 // Shared pages
 const ProfilePage = lazy(() => import("@/pages/shared/ProfilePage"));
+const OutcomeChainView = lazy(() => import("@/pages/shared/OutcomeChainView"));
 
 // ---------------------------------------------------------------------------
 // Page-level error fallback
@@ -551,6 +550,7 @@ const AppRouter = () => (
               path="historical-evidence"
               element={<HistoricalEvidenceDashboard />}
             />
+            <Route path="outcome-chain" element={<OutcomeChainView />} />
             <Route
               path="badges/spotlight"
               element={<BadgeSpotlightManager />}
@@ -604,6 +604,7 @@ const AppRouter = () => (
               path="cohort-comparison"
               element={<CohortComparisonView />}
             />
+            <Route path="outcome-chain" element={<OutcomeChainView />} />
             <Route path="timetable" element={<TimetableManager />} />
             <Route path="settings/profile" element={<ProfilePage />} />
           </Route>
@@ -625,6 +626,7 @@ const AppRouter = () => (
             <Route path="clos" element={<CLOListPage />} />
             <Route path="clos/new" element={<CLOForm />} />
             <Route path="clos/:id/edit" element={<CLOForm />} />
+            <Route path="clos/:id" element={<CLODetailPage />} />
             <Route path="rubrics" element={<RubricListPage />} />
             <Route path="rubrics/new" element={<RubricBuilder />} />
             <Route path="rubrics/:id/edit" element={<RubricBuilder />} />
@@ -699,7 +701,6 @@ const AppRouter = () => (
             <Route path="teams/new" element={<TeamFormPage />} />
             <Route path="teams/:id/edit" element={<TeamFormPage />} />
             <Route path="challenges" element={<TeacherChallengeListPage />} />
-            <Route path="challenges/manage" element={<ChallengeManager />} />
             <Route path="challenges/new" element={<ChallengeFormPage />} />
             <Route path="challenges/:id/edit" element={<ChallengeFormPage />} />
             <Route path="team-health" element={<TeamHealthReportPage />} />

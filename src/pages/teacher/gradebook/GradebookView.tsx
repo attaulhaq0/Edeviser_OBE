@@ -2,17 +2,25 @@
 // GradebookView — Students × assessments matrix with weighted grades
 // =============================================================================
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { parseAsString, useQueryState } from "nuqs";
 import { useGradebookMatrix, useGradeCategories } from "@/hooks/useGradebook";
 import { useInstitutionSettings } from "@/hooks/useInstitutionSettings";
 import { useCourses } from "@/hooks/useCourses";
 import { useCourseSections } from "@/hooks/useCourseSections";
 import { mapToLetterGrade } from "@/lib/letterGradeMapper";
+import {
+  buildGradebookCsv,
+  computeClassAverages,
+  type ClassAverages,
+} from "@/lib/gradebookExport";
+import { downloadCsv } from "@/lib/exportCurriculumMatrixCsv";
 import type { GradeScale } from "@/types/app";
 import { DEFAULT_GRADE_SCALES } from "@/types/app";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import Shimmer from "@/components/shared/Shimmer";
 import {
   Select,
   SelectContent,
@@ -20,7 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, BookOpen, Settings } from "lucide-react";
+import { BookOpen, Settings, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 import GradeCategoryManager from "@/pages/teacher/gradebook/GradeCategoryManager";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -57,12 +65,27 @@ const GradebookView = () => {
   );
 
   const { data: coursesResult, isLoading: coursesLoading } = useCourses();
-  const courses = coursesResult?.data ?? [];
+  const courses = useMemo(
+    () => coursesResult?.data ?? [],
+    [coursesResult?.data]
+  );
   const { data: sections = [] } = useCourseSections(courseId || undefined);
   const { data: categories = [] } = useGradeCategories(courseId || undefined);
   const { data: gradebookData = [], isLoading: gradebookLoading } =
     useGradebookMatrix(courseId || undefined, sectionId || undefined);
   const { data: settings } = useInstitutionSettings();
+
+  // Req 13.1: auto-load the gradebook for the first available course when none
+  // is selected via the URL, so the teacher sees grades without a manual pick.
+  // The course selector below is retained for switching between courses.
+  useEffect(() => {
+    if (!courseId && !coursesLoading && courses.length > 0) {
+      const first = courses[0];
+      if (first) {
+        void setCourseId(first.id);
+      }
+    }
+  }, [courseId, coursesLoading, courses, setCourseId]);
 
   const gradeScales: GradeScale[] =
     settings?.grade_scales ?? DEFAULT_GRADE_SCALES;
@@ -77,14 +100,48 @@ const GradebookView = () => {
     [gradebookData, gradeScales]
   );
 
+  // Req 13.3: class-average row computed from the displayed matrix.
+  const classAverages = useMemo(
+    () => computeClassAverages(enrichedData),
+    [enrichedData]
+  );
+  const classAverageLetter = useMemo(
+    () => mapToLetterGrade(classAverages.finalAvg, gradeScales),
+    [classAverages.finalAvg, gradeScales]
+  );
+
   const totalWeight = categories.reduce((sum, c) => sum + c.weight_percent, 0);
   const isBalanced = totalWeight === 100;
+
+  const selectedCourse = courses.find((c) => c.id === courseId);
+  const canExport = enrichedData.length > 0;
+
+  // Req 13.2 + 13.6: reuse the existing CSV export pattern (`downloadCsv`).
+  const handleExportCsv = () => {
+    if (!canExport) return;
+    const csv = buildGradebookCsv(
+      enrichedData,
+      classAverages,
+      classAverageLetter
+    );
+    const slug = selectedCourse?.code ?? "gradebook";
+    downloadCsv(csv, `gradebook-${slug}.csv`);
+  };
 
   return (
     <div className="space-y-6">
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold tracking-tight">Gradebook</h1>
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={!canExport}
+          onClick={handleExportCsv}
+        >
+          <Download className="h-4 w-4" />
+          Export CSV
+        </Button>
       </div>
 
       {/* Filters */}
@@ -159,13 +216,19 @@ const GradebookView = () => {
             )}
 
             {coursesLoading || gradebookLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+              <div className="space-y-3">
+                <Shimmer className="h-10 w-full" />
+                <Shimmer className="h-64 w-full" />
               </div>
             ) : enrichedData.length === 0 ? (
               <NoStudents />
             ) : (
-              <GradebookTable data={enrichedData} categories={categories} />
+              <GradebookTable
+                data={enrichedData}
+                categories={categories}
+                classAverages={classAverages}
+                classAverageLetter={classAverageLetter}
+              />
             )}
           </TabsContent>
 
@@ -204,9 +267,16 @@ interface GradebookTableProps {
     name: string;
     weight_percent: number;
   }>;
+  classAverages: ClassAverages;
+  classAverageLetter: string;
 }
 
-const GradebookTable = ({ data, categories }: GradebookTableProps) => {
+const GradebookTable = ({
+  data,
+  categories,
+  classAverages,
+  classAverageLetter,
+}: GradebookTableProps) => {
   const firstRow = data[0] as (typeof data)[number] | undefined;
 
   return (
@@ -341,6 +411,64 @@ const GradebookTable = ({ data, categories }: GradebookTableProps) => {
             </tr>
           ))}
         </tbody>
+        {/* Class-average row computed from the displayed matrix (Req 13.3) */}
+        <tfoot>
+          <tr className="border-t-2 border-slate-300 bg-slate-100 font-bold">
+            <td className="sticky start-0 bg-slate-100 px-4 py-2 z-10">
+              Class Average
+            </td>
+            {(firstRow?.categories ?? []).map((cat) => [
+              ...cat.assessments.map((a) => {
+                const avg = classAverages.assessmentAvg.get(a.id);
+                return (
+                  <td
+                    key={`avg-${a.id}`}
+                    className="px-2 py-2 text-center tabular-nums border-s border-slate-200 text-gray-700"
+                  >
+                    {avg !== null && avg !== undefined ? avg : "—"}
+                  </td>
+                );
+              }),
+              <td
+                key={`avg-${cat.category_id}-sub`}
+                className="px-2 py-2 text-center tabular-nums border-s border-slate-200 bg-slate-200"
+              >
+                <span
+                  className={getGradeColor(
+                    classAverages.categoryAvg.get(cat.category_id) ?? 0
+                  )}
+                >
+                  {(
+                    classAverages.categoryAvg.get(cat.category_id) ?? 0
+                  ).toFixed(1)}
+                  %
+                </span>
+              </td>,
+            ])}
+            <td className="px-3 py-2 text-center tabular-nums border-s border-slate-200">
+              <span className={getGradeColor(classAverages.finalAvg)}>
+                {classAverages.finalAvg.toFixed(1)}%
+              </span>
+            </td>
+            <td className="px-3 py-2 text-center border-s border-slate-200">
+              <Badge
+                className={cn(
+                  "text-xs font-bold",
+                  classAverages.finalAvg >= 85
+                    ? "bg-green-50 text-green-600 border-green-200"
+                    : classAverages.finalAvg >= 70
+                    ? "bg-blue-50 text-blue-600 border-blue-200"
+                    : classAverages.finalAvg >= 50
+                    ? "bg-yellow-50 text-yellow-600 border-yellow-200"
+                    : "bg-red-50 text-red-600 border-red-200"
+                )}
+                variant="outline"
+              >
+                {classAverageLetter}
+              </Badge>
+            </td>
+          </tr>
+        </tfoot>
       </table>
     </div>
   );

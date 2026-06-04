@@ -1,5 +1,5 @@
 import { type ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { ArrowUpDown, Eye, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,6 +9,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { resolveName } from "@/lib/db/resolveName";
+import type { CLOWithRelations } from "@/hooks/useCLOs";
 import type { LearningOutcome, BloomsLevel } from "@/types/app";
 
 const bloomsBadgeStyles: Record<string, string> = {
@@ -26,9 +28,10 @@ const formatBloomsLevel = (level: string | null): string => {
 };
 
 export const createColumns = (
+  onView: (id: string) => void,
   onEdit: (id: string) => void,
   onDelete: (clo: LearningOutcome) => void
-): ColumnDef<LearningOutcome>[] => [
+): ColumnDef<CLOWithRelations>[] => [
   {
     accessorKey: "title",
     header: ({ column }) => (
@@ -68,16 +71,13 @@ export const createColumns = (
     },
   },
   {
-    accessorKey: "course_id",
+    id: "course",
     header: "Course",
-    cell: ({ row }) => {
-      const courseId = row.getValue("course_id") as string | null;
-      return (
-        <span className="text-gray-500 text-sm font-mono truncate max-w-[120px] inline-block">
-          {courseId ? courseId.slice(0, 8) + "…" : "—"}
-        </span>
-      );
-    },
+    cell: ({ row }) => (
+      <span className="text-gray-500 text-sm truncate max-w-[160px] inline-block">
+        {resolveName(row.original.courses?.name)}
+      </span>
+    ),
   },
   {
     accessorKey: "is_active",
@@ -110,6 +110,10 @@ export const createColumns = (
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={() => onView(row.original.id)}>
+            <Eye className="h-4 w-4" />
+            View
+          </DropdownMenuItem>
           <DropdownMenuItem onClick={() => onEdit(row.original.id)}>
             <Pencil className="h-4 w-4" />
             Edit

@@ -10,6 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { resolveName } from "@/lib/db/resolveName";
 import type { AssignmentWithRelations } from "@/hooks/useAssignments";
 
 const getStatusBadge = (dueDate: string) => {
@@ -70,11 +71,11 @@ export const createColumns = (
     ),
   },
   {
-    accessorKey: "course_id",
+    id: "course",
     header: "Course",
     cell: ({ row }) => (
-      <span className="text-gray-500 text-sm font-mono truncate max-w-[120px] inline-block">
-        {(row.getValue("course_id") as string).slice(0, 8)}…
+      <span className="text-gray-500 text-sm truncate max-w-[160px] inline-block">
+        {resolveName(row.original.courses?.name)}
       </span>
     ),
   },

@@ -41,6 +41,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import Shimmer from "@/components/shared/Shimmer";
+import { AnnouncementAttachmentManager } from "@/components/shared/AnnouncementAttachmentManager";
 
 // ─── Schema ─────────────────────────────────────────────────────────────────
 
@@ -376,6 +377,8 @@ const AnnouncementEditor = () => {
                   </Button>
                 </div>
               </div>
+              {/* Attachments (client-validated upload + signed-URL download) */}
+              <AnnouncementAttachmentManager announcementId={a.id} />
             </Card>
           ))}
         </div>

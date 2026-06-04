@@ -1,19 +1,38 @@
 // Task 66.4: Announcement detail view with Read habit timer (30+ seconds)
 // Requirements: 75.5
+// Feature: qa-partner-review-remediation — Req 15.4: student mark-as-read upsert.
+import { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useAnnouncement } from "@/hooks/useAnnouncements";
+import {
+  useAnnouncement,
+  useMarkAnnouncementRead,
+} from "@/hooks/useAnnouncements";
+import { useAuth } from "@/hooks/useAuth";
 import { useReadHabitTimer } from "@/hooks/useReadHabitTimer";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Shimmer from "@/components/shared/Shimmer";
+import { AnnouncementAttachmentList } from "@/components/shared/AnnouncementAttachmentList";
 import { ArrowLeft, Megaphone, Pin, Clock, CheckCircle2 } from "lucide-react";
 import { format } from "date-fns";
 
 const AnnouncementDetail = () => {
   const { announcementId } = useParams<{ announcementId: string }>();
   const navigate = useNavigate();
+  const { user, role } = useAuth();
   const { data: announcement, isLoading } = useAnnouncement(announcementId);
+  const markRead = useMarkAnnouncementRead();
+
+  // Record a read receipt when a student views the announcement. Idempotent via
+  // the UNIQUE(announcement_id, student_id) upsert, so repeated views are safe
+  // (Req 15.4). Only students record receipts.
+  const studentId = role === "student" ? user?.id : undefined;
+  const markReadMutate = markRead.mutate;
+  useEffect(() => {
+    if (!announcementId || !studentId) return;
+    markReadMutate({ announcementId, studentId });
+  }, [announcementId, studentId, markReadMutate]);
 
   // Wire into Read habit — 30+ seconds of viewing counts as "Read" habit
   const { elapsedSeconds, isCompleted } = useReadHabitTimer({
@@ -104,6 +123,10 @@ const AnnouncementDetail = () => {
               )}
             </div>
           </div>
+          {/* Attachments — signed-URL download from the private bucket */}
+          {announcementId && (
+            <AnnouncementAttachmentList announcementId={announcementId} />
+          )}
         </div>
       </Card>
     </div>

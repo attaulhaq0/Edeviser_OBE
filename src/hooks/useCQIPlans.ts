@@ -25,6 +25,9 @@ export interface CQIActionPlan {
   responsible_person: string;
   status: CQIPlanStatus;
   result_attainment: number | null;
+  root_cause: string | null;
+  due_date: string | null;
+  evidence_of_improvement: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -38,6 +41,9 @@ export interface CreateCQIPlanInput {
   target_attainment: number;
   action_description: string;
   responsible_person: string;
+  root_cause?: string | null;
+  due_date?: string | null;
+  evidence_of_improvement?: string | null;
 }
 
 export interface UpdateCQIPlanInput {
@@ -47,6 +53,9 @@ export interface UpdateCQIPlanInput {
   status?: CQIPlanStatus;
   target_attainment?: number;
   result_attainment?: number | null;
+  root_cause?: string | null;
+  due_date?: string | null;
+  evidence_of_improvement?: string | null;
 }
 
 // ─── Queries ────────────────────────────────────────────────────────────────
@@ -144,9 +153,8 @@ export const useCreateCQIPlan = () => {
       performedBy,
       ...input
     }: CreateCQIPlanInput & { performedBy: string }) => {
-      const { data, error } = await supabase
-        .from("cqi_action_plans")
-        .insert({
+      const insertPayload: Database["public"]["Tables"]["cqi_action_plans"]["Insert"] =
+        {
           program_id: input.program_id,
           semester_id: input.semester_id,
           outcome_id: input.outcome_id,
@@ -156,7 +164,16 @@ export const useCreateCQIPlan = () => {
           action_description: input.action_description,
           responsible_person: input.responsible_person,
           status: "planned",
-        })
+        };
+      if (input.root_cause !== undefined)
+        insertPayload.root_cause = input.root_cause;
+      if (input.due_date !== undefined) insertPayload.due_date = input.due_date;
+      if (input.evidence_of_improvement !== undefined)
+        insertPayload.evidence_of_improvement = input.evidence_of_improvement;
+
+      const { data, error } = await supabase
+        .from("cqi_action_plans")
+        .insert(insertPayload)
         .select()
         .single();
       if (error) throw error;
@@ -172,6 +189,9 @@ export const useCreateCQIPlan = () => {
           target_attainment: input.target_attainment,
           action_description: input.action_description,
           responsible_person: input.responsible_person,
+          root_cause: input.root_cause ?? null,
+          due_date: input.due_date ?? null,
+          evidence_of_improvement: input.evidence_of_improvement ?? null,
         },
         performed_by: performedBy,
       });
@@ -201,6 +221,10 @@ export const useUpdateCQIPlan = () => {
         payload.target_attainment = input.target_attainment;
       if (input.result_attainment !== undefined)
         payload.result_attainment = input.result_attainment;
+      if (input.root_cause !== undefined) payload.root_cause = input.root_cause;
+      if (input.due_date !== undefined) payload.due_date = input.due_date;
+      if (input.evidence_of_improvement !== undefined)
+        payload.evidence_of_improvement = input.evidence_of_improvement;
 
       const { data, error } = await supabase
         .from("cqi_action_plans")

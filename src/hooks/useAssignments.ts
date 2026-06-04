@@ -24,6 +24,7 @@ export interface Assignment {
 
 export interface AssignmentWithRelations extends Assignment {
   rubrics: { title: string } | null;
+  courses: { name: string } | null;
 }
 
 // ─── useAssignments — list assignments, optionally filtered by course_id ────
@@ -42,7 +43,9 @@ export const useAssignments = (
     queryFn: async (): Promise<PaginatedResult<AssignmentWithRelations>> => {
       let query = supabase
         .from("assignments")
-        .select("*, rubrics(title)", { count: "exact" })
+        .select("*, rubrics(title), courses!assignments_course_id_fkey(name)", {
+          count: "exact",
+        })
         .order("due_date", { ascending: true })
         .range(from, to);
 

@@ -1,4 +1,9 @@
 import { supabase } from "@/lib/supabase";
+import {
+  ANNOUNCEMENT_ATTACHMENT_ALLOWED_TYPES,
+  ANNOUNCEMENT_ATTACHMENT_MAX_SIZE_BYTES,
+  ANNOUNCEMENT_ATTACHMENT_ACCEPTED_LABEL,
+} from "@/lib/schemas/announcementAttachment";
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -266,4 +271,86 @@ export async function uploadTutorAttachmentFile(
   }
 
   return data.signedUrl;
+}
+
+// ─── Announcement Attachment Upload (Req 15.3) ───────────────────────────────
+
+/** Private bucket; access is via short-lived signed URLs. */
+const ANNOUNCEMENT_ATTACHMENT_BUCKET = "announcement-attachments";
+
+/**
+ * Validate an announcement attachment CLIENT-SIDE before upload
+ * (engineering-guardrails.md: validate file type + size before upload).
+ *
+ * Throws {@link FileValidationError} on any rule violation so the caller can
+ * surface the message and abort the upload.
+ */
+export function validateAnnouncementAttachmentFile(file: File): void {
+  if (!ANNOUNCEMENT_ATTACHMENT_ALLOWED_TYPES.includes(file.type)) {
+    throw new FileValidationError(
+      `Unsupported file type. Accepted formats: ${ANNOUNCEMENT_ATTACHMENT_ACCEPTED_LABEL}.`
+    );
+  }
+
+  if (file.size > ANNOUNCEMENT_ATTACHMENT_MAX_SIZE_BYTES) {
+    throw new FileValidationError(
+      `File exceeds the 10MB limit. Your file is ${(
+        file.size /
+        (1024 * 1024)
+      ).toFixed(1)}MB.`
+    );
+  }
+
+  // Reject filenames with path traversal sequences before constructing a path.
+  assertNoPathTraversal(file.name);
+}
+
+export interface UploadAnnouncementAttachmentParams {
+  file: File;
+  announcementId: string;
+}
+
+export interface UploadedAnnouncementAttachment {
+  storage_path: string;
+  file_name: string;
+  content_type: string;
+  size_bytes: number;
+}
+
+/**
+ * Upload a validated announcement attachment to the private
+ * `announcement-attachments` bucket under an `{announcementId}/` prefix and
+ * return the metadata to persist in `announcement_attachments`.
+ *
+ * The bucket is private — read access is via {@link getSignedUrl} at download
+ * time, never a public URL. Throws on validation or upload failure so the
+ * caller can abort rather than persisting a dangling row.
+ */
+export async function uploadAnnouncementAttachmentFile(
+  params: UploadAnnouncementAttachmentParams
+): Promise<UploadedAnnouncementAttachment> {
+  const { file, announcementId } = params;
+
+  validateAnnouncementAttachmentFile(file);
+
+  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+  const path = `${announcementId}/${crypto.randomUUID()}-${safeName}`;
+
+  // Guard against path traversal in the constructed storage path.
+  assertNoPathTraversal(path);
+
+  const { error: uploadError } = await supabase.storage
+    .from(ANNOUNCEMENT_ATTACHMENT_BUCKET)
+    .upload(path, file, { upsert: false });
+
+  if (uploadError) {
+    throw new Error(`Attachment upload failed: ${uploadError.message}`);
+  }
+
+  return {
+    storage_path: path,
+    file_name: file.name,
+    content_type: file.type,
+    size_bytes: file.size,
+  };
 }

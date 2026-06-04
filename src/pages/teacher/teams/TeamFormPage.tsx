@@ -78,7 +78,7 @@ const TeamFormPage = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const isEditMode = !!id;
-  const { user } = useAuth();
+  const { user, institutionId } = useAuth();
   const { data: paginatedCourses } = useCourses();
 
   const teacherCourses = useMemo(
@@ -148,6 +148,8 @@ const TeamFormPage = () => {
         {
           name: data.name,
           course_id: data.course_id,
+          institution_id: institutionId ?? "",
+          captain_id: selectedMembers[0] ?? "",
           created_by: user?.id ?? "",
           avatar_letter: data.name.charAt(0).toUpperCase(),
         },

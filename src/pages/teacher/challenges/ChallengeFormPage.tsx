@@ -135,8 +135,18 @@ const ChallengeFormPage = () => {
   }, [existingChallenge, form]);
 
   const onSubmit = (data: ChallengeFormData) => {
-    // XP Race validation
-    if (data.challenge_type === "xp_race" && !data.xp_race_acknowledged) {
+    // Feature: qa-partner-review-remediation — Req 2.4 / 2.5
+    // XP Race acknowledgment gate. This runs through `form.handleSubmit`, so it
+    // is re-evaluated against the current form snapshot on EVERY submit attempt
+    // (never cached or "once per session"). It must short-circuit before any
+    // create/update mutation is dispatched. Acknowledgment must be an explicit
+    // `true` — undefined/false/any non-true value blocks submission. The
+    // `xp_race_acknowledged` field stays a UI-only gate (see
+    // `src/lib/schemas/challenge.ts`) and is never sent to the database.
+    if (
+      data.challenge_type === "xp_race" &&
+      data.xp_race_acknowledged !== true
+    ) {
       toast.error("XP Race challenges require explicit acknowledgment");
       return;
     }
