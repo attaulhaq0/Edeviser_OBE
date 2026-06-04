@@ -15,6 +15,30 @@
     "noRecentActivity": "لا يوجد نشاط حديث.",
     "ploHeatmap": "خريطة حرارية لتحصيل مخرجات التعلم البرنامجية",
     "ploHeatmapEmpty": "ستظهر خريطة تحصيل مخرجات التعلم البرنامجية هنا عند توفر بيانات المخرجات.",
+    "ploHeatmapError": "تعذّر تحميل بيانات تحصيل مخرجات التعلم البرنامجية. يرجى المحاولة مرة أخرى.",
+    "ploHeatmapUnmeasured": "لا توجد بيانات",
+    "ploHeatmapLegend": "مستوى التحصيل",
+    "totalContributors": "{{count}} مخرجات مساهمة",
+    "ploDrillDown": {
+      "title": "تفاصيل تحصيل مخرج التعلم البرنامجي",
+      "subtitle": "التحصيل الإجمالي {{value}} ({{method}}). مخرجات المقررات المساهمة:",
+      "cloColumn": "مخرج تعلم المقرر",
+      "courseColumn": "المقرر",
+      "attainmentColumn": "التحصيل",
+      "emptyTitle": "لا توجد مخرجات مساهمة بعد",
+      "emptyDescription": "لا توجد مخرجات مقررات مرتبطة سجّلت تحصيلاً لهذا المخرج البرنامجي.",
+      "method": {
+        "program": "متوسط على مستوى البرنامج",
+        "clo_rollup": "مجمّع من مخرجات المقررات",
+        "none": "لا توجد بيانات مسجلة"
+      },
+      "level": {
+        "Excellent": "ممتاز",
+        "Satisfactory": "مُرضٍ",
+        "Developing": "قيد التطور",
+        "Not_Yet": "لم يتحقق بعد"
+      }
+    },
     "aiCoPilot": "أداء المساعد الذكي",
     "suggestionAcceptance": "قبول الاقتراحات",
     "totalSuggestions": "{{count}} اقتراح إجمالي",
@@ -22,6 +46,7 @@
     "validatedPredictions": "{{count}} تنبؤ تم التحقق منه",
     "draftAcceptance": "قبول المسودات",
     "feedbackDrafts": "{{count}} مسودة تغذية راجعة",
+    "aiNoFeedback": "لم يتم تسجيل أي ملاحظات للمساعد الذكي بعد",
     "onboardingPending": "{{count}} طالب لم يكمل التهيئة",
     "onboardingPendingAction": "عرض القائمة وإرسال تذكيرات",
     "graduateAttributes": "السمات التخرجية",

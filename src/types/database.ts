@@ -67,6 +67,13 @@ export type Database = {
             foreignKeyName: "academic_calendar_events_semester_id_fkey";
             columns: ["semester_id"];
             isOneToOne: false;
+            referencedRelation: "mv_historical_evidence";
+            referencedColumns: ["semester_id"];
+          },
+          {
+            foreignKeyName: "academic_calendar_events_semester_id_fkey";
+            columns: ["semester_id"];
+            isOneToOne: false;
             referencedRelation: "semesters";
             referencedColumns: ["id"];
           }
@@ -106,6 +113,80 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "ai_feedback_student_id_fkey";
+            columns: ["student_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      announcement_attachments: {
+        Row: {
+          announcement_id: string;
+          content_type: string | null;
+          created_at: string;
+          file_name: string;
+          id: string;
+          size_bytes: number | null;
+          storage_path: string;
+        };
+        Insert: {
+          announcement_id: string;
+          content_type?: string | null;
+          created_at?: string;
+          file_name: string;
+          id?: string;
+          size_bytes?: number | null;
+          storage_path: string;
+        };
+        Update: {
+          announcement_id?: string;
+          content_type?: string | null;
+          created_at?: string;
+          file_name?: string;
+          id?: string;
+          size_bytes?: number | null;
+          storage_path?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "announcement_attachments_announcement_id_fkey";
+            columns: ["announcement_id"];
+            isOneToOne: false;
+            referencedRelation: "announcements";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      announcement_reads: {
+        Row: {
+          announcement_id: string;
+          id: string;
+          read_at: string;
+          student_id: string;
+        };
+        Insert: {
+          announcement_id: string;
+          id?: string;
+          read_at?: string;
+          student_id: string;
+        };
+        Update: {
+          announcement_id?: string;
+          id?: string;
+          read_at?: string;
+          student_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "announcement_reads_announcement_id_fkey";
+            columns: ["announcement_id"];
+            isOneToOne: false;
+            referencedRelation: "announcements";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "announcement_reads_student_id_fkey";
             columns: ["student_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
@@ -1445,6 +1526,13 @@ export type Database = {
             foreignKeyName: "courses_semester_id_fkey";
             columns: ["semester_id"];
             isOneToOne: false;
+            referencedRelation: "mv_historical_evidence";
+            referencedColumns: ["semester_id"];
+          },
+          {
+            foreignKeyName: "courses_semester_id_fkey";
+            columns: ["semester_id"];
+            isOneToOne: false;
             referencedRelation: "semesters";
             referencedColumns: ["id"];
           },
@@ -1462,12 +1550,15 @@ export type Database = {
           action_description: string;
           baseline_attainment: number;
           created_at: string;
+          due_date: string | null;
+          evidence_of_improvement: string | null;
           id: string;
           outcome_id: string;
           outcome_type: string;
           program_id: string;
           responsible_person: string;
           result_attainment: number | null;
+          root_cause: string | null;
           semester_id: string;
           status: string;
           target_attainment: number;
@@ -1477,12 +1568,15 @@ export type Database = {
           action_description: string;
           baseline_attainment: number;
           created_at?: string;
+          due_date?: string | null;
+          evidence_of_improvement?: string | null;
           id?: string;
           outcome_id: string;
           outcome_type: string;
           program_id: string;
           responsible_person: string;
           result_attainment?: number | null;
+          root_cause?: string | null;
           semester_id: string;
           status?: string;
           target_attainment: number;
@@ -1492,12 +1586,15 @@ export type Database = {
           action_description?: string;
           baseline_attainment?: number;
           created_at?: string;
+          due_date?: string | null;
+          evidence_of_improvement?: string | null;
           id?: string;
           outcome_id?: string;
           outcome_type?: string;
           program_id?: string;
           responsible_person?: string;
           result_attainment?: number | null;
+          root_cause?: string | null;
           semester_id?: string;
           status?: string;
           target_attainment?: number;
@@ -1517,6 +1614,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "programs";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "cqi_action_plans_semester_id_fkey";
+            columns: ["semester_id"];
+            isOneToOne: false;
+            referencedRelation: "mv_historical_evidence";
+            referencedColumns: ["semester_id"];
           },
           {
             foreignKeyName: "cqi_action_plans_semester_id_fkey";
@@ -1902,6 +2006,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "programs";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "fee_structures_semester_id_fkey";
+            columns: ["semester_id"];
+            isOneToOne: false;
+            referencedRelation: "mv_historical_evidence";
+            referencedColumns: ["semester_id"];
           },
           {
             foreignKeyName: "fee_structures_semester_id_fkey";
@@ -7039,6 +7150,22 @@ export type Database = {
           }
         ];
       };
+      mv_historical_evidence: {
+        Row: {
+          avg_score: number | null;
+          blooms_level: Database["public"]["Enums"]["blooms_level"] | null;
+          developing_count: number | null;
+          evidence_count: number | null;
+          excellent_count: number | null;
+          not_yet_count: number | null;
+          outcome_type: Database["public"]["Enums"]["outcome_type"] | null;
+          satisfactory_count: number | null;
+          semester_id: string | null;
+          semester_name: string | null;
+          start_date: string | null;
+        };
+        Relationships: [];
+      };
     };
     Functions: {
       anonymize_user: { Args: { p_user_id: string }; Returns: Json };
@@ -7076,6 +7203,10 @@ export type Database = {
         Returns: undefined;
       };
       expire_stale_recovery_sessions: { Args: never; Returns: number };
+      fan_out_announcement_notifications: {
+        Args: { p_announcement_id: string };
+        Returns: number;
+      };
       get_badge_spotlight: {
         Args: { p_student_id: string; p_week_number: number };
         Returns: string;
@@ -7176,6 +7307,7 @@ export type Database = {
         Args: { p_institution_id: string };
         Returns: undefined;
       };
+      refresh_mv_historical_evidence: { Args: never; Returns: undefined };
       rls_isolation_violations: {
         Args: never;
         Returns: {
@@ -7205,6 +7337,10 @@ export type Database = {
       };
       seed_marketplace_items: {
         Args: { p_institution_id: string };
+        Returns: undefined;
+      };
+      send_teacher_nudge: {
+        Args: { p_message: string; p_student_id: string };
         Returns: undefined;
       };
     };

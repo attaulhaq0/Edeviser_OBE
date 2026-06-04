@@ -22,6 +22,17 @@ export interface CourseFilters {
   pageSize?: number;
 }
 
+/**
+ * A course list row with its program and teacher embedded via PostgREST
+ * to-one joins (Req 5.1). The names are resolved in the same round trip as the
+ * list query (no N+1, Req 5.5); the columns render them through `resolveName`
+ * so a missing relation falls back to a label instead of a Raw_UUID (Req 5.6).
+ */
+export interface CourseWithRelations extends Course {
+  programs: { name: string } | null;
+  teacher: { full_name: string | null } | null;
+}
+
 // ─── useCourses — list courses with optional search/program filter ───────────
 
 export const useCourses = (filters: CourseFilters = {}) => {
@@ -35,10 +46,13 @@ export const useCourses = (filters: CourseFilters = {}) => {
       string,
       unknown
     >),
-    queryFn: async (): Promise<PaginatedResult<Course>> => {
+    queryFn: async (): Promise<PaginatedResult<CourseWithRelations>> => {
       let query = supabase
         .from("courses")
-        .select("*", { count: "exact" })
+        .select(
+          "*, programs!courses_program_id_fkey(name), teacher:profiles!courses_teacher_id_fkey(full_name)",
+          { count: "exact" }
+        )
         .order("created_at", { ascending: false })
         .range(from, to);
 
@@ -54,7 +68,7 @@ export const useCourses = (filters: CourseFilters = {}) => {
       const { data, error, count } = await query;
       if (error) throw error;
       return {
-        data: (data ?? []) as Course[],
+        data: (data ?? []) as unknown as CourseWithRelations[],
         count: count ?? 0,
         page,
         pageSize,

@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
 import { useAuth } from "@/hooks/useAuth";
@@ -592,6 +593,11 @@ export const useTeacherRecoveryAlerts = () => {
 
 // ─── useSendNudge ───────────────────────────────────────────────────────────
 
+// Feature: qa-partner-review-remediation — Req 1
+// Nudges are cross-user notification inserts that the `notifications_own` RLS
+// policy forbids from the client. They are routed through the
+// `send_teacher_nudge` SECURITY DEFINER RPC, which verifies the teaching
+// relationship before inserting the notification.
 export const useSendNudge = () => {
   const queryClient = useQueryClient();
 
@@ -603,19 +609,19 @@ export const useSendNudge = () => {
       studentId: string;
       message: string;
     }) => {
-      const { error } = await supabase.from("notifications").insert({
-        user_id: studentId,
-        type: "nudge",
-        title: "Your teacher sent you a nudge",
-        body: message,
-        is_read: false,
+      const { error } = await supabase.rpc("send_teacher_nudge", {
+        p_student_id: studentId,
+        p_message: message,
       });
-      if (error) throw error;
+      if (error) throw error; // RLS/authorization errors surface here
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.teacherDashboard.lists(),
       });
+    },
+    onError: (err: unknown) => {
+      toast.error(err instanceof Error ? err.message : "Failed to send nudge");
     },
   });
 };

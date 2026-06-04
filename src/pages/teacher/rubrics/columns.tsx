@@ -5,6 +5,7 @@ import {
   Pencil,
   Trash2,
   Copy,
+  Eye,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,13 +15,15 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { Rubric } from "@/hooks/useRubrics";
+import { resolveName } from "@/lib/db/resolveName";
+import type { Rubric, RubricWithRelations } from "@/hooks/useRubrics";
 
 export const createColumns = (
   onEdit: (rubric: Rubric) => void,
   onDelete: (rubric: Rubric) => void,
-  onCopy: (rubric: Rubric) => void
-): ColumnDef<Rubric>[] => [
+  onCopy: (rubric: Rubric) => void,
+  onPreview: (rubric: Rubric) => void
+): ColumnDef<RubricWithRelations>[] => [
   {
     accessorKey: "title",
     header: ({ column }) => (
@@ -39,11 +42,11 @@ export const createColumns = (
     ),
   },
   {
-    accessorKey: "clo_id",
+    id: "clo",
     header: "CLO",
     cell: ({ row }) => (
-      <span className="text-gray-500 truncate max-w-[140px] inline-block">
-        {row.getValue("clo_id") as string}
+      <span className="text-gray-500 truncate max-w-[160px] inline-block">
+        {resolveName(row.original.learning_outcomes?.title)}
       </span>
     ),
   },
@@ -80,6 +83,10 @@ export const createColumns = (
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => onPreview(rubric)}>
+              <Eye className="h-4 w-4" />
+              Preview
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onEdit(rubric)}>
               <Pencil className="h-4 w-4" />
               Edit

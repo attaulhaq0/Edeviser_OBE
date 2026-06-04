@@ -1,5 +1,8 @@
 // @vitest-environment happy-dom
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { renderHook, waitFor } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { createElement, type ReactNode } from "react";
 
 // ─── Supabase mock ──────────────────────────────────────────────────────────
 
@@ -14,6 +17,7 @@ const mockOrder = vi.fn();
 const mockIn = vi.fn();
 const mockLimit = vi.fn();
 const mockThen = vi.fn();
+const mockRpc = vi.fn();
 
 const chainObj: Record<string, ReturnType<typeof vi.fn>> = {
   select: mockSelect,
@@ -32,6 +36,7 @@ const chainObj: Record<string, ReturnType<typeof vi.fn>> = {
 vi.mock("@/lib/supabase", () => ({
   supabase: {
     from: vi.fn(() => chainObj),
+    rpc: vi.fn((...args: unknown[]) => mockRpc(...args)),
   },
 }));
 
@@ -41,9 +46,34 @@ vi.mock("@/lib/auditLogger", () => ({
 
 import { supabase as _supabase } from "@/lib/supabase";
 import { logAuditEvent } from "@/lib/auditLogger";
+import { useCreateAnnouncement } from "@/hooks/useAnnouncements";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const supabase = _supabase as unknown as { from: (table: string) => any };
+type SupabaseResult = { data: unknown; error: unknown };
+interface MockChain {
+  select: (...args: unknown[]) => MockChain;
+  insert: (...args: unknown[]) => MockChain;
+  update: (...args: unknown[]) => MockChain;
+  delete: (...args: unknown[]) => MockChain;
+  eq: (...args: unknown[]) => MockChain;
+  order: (...args: unknown[]) => MockChain;
+  in: (...args: unknown[]) => MockChain;
+  limit: (...args: unknown[]) => Promise<SupabaseResult>;
+  maybeSingle: () => Promise<SupabaseResult>;
+  single: () => Promise<SupabaseResult>;
+  then: (cb: (v: unknown) => void) => Promise<void>;
+}
+const supabase = _supabase as unknown as {
+  from: (table: string) => MockChain;
+  rpc: (fn: string, args: unknown) => Promise<SupabaseResult>;
+};
+
+const createWrapper = () => {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  });
+  return ({ children }: { children: ReactNode }) =>
+    createElement(QueryClientProvider, { client: queryClient }, children);
+};
 
 describe("useAnnouncements hooks — queryFn / mutationFn logic", () => {
   beforeEach(() => {
@@ -58,6 +88,7 @@ describe("useAnnouncements hooks — queryFn / mutationFn logic", () => {
     mockLimit.mockResolvedValue({ data: [], error: null });
     mockMaybeSingle.mockResolvedValue({ data: null, error: null });
     mockSingle.mockResolvedValue({ data: { id: "ann-1" }, error: null });
+    mockRpc.mockResolvedValue({ data: 0, error: null });
     mockThen.mockImplementation((cb: (v: unknown) => void) => {
       cb({ error: null });
       return Promise.resolve();
@@ -135,7 +166,7 @@ describe("useAnnouncements hooks — queryFn / mutationFn logic", () => {
       chain.select();
       const result = await chain.single();
 
-      expect(result.data.title).toBe("New Announcement");
+      expect((result.data as { title: string }).title).toBe("New Announcement");
       expect(mockInsert).toHaveBeenCalled();
     });
 
@@ -157,6 +188,86 @@ describe("useAnnouncements hooks — queryFn / mutationFn logic", () => {
         })
       );
     });
+
+    it("fans out notifications via the RPC and never inserts to notifications (Req 15.1, 15.2)", async () => {
+      mockSingle.mockResolvedValue({
+        data: {
+          id: "ann-new",
+          course_id: "c-1",
+          author_id: "teacher-1",
+          title: "New Announcement",
+          content: "Hello students",
+          is_pinned: false,
+          created_at: "2024-01-01",
+          updated_at: "2024-01-01",
+        },
+        error: null,
+      });
+
+      const { result } = renderHook(() => useCreateAnnouncement(), {
+        wrapper: createWrapper(),
+      });
+
+      await result.current.mutateAsync({
+        course_id: "c-1",
+        author_id: "teacher-1",
+        title: "New Announcement",
+        content: "Hello students",
+        is_pinned: false,
+        performedBy: "teacher-1",
+      });
+
+      // Fan-out goes through the authorized RPC with the created announcement id
+      expect(mockRpc).toHaveBeenCalledWith(
+        "fan_out_announcement_notifications",
+        {
+          p_announcement_id: "ann-new",
+        }
+      );
+      // The buggy author-targeted notifications insert must be gone
+      const fromCalls = (supabase.from as unknown as ReturnType<typeof vi.fn>)
+        .mock.calls;
+      expect(fromCalls).not.toContainEqual(["notifications"]);
+    });
+
+    it("does not throw when fan-out fails (non-fatal) so the announcement is preserved", async () => {
+      mockSingle.mockResolvedValue({
+        data: {
+          id: "ann-new",
+          course_id: "c-1",
+          author_id: "teacher-1",
+          title: "New Announcement",
+          content: "Hello students",
+          is_pinned: false,
+          created_at: "2024-01-01",
+          updated_at: "2024-01-01",
+        },
+        error: null,
+      });
+      mockRpc.mockResolvedValue({ data: null, error: { message: "boom" } });
+      const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+      const { result } = renderHook(() => useCreateAnnouncement(), {
+        wrapper: createWrapper(),
+      });
+
+      const created = await result.current.mutateAsync({
+        course_id: "c-1",
+        author_id: "teacher-1",
+        title: "New Announcement",
+        content: "Hello students",
+        is_pinned: false,
+        performedBy: "teacher-1",
+      });
+
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+      expect(created.id).toBe("ann-new");
+      expect(errorSpy).toHaveBeenCalledWith(
+        "Announcement fan-out failed:",
+        "boom"
+      );
+      errorSpy.mockRestore();
+    });
   });
 
   describe("useUpdateAnnouncement mutationFn", () => {
@@ -172,7 +283,7 @@ describe("useAnnouncements hooks — queryFn / mutationFn logic", () => {
       chain.select();
       const result = await chain.single();
 
-      expect(result.data.title).toBe("Updated");
+      expect((result.data as { title: string }).title).toBe("Updated");
       expect(mockUpdate).toHaveBeenCalledWith({
         title: "Updated",
         is_pinned: true,

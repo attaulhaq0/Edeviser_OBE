@@ -68,6 +68,8 @@ const cqiPlans = createKeys("cqiPlans");
 const institutionSettings = createKeys("institutionSettings");
 const programAccreditations = createKeys("programAccreditations");
 const announcements = createKeys("announcements");
+const announcementAttachments = createKeys("announcementAttachments");
+const announcementReads = createKeys("announcementReads");
 const courseModules = createKeys("courseModules");
 const courseMaterials = createKeys("courseMaterials");
 const discussionThreads = createKeys("discussionThreads");
@@ -286,6 +288,7 @@ export const queryKeys = {
   semesters,
   departments,
   courseSections,
+  sectionAttainment: createKeys("sectionAttainment"),
   surveys,
   surveyQuestions,
   surveyResponses,
@@ -293,6 +296,8 @@ export const queryKeys = {
   institutionSettings,
   programAccreditations,
   announcements,
+  announcementAttachments,
+  announcementReads,
   courseModules,
   courseMaterials,
   discussionThreads,
@@ -360,9 +365,11 @@ export const queryKeys = {
   sankeyData: createKeys("sankeyData"),
   gapAnalysisData: createKeys("gapAnalysisData"),
   coverageHeatmapData: createKeys("coverageHeatmapData"),
+  adminPLOHeatmap: createKeys("adminPLOHeatmap"),
   semesterTrends: createKeys("semesterTrends"),
   cohortComparison: createKeys("cohortComparison"),
   historicalEvidence: createKeys("historicalEvidence"),
+  outcomeChain: createKeys("outcomeChain"),
   // Teams
   teams: createKeys("teams"),
   teamMembers: createKeys("teamMembers"),

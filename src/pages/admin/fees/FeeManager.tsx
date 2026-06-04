@@ -13,6 +13,13 @@ import {
   FormControl,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import Shimmer from "@/components/shared/Shimmer";
 import { Plus, Loader2, DollarSign } from "lucide-react";
 import { toast } from "sonner";
@@ -21,10 +28,12 @@ import {
   useCreateFeeStructure,
   type FeeStructure,
 } from "@/hooks/useFees";
+import { usePrograms } from "@/hooks/usePrograms";
+import { useSemesters } from "@/hooks/useSemesters";
 
 const schema = z.object({
-  program_id: z.string().min(1),
-  semester_id: z.string().min(1),
+  program_id: z.string().uuid("Select a program"),
+  semester_id: z.string().uuid("Select a semester"),
   fee_type: z.string().min(1, "Fee type is required"),
   amount: z.number().min(0),
   currency: z.string().min(1),
@@ -35,6 +44,9 @@ type FeeFormData = z.infer<typeof schema>;
 
 const FeeManager = () => {
   const { data: fees = [], isLoading } = useFeeStructures();
+  const { data: programsResult } = usePrograms({ pageSize: 100 });
+  const programs = programsResult?.data ?? [];
+  const { data: semesters = [] } = useSemesters();
   const createMutation = useCreateFeeStructure();
   const form = useForm<FeeFormData>({
     resolver: zodResolver(schema),
@@ -47,6 +59,10 @@ const FeeManager = () => {
       due_date: "",
     },
   });
+
+  const selectedProgram = form.watch("program_id");
+  const selectedSemester = form.watch("semester_id");
+  const selectionIncomplete = !selectedProgram || !selectedSemester;
 
   const onSubmit = (data: FeeFormData) => {
     createMutation.mutate(data as Omit<FeeStructure, "id" | "created_at">, {
@@ -164,10 +180,21 @@ const FeeManager = () => {
                 name="program_id"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Program ID</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="UUID" />
-                    </FormControl>
+                    <FormLabel>Program</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="w-full bg-white">
+                          <SelectValue placeholder="Select a program" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {programs.map((p) => (
+                          <SelectItem key={p.id} value={p.id}>
+                            {p.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -178,17 +205,28 @@ const FeeManager = () => {
               name="semester_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Semester ID</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="UUID" />
-                  </FormControl>
+                  <FormLabel>Semester</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger className="w-full bg-white">
+                        <SelectValue placeholder="Select a semester" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {semesters.map((s) => (
+                        <SelectItem key={s.id} value={s.id}>
+                          {s.name} ({s.code})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
             />
             <Button
               type="submit"
-              disabled={createMutation.isPending}
+              disabled={createMutation.isPending || selectionIncomplete}
               className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
             >
               {createMutation.isPending ? (
@@ -198,6 +236,11 @@ const FeeManager = () => {
               )}{" "}
               Create
             </Button>
+            {selectionIncomplete && (
+              <p className="text-xs text-slate-500">
+                Select a program and a semester to create a fee structure.
+              </p>
+            )}
           </form>
         </Form>
       </Card>

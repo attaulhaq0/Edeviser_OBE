@@ -46,7 +46,7 @@ interface CreateTeamFormData {
 const CreateTeamPage = () => {
   const navigate = useNavigate();
   const { t } = useTranslation("student");
-  const { user } = useAuth();
+  const { user, institutionId } = useAuth();
   const studentId = user?.id ?? "";
   const { data: courses, isLoading: coursesLoading } = useStudentFormedCourses(
     studentId || undefined
@@ -90,6 +90,7 @@ const CreateTeamPage = () => {
       {
         name: data.name,
         course_id: data.course_id,
+        institution_id: institutionId ?? "",
         captain_id: studentId,
         created_by: studentId,
         avatar_letter: data.name.charAt(0).toUpperCase(),

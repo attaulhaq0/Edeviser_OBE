@@ -1,8 +1,38 @@
-import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import RubricPreview from "@/components/shared/RubricPreview";
+import RubricPreviewDialog from "@/components/shared/RubricPreviewDialog";
 import type { RubricWithCriteria } from "@/hooks/useRubrics";
+
+// ---------------------------------------------------------------------------
+// RubricPreviewDialog wiring (mocks must precede its import)
+//
+// The dialog loads its rubric through `useRubric`; mock the hook module so the
+// dialog renders the fixture without any Supabase/network call. Only the
+// runtime `useRubric` export is mocked — the existing RubricPreview tests above
+// rely solely on the (type-only) `RubricWithCriteria` import, which is erased.
+// ---------------------------------------------------------------------------
+
+const mockUseRubric = vi.fn<
+  () => {
+    data: RubricWithCriteria | null | undefined;
+    isLoading: boolean;
+    isError: boolean;
+  }
+>();
+
+vi.mock("@/hooks/useRubrics", () => ({
+  useRubric: () => mockUseRubric(),
+}));
+
+// happy-dom does not implement ResizeObserver, which Radix Dialog relies on.
+class MockResizeObserver {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+vi.stubGlobal("ResizeObserver", MockResizeObserver);
 
 // ---------------------------------------------------------------------------
 // Test fixtures
@@ -206,5 +236,140 @@ describe("RubricPreview", () => {
 
     render(<RubricPreview rubric={rubric} />);
     expect(screen.getByText("—")).toBeInTheDocument();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// RubricPreviewDialog — read-only rubric preview dialog (Req 14.2, 14.3)
+//
+// Feature: qa-partner-review-remediation — Req 14 (P10)
+// Validates: Requirements 14.2, 14.3
+//
+// The rubric list "Preview" action opens a read-only dialog (Req 14.2) that
+// renders the rubric's criteria and performance levels with NO edit controls
+// (Req 14.3). These tests render the dialog open with a mocked `useRubric` and
+// assert the rubric content shows and that no Save/Edit/Delete affordances are
+// present.
+// ---------------------------------------------------------------------------
+
+describe("RubricPreviewDialog", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("renders the rubric criteria and levels read-only when open (Req 14.2, 14.3)", () => {
+    mockUseRubric.mockReturnValue({
+      data: makeRubric(),
+      isLoading: false,
+      isError: false,
+    });
+
+    render(
+      <RubricPreviewDialog
+        rubricId="rubric-1"
+        open={true}
+        onOpenChange={vi.fn()}
+      />
+    );
+
+    const dialog = screen.getByRole("dialog");
+    const inDialog = within(dialog);
+
+    // Read-only heading + the rubric content (criteria + levels) are shown.
+    expect(inDialog.getByText("Rubric Preview")).toBeInTheDocument();
+    expect(inDialog.getByText("Essay Rubric")).toBeInTheDocument();
+    expect(inDialog.getByText("Clarity")).toBeInTheDocument();
+    expect(inDialog.getByText("Grammar")).toBeInTheDocument();
+    expect(inDialog.getByText("Proficient")).toBeInTheDocument();
+  });
+
+  it("exposes NO edit controls (no Save/Edit/Delete buttons) (Req 14.3)", () => {
+    mockUseRubric.mockReturnValue({
+      data: makeRubric(),
+      isLoading: false,
+      isError: false,
+    });
+
+    render(
+      <RubricPreviewDialog
+        rubricId="rubric-1"
+        open={true}
+        onOpenChange={vi.fn()}
+      />
+    );
+
+    const dialog = screen.getByRole("dialog");
+    const inDialog = within(dialog);
+
+    // No mutating affordances of any kind are rendered.
+    expect(
+      inDialog.queryByRole("button", { name: /save/i })
+    ).not.toBeInTheDocument();
+    expect(
+      inDialog.queryByRole("button", { name: /edit/i })
+    ).not.toBeInTheDocument();
+    expect(
+      inDialog.queryByRole("button", { name: /delete/i })
+    ).not.toBeInTheDocument();
+    expect(
+      inDialog.queryByRole("button", { name: /copy/i })
+    ).not.toBeInTheDocument();
+    // No form inputs/textboxes either — the preview is strictly read-only.
+    expect(inDialog.queryByRole("textbox")).not.toBeInTheDocument();
+  });
+
+  it("does not render dialog content when closed", () => {
+    mockUseRubric.mockReturnValue({
+      data: makeRubric(),
+      isLoading: false,
+      isError: false,
+    });
+
+    render(
+      <RubricPreviewDialog
+        rubricId="rubric-1"
+        open={false}
+        onOpenChange={vi.fn()}
+      />
+    );
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.queryByText("Essay Rubric")).not.toBeInTheDocument();
+  });
+
+  it("shows a shimmer while the rubric loads", () => {
+    mockUseRubric.mockReturnValue({
+      data: undefined,
+      isLoading: true,
+      isError: false,
+    });
+
+    render(
+      <RubricPreviewDialog
+        rubricId="rubric-1"
+        open={true}
+        onOpenChange={vi.fn()}
+      />
+    );
+
+    expect(screen.getByTestId("rubric-preview-loading")).toBeInTheDocument();
+  });
+
+  it("shows a not-found empty state when the rubric is missing", () => {
+    mockUseRubric.mockReturnValue({
+      data: null,
+      isLoading: false,
+      isError: false,
+    });
+
+    render(
+      <RubricPreviewDialog
+        rubricId="missing"
+        open={true}
+        onOpenChange={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText("Rubric not found")).toBeInTheDocument();
   });
 });

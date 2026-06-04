@@ -33,10 +33,15 @@ import {
   useCreateTeam,
   useAutoGenerateTeams,
 } from "@/hooks/useTeams";
+import { useCourseRoster } from "@/hooks/useTeamFormation";
 
 const teamSchema = z.object({
   name: z.string().min(1, "Team name is required"),
   course_id: z.string().min(1, "Course is required"),
+  // A team captain must be a real student in the course — never the creating
+  // teacher (who is not a team member). Required so `teams.captain_id`
+  // (NOT NULL, FK → profiles) is populated with a valid member.
+  captain_id: z.string().uuid("Select a team captain"),
 });
 
 const autoGenSchema = z.object({
@@ -45,7 +50,7 @@ const autoGenSchema = z.object({
 });
 
 const TeamManager = () => {
-  const { user } = useAuth();
+  const { user, institutionId } = useAuth();
   const { data: coursesData } = useCourses();
   const courses = coursesData?.data ?? [];
   const [selectedCourse, setSelectedCourse] = useState("");
@@ -55,8 +60,14 @@ const TeamManager = () => {
 
   const form = useForm<z.infer<typeof teamSchema>>({
     resolver: zodResolver(teamSchema),
-    defaultValues: { name: "", course_id: "" },
+    defaultValues: { name: "", course_id: "", captain_id: "" },
   });
+
+  // Roster for the manual create form's captain selector — scoped to the
+  // course chosen inside that form (independent of the page-level filter).
+  const createCourseId = form.watch("course_id");
+  const { data: createRoster = [], isLoading: createRosterLoading } =
+    useCourseRoster(createCourseId || undefined);
 
   const autoForm = useForm<z.infer<typeof autoGenSchema>>({
     resolver: zodResolver(autoGenSchema),
@@ -65,7 +76,14 @@ const TeamManager = () => {
 
   const onSubmit = (data: z.infer<typeof teamSchema>) => {
     createMutation.mutate(
-      { ...data, created_by: user?.id ?? "" },
+      {
+        name: data.name,
+        course_id: data.course_id,
+        institution_id: institutionId ?? "",
+        // Captain is the selected student member, not the creating teacher.
+        captain_id: data.captain_id,
+        created_by: user?.id ?? "",
+      },
       {
         onSuccess: () => {
           toast.success("Team created");
@@ -78,7 +96,11 @@ const TeamManager = () => {
 
   const onAutoGenerate = (data: z.infer<typeof autoGenSchema>) => {
     autoGenMutation.mutate(
-      { ...data, created_by: user?.id ?? "" },
+      {
+        ...data,
+        created_by: user?.id ?? "",
+        institution_id: institutionId ?? "",
+      },
       {
         onSuccess: (result) =>
           toast.success(
@@ -164,7 +186,11 @@ const TeamManager = () => {
                     <FormControl>
                       <Select
                         value={field.value}
-                        onValueChange={field.onChange}
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                          // Roster changes with the course — clear any stale captain.
+                          form.setValue("captain_id", "");
+                        }}
                       >
                         <SelectTrigger className="bg-white">
                           <SelectValue placeholder="Select" />
@@ -190,6 +216,47 @@ const TeamManager = () => {
                     <FormLabel>Team Name</FormLabel>
                     <FormControl>
                       <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="captain_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Team Captain</FormLabel>
+                    <FormControl>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        disabled={!createCourseId || createRosterLoading}
+                      >
+                        <SelectTrigger className="bg-white">
+                          <SelectValue
+                            placeholder={
+                              !createCourseId
+                                ? "Select a course first"
+                                : createRosterLoading
+                                ? "Loading students…"
+                                : createRoster.length === 0
+                                ? "No enrolled students"
+                                : "Select a captain"
+                            }
+                          />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {createRoster.map((student) => (
+                            <SelectItem
+                              key={student.student_id}
+                              value={student.student_id}
+                            >
+                              {student.full_name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </FormControl>
                     <FormMessage />
                   </FormItem>

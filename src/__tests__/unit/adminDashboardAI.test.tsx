@@ -43,6 +43,13 @@ vi.mock("@/hooks/useAIPerformance", () => ({
   useAIPerformance: () => mockAIPerformance(),
 }));
 
+// PLO heatmap hook uses TanStack Query; mock it so this AI-focused suite needs
+// no QueryClientProvider. Heatmap behavior is covered by adminPLOHeatmap.test.tsx.
+vi.mock("@/hooks/useAdminPLOHeatmap", () => ({
+  useAdminPLOHeatmap: () => ({ data: [], isLoading: false, isError: false }),
+  PLO_ATTAINMENT_UNMEASURED: -1,
+}));
+
 vi.mock("date-fns", () => ({
   formatDistanceToNow: () => "2 hours ago",
 }));
@@ -160,12 +167,14 @@ describe("AdminDashboard — AI Co-Pilot Performance section", () => {
     expect(screen.getByText("30 feedback drafts")).toBeInTheDocument();
   });
 
-  it("shows 0% defaults when no AI data is available", () => {
+  it("shows a distinct empty state (not 0%) when no AI data is available", () => {
     mockAIPerformance.mockReturnValue({ data: null, isLoading: false });
     renderDashboard();
-    // All three metrics should show 0%
-    const zeroPercents = screen.getAllByText("0%");
-    expect(zeroPercents.length).toBeGreaterThanOrEqual(3);
+    // With zero totals, tiles render the no-feedback empty state instead of 0%
+    const emptyStates = screen.getAllByText("No AI feedback recorded yet");
+    expect(emptyStates.length).toBeGreaterThanOrEqual(3);
+    // A bare 0% must NOT be shown for a no-data condition
+    expect(screen.queryByText("0%")).not.toBeInTheDocument();
   });
 
   it("shows 0 totals when no AI data is available", () => {

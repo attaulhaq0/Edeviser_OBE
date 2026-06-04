@@ -15,6 +15,30 @@
     "noRecentActivity": "No recent activity.",
     "ploHeatmap": "PLO Attainment Heatmap",
     "ploHeatmapEmpty": "PLO attainment heatmap will appear here once outcome data is available.",
+    "ploHeatmapError": "Unable to load PLO attainment data. Please try again.",
+    "ploHeatmapUnmeasured": "No data",
+    "ploHeatmapLegend": "Attainment level",
+    "totalContributors": "{{count}} contributing outcomes",
+    "ploDrillDown": {
+      "title": "PLO Attainment Detail",
+      "subtitle": "Overall attainment {{value}} ({{method}}). Contributing course outcomes:",
+      "cloColumn": "Course Outcome (CLO)",
+      "courseColumn": "Course",
+      "attainmentColumn": "Attainment",
+      "emptyTitle": "No contributing outcomes yet",
+      "emptyDescription": "No mapped course outcomes have recorded attainment for this program outcome.",
+      "method": {
+        "program": "program-scope mean",
+        "clo_rollup": "rolled up from course outcomes",
+        "none": "no recorded data"
+      },
+      "level": {
+        "Excellent": "Excellent",
+        "Satisfactory": "Satisfactory",
+        "Developing": "Developing",
+        "Not_Yet": "Not Yet"
+      }
+    },
     "aiCoPilot": "AI Co-Pilot Performance",
     "suggestionAcceptance": "Suggestion Acceptance",
     "totalSuggestions": "{{count}} total suggestions",
@@ -22,6 +46,7 @@
     "validatedPredictions": "{{count}} validated predictions",
     "draftAcceptance": "Draft Acceptance",
     "feedbackDrafts": "{{count}} feedback drafts",
+    "aiNoFeedback": "No AI feedback recorded yet",
     "onboardingPending": "{{count}} student(s) haven't completed onboarding",
     "onboardingPendingAction": "View list and send reminders",
     "graduateAttributes": "Graduate Attributes",

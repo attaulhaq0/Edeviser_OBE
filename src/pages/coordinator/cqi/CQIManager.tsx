@@ -70,6 +70,9 @@ const cqiPlanSchema = z.object({
     .string()
     .min(1, "Responsible person is required")
     .max(255),
+  root_cause: z.string().max(2000).optional(),
+  due_date: z.string().optional(),
+  evidence_of_improvement: z.string().max(2000).optional(),
 });
 
 type CQIPlanFormData = z.infer<typeof cqiPlanSchema>;
@@ -120,6 +123,9 @@ const CQIPlanFormDialog = ({
       target_attainment: plan?.target_attainment ?? 70,
       action_description: plan?.action_description ?? "",
       responsible_person: plan?.responsible_person ?? "",
+      root_cause: plan?.root_cause ?? "",
+      due_date: plan?.due_date ?? "",
+      evidence_of_improvement: plan?.evidence_of_improvement ?? "",
     },
   });
 
@@ -133,6 +139,13 @@ const CQIPlanFormDialog = ({
   const onSubmit = (data: CQIPlanFormData) => {
     if (!user?.id) return;
 
+    // Normalize optional text/date fields: empty string → null (don't persist blanks)
+    const rootCause = data.root_cause?.trim() ? data.root_cause.trim() : null;
+    const dueDate = data.due_date ? data.due_date : null;
+    const evidenceOfImprovement = data.evidence_of_improvement?.trim()
+      ? data.evidence_of_improvement.trim()
+      : null;
+
     if (isEdit) {
       updateMutation.mutate(
         {
@@ -140,6 +153,9 @@ const CQIPlanFormDialog = ({
           action_description: data.action_description,
           responsible_person: data.responsible_person,
           target_attainment: data.target_attainment,
+          root_cause: rootCause,
+          due_date: dueDate,
+          evidence_of_improvement: evidenceOfImprovement,
           performedBy: user.id,
         },
         {
@@ -153,7 +169,13 @@ const CQIPlanFormDialog = ({
       );
     } else {
       createMutation.mutate(
-        { ...data, performedBy: user.id },
+        {
+          ...data,
+          root_cause: rootCause,
+          due_date: dueDate,
+          evidence_of_improvement: evidenceOfImprovement,
+          performedBy: user.id,
+        },
         {
           onSuccess: () => {
             toast.success("CQI plan created");
@@ -341,6 +363,53 @@ const CQIPlanFormDialog = ({
                 </FormItem>
               )}
             />
+            <FormField
+              control={form.control}
+              name="root_cause"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Root Cause</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      rows={3}
+                      placeholder="What underlying cause led to the attainment gap?"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="due_date"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Deadline</FormLabel>
+                  <FormControl>
+                    <Input type="date" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="evidence_of_improvement"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Evidence of Improvement</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      rows={3}
+                      placeholder="What measurable evidence shows the action improved attainment?"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             {isEdit && (
               <FormField
                 control={form.control}
@@ -512,6 +581,20 @@ const PlanRow = ({
         <p className="text-xs text-gray-400">
           Responsible: {plan.responsible_person}
         </p>
+        {plan.due_date && (
+          <p className="text-xs text-gray-400">Deadline: {plan.due_date}</p>
+        )}
+        {plan.root_cause && (
+          <p className="text-xs text-gray-500">
+            <span className="font-medium">Root Cause:</span> {plan.root_cause}
+          </p>
+        )}
+        {plan.evidence_of_improvement && (
+          <p className="text-xs text-gray-500">
+            <span className="font-medium">Evidence of Improvement:</span>{" "}
+            {plan.evidence_of_improvement}
+          </p>
+        )}
       </div>
       <div className="flex items-center gap-2 ms-4 shrink-0">
         {nextStatus && !isEvaluateTransition && (

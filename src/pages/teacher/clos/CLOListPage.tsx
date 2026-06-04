@@ -48,6 +48,7 @@ const CLOListPage = () => {
   });
 
   const columns = createColumns(
+    (id) => navigate(`/teacher/clos/${id}`),
     (id) => navigate(`/teacher/clos/${id}/edit`),
     (clo) => setCloToDelete(clo)
   );

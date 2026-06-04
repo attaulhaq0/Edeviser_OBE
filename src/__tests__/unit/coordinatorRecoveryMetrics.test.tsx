@@ -70,8 +70,17 @@ vi.mock("@/hooks/useCourseSections", () => ({
   useCourseSections: () => ({ data: [], isLoading: false }),
 }));
 
+vi.mock("@/hooks/useSectionAttainment", () => ({
+  useSectionAttainment: () => ({ data: [], isLoading: false }),
+  useSectionDrillDown: () => ({ data: null, isLoading: false }),
+}));
+
 vi.mock("@/components/shared/SectionComparisonChart", () => ({
   default: () => <div data-testid="section-comparison-chart" />,
+}));
+
+vi.mock("@/components/shared/SectionDrillDownDialog", () => ({
+  default: () => null,
 }));
 
 vi.mock("@/hooks/useCQIPlans", () => ({

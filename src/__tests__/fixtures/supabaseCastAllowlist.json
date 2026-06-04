@@ -1,0 +1,285 @@
+{
+  "maxCount": 152,
+  "entries": [
+    {
+      "file": "src/hooks/useBloomsProgression.ts",
+      "pattern": "from-as-never"
+    },
+    {
+      "file": "src/hooks/useChallengeProgress.ts",
+      "pattern": "from-as-never"
+    },
+    {
+      "file": "src/hooks/useChallenges.ts",
+      "pattern": "from-as-never"
+    },
+    {
+      "file": "src/hooks/useChallenges.ts",
+      "pattern": "insert-as-never"
+    },
+    {
+      "file": "src/hooks/useChallenges.ts",
+      "pattern": "update-as-never"
+    },
+    {
+      "file": "src/hooks/useClassDonations.ts",
+      "pattern": "insert-as-never"
+    },
+    {
+      "file": "src/hooks/useCLOs.ts",
+      "pattern": "insert-as-never"
+    },
+    {
+      "file": "src/hooks/useComebackChallenge.ts",
+      "pattern": "update-as-never"
+    },
+    {
+      "file": "src/hooks/useCompetencyFrameworks.ts",
+      "pattern": "from-as-never"
+    },
+    {
+      "file": "src/hooks/useCompetencyFrameworks.ts",
+      "pattern": "insert-as-never"
+    },
+    {
+      "file": "src/hooks/useContributionStatus.ts",
+      "pattern": "from-as-never"
+    },
+    {
+      "file": "src/hooks/useCourses.ts",
+      "pattern": "insert-as-never"
+    },
+    {
+      "file": "src/hooks/useDynamicPricing.ts",
+      "pattern": "update-as-never"
+    },
+    {
+      "file": "src/hooks/useEmailPreferences.ts",
+      "pattern": "update-as-never"
+    },
+    {
+      "file": "src/hooks/useFlowCheckIns.ts",
+      "pattern": "from-as-never"
+    },
+    {
+      "file": "src/hooks/useFlowCheckIns.ts",
+      "pattern": "insert-as-never"
+    },
+    {
+      "file": "src/hooks/useGraduateAttributes.ts",
+      "pattern": "from-as-never"
+    },
+    {
+      "file": "src/hooks/useGraduateAttributes.ts",
+      "pattern": "insert-as-never"
+    },
+    {
+      "file": "src/hooks/useGraduateAttributes.ts",
+      "pattern": "update-as-never"
+    },
+    {
+      "file": "src/hooks/useHeatmapData.ts",
+      "pattern": "from-as-never"
+    },
+    {
+      "file": "src/hooks/useKnowledgeQuestAdmin.ts",
+      "pattern": "insert-as-never"
+    },
+    {
+      "file": "src/hooks/usePeerTeaching.ts",
+      "pattern": "from-as-never"
+    },
+    {
+      "file": "src/hooks/usePeerTeaching.ts",
+      "pattern": "insert-as-never"
+    },
+    {
+      "file": "src/hooks/usePeerTeaching.ts",
+      "pattern": "upsert-as-never"
+    },
+    {
+      "file": "src/hooks/usePlannerTasks.ts",
+      "pattern": "insert-as-never"
+    },
+    {
+      "file": "src/hooks/usePlannerTasks.ts",
+      "pattern": "update-as-never"
+    },
+    {
+      "file": "src/hooks/usePLOs.ts",
+      "pattern": "insert-as-never"
+    },
+    {
+      "file": "src/hooks/useReflectionDigest.ts",
+      "pattern": "update-as-never"
+    },
+    {
+      "file": "src/hooks/useReplacementVotes.ts",
+      "pattern": "from-as-never"
+    },
+    {
+      "file": "src/hooks/useReplacementVotes.ts",
+      "pattern": "insert-as-never"
+    },
+    {
+      "file": "src/hooks/useReplacementVotes.ts",
+      "pattern": "update-as-never"
+    },
+    {
+      "file": "src/hooks/useReviewSchedule.ts",
+      "pattern": "from-as-never"
+    },
+    {
+      "file": "src/hooks/useReviewSchedule.ts",
+      "pattern": "insert-as-never"
+    },
+    {
+      "file": "src/hooks/useReviewSchedule.ts",
+      "pattern": "update-as-never"
+    },
+    {
+      "file": "src/hooks/useSessionCompletion.ts",
+      "pattern": "from-as-never"
+    },
+    {
+      "file": "src/hooks/useSessionCompletion.ts",
+      "pattern": "insert-as-never"
+    },
+    {
+      "file": "src/hooks/useSessionCompletion.ts",
+      "pattern": "update-as-never"
+    },
+    {
+      "file": "src/hooks/useSessionCompletion.ts",
+      "pattern": "upsert-as-never"
+    },
+    {
+      "file": "src/hooks/useSessionEvidence.ts",
+      "pattern": "insert-as-never"
+    },
+    {
+      "file": "src/hooks/useSessionIntent.ts",
+      "pattern": "from-as-never"
+    },
+    {
+      "file": "src/hooks/useSessionIntent.ts",
+      "pattern": "insert-as-never"
+    },
+    {
+      "file": "src/hooks/useSessionReflections.ts",
+      "pattern": "insert-as-never"
+    },
+    {
+      "file": "src/hooks/useStudentContent.ts",
+      "pattern": "insert-as-never"
+    },
+    {
+      "file": "src/hooks/useStudentContent.ts",
+      "pattern": "update-as-never"
+    },
+    {
+      "file": "src/hooks/useStudySessions.ts",
+      "pattern": "insert-as-never"
+    },
+    {
+      "file": "src/hooks/useStudySessions.ts",
+      "pattern": "update-as-never"
+    },
+    {
+      "file": "src/hooks/useTeachingImpact.ts",
+      "pattern": "from-as-never"
+    },
+    {
+      "file": "src/hooks/useTeamBadges.ts",
+      "pattern": "from-as-never"
+    },
+    {
+      "file": "src/hooks/useTeamHealth.ts",
+      "pattern": "from-as-never"
+    },
+    {
+      "file": "src/hooks/useTeamHealthReport.ts",
+      "pattern": "from-as-never"
+    },
+    {
+      "file": "src/hooks/useTeamInvitations.ts",
+      "pattern": "from-as-never"
+    },
+    {
+      "file": "src/hooks/useTeamInvitations.ts",
+      "pattern": "insert-as-never"
+    },
+    {
+      "file": "src/hooks/useTeamInvitations.ts",
+      "pattern": "update-as-never"
+    },
+    {
+      "file": "src/hooks/useTeamMembers.ts",
+      "pattern": "from-as-never"
+    },
+    {
+      "file": "src/hooks/useTeamMembers.ts",
+      "pattern": "insert-as-never"
+    },
+    {
+      "file": "src/hooks/useTeamMembers.ts",
+      "pattern": "update-as-never"
+    },
+    {
+      "file": "src/hooks/useTeamProfile.ts",
+      "pattern": "from-as-never"
+    },
+    {
+      "file": "src/hooks/useTeams.ts",
+      "pattern": "from-as-never"
+    },
+    {
+      "file": "src/hooks/useTeams.ts",
+      "pattern": "insert-as-never"
+    },
+    {
+      "file": "src/hooks/useTeams.ts",
+      "pattern": "update-as-never"
+    },
+    {
+      "file": "src/hooks/useTieredBadges.ts",
+      "pattern": "from-as-never"
+    },
+    {
+      "file": "src/hooks/useTieredBadges.ts",
+      "pattern": "update-as-never"
+    },
+    {
+      "file": "src/hooks/useTieredBadges.ts",
+      "pattern": "upsert-as-never"
+    },
+    {
+      "file": "src/hooks/useTodayView.ts",
+      "pattern": "from-as-never"
+    },
+    {
+      "file": "src/hooks/useUsers.ts",
+      "pattern": "insert-as-never"
+    },
+    {
+      "file": "src/hooks/useVisualizationData.ts",
+      "pattern": "from-as-never"
+    },
+    {
+      "file": "src/hooks/useWeeklyGoals.ts",
+      "pattern": "upsert-as-never"
+    },
+    {
+      "file": "src/pages/admin/competency-frameworks/CompetencyFrameworkManager.tsx",
+      "pattern": "from-as-never"
+    },
+    {
+      "file": "src/pages/admin/competency-frameworks/CompetencyFrameworkManager.tsx",
+      "pattern": "insert-as-never"
+    },
+    {
+      "file": "src/providers/LanguageProvider.tsx",
+      "pattern": "update-as-never"
+    }
+  ]
+}

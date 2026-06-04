@@ -52,6 +52,7 @@ import {
   FileQuestion,
   Swords,
   GraduationCap as GraduationCapIcon,
+  Workflow,
 } from "lucide-react";
 import type { UserRole } from "@/types/app";
 import type { NavGroup } from "@/lib/navGroups";
@@ -132,6 +133,11 @@ const coordinatorNavItems: NavItem[] = [
     icon: UsersIcon,
   },
   { to: "/coordinator/cqi", labelKey: "nav.cqiPlans", icon: ClipboardCheck },
+  {
+    to: "/coordinator/outcome-chain",
+    labelKey: "nav.outcomeChain",
+    icon: Workflow,
+  },
   {
     to: "/coordinator/course-file",
     labelKey: "nav.courseFile",

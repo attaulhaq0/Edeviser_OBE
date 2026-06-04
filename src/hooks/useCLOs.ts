@@ -19,6 +19,38 @@ export interface OutcomeMapping {
   created_at: string;
 }
 
+/** A PLO mapped to a CLO, with its title resolved in the same round trip. */
+export interface CLOMappedPLO {
+  mapping_id: string;
+  plo_id: string;
+  title: string | null;
+  weight: number;
+}
+
+/** An assignment that assesses a CLO via its `clo_weights` array. */
+export interface CLOLinkedAssignment {
+  id: string;
+  title: string;
+  due_date: string;
+  weight: number;
+}
+
+/** Read-only attainment headline for a single CLO. */
+export interface CLOAttainmentSummary {
+  percent: number | null;
+  sampleCount: number;
+}
+
+/**
+ * A CLO list row with its parent course embedded via the
+ * `learning_outcomes_course_id_fkey` to-one join (Req 5.2). Resolved in the
+ * same round trip as the list query (no N+1, Req 5.5); the column renders the
+ * course name through `resolveName` (Req 5.6).
+ */
+export interface CLOWithRelations extends LearningOutcome {
+  courses: { name: string } | null;
+}
+
 // ─── useCLOs — list CLOs, optionally filtered by course_id ──────────────────
 
 export const useCLOs = (
@@ -32,10 +64,12 @@ export const useCLOs = (
 
   return useQuery({
     queryKey: queryKeys.clos.list({ courseId, page, pageSize }),
-    queryFn: async (): Promise<PaginatedResult<LearningOutcome>> => {
+    queryFn: async (): Promise<PaginatedResult<CLOWithRelations>> => {
       let query = supabase
         .from("learning_outcomes")
-        .select("*", { count: "exact" })
+        .select("*, courses!learning_outcomes_course_id_fkey(name)", {
+          count: "exact",
+        })
         .eq("type", "CLO")
         .order("sort_order", { ascending: true })
         .range(from, to);
@@ -48,7 +82,7 @@ export const useCLOs = (
 
       if (error) throw error;
       return {
-        data: (data ?? []) as LearningOutcome[],
+        data: (data ?? []) as unknown as CLOWithRelations[],
         count: count ?? 0,
         page,
         pageSize,
@@ -360,5 +394,124 @@ export const useUpdateCLOMappings = () => {
       });
       queryClient.invalidateQueries({ queryKey: queryKeys.clos.lists() });
     },
+  });
+};
+
+// ─── useCLOMappedPLOs — read-only: PLOs mapped to a CLO with titles ─────────
+//
+// Resolves the PLO (source) title in the same round trip via the
+// `outcome_mappings_source_outcome_id_fkey` to-one join (no N+1). Used by the
+// read-only CLODetailPage (Req 14.1).
+
+export const useCLOMappedPLOs = (cloId?: string) => {
+  return useQuery({
+    queryKey: queryKeys.outcomeMappings.list({ cloId, view: "mapped-plos" }),
+    queryFn: async (): Promise<CLOMappedPLO[]> => {
+      const { data, error } = await supabase
+        .from("outcome_mappings")
+        .select(
+          "id, source_outcome_id, weight, plo:learning_outcomes!outcome_mappings_source_outcome_id_fkey(title)"
+        )
+        .eq("target_outcome_id", cloId!);
+
+      if (error) throw error;
+
+      type Row = {
+        id: string;
+        source_outcome_id: string;
+        weight: number;
+        plo: { title: string | null } | null;
+      };
+
+      return ((data ?? []) as unknown as Row[]).map((row) => ({
+        mapping_id: row.id,
+        plo_id: row.source_outcome_id,
+        title: row.plo?.title ?? null,
+        weight: row.weight,
+      }));
+    },
+    enabled: !!cloId,
+  });
+};
+
+// ─── useCLOLinkedAssignments — read-only: assignments assessing a CLO ───────
+//
+// Assignments reference CLOs through the `clo_weights` jsonb array
+// (`[{ clo_id, weight }]`), which cannot be filtered server-side. We fetch the
+// course's assignments in one query (scoped by `course_id`) and filter in
+// memory for those whose `clo_weights` include this CLO — no per-row N+1.
+
+export const useCLOLinkedAssignments = (cloId?: string, courseId?: string) => {
+  return useQuery({
+    queryKey: queryKeys.assignments.list({ cloId, courseId, view: "by-clo" }),
+    queryFn: async (): Promise<CLOLinkedAssignment[]> => {
+      let query = supabase
+        .from("assignments")
+        .select("id, title, due_date, clo_weights")
+        .order("due_date", { ascending: true });
+
+      if (courseId) {
+        query = query.eq("course_id", courseId);
+      }
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+
+      type Row = {
+        id: string;
+        title: string;
+        due_date: string;
+        clo_weights: Array<{ clo_id: string; weight: number }> | null;
+      };
+
+      return ((data ?? []) as unknown as Row[])
+        .map((row) => {
+          const match = (row.clo_weights ?? []).find((w) => w.clo_id === cloId);
+          if (!match) return null;
+          return {
+            id: row.id,
+            title: row.title,
+            due_date: row.due_date,
+            weight: match.weight,
+          };
+        })
+        .filter((a): a is CLOLinkedAssignment => a !== null);
+    },
+    enabled: !!cloId,
+  });
+};
+
+// ─── useCLOAttainment — read-only: course-scope attainment for a CLO ────────
+//
+// Reads `outcome_attainment` rows for this CLO at `scope = 'course'` (the
+// course-level rollup) and returns the mean attainment percent plus the number
+// of contributing rows. Returns a null percent when no rows exist so the UI can
+// distinguish "no data" from a real 0%.
+
+export const useCLOAttainment = (cloId?: string) => {
+  return useQuery({
+    queryKey: queryKeys.outcomeAttainment.detail(cloId ?? ""),
+    queryFn: async (): Promise<CLOAttainmentSummary> => {
+      const { data, error } = await supabase
+        .from("outcome_attainment")
+        .select("attainment_percent")
+        .eq("outcome_id", cloId!)
+        .eq("scope", "course");
+
+      if (error) throw error;
+
+      const rows = data ?? [];
+      if (rows.length === 0) {
+        return { percent: null, sampleCount: 0 };
+      }
+
+      const total = rows.reduce((sum, r) => sum + r.attainment_percent, 0);
+      return {
+        percent: total / rows.length,
+        sampleCount: rows.length,
+      };
+    },
+    enabled: !!cloId,
   });
 };
