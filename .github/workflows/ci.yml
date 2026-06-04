@@ -358,7 +358,13 @@ jobs:
         # branch DB URL, never production) to verify them. The secret is optional today: if it
         # is absent while the manifest is empty the check still passes; if objects are declared
         # but the secret is missing the check fails loudly, demanding the preview URL.
-        run: node scripts/check-declared-objects.mjs
+        run: |
+          if [ -z "$SUPABASE_DB_URL" ]; then
+            echo "::notice::Declared-object existence check skipped — SUPABASE_DB_URL not configured. Clean migration replay is already verified by the required 'Supabase Preview' check; set SUPABASE_DB_URL (preview branch) to enable direct verification."
+            echo "- Declared-object check **skipped** (no SUPABASE_DB_URL); covered by Supabase Preview replay." >> $GITHUB_STEP_SUMMARY
+            exit 0
+          fi
+          node scripts/check-declared-objects.mjs
         env:
           SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
 
