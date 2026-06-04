@@ -482,12 +482,15 @@ export const useCLOLinkedAssignments = (cloId?: string, courseId?: string) => {
   });
 };
 
-// ─── useCLOAttainment — read-only: course-scope attainment for a CLO ────────
+// ─── useCLOAttainment — read-only: attainment for a CLO ─────────────────────
 //
-// Reads `outcome_attainment` rows for this CLO at `scope = 'course'` (the
-// course-level rollup) and returns the mean attainment percent plus the number
-// of contributing rows. Returns a null percent when no rows exist so the UI can
+// Reads `outcome_attainment` rows for this CLO at `scope = 'student_course'`
+// (the scope at which the attainment rollup trigger writes per-student CLO
+// attainment) and returns the mean attainment percent plus the number of
+// contributing rows. Returns a null percent when no rows exist so the UI can
 // distinguish "no data" from a real 0%.
+// (Scope verified against live data 2026-06: CLO rows exist at student_course,
+// not course.)
 
 export const useCLOAttainment = (cloId?: string) => {
   return useQuery({
@@ -497,7 +500,7 @@ export const useCLOAttainment = (cloId?: string) => {
         .from("outcome_attainment")
         .select("attainment_percent")
         .eq("outcome_id", cloId!)
-        .eq("scope", "course");
+        .eq("scope", "student_course");
 
       if (error) throw error;
 

@@ -8,24 +8,26 @@
 //   (`learning_outcomes.type = 'PLO'`), the displayed attainment percentage is
 //   derived from `outcome_attainment` as follows:
 //
-//     1. PRIMARY — program scope:
+//     1. PRIMARY — course-scope PLO:
 //        If one or more `outcome_attainment` rows exist for the PLO with
-//        `scope = 'program'`, the headline value is the arithmetic MEAN of those
-//        rows' `attainment_percent`, and `contributing_count` is the number of
-//        program-scope rows averaged.  (`derivation = "program"`)
+//        `scope = 'course'` (the attainment rollup trigger writes PLO attainment
+//        at course scope — one row per PLO per assessing course), the headline
+//        value is the arithmetic MEAN of those rows' `attainment_percent`, and
+//        `contributing_count` is the number of course-scope rows averaged.
+//        (`derivation = "program"`)
 //
 //     2. FALLBACK — CLO roll-up:
-//        If NO program-scope row exists for the PLO, the value is rolled up from
-//        the contributing CLOs.  Contributing CLOs are found via
+//        If NO course-scope PLO row exists for the PLO, the value is rolled up
+//        from the contributing CLOs.  Contributing CLOs are found via
 //        `outcome_mappings` where `target_outcome_id = PLO.id`
 //        (`source_outcome_id` is the CLO).  The headline value is the MEAN of the
-//        `scope = 'course'` `attainment_percent` rows for those CLOs, and
-//        `contributing_count` is the number of CLO course-scope rows averaged.
-//        (`derivation = "clo_rollup"`)
+//        `scope = 'student_course'` `attainment_percent` rows for those CLOs (the
+//        scope at which CLO attainment is written), and `contributing_count` is
+//        the number of CLO rows averaged. (`derivation = "clo_rollup"`)
 //
 //     3. NONE — no measurable data:
-//        If neither a program-scope row nor any CLO course-scope row exists, the
-//        PLO is returned with `attainment_percent = -1` (sentinel for
+//        If neither a course-scope PLO row nor any CLO student_course-scope row
+//        exists, the PLO is returned with `attainment_percent = -1` (sentinel for
 //        "unmeasured") and `contributing_count = 0`.  (`derivation = "none"`)
 //        Callers treat `-1` as a neutral/grey cell, distinct from a real 0%.
 //
@@ -106,11 +108,15 @@ export const useAdminPLOHeatmap = (programId?: string) => {
 
       const ploIds = plos.map((p) => p.id);
 
-      // 2. Program-scope attainment for these PLOs (one batched query).
+      // 2. PLO attainment for these PLOs (one batched query).
+      //    The attainment rollup trigger writes PLO rows at scope='course'
+      //    (one row per PLO per course that assesses it), so that is the scope
+      //    we read and average here. (Verified against live data 2026-06:
+      //    PLO rows exist only at scope='course', not 'program'.)
       const { data: programRows, error: programError } = await supabase
         .from("outcome_attainment")
         .select("outcome_id, attainment_percent, course_id")
-        .eq("scope", "program")
+        .eq("scope", "course")
         .in("outcome_id", ploIds);
       if (programError) throw programError;
 
@@ -158,7 +164,7 @@ export const useAdminPLOHeatmap = (programId?: string) => {
         const { data: cloAttRows, error: cloAttError } = await supabase
           .from("outcome_attainment")
           .select("outcome_id, attainment_percent")
-          .eq("scope", "course")
+          .eq("scope", "student_course")
           .in("outcome_id", allCloIds);
         if (cloAttError) throw cloAttError;
         // If a CLO has multiple course-scope rows, average them per CLO.
