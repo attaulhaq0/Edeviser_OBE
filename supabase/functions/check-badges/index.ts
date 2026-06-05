@@ -1705,11 +1705,18 @@ serve(async (req) => {
     }
 
     // ── Step 1: Fetch existing badges for this student ──────────────────
+    //
+    // Individual badges live in the `badges` table (the same table the student
+    // UI reads via useStudentBadges, and where tier/team badges already write).
+    // We key on `badge_key` for the earned-set so the checker functions — which
+    // operate on a Set<badge_key> — are unchanged. scope='individual' excludes
+    // team-scope rows.
 
     const { data: existingBadges, error: fetchErr } = await supabase
-      .from("student_badges")
-      .select("badge_id")
-      .eq("student_id", student_id);
+      .from("badges")
+      .select("badge_key")
+      .eq("student_id", student_id)
+      .eq("scope", "individual");
 
     if (fetchErr) {
       console.error("Failed to fetch existing badges:", fetchErr.message);
@@ -1726,8 +1733,46 @@ serve(async (req) => {
     }
 
     const existingBadgeIds = new Set(
-      (existingBadges ?? []).map((b: { badge_id: string }) => b.badge_id)
+      (existingBadges ?? []).map((b: { badge_key: string }) => b.badge_key)
     );
+
+    // Badge display metadata (name/emoji/category) is sourced from the
+    // institution's `badge_definitions` rows so the award path is
+    // definition-driven. Look up the student's institution once, then load its
+    // definitions into a key→{name,emoji,category} map (fallbacks applied per
+    // badge below if a definition is missing).
+    const badgeMetaByKey = new Map<
+      string,
+      { name: string; emoji: string; category: string | null }
+    >();
+    {
+      const { data: studentProfile } = await supabase
+        .from("profiles")
+        .select("institution_id")
+        .eq("id", student_id)
+        .maybeSingle();
+      const studentInstitutionId =
+        (studentProfile as { institution_id?: string } | null)
+          ?.institution_id ?? null;
+      if (studentInstitutionId) {
+        const { data: defs } = await supabase
+          .from("badge_definitions")
+          .select("badge_key, name, emoji, category")
+          .eq("institution_id", studentInstitutionId);
+        for (const d of (defs ?? []) as Array<{
+          badge_key: string;
+          name: string;
+          emoji: string;
+          category: string | null;
+        }>) {
+          badgeMetaByKey.set(d.badge_key, {
+            name: d.name,
+            emoji: d.emoji,
+            category: d.category,
+          });
+        }
+      }
+    }
 
     // ── Step 2: Check badge conditions based on trigger ─────────────────
 
@@ -1867,11 +1912,16 @@ serve(async (req) => {
     const awardedBadges: string[] = [];
 
     for (const badgeId of newBadgeIds) {
+      const meta = badgeMetaByKey.get(badgeId);
       const { error: insertErr } = await supabase
-        .from("student_badges")
+        .from("badges")
         .insert({
           student_id,
-          badge_id: badgeId,
+          badge_key: badgeId,
+          badge_name: meta?.name ?? badgeId,
+          emoji: meta?.emoji ?? "🏅",
+          category: meta?.category ?? null,
+          scope: "individual",
           awarded_at: new Date().toISOString(),
         })
         .select()
