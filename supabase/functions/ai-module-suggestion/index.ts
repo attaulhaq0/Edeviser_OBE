@@ -254,8 +254,21 @@ serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
+      // Role lives in profiles, not the JWT (app_metadata is empty here).
+      const adminClientForRole = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      );
+      const { data: callerProfile } = await adminClientForRole
+        .from("profiles")
+        .select("role")
+        .eq("id", caller.id)
+        .maybeSingle();
       const callerRole =
-        caller.app_metadata?.role ?? caller.user_metadata?.role ?? "";
+        (callerProfile?.role as string) ??
+        caller.app_metadata?.role ??
+        caller.user_metadata?.role ??
+        "";
       if (!["student", "teacher", "admin"].includes(callerRole)) {
         return new Response(JSON.stringify({ error: "Forbidden" }), {
           status: 403,

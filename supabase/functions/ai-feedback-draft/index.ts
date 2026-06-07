@@ -297,8 +297,23 @@ serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    const adminClient = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+
+    // Role lives in the profiles table, NOT the JWT (app_metadata is empty on
+    // this project). Resolve it server-side from profiles by the caller's id.
+    const { data: callerProfile } = await adminClient
+      .from("profiles")
+      .select("role")
+      .eq("id", caller.id)
+      .maybeSingle();
     const callerRole =
-      caller.app_metadata?.role ?? caller.user_metadata?.role ?? "";
+      (callerProfile?.role as string) ??
+      caller.app_metadata?.role ??
+      caller.user_metadata?.role ??
+      "";
     if (!["teacher", "admin"].includes(callerRole)) {
       return new Response(
         JSON.stringify({ error: "Forbidden: teacher or admin role required" }),
@@ -309,10 +324,7 @@ serve(async (req) => {
       );
     }
 
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
+    const supabase = adminClient;
 
     const { submission_id, rubric_id, rubric_selections, student_id, clo_id } =
       await req.json();

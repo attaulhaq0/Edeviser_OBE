@@ -254,8 +254,14 @@ async function callOpenRouterLLM(
   completionTokens: number;
   totalTokens: number;
 }> {
-  const requestBody = {
-    model: LLM_MODEL,
+  const llmModel = Deno.env.get("TUTOR_PRIMARY_MODEL") ?? LLM_MODEL;
+  // structured-outputs (response_format) is only supported by some providers
+  // (e.g. OpenAI gpt-4o). Models like moonshotai/kimi-k2 reject it with a 400.
+  // We rely on the prompt's "respond with valid JSON" instruction + downstream
+  // parsing/validation, and only request response_format for OpenAI models.
+  const supportsStructured = /^openai\//i.test(llmModel);
+  const requestBody: Record<string, unknown> = {
+    model: llmModel,
     messages: [
       {
         role: "system",
@@ -265,9 +271,11 @@ async function callOpenRouterLLM(
       { role: "user", content: prompt },
     ],
     temperature: 0.7,
-    max_tokens: 8000,
-    response_format: { type: "json_object" },
+    max_tokens: 4000,
   };
+  if (supportsStructured) {
+    requestBody.response_format = { type: "json_object" };
+  }
 
   let lastError: Error | null = null;
 
@@ -566,10 +574,11 @@ serve(async (req) => {
       validation.data;
 
     // ── Step 3: Verify Course Ownership ─────────────────────────────────
+    // institution_id lives on programs, not courses — join through program_id.
 
     const { data: course, error: courseError } = await supabase
       .from("courses")
-      .select("id, institution_id, teacher_id")
+      .select("id, teacher_id, program_id, programs(institution_id)")
       .eq("id", course_id)
       .maybeSingle();
 
@@ -590,7 +599,13 @@ serve(async (req) => {
       );
     }
 
-    const institutionId = course.institution_id;
+    const programRel = course.programs as
+      | { institution_id?: string }
+      | { institution_id?: string }[]
+      | null;
+    const institutionId = Array.isArray(programRel)
+      ? programRel[0]?.institution_id ?? ""
+      : programRel?.institution_id ?? "";
 
     // ── Step 4: Fetch CLO Descriptions ──────────────────────────────────
 

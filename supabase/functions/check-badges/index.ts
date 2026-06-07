@@ -1633,6 +1633,42 @@ async function computeCategoryMetrics(
   return metrics;
 }
 
+// ─── award-xp Invocation Helper ─────────────────────────────────────────────
+// Invoke award-xp server-to-server via a direct fetch. This project's injected
+// SUPABASE_ANON_KEY / SUPABASE_SERVICE_ROLE_KEY are the modern non-JWT `sb_…`
+// format, which cannot pass a gateway `verify_jwt` gate as a bearer token.
+// award-xp is therefore deployed with `--no-verify-jwt` and authenticates the
+// caller IN-HANDLER: it accepts the service-role secret via the `x-internal-auth`
+// header (and still enforces user-ownership for student JWT callers). We send
+// the anon key as a conventional bearer/apikey and the service-role secret in
+// `x-internal-auth`. Fire-and-forget: failures are logged but never block the
+// badge award.
+async function awardXp(body: Record<string, unknown>): Promise<void> {
+  try {
+    const url = `${Deno.env.get("SUPABASE_URL")}/functions/v1/award-xp`;
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+    const resp = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${anonKey}`,
+        apikey: anonKey,
+        "x-internal-auth": serviceRoleKey,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+    if (!resp.ok) {
+      const detail = await resp.text();
+      console.error(
+        `award-xp returned ${resp.status} for source=${body.source} ref=${body.reference_id}: ${detail}`
+      );
+    }
+  } catch (xpErr) {
+    console.error("award-xp invocation failed:", (xpErr as Error).message);
+  }
+}
+
 // ─── Main Handler ───────────────────────────────────────────────────────────
 
 serve(async (req) => {
@@ -1644,8 +1680,17 @@ serve(async (req) => {
     // ── Auth: require service role or the student themselves ─────────
     const authHeader = req.headers.get("Authorization") ?? "";
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+    // Service-role is recognized when the bearer IS the service-role key
+    // (legacy JWT key path) OR when the request carries `x-internal-auth` equal
+    // to the service-role key. The latter exists because the modern
+    // `sb_secret_…` service-role key is not a JWT and cannot pass the gateway
+    // `verify_jwt` gate as a bearer — internal callers send the anon JWT as the
+    // bearer and the service-role secret in `x-internal-auth`.
+    const internalAuthHeader = req.headers.get("x-internal-auth") ?? "";
     const isServiceRole =
-      serviceRoleKey && authHeader.replace("Bearer ", "") === serviceRoleKey;
+      (serviceRoleKey.length > 0 &&
+        authHeader.replace("Bearer ", "") === serviceRoleKey) ||
+      (serviceRoleKey.length > 0 && internalAuthHeader === serviceRoleKey);
 
     let callerId: string | null = null;
     if (!isServiceRole) {
@@ -1942,23 +1987,13 @@ serve(async (req) => {
       // Award badge XP
       const xpReward = BADGE_XP[badgeId] ?? 0;
       if (xpReward > 0) {
-        try {
-          await supabase.functions.invoke("award-xp", {
-            body: {
-              student_id,
-              xp_amount: xpReward,
-              source: "badge",
-              reference_id: badgeId,
-              note: `Badge earned: ${badgeId}`,
-            },
-          });
-        } catch (xpErr) {
-          // Log but don't fail badge award
-          console.error(
-            `Failed to award XP for badge ${badgeId}:`,
-            (xpErr as Error).message
-          );
-        }
+        await awardXp({
+          student_id,
+          xp_amount: xpReward,
+          source: "badge",
+          reference_id: badgeId,
+          note: `Badge earned: ${badgeId}`,
+        });
       }
     }
 
@@ -1980,22 +2015,13 @@ serve(async (req) => {
             : upgrade.newTier === "silver"
             ? 75
             : 50;
-        try {
-          await supabase.functions.invoke("award-xp", {
-            body: {
-              student_id,
-              xp_amount: tierXP,
-              source: "badge",
-              reference_id: `tier_upgrade:${upgrade.category}:${upgrade.newTier}`,
-              note: `Badge tier upgrade: ${upgrade.category} → ${upgrade.newTier}`,
-            },
-          });
-        } catch (xpErr) {
-          console.error(
-            `Failed to award tier upgrade XP:`,
-            (xpErr as Error).message
-          );
-        }
+        await awardXp({
+          student_id,
+          xp_amount: tierXP,
+          source: "badge",
+          reference_id: `tier_upgrade:${upgrade.category}:${upgrade.newTier}`,
+          note: `Badge tier upgrade: ${upgrade.category} → ${upgrade.newTier}`,
+        });
       }
     } catch (tierErr) {
       console.error("Tiered badge check failed (non-blocking):", tierErr);
