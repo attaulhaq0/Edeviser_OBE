@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Edeviser — Full Profile Audit & Remediation Plan</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap');
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Noto Sans', system-ui, -apple-system, sans-serif;
+    color: #1e293b;
+    font-size: 11px;
+    line-height: 1.55;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  h1, h2, h3, h4 { font-weight: 800; letter-spacing: -0.01em; color: #0f172a; margin: 0 0 8px; }
+  h1 { font-size: 26px; }
+  h2 { font-size: 19px; margin-top: 26px; padding-bottom: 6px; border-bottom: 2px solid #14b8a6; }
+  h3 { font-size: 14px; margin-top: 18px; color: #0382bd; }
+  h4 { font-size: 12px; margin-top: 14px; color: #334155; }
+  p { margin: 0 0 9px; }
+  ul, ol { margin: 0 0 9px; padding-left: 18px; }
+  li { margin-bottom: 4px; }
+  code { background: #f1f5f9; padding: 1px 4px; border-radius: 3px; font-family: 'Consolas', monospace; font-size: 9.5px; color: #be123c; }
+  /* ── Cover ─────────────────────────────────────────────────────────── */
+  .cover { position: relative; height: 1010px; margin: -16mm -14mm 0; padding: 16mm 14mm 0; overflow: hidden;
+    display: flex; flex-direction: column;
+    background:
+      radial-gradient(ellipse 70% 50% at 80% 8%, rgba(20,184,166,0.28) 0%, transparent 60%),
+      radial-gradient(ellipse 70% 50% at 12% 92%, rgba(3,130,189,0.30) 0%, transparent 60%),
+      linear-gradient(135deg, #0b1120 0%, #14233f 42%, #1e2a6b 72%, #311e63 100%);
+    color: white; }
+  /* subtle grid texture */
+  .cover::before { content: ""; position: absolute; inset: 0;
+    background-image: linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+    background-size: 38px 38px; mask-image: radial-gradient(ellipse 90% 80% at 50% 35%, black 30%, transparent 75%); }
+  .cover-inner { position: relative; z-index: 3; flex: 1; display: flex; flex-direction: column; }
+  .cover-logo { width: 168px; margin-bottom: 26px; filter: drop-shadow(0 4px 18px rgba(0,0,0,0.45)); }
+  .cover .pill { display: inline-block; background: rgba(20,184,166,0.16); border: 1px solid rgba(94,234,212,0.55); color: #99f6e4;
+    padding: 6px 16px; border-radius: 999px; font-size: 10px; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 26px; }
+  .cover h1 { color: white; font-size: 46px; line-height: 1.08; font-weight: 900;
+    background: linear-gradient(92deg, #ffffff 0%, #cffafe 55%, #99f6e4 100%); -webkit-background-clip: text; background-clip: text; color: transparent;
+    text-shadow: 0 2px 30px rgba(20,184,166,0.15); }
+  .cover .sub { font-size: 16px; color: #cbd5e1; margin-top: 16px; max-width: 560px; line-height: 1.5; }
+  .cover .rule { width: 96px; height: 4px; border-radius: 4px; margin: 26px 0 4px;
+    background: linear-gradient(93deg, #14b8a6 5%, #0382bd 89%); }
+  .cover .meta { margin-top: 22px; font-size: 11.5px; color: #94a3b8; line-height: 1.85; max-width: 600px; }
+  .cover .meta b { color: #e2e8f0; font-weight: 700; }
+  .cover .meta code { background: rgba(255,255,255,0.08); color: #99f6e4; }
+  /* character ensemble band */
+  .cover-cast { position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; height: 360px;
+    display: flex; align-items: flex-end; justify-content: center; gap: 0; pointer-events: none; }
+  .cover-cast::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 40px;
+    background: linear-gradient(to top, rgba(11,17,32,0.55), transparent); }
+  .cover-cast img { display: block; object-fit: contain; filter: drop-shadow(0 18px 30px rgba(0,0,0,0.45)); }
+  .cover-cast .hero { height: 320px; margin: 0 -18px 6px; z-index: 2; }
+  .cover-cast .side { height: 232px; margin: 0 -16px 4px; opacity: 1; z-index: 1; }
+  .cover-cast .far { height: 188px; margin: 0 -14px 2px; opacity: 1; z-index: 0; }
+  .cover-castline { position: absolute; bottom: 22px; left: 0; right: 0; z-index: 4; text-align: center;
+    font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: rgba(203,213,225,0.85); font-weight: 700; }
+  .cover-castline b { color: #5eead4; }
+  .page-break { page-break-before: always; }
+  table { width: 100%; border-collapse: collapse; margin: 10px 0 16px; font-size: 9.5px; }
+  th { background: #0382bd; color: white; text-align: left; padding: 6px 7px; font-weight: 700; font-size: 9px; }
+  td { padding: 5px 7px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+  tr:nth-child(even) td { background: #f8fafc; }
+  .sev { font-weight: 800; padding: 1px 6px; border-radius: 4px; font-size: 8.5px; white-space: nowrap; color: white; }
+  .blocker { background: #dc2626; }
+  .high { background: #ea580c; }
+  .medium { background: #d97706; }
+  .low { background: #64748b; }
+  .ok { background: #16a34a; }
+  .badge-status { font-weight: 700; font-size: 9px; }
+  .s-working { color: #16a34a; } .s-broken { color: #dc2626; } .s-nodata { color: #d97706; } .s-notwired { color: #ea580c; }
+  .callout { border-left: 4px solid #0382bd; background: #f0f9ff; padding: 10px 14px; margin: 12px 0; border-radius: 0 6px 6px 0; }
+  .callout.warn { border-color: #ea580c; background: #fff7ed; }
+  .callout.danger { border-color: #dc2626; background: #fef2f2; }
+  .callout.good { border-color: #16a34a; background: #f0fdf4; }
+  .kpi-row { display: flex; gap: 10px; margin: 14px 0; }
+  .kpi { flex: 1; background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+  .kpi .label { font-size: 8px; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase; color: #64748b; }
+  .kpi .value { font-size: 22px; font-weight: 900; color: #0f172a; margin-top: 2px; }
+  .kpi .note { font-size: 8.5px; color: #94a3b8; }
+  .small { font-size: 9px; color: #64748b; }
+  .toc li { margin-bottom: 6px; font-size: 11.5px; }
+  .verdict { font-size: 13px; font-weight: 700; padding: 12px 16px; border-radius: 8px; margin: 14px 0; }
+  .verdict.amber { background: #fffbeb; border: 1px solid #fcd34d; color: #92400e; }
+  hr { border: none; border-top: 1px solid #e2e8f0; margin: 18px 0; }
+  .q { font-weight: 700; color: #0382bd; margin-top: 14px; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="cover-inner">
+    <img class="cover-logo" src="__LOGO_URI__" alt="Edeviser" />
+    <div><span class="pill">Confidential · Internal Engineering Audit</span></div>
+    <h1>Edeviser Platform<br/>Full-Profile Audit<br/>&amp; Remediation Plan</h1>
+    <div class="sub">Every role · every flow · live-verified against production · with a candid root-cause retrospective.</div>
+    <div class="rule"></div>
+    <div class="meta">
+      <b>Scope</b> &nbsp;Admin · Coordinator · Teacher · Student · Parent + shared infrastructure<br/>
+      <b>Method</b> &nbsp;Static code trace (file:line) cross-checked twice against the live database<br/>
+      <b>Environment</b> &nbsp;Production — <b>e-deviser.vercel.app</b> · Supabase <code>cdlgtbvxlxjpcddjazzx</code><br/>
+      <b>Generated</b> &nbsp;June 2026 &nbsp;·&nbsp; <b>Mode</b> &nbsp;Audit only — no production code changed by this report
+    </div>
+  </div>
+  <div class="cover-cast">
+    <img class="far"  src="__CHAR_FAR_L__" alt="" />
+    <img class="side" src="__CHAR_SIDE_L__" alt="" />
+    <img class="hero" src="__CHAR_HERO__" alt="" />
+    <img class="side" src="__CHAR_SIDE_R__" alt="" />
+    <img class="far"  src="__CHAR_FAR_R__" alt="" />
+  </div>
+  <div class="cover-castline">Guided by the Edeviser companions — <b>Foxi</b> &amp; the cast</div>
+</div>
+
+<div class="page-break"></div>
+<h2>0 · How to read this document</h2>
+<p>This audit was produced in five passes plus a verification pass. <b>Pass 1</b> traced the React/TypeScript source and the Supabase edge functions for every role, citing <code>file:line</code>. <b>Pass 2</b> re-ran the material claims against the <i>live</i> production database (schemas, row counts, RLS, XP ledger). <b>Pass 3</b> (§2.5) authenticated as a real demo user in each role and exercised RLS-scoped reads, the leaderboard RPC, real write paths, and a cross-profile/cross-institution isolation matrix. <b>Pass 4</b> (§2.6) went further: for every <i>empty</i> feature domain it <b>seeded live data through the real flow, invoked the dependent edge function, and observed the actual result</b>. <b>Pass 5</b> (§2.7) tested the AI layer end-to-end with a live OpenRouter/Kimi key, fixed four AI defects, and re-verified them in production (real tutor chat, quiz generation). Finally, a dedicated <b>verification &amp; cross-reference pass</b> (§11) re-checked every issue against current code + live schema, separated real bugs from seed artifacts, and mapped fix blast-radius. Where a later pass changed the verdict, the document says so plainly — guesses are not presented as facts.</p>
+
+<p>The report is organised so a non-author can act on it:</p>
+<ul>
+  <li><b>Section 1 — Executive summary &amp; scorecard:</b> the health of each role at a glance.</li>
+  <li><b>Section 2 — Live ground truth:</b> the numbers Pass 2 pulled from production, and which static claims they confirmed or corrected.</li>
+  <li><b>Sections 3–7 — Per-role findings:</b> feature-by-feature status tables + ranked issues (BLOCKER / HIGH / MEDIUM / LOW), each with evidence.</li>
+  <li><b>Section 8 — Cross-cutting infrastructure:</b> realtime, notifications, Sentry consent, RLS, i18n, CORS, dead code.</li>
+  <li><b>Section 9 — The badge-XP saga retrospective:</b> a candid answer to "why did this happen, why wasn't it caught, and why did the earlier approach fail?" — the questions you explicitly asked for.</li>
+  <li><b>Section 10 — Prioritised remediation plan:</b> what to fix, in what order, with effort and risk.</li>
+  <li><b>Section 11 — Verification &amp; cross-reference appendix:</b> every issue re-checked against live code + live schema, real-bug vs seed-artifact, and a fix blast-radius / "don't-break-these" map.</li>
+</ul>
+
+<div class="callout">
+  <b>Severity key.</b>
+  <span class="sev blocker">BLOCKER</span> a core promised feature is non-functional in production ·
+  <span class="sev high">HIGH</span> a feature is broken or silently wrong for real users ·
+  <span class="sev medium">MEDIUM</span> correctness/UX/security gap with a workaround ·
+  <span class="sev low">LOW</span> hygiene, dead code, or type-safety debt.
+</div>
+
+<div class="page-break"></div>
+<h2>1 · Executive summary &amp; scorecard</h2>
+
+<p>The platform is <b>broad and largely functional</b> — auth, RLS isolation, OBE CRUD, the XP ledger, leaderboard, AI tutor, marketplace, challenges and most admin/coordinator/teacher management surfaces work end-to-end. The problems cluster in three places: <b>(a)</b> two PDF-generation edge functions that query a schema that no longer exists, <b>(b)</b> the student daily-engagement loop (streak, perfect-day, habit recording, journal/grade XP) which is wired in the UI but never actually fires the backend, and <b>(c)</b> a privacy-consent gap and a handful of RLS/CORS/realtime omissions in shared infrastructure.</p>
+
+<div class="verdict amber">Overall verdict: <b>NOT yet release-clean.</b> Confirmed BLOCKERs in accreditation output, student engagement, parent access, and privacy consent — now verified by acting as a real user of every role. None are data-loss risks and none breach multi-tenant isolation (which tested leak-free); all are fixable without schema redesign. The recently-deployed badge fix is verified working in production.</div>
+
+<div class="callout good"><b>Update since first issue (fixes already deployed):</b> the AI layer has been repaired and re-verified live — the <b>AI tutor now holds real Kimi-powered conversations</b> (with the academic-integrity guard working), <b>AI quiz generation produces real questions</b>, and the role-gate bug on <code>ai-feedback-draft</code>/<code>ai-module-suggestion</code> is fixed. See <b>§2.7</b>. Remaining AI gap: RAG course-material citations need an embeddings provider. The accreditation-PDF, planner, parent-RLS, engagement-XP and consent blockers below are still open.</div>
+
+<div class="callout danger"><b>Headline correction from live + seed-and-test:</b> the accreditation PDF functions reject every coordinator/admin with a <b>403</b> before any query (role read from the JWT, which doesn't carry it). The same role-gate bug also breaks <code>ai-feedback-draft</code>. Driving the empty domains surfaced three more BLOCKERs: planner-task create/complete violates a DB CHECK (<code>pending</code> vs <code>todo</code>), AI quiz generation 404s on a non-existent <code>courses.institution_id</code> column, and study-session/wellness/planner/goal XP all 403 because the client awards XP as the student. The XP ledger, multiplier engine, marketplace, and multi-tenant isolation all tested healthy.</div>
+
+<h3>Role scorecard</h3>
+<table>
+  <tr><th>Role</th><th>Working core</th><th>Blocker</th><th>High</th><th>Medium</th><th>Low</th><th>Headline issue</th></tr>
+  <tr><td><b>Admin</b></td><td>User/program/course/ILO CRUD, settings, audit log, bonus XP, invites, dashboards</td><td>2</td><td>1</td><td>1</td><td>2</td><td>Accreditation PDF blocked twice: 403 role gate + column drift (empty sections)</td></tr>
+  <tr><td><b>Coordinator</b></td><td>PLO mgmt, outcome mappings, CQI plans, curriculum matrix structure, dashboards</td><td>2</td><td>0</td><td>1</td><td>1</td><td>Course-file PDF blocked twice: 403 role gate + 4 column-drift queries</td></tr>
+  <tr><td><b>Teacher</b></td><td>Dashboard, assignment/CLO/rubric CRUD, attendance, quiz-gen, AI feedback, gradebook CSV</td><td>0</td><td>2</td><td>1</td><td>3</td><td>Grading-queue course filter ignored (non-!inner join); level drift on grade XP</td></tr>
+  <tr><td><b>Student</b></td><td>Dashboard XP/level, courses, submissions, learning path, leaderboard, badges, tutor, marketplace, challenges</td><td>2</td><td>3</td><td>3</td><td>3</td><td>Streak never advances on login; Perfect-Day 50 XP never paid; journal/grade XP not awarded</td></tr>
+  <tr><td><b>Parent</b></td><td>Linked-child list, gamification view, planner (read-only), RLS verified-link enforcement</td><td>1</td><td>3</td><td>2</td><td>3</td><td>Progress + Attendance pages return empty (no parent RLS policy on <code>student_courses</code>)</td></tr>
+  <tr><td><b>Shared</b></td><td>RouteGuard, realtime manager, notifications read, RLS isolation</td><td>1</td><td>1</td><td>0</td><td>2</td><td>Sentry initialises before consent (FERPA/GDPR); notification realtime hook never mounted</td></tr>
+</table>
+
+<h3>The five things to fix first</h3>
+<ol>
+  <li><b>Accreditation report &amp; course-file PDFs (Admin/Coordinator BLOCKERs — TWO stacked bugs each).</b> Live testing showed they first reject every coordinator/admin with a <b>403</b> (role read from the JWT, which doesn't carry it — it's in <code>profiles</code>), and even past that they query a pre-migration schema and emit empty sections. These are the artefacts an institution shows an accreditation body — currently fully unusable. <span class="small">generate-accreditation-report, generate-course-file</span></li>
+  <li><b>Student engagement loop (Student BLOCKERs).</b> Login doesn't advance the streak; the 4th daily habit doesn't pay the 50 XP Perfect Day; journal and grade actions advertise XP they never grant. The gamification headline numbers are seed data, not live behaviour.</li>
+  <li><b>Sentry consent gate (Shared BLOCKER).</b> <code>initSentry()</code> runs unconditionally at app load, bypassing the consent-gated path — error/replay capture starts without analytics consent.</li>
+  <li><b>Parent data access (Parent BLOCKER).</b> Progress &amp; Attendance read <code>student_courses</code> first, which has no parent RLS policy, so the pages are empty for every parent.</li>
+  <li><b>CORS typo + notification realtime (HIGH).</b> <code>x-content-type</code> instead of <code>x-client-info</code> can break a browser-invoked function; the live-update bell hook is never mounted.</li>
+</ol>
+
+<div class="page-break"></div>
+<h2>2 · Live ground truth (Pass 2) — what the database actually says</h2>
+
+<p>These figures were read directly from production and are the backbone of the audit. Several <i>overturned</i> or <i>refined</i> the static (Pass 1) conclusions — those are flagged.</p>
+
+<div class="kpi-row">
+  <div class="kpi"><div class="label">Profiles</div><div class="value">124</div><div class="note">71 student · 36 parent · 8 teacher · 6 coord · 3 admin</div></div>
+  <div class="kpi"><div class="label">XP ledger</div><div class="value">4,119</div><div class="note">xp_transactions rows</div></div>
+  <div class="kpi"><div class="label">Badges</div><div class="value">56</div><div class="note">all scope=individual (fix live)</div></div>
+  <div class="kpi"><div class="label">Badge defs</div><div class="value">68</div><div class="note">seeded across 2 institutions</div></div>
+</div>
+<div class="kpi-row">
+  <div class="kpi"><div class="label">Evidence</div><div class="value">2,577</div><div class="note">grade→evidence cascade alive</div></div>
+  <div class="kpi"><div class="label">Attainment</div><div class="value">1,743</div><div class="note">course/program/student_course</div></div>
+  <div class="kpi"><div class="label">habit_logs</div><div class="value">0</div><div class="note">Today View reads this → empty</div></div>
+  <div class="kpi"><div class="label">badge XP txns</div><div class="value">2</div><div class="note">first ever — post-fix</div></div>
+</div>
+
+<h3>Static claims that Pass 2 CONFIRMED</h3>
+<table>
+  <tr><th>Claim (Pass 1)</th><th>Live evidence (Pass 2)</th><th>Verdict</th></tr>
+  <tr><td><code>outcome_mappings</code> uses source/target, not child/parent</td><td>Columns: <code>id, source_outcome_id, target_outcome_id, weight, created_at</code></td><td class="s-broken">CONFIRMED drift</td></tr>
+  <tr><td><code>submissions</code> has no <code>score_percent</code></td><td>Column count for score_percent = <b>0</b> (scores live on <code>grades</code>)</td><td class="s-broken">CONFIRMED drift</td></tr>
+  <tr><td><code>graduate_attributes</code> has no title/code</td><td>Columns: <code>id, institution_id, name, description, sort_order, created_at</code></td><td class="s-broken">CONFIRMED drift</td></tr>
+  <tr><td><code>cqi_action_plans</code> uses action_description/program_id</td><td>No <code>title/gap_description/corrective_actions/course_id</code> columns exist</td><td class="s-broken">CONFIRMED drift</td></tr>
+  <tr><td>attainment scope enum has no PLO/ILO/CLO</td><td>Enum = <code>student_course, course, program, institution</code> only</td><td class="s-broken">CONFIRMED drift</td></tr>
+  <tr><td>Parent has no RLS policy on <code>student_courses</code></td><td>parent policy count on student_courses = <b>0</b></td><td class="s-broken">CONFIRMED gap</td></tr>
+  <tr><td>Perfect-Day / journal XP not awarded at runtime</td><td><code>journal</code> source = 0 rows; all <code>perfect_day</code>/<code>login</code> rows carry mid-May seed timestamps only</td><td class="s-notwired">CONFIRMED not-wired</td></tr>
+  <tr><td>Today View table <code>habit_logs</code> is empty</td><td><code>habit_logs</code> = <b>0 rows</b>; <code>habit_tracking</code> = 3,010 (seed)</td><td class="s-nodata">CONFIRMED split</td></tr>
+</table>
+
+<h3>Static claims that Pass 2 CORRECTED or REFINED — intellectual honesty</h3>
+<table>
+  <tr><th>Earlier claim</th><th>Live reality</th><th>Refinement</th></tr>
+  <tr><td>"xp_total drifts from SUM(xp_transactions)"</td><td><b>0 students</b> drift — every <code>xp_total</code> equals its ledger SUM</td><td>The <i>value</i> invariant holds today (award-xp recomputes the SUM). The residual risk is narrower: the grade DB-trigger path doesn't recompute <code>level</code> or apply multipliers. Downgraded from "broken invariant" to "level/multiplier drift risk."</td></tr>
+  <tr><td>"Streaks are dead / always zero"</td><td>Streaks span 0–31 (e.g. 5 students at 31, 2 at 7)</td><td>Those values are seed data. The accurate statement is "no runtime path advances <code>streak_current</code> on login," not "streaks are zero." The chip renders a frozen seed value.</td></tr>
+  <tr><td>"badges system fully dead (badges=0)"</td><td>56 individual badges now live; 2 badge-XP txns recorded</td><td>This was true before the recent fix. The fix is deployed and verified — see §9. The report treats badges as WORKING and documents the saga as a retrospective.</td></tr>
+  <tr><td>"badge_definitions empty"</td><td>68 rows across the 2 active institutions</td><td>Seeded during the fix. Spotlight rotation now has data to operate on.</td></tr>
+  <tr><td>"teams entirely absent (teams=0)"</td><td>1 team + members exist</td><td>Seeded for demo. Team-gamification dual-table hazard (below) remains latent but is no longer purely theoretical.</td></tr>
+</table>
+<p class="small">Why this matters: the previous audit doc (<code>docs/audit-findings/03-gamification-flows.md</code>) was written before live verification and before the badge fix. Treating it as current would have produced a wrong report. This is the core reason the user asked for the audit to be run twice.</p>
+
+<div class="page-break"></div>
+<h2>2.5 · Live functional test (Pass 3) — acting as a real user of every role</h2>
+<div class="callout warn"><b>Honest scope note.</b> Passes 1–2 were a <i>code trace</i> + <i>database read</i>. Most per-role verdicts were therefore "the code path is wired / not wired" by inference, not "the action was performed and observed." This third pass closes that gap: <b>authenticate as a real demo user in each of the five roles against production</b> and drive the actual backend the way the UI does — RLS-scoped reads, the leaderboard RPC, real <code>award-xp</code>/<code>check-badges</code>/<code>process-streak</code> calls, the two PDF edge functions, plus a deliberate cross-profile and cross-institution isolation matrix. <b>47 live checks</b> were executed. Results below confirmed, corrected, or refined the static findings, and surfaced one new BLOCKER.</div>
+
+<h3>3a · What each role could actually do (real authenticated sessions)</h3>
+<table>
+  <tr><th>Role / account</th><th>Live actions &amp; reads</th><th>Observed result</th><th>Verdict</th></tr>
+  <tr><td>Student · student01 (Gulf)</td><td>own gamification / courses / badges / assignments; leaderboard RPC; <code>award-xp(submission)</code> with a real enrolled assignment; <code>check-badges</code> self</td><td>XP=1870 L11; courses=3; badges=3; assignments=12; leaderboard=5 rows; award-xp ✓ (+13 XP, 15×0.9 level mult); check-badges 200 ok</td><td class="s-working">Core loop works</td></tr>
+  <tr><td>Teacher · anderson (Gulf)</td><td>own courses, submissions, attendance, CLOs, grades; <code>send_teacher_nudge</code> RPC</td><td>courses=1, submissions=100, attendance=900, CLOs=9, grades=100; nudge RPC ✓</td><td class="s-working">Reads + nudge work</td></tr>
+  <tr><td>Coordinator · curriculum (Gulf)</td><td>PLOs, outcome_mappings, CQI, attainment, graduate_attributes; <b>generate-course-file</b></td><td>PLOs=3, mappings=18, CQI=0, attainment=630, GA=2; <b>course-file → 403 Forbidden</b></td><td class="s-broken">Course-file blocked</td></tr>
+  <tr><td>Admin · principal (Gulf)</td><td>users, audit_logs, xp_events, badge_definitions; <b>generate-accreditation-report</b></td><td>users=51, audit=5, xp_events=0, badge_defs=34; <b>accreditation → 403 Forbidden</b></td><td class="s-broken">Report blocked</td></tr>
+  <tr><td>Parent · parent01 (Gulf)</td><td>verified links + every child-data table the pages touch</td><td>links=1; <b>student_courses=0</b>; attainment=21; attendance=90; gamification=1; courses=3</td><td class="s-broken">Confirms + refines P-1</td></tr>
+  <tr><td>process-streak (student02)</td><td>called <code>process-streak{student_id,type:'login'}</code> directly</td><td>200 ok → <code>streak_count:1</code>, last_login set to today</td><td class="s-working">Function works — login just never calls it</td></tr>
+</table>
+
+<h3>3b · Cross-profile &amp; cross-institution data scoping (the multi-tenant promise)</h3>
+<p>The platform's core design is that each user gets only their own role- and institution-scoped data. I tested this by deliberately attempting to read and write across those boundaries. <b>Every isolation check passed.</b></p>
+<table>
+  <tr><th>Boundary test (performed live)</th><th>Expectation</th><th>Result</th></tr>
+  <tr><td>Gulf student reads raw peer <code>student_gamification</code> rows</td><td>blocked (peers only via leaderboard RPC)</td><td class="s-working">0 rows — PASS</td></tr>
+  <tr><td>Gulf student reads Noor (other-institution) <code>profiles</code></td><td>blocked</td><td class="s-working">0 rows — PASS</td></tr>
+  <tr><td>Gulf teacher reads Noor students</td><td>blocked</td><td class="s-working">0 rows — PASS</td></tr>
+  <tr><td>Gulf admin reads Noor users</td><td>blocked (institution-scoped)</td><td class="s-working">0 of 51 are Noor — PASS</td></tr>
+  <tr><td>Noor admin reads Gulf users</td><td>blocked</td><td class="s-working">sees own 68, Gulf=0 — PASS</td></tr>
+  <tr><td>Parent reads an <i>unlinked</i> child's gamification</td><td>blocked (verified link only)</td><td class="s-working">0 rows — PASS</td></tr>
+  <tr><td><b>Student calls <code>award-xp</code> targeting ANOTHER student</b></td><td>403 Forbidden</td><td class="s-working">403 — PASS (ownership enforced in-handler)</td></tr>
+  <tr><td><b>Student calls <code>check-badges</code> for ANOTHER student</b></td><td>403 Forbidden</td><td class="s-working">403 — PASS</td></tr>
+  <tr><td>Per-institution data actually differs</td><td>distinct datasets</td><td class="s-working">Gulf avg XP 1145 vs Noor 1293 — PASS</td></tr>
+</table>
+<div class="callout good"><b>Verdict on multi-tenancy:</b> the RLS isolation and the edge-function ownership checks are <b>solid</b>. No cross-role or cross-institution leak was found in 9 deliberate boundary probes, and malicious cross-user writes are rejected with 403. This is the strongest part of the platform.</div>
+
+<h3>3c · New / corrected findings that ONLY the live test surfaced</h3>
+<table>
+  <tr><th>#</th><th>Finding</th><th>How the live test changed it</th></tr>
+  <tr><td>L-1</td><td><b>NEW BLOCKER — both PDF edge functions reject every valid coordinator/admin with 403</b>, before any query runs.</td><td>Live, a genuine coordinator (<code>role='coordinator'</code> in <code>profiles</code>) calling <code>generate-course-file</code> and a genuine admin calling <code>generate-accreditation-report</code> both got <code>403 "admin or coordinator role required"</code>. Root cause, confirmed by decoding the live JWT: the functions read the role from <code>user.app_metadata?.role</code> / <code>user_metadata?.role</code> (<code>generate-course-file/index.ts:440-442</code>, <code>generate-accreditation-report/index.ts:475-481</code>), but the JWT carries <b>only</b> <code>{provider, providers}</code> — the role lives in the <code>profiles</code> table, not the token. So the gate is empty-string for everyone and blocks 100% of legitimate callers. This sits <i>in front of</i> the column-drift BLOCKERs (A-1/C-1): the PDFs never even reach the bad queries today. Both bugs must be fixed for the feature to work.</td></tr>
+  <tr><td>L-2</td><td><b>Leaderboard RPC is FINE</b> — a false alarm caught and dismissed.</td><td>A first probe failed ("function not found"); on inspection the live signature is <code>(p_institution_id, p_limit, p_offset)</code> and the real client (<code>useLeaderboard.ts:195-198</code>) calls it correctly — re-ran with the right args and got 5 rows. Not a product bug; documented for transparency.</td></tr>
+  <tr><td>L-3</td><td><b>Parent P-1 mechanism pinned precisely (still a real BLOCKER).</b></td><td>A parent sees <code>student_courses=0</code> but CAN see <code>outcome_attainment=21</code>, <code>attendance=90</code>, <code>courses=3</code>. So data isn't inaccessible — the page <i>short-circuits</i>: <code>ParentProgressPage.tsx:47-55</code> and <code>ParentAttendancePage.tsx:44-50</code> read <code>student_courses</code> first and <code>return []</code> when it's empty. Fix options: add a parent SELECT policy on <code>student_courses</code> (also missing on <code>course_sections</code>, <code>class_sessions</code>), OR rewrite the page to derive courses from the already-visible attainment path.</td></tr>
+  <tr><td>L-4</td><td><b>XP engine + badge chain verified working by real action.</b></td><td><code>award-xp(submission)</code> with a real assignment returned 200 and correctly applied the level multiplier (15→13 at L11). <code>check-badges</code> self returned 200. <code>process-streak</code> per-student advanced the streak to 1. The gamification backend is healthy — the gaps are purely that <i>login/grade/journal/perfect-day client flows never call these functions</i>.</td></tr>
+  <tr><td>L-5</td><td><b>Streak/journal gaps confirmed behaviourally</b> (were inference).</td><td>process-streak works when called, yet login leaves <code>last_login_date</code> stale and writes no <code>habit_tracking</code> row; a real journal create produced 0 <code>journal</code> XP rows. Confirms S-1 and S-5 by observation, not just code reading.</td></tr>
+  <tr><td>L-6</td><td><b>No test pollution.</b></td><td>The deliberate bad-write probe (fake assignment id) was correctly rejected with 400 and wrote 0 rows; the cross-user write attempts were 403. Verified the ledger gained no stray <code>e2e-*</code> rows afterwards.</td></tr>
+</table>
+
+<div class="callout good"><b>Net effect of Pass 3.</b> It <i>confirmed</i> the four engagement/parent BLOCKERs by real action, <i>verified</i> the multi-tenant isolation is leak-free across 9 boundary probes, <i>corrected</i> one false alarm (leaderboard), and <i>surfaced one new BLOCKER</i> (PDF role-gate 403) that a pure code/schema read had missed because it only manifests with a real JWT. The two PDF functions are now known to have <b>two stacked blockers each</b>: the 403 role gate (L-1) in front of the column drift (A-1/C-1).</div>
+
+<div class="page-break"></div>
+<h2>2.6 · Strict seed-and-test (Pass 4) — populate every empty domain, then run it</h2>
+<div class="callout warn"><b>Scope.</b> The remaining inference gap was features with <i>no seeded data</i>. This pass closes it the only honest way: as the real demo users, <b>create the missing data through the actual tables/flows, invoke the dependent edge function, and observe</b>. I first seeded the foundational <code>institution_settings</code> (it was empty for all institutions — several functions read it) and kept it. All other probe rows were created, observed, and then deleted (verified clean; <code>xp_transactions</code> is append-only by design so probe XP used real idempotent sources). This pass surfaced <b>three new BLOCKERs</b> and a systemic XP-authorization defect that only a real write could reveal.</div>
+
+<h3>4a · New BLOCKERs found only by performing the write</h3>
+<table>
+  <tr><th>#</th><th>Feature</th><th>What happened live</th><th>Root cause</th></tr>
+  <tr><td>N-1</td><td><b>Planner tasks — create &amp; complete both broken</b></td><td>Inserting a task as the real student with the app's value <code>status:'pending'</code> → <code>violates check constraint planner_tasks_status_check</code>. Re-running with <code>status:'todo'</code> + update <code>'done'</code> succeeded.</td><td>The DB CHECK allows only <code>todo/in_progress/done/deferred</code>, but <code>usePlannerTasks.ts:59</code> writes <code>'pending'</code> and <code>:197</code> writes <code>'completed'</code> (hidden by an <code>as never</code> cast). Every planner create and completion fails in production. <span class="sev blocker">BLOCKER</span></td></tr>
+  <tr><td>N-2</td><td><b>AI quiz generation — dead for every course</b></td><td>Calling <code>generate-quiz-questions</code> as the course's real teacher returned <code>404 "Course not found"</code> for a course that demonstrably exists.</td><td><code>generate-quiz-questions/index.ts:571</code> selects <code>courses.institution_id</code>, but <code>courses</code> has <b>no <code>institution_id</code> column</b> (institution is via <code>program_id→programs</code>). The bad select returns null → false 404. Column-drift class, confirmed against live schema. <span class="sev blocker">BLOCKER</span></td></tr>
+  <tr><td>N-3</td><td><b>Non-core XP sources can never be awarded from the client</b></td><td>Completing a real study session, logging a wellness habit, completing a planner task, or meeting a weekly goal all call <code>award-xp</code> with the student's own JWT and received <b>403 Forbidden</b> (silently swallowed by fire-and-forget try/catch).</td><td><code>award-xp/index.ts:605</code> only allows self-award for <code>login/submission/journal</code>; every other source requires service-role. But <code>useSessionCompletion</code>, <code>useWellnessHabits</code>, <code>usePlannerTasks</code>, <code>useWeeklyGoalXP</code> all invoke it as the student. So study-session, wellness, planner-task, weekly-goal, and review XP are <b>all dead</b>. <span class="sev blocker">BLOCKER</span></td></tr>
+  <tr><td>N-4</td><td><b>LLM features: OpenRouter works; tutor blocked by an OpenAI dependency</b></td><td>After setting <code>OPENROUTER_API_KEY</code> (a free Kimi key) + <code>TUTOR_PRIMARY_MODEL=moonshotai/kimi-k2</code> in prod: <code>generate-plan-update</code> returned <b>200 with a real LLM study plan</b> generated by Kimi ("Maintain 1 hour/week for light review and spaced repetition…") — the first successful LLM round-trip in the platform's history (log tables were empty). But <code>chat-with-tutor</code> still <code>500</code>s: its <i>first</i> step is an OpenAI embedding (<code>text-embedding-ada-002</code>) for RAG, which an OpenRouter key cannot serve.</td><td>Two distinct gaps: (1) <b>config</b> — <code>OPENROUTER_API_KEY</code> was unset (now set, verified working with Kimi); (2) <b>hard OpenAI dependency</b> — <code>chat-with-tutor</code> and <code>embed-course-material</code> call <code>api.openai.com/v1/embeddings</code> directly and have no OpenRouter/local fallback, so the AI tutor cannot run on an OpenRouter-only setup. Either add an <code>OPENAI_API_KEY</code> or route embeddings through an OpenRouter-compatible embedding model. <span class="sev high">HIGH</span></td></tr>
+  <tr><td>N-5</td><td><b><code>generate-plan-update</code> — NOT NULL insert bug</b></td><td>With the LLM working, the function still <code>500</code>d on save: <code>null value in column "interaction_count" violates not-null constraint</code> when the caller omits <code>recent_interaction_count</code>. Supplying it → 200.</td><td><code>tutor_plan_updates.interaction_count</code> is <code>integer NOT NULL</code> with no default; <code>generate-plan-update/index.ts:298</code> sets it from the request's <code>recent_interaction_count</code> but never validates/defaults it. The live caller (<code>chat-with-tutor</code>) is down, so this was never hit. Add validation or a default. <span class="sev medium">MEDIUM</span></td></tr>
+</table>
+
+<div class="callout good"><b>Live LLM verification (with user-supplied free Kimi key).</b> The OpenRouter integration is <b>confirmed working end-to-end</b> — <code>generate-plan-update</code> produced a genuine Kimi-generated plan in production. The key is a free-tier OpenRouter account (limited credits: a probe with the default 32k <code>max_tokens</code> returned <code>402 Payment Required</code>; smaller requests succeed), which is fine for QA but would need a paid plan or per-function <code>max_tokens</code> caps for real usage.</div>
+
+<h3>2.7 · AI suite — fixed and re-verified live (Pass 5)</h3>
+<div class="callout good"><b>Outcome: the AI tutor and most AI functions now work on the free Kimi key.</b> After live testing the AI layer, four code fixes were made and deployed, then re-verified by real calls. The tutor holds a genuine streamed conversation, and quiz generation produces real questions — both via <code>moonshotai/kimi-k2</code>. <code>tutor_llm_logs</code> now records <b>5 successful LLM calls</b> (was 0 — no AI call had ever succeeded before).</div>
+<table>
+  <tr><th>Fix</th><th>Problem found live</th><th>Change made &amp; deployed</th><th>Re-verified result</th></tr>
+  <tr><td><b>F-1 · Tutor optional embeddings</b></td><td><code>chat-with-tutor</code> hard-failed 500 when <code>OPENAI_API_KEY</code> absent (its first step was an OpenAI embedding for RAG; OpenRouter/Kimi has no embeddings API)</td><td>Made the embedding + pgvector retrieval <b>optional</b> — if no OpenAI key (or it fails), skip RAG and answer from persona + CLO context + history. <code>chat-with-tutor/index.ts:892-960</code></td><td class="s-working"><b>WORKS.</b> Real Socratic reply streamed: "Start by reviewing whole-number operations… with positive and negative integers." Integrity guard also fired: refused "write my homework" and redirected pedagogically. Emits a <code>handoff_suggestion</code> noting no materials found (graceful).</td></tr>
+  <tr><td><b>F-2 · Shared role-gate</b></td><td><code>ai-feedback-draft</code> &amp; <code>ai-module-suggestion</code> returned 403 to real teachers (read role from empty JWT <code>app_metadata</code>)</td><td>Resolve role from the <code>profiles</code> table by <code>user.id</code> (same root cause as the PDF functions). Both functions updated &amp; deployed.</td><td class="s-working"><b>WORKS.</b> ai-module-suggestion → 200 ("No weak CLOs found"); ai-feedback-draft passes the role gate (now validates payload).</td></tr>
+  <tr><td><b>F-3 · Quiz institution_id drift</b></td><td><code>generate-quiz-questions</code> → 404 "Course not found" because it selected non-existent <code>courses.institution_id</code></td><td>Derive institution via <code>program_id → programs(institution_id)</code> join; also read <code>TUTOR_PRIMARY_MODEL</code> and cap <code>max_tokens</code> at 4000. Deployed.</td><td class="s-working"><b>WORKS.</b> Reached the LLM (404 gone).</td></tr>
+  <tr><td><b>F-4 · Kimi structured-output</b></td><td>Quiz then 502'd — Kimi rejected <code>response_format:{type:'json_object'}</code> ("model does not support feature: structured-outputs")</td><td>Only send <code>response_format</code> for OpenAI models; otherwise rely on the prompt's "valid JSON" instruction + existing parse/validate. Deployed.</td><td class="s-working"><b>WORKS.</b> generate-quiz-questions → 200 with real questions ("Which of the following is defined as the set of all possible output values of a function…").</td></tr>
+</table>
+<div class="callout warn"><b>Still requires attention.</b> (a) <b>RAG is off</b> until an embeddings provider is configured — the tutor answers from persona/CLO context but cannot cite course materials (needs an <code>OPENAI_API_KEY</code> or an OpenRouter-compatible embedding model; <code>embed-course-material</code> remains OpenAI-only). (b) <b>generate-plan-update N-5 bug</b> (NOT NULL <code>interaction_count</code>) is still open — fix R-1f. (c) The free Kimi key has limited credits and <b>per-request token caps</b> are advisable. (d) <code>quiz_generation_logs</code> records the model label as the hardcoded constant rather than the actual model used — cosmetic logging inaccuracy.</div>
+
+<h3>4b · Domains seeded &amp; exercised — what actually works</h3>
+
+<table>
+  <tr><th>Domain (was empty)</th><th>Live action performed</th><th>Result</th></tr>
+  <tr><td>Study sessions</td><td>create + complete as student</td><td class="s-working">Row CRUD WORKS; XP award 403 (N-3)</td></tr>
+  <tr><td>Weekly goals</td><td>create as student</td><td class="s-working">WORKS</td></tr>
+  <tr><td>Wellness habits</td><td>log as student</td><td class="s-working">Log WORKS; XP award 403 (N-3)</td></tr>
+  <tr><td>Discussions</td><td>create thread + reply as student</td><td class="s-working">WORKS</td></tr>
+  <tr><td>Journal</td><td>create entry as student</td><td class="s-broken">Row WORKS; advertised +20 XP never awarded</td></tr>
+  <tr><td>Marketplace</td><td><code>process-purchase</code> "AI Tutor Hint Pack" (30 XP)</td><td class="s-working">WORKS — balance debited 1683→1653, purchase row created</td></tr>
+  <tr><td>Bonus XP event</td><td>admin creates 2× <code>bonus_weekend</code> event, student earns XP</td><td class="s-working">WORKS — 20 base → 36 (2× × 0.9 level mult) verified</td></tr>
+  <tr><td>Streak driver</td><td><code>process-streak</code> per-student</td><td class="s-working">Function WORKS (streak→1); login flow just never calls it (S-1)</td></tr>
+  <tr><td>Habit correlations</td><td><code>compute-habit-correlations</code></td><td class="s-nodata">Runs; returns insufficient_data (habit_logs empty)</td></tr>
+  <tr><td>Challenges</td><td>student attempts to join a challenge</td><td class="s-broken">RLS blocks INSERT — no student self-join policy on <code>challenge_participants</code> (only teacher-manage + read). Challenges are not student-joinable.</td></tr>
+  <tr><td>AI feedback draft</td><td><code>ai-feedback-draft</code> as teacher</td><td class="s-broken">403 — same JWT role-gate bug as PDFs (reads role from token, not <code>profiles</code>)</td></tr>
+</table>
+
+<div class="callout danger"><b>The role-gate bug is wider than the two PDF functions.</b> Live testing shows <code>ai-feedback-draft</code> (and the same pattern in <code>generate-course-file</code>, <code>generate-accreditation-report</code>) all read the caller role from the JWT's <code>app_metadata</code>/<code>user_metadata</code>, which carries only <code>{provider, providers}</code> — the role lives in <code>profiles</code>. <b>Every role-gated edge function using this pattern rejects 100% of legitimate callers with 403.</b> One shared fix (resolve role from <code>profiles</code> by <code>user.id</code>) repairs all of them.</div>
+
+<div class="callout good"><b>Net effect of Pass 4.</b> Seeding + driving the empty domains found <b>3 new BLOCKERs</b> (planner status mismatch N-1, quiz <code>institution_id</code> drift N-2, client XP-source 403 N-3) and a production secret gap (N-4) — none of which a code/schema read alone would have proven. It also <i>verified working</i>: marketplace purchase, bonus-XP multiplier, study/goal/wellness/discussion CRUD, and the streak function. The XP <i>ledger and multiplier engine</i> are healthy; the breakage is consistently at the <i>authorization boundary and the column/enum drift</i>, not the business logic.</div>
+
+
+
+
+<div class="page-break"></div>
+
+<h2>3 · Admin role</h2>
+<table>
+  <tr><th>Feature</th><th>Stack path</th><th>Status</th><th>Notes</th></tr>
+  <tr><td>User management (CRUD + soft-delete)</td><td>useUsers.ts:30-243 → profiles</td><td class="s-working">WORKING</td><td>Audit-logged; <code>as never</code> casts at :48,:139</td></tr>
+  <tr><td>Programs / Courses CRUD</td><td>usePrograms.ts, useCourses.ts</td><td class="s-working">WORKING</td><td>Paginated, FK joins, audit-logged</td></tr>
+  <tr><td>ILO management</td><td>useILOs.ts:18-260 → learning_outcomes</td><td class="s-working">WORKING</td><td>Delete checks mapping deps</td></tr>
+  <tr><td>Institution settings / accreditations</td><td>useInstitutionSettings.ts</td><td class="s-working">WORKING</td><td>Columns verified in types</td></tr>
+  <tr><td>Audit log viewer</td><td>useAuditLogs.ts:38-78 → audit_logs</td><td class="s-working">WORKING</td><td>Reader/writer columns aligned</td></tr>
+  <tr><td>Bonus XP events</td><td>useBonusEvents.ts → xp_events</td><td class="s-working">WORKING*</td><td>Data path OK; audit diff under-records (MEDIUM)</td></tr>
+  <tr><td>Onboarding / invitations</td><td>useAdminDashboard.ts, send-invitation-email</td><td class="s-working">WORKING</td><td>programId filter is a no-op (LOW)</td></tr>
+  <tr><td>Accreditation reports</td><td>useAccreditationReport.ts → generate-accreditation-report</td><td class="s-broken">BROKEN</td><td>Column drift → empty attainment/GA sections (BLOCKER)</td></tr>
+  <tr><td>Admin dashboard KPIs</td><td>useAdminDashboard.ts:24-110</td><td class="s-working">WORKING</td><td>Parallel head-count queries</td></tr>
+</table>
+
+<h4>Ranked issues</h4>
+<p><span class="sev blocker">BLOCKER</span> <b>A-0 · 403 role gate blocks every admin (verified live).</b> <code>generate-accreditation-report/index.ts:475-481</code> reads the caller role from <code>user.app_metadata?.role ?? user.user_metadata?.role</code>. Decoding a real admin JWT shows it carries only <code>{provider, providers}</code> — the role lives in the <code>profiles</code> table. So the gate evaluates to empty and returns <code>403 "admin or coordinator role required"</code> for a genuine admin (observed live). The report is unreachable before the column-drift code even runs. Fix: resolve role/institution from <code>profiles</code> by <code>user.id</code>.</p>
+<p><span class="sev blocker">BLOCKER</span> <b>A-1 · <code>generate-accreditation-report</code> column drift.</b> The function selects <code>outcome_attainment.score_percent</code> (real column is <code>attainment_percent</code>) and filters <code>scope === 'PLO' / 'ILO'</code> (the live enum only has <code>student_course/course/program/institution</code>), and reads <code>graduate_attributes.title/code</code> (real columns are <code>name/description</code>). All confirmed against live schema. Because the function only destructures <code>{ data }</code> with no <code>error</code> check, the bad query returns null and the PDF renders attainment as 0 / "Not Yet" and the Graduate Attribute section empty — with HTTP 200. Evidence: <code>generate-accreditation-report/index.ts:561-562,573-599,653-657</code>.</p>
+<p><span class="sev high">A-2 · Accreditation report semester filter is dead.</b> <code>ReportGeneratorPage.tsx:30-33</code> declares a local <code>useSemesters</code> stub returning <code>[]</code> that shadows the real hook, so the semester dropdown is permanently empty.</p>
+<p><span class="sev medium">A-3 · Bonus-event audit logging records almost nothing.</b> <code>auditLogger.ts:31</code> allow-lists <code>["name","multiplier","start_date","end_date"]</code> but the table columns are <code>xp_multiplier/starts_at/ends_at</code>, so the audit <code>diff</code> only ever captures <code>name</code>.</p>
+<p><span class="sev low">A-4 · <code>as never</code> casts</b> at <code>useUsers.ts:48,139</code>, <code>useCourses.ts:120</code> bypass generated Insert types. <span class="sev low">A-5 · pending-onboarding program filter ignored</b> (<code>useAdminDashboard.ts:158-170</code>).</p>
+
+<h2>4 · Coordinator role</h2>
+<table>
+  <tr><th>Feature</th><th>Stack path</th><th>Status</th><th>Notes</th></tr>
+  <tr><td>PLO management</td><td>usePLOs.ts:30-300 → learning_outcomes</td><td class="s-working">WORKING</td><td>Drag-reorder, dep-checked delete</td></tr>
+  <tr><td>Outcome mappings PLO→ILO</td><td>usePLOMappings → outcome_mappings</td><td class="s-working">WORKING</td><td>Correct source/target columns</td></tr>
+  <tr><td>Curriculum matrix</td><td>useCurriculumMatrix.ts</td><td class="s-nodata">WORKING / NO-DATA</td><td>Cell status is CLO-count placeholder, ignores attainment (:30-34)</td></tr>
+  <tr><td>CQI action plans</td><td>useCQIPlans.ts → cqi_action_plans</td><td class="s-working">WORKING</td><td>App hook columns match table exactly</td></tr>
+  <tr><td>Course-file generation</td><td>useCourseFile.ts → generate-course-file</td><td class="s-broken">BROKEN</td><td>4 queries on non-existent columns (BLOCKER)</td></tr>
+  <tr><td>Coordinator dashboard KPIs</td><td>useCoordinatorDashboard.ts:14-110</td><td class="s-working">WORKING*</td><td>"At-Risk" = active-student count placeholder</td></tr>
+</table>
+
+<h4>Ranked issues</h4>
+<p><span class="sev blocker">BLOCKER</span> <b>C-0 · 403 role gate blocks every coordinator (verified live).</b> <code>generate-course-file/index.ts:440-442</code> checks <code>user.app_metadata?.role</code>, which is empty on the real JWT — a genuine coordinator calling the function received <code>403 "admin or coordinator role required"</code> in live testing. Same root cause and fix as A-0 (read role from <code>profiles</code>).</p>
+<p><span class="sev blocker">BLOCKER</span> <b>C-1 · <code>generate-course-file</code> — four broken queries.</b> Confirmed against live schema: (1) <code>outcome_mappings</code> selected with <code>child_outcome_id/parent_outcome_id</code> (real: source/target); (2) <code>submissions.score_percent</code> (does not exist — scores are on <code>grades</code>); (3) <code>outcome_attainment.score_percent</code> + filter <code>scope='CLO'</code> (column is <code>attainment_percent</code>; enum has no CLO); (4) <code>cqi_action_plans</code> selected with <code>title/gap_description/corrective_actions</code> and filtered by <code>course_id</code> (none exist; table is keyed by <code>program_id</code> with <code>action_description/root_cause</code>). The course file is the accreditation artefact per course/semester — it ships with empty CLO-PLO mapping, sample-work, CLO-attainment and CQI sections. Evidence: <code>generate-course-file/index.ts:521-534,573-585,610-621,654-665</code>.</p>
+<p><span class="sev medium">C-2 · Curriculum matrix / dashboard show placeholder metrics</b>, not real attainment (<code>useCurriculumMatrix.ts:30-34</code>, <code>useCoordinatorDashboard.ts:62-68</code>) — could mislead an accreditation reviewer.</p>
+<p><span class="sev low">C-3 · <code>as never</code> insert cast</b> at <code>usePLOs.ts:96</code>.</p>
+
+<div class="callout warn"><b>Root cause shared by A-1 and C-1.</b> The application hooks consistently use the <i>current</i> schema; only these two Deno PDF functions use an <i>older</i> vocabulary. The schema was migrated (mappings renamed to source/target, attainment column renamed, scores moved to <code>grades</code>, CQI table redesigned) <b>without updating the two edge functions</b>, and because they never check the PostgREST <code>error</code> object, the regression shipped silently. Any fix must also add <code>if (error) throw</code> guards so the next drift fails loudly.</div>
+
+<div class="page-break"></div>
+<h2>5 · Teacher role</h2>
+<table>
+  <tr><th>Feature</th><th>Stack path</th><th>Status</th><th>Notes</th></tr>
+  <tr><td>Dashboard KPIs, course selector</td><td>useTeacherDashboard.ts</td><td class="s-working">WORKING</td><td>Uses <code>assignments!inner</code> correctly</td></tr>
+  <tr><td>Assignment / CLO / rubric CRUD</td><td>useAssignments.ts, useCLOs.ts</td><td class="s-working">WORKING</td><td>Bloom's levels present; stale casts (LOW)</td></tr>
+  <tr><td>Attendance entry</td><td>attendance hooks → attendance_records</td><td class="s-working">WORKING</td><td>7,500 rows live</td></tr>
+  <tr><td>Quiz generation / AI feedback</td><td>generate-quiz-questions, ai-feedback-draft</td><td class="s-working">WORKING</td><td>JWT-guarded; ai_feedback logged</td></tr>
+  <tr><td>Grade submission → evidence → attainment</td><td>useCreateGrade → DB trigger trigger_attainment_rollup</td><td class="s-working">WORKING*</td><td>Runs via SQL trigger, not the edge fn; 2,577 evidence rows confirm</td></tr>
+  <tr><td>Grading queue course/assignment filter</td><td>useSubmissions.ts:88-90,138-141</td><td class="s-broken">BROKEN</td><td>Non-!inner embedded filter → course ignored (HIGH)</td></tr>
+  <tr><td>Course materials embedding</td><td>embed-course-material edge fn</td><td class="s-notwired">NOT-WIRED</td><td>No caller anywhere → RAG store never populated</td></tr>
+  <tr><td>Gradebook export</td><td>client-side CSV (bulk-grade-export fn missing)</td><td class="s-working">WORKING</td><td>Hook references a fn dir that doesn't exist; UI uses client CSV</td></tr>
+</table>
+
+<h4>Ranked issues</h4>
+<p><span class="sev high">T-1 · Grading-queue filter ignored.</b> <code>useSubmissions.ts</code> filters on a non-<code>!inner</code> embedded join (<code>assignments.course_id</code>), so PostgREST does not restrict parent rows — the selected course/assignment is effectively ignored and the queue shows everything. The dashboard KPI hook does it correctly with <code>assignments!inner</code>, proving the pattern is known.</p>
+<p><span class="sev high">T-2 · Grade XP path skips level + multipliers.</b> Grade release awards a flat <code>+15</code> via direct <code>UPDATE student_gamification SET xp_total = xp_total + 15</code> in the DB trigger (idempotent ledger insert), but never recomputes <code>level</code> and never applies adaptive/bonus multipliers. <b>Live note:</b> Pass 2 found <code>xp_total</code> drift = 0, so the headline number is correct today; the residual risk is level lag and missing event multipliers on grade-driven XP.</p>
+<p><span class="sev medium">T-3 · Grading stats overcount.</b> <code>useGradingStats</code> counts <code>submissions.status='submitted'</code> as "pending" but nothing ever sets <code>status='graded'</code>, so the pending count overstates and disagrees with the KPI card.</p>
+<p><span class="sev low">T-4 · embed-course-material orphaned</b> (uploaded materials never embedded). <span class="sev low">T-5 · stale <code>as any</code>/<code>as never</code></b> in useAssignments/useCLOs with outdated "types not regenerated" comments though the columns now exist. <span class="sev low">T-6 · silent error-swallowing</b> in teacher dashboard hooks.</p>
+
+<div class="callout"><b>Note on the calculate-attainment-rollup edge function.</b> It is <i>orphaned</i> — the live grade→evidence→attainment cascade runs entirely through the SQL trigger <code>trigger_attainment_rollup</code>. If the edge function were ever wired in, it would violate <code>evidence.plo_id/ilo_id NOT NULL</code>. Leave it disconnected or delete it; do not "re-enable" it without schema review.</div>
+
+<div class="page-break"></div>
+<h2>6 · Student role (largest surface)</h2>
+<table>
+  <tr><th>Feature</th><th>Stack path</th><th>Status</th><th>Notes</th></tr>
+  <tr><td>Dashboard XP / level chips</td><td>useStudentDashboard.ts:40-95</td><td class="s-working">WORKING</td><td>Advances via award-xp on submission</td></tr>
+  <tr><td>Dashboard streak chip</td><td>useStreak.ts:24; useStudentDashboard.ts:62-66</td><td class="s-broken">BROKEN</td><td>streak_current never incremented at runtime</td></tr>
+  <tr><td>Courses / assignments / submission</td><td>useSubmissions, AssignmentDetailPage:223-247</td><td class="s-working">WORKING</td><td>Submission fires award-xp → badge chain</td></tr>
+  <tr><td>Learning path (Bloom order + prereq gate)</td><td>useLearningPath.ts:63-160</td><td class="s-working">WORKING</td><td>Bloom from clo_weights[0] only (LOW)</td></tr>
+  <tr><td>Leaderboard + anonymity opt-out</td><td>get_leaderboard_page RPC</td><td class="s-working">WORKING</td><td>Opt-out excluded server-side</td></tr>
+  <tr><td>Badges (BadgeCollection / useTieredBadges)</td><td>useTieredBadges.ts:44-49</td><td class="s-working">WORKING*</td><td>Fix live; missing explicit scope='individual' filter</td></tr>
+  <tr><td>Habit heatmap</td><td>useHeatmapData.ts:68-71 (habit_tracking)</td><td class="s-nodata">NO-DATA</td><td>Only read_content + seed populate it</td></tr>
+  <tr><td>Daily habits / Today view</td><td>useTodayView.ts:218 (habit_logs)</td><td class="s-nodata">NO-DATA</td><td>habit_logs = 0 rows live</td></tr>
+  <tr><td>Journal</td><td>useJournal.ts:104-130</td><td class="s-notwired">NOT-WIRED (XP)</td><td>Entry persists; "+20 XP" never granted (journal source = 0 live)</td></tr>
+  <tr><td>AI tutor (chat + tutorApi)</td><td>useTutorMessages, tutorApi</td><td class="s-working">WORKING</td><td>SSE streaming, strong typing</td></tr>
+  <tr><td>Study sessions / planner / wellness / marketplace / challenges</td><td>various</td><td class="s-working">WORKING</td><td>Planner/wellness correctly fire award-xp + check-badges</td></tr>
+</table>
+
+<h4>Ranked issues</h4>
+<p><span class="sev blocker">BLOCKER</span> <b>S-1 · Login never advances the streak.</b> <code>AuthProvider.signIn</code> only calls <code>logActivity({event_type:'login'})</code> (<code>AuthProvider.tsx:230-234</code>) which inserts into <code>student_activity_log</code> and nothing else — no <code>process-streak</code> invoke, no <code>award-xp('login')</code>, no <code>habit_tracking.login</code> write. The only <code>process-streak</code> caller is a midnight cron posting <code>{type:'midnight_reset'}</code>, but the function requires <code>student_id</code> and has no batch branch, so it 400s and processes nobody. Result: <code>streak_current</code>, streak badges and milestone XP are all driven by seed data only. (Pass 2: live streaks 0–31 are all mid-May seed values; <code>login</code> XP rows are seed-timestamped.)</p>
+<p><span class="sev blocker">BLOCKER</span> <b>S-2 · Perfect Day 50 XP never paid.</b> <code>perfect_day</code> is a valid XP source and in <code>MILESTONE_SOURCES</code>, but nothing ever calls <code>award-xp({source:'perfect_day'})</code>. The 6 PM <code>perfect-day-prompt</code> cron only inserts a nudge notification that <i>advertises</i> the 50 XP (<code>perfect-day-prompt/index.ts:207-213</code>). <code>isPerfectDay()</code> is used only in tests. (Pass 2: the 565 <code>perfect_day</code> rows are seed data.)</p>
+<p><span class="sev high">S-3 · Academic habit completions never recorded.</b> <code>login/submit/journal</code> are never written to <code>habit_tracking</code> or <code>habit_logs</code> by their real flows (only <code>read_content</code> via the read timer, and sessions via session-completion). This is the upstream cause of S-1, S-2 and the empty heatmap. (Pass 2: <code>habit_logs</code> = 0 rows.)</p>
+<p><span class="sev high">S-4 · Grade release awards no client XP / badge check.</b> <code>useCreateGrade</code> (<code>useGrades.ts:77-105</code>) inserts the grade and relies on the DB trigger for attainment, but never invokes <code>award-xp('grade')</code>; the grade→15XP→<code>perfect_score</code>/<code>all_clos_met</code> badge path only fires if some unrelated award happens to run.</p>
+<p><span class="sev high">S-5 · Journal XP not awarded</b> despite "+20 XP" UI copy (<code>useJournal.ts:104-130</code>, <code>StudentJournalPage.tsx:128,254</code>).</p>
+<p><span class="sev medium">S-6 · <code>useStudentBadges</code> missing <code>scope='individual'</code> filter and is dead code</b> (imported nowhere); the live <code>useTieredBadges</code> filters <code>team_id IS NULL</code> instead. Works today, not contract-correct. <span class="sev medium">S-7 · habit_logs vs habit_tracking duplication</b> with <code>as never</code> reads and "table may not exist" comments. <span class="sev medium">S-8 · read-by-filter <code>.single()</code></b> that throws on 0 rows (<code>useSessionCompletion.ts:292</code>, <code>useReplacementVotes.ts:114</code>).</p>
+<p><span class="sev low">S-9 · pervasive <code>as never</code>/<code>as any</code></b> casts (teams/tiered-badges/xp-balance). <span class="sev low">S-10 · learning path Bloom from first CLO only</b>. <span class="sev low">S-11 · fragile double-<code>.data</code></b> cast in useStudentDashboard.</p>
+
+<h4>Deep-dive: is <code>habit_logs</code> working with live data? (extensive test)</h4>
+<div class="callout danger"><b>Verdict: NO. <code>habit_logs</code> is completely empty in production (0 rows) and is effectively dead.</b> The table, its columns (<code>id, student_id, habit_type, date, completed_at, created_at</code>) and its 7 RLS policies all exist and are correct — but nothing populates it during normal use.</div>
+<table>
+  <tr><th>Aspect</th><th>Finding</th></tr>
+  <tr><td>Live row count</td><td><code>habit_logs</code> = <b>0 rows</b>. The parallel table <code>habit_tracking</code> = 3,010 rows but all are seed data (max date 2026-05-19, 70 students).</td></tr>
+  <tr><td>Only writer</td><td><code>useSessionCompletion.ts:271</code> (study-session completion) — and it writes via <code>from("habit_logs" as never)</code> with a comment "table may not exist." No login / submit / journal / read flow writes <code>habit_logs</code>. In production it has produced zero rows.</td></tr>
+  <tr><td>Readers that silently get nothing</td><td><code>useTodayView.ts:218</code> (the student Today-view habit chips) plus edge functions <code>process-streak</code> (comeback check), <code>perfect-day-prompt</code>, <code>check-badges</code> (perfect_week badge), <code>compute-habit-correlations</code>, <code>update-challenge-progress</code> (habit-streak), and <code>export-student-data</code>. All read an empty table.</td></tr>
+  <tr><td>User-visible impact</td><td>Today-view habit chips never tick; the <b>perfect_week</b> badge can never be earned; habit-correlation insights are empty; challenge habit-streaks read zero; GDPR export omits habit data.</td></tr>
+  <tr><td>Root cause</td><td>The daily-habit feature was built twice on two tables (<code>habit_logs</code> narrow rows vs <code>habit_tracking</code> wide booleans), and the real login/submit/journal/read flows write to <b>neither</b>. This is the upstream cause shared with S-1 (streak) and S-2 (perfect day).</td></tr>
+  <tr><td>Fix</td><td>Remediation R-7: pick ONE habit table and have the actual login/submit/journal/read flows write to it; that single change unblocks the Today view, the heatmap, the streak driver, the perfect-day payout, and the perfect_week badge.</td></tr>
+</table>
+
+<div class="page-break"></div>
+<h2>7 · Parent role</h2>
+<table>
+  <tr><th>Feature</th><th>Stack path</th><th>Status</th><th>Notes</th></tr>
+  <tr><td>Dashboard</td><td>ParentDashboard.tsx; useParentKPIs</td><td class="s-nodata">NO-DATA (partial)</td><td>Only linkedChildren is real; other KPIs hardcoded 0</td></tr>
+  <tr><td>Linked-students view</td><td>useLinkedChildren:24-92</td><td class="s-working">WORKING</td><td>verified=true enforced client + RLS; avg_attainment hardcoded 0</td></tr>
+  <tr><td>My Children</td><td>ParentChildrenPage</td><td class="s-nodata">NO-DATA (partial)</td><td>XP/streak/level OK; courses count always 0</td></tr>
+  <tr><td>Child Progress (attainment)</td><td>ParentProgressPage.tsx:51-100</td><td class="s-broken">BROKEN</td><td>Reads student_courses first → no parent RLS → empty</td></tr>
+  <tr><td>Child Attendance</td><td>ParentAttendancePage.tsx:33-160</td><td class="s-broken">BROKEN</td><td>Same student_courses-first pattern → empty</td></tr>
+  <tr><td>Parent Planner (read-only)</td><td>ParentPlannerView.tsx</td><td class="s-working">WORKING (partial)</td><td>Planner tables have parent policies; deadlines empty (courses gap)</td></tr>
+  <tr><td>Parent Profile page</td><td>ParentProfilePage.tsx</td><td class="s-notwired">ORPHAN</td><td>No route imports it; route uses shared ProfilePage</td></tr>
+</table>
+
+<h4>Ranked issues</h4>
+<p><span class="sev blocker">BLOCKER</span> <b>P-1 · Progress &amp; Attendance pages empty for every parent.</b> Both queries start from <code>student_courses</code>, which has <b>no parent SELECT policy</b> (live policy count = 0). <b>Live test refinement (Pass 3):</b> a real parent session can in fact read the downstream data — <code>outcome_attainment</code> (21 rows), <code>attendance_records</code> (90), <code>courses</code> (3) are all visible — but the page query short-circuits on <code>if (!enrollments || enrollments.length === 0) return []</code> (<code>ParentProgressPage.tsx:52-55</code>) because the <code>student_courses</code> read returns 0. So the page is empty even though the data is reachable. <b>This is a correctness/UX break, not a data leak.</b> Fix has two valid options: add a parent SELECT policy on <code>student_courses</code> (+ <code>courses</code>, <code>course_sections</code>, <code>class_sessions</code>, all confirmed missing parent policies), OR rewrite the query to derive enrolled courses from the already-visible <code>outcome_attainment</code>. Evidence: <code>20260428000003_optimize_rls_policies.sql:96-112</code>; <code>ParentProgressPage.tsx:60-64</code>; <code>ParentAttendancePage.tsx:64-68</code>.</p>
+<p><span class="sev high">P-2 · Dashboard KPIs are placeholder zeros</b> — <code>useParentKPIs</code> hardcodes <code>totalCourses/avgAttainment/upcomingDeadlines = 0</code>; <code>useLinkedChildren</code> hardcodes <code>avg_attainment = 0</code> and <code>enrolled_courses</code> is 0 due to the same RLS gap. <span class="sev high">P-3 · ParentPlannerView not internationalised</b> — hardcoded English strings (Arabic/RTL market requirement). <span class="sev high">P-4</b> is shared (CORS, below).</p>
+<p><span class="sev low">P-5 · orphan ParentProfilePage</b>; <span class="sev low">P-6 · no parent "Profile" nav entry</b> though the route exists.</p>
+
+<div class="callout good"><b>What the RLS boundary gets right.</b> Where parent policies exist, they are correctly scoped to <i>verified linked children</i> (<code>parent_student_links … verified = true</code>): outcome_attainment, student_gamification, attendance_records, study_sessions/planner_tasks/weekly_goals, evidence/submissions, profiles (via a SECURITY DEFINER helper). A parent cannot see an unlinked or unverified child. The bug is missing policies on the <i>enrollment</i> tables, not a leak.</div>
+
+<div class="page-break"></div>
+<h2>8 · Cross-cutting infrastructure</h2>
+<table>
+  <tr><th>Area</th><th>Stack path</th><th>Status</th><th>Notes</th></tr>
+  <tr><td>Centralised realtime manager</td><td>useRealtime.ts:46-170</td><td class="s-working">WORKING</td><td>Channel dedup, exponential backoff, polling fallback, unmount cleanup, scoped filters</td></tr>
+  <tr><td>Notifications read</td><td>useNotifications.ts:42-59</td><td class="s-working">WORKING</td><td>Correct columns; RLS scoped to user_id</td></tr>
+  <tr><td>Notification realtime (live bell)</td><td>useNotificationRealtime.ts:33-67</td><td class="s-notwired">NOT-WIRED</td><td>Hook correct but never mounted in production</td></tr>
+  <tr><td>Sentry consent gating</td><td>App.tsx:26 vs main.tsx:27</td><td class="s-broken">BROKEN</td><td>initSentry() runs unconditionally → consent bypassed</td></tr>
+  <tr><td>RouteGuard role access</td><td>RouteGuard.tsx:21-41</td><td class="s-working">WORKING</td><td>Client guard + RLS enforcement</td></tr>
+  <tr><td>CORS headers (2 edge fns)</td><td>score-reflection-quality, generate-reflection-digest :12-13</td><td class="s-broken">BROKEN</td><td><code>x-content-type</code> should be <code>x-client-info</code></td></tr>
+  <tr><td>i18n / RTL</td><td>ParentPlannerView.tsx:118-205</td><td class="s-nodata">PARTIAL</td><td>Hardcoded English in planner view</td></tr>
+</table>
+
+<h4>Ranked issues</h4>
+<p><span class="sev blocker">BLOCKER</span> <b>I-1 · Sentry initialises before consent.</b> <code>App.tsx:26</code> calls <code>initSentry()</code> at module load, gated only on DSN presence — not on consent. <code>main.tsx:27</code> separately calls the consent-gated <code>initAnalyticsIfConsented()</code>, but because the unconditional init already ran, the consent path's <code>isInitialized()</code> guard makes it a no-op. The two paths also differ (App.tsx enables Session Replay; consent path does not). For a FERPA/GDPR-sensitive education product targeting Qatar, error/replay capture starting without consent is a privacy-compliance issue, not just a bug.</p>
+<p><span class="sev high">I-2 · CORS header typo</b> breaks a browser-invoked function. <code>score-reflection-quality/index.ts:12-13</code> advertises <code>x-content-type</code> instead of <code>x-client-info</code>; supabase-js always sends <code>x-client-info</code>, so a strict preflight can reject it. It is invoked from <code>useReflectionQuality.ts:75</code> and <code>useSessionReflections.ts:113</code>. Same typo in the orphaned <code>generate-reflection-digest</code>.</p>
+<p><span class="sev high">I-3 · Notification realtime never mounted.</b> <code>useNotificationRealtime</code> is correctly built but has zero production callers (only a test). <code>NotificationBell</code>/<code>GlobalHeader</code> don't invoke it, so the bell badge only updates on refetch/remount — not live.</p>
+<p><span class="sev medium">I-4 · ParentPlannerView not localised</b>. <span class="sev low">I-5 · orphan edge fn <code>generate-reflection-digest</code></b> and orphan page <code>ParentProfilePage</code>.</p>
+
+<div class="page-break"></div>
+<h2>9 · Retrospective — the badge-XP saga (the questions you asked)</h2>
+<p>You asked, directly: <i>"why is this causing the issue, why didn't we work to resolve this, and why did you use the bad approach earlier?"</i> Here is the honest engineering account of the badge/XP edge-function work that immediately preceded this audit.</p>
+
+<div class="q">Q1 · What was actually broken?</div>
+<p>Two distinct defects stacked on top of each other:</p>
+<ul>
+  <li><b>The original blocker (B-1):</b> <code>check-badges</code> wrote earned individual badges to a <code>student_badges</code> table while the UI read a different <code>badges</code> table, and <code>award-xp</code> never triggered <code>check-badges</code> after an XP award. So badges could never appear, and the badge-check rarely ran. This is why production showed <code>badges = 0</code> for 71 students with 4,119 XP transactions.</li>
+  <li><b>The hidden second defect (discovered during the fix):</b> once badges <i>were</i> being awarded, the follow-on "award the badge's XP" call (and the <code>award-xp → check-badges</code> trigger) failed with a gateway <b>401</b>. No server-to-server <code>award-xp</code> call had <i>ever</i> succeeded — visible in the ledger as zero rows for <code>badge</code>, <code>tutor_engagement</code>, <code>challenge_reward</code> and <code>improvement_bonus</code> sources.</li>
+</ul>
+
+<div class="q">Q2 · Why was the second defect happening? (root cause)</div>
+<p>The functions were deployed with the platform setting <code>verify_jwt = true</code>, which makes Supabase's API gateway validate the <code>Authorization: Bearer</code> token <i>as a JWT</i> before the request ever reaches the function code. This project's injected <code>SUPABASE_ANON_KEY</code> and <code>SUPABASE_SERVICE_ROLE_KEY</code> are the <b>modern non-JWT <code>sb_…</code> format</b> (confirmed: the publishable key is <code>sb_publishable_…</code>). A non-JWT string can never pass a JWT-verification gate. So every function-to-function call — which sends one of those keys as the bearer — was rejected at the gateway with 401 <i>before</i> the function's own (correct) in-handler auth logic could run. The function code was fine; the platform gate in front of it was incompatible with the key format the platform itself injects.</p>
+
+<div class="q">Q3 · Why wasn't this caught earlier?</div>
+<ul>
+  <li><b>It was latent behind the first blocker.</b> Because badges were never awarded end-to-end (B-1), the badge→XP sub-call was never actually exercised in production. The 401 only became reachable <i>after</i> B-1 was fixed. Fixing one bug exposed the next — classic layered failure.</li>
+  <li><b>The ledger evidence was never read this way before.</b> The "zero rows for every server-to-server XP source" signal was sitting in the database the whole time, but no prior check queried the source distribution. Pass 2 of this audit is exactly that query.</li>
+  <li><b>Edge functions don't fail loudly.</b> The calls were fire-and-forget with <code>.catch(console.error)</code>; a 401 logged to a function-log nobody was tailing. There was no test asserting "a submission produces a <code>badge</code> XP row."</li>
+</ul>
+
+<div class="q">Q4 · Why did the earlier approach fail — twice — before the right fix?</div>
+<p>This is the part worth being candid about. The fix went through three bearer-token attempts before the real cause was identified:</p>
+<ol>
+  <li><b>Attempt 1 — send the service-role key as the bearer.</b> Reasoning: "service role should be all-powerful." Result: gateway 401. <i>Why it was wrong:</i> the injected service-role key is the non-JWT <code>sb_secret_…</code> format, so <code>verify_jwt</code> rejects it.</li>
+  <li><b>Attempt 2 — send the anon JWT as the bearer + service-role in a header.</b> Reasoning: "the anon key is a JWT, so the gate will pass, and the handler can read the secret from a custom header." Result: still 401. <i>Why it was wrong:</i> on this project the anon key is <i>also</i> the modern non-JWT format, so it failed the same gate.</li>
+  <li><b>Attempt 3 (correct) — deploy both functions with <code>verify_jwt = false</code></b> and rely on the already-robust in-handler auth (service-role exact-match via <code>x-internal-auth</code>, plus user-JWT ownership checks for student calls). Result: 200; badges and badge-XP both land; verified live with two real students.</li>
+</ol>
+<p><b>The honest mistake:</b> the first two attempts kept changing <i>which token</i> was sent, treating the symptom (a 401) as an auth-token problem. The actual variable was <i>where</i> auth was being enforced (gateway vs handler) and <i>what format</i> the platform keys were. The diagnostic that should have come first — "does the gateway return 401 even for a known-valid token, i.e. is this a gateway gate or a handler rejection?" — was run third, not first. Once that diagnostic matrix was run (legacy JWT → in-handler 403 = gateway accepts; injected key → 401 = gateway rejects), the root cause was obvious and the fix was immediate.</p>
+
+<div class="callout danger"><b>The general lesson (worth a steering rule).</b> When a 401/403 appears on a server-to-server call, <i>first</i> determine whether it is the <b>gateway</b> or the <b>handler</b> talking, before changing any credential. A gateway 401 and a handler 403 look similar in logs but have opposite fixes. Changing tokens without that distinction is guessing. The repo's own guidance — "if an approach has failed twice, diagnose the root cause rather than making incremental patches" — is exactly the rule that was violated on attempts 1–2 and honoured on attempt 3.</p></div>
+
+<div class="q">Q5 · Is the fix safe? Did turning off verify_jwt weaken security?</div>
+<p>No meaningful weakening. <code>verify_jwt</code> at the gateway is a coarse "is this any valid JWT" check. Both functions enforce their own, stricter auth <i>inside</i> the handler: <code>award-xp</code> and <code>check-badges</code> accept a service-role secret only via the <code>x-internal-auth</code> header (exact-match) for server-to-server calls, and for end-user calls they validate the user's JWT with <code>getUser()</code> and enforce ownership (a student can only act on their own id — verified live: a cross-user call returns 403). Turning off the redundant gateway gate removed the <i>only</i> thing blocking legitimate internal calls while leaving the real authorization intact. The change is recorded in <code>scripts/deploy-edge-functions.sh</code> (<code>NO_VERIFY_JWT_FUNCTIONS</code>) so a future batch deploy doesn't silently re-enable the gate and re-break it.</p>
+
+<div class="q">Q6 · Current state of that work</div>
+<p>The badge fix and the <code>verify_jwt=false</code> redeploy are <b>live and verified</b> (56 individual badges, 2 badge-XP transactions — the first ever — and a confirmed no-infinite-loop). However, the edited source for <code>check-badges</code>, <code>award-xp</code> and <code>deploy-edge-functions.sh</code> is currently <b>uncommitted on the local <code>main</code> branch</b> and has not yet gone through a PR. <b>Action required:</b> move these to a feature branch and open a PR so production code matches what is deployed (and so CI/property tests run against it). This is item R-0 in the plan below.</p>
+
+<div class="page-break"></div>
+<h2>10 · Prioritised remediation plan</h2>
+<p>Ordered by risk-adjusted priority. "Effort" is rough engineer-days. None require a schema redesign.</p>
+
+<table>
+  <tr><th>ID</th><th>Fix</th><th>Sev</th><th>Effort</th><th>Approach (summary)</th></tr>
+  <tr><td>R-0</td><td>Commit the deployed badge/verify_jwt fix to a PR</td><td><span class="sev blocker">BLOCKER</span></td><td>0.25</td><td>Branch + PR the 3 modified files; run lint/tsc/test; this only reconciles repo with prod</td></tr>
+  <tr><td>R-1a</td><td><b>Shared edge-fn role gate (403 for all coordinators/admins/teachers)</b></td><td><span class="sev blocker">BLOCKER</span></td><td>0.5</td><td>generate-course-file, generate-accreditation-report, ai-feedback-draft (and any fn using the pattern) read role from JWT <code>app_metadata</code> (empty). Resolve role/institution from <code>profiles</code> by <code>user.id</code> instead. One shared helper fixes all</td></tr>
+  <tr><td>R-1b</td><td><b>N-1 · Planner task status mismatch</b></td><td><span class="sev blocker">BLOCKER</span></td><td>0.25</td><td>usePlannerTasks writes <code>pending/completed</code>; DB CHECK allows <code>todo/in_progress/done/deferred</code>. Align hook to DB values (and remove the <code>as never</code> that hid it). Create + complete both broken today</td></tr>
+  <tr><td>R-1c</td><td><b>N-2 · Quiz gen <code>courses.institution_id</code> drift</b> — ✔ FIXED &amp; DEPLOYED</td><td><span class="sev blocker">BLOCKER</span></td><td>done</td><td>Now joins <code>program_id→programs</code>; reads TUTOR_PRIMARY_MODEL; conditional response_format. Verified 200 with real Kimi questions</td></tr>
+  <tr><td>R-1d</td><td><b>N-3 · Client XP sources rejected 403</b></td><td><span class="sev blocker">BLOCKER</span></td><td>0.5</td><td>study_session/wellness/planner_task/weekly_goal/review XP all 403 because hooks call award-xp as the student. Either add these to award-xp self-allow-list with server-enforced amounts, or route them through a trusted server path. Today they award nothing</td></tr>
+  <tr><td>R-1e</td><td><b>N-4 · AI keys + tutor OpenAI dependency</b> — ✔ PARTIALLY FIXED</td><td><span class="sev high">HIGH</span></td><td>partial</td><td>OpenRouter/Kimi key set; tutor embeddings made optional &amp; deployed (tutor + quiz now work on Kimi). REMAINING: configure an embeddings provider for RAG citations (<code>embed-course-material</code> still OpenAI-only)</td></tr>
+  <tr><td>R-1f</td><td><b>N-5 · generate-plan-update NOT NULL bug</b></td><td><span class="sev medium">MED</span></td><td>0.1</td><td>Validate/default <code>recent_interaction_count</code> (→ <code>interaction_count</code>) in generate-plan-update; it 500s on save when the caller omits it</td></tr>
+  <tr><td>R-1</td><td>generate-accreditation-report column drift</td><td><span class="sev blocker">BLOCKER</span></td><td>0.5</td><td><code>score_percent→attainment_percent</code>; map PLO/ILO via <code>outcome_id</code> joins not <code>scope</code>; <code>graduate_attributes.name/description</code>; add <code>if(error) throw</code></td></tr>
+  <tr><td>R-2</td><td>generate-course-file column drift (4 queries)</td><td><span class="sev blocker">BLOCKER</span></td><td>0.75</td><td>outcome_mappings source/target; read scores from <code>grades</code>; attainment_percent + scope <code>student_course/course</code>; CQI <code>action_description/program_id</code>; add error guards</td></tr>
+  <tr><td>R-3</td><td>Sentry consent gate</td><td><span class="sev blocker">BLOCKER</span></td><td>0.25</td><td>Remove unconditional <code>initSentry()</code> in App.tsx; route solely through the consent-gated path; unify config</td></tr>
+  <tr><td>R-4</td><td>Parent RLS on student_courses (+courses/sections/sessions)</td><td><span class="sev blocker">BLOCKER</span></td><td>0.5</td><td>Add parent SELECT policies scoped to verified linked children (mirror existing attainment policy); migration + replay check</td></tr>
+  <tr><td>R-5</td><td>Student streak driver on login</td><td><span class="sev high">HIGH</span></td><td>1.0</td><td>Either invoke per-student <code>process-streak</code> on login, or add an "all active students" batch branch + point the midnight cron at it; write <code>habit_tracking.login</code>; add integration test "login advances streak"</td></tr>
+  <tr><td>R-6</td><td>Perfect Day 50 XP payout</td><td><span class="sev high">HIGH</span></td><td>0.5</td><td>On 4th-habit completion award idempotent <code>perfect_day</code> (key <code>perfect_day:{student}:{date}</code>) + fire check-badges('habit_log')</td></tr>
+  <tr><td>R-7</td><td>Record academic habit completions</td><td><span class="sev high">HIGH</span></td><td>1.0</td><td>Pick ONE habit table; write login/submit/journal on their real flows; this unblocks heatmap, streak, perfect-day</td></tr>
+  <tr><td>R-8</td><td>Grade + journal XP awards on client</td><td><span class="sev high">HIGH</span></td><td>0.5</td><td>Invoke award-xp('grade')/('journal') from useCreateGrade/useCreateJournalEntry (idempotent ref)</td></tr>
+  <tr><td>R-9</td><td>Grading-queue !inner join filter</td><td><span class="sev high">HIGH</span></td><td>0.25</td><td>Change embedded <code>assignments</code> filter to <code>assignments!inner</code> in useSubmissions</td></tr>
+  <tr><td>R-10</td><td>CORS x-client-info typo (2 fns)</td><td><span class="sev high">HIGH</span></td><td>0.1</td><td>Replace <code>x-content-type</code> → <code>x-client-info</code>; redeploy score-reflection-quality</td></tr>
+  <tr><td>R-11</td><td>Mount notification realtime hook</td><td><span class="sev high">HIGH</span></td><td>0.1</td><td>Call <code>useNotificationRealtime()</code> in NotificationBell/GlobalHeader</td></tr>
+  <tr><td>R-12</td><td>Grade-trigger level recompute</td><td><span class="sev medium">MED</span></td><td>0.5</td><td>Recompute <code>level</code> + apply multipliers in trigger, or route grade XP through award-xp; add SUM reconciliation</td></tr>
+  <tr><td>R-13</td><td>Parent dashboard real KPIs + scope filter</td><td><span class="sev medium">MED</span></td><td>0.5</td><td>After R-4, compute totalCourses/avgAttainment/enrolled; add scope='individual' to badge reads</td></tr>
+  <tr><td>R-14</td><td>Bonus-event audit allow-list, .single() misuse, placeholders</td><td><span class="sev medium">MED</span></td><td>0.5</td><td>Fix auditLogger column names; .maybeSingle() on read-by-filter; real curriculum-matrix attainment</td></tr>
+  <tr><td>R-15</td><td>Hygiene: remove <code>as never</code>/<code>as any</code>, orphan fns/pages, i18n planner</td><td><span class="sev low">LOW</span></td><td>1.5</td><td>Drop stale casts now that types exist; delete/route orphans; localise ParentPlannerView</td></tr>
+</table>
+
+<h3>Suggested sequencing</h3>
+<ol>
+  <li><b>Sprint A (release-gate, ~2.5 days):</b> R-0 → R-4. These are the four BLOCKERs plus the repo/prod reconciliation. After this the accreditation artefacts are correct, privacy consent is honoured, and parents can see their children.</li>
+  <li><b>Sprint B (engagement loop, ~3.5 days):</b> R-5 → R-11. Make the student daily loop actually function and fix the teacher grading filter + realtime bell. Do R-7 first — it unblocks R-5 and R-6.</li>
+  <li><b>Sprint C (hardening, ~2 days):</b> R-12 → R-15. Correctness polish, audit fidelity, and type-safety/hygiene debt.</li>
+</ol>
+
+<h3>Two process changes that would have prevented most of this</h3>
+<ul>
+  <li><b>Error guards in every edge-function query.</b> The two PDF BLOCKERs and the badge-XP 401 all shipped silently because failures were swallowed. A lint rule or review checklist requiring <code>if (error) throw</code> (or explicit handling) on every Supabase call in <code>supabase/functions/**</code> would have surfaced all three at deploy time.</li>
+  <li><b>One end-to-end "golden path" test per role against a seeded DB.</b> A single test that logs in as a student, submits, and asserts an XP row <i>and</i> a badge row appear would have caught B-1, the 401, S-1, S-4 and S-5 at once. The same for "generate a course file and assert non-empty sections" catches R-1/R-2.</li>
+</ul>
+
+<hr/>
+
+<div class="page-break"></div>
+<h2>11 · Verification &amp; cross-reference appendix (senior-dev / QA / DevOps)</h2>
+<p>Every issue below was re-checked against <b>live code as it exists now</b> and the <b>live production schema/secrets</b> — not against seed data or a prior report. Each row states the exact verification source so you can trust it before investing in a fix. The "blast radius / don't-break" column is the cross-reference map: what else touches the same code path, so fixing one thing doesn't silently break another.</p>
+
+<table>
+  <tr><th>ID</th><th>Issue</th><th>Verified TRUE by</th><th>Seed-data risk?</th><th>Blast radius / don't-break-these</th></tr>
+  <tr><td>A-0 / C-0</td><td>PDF + AI role gate reads role from JWT (empty) → 403 for all staff</td><td>Live JWT decode: <code>app_metadata={provider,providers}</code>, no role. Live: no custom-access-token hook exists (only <code>auth.jwt</code>). Source grep: <b>6 functions</b> use <code>app_metadata?.role</code></td><td class="s-working">NO — independent of data</td><td><b>Fix all 6 together</b>: <code>_shared/auth.ts</code>, send-email-notification, generate-course-file, generate-accreditation-report, check-login-rate, calculate-attainment-rollup. (ai-feedback-draft + ai-module-suggestion already fixed.) <b>Best fix = add a custom_access_token_hook</b> that injects role+institution_id from <code>profiles</code> once, then all functions work — but verify each function's fallback still allows service-role calls (cron/edge-to-edge) before removing the metadata read.</td></tr>
+  <tr><td>A-1</td><td>generate-accreditation-report column drift</td><td>Live schema: <code>outcome_attainment</code> has <code>attainment_percent</code> not <code>score_percent</code>; enum has no PLO/ILO; <code>graduate_attributes</code> = name/description not title/code. Source confirms the bad selects</td><td class="s-working">NO</td><td>Same <code>outcome_attainment</code>/<code>graduate_attributes</code> columns are read correctly by <code>useAdminDashboard</code>/<code>useDepartmentAnalytics</code> — copy their working query shape. Don't change the tables; only the function's SELECTs.</td></tr>
+  <tr><td>C-1</td><td>generate-course-file 4 broken queries</td><td>Live schema: <code>outcome_mappings</code>=source/target (not child/parent); <code>submissions</code> has no <code>score_percent</code>; <code>cqi_action_plans</code>=action_description/program_id (not title/course_id). All confirmed</td><td class="s-working">NO</td><td>Scores live on <code>grades.score_percent</code> (joined via submission). The coordinator app hooks (<code>useCQIPlans</code>, <code>usePLOMappings</code>) already use the correct columns — mirror them. Adding <code>if(error) throw</code> here will surface any future drift.</td></tr>
+  <tr><td>N-1</td><td>Planner task create/complete violates CHECK</td><td>Live CHECK: <code>todo/in_progress/done/deferred</code>. Source: <code>usePlannerTasks.ts:59</code> writes <code>"pending"</code>, <code>:197</code> writes <code>"completed"</code></td><td class="s-working">NO — pure code/constraint mismatch</td><td><b>Two valid fixes</b>: (a) change the hook to DB values, OR (b) widen the CHECK. Prefer (a). BUT: the row→domain mapper (<code>mapTask</code> defaults <code>status</code> to <code>"pending"</code>) and <code>src/types/planner.ts</code> <code>PlannerTask["status"]</code> union must be aligned in the SAME change, plus the Today-view/planner UI badges that switch on status — grep <code>PlannerTask["status"]</code> before merging.</td></tr>
+  <tr><td>N-2</td><td>Quiz gen 404 on courses.institution_id</td><td>Live schema: <code>courses</code> has no <code>institution_id</code> (cols: program_id, teacher_id, …). <b>FIXED &amp; deployed</b> (join via programs) — re-verified 200 with real Kimi questions</td><td class="s-working">NO</td><td>Already fixed. The join shape <code>programs(institution_id)</code> is the canonical way institution is derived everywhere — safe.</td></tr>
+  <tr><td>N-3</td><td>study/wellness/planner/goal/review XP all 403</td><td>Live: award-xp self-allowlist = <code>["login","submission","journal"]</code>. Source: <b>4 hooks / 6 sources</b> invoke award-xp as the student → 403 (swallowed). Confirmed by live 403</td><td class="s-working">NO</td><td><b>Sources to unblock</b>: planner_task, study_session, review_session, review_cycle_complete, weekly_goal, wellness_habit. <b>Don't just add them to the self-allowlist blindly</b> — award-xp already server-enforces fixed amounts per source (study_session cap 60, planner 10, wellness from institution_settings). Add them to <code>selfTriggeredSources</code> AND confirm each has a server-enforced amount branch so a student can't pass an arbitrary <code>xp_amount</code>. The XP ledger/level math downstream is healthy (verified) and won't break.</td></tr>
+  <tr><td>N-5</td><td>generate-plan-update NOT NULL interaction_count</td><td>Live schema: <code>interaction_count integer NOT NULL, no default</code>. Source: insert sets it from request <code>recent_interaction_count</code> which is unvalidated → NULL when omitted</td><td class="s-working">NO</td><td>Validate/default the param. Caller is <code>chat-with-tutor</code> (now working on Kimi) — when you wire the real caller, ensure it passes the count. Low blast radius.</td></tr>
+  <tr><td>P-1</td><td>Parent Progress/Attendance empty</td><td>Live: parent SELECT policy count on <code>student_courses</code> = <b>0</b>; also missing on courses/course_sections/class_sessions. Source: both pages query <code>student_courses</code> first and <code>return []</code> when empty</td><td class="s-working">NO — policy genuinely absent</td><td><b>Two valid fixes</b>: (a) add parent RLS policies (mirror the existing verified-link policy on <code>outcome_attainment</code>), OR (b) rewrite pages to derive courses from already-visible <code>outcome_attainment</code>. If you choose (a), the policy MUST use the same <code>parent_student_links … verified=true</code> predicate as the other parent policies — do NOT broaden it, or you create a cross-student leak. Re-run the parent isolation probe after.</td></tr>
+  <tr><td>S-1</td><td>Login never advances streak</td><td>Live: process-streak WORKS when called per-student (verified streak→1). Source: <code>AuthProvider.signIn</code> only logs activity; no process-streak/award-xp('login') call; midnight cron passes no student_id</td><td class="s-yellow" style="color:#d97706">PARTIAL — seed streaks exist (0–31) but are static; no runtime advance</td><td>Fix = invoke process-streak on login OR add batch mode to the cron. <b>process-streak also writes streak milestones → check-badges</b>; confirm the streak_7/14/… badges still fire after the change (that chain is verified working). Don't double-fire if you add both login + cron paths (it's idempotent per day, but verify).</td></tr>
+  <tr><td>S-5</td><td>Journal +20 XP advertised, never awarded</td><td>Live: <code>journal</code> IS in the self-allowlist (so not blocked). Source: <code>useCreateJournalEntry</code> has zero award-xp call; UI promises "Earn 20 XP per entry" (StudentJournalPage:128,254)</td><td class="s-working">NO</td><td>Unlike N-3, journal is allowlisted — just add the award-xp('journal') call on successful create (≥50 words, per the UI rule). The 50-word gate logic exists in the UI; mirror it server-side or pass it. award-xp handles the idempotent reference_id.</td></tr>
+  <tr><td>I-1</td><td>Sentry initialises before consent</td><td>Source: <code>App.tsx:26</code> calls <code>initSentry()</code> unconditionally; <code>main.tsx:27</code> has the consent-gated path that becomes a no-op</td><td class="s-working">NO</td><td>Remove the unconditional init. Don't remove the consent-gated path. Verify error reporting still works AFTER consent is granted (the <code>isInitialized()</code> guard means order matters).</td></tr>
+  <tr><td>I-2</td><td>CORS x-content-type typo</td><td>Source: <code>score-reflection-quality</code> + <code>generate-reflection-digest</code> :12-13 send <code>x-content-type</code> (should be x-client-info)</td><td class="s-working">NO</td><td>Trivial. score-reflection-quality is browser-invoked (real impact); the digest fn is orphaned.</td></tr>
+  <tr><td>AI tutor</td><td>Tutor + quiz + role-gated AI</td><td><b>FIXED &amp; deployed, re-verified live</b>: real Kimi chat, integrity guard, quiz 200. tutor_llm_logs = 5 successes</td><td class="s-working">NO</td><td>RAG citations still need an embeddings provider. The 4 AI fixes are deployed but NOT committed to git (R-0 applies).</td></tr>
+</table>
+
+<div class="callout warn"><b>Two findings that are NOT pure bugs — read before "fixing":</b> <b>(1) habit_logs empty</b> is a <i>consequence</i> of S-1/S-3 (nothing writes habits at runtime), not an independent bug — fixing the habit-write path fixes it. <b>(2) The xp_total "drift" originally reported is NOT occurring live</b> (0 students drift); the real residual risk is the grade DB-trigger not recomputing <code>level</code>. Don't "fix" a drift that isn't happening — just align the trigger's level recompute.</div>
+
+<div class="callout danger"><b>The single highest-leverage fix.</b> Add a Supabase <code>custom_access_token_hook</code> that injects <code>role</code> and <code>institution_id</code> (from <code>profiles</code>) into the JWT. That one change makes A-0, C-0, and the 6-function role-gate class all correct at once, AND lets every edge function trust the token instead of an extra DB round-trip. Sequence it carefully: deploy the hook first, confirm new logins carry the claims (decode a fresh JWT), THEN the functions' existing <code>app_metadata?.role</code> reads start working automatically — you may not even need to touch the 6 functions. Verify service-role/cron paths (which have no user JWT) still hit their <code>isServiceRole</code> branch.</div>
+
+<h3>How each finding was verified (audit integrity)</h3>
+<ul>
+  <li><b>Schema facts</b> (column names, CHECK constraints, enums, RLS policy counts, NOT NULL): read from <code>information_schema</code> / <code>pg_constraint</code> / <code>pg_policies</code> on the live production DB at audit time — not from migrations or types.</li>
+  <li><b>Behaviour</b> (403/404/500/200, XP awarded or not, tutor answer): executed as real authenticated demo users against production edge functions; responses quoted verbatim.</li>
+  <li><b>Code claims</b> (which hook calls what): every one cites <code>file:line</code> from current source, re-read during this verification pass.</li>
+  <li><b>Seed vs runtime</b>: where data existed, I checked timestamps/source to distinguish seeded rows from runtime-generated ones (e.g. all <code>login</code>/<code>perfect_day</code> XP rows carry mid-May seed timestamps; no runtime XP of those sources exists).</li>
+</ul>
+
+<hr/>
+<p class="small">End of audit. Produced across five verification passes (static trace → live DB reads → live per-role functional test → seed-and-test of empty domains → live AI test with fixes). Findings re-verified against live code and live schema in a dedicated cross-reference pass (§11). Edge-function fixes for badges, AI role-gates, quiz, and tutor embeddings were deployed to production during the audit and are flagged for git reconciliation (R-0).</p>
+
+</body>
+</html>

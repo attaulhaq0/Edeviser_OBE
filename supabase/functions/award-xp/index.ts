@@ -509,6 +509,45 @@ async function notifyPeersOfLevelUp(
   }
 }
 
+// ─── check-badges Invocation Helper ─────────────────────────────────────────
+// Invoke check-badges server-to-server via a direct fetch. This project's
+// injected SUPABASE_ANON_KEY / SUPABASE_SERVICE_ROLE_KEY are the modern
+// non-JWT `sb_…` format, which cannot pass a gateway `verify_jwt` gate as a
+// bearer token. check-badges is therefore deployed with `--no-verify-jwt` and
+// authenticates the caller IN-HANDLER: it accepts the service-role secret via
+// the `x-internal-auth` header (and still enforces user-ownership for student
+// JWT callers). We send the anon key as a conventional bearer/apikey and the
+// service-role secret in `x-internal-auth`. Fire-and-forget.
+function triggerBadgeCheck(body: Record<string, unknown>): void {
+  const url = `${Deno.env.get("SUPABASE_URL")}/functions/v1/check-badges`;
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+  fetch(url, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${anonKey}`,
+      apikey: anonKey,
+      "x-internal-auth": serviceRoleKey,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  })
+    .then(async (resp) => {
+      if (!resp.ok) {
+        const detail = await resp.text();
+        console.error(
+          `check-badges returned ${resp.status} for trigger=${body.trigger}: ${detail}`
+        );
+      }
+    })
+    .catch((err: unknown) => {
+      console.error(
+        "Badge check failed (non-blocking):",
+        (err as Error)?.message ?? err
+      );
+    });
+}
+
 // ─── Main Handler ───────────────────────────────────────────────────────────
 
 serve(async (req) => {
@@ -541,9 +580,20 @@ serve(async (req) => {
     // Reject with 403 Forbidden if neither condition is met
 
     const authHeader = req.headers.get("Authorization") ?? "";
-    const isServiceRole = authHeader.includes(
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    // A caller is treated as service-role when either:
+    //   a) the Authorization bearer IS the service-role key (legacy JWT key path), OR
+    //   b) the request carries an `x-internal-auth` header equal to the
+    //      service-role key. This second path exists because the modern
+    //      `sb_secret_…` service-role key is NOT a JWT, so it cannot be sent as
+    //      the gateway `Authorization: Bearer` token (the platform `verify_jwt`
+    //      gate rejects non-JWTs with 401 before the handler runs). Internal
+    //      edge-function callers therefore send the anon JWT as the bearer (to
+    //      satisfy the gateway) and the service-role secret in `x-internal-auth`.
+    const internalAuthHeader = req.headers.get("x-internal-auth") ?? "";
+    const isServiceRole =
+      (serviceRoleKey.length > 0 && authHeader.includes(serviceRoleKey)) ||
+      (serviceRoleKey.length > 0 && internalAuthHeader === serviceRoleKey);
 
     // Server-side canonical XP amounts for self-triggered sources.
     // Students cannot choose their own XP — the server enforces these values.
@@ -1352,16 +1402,7 @@ serve(async (req) => {
     if (finalXP > 0) {
       const badgeTrigger = BADGE_TRIGGER_BY_SOURCE[source];
       if (badgeTrigger) {
-        supabase.functions
-          .invoke("check-badges", {
-            body: { student_id, trigger: badgeTrigger },
-          })
-          .catch((err: unknown) => {
-            console.error(
-              "Badge check failed (non-blocking):",
-              (err as Error)?.message ?? err
-            );
-          });
+        triggerBadgeCheck({ student_id, trigger: badgeTrigger });
       }
     }
 

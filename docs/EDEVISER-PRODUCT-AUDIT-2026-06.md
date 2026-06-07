@@ -1,11 +1,13 @@
 # Edeviser — Full-Product Audit (Backend → Live UI)
 
-**Date:** 2026-06-04
+**Date:** 2026-06-04 · **Revised:** 2026-06-05 (added §11 — systemic `verify_jwt` gateway-401 finding from live end-to-end testing)
 **Scope:** Every section, every edge function, every cron, all hooks, all 6 user roles, the live Supabase database, the live Vercel deployment, OBE + Gamification flows, connectivity, and data flow.
 **Method:** Static codebase trace (54 edge functions, ~216 hooks, ~140 pages, 131 tables) **cross-checked against the live database** (`cdlgtbvxlxjpcddjazzx`) via read-only SQL, plus a live production probe (`https://e-deviser.vercel.app`) and a real-auth backend smoke (13/13). Every claim is file:line- or query-evidenced.
 **Detailed evidence:** `docs/audit-findings/01..05-*.md` (cron/edge, OBE, gamification, roles/nav, auth/RLS/connectivity).
 
 > **Severity legend:** 🔴 Blocker (feature dead / data-integrity / security) · 🟠 High (significant gap, visible to users) · 🟡 Medium (works-but-flawed) · 🟢 Low (polish / tech-debt). · **Status:** ✅ WORKING · ◑ PARTIAL · ⛔ BROKEN · ◯ NO-DATA (wired but unseeded).
+
+> **⚠️ 2026-06-05 REVISION:** Live end-to-end testing (real auth, real edge-function invocation, real DB writes) uncovered a **systemic production bug** — see **§11**: this project's keys are the modern non-JWT `sb_…` format, so every Edge Function deployed with `verify_jwt=true` that is called server-to-server (edge→edge, cron→edge) **401s at the gateway before its handler runs**. This silently breaks emails, streak reset, at-risk/AI crons, perfect-day nudges, and badge/XP fan-out. `award-xp` + `check-badges` are now FIXED (`--no-verify-jwt` + `x-internal-auth`). **NOTE:** the OBE grade→attainment cascade is **NOT** affected — its trigger is pure in-database SQL (verified live, §11.6.1); the original §10 claim there stands. The §10 "cron auth pattern is solid" claim is retracted.
 
 ---
 
@@ -250,3 +252,74 @@ Core grade→evidence→attainment rollup (DB trigger); XP ledger + level deriva
 ---
 
 _Companion evidence files:_ `docs/audit-findings/01-cron-and-edge-functions.md`, `02-obe-flows.md`, `03-gamification-flows.md`, `04-roles-and-navigation.md`, `05-auth-rls-connectivity.md`.
+
+---
+
+## 11. 🔴 SYSTEMIC: `verify_jwt` gateway-401 breaks ALL server-to-server edge calls (found via live E2E testing, 2026-06-05)
+
+**This is the single highest-impact finding in the audit.** It was invisible to static analysis and only surfaced when the badge fix was tested end-to-end against the live platform.
+
+### 11.1 Root cause
+
+This project's injected `SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY` are the **modern non-JWT `sb_…` key format** (confirmed: `get_publishable_keys` returns `sb_publishable_…`; the service-role secret is `sb_secret_…`). A Supabase Edge Function deployed with the default `verify_jwt=true` has the **platform gateway** validate the `Authorization: Bearer <token>` as a JWT **before the handler runs**. A non-JWT `sb_…` key fails that gate → the gateway returns **HTTP 401** and the function body never executes.
+
+Therefore **every server-to-server invocation that sends the service-role key as a Bearer token silently 401s**:
+
+- edge-function → edge-function via `supabase.functions.invoke(...)`
+- Vercel cron → edge-function via `fetch(... Bearer SERVICE_ROLE_KEY)` (`api/_utils/auth.ts:48-50`)
+- pg_cron / pg_net DB trigger → edge-function with a service-role bearer header
+
+The function's own **in-handler** auth (`isServiceRole = authHeader.replace("Bearer ","") === serviceRoleKey`) is actually correct — but it never gets to run because the gateway rejects first.
+
+### 11.2 Proof (live, reproducible)
+
+- **XP-source ledger:** of **41** `VALID_SOURCES` in `award-xp`, only **6** have ever produced an `xp_transactions` row, and 5 of those are the May seed (`login`, `submission`, `grade`, `perfect_day`, `streak`). Every source that depends on a server-to-server `award-xp` call — `challenge_reward`, `tutor_engagement`, `improvement_bonus`, `league_promotion`, `quiz_completion`, `study_session`, `peer_teaching`, … — has **0 rows ever**.
+- **Edge logs:** `award-xp` and `check-badges` sub-invokes logged **401** (gateway) for versions 4–6; after deploying both with `--no-verify-jwt` + `x-internal-auth`, the same calls logged **200** and the first-ever live `badge` XP transactions (2 rows) were recorded. No infinite loop (Step 13 excludes `source='badge'`).
+- **Attainment cascade:** `outcome_attainment.last_calculated_at` max = **2026-05-26**, `grades.graded_at` max = **2026-05-20**. **Initially this looked like the rollup was dead** (and the pg_net response log shows the OLD edge-function trigger 401'ing on 2026-05-20). **CORRECTION (verified live):** the grade trigger was **rewritten to pure in-database SQL** at migration `20260520070203_rewrite_attainment_trigger_pure_sql` (+ 3 follow-ups), so it no longer calls the edge function at all. A controlled live re-fire (no-op `UPDATE grades SET score_percent = <same value>`) advanced `last_calculated_at` from `2026-05-26T10:36:58` → `2026-06-05T01:40:41` and recomputed the CLO/PLO/ILO rows correctly. **The OBE cascade WORKS in production via the SQL trigger.** The `calculate-attainment-rollup` edge function is now orphaned dead code (still `verify_jwt=true`, but nothing invokes it).
+
+### 11.3 Affected functions (deployed `verify_jwt=true`, called server-to-server)
+
+| Function                      | Invoked by                                   | In-handler auth present?                | Impact if unfixed                                                                        |
+| ----------------------------- | -------------------------------------------- | --------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `award-xp`                    | 5+ edge fns, hooks                           | ✅ service-role + self                  | **FIXED** (`--no-verify-jwt` + `x-internal-auth`)                                        |
+| `check-badges`                | award-xp, process-streak, process-onboarding | ✅ service-role + ownership             | **FIXED** (`--no-verify-jwt` + `x-internal-auth`)                                        |
+| `calculate-attainment-rollup` | ~~grade DB trigger~~ **NOTHING (orphaned)**  | ✅ service-role + teacher/admin         | ✅ **NOT broken** — superseded by a pure-SQL trigger (see §11.6.1); edge fn is dead code |
+| `process-streak`              | Vercel cron `streak-reset` + pg_cron         | ✅                                      | 🔴 daily streak reset/increment dead                                                     |
+| `send-email-notification`     | weekly-summary-cron, streak-risk-cron        | ✅ service-role + admin                 | 🟠 all transactional/digest emails fail                                                  |
+| `generate-starter-week`       | process-onboarding                           | ⚠️ JWT-only + ownership (double-broken) | 🟠 onboarding starter week never generated                                               |
+| `generate-plan-update`        | chat-with-tutor (fetch)                      | ⛔ NONE (creates service client)        | 🟠 tutor plan-update never fires; **add caller auth before flipping**                    |
+| `leaderboard-refresh`         | Vercel cron                                  | ✅                                      | 🟡 non-fatal (view self-computes)                                                        |
+| `compute-at-risk-signals`     | Vercel cron                                  | ✅                                      | 🟠 at-risk signals stale                                                                 |
+| `ai-at-risk-prediction`       | Vercel cron                                  | ✅                                      | 🟠 AI predictions never run                                                              |
+| `perfect-day-prompt`          | Vercel cron                                  | ✅                                      | 🟠 perfect-day nudges never sent                                                         |
+| `notification-digest`         | Vercel cron                                  | ✅                                      | 🟠 digest never sent                                                                     |
+| `exam-period-notify`          | Vercel cron                                  | ✅                                      | 🟠 exam notices never sent                                                               |
+
+### 11.4 The fix pattern (applied to award-xp + check-badges)
+
+1. Deploy the function with **`--no-verify-jwt`** (removes the redundant gateway JWT gate — authorization is preserved in-handler).
+2. Internal callers send the **anon key** as `Authorization: Bearer` + `apikey`, and the **service-role secret** in a custom **`x-internal-auth`** header.
+3. The handler treats the caller as service-role when `x-internal-auth === SERVICE_ROLE_KEY` (or the legacy `Authorization`-equals-key path), and still runs user-ownership checks for student JWT callers.
+4. **`generate-plan-update` must get an in-handler caller check added** before it is flipped to `--no-verify-jwt`, otherwise it becomes fully unauthenticated.
+
+### 11.5 Deploy-script bug (latent re-break)
+
+`scripts/deploy-edge-functions.sh` declared `NO_VERIFY_JWT_FUNCTIONS=(award-xp check-badges)` but the deploy loop **never applied the flag** — a batch redeploy would silently flip the fixed functions back to `verify_jwt=true` and re-break them. **Fixed:** the loop now appends `--no-verify-jwt` for any function in that set. As more functions are fixed, add them to the set.
+
+### 11.6 Why static audit missed it (and the §10 correction)
+
+The original audit traced the _code paths_ (caller → callee, in-handler auth present) and concluded the rollup trigger + cron auth were "reference-quality." The **cron auth** conclusion is wrong (the gateway rejects the non-JWT bearer — observable only by invoking the live functions). The **rollup trigger** conclusion is actually CORRECT but for the wrong reason — see §11.6.1. **§10's "cron auth pattern" entry is retracted** pending the §11.4 fix + a CI smoke test that actually invokes each service function and asserts a non-401 response.
+
+#### 11.6.1 The rollup trigger is pure SQL (not an edge call) — verified live
+
+The grade trigger `trigger_attainment_rollup` was migrated to **pure in-database plpgsql** (`20260520070203_rewrite_attainment_trigger_pure_sql`, hardened by `…upsert_v3` and `…include_plo_ilo`). It does evidence insert + CLO→PLO→ILO cascade + grade XP + notification entirely in SQL with no pg_net/edge call. A controlled live re-fire confirmed it runs (see §11.2). So the OBE cascade is NOT affected by the verify_jwt bug. The `calculate-attainment-rollup` edge function and the three historical pg_net trigger migrations are superseded dead code (candidate for §9 prune list).
+
+### 11.7 Secondary confirmed bugs (independent of verify_jwt)
+
+- 🟠 **Habit table split:** `habit_tracking` = 3,010 rows (populated) but `habit_logs` = 0, `journal_entries` = 0, `wellness_habit_logs` = 0. `process-streak`, `perfect-day-prompt`, `update-challenge-progress` read `habit_logs`; `check-badges` `journal_10`/`perfect_week` read `journal_entries`/`habit_logs`. So 58 students who qualify for `journal_10` and 29 for `perfect_week` get **0** badges. Readers must point at `habit_tracking` (or the data must be written to both).
+- 🔴 **Accreditation exports query non-existent columns** (confirmed via live `ERROR 42703`):
+  - `generate-accreditation-report/index.ts`: `score_percent` (real col is `attainment_percent`); filters `scope==='PLO'/'ILO'` (real scope values are `student_course|course|program|institution`).
+  - `generate-course-file/index.ts`: `child_outcome_id`/`parent_outcome_id` (real: `source_outcome_id`/`target_outcome_id`); `score_percent`; `scope='CLO'`; and `cqi_action_plans.{title,gap_description,corrective_actions,course_id}` — **all four columns absent** from the live table.
+- 🟠 **Department analytics PLO scope mismatch:** `useAdminDashboard.useDepartmentAnalytics` reads PLO at `scope in ('program','institution')` but PLO attainment is written at `scope='course'` → `avg_plo_attainment` always 0 (same class as the already-fixed heatmap bug).
+- 🟠 **`outcome_mappings` weight invariant unenforced + scale drift:** weights are stored 0–1 (CHECK 0.0–1.0), not 0–100 as the domain doc says; **no trigger/constraint** enforces per-child sum; live data: all 28 children violate "sum to 1.0."
+- 🟢 **GA/`institution` cascade produces 0 rows** despite 2 graduate attributes + 4 GA→ILO mappings (seeded post-audit). Step-6 GA rollup never runs (also gated behind the dead rollup).

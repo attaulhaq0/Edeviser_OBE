@@ -39,6 +39,18 @@ CRITICAL_FUNCTIONS=(
   "send-email-notification"
 )
 
+# Functions that MUST be deployed with --no-verify-jwt. These authenticate the
+# caller IN-HANDLER (service-role secret via x-internal-auth header, plus
+# user-ownership checks for student JWT callers). The platform `verify_jwt`
+# gateway gate is incompatible with server-to-server calls on this project
+# because the injected anon/service-role keys are the modern non-JWT `sb_…`
+# format, which cannot pass `verify_jwt` as a bearer token. award-xp and
+# check-badges call each other server-to-server, so both require this.
+NO_VERIFY_JWT_FUNCTIONS=(
+  "award-xp"
+  "check-badges"
+)
+
 DRY_RUN=false
 CRITICAL=false
 
@@ -171,8 +183,19 @@ for fn in "${FUNCTIONS[@]}"; do
     continue
   fi
 
-  if npx supabase functions deploy "$fn" --project-ref "$PROJECT_REF"; then
-    echo "  ✓ Deployed"
+  # Apply --no-verify-jwt for functions that authenticate in-handler and are
+  # called server-to-server (the platform verify_jwt gateway gate is
+  # incompatible with this project's non-JWT sb_… service-role key).
+  verify_flag=""
+  for nvj in "${NO_VERIFY_JWT_FUNCTIONS[@]}"; do
+    if [[ "$fn" == "$nvj" ]]; then
+      verify_flag="--no-verify-jwt"
+      break
+    fi
+  done
+
+  if npx supabase functions deploy "$fn" --project-ref "$PROJECT_REF" $verify_flag; then
+    echo "  ✓ Deployed${verify_flag:+ (--no-verify-jwt)}"
     succeeded+=("$fn")
   else
     echo "  ✗ Failed"

@@ -887,63 +887,59 @@ serve(async (req) => {
 
   const integrityCheck = detectIntegrityViolation(chatReq.message);
 
-  // ── 3.1.3: Query Embedding Generation via OpenAI API ──────────────────
+  // ── 3.1.3: Query Embedding Generation via OpenAI API (OPTIONAL) ───────
+  // RAG retrieval requires an embedding model. OpenRouter/Kimi do not expose an
+  // embeddings API, so when OPENAI_API_KEY is absent (or embedding fails) we
+  // gracefully skip vector retrieval and answer from persona + CLO context +
+  // conversation history. The tutor still works on an OpenRouter-only setup.
 
   const openaiApiKey = Deno.env.get("OPENAI_API_KEY");
-  if (!openaiApiKey) {
-    return new Response(
-      JSON.stringify({ error: "OpenAI API key not configured" }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
-  }
+  let queryEmbedding: number[] | null = null;
 
-  let queryEmbedding: number[];
-  try {
-    const embeddingResponse = await fetch(
-      "https://api.openai.com/v1/embeddings",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${openaiApiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "text-embedding-ada-002",
-          input: chatReq.message,
-        }),
-      }
-    );
-
-    if (!embeddingResponse.ok) {
-      throw new Error(
-        `Embedding API error: ${embeddingResponse.status} ${embeddingResponse.statusText}`
+  if (openaiApiKey) {
+    try {
+      const embeddingResponse = await fetch(
+        "https://api.openai.com/v1/embeddings",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${openaiApiKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "text-embedding-ada-002",
+            input: chatReq.message,
+          }),
+        }
       );
-    }
 
-    const embeddingData = await embeddingResponse.json();
-    queryEmbedding = embeddingData.data[0].embedding;
-  } catch (err) {
-    console.error("Embedding generation failed:", (err as Error).message);
-    return new Response(
-      JSON.stringify({
-        error: "Failed to process your message. Please try again.",
-        code: "EMBEDDING_ERROR",
-      }),
-      {
-        status: 502,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      if (!embeddingResponse.ok) {
+        throw new Error(
+          `Embedding API error: ${embeddingResponse.status} ${embeddingResponse.statusText}`
+        );
       }
+
+      const embeddingData = await embeddingResponse.json();
+      queryEmbedding = embeddingData.data[0].embedding;
+    } catch (err) {
+      // Non-fatal: log and continue without RAG context.
+      console.error(
+        "Embedding generation failed (continuing without RAG):",
+        (err as Error).message
+      );
+      queryEmbedding = null;
+    }
+  } else {
+    console.warn(
+      "OPENAI_API_KEY not set — tutor answering without course-material RAG retrieval."
     );
   }
 
-  // ── 3.1.4: pgvector Similarity Search ─────────────────────────────────
+  // ── 3.1.4: pgvector Similarity Search (only when we have an embedding) ─
 
   let retrievedChunks: RetrievedChunk[] = [];
 
-  if (courseId) {
+  if (courseId && queryEmbedding) {
     const matchCloIds = cloScope.length > 0 ? cloScope : null;
 
     const { data: chunks, error: searchErr } = await supabase.rpc(
