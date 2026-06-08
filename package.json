@@ -117,5 +117,11 @@
     "vite": "^6.3.5",
     "vitest": "^4.1.5",
     "vitest-axe": "^0.1.0"
+  },
+  "overrides": {
+    "hono": "4.12.21",
+    "@vercel/node": {
+      "undici": "^5.29.0"
+    }
   }
 }
