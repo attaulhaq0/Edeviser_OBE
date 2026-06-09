@@ -72,6 +72,9 @@ const mockSelectChain = (data: unknown, error: unknown = null) => ({
       maybeSingle: vi.fn().mockResolvedValue({ data, error }),
     }),
   }),
+  // The student login flow (engagement loop) fire-and-forget upserts a
+  // `habit_logs` row; provide an awaitable upsert that resolves cleanly.
+  upsert: vi.fn().mockResolvedValue({ data: null, error: null }),
 });
 
 const setupMocks = (opts?: {

@@ -58,6 +58,16 @@ interface TextChunk {
 
 const OPENAI_EMBEDDING_MODEL = "text-embedding-ada-002";
 const EMBEDDING_DIMENSIONS = 1536;
+// Embeddings provider config (OpenAI-compatible). Defaults to OpenAI, but the
+// base URL / model can be overridden via env so any OpenAI-compatible
+// embeddings endpoint works without a code change. The `course_material_embeddings.embedding`
+// column is `vector(1536)`, so the configured model MUST return 1536-dim vectors
+// (text-embedding-ada-002 / text-embedding-3-small both do); a mismatched
+// dimension is rejected by validateEmbeddingDimensions() before any insert.
+const EMBEDDINGS_BASE_URL =
+  Deno.env.get("EMBEDDINGS_BASE_URL") ?? "https://api.openai.com/v1";
+const EMBEDDING_MODEL =
+  Deno.env.get("EMBEDDINGS_MODEL") ?? OPENAI_EMBEDDING_MODEL;
 const EMBEDDING_BATCH_SIZE = 100;
 const MAX_TOKENS_PER_CHUNK = 500;
 const MIN_TOKENS_PER_CHUNK = 200;
@@ -273,29 +283,40 @@ async function generateEmbeddings(
   for (let i = 0; i < texts.length; i += EMBEDDING_BATCH_SIZE) {
     const batch = texts.slice(i, i + EMBEDDING_BATCH_SIZE);
 
-    const response = await fetch("https://api.openai.com/v1/embeddings", {
+    const response = await fetch(`${EMBEDDINGS_BASE_URL}/embeddings`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: OPENAI_EMBEDDING_MODEL,
+        model: EMBEDDING_MODEL,
         input: batch,
       }),
     });
 
     if (!response.ok) {
       const errorBody = await response.text();
-      throw new Error(
-        `OpenAI Embedding API error (${response.status}): ${errorBody}`
-      );
+      throw new Error(`Embedding API error (${response.status}): ${errorBody}`);
     }
 
     const data = await response.json();
     const embeddings = data.data
       .sort((a: { index: number }, b: { index: number }) => a.index - b.index)
       .map((item: { embedding: number[] }) => item.embedding);
+
+    // Defensive dimension check: the pgvector column is vector(1536). A provider
+    // / model returning a different dimension would corrupt the column, so fail
+    // loudly here rather than on insert.
+    for (const emb of embeddings) {
+      if (!Array.isArray(emb) || emb.length !== EMBEDDING_DIMENSIONS) {
+        throw new Error(
+          `Embedding dimension mismatch: model "${EMBEDDING_MODEL}" returned ${
+            Array.isArray(emb) ? emb.length : "non-array"
+          }, expected ${EMBEDDING_DIMENSIONS}. Configure EMBEDDINGS_MODEL to a 1536-dim model.`
+        );
+      }
+    }
 
     results.push(...embeddings);
   }
@@ -544,10 +565,26 @@ serve(async (req) => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const openaiApiKey = Deno.env.get("OPENAI_API_KEY");
+    // Embeddings API key: prefer a dedicated EMBEDDINGS_API_KEY, fall back to
+    // OPENAI_API_KEY (the default provider is OpenAI). When neither is set the
+    // function returns a clear, structured 503 and the tutor continues to
+    // degrade gracefully (RAG block skipped) — embeddings simply do not populate
+    // until a provider key is provisioned.
+    const openaiApiKey =
+      Deno.env.get("EMBEDDINGS_API_KEY") ?? Deno.env.get("OPENAI_API_KEY");
 
     if (!openaiApiKey) {
-      throw new Error("OPENAI_API_KEY is not configured");
+      return new Response(
+        JSON.stringify({
+          error:
+            "Embeddings provider not configured: set EMBEDDINGS_API_KEY (or OPENAI_API_KEY) — and optionally EMBEDDINGS_BASE_URL / EMBEDDINGS_MODEL (1536-dim) — to enable RAG indexing.",
+          indexing_status: "provider_unconfigured",
+        }),
+        {
+          status: 503,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
     }
 
     // Create service-role client (bypasses RLS for server-side operations)

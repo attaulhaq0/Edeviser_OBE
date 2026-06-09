@@ -44,7 +44,7 @@ const makeTask = (overrides: Partial<PlannerTask> = {}): PlannerTask => ({
   description: null,
   dueDate: "2025-06-16",
   priority: "high",
-  status: "pending",
+  status: "todo",
   courseId: "course-1",
   courseName: "Math 101",
   completedAt: null,

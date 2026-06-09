@@ -93,7 +93,7 @@ const TodayViewPage = () => {
   );
 
   const tasksCompleted = useMemo(
-    () => tasks.filter((t) => t.status === "completed").length,
+    () => tasks.filter((t) => t.status === "done").length,
     [tasks]
   );
 
@@ -137,7 +137,7 @@ const TodayViewPage = () => {
 
   const handleTaskToggle = useCallback(
     (task: PlannerTask) => {
-      if (task.status === "pending") {
+      if (task.status !== "done") {
         completeTask.mutate(task.id);
       }
     },
@@ -146,7 +146,7 @@ const TodayViewPage = () => {
 
   const handleTaskEdit = useCallback(
     (task: PlannerTask) => {
-      if (task.status === "pending") {
+      if (task.status !== "done") {
         completeTask.mutate(task.id, {
           onSuccess: () => toast.success("Task marked complete"),
         });

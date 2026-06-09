@@ -79,30 +79,25 @@ const useHabitLogs = (studentId: string, days: number) => {
   return useQuery({
     queryKey: queryKeys.habitLogs.list({ studentId, startDate, endDate }),
     queryFn: async () => {
+      // Read from the canonical long-format `habit_logs` table (one row per
+      // completed habit per UTC day, keyed by `habit_type`). This is the same
+      // source of truth that every write path (login, submit, journal, read,
+      // session-completion, perfectDay) targets and that `useHeatmapData`
+      // reads. The legacy wide-format `habit_tracking` table is no longer
+      // written by any flow, so reading it here showed stale data.
       const { data, error } = await supabase
-        .from("habit_tracking")
-        .select("habit_date, login, submit, journal, read_content, created_at")
+        .from("habit_logs")
+        .select("date, habit_type, completed_at, created_at")
         .eq("student_id", studentId)
-        .gte("habit_date", startDate)
-        .lte("habit_date", endDate)
-        .order("habit_date", { ascending: true });
+        .gte("date", startDate)
+        .lte("date", endDate)
+        .order("date", { ascending: true });
       if (error) throw error;
-      const rows: Array<{
-        habit_type: string;
-        date: string;
-        completed_at: string | null;
-      }> = [];
-      for (const row of data ?? []) {
-        const completed_at = row.created_at ?? null;
-        const date = row.habit_date;
-        if (row.login) rows.push({ habit_type: "login", date, completed_at });
-        if (row.submit) rows.push({ habit_type: "submit", date, completed_at });
-        if (row.journal)
-          rows.push({ habit_type: "journal", date, completed_at });
-        if (row.read_content)
-          rows.push({ habit_type: "read", date, completed_at });
-      }
-      return rows;
+      return (data ?? []).map((row) => ({
+        habit_type: row.habit_type,
+        date: row.date,
+        completed_at: row.completed_at ?? row.created_at ?? null,
+      }));
     },
     enabled: !!studentId,
   });

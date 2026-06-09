@@ -11,7 +11,6 @@ import { ThemeProvider } from "@/providers/ThemeProvider";
 import { LanguageProvider } from "@/providers/LanguageProvider";
 import ErrorBoundary from "@/components/shared/ErrorBoundary";
 import AppRouter from "@/router/AppRouter";
-import { initSentry } from "@/lib/sentry";
 import SkipToMain from "@/components/shared/SkipToMain";
 import { offlineQueue } from "@/lib/offlineQueue";
 import { toast } from "sonner";
@@ -23,7 +22,10 @@ const ReactQueryDevtoolsLazy = lazy(() =>
   }))
 );
 
-initSentry();
+// Sentry is initialized only through the consent-gated path
+// (initAnalyticsIfConsented in main.tsx / CookieConsentBanner), which guards on
+// Sentry.isInitialized(). Do NOT call initSentry() unconditionally here — that
+// would start error/replay capture before cookie consent is resolved (FERPA/GDPR).
 
 // Initialize offline queue — auto-flushes queued events when connectivity returns
 const cleanupOfflineQueue = offlineQueue.init();

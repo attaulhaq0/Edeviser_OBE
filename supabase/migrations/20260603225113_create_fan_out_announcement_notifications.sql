@@ -58,4 +58,4 @@ END;
 $$;
 
 REVOKE EXECUTE ON FUNCTION public.fan_out_announcement_notifications(uuid) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.fan_out_announcement_notifications(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.fan_out_announcement_notifications(uuid) TO authenticated;;

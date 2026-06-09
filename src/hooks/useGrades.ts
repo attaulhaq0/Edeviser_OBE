@@ -102,7 +102,7 @@ export const useCreateGrade = () => {
 
       return grade;
     },
-    onSuccess: () => {
+    onSuccess: (grade) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.grades.lists() });
       queryClient.invalidateQueries({
         queryKey: queryKeys.submissions.lists(),
@@ -119,6 +119,35 @@ export const useCreateGrade = () => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.atRiskPredictions.lists(),
       });
+
+      // Grade XP is OWNED by the `trigger_attainment_rollup` DB trigger, which
+      // inserts the canonical +15 `grade` xp_transaction (ON CONFLICT DO NOTHING)
+      // and updates xp_total. We must NOT call award-xp('grade') here — that would
+      // double-award and break the xp_total = SUM(xp_transactions) invariant.
+      // Instead, fire the grade badge-check from the client so the grade → badge
+      // path runs, then invalidate badge caches. Fire-and-forget: a badge failure
+      // must never break the grade mutation.
+      void (async () => {
+        try {
+          const { data: submission, error } = await supabase
+            .from("submissions")
+            .select("student_id")
+            .eq("id", grade.submission_id)
+            .maybeSingle();
+
+          if (error) throw error;
+          const studentId = submission?.student_id;
+          if (!studentId) return;
+
+          await supabase.functions.invoke("check-badges", {
+            body: { student_id: studentId, trigger: "grade" },
+          });
+
+          queryClient.invalidateQueries({ queryKey: queryKeys.badges.lists() });
+        } catch {
+          console.error("[useCreateGrade] grade badge-check failed");
+        }
+      })();
     },
   });
 };

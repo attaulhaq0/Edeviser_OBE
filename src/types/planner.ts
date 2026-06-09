@@ -13,7 +13,7 @@ export type SessionStatus =
   | "completed"
   | "cancelled";
 export type TaskPriority = "low" | "medium" | "high";
-export type TaskStatus = "pending" | "completed";
+export type TaskStatus = "todo" | "in_progress" | "done" | "deferred";
 export type GoalType = "study_hours" | "sessions_completed" | "tasks_completed";
 export type TimerState =
   | "idle"

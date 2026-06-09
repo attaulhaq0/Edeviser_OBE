@@ -31,6 +31,19 @@ vi.mock("@/hooks/usePrograms", () => ({
   }),
 }));
 
+// useSemesters is now the real hook (the local stub was removed in the
+// audit remediation). Mock it here so the page's `semestersLoading` resolves
+// and the form renders instead of the loading shimmer.
+vi.mock("@/hooks/useSemesters", () => ({
+  useSemesters: () => ({ data: [], isLoading: false }),
+}));
+
+// useProgramAccreditations is queried for the selected program; stub it so no
+// real network call is attempted in the unit test.
+vi.mock("@/hooks/useInstitutionSettings", () => ({
+  useProgramAccreditations: () => ({ data: [], isLoading: false }),
+}));
+
 const mockToastError = vi.fn();
 const mockToastSuccess = vi.fn();
 

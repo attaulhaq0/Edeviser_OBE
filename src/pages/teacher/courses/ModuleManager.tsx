@@ -230,6 +230,8 @@ const ModuleMaterials = ({
           sort_order: data.sort_order,
           is_published: data.is_published,
           clo_ids: data.clo_ids,
+          file_path: data.type === "file" ? data.content_url || null : null,
+          course_id: courseId,
           performedBy: teacherId,
         },
         {
@@ -254,6 +256,7 @@ const ModuleMaterials = ({
           sort_order: data.sort_order,
           is_published: data.is_published,
           clo_ids: data.clo_ids,
+          course_id: courseId,
           performedBy: teacherId,
         },
         {

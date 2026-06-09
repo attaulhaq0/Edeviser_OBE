@@ -77,12 +77,32 @@ describe("buildMatrixCsv", () => {
       courses,
       matrix: {
         "plo-1": {
-          c1: { cloCount: 3, coveragePercent: 100, status: "green" },
-          c2: { cloCount: 0, coveragePercent: 0, status: "gray" },
+          c1: {
+            cloCount: 3,
+            coveragePercent: 100,
+            attainmentPercent: 82,
+            status: "green",
+          },
+          c2: {
+            cloCount: 0,
+            coveragePercent: 0,
+            attainmentPercent: 0,
+            status: "gray",
+          },
         },
         "plo-2": {
-          c1: { cloCount: 1, coveragePercent: 100, status: "green" },
-          c2: { cloCount: 2, coveragePercent: 100, status: "green" },
+          c1: {
+            cloCount: 1,
+            coveragePercent: 100,
+            attainmentPercent: 65,
+            status: "yellow",
+          },
+          c2: {
+            cloCount: 2,
+            coveragePercent: 100,
+            attainmentPercent: 90,
+            status: "green",
+          },
         },
       },
     };
@@ -102,7 +122,12 @@ describe("buildMatrixCsv", () => {
       courses: [makeCourse({ id: "c1", code: "CS101" })],
       matrix: {
         "plo-1": {
-          c1: { cloCount: 2, coveragePercent: 100, status: "green" },
+          c1: {
+            cloCount: 2,
+            coveragePercent: 100,
+            attainmentPercent: 75,
+            status: "green",
+          },
         },
       },
     };

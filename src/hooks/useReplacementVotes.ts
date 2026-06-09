@@ -111,8 +111,9 @@ export const useCastVote = () => {
         .from("replacement_votes" as never)
         .select("votes_for, votes_against")
         .eq("id", voteId)
-        .single();
+        .maybeSingle();
       if (fetchError) throw fetchError;
+      if (!current) throw new Error("Vote not found");
 
       const currentVote = current as {
         votes_for: number;

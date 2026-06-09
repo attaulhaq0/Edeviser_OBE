@@ -6,9 +6,28 @@ export interface CoordinatorKPIData {
   totalPLOs: number;
   totalCourses: number;
   cloCoveragePercent: number;
+  /**
+   * Mean attainment across all `student_course`-scope `outcome_attainment` rows
+   * (C-2 — real attainment, replaces the prior active-student placeholder).
+   * 0 when no attainment evidence exists yet.
+   */
+  avgAttainmentPercent: number;
+  /**
+   * Distinct students whose mean attainment falls below the at-risk threshold
+   * (<50%, the "Not Yet" band). Derived from real `outcome_attainment` rows
+   * (C-2 — replaces the active-student count placeholder).
+   */
   atRiskStudents: number;
   teacherCompliancePercent: number;
 }
+
+/** At-risk threshold: students whose mean attainment is below this are flagged. */
+const AT_RISK_THRESHOLD = 50;
+
+const mean = (values: number[]): number =>
+  values.length === 0
+    ? 0
+    : values.reduce((sum, v) => sum + v, 0) / values.length;
 
 export const useCoordinatorKPIs = () => {
   return useQuery({
@@ -54,12 +73,35 @@ export const useCoordinatorKPIs = () => {
         }
       }
 
-      // 4. At-Risk Students: active students (placeholder until attainment data exists)
-      const { count: atRiskStudents } = await supabase
-        .from("profiles")
-        .select("*", { count: "exact", head: true })
-        .eq("role", "student")
-        .eq("is_active", true);
+      // 4. Real attainment metrics (C-2): mean attainment + at-risk student count
+      //    derived from `outcome_attainment` at `student_course` scope, mirroring
+      //    the `useDepartmentAnalytics` aggregation over `attainment_percent`.
+      const { data: attainmentRows, error: attainmentError } = await supabase
+        .from("outcome_attainment")
+        .select("student_id, attainment_percent")
+        .eq("scope", "student_course");
+
+      if (attainmentError) throw attainmentError;
+
+      const allScores: number[] = [];
+      const scoresByStudent = new Map<string, number[]>();
+      for (const row of attainmentRows ?? []) {
+        if (row.attainment_percent == null) continue;
+        allScores.push(row.attainment_percent);
+        if (row.student_id) {
+          const list = scoresByStudent.get(row.student_id) ?? [];
+          list.push(row.attainment_percent);
+          scoresByStudent.set(row.student_id, list);
+        }
+      }
+
+      const avgAttainmentPercent =
+        allScores.length > 0 ? Math.round(mean(allScores)) : 0;
+
+      let atRiskStudents = 0;
+      for (const scores of scoresByStudent.values()) {
+        if (mean(scores) < AT_RISK_THRESHOLD) atRiskStudents += 1;
+      }
 
       // 5. Teacher Compliance Rate: % of courses with at least one CLO defined
       let teacherCompliancePercent = 0;
@@ -84,7 +126,8 @@ export const useCoordinatorKPIs = () => {
         totalPLOs: ploCount,
         totalCourses: courseCount,
         cloCoveragePercent,
-        atRiskStudents: atRiskStudents ?? 0,
+        avgAttainmentPercent,
+        atRiskStudents,
         teacherCompliancePercent,
       };
     },

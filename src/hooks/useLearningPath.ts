@@ -75,10 +75,23 @@ export function buildLearningPathNodes(
   const gradedAssignments = new Set(grades.map((g) => g.assignment_id));
 
   const nodes: LearningPathNode[] = assignments.map((assignment) => {
-    // Determine Bloom's level from the first linked CLO
+    // Determine Bloom's level from ALL linked CLOs, not just the first.
+    // The learning path orders Remembering → Creating, so the representative
+    // level for an assignment is the lowest (min) Bloom level across its CLOs:
+    // the assignment becomes available as soon as the easiest cognitive demand
+    // is reachable. Falls back to "remembering" when no CLO carries a level.
+    const cloLevels = assignment.clo_weights
+      .map(({ clo_id }) => cloMap.get(clo_id)?.blooms_level)
+      .filter((level): level is BloomsLevel => !!level);
+    const bloomsLevel: BloomsLevel =
+      cloLevels.length > 0
+        ? cloLevels.reduce((lowest, level) =>
+            BLOOMS_ORDER[level] < BLOOMS_ORDER[lowest] ? level : lowest
+          )
+        : "remembering";
+
+    // Retain the first linked CLO for attainment display (behavior preserved).
     const primaryCloId = assignment.clo_weights[0]?.clo_id;
-    const primaryClo = primaryCloId ? cloMap.get(primaryCloId) : undefined;
-    const bloomsLevel: BloomsLevel = primaryClo?.blooms_level ?? "remembering";
 
     // Check prerequisite status
     let isLocked = false;

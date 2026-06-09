@@ -19,6 +19,7 @@ import {
   clearServerAttempts,
 } from "@/lib/loginAttemptTracker";
 import { logActivity } from "@/lib/activityLogger";
+import { awardPerfectDayIfComplete } from "@/lib/perfectDay";
 import {
   loadAccessibilityPreferences,
   applyAccessibilityPreferences,
@@ -253,9 +254,56 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       // Fire-and-forget: log login activity for students (Req 41.1)
       if (userProfile?.role === "student") {
-        logActivity({ student_id: data.user.id, event_type: "login" }).catch(
+        const studentId = data.user.id;
+        logActivity({ student_id: studentId, event_type: "login" }).catch(
           () => {}
         );
+
+        // S-1 engagement loop (Req 2.9): advance the streak, award +10 login XP,
+        // and record the `login` daily habit so the streak/perfect-day pipeline is
+        // fed from real activity. Each call is fire-and-forget and independently
+        // guarded so one failure can neither block the login nor the others.
+        // (The broken midnight `{type:'midnight_reset'}` cron is left disconnected
+        // as a documented no-op; the streak now advances from this per-user login.)
+        const todayUtc = new Date().toISOString().split("T")[0] as string;
+
+        // Record the login habit FIRST (before the perfect-day check) so
+        // awardPerfectDayIfComplete can observe it when reading today's habit_logs.
+        // Idempotent on (student_id, habit_type, date) — a second login same day is a no-op.
+        supabase
+          .from("habit_logs")
+          .upsert(
+            {
+              student_id: studentId,
+              habit_type: "login",
+              date: todayUtc,
+              completed_at: new Date().toISOString(),
+            },
+            { onConflict: "student_id,habit_type,date" }
+          )
+          .then(({ error }) => {
+            if (error) {
+              console.error("Failed to record login habit:", error.message);
+            }
+            // Perfect-day check runs after the login habit is recorded.
+            // awardPerfectDayIfComplete swallows its own errors.
+            return awardPerfectDayIfComplete(studentId);
+          })
+          .then(() => {});
+
+        // process-streak is idempotent same-day (dayDiff === 0 is a no-op) and
+        // authorizes the student's own JWT.
+        supabase.functions
+          .invoke("process-streak", { body: { student_id: studentId } })
+          .catch(() => {});
+
+        // award-xp enforces the canonical 10 XP and a `login:{id}:{date}`
+        // idempotent reference server-side; the client-supplied amount is advisory.
+        supabase.functions
+          .invoke("award-xp", {
+            body: { student_id: studentId, source: "login", xp_amount: 10 },
+          })
+          .catch(() => {});
       }
 
       return { success: true, redirectTo };

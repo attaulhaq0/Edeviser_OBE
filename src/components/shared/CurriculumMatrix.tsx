@@ -1,6 +1,9 @@
 import { cn } from "@/lib/utils";
 import { useCurriculumMatrix } from "@/hooks/useCurriculumMatrix";
-import type { CellData } from "@/hooks/useCurriculumMatrix";
+import {
+  CELL_ATTAINMENT_UNMEASURED,
+  type CellData,
+} from "@/hooks/useCurriculumMatrix";
 import Shimmer from "@/components/shared/Shimmer";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -18,6 +21,19 @@ const statusStyles: Record<CellData["status"], string> = {
   red: "bg-red-100 text-red-700",
   gray: "bg-gray-100 text-gray-400",
 };
+
+// ─── Cell label ─────────────────────────────────────────────────────────────
+
+/**
+ * The visible cell label. Shows the real attainment percentage when measured,
+ * an em-dash when CLOs are mapped but no attainment evidence exists yet, and an
+ * empty cell when no CLOs are mapped (C-2).
+ */
+function formatCellLabel(cell: CellData): string {
+  if (cell.cloCount === 0) return "";
+  if (cell.attainmentPercent === CELL_ATTAINMENT_UNMEASURED) return "—";
+  return `${cell.attainmentPercent}%`;
+}
 
 // ─── Component ──────────────────────────────────────────────────────────────
 
@@ -81,6 +97,14 @@ const CurriculumMatrix = ({
                 const cell = matrix[plo.id]?.[course.id];
                 if (!cell) return <td key={course.id} className="px-3 py-3" />;
 
+                const label = formatCellLabel(cell);
+                const title =
+                  cell.cloCount === 0
+                    ? "No CLOs mapped"
+                    : cell.attainmentPercent === CELL_ATTAINMENT_UNMEASURED
+                    ? `${cell.cloCount} CLO(s) mapped — attainment not yet measured`
+                    : `${cell.attainmentPercent}% attainment across ${cell.cloCount} CLO(s)`;
+
                 return (
                   <td key={course.id} className="px-3 py-3 text-center">
                     <button
@@ -92,9 +116,9 @@ const CurriculumMatrix = ({
                         onCellClick && "cursor-pointer",
                         !onCellClick && "cursor-default"
                       )}
-                      title={`${cell.cloCount} CLO(s) mapped`}
+                      title={title}
                     >
-                      {cell.cloCount}
+                      {label}
                     </button>
                   </td>
                 );

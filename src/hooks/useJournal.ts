@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
 import { logAuditEvent } from "@/lib/auditLogger";
+import { awardPerfectDayIfComplete } from "@/lib/perfectDay";
 import { useAuth } from "@/hooks/useAuth";
 import type { Database } from "@/types/database";
 
@@ -133,6 +134,54 @@ export const useCreateJournalEntry = () => {
         } as Record<string, unknown>,
         performed_by: user.id,
       });
+
+      // Record the canonical 'journal' academic habit for today (UTC) and, if
+      // this completes all 4 daily habits, award the idempotent Perfect Day.
+      // Fire-and-forget: a habit-write failure must never break the entry save.
+      try {
+        const today = new Date().toISOString().split("T")[0] as string;
+        await supabase.from("habit_logs").upsert(
+          {
+            student_id: user.id,
+            habit_type: "journal",
+            date: today,
+            completed_at: new Date().toISOString(),
+          },
+          { onConflict: "student_id,habit_type,date" }
+        );
+        await awardPerfectDayIfComplete(user.id);
+      } catch {
+        console.error("[useCreateJournalEntry] journal habit write failed");
+      }
+
+      // Journal XP: a substantive entry (≥50 words, computed client-side) grants
+      // the advertised +20 XP. The server enforces the canonical 20 amount and a
+      // daily idempotent reference, so a student cannot farm XP by re-saving.
+      // Fire-and-forget: an XP/badge failure must never break the entry save.
+      const wordCount = input.content
+        .trim()
+        .split(/\s+/)
+        .filter((word) => word.length > 0).length;
+
+      if (wordCount >= 50) {
+        try {
+          await supabase.functions.invoke("award-xp", {
+            body: {
+              student_id: user.id,
+              source: "journal",
+              xp_amount: 20,
+            },
+          });
+          await supabase.functions.invoke("check-badges", {
+            body: {
+              student_id: user.id,
+              trigger: "journal",
+            },
+          });
+        } catch {
+          console.error("[useCreateJournalEntry] journal XP award failed");
+        }
+      }
 
       return entry;
     },

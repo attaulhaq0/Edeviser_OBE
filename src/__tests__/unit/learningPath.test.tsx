@@ -229,6 +229,51 @@ describe("buildLearningPathNodes", () => {
     expect(nodes).toEqual([]);
   });
 
+  it("derives Blooms level from the lowest CLO across ALL linked CLOs (not the first)", () => {
+    // Assignment links a high-Bloom CLO first and a low-Bloom CLO second; the
+    // representative level must be the minimum (remembering), not the first
+    // (creating).
+    const multiCloAssignment: RawAssignment = {
+      id: "a1",
+      title: "Capstone",
+      clo_weights: [
+        { clo_id: "clo-3", weight: 50 }, // creating
+        { clo_id: "clo-1", weight: 50 }, // remembering
+      ],
+      prerequisites: null,
+    };
+
+    const nodes = buildLearningPathNodes(
+      [multiCloAssignment],
+      clos,
+      [],
+      [],
+      []
+    );
+
+    expect(first(nodes).blooms_level).toBe("remembering");
+  });
+
+  it("ignores CLOs without a blooms_level when picking the representative level", () => {
+    const mixedClos: RawCLO[] = [
+      { id: "clo-null", title: "No level", blooms_level: null },
+      makeCLO("clo-2", "applying", "Apply"),
+    ];
+    const assignment: RawAssignment = {
+      id: "a1",
+      title: "Task",
+      clo_weights: [
+        { clo_id: "clo-null", weight: 50 },
+        { clo_id: "clo-2", weight: 50 },
+      ],
+      prerequisites: null,
+    };
+
+    const nodes = buildLearningPathNodes([assignment], mixedClos, [], [], []);
+
+    expect(first(nodes).blooms_level).toBe("applying");
+  });
+
   it("sorts assignments at the same Blooms level alphabetically", () => {
     const sameLevelClos: RawCLO[] = [
       makeCLO("clo-a", "applying", "CLO A"),

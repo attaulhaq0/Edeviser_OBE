@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/select";
 import Shimmer from "@/components/shared/Shimmer";
 import { usePrograms } from "@/hooks/usePrograms";
+import { useSemesters } from "@/hooks/useSemesters";
 import { useProgramAccreditations } from "@/hooks/useInstitutionSettings";
 import {
   useGenerateReport,
@@ -19,18 +20,6 @@ import {
 } from "@/hooks/useAccreditationReport";
 import { toast } from "sonner";
 import { FileText, Download, Mail, Loader2, CheckCircle2 } from "lucide-react";
-
-// ─── Semester stub (uses programs query for now) ────────────────────────────
-
-interface SemesterOption {
-  id: string;
-  name: string;
-}
-
-const useSemesters = () => {
-  // Lightweight query — semesters table may not be populated yet
-  return { data: [] as SemesterOption[], isLoading: false };
-};
 
 // ─── Template options ───────────────────────────────────────────────────────
 
@@ -211,7 +200,7 @@ const ReportGeneratorPage = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All semesters</SelectItem>
-                    {semesters.map((s) => (
+                    {(semesters ?? []).map((s) => (
                       <SelectItem key={s.id} value={s.id}>
                         {s.name}
                       </SelectItem>

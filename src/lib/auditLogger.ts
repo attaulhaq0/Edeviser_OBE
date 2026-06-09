@@ -23,7 +23,7 @@ const AUDIT_FIELD_ALLOWLIST: Record<string, string[]> = {
   plo: ["title", "type", "program_id"],
   clo: ["title", "type", "course_id", "blooms_level"],
   outcome_mapping: ["source_outcome_id", "target_outcome_id", "weight"],
-  bonus_xp_event: ["name", "multiplier", "start_date", "end_date"],
+  bonus_xp_event: ["name", "xp_multiplier", "starts_at", "ends_at"],
   enrollment: ["student_id", "course_id", "status"],
   semester: [
     "name",

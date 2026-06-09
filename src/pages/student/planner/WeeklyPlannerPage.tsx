@@ -185,7 +185,7 @@ const WeeklyPlannerPage = () => {
 
   const handleTaskToggle = useCallback(
     (task: PlannerTask) => {
-      if (task.status === "pending") {
+      if (task.status !== "done") {
         completeTask.mutate(task.id);
       }
     },
@@ -197,7 +197,7 @@ const WeeklyPlannerPage = () => {
       // Until the full edit dialog ships, the only inline edit is toggling
       // status. Click on the row's checkbox is the canonical action; the
       // pencil icon falls back to that.
-      if (task.status === "pending") {
+      if (task.status !== "done") {
         completeTask.mutate(task.id, {
           onSuccess: () => toast.success("Task marked complete"),
         });

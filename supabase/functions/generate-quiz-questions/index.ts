@@ -253,6 +253,7 @@ async function callOpenRouterLLM(
   promptTokens: number;
   completionTokens: number;
   totalTokens: number;
+  model: string;
 }> {
   const llmModel = Deno.env.get("TUTOR_PRIMARY_MODEL") ?? LLM_MODEL;
   // structured-outputs (response_format) is only supported by some providers
@@ -332,6 +333,7 @@ async function callOpenRouterLLM(
         promptTokens: usage.prompt_tokens ?? 0,
         completionTokens: usage.completion_tokens ?? 0,
         totalTokens: usage.total_tokens ?? 0,
+        model: llmModel,
       };
     } catch (error) {
       lastError = error as Error;
@@ -665,9 +667,13 @@ serve(async (req) => {
       promptTokens: number;
       completionTokens: number;
       totalTokens: number;
+      model: string;
     };
 
     const generationRequestId = crypto.randomUUID();
+    // Resolve the model the same way callOpenRouterLLM does, so failure-path
+    // logs (where llmResult is never assigned) still record the actual model.
+    const resolvedModel = Deno.env.get("TUTOR_PRIMARY_MODEL") ?? LLM_MODEL;
 
     try {
       llmResult = await callOpenRouterLLM(prompt, openrouterApiKey);
@@ -680,7 +686,7 @@ serve(async (req) => {
         teacher_id: teacherId,
         course_id,
         generation_request_id: generationRequestId,
-        model_used: LLM_MODEL,
+        model_used: resolvedModel,
         prompt_tokens: 0,
         completion_tokens: 0,
         total_tokens: 0,
@@ -737,7 +743,7 @@ serve(async (req) => {
         teacher_id: teacherId,
         course_id,
         generation_request_id: generationRequestId,
-        model_used: LLM_MODEL,
+        model_used: llmResult.model,
         prompt_tokens: llmResult.promptTokens,
         completion_tokens: llmResult.completionTokens,
         total_tokens: llmResult.totalTokens,
@@ -815,7 +821,7 @@ serve(async (req) => {
         teacher_id: teacherId,
         course_id,
         generation_request_id: generationRequestId,
-        model_used: LLM_MODEL,
+        model_used: llmResult.model,
         prompt_tokens: llmResult.promptTokens,
         completion_tokens: llmResult.completionTokens,
         total_tokens: llmResult.totalTokens,

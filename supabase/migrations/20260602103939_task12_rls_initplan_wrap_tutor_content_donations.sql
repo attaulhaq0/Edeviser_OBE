@@ -1,59 +1,28 @@
 -- Task 12 (Req 10.2): wrap bare auth.uid() in (select auth.uid()). ZERO access change.
 
 -- tutor_conversations
--- REPLAY-ONLY GUARD: tutor_conversations is CREATEd later (20260820000003). The whole
--- drop+recreate is a no-op on a fresh replay (table absent) and runs normally on live.
-DO $$ BEGIN
-  IF to_regclass('public.tutor_conversations') IS NOT NULL THEN
-    EXECUTE $stmt$ DROP POLICY IF EXISTS "users_read_own_tutor_conversations" ON public.tutor_conversations $stmt$;
-    EXECUTE $stmt$ CREATE POLICY "users_read_own_tutor_conversations" ON public.tutor_conversations AS PERMISSIVE FOR SELECT TO authenticated USING (student_id = (select auth.uid())) $stmt$;
-  END IF;
-END $$;
+DROP POLICY IF EXISTS "users_read_own_tutor_conversations" ON public.tutor_conversations;
+CREATE POLICY "users_read_own_tutor_conversations" ON public.tutor_conversations AS PERMISSIVE FOR SELECT TO authenticated USING (student_id = (select auth.uid()));
 
 -- tutor_messages
--- REPLAY-ONLY GUARD: tutor_messages is CREATEd later (20260820000004).
-DO $$ BEGIN
-  IF to_regclass('public.tutor_messages') IS NOT NULL THEN
-    EXECUTE $stmt$ DROP POLICY IF EXISTS "users_read_own_tutor_messages" ON public.tutor_messages $stmt$;
-    EXECUTE $stmt$ CREATE POLICY "users_read_own_tutor_messages" ON public.tutor_messages AS PERMISSIVE FOR SELECT TO authenticated USING (conversation_id IN ( SELECT tutor_conversations.id FROM tutor_conversations WHERE (tutor_conversations.student_id = (select auth.uid())))) $stmt$;
-  END IF;
-END $$;
+DROP POLICY IF EXISTS "users_read_own_tutor_messages" ON public.tutor_messages;
+CREATE POLICY "users_read_own_tutor_messages" ON public.tutor_messages AS PERMISSIVE FOR SELECT TO authenticated USING (conversation_id IN ( SELECT tutor_conversations.id FROM tutor_conversations WHERE (tutor_conversations.student_id = (select auth.uid()))));
 
 -- tutor_usage_limits
--- REPLAY-ONLY GUARD: tutor_usage_limits is CREATEd later (20260820000005).
-DO $$ BEGIN
-  IF to_regclass('public.tutor_usage_limits') IS NOT NULL THEN
-    EXECUTE $stmt$ DROP POLICY IF EXISTS "users_read_own_tutor_usage" ON public.tutor_usage_limits $stmt$;
-    EXECUTE $stmt$ CREATE POLICY "users_read_own_tutor_usage" ON public.tutor_usage_limits AS PERMISSIVE FOR SELECT TO authenticated USING (student_id = (select auth.uid())) $stmt$;
-  END IF;
-END $$;
+DROP POLICY IF EXISTS "users_read_own_tutor_usage" ON public.tutor_usage_limits;
+CREATE POLICY "users_read_own_tutor_usage" ON public.tutor_usage_limits AS PERMISSIVE FOR SELECT TO authenticated USING (student_id = (select auth.uid()));
 
 -- tutor_llm_logs
--- REPLAY-ONLY GUARD: tutor_llm_logs is CREATEd later (20260820000006).
-DO $$ BEGIN
-  IF to_regclass('public.tutor_llm_logs') IS NOT NULL THEN
-    EXECUTE $stmt$ DROP POLICY IF EXISTS "admins_read_tutor_llm_logs" ON public.tutor_llm_logs $stmt$;
-    EXECUTE $stmt$ CREATE POLICY "admins_read_tutor_llm_logs" ON public.tutor_llm_logs AS PERMISSIVE FOR SELECT TO authenticated USING (EXISTS ( SELECT 1 FROM profiles WHERE ((profiles.id = (select auth.uid())) AND (profiles.role = 'admin'::user_role)))) $stmt$;
-  END IF;
-END $$;
+DROP POLICY IF EXISTS "admins_read_tutor_llm_logs" ON public.tutor_llm_logs;
+CREATE POLICY "admins_read_tutor_llm_logs" ON public.tutor_llm_logs AS PERMISSIVE FOR SELECT TO authenticated USING (EXISTS ( SELECT 1 FROM profiles WHERE ((profiles.id = (select auth.uid())) AND (profiles.role = 'admin'::user_role))));
 
 -- tutor_plan_updates
--- REPLAY-ONLY GUARD: tutor_plan_updates is CREATEd later (20260820100002).
-DO $$ BEGIN
-  IF to_regclass('public.tutor_plan_updates') IS NOT NULL THEN
-    EXECUTE $stmt$ DROP POLICY IF EXISTS "users_read_own_plan_updates" ON public.tutor_plan_updates $stmt$;
-    EXECUTE $stmt$ CREATE POLICY "users_read_own_plan_updates" ON public.tutor_plan_updates AS PERMISSIVE FOR SELECT TO authenticated USING (student_id = (select auth.uid())) $stmt$;
-  END IF;
-END $$;
+DROP POLICY IF EXISTS "users_read_own_plan_updates" ON public.tutor_plan_updates;
+CREATE POLICY "users_read_own_plan_updates" ON public.tutor_plan_updates AS PERMISSIVE FOR SELECT TO authenticated USING (student_id = (select auth.uid()));
 
 -- teacher_handoff_requests
--- REPLAY-ONLY GUARD: teacher_handoff_requests is CREATEd later (20260820100003).
-DO $$ BEGIN
-  IF to_regclass('public.teacher_handoff_requests') IS NOT NULL THEN
-    EXECUTE $stmt$ DROP POLICY IF EXISTS "teachers_read_own_handoffs" ON public.teacher_handoff_requests $stmt$;
-    EXECUTE $stmt$ CREATE POLICY "teachers_read_own_handoffs" ON public.teacher_handoff_requests AS PERMISSIVE FOR SELECT TO authenticated USING (teacher_id = (select auth.uid())) $stmt$;
-  END IF;
-END $$;
+DROP POLICY IF EXISTS "teachers_read_own_handoffs" ON public.teacher_handoff_requests;
+CREATE POLICY "teachers_read_own_handoffs" ON public.teacher_handoff_requests AS PERMISSIVE FOR SELECT TO authenticated USING (teacher_id = (select auth.uid()));
 
 -- challenge_progress
 DROP POLICY IF EXISTS "challenge_progress_update" ON public.challenge_progress;

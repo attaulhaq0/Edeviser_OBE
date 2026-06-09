@@ -1,6 +1,15 @@
 // =============================================================================
 // generate-reflection-digest — Monthly digest generation for students
 // with ≥3 reflections. Analyzes themes, growth, sentiment, focus areas.
+//
+// I-5 orphan decision (full-profile-audit-remediation, Task 13): INTENTIONALLY
+// RETAINED, not removed. This function populates the `reflection_digests` table,
+// which IS consumed in production by the client (`useReflectionDigest` →
+// ReflectionDigestCard on the student WeeklyPlannerPage). It is a monthly,
+// schedule-driven generator that currently has no wired cron trigger; rather
+// than delete a legitimate edge function that produces live-consumed data, it is
+// kept so it can be attached to a pg_cron schedule when monthly digests are
+// turned on. The only defect (the CORS `x-content-type` typo) is fixed above.
 // =============================================================================
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
@@ -9,7 +18,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-content-type, apikey, content-type",
+    "authorization, x-client-info, apikey, content-type",
 };
 
 // ─── Theme Extraction ────────────────────────────────────────────────────────

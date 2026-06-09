@@ -59,7 +59,7 @@ export const useCompleteSession = () => {
           actual_end_at: new Date().toISOString(),
           actual_duration_minutes: actualDurationMinutes,
           satisfaction_rating: satisfactionRating ?? null,
-        } as never)
+        })
         .eq("id", sessionId)
         .eq("student_id", user.id);
 
@@ -183,7 +183,7 @@ export const useCompleteSession = () => {
       // 6b. Award review session XP (if this session is linked to a review schedule)
       try {
         const { data: reviewScheduleRows } = await supabase
-          .from("review_schedules" as never)
+          .from("review_schedules")
           .select("id, clo_id, interval_days, status")
           .eq("review_session_id", sessionId)
           .eq("student_id", user.id);
@@ -218,7 +218,7 @@ export const useCompleteSession = () => {
           for (const cloId of cloIds) {
             try {
               const { data: allCloReviews } = await supabase
-                .from("review_schedules" as never)
+                .from("review_schedules")
                 .select("interval_days, status")
                 .eq("student_id", user.id)
                 .eq("clo_id", cloId);
@@ -264,16 +264,17 @@ export const useCompleteSession = () => {
         console.error("[useCompleteSession] review session XP flow failed");
       }
 
-      // 6. Auto-mark Read habit (if session ≥ 15 min)
+      // 6. Auto-mark Read habit (if session ≥ 15 min) in canonical habit_logs
       if (actualDurationMinutes >= 15) {
         try {
           const today = new Date().toISOString().split("T")[0] as string;
-          await supabase.from("habit_logs" as never).upsert(
+          await supabase.from("habit_logs").upsert(
             {
               student_id: user.id,
               habit_type: "read",
               date: today,
-            } as never,
+              completed_at: new Date().toISOString(),
+            },
             { onConflict: "student_id,habit_type,date" }
           );
         } catch {
@@ -289,7 +290,7 @@ export const useCompleteSession = () => {
           .select("clo_ids, course_id")
           .eq("id", sessionId)
           .eq("student_id", user.id)
-          .single();
+          .maybeSingle();
 
         const cloIds = (sessionData as Record<string, unknown> | null)
           ?.clo_ids as string[] | null;
@@ -308,16 +309,14 @@ export const useCompleteSession = () => {
               source_session_id: sessionId,
               review_date: reviewDate,
               interval_days: intervalDays,
-              status: "pending",
+              status: "pending" as const,
             }))
           );
 
-          await supabase
-            .from("review_schedules" as never)
-            .upsert(reviewRows as never[], {
-              onConflict: "student_id,clo_id,review_date,interval_days",
-              ignoreDuplicates: true,
-            });
+          await supabase.from("review_schedules").upsert(reviewRows, {
+            onConflict: "student_id,clo_id,review_date,interval_days",
+            ignoreDuplicates: true,
+          });
         }
       } catch {
         console.error("[useCompleteSession] review schedule creation failed");

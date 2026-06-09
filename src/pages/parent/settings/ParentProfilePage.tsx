@@ -1,4 +1,5 @@
 import { Card } from "@/components/ui/card";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/hooks/useAuth";
 import { User } from "lucide-react";
 import AvatarUpload from "@/components/shared/AvatarUpload";
@@ -6,14 +7,17 @@ import AvatarUpload from "@/components/shared/AvatarUpload";
 /**
  * Parent profile page with avatar upload.
  * Design: ADR-04, ADR-15
- * Requirements: 2.18
+ * Requirements: 2.18, 2.20
  */
 const ParentProfilePage = () => {
   const { profile } = useAuth();
+  const { t } = useTranslation("common");
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold tracking-tight">Profile</h1>
+      <h1 className="text-2xl font-bold tracking-tight">
+        {t("parentProfile.title")}
+      </h1>
 
       {/* Profile Info Card */}
       <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
@@ -25,7 +29,7 @@ const ParentProfilePage = () => {
         >
           <User className="h-5 w-5 text-white" />
           <h2 className="text-lg font-bold tracking-tight text-white">
-            Profile Information
+            {t("parentProfile.info")}
           </h2>
         </div>
         <div className="p-6">

@@ -53,6 +53,7 @@ import {
   Swords,
   GraduationCap as GraduationCapIcon,
   Workflow,
+  UserCog,
 } from "lucide-react";
 import type { UserRole } from "@/types/app";
 import type { NavGroup } from "@/lib/navGroups";
@@ -306,6 +307,7 @@ const parentNavItems: NavItem[] = [
   { to: "/parent/progress", labelKey: "nav.progress", icon: TrendingUp },
   { to: "/parent/attendance", labelKey: "nav.attendance", icon: CalendarDays },
   { to: "/parent/planner", labelKey: "nav.studyPlan", icon: BookOpen },
+  { to: "/parent/profile", labelKey: "nav.profile", icon: UserCog },
 ];
 
 export const navItems: Record<UserRole, NavItem[]> = {

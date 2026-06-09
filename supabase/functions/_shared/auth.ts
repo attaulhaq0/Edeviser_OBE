@@ -35,8 +35,28 @@ export async function authenticateRequest(req: Request): Promise<AuthResult> {
     return { user: null, error: "Unauthorized" };
   }
 
-  const role = user.app_metadata?.role ?? user.user_metadata?.role ?? "";
+  // Role + institution live in the profiles table, NOT the JWT (app_metadata is
+  // empty on this project). Resolve them server-side from profiles by the
+  // caller's id, mirroring the already-deployed ai-feedback-draft pattern. The
+  // JWT-metadata values are retained as a fallback so any future token that DOES
+  // carry the role/institution still works (preservation).
+  const adminClient = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+  );
+  const { data: callerProfile } = await adminClient
+    .from("profiles")
+    .select("role, institution_id")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  const role =
+    (callerProfile?.role as string) ??
+    user.app_metadata?.role ??
+    user.user_metadata?.role ??
+    "";
   const institutionId =
+    (callerProfile?.institution_id as string) ??
     user.app_metadata?.institution_id ??
     user.user_metadata?.institution_id ??
     "";
