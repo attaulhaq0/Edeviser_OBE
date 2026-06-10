@@ -1,1 +1,28 @@
-insert into supabase_migrations.schema_migrations (version, name) values ('20260821000000','add_parent_course_access_rls'), ('20260821000001','grade_trigger_level_recompute_and_graded_status'), ('20260821000002','challenge_participants_student_self_join'), ('20260821000003','add_parent_assignments_read_rls'), ('20260821000004','fix_parent_rls_recursion_use_helper') on conflict (version) do nothing;;
+-- Reconcile forward-dated migration history — intentionally a NO-OP on replay.
+--
+-- ORIGINAL PURPOSE (point-in-time, already accomplished): this migration back-filled
+-- `supabase_migrations.schema_migrations` rows for the 20260821* migrations on the ONE
+-- production instance whose ledger had drifted, so that `supabase db push` would not try to
+-- re-apply objects that had been created out-of-band on that instance. That reconciliation
+-- has already been applied and recorded on production; editing this file does NOT re-run it
+-- there (Supabase never re-runs an already-applied migration).
+--
+-- WHY IT IS NOW A NO-OP: on a FRESH from-scratch replay (Supabase Preview / clean rebuild /
+-- DR restore) the migration runner applies the 20260609* and 20260821* migration FILES in
+-- filename order and records each version in `schema_migrations` ITSELF. The previous body
+-- pre-inserted versions 20260821000000–20260821000004 here, so when the runner later reached
+-- those files its own bookkeeping INSERT hit a duplicate primary key
+-- (`schema_migrations_pkey`, SQLSTATE 23505: "Key (version)=(20260821000000) already exists")
+-- and the entire replay aborted. Manual ledger reconciliation is only ever required to fix an
+-- instance whose ledger diverged from the files — never on a fresh replay, where there is no
+-- divergence. So the safe, universally-correct behavior is to do nothing here and let the
+-- runner register those versions as it applies them.
+--
+-- Object-existence guards cannot help: the 20260609* twins of these migrations
+-- (add_parent_course_access_rls @20260609070906, grade_trigger… @20260609070957,
+-- challenge_participants_student_self_join @20260609071106, add_parent_assignments_read_rls
+-- @20260609072124, fix_parent_rls_recursion_use_helper @20260609073304) run BEFORE this file
+-- and create the same policies/functions, so any "does the object exist?" probe is already
+-- true at this point on a fresh replay and would re-introduce the collision.
+--
+-- No executable statements by design.
