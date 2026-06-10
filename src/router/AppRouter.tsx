@@ -152,6 +152,9 @@ const ParentDashboard = lazy(() => import("@/pages/parent/ParentDashboard"));
 const ParentPlannerView = lazy(
   () => import("@/pages/parent/planner/ParentPlannerView")
 );
+const ParentProfilePage = lazy(
+  () => import("@/pages/parent/settings/ParentProfilePage")
+);
 const CalendarView = lazy(() => import("@/pages/shared/CalendarView"));
 const TimetableView = lazy(() => import("@/pages/shared/TimetableView"));
 const AcademicCalendarManager = lazy(
@@ -843,7 +846,8 @@ const AppRouter = () => (
             <Route path="attendance" element={<ParentAttendancePage />} />
             <Route path="planner" element={<ParentPlannerView />} />
             <Route path="planner/:studentId" element={<ParentPlannerView />} />
-            <Route path="settings/profile" element={<ProfilePage />} />
+            <Route path="profile" element={<ParentProfilePage />} />
+            <Route path="settings/profile" element={<ParentProfilePage />} />
           </Route>
 
           {/* Root redirect */}

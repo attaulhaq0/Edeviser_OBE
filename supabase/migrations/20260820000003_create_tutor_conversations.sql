@@ -26,13 +26,8 @@ CREATE INDEX IF NOT EXISTS idx_conversations_course ON tutor_conversations (cour
 -- Index for institution-scoped analytics
 CREATE INDEX IF NOT EXISTS idx_conversations_institution ON tutor_conversations (institution_id, created_at DESC);
 -- Trigger: keep updated_at current on every UPDATE so idx_conversations_student ordering is accurate
--- Hardened (db-function-search-path-qualification Task 5.x): SET search_path=''
--- + public.-qualified to match the LIVE production body so a fresh replay does
--- not re-emit these functions in db diff. Replay-only edit.
 CREATE OR REPLACE FUNCTION set_tutor_conversations_updated_at()
-RETURNS TRIGGER LANGUAGE plpgsql
-SET search_path TO ''
-AS $$
+RETURNS TRIGGER LANGUAGE plpgsql SET search_path = '' AS $$
 BEGIN
   NEW.updated_at = now();
   RETURN NEW;
@@ -44,9 +39,7 @@ CREATE TRIGGER trg_tutor_conversations_updated_at
   FOR EACH ROW EXECUTE FUNCTION set_tutor_conversations_updated_at();
 -- Trigger: keep message_count in sync with tutor_messages inserts/deletes
 CREATE OR REPLACE FUNCTION sync_tutor_conversation_stats()
-RETURNS TRIGGER LANGUAGE plpgsql
-SET search_path TO ''
-AS $$
+RETURNS TRIGGER LANGUAGE plpgsql SET search_path = '' AS $$
 BEGIN
   IF TG_OP = 'INSERT' THEN
     UPDATE public.tutor_conversations

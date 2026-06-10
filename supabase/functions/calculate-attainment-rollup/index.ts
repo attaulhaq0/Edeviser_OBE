@@ -93,8 +93,25 @@ serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
+      // Role lives in the profiles table, NOT the JWT (app_metadata is empty on
+      // this project). Resolve it server-side from profiles by the caller's id,
+      // mirroring the already-deployed ai-feedback-draft pattern. This function
+      // stays disconnected from the live grade cascade (preservation 3.7) — only
+      // its auth source is corrected here.
+      const adminClient = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      );
+      const { data: callerProfile } = await adminClient
+        .from("profiles")
+        .select("role")
+        .eq("id", caller.id)
+        .maybeSingle();
       const callerRole =
-        caller.app_metadata?.role ?? caller.user_metadata?.role ?? "";
+        (callerProfile?.role as string) ??
+        caller.app_metadata?.role ??
+        caller.user_metadata?.role ??
+        "";
       if (!["teacher", "admin"].includes(callerRole)) {
         return new Response(
           JSON.stringify({

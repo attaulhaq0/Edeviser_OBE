@@ -24,8 +24,8 @@ interface ReportRequest {
 interface AttainmentRow {
   outcome_id: string;
   scope: string;
-  score_percent: number;
-  student_id: string;
+  attainment_percent: number;
+  student_id: string | null;
   course_id: string | null;
 }
 
@@ -158,8 +158,8 @@ function generatePDF(
   }>,
   sections: Array<{ id: string; section_code: string; course_id: string }>,
   gaData: Array<{
-    title: string;
-    code: string;
+    name: string;
+    description: string | null;
     attainment: number;
     mappedILOs: number;
   }>,
@@ -353,10 +353,12 @@ function generatePDF(
     yPos += 6;
     autoTable(doc, {
       startY: yPos,
-      head: [["Code", "Attribute", "Attainment %", "Level", "Mapped ILOs"]],
+      head: [
+        ["Attribute", "Description", "Attainment %", "Level", "Mapped ILOs"],
+      ],
       body: gaData.map((ga) => [
-        ga.code,
-        ga.title,
+        ga.name,
+        ga.description ?? "—",
         ga.attainment.toFixed(1),
         classifyAttainment(ga.attainment),
         String(ga.mappedILOs),
@@ -472,12 +474,30 @@ serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    const adminClient = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+
+    // Role + institution live in the profiles table, NOT the JWT (app_metadata
+    // is empty on this project). Resolve them server-side from profiles by the
+    // caller's id, mirroring the already-deployed ai-feedback-draft pattern.
+    const { data: callerProfile } = await adminClient
+      .from("profiles")
+      .select("role, institution_id")
+      .eq("id", user.id)
+      .maybeSingle();
     const callerRole =
-      user.app_metadata?.role ?? user.user_metadata?.role ?? "";
+      (callerProfile?.role as string) ??
+      user.app_metadata?.role ??
+      user.user_metadata?.role ??
+      "";
     const callerInstitutionId =
+      (callerProfile?.institution_id as string) ??
       user.app_metadata?.institution_id ??
       user.user_metadata?.institution_id ??
       "";
+    void callerInstitutionId; // resolved for parity with shared helper; report scopes by program.institution_id
     if (!["admin", "coordinator"].includes(callerRole)) {
       return new Response(
         JSON.stringify({
@@ -490,10 +510,7 @@ serve(async (req) => {
       );
     }
 
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
+    const supabase = adminClient;
 
     const body = await req.json();
     const validation = validatePayload(body);
@@ -525,11 +542,12 @@ serve(async (req) => {
     // ── Fetch semester info (optional) ────────────────────────────────────
     let semesterName: string | null = null;
     if (semester_id) {
-      const { data: semester } = await supabase
+      const { data: semester, error: semesterErr } = await supabase
         .from("semesters")
         .select("name")
         .eq("id", semester_id)
         .maybeSingle();
+      if (semesterErr) throw semesterErr;
       semesterName = semester?.name ?? null;
     }
 
@@ -543,39 +561,39 @@ serve(async (req) => {
       courseQuery = courseQuery.eq("semester_id", semester_id);
     }
 
-    const { data: courses } = await courseQuery;
+    const { data: courses, error: coursesErr } = await courseQuery;
+    if (coursesErr) throw coursesErr;
     const courseIds = (courses ?? []).map((c: { id: string }) => c.id);
 
     // ── Fetch all outcomes for the program's institution ──────────────────
-    const { data: outcomes } = await supabase
+    const { data: outcomes, error: outcomesErr } = await supabase
       .from("learning_outcomes")
       .select("id, title, type, blooms_level")
       .eq("institution_id", program.institution_id);
+    if (outcomesErr) throw outcomesErr;
 
     const allOutcomes = (outcomes ?? []) as OutcomeRow[];
     const ploOutcomes = allOutcomes.filter((o) => o.type === "PLO");
     const iloOutcomes = allOutcomes.filter((o) => o.type === "ILO");
 
     // ── Fetch outcome_attainment data ─────────────────────────────────────
-    let attainmentQuery = supabase
+    // PLO/ILO attainment lives at the live scopes `program` / `institution`
+    // (NOT the pre-migration `PLO`/`ILO` scopes) keyed by `outcome_id`, exactly
+    // as useAdminDashboard derives it. The rows are not course-scoped, so we
+    // select by scope and aggregate by outcome_id rather than filtering by course.
+    const { data: attainmentData, error: attainmentErr } = await supabase
       .from("outcome_attainment")
-      .select("outcome_id, scope, score_percent, student_id, course_id");
-
-    if (courseIds.length > 0) {
-      attainmentQuery = attainmentQuery.in("course_id", courseIds);
-    }
-
-    const { data: attainmentData } = await attainmentQuery;
+      .select("outcome_id, scope, attainment_percent, student_id, course_id")
+      .in("scope", ["program", "institution"]);
+    if (attainmentErr) throw attainmentErr;
     const attainment = (attainmentData ?? []) as AttainmentRow[];
 
     // ── Aggregate PLO attainment ──────────────────────────────────────────
     const ploAgg = ploOutcomes.map((plo) => {
-      const records = attainment.filter(
-        (a) => a.outcome_id === plo.id && a.scope === "PLO"
-      );
+      const records = attainment.filter((a) => a.outcome_id === plo.id);
       const avg =
         records.length > 0
-          ? records.reduce((sum, r) => sum + r.score_percent, 0) /
+          ? records.reduce((sum, r) => sum + r.attainment_percent, 0) /
             records.length
           : 0;
       return {
@@ -588,12 +606,10 @@ serve(async (req) => {
 
     // ── Aggregate ILO attainment ──────────────────────────────────────────
     const iloAgg = iloOutcomes.map((ilo) => {
-      const records = attainment.filter(
-        (a) => a.outcome_id === ilo.id && a.scope === "ILO"
-      );
+      const records = attainment.filter((a) => a.outcome_id === ilo.id);
       const avg =
         records.length > 0
-          ? records.reduce((sum, r) => sum + r.score_percent, 0) /
+          ? records.reduce((sum, r) => sum + r.attainment_percent, 0) /
             records.length
           : 0;
       return {
@@ -608,27 +624,29 @@ serve(async (req) => {
     const bloomsDist = countBloomsDistribution(allOutcomes);
 
     // ── Fetch survey results as indirect assessment (Task 62.4 / 77.1) ──
-    const { data: surveyRows } = await supabase
+    const { data: surveyIdRows, error: surveysErr } = await supabase
+      .from("surveys")
+      .select("id")
+      .eq("institution_id", program.institution_id);
+    if (surveysErr) throw surveysErr;
+    const { data: surveyRows, error: surveyRespErr } = await supabase
       .from("survey_responses")
       .select("survey_id, responses")
       .in(
         "survey_id",
-        (
-          await supabase
-            .from("surveys")
-            .select("id")
-            .eq("institution_id", program.institution_id)
-        ).data?.map((s: { id: string }) => s.id) ?? []
+        (surveyIdRows ?? []).map((s: { id: string }) => s.id)
       );
+    if (surveyRespErr) throw surveyRespErr;
     const surveyCount = surveyRows?.length ?? 0;
 
     // ── Fetch CQI action plans (Task 63.4 / 77.2) ──────────────────────
-    const { data: cqiRows } = await supabase
+    const { data: cqiRows, error: cqiErr } = await supabase
       .from("cqi_action_plans")
       .select(
         "id, outcome_id, status, baseline_attainment, target_attainment, result_attainment"
       )
       .eq("program_id", program_id);
+    if (cqiErr) throw cqiErr;
     const cqiPlans = (cqiRows ?? []) as Array<{
       id: string;
       outcome_id: string;
@@ -639,10 +657,11 @@ serve(async (req) => {
     }>;
 
     // ── Fetch per-section attainment (Task 77.4) ────────────────────────
-    const { data: sectionRows } = await supabase
+    const { data: sectionRows, error: sectionsErr } = await supabase
       .from("course_sections")
       .select("id, section_code, course_id")
       .in("course_id", courseIds.length > 0 ? courseIds : ["__none__"]);
+    if (sectionsErr) throw sectionsErr;
     const sections = (sectionRows ?? []) as Array<{
       id: string;
       section_code: string;
@@ -650,25 +669,27 @@ serve(async (req) => {
     }>;
 
     // ── Fetch Graduate Attribute data (Task 113.4) ──────────────────────
-    const { data: gaRows } = await supabase
+    const { data: gaRows, error: gaErr } = await supabase
       .from("graduate_attributes")
-      .select("id, title, code")
+      .select("id, name, description")
       .eq("institution_id", program.institution_id);
+    if (gaErr) throw gaErr;
     const gaData: Array<{
-      title: string;
-      code: string;
+      name: string;
+      description: string | null;
       attainment: number;
       mappedILOs: number;
     }> = [];
     for (const ga of (gaRows ?? []) as Array<{
       id: string;
-      title: string;
-      code: string;
+      name: string;
+      description: string | null;
     }>) {
-      const { data: gaMappings } = await supabase
+      const { data: gaMappings, error: gaMapErr } = await supabase
         .from("graduate_attribute_mappings")
         .select("ilo_id, weight")
         .eq("graduate_attribute_id", ga.id);
+      if (gaMapErr) throw gaMapErr;
       const mappings = (gaMappings ?? []) as Array<{
         ilo_id: string;
         weight: number;
@@ -685,18 +706,19 @@ serve(async (req) => {
         }
       }
       gaData.push({
-        title: ga.title,
-        code: ga.code,
+        name: ga.name,
+        description: ga.description,
         attainment: totalWeight > 0 ? weightedSum / totalWeight : 0,
         mappedILOs: mappings.length,
       });
     }
 
     // ── Fetch Competency Framework data (Task 115.5) ────────────────────
-    const { data: cfRows } = await supabase
+    const { data: cfRows, error: cfErr } = await supabase
       .from("competency_frameworks")
       .select("id, name")
       .eq("institution_id", program.institution_id);
+    if (cfErr) throw cfErr;
     const competencyData: Array<{
       framework: string;
       totalIndicators: number;
@@ -704,20 +726,22 @@ serve(async (req) => {
       unmappedIndicators: number;
     }> = [];
     for (const cf of (cfRows ?? []) as Array<{ id: string; name: string }>) {
-      const { data: indicators } = await supabase
+      const { data: indicators, error: indicatorsErr } = await supabase
         .from("competency_items")
         .select("id")
         .eq("framework_id", cf.id)
         .eq("level", "indicator");
+      if (indicatorsErr) throw indicatorsErr;
       const indicatorIds = ((indicators ?? []) as Array<{ id: string }>).map(
         (i) => i.id
       );
       let mappedCount = 0;
       if (indicatorIds.length > 0) {
-        const { count } = await supabase
+        const { count, error: mapCountErr } = await supabase
           .from("competency_outcome_mappings")
           .select("id", { count: "exact", head: true })
           .in("competency_item_id", indicatorIds);
+        if (mapCountErr) throw mapCountErr;
         mappedCount = count ?? 0;
       }
       competencyData.push({

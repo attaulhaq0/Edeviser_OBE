@@ -63,3 +63,4 @@ $$;
 
 REVOKE EXECUTE ON FUNCTION public.refresh_mv_historical_evidence() FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.refresh_mv_historical_evidence() TO service_role, postgres;
+;

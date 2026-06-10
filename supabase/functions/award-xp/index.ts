@@ -602,7 +602,23 @@ serve(async (req) => {
       login: 10,
       journal: 20,
     };
-    const selfTriggeredSources: XPSource[] = ["login", "submission", "journal"];
+    // Self-triggered allow-list: sources a student may award with their own JWT.
+    // The legacy trio (login/submission/journal) plus the engagement sources whose
+    // canonical amount is enforced server-side below (study_session clamp 0–60,
+    // wellness_habit institution-configured, planner_task 10, weekly_goal 25,
+    // review_session 15, review_cycle_complete 25). The student-supplied xp_amount
+    // is ignored for all of these — the server value wins.
+    const selfTriggeredSources: XPSource[] = [
+      "login",
+      "submission",
+      "journal",
+      "study_session",
+      "wellness_habit",
+      "planner_task",
+      "weekly_goal",
+      "review_session",
+      "review_cycle_complete",
+    ];
 
     if (!isServiceRole) {
       // Create user-scoped client to get the caller's identity
@@ -670,7 +686,7 @@ serve(async (req) => {
         validation.data.xp_amount = isLate ? LATE_SUBMISSION_XP : SUBMISSION_XP;
         // Keep the assignment_id as reference_id for submission idempotency
         // (one XP award per student per assignment)
-      } else {
+      } else if (source === "login" || source === "journal") {
         // Fixed-amount sources (login, journal)
         validation.data.xp_amount = SELF_TRIGGERED_XP[source]!;
 
@@ -678,6 +694,19 @@ serve(async (req) => {
         // Format: {source}:{student_id}:{UTC date} — one award per source per day.
         const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
         validation.data.reference_id = `${source}:${student_id}:${today}`;
+      } else {
+        // Newly self-allowed engagement sources (study_session, wellness_habit,
+        // planner_task, weekly_goal, review_session, review_cycle_complete).
+        // The canonical XP amount is enforced server-side below (the per-source
+        // cappedXpAmount block / wellness lookup), so the student-supplied
+        // xp_amount is effectively ignored — we leave validation.data.xp_amount
+        // untouched here (study_session needs its client value for the 0–60 clamp).
+        // Derive a deterministic reference_id so replays cannot farm XP: prefer the
+        // caller-supplied reference (e.g. the planner task / session / goal id),
+        // otherwise fall back to one award per source per UTC day.
+        const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+        const refKey = validation.data.reference_id ?? today;
+        validation.data.reference_id = `${source}:${student_id}:${refKey}`;
       }
     }
 

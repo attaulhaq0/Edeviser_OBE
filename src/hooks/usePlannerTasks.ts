@@ -10,6 +10,7 @@ import { awardWeeklyGoalXPIfMet } from "@/hooks/useWeeklyGoalXP";
 import { toast } from "sonner";
 import type { PlannerTask } from "@/types/planner";
 import type { CreatePlannerTaskInput } from "@/lib/schemas/planner";
+import type { TablesUpdate } from "@/types/database";
 
 // ─── Row → Domain Mapper ────────────────────────────────────────────────────
 
@@ -21,7 +22,7 @@ function mapTask(row: Record<string, unknown>): PlannerTask {
     description: (row.description as string) ?? null,
     dueDate: (row.due_date as string) ?? "",
     priority: (row.priority as PlannerTask["priority"]) ?? "medium",
-    status: (row.status as PlannerTask["status"]) ?? "pending",
+    status: (row.status as PlannerTask["status"]) ?? "todo",
     courseId: (row.course_id as string) ?? null,
     completedAt: (row.completed_at as string) ?? null,
     createdAt: (row.created_at as string) ?? "",
@@ -56,9 +57,9 @@ export const useCreatePlannerTask = () => {
           description: input.description ?? null,
           due_date: input.dueDate,
           priority: input.priority ?? "medium",
-          status: "pending",
+          status: "todo",
           course_id: input.courseId ?? null,
-        } as never)
+        })
         .select()
         .single();
 
@@ -94,7 +95,7 @@ export const useUpdatePlannerTask = () => {
     mutationFn: async (input: UpdatePlannerTaskInput): Promise<PlannerTask> => {
       if (!user) throw new Error("Not authenticated");
 
-      const updates: Record<string, unknown> = {};
+      const updates: TablesUpdate<"planner_tasks"> = {};
 
       if (input.title !== undefined) updates.title = input.title;
       if (input.description !== undefined)
@@ -105,7 +106,7 @@ export const useUpdatePlannerTask = () => {
 
       const { data, error } = await supabase
         .from("planner_tasks")
-        .update(updates as never)
+        .update(updates)
         .eq("id", input.id)
         .eq("student_id", user.id)
         .select()
@@ -194,9 +195,9 @@ export const useCompleteTask = () => {
       const { data, error } = await supabase
         .from("planner_tasks")
         .update({
-          status: "completed",
+          status: "done",
           completed_at: new Date().toISOString(),
-        } as never)
+        })
         .eq("id", taskId)
         .eq("student_id", user.id)
         .select()
@@ -260,7 +261,7 @@ export const useCompleteTask = () => {
             t.id === taskId
               ? {
                   ...t,
-                  status: "completed" as const,
+                  status: "done" as const,
                   completedAt: new Date().toISOString(),
                 }
               : t

@@ -6,6 +6,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { I18nextProvider } from "react-i18next";
+import i18n from "@/lib/i18n";
 import type {
   StudySession,
   PlannerTask,
@@ -61,7 +63,7 @@ const completedTask = (overrides: Partial<PlannerTask> = {}): PlannerTask => ({
   description: null,
   dueDate: "2026-04-27",
   priority: "high",
-  status: "completed",
+  status: "done",
   courseId: "course-1",
   courseName: "Mathematics",
   completedAt: "2026-04-27T10:30:00Z",
@@ -85,15 +87,17 @@ const renderAtPath = async (path: string) => {
     "@/pages/parent/planner/ParentPlannerView"
   );
   return render(
-    <MemoryRouter initialEntries={[path]}>
-      <Routes>
-        <Route
-          path="/parent/planner/:studentId"
-          element={<ParentPlannerView />}
-        />
-        <Route path="/parent/planner" element={<ParentPlannerView />} />
-      </Routes>
-    </MemoryRouter>
+    <I18nextProvider i18n={i18n}>
+      <MemoryRouter initialEntries={[path]}>
+        <Routes>
+          <Route
+            path="/parent/planner/:studentId"
+            element={<ParentPlannerView />}
+          />
+          <Route path="/parent/planner" element={<ParentPlannerView />} />
+        </Routes>
+      </MemoryRouter>
+    </I18nextProvider>
   );
 };
 
@@ -106,6 +110,7 @@ describe("ParentPlannerView", () => {
     plannerData.deadlines = [];
     plannerData.goals = [];
     plannerData.isLoading = false;
+    i18n.changeLanguage("en");
   });
 
   it("shows empty state when no studentId in URL", async () => {
@@ -169,7 +174,7 @@ describe("ParentPlannerView", () => {
   it("counts only completed tasks", async () => {
     plannerData.tasks = [
       completedTask({ id: "t1" }),
-      completedTask({ id: "t2", status: "pending", completedAt: null }),
+      completedTask({ id: "t2", status: "todo", completedAt: null }),
     ];
     await renderAtPath("/parent/planner/student-1");
     const tasksLabel = screen.getByText("Tasks Done");

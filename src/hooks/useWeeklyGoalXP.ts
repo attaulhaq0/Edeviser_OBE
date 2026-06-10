@@ -6,7 +6,7 @@
 
 import { supabase } from "@/lib/supabase";
 import { calculateGoalProgress, getWeekStartDate } from "@/lib/plannerUtils";
-import type { GoalProgress, GoalType } from "@/types/planner";
+import type { GoalProgress, GoalType, PlannerTask } from "@/types/planner";
 
 interface MetGoalRow {
   id: string;
@@ -91,7 +91,7 @@ export async function awardWeeklyGoalXPIfMet(
     description: null,
     dueDate: t.due_date as string,
     priority: "medium" as const,
-    status: t.status as "pending" | "completed",
+    status: t.status as PlannerTask["status"],
     courseId: null,
     completedAt: null,
     createdAt: "",

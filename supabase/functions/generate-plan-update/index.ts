@@ -75,6 +75,14 @@ serve(async (req) => {
       recent_interaction_count,
     } = body;
 
+    // Validate/default interaction_count — the tutor_plan_updates.interaction_count
+    // column is NOT NULL with no default, so callers that omit (or send an invalid)
+    // recent_interaction_count must not trigger a not-null / type violation.
+    const interactionCount =
+      Number.isFinite(recent_interaction_count) && recent_interaction_count >= 0
+        ? recent_interaction_count
+        : 0;
+
     if (!student_id || !clo_id || !course_id || !conversation_id) {
       return new Response(
         JSON.stringify({
@@ -93,12 +101,12 @@ serve(async (req) => {
     // Get CLO details
     const { data: cloData } = await supabase
       .from("learning_outcomes")
-      .select("id, title, bloom_level")
+      .select("id, title, blooms_level")
       .eq("id", clo_id)
       .maybeSingle();
 
     const cloTitle = cloData?.title ?? "Unknown CLO";
-    const bloomLevel = cloData?.bloom_level ?? "Understanding";
+    const bloomLevel = cloData?.blooms_level ?? "Understanding";
 
     // Get student attainment for this CLO
     const { data: attainmentData } = await supabase
@@ -202,7 +210,7 @@ serve(async (req) => {
         "",
         `CLO: ${cloTitle} (Bloom's Level: ${bloomLevel})`,
         `Current Attainment: ${attainmentPercent}%`,
-        `Tutor Interactions on this CLO: ${recent_interaction_count}`,
+        `Tutor Interactions on this CLO: ${interactionCount}`,
         "",
         "Recent conversation context:",
         messageContext || "(no recent messages)",
@@ -295,7 +303,7 @@ serve(async (req) => {
         study_time_recommendation: studyTimeRecommendation,
         recommended_materials: recommendedMaterials,
         suggested_planner_sessions: suggestedPlannerSessions,
-        interaction_count: recent_interaction_count,
+        interaction_count: interactionCount,
       })
       .select("id")
       .single();
@@ -322,7 +330,7 @@ serve(async (req) => {
       study_time_recommendation: studyTimeRecommendation,
       recommended_materials: recommendedMaterials,
       suggested_planner_sessions: suggestedPlannerSessions,
-      interaction_count: recent_interaction_count,
+      interaction_count: interactionCount,
     };
 
     return new Response(JSON.stringify(result), {

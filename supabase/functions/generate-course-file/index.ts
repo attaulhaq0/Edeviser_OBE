@@ -35,8 +35,8 @@ interface OutcomeRow {
 }
 
 interface MappingRow {
-  child_outcome_id: string;
-  parent_outcome_id: string;
+  source_outcome_id: string;
+  target_outcome_id: string;
   weight: number;
 }
 
@@ -59,22 +59,25 @@ interface RubricRow {
 interface AttainmentRow {
   outcome_id: string;
   scope: string;
-  score_percent: number;
-  student_id: string;
+  attainment_percent: number;
+  student_id: string | null;
 }
 
 interface SubmissionRow {
   id: string;
   assignment_id: string;
   student_id: string;
+}
+
+interface GradeRow {
+  submission_id: string;
   score_percent: number | null;
 }
 
 interface CQIPlanRow {
   id: string;
-  title: string;
-  gap_description: string;
-  corrective_actions: string;
+  action_description: string;
+  root_cause: string | null;
   status: string;
 }
 
@@ -149,7 +152,7 @@ function generateCourseFilePDF(
   }>,
   reflections: Array<{ content: string; date: string }>,
   cqiRecommendations: Array<{
-    title: string;
+    label: string;
     gap: string;
     actions: string;
     status: string;
@@ -369,9 +372,9 @@ function generateCourseFilePDF(
   if (cqiRecommendations.length > 0) {
     autoTable(doc, {
       startY: yPos,
-      head: [["Title", "Gap", "Corrective Actions", "Status"]],
+      head: [["Outcome", "Gap (Root Cause)", "Corrective Actions", "Status"]],
       body: cqiRecommendations.map((c) => [
-        c.title,
+        c.label,
         c.gap,
         c.actions,
         c.status,
@@ -437,8 +440,24 @@ serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    const adminClient = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+
+    // Role lives in the profiles table, NOT the JWT (app_metadata is empty on
+    // this project). Resolve it server-side from profiles by the caller's id,
+    // mirroring the already-deployed ai-feedback-draft pattern.
+    const { data: callerProfile } = await adminClient
+      .from("profiles")
+      .select("role, institution_id")
+      .eq("id", user.id)
+      .maybeSingle();
     const callerRole =
-      user.app_metadata?.role ?? user.user_metadata?.role ?? "";
+      (callerProfile?.role as string) ??
+      user.app_metadata?.role ??
+      user.user_metadata?.role ??
+      "";
     if (!["admin", "coordinator"].includes(callerRole)) {
       return new Response(
         JSON.stringify({
@@ -451,10 +470,7 @@ serve(async (req) => {
       );
     }
 
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
+    const supabase = adminClient;
 
     const body = await req.json();
     const validation = validatePayload(body);
@@ -494,19 +510,21 @@ serve(async (req) => {
       (semester as { name: string } | null)?.name ?? "Unknown Semester";
 
     // ── Fetch CLOs for this course ────────────────────────────────────
-    const { data: cloData } = await supabase
+    const { data: cloData, error: cloErr } = await supabase
       .from("learning_outcomes")
       .select("id, title, type, blooms_level, course_id")
       .eq("type", "CLO")
       .eq("course_id", course_id);
+    if (cloErr) throw cloErr;
     const clos = (cloData ?? []) as OutcomeRow[];
 
     // ── Fetch PLOs for the program ────────────────────────────────────
-    const { data: ploData } = await supabase
+    const { data: ploData, error: ploErr } = await supabase
       .from("learning_outcomes")
       .select("id, title, type, blooms_level, course_id")
       .eq("type", "PLO")
       .eq("institution_id", c.institution_id);
+    if (ploErr) throw ploErr;
     const plos = (ploData ?? []) as OutcomeRow[];
 
     // ── Fetch CLO→PLO mappings ────────────────────────────────────────
@@ -517,28 +535,30 @@ serve(async (req) => {
       weight: number;
     }> = [];
     if (cloIds.length > 0) {
-      const { data: mappings } = await supabase
+      const { data: mappings, error: mappingErr } = await supabase
         .from("outcome_mappings")
-        .select("child_outcome_id, parent_outcome_id, weight")
-        .in("child_outcome_id", cloIds);
+        .select("source_outcome_id, target_outcome_id, weight")
+        .in("source_outcome_id", cloIds);
+      if (mappingErr) throw mappingErr;
       const maps = (mappings ?? []) as MappingRow[];
       const ploMap = new Map(plos.map((p) => [p.id, p.title]));
       const cloMap = new Map(clos.map((cl) => [cl.id, cl.title]));
       cloPloPairs = maps
-        .filter((m) => ploMap.has(m.parent_outcome_id))
+        .filter((m) => ploMap.has(m.target_outcome_id))
         .map((m) => ({
-          clo_title: cloMap.get(m.child_outcome_id) ?? "Unknown CLO",
-          plo_title: ploMap.get(m.parent_outcome_id) ?? "Unknown PLO",
+          clo_title: cloMap.get(m.source_outcome_id) ?? "Unknown CLO",
+          plo_title: ploMap.get(m.target_outcome_id) ?? "Unknown PLO",
           weight: m.weight,
         }));
     }
 
     // ── Fetch assignments ─────────────────────────────────────────────
-    const { data: assignmentData } = await supabase
+    const { data: assignmentData, error: assignmentErr } = await supabase
       .from("assignments")
       .select("id, title, description, total_marks, due_date, clo_ids")
       .eq("course_id", course_id)
       .order("due_date", { ascending: true });
+    if (assignmentErr) throw assignmentErr;
     const assignmentRows = (assignmentData ?? []) as AssignmentRow[];
     const cloTitleMap = new Map(clos.map((cl) => [cl.id, cl.title]));
     const assignmentsForPdf = assignmentRows.map((a) => ({
@@ -569,19 +589,39 @@ serve(async (req) => {
       worst: number;
     }> = [];
     if (assignmentIds.length > 0) {
-      const { data: submissionData } = await supabase
+      // Scores live on `grades`, not `submissions`. Fetch submissions for the
+      // assignment IDs, then fetch grade rows keyed by those submission IDs and
+      // aggregate best/avg/worst per assignment (mirrors useGrades).
+      const { data: submissionData, error: submissionErr } = await supabase
         .from("submissions")
-        .select("id, assignment_id, student_id, score_percent")
-        .in("assignment_id", assignmentIds)
-        .not("score_percent", "is", null);
+        .select("id, assignment_id, student_id")
+        .in("assignment_id", assignmentIds);
+      if (submissionErr) throw submissionErr;
       const subs = (submissionData ?? []) as SubmissionRow[];
 
+      const submissionIds = subs.map((s) => s.id);
+      const submissionToAssignment = new Map(
+        subs.map((s) => [s.id, s.assignment_id])
+      );
+
       const byAssignment = new Map<string, number[]>();
-      for (const s of subs) {
-        if (s.score_percent == null) continue;
-        const arr = byAssignment.get(s.assignment_id) ?? [];
-        arr.push(s.score_percent);
-        byAssignment.set(s.assignment_id, arr);
+      if (submissionIds.length > 0) {
+        const { data: gradeData, error: gradeErr } = await supabase
+          .from("grades")
+          .select("submission_id, score_percent")
+          .in("submission_id", submissionIds)
+          .not("score_percent", "is", null);
+        if (gradeErr) throw gradeErr;
+        const grades = (gradeData ?? []) as GradeRow[];
+
+        for (const g of grades) {
+          if (g.score_percent == null) continue;
+          const assignmentId = submissionToAssignment.get(g.submission_id);
+          if (!assignmentId) continue;
+          const arr = byAssignment.get(assignmentId) ?? [];
+          arr.push(g.score_percent);
+          byAssignment.set(assignmentId, arr);
+        }
       }
 
       const assignmentTitleMap = new Map(
@@ -606,17 +646,18 @@ serve(async (req) => {
       level: string;
     }> = [];
     if (cloIds.length > 0) {
-      const { data: attData } = await supabase
+      const { data: attData, error: attErr } = await supabase
         .from("outcome_attainment")
-        .select("outcome_id, scope, score_percent, student_id")
+        .select("outcome_id, scope, attainment_percent, student_id")
         .in("outcome_id", cloIds)
-        .eq("scope", "CLO");
+        .eq("scope", "student_course");
+      if (attErr) throw attErr;
       const att = (attData ?? []) as AttainmentRow[];
 
       const byClo = new Map<string, number[]>();
       for (const a of att) {
         const arr = byClo.get(a.outcome_id) ?? [];
-        arr.push(a.score_percent);
+        arr.push(a.attainment_percent);
         byClo.set(a.outcome_id, arr);
       }
 
@@ -637,12 +678,13 @@ serve(async (req) => {
     // ── Fetch teacher reflections (journal entries) ───────────────────
     let reflections: Array<{ content: string; date: string }> = [];
     if (c.teacher_id) {
-      const { data: journalData } = await supabase
+      const { data: journalData, error: journalErr } = await supabase
         .from("journal_entries")
         .select("id, content, created_at")
         .eq("student_id", c.teacher_id)
         .order("created_at", { ascending: false })
         .limit(5);
+      if (journalErr) throw journalErr;
       reflections = ((journalData ?? []) as JournalRow[]).map((j) => ({
         content: j.content,
         date: j.created_at.slice(0, 10),
@@ -650,18 +692,21 @@ serve(async (req) => {
     }
 
     // ── Fetch CQI recommendations ─────────────────────────────────────
-    const { data: cqiData } = await supabase
+    const { data: cqiData, error: cqiErr } = await supabase
       .from("cqi_action_plans")
-      .select("id, title, gap_description, corrective_actions, status")
-      .eq("course_id", course_id)
+      .select("id, action_description, root_cause, status")
+      .eq("program_id", c.program_id)
       .order("created_at", { ascending: false })
       .limit(10);
-    const cqiRecommendations = ((cqiData ?? []) as CQIPlanRow[]).map((p) => ({
-      title: p.title,
-      gap: p.gap_description,
-      actions: p.corrective_actions,
-      status: p.status,
-    }));
+    if (cqiErr) throw cqiErr;
+    const cqiRecommendations = ((cqiData ?? []) as CQIPlanRow[]).map(
+      (p, i) => ({
+        label: `CQI #${i + 1}`,
+        gap: p.root_cause ?? "—",
+        actions: p.action_description,
+        status: p.status,
+      })
+    );
 
     // ── Generate PDF ──────────────────────────────────────────────────
     const pdfBytes = generateCourseFilePDF(

@@ -245,13 +245,33 @@ const CoordinatorDashboard = () => {
           <div className="p-6">
             {kpisLoading ? (
               <Shimmer className="h-32 rounded-xl" />
-            ) : (
+            ) : (kpis?.atRiskStudents ?? 0) > 0 ? (
               <div className="flex flex-col items-center justify-center py-8 text-center">
                 <div className="p-3 rounded-full bg-amber-50 mb-3">
                   <AlertTriangle className="h-8 w-8 text-amber-500" />
                 </div>
+                <p className="text-4xl font-black text-amber-600">
+                  {kpis?.atRiskStudents ?? 0}
+                </p>
+                <p className="text-sm text-gray-500 max-w-[220px] mt-2">
+                  {t("dashboard.atRiskBelowThreshold")}
+                </p>
+                <p className="text-xs text-gray-400 mt-3">
+                  {t("dashboard.avgAttainment")}:{" "}
+                  <span className="font-bold text-gray-600">
+                    {kpis?.avgAttainmentPercent ?? 0}%
+                  </span>
+                </p>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-8 text-center">
+                <div className="p-3 rounded-full bg-green-50 mb-3">
+                  <CheckCircle2 className="h-8 w-8 text-green-500" />
+                </div>
                 <p className="text-sm text-gray-500 max-w-[220px]">
-                  {t("dashboard.atRiskPending")}
+                  {(kpis?.avgAttainmentPercent ?? 0) > 0
+                    ? t("dashboard.noAtRiskStudents")
+                    : t("dashboard.atRiskPending")}
                 </p>
               </div>
             )}

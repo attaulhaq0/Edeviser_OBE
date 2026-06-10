@@ -9,6 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { NoNotifications } from "@/components/shared/EmptyState";
 import { useAuth } from "@/hooks/useAuth";
+import { useNotificationRealtime } from "@/hooks/useNotificationRealtime";
 import {
   useUnreadCount,
   useNotifications,
@@ -117,6 +118,10 @@ const NotificationBell = () => {
   const { t, i18n } = useTranslation("common");
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
+
+  // Mount the realtime subscription so the bell updates live (toast + count
+  // invalidation on each new notification). Centralized via useRealtime.
+  useNotificationRealtime();
 
   const { data: unreadCount = 0 } = useUnreadCount(user?.id);
   const { data: notifications = [] } = useNotifications(user?.id);

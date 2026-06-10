@@ -51,7 +51,7 @@ const plannerTaskArb = (priority?: TaskPriority): fc.Arbitrary<PlannerTask> =>
     description: fc.constant(null),
     dueDate: fc.constant("2025-06-15"),
     priority: priority ? fc.constant(priority) : priorityArb,
-    status: fc.constantFrom("pending" as const, "completed" as const),
+    status: fc.constantFrom("todo" as const, "done" as const),
     courseId: fc.constant(null),
     courseName: fc.constant(undefined),
     completedAt: fc.constant(null),
@@ -83,7 +83,7 @@ const timelineItemArb = (time: string | null): fc.Arbitrary<TimelineItem> =>
       description: fc.constant(null),
       dueDate: fc.constant("2025-06-15"),
       priority: fc.constant("medium" as const),
-      status: fc.constant("pending" as const),
+      status: fc.constant("todo" as const),
       courseId: fc.constant(null),
       completedAt: fc.constant(null),
       createdAt: fc.constant("2025-06-01T00:00:00Z"),
@@ -578,7 +578,7 @@ describe("plannerUtils property tests", () => {
               description: fc.constant(null),
               dueDate: fc.constant("2025-06-15"),
               priority: fc.constant("medium" as const),
-              status: fc.constantFrom("pending" as const, "completed" as const),
+              status: fc.constantFrom("todo" as const, "done" as const),
               courseId: fc.constant(null),
               completedAt: fc.constant(null),
               createdAt: fc.constant("2025-06-01T00:00:00Z"),
@@ -595,7 +595,7 @@ describe("plannerUtils property tests", () => {
             );
             const sessionsCompleted = completedSessions.length;
             const tasksCompleted = tasks.filter(
-              (t) => t.status === "completed"
+              (t) => t.status === "done"
             ).length;
 
             expect(studyMinutes).toBeGreaterThanOrEqual(0);

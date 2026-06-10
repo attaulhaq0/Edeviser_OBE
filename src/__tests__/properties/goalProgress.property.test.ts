@@ -52,9 +52,7 @@ const completedSessionArb = (
     createdAt: fc.constant("2025-06-01T00:00:00Z"),
   });
 
-const plannerTaskArb = (
-  status: "pending" | "completed"
-): fc.Arbitrary<PlannerTask> =>
+const plannerTaskArb = (status: "todo" | "done"): fc.Arbitrary<PlannerTask> =>
   fc.record({
     id: fc.uuid(),
     studentId: fc.constant("student-1"),
@@ -65,7 +63,7 @@ const plannerTaskArb = (
     status: fc.constant(status),
     courseId: fc.constant(null),
     completedAt:
-      status === "completed"
+      status === "done"
         ? fc.constant("2025-06-10T12:00:00Z")
         : fc.constant(null),
     createdAt: fc.constant("2025-06-01T00:00:00Z"),
@@ -196,7 +194,7 @@ describe("goalProgress property tests", () => {
                 description: null,
                 dueDate: "2025-06-15",
                 priority: "medium" as const,
-                status: "completed" as const,
+                status: "done" as const,
                 courseId: null,
                 completedAt: "2025-06-10T12:00:00Z",
                 createdAt: "2025-06-01T00:00:00Z",
@@ -212,7 +210,7 @@ describe("goalProgress property tests", () => {
                 description: null,
                 dueDate: "2025-06-15",
                 priority: "medium" as const,
-                status: "pending" as const,
+                status: "todo" as const,
                 courseId: null,
                 completedAt: null,
                 createdAt: "2025-06-01T00:00:00Z",
@@ -237,7 +235,7 @@ describe("goalProgress property tests", () => {
         fc.property(
           weeklyGoalArb(),
           fc.array(completedSessionArb(30), { minLength: 0, maxLength: 5 }),
-          fc.array(plannerTaskArb("completed"), { minLength: 0, maxLength: 5 }),
+          fc.array(plannerTaskArb("done"), { minLength: 0, maxLength: 5 }),
           (goal, sessions, tasks) => {
             const result = calculateGoalProgress(goal, sessions, tasks);
             expect(result.percentage).toBeGreaterThanOrEqual(0);
@@ -284,11 +282,11 @@ describe("goalProgress property tests", () => {
   describe("Property 16: Task deletion rules", () => {
     it("should allow deletion of pending tasks only", () => {
       fc.assert(
-        fc.property(plannerTaskArb("pending"), (task) => {
+        fc.property(plannerTaskArb("todo"), (task) => {
           // Pending tasks can be deleted
-          expect(task.status).toBe("pending");
+          expect(task.status).toBe("todo");
           expect(task.completedAt).toBeNull();
-          const canDelete = task.status === "pending";
+          const canDelete = task.status === "todo";
           expect(canDelete).toBe(true);
         }),
         { numRuns: 100 }
@@ -297,11 +295,11 @@ describe("goalProgress property tests", () => {
 
     it("should reject deletion of completed tasks", () => {
       fc.assert(
-        fc.property(plannerTaskArb("completed"), (task) => {
+        fc.property(plannerTaskArb("done"), (task) => {
           // Completed tasks cannot be deleted
-          expect(task.status).toBe("completed");
+          expect(task.status).toBe("done");
           expect(task.completedAt).not.toBeNull();
-          const canDelete = task.status === "pending";
+          const canDelete = task.status === "todo";
           expect(canDelete).toBe(false);
         }),
         { numRuns: 100 }

@@ -67,14 +67,8 @@ CREATE POLICY "teacher_manage_participants" ON challenge_participants
 CREATE INDEX IF NOT EXISTS idx_social_challenges_course ON social_challenges (course_id, status);
 CREATE INDEX IF NOT EXISTS idx_challenge_participants_challenge ON challenge_participants (challenge_id);
 -- Trigger: max 3 active course-wide challenges per course
--- Hardened (db-function-search-path-qualification Task 5.x): SET search_path=''
--- + public.-qualified to match the LIVE production body so a fresh replay does
--- not re-emit this function in db diff. Replay-only edit.
 CREATE OR REPLACE FUNCTION enforce_max_active_challenges()
-RETURNS TRIGGER
-LANGUAGE plpgsql
-SET search_path TO ''
-AS $$
+RETURNS TRIGGER AS $$
 BEGIN
   IF NEW.status = 'active' AND NEW.challenge_type = 'course_wide' THEN
     IF (SELECT COUNT(*) FROM public.social_challenges
@@ -84,7 +78,7 @@ BEGIN
   END IF;
   RETURN NEW;
 END;
-$$;
+$$ LANGUAGE plpgsql SET search_path = '';
 DROP TRIGGER IF EXISTS trg_enforce_max_active_challenges ON social_challenges;
 CREATE TRIGGER trg_enforce_max_active_challenges
   BEFORE INSERT OR UPDATE ON social_challenges

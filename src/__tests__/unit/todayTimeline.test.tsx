@@ -118,7 +118,7 @@ const mockTask = (overrides: Partial<PlannerTask> = {}): PlannerTask => ({
   description: null,
   dueDate: "2025-06-20",
   priority: "high",
-  status: "pending",
+  status: "todo",
   courseId: "course-1",
   courseName: "Mathematics",
   completedAt: null,
@@ -239,7 +239,7 @@ describe("TodayTimeline", () => {
       />
     );
 
-    expect(screen.getByText("To Do")).toBeInTheDocument();
+    expect(screen.getAllByText("To Do").length).toBeGreaterThan(0);
     expect(screen.getByText("Read Chapter 5")).toBeInTheDocument();
   });
 

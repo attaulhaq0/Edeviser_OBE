@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
 import { logAuditEvent } from "@/lib/auditLogger";
+import { indexCourseMaterialIfSupported } from "@/lib/courseMaterialIndexing";
 import type { Database, Json } from "@/types/database";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -60,6 +61,12 @@ export interface CreateMaterialInput {
   sort_order: number;
   is_published: boolean;
   clo_ids?: string[];
+  /**
+   * The course the material belongs to. Optional for backward compatibility;
+   * when provided alongside a file_path, the material is dispatched to
+   * `embed-course-material` for RAG indexing after a successful insert.
+   */
+  course_id?: string;
 }
 
 export interface UpdateMaterialInput {
@@ -72,6 +79,12 @@ export interface UpdateMaterialInput {
   sort_order?: number;
   is_published?: boolean;
   clo_ids?: string[];
+  /**
+   * The course the material belongs to. Optional for backward compatibility;
+   * when provided alongside a changed file_path, the material is re-dispatched
+   * to `embed-course-material` for RAG re-indexing after a successful update.
+   */
+  course_id?: string;
 }
 
 // ─── Cast helpers ───────────────────────────────────────────────────────────
@@ -323,6 +336,19 @@ export const useCreateMaterial = () => {
         },
         performed_by: performedBy,
       });
+
+      // RAG indexing: when a file-type material with a storage path is uploaded
+      // to a known course, dispatch it to embed-course-material so the AI tutor
+      // can cite it. Fire-and-forget — never blocks or fails the upload.
+      if (payload.type === "file" && payload.file_path && payload.course_id) {
+        await indexCourseMaterialIfSupported({
+          filePath: payload.file_path,
+          courseId: payload.course_id,
+          sourceMaterialId: data.id,
+          cloIds: payload.clo_ids ?? [],
+        });
+      }
+
       return castMaterial(data as unknown as Record<string, unknown>);
     },
     onSuccess: (_data, variables) => {
@@ -345,7 +371,7 @@ export const useUpdateMaterial = () => {
       input: UpdateMaterialInput & { performedBy: string }
     ) => {
       const { id, performedBy, ...updates } = input;
-      const { clo_ids, ...rest } = updates;
+      const { clo_ids, course_id: courseId, ...rest } = updates;
       const updatePayload: Database["public"]["Tables"]["course_materials"]["Update"] =
         {
           ...rest,
@@ -367,6 +393,21 @@ export const useUpdateMaterial = () => {
         changes: updates,
         performed_by: performedBy,
       });
+
+      // RAG re-indexing: when an update sets/changes a file storage path for a
+      // file-type material in a known course, re-dispatch to
+      // embed-course-material (reindex deletes prior chunks first).
+      // Fire-and-forget — never blocks or fails the update.
+      if (updates.type === "file" && updates.file_path && courseId) {
+        await indexCourseMaterialIfSupported({
+          filePath: updates.file_path,
+          courseId,
+          sourceMaterialId: id,
+          cloIds: updates.clo_ids,
+          reindex: true,
+        });
+      }
+
       return castMaterial(data as unknown as Record<string, unknown>);
     },
     onSuccess: () => {

@@ -393,7 +393,23 @@ serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const role = user.app_metadata?.role ?? user.user_metadata?.role ?? "";
+      // Role lives in the profiles table, NOT the JWT (app_metadata is empty on
+      // this project). Resolve it server-side from profiles by the caller's id,
+      // mirroring the already-deployed ai-feedback-draft pattern.
+      const adminClient = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      );
+      const { data: callerProfile } = await adminClient
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .maybeSingle();
+      const role =
+        (callerProfile?.role as string) ??
+        user.app_metadata?.role ??
+        user.user_metadata?.role ??
+        "";
       if (role !== "admin") {
         return new Response(
           JSON.stringify({ error: "Forbidden: admin role required" }),

@@ -57,7 +57,7 @@ function mapTask(row: Record<string, unknown>): PlannerTask {
     description: (row.description as string) ?? null,
     dueDate: (row.due_date as string) ?? "",
     priority: (row.priority as PlannerTask["priority"]) ?? "medium",
-    status: (row.status as PlannerTask["status"]) ?? "pending",
+    status: (row.status as PlannerTask["status"]) ?? "todo",
     courseId: (row.course_id as string) ?? null,
     courseName: (row.course_name as string) ?? undefined,
     completedAt: (row.completed_at as string) ?? null,

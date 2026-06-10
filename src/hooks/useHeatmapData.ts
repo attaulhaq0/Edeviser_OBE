@@ -63,51 +63,37 @@ export const useHeatmapData = (
         : false;
 
       // Fetch academic habit logs (unless filtering to a specific wellness habit)
+      // Academic habits live in the canonical long-format `habit_logs` table
+      // (one row per completed habit per UTC day), keyed by `habit_type`.
       if (!filterIsWellness) {
         const { data: academicRows, error: academicError } = await supabase
-          .from("habit_tracking")
-          .select(
-            "habit_date, login, submit, journal, read_content, created_at"
-          )
+          .from("habit_logs")
+          .select("date, habit_type, completed_at, created_at")
           .eq("student_id", studentId)
-          .gte("habit_date", semesterRange.start)
-          .lte("habit_date", semesterRange.end);
+          .gte("date", semesterRange.start)
+          .lte("date", semesterRange.end);
 
         if (academicError) throw academicError;
 
-        const habitColumns: [
-          keyof Pick<
-            NonNullable<typeof academicRows>[number],
-            "login" | "submit" | "journal" | "read_content"
-          >,
-          AcademicHabitType
-        ][] = [
-          ["login", "login"],
-          ["submit", "submit"],
-          ["journal", "journal"],
-          ["read_content", "read"],
-        ];
-
         for (const row of academicRows ?? []) {
-          const date = row.habit_date;
-          const completedAt = row.created_at;
-          for (const [col, habitType] of habitColumns) {
-            if (
-              filterIsAcademic &&
-              specificFilter &&
-              specificFilter !== habitType
-            )
-              continue;
-            if (row[col]) {
-              const habits = dateMap.get(date) ?? [];
-              habits.push({
-                type: habitType,
-                category: "academic",
-                completedAt,
-              });
-              dateMap.set(date, habits);
-            }
-          }
+          if (!isAcademicHabit(row.habit_type)) continue;
+          const habitType: AcademicHabitType = row.habit_type;
+
+          if (
+            filterIsAcademic &&
+            specificFilter &&
+            specificFilter !== habitType
+          )
+            continue;
+
+          const date = row.date;
+          const habits = dateMap.get(date) ?? [];
+          habits.push({
+            type: habitType,
+            category: "academic",
+            completedAt: row.completed_at ?? row.created_at,
+          });
+          dateMap.set(date, habits);
         }
       }
 

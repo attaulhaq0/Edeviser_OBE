@@ -198,7 +198,7 @@ export const useWeeklyProgressSummary = (
           description: (r.description as string) ?? null,
           dueDate: (r.due_date as string) ?? "",
           priority: (r.priority as PlannerTask["priority"]) ?? "medium",
-          status: (r.status as PlannerTask["status"]) ?? "pending",
+          status: (r.status as PlannerTask["status"]) ?? "todo",
           courseId: (r.course_id as string) ?? null,
           completedAt: (r.completed_at as string) ?? null,
           createdAt: (r.created_at as string) ?? "",
@@ -248,7 +248,7 @@ export const useWeeklyProgressSummary = (
   const goals = goalsQuery.data ?? [];
 
   const completedSessions = sessions.filter((s) => s.status === "completed");
-  const completedTasks = tasks.filter((t) => t.status === "completed");
+  const completedTasks = tasks.filter((t) => t.status === "done");
 
   const totalStudyMinutes = completedSessions.reduce(
     (sum, s) => sum + (s.actualDurationMinutes ?? 0),

@@ -85,6 +85,150 @@ function buildTableCreateMap(files) {
   return created;
 }
 
+/** Count the line number (1-based) of a character offset in `txt`. */
+function lineAt(txt, index) {
+  let line = 1;
+  for (let i = 0; i < index && i < txt.length; i++) {
+    if (txt[i] === "\n") line++;
+  }
+  return line;
+}
+
+/**
+ * For a `CREATE [OR REPLACE] FUNCTION` match at `headerStart` in `txt`, return the
+ * function's OPTION BLOCK: the function attributes (LANGUAGE, SECURITY DEFINER,
+ * `SET search_path`, etc.) that surround the body. Postgres allows these options EITHER
+ * before the body (`... SET search_path = '' AS $$ ... $$;`) OR after it
+ * (`... AS $$ ... $$ LANGUAGE plpgsql SET search_path = '';`), so we must return BOTH the
+ * header (before the body delimiter) and the trailer (after the body, up to the statement
+ * `;`). We deliberately EXCLUDE the body itself so that a `search_path` literal appearing
+ * inside the function body — a comment, a string, or executed SQL — never counts as
+ * hardening. Handles bodies wrapped in `$$`, `$function$`, `$tag$`, and single quotes.
+ */
+function functionOptionBlock(txt, headerStart) {
+  const rest = txt.slice(headerStart);
+  // Body delimiter: AS followed by a dollar-quote ($$, $function$, $tag$) or a single quote.
+  const bodyRe = /\bAS\s+(\$[A-Za-z0-9_]*\$|')/i;
+  const bm = bodyRe.exec(rest);
+  if (!bm) {
+    // No body delimiter (e.g. SQL-standard `RETURN ...` or `BEGIN ATOMIC`): the option
+    // block is everything up to the statement terminator.
+    const semi = rest.indexOf(";");
+    return semi >= 0 ? rest.slice(0, semi) : rest;
+  }
+  const header = rest.slice(0, bm.index);
+  const delim = bm[1];
+  const bodyContentStart = bm.index + bm[0].length;
+  const closeIdx = rest.indexOf(delim, bodyContentStart);
+  if (closeIdx < 0) return header; // unterminated body — fall back to header only
+  const afterBody = rest.slice(closeIdx + delim.length);
+  const semi = afterBody.indexOf(";");
+  const trailer = semi >= 0 ? afterBody.slice(0, semi) : afterBody;
+  // Header + trailer = full attribute surface, body excluded.
+  return `${header} ${trailer}`;
+}
+
+/** True if a function-definition option block carries `SET search_path` (=, TO, or bare). */
+function hasSearchPathOption(optionBlock) {
+  return /\bSET\s+search_path\b/i.test(optionBlock);
+}
+
+/**
+ * Detect the "search_path stripped at the fresh-replay last-writer" class (CLASS H /
+ * FINDING 1 + 3). A function can be hardened early — by an `ALTER FUNCTION ... SET
+ * search_path` or by a `CREATE [OR REPLACE] FUNCTION ... SET search_path` — and then have
+ * its hardening silently dropped by a LATER, duplicate-named `CREATE OR REPLACE FUNCTION`
+ * that omits `SET search_path`. On a fresh replay the greatest-timestamp definition wins,
+ * so the rebuilt function ends up with a mutable search_path (silent Supabase lint 0011) —
+ * a regression the ordering checks above cannot see (the reference ordering is itself valid).
+ *
+ * Conservative by design: we ONLY flag a function that was demonstrably hardened earlier in
+ * the chain, and we do NOT flag when a hardening `ALTER` occurs after the last-writer CREATE
+ * (which would re-harden it).
+ *
+ * @returns {{file:string,line:number,name:string,createdAt:string,stmt:string,kind:string}[]}
+ */
+function findStrippedSearchPath(files) {
+  // All CREATE [OR REPLACE] FUNCTION definitions, in replay order, with their option block.
+  /** @type {Map<string, {file:string, ts:string, line:number, hardened:boolean}[]>} */
+  const createDefs = new Map();
+  const createRe =
+    /CREATE\s+(?:OR\s+REPLACE\s+)?FUNCTION\s+(?:public\.)?"?([a-z0-9_]+)"?\s*\(/gi;
+
+  // Hardening `ALTER FUNCTION <fn> ... SET search_path` (scanned on RAW text — a guarded
+  // ALTER inside a DO block still signals the function was meant to be hardened, and it
+  // no-ops on a fresh replay, which is exactly the condition we want covered).
+  const alterRe =
+    /ALTER\s+FUNCTION\s+(?:public\.)?"?([a-z0-9_]+)"?[^;]*?SET\s+search_path/gi;
+
+  /** @type {Set<string>} fns hardened by any ALTER ... SET search_path */
+  const hardenedByAlter = new Set();
+  /** @type {Map<string,string>} fn -> greatest ts of a hardening ALTER */
+  const maxAlterTs = new Map();
+
+  for (const file of files) {
+    const txt = readFileSync(join(MIGRATIONS_DIR, file), "utf8");
+    const t = ts(file);
+
+    let m;
+    createRe.lastIndex = 0;
+    while ((m = createRe.exec(txt)) !== null) {
+      const fn = m[1].toLowerCase();
+      const optionBlock = functionOptionBlock(txt, m.index);
+      const entry = {
+        file,
+        ts: t,
+        line: lineAt(txt, m.index),
+        hardened: hasSearchPathOption(optionBlock),
+      };
+      if (!createDefs.has(fn)) createDefs.set(fn, []);
+      createDefs.get(fn).push(entry);
+    }
+
+    let a;
+    alterRe.lastIndex = 0;
+    while ((a = alterRe.exec(txt)) !== null) {
+      const fn = a[1].toLowerCase();
+      hardenedByAlter.add(fn);
+      if (!maxAlterTs.has(fn) || t > maxAlterTs.get(fn)) maxAlterTs.set(fn, t);
+    }
+  }
+
+  /** @type {{file:string,line:number,name:string,createdAt:string,stmt:string,kind:string}[]} */
+  const findings = [];
+
+  for (const [fn, defs] of createDefs) {
+    const hardenedByCreate = defs.some((d) => d.hardened);
+    const hardenedSomewhere = hardenedByCreate || hardenedByAlter.has(fn);
+    // Conservative: only consider functions demonstrably hardened earlier in the chain.
+    if (!hardenedSomewhere) continue;
+
+    // Fresh-replay last-writer = greatest-timestamp CREATE (ties broken by latest line).
+    const lastWriter = defs.reduce((best, d) => {
+      if (d.ts > best.ts) return d;
+      if (d.ts === best.ts && d.line > best.line) return d;
+      return best;
+    });
+
+    if (lastWriter.hardened) continue; // last-writer already carries the hardening
+
+    // If a hardening ALTER runs AFTER the last-writer CREATE, it re-hardens — not a finding.
+    const alterTs = maxAlterTs.get(fn);
+    if (alterTs !== undefined && alterTs > lastWriter.ts) continue;
+
+    findings.push({
+      file: lastWriter.file,
+      line: lastWriter.line,
+      name: `${fn}()`,
+      createdAt: lastWriter.ts,
+      stmt: "hardened earlier but last-writer CREATE drops SET search_path (lint 0011 on fresh replay)",
+      kind: "search_path",
+    });
+  }
+
+  return findings;
+}
+
 /**
  * Mask out spans that cannot hard-abort on a missing function, so they are not flagged:
  *   - DROP FUNCTION [IF EXISTS] ... (the whole statement)
@@ -206,7 +350,10 @@ function main() {
   }
 
   const checked = files.length;
-  if (problems.length === 0) {
+  const searchPathFindings = findStrippedSearchPath(files);
+  const allProblems = [...problems, ...searchPathFindings];
+
+  if (allProblems.length === 0) {
     console.log(
       `✓ migration replay-order: CLEAN — ${checked} migrations, no too-early function or table references.`
     );
@@ -215,17 +362,24 @@ function main() {
 
   const fnCount = problems.filter((p) => p.kind === "function").length;
   const tblCount = problems.filter((p) => p.kind === "table").length;
+  const spCount = searchPathFindings.length;
   console.error(
-    `✗ migration replay-order: ${problems.length} too-early reference(s) found ` +
-      `(${fnCount} function, ${tblCount} table).\n` +
-      `  These abort a fresh replay (Supabase Preview / clean rebuild) with 42883/42P01\n` +
-      `  even though production is unaffected. Fix by moving the CREATE earlier, hardening\n` +
-      `  the object at its CREATE site, or guarding with a DO $$ ... IS NOT NULL ... $$ block.\n`
+    `✗ migration replay-order: ${allProblems.length} finding(s) ` +
+      `(${fnCount} function, ${tblCount} table, ${spCount} search_path last-writer).\n` +
+      `  Too-early references abort a fresh replay (Supabase Preview / clean rebuild) with\n` +
+      `  42883/42P01 even though production is unaffected. Fix by moving the CREATE earlier,\n` +
+      `  hardening the object at its CREATE site, or guarding with a DO $$ ... IS NOT NULL ... $$\n` +
+      `  block. search_path findings are silent lint-0011 regressions: a later duplicate-named\n` +
+      `  CREATE OR REPLACE drops the SET search_path that an earlier ALTER/CREATE established —\n` +
+      `  add SET search_path = '' to the function's fresh-replay last-writer CREATE.\n`
   );
   for (const p of problems) {
     console.error(
       `  [${p.kind}] ${p.file}:${p.line}  ${p.name}  — referenced before CREATE at ${p.createdAt}  (\`${p.stmt}\`)`
     );
+  }
+  for (const p of searchPathFindings) {
+    console.error(`  [${p.kind}] ${p.file}:${p.line} ${p.name} — ${p.stmt}`);
   }
   process.exit(1);
 }

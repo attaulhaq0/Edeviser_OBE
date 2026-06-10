@@ -6,6 +6,7 @@
 
 import { useState, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { format, parseISO, addDays } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -26,6 +27,7 @@ import {
 
 const ParentPlannerView = () => {
   const { studentId } = useParams<{ studentId: string }>();
+  const { t } = useTranslation("common");
 
   // ─── Week Navigation ────────────────────────────────────────────────────────
   const [weekOffset, setWeekOffset] = useState(0);
@@ -94,7 +96,7 @@ const ParentPlannerView = () => {
   );
 
   const completedTasks = useMemo(
-    () => tasks.filter((t) => t.status === "completed").length,
+    () => tasks.filter((t) => t.status === "done").length,
     [tasks]
   );
 
@@ -102,20 +104,22 @@ const ParentPlannerView = () => {
   if (!studentId) {
     return (
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold tracking-tight">Study Plan</h1>
+        <h1 className="text-2xl font-bold tracking-tight">
+          {t("parentPlanner.title")}
+        </h1>
         <Card className="bg-white border-0 shadow-md rounded-xl p-6">
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <Users className="h-12 w-12 text-gray-300 mb-4" />
             <p className="text-sm font-medium text-gray-700 mb-1">
-              No student selected
+              {t("parentPlanner.noStudent.title")}
             </p>
             <p className="text-sm text-gray-500 mb-4">
-              Select a student from the Children page to view their study plan.
+              {t("parentPlanner.noStudent.description")}
             </p>
             <Link to="/parent/children">
               <Button variant="outline" size="sm" className="gap-2 text-xs">
                 <Users className="h-3.5 w-3.5" />
-                Go to Children
+                {t("parentPlanner.noStudent.cta")}
               </Button>
             </Link>
           </div>
@@ -148,7 +152,9 @@ const ParentPlannerView = () => {
         <div className="flex items-center gap-3">
           <CalendarDays className="h-6 w-6 text-blue-600" />
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Study Plan</h1>
+            <h1 className="text-2xl font-bold tracking-tight">
+              {t("parentPlanner.title")}
+            </h1>
             <p className="text-sm text-gray-500">{weekLabel}</p>
           </div>
         </div>
@@ -160,7 +166,7 @@ const ParentPlannerView = () => {
             size="sm"
             className="h-8 w-8 p-0"
             onClick={() => setWeekOffset((o) => o - 1)}
-            aria-label="Previous week"
+            aria-label={t("parentPlanner.previousWeek")}
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -170,14 +176,14 @@ const ParentPlannerView = () => {
             className="h-8 px-3 text-xs font-medium"
             onClick={() => setWeekOffset(0)}
           >
-            Today
+            {t("parentPlanner.today")}
           </Button>
           <Button
             variant="ghost"
             size="sm"
             className="h-8 w-8 p-0"
             onClick={() => setWeekOffset((o) => o + 1)}
-            aria-label="Next week"
+            aria-label={t("parentPlanner.nextWeek")}
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
@@ -190,7 +196,7 @@ const ParentPlannerView = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
-                Study Hours
+                {t("parentPlanner.studyHours")}
               </p>
               <p className="text-2xl font-black mt-1">{totalStudyHours}h</p>
             </div>
@@ -204,7 +210,7 @@ const ParentPlannerView = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
-                Sessions
+                {t("parentPlanner.sessions")}
               </p>
               <p className="text-2xl font-black mt-1">{completedSessions}</p>
             </div>
@@ -218,7 +224,7 @@ const ParentPlannerView = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
-                Tasks Done
+                {t("parentPlanner.tasksDone")}
               </p>
               <p className="text-2xl font-black mt-1">{completedTasks}</p>
             </div>
@@ -234,7 +240,10 @@ const ParentPlannerView = () => {
         className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0"
         data-tour="planner"
       >
-        <GradientCardHeader icon={CalendarDays} title="Weekly Schedule" />
+        <GradientCardHeader
+          icon={CalendarDays}
+          title={t("parentPlanner.weeklySchedule")}
+        />
         <div className="p-4">
           <WeeklyCalendarGrid weekData={weekData} today={todayStr} readOnly />
         </div>

@@ -13,6 +13,7 @@ CREATE OR REPLACE FUNCTION public.is_pgcron_available()
 RETURNS BOOLEAN
 LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path = ''
 AS $$
 BEGIN
   RETURN EXISTS (

@@ -36,13 +36,12 @@ export const useStudentKPIs = (studentId: string | undefined) => {
       }
 
       // ⚡ Bolt: Batch independent queries to reduce total latency.
-      // Expected impact: Reduces TTI (Time to Interactive) for the dashboard by parallelizing 5 network requests.
+      // Expected impact: Reduces TTI (Time to Interactive) for the dashboard by parallelizing the network requests.
       const [
         { count: enrolledCourses },
         { count: completedAssignments },
         { data: attainmentData },
         { data: gamification },
-        tadRowData,
       ] = await Promise.all([
         supabase
           .from("student_courses")
@@ -60,12 +59,7 @@ export const useStudentKPIs = (studentId: string | undefined) => {
           .eq("scope", "student_course"),
         supabase
           .from("student_gamification")
-          .select("streak_current, level, xp_total")
-          .eq("student_id", studentId)
-          .maybeSingle(),
-        supabase
-          .from("student_gamification")
-          .select("total_active_days" as never)
+          .select("streak_current, level, xp_total, total_active_days")
           .eq("student_id", studentId)
           .maybeSingle(),
       ]);
@@ -82,9 +76,6 @@ export const useStudentKPIs = (studentId: string | undefined) => {
           : 0;
 
       const gamRow = gamification;
-      const val = ((tadRowData?.data || {}) as Record<string, unknown>)
-        ?.total_active_days;
-      const totalActiveDaysVal = typeof val === "number" ? val : 0;
 
       return {
         enrolledCourses: enrolledCourses ?? 0,
@@ -93,7 +84,7 @@ export const useStudentKPIs = (studentId: string | undefined) => {
         currentStreak: gamRow?.streak_current ?? 0,
         currentLevel: gamRow?.level ?? 1,
         totalXP: gamRow?.xp_total ?? 0,
-        totalActiveDays: totalActiveDaysVal,
+        totalActiveDays: gamRow?.total_active_days ?? 0,
       };
     },
     enabled: !!studentId,

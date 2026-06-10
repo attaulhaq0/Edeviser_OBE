@@ -269,6 +269,25 @@
     "noChildren": "No linked children yet. Ask your institution's admin to set up the parent-student link.",
     "xp": "XP"
   },
+  "parentPlanner": {
+    "title": "Study Plan",
+    "today": "Today",
+    "previousWeek": "Previous week",
+    "nextWeek": "Next week",
+    "studyHours": "Study Hours",
+    "sessions": "Sessions",
+    "tasksDone": "Tasks Done",
+    "weeklySchedule": "Weekly Schedule",
+    "noStudent": {
+      "title": "No student selected",
+      "description": "Select a student from the Children page to view their study plan.",
+      "cta": "Go to Children"
+    }
+  },
+  "parentProfile": {
+    "title": "Profile",
+    "info": "Profile Information"
+  },
   "accessibility": {
     "title": "Accessibility Settings",
     "fontSize": "Font Size",

@@ -20,20 +20,22 @@ export interface UseReadHabitTimerReturn {
   isCompleted: boolean;
 }
 
-/** Compute YYYY-MM-DD from the user's local calendar date. */
-function getLocalDateString(): string {
-  const today = new Date();
-  const yyyy = today.getFullYear();
-  const mm = String(today.getMonth() + 1).padStart(2, "0");
-  const dd = String(today.getDate()).padStart(2, "0");
-  return `${yyyy}-${mm}-${dd}`;
+/**
+ * Compute YYYY-MM-DD from the current UTC calendar day. The canonical
+ * `habit_logs` table keys days by midnight-UTC (matching `perfectDay.ts` and
+ * `useSessionCompletion`), so the read habit must use the same convention for
+ * all 4 daily habits to land on the same date key.
+ */
+function getUtcDateString(): string {
+  return new Date().toISOString().split("T")[0] as string;
 }
 
 /**
  * Starts a 1-second interval on mount. When cumulative view time reaches 30 s
- * for the current calendar day, upserts a `habit_tracking` record with
- * `read_content = true` via a TanStack mutation and logs an activity event
- * with `duration_seconds`.
+ * for the current UTC day, upserts a `habit_logs` record with
+ * `habit_type:'read'` via a TanStack mutation and logs an activity event
+ * with `duration_seconds`. `habit_logs` is the single canonical academic-habit
+ * table that feeds the heatmap, streak, perfect-day, and `perfect_week` badge.
  *
  * On unmount the partial duration is logged as an activity event so no
  * viewing time is lost.
@@ -62,16 +64,15 @@ export const useReadHabitTimer = (
 
   const upsertMutation = useMutation({
     mutationFn: async (params: { student_id: string; habit_date: string }) => {
-      const { error } = await supabase
-        .from("habit_tracking")
-        .upsert(
-          {
-            student_id: params.student_id,
-            habit_date: params.habit_date,
-            read_content: true,
-          },
-          { onConflict: "student_id,habit_date" }
-        );
+      const { error } = await supabase.from("habit_logs").upsert(
+        {
+          student_id: params.student_id,
+          habit_type: "read",
+          date: params.habit_date,
+          completed_at: new Date().toISOString(),
+        },
+        { onConflict: "student_id,habit_type,date" }
+      );
       if (error) throw error;
     },
     onSuccess: () => {
@@ -82,7 +83,7 @@ export const useReadHabitTimer = (
     },
     onError: (error) => {
       console.error(
-        "[useReadHabitTimer] Failed to upsert habit_tracking:",
+        "[useReadHabitTimer] Failed to upsert habit_logs:",
         error instanceof Error ? error.message : error
       );
     },
@@ -114,9 +115,9 @@ export const useReadHabitTimer = (
         const studentId = profileRef.current?.id;
         if (!studentId) return;
 
-        const todayStr = getLocalDateString();
+        const todayStr = getUtcDateString();
 
-        // Mark read_content habit for today via TanStack mutation
+        // Mark 'read' habit for today in the canonical habit_logs table
         upsertRef.current.mutate({
           student_id: studentId,
           habit_date: todayStr,

@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
 import { logAuditEvent } from "@/lib/auditLogger";
+import { awardPerfectDayIfComplete } from "@/lib/perfectDay";
 import { useAuth } from "@/hooks/useAuth";
 import type { PaginatedResult } from "@/types/pagination";
 import { getPaginationRange } from "@/types/pagination";
@@ -73,7 +74,7 @@ export const useSubmissions = (filters: SubmissionFilters = {}) => {
       let query = supabase
         .from("submissions")
         .select(
-          "*, profiles!submissions_student_id_fkey(id, full_name, email), assignments(id, title, total_marks, course_id), grades(id)",
+          "*, profiles!submissions_student_id_fkey(id, full_name, email), assignments!inner(id, title, total_marks, course_id), grades(id)",
           { count: "exact" }
         )
         .order("created_at", { ascending: false })
@@ -133,7 +134,7 @@ export const usePendingSubmissions = (courseId?: string) => {
       let query = supabase
         .from("submissions")
         .select(
-          "*, profiles!submissions_student_id_fkey(id, full_name, email), assignments(id, title, total_marks, course_id), grades(id)"
+          "*, profiles!submissions_student_id_fkey(id, full_name, email), assignments!inner(id, title, total_marks, course_id), grades(id)"
         )
         .order("created_at", { ascending: false });
 
@@ -211,6 +212,25 @@ export const useCreateSubmission = () => {
         changes: { ...input },
         performed_by: authUser?.id ?? user.id,
       });
+
+      // Record the canonical 'submit' academic habit for today (UTC) and, if
+      // this completes all 4 daily habits, award the idempotent Perfect Day.
+      // Fire-and-forget: a habit-write failure must never break the submission.
+      try {
+        const today = new Date().toISOString().split("T")[0] as string;
+        await supabase.from("habit_logs").upsert(
+          {
+            student_id: user.id,
+            habit_type: "submit",
+            date: today,
+            completed_at: new Date().toISOString(),
+          },
+          { onConflict: "student_id,habit_type,date" }
+        );
+        await awardPerfectDayIfComplete(user.id);
+      } catch {
+        console.error("[useCreateSubmission] submit habit write failed");
+      }
 
       return submission;
     },

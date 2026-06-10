@@ -1,16 +1,3 @@
--- Feature: qa-partner-review-remediation — Req 1 (B1)
--- Task 9.2: Teacher-to-Student Nudge via authorized SECURITY DEFINER RPC.
---
--- The teacher's direct insert into `notifications` for a student's `user_id` is
--- rejected by the `notifications_own` RLS policy (FOR ALL USING user_id = auth.uid()).
--- This RPC is the only sanctioned path that may write a cross-user notification: it
--- verifies the teaching relationship (courses ⋈ student_courses for auth.uid()) before
--- inserting, and raises an authorization error (42501) otherwise.
---
--- Replay integrity (migration-replay-integrity.md): references only pre-existing tables
--- (public.courses, public.student_courses, public.notifications), hardened at the CREATE
--- site (SET search_path = '', public.-qualified, REVOKE PUBLIC/anon + GRANT authenticated
--- here, with no later bare ALTER/GRANT on this function).
 CREATE OR REPLACE FUNCTION public.send_teacher_nudge(
   p_student_id uuid,
   p_message text
@@ -42,4 +29,4 @@ END;
 $$;
 
 REVOKE EXECUTE ON FUNCTION public.send_teacher_nudge(uuid, text) FROM PUBLIC, anon;
-GRANT EXECUTE ON FUNCTION public.send_teacher_nudge(uuid, text) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.send_teacher_nudge(uuid, text) TO authenticated;;

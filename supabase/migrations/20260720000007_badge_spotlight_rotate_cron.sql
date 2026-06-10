@@ -4,16 +4,11 @@
 -- Requirements: 134.3, 134.6
 
 -- Create the auto-rotate function
--- NOTE (db-function-search-path-qualification, Task 5.6/12 replay-only fix):
--- This is the LAST definition of badge_spotlight_auto_rotate() in the migration
--- chain, so a fresh replay ends here. It must match the LIVE production body
--- (Part C 20260601110014): hardened with SET search_path='' and public.-qualified
--- table references. Replay-only edit; never re-run against production.
-CREATE OR REPLACE FUNCTION public.badge_spotlight_auto_rotate()
+CREATE OR REPLACE FUNCTION badge_spotlight_auto_rotate()
 RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path TO ''
+SET search_path = ''
 AS $$
 DECLARE
   inst RECORD;

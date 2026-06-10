@@ -1,15 +1,32 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
+import { classifyAttainment } from "@/lib/attainmentClassifier";
 import type { LearningOutcome, Course } from "@/types/app";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
+/** Sentinel for a cell that has mapped CLOs but no measurable attainment yet. */
+export const CELL_ATTAINMENT_UNMEASURED = -1;
+
 export interface CellData {
   cloCount: number;
   coveragePercent: number;
+  /**
+   * Real mean attainment across the CLOs mapped into this PLO×course cell,
+   * derived from `outcome_attainment.attainment_percent` at `student_course`
+   * scope (C-2 — replaces the prior CLO-count placeholder). Equals
+   * `CELL_ATTAINMENT_UNMEASURED` (-1) when CLOs are mapped but no attainment
+   * evidence exists, and 0 when no CLOs are mapped.
+   */
+  attainmentPercent: number;
   status: "green" | "yellow" | "red" | "gray";
 }
+
+const mean = (values: number[]): number =>
+  values.length === 0
+    ? 0
+    : values.reduce((sum, v) => sum + v, 0) / values.length;
 
 export interface CurriculumMatrixData {
   plos: LearningOutcome[];
@@ -24,11 +41,26 @@ interface OutcomeMappingRow {
 
 // ─── Status helper ──────────────────────────────────────────────────────────
 
-function computeCellStatus(cloCount: number): CellData["status"] {
-  // Placeholder logic until attainment data is available:
-  // Gray = no CLOs mapped, Green = 1+ CLOs mapped
+/**
+ * Computes the cell status from mapped-CLO count and real attainment (C-2).
+ *
+ * - No CLOs mapped → "gray" (no coverage)
+ * - CLOs mapped but no attainment evidence yet → "gray" (unmeasured)
+ * - Mapped + measured → color by attainment level:
+ *     Excellent/Satisfactory (≥70%) → "green"
+ *     Developing (50–69%)           → "yellow"
+ *     Not Yet (<50%)                → "red"
+ */
+function computeCellStatus(
+  cloCount: number,
+  attainmentPercent: number
+): CellData["status"] {
   if (cloCount === 0) return "gray";
-  return "green";
+  if (attainmentPercent < 0) return "gray";
+  const level = classifyAttainment(attainmentPercent);
+  if (level === "Excellent" || level === "Satisfactory") return "green";
+  if (level === "Developing") return "yellow";
+  return "red";
 }
 
 // ─── CellDetailData ─────────────────────────────────────────────────────────
@@ -183,30 +215,84 @@ export const useCurriculumMatrix = (programId: string | undefined) => {
         }
       }
 
-      // Pre-compute mapping counts: `${ploId}_${courseId}` → count
-      // This prevents an O(P * C * M) nested loop bottleneck.
-      const mappingCounts = new Map<string, number>();
-      for (const m of typedMappings) {
-        const courseId = cloToCourse.get(m.target_outcome_id);
-        if (courseId) {
-          const key = `${m.source_outcome_id}_${courseId}`;
-          mappingCounts.set(key, (mappingCounts.get(key) || 0) + 1);
+      // 6. Fetch real CLO attainment for all mapped CLOs (C-2 — replaces the
+      //    CLO-count placeholder). Mirrors the `useAdminPLOHeatmap` /
+      //    `useSectionAttainment` aggregation: CLO attainment is written at
+      //    `student_course` scope keyed by `outcome_id`. A single batched query
+      //    (no per-cell N+1), then average per CLO.
+      const mappedCloIds = Array.from(
+        new Set(typedMappings.map((m) => m.target_outcome_id))
+      );
+      const cloAttainmentById = new Map<string, number>();
+
+      if (mappedCloIds.length > 0) {
+        const { data: attRows, error: attError } = await supabase
+          .from("outcome_attainment")
+          .select("outcome_id, attainment_percent")
+          .eq("scope", "student_course")
+          .in("outcome_id", mappedCloIds);
+
+        if (attError) throw attError;
+
+        const attListsByClo = new Map<string, number[]>();
+        for (const row of attRows ?? []) {
+          if (row.attainment_percent == null) continue;
+          const list = attListsByClo.get(row.outcome_id) ?? [];
+          list.push(row.attainment_percent);
+          attListsByClo.set(row.outcome_id, list);
+        }
+        for (const [cloId, list] of attListsByClo) {
+          cloAttainmentById.set(cloId, mean(list));
         }
       }
 
-      // 6. Compute the matrix
+      // Pre-compute per-cell mapping counts AND attainment samples in one pass:
+      //   `${ploId}_${courseId}` → { count, attainmentSamples }
+      // This prevents an O(P * C * M) nested loop bottleneck.
+      interface CellAccumulator {
+        count: number;
+        attainmentSamples: number[];
+      }
+      const cellAccumulators = new Map<string, CellAccumulator>();
+      for (const m of typedMappings) {
+        const courseId = cloToCourse.get(m.target_outcome_id);
+        if (!courseId) continue;
+        const key = `${m.source_outcome_id}_${courseId}`;
+        const acc = cellAccumulators.get(key) ?? {
+          count: 0,
+          attainmentSamples: [],
+        };
+        acc.count += 1;
+        const cloAttainment = cloAttainmentById.get(m.target_outcome_id);
+        if (cloAttainment !== undefined) {
+          acc.attainmentSamples.push(cloAttainment);
+        }
+        cellAccumulators.set(key, acc);
+      }
+
+      // 7. Compute the matrix with real attainment per cell.
       const matrix: Record<string, Record<string, CellData>> = {};
 
       for (const plo of typedPlos) {
         const row: Record<string, CellData> = {};
         for (const course of typedCourses) {
-          // Retrieve the pre-computed count directly
-          const cloCount = mappingCounts.get(`${plo.id}_${course.id}`) || 0;
+          const acc = cellAccumulators.get(`${plo.id}_${course.id}`);
+          const cloCount = acc?.count ?? 0;
+          // Real attainment: mean of the contributing CLOs' attainment. When CLOs
+          // are mapped but no evidence exists, surface the unmeasured sentinel so
+          // the cell renders grey (distinct from a real 0%).
+          const attainmentPercent =
+            cloCount === 0
+              ? 0
+              : acc && acc.attainmentSamples.length > 0
+              ? Math.round(mean(acc.attainmentSamples))
+              : CELL_ATTAINMENT_UNMEASURED;
 
           row[course.id] = {
             cloCount,
             coveragePercent: cloCount > 0 ? 100 : 0,
-            status: computeCellStatus(cloCount),
+            attainmentPercent,
+            status: computeCellStatus(cloCount, attainmentPercent),
           };
         }
         matrix[plo.id] = row;

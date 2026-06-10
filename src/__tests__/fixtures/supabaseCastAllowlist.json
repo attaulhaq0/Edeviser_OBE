@@ -1,5 +1,5 @@
 {
-  "maxCount": 152,
+  "maxCount": 145,
   "entries": [
     {
       "file": "src/hooks/useBloomsProgression.ts",
@@ -98,14 +98,6 @@
       "pattern": "upsert-as-never"
     },
     {
-      "file": "src/hooks/usePlannerTasks.ts",
-      "pattern": "insert-as-never"
-    },
-    {
-      "file": "src/hooks/usePlannerTasks.ts",
-      "pattern": "update-as-never"
-    },
-    {
       "file": "src/hooks/usePLOs.ts",
       "pattern": "insert-as-never"
     },
@@ -139,19 +131,7 @@
     },
     {
       "file": "src/hooks/useSessionCompletion.ts",
-      "pattern": "from-as-never"
-    },
-    {
-      "file": "src/hooks/useSessionCompletion.ts",
       "pattern": "insert-as-never"
-    },
-    {
-      "file": "src/hooks/useSessionCompletion.ts",
-      "pattern": "update-as-never"
-    },
-    {
-      "file": "src/hooks/useSessionCompletion.ts",
-      "pattern": "upsert-as-never"
     },
     {
       "file": "src/hooks/useSessionEvidence.ts",

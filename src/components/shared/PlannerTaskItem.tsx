@@ -27,6 +27,27 @@ const PRIORITY_STYLES: Record<
   low: { label: "Low", className: "bg-gray-100 text-gray-600" },
 };
 
+/**
+ * The DB-valid planner task status set (matches the `planner_tasks_status_check`
+ * constraint: todo/in_progress/done/deferred). Used as a defensive guard so an
+ * unexpected persisted value falls back to "todo" instead of yielding an
+ * undefined badge config.
+ */
+const PLANNER_STATUSES = ["todo", "in_progress", "done", "deferred"] as const;
+
+const STATUS_STYLES: Record<
+  PlannerTask["status"],
+  { label: string; className: string }
+> = {
+  todo: { label: "To Do", className: "bg-slate-100 text-slate-600" },
+  in_progress: {
+    label: "In Progress",
+    className: "bg-blue-100 text-blue-700",
+  },
+  done: { label: "Done", className: "bg-green-100 text-green-700" },
+  deferred: { label: "Deferred", className: "bg-amber-100 text-amber-700" },
+};
+
 const PlannerTaskItem = ({
   task,
   onToggle,
@@ -34,8 +55,12 @@ const PlannerTaskItem = ({
   onDelete,
   compact = false,
 }: PlannerTaskItemProps) => {
-  const isCompleted = task.status === "completed";
+  const isCompleted = task.status === "done";
   const priorityConfig = PRIORITY_STYLES[task.priority];
+  const safeStatus = PLANNER_STATUSES.includes(task.status)
+    ? task.status
+    : "todo";
+  const statusConfig = STATUS_STYLES[safeStatus];
 
   return (
     <div
@@ -79,11 +104,21 @@ const PlannerTaskItem = ({
           </Badge>
         </div>
 
-        {task.courseName && (
-          <span className="mt-0.5 block text-[11px] text-gray-500 line-clamp-1">
-            {task.courseName}
-          </span>
-        )}
+        <div className="mt-0.5 flex items-center gap-1">
+          <Badge
+            className={cn(
+              "shrink-0 text-[10px] px-1.5 py-0",
+              statusConfig.className
+            )}
+          >
+            {statusConfig.label}
+          </Badge>
+          {task.courseName && (
+            <span className="block text-[11px] text-gray-500 line-clamp-1">
+              {task.courseName}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Actions — visible on hover */}

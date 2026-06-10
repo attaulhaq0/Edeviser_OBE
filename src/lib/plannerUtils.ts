@@ -126,7 +126,7 @@ export function calculateGoalProgress(
       currentValue = sessions.filter((s) => s.status === "completed").length;
       break;
     case "tasks_completed":
-      currentValue = tasks.filter((t) => t.status === "completed").length;
+      currentValue = tasks.filter((t) => t.status === "done").length;
       break;
   }
   const percentage =

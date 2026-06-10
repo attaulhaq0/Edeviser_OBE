@@ -10,7 +10,7 @@
 -- references. storage.buckets exists on a fresh preview DB (storage extension),
 -- and the INSERT is guarded with ON CONFLICT DO NOTHING.
 
--- ── Read receipts ───────────────────────────────────────────────────────────
+-- ── Read receipts ─────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.announcement_reads (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   announcement_id uuid NOT NULL REFERENCES public.announcements(id) ON DELETE CASCADE,
@@ -35,7 +35,7 @@ CREATE POLICY "announcement_reads_teacher_read" ON public.announcement_reads
       AND a.author_id = (select auth.uid())
   ));
 
--- ── Attachments ─────────────────────────────────────────────────────────────
+-- ── Attachments ────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.announcement_attachments (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   announcement_id uuid NOT NULL REFERENCES public.announcements(id) ON DELETE CASCADE,
@@ -72,7 +72,7 @@ CREATE POLICY "announcement_attachments_enrolled_read" ON public.announcement_at
       AND sc.status = 'active'
   ));
 
--- ── Private Storage bucket for attachment files (signed-URL access) ──────────
+-- ── Private Storage bucket for attachment files (signed-URL access) ───────────
 INSERT INTO storage.buckets (id, name, public)
 VALUES ('announcement-attachments', 'announcement-attachments', false)
-ON CONFLICT (id) DO NOTHING;
+ON CONFLICT (id) DO NOTHING;;

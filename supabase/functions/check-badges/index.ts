@@ -625,13 +625,15 @@ async function checkHabitBadges(
   }
 
   if (!existingBadgeIds.has("habit_master")) {
+    // Academic habits live in the canonical long-format `habit_logs` table
+    // (one row per completed habit per day, keyed by `habit_type`).
     const { data: academicDays } = await supabase
-      .from("habit_tracking")
-      .select("habit_date")
+      .from("habit_logs")
+      .select("date")
       .eq("student_id", studentId)
-      .gte("habit_date", semesterStart)
-      .lte("habit_date", semesterEnd)
-      .or("login.eq.true,submit.eq.true,journal.eq.true,read_content.eq.true");
+      .gte("date", semesterStart)
+      .lte("date", semesterEnd)
+      .in("habit_type", ["login", "submit", "journal", "read"]);
 
     const { data: wellnessDays } = await supabase
       .from("wellness_habit_logs")
@@ -643,7 +645,7 @@ async function checkHabitBadges(
     const activeDates = new Set<string>();
     if (academicDays) {
       for (const row of academicDays) {
-        activeDates.add(row.habit_date as string);
+        activeDates.add(row.date as string);
       }
     }
     if (wellnessDays) {
@@ -693,22 +695,33 @@ async function checkHabitBadges(
   }
 
   if (!existingBadgeIds.has("full_spectrum")) {
-    const { data: perfectAcademicDays } = await supabase
-      .from("habit_tracking")
-      .select("habit_date")
+    // Derive "perfect academic days" (all 4 habits) from the long-format
+    // `habit_logs` table by grouping rows per day and requiring all 4 types.
+    const { data: academicHabitRows } = await supabase
+      .from("habit_logs")
+      .select("date, habit_type")
       .eq("student_id", studentId)
-      .eq("login", true)
-      .eq("submit", true)
-      .eq("journal", true)
-      .eq("read_content", true)
-      .gte("habit_date", semesterStart)
-      .lte("habit_date", semesterEnd);
+      .in("habit_type", ["login", "submit", "journal", "read"])
+      .gte("date", semesterStart)
+      .lte("date", semesterEnd);
 
-    if (perfectAcademicDays && perfectAcademicDays.length > 0) {
-      const perfectDates = new Set(
-        perfectAcademicDays.map((d: { habit_date: string }) => d.habit_date)
-      );
+    const habitsByDate = new Map<string, Set<string>>();
+    for (const row of academicHabitRows ?? []) {
+      const dateStr = row.date as string;
+      const set = habitsByDate.get(dateStr) ?? new Set<string>();
+      set.add(row.habit_type as string);
+      habitsByDate.set(dateStr, set);
+    }
 
+    const REQUIRED = ["login", "submit", "journal", "read"];
+    const perfectDates = new Set<string>();
+    for (const [dateStr, types] of habitsByDate) {
+      if (REQUIRED.every((t) => types.has(t))) {
+        perfectDates.add(dateStr);
+      }
+    }
+
+    if (perfectDates.size > 0) {
       const { data: wellnessDates } = await supabase
         .from("wellness_habit_logs")
         .select("date")

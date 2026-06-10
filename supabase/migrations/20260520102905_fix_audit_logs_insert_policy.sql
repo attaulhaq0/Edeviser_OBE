@@ -5,9 +5,9 @@ CREATE POLICY "audit_logs_authenticated_insert" ON public.audit_logs
   WITH CHECK (actor_id = auth.uid());
 
 -- Also fix the demo student missing gamification row (FIX #5 partial)
--- Replay-only guard: this hardcoded demo-student row only exists on production. On a
--- fresh replay (Supabase Preview / clean rebuild) the referenced profile is absent, so a
--- bare INSERT aborts with 23503 (FK violation). Insert only when the profile exists.
+-- Replay-safe: on a fresh from-scratch replay the demo profile does not exist yet, so the
+-- WHERE EXISTS guard makes this a no-op (avoids 23503 FK violation against profiles). On
+-- production (and any env where the demo profile exists) it inserts exactly as before.
 INSERT INTO student_gamification (student_id, xp_total, level, streak_current, streak_longest, last_login_date)
 SELECT 'f0b2fa46-7bdf-48c2-a74a-d98960eaeb2d', 0, 1, 0, 0, NULL
 WHERE EXISTS (

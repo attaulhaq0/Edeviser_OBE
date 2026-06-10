@@ -8,14 +8,8 @@ ALTER TABLE learning_outcomes
 -- 2. Update outcome_type enum to include SUB_CLO
 ALTER TYPE outcome_type ADD VALUE IF NOT EXISTS 'SUB_CLO';
 -- 3. Create trigger function to validate Sub-CLO parent is a CLO
--- Hardened (db-function-search-path-qualification Task 5.x): SET search_path=''
--- + public.-qualified to match the LIVE production body so a fresh replay does
--- not re-emit this function in db diff. Replay-only edit.
 CREATE OR REPLACE FUNCTION validate_sub_clo_weights()
-RETURNS trigger
-LANGUAGE plpgsql
-SET search_path TO ''
-AS $$
+RETURNS trigger AS $$
 DECLARE
   parent_type text;
 BEGIN
@@ -44,7 +38,7 @@ BEGIN
 
   RETURN NEW;
 END;
-$$;
+$$ LANGUAGE plpgsql SET search_path = '';
 -- 4. Create trigger on learning_outcomes
 DROP TRIGGER IF EXISTS trg_validate_sub_clo ON learning_outcomes;
 CREATE TRIGGER trg_validate_sub_clo

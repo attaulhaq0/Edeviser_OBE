@@ -59,7 +59,10 @@ export const useAdminKPIs = () => {
   });
 };
 
-export const useRecentAuditLogs = (limit: number = 10, options?: { enabled?: boolean }) => {
+export const useRecentAuditLogs = (
+  limit: number = 10,
+  options?: { enabled?: boolean }
+) => {
   return useQuery({
     queryKey: queryKeys.auditLogs.list({ limit }),
     queryFn: async (): Promise<AuditLogEntry[]> => {
@@ -139,6 +142,32 @@ export const usePendingOnboardingStudents = (filters?: {
       filters,
     ],
     queryFn: async (): Promise<PendingOnboardingStudent[]> => {
+      // When a program filter is supplied, restrict to students enrolled in a
+      // course belonging to that program (profiles relate to programs via
+      // student_courses → courses.program_id). Resolve those student ids first.
+      let programStudentIds: string[] | null = null;
+      if (filters?.programId) {
+        const { data: programCourses, error: coursesError } = await supabase
+          .from("courses")
+          .select("id")
+          .eq("program_id", filters.programId);
+        if (coursesError) throw coursesError;
+
+        const courseIds = (programCourses ?? []).map((c) => c.id);
+        if (courseIds.length === 0) return [];
+
+        const { data: enrollments, error: enrollError } = await supabase
+          .from("student_courses")
+          .select("student_id")
+          .in("course_id", courseIds);
+        if (enrollError) throw enrollError;
+
+        programStudentIds = [
+          ...new Set((enrollments ?? []).map((e) => e.student_id)),
+        ];
+        if (programStudentIds.length === 0) return [];
+      }
+
       let query = supabase
         .from("profiles")
         .select("id, full_name, email, created_at")
@@ -146,6 +175,10 @@ export const usePendingOnboardingStudents = (filters?: {
         .eq("is_active", true)
         .eq("onboarding_completed", false)
         .order("created_at", { ascending: false });
+
+      if (programStudentIds) {
+        query = query.in("id", programStudentIds);
+      }
 
       if (filters?.enrolledAfter) {
         query = query.gte("created_at", filters.enrolledAfter);
