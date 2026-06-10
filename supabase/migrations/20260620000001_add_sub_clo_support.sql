@@ -25,7 +25,7 @@ BEGIN
 
   -- Ensure parent is a CLO
   SELECT type INTO parent_type
-  FROM learning_outcomes
+  FROM public.learning_outcomes
   WHERE id = NEW.parent_outcome_id;
 
   IF parent_type IS NULL THEN
@@ -38,7 +38,7 @@ BEGIN
 
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql SET search_path = '';
 -- 4. Create trigger on learning_outcomes
 DROP TRIGGER IF EXISTS trg_validate_sub_clo ON learning_outcomes;
 CREATE TRIGGER trg_validate_sub_clo

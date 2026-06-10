@@ -27,6 +27,14 @@ const PRIORITY_STYLES: Record<
   low: { label: "Low", className: "bg-gray-100 text-gray-600" },
 };
 
+/**
+ * The DB-valid planner task status set (matches the `planner_tasks_status_check`
+ * constraint: todo/in_progress/done/deferred). Used as a defensive guard so an
+ * unexpected persisted value falls back to "todo" instead of yielding an
+ * undefined badge config.
+ */
+const PLANNER_STATUSES = ["todo", "in_progress", "done", "deferred"] as const;
+
 const STATUS_STYLES: Record<
   PlannerTask["status"],
   { label: string; className: string }
@@ -49,7 +57,10 @@ const PlannerTaskItem = ({
 }: PlannerTaskItemProps) => {
   const isCompleted = task.status === "done";
   const priorityConfig = PRIORITY_STYLES[task.priority];
-  const statusConfig = STATUS_STYLES[task.status];
+  const safeStatus = PLANNER_STATUSES.includes(task.status)
+    ? task.status
+    : "todo";
+  const statusConfig = STATUS_STYLES[safeStatus];
 
   return (
     <div

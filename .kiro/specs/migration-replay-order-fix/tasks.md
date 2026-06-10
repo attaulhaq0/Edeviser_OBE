@@ -72,7 +72,7 @@ Notes on ordering:
 
 ## Tasks
 
-- [ ] 1. Establish the failing baseline — exploratory bug-condition checking on the UNFIXED chain
+- [x] 1. Establish the failing baseline — exploratory bug-condition checking on the UNFIXED chain
 
   - **Property 1: Bug Condition** - Fresh replay aborts with 35 too-early references (13 function, 22 table)
   - **CRITICAL**: This step MUST report findings (exit 1) on the unfixed chain — the non-clean result IS the success criterion that confirms the bug exists
@@ -93,7 +93,7 @@ Notes on ordering:
   - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 1.10, 1.11, 1.12, 1.13, 1.14, 1.15, 1.16, 1.17, 1.18, 1.19, 1.20, 1.21, 1.22, 1.23, 1.24, 1.25, 1.26, 1.27, 1.28, 1.29, 1.30, 1.31, 1.32, 1.33_
   - _Advances: Property 1 (Fix Checking) — establishes the buggy partition isBugCondition(stmt)=true_
 
-- [ ] 2. Capture the preservation baseline on the UNFIXED chain (BEFORE any fix)
+- [x] 2. Capture the preservation baseline on the UNFIXED chain (BEFORE any fix)
 
   - **Property 2: Preservation** - Non-buggy statements and production logical state are unchanged
   - **IMPORTANT**: Follow observation-first methodology — observe before changing anything
@@ -109,14 +109,14 @@ Notes on ordering:
   - _Requirements: 3.1, 3.3, 3.4, 3.5, 3.6_
   - _Advances: Property 2 (Preservation) — establishes the non-buggy partition isBugCondition(stmt)=false_
 
-- [ ] 3. CLASS A — harden function `search_path` at the TRUE last-writer CREATE site and guard the early ALTERs
+- [x] 3. CLASS A — harden function `search_path` at the TRUE last-writer CREATE site and guard the early ALTERs
 
   - **FINDING 1 correction:** `20260601110014` is NOT the last-writer for 4 of the 5 functions (and not for `validate_sub_clo_weights` either). Each function's true last-writer is its greatest-timestamp `CREATE OR REPLACE` (see 3.2). All FIVE functions must be hardened at their true last-writer or they regress to a mutable `search_path` on a fresh replay.
   - _Bug_Condition: isBugCondition(stmt) where stmt is `ALTER FUNCTION ... SET search_path = ''` in `20260504032936` targeting a function CREATEd later_
   - _Expected_Behavior: on a fresh replay the early ALTERs no-op (function absent), and each function's TRUE last-writer `CREATE OR REPLACE FUNCTION` carries `SET search_path = ''` (with `public.`-qualified body) so the end state equals the prior ALTER result_
   - _Preservation: on production every function exists, so the guarded ALTER still executes; baked last-writer CREATE-site setting is equivalent to the prior ALTER, and the final replayed `proconfig` carries `search_path=` (FINDING 1)_
 
-  - [ ] 3.1 Guard the five early `ALTER FUNCTION` statements in `20260504032936_fix_mutable_search_paths.sql`
+  - [x] 3.1 Guard the five early `ALTER FUNCTION` statements in `20260504032936_fix_mutable_search_paths.sql`
 
     - Wrap each of lines 7, 9, 12, 14, 15 in a `DO $$ BEGIN IF to_regprocedure('public.<fn>(<args>)') IS NOT NULL THEN EXECUTE '...'; END IF; END $$;` block
     - Use exact signatures: `validate_sub_clo_weights()`, `enforce_max_active_challenges()`, `update_graduate_attributes_updated_at()`, `sync_tutor_conversation_stats()`, `set_tutor_conversations_updated_at()`
@@ -124,7 +124,7 @@ Notes on ordering:
     - _Files: `supabase/migrations/20260504032936_fix_mutable_search_paths.sql`_
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5_
 
-  - [ ] 3.2 Bake `SET search_path = ''` into each function's TRUE last-writer CREATE (greatest-timestamp `CREATE OR REPLACE`)
+  - [x] 3.2 Bake `SET search_path = ''` into each function's TRUE last-writer CREATE (greatest-timestamp `CREATE OR REPLACE`)
 
     - **CORRECTION (FINDING 1):** the earlier assumption that `20260601110014` is the last-writer is WRONG. Grep of every `CREATE OR REPLACE FUNCTION` site in replay order proved each of the five CLASS A functions has a LATER, currently-unhardened `CREATE OR REPLACE` that silently strips `SET search_path = ''` on a fresh replay. Harden at the TRUE last-writer (greatest-timestamp CREATE), NOT at `20260601110014`. **All FIVE functions need this — not three.**
     - **CRITICAL — schema-qualify the body when adding `SET search_path = ''`:** with `search_path = ''` every unqualified table reference fails to resolve at runtime, so each body that gains the setting MUST have its table references rewritten to `public.<table>` in the same change, or the trigger breaks at runtime.
@@ -137,7 +137,7 @@ Notes on ordering:
     - _Files: `supabase/migrations/20260620000001_add_sub_clo_support.sql`, `supabase/migrations/20260720000003_create_social_challenges.sql`, `supabase/migrations/20260620000002_create_graduate_attributes.sql`, `supabase/migrations/20260820000003_create_tutor_conversations.sql`_
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 3.10_
 
-  - [ ] 3.3 Verify search_path hardening survives the last-writer CREATE (FINDING 1)
+  - [x] 3.3 Verify search_path hardening survives the last-writer CREATE (FINDING 1)
     - **Property 2: Preservation** - Search-path hardening survives the last-writer CREATE on a fresh replay
     - **IMPORTANT**: Run AFTER applying 3.1 (guards) and 3.2 (last-writer hardening)
     - Assert that for each of the five CLASS A functions, its final replayed definition carries an immutable `search_path`. Run: `SELECT proname, proconfig FROM pg_proc WHERE proname IN ('validate_sub_clo_weights','enforce_max_active_challenges','update_graduate_attributes_updated_at','sync_tutor_conversation_stats','set_tutor_conversations_updated_at')`
@@ -146,7 +146,7 @@ Notes on ordering:
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 3.10_
     - _Validates: Property 2 (Preservation)_
 
-- [ ] 4. CLASS B — guard `REVOKE`/`GRANT EXECUTE` on the later function `increment_team_xp`
+- [x] 4. CLASS B — guard `REVOKE`/`GRANT EXECUTE` on the later function `increment_team_xp`
 
   - Wrap each privilege statement in a `DO $$ BEGIN IF to_regprocedure('public.increment_team_xp(uuid, integer)') IS NOT NULL THEN EXECUTE '...'; END IF; END $$;` block
   - Apply to: `20260504032951...sql:9` (REVOKE), `20260504033048...sql:23` (REVOKE), `20260504033048...sql:24` (GRANT), `20260504041233...sql:6` (REVOKE)
@@ -158,7 +158,7 @@ Notes on ordering:
   - _Requirements: 2.6, 2.9, 2.10, 2.11_
   - _Advances: Property 1 (Fix Checking), Property 2 (Preservation)_
 
-- [ ] 5. CLASS C — guard `REVOKE` on the phantom function `rls_auto_enable`
+- [x] 5. CLASS C — guard `REVOKE` on the phantom function `rls_auto_enable`
 
   - Wrap each REVOKE in a `DO $$ BEGIN IF to_regprocedure('public.rls_auto_enable()') IS NOT NULL THEN EXECUTE '...'; END IF; END $$;` block
   - Apply to: `20260504032951...sql:13`, `20260504033048...sql:7`, `20260504041233...sql:17`, `20260504041233...sql:24`
@@ -170,20 +170,20 @@ Notes on ordering:
   - _Requirements: 2.7, 2.8, 2.12, 2.13, 2.34_
   - _Advances: Property 1 (Fix Checking), Property 2 (Preservation)_
 
-- [ ] 6. Create the corrective migration that re-asserts CLASS D/E/F final state
+- [x] 6. Create the corrective migration that re-asserts CLASS D/E/F final state
 
   - **CRITICAL**: Guarding the early D/E/F statements only stops the abort — on a fresh replay the table does not yet exist so the guarded block no-ops and the object is NEVER created. This NEW migration restores the correct final state so a DR restore is not missing FK indexes and RLS SELECT policies.
   - Create NEW file `supabase/migrations/20260821000005_replay_safe_reassert_tutor_indexes_policies_columns.sql` (timestamp strictly after `20260821000004`, after every referenced table is created)
   - Every statement MUST be idempotent and replay-safe; on production each is a no-op or same-definition rewrite
 
-  - [ ] 6.1 Re-assert CLASS D FK indexes idempotently
+  - [x] 6.1 Re-assert CLASS D FK indexes idempotently
 
     - `CREATE INDEX IF NOT EXISTS` for every index originally in `20260504033325` on `teacher_handoff_requests`, `tutor_llm_logs`, `tutor_plan_updates` (all 7 indexes)
     - _Bug_Condition: CREATE INDEX on tables CREATEd at `20260820*`_
     - _Files: `supabase/migrations/20260821000005_replay_safe_reassert_tutor_indexes_policies_columns.sql`_
     - _Requirements: 2.14, 2.15, 2.16_
 
-  - [ ] 6.2 Re-assert CLASS E RLS SELECT policies in their FINAL initplan-wrapped form
+  - [x] 6.2 Re-assert CLASS E RLS SELECT policies in their FINAL initplan-wrapped form
 
     - For each policy use `DROP POLICY IF EXISTS <name> ON public.<table>;` then `CREATE POLICY ...` using the `20260602103939` initplan-wrapped definitions verbatim (the last-writer authoritative form)
     - Cover `tutor_conversations`, `tutor_messages`, `tutor_usage_limits`, `tutor_llm_logs`, `tutor_plan_updates`, `teacher_handoff_requests`, `course_material_embeddings`
@@ -191,14 +191,14 @@ Notes on ordering:
     - _Files: `supabase/migrations/20260821000005_replay_safe_reassert_tutor_indexes_policies_columns.sql`_
     - _Requirements: 2.17, 2.18, 2.19, 2.20, 2.21, 2.22, 2.23, 2.26, 2.27, 2.28, 2.29, 2.30, 2.31_
 
-  - [ ] 6.3 Re-assert CLASS F columns and publication membership idempotently
+  - [x] 6.3 Re-assert CLASS F columns and publication membership idempotently
     - `ALTER TABLE public.tutor_conversations ADD COLUMN IF NOT EXISTS recommended_persona ...` and `ALTER TABLE public.teams ADD COLUMN IF NOT EXISTS avatar_letter ...` (matching the original `20260526145520` definitions)
     - Guarded `ALTER PUBLICATION supabase_realtime ADD TABLE public.challenge_participants` via a `DO`-block that checks `to_regclass('public.challenge_participants') IS NOT NULL AND NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname='supabase_realtime' AND schemaname='public' AND tablename='challenge_participants')`
     - _Bug_Condition: ALTER TABLE ADD COLUMN / ALTER PUBLICATION ADD TABLE on tables CREATEd later (`20260820000003` / `20260720000003`)_
     - _Files: `supabase/migrations/20260821000005_replay_safe_reassert_tutor_indexes_policies_columns.sql`_
     - _Requirements: 2.24, 2.25_
 
-- [ ] 7. CLASS D — guard the early `CREATE INDEX` statements in `20260504033325`
+- [x] 7. CLASS D — guard the early `CREATE INDEX` statements in `20260504033325`
 
   - Wrap each early `CREATE INDEX` in a `DO $$ BEGIN IF to_regclass('public.<table>') IS NOT NULL THEN EXECUTE 'CREATE INDEX IF NOT EXISTS ...'; END IF; END $$;` block
   - Apply to `20260504033325_add_missing_fk_indexes.sql:7-13` for `teacher_handoff_requests`, `tutor_llm_logs`, `tutor_plan_updates`
@@ -209,7 +209,7 @@ Notes on ordering:
   - _Files: `supabase/migrations/20260504033325_add_missing_fk_indexes.sql`_
   - _Requirements: 2.14, 2.15, 2.16_
 
-- [ ] 8. CLASS E — guard the early `CREATE POLICY` statements
+- [x] 8. CLASS E — guard the early `CREATE POLICY` statements
 
   - Wrap each early `CREATE POLICY` in a `DO $$ BEGIN IF to_regclass('public.<table>') IS NOT NULL THEN EXECUTE 'CREATE POLICY ...'; END IF; END $$;` block (preserve each policy's original statement text)
   - Apply to `20260520063920_add_missing_select_rls_policies_batch1.sql:15,20,29`; `20260520063937_add_missing_select_rls_policies_batch2.sql:2,12,17,22`; `20260602103939_task12_rls_initplan_wrap_tutor_content_donations.sql:5,9,13,17,21,25`
@@ -220,7 +220,7 @@ Notes on ordering:
   - _Files: `supabase/migrations/20260520063920_add_missing_select_rls_policies_batch1.sql`, `supabase/migrations/20260520063937_add_missing_select_rls_policies_batch2.sql`, `supabase/migrations/20260602103939_task12_rls_initplan_wrap_tutor_content_donations.sql`_
   - _Requirements: 2.17, 2.18, 2.19, 2.20, 2.21, 2.22, 2.23, 2.26, 2.27, 2.28, 2.29, 2.30, 2.31_
 
-- [ ] 9. CLASS F — guard the early `ALTER TABLE ADD COLUMN` / `ALTER PUBLICATION ADD TABLE`
+- [x] 9. CLASS F — guard the early `ALTER TABLE ADD COLUMN` / `ALTER PUBLICATION ADD TABLE`
 
   - Wrap `20260526115420_add_challenge_participants_to_realtime.sql:1` in a `DO`-block guarded by `to_regclass('public.challenge_participants') IS NOT NULL` (plus the `pg_publication_tables NOT EXISTS` check to stay idempotent)
   - Wrap `20260526145520_add_teams_avatar_letter_and_tutor_recommended_persona.sql:1` `ALTER TABLE ... ADD COLUMN` in a `DO`-block guarded by `to_regclass('public.tutor_conversations') IS NOT NULL` (use `ADD COLUMN IF NOT EXISTS`)
@@ -231,9 +231,9 @@ Notes on ordering:
   - _Files: `supabase/migrations/20260526115420_add_challenge_participants_to_realtime.sql`, `supabase/migrations/20260526145520_add_teams_avatar_letter_and_tutor_recommended_persona.sql`_
   - _Requirements: 2.24, 2.25_
 
-- [ ] 10. Fix verification — run the authoritative oracle and the Vitest guard
+- [x] 10. Fix verification — run the authoritative oracle and the Vitest guard
 
-  - [ ] 10.1 Confirm the bug-condition oracle is now CLEAN
+  - [x] 10.1 Confirm the bug-condition oracle is now CLEAN
 
     - **Property 1: Fix Checking** - Fresh replay completes with zero too-early references
     - **IMPORTANT**: Re-run the SAME oracle from task 1 — do NOT write a new checker
@@ -242,16 +242,16 @@ Notes on ordering:
     - _Requirements: 2.32_
     - _Validates: Property 1 (Fix Checking)_
 
-  - [ ] 10.2 Confirm the Vitest replay-order guard is GREEN
+  - [x] 10.2 Confirm the Vitest replay-order guard is GREEN
     - **Property 1: Fix Checking** - Guard passes (CLEAN + non-vacuous synthetic-violation assertion)
     - Run `scripts/audit/__tests__/migration-replay-order.test.ts`
     - **EXPECTED OUTCOME**: both the CLEAN assertion (checker exits 0) and the non-vacuous synthetic-violation assertion pass
     - _Requirements: 2.33_
     - _Validates: Property 1 (Fix Checking)_
 
-- [ ] 11. Preservation verification — confirm no regressions in reconciled / unrelated migrations
+- [x] 11. Preservation verification — confirm no regressions in reconciled / unrelated migrations
 
-  - [ ] 11.1 Confirm reconciled and unrelated migrations are unflagged and unchanged
+  - [x] 11.1 Confirm reconciled and unrelated migrations are unflagged and unchanged
 
     - **Property 2: Preservation** - Non-buggy statements and production state are unchanged
     - **IMPORTANT**: Re-confirm the baseline captured in task 2 — the same non-buggy statements remain unflagged
@@ -263,14 +263,14 @@ Notes on ordering:
     - _Requirements: 3.1, 3.2, 3.6, 3.8, 3.9_
     - _Validates: Property 2 (Preservation)_
 
-  - [ ] 11.2 Run the full pre-push gate
+  - [x] 11.2 Run the full pre-push gate
     - **Property 2: Preservation** - lint / type-check / test suite stay green
     - Run `npm run lint` (zero warnings), `npx tsc --noEmit` (no type errors), `npm test` (full Vitest suite green)
     - **EXPECTED OUTCOME**: all three pass — confirms no unrelated breakage
     - _Requirements: 3.7_
     - _Validates: Property 2 (Preservation)_
 
-- [ ] 12. Class-0 re-verification — confirm checked-and-cleared candidates remain non-issues
+- [x] 12. Class-0 re-verification — confirm checked-and-cleared candidates remain non-issues
 
   - Re-confirm ENUM new-value safety: `20260620000001_add_sub_clo_support.sql` runs `ALTER TYPE outcome_type ADD VALUE IF NOT EXISTS 'SUB_CLO'` and the new value is used only as a runtime string comparison inside the function body — confirm no same-transaction DML uses the new value (no `55P04`)
   - Re-confirm TRIGGER co-location: every `CREATE TRIGGER ... EXECUTE FUNCTION` is in the same migration as its function CREATE (e.g. `set_tutor_conversations_updated_at` / `sync_tutor_conversation_stats` in `20260820000003`) — no trigger-before-function class
@@ -280,7 +280,7 @@ Notes on ordering:
   - _Requirements: 3.3, 3.5_
   - _Advances: Property 2 (Preservation)_
 
-  - [ ] 12.1 (OPTIONAL follow-up — NON-blocking) Companion check for the search_path-survives-replay invariant (FINDING 2)
+  - [x] 12.1 (OPTIONAL follow-up — NON-blocking) Companion check for the search_path-survives-replay invariant (FINDING 2)
     - **This is a design-note / recommendation, NOT a required code task — mark complete by acknowledging, or implement only if time allows.**
     - **Detector limitation:** the static checker `scripts/check-migration-replay-order.mjs` keys each function CREATE by its EARLIEST timestamp and only flags references occurring earlier than that earliest CREATE. It therefore CANNOT catch the FINDING 1 class — a LATER, unhardened `CREATE OR REPLACE` silently overriding the `search_path` set by an earlier `ALTER FUNCTION ... SET search_path`. The checker can print CLEAN while the FINDING 1 invariant is still violated.
     - **Recommendation:** add a companion check (or extend the checker) that asserts every function targeted by an `ALTER FUNCTION ... SET search_path` has that setting present in its LAST `CREATE OR REPLACE` in replay order, giving the static oracle coverage of the search_path-survives-replay invariant instead of relying on manual review.
@@ -288,7 +288,7 @@ Notes on ordering:
     - _Requirements: 3.10_
     - _Advances: Property 2 (Preservation)_
 
-- [ ] 13. Checkpoint — ensure all tests pass and the chain is replay-safe
+- [x] 13. Checkpoint — ensure all tests pass and the chain is replay-safe
   - Confirm `npm run db:check-replay` prints CLEAN + exits 0, the Vitest replay-order guard is green, and the full pre-push gate (`npm run lint`, `npx tsc --noEmit`, `npm test`) passes
   - Optional end-to-end: `npx supabase db reset` / Supabase Preview replays the chain from an empty DB without `42883`/`42P01` (note: the Docker replay can hang at "Initialising schema…" on some Windows hosts — the static checker is the authoritative local gate)
   - Ensure all tests pass; ask the user if questions arise
