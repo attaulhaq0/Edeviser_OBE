@@ -21,6 +21,21 @@ because it asserts the checker exits CLEAN (0 findings).
 A special sub-case exists: `rls_auto_enable()` is REVOKEd by three early migrations but is
 NEVER created anywhere in the chain, so those REVOKEs always abort on a fresh replay.
 
+Beyond the original 35 hard-abort references (13 function, 22 table) catalogued above,
+rigorous from-scratch replay testing surfaced an additional, distinct defect class —
+**CLASS H: search-path hardening stripped by a later duplicate-named
+`CREATE OR REPLACE`** — comprising **3 silent search_path-stripping regressions**. Unlike
+the 35 hard-abort references, CLASS H does NOT abort the replay (no `42883`/`42P01`): the
+function-reference order is valid. Instead it is a silent SECURITY regression. A function is
+hardened with `SET search_path` by an early `ALTER` and/or an intermediate `CREATE`, but a
+LATER duplicate-named cron/guard migration re-CREATEs it as `SECURITY DEFINER` with NO
+`SET search_path`. Because the later (greatest-timestamp) definition wins on a from-scratch
+replay (Supabase Preview / clean rebuild / DR restore), the rebuilt database ends with a
+MUTABLE search_path — re-introducing Supabase lint **0011 ("Function Search Path Mutable",
+a search_path-hijack risk)**. Production is unaffected because the early `ALTER` already ran
+there incrementally. The static replay-order checker cannot detect CLASS H because the
+function-reference ordering is valid; only the `search_path` attribute regresses.
+
 The fix must make a from-scratch replay succeed with zero too-early references while
 keeping production behavior unchanged. Fixes must be idempotent and replay-safe, preferring
 the established guard patterns (`DROP ... IF EXISTS` or a
@@ -76,6 +91,16 @@ following too-early references abort the replay.
 1.32 WHEN `node scripts/check-migration-replay-order.mjs` runs against the current chain THEN it reports 35 too-early references (13 function, 22 table) and exits with code 1
 1.33 WHEN the Vitest guard `scripts/audit/__tests__/migration-replay-order.test.ts` runs THEN it is RED because the checker does not print CLEAN and does not exit 0
 
+**Too-early/stripped FUNCTION search_path hardening (CLASS H — silent lint 0011 regression on fresh replay):**
+
+These do NOT abort the replay; they silently re-introduce a MUTABLE search_path because the
+greatest-timestamp `CREATE OR REPLACE` (the fresh-replay last-writer) lacks `SET search_path`
+even though an earlier `ALTER`/`CREATE` had hardened the same function.
+
+1.34 WHEN `badge_auto_archive()` is replayed from scratch THEN the system resolves the last-writer (greatest-timestamp) definition at `supabase/migrations/20260720000008_badge_archive_cron.sql:7` — a `CREATE OR REPLACE FUNCTION badge_auto_archive() ... SECURITY DEFINER` with NO `SET search_path` and an unqualified `UPDATE badges` — so the rebuilt `pg_proc.proconfig` has NO `search_path=` entry, silently overriding the earlier hardened copies at `20260601110014` and `20260602101558` and re-introducing Supabase lint 0011
+1.35 WHEN `badge_spotlight_auto_rotate()` is replayed from scratch THEN the system resolves the last-writer definition at `supabase/migrations/20260720000007_badge_spotlight_rotate_cron.sql:7` — `CREATE OR REPLACE FUNCTION badge_spotlight_auto_rotate() ... SECURITY DEFINER` with NO `SET search_path` and unqualified refs `institutions` and `badge_spotlight_schedule` — so the rebuilt `pg_proc.proconfig` has NO `search_path=` entry, silently overriding the hardened copy at `20260601110014` and re-introducing Supabase lint 0011
+1.36 WHEN `is_pgcron_available()` is replayed from scratch THEN the system resolves the last-writer definition at `supabase/migrations/20260615000001_conditional_pgcron_guard.sql:12` — `CREATE OR REPLACE FUNCTION public.is_pgcron_available() ... SECURITY DEFINER` with NO `SET search_path` (body references only the `pg_extension` system catalog) — so the rebuilt `pg_proc.proconfig` has NO `search_path=` entry, silently overriding the hardened copy at `20260601220105` and re-introducing Supabase lint 0011
+
 ### Expected Behavior (Correct)
 
 Each too-early statement must become replay-safe so a fresh replay no longer aborts, while
@@ -125,6 +150,12 @@ expected behaviors mirror the defects above.
 2.33 WHEN the Vitest guard `scripts/audit/__tests__/migration-replay-order.test.ts` runs THEN it SHALL pass (both the CLEAN assertion and the non-vacuous synthetic-violation assertion)
 2.34 WHEN a too-early statement references `rls_auto_enable()` (never created in the chain) THEN it SHALL be wrapped in a `DO $$ BEGIN IF to_regprocedure('public.rls_auto_enable(...)') IS NOT NULL THEN EXECUTE '...'; END IF; END $$;` block so it no-ops on a clean replay yet still applies on production where the function may exist
 
+**CLASS H search_path hardening — the fresh-replay last-writer must carry the hardening:**
+
+2.35 WHEN `badge_auto_archive()` is replayed from scratch THEN its final/last-writer CREATE at `20260720000008_badge_archive_cron.sql` SHALL carry `SET search_path = ''` (preserving `SECURITY DEFINER` and schema-qualifying body table refs, e.g. `UPDATE public.badges`) so its replayed `pg_proc.proconfig` contains a `search_path=` entry, equivalent to production
+2.36 WHEN `badge_spotlight_auto_rotate()` is replayed from scratch THEN its final/last-writer CREATE at `20260720000007_badge_spotlight_rotate_cron.sql` SHALL carry `SET search_path = ''` (preserving `SECURITY DEFINER` and schema-qualifying body table refs, e.g. `public.institutions`, `public.badge_spotlight_schedule`) so its replayed `pg_proc.proconfig` contains a `search_path=` entry, equivalent to production
+2.37 WHEN `is_pgcron_available()` is replayed from scratch THEN its final/last-writer CREATE at `20260615000001_conditional_pgcron_guard.sql` SHALL carry `SET search_path = ''` (preserving `SECURITY DEFINER`) so its replayed `pg_proc.proconfig` contains a `search_path=` entry, equivalent to production
+
 ### Unchanged Behavior (Regression Prevention)
 
 3.1 WHEN a migration statement references an object that already exists at its point in the chain (the object is CREATEd in an earlier-or-equal migration) THEN the system SHALL CONTINUE TO apply that statement unchanged
@@ -137,6 +168,12 @@ expected behaviors mirror the defects above.
 3.8 WHEN `src/types/database.ts` is involved THEN it SHALL CONTINUE TO be left unmodified (never hand-edited) — the fix touches only `supabase/migrations/` files (and, if necessary, new replay-safe corrective migrations)
 3.9 WHEN historical migration files that have already been applied to production are fixed THEN their logical effect on production SHALL CONTINUE TO be unchanged — they only become replay-safe, never reordered in a way that changes applied history
 3.10 WHEN the function objects are hardened at their CREATE site (baking `SET search_path` / `public.`-qualification into the final `CREATE OR REPLACE FUNCTION`) THEN the runtime behavior of those functions on production SHALL CONTINUE TO be equivalent to the prior `ALTER FUNCTION` result
+
+**Exhaustive-probe CLEAN confirmations (negative findings — invariants that SHALL CONTINUE TO hold):**
+
+3.11 WHEN any inline foreign key (`REFERENCES public.<table>` inside a `CREATE TABLE`) is replayed from scratch THEN it SHALL CONTINUE TO resolve to a table created in an earlier-or-equal migration, and because there are NO `ALTER TABLE ... ADD CONSTRAINT ... FOREIGN KEY` statements in the chain, no too-early FK class SHALL be introduced
+3.12 WHEN any `CREATE [OR REPLACE] VIEW` or `CREATE MATERIALIZED VIEW` (e.g. `mv_historical_evidence`, the `leaderboard_weekly` view and MV, `institutions_public`) is replayed from scratch THEN it SHALL CONTINUE TO reference only earlier-created tables, so no too-early view class SHALL be introduced
+3.13 WHEN any `CREATE TRIGGER ... EXECUTE FUNCTION` is replayed from scratch THEN its target function SHALL CONTINUE TO be created in an earlier-or-equal (co-located) migration, so no trigger-before-function class SHALL be introduced
 
 ## Bug Condition and Properties
 
@@ -170,6 +207,33 @@ FUNCTION isBugCondition(stmt)
 END FUNCTION
 ```
 
+### Bug Condition — CLASS H (silent stripped search_path hardening)
+
+CLASS H is not a too-early reference (the static checker stays CLEAN for it); it is a
+silent regression of the `search_path` attribute on a function's fresh-replay last-writer.
+
+```pascal
+FUNCTION isStrippedHardening(fn)
+  INPUT: fn — a function with one or more CREATE OR REPLACE definitions across the chain
+  OUTPUT: boolean
+
+  // The fresh-replay winner is the greatest-timestamp CREATE OR REPLACE for fn.
+  lastWriter ← greatestTimestampCreate(fn)
+
+  // Was fn ever hardened by an earlier ALTER ... SET search_path or an earlier CREATE
+  // that included SET search_path?
+  hardenedEarlier ← EXISTS earlier (ALTER FUNCTION fn ... SET search_path)
+                  OR EXISTS earlier (CREATE OR REPLACE FUNCTION fn ... SET search_path)
+
+  // Defective when the winning definition drops the hardening that an earlier one applied.
+  RETURN hardenedEarlier AND NOT hasSetSearchPath(lastWriter)
+END FUNCTION
+```
+
+Examples flagged by `isStrippedHardening`: `badge_auto_archive()` (last-writer
+`20260720000008:7`), `badge_spotlight_auto_rotate()` (last-writer `20260720000007:7`),
+`is_pgcron_available()` (last-writer `20260615000001:12`).
+
 ### Property: Fix Checking
 
 ```pascal
@@ -182,6 +246,12 @@ END FOR
 // Aggregate oracle:
 result ← run('node scripts/check-migration-replay-order.mjs')
 ASSERT result.stdout CONTAINS "CLEAN" AND result.exitCode = 0
+
+// CLASS H: every previously-hardened function's fresh-replay last-writer keeps the hardening.
+FOR ALL fn WHERE isStrippedHardening(fn) DO
+  ASSERT NOT isStrippedHardening(fn')          // last-writer CREATE now carries SET search_path
+  ASSERT hasSetSearchPath(greatestTimestampCreate(fn'))
+END FOR
 ```
 
 ### Property: Preservation Checking

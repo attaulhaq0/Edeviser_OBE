@@ -349,6 +349,13 @@ jobs:
         # is fine. This catches that class statically, before the Supabase Preview check.
         run: node scripts/check-migration-replay-order.mjs
 
+      - name: Duplicate migration base-name guard (root-cause guard for regressed re-definitions)
+        # A re-used <base-name> means the later file wins on a fresh replay; if it carries an
+        # older/less-hardened body it silently regresses the rebuilt DB (root cause of the
+        # CLASS A/H search_path regressions). Known/applied duplicates are grandfathered in
+        # the script's allowlist; any NEW duplicate base-name fails here.
+        run: node scripts/check-migration-duplicate-names.mjs
+
       - name: Declared-object existence check (C4 — Req 20, 21.1)
         # Verifies every DB object a completed task declares as created (materialized views,
         # functions, …) actually exists in the target schema — closing the "task checked off

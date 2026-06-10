@@ -8,13 +8,14 @@ CREATE OR REPLACE FUNCTION badge_auto_archive()
 RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path = ''
 AS $$
 BEGIN
   -- Archive badges that:
   -- 1. Have not been upgraded (awarded_at or updated_at) in the last 90 days
   -- 2. Are NOT pinned
   -- 3. Are not already archived
-  UPDATE badges
+  UPDATE public.badges
   SET archived_at = now()
   WHERE archived_at IS NULL
     AND is_pinned = false

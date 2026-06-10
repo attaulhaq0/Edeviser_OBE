@@ -8,6 +8,7 @@ CREATE OR REPLACE FUNCTION badge_spotlight_auto_rotate()
 RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
+SET search_path = ''
 AS $$
 DECLARE
   inst RECORD;
@@ -22,10 +23,10 @@ BEGIN
   current_monday := date_trunc('week', now())::date;
 
   -- Iterate over all institutions
-  FOR inst IN SELECT id FROM institutions LOOP
+  FOR inst IN SELECT id FROM public.institutions LOOP
     -- Check if there's already a manual selection for this week
     SELECT EXISTS(
-      SELECT 1 FROM badge_spotlight_schedule
+      SELECT 1 FROM public.badge_spotlight_schedule
       WHERE institution_id = inst.id
         AND week_start = current_monday
     ) INTO has_manual;
@@ -40,7 +41,7 @@ BEGIN
 
     -- Get the last spotlight category for this institution
     SELECT category INTO last_category
-    FROM badge_spotlight_schedule
+    FROM public.badge_spotlight_schedule
     WHERE institution_id = inst.id
     ORDER BY week_start DESC
     LIMIT 1;
@@ -58,7 +59,7 @@ BEGIN
     END IF;
 
     -- Insert the auto-rotated spotlight
-    INSERT INTO badge_spotlight_schedule (institution_id, week_start, category, is_manual)
+    INSERT INTO public.badge_spotlight_schedule (institution_id, week_start, category, is_manual)
     VALUES (inst.id, current_monday, next_category, false)
     ON CONFLICT (institution_id, week_start) DO NOTHING;
   END LOOP;

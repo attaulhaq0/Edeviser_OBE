@@ -35,8 +35,8 @@ run `npm run lint`, `npx tsc --noEmit`, and `npm test` before any push.
     },
     {
       "wave": 2,
-      "description": "Function/privilege classes A, B, C — harden at CREATE site and guard early statements",
-      "tasks": ["3", "4", "5"]
+      "description": "Function/privilege classes A, B, C and H — harden at CREATE/last-writer site and guard early statements (Task 14 = CLASS H, independent of D/E/F)",
+      "tasks": ["3", "4", "5", "14"]
     },
     {
       "wave": 3,
@@ -50,7 +50,7 @@ run `npm run lint`, `npx tsc --noEmit`, and `npm test` before any push.
     },
     {
       "wave": 5,
-      "description": "Fix verification + preservation verification + class-0 re-verification",
+      "description": "Fix verification + preservation verification + class-0 re-verification (covers Task 14 / CLASS H last-writer hardening)",
       "tasks": ["10", "11", "12"]
     },
     {
@@ -67,8 +67,9 @@ Notes on ordering:
 - Tasks 1–2 MUST run first on the UNFIXED chain (exploration before preservation before any fix).
 - Task 3 (CLASS A) has sub-tasks 3.1 (guard early ALTERs), 3.2 (bake `SET search_path = ''` into each function's TRUE last-writer CREATE — corrected per FINDING 1, all five functions), and 3.3 (verify the hardening survives the last-writer CREATE on a fresh replay via `pg_proc.proconfig`). 3.3 depends on 3.1 + 3.2.
 - Task 6 (corrective migration) MUST be created before tasks 7–9 guard the early D/E/F statements, so a fresh replay still reaches the correct final state.
-- Tasks 10–12 (verification) depend on every fix task (3–9). Task 12.1 is an OPTIONAL, non-blocking follow-up (FINDING 2 detector-limitation recommendation).
-- Task 13 (checkpoint) depends on all prior tasks.
+- Task 14 (CLASS H) is independent of D/E/F (tasks 6–9) and of B/C — like CLASS A it hardens `search_path` at each function's fresh-replay last-writer CREATE. It runs in the function/hardening wave (wave 2) and is verified by tasks 10–12 (its 14.4 `proconfig` check is part of the Property 2 preservation gate, alongside task 3.3).
+- Tasks 10–12 (verification) depend on every fix task (3–9 and 14). Task 12.1 is an OPTIONAL, non-blocking follow-up (FINDING 2 detector-limitation recommendation); task 12.2 re-confirms the exhaustive-probe CLEAN negative findings (FK / view-MV / trigger co-location) as standing invariants.
+- Task 13 (checkpoint) depends on all prior tasks (including Task 14).
 
 ## Tasks
 
@@ -281,6 +282,7 @@ Notes on ordering:
   - _Advances: Property 2 (Preservation)_
 
   - [x] 12.1 (OPTIONAL follow-up — NON-blocking) Companion check for the search_path-survives-replay invariant (FINDING 2)
+
     - **This is a design-note / recommendation, NOT a required code task — mark complete by acknowledging, or implement only if time allows.**
     - **Detector limitation:** the static checker `scripts/check-migration-replay-order.mjs` keys each function CREATE by its EARLIEST timestamp and only flags references occurring earlier than that earliest CREATE. It therefore CANNOT catch the FINDING 1 class — a LATER, unhardened `CREATE OR REPLACE` silently overriding the `search_path` set by an earlier `ALTER FUNCTION ... SET search_path`. The checker can print CLEAN while the FINDING 1 invariant is still violated.
     - **Recommendation:** add a companion check (or extend the checker) that asserts every function targeted by an `ALTER FUNCTION ... SET search_path` has that setting present in its LAST `CREATE OR REPLACE` in replay order, giving the static oracle coverage of the search_path-survives-replay invariant instead of relying on manual review.
@@ -288,18 +290,79 @@ Notes on ordering:
     - _Requirements: 3.10_
     - _Advances: Property 2 (Preservation)_
 
+  - [x] 12.2 Re-confirm the exhaustive-probe CLEAN negative findings as standing invariants
+    - **Property 2: Preservation** - No new replay-order class is introduced (FK / view-MV / trigger co-location stay CLEAN)
+    - **Inline FK ordering CLEAN:** confirm every foreign key is declared inline (`REFERENCES public.<table>`) inside its `CREATE TABLE`, there are NO `ALTER TABLE ... ADD CONSTRAINT ... FOREIGN KEY` statements in the chain, and all inline references resolve to earlier-created parent tables — so no too-early FK class exists
+    - **View / MV ordering CLEAN:** confirm `mv_historical_evidence`, the `leaderboard_weekly` view and materialized view, and `institutions_public` reference only earlier-created tables — so no too-early view class exists
+    - **Trigger → function co-location CLEAN:** confirm every `CREATE TRIGGER ... EXECUTE FUNCTION` is co-located in the same migration as its function's CREATE — so no trigger-before-function class exists
+    - **EXPECTED OUTCOME**: all three negative findings still hold on a fresh replay; the taxonomy (A–F plus the search_path class H) remains complete with no new class introduced
+    - _Requirements: 3.11, 3.12, 3.13_
+    - _Advances: Property 2 (Preservation)_
+
 - [x] 13. Checkpoint — ensure all tests pass and the chain is replay-safe
+
   - Confirm `npm run db:check-replay` prints CLEAN + exits 0, the Vitest replay-order guard is green, and the full pre-push gate (`npm run lint`, `npx tsc --noEmit`, `npm test`) passes
   - Optional end-to-end: `npx supabase db reset` / Supabase Preview replays the chain from an empty DB without `42883`/`42P01` (note: the Docker replay can hang at "Initialising schema…" on some Windows hosts — the static checker is the authoritative local gate)
   - Ensure all tests pass; ask the user if questions arise
   - _Requirements: 2.32, 2.33, 3.7_
 
+- [x] 14. CLASS H — harden `search_path` at the fresh-replay last-writer for the three duplicate-overridden functions
+
+  - **FINDING 3 / CLASS H:** three SECURITY DEFINER functions are hardened by an early `ALTER`/`CREATE`, but a LATER duplicate-named cron/guard migration re-CREATEs each as `SECURITY DEFINER` WITHOUT `SET search_path`. On a fresh replay the greatest-timestamp definition wins, so the rebuilt function ends up un-hardened — a silent Supabase lint 0011 ("Function Search Path Mutable") regression that does NOT hard-abort the replay (no `42883`/`42P01`). The function-reference ordering is itself valid; the fix is to add the missing hardening to the fresh-replay last-writer (harden-at-last-writer-CREATE — NOT a guard, NOT a corrective migration).
+  - **Independent of D/E/F (tasks 6–9) and B/C** — this is a function-hardening task in the same family as CLASS A (task 3).
+  - _Bug_Condition: isStrippedHardening(fn) where fn ∈ {`badge_auto_archive`, `badge_spotlight_auto_rotate`, `is_pgcron_available`} was hardened earlier but its greatest-timestamp `CREATE OR REPLACE` lacks `SET search_path`_
+  - _Expected_Behavior: each function's fresh-replay last-writer `CREATE OR REPLACE` carries `SET search_path = ''` (preserving `SECURITY DEFINER`, body schema-qualified) so its replayed `pg_proc.proconfig` contains a `search_path=` entry, equivalent to production_
+  - _Preservation: production is unchanged (the early hardened copy already ran incrementally); each function remains runtime-equivalent (same archival/rotation/boolean behavior, `SECURITY DEFINER` preserved)_
+
+  - [x] 14.1 Harden `badge_auto_archive()` at its fresh-replay last-writer
+
+    - Add `SET search_path = ''` to `badge_auto_archive()` at `supabase/migrations/20260720000008_badge_archive_cron.sql` (the greatest-timestamp `CREATE OR REPLACE`, overriding the hardened copies at `20260601110014` and `20260602101558`)
+    - Preserve `SECURITY DEFINER`; schema-qualify the body (`UPDATE public.badges`) so it resolves under `search_path = ''`
+    - Keep the function's logical effect identical (archives the same rows)
+    - _Bug_Condition: isStrippedHardening(`badge_auto_archive`) — last-writer `20260720000008:7` lacks `SET search_path`_
+    - _Expected_Behavior: last-writer CREATE carries `SET search_path = ''`; replayed `proconfig` contains `search_path=`_
+    - _Preservation: archival behavior + `SECURITY DEFINER` unchanged; production already hardened_
+    - _Files: `supabase/migrations/20260720000008_badge_archive_cron.sql`_
+    - _Requirements: 2.35_
+
+  - [x] 14.2 Harden `badge_spotlight_auto_rotate()` at its fresh-replay last-writer
+
+    - Add `SET search_path = ''` to `badge_spotlight_auto_rotate()` at `supabase/migrations/20260720000007_badge_spotlight_rotate_cron.sql` (the greatest-timestamp `CREATE OR REPLACE`, overriding the hardened copy at `20260601110014`)
+    - Preserve `SECURITY DEFINER`; schema-qualify the body refs (`public.institutions`, `public.badge_spotlight_schedule`) so they resolve under `search_path = ''`
+    - Keep the function's logical effect identical (rotates the same schedule)
+    - _Bug_Condition: isStrippedHardening(`badge_spotlight_auto_rotate`) — last-writer `20260720000007:7` lacks `SET search_path`_
+    - _Expected_Behavior: last-writer CREATE carries `SET search_path = ''`; replayed `proconfig` contains `search_path=`_
+    - _Preservation: rotation behavior + `SECURITY DEFINER` unchanged; production already hardened_
+    - _Files: `supabase/migrations/20260720000007_badge_spotlight_rotate_cron.sql`_
+    - _Requirements: 2.36_
+
+  - [x] 14.3 Harden `is_pgcron_available()` at its fresh-replay last-writer
+
+    - Add `SET search_path = ''` to `is_pgcron_available()` at `supabase/migrations/20260615000001_conditional_pgcron_guard.sql` (the greatest-timestamp `CREATE OR REPLACE`, overriding the hardened copy at `20260601220105`)
+    - Preserve `SECURITY DEFINER`; the body references only the `pg_extension` system catalog, so no table schema-qualification is needed
+    - Keep the function's logical effect identical (returns the same boolean)
+    - _Bug_Condition: isStrippedHardening(`is_pgcron_available`) — last-writer `20260615000001:12` lacks `SET search_path`_
+    - _Expected_Behavior: last-writer CREATE carries `SET search_path = ''`; replayed `proconfig` contains `search_path=`_
+    - _Preservation: boolean behavior + `SECURITY DEFINER` unchanged; production already hardened_
+    - _Files: `supabase/migrations/20260615000001_conditional_pgcron_guard.sql`_
+    - _Requirements: 2.37_
+
+  - [x] 14.4 Verify the three CLASS H last-writers carry the hardening and remain runtime-equivalent
+    - **Property 2: Preservation** - CLASS H fresh-replay last-writers carry `search_path` and behavior is unchanged
+    - **IMPORTANT**: Run AFTER applying 14.1–14.3
+    - Assert: `SELECT proname, proconfig FROM pg_proc WHERE proname IN ('badge_auto_archive','badge_spotlight_auto_rotate','is_pgcron_available')` — every row's `proconfig` contains a `search_path=` entry (none NULL / none missing)
+    - Assert each function remains runtime-equivalent: same archival behavior (`badge_auto_archive`), same rotation behavior (`badge_spotlight_auto_rotate`), same boolean result (`is_pgcron_available`), with `SECURITY DEFINER` preserved
+    - **EXPECTED OUTCOME**: all three `proconfig` rows carry `search_path=`; logical behavior unchanged
+    - _Requirements: 2.35, 2.36, 2.37, 3.10_
+    - _Validates: Property 2 (Preservation)_
+
 ## Notes
 
 - **Methodology:** Task 1 (exploration) and task 2 (preservation) MUST run on the UNFIXED chain before any fix. The exploration "test" is the checker output — it is EXPECTED to report 35 findings / exit 1, and that failing result is the success criterion proving the bug exists.
 - **Property 1 (Fix Checking)** is validated by task 10: the oracle prints CLEAN + exits 0 and the Vitest guard passes.
-- **Property 2 (Preservation)** is validated by tasks 11–12 and by task 3.3: reconciled/unrelated migrations unflagged and unchanged, `src/types/database.ts` untouched, lint/tsc/test green, and every CLASS A function's final replayed `pg_proc.proconfig` carries a `search_path=` entry (FINDING 1).
+- **Property 2 (Preservation)** is validated by tasks 11–12 and by tasks 3.3 and 14.4: reconciled/unrelated migrations unflagged and unchanged, `src/types/database.ts` untouched, lint/tsc/test green, every CLASS A function's final replayed `pg_proc.proconfig` carries a `search_path=` entry (FINDING 1), and every CLASS H function's fresh-replay last-writer carries `search_path=` (FINDING 3).
 - **CLASS A last-writer correction (FINDING 1):** `20260601110014` is NOT the last-writer for the CLASS A functions. Each of the five functions is hardened at its TRUE last-writer (greatest-timestamp `CREATE OR REPLACE`) per task 3.2, with body table references `public.`-qualified so they resolve under `search_path = ''`. Task 3.3 verifies the hardening survives the last-writer CREATE on a fresh replay.
+- **CLASS H — search_path stripped by a later duplicate-named CREATE (FINDING 3, task 14):** three SECURITY DEFINER functions — `badge_auto_archive()`, `badge_spotlight_auto_rotate()`, `is_pgcron_available()` — are hardened by an early `ALTER`/`CREATE` but silently un-hardened by a LATER duplicate-named cron/guard migration that wins the fresh-replay last-writer race. This is a silent lint 0011 regression (no `42883`/`42P01`; reference ordering is valid). The fix is harden-at-last-writer-CREATE (NOT a guard, NOT a corrective migration): each function is hardened with `SET search_path = ''` at its fresh-replay last-writer (`20260720000008`, `20260720000007`, `20260615000001` respectively), preserving `SECURITY DEFINER` and schema-qualifying bodies (`is_pgcron_available` needs none). Task 14.4 verifies via `proconfig`. The exhaustive-probe CLEAN negative findings (inline FK ordering, view/MV ordering, trigger→function co-location) are re-confirmed as standing invariants by task 12.2 (Requirements 3.11–3.13).
 - **Corrective migration is mandatory for D/E/F:** guarding alone stops the abort but never creates the object on a fresh replay; `20260821000005` re-asserts the indexes, final initplan-wrapped policies, columns, and publication membership so a DR restore reaches the correct final state.
 - **Hard constraints (every task):** never hand-edit or overwrite `src/types/database.ts`; never reorder or rename historical migration files; keep production logical effect identical (guards evaluate true where objects exist); every edited statement is idempotent and replay-safe.
 - **Authoritative local gate:** `npm run db:check-replay` (static checker) — the Docker `supabase db reset` is optional and can hang at "Initialising schema…" on some Windows hosts.
