@@ -61,6 +61,8 @@ const TeamMemberList = ({
                 <img
                   src={member.avatarUrl}
                   alt=""
+                  loading="lazy"
+                  decoding="async"
                   className="h-8 w-8 rounded-full object-cover"
                 />
               ) : (

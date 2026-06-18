@@ -34,6 +34,8 @@ const CoordinatorProfilePage = () => {
               <img
                 src={`${profile.avatar_url}?width=64&height=64&resize=cover`}
                 alt={profile.full_name}
+                loading="lazy"
+                decoding="async"
                 className="h-16 w-16 rounded-full object-cover"
               />
             ) : (
