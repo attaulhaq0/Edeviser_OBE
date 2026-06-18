@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -284,5 +284,64 @@ describe("LoginPage", () => {
       expect(screen.getByText(/invalid email address/i)).toBeInTheDocument();
     });
     expect(mockSignInWithPassword).not.toHaveBeenCalled();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Register tab — self-signup role affordance (Production Bug Fixes — Req 5)
+//
+// The server `handle_new_user` trigger forces role='student' for self-signup
+// (no invitation_id) and ignores any requested role. The register tab must
+// therefore NOT offer privileged roles (admin/teacher/coordinator/parent) that
+// the backend would silently ignore — otherwise a user could pick "Admin" and
+// quietly receive a student account. This keeps LoginPage consistent with the
+// dedicated SignUpPage, which hard-codes 'student'. See Requirement 5.
+// ---------------------------------------------------------------------------
+describe("LoginPage — register tab role affordance (Req 5)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    localStorage.clear();
+    setupMocks();
+  });
+
+  const openRegisterTab = async () => {
+    const user = userEvent.setup();
+    renderLoginPage();
+    await waitFor(() => {
+      expect(
+        screen.getByRole("tab", { name: /register/i })
+      ).toBeInTheDocument();
+    });
+    await user.click(screen.getByRole("tab", { name: /register/i }));
+    // Register form has mounted once the first-name field is present.
+    await waitFor(() => {
+      expect(screen.getByPlaceholderText("First")).toBeInTheDocument();
+    });
+  };
+
+  it("does not offer privileged self-signup roles the server would ignore", async () => {
+    await openRegisterTab();
+
+    // The previous role <select> (a native combobox) is removed entirely.
+    expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
+
+    // None of the privileged roles are selectable on the register tab.
+    for (const role of ["Teacher", "Coordinator", "Admin", "Parent"]) {
+      expect(
+        screen.queryByRole("option", { name: role })
+      ).not.toBeInTheDocument();
+    }
+  });
+
+  it("communicates that self-registration creates a student account", async () => {
+    await openRegisterTab();
+
+    const panel = within(screen.getByRole("tabpanel"));
+    // A read-only "Student" indicator replaces the role picker...
+    expect(panel.getByText("Student")).toBeInTheDocument();
+    // ...alongside the trust hint that staff roles require an invitation.
+    expect(
+      panel.getByText(/staff roles require an invitation/i)
+    ).toBeInTheDocument();
   });
 });

@@ -710,4 +710,82 @@ describe("OnboardingWizard", () => {
       ).not.toBeInTheDocument();
     });
   });
+
+  // ── Completion navigation resilience (Req 2 — onboarding trap) ────
+  // A brand-new student must ALWAYS reach the dashboard when they click
+  // "Complete", even if process-onboarding is slow / errors / unavailable.
+  // Navigation is decoupled from the Edge Function's success and lives in a
+  // `finally` block; the failure is logged (not silently swallowed) and the
+  // profile post-processing call itself is preserved.
+
+  describe("Completion navigation resilience (Req 2)", () => {
+    const navigateToSummary = async (
+      user: ReturnType<typeof userEvent.setup>
+    ) => {
+      for (let i = 0; i < 3; i++) {
+        await user.click(screen.getByRole("button", { name: /next/i }));
+      }
+      await waitFor(() =>
+        expect(screen.getByTestId("summary-step")).toBeInTheDocument()
+      );
+    };
+
+    it("still navigates to /student when processOnboarding REJECTS (no dead-end overlay)", async () => {
+      // Simulate the Edge Function being slow/erroring/unavailable.
+      mockMutateAsync.mockRejectedValueOnce(
+        new Error("process-onboarding unavailable")
+      );
+      // The failure must be logged, not silently swallowed — spy + silence it.
+      const consoleErrorSpy = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
+
+      const user = userEvent.setup();
+      renderWizard({ isDay1: true });
+      await navigateToSummary(user);
+
+      await user.click(screen.getByTestId("confirm-profile"));
+
+      // Profile post-processing is still attempted (call is not removed)…
+      await waitFor(() => expect(mockMutateAsync).toHaveBeenCalled());
+      // …and despite the rejection the student still lands on the dashboard.
+      await waitFor(() =>
+        expect(mockNavigate).toHaveBeenCalledWith("/student")
+      );
+      // The failure was logged (Req 2 AC#3 — not silently swallowed).
+      expect(consoleErrorSpy).toHaveBeenCalled();
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it("navigates to /student AND writes completion flags when processOnboarding RESOLVES", async () => {
+      mockMutateAsync.mockResolvedValueOnce({ success: true });
+
+      const user = userEvent.setup();
+      renderWizard({ isDay1: true });
+      await navigateToSummary(user);
+
+      await user.click(screen.getByTestId("confirm-profile"));
+
+      // Edge Function invoked with the student's onboarding payload.
+      await waitFor(() =>
+        expect(mockMutateAsync).toHaveBeenCalledWith(
+          expect.objectContaining({ student_id: "student-1", is_day1: true })
+        )
+      );
+      // Completion-progress write happens (dimension flags + day1_completed).
+      await waitFor(() =>
+        expect(mockMutate).toHaveBeenCalledWith(
+          expect.objectContaining({
+            personality_completed: true,
+            day1_completed: true,
+          })
+        )
+      );
+      // And the student is routed to the dashboard.
+      await waitFor(() =>
+        expect(mockNavigate).toHaveBeenCalledWith("/student")
+      );
+    });
+  });
 });

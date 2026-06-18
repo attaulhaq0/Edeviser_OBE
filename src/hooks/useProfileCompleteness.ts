@@ -11,7 +11,10 @@ export interface ProfileCompletenessData {
 
 // ── useProfileCompleteness — fetch completeness % ────────────────────
 
-export const useProfileCompleteness = (studentId: string) => {
+export const useProfileCompleteness = (
+  studentId: string,
+  options?: { enabled?: boolean }
+) => {
   return useQuery({
     queryKey: queryKeys.onboarding.profileCompleteness(studentId),
     queryFn: async (): Promise<ProfileCompletenessData | null> => {
@@ -43,6 +46,6 @@ export const useProfileCompleteness = (studentId: string) => {
         day1_completed: progress?.day1_completed ?? false,
       };
     },
-    enabled: !!studentId,
+    enabled: !!studentId && (options?.enabled ?? true),
   });
 };

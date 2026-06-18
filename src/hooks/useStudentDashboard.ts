@@ -19,7 +19,10 @@ export interface UpcomingDeadline {
   due_date: string;
 }
 
-export const useStudentKPIs = (studentId: string | undefined) => {
+export const useStudentKPIs = (
+  studentId: string | undefined,
+  options?: { enabled?: boolean }
+) => {
   return useQuery({
     queryKey: queryKeys.studentGamification.detail(studentId ?? ""),
     queryFn: async (): Promise<StudentKPIData> => {
@@ -87,14 +90,15 @@ export const useStudentKPIs = (studentId: string | undefined) => {
         totalActiveDays: gamRow?.total_active_days ?? 0,
       };
     },
-    enabled: !!studentId,
+    enabled: !!studentId && (options?.enabled ?? true),
     staleTime: 30_000,
   });
 };
 
 export const useUpcomingDeadlines = (
   studentId: string | undefined,
-  limit: number = 5
+  limit: number = 5,
+  options?: { enabled?: boolean }
 ) => {
   return useQuery({
     queryKey: queryKeys.assignments.list({ studentId, upcoming: true, limit }),
@@ -128,7 +132,7 @@ export const useUpcomingDeadlines = (
         due_date: a.due_date,
       }));
     },
-    enabled: !!studentId,
+    enabled: !!studentId && (options?.enabled ?? true),
     staleTime: 30_000,
   });
 };

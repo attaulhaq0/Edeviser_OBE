@@ -81,7 +81,11 @@ export const createColumns = (
       accessorKey: "is_active",
       header: "Status",
       cell: ({ row }) => {
-        const isActive = row.getValue("is_active") as boolean;
+        // `learning_outcomes` has no `is_active` column — ILOs are always
+        // active once created. Default missing values to active so the badge
+        // never falsely shows "Inactive".
+        const rawActive = row.getValue("is_active") as boolean | undefined;
+        const isActive = rawActive ?? true;
         return (
           <Badge
             variant="outline"

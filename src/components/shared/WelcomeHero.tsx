@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Card } from "@/components/ui/card";
+import { getDisplayFirstName } from "@/lib/displayName";
 import type { ReactNode } from "react";
 import type { UserRole } from "@/types/app";
 
@@ -45,8 +46,11 @@ const WelcomeHero = ({
     return t("greeting.evening", "Good evening");
   })();
 
-  // Extract first name if full name is provided; fall back to translated 'there' for empty names
-  const firstName = name?.split(" ")[0] || t("greeting.there", "there");
+  // Extract a display first name. Seeded names carry honorific titles
+  // ("Mr. David Okonkwo", "Dr. Aisha Al-Mansoori"), so the shared helper skips
+  // a leading honorific token to avoid greeting users as "Mr."/"Dr.". Empty
+  // names fall back to the translated "there".
+  const firstName = getDisplayFirstName(name) ?? t("greeting.there", "there");
 
   return (
     <Card

@@ -332,7 +332,10 @@ export interface StudentCourseAttendance {
   attended: number;
 }
 
-export const useStudentAttendance = (studentId: string | undefined) => {
+export const useStudentAttendance = (
+  studentId: string | undefined,
+  options?: { enabled?: boolean }
+) => {
   return useQuery({
     queryKey: queryKeys.attendanceRecords.list({
       studentId,
@@ -422,7 +425,11 @@ export const useStudentAttendance = (studentId: string | undefined) => {
 
       return results;
     },
-    enabled: !!studentId,
+    // Backward-compatible: callers that omit `options` keep the prior
+    // `enabled: !!studentId` behavior. The optional `enabled` lets callers (e.g.
+    // StudentDashboard, where the aggregate RPC already returns attendance) gate
+    // this hook to a fallback-only fetch without changing any other call site.
+    enabled: !!studentId && (options?.enabled ?? true),
     staleTime: 60_000,
   });
 };
