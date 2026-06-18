@@ -26,21 +26,48 @@
 
 - [ ] 2. **Student dashboard aggregate RPC** (Req 2, 3) — prove the pattern
 
-  - [ ] 2.1 Migration: `get_student_dashboard(p_student_id uuid) returns jsonb`,
+  - [x] 2.1 Migration: `get_student_dashboard(p_student_id uuid) returns jsonb`,
         `SECURITY INVOKER`, `set search_path=''`, `stable`, set-based reads mirroring the
         current hooks' filters (incl. `outcome_attainment scope='student_course'`);
         `public.`-qualified. Apply via `apply_migration`; `db:check-replay` clean.
+        — DONE: `supabase/migrations/20260821000006_create_get_student_dashboard_rpc.sql`
+        (covers kpis, deadlines, attendance, streakFreeze, profileCompleteness,
+        announcements). `npm run db:check-replay` CLEAN (309 migrations). NOT yet applied
+        to the linked project (reaches prod only on PR merge, per preview-and-test-gate).
   - [ ] 2.2 Regenerate types (`scripts/regen-types.ps1`).
-  - [ ] 2.3 Add `useStudentDashboardAggregate` hook that calls the RPC and hydrates each
-        existing section query key via `queryClient.setQueryData(...)`.
-  - [ ] 2.4 Keep section hooks' own `queryFn` as fallback (cache-miss / RPC failure).
+        — BLOCKED until 2.1's migration is applied to the linked project. Verified the
+        function does not yet exist in linked project `cdlgtbvxlxjpcddjazzx`, and the
+        regen script reads `--project-id` (remote), so a regen now cannot add it and would
+        risk unrelated schema drift. Interim: `useStudentDashboardAggregate.ts` (and the
+        2.7 RLS test) cast ONLY the `rpc` surface (no `any`, Static_Cast_Guard-safe);
+        remove the shim in a follow-up regen after merge.
+  - [x] 2.3 Add `useStudentDashboardAggregate` hook that calls the RPC and hydrates each
+        existing section query key via `queryClient.setQueryData(...)`. — DONE.
+  - [x] 2.4 Keep section hooks' own `queryFn` as fallback (cache-miss / RPC failure).
+        — DONE: section hooks gated `enabled: aggregate.isError` (backward-compatible
+        optional arg for all other callers).
   - [ ] 2.5 Remove `useDeferredMount(500)` + `deferredStudentId` gating from
         `StudentDashboard`.
-  - [ ] 2.6 Parity test: aggregate payload deep-equals the union of prior per-section
-        hook results for a fixture student.
-  - [ ] 2.7 RLS property test: student A's RPC never returns student B's data.
+        — PARTIAL / by-design deviation: the aggregate covers the critical above-fold
+        block only; ~20 non-critical sections (badges, teams, challenges, league tier,
+        CLO/independence, comeback, micro-assessment, starter-week, etc.) are still
+        deferred, so removing `useDeferredMount(500)` now would re-introduce that herd.
+        Fully satisfying Req 3 requires first expanding the aggregate to the remaining
+        always-on sections (Req 2.6 still excludes realtime + conditional/rare ones).
+        Tracked as a follow-up decision — NOT done as literally written.
+  - [x] 2.6 Parity test: aggregate payload deep-equals the union of prior per-section
+        hook results for a fixture student. — DONE: `useStudentDashboardAggregate.test.ts`
+        (parity + key-set parity + hydration + collapse + fallback; 19/19 green).
+  - [x] 2.7 RLS property test: student A's RPC never returns student B's data.
+        — DONE: `src/__tests__/integration-rls/getStudentDashboard.rls.test.ts`
+        (skip-safe; A→A enrolled=1, A→B all zero/empty, B→A zero). Runs on the `rls-smoke`
+        preview CI job; skips locally without secrets.
   - [ ] 2.8 **Measure:** Network request count on mount ~27 → ~1; record `*.after.*`.
         PR with before/after.
+        — PENDING: requires a manual DevTools Network capture on a running app against a
+        DB that has the RPC (post-merge / preview branch); the collapse is unit-proven
+        (2.6 "collapse" test = zero section requests on aggregate success) but the live
+        ~27→1 number is not yet recorded under `audit/baselines/ux-perf/*.after.*`.
 
 - [ ] 3. **Roll the aggregate to the other roles** (Req 2.7) — one PR each, after Task 2 proven
 
@@ -56,17 +83,35 @@
         immediately; no query gates first paint.
   - [ ] 4.2 Reserve card heights to avoid layout shift; verify CLS in Lighthouse.
 
-- [ ] 5. **`keepPreviousData` on paginated lists** (Req 5)
+- [x] 5. **`keepPreviousData` on paginated lists** (Req 5)
 
-  - [ ] 5.1 Add `placeholderData: keepPreviousData` to each paginated list hook.
-  - [ ] 5.2 Render test: prior rows persist (dimmed via `isFetching`) across a page
+  - [x] 5.1 Add `placeholderData: keepPreviousData` to each paginated list hook.
+        — DONE: added to the 11 standard `useQuery` list hooks (`useAssignments`,
+        `useAuditLogs`, `useCLOs`, `useCourses`, `useEnrollments`, `useILOs`, `usePLOs`,
+        `usePrograms`, `useRubrics`, `useSubmissions`, `useUsers`) — only the
+        `PaginatedResult<T>` list query in each; detail queries untouched.
+        `useMarketplace` + `useDiscussions` use `useInfiniteQuery` (already retain pages),
+        so they are correctly out of scope.
+  - [x] 5.2 Render test: prior rows persist (dimmed via `isFetching`) across a page
         change; data semantics unchanged.
+        — DONE: `src/__tests__/unit/keepPreviousDataPagination.test.ts` (representative
+        `usePrograms`): asserts the prior page's rows remain as `isPlaceholderData` while
+        page 2 is fetching, then swap in with semantics unchanged.
 
-- [ ] 6. **Complete lazy images** (Req 6)
+- [x] 6. **Complete lazy images** (Req 6)
 
-  - [ ] 6.1 Grep all `<img>` for avatars/badges/material thumbnails; add
+  - [x] 6.1 Grep all `<img>` for avatars/badges/material thumbnails; add
         `loading="lazy"` (+ `decoding="async"`), preserve CDN transform params.
-  - [ ] 6.2 Verify avatar `?width/height` transforms still applied.
+        — DONE: `loading="lazy"` + `decoding="async"` added to the 9 network-fetched
+        avatar imgs (`AvatarUpload` current avatar, `ParentStudentCard`, `TeamMemberList`,
+        `ProfilePage`, and the 5 settings avatars). Skipped (with rationale): brand logo +
+        auth-page illustrations (above-the-fold, would hurt LCP; not avatars/badges/
+        thumbnails), the Radix `ProfileDropdown` header avatar, and local data/object-URL
+        previews (lazy is a no-op). No badge-icon or course/material `<img>` thumbnails
+        exist (badges render as Lucide icons). `ChatMessage` already had `loading="lazy"`.
+  - [x] 6.2 Verify avatar `?width/height` transforms still applied.
+        — DONE: the Supabase CDN params (`?width=128&height=128&resize=cover` /
+        `?width=64&height=64&resize=cover`) are preserved on every edited avatar.
 
 - [ ] 7. **Extend optimistic UI** (Req 7)
   - [ ] 7.1 Apply `useOptimisticToggle` / standard `onMutate` pattern to settings/
