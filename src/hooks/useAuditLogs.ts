@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
 import type { PaginatedResult } from "@/types/pagination";
@@ -35,6 +35,7 @@ export const useAuditLogs = (filters: AuditLogFilters = {}) => {
       string,
       unknown
     >),
+    placeholderData: keepPreviousData,
     queryFn: async (): Promise<PaginatedResult<AuditLogRecord>> => {
       let query = supabase
         .from("audit_logs")

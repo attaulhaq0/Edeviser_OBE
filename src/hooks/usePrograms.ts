@@ -1,4 +1,9 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  useQuery,
+  keepPreviousData,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
 import { logAuditEvent } from "@/lib/auditLogger";
@@ -33,6 +38,7 @@ export const usePrograms = (filters: ProgramFilters = {}) => {
       string,
       unknown
     >),
+    placeholderData: keepPreviousData,
     queryFn: async (): Promise<PaginatedResult<Program>> => {
       let query = supabase
         .from("programs")
