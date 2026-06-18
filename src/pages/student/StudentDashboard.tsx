@@ -51,7 +51,10 @@ import {
 } from "@/hooks/useComebackChallenge";
 import { useHabitDifficultyLevel } from "@/hooks/useHabitDifficulty";
 import { useInstitutionSettings } from "@/hooks/useInstitutionSettings";
-import { useStudentAnnouncements } from "@/hooks/useAnnouncements";
+import {
+  useStudentAnnouncements,
+  type Announcement,
+} from "@/hooks/useAnnouncements";
 import { useStudentAttendance } from "@/hooks/useAttendance";
 import { useStudentChallenges } from "@/hooks/useChallenges";
 import { useMyTeamId } from "@/hooks/useTeamLeaderboard";
@@ -126,13 +129,34 @@ const KPICard = ({ icon: Icon, label, value, accent }: KPICardProps) => (
 
 // ─── Announcements Section ──────────────────────────────────────────────────
 
-const AnnouncementsSection = ({ studentId }: { studentId: string }) => {
+const AnnouncementsSection = ({
+  studentId,
+  announcements: announcementsProp,
+  fallbackEnabled,
+}: {
+  studentId: string;
+  announcements: Announcement[] | undefined;
+  fallbackEnabled: boolean;
+}) => {
   const { t } = useTranslation("student");
   const navigate = useNavigate();
-  const { data: announcements, isLoading } = useStudentAnnouncements(
-    studentId,
-    5
-  );
+  // PERF (spec: dashboard-and-ux-performance, Req 2): consume the aggregate's
+  // announcements (passed as a prop) on the happy path with no request of our
+  // own. Fallback only: when the aggregate errored (`fallbackEnabled`), this
+  // gated hook fetches exactly as before. The optional `enabled` arg is
+  // backward-compatible for every other caller of useStudentAnnouncements.
+  const hook = useStudentAnnouncements(studentId, 5, {
+    enabled: fallbackEnabled,
+  });
+  const announcements = announcementsProp ?? hook.data;
+  // Shimmer on first paint while the aggregate is still resolving (no prop yet
+  // and not yet errored) and while the error-gated fallback hook is fetching —
+  // mirrors the prior `useStudentAnnouncements(...).isLoading` shimmer. Guarded
+  // by `studentId` so the no-user case renders nothing, exactly as before.
+  const isLoading =
+    !!studentId &&
+    announcements === undefined &&
+    (!fallbackEnabled || hook.isLoading);
 
   if (isLoading) {
     return <Shimmer className="h-32 rounded-xl" />;
@@ -824,7 +848,11 @@ const StudentDashboard = () => {
       </div>
 
       {/* Recent Announcements */}
-      <AnnouncementsSection studentId={studentId} />
+      <AnnouncementsSection
+        studentId={studentId}
+        announcements={aggregate.data?.announcements}
+        fallbackEnabled={aggregate.isError}
+      />
 
       {/* CLO Attainment Progress — Requirement 10.2 */}
       {cloProgressData &&

@@ -7,6 +7,7 @@ import type {
 } from "@/hooks/useStudentDashboard";
 import type { StudentCourseAttendance } from "@/hooks/useAttendance";
 import type { ProfileCompletenessData } from "@/hooks/useProfileCompleteness";
+import type { Announcement } from "@/hooks/useAnnouncements";
 
 /**
  * Shape of the single `jsonb` payload returned by the `get_student_dashboard`
@@ -19,6 +20,7 @@ import type { ProfileCompletenessData } from "@/hooks/useProfileCompleteness";
  *   - `attendance`   → exactly what `useStudentAttendance` produces (`StudentCourseAttendance[]`)
  *   - `streakFreeze` → exactly what `useStreakFreezeInventory` produces (`{ freezes, xpTotal }`)
  *   - `profileCompleteness` → exactly what `useProfileCompleteness` produces (`ProfileCompletenessData`)
+ *   - `announcements` → exactly what `useStudentAnnouncements(studentId, 5)` produces (`Announcement[]`)
  */
 export interface StudentDashboardAggregate {
   kpis: StudentKPIData;
@@ -26,6 +28,7 @@ export interface StudentDashboardAggregate {
   attendance: StudentCourseAttendance[];
   streakFreeze: { freezes: number; xpTotal: number };
   profileCompleteness: ProfileCompletenessData;
+  announcements: Announcement[];
 }
 
 /**
@@ -125,6 +128,15 @@ export const useStudentDashboardAggregate = (studentId: string | undefined) => {
       queryClient.setQueryData(
         queryKeys.onboarding.profileCompleteness(studentId ?? ""),
         payload.profileCompleteness
+      );
+      // Announcements section: hydrate the EXACT key `useStudentAnnouncements(
+      // studentId, 5)` reads so its fallback (gated on aggregate error) resolves
+      // as a cache hit instead of firing its own enrolled-courses + announcements
+      // reads. The RPC already returns the rows pinned-desc then created-desc,
+      // limit 5 — the same order/shape `useStudentAnnouncements` produces.
+      queryClient.setQueryData(
+        queryKeys.announcements.list({ studentId, limit: 5 }),
+        payload.announcements as Announcement[]
       );
 
       return payload;
