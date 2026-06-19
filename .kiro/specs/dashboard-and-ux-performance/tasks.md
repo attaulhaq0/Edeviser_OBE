@@ -176,7 +176,11 @@
         every ~5 min during configured active hours only.
         — DONE: `api/cron/warm-ping.ts` (verifyCronSecret → active-hours UTC gate (env
         configurable) → `invokeEdgeFunction("health")`, which runs `SELECT 1` so it warms
-        edge + Postgres). Cron entry added to `vercel.json` (`*/5 6-22 * * *`).
+        edge + Postgres). Scheduled DAILY (`0 6 * * *`) in `vercel.json`: Vercel **Hobby**
+        rejects sub-daily crons at deploy validation, and daily is what prevents the
+        ~7-day Supabase inactivity pause (the main risk). On **Pro** the schedule can be
+        tightened to `*/5 6-22 * * *` for cold-start mitigation — the handler already
+        supports that cadence.
   - [ ] 10.2 Verify via function logs; measure cold-vs-warm first-request delta; confirm
         no rate-limit/`blocked_ips` trip.
         — PENDING: deploy-time verification via Vercel/Supabase logs (gated; no running

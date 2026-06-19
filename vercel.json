@@ -63,6 +63,6 @@
     { "path": "/api/cron/ai-at-risk-prediction", "schedule": "0 3 * * *" },
     { "path": "/api/cron/notification-digest", "schedule": "0 20 * * *" },
     { "path": "/api/cron/exam-period-notify", "schedule": "0 8 * * *" },
-    { "path": "/api/cron/warm-ping", "schedule": "*/5 6-22 * * *" }
+    { "path": "/api/cron/warm-ping", "schedule": "0 6 * * *" }
   ]
 }

@@ -4,21 +4,25 @@ import { verifyCronSecret, invokeEdgeFunction } from "../_utils/auth.js";
 /**
  * Active-hours warm-ping (spec: dashboard-and-ux-performance, Req 10).
  *
- * The free-tier Supabase instance pauses on idle; the first request after a
- * pause pays a ~1–3s cold-start. A lightweight, frequent ping during active
- * hours keeps it warm so real users rarely hit the cold path.
+ * The free-tier Supabase instance is PAUSED after ~7 days of inactivity, and a
+ * paused project makes the next request fail until it is restored. A scheduled
+ * ping keeps the project active so real users never hit a paused project.
  *
  * It invokes the existing `health` edge function, which runs `SELECT 1` — so a
  * ping wakes BOTH the edge runtime and Postgres (Req 10.1). Outside the
- * configured active-hours window it is a deliberate no-op so the cron never
- * burns free-tier compute/egress overnight (Req 10.2). Verification is via
- * Vercel/Supabase function logs + a cold-vs-warm first-request measurement
- * (Req 10.3) — a deploy-time check, not a unit test.
+ * configured active-hours window it is a deliberate no-op (Req 10.2).
  *
- * Active hours are UTC and env-configurable (defaults 06:00–23:00 UTC). The
- * Vercel cron schedule (`vercel.json`) already restricts the firing hours; this
- * in-handler gate is defense-in-depth and lets the window be tuned via env
- * without redeploying a schedule change.
+ * SCHEDULE / PLAN CONSTRAINT: Vercel **Hobby** crons may only run **once per
+ * day** — a sub-daily expression (an "every-N-minutes" schedule) fails at
+ * deployment validation. So `vercel.json` schedules this DAILY (`0 6 * * *`),
+ * which is what actually matters for the 7-day inactivity pause. On **Pro** the
+ * schedule can be tightened (e.g. every 5 minutes between 06:00–22:00 UTC) for
+ * short cold-start mitigation; the active-hours gate below already supports that
+ * finer cadence.
+ *
+ * Verification is via Vercel/Supabase function logs (Req 10.3) — a deploy-time
+ * check, not a unit test. Active hours are UTC and env-configurable
+ * (defaults 06:00–23:00 UTC).
  */
 const START_HOUR_UTC = Number(process.env.WARM_PING_START_HOUR_UTC ?? "6");
 const END_HOUR_UTC = Number(process.env.WARM_PING_END_HOUR_UTC ?? "23");
