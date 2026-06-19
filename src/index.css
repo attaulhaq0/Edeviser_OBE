@@ -364,11 +364,14 @@
   .animate-mystery-reveal {
     animation: none;
   }
+}
 
-  /* View Transitions (dashboard-and-ux-performance Req 11.3): disable the UA
-     cross-fade for route/section swaps under reduced motion so the swap is
-     instant. Complements the JS gate in withViewTransition + the router's
-     viewTransition navigations. */
+/* View Transitions (dashboard-and-ux-performance Req 11.3): disable the UA
+   cross-fade for route/section swaps under reduced motion so the swap is
+   instant. Kept as a SEPARATE media block so the animation-classes block above
+   stays a single rule (parsed by reducedMotion/customAnimations tests).
+   Complements the JS gate in withViewTransition + the router's viewTransition. */
+@media (prefers-reduced-motion: reduce) {
   ::view-transition-group(*),
   ::view-transition-old(*),
   ::view-transition-new(*) {
