@@ -31,7 +31,6 @@
     "supabase/functions/select-adaptive-question/index.ts::quizzes::total_questions",
     "supabase/functions/suggest-goals/index.ts::outcome_attainment::scope=\"clo\"",
     "supabase/functions/suggest-goals/index.ts::outcome_attainment::score",
-    "supabase/functions/tutor-analytics/index.ts::courses::institution_id",
     "supabase/functions/update-challenge-progress/index.ts::habit_logs::log_date",
     "supabase/functions/update-challenge-progress/index.ts::learning_outcomes::type=\"clo\"",
     "supabase/functions/update-challenge-progress/index.ts::xp_transactions::course_id",
