@@ -73,9 +73,10 @@ export const useShareDigest = () => {
         .select("shared_with")
         .eq("id", input.digestId)
         .eq("student_id", user.id)
-        .single();
+        .maybeSingle();
 
       if (fetchError) throw fetchError;
+      if (!current) throw new Error("Reflection digest not found");
 
       const sharedWith =
         ((current as Record<string, unknown>).shared_with as Array<{
@@ -129,9 +130,10 @@ export const useRevokeDigestShare = () => {
         .select("shared_with")
         .eq("id", input.digestId)
         .eq("student_id", user.id)
-        .single();
+        .maybeSingle();
 
       if (fetchError) throw fetchError;
+      if (!current) throw new Error("Reflection digest not found");
 
       const sharedWith =
         ((current as Record<string, unknown>).shared_with as Array<{

@@ -61,8 +61,9 @@ export const useTeamProfile = (teamId?: string) => {
         .from("teams" as never)
         .select("*")
         .eq("id", teamId!)
-        .single();
+        .maybeSingle();
       if (teamError) throw teamError;
+      if (!team) throw new Error("Team not found");
 
       // Fetch active members
       const { data: members, error: membersError } = await supabase
