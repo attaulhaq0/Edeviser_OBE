@@ -7,7 +7,9 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-// ─── pg_cron schedule: 0 9 * * * (daily 9 AM) ──────────────────────────────
+// ─── Vercel cron schedule: 0 8 * * * (daily 08:00 UTC) ─────────────────────
+// Canonical scheduler: vercel.json `crons` -> /api/cron/exam-period-notify.
+// (There is no pg_cron job for this function.)
 // Checks for exam_period events starting in 5 days.
 // Creates in-app notifications for enrolled students.
 

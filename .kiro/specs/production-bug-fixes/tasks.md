@@ -177,13 +177,21 @@
   - [ ] 16.3 Verify: linked parent sees real per-course summary; unlinked parent sees
         nothing; empty child shows the existing empty state.
 
-- [ ] 17. **Cron schedule mismatch & `fee-overdue-check` duplication** (Req 17)
+- [x] 17. **Cron schedule mismatch & `fee-overdue-check` duplication** (Req 17)
 
-  - [ ] 17.1 Reconcile `exam-period-notify`: set `vercel.json` + function header to one
-        intended hour; document.
-  - [ ] 17.2 `fee-overdue-check`: keep one scheduler (prefer Vercel per the prune note),
-        retire the other via guarded migration / handler removal; never both live.
-  - [ ] 17.3 Verify no other cron's schedule/target changed.
+  - [x] 17.1 Reconciled `exam-period-notify`: it is fired by **Vercel `0 8 * * *`** with
+        **no pg_cron job**, but the edge-fn header wrongly claimed "pg_cron schedule:
+        0 9 \* \* \*". Corrected the header to the live Vercel 08:00 UTC schedule (single
+        intended time, consistent with `vercel.json`).
+  - [x] 17.2 `fee-overdue-check` had three artifacts: a live pure-SQL **pg_cron** job
+        (`0 6 * * *`, canonical, kept by Task 15), a **dead Vercel handler**
+        (`api/cron/fee-overdue-check.ts`, absent from `vercel.json`), and an **orphan edge
+        function** that pure-duplicates the SQL. Per the repo's own decision (KEEP pg_cron,
+        REMOVE the Vercel path) deleted the dead handler **and** the orphan edge function
+        → exactly one scheduler. (Manual: if the edge fn was ever deployed, run
+        `supabase functions delete fee-overdue-check`.)
+  - [x] 17.3 No other cron's schedule/target changed; `vercel.json` crons untouched
+        (`fee-overdue-check` was never in the array); `db:check-edge-schema` CLEAN.
 
 - [x] 18. **Service-role Edge Functions caller checks** (Req 18)
 
