@@ -83,7 +83,7 @@ describe("useUpdateWellnessPreferences optimistic (dashboard-and-ux-performance 
 
     result.current.mutate({
       studentId: STUDENT_ID,
-      enabledHabits: ["sleep", "water"],
+      enabledHabits: ["sleep", "hydration"],
       parentVisibility: true,
     });
 
@@ -91,7 +91,7 @@ describe("useUpdateWellnessPreferences optimistic (dashboard-and-ux-performance 
     await waitFor(() => {
       const cached = client.getQueryData<WellnessPreferences>(KEY);
       expect(cached?.parentVisibility).toBe(true);
-      expect(cached?.enabledHabits).toEqual(["sleep", "water"]);
+      expect(cached?.enabledHabits).toEqual(["sleep", "hydration"]);
     });
 
     // Now fail the server call → ROLLBACK to the snapshot.
@@ -119,7 +119,7 @@ describe("useUpdateWellnessPreferences optimistic (dashboard-and-ux-performance 
 
     result.current.mutate({
       studentId: STUDENT_ID,
-      enabledHabits: ["sleep", "water"],
+      enabledHabits: ["sleep", "hydration"],
       parentVisibility: true,
     });
 
