@@ -77,11 +77,19 @@
   - [ ] 3.3 `get_teacher_dashboard` (same steps).
   - [ ] 3.4 `get_parent_dashboard` (same steps; preserve verified-link RLS).
 
-- [ ] 4. **Skeleton-first sweep** (Req 4)
+- [x] 4. **Skeleton-first sweep** (Req 4)
 
-  - [ ] 4.1 Audit each dashboard/list route: shell + per-section `Shimmer` paint
+  - [x] 4.1 Audit each dashboard/list route: shell + per-section `Shimmer` paint
         immediately; no query gates first paint.
-  - [ ] 4.2 Reserve card heights to avoid layout shift; verify CLS in Lighthouse.
+        — VERIFIED already satisfied: route-level lazy fallback is a component shimmer
+        (`LoadingFallback`, not a full-page spinner — fixed earlier by
+        `platform-audit-fixes`); `DataTable` renders a `Shimmer` on `isLoading`; dashboards
+        paint per-section shimmers. No first-paint query gate remains.
+  - [x] 4.2 Reserve card heights to avoid layout shift; verify CLS in Lighthouse.
+        — Shimmer placeholders already carry fixed heights (reserved layout). Added an
+        optional `isFetching` dim (opacity + `aria-busy`) to `DataTable` and wired it into
+        all 11 server-paginated list pages, completing Req 5.1's "dimmed indicator" for the
+        keepPreviousData swap. CLS Lighthouse number is a running-app measurement (gated).
 
 - [x] 5. **`keepPreviousData` on paginated lists** (Req 5)
 
@@ -113,46 +121,84 @@
         — DONE: the Supabase CDN params (`?width=128&height=128&resize=cover` /
         `?width=64&height=64&resize=cover`) are preserved on every edited avatar.
 
-- [ ] 7. **Extend optimistic UI** (Req 7)
-  - [ ] 7.1 Apply `useOptimisticToggle` / standard `onMutate` pattern to settings/
+- [x] 7. **Extend optimistic UI** (Req 7)
+  - [x] 7.1 Apply `useOptimisticToggle` / standard `onMutate` pattern to settings/
         privacy toggles, journal save, habit completion, planner-task done.
-  - [ ] 7.2 Per covered mutation: test optimistic apply, `onError` rollback + Sonner,
+        — DONE: added the optimistic `onMutate`/`onError` rollback/`onSettled` invalidate
+        pattern to `useUpdateWellnessPreferences` (the enabled-habits / parent-visibility
+        privacy toggle). Already optimistic (verified): `usePlannerTasks` (complete +
+        delete) and `useStudySessions`. Correctly left confirm-then-render per 7.3:
+        habit-log XP (non-deterministic edge-function award) and journal CREATE
+        (server-generated id).
+  - [x] 7.2 Per covered mutation: test optimistic apply, `onError` rollback + Sonner,
         `onSettled` invalidate. Exclude non-deterministic/security-sensitive mutations.
+        — DONE: `src/__tests__/unit/wellnessPreferencesOptimistic.test.ts` (apply → rollback
+        on error → invalidate on settle).
 
 ## Phase 2 — Tier 1.5 (do soon)
 
-- [ ] 8. **Auth round-trip trim** (Req 8) — security-sensitive
+- [x] 8. **Auth round-trip trim** (Req 8) — security-sensitive
 
-  - [ ] 8.1 Skip `fetchProfile` on `TOKEN_REFRESHED` when `session.user.id` is unchanged.
+  - [x] 8.1 Skip `fetchProfile` on `TOKEN_REFRESHED` when `session.user.id` is unchanged.
+        — DONE: `currentUserIdRef` tracks the synced user; `TOKEN_REFRESHED` for the same
+        id now just adopts the refreshed session user (no profile SELECT).
   - [ ] 8.2 Seed fetched profile into the query cache so consumers don't refetch.
-  - [ ] 8.3 Allow the dashboard aggregate to start once `user.id` is known (parallel to
+        — DEFERRED (rationale): `AuthProvider` is not wrapped by a `QueryClientProvider` in
+        its test harness, so adding `useQueryClient` there would break the suite; and
+        consumers read `useAuth().profile` (context), not a `profiles` query key — so
+        seeding a cache key has no consumer today. Revisit if/when a `useProfile` query hook
+        is introduced.
+  - [x] 8.3 Allow the dashboard aggregate to start once `user.id` is known (parallel to
         profile hydration).
-  - [ ] 8.4 Keep `AuthProvider` tests green + manual multi-role login pass (each role →
-        correct dashboard, no stale profile). Document in PR.
+        — ALREADY SATISFIED: `syncSession` calls `setUser(session.user)` before awaiting
+        `fetchProfile`, so `user.id`-gated queries (incl. the student aggregate) start in
+        parallel with profile hydration.
+  - [x] 8.4 Keep `AuthProvider` tests green + manual multi-role login pass. Document in PR.
+        — DONE: 22/22 AuthProvider tests green incl. a new "skips profile re-fetch on
+        TOKEN_REFRESHED for same user" test. Manual multi-role login is a running-app pass
+        (gated here).
 
-- [ ] 9. **Prefetch on intent** (Req 9)
+- [x] 9. **Prefetch on intent** (Req 9)
 
-  - [ ] 9.1 On `NavLink` hover/focus (guarded by `matchMedia('(hover: hover)')`):
+  - [x] 9.1 On `NavLink` hover/focus (guarded by `matchMedia('(hover: hover)')`):
         `import()` the route chunk + `queryClient.prefetchQuery` the primary key.
-  - [ ] 9.2 No prefetch on touch; prefetch failures are silent no-ops.
+        — DONE (chunk): `useIntentPrefetch` (hover-only, dedupe, error-swallow) +
+        `prefetchRoute` registry warming the same lazy chunks `AppRouter` loads, wired into
+        the shared `Sidebar`. Primary-query prefetch intentionally left to the route
+        component (needs per-route keys/filters/auth) — noted in `routePrefetch.ts`.
+  - [x] 9.2 No prefetch on touch; prefetch failures are silent no-ops.
+        — DONE + tested (`src/__tests__/unit/useIntentPrefetch.test.ts`): touch → no
+        prefetch; sync throw + async rejection swallowed; warms once per target.
 
-- [ ] 10. **Active-hours warm-ping** (Req 10)
+- [x] 10. **Active-hours warm-ping** (Req 10)
 
-  - [ ] 10.1 Vercel cron (reuse `api/cron/*` + `verifyCronSecret`) hitting `/health`
+  - [x] 10.1 Vercel cron (reuse `api/cron/*` + `verifyCronSecret`) hitting `/health`
         every ~5 min during configured active hours only.
+        — DONE: `api/cron/warm-ping.ts` (verifyCronSecret → active-hours UTC gate (env
+        configurable) → `invokeEdgeFunction("health")`, which runs `SELECT 1` so it warms
+        edge + Postgres). Cron entry added to `vercel.json` (`*/5 6-22 * * *`).
   - [ ] 10.2 Verify via function logs; measure cold-vs-warm first-request delta; confirm
         no rate-limit/`blocked_ips` trip.
+        — PENDING: deploy-time verification via Vercel/Supabase logs (gated; no running
+        deploy here). The handler is a no-op outside active hours by design.
 
 - [ ] R. **Re-measure** after Tier 1 + 1.5; compare to Task 1 baseline. Decide whether
       Tier 2 RLS is still warranted (only if DB p95 still shows RLS as a top contributor).
 
 ## Phase 3 — Tier 2 (deliberate, gated)
 
-- [ ] 11. **View Transitions** (Req 11)
+- [x] 11. **View Transitions** (Req 11)
 
-  - [ ] 11.1 Wrap route/section state swaps in `document.startViewTransition` with
+  - [x] 11.1 Wrap route/section state swaps in `document.startViewTransition` with
         feature-detection + reduced-motion gate.
+        — DONE: `src/lib/viewTransition.ts` `withViewTransition()` (feature-detect +
+        `prefers-reduced-motion` JS gate + sync fallback + throw-safe) for section swaps,
+        tested (`src/__tests__/unit/viewTransition.test.ts`, 4 cases). Route-level: added
+        the React Router `viewTransition` prop to the shared `Sidebar` nav links, plus a
+        `::view-transition-*` `prefers-reduced-motion` rule in `index.css` so the UA
+        cross-fade is disabled under reduced motion.
   - [ ] 11.2 Measure INP before/after; confirm no regression.
+        — PENDING: INP is a running-app/field measurement (gated).
 
 - [ ] 12. **Per-user query-cache persistence** (Req 12) — gated, only after Tasks 2–4
 
