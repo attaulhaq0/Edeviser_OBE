@@ -27,12 +27,9 @@
  * `20260821000006_create_get_student_dashboard_rpc.sql`), so unlike the
  * red-first nudge smoke test this suite is GREEN on the `rls-smoke` preview job.
  *
- * Typing note: `get_student_dashboard` is not in the generated `Database` types
- * yet (task 2.2), so a direct `client.rpc("get_student_dashboard", …)` would not
- * type-check. Per the repo precedent (`nudge.rls.test.ts`) we cast ONLY the
- * `rpc` surface — never `any`, and never a `.from/.insert/.update/.upsert(… as
- * never)` builder cast — so the Static_Cast_Guard stays green. Remove the shim
- * once the RPC is added to the generated types.
+ * The `get_student_dashboard` RPC is in the generated `Database` types (added
+ * by the post-merge type regen for task 2.2), so the `client.rpc(...)` call is
+ * fully typed; the `Json` return is cast to the small shape this test asserts on.
  */
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { shouldRunRls } from "./guard";
@@ -47,38 +44,25 @@ interface DashboardPayload {
   attendance: unknown[];
 }
 
-/** Loose `{ data, error }` shape for an RPC not yet in the generated types. */
-interface RpcResult {
-  data: unknown;
-  error: { message?: string } | null;
-}
-type UntypedRpc = (
-  fn: string,
-  args: Record<string, unknown>
-) => Promise<RpcResult>;
-
 /**
  * Calls `get_student_dashboard` as the given (already-authenticated) client and
- * returns the parsed payload. Casts ONLY the `rpc` method (repo precedent), so
- * the Static_Cast_Guard stays green.
+ * returns the parsed payload. The RPC is in the generated `Database` types, so
+ * the call is fully typed; the `Json` return is cast to the shape this test reads.
  */
 const callDashboardRpc = async (
   client: RoleClient,
   studentId: string
 ): Promise<DashboardPayload> => {
-  const rpc = client.rpc as unknown as UntypedRpc;
-  const { data, error } = await rpc("get_student_dashboard", {
+  const { data, error } = await client.rpc("get_student_dashboard", {
     p_student_id: studentId,
   });
   if (error) {
-    throw new Error(
-      `get_student_dashboard failed: ${error.message ?? String(error)}`
-    );
+    throw new Error(`get_student_dashboard failed: ${error.message}`);
   }
   if (!data) {
     throw new Error("get_student_dashboard returned no data");
   }
-  return data as DashboardPayload;
+  return data as unknown as DashboardPayload;
 };
 
 describe.skipIf(!shouldRunRls())(

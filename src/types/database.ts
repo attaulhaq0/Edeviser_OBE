@@ -12,6 +12,31 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.4";
   };
+  graphql_public: {
+    Tables: {
+      [_ in never]: never;
+    };
+    Views: {
+      [_ in never]: never;
+    };
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json;
+          operationName?: string;
+          query?: string;
+          variables?: Json;
+        };
+        Returns: Json;
+      };
+    };
+    Enums: {
+      [_ in never]: never;
+    };
+    CompositeTypes: {
+      [_ in never]: never;
+    };
+  };
   public: {
     Tables: {
       academic_calendar_events: {
@@ -7173,6 +7198,7 @@ export type Database = {
       auth_user_role: { Args: never; Returns: string };
       badge_auto_archive: { Args: never; Returns: undefined };
       badge_spotlight_auto_rotate: { Args: never; Returns: undefined };
+      calculate_level_from_xp: { Args: { p_xp: number }; Returns: number };
       check_rate_limit_approaching: {
         Args: {
           p_event_type?: string;
@@ -7247,6 +7273,7 @@ export type Database = {
           xp_total: number;
         }[];
       };
+      get_student_dashboard: { Args: { p_student_id: string }; Returns: Json };
       get_wellness_aggregate_stats: {
         Args: { p_institution_id: string };
         Returns: {
@@ -7514,6 +7541,9 @@ export type CompositeTypes<
   : never;
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       assignment_type: ["assignment", "quiz", "project", "exam"],

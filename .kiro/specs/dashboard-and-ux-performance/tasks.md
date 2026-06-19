@@ -34,13 +34,12 @@
         (covers kpis, deadlines, attendance, streakFreeze, profileCompleteness,
         announcements). `npm run db:check-replay` CLEAN (309 migrations). NOT yet applied
         to the linked project (reaches prod only on PR merge, per preview-and-test-gate).
-  - [ ] 2.2 Regenerate types (`scripts/regen-types.ps1`).
-        — BLOCKED until 2.1's migration is applied to the linked project. Verified the
-        function does not yet exist in linked project `cdlgtbvxlxjpcddjazzx`, and the
-        regen script reads `--project-id` (remote), so a regen now cannot add it and would
-        risk unrelated schema drift. Interim: `useStudentDashboardAggregate.ts` (and the
-        2.7 RLS test) cast ONLY the `rpc` surface (no `any`, Static_Cast_Guard-safe);
-        remove the shim in a follow-up regen after merge.
+  - [x] 2.2 Regenerate types (`scripts/regen-types.ps1`).
+        — DONE (post-merge): after #156 merged, the migration applied to the linked
+        project, so `pwsh scripts/regen-types.ps1` regenerated `src/types/database.ts`
+        (clean +30-line diff — only `get_student_dashboard: { Args; Returns: Json }`, no
+        drift). Removed the interim cast shims in `useStudentDashboardAggregate.ts` and
+        `getStudentDashboard.rls.test.ts`; both now call the fully-typed `supabase.rpc`.
   - [x] 2.3 Add `useStudentDashboardAggregate` hook that calls the RPC and hydrates each
         existing section query key via `queryClient.setQueryData(...)`. — DONE.
   - [x] 2.4 Keep section hooks' own `queryFn` as fallback (cache-miss / RPC failure).
