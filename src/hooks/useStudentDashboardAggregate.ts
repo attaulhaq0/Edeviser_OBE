@@ -32,27 +32,6 @@ export interface StudentDashboardAggregate {
 }
 
 /**
- * Loose-but-typed view of the Supabase `rpc` surface for a function that is not
- * present in the generated `Database` types yet.
- *
- * `get_student_dashboard` is intentionally NOT in `src/types/database.ts`, so a
- * direct `supabase.rpc("get_student_dashboard", …)` would not type-check. Per the
- * repo precedent (the `send_teacher_nudge` integration-test helper) we cast ONLY
- * the `rpc` surface — never `any`, and never a `.from/.insert/.update/.upsert(
- * … as never)` builder cast — so the Static_Cast_Guard stays green. We cast the
- * client (not the detached method) so the `rpc` call keeps its `this` binding.
- * Remove this shim once the RPC is added to the generated types.
- */
-interface RpcResponse {
-  data: unknown;
-  error: { message: string } | null;
-}
-type RpcInvoker = (
-  fn: string,
-  args: Record<string, unknown>
-) => PromiseLike<RpcResponse>;
-
-/**
  * Student dashboard aggregate (spec: dashboard-and-ux-performance, Req 2).
  *
  * Collapses the dashboard's critical above-the-fold fan-out (`useStudentKPIs`'
@@ -73,10 +52,13 @@ export const useStudentDashboardAggregate = (studentId: string | undefined) => {
     enabled: !!studentId,
     staleTime: 30_000,
     queryFn: async (): Promise<StudentDashboardAggregate> => {
-      // `get_student_dashboard` is not in the generated Database types; cast only
-      // the `rpc` surface (repo precedent) — no `any`, no builder `as never`.
-      const client = supabase as unknown as { rpc: RpcInvoker };
-      const { data, error } = await client.rpc("get_student_dashboard", {
+      if (!studentId) {
+        throw new Error("useStudentDashboardAggregate: studentId is required");
+      }
+      // `get_student_dashboard` is now in the generated Database types, so the
+      // rpc call is fully typed (Returns: Json). Cast the Json payload to the
+      // section-union shape the RPC is built from.
+      const { data, error } = await supabase.rpc("get_student_dashboard", {
         p_student_id: studentId,
       });
       if (error) throw error;
@@ -84,7 +66,7 @@ export const useStudentDashboardAggregate = (studentId: string | undefined) => {
         throw new Error("get_student_dashboard returned no data");
       }
 
-      const payload = data as StudentDashboardAggregate;
+      const payload = data as unknown as StudentDashboardAggregate;
 
       // Hydrate the EXACT caches the critical section hooks read so they become
       // cache hits. Keys mirror `useStudentKPIs` / `useUpcomingDeadlines`
