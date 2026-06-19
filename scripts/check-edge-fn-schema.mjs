@@ -1,5 +1,8 @@
-#!/usr/bin/env node
 // Edge Function ↔ database schema-contract checker (Req 19.5 / Req 22).
+//
+// (No shebang: this module is always run via `node scripts/check-edge-fn-schema.mjs`
+// and is also dynamically imported by its vitest guard. A leading `#!` line breaks
+// that import under vitest's transform on Windows/CRLF checkouts.)
 //
 // WHY THIS EXISTS:
 // Supabase Edge Functions run on Deno and are NOT type-checked against the
