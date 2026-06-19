@@ -1,6 +1,5 @@
 import { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { useQuery } from "@tanstack/react-query";
 import { CalendarDays, Check, X, Clock } from "lucide-react";
 
 import { Card } from "@/components/ui/card";
@@ -16,139 +15,7 @@ import Shimmer from "@/components/shared/Shimmer";
 import { NoLinkedStudents } from "@/components/shared/EmptyState";
 import { useAuth } from "@/hooks/useAuth";
 import { useLinkedChildren } from "@/hooks/useParentDashboard";
-import { supabase } from "@/lib/supabase";
-import { queryKeys } from "@/lib/queryKeys";
-
-interface AttendanceSummary {
-  course_id: string;
-  course_name: string;
-  course_code: string;
-  total_sessions: number;
-  present: number;
-  late: number;
-  absent: number;
-  attendance_rate: number;
-}
-
-const useChildAttendance = (studentId: string | undefined) => {
-  return useQuery({
-    queryKey: queryKeys.attendanceRecords.list({
-      studentId,
-      view: "parent-summary",
-    }),
-    queryFn: async (): Promise<AttendanceSummary[]> => {
-      if (!studentId) return [];
-
-      // Get enrolled courses
-      const { data: enrollments } = await supabase
-        .from("student_courses")
-        .select(`course_id, courses!inner(id, name, code)`)
-        .eq("student_id", studentId)
-        .eq("status", "active");
-
-      if (!enrollments || enrollments.length === 0) return [];
-
-      const courseIds = enrollments.map((e) => e.course_id);
-
-      // Get all class sessions through course_sections that belong to enrolled courses
-      const { data: sections } = await supabase
-        .from("course_sections")
-        .select("id, course_id")
-        .in("course_id", courseIds);
-
-      const sectionIds = (sections ?? []).map((s) => s.id);
-      const sectionToCourse = new Map(
-        (sections ?? []).map((s) => [s.id, s.course_id])
-      );
-
-      const { data: sessions } =
-        sectionIds.length > 0
-          ? await supabase
-              .from("class_sessions")
-              .select("id, section_id")
-              .in("section_id", sectionIds)
-          : { data: [] as Array<{ id: string; section_id: string }> };
-
-      const sessionIds = (sessions ?? []).map((s) => s.id);
-      // Map session → course (via section)
-      const sessionToCourse = new Map<string, string>();
-      for (const sess of sessions ?? []) {
-        const courseId = sectionToCourse.get(sess.section_id);
-        if (courseId) sessionToCourse.set(sess.id, courseId);
-      }
-
-      if (sessionIds.length === 0) {
-        return enrollments.map((e) => {
-          const c = e.courses as unknown as {
-            id: string;
-            name: string;
-            code: string;
-          };
-          return {
-            course_id: c.id,
-            course_name: c.name,
-            course_code: c.code,
-            total_sessions: 0,
-            present: 0,
-            late: 0,
-            absent: 0,
-            attendance_rate: 0,
-          };
-        });
-      }
-
-      // Get attendance records for this student across all sessions
-      const { data: records } = await supabase
-        .from("attendance_records")
-        .select("session_id, status")
-        .eq("student_id", studentId)
-        .in("session_id", sessionIds);
-
-      // Aggregate per course
-      const summary = new Map<string, AttendanceSummary>();
-      for (const e of enrollments) {
-        const c = e.courses as unknown as {
-          id: string;
-          name: string;
-          code: string;
-        };
-        summary.set(c.id, {
-          course_id: c.id,
-          course_name: c.name,
-          course_code: c.code,
-          total_sessions: 0,
-          present: 0,
-          late: 0,
-          absent: 0,
-          attendance_rate: 0,
-        });
-      }
-
-      for (const r of records ?? []) {
-        const courseId = sessionToCourse.get(r.session_id);
-        if (!courseId) continue;
-        const s = summary.get(courseId);
-        if (!s) continue;
-        s.total_sessions += 1;
-        if (r.status === "present") s.present += 1;
-        else if (r.status === "late") s.late += 1;
-        else if (r.status === "absent") s.absent += 1;
-      }
-
-      // Calculate attendance rate
-      for (const s of summary.values()) {
-        s.attendance_rate =
-          s.total_sessions > 0
-            ? Math.round(((s.present + s.late) / s.total_sessions) * 100)
-            : 0;
-      }
-
-      return Array.from(summary.values());
-    },
-    enabled: !!studentId,
-    staleTime: 60_000,
-  });
-};
+import { useChildAttendance } from "@/hooks/useAttendance";
 
 const ParentAttendancePage = () => {
   const { t } = useTranslation("common");
@@ -189,7 +56,10 @@ const ParentAttendancePage = () => {
         <>
           {children.length > 1 ? (
             <div className="max-w-xs">
-              <Select value={effectiveChildId} onValueChange={setSelectedChildId}>
+              <Select
+                value={effectiveChildId}
+                onValueChange={setSelectedChildId}
+              >
                 <SelectTrigger>
                   <SelectValue
                     placeholder={t(
@@ -230,7 +100,10 @@ const ParentAttendancePage = () => {
                 >
                   <div className="flex items-start justify-between gap-3 mb-4">
                     <div>
-                      <Badge variant="outline" className="text-[10px] font-bold mb-1">
+                      <Badge
+                        variant="outline"
+                        className="text-[10px] font-bold mb-1"
+                      >
                         {course.course_code}
                       </Badge>
                       <h2 className="text-base font-semibold tracking-tight text-gray-900 dark:text-foreground">
@@ -278,7 +151,8 @@ const ParentAttendancePage = () => {
                   </div>
 
                   <p className="text-xs text-gray-500 mt-3 text-center">
-                    {course.total_sessions} {t("parent.attendance.sessions", "sessions tracked")}
+                    {course.total_sessions}{" "}
+                    {t("parent.attendance.sessions", "sessions tracked")}
                   </p>
                 </Card>
               ))}
