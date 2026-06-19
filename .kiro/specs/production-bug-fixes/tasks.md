@@ -169,13 +169,18 @@
         "coming soon"/hide from nav (no fabricated data).
   - [ ] 15.5 Output-parity check on a non-empty program (numbers identical pre/post).
 
-- [ ] 16. **Parent attendance query consolidation** (Req 16)
+- [x] 16. **Parent attendance query consolidation** (Req 16)
 
-  - [ ] 16.1 Replace the 4-step waterfall + large `.in()` in `useChildAttendance` with
-        one joined query (or `SECURITY INVOKER` RPC) scoped by `student_id`.
-  - [ ] 16.2 Keep `AttendanceSummary[]` shape unchanged (component untouched).
-  - [ ] 16.3 Verify: linked parent sees real per-course summary; unlinked parent sees
-        nothing; empty child shows the existing empty state.
+  - [x] 16.1 Replaced the 4-step waterfall + large `.in(sessionIds)` with 2 queries:
+        active enrollments + one JOINED `attendance_records` query filtered by
+        `student_id` (walks `class_sessions → course_sections → course_id`), removing
+        the unbounded `.in()`. Moved the hook into `src/hooks/useAttendance.ts`.
+  - [x] 16.2 `ParentAttendanceSummary[]` shape unchanged (component untouched); the
+        zero-record-course and no-enrollment branches behave identically.
+  - [x] 16.3 RLS preserved (both queries read under the caller's parent RLS → only
+        verified-linked children resolve). Parity proven by
+        `src/__tests__/unit/childAttendanceParity.test.ts` (new path == old waterfall
+        across normal/excused/zero-record/non-enrolled/no-session cases).
 
 - [x] 17. **Cron schedule mismatch & `fee-overdue-check` duplication** (Req 17)
 

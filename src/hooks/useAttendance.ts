@@ -433,3 +433,143 @@ export const useStudentAttendance = (
     staleTime: 60_000,
   });
 };
+
+// ─── Parent-facing: per-course attendance summary for a linked child ────────
+
+export interface ParentAttendanceSummary {
+  course_id: string;
+  course_name: string;
+  course_code: string;
+  total_sessions: number;
+  present: number;
+  late: number;
+  absent: number;
+  attendance_rate: number;
+}
+
+interface ParentEnrolledCourse {
+  course_id: string;
+  course_name: string;
+  course_code: string;
+}
+
+interface ParentAttendanceRecord {
+  course_id: string;
+  status: string;
+}
+
+/**
+ * Pure aggregation of a child's attendance records into per-course summaries.
+ * Seeds one entry per ENROLLED course (so courses with zero records still
+ * render at 0%), then counts present/late/absent and derives the rate.
+ *
+ * Extracted + exported so the parity test can prove the consolidated
+ * (2-query) `useChildAttendance` returns byte-for-byte the same shape the prior
+ * 4-step waterfall produced. `total_sessions` intentionally counts the child's
+ * attendance RECORDS (any status, including excused) per course, matching the
+ * pre-existing behavior.
+ */
+export function aggregateParentAttendance(
+  courses: ParentEnrolledCourse[],
+  records: ParentAttendanceRecord[]
+): ParentAttendanceSummary[] {
+  const summary = new Map<string, ParentAttendanceSummary>();
+  for (const c of courses) {
+    summary.set(c.course_id, {
+      course_id: c.course_id,
+      course_name: c.course_name,
+      course_code: c.course_code,
+      total_sessions: 0,
+      present: 0,
+      late: 0,
+      absent: 0,
+      attendance_rate: 0,
+    });
+  }
+
+  for (const r of records) {
+    const s = summary.get(r.course_id);
+    if (!s) continue;
+    s.total_sessions += 1;
+    if (r.status === "present") s.present += 1;
+    else if (r.status === "late") s.late += 1;
+    else if (r.status === "absent") s.absent += 1;
+  }
+
+  for (const s of summary.values()) {
+    s.attendance_rate =
+      s.total_sessions > 0
+        ? Math.round(((s.present + s.late) / s.total_sessions) * 100)
+        : 0;
+  }
+
+  return Array.from(summary.values());
+}
+
+/**
+ * Parent view: attendance summary per course for one linked child.
+ *
+ * Consolidated from the prior 4-step client waterfall (enrollments →
+ * course_sections → class_sessions → attendance_records with a large
+ * `.in(sessionIds)`), which could exceed URL/`in`-list limits and stall. Now
+ * two queries: (1) the child's active enrollments (the complete course list,
+ * incl. zero-record courses) and (2) a single JOINED attendance query filtered
+ * by `student_id` that walks `attendance_records → class_sessions →
+ * course_sections` to resolve each record's course — no unbounded `.in()`.
+ *
+ * RLS is preserved: both queries read the same tables under the caller's
+ * (parent's) row-level security, so only verified-linked children resolve.
+ */
+export const useChildAttendance = (studentId: string | undefined) => {
+  return useQuery({
+    queryKey: queryKeys.attendanceRecords.list({
+      studentId,
+      view: "parent-summary",
+    }),
+    queryFn: async (): Promise<ParentAttendanceSummary[]> => {
+      if (!studentId) return [];
+
+      // 1) Active enrollments — the complete course list (incl. zero-record).
+      const { data: enrollments, error: enrErr } = await supabase
+        .from("student_courses")
+        .select("course_id, courses!inner(id, name, code)")
+        .eq("student_id", studentId)
+        .eq("status", "active");
+      if (enrErr) throw enrErr;
+      if (!enrollments || enrollments.length === 0) return [];
+
+      const courses: ParentEnrolledCourse[] = enrollments.map((e) => {
+        const c = e.courses as unknown as {
+          id: string;
+          name: string;
+          code: string;
+        };
+        return { course_id: c.id, course_name: c.name, course_code: c.code };
+      });
+
+      // 2) One joined query for THIS child's attendance — resolves the course
+      // via the FK chain instead of a giant session-id `.in()` list.
+      const { data: rawRecords, error: recErr } = await supabase
+        .from("attendance_records")
+        .select(
+          "status, class_sessions!inner(course_sections!inner(course_id))"
+        )
+        .eq("student_id", studentId);
+      if (recErr) throw recErr;
+
+      const records: ParentAttendanceRecord[] = (rawRecords ?? []).map((r) => {
+        const courseId =
+          (
+            r.class_sessions as unknown as {
+              course_sections: { course_id: string } | null;
+            } | null
+          )?.course_sections?.course_id ?? "";
+        return { course_id: courseId, status: r.status as string };
+      });
+
+      return aggregateParentAttendance(courses, records);
+    },
+    enabled: !!studentId,
+    staleTime: 60_000,
+  });
+};
