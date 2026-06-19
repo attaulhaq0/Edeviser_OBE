@@ -23,7 +23,6 @@ interface CourseRow {
   program_id: string;
   teacher_id: string;
   semester_id: string;
-  institution_id: string;
 }
 
 interface OutcomeRow {
@@ -40,20 +39,20 @@ interface MappingRow {
   weight: number;
 }
 
+interface CloWeight {
+  clo_id: string;
+  weight: number;
+}
+
 interface AssignmentRow {
   id: string;
   title: string;
   description: string;
   total_marks: number;
   due_date: string;
-  clo_ids: string[];
-}
-
-interface RubricRow {
-  id: string;
-  title: string;
-  clo_id: string;
-  criteria: unknown;
+  // `assignments.clo_weights` is a jsonb array of { clo_id, weight }; there is
+  // no `clo_ids` column on this table.
+  clo_weights: CloWeight[] | null;
 }
 
 interface AttainmentRow {
@@ -486,9 +485,7 @@ serve(async (req) => {
     // ── Fetch course ──────────────────────────────────────────────────
     const { data: course, error: courseErr } = await supabase
       .from("courses")
-      .select(
-        "id, name, code, program_id, teacher_id, semester_id, institution_id"
-      )
+      .select("id, name, code, program_id, teacher_id, semester_id")
       .eq("id", course_id)
       .maybeSingle();
 
@@ -499,6 +496,26 @@ serve(async (req) => {
       });
     }
     const c = course as CourseRow;
+
+    // The institution is carried by the course's program (there is no
+    // `courses.institution_id` column); resolve it via the program so the
+    // PLO lookup below can scope by institution.
+    const { data: courseProgram } = await supabase
+      .from("programs")
+      .select("institution_id")
+      .eq("id", c.program_id)
+      .maybeSingle();
+    const institutionId = (courseProgram as { institution_id: string } | null)
+      ?.institution_id;
+    if (!institutionId) {
+      return new Response(
+        JSON.stringify({ error: "Institution not found for course" }),
+        {
+          status: 404,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
 
     // ── Fetch semester ────────────────────────────────────────────────
     const { data: semester } = await supabase
@@ -523,7 +540,7 @@ serve(async (req) => {
       .from("learning_outcomes")
       .select("id, title, type, blooms_level, course_id")
       .eq("type", "PLO")
-      .eq("institution_id", c.institution_id);
+      .eq("institution_id", institutionId);
     if (ploErr) throw ploErr;
     const plos = (ploData ?? []) as OutcomeRow[];
 
@@ -555,7 +572,7 @@ serve(async (req) => {
     // ── Fetch assignments ─────────────────────────────────────────────
     const { data: assignmentData, error: assignmentErr } = await supabase
       .from("assignments")
-      .select("id, title, description, total_marks, due_date, clo_ids")
+      .select("id, title, description, total_marks, due_date, clo_weights")
       .eq("course_id", course_id)
       .order("due_date", { ascending: true });
     if (assignmentErr) throw assignmentErr;
@@ -564,21 +581,11 @@ serve(async (req) => {
     const assignmentsForPdf = assignmentRows.map((a) => ({
       title: a.title,
       total_marks: a.total_marks,
-      clo_titles: (a.clo_ids ?? [])
-        .map((id: string) => cloTitleMap.get(id) ?? id)
+      // Linked CLOs are the clo_id entries of the clo_weights jsonb array.
+      clo_titles: (Array.isArray(a.clo_weights) ? a.clo_weights : [])
+        .map((w) => cloTitleMap.get(w.clo_id) ?? w.clo_id)
         .join(", "),
     }));
-
-    // ── Fetch rubrics ─────────────────────────────────────────────────
-    // Rubrics are linked to CLOs; fetch for reference
-    if (cloIds.length > 0) {
-      const { data: rubricData } = await supabase
-        .from("rubrics")
-        .select("id, title, clo_id, criteria")
-        .in("clo_id", cloIds);
-      // rubrics are included in the assignment instruments section implicitly
-      void (rubricData as RubricRow[] | null);
-    }
 
     // ── Fetch sample student work (best/avg/worst per assignment) ─────
     const assignmentIds = assignmentRows.map((a) => a.id);
