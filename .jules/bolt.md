@@ -4,3 +4,6 @@ Action: Pre-compute a lookup table using a `Map` keyed by concatenated identifie
 YYYY-MM-DD - [Institution-Wide Outcome Score Aggregation O(N*M) Lookup Optimization]
 Learning: Calculating an exact average inside a loop over departments creates unnecessary repetition and O(N*M) nested looping overhead for institution-wide scores (like ILOs) that are exactly the same across all departments.
 Action: Compute a single global average for institution-wide scores outside of the department map/loop, and assign the pre-computed average directly to each department record instead.
+
+2024-06-19 - [Parallelize Independent Teacher Dashboard Queries]
+Learning: [Multiple hooks in `useTeacherDashboard.ts` (`useAtRiskStudents` and `useTeacherRecoveryAlerts`) were performing sequential Supabase lookups using `.in(...)` filters when the underlying required IDs (`studentIds` and `cloIds`/`courseIds`) were already fully resolved. Because these queries were strictly independent of each other (e.g. fetching user `profiles` and fetching `outcome_attainment`), their sequential execution unnecessarily bloated the hook's total execution time.] Action: [Combine independent dataset fetch queries via `Promise.all()` whenever all required dependent data (like foreign keys) are readily available. This mitigates frontend N+1-style request delays for parallelizable read operations.]

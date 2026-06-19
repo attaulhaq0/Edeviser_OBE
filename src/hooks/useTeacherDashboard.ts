@@ -418,11 +418,20 @@ export const useAtRiskStudents = () => {
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-      // Get profiles for all enrolled students
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("id, full_name, email, last_seen_at")
-        .in("id", studentIds);
+      // ⚡ Bolt: Batch independent queries to reduce total latency.
+      // Expected impact: Reduces dashboard load time by parallelizing profile and attainment fetches.
+      const [{ data: profiles }, { data: lowAttainment }] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("id, full_name, email, last_seen_at")
+          .in("id", studentIds),
+        supabase
+          .from("outcome_attainment")
+          .select("student_id, outcome_id")
+          .in("course_id", courseIds)
+          .eq("scope", "student_course")
+          .lt("attainment_percent", 50),
+      ]);
 
       const typedProfiles = profiles ?? [];
 
@@ -439,14 +448,6 @@ export const useAtRiskStudents = () => {
           inactiveMap.set(p.id, daysInactive);
         }
       }
-
-      // Students with <50% on 2+ CLOs
-      const { data: lowAttainment } = await supabase
-        .from("outcome_attainment")
-        .select("student_id, outcome_id")
-        .in("course_id", courseIds)
-        .eq("scope", "student_course")
-        .lt("attainment_percent", 50);
 
       const lowCloMap = new Map<string, number>();
       for (const row of lowAttainment ?? []) {
@@ -559,19 +560,14 @@ export const useTeacherRecoveryAlerts = () => {
       const studentIds = [...new Set(recoveries.map((r) => r.student_id))];
       const cloIds = [...new Set(recoveries.map((r) => r.clo_id))];
 
-      // Batch fetch student names
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("id, full_name")
-        .in("id", studentIds);
+      // ⚡ Bolt: Batch independent queries to reduce total latency.
+      // Expected impact: Reduces alerts load time by parallelizing profile and CLO fetches.
+      const [{ data: profiles }, { data: clos }] = await Promise.all([
+        supabase.from("profiles").select("id, full_name").in("id", studentIds),
+        supabase.from("learning_outcomes").select("id, title").in("id", cloIds),
+      ]);
 
       const nameMap = new Map((profiles ?? []).map((p) => [p.id, p.full_name]));
-
-      // Batch fetch CLO titles
-      const { data: clos } = await supabase
-        .from("learning_outcomes")
-        .select("id, title")
-        .in("id", cloIds);
 
       const cloMap = new Map((clos ?? []).map((c) => [c.id, c.title]));
 
