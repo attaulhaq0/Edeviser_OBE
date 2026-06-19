@@ -577,16 +577,25 @@ serve(async (req) => {
     const iloOutcomes = allOutcomes.filter((o) => o.type === "ILO");
 
     // ── Fetch outcome_attainment data ─────────────────────────────────────
-    // PLO/ILO attainment lives at the live scopes `program` / `institution`
-    // (NOT the pre-migration `PLO`/`ILO` scopes) keyed by `outcome_id`, exactly
-    // as useAdminDashboard derives it. The rows are not course-scoped, so we
-    // select by scope and aggregate by outcome_id rather than filtering by course.
-    const { data: attainmentData, error: attainmentErr } = await supabase
-      .from("outcome_attainment")
-      .select("outcome_id, scope, attainment_percent, student_id, course_id")
-      .in("scope", ["program", "institution"]);
-    if (attainmentErr) throw attainmentErr;
-    const attainment = (attainmentData ?? []) as AttainmentRow[];
+    // Attainment is keyed by `outcome_id`, and the writer trigger stores each
+    // outcome type at a *distinct* scope: CLO→`student_course`, PLO→`course`,
+    // ILO→`program` (verified against live data; there are no `institution`-
+    // scope rows). Filtering by scope name is therefore fragile — the previous
+    // `["program","institution"]` filter silently dropped every PLO row (which
+    // lives at `course`), rendering all PLOs 0%. Instead, fetch by this
+    // institution's PLO+ILO outcome ids: that is robust to the scope taxonomy
+    // AND naturally tenant-scoped (outcome ids are institution-specific). We
+    // then aggregate by outcome_id below.
+    const reportOutcomeIds = [...ploOutcomes, ...iloOutcomes].map((o) => o.id);
+    let attainment: AttainmentRow[] = [];
+    if (reportOutcomeIds.length > 0) {
+      const { data: attainmentData, error: attainmentErr } = await supabase
+        .from("outcome_attainment")
+        .select("outcome_id, scope, attainment_percent, student_id, course_id")
+        .in("outcome_id", reportOutcomeIds);
+      if (attainmentErr) throw attainmentErr;
+      attainment = (attainmentData ?? []) as AttainmentRow[];
+    }
 
     // ── Aggregate PLO attainment ──────────────────────────────────────────
     const ploAgg = ploOutcomes.map((plo) => {
@@ -631,7 +640,7 @@ serve(async (req) => {
     if (surveysErr) throw surveysErr;
     const { data: surveyRows, error: surveyRespErr } = await supabase
       .from("survey_responses")
-      .select("survey_id, responses")
+      .select("id")
       .in(
         "survey_id",
         (surveyIdRows ?? []).map((s: { id: string }) => s.id)
@@ -687,18 +696,19 @@ serve(async (req) => {
     }>) {
       const { data: gaMappings, error: gaMapErr } = await supabase
         .from("graduate_attribute_mappings")
-        .select("ilo_id, weight")
+        .select("outcome_id, weight")
         .eq("graduate_attribute_id", ga.id);
       if (gaMapErr) throw gaMapErr;
       const mappings = (gaMappings ?? []) as Array<{
-        ilo_id: string;
+        outcome_id: string;
         weight: number;
       }>;
       let weightedSum = 0;
       let totalWeight = 0;
       for (const m of mappings) {
         const iloAtt = iloAgg.find(
-          (i) => allOutcomes.find((o) => o.id === m.ilo_id)?.title === i.title
+          (i) =>
+            allOutcomes.find((o) => o.id === m.outcome_id)?.title === i.title
         );
         if (iloAtt) {
           weightedSum += iloAtt.avgAttainment * m.weight;
