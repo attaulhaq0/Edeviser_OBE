@@ -67,14 +67,43 @@ export const useUpdateWellnessPreferences = () => {
       if (error) throw error;
       return data;
     },
-    onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.wellness.preferences(variables.studentId),
-      });
-      toast.success("Wellness preferences updated");
+    // Optimistic UI (spec: dashboard-and-ux-performance, Req 7): the
+    // enabled-habits / parent-visibility toggles are deterministic settings, so
+    // reflect them immediately. Snapshot → setQueryData → rollback on error →
+    // invalidate on settle. Excluded from optimism: the XP/badge side effects of
+    // habit logging (non-deterministic; Req 7.3) — those stay confirm-then-render.
+    onMutate: async (input) => {
+      const key = queryKeys.wellness.preferences(input.studentId);
+      await queryClient.cancelQueries({ queryKey: key });
+      const previous = queryClient.getQueryData<WellnessPreferences | null>(
+        key
+      );
+      queryClient.setQueryData<WellnessPreferences | null>(key, (old) =>
+        old
+          ? {
+              ...old,
+              enabledHabits: input.enabledHabits,
+              parentVisibility: input.parentVisibility,
+            }
+          : old
+      );
+      return { previous };
     },
-    onError: (error: Error) => {
+    onError: (error: Error, input, context) => {
+      // Roll back to the snapshot so the UI never shows a wrong toggle state.
+      queryClient.setQueryData(
+        queryKeys.wellness.preferences(input.studentId),
+        context?.previous
+      );
       toast.error(error.message);
+    },
+    onSettled: (_data, _error, input) => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.wellness.preferences(input.studentId),
+      });
+    },
+    onSuccess: () => {
+      toast.success("Wellness preferences updated");
     },
   });
 };
