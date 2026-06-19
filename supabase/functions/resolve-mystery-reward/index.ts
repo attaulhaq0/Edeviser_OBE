@@ -7,6 +7,11 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { z } from "https://esm.sh/zod@3.23.8";
+import {
+  authenticateRequest,
+  unauthorizedResponse,
+  forbiddenResponse,
+} from "../_shared/auth.ts";
 
 const PayloadSchema = z.object({
   student_id: z.string().min(1),
@@ -59,6 +64,12 @@ serve(async (req) => {
   }
 
   try {
+    // Caller check (Req 18): require a valid JWT before any service-role work.
+    const auth = await authenticateRequest(req);
+    if (!auth.user) {
+      return unauthorizedResponse(auth.error ?? "Unauthorized");
+    }
+
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
@@ -73,6 +84,19 @@ serve(async (req) => {
       });
     }
     const { student_id, institution_id } = parsed.data;
+
+    // Ownership: a student may only open their OWN mystery reward box. Admins
+    // may resolve on behalf of a student in their institution. Cross-tenant
+    // access is always denied.
+    const isAdmin = auth.user.role === "admin";
+    if (!isAdmin && auth.user.id !== student_id) {
+      return forbiddenResponse(
+        "Forbidden: cannot resolve a reward for another student"
+      );
+    }
+    if (!isAdmin && auth.user.institution_id !== institution_id) {
+      return forbiddenResponse("Forbidden: institution mismatch");
+    }
 
     // Fetch configurable weights from institution_settings
     const { data: settings } = await supabase

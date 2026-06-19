@@ -6,6 +6,11 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import {
+  authenticateRequest,
+  unauthorizedResponse,
+  forbiddenResponse,
+} from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -22,6 +27,13 @@ serve(async (req) => {
   }
 
   try {
+    // Caller check (Req 18): require a valid JWT. This function bypasses RLS via
+    // the service-role client below, so we must authorize the caller in-handler.
+    const auth = await authenticateRequest(req);
+    if (!auth.user) {
+      return unauthorizedResponse(auth.error ?? "Unauthorized");
+    }
+
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
@@ -38,6 +50,19 @@ serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
       );
+    }
+
+    // Ownership: a student may only trigger/answer their OWN bonus question
+    // (it awards XP to student_id). Admins may act on any student in their
+    // institution for support. Cross-tenant access is always denied.
+    const isAdmin = auth.user.role === "admin";
+    if (!isAdmin && auth.user.id !== student_id) {
+      return forbiddenResponse(
+        "Forbidden: cannot act on behalf of another student"
+      );
+    }
+    if (!isAdmin && auth.user.institution_id !== institution_id) {
+      return forbiddenResponse("Forbidden: institution mismatch");
     }
 
     // ── Action: trigger — Check if a bonus question should appear ────────

@@ -3,6 +3,11 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import {
+  authenticateRequest,
+  unauthorizedResponse,
+  forbiddenResponse,
+} from "../_shared/auth.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -70,6 +75,17 @@ serve(async (req) => {
   }
 
   try {
+    // Caller check (Req 18): competency-framework import is an admin/coordinator
+    // curriculum action and runs with the service-role client, so authorize the
+    // caller in-handler.
+    const auth = await authenticateRequest(req);
+    if (!auth.user) {
+      return unauthorizedResponse(auth.error ?? "Unauthorized");
+    }
+    if (!["admin", "coordinator"].includes(auth.user.role)) {
+      return forbiddenResponse("Forbidden: admin or coordinator role required");
+    }
+
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
@@ -84,6 +100,27 @@ serve(async (req) => {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         }
+      );
+    }
+
+    // Tenant scope: the framework must belong to the caller's institution.
+    const { data: framework } = await supabase
+      .from("competency_frameworks")
+      .select("institution_id")
+      .eq("id", framework_id)
+      .maybeSingle();
+    if (!framework) {
+      return new Response(JSON.stringify({ error: "Framework not found" }), {
+        status: 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if (
+      (framework as { institution_id: string }).institution_id !==
+      auth.user.institution_id
+    ) {
+      return forbiddenResponse(
+        "Forbidden: framework belongs to another institution"
       );
     }
 
