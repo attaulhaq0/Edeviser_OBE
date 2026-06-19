@@ -356,6 +356,16 @@ jobs:
         # the script's allowlist; any NEW duplicate base-name fails here.
         run: node scripts/check-migration-duplicate-names.mjs
 
+      - name: Edge Function schema-contract check (Req 19.5 / Req 22)
+        # Edge Functions run on Deno and are NOT type-checked by `tsc`, so a query like
+        # `.from("assignments").select("clo_ids")` compiles yet fails at runtime when the
+        # real column is `clo_weights` (the class that broke the OBE accreditation report
+        # and course-file generators). This validates every `.from().select/.eq/...` in
+        # supabase/functions/** against src/types/database.ts. Pre-existing drift is
+        # grandfathered in scripts/edge-fn-schema-baseline.json; any NEW drift — or a
+        # regression of the fixed OBE-export columns — fails the build.
+        run: node scripts/check-edge-fn-schema.mjs
+
       - name: Declared-object existence check (C4 — Req 20, 21.1)
         # Verifies every DB object a completed task declares as created (materialized views,
         # functions, …) actually exists in the target schema — closing the "task checked off

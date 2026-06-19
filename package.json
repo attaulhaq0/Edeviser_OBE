@@ -14,6 +14,7 @@
     "seed": "supabase db reset",
     "db:check-replay": "node scripts/check-migration-replay-order.mjs",
     "db:check-dup-names": "node scripts/check-migration-duplicate-names.mjs",
+    "db:check-edge-schema": "node scripts/check-edge-fn-schema.mjs",
     "analyze": "cross-env ANALYZE=true vite build",
     "lighthouse": "lhci autorun || true",
     "audit": "tsx scripts/audit/run.ts --env=ci",
