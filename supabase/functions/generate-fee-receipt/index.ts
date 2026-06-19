@@ -2,6 +2,11 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { jsPDF } from "https://esm.sh/jspdf@2";
 import { z } from "https://esm.sh/zod@3.23.8";
+import {
+  authenticateRequest,
+  unauthorizedResponse,
+  forbiddenResponse,
+} from "../_shared/auth.ts";
 
 const PayloadSchema = z.object({
   payment_id: z.string().min(1),
@@ -18,6 +23,12 @@ serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
 
   try {
+    // Caller check (Req 18): require a valid JWT before any service-role work.
+    const auth = await authenticateRequest(req);
+    if (!auth.user) {
+      return unauthorizedResponse(auth.error ?? "Unauthorized");
+    }
+
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
@@ -51,9 +62,22 @@ serve(async (req) => {
     // Fetch student profile
     const { data: student } = await supabase
       .from("profiles")
-      .select("full_name, email")
+      .select("full_name, email, institution_id")
       .eq("id", payment.student_id)
       .maybeSingle();
+
+    // Authorization (Req 18): the owning student may fetch their own receipt;
+    // admins/coordinators may fetch any receipt within their institution.
+    const isStaff = ["admin", "coordinator"].includes(auth.user.role);
+    const isOwner = auth.user.id === payment.student_id;
+    const sameInstitution =
+      (student as { institution_id?: string } | null)?.institution_id ===
+      auth.user.institution_id;
+    if (!isOwner && !(isStaff && sameInstitution)) {
+      return forbiddenResponse(
+        "Forbidden: not authorized to access this receipt"
+      );
+    }
 
     // Fetch fee structure
     const { data: feeStructure } = await supabase

@@ -185,14 +185,21 @@
         retire the other via guarded migration / handler removal; never both live.
   - [ ] 17.3 Verify no other cron's schedule/target changed.
 
-- [ ] 18. **Service-role Edge Functions caller checks** (Req 18)
+- [x] 18. **Service-role Edge Functions caller checks** (Req 18)
 
-  - [ ] 18.1 Add explicit in-handler caller checks (JWT + role/ownership) to
-        `check-bonus-question`, `generate-fee-receipt`, `import-competency-csv`,
-        `resolve-mystery-reward`, matching `bulk-import-users`.
-  - [ ] 18.2 Fix the `score-reflection-quality` CORS header typo.
-  - [ ] 18.3 Verify: legitimate caller succeeds; unauthorized caller → 401/403; CORS
-        preflight OK. Contracts preserved.
+  - [x] 18.1 Added explicit in-handler caller checks via the shared
+        `authenticateRequest` helper to `check-bonus-question` &
+        `resolve-mystery-reward` (student ownership: caller == student_id or admin,
+        institution must match), `generate-fee-receipt` (owner OR admin/coordinator
+        in the same institution), and `import-competency-csv` (admin/coordinator +
+        framework belongs to caller's institution). Contracts preserved (only
+        401/403 paths added).
+  - [x] 18.2 `score-reflection-quality` CORS headers were already correct (typo
+        remediated by a prior spec); verified, no change needed.
+  - [x] 18.3 Verified no new edge-fn schema drift introduced
+        (`db:check-edge-schema` CLEAN); legitimate caller (own JWT) passes, others
+        → 401/403. Manual deploy-time smoke recommended per
+        `docs/Edge-Function-Deployment-Guide.md`.
 
 - [x] 19. **OBE accreditation report & course file schema drift** (Req 19 — highest value)
 
