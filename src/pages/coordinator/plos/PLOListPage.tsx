@@ -116,10 +116,11 @@ const PLOListPage = () => {
 
   const { data: paginatedPrograms, isLoading: programsLoading } = usePrograms();
   const programs = paginatedPrograms?.data;
-  const { data: paginatedPLOs, isLoading } = usePLOs(
-    programFilter || undefined,
-    { page }
-  );
+  const {
+    data: paginatedPLOs,
+    isLoading,
+    isFetching,
+  } = usePLOs(programFilter || undefined, { page });
   const plos = paginatedPLOs?.data;
   const deleteMutation = useDeletePLO();
   const reorderMutation = useReorderPLOs();
@@ -303,6 +304,7 @@ const PLOListPage = () => {
           columns={columns}
           data={displayItems}
           isLoading={false}
+          isFetching={isFetching}
           page={page}
           pageSize={paginatedPLOs?.pageSize}
           totalCount={paginatedPLOs?.count}

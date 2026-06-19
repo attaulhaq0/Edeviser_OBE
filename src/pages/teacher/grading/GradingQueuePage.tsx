@@ -33,7 +33,11 @@ const GradingQueuePage = () => {
   const { data: paginatedCourses } = useCourses();
   const { data: paginatedAssignments } = useAssignments(courseId || undefined);
   const { data: sections } = useCourseSections(courseId || undefined);
-  const { data: paginatedSubmissions, isLoading } = useSubmissions({
+  const {
+    data: paginatedSubmissions,
+    isLoading,
+    isFetching,
+  } = useSubmissions({
     courseId: courseId || undefined,
     assignmentId: assignmentId || undefined,
     sectionId: sectionId || undefined,
@@ -124,6 +128,7 @@ const GradingQueuePage = () => {
         columns={gradingQueueColumns}
         data={submissions}
         isLoading={isLoading}
+        isFetching={isFetching}
         page={page}
         pageSize={paginatedSubmissions?.pageSize}
         totalCount={paginatedSubmissions?.count}

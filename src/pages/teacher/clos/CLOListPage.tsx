@@ -32,10 +32,11 @@ const CLOListPage = () => {
 
   const { data: paginatedCourses, isLoading: coursesLoading } = useCourses();
   const courses = paginatedCourses?.data;
-  const { data: paginatedCLOs, isLoading } = useCLOs(
-    courseFilter || undefined,
-    { page }
-  );
+  const {
+    data: paginatedCLOs,
+    isLoading,
+    isFetching,
+  } = useCLOs(courseFilter || undefined, { page });
   const deleteMutation = useDeleteCLO();
 
   const filteredCLOs = (paginatedCLOs?.data ?? []).filter((clo) => {
@@ -106,6 +107,7 @@ const CLOListPage = () => {
         columns={columns}
         data={filteredCLOs}
         isLoading={isLoading}
+        isFetching={isFetching}
         page={page}
         pageSize={paginatedCLOs?.pageSize}
         totalCount={paginatedCLOs?.count}

@@ -33,10 +33,11 @@ const AssignmentListPage = () => {
 
   const { data: paginatedCourses, isLoading: coursesLoading } = useCourses();
   const courses = paginatedCourses?.data;
-  const { data: paginatedAssignments, isLoading } = useAssignments(
-    courseFilter || undefined,
-    { page }
-  );
+  const {
+    data: paginatedAssignments,
+    isLoading,
+    isFetching,
+  } = useAssignments(courseFilter || undefined, { page });
   const deleteMutation = useDeleteAssignment();
 
   const filteredAssignments = (paginatedAssignments?.data ?? []).filter((a) => {
@@ -104,6 +105,7 @@ const AssignmentListPage = () => {
         columns={columns}
         data={filteredAssignments}
         isLoading={isLoading}
+        isFetching={isFetching}
         page={page}
         pageSize={paginatedAssignments?.pageSize}
         totalCount={paginatedAssignments?.count}

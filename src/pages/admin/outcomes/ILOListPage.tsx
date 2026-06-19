@@ -108,7 +108,7 @@ const ILOListPage = () => {
   const [iloToDelete, setIloToDelete] = useState<LearningOutcome | null>(null);
   const [page, setPage] = useState(1);
 
-  const { data: paginatedILOs, isLoading } = useILOs({ page });
+  const { data: paginatedILOs, isLoading, isFetching } = useILOs({ page });
   const ilos = paginatedILOs?.data;
   const deleteMutation = useDeleteILO();
   const reorderMutation = useReorderILOs();
@@ -274,6 +274,7 @@ const ILOListPage = () => {
           columns={columns}
           data={displayItems}
           isLoading={false}
+          isFetching={isFetching}
           page={page}
           pageSize={paginatedILOs?.pageSize}
           totalCount={paginatedILOs?.count}

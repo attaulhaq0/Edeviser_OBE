@@ -31,7 +31,11 @@ const CourseListPage = () => {
   );
   const [page, setPage] = useState(1);
 
-  const { data: paginatedCourses, isLoading } = useCourses({
+  const {
+    data: paginatedCourses,
+    isLoading,
+    isFetching,
+  } = useCourses({
     search: search || undefined,
     programId: programFilter || undefined,
     page,
@@ -100,6 +104,7 @@ const CourseListPage = () => {
         columns={columns}
         data={paginatedCourses?.data ?? []}
         isLoading={isLoading}
+        isFetching={isFetching}
         page={page}
         pageSize={paginatedCourses?.pageSize}
         totalCount={paginatedCourses?.count}
