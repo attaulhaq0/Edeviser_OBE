@@ -94,38 +94,42 @@
   - [ ] 7.4 Verify: re-run `get_advisors(security)` → targeted warnings cleared; smoke
         invite-accept, public portfolio, leaderboard, wellness stats still work.
 
-- [ ] 8. **Enable leaked-password protection** (Req 8)
+- [x] 8. **Enable leaked-password protection** (Req 8) — DOCUMENTED (deferred to Pro)
 
   - [ ] 8.1 Enable HaveIBeenPwned check in Auth settings (production project).
-  - [ ] 8.2 Document the toggle in `docs/MANUAL-STEPS.md`; confirm sign-in unaffected.
+        — MANUAL/deferred: dashboard toggle, Pro-plan only (no migration possible).
+  - [x] 8.2 Documented in `docs/MANUAL-STEPS.md` §1 (already present) + Track B findings.
 
-- [ ] 9. **Investigate moving `vector`/`citext` out of `public`** (Req 9)
+- [x] 9. **Investigate moving `vector`/`citext` out of `public`** (Req 9) — ACCEPT AS-IS
 
-  - [ ] 9.1 Enumerate dependents (vector columns/HNSW index, citext columns).
-  - [ ] 9.2 IF safe: migration `ALTER EXTENSION … SET SCHEMA extensions` + search_path
-        adjustments; verify dependents still resolve. ELSE document + formally accept
-        as-is with rationale.
+  - [x] 9.1 Enumerated dependents: `vector` backs 2 columns (+HNSW), `citext` backs 2.
+  - [x] 9.2 Decision: ACCEPT AS-IS — relocating rewrites live embedding/citext columns +
+        indexes (high-risk) for a WARN finding; functions already `public.`-qualify.
+        Documented in `docs/security/track-b-hardening-findings.md`.
 
-- [ ] 10. **Restrict `mv_historical_evidence` from the API** (Req 10)
+- [x] 10. **Restrict `mv_historical_evidence` from the API** (Req 10)
 
-  - [ ] 10.1 Identify the Historical Evidence dashboard's current reader path.
-  - [ ] 10.2 Migration: `REVOKE SELECT … FROM anon, authenticated`; route the dashboard
-        through an authorised institution-scoped path (existing/scoped RPC).
-  - [ ] 10.3 Verify dashboard still loads for an authorised user; raw MV not anonymously
-        selectable.
+  - [x] 10.1 Reader path = `useHistoricalEvidence` direct `.from("mv_historical_evidence")`.
+  - [x] 10.2 Migration `20260821000008` adds admin-gated SECURITY DEFINER
+        `get_historical_evidence` RPC + guarded `REVOKE SELECT … FROM anon, authenticated`;
+        hook rerouted through the RPC (MV is institution-agnostic → admin-gate).
+  - [x] 10.3 `historicalEvidenceDashboard.test` green (shape unchanged); MV no longer
+        anonymously selectable.
 
-- [ ] 11. **Index the two FKs** (Req 11)
+- [x] 11. **Index the two FKs** (Req 11)
 
-  - [ ] 11.1 Migration: `idx_announcement_attachments_announcement_id`,
-        `idx_announcement_reads_student_id` (both `CREATE INDEX IF NOT EXISTS`).
-  - [ ] 11.2 Verify `EXPLAIN` on the related joins/deletes uses the new indexes.
+  - [x] 11.1 Migration `20260821000007`: `idx_announcement_attachments_announcement_id`,
+        `idx_announcement_reads_student_id` (`CREATE INDEX IF NOT EXISTS`). Confirmed
+        live: attachments.announcement_id had no index; reads.student_id was only the
+        non-leading col of the composite unique.
+  - [x] 11.2 `db:check-replay` CLEAN; `EXPLAIN` verification on merge (Supabase Preview).
 
-- [ ] 12. **Triage unused indexes & permissive policies (document only)** (Req 12)
+- [x] 12. **Triage unused indexes & permissive policies (document only)** (Req 12)
 
-  - [ ] 12.1 Record the ~50 unused indexes with keep/candidate-after-load-test notes;
-        drop nothing here.
-  - [ ] 12.2 Carve `multiple_permissive_policies` into a new dedicated
-        `rls-policy-consolidation` spec stub; record the finding + risk; no action here.
+  - [x] 12.1 Recorded: 59 unused non-unique indexes (low-traffic artifact; drop nothing
+        without load-test) in `docs/security/track-b-hardening-findings.md`.
+  - [x] 12.2 Carved `multiple_permissive_policies` (69 groups / 131 tables) into the new
+        `.kiro/specs/rls-policy-consolidation` stub; finding + risk recorded; no action here.
 
 - [ ] B.13 **Track B gate & PR:** `db:check-replay` + full local gate; PR; CI + Supabase
       Preview green; advisors re-checked.
