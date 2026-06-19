@@ -23,6 +23,7 @@ import {
   Ruler,
   CheckSquare,
   ListChecks,
+  AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
@@ -757,6 +758,26 @@ export const InlineNoStudents = ({ className }: { className?: string }) => {
       icon={<Users className="h-6 w-6 text-gray-400" />}
       title={t("empty.noStudents.title")}
       description={t("empty.noStudents.description")}
+      className={className}
+    />
+  );
+};
+
+// ============================================================================
+// InlineLoadError — shown INSIDE a card when a query rejects, so a failed
+// fetch is not mislabeled as "no data" or left spinning (Req 15.1/15.2).
+// ============================================================================
+
+export const InlineLoadError = ({ className }: EmptyStateVariantProps) => {
+  const { t } = useTranslation("common");
+  return (
+    <InlineEmpty
+      icon={<AlertTriangle className="h-6 w-6 text-amber-500" />}
+      title={t("empty.loadError.title", "Couldn't load this view")}
+      description={t(
+        "empty.loadError.description",
+        "There was a problem fetching the data. Please refresh to try again."
+      )}
       className={className}
     />
   );

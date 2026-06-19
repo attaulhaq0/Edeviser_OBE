@@ -1,14 +1,21 @@
-// Task 123.3: Semester Trend View page
+// Coordinator analytics — Semester Trends (planned feature).
+// Intentionally not wired to data yet: it requires multi-semester attainment
+// snapshots that don't exist. Labelled "Coming soon" (Req 15.4) and removed
+// from the coordinator nav so it doesn't read as a broken/empty page.
 
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { TrendingDown, TrendingUp } from "lucide-react";
+import { TrendingUp } from "lucide-react";
 
 const SemesterTrendView = () => {
-  // Placeholder — requires mv_semester_attainment materialized view
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold tracking-tight">Semester Trends</h1>
+      <div className="flex items-center gap-3">
+        <h1 className="text-2xl font-bold tracking-tight">Semester Trends</h1>
+        <Badge variant="outline" className="text-xs">
+          Coming soon
+        </Badge>
+      </div>
 
       <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
         <div
@@ -24,14 +31,14 @@ const SemesterTrendView = () => {
         </div>
         <div className="p-6">
           <div className="flex flex-col items-center justify-center py-12 text-center">
-            <TrendingDown className="h-12 w-12 text-slate-300 mb-3" />
-            <p className="text-sm text-slate-500">
-              Semester trend data will appear here once multiple semesters have
-              attainment snapshots.
+            <TrendingUp className="h-12 w-12 text-slate-300 mb-3" />
+            <h3 className="text-lg font-semibold tracking-tight text-gray-900">
+              Coming soon
+            </h3>
+            <p className="mt-1.5 text-sm text-slate-500 max-w-sm">
+              Semester-over-semester attainment trends will appear here once
+              multiple semesters of attainment data are available.
             </p>
-            <Badge variant="outline" className="mt-2 text-xs">
-              Requires semester_attainment_snapshots table
-            </Badge>
           </div>
         </div>
       </Card>
