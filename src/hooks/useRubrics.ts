@@ -1,4 +1,9 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  useQuery,
+  keepPreviousData,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
 import { logAuditEvent } from "@/lib/auditLogger";
@@ -65,6 +70,7 @@ export const useRubrics = (
 
   return useQuery({
     queryKey: queryKeys.rubrics.list({ courseId, page, pageSize }),
+    placeholderData: keepPreviousData,
     queryFn: async (): Promise<PaginatedResult<RubricWithRelations>> => {
       if (courseId) {
         // Get CLO ids for this course, then filter rubrics

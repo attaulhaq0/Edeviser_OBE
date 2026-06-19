@@ -151,7 +151,11 @@ const AuditLogPage = () => {
   );
   const [page, setPage] = useState(1);
 
-  const { data: paginatedData, isLoading } = useAuditLogs({
+  const {
+    data: paginatedData,
+    isLoading,
+    isFetching,
+  } = useAuditLogs({
     search: search || undefined,
     action: action || undefined,
     entityType: entityType || undefined,
@@ -224,6 +228,7 @@ const AuditLogPage = () => {
         columns={columns}
         data={paginatedData?.data ?? []}
         isLoading={isLoading}
+        isFetching={isFetching}
         page={page}
         pageSize={paginatedData?.pageSize}
         totalCount={paginatedData?.count}

@@ -83,6 +83,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Guard against double-firing in StrictMode
   const initialised = useRef(false);
+  // Tracks the currently-synced user id so a TOKEN_REFRESHED for the SAME user
+  // can skip the redundant profile SELECT (spec: dashboard-and-ux-performance,
+  // Req 8.1). A token rotation does not change the profile, so re-fetching it on
+  // every refresh is a pure round-trip cost.
+  const currentUserIdRef = useRef<string | null>(null);
 
   // -------------------------------------------------------------------
   // Fetch profile from `profiles` table
@@ -112,12 +117,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const syncSession = useCallback(
     async (session: Session | null) => {
       if (!session?.user) {
+        currentUserIdRef.current = null;
         setUser(null);
         setProfile(null);
         setIsLoading(false);
         return;
       }
 
+      currentUserIdRef.current = session.user.id;
       setUser(session.user);
 
       const userProfile = await fetchProfile(session.user.id);
@@ -168,9 +175,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           break;
 
         case "TOKEN_REFRESHED":
+          // Req 8.1: a token rotation for the SAME user does not change the
+          // profile, so skip the redundant profile SELECT — just adopt the
+          // refreshed session user. Falls through to a full sync only when the
+          // user id actually changed (or no profile was synced yet).
+          if (session?.user && session.user.id === currentUserIdRef.current) {
+            setUser(session.user);
+            setIsLoading(false);
+            break;
+          }
+          syncSession(session);
+          break;
+
         case "SIGNED_IN":
         case "INITIAL_SESSION":
-          // Re-sync profile on token refresh to keep state fresh
+          // Re-sync profile on sign-in / initial session.
           syncSession(session);
           break;
 

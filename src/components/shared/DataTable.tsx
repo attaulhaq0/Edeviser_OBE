@@ -26,6 +26,14 @@ interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   isLoading?: boolean;
+  /**
+   * True while a background refetch is in flight (e.g. a page/filter change with
+   * `placeholderData: keepPreviousData`). The previous rows stay visible but are
+   * dimmed + marked `aria-busy` so the pending state is perceivable without a
+   * skeleton flash (dashboard-and-ux-performance Req 5.1). Distinct from
+   * `isLoading`, which is the first-load skeleton.
+   */
+  isFetching?: boolean;
   page?: number;
   pageSize?: number;
   totalCount?: number;
@@ -37,6 +45,7 @@ function DataTable<TData, TValue>({
   columns,
   data,
   isLoading = false,
+  isFetching = false,
   page,
   pageSize,
   totalCount,
@@ -82,7 +91,12 @@ function DataTable<TData, TValue>({
   }
 
   return (
-    <div className="space-y-4">
+    <div
+      className={`space-y-4 transition-opacity duration-200 ${
+        isFetching ? "opacity-60" : ""
+      }`}
+      aria-busy={isFetching || undefined}
+    >
       <div className="rounded-lg border bg-background">
         <Table>
           <TableHeader>

@@ -336,6 +336,36 @@ describe("AuthProvider", () => {
     expect(result.current.role).toBe("admin");
   });
 
+  it("skips the profile re-fetch on TOKEN_REFRESHED for the same user (Req 8.1)", async () => {
+    let authChangeCallback: ((event: string, session: unknown) => void) | null =
+      null;
+
+    setupMocks({ session: { user: MOCK_USER }, profile: MOCK_PROFILE });
+    mockOnAuthStateChange.mockImplementation(
+      (cb: (event: string, session: unknown) => void) => {
+        authChangeCallback = cb;
+        return { data: { subscription: { unsubscribe: vi.fn() } } };
+      }
+    );
+
+    const { result } = renderHook(() => useAuth(), { wrapper });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.user?.id).toBe("user-123");
+
+    // The initial mount fetched the profile once. Clear the `from` spy, then
+    // refresh the token for the SAME user — no second profiles SELECT should
+    // fire (Req 8.1), but the user/role state stays intact.
+    mockFrom.mockClear();
+
+    await act(async () => {
+      authChangeCallback?.("TOKEN_REFRESHED", { user: MOCK_USER });
+    });
+
+    expect(mockFrom).not.toHaveBeenCalled();
+    expect(result.current.user?.id).toBe("user-123");
+    expect(result.current.role).toBe("admin");
+  });
+
   it("clears state on SIGNED_OUT event (session expiry)", async () => {
     let authChangeCallback: ((event: string, session: unknown) => void) | null =
       null;

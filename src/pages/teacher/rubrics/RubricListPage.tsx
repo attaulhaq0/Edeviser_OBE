@@ -17,7 +17,13 @@ const RubricListPage = () => {
   const navigate = useNavigate();
   const [search, setSearch] = useQueryState("q", parseAsString.withDefault(""));
   const [page, setPage] = useState(1);
-  const { data: paginatedData, isLoading } = useRubrics(undefined, { page });
+  const {
+    data: paginatedData,
+    isLoading,
+    isFetching,
+  } = useRubrics(undefined, {
+    page,
+  });
   const deleteMutation = useDeleteRubric();
   const copyMutation = useCopyRubric();
 
@@ -75,6 +81,7 @@ const RubricListPage = () => {
         columns={columns}
         data={filtered}
         isLoading={isLoading}
+        isFetching={isFetching}
         page={page}
         pageSize={paginatedData?.pageSize}
         totalCount={paginatedData?.count}

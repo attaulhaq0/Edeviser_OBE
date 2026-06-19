@@ -42,6 +42,8 @@ const ParentStudentCard = ({
           <img
             src={avatarUrl}
             alt={studentName}
+            loading="lazy"
+            decoding="async"
             className="h-full w-full object-cover"
           />
         ) : (

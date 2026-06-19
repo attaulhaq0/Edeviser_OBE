@@ -223,7 +223,8 @@ export const useDeleteAnnouncement = () => {
 
 export const useStudentAnnouncements = (
   studentId: string | undefined,
-  limit = 5
+  limit = 5,
+  options?: { enabled?: boolean }
 ) => {
   return useQuery({
     queryKey: queryKeys.announcements.list({ studentId, limit }),
@@ -252,7 +253,12 @@ export const useStudentAnnouncements = (
         castAnnouncement(r as unknown as Record<string, unknown>)
       );
     },
-    enabled: !!studentId,
+    // Caller-overridable gate (backward-compatible): 1- and 2-arg callers pass
+    // no `options`, so `options?.enabled ?? true` collapses to the prior
+    // `enabled: !!studentId`. The StudentDashboard passes `{ enabled: false }`
+    // on the happy path so the aggregate-hydrated cache is used without this
+    // hook firing, and `{ enabled: true }` only when the aggregate errors.
+    enabled: !!studentId && (options?.enabled ?? true),
   });
 };
 

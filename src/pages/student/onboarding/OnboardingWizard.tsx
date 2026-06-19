@@ -257,13 +257,22 @@ export const OnboardingWizard = ({
         (completionData as UpdateProgressInput).day1_completed = true;
       }
       updateProgress.mutate(completionData as UpdateProgressInput);
-
-      // Optimistic navigation (clause 2.20: respond within 200ms)
-      navigate("/student");
-    } catch {
-      // Error handled by mutation
+    } catch (err) {
+      // Never silently swallow (engineering-guardrails): surface the failure so
+      // it is visible in the console and picked up by error monitoring. The
+      // Edge Function call is intentionally de-coupled from navigation — the
+      // `finally` block below still routes the student to their dashboard, so a
+      // slow / erroring / unavailable process-onboarding function can never
+      // trap them on the full-screen "Processing…" overlay (Req 2).
+      console.error(
+        "[OnboardingWizard] process-onboarding failed; continuing to dashboard",
+        err
+      );
     } finally {
       setIsProcessing(false);
+      // Optimistic navigation (clause 2.20: respond within 200ms) — always
+      // leave the wizard for the dashboard, regardless of Edge Function outcome.
+      navigate("/student");
     }
   }, [
     processOnboarding,

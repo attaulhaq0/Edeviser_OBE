@@ -100,6 +100,8 @@ const AvatarUpload = ({ currentUrl }: AvatarUploadProps) => {
             <img
               src={`${currentUrl}?width=128&height=128&resize=cover`}
               alt="Current avatar"
+              loading="lazy"
+              decoding="async"
               className="h-24 w-24 rounded-lg object-cover"
             />
             <div>

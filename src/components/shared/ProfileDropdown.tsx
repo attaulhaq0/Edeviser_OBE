@@ -26,6 +26,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import { getDisplayFirstName } from "@/lib/displayName";
 
 /**
  * Profile dropdown menu with avatar, name, and actions.
@@ -87,7 +88,7 @@ const ProfileDropdown = () => {
             </AvatarFallback>
           </Avatar>
           <span className="hidden sm:inline text-sm font-medium text-gray-700">
-            {profile.full_name?.split(" ")[0] ?? "User"}
+            {getDisplayFirstName(profile.full_name) ?? "User"}
           </span>
           <ChevronDown className="h-4 w-4 text-gray-500" />
         </button>

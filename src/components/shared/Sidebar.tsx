@@ -5,6 +5,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useSurveyAssignmentsCount } from "@/hooks/useSurveyAssignmentsCount";
 import { navItems, type NavItem } from "@/lib/navItems";
 import { NAV_GROUPS, NAV_GROUP_META, type NavGroup } from "@/lib/navGroups";
+import { useIntentPrefetch } from "@/hooks/useIntentPrefetch";
+import { prefetchRoute } from "@/lib/routePrefetch";
 import { useSidebar } from "./SidebarContext";
 import { cn } from "@/lib/utils";
 import type { UserRole } from "@/types/app";
@@ -48,6 +50,9 @@ const Sidebar = () => {
   const { profile } = useAuth();
   const { mobileOpen, close } = useSidebar();
   const location = useLocation();
+  // Prefetch-on-intent (Req 9): warm a route's chunk on hover/focus (desktop
+  // only, once per target, failures swallowed) so navigation feels instant.
+  const getIntentHandlers = useIntentPrefetch();
 
   const role = (profile?.role ?? "student") as UserRole;
 
@@ -87,6 +92,8 @@ const Sidebar = () => {
         key={item.to}
         to={item.to}
         onClick={close}
+        viewTransition
+        {...getIntentHandlers(item.to, () => prefetchRoute(item.to))}
         className={cn(
           "flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium transition-colors",
           isActive

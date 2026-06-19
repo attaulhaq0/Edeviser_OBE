@@ -44,8 +44,11 @@ const CourseEnrollmentPage = () => {
   const [page, setPage] = useState(1);
 
   const { data: course, isLoading: courseLoading } = useCourse(courseId);
-  const { data: paginatedEnrollments, isLoading: enrollmentsLoading } =
-    useEnrollments(courseId, { page });
+  const {
+    data: paginatedEnrollments,
+    isLoading: enrollmentsLoading,
+    isFetching: enrollmentsFetching,
+  } = useEnrollments(courseId, { page });
   const enrollments = useMemo(
     () => paginatedEnrollments?.data ?? [],
     [paginatedEnrollments?.data]
@@ -153,6 +156,7 @@ const CourseEnrollmentPage = () => {
         columns={columns}
         data={enrollments}
         isLoading={enrollmentsLoading}
+        isFetching={enrollmentsFetching}
         page={page}
         pageSize={paginatedEnrollments?.pageSize}
         totalCount={paginatedEnrollments?.count}

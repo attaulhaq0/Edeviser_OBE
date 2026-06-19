@@ -37,7 +37,11 @@ const UserListPage = () => {
 
   const [page, setPage] = useState(1);
 
-  const { data: paginatedData, isLoading } = useUsers({
+  const {
+    data: paginatedData,
+    isLoading,
+    isFetching,
+  } = useUsers({
     search: search || undefined,
     role: role || undefined,
     page,
@@ -118,6 +122,7 @@ const UserListPage = () => {
         columns={columns}
         data={paginatedData?.data ?? []}
         isLoading={isLoading}
+        isFetching={isFetching}
         page={page}
         pageSize={paginatedData?.pageSize}
         totalCount={paginatedData?.count}

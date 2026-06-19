@@ -28,6 +28,7 @@ import {
   useStudentKPIs,
   useUpcomingDeadlines,
 } from "@/hooks/useStudentDashboard";
+import { useStudentDashboardAggregate } from "@/hooks/useStudentDashboardAggregate";
 import { useCLOProgress } from "@/hooks/useCLOProgress";
 import { useIndependenceScores } from "@/hooks/useIndependenceScore";
 import { useStudentProfile } from "@/hooks/useStudentProfile";
@@ -50,7 +51,10 @@ import {
 } from "@/hooks/useComebackChallenge";
 import { useHabitDifficultyLevel } from "@/hooks/useHabitDifficulty";
 import { useInstitutionSettings } from "@/hooks/useInstitutionSettings";
-import { useStudentAnnouncements } from "@/hooks/useAnnouncements";
+import {
+  useStudentAnnouncements,
+  type Announcement,
+} from "@/hooks/useAnnouncements";
 import { useStudentAttendance } from "@/hooks/useAttendance";
 import { useStudentChallenges } from "@/hooks/useChallenges";
 import { useMyTeamId } from "@/hooks/useTeamLeaderboard";
@@ -125,13 +129,34 @@ const KPICard = ({ icon: Icon, label, value, accent }: KPICardProps) => (
 
 // ─── Announcements Section ──────────────────────────────────────────────────
 
-const AnnouncementsSection = ({ studentId }: { studentId: string }) => {
+const AnnouncementsSection = ({
+  studentId,
+  announcements: announcementsProp,
+  fallbackEnabled,
+}: {
+  studentId: string;
+  announcements: Announcement[] | undefined;
+  fallbackEnabled: boolean;
+}) => {
   const { t } = useTranslation("student");
   const navigate = useNavigate();
-  const { data: announcements, isLoading } = useStudentAnnouncements(
-    studentId,
-    5
-  );
+  // PERF (spec: dashboard-and-ux-performance, Req 2): consume the aggregate's
+  // announcements (passed as a prop) on the happy path with no request of our
+  // own. Fallback only: when the aggregate errored (`fallbackEnabled`), this
+  // gated hook fetches exactly as before. The optional `enabled` arg is
+  // backward-compatible for every other caller of useStudentAnnouncements.
+  const hook = useStudentAnnouncements(studentId, 5, {
+    enabled: fallbackEnabled,
+  });
+  const announcements = announcementsProp ?? hook.data;
+  // Shimmer on first paint while the aggregate is still resolving (no prop yet
+  // and not yet errored) and while the error-gated fallback hook is fetching —
+  // mirrors the prior `useStudentAnnouncements(...).isLoading` shimmer. Guarded
+  // by `studentId` so the no-user case renders nothing, exactly as before.
+  const isLoading =
+    !!studentId &&
+    announcements === undefined &&
+    (!fallbackEnabled || hook.isLoading);
 
   if (isLoading) {
     return <Shimmer className="h-32 rounded-xl" />;
@@ -200,11 +225,36 @@ const StudentDashboard = () => {
   const deferredReady = useDeferredMount(500);
   const deferredStudentId = deferredReady ? studentId : undefined;
 
-  const { data: kpis, isLoading: kpisLoading } = useStudentKPIs(user?.id);
-  const { data: deadlines, isLoading: deadlinesLoading } = useUpcomingDeadlines(
-    user?.id,
-    5
-  );
+  // PERF (spec: dashboard-and-ux-performance, Req 2): ONE aggregate round-trip
+  // (`get_student_dashboard`) hydrates the KPI + upcoming-deadlines caches AND
+  // drives the critical block directly, so it is a single request — not the
+  // aggregate plus the two section requests it was meant to replace. Additive +
+  // reversible: the section hooks below remain the fallback path, gated to fetch
+  // ONLY if the aggregate errors (cache miss / RPC failure), so behavior and data
+  // visibility are unchanged (the RPC is SECURITY INVOKER). This does NOT cover
+  // the deferred always-on sections yet, so `useDeferredMount(500)` must stay to
+  // avoid re-introducing the ~20-hook thundering herd.
+  const aggregate = useStudentDashboardAggregate(studentId);
+
+  // Fallback only: the prior `enabled: !!studentId` made these race the aggregate
+  // on every mount (so the request count never dropped). Now they fire only when
+  // the aggregate fails. The new optional `enabled` arg is backward-compatible
+  // (every other caller still gets the default `enabled: !!studentId`).
+  const kpisHook = useStudentKPIs(user?.id, { enabled: aggregate.isError });
+  const deadlinesHook = useUpcomingDeadlines(user?.id, 5, {
+    enabled: aggregate.isError,
+  });
+
+  // Render from the aggregate when present, else the fallback hook.
+  const kpis = aggregate.data?.kpis ?? kpisHook.data;
+  const deadlines = aggregate.data?.deadlines ?? deadlinesHook.data;
+  // Skeleton shows on first paint (aggregate pending) and while the fallback hook
+  // loads after an aggregate error; the empty/deadline states render exactly as
+  // before once a value (from either source) is available.
+  const kpisLoading =
+    aggregate.isPending || (aggregate.isError && kpisHook.isLoading);
+  const deadlinesLoading =
+    aggregate.isPending || (aggregate.isError && deadlinesHook.isLoading);
 
   // Realtime: invalidate XP/streak/level queries when student_gamification changes
   const handleGamificationPayload = useCallback(() => {
@@ -237,16 +287,32 @@ const StudentDashboard = () => {
   const { data: todayMicro } = useTodayMicroAssessment(deferredStudentId ?? "");
   const completeMicro = useCompleteMicroAssessment();
   const dismissMicro = useDismissMicroAssessment();
-  const { data: completenessData } = useProfileCompleteness(studentId);
+  // Profile completeness (spec: dashboard-and-ux-performance, Req 2).
+  // The aggregate RPC now carries `profileCompleteness`, so render from it
+  // directly and gate the section hook to a fallback-only fetch (fires only when
+  // the aggregate errors). The optional `enabled` arg is backward-compatible for
+  // every other caller. `completenessData` keeps its prior shape, so the
+  // downstream `profileCompleteness` / `day1Completed` derivations are unchanged.
+  const completenessHook = useProfileCompleteness(studentId, {
+    enabled: aggregate.isError,
+  });
+  const completenessData =
+    aggregate.data?.profileCompleteness ?? completenessHook.data;
   const { data: starterSessions } = useStarterWeekSessions(
     deferredStudentId ?? ""
   );
   const { data: progress } = useOnboardingProgress(studentId);
 
-  // Streak Freeze hooks
-  const { data: freezeData } = useStreakFreezeInventory(
-    deferredStudentId ?? ""
-  );
+  // Streak Freeze hooks (spec: dashboard-and-ux-performance, Req 2).
+  // The aggregate RPC now carries `streakFreeze`, so render from it directly and
+  // gate the inventory hook to a fallback-only fetch (fires only when the
+  // aggregate errors). The optional `enabled` arg is backward-compatible for
+  // every other caller. `freezeData` keeps its prior shape, so the downstream
+  // StreakDisplay / StreakFreezeShop reads below are unchanged.
+  const freezeHook = useStreakFreezeInventory(studentId, {
+    enabled: aggregate.isError,
+  });
+  const freezeData = aggregate.data?.streakFreeze ?? freezeHook.data;
   const purchaseFreeze = usePurchaseStreakFreeze();
 
   // Comeback Challenge hooks — Requirement 124.5
@@ -293,9 +359,20 @@ const StudentDashboard = () => {
     return dayOfWeek === 0 ? 1 : 8 - dayOfWeek;
   })();
 
-  // Attendance data
-  const { data: attendanceCourses, isLoading: attendanceLoading } =
-    useStudentAttendance(deferredStudentId);
+  // Attendance data (spec: dashboard-and-ux-performance, Req 2).
+  // The aggregate RPC already returns `attendance`, so render from it directly
+  // and gate the section hook to a fallback-only fetch (fires only when the
+  // aggregate errors). This drops attendance's per-course fan-out from the happy
+  // path; the optional `enabled` arg is backward-compatible for other callers.
+  const attendanceHook = useStudentAttendance(studentId, {
+    enabled: aggregate.isError,
+  });
+  const attendanceCourses = aggregate.data?.attendance ?? attendanceHook.data;
+  // Skeleton on first paint (aggregate pending) and while the fallback loads
+  // after an aggregate error; the card/empty (null) states render exactly as
+  // before once a value (from either source) is available.
+  const attendanceLoading =
+    aggregate.isPending || (aggregate.isError && attendanceHook.isLoading);
 
   // Active challenges for dashboard section
   const { data: studentChallenges } = useStudentChallenges(deferredStudentId);
@@ -771,7 +848,11 @@ const StudentDashboard = () => {
       </div>
 
       {/* Recent Announcements */}
-      <AnnouncementsSection studentId={studentId} />
+      <AnnouncementsSection
+        studentId={studentId}
+        announcements={aggregate.data?.announcements}
+        fallbackEnabled={aggregate.isError}
+      />
 
       {/* CLO Attainment Progress — Requirement 10.2 */}
       {cloProgressData &&

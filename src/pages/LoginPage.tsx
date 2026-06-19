@@ -41,6 +41,40 @@ const DEMO_ACCOUNTS = {
 
 type DemoRole = keyof typeof DEMO_ACCOUNTS;
 
+// ---------------------------------------------------------------------------
+// Noor International demo profiles — LOCAL HOST ONLY.
+// Rendered only when `import.meta.env.DEV` is true (i.e. `vite` dev server),
+// so the block is dead-code-eliminated from production builds. One real seeded
+// account per role; the student/parent pair is linked (Aarav Sharma) so the
+// cross-role data tells a coherent story during an investor walkthrough.
+// ---------------------------------------------------------------------------
+const NOOR_DEMO_ACCOUNTS = [
+  { role: "admin", email: "principal@noor-international.test", label: "Admin" },
+  {
+    role: "coordinator",
+    email: "curriculum@noor-international.test",
+    label: "Coordinator",
+  },
+  {
+    role: "teacher",
+    email: "okonkwo@noor-international.test",
+    label: "Teacher",
+  },
+  {
+    role: "student",
+    email: "student01@noor-international.test",
+    label: "Student",
+  },
+  {
+    role: "parent",
+    email: "parent01@noor-international.test",
+    label: "Parent",
+  },
+] as const;
+
+const NOOR_DEMO_PASSWORD = "DemoQatar2026!";
+const SHOW_NOOR_PANEL = import.meta.env.DEV;
+
 // Demo password is sourced from Vite env so the literal never ships in the
 // production client bundle. `VITE_DEMO_PASSWORD` should only be set for
 // local / staging builds that ship with seeded demo accounts. When unset,
@@ -164,6 +198,28 @@ const LoginPage = () => {
     try {
       const { email } = DEMO_ACCOUNTS[role];
       const result = await signIn(email, DEMO_PASSWORD);
+      if (!result.success) {
+        setError(result.error ?? t("login.demoError"));
+        return;
+      }
+      setSuccess(t("login.demoSuccess", { role }));
+      if (result.redirectTo) {
+        navigate(result.redirectTo, { replace: true });
+      }
+    } catch {
+      setError(t("login.genericError"));
+    } finally {
+      setIsPending(false);
+    }
+  };
+
+  const handleNoorDemoLogin = async (email: string, role: string) => {
+    setError(null);
+    setSuccess(null);
+    setIsPending(true);
+
+    try {
+      const result = await signIn(email, NOOR_DEMO_PASSWORD);
       if (!result.success) {
         setError(result.error ?? t("login.demoError"));
         return;
@@ -364,6 +420,37 @@ const LoginPage = () => {
                     </div>
                   </div>
                 )}
+
+                {/* Noor International demo profiles — LOCAL HOST ONLY.
+                    Separate from the generic Quick Demo Access panel above.
+                    Hidden in production via import.meta.env.DEV. */}
+                {SHOW_NOOR_PANEL && (
+                  <div className="mt-4 pt-4 border-t border-gray-100">
+                    <div className="flex items-center justify-center gap-2 mb-3">
+                      <span className="text-xs font-bold text-gray-500 flex items-center gap-1">
+                        <span className="text-blue-500">🏫</span>
+                        Quick Login
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      {NOOR_DEMO_ACCOUNTS.map((acct) => (
+                        <Button
+                          key={acct.role}
+                          type="button"
+                          variant="ghost"
+                          className="h-9 rounded-full border border-blue-200 bg-transparent hover:border-[#3b82f6] hover:bg-[#3b82f6]/5 hover:text-[#3b82f6] transition-all duration-300 text-gray-600 font-medium text-xs capitalize shadow-sm"
+                          onClick={() =>
+                            handleNoorDemoLogin(acct.email, acct.role)
+                          }
+                          disabled={isPending}
+                        >
+                          {getRoleIcon(acct.role)}
+                          <span className="ms-2">{acct.label}</span>
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </TabsContent>
 
               {/* Register tab */}
@@ -532,34 +619,28 @@ const LoginPage = () => {
                     </PasswordVisibilityGroup>
                   </div>
 
+                  {/* Self-registration always provisions a STUDENT account.
+                      The server `handle_new_user` trigger forces role='student'
+                      for self-signup (no invitation_id) regardless of any
+                      requested role, so we no longer expose a role picker that
+                      the backend would silently ignore — that was misleading
+                      (a user could pick "Admin" and quietly get a student
+                      account). Staff roles are granted via invitation
+                      (/accept-invite). Mirrors SignUpPage.tsx. The form's
+                      requestedRole default stays "student", so the submit
+                      payload is unchanged. (Production Bug Fixes — Req 5) */}
                   <div className="space-y-1">
-                    <Label
-                      htmlFor="signup-role"
-                      className="flex items-center gap-2 ms-1"
-                    >
+                    <Label className="flex items-center gap-2 ms-1">
                       <Users className="w-3.5 h-3.5 text-[#14b8a6]" />
                       {t("signup.role")}
                     </Label>
-                    <select
-                      id="signup-role"
-                      className="w-full h-10 px-3 rounded-xl border border-gray-200 bg-gray-50/50 text-sm font-medium text-gray-700 focus:bg-white focus:border-[#14b8a6] focus:ring-[#14b8a6]/20 focus:outline-none transition-all appearance-none cursor-pointer"
-                      {...signUpForm.register("requestedRole")}
-                    >
-                      <option value="student">{t("roles.student")}</option>
-                      <option value="teacher">{t("roles.teacher")}</option>
-                      <option value="coordinator">
-                        {t("roles.coordinator")}
-                      </option>
-                      <option value="admin">{t("roles.admin")}</option>
-                      <option value="parent">
-                        {t("roles.parent", "Parent")}
-                      </option>
-                    </select>
-                    {signUpForm.formState.errors.requestedRole && (
-                      <p className="text-xs text-red-600 ms-1">
-                        {signUpForm.formState.errors.requestedRole.message}
-                      </p>
-                    )}
+                    <div className="flex items-center gap-2 w-full h-10 px-3 rounded-xl border border-gray-200 bg-gray-50/50 text-sm font-medium text-gray-700">
+                      <GraduationCap className="w-4 h-4 text-[#14b8a6]" />
+                      {t("roles.student")}
+                    </div>
+                    <p className="text-xs text-gray-500 ms-1">
+                      {t("signup.roleHint")}
+                    </p>
                   </div>
 
                   <Button

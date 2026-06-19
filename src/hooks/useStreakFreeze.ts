@@ -8,7 +8,10 @@ import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
 import { toast } from "sonner";
 
-export const useStreakFreezeInventory = (studentId: string | undefined) => {
+export const useStreakFreezeInventory = (
+  studentId: string | undefined,
+  options?: { enabled?: boolean }
+) => {
   return useQuery({
     queryKey: queryKeys.studentGamification.list({
       scope: "streak_freeze",
@@ -27,7 +30,10 @@ export const useStreakFreezeInventory = (studentId: string | undefined) => {
         xpTotal: data?.xp_total ?? 0,
       };
     },
-    enabled: !!studentId,
+    // Backward-compatible: callers that omit `options` keep the original
+    // `enabled: !!studentId`. The dashboard passes `{ enabled: aggregate.isError }`
+    // to gate this to a fallback-only fetch once the aggregate carries the value.
+    enabled: !!studentId && (options?.enabled ?? true),
   });
 };
 

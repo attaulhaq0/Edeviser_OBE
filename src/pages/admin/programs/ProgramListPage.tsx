@@ -19,7 +19,11 @@ const ProgramListPage = () => {
     useState<Program | null>(null);
   const [page, setPage] = useState(1);
 
-  const { data: paginatedData, isLoading } = usePrograms({
+  const {
+    data: paginatedData,
+    isLoading,
+    isFetching,
+  } = usePrograms({
     search: search || undefined,
     page,
   });
@@ -65,6 +69,7 @@ const ProgramListPage = () => {
         columns={columns}
         data={paginatedData?.data ?? []}
         isLoading={isLoading}
+        isFetching={isFetching}
         page={page}
         pageSize={paginatedData?.pageSize}
         totalCount={paginatedData?.count}
