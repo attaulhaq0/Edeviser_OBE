@@ -364,6 +364,16 @@
   .animate-mystery-reveal {
     animation: none;
   }
+
+  /* View Transitions (dashboard-and-ux-performance Req 11.3): disable the UA
+     cross-fade for route/section swaps under reduced motion so the swap is
+     instant. Complements the JS gate in withViewTransition + the router's
+     viewTransition navigations. */
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
 }
 
 /* ─── RTL Support ─────────────────────────────────────────────────────────── */
