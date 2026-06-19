@@ -116,7 +116,7 @@ const AcceptInvitePage = () => {
           .from("institutions")
           .select("name")
           .eq("id", String(inviteRow.institution_id))
-          .single();
+          .maybeSingle();
 
         setInvitation({
           id: String(inviteRow.id),

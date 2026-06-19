@@ -15,61 +15,62 @@
 
 ## Phase 0 — Branch & baseline
 
-- [ ] 0.1 Create feature branch `fix/production-bug-fixes-track-a` off current main.
-- [ ] 0.2 Confirm baseline green: `npm run lint`, `npx tsc --noEmit`, `npm test`.
+- [x] 0.1 Create feature branch `fix/production-bug-fixes-track-a` off current main.
+- [x] 0.2 Confirm baseline green: `npm run lint`, `npx tsc --noEmit`, `npm test`.
 
 ---
 
 ## Track A — Confirmed surgical code defects (ship first)
 
-- [ ] 1. **ILO status badge** (Req 1)
+> Status: Items 1, 2, 3, 5 shipped in PR #156 ("…+ Track A fixes"); Items 4 & 6
+> shipped on `fix/production-bug-fixes-track-a`.
 
-  - [ ] 1.1 In `src/pages/admin/outcomes/columns.tsx`, default missing `is_active` to
+- [x] 1. **ILO status badge** (Req 1) — DONE (#156)
+
+  - [x] 1.1 In `src/pages/admin/outcomes/columns.tsx`, default missing `is_active` to
         Active (`rawActive ?? true`).
-  - [ ] 1.2 Unit test: no `is_active` → "Active"; `is_active:false` → "Inactive".
-  - [ ] 1.3 Verify ILO list renders "Active" and sort/filter unchanged.
+  - [x] 1.2 Unit test: no `is_active` → "Active"; `is_active:false` → "Inactive".
+        (`src/__tests__/unit/outcomesColumns.test.tsx`)
+  - [x] 1.3 Verify ILO list renders "Active" and sort/filter unchanged.
 
-- [ ] 2. **Onboarding completion never traps the student** (Req 2)
+- [x] 2. **Onboarding completion never traps the student** (Req 2) — DONE (#156)
 
-  - [ ] 2.1 In `src/pages/student/onboarding/OnboardingWizard.tsx`, move
+  - [x] 2.1 In `src/pages/student/onboarding/OnboardingWizard.tsx`, move
         `navigate('/student')` + `setIsProcessing(false)` into `finally`.
-  - [ ] 2.2 Keep `processOnboarding.mutateAsync` + completion-flag write intact; ensure
+  - [x] 2.2 Keep `processOnboarding.mutateAsync` + completion-flag write intact; ensure
         failures are logged (Sentry via existing mutation onError), not swallowed.
-  - [ ] 2.3 Component tests: `mutateAsync` rejects → navigate still called; resolves →
-        navigate + completion flags written.
+  - [x] 2.3 Component tests: `mutateAsync` rejects → navigate still called; resolves →
+        navigate + completion flags written. (`src/__tests__/unit/onboardingWizard.test.tsx`)
 
-- [ ] 3. **Honorific-aware display name** (Req 3)
+- [x] 3. **Honorific-aware display name** (Req 3) — DONE (#156)
 
-  - [ ] 3.1 Add shared pure helper `getDisplayFirstName(name)` (e.g.
-        `src/lib/displayName.ts`) that skips a leading honorific token.
-  - [ ] 3.2 Use it in `WelcomeHero.tsx` (fallback `t("greeting.there")`) and
-        `ProfileDropdown.tsx:90` (fallback `"User"`); leave avatar-initials logic alone.
-  - [ ] 3.3 Unit-test helper: "Mr. David Okonkwo"→"David", "Dr. Aisha Al-Mansoori"→
-        "Aisha", "Sara Imran"→"Sara", ""/null→null. Render test per consumer for fallback.
-  - [ ] 3.4 Manually verify all five role dashboards + header greet by real name.
+  - [x] 3.1 Add shared pure helper `getDisplayFirstName(name)` (`src/lib/displayName.ts`).
+  - [x] 3.2 Use it in `WelcomeHero.tsx` and `ProfileDropdown.tsx`; avatar-initials left alone.
+  - [x] 3.3 Unit-test helper + per-consumer render test. (`src/__tests__/unit/displayName.test.ts`)
+  - [x] 3.4 Manually verify all five role dashboards + header greet by real name.
 
-- [ ] 4. **`.single()` → `.maybeSingle()` on zero-row reads** (Req 4)
+- [x] 4. **`.single()` → `.maybeSingle()` on zero-row reads** (Req 4) — DONE (this branch)
 
-  - [ ] 4.1 Convert the four flagged reads (`AcceptInvitePage.tsx:128-132`,
-        `useSessionCompletion.ts:289-293`, `useReflectionDigest.ts:75-78,131-134`,
-        `useTeamProfile.ts:63-65`); handle `null` as empty/not-found at each site.
-  - [ ] 4.2 Leave all `insert/update().select().single()` calls untouched.
-  - [ ] 4.3 Per site: test zero-row → no throw + empty branch; one-row → identical
-        behaviour.
+  - [x] 4.1 Converted the flagged reads (`AcceptInvitePage` institution lookup,
+        `useReflectionDigest` x2, `useTeamProfile`); `useSessionCompletion` already done.
+        Null handled as not-found at each site.
+  - [x] 4.2 Left all `insert/update().select().single()` calls untouched.
+  - [x] 4.3 Per-site tests: zero-row → clean not-found (no PGRST116); one-row → unchanged.
+        (`src/__tests__/unit/maybeSingleZeroRow.test.ts`)
 
-- [ ] 5. **Signup role dropdown** (Req 5)
+- [x] 5. **Signup role dropdown** (Req 5) — DONE (#156)
 
-  - [ ] 5.1 In `LoginPage.tsx:597-611`, restrict the register-tab role to `student`
-        (or relabel "requested, subject to approval"); no AuthProvider/server change.
-  - [ ] 5.2 Component test: privileged silently-ignored role no longer offered (or
-        clarifying label present); consistent with `SignUpPage.tsx`.
+  - [x] 5.1 Register-tab role restricted/clarified in `LoginPage.tsx`; no server change.
+  - [x] 5.2 Component test. (`src/__tests__/unit/loginPage.test.tsx`)
 
-- [ ] 6. **Global query/mutation error safety net** (Req 6)
+- [x] 6. **Global query/mutation error safety net** (Req 6) — DONE (this branch)
 
-  - [ ] 6.1 In `src/App.tsx`, add `queryCache`/`mutationCache` `onError` that logs
-        (console + Sentry) and toasts, dedup-aware (respect a `meta` opt-out flag).
-  - [ ] 6.2 Test: unhandled error → global log/toast fires; opted-out hook → no
-        double-toast.
+  - [x] 6.1 Extracted QueryClient config to `src/lib/queryClient.ts`; `queryCache`/
+        `mutationCache` `onError` log (console + Sentry) and toast dedup-aware via
+        `meta.suppressGlobalError` (query net toasts; mutation net only 429, so
+        self-toasting hooks don't double-toast).
+  - [x] 6.2 Test: unhandled error → global log/toast; opted-out → no double-toast.
+        (`src/__tests__/unit/queryClientErrorNet.test.ts`)
 
 - [ ] A.7 **Track A gate & PR:** full local gate; open PR; CI + Preview green; confirm
       dev-only quick-login panel remains `import.meta.env.DEV`-gated.
