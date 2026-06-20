@@ -33,7 +33,6 @@ import {
   Search,
   LayoutGrid,
   TrendingUp,
-  Users as UsersIcon,
   ClipboardCheck,
   TableProperties,
   CheckSquare,
@@ -122,16 +121,6 @@ const coordinatorNavItems: NavItem[] = [
     to: "/coordinator/coverage-heatmap",
     labelKey: "nav.coverageHeatmap",
     icon: LayoutGrid,
-  },
-  {
-    to: "/coordinator/trends",
-    labelKey: "nav.semesterTrends",
-    icon: TrendingUp,
-  },
-  {
-    to: "/coordinator/cohort-comparison",
-    labelKey: "nav.cohortComparison",
-    icon: UsersIcon,
   },
   { to: "/coordinator/cqi", labelKey: "nav.cqiPlans", icon: ClipboardCheck },
   {

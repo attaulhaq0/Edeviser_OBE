@@ -42,7 +42,6 @@ import {
   Search,
   LayoutGrid,
   BarChart3,
-  Users,
   type LucideIcon,
 } from "lucide-react";
 
@@ -519,7 +518,7 @@ const CoordinatorDashboard = () => {
             {t("dashboard.obeVisualizations")}
           </h2>
         </div>
-        <div className="p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <Link
             to="/coordinator/sankey"
             className="flex flex-col items-center gap-2 p-4 rounded-xl border border-slate-200 bg-slate-50 hover:bg-blue-50 hover:border-blue-200 transition-colors text-center group"
@@ -560,34 +559,6 @@ const CoordinatorDashboard = () => {
             </span>
             <span className="text-xs text-gray-500">
               {t("dashboard.coverageHeatmapDesc")}
-            </span>
-          </Link>
-          <Link
-            to="/coordinator/trends"
-            className="flex flex-col items-center gap-2 p-4 rounded-xl border border-slate-200 bg-slate-50 hover:bg-blue-50 hover:border-blue-200 transition-colors text-center group"
-          >
-            <div className="p-2 rounded-lg bg-purple-100 group-hover:scale-110 transition-transform">
-              <TrendingUp className="h-5 w-5 text-purple-600" />
-            </div>
-            <span className="text-sm font-semibold text-gray-700">
-              {t("dashboard.semesterTrends")}
-            </span>
-            <span className="text-xs text-gray-500">
-              {t("dashboard.semesterTrendsDesc")}
-            </span>
-          </Link>
-          <Link
-            to="/coordinator/cohort-comparison"
-            className="flex flex-col items-center gap-2 p-4 rounded-xl border border-slate-200 bg-slate-50 hover:bg-blue-50 hover:border-blue-200 transition-colors text-center group"
-          >
-            <div className="p-2 rounded-lg bg-red-100 group-hover:scale-110 transition-transform">
-              <Users className="h-5 w-5 text-red-600" />
-            </div>
-            <span className="text-sm font-semibold text-gray-700">
-              {t("dashboard.cohortComparison")}
-            </span>
-            <span className="text-xs text-gray-500">
-              {t("dashboard.cohortComparisonDesc")}
             </span>
           </Link>
         </div>
