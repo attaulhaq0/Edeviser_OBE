@@ -38,6 +38,7 @@ import {
   useSendNudge,
 } from "@/hooks/useTeacherDashboard";
 import type { AtRiskStudent } from "@/hooks/useTeacherDashboard";
+import { useTeacherDashboardAggregate } from "@/hooks/useTeacherDashboardAggregate";
 import type { BloomsLevel } from "@/types/app";
 import AIAtRiskWidget from "@/components/shared/AIAtRiskWidget";
 import { useTeamHealthScores } from "@/hooks/useTeamHealth";
@@ -419,11 +420,30 @@ const TeacherDashboard = () => {
     pollingInterval: 30_000,
   });
 
-  const { data: kpis, isLoading: kpisLoading } = useTeacherKPIs();
+  // PERF (spec: dashboard-and-ux-performance, Phase 8 Task 33): ONE aggregate
+  // round-trip (`get_teacher_dashboard`) hydrates the KPI + Bloom's caches and
+  // drives those sections directly. Additive + reversible: the section hooks below
+  // fall back to their own fetch ONLY when the aggregate errors, so behavior and
+  // data visibility are unchanged (the RPC is SECURITY DEFINER with an auth.uid()
+  // guard). Course-selected charts (CLO attainment, heatmap), the at-risk LIST, and
+  // the grading queue keep their own hooks.
+  const aggregate = useTeacherDashboardAggregate(user?.id);
+
+  const kpisHook = useTeacherKPIs({ enabled: aggregate.isError });
+  const kpis = aggregate.data?.kpis ?? kpisHook.data;
+  const kpisLoading =
+    aggregate.isPending || (aggregate.isError && kpisHook.isLoading);
+
   const { data: cloAttainment, isLoading: cloLoading } =
     useTeacherCLOAttainment(effectiveCourseId);
-  const { data: bloomsDist, isLoading: bloomsLoading } =
-    useTeacherBloomsDistribution();
+
+  const bloomsHook = useTeacherBloomsDistribution({
+    enabled: aggregate.isError,
+  });
+  const bloomsDist = aggregate.data?.bloomsDistribution ?? bloomsHook.data;
+  const bloomsLoading =
+    aggregate.isPending || (aggregate.isError && bloomsHook.isLoading);
+
   const { data: heatmapData, isLoading: heatmapLoading } =
     useStudentPerformanceHeatmap(effectiveCourseId);
   const { data: pendingSubmissions, isLoading: pendingLoading } =
