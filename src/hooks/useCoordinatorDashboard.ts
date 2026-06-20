@@ -30,7 +30,7 @@ const mean = (values: number[]): number =>
     ? 0
     : values.reduce((sum, v) => sum + v, 0) / values.length;
 
-export const useCoordinatorKPIs = () => {
+export const useCoordinatorKPIs = (options?: { enabled?: boolean }) => {
   return useQuery({
     queryKey: queryKeys.coordinatorDashboard.list({}),
     queryFn: async (): Promise<CoordinatorKPIData> => {
@@ -132,6 +132,7 @@ export const useCoordinatorKPIs = () => {
         teacherCompliancePercent,
       };
     },
+    enabled: options?.enabled ?? true,
     staleTime: DASHBOARD_STALE_TIME_MS,
   });
 };
