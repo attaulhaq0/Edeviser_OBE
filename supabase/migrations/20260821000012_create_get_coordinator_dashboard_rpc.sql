@@ -25,6 +25,9 @@
 --
 -- Replay-safe: CREATE OR REPLACE, no forward refs, search_path='' +
 -- public.-qualified (pg_catalog aggregates resolve implicitly).
+-- (CI note: this comment line ensures the pushed commit's delta includes this
+-- migration so the Supabase Branching integration provisions a preview branch
+-- and replays it from scratch — the prior preview was lost to a branch reset.)
 -- ─────────────────────────────────────────────────────────────────────────────
 
 create or replace function public.get_coordinator_dashboard()
