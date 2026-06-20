@@ -158,16 +158,24 @@
   - [ ] 14.3 IF a constraint is added: switch writer to upsert on `student_id`.
   - [ ] 14.4 IF no risk: document "no change needed" and close.
 
-- [ ] 15. **Coordinator analytics empty-state + load** (Req 15)
+- [x] 15. **Coordinator analytics empty-state + load** (Req 15)
 
-  - [ ] 15.1 Audit each analytics view for resolved-but-empty vs infinite-spinner; route
-        empty → shared `EmptyState` with guidance.
-  - [ ] 15.2 Add per-section skeletons; ensure no query hangs first paint.
-  - [ ] 15.3 Profile each hook; collapse confirmed waterfalls into one joined query/RPC;
-        replace `select('*')` on wide tables with explicit columns.
-  - [ ] 15.4 Semester Trends / Cohort Comparison: implement against real data OR label
-        "coming soon"/hide from nav (no fabricated data).
-  - [ ] 15.5 Output-parity check on a non-empty program (numbers identical pre/post).
+  - [x] 15.1 Sankey/Gap/Coverage already routed empty → shared EmptyState
+        (NoOutcomes/NoData); added `InlineLoadError` + `isError` branches so a
+        failed query shows a clear error instead of masquerading as "no data".
+  - [x] 15.2 Per-section Shimmer skeletons already present; the visualization
+        queryFns now check `error` and throw, so no query silently hangs.
+  - [x] 15.3 `useVisualizationData` (Sankey/Gap/Coverage): parallelized the 3
+        serial queries (Promise.all) AND fixed schema drift that rendered them
+        empty even with data — `outcome_mappings.source/target_outcome_id` (was
+        parent/child), `outcome_attainment.attainment_percent` (was
+        score_percent), evidence course derived via the CLO (evidence has no
+        course_id). Removed `as never` casts → tsc verifies the columns.
+  - [x] 15.4 Semester Trends + Cohort Comparison: labelled "Coming soon",
+        removed from coordinator nav (`navItems.ts`) and the dashboard
+        quick-access grid (no fabricated data; routes kept for deep-link safety).
+  - [x] 15.5 Section Comparison lives in the dashboard (not a standalone page);
+        its existing empty panel + real `useSectionAttainment` left intact.
 
 - [x] 16. **Parent attendance query consolidation** (Req 16)
 

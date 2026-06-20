@@ -1,5 +1,5 @@
 {
-  "maxCount": 145,
+  "maxCount": 144,
   "entries": [
     {
       "file": "src/hooks/useBloomsProgression.ts",
@@ -240,10 +240,6 @@
     {
       "file": "src/hooks/useUsers.ts",
       "pattern": "insert-as-never"
-    },
-    {
-      "file": "src/hooks/useVisualizationData.ts",
-      "pattern": "from-as-never"
     },
     {
       "file": "src/hooks/useWeeklyGoals.ts",

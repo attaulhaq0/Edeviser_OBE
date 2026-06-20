@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { NoOutcomes } from "@/components/shared/EmptyState";
+import { NoOutcomes, InlineLoadError } from "@/components/shared/EmptyState";
 import Shimmer from "@/components/shared/Shimmer";
 import {
   AlertTriangle,
@@ -56,7 +56,11 @@ const GapAnalysisView = () => {
   );
   const { data: programsData } = usePrograms();
   const programs = programsData?.data ?? [];
-  const { data: gaps, isLoading } = useGapAnalysis(programId || undefined);
+  const {
+    data: gaps,
+    isLoading,
+    isError,
+  } = useGapAnalysis(programId || undefined);
 
   const summary = gaps
     ? {
@@ -136,6 +140,8 @@ const GapAnalysisView = () => {
             </p>
           ) : isLoading ? (
             <Shimmer className="h-64 rounded-lg" />
+          ) : isError ? (
+            <InlineLoadError className="py-12" />
           ) : !gaps || gaps.length === 0 ? (
             <NoOutcomes className="py-12" />
           ) : (

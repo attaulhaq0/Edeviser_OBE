@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { NoOutcomes } from "@/components/shared/EmptyState";
+import { NoOutcomes, InlineLoadError } from "@/components/shared/EmptyState";
 import Shimmer from "@/components/shared/Shimmer";
 import { GitBranch } from "lucide-react";
 import {
@@ -201,7 +201,11 @@ const SankeyDiagramView = () => {
   );
   const { data: programsData } = usePrograms();
   const programs = programsData?.data ?? [];
-  const { data: sankeyData, isLoading } = useSankeyData(programId || undefined);
+  const {
+    data: sankeyData,
+    isLoading,
+    isError,
+  } = useSankeyData(programId || undefined);
 
   const nodeCount = sankeyData?.nodes.length ?? 0;
   const linkCount = sankeyData?.links.length ?? 0;
@@ -250,6 +254,8 @@ const SankeyDiagramView = () => {
             </p>
           ) : isLoading ? (
             <Shimmer className="h-64 rounded-lg" />
+          ) : isError ? (
+            <InlineLoadError className="py-12" />
           ) : !sankeyData || sankeyData.nodes.length === 0 ? (
             <NoOutcomes className="py-12" />
           ) : sankeyData.links.length === 0 ? (
