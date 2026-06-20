@@ -30,6 +30,11 @@ export const useXPBalance = (studentId: string) => {
       return { balance };
     },
     enabled: !!studentId,
-    staleTime: 10_000,
+    // Raised from 10s: the student dashboard now hydrates this exact key from the
+    // aggregate RPC (see useStudentDashboardAggregate), and purchase/award mutations
+    // invalidate it on change — so a short staleTime only caused a needless
+    // get_xp_balance refetch on every navigation (the persistent sidebar badge
+    // remounts constantly). 60s keeps the badge fresh without the per-mount storm.
+    staleTime: 60_000,
   });
 };

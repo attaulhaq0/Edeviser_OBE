@@ -332,6 +332,76 @@ export interface StudentCourseAttendance {
   attended: number;
 }
 
+interface StudentAttendanceCourse {
+  courseId: string;
+  courseName: string;
+}
+
+/**
+ * Pure aggregation of a student's per-course attendance. Extracted + exported
+ * so the parity test can prove the consolidated (bounded-query) path returns
+ * byte-for-byte the same shape the prior per-course N+1 produced.
+ *
+ * Semantics preserved exactly from the previous implementation:
+ *   - one entry per enrolled course, in enrollment order;
+ *   - `totalSessions` = number of `class_sessions` across the course's sections;
+ *   - `attended` = count of this student's `present`|`late` records in those
+ *     sessions;
+ *   - `attendancePercent` = calculateAttendancePercent(attended, 0, totalSessions),
+ *     so a course with zero sessions renders 100% (matching the old early-return).
+ */
+export function aggregateStudentAttendance(
+  courses: StudentAttendanceCourse[],
+  sections: { id: string; course_id: string }[],
+  sessions: { id: string; section_id: string }[],
+  records: { status: string; session_id: string }[]
+): StudentCourseAttendance[] {
+  const sectionToCourse = new Map(sections.map((s) => [s.id, s.course_id]));
+
+  const sessionToCourse = new Map<string, string>();
+  const totalByCourse = new Map<string, number>();
+  for (const sess of sessions) {
+    const courseId = sectionToCourse.get(sess.section_id);
+    if (!courseId) continue;
+    sessionToCourse.set(sess.id, courseId);
+    totalByCourse.set(courseId, (totalByCourse.get(courseId) ?? 0) + 1);
+  }
+
+  const attendedByCourse = new Map<string, number>();
+  for (const r of records) {
+    if (r.status !== "present" && r.status !== "late") continue;
+    const courseId = sessionToCourse.get(r.session_id);
+    if (!courseId) continue;
+    attendedByCourse.set(courseId, (attendedByCourse.get(courseId) ?? 0) + 1);
+  }
+
+  return courses.map((c) => {
+    const totalSessions = totalByCourse.get(c.courseId) ?? 0;
+    const attended = attendedByCourse.get(c.courseId) ?? 0;
+    return {
+      courseId: c.courseId,
+      courseName: c.courseName,
+      attendancePercent: calculateAttendancePercent(attended, 0, totalSessions),
+      totalSessions,
+      attended,
+    };
+  });
+}
+
+/**
+ * Student view: attendance summary per enrolled course.
+ *
+ * Consolidated from the prior per-course client fan-out (for EACH enrolled
+ * course: course_sections → class_sessions → attendance_records, i.e. 1 + 3×N
+ * round-trips) into a fixed set of bounded queries regardless of course count:
+ *   1) active enrollments (the complete course list, incl. zero-session courses),
+ *   2) all sections for those courses  ┐ run in parallel
+ *      + this student's attendance records ┘ (records filter by student_id only,
+ *      using the idx_attendance_student index — no large session_id `.in()`),
+ *   3) all sessions for those sections.
+ * This was the #2 DB-time consumer (143 calls / 4.77 s max in pg_stat_statements);
+ * the new path is O(1) round-trips. RLS is unchanged (same tables, same caller).
+ */
 export const useStudentAttendance = (
   studentId: string | undefined,
   options?: { enabled?: boolean }
@@ -344,7 +414,8 @@ export const useStudentAttendance = (
     queryFn: async (): Promise<StudentCourseAttendance[]> => {
       if (!studentId) return [];
 
-      // Get enrolled courses
+      // 1) Active enrollments — the complete course list (incl. zero-session
+      //    courses, which render at 100% / 0 sessions, preserving prior behavior).
       const { data: enrollments, error: enrErr } = await supabase
         .from("student_courses")
         .select("course_id, courses:course_id(name)")
@@ -353,77 +424,51 @@ export const useStudentAttendance = (
       if (enrErr) throw enrErr;
       if (!enrollments || enrollments.length === 0) return [];
 
-      const results: StudentCourseAttendance[] = await Promise.all(
-        enrollments.map(async (enrollment) => {
-          const courseName =
-            (enrollment.courses as unknown as { name: string } | null)?.name ??
-            "Unknown";
+      const courses: StudentAttendanceCourse[] = enrollments.map((e) => ({
+        courseId: e.course_id,
+        courseName:
+          (e.courses as unknown as { name: string } | null)?.name ?? "Unknown",
+      }));
+      const courseIds = courses.map((c) => c.courseId);
 
-          // Get sections for this course
-          const { data: sections, error: secErr } = await supabase
-            .from("course_sections")
-            .select("id")
-            .eq("course_id", enrollment.course_id);
-          if (secErr) throw secErr;
+      // 2) Sections for those courses + this student's attendance records.
+      //    Independent, so fetch in parallel.
+      const [sectionsRes, recordsRes] = await Promise.all([
+        supabase
+          .from("course_sections")
+          .select("id, course_id")
+          .in("course_id", courseIds),
+        supabase
+          .from("attendance_records")
+          .select("status, session_id")
+          .eq("student_id", studentId),
+      ]);
+      if (sectionsRes.error) throw sectionsRes.error;
+      if (recordsRes.error) throw recordsRes.error;
 
-          const sectionIds = (sections ?? []).map((s) => s.id);
-          if (sectionIds.length === 0) {
-            return {
-              courseId: enrollment.course_id,
-              courseName,
-              attendancePercent: 100,
-              totalSessions: 0,
-              attended: 0,
-            };
-          }
+      const sections = (sectionsRes.data ?? []) as {
+        id: string;
+        course_id: string;
+      }[];
 
-          // Get all sessions for these sections
-          const { data: sessions, error: sessErr } = await supabase
-            .from("class_sessions")
-            .select("id")
-            .in("section_id", sectionIds);
-          if (sessErr) throw sessErr;
+      // 3) Sessions for those sections (needs the section ids from step 2).
+      let sessions: { id: string; section_id: string }[] = [];
+      const sectionIds = sections.map((s) => s.id);
+      if (sectionIds.length > 0) {
+        const { data: sessionData, error: sessErr } = await supabase
+          .from("class_sessions")
+          .select("id, section_id")
+          .in("section_id", sectionIds);
+        if (sessErr) throw sessErr;
+        sessions = (sessionData ?? []) as { id: string; section_id: string }[];
+      }
 
-          const sessionIds = (sessions ?? []).map((s) => s.id);
-          const totalSessions = sessionIds.length;
+      const records = (recordsRes.data ?? []) as {
+        status: string;
+        session_id: string;
+      }[];
 
-          if (totalSessions === 0) {
-            return {
-              courseId: enrollment.course_id,
-              courseName,
-              attendancePercent: 100,
-              totalSessions: 0,
-              attended: 0,
-            };
-          }
-
-          // Get this student's attendance records
-          const { data: records, error: recErr } = await supabase
-            .from("attendance_records")
-            .select("status")
-            .eq("student_id", studentId)
-            .in("session_id", sessionIds);
-          if (recErr) throw recErr;
-
-          const presentOrLate = (records ?? []).filter(
-            (r) => r.status === "present" || r.status === "late"
-          ).length;
-
-          return {
-            courseId: enrollment.course_id,
-            courseName,
-            attendancePercent: calculateAttendancePercent(
-              presentOrLate,
-              0,
-              totalSessions
-            ),
-            totalSessions,
-            attended: presentOrLate,
-          };
-        })
-      );
-
-      return results;
+      return aggregateStudentAttendance(courses, sections, sessions, records);
     },
     // Backward-compatible: callers that omit `options` keep the prior
     // `enabled: !!studentId` behavior. The optional `enabled` lets callers (e.g.

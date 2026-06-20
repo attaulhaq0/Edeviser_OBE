@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
+import { DASHBOARD_STALE_TIME_MS } from "@/lib/queryConfig";
 import { useAuth } from "@/hooks/useAuth";
 import type { BloomsLevel } from "@/types/app";
 
@@ -176,7 +177,7 @@ export const useTeacherKPIs = () => {
       };
     },
     enabled: !!user?.id,
-    staleTime: 30_000,
+    staleTime: DASHBOARD_STALE_TIME_MS,
   });
 };
 
@@ -232,7 +233,7 @@ export const useTeacherCLOAttainment = (courseId?: string) => {
       });
     },
     enabled: !!courseId,
-    staleTime: 30_000,
+    staleTime: DASHBOARD_STALE_TIME_MS,
   });
 };
 
@@ -288,7 +289,7 @@ export const useTeacherBloomsDistribution = () => {
         .filter((r) => r.count > 0);
     },
     enabled: !!user?.id,
-    staleTime: 30_000,
+    staleTime: DASHBOARD_STALE_TIME_MS,
   });
 };
 
@@ -364,7 +365,7 @@ export const useStudentPerformanceHeatmap = (courseId?: string) => {
       return cells;
     },
     enabled: !!courseId,
-    staleTime: 30_000,
+    staleTime: DASHBOARD_STALE_TIME_MS,
   });
 };
 
@@ -503,7 +504,7 @@ export const useAtRiskStudents = () => {
       return result;
     },
     enabled: !!user?.id,
-    staleTime: 30_000,
+    staleTime: DASHBOARD_STALE_TIME_MS,
   });
 };
 
@@ -587,7 +588,7 @@ export const useTeacherRecoveryAlerts = () => {
       }));
     },
     enabled: !!user?.id,
-    staleTime: 30_000,
+    staleTime: DASHBOARD_STALE_TIME_MS,
   });
 };
 

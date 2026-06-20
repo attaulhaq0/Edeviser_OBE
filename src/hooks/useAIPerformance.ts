@@ -6,6 +6,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
+import { DASHBOARD_STALE_TIME_MS } from "@/lib/queryConfig";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -79,7 +80,7 @@ export const useAIPerformance = (options?: { enabled?: boolean }) => {
         draftTotal,
       };
     },
-    staleTime: 30_000,
+    staleTime: DASHBOARD_STALE_TIME_MS,
     enabled: options?.enabled ?? true,
   });
 };

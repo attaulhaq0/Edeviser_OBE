@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
+import { DASHBOARD_STALE_TIME_MS } from "@/lib/queryConfig";
 
 export interface CoordinatorKPIData {
   totalPLOs: number;
@@ -131,6 +132,6 @@ export const useCoordinatorKPIs = () => {
         teacherCompliancePercent,
       };
     },
-    staleTime: 30_000,
+    staleTime: DASHBOARD_STALE_TIME_MS,
   });
 };

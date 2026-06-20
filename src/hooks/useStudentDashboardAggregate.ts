@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
+import { DASHBOARD_STALE_TIME_MS } from "@/lib/queryConfig";
 import type {
   StudentKPIData,
   UpcomingDeadline,
@@ -29,6 +30,10 @@ export interface StudentDashboardAggregate {
   streakFreeze: { freezes: number; xpTotal: number };
   profileCompleteness: ProfileCompletenessData;
   announcements: Announcement[];
+  // Spendable XP (earned − spent), identical to the `get_xp_balance` RPC. Optional
+  // so a client deployed slightly ahead of the migration degrades gracefully (the
+  // sidebar XP badge simply falls back to its own fetch until the field is present).
+  availableXP?: number;
 }
 
 /**
@@ -50,7 +55,7 @@ export const useStudentDashboardAggregate = (studentId: string | undefined) => {
   return useQuery({
     queryKey: queryKeys.studentDashboard.detail(studentId ?? ""),
     enabled: !!studentId,
-    staleTime: 30_000,
+    staleTime: DASHBOARD_STALE_TIME_MS,
     queryFn: async (): Promise<StudentDashboardAggregate> => {
       if (!studentId) {
         throw new Error("useStudentDashboardAggregate: studentId is required");
@@ -120,6 +125,16 @@ export const useStudentDashboardAggregate = (studentId: string | undefined) => {
         queryKeys.announcements.list({ studentId, limit: 5 }),
         payload.announcements as Announcement[]
       );
+      // Available (spendable) XP: hydrate the EXACT key `useXPBalance` reads so the
+      // persistent sidebar `XPBalanceBadge` resolves as a cache hit instead of firing
+      // its own `get_xp_balance` RPC on every page mount (the #1 DB-time consumer —
+      // see spec Appendix A, Fix A). Guarded so a pre-migration payload (no
+      // availableXP) leaves the badge to fetch as before — no regression.
+      if (typeof payload.availableXP === "number") {
+        queryClient.setQueryData(queryKeys.marketplace.balance(studentId), {
+          balance: payload.availableXP,
+        });
+      }
 
       return payload;
     },
