@@ -677,3 +677,152 @@ of Postgres logs confirming `57014` cancellations drop; `npm run analyze` chunk 
 the layout-prebundle change; and the existing parity + deny-side RLS tests staying green for
 every aggregate/RLS change. No step ships without its number. No direct prod DDL — guarded
 migration + Supabase Preview green only.
+
+---
+
+# Appendix C — Scalability levers beyond request-shape, + Supabase Pro synergy (2026-06-20)
+
+> Appendices A/B fixed the **request shape** (how many round-trips, how heavy each, how
+> they fail). This appendix records the **compute-shape** levers — precompute/cache instead
+> of compute-on-read — that keep read cost flat as data grows. All are free-tier-friendly;
+> each notes its **con/tradeoff** and how a later **Supabase Pro** upgrade amplifies it. This
+> is an audit of suggested levers against this product; items already covered by an existing
+> requirement are cross-referenced, not duplicated. Verdict per lever: **ADOPT** (add to
+> plan), **REINFORCE** (already in plan; strengthen), or **DEFER** (right idea, wrong time).
+
+## C.1 Maintained summary tables (denormalization) — ADOPT (highest structural win)
+
+Store running aggregates in a row that a trigger / `pg_cron` job updates on change, so the
+dashboard reads **one row** instead of scanning thousands. We already do this for XP
+(`student_gamification.xp_total` is a stored total, not a `SUM(xp_transactions)` on read).
+Extend the pattern to the numbers that currently scan rows on every dashboard load:
+
+- **Student**: `avgAttainment` (currently `avg()` over `outcome_attainment`).
+- **Teacher**: `pendingSubmissions`, `gradedThisWeek`, `atRiskCount`, per-CLO attainment.
+- **Coordinator/Admin**: PLO/CLO coverage %, institution attainment, at-risk counts.
+
+**Why it's the biggest scalability win:** read cost stops growing with data volume — a
+500-student institution reads the same one row a 50-student one does. (Aligns with Supabase's
+"do the work in Postgres / read pre-aggregated data" guidance; content rephrased for
+licensing compliance.)
+
+**Cons / tradeoffs:**
+
+- **Write-time cost + a correctness burden**: every source mutation must update the summary
+  (trigger or cron). A missed path = silent drift. Mitigate with: triggers on the canonical
+  write path only, a nightly `pg_cron` reconciler that recomputes from source, and a
+  property test asserting `summary == recompute-from-source`.
+- **Staleness window** if refreshed by cron rather than trigger (acceptable for KPI tiles;
+  not for XP balance, which stays trigger-maintained).
+- More moving parts than an on-read RPC — so adopt it **only for the numbers proven hot**
+  (by the Req 1 baseline / `pg_stat_statements`), not everywhere.
+
+**Pro synergy:** neutral-to-positive — on Pro's larger compute the on-read aggregates may
+already be fast enough that some summary tables become optional; the ones you keep get
+cheaper to refresh. Nothing here is wasted if you upgrade.
+
+## C.2 Materialized views for heavy analytics — ADOPT (admin/coordinator only)
+
+For expensive, read-mostly rollups that don't need second-freshness — the **admin/coordinator
+heatmaps** (`useAdminPLOHeatmap`'s 6 sequential queries) and **accreditation matrices** —
+compute once via a materialized view refreshed on a `pg_cron` schedule; the dashboard reads
+it instantly.
+
+**Cons / tradeoffs:**
+
+- **Stale until refreshed** (a scheduled-refresh MV is not live) — fine for accreditation/
+  curriculum analytics, wrong for anything interactive.
+- `REFRESH MATERIALIZED VIEW` locks the MV unless `CONCURRENTLY` (which needs a unique index
+  and more work) — schedule refreshes off-peak.
+- **RLS caveat (important):** a materialized view does **not** enforce the underlying tables'
+  RLS, and Postgres MVs can't be queried with `security_invoker`. So an MV of multi-tenant
+  data must be (a) institution-scoped in the view definition AND (b) exposed only through a
+  `SECURITY DEFINER` RPC that injects `auth_institution_id()` / `auth.uid()` — never granted
+  directly to `authenticated`. Treat any MV as a potential cross-tenant leak until that
+  wrapper + a deny-side test exist.
+
+**Pro synergy:** strong — Pro/compute add-ons make `CONCURRENTLY` refreshes and larger MVs
+cheaper; the MV definitions carry over unchanged.
+
+## C.3 Cheaper counts (`estimated`/`planned`) — ADOPT (easy, low risk)
+
+KPI hooks use `count: 'exact'`, which forces Postgres to count every matching row. For large
+tables use PostgREST's `estimated`/`planned` count — "≈12,400 users" reads fine on a KPI
+tile. **Con:** approximate (and `planned` relies on planner stats, so it can be off right
+after big inserts until `ANALYZE`); keep `exact` where a precise number is contractual (e.g.
+billing, "you have 3 pending"). Low risk, immediate buffer/CPU saving on the count queries.
+**Pro synergy:** neutral (helps regardless).
+
+## C.4 Select only needed columns — REINFORCE (make it a lint-able convention)
+
+`select('*')` on wide/large tables wastes buffers + network. `AuthProvider.fetchProfile`
+already lists explicit columns; the convention should be enforced everywhere a query hits a
+big table. **Con:** more verbose; adding a column later means editing the select list (a
+worthwhile tradeoff). Not separately ticketed beyond folding into the per-hook reviews in the
+aggregate rollout and a code-review checklist item. **Pro synergy:** neutral.
+
+## C.5 Prefetch the query, not just the chunk, on hover — REINFORCE (Phase 7 Task 21 remainder)
+
+The sidebar already warms the route **chunk** on hover (see §B.3.3 correction). The remaining
+win is to also `queryClient.ensureQueryData` the route's **primary query** on hover so the
+click is instant (`ensureQueryData` returns cached data and skips the fetch when fresh).
+**Con:** prefetching data the user may not click wastes a little quota — so gate it to the
+nav links most likely to be used and to non-metered pointers (already done for chunks).
+**Pro synergy:** neutral.
+
+## C.6 Cut the realtime surface — REINFORCE (Phase 7 Task 27)
+
+17 published tables is heavy background WAL work that steals CPU from queries (Appendix A).
+Subscribe only to what a role needs, always filtered (`student_id=eq.X`), torn down on
+unmount. **Con:** fewer live-updating surfaces means more reliance on invalidate-on-mutation;
+acceptable. **Pro synergy:** strong — Pro's larger compute tolerates more realtime, so this
+is "do it now for free tier; relax later if needed."
+
+## C.7 Avoid the waterfall structurally — REINFORCE (Appendix B §B.3.1, Phase 7 Task 25)
+
+TanStack names in-component request waterfalls the "biggest performance footgun" — exactly
+the serial `auth → profile → page → query` chain and `useCoordinatorKPIs`' 6 sequential
+awaits. Fix by parallelizing (one aggregate RPC; `Promise.all`). Already core to the aggregate
+rollout (Task 20) and the auth-gate trim (Task 25). **Pro synergy:** neutral (architecture,
+not compute).
+
+## C.8 Index every filtered/joined column; drop unused — REINFORCE (Req 14 / Task 14)
+
+Confirm via `EXPLAIN (ANALYZE, BUFFERS)` that each dashboard query is an **index scan, not a
+seq scan**; drop genuinely unused indexes (they tax writes). **Con:** index review must be
+data-pattern-driven and reversible (drop only after confirming non-use). Note from Appendix A:
+the student-path indexes are already correct — so this is a per-table confirmation as each
+role's aggregate lands, not a blanket sweep. **Pro synergy:** neutral.
+
+## C.9 The honest priority order for "all profiles, no surprises"
+
+Do these in order. The first is non-optional (the spec's own measurement gate); the others are
+ranked by trust/impact ÷ risk, and explicitly span **all five roles**, not just student.
+
+1. **Capture baselines (Req 1 / Task 1)** — per role: mount request count, LCP/INP, cold
+   waterfall, `pg_stat_statements` p95. No fix is provable without a before-number; it also
+   tells us _which_ numbers in C.1 are actually hot.
+2. **Per-section error/retry states across all roles (Req 4 / Task 24)** — generalize the new
+   `SectionState` to every dashboard's silent-`null`-on-error sections. Cheapest, zero DB
+   risk, biggest _trust_ win; stops "data didn't load / it vanished" everywhere.
+3. **Roll the aggregate RPC to teacher → coordinator → admin → parent (Task 20)** — the lever
+   that actually makes the _other four_ dashboards fast. Teacher first (worst fan-out + had
+   broken pages). One PR per role, each parity- + deny-side-RLS-tested, Preview-gated.
+4. **Collapse remaining N+1 / serial chains (Task 23)** alongside each role's aggregate
+   (student done).
+5. **Maintained summary tables / materialized views (C.1/C.2)** — only for the numbers the
+   baseline proves hot; each behind a `summary == recompute` property test (and, for MVs, a
+   `SECURITY DEFINER` wrapper + deny-side test).
+6. **Gated structural: query persistence (Req 12 / Task 28)** behind the cross-profile leakage
+   test; **RLS consolidation (Req 13 / Task 29)** behind deny-side `test:rls`.
+7. **Decide on compute (Task 30)** — the honest ceiling: the above buy _headroom_, not an
+   absolute guarantee on free-tier shared CPU.
+
+## C.10 Bottom line on Pro
+
+Nothing in this plan is wasted by a later Pro upgrade — every lever is either neutral or
+**amplified** by more compute (summary tables refresh cheaper, MVs can refresh
+`CONCURRENTLY`, realtime budget relaxes, on-read aggregates get faster). Equally, **Pro is not
+a substitute** for the request-shape fixes: a chatty client on bigger compute is still chatty.
+Sequence is: make it _quiet and flat-cost_ on free tier first (1–6), then treat Pro/compute
+(7) as the headroom multiplier — not the bug fix.

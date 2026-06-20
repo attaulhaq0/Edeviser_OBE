@@ -248,6 +248,13 @@
 
 ## Phase 6 — Student dashboard latency deep-fix (Appendix A, 2026-06-20)
 
+> ✅ SHIPPED (PR #168, merged + deployed 2026-06-20): **A** (availableXP folded into the
+> RPC), **B** (attendance N+1 collapsed), **C** (set-based attendance roll-up), **D**
+> (`SECURITY DEFINER` + fail-closed `auth.uid()` guard) — all in migration
+> `20260821000010`, verified equivalent across all 70 students (0 mismatches) and confirmed
+> live in prod. REMAINING: **E** (scope realtime), **F** (wrap the 2 bare `submissions`
+> policies), **G** (confirm the `57014` timeout stops in Postgres logs post-deploy).
+
 > Root cause (proven live, project `cdlgtbvxlxjpcddjazzx`): the SQL is ~16–19 ms warm but
 > real calls spike to 6.3–6.95 s against the `authenticated` **8 s `statement_timeout`** —
 > dominated by free-tier shared-CPU throttling, not the queries. Indexes + RLS auth-wrapping
@@ -291,6 +298,13 @@
 > repo. Gate each with a before/after number (Req 1). See design.md Appendix B.
 
 ### Tier 1 — finish wiring the patterns that already exist (lowest risk)
+
+> ✅ SHIPPED (PR #168): **21** (route-chunk prefetch — was already wired in `Sidebar`, all
+> 5 layouts; spec corrected), **22** (dashboard `staleTime` 30s→`DASHBOARD_STALE_TIME_MS`
+> 2m), and the student slice of **23** (attendance N+1) + **24** (`SectionState` created,
+> applied to student announcements). REMAINING: **20** (roll the aggregate to teacher →
+> coordinator → admin → parent), **23** for the other roles' serial chains, **24** across
+> the remaining silent-`null`-on-error sections in every role dashboard.
 
 - [ ] 20. **Roll the aggregate RPC to the other roles** (supersedes/links Task 3): teacher →
       coordinator → admin → parent. One PR per role: `SECURITY INVOKER` (or `SECURITY DEFINER`
@@ -347,3 +361,67 @@
 > Sequencing note: Phase 6 (student deep-fix) proves the SECURITY DEFINER + N+1-collapse +
 > attendance-lateral-trim patterns on ONE role before Phase 7 Task 20 rolls them to the rest.
 > Do not roll out broadly until the student pattern is measured green.
+
+## Phase 8 — All-profiles scalability rollout (Appendix C, 2026-06-20)
+
+> The honest priority order for "every role feels good and nothing silently breaks." Spans
+> all five roles. Gate every change: `npm run lint` → `npx tsc --noEmit` → `npm test`
+> (+ `npm run db:check-replay` for migrations); feature branch + PR; never push `main`;
+> migrations reach prod only via the Supabase Preview on the PR. Each lever in C.1/C.2 ships
+> only behind its correctness test. Compute (Task 30) is the honest ceiling, not a bug fix.
+
+- [ ] 31. **Baselines for all roles (Req 1, gate).** Per role dashboard: DevTools mount
+      request-count, LCP/INP, cold-nav waterfall; `pg_stat_statements` p50/p95 + `EXPLAIN
+(ANALYZE, BUFFERS)` per dashboard query. Store under `audit/baselines/ux-perf/`. This
+      also identifies WHICH numbers are hot enough to justify C.1/C.2 (don't precompute blind).
+
+- [ ] 32. **Per-section error/retry across ALL roles (Req 4 / Task 24).** Apply `SectionState`
+      to every dashboard section that currently renders `null`/empty on error (student badges/
+      teams/comeback; teacher team-health/at-risk/grading panels; coordinator CQI/matrix;
+      admin onboarding/AI/heatmap; parent child cards). Each: error shows a retry, empty stays
+      quiet, stale data wins over error. Add a render test per role. Cheapest, zero DB risk,
+      biggest trust win — do before the aggregate rollout.
+
+- [ ] 33. **Aggregate RPC rollout — teacher** (Task 20.1, worst fan-out, do first). One PR:
+      `get_teacher_dashboard` (`SECURITY DEFINER` + `auth.uid()`/teacher-scope guard,
+      `search_path=''`, set-based, `public.`-qualified) collapsing useTeacherKPIs/CLOAttainment/
+      BloomsDistribution/PerformanceHeatmap/AtRiskStudents; `useTeacherDashboardAggregate` hook
+      hydrating the exact section keys; parity test (deep-equals union of section hooks) +
+      deny-side RLS test; `db:check-replay` + Preview; measure 19→~1.
+
+- [ ] 34. **Aggregate RPC rollout — coordinator** (Task 20.2). `get_coordinator_dashboard`
+      (collapse the 6 sequential `useCoordinatorKPIs` awaits); same gating + parity + RLS test.
+
+- [ ] 35. **Aggregate RPC rollout — admin** (Task 20.3). `get_admin_dashboard` (KPIs +
+      onboarding analytics; fold or back the 6-step `useAdminPLOHeatmap` with a C.2 MV); same
+      gating + parity + RLS test.
+
+- [ ] 36. **Aggregate RPC rollout — parent** (Task 20.4). `get_parent_dashboard` preserving the
+      verified-link RLS; same gating + parity + RLS test.
+
+- [ ] 37. **Maintained summary tables (Appendix C.1) — only for baseline-proven-hot numbers.**
+      Add trigger/`pg_cron`-maintained summary rows (e.g. teacher pending/graded/at-risk,
+      institution attainment) + a nightly reconciler + a `summary == recompute-from-source`
+      property test. Keep XP balance trigger-maintained (not cron). Ship per-number, gated.
+
+- [ ] 38. **Materialized views (Appendix C.2) — admin/coordinator heavy analytics only.**
+      MV + `pg_cron` refresh for the PLO heatmap / accreditation matrices, exposed ONLY via a
+      `SECURITY DEFINER` RPC that injects `auth_institution_id()`; deny-side cross-tenant test
+      REQUIRED (an MV does not enforce table RLS). Defer if the aggregate RPC already meets p95.
+
+- [ ] 39. **Cheaper counts (Appendix C.3).** Switch large-table KPI `count: 'exact'` →
+      `estimated`/`planned` where an approximate tile is acceptable; keep `exact` where the
+      number is contractual. Quick, low-risk.
+
+- [ ] 40. **Query prefetch-on-hover (Appendix C.5 / Task 21 remainder).** Add
+      `queryClient.ensureQueryData` for each route's primary key to the sidebar intent handler
+      (chunk is already warmed). Gate to high-traffic links + non-metered pointers.
+
+- [ ] 41. **Re-measure all roles** vs Task 31 baselines. Only then decide Tier-2 gated items
+      (query persistence Task 28, RLS consolidation Task 29) and the compute decision (Task 30).
+
+> **Pro synergy (Appendix C.10):** nothing here is wasted by a later Supabase Pro upgrade —
+> every lever is neutral or amplified by more compute. But Pro is NOT a substitute for these
+> request-shape/compute-shape fixes (a chatty client on bigger compute is still chatty).
+> Sequence: quiet + flat-cost on free tier first (31–40), then Pro/compute as the headroom
+> multiplier (30), not the fix.
