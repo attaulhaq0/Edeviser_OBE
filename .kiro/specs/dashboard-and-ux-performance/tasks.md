@@ -446,19 +446,40 @@
       quiet, stale data wins over error. Add a render test per role. Cheapest, zero DB risk,
       biggest trust win — do before the aggregate rollout.
 
-- [ ] 33. **Aggregate RPC rollout — teacher** (Task 20.1, worst fan-out, do first). One PR:
+- [x] 33. **Aggregate RPC rollout — teacher** (Task 20.1, worst fan-out, do first). One PR:
       `get_teacher_dashboard` (`SECURITY DEFINER` + `auth.uid()`/teacher-scope guard,
       `search_path=''`, set-based, `public.`-qualified) collapsing useTeacherKPIs/CLOAttainment/
       BloomsDistribution/PerformanceHeatmap/AtRiskStudents; `useTeacherDashboardAggregate` hook
       hydrating the exact section keys; parity test (deep-equals union of section hooks) +
       deny-side RLS test; `db:check-replay` + Preview; measure 19→~1.
+      — DONE (PR #170, merged): migration `20260821000011_create_get_teacher_dashboard_rpc.sql`
+      (`SECURITY DEFINER` + fail-closed `auth.uid()` guard) returning `{kpis, bloomsDistribution}`;
+      `useTeacherDashboardAggregate` hydrates the kpis/blooms keys; `useTeacherKPIs` +
+      `useTeacherBloomsDistribution` gained `{enabled?}` fallback; unit parity + deny-side RLS
+      test; Supabase Preview green.
 
-- [ ] 34. **Aggregate RPC rollout — coordinator** (Task 20.2). `get_coordinator_dashboard`
+- [x] 34. **Aggregate RPC rollout — coordinator** (Task 20.2). `get_coordinator_dashboard`
       (collapse the 6 sequential `useCoordinatorKPIs` awaits); same gating + parity + RLS test.
+      — DONE (PR #171, merged): migration `20260821000012_create_get_coordinator_dashboard_rpc.sql`
+      (`SECURITY INVOKER` — institution-scoped via RLS, no `auth.uid()` guard needed) returning the
+      flat `CoordinatorKPIData`; `useCoordinatorDashboardAggregate` hydrates
+      `coordinatorDashboard.list({})`; `useCoordinatorKPIs` gained `{enabled?}` fallback; unit
+      parity test; Supabase Preview green (real from-scratch replay).
 
-- [ ] 35. **Aggregate RPC rollout — admin** (Task 20.3). `get_admin_dashboard` (KPIs +
+- [x] 35. **Aggregate RPC rollout — admin** (Task 20.3). `get_admin_dashboard` (KPIs +
       onboarding analytics; fold or back the 6-step `useAdminPLOHeatmap` with a C.2 MV); same
       gating + parity + RLS test.
+      — DONE (this PR): migration `20260821000013_create_get_admin_dashboard_rpc.sql`
+      (`SECURITY INVOKER` — institution-scoped via RLS) returning the flat `AdminKPIData`
+      (total/active users, program & course counts, active users grouped by role via
+      `jsonb_object_agg`); `useAdminDashboardAggregate` hydrates `adminDashboard.list({})`;
+      `useAdminKPIs` gained `{enabled?}` fallback; page wired with aggregate-then-fallback; unit
+      parity test + fixed the two existing AdminDashboard render suites
+      (`adminPLOHeatmap`/`adminDashboardAI`) to mock the new aggregate. **Scope note:** mirrors
+      the coordinator slice — collapses only the always-on `useAdminKPIs` fan-out (5 parallel
+      round-trips → 1). The deferred onboarding/audit/AI panels keep their own hooks, and the
+      institution-scoped PLO heatmap is intentionally left for the C.2 materialized-view task
+      (Task 38), not folded here.
 
 - [ ] 36. **Aggregate RPC rollout — parent** (Task 20.4). `get_parent_dashboard` preserving the
       verified-link RLS; same gating + parity + RLS test.
