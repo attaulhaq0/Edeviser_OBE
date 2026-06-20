@@ -20,9 +20,10 @@ export interface AuditLogEntry {
   created_at: string;
 }
 
-export const useAdminKPIs = () => {
+export const useAdminKPIs = (options?: { enabled?: boolean }) => {
   return useQuery({
     queryKey: queryKeys.adminDashboard.list({}),
+    enabled: options?.enabled ?? true,
     queryFn: async (): Promise<AdminKPIData> => {
       const [
         { count: totalUsers },

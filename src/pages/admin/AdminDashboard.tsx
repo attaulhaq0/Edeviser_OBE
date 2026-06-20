@@ -17,6 +17,7 @@ import {
   useRecentAuditLogs,
   useOnboardingAnalytics,
 } from "@/hooks/useAdminDashboard";
+import { useAdminDashboardAggregate } from "@/hooks/useAdminDashboardAggregate";
 import { useAIPerformance } from "@/hooks/useAIPerformance";
 import { useAuth } from "@/hooks/useAuth";
 import { useDeferredMount } from "@/hooks/useDeferredMount";
@@ -81,10 +82,19 @@ const roleBadgeStyles: Record<string, string> = {
 
 const AdminDashboard = () => {
   const { t } = useTranslation("admin");
-  const { profile } = useAuth();
+  const { profile, institutionId } = useAuth();
   const navigate = useNavigate();
   const deferredReady = useDeferredMount(500);
-  const { data: kpis, isLoading: kpisLoading } = useAdminKPIs();
+  // PERF (spec: dashboard-and-ux-performance, Phase 8 Task 35): ONE aggregate
+  // round-trip (`get_admin_dashboard`, SECURITY INVOKER / RLS-scoped to the
+  // caller's institution) hydrates the KPI cache and drives the KPI row directly.
+  // Additive + reversible: the section hook falls back to its own 5-query fan-out
+  // ONLY when the aggregate errors.
+  const kpiAggregate = useAdminDashboardAggregate(institutionId);
+  const kpisHook = useAdminKPIs({ enabled: kpiAggregate.isError });
+  const kpis = kpiAggregate.data ?? kpisHook.data;
+  const kpisLoading =
+    kpiAggregate.isPending || (kpiAggregate.isError && kpisHook.isLoading);
   const { data: auditLogs, isLoading: logsLoading } = useRecentAuditLogs(10, {
     enabled: deferredReady,
   });

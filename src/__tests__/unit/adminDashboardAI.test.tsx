@@ -22,6 +22,19 @@ vi.mock("@/hooks/useAdminDashboard", () => ({
   usePendingOnboardingStudents: () => ({ data: [] }),
 }));
 
+// The KPI aggregate is greenfield (Phase 8 Task 35). This suite drives the
+// section hooks directly and renders without a QueryClientProvider, so force the
+// aggregate into its error/fallback state → the dashboard reads the mocked
+// useAdminKPIs (mirrors the coordinator/teacher dashboard test fixes).
+vi.mock("@/hooks/useAdminDashboardAggregate", () => ({
+  useAdminDashboardAggregate: () => ({
+    data: undefined,
+    isPending: false,
+    isError: true,
+    isSuccess: false,
+  }),
+}));
+
 vi.mock("@/hooks/useAuth", () => ({
   useAuth: () => ({
     user: { id: "admin-1", email: "admin@test.com" },
