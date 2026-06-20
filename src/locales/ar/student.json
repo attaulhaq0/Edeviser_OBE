@@ -22,6 +22,7 @@
     "noDeadlines": "لا توجد مواعيد نهائية قادمة. استمتع بالاستراحة.",
     "yourProgress": "تقدمك",
     "totalXP": "إجمالي نقاط الخبرة",
+    "xpAvailable": "نقاط الخبرة المتاحة",
     "currentLevel": "المستوى الحالي",
     "loginStreak": "سلسلة تسجيل الدخول",
     "daysStreak": "🔥 {{count}} يوم",

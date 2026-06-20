@@ -142,7 +142,7 @@ export const usePendingSubmissions = (courseId?: string) => {
         .select(
           "*, profiles!submissions_student_id_fkey(id, full_name, email), assignments!inner(id, title, total_marks, course_id), grades(id)"
         )
-        .order("created_at", { ascending: false });
+        .order("submitted_at", { ascending: false });
 
       if (courseId) {
         query = query.eq("assignments.course_id", courseId);
@@ -303,7 +303,7 @@ export const useStudentAssignments = (courseId?: string) => {
 
       let query = supabase
         .from("assignments")
-        .select("*, submissions(id, is_late, created_at)")
+        .select("*, submissions(id, is_late, submitted_at)")
         .in("course_id", courseIds)
         .eq("submissions.student_id", user.id)
         .order("due_date", { ascending: true });

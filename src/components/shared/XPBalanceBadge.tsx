@@ -30,6 +30,10 @@ const XPBalanceBadge = ({ className, size = "md" }: XPBalanceBadgeProps) => {
 
   return (
     <div
+      title="Available XP — your spendable balance in the marketplace"
+      aria-label={`Available XP (spendable balance): ${(
+        data?.balance ?? 0
+      ).toLocaleString()}`}
       className={cn(
         "inline-flex items-center rounded-full bg-amber-50 border border-amber-200 font-semibold text-amber-700",
         sizeClasses[size],

@@ -70,11 +70,38 @@
 
 - [ ] 3. **Roll the aggregate to the other roles** (Req 2.7) — one PR each, after Task 2 proven
 
-  - [ ] 3.1 `get_admin_dashboard` + `useAdminDashboardAggregate` + hydrate + remove any
-        defer; parity + RLS test; measure.
-  - [ ] 3.2 `get_coordinator_dashboard` (same steps).
-  - [ ] 3.3 `get_teacher_dashboard` (same steps).
-  - [ ] 3.4 `get_parent_dashboard` (same steps; preserve verified-link RLS).
+  > **Best-approach confirmation (researched + codebase).** The right fix for our
+  > "many queries → slow dashboard" latency is to aggregate **server-side in one
+  > Postgres function returning a single `jsonb`** (one network round-trip + one query
+  > plan), then hydrate the existing section caches — exactly the proven
+  > `get_student_dashboard` pattern. This is the canonical Supabase guidance: run the
+  > set-based aggregation in the DB (Postgres is the optimized engine; keeps logic in
+  > the data layer; zero edge-function quota on free tier) rather than fanning out
+  > client round-trips. Views/materialized views are a secondary tool for heavy
+  > read-only rollups; an RPC is preferred here because it bundles many sections into
+  > one typed call and respects RLS via `SECURITY INVOKER`.
+  > Content was rephrased for compliance with licensing restrictions.
+  >
+  > **Measured mount fan-out (this session, hook-call sites in each dashboard):**
+  > student 37 (critical block already collapsed via Task 2), **teacher 19**,
+  > admin 10, coordinator 7, parent 4. Execute in impact order: **teacher → admin →
+  > coordinator → parent** (teacher is both the worst fan-out AND currently has broken
+  > pages — see Phase 5).
+  >
+  > Each role RPC: `SECURITY INVOKER`, `set search_path=''`, `stable`, `public.`-
+  > qualified, set-based reads mirroring the role's current section-hook filters;
+  > apply via `apply_migration`; regen types; `db:check-replay` clean; Supabase Preview
+  > green; parity test (aggregate deep-equals union of section hooks) + RLS deny-side
+  > test; hydrate the EXACT existing section query keys so components are untouched and
+  > section hooks fall back on aggregate error.
+
+  - [ ] 3.1 `get_teacher_dashboard` + `useTeacherDashboardAggregate` (collapses
+        useTeacherKPIs, useTeacherCLOAttainment, useTeacherBloomsDistribution,
+        useStudentPerformanceHeatmap, useAtRiskStudents, useTeacherRecoveryAlerts);
+        parity + RLS test; measure 19→~1.
+  - [ ] 3.2 `get_admin_dashboard` + `useAdminDashboardAggregate` (10 → ~1).
+  - [ ] 3.3 `get_coordinator_dashboard` (7 → ~1).
+  - [ ] 3.4 `get_parent_dashboard` (4 → ~1; preserve verified-link RLS).
 
 - [x] 4. **Skeleton-first sweep** (Req 4)
 
@@ -235,7 +262,44 @@
   - [ ] 15.4 Verify realtime subscriptions are filter-scoped + torn down on unmount.
   - [ ] 15.5 Justify each with a bundle-report/Lighthouse number; skip off-critical-path.
 
-## Notes / non-goals
+## Phase 5 — Reported teacher page failures + slowness (user-reported, 2026-06)
+
+> Live bug reports from teacher login. Mix of correctness (broken pages — fix first)
+> and latency (slow pages — fold into the Task 3.1 teacher aggregate). Diagnose each
+> against the live schema before changing; gate as usual.
+
+- [x] 16. **Teacher dashboard 500 — `submissions.created_at`** (fixed in PR #167)
+
+  - [x] 16.1 `usePendingSubmissions` ordered `submissions` by `created_at` (real column
+        `submitted_at`) → teacher dashboard threw "column submissions.created_at does not
+        exist". Fixed; also fixed the same dead column in `useStudentAssignments`' embed.
+  - [x] 16.2 Teacher greeting showed the raw key `dashboard.welcome.subtitle` — teacher
+        locale lacked it; added (en + ar).
+
+- [ ] 17. **Tutor Analytics / Teams "failed to fetch analytics"**
+
+  - [ ] 17.1 `fetchTutorAnalytics` (`src/lib/tutorApi.ts`) calls the `tutor-analytics`
+        edge function, which has KNOWN schema drift (`courses.institution_id` — no such
+        column; baselined in `scripts/edge-fn-schema-baseline.json`). Fix the edge fn to
+        derive institution via `programs` (mirror the Req 19 OBE-export fix), redeploy,
+        and remove its baseline entry. Verify the Tutor Analytics page renders.
+  - [ ] 17.2 Confirm whether the teacher **Teams** "failed to fetch analytics" is the
+        same `tutor-analytics` call or a separate team-analytics hook; fix accordingly.
+
+- [ ] 18. **Gradebook "page failed to load"**
+
+  - [ ] 18.1 `useGradebookMatrix` queries are schema-valid (grade_categories,
+        assignments, quizzes, grades all verified) → the failure is NOT simple column
+        drift. Reproduce at runtime to capture the real error (likely an ErrorBoundary on
+        the `grades → submissions!inner` embed filter, an empty-state render crash, or a
+        lazy-chunk load error), then fix and add a regression test.
+
+- [ ] 19. **Slow teacher pages: Tutor Analytics, Tutor Handoffs, Baseline Tests**
+
+  - [ ] 19.1 Measure each (Network request count + waterfall on mount). Collapse
+        confirmed serial waterfalls / `select('*')` on large tables; scope queries by
+        course/teacher; add `staleTime`. Where the page is a dashboard panel, fold into
+        the Task 3.1 teacher aggregate; otherwise consolidate the page's own hooks.
 
 - No production data seeding; no framework migration; no Pro-compute assumption.
 - The 2 FK indexes are implemented in `production-bug-fixes` (Req 11); RLS
