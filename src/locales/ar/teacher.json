@@ -1,6 +1,9 @@
 {
   "dashboard": {
     "title": "لوحة التحكم",
+    "welcome": {
+      "subtitle": "تابع التقييم والتحصيل والطلاب المعرضين للخطر في مقرراتك."
+    },
     "gradingQueue": "قائمة التقييم",
     "pendingSubmissions": "التسليمات المعلقة",
     "gradedThisWeek": "تم تقييمها هذا الأسبوع",

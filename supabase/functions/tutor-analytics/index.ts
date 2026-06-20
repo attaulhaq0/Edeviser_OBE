@@ -359,7 +359,7 @@ serve(async (req) => {
 
     const { data: course, error: courseError } = await supabase
       .from("courses")
-      .select("id, institution_id, teacher_id")
+      .select("id, teacher_id")
       .eq("id", body.course_id)
       .maybeSingle();
 

@@ -595,7 +595,7 @@ const StudentDashboard = () => {
             <div className="text-center">
               <p className="text-2xl font-black">{kpis?.totalXP ?? 0}</p>
               <p className="text-[10px] font-black tracking-widest uppercase text-white/60">
-                {t("dashboard.xp")}
+                {t("dashboard.totalXP")}
               </p>
             </div>
             <div className="w-px h-10 bg-white/20" />
@@ -613,6 +613,9 @@ const StudentDashboard = () => {
                 size="sm"
                 className="bg-white/10 border-white/20 text-white"
               />
+              <p className="mt-1 text-[10px] font-black tracking-widest uppercase text-white/60">
+                {t("dashboard.xpAvailable", "Available XP")}
+              </p>
             </div>
           </div>
         }

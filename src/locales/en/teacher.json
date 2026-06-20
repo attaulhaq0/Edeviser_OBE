@@ -1,6 +1,9 @@
 {
   "dashboard": {
     "title": "Dashboard",
+    "welcome": {
+      "subtitle": "Track grading, attainment, and at-risk students across your courses."
+    },
     "gradingQueue": "Grading Queue",
     "pendingSubmissions": "Pending Submissions",
     "gradedThisWeek": "Graded This Week",

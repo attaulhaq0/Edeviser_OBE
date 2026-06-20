@@ -22,6 +22,7 @@
     "noDeadlines": "No upcoming deadlines. Enjoy the break.",
     "yourProgress": "Your Progress",
     "totalXP": "Total XP",
+    "xpAvailable": "Available XP",
     "currentLevel": "Current Level",
     "loginStreak": "Login Streak",
     "daysStreak": "🔥 {{count}} days",
