@@ -33,6 +33,18 @@ vi.mock("@/hooks/useCoordinatorDashboard", () => ({
   useCoordinatorKPIs: () => mockCoordinatorKPIs(),
 }));
 
+// Phase 8 Task 34: the KPI aggregate is pinned to its error/fallback state so
+// the dashboard reads from the mocked `useCoordinatorKPIs` above instead of
+// hanging on a pending aggregate query (which would force the KPI shimmer).
+vi.mock("@/hooks/useCoordinatorDashboardAggregate", () => ({
+  useCoordinatorDashboardAggregate: () => ({
+    data: undefined,
+    isPending: false,
+    isError: true,
+    isSuccess: false,
+  }),
+}));
+
 const mockRecoveryMetrics = vi.fn();
 vi.mock("@/hooks/useMasteryRecovery", () => ({
   useRecoveryMetrics: () => mockRecoveryMetrics(),

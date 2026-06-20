@@ -14,6 +14,7 @@ import WelcomeHero from "@/components/shared/WelcomeHero";
 import CurriculumMatrix from "@/components/shared/CurriculumMatrix";
 import CellDetailSheet from "@/components/shared/CellDetailSheet";
 import { useCoordinatorKPIs } from "@/hooks/useCoordinatorDashboard";
+import { useCoordinatorDashboardAggregate } from "@/hooks/useCoordinatorDashboardAggregate";
 import { useRecoveryMetrics } from "@/hooks/useMasteryRecovery";
 import { useCQIPlanSummary, useCQIPlans } from "@/hooks/useCQIPlans";
 import CQIStatusBadge from "@/components/shared/CQIStatusBadge";
@@ -81,7 +82,16 @@ interface SelectedCell {
 const CoordinatorDashboard = () => {
   const { t } = useTranslation("coordinator");
   const { institutionId, profile } = useAuth();
-  const { data: kpis, isLoading: kpisLoading } = useCoordinatorKPIs();
+  // PERF (spec: dashboard-and-ux-performance, Phase 8 Task 34): ONE aggregate
+  // round-trip (`get_coordinator_dashboard`, SECURITY INVOKER / RLS-scoped to the
+  // caller's institution) hydrates the KPI cache and drives the KPI row directly.
+  // Additive + reversible: the section hook falls back to its own ~6-query chain
+  // ONLY when the aggregate errors.
+  const kpiAggregate = useCoordinatorDashboardAggregate(institutionId);
+  const kpisHook = useCoordinatorKPIs({ enabled: kpiAggregate.isError });
+  const kpis = kpiAggregate.data ?? kpisHook.data;
+  const kpisLoading =
+    kpiAggregate.isPending || (kpiAggregate.isError && kpisHook.isLoading);
   const { data: recoveryMetrics, isLoading: recoveryLoading } =
     useRecoveryMetrics(institutionId ?? "");
   const { data: paginatedPrograms, isLoading: programsLoading } = usePrograms();
