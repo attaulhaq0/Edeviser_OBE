@@ -29,6 +29,20 @@ vi.mock("@/hooks/useTeacherDashboard", () => ({
   useSendNudge: () => ({ mutate: vi.fn(), isPending: false }),
 }));
 
+// The dashboard now reads its KPI + Bloom's data from the aggregate RPC first and
+// falls back to the section hooks only when the aggregate errors. Mock the
+// aggregate in the error/fallback state so this suite continues to exercise the
+// section-hook rendering it mocks above. (The aggregate success path is covered by
+// useTeacherDashboardAggregate.test.ts.)
+vi.mock("@/hooks/useTeacherDashboardAggregate", () => ({
+  useTeacherDashboardAggregate: () => ({
+    data: undefined,
+    isPending: false,
+    isError: true,
+    isSuccess: false,
+  }),
+}));
+
 vi.mock("@/hooks/useAuth", () => ({
   useAuth: () => ({ user: { id: "teacher-1", role: "teacher" } }),
 }));

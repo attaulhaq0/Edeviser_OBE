@@ -35,7 +35,7 @@ export interface HeatmapCell {
 
 // ─── useTeacherKPIs ─────────────────────────────────────────────────────────
 
-export const useTeacherKPIs = () => {
+export const useTeacherKPIs = (options?: { enabled?: boolean }) => {
   const { user } = useAuth();
 
   return useQuery({
@@ -176,7 +176,7 @@ export const useTeacherKPIs = () => {
         totalStudents: totalStudents ?? 0,
       };
     },
-    enabled: !!user?.id,
+    enabled: !!user?.id && (options?.enabled ?? true),
     staleTime: DASHBOARD_STALE_TIME_MS,
   });
 };
@@ -239,7 +239,9 @@ export const useTeacherCLOAttainment = (courseId?: string) => {
 
 // ─── useTeacherBloomsDistribution ───────────────────────────────────────────
 
-export const useTeacherBloomsDistribution = () => {
+export const useTeacherBloomsDistribution = (options?: {
+  enabled?: boolean;
+}) => {
   const { user } = useAuth();
 
   return useQuery({
@@ -288,7 +290,7 @@ export const useTeacherBloomsDistribution = () => {
         .map((level) => ({ level, count: countMap.get(level) ?? 0 }))
         .filter((r) => r.count > 0);
     },
-    enabled: !!user?.id,
+    enabled: !!user?.id && (options?.enabled ?? true),
     staleTime: DASHBOARD_STALE_TIME_MS,
   });
 };
