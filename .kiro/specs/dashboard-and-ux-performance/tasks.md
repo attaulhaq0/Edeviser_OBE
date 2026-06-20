@@ -245,3 +245,105 @@
   gating tests (leakage test; deny-side `test:rls`).
 - This spec supersedes `docs/PERFORMANCE-OPTIMIZATION-PLAN.md` as the tracked work item
   (the plan remains the analysis reference).
+
+## Phase 6 — Student dashboard latency deep-fix (Appendix A, 2026-06-20)
+
+> Root cause (proven live, project `cdlgtbvxlxjpcddjazzx`): the SQL is ~16–19 ms warm but
+> real calls spike to 6.3–6.95 s against the `authenticated` **8 s `statement_timeout`** —
+> dominated by free-tier shared-CPU throttling, not the queries. Indexes + RLS auth-wrapping
+> are already correct. Two heavy work sources were never folded into the aggregate. See
+> design.md Appendix A. Every DB change ships via guarded migration + Supabase Preview green;
+> never a direct prod apply.
+
+- [ ] A. **Collapse the XP-balance storm** (Fix A)
+  - [ ] A.1 Return `availableXP` (earned − spent, floored at 0) from `get_student_dashboard`;
+        prefer the maintained `student_gamification` total over a `SUM`-on-read of the
+        append-only `xp_transactions`.
+  - [ ] A.2 Hydrate the `useXPBalance` cache key from `useStudentDashboardAggregate`; raise
+        `useXPBalance` `staleTime` well above 10 s. Verify `XPBalanceBadge` (persistent
+        sidebar) no longer fires `get_xp_balance` per page mount.
+  - [ ] A.3 Measure: `get_xp_balance` calls/session → ~0 on the student path; record before/after.
+- [ ] B. **Kill the per-course attendance N+1** (Fix B)
+  - [ ] B.1 Rewrite `useStudentAttendance` as ONE FK-chain join (mirror `useChildAttendance`),
+        or have the dashboard read the aggregate's hydrated attendance cache only.
+  - [ ] B.2 Measure: the 143-call `attendance_records` query drops off `pg_stat_statements`
+        top-by-total; add a parity test (same per-course shape).
+- [ ] C. **Trim the RPC attendance lateral** (Fix C) — replace the `cross join lateral` with a
+      single set-based join + `group by`; re-measure `get_student_dashboard` buffers
+      (was 5 378) + `mean_exec_time`.
+- [ ] D. **`SECURITY DEFINER` for the read-only aggregate** (Fix D) — convert
+      `get_student_dashboard` to `SECURITY DEFINER` to bypass the layered permissive-policy
+      evaluation, with a **mandatory** top-of-body guard
+      `p_student_id = (select auth.uid())` (or staff check). Keep the deny-side
+      `getStudentDashboard.rls.test.ts` green (A→B returns nothing). Out of any exposed schema.
+- [ ] E. **Scope realtime** (Fix E) — audit the 17 published tables; ensure student
+      subscriptions are filter-scoped to cut background WAL load.
+- [ ] F. **Wrap the two bare `submissions` policies** (`submissions_parent_read`,
+      `submissions_teacher_read`) in `(select auth_user_role())`; keep the warm-ping (Task 10).
+- [ ] G. **Confirm the timeout stops** — re-query Postgres logs for `57014` after A–D land.
+
+## Phase 7 — Whole-app architectural remediation (Appendix B, 2026-06-20)
+
+> The same slowness affects ALL role dashboards + section navigation, and some sections
+> "don't load" (a silently-cancelled query, per the 8 s timeout). Strategy: make the client
+> "quiet" — fewer, batched, cached, prefetched requests behind a shorter auth gate, with no
+> silent failures. Every step is additive/reversible and matches a pattern already in the
+> repo. Gate each with a before/after number (Req 1). See design.md Appendix B.
+
+### Tier 1 — finish wiring the patterns that already exist (lowest risk)
+
+- [ ] 20. **Roll the aggregate RPC to the other roles** (supersedes/links Task 3): teacher →
+      coordinator → admin → parent. One PR per role: `SECURITY INVOKER` (or `SECURITY DEFINER`
+      - `auth.uid()`/staff guard per Appendix A Fix D), set-based reads mirroring the role's
+        section-hook filters, hydrate the exact existing query keys, parity test + deny-side
+        `test:rls`, request-count before/after. Teacher first (worst fan-out + broken pages).
+- [x] 21. **Route-chunk prefetch-on-intent** — ALREADY WIRED (verified 2026-06-20): the shared
+      `Sidebar` calls `useIntentPrefetch` + `prefetchRoute` on every nav link (hover/focus,
+      touch-gated, deduped, error-swallowed) and is rendered by all five role layouts; covered
+      by `useIntentPrefetch.test.ts`. (The earlier "dead code" note was a faulty grep.)
+      REMAINING (separate, optional): also `queryClient.prefetchQuery` the route's primary key
+      on intent so the click pays neither a cold chunk nor a cold query.
+- [ ] 22. **Standardize dashboard `staleTime`.** Replace the blanket `30_000` overrides on
+      dashboard hooks with 2–5 min (realtime already invalidates on change), so intra-session
+      navigation is a cache hit. Measure refetch count on re-navigation before/after.
+- [ ] 23. **Collapse in-hook N+1 / serial chains into batched queries or one RPC.**
+      `useStudentAttendance` (Phase 6.B), `useCoordinatorKPIs` (6 serial → `Promise.all`/RPC),
+      `useTeacherKPIs` trailing serial awaits, `useAdminPLOHeatmap` where parallelizable. Add a
+      parity test per converted hook.
+- [ ] 24. **Add explicit per-section `error`/empty + retry states.** Generalize the Admin-PLO
+      `loading | error | empty | data` pattern into a small `<SectionState>` wrapper; apply to
+      sections that currently render `null` on error (announcements, badge spotlight, comeback,
+      team cards, deferred student sections). Converts silent "data not loading" into a visible,
+      retryable state. Add a render test (error → retry visible).
+
+### Tier 1.5 — shorten the gate + warm the instance
+
+- [ ] 25. **Parallelize the auth gate** (Req 8 follow-through): start role-routing + the first
+      dashboard query from the cached session `user.id` while `fetchProfile` resolves in
+      parallel; don't block the whole layout on the profile SELECT. Keep `AuthProvider` tests
+      green + multi-role manual pass.
+- [ ] 26. **Pre-bundle the 5 role layout shells** (remove their `React.lazy`) so the first
+      post-login navigation pays one chunk, not layout-then-page. Keep all pages lazy. Confirm
+      via `npm run analyze` that the layout code is in the entry/role chunk, not a separate hop.
+- [ ] 27. **Scope realtime + audit always-on header queries.** Filter the teacher `submissions`
+      subscription; confirm `NotificationBell`'s `useNotifications`/`useUnreadCount` + realtime
+      truly need to run on every page for every role (consider lazying the popover data).
+
+### Tier 2 — instant returns + structural DB-cost reduction (gated by tests)
+
+- [ ] 28. **Per-user query persistence** (Req 12): `@tanstack/query-persist-client` keyed by
+      `user.id`, purged on sign-out/user-switch. Ship ONLY behind the cross-profile leakage
+      test (sign in A → persist → sign in B → assert no A data).
+- [ ] 29. **RLS permissive-policy consolidation** (Req 13) + `SECURITY DEFINER` aggregate paths,
+      table-by-table behind full deny-side `test:rls` (allowed AND denied per role × table).
+
+### Tier 3 — the honest ceiling
+
+- [ ] 30. **Compute decision (stakeholder).** Document that the SQL is ~18 ms warm and the
+      spikes/timeouts are free-tier shared-CPU + realtime contention. Decide deliberately:
+      stay "quiet enough" for free tier (Tiers 1–2) or budget Supabase Pro / a temporary hourly
+      compute boost. Query tuning alone will not make a saturated shared instance feel instant.
+
+> Sequencing note: Phase 6 (student deep-fix) proves the SECURITY DEFINER + N+1-collapse +
+> attendance-lateral-trim patterns on ONE role before Phase 7 Task 20 rolls them to the rest.
+> Do not roll out broadly until the student pattern is measured green.

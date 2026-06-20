@@ -58,6 +58,7 @@ import {
 import { useStudentAttendance } from "@/hooks/useAttendance";
 import { useStudentChallenges } from "@/hooks/useChallenges";
 import { useMyTeamId } from "@/hooks/useTeamLeaderboard";
+import SectionState from "@/components/shared/SectionState";
 import { useTeams, useTeamGamification } from "@/hooks/useTeams";
 import { useBadgeSpotlight, useTieredBadges } from "@/hooks/useTieredBadges";
 import { useStudentLeagueTier } from "@/hooks/useLeagueLeaderboard";
@@ -157,54 +158,68 @@ const AnnouncementsSection = ({
     !!studentId &&
     announcements === undefined &&
     (!fallbackEnabled || hook.isLoading);
-
-  if (isLoading) {
-    return <Shimmer className="h-32 rounded-xl" />;
-  }
-
-  if (!announcements || announcements.length === 0) return null;
+  // Surface a retryable error only when the aggregate value is absent AND the
+  // gated fallback fetch failed — otherwise a cancelled/timed-out announcements
+  // query would make this section vanish silently (spec Appendix B §B.3.5). A
+  // successful-but-empty result still renders nothing (announcements are optional).
+  const isError =
+    announcements === undefined && fallbackEnabled && hook.isError;
 
   return (
-    <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-      <div
-        className="px-6 py-4 flex items-center gap-2"
-        style={{
-          background: "var(--brand-gradient)",
-        }}
-      >
-        <Megaphone className="h-5 w-5 text-white" />
-        <h2 className="text-lg font-bold tracking-tight text-white">
-          {t("dashboard.recentAnnouncements")}
-        </h2>
-      </div>
-      <div className="p-6 space-y-3">
-        {announcements.map((a) => (
+    <SectionState
+      data={announcements}
+      isLoading={isLoading}
+      isError={isError}
+      onRetry={() => void hook.refetch()}
+      loadingFallback={<Shimmer className="h-32 rounded-xl" />}
+      errorTitle={t("dashboard.recentAnnouncements")}
+    >
+      {(items) => (
+        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
           <div
-            key={a.id}
-            className="flex items-start gap-3 py-2 border-b border-slate-100 last:border-0 cursor-pointer hover:bg-slate-50 rounded-lg px-2 -mx-2 transition-colors"
-            onClick={() => navigate(`/student/announcements/${a.id}`)}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") navigate(`/student/announcements/${a.id}`);
+            className="px-6 py-4 flex items-center gap-2"
+            style={{
+              background: "var(--brand-gradient)",
             }}
           >
-            <Megaphone
-              className={`h-4 w-4 mt-0.5 shrink-0 ${
-                a.is_pinned ? "text-amber-500" : "text-gray-400"
-              }`}
-            />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{a.title}</p>
-              <p className="text-xs text-gray-500 line-clamp-1">{a.content}</p>
-            </div>
-            <span className="text-xs text-gray-400 whitespace-nowrap">
-              {formatLocalDate(a.created_at, "MMM d")}
-            </span>
+            <Megaphone className="h-5 w-5 text-white" />
+            <h2 className="text-lg font-bold tracking-tight text-white">
+              {t("dashboard.recentAnnouncements")}
+            </h2>
           </div>
-        ))}
-      </div>
-    </Card>
+          <div className="p-6 space-y-3">
+            {items.map((a) => (
+              <div
+                key={a.id}
+                className="flex items-start gap-3 py-2 border-b border-slate-100 last:border-0 cursor-pointer hover:bg-slate-50 rounded-lg px-2 -mx-2 transition-colors"
+                onClick={() => navigate(`/student/announcements/${a.id}`)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter")
+                    navigate(`/student/announcements/${a.id}`);
+                }}
+              >
+                <Megaphone
+                  className={`h-4 w-4 mt-0.5 shrink-0 ${
+                    a.is_pinned ? "text-amber-500" : "text-gray-400"
+                  }`}
+                />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{a.title}</p>
+                  <p className="text-xs text-gray-500 line-clamp-1">
+                    {a.content}
+                  </p>
+                </div>
+                <span className="text-xs text-gray-400 whitespace-nowrap">
+                  {formatLocalDate(a.created_at, "MMM d")}
+                </span>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+    </SectionState>
   );
 };
 

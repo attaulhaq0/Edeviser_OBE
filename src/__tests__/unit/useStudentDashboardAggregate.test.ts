@@ -239,6 +239,10 @@ const FIXTURE_ANNOUNCEMENTS: Announcement[] = [
   },
 ];
 
+// Canonical spendable-XP value — the exact number `get_xp_balance` returns and
+// `useXPBalance` exposes as `{ balance }`. Distinct from `totalXP` (lifetime).
+const FIXTURE_AVAILABLE_XP = 356;
+
 // Full success payload mirroring the `get_student_dashboard` jsonb (all
 // sections present), used by the attendance-, streak-freeze-,
 // profile-completeness- and announcements-section tests.
@@ -249,6 +253,7 @@ const FIXTURE_AGGREGATE_DATA = {
   streakFreeze: FIXTURE_STREAK_FREEZE,
   profileCompleteness: FIXTURE_PROFILE_COMPLETENESS,
   announcements: FIXTURE_ANNOUNCEMENTS,
+  availableXP: FIXTURE_AVAILABLE_XP,
 };
 
 const makeClient = () =>
@@ -715,6 +720,51 @@ describe("useStudentDashboardAggregate (dashboard-and-ux-performance Req 2)", ()
         queryKeys.announcements.list({ studentId: STUDENT_ID, limit: 5 })
       );
       expect(announcementsCache).toEqual(FIXTURE_ANNOUNCEMENTS);
+    });
+  });
+
+  // ─── Available-XP (sidebar badge) wiring (Appendix A, Fix A) ────────────────
+  // The aggregate carries `availableXP` and hydrates the EXACT key `useXPBalance`
+  // reads, so the persistent sidebar `XPBalanceBadge` is a cache hit instead of a
+  // separate `get_xp_balance` RPC per page mount. Guarded: a pre-migration payload
+  // without `availableXP` must NOT hydrate (badge falls back), so no regression in
+  // the brief client-ahead-of-migration window.
+  describe("available XP section", () => {
+    it("hydration: writes the balance cache under the exact key useXPBalance reads", async () => {
+      mockRpc.mockResolvedValue({ data: FIXTURE_AGGREGATE_DATA, error: null });
+
+      const client = makeClient();
+      const { result } = renderHook(
+        () => useStudentDashboardAggregate(STUDENT_ID),
+        { wrapper: makeWrapper(client) }
+      );
+
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+      const balanceCache = client.getQueryData<{ balance: number }>(
+        queryKeys.marketplace.balance(STUDENT_ID)
+      );
+      expect(balanceCache).toEqual({ balance: FIXTURE_AVAILABLE_XP });
+    });
+
+    it("no-op: a payload without availableXP leaves the balance cache empty (badge falls back)", async () => {
+      // Pre-migration shape: kpis + deadlines only, no availableXP.
+      mockRpc.mockResolvedValue({
+        data: { kpis: FIXTURE_KPIS, deadlines: FIXTURE_DEADLINES },
+        error: null,
+      });
+
+      const client = makeClient();
+      const { result } = renderHook(
+        () => useStudentDashboardAggregate(STUDENT_ID),
+        { wrapper: makeWrapper(client) }
+      );
+
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+      expect(
+        client.getQueryData(queryKeys.marketplace.balance(STUDENT_ID))
+      ).toBeUndefined();
     });
   });
 });

@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
+import { DASHBOARD_STALE_TIME_MS } from "@/lib/queryConfig";
 
 export interface AdminKPIData {
   totalUsers: number;
@@ -55,7 +56,7 @@ export const useAdminKPIs = () => {
         usersByRole,
       };
     },
-    staleTime: 30_000,
+    staleTime: DASHBOARD_STALE_TIME_MS,
   });
 };
 
@@ -75,7 +76,7 @@ export const useRecentAuditLogs = (
       if (error) throw error;
       return (data ?? []) as unknown as AuditLogEntry[];
     },
-    staleTime: 30_000,
+    staleTime: DASHBOARD_STALE_TIME_MS,
     enabled: options?.enabled ?? true,
   });
 };
@@ -118,7 +119,7 @@ export const useOnboardingAnalytics = (options?: { enabled?: boolean }) => {
         completionRate,
       };
     },
-    staleTime: 30_000,
+    staleTime: DASHBOARD_STALE_TIME_MS,
     enabled: options?.enabled ?? true,
   });
 };
@@ -188,7 +189,7 @@ export const usePendingOnboardingStudents = (filters?: {
       if (error) throw error;
       return (data ?? []) as PendingOnboardingStudent[];
     },
-    staleTime: 30_000,
+    staleTime: DASHBOARD_STALE_TIME_MS,
   });
 };
 
