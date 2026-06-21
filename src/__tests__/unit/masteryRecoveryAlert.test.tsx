@@ -182,4 +182,26 @@ describe("MasteryRecoveryAlertCard on TeacherDashboard", () => {
     const shimmers = container.querySelectorAll(".animate-shimmer");
     expect(shimmers.length).toBeGreaterThanOrEqual(1);
   });
+
+  // Task 32: a failed at-risk-students load shows a distinct, retryable error
+  // instead of the misleading green "no at-risk students" all-clear.
+  it("shows a retryable error (not the all-clear) when at-risk students fail to load", () => {
+    const refetch = vi.fn();
+    mockAtRiskStudents.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: true,
+      refetch,
+    });
+    renderDashboard();
+    // i18n echoes keys in this suite; ErrorState surfaces the retry control.
+    const retryButtons = screen.getAllByRole("button", {
+      name: "actions.retry",
+    });
+    expect(retryButtons.length).toBeGreaterThanOrEqual(1);
+    retryButtons[0]!.click();
+    expect(refetch).toHaveBeenCalledTimes(1);
+    // The green "no at-risk" all-clear must NOT be shown for an error condition.
+    expect(screen.queryByText("dashboard.noAtRisk")).not.toBeInTheDocument();
+  });
 });

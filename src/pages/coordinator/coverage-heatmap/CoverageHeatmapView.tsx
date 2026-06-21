@@ -17,7 +17,8 @@ import {
   getEvidenceCountColor,
   getAttainmentColor,
 } from "@/lib/coverageHeatmap";
-import { NoData, InlineLoadError } from "@/components/shared/EmptyState";
+import { NoData } from "@/components/shared/EmptyState";
+import ErrorState from "@/components/shared/ErrorState";
 import Shimmer from "@/components/shared/Shimmer";
 import { Grid3X3 } from "lucide-react";
 
@@ -34,6 +35,7 @@ const CoverageHeatmapView = () => {
     data: matrix,
     isLoading,
     isError,
+    refetch,
   } = useCoverageHeatmap(programId || undefined);
   const [colorMode, setColorMode] = useState<ColorMode>("evidence");
 
@@ -95,7 +97,11 @@ const CoverageHeatmapView = () => {
           ) : isLoading ? (
             <Shimmer className="h-64 rounded-lg" />
           ) : isError ? (
-            <InlineLoadError className="py-12" />
+            <ErrorState
+              message="We couldn't load the coverage heatmap."
+              onRetry={() => refetch()}
+              className="py-12"
+            />
           ) : !matrix || matrix.clo_ids.length === 0 ? (
             <NoData className="py-12" />
           ) : (

@@ -22,6 +22,7 @@ import {
 import Shimmer from "@/components/shared/Shimmer";
 import RealtimeStatusBanner from "@/components/shared/RealtimeStatusBanner";
 import WelcomeHero from "@/components/shared/WelcomeHero";
+import ErrorState from "@/components/shared/ErrorState";
 import { useAuth } from "@/hooks/useAuth";
 import { useCourses } from "@/hooks/useCourses";
 import { useCourseSections } from "@/hooks/useCourseSections";
@@ -151,7 +152,13 @@ const CLOBarTooltip = ({ active, payload }: BarTooltipProps) => {
 
 const AtRiskStudentCard = () => {
   const { t } = useTranslation("teacher");
-  const { data: atRiskStudents, isLoading } = useAtRiskStudents();
+  const { t: tCommon } = useTranslation("common");
+  const {
+    data: atRiskStudents,
+    isLoading,
+    isError: atRiskError,
+    refetch: refetchAtRisk,
+  } = useAtRiskStudents();
   const nudgeMutation = useSendNudge();
   const [nudgeTarget, setNudgeTarget] = useState<AtRiskStudent | null>(null);
   const [nudgeMessage, setNudgeMessage] = useState("");
@@ -199,6 +206,14 @@ const AtRiskStudentCard = () => {
               <Shimmer key={i} className="h-14 rounded-lg" />
             ))}
           </div>
+        ) : atRiskError ? (
+          <ErrorState
+            title={tCommon("errorBoundary.title")}
+            message={tCommon("errors.generic")}
+            retryLabel={tCommon("actions.retry")}
+            onRetry={() => refetchAtRisk()}
+            className="py-8"
+          />
         ) : !atRiskStudents || atRiskStudents.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-8 text-center">
             <div className="p-3 rounded-full bg-green-50 mb-3">
@@ -305,7 +320,12 @@ const AtRiskStudentCard = () => {
 
 const TeamHealthSummaryWidget = ({ courseId }: { courseId: string }) => {
   const { t } = useTranslation("teacher");
-  const { data: healthScores } = useTeamHealthScores(courseId || undefined);
+  const { t: tCommon } = useTranslation("common");
+  const {
+    data: healthScores,
+    isError,
+    refetch,
+  } = useTeamHealthScores(courseId || undefined);
 
   const atRiskCount = (healthScores ?? []).filter(
     (t) => t.health_status === "at_risk"
@@ -314,6 +334,33 @@ const TeamHealthSummaryWidget = ({ courseId }: { courseId: string }) => {
     (t) => t.health_status === "needs_attention"
   ).length;
   const totalTeams = (healthScores ?? []).length;
+
+  // Task 32: a failed load shows a retryable error instead of silently
+  // rendering nothing (the widget still hides when genuinely empty).
+  if (isError) {
+    return (
+      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
+        <div
+          className="px-6 py-4 flex items-center gap-2"
+          style={{ background: "var(--brand-gradient)" }}
+        >
+          <AlertTriangle className="h-5 w-5 text-white" />
+          <h2 className="text-lg font-bold tracking-tight text-white">
+            {t("dashboard.teamHealth")}
+          </h2>
+        </div>
+        <div className="p-6">
+          <ErrorState
+            title={tCommon("errorBoundary.title")}
+            message={tCommon("errors.generic")}
+            retryLabel={tCommon("actions.retry")}
+            onRetry={() => refetch()}
+            className="py-4"
+          />
+        </div>
+      </Card>
+    );
+  }
 
   if (totalTeams === 0) return null;
 
@@ -369,6 +416,7 @@ const TeamHealthSummaryWidget = ({ courseId }: { courseId: string }) => {
 
 const TeacherDashboard = () => {
   const { t } = useTranslation("teacher");
+  const { t: tCommon } = useTranslation("common");
   const { user, profile } = useAuth();
   const queryClient = useQueryClient();
   const { data: paginatedCourses, isLoading: coursesLoading } = useCourses();
@@ -434,8 +482,12 @@ const TeacherDashboard = () => {
   const kpisLoading =
     aggregate.isPending || (aggregate.isError && kpisHook.isLoading);
 
-  const { data: cloAttainment, isLoading: cloLoading } =
-    useTeacherCLOAttainment(effectiveCourseId);
+  const {
+    data: cloAttainment,
+    isLoading: cloLoading,
+    isError: cloError,
+    refetch: refetchClo,
+  } = useTeacherCLOAttainment(effectiveCourseId);
 
   const bloomsHook = useTeacherBloomsDistribution({
     enabled: aggregate.isError,
@@ -444,10 +496,18 @@ const TeacherDashboard = () => {
   const bloomsLoading =
     aggregate.isPending || (aggregate.isError && bloomsHook.isLoading);
 
-  const { data: heatmapData, isLoading: heatmapLoading } =
-    useStudentPerformanceHeatmap(effectiveCourseId);
-  const { data: pendingSubmissions, isLoading: pendingLoading } =
-    usePendingSubmissions();
+  const {
+    data: heatmapData,
+    isLoading: heatmapLoading,
+    isError: heatmapError,
+    refetch: refetchHeatmap,
+  } = useStudentPerformanceHeatmap(effectiveCourseId);
+  const {
+    data: pendingSubmissions,
+    isLoading: pendingLoading,
+    isError: pendingError,
+    refetch: refetchPending,
+  } = usePendingSubmissions();
 
   // Derive unique students and CLOs for heatmap grid
   const heatmapGrid = useMemo(() => {
@@ -583,6 +643,14 @@ const TeacherDashboard = () => {
           </div>
           {cloLoading ? (
             <Shimmer className="h-[300px] rounded-xl" />
+          ) : cloError ? (
+            <ErrorState
+              title={tCommon("errorBoundary.title")}
+              message={tCommon("errors.generic")}
+              retryLabel={tCommon("actions.retry")}
+              onRetry={() => refetchClo()}
+              className="h-[300px]"
+            />
           ) : !cloAttainment || cloAttainment.length === 0 ? (
             <div className="flex items-center justify-center h-[300px] text-sm text-gray-500">
               {t("dashboard.noCloData")}
@@ -668,6 +736,14 @@ const TeacherDashboard = () => {
         </div>
         {heatmapLoading ? (
           <Shimmer className="h-48 rounded-xl" />
+        ) : heatmapError ? (
+          <ErrorState
+            title={tCommon("errorBoundary.title")}
+            message={tCommon("errors.generic")}
+            retryLabel={tCommon("actions.retry")}
+            onRetry={() => refetchHeatmap()}
+            className="py-8"
+          />
         ) : heatmapGrid.students.length === 0 ? (
           <div className="flex items-center justify-center py-12 text-sm text-gray-500">
             {t("dashboard.noHeatmapData")}
@@ -799,6 +875,14 @@ const TeacherDashboard = () => {
                 <Shimmer key={i} className="h-12 rounded-lg" />
               ))}
             </div>
+          ) : pendingError ? (
+            <ErrorState
+              title={tCommon("errorBoundary.title")}
+              message={tCommon("errors.generic")}
+              retryLabel={tCommon("actions.retry")}
+              onRetry={() => refetchPending()}
+              className="py-8"
+            />
           ) : recentPending.length === 0 ? (
             <div className="flex items-center justify-center py-8 text-sm text-gray-500">
               {t("dashboard.noPending")}

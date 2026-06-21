@@ -25,6 +25,7 @@ import { useCourses } from "@/hooks/useCourses";
 import { useSectionAttainment } from "@/hooks/useSectionAttainment";
 import SectionComparisonChart from "@/components/shared/SectionComparisonChart";
 import SectionDrillDownDialog from "@/components/shared/SectionDrillDownDialog";
+import ErrorState from "@/components/shared/ErrorState";
 import {
   Target,
   GraduationCap,
@@ -80,6 +81,8 @@ interface SelectedCell {
 
 const CoordinatorDashboard = () => {
   const { t } = useTranslation("coordinator");
+  // Task 32: bilingual error/retry copy lives in the shared `common` namespace.
+  const { t: tCommon } = useTranslation("common");
   const { institutionId, profile } = useAuth();
   // PERF (spec: dashboard-and-ux-performance, Phase 8 Task 34): ONE aggregate
   // round-trip (`get_coordinator_dashboard`, SECURITY INVOKER / RLS-scoped to the
@@ -91,8 +94,12 @@ const CoordinatorDashboard = () => {
   const kpis = kpiAggregate.data ?? kpisHook.data;
   const kpisLoading =
     kpiAggregate.isPending || (kpiAggregate.isError && kpisHook.isLoading);
-  const { data: recoveryMetrics, isLoading: recoveryLoading } =
-    useRecoveryMetrics(institutionId ?? "");
+  const {
+    data: recoveryMetrics,
+    isLoading: recoveryLoading,
+    isError: recoveryError,
+    refetch: refetchRecovery,
+  } = useRecoveryMetrics(institutionId ?? "");
   const { data: paginatedPrograms, isLoading: programsLoading } = usePrograms();
   const programs = paginatedPrograms?.data;
   const { data: paginatedCourses } = useCourses();
@@ -108,16 +115,23 @@ const CoordinatorDashboard = () => {
   const effectiveProgramIdForCQI =
     selectedProgramId ||
     (programs && programs.length > 0 ? programs[0]?.id ?? "" : "");
-  const { data: cqiSummary, isLoading: cqiLoading } = useCQIPlanSummary(
-    effectiveProgramIdForCQI || undefined
-  );
+  const {
+    data: cqiSummary,
+    isLoading: cqiLoading,
+    isError: cqiError,
+    refetch: refetchCqi,
+  } = useCQIPlanSummary(effectiveProgramIdForCQI || undefined);
   const { data: recentCQIPlans } = useCQIPlans(
     effectiveProgramIdForCQI ? { program_id: effectiveProgramIdForCQI } : {}
   );
 
   // Sections + real attainment for the selected comparison course
-  const { data: sectionAttainment, isLoading: sectionsLoading } =
-    useSectionAttainment(comparisonCourseId || undefined);
+  const {
+    data: sectionAttainment,
+    isLoading: sectionsLoading,
+    isError: sectionsError,
+    refetch: refetchSections,
+  } = useSectionAttainment(comparisonCourseId || undefined);
 
   // Auto-select first program when loaded
   const effectiveProgramId =
@@ -308,6 +322,14 @@ const CoordinatorDashboard = () => {
                 <Shimmer key={i} className="h-24 rounded-xl" />
               ))}
             </div>
+          ) : recoveryError ? (
+            <ErrorState
+              title={tCommon("errorBoundary.title")}
+              message={tCommon("errors.generic")}
+              retryLabel={tCommon("actions.retry")}
+              onRetry={() => refetchRecovery()}
+              className="py-8"
+            />
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <KPICard
@@ -370,6 +392,14 @@ const CoordinatorDashboard = () => {
                 <Shimmer key={i} className="h-24 rounded-xl" />
               ))}
             </div>
+          ) : cqiError ? (
+            <ErrorState
+              title={tCommon("errorBoundary.title")}
+              message={tCommon("errors.generic")}
+              retryLabel={tCommon("actions.retry")}
+              onRetry={() => refetchCqi()}
+              className="py-8"
+            />
           ) : (
             <>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
@@ -481,6 +511,14 @@ const CoordinatorDashboard = () => {
             </div>
           ) : sectionsLoading ? (
             <Shimmer className="h-32 rounded-xl" />
+          ) : sectionsError ? (
+            <ErrorState
+              title={tCommon("errorBoundary.title")}
+              message={tCommon("errors.generic")}
+              retryLabel={tCommon("actions.retry")}
+              onRetry={() => refetchSections()}
+              className="py-8"
+            />
           ) : !sectionAttainment || sectionAttainment.length === 0 ? (
             <div className="rounded-xl border border-slate-200 bg-slate-50 p-8 text-center text-sm text-gray-500">
               {t("dashboard.noSectionsFound")}

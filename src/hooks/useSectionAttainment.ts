@@ -17,6 +17,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
+import { DASHBOARD_STALE_TIME_MS } from "@/lib/queryConfig";
 import type { BloomsLevel } from "@/types/app";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -139,7 +140,7 @@ export const useSectionAttainment = (courseId?: string) => {
       });
     },
     enabled: !!courseId,
-    staleTime: 30_000,
+    staleTime: DASHBOARD_STALE_TIME_MS,
   });
 };
 
@@ -245,6 +246,6 @@ export const useSectionDrillDown = (courseId?: string, sectionId?: string) => {
       };
     },
     enabled: !!courseId && !!sectionId,
-    staleTime: 30_000,
+    staleTime: DASHBOARD_STALE_TIME_MS,
   });
 };
