@@ -36,7 +36,10 @@ const fetchVerifiedChildIds = async (parentId: string): Promise<string[]> => {
   return (links ?? []).map((l) => l.student_id);
 };
 
-export const useLinkedChildren = (parentId: string | undefined) => {
+export const useLinkedChildren = (
+  parentId: string | undefined,
+  options?: { enabled?: boolean }
+) => {
   return useQuery({
     queryKey: queryKeys.parentStudentLinks.list({ parentId }),
     queryFn: async (): Promise<LinkedChild[]> => {
@@ -118,12 +121,15 @@ export const useLinkedChildren = (parentId: string | undefined) => {
 
       return children;
     },
-    enabled: !!parentId,
+    enabled: (options?.enabled ?? true) && !!parentId,
     staleTime: 60_000,
   });
 };
 
-export const useParentKPIs = (parentId: string | undefined) => {
+export const useParentKPIs = (
+  parentId: string | undefined,
+  options?: { enabled?: boolean }
+) => {
   return useQuery({
     queryKey: queryKeys.parentDashboard.detail(parentId ?? ""),
     queryFn: async (): Promise<ParentKPIData> => {
@@ -197,7 +203,7 @@ export const useParentKPIs = (parentId: string | undefined) => {
         upcomingDeadlines,
       };
     },
-    enabled: !!parentId,
+    enabled: (options?.enabled ?? true) && !!parentId,
     staleTime: 60_000,
   });
 };

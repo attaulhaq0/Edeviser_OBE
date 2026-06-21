@@ -481,8 +481,23 @@
       institution-scoped PLO heatmap is intentionally left for the C.2 materialized-view task
       (Task 38), not folded here.
 
-- [ ] 36. **Aggregate RPC rollout — parent** (Task 20.4). `get_parent_dashboard` preserving the
+- [x] 36. **Aggregate RPC rollout — parent** (Task 20.4). `get_parent_dashboard` preserving the
       verified-link RLS; same gating + parity + RLS test.
+      — DONE (this PR): migration `20260821000014_create_get_parent_dashboard_rpc.sql`
+      (`SECURITY INVOKER`, resolves children from `auth.uid()`) returning `{kpis, children}` —
+      collapses BOTH always-on parent hooks (`useParentKPIs` + `useLinkedChildren`).
+      `useParentDashboardAggregate` hydrates both caches (`parentDashboard.detail(parentId)` +
+      `parentStudentLinks.list({parentId})`); both section hooks gained `{enabled?}` fallback;
+      page wired aggregate-then-fallback. INVOKER is sufficient because every parent-read table
+      (profiles/student_gamification/student_courses/outcome_attainment/assignments) enforces
+      verified-link RLS in its own policy — but the RPC keeps an explicit
+      `parent_student_links.verified = true` filter because that table's self-read policy is NOT
+      verified-scoped. Parity replicated exactly (KPI `totalCourses` = active-only raw rows; per-
+      child `enrolled_courses` = all rows; flat-vs-per-child attainment means). Unit parity test;
+      validated read-only against live data; Supabase Preview green. **No existing ParentDashboard
+      render suite to fix** (the two test references to parent files are static-content checks,
+      not renders). **No deny-side RLS test:** SECURITY INVOKER has no DEFINER bypass to guard and
+      the RLS harness has no parent fixtures (noted in PR).
 
 - [ ] 37. **Maintained summary tables (Appendix C.1) — only for baseline-proven-hot numbers.**
       Add trigger/`pg_cron`-maintained summary rows (e.g. teacher pending/graded/at-risk,
