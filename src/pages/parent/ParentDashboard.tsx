@@ -5,6 +5,7 @@ import Shimmer from "@/components/shared/Shimmer";
 import WelcomeHero from "@/components/shared/WelcomeHero";
 import { useAuth } from "@/hooks/useAuth";
 import { useParentKPIs, useLinkedChildren } from "@/hooks/useParentDashboard";
+import { useParentDashboardAggregate } from "@/hooks/useParentDashboardAggregate";
 import {
   Users,
   BookOpen,
@@ -44,10 +45,22 @@ const KPICard = ({ icon: Icon, label, value }: KPICardProps) => (
 const ParentDashboard = () => {
   const { t } = useTranslation("common");
   const { user, profile } = useAuth();
-  const { data: kpis, isLoading: kpisLoading } = useParentKPIs(user?.id);
-  const { data: children, isLoading: childrenLoading } = useLinkedChildren(
-    user?.id
-  );
+  // PERF (spec: dashboard-and-ux-performance, Phase 8 Task 36): ONE aggregate
+  // round-trip (`get_parent_dashboard`, SECURITY INVOKER / RLS-scoped to the
+  // caller's verified-linked children) hydrates both section caches and drives
+  // the KPI row + children list directly. Additive + reversible: each section
+  // hook falls back to its own fan-out ONLY when the aggregate errors.
+  const aggregate = useParentDashboardAggregate(user?.id);
+  const kpisHook = useParentKPIs(user?.id, { enabled: aggregate.isError });
+  const childrenHook = useLinkedChildren(user?.id, {
+    enabled: aggregate.isError,
+  });
+  const kpis = aggregate.data?.kpis ?? kpisHook.data;
+  const children = aggregate.data?.children ?? childrenHook.data;
+  const kpisLoading =
+    aggregate.isPending || (aggregate.isError && kpisHook.isLoading);
+  const childrenLoading =
+    aggregate.isPending || (aggregate.isError && childrenHook.isLoading);
 
   return (
     <div className="space-y-6">
