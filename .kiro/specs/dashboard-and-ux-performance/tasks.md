@@ -381,18 +381,33 @@
       by `useIntentPrefetch.test.ts`. (The earlier "dead code" note was a faulty grep.)
       REMAINING (separate, optional): also `queryClient.prefetchQuery` the route's primary key
       on intent so the click pays neither a cold chunk nor a cold query.
-- [ ] 22. **Standardize dashboard `staleTime`.** Replace the blanket `30_000` overrides on
+- [x] 22. **Standardize dashboard `staleTime`.** Replace the blanket `30_000` overrides on
       dashboard hooks with 2–5 min (realtime already invalidates on change), so intra-session
       navigation is a cache hit. Measure refetch count on re-navigation before/after.
+      — DONE: the student dashboard hooks + all five aggregate hooks already use
+      `DASHBOARD_STALE_TIME_MS` (120 s, `src/lib/queryConfig.ts`, shipped in #168). This PR
+      standardized the remaining always-on dashboard-section hooks that still used a literal
+      `30_000`: `useAtRiskPredictions` (teacher AI At-Risk) and `useSectionAttainment` +
+      `useSectionDrillDown` (coordinator Section Comparison). Left general/shared list hooks
+      (`useCourses`, `useAuditLogs`, marketplace/tutor/inventory/etc.) on 30 s — they are not
+      dashboard-section hooks and `keepPreviousData`/realtime already cover them. Before/after
+      refetch-count is a running-app measurement (Task 41).
 - [ ] 23. **Collapse in-hook N+1 / serial chains into batched queries or one RPC.**
       `useStudentAttendance` (Phase 6.B), `useCoordinatorKPIs` (6 serial → `Promise.all`/RPC),
       `useTeacherKPIs` trailing serial awaits, `useAdminPLOHeatmap` where parallelizable. Add a
       parity test per converted hook.
-- [ ] 24. **Add explicit per-section `error`/empty + retry states.** Generalize the Admin-PLO
+- [x] 24. **Add explicit per-section `error`/empty + retry states.** Generalize the Admin-PLO
       `loading | error | empty | data` pattern into a small `<SectionState>` wrapper; apply to
       sections that currently render `null` on error (announcements, badge spotlight, comeback,
       team cards, deferred student sections). Converts silent "data not loading" into a visible,
       retryable state. Add a render test (error → retry visible).
+      — DONE: `SectionState` exists (`src/components/shared/SectionState.tsx`, #168, with
+      `sectionState.test.tsx`) and wraps the student announcements section. The all-roles rollout
+      of the SAME visible-retryable-error pattern to the other dashboards is Task 32 (done this
+      PR via the canonical `ErrorState` inline branch — the Admin-PLO reference pattern). One
+      canonical error primitive now (`ErrorState`, used directly + via `SectionState`); the
+      redundant no-retry `InlineLoadError` was removed and its 3 analytics-view callers migrated
+      to `ErrorState`+retry.
 
 ### Tier 1.5 — shorten the gate + warm the instance
 
@@ -439,12 +454,25 @@
 (ANALYZE, BUFFERS)` per dashboard query. Store under `audit/baselines/ux-perf/`. This
       also identifies WHICH numbers are hot enough to justify C.1/C.2 (don't precompute blind).
 
-- [ ] 32. **Per-section error/retry across ALL roles (Req 4 / Task 24).** Apply `SectionState`
+- [x] 32. **Per-section error/retry across ALL roles (Req 4 / Task 24).** Apply `SectionState`
       to every dashboard section that currently renders `null`/empty on error (student badges/
       teams/comeback; teacher team-health/at-risk/grading panels; coordinator CQI/matrix;
       admin onboarding/AI/heatmap; parent child cards). Each: error shows a retry, empty stays
       quiet, stale data wins over error. Add a render test per role. Cheapest, zero DB risk,
       biggest trust win — do before the aggregate rollout.
+      — DONE (this PR): surfaced a distinct, **retryable** error on every always-on dashboard
+      section that previously vanished-to-empty on a failed/timed-out query —
+      teacher (CLO chart, performance heatmap, grading queue, At-Risk card, Team-Health widget,
+      AI At-Risk widget), coordinator (recovery metrics, CQI, section comparison), admin (recent
+      activity, AI Co-Pilot), parent (children overview). Used the canonical `ErrorState`
+      (+`onRetry`/`refetch`, bilingual via the `common` namespace) added as an `isError` branch
+      BEFORE the empty branch, so **empty stays quiet, error is distinct + retryable, and stale
+      data still wins** (data≠null short-circuits). This matches the Admin-PLO inline
+      `loading|error|empty|data` reference already in these files; `SectionState` continues to
+      wrap the student announcements section. Render test per role added (error → retry visible +
+      `refetch` called): coordinator/admin/teacher suites extended + new `parentDashboardSections`.
+      Skipped (already error-handled): Admin PLO heatmap (own error UI + test), Teacher
+      GradingStats (own error card), Teacher Bloom's (aggregate-backed).
 
 - [x] 33. **Aggregate RPC rollout — teacher** (Task 20.1, worst fan-out, do first). One PR:
       `get_teacher_dashboard` (`SECURITY DEFINER` + `auth.uid()`/teacher-scope guard,
@@ -516,6 +544,16 @@
 - [ ] 40. **Query prefetch-on-hover (Appendix C.5 / Task 21 remainder).** Add
       `queryClient.ensureQueryData` for each route's primary key to the sidebar intent handler
       (chunk is already warmed). Gate to high-traffic links + non-metered pointers.
+      — DEFERRED (deliberate, documented): the route-chunk prefetch IS wired (Task 21);
+      `routePrefetch.ts` intentionally leaves the _query_ prefetch to route components because a
+      route's primary query needs per-route keys/filters + auth context at hover time. Adding it
+      to the sidebar would either duplicate each aggregate hook's `queryFn` in a registry (the
+      duplication the QA pass explicitly guards against) or require extracting shared `queryFn`
+      factories from the 5 aggregate hooks. Benefit is marginal now: dashboards already load via
+      one aggregate RPC + 120 s `staleTime` (intra-session nav is a cache hit) and the chunk is
+      warmed. Per the spec's own "re-measure before Tier-2" gate (Task 41), this is not yet
+      justified — revisit after baselines (Task 31) if hover→click latency is still a measured
+      problem.
 
 - [ ] 41. **Re-measure all roles** vs Task 31 baselines. Only then decide Tier-2 gated items
       (query persistence Task 28, RLS consolidation Task 29) and the compute decision (Task 30).

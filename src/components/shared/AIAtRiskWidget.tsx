@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import Shimmer from "@/components/shared/Shimmer";
 import AtRiskStudentRow from "@/components/shared/AtRiskStudentRow";
+import ErrorState from "@/components/shared/ErrorState";
 import {
   useAtRiskPredictions,
   useSendAtRiskNudge,
@@ -27,7 +28,12 @@ import { toast } from "sonner";
 // ─── Component ───────────────────────────────────────────────────────────────
 
 const AIAtRiskWidget = () => {
-  const { data: predictions, isLoading } = useAtRiskPredictions();
+  const {
+    data: predictions,
+    isLoading,
+    isError,
+    refetch,
+  } = useAtRiskPredictions();
   const nudgeMutation = useSendAtRiskNudge();
   const [nudgeTarget, setNudgeTarget] = useState<AIAtRiskPrediction | null>(
     null
@@ -83,6 +89,12 @@ const AIAtRiskWidget = () => {
                 <Shimmer key={i} className="h-20 rounded-lg" />
               ))}
             </div>
+          ) : isError ? (
+            <ErrorState
+              message="We couldn't load AI at-risk predictions."
+              onRetry={() => refetch()}
+              className="py-8"
+            />
           ) : !predictions || predictions.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-8 text-center">
               <div className="p-3 rounded-full bg-green-50 mb-3">

@@ -18,6 +18,7 @@ import {
   useOnboardingAnalytics,
 } from "@/hooks/useAdminDashboard";
 import { useAdminDashboardAggregate } from "@/hooks/useAdminDashboardAggregate";
+import ErrorState from "@/components/shared/ErrorState";
 import { useAIPerformance } from "@/hooks/useAIPerformance";
 import { useAuth } from "@/hooks/useAuth";
 import { useDeferredMount } from "@/hooks/useDeferredMount";
@@ -82,6 +83,8 @@ const roleBadgeStyles: Record<string, string> = {
 
 const AdminDashboard = () => {
   const { t } = useTranslation("admin");
+  // Task 32: bilingual error/retry copy lives in the shared `common` namespace.
+  const { t: tCommon } = useTranslation("common");
   const { profile, institutionId } = useAuth();
   const navigate = useNavigate();
   const deferredReady = useDeferredMount(500);
@@ -95,13 +98,23 @@ const AdminDashboard = () => {
   const kpis = kpiAggregate.data ?? kpisHook.data;
   const kpisLoading =
     kpiAggregate.isPending || (kpiAggregate.isError && kpisHook.isLoading);
-  const { data: auditLogs, isLoading: logsLoading } = useRecentAuditLogs(10, {
+  const {
+    data: auditLogs,
+    isLoading: logsLoading,
+    isError: logsError,
+    refetch: refetchLogs,
+  } = useRecentAuditLogs(10, {
     enabled: deferredReady,
   });
   const { data: onboardingAnalytics } = useOnboardingAnalytics({
     enabled: deferredReady,
   });
-  const { data: aiPerformance, isLoading: aiLoading } = useAIPerformance({
+  const {
+    data: aiPerformance,
+    isLoading: aiLoading,
+    isError: aiError,
+    refetch: refetchAi,
+  } = useAIPerformance({
     enabled: deferredReady,
   });
   const {
@@ -287,6 +300,14 @@ const AdminDashboard = () => {
                   <Shimmer key={i} className="h-10 rounded-lg" />
                 ))}
               </div>
+            ) : logsError ? (
+              <ErrorState
+                title={tCommon("errorBoundary.title")}
+                message={tCommon("errors.generic")}
+                retryLabel={tCommon("actions.retry")}
+                onRetry={() => refetchLogs()}
+                className="py-8"
+              />
             ) : (
               <div className="space-y-3">
                 {(auditLogs ?? []).map((log) => (
@@ -429,6 +450,14 @@ const AdminDashboard = () => {
                 <Shimmer key={i} className="h-24 rounded-xl" />
               ))}
             </div>
+          ) : aiError ? (
+            <ErrorState
+              title={tCommon("errorBoundary.title")}
+              message={tCommon("errors.generic")}
+              retryLabel={tCommon("actions.retry")}
+              onRetry={() => refetchAi()}
+              className="py-8"
+            />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="rounded-xl border border-slate-200 p-4 flex items-center gap-4">

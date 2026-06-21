@@ -227,4 +227,28 @@ describe("CoordinatorDashboard — Recovery Pathway Metrics", () => {
     // Default values
     expect(screen.getByText("0.0h")).toBeInTheDocument();
   });
+
+  // Task 32: a failed recovery-metrics load shows a distinct, retryable error
+  // instead of silently rendering all-zeros.
+  it("shows a retryable error (not silent zeros) when recovery metrics fail", () => {
+    const refetch = vi.fn();
+    mockRecoveryMetrics.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: true,
+      refetch,
+    });
+    renderDashboard();
+    // The bilingual error copy + retry control are surfaced (i18n is mocked to
+    // echo keys in this suite).
+    expect(screen.getByText("errors.generic")).toBeInTheDocument();
+    const retryButtons = screen.getAllByRole("button", {
+      name: "actions.retry",
+    });
+    expect(retryButtons.length).toBeGreaterThanOrEqual(1);
+    retryButtons[0]!.click();
+    expect(refetch).toHaveBeenCalledTimes(1);
+    // The silent all-zeros tile must NOT be shown for an error condition.
+    expect(screen.queryByText("0.0h")).not.toBeInTheDocument();
+  });
 });

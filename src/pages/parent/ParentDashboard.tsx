@@ -6,6 +6,7 @@ import WelcomeHero from "@/components/shared/WelcomeHero";
 import { useAuth } from "@/hooks/useAuth";
 import { useParentKPIs, useLinkedChildren } from "@/hooks/useParentDashboard";
 import { useParentDashboardAggregate } from "@/hooks/useParentDashboardAggregate";
+import ErrorState from "@/components/shared/ErrorState";
 import {
   Users,
   BookOpen,
@@ -61,6 +62,10 @@ const ParentDashboard = () => {
     aggregate.isPending || (aggregate.isError && kpisHook.isLoading);
   const childrenLoading =
     aggregate.isPending || (aggregate.isError && childrenHook.isLoading);
+  // Task 32: a failed load must show a distinct, retryable error instead of the
+  // "no children" empty state. Errored only when the aggregate AND its section-
+  // hook fallback both failed (so we genuinely have no data to show).
+  const childrenError = aggregate.isError && childrenHook.isError;
 
   return (
     <div className="space-y-6">
@@ -129,6 +134,17 @@ const ParentDashboard = () => {
                 <Shimmer key={i} className="h-20 rounded-lg" />
               ))}
             </div>
+          ) : childrenError ? (
+            <ErrorState
+              title={t("errorBoundary.title")}
+              message={t("errors.generic")}
+              retryLabel={t("actions.retry")}
+              onRetry={() => {
+                void aggregate.refetch();
+                void childrenHook.refetch();
+              }}
+              className="py-8"
+            />
           ) : (children ?? []).length > 0 ? (
             <div className="space-y-4">
               {(children ?? []).map((child) => (

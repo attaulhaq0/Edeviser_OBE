@@ -15,7 +15,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { NoOutcomes, InlineLoadError } from "@/components/shared/EmptyState";
+import { NoOutcomes } from "@/components/shared/EmptyState";
+import ErrorState from "@/components/shared/ErrorState";
 import Shimmer from "@/components/shared/Shimmer";
 import { GitBranch } from "lucide-react";
 import {
@@ -205,6 +206,7 @@ const SankeyDiagramView = () => {
     data: sankeyData,
     isLoading,
     isError,
+    refetch,
   } = useSankeyData(programId || undefined);
 
   const nodeCount = sankeyData?.nodes.length ?? 0;
@@ -255,7 +257,11 @@ const SankeyDiagramView = () => {
           ) : isLoading ? (
             <Shimmer className="h-64 rounded-lg" />
           ) : isError ? (
-            <InlineLoadError className="py-12" />
+            <ErrorState
+              message="We couldn't load the outcome flow."
+              onRetry={() => refetch()}
+              className="py-12"
+            />
           ) : !sankeyData || sankeyData.nodes.length === 0 ? (
             <NoOutcomes className="py-12" />
           ) : sankeyData.links.length === 0 ? (

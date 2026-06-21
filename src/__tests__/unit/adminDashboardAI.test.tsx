@@ -197,4 +197,25 @@ describe("AdminDashboard — AI Co-Pilot Performance section", () => {
     expect(screen.getByText("0 validated predictions")).toBeInTheDocument();
     expect(screen.getByText("0 feedback drafts")).toBeInTheDocument();
   });
+
+  // Task 32: a failed AI-performance load shows a distinct, retryable error
+  // instead of the misleading "no feedback yet" empty state.
+  it("shows a retryable error (not the empty state) when AI performance fails", () => {
+    const refetch = vi.fn();
+    mockAIPerformance.mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      isError: true,
+      refetch,
+    });
+    renderDashboard();
+    const retry = screen.getByRole("button", { name: "actions.retry" });
+    expect(retry).toBeInTheDocument();
+    retry.click();
+    expect(refetch).toHaveBeenCalledTimes(1);
+    // The no-feedback empty state must NOT be shown for an error condition.
+    expect(
+      screen.queryByText("No AI feedback recorded yet")
+    ).not.toBeInTheDocument();
+  });
 });
