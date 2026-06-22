@@ -23,6 +23,18 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      // Test-only: alias canvas-confetti to a no-op stub so the real library
+      // (and its requestAnimationFrame loop, which throws in happy-dom and can
+      // leak across test files now that confetti is lazy-loaded) never loads in
+      // tests. Build/dev keep the real library. See canvasConfettiStub.ts.
+      ...(isTest
+        ? {
+            "canvas-confetti": path.resolve(
+              __dirname,
+              "./src/__tests__/__mocks__/canvasConfettiStub.ts"
+            ),
+          }
+        : {}),
     },
   },
   esbuild:
@@ -87,10 +99,7 @@ export default defineConfig({
     // `npm run test:rls` (vitest.integration.config.ts). It performs real DB
     // inserts against a Supabase preview branch and must NEVER be collected by
     // the fast, hermetic unit/property run (`npm test`).
-    exclude: [
-      ...configDefaults.exclude,
-      "src/__tests__/integration-rls/**",
-    ],
+    exclude: [...configDefaults.exclude, "src/__tests__/integration-rls/**"],
     pool: "forks",
     css: false,
     testTimeout: 15000,

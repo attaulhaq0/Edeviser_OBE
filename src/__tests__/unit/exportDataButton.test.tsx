@@ -31,7 +31,16 @@ import { toast } from "sonner";
 describe("ExportDataButton", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.spyOn(window, "open").mockImplementation(() => null);
+    // Return a TRUTHY window so the component's popup-blocked fallback never
+    // runs. That fallback creates an <a target="_blank"> and calls .click(),
+    // which happy-dom turns into a REAL navigation/fetch to the signed URL
+    // (storage.example.com). That stray fetch is aborted on window teardown and
+    // surfaces as a Vitest "unhandled error", flakily failing the whole suite
+    // with exit 1 even though every test passes. A truthy return models the
+    // normal (non-blocked) window.open and keeps the happy-path assertion valid.
+    vi.spyOn(window, "open").mockImplementation(
+      () => ({} as unknown as Window)
+    );
   });
 
   it("renders format selector and download button", () => {

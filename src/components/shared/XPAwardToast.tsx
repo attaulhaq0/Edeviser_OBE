@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import confetti from "canvas-confetti";
+import { launchConfetti } from "@/lib/confetti";
 import { Star, TrendingUp } from "lucide-react";
 
 interface XPAwardToastProps {
@@ -56,7 +56,7 @@ const XPAwardToast = ({
     if (confettiFired.current || prefersReducedMotion) return;
     confettiFired.current = true;
 
-    confetti({
+    void launchConfetti({
       particleCount: 30,
       spread: 60,
       origin: { y: 0.8 },
