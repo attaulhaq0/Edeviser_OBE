@@ -257,7 +257,7 @@
 - [ ] 15. **Heavy-dep & list-render hygiene** (Req 15)
   - [ ] 15.1 Lazy-import the chart component (not just the route) on `recharts` pages.
   - [x] 15.2 Load `react-joyride`/`canvas-confetti` on first use.
-        — DONE (PR perf/lazy-confetti-task-15-2): `canvas-confetti` is now loaded via a
+        — DONE (PR #177, merged to main): `canvas-confetti` is now loaded via a
         shared lazy helper `src/lib/confetti.ts` (`launchConfetti`), replacing 5 eager
         imports (XPAwardToast, LevelUpOverlay, BadgeAwardModal,
         ImprovementBonusCelebration, LeaderboardPage) and de-duplicating the fire pattern.
@@ -265,6 +265,16 @@
         the always-mounted `GuidedTour` (rendered by all 5 role layouts) and fetched only
         when a tour actually runs. Unit test `confetti.test.ts`; the existing badge/xp-toast
         confetti tests updated to await the async dynamic import.
+        — Landing it green required two test-infra follow-ups (also in #177): (1) a
+        test-only `canvas-confetti` → no-op stub alias in `vite.config.ts`
+        (`src/__tests__/__mocks__/canvasConfettiStub.ts`), because the now-lazy rAF loop can
+        resolve after its triggering test unmounts and leak a `DOMException` AbortError into
+        a later file under `test:coverage` (the global `vi.mock` did not cover transitive
+        renders); and (2) `exportDataButton.test.tsx` now returns a truthy `window.open` so
+        the component's popup-blocked anchor-click fallback — which happy-dom turns into a
+        real fetch to the signed URL, flakily tripping Vitest's unhandled-error exit — never
+        runs. Verified: 597 files / 5889 tests pass, both CI `Test` and Pre-Deployment Audit
+        `Unit + Property Tests` green on the merge commit.
   - [ ] 15.3 Virtualize big tables (attendance, xp_transactions) via
         `@tanstack/react-virtual` / TanStack Table.
   - [ ] 15.4 Verify realtime subscriptions are filter-scoped + torn down on unmount.
