@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useReducedMotion } from "framer-motion";
-import confetti from "canvas-confetti";
+import { launchConfetti } from "@/lib/confetti";
 import {
   BarChart,
   Bar,
@@ -314,7 +314,7 @@ const PersonalBestChart = ({ studentId }: PersonalBestChartProps) => {
     const currentWeek = weeks.find((w) => w.isCurrentWeek);
     if (currentWeek?.isPersonalBest && currentWeek.xp > 0) {
       confettiFired.current = true;
-      confetti({
+      void launchConfetti({
         particleCount: 80,
         spread: 60,
         origin: { y: 0.6 },

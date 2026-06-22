@@ -50,7 +50,7 @@ interface UseGuidedTourReturn {
 /**
  * Callback data from react-joyride
  */
-interface TourCallbackData {
+export interface TourCallbackData {
   action: string;
   index: number;
   step: TourStep;

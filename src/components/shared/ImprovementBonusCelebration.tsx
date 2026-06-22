@@ -3,7 +3,7 @@
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import confetti from "canvas-confetti";
+import { launchConfetti } from "@/lib/confetti";
 import { TrendingUp, Sparkles } from "lucide-react";
 
 interface ImprovementBonusCelebrationProps {
@@ -29,7 +29,7 @@ const ImprovementBonusCelebration = ({
     if (confettiFired.current || prefersReducedMotion) return;
     confettiFired.current = true;
 
-    confetti({
+    void launchConfetti({
       particleCount: 40,
       spread: 60,
       origin: { x: 0.85, y: 0.85 },

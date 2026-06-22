@@ -1,6 +1,6 @@
 import { useEffect, useRef, useCallback, useSyncExternalStore } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import confetti from "canvas-confetti";
+import { launchConfetti } from "@/lib/confetti";
 import {
   Dialog,
   DialogContent,
@@ -82,7 +82,7 @@ const BadgeAwardModal = ({ badge, isOpen, onClose }: BadgeAwardModalProps) => {
       if (prefersReducedMotion) return;
 
       const isReveal = opts?.reveal ?? false;
-      confetti({
+      void launchConfetti({
         particleCount: isReveal ? 100 : 60,
         spread: isReveal ? 120 : 80,
         origin: { y: isReveal ? 0.5 : 0.6 },

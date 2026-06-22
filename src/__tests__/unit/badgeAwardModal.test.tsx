@@ -153,6 +153,12 @@ describe("BadgeAwardModal", () => {
       <BadgeAwardModal badge={normalBadge} isOpen={true} onClose={vi.fn()} />
     );
 
+    // launchConfetti lazy-loads canvas-confetti via dynamic import(); flush the
+    // microtask chain so the (mocked) library resolves and fires before asserting.
+    await act(async () => {
+      for (let i = 0; i < 5; i++) await Promise.resolve();
+    });
+
     expect(confettiMock.default).toHaveBeenCalledTimes(1);
   });
 });

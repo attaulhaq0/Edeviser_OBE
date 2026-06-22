@@ -4,7 +4,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import confetti from "canvas-confetti";
+import { launchConfetti } from "@/lib/confetti";
 import { TrendingUp, Star } from "lucide-react";
 import { LEVEL_THRESHOLDS } from "@/lib/xpLevelCalculator";
 
@@ -25,7 +25,7 @@ const LevelUpOverlay = ({ newLevel, onComplete }: LevelUpOverlayProps) => {
     if (confettiFired.current || prefersReducedMotion) return;
     confettiFired.current = true;
 
-    confetti({
+    void launchConfetti({
       particleCount: 80,
       spread: 100,
       origin: { x: 0.5, y: 0.5 },
@@ -33,14 +33,14 @@ const LevelUpOverlay = ({ newLevel, onComplete }: LevelUpOverlayProps) => {
     });
 
     setTimeout(() => {
-      confetti({
+      void launchConfetti({
         particleCount: 40,
         angle: 60,
         spread: 55,
         origin: { x: 0, y: 0.6 },
         colors: ["#3b82f6", "#14b8a6"],
       });
-      confetti({
+      void launchConfetti({
         particleCount: 40,
         angle: 120,
         spread: 55,

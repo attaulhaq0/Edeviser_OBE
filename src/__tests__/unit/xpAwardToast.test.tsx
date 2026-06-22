@@ -117,6 +117,12 @@ describe("XPAwardToast", () => {
     const confettiMock = await import("canvas-confetti");
     render(<XPAwardToast xpAmount={50} source="On-time Submission" />);
 
+    // launchConfetti lazy-loads canvas-confetti via dynamic import(); flush the
+    // microtask chain so the (mocked) library resolves and fires before asserting.
+    await act(async () => {
+      for (let i = 0; i < 5; i++) await Promise.resolve();
+    });
+
     expect(confettiMock.default).toHaveBeenCalledTimes(1);
     expect(confettiMock.default).toHaveBeenCalledWith(
       expect.objectContaining({

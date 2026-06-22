@@ -256,7 +256,15 @@
 
 - [ ] 15. **Heavy-dep & list-render hygiene** (Req 15)
   - [ ] 15.1 Lazy-import the chart component (not just the route) on `recharts` pages.
-  - [ ] 15.2 Load `react-joyride`/`canvas-confetti` on first use.
+  - [x] 15.2 Load `react-joyride`/`canvas-confetti` on first use.
+        — DONE (PR perf/lazy-confetti-task-15-2): `canvas-confetti` is now loaded via a
+        shared lazy helper `src/lib/confetti.ts` (`launchConfetti`), replacing 5 eager
+        imports (XPAwardToast, LevelUpOverlay, BadgeAwardModal,
+        ImprovementBonusCelebration, LeaderboardPage) and de-duplicating the fire pattern.
+        `react-joyride` moved into a `React.lazy` `TourRunner` so it is code-split out of
+        the always-mounted `GuidedTour` (rendered by all 5 role layouts) and fetched only
+        when a tour actually runs. Unit test `confetti.test.ts`; the existing badge/xp-toast
+        confetti tests updated to await the async dynamic import.
   - [ ] 15.3 Virtualize big tables (attendance, xp_transactions) via
         `@tanstack/react-virtual` / TanStack Table.
   - [ ] 15.4 Verify realtime subscriptions are filter-scoped + torn down on unmount.
