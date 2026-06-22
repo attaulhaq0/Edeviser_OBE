@@ -563,3 +563,76 @@
 > request-shape/compute-shape fixes (a chatty client on bigger compute is still chatty).
 > Sequence: quiet + flat-cost on free tier first (31–40), then Pro/compute as the headroom
 > multiplier (30), not the fix.
+
+## Status reconciliation (senior-dev + QA pass, 2026-06-22)
+
+> Authoritative disposition of every still-`[ ]` task after the Phase 8 in-code work
+> merged (PRs #170–174). The earlier-phase checkboxes drifted; this block is the source
+> of truth. Nothing below is "just keep coding" — each open item is **done-but-unchecked**,
+> **superseded**, **owned by another active spec** (do not duplicate), **gated behind the
+> Task 31 baseline**, **measurement** (needs the running app), or **stakeholder**.
+
+**Done in code, checkboxes stale (no further code needed):**
+
+- **Task 2** (student aggregate) — implemented + tested: `useStudentDashboardAggregate`,
+  migrations `…000006` + `…000010`, wired into `StudentDashboard`. Parent box stays `[ ]`
+  only because **2.5** is a documented by-design deviation (removing `useDeferredMount`
+  would re-introduce the ~20-section herd) and **2.8** is a running-app measurement.
+- **Phase 6 A–D** — SHIPPED (PR #168, migration `…000010`, verified across 70 students,
+  live in prod) per the Phase 6 header. The A.1/A.2/B.1/B.2/C/D checkboxes are stale; the
+  only genuinely-open Phase 6 items are **E/F/G** (see "gated" below).
+- **Tasks 33–36** (all four role aggregates), **32** (per-section error/retry), **22/24** —
+  done + merged (#170–174).
+
+**Superseded (close as done-by-other-task):**
+
+- **Task 3 / 3.1–3.4** ("roll the aggregate to the other roles") and **Task 20** (same,
+  Phase 7 framing) — the rollout was completed by **Phase 8 Tasks 33–36**. No separate work.
+- **Task 23** (collapse N+1 / serial chains) — the _dashboard_ slice is satisfied by the
+  aggregate RPCs (33–36 collapse `useTeacherKPIs`/`useCoordinatorKPIs`/etc.) + the student
+  slice shipped in #168. Any remaining _non-dashboard_ serial chains are perf changes gated
+  behind the Task 31 baseline.
+
+**Owned by another active spec — DO NOT duplicate here (verify/fix in that spec):**
+
+- **Task 17** (Tutor Analytics "failed to fetch") — the `tutor-analytics` edge function +
+  `pages/teacher/tutor-analytics/*` are owned by the **`ai-tutor-rag`** spec (its tasks
+  3.3/7.1/18.x are `[x]`). The fix is an edge-function schema-drift correction
+  (`courses.institution_id` → derive via `programs`) that also requires a **manual edge
+  deploy** (see `docs/Manual-Edge-Function-Deploy-Steps.md`) — not completable from a
+  code-only change in this spec. Track the fix in `ai-tutor-rag`.
+- **Task 18** (Gradebook "page failed to load") — `GradebookView` was reworked by
+  **`qa-partner-review-remediation` Task 22** (`[x]`, with `gradebookView.test.tsx`). The
+  remaining failure needs **runtime reproduction** to capture the real error. Reproduce +
+  fix under `qa-partner-review-remediation`, not blindly here.
+- **Task 19** (slow teacher pages) — the dashboard panels are folded into the teacher
+  aggregate (Task 33, done). The standalone Tutor Analytics/Handoffs/Baseline-Tests page
+  latency is measurement (Task 31) + owned alongside `ai-tutor-rag`.
+
+**Gated behind the Task 31 baseline (spec rule: "no perf change ships without a
+before/after number") — implement only after baselines are captured:**
+
+- **Task 25** (parallelize the auth gate beyond 8.3), **Task 26** (pre-bundle the 5 role
+  layout shells), **Task 27 / Phase 6.E** (scope realtime + audit always-on header
+  queries), **Task 39** (cheaper `count: estimated` on non-contractual KPI tiles).
+- **Phase 6.F** (wrap the 2 bare `submissions` policies) and **Tasks 13/29** (RLS
+  permissive-policy consolidation) — gated RLS work; ships table-by-table only behind
+  deny-side `npm run test:rls`. Overlaps `production-bug-fixes` Req 12 — coordinate there.
+- **Tasks 12/28** (per-user query-cache persistence) — ships only behind the cross-profile
+  leakage test. **Tasks 14/37/38** (index hygiene / summary tables / materialized views) —
+  precompute only for baseline-proven-hot numbers. **Task 40** (query prefetch-on-hover) —
+  deferred with documented rationale (see Task 40).
+
+**Measurement — requires the running/deployed app (cannot be completed in code):**
+
+- **Tasks 1 / 1.1–1.4**, **2.8**, **10.2**, **11.2**, **R**, **Phase 6.G** (`57014` log
+  re-check), **Task 31**, **Task 41**.
+- **Harness (stood up this pass):** `audit/baselines/ux-perf/TEMPLATE.before.json` — copy to
+  `<role>.before.json`, follow its `_runbook`, and reuse the existing `npm run analyze` /
+  `npm run lighthouse` / `scripts/validate-performance-targets.sh` tooling. Store
+  `*.before.*` / `*.after.*` here; the before/after diff is the Task 41 input.
+
+**Stakeholder decision (not engineering):**
+
+- **Task 30** — free-tier "quiet enough" vs Supabase Pro / compute boost. The SQL is ~18 ms
+  warm; the spikes are shared-CPU + realtime contention, not query bugs.

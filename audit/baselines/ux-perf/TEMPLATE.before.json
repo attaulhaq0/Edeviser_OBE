@@ -1,0 +1,47 @@
+{
+  "_meta": {
+    "spec": "dashboard-and-ux-performance",
+    "purpose": "Phase 0 / Task 31 baseline capture. Copy this file to '<role>.before.json' (and later '<role>.after.json') and fill in real measured numbers. No perf change in this spec ships without a before/after pair (tasks.md top rule).",
+    "capturedAt": null,
+    "capturedByCommit": null,
+    "environment": {
+      "target": "deployed app (Vercel preview or prod) — NOT local dev; numbers must reflect the real network + free-tier Supabase",
+      "network": "Chrome DevTools throttling = Fast 4G",
+      "supabaseProject": "cdlgtbvxlxjpcddjazzx"
+    },
+    "_runbook": [
+      "1. CLIENT (per role: student, teacher, coordinator, admin, parent): sign in, open DevTools > Network, hard-reload the dashboard. Record requestCountOnMount (XHR/fetch count to settle), and from the Performance/Lighthouse panel LCP and INP. Note the cold-nav waterfall (which requests are serial vs parallel).",
+      "2. BUNDLE: run `npm run analyze` (cross-env ANALYZE=true vite build) -> read the rollup visualizer output for initial gzipped chunk sizes; cross-check audit/baselines/bundle.json. Run `npm run lighthouse` (lhci) for Performance/FCP/LCP/TBT.",
+      "3. DB: Supabase Dashboard > Reports/Database > Query Performance -> record p50/p95 per hot endpoint (the get_<role>_dashboard RPCs + any remaining section queries). Run `EXPLAIN (ANALYZE, BUFFERS)` per dashboard query and paste mean_exec_time + shared-buffer hits.",
+      "4. Save as audit/baselines/ux-perf/<role>.before.json. After shipping a perf change, re-capture as <role>.after.json and diff. This is Task 41 (re-measure) input.",
+      "5. Existing tooling to reuse (do NOT reimplement): npm run analyze, npm run lighthouse, scripts/validate-performance-targets.sh, performance-budget.config.ts, lighthouserc.cjs."
+    ]
+  },
+  "role": "REPLACE_WITH_ROLE",
+  "client": {
+    "dashboardRoute": "REPLACE (e.g. /teacher/dashboard)",
+    "requestCountOnMount": null,
+    "lcpMs": null,
+    "inpMs": null,
+    "fcpMs": null,
+    "coldNavWaterfallNotes": ""
+  },
+  "bundle": {
+    "initialGzippedKb": null,
+    "lighthousePerformance": null,
+    "lighthouseTbtMs": null,
+    "notes": "from npm run analyze + npm run lighthouse"
+  },
+  "db": {
+    "hotEndpoints": [
+      {
+        "name": "get_<role>_dashboard",
+        "p50Ms": null,
+        "p95Ms": null,
+        "explainMeanExecMs": null,
+        "explainSharedHitBlocks": null,
+        "notes": ""
+      }
+    ]
+  }
+}
