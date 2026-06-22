@@ -68,7 +68,7 @@
         (2.6 "collapse" test = zero section requests on aggregate success) but the live
         ~27→1 number is not yet recorded under `audit/baselines/ux-perf/*.after.*`.
 
-- [ ] 3. **Roll the aggregate to the other roles** (Req 2.7) — one PR each, after Task 2 proven
+- [x] 3. **Roll the aggregate to the other roles** (Req 2.7) — DONE via Phase 8 Tasks 33–36 (PRs #170–173: teacher/coordinator/admin/parent aggregate RPCs)
 
   > **Best-approach confirmation (researched + codebase).** The right fix for our
   > "many queries → slow dashboard" latency is to aggregate **server-side in one
@@ -95,13 +95,13 @@
   > test; hydrate the EXACT existing section query keys so components are untouched and
   > section hooks fall back on aggregate error.
 
-  - [ ] 3.1 `get_teacher_dashboard` + `useTeacherDashboardAggregate` (collapses
+  - [x] 3.1 `get_teacher_dashboard` + `useTeacherDashboardAggregate` (collapses
         useTeacherKPIs, useTeacherCLOAttainment, useTeacherBloomsDistribution,
         useStudentPerformanceHeatmap, useAtRiskStudents, useTeacherRecoveryAlerts);
         parity + RLS test; measure 19→~1.
-  - [ ] 3.2 `get_admin_dashboard` + `useAdminDashboardAggregate` (10 → ~1).
-  - [ ] 3.3 `get_coordinator_dashboard` (7 → ~1).
-  - [ ] 3.4 `get_parent_dashboard` (4 → ~1; preserve verified-link RLS).
+  - [x] 3.2 `get_admin_dashboard` + `useAdminDashboardAggregate` (10 → ~1).
+  - [x] 3.3 `get_coordinator_dashboard` (7 → ~1).
+  - [x] 3.4 `get_parent_dashboard` (4 → ~1; preserve verified-link RLS).
 
 - [x] 4. **Skeleton-first sweep** (Req 4)
 
@@ -334,23 +334,23 @@
 > design.md Appendix A. Every DB change ships via guarded migration + Supabase Preview green;
 > never a direct prod apply.
 
-- [ ] A. **Collapse the XP-balance storm** (Fix A)
-  - [ ] A.1 Return `availableXP` (earned − spent, floored at 0) from `get_student_dashboard`;
+- [x] A. **Collapse the XP-balance storm** (Fix A)
+  - [x] A.1 Return `availableXP` (earned − spent, floored at 0) from `get_student_dashboard`;
         prefer the maintained `student_gamification` total over a `SUM`-on-read of the
         append-only `xp_transactions`.
-  - [ ] A.2 Hydrate the `useXPBalance` cache key from `useStudentDashboardAggregate`; raise
+  - [x] A.2 Hydrate the `useXPBalance` cache key from `useStudentDashboardAggregate`; raise
         `useXPBalance` `staleTime` well above 10 s. Verify `XPBalanceBadge` (persistent
         sidebar) no longer fires `get_xp_balance` per page mount.
-  - [ ] A.3 Measure: `get_xp_balance` calls/session → ~0 on the student path; record before/after.
-- [ ] B. **Kill the per-course attendance N+1** (Fix B)
-  - [ ] B.1 Rewrite `useStudentAttendance` as ONE FK-chain join (mirror `useChildAttendance`),
+  - [x] A.3 Measure: `get_xp_balance` calls/session → ~0 on the student path; record before/after.
+- [x] B. **Kill the per-course attendance N+1** (Fix B)
+  - [x] B.1 Rewrite `useStudentAttendance` as ONE FK-chain join (mirror `useChildAttendance`),
         or have the dashboard read the aggregate's hydrated attendance cache only.
-  - [ ] B.2 Measure: the 143-call `attendance_records` query drops off `pg_stat_statements`
+  - [x] B.2 Measure: the 143-call `attendance_records` query drops off `pg_stat_statements`
         top-by-total; add a parity test (same per-course shape).
-- [ ] C. **Trim the RPC attendance lateral** (Fix C) — replace the `cross join lateral` with a
+- [x] C. **Trim the RPC attendance lateral** (Fix C) — replace the `cross join lateral` with a
       single set-based join + `group by`; re-measure `get_student_dashboard` buffers
       (was 5 378) + `mean_exec_time`.
-- [ ] D. **`SECURITY DEFINER` for the read-only aggregate** (Fix D) — convert
+- [x] D. **`SECURITY DEFINER` for the read-only aggregate** (Fix D) — convert
       `get_student_dashboard` to `SECURITY DEFINER` to bypass the layered permissive-policy
       evaluation, with a **mandatory** top-of-body guard
       `p_student_id = (select auth.uid())` (or staff check). Keep the deny-side
@@ -378,7 +378,7 @@
 > coordinator → admin → parent), **23** for the other roles' serial chains, **24** across
 > the remaining silent-`null`-on-error sections in every role dashboard.
 
-- [ ] 20. **Roll the aggregate RPC to the other roles** (supersedes/links Task 3): teacher →
+- [x] 20. **Roll the aggregate RPC to the other roles** (supersedes/links Task 3): teacher →
       coordinator → admin → parent. One PR per role: `SECURITY INVOKER` (or `SECURITY DEFINER`
       - `auth.uid()`/staff guard per Appendix A Fix D), set-based reads mirroring the role's
         section-hook filters, hydrate the exact existing query keys, parity test + deny-side
