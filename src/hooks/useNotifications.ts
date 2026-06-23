@@ -50,6 +50,9 @@ export const useNotifications = (userId: string | undefined) => {
       return (data ?? []) as Notification[];
     },
     enabled: !!userId,
+    // Notifications are invalidated by realtime/mutations on mark-read; staleTime
+    // prevents the NotificationBell from re-fetching on every page mount.
+    staleTime: 60_000,
   });
 };
 
@@ -71,6 +74,9 @@ export const useUnreadCount = (userId: string | undefined) => {
       return count ?? 0;
     },
     enabled: !!userId,
+    // Unread count is invalidated by mark-as-read mutations and realtime;
+    // staleTime prevents redundant HEAD requests on every navigation.
+    staleTime: 30_000,
   });
 };
 

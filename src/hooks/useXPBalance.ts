@@ -5,6 +5,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
+import { DASHBOARD_STALE_TIME_MS } from "@/lib/queryConfig";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -30,11 +31,12 @@ export const useXPBalance = (studentId: string) => {
       return { balance };
     },
     enabled: !!studentId,
-    // Raised from 10s: the student dashboard now hydrates this exact key from the
-    // aggregate RPC (see useStudentDashboardAggregate), and purchase/award mutations
-    // invalidate it on change — so a short staleTime only caused a needless
-    // get_xp_balance refetch on every navigation (the persistent sidebar badge
-    // remounts constantly). 60s keeps the badge fresh without the per-mount storm.
-    staleTime: 60_000,
+    // The student dashboard aggregate now hydrates this EXACT key with
+    // `availableXP` (see useStudentDashboardAggregate). On warm navigation the
+    // cache hit from the aggregate means this queryFn never fires. On cold boot
+    // the aggregate and this hook race; whichever wins populates the cache for
+    // the other. 2-minute staleTime matches the dashboard cadence and prevents
+    // the persistent sidebar badge from re-fetching on every page mount.
+    staleTime: DASHBOARD_STALE_TIME_MS,
   });
 };

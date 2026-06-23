@@ -1,0 +1,46 @@
+{
+  "_meta": {
+    "spec": "dashboard-and-ux-performance",
+    "purpose": "Task 31 baseline — admin role",
+    "capturedAt": "2026-06-22T00:00:00Z",
+    "capturedByCommit": null,
+    "environment": {
+      "target": "deployed app (Vercel prod) + Supabase MCP direct SQL",
+      "network": "Chrome DevTools throttling = Fast 4G (client), direct SQL (db)",
+      "supabaseProject": "cdlgtbvxlxjpcddjazzx"
+    }
+  },
+  "role": "admin",
+  "client": {
+    "dashboardRoute": "/admin/dashboard",
+    "requestCountOnMount": null,
+    "lcpMs": null,
+    "inpMs": null,
+    "fcpMs": null,
+    "coldNavWaterfallNotes": "FILL: sign in as Demo Admin, DevTools > Network > hard reload"
+  },
+  "bundle": {
+    "initialGzippedKb": 191.01,
+    "roleChunkName": "admin-dashboard-CSNcgqVK.js",
+    "roleChunkRawKb": 695.12,
+    "vendorReactGzKb": 84.83,
+    "vendorChartsGzKb": 127.99,
+    "entryGzKb": 143.5,
+    "lighthousePerformance": null,
+    "lighthouseTbtMs": null,
+    "notes": "from npm run analyze (2026-06-22). WARNING: admin chunk is 695KB raw / 191KB gzip — exceeds the 500KB Vite warning. Needs code-split (recharts lazy, PLO heatmap lazy)."
+  },
+  "db": {
+    "hotEndpoints": [
+      {
+        "name": "get_admin_dashboard",
+        "p50Ms": null,
+        "p95Ms": null,
+        "explainMeanExecMs": 8.9,
+        "explainSharedHitBlocks": 937,
+        "explainSharedReadBlocks": 0,
+        "notes": "Warm exec. SECURITY INVOKER. Fast — only collapses KPI counts. All buffer hits."
+      }
+    ]
+  }
+}

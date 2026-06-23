@@ -11,6 +11,9 @@ export const useWellnessHabitLogs = (
   return useQuery({
     queryKey: queryKeys.wellness.logs(studentId ?? "", date),
     enabled: !!studentId && !!date,
+    // Habit logs for a given day change only via explicit completion (mutation
+    // invalidates); staleTime prevents re-fetches on HabitTracker re-mounts.
+    staleTime: 120_000,
     queryFn: async (): Promise<WellnessHabitLog[]> => {
       if (!studentId) return [];
 

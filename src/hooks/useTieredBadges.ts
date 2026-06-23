@@ -62,6 +62,7 @@ export const useTieredBadges = (studentId: string | undefined) => {
       }));
     },
     enabled: !!studentId,
+    staleTime: 120_000,
   });
 };
 
@@ -133,6 +134,8 @@ export const useBadgeSpotlight = (institutionId: string | undefined) => {
       };
     },
     enabled: !!institutionId,
+    // Spotlight changes weekly (admin cron); a long staleTime is safe.
+    staleTime: 5 * 60_000,
   });
 };
 

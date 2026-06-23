@@ -23,7 +23,14 @@ export const DAY1_STEPS = [
 export type Day1StepId = (typeof DAY1_STEPS)[number];
 
 export const DAY1_PERSONALITY_COUNT = 3; // 1 openness, 1 conscientiousness, 1 extraversion
-export const DAY1_SELF_EFFICACY_COUNT = 2; // 1 general_academic, 1 self_regulated_learning
+export const DAY1_SELF_EFFICACY_COUNT = 3; // 1 general_academic, 1 self_regulated_learning, 1 course_specific
+
+// ── Daily Question Cap ───────────────────────────────────────────────
+// Each day should feel like a mini-lesson — never more than 6 questions.
+// Day 1 = 6 total (3 personality + 3 self-efficacy)
+// Days 2–14 = 5 questions each via micro-assessments
+export const DAILY_QUESTION_CAP = 6;
+export const MICRO_DAILY_QUESTION_CAP = 5;
 
 // ── XP Awards ────────────────────────────────────────────────────────
 
@@ -87,21 +94,104 @@ export const VARK_DESCRIPTIONS = {
 
 // ── Micro-Assessment Schedule ────────────────────────────────────────
 
-/** Maps day number (2–14) to the assessment type delivered that day. */
-export const MICRO_ASSESSMENT_SCHEDULE: Record<number, string> = {
-  2: "personality",
-  3: "personality",
-  4: "self_efficacy",
-  5: "personality",
-  6: "study_strategy",
-  7: "study_strategy",
-  8: "personality",
-  9: "learning_style",
-  10: "learning_style",
-  11: "self_efficacy",
-  12: "learning_style",
-  13: "learning_style",
-  14: "personality",
+/**
+ * Maps day number (2–14) to the assessment types delivered that day.
+ * Each day is a "mini-lesson" — max 5 questions drawn from the listed types.
+ * Multiple types per day give variety and keep it feeling fresh.
+ * Answers compound in the database so the AI tutor progressively learns the student.
+ */
+export const MICRO_ASSESSMENT_SCHEDULE: Record<number, string[]> = {
+  2: [
+    "personality",
+    "personality",
+    "personality",
+    "self_efficacy",
+    "self_efficacy",
+  ],
+  3: [
+    "personality",
+    "personality",
+    "self_efficacy",
+    "study_strategy",
+    "study_strategy",
+  ],
+  4: [
+    "self_efficacy",
+    "self_efficacy",
+    "personality",
+    "personality",
+    "learning_style",
+  ],
+  5: [
+    "personality",
+    "learning_style",
+    "learning_style",
+    "self_efficacy",
+    "study_strategy",
+  ],
+  6: [
+    "study_strategy",
+    "study_strategy",
+    "study_strategy",
+    "personality",
+    "personality",
+  ],
+  7: [
+    "study_strategy",
+    "study_strategy",
+    "learning_style",
+    "learning_style",
+    "personality",
+  ],
+  8: [
+    "personality",
+    "personality",
+    "personality",
+    "learning_style",
+    "learning_style",
+  ],
+  9: [
+    "learning_style",
+    "learning_style",
+    "learning_style",
+    "personality",
+    "self_efficacy",
+  ],
+  10: [
+    "learning_style",
+    "learning_style",
+    "self_efficacy",
+    "self_efficacy",
+    "personality",
+  ],
+  11: [
+    "self_efficacy",
+    "self_efficacy",
+    "study_strategy",
+    "study_strategy",
+    "learning_style",
+  ],
+  12: [
+    "learning_style",
+    "learning_style",
+    "learning_style",
+    "study_strategy",
+    "personality",
+  ],
+  13: [
+    "learning_style",
+    "learning_style",
+    "personality",
+    "personality",
+    "self_efficacy",
+  ],
+  14: [
+    "personality",
+    "personality",
+    "self_efficacy",
+    "study_strategy",
+    "learning_style",
+  ],
 };
 
 export const MAX_MICRO_DISMISSALS = 3;

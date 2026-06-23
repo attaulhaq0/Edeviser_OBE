@@ -1,0 +1,16 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "TypeCheck on Save",
+      "description": "Runs TypeScript type checking when TS/TSX files are edited to catch type errors early",
+      "trigger": "PostFileSave",
+      "matcher": "(src/.*[^/]*\\.ts$|src/.*[^/]*\\.tsx$)",
+      "action": {
+        "type": "command",
+        "command": "npx tsc --noEmit --pretty 2>&1 | head -50"
+      },
+      "enabled": true
+    }
+  ]
+}

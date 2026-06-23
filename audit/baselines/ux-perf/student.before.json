@@ -1,0 +1,47 @@
+{
+  "_meta": {
+    "spec": "dashboard-and-ux-performance",
+    "purpose": "Task 31 baseline — student role",
+    "capturedAt": "2026-06-22T00:00:00Z",
+    "capturedByCommit": null,
+    "environment": {
+      "target": "deployed app (Vercel prod) + Supabase MCP direct SQL",
+      "network": "Chrome DevTools throttling = Fast 4G (client), direct SQL (db)",
+      "supabaseProject": "cdlgtbvxlxjpcddjazzx"
+    },
+    "_notes": "DB numbers captured via EXPLAIN ANALYZE on 2026-06-22. Client numbers need manual capture (see _runbook in TEMPLATE.before.json)."
+  },
+  "role": "student",
+  "client": {
+    "dashboardRoute": "/student/dashboard",
+    "requestCountOnMount": null,
+    "lcpMs": null,
+    "inpMs": null,
+    "fcpMs": null,
+    "coldNavWaterfallNotes": "FILL: sign in as Demo Student, DevTools > Network > hard reload, count XHR/fetch at settle"
+  },
+  "bundle": {
+    "initialGzippedKb": 26.54,
+    "roleChunkName": "student-dashboard-DD_oBmgC.js",
+    "roleChunkRawKb": 103.15,
+    "vendorReactGzKb": 84.83,
+    "vendorChartsGzKb": 127.99,
+    "entryGzKb": 143.5,
+    "lighthousePerformance": null,
+    "lighthouseTbtMs": null,
+    "notes": "from npm run analyze (2026-06-22). Lighthouse needs manual run against deployed URL."
+  },
+  "db": {
+    "hotEndpoints": [
+      {
+        "name": "get_student_dashboard",
+        "p50Ms": null,
+        "p95Ms": null,
+        "explainMeanExecMs": 299.0,
+        "explainSharedHitBlocks": 3029,
+        "explainSharedReadBlocks": 0,
+        "notes": "Warm exec for Demo Student (f0b2fa46). All buffer hits (no disk reads). First call on a cold shared-CPU instance spikes to ~6s (pg_stat_statements max=6323ms across 2 calls)."
+      }
+    ]
+  }
+}

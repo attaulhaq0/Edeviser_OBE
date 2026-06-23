@@ -3,6 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
+import { DASHBOARD_STALE_TIME_MS } from "@/lib/queryConfig";
 
 export interface ComebackChallengeData {
   is_active: boolean;
@@ -51,6 +52,7 @@ export const useComebackChallenge = (studentId: string | undefined) => {
       };
     },
     enabled: !!studentId,
+    staleTime: DASHBOARD_STALE_TIME_MS,
   });
 };
 

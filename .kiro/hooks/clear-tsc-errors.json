@@ -1,0 +1,17 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Clear Stale TS Errors",
+      "description": "Runs TypeScript type-check on file save to refresh diagnostics and clear stale errors from previous sessions",
+      "trigger": "PostFileSave",
+      "matcher": "([^/]*\\.ts$|[^/]*\\.tsx$)",
+      "action": {
+        "type": "command",
+        "command": "npx tsc --noEmit"
+      },
+      "timeout": 30,
+      "enabled": true
+    }
+  ]
+}

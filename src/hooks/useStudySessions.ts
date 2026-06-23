@@ -60,6 +60,9 @@ export const useStudySession = (sessionId: string | undefined) => {
       return mapSession(data as Record<string, unknown>);
     },
     enabled: !!sessionId,
+    // Sessions change via mutations which invalidate; staleTime prevents
+    // redundant fetches on FocusMode page re-mounts.
+    staleTime: 60_000,
   });
 };
 

@@ -31,6 +31,10 @@ export const useInstitutionSettings = () => {
       return data as unknown as InstitutionSettings | null;
     },
     enabled: !!institutionId,
+    // Institution settings change rarely (admin-only mutation) — 5 min staleTime
+    // prevents redundant fetches on every page mount (the dashboard, leaderboard,
+    // and sidebar all consume this hook).
+    staleTime: 5 * 60_000,
   });
 };
 

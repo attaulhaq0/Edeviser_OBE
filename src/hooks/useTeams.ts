@@ -48,6 +48,7 @@ export const useTeams = (courseId?: string) => {
       return (data ?? []) as Team[];
     },
     enabled: !!courseId,
+    staleTime: 120_000,
   });
 };
 
@@ -151,6 +152,7 @@ export const useTeamGamification = (teamId?: string) => {
       };
     },
     enabled: !!teamId,
+    staleTime: 120_000,
   });
 };
 
