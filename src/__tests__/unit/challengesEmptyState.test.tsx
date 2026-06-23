@@ -54,6 +54,7 @@ vi.mock("@/hooks/useChallenges", () => ({
     isLoading: state.isLoading,
   }),
   useChallengeProgress: () => ({ data: [] }),
+  useChallengeParticipantsBatch: () => ({ data: {} }),
 }));
 
 vi.mock("@/hooks/useRealtime", () => ({
@@ -64,6 +65,7 @@ vi.mock("@/hooks/useRealtime", () => ({
 // the data hooks themselves are mocked above, so a stub client is sufficient.
 vi.mock("@tanstack/react-query", () => ({
   useQueryClient: () => ({ invalidateQueries: vi.fn() }),
+  useQuery: () => ({ data: undefined, isLoading: false }),
 }));
 
 import ChallengeListView from "@/pages/student/challenges/ChallengeListView";

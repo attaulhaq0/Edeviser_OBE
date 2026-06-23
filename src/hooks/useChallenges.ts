@@ -252,8 +252,11 @@ export const useChallengeParticipantsBatch = (challengeIds: string[]) => {
       // Group by challenge_id
       const grouped: Record<string, ChallengeParticipant[]> = {};
       for (const row of (data ?? []) as unknown as ChallengeParticipant[]) {
-        if (!grouped[row.challenge_id]) grouped[row.challenge_id] = [];
-        grouped[row.challenge_id].push(row);
+        const key = row.challenge_id;
+        if (!grouped[key]) {
+          grouped[key] = [];
+        }
+        (grouped[key] as ChallengeParticipant[]).push(row);
       }
       return grouped;
     },
