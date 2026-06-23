@@ -9,6 +9,7 @@ import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
 import { pickColumns } from "@/lib/db/pickColumns";
 import { SOCIAL_CHALLENGES_INSERT_COLUMNS } from "@/lib/db/insertColumns";
+import { DASHBOARD_STALE_TIME_MS } from "@/lib/queryConfig";
 import { toast } from "sonner";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -236,13 +237,17 @@ export const useChallengeProgress = (challengeId?: string) => {
     queryKey: queryKeys.challengeProgress.detail(challengeId ?? ""),
     queryFn: async (): Promise<ChallengeParticipant[]> => {
       const { data, error } = await supabase
-        .from("challenge_participants" as never)
-        .select("*")
+        .from("challenge_participants")
+        .select(
+          "id, challenge_id, participant_id, participant_type, current_progress"
+        )
         .eq("challenge_id", challengeId!);
       if (error) throw error;
-      return (data ?? []) as ChallengeParticipant[];
+      return (data ?? []) as unknown as ChallengeParticipant[];
     },
     enabled: !!challengeId,
+    staleTime: DASHBOARD_STALE_TIME_MS,
+    retry: 1,
   });
 };
 
@@ -260,16 +265,19 @@ export const useStudentChallenges = (studentId?: string) => {
       const courseIds = enrollments.map((e) => e.course_id);
 
       const { data, error } = await supabase
-        .from("social_challenges" as never)
-        .select("*")
+        .from("social_challenges")
+        .select(
+          "id, title, description, challenge_type, course_id, start_date, end_date, goal_metric, goal_target, reward_type, reward_value, status, notification_sent_90, created_by, created_at"
+        )
         .in("course_id", courseIds)
         .in("status", ["active", "completed"])
         .order("start_date", { ascending: false });
 
       if (error) throw error;
-      return (data ?? []) as Challenge[];
+      return (data ?? []) as unknown as Challenge[];
     },
     enabled: !!studentId,
+    staleTime: DASHBOARD_STALE_TIME_MS,
   });
 };
 

@@ -51,6 +51,9 @@ export const useStarterWeekSessions = (studentId: string) => {
       return (data ?? []) as StarterWeekSession[];
     },
     enabled: !!studentId,
+    // Starter-week sessions change only via explicit user action (accept/dismiss);
+    // 2-min staleTime prevents re-fetches on every dashboard re-mount.
+    staleTime: 120_000,
   });
 };
 

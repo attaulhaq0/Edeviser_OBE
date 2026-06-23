@@ -80,7 +80,11 @@ const LikertScale = ({
 
 // ── Helper: pick Day 1 subset ────────────────────────────────────────
 
-const DAY1_DOMAINS = ["general_academic", "self_regulated_learning"];
+const DAY1_DOMAINS = [
+  "general_academic",
+  "self_regulated_learning",
+  "course_specific",
+];
 
 const pickDay1Questions = (
   questions: OnboardingQuestion[]

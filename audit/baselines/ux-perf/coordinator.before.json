@@ -1,0 +1,46 @@
+{
+  "_meta": {
+    "spec": "dashboard-and-ux-performance",
+    "purpose": "Task 31 baseline — coordinator role",
+    "capturedAt": "2026-06-22T00:00:00Z",
+    "capturedByCommit": null,
+    "environment": {
+      "target": "deployed app (Vercel prod) + Supabase MCP direct SQL",
+      "network": "Chrome DevTools throttling = Fast 4G (client), direct SQL (db)",
+      "supabaseProject": "cdlgtbvxlxjpcddjazzx"
+    }
+  },
+  "role": "coordinator",
+  "client": {
+    "dashboardRoute": "/coordinator/dashboard",
+    "requestCountOnMount": null,
+    "lcpMs": null,
+    "inpMs": null,
+    "fcpMs": null,
+    "coldNavWaterfallNotes": "FILL: sign in as coordinator, DevTools > Network > hard reload"
+  },
+  "bundle": {
+    "initialGzippedKb": 11.32,
+    "roleChunkName": "coordinator-dashboard-CvGnOXR4.js",
+    "roleChunkRawKb": 47.29,
+    "vendorReactGzKb": 84.83,
+    "vendorChartsGzKb": 127.99,
+    "entryGzKb": 143.5,
+    "lighthousePerformance": null,
+    "lighthouseTbtMs": null,
+    "notes": "from npm run analyze (2026-06-22)"
+  },
+  "db": {
+    "hotEndpoints": [
+      {
+        "name": "get_coordinator_dashboard",
+        "p50Ms": null,
+        "p95Ms": null,
+        "explainMeanExecMs": 69.0,
+        "explainSharedHitBlocks": 1399,
+        "explainSharedReadBlocks": 0,
+        "notes": "Warm exec. SECURITY INVOKER (uses RLS). All buffer hits."
+      }
+    ]
+  }
+}

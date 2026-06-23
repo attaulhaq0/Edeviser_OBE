@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
+import { DASHBOARD_STALE_TIME_MS } from "@/lib/queryConfig";
 
 export interface HabitDifficultyData {
   level: number;
@@ -35,5 +36,6 @@ export const useHabitDifficultyLevel = (studentId: string | undefined) => {
       };
     },
     enabled: !!studentId,
+    staleTime: DASHBOARD_STALE_TIME_MS,
   });
 };

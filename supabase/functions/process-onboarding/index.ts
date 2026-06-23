@@ -82,22 +82,118 @@ const ONBOARDING_XP: Record<string, number> = {
   complete: 50,
 };
 
-/** Micro-assessment schedule: maps day number (2–14) to assessment type */
-const MICRO_ASSESSMENT_SCHEDULE: Record<number, string> = {
-  2: "personality",
-  3: "personality",
-  4: "self_efficacy",
-  5: "personality",
-  6: "study_strategy",
-  7: "study_strategy",
-  8: "personality",
-  9: "learning_style",
-  10: "learning_style",
-  11: "self_efficacy",
-  12: "learning_style",
-  13: "learning_style",
-  14: "personality",
+/** Micro-assessment schedule: maps day number (2–14) to assessment types (5 per day, mini-lesson format).
+ * Each day's answers compound in student_profiles + onboarding_responses for AI tutor consumption. */
+const MICRO_ASSESSMENT_SCHEDULE: Record<number, string[]> = {
+  2: [
+    "personality",
+    "personality",
+    "personality",
+    "self_efficacy",
+    "self_efficacy",
+  ],
+  3: [
+    "personality",
+    "personality",
+    "self_efficacy",
+    "study_strategy",
+    "study_strategy",
+  ],
+  4: [
+    "self_efficacy",
+    "self_efficacy",
+    "personality",
+    "personality",
+    "learning_style",
+  ],
+  5: [
+    "personality",
+    "learning_style",
+    "learning_style",
+    "self_efficacy",
+    "study_strategy",
+  ],
+  6: [
+    "study_strategy",
+    "study_strategy",
+    "study_strategy",
+    "personality",
+    "personality",
+  ],
+  7: [
+    "study_strategy",
+    "study_strategy",
+    "learning_style",
+    "learning_style",
+    "personality",
+  ],
+  8: [
+    "personality",
+    "personality",
+    "personality",
+    "learning_style",
+    "learning_style",
+  ],
+  9: [
+    "learning_style",
+    "learning_style",
+    "learning_style",
+    "personality",
+    "self_efficacy",
+  ],
+  10: [
+    "learning_style",
+    "learning_style",
+    "self_efficacy",
+    "self_efficacy",
+    "personality",
+  ],
+  11: [
+    "self_efficacy",
+    "self_efficacy",
+    "study_strategy",
+    "study_strategy",
+    "learning_style",
+  ],
+  12: [
+    "learning_style",
+    "learning_style",
+    "learning_style",
+    "study_strategy",
+    "personality",
+  ],
+  13: [
+    "learning_style",
+    "learning_style",
+    "personality",
+    "personality",
+    "self_efficacy",
+  ],
+  14: [
+    "personality",
+    "personality",
+    "self_efficacy",
+    "study_strategy",
+    "learning_style",
+  ],
 };
+
+/** Get the dominant assessment type for a day (most frequent in the array). */
+function getDominantType(types: string[]): string {
+  const counts: Record<string, number> = {};
+  for (const t of types) {
+    counts[t] = (counts[t] ?? 0) + 1;
+  }
+  let max = 0;
+  let dominant = types[0];
+  for (const [key, count] of Object.entries(counts)) {
+    if (count > max) {
+      max = count;
+      dominant = key;
+    }
+  }
+  return dominant;
+}
 
 const TOTAL_PERSONALITY_ITEMS = 25;
 const TOTAL_SELF_EFFICACY_ITEMS = 6;
@@ -794,14 +890,15 @@ serve(async (req) => {
     if (is_day1) {
       const today = new Date();
       const scheduleRows = Object.entries(MICRO_ASSESSMENT_SCHEDULE).map(
-        ([dayStr, assessmentType]) => {
+        ([dayStr, assessmentTypes]) => {
           const day = parseInt(dayStr, 10);
           const scheduledDate = new Date(today);
           scheduledDate.setDate(today.getDate() + (day - 1));
           return {
             student_id,
             scheduled_day: day,
-            assessment_type: assessmentType,
+            assessment_type: getDominantType(assessmentTypes),
+            question_count: assessmentTypes.length,
             question_ids: [],
             status: "pending",
             dismissal_count: 0,

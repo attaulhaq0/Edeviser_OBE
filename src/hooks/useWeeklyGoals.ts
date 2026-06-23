@@ -35,6 +35,9 @@ export const useWeeklyGoals = (
       weekStartDate: weekStartDate ?? "",
     }),
     enabled: !!studentId && !!weekStartDate,
+    // Weekly goals change only via explicit save; 2-min staleTime prevents
+    // redundant fetches on planner page re-mounts.
+    staleTime: 120_000,
     queryFn: async (): Promise<WeeklyGoal[]> => {
       if (!studentId || !weekStartDate) return [];
 

@@ -6,6 +6,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
+import { DASHBOARD_STALE_TIME_MS } from "@/lib/queryConfig";
 import {
   type LeagueTierName,
   type LeagueThresholds,
@@ -155,6 +156,7 @@ export const useStudentLeagueTier = (studentId?: string) => {
       };
     },
     enabled: !!studentId,
+    staleTime: DASHBOARD_STALE_TIME_MS,
   });
 };
 

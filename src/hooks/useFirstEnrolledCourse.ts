@@ -16,6 +16,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
+import { DASHBOARD_STALE_TIME_MS } from "@/lib/queryConfig";
 
 /**
  * Resolve the student's first active course id.
@@ -43,5 +44,6 @@ export const useFirstEnrolledCourseId = (
       return data?.course_id ?? null;
     },
     enabled: !!studentId && (options?.enabled ?? true),
+    staleTime: DASHBOARD_STALE_TIME_MS,
   });
 };

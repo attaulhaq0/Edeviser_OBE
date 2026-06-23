@@ -139,5 +139,9 @@ export const useCLOProgress = (studentId?: string) => {
       return result;
     },
     enabled: !!studentId,
+    // CLO attainment changes only on grade/evidence events (which invalidate via
+    // realtime); 2-min staleTime prevents the 4-query fan-out (student_courses +
+    // courses + learning_outcomes + outcome_attainment) on every dashboard re-mount.
+    staleTime: 120_000,
   });
 };

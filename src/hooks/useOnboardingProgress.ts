@@ -56,6 +56,9 @@ export const useOnboardingProgress = (studentId: string) => {
       return data as OnboardingProgress | null;
     },
     enabled: !!studentId,
+    // Onboarding progress changes only via explicit onboarding flow actions;
+    // 2-min staleTime prevents redundant fetches on dashboard re-mounts.
+    staleTime: 120_000,
   });
 };
 
