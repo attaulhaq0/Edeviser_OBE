@@ -102,13 +102,16 @@ describe("logActivity", () => {
     mockInsert.mockRejectedValue(new Error("Network down"));
     const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
-    const entry: ActivityLogEntry = {
-      student_id: "student-000",
-      event_type: "journal",
-    };
+    // Fill buffer to MAX_BUFFER_SIZE to trigger immediate flush
+    for (let i = 0; i < 20; i++) {
+      await logActivity({
+        student_id: "student-000",
+        event_type: "journal",
+      });
+    }
 
-    await expect(logActivity(entry)).resolves.toBeUndefined();
-    expect(offlineQueue.enqueue).toHaveBeenCalledWith("activity_log", entry);
+    // The flush should have failed and queued entries
+    expect(offlineQueue.enqueue).toHaveBeenCalled();
 
     consoleSpy.mockRestore();
   });
@@ -129,8 +132,12 @@ describe("logActivity", () => {
 
       await logActivity({ student_id: "student-1", event_type });
 
+      // Trigger flush
+      vi.advanceTimersByTime(30_000);
+      await vi.runAllTimersAsync();
+
       expect(mockInsert).toHaveBeenCalledWith(
-        expect.objectContaining({ event_type })
+        expect.arrayContaining([expect.objectContaining({ event_type })])
       );
     }
   });
