@@ -7,7 +7,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import {
   useStudentChallenges,
-  useChallengeProgress,
+  useChallengeParticipantsBatch,
   type Challenge,
   type ChallengeParticipant,
 } from "@/hooks/useChallenges";
@@ -120,8 +120,13 @@ const ContributionLeaderboard = ({
 
 // ─── Challenge Card ─────────────────────────────────────────────────────────
 
-const ChallengeCard = ({ challenge }: { challenge: Challenge }) => {
-  const { data: participants } = useChallengeProgress(challenge.id);
+const ChallengeCard = ({
+  challenge,
+  participants,
+}: {
+  challenge: Challenge;
+  participants: ChallengeParticipant[];
+}) => {
   const isTeam = challenge.challenge_type === "team";
 
   return (
@@ -184,6 +189,10 @@ const ChallengeListView = () => {
   const queryClient = useQueryClient();
   const { data: challenges, isLoading } = useStudentChallenges(user?.id);
   const [activeTab, setActiveTab] = useState("active");
+
+  // Batch-fetch all challenge participants in ONE query (eliminates N+1)
+  const challengeIds = (challenges ?? []).map((c) => c.id);
+  const { data: participantsMap } = useChallengeParticipantsBatch(challengeIds);
 
   // Realtime subscription for challenge progress updates
   const handleProgressUpdate = useCallback(() => {
@@ -249,7 +258,13 @@ const ChallengeListView = () => {
           {active.length === 0 ? (
             <NoChallenges />
           ) : (
-            active.map((c) => <ChallengeCard key={c.id} challenge={c} />)
+            active.map((c) => (
+              <ChallengeCard
+                key={c.id}
+                challenge={c}
+                participants={participantsMap?.[c.id] ?? []}
+              />
+            ))
           )}
         </TabsContent>
 

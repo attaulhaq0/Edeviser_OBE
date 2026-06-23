@@ -231,6 +231,38 @@ export interface ChallengeParticipant {
   current_progress: number;
 }
 
+/**
+ * Batch-fetch participants for multiple challenges in one query.
+ * Eliminates the N+1 pattern where each ChallengeCard fires its own query.
+ */
+export const useChallengeParticipantsBatch = (challengeIds: string[]) => {
+  return useQuery({
+    queryKey: queryKeys.challengeProgress.list({ ids: challengeIds }),
+    queryFn: async (): Promise<Record<string, ChallengeParticipant[]>> => {
+      if (challengeIds.length === 0) return {};
+
+      const { data, error } = await supabase
+        .from("challenge_participants")
+        .select(
+          "id, challenge_id, participant_id, participant_type, current_progress"
+        )
+        .in("challenge_id", challengeIds);
+      if (error) throw error;
+
+      // Group by challenge_id
+      const grouped: Record<string, ChallengeParticipant[]> = {};
+      for (const row of (data ?? []) as unknown as ChallengeParticipant[]) {
+        if (!grouped[row.challenge_id]) grouped[row.challenge_id] = [];
+        grouped[row.challenge_id].push(row);
+      }
+      return grouped;
+    },
+    enabled: challengeIds.length > 0,
+    staleTime: DASHBOARD_STALE_TIME_MS,
+    retry: 1,
+  });
+};
+
 /** @deprecated Use useChallengeAllProgress from useChallengeProgress instead */
 export const useChallengeProgress = (challengeId?: string) => {
   return useQuery({

@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { logActivity, type ActivityLogEntry } from "@/lib/activityLogger";
 
 const mockInsert = vi.fn();
@@ -24,6 +24,7 @@ import { offlineQueue } from "@/lib/offlineQueue";
 describe("logActivity", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useFakeTimers();
     mockInsert.mockResolvedValue({ error: null });
     // Simulate online
     Object.defineProperty(globalThis, "navigator", {
@@ -33,7 +34,11 @@ describe("logActivity", () => {
     });
   });
 
-  it("calls persistActivity which inserts into student_activity_log", async () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("buffers entries and flushes as a batch after 30s", async () => {
     const entry: ActivityLogEntry = {
       student_id: "student-123",
       event_type: "login",
@@ -42,12 +47,20 @@ describe("logActivity", () => {
 
     await logActivity(entry);
 
-    // persistActivity is called internally — it uses supabase.from().insert()
-    expect(mockInsert).toHaveBeenCalledWith({
-      student_id: "student-123",
-      event_type: "login",
-      metadata: { ip: "127.0.0.1" },
-    });
+    // Not flushed immediately (buffered)
+    expect(mockInsert).not.toHaveBeenCalled();
+
+    // Advance timer to trigger flush
+    vi.advanceTimersByTime(30_000);
+    await vi.runAllTimersAsync();
+
+    expect(mockInsert).toHaveBeenCalledWith([
+      {
+        student_id: "student-123",
+        event_type: "login",
+        metadata: { ip: "127.0.0.1" },
+      },
+    ]);
   });
 
   it("defaults metadata to null when omitted", async () => {
@@ -57,27 +70,32 @@ describe("logActivity", () => {
     };
 
     await logActivity(entry);
+    vi.advanceTimersByTime(30_000);
+    await vi.runAllTimersAsync();
 
-    expect(mockInsert).toHaveBeenCalledWith({
-      student_id: "student-456",
-      event_type: "page_view",
-      metadata: null,
-    });
+    expect(mockInsert).toHaveBeenCalledWith([
+      {
+        student_id: "student-456",
+        event_type: "page_view",
+        metadata: null,
+      },
+    ]);
   });
 
-  it("queues to offlineQueue on supabase failure", async () => {
-    mockInsert.mockResolvedValue({ error: { message: "RLS violation" } });
-    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+  it("queues to offlineQueue when navigator is offline", async () => {
+    Object.defineProperty(globalThis, "navigator", {
+      value: { onLine: false },
+      writable: true,
+      configurable: true,
+    });
 
     const entry: ActivityLogEntry = {
       student_id: "student-789",
       event_type: "submission",
     };
 
-    await expect(logActivity(entry)).resolves.toBeUndefined();
+    await logActivity(entry);
     expect(offlineQueue.enqueue).toHaveBeenCalledWith("activity_log", entry);
-
-    consoleSpy.mockRestore();
   });
 
   it("queues to offlineQueue on unexpected exceptions", async () => {
