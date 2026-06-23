@@ -83,7 +83,7 @@ export const useSubmissions = (filters: SubmissionFilters = {}) => {
           "*, profiles!submissions_student_id_fkey(id, full_name, email), assignments!inner(id, title, total_marks, course_id), grades(id)",
           { count: "exact" }
         )
-        .order("created_at", { ascending: false })
+        .order("submitted_at", { ascending: false })
         .range(from, to);
 
       if (filters.assignmentId) {

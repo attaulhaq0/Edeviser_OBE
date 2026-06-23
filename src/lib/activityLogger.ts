@@ -9,9 +9,60 @@ export interface ActivityLogEntry {
   metadata?: Record<string, unknown>;
 }
 
+// ── Batch buffer: accumulate entries and flush every 30s ─────────────────────
+
+let buffer: ActivityLogEntry[] = [];
+let flushTimer: ReturnType<typeof setTimeout> | null = null;
+const FLUSH_INTERVAL_MS = 30_000;
+const MAX_BUFFER_SIZE = 20;
+
+const flushBuffer = async (): Promise<void> => {
+  if (buffer.length === 0) return;
+  const batch = [...buffer];
+  buffer = [];
+
+  const rows = batch.map((entry) => ({
+    student_id: entry.student_id,
+    event_type: entry.event_type,
+    metadata: (entry.metadata ?? null) as Json,
+  }));
+
+  const { error } = await supabase.from("student_activity_log").insert(rows);
+  if (error) {
+    // Re-queue to offline if the batch insert fails
+    for (const entry of batch) {
+      offlineQueue.enqueue("activity_log", entry);
+    }
+    console.error(
+      "[ActivityLogger] Batch insert failed, queued for retry:",
+      error
+    );
+  }
+};
+
+const scheduleFlush = (): void => {
+  if (flushTimer) return;
+  flushTimer = setTimeout(() => {
+    flushTimer = null;
+    flushBuffer().catch(console.error);
+  }, FLUSH_INTERVAL_MS);
+};
+
+// Flush on page unload to avoid losing buffered events
+if (typeof window !== "undefined") {
+  window.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") {
+      flushBuffer().catch(console.error);
+    }
+  });
+  window.addEventListener("beforeunload", () => {
+    flushBuffer().catch(console.error);
+  });
+}
+
 /**
  * Persist a single activity log entry to the database.
- * Used both directly and as the offline queue flush handler.
+ * Used as the offline queue flush handler.
  */
 const persistActivity = async (payload: unknown): Promise<void> => {
   const entry = payload as ActivityLogEntry;
@@ -28,8 +79,8 @@ offlineQueue.registerHandler("activity_log", persistActivity);
 
 /**
  * Fire-and-forget logging of student behavioral events to `student_activity_log`.
- * When offline, events are queued to localStorage and flushed when connectivity returns.
- * Never blocks user-facing flows — errors are logged to console.
+ * Events are batched and flushed every 30s (or on page hide/unload) to reduce
+ * DB connection pressure. When offline, events are queued to localStorage.
  */
 export const logActivity = async (entry: ActivityLogEntry): Promise<void> => {
   // Queue when offline
@@ -38,11 +89,12 @@ export const logActivity = async (entry: ActivityLogEntry): Promise<void> => {
     return;
   }
 
-  try {
-    await persistActivity(entry);
-  } catch (err) {
-    // Network error at runtime — queue for later
-    offlineQueue.enqueue("activity_log", entry);
-    console.error("[ActivityLogger] Queued for offline retry:", err);
+  buffer.push(entry);
+
+  // Flush immediately if buffer is full
+  if (buffer.length >= MAX_BUFFER_SIZE) {
+    await flushBuffer();
+  } else {
+    scheduleFlush();
   }
 };
