@@ -1,6 +1,5 @@
 // @vitest-environment happy-dom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { logActivity, type ActivityLogEntry } from "@/lib/activityLogger";
 
 const mockInsert = vi.fn();
 
@@ -39,9 +38,12 @@ describe("logActivity", () => {
   });
 
   it("buffers entries and flushes as a batch after 30s", async () => {
-    const entry: ActivityLogEntry = {
+    // Re-import to get a fresh module instance
+    const { logActivity } = await import("@/lib/activityLogger");
+
+    const entry = {
       student_id: "student-123",
-      event_type: "login",
+      event_type: "login" as const,
       metadata: { ip: "127.0.0.1" },
     };
 
@@ -64,12 +66,13 @@ describe("logActivity", () => {
   });
 
   it("defaults metadata to null when omitted", async () => {
-    const entry: ActivityLogEntry = {
-      student_id: "student-456",
-      event_type: "page_view",
-    };
+    const { logActivity } = await import("@/lib/activityLogger");
 
-    await logActivity(entry);
+    await logActivity({
+      student_id: "student-456",
+      event_type: "page_view" as const,
+    });
+
     vi.advanceTimersByTime(30_000);
     await vi.runAllTimersAsync();
 
@@ -89,30 +92,34 @@ describe("logActivity", () => {
       configurable: true,
     });
 
-    const entry: ActivityLogEntry = {
+    const { logActivity } = await import("@/lib/activityLogger");
+
+    const entry = {
       student_id: "student-789",
-      event_type: "submission",
+      event_type: "submission" as const,
     };
 
     await logActivity(entry);
     expect(offlineQueue.enqueue).toHaveBeenCalledWith("activity_log", entry);
   });
 
-  it("queues to offlineQueue on unexpected exceptions", async () => {
-    mockInsert.mockRejectedValue(new Error("Network down"));
+  it("queues to offlineQueue on flush failure", async () => {
+    vi.resetModules();
+    // Simulate a Supabase error response (not a throw — the SDK returns {error})
+    mockInsert.mockResolvedValue({ error: { message: "Network down" } });
     const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const { logActivity } = await import("@/lib/activityLogger");
 
-    // Fill buffer to MAX_BUFFER_SIZE to trigger immediate flush
+    // Fill buffer to MAX_BUFFER_SIZE (20) to trigger immediate flush
     for (let i = 0; i < 20; i++) {
       await logActivity({
         student_id: "student-000",
-        event_type: "journal",
+        event_type: "journal" as const,
       });
     }
 
-    // The flush should have failed and queued entries
+    // The flush failure should have queued entries to offline queue
     expect(offlineQueue.enqueue).toHaveBeenCalled();
-
     consoleSpy.mockRestore();
   });
 
@@ -127,12 +134,16 @@ describe("logActivity", () => {
     ] as const;
 
     for (const event_type of eventTypes) {
+      // Reset module state by reimporting (each event type gets a clean buffer)
+      vi.resetModules();
       vi.clearAllMocks();
       mockInsert.mockResolvedValue({ error: null });
 
+      const { logActivity } = await import("@/lib/activityLogger");
+
       await logActivity({ student_id: "student-1", event_type });
 
-      // Trigger flush
+      // Advance timer and resolve the async flush
       vi.advanceTimersByTime(30_000);
       await vi.runAllTimersAsync();
 
