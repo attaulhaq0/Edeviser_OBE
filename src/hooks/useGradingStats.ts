@@ -2,6 +2,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
+import { DASHBOARD_STALE_TIME_MS } from "@/lib/queryConfig";
 import { startOfWeek, subDays } from "date-fns";
 
 export interface GradingStats {
@@ -103,7 +104,10 @@ export const useGradingStats = (teacherId: string | undefined) => {
       };
     },
     enabled: !!teacherId,
-    staleTime: 60_000,
+    staleTime: DASHBOARD_STALE_TIME_MS,
+    // The grades HEAD count and submissions count can timeout on the free tier
+    // under cold-start conditions; limit retries to avoid cascading 500s.
+    retry: 1,
   });
 };
 

@@ -17,7 +17,10 @@ type BadgeTrigger =
   | "journal"
   | "habit_log"
   | "team_event"
-  | "study_session";
+  | "study_session"
+  | "planner_task"
+  | "weekly_goal"
+  | "review_session";
 
 interface CheckBadgesPayload {
   student_id: string;
@@ -148,6 +151,9 @@ const VALID_TRIGGERS: BadgeTrigger[] = [
   "habit_log",
   "team_event",
   "study_session",
+  "planner_task",
+  "weekly_goal",
+  "review_session",
 ];
 
 function validatePayload(
