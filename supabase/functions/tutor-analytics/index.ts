@@ -363,11 +363,35 @@ serve(async (req) => {
       .eq("id", body.course_id)
       .maybeSingle();
 
-    if (courseError || !course) {
-      return new Response(JSON.stringify({ error: "Course not found" }), {
-        status: 404,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    if (courseError) {
+      // DB error (timeout, connection issue) — don't mask as 404
+      console.error(
+        "[tutor-analytics] Course lookup failed:",
+        courseError.message
+      );
+      return new Response(
+        JSON.stringify({
+          error: "Course lookup failed — database unavailable",
+          detail: courseError.message,
+        }),
+        {
+          status: 503,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    if (!course) {
+      return new Response(
+        JSON.stringify({
+          error: "Course not found",
+          course_id: body.course_id,
+        }),
+        {
+          status: 404,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
     }
 
     // Check teacher owns the course OR user is an admin
