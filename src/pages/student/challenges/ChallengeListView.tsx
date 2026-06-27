@@ -8,7 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import {
   useStudentChallenges,
   useChallengeParticipantsBatch,
-  type Challenge,
+  type SocialChallenge,
   type ChallengeParticipant,
 } from "@/hooks/useChallenges";
 import { useRealtime } from "@/hooks/useRealtime";
@@ -124,10 +124,10 @@ const ChallengeCard = ({
   challenge,
   participants,
 }: {
-  challenge: Challenge;
+  challenge: SocialChallenge;
   participants: ChallengeParticipant[];
 }) => {
-  const isTeam = challenge.challenge_type === "team";
+  const isTeam = challenge.participation_mode === "team";
 
   return (
     <Card className="bg-white border-0 shadow-md rounded-xl p-4">
@@ -149,15 +149,15 @@ const ChallengeCard = ({
             )}
             <div className="flex gap-2 mt-2 flex-wrap">
               <Badge variant="outline" className="text-xs">
-                {isTeam ? "Team" : "Course-Wide"}
+                {isTeam ? "Team" : "Individual"}
               </Badge>
               <Badge variant="outline" className="text-xs">
-                {challenge.goal_metric}: {challenge.goal_target}
+                Goal: {challenge.goal_target}
               </Badge>
               <Badge className="text-xs bg-amber-50 text-amber-700 border-amber-200">
-                {challenge.reward_type === "xp_bonus"
-                  ? `+${challenge.reward_value} XP`
-                  : "Badge"}
+                {challenge.reward_badge_id
+                  ? "Badge"
+                  : `+${challenge.reward_xp} XP`}
               </Badge>
             </div>
 
@@ -213,7 +213,7 @@ const ChallengeListView = () => {
   });
 
   const active = (challenges ?? []).filter((c) => c.status === "active");
-  const completed = (challenges ?? []).filter((c) => c.status === "completed");
+  const completed = (challenges ?? []).filter((c) => c.status === "ended");
 
   if (isLoading) {
     return (
@@ -282,8 +282,8 @@ const ChallengeListView = () => {
                   <div>
                     <p className="text-sm font-semibold">{c.title}</p>
                     <p className="text-xs text-gray-500">
-                      {c.challenge_type === "team" ? "Team" : "Course-Wide"} ·
-                      Completed
+                      {c.participation_mode === "team" ? "Team" : "Individual"}{" "}
+                      · Completed
                     </p>
                   </div>
                 </div>

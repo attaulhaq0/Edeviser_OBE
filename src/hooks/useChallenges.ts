@@ -203,24 +203,17 @@ export const useUpdateChallenge = () => {
 
 // ─── Legacy types & hooks (preserved for backward compatibility) ─────────────
 
-/** @deprecated Use SocialChallenge instead */
-export interface Challenge {
-  id: string;
-  title: string;
-  description: string | null;
-  challenge_type: "team" | "course_wide";
-  course_id: string;
-  start_date: string;
-  end_date: string;
-  goal_metric: string;
-  goal_target: number;
-  reward_type: string;
-  reward_value: number;
-  status: "draft" | "active" | "completed" | "cancelled";
-  notification_sent_90: boolean;
-  created_by: string;
-  created_at: string;
-}
+/**
+ * @deprecated Use {@link SocialChallenge} instead. Kept as an alias so the
+ * remaining legacy consumers keep compiling, but it now resolves to the LIVE
+ * `social_challenges` shape. The previously-modelled columns `goal_metric`,
+ * `reward_type`, `reward_value`, `notification_sent_90` and the legacy
+ * `challenge_type` values (`team`/`course_wide`) do NOT exist in the database —
+ * referencing them threw `column social_challenges.goal_metric does not exist`
+ * at runtime. The live equivalents are `participation_mode` (team/individual),
+ * `reward_xp` + `reward_badge_id`, and the `ended` status (not `completed`).
+ */
+export type Challenge = SocialChallenge;
 
 /** @deprecated Use ChallengeProgressRecord from useChallengeProgress instead */
 export interface ChallengeParticipant {
@@ -289,7 +282,7 @@ export const useChallengeProgress = (challengeId?: string) => {
 export const useStudentChallenges = (studentId?: string) => {
   return useQuery({
     queryKey: queryKeys.studentChallenges.detail(studentId ?? ""),
-    queryFn: async (): Promise<Challenge[]> => {
+    queryFn: async (): Promise<SocialChallenge[]> => {
       const { data: enrollments } = await supabase
         .from("student_courses")
         .select("course_id")
@@ -299,17 +292,20 @@ export const useStudentChallenges = (studentId?: string) => {
 
       const courseIds = enrollments.map((e) => e.course_id);
 
+      // `select("*")` mirrors the live `social_challenges` columns. The previous
+      // explicit list referenced drifted columns (`goal_metric`, `reward_type`,
+      // `reward_value`, `notification_sent_90`) that do not exist in the
+      // database, which made PostgREST reject the whole query. Live status is
+      // `ended` (not `completed`).
       const { data, error } = await supabase
         .from("social_challenges")
-        .select(
-          "id, title, description, challenge_type, course_id, start_date, end_date, goal_metric, goal_target, reward_type, reward_value, status, notification_sent_90, created_by, created_at"
-        )
+        .select("*")
         .in("course_id", courseIds)
-        .in("status", ["active", "completed"])
+        .in("status", ["active", "ended"])
         .order("start_date", { ascending: false });
 
       if (error) throw error;
-      return (data ?? []) as unknown as Challenge[];
+      return (data ?? []) as unknown as SocialChallenge[];
     },
     enabled: !!studentId,
     staleTime: DASHBOARD_STALE_TIME_MS,
