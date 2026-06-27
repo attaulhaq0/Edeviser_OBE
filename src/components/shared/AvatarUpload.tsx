@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAvatarUpload } from "@/hooks/useAvatarUpload";
@@ -26,6 +26,7 @@ const AvatarUpload = ({ currentUrl }: AvatarUploadProps) => {
   const [preview, setPreview] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const { uploadAvatar, isPending } = useAvatarUpload();
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = async (file: File) => {
     // Validate file type
@@ -130,7 +131,7 @@ const AvatarUpload = ({ currentUrl }: AvatarUploadProps) => {
           <div
             onDrop={handleDrop}
             onDragOver={(e) => e.preventDefault()}
-            className="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors cursor-pointer"
+            className="border-2 border-dashed border-slate-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors"
           >
             <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
             <p className="text-sm font-medium text-gray-700">
@@ -138,26 +139,30 @@ const AvatarUpload = ({ currentUrl }: AvatarUploadProps) => {
             </p>
             <p className="text-xs text-gray-500 mt-1">{t("avatar.formats")}</p>
             <input
+              ref={inputRef}
               type="file"
               accept="image/png,image/jpeg,image/webp"
               onChange={(e) => {
                 if (e.target.files?.[0]) {
                   handleFileSelect(e.target.files[0]);
                 }
+                // Reset so re-selecting the same file still fires onChange.
+                e.target.value = "";
               }}
               className="hidden"
               id="avatar-input"
+              aria-hidden="true"
+              tabIndex={-1}
             />
-            <label htmlFor="avatar-input" className="block mt-4">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="cursor-pointer"
-              >
-                {t("avatar.selectFile")}
-              </Button>
-            </label>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="mt-4 cursor-pointer"
+              onClick={() => inputRef.current?.click()}
+            >
+              {t("avatar.selectFile")}
+            </Button>
           </div>
         )}
 
