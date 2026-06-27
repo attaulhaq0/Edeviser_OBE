@@ -258,28 +258,42 @@ serve(async (req) => {
         if (authError || !user) {
           return jsonResponse({ error: "Unauthorized" }, 401);
         }
-        // Role lives in the profiles table, NOT the JWT (app_metadata is empty
-        // on this project). Resolve it server-side from profiles by the
-        // caller's id, mirroring the already-deployed ai-feedback-draft pattern.
-        const adminClient = createClient(
-          Deno.env.get("SUPABASE_URL")!,
-          Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-        );
-        const { data: callerProfile } = await adminClient
-          .from("profiles")
-          .select("role")
-          .eq("id", user.id)
-          .maybeSingle();
-        const role =
-          (callerProfile?.role as string) ??
-          user.app_metadata?.role ??
-          user.user_metadata?.role ??
-          "";
-        if (role !== "admin") {
-          return jsonResponse(
-            { error: "Forbidden: admin role required for clear action" },
-            403
+
+        // Self-clear is always allowed: an authenticated user may reset the
+        // lockout counter for THEIR OWN email (the normal post-login path).
+        // `email` is already lowercased+trimmed by validatePayload, and
+        // `user.email` comes from the verified JWT, so this cannot be used to
+        // clear another account's attempts (preserving the Vuln-12 protection
+        // — an attacker can't clear a victim's lockout without being the
+        // victim). Clearing a DIFFERENT email still requires the admin role.
+        const isOwnEmail = (user.email ?? "").toLowerCase().trim() === email;
+        if (!isOwnEmail) {
+          // Role lives in the profiles table, NOT the JWT (app_metadata is empty
+          // on this project). Resolve it server-side from profiles by the
+          // caller's id, mirroring the already-deployed ai-feedback-draft pattern.
+          const adminClient = createClient(
+            Deno.env.get("SUPABASE_URL")!,
+            Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
           );
+          const { data: callerProfile } = await adminClient
+            .from("profiles")
+            .select("role")
+            .eq("id", user.id)
+            .maybeSingle();
+          const role =
+            (callerProfile?.role as string) ??
+            user.app_metadata?.role ??
+            user.user_metadata?.role ??
+            "";
+          if (role !== "admin") {
+            return jsonResponse(
+              {
+                error:
+                  "Forbidden: admin role required to clear another account",
+              },
+              403
+            );
+          }
         }
       }
     }
