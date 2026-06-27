@@ -30,6 +30,48 @@ const is429 = (error: unknown): boolean =>
   "status" in error &&
   (error as { status: number }).status === 429;
 
+/**
+ * Best-effort extraction of an HTTP status code from an unknown error.
+ *
+ * Different Supabase error shapes carry status in different places:
+ *   - `error.status`         — Storage / some REST errors, fetch Response-likes
+ *   - `error.context.status` — Edge Function errors (FunctionsHttpError wraps
+ *                              the upstream `Response` in `context`)
+ * PostgREST errors carry a Postgres `code` (not an HTTP status), so this returns
+ * `undefined` for them and the caller falls back to count-based retry.
+ */
+export const getErrorStatus = (error: unknown): number | undefined => {
+  if (!error || typeof error !== "object") return undefined;
+  const e = error as { status?: unknown; context?: { status?: unknown } };
+  if (typeof e.status === "number") return e.status;
+  if (e.context && typeof e.context.status === "number")
+    return e.context.status;
+  return undefined;
+};
+
+/**
+ * Query retry policy (spec: dashboard-and-ux-performance — reduce request
+ * fan-out). TanStack Query's default retries 3× on every failure. That is
+ * wasteful for DETERMINISTIC client errors (4xx): a 404/403/400/422 will simply
+ * reproduce the same failure on every retry, multiplying the request fan-out
+ * (e.g. a single broken call becoming 4 network requests). We therefore:
+ *   - never retry 429 (respect the rate limit — surfaced as a toast instead),
+ *   - never retry other 4xx EXCEPT 408 (Request Timeout, which is transient),
+ *   - retry everything else (network errors, 5xx, and unknown/PostgREST errors
+ *     with no detectable status) up to 3 times.
+ */
+export const shouldRetryQuery = (
+  failureCount: number,
+  error: unknown
+): boolean => {
+  if (is429(error)) return false;
+  const status = getErrorStatus(error);
+  if (status !== undefined && status >= 400 && status < 500 && status !== 408) {
+    return false;
+  }
+  return failureCount < 3;
+};
+
 /** Best-effort human-readable message from an unknown error. */
 export const getErrorMessage = (error: unknown): string => {
   if (
@@ -84,11 +126,7 @@ export const queryClient = new QueryClient({
     queries: {
       staleTime: 5 * 60 * 1000, // 5 minutes
       gcTime: 30 * 60 * 1000, // 30 minutes
-      retry: (failureCount, error) => {
-        // Don't retry on 429 — respect rate limits
-        if (is429(error)) return false;
-        return failureCount < 3;
-      },
+      retry: shouldRetryQuery,
       retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 30000),
       refetchOnWindowFocus: false,
     },
