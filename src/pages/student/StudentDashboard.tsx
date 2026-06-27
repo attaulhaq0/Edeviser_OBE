@@ -991,10 +991,9 @@ const StudentDashboard = () => {
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium truncate">{c.title}</p>
                   <p className="text-xs text-gray-500">
-                    {c.challenge_type === "team"
+                    {c.participation_mode === "team"
                       ? t("dashboard.team")
-                      : t("dashboard.courseWide")}{" "}
-                    · {c.goal_metric}
+                      : t("dashboard.individual")}
                   </p>
                 </div>
                 <Badge className="text-xs bg-amber-50 text-amber-700 border-amber-200 whitespace-nowrap">

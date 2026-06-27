@@ -7,7 +7,10 @@ import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
-import { useStudentChallenges, type Challenge } from "@/hooks/useChallenges";
+import {
+  useStudentChallenges,
+  type SocialChallenge,
+} from "@/hooks/useChallenges";
 import { useRealtime } from "@/hooks/useRealtime";
 import { queryKeys } from "@/lib/queryKeys";
 import { Card } from "@/components/ui/card";
@@ -35,12 +38,11 @@ const ChallengeCard = ({
   challenge,
   onClick,
 }: {
-  challenge: Challenge;
+  challenge: SocialChallenge;
   onClick: () => void;
 }) => {
-  const challengeType = challenge.challenge_type ?? challenge.goal_metric;
-  const isCooperative = (challenge.challenge_type as string) === "cooperative";
-  const isTeam = challengeType === "team";
+  const isCooperative = challenge.challenge_type === "cooperative";
+  const isTeam = challenge.participation_mode === "team";
   const iconClassName = cn(
     "h-4 w-4",
     isCooperative ? "text-green-600" : "text-amber-600"
@@ -83,13 +85,15 @@ const ChallengeCard = ({
           )}
           <div className="flex gap-2 mt-2 flex-wrap">
             <Badge variant="outline" className="text-xs">
-              {getTypeLabel(challenge.challenge_type ?? "course_wide")}
+              {getTypeLabel(challenge.challenge_type)}
             </Badge>
             <Badge variant="outline" className="text-xs">
               Goal: {challenge.goal_target}
             </Badge>
             <Badge className="text-xs bg-amber-50 text-amber-700 border-amber-200">
-              +{challenge.reward_value ?? 0} XP
+              {challenge.reward_badge_id
+                ? "Badge"
+                : `+${challenge.reward_xp} XP`}
             </Badge>
           </div>
           <div className="flex items-center gap-2 mt-2 text-xs text-gray-400">
@@ -141,7 +145,7 @@ const ChallengeListPage = () => {
   );
   const completed = (challenges ?? []).filter(
     (c) =>
-      c.status === "completed" ||
+      c.status === "ended" ||
       (c.status !== "active" && new Date(c.end_date) < now)
   );
 

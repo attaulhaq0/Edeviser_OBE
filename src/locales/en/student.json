@@ -41,6 +41,7 @@
     "target": "Target",
     "team": "Team",
     "courseWide": "Course-Wide",
+    "individual": "Individual",
     "viewAllChallenges": "View All Challenges ({{count}})",
     "attendance": "Attendance",
     "leagueTier": "League Tier",
