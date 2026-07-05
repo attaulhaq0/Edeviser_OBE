@@ -157,12 +157,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (initialised.current) return;
     initialised.current = true;
 
-    // 1. Restore session from localStorage (persisted by Supabase client)
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      syncSession(session);
-    });
-
-    // 2. Listen for auth state changes (token refresh, sign-out, etc.)
+    // NOTE: we deliberately do NOT call `supabase.auth.getSession()` here.
+    // `onAuthStateChange()` ALWAYS emits an `INITIAL_SESSION` event immediately
+    // upon registration (confirmed in `@supabase/auth-js` `GoTrueClient
+    // .onAuthStateChange` → `_emitInitialSession`, which resolves the current
+    // session exactly like `getSession()` does), so calling both independently
+    // fires `syncSession` → `fetchProfile` TWICE on every cold load — two
+    // concurrent `profiles` SELECTs for the same user on every app open,
+    // confirmed live in production HAR captures. `INITIAL_SESSION` alone is
+    // sufficient to restore a persisted session (Req 4.1); it is handled below.
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
@@ -189,7 +192,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
         case "SIGNED_IN":
         case "INITIAL_SESSION":
-          // Re-sync profile on sign-in / initial session.
+          // Re-sync profile on sign-in / initial session (this is also how a
+          // persisted session is restored on cold load — see note above).
           syncSession(session);
           break;
 
@@ -280,49 +284,74 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
         // S-1 engagement loop (Req 2.9): advance the streak, award +10 login XP,
         // and record the `login` daily habit so the streak/perfect-day pipeline is
-        // fed from real activity. Each call is fire-and-forget and independently
-        // guarded so one failure can neither block the login nor the others.
+        // fed from real activity. Each step is independently guarded so one
+        // failure can neither block the login nor the others.
         // (The broken midnight `{type:'midnight_reset'}` cron is left disconnected
         // as a documented no-op; the streak now advances from this per-user login.)
+        //
+        // SEQUENCED, not concurrent (root-cause fix, 2026-07): these 3 steps used
+        // to fire in parallel (`.catch()` fire-and-forget, no shared chain), each
+        // independently reading/writing overlapping tables (`habit_logs`,
+        // `student_gamification`, `profiles`) for the SAME student at the SAME
+        // instant. Confirmed live in production HAR captures: this concurrent
+        // burst is what triggers the `habit_logs` write to exceed the
+        // `authenticated` role's 8s `statement_timeout` (57014), after which
+        // ~12 unrelated requests in the same window fail with `25P02 current
+        // transaction is aborted` for several seconds — a connection-pool-level
+        // cascade, not a problem with any single query. None of these 3 steps
+        // are on the login critical path (the whole chain stays fire-and-forget
+        // — `signIn` already returned above), so running them one-at-a-time
+        // costs nothing in perceived speed while cutting this login's peak
+        // concurrent DB load to a third of what it was.
         const todayUtc = new Date().toISOString().split("T")[0] as string;
 
-        // Record the login habit FIRST (before the perfect-day check) so
-        // awardPerfectDayIfComplete can observe it when reading today's habit_logs.
-        // Idempotent on (student_id, habit_type, date) — a second login same day is a no-op.
-        supabase
-          .from("habit_logs")
-          .upsert(
-            {
-              student_id: studentId,
-              habit_type: "login",
-              date: todayUtc,
-              completed_at: new Date().toISOString(),
-            },
-            { onConflict: "student_id,habit_type,date" }
-          )
-          .then(({ error }) => {
+        void (async () => {
+          // 1. Record the login habit FIRST (before the perfect-day check) so
+          //    awardPerfectDayIfComplete can observe it when reading today's
+          //    habit_logs. Idempotent on (student_id, habit_type, date) — a
+          //    second login same day is a no-op.
+          try {
+            const { error } = await supabase.from("habit_logs").upsert(
+              {
+                student_id: studentId,
+                habit_type: "login",
+                date: todayUtc,
+                completed_at: new Date().toISOString(),
+              },
+              { onConflict: "student_id,habit_type,date" }
+            );
             if (error) {
               console.error("Failed to record login habit:", error.message);
+            } else {
+              // Perfect-day check runs after the login habit is recorded.
+              // awardPerfectDayIfComplete swallows its own errors.
+              await awardPerfectDayIfComplete(studentId);
             }
-            // Perfect-day check runs after the login habit is recorded.
-            // awardPerfectDayIfComplete swallows its own errors.
-            return awardPerfectDayIfComplete(studentId);
-          })
-          .then(() => {});
+          } catch {
+            // Never let a background engagement step throw into signIn's caller.
+          }
 
-        // process-streak is idempotent same-day (dayDiff === 0 is a no-op) and
-        // authorizes the student's own JWT.
-        supabase.functions
-          .invoke("process-streak", { body: { student_id: studentId } })
-          .catch(() => {});
+          // 2. process-streak is idempotent same-day (dayDiff === 0 is a no-op)
+          //    and authorizes the student's own JWT.
+          try {
+            await supabase.functions.invoke("process-streak", {
+              body: { student_id: studentId },
+            });
+          } catch {
+            // non-fatal
+          }
 
-        // award-xp enforces the canonical 10 XP and a `login:{id}:{date}`
-        // idempotent reference server-side; the client-supplied amount is advisory.
-        supabase.functions
-          .invoke("award-xp", {
-            body: { student_id: studentId, source: "login", xp_amount: 10 },
-          })
-          .catch(() => {});
+          // 3. award-xp enforces the canonical 10 XP and a `login:{id}:{date}`
+          //    idempotent reference server-side; the client-supplied amount is
+          //    advisory.
+          try {
+            await supabase.functions.invoke("award-xp", {
+              body: { student_id: studentId, source: "login", xp_amount: 10 },
+            });
+          } catch {
+            // non-fatal
+          }
+        })();
       }
 
       return { success: true, redirectTo };

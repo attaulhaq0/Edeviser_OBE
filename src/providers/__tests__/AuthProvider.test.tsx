@@ -86,15 +86,30 @@ const setupMocks = (opts?: {
   const profile = opts?.profile ?? null;
   const profileError = opts?.profileError ?? null;
 
-  // getSession resolves with the provided session
+  // getSession resolves with the provided session. `AuthProvider` no longer
+  // calls this directly (see the fix for the double profile-fetch bug), but
+  // some tests still assert against it, so the mock stays available.
   mockGetSession.mockResolvedValue({
     data: { session: session ? { user: session.user } : null },
   });
 
-  // onAuthStateChange returns a subscription with unsubscribe
-  mockOnAuthStateChange.mockReturnValue({
-    data: { subscription: { unsubscribe: vi.fn() } },
-  });
+  // onAuthStateChange: real supabase-js ALWAYS emits `INITIAL_SESSION`
+  // immediately upon registration (`GoTrueClient._emitInitialSession`), which
+  // is how `AuthProvider` now restores a persisted session. That emission is
+  // itself async (`await this.initializePromise` / `await this
+  // ._acquireLock(...)` in the real client), so mirror it here via a
+  // microtask rather than a synchronous call — a synchronous call would let
+  // the null-session branch of `syncSession` resolve `isLoading` before the
+  // test's "starts in loading" assertion ever runs, which real supabase-js
+  // would never do.
+  mockOnAuthStateChange.mockImplementation(
+    (cb: (event: string, session: unknown) => void) => {
+      queueMicrotask(() => {
+        cb("INITIAL_SESSION", session ? { user: session.user } : null);
+      });
+      return { data: { subscription: { unsubscribe: vi.fn() } } };
+    }
+  );
 
   // profiles query chain
   mockFrom.mockReturnValue(mockSelectChain(profile, profileError));
@@ -300,12 +315,30 @@ describe("AuthProvider", () => {
 
     const { result } = renderHook(() => useAuth(), { wrapper });
 
-    // getSession is called on mount to restore persisted session
+    // A persisted session is restored via onAuthStateChange's INITIAL_SESSION
+    // event (real supabase-js emits this on registration — no separate
+    // getSession() call; see the fix for the double profile-fetch bug) and
+    // exactly ONE `profiles` fetch happens for it (mockFrom called once).
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
-    expect(mockGetSession).toHaveBeenCalledOnce();
+    expect(mockFrom).toHaveBeenCalledTimes(1);
     expect(result.current.user?.id).toBe("user-123");
     expect(result.current.role).toBe("admin");
+  });
+
+  it("fetches the profile exactly once on cold load (no duplicate INITIAL_SESSION fetch)", async () => {
+    // Regression test: AuthProvider previously called BOTH getSession() AND
+    // relied on onAuthStateChange's auto-fired INITIAL_SESSION, each
+    // independently triggering fetchProfile — two concurrent `profiles`
+    // SELECTs for the same user on every cold load (confirmed in production
+    // HAR captures). Only the INITIAL_SESSION path should remain.
+    setupMocks({ session: { user: MOCK_USER }, profile: MOCK_PROFILE });
+
+    const { result } = renderHook(() => useAuth(), { wrapper });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(mockGetSession).not.toHaveBeenCalled();
+    expect(mockFrom).toHaveBeenCalledTimes(1);
   });
 
   it("handles TOKEN_REFRESHED event by re-syncing session (Req 4.2)", async () => {
@@ -316,6 +349,10 @@ describe("AuthProvider", () => {
     mockOnAuthStateChange.mockImplementation(
       (cb: (event: string, session: unknown) => void) => {
         authChangeCallback = cb;
+        // Real supabase-js always emits INITIAL_SESSION on registration —
+        // fire it (with no session, matching this test's starting state) so
+        // `isLoading` resolves before the test simulates TOKEN_REFRESHED.
+        queueMicrotask(() => cb("INITIAL_SESSION", null));
         return { data: { subscription: { unsubscribe: vi.fn() } } };
       }
     );
@@ -344,6 +381,9 @@ describe("AuthProvider", () => {
     mockOnAuthStateChange.mockImplementation(
       (cb: (event: string, session: unknown) => void) => {
         authChangeCallback = cb;
+        // Real supabase-js always emits INITIAL_SESSION on registration —
+        // fire it with the starting session so the initial mount resolves.
+        queueMicrotask(() => cb("INITIAL_SESSION", { user: MOCK_USER }));
         return { data: { subscription: { unsubscribe: vi.fn() } } };
       }
     );
@@ -374,6 +414,9 @@ describe("AuthProvider", () => {
     mockOnAuthStateChange.mockImplementation(
       (cb: (event: string, session: unknown) => void) => {
         authChangeCallback = cb;
+        // Real supabase-js always emits INITIAL_SESSION on registration —
+        // fire it with the starting session so the initial mount resolves.
+        queueMicrotask(() => cb("INITIAL_SESSION", { user: MOCK_USER }));
         return { data: { subscription: { unsubscribe: vi.fn() } } };
       }
     );
@@ -400,6 +443,10 @@ describe("AuthProvider", () => {
     mockOnAuthStateChange.mockImplementation(
       (cb: (event: string, session: unknown) => void) => {
         authChangeCallback = cb;
+        // Real supabase-js always emits INITIAL_SESSION on registration —
+        // fire it (with no session, matching this test's starting state) so
+        // `isLoading` resolves before the test simulates SIGNED_IN.
+        queueMicrotask(() => cb("INITIAL_SESSION", null));
         return { data: { subscription: { unsubscribe: vi.fn() } } };
       }
     );
