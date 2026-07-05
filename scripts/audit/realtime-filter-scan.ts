@@ -112,6 +112,12 @@ const extractObjectLiteralBody = (
 
 const TABLE_KEY_RE = /\btable\s*:\s*['"`]([^'"`]+)['"`]/;
 const FILTER_KEY_PRESENT_RE = /\bfilter\s*:\s*(?!undefined\b)/;
+// A `strategy: 'poll'` subscription intentionally opens NO postgres_changes
+// channel — it refreshes via a bounded-interval poll instead (used for
+// inherently-broad data like an institution-wide leaderboard or an all-courses
+// grading queue, where a scoped filter is impossible). There is nothing to
+// filter, so the "must pass a filter" rule does not apply.
+const STRATEGY_POLL_RE = /\bstrategy\s*:\s*['"`]poll['"`]/;
 
 // Extract the line number of a match offset.
 const lineAt = (contents: string, offset: number): number =>
@@ -157,7 +163,8 @@ export const scanRealtimeFilters = (): readonly Finding[] => {
         const tableMatch = TABLE_KEY_RE.exec(body);
         const table = tableMatch?.[1] ?? "(unknown)";
         const hasFilter = FILTER_KEY_PRESENT_RE.test(body);
-        if (!hasFilter) {
+        const isPoll = STRATEGY_POLL_RE.test(body);
+        if (!hasFilter && !isPoll) {
           const line = lineAt(contents, match.index);
           const tenantScoped = TENANT_SCOPED_TABLES.has(table);
           findings.push({
@@ -196,7 +203,8 @@ export const scanRealtimeFilters = (): readonly Finding[] => {
         const tableMatch = TABLE_KEY_RE.exec(body);
         const table = tableMatch?.[1] ?? "(unknown)";
         const hasFilter = FILTER_KEY_PRESENT_RE.test(body);
-        if (!hasFilter) {
+        const isPoll = STRATEGY_POLL_RE.test(body);
+        if (!hasFilter && !isPoll) {
           const line = lineAt(contents, directMatch.index);
           const tenantScoped = TENANT_SCOPED_TABLES.has(table);
           findings.push({

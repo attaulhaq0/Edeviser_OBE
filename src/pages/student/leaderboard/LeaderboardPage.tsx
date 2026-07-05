@@ -673,17 +673,19 @@ const LeaderboardPage = () => {
     queryClient.invalidateQueries({ queryKey: queryKeys.leaderboard.lists() });
   }, [queryClient]);
 
+  // A leaderboard is inherently institution-wide, so a realtime subscription on
+  // student_gamification cannot be scoped down and would WAL-fan-out every
+  // student's XP change to every leaderboard viewer (the single largest DB CPU
+  // consumer at scale). Poll on a bounded interval instead: ~60s freshness is
+  // expected for a leaderboard and per-client cost is O(1) per interval
+  // regardless of institution size. The query still fetches immediately on mount.
   const { isLive, retryCount } = useRealtime({
     table: "student_gamification",
     event: "UPDATE",
-    filter: institutionId ? `institution_id=eq.${institutionId}` : undefined,
-    onPayload: () => {
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.leaderboard.lists(),
-      });
-    },
+    onPayload: pollingFn,
     pollingFn,
-    pollingInterval: 30_000,
+    pollingInterval: 60_000,
+    strategy: "poll",
   });
 
   // URL-persisted state
@@ -692,8 +694,12 @@ const LeaderboardPage = () => {
     parseAsString.withDefault("individual")
   );
 
-  // Task 7.3: Team realtime subscription for team XP updates
-  useTeamRealtime(institutionId ?? undefined);
+  // Task 7.3: Team XP updates. Also institution-wide, so poll rather than hold a
+  // fan-out realtime subscription (same rationale as student_gamification above).
+  useTeamRealtime(institutionId ?? undefined, {
+    strategy: "poll",
+    pollingInterval: 60_000,
+  });
 
   // Default tab: personal_best for opt-out students, top_xp otherwise (Req 129.5)
   const defaultTab: LeaderboardTab = isOptedOut ? "personal_best" : "top_xp";

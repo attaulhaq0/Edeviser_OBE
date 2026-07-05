@@ -460,12 +460,19 @@ const TeacherDashboard = () => {
     queryClient.invalidateQueries({ queryKey: queryKeys.submissions.lists() });
   }, [queryClient]);
 
+  // The grading queue spans ALL of the teacher's courses, so a realtime filter
+  // cannot scope it — an unfiltered submissions subscription would WAL-decode and
+  // deliver every submission INSERT in the entire database to every teacher
+  // (violating Req 12.4: no unfiltered subscriptions, and fanning out at scale).
+  // Poll on a bounded interval instead; ~60s freshness is expected for a grading
+  // queue and per-client cost is O(1) per interval. The query still fetches on mount.
   const { isLive, retryCount } = useRealtime({
     table: "submissions",
     event: "INSERT",
     onPayload: handleGradingPayload,
     pollingFn: handleGradingPolling,
-    pollingInterval: 30_000,
+    pollingInterval: 60_000,
+    strategy: "poll",
   });
 
   // PERF (spec: dashboard-and-ux-performance, Phase 8 Task 33): ONE aggregate

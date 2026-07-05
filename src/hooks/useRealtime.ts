@@ -29,6 +29,19 @@ interface RealtimeOptions {
   pollingInterval?: number;
   /** When false, skip the realtime subscription entirely (default: true) */
   enabled?: boolean;
+  /**
+   * Update strategy (default: "realtime"):
+   * - "realtime": subscribe to `postgres_changes` for this table (low latency,
+   *   but every change on the published table is WAL-decoded and delivered per
+   *   subscriber — this does NOT scale for broad, institution- or global-scoped
+   *   data because it fans out to every viewer).
+   * - "poll": skip the subscription entirely and refresh via `pollingFn` on a
+   *   fixed `pollingInterval`. Use this for inherently broad data (e.g. an
+   *   institution-wide leaderboard, an all-courses grading queue) where a
+   *   tightly-scoped realtime filter is impossible. Cost is bounded and scales
+   *   linearly per client instead of as O(writes × viewers).
+   */
+  strategy?: "realtime" | "poll";
 }
 
 /**
@@ -50,6 +63,7 @@ export const useRealtime = (
     pollingFn,
     pollingInterval = 30_000,
     enabled = true,
+    strategy = "realtime",
   } = options;
 
   const [isLive, setIsLive] = useState(true);
@@ -92,6 +106,29 @@ export const useRealtime = (
   useEffect(() => {
     // Skip subscription when disabled (e.g. required filter value not yet resolved)
     if (!enabled) return;
+
+    // Polling strategy: deliberately do NOT open a postgres_changes channel.
+    // For institution-/global-scoped data a realtime subscription cannot be
+    // filtered down and would WAL-fan-out to every viewer (the single largest
+    // database CPU consumer at scale). Refresh on a fixed interval instead. The
+    // consuming query already fetches on mount, so we only schedule subsequent
+    // refreshes here. isLive stays true (polling has no "disconnected" state),
+    // so the consuming page's reconnect banner correctly shows nothing.
+    if (strategy === "poll") {
+      // No setState here: isLive keeps its initial `true` and retryCount its
+      // initial `0` (polling has no "disconnected" state, so the page's
+      // reconnect banner correctly shows nothing). `strategy` is static per
+      // mount, so the initial values are always correct — avoiding a
+      // setState() in the effect body (react-hooks/set-state-in-effect).
+      const fn = pollingFnRef.current;
+      if (!fn) return;
+      const id = setInterval(() => fn(), pollingInterval);
+      pollingTimerRef.current = id;
+      return () => {
+        clearInterval(id);
+        pollingTimerRef.current = null;
+      };
+    }
 
     // Deduplicate: one channel per table+event+filter combo
     const channelName = `${table}:${event}:${filter ?? "all"}`;
@@ -145,7 +182,16 @@ export const useRealtime = (
       }
       stopPolling();
     };
-  }, [table, event, filter, enabled, startPolling, stopPolling]);
+  }, [
+    table,
+    event,
+    filter,
+    enabled,
+    strategy,
+    pollingInterval,
+    startPolling,
+    stopPolling,
+  ]);
 
   return { isLive, retryCount };
 };

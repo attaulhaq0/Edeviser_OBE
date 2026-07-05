@@ -303,4 +303,90 @@ describe("useRealtime", () => {
 
     expect(result.current.isLive).toBe(false);
   });
+
+  // ─── Polling strategy (broad / institution-scoped data) ─────────────────────
+
+  it("strategy 'poll' does NOT open a realtime channel", () => {
+    const onPayload = vi.fn();
+    const pollingFn = vi.fn();
+    renderHook(() =>
+      useRealtime({
+        table: "student_gamification",
+        event: "UPDATE",
+        onPayload,
+        pollingFn,
+        pollingInterval: 60_000,
+        strategy: "poll",
+      })
+    );
+
+    // No fan-out subscription is opened for inherently-broad data.
+    expect(supabase.channel).not.toHaveBeenCalled();
+  });
+
+  it("strategy 'poll' refreshes via pollingFn on the interval, not on mount", () => {
+    const onPayload = vi.fn();
+    const pollingFn = vi.fn();
+    renderHook(() =>
+      useRealtime({
+        table: "student_gamification",
+        onPayload,
+        pollingFn,
+        pollingInterval: 60_000,
+        strategy: "poll",
+      })
+    );
+
+    // The consuming query already fetches on mount, so the hook must NOT
+    // re-invalidate immediately — it only schedules subsequent refreshes.
+    expect(pollingFn).not.toHaveBeenCalled();
+
+    act(() => {
+      vi.advanceTimersByTime(60_000);
+    });
+    expect(pollingFn).toHaveBeenCalledTimes(1);
+
+    act(() => {
+      vi.advanceTimersByTime(60_000);
+    });
+    expect(pollingFn).toHaveBeenCalledTimes(2);
+  });
+
+  it("strategy 'poll' keeps isLive true and retryCount 0 (no disconnected state)", () => {
+    const onPayload = vi.fn();
+    const pollingFn = vi.fn();
+    const { result } = renderHook(() =>
+      useRealtime({
+        table: "teams",
+        onPayload,
+        pollingFn,
+        pollingInterval: 60_000,
+        strategy: "poll",
+      })
+    );
+
+    expect(result.current.isLive).toBe(true);
+    expect(result.current.retryCount).toBe(0);
+  });
+
+  it("strategy 'poll' clears its interval on unmount", () => {
+    const onPayload = vi.fn();
+    const pollingFn = vi.fn();
+    const { unmount } = renderHook(() =>
+      useRealtime({
+        table: "teams",
+        onPayload,
+        pollingFn,
+        pollingInterval: 60_000,
+        strategy: "poll",
+      })
+    );
+
+    unmount();
+    pollingFn.mockClear();
+    act(() => {
+      vi.advanceTimersByTime(120_000);
+    });
+    expect(pollingFn).not.toHaveBeenCalled();
+  });
 });

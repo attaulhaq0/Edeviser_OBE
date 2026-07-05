@@ -15,7 +15,10 @@ import { useRealtime } from "@/hooks/useRealtime";
  * On any change (INSERT, UPDATE, DELETE), invalidates team-related queries.
  * Falls back to 30s polling when the realtime connection is unavailable.
  */
-export const useTeamRealtime = (institutionId?: string) => {
+export const useTeamRealtime = (
+  institutionId?: string,
+  options?: { strategy?: "realtime" | "poll"; pollingInterval?: number }
+) => {
   const queryClient = useQueryClient();
 
   const invalidateTeamQueries = useCallback(() => {
@@ -32,7 +35,11 @@ export const useTeamRealtime = (institutionId?: string) => {
     filter: institutionId ? `institution_id=eq.${institutionId}` : undefined,
     onPayload: invalidateTeamQueries,
     pollingFn: invalidateTeamQueries,
-    pollingInterval: 30_000,
+    pollingInterval: options?.pollingInterval ?? 30_000,
+    // Institution-scoped team updates fan out to every leaderboard viewer, so
+    // broad consumers (the leaderboard) opt into polling; the default stays
+    // realtime for narrowly-scoped callers.
+    strategy: options?.strategy ?? "realtime",
   });
 
   return { isLive, retryCount };
