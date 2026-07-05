@@ -9,26 +9,26 @@ name: Deploy Migrations (production)
 # applying anything — so merged PRs (e.g. #185/#186) piled up on `main` while
 # production's schema_migrations froze weeks behind, with no alert.
 #
-# This job makes the DB deploy EXPLICIT and LOUD: it runs `supabase db push` on
-# every merge to `main` that touches supabase/migrations/**, and fails visibly
-# (red X) if a migration cannot apply — instead of drifting silently.
+# This workflow makes a DB deploy EXPLICIT and LOUD: `supabase db push` fails
+# visibly (red X) if a migration cannot apply — instead of drifting silently.
+#
+# MANUAL-ONLY (break-glass fallback). Supabase Branching is the AUTOMATIC prod
+# deployer (it applies migrations on merge to `main` and provides the required
+# "Supabase Preview" PR check). The `main` Branching branch that had silently
+# stuck in MIGRATIONS_FAILED (stranding merged PRs #185/#186 for weeks) has since
+# recovered (status FUNCTIONS_DEPLOYED), and the scheduled branch-migration-health
+# monitor now alerts if it ever fails silently again. This workflow is kept
+# manual so it never double-applies alongside Branching — run it by hand
+# (Actions → "Deploy Migrations (production)" → Run workflow) only if Branching
+# is stuck and you need to push migrations immediately.
 #
 # REQUIRED REPO SECRETS (Settings → Secrets and variables → Actions):
 #   - SUPABASE_ACCESS_TOKEN   (already present; used by pre-deploy-audit.yml)
-#   - SUPABASE_DB_PASSWORD    (ADD THIS — the production DB password)
-#
-# COMPANION ACTION (dashboard, one-time): set Supabase Branching to PREVIEW-ONLY
-# (do not let it auto-apply to production) so this workflow is the single writer
-# and the two paths never double-apply on the same merge. Also clear the current
-# `main` branch MIGRATIONS_FAILED state once (Dashboard → Branches).
+#   - SUPABASE_DB_PASSWORD    (the production DB password)
 # ---------------------------------------------------------------------------
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - "supabase/migrations/**"
-  workflow_dispatch: # allow manual re-run
+  workflow_dispatch: {} # manual-only; Branching is the auto-deployer
 
 concurrency:
   group: deploy-migrations-production
