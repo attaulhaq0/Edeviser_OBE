@@ -42,6 +42,8 @@ vi.mock("@/lib/activityLogger", () => ({
 
 import { AuthProvider } from "../AuthProvider";
 import { useAuth } from "@/hooks/useAuth";
+import { writeCachedProfile } from "@/lib/profileCache";
+import type { Profile } from "@/types/app";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -650,5 +652,85 @@ describe("AuthProvider", () => {
 
     expect(authResult?.success).toBe(false);
     expect(authResult?.error).toContain("too many failed attempts");
+  });
+
+  // -----------------------------------------------------------------------
+  // Shell-first profile cache (Option J, Phase 0)
+  // -----------------------------------------------------------------------
+
+  it("hydrates the profile from cache with no network fetch when fresh (shell-first)", async () => {
+    // A fresh cached profile for this user exists BEFORE mount.
+    writeCachedProfile(MOCK_USER.id, MOCK_PROFILE as unknown as Profile);
+
+    setupMocks({ session: { user: MOCK_USER }, profile: MOCK_PROFILE });
+
+    const { result } = renderHook(() => useAuth(), { wrapper });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    // Profile came from cache; the fresh window means NO profiles SELECT ran.
+    expect(result.current.profile?.full_name).toBe("Test Admin");
+    expect(result.current.role).toBe("admin");
+    expect(mockFrom).not.toHaveBeenCalled();
+  });
+
+  it("never hydrates a cached profile belonging to a different user (cross-user no-leak)", async () => {
+    // User A's profile is cached on this device...
+    writeCachedProfile("user-AAA", {
+      ...(MOCK_PROFILE as unknown as Profile),
+      id: "user-AAA",
+      full_name: "Alice Student",
+      role: "student",
+    });
+
+    // ...but user B (MOCK_USER / admin) is the one with a session now.
+    setupMocks({ session: { user: MOCK_USER }, profile: MOCK_PROFILE });
+
+    const { result } = renderHook(() => useAuth(), { wrapper });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    // B must see ONLY B's freshly-fetched profile — A's cache is discarded.
+    expect(mockFrom).toHaveBeenCalledTimes(1);
+    expect(result.current.profile?.full_name).toBe("Test Admin");
+    expect(result.current.role).toBe("admin");
+    expect(result.current.profile?.full_name).not.toBe("Alice Student");
+  });
+
+  it("fetches the profile only once on interactive login (no SIGNED_IN double-fetch)", async () => {
+    let authChangeCallback: ((event: string, session: unknown) => void) | null =
+      null;
+
+    setupMocks({ session: null });
+    mockOnAuthStateChange.mockImplementation(
+      (cb: (event: string, session: unknown) => void) => {
+        authChangeCallback = cb;
+        queueMicrotask(() => cb("INITIAL_SESSION", null));
+        return { data: { subscription: { unsubscribe: vi.fn() } } };
+      }
+    );
+
+    mockSignInWithPassword.mockResolvedValue({
+      data: { user: MOCK_USER, session: { user: MOCK_USER } },
+      error: null,
+    });
+    mockFrom.mockReturnValue(mockSelectChain(MOCK_PROFILE));
+
+    const { result } = renderHook(() => useAuth(), { wrapper });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    await act(async () => {
+      await result.current.signIn("admin@test.edu", "password123");
+    });
+
+    // signIn performed exactly one profiles SELECT and seeded the cache.
+    expect(mockFrom).toHaveBeenCalledTimes(1);
+
+    // supabase-js then emits SIGNED_IN — it must hydrate from the fresh cache,
+    // NOT trigger a second profiles SELECT.
+    await act(async () => {
+      authChangeCallback?.("SIGNED_IN", { user: MOCK_USER });
+    });
+
+    expect(mockFrom).toHaveBeenCalledTimes(1);
+    expect(result.current.profile?.full_name).toBe("Test Admin");
   });
 });

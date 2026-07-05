@@ -25,6 +25,12 @@ import {
   applyAccessibilityPreferences,
 } from "@/lib/accessibilityPreferences";
 import i18n from "@/lib/i18n";
+import {
+  readCachedProfile,
+  writeCachedProfile,
+  clearCachedProfile,
+  isProfileFresh,
+} from "@/lib/profileCache";
 
 // ---------------------------------------------------------------------------
 // Role → dashboard path mapping
@@ -35,6 +41,19 @@ const ROLE_DASHBOARD_MAP: Record<UserRole, string> = {
   teacher: "/teacher",
   student: "/student",
   parent: "/parent",
+};
+
+// ---------------------------------------------------------------------------
+// Hydrate the user's language preference into i18n (fire-and-forget). Kept at
+// module scope so both the cache-hydration and network-revalidation paths in
+// syncSession can reuse it without adding hook dependencies.
+// ---------------------------------------------------------------------------
+const applyProfileLanguage = (profile: Profile | null): void => {
+  if (profile?.language_preference) {
+    i18n.changeLanguage(profile.language_preference).catch(() => {
+      // Never block session hydration on i18n.
+    });
+  }
 };
 
 export interface SignUpOptions {
@@ -118,28 +137,56 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     async (session: Session | null) => {
       if (!session?.user) {
         currentUserIdRef.current = null;
+        // No authenticated session — drop any cached profile so it can never
+        // be hydrated for an unauthenticated (or subsequent) user.
+        clearCachedProfile();
         setUser(null);
         setProfile(null);
         setIsLoading(false);
         return;
       }
 
-      currentUserIdRef.current = session.user.id;
+      const uid = session.user.id;
+      currentUserIdRef.current = uid;
       setUser(session.user);
 
-      const userProfile = await fetchProfile(session.user.id);
-      setProfile(userProfile);
+      // Shell-first hydration: if a cached profile exists for THIS user, apply
+      // it immediately so RouteGuard can resolve the role and the app shell
+      // paints without waiting on the network. The cache is non-authoritative
+      // UI hydration only — RLS remains the source of truth server-side — and
+      // it is identity-guarded so one user can never hydrate another's data.
+      const cached = readCachedProfile(uid);
+      if (cached) {
+        setProfile(cached.profile);
+        applyProfileLanguage(cached.profile);
+        setIsLoading(false);
 
-      // ThemeProvider handles theme_preference sync via its profilePref effect.
-      // We only need to sync language preference here.
+        // Freshly cached (e.g. the profiles SELECT that signIn just ran) — skip
+        // the redundant refetch entirely. This collapses the interactive-login
+        // double fetch (signIn fetch + SIGNED_IN event).
+        if (isProfileFresh(cached.cachedAt)) return;
 
-      // Hydrate language preference into i18n
-      if (userProfile?.language_preference) {
-        i18n.changeLanguage(userProfile.language_preference).catch(() => {
-          // Fire-and-forget — don't block session hydration
-        });
+        // Stale cache — revalidate in the background without blocking paint.
+        void (async () => {
+          const fresh = await fetchProfile(uid);
+          // Ignore if the user changed while this was in flight.
+          if (currentUserIdRef.current !== uid) return;
+          if (fresh) {
+            setProfile(fresh);
+            writeCachedProfile(uid, fresh);
+            applyProfileLanguage(fresh);
+          }
+        })();
+        return;
       }
 
+      // Cache miss (first load on this device): fetch before revealing the
+      // route so the guard resolves the correct role on the very first paint.
+      const userProfile = await fetchProfile(uid);
+      if (currentUserIdRef.current !== uid) return;
+      setProfile(userProfile);
+      if (userProfile) writeCachedProfile(uid, userProfile);
+      applyProfileLanguage(userProfile);
       setIsLoading(false);
     },
     [fetchProfile]
@@ -171,7 +218,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } = supabase.auth.onAuthStateChange((event, session) => {
       switch (event) {
         case "SIGNED_OUT":
-          // Explicitly clear state on sign-out (session expiry or manual)
+          // Explicitly clear state on sign-out (session expiry or manual). Also
+          // drop the cached profile so the next user on this device can never
+          // hydrate the previous user's data (cross-user no-leak).
+          clearCachedProfile();
+          currentUserIdRef.current = null;
           setUser(null);
           setProfile(null);
           setIsLoading(false);
@@ -268,8 +319,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       });
 
       const userProfile = await fetchProfile(data.user.id);
+      currentUserIdRef.current = data.user.id;
       setUser(data.user);
       setProfile(userProfile);
+      // Seed the shell-first cache so the SIGNED_IN event that supabase-js
+      // emits right after this hydrates from the fresh cache instead of firing
+      // a second `profiles` SELECT for the same user.
+      if (userProfile) writeCachedProfile(data.user.id, userProfile);
 
       const redirectTo = userProfile?.role
         ? ROLE_DASHBOARD_MAP[userProfile.role]
@@ -423,8 +479,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       // to the appropriate dashboard.
       if (data.user) {
         const userProfile = await fetchProfile(data.user.id);
+        currentUserIdRef.current = data.user.id;
         setUser(data.user);
         setProfile(userProfile);
+        if (userProfile) writeCachedProfile(data.user.id, userProfile);
 
         const redirectTo = userProfile?.role
           ? ROLE_DASHBOARD_MAP[userProfile.role]
@@ -442,6 +500,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // -------------------------------------------------------------------
   const signOut = useCallback(async () => {
     await supabase.auth.signOut();
+    clearCachedProfile();
+    currentUserIdRef.current = null;
     setUser(null);
     setProfile(null);
   }, []);
