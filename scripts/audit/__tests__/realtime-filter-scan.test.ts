@@ -57,6 +57,27 @@ export const useTeamRealtime = (institutionId: string) =>
     expect(scanRealtimeFilters()).toEqual([]);
   });
 
+  it("does not flag a useRealtime call with strategy: 'poll' (no channel to filter), even for a tenant-scoped table", () => {
+    writeHookFile(
+      "usePolledBroad.ts",
+      `import { useRealtime } from '@/hooks/useRealtime';
+export const usePolledBroad = () =>
+  useRealtime({
+    table: 'submissions',
+    event: 'INSERT',
+    onPayload: () => {},
+    pollingFn: () => {},
+    pollingInterval: 60_000,
+    strategy: 'poll',
+  });
+`
+    );
+    // strategy: 'poll' opens NO postgres_changes subscription, so the
+    // unfiltered-table rule does not apply — not even the tenant-scoped
+    // escalation (submissions is tenant-scoped).
+    expect(scanRealtimeFilters()).toEqual([]);
+  });
+
   it("flags a Major finding when useRealtime has no filter (non-tenant table)", () => {
     writeHookFile(
       "useTeamLeaderboard.ts",
