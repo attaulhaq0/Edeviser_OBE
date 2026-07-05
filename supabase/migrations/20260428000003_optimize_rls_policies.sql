@@ -1,14 +1,20 @@
 -- ============================================================
--- Migration: RLS Policy Optimization & Consolidation
+-- Migration: RLS Policy InitPlan Optimization
 -- Replaces bare auth.uid() with (select auth.uid())
 -- Replaces bare auth_user_role() with (select auth_user_role())
 -- Replaces bare auth_institution_id() with (select auth_institution_id())
--- Consolidates redundant permissive policies where possible
 -- Date: 2026-04-28
 -- ============================================================
--- IMPORTANT: This migration preserves ALL existing policy logic.
--- It only optimizes the evaluation pattern (InitPlan) and
--- consolidates multiple permissive policies for the same role+action.
+-- IMPORTANT: This migration preserves ALL existing policy logic and ALL
+-- existing policy COUNTS per table. It only optimizes the evaluation
+-- pattern (InitPlan) so auth.<fn>() is evaluated once per query instead of
+-- once per row. It does NOT merge multiple permissive policies into one --
+-- despite an earlier version of this comment claiming otherwise. The actual
+-- multiple-permissive-policy consolidation (advisor: multiple_permissive_policies,
+-- 76 groups as of the 2026-07-04 infra-health snapshot) is tracked separately in
+-- .kiro/specs/rls-policy-consolidation/ and has NOT yet been done. See
+-- .kiro/specs/rls-consolidation-and-infra-health/ for the investigation that
+-- found and documented this docstring/reality mismatch.
 -- Security audit RLS fixes (Vulns 14-27) are preserved.
 -- ============================================================
 
