@@ -85,12 +85,19 @@ const uniq = (values: string[]): string[] => Array.from(new Set(values));
  * @param programId Optional program filter; when provided only PLOs belonging to
  *                  that program are returned.
  */
-export const useAdminPLOHeatmap = (programId?: string) => {
+export const useAdminPLOHeatmap = (
+  programId?: string,
+  options?: { enabled?: boolean }
+) => {
   const { institutionId } = useAuth();
 
   return useQuery({
     queryKey: queryKeys.adminPLOHeatmap.list({ institutionId, programId }),
-    enabled: !!institutionId,
+    // PERF (dashboard-and-ux-performance): still institution-gated, but the admin
+    // dashboard's critical-first sequencing can additionally defer this 6-query
+    // heatmap until the KPI aggregate settles. Defaults to enabled for any other
+    // caller — fully backward-compatible.
+    enabled: !!institutionId && (options?.enabled ?? true),
     queryFn: async (): Promise<AdminPLOHeatmapRow[]> => {
       // 1. PLOs in this institution (explicit column select — no `*`, no TS2589).
       let ploQuery = supabase

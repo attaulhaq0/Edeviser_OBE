@@ -40,7 +40,10 @@ export interface CourseWithRelations extends Course {
 
 // ─── useCourses — list courses with optional search/program filter ───────────
 
-export const useCourses = (filters: CourseFilters = {}) => {
+export const useCourses = (
+  filters: CourseFilters = {},
+  options?: { enabled?: boolean }
+) => {
   const { page, pageSize, from, to } = getPaginationRange(
     filters.page,
     filters.pageSize
@@ -52,6 +55,11 @@ export const useCourses = (filters: CourseFilters = {}) => {
       unknown
     >),
     placeholderData: keepPreviousData,
+    // PERF (dashboard-and-ux-performance): allow a caller (e.g. the coordinator
+    // dashboard's critical-first sequencing) to defer this list until the
+    // critical KPI aggregate has settled. Defaults to enabled for every other
+    // caller — fully backward-compatible.
+    enabled: options?.enabled ?? true,
     queryFn: async (): Promise<PaginatedResult<CourseWithRelations>> => {
       let query = supabase
         .from("courses")

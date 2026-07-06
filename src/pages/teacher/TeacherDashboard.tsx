@@ -40,6 +40,7 @@ import {
 } from "@/hooks/useTeacherDashboard";
 import type { AtRiskStudent } from "@/hooks/useTeacherDashboard";
 import { useTeacherDashboardAggregate } from "@/hooks/useTeacherDashboardAggregate";
+import { useDeferredMount } from "@/hooks/useDeferredMount";
 import type { BloomsLevel } from "@/types/app";
 import AIAtRiskWidget from "@/components/shared/AIAtRiskWidget";
 import { useTeamHealthScores } from "@/hooks/useTeamHealth";
@@ -150,7 +151,7 @@ const CLOBarTooltip = ({ active, payload }: BarTooltipProps) => {
 
 // ─── At-Risk Student Card ───────────────────────────────────────────────────
 
-const AtRiskStudentCard = () => {
+const AtRiskStudentCard = ({ enabled }: { enabled: boolean }) => {
   const { t } = useTranslation("teacher");
   const { t: tCommon } = useTranslation("common");
   const {
@@ -158,7 +159,7 @@ const AtRiskStudentCard = () => {
     isLoading,
     isError: atRiskError,
     refetch: refetchAtRisk,
-  } = useAtRiskStudents();
+  } = useAtRiskStudents({ enabled });
   const nudgeMutation = useSendNudge();
   const [nudgeTarget, setNudgeTarget] = useState<AtRiskStudent | null>(null);
   const [nudgeMessage, setNudgeMessage] = useState("");
@@ -200,7 +201,7 @@ const AtRiskStudentCard = () => {
             {t("dashboard.atRiskStudents")}
           </h2>
         </div>
-        {isLoading ? (
+        {!enabled || isLoading ? (
           <div className="space-y-3">
             {Array.from({ length: 3 }).map((_, i) => (
               <Shimmer key={i} className="h-14 rounded-lg" />
@@ -484,6 +485,17 @@ const TeacherDashboard = () => {
   // the grading queue keep their own hooks.
   const aggregate = useTeacherDashboardAggregate(user?.id);
 
+  // PERF (spec: dashboard-and-ux-performance) — critical-first sequencing.
+  // The below-the-fold sections (CLO attainment, student heatmap, grading queue,
+  // at-risk list, team health) are gated to fire ONLY after the critical KPI
+  // aggregate has SETTLED. On shared-core (Nano) compute, firing them all at
+  // mount starves the aggregate — inflating its ~2ms of warm work into seconds
+  // of contention. A safety timeout still releases the deferred sections if the
+  // aggregate is slow or hanging, so nothing is ever withheld indefinitely.
+  const criticalSettled = aggregate.isSuccess || aggregate.isError;
+  const deferredFallback = useDeferredMount(2000);
+  const deferredReady = criticalSettled || deferredFallback;
+
   const kpisHook = useTeacherKPIs({ enabled: aggregate.isError });
   const kpis = aggregate.data?.kpis ?? kpisHook.data;
   const kpisLoading =
@@ -494,7 +506,7 @@ const TeacherDashboard = () => {
     isLoading: cloLoading,
     isError: cloError,
     refetch: refetchClo,
-  } = useTeacherCLOAttainment(effectiveCourseId);
+  } = useTeacherCLOAttainment(deferredReady ? effectiveCourseId : undefined);
 
   const bloomsHook = useTeacherBloomsDistribution({
     enabled: aggregate.isError,
@@ -508,13 +520,15 @@ const TeacherDashboard = () => {
     isLoading: heatmapLoading,
     isError: heatmapError,
     refetch: refetchHeatmap,
-  } = useStudentPerformanceHeatmap(effectiveCourseId);
+  } = useStudentPerformanceHeatmap(
+    deferredReady ? effectiveCourseId : undefined
+  );
   const {
     data: pendingSubmissions,
     isLoading: pendingLoading,
     isError: pendingError,
     refetch: refetchPending,
-  } = usePendingSubmissions();
+  } = usePendingSubmissions(undefined, { enabled: deferredReady });
 
   // Derive unique students and CLOs for heatmap grid
   const heatmapGrid = useMemo(() => {
@@ -648,7 +662,7 @@ const TeacherDashboard = () => {
               {t("dashboard.cloAttainment")}
             </h2>
           </div>
-          {cloLoading ? (
+          {!deferredReady || cloLoading ? (
             <Shimmer className="h-[300px] rounded-xl" />
           ) : cloError ? (
             <ErrorState
@@ -741,7 +755,7 @@ const TeacherDashboard = () => {
             {t("dashboard.studentHeatmap")}
           </h2>
         </div>
-        {heatmapLoading ? (
+        {!deferredReady || heatmapLoading ? (
           <Shimmer className="h-48 rounded-xl" />
         ) : heatmapError ? (
           <ErrorState
@@ -852,7 +866,9 @@ const TeacherDashboard = () => {
       <AIAtRiskWidget />
 
       {/* Team Health Summary Widget (Task 8.5) */}
-      <TeamHealthSummaryWidget courseId={effectiveCourseId} />
+      <TeamHealthSummaryWidget
+        courseId={deferredReady ? effectiveCourseId : ""}
+      />
 
       {/* Bottom Row: Grading Queue + At-Risk Students */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -876,7 +892,7 @@ const TeacherDashboard = () => {
               <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
-          {pendingLoading ? (
+          {!deferredReady || pendingLoading ? (
             <div className="space-y-3">
               {Array.from({ length: 3 }).map((_, i) => (
                 <Shimmer key={i} className="h-12 rounded-lg" />
@@ -932,7 +948,7 @@ const TeacherDashboard = () => {
         </Card>
 
         {/* At-Risk Students (heuristic-based) */}
-        <AtRiskStudentCard />
+        <AtRiskStudentCard enabled={deferredReady} />
       </div>
     </div>
   );
