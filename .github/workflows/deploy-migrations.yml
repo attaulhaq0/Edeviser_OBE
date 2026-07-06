@@ -71,7 +71,7 @@ jobs:
       - name: Migration replay-order integrity check
         run: npm run db:check-replay
 
-      - uses: supabase/setup-cli@v1
+      - uses: supabase/setup-cli@v2
         with:
           version: latest
 
