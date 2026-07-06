@@ -15,6 +15,7 @@
  *   grades                20260821000026  ->  grades_read
  *   submissions           20260821000027  ->  submissions_read
  *   profiles              20260821000028  ->  profiles_read
+ *   reflection_digests    20260822000002  ->  reflection_digests_read
  *
  * A SELECT RLS policy does not raise on denial — it silently filters rows — so
  * this suite asserts on the ROWS a signed-in role can read (like
@@ -60,6 +61,7 @@ interface ConsolidationFixtures {
   readonly outcomeId: string;
   readonly assignmentId: string;
   readonly submissionId: string;
+  readonly reflectionDigestId: string;
 }
 
 /** Minimal structural shape every `select("id")` query resolves to. */
@@ -165,10 +167,28 @@ const seedConsolidationFixtures = async (
   if (gam.error)
     throw new Error(`seed gamification upsert failed: ${gam.error.message}`);
 
+  // Reflection digest for the seeded student, shared with BOTH parent and
+  // teacher so all three allowed branches of the merged reflection_digests_read
+  // policy (20260822000002) light up. reflection_digests has no
+  // prevent_mutation trigger, so teardown can delete it (unlike evidence /
+  // xp_transactions).
+  const digest = await admin
+    .from("reflection_digests")
+    .insert({
+      student_id: ctx.studentId,
+      month: "2025-01",
+      shared_with: [{ role: "parent" }, { role: "teacher" }],
+    })
+    .select("id")
+    .single();
+  if (digest.error || !digest.data)
+    throw new Error(`seed reflection_digest failed: ${digest.error?.message}`);
+
   return {
     outcomeId: clo.data.id,
     assignmentId: asg.data.id,
     submissionId: sub.data.id,
+    reflectionDigestId: digest.data.id,
   };
 };
 
@@ -193,6 +213,10 @@ const teardownConsolidationFixtures = async (ctx: SeededCtx): Promise<void> => {
     }
   };
 
+  await swallow(
+    "reflection_digests",
+    admin.from("reflection_digests").delete().eq("student_id", ctx.studentId)
+  );
   await swallow(
     "grades",
     admin.from("grades").delete().eq("graded_by", ctx.teacherId)
@@ -614,6 +638,129 @@ describe.skipIf(!shouldRunRls())(
         ).toBe(1);
       } finally {
         await client.auth.signOut();
+      }
+    });
+
+    // ---- reflection_digests (reflection_digests_read: self / verified-parent /
+    //      enrolled-teacher). Merged by 20260822000002. The seeded digest is
+    //      shared_with BOTH parent and teacher, so every allowed branch fires;
+    //      the merge added NO admin/coordinator branch, so staff still read none. ----
+
+    it("[reflection_digests] student reads only their own digest", async () => {
+      const c = getCtx();
+      const client = await signInAs(c.emails.student, c.password);
+      try {
+        expect(
+          await countRows(
+            client
+              .from("reflection_digests")
+              .select("id")
+              .eq("student_id", c.studentId)
+          )
+        ).toBe(1);
+        expect(
+          await countRows(
+            client
+              .from("reflection_digests")
+              .select("id")
+              .eq("student_id", c.otherStudentId)
+          )
+        ).toBe(0);
+      } finally {
+        await client.auth.signOut();
+      }
+    });
+
+    it("[reflection_digests] a different student reads none", async () => {
+      const c = getCtx();
+      const client = await signInAs(c.otherStudentEmail, c.password);
+      try {
+        // Unfiltered: the merged policy scopes to the caller's own rows (none).
+        expect(
+          await countRows(client.from("reflection_digests").select("id"))
+        ).toBe(0);
+      } finally {
+        await client.auth.signOut();
+      }
+    });
+
+    it("[reflection_digests] verified parent reads their linked child's shared digest only", async () => {
+      const c = getCtx();
+      const client = await signInAs(c.emails.parent, c.password);
+      try {
+        expect(
+          await countRows(
+            client
+              .from("reflection_digests")
+              .select("id")
+              .eq("student_id", c.studentId)
+          )
+        ).toBe(1);
+        expect(
+          await countRows(
+            client
+              .from("reflection_digests")
+              .select("id")
+              .eq("student_id", c.otherStudentId)
+          )
+        ).toBe(0);
+      } finally {
+        await client.auth.signOut();
+      }
+    });
+
+    it("[reflection_digests] teacher reads an enrolled student's shared digest, not an unenrolled student's", async () => {
+      const c = getCtx();
+      const client = await signInAs(c.emails.teacher, c.password);
+      try {
+        expect(
+          await countRows(
+            client
+              .from("reflection_digests")
+              .select("id")
+              .eq("student_id", c.studentId)
+          )
+        ).toBe(1);
+        expect(
+          await countRows(
+            client
+              .from("reflection_digests")
+              .select("id")
+              .eq("student_id", c.otherStudentId)
+          )
+        ).toBe(0);
+      } finally {
+        await client.auth.signOut();
+      }
+    });
+
+    it("[reflection_digests] admin/coordinator get no direct read (merge added no staff branch)", async () => {
+      const c = getCtx();
+      const admin = await signInAs(c.emails.admin, c.password);
+      try {
+        expect(
+          await countRows(
+            admin
+              .from("reflection_digests")
+              .select("id")
+              .eq("student_id", c.studentId)
+          )
+        ).toBe(0);
+      } finally {
+        await admin.auth.signOut();
+      }
+      const coordinator = await signInAs(c.emails.coordinator, c.password);
+      try {
+        expect(
+          await countRows(
+            coordinator
+              .from("reflection_digests")
+              .select("id")
+              .eq("student_id", c.studentId)
+          )
+        ).toBe(0);
+      } finally {
+        await coordinator.auth.signOut();
       }
     });
   }
