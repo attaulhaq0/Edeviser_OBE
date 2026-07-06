@@ -228,24 +228,27 @@ const StudentDashboard = () => {
   const studentId = user?.id ?? "";
   const queryClient = useQueryClient();
 
-  // PERF: Defer non-critical hooks until after first paint to reduce
-  // thundering herd of 27 parallel queries on dashboard mount.
-  // Critical (above-fold): kpis, deadlines, profile, completeness — these fire immediately.
-  // Deferred: micro-assessments, badges, teams, attendance, challenges,
-  // announcements, league tier, etc. fire after ~500ms.
-  const deferredReady = useDeferredMount(500);
-  const deferredStudentId = deferredReady ? studentId : undefined;
-
   // PERF (spec: dashboard-and-ux-performance, Req 2): ONE aggregate round-trip
   // (`get_student_dashboard`) hydrates the KPI + upcoming-deadlines caches AND
   // drives the critical block directly, so it is a single request — not the
   // aggregate plus the two section requests it was meant to replace. Additive +
   // reversible: the section hooks below remain the fallback path, gated to fetch
   // ONLY if the aggregate errors (cache miss / RPC failure), so behavior and data
-  // visibility are unchanged (the RPC is SECURITY INVOKER). This does NOT cover
-  // the deferred always-on sections yet, so `useDeferredMount(500)` must stay to
-  // avoid re-introducing the ~20-hook thundering herd.
+  // visibility are unchanged (the RPC is SECURITY INVOKER).
   const aggregate = useStudentDashboardAggregate(studentId);
+
+  // PERF (Option J): tame the mount "thundering herd" on constrained compute.
+  // The ~15 below-the-fold section queries are gated to fire only AFTER the
+  // critical KPI aggregate has SETTLED, instead of on a blind 500ms timer. On a
+  // shared-core (Nano) database, firing them all at once starves the critical
+  // query, which is what inflates its ~250ms of work into several seconds.
+  // Sequencing critical-first lets it finish on its own cores, then the rest
+  // streams in. A safety timeout still releases the deferred sections if the
+  // aggregate is slow or hanging, so nothing is ever withheld indefinitely.
+  const criticalSettled = aggregate.isSuccess || aggregate.isError;
+  const deferredFallback = useDeferredMount(2000);
+  const deferredReady = criticalSettled || deferredFallback;
+  const deferredStudentId = deferredReady ? studentId : undefined;
 
   // Fallback only: the prior `enabled: !!studentId` made these race the aggregate
   // on every mount (so the request count never dropped). Now they fire only when
