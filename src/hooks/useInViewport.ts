@@ -32,9 +32,9 @@ interface UseInViewportOptions {
  */
 export const useInViewport = <T extends Element = HTMLDivElement>(
   options: UseInViewportOptions = {}
-): { ref: React.RefObject<T | null>; inView: boolean } => {
+): { ref: React.RefObject<T>; inView: boolean } => {
   const { rootMargin = "200px", threshold = 0, once = true } = options;
-  const ref = useRef<T | null>(null);
+  const ref = useRef<T>(null);
 
   // Lazy initial state (computed here, not via setState in the effect, to avoid
   // a cascading-render lint violation): reveal immediately when there is no

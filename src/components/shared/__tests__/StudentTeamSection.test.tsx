@@ -5,10 +5,7 @@ import { render, act } from "@testing-library/react";
 // Mock IntersectionObserver
 // ---------------------------------------------------------------------------
 let ioCallback: IntersectionObserverCallback | null = null;
-class MockIntersectionObserver implements IntersectionObserver {
-  root = null;
-  rootMargin = "";
-  thresholds: ReadonlyArray<number> = [];
+class MockIntersectionObserver {
   constructor(cb: IntersectionObserverCallback) {
     ioCallback = cb;
   }

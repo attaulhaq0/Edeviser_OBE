@@ -9,10 +9,7 @@ let ioCallback: IntersectionObserverCallback | null = null;
 const observe = vi.fn();
 const disconnect = vi.fn();
 
-class MockIntersectionObserver implements IntersectionObserver {
-  root = null;
-  rootMargin = "";
-  thresholds: ReadonlyArray<number> = [];
+class MockIntersectionObserver {
   constructor(cb: IntersectionObserverCallback) {
     ioCallback = cb;
   }
