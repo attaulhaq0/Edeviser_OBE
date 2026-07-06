@@ -60,9 +60,17 @@ export interface UpdateCQIPlanInput {
 
 // ─── Queries ────────────────────────────────────────────────────────────────
 
-export const useCQIPlans = (filters: Record<string, unknown> = {}) => {
+export const useCQIPlans = (
+  filters: Record<string, unknown> = {},
+  options?: { enabled?: boolean }
+) => {
   return useQuery({
     queryKey: queryKeys.cqiPlans.list(filters),
+    // PERF (dashboard-and-ux-performance): allow a caller (e.g. the coordinator
+    // dashboard's critical-first sequencing) to defer this list until the
+    // critical KPI aggregate has settled. Defaults to enabled for every other
+    // caller — fully backward-compatible.
+    enabled: options?.enabled ?? true,
     queryFn: async (): Promise<CQIActionPlan[]> => {
       let query = supabase
         .from("cqi_action_plans")

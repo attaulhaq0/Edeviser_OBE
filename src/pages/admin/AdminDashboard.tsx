@@ -87,13 +87,24 @@ const AdminDashboard = () => {
   const { t: tCommon } = useTranslation("common");
   const { profile, institutionId } = useAuth();
   const navigate = useNavigate();
-  const deferredReady = useDeferredMount(500);
   // PERF (spec: dashboard-and-ux-performance, Phase 8 Task 35): ONE aggregate
   // round-trip (`get_admin_dashboard`, SECURITY INVOKER / RLS-scoped to the
   // caller's institution) hydrates the KPI cache and drives the KPI row directly.
   // Additive + reversible: the section hook falls back to its own 5-query fan-out
   // ONLY when the aggregate errors.
   const kpiAggregate = useAdminDashboardAggregate(institutionId);
+
+  // PERF (spec: dashboard-and-ux-performance) — critical-first sequencing.
+  // The below-the-fold sections (recent audit logs, onboarding analytics, AI
+  // performance, and the PLO heatmap) are gated to fire ONLY after the critical
+  // KPI aggregate has SETTLED, so they never contend with it at mount. A safety
+  // timeout still releases the deferred sections if the aggregate is slow or
+  // hanging, so nothing is ever withheld indefinitely. (Upgraded from a blind
+  // 500ms mount timer to the aggregate-settle signal.)
+  const criticalSettled = kpiAggregate.isSuccess || kpiAggregate.isError;
+  const deferredFallback = useDeferredMount(2000);
+  const deferredReady = criticalSettled || deferredFallback;
+
   const kpisHook = useAdminKPIs({ enabled: kpiAggregate.isError });
   const kpis = kpiAggregate.data ?? kpisHook.data;
   const kpisLoading =
@@ -121,7 +132,7 @@ const AdminDashboard = () => {
     data: ploHeatmap,
     isLoading: ploLoading,
     isError: ploIsError,
-  } = useAdminPLOHeatmap();
+  } = useAdminPLOHeatmap(undefined, { enabled: deferredReady });
   const [selectedPLO, setSelectedPLO] = useState<AdminPLOHeatmapRow | null>(
     null
   );
@@ -353,8 +364,9 @@ const AdminDashboard = () => {
           </h2>
         </div>
         <div className="p-6">
-          {ploLoading ? (
-            // State 1 — loading
+          {!deferredReady || ploLoading ? (
+            // State 1 — loading (also held during the critical-first defer window
+            // so the heatmap never flashes its no-data state before it fires)
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
               {Array.from({ length: 8 }).map((_, i) => (
                 <Shimmer key={i} className="h-24 rounded-xl" />
