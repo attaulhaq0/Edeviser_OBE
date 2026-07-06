@@ -13,7 +13,7 @@ import ProfileCompletenessBar from "@/components/shared/ProfileCompletenessBar";
 import StarterWeekHeroCard from "@/components/shared/StarterWeekHeroCard";
 import StreakFreezeShop from "@/components/shared/StreakFreezeShop";
 import AdaptiveXPDisplay from "@/components/shared/AdaptiveXPDisplay";
-import TeamDashboardCard from "@/components/shared/TeamDashboardCard";
+import StudentTeamSection from "@/components/shared/StudentTeamSection";
 import HabitTracker from "@/components/shared/HabitTracker";
 import StreakDisplay from "@/components/shared/StreakDisplay";
 import ComebackChallengeBanner from "@/components/shared/ComebackChallengeBanner";
@@ -57,9 +57,7 @@ import {
 } from "@/hooks/useAnnouncements";
 import { useStudentAttendance } from "@/hooks/useAttendance";
 import { useStudentChallenges } from "@/hooks/useChallenges";
-import { useMyTeamId } from "@/hooks/useTeamLeaderboard";
 import SectionState from "@/components/shared/SectionState";
-import { useTeams, useTeamGamification } from "@/hooks/useTeams";
 import { useBadgeSpotlight, useTieredBadges } from "@/hooks/useTieredBadges";
 import { useStudentLeagueTier } from "@/hooks/useLeagueLeaderboard";
 import { useDeferredMount } from "@/hooks/useDeferredMount";
@@ -68,7 +66,6 @@ import LeagueTierBadge from "@/components/shared/LeagueTierBadge";
 import PrimaryCTA, {
   type PrimaryCtaAction,
 } from "@/components/shared/PrimaryCTA";
-import { useFirstEnrolledCourseId } from "@/hooks/useFirstEnrolledCourse";
 import { queryKeys } from "@/lib/queryKeys";
 import { ONBOARDING_XP } from "@/lib/onboardingConstants";
 import { getDeadlineUrgency } from "@/hooks/useCalendar";
@@ -83,7 +80,6 @@ import {
   Megaphone,
   ClipboardCheck,
   Trophy,
-  Users,
   UserCircle,
   FileCheck,
   MessageSquare,
@@ -394,19 +390,6 @@ const StudentDashboard = () => {
   const activeChallenges = (studentChallenges ?? []).filter(
     (c) => c.status === "active"
   );
-
-  // Team data for dashboard card — Requirement 112.7
-  // First active course is resolved through the shared `useFirstEnrolledCourseId`
-  // hook (also consumed by StudentTeamPage); the fetch is deferred until after
-  // first paint to match the dashboard's non-critical-query strategy.
-  const firstCourseQuery = useFirstEnrolledCourseId(studentId || undefined, {
-    enabled: deferredReady,
-  });
-  const firstCourseId = firstCourseQuery.data ?? undefined;
-  const { data: myTeamId } = useMyTeamId(deferredStudentId, firstCourseId);
-  const { data: teamsData } = useTeams(firstCourseId);
-  const myTeam = (teamsData ?? []).find((t) => t.id === myTeamId);
-  const { data: teamGamification } = useTeamGamification(myTeamId ?? undefined);
 
   const profileCompleteness = completenessData?.profile_completeness ?? 0;
   const day1Completed = completenessData?.day1_completed ?? false;
@@ -942,25 +925,10 @@ const StudentDashboard = () => {
           );
         })()}
 
-      {/* Team Dashboard Card — Requirement 112.7 */}
-      {myTeam && (
-        <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-          <div
-            className="px-6 py-4 flex items-center gap-2"
-            style={{
-              background: "var(--brand-gradient)",
-            }}
-          >
-            <Users className="h-5 w-5 text-white" />
-            <h2 className="text-lg font-bold tracking-tight text-white">
-              {t("dashboard.myTeam")}
-            </h2>
-          </div>
-          <div className="p-6">
-            <TeamDashboardCard team={myTeam} gamification={teamGamification} />
-          </div>
-        </Card>
-      )}
+      {/* Team Dashboard Card — Requirement 112.7. Viewport-gated (Option J,
+          Phase 1): its team queries fire only when this section scrolls into
+          view, instead of on the blind post-paint timer. */}
+      {studentId && <StudentTeamSection studentId={studentId} />}
 
       {/* Active Challenges — Requirement 113.5 */}
       {activeChallenges.length > 0 && (
