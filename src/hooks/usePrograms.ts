@@ -27,7 +27,10 @@ export interface ProgramFilters {
 
 // ─── usePrograms — list programs with optional search filter ─────────────────
 
-export const usePrograms = (filters: ProgramFilters = {}) => {
+export const usePrograms = (
+  filters: ProgramFilters = {},
+  options?: { enabled?: boolean }
+) => {
   const { page, pageSize, from, to } = getPaginationRange(
     filters.page,
     filters.pageSize
@@ -39,6 +42,11 @@ export const usePrograms = (filters: ProgramFilters = {}) => {
       unknown
     >),
     placeholderData: keepPreviousData,
+    // PERF (dashboard-and-ux-performance): allow a caller (e.g. the coordinator
+    // dashboard's critical-first sequencing) to defer this list until the
+    // critical KPI aggregate has settled. Defaults to enabled for every other
+    // caller — fully backward-compatible.
+    enabled: options?.enabled ?? true,
     queryFn: async (): Promise<PaginatedResult<Program>> => {
       let query = supabase
         .from("programs")
