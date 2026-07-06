@@ -114,6 +114,25 @@ export const handleGlobalMutationError = (
   if (is429(error)) toast.error(RATE_LIMIT_MESSAGE);
 };
 
+/**
+ * Retry backoff with EQUAL JITTER (spec: dashboard-and-ux-performance; AWS
+ * "exponential backoff and jitter"). The base doubles per attempt (capped at
+ * RETRY_MAX_DELAY_MS), then we wait half the base plus a random portion of the
+ * other half. The jitter de-synchronizes retries: without it, many queries that
+ * fail together under DB contention retry in lockstep and re-create the same
+ * thundering herd — a big contributor to the multi-second (~60s) stalls under
+ * load. `random` is injectable for deterministic tests.
+ */
+export const RETRY_MAX_DELAY_MS = 10_000;
+
+export const computeRetryDelay = (
+  attempt: number,
+  random: () => number = Math.random
+): number => {
+  const base = Math.min(1000 * 2 ** attempt, RETRY_MAX_DELAY_MS);
+  return Math.round(base / 2 + random() * (base / 2));
+};
+
 export const queryClient = new QueryClient({
   queryCache: new QueryCache({
     onError: (error, query) => handleGlobalQueryError(error, query.meta),
@@ -127,7 +146,7 @@ export const queryClient = new QueryClient({
       staleTime: 5 * 60 * 1000, // 5 minutes
       gcTime: 30 * 60 * 1000, // 30 minutes
       retry: shouldRetryQuery,
-      retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 30000),
+      retryDelay: (attempt) => computeRetryDelay(attempt),
       refetchOnWindowFocus: false,
     },
     // Mutation 429 + error logging is handled by `mutationCache.onError` above.
