@@ -31,6 +31,7 @@ import {
   clearCachedProfile,
   isProfileFresh,
 } from "@/lib/profileCache";
+import { clearCachedDashboard } from "@/lib/dashboardCache";
 
 // ---------------------------------------------------------------------------
 // Role → dashboard path mapping
@@ -137,9 +138,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     async (session: Session | null) => {
       if (!session?.user) {
         currentUserIdRef.current = null;
-        // No authenticated session — drop any cached profile so it can never
-        // be hydrated for an unauthenticated (or subsequent) user.
+        // No authenticated session — drop any cached profile/dashboard so it
+        // can never be hydrated for an unauthenticated (or subsequent) user.
         clearCachedProfile();
+        clearCachedDashboard();
         setUser(null);
         setProfile(null);
         setIsLoading(false);
@@ -219,9 +221,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       switch (event) {
         case "SIGNED_OUT":
           // Explicitly clear state on sign-out (session expiry or manual). Also
-          // drop the cached profile so the next user on this device can never
-          // hydrate the previous user's data (cross-user no-leak).
+          // drop the cached profile + dashboard so the next user on this device
+          // can never hydrate the previous user's data (cross-user no-leak).
           clearCachedProfile();
+          clearCachedDashboard();
           currentUserIdRef.current = null;
           setUser(null);
           setProfile(null);
@@ -501,6 +504,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signOut = useCallback(async () => {
     await supabase.auth.signOut();
     clearCachedProfile();
+    clearCachedDashboard();
     currentUserIdRef.current = null;
     setUser(null);
     setProfile(null);

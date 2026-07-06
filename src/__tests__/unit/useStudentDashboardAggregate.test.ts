@@ -270,6 +270,10 @@ const makeWrapper = (client: QueryClient) => {
 describe("useStudentDashboardAggregate (dashboard-and-ux-performance Req 2)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // The hook now write-throughs the aggregate to a per-user localStorage cache
+    // and hydrates it as SWR initialData. Clear it between tests so a prior
+    // test's snapshot can't suppress the RPC (fresh initialData → no refetch).
+    localStorage.clear();
     mockFrom.mockImplementation(() => makeFromBuilder());
   });
 

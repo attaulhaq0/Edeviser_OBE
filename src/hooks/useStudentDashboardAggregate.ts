@@ -1,7 +1,12 @@
+import { useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
 import { DASHBOARD_STALE_TIME_MS } from "@/lib/queryConfig";
+import {
+  readCachedDashboard,
+  writeCachedDashboard,
+} from "@/lib/dashboardCache";
 import type {
   StudentKPIData,
   UpcomingDeadline,
@@ -52,10 +57,28 @@ export interface StudentDashboardAggregate {
 export const useStudentDashboardAggregate = (studentId: string | undefined) => {
   const queryClient = useQueryClient();
 
+  // SWR shell-first (Option J): hydrate the last-known dashboard snapshot from a
+  // per-user localStorage cache so the KPI cards paint INSTANTLY on repeat loads
+  // and hard refreshes (localStorage survives Ctrl+Shift+R), then revalidate in
+  // the background. Identity-guarded (a snapshot is only ever read back for its
+  // owning user) and cleared on sign-out — cross-user no-leak.
+  const cachedInitial = useMemo(
+    () =>
+      studentId
+        ? readCachedDashboard<StudentDashboardAggregate>(studentId)
+        : null,
+    [studentId]
+  );
+
   return useQuery({
     queryKey: queryKeys.studentDashboard.detail(studentId ?? ""),
     enabled: !!studentId,
     staleTime: DASHBOARD_STALE_TIME_MS,
+    initialData: cachedInitial?.data,
+    // Treat the cached snapshot as being as old as its capture time, so a stale
+    // one triggers a background revalidate on mount (SWR) while still painting
+    // instantly. A fresh one (< staleTime) is served without a refetch.
+    initialDataUpdatedAt: cachedInitial?.cachedAt,
     queryFn: async (): Promise<StudentDashboardAggregate> => {
       if (!studentId) {
         throw new Error("useStudentDashboardAggregate: studentId is required");
@@ -136,6 +159,8 @@ export const useStudentDashboardAggregate = (studentId: string | undefined) => {
         });
       }
 
+      // Persist the fresh snapshot for instant SWR hydration on the next load.
+      writeCachedDashboard(studentId, payload);
       return payload;
     },
   });
