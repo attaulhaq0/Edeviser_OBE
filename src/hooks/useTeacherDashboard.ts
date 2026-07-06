@@ -385,7 +385,7 @@ export interface AtRiskStudent {
 
 // ─── useAtRiskStudents ──────────────────────────────────────────────────────
 
-export const useAtRiskStudents = () => {
+export const useAtRiskStudents = (options?: { enabled?: boolean }) => {
   const { user } = useAuth();
 
   return useQuery({
@@ -505,7 +505,7 @@ export const useAtRiskStudents = () => {
 
       return result;
     },
-    enabled: !!user?.id,
+    enabled: !!user?.id && (options?.enabled ?? true),
     staleTime: DASHBOARD_STALE_TIME_MS,
   });
 };

@@ -133,7 +133,10 @@ export const useSubmission = (id?: string) => {
 
 // ─── usePendingSubmissions — submissions without grades (grading queue) ─────
 
-export const usePendingSubmissions = (courseId?: string) => {
+export const usePendingSubmissions = (
+  courseId?: string,
+  options?: { enabled?: boolean }
+) => {
   return useQuery({
     queryKey: queryKeys.submissions.list({ courseId, status: "pending" }),
     queryFn: async (): Promise<SubmissionWithRelations[]> => {
@@ -155,6 +158,11 @@ export const usePendingSubmissions = (courseId?: string) => {
       const submissions = (data ?? []) as SubmissionWithRelations[];
       return submissions.filter((s) => !s.grades || s.grades.length === 0);
     },
+    // PERF (dashboard-and-ux-performance): let the teacher dashboard defer this
+    // below-the-fold grading-queue fetch until its critical KPI aggregate has
+    // settled (critical-first sequencing). Defaults to enabled for every other
+    // caller — fully backward-compatible.
+    enabled: options?.enabled ?? true,
   });
 };
 
