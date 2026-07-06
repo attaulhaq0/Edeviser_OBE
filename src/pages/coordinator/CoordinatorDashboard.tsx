@@ -15,6 +15,7 @@ import CurriculumMatrix from "@/components/shared/CurriculumMatrix";
 import CellDetailSheet from "@/components/shared/CellDetailSheet";
 import { useCoordinatorKPIs } from "@/hooks/useCoordinatorDashboard";
 import { useCoordinatorDashboardAggregate } from "@/hooks/useCoordinatorDashboardAggregate";
+import { useDeferredMount } from "@/hooks/useDeferredMount";
 import { useRecoveryMetrics } from "@/hooks/useMasteryRecovery";
 import { useCQIPlanSummary, useCQIPlans } from "@/hooks/useCQIPlans";
 import CQIStatusBadge from "@/components/shared/CQIStatusBadge";
@@ -90,6 +91,18 @@ const CoordinatorDashboard = () => {
   // Additive + reversible: the section hook falls back to its own ~6-query chain
   // ONLY when the aggregate errors.
   const kpiAggregate = useCoordinatorDashboardAggregate(institutionId);
+
+  // PERF (spec: dashboard-and-ux-performance) — critical-first sequencing.
+  // The below-the-fold sections (curriculum matrix + program selector, recovery
+  // pathway metrics, CQI action plans, and the section-comparison course list)
+  // are gated to fire ONLY after the critical KPI aggregate has SETTLED, so they
+  // never contend with it at mount. A safety timeout still releases the deferred
+  // sections if the aggregate is slow or hanging, so nothing is ever withheld
+  // indefinitely.
+  const criticalSettled = kpiAggregate.isSuccess || kpiAggregate.isError;
+  const deferredFallback = useDeferredMount(2000);
+  const deferredReady = criticalSettled || deferredFallback;
+
   const kpisHook = useCoordinatorKPIs({ enabled: kpiAggregate.isError });
   const kpis = kpiAggregate.data ?? kpisHook.data;
   const kpisLoading =
@@ -99,10 +112,15 @@ const CoordinatorDashboard = () => {
     isLoading: recoveryLoading,
     isError: recoveryError,
     refetch: refetchRecovery,
-  } = useRecoveryMetrics(institutionId ?? "");
-  const { data: paginatedPrograms, isLoading: programsLoading } = usePrograms();
+  } = useRecoveryMetrics(deferredReady ? institutionId ?? "" : "");
+  const { data: paginatedPrograms, isLoading: programsLoading } = usePrograms(
+    undefined,
+    { enabled: deferredReady }
+  );
   const programs = paginatedPrograms?.data;
-  const { data: paginatedCourses } = useCourses();
+  const { data: paginatedCourses } = useCourses(undefined, {
+    enabled: deferredReady,
+  });
   const courses = paginatedCourses?.data ?? [];
   const [selectedProgramId, setSelectedProgramId] = useState<string>("");
   const [selectedCell, setSelectedCell] = useState<SelectedCell | null>(null);
@@ -120,9 +138,12 @@ const CoordinatorDashboard = () => {
     isLoading: cqiLoading,
     isError: cqiError,
     refetch: refetchCqi,
-  } = useCQIPlanSummary(effectiveProgramIdForCQI || undefined);
+  } = useCQIPlanSummary(
+    deferredReady ? effectiveProgramIdForCQI || undefined : undefined
+  );
   const { data: recentCQIPlans } = useCQIPlans(
-    effectiveProgramIdForCQI ? { program_id: effectiveProgramIdForCQI } : {}
+    effectiveProgramIdForCQI ? { program_id: effectiveProgramIdForCQI } : {},
+    { enabled: deferredReady }
   );
 
   // Sections + real attainment for the selected comparison course
@@ -210,7 +231,7 @@ const CoordinatorDashboard = () => {
               </h2>
             </div>
             <div className="flex items-center gap-3">
-              {programsLoading ? (
+              {!deferredReady || programsLoading ? (
                 <Shimmer className="h-9 w-48" />
               ) : (
                 <Select
@@ -239,7 +260,9 @@ const CoordinatorDashboard = () => {
             </div>
           </div>
           <div className="p-6">
-            {effectiveProgramId ? (
+            {!deferredReady || programsLoading ? (
+              <Shimmer className="h-64 rounded-xl" />
+            ) : effectiveProgramId ? (
               <CurriculumMatrix
                 programId={effectiveProgramId}
                 onCellClick={handleCellClick}
@@ -316,7 +339,7 @@ const CoordinatorDashboard = () => {
           </h2>
         </div>
         <div className="p-6">
-          {recoveryLoading ? (
+          {!deferredReady || recoveryLoading ? (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {Array.from({ length: 4 }).map((_, i) => (
                 <Shimmer key={i} className="h-24 rounded-xl" />
@@ -386,7 +409,7 @@ const CoordinatorDashboard = () => {
           </Link>
         </div>
         <div className="p-6">
-          {cqiLoading ? (
+          {!deferredReady || cqiLoading ? (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {Array.from({ length: 4 }).map((_, i) => (
                 <Shimmer key={i} className="h-24 rounded-xl" />
