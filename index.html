@@ -11,6 +11,20 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&family=Noto+Sans+Arabic:wght@400;500;600;700;900&display=swap" rel="stylesheet" />
+    <!--
+      Warm the TCP+TLS connection to the Supabase origin during initial HTML
+      parse, in parallel with JS bundle download. On a cold first load the very
+      first API call (auth token refresh → the dashboard aggregate RPC) would
+      otherwise pay a full DNS + TCP + TLS handshake (~2-3 RTT) before any data
+      moves. Pre-opening the connection removes that serial handshake from the
+      critical path — the higher the client↔DB round-trip time, the bigger the
+      saving. `crossorigin` is required so the anonymous CORS connection matches
+      the credential-less `fetch` requests supabase-js makes (otherwise the
+      browser opens a second connection and the hint is wasted). The URL is
+      substituted from VITE_SUPABASE_URL at build time.
+    -->
+    <link rel="preconnect" href="%VITE_SUPABASE_URL%" crossorigin />
+    <link rel="dns-prefetch" href="%VITE_SUPABASE_URL%" />
   </head>
   <body>
     <div id="root"></div>
