@@ -422,68 +422,184 @@ async function fetchWithRetry(
   url: string,
   options: RequestInit,
   maxRetries: number = MAX_RETRIES,
-  initialDelay: number = INITIAL_RETRY_DELAY_MS,
-  fallbackModel?: string
-): Promise<{ response: Response; modelUsed: string; retryCount: number }> {
+  initialDelay: number = INITIAL_RETRY_DELAY_MS
+): Promise<{ response: Response; retryCount: number }> {
   let lastError: Error | null = null;
-  let retryCount = 0;
 
-  // Parse the body to get the model for logging
-  const bodyObj = JSON.parse(options.body as string);
-  const primaryModel = bodyObj.model as string;
-
-  // Try primary model with retries
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
       const response = await fetch(url, options);
       if (response.ok || response.status < 500) {
-        return { response, modelUsed: primaryModel, retryCount: attempt };
+        return { response, retryCount: attempt };
       }
       lastError = new Error(`HTTP ${response.status}: ${response.statusText}`);
     } catch (err) {
       lastError = err as Error;
     }
 
-    retryCount = attempt + 1;
     if (attempt < maxRetries - 1) {
       const delay = initialDelay * Math.pow(2, attempt);
       await sleep(delay);
     }
   }
 
-  // Try fallback model if available
-  if (fallbackModel) {
-    bodyObj.model = fallbackModel;
-    const fallbackOptions = {
-      ...options,
-      body: JSON.stringify(bodyObj),
-    };
+  throw lastError ?? new Error("All retry attempts exhausted");
+}
 
-    for (let attempt = 0; attempt < maxRetries; attempt++) {
-      try {
-        const response = await fetch(url, fallbackOptions);
-        if (response.ok || response.status < 500) {
-          return {
-            response,
-            modelUsed: fallbackModel,
-            retryCount: retryCount + attempt,
-          };
-        }
-        lastError = new Error(
-          `HTTP ${response.status}: ${response.statusText}`
-        );
-      } catch (err) {
-        lastError = err as Error;
-      }
+// ─── Gemini API Helpers ─────────────────────────────────────────────────────
 
-      if (attempt < maxRetries - 1) {
-        const delay = initialDelay * Math.pow(2, attempt);
-        await sleep(delay);
+/**
+ * Fetches an image from a URL and returns it as a base64-encoded inline_data
+ * part for the Gemini API. Supports JPEG, PNG, GIF, and WebP.
+ * Returns null if the fetch fails (non-fatal — message is sent without image).
+ */
+async function fetchImageAsGeminiPart(
+  imageUrl: string
+): Promise<{ inline_data: { mime_type: string; data: string } } | null> {
+  try {
+    const response = await fetch(imageUrl);
+    if (!response.ok) {
+      console.error(`Failed to fetch image ${imageUrl}: ${response.status}`);
+      return null;
+    }
+
+    const contentType = response.headers.get("content-type") ?? "image/jpeg";
+    // Normalize mime type to supported Gemini formats
+    let mimeType = contentType.split(";")[0].trim();
+    const supportedTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/gif",
+      "image/webp",
+    ];
+    if (!supportedTypes.includes(mimeType)) {
+      mimeType = "image/jpeg"; // fallback
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+    const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+
+    return { inline_data: { mime_type: mimeType, data: base64 } };
+  } catch (err) {
+    console.error(
+      `Image fetch failed for ${imageUrl}: ${(err as Error).message}`
+    );
+    return null;
+  }
+}
+
+/**
+ * Fetches a document URL and returns it as a Gemini-compatible inline_data
+ * part. Supports PDF and common document types.
+ */
+async function fetchDocumentAsGeminiPart(
+  documentUrl: string
+): Promise<{ inline_data: { mime_type: string; data: string } } | null> {
+  try {
+    const response = await fetch(documentUrl);
+    if (!response.ok) {
+      console.error(
+        `Failed to fetch document ${documentUrl}: ${response.status}`
+      );
+      return null;
+    }
+
+    const contentType =
+      response.headers.get("content-type") ?? "application/pdf";
+    let mimeType = contentType.split(";")[0].trim();
+    // Gemini supports PDF natively
+    const supportedDocTypes = [
+      "application/pdf",
+      "text/plain",
+      "text/html",
+      "text/csv",
+    ];
+    if (!supportedDocTypes.includes(mimeType)) {
+      mimeType = "application/pdf"; // fallback
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+    const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+
+    return { inline_data: { mime_type: mimeType, data: base64 } };
+  } catch (err) {
+    console.error(
+      `Document fetch failed for ${documentUrl}: ${(err as Error).message}`
+    );
+    return null;
+  }
+}
+
+// Gemini content part types
+type GeminiTextPart = { text: string };
+type GeminiInlineDataPart = {
+  inline_data: { mime_type: string; data: string };
+};
+type GeminiPart = GeminiTextPart | GeminiInlineDataPart;
+interface GeminiContent {
+  role: "user" | "model";
+  parts: GeminiPart[];
+}
+
+/**
+ * Converts our internal message format + attachments into the Gemini
+ * `contents` array with multimodal parts.
+ */
+async function buildGeminiContents(
+  systemPrompt: string,
+  contextMessages: Array<{ role: string; content: string }>,
+  currentMessage: string,
+  imageUrls?: string[],
+  documentUrl?: string
+): Promise<{
+  systemInstruction: { parts: GeminiPart[] };
+  contents: GeminiContent[];
+}> {
+  // System instruction is separate in Gemini API
+  const systemInstruction = {
+    parts: [{ text: systemPrompt }] as GeminiPart[],
+  };
+
+  // Build contents array (conversation history + current message)
+  const contents: GeminiContent[] = [];
+
+  // Add conversation context
+  for (const msg of contextMessages) {
+    contents.push({
+      role: msg.role === "assistant" ? "model" : "user",
+      parts: [{ text: msg.content }],
+    });
+  }
+
+  // Build current user message with multimodal parts
+  const currentParts: GeminiPart[] = [];
+
+  // Add images as inline_data parts (Gemini processes them natively)
+  if (imageUrls && imageUrls.length > 0) {
+    const imageParts = await Promise.all(
+      imageUrls.map((url) => fetchImageAsGeminiPart(url))
+    );
+    for (const part of imageParts) {
+      if (part) {
+        currentParts.push(part);
       }
     }
   }
 
-  throw lastError ?? new Error("All retry attempts exhausted");
+  // Add document as inline_data part (Gemini processes PDF natively)
+  if (documentUrl) {
+    const docPart = await fetchDocumentAsGeminiPart(documentUrl);
+    if (docPart) {
+      currentParts.push(docPart);
+    }
+  }
+
+  // Add text content last (after visual/document context)
+  currentParts.push({ text: currentMessage });
+
+  contents.push({ role: "user", parts: currentParts });
+
+  return { systemInstruction, contents };
 }
 
 // ─── Main Handler ───────────────────────────────────────────────────────────
@@ -888,10 +1004,11 @@ serve(async (req) => {
   const integrityCheck = detectIntegrityViolation(chatReq.message);
 
   // ── 3.1.3: Query Embedding Generation via OpenAI API (OPTIONAL) ───────
-  // RAG retrieval requires an embedding model. OpenRouter/Kimi do not expose an
-  // embeddings API, so when OPENAI_API_KEY is absent (or embedding fails) we
+  // RAG retrieval requires an embedding model. Gemini does not expose an
+  // embeddings endpoint via the same API, so we use OpenAI text-embedding-ada-002
+  // for vector search. When OPENAI_API_KEY is absent (or embedding fails) we
   // gracefully skip vector retrieval and answer from persona + CLO context +
-  // conversation history. The tutor still works on an OpenRouter-only setup.
+  // conversation history. The tutor still works without RAG.
 
   const openaiApiKey = Deno.env.get("OPENAI_API_KEY");
   let queryEmbedding: number[] | null = null;
@@ -1155,28 +1272,12 @@ serve(async (req) => {
       "After the encouragement, still answer their question helpfully.";
   }
 
-  // Build messages array for LLM
-  const llmMessages: Array<{ role: string; content: string }> = [
-    { role: "system", content: systemPrompt },
-  ];
+  // ── 3.1.6: LLM Streaming via Google Gemini with SSE Response ────────────
 
-  // Add conversation context (last 10 messages)
-  for (const msg of contextMessages ?? []) {
-    llmMessages.push({
-      role: msg.role,
-      content: msg.content,
-    });
-  }
-
-  // Add current user message
-  llmMessages.push({ role: "user", content: chatReq.message });
-
-  // ── 3.1.6: LLM Streaming via OpenRouter with SSE Response ─────────────
-
-  const openRouterApiKey = Deno.env.get("OPENROUTER_API_KEY");
-  if (!openRouterApiKey) {
+  const geminiApiKey = Deno.env.get("GEMINI_API_KEY");
+  if (!geminiApiKey) {
     return new Response(
-      JSON.stringify({ error: "OpenRouter API key not configured" }),
+      JSON.stringify({ error: "Gemini API key not configured" }),
       {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -1184,74 +1285,125 @@ serve(async (req) => {
     );
   }
 
-  const primaryModel =
-    Deno.env.get("TUTOR_PRIMARY_MODEL") ?? "openai/gpt-4o-mini";
-  const fallbackModel = Deno.env.get("TUTOR_FALLBACK_MODEL") ?? undefined;
+  // Model selection: prefer TUTOR_PRIMARY_MODEL env override, default to gemini-2.0-flash
+  const geminiModel = Deno.env.get("TUTOR_PRIMARY_MODEL") ?? "gemini-2.0-flash";
+  const fallbackGeminiModel =
+    Deno.env.get("TUTOR_FALLBACK_MODEL") ?? "gemini-2.0-flash-lite";
 
-  const llmRequestBody = {
-    model: primaryModel,
-    messages: llmMessages,
-    stream: true,
-    max_tokens: 2000,
-    temperature: 0.7,
+  // Build Gemini contents with multimodal support (images + documents)
+  const { systemInstruction, contents: geminiContents } =
+    await buildGeminiContents(
+      systemPrompt,
+      contextMessages ?? [],
+      chatReq.message,
+      chatReq.image_urls,
+      chatReq.document_url
+    );
+
+  const geminiRequestBody = {
+    system_instruction: systemInstruction,
+    contents: geminiContents,
+    generationConfig: {
+      maxOutputTokens: 2048,
+      temperature: 0.7,
+      topP: 0.95,
+      topK: 40,
+    },
+    safetySettings: [
+      {
+        category: "HARM_CATEGORY_HARASSMENT",
+        threshold: "BLOCK_ONLY_HIGH",
+      },
+      {
+        category: "HARM_CATEGORY_HATE_SPEECH",
+        threshold: "BLOCK_ONLY_HIGH",
+      },
+      {
+        category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+        threshold: "BLOCK_ONLY_HIGH",
+      },
+      {
+        category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+        threshold: "BLOCK_ONLY_HIGH",
+      },
+    ],
   };
 
   const startTime = Date.now();
+  const geminiStreamUrl = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:streamGenerateContent?alt=sse&key=${geminiApiKey}`;
 
   let llmResponse: Response;
-  let modelUsed: string;
+  let modelUsed = geminiModel;
   let retryCount: number;
 
   // 3.1.11: Retry logic with exponential backoff and model fallback
   try {
     const result = await fetchWithRetry(
-      "https://openrouter.ai/api/v1/chat/completions",
+      geminiStreamUrl,
       {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${openRouterApiKey}`,
-          "Content-Type": "application/json",
-          "HTTP-Referer": Deno.env.get("SUPABASE_URL") ?? "",
-          "X-Title": "Edeviser AI Tutor",
-        },
-        body: JSON.stringify(llmRequestBody),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(geminiRequestBody),
       },
       MAX_RETRIES,
-      INITIAL_RETRY_DELAY_MS,
-      fallbackModel
+      INITIAL_RETRY_DELAY_MS
     );
 
     llmResponse = result.response;
-    modelUsed = result.modelUsed;
     retryCount = result.retryCount;
-  } catch (err) {
-    const latencyMs = Date.now() - startTime;
-
-    // Log the failed LLM call
-    await supabase.from("tutor_llm_logs").insert({
-      institution_id: institutionId,
-      student_id: studentId,
-      conversation_id: conversationId,
-      model_used: primaryModel,
-      prompt_tokens: 0,
-      completion_tokens: 0,
-      total_tokens: 0,
-      latency_ms: latencyMs,
-      status: "error",
-      error_message: (err as Error).message,
-    });
-
-    return new Response(
-      JSON.stringify({
-        error:
-          "The AI Tutor is temporarily unavailable. Please try again in a few minutes.",
-        code: "LLM_UNAVAILABLE",
-      }),
-      {
-        status: 503,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+  } catch (primaryErr) {
+    // Primary model failed — try fallback model
+    console.error(
+      `Primary Gemini model (${geminiModel}) failed:`,
+      (primaryErr as Error).message
     );
+
+    const fallbackUrl = `https://generativelanguage.googleapis.com/v1beta/models/${fallbackGeminiModel}:streamGenerateContent?alt=sse&key=${geminiApiKey}`;
+
+    try {
+      const fallbackResult = await fetchWithRetry(
+        fallbackUrl,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(geminiRequestBody),
+        },
+        2, // fewer retries for fallback
+        INITIAL_RETRY_DELAY_MS
+      );
+
+      llmResponse = fallbackResult.response;
+      modelUsed = fallbackGeminiModel;
+      retryCount = fallbackResult.retryCount + MAX_RETRIES;
+    } catch (fallbackErr) {
+      const latencyMs = Date.now() - startTime;
+
+      // Log the failed LLM call
+      await supabase.from("tutor_llm_logs").insert({
+        institution_id: institutionId,
+        student_id: studentId,
+        conversation_id: conversationId,
+        model_used: geminiModel,
+        prompt_tokens: 0,
+        completion_tokens: 0,
+        total_tokens: 0,
+        latency_ms: latencyMs,
+        status: "error",
+        error_message: (fallbackErr as Error).message,
+      });
+
+      return new Response(
+        JSON.stringify({
+          error:
+            "The AI Tutor is temporarily unavailable. Please try again in a few minutes.",
+          code: "LLM_UNAVAILABLE",
+        }),
+        {
+          status: 503,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
   }
 
   if (!llmResponse.ok) {
@@ -1326,7 +1478,7 @@ serve(async (req) => {
           );
         }
 
-        // Parse SSE stream from OpenRouter
+        // Parse SSE stream from Gemini API
         const reader = llmResponse.body?.getReader();
         if (!reader) {
           controller.enqueue(
@@ -1352,23 +1504,30 @@ serve(async (req) => {
           for (const line of lines) {
             if (!line.startsWith("data: ")) continue;
             const data = line.slice(6).trim();
-            if (data === "[DONE]") continue;
+            if (!data || data === "[DONE]") continue;
 
             try {
               const parsed = JSON.parse(data);
-              const delta = parsed.choices?.[0]?.delta;
 
-              if (delta?.content) {
-                fullAssistantContent += delta.content;
-                controller.enqueue(
-                  encoder.encode(sseEvent("token", delta.content))
-                );
+              // Gemini SSE format: candidates[0].content.parts[0].text
+              const candidate = parsed.candidates?.[0];
+              if (candidate?.content?.parts) {
+                for (const part of candidate.content.parts) {
+                  if (part.text) {
+                    fullAssistantContent += part.text;
+                    controller.enqueue(
+                      encoder.encode(sseEvent("token", part.text))
+                    );
+                  }
+                }
               }
 
-              // Capture usage from the final chunk
-              if (parsed.usage) {
-                promptTokens = parsed.usage.prompt_tokens ?? 0;
-                completionTokens = parsed.usage.completion_tokens ?? 0;
+              // Capture usage metadata from Gemini response
+              if (parsed.usageMetadata) {
+                promptTokens =
+                  parsed.usageMetadata.promptTokenCount ?? promptTokens;
+                completionTokens =
+                  parsed.usageMetadata.candidatesTokenCount ?? completionTokens;
               }
             } catch {
               // Skip malformed SSE chunks
@@ -1381,9 +1540,9 @@ serve(async (req) => {
         const latencyMs = Date.now() - startTime;
         const totalTokens = promptTokens + completionTokens;
 
-        // Estimate tokens if usage not provided by the API
+        // Estimate tokens if usage metadata not provided by Gemini
         if (totalTokens === 0) {
-          // Rough estimate: ~4 chars per token
+          // Gemini uses ~4 chars per token (similar to GPT tokenizers)
           promptTokens = Math.ceil(systemPrompt.length / 4);
           completionTokens = Math.ceil(fullAssistantContent.length / 4);
         }
