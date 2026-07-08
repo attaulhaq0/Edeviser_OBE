@@ -490,12 +490,22 @@ const HeatmapGrid = ({
             >
               {slots.map((slot, pos) => {
                 if (slot.kind === "pad") {
+                  // Out-of-range filler for the partial first/last weeks (weeks
+                  // are Monday-aligned so the weekday labels stay truthful).
+                  // Styled like an empty day so the grid reads as a complete
+                  // rectangle instead of showing transparent corner gaps, but
+                  // kept aria-hidden + non-interactive so it never affects the
+                  // gridcell count, tooltip, or keyboard navigation.
                   return (
                     <div
                       key={`pad-${pos}`}
                       aria-hidden="true"
-                      className="rounded-[3px]"
-                      style={{ width: CELL_SIZE, height: CELL_SIZE }}
+                      className="rounded-[3px] shadow-[inset_0_0_0_1px_var(--heatmap-cell-outline)]"
+                      style={{
+                        width: CELL_SIZE,
+                        height: CELL_SIZE,
+                        backgroundColor: "var(--heatmap-empty)",
+                      }}
                     />
                   );
                 }
