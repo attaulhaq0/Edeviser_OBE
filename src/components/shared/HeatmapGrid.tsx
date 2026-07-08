@@ -1,4 +1,11 @@
-import { useRef, useState, useEffect, useCallback, useMemo } from "react";
+import {
+  memo,
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent as ReactKeyboardEvent,
+} from "react";
 import type {
   HeatmapDay,
   DateRange,
@@ -6,36 +13,43 @@ import type {
   ComebackChallengeStatus,
   StreakMilestone,
 } from "@/types/habits";
-import {
-  getIntensityLevel,
-  computeCellSize,
-  generateMonthLabels,
-  generateGridDimensions,
-  isDateFuture,
-  generateAriaLabel,
-} from "@/lib/heatmapUtils";
+import { getIntensityLevel, isDateFuture, generateAriaLabel } from "@/lib/heatmapUtils";
 import {
   getLevelAwareIntensityLevel,
   getLevelForDate,
 } from "@/lib/levelAwareHeatmap";
+import { cn } from "@/lib/utils";
 
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
 
-const CELL_GAP = 2;
-const DAY_LABEL_WIDTH = 32;
-const MONTH_LABEL_HEIGHT = 16;
-const LEGEND_HEIGHT = 28;
-const MIN_CELL_SIZE = 12;
-const MOBILE_BREAKPOINT = 768;
+/** Gap between cells, in px. Kept small and integer so cells stay pixel-crisp. */
+const CELL_GAP = 3;
+/** Fixed cell size (px). DOM boxes at integer sizes never blur (unlike a
+ *  CSS-scaled SVG). Cells stay square on every breakpoint; the track scrolls
+ *  horizontally when the range is wider than the container. */
+const CELL_SIZE = 15;
+/** Width reserved for the sticky weekday label column. */
+const WEEKDAY_COL_W = 30;
+/** Height reserved for the month label row above the grid. */
+const MONTH_ROW_H = 18;
+/** Days-of-week rendered in the label column (Mon=row0, Wed=row2, Fri=row4). */
+const WEEKDAY_ROWS = 7;
 
+const MONTH_NAMES = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+];
+
+/** Weekday label per grid row. Weeks are Monday-aligned (ISO). */
 const DAY_LABELS: Array<{ label: string; row: number }> = [
   { label: "Mon", row: 0 },
   { label: "Wed", row: 2 },
   { label: "Fri", row: 4 },
 ];
 
+/** Intensity → CSS custom property (defined in index.css, dark-mode aware). */
 const INTENSITY_COLORS: Record<number, string> = {
   0: "var(--heatmap-empty)",
   1: "var(--heatmap-level-1)",
@@ -47,9 +61,8 @@ const INTENSITY_COLORS: Record<number, string> = {
 const LEGEND_LABELS_DEFAULT = ["No activity", "", "", "", "4+ habits"];
 
 /**
- * Generates level-relative legend labels.
- * For Level 1: ["No activity", "", "", "", "1/1"]
- * For Level 4 (or no level): ["No activity", "", "", "", "4/4 habits"]
+ * Level-relative legend labels. For a level-capped student the top swatch reads
+ * "N/N habits"; otherwise it falls back to the absolute "4+ habits" scale.
  */
 function getLegendLabels(studentLevel?: StudentHabitLevel): string[] {
   if (!studentLevel) return LEGEND_LABELS_DEFAULT;
@@ -73,62 +86,111 @@ export interface HeatmapGridProps {
 }
 
 // ---------------------------------------------------------------------------
-// Helpers
+// Grid model — Monday-aligned weeks with leading/trailing padding
 // ---------------------------------------------------------------------------
 
-interface CellData {
+interface DaySlot {
+  kind: "day";
   date: string;
   count: number;
-  col: number;
-  row: number;
   isFuture: boolean;
+  /** Index into the sequence of real days (drives roving tabindex + arrows). */
+  logicalIndex: number;
+}
+interface PadSlot {
+  kind: "pad";
+}
+type Slot = DaySlot | PadSlot;
+
+interface GridModel {
+  slots: Slot[];
+  numCols: number;
+  dayCount: number;
 }
 
-function buildCellGrid(
-  data: HeatmapDay[],
-  semesterRange: DateRange
-): CellData[] {
-  const start = new Date(semesterRange.start + "T00:00:00");
-  const end = new Date(semesterRange.end + "T00:00:00");
-  const dataMap = new Map<string, number>();
-  for (const d of data) {
-    dataMap.set(d.date, d.totalCount);
-  }
-
-  const cells: CellData[] = [];
-  const cursor = new Date(start);
-  let dayIndex = 0;
-
-  while (cursor <= end) {
-    const dateStr =
-      cursor.getFullYear() +
-      "-" +
-      String(cursor.getMonth() + 1).padStart(2, "0") +
-      "-" +
-      String(cursor.getDate()).padStart(2, "0");
-    const col = Math.floor(dayIndex / 7);
-    const row = dayIndex % 7;
-    cells.push({
-      date: dateStr,
-      count: dataMap.get(dateStr) ?? 0,
-      col,
-      row,
-      isFuture: isDateFuture(dateStr),
-    });
-    cursor.setDate(cursor.getDate() + 1);
-    dayIndex++;
-  }
-  return cells;
+function formatISO(d: Date): string {
+  return (
+    d.getFullYear() +
+    "-" +
+    String(d.getMonth() + 1).padStart(2, "0") +
+    "-" +
+    String(d.getDate()).padStart(2, "0")
+  );
 }
 
-// ---------------------------------------------------------------------------
-// Overlay helpers
-// ---------------------------------------------------------------------------
+/** Monday-based weekday index (Mon=0 … Sun=6). */
+function mondayIndex(d: Date): number {
+  return (d.getDay() + 6) % 7;
+}
 
 /**
- * Returns true if the given date falls within the Comeback Challenge window
- * (startDate to startDate + 2 days inclusive).
+ * Builds the flat slot list in column-major order so a CSS grid with
+ * `grid-auto-flow: column` + 7 rows places each day on its true weekday row.
+ * Leading padding aligns the first date to its weekday; trailing padding
+ * completes the final week column. Padding slots are decorative (no role).
  */
+function buildGridModel(data: HeatmapDay[], range: DateRange): GridModel {
+  if (!range.start || !range.end) {
+    return { slots: [], numCols: 0, dayCount: 0 };
+  }
+
+  const dataMap = new Map<string, number>();
+  for (const d of data) dataMap.set(d.date, d.totalCount);
+
+  const start = new Date(range.start + "T00:00:00");
+  const end = new Date(range.end + "T00:00:00");
+
+  const slots: Slot[] = [];
+  const leadingPad = mondayIndex(start);
+  for (let i = 0; i < leadingPad; i++) slots.push({ kind: "pad" });
+
+  const cursor = new Date(start);
+  let logicalIndex = 0;
+  while (cursor <= end) {
+    const date = formatISO(cursor);
+    slots.push({
+      kind: "day",
+      date,
+      count: dataMap.get(date) ?? 0,
+      isFuture: isDateFuture(date),
+      logicalIndex: logicalIndex++,
+    });
+    cursor.setDate(cursor.getDate() + 1);
+  }
+
+  while (slots.length % WEEKDAY_ROWS !== 0) slots.push({ kind: "pad" });
+
+  return {
+    slots,
+    numCols: slots.length / WEEKDAY_ROWS,
+    dayCount: logicalIndex,
+  };
+}
+
+/** First column at which each month begins — for month labels above the grid. */
+function computeMonthLabels(
+  slots: Slot[]
+): Array<{ month: string; col: number }> {
+  const labels: Array<{ month: string; col: number }> = [];
+  let lastMonth = -1;
+  slots.forEach((slot, pos) => {
+    if (slot.kind !== "day") return;
+    const month = new Date(slot.date + "T00:00:00").getMonth();
+    if (month !== lastMonth) {
+      lastMonth = month;
+      labels.push({
+        month: MONTH_NAMES[month] ?? "",
+        col: Math.floor(pos / WEEKDAY_ROWS),
+      });
+    }
+  });
+  return labels;
+}
+
+// ---------------------------------------------------------------------------
+// Overlay predicates (Comeback Challenge / Sabbatical / Milestone)
+// ---------------------------------------------------------------------------
+
 function isComebackChallengeDate(
   date: string,
   challenge: ComebackChallengeStatus | undefined
@@ -136,48 +198,148 @@ function isComebackChallengeDate(
   if (!challenge?.active || !challenge.startDate) return false;
   const start = new Date(challenge.startDate + "T00:00:00");
   const end = new Date(start);
-  end.setDate(end.getDate() + 2); // 3 days total (0, 1, 2)
+  end.setDate(end.getDate() + 2);
   const d = new Date(date + "T00:00:00");
   return d >= start && d <= end;
 }
 
-/**
- * Returns the comeback day number (1, 2, or 3) for a date within the challenge window.
- */
-function getComebackDayNumber(
+function isSabbaticalRestDay(date: string, enabled: boolean): boolean {
+  if (!enabled) return false;
+  const dow = new Date(date + "T00:00:00").getDay();
+  return dow === 0 || dow === 6;
+}
+
+function getMilestoneForDate(
+  date: string,
+  milestones: StreakMilestone[] | undefined
+): StreakMilestone | undefined {
+  return milestones?.find((m) => m.achievedDate === date);
+}
+
+function comebackDayNumberFor(
   date: string,
   challenge: ComebackChallengeStatus
 ): number {
   if (!challenge.startDate) return 0;
   const start = new Date(challenge.startDate + "T00:00:00");
   const d = new Date(date + "T00:00:00");
+  return Math.floor((d.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+}
+
+function findDayByLogicalIndex(
+  slots: Slot[],
+  logicalIndex: number
+): DaySlot | undefined {
+  for (const slot of slots) {
+    if (slot.kind === "day" && slot.logicalIndex === logicalIndex) return slot;
+  }
+  return undefined;
+}
+
+// ---------------------------------------------------------------------------
+// Cell — memoized so hovering/focusing one cell never re-renders the others
+// ---------------------------------------------------------------------------
+
+interface HeatmapCellProps {
+  slot: DaySlot;
+  intensity: number;
+  size: number;
+  isRovingTarget: boolean;
+  isComeback: boolean;
+  isSabbatical: boolean;
+  milestone: StreakMilestone | undefined;
+  comebackDayNumber: number;
+  onKeyDown: (e: ReactKeyboardEvent, index: number) => void;
+  onFocusCell: (index: number, date: string, isFuture: boolean) => void;
+  onBlurCell: () => void;
+  onHover: (date: string | null) => void;
+  onClick: (date: string) => void;
+  registerRef: (index: number, el: HTMLDivElement | null) => void;
+}
+
+const HeatmapCell = memo(function HeatmapCell({
+  slot,
+  intensity,
+  size,
+  isRovingTarget,
+  isComeback,
+  isSabbatical,
+  milestone,
+  comebackDayNumber,
+  onKeyDown,
+  onFocusCell,
+  onBlurCell,
+  onHover,
+  onClick,
+  registerRef,
+}: HeatmapCellProps) {
+  const { date, count, isFuture, logicalIndex } = slot;
+
   return (
-    Math.floor((d.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1
+    <div
+      ref={(el) => registerRef(logicalIndex, el)}
+      role="gridcell"
+      aria-label={generateAriaLabel(date, count)}
+      aria-disabled={isFuture}
+      tabIndex={isRovingTarget ? 0 : -1}
+      data-date={date}
+      data-level={intensity}
+      data-future={isFuture ? "true" : "false"}
+      data-testid={`heatmap-cell-${date}`}
+      className={cn(
+        "relative rounded-[3px] outline-none",
+        "shadow-[inset_0_0_0_1px_var(--heatmap-cell-outline)]",
+        "motion-safe:transition-[box-shadow] motion-safe:duration-150",
+        isFuture
+          ? "opacity-40 cursor-default"
+          : "cursor-pointer hover:z-10 hover:shadow-[inset_0_0_0_2px_var(--heatmap-cell-ring)]",
+        "focus-visible:z-10 focus-visible:shadow-[inset_0_0_0_2px_var(--brand-primary)]"
+      )}
+      style={{ width: size, height: size, backgroundColor: INTENSITY_COLORS[intensity] }}
+      onKeyDown={(e) => onKeyDown(e, logicalIndex)}
+      onFocus={() => onFocusCell(logicalIndex, date, isFuture)}
+      onBlur={onBlurCell}
+      onMouseEnter={() => !isFuture && onHover(date)}
+      onMouseLeave={() => onHover(null)}
+      onClick={() => !isFuture && onClick(date)}
+    >
+      {/* Comeback Challenge — dashed teal ring */}
+      {isComeback && (
+        <span
+          role="img"
+          aria-label={`Comeback Day ${comebackDayNumber}/3`}
+          data-testid={`comeback-overlay-${date}`}
+          data-comeback-day={comebackDayNumber}
+          className="pointer-events-none absolute inset-0 rounded-[3px] border-[1.5px] border-dashed border-teal-500"
+        />
+      )}
+      {/* Sabbatical rest day — diagonal stripes */}
+      {isSabbatical && !isFuture && (
+        <span
+          role="img"
+          aria-label="Rest Day (Sabbatical)"
+          data-testid={`sabbatical-overlay-${date}`}
+          className="pointer-events-none absolute inset-0 rounded-[3px] opacity-50"
+          style={{
+            backgroundImage:
+              "repeating-linear-gradient(45deg, #94a3b8 0 1px, transparent 1px 4px)",
+          }}
+        />
+      )}
+      {/* Milestone — star marker, top-right */}
+      {milestone && (
+        <span
+          role="img"
+          aria-label={`${milestone.days}-Day Streak Milestone`}
+          data-testid={`milestone-marker-${date}`}
+          className="pointer-events-none absolute -right-1 -top-1 text-[9px] leading-none text-amber-500 drop-shadow-sm"
+        >
+          ★
+        </span>
+      )}
+    </div>
   );
-}
-
-/**
- * Returns true if the date is a Saturday (6) or Sunday (0) — sabbatical rest day.
- */
-function isSabbaticalRestDay(
-  date: string,
-  sabbaticalEnabled: boolean
-): boolean {
-  if (!sabbaticalEnabled) return false;
-  const dow = new Date(date + "T00:00:00").getDay();
-  return dow === 0 || dow === 6;
-}
-
-/**
- * Returns the milestone for a given date, if any.
- */
-function getMilestoneForDate(
-  date: string,
-  milestones: StreakMilestone[] | undefined
-): StreakMilestone | undefined {
-  if (!milestones) return undefined;
-  return milestones.find((m) => m.achievedDate === date);
-}
+});
 
 // ---------------------------------------------------------------------------
 // Component
@@ -193,369 +355,220 @@ const HeatmapGrid = ({
   onCellClick,
   onCellHover,
 }: HeatmapGridProps) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [containerWidth, setContainerWidth] = useState(0);
   const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
-  const cellRefs = useRef<Map<number, SVGRectElement>>(new Map());
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  });
+  const cellRefs = useRef<Map<number, HTMLDivElement>>(new Map());
 
-  // Listen for prefers-reduced-motion changes
-  useEffect(() => {
-    const mql = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const handler = (e: MediaQueryListEvent) =>
-      setPrefersReducedMotion(e.matches);
-    mql.addEventListener("change", handler);
-    return () => mql.removeEventListener("change", handler);
-  }, []);
-
-  // ResizeObserver for responsive sizing.
-  // We round the width to the nearest pixel and only update state when it
-  // actually changes — this prevents fractional-pixel oscillations from
-  // creating a feedback loop with the SVG content.
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-
-    let rafId: number | null = null;
-    const observer = new ResizeObserver((entries) => {
-      // Throttle updates via requestAnimationFrame to ride out rapid bursts
-      // (e.g. after the SVG renders and the parent re-flows).
-      if (rafId !== null) cancelAnimationFrame(rafId);
-      rafId = requestAnimationFrame(() => {
-        for (const entry of entries) {
-          const newWidth = Math.floor(entry.contentRect.width);
-          setContainerWidth((prev) => (prev === newWidth ? prev : newWidth));
-        }
-      });
-    });
-    observer.observe(el);
-    return () => {
-      if (rafId !== null) cancelAnimationFrame(rafId);
-      observer.disconnect();
-    };
-  }, []);
-
-  const { columns: numWeeks } = generateGridDimensions(
-    semesterRange.start,
-    semesterRange.end
-  );
-
-  const isMobile = containerWidth > 0 && containerWidth < MOBILE_BREAKPOINT;
-  const cellSize = isMobile
-    ? MIN_CELL_SIZE
-    : containerWidth > 0
-    ? computeCellSize(containerWidth - DAY_LABEL_WIDTH - CELL_GAP, numWeeks)
-    : MIN_CELL_SIZE;
-
-  const cells = useMemo(
-    () => buildCellGrid(data, semesterRange),
+  const { slots, numCols, dayCount } = useMemo(
+    () => buildGridModel(data, semesterRange),
     [data, semesterRange]
   );
 
-  const monthLabels = useMemo(
-    () => generateMonthLabels(semesterRange.start, semesterRange.end),
-    [semesterRange.start, semesterRange.end]
-  );
+  const monthLabels = useMemo(() => computeMonthLabels(slots), [slots]);
 
-  const gridWidth = numWeeks * (cellSize + CELL_GAP);
-  const gridHeight = 7 * (cellSize + CELL_GAP);
-  const svgWidth = DAY_LABEL_WIDTH + gridWidth;
-  const svgHeight = MONTH_LABEL_HEIGHT + gridHeight + LEGEND_HEIGHT + 8;
+  const trackWidth = numCols * (CELL_SIZE + CELL_GAP) - CELL_GAP;
 
-  // Keyboard navigation
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent, index: number) => {
-      const cell = cells[index];
-      if (!cell) return;
+  // --- Interaction callbacks (stable) ---------------------------------------
 
-      let nextIndex: number | null = null;
-
-      switch (e.key) {
-        case "ArrowRight":
-          nextIndex = index + 7;
-          break;
-        case "ArrowLeft":
-          nextIndex = index - 7;
-          break;
-        case "ArrowDown":
-          nextIndex = index + 1;
-          break;
-        case "ArrowUp":
-          nextIndex = index - 1;
-          break;
-        case "Enter":
-        case " ":
-          e.preventDefault();
-          if (!cell.isFuture) {
-            onCellClick?.(cell.date);
-          }
-          return;
-        default:
-          return;
-      }
-
-      e.preventDefault();
-      if (nextIndex !== null && nextIndex >= 0 && nextIndex < cells.length) {
-        setFocusedIndex(nextIndex);
-        cellRefs.current.get(nextIndex)?.focus();
-      }
-    },
-    [cells, onCellClick]
-  );
-
-  const setCellRef = useCallback((index: number, el: SVGRectElement | null) => {
-    if (el) {
-      cellRefs.current.set(index, el);
-    } else {
-      cellRefs.current.delete(index);
-    }
+  const registerRef = useCallback((index: number, el: HTMLDivElement | null) => {
+    if (el) cellRefs.current.set(index, el);
+    else cellRefs.current.delete(index);
   }, []);
 
-  return (
-    <div
-      ref={containerRef}
-      className={`w-full max-w-full ${isMobile ? "overflow-x-auto" : "overflow-hidden"}`}
-      style={
-        {
-          "--heatmap-empty": "#e2e8f0",
-          "--heatmap-level-1": "#fed7aa",
-          "--heatmap-level-2": "#fdba74",
-          "--heatmap-level-3": "#f97316",
-          "--heatmap-level-4": "#ef4444",
-        } as React.CSSProperties
+  const handleKeyDown = useCallback(
+    (e: ReactKeyboardEvent, index: number) => {
+      let next: number | null = null;
+      switch (e.key) {
+        case "ArrowRight": next = index + WEEKDAY_ROWS; break; // next week, same weekday
+        case "ArrowLeft": next = index - WEEKDAY_ROWS; break;
+        case "ArrowDown": next = index + 1; break; // next day
+        case "ArrowUp": next = index - 1; break;
+        case "Home": next = 0; break;
+        case "End": next = dayCount - 1; break;
+        case "Enter":
+        case " ": {
+          e.preventDefault();
+          const day = findDayByLogicalIndex(slots, index);
+          if (day && !day.isFuture) onCellClick?.(day.date);
+          return;
+        }
+        default: return;
       }
-    >
-      <svg
-        width={svgWidth}
-        height={svgHeight}
-        viewBox={`0 0 ${svgWidth} ${svgHeight}`}
-        preserveAspectRatio="xMinYMid meet"
-        style={{ maxWidth: "100%", height: "auto", display: "block" }}
-        role="grid"
-        aria-label="Habit heatmap grid"
-      >
-        {/* Month labels */}
-        {monthLabels.map((ml) => (
-          <text
-            key={`month-${ml.month}-${ml.weekIndex}`}
-            x={DAY_LABEL_WIDTH + ml.weekIndex * (cellSize + CELL_GAP)}
-            y={MONTH_LABEL_HEIGHT - 4}
-            fontSize={10}
-            fill="#64748b"
-            data-testid={`month-label-${ml.month}`}
+      e.preventDefault();
+      if (next !== null && next >= 0 && next < dayCount) {
+        setFocusedIndex(next);
+        cellRefs.current.get(next)?.focus();
+      }
+    },
+    [slots, dayCount, onCellClick]
+  );
+
+  const handleFocusCell = useCallback(
+    (index: number, date: string, isFuture: boolean) => {
+      setFocusedIndex(index);
+      if (!isFuture) onCellHover?.(date);
+    },
+    [onCellHover]
+  );
+
+  const handleBlurCell = useCallback(() => onCellHover?.(null), [onCellHover]);
+  const handleHover = useCallback(
+    (date: string | null) => onCellHover?.(date),
+    [onCellHover]
+  );
+  const handleClick = useCallback(
+    (date: string) => onCellClick?.(date),
+    [onCellClick]
+  );
+
+  const legendLabels = getLegendLabels(studentLevel);
+
+  return (
+    <div className="w-full" data-testid="heatmap-root">
+      <div className="flex gap-1">
+        {/* Sticky weekday label column */}
+        <div
+          className="shrink-0 select-none"
+          style={{ width: WEEKDAY_COL_W, paddingTop: MONTH_ROW_H }}
+          aria-hidden="true"
+        >
+          <div
+            className="grid"
+            style={{
+              gridTemplateRows: `repeat(${WEEKDAY_ROWS}, ${CELL_SIZE}px)`,
+              rowGap: CELL_GAP,
+            }}
           >
-            {ml.month}
-          </text>
-        ))}
-
-        {/* Day-of-week labels */}
-        {DAY_LABELS.map(({ label, row }) => (
-          <text
-            key={`day-${label}`}
-            x={0}
-            y={
-              MONTH_LABEL_HEIGHT +
-              row * (cellSize + CELL_GAP) +
-              cellSize / 2 +
-              4
-            }
-            fontSize={10}
-            fill="#64748b"
-            data-testid={`day-label-${label}`}
-          >
-            {label}
-          </text>
-        ))}
-
-        {/* Grid cells */}
-        {cells.map((cell, index) => {
-          let intensity: number;
-          if (cell.isFuture) {
-            intensity = 0;
-          } else if (studentLevel) {
-            const levelOnDate = getLevelForDate(
-              cell.date,
-              studentLevel.levelHistory
-            );
-            intensity = getLevelAwareIntensityLevel(cell.count, levelOnDate);
-          } else {
-            intensity = getIntensityLevel(cell.count);
-          }
-          const color = INTENSITY_COLORS[intensity] ?? INTENSITY_COLORS[0];
-          const x = DAY_LABEL_WIDTH + cell.col * (cellSize + CELL_GAP);
-          const y = MONTH_LABEL_HEIGHT + cell.row * (cellSize + CELL_GAP);
-          const isFocused = focusedIndex === index;
-
-          const isComeback = isComebackChallengeDate(
-            cell.date,
-            comebackChallenge
-          );
-          const isSabbatical = isSabbaticalRestDay(
-            cell.date,
-            sabbaticalEnabled
-          );
-          const milestone = getMilestoneForDate(cell.date, milestones);
-
-          return (
-            <g key={cell.date} data-testid={`heatmap-cell-group-${cell.date}`}>
-              <rect
-                ref={(el) => setCellRef(index, el)}
-                x={x}
-                y={y}
-                width={cellSize}
-                height={cellSize}
-                rx={2}
-                ry={2}
-                fill={color}
-                opacity={cell.isFuture ? 0.4 : 1}
-                aria-label={generateAriaLabel(cell.date, cell.count)}
-                aria-disabled={cell.isFuture}
-                role="gridcell"
-                tabIndex={
-                  isFocused || (focusedIndex === null && index === 0) ? 0 : -1
-                }
-                data-date={cell.date}
-                data-testid={`heatmap-cell-${cell.date}`}
-                style={
-                  !prefersReducedMotion
-                    ? { transition: "fill 0.15s ease, opacity 0.15s ease" }
-                    : undefined
-                }
-                onKeyDown={(e) => handleKeyDown(e, index)}
-                onFocus={() => {
-                  setFocusedIndex(index);
-                  if (!cell.isFuture) onCellHover?.(cell.date);
-                }}
-                onBlur={() => onCellHover?.(null)}
-                onMouseEnter={() => {
-                  if (!cell.isFuture) onCellHover?.(cell.date);
-                }}
-                onMouseLeave={() => onCellHover?.(null)}
-                onClick={() => {
-                  if (!cell.isFuture) onCellClick?.(cell.date);
-                }}
-              />
-
-              {/* Comeback Challenge overlay — dashed teal-500 border */}
-              {isComeback && (
-                <rect
-                  x={x + 1}
-                  y={y + 1}
-                  width={cellSize - 2}
-                  height={cellSize - 2}
-                  rx={2}
-                  ry={2}
-                  fill="none"
-                  stroke="#14b8a6"
-                  strokeWidth={1.5}
-                  strokeDasharray="3 2"
-                  pointerEvents="none"
-                  aria-label={`Comeback Day ${getComebackDayNumber(
-                    cell.date,
-                    comebackChallenge!
-                  )}/3`}
-                  data-testid={`comeback-overlay-${cell.date}`}
-                />
-              )}
-
-              {/* Sabbatical rest day overlay — diagonal stripe pattern */}
-              {isSabbatical && !cell.isFuture && (
-                <>
-                  <defs>
-                    <pattern
-                      id={`sabbatical-stripe-${cell.date}`}
-                      width={4}
-                      height={4}
-                      patternUnits="userSpaceOnUse"
-                      patternTransform="rotate(45)"
-                    >
-                      <line
-                        x1={0}
-                        y1={0}
-                        x2={0}
-                        y2={4}
-                        stroke="#94a3b8"
-                        strokeWidth={1}
-                      />
-                    </pattern>
-                  </defs>
-                  <rect
-                    x={x}
-                    y={y}
-                    width={cellSize}
-                    height={cellSize}
-                    rx={2}
-                    ry={2}
-                    fill={`url(#sabbatical-stripe-${cell.date})`}
-                    opacity={0.5}
-                    pointerEvents="none"
-                    aria-label="Rest Day (Sabbatical)"
-                    data-testid={`sabbatical-overlay-${cell.date}`}
-                  />
-                </>
-              )}
-
-              {/* Milestone marker — star icon at top-right corner */}
-              {milestone && (
-                <g
-                  transform={`translate(${x + cellSize - 7}, ${y + 1})`}
-                  pointerEvents="none"
-                  aria-label={`${milestone.days}-Day Streak Milestone`}
-                  data-testid={`milestone-marker-${cell.date}`}
+            {Array.from({ length: WEEKDAY_ROWS }).map((_, row) => {
+              const label = DAY_LABELS.find((d) => d.row === row)?.label;
+              return (
+                <div
+                  key={row}
+                  className="flex items-center text-[10px] leading-none text-muted-foreground"
+                  data-testid={label ? `day-label-${label}` : undefined}
                 >
-                  <polygon
-                    points="3,0 3.9,2.1 6,2.5 4.5,4 4.9,6 3,5 1.1,6 1.5,4 0,2.5 2.1,2.1"
-                    fill="#eab308"
-                    stroke="#ca8a04"
-                    strokeWidth={0.3}
-                  />
-                </g>
-              )}
-            </g>
-          );
-        })}
+                  {label ?? ""}
+                </div>
+              );
+            })}
+          </div>
+        </div>
 
-        {/* Color legend */}
-        {(() => {
-          const legendLabels = getLegendLabels(studentLevel);
-          return [0, 1, 2, 3, 4].map((level, i) => {
-            const legendCellSize = 12;
-            const legendGap = 4;
-            const legendY = MONTH_LABEL_HEIGHT + gridHeight + 8;
-            const legendX = DAY_LABEL_WIDTH + i * (legendCellSize + legendGap);
-            return (
-              <g key={`legend-${level}`}>
-                <rect
-                  x={legendX}
-                  y={legendY}
-                  width={legendCellSize}
-                  height={legendCellSize}
-                  rx={2}
-                  ry={2}
-                  fill={INTENSITY_COLORS[level]}
-                  data-testid={`legend-level-${level}`}
-                />
-                {legendLabels[i] && (
-                  <text
-                    x={legendX + legendCellSize + 4}
-                    y={legendY + legendCellSize - 2}
-                    fontSize={9}
-                    fill="#64748b"
-                    data-testid={`legend-label-${level}`}
-                  >
-                    {legendLabels[i]}
-                  </text>
-                )}
-              </g>
-            );
-          });
-        })()}
-      </svg>
+        {/* Scrollable track: month labels + grid */}
+        <div
+          className="min-w-0 flex-1 overflow-x-auto overscroll-x-contain pb-1 [scrollbar-width:thin]"
+          role="group"
+          aria-label="Habit activity heatmap. Scroll horizontally to see earlier and later weeks."
+        >
+          <div style={{ width: trackWidth, minWidth: "100%" }}>
+            {/* Month labels */}
+            <div className="relative" style={{ height: MONTH_ROW_H }}>
+              {monthLabels.map((ml) => (
+                <span
+                  key={`month-${ml.month}-${ml.col}`}
+                  className="absolute top-0 text-[10px] leading-none text-muted-foreground"
+                  style={{ left: ml.col * (CELL_SIZE + CELL_GAP) }}
+                  data-testid={`month-label-${ml.month}`}
+                >
+                  {ml.month}
+                </span>
+              ))}
+            </div>
+
+            {/* Grid */}
+            <div
+              role="grid"
+              aria-label="Habit heatmap grid"
+              aria-rowcount={WEEKDAY_ROWS}
+              aria-colcount={numCols}
+              className="grid w-max"
+              style={{
+                gridTemplateRows: `repeat(${WEEKDAY_ROWS}, ${CELL_SIZE}px)`,
+                gridAutoColumns: `${CELL_SIZE}px`,
+                gridAutoFlow: "column",
+                gap: CELL_GAP,
+              }}
+            >
+              {slots.map((slot, pos) => {
+                if (slot.kind === "pad") {
+                  return (
+                    <div
+                      key={`pad-${pos}`}
+                      aria-hidden="true"
+                      className="rounded-[3px]"
+                      style={{ width: CELL_SIZE, height: CELL_SIZE }}
+                    />
+                  );
+                }
+
+                let intensity: number;
+                if (slot.isFuture) {
+                  intensity = 0;
+                } else if (studentLevel) {
+                  const levelOnDate = getLevelForDate(
+                    slot.date,
+                    studentLevel.levelHistory
+                  );
+                  intensity = getLevelAwareIntensityLevel(slot.count, levelOnDate);
+                } else {
+                  intensity = getIntensityLevel(slot.count);
+                }
+
+                const isComeback = isComebackChallengeDate(slot.date, comebackChallenge);
+                const isSabbatical = isSabbaticalRestDay(slot.date, sabbaticalEnabled);
+                const milestone = getMilestoneForDate(slot.date, milestones);
+                const comebackDayNumber = isComeback
+                  ? comebackDayNumberFor(slot.date, comebackChallenge!)
+                  : 0;
+
+                return (
+                  <HeatmapCell
+                    key={slot.date}
+                    slot={slot}
+                    intensity={intensity}
+                    size={CELL_SIZE}
+                    isRovingTarget={
+                      focusedIndex === slot.logicalIndex ||
+                      (focusedIndex === null && slot.logicalIndex === 0)
+                    }
+                    isComeback={isComeback}
+                    isSabbatical={isSabbatical}
+                    milestone={milestone}
+                    comebackDayNumber={comebackDayNumber}
+                    onKeyDown={handleKeyDown}
+                    onFocusCell={handleFocusCell}
+                    onBlurCell={handleBlurCell}
+                    onHover={handleHover}
+                    onClick={handleClick}
+                    registerRef={registerRef}
+                  />
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Legend — real HTML flow, cannot overlap (fixes the SVG overlap bug) */}
+      <div
+        className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 ps-[34px] text-[11px] text-muted-foreground"
+        data-testid="heatmap-legend"
+      >
+        <span data-testid="legend-label-0">{legendLabels[0]}</span>
+        <div className="flex items-center gap-1" role="img" aria-label="Activity scale from none to high">
+          {[0, 1, 2, 3, 4].map((level) => (
+            <span
+              key={`legend-${level}`}
+              data-testid={`legend-level-${level}`}
+              data-level={level}
+              className="h-3 w-3 rounded-[3px] shadow-[inset_0_0_0_1px_var(--heatmap-cell-outline)]"
+              style={{ backgroundColor: INTENSITY_COLORS[level] }}
+            />
+          ))}
+        </div>
+        <span data-testid="legend-label-4">{legendLabels[4]}</span>
+      </div>
     </div>
   );
 };
 
-export default HeatmapGrid;
+export default memo(HeatmapGrid);

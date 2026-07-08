@@ -183,6 +183,20 @@
   /* === TEXT COLORS (design-doc tokens) === */
   --text-primary: #0f172a; /* Slate-900 */
   --text-secondary: #64748b; /* Slate-500 */
+
+  /* === HABIT HEATMAP SCALE (sequential single-hue, success-green) ===
+     Sequential single-hue ramp keeps the scale colorblind-safe and reads as
+     "more activity = more/darker green", matching the design system's success
+     token (#22c55e / green-500). Replaces the previous orange→red scale, which
+     read as a warning/danger gradient for what is positive activity. Steps are
+     spaced for ≥3:1 UI-object contrast between adjacent levels (WCAG 1.4.11). */
+  --heatmap-empty: #eaeef2; /* Slate-100/200 blend — distinct from level 1 */
+  --heatmap-level-1: #bbf7d0; /* green-200 */
+  --heatmap-level-2: #4ade80; /* green-400 */
+  --heatmap-level-3: #16a34a; /* green-600 */
+  --heatmap-level-4: #14532d; /* green-900 — darkest, highest activity */
+  --heatmap-cell-ring: rgba(15, 23, 42, 0.28); /* hover ring (slate-900 @ 28%) */
+  --heatmap-cell-outline: rgba(15, 23, 42, 0.06); /* 1px inset definition */
 }
 
 /* ─── Dark Mode Brand Overrides ───────────────────────────────────────────── */
@@ -205,6 +219,16 @@
     0 8px 10px -6px rgb(0 0 0 / 0.3);
 
   --xp-track: #334155; /* Slate-700 */
+
+  /* Heatmap ramp inverts for dark surfaces: dark empty → bright green at peak,
+     mirroring how dark-theme contribution graphs stay legible on dark cards. */
+  --heatmap-empty: #1f2937; /* Slate-800 */
+  --heatmap-level-1: #0f3d24; /* deep green */
+  --heatmap-level-2: #15803d; /* green-700 */
+  --heatmap-level-3: #22c55e; /* green-500 */
+  --heatmap-level-4: #86efac; /* green-300 — brightest, highest activity */
+  --heatmap-cell-ring: rgba(226, 232, 240, 0.5); /* hover ring (slate-200 @ 50%) */
+  --heatmap-cell-outline: rgba(255, 255, 255, 0.06);
 }
 
 /* ─── Custom Keyframes ────────────────────────────────────────────────────── */

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { parseAsString, useQueryState } from "nuqs";
 import { BarChart3, Settings2 } from "lucide-react";
@@ -144,6 +144,49 @@ const HabitHeatmapContent = () => {
   // Tooltip / bottom sheet state
   const [hoveredDate, setHoveredDate] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+
+  // Card element used as the tooltip's positioning context (the tooltip is
+  // placed next to the hovered cell instead of flowing below the grid).
+  const cardRef = useRef<HTMLDivElement>(null);
+  const [tooltipPos, setTooltipPos] = useState<{
+    left: number;
+    top: number;
+  } | null>(null);
+
+  // Stable callbacks keep the memoized HeatmapGrid from re-rendering on hover.
+  const handleCellHover = useCallback(
+    (date: string | null) => setHoveredDate(date),
+    []
+  );
+  const handleCellClick = useCallback(
+    (date: string) => setSelectedDate(date),
+    []
+  );
+
+  // Position the tooltip above the hovered cell, relative to the card. Runs in
+  // a layout effect so measurement happens after the cell is in the DOM and
+  // before paint (no flicker). getBoundingClientRect reads are compositor-safe
+  // here because they occur only on hover change, not during scroll.
+  useLayoutEffect(() => {
+    const card = cardRef.current;
+    if (!hoveredDate || !card) {
+      setTooltipPos(null);
+      return;
+    }
+    const cell = card.querySelector<HTMLElement>(
+      `[data-testid="heatmap-cell-${hoveredDate}"]`
+    );
+    if (!cell) {
+      setTooltipPos(null);
+      return;
+    }
+    const cardRect = card.getBoundingClientRect();
+    const cellRect = cell.getBoundingClientRect();
+    setTooltipPos({
+      left: cellRect.left - cardRect.left + cellRect.width / 2,
+      top: cellRect.top - cardRect.top,
+    });
+  }, [hoveredDate]);
 
   const hoveredDay = useMemo(
     () => heatmapData?.find((d) => d.date === hoveredDate) ?? null,
@@ -292,24 +335,38 @@ const HabitHeatmapContent = () => {
       {isLoading ? (
         <Shimmer className="h-48 rounded-xl" />
       ) : resolvedRange.start && resolvedRange.end ? (
-        <Card className="bg-white border-0 shadow-md rounded-xl p-4 relative">
-          <HeatmapGrid
-            data={heatmapData ?? []}
-            semesterRange={resolvedRange}
-            onCellClick={(date) => setSelectedDate(date)}
-            onCellHover={(date) => setHoveredDate(date)}
-          />
-          {hoveredDay && hoveredDate && (
-            <HeatmapTooltip
-              date={hoveredDay.date}
-              habits={hoveredDay.habits}
-              xpEarned={hoveredXp}
-              streakActive={hoveredDay.academicCount > 0}
-              isPerfectDay={hoveredIsPerfectDay}
-              perfectDayXp={PERFECT_DAY_XP}
+        <div ref={cardRef} className="relative">
+          <Card className="bg-white border-0 shadow-md rounded-xl p-4">
+            <HeatmapGrid
+              data={heatmapData ?? []}
+              semesterRange={resolvedRange}
+              onCellClick={handleCellClick}
+              onCellHover={handleCellHover}
             />
+          </Card>
+          {/* Hover tooltip — positioned above the hovered cell (desktop/pointer
+              only; touch uses the bottom sheet). pointer-events-none so it
+              never steals the hover it depends on. */}
+          {hoveredDay && hoveredDate && tooltipPos && (
+            <div
+              className="pointer-events-none absolute z-50 hidden md:block"
+              style={{
+                left: tooltipPos.left,
+                top: tooltipPos.top,
+                transform: "translate(-50%, calc(-100% - 10px))",
+              }}
+            >
+              <HeatmapTooltip
+                date={hoveredDay.date}
+                habits={hoveredDay.habits}
+                xpEarned={hoveredXp}
+                streakActive={hoveredDay.academicCount > 0}
+                isPerfectDay={hoveredIsPerfectDay}
+                perfectDayXp={PERFECT_DAY_XP}
+              />
+            </div>
           )}
-        </Card>
+        </div>
       ) : null}
 
       {/* Mobile Bottom Sheet */}

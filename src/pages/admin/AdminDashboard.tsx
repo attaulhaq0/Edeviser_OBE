@@ -398,13 +398,16 @@ const AdminDashboard = () => {
                       key={plo.plo_id}
                       type="button"
                       onClick={() => openDrillDown(plo)}
-                      className="text-start rounded-xl p-4 text-white transition-transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                      className="text-start rounded-xl p-4 text-slate-900 transition-transform motion-safe:hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                       style={{ backgroundColor: bgColor }}
                       title={plo.plo_title}
                     >
+                      {/* Dark text is used on the saturated attainment colors:
+                          slate-900 clears WCAG AA (4.5:1) on every level, whereas
+                          white failed on the green/yellow tiles (~1.7–2.1:1). */}
                       <p
                         className={`text-2xl font-black ${
-                          measured ? "text-white" : "text-gray-600"
+                          measured ? "text-slate-900" : "text-gray-600"
                         }`}
                       >
                         {measured
@@ -413,14 +416,14 @@ const AdminDashboard = () => {
                       </p>
                       <p
                         className={`text-xs font-semibold mt-1 line-clamp-2 ${
-                          measured ? "text-white/90" : "text-gray-500"
+                          measured ? "text-slate-900" : "text-gray-500"
                         }`}
                       >
                         {plo.plo_title}
                       </p>
                       <p
                         className={`text-[10px] mt-1 ${
-                          measured ? "text-white/70" : "text-gray-400"
+                          measured ? "text-slate-900" : "text-gray-400"
                         }`}
                       >
                         {t("dashboard.totalContributors", {

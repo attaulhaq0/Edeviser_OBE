@@ -23,6 +23,7 @@ import Shimmer from "@/components/shared/Shimmer";
 import RealtimeStatusBanner from "@/components/shared/RealtimeStatusBanner";
 import WelcomeHero from "@/components/shared/WelcomeHero";
 import ErrorState from "@/components/shared/ErrorState";
+import HeatmapLegend from "@/components/shared/HeatmapLegend";
 import { useAuth } from "@/hooks/useAuth";
 import { useCourses } from "@/hooks/useCourses";
 import { useCourseSections } from "@/hooks/useCourseSections";
@@ -800,7 +801,7 @@ const TeacherDashboard = () => {
                       return (
                         <td key={clo} className="py-2 px-2 text-center">
                           <div
-                            className="inline-flex items-center justify-center w-12 h-8 rounded text-xs font-bold text-white"
+                            className="inline-flex items-center justify-center w-12 h-8 rounded text-xs font-bold text-slate-900"
                             style={{ backgroundColor: getAttainmentColor(val) }}
                             title={`${
                               val >= 0
@@ -817,44 +818,18 @@ const TeacherDashboard = () => {
                 ))}
               </tbody>
             </table>
-            {/* Legend */}
-            <div className="flex items-center gap-4 mt-4 text-xs text-gray-500">
-              <div className="flex items-center gap-1">
-                <div
-                  className="w-3 h-3 rounded"
-                  style={{ backgroundColor: "#22c55e" }}
-                />
-                <span>{t("dashboard.heatmapLegend.excellent")}</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <div
-                  className="w-3 h-3 rounded"
-                  style={{ backgroundColor: "#3b82f6" }}
-                />
-                <span>{t("dashboard.heatmapLegend.satisfactory")}</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <div
-                  className="w-3 h-3 rounded"
-                  style={{ backgroundColor: "#eab308" }}
-                />
-                <span>{t("dashboard.heatmapLegend.developing")}</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <div
-                  className="w-3 h-3 rounded"
-                  style={{ backgroundColor: "#ef4444" }}
-                />
-                <span>{t("dashboard.heatmapLegend.notYet")}</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <div
-                  className="w-3 h-3 rounded"
-                  style={{ backgroundColor: "#e5e7eb" }}
-                />
-                <span>{t("dashboard.heatmapLegend.noData")}</span>
-              </div>
-            </div>
+            {/* Legend — shared key legend (also used by the coordinator
+                coverage heatmap). */}
+            <HeatmapLegend
+              className="mt-4"
+              items={[
+                { color: "#22c55e", label: t("dashboard.heatmapLegend.excellent") },
+                { color: "#3b82f6", label: t("dashboard.heatmapLegend.satisfactory") },
+                { color: "#eab308", label: t("dashboard.heatmapLegend.developing") },
+                { color: "#ef4444", label: t("dashboard.heatmapLegend.notYet") },
+                { color: "#e5e7eb", label: t("dashboard.heatmapLegend.noData") },
+              ]}
+            />
           </div>
         )}
       </Card>
