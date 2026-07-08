@@ -104,7 +104,7 @@ describe("Comeback Challenge Overlay", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("comeback overlay has dashed stroke in teal-500", () => {
+  it("comeback overlay renders a dashed teal border ring", () => {
     const challenge: ComebackChallengeStatus = {
       active: true,
       currentDay: 1,
@@ -121,10 +121,12 @@ describe("Comeback Challenge Overlay", () => {
       />
     );
 
+    // The overlay is now a DOM ring (CSS border) rather than an SVG stroke, so
+    // the visual style is asserted via its border classes. Behavior (which days
+    // are marked + the ARIA label) is covered by the other cases below.
     const overlay = screen.getByTestId("comeback-overlay-2025-01-08");
-    expect(overlay).toHaveAttribute("stroke", "#14b8a6");
-    expect(overlay).toHaveAttribute("stroke-dasharray", "3 2");
-    expect(overlay).toHaveAttribute("fill", "none");
+    expect(overlay.className).toContain("border-dashed");
+    expect(overlay.className).toContain("border-teal-500");
   });
 
   it("does not render overlay when comeback challenge is inactive", () => {

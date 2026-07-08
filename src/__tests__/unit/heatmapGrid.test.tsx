@@ -108,7 +108,7 @@ describe("HeatmapGrid", () => {
 
     const cell = screen.getByTestId("heatmap-cell-2099-06-01");
     expect(cell).toHaveAttribute("aria-disabled", "true");
-    expect(cell).toHaveAttribute("opacity", "0.4");
+    expect(cell).toHaveAttribute("data-future", "true");
   });
 
   it("color intensity matches habit count (level 0-4)", () => {
@@ -121,30 +121,29 @@ describe("HeatmapGrid", () => {
     ];
     render(<HeatmapGrid data={days} semesterRange={range14} />);
 
-    // Level 0 → empty color
+    // Intensity is exposed as a stable data-level attribute (0-4). The visual
+    // color is driven from --heatmap-level-* tokens (see index.css), decoupled
+    // from the DOM contract so theming never breaks these tests.
     expect(screen.getByTestId("heatmap-cell-2025-01-06")).toHaveAttribute(
-      "fill",
-      "var(--heatmap-empty)"
+      "data-level",
+      "0"
     );
-    // Level 1
     expect(screen.getByTestId("heatmap-cell-2025-01-07")).toHaveAttribute(
-      "fill",
-      "var(--heatmap-level-1)"
+      "data-level",
+      "1"
     );
-    // Level 2
     expect(screen.getByTestId("heatmap-cell-2025-01-08")).toHaveAttribute(
-      "fill",
-      "var(--heatmap-level-2)"
+      "data-level",
+      "2"
     );
-    // Level 3
     expect(screen.getByTestId("heatmap-cell-2025-01-09")).toHaveAttribute(
-      "fill",
-      "var(--heatmap-level-3)"
+      "data-level",
+      "3"
     );
-    // Level 4 (5 habits → capped at level 4)
+    // 5 habits → capped at level 4
     expect(screen.getByTestId("heatmap-cell-2025-01-10")).toHaveAttribute(
-      "fill",
-      "var(--heatmap-level-4)"
+      "data-level",
+      "4"
     );
   });
 
@@ -314,13 +313,51 @@ describe("HeatmapGrid", () => {
   });
 
   // -----------------------------------------------------------------------
-  // SVG grid role
+  // Grid role
   // -----------------------------------------------------------------------
 
-  it('has role="grid" on the SVG element', () => {
+  it('has role="grid" on the grid container', () => {
     const days = buildDays("2025-01-06", "2025-01-19");
     render(<HeatmapGrid data={days} semesterRange={range14} />);
 
     expect(screen.getByRole("grid")).toBeInTheDocument();
+  });
+
+  // -----------------------------------------------------------------------
+  // Legend is real HTML (regression: SVG legend text overlapped swatches)
+  // -----------------------------------------------------------------------
+
+  it("renders the legend as HTML with swatches and labels as distinct nodes", () => {
+    const days = buildDays("2025-01-06", "2025-01-19");
+    render(<HeatmapGrid data={days} semesterRange={range14} />);
+
+    // The legend container is a sibling of the grid (below it), not inside it.
+    const legend = screen.getByTestId("heatmap-legend");
+    expect(legend).toBeInTheDocument();
+
+    // Swatch and its label are separate elements — they can never overlap the
+    // way the old absolutely-placed SVG <text> did over the next <rect>.
+    const swatch0 = screen.getByTestId("legend-level-0");
+    const label0 = screen.getByTestId("legend-label-0");
+    expect(swatch0).not.toBe(label0);
+    expect(legend).toContainElement(swatch0);
+    expect(legend).toContainElement(label0);
+    // The grid must not contain the legend swatches.
+    expect(screen.getByRole("grid")).not.toContainElement(swatch0);
+  });
+
+  // -----------------------------------------------------------------------
+  // Monday-aligned padding — decorative pads are excluded from gridcells
+  // -----------------------------------------------------------------------
+
+  it("keeps gridcell count equal to day count when range starts mid-week", () => {
+    // 2025-01-01 is a Wednesday → 2 leading pad slots are added for alignment,
+    // but only real days are exposed as gridcells.
+    const range = makeDateRange("2025-01-01", "2025-01-07"); // 7 days
+    const days = buildDays("2025-01-01", "2025-01-07");
+    render(<HeatmapGrid data={days} semesterRange={range} />);
+
+    expect(screen.getAllByRole("gridcell")).toHaveLength(7);
+    expect(screen.getByTestId("heatmap-cell-2025-01-01")).toBeInTheDocument();
   });
 });

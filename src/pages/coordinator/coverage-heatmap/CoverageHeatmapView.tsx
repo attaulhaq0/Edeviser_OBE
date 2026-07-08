@@ -16,7 +16,11 @@ import {
 import {
   getEvidenceCountColor,
   getAttainmentColor,
+  getHeatmapCellTextColor,
+  EVIDENCE_LEGEND,
+  ATTAINMENT_LEGEND,
 } from "@/lib/coverageHeatmap";
+import HeatmapLegend from "@/components/shared/HeatmapLegend";
 import { NoData } from "@/components/shared/EmptyState";
 import ErrorState from "@/components/shared/ErrorState";
 import Shimmer from "@/components/shared/Shimmer";
@@ -105,6 +109,7 @@ const CoverageHeatmapView = () => {
           ) : !matrix || matrix.clo_ids.length === 0 ? (
             <NoData className="py-12" />
           ) : (
+            <>
             <table className="w-full text-xs border-collapse min-w-[600px]">
               <thead>
                 <tr>
@@ -137,8 +142,13 @@ const CoverageHeatmapView = () => {
                       return (
                         <td
                           key={courseId}
-                          className="p-2 border border-slate-200 text-center"
-                          style={{ backgroundColor: bgColor }}
+                          className="p-2 border border-slate-200 text-center font-medium"
+                          style={{
+                            backgroundColor: bgColor,
+                            // Flip text to white on the dark evidence cells so
+                            // the number keeps ≥4.5:1 contrast (WCAG 1.4.3).
+                            color: cell ? getHeatmapCellTextColor(bgColor) : undefined,
+                          }}
                         >
                           {cell ? (
                             colorMode === "evidence" ? (
@@ -156,6 +166,16 @@ const CoverageHeatmapView = () => {
                 ))}
               </tbody>
             </table>
+            {/* Legend — shared key legend (also used by the teacher
+                student-performance heatmap). Explains the active color scale
+                (previously missing, leaving cell colors unlabeled). */}
+            <HeatmapLegend
+              className="mt-4"
+              data-testid="coverage-heatmap-legend"
+              title={colorMode === "evidence" ? "Evidence count" : "Attainment"}
+              items={colorMode === "evidence" ? EVIDENCE_LEGEND : ATTAINMENT_LEGEND}
+            />
+            </>
           )}
         </div>
       </Card>
