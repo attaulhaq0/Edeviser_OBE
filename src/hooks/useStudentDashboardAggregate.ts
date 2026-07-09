@@ -52,7 +52,11 @@ export interface StudentDashboardAggregate {
  *
  * Backward-compatible + reversible: the section hooks keep their own `queryFn`,
  * so on a cache miss / RPC failure they fetch exactly as before — no behavior
- * change, no new data visibility (the RPC is `SECURITY INVOKER`).
+ * change, no new data visibility. NOTE: `get_student_dashboard` is `SECURITY
+ * DEFINER` (it bypasses RLS), but it is fail-closed — the live body neutralizes
+ * `p_student_id` to NULL unless it equals `auth.uid()`, so a caller can only ever
+ * read THEIR OWN row set. That internal guard — not RLS — is what protects this
+ * function; do not remove it on the assumption RLS still applies.
  */
 export const useStudentDashboardAggregate = (studentId: string | undefined) => {
   const queryClient = useQueryClient();

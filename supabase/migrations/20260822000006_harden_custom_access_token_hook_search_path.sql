@@ -1,0 +1,36 @@
+-- ============================================================
+-- Migration: Pin search_path on custom_access_token_hook (lint 0011)
+-- Feature: infra-health / function search_path hardening
+-- ============================================================
+-- WHY
+--   Supabase database lint 0011_function_search_path_mutable (WARN) flags
+--   public.custom_access_token_hook(jsonb): it has no explicit search_path, so it
+--   inherits the invoking role's (supabase_auth_admin) session search_path at call
+--   time. Per Supabase's own guidance the fix is to pin search_path to '' so every
+--   reference in the body must be schema-qualified, preventing an unqualified name
+--   from resolving to an attacker-controlled (shadowing) object. This matters more
+--   than usual here: this Auth hook injects app_metadata.user_role and
+--   institution_id -- claims consumed by RLS / authorization -- so a shadowed
+--   `profiles` could inject spoofed authorization claims.
+--   Ref: https://supabase.com/docs/guides/database/database-advisors?lint=0011_function_search_path_mutable
+--
+-- WHY THIS IS SAFE (no body change, auth cannot break)
+--   The live body references ONLY `public.profiles` (already schema-qualified) plus
+--   pg_catalog built-ins (jsonb `->`/`->>` operators, jsonb_set, to_jsonb, and the
+--   ::uuid/::text casts), all of which resolve under search_path='' because
+--   pg_catalog is always implicitly in scope. Pinning the path therefore cannot
+--   change name resolution or break token issuance. Only the search_path attribute
+--   changes; the function body, STABLE volatility, and its grants (EXECUTE to
+--   supabase_auth_admin only; already revoked from anon/authenticated/public in
+--   20260821000031) are all preserved.
+--
+-- REPLAY-SAFETY (migration-replay-integrity)
+--   custom_access_token_hook is CREATEd in 20260821000031, which sorts BEFORE this
+--   migration in filename order, so it always exists by the time this ALTER runs on
+--   a fresh from-scratch replay -- this is not a too-early reference (42883-safe).
+--
+-- REVERSIBILITY
+--   ALTER FUNCTION public.custom_access_token_hook(jsonb) RESET search_path;
+-- ============================================================
+
+ALTER FUNCTION public.custom_access_token_hook(jsonb) SET search_path = '';

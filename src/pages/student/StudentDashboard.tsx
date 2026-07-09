@@ -234,7 +234,9 @@ const StudentDashboard = () => {
   // aggregate plus the two section requests it was meant to replace. Additive +
   // reversible: the section hooks below remain the fallback path, gated to fetch
   // ONLY if the aggregate errors (cache miss / RPC failure), so behavior and data
-  // visibility are unchanged (the RPC is SECURITY INVOKER).
+  // visibility are unchanged. `get_student_dashboard` is SECURITY DEFINER with an
+  // internal fail-closed guard (it nulls `p_student_id` unless it equals
+  // `auth.uid()`), so a caller can only ever read their own data.
   const aggregate = useStudentDashboardAggregate(studentId);
 
   // PERF (Option J): tame the mount "thundering herd" on constrained compute.
