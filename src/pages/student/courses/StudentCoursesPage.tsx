@@ -3,8 +3,10 @@ import { useTranslation } from "react-i18next";
 import Shimmer from "@/components/shared/Shimmer";
 import { NoCourses } from "@/components/shared/EmptyState";
 import { useAuth } from "@/hooks/useAuth";
+import { useFeatureFlag } from "@/hooks/useFeatureFlag";
 import { useStudentCourses } from "@/hooks/useStudentCourses";
 import CourseCard from "./CourseCard";
+import StudentCoursesNew from "./StudentCoursesNew";
 
 const StudentCoursesPage = () => {
   const { t } = useTranslation("student");
@@ -44,4 +46,12 @@ const StudentCoursesPage = () => {
   );
 };
 
-export default StudentCoursesPage;
+// Flag wrapper (P3, spec task 3.1): render the redesigned courses list when
+// `newUiModules` is enabled, else the current (legacy) one. Separate components
+// so each owns its hooks; default-off keeps the legacy page unchanged.
+const StudentCoursesPageRouter = () => {
+  const newModules = useFeatureFlag("newUiModules");
+  return newModules ? <StudentCoursesNew /> : <StudentCoursesPage />;
+};
+
+export default StudentCoursesPageRouter;

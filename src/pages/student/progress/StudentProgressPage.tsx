@@ -13,7 +13,9 @@ import { Badge } from "@/components/ui/badge";
 import Shimmer from "@/components/shared/Shimmer";
 import { NoData } from "@/components/shared/EmptyState";
 import { useAuth } from "@/hooks/useAuth";
+import { useFeatureFlag } from "@/hooks/useFeatureFlag";
 import { useStudentProgress } from "@/hooks/useStudentProgress";
+import StudentProgressNew from "./StudentProgressNew";
 
 const ProgressBar = ({ value }: { value: number }) => (
   <div className="h-2 w-full overflow-hidden rounded-full bg-gray-100">
@@ -188,4 +190,12 @@ const StudentProgressPage = () => {
   );
 };
 
-export default StudentProgressPage;
+// Flag wrapper (P3, spec task 3.1): render the redesigned progress page when
+// `newUiModules` is enabled, else the current (legacy) one. Separate components
+// so each owns its hooks; default-off keeps the legacy page unchanged.
+const StudentProgressPageRouter = () => {
+  const newModules = useFeatureFlag("newUiModules");
+  return newModules ? <StudentProgressNew /> : <StudentProgressPage />;
+};
+
+export default StudentProgressPageRouter;
