@@ -20,6 +20,13 @@ const mockBloomsDist = vi.fn();
 const mockHeatmap = vi.fn();
 const mockAtRiskStudents = vi.fn();
 
+// New-UI flags render the redesigned dashboards, which intentionally omit the
+// rich legacy widgets these tests assert (deferred to parity gate 2.6). Pin the
+// flag OFF so this suite validates the legacy dashboard it was written for.
+vi.mock("@/hooks/useFeatureFlag", () => ({
+  useFeatureFlag: () => false,
+}));
+
 vi.mock("@/hooks/useTeacherDashboard", () => ({
   useTeacherKPIs: () => mockTeacherKPIs(),
   useTeacherCLOAttainment: () => mockCLOAttainment(),

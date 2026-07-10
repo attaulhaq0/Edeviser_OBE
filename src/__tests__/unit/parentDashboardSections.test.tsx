@@ -14,6 +14,13 @@ import { MemoryRouter } from "react-router-dom";
 // Mocks
 // ---------------------------------------------------------------------------
 
+// New-UI flags render the redesigned dashboards, which intentionally omit the
+// rich legacy widgets these tests assert (deferred to parity gate 2.6). Pin the
+// flag OFF so this suite validates the legacy dashboard it was written for.
+vi.mock("@/hooks/useFeatureFlag", () => ({
+  useFeatureFlag: () => false,
+}));
+
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: (key: string, opts?: Record<string, unknown>) => {
