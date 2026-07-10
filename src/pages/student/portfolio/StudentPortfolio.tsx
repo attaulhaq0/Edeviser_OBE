@@ -11,6 +11,8 @@ import {
   type PortfolioCLO,
 } from "@/hooks/usePortfolio";
 import { useApproachableWording } from "@/hooks/useApproachableWording";
+import { useFeatureFlag } from "@/hooks/useFeatureFlag";
+import StudentPortfolioNew from "./StudentPortfolioNew";
 import GradientCardHeader from "@/components/shared/GradientCardHeader";
 import BloomsPill from "@/components/shared/BloomsPill";
 import {
@@ -101,7 +103,7 @@ const CloRow = ({ clo }: CloRowProps) => {
   );
 };
 
-export default function StudentPortfolio() {
+function StudentPortfolio() {
   const { t } = useTranslation("student");
   const tw = useApproachableWording("student");
   const { user, profile } = useAuth();
@@ -459,3 +461,13 @@ export default function StudentPortfolio() {
     </div>
   );
 }
+
+// Flag wrapper (P3, spec task 3.1): render the redesigned portfolio when
+// `newUiModules` is enabled, else the current (legacy) one. Separate components
+// so each owns its hooks; default-off keeps the legacy page unchanged.
+function StudentPortfolioRouter() {
+  const newModules = useFeatureFlag("newUiModules");
+  return newModules ? <StudentPortfolioNew /> : <StudentPortfolio />;
+}
+
+export default StudentPortfolioRouter;
