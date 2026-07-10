@@ -53,7 +53,7 @@ export const OnboardingWizard = ({
 }: OnboardingWizardProps) => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { user } = useAuth();
+  const { user, refetchProfile } = useAuth();
   const studentId = user?.id ?? "";
 
   const { data: progress, isLoading: progressLoading } =
@@ -257,6 +257,10 @@ export const OnboardingWizard = ({
         (completionData as UpdateProgressInput).day1_completed = true;
       }
       updateProgress.mutate(completionData as UpdateProgressInput);
+
+      // Refresh the AuthProvider's profile so `onboarding_completed` flips to
+      // true and StudentLayout removes the wizard overlay immediately.
+      await refetchProfile();
     } catch (err) {
       // Never silently swallow (engineering-guardrails): surface the failure so
       // it is visible in the console and picked up by error monitoring. The
@@ -268,6 +272,9 @@ export const OnboardingWizard = ({
         "[OnboardingWizard] process-onboarding failed; continuing to dashboard",
         err
       );
+      // Even on failure, refresh the profile — the Edge Function may have
+      // partially succeeded and set onboarding_completed on the server.
+      await refetchProfile().catch(() => {});
     } finally {
       setIsProcessing(false);
       // Optimistic navigation (clause 2.20: respond within 200ms) — always
@@ -283,6 +290,7 @@ export const OnboardingWizard = ({
     isDay1,
     navigate,
     updateProgress,
+    refetchProfile,
   ]);
 
   // ── Step renderer ────────────────────────────────────────────────

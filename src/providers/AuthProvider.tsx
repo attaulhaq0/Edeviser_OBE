@@ -86,6 +86,8 @@ export interface AuthContextValue {
   signUp: (options: SignUpOptions) => Promise<SignUpResult>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
+  /** Re-fetch the profile from the database and update the cached state. */
+  refetchProfile: () => Promise<void>;
 }
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -524,6 +526,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const role = profile?.role ?? null;
   const institutionId = profile?.institution_id ?? null;
 
+  // -------------------------------------------------------------------
+  // refetchProfile — callable by consumers to force-refresh after mutations
+  // that change fields the AuthProvider holds (e.g. onboarding_completed).
+  // -------------------------------------------------------------------
+  const refetchProfile = useCallback(async () => {
+    const uid = currentUserIdRef.current;
+    if (!uid) return;
+    const fresh = await fetchProfile(uid);
+    if (currentUserIdRef.current !== uid) return; // user changed mid-flight
+    if (fresh) {
+      setProfile(fresh);
+      writeCachedProfile(uid, fresh);
+    }
+  }, [fetchProfile]);
+
   const value = useMemo<AuthContextValue>(
     () => ({
       user,
@@ -535,6 +552,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       signUp,
       signOut,
       resetPassword,
+      refetchProfile,
     }),
     [
       user,
@@ -546,6 +564,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       signUp,
       signOut,
       resetPassword,
+      refetchProfile,
     ]
   );
 
