@@ -58,6 +58,20 @@ const readOverride = (flag: FeatureFlag): "on" | "off" | null => {
   }
 };
 
+/**
+ * Per-flag default (used when there is no localStorage override and no env var).
+ * The implemented + reviewed modules (chrome, dashboards, module screens) now
+ * default ON so the redesigned UI is the active experience; the old components
+ * remain reachable via an `off` override until the legacy-removal cleanup.
+ * `newUiAuth` stays OFF because the auth screens are not redesigned yet.
+ */
+const DEFAULT_ON: Record<FeatureFlag, boolean> = {
+  newUiChrome: true,
+  newUiAuth: false,
+  newUiDashboards: true,
+  newUiModules: true,
+};
+
 /** Resolve whether a feature flag is enabled (see resolution order above). */
 export const isFeatureEnabled = (flag: FeatureFlag): boolean => {
   const override = readOverride(flag);
@@ -67,7 +81,7 @@ export const isFeatureEnabled = (flag: FeatureFlag): boolean => {
   if (env === "true") return true;
   if (env === "false") return false;
 
-  return false;
+  return DEFAULT_ON[flag];
 };
 
 /**

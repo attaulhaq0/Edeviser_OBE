@@ -20,20 +20,33 @@ describe("featureFlags", () => {
     vi.unstubAllEnvs();
   });
 
-  it("defaults every flag to false (old UI) with no override or env", () => {
+  it("defaults implemented flags ON and newUiAuth OFF with no override or env", () => {
+    // The implemented + reviewed modules default to the redesigned UI; the
+    // not-yet-redesigned auth screens stay on the old UI.
+    expect(isFeatureEnabled("newUiChrome")).toBe(true);
+    expect(isFeatureEnabled("newUiDashboards")).toBe(true);
+    expect(isFeatureEnabled("newUiModules")).toBe(true);
+    expect(isFeatureEnabled("newUiAuth")).toBe(false);
+    // Every declared flag still resolves to a boolean.
     for (const flag of FEATURE_FLAGS) {
-      expect(isFeatureEnabled(flag)).toBe(false);
+      expect(typeof isFeatureEnabled(flag)).toBe("boolean");
     }
   });
 
   it("enables a flag when its env var is exactly 'true'", () => {
-    vi.stubEnv("VITE_FF_NEW_UI_CHROME", "true");
-    expect(isFeatureEnabled("newUiChrome")).toBe(true);
+    vi.stubEnv("VITE_FF_NEW_UI_AUTH", "true");
+    expect(isFeatureEnabled("newUiAuth")).toBe(true);
   });
 
-  it("treats env values other than 'true'/'false' as unset (default false)", () => {
-    vi.stubEnv("VITE_FF_NEW_UI_CHROME", "yes");
+  it("disables a default-on flag when its env var is exactly 'false'", () => {
+    vi.stubEnv("VITE_FF_NEW_UI_CHROME", "false");
     expect(isFeatureEnabled("newUiChrome")).toBe(false);
+  });
+
+  it("treats env values other than 'true'/'false' as unset (per-flag default)", () => {
+    // newUiAuth defaults OFF, so a non-boolean env string leaves it off.
+    vi.stubEnv("VITE_FF_NEW_UI_AUTH", "yes");
+    expect(isFeatureEnabled("newUiAuth")).toBe(false);
   });
 
   it("localStorage override 'on' wins over env 'false'", () => {
@@ -49,10 +62,11 @@ describe("featureFlags", () => {
   });
 
   it("clearing the override falls back to env/default", () => {
-    setFeatureOverride("newUiChrome", true);
-    expect(isFeatureEnabled("newUiChrome")).toBe(true);
-    setFeatureOverride("newUiChrome", null);
-    expect(isFeatureEnabled("newUiChrome")).toBe(false);
+    // newUiAuth defaults OFF, so clearing an 'on' override returns to false.
+    setFeatureOverride("newUiAuth", true);
+    expect(isFeatureEnabled("newUiAuth")).toBe(true);
+    setFeatureOverride("newUiAuth", null);
+    expect(isFeatureEnabled("newUiAuth")).toBe(false);
   });
 
   it("setFeatureOverride dispatches an in-tab change event", () => {
@@ -64,8 +78,9 @@ describe("featureFlags", () => {
   });
 
   it("flags are isolated from one another", () => {
-    setFeatureOverride("newUiChrome", true);
-    expect(isFeatureEnabled("newUiChrome")).toBe(true);
-    expect(isFeatureEnabled("newUiModules")).toBe(false);
+    // Override the default-OFF auth flag; the default-ON modules flag is untouched.
+    setFeatureOverride("newUiAuth", true);
+    expect(isFeatureEnabled("newUiAuth")).toBe(true);
+    expect(isFeatureEnabled("newUiModules")).toBe(true);
   });
 });
