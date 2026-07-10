@@ -29,6 +29,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import GradientCardHeader from "@/components/shared/GradientCardHeader";
 import CQIStatusBadge from "@/components/shared/CQIStatusBadge";
 import type { CQIStatus } from "@/components/shared/CQIStatusBadge";
 import { NoActionPlans } from "@/components/shared/EmptyState";
@@ -686,17 +687,7 @@ const CQIManager = () => {
       </div>
 
       <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-        <div
-          className="px-6 py-4 flex items-center gap-2"
-          style={{
-            background: "var(--brand-gradient)",
-          }}
-        >
-          <ClipboardCheck className="h-5 w-5 text-white" />
-          <h2 className="text-lg font-bold tracking-tight text-white">
-            Action Plans
-          </h2>
-        </div>
+        <GradientCardHeader icon={ClipboardCheck} title="Action Plans" />
         <div>
           {isLoading ? (
             <div className="p-6 space-y-3">
