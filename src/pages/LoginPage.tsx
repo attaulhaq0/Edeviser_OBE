@@ -72,15 +72,20 @@ const NOOR_DEMO_ACCOUNTS = [
   },
 ] as const;
 
-const NOOR_DEMO_PASSWORD = "DemoQatar2026!";
 const SHOW_NOOR_PANEL = import.meta.env.DEV;
 
 // Demo password is sourced from Vite env so the literal never ships in the
-// production client bundle. `VITE_DEMO_PASSWORD` should only be set for
+// production client bundle — and so a rotated password never has to be
+// committed to the repo. `VITE_DEMO_PASSWORD` should only be set for
 // local / staging builds that ship with seeded demo accounts. When unset,
 // the Quick Demo Access panel is hidden entirely (see SHOW_DEMO_PANEL).
 const DEMO_PASSWORD = import.meta.env.VITE_DEMO_PASSWORD ?? "";
 const SHOW_DEMO_PANEL = DEMO_PASSWORD.length > 0;
+
+// Noor quick-login uses the same env-sourced password — no hardcoded
+// credential in committed source. Panel visibility is still DEV-only
+// (SHOW_NOOR_PANEL); when VITE_DEMO_PASSWORD is unset the buttons no-op.
+const NOOR_DEMO_PASSWORD = DEMO_PASSWORD;
 
 // ---------------------------------------------------------------------------
 // Helpers
