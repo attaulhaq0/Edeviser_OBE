@@ -74,4 +74,22 @@ Incremental, reversible, presentation-only. Every task keeps the app fully funct
 
 ### Status
 
-Not started. This spec stores the full migration context (requirements + design + tasks). Begin with **P0** only after the prototype design is approved; do not swap any production screen before its parity gate passes.
+**Redesigned UI is now the ACTIVE experience** (flags default-ON: `newUiChrome`, `newUiDashboards`, `newUiModules`; `newUiAuth` stays OFF). Branch `feat/ui-migration-p0-p1-chrome`, draft PR #215 — not merged.
+
+**Active in the new design (default-on):**
+
+- **Chrome** — `GlobalHeader`, `Sidebar`, `MobileTabBar` (P1).
+- **All 5 role dashboards** — Student / Teacher / Parent / Coordinator / Admin (P2), each a `*DashboardNew` composed from the P0 primitives over the existing aggregate hooks.
+- **5 student module screens** — Progress, Courses, XP History, Portfolio, Journal (P3 3.1), each a co-located `*New` reusing the existing hooks/mutations verbatim.
+
+**Deliberately unchanged (no legacy style to migrate — already design-system-conformant):** the CRUD / list / table / form / analytics screens across teacher / coordinator / admin / parent (they already use `Card`+`shadow-md`, `GradientCardHeader`, the gradient CTA, `DataTable`, KPI cards, brand-gradient headers, and brand-colored Recharts). Verified by sampling CLO/Rubric/Assignment lists + Tutor-Analytics + Baseline-Results. Making these into per-screen `newUiModules` wrappers would only be a lateral primitive swap and would fragment the look, so they are intentionally left as-is. The chip-vs-bar section-header unification (SectionHeader vs GradientCardHeader) is a design-direction call left for a single shared-primitive pass, not per-screen wrappers.
+
+**Deferred / blocked:**
+
+- **Auth screens (P1b, 1.7–1.9)** — NOT redesigned. Blocked: `LoginPage.tsx` has pre-existing uncommitted (non-migration) changes; redesigning it would sweep those into this PR. Resolve those first (commit/stash), then auth can be redesigned in-place behind `newUiAuth`.
+- **Habits / Marketplace / Leaderboard (P3 3.1)** — deferred to the shared-child-widget restyle track (their UI lives in shared children / carries anonymity+polling invariants); see the 3.1 note.
+- **Legacy-component removal (the "no duplication" end state)** — each redesigned screen still has its legacy component reachable via an `off` override, as the safe fallback for testing. Once the preview is signed off, delete the `*New`/legacy split + flag wrappers so each screen is a single component (backend already untouched throughout).
+
+**To test on the preview:** everything is on by default now — just open the deployed preview. To compare against the old UI for any screen, set an override in the browser console, e.g. `localStorage.setItem('edeviser-ff:newUiDashboards','off'); location.reload()` (or `newUiChrome` / `newUiModules`). A DEV-only floating toggle also flips `newUiChrome`.
+
+**Remaining verification (needs your review):** the parity + cross-cutting gates (2.6, V.1–V.8) — visual, en/ar, light/dark, a11y, responsive, and performance — require running the app, so they are yours to sign off on the preview.
