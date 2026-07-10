@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Shimmer from "@/components/shared/Shimmer";
 import { useAuth } from "@/hooks/useAuth";
+import { useFeatureFlag } from "@/hooks/useFeatureFlag";
 import {
   useXPHistory,
   useXPCategorySummary,
@@ -21,6 +22,7 @@ import {
   type XPTransactionDisplay,
   type XPCategorySummary,
 } from "@/hooks/useXPHistory";
+import XPHistoryNew from "./XPHistoryNew";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -266,4 +268,12 @@ const XPHistory = () => {
   );
 };
 
-export default XPHistory;
+// Flag wrapper (P3, spec task 3.1): render the redesigned XP history when
+// `newUiModules` is enabled, else the current (legacy) one. Separate components
+// so each owns its hooks; default-off keeps the legacy page unchanged.
+const XPHistoryRouter = () => {
+  const newModules = useFeatureFlag("newUiModules");
+  return newModules ? <XPHistoryNew /> : <XPHistory />;
+};
+
+export default XPHistoryRouter;
