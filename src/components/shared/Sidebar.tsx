@@ -8,6 +8,7 @@ import { NAV_GROUPS, NAV_GROUP_META, type NavGroup } from "@/lib/navGroups";
 import { useIntentPrefetch } from "@/hooks/useIntentPrefetch";
 import { prefetchRoute } from "@/lib/routePrefetch";
 import { useSidebar } from "./SidebarContext";
+import { useFeatureFlag } from "@/hooks/useFeatureFlag";
 import { cn } from "@/lib/utils";
 import type { UserRole } from "@/types/app";
 
@@ -50,6 +51,10 @@ const Sidebar = () => {
   const { profile } = useAuth();
   const { mobileOpen, close } = useSidebar();
   const location = useLocation();
+  // P1 chrome redesign flag (reversible; the old sidebar is the flag-off
+  // default). Only presentation branches below — all nav logic/sections/active
+  // detection/prefetch are shared so behavior stays identical either way.
+  const newChrome = useFeatureFlag("newUiChrome");
   // Prefetch-on-intent (Req 9): warm a route's chunk on hover/focus (desktop
   // only, once per target, failures swallowed) so navigation feels instant.
   const getIntentHandlers = useIntentPrefetch();
@@ -87,14 +92,19 @@ const Sidebar = () => {
     const Icon = item.icon;
     const isActive = isItemActive(item.to);
 
-    return (
-      <NavLink
-        key={item.to}
-        to={item.to}
-        onClick={close}
-        viewTransition
-        {...getIntentHandlers(item.to, () => prefetchRoute(item.to))}
-        className={cn(
+    // Presentation branch only: the redesigned (flag-on) active item uses a
+    // brand-gradient pill (set via inline style, like GradientCardHeader); the
+    // flag-off item is the existing style verbatim (no visual change).
+    const itemClassName = newChrome
+      ? cn(
+          "flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] transition-all",
+          isActive
+            ? "font-semibold text-white shadow-sm"
+            : item.deEmphasized
+            ? "font-medium text-gray-400 hover:bg-slate-100 dark:text-gray-500 dark:hover:bg-slate-800"
+            : "font-medium text-gray-600 hover:bg-slate-100 dark:text-gray-300 dark:hover:bg-slate-800"
+        )
+      : cn(
           "flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium transition-colors",
           isActive
             ? "bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400"
@@ -103,7 +113,21 @@ const Sidebar = () => {
             item.deEmphasized
             ? "text-gray-400 hover:bg-slate-50 dark:text-gray-500 dark:hover:bg-slate-800"
             : "text-gray-600 hover:bg-slate-50 dark:text-gray-400 dark:hover:bg-slate-800"
-        )}
+        );
+
+    return (
+      <NavLink
+        key={item.to}
+        to={item.to}
+        onClick={close}
+        viewTransition
+        {...getIntentHandlers(item.to, () => prefetchRoute(item.to))}
+        style={
+          newChrome && isActive
+            ? { background: "var(--brand-gradient)" }
+            : undefined
+        }
+        className={itemClassName}
       >
         {isActive && <span className="sr-only">(current page)</span>}
         <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
@@ -128,7 +152,10 @@ const Sidebar = () => {
       <aside
         data-tour="primary-nav"
         className={cn(
-          "fixed top-14 start-0 z-[99] flex h-[calc(100vh-3.5rem)] w-52 flex-col border-e border-border bg-white dark:bg-background transition-transform duration-200 ease-in-out",
+          "fixed top-14 start-0 z-[99] flex h-[calc(100vh-3.5rem)] w-52 flex-col border-e border-border transition-transform duration-200 ease-in-out",
+          newChrome
+            ? "bg-white/95 backdrop-blur-sm dark:bg-background/95"
+            : "bg-white dark:bg-background",
           mobileOpen
             ? "translate-x-0"
             : "max-lg:-translate-x-full max-lg:rtl:translate-x-full lg:translate-x-0"
