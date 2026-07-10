@@ -1,3 +1,16 @@
+// =============================================================================
+// StudentJournalNew — redesigned learning journal (P3, spec task 3.1)
+// =============================================================================
+//
+// List + create-dialog archetype gated behind `newUiModules` (see the wrapper
+// in StudentJournalPage.tsx). REUSES every existing hook, the create-entry
+// mutation, the CLO-contextual guided-prompt generation, the reflection-prompt
+// templates, and the word-count / XP-eligibility logic VERBATIM (R10.1–R10.3a).
+// Only presentation changes: the CTA + save buttons use the tactile Button
+// variant and entry cards use `.card-elevated`. i18n reuses the exact `student`
+// namespace `journal.*` keys. Flag-off keeps the legacy page byte-identical.
+// =============================================================================
+
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { PenLine, Plus, BookOpen, Calendar, Lightbulb } from "lucide-react";
@@ -27,7 +40,6 @@ import { Label } from "@/components/ui/label";
 import Shimmer from "@/components/shared/Shimmer";
 import EmptyState from "@/components/shared/EmptyState";
 import { useAuth } from "@/hooks/useAuth";
-import { useFeatureFlag } from "@/hooks/useFeatureFlag";
 import { useJournalEntries, useCreateJournalEntry } from "@/hooks/useJournal";
 import { useJournalCourseOptions } from "@/hooks/useJournalCourseOptions";
 import { useCLOs } from "@/hooks/useCLOs";
@@ -40,7 +52,6 @@ import {
   seedContentWithPrompt,
 } from "@/lib/reflectionPrompts";
 import { toast } from "sonner";
-import StudentJournalNew from "./StudentJournalNew";
 
 /**
  * Builds the seed text for a CLO-contextual guided prompt: the intro followed
@@ -51,7 +62,7 @@ const buildGuidedSeed = (prompt: GeneratedJournalPrompt): string => {
   return `${prompt.promptText}\n\n${questions}`;
 };
 
-const StudentJournalPage = () => {
+const StudentJournalNew = () => {
   const { t } = useTranslation("student");
   const { user } = useAuth();
   const studentId = user?.id;
@@ -124,7 +135,7 @@ const StudentJournalPage = () => {
           <h1 className="text-2xl font-bold tracking-tight">
             {t("journal.title", "Learning Journal")}
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="mt-1 text-sm text-gray-500">
             {t(
               "journal.subtitle",
               "Reflect on what you've learned. Earn 20 XP per entry of 50+ words."
@@ -133,8 +144,8 @@ const StudentJournalPage = () => {
         </div>
         <Dialog open={isCreating} onOpenChange={setIsCreating}>
           <DialogTrigger asChild>
-            <Button className="bg-gradient-to-r from-teal-500 to-blue-600 text-white active:scale-95">
-              <Plus className="h-4 w-4 me-2" />
+            <Button variant="tactile">
+              <Plus className="h-4 w-4" />
               {t("journal.newEntry", "New Entry")}
             </Button>
           </DialogTrigger>
@@ -201,7 +212,7 @@ const StudentJournalPage = () => {
                         className="rounded-full"
                         onClick={() => handleSelectTemplate(promptText)}
                       >
-                        <Lightbulb className="h-3.5 w-3.5 me-1.5 text-amber-500" />
+                        <Lightbulb className="me-1.5 h-3.5 w-3.5 text-amber-500" />
                         {promptText}
                       </Button>
                     );
@@ -211,9 +222,9 @@ const StudentJournalPage = () => {
                 {/* CLO-contextual guided prompt from the existing generator,
                     shown only when course/CLO context is available (R10.3). */}
                 {guidedPrompt && (
-                  <div className="rounded-lg border border-teal-200 bg-teal-50 p-3 space-y-2">
+                  <div className="space-y-2 rounded-lg border border-teal-200 bg-teal-50 p-3">
                     <div className="flex items-center justify-between gap-2">
-                      <p className="text-xs font-bold tracking-wide uppercase text-teal-700">
+                      <p className="text-xs font-bold uppercase tracking-wide text-teal-700">
                         {t("journal.prompts.guided", "Guided reflection")}
                       </p>
                       <Button
@@ -228,7 +239,7 @@ const StudentJournalPage = () => {
                         {t("journal.prompts.use", "Use this prompt")}
                       </Button>
                     </div>
-                    <p className="text-sm text-gray-700 leading-relaxed">
+                    <p className="text-sm leading-relaxed text-gray-700">
                       {guidedPrompt.promptText}
                     </p>
                   </div>
@@ -252,7 +263,7 @@ const StudentJournalPage = () => {
                 <p className="text-xs text-gray-500">
                   {wordCount} {t("journal.dialog.words", "words")}
                   {wordCount >= 50 && (
-                    <span className="ms-2 text-green-600 font-semibold">
+                    <span className="ms-2 font-semibold text-green-600">
                       ✓ {t("journal.dialog.xpEarned", "+20 XP eligible")}
                     </span>
                   )}
@@ -268,13 +279,13 @@ const StudentJournalPage = () => {
                 {t("common.cancel", "Cancel")}
               </Button>
               <Button
+                variant="tactile"
                 onClick={handleSubmit}
                 disabled={
                   !selectedCourse ||
                   content.trim().length === 0 ||
                   createEntry.isPending
                 }
-                className="bg-gradient-to-r from-teal-500 to-blue-600 text-white active:scale-95"
               >
                 {createEntry.isPending
                   ? t("common.saving", "Saving...")
@@ -306,26 +317,26 @@ const StudentJournalPage = () => {
             return (
               <Card
                 key={entry.id}
-                className="bg-white border-0 shadow-md rounded-xl p-5"
+                className="card-elevated border-0 bg-white p-5"
               >
-                <div className="flex items-start justify-between gap-3 mb-3">
+                <div className="mb-3 flex items-start justify-between gap-3">
                   <div className="flex items-center gap-2">
                     {course ? (
                       <Badge
                         variant="outline"
                         className="text-[10px] font-bold"
                       >
-                        <BookOpen className="h-3 w-3 me-1" />
+                        <BookOpen className="me-1 h-3 w-3" />
                         {course.code}
                       </Badge>
                     ) : null}
                     <span className="inline-flex items-center text-xs text-gray-500">
-                      <Calendar className="h-3 w-3 me-1" />
+                      <Calendar className="me-1 h-3 w-3" />
                       {format(new Date(entry.created_at), "PPP")}
                     </span>
                   </div>
                 </div>
-                <p className="text-sm text-gray-700 dark:text-foreground/90 whitespace-pre-wrap leading-relaxed">
+                <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-700 dark:text-foreground/90">
                   {entry.content}
                 </p>
               </Card>
@@ -337,12 +348,4 @@ const StudentJournalPage = () => {
   );
 };
 
-// Flag wrapper (P3, spec task 3.1): render the redesigned journal when
-// `newUiModules` is enabled, else the current (legacy) one. Separate components
-// so each owns its hooks; default-off keeps the legacy page unchanged.
-const StudentJournalPageRouter = () => {
-  const newModules = useFeatureFlag("newUiModules");
-  return newModules ? <StudentJournalNew /> : <StudentJournalPage />;
-};
-
-export default StudentJournalPageRouter;
+export default StudentJournalNew;
