@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Shimmer from "@/components/shared/Shimmer";
 import WelcomeHero from "@/components/shared/WelcomeHero";
+import AdminDashboardNew from "@/components/shared/AdminDashboardNew";
 import { NoData } from "@/components/shared/EmptyState";
 import PLODrillDownDialog from "@/components/shared/PLODrillDownDialog";
 import {
@@ -21,6 +22,7 @@ import { useAdminDashboardAggregate } from "@/hooks/useAdminDashboardAggregate";
 import ErrorState from "@/components/shared/ErrorState";
 import { useAIPerformance } from "@/hooks/useAIPerformance";
 import { useAuth } from "@/hooks/useAuth";
+import { useFeatureFlag } from "@/hooks/useFeatureFlag";
 import { useDeferredMount } from "@/hooks/useDeferredMount";
 import { getAttainmentColor } from "@/lib/attainmentClassifier";
 import {
@@ -653,4 +655,12 @@ const AdminDashboard = () => {
   );
 };
 
-export default AdminDashboard;
+// Flag wrapper (P2, spec task 2.5): render the redesigned admin dashboard when
+// `newUiDashboards` is enabled, else the current (legacy) one. Separate
+// components so each owns its hooks; default-off keeps the legacy unchanged.
+const AdminDashboardRouter = () => {
+  const newDashboard = useFeatureFlag("newUiDashboards");
+  return newDashboard ? <AdminDashboardNew /> : <AdminDashboard />;
+};
+
+export default AdminDashboardRouter;

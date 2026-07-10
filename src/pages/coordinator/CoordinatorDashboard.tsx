@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/select";
 import Shimmer from "@/components/shared/Shimmer";
 import WelcomeHero from "@/components/shared/WelcomeHero";
+import CoordinatorDashboardNew from "@/components/shared/CoordinatorDashboardNew";
 import CurriculumMatrix from "@/components/shared/CurriculumMatrix";
 import CellDetailSheet from "@/components/shared/CellDetailSheet";
 import { useCoordinatorKPIs } from "@/hooks/useCoordinatorDashboard";
@@ -21,6 +22,7 @@ import { useCQIPlanSummary, useCQIPlans } from "@/hooks/useCQIPlans";
 import CQIStatusBadge from "@/components/shared/CQIStatusBadge";
 import type { CQIStatus } from "@/components/shared/CQIStatusBadge";
 import { useAuth } from "@/hooks/useAuth";
+import { useFeatureFlag } from "@/hooks/useFeatureFlag";
 import { usePrograms } from "@/hooks/usePrograms";
 import { useCourses } from "@/hooks/useCourses";
 import { useSectionAttainment } from "@/hooks/useSectionAttainment";
@@ -648,4 +650,12 @@ const CoordinatorDashboard = () => {
   );
 };
 
-export default CoordinatorDashboard;
+// Flag wrapper (P2, spec task 2.4): render the redesigned coordinator dashboard
+// when `newUiDashboards` is enabled, else the current (legacy) one. Separate
+// components so each owns its hooks; default-off keeps the legacy unchanged.
+const CoordinatorDashboardRouter = () => {
+  const newDashboard = useFeatureFlag("newUiDashboards");
+  return newDashboard ? <CoordinatorDashboardNew /> : <CoordinatorDashboard />;
+};
+
+export default CoordinatorDashboardRouter;
