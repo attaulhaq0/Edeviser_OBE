@@ -27,9 +27,9 @@ Incremental, reversible, presentation-only. Every task keeps the app fully funct
 
 ## P1b — Auth screens (preserve background + colors + Arabic)
 
-- [ ] 1.7 Redesign `LoginPage` keeping the exact auth background (dark slate gradient + doodle overlay), logo, `bg-white/95 backdrop-blur-xl rounded-[2rem]` card, teal→blue tab/submit gradients, `#14b8a6` field accents, `LanguageSwitcher top-4 end-4`; logic via `useAuth().signIn`; DEV/env-gated demo panels intact. (Ref R5.1, R5.5, R6.1, R7.2)
-- [ ] 1.8 Apply the same background/treatment to `SignUpPage`, `ResetPasswordPage`, `UpdatePasswordPage`; keep self-signup = student (no ignored role picker). (Ref R5.4, R6.1)
-- [ ] 1.9 Verify auth screens in en (LTR) + ar (RTL), light + dark; account-lockout + redirect behavior unchanged. (Ref R7.5, R9.1)
+- [x] 1.7 `LoginPage`: **already on-design — verified, no rebuild needed.** It already embodies the exact target auth aesthetic: dark slate gradient (`from-[#1e293b] via-[#0f172a] to-[#020617]`) + doodle overlay, logo + tagline, `bg-white/95 backdrop-blur-xl rounded-[2rem]` frosted card, teal→blue (`#14b8a6→#3b82f6`) tab + submit gradients, `#14b8a6` field accents, `LanguageSwitcher top-4 end-4`, `useAuth().signIn` logic, and DEV/env-gated demo panels. The `newUiAuth` flag stays unused (there was no legacy auth style to gate). (Ref R5.1, R5.5, R6.1, R7.2)
+- [x] 1.8 **done** — `SignUpPage` already matches Login's aesthetic (same dark backdrop + frosted card + `#14b8a6` accents; self-signup stays student-only). **Fixed the real gap:** `ResetPasswordPage` + `UpdatePasswordPage` were on a plain `bg-slate-50` + standard white card. Extracted a shared **`AuthShell`** (the exact Login backdrop: dark gradient + doodle overlay + top-end `LanguageSwitcher` + logo/tagline) and brought both password screens onto it with the frosted `bg-white/95 backdrop-blur-xl rounded-[2rem]` card, `#14b8a6` field/link accents, and the Login-consistent teal→blue submit — presentation-only, all `resetPassword` / `supabase.auth.updateUser` logic + success states preserved. (Ref R5.4, R6.1)
+- [~] 1.9 **reasoned** — all four auth screens now share the identical backdrop/card/accents with logic untouched; RTL uses logical props (`ms-*`, `end-4`), and account-lockout + redirect behavior are unchanged (no auth logic edited). Full runtime en/ar + light/dark + lockout click-through folds into V.3/V.4 (needs the running app). (Ref R7.5, R9.1)
 
 ## P2 — Role dashboards (bind to existing aggregate hooks)
 

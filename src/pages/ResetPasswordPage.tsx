@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/card";
 import { Loader2, Mail, ArrowLeft, CheckCircle2 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
+import AuthShell from "@/components/shared/AuthShell";
 
 const ResetPasswordPage = () => {
   const { t } = useTranslation("auth");
@@ -53,11 +53,8 @@ const ResetPasswordPage = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4 relative">
-      <div className="absolute top-4 end-4 z-10">
-        <LanguageSwitcher />
-      </div>
-      <Card className="bg-white border border-slate-200 shadow-lg rounded-2xl w-full max-w-md">
+    <AuthShell>
+      <Card className="w-full overflow-hidden rounded-[2rem] border-0 bg-white/95 shadow-2xl ring-1 ring-white/20 backdrop-blur-xl">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold tracking-tight text-gray-900">
             {t("resetPassword.title")}
@@ -79,7 +76,7 @@ const ResetPasswordPage = () => {
               </p>
               <Link
                 to="/login"
-                className="inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700"
+                className="inline-flex items-center gap-2 text-sm font-medium text-[#14b8a6] transition-colors hover:text-[#0d9488]"
               >
                 <ArrowLeft className="h-4 w-4" />
                 {t("resetPassword.backToLogin")}
@@ -101,11 +98,11 @@ const ResetPasswordPage = () => {
                       </FormLabel>
                       <FormControl>
                         <div className="relative">
-                          <Mail className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                          <Mail className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#14b8a6]" />
                           <Input
                             type="email"
                             placeholder="you@institution.edu"
-                            className="ps-10 h-11 border-slate-300 focus:border-blue-500"
+                            className="ps-10 h-11 rounded-xl border-gray-200 bg-gray-50/50 transition-all focus:border-[#14b8a6] focus:bg-white focus:ring-[#14b8a6]/20"
                             {...field}
                           />
                         </div>
@@ -117,7 +114,7 @@ const ResetPasswordPage = () => {
                 <Button
                   type="submit"
                   disabled={isPending}
-                  className="w-full bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
+                  className="h-12 w-full transform rounded-xl bg-gradient-to-r from-[#14b8a6] to-[#3b82f6] font-bold text-white shadow-lg shadow-blue-500/20 transition-all duration-300 hover:-translate-y-0.5 hover:from-[#0d9488] hover:to-[#2563eb] hover:shadow-blue-500/40"
                 >
                   {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
                   {t("resetPassword.submitButton")}
@@ -125,7 +122,7 @@ const ResetPasswordPage = () => {
                 <div className="text-center">
                   <Link
                     to="/login"
-                    className="inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700"
+                    className="inline-flex items-center gap-2 text-sm font-medium text-[#14b8a6] transition-colors hover:text-[#0d9488]"
                   >
                     <ArrowLeft className="h-4 w-4" />
                     {t("resetPassword.backToLogin")}
@@ -136,7 +133,7 @@ const ResetPasswordPage = () => {
           )}
         </CardContent>
       </Card>
-    </div>
+    </AuthShell>
   );
 };
 
