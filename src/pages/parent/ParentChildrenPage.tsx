@@ -13,12 +13,20 @@ import { Badge } from "@/components/ui/badge";
 import Shimmer from "@/components/shared/Shimmer";
 import { NoLinkedStudents } from "@/components/shared/EmptyState";
 import { useAuth } from "@/hooks/useAuth";
+import { useFeatureFlag } from "@/hooks/useFeatureFlag";
 import { useLinkedChildren } from "@/hooks/useParentDashboard";
 
 const ParentChildrenPage = () => {
   const { t } = useTranslation("common");
   const { user } = useAuth();
   const { data: children, isLoading } = useLinkedChildren(user?.id);
+
+  // The only redesign delta for this screen is the card surface, so flag it
+  // inline (P3 3.5, `newUiModules`) rather than duplicating the whole page.
+  const newModules = useFeatureFlag("newUiModules");
+  const childCardClass = newModules
+    ? "card-elevated border-0 rounded-xl p-6 h-full"
+    : "bg-white border-0 shadow-md rounded-xl p-6 h-full hover:shadow-lg transition-shadow";
 
   return (
     <div className="space-y-6">
@@ -49,7 +57,7 @@ const ParentChildrenPage = () => {
               to={`/parent/planner/${child.student_id}`}
               className="group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-xl"
             >
-              <Card className="bg-white border-0 shadow-md rounded-xl p-6 h-full hover:shadow-lg transition-shadow">
+              <Card className={childCardClass}>
                 <div className="flex items-start justify-between gap-3 mb-4">
                   <div className="flex items-center gap-3">
                     <div className="p-3 rounded-full bg-gradient-to-br from-teal-500 to-blue-600 text-white">
@@ -59,8 +67,12 @@ const ParentChildrenPage = () => {
                       <h2 className="text-lg font-bold tracking-tight text-gray-900 dark:text-foreground">
                         {child.student_name}
                       </h2>
-                      <Badge variant="outline" className="text-[10px] font-bold mt-1">
-                        {t("parent.children.level", "Level")} {child.current_level}
+                      <Badge
+                        variant="outline"
+                        className="text-[10px] font-bold mt-1"
+                      >
+                        {t("parent.children.level", "Level")}{" "}
+                        {child.current_level}
                       </Badge>
                     </div>
                   </div>
