@@ -29,6 +29,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import Shimmer from "@/components/shared/Shimmer";
+import GradientCardHeader from "@/components/shared/GradientCardHeader";
 import ProgramAccreditationManager from "@/components/shared/ProgramAccreditationManager";
 import { Switch } from "@/components/ui/switch";
 import { useTranslation } from "react-i18next";
@@ -141,17 +142,7 @@ const InstitutionSettings = () => {
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           {/* Attainment Thresholds Card */}
           <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-            <div
-              className="px-6 py-4 flex items-center gap-2"
-              style={{
-                background: "var(--brand-gradient)",
-              }}
-            >
-              <Settings className="h-5 w-5 text-white" />
-              <h2 className="text-lg font-bold tracking-tight text-white">
-                Attainment Thresholds
-              </h2>
-            </div>
+            <GradientCardHeader icon={Settings} title="Attainment Thresholds" />
             <div className="p-6 space-y-4">
               <p className="text-sm text-gray-500">
                 Configure the percentage thresholds for attainment level
@@ -260,17 +251,10 @@ const InstitutionSettings = () => {
 
           {/* Accreditation Body Card */}
           <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-            <div
-              className="px-6 py-4 flex items-center gap-2"
-              style={{
-                background: "var(--brand-gradient)",
-              }}
-            >
-              <GraduationCap className="h-5 w-5 text-white" />
-              <h2 className="text-lg font-bold tracking-tight text-white">
-                Accreditation Body
-              </h2>
-            </div>
+            <GradientCardHeader
+              icon={GraduationCap}
+              title="Accreditation Body"
+            />
             <div className="p-6">
               <FormField
                 control={form.control}
@@ -308,17 +292,7 @@ const InstitutionSettings = () => {
 
           {/* Grade Scales Card */}
           <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-            <div
-              className="px-6 py-4 flex items-center gap-2"
-              style={{
-                background: "var(--brand-gradient)",
-              }}
-            >
-              <GraduationCap className="h-5 w-5 text-white" />
-              <h2 className="text-lg font-bold tracking-tight text-white">
-                Grade Scales
-              </h2>
-            </div>
+            <GradientCardHeader icon={GraduationCap} title="Grade Scales" />
             <div className="p-6 space-y-4">
               <p className="text-sm text-gray-500">
                 Configure letter grade mapping for the gradebook. Each row
@@ -452,17 +426,7 @@ const InstitutionSettings = () => {
 
           {/* Streak Sabbatical Card — Requirement 125.3, 125.4 */}
           <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-            <div
-              className="px-6 py-4 flex items-center gap-2"
-              style={{
-                background: "var(--brand-gradient)",
-              }}
-            >
-              <Flame className="h-5 w-5 text-white" />
-              <h2 className="text-lg font-bold tracking-tight text-white">
-                Streak Sabbatical
-              </h2>
-            </div>
+            <GradientCardHeader icon={Flame} title="Streak Sabbatical" />
             <div className="p-6 space-y-4">
               <FormField
                 control={form.control}
@@ -494,17 +458,7 @@ const InstitutionSettings = () => {
 
           {/* League Tier Thresholds Card — Requirement 132.5 */}
           <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-            <div
-              className="px-6 py-4 flex items-center gap-2"
-              style={{
-                background: "var(--brand-gradient)",
-              }}
-            >
-              <Trophy className="h-5 w-5 text-white" />
-              <h2 className="text-lg font-bold tracking-tight text-white">
-                League Tier Thresholds
-              </h2>
-            </div>
+            <GradientCardHeader icon={Trophy} title="League Tier Thresholds" />
             <div className="p-6 space-y-4">
               <p className="text-sm text-gray-500">
                 Configure the cumulative XP thresholds for each League Tier.
@@ -605,17 +559,10 @@ const InstitutionSettings = () => {
 
           {/* Default Language Card */}
           <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-            <div
-              className="px-6 py-4 flex items-center gap-2"
-              style={{
-                background: "var(--brand-gradient)",
-              }}
-            >
-              <Globe className="h-5 w-5 text-white" />
-              <h2 className="text-lg font-bold tracking-tight text-white">
-                {t("settings.defaultLanguage")}
-              </h2>
-            </div>
+            <GradientCardHeader
+              icon={Globe}
+              title={t("settings.defaultLanguage")}
+            />
             <div className="p-6">
               <FormField
                 control={form.control}
