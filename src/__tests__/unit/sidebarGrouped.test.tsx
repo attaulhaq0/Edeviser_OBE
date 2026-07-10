@@ -58,6 +58,16 @@ vi.mock("@/hooks/useSurveyAssignmentsCount", () => ({
   useSurveyAssignmentsCount: () => ({ data: mockState.surveyData }),
 }));
 
+// The grouped-nav LOGIC under test (grouping, active state, conditional
+// Surveys, empty-section handling) is shared by both chrome styles. Pin the
+// `newUiChrome` flag OFF so the Sidebar renders the legacy grouped markup these
+// assertions target — the new-chrome branch also mounts `MobileTabBar`, which
+// would add a second copy of every nav link and change the active-item classes.
+// The new chrome's presentation is validated separately (visual/parity gates).
+vi.mock("@/hooks/useFeatureFlag", () => ({
+  useFeatureFlag: () => false,
+}));
+
 // SidebarContext is left REAL — the Sidebar only needs its `close` callback,
 // which the default context value supplies, and rendering exercises the real
 // provider below.
