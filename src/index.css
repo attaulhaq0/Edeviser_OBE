@@ -598,3 +598,13 @@ html.font-x-large {
     transform: none;
   }
 }
+
+/* Mobile bottom tab bar (new chrome, < lg): reserve space at the bottom of the
+   scrollable content so the fixed bar (see MobileTabBar) never covers the last
+   items. Scoped by :has() so it applies ONLY when the bar is present (new chrome
+   + small screens), and never on desktop or with the flag off. */
+@media (max-width: 1023.98px) {
+  body:has(.new-mobile-tabbar) main {
+    padding-bottom: calc(4.5rem + env(safe-area-inset-bottom));
+  }
+}

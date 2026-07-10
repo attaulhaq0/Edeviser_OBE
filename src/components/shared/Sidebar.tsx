@@ -8,6 +8,7 @@ import { NAV_GROUPS, NAV_GROUP_META, type NavGroup } from "@/lib/navGroups";
 import { useIntentPrefetch } from "@/hooks/useIntentPrefetch";
 import { prefetchRoute } from "@/lib/routePrefetch";
 import { useSidebar } from "./SidebarContext";
+import MobileTabBar from "./MobileTabBar";
 import { useFeatureFlag } from "@/hooks/useFeatureFlag";
 import { cn } from "@/lib/utils";
 import type { UserRole } from "@/types/app";
@@ -200,6 +201,11 @@ const Sidebar = () => {
           )}
         </nav>
       </aside>
+
+      {/* Responsive nav (design §18 / R18.5): a thumb-reachable bottom tab bar
+          on < lg, driven by the same navItems[role]. New chrome only; the bar
+          itself is lg:hidden so it never shows alongside the desktop sidebar. */}
+      {newChrome && <MobileTabBar />}
     </>
   );
 };
