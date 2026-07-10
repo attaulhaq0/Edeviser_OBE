@@ -3,7 +3,9 @@ import { Badge } from "@/components/ui/badge";
 import { useTranslation } from "react-i18next";
 import Shimmer from "@/components/shared/Shimmer";
 import WelcomeHero from "@/components/shared/WelcomeHero";
+import ParentDashboardNew from "@/components/shared/ParentDashboardNew";
 import { useAuth } from "@/hooks/useAuth";
+import { useFeatureFlag } from "@/hooks/useFeatureFlag";
 import { useParentKPIs, useLinkedChildren } from "@/hooks/useParentDashboard";
 import { useParentDashboardAggregate } from "@/hooks/useParentDashboardAggregate";
 import ErrorState from "@/components/shared/ErrorState";
@@ -195,4 +197,12 @@ const ParentDashboard = () => {
   );
 };
 
-export default ParentDashboard;
+// Flag wrapper (P2, spec task 2.3): render the redesigned parent dashboard when
+// `newUiDashboards` is enabled, else the current (legacy) one. Separate
+// components so each owns its hooks; default-off keeps the legacy unchanged.
+const ParentDashboardRouter = () => {
+  const newDashboard = useFeatureFlag("newUiDashboards");
+  return newDashboard ? <ParentDashboardNew /> : <ParentDashboard />;
+};
+
+export default ParentDashboardRouter;

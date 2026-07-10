@@ -41,15 +41,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useStudentDashboardAggregate } from "@/hooks/useStudentDashboardAggregate";
 import { formatNumber, formatPercent } from "@/lib/formatNumber";
 import { formatLocalDate } from "@/lib/formatDate";
-
-/** Deep-brand-blue by default; semantic color once attainment is meaningful. */
-const attainmentValueClass = (v: number): string => {
-  if (v >= 85) return "text-green-600";
-  if (v >= 70) return "text-sky-700";
-  if (v >= 50) return "text-amber-600";
-  if (v > 0) return "text-red-600";
-  return "text-sky-700";
-};
+import { attainmentValueClass } from "@/lib/attainmentTone";
 
 const StudentDashboardNew = () => {
   const { t } = useTranslation("student");

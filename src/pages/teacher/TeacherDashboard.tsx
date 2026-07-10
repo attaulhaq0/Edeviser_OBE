@@ -22,9 +22,11 @@ import {
 import Shimmer from "@/components/shared/Shimmer";
 import RealtimeStatusBanner from "@/components/shared/RealtimeStatusBanner";
 import WelcomeHero from "@/components/shared/WelcomeHero";
+import TeacherDashboardNew from "@/components/shared/TeacherDashboardNew";
 import ErrorState from "@/components/shared/ErrorState";
 import HeatmapLegend from "@/components/shared/HeatmapLegend";
 import { useAuth } from "@/hooks/useAuth";
+import { useFeatureFlag } from "@/hooks/useFeatureFlag";
 import { useCourses } from "@/hooks/useCourses";
 import { useCourseSections } from "@/hooks/useCourseSections";
 import { usePendingSubmissions } from "@/hooks/useSubmissions";
@@ -823,11 +825,26 @@ const TeacherDashboard = () => {
             <HeatmapLegend
               className="mt-4"
               items={[
-                { color: "#22c55e", label: t("dashboard.heatmapLegend.excellent") },
-                { color: "#3b82f6", label: t("dashboard.heatmapLegend.satisfactory") },
-                { color: "#eab308", label: t("dashboard.heatmapLegend.developing") },
-                { color: "#ef4444", label: t("dashboard.heatmapLegend.notYet") },
-                { color: "#e5e7eb", label: t("dashboard.heatmapLegend.noData") },
+                {
+                  color: "#22c55e",
+                  label: t("dashboard.heatmapLegend.excellent"),
+                },
+                {
+                  color: "#3b82f6",
+                  label: t("dashboard.heatmapLegend.satisfactory"),
+                },
+                {
+                  color: "#eab308",
+                  label: t("dashboard.heatmapLegend.developing"),
+                },
+                {
+                  color: "#ef4444",
+                  label: t("dashboard.heatmapLegend.notYet"),
+                },
+                {
+                  color: "#e5e7eb",
+                  label: t("dashboard.heatmapLegend.noData"),
+                },
               ]}
             />
           </div>
@@ -929,4 +946,12 @@ const TeacherDashboard = () => {
   );
 };
 
-export default TeacherDashboard;
+// Flag wrapper (P2, spec task 2.2): render the redesigned teacher dashboard when
+// `newUiDashboards` is enabled, else the current (legacy) one. Separate
+// components so each owns its hooks; default-off keeps the legacy unchanged.
+const TeacherDashboardRouter = () => {
+  const newDashboard = useFeatureFlag("newUiDashboards");
+  return newDashboard ? <TeacherDashboardNew /> : <TeacherDashboard />;
+};
+
+export default TeacherDashboardRouter;
