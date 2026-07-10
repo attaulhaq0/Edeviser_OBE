@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import GradientCardHeader from "@/components/shared/GradientCardHeader";
+import { useFeatureFlag } from "@/hooks/useFeatureFlag";
 import { cn } from "@/lib/utils";
 import type { GoalProgress, GoalType, WeeklyGoal } from "@/types/planner";
 import type { CreateWeeklyGoalInput } from "@/lib/schemas/planner";
@@ -128,6 +129,16 @@ const WeeklyGoalPanel = ({
     setDrafts(drafts.map((d, i) => (i === index ? { ...d, ...updates } : d)));
   };
 
+  // The header background depends on the `newUiModules` flag (white strip vs
+  // brand-gradient bar), so the header action buttons pick a matching text color.
+  const newModules = useFeatureFlag("newUiModules");
+  const headerActionClass = cn(
+    "h-7 gap-1 text-xs",
+    newModules
+      ? "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
+      : "text-white hover:bg-white/20"
+  );
+
   return (
     <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
       <GradientCardHeader icon={Target} title="Weekly Goals">
@@ -135,7 +146,7 @@ const WeeklyGoalPanel = ({
           <Button
             variant="ghost"
             size="sm"
-            className="h-7 gap-1 text-white hover:bg-white/20 text-xs"
+            className={headerActionClass}
             onClick={startEditing}
           >
             <Pencil className="h-3.5 w-3.5" />
@@ -146,7 +157,7 @@ const WeeklyGoalPanel = ({
           <Button
             variant="ghost"
             size="sm"
-            className="h-7 gap-1 text-white hover:bg-white/20 text-xs"
+            className={headerActionClass}
             onClick={handleSave}
             disabled={isPending}
           >
