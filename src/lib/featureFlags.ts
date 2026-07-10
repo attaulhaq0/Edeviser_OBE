@@ -9,14 +9,15 @@
 // Resolution order (first decisive value wins):
 //   1. localStorage override  `edeviser-ff:<flag>` = "on" | "off"
 //      → per-browser runtime toggle for dev review / instant rollback.
-//   2. build-time env var      import.meta.env.VITE_FF_<FLAG> = "true" | "false"
+//   2. build-time env var      VITE_FF_<FLAG> (on import.meta.env) = "true"/"false"
 //      → per-deploy default (read via STATIC member access so Vite inlines it).
 //   3. default → false (old UI).
 //
-// NOTE: env vars are read through a switch (static `import.meta.env.VITE_FF_*`
-// access) so Vite can statically replace them in production builds; a dynamic
-// `import.meta.env[key]` would NOT be inlined. Reading at call-time (not module
-// load) keeps the resolver test-friendly (`vi.stubEnv`).
+// NOTE: env vars are read through a switch of static per-flag `import.meta.env`
+// reads (one per VITE_FF_* name) so Vite can statically replace them in
+// production builds; a dynamic `import.meta.env[key]` would NOT be inlined.
+// Reading at call-time (not module load) keeps the resolver test-friendly
+// (`vi.stubEnv`).
 // =============================================================================
 
 export const FEATURE_FLAGS = [
