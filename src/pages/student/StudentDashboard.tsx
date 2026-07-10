@@ -23,6 +23,8 @@ import IndependenceScoreBadge from "@/components/shared/IndependenceScoreBadge";
 import ActiveBoostIndicator from "@/components/shared/ActiveBoostIndicator";
 import XPBalanceBadge from "@/components/shared/XPBalanceBadge";
 import WelcomeHero from "@/components/shared/WelcomeHero";
+import StudentDashboardNew from "@/components/shared/StudentDashboardNew";
+import { useFeatureFlag } from "@/hooks/useFeatureFlag";
 import { useAuth } from "@/hooks/useAuth";
 import {
   useStudentKPIs,
@@ -221,7 +223,7 @@ const AnnouncementsSection = ({
 
 // ─── Main Component ─────────────────────────────────────────────────────────
 
-const StudentDashboard = () => {
+const StudentDashboardLegacy = () => {
   const { t } = useTranslation("student");
   const navigate = useNavigate();
   const { user, profile } = useAuth();
@@ -1066,6 +1068,16 @@ const StudentDashboard = () => {
       )}
     </div>
   );
+};
+
+// Flag wrapper (P2, spec task 2.1): render the redesigned dashboard when
+// `newUiDashboards` is enabled, else the current (legacy) dashboard. They are
+// separate components so each owns its own hooks — flipping the flag never
+// changes the hook order of a mounted component (no rules-of-hooks violation).
+// Reversible + default-off: the legacy dashboard is unchanged when the flag is off.
+const StudentDashboard = () => {
+  const newDashboard = useFeatureFlag("newUiDashboards");
+  return newDashboard ? <StudentDashboardNew /> : <StudentDashboardLegacy />;
 };
 
 export default StudentDashboard;

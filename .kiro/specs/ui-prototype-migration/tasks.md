@@ -33,7 +33,7 @@ Incremental, reversible, presentation-only. Every task keeps the app fully funct
 
 ## P2 — Role dashboards (bind to existing aggregate hooks)
 
-- [ ] 2.1 Student `StudentDashboard`: "Today / gap→action" hero, mastery-first, review + tutor entry — via `useStudentDashboardAggregate`/`useStreak`/`useXP`/`useLearningPath`/`useReviewQueue`; add a thin `useTodayPlan` composing hook if needed (no new writes). (Ref R1.2, R1.4, R9.1)
+- [~] 2.1 Student `StudentDashboard`: **in progress (flag-gated `newUiDashboards`)** — new `StudentDashboardNew` shipped: "Today / gap→action" hero (XP/level/streak), single next-step CTA, KPI row (shared restyled `KPICard`), **`MasteryRing`** attainment snapshot, upcoming-deadlines list, AI-tutor entry — all via the existing `useStudentDashboardAggregate` (no new writes). Switched via a thin wrapper in `StudentDashboard.tsx` (legacy kept as flag-off fallback → zero regression). Richer gamification widgets (badges/comeback/spotlight/etc.) still on legacy until full parity gate (2.6). (Ref R1.2, R1.4, R9.1)
 - [ ] 2.2 Teacher `TeacherDashboard`: at-risk triage + AI feedback drafts + CLO gaps — via `useTeacherDashboardAggregate`/`useAtRiskPredictions`/`useAIFeedbackDraft`. Actions reuse existing mutations. (Ref R1.3, R14.1)
 - [ ] 2.3 Parent `ParentDashboard`: growth/wellbeing framing (no raw grades) via `useParentDashboardAggregate`. (Ref R9.1)
 - [ ] 2.4 Coordinator `CoordinatorDashboard`: attainment alerts + gaps via `useCoordinatorDashboardAggregate`. (Ref R9.1)
