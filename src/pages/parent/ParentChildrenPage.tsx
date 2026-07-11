@@ -13,7 +13,6 @@ import { Badge } from "@/components/ui/badge";
 import Shimmer from "@/components/shared/Shimmer";
 import { NoLinkedStudents } from "@/components/shared/EmptyState";
 import { useAuth } from "@/hooks/useAuth";
-import { useFeatureFlag } from "@/hooks/useFeatureFlag";
 import { useLinkedChildren } from "@/hooks/useParentDashboard";
 
 const ParentChildrenPage = () => {
@@ -21,12 +20,8 @@ const ParentChildrenPage = () => {
   const { user } = useAuth();
   const { data: children, isLoading } = useLinkedChildren(user?.id);
 
-  // The only redesign delta for this screen is the card surface, so flag it
-  // inline (P3 3.5, `newUiModules`) rather than duplicating the whole page.
-  const newModules = useFeatureFlag("newUiModules");
-  const childCardClass = newModules
-    ? "card-elevated border-0 rounded-xl p-6 h-full"
-    : "bg-white border-0 shadow-md rounded-xl p-6 h-full hover:shadow-lg transition-shadow";
+  // The child cards use the elevated surface shared by the redesigned screens.
+  const childCardClass = "card-elevated border-0 rounded-xl p-6 h-full";
 
   return (
     <div className="space-y-6">

@@ -65,11 +65,31 @@ vi.mock("sonner", () => ({
   },
 }));
 
-// New-UI `newUiModules` flag forced OFF so the wrapper renders the LEGACY
-// generator this suite covers. The redesigned Accreditation Evidence screen
-// (flag-on path) is covered by coordinatorAccreditationNew.test.tsx.
-vi.mock("@/hooks/useFeatureFlag", () => ({
-  useFeatureFlag: () => false,
+// The route (`@/pages/coordinator/course-file/CourseFileGenerator`) now
+// re-exports the redesigned Accreditation Evidence screen
+// (CoordinatorAccreditationNew). This suite verifies the route wiring resolves
+// to a working Generate Course File tool and locks in its disabled/pending
+// behavior; the full readiness/evidence/workflow surface is covered by
+// coordinatorAccreditationNew.test.tsx. i18n is echoed as keys and the
+// readiness/approvals + auth hooks are stubbed so the tool renders
+// deterministically.
+vi.mock("react-i18next", () => ({
+  useTranslation: () => ({
+    t: (key: string) => key,
+    i18n: { language: "en", changeLanguage: () => Promise.resolve() },
+  }),
+}));
+
+vi.mock("@/hooks/useAuth", () => ({
+  useAuth: () => ({ institutionId: "inst-1" }),
+}));
+
+vi.mock("@/hooks/useCoordinatorAccreditation", () => ({
+  useCoordinatorAccreditationReadiness: () => ({
+    data: undefined,
+    isPending: false,
+  }),
+  useAccreditationApprovals: () => ({ data: [] }),
 }));
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -87,59 +107,61 @@ const createWrapper = () => {
 
 // ─── Tests ──────────────────────────────────────────────────────────────────
 
-describe("CourseFileGenerator", () => {
+describe("CourseFileGenerator route (redesigned Accreditation Evidence)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockIsPending = false;
   });
 
-  it("renders the page title and form elements", () => {
+  it("renders the page title and the Generate Course File form elements", () => {
     render(<CourseFileGenerator />, { wrapper: createWrapper() });
 
-    expect(screen.getByText("Course File Generator")).toBeInTheDocument();
+    expect(screen.getByText("accreditation.title")).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { name: "Generate Course File" })
+      screen.getByRole("heading", { name: "accreditation.generateTitle" })
     ).toBeInTheDocument();
-    expect(screen.getByLabelText("Course")).toBeInTheDocument();
-    expect(screen.getByLabelText("Semester")).toBeInTheDocument();
+    expect(screen.getByLabelText("accreditation.course")).toBeInTheDocument();
+    expect(screen.getByLabelText("accreditation.semester")).toBeInTheDocument();
   });
 
-  it("shows generate button", () => {
+  it("shows the generate button", () => {
     render(<CourseFileGenerator />, { wrapper: createWrapper() });
 
-    const btn = screen.getByRole("button", { name: /generate course file/i });
+    const btn = screen.getByRole("button", { name: "accreditation.generate" });
     expect(btn).toBeInTheDocument();
   });
 
   it("disables generate button when no course or semester is selected", () => {
     render(<CourseFileGenerator />, { wrapper: createWrapper() });
 
-    const btn = screen.getByRole("button", { name: /generate course file/i });
+    const btn = screen.getByRole("button", { name: "accreditation.generate" });
     expect(btn).toBeDisabled();
   });
 
   it("does not call mutate when button is clicked while disabled", () => {
     render(<CourseFileGenerator />, { wrapper: createWrapper() });
 
-    const btn = screen.getByRole("button", { name: /generate course file/i });
+    const btn = screen.getByRole("button", { name: "accreditation.generate" });
     fireEvent.click(btn);
 
     expect(mockMutate).not.toHaveBeenCalled();
   });
 
-  it("does not render result card initially", () => {
+  it("does not render the result card initially", () => {
     render(<CourseFileGenerator />, { wrapper: createWrapper() });
 
-    expect(screen.queryByText("Course File Ready")).not.toBeInTheDocument();
-    expect(screen.queryByText("Download PDF")).not.toBeInTheDocument();
+    expect(screen.queryByText("accreditation.ready")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("accreditation.downloadPdf")
+    ).not.toBeInTheDocument();
   });
 
-  it("shows loading spinner text when isPending", () => {
+  it("shows the loading spinner text when isPending", () => {
     mockIsPending = true;
     render(<CourseFileGenerator />, { wrapper: createWrapper() });
 
     expect(
-      screen.getByRole("button", { name: /generating/i })
+      screen.getByRole("button", { name: "accreditation.generating" })
     ).toBeInTheDocument();
   });
 });

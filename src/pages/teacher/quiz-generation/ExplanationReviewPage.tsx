@@ -21,7 +21,6 @@ import {
 } from "@/hooks/useExplanationConfidence";
 import type { ReviewQueueItem } from "@/hooks/useExplanationConfidence";
 import { useAuth } from "@/hooks/useAuth";
-import { useFeatureFlag } from "@/hooks/useFeatureFlag";
 
 // ─── Bloom's level helpers ──────────────────────────────────────────────────
 
@@ -208,9 +207,6 @@ const ExplanationReviewPage = () => {
   const { data: queue, isLoading } = useExplanationReviewQueue(courseId ?? "");
   const approveMutation = useApproveExplanation();
   const editMutation = useEditExplanation();
-  // Header background is a white strip (new UI) or gradient bar (old UI); the
-  // count label picks a matching text color.
-  const newModules = useFeatureFlag("newUiModules");
 
   const handleApprove = (item: ReviewQueueItem) => {
     if (!user?.id || !institutionId || !item.explanation) return;
@@ -285,11 +281,7 @@ const ExplanationReviewPage = () => {
       {/* Header card */}
       <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
         <GradientCardHeader icon={ClipboardCheck} title="Review Explanations">
-          <span
-            className={`text-xs font-medium ${
-              newModules ? "text-gray-500" : "text-white/70"
-            }`}
-          >
+          <span className="text-xs font-medium text-gray-500">
             {items.length} question{items.length !== 1 ? "s" : ""} to review
           </span>
         </GradientCardHeader>

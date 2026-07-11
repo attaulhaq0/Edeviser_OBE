@@ -11,7 +11,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, FileText, Loader2 } from "lucide-react";
 import { useStudentContent } from "@/hooks/useStudentContent";
 import { useAuth } from "@/hooks/useAuth";
-import { useFeatureFlag } from "@/hooks/useFeatureFlag";
 import ContentForm from "./ContentForm";
 
 const STATUS_COLORS = {
@@ -25,12 +24,9 @@ const StudentContentPage = () => {
   const { data: content, isLoading } = useStudentContent(profile?.id);
   const [showForm, setShowForm] = useState(false);
 
-  // Surface cohesion (P3, `newUiModules`): the content cards adopt the elevated
-  // surface used by the redesigned screens; flag-off keeps the current shadow.
-  const newModules = useFeatureFlag("newUiModules");
-  const contentCardClass = newModules
-    ? "card-elevated border-0 rounded-xl p-4"
-    : "bg-white border-0 shadow-md rounded-xl p-4";
+  // Surface cohesion: the content cards adopt the elevated surface used by the
+  // redesigned screens.
+  const contentCardClass = "card-elevated border-0 rounded-xl p-4";
 
   return (
     <div className="space-y-6">

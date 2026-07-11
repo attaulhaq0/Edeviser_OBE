@@ -30,7 +30,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useSemesters } from "@/hooks/useSemesters";
-import { useFeatureFlag } from "@/hooks/useFeatureFlag";
 import CoordinatorProfileNew from "@/components/shared/CoordinatorProfileNew";
 
 const ProfilePageLegacy = () => {
@@ -403,15 +402,12 @@ const FeeStatusSection = ({ studentId }: { studentId: string }) => {
   );
 };
 
-// Flag wrapper (P3, spec task 3.6): for the COORDINATOR role the redesigned
-// professional profile / workspace-config page replaces the shared settings
-// profile when `newUiModules` is on. Every other role — and the flag-off path —
-// keeps the shared ProfilePage (avatar upload, appearance, email prefs)
-// unchanged and reversible.
+// Role split: for the COORDINATOR role the redesigned professional profile /
+// workspace-config page replaces the shared settings profile. Every other role
+// keeps the shared ProfilePage (avatar upload, appearance, email prefs).
 const ProfilePage = () => {
-  const newModules = useFeatureFlag("newUiModules");
   const { profile } = useAuth();
-  if (newModules && profile?.role === "coordinator") {
+  if (profile?.role === "coordinator") {
     return <CoordinatorProfileNew />;
   }
   return <ProfilePageLegacy />;

@@ -16,7 +16,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import GradientCardHeader from "@/components/shared/GradientCardHeader";
-import { useFeatureFlag } from "@/hooks/useFeatureFlag";
 import { cn } from "@/lib/utils";
 import type { GoalProgress, GoalType, WeeklyGoal } from "@/types/planner";
 import type { CreateWeeklyGoalInput } from "@/lib/schemas/planner";
@@ -129,14 +128,11 @@ const WeeklyGoalPanel = ({
     setDrafts(drafts.map((d, i) => (i === index ? { ...d, ...updates } : d)));
   };
 
-  // The header background depends on the `newUiModules` flag (white strip vs
-  // brand-gradient bar), so the header action buttons pick a matching text color.
-  const newModules = useFeatureFlag("newUiModules");
+  // The header renders as a white strip, so the header action buttons use a
+  // matching dark text color.
   const headerActionClass = cn(
     "h-7 gap-1 text-xs",
-    newModules
-      ? "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-      : "text-white hover:bg-white/20"
+    "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
   );
 
   return (

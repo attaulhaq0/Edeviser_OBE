@@ -19,7 +19,6 @@ import KPICard from "@/components/shared/KPICard";
 import SectionHeader from "@/components/shared/SectionHeader";
 import MasteryRing from "@/components/shared/MasteryRing";
 import { SeverityIcon } from "@/components/shared/SeverityIcon";
-import { useFeatureFlag } from "@/hooks/useFeatureFlag";
 import { attainmentValueClass } from "@/lib/attainmentTone";
 import {
   AlertTriangle,
@@ -66,163 +65,7 @@ const STATUS_SEVERITY: Record<GapStatus, "low" | "med" | "high" | "neutral"> = {
   no_evidence: "neutral",
 };
 
-const GapAnalysisLegacy = () => {
-  const [programId, setProgramId] = useQueryState(
-    "program",
-    parseAsString.withDefault("")
-  );
-  const { data: programsData } = usePrograms();
-  const programs = programsData?.data ?? [];
-  const {
-    data: gaps,
-    isLoading,
-    isError,
-    refetch,
-  } = useGapAnalysis(programId || undefined);
-
-  const summary = gaps
-    ? {
-        total: gaps.length,
-        fullyMapped: gaps.filter((g) => g.status === "fully_mapped").length,
-        withEvidence: gaps.filter((g) => g.evidence_count > 0).length,
-      }
-    : null;
-
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Gap Analysis</h1>
-        <Select value={programId} onValueChange={setProgramId}>
-          <SelectTrigger className="w-64 bg-white">
-            <SelectValue placeholder="Select program" />
-          </SelectTrigger>
-          <SelectContent>
-            {(programs ?? []).map((p) => (
-              <SelectItem key={p.id} value={p.id}>
-                {p.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      {summary && (
-        <div className="grid grid-cols-3 gap-4">
-          <Card className="bg-white border-0 shadow-md rounded-xl p-4">
-            <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
-              Total Outcomes
-            </p>
-            <p className="text-2xl font-black mt-1">{summary.total}</p>
-          </Card>
-          <Card className="bg-white border-0 shadow-md rounded-xl p-4">
-            <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
-              Fully Mapped
-            </p>
-            <p className="text-2xl font-black mt-1 text-green-600">
-              {summary.total > 0
-                ? Math.round((summary.fullyMapped / summary.total) * 100)
-                : 0}
-              %
-            </p>
-          </Card>
-          <Card className="bg-white border-0 shadow-md rounded-xl p-4">
-            <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
-              With Evidence
-            </p>
-            <p className="text-2xl font-black mt-1 text-blue-600">
-              {summary.total > 0
-                ? Math.round((summary.withEvidence / summary.total) * 100)
-                : 0}
-              %
-            </p>
-          </Card>
-        </div>
-      )}
-
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-        <div
-          className="px-6 py-4 flex items-center gap-2"
-          style={{
-            background: "var(--brand-gradient)",
-          }}
-        >
-          <Search className="h-5 w-5 text-white" />
-          <h2 className="text-lg font-bold tracking-tight text-white">
-            Outcome Coverage
-          </h2>
-        </div>
-        <div className="p-6">
-          {!programId ? (
-            <p className="text-sm text-slate-400 text-center py-12">
-              Select a program to analyze gaps.
-            </p>
-          ) : isLoading ? (
-            <Shimmer className="h-64 rounded-lg" />
-          ) : isError ? (
-            <ErrorState
-              message="We couldn't load the gap analysis."
-              onRetry={() => refetch()}
-              className="py-12"
-            />
-          ) : !gaps || gaps.length === 0 ? (
-            <NoOutcomes className="py-12" />
-          ) : (
-            <div className="space-y-2">
-              {gaps.map((gap) => {
-                const config = STATUS_CONFIG[gap.status];
-                const Icon = config.icon;
-                return (
-                  <div
-                    key={gap.outcome_id}
-                    className="p-3 rounded-lg border border-slate-100 hover:bg-slate-50"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="text-[10px]">
-                          {gap.outcome_type}
-                        </Badge>
-                        <span className="text-sm font-medium">
-                          {gap.outcome_title}
-                        </span>
-                      </div>
-                      <Badge className={`text-[10px] ${config.color}`}>
-                        <Icon className="h-3 w-3 me-1" />
-                        {config.label}
-                      </Badge>
-                    </div>
-                    {gap.flag && (
-                      <div className="mt-1 flex items-center gap-1">
-                        <AlertTriangle className="h-3 w-3 text-amber-500" />
-                        <span className="text-xs text-amber-600">
-                          {gap.flag === "under_mapped"
-                            ? "Under-Mapped"
-                            : "Unassessed"}
-                        </span>
-                      </div>
-                    )}
-                    {gap.recommendation && (
-                      <p className="text-xs text-slate-500 mt-1">
-                        {gap.recommendation}
-                      </p>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      </Card>
-    </div>
-  );
-};
-
-// ─── Redesigned view (P3 3.3, flag-gated `newUiModules`) ─────────────────────
-// Replaces the local harsh-black KPI cards + inline gradient bar with a
-// coverage MasteryRing + shared KPICard row + SectionHeader, and gives each
-// outcome row a SeverityIcon by gap status. Reuses the same nuqs `program`
-// filter + `useGapAnalysis`/`usePrograms` hooks (no new queries).
-
-const GapAnalysisNew = () => {
+const GapAnalysisView = () => {
   const [programId, setProgramId] = useQueryState(
     "program",
     parseAsString.withDefault("")
@@ -391,13 +234,6 @@ const GapAnalysisNew = () => {
       </Card>
     </div>
   );
-};
-
-// Flag wrapper (P3, spec task 3.3): render the redesigned gap analysis when
-// `newUiModules` is enabled, else the current (legacy) one.
-const GapAnalysisView = () => {
-  const newModules = useFeatureFlag("newUiModules");
-  return newModules ? <GapAnalysisNew /> : <GapAnalysisLegacy />;
 };
 
 export default GapAnalysisView;
