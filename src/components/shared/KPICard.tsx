@@ -12,6 +12,14 @@ interface KPICardProps {
   value: string | number;
   iconBgClass?: string;
   iconColorClass?: string;
+  /**
+   * Classes for the KPI value. Defaults to deep brand blue (#0369a1 / sky-700)
+   * instead of near-black, per the design system (harsh black stat numbers were
+   * intentionally removed). Pass a semantic color (e.g. "text-green-600") for
+   * status-bearing values. No dark variant here because the card surface stays
+   * white in both themes; revisit if the card adopts `bg-card`.
+   */
+  valueClassName?: string;
   className?: string;
 }
 
@@ -21,6 +29,7 @@ const KPICard = ({
   value,
   iconBgClass = "bg-blue-50",
   iconColorClass = "text-blue-600",
+  valueClassName = "text-sky-700",
   className,
 }: KPICardProps) => (
   <Card
@@ -34,7 +43,9 @@ const KPICard = ({
         <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
           {label}
         </p>
-        <p className="text-2xl font-black mt-1">{value}</p>
+        <p className={cn("text-2xl font-black mt-1", valueClassName)}>
+          {value}
+        </p>
       </div>
       <div
         className={cn(

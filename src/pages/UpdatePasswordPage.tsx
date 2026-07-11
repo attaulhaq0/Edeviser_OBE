@@ -28,7 +28,7 @@ import {
 import { Loader2, Lock, ArrowLeft, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
-import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
+import AuthShell from "@/components/shared/AuthShell";
 
 const UpdatePasswordPage = () => {
   const { t } = useTranslation("auth");
@@ -62,11 +62,8 @@ const UpdatePasswordPage = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4 relative">
-      <div className="absolute top-4 end-4 z-10">
-        <LanguageSwitcher />
-      </div>
-      <Card className="bg-white border-0 shadow-md rounded-xl w-full max-w-md">
+    <AuthShell>
+      <Card className="w-full overflow-hidden rounded-[2rem] border-0 bg-white/95 shadow-2xl ring-1 ring-white/20 backdrop-blur-xl">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold tracking-tight">
             {isUpdated
@@ -94,7 +91,7 @@ const UpdatePasswordPage = () => {
               </p>
               <Link
                 to="/login"
-                className="inline-flex items-center gap-2 text-sm font-medium text-blue-600 hover:text-blue-700"
+                className="inline-flex items-center gap-2 text-sm font-medium text-[#14b8a6] transition-colors hover:text-[#0d9488]"
               >
                 <ArrowLeft className="h-4 w-4" />
                 {t("updatePassword.goToLogin", { defaultValue: "Go to login" })}
@@ -117,7 +114,7 @@ const UpdatePasswordPage = () => {
                         </FormLabel>
                         <FormControl>
                           <div className="relative">
-                            <Lock className="absolute start-3 top-1/2 z-10 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <Lock className="absolute start-3 top-1/2 z-10 -translate-y-1/2 h-4 w-4 text-[#14b8a6]" />
                             <PasswordInput
                               groupId="update-password"
                               autoComplete="new-password"
@@ -144,7 +141,7 @@ const UpdatePasswordPage = () => {
                         </FormLabel>
                         <FormControl>
                           <div className="relative">
-                            <Lock className="absolute start-3 top-1/2 z-10 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <Lock className="absolute start-3 top-1/2 z-10 -translate-y-1/2 h-4 w-4 text-[#14b8a6]" />
                             <PasswordInput
                               groupId="update-confirmPassword"
                               autoComplete="new-password"
@@ -165,7 +162,7 @@ const UpdatePasswordPage = () => {
                 <Button
                   type="submit"
                   disabled={isPending}
-                  className="w-full bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
+                  className="h-12 w-full transform rounded-xl bg-gradient-to-r from-[#14b8a6] to-[#3b82f6] font-bold text-white shadow-lg shadow-blue-500/20 transition-all duration-300 hover:-translate-y-0.5 hover:from-[#0d9488] hover:to-[#2563eb] hover:shadow-blue-500/40"
                 >
                   {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
                   {t("updatePassword.submitButton")}
@@ -175,7 +172,7 @@ const UpdatePasswordPage = () => {
           )}
         </CardContent>
       </Card>
-    </div>
+    </AuthShell>
   );
 };
 

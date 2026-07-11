@@ -30,8 +30,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useSemesters } from "@/hooks/useSemesters";
+import CoordinatorProfileNew from "@/components/shared/CoordinatorProfileNew";
 
-const ProfilePage = () => {
+const ProfilePageLegacy = () => {
   const { profile, user } = useAuth();
   const { theme, setTheme } = useTheme();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -399,6 +400,17 @@ const FeeStatusSection = ({ studentId }: { studentId: string }) => {
       </div>
     </Card>
   );
+};
+
+// Role split: for the COORDINATOR role the redesigned professional profile /
+// workspace-config page replaces the shared settings profile. Every other role
+// keeps the shared ProfilePage (avatar upload, appearance, email prefs).
+const ProfilePage = () => {
+  const { profile } = useAuth();
+  if (profile?.role === "coordinator") {
+    return <CoordinatorProfileNew />;
+  }
+  return <ProfilePageLegacy />;
 };
 
 export default ProfilePage;

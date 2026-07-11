@@ -8,6 +8,7 @@ import { NAV_GROUPS, NAV_GROUP_META, type NavGroup } from "@/lib/navGroups";
 import { useIntentPrefetch } from "@/hooks/useIntentPrefetch";
 import { prefetchRoute } from "@/lib/routePrefetch";
 import { useSidebar } from "./SidebarContext";
+import MobileTabBar from "./MobileTabBar";
 import { cn } from "@/lib/utils";
 import type { UserRole } from "@/types/app";
 
@@ -87,6 +88,17 @@ const Sidebar = () => {
     const Icon = item.icon;
     const isActive = isItemActive(item.to);
 
+    // The active item uses a brand-gradient pill (set via inline style, like
+    // GradientCardHeader).
+    const itemClassName = cn(
+      "flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] transition-all",
+      isActive
+        ? "font-semibold text-white shadow-sm"
+        : item.deEmphasized
+        ? "font-medium text-gray-400 hover:bg-slate-100 dark:text-gray-500 dark:hover:bg-slate-800"
+        : "font-medium text-gray-600 hover:bg-slate-100 dark:text-gray-300 dark:hover:bg-slate-800"
+    );
+
     return (
       <NavLink
         key={item.to}
@@ -94,16 +106,8 @@ const Sidebar = () => {
         onClick={close}
         viewTransition
         {...getIntentHandlers(item.to, () => prefetchRoute(item.to))}
-        className={cn(
-          "flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium transition-colors",
-          isActive
-            ? "bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400"
-            : // R23.3: de-emphasize (subdued color) items that retain student
-            // value but are secondary to core learning items.
-            item.deEmphasized
-            ? "text-gray-400 hover:bg-slate-50 dark:text-gray-500 dark:hover:bg-slate-800"
-            : "text-gray-600 hover:bg-slate-50 dark:text-gray-400 dark:hover:bg-slate-800"
-        )}
+        style={isActive ? { background: "var(--brand-gradient)" } : undefined}
+        className={itemClassName}
       >
         {isActive && <span className="sr-only">(current page)</span>}
         <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
@@ -128,7 +132,8 @@ const Sidebar = () => {
       <aside
         data-tour="primary-nav"
         className={cn(
-          "fixed top-14 start-0 z-[99] flex h-[calc(100vh-3.5rem)] w-52 flex-col border-e border-border bg-white dark:bg-background transition-transform duration-200 ease-in-out",
+          "fixed top-14 start-0 z-[99] flex h-[calc(100vh-3.5rem)] w-52 flex-col border-e border-border transition-transform duration-200 ease-in-out",
+          "bg-white/95 backdrop-blur-sm dark:bg-background/95",
           mobileOpen
             ? "translate-x-0"
             : "max-lg:-translate-x-full max-lg:rtl:translate-x-full lg:translate-x-0"
@@ -173,6 +178,11 @@ const Sidebar = () => {
           )}
         </nav>
       </aside>
+
+      {/* Responsive nav (design §18 / R18.5): a thumb-reachable bottom tab bar
+          on < lg, driven by the same navItems[role]. The bar itself is
+          lg:hidden so it never shows alongside the desktop sidebar. */}
+      <MobileTabBar />
     </>
   );
 };

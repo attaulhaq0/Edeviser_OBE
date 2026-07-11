@@ -281,7 +281,7 @@ const ExplanationReviewPage = () => {
       {/* Header card */}
       <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
         <GradientCardHeader icon={ClipboardCheck} title="Review Explanations">
-          <span className="text-xs text-white/70 font-medium">
+          <span className="text-xs font-medium text-gray-500">
             {items.length} question{items.length !== 1 ? "s" : ""} to review
           </span>
         </GradientCardHeader>

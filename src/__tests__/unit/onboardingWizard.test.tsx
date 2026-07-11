@@ -50,6 +50,10 @@ vi.mock("@/hooks/useAuth", () => ({
     user: { id: "student-1" },
     profile: { role: "student", institution_id: "inst-1" },
     role: "student",
+    // The wizard awaits refetchProfile() in both the success and catch paths
+    // of handleComplete (to flip onboarding_completed). Must resolve so the
+    // `.catch()` chain in the error path has a real promise to attach to.
+    refetchProfile: vi.fn().mockResolvedValue(undefined),
   }),
 }));
 

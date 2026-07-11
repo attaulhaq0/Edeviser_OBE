@@ -95,6 +95,7 @@ done
 # supabase functions deploy check-login-rate
 # supabase functions deploy compute-at-risk-signals
 # supabase functions deploy compute-habit-correlations
+# supabase functions deploy coordinator-ai-insights
 # supabase functions deploy cqi-review-reminder
 # supabase functions deploy embed-course-material
 # supabase functions deploy exam-period-notify

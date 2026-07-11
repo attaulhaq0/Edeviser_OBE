@@ -41,6 +41,8 @@ import type {
   GraduateAttributeNode,
   PloNode,
 } from "@/lib/outcomeChain";
+import { useAuth } from "@/hooks/useAuth";
+import CoordinatorOutcomeAttainmentNew from "@/components/shared/CoordinatorOutcomeAttainmentNew";
 
 const ATTAINMENT_LABEL: Record<string, string> = {
   Excellent: "Excellent",
@@ -239,7 +241,7 @@ const GaCard = ({ ga }: { ga: GraduateAttributeNode }) => (
   </div>
 );
 
-const OutcomeChainView = () => {
+const OutcomeChainViewLegacy = () => {
   const [startId, setStartId] = useQueryState(
     "ilo",
     parseAsString.withDefault("")
@@ -397,6 +399,17 @@ const OutcomeChainView = () => {
       </Card>
     </div>
   );
+};
+
+// Role split: for the COORDINATOR role the redesigned Outcome Attainment rollup
+// replaces the legacy chain. Admins (who share this route) keep the legacy
+// end-to-end traceability view.
+const OutcomeChainView = () => {
+  const { profile } = useAuth();
+  if (profile?.role === "coordinator") {
+    return <CoordinatorOutcomeAttainmentNew />;
+  }
+  return <OutcomeChainViewLegacy />;
 };
 
 export default OutcomeChainView;

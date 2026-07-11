@@ -527,3 +527,84 @@ html.font-large {
 html.font-x-large {
   font-size: 20px;
 }
+
+/* ─── Design-System Primitives (P0 — UI prototype migration) ───────────────── */
+/*
+ * Additive, token-bound utilities introduced by the UI prototype migration
+ * (spec: .kiro/specs/ui-prototype-migration). They are OPT-IN — nothing uses
+ * them until a component/page adopts them — so they cannot regress existing
+ * screens. All are dark-mode + reduced-motion aware and reference existing
+ * brand tokens (no new palette).
+ */
+
+:root {
+  /* Darkened brand blue for the tactile button's pressable bottom edge. */
+  --tactile-edge: #026a9a;
+}
+
+.dark {
+  --tactile-edge: #01344c;
+}
+
+/* Elevated card: soft layered shadow + subtle hover lift. Apply alongside the
+   Shadcn <Card> (or any container). Hover lift only on real hover pointers. */
+.card-elevated {
+  box-shadow: var(--shadow-md);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+@media (hover: hover) {
+  .card-elevated:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-elevated {
+    transition: none;
+  }
+  .card-elevated:hover {
+    transform: none;
+  }
+}
+
+/* Tactile (pressable) button surface — a solid brand bottom edge that
+   compresses on :active (Duolingo-style). Applied via the Button `tactile`
+   variant. Keyboard focus ring is inherited from the Button base. */
+.btn-tactile {
+  background: var(--brand-gradient);
+  color: #fff;
+  box-shadow: 0 4px 0 0 var(--tactile-edge);
+  transition: transform 0.1s ease, box-shadow 0.1s ease, filter 0.1s ease;
+}
+
+@media (hover: hover) {
+  .btn-tactile:hover {
+    filter: brightness(1.05);
+  }
+}
+
+.btn-tactile:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 0 var(--tactile-edge);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-tactile {
+    transition: none;
+  }
+  .btn-tactile:active {
+    transform: none;
+  }
+}
+
+/* Mobile bottom tab bar (new chrome, < lg): reserve space at the bottom of the
+   scrollable content so the fixed bar (see MobileTabBar) never covers the last
+   items. Scoped by :has() so it applies ONLY when the bar is present (new chrome
+   + small screens), and never on desktop or with the flag off. */
+@media (max-width: 1023.98px) {
+  body:has(.new-mobile-tabbar) main {
+    padding-bottom: calc(4.5rem + env(safe-area-inset-bottom));
+  }
+}

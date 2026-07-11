@@ -67,6 +67,15 @@ class MockResizeObserver {
 }
 vi.stubGlobal("ResizeObserver", MockResizeObserver);
 
+// OutcomeChainView does a role split (no feature flag): coordinators see the
+// redesigned Outcome Attainment screen; every other role sees the LEGACY
+// end-to-end chain. This suite covers the legacy chain, so stub useAuth with a
+// non-coordinator profile so the component resolves to the legacy view (the
+// coordinator path is covered by coordinatorOutcomeAttainmentNew.test.tsx).
+vi.mock("@/hooks/useAuth", () => ({
+  useAuth: () => ({ profile: null }),
+}));
+
 import OutcomeChainView from "@/pages/shared/OutcomeChainView";
 
 // ---------------------------------------------------------------------------

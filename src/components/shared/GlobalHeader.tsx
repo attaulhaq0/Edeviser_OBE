@@ -5,6 +5,7 @@ import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
 import NotificationBell from "@/components/shared/NotificationBell";
 import ProfileDropdown from "@/components/shared/ProfileDropdown";
 import { useSidebar } from "@/components/shared/SidebarContext";
+import { cn } from "@/lib/utils";
 import type { UserRole } from "@/types/app";
 
 const dashboardRouteByRole: Record<UserRole, string> = {
@@ -27,7 +28,10 @@ const GlobalHeader = () => {
       <div
         role="banner"
         data-tour="top-bar"
-        className="flex h-full w-full items-center gap-4 border-b border-border bg-white px-4 dark:bg-background lg:px-6"
+        className={cn(
+          "flex h-full w-full items-center gap-4 border-b border-border px-4 lg:px-6",
+          "bg-white/80 shadow-sm backdrop-blur-md dark:bg-background/80"
+        )}
       >
         {/* Mobile hamburger */}
         <button

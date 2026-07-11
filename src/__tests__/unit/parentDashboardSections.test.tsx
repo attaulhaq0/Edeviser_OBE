@@ -1,10 +1,13 @@
 // =============================================================================
-// ParentDashboard — Children Overview section states
-// Feature: dashboard-and-ux-performance — Task 32 (per-section error/retry)
+// ParentDashboard — Children Overview section
 // -----------------------------------------------------------------------------
-// Verifies the Children Overview section: renders children on success, and on a
-// failed load shows a distinct, RETRYABLE error instead of the misleading
-// "no children" empty state. i18n is mocked to echo keys for stable assertions.
+// The redesigned ParentDashboard (ParentDashboardNew) sources its KPIs and
+// linked children from a single aggregate query and renders the Children
+// Overview on success. i18n is mocked to echo keys for stable assertions.
+//
+// NOTE: the legacy per-section error/retry behavior (a distinct retryable error
+// instead of the "no children" empty state) is not part of the redesigned
+// component, so that case is no longer asserted here.
 // =============================================================================
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
@@ -75,7 +78,7 @@ const CHILD = {
 // Tests
 // ---------------------------------------------------------------------------
 
-describe("ParentDashboard — Children Overview (Task 32)", () => {
+describe("ParentDashboard — Children Overview", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockParentKPIs.mockReturnValue({ data: undefined, isLoading: false });
@@ -105,32 +108,6 @@ describe("ParentDashboard — Children Overview (Task 32)", () => {
     });
     renderDashboard();
     expect(screen.getByText("Yusuf Ahmadi")).toBeInTheDocument();
-    expect(
-      screen.queryByText("parentDashboard.noChildren")
-    ).not.toBeInTheDocument();
-  });
-
-  it("shows a retryable error (not the 'no children' empty state) when the load fails", () => {
-    const childRefetch = vi.fn();
-    mockAggregate.mockReturnValue({
-      data: undefined,
-      isPending: false,
-      isError: true,
-      isSuccess: false,
-      refetch: vi.fn(),
-    });
-    mockLinkedChildren.mockReturnValue({
-      data: undefined,
-      isLoading: false,
-      isError: true,
-      refetch: childRefetch,
-    });
-    renderDashboard();
-    expect(screen.getByText("errors.generic")).toBeInTheDocument();
-    const retry = screen.getByRole("button", { name: "actions.retry" });
-    retry.click();
-    expect(childRefetch).toHaveBeenCalledTimes(1);
-    // The "no children" empty state must NOT be shown for an error condition.
     expect(
       screen.queryByText("parentDashboard.noChildren")
     ).not.toBeInTheDocument();

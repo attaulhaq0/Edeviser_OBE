@@ -58,6 +58,16 @@ vi.mock("@/hooks/useSurveyAssignmentsCount", () => ({
   useSurveyAssignmentsCount: () => ({ data: mockState.surveyData }),
 }));
 
+// The Sidebar always mounts `MobileTabBar` (the responsive bottom nav), driven
+// by the SAME `navItems[role]`. It would add a second copy of every nav link
+// (breaking the link-count / conditional-Surveys assertions here) and does not
+// apply the survey-count filter. It's a separate chrome whose presentation is
+// validated elsewhere, so stub it out so these assertions target only the
+// desktop grouped sidebar markup.
+vi.mock("@/components/shared/MobileTabBar", () => ({
+  default: () => null,
+}));
+
 // SidebarContext is left REAL — the Sidebar only needs its `close` callback,
 // which the default context value supplies, and rendering exercises the real
 // provider below.
@@ -258,14 +268,14 @@ describe("Sidebar active state (R20.5)", () => {
     const learn = screen.getByRole("group", { name: G.learn });
     const coursesLink = within(learn).getByRole("link", { name: /Courses/i });
 
-    // Active styling + an accessible current-page indicator.
-    expect(coursesLink.getAttribute("class")).toContain("bg-blue-50");
-    expect(coursesLink.getAttribute("class")).toContain("text-blue-600");
+    // Active styling (brand-gradient pill) + an accessible current-page indicator.
+    expect(coursesLink.getAttribute("class")).toContain("text-white");
+    expect(coursesLink.getAttribute("style")).toContain("--brand-gradient");
     expect(within(coursesLink).getByText("(current page)")).toBeInTheDocument();
 
     // A sibling item in the same group is not marked active.
     const tutorLink = within(learn).getByRole("link", { name: /AI Tutor/i });
-    expect(tutorLink.getAttribute("class")).not.toContain("bg-blue-50");
+    expect(tutorLink.getAttribute("class")).not.toContain("text-white");
     expect(
       within(tutorLink).queryByText("(current page)")
     ).not.toBeInTheDocument();

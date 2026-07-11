@@ -24,6 +24,10 @@ const StudentContentPage = () => {
   const { data: content, isLoading } = useStudentContent(profile?.id);
   const [showForm, setShowForm] = useState(false);
 
+  // Surface cohesion: the content cards adopt the elevated surface used by the
+  // redesigned screens.
+  const contentCardClass = "card-elevated border-0 rounded-xl p-4";
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -62,10 +66,7 @@ const StudentContentPage = () => {
                 {(content ?? [])
                   .filter((c) => tab === "all" || c.status === tab)
                   .map((item) => (
-                    <Card
-                      key={item.id}
-                      className="bg-white border-0 shadow-md rounded-xl p-4"
-                    >
+                    <Card key={item.id} className={contentCardClass}>
                       <div className="flex items-start gap-3">
                         <div className="p-2 rounded-lg bg-blue-50">
                           <FileText className="h-5 w-5 text-blue-600" />

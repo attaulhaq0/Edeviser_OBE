@@ -19,13 +19,16 @@ const StudentLayout = () => {
 
   usePageViewLogger();
 
+  if (showOnboarding) {
+    return (
+      <Suspense fallback={<div className="fixed inset-0 z-50 bg-white" />}>
+        <OnboardingWizard isDay1 />
+      </Suspense>
+    );
+  }
+
   return (
     <SidebarProvider>
-      {showOnboarding && (
-        <Suspense fallback={<div className="fixed inset-0 z-50 bg-white" />}>
-          <OnboardingWizard isDay1 />
-        </Suspense>
-      )}
       <GlobalHeader />
       <div className="flex">
         <Sidebar />

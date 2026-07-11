@@ -13,9 +13,12 @@ import {
 } from "@/components/ui/select";
 import Shimmer from "@/components/shared/Shimmer";
 import { NoLinkedStudents } from "@/components/shared/EmptyState";
+import MasteryRing from "@/components/shared/MasteryRing";
+import KPICard from "@/components/shared/KPICard";
 import { useAuth } from "@/hooks/useAuth";
 import { useLinkedChildren } from "@/hooks/useParentDashboard";
 import { useChildAttendance } from "@/hooks/useAttendance";
+import { attainmentValueClass } from "@/lib/attainmentTone";
 
 const ParentAttendancePage = () => {
   const { t } = useTranslation("common");
@@ -34,13 +37,29 @@ const ParentAttendancePage = () => {
     effectiveChildId || undefined
   );
 
+  const summary = useMemo(() => {
+    const list = attendance ?? [];
+    const avgRate =
+      list.length > 0
+        ? Math.round(
+            list.reduce((s, c) => s + c.attendance_rate, 0) / list.length
+          )
+        : 0;
+    return {
+      avgRate,
+      present: list.reduce((s, c) => s + c.present, 0),
+      late: list.reduce((s, c) => s + c.late, 0),
+      absent: list.reduce((s, c) => s + c.absent, 0),
+    };
+  }, [attendance]);
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">
           {t("parent.attendance.title", "Attendance")}
         </h1>
-        <p className="text-sm text-gray-500 mt-1">
+        <p className="mt-1 text-sm text-gray-500">
           {t(
             "parent.attendance.subtitle",
             "Class attendance summary by course."
@@ -82,8 +101,8 @@ const ParentAttendancePage = () => {
           {attendanceLoading ? (
             <Shimmer className="h-64 rounded-xl" />
           ) : !attendance || attendance.length === 0 ? (
-            <Card className="bg-white border-0 shadow-md rounded-xl p-8 text-center">
-              <CalendarDays className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+            <Card className="card-elevated border-0 bg-white p-8 text-center">
+              <CalendarDays className="mx-auto mb-2 h-8 w-8 text-gray-400" />
               <p className="text-sm text-gray-500">
                 {t(
                   "parent.attendance.noData",
@@ -92,71 +111,129 @@ const ParentAttendancePage = () => {
               </p>
             </Card>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {attendance.map((course) => (
-                <Card
-                  key={course.course_id}
-                  className="bg-white border-0 shadow-md rounded-xl p-5"
-                >
-                  <div className="flex items-start justify-between gap-3 mb-4">
+            <>
+              {/* Overall attendance summary */}
+              <Card className="card-elevated overflow-hidden border-0 bg-white">
+                <div className="flex flex-col gap-6 p-6 sm:flex-row sm:items-center">
+                  <div className="flex items-center gap-5">
+                    <MasteryRing
+                      value={summary.avgRate}
+                      size={104}
+                      tone="auto"
+                    />
                     <div>
-                      <Badge
-                        variant="outline"
-                        className="text-[10px] font-bold mb-1"
+                      <p className="text-[10px] font-black uppercase tracking-widest text-gray-500">
+                        {t("parent.attendance.overallRate", "Overall Rate")}
+                      </p>
+                      <p
+                        className={`text-3xl font-black ${attainmentValueClass(
+                          summary.avgRate
+                        )}`}
                       >
-                        {course.course_code}
-                      </Badge>
-                      <h2 className="text-base font-semibold tracking-tight text-gray-900 dark:text-foreground">
-                        {course.course_name}
-                      </h2>
-                    </div>
-                    <div className="text-end">
-                      <p className="text-2xl font-black text-gray-900 dark:text-foreground">
-                        {course.attendance_rate}%
-                      </p>
-                      <p className="text-[10px] font-bold tracking-wider uppercase text-gray-500">
-                        {t("parent.attendance.rate", "Rate")}
+                        {summary.avgRate}%
                       </p>
                     </div>
                   </div>
-
-                  <div className="grid grid-cols-3 gap-2 pt-3 border-t border-gray-100">
-                    <div className="text-center">
-                      <Check className="h-4 w-4 text-green-500 mx-auto mb-1" />
-                      <p className="text-[10px] font-bold tracking-wider uppercase text-gray-500">
-                        {t("parent.attendance.present", "Present")}
-                      </p>
-                      <p className="text-sm font-bold text-gray-900 dark:text-foreground">
-                        {course.present}
-                      </p>
-                    </div>
-                    <div className="text-center">
-                      <Clock className="h-4 w-4 text-yellow-500 mx-auto mb-1" />
-                      <p className="text-[10px] font-bold tracking-wider uppercase text-gray-500">
-                        {t("parent.attendance.late", "Late")}
-                      </p>
-                      <p className="text-sm font-bold text-gray-900 dark:text-foreground">
-                        {course.late}
-                      </p>
-                    </div>
-                    <div className="text-center">
-                      <X className="h-4 w-4 text-red-500 mx-auto mb-1" />
-                      <p className="text-[10px] font-bold tracking-wider uppercase text-gray-500">
-                        {t("parent.attendance.absent", "Absent")}
-                      </p>
-                      <p className="text-sm font-bold text-gray-900 dark:text-foreground">
-                        {course.absent}
-                      </p>
-                    </div>
+                  <div className="grid flex-1 grid-cols-3 gap-4 sm:ms-auto sm:max-w-md">
+                    <KPICard
+                      icon={Check}
+                      label={t("parent.attendance.present", "Present")}
+                      value={summary.present}
+                      iconBgClass="bg-green-50"
+                      iconColorClass="text-green-600"
+                      className="shadow-none ring-1 ring-slate-100"
+                    />
+                    <KPICard
+                      icon={Clock}
+                      label={t("parent.attendance.late", "Late")}
+                      value={summary.late}
+                      iconBgClass="bg-amber-50"
+                      iconColorClass="text-amber-600"
+                      className="shadow-none ring-1 ring-slate-100"
+                    />
+                    <KPICard
+                      icon={X}
+                      label={t("parent.attendance.absent", "Absent")}
+                      value={summary.absent}
+                      iconBgClass="bg-red-50"
+                      iconColorClass="text-red-600"
+                      className="shadow-none ring-1 ring-slate-100"
+                    />
                   </div>
+                </div>
+              </Card>
 
-                  <p className="text-xs text-gray-500 mt-3 text-center">
-                    {course.total_sessions}{" "}
-                    {t("parent.attendance.sessions", "sessions tracked")}
-                  </p>
-                </Card>
-              ))}
-            </div>
+              {/* Per-course attendance */}
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                {attendance.map((course) => (
+                  <Card
+                    key={course.course_id}
+                    className="card-elevated border-0 bg-white p-5"
+                  >
+                    <div className="mb-4 flex items-start justify-between gap-3">
+                      <div>
+                        <Badge
+                          variant="outline"
+                          className="mb-1 text-[10px] font-bold"
+                        >
+                          {course.course_code}
+                        </Badge>
+                        <h2 className="text-base font-semibold tracking-tight text-gray-900 dark:text-foreground">
+                          {course.course_name}
+                        </h2>
+                      </div>
+                      <div className="text-end">
+                        <p
+                          className={`text-2xl font-black ${attainmentValueClass(
+                            course.attendance_rate
+                          )}`}
+                        >
+                          {course.attendance_rate}%
+                        </p>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500">
+                          {t("parent.attendance.rate", "Rate")}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-2 border-t border-gray-100 pt-3">
+                      <div className="text-center">
+                        <Check className="mx-auto mb-1 h-4 w-4 text-green-500" />
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500">
+                          {t("parent.attendance.present", "Present")}
+                        </p>
+                        <p className="text-sm font-bold text-gray-900 dark:text-foreground">
+                          {course.present}
+                        </p>
+                      </div>
+                      <div className="text-center">
+                        <Clock className="mx-auto mb-1 h-4 w-4 text-yellow-500" />
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500">
+                          {t("parent.attendance.late", "Late")}
+                        </p>
+                        <p className="text-sm font-bold text-gray-900 dark:text-foreground">
+                          {course.late}
+                        </p>
+                      </div>
+                      <div className="text-center">
+                        <X className="mx-auto mb-1 h-4 w-4 text-red-500" />
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500">
+                          {t("parent.attendance.absent", "Absent")}
+                        </p>
+                        <p className="text-sm font-bold text-gray-900 dark:text-foreground">
+                          {course.absent}
+                        </p>
+                      </div>
+                    </div>
+
+                    <p className="mt-3 text-center text-xs text-gray-500">
+                      {course.total_sessions}{" "}
+                      {t("parent.attendance.sessions", "sessions tracked")}
+                    </p>
+                  </Card>
+                ))}
+              </div>
+            </>
           )}
         </>
       )}

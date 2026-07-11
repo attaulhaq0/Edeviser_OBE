@@ -251,11 +251,6 @@ const studentNavItems: NavItem[] = [
     labelKey: "nav.myContent",
     icon: FileText,
     group: "learn",
-    // R23.3: "My Content" lets students author study plans / quiz questions, so
-    // it has student value and is kept — but it is secondary to the core
-    // learning items, so it is de-emphasized (sunk + subdued) rather than
-    // removed.
-    deEmphasized: true,
   },
   {
     to: "/student/journal",
