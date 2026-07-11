@@ -14,6 +14,7 @@
     "supabase/functions/check-badges/index.ts::challenge_participants::team_id",
     "supabase/functions/check-badges/index.ts::profiles::leaderboard_anonymous",
     "supabase/functions/check-bonus-question/index.ts::learning_outcomes::type=\"clo\"",
+    "supabase/functions/coordinator-ai-insights/index.ts::coordinator_ai_insights::coordinator_ai_insights",
     "supabase/functions/cqi-review-reminder/index.ts::cqi_action_plans::next_review_date",
     "supabase/functions/embed-course-material/index.ts::courses::institution_id",
     "supabase/functions/export-student-data/index.ts::grades::created_at",
