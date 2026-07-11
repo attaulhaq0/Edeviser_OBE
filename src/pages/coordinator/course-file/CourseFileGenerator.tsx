@@ -15,10 +15,12 @@ import { useSemesters } from "@/hooks/useSemesters";
 import { useGenerateCourseFile } from "@/hooks/useCourseFile";
 import { toast } from "sonner";
 import { FileText, Download, Loader2, CheckCircle2 } from "lucide-react";
+import { useFeatureFlag } from "@/hooks/useFeatureFlag";
+import CoordinatorAccreditationNew from "./CoordinatorAccreditationNew";
 
 // ─── Course File Generator Page ─────────────────────────────────────────────
 
-const CourseFileGenerator = () => {
+const CourseFileGeneratorLegacy = () => {
   const { data: coursesResult, isLoading: coursesLoading } = useCourses({
     pageSize: 200,
   });
@@ -224,6 +226,19 @@ const CourseFileGenerator = () => {
         </Card>
       )}
     </div>
+  );
+};
+
+// Flag wrapper (P3, spec task 3.3): the redesigned Accreditation Evidence
+// screen (readiness hero + evidence cards + pack checklist + approval workflow +
+// the real course-file generator) renders when `newUiModules` is on; the
+// flag-off path keeps the legacy generator unchanged.
+const CourseFileGenerator = () => {
+  const newModules = useFeatureFlag("newUiModules");
+  return newModules ? (
+    <CoordinatorAccreditationNew />
+  ) : (
+    <CourseFileGeneratorLegacy />
   );
 };
 

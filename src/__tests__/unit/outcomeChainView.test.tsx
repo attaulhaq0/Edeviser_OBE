@@ -67,6 +67,18 @@ class MockResizeObserver {
 }
 vi.stubGlobal("ResizeObserver", MockResizeObserver);
 
+// The route's flag wrapper renders the redesigned coordinator Outcome Attainment
+// screen only when `newUiModules` is on AND the role is coordinator. This suite
+// covers the LEGACY end-to-end chain, so force the flag OFF and stub useAuth so
+// the wrapper resolves to the legacy view (the flag-on coordinator path is
+// covered by coordinatorOutcomeAttainmentNew.test.tsx).
+vi.mock("@/hooks/useFeatureFlag", () => ({
+  useFeatureFlag: () => false,
+}));
+vi.mock("@/hooks/useAuth", () => ({
+  useAuth: () => ({ profile: null }),
+}));
+
 import OutcomeChainView from "@/pages/shared/OutcomeChainView";
 
 // ---------------------------------------------------------------------------

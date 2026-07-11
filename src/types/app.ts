@@ -32,6 +32,15 @@ export interface Profile {
   tour_completed_at: string | null;
   status: string;
   created_at: string;
+  // Staff academic-profile fields (migration 20260823000001). Optional: absent
+  // on existing rows and not selected by AuthProvider — the coordinator "Me"
+  // page reads them via useCoordinatorAcademicProfile and renders a placeholder
+  // when unset.
+  department?: string | null;
+  designation?: string | null;
+  academic_rank?: string | null;
+  highest_degree?: string | null;
+  years_experience?: number | null;
 }
 
 export interface AuthResult {

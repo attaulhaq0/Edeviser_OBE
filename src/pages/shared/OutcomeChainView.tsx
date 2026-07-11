@@ -41,6 +41,9 @@ import type {
   GraduateAttributeNode,
   PloNode,
 } from "@/lib/outcomeChain";
+import { useAuth } from "@/hooks/useAuth";
+import { useFeatureFlag } from "@/hooks/useFeatureFlag";
+import CoordinatorOutcomeAttainmentNew from "@/components/shared/CoordinatorOutcomeAttainmentNew";
 
 const ATTAINMENT_LABEL: Record<string, string> = {
   Excellent: "Excellent",
@@ -239,7 +242,7 @@ const GaCard = ({ ga }: { ga: GraduateAttributeNode }) => (
   </div>
 );
 
-const OutcomeChainView = () => {
+const OutcomeChainViewLegacy = () => {
   const [startId, setStartId] = useQueryState(
     "ilo",
     parseAsString.withDefault("")
@@ -397,6 +400,19 @@ const OutcomeChainView = () => {
       </Card>
     </div>
   );
+};
+
+// Flag wrapper (P3, spec task 3.3): for the COORDINATOR role the redesigned
+// Outcome Attainment rollup replaces the legacy chain when `newUiModules` is on.
+// Admins (who share this route) and the flag-off path keep the legacy
+// end-to-end traceability view unchanged — reversible, no function lost.
+const OutcomeChainView = () => {
+  const newModules = useFeatureFlag("newUiModules");
+  const { profile } = useAuth();
+  if (newModules && profile?.role === "coordinator") {
+    return <CoordinatorOutcomeAttainmentNew />;
+  }
+  return <OutcomeChainViewLegacy />;
 };
 
 export default OutcomeChainView;

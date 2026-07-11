@@ -65,6 +65,13 @@ vi.mock("sonner", () => ({
   },
 }));
 
+// New-UI `newUiModules` flag forced OFF so the wrapper renders the LEGACY
+// generator this suite covers. The redesigned Accreditation Evidence screen
+// (flag-on path) is covered by coordinatorAccreditationNew.test.tsx.
+vi.mock("@/hooks/useFeatureFlag", () => ({
+  useFeatureFlag: () => false,
+}));
+
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
 const createWrapper = () => {

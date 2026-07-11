@@ -14,13 +14,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Download } from "lucide-react";
+import { useFeatureFlag } from "@/hooks/useFeatureFlag";
+import CurriculumMatrixPageNew from "./CurriculumMatrixPageNew";
 
 interface SelectedCell {
   ploId: string;
   courseId: string;
 }
 
-const CurriculumMatrixPage = () => {
+const CurriculumMatrixPageLegacy = () => {
   const [selectedProgramId, setSelectedProgramId] = useState<string>("");
   const [selectedCell, setSelectedCell] = useState<SelectedCell | null>(null);
   const { data: paginatedPrograms, isLoading: programsLoading } = usePrograms();
@@ -116,6 +118,18 @@ const CurriculumMatrixPage = () => {
         }}
       />
     </div>
+  );
+};
+
+// Flag wrapper (P3, spec task 3.3): the redesigned matrix (coverage legend +
+// summary column + gap panel + AI recommendation) renders when `newUiModules`
+// is on; the flag-off path keeps the legacy matrix page unchanged.
+const CurriculumMatrixPage = () => {
+  const newModules = useFeatureFlag("newUiModules");
+  return newModules ? (
+    <CurriculumMatrixPageNew />
+  ) : (
+    <CurriculumMatrixPageLegacy />
   );
 };
 
