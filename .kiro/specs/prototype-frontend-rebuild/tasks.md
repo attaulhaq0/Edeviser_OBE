@@ -132,6 +132,11 @@ rail card adapts to its ~320px column, not the viewport.)
       `prefers-reduced-motion` on sidebar/drawer transitions; correct sticky z-order (header >
       sidebar/rail > content); a single content scroll container. Applied uniformly across all 5
       role layouts (§1.4) so every screen — dashboard and page alike — inherits identical margins.
+- [ ] 1.0.5 **Chrome-suppression rules** (from `shared.js` body flags): `data-immersive` screens
+      (the adaptive **lesson** loop, **focus** mode) render **full-screen with NO top bar /
+      sidebar / rail**; `data-norail` screens render sidebar + content but **no right rail** (the
+      page supplies its own right column). Encode as layout props on the route/role layout so the
+      shell knows when to drop each region.
 
 ### 1.1 Top bar (`.app-header`) — per role
 
@@ -226,6 +231,41 @@ Each card wires a real hook or is flagged (R17); enumerate every card:
       rebuild the multi-step onboarding shell (no chrome), the start/splash, and the role picker
       (dev/impersonation only where applicable). Preserve the real onboarding gate + `signUp` flow.
 - [x] 1.6 **404 NotFoundPage** built from `@/design-system` + catch-all route. (R4.1)
+
+### 1.7 Cross-cutting UI systems & overlays (app-wide — owned by no single screen)
+
+> These are generated/triggered **globally** by `shared.js` (not present in any per-screen
+> HTML), so a screen-by-screen audit misses them. Each is a reusable system that many
+> screens depend on; all data wiring obeys G.5 (real hook or flagged gap — never faked).
+
+- [ ] 1.7.1 **Hero carousel** (`.hero-carousel`/`.hero-slides`/`.hero-dots`, `initHeroCarousel`:
+      dot indicators + auto-advance + swipe, reduced-motion-safe). Reusable `@/design-system`
+      component — **no `Carousel` exists today**, and every rebuilt dashboard ships only slide 1.
+      Build the carousel and wire each role's slides: **student** (greeting+level-ring / streak-risk
+      / leaderboard rank-move / badge-almost) · **teacher** (greeting+chips / weekly momentum /
+      up-next schedule) · **coordinator** (greeting+chips / PLO-drop decision-context /
+      accreditation readiness) · **admin** (greeting+chips / executive watch-item / AI governance).
+      Slides needing rank-delta / badge-progress / weekly-momentum / schedule are backend gaps —
+      wire real or flag (G.5), never fake.
+- [ ] 1.7.2 **Gamification celebration & reward overlays** (event-triggered, cross-cutting). Components
+      exist in `@/components/shared/*` (reskinned) but no task rebuilds/wires them: `LevelUpOverlay`
+      (level-up), `BadgeAwardModal` + `MysteryBadge` (badge earned / mystery reveal), `XPAwardToast` + `showXP` `.xp-float` (XP gain), streak-milestone (`.streak-flame`), `MysteryRewardBox` +
+      `revealPurchase` (`.reveal-*`/`.flip`/`.reveal-rays` chest/purchase reveal),
+      `ImprovementBonusCelebration`, `LeaguePromotionCelebration`, and `confetti` (canvas-confetti,
+      reduced-motion-skip). Rebuild to prototype motion (`index.css` keyframes) and wire triggers to
+      the REAL gamification events (XP award, level-up, badge check, streak milestone, purchase).
+- [ ] 1.7.3 **AI suggestion approve/dismiss pattern** (`data-ai-card` + `aiApprove`/`aiDismiss`:
+      optimistic remove + toast — the A2 "act with approval" interaction). Reusable across teacher
+      (triage / feedback drafts), coordinator (attainment alerts / CQI), admin, and parent AI cards.
+      Build as a `@/design-system` pattern wired to each card's real approve/dismiss mutation; where
+      no mutation exists, flag the gap (G.5) — never fake the action.
+- [ ] 1.7.4 **Global feedback host**: Sonner `toast()` matched to the prototype `.edv-toast`; the
+      XP float; and the "why am I seeing this?" explainability popover (§1.1.5) — one host per app.
+- [ ] 1.7.5 **Reusable overlays/controls** used by settings/profile/onboarding + any CRUD screen:
+      edit dialog (`openEditModal`/`saveEditModal` → `ui/dialog`), avatar picker
+      (`edvAvatarChosen`/`edvClearAvatar` → `shared/AvatarUpload`), setting toggles
+      (`toggleMute`/`toggleQuietHours` / quiet-hours → `ui/switch`), confirm/delete
+      (`shared/ConfirmDialog`), and Esc/backdrop close behavior.
 
 ## P2 — Role dashboards (REBUILD from prototype, then delete `*DashboardNew`)
 
