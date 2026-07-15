@@ -104,13 +104,26 @@ requirements R2/R6/R7):
 > rebuilt from its `prototype/*.html` to match every section/card, then the
 > `*DashboardNew` (and any legacy dashboard) deleted.
 
-- [ ] 2.1 **Student dashboard** → `dashboard.html` (`/student/dashboard`, `useStudentDashboardAggregate`).
-      Rebuild the Today/gap→action hero, next-step CTA, KPI row, mastery snapshot, My Courses
-      strip (≥5 cards), deadlines, AI-tutor entry — exact. Delete `StudentDashboardNew` + legacy.
-- [ ] 2.2 **Teacher dashboard** → `teacher-dashboard.html` (`/teacher/dashboard`, `useTeacherDashboardAggregate`).
-      Rebuild triage/at-risk, AI drafts, CLO-gap, Bloom coverage panels. Delete `TeacherDashboardNew` + legacy.
-- [ ] 2.3 **Parent dashboard** → `parent-dashboard.html` (`/parent/dashboard`, `useParentDashboardAggregate`).
-      Rebuild growth/wellbeing framing + per-child cards (no raw grades). Delete `ParentDashboardNew` + legacy.
+- [~] 2.1 **Student dashboard** → `dashboard.html` (`/student/dashboard`, `useStudentDashboardAggregate`).
+  **Rebuilt** in `src/features/student/dashboard/StudentDashboardScreen.tsx` from the prototype on
+  `@/design-system` (living hero w/ level ring + XP + Foxi, weakest-outcome, next-step CTA, My Courses
+  rings, habits, continue-path, daily-review, weekly heatmap, announcements), wired to real hooks,
+  **cut over**, and `StudentDashboardNew` **deleted** (PR #219, merged). **Remaining for DoD:** owner
+  flips `student-dashboard` → `rebuilt:true` + `test:visual` green (hero carousel secondary slides
+  deferred as flagged backend gaps).
+- [~] 2.2 **Teacher dashboard** → `teacher-dashboard.html` (`/teacher/dashboard`, `useTeacherDashboardAggregate`).
+  **Rebuilt** in `src/features/teacher/dashboard/TeacherDashboardScreen.tsx` from the prototype
+  (hero + real chips, KPI row, Do-first triage via `useAtRiskStudents`+`useSendNudge`, at-risk AI
+  prediction via `useAtRiskPredictions`, Bloom coverage, quick-actions, autonomy footer), **cut over**,
+  `TeacherDashboardNew` **deleted** (PR #220, merged). **Remaining for DoD:** owner `test:visual` green
+  (momentum/schedule slides, curriculum-studio/outcome-gaps/teaching-impact = course-scoped backend
+  gaps, flagged not faked).
+- [~] 2.3 **Parent dashboard** → `parent-dashboard.html` (`/parent/dashboard`, `useParentDashboardAggregate`).
+  **Rebuilt** in `src/features/parent/dashboard/ParentDashboardScreen.tsx` from the prototype
+  (growth & wellbeing story: AI banner, plain-words summary, growth + wellbeing, one-way-to-help,
+  celebrate; avg_attainment → OBE band, **no raw grades**; child selector for multi-child), **cut over**,
+  `ParentDashboardNew` **deleted**. **Remaining for DoD:** owner `test:visual` green (weekly auto-narrative,
+  per-subject trend rows, mood/wellbeing check-ins = backend gaps, adapted to real signals not faked).
 - [ ] 2.4 **Coordinator dashboard** → `coordinator-dashboard.html` (`/coordinator/dashboard`, `useCoordinatorDashboardAggregate`).
       Rebuild KPI row, attainment snapshot, curriculum-gap + at-risk cards. Delete `CoordinatorDashboardNew` + legacy.
 - [ ] 2.5 **Admin dashboard** → `admin-dashboard.html` (`/admin/dashboard`, `useAdminDashboardAggregate`).
