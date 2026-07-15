@@ -99,10 +99,12 @@ requirements R2/R6/R7):
 
 ## P2 — Role dashboards (REBUILD from prototype, then delete `*DashboardNew`)
 
-> ⚠️ All 5 are currently **reskinned-in-place only** (`*DashboardNew` = old layout +
-> new tokens, "JSX unchanged"). Per the contract that is **NOT** rebuilt. Each must be
-> rebuilt from its `prototype/*.html` to match every section/card, then the
-> `*DashboardNew` (and any legacy dashboard) deleted.
+> ✅ All 5 dashboards are now **rebuilt from their `prototype/*.html`** in
+> `src/features/{role}/dashboard/*DashboardScreen.tsx` (single-column feeds on
+> `@/design-system` + real hooks), **cut over**, and every `*DashboardNew` reskin
+> **deleted**. They sit at `[~]` pending only the owner's `test:visual` parity flip
+> (the sole remaining DoD item, same gate as auth P1.3). Backend-less prototype
+> sections were adapted to real signals or omitted — never faked (R17).
 
 - [~] 2.1 **Student dashboard** → `dashboard.html` (`/student/dashboard`, `useStudentDashboardAggregate`).
   **Rebuilt** in `src/features/student/dashboard/StudentDashboardScreen.tsx` from the prototype on
@@ -134,8 +136,15 @@ requirements R2/R6/R7):
   `CoordinatorDashboardNew` **deleted** (test repointed to the route page). **Remaining for DoD:** owner
   `test:visual` green (hero carousel slides + "Recovery pathways" are prototype-only/no-backend concepts,
   omitted not faked).
-- [ ] 2.5 **Admin dashboard** → `admin-dashboard.html` (`/admin/dashboard`, `useAdminDashboardAggregate`).
-      Rebuild KPI row, users-by-role, activity, AI Co-Pilot + PLO heatmap panels. Delete `AdminDashboardNew` + legacy.
+- [~] 2.5 **Admin dashboard** → `admin-dashboard.html` (`/admin/dashboard`, `useAdminDashboardAggregate`).
+  **Rebuilt** in `src/features/admin/dashboard/AdminDashboardScreen.tsx` as the prototype's single-column
+  institution feed: hero + real status chips (users/active/programs), KPI row (Users/Active/Avg mastery/
+  Courses from the aggregate + `useDepartmentAnalytics`), factual "Institution insight" summary,
+  "Departments by mastery" (real per-dept avg PLO attainment), "Users by role" (real `usersByRole`), and a
+  static A2 autonomy footer. **Cut over**, `AdminDashboardNew` **deleted**. **Remaining for DoD:** owner
+  `test:visual` green (the prototype's actual sections are hero/KPI/executive-insight/departments/AI-
+  governance — the mock's AI-generated narrative, "weekly-active" login %, "retention risk" count, and
+  AI-governance metrics/route have no backend, so they are adapted to real signals or omitted, not faked).
 
 ## P3 — All modules (rebuild every route; drive from `missing-screens-catalog.md`)
 
@@ -266,9 +275,10 @@ parity-green, and its legacy is deleted.
 
 ## Progress truth (as of this rewrite)
 
-- **Done per DoD:** none yet (0 screens at `rebuilt: true`).
-- **Built, parity-pending:** auth (P1.3), 404 (P1.4), 4 net-new pages (P3.0).
-- **Reskinned-only (counts as NOT started):** all 5 dashboards + every `src/pages/**`
-  screen touched by the CTA/token/import "cutover waves."
-- **Remaining real rebuild:** P1.2 layouts, P2 (5 dashboards), P3 (all modules + net-new
-  sub-UI), P4 parity per screen, P5 legacy deletion. This is the bulk of the work.
+- **Done per DoD:** none yet at `rebuilt: true` (the flip is the owner's `test:visual` gate).
+- **Built, parity-pending (`[~]`):** all 5 role dashboards (P2.1–2.5 — rebuilt + wired +
+  cut over + every `*DashboardNew` deleted), auth (P1.3), 404 (P1.4), 4 net-new pages (P3.0).
+- **Reskinned-only (counts as NOT started):** every remaining `src/pages/**` screen touched
+  by the CTA/token/import "cutover waves" (i.e. P3 modules not yet rebuilt).
+- **Remaining real rebuild:** P1.2 layouts, P3 (all modules + net-new sub-UI), P4 parity per
+  screen, P5 legacy deletion. This is the bulk of the work.
