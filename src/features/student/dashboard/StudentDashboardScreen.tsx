@@ -50,6 +50,18 @@ import { cn } from "@/lib/utils";
 const BRAND_GRADIENT = "var(--brand-gradient)";
 const HERO_GRADIENT = "var(--hero-gradient)";
 
+/**
+ * Time-of-day segment for the hero greeting. Maps to the EXISTING string keys
+ * `dashboard.greeting.{morning,afternoon,evening}` in the student locale — the
+ * bare `dashboard.greeting` key is an OBJECT, so calling `t("dashboard.greeting")`
+ * returned the i18next "returned an object instead of string" error. Prototype
+ * parity: the hero greeting is time-aware (see shared.js `timeGreeting`).
+ */
+const greetingTimeOfDay = (): "morning" | "afternoon" | "evening" => {
+  const h = new Date().getHours();
+  return h < 12 ? "morning" : h < 17 ? "afternoon" : "evening";
+};
+
 /** SVG progress ring matching the prototype `.ring-mini` / hero ring. */
 const ProgressRing = ({
   percent,
@@ -241,10 +253,8 @@ const StudentDashboardScreen = () => {
           </ProgressRing>
           <div className="min-w-0 flex-1 pr-16">
             <h1 className="truncate text-base font-bold tracking-tight">
-              {t("dashboard.greeting", "Good day, {{name}}", {
-                name: firstName,
-              })}{" "}
-              👋
+              {t(`dashboard.greeting.${greetingTimeOfDay()}`, "Good day")},{" "}
+              {firstName} 👋
             </h1>
             <p className="truncate text-[11px] text-white/60">
               {t("dashboard.momentum", "Keep your momentum going")}
