@@ -40,7 +40,11 @@ requirements R2/R6/R7):
    motion all composed from `@/design-system` (tokens + primitives + patterns +
    mascot). No arbitrary hex; emoji → Lucide (PARITY §B).
 2. **Wired** to the existing hook(s) for its data + mutations (R1) — components never
-   call `supabase.*` directly (R1.2); mutations reuse existing hooks (R1.3).
+   call `supabase.*` directly (R1.2); mutations reuse existing hooks (R1.3). **Data-binding is
+   auditable (G.5): every section AND card names the Supabase-backed hook it renders from,
+   classified `Wired` / `Needs-wiring` / `No-backend`.** No hardcoded, mock, or `prototype/`
+   demo data (R17). A `No-backend` section is a flagged GAP — omit or clearly mark it (never
+   fake), and record it in the backend-gap list (`prototype-backend-parity` spec).
 3. **Net-new sub-UI built** per `missing-screens-catalog.md`: every **F** (create/edit
    form), **Del** (delete/confirm), **Dt** (detail), **W** (wizard), **Mo** (modal/
    sheet), and **St** (empty/loading/error/success) the row lists.
@@ -98,6 +102,36 @@ requirements R2/R6/R7):
 > Each region below is its own DoD-gated rebuild task, enumerated per role so
 > nothing is dropped. Chrome parity is proven in-frame by each screen's
 > `test:visual` at desktop (sidebar + rail) AND mobile (bottom-bar, no rail).
+
+### 1.0 Shell layout & spacing system (all roles) — the "middle area / margins" fix
+
+The deployed dashboards float their content in leftover space: a fixed `w-52` sidebar +
+a `max-w-3xl mx-auto` feed with **no right rail**, so the middle column centres inside a
+huge empty area (see the student-dashboard screenshot). Fix it **once, at the shell**, with
+an explicit responsive **app-shell grid** whose region sizes are tokens in `tokens.css`, so
+every role layout (§1.4) shares exact, identical margins for the four regions (top bar /
+left sidebar / content / right rail) on both mobile and desktop. (Approach validated against
+current practice: CSS-variable-driven canvas widths — cf. Porsche `--p-canvas-sidebar-start/
+-end-width`; HBS three-column grid with an _optional_ right rail; container-query cards so a
+rail card adapts to its ~320px column, not the viewport.)
+
+- [ ] 1.0.1 **Layout tokens** (add to `src/design-system/tokens.css`): `--app-header-h: 56px`
+      · `--app-sidebar-w: 15rem` (240px) · `--app-rail-w: 20rem` (320px) · `--app-content-max:
+48rem` (768px) · `--app-gutter: 1.5rem` (24px) · mobile gutter `1rem`. **Reconcile the
+      current `w-52` (208px) sidebar to the token — one width everywhere, all roles.**
+- [ ] 1.0.2 **Desktop (≥ `xl`/1280) = 3-column grid** `[sidebar --app-sidebar-w] [content 1fr]
+[rail --app-rail-w]`, `gap: --app-gutter`, under a sticky `--app-header-h` top bar. The
+      content column is `1fr` (`min-width:0`); its inner block is capped at `--app-content-max`
+      and **aligned to the column start with `--app-gutter` padding — NOT `mx-auto`-centred in
+      empty space** (the bug fix). Rail is sticky; hidden on `data-norail` pages.
+- [ ] 1.0.3 **Laptop (`lg` 1024–1279)** = 2-column `[sidebar] [content 1fr]` (rail hidden/below);
+      content capped + start-aligned. **Tablet/mobile (< `lg`)** = single column, sidebar becomes
+      the **bottom tab bar** (§1.2.1), no rail, content full-width at the mobile gutter, with
+      `env(safe-area-inset-*)` respected and a bottom-bar-height spacer so content isn't occluded.
+- [ ] 1.0.4 **Correctness (all layouts):** RTL via logical props (`ms/me/ps/pe`, `start/end`);
+      `prefers-reduced-motion` on sidebar/drawer transitions; correct sticky z-order (header >
+      sidebar/rail > content); a single content scroll container. Applied uniformly across all 5
+      role layouts (§1.4) so every screen — dashboard and page alike — inherits identical margins.
 
 ### 1.1 Top bar (`.app-header`) — per role
 
@@ -374,6 +408,13 @@ parity-green, and its legacy is deleted.
 - [ ] G.2 No `prototype/` imports, no CDN Tailwind, no `shared.css`/`shared.js` in `src/`. (R2.7)
 - [ ] G.3 Components consume hooks only; never `supabase.*` directly. (R1.2)
 - [ ] G.4 No new backend/tables/RLS/roles. (Non-goals)
+- [ ] G.5 **Supabase is the ONLY source of truth (data-binding rule).** Every screen / section /
+      card renders from a real `src/hooks/*` query (→ `supabase`), never hardcoded / mock /
+      `prototype/` demo data. For each screen keep a **data-binding audit** — per section: the
+      bound hook + one of `Wired` (hook exists & used) · `Needs-wiring` (hook exists, wire it) ·
+      `No-backend` (no table/hook → GAP: build it via `prototype-backend-parity`, or mark N/A and
+      omit — never fabricate). This is the standing check for "what is left to **build** vs
+      **connect to backend** vs **has no backend to connect to**." (R1, R17)
 
 ## Progress truth (as of this rewrite)
 
