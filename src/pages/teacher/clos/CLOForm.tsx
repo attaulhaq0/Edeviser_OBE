@@ -274,7 +274,7 @@ const CreateCLODetailsForm = () => {
             <Button
               type="submit"
               disabled={createMutation.isPending}
-              className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 text-white"
+              variant="tactile"
             >
               {createMutation.isPending && (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -534,7 +534,7 @@ const EditCLODetailsForm = ({ cloId }: { cloId: string }) => {
             <Button
               type="submit"
               disabled={updateMutation.isPending}
-              className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 text-white"
+              variant="tactile"
             >
               {updateMutation.isPending && (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -806,7 +806,7 @@ const PLOMappingSection = ({
           type="button"
           onClick={handleSaveMappings}
           disabled={updateMappingsMutation.isPending}
-          className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 text-white"
+          variant="tactile"
         >
           {updateMappingsMutation.isPending && (
             <Loader2 className="h-4 w-4 animate-spin" />

@@ -84,7 +84,7 @@ const DiscussionForum = () => {
         <h1 className="text-2xl font-bold tracking-tight">Discussion Forum</h1>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 transition-transform duration-100">
+            <Button variant="tactile">
               <Plus className="h-4 w-4" /> New Thread
             </Button>
           </DialogTrigger>
@@ -130,7 +130,7 @@ const DiscussionForum = () => {
                 <Button
                   type="submit"
                   disabled={createThread.isPending}
-                  className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 transition-transform duration-100"
+                  variant="tactile"
                 >
                   {createThread.isPending ? "Creating..." : "Create Thread"}
                 </Button>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Edeviser — Student Triage</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
+<link rel="stylesheet" href="shared.css"/>
+</head>
+<body class="bg-slate-50" data-role="teacher">
+<header class="app-header">
+  <div class="hdr-brand flex items-center gap-2"><div class="h-7 w-7 rounded-lg flex items-center justify-center" style="background:var(--brand-gradient)"><span class="text-white text-sm">✦</span></div><span class="text-base font-bold tracking-tight text-gray-900">Edeviser</span></div>
+  <div class="flex items-center gap-2"><a href="teacher-profile.html" class="h-8 w-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style="background:var(--brand-gradient)">A</a></div>
+</header>
+<div class="page-content space-y-4 no-scrollbar">
+  <!-- BACKEND GROUNDING · hooks: useTeacherDashboardAggregate, useAtRiskPredictions | tables: student_courses, outcome_attainment, submissions -->
+
+  <div class="feed-wide flex items-center justify-between gap-3">
+    <div><h1 class="text-xl font-black tracking-tight text-gray-900">Student Triage</h1><p class="text-xs text-gray-500 mt-0.5">Ranked by risk. Signals are explainable rules — tap any risk to see why.</p></div>
+  </div>
+
+  <div class="feed-wide flex items-center gap-2 flex-wrap">
+    <button class="filt on" onclick="filt(this,'all')">All · 32</button>
+    <button class="filt" onclick="filt(this,'risk')">⚠️ Needs attention · 3</button>
+    <button class="filt" onclick="filt(this,'watch')">👀 Watch · 5</button>
+    <button class="filt" onclick="filt(this,'ok')">✅ On track · 24</button>
+  </div>
+
+  <div class="feed-wide pcard p-0 overflow-hidden">
+    <div style="overflow-x:auto">
+      <table class="dtable" style="min-width:640px">
+        <thead><tr><th>Student</th><th>Course</th><th>Weakest outcome</th><th>Mastery</th><th>Trend</th><th>Risk</th><th>Action</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+<style>.filt{font-size:12px;font-weight:700;color:#64748b;background:#fff;border:1px solid #e2e8f0;border-radius:999px;padding:7px 12px;cursor:pointer}.filt.on{background:#0f172a;color:#fff;border-color:#0f172a}</style>
+<script>
+const STU=[
+  {n:"Sara Al-Mansoori",c:"CS301",clo:"Normalization",m:54,tr:"↓",risk:78,g:"risk"},
+  {n:"Omar Haddad",c:"CS301",clo:"Normalization",m:61,tr:"→",risk:61,g:"risk"},
+  {n:"Lina Yusuf",c:"CS205",clo:"REST APIs",m:55,tr:"↓",risk:55,g:"risk"},
+  {n:"Khalid N.",c:"CS205",clo:"REST APIs",m:66,tr:"→",risk:44,g:"watch"},
+  {n:"Fatima Z.",c:"CS301",clo:"Indexing",m:69,tr:"↑",risk:38,g:"watch"},
+  {n:"Yousef M.",c:"CS301",clo:"3NF",m:64,tr:"→",risk:41,g:"watch"},
+  {n:"Aisha K.",c:"CS301",clo:"—",m:92,tr:"↑",risk:8,g:"ok"},
+  {n:"Maryam S.",c:"CS205",clo:"—",m:88,tr:"↑",risk:10,g:"ok"},
+  {n:"Hassan R.",c:"CS205",clo:"Testing",m:74,tr:"↑",risk:18,g:"ok"},
+];
+const pill=r=>r>=70?`<span class="pill pill-red">${r}%</span>`:r>=50?`<span class="pill pill-amber">${r}%</span>`:`<span class="pill pill-green">${r}%</span>`;
+const trc=t=>t==='↓'?'#ef4444':t==='↑'?'#16a34a':'#94a3b8';
+const mc=m=>m>=70?'#16a34a':m>=50?'#b45309':'#b91c1c';
+function draw(f='all'){
+  document.getElementById('rows').innerHTML=STU.filter(s=>f==='all'||s.g===f).map(s=>`
+    <tr>
+      <td><b style="color:#0f172a">${s.n}</b></td>
+      <td>${s.c}</td>
+      <td>${s.clo}</td>
+      <td><b style="color:${mc(s.m)}">${s.m}%</b></td>
+      <td style="color:${trc(s.tr)};font-weight:800">${s.tr}</td>
+      <td>${pill(s.risk)}</td>
+      <td><button onclick="act('${s.n}')" class="text-xs font-bold text-white px-2.5 py-1 rounded-lg" style="background:var(--brand-gradient)">Act</button> <button onclick="whyPop('<b>${s.n}</b> — risk ${s.risk}%. Weighted signals: outcome trend (${s.tr}), submission pattern, login recency, amplified when mastery &lt; 70%. Fully rule-based &amp; explainable.')" class="text-xs font-semibold text-gray-400">why</button></td>
+    </tr>`).join('');
+}
+function filt(el,f){document.querySelectorAll('.filt').forEach(b=>b.classList.remove('on'));el.classList.add('on');draw(f);}
+function act(n){toast('Prepared 3 actions for '+n,'⚡');}
+draw();
+</script>
+<script src="shared.js"></script>
+</body>
+</html>

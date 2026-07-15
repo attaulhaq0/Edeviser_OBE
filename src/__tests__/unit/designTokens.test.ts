@@ -29,9 +29,11 @@ describe("Design Tokens — src/index.css", () => {
   });
 
   describe("Brand Gradient", () => {
-    it("defines --brand-gradient with correct teal-to-blue gradient", () => {
+    it("defines --brand-gradient with the prototype-exact teal-to-blue gradient", () => {
+      // Prototype-fidelity: the canonical brand gradient is the prototype's
+      // exact 93.65deg (shared.css), NOT the legacy 135deg.
       expect(indexCss).toContain(
-        "--brand-gradient: linear-gradient(135deg, #14b8a6 0%, #0382bd 100%)"
+        "--brand-gradient: linear-gradient(93.65deg, #14b8a6 5.37%, #0382bd 78.89%)"
       );
     });
 

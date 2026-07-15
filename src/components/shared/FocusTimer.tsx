@@ -345,7 +345,8 @@ const FocusTimer = ({
         {timerState === "idle" && !isWaitingForNextWork && (
           <Button
             size="lg"
-            className="h-12 min-w-[120px] gap-2 bg-gradient-to-r from-teal-500 to-blue-600 text-base active:scale-95"
+            variant="tactile"
+            className="h-12 min-w-[120px] gap-2 text-base"
             onClick={handleStart}
           >
             <Play className="h-5 w-5" />
@@ -358,7 +359,8 @@ const FocusTimer = ({
           <>
             <Button
               size="lg"
-              className="h-12 min-w-[120px] gap-2 bg-gradient-to-r from-teal-500 to-blue-600 text-base active:scale-95"
+              variant="tactile"
+              className="h-12 min-w-[120px] gap-2 text-base"
               onClick={handleStartNextWork}
             >
               <Play className="h-5 w-5" />
@@ -405,7 +407,8 @@ const FocusTimer = ({
           <>
             <Button
               size="lg"
-              className="h-12 min-w-[120px] gap-2 bg-gradient-to-r from-teal-500 to-blue-600 text-base active:scale-95"
+              variant="tactile"
+              className="h-12 min-w-[120px] gap-2 text-base"
               onClick={handleResume}
             >
               <Play className="h-5 w-5" />

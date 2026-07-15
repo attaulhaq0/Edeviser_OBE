@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Edeviser — Transcript</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
+<link rel="stylesheet" href="shared.css"/>
+<style>
+  /* Transcript — maps to: useGenerateTranscript (generate-transcript edge fn,
+     returns download_url + file_name), grades + courses + semesters for the
+     on-screen record. Official PDF is generated on demand, not stored. */
+  .tr-row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid #f5f7fa}
+  .tr-row:last-child{border-bottom:none}
+  .tr-grade{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;flex:0 0 auto}
+</style>
+</head>
+<body class="bg-slate-50" data-role="student">
+
+<header class="app-header">
+  <div class="flex items-center gap-3">
+    <a href="profile.html" class="p-1.5 rounded-lg hover:bg-gray-100"><svg class="h-5 w-5 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg></a>
+    <h1 class="text-base font-bold tracking-tight text-gray-900">Transcript</h1>
+  </div>
+  <button class="btn3d sm" onclick="generateTranscript()">⬇️ Download PDF</button>
+</header>
+
+<div class="page-content space-y-4 no-scrollbar">
+
+  <!-- Identity + cumulative summary -->
+  <div class="rounded-2xl p-5 text-white shadow-lg" style="background:var(--hero-gradient)">
+    <div class="flex items-center justify-between flex-wrap gap-3">
+      <div><h2 class="text-lg font-bold">Sarah Ahmed</h2><p class="text-sm text-white/70">Student ID: GA-2024-3187 · B.Sc. Computer Science</p></div>
+      <div class="flex gap-2">
+        <div class="rounded-lg bg-white/10 px-3 py-2 text-center"><p class="text-base font-black leading-none">3.6</p><p class="text-[9px] text-white/60 uppercase font-bold mt-0.5">Cumulative GPA</p></div>
+        <div class="rounded-lg bg-white/10 px-3 py-2 text-center"><p class="text-base font-black leading-none">54</p><p class="text-[9px] text-white/60 uppercase font-bold mt-0.5">Credits earned</p></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="lg-row lg-row-2 space-y-4 items-start">
+  <!-- Current semester -->
+  <div class="pcard p-4">
+    <div class="sec-h"><span class="chip">📘</span><p class="t">Spring 2026 · in progress</p></div>
+    <div class="divide-y divide-gray-50">
+      <div class="tr-row"><div class="tr-grade" style="background:#dcfce7;color:#166534">A</div><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">CS301 · Database Design</p><p class="text-[11px] text-gray-500">3 credits</p></div><span class="text-sm font-black text-gray-700">92%</span></div>
+      <div class="tr-row"><div class="tr-grade" style="background:#dbeafe;color:#1d4ed8">B+</div><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">CS205 · Web Development</p><p class="text-[11px] text-gray-500">3 credits</p></div><span class="text-sm font-black text-gray-700">87%</span></div>
+      <div class="tr-row"><div class="tr-grade" style="background:#dcfce7;color:#166534">A-</div><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">AI101 · AI Fundamentals</p><p class="text-[11px] text-gray-500">3 credits</p></div><span class="text-sm font-black text-gray-700">90%</span></div>
+      <div class="tr-row"><div class="tr-grade" style="background:#fef3c7;color:#b45309">B</div><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">SE310 · Software Eng.</p><p class="text-[11px] text-gray-500">3 credits</p></div><span class="text-sm font-black text-gray-700">83%</span></div>
+      <div class="tr-row"><div class="tr-grade" style="background:#dbeafe;color:#1d4ed8">B+</div><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">MA210 · Statistics</p><p class="text-[11px] text-gray-500">3 credits</p></div><span class="text-sm font-black text-gray-700">86%</span></div>
+    </div>
+    <p class="text-[11px] text-gray-400 mt-2.5">Semester GPA (in progress): <b class="text-gray-600">3.7</b></p>
+  </div>
+
+  <!-- Past semesters -->
+  <div class="pcard p-4">
+    <div class="sec-h"><span class="chip">🗂️</span><p class="t">Academic history</p></div>
+    <div class="divide-y divide-gray-50">
+      <div class="tr-row"><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">Fall 2025</p><p class="text-[11px] text-gray-500">5 courses · 15 credits</p></div><span class="text-sm font-black text-gray-700">GPA 3.5</span></div>
+      <div class="tr-row"><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">Spring 2025</p><p class="text-[11px] text-gray-500">5 courses · 15 credits</p></div><span class="text-sm font-black text-gray-700">GPA 3.4</span></div>
+      <div class="tr-row"><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">Fall 2024</p><p class="text-[11px] text-gray-500">4 courses · 12 credits</p></div><span class="text-sm font-black text-gray-700">GPA 3.6</span></div>
+    </div>
+    <a href="progress.html" class="block mt-3 text-xs font-bold text-blue-600">See outcome attainment behind these grades →</a>
+  </div>
+  </div>
+
+  <!-- Export / official copy -->
+  <div class="pcard p-4">
+    <div class="sec-h"><span class="chip">📄</span><p class="t">Official transcript</p></div>
+    <p class="text-xs text-gray-500 mb-3">Generates an official, watermarked PDF with your full academic record — accepted by universities and employers.</p>
+    <div class="flex gap-2 flex-wrap">
+      <button class="btn3d sm" onclick="generateTranscript()">⬇️ Download PDF</button>
+      <button class="btn3d sm b-ghost" onclick="toast('Share link copied','🔗')">🔗 Share verification link</button>
+    </div>
+    <p id="tr-status" class="text-[11px] text-gray-400 mt-2"></p>
+  </div>
+
+</div>
+
+<nav class="bottom-bar">
+  <a href="dashboard.html" class="tab-btn" data-tab="home"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75"/></svg><span>Home</span></a>
+  <a href="learn.html" class="tab-btn" data-tab="learn"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/></svg><span>Learn</span></a>
+  <a href="tutor.html" class="tab-btn" data-tab="tutor"><div class="tutor-fab"><span class="text-lg">🤖</span></div><span>Tutor</span></a>
+  <a href="progress.html" class="tab-btn" data-tab="progress"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941"/></svg><span>Progress</span></a>
+  <a href="profile.html" class="tab-btn active" data-tab="me"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg><span>Me</span></a>
+</nav>
+<script src="shared.js"></script>
+<script>
+  function generateTranscript(){
+    const s=document.getElementById('tr-status');
+    if(s) s.textContent='Generating your official transcript…';
+    toast('Generating transcript…','⏳');
+    setTimeout(()=>{ if(s) s.textContent='transcript_sarah_ahmed_2026-07-10.pdf ready — check your downloads.'; toast('Transcript ready to download','📄'); },1200);
+  }
+</script>
+</body>
+</html>

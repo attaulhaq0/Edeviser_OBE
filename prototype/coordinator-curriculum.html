@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Edeviser — Curriculum Matrix</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
+<link rel="stylesheet" href="shared.css"/>
+<style>
+  /* Curriculum matrix — term filter select + AI-recommendation panel. Scoped. */
+  body[data-role="coordinator"] .mx-sel{font-size:12px;font-weight:700;color:#334155;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:7px 10px;cursor:pointer}
+  body[data-role="coordinator"] .ai-rec{background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:11px 13px}
+  body[data-role="coordinator"] .ai-rec .rec-h{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:800;color:#1d4ed8;letter-spacing:.02em;margin:0 0 6px}
+  body[data-role="coordinator"] .ai-rec ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:5px}
+  body[data-role="coordinator"] .ai-rec li{font-size:12px;color:#1e3a8a;display:flex;gap:7px}
+  body[data-role="coordinator"] .ai-rec li b{color:#0f172a}
+</style>
+</head>
+<body class="bg-slate-50" data-role="coordinator">
+<header class="app-header">
+  <div class="hdr-brand flex items-center gap-2"><div class="h-7 w-7 rounded-lg flex items-center justify-center" style="background:var(--brand-gradient)"><span class="text-white text-sm">✦</span></div><span class="text-base font-bold tracking-tight text-gray-900">Edeviser</span></div>
+  <div class="flex items-center gap-2"><a href="coordinator-profile.html" class="h-8 w-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style="background:var(--brand-gradient)">K</a></div>
+</header>
+<div class="page-content space-y-4 no-scrollbar">
+  <!-- BACKEND GROUNDING · hooks: useCurriculumMatrix, useOutcomeChain | tables: outcome_mappings, learning_outcomes, courses -->
+
+  <div class="feed-wide"><h1 class="text-xl font-black tracking-tight text-gray-900">Curriculum matrix</h1><p class="text-xs text-gray-500 mt-0.5">Which courses cover each program outcome. AI flags coverage gaps for accreditation.</p></div>
+
+  <div class="feed-wide pcard p-4">
+    <div class="sec-h"><span class="chip">🗂️</span><p class="t">PLO × Course coverage</p>
+      <div class="ml-auto flex items-center gap-2">
+        <select class="mx-sel" onchange="toast('Showing '+this.value,'📅')"><option>Fall 2025</option><option>Spring 2025</option><option>Fall 2024</option></select>
+        <button onclick="toast('Exporting matrix to CSV…','📤')" class="btn3d sm b-ghost">⬇️ Export</button>
+      </div>
+    </div>
+    <div style="overflow-x:auto">
+      <table class="dtable" style="min-width:680px">
+        <thead><tr><th>Program outcome</th><th style="text-align:center">CS301</th><th style="text-align:center">CS205</th><th style="text-align:center">AI101</th><th style="text-align:center">SE310</th><th style="text-align:center">Coverage</th></tr></thead>
+        <tbody id="matrix"></tbody>
+      </table>
+    </div>
+    <div class="flex items-center gap-4 mt-3 text-[11px] text-gray-500 flex-wrap">
+      <span class="flex items-center gap-1"><span class="h-3 w-3 rounded-full bg-green-500 inline-block"></span> Assessed</span>
+      <span class="flex items-center gap-1"><span class="h-3 w-3 rounded-full bg-amber-400 inline-block"></span> Introduced</span>
+      <span class="flex items-center gap-1"><span class="h-3 w-3 rounded-full bg-gray-200 inline-block"></span> Not covered</span>
+      <span class="flex items-center gap-1"><span class="pill pill-red" style="padding:0 6px">GAP</span> Coverage gap</span>
+    </div>
+  </div>
+
+  <!-- Gap callout -->
+  <div class="feed-wide pcard p-4">
+    <div class="flex items-start gap-3">
+      <div class="lead sev-high">⚠️</div>
+      <div class="flex-1"><p class="text-sm font-bold text-gray-900">Coverage gap: PLO4 · Concurrency</p><p class="text-xs text-gray-600 mt-1">No course currently <b>assesses</b> concurrency, though PLO4 depends on it. For accreditation, every PLO needs assessed evidence.</p>
+      <div class="ai-rec mt-3">
+        <p class="rec-h">✨ AI recommendation</p>
+        <ul>
+          <li>📚 <span><b>Best course to introduce it:</b> SE310 · Software Engineering (already covers threading basics)</span></li>
+          <li>📝 <span><b>Recommended assessment:</b> graded concurrency lab + rubric mapped to PLO4</span></li>
+          <li>🧭 <span><b>Action plan:</b> add the lab in week 6, tag CLO to PLO4, backfill one retrieval check — closes the gap this term</span></li>
+        </ul>
+      </div>
+      <div class="flex flex-wrap gap-2 mt-3">
+        <button onclick="aiApprove(this,'AI drafted a Concurrency assessment for SE310')" class="btn3d sm">✨ Draft an assessment</button>
+        <button onclick="toast('Flagged to SE310 teacher','📌')" class="btn3d sm b-ghost">📌 Flag to teacher</button>
+      </div></div>
+    </div>
+  </div>
+
+</div>
+<script>
+const M=[
+  ["PLO1 · Analyze problems",["a","p","a","o"]],
+  ["PLO2 · Apply engineering",["a","a","o","p"]],
+  ["PLO3 · Design systems",["p","a","o","a"]],
+  ["PLO4 · Build reliable systems",["p","o","o","g"]],
+];
+const dot=s=>({a:'#22c55e',p:'#fbbf24',o:'#e2e8f0',g:'#ef4444'})[s];
+const lbl=s=>({a:'Assessed',p:'Introduced',o:'—',g:'GAP'})[s];
+// Per-PLO coverage %: assessed counts full, introduced half, gap/none zero.
+const cov=cells=>Math.round(cells.reduce((t,s)=>t+(s==='a'?1:s==='p'?0.5:0),0)/cells.length*100);
+const covC=v=>'#3b82f6'; // single blue shade for all coverage bars (per design direction, matches coordinator-outcomes)
+document.getElementById('matrix').innerHTML=M.map(([name,cells])=>{
+  const v=cov(cells);
+  return `<tr><td><b style="color:#0f172a">${name}</b></td>${cells.map(s=>`<td style="text-align:center">${s==='g'?'<span class="pill pill-red">GAP</span>':`<span title="${lbl(s)}" style="display:inline-block;width:14px;height:14px;border-radius:50%;background:${dot(s)}"></span>`}</td>`).join('')}<td style="text-align:center"><div style="display:flex;align-items:center;gap:6px;justify-content:center"><div style="width:52px" class="h-1.5 rounded-full bg-gray-100 overflow-hidden"><div class="h-full" style="width:${v}%;background:${covC(v)}"></div></div><b style="color:${covC(v)};font-size:12px;width:32px;text-align:right">${v}%</b></div></td></tr>`;
+}).join('');
+</script>
+<script src="shared.js"></script>
+</body>
+</html>

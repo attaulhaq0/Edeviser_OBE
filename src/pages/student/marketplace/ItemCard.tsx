@@ -171,7 +171,8 @@ const ItemCard = ({
           ) : (
             <Button
               onClick={() => onPurchase(item)}
-              className="w-full bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 text-white"
+              variant="tactile"
+              className="w-full"
               size="sm"
             >
               Buy Now

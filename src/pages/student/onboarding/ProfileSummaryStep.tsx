@@ -103,7 +103,7 @@ export const ProfileSummaryStep = ({
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.3 }}
-        className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-500 to-blue-600"
+        className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[linear-gradient(93.65deg,#14b8a6_5.37%,#0382bd_78.89%)]"
       >
         <CheckCircle className="h-7 w-7 text-white" />
       </motion.div>
@@ -247,7 +247,8 @@ export const ProfileSummaryStep = ({
       <Button
         onClick={onConfirm}
         disabled={isProcessing}
-        className="mt-8 gap-2 bg-gradient-to-r from-teal-500 to-blue-600 px-8 active:scale-95"
+        variant="tactile"
+        className="mt-8 gap-2 px-8"
       >
         {isProcessing ? (
           <>

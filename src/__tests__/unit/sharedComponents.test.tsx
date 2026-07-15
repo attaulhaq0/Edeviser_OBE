@@ -11,7 +11,7 @@ import AttainmentBar, {
 } from "@/components/shared/AttainmentBar";
 import BloomsPill from "@/components/shared/BloomsPill";
 import OutcomeTypeBadge from "@/components/shared/OutcomeTypeBadge";
-import KPICard from "@/components/shared/KPICard";
+import { KPICard } from "@/design-system";
 import EmptyState from "@/components/shared/EmptyState";
 import ErrorState from "@/components/shared/ErrorState";
 import HabitGrid from "@/components/shared/HabitGrid";

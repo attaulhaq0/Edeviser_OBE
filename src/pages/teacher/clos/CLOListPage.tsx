@@ -62,7 +62,7 @@ const CLOListPage = () => {
           Course Learning Outcomes
         </h1>
         <Button
-          className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 text-white"
+          variant="tactile"
           onClick={() => navigate("/teacher/clos/new")}
         >
           <Plus className="h-4 w-4" /> Add CLO

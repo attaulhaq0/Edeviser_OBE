@@ -75,7 +75,8 @@ const ConversationSidebar = ({
       <div className="p-4 border-b border-gray-100">
         <Button
           onClick={onNewConversation}
-          className="w-full bg-gradient-to-r from-teal-500 to-blue-600 text-white active:scale-95 transition-transform duration-100"
+          variant="tactile"
+          className="w-full"
         >
           <Plus className="h-4 w-4" />
           {t("tutor.sidebar.newConversation")}

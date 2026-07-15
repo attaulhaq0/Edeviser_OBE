@@ -14,7 +14,7 @@ import {
   CartesianGrid,
 } from "recharts";
 import { Card } from "@/components/ui/card";
-import GradientCardHeader from "@/components/shared/GradientCardHeader";
+import { GradientCardHeader } from "@/design-system";
 import { cn } from "@/lib/utils";
 import type { CourseStudyTime } from "@/types/planner";
 import { BookOpen } from "lucide-react";

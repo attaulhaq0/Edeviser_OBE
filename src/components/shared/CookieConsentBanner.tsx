@@ -53,7 +53,7 @@ const CookieConsentBanner = () => {
             <Button
               size="sm"
               onClick={handleAcceptAll}
-              className="bg-gradient-to-r from-teal-500 to-blue-600 text-white active:scale-95"
+              variant="tactile"
             >
               Accept All
             </Button>

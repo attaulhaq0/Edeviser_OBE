@@ -384,7 +384,7 @@ export const OnboardingWizard = ({
         <div className="mx-auto mt-2 max-w-2xl">
           <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100">
             <motion.div
-              className="h-full rounded-full bg-gradient-to-r from-teal-500 to-blue-600"
+              className="h-full rounded-full bg-[linear-gradient(93.65deg,#14b8a6_5.37%,#0382bd_78.89%)]"
               initial={motionGate.enter(
                 { width: 0 },
                 { width: `${progressPercent}%` }
@@ -449,7 +449,8 @@ export const OnboardingWizard = ({
               <Button
                 onClick={goNext}
                 disabled={currentStepIndex >= totalSteps - 1}
-                className="gap-1 bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
+                variant="tactile"
+                className="gap-1"
               >
                 Next
                 <ChevronRight className="h-4 w-4" />

@@ -26,7 +26,7 @@ import {
   mapPortfolioAccessToRoute,
   type PortfolioAccessStatus,
 } from "@/lib/portfolioAccess";
-import GradientCardHeader from "@/components/shared/GradientCardHeader";
+import { GradientCardHeader } from "@/design-system";
 import {
   InlineNoAttainmentData,
   InlineNoBadges,

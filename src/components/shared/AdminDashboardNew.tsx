@@ -26,14 +26,16 @@ import {
   UserCheck,
 } from "lucide-react";
 
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import WelcomeHero from "@/components/shared/WelcomeHero";
-import KPICard from "@/components/shared/KPICard";
-import SectionHeader from "@/components/shared/SectionHeader";
-import { SeverityIcon } from "@/components/shared/SeverityIcon";
-import Shimmer from "@/components/shared/Shimmer";
+import {
+  Badge,
+  Button,
+  Card,
+  KPICard,
+  SectionHeader,
+  SeverityIcon,
+  Shimmer,
+  WelcomeHero,
+} from "@/design-system";
 import { useAuth } from "@/hooks/useAuth";
 import { useAdminDashboardAggregate } from "@/hooks/useAdminDashboardAggregate";
 import { formatNumber } from "@/lib/formatNumber";

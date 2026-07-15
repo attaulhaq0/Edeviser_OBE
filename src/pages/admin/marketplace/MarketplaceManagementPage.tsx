@@ -218,11 +218,11 @@ const MarketplaceManagementPage = () => {
             Analytics
           </Button>
           <Button
+            variant="tactile"
             onClick={() => {
               setEditingItem(null);
               setShowForm(true);
             }}
-            className="bg-gradient-to-r from-teal-500 to-blue-600 text-white active:scale-95 transition-transform duration-100"
           >
             <Plus className="h-4 w-4" /> Add Item
           </Button>

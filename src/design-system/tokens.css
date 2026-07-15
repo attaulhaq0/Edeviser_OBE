@@ -1,0 +1,181 @@
+/* =============================================================================
+   EDEVISER DESIGN SYSTEM — CANONICAL TOKENS  (Path A: Prototype → Production)
+   -----------------------------------------------------------------------------
+   SOURCE OF TRUTH for the rebuilt UI. Values extracted 1:1 from the approved
+   prototype (`prototype/shared.css` :root + design-system steering).
+
+   STATUS: ADDITIVE / NOT YET WIRED.
+   - This file is intentionally NOT imported anywhere yet, so it has ZERO runtime
+     impact on the current app. It is the foundation layer for the Path-A rebuild.
+   - Wiring happens in spec task P0 (see .kiro/specs/prototype-frontend-rebuild):
+     at cutover this file becomes the canonical `@theme` and the legacy brand
+     block in `src/index.css` is retired.
+   - DO NOT import prototype/shared.css or CDN Tailwind into src/. This file
+     re-declares the prototype's *values* as real Tailwind v4 tokens.
+
+   FIDELITY DECISION (approved): the brand gradient uses the prototype's exact
+   angle 93.65deg (NOT the legacy 135deg). This is the pixel-match canonical.
+
+   SCOPE NOTE: the prototype is LIGHT-MODE + LTR only. The `.dark` values below
+   are NET-NEW (designed for parity, not copied from the prototype) and must pass
+   a dark-mode design review before cutover. RTL is handled via logical CSS
+   properties in components, not here.
+   ============================================================================= */
+
+/* -----------------------------------------------------------------------------
+   1. Tailwind v4 @theme — exposes tokens as utilities (bg-brand, text-brand…)
+   -------------------------------------------------------------------------- */
+@theme {
+  --font-sans: "Noto Sans", ui-sans-serif, system-ui, sans-serif;
+
+  /* Brand palette (verbatim from prototype) */
+  --color-brand-teal: #14b8a6; /* --teal  : gradient start / secondary accent */
+  --color-brand-blue: #0382bd; /* --blue  : gradient end */
+  --color-brand-primary: #3b82f6; /* primary CTA / active / links */
+  --color-brand-primary-dark: #2563eb; /* hover */
+
+  /* Semantic */
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-destructive: #ef4444;
+  --color-neutral: #64748b;
+  --color-info: #3b82f6;
+
+  /* Radii (prototype: cards 16px, tabs/links 12px, chips 999px, phone 44px) */
+  --radius-chip: 999px;
+  --radius-btn: 12px;
+  --radius-card: 16px;
+  --radius-panel: 16px;
+
+  /* Motion (prototype animation durations) */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur-fast: 0.15s;
+  --dur-base: 0.35s;
+  --dur-celebrate: 0.6s;
+}
+
+/* -----------------------------------------------------------------------------
+   2. Brand / gradient tokens (raw CSS vars, referenced by components + @theme)
+      Gradients can't be `--color-*`; they live here as first-class tokens.
+   -------------------------------------------------------------------------- */
+:root {
+  /* === CORE BRAND (from prototype shared.css :root) === */
+  --brand-teal: #14b8a6;
+  --brand-blue: #0382bd;
+  --brand-primary: #3b82f6;
+  --brand-primary-dark: #2563eb;
+  --brand-secondary: #14b8a6;
+
+  /* === GRADIENTS (exact prototype values — 93.65deg adopted as canonical) === */
+  --gradient-start: #14b8a6;
+  --gradient-end: #0382bd;
+  --brand-gradient: linear-gradient(93.65deg, #14b8a6 5.37%, #0382bd 78.89%);
+  --hero-gradient: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #312e81 100%);
+  --onboarding-bg: linear-gradient(160deg, #f0fdfa 0%, #eff6ff 50%, #eef2ff 100%);
+  /* Auth background (preserved from production — an explicit invariant) */
+  --auth-bg: linear-gradient(to bottom right, #1e293b, #0f172a, #020617);
+
+  /* === SEMANTIC === */
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --destructive: #ef4444;
+  --neutral: #64748b;
+  --info: #3b82f6;
+
+  /* === SURFACES / SLATE SCALE (from prototype) === */
+  --surface-bg: #f8fafc; /* body background */
+  --surface-card: #ffffff;
+  --surface-subtle: #f1f5f9;
+  --surface-muted: #eef2f6;
+  --border-subtle: #e2e8f0;
+  --border-hair: #f1f5f9;
+
+  --slate-900: #0f172a;
+  --slate-800: #1e293b;
+  --slate-700: #334155;
+  --slate-600: #475569;
+  --slate-500: #64748b;
+  --slate-400: #94a3b8;
+  --slate-300: #cbd5e1;
+  --slate-200: #e2e8f0;
+  --slate-100: #f1f5f9;
+  --slate-50: #f8fafc;
+
+  /* === ELEVATION (confirm .pcard against prototype at build time) === */
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(15, 23, 42, 0.06);
+  --shadow-card-hover: 0 8px 24px rgba(15, 23, 42, 0.1);
+  --shadow-panel: 0 16px 48px rgba(0, 0, 0, 0.2);
+  --tactile-edge: 0 3px 0 rgba(0, 0, 0, 0.12); /* .btn3d bottom edge */
+
+  /* === CHROME DIMENSIONS (prototype laptop layout) === */
+  --sidebar-w: 264px;
+  --rail-w: 328px;
+  --header-h: 57px;
+  --feed-max: 1160px;
+  --feed-max-wide: 1320px;
+
+  /* === DOMAIN: BLOOM'S TAXONOMY (design-system steering) === */
+  --bloom-remember: #a855f7; /* purple-500 */
+  --bloom-understand: #3b82f6; /* blue-500 */
+  --bloom-apply: #22c55e; /* green-500 */
+  --bloom-analyze: #eab308; /* yellow-500 */
+  --bloom-evaluate: #f97316; /* orange-500 */
+  --bloom-create: #ef4444; /* red-500 */
+
+  /* === DOMAIN: OUTCOME TYPES === */
+  --outcome-ilo: #dc2626; /* red family */
+  --outcome-plo: #2563eb; /* blue family */
+  --outcome-clo: #16a34a; /* green family */
+
+  /* === DOMAIN: ATTAINMENT BANDS === */
+  --attain-excellent: #16a34a; /* >=85% */
+  --attain-satisfactory: #2563eb; /* 70-84% */
+  --attain-developing: #ca8a04; /* 50-69% */
+  --attain-notyet: #dc2626; /* <50% */
+
+  /* === DOMAIN: GAMIFICATION === */
+  --xp: #f59e0b; /* amber-500 */
+  --streak-from: #ef4444; /* red-500 */
+  --streak-to: #f97316; /* orange-500 */
+  --rank-gold: #facc15;
+  --rank-silver: #9ca3af;
+  --rank-bronze: #d97706;
+}
+
+/* -----------------------------------------------------------------------------
+   3. DARK MODE — NET-NEW (not in prototype). Parity-oriented defaults; must pass
+      a dark-mode design review before cutover. Uses the existing `.dark` class.
+   -------------------------------------------------------------------------- */
+.dark {
+  --surface-bg: #0f172a;
+  --surface-card: #1e293b;
+  --surface-subtle: #1e293b;
+  --surface-muted: #334155;
+  --border-subtle: rgba(255, 255, 255, 0.1);
+  --border-hair: rgba(255, 255, 255, 0.06);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.5);
+  --shadow-card-hover: 0 8px 24px rgba(0, 0, 0, 0.6);
+  /* Brand + gradients keep their hues in dark; components choose tint/opacity. */
+}
+
+/* -----------------------------------------------------------------------------
+   4. PER-ROLE ACCENT SCOPES (optional identity, layered ON TOP of shared tokens)
+      Change a role's flavor by editing ONLY its scope — never fork the system.
+      Applied via a wrapper attribute, e.g. <div data-role="student">.
+      Defaults below = no divergence (brand primary). Tune per design review.
+   -------------------------------------------------------------------------- */
+[data-role="student"] {
+  --role-accent: var(--brand-teal);
+}
+[data-role="teacher"] {
+  --role-accent: var(--brand-primary);
+}
+[data-role="coordinator"] {
+  --role-accent: #7c3aed; /* placeholder identity — confirm in design review */
+}
+[data-role="parent"] {
+  --role-accent: #0d9488;
+}
+[data-role="admin"] {
+  --role-accent: var(--slate-700);
+}

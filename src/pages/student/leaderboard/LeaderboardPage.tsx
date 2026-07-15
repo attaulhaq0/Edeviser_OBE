@@ -71,7 +71,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 import EmptyState, {
   InlineNoXPData,
   InlineNoImprovementData,

@@ -199,7 +199,7 @@ const MasteryRecoveryPanel = ({
             className={cn(
               "w-full",
               retryUnlocked
-                ? "bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 text-white"
+                ? "bg-[linear-gradient(93.65deg,#14b8a6_5.37%,#0382bd_78.89%)] text-white active:scale-95"
                 : "bg-gray-100 text-gray-400 cursor-not-allowed"
             )}
             aria-label={

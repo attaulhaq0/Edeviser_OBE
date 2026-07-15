@@ -2,19 +2,19 @@ import { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { CalendarDays, Check, X, Clock } from "lucide-react";
 
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
+  Badge,
+  Card,
+  KPICard,
+  MasteryRing,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import Shimmer from "@/components/shared/Shimmer";
+  Shimmer,
+} from "@/design-system";
 import { NoLinkedStudents } from "@/components/shared/EmptyState";
-import MasteryRing from "@/components/shared/MasteryRing";
-import KPICard from "@/components/shared/KPICard";
 import { useAuth } from "@/hooks/useAuth";
 import { useLinkedChildren } from "@/hooks/useParentDashboard";
 import { useChildAttendance } from "@/hooks/useAttendance";

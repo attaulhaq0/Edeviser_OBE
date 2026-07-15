@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import TeamHealthBadge from "@/components/shared/TeamHealthBadge";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 import {
   HeartPulse,
   AlertTriangle,

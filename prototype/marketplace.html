@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Edeviser — Marketplace</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
+<link rel="stylesheet" href="shared.css"/>
+<style>
+  /* Marketplace — student, gamified. Every section maps to a real table/hook:
+     marketplace_items · get_xp_balance · student_active_boosts · xp_purchases ·
+     student_equipped_items · sale_events · resolve-mystery-reward ·
+     class_donations · get_xp_transactions_page. */
+  html.mode-laptop body[data-norail] .page-content{max-width:none;padding-right:32px}
+  .mkt-grid{display:block}
+  html.mode-laptop .mkt-grid{display:grid;grid-template-columns:minmax(0,1fr) 336px;gap:24px;align-items:start}
+  html.mode-laptop .mkt-rail{position:sticky;top:74px;display:flex;flex-direction:column;gap:16px}
+  .mkt-items{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:12px}
+  .mkt-item{position:relative;background:#fff;border:1px solid #eef2f6;border-radius:16px;padding:14px;display:flex;flex-direction:column;box-shadow:0 1px 2px rgba(15,23,42,.04);transition:box-shadow .15s,transform .1s}
+  .mkt-item:hover{box-shadow:0 8px 22px rgba(16,24,40,.10)}
+  .mkt-ic{width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:9px;background:linear-gradient(145deg,#ffffff,#e7fbff);border:1px solid #cbeef9;box-shadow:0 3px 7px rgba(3,130,189,.14),inset 0 1px 0 rgba(255,255,255,.95)}
+  .mkt-name{font-size:13px;font-weight:800;color:#0f172a;line-height:1.2}
+  .mkt-desc{font-size:10.5px;color:#94a3b8;margin:3px 0 10px;line-height:1.35;flex:1}
+  .buy-btn{margin-top:auto;width:100%;padding:8px;border-radius:11px;font-size:12px;font-weight:800;color:#fff;background:var(--brand-gradient);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;transition:filter .1s}
+  .buy-btn:hover{filter:brightness(1.05)}
+  .buy-btn.owned{background:#ecfdf5;color:#16a34a;cursor:default}
+  .buy-btn.locked{background:#f1f5f9;color:#94a3b8;cursor:not-allowed}
+  .mkt-tag{position:absolute;top:10px;right:10px;font-size:9px;font-weight:900;letter-spacing:.04em;text-transform:uppercase;padding:3px 7px;border-radius:999px}
+  .tag-sale{background:#fee2e2;color:#b91c1c}
+  .tag-limited{background:#fef3c7;color:#b45309}
+  .tag-lock{background:#f1f5f9;color:#64748b}
+  .price-old{font-size:10px;color:#cbd5e1;text-decoration:line-through;margin-right:4px}
+  .cat-tab{font-size:12.5px;font-weight:800;color:#64748b;padding:8px 14px;border-radius:11px;background:#fff;border:1px solid #e8edf3;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
+  .cat-tab.on{background:var(--brand-gradient);color:#fff;border-color:transparent;box-shadow:0 4px 10px rgba(20,184,166,.25)}
+  .swatch{height:44px;width:100%;border-radius:10px;margin-bottom:9px;border:1px solid rgba(15,23,42,.06)}
+</style>
+</head>
+<body class="bg-slate-50" data-role="student" data-norail>
+
+<header class="app-header">
+  <div class="flex items-center gap-3">
+    <a href="profile.html" class="p-1.5 rounded-lg hover:bg-gray-100"><svg class="h-5 w-5 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg></a>
+    <div><h1 class="text-base font-bold tracking-tight text-gray-900">Marketplace</h1><p class="text-xs text-gray-500">Spend the XP you've earned</p></div>
+  </div>
+  <span class="inline-flex items-center gap-1.5 text-sm font-black text-sky-700 bg-sky-50 border border-sky-100 px-3 py-1.5 rounded-full">💎 750 <span class="text-[10px] font-bold text-sky-500">available</span></span>
+</header>
+
+<div class="page-content no-scrollbar">
+  <!-- BACKEND GROUNDING · hooks: useMarketplace, useInventory, usePurchase, useXPBalance | tables: marketplace_items, xp_purchases, student_equipped_items, student_gamification -->
+  <div class="mkt-grid">
+
+    <!-- ═══════════ MAIN: shop ═══════════ -->
+    <div class="space-y-5">
+
+      <!-- Active sale banner (sale_events) -->
+      <div class="rounded-2xl p-4 flex items-center gap-3 text-white" style="background:linear-gradient(93.65deg,#f59e0b,#ef4444)">
+        <span class="text-3xl">🏷️</span>
+        <div class="flex-1 min-w-0"><p class="text-sm font-black">Back-to-School Sale · 20% off Power-Ups</p><p class="text-xs text-white/85">Ends in 2 days · discounts applied at checkout</p></div>
+        <span class="text-[10px] font-black bg-white/20 border border-white/30 px-2.5 py-1 rounded-full shrink-0">−20%</span>
+      </div>
+
+      <!-- Category filter -->
+      <div class="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+        <button class="cat-tab on" onclick="filterCat(this,'all')">All items</button>
+        <button class="cat-tab" onclick="filterCat(this,'power_up')">⚡ Power-ups</button>
+        <button class="cat-tab" onclick="filterCat(this,'educational_perk')">🎓 Educational perks</button>
+        <button class="cat-tab" onclick="filterCat(this,'cosmetic')">🎨 Cosmetics</button>
+        <button class="cat-tab" onclick="filterCat(this,'companions')">🦊 Companions</button>
+      </div>
+
+      <!-- Power-ups (category: power_up) -->
+      <div data-cat-group="power_up">
+        <div class="sec-h"><span class="chip">⚡</span><p class="t">Power-ups</p></div>
+        <div class="mkt-items">
+          <div class="mkt-item"><span class="mkt-tag tag-sale">Sale</span><div class="mkt-ic">⚡</div><p class="mkt-name">2× XP Boost</p><p class="mkt-desc">Double all XP you earn for 1 hour.</p><button class="buy-btn" onclick="buy(this,{icon:'⚡',name:'2× XP Boost',price:240,rarity:'common'})"><span class="price-old">300</span>💎 240</button></div>
+          <div class="mkt-item"><span class="mkt-tag tag-sale">Sale</span><div class="mkt-ic">🚀</div><p class="mkt-name">3× XP Boost</p><p class="mkt-desc">Triple all XP you earn for 1 hour.</p><button class="buy-btn" onclick="buy(this,{icon:'🚀',name:'3× XP Boost',price:400,rarity:'rare'})"><span class="price-old">500</span>💎 400</button></div>
+          <div class="mkt-item"><div class="mkt-ic">❄️</div><p class="mkt-name">Streak Shield</p><p class="mkt-desc">Protects 1 missed day. Max 3 held.</p><button class="buy-btn" onclick="buy(this,{icon:'❄️',name:'Streak Shield',price:200,rarity:'common'})">💎 200</button></div>
+        </div>
+      </div>
+
+      <!-- Educational perks (category: educational_perk) -->
+      <div data-cat-group="educational_perk">
+        <div class="sec-h"><span class="chip">🎓</span><p class="t">Educational perks</p></div>
+        <div class="mkt-items">
+          <div class="mkt-item"><div class="mkt-ic">🎟️</div><p class="mkt-name">Extra Quiz Attempt</p><p class="mkt-desc">One more attempt on any quiz.</p><button class="buy-btn" onclick="buy(this,{icon:'🎟️',name:'Extra Quiz Attempt',price:150,rarity:'common'})">💎 150</button></div>
+          <div class="mkt-item"><div class="mkt-ic">⏰</div><p class="mkt-name">Deadline Extension</p><p class="mkt-desc">+24h on one assignment deadline.</p><button class="buy-btn" onclick="buy(this,{icon:'⏰',name:'Deadline Extension',price:250,rarity:'rare'})">💎 250</button></div>
+          <div class="mkt-item"><div class="mkt-ic">💡</div><p class="mkt-name">Hint Token</p><p class="mkt-desc">Reveal a hint during practice.</p><button class="buy-btn" onclick="buy(this,{icon:'💡',name:'Hint Token',price:100,rarity:'common'})">💎 100</button></div>
+        </div>
+      </div>
+
+      <!-- Cosmetics (category: cosmetic, sub_category: profile_theme | avatar_frame | display_title) -->
+      <div data-cat-group="cosmetic">
+        <div class="sec-h"><span class="chip">🎨</span><p class="t">Cosmetics</p></div>
+        <div class="mkt-items">
+          <div class="mkt-item"><div class="swatch" style="background:var(--brand-gradient)"></div><p class="mkt-name">Ocean Theme</p><p class="mkt-desc">Profile theme.</p><button class="buy-btn owned">✓ Equipped</button></div>
+          <div class="mkt-item"><div class="swatch" style="background:linear-gradient(135deg,#f59e0b,#ef4444)"></div><p class="mkt-name">Sunset Theme</p><p class="mkt-desc">Profile theme.</p><button class="buy-btn" onclick="buy(this,{icon:'🌅',name:'Sunset Theme',price:400,rarity:'rare'})">💎 400</button></div>
+          <div class="mkt-item"><span class="mkt-tag tag-lock">Lvl 10</span><div class="swatch" style="background:linear-gradient(135deg,#312e81,#0ea5e9)"></div><p class="mkt-name">Galaxy Theme</p><p class="mkt-desc">Profile theme.</p><button class="buy-btn locked">🔒 Level 10</button></div>
+          <div class="mkt-item"><div class="mkt-ic" style="background:linear-gradient(135deg,#fde68a,#f59e0b);border-color:#fcd34d">🖼️</div><p class="mkt-name">Gold Frame</p><p class="mkt-desc">Avatar frame.</p><button class="buy-btn" onclick="buy(this,{icon:'🖼️',name:'Gold Frame',price:350,rarity:'rare'})">💎 350</button></div>
+          <div class="mkt-item"><div class="mkt-ic">🏅</div><p class="mkt-name">"Scholar" Title</p><p class="mkt-desc">Display title.</p><button class="buy-btn" onclick="buy(this,{icon:'🏅',name:'Scholar Title',price:600,rarity:'epic'})">💎 600</button></div>
+          <div class="mkt-item"><span class="mkt-tag tag-limited">5 left</span><div class="mkt-ic">👑</div><p class="mkt-name">"Legend" Title</p><p class="mkt-desc">Display title · limited.</p><button class="buy-btn" onclick="buy(this,{icon:'👑',name:'Legend Title',price:1200,rarity:'legendary'})">💎 1,200</button></div>
+        </div>
+      </div>
+
+      <!-- Character cosmetics — companion skins (student_equipped_items slot
+           extended to 'companion_skin'; art already ships in prototype/characters/).
+           Distinct from profile cosmetics: these change how Foxi/Pengu/Owl look
+           across the AI Tutor, dashboard hero, and coach tips. -->
+      <div data-cat-group="companions">
+        <div class="sec-h"><span class="chip">🦊</span><p class="t">Companion skins</p><span class="more">Changes your AI coach's look everywhere</span></div>
+        <div class="mkt-items">
+          <div class="mkt-item"><img src="characters/foxi/foxi-default.png" class="w-full h-16 object-contain mb-2" alt="Foxi default"/><p class="mkt-name">Foxi · Classic</p><p class="mkt-desc">Default companion.</p><button class="buy-btn owned">✓ Equipped</button></div>
+          <div class="mkt-item"><img src="characters/foxi/foxi-studious.png" class="w-full h-16 object-contain mb-2" alt="Foxi studious"/><p class="mkt-name">Foxi · Scholar</p><p class="mkt-desc">Cap &amp; glasses look.</p><button class="buy-btn" onclick="buy(this,{icon:'🦊',name:'Foxi · Scholar skin',price:450,rarity:'rare'})">💎 450</button></div>
+          <div class="mkt-item"><span class="mkt-tag tag-sale">Sale</span><img src="characters/foxi/foxi-magical.png" class="w-full h-16 object-contain mb-2" alt="Foxi magical"/><p class="mkt-name">Foxi · Magical</p><p class="mkt-desc">Sparkle particle trail.</p><button class="buy-btn" onclick="buy(this,{icon:'🦊',name:'Foxi · Magical skin',price:560,rarity:'epic'})"><span class="price-old">700</span>💎 560</button></div>
+          <div class="mkt-item"><img src="characters/penguin/penguin-blushing.png" class="w-full h-16 object-contain mb-2" alt="Pengu"/><p class="mkt-name">Pengu · Habit Buddy</p><p class="mkt-desc">Swap companion entirely.</p><button class="buy-btn" onclick="buy(this,{icon:'🐧',name:'Pengu companion',price:800,rarity:'epic'})">💎 800</button></div>
+          <div class="mkt-item"><img src="characters/owl/owl-wise.png" class="w-full h-16 object-contain mb-2" alt="Owl"/><p class="mkt-name">Owl · Night Sage</p><p class="mkt-desc">Swap companion entirely.</p><button class="buy-btn" onclick="buy(this,{icon:'🦉',name:'Owl companion',price:800,rarity:'epic'})">💎 800</button></div>
+          <div class="mkt-item"><span class="mkt-tag tag-limited">Seasonal</span><img src="characters/foxi/foxi-celebrating.png" class="w-full h-16 object-contain mb-2" alt="Foxi celebrating"/><p class="mkt-name">Foxi · Champion</p><p class="mkt-desc">Confetti-ready celebration skin.</p><button class="buy-btn" onclick="buy(this,{icon:'🦊',name:'Foxi · Champion skin',price:1500,rarity:'legendary'})">💎 1,500</button></div>
+        </div>
+      </div>
+
+      <!-- Mystery box + Class donation (resolve-mystery-reward · class_donations) -->
+      <div class="lg-row lg-row-2 space-y-4 items-start">
+        <div class="pcard p-4" style="background:linear-gradient(135deg,#faf5ff,#eef2ff);border:1px solid #ddd6fe">
+          <div class="sec-h"><span class="chip">🎁</span><p class="t">Mystery Reward Box</p></div>
+          <p class="text-xs text-gray-600 mb-3">Open for a surprise: <b>double XP</b>, a <b>cosmetic</b>, or a <b>boost</b>. One reveal per purchase.</p>
+          <button class="btn3d sm" onclick="openMysteryBox()" style="background:linear-gradient(135deg,#8b5cf6,#6366f1)">Open for 💎 250</button>
+        </div>
+        <div class="pcard p-4">
+          <div class="sec-h"><span class="chip">🤝</span><p class="t">Class goal · CS301</p></div>
+          <p class="text-xs text-gray-600">New lab sensor kit — pool XP as a class.</p>
+          <div class="flex items-center justify-between text-xs font-bold mt-2"><span class="text-gray-500">3,200 / 5,000 XP</span><span class="text-teal-600">64%</span></div>
+          <div class="emeter good mt-1.5"><span style="width:64%"></span></div>
+          <button class="btn3d sm b-ghost mt-3" onclick="toast('Contributed 💎 100 to CS301','🤝')">Contribute 💎 100</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ═══════════ RAIL: wallet · boosts · inventory · ledger ═══════════ -->
+    <aside class="mkt-rail">
+
+      <!-- Wallet (get_xp_balance + level) -->
+      <div class="pcard p-4" style="background:linear-gradient(135deg,#0f172a 0%,#1e3a8a 50%,#312e81 100%)">
+        <p class="text-[10px] font-black tracking-widest uppercase text-white/60">Your XP wallet</p>
+        <p class="text-3xl font-black text-white mt-1">💎 750 <span class="text-sm font-bold text-white/60">available</span></p>
+        <div class="grid grid-cols-2 gap-2 mt-3">
+          <div class="rounded-xl bg-white/10 p-2.5"><p class="text-[9px] font-bold uppercase tracking-wide text-white/60">Earned this week</p><p class="text-sm font-black text-green-300">+420</p></div>
+          <div class="rounded-xl bg-white/10 p-2.5"><p class="text-[9px] font-bold uppercase tracking-wide text-white/60">Spent lifetime</p><p class="text-sm font-black text-white">2,150</p></div>
+        </div>
+        <div class="mt-3">
+          <div class="flex items-center justify-between text-[10px] font-bold text-white/70"><span>Level 4</span><span>750 / 1000 XP</span></div>
+          <div class="mt-1 h-2 rounded-full bg-white/15 overflow-hidden"><div class="h-full rounded-full" style="width:75%;background:linear-gradient(90deg,#2dd4bf,#38bdf8)"></div></div>
+        </div>
+      </div>
+
+      <!-- Active boosts (student_active_boosts, countdown) -->
+      <div class="pcard p-4">
+        <div class="sec-h"><span class="chip">⚡</span><p class="t">Active boosts</p></div>
+        <div class="flex items-center gap-3 rounded-xl bg-amber-50 border border-amber-100 p-2.5">
+          <span class="text-xl">⚡</span>
+          <div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">2× XP Boost</p><p class="text-[11px] text-gray-500">All XP doubled</p></div>
+          <span class="text-xs font-black text-amber-600">42m left</span>
+        </div>
+        <p class="text-[11px] text-gray-400 mt-2 text-center">Boosts stack with bonus XP events.</p>
+      </div>
+
+      <!-- My items (xp_purchases + equip via student_equipped_items) -->
+      <div class="pcard p-4">
+        <div class="sec-h"><span class="chip">🎒</span><p class="t">My items</p></div>
+        <div class="divide-y divide-gray-50">
+          <div class="flex items-center gap-3 py-2"><span class="text-base">❄️</span><div class="flex-1 min-w-0"><p class="text-sm font-semibold text-gray-900">Streak Shield</p><p class="text-[11px] text-gray-500">Consumable</p></div><span class="pill pill-blue">×1</span></div>
+          <div class="flex items-center gap-3 py-2"><span class="text-base">💡</span><div class="flex-1 min-w-0"><p class="text-sm font-semibold text-gray-900">Hint Token</p><p class="text-[11px] text-gray-500">Consumable</p></div><span class="pill pill-blue">×2</span></div>
+          <div class="flex items-center gap-3 py-2"><span class="text-base">🌊</span><div class="flex-1 min-w-0"><p class="text-sm font-semibold text-gray-900">Ocean Theme</p><p class="text-[11px] text-gray-500">Cosmetic</p></div><span class="pill pill-green">Equipped</span></div>
+        </div>
+      </div>
+
+      <!-- Recent transactions (get_xp_transactions_page) -->
+      <div class="pcard p-4">
+        <div class="sec-h"><span class="chip">🧾</span><p class="t">Recent XP</p><a href="progress.html" class="more">All</a></div>
+        <div class="divide-y divide-gray-50 text-sm">
+          <div class="flex items-center justify-between py-1.5"><span class="text-gray-600">Assignment submitted</span><span class="font-black text-green-600">+25</span></div>
+          <div class="flex items-center justify-between py-1.5"><span class="text-gray-600">Streak milestone</span><span class="font-black text-green-600">+50</span></div>
+          <div class="flex items-center justify-between py-1.5"><span class="text-gray-600">2× XP Boost</span><span class="font-black text-red-500">−240</span></div>
+          <div class="flex items-center justify-between py-1.5"><span class="text-gray-600">Perfect day</span><span class="font-black text-green-600">+50</span></div>
+        </div>
+      </div>
+
+      <!-- How to earn -->
+      <div class="pcard p-4">
+        <div class="sec-h"><span class="chip">💡</span><p class="t">Earn more XP</p></div>
+        <ul class="text-xs text-gray-600 space-y-1.5">
+          <li>✅ Submit on time · <b>+25</b></li>
+          <li>🔥 Keep your streak · milestone <b>+50</b></li>
+          <li>📓 Journal entry · <b>+20</b></li>
+          <li>🌟 Perfect day (all 4 habits) · <b>+50</b></li>
+        </ul>
+      </div>
+
+    </aside>
+
+  </div>
+</div>
+
+<nav class="bottom-bar">
+  <a href="dashboard.html" class="tab-btn" data-tab="home"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75"/></svg><span>Home</span></a>
+  <a href="learn.html" class="tab-btn" data-tab="learn"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/></svg><span>Learn</span></a>
+  <a href="tutor.html" class="tab-btn" data-tab="tutor"><div class="tutor-fab"><span class="text-lg">🤖</span></div><span>Tutor</span></a>
+  <a href="progress.html" class="tab-btn" data-tab="progress"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941"/></svg><span>Progress</span></a>
+  <a href="profile.html" class="tab-btn active" data-tab="me"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg><span>Me</span></a>
+</nav>
+<script src="shared.js"></script>
+<script>
+  // Purchase → gacha-style reveal (see revealPurchase in shared.js), then mark
+  // owned once the reveal closes. Mirrors process-purchase edge function
+  // response (xp_cost, new_balance) — the reveal is purely presentational.
+  function buy(btn, item){
+    revealPurchase(item);
+    setTimeout(()=>{ btn.classList.add('owned'); btn.innerHTML='✓ Purchased'; btn.onclick=null; }, 700);
+  }
+  function openMysteryBox(){
+    const outcomes=[
+      {icon:'✨',name:'Double XP (next lesson)',rarity:'epic'},
+      {icon:'🎨',name:'Sunset Theme',rarity:'rare'},
+      {icon:'⚡',name:'2× XP Boost',rarity:'common'},
+      {icon:'👑',name:'"Legend" Title',rarity:'legendary'},
+    ];
+    revealPurchase(outcomes[Math.floor(Math.random()*outcomes.length)]);
+  }
+  function filterCat(tab, cat){
+    document.querySelectorAll('.cat-tab').forEach(t=>t.classList.remove('on'));
+    tab.classList.add('on');
+    document.querySelectorAll('[data-cat-group]').forEach(g=>{ g.style.display = (cat==='all'||g.dataset.catGroup===cat)?'':'none'; });
+    window.__eqCols();
+  }
+  window.__eqCols=()=>equalizeColumns('.mkt-grid > div:first-child','.mkt-rail');
+  window.addEventListener('load',window.__eqCols);
+</script>
+</body>
+</html>

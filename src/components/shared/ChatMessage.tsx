@@ -212,7 +212,9 @@ const ChatMessage = ({
       <div
         className={cn(
           "shrink-0 h-8 w-8 rounded-full flex items-center justify-center",
-          isUser ? "bg-blue-100" : "bg-gradient-to-br from-teal-500 to-blue-600"
+          isUser
+            ? "bg-blue-100"
+            : "bg-[linear-gradient(93.65deg,#14b8a6_5.37%,#0382bd_78.89%)]"
         )}
         aria-hidden="true"
       >

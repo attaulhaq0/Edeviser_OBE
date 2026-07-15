@@ -405,6 +405,21 @@ const StudentProgressPage = lazy(
 const StudentJournalPage = lazy(
   () => import("@/pages/student/journal/StudentJournalPage")
 );
+// Net-new (Path-A rebuild, P3.6): official transcript viewer — surfaces the
+// existing generate-transcript edge fn (useGenerateTranscript), no prior UI.
+const StudentTranscriptPage = lazy(
+  () => import("@/features/student/transcript/StudentTranscriptPage")
+);
+// Net-new (Path-A rebuild): student fee status + receipts (useStudentFees /
+// useGenerateFeeReceipt); only admin FeeManager existed before.
+const StudentFeesPage = lazy(
+  () => import("@/features/student/fees/StudentFeesPage")
+);
+// Net-new (Path-A rebuild): full-page notifications feed (useNotifications);
+// only the bell dropdown existed before.
+const NotificationsFeedPage = lazy(
+  () => import("@/features/shared/notifications/NotificationsFeedPage")
+);
 const ParentChildrenPage = lazy(
   () => import("@/pages/parent/ParentChildrenPage")
 );
@@ -413,6 +428,10 @@ const ParentProgressPage = lazy(
 );
 const ParentAttendancePage = lazy(
   () => import("@/pages/parent/ParentAttendancePage")
+);
+// Net-new (Path-A rebuild): parent view of their children's fees.
+const ParentFeesPage = lazy(
+  () => import("@/features/parent/fees/ParentFeesPage")
 );
 const BaselineCoursesListPage = lazy(
   () => import("@/pages/teacher/baseline/BaselineCoursesListPage")
@@ -426,6 +445,13 @@ const InstitutionSettingsPage = lazy(
 // Shared pages
 const ProfilePage = lazy(() => import("@/pages/shared/ProfilePage"));
 const OutcomeChainView = lazy(() => import("@/pages/shared/OutcomeChainView"));
+const NotFoundPage = lazy(() => import("@/pages/NotFoundPage"));
+
+// Net-new (Path-A rebuild, P3.6): Admin Security console — surfaces
+// blocked_ips / login_attempts / rate_limit_events via useAdminSecurity; no prior UI.
+const AdminSecurityPage = lazy(
+  () => import("@/features/admin/security/AdminSecurityPage")
+);
 
 // ---------------------------------------------------------------------------
 // Page-level error fallback
@@ -507,6 +533,7 @@ const AppRouter = () => (
           >
             <Route index element={<Navigate to="/admin/dashboard" replace />} />
             <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="notifications" element={<NotificationsFeedPage />} />
             <Route path="users" element={<UserListPage />} />
             <Route path="users/new" element={<UserForm />} />
             <Route path="users/import" element={<BulkImportPage />} />
@@ -520,6 +547,7 @@ const AppRouter = () => (
             <Route path="outcomes/new" element={<ILOForm />} />
             <Route path="outcomes/:id/edit" element={<ILOForm />} />
             <Route path="audit-log" element={<AuditLogPage />} />
+            <Route path="security" element={<AdminSecurityPage />} />
             <Route path="bonus-events" element={<BonusXPEventManager />} />
             <Route path="courses" element={<CourseListPage />} />
             <Route path="courses/new" element={<CourseForm />} />
@@ -593,6 +621,7 @@ const AppRouter = () => (
               element={<Navigate to="/coordinator/dashboard" replace />}
             />
             <Route path="dashboard" element={<CoordinatorDashboard />} />
+            <Route path="notifications" element={<NotificationsFeedPage />} />
             <Route path="plos" element={<PLOListPage />} />
             <Route path="plos/new" element={<PLOForm />} />
             <Route path="plos/:id/edit" element={<PLOForm />} />
@@ -626,6 +655,7 @@ const AppRouter = () => (
               element={<Navigate to="/teacher/dashboard" replace />}
             />
             <Route path="dashboard" element={<TeacherDashboard />} />
+            <Route path="notifications" element={<NotificationsFeedPage />} />
             <Route path="clos" element={<CLOListPage />} />
             <Route path="clos/new" element={<CLOForm />} />
             <Route path="clos/:id/edit" element={<CLOForm />} />
@@ -785,6 +815,9 @@ const AppRouter = () => (
             <Route path="courses/:courseId" element={<StudentCourseDetail />} />
             <Route path="progress" element={<StudentProgressPage />} />
             <Route path="journal" element={<StudentJournalPage />} />
+            <Route path="transcript" element={<StudentTranscriptPage />} />
+            <Route path="fees" element={<StudentFeesPage />} />
+            <Route path="notifications" element={<NotificationsFeedPage />} />
             <Route
               path="courses/:courseId/materials/:materialId"
               element={<StudentCourseDetail />}
@@ -841,9 +874,11 @@ const AppRouter = () => (
               element={<Navigate to="/parent/dashboard" replace />}
             />
             <Route path="dashboard" element={<ParentDashboard />} />
+            <Route path="notifications" element={<NotificationsFeedPage />} />
             <Route path="children" element={<ParentChildrenPage />} />
             <Route path="progress" element={<ParentProgressPage />} />
             <Route path="attendance" element={<ParentAttendancePage />} />
+            <Route path="fees" element={<ParentFeesPage />} />
             <Route path="planner" element={<ParentPlannerView />} />
             <Route path="planner/:studentId" element={<ParentPlannerView />} />
             <Route path="profile" element={<ParentProfilePage />} />
@@ -853,8 +888,8 @@ const AppRouter = () => (
           {/* Root redirect */}
           <Route path="/" element={<Navigate to="/login" replace />} />
 
-          {/* Catch-all */}
-          <Route path="*" element={<Navigate to="/login" replace />} />
+          {/* Catch-all — friendly 404 (task 1.4) */}
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Suspense>
     </ErrorBoundary>

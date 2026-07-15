@@ -4,7 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import MasteryRecoveryPanel from "@/components/shared/MasteryRecoveryPanel";
 import { useMasteryRecoveryStatus } from "@/hooks/useMasteryRecovery";
 import { useAuth } from "@/hooks/useAuth";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 
 const MasteryRecoveryPage = () => {
   const { courseId, cloId } = useParams<{ courseId: string; cloId: string }>();

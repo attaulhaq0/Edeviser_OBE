@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Edeviser — Portfolio</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
+<link rel="stylesheet" href="shared.css"/>
+<style>
+  /* Portfolio — maps to: usePortfolio (outcome_attainment → CLOs, journal_entries,
+     xp_transactions timeline, semesters), useTieredBadges, useStudentKPIs,
+     profiles.portfolio_sharing_permitted (admin-granted) + portfolio_public,
+     portfolio_public_access RPC. Sharing is OFF unless the school permits it. */
+  html.mode-laptop body[data-norail] .page-content{max-width:none;padding-right:32px}
+  .pf-grid{display:block}
+  html.mode-laptop .pf-grid{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:24px;align-items:start}
+  html.mode-laptop .pf-rail{position:sticky;top:74px;display:flex;flex-direction:column;gap:16px}
+  .pf-clo{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #f5f7fa}
+  .pf-clo:last-child{border-bottom:none}
+  .pf-spark{display:flex;align-items:flex-end;gap:3px;height:52px}
+  .pf-spark>i{flex:1;background:var(--brand-gradient);border-radius:2px 2px 0 0;display:block;min-height:3px}
+</style>
+</head>
+<body class="bg-slate-50" data-role="student" data-norail>
+
+<header class="app-header">
+  <div class="flex items-center gap-3">
+    <a href="profile.html" class="p-1.5 rounded-lg hover:bg-gray-100"><svg class="h-5 w-5 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg></a>
+    <div><h1 class="text-base font-bold tracking-tight text-gray-900">Portfolio</h1><p class="text-xs text-gray-500">Your learning journey, all in one place</p></div>
+  </div>
+  <button class="btn3d sm b-ghost" onclick="toast('Preparing PDF export…','📄')">⬇️ Export</button>
+</header>
+
+<div class="page-content no-scrollbar">
+
+  <!-- Identity + XP/level summary -->
+  <div class="rounded-2xl p-5 text-white shadow-lg mb-4" style="background:var(--hero-gradient)">
+    <div class="flex items-center gap-4 flex-wrap">
+      <div class="h-14 w-14 rounded-full flex items-center justify-center text-xl font-black shadow-lg border-2 border-white/30 shrink-0" style="background:var(--brand-gradient)">S</div>
+      <div class="flex-1 min-w-0">
+        <h2 class="text-lg font-bold">Sarah Ahmed's Portfolio</h2>
+        <p class="text-sm text-white/70">Gulf Academy · Computer Science · Level 4</p>
+      </div>
+      <div class="flex gap-2 shrink-0">
+        <div class="rounded-lg bg-white/10 px-3 py-2 text-center"><p class="text-base font-black leading-none">750</p><p class="text-[9px] text-white/60 uppercase font-bold mt-0.5">Total XP</p></div>
+        <div class="rounded-lg bg-white/10 px-3 py-2 text-center"><p class="text-base font-black leading-none">8</p><p class="text-[9px] text-white/60 uppercase font-bold mt-0.5">Badges</p></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pf-grid">
+    <div class="space-y-4">
+
+      <!-- CLO attainment showcase (outcome_attainment, scope=student_course) -->
+      <div class="pcard p-4">
+        <div class="sec-h"><span class="chip">🎯</span><p class="t">Outcomes mastered</p><a href="progress.html" class="more">Full breakdown →</a></div>
+        <div class="divide-y divide-gray-50">
+          <div class="pf-clo"><span class="pill" style="background:#dcfce7;color:#166534">Excellent</span><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900 truncate">AI Ethics &amp; Bias</p><p class="text-[11px] text-gray-500">AI Fundamentals · Evaluating</p></div><span class="text-sm font-black text-green-600">91%</span></div>
+          <div class="pf-clo"><span class="pill" style="background:#dcfce7;color:#166534">Excellent</span><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900 truncate">Model Comparison</p><p class="text-[11px] text-gray-500">AI Fundamentals · Analyzing</p></div><span class="text-sm font-black text-green-600">88%</span></div>
+          <div class="pf-clo"><span class="pill pill-blue">Satisfactory</span><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900 truncate">Identify HTTP Verbs</p><p class="text-[11px] text-gray-500">Web Development · Remembering</p></div><span class="text-sm font-black text-blue-600">78%</span></div>
+          <div class="pf-clo"><span class="pill pill-blue">Satisfactory</span><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900 truncate">Normalize a Schema</p><p class="text-[11px] text-gray-500">Database Design · Applying</p></div><span class="text-sm font-black text-blue-600">72%</span></div>
+          <div class="pf-clo"><span class="pill pill-amber">Developing</span><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900 truncate">Explain REST Principles</p><p class="text-[11px] text-gray-500">Web Development · Understanding</p></div><span class="text-sm font-black text-amber-600">45%</span></div>
+        </div>
+      </div>
+
+      <!-- Badges earned -->
+      <div class="pcard p-4">
+        <div class="sec-h"><span class="chip">🏅</span><p class="t">Badges earned</p><a href="badges.html" class="more">View all (8) →</a></div>
+        <div class="grid grid-cols-4 gap-3">
+          <div class="flex flex-col items-center gap-1 rounded-xl p-2 border-2 border-yellow-400"><span class="text-2xl">🏆</span><span class="text-[9px] font-bold text-center">Explorer</span></div>
+          <div class="flex flex-col items-center gap-1 rounded-xl p-2 border-2 border-amber-600"><span class="text-2xl">🔥</span><span class="text-[9px] font-bold text-center">Week Streak</span></div>
+          <div class="flex flex-col items-center gap-1 rounded-xl p-2 border-2 border-gray-400"><span class="text-2xl">⚡</span><span class="text-[9px] font-bold text-center">Fast Learner</span></div>
+          <div class="flex flex-col items-center gap-1 rounded-xl p-2 border-2 border-amber-600"><span class="text-2xl">🎯</span><span class="text-[9px] font-bold text-center">Sharpshooter</span></div>
+        </div>
+      </div>
+
+      <!-- Journal highlights (journal_entries) -->
+      <div class="pcard p-4">
+        <div class="sec-h"><span class="chip">📖</span><p class="t">Reflection highlights</p><a href="journal.html" class="more">Full journal →</a></div>
+        <div class="space-y-2.5">
+          <div class="rounded-xl bg-slate-50 border border-slate-100 p-3"><p class="text-xs text-gray-700 leading-relaxed">"Decomposing the enrollment table finally made normal forms click — breaking it into StudentCourse solved the update anomaly we discussed in lecture."</p><p class="text-[10px] text-gray-400 mt-1.5">Database Design · 3 days ago</p></div>
+          <div class="rounded-xl bg-slate-50 border border-slate-100 p-3"><p class="text-xs text-gray-700 leading-relaxed">"Comparing CNN vs transformer architectures side by side helped me see why attention mechanisms matter for context — I want to try implementing a tiny one."</p><p class="text-[10px] text-gray-400 mt-1.5">AI Fundamentals · 1 week ago</p></div>
+        </div>
+      </div>
+
+      <!-- Semester-over-semester attainment -->
+      <div class="pcard p-4">
+        <div class="sec-h"><span class="chip">📈</span><p class="t">Growth by semester</p></div>
+        <div class="flex items-center gap-6">
+          <div class="text-center"><p class="text-xl font-black text-gray-400">71%</p><p class="text-[10px] text-gray-400 font-bold uppercase mt-1">Fall 2025</p></div>
+          <svg class="h-4 w-8 text-gray-300 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
+          <div class="text-center"><p class="text-xl font-black text-teal-600">79%</p><p class="text-[10px] text-gray-400 font-bold uppercase mt-1">Spring 2026</p></div>
+          <svg class="h-4 w-8 text-gray-300 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
+          <div class="text-center"><p class="text-xl font-black text-green-600">84%</p><p class="text-[10px] text-gray-400 font-bold uppercase mt-1">Summer 2026</p><span class="text-[9px] font-bold text-green-600">current</span></div>
+        </div>
+      </div>
+
+    </div>
+
+    <aside class="pf-rail">
+
+      <!-- XP timeline (xp_transactions cumulative) -->
+      <div class="pcard p-4">
+        <div class="sec-h"><span class="chip">✨</span><p class="t">XP growth</p></div>
+        <div class="pf-spark"><i style="height:15%"></i><i style="height:22%"></i><i style="height:28%"></i><i style="height:34%"></i><i style="height:40%"></i><i style="height:48%"></i><i style="height:58%"></i><i style="height:64%"></i><i style="height:74%"></i><i style="height:82%"></i><i style="height:92%"></i><i style="height:100%"></i></div>
+        <p class="text-[11px] text-gray-400 mt-2">750 XP earned across the term</p>
+      </div>
+
+      <!-- Public sharing (profiles.portfolio_sharing_permitted + portfolio_public) -->
+      <div class="pcard p-4">
+        <div class="sec-h"><span class="chip">🔗</span><p class="t">Share publicly</p></div>
+        <div id="pf-share-off">
+          <p class="text-[11px] text-gray-500 leading-relaxed mb-2">Public sharing needs your school's permission first. Ask your coordinator to enable it for you.</p>
+          <button class="btn3d sm b-ghost w-full" disabled style="opacity:.6;cursor:not-allowed">🔒 Sharing not permitted</button>
+        </div>
+        <!-- Once permitted, this toggle appears (mirrors profiles.portfolio_public):
+        <label class="edv-toggle"><input type="checkbox"><span class="etk"></span></label> -->
+      </div>
+
+      <!-- Export -->
+      <div class="pcard p-4">
+        <div class="sec-h"><span class="chip">⬇️</span><p class="t">Export</p></div>
+        <button class="btn3d sm full mb-2" onclick="toast('Preparing PDF export…','📄')">📄 Download as PDF</button>
+        <p class="text-[11px] text-gray-400">Great for job or university applications — includes outcomes, badges, and reflections.</p>
+      </div>
+
+      <div class="pcard p-4" style="background:linear-gradient(135deg,#f0fdfa,#eff6ff);border:1px solid #99f6e4">
+        <p class="text-xs font-black text-teal-700 mb-1">💡 Why this matters</p>
+        <p class="text-[11px] text-gray-600 leading-relaxed">Your portfolio is evidence of real learning — not just grades. Universities and employers increasingly ask for outcome-based proof like this.</p>
+      </div>
+
+    </aside>
+  </div>
+</div>
+
+<nav class="bottom-bar">
+  <a href="dashboard.html" class="tab-btn" data-tab="home"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75"/></svg><span>Home</span></a>
+  <a href="learn.html" class="tab-btn" data-tab="learn"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/></svg><span>Learn</span></a>
+  <a href="tutor.html" class="tab-btn" data-tab="tutor"><div class="tutor-fab"><span class="text-lg">🤖</span></div><span>Tutor</span></a>
+  <a href="progress.html" class="tab-btn" data-tab="progress"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941"/></svg><span>Progress</span></a>
+  <a href="profile.html" class="tab-btn active" data-tab="me"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg><span>Me</span></a>
+</nav>
+<script src="shared.js"></script>
+<script>window.addEventListener('load',()=>equalizeColumns('.pf-grid > div:first-child','.pf-rail'));</script>
+</body>
+</html>

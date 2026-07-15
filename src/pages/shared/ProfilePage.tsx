@@ -309,7 +309,7 @@ const TranscriptSection = ({ studentId }: { studentId: string }) => {
           <Button
             onClick={handleDownload}
             disabled={generateTranscript.isPending}
-            className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
+            variant="tactile"
           >
             {generateTranscript.isPending ? (
               <Loader2 className="h-4 w-4 animate-spin" />

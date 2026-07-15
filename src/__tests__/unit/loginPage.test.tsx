@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -109,10 +109,10 @@ const renderLoginPage = () => {
 // ---------------------------------------------------------------------------
 // Convenience selectors that match the new auth UI
 // ---------------------------------------------------------------------------
-const getEmailInput = () =>
-  screen.getByPlaceholderText("Enter your email address");
-const getPasswordInput = () =>
-  screen.getByPlaceholderText("Enter your password");
+// The prototype auth UI associates each field with a <label htmlFor>, so query
+// by accessible label (robust to placeholder copy). Login-tab labels are unique.
+const getEmailInput = () => screen.getByLabelText("Email Address");
+const getPasswordInput = () => screen.getByLabelText("Password");
 const getSignInButton = () =>
   screen.getByRole("button", { name: /^Sign In$/i });
 
@@ -130,17 +130,15 @@ describe("LoginPage", () => {
     renderLoginPage();
 
     await waitFor(() => {
-      expect(screen.getByText("Welcome Back")).toBeInTheDocument();
+      expect(getEmailInput()).toBeInTheDocument();
     });
-    expect(
-      screen.getByText("Sign in to your account to continue")
-    ).toBeInTheDocument();
-    expect(getEmailInput()).toBeInTheDocument();
     expect(getPasswordInput()).toBeInTheDocument();
     expect(getSignInButton()).toBeInTheDocument();
-    // Tabs visible
-    expect(screen.getByRole("tab", { name: /login/i })).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: /register/i })).toBeInTheDocument();
+    // Tabs render as buttons in the prototype auth UI (not ARIA tabs).
+    expect(screen.getByRole("button", { name: "Login" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Register" })
+    ).toBeInTheDocument();
   });
 
   it('has a "Forgot password?" link to /reset-password', async () => {
@@ -309,10 +307,10 @@ describe("LoginPage — register tab role affordance (Req 5)", () => {
     renderLoginPage();
     await waitFor(() => {
       expect(
-        screen.getByRole("tab", { name: /register/i })
+        screen.getByRole("button", { name: "Register" })
       ).toBeInTheDocument();
     });
-    await user.click(screen.getByRole("tab", { name: /register/i }));
+    await user.click(screen.getByRole("button", { name: "Register" }));
     // Register form has mounted once the first-name field is present.
     await waitFor(() => {
       expect(screen.getByPlaceholderText("First")).toBeInTheDocument();
@@ -325,23 +323,28 @@ describe("LoginPage — register tab role affordance (Req 5)", () => {
     // The previous role <select> (a native combobox) is removed entirely.
     expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
 
-    // None of the privileged roles are selectable on the register tab.
-    for (const role of ["Teacher", "Coordinator", "Admin", "Parent"]) {
-      expect(
-        screen.queryByRole("option", { name: role })
-      ).not.toBeInTheDocument();
-    }
+    // Admin/Coordinator are not offered at all on the register tab...
+    expect(
+      screen.queryByRole("button", { name: /admin/i })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /coordinator/i })
+    ).not.toBeInTheDocument();
+
+    // ...and the Teacher/Parent segments shown for parity are disabled, so a
+    // self-signup user can never actually select a privileged role.
+    expect(screen.getByRole("button", { name: /teacher/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /parent/i })).toBeDisabled();
   });
 
   it("communicates that self-registration creates a student account", async () => {
     await openRegisterTab();
 
-    const panel = within(screen.getByRole("tabpanel"));
-    // A read-only "Student" indicator replaces the role picker...
-    expect(panel.getByText("Student")).toBeInTheDocument();
+    // A read-only "Student" segment replaces the role picker...
+    expect(screen.getByText("Student")).toBeInTheDocument();
     // ...alongside the trust hint that staff roles require an invitation.
     expect(
-      panel.getByText(/staff roles require an invitation/i)
+      screen.getByText(/staff roles require an invitation/i)
     ).toBeInTheDocument();
   });
 });

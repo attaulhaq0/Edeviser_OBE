@@ -76,7 +76,8 @@ export const BaselineSelectStep = ({
         </p>
         <Button
           onClick={handleSkip}
-          className="mt-6 bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
+          variant="tactile"
+          className="mt-6"
         >
           Continue
         </Button>
@@ -164,7 +165,8 @@ export const BaselineSelectStep = ({
         <Button
           onClick={handleContinue}
           disabled={selectedIds.size === 0}
-          className="gap-1 bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
+          variant="tactile"
+          className="gap-1"
         >
           Start Tests ({selectedIds.size} selected)
         </Button>

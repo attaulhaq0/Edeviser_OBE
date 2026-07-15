@@ -13,7 +13,7 @@ import { Card } from "@/components/ui/card";
 import DailyProgressSummary from "@/components/shared/DailyProgressSummary";
 import TodayTimeline from "@/components/shared/TodayTimeline";
 import CreateTaskDialog from "@/components/shared/CreateTaskDialog";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 import { ReviewSessionBadge } from "@/components/shared/ReviewSessionBadge";
 import { useAuth } from "@/hooks/useAuth";
 import { useTodayViewData } from "@/hooks/useTodayView";
@@ -291,7 +291,8 @@ const TodayViewPage = () => {
           {/* Start Session */}
           <Button
             size="sm"
-            className="h-9 gap-1.5 bg-gradient-to-r from-teal-500 to-blue-600 text-xs active:scale-95"
+            variant="tactile"
+            className="h-9 gap-1.5 text-xs"
             onClick={handleStartUnplannedSession}
             disabled={startingUnplanned}
           >
@@ -353,7 +354,8 @@ const TodayViewPage = () => {
                 <div className="flex items-center gap-1.5 shrink-0">
                   <Button
                     size="sm"
-                    className="h-7 gap-1 bg-gradient-to-r from-teal-500 to-blue-600 text-[11px] active:scale-95"
+                    variant="tactile"
+                    className="h-7 gap-1 text-[11px]"
                     onClick={() => handleStartReview(review)}
                     disabled={createReviewSession.isPending}
                   >
@@ -412,7 +414,8 @@ const TodayViewPage = () => {
                 <div className="flex items-center gap-1.5 shrink-0">
                   <Button
                     size="sm"
-                    className="h-7 gap-1 bg-gradient-to-r from-teal-500 to-blue-600 text-[11px] active:scale-95"
+                    variant="tactile"
+                    className="h-7 gap-1 text-[11px]"
                     onClick={() => handleStartReview(review)}
                     disabled={createReviewSession.isPending}
                   >

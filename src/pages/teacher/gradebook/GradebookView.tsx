@@ -20,7 +20,7 @@ import { DEFAULT_GRADE_SCALES } from "@/types/app";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 import {
   Select,
   SelectContent,

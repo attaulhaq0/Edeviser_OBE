@@ -18,7 +18,7 @@ import StudyTimeChart from "@/components/shared/StudyTimeChart";
 import WeeklyReflectionPanel from "@/components/shared/WeeklyReflectionPanel";
 import CreateSessionDialog from "@/components/shared/CreateSessionDialog";
 import CreateTaskDialog from "@/components/shared/CreateTaskDialog";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 import { useAuth } from "@/hooks/useAuth";
 import { useWeeklyPlannerData } from "@/hooks/useWeeklyPlanner";
 import { useStudentCourses } from "@/hooks/useStudentCourses";
@@ -369,7 +369,8 @@ const WeeklyPlannerPage = () => {
               </Button>
               <Button
                 size="sm"
-                className="h-8 gap-1 bg-gradient-to-r from-teal-500 to-blue-600 text-xs active:scale-95"
+                variant="tactile"
+                className="h-8 gap-1 text-xs"
                 onClick={() => {
                   setSelectedDate(todayStr);
                   setSessionDialogOpen(true);

@@ -29,11 +29,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
-import GradientCardHeader from "@/components/shared/GradientCardHeader";
+import { GradientCardHeader, Shimmer } from "@/design-system";
 import CQIStatusBadge from "@/components/shared/CQIStatusBadge";
 import type { CQIStatus } from "@/components/shared/CQIStatusBadge";
 import { NoActionPlans } from "@/components/shared/EmptyState";
-import Shimmer from "@/components/shared/Shimmer";
 import {
   useCQIPlans,
   useCreateCQIPlan,
@@ -429,7 +428,8 @@ const CQIPlanFormDialog = ({
             <Button
               type="submit"
               disabled={isPending}
-              className="w-full bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
+              variant="tactile"
+              className="w-full"
             >
               {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
               {isEdit ? "Update Plan" : "Create Plan"}
@@ -515,7 +515,8 @@ const EvaluateDialog = ({ open, onOpenChange, plan }: EvaluateDialogProps) => {
           <Button
             onClick={handleEvaluate}
             disabled={updateMutation.isPending}
-            className="w-full bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
+            variant="tactile"
+            className="w-full"
           >
             {updateMutation.isPending && (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -680,7 +681,7 @@ const CQIManager = () => {
             setEditingPlan(null);
             setFormOpen(true);
           }}
-          className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
+          variant="tactile"
         >
           <Plus className="h-4 w-4" /> New Plan
         </Button>

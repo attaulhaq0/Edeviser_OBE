@@ -59,7 +59,8 @@ const TeamInvitationCard = ({
               size="sm"
               onClick={onAccept}
               disabled={isPending}
-              className="bg-gradient-to-r from-teal-500 to-blue-600 text-white active:scale-95 transition-transform duration-100 gap-1.5"
+              variant="tactile"
+              className="gap-1.5"
               aria-label={`Accept invitation to ${teamName}`}
             >
               {isAccepting ? (

@@ -11,8 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import Shimmer from "@/components/shared/Shimmer";
-import GradientCardHeader from "@/components/shared/GradientCardHeader";
+import { GradientCardHeader, Shimmer } from "@/design-system";
 import {
   InlineNoCLOs,
   InlineNoData,

@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import FocusTimer from "@/components/shared/FocusTimer";
 import SessionCompletionForm from "@/components/shared/SessionCompletionForm";
 import SessionIntentDialog from "@/components/shared/SessionIntentDialog";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 import { useFocusTimer } from "@/hooks/useFocusTimer";
 import { useSessionIntent } from "@/hooks/useSessionIntent";
 import { useAuth } from "@/hooks/useAuth";

@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/select";
 import { NoOutcomes } from "@/components/shared/EmptyState";
 import ErrorState from "@/components/shared/ErrorState";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 import { GitBranch } from "lucide-react";
 import {
   ResponsiveContainer,

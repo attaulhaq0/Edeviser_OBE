@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 import { Plus, Loader2, Users, Shuffle } from "lucide-react";
 import { toast } from "sonner";
 import { NoTeams } from "@/components/shared/EmptyState";
@@ -265,7 +265,7 @@ const TeamManager = () => {
               <Button
                 type="submit"
                 disabled={createMutation.isPending}
-                className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
+                variant="tactile"
               >
                 {createMutation.isPending ? (
                   <Loader2 className="h-4 w-4 animate-spin" />

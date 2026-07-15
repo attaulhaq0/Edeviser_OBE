@@ -100,10 +100,7 @@ const ActionButton = ({
     isPrimary && action.ctaLabel ? action.ctaLabel : action.label;
 
   const className = isPrimary
-    ? cn(
-        "min-h-11 bg-gradient-to-r from-teal-500 to-blue-600 text-white",
-        "active:scale-95 transition-transform duration-100"
-      )
+    ? cn("min-h-11")
     : cn("min-h-11 text-gray-600 hover:text-gray-900");
 
   const content = (
@@ -119,7 +116,7 @@ const ActionButton = ({
       <Button
         asChild
         size={isPrimary ? "lg" : "sm"}
-        variant={isPrimary ? "default" : "ghost"}
+        variant={isPrimary ? "tactile" : "ghost"}
         className={className}
         data-testid={`primary-cta-${isPrimary ? "primary" : "secondary"}-${
           action.id
@@ -136,7 +133,7 @@ const ActionButton = ({
     <Button
       type="button"
       size={isPrimary ? "lg" : "sm"}
-      variant={isPrimary ? "default" : "ghost"}
+      variant={isPrimary ? "tactile" : "ghost"}
       className={className}
       disabled={disabled}
       onClick={action.onSelect}

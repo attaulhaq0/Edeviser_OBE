@@ -10,7 +10,7 @@ import {
 
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 import { NoLinkedStudents } from "@/components/shared/EmptyState";
 import { useAuth } from "@/hooks/useAuth";
 import { useLinkedChildren } from "@/hooks/useParentDashboard";
@@ -55,7 +55,7 @@ const ParentChildrenPage = () => {
               <Card className={childCardClass}>
                 <div className="flex items-start justify-between gap-3 mb-4">
                   <div className="flex items-center gap-3">
-                    <div className="p-3 rounded-full bg-gradient-to-br from-teal-500 to-blue-600 text-white">
+                    <div className="p-3 rounded-full bg-[linear-gradient(93.65deg,#14b8a6_5.37%,#0382bd_78.89%)] text-white">
                       <GraduationCap className="h-6 w-6" />
                     </div>
                     <div>

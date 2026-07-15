@@ -8,10 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 
-import GradientCardHeader from "@/components/shared/GradientCardHeader";
+import { GradientCardHeader, Shimmer } from "@/design-system";
 import ExplanationConfidenceBadge from "@/components/shared/ExplanationConfidenceBadge";
 import DifficultyBadge from "@/components/shared/DifficultyBadge";
-import Shimmer from "@/components/shared/Shimmer";
 import { NoData } from "@/components/shared/EmptyState";
 
 import {
@@ -154,7 +153,7 @@ const ExplanationReviewCard = ({
                 size="sm"
                 disabled={isSaving}
                 onClick={handleSave}
-                className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 transition-transform"
+                variant="tactile"
               >
                 {isSaving && <Loader2 className="h-4 w-4 animate-spin" />}
                 Save

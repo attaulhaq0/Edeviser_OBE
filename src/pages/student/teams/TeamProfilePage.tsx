@@ -25,7 +25,7 @@ import ChallengeProgressBar from "@/components/shared/ChallengeProgressBar";
 import CooperationScoreDisplay from "@/components/shared/CooperationScoreDisplay";
 import PeerTeachingMomentCard from "@/components/shared/PeerTeachingMomentCard";
 import ReplacementVoteCard from "@/components/shared/ReplacementVoteCard";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 import { TEAM_BADGE_DEFINITIONS } from "@/lib/teamBadgeDefinitions";
 import {
   Users,

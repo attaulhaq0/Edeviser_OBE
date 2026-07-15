@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/form";
 import { Badge } from "@/components/ui/badge";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 import { Plus, Loader2, Trash2, CalendarDays } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -202,7 +202,7 @@ const AcademicCalendarManager = () => {
             <Button
               type="submit"
               disabled={createMutation.isPending}
-              className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
+              variant="tactile"
             >
               {createMutation.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />

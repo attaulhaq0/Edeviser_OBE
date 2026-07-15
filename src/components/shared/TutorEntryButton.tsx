@@ -59,8 +59,8 @@ const TutorEntryButton = ({
   return (
     <Button
       onClick={handleClick}
+      variant="tactile"
       className={cn(
-        "bg-gradient-to-r from-teal-500 to-blue-600 text-white active:scale-95 transition-transform duration-100",
         className
       )}
       aria-label={label}

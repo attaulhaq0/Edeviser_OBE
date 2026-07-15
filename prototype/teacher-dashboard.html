@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Edeviser — Teacher</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
+<link rel="stylesheet" href="shared.css"/>
+<style>
+  /* Teacher dashboard hero — a switchable briefing carousel (reuses the shared
+     .hero-carousel system used on the student dashboard). Slide 1 = status +
+     jump-in chips, slide 2 = this week's momentum, slide 3 = today's schedule.
+     This replaces the old in-banner "Today's plan" action list, which
+     duplicated the "Do first · Student triage" section below. Scoped to the
+     teacher shell so it stays additive. */
+  body[data-role="teacher"] .hs-pad{padding:16px 18px;min-height:126px}
+  body[data-role="teacher"] button.ai-chip{cursor:pointer;transition:background .15s,transform .06s}
+  body[data-role="teacher"] button.ai-chip:hover{background:rgba(255,255,255,.26)}
+  body[data-role="teacher"] button.ai-chip:active{transform:translateY(1px)}
+  body[data-role="teacher"] .hero-kfig{font-size:20px;font-weight:900;line-height:1;color:#fff}
+  body[data-role="teacher"] .hero-klbl{font-size:10px;font-weight:700;color:rgba(255,255,255,.62);margin-top:3px}
+  /* Action-row cards: equal height + footers pinned to the bottom so the
+     4-across row reads as an intentional, polished set (not ragged). */
+  body[data-role="teacher"] .act-foot{margin-top:auto}
+</style>
+</head>
+<body class="bg-slate-50" data-role="teacher">
+
+<header class="app-header">
+  <div class="hdr-brand flex items-center gap-2">
+    <div class="h-7 w-7 rounded-lg flex items-center justify-center" style="background:var(--brand-gradient)"><span class="text-white text-sm">✦</span></div>
+    <span class="text-base font-bold tracking-tight text-gray-900">Edeviser</span>
+  </div>
+  <div class="flex items-center gap-2">
+    <a href="teacher-profile.html" class="h-8 w-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style="background:var(--brand-gradient)">A</a>
+  </div>
+</header>
+
+<div class="page-content space-y-4 no-scrollbar">
+
+  <!-- AI prepared hero — switchable carousel (status → momentum → schedule).
+       Dots + auto-advance + swipe; the old "Today's plan" list was removed
+       because it duplicated the "Do first · Student triage" section. -->
+  <div id="hero-car" class="hero-carousel rounded-2xl text-white shadow-lg" style="background:var(--hero-gradient)">
+    <div class="hero-slides">
+
+      <!-- Slide 1: greeting + status chips (each jumps to its section) -->
+      <div class="hero-slide">
+        <div class="hs-pad relative">
+          <span class="why" onclick="whyPop('This morning briefing is assembled from your classes: at-risk signals (login gaps, declining outcome trends, missed submissions), the grading queue, and your last content upload. Nothing here has been sent or changed — every item waits for your approval (autonomy tier <b>A2</b>).')">🛡️ why am I seeing this</span>
+          <div class="flex items-center gap-3 pr-24">
+            <div class="h-11 w-11 rounded-2xl bg-white/15 border border-white/20 flex items-center justify-center text-xl shrink-0">🧑‍🏫</div>
+            <div class="min-w-0">
+              <h1 class="text-lg font-bold tracking-tight">Good morning, Prof. Ahmed 👋</h1>
+              <p class="text-[12px] text-white/70">I've prepared your day. Let's make it productive — nothing acts without your OK.</p>
+            </div>
+          </div>
+          <div class="mt-3 flex flex-wrap gap-2">
+            <button class="ai-chip" onclick="document.getElementById('triage-sec').scrollIntoView({behavior:'smooth',block:'start'})">⚠️ 3 students need attention</button>
+            <button class="ai-chip" onclick="document.getElementById('feedback-card').scrollIntoView({behavior:'smooth',block:'start'})">✍️ 12 feedback drafts ready</button>
+            <button class="ai-chip" onclick="location.href='teacher-curriculum.html'">🧬 6 micro-lessons drafted</button>
+            <button class="ai-chip" onclick="document.getElementById('gaps-card').scrollIntoView({behavior:'smooth',block:'start'})">📋 2 CLO gaps</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide 2: this week's momentum (wins, not to-dos) -->
+      <div class="hero-slide">
+        <div class="hs-pad">
+          <p class="text-[10px] font-black tracking-widest uppercase text-white/60">📈 This week's momentum</p>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3">
+            <div><p class="hero-kfig text-teal-300">▲ 6%</p><p class="hero-klbl">Avg mastery gain</p></div>
+            <div><p class="hero-kfig">88%</p><p class="hero-klbl">On-time · ▲ 4%</p></div>
+            <div><p class="hero-kfig">24</p><p class="hero-klbl">Teaching moments</p></div>
+            <div><p class="hero-kfig text-teal-300">6.2h</p><p class="hero-klbl">Saved by AI</p></div>
+          </div>
+          <p class="text-[11px] text-white/70 mt-3">Your classes are trending up — the Normalization remediation is paying off.</p>
+        </div>
+      </div>
+
+      <!-- Slide 3: up next today (schedule glance) -->
+      <div class="hero-slide">
+        <div class="hs-pad">
+          <p class="text-[10px] font-black tracking-widest uppercase text-white/60">🗓️ Up next today</p>
+          <div class="mt-2.5 space-y-2">
+            <div class="flex items-center gap-3">
+              <div class="text-center shrink-0 w-11"><p class="text-sm font-black leading-none">9:00</p><p class="text-[10px] text-white/50 mt-0.5">10:30</p></div>
+              <div class="flex-1 min-w-0"><p class="text-sm font-bold">Database Design</p><p class="text-[11px] text-white/60">CS301 · Room 204 · 32 students</p></div>
+              <button onclick="toast('Opening Database Design…','📂')" class="text-[11px] font-bold px-3 py-1.5 rounded-lg shrink-0" style="background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.22)">Open</button>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="text-center shrink-0 w-11"><p class="text-sm font-black leading-none">11:00</p><p class="text-[10px] text-white/50 mt-0.5">12:30</p></div>
+              <div class="flex-1 min-w-0"><p class="text-sm font-bold">Web Development</p><p class="text-[11px] text-white/60">CS205 · Lab 3 · 28 students</p></div>
+              <button onclick="toast('Opening Web Development…','📂')" class="text-[11px] font-bold px-3 py-1.5 rounded-lg shrink-0" style="background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.22)">Open</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="hero-dots pb-2.5"></div>
+  </div>
+
+  <!-- KPI row -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+    <div class="pcard p-4">
+      <div class="kpi">
+        <div><p class="text-[10px] font-black tracking-widest uppercase text-gray-400">Classes</p><p class="text-2xl font-black text-gray-900 mt-0.5">4</p><span class="trend trend-flat">= 0 this week</span></div>
+        <div class="kpi-ic i-blue">📚</div>
+      </div>
+    </div>
+    <div class="pcard p-4">
+      <div class="kpi">
+        <div><p class="text-[10px] font-black tracking-widest uppercase text-gray-400">Avg mastery</p><p class="text-2xl font-black text-green-600 mt-0.5">74%</p><span class="trend trend-up">▲ 6% vs last week</span></div>
+        <div class="kpi-ic i-green"><span class="spark"><i style="height:40%"></i><i style="height:55%"></i><i style="height:48%"></i><i style="height:70%"></i><i style="height:100%"></i></span></div>
+      </div>
+    </div>
+    <div class="pcard p-4">
+      <div class="kpi">
+        <div><p class="text-[10px] font-black tracking-widest uppercase text-gray-400">On-time</p><p class="text-2xl font-black text-gray-900 mt-0.5">88%</p><span class="trend trend-up">▲ 4% vs last week</span></div>
+        <div class="kpi-ic i-teal">⏱️</div>
+      </div>
+    </div>
+    <div class="pcard p-4">
+      <div class="kpi">
+        <div><p class="text-[10px] font-black tracking-widest uppercase text-gray-400">CLOs below</p><p class="text-2xl font-black text-amber-600 mt-0.5">2</p><span class="trend trend-up">▼ 1 vs last week</span></div>
+        <div class="kpi-ic i-red">🎯</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DO FIRST: triage with priority grouping -->
+  <div id="triage-sec">
+    <div class="sec-h"><span class="chip">⚠️</span><p class="t">Do first · Student triage</p><a href="teacher-students.html" class="more">All students →</a></div>
+    <div class="tri-tabs mb-3">
+      <button class="tri-tab crit" onclick="triFilter('crit',this)">Critical <span class="cnt">1</span></button>
+      <button class="tri-tab att" onclick="triFilter('att',this)">Attention <span class="cnt">2</span></button>
+      <button class="tri-tab mon" onclick="triFilter('mon',this)">Monitor <span class="cnt">15</span></button>
+    </div>
+    <div class="space-y-3" id="triage-list">
+
+      <div class="pcard overflow-hidden" data-ai-card data-tri="crit">
+        <div class="p-4">
+          <div class="flex items-start gap-3">
+            <div class="lead round sev-high">S</div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 flex-wrap"><p class="text-sm font-bold text-gray-900">Sara Al-Mansoori</p><span class="pill pill-red">78% risk</span><span class="text-[11px] text-gray-400">CS301 · Database Design</span></div>
+              <p class="text-xs text-gray-600 mt-1">Declining <b>Normalization</b> (CLO3: 62%→54%), 2 missed submissions, last login 3 days ago.</p>
+              <div class="flex flex-wrap items-center gap-2 mt-3">
+                <button onclick="aiApprove(this,'Nudge sent to Sara')" class="btn3d sm">🔔 Send nudge</button>
+                <button onclick="aiApprove(this,'10-min review assigned')" class="btn3d sm b-soft">📋 Assign review</button>
+                <button onclick="aiApprove(this,'1:1 booked')" class="btn3d sm b-ghost">📅 Book 1:1</button>
+                <button onclick="whyPop('Risk = weighted signals: declining outcome trend (0.4), missed submissions (0.3), login gap (0.3), amplified because current attainment is below 70%. Rule-based and fully explainable — not a black box.')" class="text-xs font-semibold text-gray-400 px-1">why?</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pcard overflow-hidden" data-ai-card data-tri="att">
+        <div class="p-4">
+          <div class="flex items-start gap-3">
+            <div class="lead round sev-med">O</div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 flex-wrap"><p class="text-sm font-bold text-gray-900">Omar Haddad</p><span class="pill pill-amber">67% risk</span><span class="text-[11px] text-gray-400">CS301</span></div>
+              <p class="text-xs text-gray-600 mt-1">Stagnant attainment, 2 late submissions this week. Engaged but slipping.</p>
+              <div class="flex flex-wrap items-center gap-2 mt-3">
+                <button onclick="aiApprove(this,'Nudge sent to Omar')" class="btn3d sm">🔔 Send nudge</button>
+                <button onclick="aiApprove(this,'Practice set assigned')" class="btn3d sm b-soft">📋 Assign practice</button>
+              </div>
+            </div>
+            <span class="spark self-center" style="height:26px"><i style="height:60%;background:#fcd34d"></i><i style="height:45%;background:#fcd34d"></i><i style="height:52%;background:#fcd34d"></i><i style="height:40%;background:#fcd34d"></i><i style="height:44%;background:#fcd34d"></i></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="pcard overflow-hidden" data-ai-card data-tri="att">
+        <div class="p-4">
+          <div class="flex items-start gap-3">
+            <div class="lead round sev-med">L</div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center gap-2 flex-wrap"><p class="text-sm font-bold text-gray-900">Lina Yusuf</p><span class="pill pill-amber">55% risk</span><span class="text-[11px] text-gray-400">CS205 · Web Dev</span></div>
+              <p class="text-xs text-gray-600 mt-1">No login for 6 days. Was on track — possible disengagement.</p>
+              <div class="flex flex-wrap items-center gap-2 mt-3">
+                <button onclick="aiApprove(this,'Check-in message sent')" class="btn3d sm">💬 Send check-in</button>
+                <button onclick="aiApprove(this,'Flagged to advisor')" class="btn3d sm b-ghost">🚩 Flag to advisor</button>
+              </div>
+            </div>
+            <span class="spark self-center" style="height:26px"><i style="height:70%;background:#fcd34d"></i><i style="height:64%;background:#fcd34d"></i><i style="height:30%;background:#fca5a5"></i><i style="height:12%;background:#fca5a5"></i><i style="height:8%;background:#fca5a5"></i></span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Action row: feedback · curriculum · gaps · classes -->
+  <div class="lg-row lg-row-4">
+
+    <!-- Approve AI Feedback (with batch approval) -->
+    <div class="pcard p-4 flex flex-col" id="feedback-card">
+      <div class="sec-h"><span class="chip">✍️</span><p class="t">Approve AI Feedback</p><a href="teacher-grading.html" class="more">Queue (12)</a></div>
+      <div class="flex gap-2 mb-3">
+        <button onclick="approveAll(this)" class="btn3d sm flex-1">✅ Approve all (9)</button>
+        <a href="teacher-grading.html" class="btn3d sm b-ghost">Review</a>
+      </div>
+      <div class="space-y-2.5" id="feedback-items">
+        <div class="rounded-xl border border-gray-100 p-3" data-ai-card>
+          <div class="flex items-center justify-between"><p class="text-sm font-bold text-gray-900">Aisha K. · Assignment 3</p><span class="pill pill-green">92%</span></div>
+          <p class="text-xs text-gray-500 mt-1 italic">"Strong 3NF decomposition. Each table avoids transitive dependencies…"</p>
+          <div class="flex gap-2 mt-2.5">
+            <button onclick="aiApprove(this,'Feedback approved & released')" class="btn3d sm">✅ Approve</button>
+            <button onclick="toast('Opening editor…','✏️')" class="btn3d sm b-ghost">✏️ Edit</button>
+          </div>
+        </div>
+        <div class="rounded-xl border border-gray-100 p-3" data-ai-card>
+          <div class="flex items-center justify-between"><p class="text-sm font-bold text-gray-900">Yousef M. · Assignment 3</p><span class="pill pill-amber">64%</span></div>
+          <p class="text-xs text-gray-500 mt-1 italic">"You've grasped 1NF and 2NF. The gap is 3NF — let's revisit with an example…"</p>
+          <div class="flex gap-2 mt-2.5">
+            <button onclick="aiApprove(this,'Feedback approved & released')" class="btn3d sm">✅ Approve</button>
+            <button onclick="toast('Opening editor…','✏️')" class="btn3d sm b-ghost">✏️ Edit</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Curriculum Studio (with time saved) -->
+    <a href="teacher-curriculum.html" class="pcard pcard-tap overflow-hidden flex flex-col">
+      <div class="px-4 py-2.5 flex items-center gap-2" style="background:linear-gradient(135deg,#0f766e,#0382bd)"><span class="text-white text-sm">🧬</span><h2 class="text-sm font-bold text-white">Curriculum Studio</h2><span class="ml-auto text-[10px] font-bold text-white/90 bg-white/15 px-2 py-0.5 rounded-full">NEW</span></div>
+      <div class="p-4 flex flex-col flex-1">
+        <p class="text-sm font-bold text-gray-900">Your upload became 6 micro-lessons</p>
+        <p class="text-xs text-gray-500 mt-0.5">"Normalization.pptx" → objectives, CLO tags, retrieval questions, flashcards &amp; a spaced-review plan — drafted, awaiting your edit.</p>
+        <div class="flex items-center gap-2 mt-3 flex-wrap act-foot">
+          <span class="inline-block text-xs font-bold text-white px-3 py-1.5 rounded-lg" style="background:linear-gradient(135deg,#0f766e,#0382bd)">Review draft →</span>
+          <span class="time-chip">⏱️ Saved ~42 min</span>
+        </div>
+      </div>
+    </a>
+
+    <!-- Outcome Gaps (actionable) -->
+    <div class="pcard p-4 flex flex-col" id="gaps-card">
+      <div class="sec-h"><span class="chip">📋</span><p class="t">Outcome Gaps</p></div>
+      <div class="flex items-center justify-between"><div><p class="text-sm font-bold text-gray-900">REST APIs (CLO5)</p><p class="text-xs text-gray-500">CS205 · below target in 2 sections</p></div><span class="pill pill-red">46%</span></div>
+      <div class="bg-blue-50 border border-blue-100 rounded-lg px-3 py-2 mt-2">
+        <p class="text-xs text-blue-800">💡 Recommended: assign the "REST verbs" micro-lesson + a 5-item retrieval check before next class.</p>
+      </div>
+      <button onclick="aiApprove(this,'Remediation assigned to CS205')" class="btn3d sm b-soft full act-foot mt-2.5">Assign now →</button>
+    </div>
+
+    <!-- Today's Classes (quick actions) -->
+    <div class="pcard p-4 flex flex-col">
+      <div class="sec-h"><span class="chip">📅</span><p class="t">Today's Classes</p></div>
+      <div class="space-y-2.5 flex-1">
+        <div class="rounded-xl border border-gray-100 p-2.5">
+          <div class="flex items-center gap-3"><div class="text-center w-12"><p class="text-xs font-bold text-gray-900">9:00</p><p class="text-[10px] text-gray-400">10:30</p></div><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">Database Design</p><p class="text-[11px] text-gray-500">CS301 · Room 204 · 32 students</p></div></div>
+          <button onclick="toast('Opening Database Design…','📂')" class="btn3d sm b-soft full mt-2">📂 Open class</button>
+        </div>
+        <div class="rounded-xl border border-gray-100 p-2.5">
+          <div class="flex items-center gap-3"><div class="text-center w-12"><p class="text-xs font-bold text-gray-900">11:00</p><p class="text-[10px] text-gray-400">12:30</p></div><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">Web Development</p><p class="text-[11px] text-gray-500">CS205 · Lab 3 · 28 students</p></div></div>
+          <button onclick="toast('Opening Web Development…','📂')" class="btn3d sm b-soft full mt-2">📂 Open class</button>
+        </div>
+        <a href="calendar.html" class="block text-center text-xs font-bold text-blue-600 pt-1">View full timetable →</a>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="lg-row lg-row-2 space-y-4 items-start">
+  <!-- At-risk students · AI prediction — backend exists (useAtRiskPredictions.ts); AIAtRiskWidget is
+       orphaned in the live app. Fields mirror AtRiskPredictionData: probability_score, at_risk_clo_title,
+       contributing_signals (login_frequency / submission_pattern / attainment_trend), current_attainment. -->
+  <div class="pcard p-4">
+    <div class="sec-h"><span class="chip">⚠️</span><p class="t">At-risk students · AI prediction</p><span class="pill pill-red">3 flagged</span></div>
+    <div class="divide-y divide-gray-50">
+      <div class="py-3">
+        <div class="flex items-center gap-3">
+          <div class="h-9 w-9 rounded-full bg-red-50 text-red-600 flex items-center justify-center font-black text-xs shrink-0">MK</div>
+          <div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900 truncate">Maya Khalid</p><p class="text-[11px] text-gray-500 truncate">Risk on <b>Normalization (CLO3)</b> · now 58%</p></div>
+          <span class="text-sm font-black text-red-600 shrink-0">82%</span>
+        </div>
+        <div class="flex flex-wrap gap-1.5 mt-2">
+          <span class="text-[10px] font-semibold text-red-700 bg-red-50 border border-red-100 px-2 py-0.5 rounded-full">📉 Declining</span>
+          <span class="text-[10px] font-semibold text-amber-700 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-full">🕐 Low logins</span>
+          <span class="text-[10px] font-semibold text-amber-700 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-full">⏰ Late submissions</span>
+        </div>
+        <div class="flex gap-2 mt-2.5">
+          <button onclick="toast('Nudge sent to Maya','📨')" class="btn3d sm">Send nudge</button>
+          <a href="teacher-students.html" class="btn3d sm b-ghost">View student</a>
+        </div>
+      </div>
+      <div class="py-3">
+        <div class="flex items-center gap-3">
+          <div class="h-9 w-9 rounded-full bg-red-50 text-red-600 flex items-center justify-center font-black text-xs shrink-0">OZ</div>
+          <div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900 truncate">Omar Zayed</p><p class="text-[11px] text-gray-500 truncate">Risk on <b>REST APIs (CLO5)</b> · now 48%</p></div>
+          <span class="text-sm font-black text-red-600 shrink-0">74%</span>
+        </div>
+        <div class="flex flex-wrap gap-1.5 mt-2">
+          <span class="text-[10px] font-semibold text-amber-700 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-full">➡️ Stagnant</span>
+          <span class="text-[10px] font-semibold text-red-700 bg-red-50 border border-red-100 px-2 py-0.5 rounded-full">❌ Missed submission</span>
+        </div>
+        <div class="flex gap-2 mt-2.5">
+          <button onclick="toast('Nudge sent to Omar','📨')" class="btn3d sm">Send nudge</button>
+          <a href="teacher-students.html" class="btn3d sm b-ghost">View student</a>
+        </div>
+      </div>
+      <div class="py-3">
+        <div class="flex items-center gap-3">
+          <div class="h-9 w-9 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center font-black text-xs shrink-0">SA</div>
+          <div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900 truncate">Sara Al-Amiri</p><p class="text-[11px] text-gray-500 truncate">Risk on <b>Indexing (CLO4)</b> · now 64%</p></div>
+          <span class="text-sm font-black text-amber-600 shrink-0">61%</span>
+        </div>
+        <div class="flex flex-wrap gap-1.5 mt-2">
+          <span class="text-[10px] font-semibold text-amber-700 bg-amber-50 border border-amber-100 px-2 py-0.5 rounded-full">📉 Declining</span>
+          <span class="text-[10px] font-semibold text-green-700 bg-green-50 border border-green-100 px-2 py-0.5 rounded-full">🕐 High logins</span>
+        </div>
+        <div class="flex gap-2 mt-2.5">
+          <button onclick="toast('Nudge sent to Sara','📨')" class="btn3d sm">Send nudge</button>
+          <a href="teacher-students.html" class="btn3d sm b-ghost">View student</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Teaching impact — backend exists (useTeachingImpact.ts) but no live UI renders it.
+       Fields mirror TeachingImpactMetrics: totalMoments, totalViews, averageClarity, averageHelpfulness, mostViewedMoments. -->
+  <div class="pcard p-4">
+    <div class="sec-h"><span class="chip">📈</span><p class="t">Teaching impact</p></div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div class="stat-tile"><p class="st-k">Moments</p><p class="st-v">24</p></div>
+      <div class="stat-tile"><p class="st-k">Total views</p><p class="st-v">1,860</p></div>
+      <div class="stat-tile"><p class="st-k">Avg clarity</p><p class="st-v text-green-600">4.6</p></div>
+      <div class="stat-tile"><p class="st-k">Helpfulness</p><p class="st-v text-green-600">4.5</p></div>
+    </div>
+    <p class="text-[10px] font-black tracking-widest uppercase text-gray-400 mt-4 mb-1">Most-viewed teaching moments</p>
+    <div class="divide-y divide-gray-50">
+      <div class="flex items-center gap-3 py-2"><span class="text-base">▶️</span><div class="flex-1 min-w-0"><p class="text-sm font-semibold text-gray-900 truncate">Normalization in 3 minutes</p><p class="text-[11px] text-gray-500">CLO3 · ⭐ 4.8 clarity</p></div><span class="text-xs font-bold text-gray-500 shrink-0">412 views</span></div>
+      <div class="flex items-center gap-3 py-2"><span class="text-base">▶️</span><div class="flex-1 min-w-0"><p class="text-sm font-semibold text-gray-900 truncate">ER diagrams, the easy way</p><p class="text-[11px] text-gray-500">CLO2 · ⭐ 4.6 clarity</p></div><span class="text-xs font-bold text-gray-500 shrink-0">328 views</span></div>
+      <div class="flex items-center gap-3 py-2"><span class="text-base">▶️</span><div class="flex-1 min-w-0"><p class="text-sm font-semibold text-gray-900 truncate">Joins vs subqueries</p><p class="text-[11px] text-gray-500">CLO6 · ⭐ 4.4 clarity</p></div><span class="text-xs font-bold text-gray-500 shrink-0">291 views</span></div>
+    </div>
+  </div>
+  </div>
+
+  <!-- Autonomy footer -->
+  <div class="flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3">
+    <p class="text-xs text-gray-600">🛡️ AI autonomy: <b>A2 — Suggest &amp; approve.</b> AI never sends, grades, or messages without your click.</p>
+    <button onclick="whyPop('Autonomy tiers: <b>A0</b> observe · <b>A1</b> suggest · <b>A2</b> act with your approval (current) · <b>A3</b> act autonomously (logged &amp; reversible). Your institution set the ceiling to A2. You can lower it anytime in Settings.')" class="text-xs font-bold text-blue-600 shrink-0">Manage</button>
+  </div>
+
+</div>
+
+<script src="shared.js"></script>
+<script>
+  // Student triage priority filter (Critical / Attention / Monitor). Click a tab
+  // to focus that group; click it again to show everyone.
+  let triActive=null;
+  function triFilter(group,el){
+    const rows=document.querySelectorAll('#triage-list [data-tri]');
+    if(triActive===group){
+      triActive=null;el.classList.remove('on');
+      rows.forEach(r=>r.style.display='');
+      return;
+    }
+    triActive=group;
+    document.querySelectorAll('.tri-tab').forEach(b=>b.classList.remove('on'));
+    el.classList.add('on');
+    rows.forEach(r=>{r.style.display=(r.dataset.tri===group)?'':'none';});
+  }
+  // Batch-approve the AI feedback queue.
+  function approveAll(btn){
+    const items=document.getElementById('feedback-items');
+    if(items){items.style.transition='opacity .2s';items.style.opacity='0';setTimeout(()=>{items.innerHTML='<div class="text-center text-sm text-gray-400 py-6">✅ Queue cleared — 9 approved &amp; released</div>';items.style.opacity='1';},200);}
+    toast('9 feedback items approved & released','✅');
+  }
+  // Switchable hero briefing (status → momentum → schedule).
+  initHeroCarousel('hero-car');
+</script>
+</body>
+</html>

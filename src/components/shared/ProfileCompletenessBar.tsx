@@ -37,7 +37,7 @@ const ProfileCompletenessBar = ({
         </div>
         <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
           <div
-            className="h-full rounded-full bg-gradient-to-r from-teal-500 to-blue-600 transition-all duration-500"
+            className="h-full rounded-full bg-[linear-gradient(93.65deg,#14b8a6_5.37%,#0382bd_78.89%)] transition-all duration-500"
             style={{ width: `${clamped}%` }}
             role="progressbar"
             aria-valuenow={clamped}

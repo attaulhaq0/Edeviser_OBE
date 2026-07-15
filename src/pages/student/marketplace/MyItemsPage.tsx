@@ -8,7 +8,7 @@ import { Package, Palette, GraduationCap, Zap, Check, X } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 import CosmeticPreview from "@/components/shared/CosmeticPreview";
 import XPBalanceBadge from "@/components/shared/XPBalanceBadge";
 import { useAuth } from "@/hooks/useAuth";
@@ -213,7 +213,7 @@ const MyItemsPage = () => {
                           size="sm"
                           onClick={() => handleEquip(item)}
                           disabled={equipMutation.isPending}
-                          className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 text-white"
+                          variant="tactile"
                         >
                           Equip
                         </Button>

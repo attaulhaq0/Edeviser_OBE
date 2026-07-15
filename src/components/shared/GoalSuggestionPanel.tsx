@@ -95,7 +95,8 @@ const GoalSuggestionPanel = ({
               <Button
                 size="sm"
                 onClick={() => onAccept(goal.id)}
-                className="bg-gradient-to-r from-teal-500 to-blue-600 text-white text-xs font-semibold active:scale-95 transition-transform duration-100"
+                variant="tactile"
+                className="text-xs font-semibold"
               >
                 <Check className="h-3 w-3" />
                 Accept

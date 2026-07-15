@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 import GoalSuggestionPanel from "@/components/shared/GoalSuggestionPanel";
 import SmartGoalForm from "@/components/shared/SmartGoalForm";
 import { useAuth } from "@/hooks/useAuth";
@@ -151,7 +151,8 @@ const SessionCard = ({
               size="sm"
               onClick={() => onStatusChange(session.id, "accepted")}
               disabled={isPending}
-              className="bg-gradient-to-r from-teal-500 to-blue-600 text-white text-xs font-semibold active:scale-95"
+              variant="tactile"
+              className="text-xs font-semibold"
             >
               <CheckCircle className="h-3 w-3" />
               Accept
@@ -372,7 +373,8 @@ const StarterWeekPlanPage = () => {
               size="sm"
               onClick={handleGenerateGoals}
               disabled={generateGoals.isPending}
-              className="bg-gradient-to-r from-teal-500 to-blue-600 text-white text-xs font-semibold active:scale-95"
+              variant="tactile"
+              className="text-xs font-semibold"
             >
               <Sparkles className="h-3 w-3" />
               {generateGoals.isPending ? "Generating..." : "Get Suggestions"}

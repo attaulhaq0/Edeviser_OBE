@@ -15,7 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import GradientCardHeader from "@/components/shared/GradientCardHeader";
+import { GradientCardHeader } from "@/design-system";
 import { cn } from "@/lib/utils";
 import type { GoalProgress, GoalType, WeeklyGoal } from "@/types/planner";
 import type { CreateWeeklyGoalInput } from "@/lib/schemas/planner";

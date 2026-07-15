@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Edeviser — Team Health Report</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
+<link rel="stylesheet" href="shared.css"/>
+<style>
+  /* Team Health Report — coordinator's cross-program view of ALL teams (vs.
+     team.html which is one student's own team). Maps to: useTeamHealthReport,
+     useTeamFormation, team_health_snapshots (health_score, cooperation,
+     engagement_trend). */
+  html.mode-laptop body[data-norail] .page-content{max-width:none;padding-right:32px}
+</style>
+</head>
+<body class="bg-slate-50" data-role="coordinator" data-norail>
+
+<header class="app-header">
+  <div class="flex items-center gap-3">
+    <a href="coordinator-dashboard.html" class="p-1.5 rounded-lg hover:bg-gray-100"><svg class="h-5 w-5 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg></a>
+    <div><h1 class="text-base font-bold tracking-tight text-gray-900">Team Health Report</h1><p class="text-xs text-gray-500">Across all courses &amp; programs</p></div>
+  </div>
+  <button class="btn3d sm b-ghost" onclick="toast('Exporting report (CSV)…','📤')">⬇️ Export</button>
+</header>
+
+<div class="page-content space-y-4 no-scrollbar">
+
+  <!-- KPI row -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+    <div class="pcard p-4"><p class="text-[10px] font-black tracking-widest uppercase text-gray-400">Total teams</p><p class="text-2xl font-black text-gray-900 mt-1">18</p></div>
+    <div class="pcard p-4"><p class="text-[10px] font-black tracking-widest uppercase text-gray-400">Avg health score</p><p class="text-2xl font-black text-green-600 mt-1">76</p></div>
+    <div class="pcard p-4"><p class="text-[10px] font-black tracking-widest uppercase text-gray-400">Needs attention</p><p class="text-2xl font-black text-amber-600 mt-1">3</p></div>
+    <div class="pcard p-4"><p class="text-[10px] font-black tracking-widest uppercase text-gray-400">Healthy</p><p class="text-2xl font-black text-green-600 mt-1">13</p></div>
+  </div>
+
+  <!-- Teams table -->
+  <div class="pcard p-4">
+    <div class="sec-h"><span class="chip">👥</span><p class="t">All teams</p></div>
+    <div style="overflow-x:auto"><table class="dtable" style="min-width:680px">
+      <thead><tr><th>Team</th><th>Course</th><th>Members</th><th>Health</th><th>Cooperation</th><th>Trend</th><th></th></tr></thead>
+      <tbody id="teams-rows"></tbody>
+    </table></div>
+  </div>
+
+  <!-- Team formation -->
+  <div class="pcard p-4">
+    <div class="sec-h"><span class="chip">⚙️</span><p class="t">Team formation</p></div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div><label class="text-[11px] font-bold text-gray-500">Course</label><select class="w-full mt-1 text-sm border border-gray-200 rounded-lg px-2.5 py-2 bg-white"><option>CS301 · Database Design</option><option>CS205 · Web Development</option></select></div>
+      <div><label class="text-[11px] font-bold text-gray-500">Formation mode</label>
+        <div class="flex gap-2 mt-1">
+          <button class="btn3d sm" onclick="setFormation(this,'balanced')" style="background:#0382bd">⚖️ Auto-balanced by mastery</button>
+          <button class="btn3d sm b-ghost" onclick="setFormation(this,'self')">🙋 Self-selected</button>
+        </div>
+      </div>
+    </div>
+    <p id="formation-msg" class="text-[11px] text-gray-500 mt-3">Current: <b>Auto-balanced by mastery level</b> — teams are formed to mix high/mid/low mastery students evenly.</p>
+    <div class="rounded-xl bg-amber-50 border border-amber-100 p-3 mt-3 flex items-start gap-2.5">
+      <span class="text-lg shrink-0">⚠️</span>
+      <p class="text-xs text-amber-800">3 teams recommended for rebalancing due to skill imbalance (Team Nova, Team Apex, Team Comet each have 3+ members below Developing).</p>
+    </div>
+    <button class="btn3d sm mt-3" onclick="toast('Rebalancing recommendation queued for teacher review','🔄')" style="background:#0382bd">🔄 Suggest rebalance</button>
+  </div>
+
+</div>
+
+<nav class="bottom-bar">
+  <a href="coordinator-dashboard.html" class="tab-btn" data-tab="home"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125h14.25c.621 0 1.125-.504 1.125-1.125V9.75"/></svg><span>Home</span></a>
+  <a href="coordinator-outcomes.html" class="tab-btn" data-tab="outcomes"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941"/></svg><span>Outcomes</span></a>
+  <a href="coordinator-teams.html" class="tab-btn active" data-tab="teams"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Z"/></svg><span>Teams</span></a>
+  <a href="coordinator-curriculum.html" class="tab-btn" data-tab="curriculum"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg><span>Matrix</span></a>
+  <a href="coordinator-accreditation.html" class="tab-btn" data-tab="accred"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25Z"/></svg><span>Accredit</span></a>
+</nav>
+<script src="shared.js"></script>
+<script>
+  const TEAMS=[
+    ['Team Voltage','CS301 · Database Design',5,82,88,'up'],
+    ['Team Nova','CS301 · Database Design',5,58,61,'down'],
+    ['Team Apex','CS301 · Database Design',4,45,52,'down'],
+    ['Team Quasar','CS205 · Web Development',5,79,84,'flat'],
+    ['Team Comet','CS205 · Web Development',4,38,44,'down'],
+    ['Team Fusion','AI101 · AI Fundamentals',5,88,91,'up'],
+    ['Team Orbit','AI101 · AI Fundamentals',5,74,77,'flat'],
+  ];
+  const trendIc={up:'<span class="trend trend-up">↗ Rising</span>',down:'<span class="trend trend-down">↘ Falling</span>',flat:'<span class="trend trend-flat">→ Steady</span>'};
+  function healthPill(v){ if(v>=70) return `<span class="pill pill-green">${v}</span>`; if(v>=40) return `<span class="pill pill-amber">${v}</span>`; return `<span class="pill pill-red">${v}</span>`; }
+  document.getElementById('teams-rows').innerHTML=TEAMS.map(t=>`<tr><td><b style="color:#0f172a">${t[0]}</b></td><td>${t[1]}</td><td>${t[2]}</td><td>${healthPill(t[3])}</td><td>${t[4]}</td><td>${trendIc[t[5]]}</td><td><button class="text-xs font-bold text-blue-600" onclick="toast('Opening '+'${t[0]}'+' detail…','👥')">View</button></td></tr>`).join('');
+  function setFormation(btn,mode){
+    const buttons=btn.parentElement.querySelectorAll('button');
+    buttons.forEach(b=>{ b.classList.add('b-ghost'); b.style.background=''; });
+    btn.classList.remove('b-ghost'); btn.style.background='#0382bd';
+    document.getElementById('formation-msg').innerHTML = mode==='balanced'
+      ? 'Current: <b>Auto-balanced by mastery level</b> — teams are formed to mix high/mid/low mastery students evenly.'
+      : 'Current: <b>Self-selected</b> — students choose their own teammates within course-set size limits.';
+    toast('Formation mode updated','⚙️');
+  }
+</script>
+</body>
+</html>

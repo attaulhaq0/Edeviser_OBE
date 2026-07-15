@@ -10,23 +10,23 @@ import {
   type Department,
 } from "@/hooks/useDepartments";
 import { useAuth } from "@/hooks/useAuth";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import {
+  Badge,
+  Button,
+  Card,
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import {
+  Input,
+  PageHeader,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+  Shimmer,
+} from "@/design-system";
 import {
   Form,
   FormField,
@@ -36,7 +36,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
-import Shimmer from "@/components/shared/Shimmer";
 import { Plus, Pencil, Trash2, Building2, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -211,11 +210,7 @@ const DepartmentFormDialog = ({
               >
                 Cancel
               </Button>
-              <Button
-                type="submit"
-                disabled={isPending}
-                className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 text-white"
-              >
+              <Button type="submit" disabled={isPending} variant="tactile">
                 {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
                 {isEdit ? "Update" : "Create"}
               </Button>
@@ -319,15 +314,14 @@ const DepartmentManager = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Departments</h1>
-        <Button
-          onClick={handleCreate}
-          className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 text-white"
-        >
-          <Plus className="h-4 w-4" /> Add Department
-        </Button>
-      </div>
+      <PageHeader
+        title="Departments"
+        action={
+          <Button onClick={handleCreate} variant="tactile">
+            <Plus className="h-4 w-4" /> Add Department
+          </Button>
+        }
+      />
 
       {isLoading ? (
         <div className="space-y-3">

@@ -7,7 +7,7 @@ import { useMarketplaceAnalytics } from "@/hooks/useMarketplaceAnalytics";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 import { InlineNoData } from "@/components/shared/EmptyState";
 import {
   ArrowLeft,

@@ -14,7 +14,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 import AtRiskStudentRow from "@/components/shared/AtRiskStudentRow";
 import ErrorState from "@/components/shared/ErrorState";
 import {
@@ -157,7 +157,7 @@ const AIAtRiskWidget = () => {
             <Button
               onClick={handleSendNudge}
               disabled={nudgeMutation.isPending || !nudgeMessage.trim()}
-              className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
+              variant="tactile"
             >
               {nudgeMutation.isPending && (
                 <Loader2 className="h-4 w-4 animate-spin" />

@@ -7,7 +7,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ChevronLeft, ChevronRight, Calendar, Lock } from "lucide-react";
 import { useCalendarEvents, type CalendarEvent } from "@/hooks/useCalendar";
 import { dedupeCalendarEvents } from "@/lib/calendarDeadlines";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 
 type ViewMode = "monthly" | "weekly";
 

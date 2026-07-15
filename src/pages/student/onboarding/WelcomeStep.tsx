@@ -27,7 +27,7 @@ export const WelcomeStep = ({ isDay1, onComplete }: WizardStepProps) => {
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.4, ease: "easeOut" }}
-        className="mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-500 to-blue-600"
+        className="mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-[linear-gradient(93.65deg,#14b8a6_5.37%,#0382bd_78.89%)]"
       >
         <Sparkles className="h-10 w-10 text-white" />
       </motion.div>
@@ -117,7 +117,8 @@ export const WelcomeStep = ({ isDay1, onComplete }: WizardStepProps) => {
 
       <Button
         onClick={onComplete}
-        className="mt-8 gap-2 bg-gradient-to-r from-teal-500 to-blue-600 px-8 active:scale-95"
+        variant="tactile"
+        className="mt-8 gap-2 px-8"
       >
         Let&apos;s Go
         <ArrowRight className="h-4 w-4" />
@@ -136,7 +137,7 @@ const StepPreview = ({
   description: string;
 }) => (
   <li className="flex items-start gap-2">
-    <div className="mt-1 h-2 w-2 shrink-0 rounded-full bg-gradient-to-r from-teal-500 to-blue-600" />
+    <div className="mt-1 h-2 w-2 shrink-0 rounded-full bg-[linear-gradient(93.65deg,#14b8a6_5.37%,#0382bd_78.89%)]" />
     <div>
       <p className="text-sm font-medium text-gray-900">{label}</p>
       <p className="text-xs text-gray-500">{description}</p>

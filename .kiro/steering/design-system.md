@@ -50,7 +50,11 @@ Built on Shadcn/ui (New York style, Radix primitives). Components live in `src/c
 
 ### Button Rules
 
-- Primary CTA: gradient `from-teal-500 to-blue-600` with `active:scale-95`
+- Primary CTA: brand gradient `var(--brand-gradient)` (the prototype-exact
+  `linear-gradient(93.65deg, #14B8A6 5.37%, #0382BD 78.89%)`) with `active:scale-95`
+  — use the `tactile` `Button` variant / `.btn-tactile`. Do NOT use the legacy
+  `from-teal-500 to-blue-600` utility in new or rebuilt work (see
+  `prototype-fidelity.md`, which is authoritative for visual decisions).
 - Max 1 gradient button per section
 - Loading state: `<Loader2 className="animate-spin" />`
 - Min touch target: 44x44px on mobile

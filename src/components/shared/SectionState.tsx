@@ -14,7 +14,7 @@
 // =============================================================================
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 import ErrorState from "@/components/shared/ErrorState";
 import { cn } from "@/lib/utils";
 

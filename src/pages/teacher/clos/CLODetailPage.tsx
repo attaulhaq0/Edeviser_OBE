@@ -23,7 +23,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import BloomsPill from "@/components/shared/BloomsPill";
 import OutcomeTypeBadge from "@/components/shared/OutcomeTypeBadge";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 import {
   useCLO,
   useCLOMappedPLOs,

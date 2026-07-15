@@ -16,7 +16,7 @@ import {
 } from "recharts";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import GradientCardHeader from "@/components/shared/GradientCardHeader";
+import { GradientCardHeader } from "@/design-system";
 import { cn } from "@/lib/utils";
 import type { WeeklyStudyData } from "@/types/planner";
 import { TrendingUp } from "lucide-react";

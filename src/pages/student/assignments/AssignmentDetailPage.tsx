@@ -13,7 +13,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 import UploadProgress from "@/components/shared/UploadProgress";
 import ErrorState from "@/components/shared/ErrorState";
 import { toast } from "sonner";
@@ -570,7 +570,7 @@ const AssignmentDetailPage = () => {
               <Button
                 onClick={handleSubmit}
                 disabled={!selectedFile || isUploading || isSubmitting}
-                className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
+                variant="tactile"
               >
                 {(isUploading || isSubmitting) && (
                   <Loader2 className="h-4 w-4 animate-spin me-2" />

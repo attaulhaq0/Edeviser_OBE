@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Edeviser — Daily Review</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
+<link rel="stylesheet" href="shared.css"/>
+<style>
+  /* Daily Review "Arena" — maps to review_schedules (interval_days 1/3/7,
+     status pending/completed/skipped, per CLO spaced repetition), quiz_attempts
+     /practice, and CLO memory strength. Rating reschedules the next review. */
+  html.mode-laptop body[data-norail] .page-content{max-width:none;padding-right:32px}
+  .rv-grid{display:block}
+  html.mode-laptop .rv-grid{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:24px;align-items:start}
+  html.mode-laptop .rv-rail{position:sticky;top:74px;display:flex;flex-direction:column;gap:16px}
+  /* Flip card */
+  .flip{perspective:1600px}
+  .flip-in{position:relative;transition:transform .5s cubic-bezier(.2,.7,.2,1);transform-style:preserve-3d;min-height:300px}
+  .flip.flipped .flip-in{transform:rotateY(180deg)}
+  .flip-face{position:absolute;inset:0;backface-visibility:hidden;border-radius:20px;padding:32px;display:flex;flex-direction:column;background:#fff;border:1px solid #eef2f6;box-shadow:0 10px 30px rgba(16,24,40,.08)}
+  .flip-back{transform:rotateY(180deg);background:linear-gradient(135deg,#f0fdfa,#eff6ff);border-color:#99f6e4}
+  /* progress dots */
+  .dot{width:100%;height:8px;border-radius:4px;background:#e2e8f0}
+  .dot.done{background:var(--brand-gradient)}
+  .dot.cur{background:#0f172a}
+  /* heatmap */
+  .hm{display:grid;grid-template-columns:repeat(14,1fr);gap:3px}
+  .hm i{aspect-ratio:1;border-radius:3px;background:#eef2f6;display:block}
+  .rate-btn{padding:12px 8px;border-radius:14px;font-size:13px;font-weight:800;border:1px solid;cursor:pointer;line-height:1.2;transition:transform .08s}
+  .rate-btn:hover{transform:translateY(-1px)}
+</style>
+</head>
+<body class="bg-slate-50" data-role="student" data-norail>
+
+<header class="app-header">
+  <div class="flex items-center gap-3">
+    <a href="dashboard.html" class="p-1.5 rounded-lg hover:bg-gray-100"><svg class="h-5 w-5 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg></a>
+    <div><h1 class="text-base font-bold tracking-tight text-gray-900">Daily Review</h1><p class="text-xs text-gray-500">Adaptive spaced repetition</p></div>
+  </div>
+  <div class="flex items-center gap-2">
+    <span class="text-xs font-black text-orange-600 bg-orange-50 border border-orange-100 px-2.5 py-1.5 rounded-full">🔥 9-day review streak</span>
+  </div>
+</header>
+
+<div class="page-content no-scrollbar">
+  <!-- BACKEND GROUNDING · hooks: useReviewQueue, useReviewSchedule | tables: review_schedules, evidence, micro_assessment_schedule -->
+
+  <!-- ═══════════ STATE 1: HUB ═══════════ -->
+  <div id="rv-hub">
+    <!-- Hero -->
+    <div class="rounded-2xl p-5 text-white shadow-lg mb-4" style="background:linear-gradient(135deg,#0f172a 0%,#1e3a8a 50%,#312e81 100%)">
+      <div class="flex items-center gap-4 flex-wrap">
+        <div class="h-16 w-16 rounded-2xl bg-white/15 border border-white/20 flex items-center justify-center text-3xl shrink-0">🧠</div>
+        <div class="flex-1 min-w-0">
+          <h2 class="text-xl font-black">8 cards due today</h2>
+          <p class="text-sm text-white/70 mt-0.5">Across 3 topics · ~6 min · keeps your memory strong before it fades</p>
+        </div>
+        <button onclick="startSession()" class="btn3d" style="background:linear-gradient(90deg,#2dd4bf,#38bdf8)">▶ Start review</button>
+      </div>
+    </div>
+
+    <div class="rv-grid">
+      <div class="space-y-4">
+        <!-- Due by topic (review_schedules grouped by CLO + memory strength) -->
+        <div class="pcard p-4">
+          <div class="sec-h"><span class="chip">📚</span><p class="t">Due today by topic</p></div>
+          <div class="space-y-3">
+            <div><div class="flex items-center justify-between mb-1"><span class="text-sm font-bold text-gray-900">Normalization (CLO3)</span><span class="text-xs font-bold text-gray-500">3 cards · strength 62%</span></div><div class="emeter good"><span style="width:62%"></span></div></div>
+            <div><div class="flex items-center justify-between mb-1"><span class="text-sm font-bold text-gray-900">REST APIs (CLO5)</span><span class="text-xs font-bold text-gray-500">3 cards · strength 48%</span></div><div class="emeter attention"><span style="width:48%"></span></div></div>
+            <div><div class="flex items-center justify-between mb-1"><span class="text-sm font-bold text-gray-900">Indexing (CLO4)</span><span class="text-xs font-bold text-gray-500">2 cards · strength 71%</span></div><div class="emeter good"><span style="width:71%"></span></div></div>
+          </div>
+        </div>
+
+        <!-- Review streak heatmap -->
+        <div class="pcard p-4">
+          <div class="sec-h"><span class="chip">🔥</span><p class="t">Review streak · last 14 days</p></div>
+          <div class="hm" id="heatmap"></div>
+          <div class="flex items-center justify-end gap-1.5 mt-2 text-[10px] text-gray-400"><span>Less</span><i class="inline-block h-2.5 w-2.5 rounded-sm" style="background:#eef2f6"></i><i class="inline-block h-2.5 w-2.5 rounded-sm" style="background:#a7f3d0"></i><i class="inline-block h-2.5 w-2.5 rounded-sm" style="background:#34d399"></i><i class="inline-block h-2.5 w-2.5 rounded-sm" style="background:#059669"></i><span>More</span></div>
+        </div>
+      </div>
+
+      <!-- Rail: stats + forecast -->
+      <aside class="rv-rail">
+        <div class="pcard p-4">
+          <div class="sec-h"><span class="chip">📊</span><p class="t">Your recall</p></div>
+          <div class="grid grid-cols-2 gap-2">
+            <div class="stat-tile"><p class="st-k">Retention</p><p class="st-v text-green-600">84%</p></div>
+            <div class="stat-tile"><p class="st-k">This week</p><p class="st-v">46 cards</p></div>
+            <div class="stat-tile"><p class="st-k">Longest streak</p><p class="st-v">21 days</p></div>
+            <div class="stat-tile"><p class="st-k">Due tomorrow</p><p class="st-v">5 cards</p></div>
+          </div>
+        </div>
+        <div class="pcard p-4">
+          <div class="sec-h"><span class="chip">📈</span><p class="t">Memory forecast</p></div>
+          <p class="text-[11px] text-gray-500 mb-2">Without review, recall drops. Each review flattens the curve.</p>
+          <div class="flex items-end gap-1.5 h-20">
+            <div class="flex-1 rounded-t" style="height:95%;background:var(--brand-gradient)"></div>
+            <div class="flex-1 rounded-t bg-slate-200" style="height:70%"></div>
+            <div class="flex-1 rounded-t bg-slate-200" style="height:52%"></div>
+            <div class="flex-1 rounded-t bg-slate-200" style="height:40%"></div>
+            <div class="flex-1 rounded-t bg-slate-200" style="height:30%"></div>
+          </div>
+          <div class="flex justify-between text-[9px] text-gray-400 mt-1"><span>Now</span><span>+1d</span><span>+3d</span><span>+7d</span><span>+14d</span></div>
+        </div>
+        <div class="pcard p-4" style="background:linear-gradient(135deg,#f0fdfa,#eff6ff);border:1px solid #99f6e4">
+          <p class="text-xs font-black text-teal-700 mb-1">💡 Why adaptive?</p>
+          <p class="text-[11px] text-gray-600 leading-relaxed">Cards you find hard return sooner; easy ones wait longer — tuned to <b>your</b> forgetting curve, not a fixed timer.</p>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- ═══════════ STATE 2: SESSION ═══════════ -->
+  <div id="rv-session" hidden>
+    <!-- progress track -->
+    <div class="flex items-center gap-3 mb-4">
+      <button onclick="backToHub()" class="p-1.5 rounded-lg hover:bg-gray-100 shrink-0"><svg class="h-5 w-5 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg></button>
+      <div class="flex-1 flex gap-1.5" id="dots"></div>
+      <span class="text-xs font-bold text-gray-500 shrink-0" id="sess-count">1 / 8</span>
+    </div>
+
+    <div class="rv-grid">
+      <!-- Flashcard -->
+      <div>
+        <div class="flip" id="flip">
+          <div class="flip-in">
+            <div class="flip-face">
+              <div class="flex items-center justify-between"><span class="pill pill-blue" id="card-clo">Normalization</span><span class="text-xs text-gray-400">🔁 due today</span></div>
+              <p class="text-[10px] font-black uppercase tracking-widest text-gray-400 mt-5">Recall</p>
+              <p class="text-2xl font-bold text-gray-900 mt-2 leading-snug flex-1" id="card-q"></p>
+              <button onclick="flip()" class="btn3d w-full mt-4" style="background:var(--brand-gradient)">Show answer</button>
+            </div>
+            <div class="flip-face flip-back">
+              <p class="text-[10px] font-black uppercase tracking-widest text-teal-600">Answer</p>
+              <p class="text-lg text-gray-800 mt-2 leading-relaxed flex-1" id="card-a"></p>
+              <p class="text-center text-[11px] text-gray-500 mb-2">How well did you recall it? <span class="text-gray-400">(sets your next review)</span></p>
+              <div class="grid grid-cols-4 gap-2">
+                <button onclick="rate('Again','<1d',0)" class="rate-btn text-red-700 bg-red-50" style="border-color:#fecaca">Again<br><span class="text-[9px] opacity-70">&lt;1d</span></button>
+                <button onclick="rate('Hard','2d',1)" class="rate-btn text-amber-700 bg-amber-50" style="border-color:#fde68a">Hard<br><span class="text-[9px] opacity-70">2d</span></button>
+                <button onclick="rate('Good','4d',1)" class="rate-btn text-blue-700 bg-blue-50" style="border-color:#bfdbfe">Good<br><span class="text-[9px] opacity-70">4d</span></button>
+                <button onclick="rate('Easy','9d',1)" class="rate-btn text-green-700 bg-green-50" style="border-color:#bbf7d0">Easy<br><span class="text-[9px] opacity-70">9d</span></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live HUD -->
+      <aside class="rv-rail">
+        <div class="pcard p-4 text-center" style="background:linear-gradient(135deg,#fff7ed,#fef3c7);border:1px solid #fed7aa">
+          <p class="text-[10px] font-black uppercase tracking-widest text-amber-600">Combo</p>
+          <p class="text-4xl font-black text-amber-600 mt-1" id="combo">×1</p>
+          <p class="text-[11px] text-gray-500 mt-1">Chain "Good"+ to boost XP</p>
+        </div>
+        <div class="pcard p-4">
+          <div class="grid grid-cols-2 gap-2">
+            <div class="stat-tile"><p class="st-k">Session XP</p><p class="st-v text-teal-600" id="sess-xp">0</p></div>
+            <div class="stat-tile"><p class="st-k">Accuracy</p><p class="st-v" id="sess-acc">—</p></div>
+            <div class="stat-tile"><p class="st-k">Remaining</p><p class="st-v" id="sess-rem">8</p></div>
+            <div class="stat-tile"><p class="st-k">Topic</p><p class="st-v text-[13px]" id="sess-topic">—</p></div>
+          </div>
+        </div>
+        <div class="pcard p-4">
+          <p class="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Tip</p>
+          <p class="text-xs text-gray-600 leading-relaxed">Try to answer <b>out loud</b> before flipping — retrieval practice is what strengthens memory.</p>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- ═══════════ STATE 3: DONE ═══════════ -->
+  <div id="rv-done" hidden>
+    <div class="max-w-lg mx-auto text-center pt-6 fade-in-up">
+      <div class="text-6xl mb-2">🎉</div>
+      <h1 class="text-2xl font-black text-gray-900">Review complete!</h1>
+      <p class="text-sm text-gray-500 mt-1" id="done-sub">8 cards reviewed. Each is rescheduled by how well you knew it.</p>
+      <div class="grid grid-cols-3 gap-3 mt-5">
+        <div class="pcard p-4"><p class="text-2xl font-black text-teal-600" id="done-xp">+0</p><p class="text-[10px] text-gray-500 uppercase font-bold">XP earned</p></div>
+        <div class="pcard p-4"><p class="text-2xl font-black text-gray-900" id="done-acc">—</p><p class="text-[10px] text-gray-500 uppercase font-bold">Accuracy</p></div>
+        <div class="pcard p-4"><p class="text-2xl font-black text-orange-500">10🔥</p><p class="text-[10px] text-gray-500 uppercase font-bold">Day streak</p></div>
+      </div>
+      <div class="pcard p-5 mt-4 text-left" style="background:linear-gradient(135deg,#f0fdf4,#ecfdf5);border:1px solid #bbf7d0">
+        <p class="text-[10px] font-black uppercase tracking-widest text-green-700 mb-1.5">Retention boosted</p>
+        <p class="text-xs text-gray-600 leading-relaxed">Normalization ↑ to 74% · REST APIs ↑ to 61% · Indexing ↑ to 80%. Come back tomorrow — <b>5 cards</b> will be due.</p>
+      </div>
+      <a href="dashboard.html" class="btn3d w-full mt-5" style="background:var(--brand-gradient)">Back to Today</a>
+    </div>
+  </div>
+
+</div>
+
+<nav class="bottom-bar">
+  <a href="dashboard.html" class="tab-btn" data-tab="home"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75"/></svg><span>Home</span></a>
+  <a href="learn.html" class="tab-btn" data-tab="learn"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/></svg><span>Learn</span></a>
+  <a href="tutor.html" class="tab-btn" data-tab="tutor"><div class="tutor-fab"><span class="text-lg">🤖</span></div><span>Tutor</span></a>
+  <a href="progress.html" class="tab-btn" data-tab="progress"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941"/></svg><span>Progress</span></a>
+  <a href="profile.html" class="tab-btn" data-tab="me"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg><span>Me</span></a>
+</nav>
+<script src="shared.js"></script>
+<script>
+  const CARDS=[
+    {clo:'Normalization',q:'What makes a table violate 3NF?',a:'A non-key column depends on another non-key column (a transitive dependency).'},
+    {clo:'REST APIs',q:'Which HTTP verb is idempotent but not safe?',a:'PUT — repeating it has the same effect, but it changes server state.'},
+    {clo:'Normalization',q:'What is a partial dependency (2NF)?',a:'A non-key column depends on only part of a composite key.'},
+    {clo:'Indexing',q:'Purpose of an index on a column?',a:'Speeds up reads/lookups on that column, at the cost of slower writes.'},
+    {clo:'REST APIs',q:'What does HTTP status 201 mean?',a:'Created — the request succeeded and a new resource was created.'},
+    {clo:'Normalization',q:'What does BCNF fix that 3NF may miss?',a:'Anomalies from a non-trivial dependency where the determinant is not a candidate key.'},
+    {clo:'Indexing',q:'When can an index hurt performance?',a:'On write-heavy tables — every insert/update must also maintain the index.'},
+    {clo:'REST APIs',q:'Difference between PUT and PATCH?',a:'PUT replaces the whole resource; PATCH applies a partial update.'}
+  ];
+  // Heatmap (14 days, intensity 0-3)
+  (function(){ const vals=[2,3,1,0,2,3,3,1,2,0,3,2,3,3]; const cols=['#eef2f6','#a7f3d0','#34d399','#059669'];
+    document.getElementById('heatmap').innerHTML=vals.map(v=>`<i style="background:${cols[v]}"></i>`).join(''); })();
+
+  let i=0, combo=0, correct=0, xp=0;
+  const $=id=>document.getElementById(id);
+  function show(state){ ['rv-hub','rv-session','rv-done'].forEach(s=>$(s).hidden=(s!==state)); window.scrollTo(0,0); }
+  function renderDots(){ $('dots').innerHTML=CARDS.map((_,n)=>`<span class="dot ${n<i?'done':n===i?'cur':''}"></span>`).join(''); }
+  function renderCard(){
+    if(i>=CARDS.length){ finish(); return; }
+    const c=CARDS[i];
+    $('flip').classList.remove('flipped');
+    $('card-clo').textContent=c.clo; $('card-q').textContent=c.q; $('card-a').textContent=c.a;
+    $('sess-count').textContent=(i+1)+' / '+CARDS.length;
+    $('sess-rem').textContent=CARDS.length-i; $('sess-topic').textContent=c.clo;
+    renderDots();
+  }
+  function startSession(){ i=0;combo=0;correct=0;xp=0; $('sess-xp').textContent='0'; $('sess-acc').textContent='—'; $('combo').textContent='×1'; show('rv-session'); renderCard(); }
+  function backToHub(){ show('rv-hub'); }
+  function flip(){ $('flip').classList.add('flipped'); }
+  function rate(label,next,ok){
+    if(ok){ combo++; correct++; } else { combo=0; }
+    const mult=combo>=3?3:combo>=2?2:1;
+    const gain=ok?5*mult:2;
+    xp+=gain;
+    $('sess-xp').textContent=xp;
+    $('combo').textContent='×'+mult;
+    $('sess-acc').textContent=Math.round((correct/(i+1))*100)+'%';
+    toast(label+' · next in '+next+(ok&&mult>1?` · ×${mult} combo!`:''), ok?'✅':'🔁');
+    i++; renderCard();
+  }
+  function finish(){
+    $('done-xp').textContent='+'+xp;
+    $('done-acc').textContent=Math.round((correct/CARDS.length)*100)+'%';
+    $('done-sub').textContent=CARDS.length+' cards reviewed · '+correct+' recalled. Each is rescheduled by how well you knew it.';
+    show('rv-done');
+    if(window.confetti) confetti();
+  }
+  // Each state (hub/session) has its own .rv-grid main+rail pair; done state
+  // is a single centered column with nothing to equalize.
+  const _origShow=show;
+  show=function(state){ _origShow(state); if(state!=='rv-done') setTimeout(()=>equalizeColumns('#'+state+' .rv-grid > div:first-child','#'+state+' .rv-rail'),30); };
+  window.addEventListener('load',()=>equalizeColumns('#rv-hub .rv-grid > div:first-child','#rv-hub .rv-rail'));
+</script>
+</body>
+</html>

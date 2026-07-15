@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Edeviser — Accreditation</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
+<link rel="stylesheet" href="shared.css"/>
+<style>
+  /* Accreditation — readiness status tiles, evidence status cards, pack
+     checklist, and a horizontal approval-workflow stepper. All scoped. */
+  body[data-role="coordinator"] .rd-tile{border-radius:12px;padding:9px 12px;border:1px solid #eef2f6;display:flex;flex-direction:column}
+  body[data-role="coordinator"] .rd-tile b{font-size:19px;font-weight:900;line-height:1}
+  body[data-role="coordinator"] .rd-tile span{font-size:9.5px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;margin-top:4px}
+  body[data-role="coordinator"] .rd-tile.ok{background:#f0fdf4;border-color:#bbf7d0}
+  body[data-role="coordinator"] .rd-tile.ok b,body[data-role="coordinator"] .rd-tile.ok span{color:#16a34a}
+  body[data-role="coordinator"] .rd-tile.prog{background:#eff6ff;border-color:#bfdbfe}
+  body[data-role="coordinator"] .rd-tile.prog b,body[data-role="coordinator"] .rd-tile.prog span{color:#1d4ed8}
+  body[data-role="coordinator"] .rd-tile.blk{background:#fef2f2;border-color:#fecaca}
+  body[data-role="coordinator"] .rd-tile.blk b,body[data-role="coordinator"] .rd-tile.blk span{color:#dc2626}
+  body[data-role="coordinator"] .rd-tile.ns{background:#f8fafc;border-color:#e2e8f0}
+  body[data-role="coordinator"] .rd-tile.ns b,body[data-role="coordinator"] .rd-tile.ns span{color:#64748b}
+  /* evidence status card */
+  body[data-role="coordinator"] .ev-card{display:flex;align-items:center;gap:12px;border:1px solid #eef2f6;border-radius:12px;padding:11px 12px}
+  body[data-role="coordinator"] .ev-card.blocked{border-color:#fecaca;background:#fff7f7}
+  /* approval-workflow stepper */
+  body[data-role="coordinator"] .wf{display:flex;align-items:flex-start}
+  body[data-role="coordinator"] .wf-step{flex:1;text-align:center;position:relative;padding-top:26px}
+  body[data-role="coordinator"] .wf-step::before{content:"";position:absolute;top:9px;right:50%;width:100%;height:2px;background:#e2e8f0}
+  body[data-role="coordinator"] .wf-step:first-child::before{display:none}
+  body[data-role="coordinator"] .wf-step.done::before{background:#16a34a}
+  body[data-role="coordinator"] .wf-step.cur::before{background:linear-gradient(90deg,#16a34a,#0382bd)}
+  body[data-role="coordinator"] .wf-dot{position:absolute;top:0;left:50%;transform:translateX(-50%);width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:#fff;background:#cbd5e1}
+  body[data-role="coordinator"] .wf-step.done .wf-dot{background:#16a34a}
+  body[data-role="coordinator"] .wf-step.cur .wf-dot{background:#0382bd;box-shadow:0 0 0 3px #dbeafe}
+  body[data-role="coordinator"] .wf-t{font-size:11px;font-weight:800;color:#0f172a;margin:0;line-height:1.15}
+  body[data-role="coordinator"] .wf-s{font-size:9px;font-weight:700;color:#94a3b8;margin:1px 0 0}
+</style>
+</head>
+<body class="bg-slate-50" data-role="coordinator">
+<header class="app-header">
+  <div class="hdr-brand flex items-center gap-2"><div class="h-7 w-7 rounded-lg flex items-center justify-center" style="background:var(--brand-gradient)"><span class="text-white text-sm">✦</span></div><span class="text-base font-bold tracking-tight text-gray-900">Edeviser</span></div>
+  <div class="flex items-center gap-2"><a href="coordinator-profile.html" class="h-8 w-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style="background:var(--brand-gradient)">K</a></div>
+</header>
+<div class="page-content space-y-4 no-scrollbar">
+  <!-- BACKEND GROUNDING · hooks: useCoordinatorAccreditation, useAccreditationReport | tables: program_accreditations, accreditation_approvals, graduate_attributes -->
+
+  <div class="feed-wide"><h1 class="text-xl font-black tracking-tight text-gray-900">Accreditation evidence</h1><p class="text-xs text-gray-500 mt-0.5">AI assembles course files &amp; evidence from live data. You review and sign off.</p></div>
+
+  <!-- Readiness hero — overall % ring plus a live breakdown of every required
+       artifact into Complete / In progress / Blocked / Not started. -->
+  <div class="feed-wide pcard p-5">
+    <div class="flex items-center gap-4">
+      <div class="relative h-20 w-20 shrink-0"><svg class="h-20 w-20 -rotate-90" viewBox="0 0 36 36"><circle cx="18" cy="18" r="16" fill="none" stroke="#eef2f6" stroke-width="3.5"/><circle cx="18" cy="18" r="16" fill="none" stroke="#3b82f6" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="100" stroke-dashoffset="18"/></svg><div class="absolute inset-0 flex items-center justify-center text-lg font-black text-blue-600">82%</div></div>
+      <div><p class="text-sm font-bold text-gray-900">Evidence readiness</p><p class="text-xs text-gray-500 mt-0.5">Live status across all required evidence. One blocker (Concurrency gap) stands between you and a generated pack.</p></div>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mt-4">
+      <div class="rd-tile ok"><b>2</b><span>Complete</span></div>
+      <div class="rd-tile prog"><b>1</b><span>In progress</span></div>
+      <div class="rd-tile blk"><b>1</b><span>Blocked</span></div>
+      <div class="rd-tile ns"><b>1</b><span>Not started</span></div>
+    </div>
+  </div>
+
+  <div class="lg-row lg-row-2 space-y-4 items-start">
+  <!-- Course files -->
+  <div class="pcard p-4">
+    <div class="sec-h"><span class="chip">📂</span><p class="t">Course files</p><span class="ml-auto text-[11px] font-bold text-gray-400">5 tracked</span></div>
+    <div class="space-y-2.5">
+      <div class="ev-card"><span class="text-lg">📗</span><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">CS301 · Database Design</p><p class="text-xs text-gray-500">Syllabus · CLO-PLO map · sample work · attainment analysis</p></div><span class="pill pill-amber">Draft ready</span><button onclick="aiApprove(this,'CS301 course file approved')" class="text-xs font-bold text-white px-2.5 py-1 rounded-lg" style="background:var(--brand-gradient)">Review</button></div>
+      <div class="ev-card"><span class="text-lg">📗</span><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">CS205 · Web Development</p><p class="text-xs text-gray-500">All artifacts present &amp; signed</p></div><span class="pill pill-green">Signed off</span></div>
+      <div class="ev-card"><span class="text-lg">📗</span><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">AI101 · Intro to AI</p><p class="text-xs text-gray-500">All artifacts present &amp; signed</p></div><span class="pill pill-green">Signed off</span></div>
+      <div class="ev-card blocked"><span class="text-lg">📙</span><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">SE310 · Software Engineering</p><p class="text-xs text-gray-500">Missing Concurrency (PLO4) evidence</p></div><span class="pill pill-red">Blocked</span></div>
+      <div class="ev-card"><span class="text-lg">📕</span><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">CS410 · Distributed Systems</p><p class="text-xs text-gray-500">Course file not started yet</p></div><span class="pill pill-slate">Not started</span><button onclick="aiApprove(this,'AI started the CS410 course file')" class="text-xs font-bold text-white px-2.5 py-1 rounded-lg" style="background:var(--brand-gradient)">Start</button></div>
+    </div>
+  </div>
+
+  <!-- CQI action plans -->
+  <div class="pcard p-4">
+    <div class="sec-h"><span class="chip">🔄</span><p class="t">CQI action plans</p><button onclick="aiApprove(this,'New CQI plan drafted')" class="more">+ AI draft</button></div>
+    <table class="dtable"><thead><tr><th>Action</th><th>Outcome</th><th>Status</th></tr></thead><tbody>
+      <tr><td>Add worked examples to 3NF</td><td>CLO4</td><td><span class="pill pill-green">Completed · +8%</span></td></tr>
+      <tr><td>REST APIs remediation</td><td>CLO5</td><td><span class="pill pill-amber">In progress</span></td></tr>
+      <tr><td>Introduce Concurrency assessment</td><td>PLO4</td><td><span class="pill pill-blue">Planned</span></td></tr>
+    </tbody></table>
+  </div>
+  </div>
+
+  <div class="lg-row lg-row-2 space-y-4 items-start">
+  <!-- Accreditation pack checklist — what the generated pack will contain,
+       with the one outstanding artifact called out. -->
+  <div class="pcard p-4">
+    <div class="sec-h"><span class="chip">🗃️</span><p class="t">Accreditation pack checklist</p></div>
+    <div>
+      <div class="rail-check"><span class="rc-box">✓</span><span class="rc-t">Syllabi &amp; course files</span><span class="rc-time text-green-600">Ready</span></div>
+      <div class="rail-check"><span class="rc-box">✓</span><span class="rc-t">CLO ↔ PLO mappings</span><span class="rc-time text-green-600">Ready</span></div>
+      <div class="rail-check"><span class="rc-box">✓</span><span class="rc-t">Assessment instruments</span><span class="rc-time text-green-600">Ready</span></div>
+      <div class="rail-check"><span class="rc-box">✓</span><span class="rc-t">Sample student work</span><span class="rc-time text-green-600">Ready</span></div>
+      <div class="rail-check"><span class="rc-box">✓</span><span class="rc-t">Attainment analysis</span><span class="rc-time text-green-600">Ready</span></div>
+      <div class="rail-check"><span class="rc-box">✓</span><span class="rc-t">Faculty reflections</span><span class="rc-time text-green-600">Ready</span></div>
+      <div class="rail-check"><span class="rc-box mi">!</span><span class="rc-t">CQI recommendations</span><span class="rc-time text-amber-600">Outstanding</span></div>
+    </div>
+  </div>
+
+  <!-- Approval workflow — evidence moves through four sign-off stages. -->
+  <div class="pcard p-4">
+    <div class="sec-h"><span class="chip">✅</span><p class="t">Approval workflow</p></div>
+    <div class="wf">
+      <div class="wf-step done"><span class="wf-dot">✓</span><p class="wf-t">Coordinator</p><p class="wf-s">Draft signed</p></div>
+      <div class="wf-step cur"><span class="wf-dot">2</span><p class="wf-t">HOD</p><p class="wf-s">In review</p></div>
+      <div class="wf-step"><span class="wf-dot">3</span><p class="wf-t">QA</p><p class="wf-s">Pending</p></div>
+      <div class="wf-step"><span class="wf-dot">4</span><p class="wf-t">Accred. Office</p><p class="wf-s">Pending</p></div>
+    </div>
+    <p class="text-[11px] text-gray-500 mt-3">Currently with the <b>Head of Department</b>. Resolve the Concurrency blocker to unlock QA sign-off.</p>
+  </div>
+  </div>
+
+  <button onclick="toast('Accreditation pack exported (PDF)','📄')" class="feed-wide w-full py-3 rounded-xl text-sm font-bold text-white" style="background:var(--brand-gradient)">📄 Export accreditation pack</button>
+  <p class="feed-wide text-center text-[11px] text-gray-400 -mt-1">Pack generates automatically once the last blocker (CQI recommendations) is resolved.</p>
+
+</div>
+<script src="shared.js"></script>
+</body>
+</html>

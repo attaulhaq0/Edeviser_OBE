@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Edeviser — Rubric Builder</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
+<link rel="stylesheet" href="shared.css"/>
+<style>
+  /* Teacher Rubric Builder — maps to: rubrics (title, clo_id, is_template) +
+     rubric_criteria (criterion_name, sort_order, levels: [{label,description,
+     points}], max_points). Hooks: useRubrics, useRubric, useCreateRubric,
+     useUpdateRubric, useCopyRubric, useRubricTemplates. */
+  html.mode-laptop body[data-norail] .page-content{max-width:none;padding-right:32px}
+  .rb-grid{display:block}
+  html.mode-laptop .rb-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:24px;align-items:start}
+  html.mode-laptop .rb-rail{position:sticky;top:74px;display:flex;flex-direction:column;gap:16px}
+  .rb-tab{font-size:12.5px;font-weight:800;color:#64748b;padding:7px 13px;border-radius:10px;background:#fff;border:1px solid #e8edf3;cursor:pointer;white-space:nowrap}
+  .rb-tab.on{background:#0382bd;color:#fff;border-color:transparent}
+  .rb-item{border:1px solid #eef2f6;border-radius:14px;padding:14px}
+  .rb-crit{border:1px solid #eef2f6;border-radius:12px;padding:12px;margin-bottom:10px;background:#f8fafc}
+  .rb-levels{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}
+  .rb-level{background:#fff;border:1px solid #eef2f6;border-radius:9px;padding:8px}
+  .rb-level input[type=text]{width:100%;border:none;background:transparent;font-size:11px;color:#64748b;padding:0;margin-top:3px}
+  .rb-level .lvl-name{font-size:11px;font-weight:800;color:#0f172a}
+  .rb-level .lvl-pts{font-size:10px;font-weight:700;color:#0382bd}
+</style>
+</head>
+<body class="bg-slate-50" data-role="teacher" data-norail>
+
+<header class="app-header">
+  <div class="flex items-center gap-3">
+    <a href="teacher-dashboard.html" class="p-1.5 rounded-lg hover:bg-gray-100"><svg class="h-5 w-5 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg></a>
+    <div><h1 class="text-base font-bold tracking-tight text-gray-900">Rubric Builder</h1><p class="text-xs text-gray-500">CS301 · Database Design</p></div>
+  </div>
+  <button class="btn3d sm" onclick="openBuilder()" style="background:#0382bd">➕ New rubric</button>
+</header>
+
+<div class="page-content no-scrollbar">
+  <div class="rb-grid">
+    <div class="space-y-4">
+
+      <!-- Filter tabs -->
+      <div class="flex gap-2 overflow-x-auto no-scrollbar">
+        <button class="rb-tab on" onclick="rbTab('all',this)">All rubrics · 6</button>
+        <button class="rb-tab" onclick="rbTab('templates',this)">📋 Templates · 2</button>
+      </div>
+
+      <!-- Builder (hidden until "New rubric" or "Edit") -->
+      <div id="rb-builder" class="pcard p-4" hidden>
+        <div class="sec-h"><span class="chip">✍️</span><p class="t" id="rb-builder-title">New rubric</p></div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+          <div><label class="text-[11px] font-bold text-gray-500">Title</label><input id="rb-title" type="text" class="w-full mt-1 text-sm border border-gray-200 rounded-lg px-2.5 py-2" placeholder="e.g. Database Schema Design Rubric"/></div>
+          <div><label class="text-[11px] font-bold text-gray-500">Linked CLO</label><select class="w-full mt-1 text-sm border border-gray-200 rounded-lg px-2.5 py-2 bg-white"><option>CLO3 · Normalization</option><option>CLO4 · Indexing</option><option>CLO5 · REST APIs</option><option>CLO6 · Model comparison</option></select></div>
+        </div>
+
+        <p class="text-[11px] font-black tracking-widest uppercase text-gray-400 mb-2">Criteria</p>
+        <div id="rb-criteria">
+          <div class="rb-crit">
+            <div class="flex items-center justify-between gap-2">
+              <input type="text" value="Schema normalization" class="flex-1 text-sm font-bold border-none bg-transparent"/>
+              <span class="text-[11px] font-bold text-gray-500 shrink-0">Max 25 pts</span>
+              <button onclick="this.closest('.rb-crit').remove()" class="text-red-500 text-xs font-bold shrink-0">✕</button>
+            </div>
+            <div class="rb-levels">
+              <div class="rb-level"><p class="lvl-name">Exemplary</p><p class="lvl-pts">25 pts</p><input type="text" value="Fully normalized to 3NF, no redundancy"/></div>
+              <div class="rb-level"><p class="lvl-name">Proficient</p><p class="lvl-pts">20 pts</p><input type="text" value="Normalized to 2NF, minor redundancy"/></div>
+              <div class="rb-level"><p class="lvl-name">Developing</p><p class="lvl-pts">12 pts</p><input type="text" value="Attempts normalization, several anomalies remain"/></div>
+              <div class="rb-level"><p class="lvl-name">Beginning</p><p class="lvl-pts">5 pts</p><input type="text" value="No clear normalization applied"/></div>
+            </div>
+          </div>
+          <div class="rb-crit">
+            <div class="flex items-center justify-between gap-2">
+              <input type="text" value="ER diagram clarity" class="flex-1 text-sm font-bold border-none bg-transparent"/>
+              <span class="text-[11px] font-bold text-gray-500 shrink-0">Max 15 pts</span>
+              <button onclick="this.closest('.rb-crit').remove()" class="text-red-500 text-xs font-bold shrink-0">✕</button>
+            </div>
+            <div class="rb-levels">
+              <div class="rb-level"><p class="lvl-name">Exemplary</p><p class="lvl-pts">15 pts</p><input type="text" value="Clear, complete, correctly annotated"/></div>
+              <div class="rb-level"><p class="lvl-name">Proficient</p><p class="lvl-pts">12 pts</p><input type="text" value="Mostly clear, minor omissions"/></div>
+              <div class="rb-level"><p class="lvl-name">Developing</p><p class="lvl-pts">7 pts</p><input type="text" value="Present but hard to follow"/></div>
+              <div class="rb-level"><p class="lvl-name">Beginning</p><p class="lvl-pts">2 pts</p><input type="text" value="Missing or unreadable"/></div>
+            </div>
+          </div>
+        </div>
+        <button class="btn3d sm b-ghost" onclick="addCriterion()">＋ Add criterion</button>
+
+        <div class="flex items-center justify-between mt-4 pt-3" style="border-top:1px solid #f1f5f9">
+          <label class="flex items-center gap-2 text-sm font-semibold text-gray-700"><label class="edv-toggle"><input type="checkbox" id="rb-template-toggle"/><span class="etk"></span></label> Save as reusable template</label>
+          <div class="flex gap-2">
+            <button class="btn3d sm b-ghost" onclick="document.getElementById('rb-builder').hidden=true">Cancel</button>
+            <button class="btn3d sm" onclick="saveRubric()" style="background:#0382bd">Save rubric</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Rubric list -->
+      <div id="rb-list" data-rb="all">
+        <div class="rb-item mb-3">
+          <div class="flex items-center justify-between gap-2 flex-wrap">
+            <div class="min-w-0"><p class="text-sm font-bold text-gray-900">Database Schema Design Rubric</p><p class="text-[11px] text-gray-500 mt-0.5">4 criteria · 65 pts total</p></div>
+            <span class="pill pill-blue">CLO3 · Normalization</span>
+          </div>
+          <div class="flex gap-2 mt-2.5">
+            <button class="btn3d sm b-ghost" onclick="openBuilder('Database Schema Design Rubric')">✏️ Edit</button>
+            <button class="btn3d sm b-ghost" onclick="toast('Rubric duplicated as a copy','📋')">📋 Duplicate</button>
+            <button class="btn3d sm b-ghost" onclick="toast('Attached to Assignment 3','🔗')">🔗 Attach to assignment</button>
+          </div>
+        </div>
+        <div class="rb-item mb-3">
+          <div class="flex items-center justify-between gap-2 flex-wrap">
+            <div class="min-w-0"><p class="text-sm font-bold text-gray-900">Indexing Strategy Rubric</p><p class="text-[11px] text-gray-500 mt-0.5">3 criteria · 40 pts total</p></div>
+            <span class="pill pill-blue">CLO4 · Indexing</span>
+          </div>
+          <div class="flex gap-2 mt-2.5">
+            <button class="btn3d sm b-ghost" onclick="openBuilder('Indexing Strategy Rubric')">✏️ Edit</button>
+            <button class="btn3d sm b-ghost" onclick="toast('Rubric duplicated as a copy','📋')">📋 Duplicate</button>
+            <button class="btn3d sm b-ghost" onclick="toast('Attached to Assignment 4','🔗')">🔗 Attach to assignment</button>
+          </div>
+        </div>
+        <div class="rb-item">
+          <div class="flex items-center justify-between gap-2 flex-wrap">
+            <div class="min-w-0"><p class="text-sm font-bold text-gray-900">REST API Design Rubric</p><p class="text-[11px] text-gray-500 mt-0.5">5 criteria · 80 pts total</p></div>
+            <span class="pill pill-blue">CLO5 · REST APIs</span>
+          </div>
+          <div class="flex gap-2 mt-2.5">
+            <button class="btn3d sm b-ghost" onclick="openBuilder('REST API Design Rubric')">✏️ Edit</button>
+            <button class="btn3d sm b-ghost" onclick="toast('Rubric duplicated as a copy','📋')">📋 Duplicate</button>
+            <button class="btn3d sm b-ghost" onclick="toast('Attached to Assignment 5','🔗')">🔗 Attach to assignment</button>
+          </div>
+        </div>
+      </div>
+      <div data-rb="templates" hidden>
+        <div class="rb-item mb-3">
+          <div class="flex items-center justify-between gap-2 flex-wrap">
+            <div class="min-w-0"><p class="text-sm font-bold text-gray-900">Generic Project Rubric <span class="pill pill-slate ms-1">Template</span></p><p class="text-[11px] text-gray-500 mt-0.5">4 criteria · 100 pts total · reusable across courses</p></div>
+          </div>
+          <button class="btn3d sm b-ghost mt-2.5" onclick="toast('Rubric duplicated as a copy','📋')">📋 Use this template</button>
+        </div>
+        <div class="rb-item">
+          <div class="flex items-center justify-between gap-2 flex-wrap">
+            <div class="min-w-0"><p class="text-sm font-bold text-gray-900">Presentation Rubric <span class="pill pill-slate ms-1">Template</span></p><p class="text-[11px] text-gray-500 mt-0.5">3 criteria · 30 pts total · reusable across courses</p></div>
+          </div>
+          <button class="btn3d sm b-ghost mt-2.5" onclick="toast('Rubric duplicated as a copy','📋')">📋 Use this template</button>
+        </div>
+      </div>
+
+    </div>
+
+    <aside class="rb-rail">
+      <div class="pcard p-4">
+        <div class="sec-h"><span class="chip">📊</span><p class="t">Rubric usage</p></div>
+        <div class="rail-row"><span style="flex:1">Rubrics created</span><b>6</b></div>
+        <div class="rail-row"><span style="flex:1">Attached to assignments</span><b>4</b></div>
+        <div class="rail-row"><span style="flex:1">Templates shared</span><b>2</b></div>
+      </div>
+      <div class="pcard p-4" style="background:linear-gradient(135deg,#f0fdfa,#eff6ff);border:1px solid #99f6e4">
+        <p class="text-xs font-black text-teal-700 mb-1">💡 Consistent grading</p>
+        <p class="text-[11px] text-gray-600 leading-relaxed">Rubric criteria feed straight into per-CLO attainment — clear performance levels make AI-assisted grading more consistent too.</p>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<nav class="bottom-bar">
+  <a href="teacher-dashboard.html" class="tab-btn" data-tab="home"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125h14.25c.621 0 1.125-.504 1.125-1.125V9.75"/></svg><span>Home</span></a>
+  <a href="teacher-students.html" class="tab-btn" data-tab="students"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Z"/></svg><span>Students</span></a>
+  <a href="teacher-rubrics.html" class="tab-btn active" data-tab="rubrics"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25Z"/></svg><span>Rubrics</span></a>
+  <a href="teacher-curriculum.html" class="tab-btn" data-tab="curriculum"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/></svg><span>Curriculum</span></a>
+  <a href="teacher-grading.html" class="tab-btn" data-tab="grading"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg><span>Grading</span></a>
+</nav>
+<script src="shared.js"></script>
+<script>
+  function rbTab(t,btn){
+    document.querySelectorAll('.rb-tab').forEach(b=>b.classList.remove('on'));
+    btn.classList.add('on');
+    document.getElementById('rb-list').hidden = t!=='all';
+    document.querySelector('[data-rb="templates"]').hidden = t!=='templates';
+    window.__eqCols();
+  }
+  function openBuilder(existingTitle){
+    document.getElementById('rb-builder').hidden=false;
+    document.getElementById('rb-builder-title').textContent = existingTitle ? 'Edit rubric' : 'New rubric';
+    document.getElementById('rb-title').value = existingTitle || '';
+    document.getElementById('rb-builder').scrollIntoView({behavior:'smooth'});
+  }
+  function addCriterion(){
+    const wrap=document.getElementById('rb-criteria');
+    const div=document.createElement('div');
+    div.className='rb-crit';
+    div.innerHTML=`<div class="flex items-center justify-between gap-2"><input type="text" placeholder="Criterion name" class="flex-1 text-sm font-bold border-none bg-transparent"/><span class="text-[11px] font-bold text-gray-500 shrink-0">Max 10 pts</span><button onclick="this.closest('.rb-crit').remove()" class="text-red-500 text-xs font-bold shrink-0">✕</button></div><div class="rb-levels"><div class="rb-level"><p class="lvl-name">Exemplary</p><p class="lvl-pts">10 pts</p><input type="text" placeholder="Description"/></div><div class="rb-level"><p class="lvl-name">Proficient</p><p class="lvl-pts">7 pts</p><input type="text" placeholder="Description"/></div><div class="rb-level"><p class="lvl-name">Developing</p><p class="lvl-pts">4 pts</p><input type="text" placeholder="Description"/></div><div class="rb-level"><p class="lvl-name">Beginning</p><p class="lvl-pts">1 pt</p><input type="text" placeholder="Description"/></div></div>`;
+    wrap.appendChild(div);
+  }
+  function saveRubric(){
+    document.getElementById('rb-builder').hidden=true;
+    toast('Rubric saved','✅');
+  }
+  window.__eqCols=()=>equalizeColumns('.rb-grid > div:first-child','.rb-rail');
+  window.addEventListener('load',window.__eqCols);
+</script>
+</body>
+</html>

@@ -104,7 +104,7 @@ const ContentForm = ({ onClose }: ContentFormProps) => {
           <Button
             type="submit"
             disabled={createContent.isPending || !title.trim()}
-            className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
+            variant="tactile"
           >
             {createContent.isPending && (
               <Loader2 className="h-4 w-4 animate-spin" />

@@ -25,7 +25,7 @@ import XPBalanceBadge from "@/components/shared/XPBalanceBadge";
 import ActiveBoostIndicator from "@/components/shared/ActiveBoostIndicator";
 import ItemCard from "@/pages/student/marketplace/ItemCard";
 import PurchaseConfirmDialog from "@/pages/student/marketplace/PurchaseConfirmDialog";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 import { NoMarketplaceItems } from "@/components/shared/EmptyState";
 import { cn } from "@/lib/utils";
 

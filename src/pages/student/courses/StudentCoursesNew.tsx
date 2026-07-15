@@ -16,10 +16,7 @@ import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { BookOpen, CalendarClock, TrendingUp } from "lucide-react";
 
-import { Card } from "@/components/ui/card";
-import KPICard from "@/components/shared/KPICard";
-import MasteryRing from "@/components/shared/MasteryRing";
-import Shimmer from "@/components/shared/Shimmer";
+import { Card, KPICard, MasteryRing, Shimmer } from "@/design-system";
 import { NoCourses } from "@/components/shared/EmptyState";
 import { useAuth } from "@/hooks/useAuth";
 import { useStudentCourses } from "@/hooks/useStudentCourses";

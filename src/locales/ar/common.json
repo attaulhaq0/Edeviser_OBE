@@ -141,6 +141,13 @@
     "defaultMessage": "حدث خطأ غير متوقع.",
     "retry": "إعادة المحاولة"
   },
+  "notFound": {
+    "code": "404",
+    "title": "الصفحة غير موجودة",
+    "description": "الصفحة التي تبحث عنها غير موجودة أو ربما تم نقلها.",
+    "backToLogin": "العودة إلى تسجيل الدخول",
+    "goBack": "رجوع"
+  },
   "blooms": {
     "remembering": "التذكر",
     "understanding": "الفهم",

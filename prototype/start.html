@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Edeviser — Prototype Chooser</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
+<style>*{font-family:'Noto Sans',sans-serif}body{margin:0;background:radial-gradient(circle at 50% 0%,#1e293b,#0f172a);min-height:100vh}</style>
+</head>
+<body class="flex items-center justify-center p-6">
+<div class="w-full max-w-3xl">
+  <div class="text-center mb-8">
+    <h1 class="text-3xl font-black text-white">Edeviser — Student Experience</h1>
+    <p class="text-sm text-slate-400 mt-2">Fully clickable front-end prototype. Toggle 📱 Mobile / 💻 Laptop anywhere via the dock.</p>
+  </div>
+  <div class="max-w-md mx-auto">
+    <a href="roles.html" class="block bg-white rounded-2xl p-7 shadow-xl hover:scale-[1.02] transition">
+      <div class="h-12 w-12 rounded-xl flex items-center justify-center text-2xl mb-3" style="background:linear-gradient(93.65deg,#14B8A6,#0382BD)">🎯</div>
+      <h2 class="text-xl font-black text-gray-900">Enter the prototype</h2>
+      <p class="text-sm text-gray-500 mt-1">An AI-first learning ecosystem across five roles — each opening on what the AI has already prepared. Mobile + laptop, fully clickable, mock data only.</p>
+      <ul class="mt-3 text-xs text-gray-500 space-y-1">
+        <li>🎓 Student · 🧑‍🏫 Teacher · 👨‍👩‍👧 Parent</li>
+        <li>🧭 Coordinator · 🏛️ Admin / Institution</li>
+        <li>✓ Learn loop · AI tutor · triage · curriculum AI · governance</li>
+      </ul>
+      <span class="inline-block mt-5 text-sm font-bold text-white px-5 py-2.5 rounded-xl" style="background:linear-gradient(93.65deg,#14B8A6,#0382BD)">Sign in / Create account →</span>
+    </a>
+    <p class="text-center text-[11px] text-slate-500 mt-3">or <a href="roles.html" class="underline text-slate-300">explore roles</a> · <a href="index.html" class="underline text-slate-300">student onboarding</a></p>
+  </div>
+  <p class="text-center text-xs text-slate-500 mt-6">Tip: use the floating dock (bottom center on desktop, top-right on mobile) to switch device view, switch role, and jump between screens. The 🔔 bell is live.</p>
+</div>
+</body>
+</html>

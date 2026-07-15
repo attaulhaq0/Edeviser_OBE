@@ -3,20 +3,20 @@ import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { Award, BookOpen, Target, TrendingUp } from "lucide-react";
 
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
+  Badge,
+  Card,
+  KPICard,
+  MasteryRing,
+  SectionHeader,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import Shimmer from "@/components/shared/Shimmer";
+  Shimmer,
+} from "@/design-system";
 import { NoLinkedStudents } from "@/components/shared/EmptyState";
-import MasteryRing from "@/components/shared/MasteryRing";
-import SectionHeader from "@/components/shared/SectionHeader";
-import KPICard from "@/components/shared/KPICard";
 import { useAuth } from "@/hooks/useAuth";
 import { useLinkedChildren } from "@/hooks/useParentDashboard";
 import { supabase } from "@/lib/supabase";

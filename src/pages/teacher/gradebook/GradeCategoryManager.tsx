@@ -120,7 +120,7 @@ const GradeCategoryManager = ({ courseId }: GradeCategoryManagerProps) => {
         <Button
           onClick={openCreateDialog}
           size="sm"
-          className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
+          variant="tactile"
           disabled={isBalanced}
         >
           <Plus className="h-4 w-4" /> Add Category
@@ -299,7 +299,8 @@ const CategoryForm = ({
       <Button
         type="submit"
         disabled={isPending}
-        className="w-full bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
+        variant="tactile"
+        className="w-full"
       >
         {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
         {submitLabel}

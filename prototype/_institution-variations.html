@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Edeviser · Institution — professionalism variations</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+  *{box-sizing:border-box}
+  :root{--brand:linear-gradient(93.65deg,#14B8A6 5.37%,#0382BD 78.89%);--acc:#2563eb;--acc-d:#1e40af;--acc-l:#eff6ff;--acc-b:#bfdbfe}
+  body{margin:0;font-family:'Inter',sans-serif;background:#eef2f7;color:#0f172a}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 22px}
+  a{color:inherit}
+  .topbar{position:sticky;top:0;z-index:60;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border-bottom:1px solid #e2e8f0}
+  .topbar .wrap{display:flex;align-items:center;gap:8px;height:56px;overflow-x:auto}
+  .topbar b{font-weight:900;font-size:15px;margin-right:auto;white-space:nowrap}
+  .jump{font-size:12px;font-weight:800;color:#475569;padding:6px 12px;border-radius:10px;border:1px solid #e2e8f0;background:#fff;text-decoration:none;white-space:nowrap}
+  .jump.back{background:#0f172a;color:#fff;border-color:#0f172a}
+  .hero{padding:44px 0 8px}
+  .hero .eyebrow{font-size:12px;font-weight:900;letter-spacing:.13em;text-transform:uppercase;color:#0d9488}
+  .hero h1{font-size:32px;font-weight:900;letter-spacing:-.025em;margin:8px 0 12px;line-height:1.1}
+  .hero p{font-size:14.5px;color:#475569;max-width:850px;line-height:1.65;margin:0}
+
+  .vgrid{display:grid;grid-template-columns:1fr;gap:18px;margin:24px 0 0}
+  @media(min-width:900px){.vgrid{grid-template-columns:1fr 1fr}}
+  .vcard{background:#fff;border:1px solid #e6ebf1;border-radius:16px;overflow:hidden;box-shadow:0 10px 30px -18px rgba(16,24,40,.3)}
+  .vhead{padding:14px 16px;border-bottom:1px solid #eef2f6;display:flex;align-items:flex-start;gap:10px}
+  .vhead .vn{width:30px;height:30px;border-radius:9px;background:#0f172a;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:14px;flex:0 0 auto}
+  .vhead h3{margin:0;font-size:15px;font-weight:800}
+  .vhead p{margin:2px 0 0;font-size:11.5px;color:#64748b;line-height:1.4}
+  .meter{display:flex;gap:3px;margin-top:6px}
+  .meter i{width:20px;height:5px;border-radius:3px;background:#e2e8f0;display:block}
+  .meter i.on{background:#0d9488}
+  .vbody{padding:16px}
+  .vlabel{font-size:9.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#b6c2d0;margin:0 0 8px}
+  .toolbar{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+  .krow{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}
+  .trow{margin-top:16px}
+  table.t{width:100%;border-collapse:collapse;font-size:12.5px}
+  table.t td{padding:8px 6px;color:#374151}
+  .mono{font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums}
+  .foot{padding:40px 0 70px;text-align:center;color:#94a3b8;font-size:12.5px;line-height:1.7}
+  .foot a{color:#1d4ed8;font-weight:700}
+
+  /* ============ V1 · Tactile (current, baseline) ============ */
+  .v1 .card{background:#fff;border:1px solid #eef2f6;border-radius:20px;box-shadow:0 1px 2px rgba(16,24,40,.04),0 10px 26px rgba(16,24,40,.05);padding:13px}
+  .v1 .b{display:inline-flex;align-items:center;gap:6px;border:none;border-radius:12px;font-weight:800;font-size:13px;cursor:pointer;padding:10px 14px;color:#fff;background:var(--brand);box-shadow:0 3px 0 #0b6a93}
+  .v1 .b.s{background:#eff6ff;color:#1d4ed8;box-shadow:0 3px 0 #bfdbfe}
+  .v1 .b.g{background:#f8fafc;color:#334155;box-shadow:0 3px 0 #e2e8f0}
+  .v1 .chip{width:26px;height:26px;border-radius:9px;background:var(--brand);color:#fff;display:inline-flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(20,184,166,.25)}
+  .v1 .chip [data-lucide]{width:15px;height:15px}
+  .v1 .n{font-family:'Noto Sans';font-size:22px;font-weight:900}
+
+  /* ============ V2 · Soft flat ============ */
+  .v2 .card{background:#fff;border:1px solid #e9edf2;border-radius:14px;box-shadow:0 1px 2px rgba(16,24,40,.05),0 6px 16px -10px rgba(16,24,40,.14);padding:13px}
+  .v2 .b{display:inline-flex;align-items:center;gap:6px;border:none;border-radius:10px;font-weight:700;font-size:13px;cursor:pointer;padding:9px 14px;color:#fff;background:#2563eb;transition:background .15s}
+  .v2 .b:hover{background:#1e40af}
+  .v2 .b.s{background:#eff6ff;color:#1d4ed8}
+  .v2 .b.g{background:#f1f5f9;color:#334155}
+  .v2 .chip{width:26px;height:26px;border-radius:8px;background:#eff6ff;color:#2563eb;display:inline-flex;align-items:center;justify-content:center}
+  .v2 .chip [data-lucide]{width:15px;height:15px}
+  .v2 .n{font-family:'JetBrains Mono';font-size:21px;font-weight:700;letter-spacing:-.02em}
+
+  /* ============ V3 · Enterprise flat (Linear/Notion) ============ */
+  .v3{font-family:'Inter'}
+  .v3 .card{background:#fff;border:1px solid #e6e8eb;border-radius:10px;box-shadow:0 1px 0 rgba(0,0,0,.02);padding:12px}
+  .v3 .b{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 13px;border-radius:7px;font-size:12.5px;font-weight:600;cursor:pointer;border:1px solid #16181d;background:#16181d;color:#fff}
+  .v3 .b.s{background:#fff;color:#374151;border:1px solid #e6e8eb}
+  .v3 .b.g{background:#fff;color:#6b7280;border:1px solid #e6e8eb}
+  .v3 .chip{width:24px;height:24px;border-radius:6px;background:#f3f4f6;color:#4b5563;display:inline-flex;align-items:center;justify-content:center}
+  .v3 .chip [data-lucide]{width:14px;height:14px}
+  .v3 .n{font-family:'JetBrains Mono';font-size:20px;font-weight:700;letter-spacing:-.03em}
+</style>
+</head>
+<body>
+<div class="topbar"><div class="wrap">
+  <b>Institution · professionalism variations</b>
+  <a class="jump back" href="_style-directions.html">← All 10 systems</a>
+  <a class="jump" href="_institution-fusion.html">Fusion page</a>
+</div></div>
+
+<div class="wrap">
+  <div class="hero">
+    <div class="eyebrow">Dialling down the gamification for staff</div>
+    <h1>Same staff surface, six levels of “serious”</h1>
+    <p>You felt the institution side reads too playful — mainly the chunky tactile buttons and gradients. Here's the <b>exact same staff toolbar, KPI and table row</b> rendered from most gamified (V1, today's fusion) to most enterprise (V6). Each has a <b>playfulness meter</b>. All blue/green. Pick the level that feels right for admin / coordinator / teacher, and I'll apply it.</p>
+  </div>
+</div>
+
+<style>
+  .flatlab{background:#fff;border:1px solid #e6ebf1;border-radius:16px;box-shadow:0 10px 30px -18px rgba(16,24,40,.3);padding:18px 18px 20px;margin-top:8px}
+  .flatlab h2{font-size:17px;font-weight:900;margin:0 0 4px;letter-spacing:-.01em}
+  .flatlab .sub{font-size:12.5px;color:#64748b;margin:0 0 14px;line-height:1.5;max-width:760px}
+  .grad-ref{height:34px;border-radius:10px;background:linear-gradient(93.65deg,#14B8A6 5.37%,#0382BD 78.89%);position:relative;margin-bottom:6px}
+  .grad-ref span{position:absolute;top:50%;transform:translate(-50%,-50%);font-size:10px;font-weight:800;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.25)}
+  .grad-cap{font-size:10.5px;color:#94a3b8;font-weight:700;margin:0 0 16px}
+  .swatch-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+  .sw-item{text-align:center}
+  .fb{display:inline-flex;align-items:center;justify-content:center;gap:7px;width:100%;border:none;border-radius:10px;font-family:'Inter';font-weight:700;font-size:13px;cursor:pointer;padding:10px 14px;color:#fff;box-shadow:0 1px 2px rgba(16,24,40,.14);transition:filter .15s}
+  .fb:hover{filter:brightness(1.06)}
+  .sw-item .hx{display:block;margin-top:6px;font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:700;color:#475569}
+  .sw-item .tag{display:block;font-size:9.5px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.04em}
+  .ctxrow{margin-top:20px;padding-top:16px;border-top:1px dashed #e6ebf1}
+  .ctxrow .lab{font-size:9.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#b6c2d0;margin:0 0 9px}
+  .ctxbtns{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+  .fb2{display:inline-flex;align-items:center;gap:6px;border:none;border-radius:10px;font-family:'Inter';font-weight:700;font-size:13px;cursor:pointer;padding:9px 14px;box-shadow:0 1px 2px rgba(16,24,40,.12)}
+  .fb2.soft{background:#eff6ff;color:#1d4ed8;box-shadow:none}
+  .fb2.ghost{background:#fff;color:#475569;border:1px solid #e2e8f0;box-shadow:none}
+</style>
+<div class="wrap">
+  <div class="flatlab">
+    <h2>Flat “Send nudge” — one solid colour pulled from the gradient</h2>
+    <p class="sub">Instead of the teal→blue <b>gradient</b>, here's the same button as a <b>flat single colour</b>, each an independent stop sampled along that gradient (plus two on-brand neighbours). Same shape, no gradient — pick whichever flat tone reads right for staff.</p>
+    <div class="grad-ref"><span style="left:8%">#14B8A6</span><span style="left:88%">#0382BD</span></div>
+    <p class="grad-cap">↑ the current brand gradient · the swatches below are flat samples taken across it</p>
+    <div class="swatch-grid">
+      <div class="sw-item"><button class="fb" style="background:#14B8A6">✉️ Send nudge</button><span class="hx">#14B8A6</span><span class="tag">teal · start</span></div>
+      <div class="sw-item"><button class="fb" style="background:#0D9488">✉️ Send nudge</button><span class="hx">#0D9488</span><span class="tag">teal 600</span></div>
+      <div class="sw-item"><button class="fb" style="background:#0F766E">✉️ Send nudge</button><span class="hx">#0F766E</span><span class="tag">teal 700</span></div>
+      <div class="sw-item"><button class="fb" style="background:#0E8AA6">✉️ Send nudge</button><span class="hx">#0E8AA6</span><span class="tag">teal-cyan</span></div>
+      <div class="sw-item"><button class="fb" style="background:#0891B2">✉️ Send nudge</button><span class="hx">#0891B2</span><span class="tag">cyan · mid</span></div>
+      <div class="sw-item"><button class="fb" style="background:#0682B4">✉️ Send nudge</button><span class="hx">#0682B4</span><span class="tag">sky-blue</span></div>
+      <div class="sw-item"><button class="fb" style="background:#0382BD">✉️ Send nudge</button><span class="hx">#0382BD</span><span class="tag">brand · end</span></div>
+      <div class="sw-item"><button class="fb" style="background:#0369A1">✉️ Send nudge</button><span class="hx">#0369A1</span><span class="tag">blue 700</span></div>
+      <div class="sw-item"><button class="fb" style="background:#2563EB">✉️ Send nudge</button><span class="hx">#2563EB</span><span class="tag">blue (near)</span></div>
+      <div class="sw-item"><button class="fb" style="background:#16A34A">✉️ Send nudge</button><span class="hx">#16A34A</span><span class="tag">green (alt)</span></div>
+    </div>
+    <div class="ctxrow">
+      <p class="lab">In context — flat #0369A1 primary + soft + ghost (no gradient anywhere)</p>
+      <div class="ctxbtns">
+        <button class="fb2" style="background:#0369A1;color:#fff">✉️ Send nudge</button>
+        <button class="fb2 soft">🎯 Assign review</button>
+        <button class="fb2 ghost">📅 Book 1:1</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="wrap"><div class="vgrid">
+
+  <!-- V1 -->
+  <div class="vcard v1">
+    <div class="vhead"><div class="vn">1</div><div><h3>Tactile (today's fusion)</h3><p>btn3d bottom-edge press, r20 rounded cards, gradient chips. Warm — but reads game-like for staff.</p><div class="meter"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></div></div></div>
+    <div class="vbody">
+      <p class="vlabel">Toolbar</p>
+      <div class="toolbar"><button class="b"><i data-lucide="bell"></i> Send nudge</button><button class="b s"><i data-lucide="clipboard-check"></i> Assign review</button><button class="b g"><i data-lucide="calendar"></i> Book 1:1</button></div>
+      <div class="krow"><div class="card"><div style="font-size:9px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:#94a3b8">To grade</div><div class="n">18</div></div><div class="card"><div style="font-size:9px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:#94a3b8">Attain.</div><div class="n">79%</div></div><div class="card"><div style="font-size:9px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:#94a3b8">At risk</div><div class="n">6</div></div></div>
+      <div class="trow card"><div style="display:flex;align-items:center;gap:9px;margin-bottom:8px"><span class="chip"><i data-lucide="clipboard-check"></i></span><b style="font-size:13px">Grading Queue</b></div><table class="t"><tr><td>A. Khan · Essay</td><td class="mono" style="text-align:right">2d</td><td style="text-align:right"><button class="b" style="padding:5px 11px;font-size:12px">Grade</button></td></tr></table></div>
+    </div>
+  </div>
+
+  <!-- V2 -->
+  <div class="vcard v2">
+    <div class="vhead"><div class="vn">2</div><div><h3>Soft Flat</h3><p>Flat solid buttons (no bottom edge), gentle hover, r14 cards, soft shadow, small flat icon chip, mono numerals.</p><div class="meter"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></div></div></div>
+    <div class="vbody">
+      <p class="vlabel">Toolbar</p>
+      <div class="toolbar"><button class="b"><i data-lucide="bell"></i> Send nudge</button><button class="b s"><i data-lucide="clipboard-check"></i> Assign review</button><button class="b g"><i data-lucide="calendar"></i> Book 1:1</button></div>
+      <div class="krow"><div class="card"><div style="font-size:9px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:#94a3b8">To grade</div><div class="n">18</div></div><div class="card"><div style="font-size:9px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:#94a3b8">Attain.</div><div class="n">79%</div></div><div class="card"><div style="font-size:9px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:#94a3b8">At risk</div><div class="n">6</div></div></div>
+      <div class="trow card"><div style="display:flex;align-items:center;gap:9px;margin-bottom:8px"><span class="chip"><i data-lucide="clipboard-check"></i></span><b style="font-size:13px">Grading Queue</b></div><table class="t"><tr><td>A. Khan · Essay</td><td class="mono" style="text-align:right">2d</td><td style="text-align:right"><button class="b" style="padding:5px 11px;font-size:12px">Grade</button></td></tr></table></div>
+    </div>
+  </div>
+
+  <!-- V3 -->
+  <div class="vcard v3">
+    <div class="vhead"><div class="vn">3</div><div><h3>Enterprise Flat</h3><p>Linear/Notion: ink primary + outline secondaries, sharp 7–10px radii, hairline cards, no gradient, mono numerals.</p><div class="meter"><i class="on"></i><i></i><i></i><i></i><i></i></div></div></div>
+    <div class="vbody">
+      <p class="vlabel">Toolbar</p>
+      <div class="toolbar"><button class="b"><i data-lucide="bell"></i> Send nudge</button><button class="b s"><i data-lucide="clipboard-check"></i> Assign review</button><button class="b g"><i data-lucide="calendar"></i> Book 1:1</button></div>
+      <div class="krow"><div class="card"><div style="font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#9ca3af">To grade</div><div class="n">18</div></div><div class="card"><div style="font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#9ca3af">Attain.</div><div class="n">79%</div></div><div class="card"><div style="font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:#9ca3af">At risk</div><div class="n">6</div></div></div>
+      <div class="trow card"><div style="display:flex;align-items:center;gap:9px;margin-bottom:8px"><span class="chip"><i data-lucide="clipboard-check"></i></span><b style="font-size:13px">Grading Queue</b></div><table class="t"><tr><td>A. Khan · Essay</td><td class="mono" style="text-align:right">2d</td><td style="text-align:right"><button class="b" style="height:28px;padding:0 11px;font-size:12px">Grade</button></td></tr></table></div>
+    </div>
+  </div>
+
+<style>
+  /* ============ V4 · Outline Quiet ============ */
+  .v4 .card{background:#fff;border:1px solid #e6ebf1;border-radius:12px;box-shadow:none;padding:12px}
+  .v4 .b{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 14px;border-radius:9px;font-size:12.5px;font-weight:700;cursor:pointer;background:#fff;color:#1d4ed8;border:1.5px solid #bfdbfe;transition:background .15s}
+  .v4 .b:hover{background:#eff6ff}
+  .v4 .b.p{background:#2563eb;color:#fff;border-color:#2563eb}
+  .v4 .b.g{color:#475569;border-color:#e2e8f0}
+  .v4 .chip{width:24px;height:24px;border-radius:7px;background:#f0fdfa;color:#0f766e;display:inline-flex;align-items:center;justify-content:center}
+  .v4 .chip [data-lucide]{width:14px;height:14px}
+  .v4 .n{font-family:'JetBrains Mono';font-size:20px;font-weight:700}
+
+  /* ============ V5 · Executive Mono ============ */
+  .v5{font-family:'Inter'}
+  .v5 .card{background:#fff;border:1px solid #e5e7eb;border-radius:6px;box-shadow:none;padding:11px}
+  .v5 .b{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 12px;border-radius:5px;font-size:12px;font-weight:600;cursor:pointer;background:#0f172a;color:#fff;border:1px solid #0f172a}
+  .v5 .b.s{background:#fff;color:#334155;border:1px solid #d1d5db}
+  .v5 .b.g{background:none;color:#64748b;border:1px solid transparent;text-decoration:underline;text-underline-offset:3px}
+  .v5 .chip{width:22px;height:22px;border-radius:5px;background:#f1f5f9;color:#475569;display:inline-flex;align-items:center;justify-content:center}
+  .v5 .chip [data-lucide]{width:13px;height:13px}
+  .v5 .n{font-family:'JetBrains Mono';font-size:19px;font-weight:700;color:#0f172a}
+
+  /* ============ V6 · Balanced (recommended) ============ */
+  .v6 .card{background:#fff;border:1px solid #e8edf3;border-radius:12px;box-shadow:0 1px 2px rgba(16,24,40,.04);padding:12px}
+  .v6 .b{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 15px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;color:#fff;border:none;background:linear-gradient(93deg,#0f766e,#0369a1);box-shadow:0 1px 0 rgba(3,105,161,.35),0 1px 2px rgba(16,24,40,.12);transition:filter .15s}
+  .v6 .b:hover{filter:brightness(1.05)}
+  .v6 .b.s{background:#eff6ff;color:#1d4ed8;box-shadow:0 1px 0 #dbeafe}
+  .v6 .b.g{background:#fff;color:#475569;border:1px solid #e2e8f0;box-shadow:none}
+  .v6 .chip{width:26px;height:26px;border-radius:8px;background:var(--brand);color:#fff;display:inline-flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(20,184,166,.22)}
+  .v6 .chip [data-lucide]{width:15px;height:15px}
+  .v6 .n{font-family:'JetBrains Mono';font-size:21px;font-weight:700;letter-spacing:-.02em}
+  .rec{border:2px solid #14b8a6 !important;box-shadow:0 12px 34px -16px rgba(13,148,136,.5) !important}
+  .rec .vhead .vn{background:linear-gradient(135deg,#0f766e,#0369a1)}
+  .recflag{margin-left:auto;font-size:10px;font-weight:800;color:#0f766e;background:#ecfeff;border:1px solid #a5f3fc;border-radius:999px;padding:4px 9px;height:fit-content}
+</style>
+
+  <!-- V4 -->
+  <div class="vcard v4">
+    <div class="vhead"><div class="vn">4</div><div><h3>Outline Quiet</h3><p>Outline buttons with one filled primary, r12 white cards, no shadow, calm single accent. Very restrained.</p><div class="meter"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></div></div></div>
+    <div class="vbody">
+      <p class="vlabel">Toolbar</p>
+      <div class="toolbar"><button class="b p"><i data-lucide="bell"></i> Send nudge</button><button class="b"><i data-lucide="clipboard-check"></i> Assign review</button><button class="b g"><i data-lucide="calendar"></i> Book 1:1</button></div>
+      <div class="krow"><div class="card"><div style="font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#94a3b8">To grade</div><div class="n">18</div></div><div class="card"><div style="font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#94a3b8">Attain.</div><div class="n">79%</div></div><div class="card"><div style="font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#94a3b8">At risk</div><div class="n">6</div></div></div>
+      <div class="trow card"><div style="display:flex;align-items:center;gap:9px;margin-bottom:8px"><span class="chip"><i data-lucide="clipboard-check"></i></span><b style="font-size:13px">Grading Queue</b></div><table class="t"><tr><td>A. Khan · Essay</td><td class="mono" style="text-align:right">2d</td><td style="text-align:right"><button class="b p" style="height:28px;padding:0 11px;font-size:12px">Grade</button></td></tr></table></div>
+    </div>
+  </div>
+
+  <!-- V5 -->
+  <div class="vcard v5">
+    <div class="vhead"><div class="vn">5</div><div><h3>Executive Mono</h3><p>Near-monochrome, ink primary, underlined tertiary, sharp 5–6px corners, dense. Most serious / boardroom.</p><div class="meter"><i class="on"></i><i></i><i></i><i></i><i></i></div></div></div>
+    <div class="vbody">
+      <p class="vlabel">Toolbar</p>
+      <div class="toolbar"><button class="b"><i data-lucide="bell"></i> Send nudge</button><button class="b s"><i data-lucide="clipboard-check"></i> Assign review</button><button class="b g">Book 1:1</button></div>
+      <div class="krow"><div class="card"><div style="font-size:9px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#9ca3af">To grade</div><div class="n">18</div></div><div class="card"><div style="font-size:9px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#9ca3af">Attain.</div><div class="n">79%</div></div><div class="card"><div style="font-size:9px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#9ca3af">At risk</div><div class="n">6</div></div></div>
+      <div class="trow card"><div style="display:flex;align-items:center;gap:9px;margin-bottom:8px"><span class="chip"><i data-lucide="clipboard-check"></i></span><b style="font-size:13px">Grading Queue</b></div><table class="t"><tr><td>A. Khan · Essay</td><td class="mono" style="text-align:right">2d</td><td style="text-align:right"><button class="b" style="height:26px;padding:0 10px;font-size:11.5px">Grade</button></td></tr></table></div>
+    </div>
+  </div>
+
+  <!-- V6 recommended -->
+  <div class="vcard v6 rec">
+    <div class="vhead"><div class="vn">6</div><div style="flex:1"><h3>Balanced <span style="font-weight:600;color:#94a3b8">— professional, still Edeviser</span></h3><p>Flat buttons with a <b>whisper of depth</b> (1px, not a 3px edge), r12 cards, gradient kept only on the small icon chip, mono numerals.</p><div class="meter"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></div></div><span class="recflag">Recommended</span></div>
+    <div class="vbody">
+      <p class="vlabel">Toolbar</p>
+      <div class="toolbar"><button class="b"><i data-lucide="bell"></i> Send nudge</button><button class="b s"><i data-lucide="clipboard-check"></i> Assign review</button><button class="b g"><i data-lucide="calendar"></i> Book 1:1</button></div>
+      <div class="krow"><div class="card"><div style="font-size:9px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#94a3b8">To grade</div><div class="n">18</div></div><div class="card"><div style="font-size:9px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#94a3b8">Attain.</div><div class="n">79%</div></div><div class="card"><div style="font-size:9px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#94a3b8">At risk</div><div class="n">6</div></div></div>
+      <div class="trow card"><div style="display:flex;align-items:center;gap:9px;margin-bottom:8px"><span class="chip"><i data-lucide="clipboard-check"></i></span><b style="font-size:13px">Grading Queue</b></div><table class="t"><tr><td>A. Khan · Essay</td><td class="mono" style="text-align:right">2d</td><td style="text-align:right"><button class="b" style="height:28px;padding:0 12px;font-size:12px">Grade</button></td></tr></table></div>
+    </div>
+  </div>
+
+</div></div>
+
+<div class="wrap" id="semantic-meter">
+  <div class="hero" style="padding:34px 0 4px">
+    <p class="eyebrow">Add-on · requested variation</p>
+    <h1 style="font-size:24px">Semantic "needs-attention" meter — professional (non-gradient)</h1>
+    <p>A threshold-based progress meter (like the HTML <code>&lt;meter&gt;</code> element): the <b>fill colour encodes status</b>, not just quantity. The student side keeps the brand gradient for positive progress; the institution side uses this flat, restrained palette. Thresholds follow the platform bands (Strong &ge;70 · Good 40–69 · Attention 20–39 · Needs focus &lt;20).</p>
+  </div>
+  <style>
+    .smeter-demo{--g:#15803d;--gd:#0f766e;--a:#b45309;--c:#b91c1c}
+    .smeter{height:10px;border-radius:999px;background:#eef2f7;overflow:hidden;box-shadow:inset 0 1px 2px rgba(15,23,42,.06);display:block}
+    .smeter > span{display:block;height:100%;border-radius:inherit}
+    .smeter.strong>span{background:var(--g)} .smeter.good>span{background:var(--gd)}
+    .smeter.attention>span{background:var(--a)} .smeter.critical>span{background:var(--c)}
+    .smeter-brand>span{background:linear-gradient(93.65deg,#14B8A6,#0382BD)}
+    .smeter-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #f1f5f9}
+    .smeter-row:last-child{border-bottom:none}
+    .smeter-row .lab{flex:0 0 180px;font-size:13px;font-weight:600;color:#334155}
+    .smeter-row .bar{flex:1;min-width:0}
+    .smeter-row .val{flex:0 0 44px;text-align:right;font-weight:800;font-size:13px}
+  </style>
+  <div class="vgrid smeter-demo">
+    <div class="vcard">
+      <div class="vhead"><div class="vn" style="background:#0f766e">IN</div><div><h3>Institution — professional (flat, non-gradient)</h3><p>Solid semantic tones; calm and enterprise-appropriate. Recommended for coordinator/admin.</p></div></div>
+      <div class="vbody">
+        <div class="smeter-row"><span class="lab">PLO2 · Communication</span><span class="bar"><span class="smeter strong"><span style="width:88%"></span></span></span><span class="val" style="color:var(--g)">88%</span></div>
+        <div class="smeter-row"><span class="lab">PLO4 · Design</span><span class="bar"><span class="smeter good"><span style="width:64%"></span></span></span><span class="val" style="color:var(--gd)">64%</span></div>
+        <div class="smeter-row"><span class="lab">PLO5 · Concurrency</span><span class="bar"><span class="smeter attention"><span style="width:38%"></span></span></span><span class="val" style="color:var(--a)">38%</span></div>
+        <div class="smeter-row"><span class="lab">PLO7 · Ethics</span><span class="bar"><span class="smeter critical"><span style="width:18%"></span></span></span><span class="val" style="color:var(--c)">18%</span></div>
+      </div>
+    </div>
+    <div class="vcard">
+      <div class="vhead"><div class="vn" style="background:#0382bd">ST</div><div><h3>Student — brand gradient + amber attention</h3><p>Current student treatment, for comparison: gradient for positive progress, warm tone for "needs attention".</p></div></div>
+      <div class="vbody">
+        <div class="smeter-row"><span class="lab">Database Design</span><span class="bar"><span class="smeter smeter-brand"><span style="width:78%"></span></span></span><span class="val" style="color:#0369a1">78%</span></div>
+        <div class="smeter-row"><span class="lab">AI Fundamentals</span><span class="bar"><span class="smeter smeter-brand"><span style="width:92%"></span></span></span><span class="val" style="color:#0369a1">92%</span></div>
+        <div class="smeter-row"><span class="lab">Normalization (CLO3)</span><span class="bar"><span class="smeter attention"><span style="width:62%"></span></span></span><span class="val" style="color:var(--a)">62%</span></div>
+        <div class="smeter-row"><span class="lab">REST APIs (CLO5)</span><span class="bar"><span class="smeter critical"><span style="width:48%"></span></span></span><span class="val" style="color:var(--c)">48%</span></div>
+      </div>
+    </div>
+  </div>
+  <p style="font-size:12.5px;color:#64748b;margin:14px 0 0;line-height:1.6">Reusable in the real app as <code>.emeter</code> (in <code>shared.css</code>): e.g. <code>.emeter.pro.attention</code> = professional amber. Or use the native <code>&lt;meter low high optimum&gt;</code> element for browser-native semantics.</p>
+</div>
+
+<div class="wrap">
+  <div class="foot">
+    <b>Same content, six professionalism levels.</b> V1 is today's fusion (too playful), V6 keeps a hint of brand warmth without the game feel, V3/V5 are the most enterprise.<br />
+    Tell me which level to lock in for the institution side (it can differ per role), and I'll rebuild the fusion page at that level.<br />
+    <a href="_institution-fusion.html">← Fusion page</a> · <a href="_style-directions.html">All 10 systems</a>
+  </div>
+</div>
+<script>
+  if (window.lucide && typeof window.lucide.createIcons === 'function') window.lucide.createIcons();
+</script>
+</body>
+</html>

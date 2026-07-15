@@ -88,7 +88,8 @@ const ReviewScheduleList = ({
                   <>
                     <Button
                       size="sm"
-                      className="h-7 gap-1 bg-gradient-to-r from-teal-500 to-blue-600 text-[11px] active:scale-95"
+                      variant="tactile"
+                      className="h-7 gap-1 text-[11px]"
                       onClick={() => onStartReview(review)}
                     >
                       <Play className="h-3 w-3" />

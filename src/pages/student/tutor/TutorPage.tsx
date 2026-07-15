@@ -288,7 +288,7 @@ const TutorPage = () => {
             <div className="max-w-sm w-full space-y-6">
               <div className="text-center">
                 <div className="mx-auto p-4 rounded-2xl bg-gradient-to-br from-teal-50 to-blue-50 w-fit mb-4">
-                  <div className="p-3 rounded-xl bg-gradient-to-br from-teal-500 to-blue-600">
+                  <div className="p-3 rounded-xl bg-[linear-gradient(93.65deg,#14b8a6_5.37%,#0382bd_78.89%)]">
                     <Bot className="h-8 w-8 text-white" />
                   </div>
                 </div>
@@ -307,7 +307,8 @@ const TutorPage = () => {
               />
 
               <Button
-                className="w-full bg-gradient-to-r from-teal-500 to-blue-600 text-white active:scale-95"
+                variant="tactile"
+                className="w-full"
                 onClick={handleStartChatting}
               >
                 {t("tutor.page.startChatting")}

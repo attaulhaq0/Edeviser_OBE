@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Edeviser — Profile</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
+<link rel="stylesheet" href="shared.css"/>
+</head>
+<body class="bg-slate-50" data-role="student">
+
+<header class="app-header">
+  <h1 class="text-lg font-bold tracking-tight text-gray-900">Me</h1>
+  <div class="flex items-center gap-2">
+    <button onclick="editStudentProfile()" class="btn3d sm b-ghost">✏️ Edit</button>
+    <a href="settings.html" class="p-1.5 rounded-lg hover:bg-gray-100"><svg class="h-5 w-5 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.03 7.03 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.02-.397-1.11-.94l-.213-1.28c-.062-.375-.312-.687-.644-.87a6.52 6.52 0 0 1-.22-.128c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg></a>
+  </div>
+</header>
+
+<div class="page-content space-y-5 no-scrollbar">
+
+  <!-- Profile Header — unified .phdr layout (reused across all 5 roles).
+       Stats mirror useLevel / useStreak / useXP / useTieredBadges (student_gamification, xp_transactions). Phone/
+       office/hours rows omitted (not applicable to a student). UI refactor only. -->
+  <div class="pcard p-5">
+    <div class="phdr phdr-me">
+      <div class="phdr-left">
+        <div class="phdr-idrow">
+          <button class="ava-edit shrink-0" onclick="editStudentProfile()" aria-label="Change photo">
+            <span class="phdr-av">S</span>
+            <span class="ava-cam">📷</span>
+          </button>
+          <div class="min-w-0">
+            <h1 class="phdr-name">Sarah Ahmed</h1>
+            <p class="phdr-role">Student <span class="sub">· Gulf Academy</span></p>
+          </div>
+        </div>
+        <div class="phdr-stats">
+          <div class="phdr-stat"><span class="phdr-stat-ic st-amber">⭐</span><span class="phdr-stat-tx"><span class="phdr-stat-v">4</span><span class="phdr-stat-l">Level</span></span></div>
+          <div class="phdr-stat"><span class="phdr-stat-ic st-amber">⚡</span><span class="phdr-stat-tx"><span class="phdr-stat-v">750</span><span class="phdr-stat-l">Total XP</span></span></div>
+          <div class="phdr-stat"><span class="phdr-stat-ic st-red streak-flame">🔥</span><span class="phdr-stat-tx"><span class="phdr-stat-v">12</span><span class="phdr-stat-l">Day streak</span></span></div>
+          <div class="phdr-stat"><span class="phdr-stat-ic st-violet">🏅</span><span class="phdr-stat-tx"><span class="phdr-stat-v">8</span><span class="phdr-stat-l">Badges</span></span></div>
+        </div>
+      </div>
+      <div class="phdr-right">
+        <div class="phdr-actions">
+          <button onclick="editStudentProfile()" class="phdr-btn">✏️ Edit profile</button>
+          <button onclick="location.href='portfolio.html'" class="phdr-btn primary">👁️ View public profile</button>
+        </div>
+        <div class="phdr-contact">
+          <div class="phdr-c"><span class="phdr-c-ic">✉️</span><a href="mailto:sarah.ahmed@student.gulf-academy.edu.qa">sarah.ahmed@student.gulf-academy.edu.qa</a></div>
+          <div class="phdr-c"><span class="phdr-c-ic">🎓</span><span>BSc Computer Science</span></div>
+          <div class="phdr-c"><span class="phdr-c-ic">🆔</span><span>Student ID · GA-2024-0891</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="lg-row lg-row-2 space-y-5 items-start">
+  <!-- Level Progress -->
+  <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+    <div class="flex items-center justify-between mb-2"><p class="text-sm font-bold text-gray-900">Level 4 → 5</p><p class="text-xs text-gray-500">750 / 1000 XP</p></div>
+    <div class="h-3 rounded-full bg-gray-100 overflow-hidden"><div class="h-full rounded-full" style="width:75%;background:var(--brand-gradient)"></div></div>
+    <p class="text-xs text-gray-400 mt-2">250 XP to next level 🎯</p>
+  </div>
+
+  <!-- Streak Card -->
+  <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+    <div class="flex items-center gap-3">
+      <div class="h-11 w-11 rounded-lg bg-orange-50 flex items-center justify-center"><span class="text-xl streak-flame">🔥</span></div>
+      <div class="flex-1"><div class="flex items-baseline gap-1.5"><span class="text-2xl font-black bg-gradient-to-r from-red-500 to-orange-500 bg-clip-text text-transparent">12</span><span class="text-sm text-gray-500">day streak</span></div></div>
+      <div class="flex items-center gap-1"><span class="text-blue-400">❄️</span><span class="text-xs text-gray-500">2 freezes</span></div>
+    </div>
+    <div class="mt-3 space-y-1.5"><div class="flex items-center justify-between"><span class="text-xs text-gray-500">Next milestone: 14 days</span><span class="text-xs font-medium text-gray-600">86%</span></div><div class="h-2 rounded-full bg-gray-100 overflow-hidden"><div class="h-full rounded-full bg-gradient-to-r from-red-500 to-orange-500" style="width:86%"></div></div></div>
+  </div>
+  </div>
+
+  <div class="lg-row lg-row-2 space-y-5 items-start">
+  <!-- Badges -->
+  <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+    <div class="flex items-center justify-between mb-3"><p class="text-xs font-black tracking-widest uppercase text-gray-500">Badges (8)</p><a href="badges.html" class="text-xs font-semibold text-blue-600">View all →</a></div>
+    <div class="grid grid-cols-4 gap-3">
+      <div class="flex flex-col items-center gap-1 rounded-xl p-2 border-2 border-yellow-400"><span class="text-2xl">🏆</span><span class="text-[9px] font-bold text-center">Explorer</span></div>
+      <div class="flex flex-col items-center gap-1 rounded-xl p-2 border-2 border-amber-600"><span class="text-2xl">🔥</span><span class="text-[9px] font-bold text-center">Week Streak</span></div>
+      <div class="flex flex-col items-center gap-1 rounded-xl p-2 border-2 border-gray-400"><span class="text-2xl">⚡</span><span class="text-[9px] font-bold text-center">Fast Learner</span></div>
+      <div class="flex flex-col items-center gap-1 rounded-xl p-2 border-2 border-amber-600"><span class="text-2xl">🎯</span><span class="text-[9px] font-bold text-center">Sharpshooter</span></div>
+      <div class="flex flex-col items-center gap-1 rounded-xl p-2 border-2 border-gray-400"><span class="text-2xl">📚</span><span class="text-[9px] font-bold text-center">Bookworm</span></div>
+      <div class="flex flex-col items-center gap-1 rounded-xl p-2 border-2 border-amber-600"><span class="text-2xl">🌟</span><span class="text-[9px] font-bold text-center">Perfect Day</span></div>
+      <div class="flex flex-col items-center gap-1 rounded-xl p-2 opacity-30 grayscale"><span class="text-2xl">🌙</span><span class="text-[9px] font-bold text-center">Night Owl</span></div>
+      <div class="flex flex-col items-center gap-1 rounded-xl p-2 opacity-30 grayscale"><span class="text-2xl">💎</span><span class="text-[9px] font-bold text-center">Mystery</span></div>
+    </div>
+  </div>
+
+  <!-- Learning activity heatmap (GitHub-style — consistency at a glance) -->
+  <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+    <div class="flex items-center justify-between mb-3">
+      <p class="text-xs font-black tracking-widest uppercase text-gray-500">Learning Activity</p>
+      <span class="text-[10px] text-gray-400">Last 17 weeks</span>
+    </div>
+    <div id="heatmap" style="display:grid;grid-template-rows:repeat(7,11px);grid-auto-flow:column;grid-auto-columns:11px;gap:3px;overflow-x:auto" class="no-scrollbar"></div>
+    <div class="flex items-center justify-between mt-3">
+      <span class="text-[11px] text-gray-500"><b class="text-gray-800">86</b> active days this term</span>
+      <div class="flex items-center gap-1.5">
+        <span class="text-[10px] text-gray-400">Less</span>
+        <span style="width:10px;height:10px;border-radius:2px;background:#eef2f6"></span>
+        <span style="width:10px;height:10px;border-radius:2px;background:#a7f3d0"></span>
+        <span style="width:10px;height:10px;border-radius:2px;background:#34d399"></span>
+        <span style="width:10px;height:10px;border-radius:2px;background:#059669"></span>
+        <span style="width:10px;height:10px;border-radius:2px;background:#065f46"></span>
+        <span class="text-[10px] text-gray-400">More</span>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <div class="lg-row lg-row-2 space-y-5 items-start">
+  <!-- Menu -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden divide-y divide-gray-50">
+    <a href="leaderboard.html" class="flex items-center justify-between px-4 py-3.5 hover:bg-gray-50 transition"><div class="flex items-center gap-3"><span class="text-lg">🏆</span><span class="text-sm font-medium text-gray-800">Leaderboard</span></div><span class="text-xs text-gray-400">Rank #4 →</span></a>
+    <a href="marketplace.html" class="flex items-center justify-between px-4 py-3.5 hover:bg-gray-50 transition"><div class="flex items-center gap-3"><span class="text-lg">🛍️</span><span class="text-sm font-medium text-gray-800">Marketplace</span></div><span class="text-xs text-gray-400">💎750 →</span></a>
+    <a href="wellness.html" class="flex items-center justify-between px-4 py-3.5 hover:bg-gray-50 transition"><div class="flex items-center gap-3"><span class="text-lg">💚</span><span class="text-sm font-medium text-gray-800">Wellness &amp; Habits</span></div><span class="text-xs text-gray-400">→</span></a>
+    <a href="quests.html" class="flex items-center justify-between px-4 py-3.5 hover:bg-gray-50 transition"><div class="flex items-center gap-3"><span class="text-lg">⚔️</span><span class="text-sm font-medium text-gray-800">Knowledge Quests</span></div><span class="text-xs text-gray-400">→</span></a>
+    <a href="portfolio.html" class="flex items-center justify-between px-4 py-3.5 hover:bg-gray-50 transition"><div class="flex items-center gap-3"><span class="text-lg">🗂️</span><span class="text-sm font-medium text-gray-800">Portfolio</span></div><span class="text-xs text-gray-400">→</span></a>
+    <a href="journal.html" class="flex items-center justify-between px-4 py-3.5 hover:bg-gray-50 transition"><div class="flex items-center gap-3"><span class="text-lg">📖</span><span class="text-sm font-medium text-gray-800">Journal</span></div><span class="text-xs text-gray-400">→</span></a>
+    <a href="team.html" class="flex items-center justify-between px-4 py-3.5 hover:bg-gray-50 transition"><div class="flex items-center gap-3"><span class="text-lg">👥</span><span class="text-sm font-medium text-gray-800">My Team</span></div><span class="text-xs text-gray-400">→</span></a>
+    <a href="calendar.html" class="flex items-center justify-between px-4 py-3.5 hover:bg-gray-50 transition"><div class="flex items-center gap-3"><span class="text-lg">📅</span><span class="text-sm font-medium text-gray-800">Calendar & Timetable</span></div><span class="text-xs text-gray-400">→</span></a>
+    <a href="transcript.html" class="flex items-center justify-between px-4 py-3.5 hover:bg-gray-50 transition"><div class="flex items-center gap-3"><span class="text-lg">📜</span><span class="text-sm font-medium text-gray-800">Transcript</span></div><span class="text-xs text-gray-400">→</span></a>
+    <a href="fees.html" class="flex items-center justify-between px-4 py-3.5 hover:bg-gray-50 transition"><div class="flex items-center gap-3"><span class="text-lg">💳</span><span class="text-sm font-medium text-gray-800">Fees & Payments</span></div><span class="text-xs text-gray-400">→</span></a>
+    <a href="surveys.html" class="flex items-center justify-between px-4 py-3.5 hover:bg-gray-50 transition"><div class="flex items-center gap-3"><span class="text-lg">📊</span><span class="text-sm font-medium text-gray-800">Surveys</span></div><span class="text-xs text-gray-400">→</span></a>
+    <a href="discussions.html" class="flex items-center justify-between px-4 py-3.5 hover:bg-gray-50 transition"><div class="flex items-center gap-3"><span class="text-lg">💭</span><span class="text-sm font-medium text-gray-800">Discussions</span></div><span class="text-xs text-gray-400">→</span></a>
+    <a href="learning-profile.html" class="flex items-center justify-between px-4 py-3.5 hover:bg-gray-50 transition"><div class="flex items-center gap-3"><span class="text-lg">🧠</span><span class="text-sm font-medium text-gray-800">Learning Profile</span></div><span class="text-xs text-gray-400">→</span></a>
+    <a href="settings.html" class="flex items-center justify-between px-4 py-3.5 hover:bg-gray-50 transition"><div class="flex items-center gap-3"><span class="text-lg">⚙️</span><span class="text-sm font-medium text-gray-800">Settings</span></div><span class="text-xs text-gray-400">→</span></a>
+  </div>
+
+  <!-- Learning Profile Summary -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="px-4 py-3 border-b border-gray-100 flex items-center gap-2"><span class="text-sm">🧠</span><p class="text-xs font-black tracking-widest uppercase text-gray-500">Learning Profile</p></div>
+    <div class="p-4 space-y-3">
+      <div class="flex items-center justify-between"><span class="text-sm text-gray-600">Type</span><span class="text-sm font-bold text-gray-900">⚡ Strategic Planner</span></div>
+      <div class="flex items-center justify-between"><span class="text-sm text-gray-600">Learning Style</span><span class="text-sm font-medium text-gray-900">Visual + Read/Write</span></div>
+      <div class="flex items-center justify-between"><span class="text-sm text-gray-600">Confidence</span><span class="text-sm font-medium text-green-600">High</span></div>
+      <div class="pt-2 border-t border-gray-50"><div class="flex items-center justify-between mb-1"><span class="text-xs text-gray-500">Profile completeness</span><span class="text-xs font-bold text-gray-700">70%</span></div><div class="h-1.5 rounded-full bg-gray-100 overflow-hidden"><div class="h-full rounded-full" style="width:70%;background:var(--brand-gradient)"></div></div><p class="text-[10px] text-gray-400 mt-1.5">Complete daily micro-assessments to reach 100%</p></div>
+    </div>
+  </div>
+  </div>
+
+  <div class="lg-row lg-row-2 space-y-5 items-start">
+  <!-- Privacy — leaderboard anonymity opt-out (student_gamification.leaderboard_anonymous),
+       links to full data controls in Settings. -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="px-4 py-3 border-b border-gray-100 flex items-center gap-2"><span class="text-sm">🛡️</span><p class="text-xs font-black tracking-widest uppercase text-gray-500">Privacy</p></div>
+    <div class="divide-y divide-gray-50">
+      <div class="px-4 py-3.5 flex items-center justify-between"><div><p class="text-sm font-medium text-gray-900">Appear anonymous on leaderboards</p><p class="text-xs text-gray-500">Your name is hidden from classmates</p></div><label class="edv-toggle no-tick"><input type="checkbox" onchange="toast(this.checked?'Now anonymous on leaderboards':'Name visible on leaderboards','🏆')"><span class="etk"></span></label></div>
+      <a href="settings.html" class="px-4 py-3.5 flex items-center justify-between hover:bg-gray-50"><span class="text-sm font-medium text-gray-800">Data &amp; account controls</span><span class="text-xs text-gray-400">Export · Delete →</span></a>
+    </div>
+  </div>
+
+  <!-- Equipped cosmetics (useEquippedItems / useLeaderboardCosmetics) -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between"><div class="flex items-center gap-2"><span class="text-sm">🎨</span><p class="text-xs font-black tracking-widest uppercase text-gray-500">Equipped</p></div><a href="marketplace.html" class="text-xs font-semibold text-blue-600">Shop →</a></div>
+    <div class="divide-y divide-gray-50">
+      <div class="px-4 py-3 flex items-center justify-between"><span class="text-sm text-gray-600">Profile theme</span><span class="flex items-center gap-2 text-sm font-bold text-gray-900"><span class="h-4 w-4 rounded" style="background:var(--brand-gradient)"></span>Ocean</span></div>
+      <div class="px-4 py-3 flex items-center justify-between"><span class="text-sm text-gray-600">Avatar frame</span><span class="text-sm font-bold text-gray-900">🖼️ Gold</span></div>
+      <div class="px-4 py-3 flex items-center justify-between"><span class="text-sm text-gray-600">Display title</span><span class="text-sm font-bold text-gray-900">⚡ Strategic Planner</span></div>
+      <div class="px-4 py-3 flex items-center justify-between"><span class="text-sm text-gray-600">Companion</span><span class="text-sm font-bold text-gray-900">🦊 Foxi · Classic</span></div>
+    </div>
+  </div>
+  </div>
+
+  <!-- Security & access — parity with teacher/coordinator/admin profiles (students have accounts too) -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="px-4 py-3 border-b border-gray-100 flex items-center gap-2"><span class="text-sm">🔒</span><p class="text-xs font-black tracking-widest uppercase text-gray-500">Security &amp; access</p></div>
+    <div class="divide-y divide-gray-50">
+      <div class="px-4 py-3.5 flex items-center justify-between"><div><p class="text-sm font-medium text-gray-900">Change password</p><p class="text-xs text-gray-500">Last changed 6 weeks ago</p></div><button onclick="toast('Opening password change…','🔒')" class="btn3d sm b-ghost">Change</button></div>
+      <div class="px-4 py-3.5 flex items-center justify-between"><span class="text-sm font-medium text-gray-900">Two-factor authentication</span><span class="pill pill-green">Enabled</span></div>
+      <div class="px-4 py-3.5 flex items-center justify-between"><div><p class="text-sm font-medium text-gray-900">Active sessions</p><p class="text-xs text-gray-500">2 devices signed in</p></div><button onclick="toast('Opening sessions…','💻')" class="btn3d sm b-ghost">Review</button></div>
+    </div>
+  </div>
+
+  <a href="auth.html" class="block text-center w-full py-3 rounded-xl text-sm font-semibold text-red-600 bg-red-50 border border-red-100 active:scale-[.98] transition">Sign Out</a>
+
+</div>
+
+<nav class="bottom-bar">
+  <a href="dashboard.html" class="tab-btn" data-tab="home"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75"/></svg><span>Home</span></a>
+  <a href="learn.html" class="tab-btn" data-tab="learn"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/></svg><span>Learn</span></a>
+  <a href="tutor.html" class="tab-btn" data-tab="tutor"><div class="tutor-fab"><span class="text-lg">🤖</span></div><span>Tutor</span></a>
+  <a href="progress.html" class="tab-btn" data-tab="progress"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941"/></svg><span>Progress</span></a>
+  <a href="profile.html" class="tab-btn" data-tab="me"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg><span>Me</span></a>
+</nav>
+<script src="shared.js"></script>
+<script>
+(function(){
+  const colors=['#eef2f6','#a7f3d0','#34d399','#059669','#065f46'];
+  const hm=document.getElementById('heatmap');
+  if(!hm)return;
+  for(let i=0;i<7*17;i++){
+    const r=Math.random();
+    const c=r<0.32?0:r<0.58?1:r<0.78?2:r<0.92?3:4;
+    const cell=document.createElement('div');
+    cell.style.cssText='border-radius:2px;background:'+colors[c];
+    hm.appendChild(cell);
+  }
+})();
+function editStudentProfile(){
+  openEditModal({
+    title:'Edit profile', initial:'S', successMsg:'Profile updated · +10 XP for completing it',
+    fields:[
+      {type:'row2', items:[{label:'First name', value:'Sarah'},{label:'Last name', value:'Ahmed'}]},
+      {label:'Display title', type:'select', value:'⚡ Strategic Planner', options:['⚡ Strategic Planner','🎯 Focused Achiever','🌟 Rising Star','📚 Bookworm']},
+      {label:'Email', type:'email', value:'sarah.ahmed@student.gulf-academy.edu.qa'},
+      {label:'Bio', type:'textarea', placeholder:'Tell your team a bit about yourself…'},
+    ]
+  });
+}
+</script>
+</body>
+</html>

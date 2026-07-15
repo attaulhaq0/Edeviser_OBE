@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Edeviser — CQI Plans</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
+<link rel="stylesheet" href="shared.css"/>
+<style>
+  /* Coordinator CQI — maps to: cqi_action_plans, useCQIPlans, cqi-review-reminder.
+     "Close the loop": gap → action plan → implement → measure → evaluate.
+     status planned → in_progress → completed → evaluated. */
+  html.mode-laptop body[data-norail] .page-content{max-width:none;padding-right:32px}
+  .cqi-cols{display:grid;grid-template-columns:1fr;gap:16px}
+  html.mode-laptop .cqi-cols{grid-template-columns:repeat(4,1fr)}
+  .cqi-col{background:#f8fafc;border:1px solid #eef2f6;border-radius:14px;padding:10px;min-height:120px}
+  .cqi-col h3{font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.05em;color:#64748b;padding:2px 4px 8px}
+  .cqi-card{background:#fff;border:1px solid #eef2f6;border-radius:12px;padding:11px;margin-bottom:8px;box-shadow:0 1px 2px rgba(15,23,42,.04)}
+  .loop-step{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;text-align:center}
+  .loop-ic{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:17px;background:#eff6ff;color:#1d4ed8}
+</style>
+</head>
+<body class="bg-slate-50" data-role="coordinator" data-norail>
+
+<header class="app-header">
+  <div class="hdr-brand flex items-center gap-2"><div class="h-7 w-7 rounded-lg flex items-center justify-center" style="background:var(--brand-gradient)"><span class="text-white text-sm">✦</span></div><span class="text-base font-bold tracking-tight text-gray-900">Edeviser</span></div>
+  <button class="btn3d sm" onclick="toast('New CQI action plan…','➕')" style="background:#0382bd">➕ New plan</button>
+</header>
+
+<div class="page-content space-y-4 no-scrollbar">
+  <div class="feed-wide">
+    <h1 class="text-xl font-black tracking-tight text-gray-900">Continuous Quality Improvement</h1>
+    <p class="text-xs text-gray-500 mt-0.5">Close the loop on every outcome gap — from diagnosis to measured improvement.</p>
+  </div>
+
+  <!-- CQI loop -->
+  <div class="feed-wide pcard p-4">
+    <div class="flex items-center gap-1">
+      <div class="loop-step"><div class="loop-ic">🔍</div><p class="text-[11px] font-bold text-gray-700">Identify gap</p></div>
+      <span class="text-gray-300">→</span>
+      <div class="loop-step"><div class="loop-ic">📝</div><p class="text-[11px] font-bold text-gray-700">Plan actions</p></div>
+      <span class="text-gray-300">→</span>
+      <div class="loop-step"><div class="loop-ic">🚀</div><p class="text-[11px] font-bold text-gray-700">Implement</p></div>
+      <span class="text-gray-300">→</span>
+      <div class="loop-step"><div class="loop-ic">📊</div><p class="text-[11px] font-bold text-gray-700">Measure</p></div>
+      <span class="text-gray-300">→</span>
+      <div class="loop-step"><div class="loop-ic">✅</div><p class="text-[11px] font-bold text-gray-700">Evaluate</p></div>
+    </div>
+  </div>
+
+  <!-- KPI row -->
+  <div class="feed-wide grid grid-cols-2 md:grid-cols-4 gap-3">
+    <div class="pcard p-4"><p class="text-[10px] font-black tracking-widest uppercase text-gray-400">Open plans</p><p class="text-2xl font-black text-gray-900 mt-1">6</p></div>
+    <div class="pcard p-4"><p class="text-[10px] font-black tracking-widest uppercase text-gray-400">In progress</p><p class="text-2xl font-black text-blue-600 mt-1">3</p></div>
+    <div class="pcard p-4"><p class="text-[10px] font-black tracking-widest uppercase text-gray-400">Evaluated · term</p><p class="text-2xl font-black text-green-600 mt-1">4</p></div>
+    <div class="pcard p-4"><p class="text-[10px] font-black tracking-widest uppercase text-gray-400">Avg attainment lift</p><p class="text-2xl font-black text-green-600 mt-1">+11%</p></div>
+  </div>
+
+  <!-- Kanban by status -->
+  <div class="feed-wide cqi-cols">
+    <div class="cqi-col">
+      <h3>📋 Planned</h3>
+      <div class="cqi-card"><div class="flex items-center justify-between mb-1"><span class="pill pill-red">PLO5 · 47%</span></div><p class="text-sm font-bold text-gray-900">Add concurrency assessment</p><p class="text-[11px] text-gray-500 mt-1">Coverage gap — no course assesses it.</p><p class="text-[10px] text-gray-400 mt-2">Owner: Dr. Ahmed · due Sep</p></div>
+      <div class="cqi-card"><div class="flex items-center justify-between mb-1"><span class="pill pill-amber">PLO7 · 55%</span></div><p class="text-sm font-bold text-gray-900">Ethics case-study seminar</p><p class="text-[10px] text-gray-400 mt-2">Owner: Dr. Sara · due Sep</p></div>
+    </div>
+    <div class="cqi-col">
+      <h3>🚀 In progress</h3>
+      <div class="cqi-card"><div class="flex items-center justify-between mb-1"><span class="pill pill-amber">PLO4 · 63%</span></div><p class="text-sm font-bold text-gray-900">Redesign design-studio rubric</p><div class="emeter attention mt-2"><span style="width:50%"></span></div><p class="text-[10px] text-gray-400 mt-2">2 of 4 actions done</p></div>
+      <div class="cqi-card"><div class="flex items-center justify-between mb-1"><span class="pill pill-amber">CLO3 · 62%</span></div><p class="text-sm font-bold text-gray-900">Extra normalization labs</p><div class="emeter attention mt-2"><span style="width:70%"></span></div></div>
+    </div>
+    <div class="cqi-col">
+      <h3>✅ Completed</h3>
+      <div class="cqi-card"><div class="flex items-center justify-between mb-1"><span class="pill pill-blue">PLO2 · 76%</span></div><p class="text-sm font-bold text-gray-900">Communication workshops</p><p class="text-[11px] text-gray-500 mt-1">Awaiting next measurement.</p></div>
+    </div>
+    <div class="cqi-col">
+      <h3>🎯 Evaluated</h3>
+      <div class="cqi-card"><div class="flex items-center justify-between mb-1"><span class="pill pill-green">PLO1 · 88%</span></div><p class="text-sm font-bold text-gray-900">Foundations bridge module</p><p class="text-[11px] text-green-600 font-bold mt-1">72% → 88% (+16%)</p><p class="text-[10px] text-gray-400 mt-1">Loop closed ✓</p></div>
+    </div>
+  </div>
+
+</div>
+
+<nav class="bottom-bar">
+  <a href="coordinator-dashboard.html" class="tab-btn" data-tab="home"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125h14.25c.621 0 1.125-.504 1.125-1.125V9.75"/></svg><span>Home</span></a>
+  <a href="coordinator-outcomes.html" class="tab-btn" data-tab="outcomes"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941"/></svg><span>Outcomes</span></a>
+  <a href="coordinator-cqi.html" class="tab-btn active" data-tab="cqi"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/></svg><span>CQI</span></a>
+  <a href="coordinator-curriculum.html" class="tab-btn" data-tab="curriculum"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg><span>Matrix</span></a>
+  <a href="coordinator-accreditation.html" class="tab-btn" data-tab="accred"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25Z"/></svg><span>Accredit</span></a>
+</nav>
+<script src="shared.js"></script>
+</body>
+</html>

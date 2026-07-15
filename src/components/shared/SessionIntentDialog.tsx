@@ -236,7 +236,8 @@ const SessionIntentDialog = ({
               <Button
                 type="submit"
                 disabled={saveIntent.isPending}
-                className="gap-2 bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
+                variant="tactile"
+                className="gap-2"
               >
                 {saveIntent.isPending ? (
                   <Loader2 className="h-4 w-4 animate-spin" />

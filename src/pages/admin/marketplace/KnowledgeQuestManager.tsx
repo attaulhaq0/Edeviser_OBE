@@ -105,7 +105,7 @@ const KnowledgeQuestManager = () => {
 
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95">
+            <Button variant="tactile">
               <Plus className="h-4 w-4" /> Create Quest
             </Button>
           </DialogTrigger>
@@ -223,7 +223,7 @@ const KnowledgeQuestManager = () => {
                 <Button
                   type="submit"
                   disabled={createQuest.isPending}
-                  className="bg-gradient-to-r from-teal-500 to-blue-600"
+                  variant="tactile"
                 >
                   {createQuest.isPending && (
                     <Loader2 className="h-4 w-4 animate-spin me-2" />

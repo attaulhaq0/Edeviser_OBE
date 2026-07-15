@@ -21,7 +21,7 @@ import { parseAsString, parseAsInteger, useQueryState } from "nuqs";
 import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 import XPBalanceBadge from "@/components/shared/XPBalanceBadge";
 import { useAuth } from "@/hooks/useAuth";
 import {

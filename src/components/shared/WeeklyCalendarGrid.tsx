@@ -132,8 +132,9 @@ const ReviewItem = ({
             <>
               <Button
                 size="sm"
+                variant="tactile"
                 className={cn(
-                  "gap-0.5 bg-gradient-to-r from-teal-500 to-blue-600 text-[10px] active:scale-95",
+                  "gap-0.5 text-[10px]",
                   compact ? "h-6 px-1.5" : "h-7 px-2"
                 )}
                 onClick={() => onStartReview?.(review)}

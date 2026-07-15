@@ -22,8 +22,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import Shimmer from "@/components/shared/Shimmer";
-import GradientCardHeader from "@/components/shared/GradientCardHeader";
+import { GradientCardHeader, Shimmer } from "@/design-system";
 import { InlineNoData } from "@/components/shared/EmptyState";
 import { useAuth } from "@/hooks/useAuth";
 import { useCourses } from "@/hooks/useCourses";
@@ -263,7 +262,7 @@ const TeacherHandoffPage = () => {
                     <Button
                       size="sm"
                       onClick={() => handleRespond(handoff)}
-                      className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
+                      variant="tactile"
                     >
                       Respond
                     </Button>
@@ -425,7 +424,7 @@ const TeacherHandoffPage = () => {
             <Button
               disabled={!responseText.trim() || respondMutation.isPending}
               onClick={handleSubmitResponse}
-              className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
+              variant="tactile"
             >
               {respondMutation.isPending && (
                 <Loader2 className="h-4 w-4 animate-spin" />

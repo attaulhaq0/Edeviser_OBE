@@ -355,7 +355,7 @@ const AdaptiveQuizSession = () => {
         <Link
           to={`/student/courses/${activeRecovery.course_id}/recovery/${activeRecovery.clo_id}`}
         >
-          <Button className="bg-gradient-to-r from-teal-500 to-blue-600 text-white active:scale-95">
+          <Button variant="tactile">
             {t("quiz.recovery.cta")}
           </Button>
         </Link>
@@ -503,7 +503,8 @@ const AdaptiveQuizSession = () => {
         {isPracticeMode && practiceFeedback ? (
           <Button
             onClick={handleNextQuestion}
-            className="bg-gradient-to-r from-teal-500 to-blue-600 text-white px-8 py-2 active:scale-95 transition-transform duration-100"
+            variant="tactile"
+            className="px-8 py-2"
           >
             {practiceFeedback.isSessionComplete
               ? t("quiz.finishQuiz")
@@ -513,7 +514,8 @@ const AdaptiveQuizSession = () => {
           <Button
             onClick={handleSubmitAnswer}
             disabled={!selectedAnswer || isSubmitting}
-            className="bg-gradient-to-r from-teal-500 to-blue-600 text-white px-8 py-2 active:scale-95 transition-transform duration-100"
+            variant="tactile"
+            className="px-8 py-2"
           >
             {isSubmitting ? (
               <>

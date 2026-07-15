@@ -29,14 +29,16 @@ import {
   TrendingUp,
 } from "lucide-react";
 
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import WelcomeHero from "@/components/shared/WelcomeHero";
-import KPICard from "@/components/shared/KPICard";
-import SectionHeader from "@/components/shared/SectionHeader";
-import MasteryRing from "@/components/shared/MasteryRing";
-import { SeverityIcon } from "@/components/shared/SeverityIcon";
-import Shimmer from "@/components/shared/Shimmer";
+import {
+  Button,
+  Card,
+  KPICard,
+  MasteryRing,
+  SectionHeader,
+  SeverityIcon,
+  Shimmer,
+  WelcomeHero,
+} from "@/design-system";
 import { useAuth } from "@/hooks/useAuth";
 import { useStudentDashboardAggregate } from "@/hooks/useStudentDashboardAggregate";
 import { formatNumber, formatPercent } from "@/lib/formatNumber";

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Edeviser — Institution / Me</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
+<link rel="stylesheet" href="shared.css"/>
+<style>
+  /* Admin "Me" — institution admin profile & workspace config. Scoped,
+     additive styles mirroring the coordinator-profile pattern. */
+  body[data-role="admin"] .contact{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+  body[data-role="admin"] .contact .ct{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#475569;background:#f8fafc;border:1px solid #eef2f6;border-radius:9px;padding:6px 10px}
+  body[data-role="admin"] .set-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f5f7fa}
+  body[data-role="admin"] .set-row:last-child{border-bottom:none}
+  body[data-role="admin"] .set-row .sr-t{flex:1;min-width:0;font-size:13px;font-weight:600;color:#334155}
+  body[data-role="admin"] .set-row .sr-s{font-size:11px;color:#94a3b8;font-weight:500}
+  body[data-role="admin"] .seg{display:flex;gap:2px;background:#f1f5f9;border-radius:9px;padding:3px}
+  body[data-role="admin"] .seg button{font-size:12px;font-weight:700;color:#64748b;padding:5px 12px;border-radius:7px}
+  body[data-role="admin"] .seg button.on{background:#fff;color:#0f172a;box-shadow:0 1px 2px rgba(15,23,42,.12)}
+  body[data-role="admin"] .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px 12px}
+  body[data-role="admin"] .info-grid .ig-k{font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#94a3b8;margin:0}
+  body[data-role="admin"] .info-grid .ig-v{font-size:13px;font-weight:700;color:#0f172a;margin:2px 0 0}
+  body[data-role="admin"] .act-row{display:flex;gap:11px;padding:9px 0;border-bottom:1px solid #f5f7fa}
+  body[data-role="admin"] .act-row:last-child{border-bottom:none}
+  body[data-role="admin"] .act-ic{width:32px;height:32px;border-radius:9px;background:#eff6ff;color:#1d4ed8;display:flex;align-items:center;justify-content:center;font-size:14px;flex:0 0 auto}
+</style>
+</head>
+<body class="bg-slate-50" data-role="admin">
+<header class="app-header">
+  <div class="hdr-brand flex items-center gap-2"><div class="h-7 w-7 rounded-lg flex items-center justify-center" style="background:var(--brand-gradient)"><span class="text-white text-sm">✦</span></div><span class="text-base font-bold tracking-tight text-gray-900">Edeviser</span></div>
+  <div class="flex items-center gap-2"><a href="admin-profile.html" class="h-8 w-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style="background:var(--brand-gradient)">G</a></div>
+</header>
+<div class="page-content space-y-4 no-scrollbar">
+
+  <!-- 1 · Institution admin identity + scope + contact
+       Unified .phdr layout (reused across all 5 roles). Data mirrors
+       useAdminDashboardAggregate / useInstitutionSettings / useDepartments (institutions, programs, courses). UI refactor only. -->
+  <div class="feed-wide pcard p-5">
+    <div class="phdr">
+      <div class="phdr-left">
+        <div class="phdr-idrow">
+          <button class="ava-edit shrink-0" onclick="editAdminProfile()" aria-label="Change institution logo">
+            <span class="phdr-av">🏛️</span>
+            <span class="ava-cam">📷</span>
+          </button>
+          <div class="min-w-0">
+            <h1 class="phdr-name">Gulf Academy</h1>
+            <p class="phdr-role">Institution Admin <span class="sub">· Ms. Layla Haddad / Doha, Qatar</span></p>
+          </div>
+        </div>
+        <div class="phdr-stats">
+          <div class="phdr-stat"><span class="phdr-stat-ic st-green">👥</span><span class="phdr-stat-tx"><span class="phdr-stat-v">1,240</span><span class="phdr-stat-l">Learners</span></span></div>
+          <div class="phdr-stat"><span class="phdr-stat-ic st-violet">🧑‍🏫</span><span class="phdr-stat-tx"><span class="phdr-stat-v">86</span><span class="phdr-stat-l">Teachers</span></span></div>
+          <div class="phdr-stat"><span class="phdr-stat-ic st-teal">📚</span><span class="phdr-stat-tx"><span class="phdr-stat-v">11</span><span class="phdr-stat-l">Programs</span></span></div>
+          <div class="phdr-stat"><span class="phdr-stat-ic st-blue">🎓</span><span class="phdr-stat-tx"><span class="phdr-stat-v">142</span><span class="phdr-stat-l">Courses</span></span></div>
+        </div>
+      </div>
+      <div class="phdr-right">
+        <div class="phdr-actions">
+          <button onclick="editAdminProfile()" class="phdr-btn">✏️ Edit profile</button>
+          <button onclick="toast('Opening institution page…','🏛️')" class="phdr-btn primary">🏛️ Institution page</button>
+        </div>
+        <div class="phdr-contact">
+          <div class="phdr-c"><span class="phdr-c-ic">✉️</span><a href="mailto:admin@gulf-academy.edu.qa">admin@gulf-academy.edu.qa</a></div>
+          <div class="phdr-c"><span class="phdr-c-ic">📞</span><span>+974 4000 5678</span></div>
+          <div class="phdr-c"><span class="phdr-c-ic">📍</span><span>Education City · Block B</span></div>
+          <div class="phdr-c"><span class="phdr-c-ic">🕐</span><span>Support · Sun–Thu 8–5</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="lg-row lg-row-2 space-y-4 items-start">
+  <!-- 2 · Institution settings (from settings image: bilingual, thresholds, parent reports) -->
+  <div class="pcard p-4">
+    <div class="sec-h"><span class="chip">🌐</span><p class="t">Institution settings</p></div>
+    <div class="set-row"><span class="sr-t">Bilingual (Arabic / English)<span class="sr-s block">RTL layout &amp; dual-language content</span></span><label class="edv-toggle"><input type="checkbox" checked onchange="toast(this.checked?'Bilingual on':'Bilingual off',this.checked?'🌐':'⚪')"><span class="etk"></span></label></div>
+    <div class="set-row"><span class="sr-t">Attainment thresholds<span class="sr-s block">Excellent 85 · Satisfactory 70 · Developing 50</span></span><button onclick="toast('Opening threshold config…','🎯')" class="btn3d sm b-ghost">Configure</button></div>
+    <div class="set-row"><span class="sr-t">Parent growth reports<span class="sr-s block">Weekly wellbeing &amp; progress digest</span></span><label class="edv-toggle"><input type="checkbox" checked onchange="toast(this.checked?'Parent reports on':'Parent reports off',this.checked?'📊':'⚪')"><span class="etk"></span></label></div>
+    <div class="set-row"><span class="sr-t">Self-registration<span class="sr-s block">New sign-ups provision as students</span></span><label class="edv-toggle"><input type="checkbox" onchange="toast(this.checked?'Self-registration on':'Self-registration off',this.checked?'✅':'⚪')"><span class="etk"></span></label></div>
+    <div class="set-row"><span class="sr-t">Streak Sabbatical<span class="sr-s block">Pause streak decay during scheduled breaks &amp; holidays</span></span><label class="edv-toggle"><input type="checkbox" checked onchange="toast(this.checked?'Streak Sabbatical on':'Streak Sabbatical off',this.checked?'🌙':'⚪')"><span class="etk"></span></label></div>
+  </div>
+
+  <!-- 3 · Platform preferences (language / theme / motion) -->
+  <div class="pcard p-4">
+    <div class="sec-h"><span class="chip">🎨</span><p class="t">Platform preferences</p></div>
+    <div class="set-row"><span class="sr-t">Default language</span><div class="seg"><button class="on" onclick="segPick(this)">EN</button><button onclick="segPick(this)">عربي</button></div></div>
+    <div class="set-row"><span class="sr-t">Dark mode<span class="sr-s block">Applies to the admin console</span></span><label class="edv-toggle"><input type="checkbox" onchange="toast(this.checked?'Dark mode on':'Dark mode off',this.checked?'🌙':'☀️')"><span class="etk"></span></label></div>
+    <div class="set-row"><span class="sr-t">Reduced motion<span class="sr-s block">Fewer animations</span></span><label class="edv-toggle"><input type="checkbox" onchange="toast(this.checked?'Reduced motion on':'Reduced motion off',this.checked?'✨':'⚪')"><span class="etk"></span></label></div>
+    <div class="set-row"><span class="sr-t">Compact density</span><label class="edv-toggle"><input type="checkbox" checked onchange="toast(this.checked?'Compact on':'Compact off',this.checked?'📐':'⚪')"><span class="etk"></span></label></div>
+  </div>
+  </div>
+
+  <div class="lg-row lg-row-2 space-y-4 items-start">
+  <!-- 4 · Notification preferences -->
+  <div class="pcard p-4">
+    <div class="sec-h"><span class="chip">🔔</span><p class="t">Notification preferences</p></div>
+    <div class="set-row"><span class="sr-t">New user registrations</span><label class="edv-toggle"><input type="checkbox" checked onchange="toast(this.checked?'Alerts on':'Alerts off',this.checked?'🔔':'🔕')"><span class="etk"></span></label></div>
+    <div class="set-row"><span class="sr-t">Security &amp; sign-in alerts</span><label class="edv-toggle"><input type="checkbox" checked onchange="toast(this.checked?'Alerts on':'Alerts off',this.checked?'🔔':'🔕')"><span class="etk"></span></label></div>
+    <div class="set-row"><span class="sr-t">Weekly institution summary</span><label class="edv-toggle"><input type="checkbox" checked onchange="toast(this.checked?'Alerts on':'Alerts off',this.checked?'🔔':'🔕')"><span class="etk"></span></label></div>
+    <div class="set-row"><span class="sr-t">At-risk cohort signals</span><label class="edv-toggle"><input type="checkbox" onchange="toast(this.checked?'Alerts on':'Alerts off',this.checked?'🔔':'🔕')"><span class="etk"></span></label></div>
+    <div class="set-row"><span class="sr-t">Storage &amp; quota warnings</span><label class="edv-toggle"><input type="checkbox" checked onchange="toast(this.checked?'Alerts on':'Alerts off',this.checked?'🔔':'🔕')"><span class="etk"></span></label></div>
+    <div class="set-row"><span class="sr-t">Quiet hours<span class="sr-s block">Hold non-critical alerts overnight (security alerts always come through)</span></span><label class="edv-toggle"><input type="checkbox" onchange="toggleQuietHours(this)"><span class="etk"></span></label></div>
+    <div id="qh-times" class="set-row" style="gap:8px;display:none"><span class="sr-t" style="flex:0 0 auto">From</span><input type="time" value="20:00" class="qh-time" onchange="toast('Quiet hours updated','🌙')"><span class="sr-t" style="flex:0 0 auto">to</span><input type="time" value="08:00" class="qh-time" onchange="toast('Quiet hours updated','🌙')"></div>
+  </div>
+
+  <!-- 5 · Security & access -->
+  <div class="pcard p-4">
+    <div class="sec-h"><span class="chip">🔒</span><p class="t">Security &amp; access</p></div>
+    <div class="set-row"><span class="sr-t">Change password<span class="sr-s block">Last changed 2 months ago</span></span><button onclick="toast('Opening password change…','🔒')" class="btn3d sm b-ghost">Change</button></div>
+    <div class="set-row"><span class="sr-t">Two-factor authentication</span><span class="pill pill-green">Enabled</span></div>
+    <div class="set-row"><span class="sr-t">Enforce 2FA for all staff</span><label class="edv-toggle"><input type="checkbox" checked onchange="toast(this.checked?'2FA enforced':'2FA optional',this.checked?'🛡️':'⚪')"><span class="etk"></span></label></div>
+    <div class="set-row"><span class="sr-t">Active sessions<span class="sr-s block">4 devices signed in</span></span><button onclick="toast('Opening sessions…','💻')" class="btn3d sm b-ghost">Review</button></div>
+    <div class="set-row"><span class="sr-t">Export my data<span class="sr-s block">Download your admin account data as CSV</span></span><button onclick="toast('Preparing data export…','📦');setTimeout(()=>toast('Export ready to download','📄'),1000)" class="btn3d sm b-ghost">Export</button></div>
+  </div>
+  </div>
+
+  <div class="lg-row lg-row-2 space-y-4 items-start">
+  <!-- 6 · Role & permissions -->
+  <div class="pcard p-4">
+    <div class="sec-h"><span class="chip">🔑</span><p class="t">Role &amp; permissions</p></div>
+    <div class="rail-check"><span class="rc-box">✓</span><span class="rc-t">Manage users &amp; roles</span></div>
+    <div class="rail-check"><span class="rc-box">✓</span><span class="rc-t">Configure institution settings</span></div>
+    <div class="rail-check"><span class="rc-box">✓</span><span class="rc-t">Set AI autonomy &amp; policy</span></div>
+    <div class="rail-check"><span class="rc-box">✓</span><span class="rc-t">View analytics &amp; audit logs</span></div>
+    <div class="rail-check"><span class="rc-box">✓</span><span class="rc-t">Manage billing &amp; integrations</span></div>
+  </div>
+
+  <!-- 7 · Governance shortcuts (preserved) -->
+  <div class="pcard p-4">
+    <div class="sec-h"><span class="chip">🛡️</span><p class="t">Governance shortcuts</p></div>
+    <a href="admin-governance.html" class="flex items-center gap-3 rounded-lg hover:bg-slate-50 p-2.5"><span class="text-lg">🎚️</span><span class="text-sm font-medium text-gray-800 flex-1">AI autonomy &amp; policy</span><span class="pill pill-amber">A2</span></a>
+    <a href="admin-governance.html" class="flex items-center gap-3 rounded-lg hover:bg-slate-50 p-2.5"><span class="text-lg">🧾</span><span class="text-sm font-medium text-gray-800 flex-1">AI action audit log</span><span class="pill pill-green">0 unapproved</span></a>
+    <a href="admin-governance.html" class="flex items-center gap-3 rounded-lg hover:bg-slate-50 p-2.5"><span class="text-lg">🧠</span><span class="text-sm font-medium text-gray-800 flex-1">Memory &amp; privacy</span><span class="text-gray-300">›</span></a>
+    <a href="admin-users.html" class="flex items-center gap-3 rounded-lg hover:bg-slate-50 p-2.5"><span class="text-lg">👁️</span><span class="text-sm font-medium text-gray-800 flex-1">View as user (impersonation)</span><span class="pill pill-slate">Audited</span></a>
+  </div>
+  </div>
+
+  <!-- 7b · Connected integrations (institution-level) — useConnectedIntegrations -->
+  <div class="feed-wide pcard p-4">
+    <div class="sec-h"><span class="chip">🔌</span><p class="t">Connected integrations</p></div>
+    <div class="set-row"><span class="text-lg">🔑</span><span class="sr-t">Single Sign-On (SAML)<span class="sr-s block">Staff &amp; student login via your IdP</span></span><span class="pill pill-green">Connected</span></div>
+    <div class="set-row"><span class="text-lg">🎓</span><span class="sr-t">Student Information System<span class="sr-s block">Enrolment &amp; roster sync</span></span><span class="pill pill-green">Connected</span></div>
+    <div class="set-row"><span class="text-lg">📧</span><span class="sr-t">Email provider (Resend)<span class="sr-s block">Transactional email &amp; digests</span></span><span class="pill pill-green">Connected</span></div>
+    <div class="set-row"><span class="text-lg">📅</span><span class="sr-t">Google Workspace<span class="sr-s block">Calendar &amp; roster</span></span><button onclick="toast('Connecting Google Workspace…','🔌')" class="btn3d sm b-soft">Connect</button></div>
+    <button onclick="toast('Opening integrations…','🔌')" class="btn3d sm b-ghost full mt-3">Manage integrations</button>
+  </div>
+
+  <!-- 8 · Recent admin activity (audit trail) -->
+  <div class="feed-wide pcard p-4">
+    <div class="sec-h"><span class="chip">🧾</span><p class="t">Recent admin activity</p><a href="admin-governance.html" class="more">View audit log</a></div>
+    <div class="act-row"><span class="act-ic">👤</span><div class="flex-1 min-w-0"><p class="text-sm font-semibold text-gray-900">Invited 3 teachers to Computer Science</p><p class="text-xs text-gray-400">Today · 09:42</p></div></div>
+    <div class="act-row"><span class="act-ic">🎚️</span><div class="flex-1 min-w-0"><p class="text-sm font-semibold text-gray-900">Set AI autonomy to A2 (act with approval)</p><p class="text-xs text-gray-400">Yesterday · 16:10</p></div></div>
+    <div class="act-row"><span class="act-ic">🎯</span><div class="flex-1 min-w-0"><p class="text-sm font-semibold text-gray-900">Updated attainment thresholds</p><p class="text-xs text-gray-400">2 days ago · 11:25</p></div></div>
+    <div class="act-row"><span class="act-ic">🔒</span><div class="flex-1 min-w-0"><p class="text-sm font-semibold text-gray-900">Enabled 2FA enforcement for staff</p><p class="text-xs text-gray-400">4 days ago · 14:03</p></div></div>
+  </div>
+
+  <!-- 9 · Institution information -->
+  <div class="feed-wide pcard p-4">
+    <div class="sec-h"><span class="chip">🏛️</span><p class="t">Institution information</p></div>
+    <div class="info-grid">
+      <div><p class="ig-k">Institution ID</p><p class="ig-v">GA-Q-0007</p></div>
+      <div><p class="ig-k">Region</p><p class="ig-v">Qatar (ME)</p></div>
+      <div><p class="ig-k">Plan</p><p class="ig-v">Enterprise</p></div>
+      <div><p class="ig-k">Data residency</p><p class="ig-v">Middle East</p></div>
+      <div><p class="ig-k">Admin since</p><p class="ig-v">Aug 2023</p></div>
+      <div><p class="ig-k">Departments</p><p class="ig-v">Computing · Business · Sciences</p></div>
+    </div>
+  </div>
+
+  <a href="roles.html" class="feed-wide block text-center py-3 rounded-xl text-sm font-semibold text-gray-600 bg-white border border-gray-200">Switch role →</a>
+
+</div>
+<script>function segPick(el){el.parentElement.querySelectorAll('button').forEach(b=>b.classList.remove('on'));el.classList.add('on');toast('Language set to '+el.textContent.trim(),'🌐');}</script>
+<script src="shared.js"></script>
+<script>
+function editAdminProfile(){
+  openEditModal({
+    title:'Edit profile', initial:'G', successMsg:'Profile updated',
+    fields:[
+      {label:'Institution name', value:'Gulf Academy'},
+      {type:'row2', items:[{label:'Admin first name', value:'Layla'},{label:'Admin last name', value:'Haddad'}]},
+      {type:'row2', items:[{label:'Email', type:'email', value:'admin@gulf-academy.edu.qa'},{label:'Phone', type:'tel', value:'+974 4000 5678'}]},
+      {label:'Address', value:'Education City · Block B, Doha, Qatar'},
+      {label:'Support hours', value:'Sun–Thu 8–5'},
+    ]
+  });
+}
+</script>
+</body>
+</html>

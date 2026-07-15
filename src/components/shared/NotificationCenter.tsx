@@ -53,9 +53,9 @@ const NOTIFICATION_ICONS: Record<NotificationType, React.ReactNode> = {
   digest: <Layers className="h-4 w-4 text-slate-500" />,
 };
 
-const NotificationCenter = ({ onClose: _onClose }: NotificationCenterProps) => {
+const NotificationCenter = ({ onClose }: NotificationCenterProps) => {
   const { t } = useTranslation("common");
-  const { user } = useAuth();
+  const { user, role } = useAuth();
   const navigate = useNavigate();
   const { data: notifications = [], isLoading } = useNotifications(user?.id);
   const markAsRead = useMarkAsRead();
@@ -234,6 +234,20 @@ const NotificationCenter = ({ onClose: _onClose }: NotificationCenterProps) => {
           })
         )}
       </div>
+
+      {/* Footer: full-page feed */}
+      {role && (
+        <button
+          type="button"
+          onClick={() => {
+            navigate(`/${role}/notifications`);
+            onClose();
+          }}
+          className="border-t px-4 py-2.5 text-center text-xs font-semibold text-blue-600 hover:bg-slate-50"
+        >
+          {t("header.seeAllNotifications", "See all notifications")}
+        </button>
+      )}
     </div>
   );
 };
