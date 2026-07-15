@@ -46,7 +46,7 @@ const AssessmentIntro = ({
         )}
         animate={{ scale: 1, opacity: 1 }}
         transition={motionGate.transition({ duration: 0.3, ease: "easeOut" })}
-        className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-500 to-blue-600"
+        className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-[linear-gradient(93.65deg,#14b8a6_5.37%,#0382bd_78.89%)]"
       >
         <Icon className="h-8 w-8 text-white" />
       </motion.div>
@@ -86,7 +86,8 @@ const AssessmentIntro = ({
 
       <Button
         onClick={onBegin}
-        className="mt-8 gap-2 bg-gradient-to-r from-teal-500 to-blue-600 px-8 active:scale-95"
+        variant="tactile"
+        className="mt-8 gap-2 px-8"
       >
         {beginLabel}
         <ArrowRight className="h-4 w-4" />

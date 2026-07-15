@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Edeviser — Leaderboard</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
+<link rel="stylesheet" href="shared.css"/>
+<style>
+  /* Leaderboard — maps to: get_leaderboard_page (opt-out-aware, min-cohort gated)
+     · scope course/program/all × weekly/all_time · useLeagueLeaderboard (tiers
+     Bronze→Diamond, weekly_xp) · useStudentPercentileBand · useMostImproved
+     Leaderboard (4wk vs 4wk) · useTeamLeaderboard · leaderboard_anonymous. */
+  html.mode-laptop body[data-norail] .page-content{max-width:none;padding-right:32px}
+  .lb-grid{display:block}
+  html.mode-laptop .lb-grid{display:grid;grid-template-columns:minmax(0,1fr) 336px;gap:24px;align-items:start}
+  html.mode-laptop .lb-rail{position:sticky;top:74px;display:flex;flex-direction:column;gap:16px}
+  .board-tab{font-size:12.5px;font-weight:800;color:#64748b;padding:8px 14px;border-radius:11px;background:#fff;border:1px solid #e8edf3;cursor:pointer;white-space:nowrap}
+  .board-tab.on{background:var(--brand-gradient);color:#fff;border-color:transparent;box-shadow:0 4px 10px rgba(20,184,166,.25)}
+  .scope-chip{font-size:11px;font-weight:700;color:#64748b;padding:5px 11px;border-radius:999px;background:#f1f5f9;border:1px solid #e2e8f0;cursor:pointer}
+  .scope-chip.on{background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe}
+  .rank-row{display:flex;align-items:center;gap:12px;padding:9px 8px;border-radius:10px}
+  .rank-row.me{background:#eff6ff}
+  .rank-num{width:26px;text-align:center;font-weight:900;color:#94a3b8;flex:0 0 auto}
+  .tier-step{display:flex;align-items:center;gap:10px;padding:7px 0}
+  .tier-badge{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;flex:0 0 auto}
+</style>
+</head>
+<body class="bg-slate-50" data-role="student" data-norail>
+
+<header class="app-header">
+  <div class="flex items-center gap-3">
+    <a href="profile.html" class="p-1.5 rounded-lg hover:bg-gray-100"><svg class="h-5 w-5 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg></a>
+    <div><h1 class="text-base font-bold tracking-tight text-gray-900">Leaderboard</h1><p class="text-xs text-gray-500">Database Design · CS301</p></div>
+  </div>
+  <span class="inline-flex items-center gap-1.5 text-xs font-black text-amber-700 bg-amber-50 border border-amber-100 px-3 py-1.5 rounded-full">🏅 Gold League</span>
+</header>
+
+<div class="page-content no-scrollbar">
+  <div class="lb-grid">
+
+    <!-- ═══════════ MAIN ═══════════ -->
+    <div class="space-y-4">
+
+      <!-- Board type + scope -->
+      <div class="space-y-3">
+        <div class="flex gap-2 overflow-x-auto no-scrollbar">
+          <button class="board-tab on" onclick="board('overall',this)">🏆 Overall</button>
+          <button class="board-tab" onclick="board('weekly',this)">📅 This week</button>
+          <button class="board-tab" onclick="board('improved',this)">📈 Most improved</button>
+          <button class="board-tab" onclick="board('teams',this)">👥 Teams</button>
+        </div>
+        <div class="flex gap-2">
+          <button class="scope-chip on" onclick="scope(this)">My class</button>
+          <button class="scope-chip" onclick="scope(this)">Program</button>
+          <button class="scope-chip" onclick="scope(this)">Institution</button>
+        </div>
+      </div>
+
+      <!-- OVERALL board — "Rank Zones" (unique concept, research-backed):
+           instead of a generic podium+list, rows sit inside promotion / safe /
+           demotion bands that visualize the actual league mechanic (Duolingo-
+           style weekly promote/demote). Each row also shows Δ vs last week so
+           movement — not just position — is visible at a glance. -->
+      <div data-board="overall">
+        <div class="rz-track">
+          <div class="rz-zone promo">
+            <p class="rz-zone-label" style="color:#166534">🚀 Promotion zone · top 3 advance to Diamond</p>
+            <div class="rz-row"><span class="rz-rank">1</span><div class="rz-avatar" style="background:#eab308">M</div><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">Maryam</p><p class="text-[10px] text-gray-500">Lvl 5 · 🔥 15</p></div><span class="text-sm font-black text-gray-900">2,580</span><span class="rz-delta flat">–</span></div>
+            <div class="rz-row"><span class="rz-rank">2</span><div class="rz-avatar" style="background:#94a3b8">A</div><div class="flex-1 min-w-0"><p class="text-sm font-semibold text-gray-800">Aisha</p><p class="text-[10px] text-gray-500">Lvl 4 · 🔥 9</p></div><span class="text-sm font-bold text-gray-700">2,340</span><span class="rz-delta up">↑1</span></div>
+            <div class="rz-row"><span class="rz-rank">3</span><div class="rz-avatar" style="background:#b45309">K</div><div class="flex-1 min-w-0"><p class="text-sm font-semibold text-gray-800">Khalid</p><p class="text-[10px] text-gray-500">Lvl 4 · 🔥 6</p></div><span class="text-sm font-bold text-gray-700">2,120</span><span class="rz-delta down">↓1</span></div>
+          </div>
+          <div class="rz-zone safe">
+            <p class="rz-zone-label" style="color:#64748b">➡️ Safe zone · stays in Gold League</p>
+            <div class="rz-row me"><span class="rz-rank">4</span><div class="rz-avatar" style="background:var(--brand-gradient)">S</div><div class="flex-1 min-w-0"><p class="text-sm font-bold text-blue-700">Sarah (You)</p><p class="text-[10px] text-gray-500">Lvl 4 · 🔥 12</p></div><span class="text-sm font-black text-gray-900">1,890</span><span class="rz-delta up">↑2</span></div>
+            <div class="rz-row"><span class="rz-rank">5</span><div class="rz-avatar" style="background:#ec4899">L</div><div class="flex-1 min-w-0"><p class="text-sm font-semibold text-gray-800">Layla</p><p class="text-[10px] text-gray-500">Lvl 4 · 🔥 8</p></div><span class="text-sm font-bold text-gray-700">1,750</span><span class="rz-delta flat">–</span></div>
+            <div class="rz-row"><span class="rz-rank">6</span><div class="rz-avatar" style="background:#94a3b8">?</div><div class="flex-1 min-w-0"><p class="text-sm font-semibold text-gray-500 italic">Anonymous</p><p class="text-[10px] text-gray-400">Opted out</p></div><span class="text-sm font-bold text-gray-700">1,640</span><span class="rz-delta down">↓1</span></div>
+          </div>
+          <div class="rz-zone demo" id="rz-demo-zone">
+            <p class="rz-zone-label" style="color:#b91c1c">⚠️ Demotion zone · drops to Silver if the week ended now</p>
+            <div class="rz-row"><span class="rz-rank">7</span><div class="rz-avatar" style="background:#14b8a6">N</div><div class="flex-1 min-w-0"><p class="text-sm font-semibold text-gray-800">Nora</p><p class="text-[10px] text-gray-500">Lvl 3 · 🔥 5</p></div><span class="text-sm font-bold text-gray-700">1,520</span><span class="rz-delta down">↓2</span></div>
+          </div>
+        </div>
+        <button class="btn3d sm b-ghost w-full mt-3" onclick="loadMoreRanks()" id="lb-load-more">Load more</button>
+      </div>
+
+      <!-- WEEKLY board — same Rank Zones idea, scoped to this week's XP only -->
+      <div data-board="weekly" hidden>
+        <div class="rz-track">
+          <div class="rz-zone promo">
+            <p class="rz-zone-label" style="color:#166534">🚀 Leading this week</p>
+            <div class="rz-row"><span class="rz-rank">1</span><div class="rz-avatar" style="background:#14b8a6">N</div><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">Nora</p></div><span class="text-sm font-black text-teal-600">+640</span></div>
+          </div>
+          <div class="rz-zone safe">
+            <div class="rz-row me"><span class="rz-rank">2</span><div class="rz-avatar" style="background:var(--brand-gradient)">S</div><div class="flex-1 min-w-0"><p class="text-sm font-bold text-blue-700">Sarah (You)</p></div><span class="text-sm font-black text-teal-600">+420</span></div>
+            <div class="rz-row"><span class="rz-rank">3</span><div class="rz-avatar" style="background:#3b82f6">M</div><div class="flex-1 min-w-0"><p class="text-sm font-semibold text-gray-800">Maryam</p></div><span class="text-sm font-bold text-gray-700">+390</span></div>
+            <div class="rz-row"><span class="rz-rank">4</span><div class="rz-avatar" style="background:#6366f1">O</div><div class="flex-1 min-w-0"><p class="text-sm font-semibold text-gray-800">Omar</p></div><span class="text-sm font-bold text-gray-700">+310</span></div>
+          </div>
+        </div>
+        <p class="text-center text-[11px] text-gray-400 mt-3">Resets Sunday midnight · scoped to your class</p>
+      </div>
+
+      <!-- MOST IMPROVED board (4-week vs previous 4-week) -->
+      <div data-board="improved" hidden>
+        <div class="pcard p-4">
+          <div class="sec-h"><span class="chip">📈</span><p class="t">Most improved · last 4 weeks</p></div>
+          <p class="text-xs text-gray-500 mb-2">Growth vs. your previous 4 weeks — effort beats absolute XP here.</p>
+          <div class="divide-y divide-gray-50">
+            <div class="rank-row me"><span class="rank-num text-amber-500">1</span><div class="h-9 w-9 rounded-full flex items-center justify-center text-white text-sm font-bold ring-2 ring-blue-400" style="background:var(--brand-gradient)">S</div><div class="flex-1 min-w-0"><p class="text-sm font-bold text-blue-700">Sarah (You)</p><p class="text-[11px] text-gray-500">980 → 1,420 XP</p></div><span class="pill pill-green">+45%</span></div>
+            <div class="rank-row"><span class="rank-num">2</span><div class="h-9 w-9 rounded-full bg-teal-400 flex items-center justify-center text-white text-sm font-bold">N</div><div class="flex-1 min-w-0"><p class="text-sm font-semibold text-gray-800">Nora</p><p class="text-[11px] text-gray-500">610 → 840 XP</p></div><span class="pill pill-green">+38%</span></div>
+            <div class="rank-row"><span class="rank-num">3</span><div class="h-9 w-9 rounded-full bg-indigo-400 flex items-center justify-center text-white text-sm font-bold">O</div><div class="flex-1 min-w-0"><p class="text-sm font-semibold text-gray-800">Omar</p><p class="text-[11px] text-gray-500">720 → 910 XP</p></div><span class="pill pill-green">+26%</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TEAMS board -->
+      <div data-board="teams" hidden>
+        <div class="pcard p-4">
+          <div class="sec-h"><span class="chip">👥</span><p class="t">Team standings</p></div>
+          <div class="divide-y divide-gray-50">
+            <div class="rank-row"><span class="rank-num text-amber-500">1</span><div class="h-9 w-9 rounded-xl bg-purple-100 flex items-center justify-center text-lg">🌟</div><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">Team Nova</p><p class="text-[11px] text-gray-500">5 members</p></div><span class="text-sm font-black text-gray-900">15,900</span></div>
+            <div class="rank-row me"><span class="rank-num text-gray-500">2</span><div class="h-9 w-9 rounded-xl bg-blue-100 flex items-center justify-center text-lg">⚡</div><div class="flex-1 min-w-0"><p class="text-sm font-bold text-blue-700">Team Voltage (Yours)</p><p class="text-[11px] text-gray-500">5 members</p></div><span class="text-sm font-black text-blue-700">14,820</span></div>
+            <div class="rank-row"><span class="rank-num">3</span><div class="h-9 w-9 rounded-xl bg-red-100 flex items-center justify-center text-lg">🔺</div><div class="flex-1 min-w-0"><p class="text-sm font-semibold text-gray-800">Team Apex</p><p class="text-[11px] text-gray-500">4 members</p></div><span class="text-sm font-bold text-gray-700">13,400</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ═══════════ RAIL ═══════════ -->
+    <aside class="lb-rail">
+
+      <!-- Your position (useMyRank + percentile band) -->
+      <div class="pcard p-4" style="background:linear-gradient(135deg,#0f172a 0%,#1e3a8a 50%,#312e81 100%)">
+        <p class="text-[10px] font-black tracking-widest uppercase text-white/60">Your position</p>
+        <div class="flex items-end gap-2 mt-1"><span class="text-4xl font-black text-white">#4</span><span class="text-sm font-bold text-green-300 mb-1">Top 15%</span></div>
+        <div class="grid grid-cols-2 gap-2 mt-3">
+          <div class="rounded-xl bg-white/10 p-2.5"><p class="text-[9px] font-bold uppercase text-white/60">This week</p><p class="text-sm font-black text-teal-300">+420 XP</p></div>
+          <div class="rounded-xl bg-white/10 p-2.5"><p class="text-[9px] font-bold uppercase text-white/60">All-time</p><p class="text-sm font-black text-white">1,890</p></div>
+        </div>
+      </div>
+
+      <!-- League ladder (Bronze→Diamond, weekly reset) -->
+      <div class="pcard p-4">
+        <div class="sec-h"><span class="chip">🏅</span><p class="t">League</p><span class="more">resets in 3d</span></div>
+        <div class="rounded-xl bg-amber-50 border border-amber-100 p-3 mb-2">
+          <div class="flex items-center justify-between"><span class="text-sm font-black text-amber-700">🏅 Gold League</span><span class="text-[11px] font-bold text-gray-500">1,890 XP</span></div>
+          <div class="flex items-center justify-between text-[11px] font-bold text-gray-500 mt-2 mb-1"><span>to Diamond</span><span>1,890 / 3,000</span></div>
+          <div class="emeter attention"><span style="width:63%"></span></div>
+          <p class="text-[11px] text-gray-500 mt-1.5">Top 10 advance to Diamond this week.</p>
+        </div>
+        <div class="tier-step"><span class="tier-badge" style="background:#dbeafe">💎</span><span class="text-sm font-semibold text-gray-700 flex-1">Diamond</span><span class="text-[11px] text-gray-400">3,000+</span></div>
+        <div class="tier-step"><span class="tier-badge" style="background:#fef3c7">🏅</span><span class="text-sm font-bold text-amber-700 flex-1">Gold ← you</span><span class="text-[11px] text-gray-400">1,000+</span></div>
+        <div class="tier-step"><span class="tier-badge" style="background:#f1f5f9">🥈</span><span class="text-sm font-semibold text-gray-700 flex-1">Silver</span><span class="text-[11px] text-gray-400">300+</span></div>
+        <div class="tier-step"><span class="tier-badge" style="background:#fef2f2">🥉</span><span class="text-sm font-semibold text-gray-700 flex-1">Bronze</span><span class="text-[11px] text-gray-400">0+</span></div>
+      </div>
+
+      <!-- Privacy: anonymous opt-out (leaderboard_anonymous) -->
+      <div class="pcard p-4">
+        <div class="sec-h"><span class="chip">🕶️</span><p class="t">Privacy</p></div>
+        <div class="flex items-center gap-3">
+          <div class="flex-1 min-w-0"><p class="text-sm font-semibold text-gray-800">Show me anonymously</p><p class="text-[11px] text-gray-500">Your name shows as "Anonymous" to peers.</p></div>
+          <label class="edv-toggle"><input type="checkbox" onchange="toast(this.checked?'You are now anonymous':'Name is now visible',this.checked?'🕶️':'👤')"><span class="etk"></span></label>
+        </div>
+      </div>
+
+      <p class="text-center text-[11px] text-gray-400">🔒 Leaderboards need a minimum cohort of 5 and always respect anonymous opt-out.</p>
+
+    </aside>
+
+  </div>
+</div>
+
+<nav class="bottom-bar">
+  <a href="dashboard.html" class="tab-btn" data-tab="home"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75"/></svg><span>Home</span></a>
+  <a href="learn.html" class="tab-btn" data-tab="learn"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/></svg><span>Learn</span></a>
+  <a href="tutor.html" class="tab-btn" data-tab="tutor"><div class="tutor-fab"><span class="text-lg">🤖</span></div><span>Tutor</span></a>
+  <a href="progress.html" class="tab-btn" data-tab="progress"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941"/></svg><span>Progress</span></a>
+  <a href="profile.html" class="tab-btn active" data-tab="me"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg><span>Me</span></a>
+</nav>
+<script src="shared.js"></script>
+<script>
+  function board(b, btn){ document.querySelectorAll('.board-tab').forEach(t=>t.classList.remove('on')); btn.classList.add('on'); document.querySelectorAll('[data-board]').forEach(g=>g.hidden=(g.dataset.board!==b)); window.__eqCols(); }
+  function scope(chip){ chip.parentElement.querySelectorAll('.scope-chip').forEach(c=>c.classList.remove('on')); chip.classList.add('on'); toast('Scope: '+chip.textContent.trim(),'🔎'); }
+
+  // Load more — appends the next page of the demotion zone (mirrors
+  // get_leaderboard_page's offset/limit pagination). Real pagination target:
+  // fetchLeaderboardPage(institutionId, pageSize, offset) in useLeaderboard.ts.
+  const MORE_RANKS=[
+    ['8','#f59e0b','Omar','Lvl 3 · 🔥 3','1,410','down','↓1'],
+    ['9','#8b5cf6','Yousef','Lvl 3 · 🔥 7','1,340','up','↑3'],
+    ['10','#22c55e','Fatima','Lvl 3 · 🔥 2','1,280','down','↓2'],
+  ];
+  let moreLoaded=false;
+  function loadMoreRanks(){
+    if(moreLoaded){ toast("You've reached the end of this page",'📄'); return; }
+    const zone=document.getElementById('rz-demo-zone');
+    MORE_RANKS.forEach(([rank,color,name,meta,xp,dir,delta])=>{
+      const row=document.createElement('div');
+      row.className='rz-row';
+      row.innerHTML=`<span class="rz-rank">${rank}</span><div class="rz-avatar" style="background:${color}">${name[0]}</div><div class="flex-1 min-w-0"><p class="text-sm semibold text-gray-800">${name}</p><p class="text-[10px] text-gray-500">${meta}</p></div><span class="text-sm font-bold text-gray-700">${xp}</span><span class="rz-delta ${dir}">${delta}</span>`;
+      zone.appendChild(row);
+    });
+    moreLoaded=true;
+    document.getElementById('lb-load-more').textContent='All loaded';
+    document.getElementById('lb-load-more').disabled=true;
+    window.__eqCols();
+  }
+
+  window.__eqCols=()=>equalizeColumns('.lb-grid > div:first-child','.lb-rail');
+  window.addEventListener('load',window.__eqCols);
+</script>
+</body>
+</html>

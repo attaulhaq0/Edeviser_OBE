@@ -25,7 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import EmptyState from "@/components/shared/EmptyState";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 import ErrorBoundary from "@/components/shared/ErrorBoundary";
 import { Workflow, Award, Target, FileText, Ruler, User } from "lucide-react";
 import { useILOs } from "@/hooks/useILOs";

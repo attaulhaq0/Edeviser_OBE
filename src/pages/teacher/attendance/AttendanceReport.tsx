@@ -24,7 +24,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 import { NoAttendance } from "@/components/shared/EmptyState";
 
 import { useAuth } from "@/hooks/useAuth";

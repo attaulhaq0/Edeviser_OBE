@@ -39,19 +39,19 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import {
+  Button,
+  Card,
+  Label,
+  MasteryRing,
+  SectionHeader,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import Shimmer from "@/components/shared/Shimmer";
-import SectionHeader from "@/components/shared/SectionHeader";
-import MasteryRing from "@/components/shared/MasteryRing";
+  Shimmer,
+} from "@/design-system";
 import { useCourses } from "@/hooks/useCourses";
 import { useSemesters } from "@/hooks/useSemesters";
 import { useGenerateCourseFile } from "@/hooks/useCourseFile";

@@ -33,7 +33,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 import { Loader2, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 
@@ -274,7 +274,7 @@ const TeamFormPage = () => {
               <Button
                 type="submit"
                 disabled={isPending || (!isEditMode && !sizeValid)}
-                className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
+                variant="tactile"
               >
                 {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
                 {isEditMode ? "Update Team" : "Create Team"}

@@ -92,6 +92,20 @@
     - _Expected_Behavior: all policies use (select auth.uid()) pattern, no redundant permissive policies_
     - _Preservation: existing RLS enforcement unchanged, only optimized (Req 3.2); security audit fixes preserved (Req 3.6)_
     - _Requirements: 1.4, 1.5, 2.4, 2.5_
+    - **CORRECTION (2026-07-04, found by `rls-consolidation-and-infra-health`):** the
+      shipped migration (`20260428000003_optimize_rls_policies.sql`) only did the
+      `(select auth.<fn>())` initplan-wrapping half of this task. It did **not**
+      consolidate any redundant permissive policy — every table section is a
+      `DROP POLICY` + `CREATE POLICY` with the same name/predicate/count, never an
+      `OR`-merge. The live database still carries 76 `multiple_permissive_policies`
+      advisor groups today. This checkbox is correctly left `[x]` because the
+      initplan-wrapping it actually shipped is done and real — but the "consolidate
+      redundant permissive policies" half of its own description was never done. The
+      migration's header docstring has been corrected to stop claiming otherwise (see
+      `.kiro/specs/rls-consolidation-and-infra-health/design.md` Requirement 3). The
+      actual consolidation is owned exclusively by
+      `.kiro/specs/rls-policy-consolidation/` (stub, not started) — do not re-attempt
+      it here or in the infra-health spec.
 
   - [x] 3.5 Create pg_net schema migration
 

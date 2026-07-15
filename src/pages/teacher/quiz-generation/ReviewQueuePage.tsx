@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 
 import QuestionPreview from "@/components/shared/QuestionPreview";
 import DifficultyBadge from "@/components/shared/DifficultyBadge";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 
 import {
   useReviewQueue,
@@ -180,7 +180,7 @@ const ReviewQueuePage = () => {
         <Button
           onClick={handleBulkApprove}
           disabled={bulkApproveMutation.isPending}
-          className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 transition-transform"
+          variant="tactile"
         >
           <CheckCheck className="h-4 w-4" />
           {bulkApproveMutation.isPending ? "Approving..." : "Approve All"}

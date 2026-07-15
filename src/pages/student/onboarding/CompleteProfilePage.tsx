@@ -189,7 +189,7 @@ export const CompleteProfilePage = () => {
         </div>
         <div className="mt-2 h-3 w-full overflow-hidden rounded-full bg-slate-100">
           <motion.div
-            className="h-full rounded-full bg-gradient-to-r from-teal-500 to-blue-600"
+            className="h-full rounded-full bg-[linear-gradient(93.65deg,#14b8a6_5.37%,#0382bd_78.89%)]"
             initial={{ width: 0 }}
             animate={{ width: `${completeness}%` }}
             transition={{ duration: 0.5, ease: "easeOut" }}
@@ -286,7 +286,7 @@ export const CompleteProfilePage = () => {
       </div>
 
       {completeness >= 100 && (
-        <Card className="mt-6 border-0 bg-gradient-to-r from-teal-500 to-blue-600 p-6 shadow-lg rounded-xl text-center text-white">
+        <Card className="mt-6 border-0 bg-[linear-gradient(93.65deg,#14b8a6_5.37%,#0382bd_78.89%)] p-6 shadow-lg rounded-xl text-center text-white">
           <CheckCircle className="mx-auto h-10 w-10" />
           <h2 className="mt-2 text-lg font-bold">Profile Complete!</h2>
           <p className="mt-1 text-sm text-white/80">

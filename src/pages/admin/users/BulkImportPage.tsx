@@ -316,7 +316,7 @@ const BulkImportPage = () => {
             <Button
               onClick={handleImport}
               disabled={validRows.length === 0 || importMutation.isPending}
-              className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 text-white"
+              variant="tactile"
             >
               {importMutation.isPending && (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -386,10 +386,7 @@ const BulkImportPage = () => {
           )}
 
           <div className="flex items-center gap-3 mt-6 justify-center">
-            <Button
-              onClick={() => navigate("/admin/users")}
-              className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 text-white"
-            >
+            <Button onClick={() => navigate("/admin/users")} variant="tactile">
               View Users
             </Button>
             <Button variant="outline" onClick={handleReset}>

@@ -342,11 +342,7 @@ const ItemForm = ({ item, onClose }: ItemFormProps) => {
             />
 
             <div className="flex items-center gap-3 pt-2">
-              <Button
-                type="submit"
-                disabled={isPending}
-                className="bg-gradient-to-r from-teal-500 to-blue-600 text-white active:scale-95 transition-transform duration-100"
-              >
+              <Button type="submit" disabled={isPending} variant="tactile">
                 {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
                 {isEditing ? "Update Item" : "Create Item"}
               </Button>

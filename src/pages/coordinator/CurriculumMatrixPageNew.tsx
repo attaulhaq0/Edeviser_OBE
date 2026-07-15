@@ -28,7 +28,7 @@ import { usePrograms } from "@/hooks/usePrograms";
 import { useCurriculumMatrix } from "@/hooks/useCurriculumMatrix";
 import CurriculumMatrix from "@/components/shared/CurriculumMatrix";
 import CellDetailSheet from "@/components/shared/CellDetailSheet";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {

@@ -57,7 +57,7 @@ const PWAInstallPrompt = () => {
           <Button
             size="sm"
             onClick={handleInstall}
-            className="bg-gradient-to-r from-teal-500 to-blue-600 text-white active:scale-95"
+            variant="tactile"
           >
             Install
           </Button>

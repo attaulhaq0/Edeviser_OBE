@@ -25,12 +25,14 @@ import {
   TrendingUp,
 } from "lucide-react";
 
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import KPICard from "@/components/shared/KPICard";
-import SectionHeader from "@/components/shared/SectionHeader";
-import MasteryRing from "@/components/shared/MasteryRing";
-import Shimmer from "@/components/shared/Shimmer";
+import {
+  Badge,
+  Card,
+  KPICard,
+  MasteryRing,
+  SectionHeader,
+  Shimmer,
+} from "@/design-system";
 import { NoData } from "@/components/shared/EmptyState";
 import { useAuth } from "@/hooks/useAuth";
 import { useStudentProgress } from "@/hooks/useStudentProgress";

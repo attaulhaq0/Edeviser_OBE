@@ -4,7 +4,7 @@ import {
   CELL_ATTAINMENT_UNMEASURED,
   type CellData,
 } from "@/hooks/useCurriculumMatrix";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 

@@ -16,7 +16,7 @@ import { queryKeys } from "@/lib/queryKeys";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 import { NoChallenges } from "@/components/shared/EmptyState";
 import { Trophy, Target, Users } from "lucide-react";
 
@@ -40,7 +40,7 @@ const ProgressBar = ({
       </div>
       <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
         <div
-          className="h-full rounded-full bg-gradient-to-r from-teal-500 to-blue-600 transition-all duration-500"
+          className="h-full rounded-full bg-[linear-gradient(93.65deg,#14b8a6_5.37%,#0382bd_78.89%)] transition-all duration-500"
           style={{ width: `${pct}%` }}
         />
       </div>

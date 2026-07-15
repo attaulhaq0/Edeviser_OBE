@@ -3,7 +3,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Clock, CalendarClock, MapPin } from "lucide-react";
 import { useTimetableSlots, type TimetableSlot } from "@/hooks/useTimetable";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 import { NoTimetable } from "@/components/shared/EmptyState";
 import i18n from "@/lib/i18n";
 import { resolveLocalizationGate } from "@/lib/localization";

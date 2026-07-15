@@ -16,9 +16,7 @@
 
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Card } from "@/components/ui/card";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
+import { Card, Label, Switch } from "@/design-system";
 import { useAuth } from "@/hooks/useAuth";
 import {
   usePortfolio,
@@ -27,8 +25,7 @@ import {
   type PortfolioCLO,
 } from "@/hooks/usePortfolio";
 import { useApproachableWording } from "@/hooks/useApproachableWording";
-import KPICard from "@/components/shared/KPICard";
-import SectionHeader from "@/components/shared/SectionHeader";
+import { KPICard, SectionHeader } from "@/design-system";
 import BloomsPill from "@/components/shared/BloomsPill";
 import {
   InlineNoAttainmentData,

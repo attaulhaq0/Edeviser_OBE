@@ -141,6 +141,13 @@
     "defaultMessage": "An unexpected error occurred.",
     "retry": "Try Again"
   },
+  "notFound": {
+    "code": "404",
+    "title": "Page not found",
+    "description": "The page you're looking for doesn't exist or may have moved.",
+    "backToLogin": "Back to sign in",
+    "goBack": "Go back"
+  },
   "blooms": {
     "remembering": "Remembering",
     "understanding": "Understanding",

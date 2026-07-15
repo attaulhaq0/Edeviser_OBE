@@ -57,7 +57,7 @@ vi.mock("@/components/shared/TeamHealthBadge", () => ({
   ),
 }));
 
-vi.mock("@/components/shared/Shimmer", () => ({
+vi.mock("@/design-system/patterns/Shimmer", () => ({
   default: ({ className }: { className?: string }) => (
     <div data-testid="shimmer" className={className} />
   ),

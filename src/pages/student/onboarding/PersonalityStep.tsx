@@ -232,7 +232,7 @@ export const PersonalityStep = ({
       {/* Question progress */}
       <div className="mb-6 h-1.5 w-full max-w-md overflow-hidden rounded-full bg-slate-100">
         <motion.div
-          className="h-full rounded-full bg-gradient-to-r from-teal-500 to-blue-600"
+          className="h-full rounded-full bg-[linear-gradient(93.65deg,#14b8a6_5.37%,#0382bd_78.89%)]"
           animate={{ width: `${((currentIndex + 1) / totalQuestions) * 100}%` }}
           transition={motionGate.transition({ duration: 0.2 })}
         />
@@ -278,7 +278,8 @@ export const PersonalityStep = ({
         <Button
           onClick={handleNext}
           disabled={currentAnswer === null || saveResponses.isPending}
-          className="gap-1 bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
+          variant="tactile"
+          className="gap-1"
         >
           {currentIndex === totalQuestions - 1
             ? saveResponses.isPending

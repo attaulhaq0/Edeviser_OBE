@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Edeviser — Security</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
+<link rel="stylesheet" href="shared.css"/>
+</head>
+<body class="bg-slate-50" data-role="admin">
+<!-- Security — maps to: blocked_ips, rate_limit_events, login_attempts
+     (failed login tracking + rate-limit audit). -->
+
+<header class="app-header">
+  <div class="hdr-brand flex items-center gap-2"><div class="h-7 w-7 rounded-lg flex items-center justify-center" style="background:var(--brand-gradient)"><span class="text-white text-sm">✦</span></div><span class="text-base font-bold tracking-tight text-gray-900">Edeviser</span></div>
+  <div class="flex items-center gap-2"><a href="admin-profile.html" class="h-8 w-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style="background:var(--brand-gradient)">G</a></div>
+</header>
+
+<div class="page-content space-y-4 no-scrollbar">
+  <!-- BACKEND GROUNDING · hooks: useAuditLogs, useImpersonation | tables: audit_logs, login_attempts, blocked_ips, rate_limit_events -->
+
+  <div class="feed-wide"><h1 class="text-xl font-black tracking-tight text-gray-900">🔒 Security</h1><p class="text-xs text-gray-500 mt-0.5">Failed logins, rate limiting, and blocked IPs across the institution.</p></div>
+
+  <!-- KPI row -->
+  <div class="feed-wide grid grid-cols-2 md:grid-cols-4 gap-3">
+    <div class="pcard p-3.5"><p class="text-[10px] font-black tracking-widest uppercase text-gray-400">Blocked IPs</p><p class="text-2xl font-black text-red-600 mt-0.5">4</p></div>
+    <div class="pcard p-3.5"><p class="text-[10px] font-black tracking-widest uppercase text-gray-400">Failed logins · 24h</p><p class="text-2xl font-black text-amber-600 mt-0.5">27</p></div>
+    <div class="pcard p-3.5"><p class="text-[10px] font-black tracking-widest uppercase text-gray-400">Rate-limit events · 24h</p><p class="text-2xl font-black text-gray-900 mt-0.5">63</p></div>
+    <div class="pcard p-3.5"><p class="text-[10px] font-black tracking-widest uppercase text-gray-400">Active sessions</p><p class="text-2xl font-black text-green-600 mt-0.5">842</p></div>
+  </div>
+
+  <!-- Severity filter + event log -->
+  <div class="feed-wide pcard p-4">
+    <div class="sec-h"><span class="chip">🧾</span><p class="t">Recent security events</p></div>
+    <div class="tri-tabs mb-3">
+      <button class="tri-tab crit on" onclick="secFilter(this,'all')">All <span class="cnt">92</span></button>
+      <button class="tri-tab crit" onclick="secFilter(this,'critical')">🔴 Critical <span class="cnt">4</span></button>
+      <button class="tri-tab att" onclick="secFilter(this,'attention')">🟡 Attention <span class="cnt">27</span></button>
+      <button class="tri-tab mon" onclick="secFilter(this,'monitor')">🔵 Monitor <span class="cnt">61</span></button>
+    </div>
+    <div style="overflow-x:auto"><table class="dtable" style="min-width:640px">
+      <thead><tr><th>Time</th><th>Event</th><th>IP</th><th>User</th><th>Action taken</th></tr></thead>
+      <tbody id="sec-rows"></tbody>
+    </table></div>
+  </div>
+
+  <!-- Blocked IPs -->
+  <div class="feed-wide pcard p-4">
+    <div class="sec-h"><span class="chip">🚫</span><p class="t">Blocked IPs</p></div>
+    <div class="divide-y divide-gray-50" id="ip-rows"></div>
+  </div>
+
+</div>
+<script>
+const EVENTS=[
+  ['09:41','ip_blocked','203.0.x.x','—','critical','IP auto-blocked (12 failed attempts)'],
+  ['09:12','failed_login','88.12.x.x','unknown@mail.com','attention','Logged, no lockout yet'],
+  ['08:55','rate_limited','41.90.x.x','sara.a@student…','monitor','Request throttled'],
+  ['08:40','failed_login','197.4.x.x','admin@gulf-aca…','critical','3rd attempt — account temp-locked'],
+  ['08:15','rate_limited','162.3.x.x','omar.z@student…','monitor','Request throttled'],
+  ['Yst 22:10','ip_blocked','45.155.x.x','—','critical','IP auto-blocked (bot pattern)'],
+  ['Yst 18:30','failed_login','102.22.x.x','—','attention','Unknown email, single attempt'],
+];
+const sevPill={critical:'pill-red',attention:'pill-amber',monitor:'pill-blue'};
+function drawEvents(filter){
+  const rows=EVENTS.filter(e=>filter==='all'||e[4]===filter);
+  document.getElementById('sec-rows').innerHTML=rows.map(e=>`<tr><td>${e[0]}</td><td><b style="color:#0f172a">${e[1]}</b></td><td style="font-family:monospace;font-size:12px">${e[2]}</td><td>${e[3]}</td><td><span class="pill ${sevPill[e[4]]}">${e[5]}</span></td></tr>`).join('');
+}
+drawEvents('all');
+function secFilter(btn,f){
+  document.querySelectorAll('.tri-tab').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  drawEvents(f);
+}
+const BLOCKED=[
+  ['203.0.x.x','12 failed login attempts in 5 min','Jul 10, 09:41'],
+  ['45.155.x.x','Automated bot-like request pattern','Jul 9, 22:10'],
+  ['88.201.x.x','Credential stuffing pattern detected','Jul 6, 14:22'],
+  ['176.9.x.x','Manual block — reported abuse','Jul 1, 10:05'],
+];
+document.getElementById('ip-rows').innerHTML=BLOCKED.map(b=>`<div class="flex items-center gap-3 py-2.5"><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900" style="font-family:monospace">${b[0]}</p><p class="text-[11px] text-gray-500">${b[1]} · blocked ${b[2]}</p></div><button class="btn3d sm b-ghost shrink-0" onclick="toast('IP ${b[0]} unblocked','✅')">Unblock</button></div>`).join('');
+</script>
+<script src="shared.js"></script>
+</body>
+</html>

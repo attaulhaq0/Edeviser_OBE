@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/select";
 import TeamHealthBadge from "@/components/shared/TeamHealthBadge";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 import { NoTeams } from "@/components/shared/EmptyState";
 import { Plus, Search, Users, Pencil, Trash2, HeartPulse } from "lucide-react";
 import { toast } from "sonner";
@@ -122,7 +122,7 @@ const TeamManagementPage = () => {
         <h1 className="text-2xl font-bold tracking-tight">Team Management</h1>
         <Button
           onClick={() => navigate("/teacher/teams/new")}
-          className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
+          variant="tactile"
         >
           <Plus className="h-4 w-4" /> New Team
         </Button>

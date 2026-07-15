@@ -121,7 +121,7 @@ export const gradingQueueColumns: ColumnDef<SubmissionWithRelations>[] = [
       <Button
         asChild
         size="sm"
-        className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
+        variant="tactile"
       >
         <Link to={`/teacher/grading/${row.original.id}`}>
           <ClipboardCheck className="h-4 w-4" />

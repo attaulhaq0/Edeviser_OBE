@@ -244,7 +244,8 @@ const ReassessmentPage = () => {
             <Button
               disabled={!cooldown.canRetake}
               onClick={() => navigate("/student/onboarding/complete-profile")}
-              className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 w-full"
+              variant="tactile"
+              className="w-full"
             >
               <RefreshCw className="h-4 w-4" />
               {cooldown.canRetake

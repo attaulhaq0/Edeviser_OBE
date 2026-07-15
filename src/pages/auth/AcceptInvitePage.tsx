@@ -6,13 +6,8 @@ import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/hooks/useAuth";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { PasswordInput } from "@/components/shared/PasswordInput";
-import { PasswordVisibilityGroup } from "@/components/shared/PasswordVisibilityGroup";
-import { Card } from "@/components/ui/card";
+import { Button } from "@/design-system";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
 import {
   Form,
   FormControl,
@@ -24,12 +19,12 @@ import {
 import {
   Loader2,
   Mail,
-  Lock,
   User,
   Building2,
   AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
+import AuthShell from "@/components/shared/AuthShell";
 
 interface InvitationData {
   id: string;
@@ -70,6 +65,8 @@ const AcceptInvitePage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const form = useForm<AcceptInviteFormData>({
     resolver: zodResolver(acceptInviteSchema),
@@ -192,223 +189,186 @@ const AcceptInvitePage = () => {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-[#1e293b] via-[#0f172a] to-[#020617]">
-      {/* Doodle pattern overlay */}
-      <div
-        className="absolute inset-0 opacity-[0.04] pointer-events-none"
-        style={{
-          backgroundImage: "url('/doodle-background.jpg')",
-          backgroundSize: "1200px",
-          backgroundRepeat: "repeat",
-          filter: "invert(1)",
-        }}
-      />
-
-      {/* Language switcher in top-end corner */}
-      <div className="absolute top-4 end-4 z-20">
-        <LanguageSwitcher />
+    <AuthShell>
+      <div className="mb-5">
+        <h1 className="text-lg font-black tracking-tight text-slate-900">
+          {t("acceptInvite.title")}
+        </h1>
+        <p className="mt-1 text-sm text-slate-500">
+          {t("acceptInvite.subtitle")}
+        </p>
       </div>
 
-      {/* Main container */}
-      <div className="relative min-h-screen flex flex-col items-center justify-center p-4">
-        <div className="w-full max-w-md space-y-6 -mt-10">
-          {/* Logo */}
-          <div className="text-center space-y-2">
-            <div className="flex justify-center items-center w-full">
-              <img
-                src="/edeviser-logo-final.png"
-                alt="Edeviser"
-                className="h-32 w-auto object-contain drop-shadow-2xl"
-              />
-            </div>
-            <p className="text-xl font-medium text-blue-400 tracking-wide drop-shadow-md">
-              {t("brand.tagline")}
-            </p>
-          </div>
-
-          {/* Auth card */}
-          <Card className="border-0 shadow-2xl bg-white/95 backdrop-blur-xl rounded-[2rem] overflow-hidden relative z-10 ring-1 ring-white/20">
-            <div className="p-6 space-y-6">
-              {/* Header */}
-              <div className="text-center space-y-1">
-                <h2 className="text-2xl font-bold text-gray-900">
-                  {t("acceptInvite.title")}
-                </h2>
-                <p className="text-sm text-gray-500">
-                  {t("acceptInvite.subtitle")}
-                </p>
-              </div>
-
-              {isLoading ? (
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
-                </div>
-              ) : error ? (
-                <Alert
-                  variant="destructive"
-                  className="bg-red-50 border-red-200 text-red-800 rounded-xl"
-                >
-                  <AlertTriangle className="h-4 w-4" />
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              ) : invitation ? (
-                <Form {...form}>
-                  <form
-                    onSubmit={form.handleSubmit(onSubmit)}
-                    className="space-y-4"
-                    noValidate
-                  >
-                    {/* Invitation details */}
-                    <div className="space-y-3 p-4 rounded-lg bg-blue-50 border border-blue-200">
-                      <div className="flex items-center gap-2">
-                        <Mail className="h-4 w-4 text-blue-600" />
-                        <div>
-                          <p className="text-xs font-medium text-blue-600">
-                            {t("acceptInvite.email")}
-                          </p>
-                          <p className="text-sm font-semibold text-blue-900">
-                            {invitation.email}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Building2 className="h-4 w-4 text-blue-600" />
-                        <div>
-                          <p className="text-xs font-medium text-blue-600">
-                            {t("acceptInvite.institution")}
-                          </p>
-                          <p className="text-sm font-semibold text-blue-900">
-                            {invitation.institution_name || "Loading..."}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <User className="h-4 w-4 text-blue-600" />
-                        <div>
-                          <p className="text-xs font-medium text-blue-600">
-                            {t("acceptInvite.role")}
-                          </p>
-                          <p className="text-sm font-semibold text-blue-900 capitalize">
-                            {t(`roles.${invitation.role}`)}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Full Name */}
-                    <FormField
-                      control={form.control}
-                      name="fullName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="flex items-center gap-2 ms-1">
-                            <User className="w-4 h-4 text-[#14b8a6]" />
-                            {t("acceptInvite.fullName")}
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder={t(
-                                "acceptInvite.fullNamePlaceholder"
-                              )}
-                              className="rounded-xl border-gray-200 bg-gray-50/50 focus:bg-white focus:border-[#14b8a6] focus:ring-[#14b8a6]/20 transition-all h-11 ps-4"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    {/* Password fields (mutual-exclusion visibility group) */}
-                    <PasswordVisibilityGroup>
-                      {/* Password */}
-                      <FormField
-                        control={form.control}
-                        name="password"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="flex items-center gap-2 ms-1">
-                              <Lock className="w-4 h-4 text-[#14b8a6]" />
-                              {t("acceptInvite.password")}
-                            </FormLabel>
-                            <FormControl>
-                              <PasswordInput
-                                groupId="accept-invite-password"
-                                autoComplete="new-password"
-                                placeholder={t(
-                                  "acceptInvite.passwordPlaceholder"
-                                )}
-                                className="rounded-xl border-gray-200 bg-gray-50/50 focus:bg-white focus:border-[#14b8a6] focus:ring-[#14b8a6]/20 transition-all h-11 ps-4"
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      {/* Confirm Password */}
-                      <FormField
-                        control={form.control}
-                        name="confirmPassword"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="flex items-center gap-2 ms-1">
-                              <Lock className="w-4 h-4 text-[#14b8a6]" />
-                              {t("acceptInvite.confirmPassword")}
-                            </FormLabel>
-                            <FormControl>
-                              <PasswordInput
-                                groupId="accept-invite-confirmPassword"
-                                autoComplete="new-password"
-                                placeholder={t(
-                                  "acceptInvite.confirmPasswordPlaceholder"
-                                )}
-                                className="rounded-xl border-gray-200 bg-gray-50/50 focus:bg-white focus:border-[#14b8a6] focus:ring-[#14b8a6]/20 transition-all h-11 ps-4"
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </PasswordVisibilityGroup>
-
-                    {/* Submit button */}
-                    <Button
-                      type="submit"
-                      className="w-full h-11 rounded-xl bg-gradient-to-r from-[#14b8a6] to-[#3b82f6] hover:from-[#0d9488] hover:to-[#2563eb] text-white font-bold mt-4"
-                      disabled={isPending}
-                    >
-                      {isPending && (
-                        <Loader2 className="w-4 h-4 animate-spin me-2" />
-                      )}
-                      {t("acceptInvite.acceptButton")}
-                    </Button>
-                  </form>
-                </Form>
-              ) : null}
-
-              {/* Back to login link */}
-              {!isLoading && (
-                <div className="text-center pt-2">
-                  <p className="text-sm text-gray-600">
-                    {t("acceptInvite.haveAccount")}{" "}
-                    <button
-                      type="button"
-                      onClick={() => navigate("/login")}
-                      className="font-medium text-[#14b8a6] hover:text-[#0d9488] transition-colors"
-                    >
-                      {t("acceptInvite.signIn")}
-                    </button>
+      {isLoading ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+        </div>
+      ) : error ? (
+        <Alert
+          variant="destructive"
+          className="rounded-xl border-red-200 bg-red-50 text-red-800"
+        >
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      ) : invitation ? (
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-4"
+            noValidate
+          >
+            {/* Invitation details */}
+            <div className="space-y-3 rounded-xl border border-blue-200 bg-blue-50 p-4">
+              <div className="flex items-center gap-2">
+                <Mail className="h-4 w-4 text-blue-600" />
+                <div>
+                  <p className="text-xs font-medium text-blue-600">
+                    {t("acceptInvite.email")}
+                  </p>
+                  <p className="text-sm font-semibold text-blue-900">
+                    {invitation.email}
                   </p>
                 </div>
-              )}
+              </div>
+              <div className="flex items-center gap-2">
+                <Building2 className="h-4 w-4 text-blue-600" />
+                <div>
+                  <p className="text-xs font-medium text-blue-600">
+                    {t("acceptInvite.institution")}
+                  </p>
+                  <p className="text-sm font-semibold text-blue-900">
+                    {invitation.institution_name || "Loading..."}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <User className="h-4 w-4 text-blue-600" />
+                <div>
+                  <p className="text-xs font-medium text-blue-600">
+                    {t("acceptInvite.role")}
+                  </p>
+                  <p className="text-sm font-semibold capitalize text-blue-900">
+                    {t(`roles.${invitation.role}`)}
+                  </p>
+                </div>
+              </div>
             </div>
-          </Card>
-        </div>
-      </div>
-    </div>
+
+            {/* Full Name */}
+            <FormField
+              control={form.control}
+              name="fullName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="mb-1.5 block text-xs font-bold text-slate-600">
+                    {t("acceptInvite.fullName")}
+                  </FormLabel>
+                  <FormControl>
+                    <input
+                      className="fld"
+                      placeholder={t("acceptInvite.fullNamePlaceholder")}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Password */}
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="mb-1.5 block text-xs font-bold text-slate-600">
+                    {t("acceptInvite.password")}
+                  </FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        autoComplete="new-password"
+                        className="fld pe-12"
+                        placeholder={t("acceptInvite.passwordPlaceholder")}
+                        {...field}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((v) => !v)}
+                        className="absolute end-3 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400 hover:text-gray-600"
+                      >
+                        {showPassword ? t("password.hide") : t("password.show")}
+                      </button>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Confirm Password */}
+            <FormField
+              control={form.control}
+              name="confirmPassword"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="mb-1.5 block text-xs font-bold text-slate-600">
+                    {t("acceptInvite.confirmPassword")}
+                  </FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <input
+                        type={showConfirm ? "text" : "password"}
+                        autoComplete="new-password"
+                        className="fld pe-12"
+                        placeholder={t(
+                          "acceptInvite.confirmPasswordPlaceholder"
+                        )}
+                        {...field}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirm((v) => !v)}
+                        className="absolute end-3 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400 hover:text-gray-600"
+                      >
+                        {showConfirm ? t("password.hide") : t("password.show")}
+                      </button>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <Button
+              type="submit"
+              variant="tactile"
+              className="mt-4 h-11 w-full"
+              disabled={isPending}
+            >
+              {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+              {t("acceptInvite.acceptButton")}
+            </Button>
+          </form>
+        </Form>
+      ) : null}
+
+      {/* Back to login link */}
+      {!isLoading && (
+        <p className="mt-5 text-center text-sm text-slate-500">
+          {t("acceptInvite.haveAccount")}{" "}
+          <button
+            type="button"
+            onClick={() => navigate("/login")}
+            className="font-bold text-blue-600 hover:underline"
+          >
+            {t("acceptInvite.signIn")}
+          </button>
+        </p>
+      )}
+    </AuthShell>
   );
 };
 

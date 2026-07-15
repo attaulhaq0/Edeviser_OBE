@@ -10,17 +10,19 @@ import {
   useToggleSemesterActive,
 } from "@/hooks/useSemesters";
 import { useAuth } from "@/hooks/useAuth";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
 import {
+  Badge,
+  Button,
+  Card,
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+  Input,
+  PageHeader,
+  Shimmer,
+  Switch,
+} from "@/design-system";
 import {
   Form,
   FormField,
@@ -30,7 +32,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
-import Shimmer from "@/components/shared/Shimmer";
 import { NoSemesters } from "@/components/shared/EmptyState";
 import { Plus, Pencil, Trash2, Calendar, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -204,11 +205,7 @@ const SemesterFormDialog = ({
               >
                 Cancel
               </Button>
-              <Button
-                type="submit"
-                disabled={isPending}
-                className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 text-white"
-              >
+              <Button type="submit" disabled={isPending} variant="tactile">
                 {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
                 {isEdit ? "Update" : "Create"}
               </Button>
@@ -332,15 +329,14 @@ const SemesterManager = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Semesters</h1>
-        <Button
-          onClick={handleCreate}
-          className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 text-white"
-        >
-          <Plus className="h-4 w-4" /> Add Semester
-        </Button>
-      </div>
+      <PageHeader
+        title="Semesters"
+        action={
+          <Button onClick={handleCreate} variant="tactile">
+            <Plus className="h-4 w-4" /> Add Semester
+          </Button>
+        }
+      />
 
       {isLoading ? (
         <div className="space-y-3">

@@ -292,7 +292,8 @@ const SessionCompletionForm = ({
         {/* Actions */}
         <div className="flex items-center gap-3">
           <Button
-            className="flex-1 bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
+            variant="tactile"
+            className="flex-1"
             onClick={handleSubmit}
             disabled={isSubmitting}
           >

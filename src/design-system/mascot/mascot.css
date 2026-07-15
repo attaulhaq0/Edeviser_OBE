@@ -1,0 +1,122 @@
+/* =============================================================================
+   Mascot character system styles — ported from prototype/shared.css `.chr*`.
+   Namespaced `edv-mascot*` to avoid collisions; physical left/right replaced
+   with logical properties (inset-inline / border-inline) for RTL. All decorative
+   motion is disabled under prefers-reduced-motion.
+   ============================================================================= */
+
+.edv-mascot {
+  display: inline-block;
+  object-fit: contain;
+  user-select: none;
+  -webkit-user-drag: none;
+  flex: 0 0 auto;
+  filter: drop-shadow(0 6px 12px rgba(15, 23, 42, 0.16));
+}
+
+/* ── Character motion (idle + entrance + reactions) ── */
+@keyframes edvMascotFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+@keyframes edvMascotBobIn {
+  0% { opacity: 0; transform: translateY(10px) scale(0.9); }
+  60% { opacity: 1; transform: translateY(-2px) scale(1.03); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes edvMascotWave {
+  0%, 100% { transform: rotate(0); }
+  25% { transform: rotate(-7deg); }
+  75% { transform: rotate(7deg); }
+}
+@keyframes edvMascotPop {
+  0% { transform: scale(0) rotate(-10deg); }
+  60% { transform: scale(1.14) rotate(3deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+@keyframes edvMascotNudge {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(4px); }
+}
+.edv-mascot-float { animation: edvMascotFloat 3.2s ease-in-out infinite; }
+.edv-mascot-in { animation: edvMascotBobIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+.edv-mascot-wave { animation: edvMascotWave 0.5s ease-in-out 2; }
+.edv-mascot-pop { animation: edvMascotPop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+.edv-mascot-nudge { animation: edvMascotNudge 1.4s ease-in-out infinite; }
+
+/* ── Companion row: character + bubble side by side ── */
+.edv-mascot-row { display: flex; align-items: flex-start; gap: 10px; }
+.edv-mascot-row--center { align-items: center; }
+
+/* ── Speech bubble ── */
+.edv-mascot-bubble {
+  position: relative;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 10px 14px;
+  box-shadow: 0 4px 14px rgba(16, 24, 40, 0.08);
+  max-width: 260px;
+}
+.edv-mascot-bubble__ttl { font-size: 12px; font-weight: 800; color: #0f172a; margin: 0 0 2px; }
+.edv-mascot-bubble__msg { font-size: 12.5px; line-height: 1.45; color: #475569; margin: 0; }
+
+/* tail: pointing to the inline-start (character on the leading side) */
+.edv-mascot-bubble--tail-l::before {
+  content: "";
+  position: absolute;
+  top: 16px;
+  inset-inline-start: -7px;
+  width: 12px;
+  height: 12px;
+  background: #fff;
+  border-inline-start: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e2e8f0;
+  transform: rotate(45deg);
+}
+/* tail: pointing down (character above) */
+.edv-mascot-bubble--tail-b::before {
+  content: "";
+  position: absolute;
+  bottom: -7px;
+  inset-inline-start: 50%;
+  margin-inline-start: -6px;
+  width: 12px;
+  height: 12px;
+  background: #fff;
+  border-inline-end: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e2e8f0;
+  transform: rotate(45deg);
+}
+
+/* tinted variants keep the tail colour in sync */
+.edv-mascot-bubble--teal { background: #f0fdfa; border-color: #99f6e4; }
+.edv-mascot-bubble--teal.edv-mascot-bubble--tail-l::before { background: #f0fdfa; border-color: #99f6e4; }
+.edv-mascot-bubble--amber { background: #fffbeb; border-color: #fde68a; }
+.edv-mascot-bubble--amber.edv-mascot-bubble--tail-l::before { background: #fffbeb; border-color: #fde68a; }
+.edv-mascot-bubble--blue { background: #eff6ff; border-color: #bfdbfe; }
+.edv-mascot-bubble--blue.edv-mascot-bubble--tail-l::before { background: #eff6ff; border-color: #bfdbfe; }
+
+/* on dark hero surfaces, the bubble flips to translucent light */
+.edv-mascot-onhero .edv-mascot-bubble {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.22);
+  box-shadow: none;
+}
+.edv-mascot-onhero .edv-mascot-bubble__ttl { color: #fff; }
+.edv-mascot-onhero .edv-mascot-bubble__msg { color: rgba(255, 255, 255, 0.82); }
+.edv-mascot-onhero .edv-mascot-bubble--tail-l::before {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+/* ── Reduced motion: disable all character motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .edv-mascot-float,
+  .edv-mascot-in,
+  .edv-mascot-wave,
+  .edv-mascot-pop,
+  .edv-mascot-nudge {
+    animation: none !important;
+  }
+}

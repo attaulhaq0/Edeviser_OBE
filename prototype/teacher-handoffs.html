@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Edeviser — Tutor Handoffs</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
+<link rel="stylesheet" href="shared.css"/>
+<style>
+  /* Tutor Handoffs — maps to: teacher_handoff_requests (conversation_id,
+     student_id, conversation_summary, suggested_intervention, trigger_reason:
+     low_rag_confidence|repeated_question|low_satisfaction, student_consent,
+     status: pending|resolved|dismissed, teacher_response, resolved_at) via
+     useTeacherHandoffs (list by courseId), useRespondToHandoff. This is where
+     the AI Tutor escalates a struggling student to the teacher — only ever
+     shown here when the student gave consent to share the conversation. */
+  html.mode-laptop body[data-norail] .page-content{max-width:none;padding-right:32px}
+  .ho-tab{font-size:12.5px;font-weight:800;color:#64748b;padding:7px 13px;border-radius:10px;background:#fff;border:1px solid #e8edf3;cursor:pointer;white-space:nowrap}
+  .ho-tab.on{background:#0382bd;color:#fff;border-color:transparent}
+  .ho-card{border:1px solid #eef2f6;border-radius:14px;padding:14px;margin-bottom:12px}
+  .ho-suggest{background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;padding:10px 12px;margin:10px 0}
+</style>
+</head>
+<body class="bg-slate-50" data-role="teacher" data-norail>
+
+<header class="app-header">
+  <div class="flex items-center gap-3">
+    <a href="teacher-dashboard.html" class="p-1.5 rounded-lg hover:bg-gray-100"><svg class="h-5 w-5 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg></a>
+    <div><h1 class="text-base font-bold tracking-tight text-gray-900">Tutor Handoffs</h1><p class="text-xs text-gray-500">CS301 · Database Design</p></div>
+  </div>
+</header>
+
+<div class="page-content space-y-4 no-scrollbar">
+
+  <div class="pcard p-3.5 flex items-center gap-3" style="background:linear-gradient(135deg,#eff6ff,#f0fdfa);border:1px solid #bfdbfe">
+    <span class="text-xl shrink-0">🤖</span>
+    <p class="text-xs text-gray-700">The AI Tutor escalates here when it isn't confident, a student asks the same question repeatedly, or satisfaction drops — and only when the <b>student consented</b> to share the conversation with you.</p>
+  </div>
+
+  <div class="flex gap-2 overflow-x-auto no-scrollbar">
+    <button class="ho-tab on" onclick="hoTab('pending',this)">🔴 Pending · 3</button>
+    <button class="ho-tab" onclick="hoTab('resolved',this)">✅ Resolved · 5</button>
+    <button class="ho-tab" onclick="hoTab('dismissed',this)">🗑️ Dismissed · 1</button>
+  </div>
+
+  <div id="ho-pending" data-ho="pending">
+    <div class="ho-card">
+      <div class="flex items-center gap-3 mb-1">
+        <div class="h-9 w-9 rounded-full bg-teal-400 flex items-center justify-center text-white text-sm font-bold shrink-0">N</div>
+        <div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">Nora S.</p><p class="text-[11px] text-gray-400">2 hours ago</p></div>
+        <span class="pill" style="background:#fef3c7;color:#b45309">🔁 Asked repeatedly</span>
+      </div>
+      <p class="text-xs text-gray-600 leading-relaxed">Nora asked "why does normalization remove redundancy" 4 times in different phrasings across 12 minutes without progressing — the tutor's explanations weren't landing.</p>
+      <div class="ho-suggest"><p class="text-[10px] font-black text-blue-700 uppercase tracking-wide mb-1">✨ AI suggested intervention</p><p class="text-xs text-blue-900">She may need a worked example instead of a conceptual explanation — try a live walkthrough of decomposing one table together in your next office hours.</p></div>
+      <textarea class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 mb-2" rows="2" placeholder="Write a response to send Nora…"></textarea>
+      <div class="flex gap-2"><button class="btn3d sm" onclick="resolveHandoff(this)" style="background:#0382bd">Send response &amp; resolve</button><button class="btn3d sm b-ghost" onclick="dismissHandoff(this)">Dismiss</button></div>
+    </div>
+    <div class="ho-card">
+      <div class="flex items-center gap-3 mb-1">
+        <div class="h-9 w-9 rounded-full bg-indigo-400 flex items-center justify-center text-white text-sm font-bold shrink-0">O</div>
+        <div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">Omar Z.</p><p class="text-[11px] text-gray-400">5 hours ago</p></div>
+        <span class="pill" style="background:#fee2e2;color:#b91c1c">🤔 AI wasn't confident</span>
+      </div>
+      <p class="text-xs text-gray-600 leading-relaxed">Omar asked about a specific error in his own SQL query. The tutor's retrieval confidence was low — it couldn't ground an answer in the course materials for this specific case.</p>
+      <div class="ho-suggest"><p class="text-[10px] font-black text-blue-700 uppercase tracking-wide mb-1">✨ AI suggested intervention</p><p class="text-xs text-blue-900">This looks like a debugging question specific to his code, not a concept gap — a quick 1:1 look at his actual query would resolve it faster than more tutor turns.</p></div>
+      <textarea class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 mb-2" rows="2" placeholder="Write a response to send Omar…"></textarea>
+      <div class="flex gap-2"><button class="btn3d sm" onclick="resolveHandoff(this)" style="background:#0382bd">Send response &amp; resolve</button><button class="btn3d sm b-ghost" onclick="dismissHandoff(this)">Dismiss</button></div>
+    </div>
+    <div class="ho-card">
+      <div class="flex items-center gap-3 mb-1">
+        <div class="h-9 w-9 rounded-full bg-pink-400 flex items-center justify-center text-white text-sm font-bold shrink-0">L</div>
+        <div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">Layla H.</p><p class="text-[11px] text-gray-400">Yesterday</p></div>
+        <span class="pill" style="background:#f1f5f9;color:#475569">😕 Low satisfaction</span>
+      </div>
+      <p class="text-xs text-gray-600 leading-relaxed">Layla rated 3 consecutive tutor answers as unhelpful before ending the session.</p>
+      <div class="ho-suggest"><p class="text-[10px] font-black text-blue-700 uppercase tracking-wide mb-1">✨ AI suggested intervention</p><p class="text-xs text-blue-900">Consider checking in directly — repeated low ratings without a clear trigger sometimes point to something outside the course content.</p></div>
+      <textarea class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 mb-2" rows="2" placeholder="Write a response to send Layla…"></textarea>
+      <div class="flex gap-2"><button class="btn3d sm" onclick="resolveHandoff(this)" style="background:#0382bd">Send response &amp; resolve</button><button class="btn3d sm b-ghost" onclick="dismissHandoff(this)">Dismiss</button></div>
+    </div>
+  </div>
+
+  <div data-ho="resolved" hidden>
+    <div class="ho-card">
+      <div class="flex items-center gap-3 mb-1">
+        <div class="h-9 w-9 rounded-full bg-blue-400 flex items-center justify-center text-white text-sm font-bold shrink-0">M</div>
+        <div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">Maryam K.</p><p class="text-[11px] text-gray-400">2 days ago · resolved</p></div>
+        <span class="pill pill-green">✅ Resolved</span>
+      </div>
+      <p class="text-xs text-gray-600 leading-relaxed">Trigger: Asked repeatedly about composite indexes.</p>
+      <div class="rounded-lg bg-green-50 border border-green-100 p-2.5 mt-2"><p class="text-[10px] font-black text-green-700 uppercase tracking-wide mb-1">Your response</p><p class="text-xs text-green-900">"Great question — let's go over this together in Wednesday's office hours, bring your query."</p></div>
+    </div>
+  </div>
+  <div data-ho="dismissed" hidden>
+    <div class="ho-card opacity-70">
+      <div class="flex items-center gap-3 mb-1">
+        <div class="h-9 w-9 rounded-full bg-gray-400 flex items-center justify-center text-white text-sm font-bold shrink-0">S</div>
+        <div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">Sara A.</p><p class="text-[11px] text-gray-400">4 days ago · dismissed</p></div>
+        <span class="pill pill-slate">Dismissed</span>
+      </div>
+      <p class="text-xs text-gray-500 leading-relaxed">Trigger: Low satisfaction — resolved on its own in a later session, no action needed.</p>
+    </div>
+  </div>
+
+</div>
+
+<nav class="bottom-bar">
+  <a href="teacher-dashboard.html" class="tab-btn" data-tab="home"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125h14.25c.621 0 1.125-.504 1.125-1.125V9.75"/></svg><span>Home</span></a>
+  <a href="teacher-students.html" class="tab-btn" data-tab="students"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Z"/></svg><span>Students</span></a>
+  <a href="teacher-handoffs.html" class="tab-btn active" data-tab="handoffs"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 0 1-2.555-.337A5.972 5.972 0 0 1 5.41 20.97a5.969 5.969 0 0 1-.474-.065 4.48 4.48 0 0 0 .978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25Z"/></svg><span>Handoffs</span></a>
+  <a href="teacher-curriculum.html" class="tab-btn" data-tab="curriculum"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/></svg><span>Curriculum</span></a>
+  <a href="teacher-grading.html" class="tab-btn" data-tab="grading"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/></svg><span>Grading</span></a>
+</nav>
+<script src="shared.js"></script>
+<script>
+  function hoTab(t,btn){
+    document.querySelectorAll('.ho-tab').forEach(b=>b.classList.remove('on'));
+    btn.classList.add('on');
+    document.querySelectorAll('[data-ho]').forEach(g=>g.hidden=(g.dataset.ho!==t));
+  }
+  function resolveHandoff(btn){
+    const card=btn.closest('.ho-card');
+    toast('Response sent · handoff resolved','✅');
+    card.style.transition='opacity .25s'; card.style.opacity='0';
+    setTimeout(()=>card.remove(),250);
+  }
+  function dismissHandoff(btn){
+    const card=btn.closest('.ho-card');
+    toast('Handoff dismissed','🗑️');
+    card.style.transition='opacity .25s'; card.style.opacity='0';
+    setTimeout(()=>card.remove(),250);
+  }
+</script>
+</body>
+</html>

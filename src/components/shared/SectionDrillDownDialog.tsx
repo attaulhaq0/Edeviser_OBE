@@ -16,7 +16,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 import { useSectionDrillDown } from "@/hooks/useSectionAttainment";
 import { getAttainmentColor } from "@/lib/attainmentClassifier";
 import { GraduationCap, Users, Target } from "lucide-react";

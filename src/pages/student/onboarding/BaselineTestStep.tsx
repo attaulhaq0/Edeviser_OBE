@@ -203,7 +203,8 @@ const SingleCourseTest = ({
         No baseline questions available for this course.
         <Button
           onClick={onComplete}
-          className="mt-4 bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
+          variant="tactile"
+          className="mt-4"
         >
           Continue
         </Button>
@@ -231,7 +232,7 @@ const SingleCourseTest = ({
       {/* Progress */}
       <div className="mb-6 h-1.5 w-full max-w-md overflow-hidden rounded-full bg-slate-100">
         <motion.div
-          className="h-full rounded-full bg-gradient-to-r from-teal-500 to-blue-600"
+          className="h-full rounded-full bg-[linear-gradient(93.65deg,#14b8a6_5.37%,#0382bd_78.89%)]"
           animate={{ width: `${((currentIndex + 1) / totalQuestions) * 100}%` }}
           transition={{ duration: 0.2 }}
         />
@@ -304,7 +305,8 @@ const SingleCourseTest = ({
         <Button
           onClick={handleNext}
           disabled={saveResponses.isPending}
-          className="gap-1 bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
+          variant="tactile"
+          className="gap-1"
         >
           {currentIndex === totalQuestions - 1
             ? saveResponses.isPending

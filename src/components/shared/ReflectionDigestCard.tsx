@@ -7,7 +7,7 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import GradientCardHeader from "@/components/shared/GradientCardHeader";
+import { GradientCardHeader } from "@/design-system";
 import { cn } from "@/lib/utils";
 import {
   Brain,

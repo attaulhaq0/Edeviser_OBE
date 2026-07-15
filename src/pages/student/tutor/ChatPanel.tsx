@@ -284,7 +284,7 @@ const ChatPanel = ({
       {/* Header with persona selector */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-white">
         <div className="flex items-center gap-2">
-          <div className="p-1.5 rounded-lg bg-gradient-to-br from-teal-500 to-blue-600">
+          <div className="p-1.5 rounded-lg bg-[linear-gradient(93.65deg,#14b8a6_5.37%,#0382bd_78.89%)]">
             <Bot className="h-4 w-4 text-white" />
           </div>
           <span className="text-sm font-semibold text-gray-800">
@@ -398,7 +398,7 @@ const ChatPanel = ({
             {/* Typing indicator */}
             {isStreaming && !streamingContent && (
               <div className="flex gap-3">
-                <div className="h-8 w-8 rounded-full bg-gradient-to-br from-teal-500 to-blue-600 flex items-center justify-center shrink-0">
+                <div className="h-8 w-8 rounded-full bg-[linear-gradient(93.65deg,#14b8a6_5.37%,#0382bd_78.89%)] flex items-center justify-center shrink-0">
                   <Bot className="h-4 w-4 text-white" />
                 </div>
                 <div className="bg-white border border-gray-100 shadow-sm rounded-2xl rounded-bl-md px-4 py-3">
@@ -575,7 +575,8 @@ const ChatPanel = ({
             onClick={() => void handleSend()}
             disabled={!canSend}
             size="icon"
-            className="shrink-0 bg-gradient-to-r from-teal-500 to-blue-600 text-white active:scale-95 transition-transform duration-100 disabled:opacity-50"
+            variant="tactile"
+            className="shrink-0"
             aria-label={t("tutor.chat.sendMessage")}
           >
             {isSending || isStreaming || isUploading ? (

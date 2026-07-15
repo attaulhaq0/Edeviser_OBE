@@ -33,7 +33,7 @@ const StudentContentPage = () => {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold tracking-tight">My Content</h1>
         <Button
-          className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
+          variant="tactile"
           onClick={() => setShowForm(true)}
         >
           <Plus className="h-4 w-4" /> Create Content

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Edeviser — Support</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
+<link rel="stylesheet" href="shared.css"/>
+</head>
+<body class="bg-slate-50" data-role="parent">
+<header class="app-header">
+  <div class="hdr-brand flex items-center gap-2"><div class="h-7 w-7 rounded-lg flex items-center justify-center" style="background:var(--brand-gradient)"><span class="text-white text-sm">✦</span></div><span class="text-base font-bold tracking-tight text-gray-900">Edeviser</span></div>
+  <div class="flex items-center gap-2"><a href="parent-profile.html" class="h-8 w-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style="background:var(--brand-gradient)">N</a></div>
+</header>
+<div class="page-content space-y-4 no-scrollbar">
+  <!-- BACKEND GROUNDING · hooks: useParentDashboard, useNotifications | tables: notifications, announcements -->
+
+  <div class="feed-wide"><h1 class="text-xl font-black tracking-tight text-gray-900">Ways to support Maya</h1><p class="text-xs text-gray-500 mt-0.5">Small, specific actions — matched to where she is this week.</p></div>
+
+  <!-- Home activities -->
+  <div class="feed-wide pcard p-4">
+    <div class="sec-h"><span class="chip">🏡</span><p class="t">At-home ideas</p></div>
+    <div class="space-y-2.5">
+      <div class="flex items-start gap-3 rounded-xl border border-gray-100 p-3"><span class="text-xl">💬</span><div class="flex-1"><p class="text-sm font-bold text-gray-900">Ask her to teach you</p><p class="text-xs text-gray-500">"Explain one database idea to me." Retrieval practice + it shows you care.</p></div><button onclick="toast('Saved to tonight','⭐')" class="text-xs font-bold text-blue-600 shrink-0">Save</button></div>
+      <div class="flex items-start gap-3 rounded-xl border border-gray-100 p-3"><span class="text-xl">🧮</span><div class="flex-1"><p class="text-sm font-bold text-gray-900">Gentle math encouragement</p><p class="text-xs text-gray-500">Math is her growing edge — celebrate effort over getting it right.</p></div><button onclick="toast('Saved','⭐')" class="text-xs font-bold text-blue-600 shrink-0">Save</button></div>
+      <div class="flex items-start gap-3 rounded-xl border border-gray-100 p-3"><span class="text-xl">🌙</span><div class="flex-1"><p class="text-sm font-bold text-gray-900">Protect her evenings</p><p class="text-xs text-gray-500">Her rhythm is healthy — keeping a consistent stop-time helps it stick.</p></div><button onclick="toast('Saved','⭐')" class="text-xs font-bold text-blue-600 shrink-0">Save</button></div>
+    </div>
+  </div>
+
+  <div class="lg-row lg-row-2 space-y-4 items-start">
+  <!-- Message teacher -->
+  <div class="pcard p-4">
+    <div class="sec-h"><span class="chip">✉️</span><p class="t">Message the teacher</p></div>
+    <p class="text-xs text-gray-500 mb-2">Prof. Ahmed · Computer Science</p>
+    <textarea class="w-full border border-gray-200 rounded-xl p-3 text-sm" rows="3" placeholder="Write a note… (AI can suggest a starter)">Hi Prof. Ahmed, I noticed Maya is doing really well in databases — is there a way to keep that momentum going?</textarea>
+    <div class="flex gap-2 mt-2">
+      <button onclick="toast('Message sent to Prof. Ahmed','✉️')" class="text-sm font-bold text-white px-4 py-2 rounded-xl" style="background:var(--brand-gradient)">Send</button>
+      <button onclick="toast('AI suggested a starter','✨')" class="text-sm font-bold text-gray-700 bg-gray-50 border border-gray-200 px-3 py-2 rounded-xl">✨ Suggest</button>
+    </div>
+  </div>
+
+  <!-- Resources -->
+  <div class="pcard p-4">
+    <div class="sec-h"><span class="chip">📎</span><p class="t">Helpful reads</p></div>
+    <div class="space-y-2">
+      <a href="#" onclick="toast('Opening guide…','📖');return false" class="flex items-center gap-3 rounded-lg hover:bg-slate-50 p-2"><span class="text-lg">📖</span><span class="text-sm text-gray-700">How to praise effort, not just results</span></a>
+      <a href="#" onclick="toast('Opening guide…','📖');return false" class="flex items-center gap-3 rounded-lg hover:bg-slate-50 p-2"><span class="text-lg">🧠</span><span class="text-sm text-gray-700">Why "teach-back" helps memory</span></a>
+    </div>
+  </div>
+  </div>
+
+</div>
+<script src="shared.js"></script>
+</body>
+</html>

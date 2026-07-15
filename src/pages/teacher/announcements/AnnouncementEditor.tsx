@@ -40,7 +40,7 @@ import { Loader2, Plus, Megaphone, Pin, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 import { AnnouncementAttachmentManager } from "@/components/shared/AnnouncementAttachmentManager";
 
 // ─── Schema ─────────────────────────────────────────────────────────────────
@@ -204,7 +204,7 @@ const AnnouncementEditor = () => {
         <Button
           onClick={openCreateForm}
           disabled={!effectiveCourseId}
-          className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 transition-transform duration-100"
+          variant="tactile"
         >
           <Plus className="h-4 w-4" /> New Announcement
         </Button>
@@ -289,7 +289,7 @@ const AnnouncementEditor = () => {
                 <Button
                   type="submit"
                   disabled={isPending}
-                  className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 transition-transform duration-100"
+                  variant="tactile"
                 >
                   {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
                   {editingAnnouncement ? "Update" : "Post"}

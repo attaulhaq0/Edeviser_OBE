@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Edeviser — Dashboard</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
+<link rel="stylesheet" href="shared.css"/>
+</head>
+<body class="bg-slate-50" data-role="student">
+
+<!-- App Header -->
+<header class="app-header">
+  <div class="hdr-brand flex items-center gap-2">
+    <div class="h-7 w-7 rounded-lg flex items-center justify-center" style="background:var(--brand-gradient)"><svg class="h-4 w-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.4 60.4 0 0 0-.491 6.347A48.6 48.6 0 0 1 12 20.904a48.6 48.6 0 0 1 8.232-4.41 60.5 60.5 0 0 0-.491-6.347"/></svg></div>
+    <span class="text-base font-bold tracking-tight text-gray-900">Edeviser</span>
+  </div>
+  <div class="flex items-center gap-2">
+    <a href="profile.html" class="h-8 w-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style="background:var(--brand-gradient)">S</a>
+  </div>
+</header>
+
+<!-- Page Content -->
+<div class="page-content space-y-4 no-scrollbar">
+  <!-- BACKEND GROUNDING · hooks: useStudentDashboardAggregate, useTodayView, useStreak, useLevel, useHeatmapData, useAnnouncements | tables: student_gamification, student_activity_log, assignments, announcements -->
+
+  <!-- Welcome hero CAROUSEL — multiple slides the user can advance through.
+       Slide 1 = the living greeting (unchanged content/behavior); slides 2-4
+       surface things worth knowing today (streak risk, class rank movement,
+       a badge close to unlocking) so the hero earns its space every visit. -->
+  <div id="hero-car" class="hero-carousel rounded-2xl text-white shadow-lg" style="background:var(--hero-gradient)">
+    <button class="hero-arrow prev" onclick="heroPrev('hero-car')" aria-label="Previous">‹</button>
+    <button class="hero-arrow next" onclick="heroNext('hero-car')" aria-label="Next">›</button>
+    <div class="hero-slides">
+
+      <!-- Slide 1: living greeting (avatar ring + Foxi + XP bar) -->
+      <div class="hero-slide">
+        <div class="p-4 overflow-hidden relative min-h-[156px] flex items-center">
+          <div class="hero-blob" style="top:-44px;right:-30px;width:150px;height:150px;background:radial-gradient(circle,rgba(20,184,166,.45),transparent 70%)"></div>
+          <div class="relative flex items-center gap-3.5 w-full">
+            <div class="relative h-16 w-16 shrink-0">
+              <svg class="h-16 w-16 -rotate-90" viewBox="0 0 36 36"><circle cx="18" cy="18" r="16" fill="none" stroke="rgba(255,255,255,.15)" stroke-width="2.5"/><circle cx="18" cy="18" r="16" fill="none" stroke="#2dd4bf" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="100" stroke-dashoffset="25"/></svg>
+              <div class="absolute inset-0 flex flex-col items-center justify-center leading-none">
+                <span class="text-[7px] font-black tracking-[0.18em] text-teal-200">LEVEL</span>
+                <span class="text-xl font-black -mt-0.5">4</span>
+              </div>
+            </div>
+            <div class="flex-1 min-w-0 pr-16">
+              <h1 id="hero-greeting" class="text-base font-bold tracking-tight truncate">Good morning, Sarah 👋</h1>
+              <p id="hero-subtitle" class="text-[11px] text-white/60 truncate">2 lessons from your best week yet 🔥</p>
+              <div class="mt-2.5">
+                <div class="flex items-baseline justify-between mb-1"><span class="text-[11px] font-bold text-white/90">Level 4 → 5</span><span class="text-[10px] font-bold text-amber-300">250 XP to go</span></div>
+                <div class="h-2 rounded-full bg-white/15 overflow-hidden"><div class="h-full rounded-full bg-gradient-to-r from-teal-400 to-blue-400" style="width:75%"></div></div>
+              </div>
+            </div>
+          </div>
+          <img id="hero-foxi" src="characters/foxi/foxi-smiling.png" alt="Foxi greeting you" class="chr chr-lg chr-in chr-float absolute bottom-0 right-1 pointer-events-none" draggable="false"/>
+        </div>
+      </div>
+
+      <!-- Slide 2: streak risk / protect it -->
+      <div class="hero-slide">
+        <div class="p-4 min-h-[156px] flex items-center gap-3.5">
+          <div class="h-14 w-14 rounded-2xl bg-white/15 border border-white/20 flex items-center justify-center text-2xl shrink-0 streak-flame">🔥</div>
+          <div class="flex-1 min-w-0">
+            <p class="text-[10px] font-black tracking-widest uppercase text-amber-300">Streak · day 12</p>
+            <h2 class="text-base font-bold tracking-tight mt-0.5">Don't lose it tonight</h2>
+            <p class="text-[11px] text-white/65 mt-0.5">You haven't logged today's activity yet — a 5-min review keeps it alive.</p>
+          </div>
+          <a href="review.html" class="btn3d sm shrink-0" style="background:linear-gradient(90deg,#2dd4bf,#38bdf8)">Protect it →</a>
+        </div>
+      </div>
+
+      <!-- Slide 3: class rank movement -->
+      <div class="hero-slide">
+        <div class="p-4 min-h-[156px] flex items-center gap-3.5">
+          <div class="h-14 w-14 rounded-2xl bg-white/15 border border-white/20 flex items-center justify-center text-2xl shrink-0">📈</div>
+          <div class="flex-1 min-w-0">
+            <p class="text-[10px] font-black tracking-widest uppercase text-teal-300">Leaderboard</p>
+            <h2 class="text-base font-bold tracking-tight mt-0.5">You climbed 2 spots this week</h2>
+            <p class="text-[11px] text-white/65 mt-0.5">Now #4 in Gold League · 110 XP from #3.</p>
+          </div>
+          <a href="leaderboard.html" class="btn3d sm b-ghost shrink-0" style="background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.2)">View →</a>
+        </div>
+      </div>
+
+      <!-- Slide 4: badge close to unlocking -->
+      <div class="hero-slide">
+        <div class="p-4 min-h-[156px] flex items-center gap-3.5">
+          <div class="h-14 w-14 rounded-2xl bg-white/15 border border-white/20 flex items-center justify-center text-2xl shrink-0">🌙</div>
+          <div class="flex-1 min-w-0">
+            <p class="text-[10px] font-black tracking-widest uppercase text-purple-300">Almost there</p>
+            <h2 class="text-base font-bold tracking-tight mt-0.5">"Night Owl" badge · 1 session away</h2>
+            <p class="text-[11px] text-white/65 mt-0.5">Complete one more late-evening study session to unlock it.</p>
+          </div>
+          <a href="focus.html" class="btn3d sm b-ghost shrink-0" style="background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.2)">Study now →</a>
+        </div>
+      </div>
+
+    </div>
+    <div class="hero-dots pb-2.5"></div>
+  </div>
+
+  <div class="lg-row lg-row-2 space-y-3">
+  <!-- TODAY · close your weakest gap — OBE drives the next action (the core loop). Compacted: one row, no separate coach line. -->
+  <a href="lesson.html" class="feed-wide block pcard pcard-tap overflow-hidden" style="background:linear-gradient(135deg,#0f766e,#0382bd)">
+    <div class="p-3.5 text-white relative">
+      <span class="why" style="position:absolute;top:10px;right:10px;font-size:10px" onclick="event.preventDefault();event.stopPropagation();whyPop('You\\'re seeing this because <b>Normalization (CLO3)</b> is your lowest outcome right now (62%, Developing) and it\\'s assessed by a task due soon. Closing it first gives the biggest gain for the least time — that\\'s the whole idea: your outcomes decide your next action.')">🛡️ why</span>
+      <p class="text-[9px] font-black tracking-widest uppercase text-white/70">Today · weakest outcome</p>
+      <div class="flex items-center gap-3 mt-1.5">
+        <div class="relative h-10 w-10 shrink-0">
+          <svg class="h-10 w-10 -rotate-90" viewBox="0 0 36 36"><circle cx="18" cy="18" r="16" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="3.5"/><circle cx="18" cy="18" r="16" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="100" stroke-dashoffset="38"/></svg>
+          <div class="absolute inset-0 flex items-center justify-center text-[11px] font-black">62%</div>
+        </div>
+        <div class="flex-1 min-w-0">
+          <h3 class="text-sm font-bold leading-tight truncate">Normalization <span class="text-white/60 font-semibold">· CLO3</span></h3>
+          <p class="text-[11px] text-white/75 truncate">One 10-min action moves you to Satisfactory.</p>
+        </div>
+        <img src="characters/foxi/foxi-signal-beacon-3.png" alt="" class="chr chr-xs chr-nudge shrink-0" draggable="false"/>
+      </div>
+      <span class="btn3d full sm mt-2.5" style="background:#fff;color:#0f766e;box-shadow:0 3px 0 rgba(0,0,0,.15)">🎯 Fix it in 10 min →</span>
+    </div>
+  </a>
+
+  <!-- PRIMARY ACTION — the deadline task. Compacted to match the card above. -->
+  <a href="assignment.html" class="feed-wide block pcard pcard-tap accent-l is-soon overflow-hidden">
+    <div class="p-3.5">
+      <div class="flex items-center gap-3">
+        <div class="h-10 w-10 rounded-xl flex items-center justify-center shrink-0" style="background:var(--brand-gradient)"><span class="text-lg">📝</span></div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-1.5"><p class="text-[9px] font-black tracking-widest uppercase text-gray-400">Next step</p><span class="text-[9px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-full">⏰ 4h</span></div>
+          <h3 class="text-sm font-black text-gray-900 leading-tight truncate">Database Assignment 3</h3>
+          <p class="text-[11px] text-gray-500 truncate">Normalization · <span class="text-amber-600 font-bold">+25 XP</span> · ~30 min</p>
+        </div>
+      </div>
+      <div class="flex gap-2 mt-2.5">
+        <span class="btn3d sm" style="flex:1">Start Now →</span>
+        <span class="btn3d sm b-soft">🤖 Tutor</span>
+      </div>
+    </div>
+  </a>
+
+  </div>
+
+  <!-- Course Strip (full-width band with mastery rings) -->
+  <div class="feed-wide">
+    <div class="sec-h"><span class="chip">📚</span><p class="t">My Courses</p><a href="learn.html" class="more">See all →</a></div>
+    <div class="mycourses flex gap-3 overflow-x-auto no-scrollbar pb-1">
+      <a href="course.html" class="pcard pcard-tap p-3 flex items-center gap-3 min-w-[210px] flex-shrink-0">
+        <div class="relative h-12 w-12 shrink-0">
+          <svg class="ring-mini h-12 w-12" viewBox="0 0 36 36"><circle cx="18" cy="18" r="15.9" stroke="#eef2f6"/><circle cx="18" cy="18" r="15.9" stroke="#3b82f6" stroke-linecap="round" stroke-dasharray="100" stroke-dashoffset="28"/></svg>
+          <div class="absolute inset-0 flex items-center justify-center text-[11px] font-black text-blue-600">72%</div>
+        </div>
+        <div class="min-w-0"><span class="text-[9px] font-bold text-gray-400 tracking-wide">CS301</span><p class="text-[13px] font-bold text-gray-900 leading-tight truncate">Database Design</p><p class="text-[10px] text-gray-500 mt-0.5">Module 5 of 8</p></div>
+      </a>
+      <a href="course.html" class="pcard pcard-tap p-3 flex items-center gap-3 min-w-[210px] flex-shrink-0">
+        <div class="relative h-12 w-12 shrink-0">
+          <svg class="ring-mini h-12 w-12" viewBox="0 0 36 36"><circle cx="18" cy="18" r="15.9" stroke="#eef2f6"/><circle cx="18" cy="18" r="15.9" stroke="#3b82f6" stroke-linecap="round" stroke-dasharray="100" stroke-dashoffset="55"/></svg>
+          <div class="absolute inset-0 flex items-center justify-center text-[11px] font-black text-blue-600">45%</div>
+        </div>
+        <div class="min-w-0"><span class="text-[9px] font-bold text-gray-400 tracking-wide">CS205</span><p class="text-[13px] font-bold text-gray-900 leading-tight truncate">Web Development</p><p class="text-[10px] text-gray-500 mt-0.5">Module 3 of 7</p></div>
+      </a>
+      <a href="course.html" class="pcard pcard-tap p-3 flex items-center gap-3 min-w-[210px] flex-shrink-0">
+        <div class="relative h-12 w-12 shrink-0">
+          <svg class="ring-mini h-12 w-12" viewBox="0 0 36 36"><circle cx="18" cy="18" r="15.9" stroke="#eef2f6"/><circle cx="18" cy="18" r="15.9" stroke="#3b82f6" stroke-linecap="round" stroke-dasharray="100" stroke-dashoffset="12"/></svg>
+          <div class="absolute inset-0 flex items-center justify-center text-[11px] font-black text-blue-600">88%</div>
+        </div>
+        <div class="min-w-0"><span class="text-[9px] font-bold text-gray-400 tracking-wide">AI101</span><p class="text-[13px] font-bold text-gray-900 leading-tight truncate">AI Fundamentals</p><p class="text-[10px] text-gray-500 mt-0.5">Module 7 of 8</p></div>
+      </a>
+      <a href="course.html" class="pcard pcard-tap p-3 flex items-center gap-3 min-w-[210px] flex-shrink-0">
+        <div class="relative h-12 w-12 shrink-0">
+          <svg class="ring-mini h-12 w-12" viewBox="0 0 36 36"><circle cx="18" cy="18" r="15.9" stroke="#eef2f6"/><circle cx="18" cy="18" r="15.9" stroke="#3b82f6" stroke-linecap="round" stroke-dasharray="100" stroke-dashoffset="70"/></svg>
+          <div class="absolute inset-0 flex items-center justify-center text-[11px] font-black text-blue-600">30%</div>
+        </div>
+        <div class="min-w-0"><span class="text-[9px] font-bold text-gray-400 tracking-wide">SE310</span><p class="text-[13px] font-bold text-gray-900 leading-tight truncate">Software Eng.</p><p class="text-[10px] text-gray-500 mt-0.5">Module 2 of 6</p></div>
+      </a>
+      <a href="course.html" class="pcard pcard-tap p-3 flex items-center gap-3 min-w-[210px] flex-shrink-0">
+        <div class="relative h-12 w-12 shrink-0">
+          <svg class="ring-mini h-12 w-12" viewBox="0 0 36 36"><circle cx="18" cy="18" r="15.9" stroke="#eef2f6"/><circle cx="18" cy="18" r="15.9" stroke="#3b82f6" stroke-linecap="round" stroke-dasharray="100" stroke-dashoffset="42"/></svg>
+          <div class="absolute inset-0 flex items-center justify-center text-[11px] font-black text-blue-600">58%</div>
+        </div>
+        <div class="min-w-0"><span class="text-[9px] font-bold text-gray-400 tracking-wide">MA210</span><p class="text-[13px] font-bold text-gray-900 leading-tight truncate">Statistics</p><p class="text-[10px] text-gray-500 mt-0.5">Module 4 of 9</p></div>
+      </a>
+    </div>
+  </div>
+
+  <div class="lg-row lg-row-2 space-y-4">
+  <!-- Continue your Learning Path — clean white header (no green fill) -->
+  <a href="path.html" class="block pcard pcard-tap p-4">
+    <div class="sec-h"><span class="chip">🗺️</span><p class="t">Continue Your Path</p><span class="ml-auto text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">Unit 3</span></div>
+    <div class="flex items-center gap-3">
+      <div class="h-11 w-11 rounded-xl flex items-center justify-center shrink-0" style="background:var(--brand-gradient)"><span class="text-lg">📝</span></div>
+      <div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900 truncate">Normalization</p><p class="text-xs text-gray-500">Applying level · 3 of 5 lessons</p><div class="mt-1.5 h-1.5 rounded-full bg-gray-100 overflow-hidden"><div class="h-full rounded-full" style="width:60%;background:var(--brand-gradient)"></div></div></div>
+      <svg class="h-5 w-5 text-gray-300 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
+    </div>
+  </a>
+
+  <!-- Today's Habits -->
+  <div class="pcard p-4">
+    <div class="sec-h"><span class="chip">🔥</span><p class="t">Today's Habits</p><span class="ml-auto text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">2/4</span></div>
+    <div class="flex justify-around">
+      <div class="flex flex-col items-center gap-1.5"><div class="h-11 w-11 rounded-full bg-green-500 flex items-center justify-center shadow-sm"><svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg></div><span class="text-[10px] text-gray-600">Login</span></div>
+      <div class="flex flex-col items-center gap-1.5"><div class="h-11 w-11 rounded-full bg-green-500 flex items-center justify-center shadow-sm"><svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5"/></svg></div><span class="text-[10px] text-gray-600">Submit</span></div>
+      <div class="flex flex-col items-center gap-1.5"><div class="h-11 w-11 rounded-full bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center"><span class="text-gray-400 text-sm">📝</span></div><span class="text-[10px] text-gray-400">Journal</span></div>
+      <div class="flex flex-col items-center gap-1.5"><div class="h-11 w-11 rounded-full bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center"><span class="text-gray-400 text-sm">📖</span></div><span class="text-[10px] text-gray-400">Read</span></div>
+    </div>
+    <!-- Pengu habit coach — purposeful: nudges toward Perfect Day without guilt -->
+    <div class="mt-3 flex items-center gap-2.5 bg-amber-50 rounded-lg px-3 py-2 border border-amber-100">
+      <img src="characters/penguin/penguin-blushing.png" alt="Pengu cheering you on" class="chr chr-sm" draggable="false"/>
+      <p class="text-xs font-medium text-amber-700 leading-tight">Just <b>2 more</b> for a <b>Perfect Day (+50 XP)</b> — you're so close!</p>
+    </div>
+  </div>
+
+  </div>
+
+  <div class="lg-row lg-row-2 space-y-4">
+  <!-- Daily Review — spaced repetition (review_schedules: interval_days 1/3/7,
+       grouped by CLO). Redesigned with a header, streak chip, CLO breakdown and
+       a full-width CTA so it carries the same visual weight as its neighbor
+       instead of one thin icon+text+badge row. -->
+  <a href="review.html" class="block pcard pcard-tap p-4">
+    <div class="sec-h"><span class="chip">🔁</span><p class="t">Daily Review</p><span class="ml-auto text-[10px] font-bold text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full">🔥 6-day streak</span></div>
+    <p class="text-xs text-gray-500 -mt-1 mb-2.5">5 cards due · adaptive spacing strengthens your weakest CLOs</p>
+    <div class="flex flex-wrap gap-1.5 mb-3">
+      <span class="text-[10px] font-bold text-red-700 bg-red-50 border border-red-100 px-2 py-1 rounded-full">Normalization ×2</span>
+      <span class="text-[10px] font-bold text-blue-700 bg-blue-50 border border-blue-100 px-2 py-1 rounded-full">Indexing ×2</span>
+      <span class="text-[10px] font-bold text-purple-700 bg-purple-50 border border-purple-100 px-2 py-1 rounded-full">REST APIs ×1</span>
+    </div>
+    <span class="btn3d full sm" style="justify-content:space-between;padding-left:14px;padding-right:14px">Start Review <b>+15 XP</b></span>
+  </a>
+
+  <!-- This Week's Activity — REPLACES the old "Coming Up" card, which just
+       repeated the right rail's "📅 Coming up" widget verbatim (same two
+       deadlines, same calendar link — pure duplication). A 7-day activity
+       heatmap (habit_logs, same pattern as review.html/wellness.html/
+       profile.html) adds real new information: consistency across the week,
+       which "Today's Habits" above doesn't show. Fri = today (in progress);
+       Sat/Sun are ahead, correctly empty. -->
+  <a href="progress.html" class="block pcard pcard-tap p-4">
+    <div class="sec-h"><span class="chip">📊</span><p class="t">This Week's Activity</p><a href="progress.html" class="more">Trends →</a></div>
+    <div class="wk-grid">
+      <div class="wk-col"><span class="wk-lbl">M</span><span class="wk-tile l3" title="Mon · 4 activities">4</span></div>
+      <div class="wk-col"><span class="wk-lbl">T</span><span class="wk-tile l2" title="Tue · 2 activities">2</span></div>
+      <div class="wk-col"><span class="wk-lbl">W</span><span class="wk-tile l4" title="Wed · 5 activities · best day">5</span></div>
+      <div class="wk-col"><span class="wk-lbl">T</span><span class="wk-tile l1" title="Thu · 1 activity">1</span></div>
+      <div class="wk-col"><span class="wk-lbl">F</span><span class="wk-tile l1 wk-today" title="Fri · today, in progress">·</span></div>
+      <div class="wk-col"><span class="wk-lbl">S</span><span class="wk-tile wk-empty" title="Sat · upcoming">–</span></div>
+      <div class="wk-col"><span class="wk-lbl">S</span><span class="wk-tile wk-empty" title="Sun · upcoming">–</span></div>
+    </div>
+    <div class="wk-foot">
+      <p class="text-xs text-gray-500">Mon–Thu done · best day <b class="text-gray-700">Wed</b></p>
+      <span class="wk-legend">Less <i style="background:#a7f3d0"></i><i style="background:#34d399"></i><i style="background:#10b981"></i><i style="background:#047857"></i> More</span>
+    </div>
+  </a>
+
+  </div>
+
+  <!-- Announcement -->
+  <div class="pcard p-4">
+    <div class="sec-h"><span class="chip">📢</span><p class="t">Announcements</p></div>
+    <div class="flex items-start gap-3"><div class="h-2 w-2 rounded-full bg-amber-400 mt-1.5 shrink-0"></div><div><p class="text-sm font-medium text-gray-900">Final exam schedule released</p><p class="text-xs text-gray-500 mt-0.5">Check timetable for updated timings — Prof. Ahmed</p><p class="text-[10px] text-gray-400 mt-1">2h ago</p></div></div>
+  </div>
+
+  <!-- design helper: preview + copy the student accent (CTA) and activity heatmap options -->
+  <a href="student-variations.html" class="block text-center py-2 text-xs font-semibold text-teal-700 hover:text-teal-800">🎨 Try other accent &amp; activity colors →</a>
+
+</div>
+
+<!-- Bottom Tab Bar -->
+<nav class="bottom-bar">
+  <a href="dashboard.html" class="tab-btn" data-tab="home"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75"/></svg><span>Home</span></a>
+  <a href="learn.html" class="tab-btn" data-tab="learn"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/></svg><span>Learn</span></a>
+  <a href="tutor.html" class="tab-btn" data-tab="tutor"><div class="tutor-fab"><span class="text-lg">🤖</span></div><span>Tutor</span></a>
+  <a href="progress.html" class="tab-btn" data-tab="progress"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941"/></svg><span>Progress</span></a>
+  <a href="profile.html" class="tab-btn" data-tab="me"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg><span>Me</span></a>
+</nav>
+
+<script src="shared.js"></script>
+<script>
+  // ── Living hero: Foxi's emotion + greeting adapt to time-of-day & streak ──
+  // Prototype context (would come from real data in the app). Flip these flags
+  // to preview different living states (streakBroken, leveledUp, perfectDay…).
+  (function(){
+    const ctx={name:'Sarah',streak:12,firstToday:true,weakCLO:true};
+    const g=EdvCharacter.greeting(ctx);
+    const foxi=document.getElementById('hero-foxi');
+    const greet=document.getElementById('hero-greeting');
+    const sub=document.getElementById('hero-subtitle');
+    if(foxi){foxi.src=EdvCharacter.path(g.character,g.emotion);foxi.alt=`${EdvCharacter.NAMES[g.character]} — ${g.emotion}`;}
+    // Keep the concise on-brand hero copy; Foxi reflects the resolved emotion.
+    // (Greeting text stays as-is to preserve the tight hero layout.)
+    if(greet&&g.title) greet.textContent=g.title;
+  })();
+  initHeroCarousel('hero-car');
+</script>
+</body>
+</html>

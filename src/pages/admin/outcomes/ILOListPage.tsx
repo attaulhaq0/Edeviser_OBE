@@ -25,7 +25,7 @@ import { useILOs, useDeleteILO, useReorderILOs } from "@/hooks/useILOs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 import {
   Plus,
   GripVertical,
@@ -194,7 +194,7 @@ const ILOListPage = () => {
                 Reorder
               </Button>
               <Button
-                className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 text-white"
+                variant="tactile"
                 onClick={() => navigate("/admin/outcomes/new")}
               >
                 <Plus className="h-4 w-4" /> Add ILO
@@ -215,7 +215,7 @@ const ILOListPage = () => {
                 size="sm"
                 onClick={saveOrder}
                 disabled={reorderMutation.isPending}
-                className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 text-white"
+                variant="tactile"
               >
                 {reorderMutation.isPending ? (
                   <Loader2 className="h-4 w-4 animate-spin" />

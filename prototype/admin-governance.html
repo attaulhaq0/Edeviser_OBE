@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Edeviser — AI Governance</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
+<link rel="stylesheet" href="shared.css"/>
+</head>
+<body class="bg-slate-50" data-role="admin">
+<header class="app-header">
+  <div class="hdr-brand flex items-center gap-2"><div class="h-7 w-7 rounded-lg flex items-center justify-center" style="background:var(--brand-gradient)"><span class="text-white text-sm">✦</span></div><span class="text-base font-bold tracking-tight text-gray-900">Edeviser</span></div>
+  <div class="flex items-center gap-2"><a href="admin-profile.html" class="h-8 w-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style="background:var(--brand-gradient)">G</a></div>
+</header>
+<div class="page-content space-y-4 no-scrollbar">
+  <!-- BACKEND GROUNDING · hooks: useAISuggestions, useAIPerformance, useTutorAutonomy | tables: tutor_llm_logs, ai_feedback, audit_logs -->
+
+  <div class="feed-wide"><h1 class="text-xl font-black tracking-tight text-gray-900">🛡️ AI Governance</h1><p class="text-xs text-gray-500 mt-0.5">You decide how far AI can act. Everything is explainable, logged, reversible — and humans stay in control.</p></div>
+
+  <!-- Autonomy ladder -->
+  <div class="feed-wide pcard p-5">
+    <div class="sec-h"><span class="chip">🎚️</span><p class="t">Institution autonomy ceiling</p></div>
+    <div class="tier-seg" id="ceil">
+      <button onclick="ceil(this,'A0')">A0 Observe</button>
+      <button onclick="ceil(this,'A1')">A1 Suggest</button>
+      <button class="on" onclick="ceil(this,'A2')">A2 Approve</button>
+      <button onclick="ceil(this,'A3')">A3 Autonomous</button>
+    </div>
+    <p id="ceilMsg" class="text-xs text-gray-500 mt-2">Current: <b>A2 — AI may act only after a human clicks approve.</b> Individual actions can be capped lower below, never higher.</p>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mt-3 text-center">
+      <div class="rounded-lg bg-slate-50 p-2"><p class="text-[10px] font-black text-gray-400">A0</p><p class="text-[11px] text-gray-600">Observe &amp; display</p></div>
+      <div class="rounded-lg bg-slate-50 p-2"><p class="text-[10px] font-black text-gray-400">A1</p><p class="text-[11px] text-gray-600">Suggest, pre-drafted</p></div>
+      <div class="rounded-lg bg-blue-50 p-2"><p class="text-[10px] font-black text-blue-500">A2</p><p class="text-[11px] text-blue-700">Act on one-click OK</p></div>
+      <div class="rounded-lg bg-slate-50 p-2"><p class="text-[10px] font-black text-gray-400">A3</p><p class="text-[11px] text-gray-600">Auto · logged · reversible</p></div>
+    </div>
+  </div>
+
+  <!-- Per-action policy -->
+  <div class="feed-wide pcard p-4">
+    <div class="sec-h"><span class="chip">📜</span><p class="t">What AI may do, per action</p><button onclick="whyPop('Each action type has its own ceiling. Sensitive actions — <b>grading, publishing content, parent communications</b> — are hard-capped at A2 (approval required) and can never be set autonomous, regardless of the institution ceiling.')" class="more">policy</button></div>
+    <div style="overflow-x:auto"><table class="dtable" style="min-width:560px">
+      <thead><tr><th>Action</th><th>Max autonomy</th><th>Hard cap</th></tr></thead>
+      <tbody id="policy"></tbody>
+    </table></div>
+  </div>
+
+  <!-- Audit log -->
+  <div class="feed-wide pcard p-4">
+    <div class="sec-h"><span class="chip">🧾</span><p class="t">AI action log</p><span class="pill pill-green">0 unapproved</span></div>
+    <div style="overflow-x:auto"><table class="dtable" style="min-width:640px">
+      <thead><tr><th>Time</th><th>AI skill</th><th>Action</th><th>Target</th><th>Tier</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>09:12</td><td>Teacher Intelligence</td><td>Drafted feedback</td><td>CS301 · 12 subs</td><td>A1</td><td><span class="pill pill-amber">Pending approval</span></td></tr>
+        <tr><td>08:40</td><td>Student Learning</td><td>Scheduled spaced review</td><td>Student #4821</td><td>A3</td><td><span class="pill pill-green">Auto (allowed)</span></td></tr>
+        <tr><td>08:15</td><td>Curriculum Designer</td><td>Drafted 6 micro-lessons</td><td>Normalization.pptx</td><td>A1</td><td><span class="pill pill-blue">Awaiting teacher</span></td></tr>
+        <tr><td>Yst</td><td>Teacher Intelligence</td><td>Sent nudge</td><td>Student #3390</td><td>A2</td><td><span class="pill pill-green">Approved by Prof. Ahmed</span></td></tr>
+      </tbody>
+    </table></div>
+    <button onclick="toast('Full audit log exported (CSV)','🧾')" class="mt-3 text-xs font-bold text-gray-700 bg-gray-50 border border-gray-200 px-3 py-1.5 rounded-lg">Export full log</button>
+  </div>
+
+  <div class="lg-row lg-row-2 space-y-4 items-start">
+  <!-- Memory & privacy -->
+  <div class="pcard p-4">
+    <div class="sec-h"><span class="chip">🧠</span><p class="t">AI memory &amp; privacy</p></div>
+    <table class="dtable"><thead><tr><th>What AI remembers</th><th>Retention</th></tr></thead><tbody>
+      <tr><td>Conversation (tutor)</td><td>Session</td></tr>
+      <tr><td>Learner model (mastery, errors, goals)</td><td>Persistent · exportable</td></tr>
+      <tr><td>Habit / wellbeing signals</td><td>Rolling 90 days</td></tr>
+      <tr><td>Outcome evidence</td><td>Permanent (immutable)</td></tr>
+      <tr><td>Passwords, raw PII in prompts</td><td><span class="pill pill-green">Never stored</span></td></tr>
+    </tbody></table>
+    <p class="text-[11px] text-gray-500 mt-2">Every learner can export or delete their AI memory. Institution views are de-identified. <button onclick="whyPop('Memory is per-learner and RLS-scoped: an AI skill can only read data the acting user is authorized to see. Cross-student data is never placed in one learner\\'s context. Institution analytics are aggregated &amp; de-identified.')" class="font-bold text-blue-600">How privacy is enforced →</button></p>
+  </div>
+
+  <!-- Model transparency -->
+  <div class="pcard p-4">
+    <div class="sec-h"><span class="chip">⚙️</span><p class="t">Models &amp; cost (this month)</p></div>
+    <div class="space-y-1.5 text-sm">
+      <div class="flex items-center justify-between"><span class="text-gray-700">Tutor LLM</span><span class="font-semibold text-gray-900">Gemini 2.0 Flash</span></div>
+      <div class="flex items-center justify-between"><span class="text-gray-700">Fallback</span><span class="font-semibold text-gray-900">Flash-Lite</span></div>
+      <div class="flex items-center justify-between"><span class="text-gray-700">Tutor sessions</span><span class="font-semibold text-gray-900">4,210</span></div>
+      <div class="flex items-center justify-between"><span class="text-gray-700">Est. spend</span><span class="font-semibold text-green-600">$182</span></div>
+    </div>
+  </div>
+  </div>
+
+</div>
+<script>
+const POLICY=[
+  ["Show insights / signals","A0","—"],
+  ["Suggest next action","A1","—"],
+  ["Schedule spaced reviews","A3","A3 ok"],
+  ["Reorder a learner's daily plan","A3","A3 ok"],
+  ["Send student nudge","A2","≤ A2"],
+  ["Draft teacher feedback","A1","≤ A2"],
+  ["Generate report / evidence","A2","≤ A2"],
+  ["Send parent communication","A2","🔒 ≤ A2"],
+  ["Assign a grade","A2","🔒 never auto"],
+  ["Publish content","A2","🔒 never auto"],
+];
+const tierPill=t=>({A0:'pill-blue',A1:'pill-blue',A2:'pill-amber',A3:'pill-green'})[t];
+document.getElementById('policy').innerHTML=POLICY.map((r,i)=>`<tr><td>${r[0]}</td><td><span class="pill ${tierPill(r[1])}">${r[1]}</span></td><td style="color:${r[2].includes('🔒')?'#b91c1c':'#94a3b8'};font-weight:${r[2].includes('🔒')?'700':'400'};font-size:11px">${r[2]}</td></tr>`).join('');
+function ceil(el,t){document.querySelectorAll('#ceil button').forEach(b=>b.classList.remove('on'));el.classList.add('on');const msg={A0:'Observe only — AI shows insights but never acts.',A1:'Suggest — AI proposes actions; humans open &amp; run them.',A2:'AI may act only after a human clicks approve.',A3:'AI may act autonomously on safe actions; all logged &amp; reversible.'}[t];document.getElementById('ceilMsg').innerHTML='Current: <b>'+t+' — '+msg+'</b> Sensitive actions stay hard-capped below.';toast('Institution ceiling set to '+t,'🛡️');}
+</script>
+<script src="shared.js"></script>
+</body>
+</html>

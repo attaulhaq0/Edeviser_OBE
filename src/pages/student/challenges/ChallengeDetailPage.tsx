@@ -17,7 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import ChallengeProgressBar from "@/components/shared/ChallengeProgressBar";
 import ChallengeLeaderboard from "@/components/shared/ChallengeLeaderboard";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 import {
   ArrowLeft,
   Trophy,

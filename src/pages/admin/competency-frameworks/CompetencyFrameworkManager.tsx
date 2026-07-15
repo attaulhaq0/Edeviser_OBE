@@ -22,7 +22,7 @@ import {
   FormControl,
   FormMessage,
 } from "@/components/ui/form";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 import CompetencyTree from "@/components/shared/CompetencyTree";
 import { Plus, Loader2, Layers, Link2 } from "lucide-react";
 import { toast } from "sonner";
@@ -293,7 +293,7 @@ const CompetencyFrameworkManager = () => {
             <Button
               onClick={handleAddMapping}
               disabled={!mappingIndicatorId || !mappingOutcomeId}
-              className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
+              variant="tactile"
             >
               <Plus className="h-4 w-4" /> Map
             </Button>
@@ -349,7 +349,7 @@ const CompetencyFrameworkManager = () => {
             <Button
               type="submit"
               disabled={createMutation.isPending}
-              className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
+              variant="tactile"
             >
               {createMutation.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />

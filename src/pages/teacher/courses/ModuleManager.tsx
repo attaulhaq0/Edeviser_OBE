@@ -61,7 +61,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 
 // ─── Schemas ────────────────────────────────────────────────────────────────
 
@@ -574,7 +574,8 @@ const ModuleMaterials = ({
                   type="submit"
                   size="sm"
                   disabled={isPending}
-                  className="text-xs bg-gradient-to-r from-teal-500 to-blue-600"
+                  variant="tactile"
+                  className="text-xs"
                 >
                   {isPending && (
                     <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -752,7 +753,7 @@ const ModuleManager = () => {
         <Button
           onClick={openCreateModule}
           disabled={!effectiveCourseId}
-          className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 transition-transform duration-100"
+          variant="tactile"
         >
           <Plus className="h-4 w-4" /> New Module
         </Button>
@@ -856,7 +857,7 @@ const ModuleManager = () => {
                 <Button
                   type="submit"
                   disabled={isModulePending}
-                  className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 transition-transform duration-100"
+                  variant="tactile"
                 >
                   {isModulePending && (
                     <Loader2 className="h-4 w-4 animate-spin" />

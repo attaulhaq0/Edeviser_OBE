@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Edeviser — Sign in</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
+<link rel="stylesheet" href="shared.css"/>
+<style>
+  .auth{display:flex;flex-direction:column;min-height:100dvh;background:#f8fafc}
+  .auth-brand{position:relative;overflow:hidden;color:#fff;background:var(--hero-gradient);padding:26px 22px}
+  .auth-form{padding:26px 20px}
+  .auth-card{width:100%;max-width:400px;margin:0 auto}
+  .blob{position:absolute;border-radius:50%;filter:blur(2px);opacity:.5;pointer-events:none}
+  .sso{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:11px;border:1.5px solid #e2e8f0;border-radius:12px;background:#fff;font-size:13.5px;font-weight:700;color:#334155;cursor:pointer;transition:all .12s}
+  .sso:hover{background:#f8fafc;border-color:#cbd5e1}
+  .fld{width:100%;border:1.5px solid #e2e8f0;border-radius:12px;padding:12px 14px;font-size:14px;color:#0f172a;outline:none;transition:all .12s;background:#fff}
+  .fld:focus{border-color:#0382bd;box-shadow:0 0 0 3px rgba(3,130,189,.12)}
+  .lbl{font-size:12px;font-weight:700;color:#475569;margin:0 0 5px}
+  .auth-tab{flex:1;padding:9px;border-radius:10px;font-size:13px;font-weight:800;border:none;background:none;color:#64748b;cursor:pointer}
+  .auth-tab.on{background:#fff;color:#0f172a;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+  .rseg{display:flex;gap:6px}
+  .rseg-b{flex:1;padding:9px 6px;border-radius:12px;border:1.5px solid #e2e8f0;background:#fff;cursor:pointer;text-align:center;transition:all .12s}
+  .rseg-b.on{border-color:#0382bd;background:#f0f9ff}
+  .rseg-b .e{font-size:18px}.rseg-b .t{font-size:11px;font-weight:700;color:#475569;display:block;margin-top:2px}
+  .rseg-b.on .t{color:#0369a1}
+  .strength{height:5px;border-radius:3px;background:#eef2f6;overflow:hidden;margin-top:6px}
+  .strength>div{height:100%;width:0;transition:width .25s,background .25s}
+  @media(min-width:640px){
+    html.mode-mobile .auth{flex:1;overflow-y:auto}
+    html.mode-laptop .auth{display:grid;grid-template-columns:1.1fr 1fr;min-height:100vh}
+    html.mode-laptop .auth-brand{display:flex;flex-direction:column;justify-content:center;padding:52px 48px}
+    html.mode-laptop .auth-form{display:flex;align-items:center;justify-content:center;padding:40px}
+    html.mode-laptop .auth-card{max-width:380px}
+  }
+</style>
+</head>
+<body data-immersive="1">
+<div class="auth">
+
+  <!-- BRAND / VALUE PANEL -->
+  <div class="auth-brand">
+    <div class="blob" style="top:-40px;right:-30px;width:180px;height:180px;background:radial-gradient(circle,rgba(20,184,166,.5),transparent 70%)"></div>
+    <div class="relative">
+      <div class="flex items-center gap-2">
+        <div class="h-8 w-8 rounded-lg flex items-center justify-center bg-white/15 border border-white/20">✦</div>
+        <span class="text-lg font-black">Edeviser</span>
+      </div>
+      <h1 class="text-2xl md:text-3xl font-black tracking-tight mt-5 leading-tight">Learning that adapts<br class="hidden md:block"/> to every learner.</h1>
+      <p class="text-sm text-white/75 mt-2 max-w-xs">Outcome-based, AI-tutored, and gamified for real mastery — for students, teachers, parents and institutions.</p>
+      <div class="mt-5 space-y-2.5 hidden md:block">
+        <div class="flex items-center gap-2.5 text-sm text-white/90"><span class="h-7 w-7 rounded-lg bg-white/15 flex items-center justify-center">🎯</span> Outcomes drive your next step</div>
+        <div class="flex items-center gap-2.5 text-sm text-white/90"><span class="h-7 w-7 rounded-lg bg-white/15 flex items-center justify-center">🤖</span> An AI tutor that knows your gaps</div>
+        <div class="flex items-center gap-2.5 text-sm text-white/90"><span class="h-7 w-7 rounded-lg bg-white/15 flex items-center justify-center">🔥</span> Habits &amp; mastery, not just grades</div>
+      </div>
+      <div class="mt-5 flex items-center gap-2 text-[11px] text-white/70">
+        <span class="bg-white/12 border border-white/20 rounded-full px-2.5 py-1 font-semibold">🔒 FERPA-aligned</span>
+        <span class="bg-white/12 border border-white/20 rounded-full px-2.5 py-1 font-semibold">EN / العربية</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- FORM PANEL -->
+  <div class="auth-form">
+    <div class="auth-card">
+      <!-- Tabs -->
+      <div class="flex bg-slate-100 rounded-xl p-1 mb-5">
+        <button class="auth-tab on" id="tab-in" onclick="switchTab('in')">Sign in</button>
+        <button class="auth-tab" id="tab-up" onclick="switchTab('up')">Create account</button>
+      </div>
+
+      <!-- SSO -->
+      <div class="space-y-2.5">
+        <button class="sso" onclick="social('Google')">
+          <svg width="17" height="17" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.6 2.4 30.1 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.3 13.2 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.1 5.3-4.6 7l7.1 5.5c4.2-3.9 6.7-9.6 6.7-16z"/><path fill="#FBBC05" d="M10.5 28.3c-.5-1.4-.8-2.9-.8-4.3s.3-3 .8-4.3l-7.9-6.1C1 16.9 0 20.3 0 24s1 7.1 2.6 10.4l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.1 0 11.3-2 15-5.5l-7.1-5.5c-2 1.3-4.5 2.1-7.9 2.1-6.3 0-11.7-3.7-13.5-9.1l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>
+          Continue with Google
+        </button>
+        <button class="sso" onclick="social('Microsoft')">
+          <svg width="16" height="16" viewBox="0 0 23 23"><path fill="#F35325" d="M1 1h10v10H1z"/><path fill="#81BC06" d="M12 1h10v10H12z"/><path fill="#05A6F0" d="M1 12h10v10H1z"/><path fill="#FFBA08" d="M12 12h10v10H12z"/></svg>
+          Continue with Microsoft
+        </button>
+        <button class="sso" onclick="social('your institution (SSO)')">🏛️ Sign in with your institution</button>
+      </div>
+
+      <div class="flex items-center gap-3 my-4"><div class="flex-1 h-px bg-gray-200"></div><span class="text-[11px] text-gray-400 font-medium">or with email</span><div class="flex-1 h-px bg-gray-200"></div></div>
+
+      <!-- SIGN IN FORM -->
+      <form id="form-in" onsubmit="event.preventDefault();signIn()">
+        <p class="lbl">Email</p>
+        <input class="fld" type="email" placeholder="you@school.edu" required autocomplete="email"/>
+        <div class="flex items-center justify-between mt-3"><p class="lbl" style="margin:0">Password</p><a onclick="toast('Password reset link sent ✉️','🔑')" class="text-[11px] font-bold text-blue-600 cursor-pointer">Forgot?</a></div>
+        <div class="relative mt-1.5">
+          <input class="fld pr-11" id="pw-in" type="password" placeholder="••••••••" required autocomplete="current-password"/>
+          <button type="button" onclick="togglePw('pw-in',this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-bold">show</button>
+        </div>
+        <label class="flex items-center gap-2 mt-3 text-xs text-gray-600 cursor-pointer"><input type="checkbox" checked class="h-4 w-4 rounded accent-teal-500"/> Keep me signed in</label>
+        <button type="submit" class="btn3d full mt-4" style="padding:12px">Sign in →</button>
+        <button type="button" onclick="magic()" class="w-full mt-2.5 text-sm font-bold text-blue-600 py-2">✉️ Email me a magic link instead</button>
+      </form>
+
+      <!-- SIGN UP FORM -->
+      <form id="form-up" class="hidden" onsubmit="event.preventDefault();signUp()">
+        <p class="lbl">I am a…</p>
+        <div class="rseg mb-3">
+          <div class="rseg-b on" data-role="student" onclick="pickRole(this)"><span class="e">🎓</span><span class="t">Student</span></div>
+          <div class="rseg-b" data-role="teacher" onclick="pickRole(this)"><span class="e">🧑‍🏫</span><span class="t">Teacher</span></div>
+          <div class="rseg-b" data-role="parent" onclick="pickRole(this)"><span class="e">👨‍👩‍👧</span><span class="t">Parent</span></div>
+        </div>
+        <p class="lbl">Full name</p>
+        <input class="fld" type="text" placeholder="Sarah Ahmed" required autocomplete="name"/>
+        <p class="lbl mt-3">Email</p>
+        <input class="fld" type="email" placeholder="you@school.edu" required autocomplete="email"/>
+        <p class="lbl mt-3">Password</p>
+        <div class="relative mt-0.5">
+          <input class="fld pr-11" id="pw-up" type="password" placeholder="Create a password" required autocomplete="new-password" oninput="strength(this.value)"/>
+          <button type="button" onclick="togglePw('pw-up',this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs font-bold">show</button>
+        </div>
+        <div class="strength"><div id="str-bar"></div></div>
+        <p id="str-txt" class="text-[11px] text-gray-400 mt-1">Use 8+ characters with a mix of letters, numbers &amp; symbols.</p>
+        <p class="lbl mt-3">Institution code <span class="text-gray-400 font-normal">(if invited)</span></p>
+        <input class="fld" type="text" placeholder="e.g. GULF-2026" autocomplete="off"/>
+        <button type="submit" class="btn3d full mt-4" style="padding:12px">Create account →</button>
+        <p class="text-[11px] text-gray-400 text-center mt-2.5">By continuing you agree to our <a class="underline">Terms</a> &amp; <a class="underline">Privacy</a>. Student data is never sold.</p>
+      </form>
+
+      <p class="text-center text-[12px] text-gray-500 mt-5">
+        <span id="swap-txt">New to Edeviser?</span>
+        <a onclick="switchTab(document.getElementById('form-in').classList.contains('hidden')?'in':'up')" class="font-bold text-blue-600 cursor-pointer" id="swap-link">Create an account</a>
+      </p>
+      <p class="text-center text-[11px] text-gray-400 mt-3">Just exploring? <a href="roles.html" class="font-bold text-gray-500 underline">Skip to the demo →</a></p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let role='student';
+function switchTab(t){
+  const isUp=t==='up';
+  document.getElementById('form-in').classList.toggle('hidden',isUp);
+  document.getElementById('form-up').classList.toggle('hidden',!isUp);
+  document.getElementById('tab-in').classList.toggle('on',!isUp);
+  document.getElementById('tab-up').classList.toggle('on',isUp);
+  document.getElementById('swap-txt').textContent=isUp?'Already have an account?':'New to Edeviser?';
+  document.getElementById('swap-link').textContent=isUp?'Sign in':'Create an account';
+  window.scrollTo(0,0);
+}
+function togglePw(id,btn){const el=document.getElementById(id);const show=el.type==='password';el.type=show?'text':'password';btn.textContent=show?'hide':'show';}
+function pickRole(el){document.querySelectorAll('.rseg-b').forEach(b=>b.classList.remove('on'));el.classList.add('on');role=el.dataset.role;}
+function strength(v){
+  let s=0; if(v.length>=8)s++; if(/[A-Z]/.test(v)&&/[a-z]/.test(v))s++; if(/\d/.test(v))s++; if(/[^A-Za-z0-9]/.test(v))s++;
+  const bar=document.getElementById('str-bar'),txt=document.getElementById('str-txt');
+  const map=[['',0,'#eef2f6',''],['Weak',30,'#ef4444','Weak — add length'],['Fair',55,'#f59e0b','Fair — add numbers/symbols'],['Good',80,'#3b82f6','Good password'],['Strong',100,'#22c55e','Strong password 💪']];
+  const i=Math.min(s,4); bar.style.width=map[i][1]+'%'; bar.style.background=map[i][2]; txt.textContent=map[i][3]||'Use 8+ characters with a mix of letters, numbers & symbols.'; txt.style.color=i>=3?'#16a34a':'#94a3b8';
+}
+function social(p){toast('Redirecting to '+p+'…','🔐');setTimeout(()=>location.href='roles.html',900);}
+function magic(){toast('Magic link sent to your email ✉️','✨');}
+function signIn(){toast('Welcome back! 👋','✅');setTimeout(()=>location.href='roles.html',700);}
+function signUp(){
+  toast('Account created! Setting things up…','🎉');
+  const dest={student:'index.html',teacher:'teacher-dashboard.html',parent:'parent-dashboard.html'}[role]||'roles.html';
+  setTimeout(()=>location.href=dest,900);
+}
+</script>
+<script src="shared.js"></script>
+</body>
+</html>

@@ -54,39 +54,43 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
+/* Canonical Shadcn semantic tokens, mapped 1:1 to the PROTOTYPE design system
+   (P0.2 token canonicalization). No neutral/grayscale "New York" defaults leak:
+   primary + ring are brand blue, surfaces are slate, cards are white. Values are
+   the prototype's (shared.css / tokens.css). Light + LTR is the prototype scope. */
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --radius: 0.75rem; /* prototype interactive radius (btn3d 12px); cards use explicit 20px */
+  --background: #f8fafc; /* prototype body — slate-50 */
+  --foreground: #0f172a; /* slate-900 */
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+  --primary: #3b82f6; /* brand blue — primary CTA / active / links */
+  --primary-foreground: #ffffff;
+  --secondary: #f1f5f9; /* slate-100 */
+  --secondary-foreground: #0f172a;
+  --muted: #f1f5f9; /* slate-100 */
+  --muted-foreground: #64748b; /* slate-500 */
+  --accent: #f1f5f9; /* slate-100 — subtle hover (never color-only) */
+  --accent-foreground: #0f172a;
+  --destructive: #ef4444; /* prototype destructive */
+  --border: #e2e8f0; /* slate-200 */
+  --input: #e2e8f0; /* slate-200 */
+  --ring: #3b82f6; /* brand focus ring */
+  --chart-1: #14b8a6; /* teal */
+  --chart-2: #3b82f6; /* blue */
+  --chart-3: #f59e0b; /* amber */
+  --chart-4: #22c55e; /* green */
+  --chart-5: #a855f7; /* violet */
+  --sidebar: #ffffff;
+  --sidebar-foreground: #0f172a;
+  --sidebar-primary: #3b82f6; /* brand */
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f1f5f9; /* slate-100 hover */
+  --sidebar-accent-foreground: #0f172a;
+  --sidebar-border: #e2e8f0;
+  --sidebar-ring: #3b82f6;
 }
 
 .dark {
@@ -96,8 +100,8 @@
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
+  --primary: #3b82f6; /* brand blue (prototype is light-only; dark is parity) */
+  --primary-foreground: #ffffff;
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
@@ -107,7 +111,7 @@
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+  --ring: #3b82f6;
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
@@ -115,8 +119,8 @@
   --chart-5: oklch(0.645 0.246 16.439);
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-primary: #3b82f6;
+  --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: oklch(0.269 0 0);
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
@@ -144,7 +148,7 @@
   --gradient-end: #0382bd; /* Blue */
 
   /* === GRADIENTS === */
-  --brand-gradient: linear-gradient(135deg, #14b8a6 0%, #0382bd 100%);
+  --brand-gradient: linear-gradient(93.65deg, #14b8a6 5.37%, #0382bd 78.89%); /* prototype-exact (adopted Path A) */
   --hero-gradient: linear-gradient(
     135deg,
     #0f172a 0%,
@@ -607,4 +611,135 @@ html.font-x-large {
   body:has(.new-mobile-tabbar) main {
     padding-bottom: calc(4.5rem + env(safe-area-inset-bottom));
   }
+}
+
+/* ─── Auth screens (prototype auth.html) ──────────────────────────────────── */
+/*
+ * Prototype-exact field / SSO / role-segment / strength / tab styles for the
+ * rebuilt auth surface (LoginPage, AuthShell, password screens). Values are 1:1
+ * from prototype/auth.html <style>. Additive + opt-in (nothing uses them until a
+ * screen adopts the class), so they cannot regress other screens. The prototype
+ * auth is LIGHT + LTR only (PARITY §E) — no dark variants here by design.
+ */
+
+/* Brand/value panel fill (prototype `.auth-brand` uses --hero-gradient). */
+.auth-brand-panel {
+  background: var(--hero-gradient);
+}
+
+/* Text field — prototype `.fld`. */
+.fld {
+  width: 100%;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 14px;
+  color: #0f172a;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+}
+
+.fld::placeholder {
+  color: #94a3b8;
+}
+
+.fld:focus {
+  border-color: #0382bd;
+  box-shadow: 0 0 0 3px rgba(3, 130, 189, 0.12);
+}
+
+.fld[aria-invalid="true"] {
+  border-color: #ef4444;
+}
+
+.fld[aria-invalid="true"]:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
+}
+
+/* SSO button — prototype `.sso`. */
+.sso {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 11px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  background: #fff;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #334155;
+  cursor: pointer;
+  transition: background-color 0.12s ease, border-color 0.12s ease;
+}
+
+@media (hover: hover) {
+  .sso:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+  }
+}
+
+.sso:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Sign-up role segment — prototype `.rseg-b` (state via data-active). */
+.rseg-b {
+  flex: 1;
+  padding: 9px 6px;
+  border-radius: 12px;
+  border: 1.5px solid #e2e8f0;
+  background: #fff;
+  cursor: pointer;
+  text-align: center;
+  transition: border-color 0.12s ease, background-color 0.12s ease;
+}
+
+.rseg-b[data-active="true"] {
+  border-color: #0382bd;
+  background: #f0f9ff;
+}
+
+.rseg-b:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+/* Password strength meter — prototype `.strength`. */
+.auth-strength {
+  height: 5px;
+  border-radius: 3px;
+  background: #eef2f6;
+  overflow: hidden;
+  margin-top: 6px;
+}
+
+.auth-strength > div {
+  height: 100%;
+  width: 0;
+  transition: width 0.25s ease, background-color 0.25s ease;
+}
+
+/* Sign in / Create account toggle — prototype `.auth-tab` (state via data-active). */
+.auth-tab {
+  flex: 1;
+  padding: 9px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 800;
+  border: none;
+  background: none;
+  color: #64748b;
+  cursor: pointer;
+  transition: background-color 0.12s ease, color 0.12s ease;
+}
+
+.auth-tab[data-active="true"] {
+  background: #fff;
+  color: #0f172a;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }

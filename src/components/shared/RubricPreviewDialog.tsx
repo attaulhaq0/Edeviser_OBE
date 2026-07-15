@@ -6,7 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 import { InlineEmpty } from "@/components/shared/EmptyState";
 import RubricPreview from "@/components/shared/RubricPreview";
 import { useRubric } from "@/hooks/useRubrics";

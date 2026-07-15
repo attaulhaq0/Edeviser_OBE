@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Edeviser — Bulk Import</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
+<link rel="stylesheet" href="shared.css"/>
+<style>
+  /* Bulk Import — maps to: useBulkImport, useDataImport, useInviteUsers,
+     bulk-import-users + bulk-data-import edge functions. */
+  .im-drop{border:2px dashed #cbd5e1;border-radius:16px;padding:28px;text-align:center;cursor:pointer;transition:border-color .15s,background .15s}
+  .im-drop:hover{border-color:#14b8a6;background:#f0fdfa}
+  .im-type{font-size:12.5px;font-weight:800;color:#64748b;padding:8px 14px;border-radius:11px;background:#fff;border:1px solid #e8edf3;cursor:pointer}
+  .im-type.on{background:var(--brand-gradient);color:#fff;border-color:transparent}
+</style>
+</head>
+<body class="bg-slate-50" data-role="admin">
+
+<header class="app-header">
+  <div class="hdr-brand flex items-center gap-2"><div class="h-7 w-7 rounded-lg flex items-center justify-center" style="background:var(--brand-gradient)"><span class="text-white text-sm">✦</span></div><span class="text-base font-bold tracking-tight text-gray-900">Edeviser</span></div>
+  <div class="flex items-center gap-2"><a href="admin-profile.html" class="h-8 w-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style="background:var(--brand-gradient)">G</a></div>
+</header>
+
+<div class="page-content space-y-4 no-scrollbar">
+
+  <div class="feed-wide"><h1 class="text-xl font-black tracking-tight text-gray-900">Bulk Import</h1><p class="text-xs text-gray-500 mt-0.5">Import users, courses, enrollments or grades from a CSV file.</p></div>
+
+  <!-- Import type selector -->
+  <div class="feed-wide flex items-center gap-2 flex-wrap">
+    <button class="im-type on" onclick="pickType(this,'Users')">👥 Users</button>
+    <button class="im-type" onclick="pickType(this,'Courses')">📚 Courses</button>
+    <button class="im-type" onclick="pickType(this,'Enrollments')">📝 Enrollments</button>
+    <button class="im-type" onclick="pickType(this,'Grades')">🎯 Grades</button>
+  </div>
+
+  <!-- Upload zone -->
+  <div class="feed-wide pcard p-4">
+    <div class="im-drop" onclick="startImport()">
+      <div class="text-3xl mb-2">📤</div>
+      <p class="text-sm font-bold text-gray-900" id="im-drop-label">Drop a Users CSV here or click to upload</p>
+      <p class="text-xs text-gray-500 mt-1">Max 10,000 rows per file · UTF-8 CSV</p>
+    </div>
+    <div class="flex items-center justify-between mt-3">
+      <button class="text-xs font-bold text-blue-600" onclick="toast('Downloading users_template.csv','⬇️')" id="im-template-link">⬇️ Download users template</button>
+      <p id="im-status" class="text-[11px] text-gray-400"></p>
+    </div>
+  </div>
+
+  <!-- Recent imports -->
+  <div class="feed-wide pcard p-4">
+    <div class="sec-h"><span class="chip">🗂️</span><p class="t">Recent imports</p></div>
+    <div style="overflow-x:auto"><table class="dtable" style="min-width:640px">
+      <thead><tr><th>File</th><th>Type</th><th>Rows</th><th>Failed</th><th>Status</th><th>Date</th><th></th></tr></thead>
+      <tbody id="im-rows"></tbody>
+    </table></div>
+  </div>
+
+</div>
+<script>
+const IMPORTS=[
+  ['students_fall2025.csv','Users',412,0,'Completed','Aug 20, 2025'],
+  ['cs301_enrollments.csv','Enrollments',86,2,'Completed','Aug 22, 2025'],
+  ['new_courses_2026.csv','Courses',18,0,'Completed','Jan 3, 2026'],
+  ['grades_midterm_batch.csv','Grades',240,6,'Failed','Jul 8, 2026'],
+];
+const statusPill=s=>({Completed:'pill-green',Processing:'pill-amber',Failed:'pill-red'})[s];
+function drawImports(){
+  document.getElementById('im-rows').innerHTML=IMPORTS.map(r=>`<tr><td><b style="color:#0f172a">${r[0]}</b></td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]>0?'<span style="color:#b91c1c;font-weight:700">'+r[3]+'</span>':'0'}</td><td><span class="pill ${statusPill(r[4])}">${r[4]}</span></td><td>${r[5]}</td><td>${r[3]>0?`<button class="text-xs font-bold text-blue-600" onclick="toast('Opening error log…','⚠️')">Error log</button>`:''}</td></tr>`).join('');
+}
+drawImports();
+function pickType(btn,type){
+  document.querySelectorAll('.im-type').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('im-drop-label').textContent='Drop a '+type+' CSV here or click to upload';
+  document.getElementById('im-template-link').textContent='⬇️ Download '+type.toLowerCase()+' template';
+  document.getElementById('im-template-link').setAttribute('onclick',`toast('Downloading ${type.toLowerCase()}_template.csv','⬇️')`);
+}
+function startImport(){
+  const status=document.getElementById('im-status');
+  toast('Validating file…','🔍');
+  status.textContent='Validating…';
+  setTimeout(()=>{ toast('Importing 240 rows…','⏳'); status.textContent='Importing 240 rows…'; },900);
+  setTimeout(()=>{
+    toast('Import complete: 238 succeeded, 2 failed','✅');
+    status.textContent='Import complete: 238 succeeded, 2 failed.';
+    IMPORTS.unshift(['new_import_'+Date.now().toString().slice(-4)+'.csv',document.querySelector('.im-type.on').textContent.trim(),240,2,'Completed',new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})]);
+    drawImports();
+  },2200);
+}
+</script>
+<script src="shared.js"></script>
+</body>
+</html>

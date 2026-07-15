@@ -30,11 +30,8 @@ import {
   Workflow,
 } from "lucide-react";
 
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import SectionHeader from "@/components/shared/SectionHeader";
+import { Button, Card, SectionHeader, Shimmer } from "@/design-system";
 import CoordinatorInsightRail from "@/components/shared/CoordinatorInsightRail";
-import Shimmer from "@/components/shared/Shimmer";
 import EmptyState from "@/components/shared/EmptyState";
 import { useAuth } from "@/hooks/useAuth";
 import {

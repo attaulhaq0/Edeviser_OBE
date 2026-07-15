@@ -76,7 +76,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 import { useAuth } from "@/hooks/useAuth";
 import { useCoordinatorProfileStats } from "@/hooks/useCoordinatorProfileStats";
 import {

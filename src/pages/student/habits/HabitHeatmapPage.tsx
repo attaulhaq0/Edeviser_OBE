@@ -15,7 +15,7 @@ import HabitMobileBottomSheet from "@/components/shared/HabitMobileBottomSheet";
 import WellnessHabitLogger from "@/components/shared/WellnessHabitLogger";
 import WellnessTipCard from "@/components/shared/WellnessTipCard";
 import WellnessSettingsPanel from "@/components/shared/WellnessSettingsPanel";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 import { useAuth } from "@/hooks/useAuth";
 import {
   useHeatmapData,
@@ -292,7 +292,7 @@ const HabitHeatmapContent = () => {
             Settings
           </Button>
           <Link to="/student/habits/analytics">
-            <Button className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 gap-1">
+            <Button variant="tactile" className="gap-1">
               <BarChart3 className="h-4 w-4" />
               Analytics
             </Button>

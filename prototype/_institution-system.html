@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Edeviser · Editorial × Tactile — Institution System (all roles)</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<style>
+  *{box-sizing:border-box}
+  :root{--acc:#2563eb;--acc-d:#1e40af;--acc-l:#eff6ff;--acc-b:#bfdbfe;--line:#e6e9ee;--ink:#16181d}
+  body{margin:0;font-family:'Inter',sans-serif;background:#eef2f7;color:#16181d}
+  .wrap{max-width:1240px;margin:0 auto;padding:0 22px}
+  a{color:inherit}
+
+  .topbar{position:sticky;top:0;z-index:60;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border-bottom:1px solid #e2e8f0}
+  .topbar .wrap{display:flex;align-items:center;gap:7px;height:56px;overflow-x:auto}
+  .topbar b{font-weight:900;font-size:15px;margin-right:auto;white-space:nowrap}
+  .jump{font-size:11.5px;font-weight:700;color:#475569;padding:6px 11px;border-radius:9px;border:1px solid #e2e8f0;background:#fff;text-decoration:none;white-space:nowrap}
+  .jump:hover{background:#eff6ff;border-color:#bfdbfe;color:#1d4ed8}
+  .jump.back{background:#0f172a;color:#fff;border-color:#0f172a}
+
+  .hero{padding:46px 0 20px}
+  .hero .eyebrow{font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#0d9488}
+  .hero h1{font-size:32px;font-weight:900;letter-spacing:-.025em;margin:8px 0 12px;line-height:1.1}
+  .hero p{font-size:14.5px;color:#475569;max-width:840px;line-height:1.65;margin:0}
+  .principles{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:20px}
+  .prin{background:#fff;border:1px solid #e6e9ee;border-radius:12px;padding:13px 14px}
+  .prin b{display:block;font-size:12.5px;font-weight:800;margin-bottom:3px}
+  .prin p{margin:0;font-size:11.5px;color:#64748b;line-height:1.45}
+
+  /* role band */
+  .rband{border-radius:18px;padding:20px 22px;color:#fff;margin:34px 0 16px;display:flex;align-items:center;gap:14px;scroll-margin-top:66px}
+  .rband .em{font-size:30px}
+  .rband .idx{font-size:11px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;opacity:.85}
+  .rband h2{font-size:22px;font-weight:900;margin:2px 0 3px}
+  .rband p{margin:0;font-size:12.5px;opacity:.92;max-width:640px;line-height:1.5}
+
+  /* app frame */
+  .app{border:1px solid #dbe3ec;border-radius:16px;overflow:hidden;background:#fff;display:grid;grid-template-columns:212px 1fr;min-height:560px;box-shadow:0 20px 40px -24px rgba(16,24,40,.3)}
+  @media(max-width:820px){.app{grid-template-columns:1fr}.side{display:none}}
+  .side{background:#fbfdff;border-right:1px solid #eef2f6;padding:15px 12px;display:flex;flex-direction:column}
+  .side .brand{display:flex;align-items:center;gap:9px;font-weight:900;font-size:15px;margin-bottom:16px}
+  .side .brand .mk{width:26px;height:26px;border-radius:8px;background:var(--acc);display:inline-block}
+  .side .ni{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;color:#64748b;padding:9px 11px;border-radius:10px;margin-bottom:3px;cursor:pointer}
+  .side .ni [data-lucide]{width:18px;height:18px}
+  .side .ni.on{background:var(--acc-l);color:var(--acc-d);font-weight:800}
+  .side .ni.fab{background:var(--acc);color:#fff;box-shadow:0 3px 0 var(--acc-d);font-weight:800}
+  .side .prof{margin-top:auto;border-top:1px solid #eef2f6;padding-top:12px;display:flex;align-items:center;gap:9px}
+  .side .prof .av{width:34px;height:34px;border-radius:10px;background:var(--acc);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px}
+  .side .prof .nm{font-size:12px;font-weight:800}.side .prof .sb{font-size:10.5px;color:#94a3b8}
+
+  .main{background:#f7f9fc;padding:16px 18px;overflow:auto}
+  .apptop{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+  .apptop .srch{flex:1;max-width:420px;margin:0 auto;height:36px;border-radius:10px;background:#fff;border:1px solid #e5eaf1;display:flex;align-items:center;gap:9px;padding:0 13px;color:#94a3b8;font-size:12.5px}
+  .apptop .chip{font-size:11.5px;font-weight:700;padding:5px 10px;border-radius:8px;background:#fff;border:1px solid #e6e9ee;color:#334155}
+  .apptop .av{width:32px;height:32px;border-radius:9px;background:var(--acc)}
+
+  .pgtitle{font-size:19px;font-weight:900;letter-spacing:-.02em;margin:0}
+  .pgsub{font-size:12.5px;color:#94a3b8;margin:2px 0 14px}
+  .sectitle{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#94a3b8;margin:20px 0 10px}
+
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:11px}
+  @media(max-width:620px){.kpis{grid-template-columns:repeat(2,1fr)}}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:13px;padding:13px;box-shadow:0 1px 2px rgba(16,24,40,.04)}
+  .kpi .l{font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#94a3b8}
+  .kpi .n{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;letter-spacing:-.03em;color:#0f172a;margin-top:4px}
+  .kpi .ic{float:right;width:32px;height:32px;border-radius:9px;background:var(--acc-l);color:var(--acc-d);display:flex;align-items:center;justify-content:center;margin-top:-2px}
+  .kpi .ic [data-lucide]{width:17px;height:17px}
+
+  .grid2{display:grid;grid-template-columns:1.5fr 1fr;gap:12px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  @media(max-width:720px){.grid2,.grid3{grid-template-columns:1fr}}
+
+  .ecard{background:#fff;border:1px solid var(--line);border-radius:13px;box-shadow:0 1px 2px rgba(16,24,40,.04),0 8px 18px -12px rgba(16,24,40,.16);overflow:hidden}
+  .ecard .hd{padding:11px 14px;border-bottom:1px solid #eef1f4;display:flex;align-items:center;gap:9px}
+  .ecard .hd .c{width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;background:var(--acc);box-shadow:0 2px 6px var(--acc-b)}
+  .ecard .hd .c [data-lucide]{width:15px;height:15px}
+  .ecard .hd h5{margin:0;font-size:13px;font-weight:800;color:var(--ink)}
+  .ecard .bd{padding:13px 14px}
+
+  .eb{display:inline-flex;align-items:center;gap:6px;border:none;border-radius:10px;font-weight:700;font-size:12.5px;cursor:pointer;padding:8px 13px;color:#fff;background:var(--acc);box-shadow:0 3px 0 var(--acc-d);transition:transform .06s,box-shadow .06s;font-family:'Inter'}
+  .eb:active{transform:translateY(3px);box-shadow:0 0 0 var(--acc-d)}
+  .eb.soft{background:var(--acc-l);color:var(--acc-d);box-shadow:0 3px 0 var(--acc-b)}
+  .eb.soft:active{box-shadow:0 0 0 var(--acc-b)}
+  .eb.ghost{background:#f1f5f9;color:#334155;box-shadow:0 3px 0 #cbd5e1}
+  .eb.sm{padding:5px 10px;font-size:11.5px;box-shadow:0 2px 0 var(--acc-d)}
+  .eb.sm:active{box-shadow:0 0 0 var(--acc-d)}
+
+  .etab{display:inline-flex;gap:2px;border-bottom:1px solid #eef1f4}
+  .etab button{border:none;background:none;font-size:12.5px;font-weight:600;padding:7px 11px;color:#6b7280;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;font-family:'Inter'}
+  .etab button.on{color:var(--ink);border-bottom-color:var(--acc)}
+
+  table.et{width:100%;border-collapse:collapse;font-size:12.5px}
+  table.et th{text-align:left;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:#9ca3af;padding:7px 10px;border-bottom:1px solid #eef1f4}
+  table.et td{padding:8px 10px;border-bottom:1px solid #f4f6f8;color:#374151}
+  table.et tr:last-child td{border-bottom:0}
+  .mono{font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums}
+  .bd-badge{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:6px}
+  .bd-ok{background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0}
+  .bd-b{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe}
+  .bd-warn{background:#eff6ff;color:#0369a1;border:1px solid #bae6fd}
+  .bar{height:7px;border-radius:4px;background:#eef2f6;overflow:hidden}
+  .bar i{display:block;height:100%;border-radius:4px;background:var(--acc)}
+  /* weekly active bar chart */
+  .wk{display:flex;align-items:flex-end;gap:8px;height:120px;padding-top:8px}
+  .wk .col{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;justify-content:flex-end;height:100%}
+  .wk .col i{width:100%;border-radius:6px 6px 0 0;background:linear-gradient(180deg,var(--acc),var(--acc-d));display:block}
+  .wk .col span{font-size:9.5px;font-weight:700;color:#94a3b8}
+  .matrix{width:100%;border-collapse:collapse;font-size:11px}
+  .matrix th{padding:5px 6px;font-size:9px;font-weight:800;text-transform:uppercase;color:#9ca3af;border-bottom:1px solid #eef1f4}
+  .matrix td{padding:4px 6px;text-align:center;border-bottom:1px solid #f4f6f8}
+  .cell{width:22px;height:22px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:800}
+  .foot{padding:40px 0 70px;text-align:center;color:#94a3b8;font-size:12.5px;line-height:1.7}
+  .foot b{color:#475569}
+</style>
+</head>
+<body>
+<div class="topbar"><div class="wrap">
+  <b>Editorial × Tactile · Institution System</b>
+  <a class="jump back" href="_style-directions.html">← All 10 systems</a>
+  <a class="jump" href="#admin">Admin</a>
+  <a class="jump" href="#coordinator">Coordinator</a>
+  <a class="jump" href="#teacher">Teacher</a>
+  <a class="jump" href="#student">Student</a>
+  <a class="jump" href="#parent">Parent</a>
+</div></div>
+
+<div class="wrap">
+  <div class="hero">
+    <div class="eyebrow">Deep dive · every role · every section</div>
+    <h1>Editorial × Tactile — the whole institution, one system</h1>
+    <p>This is System 05 taken all the way: the <b>current prototype's institute-side chrome</b> (role sidebar, pinned profile, stat chips) fused with <b>Editorial precision</b> (Inter type, monospace numerals, hairline management tables) and the prototype's <b>tactile press</b> on every action. Below is a real screen for <b>each of the five roles</b>, wired to the actual navigation, with the key sections each role works in. Blue for staff, sky/cyan for the learner side — no orange, no purple.</p>
+    <div class="principles">
+      <div class="prin"><b>Editorial data</b><p>Hairline tables, tabular mono numerals, calm density for 200+ screens.</p></div>
+      <div class="prin"><b>Tactile actions</b><p>Every button has the bottom-edge press — speed with a little delight.</p></div>
+      <div class="prin"><b>Prototype chrome</b><p>The role sidebar, pinned profile card and top stat chips you already built.</p></div>
+      <div class="prin"><b>Role accents</b><p>Admin slate-blue, Coordinator blue, Teacher emerald, Student sky, Parent cyan.</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== ADMIN ===================== -->
+<div class="wrap sec" id="admin">
+  <div class="rband" style="background:linear-gradient(120deg,#334155,#0f172a)">
+    <span class="em">🏛️</span>
+    <div><div class="idx">Role 01 · Institution</div><h2>Admin — Gulf Academy</h2><p>Institution-wide control: analytics, AI governance, people &amp; roles, settings. Slate-navy accent, densest data.</p></div>
+  </div>
+  <div class="app" style="--acc:#334155;--acc-d:#0f172a;--acc-l:#f1f5f9;--acc-b:#cbd5e1">
+    <div class="side">
+      <div class="brand"><span class="mk"></span> Edeviser</div>
+      <div class="ni on"><i data-lucide="home"></i> Home</div>
+      <div class="ni"><i data-lucide="bar-chart-3"></i> Analytics</div>
+      <div class="ni fab"><i data-lucide="shield"></i> AI Governance</div>
+      <div class="ni"><i data-lucide="users"></i> People</div>
+      <div class="ni"><i data-lucide="user"></i> Me</div>
+      <div class="prof"><div class="av">G</div><div><div class="nm">Gulf Academy</div><div class="sb">Institution Admin</div></div></div>
+    </div>
+    <div class="main">
+      <div class="apptop"><div class="chip">🏛️ 1,240 learners</div><div class="srch"><i data-lucide="search" style="width:15px;height:15px"></i> Search users, programs, settings…</div><div class="chip" style="color:#15803d">92% active</div><div class="av"></div></div>
+      <p class="pgtitle">Institution overview</p>
+      <p class="pgsub">Academic year 2025–26 · Semester 1</p>
+      <div class="kpis">
+        <div class="kpi"><div class="ic"><i data-lucide="users"></i></div><div class="l">Learners</div><div class="n">1,240</div></div>
+        <div class="kpi"><div class="ic"><i data-lucide="activity"></i></div><div class="l">Active (7d)</div><div class="n">92%</div></div>
+        <div class="kpi"><div class="ic"><i data-lucide="folder"></i></div><div class="l">Programs</div><div class="n">14</div></div>
+        <div class="kpi"><div class="ic"><i data-lucide="trending-up"></i></div><div class="l">Avg attain.</div><div class="n">80.6%</div></div>
+      </div>
+
+      <div class="grid2" style="margin-top:13px">
+        <div class="ecard">
+          <div class="hd"><div class="c"><i data-lucide="activity"></i></div><h5>Weekly Active Learners</h5><div class="etab" style="margin-left:auto;border:0"><button class="on" style="padding:4px 8px">7d</button><button style="padding:4px 8px">30d</button></div></div>
+          <div class="bd">
+            <div class="wk">
+              <div class="col"><i style="height:52%"></i><span>Mon</span></div>
+              <div class="col"><i style="height:68%"></i><span>Tue</span></div>
+              <div class="col"><i style="height:61%"></i><span>Wed</span></div>
+              <div class="col"><i style="height:83%"></i><span>Thu</span></div>
+              <div class="col"><i style="height:95%"></i><span>Fri</span></div>
+              <div class="col"><i style="height:40%"></i><span>Sat</span></div>
+              <div class="col"><i style="height:34%"></i><span>Sun</span></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;margin-top:10px;font-size:11.5px;color:#64748b"><span>Peak <b class="mono" style="color:#0f172a">1,141</b> Fri</span><span>Avg <b class="mono" style="color:#0f172a">1,043</b>/day</span></div>
+          </div>
+        </div>
+        <div class="ecard">
+          <div class="hd"><div class="c"><i data-lucide="pie-chart"></i></div><h5>By role</h5></div>
+          <div class="bd" style="font-size:12px;color:#475569">
+            <div style="display:flex;justify-content:space-between;padding:5px 0">Students <span class="mono">1,120</span></div>
+            <div class="bar" style="margin-bottom:9px"><i style="width:90%"></i></div>
+            <div style="display:flex;justify-content:space-between;padding:5px 0">Teachers <span class="mono">86</span></div>
+            <div class="bar" style="margin-bottom:9px"><i style="width:42%"></i></div>
+            <div style="display:flex;justify-content:space-between;padding:5px 0">Coordinators <span class="mono">12</span></div>
+            <div class="bar"><i style="width:22%"></i></div>
+          </div>
+        </div>
+      </div>
+
+      <p class="sectitle">People · roles &amp; access</p>
+      <div class="ecard">
+        <div class="hd"><div class="c"><i data-lucide="users"></i></div><h5>Users</h5><input style="margin-left:auto;height:28px;border:1px solid #e6e9ee;border-radius:7px;padding:0 10px;font-size:12px;font-family:'Inter'" placeholder="Filter…"><button class="eb sm" style="margin-left:8px">＋ Invite</button></div>
+        <table class="et">
+          <thead><tr><th>Name</th><th>Role</th><th>Program</th><th>Status</th><th>Last active</th><th></th></tr></thead>
+          <tbody>
+            <tr><td>Dr. Khalid</td><td>Coordinator</td><td>Computer Science</td><td><span class="bd-badge bd-ok">Active</span></td><td class="mono">2h ago</td><td><button class="eb sm ghost">Manage</button></td></tr>
+            <tr><td>Prof. Ahmed</td><td>Teacher</td><td>Computer Science</td><td><span class="bd-badge bd-ok">Active</span></td><td class="mono">1h ago</td><td><button class="eb sm ghost">Manage</button></td></tr>
+            <tr><td>Sarah Ahmed</td><td>Student</td><td>Computer Science</td><td><span class="bd-badge bd-ok">Active</span></td><td class="mono">12m ago</td><td><button class="eb sm ghost">Manage</button></td></tr>
+            <tr><td>Nadia Hassan</td><td>Parent</td><td>—</td><td><span class="bd-badge bd-warn">Invited</span></td><td class="mono">—</td><td><button class="eb sm ghost">Manage</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="sectitle">Other admin sections</p>
+      <div class="grid3">
+        <div class="ecard"><div class="hd"><div class="c"><i data-lucide="shield"></i></div><h5>AI Governance</h5></div><div class="bd" style="font-size:12px;color:#475569"><div style="display:flex;justify-content:space-between;padding:4px 0">Models in use <span class="mono">3</span></div><div style="display:flex;justify-content:space-between;padding:4px 0">Flagged prompts <span class="mono">7</span></div><div style="display:flex;justify-content:space-between;padding:4px 0">Data retention <span class="bd-badge bd-ok">Compliant</span></div><button class="eb sm" style="margin-top:9px">Review policies</button></div></div>
+        <div class="ecard"><div class="hd"><div class="c"><i data-lucide="folder"></i></div><h5>Programs</h5></div><div class="bd" style="font-size:12px;color:#475569"><div style="display:flex;justify-content:space-between;padding:4px 0">B.Sc CS <span class="mono">84%</span></div><div style="display:flex;justify-content:space-between;padding:4px 0">B.A Education <span class="mono">78%</span></div><div style="display:flex;justify-content:space-between;padding:4px 0">B.Eng Civil <span class="mono">81%</span></div><button class="eb sm soft" style="margin-top:9px">Open registry</button></div></div>
+        <div class="ecard"><div class="hd"><div class="c"><i data-lucide="scroll-text"></i></div><h5>Audit log</h5></div><div class="bd" style="font-size:11.5px;color:#475569"><div style="padding:4px 0">Role changed · K. Ali → Coordinator</div><div style="padding:4px 0">Program created · B.Sc Data</div><div style="padding:4px 0">Setting · thresholds updated</div><button class="eb sm ghost" style="margin-top:9px">View all</button></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== COORDINATOR ===================== -->
+<div class="wrap sec" id="coordinator">
+  <div class="rband" style="background:linear-gradient(120deg,#2563eb,#1e40af)">
+    <span class="em">🧭</span>
+    <div><div class="idx">Role 02 · Institution</div><h2>Coordinator — Dr. Khalid</h2><p>Owns program outcomes: PLO→ILO mapping, curriculum matrix, attainment analysis, accreditation &amp; CQI. Blue accent.</p></div>
+  </div>
+  <div class="app" style="--acc:#2563eb;--acc-d:#1e40af;--acc-l:#eff6ff;--acc-b:#bfdbfe">
+    <div class="side">
+      <div class="brand"><span class="mk"></span> Edeviser</div>
+      <div class="ni on"><i data-lucide="home"></i> Home</div>
+      <div class="ni"><i data-lucide="target"></i> Outcomes</div>
+      <div class="ni fab"><i data-lucide="layout-grid"></i> Curriculum</div>
+      <div class="ni"><i data-lucide="clipboard-list"></i> Accredit</div>
+      <div class="ni"><i data-lucide="user"></i> Me</div>
+      <div class="prof"><div class="av">K</div><div><div class="nm">Dr. Khalid</div><div class="sb">Coordinator · CS</div></div></div>
+    </div>
+    <div class="main">
+      <div class="apptop"><div class="chip">🎯 3 programs</div><div class="srch"><i data-lucide="search" style="width:15px;height:15px"></i> Search PLOs, courses, CLOs…</div><div class="chip" style="color:#0369a1">⚠️ 2 gaps</div><div class="av"></div></div>
+      <p class="pgtitle">Program health — B.Sc Computer Science</p>
+      <p class="pgsub">12 PLOs · 24 courses · mapped to 6 ILOs</p>
+      <div class="kpis">
+        <div class="kpi"><div class="ic"><i data-lucide="folder"></i></div><div class="l">Programs</div><div class="n">3</div></div>
+        <div class="kpi"><div class="ic"><i data-lucide="target"></i></div><div class="l">PLO met</div><div class="n">82%</div></div>
+        <div class="kpi"><div class="ic"><i data-lucide="book-open"></i></div><div class="l">Courses</div><div class="n">24</div></div>
+        <div class="kpi"><div class="ic"><i data-lucide="alert-triangle"></i></div><div class="l">Coverage gaps</div><div class="n">2</div></div>
+      </div>
+
+      <p class="sectitle">Outcomes · PLO → ILO mapping (weights sum to 100)</p>
+      <div class="ecard">
+        <div class="hd"><div class="c"><i data-lucide="git-branch"></i></div><h5>PLO → ILO Mapping</h5><span class="bd-badge bd-ok" style="margin-left:auto">Σ = 100 ✓</span></div>
+        <table class="et">
+          <thead><tr><th>PLO</th><th>ILO: Knowledge</th><th>ILO: Skills</th><th>ILO: Ethics</th><th>Σ</th><th>Attain.</th></tr></thead>
+          <tbody>
+            <tr><td>PLO 1 · Communication</td><td class="mono">40</td><td class="mono">50</td><td class="mono">10</td><td class="mono">100</td><td class="mono" style="color:#15803d">94%</td></tr>
+            <tr><td>PLO 3 · Analysis</td><td class="mono">60</td><td class="mono">30</td><td class="mono">10</td><td class="mono">100</td><td class="mono" style="color:#1d4ed8">78%</td></tr>
+            <tr><td>PLO 5 · Ethics</td><td class="mono">20</td><td class="mono">20</td><td class="mono">60</td><td class="mono">100</td><td class="mono" style="color:#0369a1">61%</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="grid2" style="margin-top:13px">
+        <div class="ecard">
+          <div class="hd"><div class="c"><i data-lucide="layout-grid"></i></div><h5>Curriculum Matrix · PLO × Course</h5></div>
+          <div class="bd">
+            <table class="matrix">
+              <thead><tr><th style="text-align:left">PLO</th><th>CS101</th><th>CS210</th><th>CS305</th><th>CS410</th></tr></thead>
+              <tbody>
+                <tr><td style="text-align:left">PLO 1</td><td><span class="cell" style="background:#dcfce7;color:#15803d">I</span></td><td><span class="cell" style="background:#bfdbfe;color:#1d4ed8">R</span></td><td><span class="cell" style="background:#2563eb;color:#fff">M</span></td><td></td></tr>
+                <tr><td style="text-align:left">PLO 3</td><td></td><td><span class="cell" style="background:#dcfce7;color:#15803d">I</span></td><td><span class="cell" style="background:#bfdbfe;color:#1d4ed8">R</span></td><td><span class="cell" style="background:#2563eb;color:#fff">M</span></td></tr>
+                <tr><td style="text-align:left">PLO 5</td><td><span class="cell" style="background:#dcfce7;color:#15803d">I</span></td><td></td><td></td><td><span class="cell" style="background:#eff6ff;color:#0369a1">R</span></td></tr>
+              </tbody>
+            </table>
+            <div style="display:flex;gap:12px;margin-top:9px;font-size:10px;color:#94a3b8"><span><b style="color:#15803d">I</b> Introduce</span><span><b style="color:#1d4ed8">R</b> Reinforce</span><span><b style="color:#1e40af">M</b> Master</span></div>
+          </div>
+        </div>
+        <div class="ecard">
+          <div class="hd"><div class="c"><i data-lucide="alert-triangle"></i></div><h5>Gaps &amp; CQI</h5></div>
+          <div class="bd" style="font-size:12px;color:#475569">
+            <div style="padding:6px 0;border-bottom:1px solid #f4f6f8"><b>PLO 5 · Ethics</b> below 70% target <span class="bd-badge bd-warn" style="margin-left:6px">Gap</span></div>
+            <div style="padding:6px 0;border-bottom:1px solid #f4f6f8">CQI: add ethics case study to CS410 <span class="bd-badge bd-b" style="margin-left:6px">In progress</span></div>
+            <div style="padding:6px 0">CQI: rubric revision CS305 <span class="bd-badge bd-ok" style="margin-left:6px">Completed</span></div>
+            <button class="eb sm" style="margin-top:10px">Open CQI plan</button>
+            <button class="eb sm ghost" style="margin-top:10px;margin-left:6px">Course files</button>
+          </div>
+        </div>
+      </div>
+
+      <p class="sectitle">Accreditation</p>
+      <div class="grid3">
+        <div class="ecard"><div class="hd"><div class="c"><i data-lucide="clipboard-list"></i></div><h5>Course files</h5></div><div class="bd" style="font-size:12px;color:#475569">18 of 24 complete<div class="bar" style="margin-top:8px"><i style="width:75%"></i></div><button class="eb sm soft" style="margin-top:10px">Generate</button></div></div>
+        <div class="ecard"><div class="hd"><div class="c"><i data-lucide="target"></i></div><h5>Attainment</h5></div><div class="bd" style="font-size:12px;color:#475569"><div style="display:flex;justify-content:space-between;padding:3px 0">Excellent <span class="mono">42%</span></div><div style="display:flex;justify-content:space-between;padding:3px 0">Satisfactory <span class="mono">40%</span></div><div style="display:flex;justify-content:space-between;padding:3px 0">Developing <span class="mono">18%</span></div></div></div>
+        <div class="ecard"><div class="hd"><div class="c"><i data-lucide="file-check-2"></i></div><h5>Report</h5></div><div class="bd" style="font-size:12px;color:#475569">Accreditation report ready for review.<button class="eb sm" style="margin-top:10px">Export PDF</button></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== TEACHER ===================== -->
+<div class="wrap sec" id="teacher">
+  <div class="rband" style="background:linear-gradient(120deg,#059669,#0f766e)">
+    <span class="em">🧑‍🏫</span>
+    <div><div class="idx">Role 03 · Institution</div><h2>Teacher — Prof. Ahmed</h2><p>Day-to-day teaching: grading queue, student triage, curriculum studio (CLOs + CLO→PLO), rubric grading. Emerald accent.</p></div>
+  </div>
+  <div class="app" style="--acc:#059669;--acc-d:#047857;--acc-l:#ecfdf5;--acc-b:#a7f3d0">
+    <div class="side">
+      <div class="brand"><span class="mk"></span> Edeviser</div>
+      <div class="ni on"><i data-lucide="home"></i> Home</div>
+      <div class="ni"><i data-lucide="graduation-cap"></i> Students</div>
+      <div class="ni fab"><i data-lucide="dna"></i> Studio</div>
+      <div class="ni"><i data-lucide="pen-line"></i> Grade</div>
+      <div class="ni"><i data-lucide="user"></i> Me</div>
+      <div class="prof"><div class="av">A</div><div><div class="nm">Prof. Ahmed</div><div class="sb">CS · 4 classes</div></div></div>
+    </div>
+    <div class="main">
+      <div class="apptop"><div class="chip">🎓 4 classes</div><div class="srch"><i data-lucide="search" style="width:15px;height:15px"></i> Search students, assignments…</div><div class="chip" style="color:#047857">✍️ 18 to grade</div><div class="av"></div></div>
+      <p class="pgtitle">Teaching overview</p>
+      <p class="pgsub">4 classes · 112 students · Semester 1</p>
+      <div class="kpis">
+        <div class="kpi"><div class="ic"><i data-lucide="book-open"></i></div><div class="l">Classes</div><div class="n">4</div></div>
+        <div class="kpi"><div class="ic"><i data-lucide="pen-line"></i></div><div class="l">To grade</div><div class="n">18</div></div>
+        <div class="kpi"><div class="ic"><i data-lucide="trending-up"></i></div><div class="l">Avg attain.</div><div class="n">79%</div></div>
+        <div class="kpi"><div class="ic"><i data-lucide="alert-triangle"></i></div><div class="l">At risk</div><div class="n">6</div></div>
+      </div>
+
+      <div class="grid2" style="margin-top:13px">
+        <div class="ecard">
+          <div class="hd"><div class="c"><i data-lucide="clipboard-check"></i></div><h5>Grading Queue</h5><div class="etab" style="margin-left:auto;border:0"><button class="on" style="padding:4px 8px">Pending</button><button style="padding:4px 8px">Done</button></div></div>
+          <table class="et">
+            <thead><tr><th>Student</th><th>Assignment</th><th>Due</th><th>CLO</th><th></th></tr></thead>
+            <tbody>
+              <tr><td>A. Khan</td><td>Essay: Ecosystems</td><td class="mono">2d</td><td class="mono">2.3</td><td><button class="eb sm">Grade</button></td></tr>
+              <tr><td>R. Noor</td><td>Lab Report 3</td><td class="mono">3d</td><td class="mono">1.4</td><td><button class="eb sm">Grade</button></td></tr>
+              <tr><td>L. Farah</td><td>Quiz: Genetics</td><td class="mono">5d</td><td class="mono">3.1</td><td><button class="eb sm ghost">Open</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="ecard">
+          <div class="hd"><div class="c"><i data-lucide="graduation-cap"></i></div><h5>Student Triage</h5></div>
+          <div class="bd" style="font-size:12px;color:#475569">
+            <div style="display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid #f4f6f8"><span style="width:30px;height:30px;border-radius:9px;background:#eff6ff;color:#0369a1;display:flex;align-items:center;justify-content:center;font-weight:800">!</span><div style="flex:1"><b>M. Said</b> · attainment 48%</div><button class="eb sm soft">Nudge</button></div>
+            <div style="display:flex;align-items:center;gap:9px;padding:6px 0"><span style="width:30px;height:30px;border-radius:9px;background:#ecfdf5;color:#047857;display:flex;align-items:center;justify-content:center;font-weight:800">↑</span><div style="flex:1"><b>H. Omar</b> · improving, 71%</div><button class="eb sm ghost">View</button></div>
+          </div>
+        </div>
+      </div>
+
+      <p class="sectitle">Studio · CLOs &amp; CLO → PLO mapping</p>
+      <div class="ecard">
+        <div class="hd"><div class="c"><i data-lucide="dna"></i></div><h5>Course Learning Outcomes — CS305</h5><button class="eb sm" style="margin-left:auto">＋ Add CLO</button></div>
+        <table class="et">
+          <thead><tr><th>CLO</th><th>Bloom</th><th>Maps to PLO</th><th>Weight</th><th>Attain.</th></tr></thead>
+          <tbody>
+            <tr><td>CLO 1.1 · Recall core concepts</td><td><span class="bd-badge bd-b">Remember</span></td><td class="mono">PLO 1</td><td class="mono">30</td><td class="mono" style="color:#15803d">92%</td></tr>
+            <tr><td>CLO 2.3 · Analyze systems</td><td><span class="bd-badge bd-b">Analyze</span></td><td class="mono">PLO 3</td><td class="mono">40</td><td class="mono" style="color:#0369a1">48%</td></tr>
+            <tr><td>CLO 3.1 · Design a solution</td><td><span class="bd-badge bd-b">Create</span></td><td class="mono">PLO 3</td><td class="mono">30</td><td class="mono" style="color:#1d4ed8">74%</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="sectitle">Rubric grading (tactile)</p>
+      <div class="grid3">
+        <div class="ecard"><div class="hd"><div class="c"><i data-lucide="list-checks"></i></div><h5>Rubric · Essay</h5></div><div class="bd" style="font-size:12px;color:#475569"><div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0">Thesis <span><button class="eb sm ghost" style="padding:3px 7px">3</button> <button class="eb sm" style="padding:3px 7px">4</button></span></div><div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0">Evidence <span><button class="eb sm" style="padding:3px 7px">3</button> <button class="eb sm ghost" style="padding:3px 7px">4</button></span></div><button class="eb sm" style="margin-top:9px">Save &amp; next</button></div></div>
+        <div class="ecard"><div class="hd"><div class="c"><i data-lucide="book-open"></i></div><h5>Courses</h5></div><div class="bd" style="font-size:12px;color:#475569"><div style="padding:3px 0">CS101 · 32 students</div><div style="padding:3px 0">CS210 · 28 students</div><div style="padding:3px 0">CS305 · 30 students</div><button class="eb sm soft" style="margin-top:8px">Manage</button></div></div>
+        <div class="ecard"><div class="hd"><div class="c"><i data-lucide="message-square"></i></div><h5>Feedback</h5></div><div class="bd" style="font-size:12px;color:#475569">AI-assisted feedback drafts ready for 12 submissions.<button class="eb sm" style="margin-top:9px">Review drafts</button></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== STUDENT ===================== -->
+<div class="wrap sec" id="student">
+  <div class="rband" style="background:linear-gradient(120deg,#0ea5e9,#14b8a6)">
+    <span class="em">🎓</span>
+    <div><div class="idx">Role 04 · Learner</div><h2>Student — Sarah Ahmed</h2><p>Same system, sky accent, a touch warmer. Home, Learn path, Tutor, Progress, plus Courses, Daily Review, Leaderboard, Team, Journal, Calendar, Shop.</p></div>
+  </div>
+  <div class="app" style="--acc:#0ea5e9;--acc-d:#0369a1;--acc-l:#e0f2fe;--acc-b:#bae6fd">
+    <div class="side">
+      <div class="brand"><span class="mk"></span> Edeviser</div>
+      <div class="ni on"><i data-lucide="home"></i> Home</div>
+      <div class="ni"><i data-lucide="map"></i> Learn</div>
+      <div class="ni fab"><i data-lucide="bot"></i> Tutor</div>
+      <div class="ni"><i data-lucide="line-chart"></i> Progress</div>
+      <div class="ni"><i data-lucide="user"></i> Me</div>
+      <div style="margin-top:12px;font-size:9px;font-weight:800;letter-spacing:.08em;color:#b6c2d0;text-transform:uppercase;padding:0 11px">More</div>
+      <div class="ni" style="padding:6px 11px"><i data-lucide="book-open"></i> Courses</div>
+      <div class="ni" style="padding:6px 11px"><i data-lucide="repeat"></i> Daily Review</div>
+      <div class="ni" style="padding:6px 11px"><i data-lucide="trophy"></i> Leaderboard</div>
+      <div class="prof"><div class="av">S</div><div><div class="nm">Sarah Ahmed</div><div class="sb">Lvl 4 · 750/1000 XP</div></div></div>
+    </div>
+    <div class="main">
+      <div class="apptop"><div class="chip" style="color:#0369a1">🔥 12</div><div class="srch"><i data-lucide="search" style="width:15px;height:15px"></i> Search courses, lessons…</div><div class="chip" style="color:#15803d">💎 750</div><div class="av"></div></div>
+      <p class="pgtitle">Good morning, Sarah 👋</p>
+      <p class="pgsub">Level 4 · 750 / 1000 XP · 12-day streak</p>
+      <div class="kpis">
+        <div class="kpi"><div class="ic"><i data-lucide="star"></i></div><div class="l">Total XP</div><div class="n">2,480</div></div>
+        <div class="kpi"><div class="ic"><i data-lucide="target"></i></div><div class="l">Level</div><div class="n">7</div></div>
+        <div class="kpi"><div class="ic" style="background:#ecfdf5;color:#15803d"><i data-lucide="flame"></i></div><div class="l">Streak</div><div class="n">12d</div></div>
+        <div class="kpi"><div class="ic"><i data-lucide="trending-up"></i></div><div class="l">Mastery</div><div class="n">81%</div></div>
+      </div>
+
+      <div class="grid2" style="margin-top:13px">
+        <div class="ecard">
+          <div class="hd"><div class="c"><i data-lucide="map"></i></div><h5>Learning Path · Unit 3 Analyze</h5></div>
+          <div class="bd">
+            <div style="display:flex;align-items:center;gap:10px;justify-content:center;margin:4px 0 10px">
+              <span style="width:38px;height:38px;border-radius:50%;background:#22c55e;color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 0 #15803d">✓</span>
+              <span style="width:24px;height:5px;background:#22c55e;border-radius:3px"></span>
+              <span style="width:38px;height:38px;border-radius:50%;background:#0ea5e9;color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 0 #0369a1">▶</span>
+              <span style="width:24px;height:5px;background:#e2e8f0;border-radius:3px"></span>
+              <span style="width:38px;height:38px;border-radius:50%;background:#cbd5e1;color:#fff;display:flex;align-items:center;justify-content:center">🔒</span>
+            </div>
+            <div style="font-size:12px;color:#64748b;text-align:center">2 of 5 lessons complete · next: "Analyze a system"</div>
+            <button class="eb" style="margin:11px auto 0;display:flex">Continue lesson</button>
+          </div>
+        </div>
+        <div class="ecard">
+          <div class="hd"><div class="c"><i data-lucide="calendar-clock"></i></div><h5>Upcoming</h5></div>
+          <div class="bd" style="font-size:12px;color:#475569">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f4f6f8">Essay: Ecosystems <span class="bd-badge bd-b">2d</span></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0">Quiz: Cell Biology <span class="bd-badge bd-warn">5d</span></div>
+          </div>
+        </div>
+      </div>
+
+      <p class="sectitle">Progress · outcomes &amp; more sections</p>
+      <div class="grid3">
+        <div class="ecard"><div class="hd"><div class="c"><i data-lucide="target"></i></div><h5>Mastery by outcome</h5></div><div class="bd" style="font-size:11.5px;color:#64748b"><div style="display:flex;justify-content:space-between">Analyze<span>62%</span></div><div class="bar" style="margin:4px 0 9px"><i style="width:62%"></i></div><div style="display:flex;justify-content:space-between">Apply<span>88%</span></div><div class="bar" style="margin-top:4px"><i style="width:88%;background:#22c55e"></i></div></div></div>
+        <div class="ecard"><div class="hd"><div class="c"><i data-lucide="trophy"></i></div><h5>Leaderboard</h5></div><div class="bd" style="font-size:12px;color:#475569"><div style="display:flex;justify-content:space-between;padding:3px 0"><b>1 · You</b><span class="mono">2,480</span></div><div style="display:flex;justify-content:space-between;padding:3px 0">2 · L. Farah<span class="mono">2,310</span></div><div style="display:flex;justify-content:space-between;padding:3px 0">3 · H. Omar<span class="mono">2,180</span></div></div></div>
+        <div class="ecard"><div class="hd"><div class="c"><i data-lucide="repeat"></i></div><h5>Daily Review</h5></div><div class="bd" style="font-size:12px;color:#475569">5 cards due today to keep memory fresh.<button class="eb sm" style="margin-top:9px">Start review</button></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== PARENT ===================== -->
+<div class="wrap sec" id="parent">
+  <div class="rband" style="background:linear-gradient(120deg,#06b6d4,#0d9488)">
+    <span class="em">👨‍👩‍👧</span>
+    <div><div class="idx">Role 05 · Guardian</div><h2>Parent — Nadia (guardian of Maya)</h2><p>Read-only, reassuring view: child growth, well-being, attendance and a direct line to support. Cyan-teal accent.</p></div>
+  </div>
+  <div class="app" style="--acc:#0d9488;--acc-d:#0f766e;--acc-l:#f0fdfa;--acc-b:#99f6e4">
+    <div class="side">
+      <div class="brand"><span class="mk"></span> Edeviser</div>
+      <div class="ni on"><i data-lucide="home"></i> Home</div>
+      <div class="ni"><i data-lucide="sprout"></i> Growth</div>
+      <div class="ni fab"><i data-lucide="message-circle"></i> Support</div>
+      <div class="ni"><i data-lucide="user"></i> Me</div>
+      <div class="prof"><div class="av">N</div><div><div class="nm">Nadia</div><div class="sb">Guardian of Maya</div></div></div>
+    </div>
+    <div class="main">
+      <div class="apptop"><div class="chip" style="color:#15803d">🟢 On track</div><div class="srch"><i data-lucide="search" style="width:15px;height:15px"></i> Search updates, messages…</div><div class="av"></div></div>
+      <p class="pgtitle">Maya's week</p>
+      <p class="pgsub">Grade 10 · Computer Science track · on track</p>
+      <div class="kpis">
+        <div class="kpi"><div class="ic"><i data-lucide="trending-up"></i></div><div class="l">Attainment</div><div class="n">83%</div></div>
+        <div class="kpi"><div class="ic" style="background:#ecfdf5;color:#15803d"><i data-lucide="flame"></i></div><div class="l">Streak</div><div class="n">9d</div></div>
+        <div class="kpi"><div class="ic"><i data-lucide="calendar-check"></i></div><div class="l">Attendance</div><div class="n">96%</div></div>
+        <div class="kpi"><div class="ic"><i data-lucide="smile"></i></div><div class="l">Well-being</div><div class="n">Good</div></div>
+      </div>
+
+      <div class="grid2" style="margin-top:13px">
+        <div class="ecard">
+          <div class="hd"><div class="c"><i data-lucide="sprout"></i></div><h5>Growth this week</h5></div>
+          <div class="bd" style="font-size:12px;color:#475569">
+            <div style="display:flex;justify-content:space-between;padding:5px 0">Mastery in Analyze <span class="mono" style="color:#15803d">+12%</span></div>
+            <div style="display:flex;justify-content:space-between;padding:5px 0">Assignments on time <span class="mono">4 / 4</span></div>
+            <div style="display:flex;justify-content:space-between;padding:5px 0">Reflection journals <span class="mono">3</span></div>
+          </div>
+        </div>
+        <div class="ecard">
+          <div class="hd"><div class="c"><i data-lucide="message-circle"></i></div><h5>Support &amp; messages</h5></div>
+          <div class="bd" style="font-size:12px;color:#475569">
+            <div style="padding:5px 0;border-bottom:1px solid #f4f6f8">Prof. Ahmed: "Maya did well on the ecosystems essay."</div>
+            <div style="padding:5px 0">Coach Edu: weekly summary is ready.</div>
+            <button class="eb sm" style="margin-top:9px">Message teacher</button>
+          </div>
+        </div>
+      </div>
+
+      <p class="sectitle">Well-being &amp; attendance</p>
+      <div class="grid3">
+        <div class="ecard"><div class="hd"><div class="c"><i data-lucide="smile"></i></div><h5>Well-being</h5></div><div class="bd" style="font-size:12px;color:#475569">Mood check-ins positive this week. No flags.<div class="bar" style="margin-top:8px"><i style="width:82%;background:#22c55e"></i></div></div></div>
+        <div class="ecard"><div class="hd"><div class="c"><i data-lucide="calendar-check"></i></div><h5>Attendance</h5></div><div class="bd" style="font-size:12px;color:#475569"><div style="display:flex;justify-content:space-between;padding:3px 0">This month <span class="mono">96%</span></div><div style="display:flex;justify-content:space-between;padding:3px 0">Late arrivals <span class="mono">1</span></div></div></div>
+        <div class="ecard"><div class="hd"><div class="c"><i data-lucide="bell"></i></div><h5>Notifications</h5></div><div class="bd" style="font-size:12px;color:#475569">Weekly summary email · Fridays.<button class="eb sm soft" style="margin-top:9px">Preferences</button></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="foot">
+    <b>One system · five roles · every key section.</b><br />
+    Editorial precision for data, tactile press for actions, the prototype's role chrome for navigation — all blue/green.<br />
+    <a href="_style-directions.html" style="color:#1d4ed8;font-weight:700">← Back to all 10 systems</a> · <a href="_duolingo-system.html" style="color:#1d4ed8;font-weight:700">See the Duolingo system →</a>
+  </div>
+</div>
+
+<script>
+  if (window.lucide && typeof window.lucide.createIcons === 'function') window.lucide.createIcons();
+</script>
+</body>
+</html>

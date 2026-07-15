@@ -24,6 +24,7 @@ import {
   DollarSign,
   FileText,
   ScrollText,
+  ShieldAlert,
   Sparkles,
   Award,
   Store,
@@ -53,6 +54,8 @@ import {
   GraduationCap as GraduationCapIcon,
   Workflow,
   UserCog,
+  Wallet,
+  Bell,
 } from "lucide-react";
 import type { UserRole } from "@/types/app";
 import type { NavGroup } from "@/lib/navGroups";
@@ -93,6 +96,7 @@ const adminNavItems: NavItem[] = [
   { to: "/admin/fees", labelKey: "nav.fees", icon: DollarSign },
   { to: "/admin/reports", labelKey: "nav.reports", icon: FileText },
   { to: "/admin/audit-log", labelKey: "nav.auditLog", icon: ScrollText },
+  { to: "/admin/security", labelKey: "nav.security", icon: ShieldAlert },
   { to: "/admin/bonus-events", labelKey: "nav.bonusXp", icon: Sparkles },
   {
     to: "/admin/badges/spotlight",
@@ -283,6 +287,18 @@ const studentNavItems: NavItem[] = [
     icon: FileQuestion,
     group: "tools",
   },
+  {
+    to: "/student/fees",
+    labelKey: "nav.fees",
+    icon: Wallet,
+    group: "tools",
+  },
+  {
+    to: "/student/notifications",
+    labelKey: "nav.notifications",
+    icon: Bell,
+    group: "tools",
+  },
 ];
 
 const parentNavItems: NavItem[] = [
@@ -290,6 +306,7 @@ const parentNavItems: NavItem[] = [
   { to: "/parent/children", labelKey: "nav.children", icon: GraduationCapIcon },
   { to: "/parent/progress", labelKey: "nav.progress", icon: TrendingUp },
   { to: "/parent/attendance", labelKey: "nav.attendance", icon: CalendarDays },
+  { to: "/parent/fees", labelKey: "nav.fees", icon: Wallet },
   { to: "/parent/planner", labelKey: "nav.studyPlan", icon: BookOpen },
   { to: "/parent/profile", labelKey: "nav.profile", icon: UserCog },
 ];

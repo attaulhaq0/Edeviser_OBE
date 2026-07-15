@@ -9,7 +9,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { BookOpen, FileText, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { Card } from "@/components/ui/card";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 import { NoCLOs, InlineNoCLOs } from "@/components/shared/EmptyState";
 import CLOProgressBar from "@/components/shared/CLOProgressBar";
 import { useAuth } from "@/hooks/useAuth";

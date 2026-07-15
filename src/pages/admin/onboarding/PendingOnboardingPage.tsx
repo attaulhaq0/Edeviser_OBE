@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 import { usePendingOnboardingStudents } from "@/hooks/useAdminDashboard";
 import { usePrograms } from "@/hooks/usePrograms";
 import { useStandardMutation } from "@/hooks/useStandardMutation";

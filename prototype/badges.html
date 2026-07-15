@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Edeviser — Badges</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
+<link rel="stylesheet" href="shared.css"/>
+<style>
+  /* Badges — maps to: badges (tier bronze|silver|gold, category, is_pinned,
+     archived_at) via useTieredBadges; badge_spotlight_schedule via
+     useBadgeSpotlight. Tiers progress bronze→silver→gold per badge_key. */
+  html.mode-laptop body[data-norail] .page-content{max-width:none;padding-right:32px}
+  .bd-grid{display:block}
+  html.mode-laptop .bd-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:24px;align-items:start}
+  html.mode-laptop .bd-rail{position:sticky;top:74px;display:flex;flex-direction:column;gap:16px}
+  .bd-cat{font-size:12.5px;font-weight:800;color:#64748b;padding:8px 14px;border-radius:11px;background:#fff;border:1px solid #e8edf3;cursor:pointer;white-space:nowrap}
+  .bd-cat.on{background:var(--brand-gradient);color:#fff;border-color:transparent;box-shadow:0 4px 10px rgba(20,184,166,.25)}
+  .bd-items{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:12px}
+  .bd-tile{position:relative;background:#fff;border-radius:16px;padding:14px 10px;text-align:center;box-shadow:0 1px 2px rgba(15,23,42,.04);transition:transform .12s,box-shadow .15s}
+  .bd-tile:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(16,24,40,.1)}
+  .bd-tile.t-bronze{border:2px solid #b45309}
+  .bd-tile.t-silver{border:2px solid #94a3b8}
+  .bd-tile.t-gold{border:2px solid #eab308}
+  .bd-tile.locked{opacity:.35;filter:grayscale(1)}
+  .bd-tier-tag{position:absolute;top:6px;right:6px;font-size:8px;font-weight:900;text-transform:uppercase;letter-spacing:.04em;padding:2px 6px;border-radius:999px}
+  .bd-tier-tag.gold{background:#fef3c7;color:#b45309}
+  .bd-tier-tag.silver{background:#f1f5f9;color:#475569}
+  .bd-tier-tag.bronze{background:#fde68a;color:#92400e}
+  .bd-pin{position:absolute;top:6px;left:6px;font-size:12px;cursor:pointer;opacity:.6}
+  .bd-pin.on{opacity:1}
+</style>
+</head>
+<body class="bg-slate-50" data-role="student" data-norail>
+
+<header class="app-header">
+  <div class="flex items-center gap-3">
+    <a href="profile.html" class="p-1.5 rounded-lg hover:bg-gray-100"><svg class="h-5 w-5 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg></a>
+    <div><h1 class="text-base font-bold tracking-tight text-gray-900">Badges</h1><p class="text-xs text-gray-500">8 earned · 3 tiers to climb</p></div>
+  </div>
+</header>
+
+<div class="page-content no-scrollbar">
+
+  <!-- Weekly spotlight (badge_spotlight_schedule) -->
+  <div class="rounded-2xl p-4 flex items-center gap-3 text-white mb-4" style="background:linear-gradient(93.65deg,#8b5cf6,#6366f1)">
+    <span class="text-3xl">🌟</span>
+    <div class="flex-1 min-w-0"><p class="text-sm font-black">This week's spotlight: Consistency badges</p><p class="text-xs text-white/85">Earn any streak or habit badge this week for a bonus 2× XP</p></div>
+    <span class="text-[10px] font-black bg-white/20 border border-white/30 px-2.5 py-1 rounded-full shrink-0">4 days left</span>
+  </div>
+
+  <div class="bd-grid">
+    <div class="space-y-4">
+
+      <!-- Category filter -->
+      <div class="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+        <button class="bd-cat on" onclick="filterBadgeCat(this,'all')">All (8)</button>
+        <button class="bd-cat" onclick="filterBadgeCat(this,'consistency')">🔥 Consistency</button>
+        <button class="bd-cat" onclick="filterBadgeCat(this,'mastery')">🎯 Mastery</button>
+        <button class="bd-cat" onclick="filterBadgeCat(this,'social')">🤝 Social</button>
+        <button class="bd-cat" onclick="filterBadgeCat(this,'mystery')">💎 Mystery</button>
+      </div>
+
+      <!-- Pinned badges -->
+      <div class="pcard p-4">
+        <div class="sec-h"><span class="chip">📌</span><p class="t">Pinned on your profile</p><span class="more">max 3</span></div>
+        <div class="bd-items">
+          <div class="bd-tile t-gold" data-cat="consistency"><span class="bd-pin on" onclick="togglePin(this)">📌</span><span class="bd-tier-tag gold">Gold</span><div class="text-3xl mb-1">🌟</div><p class="text-[11px] font-bold text-gray-800">Perfect Day</p></div>
+          <div class="bd-tile t-silver" data-cat="mastery"><span class="bd-pin on" onclick="togglePin(this)">📌</span><span class="bd-tier-tag silver">Silver</span><div class="text-3xl mb-1">🎯</div><p class="text-[11px] font-bold text-gray-800">Sharpshooter</p></div>
+          <div class="bd-tile t-bronze" data-cat="consistency"><span class="bd-pin on" onclick="togglePin(this)">📌</span><span class="bd-tier-tag bronze">Bronze</span><div class="text-3xl mb-1">🔥</div><p class="text-[11px] font-bold text-gray-800">Week Streak</p></div>
+        </div>
+      </div>
+
+      <!-- All earned badges -->
+      <div class="pcard p-4">
+        <div class="sec-h"><span class="chip">🏅</span><p class="t">Earned (8)</p></div>
+        <div class="bd-items">
+          <div class="bd-tile t-gold" data-cat="mastery"><span class="bd-pin" onclick="togglePin(this)">📌</span><span class="bd-tier-tag gold">Gold</span><div class="text-3xl mb-1">🏆</div><p class="text-[11px] font-bold text-gray-800">Explorer</p></div>
+          <div class="bd-tile t-bronze" data-cat="consistency"><span class="bd-pin" onclick="togglePin(this)">📌</span><span class="bd-tier-tag bronze">Bronze</span><div class="text-3xl mb-1">🔥</div><p class="text-[11px] font-bold text-gray-800">Week Streak</p></div>
+          <div class="bd-tile t-silver" data-cat="mastery"><span class="bd-pin" onclick="togglePin(this)">📌</span><span class="bd-tier-tag silver">Silver</span><div class="text-3xl mb-1">⚡</div><p class="text-[11px] font-bold text-gray-800">Fast Learner</p></div>
+          <div class="bd-tile t-silver" data-cat="mastery"><span class="bd-pin" onclick="togglePin(this)">📌</span><span class="bd-tier-tag silver">Silver</span><div class="text-3xl mb-1">🎯</div><p class="text-[11px] font-bold text-gray-800">Sharpshooter</p></div>
+          <div class="bd-tile t-bronze" data-cat="mastery"><span class="bd-pin" onclick="togglePin(this)">📌</span><span class="bd-tier-tag bronze">Bronze</span><div class="text-3xl mb-1">📚</div><p class="text-[11px] font-bold text-gray-800">Bookworm</p></div>
+          <div class="bd-tile t-gold" data-cat="consistency"><span class="bd-pin" onclick="togglePin(this)">📌</span><span class="bd-tier-tag gold">Gold</span><div class="text-3xl mb-1">🌟</div><p class="text-[11px] font-bold text-gray-800">Perfect Day</p></div>
+          <div class="bd-tile t-bronze" data-cat="social"><span class="bd-pin" onclick="togglePin(this)">📌</span><span class="bd-tier-tag bronze">Bronze</span><div class="text-3xl mb-1">🧑‍🏫</div><p class="text-[11px] font-bold text-gray-800">Teacher</p></div>
+          <div class="bd-tile t-bronze" data-cat="social"><span class="bd-pin" onclick="togglePin(this)">📌</span><span class="bd-tier-tag bronze">Bronze</span><div class="text-3xl mb-1">🤝</div><p class="text-[11px] font-bold text-gray-800">Team Player</p></div>
+        </div>
+      </div>
+
+      <!-- Locked / mystery badges -->
+      <div class="pcard p-4">
+        <div class="sec-h"><span class="chip">🔒</span><p class="t">Not yet unlocked</p></div>
+        <div class="bd-items">
+          <div class="bd-tile locked" data-cat="mystery" title="Complete a study session after 10 PM"><div class="text-3xl mb-1">🌙</div><p class="text-[11px] font-bold text-gray-600">Night Owl</p><p class="text-[9px] text-gray-400">Mystery</p></div>
+          <div class="bd-tile locked" data-cat="mystery" title="Score 100% on 3 consecutive quizzes"><div class="text-3xl mb-1">💎</div><p class="text-[11px] font-bold text-gray-600">Perfectionist</p><p class="text-[9px] text-gray-400">Mystery</p></div>
+          <div class="bd-tile locked" data-cat="mystery" title="Complete a lesson in under 2 minutes"><div class="text-3xl mb-1">⚡</div><p class="text-[11px] font-bold text-gray-600">Speed Demon</p><p class="text-[9px] text-gray-400">Mystery</p></div>
+          <div class="bd-tile locked" data-cat="consistency"><div class="text-3xl mb-1">🔥</div><p class="text-[11px] font-bold text-gray-600">30-day Streak</p><p class="text-[9px] text-gray-400">Gold tier</p></div>
+        </div>
+        <p class="text-[11px] text-gray-400 mt-3">Mystery badges have hidden conditions — keep exploring to discover them.</p>
+      </div>
+
+    </div>
+
+    <aside class="bd-rail">
+      <div class="pcard p-4" style="background:var(--hero-gradient)">
+        <p class="text-[10px] font-black tracking-widest uppercase text-white/60">Badge progress</p>
+        <p class="text-3xl font-black text-white mt-1">8 <span class="text-sm font-bold text-white/60">of 15 total</span></p>
+        <div class="grid grid-cols-3 gap-2 mt-3">
+          <div class="rounded-xl bg-white/10 p-2 text-center"><p class="text-sm font-black text-amber-300">3</p><p class="text-[8px] text-white/60 uppercase font-bold">Bronze</p></div>
+          <div class="rounded-xl bg-white/10 p-2 text-center"><p class="text-sm font-black text-white">3</p><p class="text-[8px] text-white/60 uppercase font-bold">Silver</p></div>
+          <div class="rounded-xl bg-white/10 p-2 text-center"><p class="text-sm font-black text-yellow-300">2</p><p class="text-[8px] text-white/60 uppercase font-bold">Gold</p></div>
+        </div>
+      </div>
+      <div class="pcard p-4">
+        <div class="sec-h"><span class="chip">🎯</span><p class="t">Closest to unlocking</p></div>
+        <div class="space-y-2.5">
+          <div><div class="flex items-center justify-between text-xs font-bold mb-1"><span class="text-gray-700">🔥 30-day Streak</span><span class="text-teal-600">12/30</span></div><div class="emeter good"><span style="width:40%"></span></div></div>
+          <div><div class="flex items-center justify-between text-xs font-bold mb-1"><span class="text-gray-700">📚 Bookworm II</span><span class="text-teal-600">14/20</span></div><div class="emeter good"><span style="width:70%"></span></div></div>
+        </div>
+      </div>
+      <div class="pcard p-4" style="background:linear-gradient(135deg,#faf5ff,#eef2ff);border:1px solid #ddd6fe">
+        <p class="text-xs font-black text-purple-700 mb-1">💡 How tiers work</p>
+        <p class="text-[11px] text-gray-600 leading-relaxed">Most badges progress Bronze → Silver → Gold as you repeat the achievement at increasing thresholds — same badge, growing challenge.</p>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<nav class="bottom-bar">
+  <a href="dashboard.html" class="tab-btn" data-tab="home"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75"/></svg><span>Home</span></a>
+  <a href="learn.html" class="tab-btn" data-tab="learn"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/></svg><span>Learn</span></a>
+  <a href="tutor.html" class="tab-btn" data-tab="tutor"><div class="tutor-fab"><span class="text-lg">🤖</span></div><span>Tutor</span></a>
+  <a href="progress.html" class="tab-btn" data-tab="progress"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941"/></svg><span>Progress</span></a>
+  <a href="profile.html" class="tab-btn active" data-tab="me"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg><span>Me</span></a>
+</nav>
+<script src="shared.js"></script>
+<script>
+  function filterBadgeCat(tab,cat){
+    document.querySelectorAll('.bd-cat').forEach(t=>t.classList.remove('on'));
+    tab.classList.add('on');
+    document.querySelectorAll('.bd-tile').forEach(t=>{ t.style.display=(cat==='all'||t.dataset.cat===cat)?'':'none'; });
+    window.__eqCols();
+  }
+  function togglePin(el){
+    const pinned=document.querySelectorAll('.bd-pin.on').length;
+    const isOn=el.classList.contains('on');
+    if(!isOn && pinned>=3){ toast('You can pin up to 3 badges — unpin one first','📌'); return; }
+    el.classList.toggle('on');
+    toast(el.classList.contains('on')?'Pinned to your profile':'Unpinned','📌');
+  }
+  window.__eqCols=()=>equalizeColumns('.bd-grid > div:first-child','.bd-rail');
+  window.addEventListener('load',window.__eqCols);
+</script>
+</body>
+</html>

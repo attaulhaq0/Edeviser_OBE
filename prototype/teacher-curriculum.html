@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Edeviser — Curriculum Studio</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
+<link rel="stylesheet" href="shared.css"/>
+</head>
+<body class="bg-slate-50" data-role="teacher">
+
+<header class="app-header">
+  <div class="hdr-brand flex items-center gap-2">
+    <div class="h-7 w-7 rounded-lg flex items-center justify-center" style="background:var(--brand-gradient)"><span class="text-white text-sm">✦</span></div>
+    <span class="text-base font-bold tracking-tight text-gray-900">Edeviser</span>
+  </div>
+  <div class="flex items-center gap-2">
+    <a href="teacher-profile.html" class="h-8 w-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style="background:var(--brand-gradient)">A</a>
+  </div>
+</header>
+
+<div class="page-content space-y-4 no-scrollbar">
+  <!-- BACKEND GROUNDING · hooks: useCLOs, useCurriculumMatrix, useCourseModules | tables: learning_outcomes, outcome_mappings, course_modules -->
+
+  <div class="feed-wide flex items-center justify-between gap-3">
+    <div>
+      <h1 class="text-xl font-black tracking-tight text-gray-900">🧬 Curriculum Studio</h1>
+      <p class="text-xs text-gray-500 mt-0.5">Upload content → AI drafts a structured learning experience → <b>you approve</b>. You're the editor, not the uploader.</p>
+    </div>
+  </div>
+
+  <!-- STEP 1: Upload -->
+  <div class="feed-wide pcard p-5">
+    <div class="sec-h"><span class="chip">①</span><p class="t">Add your material</p></div>
+    <div id="dropzone" class="rounded-2xl border-2 border-dashed border-gray-300 bg-slate-50 p-6 text-center">
+      <div class="text-4xl mb-2">📄</div>
+      <p class="text-sm font-bold text-gray-900">Normalization.pptx</p>
+      <p class="text-xs text-gray-500 mt-0.5">28 slides · also accepts PDF, video transcript, DOCX</p>
+      <button id="processBtn" onclick="processUpload()" class="mt-4 text-sm font-bold text-white px-5 py-2.5 rounded-xl" style="background:linear-gradient(135deg,#0f766e,#0382bd)">✨ Transform into lessons</button>
+      <p class="text-[11px] text-gray-400 mt-2">AI reads the content and drafts micro-lessons, objectives, CLO alignment, retrieval questions, flashcards & a spaced-review plan.</p>
+    </div>
+    <div id="processing" class="hidden text-center py-6">
+      <div class="inline-block h-8 w-8 rounded-full border-3 border-teal-500 border-t-transparent animate-spin" style="border-width:3px"></div>
+      <p id="procMsg" class="text-sm font-semibold text-gray-600 mt-3">Reading slides…</p>
+    </div>
+  </div>
+
+  <!-- STEP 2: Drafts (hidden until processed) -->
+  <div id="drafts" class="hidden feed-wide">
+    <div class="sec-h"><span class="chip">②</span><p class="t">Review the draft · 6 micro-lessons</p><button onclick="approveAll()" class="more">Approve all →</button></div>
+
+    <div class="rounded-xl border border-teal-200 bg-teal-50 px-4 py-3 mb-3">
+      <p class="text-xs text-teal-800">🧬 AI drafted this from your slides. Everything is editable and <b>nothing publishes until you approve</b>. Suggested CLO alignment is a recommendation — confirm or change it.</p>
+    </div>
+
+    <div class="space-y-3" id="lessonList"></div>
+  </div>
+
+</div>
+
+<script>
+const LESSONS=[
+  {n:1,title:"What is Normalization?",bloom:"Understanding",bloomColor:"bg-blue-500",clo:"CLO3",min:4,
+   obj:"Explain why normalization reduces redundancy and anomalies.",
+   retrieval:["In your words, what problem does normalization solve?","Name one anomaly caused by redundancy."],
+   cards:2,reflect:"Where have you seen duplicated data cause a bug?"},
+  {n:2,title:"First Normal Form (1NF)",bloom:"Applying",bloomColor:"bg-green-500",clo:"CLO3",min:5,
+   obj:"Convert an unnormalized table to 1NF (atomic values, no repeating groups).",
+   retrieval:["Is a column holding \"Math, Science\" in 1NF? Why not?","Fix this table into 1NF."],
+   cards:3,reflect:"What made a value 'non-atomic' for you?"},
+  {n:3,title:"Second Normal Form (2NF)",bloom:"Applying",bloomColor:"bg-green-500",clo:"CLO3",min:5,
+   obj:"Remove partial dependencies on a composite key.",
+   retrieval:["What is a partial dependency?","Split this table to reach 2NF."],
+   cards:3,reflect:"How did identifying the key help?"},
+  {n:4,title:"Third Normal Form (3NF)",bloom:"Analyzing",bloomColor:"bg-yellow-500",clo:"CLO3",min:6,
+   obj:"Eliminate transitive dependencies.",
+   retrieval:["Define a transitive dependency.","Which column here is transitively dependent?"],
+   cards:3,reflect:"Why does 3NF still allow some redundancy sometimes?"},
+  {n:5,title:"Anomalies in Practice",bloom:"Analyzing",bloomColor:"bg-yellow-500",clo:"CLO3",min:5,
+   obj:"Diagnose insert/update/delete anomalies in a real schema.",
+   retrieval:["Give an example of a delete anomaly.","Which normal form prevents it?"],
+   cards:2,reflect:"Which anomaly would hurt your project most?"},
+  {n:6,title:"Design Challenge: Library Schema",bloom:"Creating",bloomColor:"bg-red-500",clo:"CLO3",min:8,
+   obj:"Design a 3NF schema for a library from requirements.",
+   retrieval:["Draft the tables & keys.","Justify each normalization decision."],
+   cards:0,reflect:"What tradeoffs did you make between purity and performance?"},
+];
+function processUpload(){
+  document.getElementById('dropzone').classList.add('hidden');
+  const p=document.getElementById('processing');p.classList.remove('hidden');
+  const msgs=["Reading slides…","Detecting concept boundaries…","Drafting learning objectives…","Aligning to CLOs & Bloom levels…","Writing retrieval questions & flashcards…","Building spaced-review plan…"];
+  let i=0;const el=document.getElementById('procMsg');
+  const iv=setInterval(()=>{i++;if(i<msgs.length){el.textContent=msgs[i];}else{clearInterval(iv);reveal();}},650);
+}
+function reveal(){
+  document.getElementById('processing').classList.add('hidden');
+  const list=document.getElementById('lessonList');
+  list.innerHTML=LESSONS.map(l=>`
+    <div class="pcard overflow-hidden" data-ai-card>
+      <button onclick="this.nextElementSibling.classList.toggle('hidden')" class="w-full text-left p-4 flex items-center gap-3">
+        <div class="h-9 w-9 rounded-xl flex items-center justify-center text-white font-black shrink-0" style="background:var(--brand-gradient)">${l.n}</div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-bold text-gray-900">${l.title}</p>
+          <div class="flex items-center gap-1.5 mt-1 flex-wrap">
+            <span class="text-[10px] font-bold text-white ${l.bloomColor} px-1.5 py-0.5 rounded">${l.bloom}</span>
+            <span class="pill pill-green">${l.clo}</span>
+            <span class="text-[10px] text-gray-400">~${l.min} min · ${l.cards} flashcards</span>
+          </div>
+        </div>
+        <span class="text-gray-300">▾</span>
+      </button>
+      <div class="hidden px-4 pb-4 -mt-1">
+        <div class="rounded-xl bg-slate-50 border border-gray-100 p-3 space-y-2.5">
+          <div><p class="text-[10px] font-black uppercase tracking-widest text-gray-400">Objective</p><p class="text-xs text-gray-700 mt-0.5">${l.obj}</p></div>
+          <div><p class="text-[10px] font-black uppercase tracking-widest text-gray-400">Retrieval check (active recall)</p><ul class="text-xs text-gray-700 mt-0.5 list-disc ms-4 space-y-0.5">${l.retrieval.map(r=>`<li>${r}</li>`).join('')}</ul></div>
+          <div class="flex gap-4"><div><p class="text-[10px] font-black uppercase tracking-widest text-gray-400">Flashcards</p><p class="text-xs text-gray-700 mt-0.5">${l.cards} generated</p></div><div><p class="text-[10px] font-black uppercase tracking-widest text-gray-400">Spaced review</p><p class="text-xs text-gray-700 mt-0.5">Day 1 · 3 · 7</p></div></div>
+          <div><p class="text-[10px] font-black uppercase tracking-widest text-gray-400">Reflection prompt</p><p class="text-xs text-gray-700 mt-0.5 italic">"${l.reflect}"</p></div>
+        </div>
+        <div class="flex gap-2 mt-3">
+          <button onclick="aiApprove(this,'Lesson ${l.n} approved')" class="text-xs font-bold text-white px-3 py-1.5 rounded-lg" style="background:var(--brand-gradient)">✅ Approve lesson</button>
+          <button onclick="toast('Opening editor…','✏️')" class="text-xs font-bold text-gray-700 bg-gray-50 border border-gray-200 px-3 py-1.5 rounded-lg">✏️ Edit</button>
+          <button onclick="whyPop('CLO alignment is suggested by matching the slide's verbs and concepts to your course outcomes. Bloom level is inferred from the cognitive demand of the objective. Both are editable — you have final say.')" class="text-xs font-semibold text-gray-400 px-2 py-1.5">why this CLO?</button>
+        </div>
+      </div>
+    </div>`).join('');
+  document.getElementById('drafts').classList.remove('hidden');
+  toast('6 micro-lessons drafted from your upload','🧬');
+}
+function approveAll(){document.querySelectorAll('#lessonList [data-ai-card]').forEach(c=>{c.style.opacity='.5';});toast('All 6 lessons approved & queued to publish','✅');}
+</script>
+<script src="shared.js"></script>
+</body>
+</html>

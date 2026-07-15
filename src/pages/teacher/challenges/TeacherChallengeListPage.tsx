@@ -24,7 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 import { NoChallenges } from "@/components/shared/EmptyState";
 import { Plus, Search, Trophy, Pencil, XCircle, Calendar } from "lucide-react";
 import { toast } from "sonner";
@@ -86,7 +86,7 @@ const TeacherChallengeListPage = () => {
         </div>
         <Button
           onClick={() => navigate("/teacher/challenges/new")}
-          className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
+          variant="tactile"
         >
           <Plus className="h-4 w-4" /> New Challenge
         </Button>

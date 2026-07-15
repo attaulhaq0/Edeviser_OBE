@@ -1,5 +1,19 @@
 # Tasks — UI Prototype Migration
 
+> ## ⛔ CLOSED / SUPERSEDED (do not continue)
+> This spec (the flag-gated **reskin-in-place** approach — `newUiChrome` /
+> `newUiDashboards` / `newUiModules`) is **superseded by
+> `.kiro/specs/prototype-frontend-rebuild/`** (Path A: clean-room rebuild on
+> `@/design-system`). The Path-A cutover imports screens directly from
+> `@/design-system` (no feature flags), so the flag machinery here is bypassed,
+> and parts of this file are now stale (e.g. task 0.1 calls the `135deg` gradient
+> "canonical" — the canonical value is the prototype-exact `93.65deg`, now enforced
+> by `designTokens.test.ts`).
+>
+> **Still-useful reference (not obsolete):** `coverage-matrix.md`, `archetypes.md`,
+> and the design analysis — Path A reuses these. Everything else here is history.
+> Track live work in `prototype-frontend-rebuild/tasks.md`.
+
 Incremental, reversible, presentation-only. Every task keeps the app fully functional. Each screen ships only after its Definition of Done (design.md §14). `(Ref R#)` = requirement in requirements.md.
 
 ---

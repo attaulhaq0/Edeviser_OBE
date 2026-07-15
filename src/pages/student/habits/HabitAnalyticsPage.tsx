@@ -3,7 +3,7 @@ import { ArrowLeft, Download, BarChart3, Info, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import ErrorBoundary from "@/components/shared/ErrorBoundary";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 import ConsistencyScoreRing from "@/components/shared/ConsistencyScoreRing";
 import HabitCompletionChart from "@/components/shared/HabitCompletionChart";
 import BestDayChart from "@/components/shared/BestDayChart";
@@ -141,7 +141,8 @@ const HabitAnalyticsContent = () => {
         <Button
           onClick={exportCSV}
           disabled={isLoading}
-          className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 gap-1"
+          variant="tactile"
+          className="gap-1"
           data-testid="export-report-btn"
         >
           <Download className="h-4 w-4" />

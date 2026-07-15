@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Edeviser — Coordinator Profile</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
+<link rel="stylesheet" href="shared.css"/>
+<style>
+  /* "Me" repositioned from analytics -> professional profile & workspace
+     config. Scoped, additive component styles. */
+  body[data-role="coordinator"] .contact{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+  body[data-role="coordinator"] .contact .ct{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#475569;background:#f8fafc;border:1px solid #eef2f6;border-radius:9px;padding:6px 10px}
+  body[data-role="coordinator"] .set-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f5f7fa}
+  body[data-role="coordinator"] .set-row:last-child{border-bottom:none}
+  body[data-role="coordinator"] .set-row .sr-t{flex:1;min-width:0;font-size:13px;font-weight:600;color:#334155}
+  body[data-role="coordinator"] .set-row .sr-s{font-size:11px;color:#94a3b8;font-weight:500}
+  /* toggle switch */
+  body[data-role="coordinator"] .tgl{position:relative;display:inline-block;width:38px;height:22px;flex:0 0 auto;cursor:pointer}
+  body[data-role="coordinator"] .tgl input{opacity:0;width:0;height:0;position:absolute}
+  body[data-role="coordinator"] .tgl .sl{position:absolute;inset:0;background:#cbd5e1;border-radius:999px;transition:background .18s}
+  body[data-role="coordinator"] .tgl .sl::before{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .18s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+  body[data-role="coordinator"] .tgl input:checked + .sl{background:#0382bd}
+  body[data-role="coordinator"] .tgl input:checked + .sl::before{transform:translateX(16px)}
+  /* AI allowed/restricted rows (reuses rail-check; adds a "no" state) */
+  body[data-role="coordinator"] .rc-box.no{background:#f1f5f9;color:#94a3b8}
+  /* programs I manage */
+  body[data-role="coordinator"] .prog-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f5f7fa}
+  body[data-role="coordinator"] .prog-item:last-child{border-bottom:none}
+  body[data-role="coordinator"] .prog-ic{width:38px;height:38px;border-radius:11px;background:#eff6ff;color:#1d4ed8;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:12px;flex:0 0 auto}
+  /* academic info grid */
+  body[data-role="coordinator"] .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px 12px}
+  body[data-role="coordinator"] .info-grid .ig-k{font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#94a3b8;margin:0}
+  body[data-role="coordinator"] .info-grid .ig-v{font-size:13px;font-weight:700;color:#0f172a;margin:2px 0 0}
+</style>
+</head>
+<body class="bg-slate-50" data-role="coordinator">
+<header class="app-header">
+  <div class="hdr-brand flex items-center gap-2"><div class="h-7 w-7 rounded-lg flex items-center justify-center" style="background:var(--brand-gradient)"><span class="text-white text-sm">✦</span></div><span class="text-base font-bold tracking-tight text-gray-900">Edeviser</span></div>
+  <div class="flex items-center gap-2"><a href="coordinator-profile.html" class="h-8 w-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style="background:var(--brand-gradient)">K</a></div>
+</header>
+<div class="page-content space-y-4 no-scrollbar">
+
+  <!-- 1 · Professional profile header — identity + managed scope + contact
+       Unified .phdr layout (reused across all 5 roles). Data mirrors
+       useCoordinatorProfileSettings / useCoordinatorProfileStats (programs, courses, student_courses). UI refactor only. -->
+  <div class="feed-wide pcard p-5">
+    <div class="phdr">
+      <div class="phdr-left">
+        <div class="phdr-idrow">
+          <button class="ava-edit shrink-0" onclick="editCoordinatorProfile()" aria-label="Change photo">
+            <span class="phdr-av">K</span>
+            <span class="ava-cam">📷</span>
+          </button>
+          <div class="min-w-0">
+            <h1 class="phdr-name">Dr. Khalid Ibrahim</h1>
+            <p class="phdr-role">Program Coordinator <span class="sub">· Associate Professor / Computer Science</span></p>
+          </div>
+        </div>
+        <div class="phdr-stats">
+          <div class="phdr-stat"><span class="phdr-stat-ic st-teal">📚</span><span class="phdr-stat-tx"><span class="phdr-stat-v">3</span><span class="phdr-stat-l">Programs</span></span></div>
+          <div class="phdr-stat"><span class="phdr-stat-ic st-blue">🎓</span><span class="phdr-stat-tx"><span class="phdr-stat-v">12</span><span class="phdr-stat-l">Courses</span></span></div>
+          <div class="phdr-stat"><span class="phdr-stat-ic st-green">👥</span><span class="phdr-stat-tx"><span class="phdr-stat-v">118</span><span class="phdr-stat-l">Students</span></span></div>
+          <div class="phdr-stat"><span class="phdr-stat-ic st-violet">🧑‍🏫</span><span class="phdr-stat-tx"><span class="phdr-stat-v">9</span><span class="phdr-stat-l">Faculty</span></span></div>
+        </div>
+      </div>
+      <div class="phdr-right">
+        <div class="phdr-actions">
+          <button onclick="editCoordinatorProfile()" class="phdr-btn">✏️ Edit profile</button>
+          <button onclick="toast('Opening public profile…','👤')" class="phdr-btn primary">👁️ View public profile</button>
+        </div>
+        <div class="phdr-contact">
+          <div class="phdr-c"><span class="phdr-c-ic">✉️</span><a href="mailto:k.ibrahim@university.edu">k.ibrahim@university.edu</a></div>
+          <div class="phdr-c"><span class="phdr-c-ic">📞</span><span>+974 4000 1234</span></div>
+          <div class="phdr-c"><span class="phdr-c-ic">📍</span><span>Building C · Room 314</span></div>
+          <div class="phdr-c"><span class="phdr-c-ic">🕐</span><span>Office hours · Sun–Tue 10–12</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2 · AI assistance preferences — level + explicit allowed/restricted scope -->
+  <div class="feed-wide pcard p-4">
+    <div class="sec-h"><span class="chip">🛡️</span><p class="t">AI assistance preferences</p><span class="ml-auto pill pill-blue">A2 · Draft with approval</span></div>
+    <div class="tier-seg" id="tier">
+      <button onclick="setTier(this,'A0','Observe only.')">A0</button>
+      <button onclick="setTier(this,'A1','Suggest — surfaces gaps &amp; alerts.')">A1</button>
+      <button class="on" onclick="setTier(this,'A2','Draft with approval — AI drafts CQI plans &amp; evidence for your sign-off.')">A2</button>
+      <button onclick="setTier(this,'A3','Autonomous drafting — logged &amp; reversible (evidence still needs sign-off).')">A3</button>
+    </div>
+    <p id="tierMsg" class="text-xs text-gray-500 mt-2 mb-3">Draft with approval — AI drafts CQI plans &amp; evidence for your sign-off.</p>
+    <div class="lg-row lg-row-2 gap-3" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div>
+        <p class="text-[10px] font-black tracking-widest uppercase text-gray-400 mb-1">AI is allowed to</p>
+        <div class="rail-check"><span class="rc-box">✓</span><span class="rc-t">Draft CQI plans</span></div>
+        <div class="rail-check"><span class="rc-box">✓</span><span class="rc-t">Draft accreditation evidence</span></div>
+        <div class="rail-check"><span class="rc-box">✓</span><span class="rc-t">Detect curriculum gaps</span></div>
+        <div class="rail-check"><span class="rc-box">✓</span><span class="rc-t">Suggest improvement actions</span></div>
+      </div>
+      <div>
+        <p class="text-[10px] font-black tracking-widest uppercase text-gray-400 mb-1">Restricted</p>
+        <div class="rail-check"><span class="rc-box no">✕</span><span class="rc-t">Export accreditation packs</span></div>
+        <div class="rail-check"><span class="rc-box no">✕</span><span class="rc-t">Publish institutional changes</span></div>
+      </div>
+    </div>
+    <button onclick="toast('Opening AI settings…','🛡️')" class="btn3d sm b-soft full mt-3">🎛️ Manage AI settings</button>
+  </div>
+
+  <div class="lg-row lg-row-2 space-y-4 items-start">
+  <!-- 3 · Role & permissions -->
+  <div class="pcard p-4">
+    <div class="sec-h"><span class="chip">🔑</span><p class="t">Role &amp; permissions</p></div>
+    <div class="rail-check"><span class="rc-box">✓</span><span class="rc-t">Review accreditation evidence</span></div>
+    <div class="rail-check"><span class="rc-box">✓</span><span class="rc-t">Approve CQI plans</span></div>
+    <div class="rail-check"><span class="rc-box">✓</span><span class="rc-t">View institutional reports</span></div>
+    <div class="rail-check"><span class="rc-box">✓</span><span class="rc-t">Export accreditation packages</span></div>
+    <div class="rail-check"><span class="rc-box">✓</span><span class="rc-t">Assign tasks to faculty</span></div>
+  </div>
+
+  <!-- 4 · Programs I manage -->
+  <div class="pcard p-4">
+    <div class="sec-h"><span class="chip">🎓</span><p class="t">Programs I manage</p></div>
+    <a href="coordinator-outcomes.html" class="prog-item"><span class="prog-ic">CS</span><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">BSc Computer Science</p><p class="text-xs text-gray-500">7 courses · 78 students</p></div><span class="text-gray-300">→</span></a>
+    <a href="coordinator-outcomes.html" class="prog-item"><span class="prog-ic">IT</span><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">BSc Information Technology</p><p class="text-xs text-gray-500">3 courses · 26 students</p></div><span class="text-gray-300">→</span></a>
+    <a href="coordinator-outcomes.html" class="prog-item"><span class="prog-ic">SE</span><div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">BSc Software Engineering</p><p class="text-xs text-gray-500">2 courses · 14 students</p></div><span class="text-gray-300">→</span></a>
+  </div>
+  </div>
+
+  <div class="lg-row lg-row-2 space-y-4 items-start">
+  <!-- 5 · Connected faculty -->
+  <div class="pcard p-4">
+    <div class="sec-h"><span class="chip">🧑‍🏫</span><p class="t">Connected faculty</p></div>
+    <div class="grid grid-cols-3 gap-2 mb-3">
+      <div class="stat-tile"><p class="st-k">Total</p><p class="st-v">9</p></div>
+      <div class="stat-tile"><p class="st-k">Active</p><p class="st-v text-green-600">7</p></div>
+      <div class="stat-tile"><p class="st-k">Inactive</p><p class="st-v text-amber-600">2</p></div>
+    </div>
+    <button onclick="toast('Opening faculty access…','🧑‍🏫')" class="btn3d sm b-soft full">👥 Manage faculty access</button>
+  </div>
+
+  <!-- 8 · Connected integrations -->
+  <div class="pcard p-4">
+    <div class="sec-h"><span class="chip">🔌</span><p class="t">Connected integrations</p></div>
+    <div class="set-row"><span class="text-lg">📅</span><span class="sr-t">Google Calendar</span><span class="pill pill-green">Connected</span></div>
+    <div class="set-row"><span class="text-lg">📧</span><span class="sr-t">Microsoft Outlook</span><button onclick="aiApprove(this,'Outlook connected')" class="btn3d sm b-soft">Connect</button></div>
+    <div class="set-row"><span class="text-lg">💬</span><span class="sr-t">Slack</span><span class="pill pill-green">Connected</span></div>
+    <button onclick="toast('Opening integrations…','🔌')" class="btn3d sm b-ghost full mt-3">Manage integrations</button>
+  </div>
+  </div>
+
+  <div class="lg-row lg-row-2 space-y-4 items-start">
+  <!-- 6 · Notification preferences -->
+  <div class="pcard p-4">
+    <div class="sec-h"><span class="chip">🔔</span><p class="t">Notification preferences</p></div>
+    <div class="set-row"><span class="sr-t">PLO attainment below threshold</span><label class="tgl"><input type="checkbox" checked onchange="toast(this.checked?'Alerts on':'Alerts off',this.checked?'🔔':'🔕')"><span class="sl"></span></label></div>
+    <div class="set-row"><span class="sr-t">New curriculum gaps detected</span><label class="tgl"><input type="checkbox" checked onchange="toast(this.checked?'Alerts on':'Alerts off',this.checked?'🔔':'🔕')"><span class="sl"></span></label></div>
+    <div class="set-row"><span class="sr-t">Accreditation evidence ready</span><label class="tgl"><input type="checkbox" checked onchange="toast(this.checked?'Alerts on':'Alerts off',this.checked?'🔔':'🔕')"><span class="sl"></span></label></div>
+    <div class="set-row"><span class="sr-t">Teacher inactivity</span><label class="tgl"><input type="checkbox" onchange="toast(this.checked?'Alerts on':'Alerts off',this.checked?'🔔':'🔕')"><span class="sl"></span></label></div>
+    <div class="set-row"><span class="sr-t">Upcoming CQI deadlines</span><label class="tgl"><input type="checkbox" checked onchange="toast(this.checked?'Alerts on':'Alerts off',this.checked?'🔔':'🔕')"><span class="sl"></span></label></div>
+    <div class="set-row"><span class="sr-t">Quiet hours<span class="sr-s block">Pause non-urgent alerts overnight</span></span><label class="tgl"><input type="checkbox" checked onchange="toggleQuietHours(this)"><span class="sl"></span></label></div>
+    <div id="qh-times" class="set-row" style="gap:8px"><span class="sr-t" style="flex:0 0 auto">From</span><input type="time" value="21:00" class="qh-time" onchange="toast('Quiet hours updated','🌙')"><span class="sr-t" style="flex:0 0 auto">to</span><input type="time" value="07:00" class="qh-time" onchange="toast('Quiet hours updated','🌙')"></div>
+    <div class="set-row" style="flex-direction:column;align-items:stretch;gap:8px;border-bottom:none">
+      <span class="sr-t">Mute specific courses<span class="sr-s block">No alerts from a muted course</span></span>
+      <div class="flex flex-wrap gap-2"><button class="mute-chip" onclick="toggleMute(this)">CS301</button><button class="mute-chip" onclick="toggleMute(this)">CS205</button><button class="mute-chip" onclick="toggleMute(this)">AI101</button></div>
+    </div>
+  </div>
+
+  <!-- 7 · Security & access -->
+  <div class="pcard p-4">
+    <div class="sec-h"><span class="chip">🔒</span><p class="t">Security &amp; access</p></div>
+    <div class="set-row"><span class="sr-t">Change password<span class="sr-s block">Last changed 3 months ago</span></span><button onclick="toast('Opening password change…','🔒')" class="btn3d sm b-ghost">Change</button></div>
+    <div class="set-row"><span class="sr-t">Two-factor authentication</span><span class="pill pill-green">Enabled</span></div>
+    <div class="set-row"><span class="sr-t">Active sessions<span class="sr-s block">3 devices signed in</span></span><button onclick="toast('Opening sessions…','💻')" class="btn3d sm b-ghost">Review</button></div>
+    <div class="set-row"><span class="sr-t">Authorized devices</span><button onclick="toast('Opening devices…','📱')" class="btn3d sm b-ghost">Manage</button></div>
+    <div class="set-row"><span class="sr-t">Export my data<span class="sr-s block">Download your account data as CSV</span></span><button onclick="toast('Preparing data export…','📦');setTimeout(()=>toast('Export ready to download','📄'),1000)" class="btn3d sm b-ghost">Export</button></div>
+    <div class="set-row"><span class="sr-t" style="color:#dc2626">Delete my account<span class="sr-s block">Anonymize your profile &amp; PII (cannot be undone)</span></span><button onclick="if(confirm('Delete your account? This anonymizes your profile and personal data and cannot be undone.'))toast('Account deletion requested','🗑️')" class="btn3d sm b-danger">Delete</button></div>
+    <button onclick="toast('Opening security settings…','🔒')" class="btn3d sm b-soft full mt-3">🛡️ Security settings</button>
+  </div>
+  </div>
+
+  <!-- 9 · Academic information -->
+  <div class="feed-wide pcard p-4">
+    <div class="sec-h"><span class="chip">🎓</span><p class="t">Academic information</p></div>
+    <div class="info-grid">
+      <div><p class="ig-k">Department</p><p class="ig-v">Computer Science</p></div>
+      <div><p class="ig-k">Designation</p><p class="ig-v">Program Coordinator</p></div>
+      <div><p class="ig-k">Academic rank</p><p class="ig-v">Associate Professor</p></div>
+      <div><p class="ig-k">Highest qualification</p><p class="ig-v">PhD, Computer Science</p></div>
+      <div><p class="ig-k">Years of experience</p><p class="ig-v">14 years</p></div>
+      <div><p class="ig-k">Faculty ID</p><p class="ig-v">CS-0421</p></div>
+    </div>
+  </div>
+
+  <a href="roles.html" class="feed-wide block text-center py-3 rounded-xl text-sm font-semibold text-gray-600 bg-white border border-gray-200">Switch role →</a>
+
+</div>
+<script>function setTier(el,t,msg){document.querySelectorAll('#tier button').forEach(b=>b.classList.remove('on'));el.classList.add('on');document.getElementById('tierMsg').innerHTML=msg;toast('AI autonomy set to '+t,'🛡️');}</script>
+<script src="shared.js"></script>
+<script>
+function editCoordinatorProfile(){
+  openEditModal({
+    title:'Edit profile', initial:'K', successMsg:'Profile updated',
+    fields:[
+      {type:'row2', items:[{label:'First name', value:'Khalid'},{label:'Last name', value:'Ibrahim'}]},
+      {label:'Title', value:'Dr. Khalid Ibrahim'},
+      {label:'Role', value:'Program Coordinator · Associate Professor'},
+      {type:'row2', items:[{label:'Email', type:'email', value:'k.ibrahim@university.edu'},{label:'Phone', type:'tel', value:'+974 4000 1234'}]},
+      {label:'Office', value:'Building C · Room 314'},
+      {label:'Office hours', value:'Sun–Tue 10–12'},
+      {label:'Bio', type:'textarea', placeholder:'A short bio students and faculty can see…'},
+    ]
+  });
+}
+</script>
+</body>
+</html>

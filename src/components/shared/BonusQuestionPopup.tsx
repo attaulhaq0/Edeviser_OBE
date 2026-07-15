@@ -123,7 +123,7 @@ const BonusQuestionPopup = ({
                   !answer.trim() || timeLeft === 0 || submitAnswer.isPending
                 }
                 onClick={handleSubmit}
-                className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
+                variant="tactile"
               >
                 {submitAnswer.isPending && (
                   <Loader2 className="h-3 w-3 animate-spin" />

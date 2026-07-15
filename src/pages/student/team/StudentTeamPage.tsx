@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import TeamDashboardCard from "@/components/shared/TeamDashboardCard";
 import EmptyState, { NoTeams } from "@/components/shared/EmptyState";
 import TeamLeaderboard from "@/pages/student/leaderboard/TeamLeaderboard";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 
 const StudentTeamPage = () => {
   const { t } = useTranslation("student");
@@ -52,7 +52,7 @@ const StudentTeamPage = () => {
           <div className="flex flex-col items-center gap-3">
             <Button
               asChild
-              className="bg-gradient-to-r from-teal-500 to-blue-600 text-white active:scale-95"
+              variant="tactile"
             >
               <Link to="/student/teams/new">
                 <UserPlus className="h-4 w-4 me-2" />

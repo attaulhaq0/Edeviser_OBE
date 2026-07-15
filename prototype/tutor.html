@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Edeviser — AI Tutor</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
+<link rel="stylesheet" href="shared.css"/>
+</head>
+<body class="bg-white flex flex-col h-dvh" data-role="student">
+  <!-- BACKEND GROUNDING · hooks: useTutorConversations, useTutorMessages, useTutorUsage, useTutorAutonomy | tables: tutor_conversations, tutor_messages, tutor_usage_limits, tutor_llm_logs -->
+
+<!-- Header -->
+<header class="app-header shrink-0">
+  <div class="flex items-center gap-2"><img src="characters/owl/owl-wise.png" alt="Owlie, your AI tutor" class="chr h-8 w-8" style="filter:none" draggable="false"/><span class="text-base font-bold tracking-tight text-gray-900">AI Tutor <span class="text-xs font-semibold text-gray-400">· Owlie</span></span></div>
+  <button class="p-1.5 rounded-lg hover:bg-gray-100"><svg class="h-5 w-5 text-gray-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z"/></svg></button>
+</header>
+
+<!-- Chat Area -->
+<div class="flex-1 overflow-y-auto px-4 py-5 space-y-4 no-scrollbar" id="chat-area">
+
+  <!-- MEMORY PANEL — the learner model the tutor uses every turn -->
+  <div class="pcard p-4" style="border-color:#dbeafe">
+    <button onclick="const b=this.nextElementSibling;b.classList.toggle('hidden');this.querySelector('.chev').textContent=b.classList.contains('hidden')?'▾':'▴'" class="w-full flex items-center gap-2">
+      <span class="h-8 w-8 rounded-lg bg-blue-50 flex items-center justify-center">🧠</span>
+      <div class="flex-1 text-start"><p class="text-sm font-bold text-gray-900">What I remember about you</p><p class="text-[11px] text-gray-500">Used to personalize every answer</p></div>
+      <span class="chev text-gray-300">▾</span>
+    </button>
+    <div class="hidden mt-3 space-y-1.5 text-xs">
+      <div class="flex items-center gap-2"><span class="pill pill-amber">CLO3</span><span class="text-gray-700 flex-1">Normalization — 62%, trending ↓</span></div>
+      <div class="flex items-center gap-2"><span class="pill pill-red">CLO5</span><span class="text-gray-700 flex-1">REST APIs — 48%, needs work</span></div>
+      <div class="flex items-center gap-2"><span class="pill pill-green">Strength</span><span class="text-gray-700 flex-1">AI Fundamentals — 88%</span></div>
+      <div class="flex items-center gap-2"><span>🎯</span><span class="text-gray-700 flex-1">Goal: reach Satisfactory in DB before finals</span></div>
+      <div class="flex items-center gap-2"><span>🔥</span><span class="text-gray-700 flex-1">12-day streak · usually studies evenings</span></div>
+      <div class="flex items-center gap-2"><span>🧩</span><span class="text-gray-700 flex-1">Recent slip: transitive dependencies (3NF)</span></div>
+      <button onclick="whyPop('I use your outcome mastery, goals and recent errors to tailor answers — e.g. leaning on your AI strength to explain a database idea. This memory is <b>yours</b>: RLS-scoped to you, never shared with peers, and you can export or clear it anytime. I never put your name, email or ID into answers.')" class="text-[11px] font-bold text-blue-600 mt-1">How this is used &amp; kept private →</button>
+    </div>
+  </div>
+
+  <!-- Teaching style (autonomy tier) -->
+  <div class="flex items-center gap-2 justify-center flex-wrap">
+    <span class="text-[11px] text-gray-400">Teaching style:</span>
+    <div class="tier-seg" id="tier">
+      <button onclick="setTier(this,'L1')">Hints only</button>
+      <button class="on" onclick="setTier(this,'L2')">Guided</button>
+      <button onclick="setTier(this,'L3')">Direct</button>
+    </div>
+    <button onclick="whyPop('<b>Hints only (L1):</b> I only ask guiding questions — best while an assignment is open (protects academic integrity). <b>Guided (L2):</b> scaffolded hints + partial steps. <b>Direct (L3):</b> full explanations — best in review/practice. You choose; on graded work I default to hints.')" class="text-[11px] font-bold text-blue-600">?</button>
+  </div>
+
+  <!-- Proactive, memory-aware opener -->
+  <div class="flex items-start gap-3">
+    <img src="characters/owl/owl-wise.png" alt="Owlie looking wise" class="chr chr-xs chr-in shrink-0" draggable="false"/>
+    <div class="bubble-ai max-w-[280px]"><p class="text-sm text-gray-800">Morning, Sarah 👋 Two things stand out today: your <b>Normalization</b> outcome slipped to 62% and it's on tonight's assignment, and you've got <b>5 reviews</b> due. Want to spend 10 minutes closing that gap first?</p></div>
+  </div>
+
+  <!-- Suggested Actions (memory-driven) -->
+  <div class="pl-11 space-y-2">
+    <button onclick="sendSuggestion('Help me close my Normalization gap')" class="w-full text-start bg-teal-50 hover:bg-teal-100 border border-teal-200 rounded-xl px-4 py-3 transition"><p class="text-sm font-medium text-teal-700">🎯 Close my Normalization gap</p><p class="text-xs text-teal-500">Your weakest outcome · due tonight</p></button>
+    <button onclick="sendSuggestion('Quiz me on REST APIs')" class="w-full text-start bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl px-4 py-3 transition"><p class="text-sm font-medium text-blue-700">🧠 Drill my weakest CLO (REST APIs)</p><p class="text-xs text-blue-500">48% · adaptive difficulty</p></button>
+    <button onclick="sendSuggestion('Make a study plan for finals')" class="w-full text-start bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-xl px-4 py-3 transition"><p class="text-sm font-medium text-amber-700">📖 Plan my 2 weeks to finals</p><p class="text-xs text-amber-500">Built around your goals &amp; gaps</p></button>
+  </div>
+
+  <!-- Conversation history preview -->
+  <div class="pt-4 border-t border-gray-100">
+    <p class="text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-2 pl-2">Recent Conversations</p>
+    <div class="space-y-1.5">
+      <button class="w-full text-start px-3 py-2 rounded-lg hover:bg-gray-50 transition flex items-center gap-2"><span class="text-xs">💬</span><div><p class="text-xs font-medium text-gray-700">DB Normalization help</p><p class="text-[10px] text-gray-400">2 hours ago</p></div></button>
+      <button class="w-full text-start px-3 py-2 rounded-lg hover:bg-gray-50 transition flex items-center gap-2"><span class="text-xs">💬</span><div><p class="text-xs font-medium text-gray-700">Web Dev quiz prep</p><p class="text-[10px] text-gray-400">Yesterday</p></div></button>
+    </div>
+  </div>
+
+</div>
+
+<!-- Chat Input -->
+<div class="shrink-0 border-t border-gray-100 px-4 py-3 pb-[max(12px,env(safe-area-inset-bottom))] bg-white">
+  <div class="flex items-center gap-2">
+    <div class="flex-1 flex items-center bg-gray-50 rounded-xl px-4 py-2.5 border border-gray-200 focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-100 transition">
+      <input type="text" id="chat-input" placeholder="Ask anything..." class="flex-1 bg-transparent text-sm outline-none text-gray-800 placeholder:text-gray-400"/>
+      <button class="p-1 rounded-lg hover:bg-gray-200"><svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m18.375 12.739-7.693 7.693a4.5 4.5 0 0 1-6.364-6.364l10.94-10.94A3 3 0 1 1 19.5 7.372L8.552 18.32m.009-.01-.01.01m5.699-9.941-7.81 7.81a1.5 1.5 0 0 0 2.112 2.13"/></svg></button>
+    </div>
+    <button onclick="sendMessage()" class="h-10 w-10 rounded-xl flex items-center justify-center shrink-0" style="background:var(--brand-gradient)"><svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"/></svg></button>
+  </div>
+</div>
+
+<!-- No bottom bar on tutor (full-screen chat) — but back nav -->
+<nav class="bottom-bar">
+  <a href="dashboard.html" class="tab-btn" data-tab="home"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75"/></svg><span>Home</span></a>
+  <a href="learn.html" class="tab-btn" data-tab="learn"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/></svg><span>Learn</span></a>
+  <a href="tutor.html" class="tab-btn" data-tab="tutor"><div class="tutor-fab"><span class="text-lg">🤖</span></div><span>Tutor</span></a>
+  <a href="progress.html" class="tab-btn" data-tab="progress"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941"/></svg><span>Progress</span></a>
+  <a href="profile.html" class="tab-btn" data-tab="me"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg><span>Me</span></a>
+</nav>
+
+<script src="shared.js"></script>
+<script>
+let autonomy='L2';
+function setTier(el,t){autonomy=t;document.querySelectorAll('#tier button').forEach(b=>b.classList.remove('on'));el.classList.add('on');toast('Teaching style: '+({L1:'Hints only',L2:'Guided',L3:'Direct'})[t],'🎚️');}
+
+// Academic-integrity guard (mirrors the real regex → pedagogical redirect)
+const INTEGRITY=/\b(write|do|finish|complete|solve)\s+(my|this|it)\b|give me the answer|just tell me the answer/i;
+
+function reply(text){
+  if(INTEGRITY.test(text)){
+    return `<p class="text-sm text-gray-800">I can't write or complete graded work for you — but I can get you there. 🙂</p><p class="text-sm text-gray-800 mt-2">Let's break it down: which part is tripping you up — spotting the transitive dependency, or fixing it? I'll coach you through that piece.</p><p class="text-[11px] text-amber-600 mt-2">🛡️ Integrity mode: I guide, you author.</p>`;
+  }
+  const norm=/normal|3nf|gap|dependency/i.test(text), rest=/rest|api|verb|http/i.test(text), plan=/plan|final|schedule/i.test(text), quiz=/quiz|drill|test me/i.test(text);
+  if(norm){
+    if(autonomy==='L1') return `<p class="text-sm text-gray-800">Let's use what you know 💡 In <b>Order(order_id, customer_id, customer_city)</b> — which column doesn't depend directly on the key? Tell me your guess and <i>why</i>.</p><p class="text-[11px] text-gray-500 mt-2">Hints mode — I'll guide, not hand over the answer.</p>`;
+    if(autonomy==='L3') return `<p class="text-sm text-gray-800"><b>3NF</b> = no transitive dependencies (a non-key depending on another non-key). In <b>Book(book_id, title, publisher, publisher_country)</b>, <b>publisher_country</b> depends on <b>publisher</b> → move it to a <b>Publisher</b> table. That's the fix.</p><p class="text-xs text-gray-500 mt-2">Want a quick practice item to lock it in?</p>`;
+    return `<p class="text-sm text-gray-800">The key idea is a <b>transitive dependency</b>. Step 1: find a non-key column that depends on <i>another</i> non-key column. In your <b>Book</b> table, look at <b>publisher_country</b> — what does it depend on?</p><p class="text-xs text-gray-500 mt-2">Take a guess and I'll confirm. (You did great on this pattern in AI Fundamentals — same logic.)</p>`;
+  }
+  if(rest){ return autonomy==='L1'
+    ? `<p class="text-sm text-gray-800">Before I explain — which REST verb would you use to <i>update</i> a resource, and would repeating it change anything? 💡</p>`
+    : `<p class="text-sm text-gray-800">Your REST APIs mastery is at 48%, so let's build it up. <b>PUT</b> is idempotent (repeat = same result) but not safe (it changes state). I'll start you at an easier item and step up as you get them right.</p><p class="text-xs text-gray-500 mt-2">Ready for question 1?</p>`;}
+  if(plan){ return `<p class="text-sm text-gray-800">Here's a 2-week plan built around your goal and gaps:</p><p class="text-sm text-gray-800 mt-1">• <b>This week:</b> daily 10-min Normalization + REST reviews (your two weak CLOs)<br>• <b>Next week:</b> mixed practice (interleaving) + a mock<br>• <b>Evenings</b>, since that's when you focus best.</p><p class="text-xs text-gray-500 mt-2">Want me to add these to your plan?</p>`;}
+  if(quiz){ return `<p class="text-sm text-gray-800">Let's drill your weakest CLO. I'll adapt the difficulty to your answers. First one:</p><p class="text-sm text-gray-800 mt-1"><b>Which HTTP status means "Created"?</b> a) 200 b) 201 c) 404</p>`;}
+  return `<p class="text-sm text-gray-800">Happy to help with that. Given your goal (Satisfactory in DB before finals), want to tie this to <b>Normalization</b> — your closest gap — or keep it general?</p>`;
+}
+
+// Owlie avatar helper — expression changes with the tutor's state.
+function owlAv(emotion,anim){return `<img src="${EdvCharacter.path('owl',emotion||'wise')}" alt="Owlie ${emotion||'wise'}" class="chr chr-xs shrink-0 ${anim||''}" draggable="false"/>`;}
+
+function sendSuggestion(text){
+  document.getElementById('chat-input').value='';
+  const area=document.getElementById('chat-area');
+  area.querySelectorAll('.pl-11').forEach(e=>e.remove());
+  area.querySelector('.border-t')?.remove();
+  area.innerHTML+=`<div class="flex justify-end"><div class="bubble-user max-w-[280px]"><p class="text-sm">${text}</p></div></div>`;
+  // Thinking state: Owlie nudges gently while the typing dots animate.
+  area.innerHTML+=`<div class="flex items-start gap-3" id="typing">${owlAv('wise','chr-nudge')}<div class="bubble-ai"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div></div>`;
+  area.scrollTop=area.scrollHeight;
+  setTimeout(()=>{
+    document.getElementById('typing')?.remove();
+    // Success/encouragement expression: concerned+encouraging on an integrity
+    // redirect, wise (pop) on a normal helpful answer.
+    const emotion=INTEGRITY.test(text)?'concerned':'wise';
+    area.innerHTML+=`<div class="flex items-start gap-3">${owlAv(emotion,'chr-pop')}<div class="bubble-ai max-w-[280px]">${reply(text)}</div></div>`;
+    area.scrollTop=area.scrollHeight;
+  },1400);
+}
+function sendMessage(){const input=document.getElementById('chat-input');if(!input.value.trim())return;sendSuggestion(input.value);}
+document.getElementById('chat-input').addEventListener('keydown',e=>{if(e.key==='Enter')sendMessage()});
+</script>
+</body>
+</html>

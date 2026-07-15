@@ -31,7 +31,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 import {
   useCourseSections,
   useCreateCourseSection,
@@ -150,7 +150,7 @@ const SectionManager = ({ courseId, courseName }: SectionManagerProps) => {
         </h3>
         <Button
           size="sm"
-          className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 text-white"
+          variant="tactile"
           onClick={openCreateDialog}
         >
           <Plus className="h-4 w-4" /> Add Section
@@ -399,7 +399,7 @@ const SectionFormDialog = ({
               <Button
                 type="submit"
                 disabled={pending}
-                className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 text-white"
+                variant="tactile"
               >
                 {pending && <Loader2 className="h-4 w-4 animate-spin" />}
                 {isEditing ? "Update" : "Create"}

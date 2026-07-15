@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 import { NoAssignments } from "@/components/shared/EmptyState";
 import { Search, Calendar } from "lucide-react";
 import { format, isPast, addHours } from "date-fns";

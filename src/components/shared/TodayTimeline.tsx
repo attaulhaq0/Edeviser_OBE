@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/card";
 import StudySessionCard from "@/components/shared/StudySessionCard";
 import PlannerTaskItem from "@/components/shared/PlannerTaskItem";
 import DeadlineItem from "@/components/shared/DeadlineItem";
-import GradientCardHeader from "@/components/shared/GradientCardHeader";
+import { GradientCardHeader } from "@/design-system";
 import { cn } from "@/lib/utils";
 import { groupByTimeOfDay, isSessionMissed } from "@/lib/plannerUtils";
 import type {

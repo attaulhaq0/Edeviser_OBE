@@ -74,3 +74,22 @@ docs/pdf/business/EDEVISER-DEMO-STORYBOARD.pdf
 # Local QA reference PDFs (manual test captures / Google-Docs exports) — kept local only
 docs/pdf/QA/
 docs/pdf/Student Profile - Google Docs.pdf
+
+# Local debug / scratch artifacts (never commit). Some of these HAR captures
+# from the live site can contain session tokens, so keep them out of the repo.
+/_*
+/*.har.txt
+/har-*.txt
+/analyze-har*.ps1
+/lint-verify*.txt
+/unused-report.txt
+/verify-unused.ps1
+/perf-local/
+/ui-screenshots/
+
+# Prototype QC screenshots (generated scratch captures — the HTML/CSS/JS
+# reference is tracked, these rendered PNGs are not).
+prototype/_shots/
+
+# Local binary review docs (kept out of the repo).
+/Review P1.docx

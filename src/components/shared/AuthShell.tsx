@@ -1,63 +1,40 @@
 // =============================================================================
-// AuthShell — shared full-screen background + logo for auth pages
+// AuthShell — shared split-panel background for secondary auth pages
 // =============================================================================
 //
-// Extracts the exact auth backdrop used by `LoginPage`/`SignUpPage` (dark slate
-// gradient + doodle overlay, top-end `LanguageSwitcher`, centered logo +
-// tagline) so the secondary auth screens (Reset / Update password) share the
-// identical treatment instead of a plain slate background (spec P1b, task 1.8).
+// Reproduces the prototype `auth.html` layout (a light #f8fafc canvas split
+// into a hero-gradient brand/value panel + a form panel) so the secondary auth
+// screens (Reset / Update password) share the exact same treatment as the
+// rebuilt `LoginPage`. The page's form is slotted into the form panel via
+// `children`.
 //
-// Presentation-only: it renders a background + centered column and slots the
-// page's card via `children`. All auth logic stays in the page components.
+// Presentation-only: all auth logic stays in the page components. Light + LTR
+// (prototype scope; PARITY §E).
 // =============================================================================
 
 import type { ReactNode } from "react";
-import { useTranslation } from "react-i18next";
 
 import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
+import AuthBrandPanel from "@/components/shared/AuthBrandPanel";
 
 interface AuthShellProps {
   children: ReactNode;
 }
 
 const AuthShell = ({ children }: AuthShellProps) => {
-  const { t } = useTranslation("auth");
-
   return (
-    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#1e293b] via-[#0f172a] to-[#020617]">
-      {/* Doodle pattern overlay */}
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.04]"
-        style={{
-          backgroundImage: "url('/doodle-background.jpg')",
-          backgroundSize: "1200px",
-          backgroundRepeat: "repeat",
-          filter: "invert(1)",
-        }}
-      />
-
+    <div className="relative grid min-h-[100dvh] grid-cols-1 bg-[#f8fafc] md:grid-cols-[1.1fr_1fr]">
       {/* Language switcher in top-end corner */}
       <div className="absolute end-4 top-4 z-20">
         <LanguageSwitcher />
       </div>
 
-      {/* Main container */}
-      <div className="relative flex min-h-screen flex-col items-center justify-center p-4">
-        <div className="-mt-10 w-full max-w-md space-y-6">
-          {/* Logo */}
-          <div className="space-y-2 text-center">
-            <div className="flex w-full items-center justify-center">
-              <img
-                src="/edeviser-logo-final.png"
-                alt="Edeviser"
-                className="h-32 w-auto object-contain drop-shadow-2xl"
-              />
-            </div>
-            <p className="text-xl font-medium tracking-wide text-blue-400 drop-shadow-md">
-              {t("brand.tagline")}
-            </p>
-          </div>
+      {/* Brand / value panel */}
+      <AuthBrandPanel />
 
+      {/* Form panel */}
+      <div className="flex items-center justify-center px-5 py-[26px] md:p-10">
+        <div className="mx-auto w-full max-w-[400px] md:max-w-[380px]">
           {children}
         </div>
       </div>

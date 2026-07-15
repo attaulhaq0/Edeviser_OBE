@@ -35,7 +35,7 @@ import type {
   StudentAttendance,
   AttendanceStatus,
 } from "@/components/shared/AttendanceGrid";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 import { InlineNoSessions } from "@/components/shared/EmptyState";
 
 import { useAuth } from "@/hooks/useAuth";
@@ -357,7 +357,8 @@ const AttendanceMarker = () => {
                     <Button
                       type="submit"
                       disabled={createSession.isPending}
-                      className="w-full bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
+                      variant="tactile"
+                      className="w-full"
                     >
                       {createSession.isPending && (
                         <Loader2 className="h-4 w-4 animate-spin me-1" />
@@ -474,7 +475,8 @@ const AttendanceMarker = () => {
                     disabled={
                       markAttendance.isPending || gridStudents.length === 0
                     }
-                    className="w-full bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
+                    variant="tactile"
+                    className="w-full"
                   >
                     {markAttendance.isPending && (
                       <Loader2 className="h-4 w-4 animate-spin me-1" />

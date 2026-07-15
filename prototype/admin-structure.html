@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Edeviser — Institution Structure</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
+<link rel="stylesheet" href="shared.css"/>
+<style>
+  /* Institution Structure — maps to: useDepartments, usePrograms, useCourses,
+     useSemesters, useCourseSections (admin management/CRUD, distinct from the
+     student-facing read views already built). */
+  .st-dept{border:1px solid #eef2f6;border-radius:14px;padding:14px;margin-bottom:12px}
+  .st-prog{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #f5f7fa}
+  .st-prog:last-child{border-bottom:none}
+</style>
+</head>
+<body class="bg-slate-50" data-role="admin">
+
+<header class="app-header">
+  <div class="hdr-brand flex items-center gap-2"><div class="h-7 w-7 rounded-lg flex items-center justify-center" style="background:var(--brand-gradient)"><span class="text-white text-sm">✦</span></div><span class="text-base font-bold tracking-tight text-gray-900">Edeviser</span></div>
+  <div class="flex items-center gap-2"><a href="admin-profile.html" class="h-8 w-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style="background:var(--brand-gradient)">G</a></div>
+</header>
+
+<div class="page-content space-y-4 no-scrollbar">
+
+  <div class="feed-wide flex items-center justify-between gap-3">
+    <div><h1 class="text-xl font-black tracking-tight text-gray-900">Institution Structure</h1><p class="text-xs text-gray-500 mt-0.5">Departments, programs, courses &amp; semesters at Gulf Academy.</p></div>
+  </div>
+
+  <!-- KPI row -->
+  <div class="feed-wide grid grid-cols-2 md:grid-cols-4 gap-3">
+    <div class="pcard p-3.5"><p class="text-[10px] font-black tracking-widest uppercase text-gray-400">Departments</p><p class="text-2xl font-black text-gray-900 mt-0.5">6</p></div>
+    <div class="pcard p-3.5"><p class="text-[10px] font-black tracking-widest uppercase text-gray-400">Programs</p><p class="text-2xl font-black text-gray-900 mt-0.5">14</p></div>
+    <div class="pcard p-3.5"><p class="text-[10px] font-black tracking-widest uppercase text-gray-400">Active courses</p><p class="text-2xl font-black text-gray-900 mt-0.5">86</p></div>
+    <div class="pcard p-3.5"><p class="text-[10px] font-black tracking-widest uppercase text-gray-400">Current semester</p><p class="text-2xl font-black text-teal-600 mt-0.5">Spring 26</p></div>
+  </div>
+
+  <div class="feed-wide lg-row lg-row-2 space-y-4 items-start">
+  <!-- Departments & programs -->
+  <div>
+    <div class="flex items-center justify-between mb-2"><p class="text-xs font-black tracking-widest uppercase text-gray-500">Departments &amp; programs</p><button class="btn3d sm b-ghost" onclick="toast('New department dialog opened','➕')">＋ Department</button></div>
+
+    <div class="st-dept">
+      <div class="flex items-center justify-between">
+        <p class="text-sm font-black text-gray-900">🖥️ Computer Science</p>
+        <button class="btn3d sm b-ghost" onclick="toast('New program dialog opened','➕')">＋ Program</button>
+      </div>
+      <div class="mt-2">
+        <div class="st-prog"><div class="flex-1 min-w-0"><p class="text-sm font-semibold text-gray-900">B.Sc. Computer Science</p><p class="text-[11px] text-gray-500">28 courses · 340 students</p></div><button class="text-xs font-bold text-blue-600" onclick="toast('Managing courses for B.Sc. Computer Science','📚')">Manage courses →</button></div>
+        <div class="st-prog"><div class="flex-1 min-w-0"><p class="text-sm font-semibold text-gray-900">M.Sc. Data Science</p><p class="text-[11px] text-gray-500">14 courses · 62 students</p></div><button class="text-xs font-bold text-blue-600" onclick="toast('Managing courses for M.Sc. Data Science','📚')">Manage courses →</button></div>
+      </div>
+    </div>
+
+    <div class="st-dept">
+      <div class="flex items-center justify-between">
+        <p class="text-sm font-black text-gray-900">⚙️ Engineering</p>
+        <button class="btn3d sm b-ghost" onclick="toast('New program dialog opened','➕')">＋ Program</button>
+      </div>
+      <div class="mt-2">
+        <div class="st-prog"><div class="flex-1 min-w-0"><p class="text-sm font-semibold text-gray-900">B.Eng. Software Engineering</p><p class="text-[11px] text-gray-500">24 courses · 280 students</p></div><button class="text-xs font-bold text-blue-600" onclick="toast('Managing courses for B.Eng. Software Engineering','📚')">Manage courses →</button></div>
+      </div>
+    </div>
+
+    <div class="st-dept">
+      <div class="flex items-center justify-between">
+        <p class="text-sm font-black text-gray-900">💼 Business</p>
+        <button class="btn3d sm b-ghost" onclick="toast('New program dialog opened','➕')">＋ Program</button>
+      </div>
+      <div class="mt-2">
+        <div class="st-prog"><div class="flex-1 min-w-0"><p class="text-sm font-semibold text-gray-900">B.A. Business Administration</p><p class="text-[11px] text-gray-500">20 courses · 410 students</p></div><button class="text-xs font-bold text-blue-600" onclick="toast('Managing courses for B.A. Business Administration','📚')">Manage courses →</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Semesters -->
+  <div>
+    <div class="flex items-center justify-between mb-2"><p class="text-xs font-black tracking-widest uppercase text-gray-500">Semesters</p><button class="btn3d sm b-ghost" onclick="toast('New semester dialog opened','➕')">＋ New semester</button></div>
+    <div class="pcard p-0 overflow-hidden divide-y divide-gray-50">
+      <div class="flex items-center justify-between px-4 py-3"><div><p class="text-sm font-bold text-gray-900">Spring 2026</p><p class="text-[11px] text-gray-500">Jan 12 – May 22, 2026</p></div><span class="pill pill-green">Active</span></div>
+      <div class="flex items-center justify-between px-4 py-3"><div><p class="text-sm font-semibold text-gray-900">Summer 2026</p><p class="text-[11px] text-gray-500">Jun 1 – Aug 15, 2026</p></div><span class="pill pill-blue">Upcoming</span></div>
+      <div class="flex items-center justify-between px-4 py-3"><div><p class="text-sm font-semibold text-gray-900">Fall 2025</p><p class="text-[11px] text-gray-500">Sep 1 – Dec 20, 2025</p></div><span class="pill pill-slate">Past</span></div>
+      <div class="flex items-center justify-between px-4 py-3"><div><p class="text-sm font-semibold text-gray-900">Spring 2025</p><p class="text-[11px] text-gray-500">Jan 13 – May 23, 2025</p></div><span class="pill pill-slate">Past</span></div>
+    </div>
+  </div>
+  </div>
+
+</div>
+<script src="shared.js"></script>
+</body>
+</html>

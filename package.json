@@ -11,6 +11,8 @@
     "test": "vitest --run",
     "test:coverage": "vitest --run --coverage",
     "test:rls": "vitest --run --config vitest.integration.config.ts",
+    "test:visual": "playwright test --config playwright.visual.config.ts",
+    "test:visual:capture": "cross-env VISUAL_CAPTURE=1 playwright test --config playwright.visual.config.ts prototype-reference",
     "seed": "supabase db reset",
     "db:check-replay": "node scripts/check-migration-replay-order.mjs",
     "db:check-dup-names": "node scripts/check-migration-duplicate-names.mjs",

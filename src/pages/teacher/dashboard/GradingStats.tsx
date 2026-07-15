@@ -1,5 +1,5 @@
 import { Card } from "@/components/ui/card";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 import { useGradingStats } from "@/hooks/useGradingStats";
 import {
   CheckSquare,

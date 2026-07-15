@@ -191,7 +191,8 @@ const BadgeAwardModal = ({ badge, isOpen, onClose }: BadgeAwardModalProps) => {
           {/* Dismiss button */}
           <Button
             onClick={onClose}
-            className="mt-2 w-full bg-gradient-to-r from-teal-500 to-blue-600 text-white font-semibold active:scale-95 transition-transform duration-100"
+            variant="tactile"
+            className="mt-2 w-full font-semibold"
           >
             Awesome!
           </Button>

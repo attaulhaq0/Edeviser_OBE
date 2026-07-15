@@ -120,7 +120,7 @@ const SaleEventManager = () => {
         </div>
         <Button
           onClick={() => setShowForm(true)}
-          className="bg-gradient-to-r from-teal-500 to-blue-600 text-white active:scale-95 transition-transform duration-100"
+          variant="tactile"
         >
           <Plus className="h-4 w-4" /> Create Sale
         </Button>

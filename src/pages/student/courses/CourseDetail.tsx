@@ -14,7 +14,7 @@ import { useCourse } from "@/hooks/useCourses";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 import MaterialItem from "@/components/shared/MaterialItem";
 import AnnouncementCard from "@/components/shared/AnnouncementCard";
 import {

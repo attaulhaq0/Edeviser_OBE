@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Edeviser — Lesson</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
+<link rel="stylesheet" href="shared.css"/>
+</head>
+<body class="bg-slate-50" data-role="student" data-immersive="1">
+
+<div class="lz-top">
+  <button class="lz-x" onclick="location.href='dashboard.html'">✕</button>
+  <div class="lz-prog"><div id="prog" style="width:10%"></div></div>
+  <span class="lz-step" id="steplbl">3NF</span>
+</div>
+
+<div class="page-content no-scrollbar" id="stage"></div>
+  <!-- BACKEND GROUNDING · hooks: useLearningPath, useSessionCompletion | tables: learning_path_nodes, study_sessions, evidence -->
+
+<script>
+let step=0, wrong=0;
+const TOTAL=5;
+const stage=()=>document.getElementById('stage');
+function setProg(){document.getElementById('prog').style.width=Math.round(((step)/ (TOTAL-1))*100)+'%';}
+
+function render(){
+  setProg();
+  const s=stage();
+  if(step===0){ // CONCEPT
+    s.innerHTML=`
+      <div class="fade-in-up">
+        <span class="text-[10px] font-black tracking-widest uppercase text-teal-600">Concept · CLO3 Normalization</span>
+        <h1 class="text-2xl font-black text-gray-900 mt-1">Third Normal Form (3NF)</h1>
+        <div class="pcard p-5 mt-4">
+          <p class="text-sm text-gray-700 leading-relaxed">A table is in <b>3NF</b> when it's in 2NF <b>and</b> no non-key column depends on another non-key column — that's a <b>transitive dependency</b>.</p>
+          <div class="mt-4 rounded-xl bg-slate-50 border border-gray-100 p-4">
+            <p class="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Worked example</p>
+            <p class="text-xs text-gray-700 leading-relaxed"><b>Book</b>(<u>book_id</u>, title, publisher, <span class="text-red-600 font-bold">publisher_country</span>)</p>
+            <p class="text-xs text-gray-500 mt-2">Here <b>publisher_country</b> depends on <b>publisher</b>, not on the key. That's transitive → split <b>Publisher</b> into its own table.</p>
+          </div>
+        </div>
+        <div class="lz-cta"><button onclick="next()" class="w-full py-3.5 rounded-2xl text-white text-base font-bold shadow-lg" style="background:var(--brand-gradient)">Got it →</button></div>
+      </div>`;
+  } else if(step===1){ // RECALL 1
+    s.innerHTML=recallQ({
+      tag:"Active recall · 1 of 2",
+      q:"In <b>Order</b>(<u>order_id</u>, customer_id, customer_city), which column breaks 3NF?",
+      opts:[["order_id","x"],["customer_city","✓"],["order_id + customer_id","x"]],
+      ok:"Right — <b>customer_city</b> depends on customer_id (a non-key), so it's transitive.",
+      no:"Not quite — <b>customer_city</b> depends on customer_id, a non-key column. That's the transitive dependency."
+    });
+  } else if(step===2){ // RECALL 2
+    s.innerHTML=recallQ({
+      tag:"Active recall · 2 of 2",
+      q:"True or false: a table can be in 2NF but <b>not</b> in 3NF.",
+      opts:[["True","✓"],["False","x"]],
+      ok:"Correct — 3NF is stricter; 2NF tables can still hide transitive dependencies.",
+      no:"Actually true — 3NF adds a rule on top of 2NF, so a 2NF table can still fail 3NF."
+    });
+  } else if(step===3){ // REFLECT
+    s.innerHTML=`
+      <div class="fade-in-up">
+        <span class="text-[10px] font-black tracking-widest uppercase text-blue-600">Reflect · 30 seconds</span>
+        <h1 class="text-2xl font-black text-gray-900 mt-1">Make it yours</h1>
+        <div class="pcard p-5 mt-4">
+          <p class="text-sm font-semibold text-gray-800">Where might a transitive dependency sneak into a project you'd build?</p>
+          <textarea class="w-full border border-gray-200 rounded-xl p-3 text-sm mt-3" rows="4" placeholder="One sentence is enough…"></textarea>
+          <p class="text-[11px] text-gray-400 mt-2">Explaining in your own words strengthens memory (metacognition).</p>
+        </div>
+        <div class="lz-cta"><button onclick="next()" class="w-full py-3.5 rounded-2xl text-white text-base font-bold shadow-lg" style="background:var(--brand-gradient)">Finish lesson →</button></div>
+      </div>`;
+  } else { // COMPLETE
+    const gained = wrong===0?9:6;
+    s.innerHTML=`
+      <div class="text-center fade-in-up pt-4">
+        <div class="text-5xl mb-2">🎉</div>
+        <h1 class="text-2xl font-black text-gray-900">Lesson complete</h1>
+        <p class="text-sm text-gray-500 mt-1">${wrong===0?"Flawless — durable memory in the making.":"Nice work — the ones you missed are now in your review."}</p>
+        <div class="pcard p-6 mt-5">
+          <p class="text-[10px] font-black uppercase tracking-widest text-gray-400">Your mastery moved</p>
+          <div class="relative h-28 w-28 mx-auto mt-3">
+            <svg class="h-28 w-28 -rotate-90" viewBox="0 0 36 36"><circle cx="18" cy="18" r="16" fill="none" stroke="#eef2f6" stroke-width="3"/><circle id="ring" cx="18" cy="18" r="16" fill="none" stroke="#22c55e" stroke-width="3" stroke-linecap="round" stroke-dasharray="100" stroke-dashoffset="38" style="transition:stroke-dashoffset 1s ease"/></svg>
+            <div class="absolute inset-0 flex items-center justify-center"><span id="ringpct" class="text-2xl font-black text-green-600">62%</span></div>
+          </div>
+          <p class="text-sm font-bold text-gray-900 mt-2">Normalization (CLO3)</p>
+          <p class="text-xs text-gray-500">Developing → <b class="text-green-600">${wrong===0?'Satisfactory':'Developing+'}</b></p>
+          <div class="flex items-center justify-center gap-2 mt-3">
+            <span class="text-xs font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full">+${gained} XP · mastery gain</span>
+          </div>
+          <div class="mt-3 rounded-xl bg-blue-50 border border-blue-100 px-3 py-2"><p class="text-xs text-blue-800">🔁 Review scheduled — <b>Day 1 · 3 · 7</b> (spaced repetition).</p></div>
+        </div>
+        <div class="mt-5 space-y-2">
+          <a href="review.html" class="block w-full py-3.5 rounded-2xl text-white text-base font-bold shadow-lg" style="background:var(--brand-gradient)">Start today's review →</a>
+          <a href="dashboard.html" class="block w-full py-3 rounded-2xl text-gray-700 bg-white border border-gray-200 text-sm font-bold">Back to Today</a>
+        </div>
+      </div>`;
+    setTimeout(()=>{const r=document.getElementById('ring');const p=document.getElementById('ringpct');if(r){r.style.strokeDashoffset=wrong===0?'29':'33';}if(p){let v=62,to=wrong===0?71:67;const iv=setInterval(()=>{v++;p.textContent=v+'%';if(v>=to)clearInterval(iv);},40);}},300);
+    confetti();
+  }
+}
+function recallQ({tag,q,opts,ok,no}){
+  return `<div class="fade-in-up">
+    <span class="text-[10px] font-black tracking-widest uppercase text-purple-600">${tag}</span>
+    <h1 class="text-xl font-black text-gray-900 mt-1 leading-snug">${q}</h1>
+    <div class="mt-4" id="opts">${opts.map((o,i)=>`<button class="opt" onclick="answer(this,'${o[1]}')" data-i="${i}"><span class="h-6 w-6 rounded-lg bg-slate-100 flex items-center justify-center text-xs font-black text-slate-500">${String.fromCharCode(65+i)}</span>${o[0]}</button>`).join('')}</div>
+    <div id="fb" class="hidden mt-2 rounded-xl p-3 text-sm"></div>
+    <div class="lz-cta"><button id="cont" onclick="next()" class="w-full py-3.5 rounded-2xl text-white text-base font-bold shadow-lg opacity-40 pointer-events-none" style="background:var(--brand-gradient)">Choose an answer</button></div>
+    <input type="hidden" id="okmsg" value="${ok.replace(/"/g,'&quot;')}"><input type="hidden" id="nomsg" value="${no.replace(/"/g,'&quot;')}">
+  </div>`;
+}
+function answer(el,val){
+  const opts=document.getElementById('opts');
+  if(opts.dataset.done) return; opts.dataset.done='1';
+  const correct=val==='✓';
+  opts.querySelectorAll('.opt').forEach(b=>{b.classList.add('dim');});
+  el.classList.remove('dim');
+  el.classList.add(correct?'correct':'wrong');
+  if(!correct){wrong++; // reveal the correct one
+    opts.querySelectorAll('.opt').forEach(b=>{if(b.getAttribute('onclick').includes("'✓'")){b.classList.remove('dim');b.classList.add('correct');}});
+  }
+  const fb=document.getElementById('fb');
+  fb.className='mt-2 rounded-xl p-3 text-sm '+(correct?'bg-green-50 text-green-800 border border-green-100':'bg-red-50 text-red-800 border border-red-100');
+  fb.innerHTML=(correct?'✅ ':'💡 ')+document.getElementById(correct?'okmsg':'nomsg').value+(correct?'':' <b>Added to your review.</b>');
+  fb.classList.remove('hidden');
+  const c=document.getElementById('cont');c.classList.remove('opacity-40','pointer-events-none');c.textContent='Continue →';
+}
+function next(){step++;render();window.scrollTo(0,0);}
+render();
+</script>
+<script src="shared.js"></script>
+</body>
+</html>

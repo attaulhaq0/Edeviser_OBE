@@ -140,7 +140,8 @@ const SessionReflectionInput = ({
         <Button
           type="button"
           size="sm"
-          className="h-9 gap-1.5 bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
+          variant="tactile"
+          className="h-9 gap-1.5"
           onClick={handleSave}
           disabled={!meetsMinimum || isPending || disabled}
         >

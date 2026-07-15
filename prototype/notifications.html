@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Edeviser — Notifications</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
+<link rel="stylesheet" href="shared.css"/>
+<style>
+  /* Full notifications feed — maps to: notifications, useNotifications,
+     notification-digest edge fn. The header bell (buildNotifs in shared.js)
+     shows a short dropdown preview of the SAME role-scoped feed; this page is
+     the full history with filters, so "View all" from the bell has somewhere
+     real to go instead of dead-ending at the dropdown. */
+  html.mode-laptop body[data-norail] .page-content{max-width:none;padding-right:32px}
+  .nf-grid{display:block}
+  html.mode-laptop .nf-grid{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:24px;align-items:start}
+  html.mode-laptop .nf-rail{position:sticky;top:74px;display:flex;flex-direction:column;gap:16px}
+  .nf-item{display:flex;gap:12px;padding:13px 14px;border:1px solid #f1f5f9;border-radius:14px;margin-bottom:8px;cursor:pointer;transition:background .15s}
+  .nf-item:hover{background:#f8fafc}
+  .nf-item.unread{background:#f8fbff;border-color:#dbeafe}
+  .nf-dot{width:8px;height:8px;border-radius:50%;background:#3b82f6;flex:0 0 auto;margin-top:6px}
+  .nf-cat{font-size:12.5px;font-weight:800;color:#64748b;padding:7px 13px;border-radius:10px;background:#fff;border:1px solid #e8edf3;cursor:pointer;white-space:nowrap}
+  .nf-cat.on{background:var(--brand-gradient);color:#fff;border-color:transparent}
+</style>
+</head>
+<body class="bg-slate-50" data-norail>
+
+<header class="app-header">
+  <div class="flex items-center gap-3">
+    <a id="backlink" href="dashboard.html" class="p-1.5 rounded-lg hover:bg-gray-100"><svg class="h-5 w-5 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg></a>
+    <h1 class="text-base font-bold tracking-tight text-gray-900">Notifications</h1>
+  </div>
+  <button id="markall" class="btn3d sm b-ghost" onclick="markAllRead()">Mark all read</button>
+</header>
+
+<div class="page-content no-scrollbar">
+  <div class="nf-grid">
+    <div>
+      <div class="flex gap-2 overflow-x-auto no-scrollbar mb-3">
+        <button class="nf-cat on" onclick="nfFilter(this,'all')">All</button>
+        <button class="nf-cat" onclick="nfFilter(this,'unread')">Unread</button>
+      </div>
+      <div id="nf-list"></div>
+      <button class="btn3d sm b-ghost full" onclick="toast('Loaded 10 more notifications','🔔')">Load more</button>
+    </div>
+
+    <aside class="nf-rail">
+      <div class="pcard p-4">
+        <div class="sec-h"><span class="chip">⚙️</span><p class="t">Preferences</p></div>
+        <div class="flex items-center justify-between py-2"><span class="text-sm text-gray-700">Push notifications</span><label class="edv-toggle"><input type="checkbox" checked onchange="toast(this.checked?'Push on':'Push off','🔔')"><span class="etk"></span></label></div>
+        <div class="flex items-center justify-between py-2 border-t border-gray-50"><span class="text-sm text-gray-700">Email digest</span><label class="edv-toggle"><input type="checkbox" checked onchange="toast(this.checked?'Digest on':'Digest off','📧')"><span class="etk"></span></label></div>
+        <a href="settings.html" class="block mt-1 text-xs font-bold text-blue-600">More notification settings →</a>
+      </div>
+      <div class="pcard p-4" style="background:linear-gradient(135deg,#f0fdfa,#eff6ff);border:1px solid #99f6e4">
+        <p class="text-xs font-black text-teal-700 mb-1">💡 Stay on top of it</p>
+        <p class="text-[11px] text-gray-600 leading-relaxed">Notifications are scoped to what matters for your role — streaks and CLO gaps here, at-risk students on the teacher side, and so on.</p>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<nav class="bottom-bar" id="navbar"></nav>
+<script>
+  // Reuses the exact per-role feed shared.js's header bell shows, extended
+  // with a couple of older read items so the full-page history has more to
+  // show than the compact dropdown.
+  const FEED={
+    student:[
+      {icon:'🔥',title:'Streak paused, not lost',body:'One 5-min review restarts your 12-day streak.',time:'5m',unread:true},
+      {icon:'🎯',title:'Normalization is your weakest CLO',body:'62% · one 10-min action can move it to Satisfactory.',time:'1h',unread:true},
+      {icon:'🤖',title:'AI Tutor prepared your day',body:'3 spaced reviews are due — tap to start.',time:'2h',unread:true},
+      {icon:'🏅',title:'Most-Improved this week',body:'You climbed 2 spots in your league.',time:'1d',unread:false},
+      {icon:'🌟',title:'Perfect Day badge earned',body:'You completed all 4 habits yesterday. +50 XP.',time:'2d',unread:false},
+      {icon:'📣',title:'Final exam schedule released',body:'Check timetable for updated timings — Prof. Ahmed',time:'3d',unread:false},
+    ],
+    teacher:[
+      {icon:'⚠️',title:'3 students flagged',body:'Sara, Omar, Lina show declining Normalization.',time:'8m',unread:true},
+      {icon:'✍️',title:'12 feedback drafts ready',body:'AI drafted feedback for CS301 Assignment 3.',time:'40m',unread:true},
+      {icon:'🧬',title:'Curriculum draft ready',body:'Your uploaded slides became 6 micro-lessons.',time:'2h',unread:true},
+      {icon:'📋',title:'CLO gap detected',body:'REST APIs (CLO5) below target across 2 sections.',time:'1d',unread:false},
+      {icon:'🧭',title:'New tutor handoff',body:'A student was escalated after 3 repeated questions.',time:'2d',unread:false},
+    ],
+    parent:[
+      {icon:'🌱',title:'Maya had a strong week',body:'Studied 4 of 5 days — up from 2 last week.',time:'2h',unread:true},
+      {icon:'💬',title:'A way to help',body:'Ask Maya to teach you one thing she learned.',time:'1d',unread:true},
+      {icon:'🎉',title:'Improvement to celebrate',body:'Writing outcomes moved to Satisfactory.',time:'2d',unread:false},
+      {icon:'💳',title:'Tuition due soon',body:'Spring 2026 tuition due Jul 20.',time:'3d',unread:false},
+    ],
+    coordinator:[
+      {icon:'📉',title:'PLO2 attainment dipped',body:'Down 6% across the CS program this term.',time:'1h',unread:true},
+      {icon:'🗂️',title:'Curriculum gap',body:'No assessment covers CLO "Concurrency".',time:'3h',unread:true},
+      {icon:'📋',title:'Accreditation evidence drafted',body:'Course file for CS301 is ready to review.',time:'1d',unread:false},
+      {icon:'👥',title:'Team rebalance suggested',body:'3 teams flagged for skill imbalance.',time:'2d',unread:false},
+    ],
+    admin:[
+      {icon:'📈',title:'Weekly engagement report',body:'92% active learners · retention risk: 38 students.',time:'1h',unread:true},
+      {icon:'🛡️',title:'AI action log',body:'214 AI suggestions this week · 0 auto-actions.',time:'5h',unread:true},
+      {icon:'🏫',title:'Dept comparison ready',body:'CS leads mastery; Business trails on outcomes.',time:'1d',unread:false},
+      {icon:'🔒',title:'IP auto-blocked',body:'Suspicious login pattern detected and blocked.',time:'2d',unread:false},
+    ],
+  };
+  (function(){
+    // Prefer the persisted role (set by shared.js on any role page) — reliable,
+    // unlike document.referrer which is empty/misleading in many navigations
+    // and used to bounce staff/parents to the student dashboard.
+    let role=null; try{role=localStorage.getItem('edv-role');}catch(e){}
+    if(!role){ const r=document.referrer||''; role='student'; if(/teacher-/.test(r))role='teacher'; else if(/coordinator-/.test(r))role='coordinator'; else if(/admin-/.test(r))role='admin'; else if(/parent-/.test(r))role='parent'; }
+    document.body.dataset.role=role;
+    const back={student:'dashboard.html',teacher:'teacher-dashboard.html',coordinator:'coordinator-dashboard.html',admin:'admin-dashboard.html',parent:'parent-dashboard.html'};
+    document.getElementById('backlink').href=back[role];
+    const TABS={
+      student:[['dashboard.html','🏠','Home','home'],['learn.html','📚','Learn','learn'],['tutor.html','🤖','Tutor','tutor'],['progress.html','📈','Progress','progress'],['profile.html','👤','Me','me']],
+      teacher:[['teacher-dashboard.html','🏠','Home','home'],['teacher-students.html','🧑‍🎓','Students','students'],['teacher-curriculum.html','🧬','Curriculum','curriculum'],['teacher-grading.html','✍️','Grading','grading'],['teacher-profile.html','👤','Me','me']],
+      coordinator:[['coordinator-dashboard.html','🏠','Home','home'],['coordinator-outcomes.html','🎯','Outcomes','outcomes'],['coordinator-curriculum.html','🗂️','Matrix','matrix'],['coordinator-accreditation.html','📋','Accredit','accred'],['coordinator-profile.html','👤','Me','me']],
+      admin:[['admin-dashboard.html','🏠','Home','home'],['admin-analytics.html','📊','Analytics','analytics'],['admin-governance.html','🛡️','Governance','gov'],['admin-users.html','👥','People','people'],['admin-profile.html','👤','Me','me']],
+      parent:[['parent-dashboard.html','🏠','Home','home'],['parent-progress.html','🌱','Growth','growth'],['parent-support.html','💬','Support','support'],['parent-profile.html','👤','Me','me']],
+    };
+    document.getElementById('navbar').innerHTML=(TABS[role]||TABS.student).map(t=>`<a href="${t[0]}" class="tab-btn" data-tab="${t[3]}"><span class="tab-ic" style="font-size:20px">${t[1]}</span><span>${t[2]}</span></a>`).join('');
+
+    const NOTIFS=(FEED[role]||FEED.student).map((n,i)=>({id:i+1,...n}));
+    function render(filter){
+      const rows=NOTIFS.filter(n=>filter!=='unread'||n.unread);
+      document.getElementById('nf-list').innerHTML=rows.map(n=>`<div class="nf-item ${n.unread?'unread':''}" data-nid="${n.id}"><span style="font-size:20px">${n.icon}</span><div style="flex:1;min-width:0"><p style="font-size:13.5px;font-weight:700;color:#1e293b;margin:0">${n.title}</p><p style="font-size:12px;color:#64748b;margin:3px 0 0">${n.body}</p><p style="font-size:10.5px;color:#94a3b8;margin:4px 0 0">${n.time} ago</p></div>${n.unread?'<span class="nf-dot"></span>':''}</div>`).join('') || '<p class="text-sm text-gray-400 text-center py-8">Nothing here yet.</p>';
+      document.querySelectorAll('.nf-item').forEach(it=>it.onclick=()=>{ const n=NOTIFS.find(x=>x.id==it.dataset.nid); if(n){n.unread=false; render(document.querySelector('.nf-cat.on').textContent==='Unread'?'unread':'all');} });
+    }
+    window.nfFilter=(btn,f)=>{ document.querySelectorAll('.nf-cat').forEach(b=>b.classList.remove('on')); btn.classList.add('on'); render(f); };
+    window.markAllRead=()=>{ NOTIFS.forEach(n=>n.unread=false); render(document.querySelector('.nf-cat.on').textContent==='Unread'?'unread':'all'); toast('All marked read','✅'); };
+    render('all');
+  })();
+</script>
+<script src="shared.js"></script>
+<script>window.addEventListener('load',()=>equalizeColumns('.nf-grid > div:first-child','.nf-rail'));</script>
+</body>
+</html>

@@ -1,7 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Ticket } from "lucide-react";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 import { formatLocalDate } from "@/lib/formatDate";
 import { useExtraAttemptUsage } from "@/hooks/useExtraAttemptUsage";
 

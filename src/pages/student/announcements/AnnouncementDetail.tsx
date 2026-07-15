@@ -12,7 +12,7 @@ import { useReadHabitTimer } from "@/hooks/useReadHabitTimer";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 import { AnnouncementAttachmentList } from "@/components/shared/AnnouncementAttachmentList";
 import { ArrowLeft, Megaphone, Pin, Clock, CheckCircle2 } from "lucide-react";
 import { format } from "date-fns";

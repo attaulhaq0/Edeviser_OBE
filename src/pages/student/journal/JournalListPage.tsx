@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -137,7 +137,7 @@ const JournalListPage = () => {
         </div>
         <Button
           onClick={() => navigate("/student/journal/new")}
-          className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 text-white"
+          variant="tactile"
         >
           <PenLine className="h-4 w-4" />
           New Entry

@@ -35,7 +35,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { NoEvidence } from "@/components/shared/EmptyState";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 import {
   useHistoricalEvidence,
   type HistoricalEvidenceRow,

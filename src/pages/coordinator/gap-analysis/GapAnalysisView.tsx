@@ -1,24 +1,24 @@
 // Task 119.2: Gap Analysis View page
 
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { parseAsString, useQueryState } from "nuqs";
 import { useGapAnalysis } from "@/hooks/useVisualizationData";
 import { usePrograms } from "@/hooks/usePrograms";
+import { NoOutcomes } from "@/components/shared/EmptyState";
+import ErrorState from "@/components/shared/ErrorState";
 import {
+  Badge,
+  Card,
+  KPICard,
+  MasteryRing,
+  SectionHeader,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { NoOutcomes } from "@/components/shared/EmptyState";
-import ErrorState from "@/components/shared/ErrorState";
-import Shimmer from "@/components/shared/Shimmer";
-import KPICard from "@/components/shared/KPICard";
-import SectionHeader from "@/components/shared/SectionHeader";
-import MasteryRing from "@/components/shared/MasteryRing";
-import { SeverityIcon } from "@/components/shared/SeverityIcon";
+  SeverityIcon,
+  Shimmer,
+} from "@/design-system";
 import { attainmentValueClass } from "@/lib/attainmentTone";
 import {
   AlertTriangle,

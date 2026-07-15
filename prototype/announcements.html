@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Edeviser — Announcements</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
+<link rel="stylesheet" href="shared.css"/>
+<style>
+  /* Announcements (cross-cutting, role-aware) — maps to: announcements,
+     announcement_reads, announcement_attachments, useAnnouncements,
+     fan_out_announcement_notifications. Staff compose; everyone reads. */
+  html.mode-laptop body[data-norail] .page-content{max-width:none;padding-right:32px}
+  .an-grid{display:block}
+  html.mode-laptop .an-grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:24px;align-items:start}
+  html.mode-laptop .an-rail{position:sticky;top:74px;display:flex;flex-direction:column;gap:16px}
+  .an-item{border:1px solid #eef2f6;border-radius:14px;padding:14px;position:relative}
+  .an-item.unread{border-color:#bfdbfe;background:#f8fbff}
+  .an-unread-dot{position:absolute;top:16px;right:14px;width:8px;height:8px;border-radius:50%;background:#3b82f6}
+</style>
+</head>
+<body class="bg-slate-50" data-norail>
+
+<header class="app-header">
+  <div class="flex items-center gap-3">
+    <a id="backlink" href="dashboard.html" class="p-1.5 rounded-lg hover:bg-gray-100"><svg class="h-5 w-5 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg></a>
+    <div><h1 class="text-base font-bold tracking-tight text-gray-900">Announcements</h1><p class="text-xs text-gray-500">News from your courses & institution</p></div>
+  </div>
+  <button id="markall" class="btn3d sm b-ghost" onclick="toast('All marked read','✅')">Mark all read</button>
+</header>
+
+<div class="page-content no-scrollbar">
+  <div class="an-grid">
+    <div class="space-y-4">
+
+      <!-- Composer (staff only; shown via inline role check) -->
+      <div id="composer" class="pcard p-4" hidden>
+        <div class="sec-h"><span class="chip">📣</span><p class="t">Post an announcement</p></div>
+        <input class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 mb-2" placeholder="Title"/>
+        <textarea class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 mb-2" rows="3" placeholder="Write your announcement…"></textarea>
+        <div class="flex items-center gap-2 flex-wrap">
+          <select class="text-sm border border-gray-200 rounded-lg px-2.5 py-2 bg-white"><option>All my courses</option><option>CS301 · Database Design</option><option>Whole institution</option></select>
+          <button class="btn3d sm b-ghost" onclick="toast('Attachment added','📎')">📎 Attach</button>
+          <button class="btn3d sm ms-auto" onclick="toast('Announcement posted · notifying students','📣')" style="background:#0382bd">Post</button>
+        </div>
+      </div>
+
+      <!-- Feed (announcements + announcement_reads) -->
+      <div class="pcard p-4">
+        <div class="sec-h"><span class="chip">📣</span><p class="t">Recent</p></div>
+        <div class="space-y-2.5">
+          <div class="an-item unread"><span class="an-unread-dot"></span>
+            <div class="flex items-center gap-2 mb-1"><span class="pill pill-blue">CS301</span><span class="text-[11px] text-gray-400">Prof. Ahmed · 2h ago</span></div>
+            <p class="text-sm font-bold text-gray-900">Assignment 3 deadline extended to Friday</p>
+            <p class="text-xs text-gray-600 mt-1">I've pushed the normalization assignment to Friday 5 PM to give everyone time after the lab. 📎 rubric.pdf</p>
+          </div>
+          <div class="an-item unread"><span class="an-unread-dot"></span>
+            <div class="flex items-center gap-2 mb-1"><span class="pill pill-amber">Institution</span><span class="text-[11px] text-gray-400">Admin · Yesterday</span></div>
+            <p class="text-sm font-bold text-gray-900">Midterm week schedule published</p>
+            <p class="text-xs text-gray-600 mt-1">Midterms run Jul 13–17. Check your calendar for room assignments.</p>
+          </div>
+          <div class="an-item">
+            <div class="flex items-center gap-2 mb-1"><span class="pill pill-green">CS205</span><span class="text-[11px] text-gray-400">Prof. Fatima · 2 days ago</span></div>
+            <p class="text-sm font-bold text-gray-900">Great job on the web dev lab!</p>
+            <p class="text-xs text-gray-600 mt-1">Class average was 84%. Solutions are posted in the materials tab.</p>
+          </div>
+          <div class="an-item">
+            <div class="flex items-center gap-2 mb-1"><span class="pill pill-blue">CS301</span><span class="text-[11px] text-gray-400">Prof. Ahmed · 4 days ago</span></div>
+            <p class="text-sm font-bold text-gray-900">Office hours moved to Room 210</p>
+            <p class="text-xs text-gray-600 mt-1">Mon–Wed 1–3 PM, starting this week.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <aside class="an-rail">
+      <div class="pcard p-4">
+        <div class="sec-h"><span class="chip">🔎</span><p class="t">Filter</p></div>
+        <div class="space-y-1.5">
+          <button class="scope-chip on w-full text-left px-3 py-2 rounded-lg bg-blue-50 text-blue-700 text-sm font-semibold">All (4)</button>
+          <button class="w-full text-left px-3 py-2 rounded-lg hover:bg-slate-50 text-sm text-gray-700">Unread (2)</button>
+          <button class="w-full text-left px-3 py-2 rounded-lg hover:bg-slate-50 text-sm text-gray-700">CS301 (2)</button>
+          <button class="w-full text-left px-3 py-2 rounded-lg hover:bg-slate-50 text-sm text-gray-700">Institution (1)</button>
+        </div>
+      </div>
+      <div class="pcard p-4" style="background:linear-gradient(135deg,#f0fdfa,#eff6ff);border:1px solid #99f6e4">
+        <p class="text-xs font-black text-teal-700 mb-1">🔔 Notifications</p>
+        <p class="text-[11px] text-gray-600 leading-relaxed">New announcements also appear in your notification bell and (if enabled) email digest.</p>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<nav class="bottom-bar" id="navbar"></nav>
+<script>
+  (function(){
+    // Prefer the persisted role (set by shared.js on any role page) — it's
+    // reliable, unlike document.referrer which is empty/misleading in many
+    // navigations and used to bounce staff/parents to the student dashboard.
+    let role=null; try{role=localStorage.getItem('edv-role');}catch(e){}
+    if(!role){ const r=document.referrer||''; role='student'; if(/teacher-/.test(r))role='teacher'; else if(/coordinator-/.test(r))role='coordinator'; else if(/admin-/.test(r))role='admin'; else if(/parent-/.test(r))role='parent'; }
+    document.body.dataset.role=role;
+    // Staff can compose
+    if(role==='teacher'||role==='coordinator'||role==='admin'){ document.getElementById('composer').hidden=false; }
+    const ic=(d)=>`<span class="tab-ic" style="font-size:20px">${d}</span>`;
+    const TABS={
+      student:[['dashboard.html','🏠','Home','home'],['learn.html','📚','Learn','learn'],['tutor.html','🤖','Tutor','tutor'],['progress.html','📈','Progress','progress'],['profile.html','👤','Me','me']],
+      teacher:[['teacher-dashboard.html','🏠','Home','home'],['teacher-students.html','🧑‍🎓','Students','students'],['announcements.html','📣','Announce','announce'],['teacher-curriculum.html','🧬','Curriculum','curriculum'],['teacher-grading.html','✍️','Grading','grading']],
+      coordinator:[['coordinator-dashboard.html','🏠','Home','home'],['coordinator-outcomes.html','🎯','Outcomes','outcomes'],['announcements.html','📣','Announce','announce'],['coordinator-curriculum.html','🗂️','Matrix','matrix'],['coordinator-accreditation.html','📋','Accredit','accred']],
+      admin:[['admin-dashboard.html','🏠','Home','home'],['admin-analytics.html','📊','Analytics','analytics'],['announcements.html','📣','Announce','announce'],['admin-governance.html','🛡️','Governance','gov'],['admin-users.html','👥','People','people']],
+      parent:[['parent-dashboard.html','🏠','Home','home'],['parent-progress.html','🌱','Growth','growth'],['announcements.html','📣','Announce','announce'],['parent-support.html','💬','Support','support'],['parent-profile.html','👤','Me','me']]
+    };
+    const back={student:'dashboard.html',teacher:'teacher-dashboard.html',coordinator:'coordinator-dashboard.html',admin:'admin-dashboard.html',parent:'parent-dashboard.html'};
+    document.getElementById('backlink').href=back[role];
+    document.getElementById('navbar').innerHTML=(TABS[role]||TABS.student).map(t=>`<a href="${t[0]}" class="tab-btn ${t[3]==='announce'?'active':''}" data-tab="${t[3]}">${ic(t[1])}<span>${t[2]}</span></a>`).join('');
+  })();
+</script>
+<script src="shared.js"></script>
+</body>
+</html>

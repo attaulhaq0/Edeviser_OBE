@@ -16,7 +16,7 @@ import { queryKeys } from "@/lib/queryKeys";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 import { NoChallenges } from "@/components/shared/EmptyState";
 import { Trophy, Target, Users, Handshake, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";

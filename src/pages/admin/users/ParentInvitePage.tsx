@@ -25,7 +25,7 @@ import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { logAuditEvent } from "@/lib/auditLogger";
 import { useAuth } from "@/hooks/useAuth";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 import { useQuery } from "@tanstack/react-query";
 
 const schema = z.object({
@@ -245,11 +245,7 @@ const ParentInvitePage = () => {
                     </FormItem>
                   )}
                 />
-                <Button
-                  type="submit"
-                  disabled={isPending}
-                  className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
-                >
+                <Button type="submit" disabled={isPending} variant="tactile">
                   {isPending ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
                   ) : (

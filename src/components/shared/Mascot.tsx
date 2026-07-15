@@ -57,7 +57,7 @@ const Mascot = ({ moment, className }: MascotProps) => {
         className
       )}
     >
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-teal-500 to-blue-600">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[linear-gradient(93.65deg,#14b8a6_5.37%,#0382bd_78.89%)]">
         <Icon className="h-5 w-5 text-white" aria-hidden="true" />
       </div>
       <div className="min-w-0">

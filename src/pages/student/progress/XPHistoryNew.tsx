@@ -19,13 +19,17 @@ import { motion } from "framer-motion";
 import { ArrowLeft, Coins, Layers, TrendingUp } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import KPICard from "@/components/shared/KPICard";
-import SectionHeader from "@/components/shared/SectionHeader";
-import Shimmer from "@/components/shared/Shimmer";
+import {
+  Badge,
+  Button,
+  Card,
+  KPICard,
+  SectionHeader,
+  Shimmer,
+  Tabs,
+  TabsList,
+  TabsTrigger,
+} from "@/design-system";
 import { useAuth } from "@/hooks/useAuth";
 import {
   useXPHistory,

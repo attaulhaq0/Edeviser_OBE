@@ -58,6 +58,51 @@ CREATE POLICY "parent_read_linked" ON table_name
   );
 ```
 
+### SECURITY DEFINER Function Grant Hygiene
+
+PostgreSQL grants `EXECUTE` on a newly created function to `PUBLIC` by default, which
+reaches both the `anon` and `authenticated` roles. For a `SECURITY DEFINER` function
+(which runs with the function owner's privileges and bypasses the caller's RLS), an
+unexamined default grant is a live authorization bug waiting to happen — this is
+exactly how `delete_department_if_no_programs` (no role/institution check at all) and
+`get_earn_spend_ratio` (missing institution-match check) became callable by any
+authenticated user before being fixed by
+`.kiro/specs/rls-consolidation-and-infra-health/`.
+
+Every new `SECURITY DEFINER` function must do ONE of the following — never neither:
+
+```sql
+-- Option A: explicit revoke + narrow grant
+CREATE FUNCTION public.some_admin_action(...) ...
+  SECURITY DEFINER SET search_path = ''
+AS $$ ... $$;
+REVOKE EXECUTE ON FUNCTION public.some_admin_action(...) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.some_admin_action(...) TO authenticated;
+```
+
+```sql
+-- Option B: internal fail-closed guard (preferred when the function IS meant
+-- to be callable by any authenticated user, but only for their own data/role)
+CREATE FUNCTION public.get_something(p_institution_id uuid) ...
+  SECURITY DEFINER SET search_path = ''
+AS $$
+BEGIN
+  IF (select auth_institution_id()) != p_institution_id THEN
+    RAISE EXCEPTION 'unauthorized: institution mismatch';
+  END IF;
+  -- or for role-gated actions:
+  -- IF (select auth_user_role()) <> 'admin' THEN RAISE EXCEPTION 'unauthorized' USING ERRCODE = '42501'; END IF;
+  ...
+END;
+$$;
+```
+
+Reference implementations already in the codebase: `get_wellness_aggregate_stats`,
+`get_leaderboard_page`, `fan_out_announcement_notifications`, `send_teacher_nudge`.
+Never ship a `SECURITY DEFINER` function relying on "nobody will call this RPC
+directly" — PostgREST exposes every function to `anon`/`authenticated` at
+`/rest/v1/rpc/<name>` unless explicitly revoked.
+
 ## TanStack Query Patterns
 
 ### Standard Query Hook

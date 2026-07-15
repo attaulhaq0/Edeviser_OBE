@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Edeviser — Surveys</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
+<link rel="stylesheet" href="shared.css"/>
+<style>
+  /* Surveys (respond) — maps to: surveys (type course_exit|graduate_exit|employer,
+     target_outcomes, is_active), survey_questions (question_type likert|mcq|text,
+     options, sort_order), survey_responses, useSurveys/useSurveyQuestions/
+     useSubmitSurveyResponse, useHasRespondedToSurvey (prevents duplicate submit). */
+  .sv-likert{display:flex;gap:6px;justify-content:space-between}
+  .sv-likert button{flex:1;padding:10px 4px;border-radius:10px;border:2px solid #e2e8f0;background:#fff;font-size:11px;font-weight:700;color:#64748b;cursor:pointer;text-align:center}
+  .sv-likert button.on{border-color:#14b8a6;background:#f0fdfa;color:#0f766e}
+  .sv-mcq label{display:flex;align-items:center;gap:10px;padding:10px 12px;border:2px solid #e2e8f0;border-radius:12px;margin-bottom:8px;cursor:pointer;font-size:13px;font-weight:600;color:#334155}
+  .sv-mcq input:checked + span{color:#0f766e;font-weight:800}
+  .sv-mcq label:has(input:checked){border-color:#14b8a6;background:#f0fdfa}
+</style>
+</head>
+<body class="bg-slate-50" data-role="student">
+
+<header class="app-header">
+  <div class="flex items-center gap-3">
+    <a href="profile.html" class="p-1.5 rounded-lg hover:bg-gray-100"><svg class="h-5 w-5 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg></a>
+    <h1 class="text-base font-bold tracking-tight text-gray-900">Surveys</h1>
+  </div>
+</header>
+
+<div class="page-content space-y-4 no-scrollbar">
+
+  <!-- Survey list -->
+  <div id="sv-list">
+    <div class="pcard p-4 mb-3" style="background:linear-gradient(135deg,#faf5ff,#eef2ff);border:1px solid #ddd6fe">
+      <div class="flex items-center gap-3">
+        <span class="text-2xl shrink-0">📊</span>
+        <div class="flex-1 min-w-0"><p class="text-sm font-black text-gray-900">Course Exit Survey · CS301 Database Design</p><p class="text-xs text-gray-500 mt-0.5">5 questions · ~3 minutes · anonymous to your teacher</p></div>
+      </div>
+      <button class="btn3d sm mt-3" onclick="openSurvey('course_exit')" style="background:#8b5cf6">Start survey</button>
+    </div>
+    <div class="pcard p-4">
+      <div class="flex items-center gap-3">
+        <span class="text-2xl shrink-0">🎓</span>
+        <div class="flex-1 min-w-0"><p class="text-sm font-black text-gray-900">Program milestone check-in</p><p class="text-xs text-gray-500 mt-0.5">3 questions · ~1 minute</p></div>
+      </div>
+      <button class="btn3d sm b-ghost mt-3" onclick="toast('Opening survey…','📊')">Start survey</button>
+    </div>
+    <div class="pcard p-4 mt-3 opacity-60">
+      <div class="flex items-center gap-3">
+        <span class="text-2xl shrink-0">✅</span>
+        <div class="flex-1 min-w-0"><p class="text-sm font-bold text-gray-900">Mid-semester feedback</p><p class="text-xs text-gray-500 mt-0.5">Completed 3 weeks ago</p></div>
+        <span class="pill pill-green shrink-0">Submitted</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Survey fill-out flow (course_exit example: 3 likert + 1 mcq + 1 text) -->
+  <div id="sv-fill" class="pcard p-4" hidden>
+    <div class="flex items-center justify-between mb-1"><p class="text-[11px] font-black tracking-widest uppercase text-purple-600">Course Exit Survey</p><span id="sv-step-label" class="text-xs font-bold text-gray-400">1 / 5</span></div>
+    <div class="h-1.5 rounded-full bg-gray-100 overflow-hidden mb-4"><div id="sv-progress" class="h-full rounded-full" style="width:20%;background:#8b5cf6"></div></div>
+
+    <div id="sv-q1" class="sv-q">
+      <p class="text-sm font-bold text-gray-900 mb-3">The course helped me achieve its stated learning outcomes.</p>
+      <div class="sv-likert">
+        <button onclick="pick(this,'q1')">Strongly disagree</button>
+        <button onclick="pick(this,'q1')">Disagree</button>
+        <button onclick="pick(this,'q1')">Neutral</button>
+        <button onclick="pick(this,'q1')">Agree</button>
+        <button onclick="pick(this,'q1')">Strongly agree</button>
+      </div>
+    </div>
+    <div id="sv-q2" class="sv-q" hidden>
+      <p class="text-sm font-bold text-gray-900 mb-3">The instructor provided clear, timely feedback.</p>
+      <div class="sv-likert">
+        <button onclick="pick(this,'q2')">Strongly disagree</button>
+        <button onclick="pick(this,'q2')">Disagree</button>
+        <button onclick="pick(this,'q2')">Neutral</button>
+        <button onclick="pick(this,'q2')">Agree</button>
+        <button onclick="pick(this,'q2')">Strongly agree</button>
+      </div>
+    </div>
+    <div id="sv-q3" class="sv-q" hidden>
+      <p class="text-sm font-bold text-gray-900 mb-3">Which part of the course was most valuable?</p>
+      <div class="sv-mcq">
+        <label><input type="radio" name="q3"/><span>Lectures</span></label>
+        <label><input type="radio" name="q3"/><span>Lab sessions</span></label>
+        <label><input type="radio" name="q3"/><span>AI Tutor support</span></label>
+        <label><input type="radio" name="q3"/><span>Assignments &amp; projects</span></label>
+      </div>
+    </div>
+    <div id="sv-q4" class="sv-q" hidden>
+      <p class="text-sm font-bold text-gray-900 mb-3">The workload was appropriate for the credit hours.</p>
+      <div class="sv-likert">
+        <button onclick="pick(this,'q4')">Strongly disagree</button>
+        <button onclick="pick(this,'q4')">Disagree</button>
+        <button onclick="pick(this,'q4')">Neutral</button>
+        <button onclick="pick(this,'q4')">Agree</button>
+        <button onclick="pick(this,'q4')">Strongly agree</button>
+      </div>
+    </div>
+    <div id="sv-q5" class="sv-q" hidden>
+      <p class="text-sm font-bold text-gray-900 mb-3">Any suggestions to improve this course?</p>
+      <textarea class="w-full text-sm border border-gray-200 rounded-lg px-3 py-2" rows="4" placeholder="Optional — your honest feedback helps future students"></textarea>
+    </div>
+
+    <div class="flex justify-between mt-4">
+      <button id="sv-back" class="btn3d sm b-ghost" onclick="svBack()" style="visibility:hidden">← Back</button>
+      <button id="sv-next" class="btn3d sm" onclick="svNext()" style="background:#8b5cf6">Next →</button>
+    </div>
+  </div>
+
+  <!-- Confirmation -->
+  <div id="sv-done" class="pcard p-6 text-center" hidden>
+    <div class="text-4xl mb-2">🎉</div>
+    <p class="text-base font-black text-gray-900">Thanks for your feedback!</p>
+    <p class="text-xs text-gray-500 mt-1">Your responses help improve this course for future students.</p>
+    <a href="profile.html" class="btn3d sm mt-4 inline-block">Back to profile</a>
+  </div>
+
+</div>
+
+<nav class="bottom-bar">
+  <a href="dashboard.html" class="tab-btn" data-tab="home"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75"/></svg><span>Home</span></a>
+  <a href="learn.html" class="tab-btn" data-tab="learn"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/></svg><span>Learn</span></a>
+  <a href="tutor.html" class="tab-btn" data-tab="tutor"><div class="tutor-fab"><span class="text-lg">🤖</span></div><span>Tutor</span></a>
+  <a href="progress.html" class="tab-btn" data-tab="progress"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941"/></svg><span>Progress</span></a>
+  <a href="profile.html" class="tab-btn active" data-tab="me"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg><span>Me</span></a>
+</nav>
+<script src="shared.js"></script>
+<script>
+  let svStep=1; const TOTAL=5;
+  function openSurvey(type){
+    document.getElementById('sv-list').hidden=true;
+    document.getElementById('sv-fill').hidden=false;
+    svStep=1; renderStep();
+  }
+  function pick(btn,name){
+    btn.parentElement.querySelectorAll('button').forEach(b=>b.classList.remove('on'));
+    btn.classList.add('on');
+  }
+  function renderStep(){
+    document.querySelectorAll('.sv-q').forEach((q,i)=>q.hidden=(i+1)!==svStep);
+    document.getElementById('sv-step-label').textContent=svStep+' / '+TOTAL;
+    document.getElementById('sv-progress').style.width=(svStep/TOTAL*100)+'%';
+    document.getElementById('sv-back').style.visibility=svStep===1?'hidden':'visible';
+    document.getElementById('sv-next').textContent=svStep===TOTAL?'Submit ✓':'Next →';
+  }
+  function svNext(){
+    if(svStep<TOTAL){ svStep++; renderStep(); }
+    else{
+      document.getElementById('sv-fill').hidden=true;
+      document.getElementById('sv-done').hidden=false;
+      toast('Survey submitted — thank you!','✅');
+    }
+  }
+  function svBack(){ if(svStep>1){ svStep--; renderStep(); } }
+</script>
+</body>
+</html>

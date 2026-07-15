@@ -172,7 +172,8 @@ const AvatarUpload = ({ currentUrl }: AvatarUploadProps) => {
             <Button
               onClick={handleUpload}
               disabled={isPending}
-              className="flex-1 bg-gradient-to-r from-teal-500 to-blue-600 text-white active:scale-95"
+              variant="tactile"
+              className="flex-1"
             >
               {isPending ? t("common.uploading") : t("avatar.upload")}
             </Button>

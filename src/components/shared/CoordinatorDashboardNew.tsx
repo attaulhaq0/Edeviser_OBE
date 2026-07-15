@@ -50,12 +50,14 @@ import {
   Users,
 } from "lucide-react";
 
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import KPICard from "@/components/shared/KPICard";
-import SectionHeader from "@/components/shared/SectionHeader";
-import { SeverityIcon } from "@/components/shared/SeverityIcon";
-import Shimmer from "@/components/shared/Shimmer";
+import {
+  Button,
+  Card,
+  KPICard,
+  SectionHeader,
+  SeverityIcon,
+  Shimmer,
+} from "@/design-system";
 import CoordinatorInsightRail from "@/components/shared/CoordinatorInsightRail";
 import { useAuth } from "@/hooks/useAuth";
 import { useCoordinatorDashboardAggregate } from "@/hooks/useCoordinatorDashboardAggregate";

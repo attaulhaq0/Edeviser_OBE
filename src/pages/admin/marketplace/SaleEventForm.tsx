@@ -204,7 +204,7 @@ const SaleEventForm = ({ onClose }: SaleEventFormProps) => {
               <Button
                 type="submit"
                 disabled={createSale.isPending}
-                className="bg-gradient-to-r from-teal-500 to-blue-600 text-white active:scale-95 transition-transform duration-100"
+                variant="tactile"
               >
                 {createSale.isPending && (
                   <Loader2 className="h-4 w-4 animate-spin" />

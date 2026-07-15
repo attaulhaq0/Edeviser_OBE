@@ -128,10 +128,7 @@ const CourseEnrollmentPage = () => {
             Course Enrollment
           </h1>
         </div>
-        <Button
-          className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 text-white"
-          onClick={() => setEnrollDialogOpen(true)}
-        >
+        <Button variant="tactile" onClick={() => setEnrollDialogOpen(true)}>
           <UserPlus className="h-4 w-4" /> Enroll Student
         </Button>
       </div>
@@ -236,7 +233,7 @@ const CourseEnrollmentPage = () => {
             <Button
               onClick={handleEnroll}
               disabled={!selectedStudentId || enrollMutation.isPending}
-              className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 text-white"
+              variant="tactile"
             >
               {enrollMutation.isPending && (
                 <Loader2 className="h-4 w-4 animate-spin" />

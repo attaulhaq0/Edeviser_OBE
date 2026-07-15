@@ -12,7 +12,7 @@ import type {
   TeamLeaderboardView,
 } from "@/hooks/useTeamLeaderboard";
 import { useAuth } from "@/hooks/useAuth";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 import { InlineNoTeams } from "@/components/shared/EmptyState";
 import ReconnectBanner from "@/components/shared/ReconnectBanner";
 import { cn } from "@/lib/utils";
@@ -63,7 +63,7 @@ const TeamRow = ({ entry, isCurrentTeam, showWeekly }: TeamRowProps) => {
       </div>
 
       {/* Avatar */}
-      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-teal-500 to-blue-600 text-white font-bold text-sm shrink-0">
+      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[linear-gradient(93.65deg,#14b8a6_5.37%,#0382bd_78.89%)] text-white font-bold text-sm shrink-0">
         {entry.avatar_letter}
       </div>
 

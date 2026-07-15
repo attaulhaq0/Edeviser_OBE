@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Edeviser — Parent</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
+<link rel="stylesheet" href="shared.css"/>
+</head>
+<body class="bg-slate-50" data-role="parent">
+<header class="app-header">
+  <div class="hdr-brand flex items-center gap-2"><div class="h-7 w-7 rounded-lg flex items-center justify-center" style="background:var(--brand-gradient)"><span class="text-white text-sm">✦</span></div><span class="text-base font-bold tracking-tight text-gray-900">Edeviser</span></div>
+  <div class="flex items-center gap-2"><a href="parent-profile.html" class="h-8 w-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style="background:var(--brand-gradient)">N</a></div>
+</header>
+<div class="page-content space-y-4 no-scrollbar">
+  <!-- BACKEND GROUNDING · hooks: useParentDashboardAggregate | tables: parent_student_links, student_gamification, outcome_attainment -->
+
+  <!-- AI story banner -->
+  <div class="ai-banner shadow-lg" style="background:linear-gradient(135deg,#065f46,#1e3a8a)">
+    <span class="why" onclick="whyPop('This is a <b>growth &amp; wellbeing summary</b>, not a gradebook. We deliberately lead with strengths, consistency and wellbeing — research shows raw-score pressure at home lowers a child\\'s motivation. Everything here is drawn from Maya\\'s learning activity, shared with your consent.')">🛡️ why am I seeing this</span>
+    <div class="flex items-center gap-3">
+      <div class="h-11 w-11 rounded-2xl bg-white/15 border border-white/20 flex items-center justify-center text-xl">🌱</div>
+      <div>
+        <h1 class="text-lg font-bold tracking-tight">Maya had a strong week</h1>
+        <p class="text-[12px] text-white/75">Studied 4 of 5 days — up from 2 last week. Steady, curious, and in good spirits.</p>
+      </div>
+    </div>
+    <div class="mt-3 flex flex-wrap gap-2">
+      <span class="ai-chip">🔥 Consistency ↑</span>
+      <span class="ai-chip">✍️ Writing improving</span>
+      <span class="ai-chip">😊 Wellbeing: good</span>
+    </div>
+  </div>
+
+  <!-- This week's story -->
+  <div class="feed-wide pcard p-5">
+    <div class="sec-h"><span class="chip">📖</span><p class="t">This week, in plain words</p></div>
+    <p class="text-sm text-gray-700 leading-relaxed">Maya showed up 4 of 5 days and spent most of her energy on <b>databases</b>, where her understanding is clearly growing. Her <b>writing</b> outcomes moved up a level. She's been a little more hesitant with <b>math</b> this week — nothing worrying, just an area where a bit of encouragement would help. Overall: a consistent, positive week.</p>
+    <p class="text-[11px] text-gray-400 mt-2">We describe patterns, not causes — and never share raw scores here.</p>
+  </div>
+
+  <div class="lg-row lg-row-2 space-y-4">
+  <!-- Growth -->
+  <div class="pcard p-4">
+    <div class="sec-h"><span class="chip">🌱</span><p class="t">Where she's growing</p></div>
+    <div class="space-y-2.5">
+      <div class="flex items-center gap-3"><div class="h-9 w-9 rounded-lg bg-green-50 flex items-center justify-center">💪</div><div class="flex-1"><p class="text-sm font-bold text-gray-900">Databases</p><p class="text-xs text-gray-500">Strong &amp; improving — her best area</p></div><span class="text-green-600 font-black">↑</span></div>
+      <div class="flex items-center gap-3"><div class="h-9 w-9 rounded-lg bg-blue-50 flex items-center justify-center">✍️</div><div class="flex-1"><p class="text-sm font-bold text-gray-900">Writing</p><p class="text-xs text-gray-500">Moved up a level this week</p></div><span class="text-green-600 font-black">↑</span></div>
+      <div class="flex items-center gap-3"><div class="h-9 w-9 rounded-lg bg-amber-50 flex items-center justify-center">🧮</div><div class="flex-1"><p class="text-sm font-bold text-gray-900">Math</p><p class="text-xs text-gray-500">A growing edge — some encouragement helps</p></div><span class="text-amber-500 font-black">→</span></div>
+    </div>
+  </div>
+
+  <!-- Wellbeing -->
+  <div class="pcard p-4">
+    <div class="sec-h"><span class="chip">😊</span><p class="t">Wellbeing &amp; balance</p></div>
+    <div class="grid grid-cols-3 gap-3 text-center">
+      <div><p class="text-2xl font-black text-green-600">4/5</p><p class="text-[10px] text-gray-500">Study days</p></div>
+      <div><p class="text-2xl font-black text-gray-900">Healthy</p><p class="text-[10px] text-gray-500">Focus balance</p></div>
+      <div><p class="text-2xl font-black text-blue-600">Good</p><p class="text-[10px] text-gray-500">Mood check-ins</p></div>
+    </div>
+    <div class="mt-3 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2"><p class="text-xs text-blue-800">🌙 She's studying in the evenings but stopping before it gets late — a healthy rhythm.</p></div>
+  </div>
+
+  </div>
+
+  <!-- One way to help (the key parent feature) -->
+  <div class="feed-wide pcard overflow-hidden" style="background:linear-gradient(135deg,#ecfdf5,#eff6ff)">
+    <div class="p-5">
+      <div class="sec-h"><span class="chip">💬</span><p class="t">One way to help this week</p></div>
+      <p class="text-base font-bold text-gray-900 leading-snug">"Maya, can you teach me one thing about databases you learned this week?"</p>
+      <p class="text-xs text-gray-600 mt-2">Asking her to <b>explain</b> something is retrieval practice — one of the most effective ways to strengthen memory — and it signals that you care about her learning, not just her marks.</p>
+      <div class="flex gap-2 mt-3">
+        <button onclick="toast('Reminder set for this evening','⏰')" class="text-sm font-bold text-white px-4 py-2 rounded-xl" style="background:var(--brand-gradient)">🕐 Remind me tonight</button>
+        <a href="parent-support.html" class="text-sm font-bold text-gray-700 bg-white border border-gray-200 px-4 py-2 rounded-xl">More ideas</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Celebrate -->
+  <div class="pcard p-4 flex items-center gap-3">
+    <div class="h-11 w-11 rounded-xl bg-green-50 flex items-center justify-center text-xl shrink-0">🎉</div>
+    <div class="flex-1"><p class="text-sm font-bold text-gray-900">Worth celebrating</p><p class="text-xs text-gray-500">Maya's writing reached <b>Satisfactory</b>. A small note of encouragement goes a long way.</p></div>
+    <button onclick="toast('Encouragement sent to Maya 💚','💚')" class="text-xs font-bold text-white px-3 py-2 rounded-lg shrink-0" style="background:var(--brand-gradient)">Send 💚</button>
+  </div>
+
+</div>
+<script src="shared.js"></script>
+</body>
+</html>

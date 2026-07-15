@@ -6,7 +6,7 @@ import {
   SheetDescription,
 } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 import { useCellDetail } from "@/hooks/useCurriculumMatrix";
 import { BookOpen, Layers } from "lucide-react";
 import type { BloomsLevel } from "@/types/app";

@@ -23,7 +23,7 @@ import {
 import HeatmapLegend from "@/components/shared/HeatmapLegend";
 import { NoData } from "@/components/shared/EmptyState";
 import ErrorState from "@/components/shared/ErrorState";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 import { Grid3X3 } from "lucide-react";
 
 type ColorMode = "evidence" | "attainment";

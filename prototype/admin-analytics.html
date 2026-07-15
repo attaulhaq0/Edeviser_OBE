@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Edeviser — Analytics</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{sans:['Noto Sans','sans-serif']}}}}</script>
+<link rel="stylesheet" href="shared.css"/>
+</head>
+<body class="bg-slate-50" data-role="admin">
+<header class="app-header">
+  <div class="hdr-brand flex items-center gap-2"><div class="h-7 w-7 rounded-lg flex items-center justify-center" style="background:var(--brand-gradient)"><span class="text-white text-sm">✦</span></div><span class="text-base font-bold tracking-tight text-gray-900">Edeviser</span></div>
+  <div class="flex items-center gap-2"><a href="admin-profile.html" class="h-8 w-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style="background:var(--brand-gradient)">G</a></div>
+</header>
+<div class="page-content space-y-4 no-scrollbar">
+
+  <div class="feed-wide"><h1 class="text-xl font-black tracking-tight text-gray-900">Institution analytics</h1><p class="text-xs text-gray-500 mt-0.5">Engagement, mastery &amp; retention — de-identified &amp; aggregated.</p></div>
+
+  <!-- Engagement trend -->
+  <div class="feed-wide pcard p-4">
+    <div class="sec-h"><span class="chip">📈</span><p class="t">Weekly active learners</p><span class="pill pill-green">92% ↑</span></div>
+    <div class="flex items-end gap-2 h-28 border-b border-gray-100 pb-0">
+      <div class="flex-1 flex flex-col items-center gap-1"><div class="w-full rounded-t bg-blue-500" style="height:70%"></div><span class="text-[9px] text-gray-400">W1</span></div>
+      <div class="flex-1 flex flex-col items-center gap-1"><div class="w-full rounded-t bg-blue-500" style="height:76%"></div><span class="text-[9px] text-gray-400">W2</span></div>
+      <div class="flex-1 flex flex-col items-center gap-1"><div class="w-full rounded-t bg-blue-500" style="height:82%"></div><span class="text-[9px] text-gray-400">W3</span></div>
+      <div class="flex-1 flex flex-col items-center gap-1"><div class="w-full rounded-t bg-blue-500" style="height:88%"></div><span class="text-[9px] text-gray-400">W4</span></div>
+      <div class="flex-1 flex flex-col items-center gap-1"><div class="w-full rounded-t" style="height:92%;background:linear-gradient(180deg,#14b8a6,#0382bd)"></div><span class="text-[9px] font-bold text-gray-600">Now</span></div>
+    </div>
+    <div class="flex items-center justify-between mt-2"><span class="text-[10px] text-gray-400">5-week trend · active learners / week</span><span class="text-[10px] text-gray-300 italic">Illustrative sample data</span></div>
+  </div>
+
+  <div class="lg-row lg-row-2 space-y-4 items-start">
+  <!-- Mastery distribution -->
+  <div class="pcard p-4">
+    <div class="sec-h"><span class="chip">🎯</span><p class="t">Mastery distribution</p></div>
+    <div class="space-y-2">
+      <div class="flex items-center gap-2"><span class="text-xs w-24 text-gray-600">Excellent</span><div class="flex-1 h-4 rounded bg-gray-100 overflow-hidden"><div class="h-full bg-blue-500" style="width:28%"></div></div><span class="text-xs font-bold w-8">28%</span></div>
+      <div class="flex items-center gap-2"><span class="text-xs w-24 text-gray-600">Satisfactory</span><div class="flex-1 h-4 rounded bg-gray-100 overflow-hidden"><div class="h-full bg-blue-500" style="width:41%"></div></div><span class="text-xs font-bold w-8">41%</span></div>
+      <div class="flex items-center gap-2"><span class="text-xs w-24 text-gray-600">Developing</span><div class="flex-1 h-4 rounded bg-gray-100 overflow-hidden"><div class="h-full bg-blue-500" style="width:22%"></div></div><span class="text-xs font-bold w-8">22%</span></div>
+      <div class="flex items-center gap-2"><span class="text-xs w-24 text-gray-600">Not yet</span><div class="flex-1 h-4 rounded bg-gray-100 overflow-hidden"><div class="h-full bg-blue-500" style="width:9%"></div></div><span class="text-xs font-bold w-8">9%</span></div>
+    </div>
+  </div>
+
+  <!-- Retention funnel -->
+  <div class="pcard p-4">
+    <div class="sec-h"><span class="chip">🔻</span><p class="t">Retention risk</p></div>
+    <div class="space-y-2 text-sm">
+      <div class="flex items-center justify-between"><span class="text-gray-700">On track</span><b class="text-green-600">1,150</b></div>
+      <div class="flex items-center justify-between"><span class="text-gray-700">Watch</span><b class="text-amber-600">52</b></div>
+      <div class="flex items-center justify-between"><span class="text-gray-700">At risk</span><b class="text-red-600">38</b></div>
+    </div>
+    <div class="mt-2 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2"><p class="text-xs text-amber-800">22 of 38 at-risk are in <b>Business Foundations</b>. <button onclick="toast('Outreach drafted','📋')" class="font-bold underline">Draft outreach</button></p></div>
+  </div>
+  </div>
+
+  <!-- Department table -->
+  <div class="feed-wide pcard p-4">
+    <div class="sec-h"><span class="chip">🏫</span><p class="t">Departments</p></div>
+    <table class="dtable"><thead><tr><th>Department</th><th>Learners</th><th>Active</th><th>Mastery</th><th>Trend</th></tr></thead><tbody>
+      <tr><td>Computer Science</td><td>420</td><td>95%</td><td><b style="color:#16a34a">81%</b></td><td style="color:#16a34a;font-weight:800">↑</td></tr>
+      <tr><td>Engineering</td><td>380</td><td>93%</td><td><b style="color:#2563eb">74%</b></td><td style="color:#16a34a;font-weight:800">↑</td></tr>
+      <tr><td>Business Foundations</td><td>440</td><td>86%</td><td><b style="color:#b45309">63%</b></td><td style="color:#ef4444;font-weight:800">↓</td></tr>
+    </tbody></table>
+  </div>
+
+  <!-- AI Co-Pilot performance — backend exists (useAIPerformance.ts) but no live UI renders it yet.
+       Fields mirror AIPerformanceMetrics: suggestion/prediction/draft acceptance + totals. -->
+  <div class="feed-wide pcard p-4">
+    <div class="sec-h"><span class="chip">🤖</span><p class="t">AI Co-Pilot performance</p><span class="pill pill-blue">A2 governance</span></div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div>
+        <div class="flex items-baseline justify-between"><span class="text-sm font-semibold text-gray-700">Suggestion acceptance</span><span class="text-lg font-black text-gray-900">86%</span></div>
+        <div class="emeter good mt-1.5"><span style="width:86%"></span></div>
+        <p class="text-[11px] text-gray-400 mt-1">1,240 module suggestions</p>
+      </div>
+      <div>
+        <div class="flex items-baseline justify-between"><span class="text-sm font-semibold text-gray-700">Prediction accuracy</span><span class="text-lg font-black text-gray-900">78%</span></div>
+        <div class="emeter good mt-1.5"><span style="width:78%"></span></div>
+        <p class="text-[11px] text-gray-400 mt-1">312 at-risk predictions validated</p>
+      </div>
+      <div>
+        <div class="flex items-baseline justify-between"><span class="text-sm font-semibold text-gray-700">Draft acceptance</span><span class="text-lg font-black text-gray-900">91%</span></div>
+        <div class="emeter strong mt-1.5"><span style="width:91%"></span></div>
+        <p class="text-[11px] text-gray-400 mt-1">640 feedback drafts</p>
+      </div>
+    </div>
+    <div class="mt-3 bg-slate-50 border border-slate-100 rounded-lg px-3 py-2"><p class="text-[11px] text-gray-500">How often staff accept AI suggestions, how accurate at-risk predictions proved, and how often AI feedback drafts were used — the trust signals behind the autonomy ceiling.</p></div>
+  </div>
+
+  <!-- PLO attainment heatmap — backend exists (useAdminPLOHeatmap.ts) but the hook is never invoked.
+       Cells mirror AdminPLOHeatmapRow: attainment_percent (−1 = unmeasured/grey), derivation, contributing_count. -->
+  <div class="feed-wide pcard p-4">
+    <div class="sec-h"><span class="chip">🗺️</span><p class="t">PLO attainment heatmap</p><span class="more">Program: All ▾</span></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px">
+      <div class="rounded-xl p-3" style="background:#dcfce7"><p class="text-[11px] font-bold" style="color:#166534">PLO1 · Foundations</p><p class="text-xl font-black" style="color:#166534">88%</p><p class="text-[10px]" style="color:#3f8f5f">program · 4 courses</p></div>
+      <div class="rounded-xl p-3" style="background:#dbeafe"><p class="text-[11px] font-bold" style="color:#1d4ed8">PLO2 · Communication</p><p class="text-xl font-black" style="color:#1d4ed8">76%</p><p class="text-[10px]" style="color:#5b82d0">program · 3 courses</p></div>
+      <div class="rounded-xl p-3" style="background:#dcfce7"><p class="text-[11px] font-bold" style="color:#166534">PLO3 · Analysis</p><p class="text-xl font-black" style="color:#166534">91%</p><p class="text-[10px]" style="color:#3f8f5f">program · 5 courses</p></div>
+      <div class="rounded-xl p-3" style="background:#fef3c7"><p class="text-[11px] font-bold" style="color:#b45309">PLO4 · Design</p><p class="text-xl font-black" style="color:#b45309">63%</p><p class="text-[10px]" style="color:#c1863f">CLO roll-up · 6 CLOs</p></div>
+      <div class="rounded-xl p-3" style="background:#fee2e2"><p class="text-[11px] font-bold" style="color:#b91c1c">PLO5 · Concurrency</p><p class="text-xl font-black" style="color:#b91c1c">47%</p><p class="text-[10px]" style="color:#cf5a5a">CLO roll-up · 2 CLOs</p></div>
+      <div class="rounded-xl p-3" style="background:#dbeafe"><p class="text-[11px] font-bold" style="color:#1d4ed8">PLO6 · Teamwork</p><p class="text-xl font-black" style="color:#1d4ed8">72%</p><p class="text-[10px]" style="color:#5b82d0">program · 3 courses</p></div>
+      <div class="rounded-xl p-3" style="background:#fef3c7"><p class="text-[11px] font-bold" style="color:#b45309">PLO7 · Ethics</p><p class="text-xl font-black" style="color:#b45309">55%</p><p class="text-[10px]" style="color:#c1863f">CLO roll-up · 4 CLOs</p></div>
+      <div class="rounded-xl p-3" style="background:#f1f5f9"><p class="text-[11px] font-bold" style="color:#94a3b8">PLO8 · Research</p><p class="text-xl font-black" style="color:#94a3b8">—</p><p class="text-[10px]" style="color:#b6c2d0">unmeasured</p></div>
+    </div>
+    <div class="flex flex-wrap gap-3 mt-3 text-[11px] text-gray-500">
+      <span class="inline-flex items-center gap-1.5"><i style="width:10px;height:10px;border-radius:3px;background:#22c55e;display:inline-block"></i>Excellent ≥85</span>
+      <span class="inline-flex items-center gap-1.5"><i style="width:10px;height:10px;border-radius:3px;background:#3b82f6;display:inline-block"></i>Satisfactory 70–84</span>
+      <span class="inline-flex items-center gap-1.5"><i style="width:10px;height:10px;border-radius:3px;background:#f59e0b;display:inline-block"></i>Developing 50–69</span>
+      <span class="inline-flex items-center gap-1.5"><i style="width:10px;height:10px;border-radius:3px;background:#ef4444;display:inline-block"></i>Not yet &lt;50</span>
+      <span class="inline-flex items-center gap-1.5"><i style="width:10px;height:10px;border-radius:3px;background:#cbd5e1;display:inline-block"></i>Unmeasured</span>
+    </div>
+  </div>
+
+</div>
+<script src="shared.js"></script>
+</body>
+</html>

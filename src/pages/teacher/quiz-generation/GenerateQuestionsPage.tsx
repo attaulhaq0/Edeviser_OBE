@@ -286,7 +286,8 @@ const GenerateQuestionsPage = () => {
               <Button
                 type="submit"
                 disabled={generateMutation.isPending}
-                className="w-full bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95 transition-transform"
+                variant="tactile"
+                className="w-full"
               >
                 {generateMutation.isPending ? (
                   <Loader2 className="h-4 w-4 animate-spin" />

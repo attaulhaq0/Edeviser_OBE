@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 import { usePrograms } from "@/hooks/usePrograms";
 import { useSemesters } from "@/hooks/useSemesters";
 import { useProgramAccreditations } from "@/hooks/useInstitutionSettings";
@@ -263,7 +263,7 @@ const ReportGeneratorPage = () => {
               <Button
                 onClick={handleGenerate}
                 disabled={generateMutation.isPending || !programId}
-                className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
+                variant="tactile"
               >
                 {generateMutation.isPending ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -322,10 +322,7 @@ const ReportGeneratorPage = () => {
             </div>
 
             <div className="flex items-center gap-3">
-              <Button
-                onClick={handleDownload}
-                className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
-              >
+              <Button onClick={handleDownload} variant="tactile">
                 <Download className="h-4 w-4" />
                 Download PDF
               </Button>

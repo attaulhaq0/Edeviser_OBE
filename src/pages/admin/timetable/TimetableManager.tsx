@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/dialog";
 import { Clock, Plus, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import Shimmer from "@/components/shared/Shimmer";
+import { Shimmer } from "@/design-system";
 import { InlineNoTimetable } from "@/components/shared/EmptyState";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import {
@@ -156,7 +156,7 @@ const TimetableManager = () => {
         </h1>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95">
+            <Button variant="tactile">
               <Plus className="h-4 w-4" /> Add Slot
             </Button>
           </DialogTrigger>
@@ -292,7 +292,8 @@ const TimetableManager = () => {
                 <Button
                   type="submit"
                   disabled={createSlot.isPending}
-                  className="w-full bg-gradient-to-r from-teal-500 to-blue-600 active:scale-95"
+                  variant="tactile"
+                  className="w-full"
                 >
                   {createSlot.isPending && (
                     <Loader2 className="h-4 w-4 animate-spin" />
