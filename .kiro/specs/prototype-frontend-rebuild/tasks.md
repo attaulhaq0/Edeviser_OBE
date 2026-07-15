@@ -40,7 +40,11 @@ requirements R2/R6/R7):
    motion all composed from `@/design-system` (tokens + primitives + patterns +
    mascot). No arbitrary hex; emoji → Lucide (PARITY §B).
 2. **Wired** to the existing hook(s) for its data + mutations (R1) — components never
-   call `supabase.*` directly (R1.2); mutations reuse existing hooks (R1.3).
+   call `supabase.*` directly (R1.2); mutations reuse existing hooks (R1.3). **Data-binding is
+   auditable (G.5): every section AND card names the Supabase-backed hook it renders from,
+   classified `Wired` / `Needs-wiring` / `No-backend`.** No hardcoded, mock, or `prototype/`
+   demo data (R17). A `No-backend` section is a flagged GAP — omit or clearly mark it (never
+   fake), and record it in the backend-gap list (`prototype-backend-parity` spec).
 3. **Net-new sub-UI built** per `missing-screens-catalog.md`: every **F** (create/edit
    form), **Del** (delete/confirm), **Dt** (detail), **W** (wizard), **Mo** (modal/
    sheet), and **St** (empty/loading/error/success) the row lists.
@@ -82,20 +86,146 @@ requirements R2/R6/R7):
       machine with browsers, and commit them so every screen's parity gate can actually run.
       (Reference PNGs exist for a subset; complete the set as screens land.) (R2.6)
 
-## P1 — App shell, navigation, auth
+## P1 — App shell & chrome (per role), navigation, auth
 
-- [x] 1.1 **Chrome** (Header / Sidebar / MobileTabBar) reused from prior work, driven by
-      `navItems.ts`. NOTE: chrome was **reskinned**, not proven pixel-exact — its parity is
-      covered by each dashboard's `test:visual` (chrome is in-frame). (R4.1)
-- [ ] 1.2 **Role layouts** (admin/coordinator/teacher/student/parent) rebuilt in `src/app`,
-      preserving `SidebarProvider`, `EmailVerificationBanner`, `GuidedTour`, `SkipToMain`→
-      `#main-content`, `usePageViewLogger`, and the **StudentLayout onboarding gate**. (R4.1, R4.5)
-- [~] 1.3 **Auth screens rebuilt** to `auth.html` (Login/SignUp/Reset/Update/AcceptInvite):
+> ⚠️ **The chrome is NOT "done".** The prototype's entire shell — top bar, left
+> sidebar, mobile bottom-bar, and **right rail** — is generated per role by
+> `prototype/shared.js` (`ROLE_NAV`, `ROLE_MORE`, `ROLE_STATS`, `ROLE_CMDK`,
+> `ROLE_NOTIFS`, `railHTML`) + styled by `shared.css`. Today `src/` has only
+> **reskinned** partial chrome (`GlobalHeader` = logo + LanguageSwitcher +
+> `NotificationBell` + `ProfileDropdown`; `Sidebar` = flat `navItems` list;
+> `MobileTabBar`; and a single unused `CoordinatorInsightRail`). Per the contract
+> "reskinned ≠ rebuilt," and **large pieces are missing entirely** (⌘K palette in
+> the header, role stat chips, the name+level+XP profile chip, the "why am I
+> seeing this" popover, the sidebar primary/MORE split + student Upgrade card +
+> level bar, and the **right rail for 4 of 5 roles + all student per-page rails**).
+> Each region below is its own DoD-gated rebuild task, enumerated per role so
+> nothing is dropped. Chrome parity is proven in-frame by each screen's
+> `test:visual` at desktop (sidebar + rail) AND mobile (bottom-bar, no rail).
+
+### 1.0 Shell layout & spacing system (all roles) — the "middle area / margins" fix
+
+The deployed dashboards float their content in leftover space: a fixed `w-52` sidebar +
+a `max-w-3xl mx-auto` feed with **no right rail**, so the middle column centres inside a
+huge empty area (see the student-dashboard screenshot). Fix it **once, at the shell**, with
+an explicit responsive **app-shell grid** whose region sizes are tokens in `tokens.css`, so
+every role layout (§1.4) shares exact, identical margins for the four regions (top bar /
+left sidebar / content / right rail) on both mobile and desktop. (Approach validated against
+current practice: CSS-variable-driven canvas widths — cf. Porsche `--p-canvas-sidebar-start/
+-end-width`; HBS three-column grid with an _optional_ right rail; container-query cards so a
+rail card adapts to its ~320px column, not the viewport.)
+
+- [ ] 1.0.1 **Layout tokens** (add to `src/design-system/tokens.css`): `--app-header-h: 56px`
+      · `--app-sidebar-w: 15rem` (240px) · `--app-rail-w: 20rem` (320px) · `--app-content-max:
+48rem` (768px) · `--app-gutter: 1.5rem` (24px) · mobile gutter `1rem`. **Reconcile the
+      current `w-52` (208px) sidebar to the token — one width everywhere, all roles.**
+- [ ] 1.0.2 **Desktop (≥ `xl`/1280) = 3-column grid** `[sidebar --app-sidebar-w] [content 1fr]
+[rail --app-rail-w]`, `gap: --app-gutter`, under a sticky `--app-header-h` top bar. The
+      content column is `1fr` (`min-width:0`); its inner block is capped at `--app-content-max`
+      and **aligned to the column start with `--app-gutter` padding — NOT `mx-auto`-centred in
+      empty space** (the bug fix). Rail is sticky; hidden on `data-norail` pages.
+- [ ] 1.0.3 **Laptop (`lg` 1024–1279)** = 2-column `[sidebar] [content 1fr]` (rail hidden/below);
+      content capped + start-aligned. **Tablet/mobile (< `lg`)** = single column, sidebar becomes
+      the **bottom tab bar** (§1.2.1), no rail, content full-width at the mobile gutter, with
+      `env(safe-area-inset-*)` respected and a bottom-bar-height spacer so content isn't occluded.
+- [ ] 1.0.4 **Correctness (all layouts):** RTL via logical props (`ms/me/ps/pe`, `start/end`);
+      `prefers-reduced-motion` on sidebar/drawer transitions; correct sticky z-order (header >
+      sidebar/rail > content); a single content scroll container. Applied uniformly across all 5
+      role layouts (§1.4) so every screen — dashboard and page alike — inherits identical margins.
+
+### 1.1 Top bar (`.app-header`) — per role
+
+Rebuild `GlobalHeader` to the prototype top bar. Regions (built by
+`shared.js` `normalizeHeader`/`buildSearch`/`buildNotifs`/`buildStats`/
+`buildProfileChip`):
+
+- [ ] 1.1.1 **Brand** (left) + **⌘K global search** (`.top-search` → `SearchCommand`
+      `.cmdk` palette). Per-role command items (`ROLE_CMDK`, "Go to" + "Actions"):
+      student (Today/Path/Lesson/Review/Tutor/Progress + Fix-weakest-CLO/Ask-Tutor),
+      teacher (Home/Triage/Studio/Grading + Draft-feedback/Upload→lessons),
+      parent (Home/Growth/Support), coordinator (Home/Outcomes/Matrix/Accreditation),
+      admin (Home/Analytics/Governance/People). `Cmd/Ctrl+K` + Esc; real route jumps.
+      **Status:** `SearchCommand` exists but is NOT mounted in the header — wire + per-role items.
+- [ ] 1.1.2 **Notifications** bell + panel (`.notif-bell`/`.notif-panel`, unread badge,
+      mark-one/all-read, "View all →" → `/{role}/notifications`). Feed is REAL
+      (`useNotifications`), not the mock `ROLE_NOTIFS`; match the panel look/behavior.
+- [ ] 1.1.3 **Role stat chips** (`.top-stats`, `ROLE_STATS`): student `🔥streak · 💎XP`;
+      teacher `🎓classes · ✍️to-grade`; parent `🟢 On track`; coordinator
+      `🎯programs · ⚠️gaps`; admin `🏛️learners · %active`. Wire to real hooks
+      (streak/XP, teacher KPIs, coordinator below-target, admin KPIs); flag any gap.
+- [ ] 1.1.4 **Profile chip** (`.hdr-profile`: name + sub + avatar initial) via
+      `ProfileDropdown`. Sub line per role (student `Lvl · XP`; teacher `Dept · N classes`;
+      parent `Guardian of …`; coordinator `Program Coordinator`; admin `Institution Admin`).
+- [ ] 1.1.5 **"Why am I seeing this?" popover** (`whyPop`, all roles) — explainability
+      modal reused by hero/AI cards. Build as a `@/design-system` dialog/popover.
+
+### 1.2 Left sidebar (desktop) + mobile bottom-bar — per role
+
+Rebuild `Sidebar` + `MobileTabBar` to the prototype's split structure:
+
+- [ ] 1.2.1 **Primary nav + FAB** (`ROLE_NAV`; mobile bottom-bar = these 4–5 tabs, one
+      is a raised `.tutor-fab`): student Home·Learn·**Tutor(fab)**·Progress·Me;
+      teacher Home·Students·**Studio(fab)**·Grade·Me; parent Home·**Growth·Support(fab)**·Me;
+      coordinator Home·Outcomes·**Curriculum(fab)**·Accredit·Me;
+      admin Home·Analytics·**AI-Gov(fab)**·People·Me. Active-tab logic per `setActiveTab`.
+- [ ] 1.2.2 **"MORE" secondary links** (`.side-label` + `ROLE_MORE.links`, desktop sidebar):
+      student (Courses·Review·Wellness·Focus·Quests·Leaderboard·Team·Journal·Calendar·Shop·
+      Notifications·Settings); teacher (Triage·Studio·Question Bank·Rubrics·Materials·Handoffs·
+      Grading·Gradebook·Attendance·Discussions·Announcements·Notifications·Settings);
+      parent (Growth·Support·Fees·Announcements·Notifications·Settings);
+      coordinator (Outcomes·Matrix·CQI·Course File·Team Health·Competencies·Accreditation·
+      Discussions·Announcements·Notifications·Settings);
+      admin (Analytics·Marketplace·Governance·People·Structure·Import·Badges·Security·Fees·
+      Announcements·Notifications·Settings). (Reconcile with `navItems.ts`.)
+- [ ] 1.2.3 **Student-only sidebar extras**: "Upgrade to Premium" card (`.side-upgrade` →
+      marketplace) + student **level bar** (`.side-lvlbar`, Lvl · XP progress). Other roles: none.
+
+### 1.3 Right rail (desktop only, `.right-rail`) — per role ⟵ **MISSING TODAY**
+
+Rebuild the per-role "AI has prepared" rail (`buildRail`/`railHTML`; hidden on
+mobile and on `data-norail` pages). Only `CoordinatorInsightRail` exists today.
+Each card wires a real hook or is flagged (R17); enumerate every card:
+
+- [ ] 1.3.1 **Teacher rail**: `🤖 AI prepared your day` (workload checklist),
+      `At-risk students` (×3, `useAtRiskStudents`), `📊 Class pulse` (avg mastery /
+      on-time / CLOs-below, `useTeacherKPIs`), `🧬 Curriculum Studio` (nav).
+- [ ] 1.3.2 **Parent rail**: `🌱 This week` (study days / wellbeing / focus balance),
+      `💬 Conversation starter`, `🎉 Celebrate`. (Wellbeing/study-days = gaps → flag.)
+- [ ] 1.3.3 **Coordinator rail**: `📉 Attainment alerts` (×2, `useCoordinatorOutcomeAttainment`),
+      `🗂️ Curriculum gap`, `📋 Accreditation` (`useCoordinatorAccreditationReadiness`).
+      (Reskin/replace the existing `CoordinatorInsightRail`.)
+- [ ] 1.3.4 **Admin rail**: `🏛️ Institution` (learners / weekly-active / retention),
+      `🛡️ AI governance` (autonomy ceiling / auto-actions), `Departments`
+      (`useDepartmentAnalytics`). (Weekly-active/retention/governance = gaps → flag.)
+- [ ] 1.3.5 **Student per-page contextual rails** (rail changes by page, `railHTML`):
+      **dashboard** (Daily Goal ring · Daily Quests · Gold League · Coming up · Streak
+      protection · AI tutor); **learn/course** (Course snapshot · Next deadline · Weakest
+      CLO); **assignment/lesson** (Need a hand → Tutor · Similar past work · Have a perk);
+      **progress** (Focus next · vs last term · Class standing); **journal** (Journal streak ·
+      Prompt ideas); **learning-profile** (Why this matters · Completeness); **settings**
+      (Your data); **profile** (Latest badge · Academic · Portfolio · Account); **fallback**
+      (Keep going). Wire to real hooks (courses/deadlines/CLO/leaderboard/reviews); the
+      Quests / Gold-League-weekly / streak-freeze-inventory pieces are backend gaps → flag.
+
+### 1.4 Role layouts / shell (`src/app`) — per role
+
+- [ ] 1.4.1 **Role layouts** (admin/coordinator/teacher/student/parent) rebuilt in `src/app`
+      composing 1.1–1.3, preserving `SidebarProvider`, `EmailVerificationBanner`, `GuidedTour`,
+      `SkipToMain`→`#main-content`, `usePageViewLogger`, and the **StudentLayout onboarding
+      gate**. Desktop = sidebar + `page-content` + right rail; mobile = bottom-bar only, no rail.
+      (`src/app` is currently empty — layouts still live in `src/pages/{role}/{Role}Layout.tsx`.) (R4.1, R4.5)
+
+### 1.5 Auth & entry screens
+
+- [~] 1.5.1 **Auth screens rebuilt** to `auth.html` (Login/SignUp/Reset/Update/AcceptInvite):
   light split brand+form panel, tabs, SSO, `.fld`, strength meter, tactile CTA; lockout +
   `signIn`/`signUp` side-effects + self-signup=student preserved. **Remaining for DoD:** flip
   `auth-login` → `rebuilt:true` and pass `test:visual` (Tier A, 0.08) at 4 viewports; owner
   decision on SSO/magic-link providers (enable in Supabase or remove the buttons). (R4.2)
-- [x] 1.4 **404 NotFoundPage** built from `@/design-system` + catch-all route. (R4.1)
+- [ ] 1.5.2 **Onboarding + entry** (`index.html` wizard, `start.html`, `roles.html` role picker):
+      rebuild the multi-step onboarding shell (no chrome), the start/splash, and the role picker
+      (dev/impersonation only where applicable). Preserve the real onboarding gate + `signUp` flow.
+- [x] 1.6 **404 NotFoundPage** built from `@/design-system` + catch-all route. (R4.1)
 
 ## P2 — Role dashboards (REBUILD from prototype, then delete `*DashboardNew`)
 
@@ -189,6 +319,9 @@ requirements R2/R6/R7):
 
 ### 3.2 Teacher modules (`/teacher/*`)
 
+- [ ] **Student Triage** (`teacher-students.html`) — the "Students" primary-nav screen: priority
+      tabs (Critical/Attention/Monitor), at-risk student cards with risk %, contributing signals,
+      and Send-nudge / Assign-review / Book-1:1 actions (`useAtRiskStudents` + `useAtRiskPredictions` + `useSendNudge`; **no `/teacher/students` route today** — add it). Dt (student drill-in) Mo, St.
 - [ ] CLOs list/detail/form + Sub-CLOs (`teacher-curriculum.html`) — **F**, Del, **Dt**, St
 - [ ] Rubrics list + builder (`teacher-rubrics.html`) — **F/W** criteria builder, Del, St
 - [ ] Assignments list/form — **F**, Del, St
@@ -215,6 +348,9 @@ requirements R2/R6/R7):
 - [ ] Gap analysis, Coverage heatmap — cell Mo, St
 - [ ] CQI manager (`coordinator-cqi.html`) — **F** action-plan, Del, Dt, status-transition Mo, St
 - [ ] Course-file generator (`coordinator-course-file.html`) — **W** generate, Dt, St
+- [ ] **Accreditation** (`coordinator-accreditation.html`) — the "Accredit" primary-nav screen:
+      evidence-readiness %, evidence checklist / per-course evidence status, approval chain, and
+      pack generation (`useCoordinatorAccreditationReadiness` + `useAccreditationApprovals`). Dt, **W** generate, St.
 - [ ] Competencies (`coordinator-competencies.html`), Timetable, Profile (`coordinator-profile.html`) — **F**, St
 
 ### 3.4 Admin modules (`/admin/*`)
@@ -224,7 +360,7 @@ requirements R2/R6/R7):
 - [ ] ILOs list/form (`admin-structure.html`) — **F**, Del, Dt, St
 - [ ] Reports (`admin-analytics.html`) — export Mo, St (fill "weekly active learners" chart)
 - [ ] Audit log — filters, Dt drawer, St
-- [ ] Bonus events, Badge spotlight — **F**, Del, St
+- [ ] Bonus events, Badge spotlight, **Badge Definitions** (`admin-badges.html` — badge CRUD, condition/threshold editor, distinct from spotlight) — **F**, Del, Dt, St
 - [ ] Marketplace mgmt/sales/analytics/quests/economist (`admin-marketplace.html`) — **F**, Del, Dt, analytics St
 - [ ] Fees, Data-import wizard, Surveys (+results), Graduate attributes, Competency frameworks, Historical evidence, Outcome chain — **F**/**W**, Del, St
 - [ ] AI Governance (`admin-governance.html`) — neutralize colored top, roadmap-labeled, St
@@ -272,6 +408,13 @@ parity-green, and its legacy is deleted.
 - [ ] G.2 No `prototype/` imports, no CDN Tailwind, no `shared.css`/`shared.js` in `src/`. (R2.7)
 - [ ] G.3 Components consume hooks only; never `supabase.*` directly. (R1.2)
 - [ ] G.4 No new backend/tables/RLS/roles. (Non-goals)
+- [ ] G.5 **Supabase is the ONLY source of truth (data-binding rule).** Every screen / section /
+      card renders from a real `src/hooks/*` query (→ `supabase`), never hardcoded / mock /
+      `prototype/` demo data. For each screen keep a **data-binding audit** — per section: the
+      bound hook + one of `Wired` (hook exists & used) · `Needs-wiring` (hook exists, wire it) ·
+      `No-backend` (no table/hook → GAP: build it via `prototype-backend-parity`, or mark N/A and
+      omit — never fabricate). This is the standing check for "what is left to **build** vs
+      **connect to backend** vs **has no backend to connect to**." (R1, R17)
 
 ## Progress truth (as of this rewrite)
 
