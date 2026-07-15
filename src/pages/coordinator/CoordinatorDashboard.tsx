@@ -1,9 +1,11 @@
 // =============================================================================
-// CoordinatorDashboard — production coordinator dashboard (redesigned UI)
+// CoordinatorDashboard — production coordinator dashboard (prototype rebuild)
 // =============================================================================
-// Implementation lives in `CoordinatorDashboardNew`, re-exported here so the
-// route path (`@/pages/coordinator/CoordinatorDashboard`) stays stable. Legacy
-// dashboard and its feature-flag wrapper were removed in the UI-migration cleanup.
+// Implementation lives in the prototype-rebuilt `CoordinatorDashboardScreen`
+// (src/features/coordinator/dashboard), re-exported here so the route path
+// (`@/pages/coordinator/CoordinatorDashboard`) and its guard stay stable. The
+// legacy `CoordinatorDashboardNew` reskin was replaced in the
+// prototype-frontend-rebuild (P2.4) cutover.
 // =============================================================================
 
-export { default } from "@/components/shared/CoordinatorDashboardNew";
+export { default } from "@/features/coordinator/dashboard/CoordinatorDashboardScreen";
