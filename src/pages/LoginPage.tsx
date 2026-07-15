@@ -184,7 +184,10 @@ const LoginPage = () => {
   });
 
   const signupPassword = signUpForm.watch("password") ?? "";
-  const strength = STRENGTH_STEPS[scorePassword(signupPassword)];
+  // scorePassword() returns 0-4 and STRENGTH_STEPS has exactly 5 entries, so the
+  // index is always valid; the `?? [0]` fallback satisfies noUncheckedIndexedAccess.
+  const strength =
+    STRENGTH_STEPS[scorePassword(signupPassword)] ?? STRENGTH_STEPS[0];
 
   // -------------------------------------------------------------------
   // handlers (auth logic preserved verbatim from the previous screen)
@@ -655,7 +658,8 @@ const LoginPage = () => {
               <p
                 className="mt-1 text-[11px]"
                 style={{
-                  color: scorePassword(signupPassword) >= 3 ? "#16a34a" : "#94a3b8",
+                  color:
+                    scorePassword(signupPassword) >= 3 ? "#16a34a" : "#94a3b8",
                 }}
               >
                 {t(`signup.${strength.key}`)}
