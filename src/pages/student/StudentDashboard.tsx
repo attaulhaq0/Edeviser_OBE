@@ -1,10 +1,11 @@
 // =============================================================================
-// StudentDashboard — production student dashboard (redesigned UI)
+// StudentDashboard — production student dashboard route
 // =============================================================================
-// The dashboard implementation lives in `StudentDashboardNew`. It is re-exported
-// here so the route path (`@/pages/student/StudentDashboard`) stays stable.
-// The legacy dashboard and its feature-flag wrapper were removed when the
-// redesigned UI became the sole production experience (UI-migration cleanup).
+// The implementation lives in `@/features/student/dashboard/StudentDashboardScreen`
+// (prototype-frontend-rebuild P2.1 — a from-scratch rebuild of
+// `prototype/dashboard.html` on `@/design-system` + real hooks). Re-exported here
+// so the route path (`@/pages/student/StudentDashboard`) stays stable. The prior
+// `StudentDashboardNew` (reskin-in-place) was retired by this rebuild.
 // =============================================================================
 
-export { default } from "@/components/shared/StudentDashboardNew";
+export { default } from "@/features/student/dashboard/StudentDashboardScreen";
