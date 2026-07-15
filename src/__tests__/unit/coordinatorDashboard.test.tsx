@@ -1,7 +1,8 @@
 // @vitest-environment happy-dom
 // =============================================================================
-// CoordinatorDashboardNew — "Program health, prepared" cockpit (task 2.4)
-// Smoke + real-data wiring: hero, KPI filter row (programs count + avg
+// CoordinatorDashboard — "Program health, prepared" feed (prototype rebuild P2.4)
+// Smoke + real-data wiring against the rebuilt CoordinatorDashboardScreen (via
+// the route page re-export): hero, KPI filter row (programs count + avg
 // attainment + below-target count), attainment alerts (real below-target PLO),
 // CQI timeline (useCQIPlans), program timeline (useAcademicCalendarEvents).
 // =============================================================================
@@ -118,16 +119,16 @@ vi.mock("@/hooks/useAcademicCalendar", () => ({
   }),
 }));
 
-import CoordinatorDashboardNew from "@/components/shared/CoordinatorDashboardNew";
+import CoordinatorDashboard from "@/pages/coordinator/CoordinatorDashboard";
 
 const renderDash = () =>
   render(
     <MemoryRouter>
-      <CoordinatorDashboardNew />
+      <CoordinatorDashboard />
     </MemoryRouter>
   );
 
-describe("CoordinatorDashboardNew", () => {
+describe("CoordinatorDashboard (prototype rebuild)", () => {
   it("renders the action-hub hero and attainment alerts section", () => {
     renderDash();
     expect(screen.getByText("dashboard.hub.title")).toBeInTheDocument();

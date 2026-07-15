@@ -124,8 +124,16 @@ requirements R2/R6/R7):
   celebrate; avg_attainment → OBE band, **no raw grades**; child selector for multi-child), **cut over**,
   `ParentDashboardNew` **deleted**. **Remaining for DoD:** owner `test:visual` green (weekly auto-narrative,
   per-subject trend rows, mood/wellbeing check-ins = backend gaps, adapted to real signals not faked).
-- [ ] 2.4 **Coordinator dashboard** → `coordinator-dashboard.html` (`/coordinator/dashboard`, `useCoordinatorDashboardAggregate`).
-      Rebuild KPI row, attainment snapshot, curriculum-gap + at-risk cards. Delete `CoordinatorDashboardNew` + legacy.
+- [~] 2.4 **Coordinator dashboard** → `coordinator-dashboard.html` (`/coordinator/dashboard`, `useCoordinatorDashboardAggregate`).
+  **Rebuilt** in `src/features/coordinator/dashboard/CoordinatorDashboardScreen.tsx` as the prototype's
+  single-column "program health" feed (no insight rail): hero + real action chips, KPI-filter row
+  (`usePrograms`/aggregate/`useCoordinatorOutcomeAttainment`/`useCoordinatorAccreditationReadiness`),
+  attainment alerts with decision context (trend/affected/root-cause from real weakestCourse +
+  affectedStudents), curriculum-coverage (real CLO coverage %), accreditation-evidence checklist (real
+  `pack`), CQI timeline (`useCQIPlans`) + program timeline (`useAcademicCalendarEvents`). **Cut over**,
+  `CoordinatorDashboardNew` **deleted** (test repointed to the route page). **Remaining for DoD:** owner
+  `test:visual` green (hero carousel slides + "Recovery pathways" are prototype-only/no-backend concepts,
+  omitted not faked).
 - [ ] 2.5 **Admin dashboard** → `admin-dashboard.html` (`/admin/dashboard`, `useAdminDashboardAggregate`).
       Rebuild KPI row, users-by-role, activity, AI Co-Pilot + PLO heatmap panels. Delete `AdminDashboardNew` + legacy.
 
