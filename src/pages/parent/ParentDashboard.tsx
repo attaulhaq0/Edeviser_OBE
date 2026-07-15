@@ -1,9 +1,11 @@
 // =============================================================================
-// ParentDashboard — production parent dashboard (redesigned UI)
+// ParentDashboard — production parent dashboard (prototype rebuild)
 // =============================================================================
-// Implementation lives in `ParentDashboardNew`, re-exported here so the route
-// path (`@/pages/parent/ParentDashboard`) stays stable. Legacy dashboard and its
-// feature-flag wrapper were removed in the UI-migration cleanup.
+// Implementation lives in the prototype-rebuilt `ParentDashboardScreen`
+// (src/features/parent/dashboard), re-exported here so the route path
+// (`@/pages/parent/ParentDashboard`) and its guard stay stable. The legacy
+// `ParentDashboardNew` reskin was replaced in the prototype-frontend-rebuild
+// (P2.3) cutover.
 // =============================================================================
 
-export { default } from "@/components/shared/ParentDashboardNew";
+export { default } from "@/features/parent/dashboard/ParentDashboardScreen";
