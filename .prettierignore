@@ -1,0 +1,8 @@
+# Hand-authored design reference — never ships (guardrail G.2) and is not app
+# source, so it is intentionally NOT prettier-formatted. Keeping it out of
+# Prettier lets prototype refinements be committed without churning ~1.7k lines.
+prototype/
+
+# Build output / generated
+dist/
+src/types/database.ts
