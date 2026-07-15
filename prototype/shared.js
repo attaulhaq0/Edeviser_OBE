@@ -361,6 +361,9 @@ function buildRail(){
 // ═══════════════════════════════════════════════════════════════════
 function buildSidebarExtra(){
   const bar=document.querySelector('.bottom-bar'); if(!bar) return;
+  // Keep chrome construction idempotent so repeated initialization cannot
+  // duplicate the student-only premium card or the surrounding MORE links.
+  if(bar.querySelector('.sidebar-extra')) return;
   const cfg=ROLE_MORE[ROLE]||ROLE_MORE.student;
   const extra=document.createElement('div');extra.className='sidebar-extra';
   // Upgrade-to-Premium card (student monetisation) pinned to the sidebar bottom.

@@ -715,6 +715,31 @@ body[data-role="student"] .sec-h .chip{
 .emeter.pro.attention> span{background:#b45309}
 .emeter.pro.critical > span{background:#b91c1c}
 
+/* ── Reusable chart/data EMPTY state (icon + headline + copy + CTA). Use when a
+   panel genuinely has no data — NOT for the illustrative sample charts, which
+   render filled with a "sample data" caption. Refs: Supabase / PatternFly /
+   pencil&paper empty-state guidance (explain why + offer a next action, never a
+   bare frame). ── */
+.chart-empty{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;gap:8px;padding:28px 20px;min-height:140px;
+}
+.chart-empty .ce-ic{
+  width:44px;height:44px;border-radius:12px;font-size:22px;line-height:1;
+  display:flex;align-items:center;justify-content:center;color:#0382bd;
+  background:linear-gradient(145deg,#ffffff,#eaeff5);
+  border:1px solid #e5eaf0;
+  box-shadow:0 2px 5px rgba(15,23,42,.10),inset 0 1px 0 rgba(255,255,255,.9);
+}
+.chart-empty .ce-h{font-size:13px;font-weight:800;letter-spacing:.02em;color:#0f172a;margin:0}
+.chart-empty .ce-p{font-size:12px;color:#64748b;margin:0;max-width:36ch;line-height:1.5}
+.chart-empty .ce-cta{
+  margin-top:4px;display:inline-flex;align-items:center;gap:6px;
+  padding:7px 14px;border-radius:10px;font-size:12px;font-weight:700;
+  color:#fff;background:var(--brand-gradient);text-decoration:none;
+  box-shadow:0 4px 12px rgba(3,130,189,.25);
+}
+
 /* ── Mobile card-section refinements (phone frame < 640px): consistent
    radius + comfortable KPI gaps so card sections read cleanly across all
    roles on mobile (matches the student Progress page reference). ── */
