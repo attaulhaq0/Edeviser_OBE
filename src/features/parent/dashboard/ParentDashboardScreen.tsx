@@ -122,7 +122,7 @@ const ParentDashboardScreen = () => {
   // ── Loading ──
   if (aggregate.isPending) {
     return (
-      <div className="mx-auto max-w-3xl space-y-4">
+      <div className="w-full space-y-4">
         <Shimmer className="h-32 rounded-2xl" />
         <Shimmer className="h-28 rounded-[20px]" />
         <div className="grid gap-4 lg:grid-cols-2">
@@ -136,7 +136,7 @@ const ParentDashboardScreen = () => {
   // ── Error ──
   if (aggregate.isError) {
     return (
-      <div className="mx-auto max-w-3xl">
+      <div className="w-full">
         <div className="rounded-[20px] border border-red-100 bg-red-50 p-6 text-center text-sm text-red-700">
           {t(
             "parentDashboard.error",
@@ -150,7 +150,7 @@ const ParentDashboardScreen = () => {
   // ── Empty (no verified-linked children) ──
   if (!selected) {
     return (
-      <div className="mx-auto max-w-3xl">
+      <div className="w-full">
         <div
           className={cn(
             CARD,
@@ -189,7 +189,7 @@ const ParentDashboardScreen = () => {
   const celebrate = selected.avg_attainment >= 70 || streak >= 7 || level >= 2;
 
   return (
-    <div className="mx-auto max-w-3xl space-y-4">
+    <div className="w-full space-y-4">
       {/* ── Child selector (only when more than one linked child) ── */}
       {children.length > 1 && (
         <div className="flex flex-wrap gap-2">

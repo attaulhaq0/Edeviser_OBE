@@ -119,7 +119,7 @@ const AdminDashboardScreen = () => {
   const kpiLoading = aggregate.isPending;
 
   return (
-    <div className="mx-auto max-w-5xl space-y-4">
+    <div className="w-full space-y-4">
       {/* ── Institution hero (greeting + real status chips) ── */}
       <section
         className="relative overflow-hidden rounded-2xl p-5 text-white shadow-lg"
