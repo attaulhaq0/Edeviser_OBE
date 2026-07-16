@@ -274,7 +274,7 @@ const TeacherDashboardScreen = () => {
   };
 
   return (
-    <div className="mx-auto max-w-5xl space-y-4">
+    <div className="w-full space-y-4">
       {/* ── Hero (AI-prepared briefing: greeting + real status chips) ── */}
       <section
         className="relative overflow-hidden rounded-2xl p-4 text-white shadow-lg"

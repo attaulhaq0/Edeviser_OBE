@@ -392,7 +392,7 @@ const StudentDashboardScreen = () => {
   }
 
   return (
-    <div className="max-w-[1160px] space-y-4">
+    <div className="w-full space-y-4">
       {/* ── Hero carousel (living greeting · streak · league standing) ── */}
       <HeroCarousel
         slides={heroSlides}

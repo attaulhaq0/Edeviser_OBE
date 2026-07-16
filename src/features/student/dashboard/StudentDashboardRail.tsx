@@ -28,7 +28,7 @@ import {
   startOfDay,
 } from "date-fns";
 
-import { Shimmer } from "@/design-system";
+import { RailCard, RailHead, RailRow, Shimmer } from "@/design-system";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { useStudentDashboardAggregate } from "@/hooks/useStudentDashboardAggregate";
@@ -53,73 +53,6 @@ const dueLabel = (iso: string): string => {
     return format(d, "EEEE");
   return format(d, "MMM d");
 };
-
-/** `.rail-card` — white, 1px slate-200 border, radius-16, p-4, 14px bottom gap. */
-const RailCard = ({
-  children,
-  className,
-  style,
-}: {
-  children: React.ReactNode;
-  className?: string;
-  style?: React.CSSProperties;
-}) => (
-  <div
-    className={cn(
-      "mb-3.5 rounded-2xl border border-slate-200 bg-white p-4 dark:border-border dark:bg-card",
-      className
-    )}
-    style={style}
-  >
-    {children}
-  </div>
-);
-
-/** `.rail-h` — uppercase 11px/800 slate-400 header with an optional right note. */
-const RailHead = ({
-  title,
-  right,
-  onLight = true,
-}: {
-  title: string;
-  right?: string;
-  onLight?: boolean;
-}) => (
-  <div
-    className={cn(
-      "mb-2.5 flex items-center justify-between text-[11px] font-extrabold uppercase tracking-[0.08em]",
-      onLight ? "text-slate-400" : "text-white/60"
-    )}
-  >
-    <span>{title}</span>
-    {right ? (
-      <span className="text-[10px] font-bold normal-case tracking-normal text-slate-400">
-        {right}
-      </span>
-    ) : null}
-  </div>
-);
-
-/** `.rail-row` — 13px slate-700 row; bold value renders 12px/800 slate-900. */
-const RailRow = ({
-  children,
-  className,
-  style,
-}: {
-  children: React.ReactNode;
-  className?: string;
-  style?: React.CSSProperties;
-}) => (
-  <div
-    className={cn(
-      "flex items-center gap-2.5 py-[5px] text-[13px] text-slate-700 dark:text-slate-300",
-      className
-    )}
-    style={style}
-  >
-    {children}
-  </div>
-);
 
 const RailLink = ({ to, label }: { to: string; label: string }) => {
   const navigate = useNavigate();
