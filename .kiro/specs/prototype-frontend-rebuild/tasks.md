@@ -38,7 +38,10 @@ requirements R2/R6/R7):
 1. **Built** in `src/features/{role}/` (or `src/app` for shell) from the screen's
    `prototype/*.html` reference — layout, sections, cards, spacing, type, color,
    motion all composed from `@/design-system` (tokens + primitives + patterns +
-   mascot). No arbitrary hex; emoji → Lucide (PARITY §B).
+   mascot). No arbitrary hex; emoji → Lucide (PARITY §B). **Every card/section of the
+   screen must be reproduced** — enumerate them in `card-inventory.md` (the per-card
+   ledger: prototype treatment → component → hook → status) and reach ✅ for each; exact
+   element treatments are pinned in §Appendix A.
 2. **Wired** to the existing hook(s) for its data + mutations (R1) — components never
    call `supabase.*` directly (R1.2); mutations reuse existing hooks (R1.3). **Data-binding is
    auditable (G.5): every section AND card names the Supabase-backed hook it renders from,
