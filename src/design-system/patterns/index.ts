@@ -26,6 +26,9 @@ export type { HeroCardProps } from "./HeroCard";
 export { default as HeroCarousel } from "./HeroCarousel";
 export type { HeroCarouselProps } from "./HeroCarousel";
 
+export { RailCard, RailHead, RailRow } from "./Rail";
+export type { RailCardProps, RailHeadProps, RailRowProps } from "./Rail";
+
 export { default as StatusDot } from "./StatusDot";
 export type { DotTone, StatusDotProps } from "./StatusDot";
 
