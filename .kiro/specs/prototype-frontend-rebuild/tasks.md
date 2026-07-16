@@ -132,6 +132,11 @@ rail card adapts to its ~320px column, not the viewport.)
       `prefers-reduced-motion` on sidebar/drawer transitions; correct sticky z-order (header >
       sidebar/rail > content); a single content scroll container. Applied uniformly across all 5
       role layouts (§1.4) so every screen — dashboard and page alike — inherits identical margins.
+- [ ] 1.0.5 **Chrome-suppression rules** (from `shared.js` body flags): `data-immersive` screens
+      (the adaptive **lesson** loop, **focus** mode) render **full-screen with NO top bar /
+      sidebar / rail**; `data-norail` screens render sidebar + content but **no right rail** (the
+      page supplies its own right column). Encode as layout props on the route/role layout so the
+      shell knows when to drop each region.
 
 ### 1.1 Top bar (`.app-header`) — per role
 
@@ -226,6 +231,41 @@ Each card wires a real hook or is flagged (R17); enumerate every card:
       rebuild the multi-step onboarding shell (no chrome), the start/splash, and the role picker
       (dev/impersonation only where applicable). Preserve the real onboarding gate + `signUp` flow.
 - [x] 1.6 **404 NotFoundPage** built from `@/design-system` + catch-all route. (R4.1)
+
+### 1.7 Cross-cutting UI systems & overlays (app-wide — owned by no single screen)
+
+> These are generated/triggered **globally** by `shared.js` (not present in any per-screen
+> HTML), so a screen-by-screen audit misses them. Each is a reusable system that many
+> screens depend on; all data wiring obeys G.5 (real hook or flagged gap — never faked).
+
+- [ ] 1.7.1 **Hero carousel** (`.hero-carousel`/`.hero-slides`/`.hero-dots`, `initHeroCarousel`:
+      dot indicators + auto-advance + swipe, reduced-motion-safe). Reusable `@/design-system`
+      component — **no `Carousel` exists today**, and every rebuilt dashboard ships only slide 1.
+      Build the carousel and wire each role's slides: **student** (greeting+level-ring / streak-risk
+      / leaderboard rank-move / badge-almost) · **teacher** (greeting+chips / weekly momentum /
+      up-next schedule) · **coordinator** (greeting+chips / PLO-drop decision-context /
+      accreditation readiness) · **admin** (greeting+chips / executive watch-item / AI governance).
+      Slides needing rank-delta / badge-progress / weekly-momentum / schedule are backend gaps —
+      wire real or flag (G.5), never fake.
+- [ ] 1.7.2 **Gamification celebration & reward overlays** (event-triggered, cross-cutting). Components
+      exist in `@/components/shared/*` (reskinned) but no task rebuilds/wires them: `LevelUpOverlay`
+      (level-up), `BadgeAwardModal` + `MysteryBadge` (badge earned / mystery reveal), `XPAwardToast` + `showXP` `.xp-float` (XP gain), streak-milestone (`.streak-flame`), `MysteryRewardBox` +
+      `revealPurchase` (`.reveal-*`/`.flip`/`.reveal-rays` chest/purchase reveal),
+      `ImprovementBonusCelebration`, `LeaguePromotionCelebration`, and `confetti` (canvas-confetti,
+      reduced-motion-skip). Rebuild to prototype motion (`index.css` keyframes) and wire triggers to
+      the REAL gamification events (XP award, level-up, badge check, streak milestone, purchase).
+- [ ] 1.7.3 **AI suggestion approve/dismiss pattern** (`data-ai-card` + `aiApprove`/`aiDismiss`:
+      optimistic remove + toast — the A2 "act with approval" interaction). Reusable across teacher
+      (triage / feedback drafts), coordinator (attainment alerts / CQI), admin, and parent AI cards.
+      Build as a `@/design-system` pattern wired to each card's real approve/dismiss mutation; where
+      no mutation exists, flag the gap (G.5) — never fake the action.
+- [ ] 1.7.4 **Global feedback host**: Sonner `toast()` matched to the prototype `.edv-toast`; the
+      XP float; and the "why am I seeing this?" explainability popover (§1.1.5) — one host per app.
+- [ ] 1.7.5 **Reusable overlays/controls** used by settings/profile/onboarding + any CRUD screen:
+      edit dialog (`openEditModal`/`saveEditModal` → `ui/dialog`), avatar picker
+      (`edvAvatarChosen`/`edvClearAvatar` → `shared/AvatarUpload`), setting toggles
+      (`toggleMute`/`toggleQuietHours` / quiet-hours → `ui/switch`), confirm/delete
+      (`shared/ConfirmDialog`), and Esc/backdrop close behavior.
 
 ## P2 — Role dashboards (REBUILD from prototype, then delete `*DashboardNew`)
 
@@ -425,3 +465,53 @@ parity-green, and its legacy is deleted.
   by the CTA/token/import "cutover waves" (i.e. P3 modules not yet rebuilt).
 - **Remaining real rebuild:** P1.2 layouts, P3 (all modules + net-new sub-UI), P4 parity per
   screen, P5 legacy deletion. This is the bulk of the work.
+
+## Appendix A — Visual fidelity: exact reusable-element treatments (verbatim from `prototype/shared.css`)
+
+Pins the pixel-exact treatment for every reusable element so "match the prototype" is
+unambiguous. **Icons never sit on a saturated fill** — the prototype uses the brand
+gradient (actions), a soft 50-level tint (KPI), or a neutral slate (avatars/chips).
+Reproduce these values via `tokens.css` + the `@/design-system` patterns.
+
+### Icon containers
+
+- **Section-header chip** `.sec-h .chip`: `26×26`, radius `9px`, `14px` glyph, **white** icon
+  on `var(--brand-gradient)`, shadow `0 3px 8px rgba(20,184,166,.25)`. → `SectionHeader` (verified match).
+- **KPI icon tile** `.kpi-ic`: `38×38`, radius `11px`, `17px` glyph, on a **soft tint**:
+  `.i-blue` `#eff6ff/#2563eb` · `.i-green` `#f0fdf4/#16a34a` · `.i-amber` `#fffbeb/#d97706` ·
+  `.i-red` `#fef2f2/#dc2626` · `.i-teal` `#ecfeff/#0f766e` · `.i-violet` `#f5f3ff/#7c3aed`.
+  → `KPICard` (default `bg-blue-50`/`text-blue-600` == `.i-blue`, verified match).
+- **Lead / avatar** `.lead`: `44×44`, radius `14px`, **neutral** `#f1f5f9` bg / `#475569` text
+  (NO color) — this is the "simple background without color behind the icon"; severity variants
+  tint softly (`sev-high` → red-50, `sev-med` → amber-50, `sev-low` → blue-50).
+
+### Surfaces
+
+- **Card** `.pcard`: `#fff`, `1px #eef2f6` border, radius `20px`, shadow
+  `0 1px 2px rgba(16,24,40,.04), 0 10px 26px rgba(16,24,40,.05)`, hover-lift `.18s`. → `PCard` / the `CARD` constant (verified match).
+- **Stat tile** `.stat-tile`: `#f8fafc` bg, `1px #eef2f6`, radius `14px`. **Stat chip** `.stat-chip`
+  (top bar): `#f8fafc` bg, `1px #eef2f6`, radius `999px`, `13px/800` — **neutral, not colored**.
+
+### Controls
+
+- **Tactile button** `.btn3d`: `var(--brand-gradient)`, radius `12px`, **3-D shadow
+  `0 3px 0 #0b6a93`**, `translateY` on press. → `Button variant="tactile"`.
+- **Pill** `.pill`: `10px/800`, padding `2px 8px`, radius `999px`; `-red/-amber/-green/-blue/-slate`
+  soft tint pairs. → `Badge`.
+- **Trend** `.trend`: `11px/800` inline-flex + arrow (PARITY §B.4).
+
+### The rule (icon backgrounds)
+
+Never render an icon on a **saturated (400–700) fill** as chrome. Use one of: the **brand-gradient
+chip** (`.sec-h .chip`, primary actions), a **50-level soft tint** (`.i-*`, KPI tiles), or a
+**neutral slate** (`.lead`, `.stat-*`). Saturated fills are permitted ONLY for: progress-bar
+fills (`bg-blue-500`), Bloom's-level dots (domain coding), active pill tabs (`bg-blue-600 text-white`),
+and status dots — everything else uses gradient / soft-tint / neutral.
+
+> **Audit result (P2 dashboards):** the 5 rebuilt dashboards were checked against these values —
+> they use the correct treatments with **no old references** (`card-elevated`, `from-teal-500`,
+> `WelcomeHero` are absent; the saturated colors present are the four permitted uses above). The
+> reason non-student dashboards still look "off" vs the prototype is the **un-built shell chrome**
+> (top-bar ⌘K/stat-chips/profile-chip §1.1, sidebar MORE + student extras §1.2, and the **right
+> rail** §1.3 — none rendered yet) plus single-slide heroes (§1.7.1) and the shell grid (§1.0),
+> NOT the element styling. Building §1.0–1.4 + §1.7 is the fix.
