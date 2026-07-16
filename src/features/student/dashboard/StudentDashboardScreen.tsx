@@ -35,7 +35,12 @@ import {
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
-import { Button, MascotCharacter, Shimmer } from "@/design-system";
+import {
+  Button,
+  HeroCarousel,
+  MascotCharacter,
+  Shimmer,
+} from "@/design-system";
 import { useAuth } from "@/hooks/useAuth";
 import { useStudentDashboardAggregate } from "@/hooks/useStudentDashboardAggregate";
 import { computeLevelData } from "@/hooks/useLevel";
@@ -44,6 +49,10 @@ import { useCLOProgress } from "@/hooks/useCLOProgress";
 import { useTodayViewData } from "@/hooks/useTodayView";
 import { useWeeklyReviews } from "@/hooks/useReviewSchedule";
 import { useHeatmapData } from "@/hooks/useHeatmapData";
+import {
+  useStudentLeagueTier,
+  useStudentPercentileBand,
+} from "@/hooks/useLeagueLeaderboard";
 import { cn } from "@/lib/utils";
 
 /** Prototype brand gradient token (93.65deg teal→blue) as an inline value. */
@@ -134,6 +143,14 @@ const currentWeekRange = () => {
   return { start: days[0] ?? "", end: days[6] ?? "", days };
 };
 
+/** Time-of-day greeting bucket, matching the prototype's `timeGreeting`. */
+const greetingTimeOfDay = (): "morning" | "afternoon" | "evening" => {
+  const h = new Date().getHours();
+  if (h < 12) return "morning";
+  if (h < 17) return "afternoon";
+  return "evening";
+};
+
 const StudentDashboardScreen = () => {
   const { t } = useTranslation("student");
   const navigate = useNavigate();
@@ -144,6 +161,8 @@ const StudentDashboardScreen = () => {
   const courses = useStudentCourses(studentId);
   const cloProgress = useCLOProgress(studentId);
   const today = useTodayViewData(studentId);
+  const leagueTier = useStudentLeagueTier(studentId);
+  const percentile = useStudentPercentileBand(studentId);
 
   const kpis = aggregate.data?.kpis;
   const level = computeLevelData(kpis?.totalXP ?? 0);
@@ -210,75 +229,177 @@ const StudentDashboardScreen = () => {
     (heatmap.data ?? []).map((d) => [d.date, d.totalCount])
   );
 
-  return (
-    <div className="mx-auto max-w-3xl space-y-4">
-      {/* ── Hero (living greeting: level ring · XP bar · Foxi) ── */}
-      <section
-        className="relative overflow-hidden rounded-2xl p-4 text-white shadow-lg"
-        style={{ background: HERO_GRADIENT }}
-      >
-        <div
-          className="pointer-events-none absolute -right-8 -top-11 h-[150px] w-[150px]"
-          style={{
-            background:
-              "radial-gradient(circle,rgba(20,184,166,.45),transparent 70%)",
-          }}
-        />
-        <div className="relative flex min-h-[156px] items-center gap-3.5">
-          <ProgressRing
-            percent={level.progressPercent}
-            size={64}
-            stroke={2.5}
-            track="rgba(255,255,255,.15)"
-            color="#2dd4bf"
-          >
-            <div className="flex flex-col items-center justify-center leading-none">
-              <span className="text-[7px] font-black tracking-[0.18em] text-teal-200">
-                {t("dashboard.levelLabel", "LEVEL")}
+  // ── Hero carousel slides ──────────────────────────────────────────────────
+  // Slide 1 (living greeting) always renders. Slides 2 (streak) and 3 (league
+  // standing) render only when their REAL data exists (R17 — never faked). The
+  // prototype's 4th "badge 1 session away" slide needs a badge-progress source
+  // the backend-parity audit flagged as a gap, so it is omitted, not fabricated.
+  const streakAtRisk = !habits.login;
+  const leagueRank = percentile.data?.rank;
+  const leagueTotal = percentile.data?.totalStudents ?? 0;
+  const tierName = leagueTier.data?.tier;
+  const tierLabel = tierName
+    ? `${tierName.charAt(0).toUpperCase()}${tierName.slice(1)}`
+    : "";
+
+  const heroSlides: React.ReactNode[] = [
+    <div
+      key="greeting"
+      className="relative flex min-h-[156px] items-center overflow-hidden p-4"
+    >
+      <div
+        className="pointer-events-none absolute -right-8 -top-11 h-[150px] w-[150px]"
+        style={{
+          background:
+            "radial-gradient(circle,rgba(20,184,166,.45),transparent 70%)",
+        }}
+      />
+      <div className="relative flex w-full items-center gap-3.5">
+        <ProgressRing
+          percent={level.progressPercent}
+          size={64}
+          stroke={2.5}
+          track="rgba(255,255,255,.15)"
+          color="#2dd4bf"
+        >
+          <div className="flex flex-col items-center justify-center leading-none">
+            <span className="text-[7px] font-black tracking-[0.18em] text-teal-200">
+              {t("dashboard.levelLabel", "LEVEL")}
+            </span>
+            <span className="-mt-0.5 text-xl font-black">{level.level}</span>
+          </div>
+        </ProgressRing>
+        <div className="min-w-0 flex-1 pr-16">
+          <h1 className="truncate text-base font-bold tracking-tight">
+            {t(`dashboard.greeting.${greetingTimeOfDay()}`, "Good day")},{" "}
+            {firstName} 👋
+          </h1>
+          <p className="truncate text-[11px] text-white/60">
+            {t("dashboard.momentum", "Keep your momentum going")}
+          </p>
+          <div className="mt-2.5">
+            <div className="mb-1 flex items-baseline justify-between">
+              <span className="text-[11px] font-bold text-white/90">
+                {t("dashboard.levelProgress", "Level {{a}} → {{b}}", {
+                  a: level.level,
+                  b: level.level + 1,
+                })}
               </span>
-              <span className="-mt-0.5 text-xl font-black">{level.level}</span>
+              <span className="text-[10px] font-bold text-amber-300">
+                {t("dashboard.xpToGo", "{{xp}} XP to go", { xp: xpToGo })}
+              </span>
             </div>
-          </ProgressRing>
-          <div className="min-w-0 flex-1 pr-16">
-            <h1 className="truncate text-base font-bold tracking-tight">
-              {t("dashboard.greeting", "Good day, {{name}}", {
-                name: firstName,
-              })}{" "}
-              👋
-            </h1>
-            <p className="truncate text-[11px] text-white/60">
-              {t("dashboard.momentum", "Keep your momentum going")}
-            </p>
-            <div className="mt-2.5">
-              <div className="mb-1 flex items-baseline justify-between">
-                <span className="text-[11px] font-bold text-white/90">
-                  {t("dashboard.levelProgress", "Level {{a}} → {{b}}", {
-                    a: level.level,
-                    b: level.level + 1,
-                  })}
-                </span>
-                <span className="text-[10px] font-bold text-amber-300">
-                  {t("dashboard.xpToGo", "{{xp}} XP to go", { xp: xpToGo })}
-                </span>
-              </div>
-              <div className="h-2 overflow-hidden rounded-full bg-white/15">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-teal-400 to-blue-400"
-                  style={{ width: `${level.progressPercent}%` }}
-                />
-              </div>
+            <div className="h-2 overflow-hidden rounded-full bg-white/15">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-teal-400 to-blue-400"
+                style={{ width: `${level.progressPercent}%` }}
+              />
             </div>
           </div>
-          <MascotCharacter
-            character="foxi"
-            emotion="happy"
-            size="lg"
-            animation="float"
-            decorative
-            className="pointer-events-none absolute -bottom-2 right-1"
-          />
         </div>
-      </section>
+      </div>
+      <MascotCharacter
+        character="foxi"
+        emotion="happy"
+        size="lg"
+        animation="float"
+        decorative
+        className="pointer-events-none absolute bottom-0 right-1"
+      />
+    </div>,
+  ];
+
+  if (streak > 0) {
+    heroSlides.push(
+      <div key="streak" className="flex min-h-[156px] items-center gap-3.5 p-4">
+        <div
+          className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-white/15 text-2xl"
+          aria-hidden="true"
+        >
+          🔥
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-[10px] font-black uppercase tracking-widest text-amber-300">
+            {t("dashboard.hero.streakEyebrow", "Streak · day {{n}}", {
+              n: streak,
+            })}
+          </p>
+          <h2 className="mt-0.5 text-base font-bold tracking-tight">
+            {streakAtRisk
+              ? t("dashboard.hero.streakRiskTitle", "Don't lose it today")
+              : t("dashboard.hero.streakSafeTitle", "Your streak is alive")}
+          </h2>
+          <p className="mt-0.5 text-[11px] text-white/65">
+            {streakAtRisk
+              ? t(
+                  "dashboard.hero.streakRiskBody",
+                  "You haven't logged today's activity yet — a short review keeps it going."
+                )
+              : t(
+                  "dashboard.hero.streakSafeBody",
+                  "Keep showing up daily to grow your streak."
+                )}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => navigate("/student/today")}
+          className="shrink-0 rounded-xl px-3 py-2 text-xs font-bold text-white shadow-[0_3px_0_rgba(0,0,0,.15)] transition-transform active:scale-95"
+          style={{ background: "linear-gradient(90deg,#2dd4bf,#38bdf8)" }}
+        >
+          {t("dashboard.hero.streakCta", "Protect it →")}
+        </button>
+      </div>
+    );
+  }
+
+  if (leagueRank && leagueTotal > 0) {
+    heroSlides.push(
+      <div key="league" className="flex min-h-[156px] items-center gap-3.5 p-4">
+        <div
+          className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-white/15 text-2xl"
+          aria-hidden="true"
+        >
+          📈
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-[10px] font-black uppercase tracking-widest text-teal-300">
+            {t("dashboard.hero.leagueEyebrow", "Leaderboard")}
+          </p>
+          <h2 className="mt-0.5 text-base font-bold tracking-tight">
+            {t("dashboard.hero.leagueTitle", "You're #{{rank}} of {{total}}", {
+              rank: leagueRank,
+              total: leagueTotal,
+            })}
+          </h2>
+          <p className="mt-0.5 text-[11px] text-white/65">
+            {tierLabel
+              ? t("dashboard.hero.leagueBody", "{{tier}} League this week", {
+                  tier: tierLabel,
+                })
+              : t("dashboard.hero.leagueBodyGeneric", "Your weekly standing")}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => navigate("/student/leaderboard")}
+          className="shrink-0 rounded-xl border border-white/20 bg-white/[.14] px-3 py-2 text-xs font-bold text-white transition-transform active:scale-95"
+        >
+          {t("dashboard.hero.leagueCta", "View →")}
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-[1160px] space-y-4">
+      {/* ── Hero carousel (living greeting · streak · league standing) ── */}
+      <HeroCarousel
+        slides={heroSlides}
+        className="rounded-2xl text-white shadow-lg"
+        style={{ background: HERO_GRADIENT }}
+        ariaLabel={t("dashboard.hero.label", "Highlights")}
+      />
 
       {/* ── Weakest outcome + Next step ── */}
       <div className="grid gap-3 lg:grid-cols-2">

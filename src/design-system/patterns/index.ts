@@ -23,6 +23,9 @@ export type { KPICardProps } from "./KPICard";
 export { default as HeroCard } from "./HeroCard";
 export type { HeroCardProps } from "./HeroCard";
 
+export { default as HeroCarousel } from "./HeroCarousel";
+export type { HeroCarouselProps } from "./HeroCarousel";
+
 export { default as StatusDot } from "./StatusDot";
 export type { DotTone, StatusDotProps } from "./StatusDot";
 
