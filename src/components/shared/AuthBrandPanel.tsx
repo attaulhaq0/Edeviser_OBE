@@ -130,19 +130,19 @@ const AuthBrandPanel = () => {
               </svg>
 
               {/* Path Node 1 */}
-              <div className="absolute left-[30%] bottom-[35%] flex h-6 w-6 items-center justify-center rounded-full border border-cyan-400/50 bg-cyan-950/80 text-cyan-300 shadow-[0_0_10px_rgba(56,189,248,0.5)]">
+              <div className="absolute start-[30%] bottom-[35%] flex h-6 w-6 items-center justify-center rounded-full border border-cyan-400/50 bg-cyan-950/80 text-cyan-300 shadow-[0_0_10px_rgba(56,189,248,0.5)]">
                 <Target className="h-3 w-3" />
               </div>
               {/* Path Node 2 */}
-              <div className="absolute left-[60%] bottom-[55%] flex h-6 w-6 items-center justify-center rounded-full border border-blue-400/50 bg-blue-950/80 text-blue-300 shadow-[0_0_10px_rgba(59,130,246,0.5)]">
+              <div className="absolute start-[60%] bottom-[55%] flex h-6 w-6 items-center justify-center rounded-full border border-blue-400/50 bg-blue-950/80 text-blue-300 shadow-[0_0_10px_rgba(59,130,246,0.5)]">
                 <TrendingUp className="h-3 w-3" />
               </div>
               {/* Path Node 3 (Star) */}
-              <div className="absolute left-[80%] bottom-[75%] flex h-6 w-6 items-center justify-center rounded-full border border-amber-400/50 bg-amber-950/80 text-amber-300 shadow-[0_0_10px_rgba(251,191,36,0.5)]">
+              <div className="absolute start-[80%] bottom-[75%] flex h-6 w-6 items-center justify-center rounded-full border border-amber-400/50 bg-amber-950/80 text-amber-300 shadow-[0_0_10px_rgba(251,191,36,0.5)]">
                 <Star className="h-3 w-3 fill-amber-300" />
               </div>
               {/* Flag at peak */}
-              <div className="absolute right-[5%] top-[10%] text-teal-300">
+              <div className="absolute end-[5%] top-[10%] text-teal-300">
                 <Flag className="h-5 w-5 fill-teal-400" />
               </div>
             </div>
@@ -172,7 +172,7 @@ const AuthBrandPanel = () => {
           </div>
 
           {/* Infinity Visual Connector Badge */}
-          <div className="absolute left-1/2 top-1/2 z-20 hidden -translate-x-1/2 -translate-y-1/2 sm:flex">
+          <div className="absolute start-1/2 top-1/2 z-20 hidden -translate-x-1/2 -translate-y-1/2 sm:flex">
             <div className="flex h-9 w-9 items-center justify-center rounded-full border border-cyan-300/40 bg-gradient-to-r from-teal-500 to-blue-600 text-white shadow-[0_0_18px_rgba(20,184,166,0.6)]">
               <InfinityIcon className="h-5 w-5" />
             </div>
@@ -269,7 +269,7 @@ const AuthBrandPanel = () => {
             </div>
             <div className="flex items-center gap-1 text-xs font-bold text-amber-400">
               <span>★★★★★</span>
-              <span className="text-white font-extrabold ml-1">4.9/5</span>
+              <span className="text-white font-extrabold ms-1">4.9/5</span>
             </div>
           </div>
 

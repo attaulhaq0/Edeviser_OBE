@@ -429,18 +429,33 @@ const LoginPage = () => {
                 className="space-y-3"
               >
                 {/* Role indication */}
-                <p className="text-xs font-bold text-slate-600 mb-1">
-                  Account Type
+                <p className="mb-1 text-xs font-bold text-slate-700">
+                  {t("signup.role", "Account Type")}
                 </p>
-                <div className="flex gap-2 mb-3">
-                  <div className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50 py-2 px-3 text-xs font-bold text-blue-700">
+                <div className="mb-3 flex gap-2">
+                  <div
+                    className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50 py-2 px-2 text-xs font-bold text-blue-700"
+                    data-active={true}
+                  >
                     <GraduationCap className="h-4 w-4 text-blue-600" />
-                    <span>Student</span>
+                    <span>{t("roles.student", "Student")}</span>
                   </div>
-                  <div className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 py-2 px-3 text-xs font-medium text-slate-400 opacity-60">
+                  <button
+                    type="button"
+                    className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 py-2 px-2 text-xs font-medium text-slate-400 opacity-60"
+                    disabled
+                  >
                     <User className="h-4 w-4 text-slate-400" />
-                    <span>Staff (Invite Only)</span>
-                  </div>
+                    <span>{t("roles.teacher", "Teacher")}</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 py-2 px-2 text-xs font-medium text-slate-400 opacity-60"
+                    disabled
+                  >
+                    <Users className="h-4 w-4 text-slate-400" />
+                    <span>{t("roles.parent", "Parent")}</span>
+                  </button>
                 </div>
 
                 {/* First Name & Last Name */}
@@ -456,7 +471,7 @@ const LoginPage = () => {
                       id="signup-firstName"
                       autoComplete="given-name"
                       className="fld h-10 border-slate-200"
-                      placeholder="Sarah"
+                      placeholder={t("signup.firstNamePlaceholder", "First")}
                       {...signUpForm.register("firstName")}
                     />
                   </div>
@@ -471,7 +486,7 @@ const LoginPage = () => {
                       id="signup-lastName"
                       autoComplete="family-name"
                       className="fld h-10 border-slate-200"
-                      placeholder="Ahmed"
+                      placeholder={t("signup.lastNamePlaceholder", "Last")}
                       {...signUpForm.register("lastName")}
                     />
                   </div>
@@ -483,13 +498,13 @@ const LoginPage = () => {
                     htmlFor="signup-username"
                     className="mb-1 block text-xs font-bold text-slate-700"
                   >
-                    Username
+                    {t("signup.username", "Username")}
                   </label>
                   <input
                     id="signup-username"
                     autoComplete="username"
                     className="fld h-10 border-slate-200"
-                    placeholder="sarah_ahmed"
+                    placeholder={t("signup.usernamePlaceholder", "username")}
                     {...signUpForm.register("username")}
                   />
                 </div>
@@ -500,14 +515,14 @@ const LoginPage = () => {
                     htmlFor="signup-email"
                     className="mb-1 block text-xs font-bold text-slate-700"
                   >
-                    Email Address
+                    {t("signup.email", "Email Address")}
                   </label>
                   <input
                     id="signup-email"
                     type="email"
                     autoComplete="email"
                     className="fld h-10 border-slate-200"
-                    placeholder="sarah@school.edu"
+                    placeholder={t("signup.emailPlaceholder", "you@school.edu")}
                     {...signUpForm.register("email")}
                   />
                 </div>
@@ -518,7 +533,7 @@ const LoginPage = () => {
                     htmlFor="signup-password"
                     className="mb-1 block text-xs font-bold text-slate-700"
                   >
-                    Password
+                    {t("signup.password", "Password")}
                   </label>
                   <div className="relative">
                     <input
@@ -526,7 +541,7 @@ const LoginPage = () => {
                       type={showSignupPw ? "text" : "password"}
                       autoComplete="new-password"
                       className="fld h-10 pe-10 border-slate-200"
-                      placeholder="••••••••"
+                      placeholder={t("signup.passwordPlaceholder", "••••••••")}
                       {...signUpForm.register("password")}
                     />
                     <button
@@ -558,7 +573,7 @@ const LoginPage = () => {
                     htmlFor="signup-confirmPassword"
                     className="mb-1 block text-xs font-bold text-slate-700"
                   >
-                    Confirm Password
+                    {t("signup.confirmPassword", "Confirm Password")}
                   </label>
                   <div className="relative">
                     <input
@@ -566,7 +581,10 @@ const LoginPage = () => {
                       type={showSignupConfirm ? "text" : "password"}
                       autoComplete="new-password"
                       className="fld h-10 pe-10 border-slate-200"
-                      placeholder="••••••••"
+                      placeholder={t(
+                        "signup.confirmPasswordPlaceholder",
+                        "••••••••"
+                      )}
                       {...signUpForm.register("confirmPassword")}
                     />
                     <button
@@ -594,11 +612,15 @@ const LoginPage = () => {
                   disabled={isPending}
                 >
                   {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-                  <span>Create Account</span>
+                  <span>{t("signup.submitButton", "Create Account")}</span>
                   <ArrowRight className="h-4 w-4" />
                 </Button>
 
-                <p className="pt-2 text-center text-xs text-slate-500">
+                <p className="mt-2 text-center text-xs text-slate-400 font-medium">
+                  {t("signup.roleHint")}
+                </p>
+
+                <p className="pt-1 text-center text-xs text-slate-500">
                   Already have an account?{" "}
                   <button
                     type="button"

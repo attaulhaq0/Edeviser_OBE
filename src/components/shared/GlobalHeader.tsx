@@ -62,7 +62,7 @@ const GlobalHeader = () => {
         </div>
 
         {/* Center: Search Command */}
-        <div className="hidden sm:flex flex-1 max-w-md mx-4 justify-center">
+        <div className="absolute left-1/2 -translate-x-1/2 hidden min-[1280px]:block w-[360px]">
           <SearchCommand showTrigger />
         </div>
 

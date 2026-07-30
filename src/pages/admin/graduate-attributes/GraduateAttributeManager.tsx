@@ -196,6 +196,7 @@ const AttributeRow = ({
       variant="ghost"
       size="sm"
       onClick={onDelete}
+      aria-label={`Delete ${attr.name}`}
       className="text-slate-400 hover:text-red-500 shrink-0"
     >
       <Trash2 className="h-3.5 w-3.5" />

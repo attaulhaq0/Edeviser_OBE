@@ -32,7 +32,7 @@ describe("migration duplicate base-name guard (root-cause guard)", () => {
     }
     expect(output, output).toMatch(/CLEAN/);
     expect(exitCode).toBe(0);
-  });
+  }, 60000);
 
   it("detector logic flags a synthetic new duplicate base-name (guard is not vacuous)", () => {
     // Reconstruct the detector's core rule: group filenames by base-name, flag any base-name

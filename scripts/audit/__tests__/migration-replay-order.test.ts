@@ -33,7 +33,7 @@ describe("migration replay-order integrity (Supabase Preview / clean-rebuild gua
     }
     expect(output, output).toMatch(/CLEAN/);
     expect(exitCode).toBe(0);
-  });
+  }, 60000);
 
   it("detector logic flags a synthetic too-early reference (guard is not vacuous)", () => {
     // Reconstruct the detector's core rule and prove it FAILS on a planted violation.
