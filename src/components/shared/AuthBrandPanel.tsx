@@ -38,29 +38,13 @@ const AuthBrandPanel = () => {
 
       {/* ── BRAND / VALUE PANEL CONTENT ─────────────────────────────────── */}
       <div className="relative z-10 flex flex-col items-start">
-        {/* Brand Logo with Gradient Badge */}
-        <div className="mb-6 flex items-center gap-3.5">
-          <div
-            className="flex h-16 w-16 items-center justify-center rounded-2xl p-3 shadow-xl shadow-teal-500/25 ring-2 ring-white/30 backdrop-blur-md transition-transform duration-300 hover:scale-105"
-            style={{
-              background:
-                "linear-gradient(135deg, #14b8a6 0%, #0d9488 45%, #2563eb 100%)",
-            }}
-          >
-            <img
-              src="/edeviser-logo-final.png"
-              alt="Edeviser Logo"
-              className="h-full w-full object-contain brightness-0 invert filter drop-shadow-sm"
-            />
-          </div>
-          <div>
-            <span className="text-3xl font-black tracking-tight text-white drop-shadow-sm">
-              Edeviser
-            </span>
-            <p className="text-[11px] font-extrabold text-teal-200 tracking-wider uppercase">
-              OBE Platform
-            </p>
-          </div>
+        {/* Prominent Transparent Edeviser Logo Mark (Original logo without name) */}
+        <div className="mb-6 flex items-center justify-center">
+          <img
+            src="/edeviser-logo-final.png"
+            alt="Edeviser Logo Mark"
+            className="h-24 w-auto object-contain drop-shadow-[0_12px_24px_rgba(0,0,0,0.35)] transition-transform duration-300 hover:scale-105 md:h-28 lg:h-32"
+          />
         </div>
 
         {/* Gamified + Institutional Badge */}

@@ -289,24 +289,13 @@ const LoginPage = () => {
       {/* ── FORM PANEL ──────────────────────────────────────────────────── */}
       <div className="relative z-10 flex items-center justify-center px-5 py-[26px] md:p-10">
         <div className="mx-auto w-full max-w-[400px] md:max-w-[380px]">
-          {/* Edeviser Logo Header with Gradient Badge */}
+          {/* Transparent Edeviser Logo Header (Original logo without name) */}
           <div className="mb-6 flex flex-col items-center justify-center text-center">
-            <div
-              className="mb-2.5 flex h-16 w-16 items-center justify-center rounded-2xl p-3 shadow-lg shadow-teal-500/20 ring-2 ring-teal-500/30 transition-transform duration-300 hover:scale-105"
-              style={{
-                background:
-                  "linear-gradient(135deg, #14b8a6 0%, #0d9488 45%, #2563eb 100%)",
-              }}
-            >
-              <img
-                src="/edeviser-logo-final.png"
-                alt="Edeviser"
-                className="h-full w-full object-contain brightness-0 invert filter drop-shadow-sm"
-              />
-            </div>
-            <span className="text-2xl font-black tracking-tight text-slate-900">
-              Edeviser
-            </span>
+            <img
+              src="/edeviser-logo-final.png"
+              alt="Edeviser Logo Mark"
+              className="mb-2 h-20 w-auto object-contain transition-transform hover:scale-105 drop-shadow-md md:h-24"
+            />
             <p className="mt-0.5 text-xs font-semibold text-slate-500">
               Outcome-Based Higher Education Platform
             </p>
@@ -406,8 +395,11 @@ const LoginPage = () => {
 
               <Button
                 type="submit"
-                variant="tactile"
-                className="mt-4 h-12 w-full"
+                className="mt-4 h-12 w-full text-white font-bold shadow-lg shadow-teal-500/20 hover:shadow-teal-500/30 transition-all duration-300 hover:scale-[1.01] active:scale-[0.99] border-0"
+                style={{
+                  background:
+                    "linear-gradient(135deg, #14b8a6 0%, #0d9488 45%, #2563eb 100%)",
+                }}
                 disabled={isPending}
               >
                 {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
@@ -618,8 +610,11 @@ const LoginPage = () => {
 
               <Button
                 type="submit"
-                variant="tactile"
-                className="mt-4 h-12 w-full"
+                className="mt-4 h-12 w-full text-white font-bold shadow-lg shadow-teal-500/20 hover:shadow-teal-500/30 transition-all duration-300 hover:scale-[1.01] active:scale-[0.99] border-0"
+                style={{
+                  background:
+                    "linear-gradient(135deg, #14b8a6 0%, #0d9488 45%, #2563eb 100%)",
+                }}
                 disabled={isPending}
               >
                 {isPending && <Loader2 className="h-4 w-4 animate-spin" />}

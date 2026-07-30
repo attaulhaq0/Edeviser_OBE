@@ -52,7 +52,7 @@ export const useSaleEvents = () => {
           .in("sale_event_id", eventIds);
 
         if (!junctionError && junctionData) {
-          for (const row of junctionData as Array<{
+          for (const row of junctionData as unknown as Array<{
             sale_event_id: string;
             item_id: string;
           }>) {
