@@ -13,7 +13,6 @@
 // =============================================================================
 
 import type { ReactNode } from "react";
-
 import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
 import AuthBrandPanel from "@/components/shared/AuthBrandPanel";
 
@@ -23,19 +22,22 @@ interface AuthShellProps {
 
 const AuthShell = ({ children }: AuthShellProps) => {
   return (
-    <div className="relative grid min-h-[100dvh] grid-cols-1 bg-[#f8fafc] md:grid-cols-[1.1fr_1fr]">
-      {/* Language switcher in top-end corner */}
-      <div className="absolute end-4 top-4 z-20">
-        <LanguageSwitcher />
+    <div className="auth-page relative grid min-h-[100dvh] w-full grid-cols-1 bg-[#f3f6fc] overflow-x-clip lg:grid-cols-[1.35fr_1fr]">
+      {/* Brand / value panel (Left) */}
+      <div className="order-2 lg:order-1 h-full">
+        <AuthBrandPanel />
       </div>
 
-      {/* Brand / value panel */}
-      <AuthBrandPanel />
+      {/* Form panel (Right) */}
+      <div className="relative order-1 lg:order-2 flex flex-col justify-between px-6 py-8 sm:px-10 lg:px-12 lg:py-10">
+        <div className="flex justify-end w-full mb-6">
+          <LanguageSwitcher />
+        </div>
 
-      {/* Form panel */}
-      <div className="flex items-center justify-center px-5 py-[26px] md:p-10">
-        <div className="mx-auto w-full max-w-[400px] md:max-w-[380px]">
-          {children}
+        <div className="mx-auto w-full max-w-[500px] my-auto">
+          <div className="rounded-3xl border border-slate-100/90 bg-white p-7 sm:p-9 shadow-[0_20px_50px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+            {children}
+          </div>
         </div>
       </div>
     </div>

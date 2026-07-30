@@ -779,9 +779,15 @@ html.font-x-large {
  * auth is LIGHT + LTR only (PARITY §E) — no dark variants here by design.
  */
 
-/* Brand/value panel fill (prototype `.auth-brand` uses --hero-gradient). */
+/* Brand/value panel fill & auth page responsive layout */
 .auth-brand-panel {
-  background: var(--hero-gradient);
+  background-color: #030f26;
+}
+
+@media (max-width: 900px) {
+  .auth-page {
+    grid-template-columns: 1fr !important;
+  }
 }
 
 /* Text field — prototype `.fld`. */

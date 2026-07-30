@@ -17,20 +17,17 @@ import {
   GraduationCap,
   Shield,
   ArrowRight,
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  Send,
+  Sparkles,
 } from "lucide-react";
-
-// ---------------------------------------------------------------------------
-// Demo credentials for the Quick Demo Access section.
-// Passwords live in .env for the E2E / seeded accounts; the UI only needs the
-// emails and role labels.
-// ---------------------------------------------------------------------------
+import foxiSmiling from "@/design-system/mascot/assets/characters/foxi/foxi-smiling.png";
 
 // ---------------------------------------------------------------------------
 // Noor International demo profiles — LOCAL HOST ONLY.
-// Rendered only when `import.meta.env.DEV` is true (i.e. `vite` dev server),
-// so the block is dead-code-eliminated from production builds. One real seeded
-// account per role; the student/parent pair is linked (Aarav Sharma) so the
-// cross-role data tells a coherent story during an investor walkthrough.
 // ---------------------------------------------------------------------------
 const NOOR_DEMO_ACCOUNTS = [
   { role: "admin", email: "principal@noor-international.test", label: "Admin" },
@@ -57,18 +54,8 @@ const NOOR_DEMO_ACCOUNTS = [
 ] as const;
 
 const SHOW_NOOR_PANEL = import.meta.env.DEV;
-
-// Demo password is sourced from Vite env so the literal never ships in the
-// production client bundle — and so a rotated password never has to be
-// committed to the repo. `VITE_DEMO_PASSWORD` should only be set for
-// local / staging builds that ship with seeded demo accounts. When unset,
-// the Quick Demo Access panel is hidden entirely (see SHOW_DEMO_PANEL).
 const DEMO_PASSWORD = import.meta.env.VITE_DEMO_PASSWORD ?? "";
 const SHOW_DEMO_PANEL = DEMO_PASSWORD.length > 0;
-
-// Noor quick-login uses the same env-sourced password — no hardcoded
-// credential in committed source. Panel visibility is still DEV-only
-// (SHOW_NOOR_PANEL); when VITE_DEMO_PASSWORD is unset the buttons no-op.
 const NOOR_DEMO_PASSWORD = DEMO_PASSWORD;
 
 // ---------------------------------------------------------------------------
@@ -77,18 +64,18 @@ const NOOR_DEMO_PASSWORD = DEMO_PASSWORD;
 const getRoleIcon = (role: string) => {
   switch (role) {
     case "admin":
-      return <Shield className="h-4 w-4" />;
+      return <Shield className="h-4 w-4 text-blue-600" />;
     case "coordinator":
-      return <Users className="h-4 w-4" />;
+      return <Users className="h-4 w-4 text-cyan-600" />;
     case "teacher":
-      return <GraduationCap className="h-4 w-4" />;
+      return <GraduationCap className="h-4 w-4 text-teal-600" />;
+    case "parent":
+      return <Users className="h-4 w-4 text-indigo-600" />;
     default:
-      return <User className="h-4 w-4" />;
+      return <User className="h-4 w-4 text-sky-600" />;
   }
 };
 
-// Password-strength model — mirrors the prototype (`auth.html` strength()).
-// Returns the fill width, bar color and the i18n key for the helper line.
 const STRENGTH_STEPS = [
   { width: "0%", color: "#eef2f6", key: "strengthHint" },
   { width: "30%", color: "#ef4444", key: "strengthWeak" },
@@ -143,14 +130,10 @@ const LoginPage = () => {
   });
 
   const signupPassword = signUpForm.watch("password") ?? "";
-  // scorePassword() returns 0-4 and STRENGTH_STEPS has exactly 5 entries, so the
-  // index is always valid; the `?? [0]` fallback satisfies noUncheckedIndexedAccess.
   const strength =
     STRENGTH_STEPS[scorePassword(signupPassword)] ?? STRENGTH_STEPS[0];
 
-  // -------------------------------------------------------------------
-  // handlers (auth logic preserved verbatim from the previous screen)
-  // -------------------------------------------------------------------
+  // Handlers
   const handleLogin = async (data: LoginFormData) => {
     setError(null);
     setSuccess(null);
@@ -232,11 +215,6 @@ const LoginPage = () => {
     }
   };
 
-  // OAuth + magic-link use the EXISTING supabase client (no new backend
-  // schema). If the provider/OTP is not enabled in the Supabase dashboard the
-  // call surfaces an in-app error — it never fabricates a session. These are an
-  // added auth surface pending provider configuration (see rebuild notes).
-
   const handleMagicLink = async () => {
     const valid = await loginForm.trigger("email");
     if (!valid) return;
@@ -262,440 +240,446 @@ const LoginPage = () => {
     }
   };
 
-  // -------------------------------------------------------------------
-  // render — prototype `auth.html`: split brand panel + form panel on a
-  // light (#f8fafc) canvas. Light + LTR (prototype scope; PARITY §E).
-  // -------------------------------------------------------------------
   return (
-    <div className="relative grid min-h-[100dvh] grid-cols-1 bg-[#f8fafc] overflow-hidden md:grid-cols-[1.1fr_1fr]">
-      {/* Small Blue Doodle Background Overlay */}
-      <div
-        className="pointer-events-none absolute inset-0 bg-repeat opacity-[0.08] mix-blend-multiply"
-        style={{
-          backgroundImage: "url('/doodle-background.jpg')",
-          backgroundSize: "360px 360px",
-          filter: "hue-rotate(195deg) saturate(240%) brightness(0.9)",
-        }}
-      />
-
-      {/* Language switcher — top-end corner over everything */}
-      <div className="absolute end-4 top-4 z-20">
-        <LanguageSwitcher />
+    <div className="auth-page relative grid min-h-[100dvh] w-full grid-cols-1 bg-[#f3f6fc] overflow-x-clip lg:grid-cols-[1.35fr_1fr]">
+      {/* ── BRAND / VALUE PANEL (LEFT) ─────────────────────────────────── */}
+      <div className="order-2 lg:order-1 h-full">
+        <AuthBrandPanel />
       </div>
 
-      {/* ── BRAND / VALUE PANEL ─────────────────────────────────────────── */}
-      <AuthBrandPanel />
+      {/* ── AUTHENTICATION FORM PANEL (RIGHT) ──────────────────────────── */}
+      <div className="relative order-1 lg:order-2 flex flex-col justify-between px-6 py-8 sm:px-10 lg:px-12 lg:py-10">
+        {/* TOP RIGHT: LANGUAGE SWITCHER */}
+        <div className="flex justify-end w-full mb-6">
+          <LanguageSwitcher />
+        </div>
 
-      {/* ── FORM PANEL ──────────────────────────────────────────────────── */}
-      <div className="relative z-10 flex items-center justify-center px-5 py-[26px] md:p-10">
-        <div className="mx-auto w-full max-w-[400px] md:max-w-[380px]">
-          {/* Transparent Edeviser Logo Header (Original logo without name) */}
-          <div className="mb-6 flex flex-col items-center justify-center text-center">
-            <img
-              src="/edeviser-logo-final.png"
-              alt="Edeviser Logo Mark"
-              className="mb-2 h-20 w-auto object-contain transition-transform hover:scale-105 drop-shadow-md md:h-24"
-            />
-            <p className="mt-0.5 text-xs font-semibold text-slate-500">
-              Outcome-Based Higher Education Platform
-            </p>
-          </div>
-
-          {/* Accessible + E2E heading (visually the tabs carry the label). */}
-          <h1 className="sr-only">
-            {activeTab === "login" ? t("login.title") : t("signup.title")}
-          </h1>
-
-          {/* Tabs */}
-          <div className="mb-5 flex rounded-xl bg-slate-100 p-1">
-            <button
-              type="button"
-              className="auth-tab"
-              data-active={activeTab === "login"}
-              onClick={() => setActiveTab("login")}
-            >
-              {t("tabs.login")}
-            </button>
-            <button
-              type="button"
-              className="auth-tab"
-              data-active={activeTab === "register"}
-              onClick={() => setActiveTab("register")}
-            >
-              {t("tabs.register")}
-            </button>
-          </div>
-
-          {/* ── SIGN IN FORM ──────────────────────────────────────────── */}
-          {activeTab === "login" && (
-            <form onSubmit={loginForm.handleSubmit(handleLogin)} noValidate>
-              <label
-                htmlFor="login-email"
-                className="mb-1.5 block text-xs font-bold text-slate-600"
-              >
-                {t("login.emailLabel")}
-              </label>
-              <input
-                id="login-email"
-                type="email"
-                autoComplete="email"
-                className="fld"
-                placeholder="you@school.edu"
-                aria-invalid={!!loginForm.formState.errors.email}
-                {...loginForm.register("email")}
-              />
-              {loginForm.formState.errors.email && (
-                <p className="mt-1 text-xs text-red-600">
-                  {loginForm.formState.errors.email.message}
-                </p>
-              )}
-
-              <div className="mt-3 flex items-center justify-between">
-                <label
-                  htmlFor="login-password"
-                  className="block text-xs font-bold text-slate-600"
-                >
-                  {t("login.passwordLabel")}
-                </label>
-                <Link
-                  to="/reset-password"
-                  className="text-[11px] font-bold text-blue-600 hover:underline"
-                >
-                  {t("login.forgotPassword")}
-                </Link>
-              </div>
-              <div className="relative mt-1.5">
-                <input
-                  id="login-password"
-                  type={showLoginPw ? "text" : "password"}
-                  autoComplete="current-password"
-                  className="fld pe-12"
-                  placeholder="••••••••"
-                  aria-invalid={!!loginForm.formState.errors.password}
-                  {...loginForm.register("password")}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowLoginPw((v) => !v)}
-                  className="absolute end-3 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400 hover:text-gray-600"
-                >
-                  {showLoginPw ? t("password.hide") : t("password.show")}
-                </button>
-              </div>
-              {loginForm.formState.errors.password && (
-                <p className="mt-1 text-xs text-red-600">
-                  {loginForm.formState.errors.password.message}
-                </p>
-              )}
-
-              <label className="mt-3 flex cursor-pointer items-center gap-2 text-xs text-gray-600">
-                <Checkbox defaultChecked className="h-4 w-4" />
-                {t("login.keepSignedIn")}
-              </label>
-
-              <Button
-                type="submit"
-                className="mt-4 h-12 w-full text-white font-bold shadow-lg shadow-teal-500/20 hover:shadow-teal-500/30 transition-all duration-300 hover:scale-[1.01] active:scale-[0.99] border-0"
-                style={{
-                  background:
-                    "linear-gradient(135deg, #14b8a6 0%, #0d9488 45%, #2563eb 100%)",
-                }}
-                disabled={isPending}
-              >
-                {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-                {t("login.submitButton")}
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-
+        {/* CENTER AUTH CARD */}
+        <div className="mx-auto w-full max-w-[500px] my-auto">
+          <div className="rounded-3xl border border-slate-100/90 bg-white p-7 sm:p-9 shadow-[0_20px_50px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+            {/* TABS: LOGIN / REGISTER */}
+            <div className="mb-7 flex border-b border-slate-100">
               <button
                 type="button"
-                onClick={handleMagicLink}
-                disabled={isPending}
-                className="mt-2.5 w-full py-2 text-sm font-bold text-blue-600 hover:underline disabled:opacity-60"
+                className={`flex-1 pb-3 text-center text-base transition-all ${
+                  activeTab === "login"
+                    ? "border-b-2 border-blue-600 font-extrabold text-blue-600"
+                    : "font-semibold text-slate-400 hover:text-slate-600"
+                }`}
+                onClick={() => setActiveTab("login")}
               >
-                {t("sso.magicLink")}
+                {t("tabs.login", "Login")}
               </button>
-            </form>
-          )}
-
-          {/* ── CREATE ACCOUNT FORM ───────────────────────────────────── */}
-          {activeTab === "register" && (
-            <form onSubmit={signUpForm.handleSubmit(handleSignUp)} noValidate>
-              {/* Role segment — self-registration provisions a STUDENT account
-                  (the server `handle_new_user` trigger forces role='student'
-                  for self-signup). Staff roles are granted by invitation, so
-                  Teacher/Parent are shown for parity with the prototype but are
-                  not self-selectable (avoids the misleading picker). */}
-              <p className="mb-1.5 text-xs font-bold text-slate-600">
-                {t("signup.role")}
-              </p>
-              <div className="mb-3 flex gap-1.5">
-                <div className="rseg-b" data-active={true}>
-                  <GraduationCap className="mx-auto h-[18px] w-[18px] text-[#0369a1]" />
-                  <span className="mt-0.5 block text-[11px] font-bold text-[#0369a1]">
-                    {t("roles.student")}
-                  </span>
-                </div>
-                <button type="button" className="rseg-b" disabled>
-                  <User className="mx-auto h-[18px] w-[18px] text-slate-500" />
-                  <span className="mt-0.5 block text-[11px] font-bold text-slate-600">
-                    {t("roles.teacher")}
-                  </span>
-                </button>
-                <button type="button" className="rseg-b" disabled>
-                  <Users className="mx-auto h-[18px] w-[18px] text-slate-500" />
-                  <span className="mt-0.5 block text-[11px] font-bold text-slate-600">
-                    {t("roles.parent")}
-                  </span>
-                </button>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label
-                    htmlFor="signup-firstName"
-                    className="mb-1.5 block text-xs font-bold text-slate-600"
-                  >
-                    {t("signup.firstName")}
-                  </label>
-                  <input
-                    id="signup-firstName"
-                    autoComplete="given-name"
-                    className="fld"
-                    placeholder={t("signup.firstNamePlaceholder")}
-                    aria-invalid={!!signUpForm.formState.errors.firstName}
-                    {...signUpForm.register("firstName")}
-                  />
-                </div>
-                <div>
-                  <label
-                    htmlFor="signup-lastName"
-                    className="mb-1.5 block text-xs font-bold text-slate-600"
-                  >
-                    {t("signup.lastName")}
-                  </label>
-                  <input
-                    id="signup-lastName"
-                    autoComplete="family-name"
-                    className="fld"
-                    placeholder={t("signup.lastNamePlaceholder")}
-                    aria-invalid={!!signUpForm.formState.errors.lastName}
-                    {...signUpForm.register("lastName")}
-                  />
-                </div>
-              </div>
-              {(signUpForm.formState.errors.firstName ||
-                signUpForm.formState.errors.lastName) && (
-                <p className="mt-1 text-xs text-red-600">
-                  {signUpForm.formState.errors.firstName?.message ??
-                    signUpForm.formState.errors.lastName?.message}
-                </p>
-              )}
-
-              <label
-                htmlFor="signup-username"
-                className="mb-1.5 mt-3 block text-xs font-bold text-slate-600"
+              <button
+                type="button"
+                className={`flex-1 pb-3 text-center text-base transition-all ${
+                  activeTab === "register"
+                    ? "border-b-2 border-blue-600 font-extrabold text-blue-600"
+                    : "font-semibold text-slate-400 hover:text-slate-600"
+                }`}
+                onClick={() => setActiveTab("register")}
               >
-                {t("signup.username")}
-              </label>
-              <input
-                id="signup-username"
-                autoComplete="username"
-                className="fld"
-                placeholder={t("signup.usernamePlaceholder")}
-                aria-invalid={!!signUpForm.formState.errors.username}
-                {...signUpForm.register("username")}
-              />
-              {signUpForm.formState.errors.username && (
-                <p className="mt-1 text-xs text-red-600">
-                  {signUpForm.formState.errors.username.message}
-                </p>
-              )}
-
-              <label
-                htmlFor="signup-email"
-                className="mb-1.5 mt-3 block text-xs font-bold text-slate-600"
-              >
-                {t("signup.email")}
-              </label>
-              <input
-                id="signup-email"
-                type="email"
-                autoComplete="email"
-                className="fld"
-                placeholder={t("signup.emailPlaceholder")}
-                aria-invalid={!!signUpForm.formState.errors.email}
-                {...signUpForm.register("email")}
-              />
-              {signUpForm.formState.errors.email && (
-                <p className="mt-1 text-xs text-red-600">
-                  {signUpForm.formState.errors.email.message}
-                </p>
-              )}
-
-              <label
-                htmlFor="signup-password"
-                className="mb-1.5 mt-3 block text-xs font-bold text-slate-600"
-              >
-                {t("signup.password")}
-              </label>
-              <div className="relative">
-                <input
-                  id="signup-password"
-                  type={showSignupPw ? "text" : "password"}
-                  autoComplete="new-password"
-                  className="fld pe-12"
-                  placeholder={t("signup.passwordPlaceholder")}
-                  aria-invalid={!!signUpForm.formState.errors.password}
-                  {...signUpForm.register("password")}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowSignupPw((v) => !v)}
-                  className="absolute end-3 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400 hover:text-gray-600"
-                >
-                  {showSignupPw ? t("password.hide") : t("password.show")}
-                </button>
-              </div>
-              {/* Strength meter (prototype `.strength`) */}
-              <div className="auth-strength">
-                <div
-                  style={{ width: strength.width, background: strength.color }}
-                />
-              </div>
-              <p
-                className="mt-1 text-[11px]"
-                style={{
-                  color:
-                    scorePassword(signupPassword) >= 3 ? "#16a34a" : "#94a3b8",
-                }}
-              >
-                {t(`signup.${strength.key}`)}
-              </p>
-              {signUpForm.formState.errors.password && (
-                <p className="mt-1 text-xs text-red-600">
-                  {signUpForm.formState.errors.password.message}
-                </p>
-              )}
-
-              <label
-                htmlFor="signup-confirmPassword"
-                className="mb-1.5 mt-3 block text-xs font-bold text-slate-600"
-              >
-                {t("signup.confirmPassword")}
-              </label>
-              <div className="relative">
-                <input
-                  id="signup-confirmPassword"
-                  type={showSignupConfirm ? "text" : "password"}
-                  autoComplete="new-password"
-                  className="fld pe-12"
-                  placeholder={t("signup.confirmPasswordPlaceholder")}
-                  aria-invalid={!!signUpForm.formState.errors.confirmPassword}
-                  {...signUpForm.register("confirmPassword")}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowSignupConfirm((v) => !v)}
-                  className="absolute end-3 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400 hover:text-gray-600"
-                >
-                  {showSignupConfirm ? t("password.hide") : t("password.show")}
-                </button>
-              </div>
-              {signUpForm.formState.errors.confirmPassword && (
-                <p className="mt-1 text-xs text-red-600">
-                  {signUpForm.formState.errors.confirmPassword.message}
-                </p>
-              )}
-
-              <Button
-                type="submit"
-                className="mt-4 h-12 w-full text-white font-bold shadow-lg shadow-teal-500/20 hover:shadow-teal-500/30 transition-all duration-300 hover:scale-[1.01] active:scale-[0.99] border-0"
-                style={{
-                  background:
-                    "linear-gradient(135deg, #14b8a6 0%, #0d9488 45%, #2563eb 100%)",
-                }}
-                disabled={isPending}
-              >
-                {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-                {t("signup.submitButton")}
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-
-              <p className="mt-2.5 text-center text-[11px] text-gray-400">
-                {t("signup.roleHint")}
-              </p>
-            </form>
-          )}
-
-          {/* Swap prompt */}
-          <p className="mt-5 text-center text-[12px] text-gray-500">
-            {activeTab === "login" ? (
-              <>
-                {t("login.noAccount")}{" "}
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("register")}
-                  className="font-bold text-blue-600 hover:underline"
-                >
-                  {t("login.createAccount")}
-                </button>
-              </>
-            ) : (
-              <>
-                {t("signup.haveAccount")}{" "}
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("login")}
-                  className="font-bold text-blue-600 hover:underline"
-                >
-                  {t("signup.signIn")}
-                </button>
-              </>
-            )}
-          </p>
-
-          {/* Error / success */}
-          {error && (
-            <Alert
-              variant="destructive"
-              className="mt-4 rounded-xl border-red-200 bg-red-50 text-red-800"
-            >
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-          {success && (
-            <Alert className="mt-4 rounded-xl border-green-200 bg-green-50 text-green-800">
-              <AlertDescription>{success}</AlertDescription>
-            </Alert>
-          )}
-
-          {/* Single Quick Login Panel — DEV / Localhost Only */}
-          {activeTab === "login" && (SHOW_DEMO_PANEL || SHOW_NOOR_PANEL) && (
-            <div className="mt-4 border-t border-gray-100 pt-4">
-              <div className="mb-3 flex items-center justify-center gap-2">
-                <span className="flex items-center gap-1.5 text-xs font-bold text-gray-500">
-                  <span className="text-amber-500">⚡</span>
-                  Quick Demo Login
-                </span>
-              </div>
-              <div className="grid grid-cols-2 gap-2 min-[400px]:grid-cols-3">
-                {NOOR_DEMO_ACCOUNTS.map((acct) => (
-                  <Button
-                    key={acct.role}
-                    type="button"
-                    variant="ghost"
-                    className="h-9 rounded-xl border border-slate-200 text-xs font-semibold capitalize text-slate-700 shadow-sm hover:border-teal-500 hover:bg-teal-50 hover:text-teal-700"
-                    onClick={() => handleNoorDemoLogin(acct.email, acct.role)}
-                    disabled={isPending}
-                  >
-                    {getRoleIcon(acct.role)}
-                    <span>{acct.label}</span>
-                  </Button>
-                ))}
-              </div>
+                {t("tabs.register", "Register")}
+              </button>
             </div>
-          )}
+
+            {/* ── LOGIN FORM ───────────────────────────────────────────── */}
+            {activeTab === "login" && (
+              <form
+                onSubmit={loginForm.handleSubmit(handleLogin)}
+                noValidate
+                className="space-y-4"
+              >
+                {/* Email Field */}
+                <div>
+                  <label
+                    htmlFor="login-email"
+                    className="mb-1.5 block text-xs font-bold text-slate-700"
+                  >
+                    {t("login.emailLabel", "Email Address")}
+                  </label>
+                  <div className="relative">
+                    <Mail className="absolute start-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <input
+                      id="login-email"
+                      type="email"
+                      autoComplete="email"
+                      className="fld ps-10 h-11 border-slate-200 focus:border-blue-500 focus:ring-blue-500/20"
+                      placeholder="you@school.edu"
+                      aria-invalid={!!loginForm.formState.errors.email}
+                      {...loginForm.register("email")}
+                    />
+                  </div>
+                  {loginForm.formState.errors.email && (
+                    <p className="mt-1 text-xs text-red-600">
+                      {loginForm.formState.errors.email.message}
+                    </p>
+                  )}
+                </div>
+
+                {/* Password Field */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label
+                      htmlFor="login-password"
+                      className="block text-xs font-bold text-slate-700"
+                    >
+                      {t("login.passwordLabel", "Password")}
+                    </label>
+                    <Link
+                      to="/reset-password"
+                      className="text-xs font-semibold text-blue-600 hover:text-blue-700 hover:underline"
+                    >
+                      {t("login.forgotPassword", "Forgot password?")}
+                    </Link>
+                  </div>
+                  <div className="relative">
+                    <Lock className="absolute start-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <input
+                      id="login-password"
+                      type={showLoginPw ? "text" : "password"}
+                      autoComplete="current-password"
+                      className="fld ps-10 pe-11 h-11 border-slate-200 focus:border-blue-500 focus:ring-blue-500/20"
+                      placeholder="••••••••"
+                      aria-invalid={!!loginForm.formState.errors.password}
+                      {...loginForm.register("password")}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowLoginPw((v) => !v)}
+                      className="absolute end-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    >
+                      {showLoginPw ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </button>
+                  </div>
+                  {loginForm.formState.errors.password && (
+                    <p className="mt-1 text-xs text-red-600">
+                      {loginForm.formState.errors.password.message}
+                    </p>
+                  )}
+                </div>
+
+                {/* Keep Me Signed In Checkbox */}
+                <div className="pt-1">
+                  <label className="flex cursor-pointer items-center gap-2 text-xs font-medium text-slate-600">
+                    <Checkbox defaultChecked className="h-4 w-4 rounded-md" />
+                    {t("login.keepSignedIn", "Keep me signed in")}
+                  </label>
+                </div>
+
+                {/* Primary Gradient Sign In Button */}
+                <Button
+                  type="submit"
+                  className="mt-2 h-12 w-full text-white font-extrabold text-sm shadow-md transition-all duration-300 hover:opacity-95 border-0 rounded-xl flex items-center justify-center gap-2"
+                  style={{
+                    background:
+                      "linear-gradient(90deg, #1d4ed8 0%, #0284c7 50%, #0d9488 100%)",
+                  }}
+                  disabled={isPending}
+                >
+                  {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+                  <span>{t("login.submitButton", "Sign In")}</span>
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+
+                {/* Divider */}
+                <div className="relative my-4 flex items-center justify-center">
+                  <div className="w-full border-t border-slate-200" />
+                  <span className="absolute bg-white px-3 text-xs text-slate-400">
+                    or
+                  </span>
+                </div>
+
+                {/* Magic Link Button */}
+                <button
+                  type="button"
+                  onClick={handleMagicLink}
+                  disabled={isPending}
+                  className="flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white font-semibold text-xs text-blue-600 hover:bg-slate-50 transition-colors shadow-2xs"
+                >
+                  <Send className="h-4 w-4 text-blue-600" />
+                  <span>
+                    {t("sso.magicLink", "Email me a magic link instead")}
+                  </span>
+                </button>
+
+                {/* Create Account Link */}
+                <p className="pt-2 text-center text-xs text-slate-500">
+                  Don&apos;t have an account?{" "}
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("register")}
+                    className="font-bold text-blue-600 hover:underline"
+                  >
+                    Create one
+                  </button>
+                </p>
+              </form>
+            )}
+
+            {/* ── REGISTER FORM ────────────────────────────────────────── */}
+            {activeTab === "register" && (
+              <form
+                onSubmit={signUpForm.handleSubmit(handleSignUp)}
+                noValidate
+                className="space-y-3"
+              >
+                {/* Role indication */}
+                <p className="text-xs font-bold text-slate-600 mb-1">
+                  Account Type
+                </p>
+                <div className="flex gap-2 mb-3">
+                  <div className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50 py-2 px-3 text-xs font-bold text-blue-700">
+                    <GraduationCap className="h-4 w-4 text-blue-600" />
+                    <span>Student</span>
+                  </div>
+                  <div className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 py-2 px-3 text-xs font-medium text-slate-400 opacity-60">
+                    <User className="h-4 w-4 text-slate-400" />
+                    <span>Staff (Invite Only)</span>
+                  </div>
+                </div>
+
+                {/* First Name & Last Name */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label
+                      htmlFor="signup-firstName"
+                      className="mb-1 block text-xs font-bold text-slate-700"
+                    >
+                      {t("signup.firstName", "First Name")}
+                    </label>
+                    <input
+                      id="signup-firstName"
+                      autoComplete="given-name"
+                      className="fld h-10 border-slate-200"
+                      placeholder="Sarah"
+                      {...signUpForm.register("firstName")}
+                    />
+                  </div>
+                  <div>
+                    <label
+                      htmlFor="signup-lastName"
+                      className="mb-1 block text-xs font-bold text-slate-700"
+                    >
+                      {t("signup.lastName", "Last Name")}
+                    </label>
+                    <input
+                      id="signup-lastName"
+                      autoComplete="family-name"
+                      className="fld h-10 border-slate-200"
+                      placeholder="Ahmed"
+                      {...signUpForm.register("lastName")}
+                    />
+                  </div>
+                </div>
+
+                {/* Username */}
+                <div>
+                  <label
+                    htmlFor="signup-username"
+                    className="mb-1 block text-xs font-bold text-slate-700"
+                  >
+                    Username
+                  </label>
+                  <input
+                    id="signup-username"
+                    autoComplete="username"
+                    className="fld h-10 border-slate-200"
+                    placeholder="sarah_ahmed"
+                    {...signUpForm.register("username")}
+                  />
+                </div>
+
+                {/* Email */}
+                <div>
+                  <label
+                    htmlFor="signup-email"
+                    className="mb-1 block text-xs font-bold text-slate-700"
+                  >
+                    Email Address
+                  </label>
+                  <input
+                    id="signup-email"
+                    type="email"
+                    autoComplete="email"
+                    className="fld h-10 border-slate-200"
+                    placeholder="sarah@school.edu"
+                    {...signUpForm.register("email")}
+                  />
+                </div>
+
+                {/* Password & Strength */}
+                <div>
+                  <label
+                    htmlFor="signup-password"
+                    className="mb-1 block text-xs font-bold text-slate-700"
+                  >
+                    Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="signup-password"
+                      type={showSignupPw ? "text" : "password"}
+                      autoComplete="new-password"
+                      className="fld h-10 pe-10 border-slate-200"
+                      placeholder="••••••••"
+                      {...signUpForm.register("password")}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowSignupPw((v) => !v)}
+                      className="absolute end-3 top-1/2 -translate-y-1/2 text-slate-400"
+                    >
+                      {showSignupPw ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </button>
+                  </div>
+                  {/* Strength Bar */}
+                  <div className="auth-strength mt-1.5">
+                    <div
+                      style={{
+                        width: strength.width,
+                        background: strength.color,
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Confirm Password */}
+                <div>
+                  <label
+                    htmlFor="signup-confirmPassword"
+                    className="mb-1 block text-xs font-bold text-slate-700"
+                  >
+                    Confirm Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="signup-confirmPassword"
+                      type={showSignupConfirm ? "text" : "password"}
+                      autoComplete="new-password"
+                      className="fld h-10 pe-10 border-slate-200"
+                      placeholder="••••••••"
+                      {...signUpForm.register("confirmPassword")}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowSignupConfirm((v) => !v)}
+                      className="absolute end-3 top-1/2 -translate-y-1/2 text-slate-400"
+                    >
+                      {showSignupConfirm ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Submit Register */}
+                <Button
+                  type="submit"
+                  className="mt-3 h-11 w-full text-white font-extrabold text-sm border-0 rounded-xl flex items-center justify-center gap-2"
+                  style={{
+                    background:
+                      "linear-gradient(90deg, #1d4ed8 0%, #0284c7 50%, #0d9488 100%)",
+                  }}
+                  disabled={isPending}
+                >
+                  {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+                  <span>Create Account</span>
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+
+                <p className="pt-2 text-center text-xs text-slate-500">
+                  Already have an account?{" "}
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("login")}
+                    className="font-bold text-blue-600 hover:underline"
+                  >
+                    Sign In
+                  </button>
+                </p>
+              </form>
+            )}
+
+            {/* ERROR & SUCCESS MESSAGES */}
+            {error && (
+              <Alert
+                variant="destructive"
+                className="mt-4 rounded-xl border-red-200 bg-red-50 text-red-800"
+              >
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            {success && (
+              <Alert className="mt-4 rounded-xl border-green-200 bg-green-50 text-green-800">
+                <AlertDescription>{success}</AlertDescription>
+              </Alert>
+            )}
+
+            {/* QUICK DEMO LOGIN SECTION */}
+            {activeTab === "login" && (SHOW_DEMO_PANEL || SHOW_NOOR_PANEL) && (
+              <div className="mt-6 border-t border-slate-100 pt-5">
+                <div className="mb-3 flex items-center justify-center gap-1.5 text-xs font-bold text-slate-500">
+                  <Sparkles className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
+                  <span>Quick Demo Login</span>
+                </div>
+                <div className="grid grid-cols-3 gap-2 mb-2">
+                  {NOOR_DEMO_ACCOUNTS.slice(0, 3).map((acct) => (
+                    <button
+                      key={acct.role}
+                      type="button"
+                      className="flex h-9 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2 text-xs font-bold text-slate-700 shadow-2xs hover:border-blue-400 hover:bg-blue-50/50 transition-all disabled:opacity-50"
+                      onClick={() => handleNoorDemoLogin(acct.email, acct.role)}
+                      disabled={isPending}
+                    >
+                      {getRoleIcon(acct.role)}
+                      <span>{acct.label}</span>
+                    </button>
+                  ))}
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {NOOR_DEMO_ACCOUNTS.slice(3, 5).map((acct) => (
+                    <button
+                      key={acct.role}
+                      type="button"
+                      className="flex h-9 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2 text-xs font-bold text-slate-700 shadow-2xs hover:border-blue-400 hover:bg-blue-50/50 transition-all disabled:opacity-50"
+                      onClick={() => handleNoorDemoLogin(acct.email, acct.role)}
+                      disabled={isPending}
+                    >
+                      {getRoleIcon(acct.role)}
+                      <span>{acct.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* BOTTOM PAGE FOOTER */}
+        <div className="mt-6 flex items-center justify-between text-xs text-slate-400 font-medium">
+          <div className="mx-auto flex items-center gap-1.5">
+            <Lock className="h-3.5 w-3.5 text-slate-400" />
+            <span>Secure. Private. Built for education.</span>
+          </div>
+
+          <div className="fixed bottom-4 end-4 hidden sm:block">
+            <img
+              src={foxiSmiling}
+              alt="Mascot Badge"
+              className="h-10 w-10 object-contain drop-shadow-md transition-transform hover:scale-110"
+            />
+          </div>
         </div>
       </div>
     </div>
