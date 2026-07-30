@@ -2,7 +2,6 @@
 // Per-course mute toggles + quiet hours configuration
 
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -15,6 +14,7 @@ import {
 import { useCourses } from "@/hooks/useCourses";
 import { toast } from "sonner";
 import { Loader2, Bell, Moon } from "lucide-react";
+import { PCard, SectionHeader } from "@/design-system";
 
 const NotificationPreferences = () => {
   const { user } = useAuth();
@@ -61,17 +61,21 @@ const NotificationPreferences = () => {
 
   return (
     <div className="space-y-6 max-w-2xl">
-      <h1 className="text-2xl font-bold tracking-tight">
-        Notification Preferences
-      </h1>
+      <SectionHeader
+        icon={Bell}
+        title="Notification Preferences"
+        description="Control course notifications and quiet hours."
+      />
 
       {/* Per-course mute toggles */}
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
-        <CardHeader className="flex flex-row items-center gap-2">
-          <Bell className="h-5 w-5 text-blue-600" />
-          <CardTitle>Course Notifications</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
+      <PCard className="overflow-hidden gap-0 py-0">
+        <div className="flex items-center gap-2 px-6 py-4">
+          <Bell className="h-5 w-5 text-white" />
+          <h2 className="text-lg font-bold tracking-tight text-white">
+            Course Notifications
+          </h2>
+        </div>
+        <div className="space-y-3 p-6">
           {courses.length === 0 && (
             <p className="text-sm text-gray-500">No courses enrolled</p>
           )}
@@ -89,16 +93,18 @@ const NotificationPreferences = () => {
               />
             </div>
           ))}
-        </CardContent>
-      </Card>
+        </div>
+      </PCard>
 
       {/* Quiet hours */}
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
-        <CardHeader className="flex flex-row items-center gap-2">
-          <Moon className="h-5 w-5 text-blue-600" />
-          <CardTitle>Quiet Hours</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <PCard className="overflow-hidden gap-0 py-0">
+        <div className="flex items-center gap-2 px-6 py-4">
+          <Moon className="h-5 w-5 text-white" />
+          <h2 className="text-lg font-bold tracking-tight text-white">
+            Quiet Hours
+          </h2>
+        </div>
+        <div className="space-y-4 p-6">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-gray-700">
               Enable quiet hours
@@ -161,8 +167,8 @@ const NotificationPreferences = () => {
               </div>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </PCard>
 
       <Button
         onClick={handleSave}

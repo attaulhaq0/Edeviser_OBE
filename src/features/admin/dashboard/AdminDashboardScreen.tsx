@@ -42,6 +42,7 @@ import {
 import {
   Badge,
   Button,
+  HeroCarousel,
   KPICard,
   SectionHeader,
   Shimmer,
@@ -120,63 +121,106 @@ const AdminDashboardScreen = () => {
 
   return (
     <div className="w-full space-y-4">
-      {/* ── Institution hero (greeting + real status chips) ── */}
-      <section
-        className="relative overflow-hidden rounded-2xl p-5 text-white shadow-lg"
+      {/* ── Institution carousel (overview + real executive watch item) ── */}
+      <HeroCarousel
+        ariaLabel={t("dashboard.hero.carouselLabel", "Institution highlights")}
+        className="rounded-2xl text-white shadow-lg"
         style={{ background: HERO_GRADIENT }}
-      >
-        <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-white/15">
-            <Building2 className="h-6 w-6" aria-hidden="true" />
-          </div>
-          <div className="min-w-0">
-            <h1 className="text-lg font-bold tracking-tight">
-              {t("dashboard.hero.title", "Your institution, this week")}
-            </h1>
-            <p className="text-[12px] text-white/75">
-              {t(
-                "dashboard.hero.subtitle",
-                "De-identified, institution-wide signals — no individual student data."
-              )}
-            </p>
-          </div>
-        </div>
-        <div className="mt-3 flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => navigate("/admin/users")}
-            className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/15 px-3 py-1.5 text-[12px] font-semibold transition-colors hover:bg-white/25"
-          >
-            <Users className="h-3.5 w-3.5" aria-hidden="true" />
-            {t("dashboard.hero.users", {
-              defaultValue: "{{n}} users",
-              n: formatNumber(totalUsers),
-            })}
-          </button>
-          <button
-            type="button"
-            onClick={() => navigate("/admin/reports")}
-            className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/15 px-3 py-1.5 text-[12px] font-semibold transition-colors hover:bg-white/25"
-          >
-            <UserCheck className="h-3.5 w-3.5" aria-hidden="true" />
-            {t("dashboard.hero.active", {
-              defaultValue: "{{n}} active",
-              n: formatNumber(activeUsers),
-            })}
-          </button>
-          <button
-            type="button"
-            onClick={() => navigate("/admin/programs")}
-            className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/15 px-3 py-1.5 text-[12px] font-semibold transition-colors hover:bg-white/25"
-          >
-            <BookOpen className="h-3.5 w-3.5" aria-hidden="true" />
-            {t("dashboard.hero.programs", {
-              defaultValue: "{{n}} programs",
-              n: formatNumber(totalPrograms),
-            })}
-          </button>
-        </div>
-      </section>
+        slides={[
+          <div key="overview" className="min-h-[126px] p-5">
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-white/15">
+                <Building2 className="h-6 w-6" aria-hidden="true" />
+              </div>
+              <div className="min-w-0">
+                <h1 className="text-lg font-bold tracking-tight">
+                  {t("dashboard.hero.title", "Your institution, this week")}
+                </h1>
+                <p className="text-[12px] text-white/75">
+                  {t(
+                    "dashboard.hero.subtitle",
+                    "De-identified, institution-wide signals — no individual student data."
+                  )}
+                </p>
+              </div>
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => navigate("/admin/users")}
+                className="h-auto rounded-full border border-white/20 bg-white/15 px-3 py-1.5 text-[12px] font-semibold text-white hover:bg-white/25 hover:text-white"
+              >
+                <Users className="h-3.5 w-3.5" aria-hidden="true" />
+                {t("dashboard.hero.users", {
+                  defaultValue: "{{n}} users",
+                  n: formatNumber(totalUsers),
+                })}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => navigate("/admin/reports")}
+                className="h-auto rounded-full border border-white/20 bg-white/15 px-3 py-1.5 text-[12px] font-semibold text-white hover:bg-white/25 hover:text-white"
+              >
+                <UserCheck className="h-3.5 w-3.5" aria-hidden="true" />
+                {t("dashboard.hero.active", {
+                  defaultValue: "{{n}} active",
+                  n: formatNumber(activeUsers),
+                })}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => navigate("/admin/programs")}
+                className="h-auto rounded-full border border-white/20 bg-white/15 px-3 py-1.5 text-[12px] font-semibold text-white hover:bg-white/25 hover:text-white"
+              >
+                <BookOpen className="h-3.5 w-3.5" aria-hidden="true" />
+                {t("dashboard.hero.programs", {
+                  defaultValue: "{{n}} programs",
+                  n: formatNumber(totalPrograms),
+                })}
+              </Button>
+            </div>
+          </div>,
+          ...(lowestDept
+            ? [
+                <div
+                  key="watch-item"
+                  className="flex min-h-[126px] items-center gap-4 p-5"
+                >
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-white/15">
+                    <Lightbulb className="h-6 w-6" aria-hidden="true" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-amber-200">
+                      {t("dashboard.hero.watchEyebrow", "Executive watch item")}
+                    </p>
+                    <h2 className="mt-0.5 truncate text-lg font-bold">
+                      {lowestDept.department_name}
+                    </h2>
+                    <p className="mt-1 text-[12px] text-white/75">
+                      {t("dashboard.hero.watchBody", {
+                        defaultValue:
+                          "{{percent}}% average PLO attainment · lowest measured department",
+                        percent: Math.round(lowestDept.avg_plo_attainment),
+                      })}
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={() => navigate("/admin/reports")}
+                    className="shrink-0 rounded-xl border border-white/20 bg-white/15 px-3 text-xs font-bold text-white hover:bg-white/25 hover:text-white"
+                  >
+                    {t("dashboard.hero.openAnalytics", "Review")}
+                    <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+                  </Button>
+                </div>,
+              ]
+            : []),
+        ]}
+      />
 
       {/* ── KPI row (real aggregate metrics) ── */}
       {kpiLoading ? (

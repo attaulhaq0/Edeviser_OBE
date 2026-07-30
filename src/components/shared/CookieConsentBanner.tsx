@@ -50,11 +50,7 @@ const CookieConsentBanner = () => {
             >
               Reject Non-Essential
             </Button>
-            <Button
-              size="sm"
-              onClick={handleAcceptAll}
-              variant="tactile"
-            >
+            <Button size="sm" onClick={handleAcceptAll} variant="tactile">
               Accept All
             </Button>
           </div>

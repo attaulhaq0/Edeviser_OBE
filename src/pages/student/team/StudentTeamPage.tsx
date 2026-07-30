@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import TeamDashboardCard from "@/components/shared/TeamDashboardCard";
 import EmptyState, { NoTeams } from "@/components/shared/EmptyState";
 import TeamLeaderboard from "@/pages/student/leaderboard/TeamLeaderboard";
-import { Shimmer } from "@/design-system";
+import { SectionHeader, Shimmer } from "@/design-system";
 
 const StudentTeamPage = () => {
   const { t } = useTranslation("student");
@@ -50,10 +50,7 @@ const StudentTeamPage = () => {
           description={t("team.howItWorksDescription")}
         >
           <div className="flex flex-col items-center gap-3">
-            <Button
-              asChild
-              variant="tactile"
-            >
+            <Button asChild variant="tactile">
               <Link to="/student/teams/new">
                 <UserPlus className="h-4 w-4 me-2" />
                 {t("team.joinOrCreate")}
@@ -85,7 +82,7 @@ const StudentTeamPage = () => {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold tracking-tight">{t("team.title")}</h1>
+      <SectionHeader icon={Users} title={t("team.title")} />
 
       {renderTeamSection()}
 

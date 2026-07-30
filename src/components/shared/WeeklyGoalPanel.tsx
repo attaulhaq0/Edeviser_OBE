@@ -5,7 +5,6 @@
 // =============================================================================
 
 import { useState, useCallback } from "react";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -15,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { GradientCardHeader } from "@/design-system";
+import { PCard, SectionHeader } from "@/design-system";
 import { cn } from "@/lib/utils";
 import type { GoalProgress, GoalType, WeeklyGoal } from "@/types/planner";
 import type { CreateWeeklyGoalInput } from "@/lib/schemas/planner";
@@ -136,38 +135,43 @@ const WeeklyGoalPanel = ({
   );
 
   return (
-    <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-      <GradientCardHeader icon={Target} title="Weekly Goals">
-        {isEditable && !isEditing && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className={headerActionClass}
-            onClick={startEditing}
-          >
-            <Pencil className="h-3.5 w-3.5" />
-            Edit
-          </Button>
-        )}
-        {isEditing && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className={headerActionClass}
-            onClick={handleSave}
-            disabled={isPending}
-          >
-            {isPending ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <Save className="h-3.5 w-3.5" />
-            )}
-            Save
-          </Button>
-        )}
-      </GradientCardHeader>
+    <PCard className="overflow-hidden">
+      <div className="p-5 pb-4">
+        <SectionHeader
+          icon={Target}
+          title="Weekly Goals"
+          action={
+            isEditable && !isEditing ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                className={headerActionClass}
+                onClick={startEditing}
+              >
+                <Pencil className="h-3.5 w-3.5" />
+                Edit
+              </Button>
+            ) : isEditing ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                className={headerActionClass}
+                onClick={handleSave}
+                disabled={isPending}
+              >
+                {isPending ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Save className="h-3.5 w-3.5" />
+                )}
+                Save
+              </Button>
+            ) : null
+          }
+        />
+      </div>
 
-      <div className="p-6 space-y-4">
+      <div className="space-y-4 px-5 pb-5">
         {/* Editing mode */}
         {isEditing ? (
           <>
@@ -327,7 +331,7 @@ const WeeklyGoalPanel = ({
           ))
         )}
       </div>
-    </Card>
+    </PCard>
   );
 };
 

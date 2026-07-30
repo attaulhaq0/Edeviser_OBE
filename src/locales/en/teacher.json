@@ -25,6 +25,7 @@
     "nudgeFailed": "Failed to send nudge",
     "nudge": "Nudge",
     "daysInactive": "{{count}}d inactive",
+    "activityUnavailable": "Activity date unavailable",
     "late": "Late",
     "heatmapLegend": {
       "excellent": "Excellent (≥85%)",
@@ -51,6 +52,11 @@
       "description": "Students flagged for mastery recovery need to complete a recovery pathway before retrying the mastery gate.",
       "failures": "{{count}} failures",
       "inRecovery": "In Recovery"
+    },
+    "accessLimited": {
+      "title": "Learner details are access-limited",
+      "description": "{{count}} learners are flagged by the secure course aggregate, but individual profiles are not available with your current data permissions. Ask an administrator to review teacher access before sending a nudge.",
+      "rail": "{{count}} learners are flagged, but their identities are hidden by current data permissions."
     }
   },
   "grading": {

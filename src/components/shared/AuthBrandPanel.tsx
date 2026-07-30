@@ -12,66 +12,127 @@
 // =============================================================================
 
 import { useTranslation } from "react-i18next";
-import { Target, Bot, Flame, ShieldCheck, Globe, Sparkles } from "lucide-react";
+import { Target, Bot, Flame, ShieldCheck, Globe } from "lucide-react";
 
 const AuthBrandPanel = () => {
   const { t } = useTranslation("auth");
 
   return (
-    <div className="auth-brand-panel relative overflow-hidden px-[22px] py-[26px] text-white md:flex md:flex-col md:justify-center md:px-12 md:py-[52px]">
-      {/* Decorative blob */}
+    <div className="auth-brand-panel relative overflow-hidden px-6 py-8 text-white md:flex md:flex-col md:justify-center md:px-12 md:py-[52px]">
+      {/* Liquid background ambient lighting glow 1 */}
       <div
-        className="pointer-events-none absolute -end-[30px] -top-[40px] h-[180px] w-[180px] rounded-full opacity-50 blur-[2px]"
+        className="pointer-events-none absolute -end-10 -top-12 h-64 w-64 rounded-full opacity-60 blur-xl"
         style={{
           background:
-            "radial-gradient(circle, rgba(20,184,166,.5), transparent 70%)",
+            "radial-gradient(circle, rgba(20,184,166,0.65) 0%, rgba(59,130,246,0.2) 60%, transparent 80%)",
+        }}
+      />
+      {/* Liquid ambient lighting glow 2 */}
+      <div
+        className="pointer-events-none absolute -bottom-16 -start-12 h-60 w-60 rounded-full opacity-40 blur-2xl"
+        style={{
+          background:
+            "radial-gradient(circle, rgba(99,102,241,0.5) 0%, rgba(20,184,166,0.15) 70%, transparent 90%)",
         }}
       />
 
-      <div className="relative">
-        <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/20 bg-white/15">
-            <Sparkles className="h-4 w-4" />
+      {/* ── BRAND / VALUE PANEL CONTENT ─────────────────────────────────── */}
+      <div className="relative z-10 flex flex-col items-start">
+        {/* Brand Logo with Gradient Badge */}
+        <div className="mb-6 flex items-center gap-3.5">
+          <div
+            className="flex h-16 w-16 items-center justify-center rounded-2xl p-3 shadow-xl shadow-teal-500/25 ring-2 ring-white/30 backdrop-blur-md transition-transform duration-300 hover:scale-105"
+            style={{
+              background:
+                "linear-gradient(135deg, #14b8a6 0%, #0d9488 45%, #2563eb 100%)",
+            }}
+          >
+            <img
+              src="/edeviser-logo-final.png"
+              alt="Edeviser Logo"
+              className="h-full w-full object-contain brightness-0 invert filter drop-shadow-sm"
+            />
           </div>
-          <span className="text-lg font-black">Edeviser</span>
+          <div>
+            <span className="text-3xl font-black tracking-tight text-white drop-shadow-sm">
+              Edeviser
+            </span>
+            <p className="text-[11px] font-extrabold text-teal-200 tracking-wider uppercase">
+              OBE Platform
+            </p>
+          </div>
         </div>
 
-        <h2 className="mt-5 text-2xl font-black leading-tight tracking-tight md:text-3xl">
-          {t("brand.headline")}
+        {/* Gamified + Institutional Badge */}
+        <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-teal-300/30 bg-teal-500/20 px-3.5 py-1 text-xs font-extrabold text-teal-200 backdrop-blur-md shadow-sm">
+          <span className="flex h-2 w-2 rounded-full bg-teal-400 animate-pulse" />
+          {t("brand.chipBilingual", "Bilingual OBE & Gamification Engine")}
+        </div>
+
+        <h2 className="text-2xl font-black leading-tight tracking-tight text-white drop-shadow-md md:text-3xl lg:text-4xl">
+          {t("brand.headline", "Outcome-Based Higher Education")}
         </h2>
-        <p className="mt-2 max-w-xs text-sm text-white/75">
-          {t("brand.subtitle")}
+        <p className="mt-3 max-w-md text-sm leading-relaxed text-blue-100/90 font-medium">
+          {t(
+            "brand.subtitle",
+            "Continuous evidence collection, real-time PLO/CLO attainment analytics, and Duolingo-style student engagement."
+          )}
         </p>
 
-        <div className="mt-5 hidden space-y-2.5 md:block">
-          <div className="flex items-center gap-2.5 text-sm text-white/90">
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/15">
-              <Target className="h-4 w-4" />
+        {/* Gamified + Institutional Feature Blocks */}
+        <div className="mt-7 hidden space-y-3 md:block w-full max-w-md">
+          <div className="flex items-center gap-3.5 rounded-2xl border border-white/15 bg-white/10 p-3 shadow-sm backdrop-blur-md transition-all hover:bg-white/15">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-teal-300/30 bg-teal-500/25 shadow-inner">
+              <Target className="h-5 w-5 text-teal-200" />
             </span>
-            {t("brand.bulletOutcomes")}
+            <div>
+              <p className="text-xs font-extrabold text-white">
+                Continuous Evidence Roll-Up
+              </p>
+              <p className="text-[11px] font-medium text-blue-100/75">
+                Submission → CLO → PLO → ILO real-time chain
+              </p>
+            </div>
           </div>
-          <div className="flex items-center gap-2.5 text-sm text-white/90">
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/15">
-              <Bot className="h-4 w-4" />
+
+          <div className="flex items-center gap-3.5 rounded-2xl border border-white/15 bg-white/10 p-3 shadow-sm backdrop-blur-md transition-all hover:bg-white/15">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-sky-300/30 bg-sky-500/25 shadow-inner">
+              <Bot className="h-5 w-5 text-sky-200" />
             </span>
-            {t("brand.bulletTutor")}
+            <div>
+              <p className="text-xs font-extrabold text-white">
+                Socratic AI Tutor (Foxi)
+              </p>
+              <p className="text-[11px] font-medium text-blue-100/75">
+                Bloom-guided adaptive learning feedback
+              </p>
+            </div>
           </div>
-          <div className="flex items-center gap-2.5 text-sm text-white/90">
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/15">
-              <Flame className="h-4 w-4" />
+
+          <div className="flex items-center gap-3.5 rounded-2xl border border-white/15 bg-white/10 p-3 shadow-sm backdrop-blur-md transition-all hover:bg-white/15">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-amber-300/30 bg-amber-500/25 shadow-inner">
+              <Flame className="h-5 w-5 text-amber-200" />
             </span>
-            {t("brand.bulletHabits")}
+            <div>
+              <p className="text-xs font-extrabold text-white">
+                Habit & Mastery Paths
+              </p>
+              <p className="text-[11px] font-medium text-blue-100/75">
+                XP history, streaks, and skill tree rewards
+              </p>
+            </div>
           </div>
         </div>
 
-        <div className="mt-5 flex items-center gap-2 text-[11px] text-white/70">
-          <span className="inline-flex items-center gap-1 rounded-full border border-white/20 bg-white/[0.12] px-2.5 py-1 font-semibold">
-            <ShieldCheck className="h-3 w-3" />
-            {t("brand.chipFerpa")}
+        {/* Institutional Trust Seals */}
+        <div className="mt-7 flex flex-wrap items-center gap-2 text-[11px] text-white/90">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-white/15 px-3 py-1 font-bold backdrop-blur-md shadow-sm">
+            <ShieldCheck className="h-4 w-4 text-teal-300" />
+            {t("brand.chipFerpa", "FERPA & GDPR Compliant")}
           </span>
-          <span className="inline-flex items-center gap-1 rounded-full border border-white/20 bg-white/[0.12] px-2.5 py-1 font-semibold">
-            <Globe className="h-3 w-3" />
-            {t("brand.chipBilingual")}
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-white/15 px-3 py-1 font-bold backdrop-blur-md shadow-sm">
+            <Globe className="h-4 w-4 text-sky-300" />
+            {t("brand.chipBilingual", "Qatar Higher Ed Standard")}
           </span>
         </div>
       </div>

@@ -25,7 +25,7 @@ import {
 import { GradientCardHeader, Shimmer } from "@/design-system";
 import { InlineNoData } from "@/components/shared/EmptyState";
 import { useAuth } from "@/hooks/useAuth";
-import { useCourses } from "@/hooks/useCourses";
+import { useTeacherCourses } from "@/hooks/useCourses";
 import {
   useTeacherHandoffs,
   useRespondToHandoff,
@@ -104,7 +104,8 @@ const StatusBadge = ({ status }: { status: string }) => {
 
 const TeacherHandoffPage = () => {
   const { user } = useAuth();
-  const { data: paginatedCourses, isLoading: coursesLoading } = useCourses();
+  const { data: paginatedCourses, isLoading: coursesLoading } =
+    useTeacherCourses();
   const [selectedCourseId, setSelectedCourseId] = useState<string>("");
   const [respondDialogOpen, setRespondDialogOpen] = useState(false);
   const [selectedHandoff, setSelectedHandoff] =

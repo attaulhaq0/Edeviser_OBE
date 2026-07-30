@@ -1,0 +1,295 @@
+[36mvite v6.4.2 [32mbuilding for production...[36m[39m
+transforming...
+[32mΓ£ô[39m 4619 modules transformed.
+rendering chunks...
+computing gzip size...
+[2mdist/[22m[32mindex.html                                      [39m[1m[2m    2.38 kB[22m[1m[22m[2m Γöé gzip:   1.08 kB[22m
+[2mdist/[22m[32massets/edeviser-logo-Cw76NGww.png               [39m[1m[2m  364.95 kB[22m[1m[22m
+[2mdist/[22m[32massets/foxi-bridge-walk-Cm8w6WXz.png            [39m[1m[2m  974.75 kB[22m[1m[22m
+[2mdist/[22m[32massets/foxi-worried-DmAeiF_p.png                [39m[1m[2m1,276.04 kB[22m[1m[22m
+[2mdist/[22m[32massets/foxi-signal-beacon-3-BoK2RsD6.png        [39m[1m[2m1,491.99 kB[22m[1m[22m
+[2mdist/[22m[32massets/foxi-magical-PsypS604.png                [39m[1m[2m1,530.31 kB[22m[1m[22m
+[2mdist/[22m[32massets/foxi-learning-portal-Be2YQviK.png        [39m[1m[2m1,587.13 kB[22m[1m[22m
+[2mdist/[22m[32massets/foxi-smart-DZIAFi39.png                  [39m[1m[2m1,621.37 kB[22m[1m[22m
+[2mdist/[22m[32massets/foxi-playful-Dfwoo25Q.png                [39m[1m[2m1,695.59 kB[22m[1m[22m
+[2mdist/[22m[32massets/penguin-blushing-DvJkSUmS.png            [39m[1m[2m1,726.98 kB[22m[1m[22m
+[2mdist/[22m[32massets/foxi-excited-CKyb4UdN.png                [39m[1m[2m1,743.88 kB[22m[1m[22m
+[2mdist/[22m[32massets/foxi-signal-beacon-BBVfRs7e.png          [39m[1m[2m1,797.63 kB[22m[1m[22m
+[2mdist/[22m[32massets/foxi-smiling-Cy-tufH1.png                [39m[1m[2m1,811.15 kB[22m[1m[22m
+[2mdist/[22m[32massets/foxi-nervous-BCPjsC76.png                [39m[1m[2m1,815.41 kB[22m[1m[22m
+[2mdist/[22m[32massets/foxi-glowing-coin-BQb334if.png           [39m[1m[2m1,816.63 kB[22m[1m[22m
+[2mdist/[22m[32massets/foxi-studious-ppvUo1WC.png               [39m[1m[2m1,825.06 kB[22m[1m[22m
+[2mdist/[22m[32massets/foxi-annoyed-DhHrhVbC.png                [39m[1m[2m1,838.92 kB[22m[1m[22m
+[2mdist/[22m[32massets/foxi-studious-2-CxY2zFZ4.png             [39m[1m[2m1,870.92 kB[22m[1m[22m
+[2mdist/[22m[32massets/owl-wise-DISxOthk.png                    [39m[1m[2m1,910.88 kB[22m[1m[22m
+[2mdist/[22m[32massets/foxi-level-up-Bj517osY.png               [39m[1m[2m1,912.83 kB[22m[1m[22m
+[2mdist/[22m[32massets/foxi-celebrating-A6NXtnqC.png            [39m[1m[2m1,954.46 kB[22m[1m[22m
+[2mdist/[22m[32massets/foxi-signal-beacon-2-DGfgfDyQ.png        [39m[1m[2m2,085.55 kB[22m[1m[22m
+[2mdist/[22m[32massets/foxi-curious-DqRv3pYc.png                [39m[1m[2m2,185.53 kB[22m[1m[22m
+[2mdist/[22m[32massets/owl-concerned-2-C7b3gC60.png             [39m[1m[2m2,364.89 kB[22m[1m[22m
+[2mdist/[22m[32massets/foxi-proud-B4CSG9s9.png                  [39m[1m[2m2,466.87 kB[22m[1m[22m
+[2mdist/[22m[32massets/owl-concerned-DwHAI00h.png               [39m[1m[2m2,761.23 kB[22m[1m[22m
+[2mdist/[22m[32massets/foxi-default-CkhI3Acr.png                [39m[1m[2m3,665.98 kB[22m[1m[22m
+[2mdist/[22m[35massets/admin-dashboard-2TsKzaJi.css             [39m[1m[2m    2.99 kB[22m[1m[22m[2m Γöé gzip:   0.93 kB[22m
+[2mdist/[22m[35massets/BadgeSpotlightManager-DkGSnrj7.css       [39m[1m[2m    8.11 kB[22m[1m[22m[2m Γöé gzip:   1.67 kB[22m
+[2mdist/[22m[35massets/index-DJglV1At.css                       [39m[1m[2m  166.95 kB[22m[1m[22m[2m Γöé gzip:  25.66 kB[22m
+[2mdist/[22m[36massets/resolveName-DslcGrxN.js                  [39m[1m[2m    0.17 kB[22m[1m[22m[2m Γöé gzip:   0.15 kB[22m
+[2mdist/[22m[36massets/motionGate-B5GoPvop.js                   [39m[1m[2m    0.17 kB[22m[1m[22m[2m Γöé gzip:   0.16 kB[22m
+[2mdist/[22m[36massets/useApproachableWording-YKTaVIuI.js       [39m[1m[2m    0.19 kB[22m[1m[22m[2m Γöé gzip:   0.18 kB[22m
+[2mdist/[22m[36massets/storageUrl-CH3_dehR.js                   [39m[1m[2m    0.21 kB[22m[1m[22m[2m Γöé gzip:   0.19 kB[22m
+[2mdist/[22m[36massets/useTranscript-Di2qjUrs.js                [39m[1m[2m    0.25 kB[22m[1m[22m[2m Γöé gzip:   0.22 kB[22m
+[2mdist/[22m[36massets/questionAnalytics-exprtYwU.js            [39m[1m[2m    0.26 kB[22m[1m[22m[2m Γöé gzip:   0.19 kB[22m
+[2mdist/[22m[36massets/discussion-CmsQ1Ir7.js                   [39m[1m[2m    0.28 kB[22m[1m[22m[2m Γöé gzip:   0.20 kB[22m
+[2mdist/[22m[36massets/xpClient-BPJrUfj2.js                     [39m[1m[2m    0.29 kB[22m[1m[22m[2m Γöé gzip:   0.23 kB[22m
+[2mdist/[22m[36massets/leagueTier-ALu-0qbm.js                   [39m[1m[2m    0.32 kB[22m[1m[22m[2m Γöé gzip:   0.22 kB[22m
+[2mdist/[22m[36massets/useTutorAnalytics-CFH-9XYG.js            [39m[1m[2m    0.34 kB[22m[1m[22m[2m Γöé gzip:   0.25 kB[22m
+[2mdist/[22m[36massets/app-6pAfuHJm.js                          [39m[1m[2m    0.36 kB[22m[1m[22m[2m Γöé gzip:   0.18 kB[22m
+[2mdist/[22m[36massets/insertColumns-DGQ65eRh.js                [39m[1m[2m    0.38 kB[22m[1m[22m[2m Γöé gzip:   0.25 kB[22m
+[2mdist/[22m[36massets/pagination-HTlVkuCG.js                   [39m[1m[2m    0.45 kB[22m[1m[22m[2m Γöé gzip:   0.23 kB[22m
+[2mdist/[22m[36massets/useCourseSections-D7fgkX_p.js            [39m[1m[2m    0.46 kB[22m[1m[22m[2m Γöé gzip:   0.33 kB[22m
+[2mdist/[22m[36massets/auth-C-Exbmiy.js                         [39m[1m[2m    0.47 kB[22m[1m[22m[2m Γöé gzip:   0.27 kB[22m
+[2mdist/[22m[36massets/DifficultyBadge-vxgrN5Jw.js              [39m[1m[2m    0.49 kB[22m[1m[22m[2m Γöé gzip:   0.33 kB[22m
+[2mdist/[22m[36massets/AuthShell-C2nscWh7.js                    [39m[1m[2m    0.57 kB[22m[1m[22m[2m Γöé gzip:   0.36 kB[22m
+[2mdist/[22m[36massets/exportCurriculumMatrixCsv-KH9Ptqbi.js    [39m[1m[2m    0.57 kB[22m[1m[22m[2m Γöé gzip:   0.39 kB[22m
+[2mdist/[22m[36massets/localization-BWipElNp.js                 [39m[1m[2m    0.57 kB[22m[1m[22m[2m Γöé gzip:   0.37 kB[22m
+[2mdist/[22m[36massets/xpSchedule-DakQAKE3.js                   [39m[1m[2m    0.66 kB[22m[1m[22m[2m Γöé gzip:   0.38 kB[22m
+[2mdist/[22m[36massets/attainmentClassifier-D4DCqtuc.js         [39m[1m[2m    0.72 kB[22m[1m[22m[2m Γöé gzip:   0.33 kB[22m
+[2mdist/[22m[36massets/BloomsPill-CVNOQ5cx.js                   [39m[1m[2m    0.72 kB[22m[1m[22m[2m Γöé gzip:   0.39 kB[22m
+[2mdist/[22m[36massets/AdminLayout-CcVFdK-5.js                  [39m[1m[2m    0.76 kB[22m[1m[22m[2m Γöé gzip:   0.44 kB[22m
+[2mdist/[22m[36massets/CoordinatorLayout-C-6Y42aS.js            [39m[1m[2m    0.76 kB[22m[1m[22m[2m Γöé gzip:   0.44 kB[22m
+[2mdist/[22m[36massets/TeacherLayout-CKf1ftgq.js                [39m[1m[2m    0.76 kB[22m[1m[22m[2m Γöé gzip:   0.44 kB[22m
+[2mdist/[22m[36massets/ParentLayout-gGVwLiQ1.js                 [39m[1m[2m    0.76 kB[22m[1m[22m[2m Γöé gzip:   0.44 kB[22m
+[2mdist/[22m[36massets/ConfirmDialog-Bf7ioTnd.js                [39m[1m[2m    0.77 kB[22m[1m[22m[2m Γöé gzip:   0.45 kB[22m
+[2mdist/[22m[36massets/mapSupabaseError-MFr6HFnc.js             [39m[1m[2m    0.78 kB[22m[1m[22m[2m Γöé gzip:   0.49 kB[22m
+[2mdist/[22m[36massets/useStudentProfile-rhO6YfrD.js            [39m[1m[2m    0.88 kB[22m[1m[22m[2m Γöé gzip:   0.44 kB[22m
+[2mdist/[22m[36massets/bloomsVerbs-DzQLpmph.js                  [39m[1m[2m    0.94 kB[22m[1m[22m[2m Γöé gzip:   0.42 kB[22m
+[2mdist/[22m[36massets/ExplanationConfidenceBadge-MQ5uMz6P.js   [39m[1m[2m    0.98 kB[22m[1m[22m[2m Γöé gzip:   0.43 kB[22m
+[2mdist/[22m[36massets/useTeamFormation-Izx3DqtS.js             [39m[1m[2m    0.98 kB[22m[1m[22m[2m Γöé gzip:   0.49 kB[22m
+[2mdist/[22m[36massets/ChallengeProgressBar-C8KGo1mh.js         [39m[1m[2m    1.06 kB[22m[1m[22m[2m Γöé gzip:   0.60 kB[22m
+[2mdist/[22m[36massets/useFees-62vMDX-L.js                      [39m[1m[2m    1.13 kB[22m[1m[22m[2m Γöé gzip:   0.58 kB[22m
+[2mdist/[22m[36massets/StudentFeesPage-BkF5Avpu.js              [39m[1m[2m    1.14 kB[22m[1m[22m[2m Γöé gzip:   0.68 kB[22m
+[2mdist/[22m[36massets/NotFoundPage-DXb-3jk9.js                 [39m[1m[2m    1.16 kB[22m[1m[22m[2m Γöé gzip:   0.59 kB[22m
+[2mdist/[22m[36massets/XPBalanceBadge-BKp64Cbv.js               [39m[1m[2m    1.18 kB[22m[1m[22m[2m Γöé gzip:   0.70 kB[22m
+[2mdist/[22m[36massets/onboardingConstants-LVotag1P.js          [39m[1m[2m    1.21 kB[22m[1m[22m[2m Γöé gzip:   0.56 kB[22m
+[2mdist/[22m[36massets/LanguageSwitcher-ZEIC3iyG.js             [39m[1m[2m    1.24 kB[22m[1m[22m[2m Γöé gzip:   0.72 kB[22m
+[2mdist/[22m[36massets/useLevel-DeKOCvmp.js                     [39m[1m[2m    1.28 kB[22m[1m[22m[2m Γöé gzip:   0.72 kB[22m
+[2mdist/[22m[36massets/useStudentContent-DW5NyY7N.js            [39m[1m[2m    1.28 kB[22m[1m[22m[2m Γöé gzip:   0.59 kB[22m
+[2mdist/[22m[36massets/SemesterTrendView-BLn2I8o1.js            [39m[1m[2m    1.30 kB[22m[1m[22m[2m Γöé gzip:   0.59 kB[22m
+[2mdist/[22m[36massets/CohortComparisonView-BNvq6Sp1.js         [39m[1m[2m    1.30 kB[22m[1m[22m[2m Γöé gzip:   0.60 kB[22m
+[2mdist/[22m[36massets/useBaselineTests-C_mEJRLI.js             [39m[1m[2m    1.33 kB[22m[1m[22m[2m Γöé gzip:   0.60 kB[22m
+[2mdist/[22m[36massets/useReviewQueue-DLBpuqmm.js               [39m[1m[2m    1.36 kB[22m[1m[22m[2m Γöé gzip:   0.46 kB[22m
+[2mdist/[22m[36massets/TeamHealthBadge-Bd9Ot9tE.js              [39m[1m[2m    1.39 kB[22m[1m[22m[2m Γöé gzip:   0.78 kB[22m
+[2mdist/[22m[36massets/useRealtime-BAnsbVUr.js                  [39m[1m[2m    1.42 kB[22m[1m[22m[2m Γöé gzip:   0.72 kB[22m
+[2mdist/[22m[36massets/useNotifications-9QoxaVmU.js             [39m[1m[2m    1.42 kB[22m[1m[22m[2m Γöé gzip:   0.52 kB[22m
+[2mdist/[22m[36massets/QuestionQualityIndicator-4LT6akwp.js     [39m[1m[2m    1.45 kB[22m[1m[22m[2m Γöé gzip:   0.73 kB[22m
+[2mdist/[22m[36massets/ParentProfilePage-BW7-9EPC.js            [39m[1m[2m    1.61 kB[22m[1m[22m[2m Γöé gzip:   0.72 kB[22m
+[2mdist/[22m[36massets/useParentDashboard-q2PAr0Cc.js           [39m[1m[2m    1.61 kB[22m[1m[22m[2m Γöé gzip:   0.75 kB[22m
+[2mdist/[22m[36massets/ProfileSettingsPage-BELjVyZ-.js          [39m[1m[2m    1.63 kB[22m[1m[22m[2m Γöé gzip:   0.74 kB[22m
+[2mdist/[22m[36massets/form-DJU1AazF.js                         [39m[1m[2m    1.67 kB[22m[1m[22m[2m Γöé gzip:   0.75 kB[22m
+[2mdist/[22m[36massets/useReadHabitTimer-Chot1CLs.js            [39m[1m[2m    1.68 kB[22m[1m[22m[2m Γöé gzip:   0.78 kB[22m
+[2mdist/[22m[36massets/onboardingSchemas-pGZiKUIO.js            [39m[1m[2m    1.86 kB[22m[1m[22m[2m Γöé gzip:   0.67 kB[22m
+[2mdist/[22m[36massets/ContentReviewPage-ZOKr0W1f.js            [39m[1m[2m    1.96 kB[22m[1m[22m[2m Γöé gzip:   0.90 kB[22m
+[2mdist/[22m[36massets/useDepartments-CnQL1vP9.js               [39m[1m[2m    1.96 kB[22m[1m[22m[2m Γöé gzip:   0.73 kB[22m
+[2mdist/[22m[36massets/StudentLayout-C8sT_ZMR.js                [39m[1m[2m    2.04 kB[22m[1m[22m[2m Γöé gzip:   1.02 kB[22m
+[2mdist/[22m[36massets/useAssignments-C5PLXdoO.js               [39m[1m[2m    2.06 kB[22m[1m[22m[2m Γöé gzip:   0.79 kB[22m
+[2mdist/[22m[36massets/ParentFeesPage-BqBWysoN.js               [39m[1m[2m    2.27 kB[22m[1m[22m[2m Γöé gzip:   1.11 kB[22m
+[2mdist/[22m[36massets/marketplaceSchemas-DJG8sNWI.js           [39m[1m[2m    2.28 kB[22m[1m[22m[2m Γöé gzip:   0.93 kB[22m
+[2mdist/[22m[36massets/BaselineConfigPage-DXKua5Ct.js           [39m[1m[2m    2.30 kB[22m[1m[22m[2m Γöé gzip:   1.08 kB[22m
+[2mdist/[22m[36massets/ResetPasswordPage-Dib_ZvNQ.js            [39m[1m[2m    2.32 kB[22m[1m[22m[2m Γöé gzip:   0.99 kB[22m
+[2mdist/[22m[36massets/useTimetable-6silu7pO.js                 [39m[1m[2m    2.33 kB[22m[1m[22m[2m Γöé gzip:   0.92 kB[22m
+[2mdist/[22m[36massets/useMarketplaceAdmin-OrajZCeq.js          [39m[1m[2m    2.42 kB[22m[1m[22m[2m Γöé gzip:   0.97 kB[22m
+[2mdist/[22m[36massets/AuthBrandPanel-F3XQa5K2.js               [39m[1m[2m    2.43 kB[22m[1m[22m[2m Γöé gzip:   0.79 kB[22m
+[2mdist/[22m[36massets/useCourses-BrHHI-gy.js                   [39m[1m[2m    2.46 kB[22m[1m[22m[2m Γöé gzip:   0.94 kB[22m
+[2mdist/[22m[36massets/useStudentCourses-DN00ubn2.js            [39m[1m[2m    2.50 kB[22m[1m[22m[2m Γöé gzip:   1.12 kB[22m
+[2mdist/[22m[36massets/SessionManagement-DMKB1KYc.js            [39m[1m[2m    2.51 kB[22m[1m[22m[2m Γöé gzip:   1.14 kB[22m
+[2mdist/[22m[36massets/useUsers-B0UEJcCb.js                     [39m[1m[2m    2.53 kB[22m[1m[22m[2m Γöé gzip:   0.96 kB[22m
+[2mdist/[22m[36massets/DataTable-Wode06s4.js                    [39m[1m[2m    2.55 kB[22m[1m[22m[2m Γöé gzip:   1.05 kB[22m
+[2mdist/[22m[36massets/FeePaymentList-CIeQ63Vr.js               [39m[1m[2m    2.62 kB[22m[1m[22m[2m Γöé gzip:   1.17 kB[22m
+[2mdist/[22m[36massets/RubricPreview-CR2Qi5uE.js                [39m[1m[2m    2.64 kB[22m[1m[22m[2m Γöé gzip:   1.06 kB[22m
+[2mdist/[22m[36massets/useSemesters-Bl6ygrdH.js                 [39m[1m[2m    2.75 kB[22m[1m[22m[2m Γöé gzip:   0.82 kB[22m
+[2mdist/[22m[36massets/useILOs-DfWWJBTH.js                      [39m[1m[2m    2.78 kB[22m[1m[22m[2m Γöé gzip:   0.99 kB[22m
+[2mdist/[22m[36massets/PrivacyPage-C9zdD92w.js                  [39m[1m[2m    2.78 kB[22m[1m[22m[2m Γöé gzip:   1.11 kB[22m
+[2mdist/[22m[36massets/TermsPage-UbFgztGR.js                    [39m[1m[2m    2.80 kB[22m[1m[22m[2m Γöé gzip:   1.13 kB[22m
+[2mdist/[22m[36massets/useTeams-BpG6bzXj.js                     [39m[1m[2m    2.84 kB[22m[1m[22m[2m Γöé gzip:   1.07 kB[22m
+[2mdist/[22m[36massets/useExplanationConfidence-A1_NcTql.js     [39m[1m[2m    2.97 kB[22m[1m[22m[2m Γöé gzip:   0.87 kB[22m
+[2mdist/[22m[36massets/tutorApi-DqcIu3HK.js                     [39m[1m[2m    2.99 kB[22m[1m[22m[2m Γöé gzip:   1.36 kB[22m
+[2mdist/[22m[36massets/NotificationsFeedPage-zti_4VCV.js        [39m[1m[2m    3.04 kB[22m[1m[22m[2m Γöé gzip:   1.30 kB[22m
+[2mdist/[22m[36massets/useChallenges-CWGkw3Sg.js                [39m[1m[2m    3.05 kB[22m[1m[22m[2m Γöé gzip:   1.06 kB[22m
+[2mdist/[22m[36massets/StudentTranscriptPage-ayreGS_u.js        [39m[1m[2m    3.16 kB[22m[1m[22m[2m Γöé gzip:   1.36 kB[22m
+[2mdist/[22m[36massets/AssignmentListPage-BUyfihby.js           [39m[1m[2m    3.25 kB[22m[1m[22m[2m Γöé gzip:   1.43 kB[22m
+[2mdist/[22m[36massets/useInstitutionSettings-B4BR9TIU.js       [39m[1m[2m    3.28 kB[22m[1m[22m[2m Γöé gzip:   1.07 kB[22m
+[2mdist/[22m[36massets/ParentChildrenPage-mkcQk6RK.js           [39m[1m[2m    3.35 kB[22m[1m[22m[2m Γöé gzip:   1.13 kB[22m
+[2mdist/[22m[36massets/useWeeklyGoalXP-lERqk84V.js              [39m[1m[2m    3.40 kB[22m[1m[22m[2m Γöé gzip:   1.39 kB[22m
+[2mdist/[22m[36massets/parent-dashboard-37qT5YMf.js             [39m[1m[2m    3.42 kB[22m[1m[22m[2m Γöé gzip:   1.34 kB[22m
+[2mdist/[22m[36massets/EmailPreferencesSection-jM4roIGS.js      [39m[1m[2m    3.49 kB[22m[1m[22m[2m Γöé gzip:   1.40 kB[22m
+[2mdist/[22m[36massets/useSubmissions-CP10ZPnY.js               [39m[1m[2m    3.55 kB[22m[1m[22m[2m Γöé gzip:   1.41 kB[22m
+[2mdist/[22m[36massets/UpdatePasswordPage-DcQAxELH.js           [39m[1m[2m    3.56 kB[22m[1m[22m[2m Γöé gzip:   1.33 kB[22m
+[2mdist/[22m[36massets/ILOForm-BiYEJbB-.js                      [39m[1m[2m    3.57 kB[22m[1m[22m[2m Γöé gzip:   1.43 kB[22m
+[2mdist/[22m[36massets/plannerUtils-hBKpxpn_.js                 [39m[1m[2m    3.58 kB[22m[1m[22m[2m Γöé gzip:   1.64 kB[22m
+[2mdist/[22m[36massets/BaselineCoursesListPage-Bd0E4KG2.js      [39m[1m[2m    3.65 kB[22m[1m[22m[2m Γöé gzip:   1.42 kB[22m
+[2mdist/[22m[36massets/DiscussionModeration-CSccvBc3.js         [39m[1m[2m    3.65 kB[22m[1m[22m[2m Γöé gzip:   1.60 kB[22m
+[2mdist/[22m[36massets/usePLOs-Dx_av61b.js                      [39m[1m[2m    3.68 kB[22m[1m[22m[2m Γöé gzip:   1.17 kB[22m
+[2mdist/[22m[36massets/useRubrics-6Qic5u0v.js                   [39m[1m[2m    3.74 kB[22m[1m[22m[2m Γöé gzip:   1.16 kB[22m
+[2mdist/[22m[36massets/BaselineQuestionForm-CgQP9iJL.js         [39m[1m[2m    3.77 kB[22m[1m[22m[2m Γöé gzip:   1.48 kB[22m
+[2mdist/[22m[36massets/NotificationPreferences-X99CWRrg.js      [39m[1m[2m    3.77 kB[22m[1m[22m[2m Γöé gzip:   1.42 kB[22m
+[2mdist/[22m[36massets/CreateTeamPage-CG9GNVdr.js               [39m[1m[2m    3.80 kB[22m[1m[22m[2m Γöé gzip:   1.66 kB[22m
+[2mdist/[22m[36massets/BaselineResultsPage-BE2dAA0n.js          [39m[1m[2m    3.89 kB[22m[1m[22m[2m Γöé gzip:   1.61 kB[22m
+[2mdist/[22m[36massets/ProgramListPage-D2z7FFMy.js              [39m[1m[2m    3.93 kB[22m[1m[22m[2m Γöé gzip:   1.62 kB[22m
+[2mdist/[22m[36massets/CoverageHeatmapView-DGfdEEM0.js          [39m[1m[2m    3.95 kB[22m[1m[22m[2m Γöé gzip:   1.60 kB[22m
+[2mdist/[22m[36massets/SurveyResponsePage-B-APN-eX.js           [39m[1m[2m    4.00 kB[22m[1m[22m[2m Γöé gzip:   1.70 kB[22m
+[2mdist/[22m[36massets/QuestionPreview-BNdsalU0.js              [39m[1m[2m    4.00 kB[22m[1m[22m[2m Γöé gzip:   1.34 kB[22m
+[2mdist/[22m[36massets/AcademicCalendarManager-CCPz4Ia8.js      [39m[1m[2m    4.04 kB[22m[1m[22m[2m Γöé gzip:   1.60 kB[22m
+[2mdist/[22m[36massets/AnnouncementDetail-DreI64EB.js           [39m[1m[2m    4.06 kB[22m[1m[22m[2m Γöé gzip:   1.74 kB[22m
+[2mdist/[22m[36massets/useAnnouncements-C7J4S8g-.js             [39m[1m[2m    4.13 kB[22m[1m[22m[2m Γöé gzip:   1.16 kB[22m
+[2mdist/[22m[36massets/UserForm-DK7qv-k8.js                     [39m[1m[2m    4.14 kB[22m[1m[22m[2m Γöé gzip:   1.66 kB[22m
+[2mdist/[22m[36massets/StudentContentPage-CWg-Jbgf.js           [39m[1m[2m    4.15 kB[22m[1m[22m[2m Γöé gzip:   1.58 kB[22m
+[2mdist/[22m[36massets/CourseListPage-BWB2aLZ2.js               [39m[1m[2m    4.18 kB[22m[1m[22m[2m Γöé gzip:   1.76 kB[22m
+[2mdist/[22m[36massets/CosmeticPreview-CCXbmHud.js              [39m[1m[2m    4.22 kB[22m[1m[22m[2m Γöé gzip:   1.48 kB[22m
+[2mdist/[22m[36massets/fileUpload-CGNrtywQ.js                   [39m[1m[2m    4.27 kB[22m[1m[22m[2m Γöé gzip:   1.59 kB[22m
+[2mdist/[22m[36massets/GapAnalysisView-DMZ0FrBF.js              [39m[1m[2m    4.30 kB[22m[1m[22m[2m Γöé gzip:   1.71 kB[22m
+[2mdist/[22m[36massets/FeeManager-BRex8MAv.js                   [39m[1m[2m    4.32 kB[22m[1m[22m[2m Γöé gzip:   1.61 kB[22m
+[2mdist/[22m[36massets/ParentInvitePage-BAMgY-Nr.js             [39m[1m[2m    4.32 kB[22m[1m[22m[2m Γöé gzip:   1.70 kB[22m
+[2mdist/[22m[36massets/ChallengeListPage-Bfk0Xmlu.js            [39m[1m[2m    4.32 kB[22m[1m[22m[2m Γöé gzip:   1.69 kB[22m
+[2mdist/[22m[36massets/TeamFormPage-o_3qVpO3.js                 [39m[1m[2m    4.35 kB[22m[1m[22m[2m Γöé gzip:   1.95 kB[22m
+[2mdist/[22m[36massets/useAttendance-CfjPJewm.js                [39m[1m[2m    4.40 kB[22m[1m[22m[2m Γöé gzip:   1.52 kB[22m
+[2mdist/[22m[36massets/TeacherChallengeListPage-DENOf2lL.js     [39m[1m[2m    4.41 kB[22m[1m[22m[2m Γöé gzip:   1.76 kB[22m
+[2mdist/[22m[36massets/SankeyDiagramView-B53TmmKE.js            [39m[1m[2m    4.41 kB[22m[1m[22m[2m Γöé gzip:   1.86 kB[22m
+[2mdist/[22m[36massets/useDiscussions-G9_7ldcT.js               [39m[1m[2m    4.44 kB[22m[1m[22m[2m Γöé gzip:   1.34 kB[22m
+[2mdist/[22m[36massets/AvatarUpload-Bw4mWwC_.js                 [39m[1m[2m    4.45 kB[22m[1m[22m[2m Γöé gzip:   1.97 kB[22m
+[2mdist/[22m[36massets/GradingQueuePage-eD5lcbuP.js             [39m[1m[2m    4.51 kB[22m[1m[22m[2m Γöé gzip:   1.55 kB[22m
+[2mdist/[22m[36massets/useSurveys-CVyd1y4z.js                   [39m[1m[2m    4.56 kB[22m[1m[22m[2m Γöé gzip:   1.22 kB[22m
+[2mdist/[22m[36massets/AuditLogPage-BJUFPjR9.js                 [39m[1m[2m    4.62 kB[22m[1m[22m[2m Γöé gzip:   1.87 kB[22m
+[2mdist/[22m[36massets/ThreadDetail-PVoew5RB.js                 [39m[1m[2m    4.67 kB[22m[1m[22m[2m Γöé gzip:   1.76 kB[22m
+[2mdist/[22m[36massets/CLOListPage-Bfpl0w7H.js                  [39m[1m[2m    4.72 kB[22m[1m[22m[2m Γöé gzip:   2.05 kB[22m
+[2mdist/[22m[36massets/teacher-dashboard-DYpfRPxt.js            [39m[1m[2m    4.75 kB[22m[1m[22m[2m Γöé gzip:   1.65 kB[22m
+[2mdist/[22m[36massets/PublicPortfolio-ClVv0KoQ.js              [39m[1m[2m    4.76 kB[22m[1m[22m[2m Γöé gzip:   1.55 kB[22m
+[2mdist/[22m[36massets/AdminSecurityPage-DaAvwW5I.js            [39m[1m[2m    4.82 kB[22m[1m[22m[2m Γöé gzip:   1.59 kB[22m
+[2mdist/[22m[36massets/useVisualizationData-WKbbHx8C.js         [39m[1m[2m    4.82 kB[22m[1m[22m[2m Γöé gzip:   1.92 kB[22m
+[2mdist/[22m[36massets/DiscussionForum-B8DPCbEm.js              [39m[1m[2m    4.83 kB[22m[1m[22m[2m Γöé gzip:   2.06 kB[22m
+[2mdist/[22m[36massets/RubricListPage-BQ56Lgst.js               [39m[1m[2m    4.84 kB[22m[1m[22m[2m Γöé gzip:   2.08 kB[22m
+[2mdist/[22m[36massets/TransactionHistoryPage-D3yGd5ak.js       [39m[1m[2m    4.87 kB[22m[1m[22m[2m Γöé gzip:   2.09 kB[22m
+[2mdist/[22m[36massets/ExplanationReviewPage-B4YqVmOJ.js        [39m[1m[2m    4.91 kB[22m[1m[22m[2m Γöé gzip:   1.75 kB[22m
+[2mdist/[22m[36massets/UserListPage-CMLHWV-K.js                 [39m[1m[2m    4.95 kB[22m[1m[22m[2m Γöé gzip:   1.92 kB[22m
+[2mdist/[22m[36massets/ReviewQueuePage-RJ3fR6Na.js              [39m[1m[2m    5.01 kB[22m[1m[22m[2m Γöé gzip:   1.87 kB[22m
+[2mdist/[22m[36massets/useCLOs-Ldkx5ZtB.js                      [39m[1m[2m    5.06 kB[22m[1m[22m[2m Γöé gzip:   1.49 kB[22m
+[2mdist/[22m[36massets/PendingOnboardingPage-CxntwAVp.js        [39m[1m[2m    5.12 kB[22m[1m[22m[2m Γöé gzip:   2.13 kB[22m
+[2mdist/[22m[36massets/AssignmentListPage-CbEqZuGx.js           [39m[1m[2m    5.18 kB[22m[1m[22m[2m Γöé gzip:   2.10 kB[22m
+[2mdist/[22m[36massets/DataImportPage-CYZ6ogUp.js               [39m[1m[2m    5.19 kB[22m[1m[22m[2m Γöé gzip:   1.87 kB[22m
+[2mdist/[22m[36massets/ParentAttendancePage-ygBO-lXl.js         [39m[1m[2m    5.24 kB[22m[1m[22m[2m Γöé gzip:   1.62 kB[22m
+[2mdist/[22m[36massets/TeamHealthReportPage-VRZIeKLT.js         [39m[1m[2m    5.38 kB[22m[1m[22m[2m Γöé gzip:   1.63 kB[22m
+[2mdist/[22m[36massets/AttendanceReport-Dd9bG-M0.js             [39m[1m[2m    5.39 kB[22m[1m[22m[2m Γöé gzip:   1.67 kB[22m
+[2mdist/[22m[36massets/DepartmentManager-COCyOqKD.js            [39m[1m[2m    5.42 kB[22m[1m[22m[2m Γöé gzip:   2.09 kB[22m
+[2mdist/[22m[36massets/usePortfolio-DxzPlZof.js                 [39m[1m[2m    5.45 kB[22m[1m[22m[2m Γöé gzip:   1.77 kB[22m
+[2mdist/[22m[36massets/ParentProgressPage-CX9OBLJD.js           [39m[1m[2m    5.46 kB[22m[1m[22m[2m Γöé gzip:   2.06 kB[22m
+[2mdist/[22m[36massets/ReassessmentPage-OdIq0wbX.js             [39m[1m[2m    5.48 kB[22m[1m[22m[2m Γöé gzip:   1.87 kB[22m
+[2mdist/[22m[36massets/ParentPlannerView-BedlZOk6.js            [39m[1m[2m    5.58 kB[22m[1m[22m[2m Γöé gzip:   1.69 kB[22m
+[2mdist/[22m[36massets/MyItemsPage-BbCrkMYm.js                  [39m[1m[2m    5.59 kB[22m[1m[22m[2m Γöé gzip:   2.09 kB[22m
+[2mdist/[22m[36massets/SemesterManager-DyC5CeRq.js              [39m[1m[2m    5.61 kB[22m[1m[22m[2m Γöé gzip:   2.09 kB[22m
+[2mdist/[22m[36massets/CLODetailPage-DgAfX7xt.js                [39m[1m[2m    5.64 kB[22m[1m[22m[2m Γöé gzip:   1.88 kB[22m
+[2mdist/[22m[36massets/ProgramForm-D6_Ky9C2.js                  [39m[1m[2m    5.68 kB[22m[1m[22m[2m Γöé gzip:   1.85 kB[22m
+[2mdist/[22m[36massets/ChallengeListView-BfsLDZjx.js            [39m[1m[2m    5.72 kB[22m[1m[22m[2m Γöé gzip:   1.86 kB[22m
+[2mdist/[22m[36massets/useCourseModules-DZ910z1U.js             [39m[1m[2m    5.84 kB[22m[1m[22m[2m Γöé gzip:   1.75 kB[22m
+[2mdist/[22m[36massets/TeamManager-CsE2XoME.js                  [39m[1m[2m    5.86 kB[22m[1m[22m[2m Γöé gzip:   1.92 kB[22m
+[2mdist/[22m[36massets/SurveyResultsPage-BvX7_0aX.js            [39m[1m[2m    5.87 kB[22m[1m[22m[2m Γöé gzip:   1.98 kB[22m
+[2mdist/[22m[36massets/ReviewSessionBadge-BdUPeZqX.js           [39m[1m[2m    5.94 kB[22m[1m[22m[2m Γöé gzip:   1.85 kB[22m
+[2mdist/[22m[36massets/TeamLeaderboard-CWp5KVpO.js              [39m[1m[2m    6.13 kB[22m[1m[22m[2m Γöé gzip:   2.46 kB[22m
+[2mdist/[22m[36massets/AcceptInvitePage-KQiXSX6N.js             [39m[1m[2m    6.26 kB[22m[1m[22m[2m Γöé gzip:   2.04 kB[22m
+[2mdist/[22m[36massets/XPEconomistDashboard-DbTZcr1P.js         [39m[1m[2m    6.29 kB[22m[1m[22m[2m Γöé gzip:   1.86 kB[22m
+[2mdist/[22m[36massets/StudentTeamPage-W9aRDAE8.js              [39m[1m[2m    6.30 kB[22m[1m[22m[2m Γöé gzip:   2.38 kB[22m
+[2mdist/[22m[36massets/TeamManagementPage-K7pd-A00.js           [39m[1m[2m    6.31 kB[22m[1m[22m[2m Γöé gzip:   2.28 kB[22m
+[2mdist/[22m[36massets/HistoricalEvidenceDashboard-DZdxUvUj.js  [39m[1m[2m    6.33 kB[22m[1m[22m[2m Γöé gzip:   2.24 kB[22m
+[2mdist/[22m[36massets/index-DWhipGQ_.js                        [39m[1m[2m    6.36 kB[22m[1m[22m[2m Γöé gzip:   2.43 kB[22m
+[2mdist/[22m[36massets/KnowledgeQuestManager-XK4ozd1y.js        [39m[1m[2m    6.37 kB[22m[1m[22m[2m Γöé gzip:   2.27 kB[22m
+[2mdist/[22m[36massets/ReportGeneratorPage-BCoQjtPh.js          [39m[1m[2m    6.46 kB[22m[1m[22m[2m Γöé gzip:   2.15 kB[22m
+[2mdist/[22m[36massets/useSemesterRange-CR-z0qIp.js             [39m[1m[2m    6.48 kB[22m[1m[22m[2m Γöé gzip:   2.62 kB[22m
+[2mdist/[22m[36massets/ILOListPage-DQKSATVl.js                  [39m[1m[2m    6.55 kB[22m[1m[22m[2m Γöé gzip:   2.60 kB[22m
+[2mdist/[22m[36massets/CourseForm-6LDbiIyA.js                   [39m[1m[2m    6.63 kB[22m[1m[22m[2m Γöé gzip:   2.05 kB[22m
+[2mdist/[22m[36massets/TimetableManager-BRzdncoe.js             [39m[1m[2m    6.80 kB[22m[1m[22m[2m Γöé gzip:   2.46 kB[22m
+[2mdist/[22m[36massets/GenerateQuestionsPage-DnPn35Gk.js        [39m[1m[2m    6.86 kB[22m[1m[22m[2m Γöé gzip:   2.40 kB[22m
+[2mdist/[22m[36massets/StudentProgressPage-5B0lGz_5.js          [39m[1m[2m    6.89 kB[22m[1m[22m[2m Γöé gzip:   2.37 kB[22m
+[2mdist/[22m[36massets/useSessionReflections-C1Oc2f4d.js        [39m[1m[2m    7.01 kB[22m[1m[22m[2m Γöé gzip:   2.54 kB[22m
+[2mdist/[22m[36massets/CalendarView-NL83oK9V.js                 [39m[1m[2m    7.04 kB[22m[1m[22m[2m Γöé gzip:   2.51 kB[22m
+[2mdist/[22m[36massets/TimetableView-r2lwj8Jr.js                [39m[1m[2m    7.06 kB[22m[1m[22m[2m Γöé gzip:   2.51 kB[22m
+[2mdist/[22m[36massets/QuizCLOCorrelationPage-M8lZtecz.js       [39m[1m[2m    7.14 kB[22m[1m[22m[2m Γöé gzip:   2.47 kB[22m
+[2mdist/[22m[36massets/PLOListPage-Cpd4Vctd.js                  [39m[1m[2m    7.17 kB[22m[1m[22m[2m Γöé gzip:   2.79 kB[22m
+[2mdist/[22m[36massets/XPHistory-BuBH-8ei.js                    [39m[1m[2m    7.21 kB[22m[1m[22m[2m Γöé gzip:   2.73 kB[22m
+[2mdist/[22m[36massets/CompleteProfilePage-CK87aepg.js          [39m[1m[2m    7.22 kB[22m[1m[22m[2m Γöé gzip:   2.60 kB[22m
+[2mdist/[22m[36massets/QuestionBankPage-B1_-b_Cp.js             [39m[1m[2m    7.23 kB[22m[1m[22m[2m Γöé gzip:   2.57 kB[22m
+[2mdist/[22m[36massets/BulkImportPage-NAiUY4WH.js               [39m[1m[2m    7.38 kB[22m[1m[22m[2m Γöé gzip:   2.73 kB[22m
+[2mdist/[22m[36massets/MarketplaceAnalyticsPage-ChQf4BcR.js     [39m[1m[2m    7.38 kB[22m[1m[22m[2m Γöé gzip:   2.53 kB[22m
+[2mdist/[22m[36massets/CourseEnrollmentPage-Z1dMl4Ra.js         [39m[1m[2m    7.39 kB[22m[1m[22m[2m Γöé gzip:   2.74 kB[22m
+[2mdist/[22m[36massets/CourseDetail-DD6Gu4QB.js                 [39m[1m[2m    7.41 kB[22m[1m[22m[2m Γöé gzip:   2.52 kB[22m
+[2mdist/[22m[36massets/ChallengeFormPage-BSjGcyE4.js            [39m[1m[2m    7.52 kB[22m[1m[22m[2m Γöé gzip:   2.36 kB[22m
+[2mdist/[22m[36massets/SignUpPage-DqQgc8jC.js                   [39m[1m[2m    7.67 kB[22m[1m[22m[2m Γöé gzip:   2.44 kB[22m
+[2mdist/[22m[36massets/usePlannerTasks-DzCPXpI9.js              [39m[1m[2m    7.83 kB[22m[1m[22m[2m Γöé gzip:   2.70 kB[22m
+[2mdist/[22m[36massets/GraduateAttributeManager-uS4At-hv.js     [39m[1m[2m    7.86 kB[22m[1m[22m[2m Γöé gzip:   2.84 kB[22m
+[2mdist/[22m[36massets/MasteryRecoveryPage-ClhDlp0q.js          [39m[1m[2m    8.01 kB[22m[1m[22m[2m Γöé gzip:   2.74 kB[22m
+[2mdist/[22m[36massets/ChallengeDetailPage-Bu26uhr8.js          [39m[1m[2m    8.03 kB[22m[1m[22m[2m Γöé gzip:   2.54 kB[22m
+[2mdist/[22m[36massets/InviteUsersPage-Dan1lxxl.js              [39m[1m[2m    8.22 kB[22m[1m[22m[2m Γöé gzip:   2.80 kB[22m
+[2mdist/[22m[36massets/SaleEventManager-BJKBH8Te.js             [39m[1m[2m    8.25 kB[22m[1m[22m[2m Γöé gzip:   2.92 kB[22m
+[2mdist/[22m[36massets/TutorAnalyticsPage-1EYngHCj.js           [39m[1m[2m    8.60 kB[22m[1m[22m[2m Γöé gzip:   2.55 kB[22m
+[2mdist/[22m[36massets/AnnouncementEditor-orFJbXvZ.js           [39m[1m[2m    8.71 kB[22m[1m[22m[2m Γöé gzip:   3.25 kB[22m
+[2mdist/[22m[36massets/SurveyManager-DJBBTcZh.js                [39m[1m[2m    8.73 kB[22m[1m[22m[2m Γöé gzip:   2.92 kB[22m
+[2mdist/[22m[36massets/TeacherHandoffPage-B4Gv4J64.js           [39m[1m[2m    8.75 kB[22m[1m[22m[2m Γöé gzip:   2.88 kB[22m
+[2mdist/[22m[36massets/RubricBuilder-CzmAOBYi.js                [39m[1m[2m    8.86 kB[22m[1m[22m[2m Γöé gzip:   3.05 kB[22m
+[2mdist/[22m[36massets/SubCLOManager-DHKvAApE.js                [39m[1m[2m    9.07 kB[22m[1m[22m[2m Γöé gzip:   3.41 kB[22m
+[2mdist/[22m[36massets/AttendanceMarker-khveY0XS.js             [39m[1m[2m    9.10 kB[22m[1m[22m[2m Γöé gzip:   3.10 kB[22m
+[2mdist/[22m[36massets/MarketplaceManagementPage-BU7chd3L.js    [39m[1m[2m    9.20 kB[22m[1m[22m[2m Γöé gzip:   2.76 kB[22m
+[2mdist/[22m[36massets/StudentPortfolio-HbFpL10j.js             [39m[1m[2m    9.26 kB[22m[1m[22m[2m Γöé gzip:   2.88 kB[22m
+[2mdist/[22m[36massets/CompetencyFrameworkManager-tiEr5Y6F.js   [39m[1m[2m    9.37 kB[22m[1m[22m[2m Γöé gzip:   3.09 kB[22m
+[2mdist/[22m[36massets/BonusXPEventManager-fFp63mLz.js          [39m[1m[2m    9.47 kB[22m[1m[22m[2m Γöé gzip:   3.23 kB[22m
+[2mdist/[22m[36massets/StudentCoursesPage-uIaiqZNG.js           [39m[1m[2m    9.66 kB[22m[1m[22m[2m Γöé gzip:   3.13 kB[22m
+[2mdist/[22m[36massets/AdaptiveQuizSession-BMzrlfas.js          [39m[1m[2m    9.86 kB[22m[1m[22m[2m Γöé gzip:   3.51 kB[22m
+[2mdist/[22m[36massets/PostQuizReview-DHjhGyIY.js               [39m[1m[2m    9.91 kB[22m[1m[22m[2m Γöé gzip:   3.30 kB[22m
+[2mdist/[22m[36massets/PLOForm-CdFWOL3b.js                      [39m[1m[2m    9.96 kB[22m[1m[22m[2m Γöé gzip:   3.06 kB[22m
+[2mdist/[22m[36massets/EmptyState-CFKLCqQS.js                   [39m[1m[2m   10.14 kB[22m[1m[22m[2m Γöé gzip:   1.50 kB[22m
+[2mdist/[22m[36massets/QuestionAnalyticsDashboard-Brmxumw9.js   [39m[1m[2m   10.40 kB[22m[1m[22m[2m Γöé gzip:   3.19 kB[22m
+[2mdist/[22m[36massets/confetti.module-C77BwpZI.js              [39m[1m[2m   10.61 kB[22m[1m[22m[2m Γöé gzip:   4.24 kB[22m
+[2mdist/[22m[36massets/CourseFileGenerator-DY5I7pgC.js          [39m[1m[2m   11.60 kB[22m[1m[22m[2m Γöé gzip:   3.27 kB[22m
+[2mdist/[22m[36massets/StudentJournalPage-tnczrU8r.js           [39m[1m[2m   11.81 kB[22m[1m[22m[2m Γöé gzip:   4.47 kB[22m
+[2mdist/[22m[36massets/CQIManager-CeteOI2u.js                   [39m[1m[2m   12.34 kB[22m[1m[22m[2m Γöé gzip:   3.45 kB[22m
+[2mdist/[22m[36massets/AssignmentForm-Cwsr0J1C.js               [39m[1m[2m   12.50 kB[22m[1m[22m[2m Γöé gzip:   3.95 kB[22m
+[2mdist/[22m[36massets/QuizForm-D116DH6U.js                     [39m[1m[2m   12.91 kB[22m[1m[22m[2m Γöé gzip:   3.59 kB[22m
+[2mdist/[22m[36massets/MarketplacePage-C1VZrVUZ.js              [39m[1m[2m   12.98 kB[22m[1m[22m[2m Γöé gzip:   4.65 kB[22m
+[2mdist/[22m[36massets/CurriculumMatrixPage-nS0RI0eW.js         [39m[1m[2m   13.54 kB[22m[1m[22m[2m Γöé gzip:   4.09 kB[22m
+[2mdist/[22m[36massets/ModuleManager-Dtartouj.js                [39m[1m[2m   14.07 kB[22m[1m[22m[2m Γöé gzip:   4.10 kB[22m
+[2mdist/[22m[36massets/LoginPage-CmY38Wcu.js                    [39m[1m[2m   14.77 kB[22m[1m[22m[2m Γöé gzip:   4.10 kB[22m
+[2mdist/[22m[36massets/StarterWeekPlanPage-DAy_eNFo.js          [39m[1m[2m   14.90 kB[22m[1m[22m[2m Γöé gzip:   4.38 kB[22m
+[2mdist/[22m[36massets/AssignmentDetailPage-JXf_YF0E.js         [39m[1m[2m   15.24 kB[22m[1m[22m[2m Γöé gzip:   5.08 kB[22m
+[2mdist/[22m[36massets/CLOForm-DNVunKOs.js                      [39m[1m[2m   16.29 kB[22m[1m[22m[2m Γöé gzip:   4.84 kB[22m
+[2mdist/[22m[36massets/useWeeklyPlanner-DP992LaG.js             [39m[1m[2m   16.56 kB[22m[1m[22m[2m Γöé gzip:   4.87 kB[22m
+[2mdist/[22m[36massets/TodayViewPage-DyFOK8D2.js                [39m[1m[2m   17.98 kB[22m[1m[22m[2m Γöé gzip:   5.45 kB[22m
+[2mdist/[22m[36massets/InstitutionSettings-CQ-ofv3p.js          [39m[1m[2m   18.27 kB[22m[1m[22m[2m Γöé gzip:   4.55 kB[22m
+[2mdist/[22m[36massets/GradingInterface-B5w98ohP.js             [39m[1m[2m   18.30 kB[22m[1m[22m[2m Γöé gzip:   5.26 kB[22m
+[2mdist/[22m[36massets/HabitAnalyticsPage-BSAcf5Y2.js           [39m[1m[2m   19.65 kB[22m[1m[22m[2m Γöé gzip:   6.16 kB[22m
+[2mdist/[22m[36massets/GradebookView-BUlgW621.js                [39m[1m[2m   20.76 kB[22m[1m[22m[2m Γöé gzip:   6.35 kB[22m
+[2mdist/[22m[36massets/TeamProfilePage-DjSNss6u.js              [39m[1m[2m   24.19 kB[22m[1m[22m[2m Γöé gzip:   6.50 kB[22m
+[2mdist/[22m[36massets/OutcomeChainView-BaMLmeOp.js             [39m[1m[2m   24.33 kB[22m[1m[22m[2m Γöé gzip:   6.59 kB[22m
+[2mdist/[22m[36massets/ProfilePage-FhESPfUw.js                  [39m[1m[2m   29.36 kB[22m[1m[22m[2m Γöé gzip:   7.54 kB[22m
+[2mdist/[22m[36massets/coordinator-dashboard-BuEOUyk_.js        [39m[1m[2m   30.10 kB[22m[1m[22m[2m Γöé gzip:   8.15 kB[22m
+[2mdist/[22m[36massets/EmailVerificationBanner-zZI61D8A.js      [39m[1m[2m   30.29 kB[22m[1m[22m[2m Γöé gzip:   9.18 kB[22m
+[2mdist/[22m[36massets/LeaderboardPage-v2t6cHlj.js              [39m[1m[2m   31.39 kB[22m[1m[22m[2m Γöé gzip:   8.87 kB[22m
+[2mdist/[22m[36massets/WeeklyPlannerPage-BjLZi14S.js            [39m[1m[2m   33.33 kB[22m[1m[22m[2m Γöé gzip:   9.75 kB[22m
+[2mdist/[22m[36massets/zod-QRB2Eu4W.js                          [39m[1m[2m   36.35 kB[22m[1m[22m[2m Γöé gzip:  12.91 kB[22m
+[2mdist/[22m[36massets/TutorPage-DOpUCsmz.js                    [39m[1m[2m   38.57 kB[22m[1m[22m[2m Γöé gzip:  10.98 kB[22m
+[2mdist/[22m[36massets/FocusModePage-C0ZGV8m9.js                [39m[1m[2m   40.63 kB[22m[1m[22m[2m Γöé gzip:  12.07 kB[22m
+[2mdist/[22m[36massets/HabitHeatmapPage-CzOy3KED.js             [39m[1m[2m   42.08 kB[22m[1m[22m[2m Γöé gzip:  12.51 kB[22m
+[2mdist/[22m[36massets/student-dashboard-CpXL4kux.js            [39m[1m[2m   45.60 kB[22m[1m[22m[2m Γöé gzip:  12.68 kB[22m
+[2mdist/[22m[36massets/sortable.esm-CclQdhRM.js                 [39m[1m[2m   45.88 kB[22m[1m[22m[2m Γöé gzip:  15.28 kB[22m
+[2mdist/[22m[36massets/BadgeSpotlightManager-B8FFWRbz.js        [39m[1m[2m   46.52 kB[22m[1m[22m[2m Γöé gzip:  14.71 kB[22m
+[2mdist/[22m[36massets/OnboardingWizard-CxxKvaPR.js             [39m[1m[2m   47.15 kB[22m[1m[22m[2m Γöé gzip:  10.61 kB[22m
+[2mdist/[22m[36massets/browser-image-compression-BpFpJjRd.js    [39m[1m[2m   53.14 kB[22m[1m[22m[2m Γöé gzip:  21.05 kB[22m
+[2mdist/[22m[36massets/vendor-query-Cy140z9V.js                 [39m[1m[2m   98.43 kB[22m[1m[22m[2m Γöé gzip:  27.37 kB[22m
+[2mdist/[22m[36massets/TourRunner-rdlESBJD.js                   [39m[1m[2m   99.35 kB[22m[1m[22m[2m Γöé gzip:  31.60 kB[22m
+[2mdist/[22m[36massets/index-Dl0N1lkd.js                        [39m[1m[2m  111.38 kB[22m[1m[22m[2m Γöé gzip:  36.53 kB[22m
+[2mdist/[22m[36massets/vendor-motion-CePtTDkF.js                [39m[1m[2m  128.30 kB[22m[1m[22m[2m Γöé gzip:  42.15 kB[22m
+[2mdist/[22m[36massets/vendor-react-DdqedcVE.js                 [39m[1m[2m  263.68 kB[22m[1m[22m[2m Γöé gzip:  84.83 kB[22m
+[2mdist/[22m[36massets/index-BjrWBOv8.js                        [39m[1m[2m  431.97 kB[22m[1m[22m[2m Γöé gzip: 143.50 kB[22m
+[2mdist/[22m[36massets/vendor-charts-BfQoSIGN.js                [39m[1m[2m  446.54 kB[22m[1m[22m[2m Γöé gzip: 127.99 kB[22m
+[2mdist/[22m[36massets/admin-dashboard-C_qPCXOx.js              [39m[1m[33m  718.46 kB[39m[22m[2m Γöé gzip: 198.80 kB[22m
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+[32mΓ£ô built in 25.08s[39m

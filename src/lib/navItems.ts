@@ -56,6 +56,7 @@ import {
   UserCog,
   Wallet,
   Bell,
+  MessageSquare,
 } from "lucide-react";
 import type { UserRole } from "@/types/app";
 import type { NavGroup } from "@/lib/navGroups";
@@ -85,6 +86,12 @@ export interface NavItem {
 
 const adminNavItems: NavItem[] = [
   { to: "/admin/dashboard", labelKey: "nav.dashboard", icon: LayoutDashboard },
+  { to: "/admin/settings/profile", labelKey: "nav.me", icon: UserCog },
+  {
+    to: "/admin/settings/institution",
+    labelKey: "nav.institutionStructure",
+    icon: Building2,
+  },
   { to: "/admin/users", labelKey: "nav.users", icon: Users },
   { to: "/admin/departments", labelKey: "nav.departments", icon: Building2 },
   { to: "/admin/programs", labelKey: "nav.programs", icon: BookOpen },
@@ -94,10 +101,17 @@ const adminNavItems: NavItem[] = [
   { to: "/admin/timetable", labelKey: "nav.timetable", icon: Clock },
   { to: "/admin/calendar", labelKey: "nav.calendar", icon: CalendarDays },
   { to: "/admin/fees", labelKey: "nav.fees", icon: DollarSign },
+  { to: "/admin/import", labelKey: "nav.bulkImport", icon: ClipboardList },
   { to: "/admin/reports", labelKey: "nav.reports", icon: FileText },
   { to: "/admin/audit-log", labelKey: "nav.auditLog", icon: ScrollText },
+  { to: "/admin/governance", labelKey: "nav.aiGovernance", icon: ShieldAlert },
   { to: "/admin/security", labelKey: "nav.security", icon: ShieldAlert },
   { to: "/admin/bonus-events", labelKey: "nav.bonusXp", icon: Sparkles },
+  {
+    to: "/admin/badges",
+    labelKey: "nav.badgeDefinitions",
+    icon: Award,
+  },
   {
     to: "/admin/badges/spotlight",
     labelKey: "nav.badgeSpotlight",
@@ -105,6 +119,7 @@ const adminNavItems: NavItem[] = [
   },
   { to: "/admin/marketplace", labelKey: "nav.marketplace", icon: Store },
   { to: "/admin/surveys", labelKey: "nav.surveys", icon: ClipboardList },
+  { to: "/admin/notifications", labelKey: "nav.notifications", icon: Bell },
 ];
 
 const coordinatorNavItems: NavItem[] = [
@@ -112,6 +127,11 @@ const coordinatorNavItems: NavItem[] = [
     to: "/coordinator/dashboard",
     labelKey: "nav.dashboard",
     icon: LayoutDashboard,
+  },
+  {
+    to: "/coordinator/settings/profile",
+    labelKey: "nav.me",
+    icon: UserCog,
   },
   { to: "/coordinator/plos", labelKey: "nav.plos", icon: Target },
   { to: "/coordinator/matrix", labelKey: "nav.matrix", icon: Grid3X3 },
@@ -137,7 +157,32 @@ const coordinatorNavItems: NavItem[] = [
     labelKey: "nav.courseFile",
     icon: FileText,
   },
+  {
+    to: "/coordinator/accreditation",
+    labelKey: "nav.accreditation",
+    icon: ClipboardCheck,
+  },
+  {
+    to: "/coordinator/team-health",
+    labelKey: "nav.teamHealthReport",
+    icon: HeartPulse,
+  },
+  {
+    to: "/coordinator/competencies",
+    labelKey: "nav.competencyFrameworks",
+    icon: Workflow,
+  },
+  {
+    to: "/coordinator/discussions",
+    labelKey: "nav.discussions",
+    icon: MessageSquare,
+  },
   { to: "/coordinator/timetable", labelKey: "nav.timetable", icon: Clock },
+  {
+    to: "/coordinator/notifications",
+    labelKey: "nav.notifications",
+    icon: Bell,
+  },
 ];
 
 const teacherNavItems: NavItem[] = [
@@ -145,6 +190,16 @@ const teacherNavItems: NavItem[] = [
     to: "/teacher/dashboard",
     labelKey: "nav.dashboard",
     icon: LayoutDashboard,
+  },
+  {
+    to: "/teacher/settings/profile",
+    labelKey: "nav.me",
+    icon: UserCog,
+  },
+  {
+    to: "/teacher/students",
+    labelKey: "nav.students",
+    icon: Users,
   },
   { to: "/teacher/clos", labelKey: "nav.clos", icon: Target },
   { to: "/teacher/rubrics", labelKey: "nav.rubrics", icon: TableProperties },
@@ -155,6 +210,17 @@ const teacherNavItems: NavItem[] = [
   },
   { to: "/teacher/grading", labelKey: "nav.grading", icon: CheckSquare },
   { to: "/teacher/gradebook", labelKey: "nav.gradebook", icon: BookOpen },
+  { to: "/teacher/attendance", labelKey: "nav.attendance", icon: CalendarDays },
+  {
+    to: "/teacher/questions",
+    labelKey: "nav.questionBank",
+    icon: FileQuestion,
+  },
+  {
+    to: "/teacher/discussions",
+    labelKey: "nav.discussions",
+    icon: MessageSquare,
+  },
   {
     to: "/teacher/announcements",
     labelKey: "nav.announcements",
@@ -181,19 +247,44 @@ const teacherNavItems: NavItem[] = [
     labelKey: "nav.baselineTests",
     icon: FlaskConical,
   },
+  { to: "/teacher/notifications", labelKey: "nav.notifications", icon: Bell },
 ];
 
 const studentNavItems: NavItem[] = [
   {
     to: "/student/dashboard",
-    labelKey: "nav.dashboard",
+    labelKey: "nav.mobile.home",
     icon: LayoutDashboard,
+    group: "tools",
+  },
+  {
+    to: "/student/learning-path",
+    labelKey: "nav.mobile.learn",
+    icon: BookOpen,
     group: "learn",
   },
   {
+    to: "/student/tutor",
+    labelKey: "nav.mobile.tutor",
+    icon: Bot,
+    group: "learn",
+  },
+  {
+    to: "/student/progress",
+    labelKey: "nav.mobile.progress",
+    icon: TrendingUp,
+    group: "growth",
+  },
+  {
+    to: "/student/profile",
+    labelKey: "nav.me",
+    icon: UserCog,
+    group: "growth",
+  },
+  {
     to: "/student/courses",
-    labelKey: "nav.courses",
-    icon: BookOpen,
+    labelKey: "nav.coursesTasks",
+    icon: ClipboardListIcon,
     group: "learn",
   },
   {
@@ -203,21 +294,27 @@ const studentNavItems: NavItem[] = [
     group: "learn",
   },
   {
-    to: "/student/planner",
-    labelKey: "nav.planner",
-    icon: CalendarDays,
-    group: "tools",
-  },
-  {
     to: "/student/today",
-    labelKey: "nav.today",
+    labelKey: "nav.dailyReview",
     icon: CalendarCheck,
     group: "tools",
   },
   {
-    to: "/student/progress",
-    labelKey: "nav.progress",
-    icon: TrendingUp,
+    to: "/student/habits",
+    labelKey: "nav.wellness",
+    icon: HeartPulse,
+    group: "growth",
+  },
+  {
+    to: "/student/planner",
+    labelKey: "nav.focus",
+    icon: Clock,
+    group: "tools",
+  },
+  {
+    to: "/student/challenges",
+    labelKey: "nav.quests",
+    icon: Swords,
     group: "growth",
   },
   {
@@ -227,34 +324,10 @@ const studentNavItems: NavItem[] = [
     group: "community",
   },
   {
-    to: "/student/challenges",
-    labelKey: "nav.challenges",
-    icon: Swords,
-    group: "growth",
-  },
-  {
     to: "/student/team",
     labelKey: "nav.myTeam",
     icon: Users,
     group: "community",
-  },
-  {
-    to: "/student/habits",
-    labelKey: "nav.habits",
-    icon: Grid3X3,
-    group: "growth",
-  },
-  {
-    to: "/student/marketplace",
-    labelKey: "nav.marketplace",
-    icon: Store,
-    group: "growth",
-  },
-  {
-    to: "/student/content",
-    labelKey: "nav.myContent",
-    icon: FileText,
-    group: "learn",
   },
   {
     to: "/student/journal",
@@ -262,12 +335,42 @@ const studentNavItems: NavItem[] = [
     icon: PenLine,
     group: "tools",
   },
-  { to: "/student/tutor", labelKey: "nav.aiTutor", icon: Bot, group: "learn" },
   {
     to: "/student/calendar",
     labelKey: "nav.calendar",
     icon: Calendar,
     group: "tools",
+  },
+  {
+    to: "/student/marketplace",
+    labelKey: "nav.shop",
+    icon: Store,
+    group: "growth",
+  },
+  {
+    to: "/student/notifications",
+    labelKey: "nav.notifications",
+    icon: Bell,
+    group: "tools",
+  },
+  {
+    to: "/student/settings/profile",
+    labelKey: "nav.settings",
+    icon: UserCog,
+    group: "tools",
+  },
+  {
+    to: "/student/surveys",
+    labelKey: "nav.surveys",
+    icon: FileQuestion,
+    group: "tools",
+  },
+  { to: "/student/fees", labelKey: "nav.fees", icon: Wallet, group: "tools" },
+  {
+    to: "/student/content",
+    labelKey: "nav.myContent",
+    icon: FileText,
+    group: "learn",
   },
   {
     to: "/student/timetable",
@@ -282,22 +385,10 @@ const studentNavItems: NavItem[] = [
     group: "growth",
   },
   {
-    to: "/student/surveys",
-    labelKey: "nav.surveys",
-    icon: FileQuestion,
-    group: "tools",
-  },
-  {
-    to: "/student/fees",
-    labelKey: "nav.fees",
-    icon: Wallet,
-    group: "tools",
-  },
-  {
-    to: "/student/notifications",
-    labelKey: "nav.notifications",
-    icon: Bell,
-    group: "tools",
+    to: "/student/badges",
+    labelKey: "nav.badges",
+    icon: Award,
+    group: "growth",
   },
 ];
 
@@ -307,8 +398,11 @@ const parentNavItems: NavItem[] = [
   { to: "/parent/progress", labelKey: "nav.progress", icon: TrendingUp },
   { to: "/parent/attendance", labelKey: "nav.attendance", icon: CalendarDays },
   { to: "/parent/fees", labelKey: "nav.fees", icon: Wallet },
+  { to: "/parent/support", labelKey: "nav.support", icon: Megaphone },
   { to: "/parent/planner", labelKey: "nav.studyPlan", icon: BookOpen },
-  { to: "/parent/profile", labelKey: "nav.profile", icon: UserCog },
+  { to: "/parent/profile", labelKey: "nav.me", icon: UserCog },
+  { to: "/parent/notifications", labelKey: "nav.notifications", icon: Bell },
+  { to: "/parent/settings/profile", labelKey: "nav.settings", icon: UserCog },
 ];
 
 export const navItems: Record<UserRole, NavItem[]> = {

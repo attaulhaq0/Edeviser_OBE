@@ -165,7 +165,9 @@ const CreateTaskDialog = ({
                   </FormLabel>
                   <Select
                     value={field.value ?? ""}
-                    onValueChange={(v) => field.onChange(v || null)}
+                    onValueChange={(v) =>
+                      field.onChange(v === "none" ? null : v || null)
+                    }
                   >
                     <FormControl>
                       <SelectTrigger className="w-full">
@@ -218,11 +220,7 @@ const CreateTaskDialog = ({
               >
                 Cancel
               </Button>
-              <Button
-                type="submit"
-                disabled={isPending}
-                variant="tactile"
-              >
+              <Button type="submit" disabled={isPending} variant="tactile">
                 {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
                 Create Task
               </Button>

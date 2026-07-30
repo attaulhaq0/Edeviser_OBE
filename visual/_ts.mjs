@@ -1,0 +1,11 @@
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+const dir = path.join(path.dirname(fileURLToPath(import.meta.url)), "references");
+const f = fs.readdirSync(dir).filter((x) => x.endsWith(".png")).map((x) => fs.statSync(path.join(dir, x)).mtimeMs);
+const min = Math.min(...f), max = Math.max(...f);
+console.log("count:", f.length);
+console.log("oldest:", new Date(min).toLocaleString());
+console.log("newest:", new Date(max).toLocaleString());
+console.log("span(min):", ((max - min) / 60000).toFixed(1));
+console.log("all written in last 60 min:", (Date.now() - min) / 60000 < 60);

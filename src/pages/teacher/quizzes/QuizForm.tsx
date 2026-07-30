@@ -4,7 +4,7 @@ import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createQuizSchema, type CreateQuizFormData } from "@/lib/schemas/quiz";
 import { useQuiz, useCreateQuiz, useUpdateQuiz } from "@/hooks/useQuizzes";
-import { useCourses } from "@/hooks/useCourses";
+import { useTeacherCourses } from "@/hooks/useCourses";
 import { useCLOs } from "@/hooks/useCLOs";
 import {
   Form,
@@ -55,7 +55,8 @@ const QuizFormFields = ({
   });
   const isAdaptive = useWatch({ control: form.control, name: "is_adaptive" });
 
-  const { data: paginatedCourses, isLoading: isLoadingCourses } = useCourses();
+  const { data: paginatedCourses, isLoading: isLoadingCourses } =
+    useTeacherCourses();
   const courses = paginatedCourses?.data ?? [];
   const { data: paginatedCLOs, isLoading: isLoadingCLOs } = useCLOs(
     selectedCourseId || undefined
@@ -459,11 +460,7 @@ const QuizFormFields = ({
 
         {/* Actions */}
         <div className="flex items-center gap-3">
-          <Button
-            type="submit"
-            disabled={isPending}
-            variant="tactile"
-          >
+          <Button type="submit" disabled={isPending} variant="tactile">
             {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
             {isEditMode ? "Update Quiz" : "Create Quiz"}
           </Button>

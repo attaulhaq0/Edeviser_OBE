@@ -69,12 +69,13 @@ export const useStudentProgress = (studentId: string | undefined) => {
       const courseIds = enrollmentRows.map((e) => e.course_id);
 
       // Per-course attainment in one query.
-      const { data: attainment } = await supabase
+      const { data: attainment, error: attainmentErr } = await supabase
         .from("outcome_attainment")
         .select("course_id, attainment_percent, sample_count")
         .eq("student_id", studentId)
         .in("course_id", courseIds)
         .eq("scope", "student_course");
+      if (attainmentErr) throw attainmentErr;
 
       const courseAttainmentMap = new Map<
         string,
@@ -94,11 +95,12 @@ export const useStudentProgress = (studentId: string | undefined) => {
       }
 
       // Count CLOs per course.
-      const { data: clos } = await supabase
+      const { data: clos, error: closErr } = await supabase
         .from("learning_outcomes")
         .select("course_id")
         .in("course_id", courseIds)
         .eq("type", "CLO");
+      if (closErr) throw closErr;
 
       const cloCountMap = new Map<string, number>();
       for (const row of clos ?? []) {

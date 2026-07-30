@@ -59,7 +59,23 @@
     "frameworkManagement": "إدارة الأطر",
     "frameworkManagementDesc": "تحديد التسلسلات الهرمية للكفاءات وربطها بسلاسل المخرجات.",
     "manage": "إدارة",
-    "view": "عرض"
+    "view": "عرض",
+    "rail": {
+      "label": "المؤسسة",
+      "institution": "🏛️ المؤسسة",
+      "users": "المستخدمون",
+      "active": "الحسابات النشطة",
+      "programs": "البرامج",
+      "courses": "المقررات",
+      "analytics": "عرض التحليلات ←",
+      "governance": "🛡️ حوكمة الذكاء الاصطناعي",
+      "autonomyCeiling": "حد الاستقلالية",
+      "a2": "A2 · يتطلب الموافقة",
+      "governanceNote": "لا يتصرف الذكاء الاصطناعي في بيانات المؤسسة دون موافقة بشرية.",
+      "departments": "الأقسام",
+      "allDepartments": "جميع الأقسام ←",
+      "departmentsEmpty": "لا توجد بيانات تحصيل بعد."
+    }
   },
   "users": {
     "title": "إدارة المستخدمين",

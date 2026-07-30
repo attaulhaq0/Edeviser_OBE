@@ -3,8 +3,7 @@
 // tasks completed, goal progress bars with success indicators
 // =============================================================================
 
-import { Card } from "@/components/ui/card";
-import { GradientCardHeader } from "@/design-system";
+import { PCard, SectionHeader } from "@/design-system";
 import { cn } from "@/lib/utils";
 import type {
   WeeklyProgressData,
@@ -45,19 +44,18 @@ const ProgressSummaryPanel = ({
   const studyHours = (summary.totalStudyMinutes / 60).toFixed(1);
 
   return (
-    <Card
-      className={cn(
-        "bg-white border-0 shadow-md rounded-xl overflow-hidden",
-        className
-      )}
+    <PCard
+      className={cn("overflow-hidden", className)}
       data-testid="progress-summary-panel"
     >
-      <GradientCardHeader icon={BarChart3} title="Weekly Summary" />
+      <div className="p-5 pb-4">
+        <SectionHeader icon={BarChart3} title="Weekly Summary" />
+      </div>
 
-      <div className="p-6 space-y-6">
+      <div className="space-y-6 px-5 pb-5">
         {/* KPI Row */}
         <div className="grid grid-cols-3 gap-4">
-          <div className="rounded-lg bg-amber-50 p-3 text-center">
+          <PCard className="rounded-[14px] bg-amber-50 p-3 text-center shadow-none">
             <div className="flex items-center justify-center gap-1 mb-1">
               <Clock className="h-3.5 w-3.5 text-amber-600" />
             </div>
@@ -70,8 +68,8 @@ const ProgressSummaryPanel = ({
             <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
               Study Time
             </p>
-          </div>
-          <div className="rounded-lg bg-blue-50 p-3 text-center">
+          </PCard>
+          <PCard className="rounded-[14px] bg-blue-50 p-3 text-center shadow-none">
             <div className="flex items-center justify-center gap-1 mb-1">
               <BookOpen className="h-3.5 w-3.5 text-blue-600" />
             </div>
@@ -84,8 +82,8 @@ const ProgressSummaryPanel = ({
             <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
               Sessions
             </p>
-          </div>
-          <div className="rounded-lg bg-green-50 p-3 text-center">
+          </PCard>
+          <PCard className="rounded-[14px] bg-green-50 p-3 text-center shadow-none">
             <div className="flex items-center justify-center gap-1 mb-1">
               <CheckSquare className="h-3.5 w-3.5 text-green-600" />
             </div>
@@ -98,7 +96,7 @@ const ProgressSummaryPanel = ({
             <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
               Tasks Done
             </p>
-          </div>
+          </PCard>
         </div>
 
         {/* Goal Progress */}
@@ -166,7 +164,7 @@ const ProgressSummaryPanel = ({
           </p>
         )}
       </div>
-    </Card>
+    </PCard>
   );
 };
 

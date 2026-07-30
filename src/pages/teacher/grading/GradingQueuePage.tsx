@@ -13,9 +13,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { NoCourses } from "@/components/shared/EmptyState";
+import { NoCourses, NoSubmissions } from "@/components/shared/EmptyState";
+import { useAuth } from "@/hooks/useAuth";
 
 const GradingQueuePage = () => {
+  const { user } = useAuth();
   const [courseId, setCourseId] = useQueryState(
     "course",
     parseAsString.withDefault("")
@@ -30,7 +32,11 @@ const GradingQueuePage = () => {
   );
   const [page, setPage] = useState(1);
 
-  const { data: paginatedCourses } = useCourses();
+  const { data: paginatedCourses } = useCourses({
+    teacherId: user?.id,
+    pageSize: 100,
+  });
+  const courses = paginatedCourses?.data;
   const { data: paginatedAssignments } = useAssignments(courseId || undefined);
   const { data: sections } = useCourseSections(courseId || undefined);
   const {
@@ -39,12 +45,15 @@ const GradingQueuePage = () => {
     isFetching,
   } = useSubmissions({
     courseId: courseId || undefined,
+    courseIds: courseId
+      ? undefined
+      : (courses ?? []).map((course) => course.id),
     assignmentId: assignmentId || undefined,
     sectionId: sectionId || undefined,
+    pendingOnly: true,
     page,
   });
 
-  const courses = paginatedCourses?.data;
   const assignments = paginatedAssignments?.data;
   const submissions = paginatedSubmissions?.data ?? [];
 
@@ -134,7 +143,13 @@ const GradingQueuePage = () => {
         totalCount={paginatedSubmissions?.count}
         onPageChange={setPage}
         emptyState={
-          submissions.length === 0 && !isLoading ? <NoCourses /> : undefined
+          submissions.length === 0 && !isLoading ? (
+            courses?.length ? (
+              <NoSubmissions />
+            ) : (
+              <NoCourses />
+            )
+          ) : undefined
         }
       />
     </div>

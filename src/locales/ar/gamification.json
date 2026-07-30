@@ -2,6 +2,7 @@
   "xp": {
     "title": "نقاط الخبرة",
     "earned": "+{{amount}} نقطة خبرة",
+    "rewardEarned": "تم كسب مكافأة",
     "total": "إجمالي نقاط الخبرة",
     "history": "سجل نقاط الخبرة",
     "sources": {
@@ -33,6 +34,9 @@
     "mystery": "شارة غامضة",
     "mysteryHint": "أكمل التحديات المخفية لفتحها",
     "locked": "مقفلة"
+  },
+  "mystery": {
+    "overlayLabel": "مكافأة غامضة"
   },
   "leaderboard": {
     "title": "لوحة المتصدرين",
@@ -75,6 +79,9 @@
     "title": "المستوى",
     "current": "المستوى {{level}}",
     "levelUp": "ارتقاء في المستوى! 🎉",
-    "nextLevel": "{{xp}} نقطة خبرة للمستوى التالي"
+    "nextLevel": "{{xp}} نقطة خبرة للمستوى التالي",
+    "levelUpLabel": "ارتقاء في المستوى",
+    "overlayLabel": "الارتقاء إلى المستوى {{level}}",
+    "dismiss": "اضغط في أي مكان للإغلاق"
   }
 }

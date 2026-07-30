@@ -50,7 +50,13 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
-import { Button, KPICard, SectionHeader, Shimmer } from "@/design-system";
+import {
+  Button,
+  HeroCarousel,
+  KPICard,
+  SectionHeader,
+  Shimmer,
+} from "@/design-system";
 import { useAuth } from "@/hooks/useAuth";
 import { useTeacherDashboardAggregate } from "@/hooks/useTeacherDashboardAggregate";
 import {
@@ -64,6 +70,7 @@ import {
   type AIAtRiskPrediction,
 } from "@/hooks/useAtRiskPredictions";
 import { attainmentValueClass } from "@/lib/attainmentTone";
+import { getDisplayFirstName } from "@/lib/displayName";
 import { cn } from "@/lib/utils";
 
 const HERO_GRADIENT = "var(--hero-gradient)";
@@ -215,7 +222,8 @@ const TeacherDashboardScreen = () => {
   const atRiskCount = kpis?.atRiskCount ?? 0;
   const pending = kpis?.pendingSubmissions ?? 0;
   const firstName =
-    (profile?.full_name ?? "Teacher").split(" ")[0] ?? "Teacher";
+    getDisplayFirstName(profile?.full_name) ??
+    t("dashboard.teacherFallback", "Teacher");
 
   // ── Triage grouping (real data, derived severity) ──
   const [triTab, setTriTab] = useState<Severity | null>(null);
@@ -275,71 +283,112 @@ const TeacherDashboardScreen = () => {
 
   return (
     <div className="w-full space-y-4">
-      {/* ── Hero (AI-prepared briefing: greeting + real status chips) ── */}
-      <section
-        className="relative overflow-hidden rounded-2xl p-4 text-white shadow-lg"
+      {/* ── Hero carousel (briefing + real teaching momentum) ── */}
+      <HeroCarousel
+        ariaLabel={t("dashboard.hero.label", "Teaching highlights")}
+        className="rounded-2xl text-white shadow-lg"
         style={{ background: HERO_GRADIENT }}
-      >
-        <div
-          className="pointer-events-none absolute -right-8 -top-11 h-[150px] w-[150px]"
-          style={{
-            background:
-              "radial-gradient(circle,rgba(20,184,166,.45),transparent 70%)",
-          }}
-        />
-        <div className="relative flex items-center gap-3.5">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-white/15">
-            <GraduationCap className="h-6 w-6" aria-hidden="true" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <h1 className="truncate text-lg font-bold tracking-tight">
-              {t("dashboard.greeting", "Good day, {{name}}", {
-                name: firstName,
-              })}{" "}
-              👋
-            </h1>
-            <p className="truncate text-[12px] text-white/70">
-              {t(
-                "dashboard.welcome.subtitle",
-                "Here's your teaching cockpit — nothing acts without your OK."
+        slides={[
+          <div key="briefing" className="relative min-h-[116px] p-4">
+            <div
+              className="pointer-events-none absolute -end-8 -top-11 h-[150px] w-[150px]"
+              style={{
+                background:
+                  "radial-gradient(circle,rgba(20,184,166,.45),transparent 70%)",
+              }}
+            />
+            <div className="relative flex items-center gap-3.5">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-white/15">
+                <GraduationCap className="h-6 w-6" aria-hidden="true" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h1 className="truncate text-lg font-bold tracking-tight">
+                  {t("dashboard.greeting", "Good day, {{name}}", {
+                    name: firstName,
+                  })}{" "}
+                  👋
+                </h1>
+                <p className="truncate text-[12px] text-white/70">
+                  {t(
+                    "dashboard.welcome.subtitle",
+                    "Here's your teaching cockpit — nothing acts without your OK."
+                  )}
+                </p>
+              </div>
+            </div>
+            <div className="relative mt-3 flex flex-wrap gap-2">
+              {atRiskCount > 0 && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() =>
+                    document
+                      .getElementById("triage-sec")
+                      ?.scrollIntoView({ behavior: "smooth", block: "start" })
+                  }
+                  className="h-auto rounded-full border border-white/20 bg-white/15 px-3 py-1.5 text-[12px] font-semibold text-white hover:bg-white/25 hover:text-white"
+                >
+                  <AlertTriangle className="h-3.5 w-3.5" aria-hidden="true" />
+                  {t("dashboard.hero.needAttention", {
+                    defaultValue: "{{n}} students need attention",
+                    n: atRiskCount,
+                  })}
+                </Button>
               )}
-            </p>
-          </div>
-        </div>
-        {/* Status chips — only those backed by real aggregate data. */}
-        <div className="relative mt-3 flex flex-wrap gap-2">
-          {atRiskCount > 0 && (
-            <button
+              {pending > 0 && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => navigate("/teacher/grading")}
+                  className="h-auto rounded-full border border-white/20 bg-white/15 px-3 py-1.5 text-[12px] font-semibold text-white hover:bg-white/25 hover:text-white"
+                >
+                  <PenLine className="h-3.5 w-3.5" aria-hidden="true" />
+                  {t("dashboard.hero.toGrade", {
+                    defaultValue: "{{n}} submissions to grade",
+                    n: pending,
+                  })}
+                </Button>
+              )}
+            </div>
+          </div>,
+          <div
+            key="momentum"
+            className="flex min-h-[116px] items-center gap-4 p-4"
+          >
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-white/15">
+              <TrendingUp className="h-6 w-6" aria-hidden="true" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] font-black uppercase tracking-widest text-teal-200">
+                {t("dashboard.hero.momentumEyebrow", "Teaching momentum")}
+              </p>
+              <h2 className="mt-0.5 text-lg font-bold">
+                {t("dashboard.hero.mastery", {
+                  defaultValue: "{{percent}}% average mastery",
+                  percent: avgAttainment,
+                })}
+              </h2>
+              <p className="mt-1 text-[12px] text-white/70">
+                {t("dashboard.hero.momentumBody", {
+                  defaultValue:
+                    "{{graded}} graded this week · {{pending}} still in queue",
+                  graded: kpis?.gradedThisWeek ?? 0,
+                  pending,
+                })}
+              </p>
+            </div>
+            <Button
               type="button"
-              onClick={() =>
-                document
-                  .getElementById("triage-sec")
-                  ?.scrollIntoView({ behavior: "smooth", block: "start" })
-              }
-              className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/15 px-3 py-1.5 text-[12px] font-semibold transition-colors hover:bg-white/25"
+              variant="ghost"
+              onClick={() => navigate("/teacher/gradebook")}
+              className="shrink-0 rounded-xl border border-white/20 bg-white/15 px-3 text-xs font-bold text-white hover:bg-white/25 hover:text-white"
             >
-              <AlertTriangle className="h-3.5 w-3.5" aria-hidden="true" />
-              {t("dashboard.hero.needAttention", {
-                defaultValue: "{{n}} students need attention",
-                n: atRiskCount,
-              })}
-            </button>
-          )}
-          {pending > 0 && (
-            <button
-              type="button"
-              onClick={() => navigate("/teacher/grading")}
-              className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/15 px-3 py-1.5 text-[12px] font-semibold transition-colors hover:bg-white/25"
-            >
-              <PenLine className="h-3.5 w-3.5" aria-hidden="true" />
-              {t("dashboard.hero.toGrade", {
-                defaultValue: "{{n}} submissions to grade",
-                n: pending,
-              })}
-            </button>
-          )}
-        </div>
-      </section>
+              {t("dashboard.hero.openGradebook", "Open")}
+              <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
+            </Button>
+          </div>,
+        ]}
+      />
 
       {/* ── KPI row (real aggregate metrics) ── */}
       {aggregate.isPending ? (

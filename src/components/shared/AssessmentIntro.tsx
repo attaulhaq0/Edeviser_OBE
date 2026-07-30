@@ -84,11 +84,7 @@ const AssessmentIntro = ({
         ))}
       </ul>
 
-      <Button
-        onClick={onBegin}
-        variant="tactile"
-        className="mt-8 gap-2 px-8"
-      >
+      <Button onClick={onBegin} variant="tactile" className="mt-8 gap-2 px-8">
         {beginLabel}
         <ArrowRight className="h-4 w-4" />
       </Button>

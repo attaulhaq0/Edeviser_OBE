@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { BADGE_DEFINITIONS, type BadgeDef } from "@/lib/badgeDefinitions";
@@ -7,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { Pin, PinOff, ChevronDown, ChevronUp } from "lucide-react";
 import type { TieredBadgeData, BadgeTier } from "@/hooks/useTieredBadges";
+import { PCard } from "@/design-system";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -24,6 +24,11 @@ const TIER_LABELS: Record<BadgeTier, string> = {
   silver: "Silver",
   gold: "Gold",
 };
+
+const formatBadgeName = (name: string): string =>
+  name
+    .replace(/[_-]+/g, " ")
+    .replace(/\b\w/g, (character) => character.toUpperCase());
 
 // ─── Props ───────────────────────────────────────────────────────────────────
 
@@ -54,17 +59,20 @@ const TieredBadgeCard = ({
   const tierBorder = badge.tier ? TIER_BORDER_COLORS[badge.tier] : "";
 
   return (
-    <Card
+    <PCard
       data-testid={`badge-card-${badge.id}`}
       className={cn(
-        "bg-white shadow-md rounded-xl p-4 flex flex-col items-center text-center gap-2 transition-all relative",
+        "p-4 flex flex-col items-center text-center gap-2 transition-all relative",
         badge.tier ? `border-2 ${tierBorder}` : "border-0"
       )}
     >
       {(onPin || onUnpin) && (
-        <button
+        <Button
           data-testid={`badge-pin-${badge.id}`}
-          className="absolute top-2 end-2 p-1 rounded-full hover:bg-slate-100 transition-colors"
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          className="absolute top-2 end-2 size-7 rounded-full hover:bg-slate-100"
           onClick={() => {
             if (badge.is_pinned && onUnpin) onUnpin(badge.id);
             else if (!badge.is_pinned && onPin && pinnedCount < MAX_PINS)
@@ -85,12 +93,14 @@ const TieredBadgeCard = ({
           ) : (
             <Pin className="h-3.5 w-3.5 text-gray-400" />
           )}
-        </button>
+        </Button>
       )}
       <span className="text-3xl" aria-hidden="true">
         {badge.emoji}
       </span>
-      <span className="text-xs font-bold tracking-wide">{badge.name}</span>
+      <span className="text-xs font-bold tracking-wide">
+        {formatBadgeName(badge.name)}
+      </span>
       {badge.tier && (
         <Badge
           data-testid={`badge-tier-${badge.id}`}
@@ -130,7 +140,7 @@ const TieredBadgeCard = ({
           Pinned
         </Badge>
       )}
-    </Card>
+    </PCard>
   );
 };
 
@@ -149,10 +159,10 @@ const LegacyBadgeCard = ({
 }: LegacyBadgeCardProps) => {
   const showMysteryPlaceholder = badge.isMystery && !isEarned;
   return (
-    <Card
+    <PCard
       data-testid={`badge-card-${badge.id}`}
       className={cn(
-        "bg-white border-0 shadow-md rounded-xl p-4 flex flex-col items-center text-center gap-2 transition-all",
+        "p-4 flex flex-col items-center text-center gap-2 transition-all",
         isEarned ? "border-s-4 border-s-amber-400" : "opacity-30 grayscale"
       )}
     >
@@ -174,7 +184,7 @@ const LegacyBadgeCard = ({
           {format(new Date(awardedAt), "MMM d, yyyy")}
         </span>
       )}
-    </Card>
+    </PCard>
   );
 };
 
@@ -248,7 +258,7 @@ const BadgeCollection = ({
               >
                 <span className="text-2xl">{badge.emoji}</span>
                 <span className="text-[10px] font-bold truncate max-w-[60px]">
-                  {badge.name}
+                  {formatBadgeName(badge.name)}
                 </span>
               </div>
             ))}

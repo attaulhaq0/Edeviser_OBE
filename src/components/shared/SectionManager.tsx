@@ -148,11 +148,7 @@ const SectionManager = ({ courseId, courseName }: SectionManagerProps) => {
         <h3 className="text-lg font-bold tracking-tight">
           Sections{courseName ? ` — ${courseName}` : ""}
         </h3>
-        <Button
-          size="sm"
-          variant="tactile"
-          onClick={openCreateDialog}
-        >
+        <Button size="sm" variant="tactile" onClick={openCreateDialog}>
           <Plus className="h-4 w-4" /> Add Section
         </Button>
       </div>
@@ -396,11 +392,7 @@ const SectionFormDialog = ({
               >
                 Cancel
               </Button>
-              <Button
-                type="submit"
-                disabled={pending}
-                variant="tactile"
-              >
+              <Button type="submit" disabled={pending} variant="tactile">
                 {pending && <Loader2 className="h-4 w-4 animate-spin" />}
                 {isEditing ? "Update" : "Create"}
               </Button>

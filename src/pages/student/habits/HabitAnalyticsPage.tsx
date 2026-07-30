@@ -1,9 +1,8 @@
 import { Link } from "react-router-dom";
 import { ArrowLeft, Download, BarChart3, Info, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import ErrorBoundary from "@/components/shared/ErrorBoundary";
-import { Shimmer } from "@/design-system";
+import { PCard, SectionHeader, Shimmer } from "@/design-system";
 import ConsistencyScoreRing from "@/components/shared/ConsistencyScoreRing";
 import HabitCompletionChart from "@/components/shared/HabitCompletionChart";
 import BestDayChart from "@/components/shared/BestDayChart";
@@ -128,27 +127,28 @@ const HabitAnalyticsContent = () => {
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Link to="/student/habits">
-            <Button variant="outline" size="sm" className="gap-1">
-              <ArrowLeft className="h-4 w-4" />
-              Back
-            </Button>
-          </Link>
-          <h1 className="text-2xl font-bold tracking-tight">Habit Analytics</h1>
-        </div>
-        <Button
-          onClick={exportCSV}
-          disabled={isLoading}
-          variant="tactile"
-          className="gap-1"
-          data-testid="export-report-btn"
-        >
-          <Download className="h-4 w-4" />
-          Export Report
+      <SectionHeader
+        icon={BarChart3}
+        title="Habit Analytics"
+        action={
+          <Button
+            onClick={exportCSV}
+            disabled={isLoading}
+            variant="tactile"
+            className="gap-1"
+            data-testid="export-report-btn"
+          >
+            <Download className="h-4 w-4" />
+            Export Report
+          </Button>
+        }
+      />
+      <Link to="/student/habits" className="inline-flex">
+        <Button variant="outline" size="sm" className="gap-1">
+          <ArrowLeft className="h-4 w-4" />
+          Back
         </Button>
-      </div>
+      </Link>
 
       {isLoading ? (
         <div className="space-y-6">
@@ -159,64 +159,40 @@ const HabitAnalyticsContent = () => {
       ) : (
         <>
           {/* Consistency Score */}
-          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-            <div
-              className="px-6 py-4 flex items-center gap-2"
-              style={{
-                background: "var(--brand-gradient)",
-              }}
-            >
-              <BarChart3 className="h-5 w-5 text-white" />
-              <h2 className="text-lg font-bold tracking-tight text-white">
-                Consistency
-              </h2>
+          <PCard className="overflow-hidden gap-0 py-0">
+            <div className="p-6">
+              <SectionHeader icon={BarChart3} title="Consistency" />
             </div>
-            <div className="p-6 flex justify-center">
+            <div className="flex justify-center px-6 pb-6">
               <ConsistencyScoreRing
                 score={consistencyScore}
                 label="Consistency Score"
               />
             </div>
-          </Card>
+          </PCard>
 
           {/* Level Progression */}
-          <Card
-            className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0"
+          <PCard
+            className="overflow-hidden gap-0 py-0"
             data-testid="level-progression-section"
           >
-            <div
-              className="px-6 py-4 flex items-center gap-2"
-              style={{
-                background: "var(--brand-gradient)",
-              }}
-            >
-              <TrendingUp className="h-5 w-5 text-white" />
-              <h2 className="text-lg font-bold tracking-tight text-white">
-                Level Progression
-              </h2>
-            </div>
             <div className="p-6">
+              <SectionHeader icon={TrendingUp} title="Level Progression" />
+            </div>
+            <div className="p-6 pt-0">
               <LevelProgressionChart
                 data={levelHistory}
                 currentLevel={currentLevel}
               />
             </div>
-          </Card>
+          </PCard>
 
           {/* Completion Rates */}
-          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-            <div
-              className="px-6 py-4 flex items-center gap-2"
-              style={{
-                background: "var(--brand-gradient)",
-              }}
-            >
-              <BarChart3 className="h-5 w-5 text-white" />
-              <h2 className="text-lg font-bold tracking-tight text-white">
-                Completion Rates
-              </h2>
-            </div>
+          <PCard className="overflow-hidden gap-0 py-0">
             <div className="p-6">
+              <SectionHeader icon={BarChart3} title="Completion Rates" />
+            </div>
+            <div className="p-6 pt-0">
               <HabitCompletionChart
                 weeklyData={weeklyData}
                 monthlyData={monthlyData}
@@ -224,38 +200,22 @@ const HabitAnalyticsContent = () => {
                 academicOnlyMonthlyData={academicMonthly}
               />
             </div>
-          </Card>
+          </PCard>
 
           {/* Best Day of Week */}
-          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-            <div
-              className="px-6 py-4 flex items-center gap-2"
-              style={{
-                background: "var(--brand-gradient)",
-              }}
-            >
-              <BarChart3 className="h-5 w-5 text-white" />
-              <h2 className="text-lg font-bold tracking-tight text-white">
-                Best Day of Week
-              </h2>
-            </div>
+          <PCard className="overflow-hidden gap-0 py-0">
             <div className="p-6">
+              <SectionHeader icon={BarChart3} title="Best Day of Week" />
+            </div>
+            <div className="p-6 pt-0">
               <BestDayChart data={averages} />
             </div>
-          </Card>
+          </PCard>
 
           {/* Correlation Insights */}
-          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-            <div
-              className="px-6 py-4 flex items-center gap-2"
-              style={{
-                background: "var(--brand-gradient)",
-              }}
-            >
-              <BarChart3 className="h-5 w-5 text-white" />
-              <h2 className="text-lg font-bold tracking-tight text-white">
-                Insights
-              </h2>
+          <PCard className="overflow-hidden gap-0 py-0">
+            <div className="p-6">
+              <SectionHeader icon={BarChart3} title="Insights" />
             </div>
             <div className="p-6 space-y-3">
               {correlationsLoading ? (
@@ -297,7 +257,7 @@ const HabitAnalyticsContent = () => {
                 </>
               )}
             </div>
-          </Card>
+          </PCard>
         </>
       )}
     </div>

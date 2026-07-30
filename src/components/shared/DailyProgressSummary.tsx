@@ -3,7 +3,7 @@
 // sessions completed) using project KPI card pattern
 // =============================================================================
 
-import { Card } from "@/components/ui/card";
+import { PCard } from "@/design-system";
 import { Clock, CheckCircle2, BookOpen, type LucideIcon } from "lucide-react";
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -31,7 +31,7 @@ const KPICard = ({
   accent,
   iconColor,
 }: KPICardProps) => (
-  <Card className="bg-white border-0 shadow-md rounded-xl p-4 group">
+  <PCard className="p-4 group">
     <div className="flex items-center justify-between">
       <div>
         <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
@@ -45,7 +45,7 @@ const KPICard = ({
         <Icon className={`h-5 w-5 ${iconColor}`} />
       </div>
     </div>
-  </Card>
+  </PCard>
 );
 
 // ─── Helpers ────────────────────────────────────────────────────────────────

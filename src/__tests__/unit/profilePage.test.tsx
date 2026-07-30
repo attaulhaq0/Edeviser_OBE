@@ -29,12 +29,10 @@ vi.mock("@/lib/supabase", () => ({
       }),
     })),
     functions: {
-      invoke: vi
-        .fn()
-        .mockResolvedValue({
-          data: { download_url: "https://example.com/export.json" },
-          error: null,
-        }),
+      invoke: vi.fn().mockResolvedValue({
+        data: { download_url: "https://example.com/export.json" },
+        error: null,
+      }),
     },
   },
 }));

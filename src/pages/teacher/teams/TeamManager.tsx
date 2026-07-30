@@ -27,7 +27,7 @@ import { Plus, Loader2, Users, Shuffle } from "lucide-react";
 import { toast } from "sonner";
 import { NoTeams } from "@/components/shared/EmptyState";
 import { useAuth } from "@/hooks/useAuth";
-import { useCourses } from "@/hooks/useCourses";
+import { useTeacherCourses } from "@/hooks/useCourses";
 import {
   useTeams,
   useCreateTeam,
@@ -51,7 +51,7 @@ const autoGenSchema = z.object({
 
 const TeamManager = () => {
   const { user, institutionId } = useAuth();
-  const { data: coursesData } = useCourses();
+  const { data: coursesData } = useTeacherCourses();
   const courses = coursesData?.data ?? [];
   const [selectedCourse, setSelectedCourse] = useState("");
   const { data: teams = [], isLoading } = useTeams(selectedCourse || undefined);

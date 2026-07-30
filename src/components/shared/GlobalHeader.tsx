@@ -4,7 +4,11 @@ import { useAuth } from "@/hooks/useAuth";
 import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
 import NotificationBell from "@/components/shared/NotificationBell";
 import ProfileDropdown from "@/components/shared/ProfileDropdown";
+import SearchCommand from "@/components/shared/SearchCommand";
+import RoleHeaderStats from "@/components/shared/RoleHeaderStats";
+import StudentHeaderStats from "@/components/shared/StudentHeaderStats";
 import { useSidebar } from "@/components/shared/SidebarContext";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { UserRole } from "@/types/app";
 
@@ -24,42 +28,53 @@ const GlobalHeader = () => {
   const dashboardRoute = dashboardRouteByRole[role as UserRole] ?? "/student";
 
   return (
-    <header className="sticky top-0 z-[100] h-14 w-full">
+    <header className="sticky top-0 z-[100] h-[var(--app-header-h)] w-full">
       <div
-        role="banner"
         data-tour="top-bar"
         className={cn(
-          "flex h-full w-full items-center gap-4 border-b border-border px-4 lg:px-6",
-          "bg-white/80 shadow-sm backdrop-blur-md dark:bg-background/80"
+          "relative flex h-full w-full items-center justify-between gap-4 border-b border-border px-4",
+          "bg-white shadow-[0_1px_2px_rgba(15,23,42,0.05)] dark:bg-background",
+          "min-[640px]:pl-[calc(var(--app-sidebar-w)+var(--app-gutter))] min-[640px]:pr-[var(--app-gutter)]"
         )}
       >
-        {/* Mobile hamburger */}
-        <button
-          onClick={toggle}
-          className="rounded-lg p-1.5 text-gray-600 hover:bg-slate-100 lg:hidden"
-          aria-label="Toggle navigation menu"
-        >
-          <Menu className="h-5 w-5" />
-        </button>
+        <div className="flex min-w-0 items-center gap-3">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={toggle}
+            className="rounded-lg text-gray-600 hover:bg-slate-100 min-[640px]:hidden"
+            aria-label="Toggle navigation menu"
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
 
-        {/* Brand logo */}
-        <Link
-          to={dashboardRoute}
-          className="flex-shrink-0"
-          aria-label="Edeviser — go to dashboard"
-        >
-          <img
-            src="/edeviser-logo-final.png"
-            className="h-8 w-auto"
-            alt="Edeviser"
-          />
-        </Link>
+          <Link
+            to={dashboardRoute}
+            className="flex-shrink-0 min-[640px]:hidden"
+            aria-label="Edeviser — go to dashboard"
+          >
+            <img
+              src="/edeviser-logo-final.png"
+              className="h-8 w-auto"
+              alt="Edeviser"
+            />
+          </Link>
+        </div>
 
-        <div className="flex-1" />
+        <div className="absolute left-1/2 -translate-x-1/2">
+          <SearchCommand showTrigger />
+        </div>
 
-        <LanguageSwitcher />
-        <NotificationBell />
-        <ProfileDropdown />
+        <div className="ms-auto flex min-w-0 items-center gap-2">
+          {role === "student" ? <StudentHeaderStats /> : null}
+          <RoleHeaderStats />
+          <div className="hidden min-[1280px]:block">
+            <LanguageSwitcher />
+          </div>
+          <NotificationBell />
+          <ProfileDropdown />
+        </div>
       </div>
     </header>
   );

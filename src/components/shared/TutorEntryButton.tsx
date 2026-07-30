@@ -60,9 +60,7 @@ const TutorEntryButton = ({
     <Button
       onClick={handleClick}
       variant="tactile"
-      className={cn(
-        className
-      )}
+      className={cn(className)}
       aria-label={label}
     >
       <Bot className="h-4 w-4" />

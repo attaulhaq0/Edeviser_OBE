@@ -27,9 +27,9 @@ import {
 
 import {
   Badge,
-  Card,
   KPICard,
   MasteryRing,
+  PCard,
   SectionHeader,
   Shimmer,
 } from "@/design-system";
@@ -96,17 +96,14 @@ const StudentProgressNew = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">
-          {t("progress.title", "My Progress")}
-        </h1>
-        <p className="mt-1 text-sm text-gray-500">
-          {t(
-            "progress.subtitle",
-            "Track your attainment across all enrolled courses."
-          )}
-        </p>
-      </div>
+      <SectionHeader
+        icon={TrendingUp}
+        title={t("progress.title", "My Progress")}
+        description={t(
+          "progress.subtitle",
+          "Track your attainment across all enrolled courses."
+        )}
+      />
 
       {isLoading ? (
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
@@ -119,7 +116,7 @@ const StudentProgressNew = () => {
       ) : (
         <>
           {/* Overall mastery summary */}
-          <Card className="card-elevated overflow-hidden border-0 bg-white">
+          <PCard className="overflow-hidden">
             <div className="flex flex-col gap-6 p-6 sm:flex-row sm:items-center">
               <div className="flex items-center gap-5">
                 <MasteryRing
@@ -168,7 +165,7 @@ const StudentProgressNew = () => {
                 ))}
               </div>
             </div>
-          </Card>
+          </PCard>
 
           {/* KPI row */}
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
@@ -203,12 +200,36 @@ const StudentProgressNew = () => {
           </div>
 
           {/* Per-course list */}
-          <Card className="card-elevated overflow-hidden border-0 bg-white">
+          <PCard className="overflow-hidden">
             <div className="p-6">
-              <SectionHeader
-                icon={TrendingUp}
-                title={t("progress.byCourse", "Progress by Course")}
-              />
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <SectionHeader
+                  icon={TrendingUp}
+                  title={t("progress.byCourse", "Progress by Course")}
+                  className="mb-0"
+                />
+                <Link
+                  to="/student/progress/clos"
+                  className="inline-flex items-center gap-1 text-xs font-bold text-sky-700 hover:text-sky-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
+                >
+                  <Target className="size-3.5" aria-hidden="true" />
+                  {t("progress.viewCLOProgress")}
+                  <ChevronRight
+                    className="size-3.5 rtl:rotate-180"
+                    aria-hidden="true"
+                  />
+                </Link>
+                <Link
+                  to="/student/learning-path"
+                  className="inline-flex items-center gap-1 text-xs font-bold text-teal-700 hover:text-teal-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
+                >
+                  {t("learningPath.title")}
+                  <ChevronRight
+                    className="size-3.5 rtl:rotate-180"
+                    aria-hidden="true"
+                  />
+                </Link>
+              </div>
               <div className="mt-4 space-y-2">
                 {data.perCourse.map((course) => (
                   <Link
@@ -257,7 +278,7 @@ const StudentProgressNew = () => {
                 ))}
               </div>
             </div>
-          </Card>
+          </PCard>
         </>
       )}
     </div>

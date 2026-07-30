@@ -1,7 +1,6 @@
 // Task 95.1: Session management page
 // Display active sessions with sign-out-other-sessions action
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -10,6 +9,7 @@ import {
 } from "@/hooks/useSessionManagement";
 import { toast } from "sonner";
 import { Loader2, Monitor, LogOut, Shield } from "lucide-react";
+import { PCard, SectionHeader } from "@/design-system";
 
 const SessionManagement = () => {
   const { user } = useAuth();
@@ -25,14 +25,20 @@ const SessionManagement = () => {
 
   return (
     <div className="space-y-6 max-w-2xl">
-      <h1 className="text-2xl font-bold tracking-tight">Session Management</h1>
+      <SectionHeader
+        icon={Shield}
+        title="Session Management"
+        description="Review active sessions and sign out other devices."
+      />
 
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden">
-        <CardHeader className="flex flex-row items-center gap-2">
-          <Shield className="h-5 w-5 text-blue-600" />
-          <CardTitle>Active Sessions</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <PCard className="overflow-hidden gap-0 py-0">
+        <div className="flex items-center gap-2 px-6 py-4">
+          <Shield className="h-5 w-5 text-white" />
+          <h2 className="text-lg font-bold tracking-tight text-white">
+            Active Sessions
+          </h2>
+        </div>
+        <div className="space-y-4 p-6">
           {isLoading && (
             <div className="flex items-center justify-center py-6">
               <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
@@ -70,8 +76,8 @@ const SessionManagement = () => {
               No active sessions found
             </p>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </PCard>
 
       <Button
         variant="outline"

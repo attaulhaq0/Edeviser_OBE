@@ -9,6 +9,7 @@ import {
   AlertCircle,
   CheckCircle2,
   XCircle,
+  X,
   ShieldAlert,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -355,9 +356,7 @@ const AdaptiveQuizSession = () => {
         <Link
           to={`/student/courses/${activeRecovery.course_id}/recovery/${activeRecovery.clo_id}`}
         >
-          <Button variant="tactile">
-            {t("quiz.recovery.cta")}
-          </Button>
+          <Button variant="tactile">{t("quiz.recovery.cta")}</Button>
         </Link>
       </div>
     );
@@ -401,38 +400,67 @@ const AdaptiveQuizSession = () => {
       : correctAnswerKey;
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
-      {/* Practice Mode Banner */}
-      {isPracticeMode && <PracticeModeBanner />}
-
-      {/* Header: Progress + Timer */}
-      <Card className="bg-white border-0 shadow-md rounded-xl p-4">
-        <div className="flex items-center justify-between mb-3">
-          <p className="text-sm font-semibold text-gray-700">
-            {t("quiz.questionProgress", {
+    <div className="mx-auto max-w-2xl space-y-6 pb-10">
+      {/* Immersive lesson chrome: the prototype's exit affordance and progress
+          track, driven by the real adaptive-session state. */}
+      <header
+        className="flex items-center gap-3"
+        aria-label={t("quiz.sessionProgress")}
+      >
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="shrink-0 rounded-xl"
+          aria-label={t("quiz.exit")}
+          onClick={() => navigate("/student/dashboard")}
+        >
+          <X className="size-5" />
+        </Button>
+        <div className="min-w-0 flex-1">
+          <div
+            className="h-2 overflow-hidden rounded-full bg-slate-200"
+            role="progressbar"
+            aria-valuemin={0}
+            aria-valuemax={total_questions}
+            aria-valuenow={question_number}
+            aria-label={t("quiz.questionProgress", {
               number: question_number,
               total: total_questions,
             })}
-          </p>
-          <div
-            className={cn(
-              "flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-bold",
-              isLowTime ? "bg-red-50 text-red-600" : "bg-slate-50 text-gray-700"
-            )}
           >
-            <Clock className={cn("h-4 w-4", isLowTime && "text-red-500")} />
-            {formatTime(timeRemaining)}
+            <div
+              className="h-full rounded-full bg-[image:var(--brand-gradient)] transition-[width] duration-300 motion-reduce:transition-none"
+              style={{ width: `${progressPercent}%` }}
+            />
           </div>
         </div>
+        <span className="shrink-0 text-xs font-black text-slate-500">
+          {question_number}/{total_questions}
+        </span>
+      </header>
 
-        {/* Progress bar */}
-        <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-          <div
-            className="h-full bg-blue-600 rounded-full transition-all duration-300 ease-out"
-            style={{ width: `${progressPercent}%` }}
-          />
+      {/* Practice Mode Banner */}
+      {isPracticeMode && <PracticeModeBanner />}
+
+      {/* Session context and timer */}
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-sm font-semibold text-slate-700">
+          {t("quiz.questionProgress", {
+            number: question_number,
+            total: total_questions,
+          })}
+        </p>
+        <div
+          className={cn(
+            "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-black",
+            isLowTime ? "bg-red-50 text-red-600" : "bg-slate-100 text-slate-700"
+          )}
+        >
+          <Clock className={cn("size-4", isLowTime && "text-red-500")} />
+          {formatTime(timeRemaining)}
         </div>
-      </Card>
+      </div>
 
       {/* Question */}
       <QuestionPreview

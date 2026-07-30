@@ -1,19 +1,19 @@
 import { useCallback } from "react";
-import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Loader2, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { useEmailPreferences } from "@/hooks/useEmailPreferences";
+import { PCard, SectionHeader } from "@/design-system";
 import type { EmailPreferencesFormData } from "@/lib/schemas/emailPrefs";
 
-interface PreferenceItem {
+export interface EmailPreferenceItem {
   key: keyof EmailPreferencesFormData;
   label: string;
   description: string;
 }
 
-const PREFERENCE_ITEMS: PreferenceItem[] = [
+const PREFERENCE_ITEMS: EmailPreferenceItem[] = [
   {
     key: "streak_risk",
     label: "Streak Risk Alerts",
@@ -42,7 +42,17 @@ const PREFERENCE_ITEMS: PreferenceItem[] = [
   },
 ];
 
-const EmailPreferencesSection = () => {
+interface EmailPreferencesSectionProps {
+  title?: string;
+  description?: string;
+  items?: EmailPreferenceItem[];
+}
+
+const EmailPreferencesSection = ({
+  title = "Email Notifications",
+  description = "Choose which email notifications you'd like to receive.",
+  items = PREFERENCE_ITEMS,
+}: EmailPreferencesSectionProps) => {
   const { preferences, isLoading, isUpdating, updatePreferencesAsync } =
     useEmailPreferences();
 
@@ -62,43 +72,21 @@ const EmailPreferencesSection = () => {
 
   if (isLoading) {
     return (
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-        <div
-          className="px-6 py-4 flex items-center gap-2"
-          style={{
-            background: "var(--brand-gradient)",
-          }}
-        >
-          <Mail className="h-5 w-5 text-white" />
-          <h2 className="text-lg font-bold tracking-tight text-white">
-            Email Notifications
-          </h2>
-        </div>
-        <div className="p-6 flex items-center justify-center">
+      <PCard className="overflow-hidden gap-0 py-0">
+        <SectionHeader icon={Mail} title={title} />
+        <div className="flex items-center justify-center p-6">
           <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
         </div>
-      </Card>
+      </PCard>
     );
   }
 
   return (
-    <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-      <div
-        className="px-6 py-4 flex items-center gap-2"
-        style={{
-          background: "var(--brand-gradient)",
-        }}
-      >
-        <Mail className="h-5 w-5 text-white" />
-        <h2 className="text-lg font-bold tracking-tight text-white">
-          Email Notifications
-        </h2>
-      </div>
+    <PCard className="overflow-hidden gap-0 py-0">
+      <SectionHeader icon={Mail} title={title} />
       <div className="p-6 space-y-4">
-        <p className="text-sm text-slate-500">
-          Choose which email notifications you'd like to receive.
-        </p>
-        {PREFERENCE_ITEMS.map((item) => (
+        <p className="text-sm text-slate-500">{description}</p>
+        {items.map((item) => (
           <div
             key={item.key}
             className="flex items-center justify-between py-3 border-b border-slate-100 last:border-0"
@@ -122,7 +110,7 @@ const EmailPreferencesSection = () => {
           </div>
         ))}
       </div>
-    </Card>
+    </PCard>
   );
 };
 

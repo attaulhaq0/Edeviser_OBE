@@ -17,7 +17,6 @@ import {
   GraduationCap,
   Shield,
   ArrowRight,
-  Building2,
 } from "lucide-react";
 
 // ---------------------------------------------------------------------------
@@ -25,14 +24,6 @@ import {
 // Passwords live in .env for the E2E / seeded accounts; the UI only needs the
 // emails and role labels.
 // ---------------------------------------------------------------------------
-const DEMO_ACCOUNTS = {
-  admin: { email: "admin@demo.com" },
-  coordinator: { email: "coordinator@demo.com" },
-  teacher: { email: "teacher@demo.com" },
-  student: { email: "student@demo.com" },
-} as const;
-
-type DemoRole = keyof typeof DEMO_ACCOUNTS;
 
 // ---------------------------------------------------------------------------
 // Noor International demo profiles — LOCAL HOST ONLY.
@@ -114,38 +105,6 @@ const scorePassword = (value: string): number => {
   if (/[^A-Za-z0-9]/.test(value)) score += 1;
   return Math.min(score, 4);
 };
-
-// Brand-accurate Google mark (kept as illustration per PARITY §B.7).
-const GoogleMark = () => (
-  <svg width="17" height="17" viewBox="0 0 48 48" aria-hidden="true">
-    <path
-      fill="#EA4335"
-      d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.6 2.4 30.1 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.3 13.2 17.7 9.5 24 9.5z"
-    />
-    <path
-      fill="#4285F4"
-      d="M46.1 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.4c-.5 2.9-2.1 5.3-4.6 7l7.1 5.5c4.2-3.9 6.7-9.6 6.7-16z"
-    />
-    <path
-      fill="#FBBC05"
-      d="M10.5 28.3c-.5-1.4-.8-2.9-.8-4.3s.3-3 .8-4.3l-7.9-6.1C1 16.9 0 20.3 0 24s1 7.1 2.6 10.4l7.9-6.1z"
-    />
-    <path
-      fill="#34A853"
-      d="M24 48c6.1 0 11.3-2 15-5.5l-7.1-5.5c-2 1.3-4.5 2.1-7.9 2.1-6.3 0-11.7-3.7-13.5-9.1l-7.9 6.1C6.5 42.6 14.6 48 24 48z"
-    />
-  </svg>
-);
-
-// Brand-accurate Microsoft mark (kept as illustration per PARITY §B.7).
-const MicrosoftMark = () => (
-  <svg width="16" height="16" viewBox="0 0 23 23" aria-hidden="true">
-    <path fill="#F35325" d="M1 1h10v10H1z" />
-    <path fill="#81BC06" d="M12 1h10v10H12z" />
-    <path fill="#05A6F0" d="M1 12h10v10H1z" />
-    <path fill="#FFBA08" d="M12 12h10v10H12z" />
-  </svg>
-);
 
 type AuthTab = "login" | "register";
 
@@ -251,29 +210,6 @@ const LoginPage = () => {
     }
   };
 
-  const handleDemoLogin = async (role: DemoRole) => {
-    setError(null);
-    setSuccess(null);
-    setIsPending(true);
-
-    try {
-      const { email } = DEMO_ACCOUNTS[role];
-      const result = await signIn(email, DEMO_PASSWORD);
-      if (!result.success) {
-        setError(result.error ?? t("login.demoError"));
-        return;
-      }
-      setSuccess(t("login.demoSuccess", { role }));
-      if (result.redirectTo) {
-        navigate(result.redirectTo, { replace: true });
-      }
-    } catch {
-      setError(t("login.genericError"));
-    } finally {
-      setIsPending(false);
-    }
-  };
-
   const handleNoorDemoLogin = async (email: string, role: string) => {
     setError(null);
     setSuccess(null);
@@ -300,19 +236,6 @@ const LoginPage = () => {
   // schema). If the provider/OTP is not enabled in the Supabase dashboard the
   // call surfaces an in-app error — it never fabricates a session. These are an
   // added auth surface pending provider configuration (see rebuild notes).
-  const handleOAuth = async (provider: "google" | "azure") => {
-    setError(null);
-    setSuccess(null);
-    try {
-      const { error: oauthError } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: { redirectTo: `${window.location.origin}/login` },
-      });
-      if (oauthError) setError(t("sso.error"));
-    } catch {
-      setError(t("sso.error"));
-    }
-  };
 
   const handleMagicLink = async () => {
     const valid = await loginForm.trigger("email");
@@ -344,7 +267,17 @@ const LoginPage = () => {
   // light (#f8fafc) canvas. Light + LTR (prototype scope; PARITY §E).
   // -------------------------------------------------------------------
   return (
-    <div className="relative grid min-h-[100dvh] grid-cols-1 bg-[#f8fafc] md:grid-cols-[1.1fr_1fr]">
+    <div className="relative grid min-h-[100dvh] grid-cols-1 bg-[#f8fafc] overflow-hidden md:grid-cols-[1.1fr_1fr]">
+      {/* Small Blue Doodle Background Overlay */}
+      <div
+        className="pointer-events-none absolute inset-0 bg-repeat opacity-[0.08] mix-blend-multiply"
+        style={{
+          backgroundImage: "url('/doodle-background.jpg')",
+          backgroundSize: "360px 360px",
+          filter: "hue-rotate(195deg) saturate(240%) brightness(0.9)",
+        }}
+      />
+
       {/* Language switcher — top-end corner over everything */}
       <div className="absolute end-4 top-4 z-20">
         <LanguageSwitcher />
@@ -354,8 +287,31 @@ const LoginPage = () => {
       <AuthBrandPanel />
 
       {/* ── FORM PANEL ──────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-center px-5 py-[26px] md:p-10">
+      <div className="relative z-10 flex items-center justify-center px-5 py-[26px] md:p-10">
         <div className="mx-auto w-full max-w-[400px] md:max-w-[380px]">
+          {/* Edeviser Logo Header with Gradient Badge */}
+          <div className="mb-6 flex flex-col items-center justify-center text-center">
+            <div
+              className="mb-2.5 flex h-16 w-16 items-center justify-center rounded-2xl p-3 shadow-lg shadow-teal-500/20 ring-2 ring-teal-500/30 transition-transform duration-300 hover:scale-105"
+              style={{
+                background:
+                  "linear-gradient(135deg, #14b8a6 0%, #0d9488 45%, #2563eb 100%)",
+              }}
+            >
+              <img
+                src="/edeviser-logo-final.png"
+                alt="Edeviser"
+                className="h-full w-full object-contain brightness-0 invert filter drop-shadow-sm"
+              />
+            </div>
+            <span className="text-2xl font-black tracking-tight text-slate-900">
+              Edeviser
+            </span>
+            <p className="mt-0.5 text-xs font-semibold text-slate-500">
+              Outcome-Based Higher Education Platform
+            </p>
+          </div>
+
           {/* Accessible + E2E heading (visually the tabs carry the label). */}
           <h1 className="sr-only">
             {activeTab === "login" ? t("login.title") : t("signup.title")}
@@ -379,46 +335,6 @@ const LoginPage = () => {
             >
               {t("tabs.register")}
             </button>
-          </div>
-
-          {/* SSO */}
-          <div className="space-y-2.5">
-            <button
-              type="button"
-              className="sso"
-              onClick={() => handleOAuth("google")}
-              disabled={isPending}
-            >
-              <GoogleMark />
-              {t("sso.google")}
-            </button>
-            <button
-              type="button"
-              className="sso"
-              onClick={() => handleOAuth("azure")}
-              disabled={isPending}
-            >
-              <MicrosoftMark />
-              {t("sso.microsoft")}
-            </button>
-            <button
-              type="button"
-              className="sso"
-              onClick={() => setError(t("sso.error"))}
-              disabled={isPending}
-            >
-              <Building2 className="h-4 w-4" />
-              {t("sso.institution")}
-            </button>
-          </div>
-
-          {/* Divider */}
-          <div className="my-4 flex items-center gap-3">
-            <div className="h-px flex-1 bg-gray-200" />
-            <span className="text-[11px] font-medium text-gray-400">
-              {t("sso.orWithEmail")}
-            </span>
-            <div className="h-px flex-1 bg-gray-200" />
           </div>
 
           {/* ── SIGN IN FORM ──────────────────────────────────────────── */}
@@ -759,50 +675,22 @@ const LoginPage = () => {
             </Alert>
           )}
 
-          {/* Quick Demo Access — only when VITE_DEMO_PASSWORD is set (local /
-              staging). Production leaves the env var empty so this disappears. */}
-          {activeTab === "login" && SHOW_DEMO_PANEL && (
+          {/* Single Quick Login Panel — DEV / Localhost Only */}
+          {activeTab === "login" && (SHOW_DEMO_PANEL || SHOW_NOOR_PANEL) && (
             <div className="mt-4 border-t border-gray-100 pt-4">
               <div className="mb-3 flex items-center justify-center gap-2">
-                <span className="flex items-center gap-1 text-xs font-bold text-gray-500">
+                <span className="flex items-center gap-1.5 text-xs font-bold text-gray-500">
                   <span className="text-amber-500">⚡</span>
-                  {t("login.demoLabel")}
+                  Quick Demo Login
                 </span>
               </div>
-              <div className="grid grid-cols-2 gap-2">
-                {(Object.keys(DEMO_ACCOUNTS) as DemoRole[]).map((role) => (
-                  <Button
-                    key={role}
-                    type="button"
-                    variant="ghost"
-                    className="h-9 rounded-full border border-gray-200 text-xs font-medium capitalize text-gray-600 shadow-sm hover:border-[#14b8a6] hover:bg-[#14b8a6]/5 hover:text-[#14b8a6]"
-                    onClick={() => handleDemoLogin(role)}
-                    disabled={isPending}
-                  >
-                    {getRoleIcon(role)}
-                    <span>{t(`roles.${role}`)}</span>
-                  </Button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Noor International demo profiles — LOCAL HOST ONLY (DEV). */}
-          {activeTab === "login" && SHOW_NOOR_PANEL && (
-            <div className="mt-4 border-t border-gray-100 pt-4">
-              <div className="mb-3 flex items-center justify-center gap-2">
-                <span className="flex items-center gap-1 text-xs font-bold text-gray-500">
-                  <span className="text-blue-500">🏫</span>
-                  Quick Login
-                </span>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-2 min-[400px]:grid-cols-3">
                 {NOOR_DEMO_ACCOUNTS.map((acct) => (
                   <Button
                     key={acct.role}
                     type="button"
                     variant="ghost"
-                    className="h-9 rounded-full border border-blue-200 text-xs font-medium capitalize text-gray-600 shadow-sm hover:border-[#3b82f6] hover:bg-[#3b82f6]/5 hover:text-[#3b82f6]"
+                    className="h-9 rounded-xl border border-slate-200 text-xs font-semibold capitalize text-slate-700 shadow-sm hover:border-teal-500 hover:bg-teal-50 hover:text-teal-700"
                     onClick={() => handleNoorDemoLogin(acct.email, acct.role)}
                     disabled={isPending}
                   >

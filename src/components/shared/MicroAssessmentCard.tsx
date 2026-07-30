@@ -1,9 +1,9 @@
 import { useTranslation } from "react-i18next";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Sparkles, Clock, X } from "lucide-react";
 import { ONBOARDING_XP, MAX_MICRO_DISMISSALS } from "@/lib/onboardingConstants";
+import { PCard } from "@/design-system";
 
 export interface MicroAssessmentCardProps {
   assessmentType: string;
@@ -44,7 +44,7 @@ const MicroAssessmentCard = ({
   const remainingDismissals = MAX_MICRO_DISMISSALS - dismissalCount;
 
   return (
-    <Card className="bg-white border-0 shadow-md rounded-xl p-4 space-y-3">
+    <PCard className="p-4 space-y-3">
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-2">
           <div className="p-1.5 rounded-lg bg-blue-50">
@@ -113,7 +113,7 @@ const MicroAssessmentCard = ({
           {t("onboarding.microAssessment.lastChance")}
         </p>
       )}
-    </Card>
+    </PCard>
   );
 };
 

@@ -72,11 +72,12 @@ export const useCalendarEvents = (month?: number, year?: number) => {
       const nextY = m + 1 > 12 ? y + 1 : y;
       const endDate = `${nextY}-${String(nextM).padStart(2, "0")}-01`;
 
-      const { data: assignments } = await supabase
+      const { data: assignments, error: assignmentsError } = await supabase
         .from("assignments")
         .select("id, title, due_date, course_id")
         .gte("due_date", startDate)
         .lt("due_date", endDate);
+      if (assignmentsError) throw assignmentsError;
 
       for (const a of assignments ?? []) {
         events.push({
@@ -89,11 +90,12 @@ export const useCalendarEvents = (month?: number, year?: number) => {
         });
       }
 
-      const { data: quizzes } = await supabase
+      const { data: quizzes, error: quizzesError } = await supabase
         .from("quizzes")
         .select("id, title, due_date, course_id")
         .gte("due_date", startDate)
         .lt("due_date", endDate);
+      if (quizzesError) throw quizzesError;
 
       for (const q of quizzes ?? []) {
         if (q.due_date) {
@@ -108,11 +110,12 @@ export const useCalendarEvents = (month?: number, year?: number) => {
         }
       }
 
-      const { data: academic } = await supabase
+      const { data: academic, error: academicError } = await supabase
         .from("academic_calendar_events")
         .select("id, title, start_date")
         .gte("start_date", startDate)
         .lt("start_date", endDate);
+      if (academicError) throw academicError;
 
       for (const e of academic ?? []) {
         events.push({

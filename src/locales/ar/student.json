@@ -93,7 +93,51 @@
     "noDueDate": "لا يوجد موعد نهائي",
     "noUpcomingWork": "لا توجد مهام قادمة",
     "attainment": "التحصيل",
-    "assignments": "التكليفات"
+    "assignments": "التكليفات",
+    "modules": "الوحدات",
+    "continueWhere": "تابع من حيث توقفت",
+    "dueShort": "يستحق في {{date}}",
+    "stuck": "هل تواجه صعوبة في هذا المقرر؟",
+    "tutorPrompt": "اطلب من المعلم الذكي شرحاً موجهاً.",
+    "ask": "اسأل",
+    "detail": {
+      "title": "تفاصيل المقرر",
+      "backToCourses": "العودة إلى المقررات",
+      "loadErrorTitle": "تعذر تحميل تفاصيل المقرر",
+      "loadError": "تعذر تحميل بعض تفاصيل المقرر. حاول مرة أخرى.",
+      "courseNotFoundTitle": "المقرر غير متاح",
+      "courseNotFound": "تعذر تحميل هذا المقرر.",
+      "progressLabel": "التقدّم",
+      "attainmentValue": "تحصيل {{count}}%",
+      "noAttainment": "لا توجد بيانات تحصيل",
+      "stats": {
+        "modules": "الوحدات",
+        "materials": "المواد",
+        "assignments": "التكليفات",
+        "attainment": "التحصيل"
+      },
+      "continueTitle": "تابع من حيث توقفت",
+      "openAssignment": "افتح التكليف",
+      "noOpenWork": "لا توجد واجبات قريبة.",
+      "announcements": "الإعلانات",
+      "announcementsDescription": "آخر التحديثات من فريق المقرر.",
+      "pinned": "مثبّت",
+      "noAnnouncements": "لا توجد إعلانات لهذا المقرر بعد.",
+      "modules": "الوحدات",
+      "modulesDescription": "افتح وحدة لتصفح المواد المنشورة بداخلها.",
+      "noPublishedModules": "لا توجد وحدات منشورة بعد.",
+      "noMaterials": "لا توجد مواد منشورة بعد.",
+      "locked": "مقفل",
+      "items": "{{count}} عنصر",
+      "selectMaterialTitle": "اختر مادة لعرضها هنا",
+      "selectMaterialHint": "تصفح وحدة من اليسار، ثم افتح مادة لقراءتها أو عرضها.",
+      "readTimer": "مؤقت القراءة",
+      "readCompleted": "اكتمل احتساب عادة القراءة",
+      "reading": "‏{{count}} ث قراءة",
+      "openLink": "فتح المورد",
+      "openFile": "تنزيل أو عرض الملف",
+      "noTextBody": "لا يوجد محتوى نصي مرفق بعد."
+    }
   },
   "assignments": {
     "title": "التكليفات",
@@ -102,15 +146,161 @@
     "submissionConfirmed": "تم تأكيد التسليم!",
     "lateSubmission": "هذا تسليم متأخر.",
     "deadlinePassed": "انتهى الموعد النهائي للتسليم.",
-    "dueIn": "يستحق خلال {{time}}"
+    "dueIn": "يستحق خلال {{time}}",
+    "list": {
+      "title": "التكليفات",
+      "subtitle": "تابع الأعمال القادمة والتسليمات المتأخرة وما تم إنجازه بالفعل.",
+      "searchPlaceholder": "ابحث في التكليفات...",
+      "allCourses": "كل المقررات",
+      "courseFallback": "المقرر",
+      "loadErrorTitle": "التكليفات غير متاحة",
+      "loadError": "تعذر تحميل التكليفات الخاصة بك. حاول مرة أخرى.",
+      "status": {
+        "pending": "قيد الانتظار",
+        "submitted": "تم التسليم",
+        "late": "متأخر",
+        "overdue": "متأخر جداً"
+      },
+      "marks": "{{count}} درجة",
+      "dueIn": "{{time}}"
+    },
+    "detail": {
+      "backToAssignments": "العودة إلى التكليفات",
+      "courseFallback": "المقرر",
+      "loadErrorTitle": "تعذر تحميل التكليف",
+      "loadError": "تعذر تحميل هذا التكليف. حاول مرة أخرى.",
+      "notFoundTitle": "التكليف غير موجود",
+      "notFound": "هذا التكليف لم يعد متاحاً.",
+      "loading": "جارٍ التحميل",
+      "facts": {
+        "due": "الموعد",
+        "marks": "الدرجات",
+        "reward": "المكافأة",
+        "window": "نافذة التأخير"
+      },
+      "linkedClos": "{{count}} من مخرجات التعلم المرتبطة",
+      "xpBonus": "مضاعف {{multiplier}}x لنقاط الخبرة",
+      "submitTitle": "سلّم عملك",
+      "submitDescription": "ارفع ملفك ثم سلّمه قبل إغلاق نافذة الموعد النهائي.",
+      "tapToUpload": "اضغط لرفع ملفك",
+      "draftHint": "تم اختياره سابقاً: {{name}}",
+      "fileValidationFailed": "فشل التحقق من الملف.",
+      "retryingUpload": "فشل الرفع — تتم المحاولة مرة أخرى ({{count}}/3)…",
+      "submitting": "جارٍ التسليم...",
+      "clearFile": "مسح الملف",
+      "lateWindow": "لا يزال بإمكانك التسليم خلال نافذة التأخير.",
+      "openWindow": "يمكنك التسليم بينما نافذة الموعد مفتوحة.",
+      "tutorTitle": "هل تحتاج إلى مساعدة قبل التسليم؟",
+      "tutorHint": "اسأل المعلم الذكي عن موضوع التكليف.",
+      "ask": "اسأل",
+      "statusTitle": "تسليمك",
+      "statusDescription": "تتبع أحدث حالة تسليم لهذا التكليف.",
+      "submitted": "تم التسليم",
+      "late": "متأخر",
+      "viewSubmission": "عرض التسليم",
+      "signing": "جارٍ تجهيز رابط الملف...",
+      "noSubmission": "لم تسلّم هذا التكليف بعد.",
+      "dueLabel": "الموعد",
+      "windowLabel": "نافذة التأخير",
+      "windowValue": "{{count}} ساعة",
+      "none": "لا يوجد",
+      "bonusTitle": "سياق الأداء",
+      "bonusDescription": "يستخدم النظام صعوبة مخرجات التعلم المرتبطة لضبط المكافآت.",
+      "bonusValue": "{{multiplier}}x مضاعف نقاط الخبرة",
+      "noBonus": "لا توجد مكافأة صعوبة"
+    }
   },
   "progress": {
+    "viewCLOProgress": "عرض تقدم مخرجات التعلم",
     "title": "تقدمي",
     "cloProgress": "تقدم مخرجات التعلم",
     "xpHistory": "سجل نقاط الخبرة",
     "attainment": "التحصيل",
     "evidence": "الأدلة",
     "noAssessments": "لا توجد تقييمات بعد"
+  },
+  "learningPath": {
+    "title": "مسار التعلم",
+    "subtitle": "اتبع الخطوات المتاحة التالية في رحلتك بالمقرر.",
+    "coursePicker": "اختر مقرراً",
+    "journey": "رحلتك في المقرر",
+    "views": {
+      "journey": "الرحلة",
+      "tree": "شجرة المعرفة"
+    },
+    "bloomJourney": "مستويات بلوم · رحلتك",
+    "youAreHere": "أنت هنا",
+    "levelDetail": "تفاصيل المستوى",
+    "mastery": "الإتقان",
+    "tasks": "المهام",
+    "milestones": "المحطات",
+    "coachTip": "نصيحة المدرب الذكي",
+    "coachContinue": "تابع «{{title}}» لتقوية هذا المستوى وفتح المحطة التالية.",
+    "coachComplete": "اكتمل هذا المستوى. ستكون المرحلة التالية جاهزة عند تحقيق متطلبها.",
+    "coachLocked": "أكمل مستوى بلوم السابق بالإتقان المطلوب لفتح هذه المرحلة.",
+    "unlockNext": "حقق إتقاناً بنسبة {{percent}}٪ لفتح مستوى بلوم التالي",
+    "unlockRequirement": "حقق {{percent}}٪ في {{title}} للفتح",
+    "recentActivity": "النشاط الأخير في هذا المسار",
+    "noRecentActivity": "أكمل مهمة أو سلّمها لتظهر هنا.",
+    "noStageAssignments": "لا توجد مهام مقرر مرتبطة بهذا المستوى بعد.",
+    "stageLocked": "تُفتح هذه المرحلة مع نمو إتقانك.",
+    "emptyTitle": "يجري إعداد مسار تعلمك",
+    "emptyDescription": "لا توجد واجبات مرتبطة بهذا المقرر بعد. ستظهر هنا المهمة التالية التي ينشرها المدرس.",
+    "status": {
+      "completed": "مكتمل",
+      "submitted": "تم التسليم",
+      "available": "متاح",
+      "locked": "مقفل"
+    },
+    "actions": {
+      "continue": "متابعة",
+      "review": "مراجعة",
+      "locked": "مقفل"
+    },
+    "stages": {
+      "baseCamp": "معسكر البداية",
+      "campOne": "المعسكر الأول",
+      "campTwo": "المعسكر الثاني · تتسلق الآن",
+      "campThree": "المعسكر الثالث",
+      "campFour": "المعسكر الرابع",
+      "summit": "القمة",
+      "remember": {
+        "title": "التذكر",
+        "subtitle": "استدعِ الأفكار الأساسية"
+      },
+      "understand": {
+        "title": "الفهم",
+        "subtitle": "اشرح المفاهيم"
+      },
+      "apply": {
+        "title": "التطبيق",
+        "subtitle": "استخدم المعرفة في مواقف واقعية"
+      },
+      "analyze": {
+        "title": "التحليل",
+        "subtitle": "اربط الأفكار وافحص الأنماط"
+      },
+      "evaluate": {
+        "title": "التقييم",
+        "subtitle": "دافع عن القرارات بالأدلة"
+      },
+      "create": {
+        "title": "الإبداع",
+        "subtitle": "ابنِ شيئاً أصيلاً"
+      }
+    },
+    "tree": {
+      "title": "نمو معرفتك",
+      "subtitle": "شاهد كيف ينمو فهمك",
+      "overallMastery": "الإتقان العام",
+      "keepGrowing": "واصل النمو!",
+      "strong": "قوي",
+      "good": "جيد",
+      "developing": "قيد التطوير",
+      "needsFocus": "يحتاج تركيزاً",
+      "tip": "تجاوز 70٪ في مستوى بلوم الحالي لفتح الفرع التالي. تنمو الشجرة مع إتقان كل مرحلة.",
+      "strength": "أسسك المكتملة تساعدك على الصعود إلى المستوى التالي من التفكير."
+    }
   },
   "heatmap": {
     "plainSummary": {
@@ -138,6 +328,30 @@
     "wordCount": "{{count}} كلمة",
     "minWords": "الحد الأدنى 50 كلمة",
     "saved": "تم حفظ إدخال اليومية.",
+    "today": {
+      "title": "تأمل اليوم",
+      "description": "دوّن ما تعلمته، وما بدا صعباً، أو إنجازاً صغيراً يستحق أن تتذكره.",
+      "cta": "اكتب تأملاً"
+    },
+    "journey": {
+      "title": "رحلتك في كتابة اليومية",
+      "thisWeek": "هذا الأسبوع",
+      "entriesThisWeek": "إدخالات هذا الأسبوع",
+      "dayStreak": "سلسلة الأيام",
+      "substantive": "تأملات مكتملة",
+      "totalEntries": "إجمالي الإدخالات",
+      "weeklyStreak": "سلسلة التأمل لهذا الأسبوع",
+      "daysOfWeek": "{{count}} من 7 أيام"
+    },
+    "dailyPrompt": {
+      "label": "محفز اليوم:"
+    },
+    "pastEntries": "الإدخالات السابقة",
+    "entryCount": "{{count}} إدخالات",
+    "empty": {
+      "title": "لا توجد إدخالات في اليومية بعد",
+      "description": "ابدأ يومية التعلم — تأمل في درس أو مفهوم واكسب نقاط خبرة."
+    },
     "prompts": {
       "title": "محفزات التأمل",
       "hint": "اختر محفزاً للبدء، أو اكتب بحرية أدناه.",
@@ -211,6 +425,30 @@
     }
   },
   "onboarding": {
+    "shell": {
+      "stepOf": "الخطوة {{current}} من {{total}}",
+      "progressLabel": "تقدّم التهيئة",
+      "back": "السابق",
+      "skip": "تخطَّ الآن",
+      "next": "التالي",
+      "loading": "جارٍ تحميل خطوات التهيئة"
+    },
+    "welcome": {
+      "fallbackName": "صديقنا",
+      "greeting": "مرحباً {{name}}! 👋",
+      "day1Description": "لنجهّز عالم تعلّمك — لن يستغرق الأمر أكثر من 3 دقائق.",
+      "fullDescription": "لنُكمل ملف تعلّمك ونفتح لك تجربة أكثر تخصيصاً.",
+      "benefits": {
+        "xpTitle": "اكسب حتى {{amount}} نقطة خبرة",
+        "xpDescription": "تبدأ المكافآت من السؤال الأول",
+        "tapTitle": "نقرات فقط، بلا كتابة",
+        "tapDay1Description": "ستة أسئلة سريعة — سهلة وممتعة",
+        "tapFullDescription": "خيارات بسيطة لبناء ملف تعلّمك الكامل",
+        "privateTitle": "خصوصيتك محفوظة",
+        "privateDescription": "ملفك وبيانات تعلّمك يظلان محميين"
+      },
+      "cta": "لنبدأ"
+    },
     "assessmentIntro": {
       "begin": "ابدأ",
       "personality": {
@@ -382,10 +620,50 @@
       }
     }
   },
+  "recoveryPath": {
+    "title": "مسار استعادة الإتقان",
+    "backToDashboard": "العودة إلى لوحة التحكم",
+    "empty": "لم يتم العثور على مسار استعادة نشط لهذه النتيجة.",
+    "unknownOutcome": "نتيجة التعلم",
+    "ready": "جاهز لإعادة المحاولة",
+    "inProgress": "قيد التقدم",
+    "description": "أكمل الخطوات التالية لفتح إعادة محاولة الاختبار في",
+    "optional": "اختياري",
+    "openTutor": "فتح المدرّس الذكي",
+    "startPractice": "بدء التدريب",
+    "browseGroups": "استعراض مجموعات الدراسة",
+    "markComplete": "وضع علامة مكتمل",
+    "retry": "إعادة الاختبار",
+    "retryAria": "إعادة الاختبار",
+    "completeToUnlock": "أكمل الخطوات لفتح إعادة المحاولة",
+    "lockedAria": "أكمل الخطوات المطلوبة لفتح إعادة المحاولة",
+    "steps": {
+      "tutor": {
+        "title": "جلسة المدرّس الذكي",
+        "description": "راجع المفاهيم الأساسية في «{{title}}» مع المدرّس الذكي."
+      },
+      "practice": {
+        "title": "أسئلة تدريبية",
+        "description": "أكمل أسئلة بمستوى صعوبة أقل لإعادة بناء الفهم."
+      },
+      "peer": {
+        "title": "مجموعة دراسة مع الزملاء",
+        "description": "انضم إلى مجموعة دراسة تعمل على الموضوع نفسه.",
+        "unavailable": "لا توجد مجموعات دراسة نشطة لهذا الموضوع."
+      }
+    },
+    "toast": {
+      "tutorComplete": "تم تسجيل جلسة المدرّس الذكي كمكتملة",
+      "practiceComplete": "تم تسجيل الأسئلة التدريبية كمكتملة",
+      "updateFailed": "تعذر تحديث الخطوة"
+    }
+  },
   "quiz": {
     "loading": "جارٍ تجهيز اختبارك التكيفي...",
     "unableToLoad": "تعذّر تحميل الاختبار. يرجى العودة والمحاولة مرة أخرى.",
     "questionProgress": "السؤال {{number}} من {{total}}",
+    "sessionProgress": "تقدم جلسة الاختبار",
+    "exit": "الخروج من الاختبار",
     "loadingButton": "جارٍ التحميل...",
     "submitAnswer": "إرسال الإجابة",
     "nextQuestion": "السؤال التالي",
@@ -449,12 +727,151 @@
   },
   "surveys": {
     "title": "الاستبيانات",
+    "loadError": "تعذّر تحميل الاستبيانات. يرجى المحاولة مرة أخرى.",
+    "retry": "إعادة المحاولة",
     "alreadyCompleted": "لقد أكملت هذا الاستبيان بالفعل.",
     "completed": "مكتمل",
     "toast": {
       "answerAtLeastOne": "يرجى الإجابة على سؤال واحد على الأقل",
       "submitted": "تم إرسال الاستبيان! +15 نقطة خبرة",
       "submitFailed": "تعذّر إرسال الاستبيان"
+    }
+  },
+  "badges": {
+    "title": "أوسمتي",
+    "subtitle": "احتفل بالمحطات التي حققتها واختر حتى ثلاثة أوسمة لتثبيتها.",
+    "pinned": "{{count}} من 3 مثبّتة",
+    "loadError": "تعذّر تحميل أوسمتك. يرجى المحاولة مرة أخرى.",
+    "retry": "إعادة المحاولة"
+  },
+  "learningProfile": {
+    "title": "ملف التعلّم",
+    "subtitle": "تساعد نتائج تقييماتك على تخصيص توصيات التعلّم لك.",
+    "reassess": "إعادة التقييمات",
+    "completeness": "اكتمال الملف",
+    "personalization": "جاهز للتخصيص",
+    "emptyTitle": "أنشئ ملف تعلّمك",
+    "emptyBody": "أكمل التقييمات القصيرة لفتح تفضيلات التعلّم والتوصيات المخصصة.",
+    "completeProfile": "أكمل ملفي",
+    "loadError": "تعذّر تحميل ملف تعلّمك. يرجى المحاولة مرة أخرى.",
+    "retry": "إعادة المحاولة",
+    "learningStyle": "تفضيلات التعلّم",
+    "dominantStyle": "أقوى تفضيل لديك: {{style}}",
+    "studyStrategies": "استراتيجيات الدراسة",
+    "selfEfficacy": "الثقة الأكاديمية",
+    "personality": "سمات التعلّم",
+    "overall": "الإجمالي",
+    "missingLearningStyle": "أكمل تقييم أسلوب التعلّم لعرض هذه التفضيلات.",
+    "missingStrategies": "أكمل تقييم استراتيجيات الدراسة لعرض هذه النتائج.",
+    "missingEfficacy": "أكمل تقييم الكفاءة الذاتية لعرض هذه النتائج.",
+    "missingPersonality": "أكمل تقييم الشخصية لعرض هذه النتائج.",
+    "styles": {
+      "visual": "بصري",
+      "auditory": "سمعي",
+      "read_write": "قراءة وكتابة",
+      "kinesthetic": "عملي",
+      "multimodal": "متعدد الأنماط"
+    },
+    "strategies": {
+      "time_management": "إدارة الوقت",
+      "elaboration": "التوسّع في الشرح",
+      "self_testing": "الاختبار الذاتي",
+      "help_seeking": "طلب المساعدة"
+    },
+    "efficacy": {
+      "general_academic": "الأكاديمية العامة",
+      "course_specific": "الخاصة بالمقرر",
+      "self_regulated_learning": "التعلّم المنظّم ذاتياً"
+    },
+    "traits": {
+      "openness": "الانفتاح",
+      "conscientiousness": "الاجتهاد",
+      "extraversion": "الانبساط",
+      "agreeableness": "التوافق",
+      "neuroticism": "الحساسية العاطفية"
+    },
+    "rail": {
+      "label": "سياق ملف التعلّم",
+      "whyTitle": "🧠 لماذا هذا مهم",
+      "whyBody": "يضبط أسلوب تعلّمك طريقة شرح المعلّم الذكي وترتيب الدروس بما يناسبك.",
+      "completenessTitle": "✅ الاكتمال",
+      "completenessEmpty": "أكمل تقييمك الأول لبدء بناء هذا الملف.",
+      "finishAssessments": "أكمل التقييمات القصيرة ←"
+    }
+  },
+  "settingsRail": {
+    "label": "معلومات خصوصية الإعدادات",
+    "title": "🔒 بياناتك",
+    "body": "تُطبّق خيارات الإشعارات واللغة فوراً، ولا تتم مشاركة أي منها مع زملائك."
+  },
+  "profilePage": {
+    "title": "أنا",
+    "subtitle": "هويتك التعليمية وتقدمك وخصوصيتك وحسابك.",
+    "edit": "تعديل",
+    "changePhoto": "تغيير صورة الملف الشخصي",
+    "student": "طالب",
+    "level": "المستوى",
+    "totalXp": "إجمالي نقاط الخبرة",
+    "dayStreak": "يوم متواصل",
+    "badges": "الأوسمة",
+    "editProfile": "تعديل الملف",
+    "viewPortfolio": "عرض الملف العام",
+    "levelProgress": "المستوى {{current}} ← {{next}}",
+    "xpRemaining": "{{count}} نقطة خبرة للمستوى التالي",
+    "freezes": "{{count}} أدوات حماية للسلسلة متاحة",
+    "badgesCount": "الأوسمة ({{count}})",
+    "viewAll": "عرض الكل ←",
+    "noBadges": "ستظهر أوسمتك المكتسبة هنا.",
+    "learningActivity": "نشاط التعلّم",
+    "lastWeeks": "آخر {{count}} أسبوعاً",
+    "activeDays": "أيام نشطة في هذه الفترة",
+    "profileLinks": "وجهات الملف الشخصي",
+    "links": {
+      "leaderboard": "لوحة الصدارة",
+      "marketplace": "المتجر",
+      "wellness": "العافية والعادات",
+      "quests": "مهام المعرفة",
+      "portfolio": "ملف الإنجاز",
+      "journal": "اليوميات",
+      "team": "فريقي",
+      "calendar": "التقويم والجدول",
+      "transcript": "السجل الأكاديمي",
+      "fees": "الرسوم والمدفوعات",
+      "surveys": "الاستبيانات",
+      "learningProfile": "ملف التعلّم",
+      "settings": "الإعدادات"
+    },
+    "learningProfile": "ملف التعلّم",
+    "learningStyle": "أسلوب التعلّم",
+    "notComplete": "لم يكتمل بعد",
+    "privacy": "الخصوصية",
+    "anonymous": "الظهور باسم مجهول في لوحات الصدارة",
+    "anonymousDescription": "أخفِ اسمك عن زملائك مع الاحتفاظ بتقدمك.",
+    "equipped": "العناصر المفعّلة",
+    "slots": {
+      "profile_theme": "سمة الملف",
+      "avatar_frame": "إطار الصورة",
+      "display_title": "اللقب المعروض"
+    },
+    "noEquipped": "لا توجد عناصر تجميلية مفعّلة.",
+    "security": "الأمان والوصول",
+    "changePassword": "تغيير كلمة المرور",
+    "activeSessions": "الجلسات النشطة",
+    "transcript": "السجل الأكاديمي",
+    "dataControls": "بيانات الحساب والتحكم",
+    "signOut": "تسجيل الخروج",
+    "rail": {
+      "label": "ملخص ملف الطالب",
+      "latestBadge": "أحدث وسام",
+      "noBadge": "لم يُكتسب أي وسام بعد",
+      "viewBadges": "عرض جميع الأوسمة وعددها {{count}} ←",
+      "academic": "أكاديمي",
+      "transcript": "السجل الأكاديمي",
+      "openTranscript": "فتح السجل ←",
+      "portfolio": "ملف الإنجاز",
+      "evidence": "عناصر الأدلة",
+      "openPortfolio": "فتح ملف الإنجاز ←",
+      "account": "الحساب"
     }
   },
   "publicPortfolio": {

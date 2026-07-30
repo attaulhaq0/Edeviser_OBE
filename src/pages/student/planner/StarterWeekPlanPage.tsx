@@ -1,8 +1,7 @@
 import { useNavigate } from "react-router-dom";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Shimmer } from "@/design-system";
+import { PCard, Shimmer } from "@/design-system";
 import GoalSuggestionPanel from "@/components/shared/GoalSuggestionPanel";
 import SmartGoalForm from "@/components/shared/SmartGoalForm";
 import { useAuth } from "@/hooks/useAuth";
@@ -102,7 +101,7 @@ const SessionCard = ({
     session.status === "suggested" || session.status === "accepted";
 
   return (
-    <Card className="bg-white border-0 shadow-sm rounded-xl p-4 space-y-3">
+    <PCard className="p-4 space-y-3">
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-3">
           <div className={`p-2 rounded-lg ${colorClass}`}>
@@ -187,7 +186,7 @@ const SessionCard = ({
           Completed — +15 XP earned
         </div>
       )}
-    </Card>
+    </PCard>
   );
 };
 
@@ -295,7 +294,7 @@ const StarterWeekPlanPage = () => {
 
       {/* Post-week summary */}
       {isPostWeek && (
-        <Card className="bg-white border-0 shadow-md rounded-xl p-6 space-y-4">
+        <PCard className="p-6 space-y-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
               <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
@@ -331,7 +330,7 @@ const StarterWeekPlanPage = () => {
               </p>
             </div>
           </div>
-        </Card>
+        </PCard>
       )}
 
       {/* Sessions */}
@@ -352,11 +351,11 @@ const StarterWeekPlanPage = () => {
             />
           ))}
           {(sessions ?? []).length === 0 && (
-            <Card className="bg-white border-0 shadow-md rounded-xl p-8 text-center">
+            <PCard className="p-8 text-center">
               <p className="text-sm text-gray-500">
                 No starter week sessions generated yet.
               </p>
-            </Card>
+            </PCard>
           )}
         </div>
       )}

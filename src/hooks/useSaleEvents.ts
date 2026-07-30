@@ -46,9 +46,8 @@ export const useSaleEvents = () => {
       const itemMap = new Map<string, string[]>();
 
       if (eventIds.length > 0) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data: junctionData, error: junctionError } = await (supabase as any)
-          .from("sale_event_items")
+        const { data: junctionData, error: junctionError } = await supabase
+          .from("sale_event_items" as unknown as "sale_events")
           .select("sale_event_id, item_id")
           .in("sale_event_id", eventIds);
 

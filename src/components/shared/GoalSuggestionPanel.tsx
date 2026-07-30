@@ -1,8 +1,8 @@
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Target, Check, Pencil, X, Sparkles } from "lucide-react";
 import GoalDifficultyBadge from "@/components/shared/GoalDifficultyBadge";
 import type { GoalDifficulty } from "@/lib/goalTemplates";
+import { PCard, SectionHeader } from "@/design-system";
 
 export interface GoalSuggestion {
   id: string;
@@ -31,7 +31,7 @@ const GoalSuggestionPanel = ({
 
   if (isLoading) {
     return (
-      <Card className="bg-white border-0 shadow-md rounded-xl p-6">
+      <PCard className="p-6">
         <div className="flex items-center gap-2 mb-4">
           <Sparkles className="h-4 w-4 text-blue-500 animate-pulse" />
           <span className="text-sm font-medium text-gray-500">
@@ -46,27 +46,19 @@ const GoalSuggestionPanel = ({
             />
           ))}
         </div>
-      </Card>
+      </PCard>
     );
   }
 
   if (activeSuggestions.length === 0) return null;
 
   return (
-    <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-      <div
-        className="px-6 py-4 flex items-center gap-2"
-        style={{
-          background: "var(--brand-gradient)",
-        }}
-      >
-        <Target className="h-5 w-5 text-white" />
-        <h2 className="text-lg font-bold tracking-tight text-white">
-          Suggested Goals
-        </h2>
+    <PCard className="overflow-hidden">
+      <div className="p-5 pb-4">
+        <SectionHeader icon={Target} title="Suggested Goals" />
       </div>
 
-      <div className="p-6 space-y-3">
+      <div className="space-y-3 px-5 pb-5">
         <p className="text-xs text-gray-500 mb-2">
           AI-suggested goals based on your courses and progress. Accept, edit,
           or dismiss.
@@ -123,7 +115,7 @@ const GoalSuggestionPanel = ({
           </div>
         ))}
       </div>
-    </Card>
+    </PCard>
   );
 };
 

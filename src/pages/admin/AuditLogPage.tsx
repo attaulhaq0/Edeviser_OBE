@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Search } from "lucide-react";
+import { truncateAuditIdentifier } from "@/lib/auditLogPresentation";
 
 // ─── Action color mapping ────────────────────────────────────────────────────
 
@@ -51,9 +52,6 @@ const ENTITY_TYPE_OPTIONS = [
 ];
 
 // ─── Truncate helper ─────────────────────────────────────────────────────────
-
-const truncate = (str: string, len: number = 12): string =>
-  str.length > len ? `${str.slice(0, len)}…` : str;
 
 // ─── Column definitions ─────────────────────────────────────────────────────
 
@@ -101,9 +99,9 @@ const columns: ColumnDef<AuditLogRecord, unknown>[] = [
     cell: ({ row }) => (
       <span
         className="font-mono text-xs text-gray-500"
-        title={row.getValue<string>("target_id")}
+        title={row.getValue<string | null>("target_id") ?? undefined}
       >
-        {truncate(row.getValue<string>("target_id"))}
+        {truncateAuditIdentifier(row.getValue<string | null>("target_id"))}
       </span>
     ),
   },
@@ -113,9 +111,9 @@ const columns: ColumnDef<AuditLogRecord, unknown>[] = [
     cell: ({ row }) => (
       <span
         className="font-mono text-xs text-gray-500"
-        title={row.getValue<string>("actor_id")}
+        title={row.getValue<string | null>("actor_id") ?? undefined}
       >
-        {truncate(row.getValue<string>("actor_id"))}
+        {truncateAuditIdentifier(row.getValue<string | null>("actor_id"))}
       </span>
     ),
   },

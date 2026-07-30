@@ -135,10 +135,18 @@ const AttributeMappings = ({
             key={m.id}
             variant="outline"
             className="border-red-200 bg-red-50 text-red-700"
-            title={`Weight ${m.weight}%`}
+            title={`Weight ${
+              m.weight <= 1 ? Math.round(m.weight * 100) : Math.round(m.weight)
+            }%`}
           >
             {resolveName(outcomeNameById.get(m.outcome_id))}
-            <span className="opacity-60">· {m.weight}%</span>
+            <span className="opacity-60">
+              ·{" "}
+              {m.weight <= 1
+                ? Math.round(m.weight * 100)
+                : Math.round(m.weight)}
+              %
+            </span>
           </Badge>
         ))}
       </div>

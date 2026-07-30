@@ -19,8 +19,8 @@
 import type { LucideIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { PCard } from "@/design-system";
 import { cn } from "@/lib/utils";
 import {
   selectPrimary,
@@ -177,13 +177,10 @@ const PrimaryCTA = ({
   const secondaries = orderSecondary(actions, primary.id);
 
   return (
-    <Card
+    <PCard
       role="region"
       aria-label={regionLabel}
-      className={cn(
-        "bg-white border-0 shadow-md rounded-xl overflow-hidden",
-        className
-      )}
+      className={cn("overflow-hidden", className)}
       data-testid="primary-cta"
     >
       <div className="p-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -219,7 +216,7 @@ const PrimaryCTA = ({
           ))}
         </div>
       ) : null}
-    </Card>
+    </PCard>
   );
 };
 

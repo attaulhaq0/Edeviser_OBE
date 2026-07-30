@@ -8,7 +8,7 @@ import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { parseAsString, useQueryState } from "nuqs";
 import { useAuth } from "@/hooks/useAuth";
-import { useCourses } from "@/hooks/useCourses";
+import { useTeacherCourses } from "@/hooks/useCourses";
 import { useTeams, useSoftDeleteTeam } from "@/hooks/useTeams";
 import { useTeamHealthScores, type HealthStatus } from "@/hooks/useTeamHealth";
 import { Card } from "@/components/ui/card";
@@ -32,7 +32,7 @@ import { toast } from "sonner";
 const TeamManagementPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { data: paginatedCourses } = useCourses();
+  const { data: paginatedCourses } = useTeacherCourses();
 
   const teacherCourses = useMemo(
     () =>

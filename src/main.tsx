@@ -4,6 +4,7 @@ import { validateEnv } from "@/lib/envValidation";
 import { initAnalyticsIfConsented } from "@/lib/analyticsConsent";
 import "@/lib/i18n";
 import App from "@/App";
+import "@/design-system/tokens.css";
 import "@/index.css";
 
 // Validate required env vars before rendering — warns clearly if missing

@@ -31,22 +31,30 @@ interface MockState {
   // an empty array models a genuine "no section assigned" zero-data result.
   slots: TimetableSlot[] | undefined;
   isLoading: boolean;
+  isError: boolean;
 }
 
 const state: MockState = {
   slots: [],
   isLoading: false,
+  isError: false,
 };
 
 const resetState = () => {
   state.slots = [];
   state.isLoading = false;
+  state.isError = false;
 };
 
 // ─── Mocks ───────────────────────────────────────────────────────────────────
 
 vi.mock("@/hooks/useTimetable", () => ({
-  useTimetableSlots: () => ({ data: state.slots, isLoading: state.isLoading }),
+  useTimetableSlots: () => ({
+    data: state.slots,
+    isLoading: state.isLoading,
+    isError: state.isError,
+    refetch: vi.fn(),
+  }),
 }));
 
 import TimetableView from "@/pages/shared/TimetableView";
@@ -87,5 +95,15 @@ describe("Timetable empty-state fallback (R12.6, R12.8, R13.3)", () => {
 
     expect(screen.getByText(timetableTitle)).toBeTruthy();
     expect(screen.getByText(noTimetableTitle)).toBeTruthy();
+  });
+
+  it("shows a recoverable error state when timetable data cannot be loaded", () => {
+    state.isError = true;
+    renderView();
+
+    expect(screen.getByText(i18n.t("common:errors.generic"))).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: i18n.t("common:buttons.retry") })
+    ).toBeTruthy();
   });
 });

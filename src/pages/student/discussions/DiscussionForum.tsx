@@ -7,7 +7,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Plus, MessageSquare, Search } from "lucide-react";
 import { parseAsString, useQueryState } from "nuqs";
 import { toast } from "sonner";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -34,6 +33,7 @@ import {
   type CreateThreadFormData,
 } from "@/lib/schemas/discussion";
 import { format } from "date-fns";
+import { PCard, SectionHeader, Shimmer } from "@/design-system";
 
 const DiscussionForum = () => {
   const { courseId } = useParams<{ courseId: string }>();
@@ -81,7 +81,7 @@ const DiscussionForum = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Discussion Forum</h1>
+        <SectionHeader icon={MessageSquare} title="Discussion Forum" />
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button variant="tactile">
@@ -153,16 +153,18 @@ const DiscussionForum = () => {
       {isLoading ? (
         <div className="space-y-3">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="h-20 rounded-xl animate-shimmer" />
+            <Shimmer key={i} className="h-20 rounded-xl" />
           ))}
         </div>
       ) : filtered.length === 0 ? (
-        <Card className="bg-white border-0 shadow-md rounded-xl p-8 text-center">
-          <MessageSquare className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-          <p className="text-sm text-gray-500">
-            No discussion threads yet. Start a conversation!
-          </p>
-        </Card>
+        <PCard>
+          <div className="p-8 text-center">
+            <MessageSquare className="mx-auto mb-3 h-10 w-10 text-gray-300" />
+            <p className="text-sm text-gray-500">
+              No discussion threads yet. Start a conversation!
+            </p>
+          </div>
+        </PCard>
       ) : (
         <div className="space-y-3">
           {filtered.map((thread) => (

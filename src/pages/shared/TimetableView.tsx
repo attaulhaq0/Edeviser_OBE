@@ -1,10 +1,10 @@
 import { useTranslation } from "react-i18next";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Clock, CalendarClock, MapPin } from "lucide-react";
 import { useTimetableSlots, type TimetableSlot } from "@/hooks/useTimetable";
-import { Shimmer } from "@/design-system";
+import { PCard, SectionHeader, Shimmer } from "@/design-system";
 import { NoTimetable } from "@/components/shared/EmptyState";
+import ErrorState from "@/components/shared/ErrorState";
 import i18n from "@/lib/i18n";
 import { resolveLocalizationGate } from "@/lib/localization";
 import {
@@ -27,7 +27,7 @@ const SLOT_TYPE_STYLES: Record<string, string> = {
 
 const TimetableView = () => {
   const { t } = useTranslation("common");
-  const { data: slots = [], isLoading } = useTimetableSlots();
+  const { data: slots = [], isLoading, isError, refetch } = useTimetableSlots();
 
   // R13.5: if neither an English nor an Arabic localization is available for
   // the timetable, block display entirely rather than render an unlocalized
@@ -59,19 +59,22 @@ const TimetableView = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">
-          {t("timetable.title")}
-        </h1>
-      </div>
+      <SectionHeader
+        icon={Clock}
+        title={t("timetable.title")}
+        description={t(
+          "timetable.subtitle",
+          "View the weekly schedule and current class timing."
+        )}
+      />
 
       {!isLoading && slots.length > 0 && (
         <CurrentClassPanel context={nowContext} />
       )}
 
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
+      <PCard className="overflow-hidden gap-0 py-0">
         <div
-          className="px-6 py-4 flex items-center gap-2"
+          className="flex items-center gap-2 px-6 py-4"
           style={{
             background: "var(--brand-gradient)",
           }}
@@ -84,6 +87,12 @@ const TimetableView = () => {
         <div className="p-4 overflow-x-auto">
           {isLoading ? (
             <Shimmer className="h-64 rounded-lg" />
+          ) : isError ? (
+            <ErrorState
+              message={t("errors.generic")}
+              onRetry={() => void refetch()}
+              retryLabel={t("buttons.retry")}
+            />
           ) : slots.length === 0 ? (
             <NoTimetable className="border-0 shadow-none" />
           ) : (
@@ -176,7 +185,7 @@ const TimetableView = () => {
             </table>
           )}
         </div>
-      </Card>
+      </PCard>
 
       {/* Legend */}
       {!isLoading && slots.length > 0 && (
@@ -214,7 +223,7 @@ const CurrentClassPanel = ({ context }: { context: TimetableNowContext }) => {
 
   if (context.status === "none" || context.slot === null) {
     return (
-      <Card className="bg-white border-0 shadow-md rounded-xl p-4 flex items-center gap-3">
+      <PCard className="flex items-center gap-3 p-4">
         <div className="p-2 rounded-lg bg-slate-100">
           <CalendarClock className="h-5 w-5 text-slate-500" />
         </div>
@@ -226,7 +235,7 @@ const CurrentClassPanel = ({ context }: { context: TimetableNowContext }) => {
             {t("timetable.now.noUpcomingHint")}
           </p>
         </div>
-      </Card>
+      </PCard>
     );
   }
 
@@ -239,7 +248,7 @@ const CurrentClassPanel = ({ context }: { context: TimetableNowContext }) => {
     : t("timetable.now.startsIn", { time: remaining });
 
   return (
-    <Card className="bg-white border-0 shadow-md rounded-xl p-4">
+    <PCard className="p-4">
       <div className="flex items-start gap-3">
         <div
           className="p-2 rounded-lg"
@@ -288,7 +297,7 @@ const CurrentClassPanel = ({ context }: { context: TimetableNowContext }) => {
           </div>
         </div>
       </div>
-    </Card>
+    </PCard>
   );
 };
 

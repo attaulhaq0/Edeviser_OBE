@@ -91,6 +91,7 @@ vi.mock("@/hooks/useTeacherDashboard", () => ({
 
 vi.mock("@/hooks/useCourses", () => ({
   useCourses: () => ({ data: { data: [] }, isLoading: false }),
+  useTeacherCourses: () => ({ data: { data: [] }, isLoading: false }),
 }));
 
 vi.mock("@/hooks/useSubmissions", () => ({

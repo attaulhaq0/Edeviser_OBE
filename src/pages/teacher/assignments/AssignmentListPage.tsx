@@ -7,7 +7,7 @@ import { DataTable } from "@/components/shared/DataTable";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { useAssignments, useDeleteAssignment } from "@/hooks/useAssignments";
 import type { AssignmentWithRelations } from "@/hooks/useAssignments";
-import { useCourses } from "@/hooks/useCourses";
+import { useTeacherCourses } from "@/hooks/useCourses";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -31,7 +31,8 @@ const AssignmentListPage = () => {
     useState<AssignmentWithRelations | null>(null);
   const [page, setPage] = useState(1);
 
-  const { data: paginatedCourses, isLoading: coursesLoading } = useCourses();
+  const { data: paginatedCourses, isLoading: coursesLoading } =
+    useTeacherCourses();
   const courses = paginatedCourses?.data;
   const {
     data: paginatedAssignments,

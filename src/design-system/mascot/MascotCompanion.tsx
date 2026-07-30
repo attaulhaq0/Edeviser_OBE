@@ -14,7 +14,11 @@
 import "./mascot.css";
 import { cn } from "@/lib/utils";
 import MascotCharacter from "./MascotCharacter";
-import type { CharacterEmotion, CharacterId, CharacterSize } from "./characters";
+import type {
+  CharacterEmotion,
+  CharacterId,
+  CharacterSize,
+} from "./characters";
 
 export interface MascotCompanionProps {
   character: CharacterId;

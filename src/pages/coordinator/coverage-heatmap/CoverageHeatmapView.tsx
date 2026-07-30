@@ -110,71 +110,77 @@ const CoverageHeatmapView = () => {
             <NoData className="py-12" />
           ) : (
             <>
-            <table className="w-full text-xs border-collapse min-w-[600px]">
-              <thead>
-                <tr>
-                  <th className="p-2 border border-slate-200 bg-slate-50 text-slate-500 font-bold text-start">
-                    CLO
-                  </th>
-                  {matrix.course_ids.map((cid) => (
-                    <th
-                      key={cid}
-                      className="p-2 border border-slate-200 bg-slate-50 text-slate-500 font-bold truncate max-w-[120px]"
-                    >
-                      {matrix.course_labels[cid]}
+              <table className="w-full text-xs border-collapse min-w-[600px]">
+                <thead>
+                  <tr>
+                    <th className="p-2 border border-slate-200 bg-slate-50 text-slate-500 font-bold text-start">
+                      CLO
                     </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {matrix.clo_ids.map((cloId) => (
-                  <tr key={cloId}>
-                    <td className="p-2 border border-slate-200 text-slate-700 font-medium truncate max-w-[200px]">
-                      {matrix.clo_labels[cloId]}
-                    </td>
-                    {matrix.course_ids.map((courseId) => {
-                      const cell = matrix.cells.get(`${cloId}:${courseId}`);
-                      const bgColor = cell
-                        ? colorMode === "evidence"
-                          ? getEvidenceCountColor(cell.evidence_count)
-                          : getAttainmentColor(cell.avg_attainment)
-                        : "#ffffff";
-                      return (
-                        <td
-                          key={courseId}
-                          className="p-2 border border-slate-200 text-center font-medium"
-                          style={{
-                            backgroundColor: bgColor,
-                            // Flip text to white on the dark evidence cells so
-                            // the number keeps ≥4.5:1 contrast (WCAG 1.4.3).
-                            color: cell ? getHeatmapCellTextColor(bgColor) : undefined,
-                          }}
-                        >
-                          {cell ? (
-                            colorMode === "evidence" ? (
-                              cell.evidence_count
-                            ) : (
-                              `${Math.round(cell.avg_attainment)}%`
-                            )
-                          ) : (
-                            <span className="text-slate-300">—</span>
-                          )}
-                        </td>
-                      );
-                    })}
+                    {matrix.course_ids.map((cid) => (
+                      <th
+                        key={cid}
+                        className="p-2 border border-slate-200 bg-slate-50 text-slate-500 font-bold truncate max-w-[120px]"
+                      >
+                        {matrix.course_labels[cid]}
+                      </th>
+                    ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-            {/* Legend — shared key legend (also used by the teacher
+                </thead>
+                <tbody>
+                  {matrix.clo_ids.map((cloId) => (
+                    <tr key={cloId}>
+                      <td className="p-2 border border-slate-200 text-slate-700 font-medium truncate max-w-[200px]">
+                        {matrix.clo_labels[cloId]}
+                      </td>
+                      {matrix.course_ids.map((courseId) => {
+                        const cell = matrix.cells.get(`${cloId}:${courseId}`);
+                        const bgColor = cell
+                          ? colorMode === "evidence"
+                            ? getEvidenceCountColor(cell.evidence_count)
+                            : getAttainmentColor(cell.avg_attainment)
+                          : "#ffffff";
+                        return (
+                          <td
+                            key={courseId}
+                            className="p-2 border border-slate-200 text-center font-medium"
+                            style={{
+                              backgroundColor: bgColor,
+                              // Flip text to white on the dark evidence cells so
+                              // the number keeps ≥4.5:1 contrast (WCAG 1.4.3).
+                              color: cell
+                                ? getHeatmapCellTextColor(bgColor)
+                                : undefined,
+                            }}
+                          >
+                            {cell ? (
+                              colorMode === "evidence" ? (
+                                cell.evidence_count
+                              ) : (
+                                `${Math.round(cell.avg_attainment)}%`
+                              )
+                            ) : (
+                              <span className="text-slate-300">—</span>
+                            )}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {/* Legend — shared key legend (also used by the teacher
                 student-performance heatmap). Explains the active color scale
                 (previously missing, leaving cell colors unlabeled). */}
-            <HeatmapLegend
-              className="mt-4"
-              data-testid="coverage-heatmap-legend"
-              title={colorMode === "evidence" ? "Evidence count" : "Attainment"}
-              items={colorMode === "evidence" ? EVIDENCE_LEGEND : ATTAINMENT_LEGEND}
-            />
+              <HeatmapLegend
+                className="mt-4"
+                data-testid="coverage-heatmap-legend"
+                title={
+                  colorMode === "evidence" ? "Evidence count" : "Attainment"
+                }
+                items={
+                  colorMode === "evidence" ? EVIDENCE_LEGEND : ATTAINMENT_LEGEND
+                }
+              />
             </>
           )}
         </div>

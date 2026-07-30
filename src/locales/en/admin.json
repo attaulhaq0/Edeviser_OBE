@@ -59,7 +59,23 @@
     "frameworkManagement": "Framework Management",
     "frameworkManagementDesc": "Define competency hierarchies and map to outcome chains.",
     "manage": "Manage",
-    "view": "View"
+    "view": "View",
+    "rail": {
+      "label": "Institution",
+      "institution": "🏛️ Institution",
+      "users": "Users",
+      "active": "Active accounts",
+      "programs": "Programs",
+      "courses": "Courses",
+      "analytics": "See analytics →",
+      "governance": "🛡️ AI governance",
+      "autonomyCeiling": "Autonomy ceiling",
+      "a2": "A2 · approve",
+      "governanceNote": "AI never acts on institution data without human approval.",
+      "departments": "Departments",
+      "allDepartments": "All departments →",
+      "departmentsEmpty": "No attainment data yet."
+    }
   },
   "users": {
     "title": "User Management",

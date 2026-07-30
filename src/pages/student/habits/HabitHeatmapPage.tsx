@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { parseAsString, useQueryState } from "nuqs";
 import { BarChart3, Settings2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import ErrorBoundary from "@/components/shared/ErrorBoundary";
 import HeatmapSummaryStats from "@/components/shared/HeatmapSummaryStats";
 import HeatmapHabitSummary from "@/components/shared/HeatmapHabitSummary";
@@ -15,7 +14,7 @@ import HabitMobileBottomSheet from "@/components/shared/HabitMobileBottomSheet";
 import WellnessHabitLogger from "@/components/shared/WellnessHabitLogger";
 import WellnessTipCard from "@/components/shared/WellnessTipCard";
 import WellnessSettingsPanel from "@/components/shared/WellnessSettingsPanel";
-import { Shimmer } from "@/design-system";
+import { PCard, SectionHeader, Shimmer } from "@/design-system";
 import { useAuth } from "@/hooks/useAuth";
 import {
   useHeatmapData,
@@ -279,26 +278,29 @@ const HabitHeatmapContent = () => {
   return (
     <div className="space-y-6">
       {/* Page Header */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Habit Tracker</h1>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowSettings((s) => !s)}
-            className="gap-1"
-          >
-            <Settings2 className="h-4 w-4" />
-            Settings
-          </Button>
-          <Link to="/student/habits/analytics">
-            <Button variant="tactile" className="gap-1">
-              <BarChart3 className="h-4 w-4" />
-              Analytics
+      <SectionHeader
+        icon={BarChart3}
+        title="Habit Tracker"
+        action={
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowSettings((s) => !s)}
+              className="gap-1"
+            >
+              <Settings2 className="h-4 w-4" />
+              Settings
             </Button>
-          </Link>
-        </div>
-      </div>
+            <Link to="/student/habits/analytics">
+              <Button variant="tactile" className="gap-1">
+                <BarChart3 className="h-4 w-4" />
+                Analytics
+              </Button>
+            </Link>
+          </div>
+        }
+      />
 
       {/* Summary Stats */}
       {summaryLoading ? (
@@ -336,14 +338,14 @@ const HabitHeatmapContent = () => {
         <Shimmer className="h-48 rounded-xl" />
       ) : resolvedRange.start && resolvedRange.end ? (
         <div ref={cardRef} className="relative">
-          <Card className="bg-white border-0 shadow-md rounded-xl p-4">
+          <PCard className="p-4">
             <HeatmapGrid
               data={heatmapData ?? []}
               semesterRange={resolvedRange}
               onCellClick={handleCellClick}
               onCellHover={handleCellHover}
             />
-          </Card>
+          </PCard>
           {/* Hover tooltip — positioned above the hovered cell (desktop/pointer
               only; touch uses the bottom sheet). pointer-events-none so it
               never steals the hover it depends on. */}
@@ -401,7 +403,7 @@ const HabitHeatmapContent = () => {
 
       {/* Settings Panel (collapsible) */}
       {showSettings && (
-        <Card className="bg-white border-0 shadow-md rounded-xl p-4">
+        <PCard className="p-4">
           <WellnessSettingsPanel
             enabledHabits={enabledHabits}
             parentVisibility={parentVisibility}
@@ -414,7 +416,7 @@ const HabitHeatmapContent = () => {
             goalProgress={dailyProgress}
             onGoalSave={handleGoalSave}
           />
-        </Card>
+        </PCard>
       )}
     </div>
   );

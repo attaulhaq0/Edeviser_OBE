@@ -27,6 +27,7 @@ import {
 
 import { Button, PageHeader, SectionCard, StatePanel } from "@/design-system";
 import { cn } from "@/lib/utils";
+import { formatNotificationTitle } from "@/lib/notificationPresentation";
 import { useAuth } from "@/hooks/useAuth";
 import {
   useNotifications,
@@ -51,7 +52,11 @@ const TYPE_ICON: Partial<Record<NotificationType, LucideIcon>> = {
 const NotificationsFeedPage = () => {
   const { t } = useTranslation("common");
   const { user } = useAuth();
-  const { data: notifications, isLoading, isError } = useNotifications(user?.id);
+  const {
+    data: notifications,
+    isLoading,
+    isError,
+  } = useNotifications(user?.id);
   const markAsRead = useMarkAsRead();
   const markAllAsRead = useMarkAllAsRead();
   const deleteNotification = useDeleteNotification();
@@ -113,11 +118,12 @@ const NotificationsFeedPage = () => {
               const Icon = TYPE_ICON[n.type] ?? Bell;
               return (
                 <li key={n.id} className="flex items-start gap-3 py-3">
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
                     onClick={() => !n.is_read && markAsRead.mutate(n.id)}
                     className={cn(
-                      "flex flex-1 items-start gap-3 text-start",
+                      "h-auto flex-1 items-start justify-start gap-3 rounded-lg px-2 py-1 text-start",
                       !n.is_read && "cursor-pointer"
                     )}
                     data-testid={`notif-${n.id}`}
@@ -135,7 +141,7 @@ const NotificationsFeedPage = () => {
                           n.is_read ? "font-medium" : "font-bold"
                         )}
                       >
-                        {n.title}
+                        {formatNotificationTitle(n.title)}
                       </span>
                       {n.body && (
                         <span className="mt-0.5 block line-clamp-2 text-xs text-gray-500">
@@ -154,14 +160,17 @@ const NotificationsFeedPage = () => {
                         aria-label={t("notificationsFeed.unread", "Unread")}
                       />
                     )}
-                  </button>
+                  </Button>
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon"
                     className="h-6 w-6 shrink-0 text-gray-400 hover:text-red-500"
                     onClick={() => deleteNotification.mutate(n.id)}
-                    aria-label={t("notificationsFeed.delete", "Delete notification")}
+                    aria-label={t(
+                      "notificationsFeed.delete",
+                      "Delete notification"
+                    )}
                     data-testid={`notif-delete-${n.id}`}
                   >
                     <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />

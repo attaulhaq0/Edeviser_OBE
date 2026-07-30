@@ -100,11 +100,7 @@ export const LearningStyleStep = ({
         <p className="mt-2 max-w-sm text-sm text-gray-500">
           {t("onboarding.learningStyle.day1.body")}
         </p>
-        <Button
-          onClick={onComplete}
-          variant="tactile"
-          className="mt-6"
-        >
+        <Button onClick={onComplete} variant="tactile" className="mt-6">
           {t("onboarding.learningStyle.day1.continue")}
         </Button>
       </div>

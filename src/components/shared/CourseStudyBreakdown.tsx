@@ -13,8 +13,7 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from "recharts";
-import { Card } from "@/components/ui/card";
-import { GradientCardHeader } from "@/design-system";
+import { PCard, SectionHeader } from "@/design-system";
 import { cn } from "@/lib/utils";
 import type { CourseStudyTime } from "@/types/planner";
 import { BookOpen } from "lucide-react";
@@ -57,16 +56,15 @@ const CourseStudyBreakdown = ({
   const chartData = toChartData(data);
 
   return (
-    <Card
-      className={cn(
-        "bg-white border-0 shadow-md rounded-xl overflow-hidden",
-        className
-      )}
+    <PCard
+      className={cn("overflow-hidden", className)}
       data-testid="course-study-breakdown"
     >
-      <GradientCardHeader icon={BookOpen} title="Study Time by Course" />
+      <div className="p-5 pb-4">
+        <SectionHeader icon={BookOpen} title="Study Time by Course" />
+      </div>
 
-      <div className="p-6">
+      <div className="px-5 pb-5">
         {chartData.length === 0 ? (
           <p className="text-sm text-gray-400 text-center py-8">
             No study data for this week
@@ -122,7 +120,7 @@ const CourseStudyBreakdown = ({
           </ResponsiveContainer>
         )}
       </div>
-    </Card>
+    </PCard>
   );
 };
 

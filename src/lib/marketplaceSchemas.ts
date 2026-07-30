@@ -142,6 +142,12 @@ export const createStudentContentSchema = z.object({
   content_data: z.record(z.string(), z.unknown()),
 });
 
+export const studentContentFormSchema = z.object({
+  content_type: contentTypeSchema,
+  title: z.string().trim().min(1).max(200),
+  body: z.string().trim().max(10_000),
+});
+
 export const reviewStudentContentSchema = z.object({
   content_id: z.string().uuid(),
   status: z.enum(["approved", "rejected"]),
@@ -192,6 +198,7 @@ export type CreateKnowledgeQuestInput = z.infer<
 export type CreateStudentContentInput = z.infer<
   typeof createStudentContentSchema
 >;
+export type StudentContentFormInput = z.infer<typeof studentContentFormSchema>;
 export type ReviewStudentContentInput = z.infer<
   typeof reviewStudentContentSchema
 >;

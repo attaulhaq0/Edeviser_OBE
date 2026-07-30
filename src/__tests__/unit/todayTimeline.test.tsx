@@ -33,6 +33,10 @@ vi.mock("@/hooks/useTodayView", () => ({
   }),
 }));
 
+vi.mock("@/hooks/useStudentCourses", () => ({
+  useStudentCourses: () => ({ data: [] }),
+}));
+
 vi.mock("@/hooks/useStudySessions", () => ({
   useCreateStudySession: () => ({
     mutate: vi.fn(),

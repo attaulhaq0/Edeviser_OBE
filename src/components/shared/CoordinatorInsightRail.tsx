@@ -133,7 +133,7 @@ const CoordinatorInsightRail = ({
               </span>
             </div>
             <Button variant="tactile" size="sm" className="w-full" asChild>
-              <Link to="/coordinator/course-file">
+              <Link to="/coordinator/accreditation">
                 {t("rail.reviewDraft")}
                 <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
               </Link>

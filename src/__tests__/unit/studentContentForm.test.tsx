@@ -7,9 +7,34 @@ import { describe, it, expect } from "vitest";
 import {
   createStudentContentSchema,
   reviewStudentContentSchema,
+  studentContentFormSchema,
 } from "@/lib/marketplaceSchemas";
 
 describe("Student Content Form", () => {
+  describe("studentContentFormSchema", () => {
+    it("trims a valid user-facing content submission", () => {
+      const result = studentContentFormSchema.safeParse({
+        content_type: "study_plan",
+        title: "  My Study Plan  ",
+        body: "  Review chapters 1 and 2.  ",
+      });
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.title).toBe("My Study Plan");
+        expect(result.data.body).toBe("Review chapters 1 and 2.");
+      }
+    });
+
+    it("rejects an all-whitespace title before attempting a mutation", () => {
+      const result = studentContentFormSchema.safeParse({
+        content_type: "study_plan",
+        title: "   ",
+        body: "A valid body",
+      });
+      expect(result.success).toBe(false);
+    });
+  });
+
   describe("createStudentContentSchema", () => {
     it("validates a valid study plan", () => {
       const result = createStudentContentSchema.safeParse({

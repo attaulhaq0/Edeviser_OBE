@@ -148,7 +148,11 @@
   --gradient-end: #0382bd; /* Blue */
 
   /* === GRADIENTS === */
-  --brand-gradient: linear-gradient(93.65deg, #14b8a6 5.37%, #0382bd 78.89%); /* prototype-exact (adopted Path A) */
+  --brand-gradient: linear-gradient(
+    93.65deg,
+    #14b8a6 5.37%,
+    #0382bd 78.89%
+  ); /* prototype-exact (adopted Path A) */
   --hero-gradient: linear-gradient(
     135deg,
     #0f172a 0%,
@@ -199,7 +203,12 @@
   --heatmap-level-2: #4ade80; /* green-400 */
   --heatmap-level-3: #16a34a; /* green-600 */
   --heatmap-level-4: #14532d; /* green-900 — darkest, highest activity */
-  --heatmap-cell-ring: rgba(15, 23, 42, 0.28); /* hover ring (slate-900 @ 28%) */
+  --heatmap-cell-ring: rgba(
+    15,
+    23,
+    42,
+    0.28
+  ); /* hover ring (slate-900 @ 28%) */
   --heatmap-cell-outline: rgba(15, 23, 42, 0.06); /* 1px inset definition */
 }
 
@@ -231,7 +240,12 @@
   --heatmap-level-2: #15803d; /* green-700 */
   --heatmap-level-3: #22c55e; /* green-500 */
   --heatmap-level-4: #86efac; /* green-300 — brightest, highest activity */
-  --heatmap-cell-ring: rgba(226, 232, 240, 0.5); /* hover ring (slate-200 @ 50%) */
+  --heatmap-cell-ring: rgba(
+    226,
+    232,
+    240,
+    0.5
+  ); /* hover ring (slate-200 @ 50%) */
   --heatmap-cell-outline: rgba(255, 255, 255, 0.06);
 }
 
@@ -607,10 +621,152 @@ html.font-x-large {
    scrollable content so the fixed bar (see MobileTabBar) never covers the last
    items. Scoped by :has() so it applies ONLY when the bar is present (new chrome
    + small screens), and never on desktop or with the flag off. */
-@media (max-width: 1023.98px) {
+@media (max-width: 639.98px) {
   body:has(.new-mobile-tabbar) main {
     padding-bottom: calc(4.5rem + env(safe-area-inset-bottom));
   }
+}
+
+/* The prototype sidebar scrolls when its role menu exceeds the viewport, but
+   keeps the rail visually clean instead of exposing native scrollbar chrome. */
+[data-tour="primary-nav"] {
+  scrollbar-width: none;
+}
+
+[data-tour="primary-nav"]::-webkit-scrollbar {
+  display: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   GLOBAL TOP BAR chrome (prototype shared.css parity)
+   ═══════════════════════════════════════════════════════════════════ */
+.top-search,
+.top-stats {
+  display: none;
+}
+
+@media (min-width: 900px) {
+  .top-search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 0 0 auto;
+    width: min(280px, 30vw);
+    margin: 0;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 9px 12px;
+    background: #f1f5f9;
+    color: #94a3b8;
+    font-size: 13px;
+    cursor: text;
+  }
+
+  .top-search:hover {
+    background: #eef2f6;
+    border-color: #cbd5e1;
+  }
+
+  .top-search .kbd {
+    margin-left: auto;
+    font-size: 10px;
+    font-weight: 800;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 5px;
+    padding: 2px 6px;
+    color: #64748b;
+  }
+}
+
+@media (min-width: 640px) {
+  .top-stats {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .stat-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #f8fafc;
+    border: 1px solid #eef2f6;
+    border-radius: 999px;
+    padding: 5px 8px;
+    font-size: 12px;
+    font-weight: 800;
+  }
+
+  .hdr-profile {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    text-decoration: none;
+    padding: 3px 3px 3px 10px;
+    border-radius: 999px;
+    transition: background 0.15s;
+  }
+
+  .hdr-profile:hover {
+    background: rgba(15, 23, 42, 0.05);
+  }
+
+  .hdr-profile .hp-txt {
+    display: block !important;
+    text-align: right;
+    line-height: 1.2;
+  }
+}
+
+/* Laptop headers do not have enough horizontal room for the centered search,
+   role metrics, language control, notifications, and a full profile chip.
+   Preserve the primary controls and progressively disclose secondary context. */
+@media (min-width: 640px) and (max-width: 1199px) {
+  .hdr-profile .hp-txt {
+    display: none !important;
+  }
+}
+
+@media (min-width: 640px) and (max-width: 1399px) {
+  .top-stats {
+    display: none;
+  }
+}
+
+.hdr-profile .hp-txt {
+  display: none;
+}
+
+.hdr-profile .hp-name {
+  font-size: 13px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.hdr-profile .hp-sub {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.hdr-profile .hp-ava {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 800;
+  font-size: 14px;
+  background: var(--brand-gradient);
+  flex: 0 0 auto;
+  box-shadow: 0 2px 8px rgba(3, 130, 189, 0.25);
 }
 
 /* ─── Auth screens (prototype auth.html) ──────────────────────────────────── */

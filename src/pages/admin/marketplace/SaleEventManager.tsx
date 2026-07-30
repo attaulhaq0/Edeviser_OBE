@@ -118,10 +118,7 @@ const SaleEventManager = () => {
           <Tag className="h-6 w-6 text-red-500" />
           <h1 className="text-2xl font-bold tracking-tight">Sale Events</h1>
         </div>
-        <Button
-          onClick={() => setShowForm(true)}
-          variant="tactile"
-        >
+        <Button onClick={() => setShowForm(true)} variant="tactile">
           <Plus className="h-4 w-4" /> Create Sale
         </Button>
       </div>

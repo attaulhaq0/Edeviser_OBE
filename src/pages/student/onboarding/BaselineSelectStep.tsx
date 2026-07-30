@@ -74,11 +74,7 @@ export const BaselineSelectStep = ({
           No baseline tests are available for your enrolled courses yet. Your
           teachers may add them later.
         </p>
-        <Button
-          onClick={handleSkip}
-          variant="tactile"
-          className="mt-6"
-        >
+        <Button onClick={handleSkip} variant="tactile" className="mt-6">
           Continue
         </Button>
       </div>

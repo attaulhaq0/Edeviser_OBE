@@ -5,10 +5,9 @@
 import { useMemo } from "react";
 import { parseAsString, useQueryState } from "nuqs";
 import { Package, Palette, GraduationCap, Zap, Check, X } from "lucide-react";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Shimmer } from "@/design-system";
+import { PCard, SectionHeader, Shimmer } from "@/design-system";
 import CosmeticPreview from "@/components/shared/CosmeticPreview";
 import XPBalanceBadge from "@/components/shared/XPBalanceBadge";
 import { useAuth } from "@/hooks/useAuth";
@@ -99,11 +98,11 @@ const MyItemsPage = () => {
     <div className="space-y-6">
       {/* Page Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
-        <div className="flex items-center gap-3">
-          <Package className="h-6 w-6 text-blue-600" />
-          <h1 className="text-2xl font-bold tracking-tight">My Items</h1>
-        </div>
-        <XPBalanceBadge size="lg" />
+        <SectionHeader
+          icon={Package}
+          title="My Items"
+          action={<XPBalanceBadge size="lg" />}
+        />
       </div>
 
       {/* Category Tabs */}
@@ -111,19 +110,22 @@ const MyItemsPage = () => {
         {CATEGORIES.map((cat) => {
           const Icon = cat.icon;
           return (
-            <button
+            <Button
               key={cat.value}
+              type="button"
+              variant="ghost"
+              size="sm"
               onClick={() => setCategory(cat.value)}
               className={cn(
-                "flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-sm font-semibold transition-colors",
+                "h-auto gap-1.5 rounded-xl px-4 py-1.5 text-sm font-semibold transition-colors",
                 category === cat.value
-                  ? "bg-blue-600 text-white"
+                  ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-white"
                   : "bg-white text-gray-600 border border-gray-200 hover:bg-slate-50"
               )}
             >
               <Icon className="h-4 w-4" />
               {cat.label}
-            </button>
+            </Button>
           );
         })}
       </div>
@@ -149,10 +151,7 @@ const MyItemsPage = () => {
             const isCosmetic = item.item_category === "cosmetic";
 
             return (
-              <Card
-                key={item.purchase_id}
-                className="bg-white border-0 shadow-md rounded-xl p-4"
-              >
+              <PCard key={item.purchase_id} className="p-4">
                 <div className="flex items-center gap-4">
                   {/* Preview */}
                   {isCosmetic ? (
@@ -220,7 +219,7 @@ const MyItemsPage = () => {
                       ))}
                   </div>
                 </div>
-              </Card>
+              </PCard>
             );
           })}
         </div>

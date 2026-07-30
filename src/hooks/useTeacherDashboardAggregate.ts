@@ -52,13 +52,12 @@ export const useTeacherDashboardAggregate = (teacherId: string | undefined) => {
       if (!teacherId) {
         throw new Error("useTeacherDashboardAggregate: teacherId is required");
       }
-      // `get_teacher_dashboard` is added by migration 20260821000011 and is not
-      // yet in the generated Database types until they are regenerated post-merge,
-      // so cast the rpc call (same pattern as useXPBalance / get_xp_balance).
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (supabase as any).rpc(
-        "get_teacher_dashboard",
-        { p_teacher_id: teacherId }
+      // The RPC is newer than the generated Database type, so keep the escape
+      // hatch scoped to the function name and arguments rather than weakening
+      // the Supabase client to `any`.
+      const { data, error } = await supabase.rpc(
+        "get_teacher_dashboard" as never,
+        { p_teacher_id: teacherId } as never
       );
       if (error) throw error;
       if (!data) {

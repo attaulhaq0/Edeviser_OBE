@@ -286,11 +286,7 @@ const AnnouncementEditor = () => {
                 )}
               />
               <div className="flex gap-2">
-                <Button
-                  type="submit"
-                  disabled={isPending}
-                  variant="tactile"
-                >
+                <Button type="submit" disabled={isPending} variant="tactile">
                   {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
                   {editingAnnouncement ? "Update" : "Post"}
                 </Button>

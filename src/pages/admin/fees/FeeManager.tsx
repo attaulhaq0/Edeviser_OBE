@@ -30,6 +30,8 @@ import {
 } from "@/hooks/useFees";
 import { usePrograms } from "@/hooks/usePrograms";
 import { useSemesters } from "@/hooks/useSemesters";
+import { useTranslation } from "react-i18next";
+import { formatCurrency } from "@/lib/i18nHelpers";
 
 const schema = z.object({
   program_id: z.string().uuid("Select a program"),
@@ -43,6 +45,7 @@ const schema = z.object({
 type FeeFormData = z.infer<typeof schema>;
 
 const FeeManager = () => {
+  const { i18n } = useTranslation();
   const { data: fees = [], isLoading } = useFeeStructures();
   const { data: programsResult } = usePrograms({ pageSize: 100 });
   const programs = programsResult?.data ?? [];
@@ -55,7 +58,7 @@ const FeeManager = () => {
       semester_id: "",
       fee_type: "",
       amount: 0,
-      currency: "USD",
+      currency: "QAR",
       due_date: "",
     },
   });
@@ -107,7 +110,11 @@ const FeeManager = () => {
                   <div>
                     <span className="text-sm font-medium">{f.fee_type}</span>
                     <Badge variant="outline" className="ms-2 text-xs">
-                      ${f.amount} {f.currency}
+                      {formatCurrency(
+                        f.amount,
+                        i18n.language.startsWith("ar") ? "ar-QA" : "en",
+                        f.currency
+                      )}
                     </Badge>
                   </div>
                   <span className="text-xs text-slate-400">

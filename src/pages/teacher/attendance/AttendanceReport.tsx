@@ -28,7 +28,7 @@ import { Shimmer } from "@/design-system";
 import { NoAttendance } from "@/components/shared/EmptyState";
 
 import { useAuth } from "@/hooks/useAuth";
-import { useCourses } from "@/hooks/useCourses";
+import { useTeacherCourses } from "@/hooks/useCourses";
 import { useCourseSections } from "@/hooks/useCourseSections";
 import { useAttendanceSummary } from "@/hooks/useAttendance";
 
@@ -45,7 +45,8 @@ const AttendanceReport = () => {
     parseAsString.withDefault("")
   );
 
-  const { data: coursesResult, isLoading: coursesLoading } = useCourses();
+  const { data: coursesResult, isLoading: coursesLoading } =
+    useTeacherCourses();
   const teacherCourses = useMemo(
     () => (coursesResult?.data ?? []).filter((c) => c.teacher_id === teacherId),
     [coursesResult, teacherId]

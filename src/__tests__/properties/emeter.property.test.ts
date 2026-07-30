@@ -36,11 +36,17 @@ describe("EMeter logic — clampPercent (property)", () => {
     expect(clampPercent(Infinity)).toBe(0);
     expect(clampPercent(-Infinity)).toBe(0);
     fc.assert(
-      fc.property(fc.double({ min: -1e6, max: -1e-6, noNaN: true }), (n) => clampPercent(n) === 0),
+      fc.property(
+        fc.double({ min: -1e6, max: -1e-6, noNaN: true }),
+        (n) => clampPercent(n) === 0
+      ),
       { numRuns: 100 }
     );
     fc.assert(
-      fc.property(fc.double({ min: 100.0001, max: 1e6, noNaN: true }), (n) => clampPercent(n) === 100),
+      fc.property(
+        fc.double({ min: 100.0001, max: 1e6, noNaN: true }),
+        (n) => clampPercent(n) === 100
+      ),
       { numRuns: 100 }
     );
   });
@@ -48,7 +54,9 @@ describe("EMeter logic — clampPercent (property)", () => {
 
 describe("EMeter logic — emeterFillBackground (fill parity with prototype)", () => {
   it("default fill: brand gradient (student) / flat slate (pro)", () => {
-    expect(emeterFillBackground(undefined, false)).toBe("var(--brand-gradient)");
+    expect(emeterFillBackground(undefined, false)).toBe(
+      "var(--brand-gradient)"
+    );
     expect(emeterFillBackground(undefined, true)).toBe("#334155");
   });
 

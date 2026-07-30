@@ -17,6 +17,7 @@
 // =============================================================================
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import "@/lib/i18n";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
@@ -83,7 +84,12 @@ vi.mock("@/hooks/useStudentProfile", () => ({
 // only thing under test. Each stub exposes a deterministic testid. The JSX is
 // inlined per-mock because `vi.mock` is hoisted above any top-level helper.
 vi.mock("@/pages/student/onboarding/WelcomeStep", () => ({
-  WelcomeStep: () => <div data-testid="welcome-step">welcome-step</div>,
+  WelcomeStep: ({ onComplete }: { onComplete: () => void }) => (
+    <div data-testid="welcome-step">
+      welcome-step
+      <button onClick={onComplete}>Next</button>
+    </div>
+  ),
 }));
 vi.mock("@/pages/student/onboarding/PersonalityStep", () => ({
   PersonalityStep: () => (

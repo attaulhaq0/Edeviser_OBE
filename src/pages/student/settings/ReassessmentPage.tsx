@@ -1,6 +1,5 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -11,6 +10,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { differenceInDays, addDays, format } from "date-fns";
+import { PCard, SectionHeader } from "@/design-system";
 import { useAuth } from "@/hooks/useAuth";
 import { useStudentProfile } from "@/hooks/useStudentProfile";
 import { REASSESSMENT_COOLDOWN_DAYS } from "@/lib/onboardingConstants";
@@ -98,9 +98,9 @@ const ReassessmentPage = () => {
   }
 
   return (
-    <div className="space-y-6 max-w-2xl">
+    <div className="max-w-2xl space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900">
           Retake Assessments
         </h1>
         <Badge variant="outline" className="text-xs">
@@ -109,54 +109,44 @@ const ReassessmentPage = () => {
       </div>
 
       {/* Cooldown Status Card */}
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-        <div
-          className="px-6 py-4 flex items-center gap-2"
-          style={{
-            background: "var(--brand-gradient)",
-          }}
-        >
-          <Clock className="h-5 w-5 text-white" />
-          <h2 className="text-lg font-bold tracking-tight text-white">
-            Cooldown Status
-          </h2>
-        </div>
+      <PCard>
         <div className="p-6">
+          <SectionHeader icon={Clock} title="Cooldown Status" />
           {cooldown.canRetake ? (
-            <div className="flex items-start gap-3">
+            <div className="mt-4 flex items-start gap-3">
               <CheckCircle2 className="h-5 w-5 text-green-500 mt-0.5 shrink-0" />
               <div>
-                <p className="text-sm font-bold text-gray-900">
+                <p className="text-sm font-bold text-slate-900">
                   You are eligible to retake assessments
                 </p>
                 {cooldown.lastAssessmentDate && (
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="mt-1 text-xs text-slate-500">
                     Last assessment:{" "}
                     {format(cooldown.lastAssessmentDate, "MMM d, yyyy")} (
                     {cooldown.daysSinceLast} days ago)
                   </p>
                 )}
                 {!cooldown.lastAssessmentDate && (
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="mt-1 text-xs text-slate-500">
                     No previous assessment found.
                   </p>
                 )}
               </div>
             </div>
           ) : (
-            <div className="flex items-start gap-3">
+            <div className="mt-4 flex items-start gap-3">
               <AlertTriangle className="h-5 w-5 text-amber-500 mt-0.5 shrink-0" />
               <div>
-                <p className="text-sm font-bold text-gray-900">
+                <p className="text-sm font-bold text-slate-900">
                   Cooldown period active
                 </p>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="mt-1 text-xs text-slate-500">
                   You can retake assessments once every{" "}
                   {REASSESSMENT_COOLDOWN_DAYS} days.
                 </p>
                 <div className="mt-3 flex items-center gap-4">
                   <div>
-                    <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">
                       Days Remaining
                     </p>
                     <p className="text-2xl font-black text-amber-600">
@@ -165,10 +155,10 @@ const ReassessmentPage = () => {
                   </div>
                   {cooldown.nextEligibleDate && (
                     <div>
-                      <p className="text-[10px] font-black tracking-widest uppercase text-gray-500">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">
                         Next Eligible
                       </p>
-                      <p className="text-sm font-bold text-gray-900">
+                      <p className="text-sm font-bold text-slate-900">
                         {format(cooldown.nextEligibleDate, "MMM d, yyyy")}
                       </p>
                     </div>
@@ -201,60 +191,54 @@ const ReassessmentPage = () => {
             </div>
           )}
         </div>
-      </Card>
+      </PCard>
 
       {/* Assessment Sections */}
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-        <div
-          className="px-6 py-4 flex items-center gap-2"
-          style={{
-            background: "var(--brand-gradient)",
-          }}
-        >
-          <RefreshCw className="h-5 w-5 text-white" />
-          <h2 className="text-lg font-bold tracking-tight text-white">
-            Assessment Sections
-          </h2>
-        </div>
-        <div className="p-6 space-y-4">
-          <p className="text-xs text-gray-500">
-            Re-assessment creates a new profile version with updated scores.
-            Your previous results are preserved for comparison. Re-assessment
-            does not award additional onboarding XP.
-          </p>
-          <div className="space-y-3">
-            {ASSESSMENT_SECTIONS.map((section) => (
-              <div
-                key={section.id}
-                className="flex items-center gap-3 p-3 rounded-lg bg-slate-50"
-              >
-                <span className="text-lg" aria-hidden="true">
-                  {section.icon}
-                </span>
-                <div className="flex-1">
-                  <p className="text-sm font-bold text-gray-900">
-                    {section.label}
-                  </p>
-                  <p className="text-xs text-gray-500">{section.description}</p>
+      <PCard>
+        <div className="p-6">
+          <SectionHeader icon={RefreshCw} title="Assessment Sections" />
+          <div className="space-y-4">
+            <p className="text-xs text-slate-500">
+              Re-assessment creates a new profile version with updated scores.
+              Your previous results are preserved for comparison. Re-assessment
+              does not award additional onboarding XP.
+            </p>
+            <div className="space-y-3">
+              {ASSESSMENT_SECTIONS.map((section) => (
+                <div
+                  key={section.id}
+                  className="flex items-center gap-3 rounded-[14px] bg-slate-50 p-3"
+                >
+                  <span className="text-lg" aria-hidden="true">
+                    {section.icon}
+                  </span>
+                  <div className="flex-1">
+                    <p className="text-sm font-bold text-slate-900">
+                      {section.label}
+                    </p>
+                    <p className="text-xs text-slate-500">
+                      {section.description}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-          <div className="pt-2">
-            <Button
-              disabled={!cooldown.canRetake}
-              onClick={() => navigate("/student/onboarding/complete-profile")}
-              variant="tactile"
-              className="w-full"
-            >
-              <RefreshCw className="h-4 w-4" />
-              {cooldown.canRetake
-                ? "Start Re-Assessment"
-                : `Available in ${cooldown.daysRemaining} days`}
-            </Button>
+              ))}
+            </div>
+            <div className="pt-2">
+              <Button
+                disabled={!cooldown.canRetake}
+                onClick={() => navigate("/student/onboarding/complete-profile")}
+                variant="tactile"
+                className="w-full"
+              >
+                <RefreshCw className="h-4 w-4" />
+                {cooldown.canRetake
+                  ? "Start Re-Assessment"
+                  : `Available in ${cooldown.daysRemaining} days`}
+              </Button>
+            </div>
           </div>
         </div>
-      </Card>
+      </PCard>
     </div>
   );
 };

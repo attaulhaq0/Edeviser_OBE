@@ -10,7 +10,7 @@ import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAuth } from "@/hooks/useAuth";
-import { useCourses } from "@/hooks/useCourses";
+import { useTeacherCourses } from "@/hooks/useCourses";
 import {
   useCreateChallenge,
   useUpdateChallenge,
@@ -71,7 +71,7 @@ const ChallengeFormPage = () => {
   const { id } = useParams<{ id: string }>();
   const isEditMode = !!id;
   const { user, institutionId } = useAuth();
-  const { data: paginatedCourses } = useCourses();
+  const { data: paginatedCourses } = useTeacherCourses();
 
   const teacherCourses = useMemo(
     () =>

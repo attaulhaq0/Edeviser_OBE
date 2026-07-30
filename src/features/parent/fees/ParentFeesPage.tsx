@@ -12,6 +12,7 @@ import { toast } from "sonner";
 
 import { PageHeader, StatePanel } from "@/design-system";
 import FeePaymentList from "@/features/shared/fees/FeePaymentList";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
 import { useLinkedChildren } from "@/hooks/useParentDashboard";
@@ -64,7 +65,9 @@ const ParentFeesPage = () => {
     });
   };
 
-  const header = <PageHeader title={t("fees.childrenTitle", "Children's fees")} />;
+  const header = (
+    <PageHeader title={t("fees.childrenTitle", "Children's fees")} />
+  );
 
   if (childrenLoading) {
     return (
@@ -81,7 +84,10 @@ const ParentFeesPage = () => {
         {header}
         <StatePanel
           variant="error"
-          message={t("fees.error", "Could not load fee records. Please try again.")}
+          message={t(
+            "fees.error",
+            "Could not load fee records. Please try again."
+          )}
         />
       </div>
     );
@@ -112,21 +118,23 @@ const ParentFeesPage = () => {
         {children.map((child) => {
           const isActive = child.student_id === activeId;
           return (
-            <button
+            <Button
               key={child.student_id}
               type="button"
+              variant="ghost"
+              size="sm"
               onClick={() => setSelected(child.student_id)}
               aria-pressed={isActive}
               data-testid={`parent-child-${child.student_id}`}
               className={cn(
-                "rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors",
+                "h-auto rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors",
                 isActive
-                  ? "bg-blue-600 text-white"
+                  ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-white"
                   : "border border-gray-200 bg-white text-gray-600 hover:bg-slate-50"
               )}
             >
               {child.student_name}
-            </button>
+            </Button>
           );
         })}
       </div>
@@ -137,7 +145,10 @@ const ParentFeesPage = () => {
       ) : feesError || !payments ? (
         <StatePanel
           variant="error"
-          message={t("fees.error", "Could not load fee records. Please try again.")}
+          message={t(
+            "fees.error",
+            "Could not load fee records. Please try again."
+          )}
         />
       ) : (
         <FeePaymentList

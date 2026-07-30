@@ -117,19 +117,22 @@ const MarketplacePage = () => {
         {CATEGORIES.map((cat) => {
           const Icon = cat.icon;
           return (
-            <button
+            <Button
               key={cat.value}
+              type="button"
+              variant="ghost"
+              size="sm"
               onClick={() => setCategory(cat.value)}
               className={cn(
-                "flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-sm font-semibold transition-colors",
+                "h-auto gap-1.5 rounded-xl px-4 py-1.5 text-sm font-semibold transition-colors",
                 category === cat.value
-                  ? "bg-blue-600 text-white"
+                  ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-white"
                   : "bg-white text-gray-600 border border-gray-200 hover:bg-slate-50"
               )}
             >
               <Icon className="h-4 w-4" />
               {cat.label}
-            </button>
+            </Button>
           );
         })}
       </div>

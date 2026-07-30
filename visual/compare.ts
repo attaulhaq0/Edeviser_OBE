@@ -28,7 +28,12 @@ export const referencePath = (id: string, viewport: string): string =>
   path.join(process.cwd(), "visual", "references", `${id}__${viewport}.png`);
 
 export const diffOutputPath = (id: string, viewport: string): string =>
-  path.join(process.cwd(), "test-results", "visual-diffs", `${id}__${viewport}.diff.png`);
+  path.join(
+    process.cwd(),
+    "test-results",
+    "visual-diffs",
+    `${id}__${viewport}.diff.png`
+  );
 
 export const hasReference = (id: string, viewport: string): boolean =>
   fs.existsSync(referencePath(id, viewport));

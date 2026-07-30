@@ -3,13 +3,13 @@
 // =============================================================================
 
 import { Lock, Check, Coins, Package } from "lucide-react";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import SaleBadge from "@/components/shared/SaleBadge";
 import CosmeticPreview from "@/components/shared/CosmeticPreview";
 import type { MarketplaceItem } from "@/hooks/useMarketplace";
 import { cn } from "@/lib/utils";
+import { PCard } from "@/design-system";
 
 // ─── Icon map ────────────────────────────────────────────────────────────────
 
@@ -64,9 +64,9 @@ const ItemCard = ({
   const IconComponent = ICON_MAP[item.icon_identifier] ?? Sparkles;
 
   return (
-    <Card
+    <PCard
       className={cn(
-        "bg-white border-0 shadow-md rounded-xl overflow-hidden relative transition-transform hover:scale-[1.02]",
+        "relative overflow-hidden transition-transform hover:scale-[1.02]",
         // Flex column + h-full so every card fills its grid row to equal height
         // and the action button can be pinned to the bottom (mt-auto), keeping
         // all "Buy Now" buttons aligned across cards regardless of how long the
@@ -180,7 +180,7 @@ const ItemCard = ({
           )}
         </div>
       </div>
-    </Card>
+    </PCard>
   );
 };
 

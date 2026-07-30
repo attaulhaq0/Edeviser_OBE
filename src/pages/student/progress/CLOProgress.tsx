@@ -8,8 +8,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { BookOpen, FileText, Loader2 } from "lucide-react";
 import { format } from "date-fns";
-import { Card } from "@/components/ui/card";
-import { Shimmer } from "@/design-system";
+import { PCard, SectionHeader, Shimmer } from "@/design-system";
 import { NoCLOs, InlineNoCLOs } from "@/components/shared/EmptyState";
 import CLOProgressBar from "@/components/shared/CLOProgressBar";
 import { useAuth } from "@/hooks/useAuth";
@@ -123,7 +122,7 @@ const CLOProgress = () => {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <h2 className="text-2xl font-bold tracking-tight">CLO Progress</h2>
+        <SectionHeader icon={BookOpen} title="CLO Progress" />
         {Array.from({ length: 2 }).map((_, i) => (
           <Shimmer key={i} className="h-48 rounded-xl" />
         ))}
@@ -135,7 +134,7 @@ const CLOProgress = () => {
   if (!courseGroups || courseGroups.length === 0) {
     return (
       <div className="space-y-6">
-        <h2 className="text-2xl font-bold tracking-tight">CLO Progress</h2>
+        <SectionHeader icon={BookOpen} title="CLO Progress" />
         <NoCLOs />
       </div>
     );
@@ -143,7 +142,7 @@ const CLOProgress = () => {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold tracking-tight">CLO Progress</h2>
+      <SectionHeader icon={BookOpen} title="CLO Progress" />
 
       {courseGroups.map((group, groupIdx) => (
         <motion.div
@@ -152,62 +151,52 @@ const CLOProgress = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: groupIdx * 0.08 }}
         >
-          <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-            {/* Course header */}
-            <div
-              className="px-6 py-4 flex items-center gap-2"
-              style={{
-                background: "var(--brand-gradient)",
-              }}
-            >
-              <BookOpen className="h-5 w-5 text-white" />
-              <h3 className="text-lg font-bold tracking-tight text-white">
-                {group.course_name}
-              </h3>
+          <PCard className="overflow-hidden">
+            <div className="p-6">
+              <SectionHeader icon={BookOpen} title={group.course_name} />
+              {/* CLO entries */}
+              <div className="mt-4 space-y-4">
+                {group.entries.length === 0 ? (
+                  <InlineNoCLOs />
+                ) : (
+                  group.entries.map((entry) => {
+                    const isExpanded = expandedCloId === entry.clo_id;
+                    return (
+                      <div key={entry.clo_id}>
+                        <CLOProgressBar
+                          title={entry.clo_title}
+                          bloomsLevel={entry.blooms_level}
+                          attainmentPercent={entry.attainment_percent}
+                          attainmentLevel={entry.attainment_level}
+                          onClick={() => toggleClo(entry.clo_id)}
+                          isExpanded={isExpanded}
+                        />
+                        <AnimatePresence initial={false}>
+                          {isExpanded && studentId && (
+                            <motion.div
+                              key="evidence"
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: "auto", opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.25, ease: "easeInOut" }}
+                              className="overflow-hidden"
+                            >
+                              <div className="mt-2 ms-2 border-s-2 border-slate-200 ps-3">
+                                <EvidencePanel
+                                  cloId={entry.clo_id}
+                                  studentId={studentId}
+                                />
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
             </div>
-
-            {/* CLO entries */}
-            <div className="p-6 space-y-4">
-              {group.entries.length === 0 ? (
-                <InlineNoCLOs />
-              ) : (
-                group.entries.map((entry) => {
-                  const isExpanded = expandedCloId === entry.clo_id;
-                  return (
-                    <div key={entry.clo_id}>
-                      <CLOProgressBar
-                        title={entry.clo_title}
-                        bloomsLevel={entry.blooms_level}
-                        attainmentPercent={entry.attainment_percent}
-                        attainmentLevel={entry.attainment_level}
-                        onClick={() => toggleClo(entry.clo_id)}
-                        isExpanded={isExpanded}
-                      />
-                      <AnimatePresence initial={false}>
-                        {isExpanded && studentId && (
-                          <motion.div
-                            key="evidence"
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: "auto", opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.25, ease: "easeInOut" }}
-                            className="overflow-hidden"
-                          >
-                            <div className="mt-2 ms-2 border-s-2 border-slate-200 ps-3">
-                              <EvidencePanel
-                                cloId={entry.clo_id}
-                                studentId={studentId}
-                              />
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          </Card>
+          </PCard>
         </motion.div>
       ))}
     </div>

@@ -2,14 +2,13 @@
 // JournalListPage — List all journal entries for the current student
 // =============================================================================
 
-import { useMemo } from "react";
+import { useMemo, type KeyboardEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { parseAsString, useQueryState } from "nuqs";
 import { BookOpen, PenLine, Share2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useJournalEntries, type JournalEntry } from "@/hooks/useJournal";
 import { useStudentCourseProgram } from "@/hooks/useStudentCourseProgram";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -19,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Shimmer } from "@/design-system";
+import { PCard, SectionHeader, Shimmer } from "@/design-system";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -50,12 +49,12 @@ const EntryCard = ({ entry, courseName, onClick }: EntryCardProps) => {
   const words = countWords(entry.content);
 
   return (
-    <Card
-      className="bg-white border-0 shadow-md rounded-xl p-4 cursor-pointer hover:shadow-lg transition-shadow"
+    <PCard
+      className="cursor-pointer p-4 transition-shadow hover:shadow-[0_18px_38px_rgba(16,24,40,0.11)]"
       onClick={onClick}
       role="button"
       tabIndex={0}
-      onKeyDown={(e) => {
+      onKeyDown={(e: KeyboardEvent<HTMLDivElement>) => {
         if (e.key === "Enter" || e.key === " ") onClick();
       }}
     >
@@ -87,7 +86,7 @@ const EntryCard = ({ entry, courseName, onClick }: EntryCardProps) => {
           <p className="text-xs text-gray-400 mt-2">{words} words</p>
         </div>
       </div>
-    </Card>
+    </PCard>
   );
 };
 
@@ -129,12 +128,7 @@ const JournalListPage = () => {
     <div className="space-y-6">
       {/* Page Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
-        <div className="flex items-center gap-3">
-          <BookOpen className="h-6 w-6 text-teal-500" />
-          <h1 className="text-2xl font-bold tracking-tight">
-            Reflection Journal
-          </h1>
-        </div>
+        <SectionHeader icon={BookOpen} title="Reflection Journal" />
         <Button
           onClick={() => navigate("/student/journal/new")}
           variant="tactile"
@@ -169,12 +163,14 @@ const JournalListPage = () => {
           ))}
         </div>
       ) : !entries || entries.length === 0 ? (
-        <Card className="bg-white border-0 shadow-md rounded-xl p-8 text-center">
-          <BookOpen className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-          <p className="text-sm text-gray-500">
-            No journal entries yet. Start reflecting on your learning!
-          </p>
-        </Card>
+        <PCard>
+          <div className="p-8 text-center">
+            <BookOpen className="mx-auto mb-3 h-10 w-10 text-gray-300" />
+            <p className="text-sm text-gray-500">
+              No journal entries yet. Start reflecting on your learning!
+            </p>
+          </div>
+        </PCard>
       ) : (
         <div className="space-y-3">
           {entries.map((entry) => (

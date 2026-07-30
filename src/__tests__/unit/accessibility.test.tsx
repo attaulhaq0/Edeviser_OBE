@@ -16,6 +16,10 @@ const appRouterTsx = readFileSync(
   resolve(__dirname, "../../router/AppRouter.tsx"),
   "utf-8"
 );
+const roleAppShellTsx = readFileSync(
+  resolve(__dirname, "../../app/RoleAppShell.tsx"),
+  "utf-8"
+);
 const eslintConfig = readFileSync(
   resolve(__dirname, "../../../eslint.config.js"),
   "utf-8"
@@ -69,9 +73,12 @@ describe("Skip-to-main integration", () => {
     expect(appTsx).toContain("<SkipToMain />");
   });
 
-  it('AppRouter wraps routes in main element with id="main-content"', () => {
+  it("public routes and protected role shells own a non-nested main landmark", () => {
+    expect(appRouterTsx).toContain("const PublicMain");
     expect(appRouterTsx).toContain('id="main-content"');
-    expect(appRouterTsx).toContain("<main");
+    expect(appRouterTsx).toContain("<div>");
+    expect(roleAppShellTsx).toContain("<main");
+    expect(roleAppShellTsx).toContain('id="main-content"');
   });
 });
 
@@ -80,6 +87,7 @@ describe("Skip-to-main integration", () => {
 describe("Keyboard navigation support", () => {
   it("main-content element has tabIndex={-1} for programmatic focus", () => {
     expect(appRouterTsx).toContain("tabIndex={-1}");
+    expect(roleAppShellTsx).toContain("tabIndex={-1}");
   });
 
   it("html lang attribute is set for screen readers", () => {

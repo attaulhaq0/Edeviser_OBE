@@ -3,8 +3,8 @@
 // Task 131.4: All teams ranked by XP with Gold/Silver/Bronze styling
 // =============================================================================
 
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Medal, Trophy, Users } from "lucide-react";
 import { useTeamLeaderboard, useMyTeamId } from "@/hooks/useTeamLeaderboard";
 import type {
@@ -12,7 +12,7 @@ import type {
   TeamLeaderboardView,
 } from "@/hooks/useTeamLeaderboard";
 import { useAuth } from "@/hooks/useAuth";
-import { Shimmer } from "@/design-system";
+import { PCard, SectionHeader, Shimmer } from "@/design-system";
 import { InlineNoTeams } from "@/components/shared/EmptyState";
 import ReconnectBanner from "@/components/shared/ReconnectBanner";
 import { cn } from "@/lib/utils";
@@ -135,9 +135,11 @@ const TeamLeaderboard = ({ courseId }: TeamLeaderboardProps) => {
 
   if (!courseId) {
     return (
-      <Card className="bg-white border-0 shadow-md rounded-xl p-6 text-center text-gray-500">
-        Select a course to view team rankings.
-      </Card>
+      <PCard>
+        <div className="p-6 text-center text-slate-500">
+          Select a course to view team rankings.
+        </div>
+      </PCard>
     );
   }
 
@@ -146,60 +148,52 @@ const TeamLeaderboard = ({ courseId }: TeamLeaderboardProps) => {
       {/* Realtime status banner */}
       <ReconnectBanner isDisconnected={!isLive} retryCount={retryCount} />
 
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Trophy className="h-5 w-5 text-amber-500" />
-          <h2 className="text-lg font-bold tracking-tight">Team Leaderboard</h2>
-        </div>
+      <div className="flex items-center justify-between gap-3">
+        <SectionHeader icon={Trophy} title="Team Leaderboard" />
         <div className="flex gap-2">
           {(["all_time", "weekly"] as const).map((v) => (
-            <button
+            <Button
               key={v}
+              type="button"
+              variant="ghost"
+              size="sm"
               onClick={() => setView(v)}
               className={cn(
-                "px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors",
+                "h-auto rounded-xl px-3 py-1.5 text-xs font-semibold transition-colors",
                 typedView === v
-                  ? "bg-blue-600 text-white"
+                  ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-white"
                   : "bg-white text-gray-600 border border-gray-200"
               )}
             >
               {v === "all_time" ? "All Time" : "Weekly"}
-            </button>
+            </Button>
           ))}
         </div>
       </div>
 
-      <Card className="bg-white border-0 shadow-md rounded-xl overflow-hidden gap-0 py-0">
-        <div
-          className="px-6 py-4 flex items-center gap-2"
-          style={{
-            background: "var(--brand-gradient)",
-          }}
-        >
-          <Users className="h-5 w-5 text-white" />
-          <h2 className="text-lg font-bold tracking-tight text-white">
-            Team Rankings
-          </h2>
+      <PCard className="overflow-hidden">
+        <div className="p-4">
+          <SectionHeader icon={Users} title="Team Rankings" />
+          <div className="mt-4 space-y-2">
+            {isLoading ? (
+              Array.from({ length: 4 }).map((_, i) => (
+                <Shimmer key={i} className="h-14 rounded-xl" />
+              ))
+            ) : !entries || entries.length === 0 ? (
+              <InlineNoTeams />
+            ) : (
+              entries.map((entry) => (
+                <TeamRow
+                  key={entry.team_id}
+                  entry={entry}
+                  isCurrentTeam={entry.team_id === myTeamId}
+                  showWeekly={typedView === "weekly"}
+                />
+              ))
+            )}
+          </div>
         </div>
-        <div className="p-4 space-y-2">
-          {isLoading ? (
-            Array.from({ length: 4 }).map((_, i) => (
-              <Shimmer key={i} className="h-14 rounded-xl" />
-            ))
-          ) : !entries || entries.length === 0 ? (
-            <InlineNoTeams />
-          ) : (
-            entries.map((entry) => (
-              <TeamRow
-                key={entry.team_id}
-                entry={entry}
-                isCurrentTeam={entry.team_id === myTeamId}
-                showWeekly={typedView === "weekly"}
-              />
-            ))
-          )}
-        </div>
-      </Card>
+      </PCard>
     </div>
   );
 };

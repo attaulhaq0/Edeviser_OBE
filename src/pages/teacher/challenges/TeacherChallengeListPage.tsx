@@ -7,7 +7,7 @@ import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { parseAsString, useQueryState } from "nuqs";
 import { useAuth } from "@/hooks/useAuth";
-import { useCourses } from "@/hooks/useCourses";
+import { useTeacherCourses } from "@/hooks/useCourses";
 import {
   useChallenges,
   useCancelChallenge,
@@ -29,10 +29,13 @@ import { NoChallenges } from "@/components/shared/EmptyState";
 import { Plus, Search, Trophy, Pencil, XCircle, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { getEffectiveChallengeStatus } from "@/lib/challengeLifecycle";
 
 const statusColors: Record<string, string> = {
   draft: "bg-gray-100 text-gray-700 border-gray-200",
   active: "bg-green-50 text-green-700 border-green-200",
+  upcoming: "bg-amber-50 text-amber-700 border-amber-200",
+  completed: "bg-blue-50 text-blue-700 border-blue-200",
   ended: "bg-blue-50 text-blue-700 border-blue-200",
   cancelled: "bg-red-50 text-red-700 border-red-200",
 };
@@ -40,7 +43,7 @@ const statusColors: Record<string, string> = {
 const TeacherChallengeListPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { data: paginatedCourses } = useCourses();
+  const { data: paginatedCourses } = useTeacherCourses();
   const cancelMutation = useCancelChallenge();
 
   const teacherCourses = useMemo(
@@ -146,67 +149,70 @@ const TeacherChallengeListPage = () => {
             <NoChallenges />
           ) : (
             <div className="space-y-2">
-              {filteredChallenges.map((challenge) => (
-                <div
-                  key={challenge.id}
-                  className="flex items-center justify-between p-4 rounded-xl border border-slate-100 hover:bg-slate-50 transition-colors"
-                >
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold truncate">
-                      {challenge.title}
-                    </p>
-                    <div className="flex items-center gap-2 mt-1 flex-wrap">
-                      <Badge
-                        className={cn(
-                          "text-xs",
-                          statusColors[challenge.status]
-                        )}
-                      >
-                        {challenge.status}
-                      </Badge>
-                      <Badge variant="outline" className="text-xs">
-                        {challenge.challenge_type}
-                      </Badge>
-                      <Badge variant="outline" className="text-xs">
-                        {challenge.participation_mode}
-                      </Badge>
-                      <span className="text-xs text-gray-400 flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
-                        {new Date(
-                          challenge.start_date
-                        ).toLocaleDateString()} —{" "}
-                        {new Date(challenge.end_date).toLocaleDateString()}
-                      </span>
+              {filteredChallenges.map((challenge) => {
+                const effectiveStatus = getEffectiveChallengeStatus(challenge);
+                return (
+                  <div
+                    key={challenge.id}
+                    className="flex items-center justify-between p-4 rounded-xl border border-slate-100 hover:bg-slate-50 transition-colors"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold truncate">
+                        {challenge.title}
+                      </p>
+                      <div className="flex items-center gap-2 mt-1 flex-wrap">
+                        <Badge
+                          className={cn(
+                            "text-xs",
+                            statusColors[effectiveStatus]
+                          )}
+                        >
+                          {effectiveStatus}
+                        </Badge>
+                        <Badge variant="outline" className="text-xs">
+                          {challenge.challenge_type}
+                        </Badge>
+                        <Badge variant="outline" className="text-xs">
+                          {challenge.participation_mode}
+                        </Badge>
+                        <span className="text-xs text-gray-400 flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          {new Date(
+                            challenge.start_date
+                          ).toLocaleDateString()}{" "}
+                          — {new Date(challenge.end_date).toLocaleDateString()}
+                        </span>
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="flex items-center gap-2 shrink-0 ms-4">
-                    <Badge className="text-xs bg-amber-50 text-amber-700 border-amber-200">
-                      +{challenge.reward_xp} XP
-                    </Badge>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() =>
-                        navigate(`/teacher/challenges/${challenge.id}/edit`)
-                      }
-                      className="h-8 w-8 p-0"
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    {challenge.status === "active" && (
+                    <div className="flex items-center gap-2 shrink-0 ms-4">
+                      <Badge className="text-xs bg-amber-50 text-amber-700 border-amber-200">
+                        +{challenge.reward_xp} XP
+                      </Badge>
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleCancel(challenge)}
-                        className="h-8 w-8 p-0 text-red-500 hover:text-red-700"
+                        onClick={() =>
+                          navigate(`/teacher/challenges/${challenge.id}/edit`)
+                        }
+                        className="h-8 w-8 p-0"
                       >
-                        <XCircle className="h-4 w-4" />
+                        <Pencil className="h-4 w-4" />
                       </Button>
-                    )}
+                      {effectiveStatus === "active" && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleCancel(challenge)}
+                          className="h-8 w-8 p-0 text-red-500 hover:text-red-700"
+                        >
+                          <XCircle className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

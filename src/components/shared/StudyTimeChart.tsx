@@ -14,9 +14,8 @@ import {
   ResponsiveContainer,
   ReferenceLine,
 } from "recharts";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { GradientCardHeader } from "@/design-system";
+import { PCard, SectionHeader } from "@/design-system";
 import { cn } from "@/lib/utils";
 import type { WeeklyStudyData } from "@/types/planner";
 import { TrendingUp } from "lucide-react";
@@ -95,16 +94,15 @@ const StudyTimeChart = ({
   };
 
   return (
-    <Card
-      className={cn(
-        "bg-white border-0 shadow-md rounded-xl overflow-hidden",
-        className
-      )}
+    <PCard
+      className={cn("overflow-hidden", className)}
       data-testid="study-time-chart"
     >
-      <GradientCardHeader icon={TrendingUp} title="Study Time Trends" />
+      <div className="p-5 pb-4">
+        <SectionHeader icon={TrendingUp} title="Study Time Trends" />
+      </div>
 
-      <div className="p-6 space-y-4">
+      <div className="space-y-4 px-5 pb-5">
         {/* Course filter toggle */}
         {courseOptions.length > 0 && (
           <div
@@ -223,7 +221,7 @@ const StudyTimeChart = ({
           </>
         )}
       </div>
-    </Card>
+    </PCard>
   );
 };
 

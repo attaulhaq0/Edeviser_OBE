@@ -103,8 +103,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Guard against double-firing in StrictMode
-  const initialised = useRef(false);
+  // `INITIAL_SESSION` is normally emitted as soon as the listener subscribes.
+  // A direct route load must still settle when that event is delayed or missed,
+  // otherwise RouteGuard can remain on its spinner indefinitely.
+  const initialSessionResolved = useRef(false);
   // Tracks the currently-synced user id so a TOKEN_REFRESHED for the SAME user
   // can skip the redundant profile SELECT (spec: dashboard-and-ux-performance,
   // Req 8.1). A token rotation does not change the profile, so re-fetching it on
@@ -205,18 +207,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   useEffect(() => {
-    if (initialised.current) return;
-    initialised.current = true;
+    let mounted = true;
+    const resolveInitialSession = (session: Session | null) => {
+      if (initialSessionResolved.current) return;
+      initialSessionResolved.current = true;
+      void syncSession(session);
+    };
 
-    // NOTE: we deliberately do NOT call `supabase.auth.getSession()` here.
-    // `onAuthStateChange()` ALWAYS emits an `INITIAL_SESSION` event immediately
-    // upon registration (confirmed in `@supabase/auth-js` `GoTrueClient
-    // .onAuthStateChange` → `_emitInitialSession`, which resolves the current
-    // session exactly like `getSession()` does), so calling both independently
-    // fires `syncSession` → `fetchProfile` TWICE on every cold load — two
-    // concurrent `profiles` SELECTs for the same user on every app open,
-    // confirmed live in production HAR captures. `INITIAL_SESSION` alone is
-    // sufficient to restore a persisted session (Req 4.1); it is handled below.
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
@@ -247,10 +244,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           break;
 
         case "SIGNED_IN":
-        case "INITIAL_SESSION":
-          // Re-sync profile on sign-in / initial session (this is also how a
-          // persisted session is restored on cold load — see note above).
+          // A fresh interactive sign-in should always hydrate immediately.
           syncSession(session);
+          break;
+
+        case "INITIAL_SESSION":
+          // The subscription is preferred because it also handles post-redirect
+          // sessions. `getSession` below is a guarded fallback for direct loads.
+          resolveInitialSession(session);
           break;
 
         default:
@@ -260,7 +261,34 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     });
 
+    // `INITIAL_SESSION` is Supabase's normal, authoritative cold-load path.
+    // Give it a short head start before falling back to the storage-backed
+    // read. This preserves the single profile query on a healthy cold load,
+    // while still releasing RouteGuard if an embedded/Strict-Mode auth client
+    // delays or misses the initial event.
+    const fallbackTimer = window.setTimeout(() => {
+      if (!mounted || initialSessionResolved.current) return;
+      void supabase.auth
+        .getSession()
+        .then(({ data, error }) => {
+          if (!mounted || initialSessionResolved.current) return;
+          if (error) {
+            setIsLoading(false);
+            return;
+          }
+          resolveInitialSession(data.session);
+        })
+        .catch(() => {
+          if (mounted && !initialSessionResolved.current) {
+            initialSessionResolved.current = true;
+            setIsLoading(false);
+          }
+        });
+    }, 250);
+
     return () => {
+      mounted = false;
+      window.clearTimeout(fallbackTimer);
       subscription.unsubscribe();
     };
   }, [syncSession]);
@@ -327,6 +355,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       currentUserIdRef.current = data.user.id;
       setUser(data.user);
       setProfile(userProfile);
+      // Do not depend on the asynchronous SIGNED_IN subscription callback to
+      // release RouteGuard. The profile request above has already completed, so
+      // leaving this true can strand a successful local sign-in on its loading
+      // spinner when that callback is delayed or coalesced by the auth client.
+      setIsLoading(false);
       // Seed the shell-first cache so the SIGNED_IN event that supabase-js
       // emits right after this hydrates from the fresh cache instead of firing
       // a second `profiles` SELECT for the same user.

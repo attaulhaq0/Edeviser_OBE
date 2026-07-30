@@ -23,12 +23,14 @@ describe("EMeter (render)", () => {
 
   it("uses a taller inset track for the professional (pro) variant", () => {
     const { container: def } = render(<EMeter value={10} label="a" />);
-    const defCls = (def.querySelector('[role="meter"]') as HTMLElement).className;
+    const defCls = (def.querySelector('[role="meter"]') as HTMLElement)
+      .className;
     expect(defCls).toContain("h-2");
     expect(defCls).not.toContain("h-2.5");
 
     const { container: pro } = render(<EMeter value={10} pro label="b" />);
-    const proCls = (pro.querySelector('[role="meter"]') as HTMLElement).className;
+    const proCls = (pro.querySelector('[role="meter"]') as HTMLElement)
+      .className;
     expect(proCls).toContain("h-2.5");
   });
 });

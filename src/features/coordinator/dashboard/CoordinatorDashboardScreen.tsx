@@ -46,7 +46,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
-import { Button, SectionHeader, Shimmer } from "@/design-system";
+import { Button, HeroCarousel, SectionHeader, Shimmer } from "@/design-system";
 import { useAuth } from "@/hooks/useAuth";
 import { useCoordinatorDashboardAggregate } from "@/hooks/useCoordinatorDashboardAggregate";
 import { usePrograms } from "@/hooks/usePrograms";
@@ -349,65 +349,124 @@ const CoordinatorDashboardScreen = () => {
 
   return (
     <div className="w-full space-y-4">
-      {/* ── Program-health hero (greeting + real action chips) ── */}
-      <section
-        className="relative overflow-hidden rounded-2xl p-5 text-white shadow-lg"
+      {/* ── Program-health carousel (briefing + real decision context) ── */}
+      <HeroCarousel
+        ariaLabel={t("dashboard.hub.carouselLabel", "Program highlights")}
+        className="rounded-2xl text-white shadow-lg"
         style={{ background: HERO_GRADIENT }}
-      >
-        <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-white/15">
-            <Compass className="h-6 w-6" aria-hidden="true" />
-          </div>
-          <div className="min-w-0">
-            <h1 className="text-lg font-bold tracking-tight">
-              {t("dashboard.hub.title", "Program health, prepared")}
-            </h1>
-            <p className="text-[12px] text-white/75">
-              {t(
-                "dashboard.hub.subtitle",
-                "Outcome attainment across your programs — nothing changes without your review."
+        slides={[
+          <div key="briefing" className="min-h-[126px] p-5">
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-white/15">
+                <Compass className="h-6 w-6" aria-hidden="true" />
+              </div>
+              <div className="min-w-0">
+                <h1 className="text-lg font-bold tracking-tight">
+                  {t("dashboard.hub.title", "Program health, prepared")}
+                </h1>
+                <p className="text-[12px] text-white/75">
+                  {t(
+                    "dashboard.hub.subtitle",
+                    "Outcome attainment across your programs — nothing changes without your review."
+                  )}
+                </p>
+              </div>
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {belowTargetCount > 0 ? (
+                <ActionChip
+                  icon={TrendingDown}
+                  label={t("dashboard.hub.ploBelow", {
+                    defaultValue: "Review {{count}} below-target PLO",
+                    count: belowTargetCount,
+                  })}
+                  onClick={() =>
+                    document
+                      .getElementById("alerts-sec")
+                      ?.scrollIntoView({ behavior: "smooth", block: "start" })
+                  }
+                />
+              ) : (
+                <ActionChip
+                  icon={CheckCircle2}
+                  label={t("dashboard.hub.ploTitle", "PLOs on track")}
+                  to="/coordinator/plos"
+                />
               )}
-            </p>
-          </div>
-        </div>
-        <div className="mt-3 flex flex-wrap gap-2">
-          {belowTargetCount > 0 ? (
-            <ActionChip
-              icon={TrendingDown}
-              label={t("dashboard.hub.ploBelow", {
-                defaultValue: "Review {{count}} below-target PLO",
-                count: belowTargetCount,
-              })}
-              onClick={() =>
-                document
-                  .getElementById("alerts-sec")
-                  ?.scrollIntoView({ behavior: "smooth", block: "start" })
-              }
-            />
-          ) : (
-            <ActionChip
-              icon={CheckCircle2}
-              label={t("dashboard.hub.ploTitle", "PLOs on track")}
-              to="/coordinator/plos"
-            />
-          )}
-          <ActionChip
-            icon={Grid3X3}
-            label={t("dashboard.hub.openMatrix", "Open curriculum matrix")}
-            to="/coordinator/matrix"
-          />
-          {readiness != null && (
-            <ActionChip
-              icon={ShieldCheck}
-              label={t("dashboard.hub.accred", {
-                defaultValue: "Accreditation · {{pct}}%",
-                pct: readiness,
-              })}
-              to="/coordinator/course-file"
-            />
-          )}
-        </div>
-      </section>
+              <ActionChip
+                icon={Grid3X3}
+                label={t("dashboard.hub.openMatrix", "Open curriculum matrix")}
+                to="/coordinator/matrix"
+              />
+            </div>
+          </div>,
+          ...(lowestPlo?.attainment != null
+            ? [
+                <div
+                  key="lowest-plo"
+                  className="flex min-h-[126px] items-center gap-4 p-5"
+                >
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-white/15">
+                    <TrendingDown className="h-6 w-6" aria-hidden="true" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-amber-200">
+                      {t("dashboard.hub.watchEyebrow", "Decision context")}
+                    </p>
+                    <h2 className="mt-0.5 truncate text-lg font-bold">
+                      {lowestPlo.title}
+                    </h2>
+                    <p className="mt-1 text-[12px] text-white/75">
+                      {t("dashboard.hub.watchBody", {
+                        defaultValue:
+                          "{{percent}}% attainment · {{affected}} students below target",
+                        percent: lowestPlo.attainment,
+                        affected: lowestPlo.affectedStudents,
+                      })}
+                    </p>
+                  </div>
+                  <ActionChip
+                    icon={ArrowRight}
+                    label={t("dashboard.hub.reviewPlo", "Review")}
+                    to="/coordinator/plos"
+                  />
+                </div>,
+              ]
+            : []),
+          ...(readiness != null
+            ? [
+                <div
+                  key="accreditation"
+                  className="flex min-h-[126px] items-center gap-4 p-5"
+                >
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-white/15">
+                    <ShieldCheck className="h-6 w-6" aria-hidden="true" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-green-200">
+                      {t(
+                        "dashboard.hub.accreditationEyebrow",
+                        "Accreditation readiness"
+                      )}
+                    </p>
+                    <h2 className="mt-0.5 text-lg font-bold">{readiness}%</h2>
+                    <p className="mt-1 text-[12px] text-white/75">
+                      {t("dashboard.hub.accreditationBody", {
+                        defaultValue: "{{count}} evidence items in the pack",
+                        count: evidencePack.length,
+                      })}
+                    </p>
+                  </div>
+                  <ActionChip
+                    icon={ShieldCheck}
+                    label={t("dashboard.hub.openPack", "Open pack")}
+                    to="/coordinator/accreditation"
+                  />
+                </div>,
+              ]
+            : []),
+        ]}
+      />
 
       {/* ── KPI row (each card filters into its view) ── */}
       {aggregate.isPending || attainment.isPending ? (
@@ -443,7 +502,7 @@ const CoordinatorDashboardScreen = () => {
             value={readiness != null ? `${readiness}%` : "—"}
             valueClass="text-green-600"
             filterLabel={t("dashboard.kpi.openPack", "Open pack")}
-            to="/coordinator/course-file"
+            to="/coordinator/accreditation"
           />
         </div>
       )}
@@ -641,7 +700,7 @@ const CoordinatorDashboardScreen = () => {
             title={t("dashboard.evidence.title", "Accreditation evidence")}
             action={
               <Link
-                to="/coordinator/course-file"
+                to="/coordinator/accreditation"
                 className="text-xs font-bold text-sky-700 hover:underline"
               >
                 {t("dashboard.evidence.open", "Open →")}

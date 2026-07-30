@@ -17,6 +17,7 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
 import { RailCard, RailHead, RailRow, Shimmer } from "@/design-system";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useStudentCourses } from "@/hooks/useStudentCourses";
 import { useCLOProgress } from "@/hooks/useCLOProgress";
@@ -25,13 +26,15 @@ import { useTodayViewData } from "@/hooks/useTodayView";
 const RailLink = ({ to, label }: { to: string; label: string }) => {
   const navigate = useNavigate();
   return (
-    <button
+    <Button
       type="button"
+      variant="link"
+      size="sm"
       onClick={() => navigate(to)}
-      className="mt-2 block text-xs font-extrabold text-blue-600 hover:underline"
+      className="mt-2 h-auto px-0 text-xs font-extrabold text-blue-600"
     >
       {label}
-    </button>
+    </Button>
   );
 };
 
@@ -70,7 +73,7 @@ const StudentLearnRail = () => {
   return (
     <aside
       aria-label={t("learn.rail.label", "Course snapshot")}
-      className="fixed bottom-0 end-0 top-14 z-30 hidden w-80 overflow-y-auto border-s border-border bg-white px-5 py-4 dark:bg-background xl:block"
+      className="hidden max-h-[calc(100vh-var(--app-header-h))] overflow-y-auto px-5 py-4 xl:sticky xl:top-[var(--app-header-h)] xl:col-start-3 xl:row-start-1 xl:block"
     >
       {/* ── Course snapshot ── */}
       <RailCard>

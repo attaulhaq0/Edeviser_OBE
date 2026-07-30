@@ -20,7 +20,8 @@ import type { LearningOutcome } from "@/types/app";
 export const createColumns = (
   onEdit: (id: string) => void,
   onDelete: (plo: LearningOutcome) => void,
-  isDragMode: boolean
+  isDragMode: boolean,
+  programNames: ReadonlyMap<string, string> = new Map()
 ): ColumnDef<LearningOutcome>[] => {
   const cols: ColumnDef<LearningOutcome>[] = [];
 
@@ -80,9 +81,10 @@ export const createColumns = (
       header: "Program",
       cell: ({ row }) => {
         const programId = row.getValue("program_id") as string | null;
+        const programName = programId ? programNames.get(programId) : null;
         return (
-          <span className="text-gray-500 text-sm font-mono truncate max-w-[120px] inline-block">
-            {programId ? programId.slice(0, 8) + "…" : "—"}
+          <span className="inline-block max-w-[180px] truncate text-sm text-gray-600">
+            {programName ?? (programId ? "Unknown program" : "—")}
           </span>
         );
       },

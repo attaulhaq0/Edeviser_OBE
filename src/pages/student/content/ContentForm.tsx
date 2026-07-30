@@ -3,14 +3,21 @@
 // Task 21.3
 // =============================================================================
 
-import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useCreateStudentContent } from "@/hooks/useStudentContent";
 import { useAuth } from "@/hooks/useAuth";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import {
   Select,
   SelectContent,
@@ -18,8 +25,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, X } from "lucide-react";
-import type { ContentType } from "@/lib/marketplaceSchemas";
+import { FileText, Loader2, X } from "lucide-react";
+import { PCard, SectionHeader } from "@/design-system";
+import {
+  studentContentFormSchema,
+  type StudentContentFormInput,
+} from "@/lib/marketplaceSchemas";
 
 interface ContentFormProps {
   onClose: () => void;
@@ -29,20 +40,24 @@ const ContentForm = ({ onClose }: ContentFormProps) => {
   const { profile } = useAuth();
   const createContent = useCreateStudentContent();
 
-  const [contentType, setContentType] = useState<ContentType>("study_plan");
-  const [title, setTitle] = useState("");
-  const [body, setBody] = useState("");
+  const form = useForm<StudentContentFormInput>({
+    resolver: zodResolver(studentContentFormSchema),
+    defaultValues: {
+      content_type: "study_plan",
+      title: "",
+      body: "",
+    },
+  });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!profile?.id || !title.trim()) return;
+  const handleSubmit = (values: StudentContentFormInput) => {
+    if (!profile?.id) return;
 
     createContent.mutate(
       {
-        content_type: contentType,
-        title,
+        content_type: values.content_type,
+        title: values.title,
         clo_id: null,
-        content_data: { body },
+        content_data: { body: values.body },
         studentId: profile.id,
       },
       { onSuccess: () => onClose() }
@@ -50,70 +65,102 @@ const ContentForm = ({ onClose }: ContentFormProps) => {
   };
 
   return (
-    <Card className="bg-white border-0 shadow-md rounded-xl p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-bold tracking-tight">Create Content</h2>
-        <Button variant="ghost" size="sm" onClick={onClose} aria-label="Close">
-          <X className="h-4 w-4" />
-        </Button>
-      </div>
-
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-2">
-          <Label>Content Type</Label>
-          <Select
-            value={contentType}
-            onValueChange={(v) => setContentType(v as ContentType)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="study_plan">Study Plan</SelectItem>
-              <SelectItem value="quiz_question">Quiz Question</SelectItem>
-              <SelectItem value="explanation_video">
-                Explanation Video
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-2">
-          <Label>Title</Label>
-          <Input
-            placeholder="Enter a title for your content"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label>Content</Label>
-          <Textarea
-            placeholder="Describe your content..."
-            rows={4}
-            value={body}
-            onChange={(e) => setBody(e.target.value)}
-          />
-        </div>
-
-        <div className="flex justify-end gap-2">
-          <Button type="button" variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
+    <PCard className="p-6">
+      <SectionHeader
+        icon={FileText}
+        title="Create Content"
+        action={
           <Button
-            type="submit"
-            disabled={createContent.isPending || !title.trim()}
-            variant="tactile"
+            variant="ghost"
+            size="sm"
+            onClick={onClose}
+            aria-label="Close"
           >
-            {createContent.isPending && (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            )}
-            Submit for Review
+            <X className="h-4 w-4" />
           </Button>
-        </div>
-      </form>
-    </Card>
+        }
+      />
+
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <FormField
+            control={form.control}
+            name="content_type"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Content Type</FormLabel>
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="study_plan">Study Plan</SelectItem>
+                    <SelectItem value="quiz_question">Quiz Question</SelectItem>
+                    <SelectItem value="explanation_video">
+                      Explanation Video
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="title"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Title</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="Enter a title for your content"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="body"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Content</FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder="Describe your content..."
+                    rows={4}
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="outline" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={createContent.isPending}
+              variant="tactile"
+            >
+              {createContent.isPending && (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              )}
+              Submit for Review
+            </Button>
+          </div>
+        </form>
+      </Form>
+    </PCard>
   );
 };
 

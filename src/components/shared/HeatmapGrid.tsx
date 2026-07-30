@@ -13,7 +13,11 @@ import type {
   ComebackChallengeStatus,
   StreakMilestone,
 } from "@/types/habits";
-import { getIntensityLevel, isDateFuture, generateAriaLabel } from "@/lib/heatmapUtils";
+import {
+  getIntensityLevel,
+  isDateFuture,
+  generateAriaLabel,
+} from "@/lib/heatmapUtils";
 import {
   getLevelAwareIntensityLevel,
   getLevelForDate,
@@ -38,8 +42,18 @@ const MONTH_ROW_H = 18;
 const WEEKDAY_ROWS = 7;
 
 const MONTH_NAMES = [
-  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
 ];
 
 /** Weekday label per grid row. Weeks are Monday-aligned (ISO). */
@@ -223,7 +237,9 @@ function comebackDayNumberFor(
   if (!challenge.startDate) return 0;
   const start = new Date(challenge.startDate + "T00:00:00");
   const d = new Date(date + "T00:00:00");
-  return Math.floor((d.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+  return (
+    Math.floor((d.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1
+  );
 }
 
 function findDayByLogicalIndex(
@@ -295,7 +311,11 @@ const HeatmapCell = memo(function HeatmapCell({
           : "cursor-pointer hover:z-10 hover:shadow-[inset_0_0_0_2px_var(--heatmap-cell-ring)]",
         "focus-visible:z-10 focus-visible:shadow-[inset_0_0_0_2px_var(--brand-primary)]"
       )}
-      style={{ width: size, height: size, backgroundColor: INTENSITY_COLORS[intensity] }}
+      style={{
+        width: size,
+        height: size,
+        backgroundColor: INTENSITY_COLORS[intensity],
+      }}
       onKeyDown={(e) => onKeyDown(e, logicalIndex)}
       onFocus={() => onFocusCell(logicalIndex, date, isFuture)}
       onBlur={onBlurCell}
@@ -369,21 +389,36 @@ const HeatmapGrid = ({
 
   // --- Interaction callbacks (stable) ---------------------------------------
 
-  const registerRef = useCallback((index: number, el: HTMLDivElement | null) => {
-    if (el) cellRefs.current.set(index, el);
-    else cellRefs.current.delete(index);
-  }, []);
+  const registerRef = useCallback(
+    (index: number, el: HTMLDivElement | null) => {
+      if (el) cellRefs.current.set(index, el);
+      else cellRefs.current.delete(index);
+    },
+    []
+  );
 
   const handleKeyDown = useCallback(
     (e: ReactKeyboardEvent, index: number) => {
       let next: number | null = null;
       switch (e.key) {
-        case "ArrowRight": next = index + WEEKDAY_ROWS; break; // next week, same weekday
-        case "ArrowLeft": next = index - WEEKDAY_ROWS; break;
-        case "ArrowDown": next = index + 1; break; // next day
-        case "ArrowUp": next = index - 1; break;
-        case "Home": next = 0; break;
-        case "End": next = dayCount - 1; break;
+        case "ArrowRight":
+          next = index + WEEKDAY_ROWS;
+          break; // next week, same weekday
+        case "ArrowLeft":
+          next = index - WEEKDAY_ROWS;
+          break;
+        case "ArrowDown":
+          next = index + 1;
+          break; // next day
+        case "ArrowUp":
+          next = index - 1;
+          break;
+        case "Home":
+          next = 0;
+          break;
+        case "End":
+          next = dayCount - 1;
+          break;
         case "Enter":
         case " ": {
           e.preventDefault();
@@ -391,7 +426,8 @@ const HeatmapGrid = ({
           if (day && !day.isFuture) onCellClick?.(day.date);
           return;
         }
-        default: return;
+        default:
+          return;
       }
       e.preventDefault();
       if (next !== null && next >= 0 && next < dayCount) {
@@ -518,13 +554,22 @@ const HeatmapGrid = ({
                     slot.date,
                     studentLevel.levelHistory
                   );
-                  intensity = getLevelAwareIntensityLevel(slot.count, levelOnDate);
+                  intensity = getLevelAwareIntensityLevel(
+                    slot.count,
+                    levelOnDate
+                  );
                 } else {
                   intensity = getIntensityLevel(slot.count);
                 }
 
-                const isComeback = isComebackChallengeDate(slot.date, comebackChallenge);
-                const isSabbatical = isSabbaticalRestDay(slot.date, sabbaticalEnabled);
+                const isComeback = isComebackChallengeDate(
+                  slot.date,
+                  comebackChallenge
+                );
+                const isSabbatical = isSabbaticalRestDay(
+                  slot.date,
+                  sabbaticalEnabled
+                );
                 const milestone = getMilestoneForDate(slot.date, milestones);
                 const comebackDayNumber = isComeback
                   ? comebackDayNumberFor(slot.date, comebackChallenge!)
@@ -564,7 +609,11 @@ const HeatmapGrid = ({
         data-testid="heatmap-legend"
       >
         <span data-testid="legend-label-0">{legendLabels[0]}</span>
-        <div className="flex items-center gap-1" role="img" aria-label="Activity scale from none to high">
+        <div
+          className="flex items-center gap-1"
+          role="img"
+          aria-label="Activity scale from none to high"
+        >
           {[0, 1, 2, 3, 4].map((level) => (
             <span
               key={`legend-${level}`}

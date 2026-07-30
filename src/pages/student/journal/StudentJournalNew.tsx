@@ -13,10 +13,18 @@
 
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { PenLine, Plus, BookOpen, Calendar, Lightbulb } from "lucide-react";
-import { format } from "date-fns";
+import {
+  BookOpen,
+  CalendarDays,
+  Check,
+  Flame,
+  Lightbulb,
+  PenLine,
+  Plus,
+  Sparkles,
+} from "lucide-react";
+import { Link } from "react-router-dom";
 
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -37,7 +45,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Shimmer } from "@/design-system";
+import { KPICard, PCard, Shimmer } from "@/design-system";
 import EmptyState from "@/components/shared/EmptyState";
 import { useAuth } from "@/hooks/useAuth";
 import { useJournalEntries, useCreateJournalEntry } from "@/hooks/useJournal";
@@ -51,6 +59,7 @@ import {
   REFLECTION_PROMPT_TEMPLATES,
   seedContentWithPrompt,
 } from "@/lib/reflectionPrompts";
+import { getJournalInsights } from "@/lib/journalInsights";
 import { toast } from "sonner";
 
 /**
@@ -63,7 +72,7 @@ const buildGuidedSeed = (prompt: GeneratedJournalPrompt): string => {
 };
 
 const StudentJournalNew = () => {
-  const { t } = useTranslation("student");
+  const { t, i18n } = useTranslation("student");
   const { user } = useAuth();
   const studentId = user?.id;
 
@@ -105,6 +114,22 @@ const StudentJournalNew = () => {
   const wordCount = content.trim().split(/\s+/).filter(Boolean).length;
 
   const courseLookup = new Map((courses ?? []).map((c) => [c.id, c]));
+  const insights = useMemo(() => getJournalInsights(entries ?? []), [entries]);
+  const dailyPrompt = t(
+    REFLECTION_PROMPT_TEMPLATES[
+      new Date().getUTCDate() % REFLECTION_PROMPT_TEMPLATES.length
+    ]!.i18nKey
+  );
+  const formatEntryDate = (
+    date: string | Date,
+    options?: Intl.DateTimeFormatOptions
+  ) =>
+    new Intl.DateTimeFormat(i18n.language, {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      ...options,
+    }).format(new Date(date));
 
   const handleSelectTemplate = (promptText: string) => {
     setContent((prev) => seedContentWithPrompt(prev, promptText));
@@ -296,53 +321,224 @@ const StudentJournalNew = () => {
         </Dialog>
       </div>
 
+      <PCard className="p-5 sm:p-6">
+        <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-start">
+          <div className="flex gap-3">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+              <PenLine className="size-5" aria-hidden="true" />
+            </div>
+            <div>
+              <h2 className="text-base font-black tracking-tight text-slate-900">
+                {t("journal.today.title")}
+              </h2>
+              <p className="mt-1 max-w-xl text-sm leading-relaxed text-slate-500">
+                {t("journal.today.description")}
+              </p>
+            </div>
+          </div>
+          <Button variant="tactile" onClick={() => setIsCreating(true)}>
+            <PenLine className="size-4" />
+            {t("journal.today.cta")}
+          </Button>
+        </div>
+      </PCard>
+
       {entriesLoading ? (
-        <div className="space-y-3">
-          <Shimmer className="h-32 rounded-xl" />
-          <Shimmer className="h-32 rounded-xl" />
+        <div className="space-y-4">
+          <Shimmer className="h-72 rounded-[20px]" />
+          <Shimmer className="h-52 rounded-[20px]" />
         </div>
-      ) : !entries || entries.length === 0 ? (
-        <EmptyState
-          icon={<PenLine className="h-12 w-12 text-gray-400" />}
-          title={t("journal.empty.title", "No journal entries yet")}
-          description={t(
-            "journal.empty.description",
-            "Start your learning journal — reflect on a class or concept and earn XP."
-          )}
-        />
       ) : (
-        <div className="space-y-3">
-          {entries.map((entry) => {
-            const course = courseLookup.get(entry.course_id);
-            return (
-              <Card
-                key={entry.id}
-                className="card-elevated border-0 bg-white p-5"
+        <>
+          <PCard className="p-5 sm:p-6">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <span className="flex size-8 items-center justify-center rounded-lg bg-violet-50 text-violet-600">
+                  <BookOpen className="size-4" aria-hidden="true" />
+                </span>
+                <h2 className="text-base font-black tracking-tight text-slate-900">
+                  {t("journal.journey.title")}
+                </h2>
+              </div>
+              <Badge
+                variant="outline"
+                className="rounded-lg px-2.5 py-1 text-xs text-slate-500"
               >
-                <div className="mb-3 flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-2">
-                    {course ? (
-                      <Badge
-                        variant="outline"
-                        className="text-[10px] font-bold"
-                      >
-                        <BookOpen className="me-1 h-3 w-3" />
-                        {course.code}
-                      </Badge>
-                    ) : null}
-                    <span className="inline-flex items-center text-xs text-gray-500">
-                      <Calendar className="me-1 h-3 w-3" />
-                      {format(new Date(entry.created_at), "PPP")}
-                    </span>
-                  </div>
-                </div>
-                <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-700 dark:text-foreground/90">
-                  {entry.content}
+                {t("journal.journey.thisWeek")}
+              </Badge>
+            </div>
+
+            <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+              <KPICard
+                icon={BookOpen}
+                label={t("journal.journey.entriesThisWeek")}
+                value={insights.entriesThisWeek}
+                iconBgClass="bg-teal-50"
+                iconColorClass="text-teal-600"
+                valueClassName="text-slate-900"
+              />
+              <KPICard
+                icon={Flame}
+                label={t("journal.journey.dayStreak")}
+                value={insights.streak}
+                iconBgClass="bg-orange-50"
+                iconColorClass="text-orange-600"
+                valueClassName="text-slate-900"
+              />
+              <KPICard
+                icon={Sparkles}
+                label={t("journal.journey.substantive")}
+                value={insights.substantiveThisWeek}
+                iconBgClass="bg-amber-50"
+                iconColorClass="text-amber-600"
+                valueClassName="text-slate-900"
+              />
+              <KPICard
+                icon={CalendarDays}
+                label={t("journal.journey.totalEntries")}
+                value={insights.totalEntries}
+                iconBgClass="bg-blue-50"
+                iconColorClass="text-blue-600"
+                valueClassName="text-slate-900"
+              />
+            </div>
+
+            <div className="mt-6 border-t border-slate-100 pt-5">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-sm font-bold text-slate-700">
+                  {t("journal.journey.weeklyStreak")}
                 </p>
-              </Card>
-            );
-          })}
-        </div>
+                <span className="text-xs font-semibold text-teal-700">
+                  {t("journal.journey.daysOfWeek", {
+                    count: insights.days.filter((day) => day.hasEntry).length,
+                  })}
+                </span>
+              </div>
+              <ol
+                className="mt-4 grid grid-cols-7 gap-1.5"
+                aria-label={t("journal.journey.weeklyStreak")}
+              >
+                {insights.days.map((day) => {
+                  const isToday =
+                    day.date.toISOString().slice(0, 10) ===
+                    new Date().toISOString().slice(0, 10);
+                  return (
+                    <li
+                      key={day.date.toISOString()}
+                      className="flex flex-col items-center gap-1.5"
+                    >
+                      <span
+                        className={
+                          day.hasEntry
+                            ? "flex size-8 items-center justify-center rounded-[10px] bg-teal-600 text-white"
+                            : isToday
+                            ? "flex size-8 items-center justify-center rounded-[10px] border-2 border-dashed border-teal-600 text-teal-700"
+                            : "flex size-8 items-center justify-center rounded-[10px] bg-slate-100 text-slate-300"
+                        }
+                        aria-label={formatEntryDate(day.date, {
+                          weekday: "long",
+                        })}
+                      >
+                        {day.hasEntry ? (
+                          <Check className="size-4" aria-hidden="true" />
+                        ) : (
+                          "·"
+                        )}
+                      </span>
+                      <span className="text-[11px] font-bold text-slate-500">
+                        {formatEntryDate(day.date, { weekday: "narrow" })}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ol>
+            </div>
+          </PCard>
+
+          <div className="flex items-center gap-3 rounded-2xl border border-teal-200 bg-gradient-to-r from-teal-50 to-blue-50 p-4">
+            <Lightbulb
+              className="size-5 shrink-0 text-teal-700"
+              aria-hidden="true"
+            />
+            <p className="text-sm text-slate-600">
+              <span className="font-semibold">
+                {t("journal.dailyPrompt.label")}
+              </span>{" "}
+              <span className="font-bold text-slate-800">{dailyPrompt}</span>
+            </p>
+          </div>
+
+          <PCard className="p-5 sm:p-6">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <span className="flex size-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                  <CalendarDays className="size-4" aria-hidden="true" />
+                </span>
+                <h2 className="text-base font-black tracking-tight text-slate-900">
+                  {t("journal.pastEntries")}
+                </h2>
+              </div>
+              <span className="text-xs font-semibold text-slate-500">
+                {t("journal.entryCount", { count: insights.totalEntries })}
+              </span>
+            </div>
+
+            {!entries || entries.length === 0 ? (
+              <div className="pt-5">
+                <EmptyState
+                  icon={<PenLine className="h-12 w-12 text-gray-400" />}
+                  title={t("journal.empty.title", "No journal entries yet")}
+                  description={t("journal.empty.description")}
+                />
+              </div>
+            ) : (
+              <ol className="mt-5 space-y-4">
+                {entries.map((entry, index) => {
+                  const course = courseLookup.get(entry.course_id);
+                  return (
+                    <li key={entry.id} className="relative flex gap-3 ps-1">
+                      {index < entries.length - 1 && (
+                        <span
+                          className="absolute start-[7px] top-5 h-[calc(100%+0.75rem)] w-px bg-slate-200"
+                          aria-hidden="true"
+                        />
+                      )}
+                      <span
+                        className="relative mt-1.5 size-3.5 shrink-0 rounded-full border-[3px] border-teal-100 bg-teal-600"
+                        aria-hidden="true"
+                      />
+                      <Link
+                        to={`/student/journal/${entry.id}`}
+                        className="min-w-0 flex-1 rounded-xl border border-slate-100 bg-white p-3 transition-colors hover:border-blue-200 hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                      >
+                        <div className="flex flex-wrap items-center gap-2">
+                          <time
+                            className="text-xs font-bold text-slate-400"
+                            dateTime={entry.created_at}
+                          >
+                            {formatEntryDate(entry.created_at)}
+                          </time>
+                          {course ? (
+                            <Badge
+                              variant="outline"
+                              className="text-[10px] font-bold"
+                            >
+                              <BookOpen className="me-1 size-3" />
+                              {course.code}
+                            </Badge>
+                          ) : null}
+                        </div>
+                        <p className="mt-1 line-clamp-3 whitespace-pre-wrap text-sm leading-relaxed text-slate-600">
+                          {entry.content}
+                        </p>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ol>
+            )}
+          </PCard>
+        </>
       )}
     </div>
   );

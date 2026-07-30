@@ -5,15 +5,13 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // ─── Mocks ──────────────────────────────────────────────────────────────────
 
-const mockAwardXP = vi
-  .fn()
-  .mockResolvedValue({
-    success: true,
-    xp_awarded: 10,
-    new_total: 100,
-    level_up: false,
-    new_level: 2,
-  });
+const mockAwardXP = vi.fn().mockResolvedValue({
+  success: true,
+  xp_awarded: 10,
+  new_total: 100,
+  level_up: false,
+  new_level: 2,
+});
 
 vi.mock("@/lib/xpClient", () => ({
   awardXP: (...args: unknown[]) => mockAwardXP(...args),

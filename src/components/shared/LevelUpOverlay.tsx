@@ -7,6 +7,7 @@ import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { launchConfetti } from "@/lib/confetti";
 import { TrendingUp, Star } from "lucide-react";
 import { LEVEL_THRESHOLDS } from "@/lib/xpLevelCalculator";
+import { useTranslation } from "react-i18next";
 
 interface LevelUpOverlayProps {
   newLevel: number;
@@ -14,6 +15,7 @@ interface LevelUpOverlayProps {
 }
 
 const LevelUpOverlay = ({ newLevel, onComplete }: LevelUpOverlayProps) => {
+  const { t } = useTranslation("gamification");
   const [visible, setVisible] = useState(true);
   const prefersReducedMotion = useReducedMotion();
   const confettiFired = useRef(false);
@@ -70,7 +72,11 @@ const LevelUpOverlay = ({ newLevel, onComplete }: LevelUpOverlayProps) => {
           transition={{ duration: 0.3 }}
           onClick={() => setVisible(false)}
           role="dialog"
-          aria-label={`Level up to level ${newLevel}`}
+          aria-modal="true"
+          aria-label={t("level.overlayLabel", {
+            level: newLevel,
+            defaultValue: "Level up to level {{level}}",
+          })}
         >
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
 
@@ -120,12 +126,12 @@ const LevelUpOverlay = ({ newLevel, onComplete }: LevelUpOverlayProps) => {
               <div className="flex items-center gap-2 justify-center mb-2">
                 <Star className="h-5 w-5 text-amber-400" />
                 <p className="text-[10px] font-black tracking-widest uppercase text-amber-400">
-                  Level Up
+                  {t("level.levelUpLabel", "Level Up")}
                 </p>
                 <Star className="h-5 w-5 text-amber-400" />
               </div>
               <h2 className="text-3xl font-black text-white">
-                Level {newLevel}
+                {t("level.current", { level: newLevel })}
               </h2>
               <p className="text-lg font-semibold text-white/70 mt-1">
                 {title}
@@ -138,7 +144,7 @@ const LevelUpOverlay = ({ newLevel, onComplete }: LevelUpOverlayProps) => {
               animate={{ opacity: 1 }}
               transition={{ delay: 1.5 }}
             >
-              Tap anywhere to dismiss
+              {t("level.dismiss", "Tap anywhere to dismiss")}
             </motion.p>
           </motion.div>
         </motion.div>

@@ -3,6 +3,7 @@
 // contribution leaderboard for course-wide, team progress for team-based
 
 import { useState, useCallback } from "react";
+import { Link } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -13,14 +14,12 @@ import {
 } from "@/hooks/useChallenges";
 import { useRealtime } from "@/hooks/useRealtime";
 import { queryKeys } from "@/lib/queryKeys";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Shimmer } from "@/design-system";
+import { PCard, SectionHeader, Shimmer } from "@/design-system";
 import { NoChallenges } from "@/components/shared/EmptyState";
 import { Trophy, Target, Users } from "lucide-react";
-
-// ─── Progress Bar ───────────────────────────────────────────────────────────
+import { getEffectiveChallengeStatus } from "@/lib/challengeLifecycle";
 
 const ProgressBar = ({
   current,
@@ -38,7 +37,7 @@ const ProgressBar = ({
         </span>
         <span className="font-bold text-blue-600">{pct}%</span>
       </div>
-      <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+      <div className="h-2 overflow-hidden rounded-full bg-gray-100">
         <div
           className="h-full rounded-full bg-[linear-gradient(93.65deg,#14b8a6_5.37%,#0382bd_78.89%)] transition-all duration-500"
           style={{ width: `${pct}%` }}
@@ -47,8 +46,6 @@ const ProgressBar = ({
     </div>
   );
 };
-
-// ─── Team Progress Display ──────────────────────────────────────────────────
 
 const TeamProgressDisplay = ({
   participants,
@@ -64,7 +61,7 @@ const TeamProgressDisplay = ({
     <div className="mt-3 space-y-2">
       {sorted.map((p, idx) => (
         <div key={p.id} className="flex items-center gap-2">
-          <span className="text-xs font-bold text-gray-500 w-5">
+          <span className="w-5 text-xs font-bold text-gray-500">
             {idx + 1}.
           </span>
           <div className="flex-1">
@@ -75,8 +72,6 @@ const TeamProgressDisplay = ({
     </div>
   );
 };
-
-// ─── Contribution Leaderboard ───────────────────────────────────────────────
 
 const ContributionLeaderboard = ({
   participants,
@@ -97,28 +92,23 @@ const ContributionLeaderboard = ({
     <div className="mt-3 space-y-3">
       <ProgressBar current={totalProgress} target={target} />
       <div className="space-y-1">
-        <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+        <p className="text-xs font-bold uppercase tracking-wider text-gray-500">
           Top Contributors
         </p>
-        {sorted.slice(0, 5).map((p, idx) => {
-          const medals = ["🥇", "🥈", "🥉"];
-          return (
-            <div key={p.id} className="flex items-center justify-between py-1">
-              <span className="text-xs font-medium text-gray-700">
-                {idx < 3 ? medals[idx] : `${idx + 1}.`} Participant
-              </span>
-              <span className="text-xs font-bold text-amber-600">
-                +{p.current_progress}
-              </span>
-            </div>
-          );
-        })}
+        {sorted.slice(0, 5).map((p, idx) => (
+          <div key={p.id} className="flex items-center justify-between py-1">
+            <span className="text-xs font-medium text-gray-700">
+              {idx + 1}. Participant
+            </span>
+            <span className="text-xs font-bold text-amber-600">
+              +{p.current_progress}
+            </span>
+          </div>
+        ))}
       </div>
     </div>
   );
 };
-
-// ─── Challenge Card ─────────────────────────────────────────────────────────
 
 const ChallengeCard = ({
   challenge,
@@ -130,40 +120,42 @@ const ChallengeCard = ({
   const isTeam = challenge.participation_mode === "team";
 
   return (
-    <Card className="bg-white border-0 shadow-md rounded-xl p-4">
-      <div className="flex items-start justify-between">
-        <div className="flex items-start gap-3 flex-1">
-          <div className="p-2 rounded-lg bg-amber-50">
+    <Link
+      to={`/student/challenges/${challenge.id}`}
+      className="block rounded-[20px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+      aria-label={`Open challenge: ${challenge.title}`}
+    >
+      <PCard className="p-4 transition-shadow hover:shadow-[0_18px_38px_rgba(16,24,40,0.11)]">
+        <div className="flex items-start gap-3">
+          <div className="rounded-lg bg-amber-50 p-2">
             {isTeam ? (
               <Users className="h-4 w-4 text-amber-600" />
             ) : (
               <Target className="h-4 w-4 text-amber-600" />
             )}
           </div>
-          <div className="flex-1">
-            <p className="text-sm font-bold">{challenge.title}</p>
-            {challenge.description && (
-              <p className="text-xs text-gray-500 mt-0.5">
-                {challenge.description}
-              </p>
-            )}
-            <div className="flex gap-2 mt-2 flex-wrap">
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-sm font-bold">{challenge.title}</p>
               <Badge variant="outline" className="text-xs">
                 {isTeam ? "Team" : "Individual"}
               </Badge>
               <Badge variant="outline" className="text-xs">
                 Goal: {challenge.goal_target}
               </Badge>
-              <Badge className="text-xs bg-amber-50 text-amber-700 border-amber-200">
+              <Badge className="border-amber-200 bg-amber-50 text-xs text-amber-700">
                 {challenge.reward_badge_id
                   ? "Badge"
                   : `+${challenge.reward_xp} XP`}
               </Badge>
             </div>
+            {challenge.description && (
+              <p className="mt-0.5 text-xs text-gray-500">
+                {challenge.description}
+              </p>
+            )}
 
-            {/* Live progress */}
-            {participants &&
-              participants.length > 0 &&
+            {participants.length > 0 &&
               (isTeam ? (
                 <TeamProgressDisplay
                   participants={participants}
@@ -177,12 +169,10 @@ const ChallengeCard = ({
               ))}
           </div>
         </div>
-      </div>
-    </Card>
+      </PCard>
+    </Link>
   );
 };
-
-// ─── Main Component ─────────────────────────────────────────────────────────
 
 const ChallengeListView = () => {
   const { user } = useAuth();
@@ -190,11 +180,9 @@ const ChallengeListView = () => {
   const { data: challenges, isLoading } = useStudentChallenges(user?.id);
   const [activeTab, setActiveTab] = useState("active");
 
-  // Batch-fetch all challenge participants in ONE query (eliminates N+1)
   const challengeIds = (challenges ?? []).map((c) => c.id);
   const { data: participantsMap } = useChallengeParticipantsBatch(challengeIds);
 
-  // Realtime subscription for challenge progress updates
   const handleProgressUpdate = useCallback(() => {
     queryClient.invalidateQueries({
       queryKey: queryKeys.challengeProgress.lists(),
@@ -212,19 +200,21 @@ const ChallengeListView = () => {
     pollingInterval: 30_000,
   });
 
-  const active = (challenges ?? []).filter((c) => c.status === "active");
-  const completed = (challenges ?? []).filter((c) => c.status === "ended");
+  const now = new Date();
+  const active = (challenges ?? []).filter(
+    (challenge) => getEffectiveChallengeStatus(challenge, now) === "active"
+  );
+  const completed = (challenges ?? []).filter(
+    (challenge) => getEffectiveChallengeStatus(challenge, now) === "completed"
+  );
 
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <div className="flex items-center gap-2">
-          <Trophy className="h-5 w-5 text-amber-500" />
-          <h1 className="text-2xl font-bold tracking-tight">Challenges</h1>
-        </div>
+        <SectionHeader icon={Trophy} title="Challenges" />
         <div className="space-y-3">
           {Array.from({ length: 3 }).map((_, i) => (
-            <Shimmer key={i} className="h-32 rounded-xl" />
+            <Shimmer key={i} className="h-32 rounded-[20px]" />
           ))}
         </div>
       </div>
@@ -233,22 +223,19 @@ const ChallengeListView = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2">
-        <Trophy className="h-5 w-5 text-amber-500" />
-        <h1 className="text-2xl font-bold tracking-tight">Challenges</h1>
-      </div>
+      <SectionHeader icon={Trophy} title="Challenges" />
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="gap-2 bg-transparent p-0">
           <TabsTrigger
             value="active"
-            className="rounded-xl border px-4 py-1.5 text-sm font-medium data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:border-blue-600 bg-white text-gray-600 border-gray-200"
+            className="rounded-[12px] border border-gray-200 bg-white px-4 py-1.5 text-sm font-semibold text-gray-600 data-[state=active]:border-blue-600 data-[state=active]:bg-blue-600 data-[state=active]:text-white"
           >
             Active ({active.length})
           </TabsTrigger>
           <TabsTrigger
             value="completed"
-            className="rounded-xl border px-4 py-1.5 text-sm font-medium data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:border-blue-600 bg-white text-gray-600 border-gray-200"
+            className="rounded-[12px] border border-gray-200 bg-white px-4 py-1.5 text-sm font-semibold text-gray-600 data-[state=active]:border-blue-600 data-[state=active]:bg-blue-600 data-[state=active]:text-white"
           >
             Completed ({completed.length})
           </TabsTrigger>
@@ -273,10 +260,7 @@ const ChallengeListView = () => {
             <NoChallenges />
           ) : (
             completed.map((c) => (
-              <Card
-                key={c.id}
-                className="bg-white border-0 shadow-md rounded-xl p-4 opacity-75"
-              >
+              <PCard key={c.id} className="p-4 opacity-75">
                 <div className="flex items-center gap-3">
                   <Trophy className="h-4 w-4 text-green-500" />
                   <div>
@@ -287,7 +271,7 @@ const ChallengeListView = () => {
                     </p>
                   </div>
                 </div>
-              </Card>
+              </PCard>
             ))
           )}
         </TabsContent>

@@ -9,15 +9,16 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import DailyProgressSummary from "@/components/shared/DailyProgressSummary";
 import TodayTimeline from "@/components/shared/TodayTimeline";
 import CreateTaskDialog from "@/components/shared/CreateTaskDialog";
-import { Shimmer } from "@/design-system";
+import CreateSessionDialog from "@/components/shared/CreateSessionDialog";
+import { PCard, Shimmer } from "@/design-system";
 import { ReviewSessionBadge } from "@/components/shared/ReviewSessionBadge";
 import { useAuth } from "@/hooks/useAuth";
 import { useTodayViewData } from "@/hooks/useTodayView";
 import { useCreateStudySession } from "@/hooks/useStudySessions";
+import { useStudentCourses } from "@/hooks/useStudentCourses";
 import {
   useCreatePlannerTask,
   useCompleteTask,
@@ -34,12 +35,14 @@ import type {
   PlannerTask,
   ReviewSchedule,
 } from "@/types/planner";
-import type { CreatePlannerTaskInput } from "@/lib/schemas/planner";
+import type {
+  CreatePlannerTaskInput,
+  CreateStudySessionInput,
+} from "@/lib/schemas/planner";
 import {
   CalendarCheck,
   Plus,
   Play,
-  Loader2,
   AlertTriangle,
   SkipForward,
 } from "lucide-react";
@@ -56,6 +59,15 @@ const TodayViewPage = () => {
   // ─── Data ─────────────────────────────────────────────────────────────────
   const { sessions, tasks, deadlines, habits, isLoading, isError } =
     useTodayViewData(studentId);
+  const { data: enrolledCourses } = useStudentCourses(studentId);
+  const courseOptions = useMemo(
+    () =>
+      (enrolledCourses ?? []).map((course) => ({
+        id: course.id,
+        name: course.name,
+      })),
+    [enrolledCourses]
+  );
 
   // ─── Review Data ───────────────────────────────────────────────────────────
   const weekStartDate = useMemo(() => getWeekStartDate(new Date()), []);
@@ -74,7 +86,7 @@ const TodayViewPage = () => {
 
   // ─── Dialog State ─────────────────────────────────────────────────────────
   const [quickAddOpen, setQuickAddOpen] = useState(false);
-  const [startingUnplanned, setStartingUnplanned] = useState(false);
+  const [sessionDialogOpen, setSessionDialogOpen] = useState(false);
 
   // ─── Today's date ─────────────────────────────────────────────────────────
   const todayStr = useMemo(() => format(new Date(), "yyyy-MM-dd"), []);
@@ -207,35 +219,17 @@ const TodayViewPage = () => {
     [skipReview]
   );
 
-  const handleStartUnplannedSession = useCallback(() => {
-    if (!studentId) return;
-    setStartingUnplanned(true);
-
-    const now = new Date();
-    const startTime = format(now, "HH:mm");
-
-    createSession.mutate(
-      {
-        title: "Unplanned Study Session",
-        plannedDate: todayStr,
-        plannedStartTime: startTime,
-        plannedDurationMinutes: 25,
-        courseId: "",
-        timerMode: "pomodoro",
-        description: null,
-        cloIds: null,
-      },
-      {
+  const handleCreateSession = useCallback(
+    (data: CreateStudySessionInput) => {
+      createSession.mutate(data, {
         onSuccess: (session) => {
-          setStartingUnplanned(false);
+          setSessionDialogOpen(false);
           navigate(`/student/focus/${session.id}`);
         },
-        onError: () => {
-          setStartingUnplanned(false);
-        },
-      }
-    );
-  }, [studentId, todayStr, createSession, navigate]);
+      });
+    },
+    [createSession, navigate]
+  );
 
   // ─── Loading State ────────────────────────────────────────────────────────
   if (isLoading) {
@@ -293,14 +287,9 @@ const TodayViewPage = () => {
             size="sm"
             variant="tactile"
             className="h-9 gap-1.5 text-xs"
-            onClick={handleStartUnplannedSession}
-            disabled={startingUnplanned}
+            onClick={() => setSessionDialogOpen(true)}
           >
-            {startingUnplanned ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <Play className="h-3.5 w-3.5" />
-            )}
+            <Play className="h-3.5 w-3.5" />
             {t("planner.actions.startSession")}
           </Button>
         </div>
@@ -315,7 +304,7 @@ const TodayViewPage = () => {
 
       {/* Missed Reviews Section */}
       {missedReviews.length > 0 && (
-        <Card className="border border-red-200 bg-red-50 shadow-sm rounded-xl overflow-hidden">
+        <PCard className="overflow-hidden">
           <div className="px-4 py-3 flex items-center gap-2 border-b border-red-200">
             <AlertTriangle className="h-4 w-4 text-red-500" />
             <h2 className="text-sm font-bold text-red-700">Missed Reviews</h2>
@@ -376,12 +365,12 @@ const TodayViewPage = () => {
               </div>
             ))}
           </div>
-        </Card>
+        </PCard>
       )}
 
       {/* Today's Reviews Section */}
       {todayReviews.length > 0 && (
-        <Card className="border border-purple-200 bg-purple-50/50 shadow-sm rounded-xl overflow-hidden">
+        <PCard className="overflow-hidden">
           <div className="px-4 py-3 flex items-center gap-2 border-b border-purple-200">
             <CalendarCheck className="h-4 w-4 text-purple-500" />
             <h2 className="text-sm font-bold text-purple-700">
@@ -436,7 +425,7 @@ const TodayViewPage = () => {
               </div>
             ))}
           </div>
-        </Card>
+        </PCard>
       )}
 
       {/* Today Timeline */}
@@ -457,9 +446,17 @@ const TodayViewPage = () => {
         open={quickAddOpen}
         onOpenChange={setQuickAddOpen}
         defaultDate={todayStr}
-        courses={[]}
+        courses={courseOptions}
         onSubmit={handleQuickAddSubmit}
         isPending={createTask.isPending}
+      />
+      <CreateSessionDialog
+        open={sessionDialogOpen}
+        onOpenChange={setSessionDialogOpen}
+        defaultDate={todayStr}
+        courses={courseOptions}
+        onSubmit={handleCreateSession}
+        isPending={createSession.isPending}
       />
     </div>
   );

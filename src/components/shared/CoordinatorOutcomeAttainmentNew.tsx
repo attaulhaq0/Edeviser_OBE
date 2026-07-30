@@ -503,7 +503,7 @@ const CoordinatorOutcomeAttainmentNew = () => {
                                 {t("attainment.evAssessment")}
                               </Link>
                               <Link
-                                to="/coordinator/course-file"
+                                to="/coordinator/accreditation"
                                 className="flex items-center gap-2 rounded text-xs font-semibold text-sky-700 outline-none hover:text-sky-800 focus-visible:ring-2 focus-visible:ring-sky-300"
                               >
                                 <MessageSquare

@@ -4,9 +4,9 @@
 // =============================================================================
 
 import { useMemo } from "react";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { PCard } from "@/design-system";
 import { Loader2, Clock, Trophy, BookOpen } from "lucide-react";
 import { useKnowledgeQuests, useStartQuest } from "@/hooks/useKnowledgeQuests";
 import { useAuth } from "@/hooks/useAuth";
@@ -62,10 +62,7 @@ const KnowledgeQuestsTab = () => {
         const daysRemaining = Math.floor(hoursRemaining / 24);
 
         return (
-          <Card
-            key={quest.id}
-            className="bg-white border-0 shadow-md rounded-xl p-4"
-          >
+          <PCard key={quest.id} className="p-4">
             <div className="flex items-start gap-3">
               <div className="p-2 rounded-lg bg-purple-50">
                 <Icon className="h-5 w-5 text-purple-600" />
@@ -114,7 +111,7 @@ const KnowledgeQuestsTab = () => {
                 </div>
               </div>
             </div>
-          </Card>
+          </PCard>
         );
       })}
     </div>

@@ -16,7 +16,13 @@ import { useAuth } from "@/hooks/useAuth";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
-const DiscussionModeration = () => {
+interface DiscussionModerationProps {
+  basePath?: "/teacher" | "/coordinator";
+}
+
+const DiscussionModeration = ({
+  basePath = "/teacher",
+}: DiscussionModerationProps) => {
   const { courseId } = useParams<{ courseId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -97,13 +103,13 @@ const DiscussionModeration = () => {
                   tabIndex={0}
                   onClick={() =>
                     navigate(
-                      `/teacher/courses/${courseId}/discussions/${thread.id}`
+                      `${basePath}/courses/${courseId}/discussions/${thread.id}`
                     )
                   }
                   onKeyDown={(e) => {
                     if (e.key === "Enter")
                       navigate(
-                        `/teacher/courses/${courseId}/discussions/${thread.id}`
+                        `${basePath}/courses/${courseId}/discussions/${thread.id}`
                       );
                   }}
                 >

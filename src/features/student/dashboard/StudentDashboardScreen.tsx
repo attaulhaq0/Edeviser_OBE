@@ -27,8 +27,8 @@ import {
   ArrowRight,
   BarChart3,
   Bot,
+  Check,
   ChevronRight,
-  Map as MapIcon,
   Megaphone,
   Repeat2,
   ShieldQuestion,
@@ -186,10 +186,18 @@ const StudentDashboardScreen = () => {
 
   const habits = today.habits;
   const habitList = [
-    { key: "login", label: t("dashboard.habits.login", "Login") },
-    { key: "submit", label: t("dashboard.habits.submit", "Submit") },
-    { key: "journal", label: t("dashboard.habits.journal", "Journal") },
-    { key: "read", label: t("dashboard.habits.read", "Read") },
+    { key: "login", label: t("dashboard.habits.login", "Login"), emoji: "🔑" },
+    {
+      key: "submit",
+      label: t("dashboard.habits.submit", "Submit"),
+      emoji: "📤",
+    },
+    {
+      key: "journal",
+      label: t("dashboard.habits.journal", "Journal"),
+      emoji: "📝",
+    },
+    { key: "read", label: t("dashboard.habits.read", "Read"), emoji: "📖" },
   ] as const;
   const habitsDone = habitList.filter((h) => habits[h.key]).length;
 
@@ -245,51 +253,51 @@ const StudentDashboardScreen = () => {
   const heroSlides: React.ReactNode[] = [
     <div
       key="greeting"
-      className="relative flex min-h-[156px] items-center overflow-hidden p-4"
+      className="relative flex min-h-[116px] items-center overflow-hidden p-3.5"
     >
       <div
-        className="pointer-events-none absolute -right-8 -top-11 h-[150px] w-[150px]"
+        className="pointer-events-none absolute -right-8 -top-11 h-[130px] w-[130px]"
         style={{
           background:
             "radial-gradient(circle,rgba(20,184,166,.45),transparent 70%)",
         }}
       />
-      <div className="relative flex w-full items-center gap-3.5">
+      <div className="relative flex w-full items-center gap-3">
         <ProgressRing
           percent={level.progressPercent}
-          size={64}
+          size={52}
           stroke={2.5}
           track="rgba(255,255,255,.15)"
           color="#2dd4bf"
         >
           <div className="flex flex-col items-center justify-center leading-none">
-            <span className="text-[7px] font-black tracking-[0.18em] text-teal-200">
+            <span className="text-[6px] font-black tracking-[0.16em] text-teal-200">
               {t("dashboard.levelLabel", "LEVEL")}
             </span>
-            <span className="-mt-0.5 text-xl font-black">{level.level}</span>
+            <span className="-mt-0.5 text-base font-black">{level.level}</span>
           </div>
         </ProgressRing>
-        <div className="min-w-0 flex-1 pr-16">
-          <h1 className="truncate text-base font-bold tracking-tight">
+        <div className="min-w-0 flex-1 pr-12">
+          <h1 className="truncate text-sm font-bold tracking-tight">
             {t(`dashboard.greeting.${greetingTimeOfDay()}`, "Good day")},{" "}
             {firstName} 👋
           </h1>
-          <p className="truncate text-[11px] text-white/60">
+          <p className="truncate text-[10px] text-white/60">
             {t("dashboard.momentum", "Keep your momentum going")}
           </p>
-          <div className="mt-2.5">
-            <div className="mb-1 flex items-baseline justify-between">
-              <span className="text-[11px] font-bold text-white/90">
+          <div className="mt-1.5">
+            <div className="mb-0.5 flex items-baseline justify-between">
+              <span className="text-[10px] font-bold text-white/90">
                 {t("dashboard.levelProgress", "Level {{a}} → {{b}}", {
                   a: level.level,
                   b: level.level + 1,
                 })}
               </span>
-              <span className="text-[10px] font-bold text-amber-300">
+              <span className="text-[9px] font-bold text-amber-300">
                 {t("dashboard.xpToGo", "{{xp}} XP to go", { xp: xpToGo })}
               </span>
             </div>
-            <div className="h-2 overflow-hidden rounded-full bg-white/15">
+            <div className="h-1.5 overflow-hidden rounded-full bg-white/15">
               <div
                 className="h-full rounded-full bg-gradient-to-r from-teal-400 to-blue-400"
                 style={{ width: `${level.progressPercent}%` }}
@@ -301,7 +309,7 @@ const StudentDashboardScreen = () => {
       <MascotCharacter
         character="foxi"
         emotion="happy"
-        size="lg"
+        size="md"
         animation="float"
         decorative
         className="pointer-events-none absolute bottom-0 right-1"
@@ -311,25 +319,25 @@ const StudentDashboardScreen = () => {
 
   if (streak > 0) {
     heroSlides.push(
-      <div key="streak" className="flex min-h-[156px] items-center gap-3.5 p-4">
+      <div key="streak" className="flex min-h-[116px] items-center gap-3 p-3.5">
         <div
-          className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-white/15 text-2xl"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/20 bg-white/15 text-xl"
           aria-hidden="true"
         >
           🔥
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-[10px] font-black uppercase tracking-widest text-amber-300">
+          <p className="text-[9px] font-black uppercase tracking-widest text-amber-300">
             {t("dashboard.hero.streakEyebrow", "Streak · day {{n}}", {
               n: streak,
             })}
           </p>
-          <h2 className="mt-0.5 text-base font-bold tracking-tight">
+          <h2 className="mt-0.5 text-sm font-bold tracking-tight">
             {streakAtRisk
               ? t("dashboard.hero.streakRiskTitle", "Don't lose it today")
               : t("dashboard.hero.streakSafeTitle", "Your streak is alive")}
           </h2>
-          <p className="mt-0.5 text-[11px] text-white/65">
+          <p className="mt-0.5 truncate text-[10px] text-white/65">
             {streakAtRisk
               ? t(
                   "dashboard.hero.streakRiskBody",
@@ -344,7 +352,7 @@ const StudentDashboardScreen = () => {
         <button
           type="button"
           onClick={() => navigate("/student/today")}
-          className="shrink-0 rounded-xl px-3 py-2 text-xs font-bold text-white shadow-[0_3px_0_rgba(0,0,0,.15)] transition-transform active:scale-95"
+          className="shrink-0 rounded-xl px-2.5 py-1.5 text-xs font-bold text-white shadow-[0_3px_0_rgba(0,0,0,.15)] transition-transform active:scale-95"
           style={{ background: "linear-gradient(90deg,#2dd4bf,#38bdf8)" }}
         >
           {t("dashboard.hero.streakCta", "Protect it →")}
@@ -355,24 +363,24 @@ const StudentDashboardScreen = () => {
 
   if (leagueRank && leagueTotal > 0) {
     heroSlides.push(
-      <div key="league" className="flex min-h-[156px] items-center gap-3.5 p-4">
+      <div key="league" className="flex min-h-[116px] items-center gap-3 p-3.5">
         <div
-          className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-white/15 text-2xl"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-white/20 bg-white/15 text-xl"
           aria-hidden="true"
         >
           📈
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-[10px] font-black uppercase tracking-widest text-teal-300">
+          <p className="text-[9px] font-black uppercase tracking-widest text-teal-300">
             {t("dashboard.hero.leagueEyebrow", "Leaderboard")}
           </p>
-          <h2 className="mt-0.5 text-base font-bold tracking-tight">
+          <h2 className="mt-0.5 text-sm font-bold tracking-tight">
             {t("dashboard.hero.leagueTitle", "You're #{{rank}} of {{total}}", {
               rank: leagueRank,
               total: leagueTotal,
             })}
           </h2>
-          <p className="mt-0.5 text-[11px] text-white/65">
+          <p className="mt-0.5 text-[10px] text-white/65">
             {tierLabel
               ? t("dashboard.hero.leagueBody", "{{tier}} League this week", {
                   tier: tierLabel,
@@ -383,7 +391,7 @@ const StudentDashboardScreen = () => {
         <button
           type="button"
           onClick={() => navigate("/student/leaderboard")}
-          className="shrink-0 rounded-xl border border-white/20 bg-white/[.14] px-3 py-2 text-xs font-bold text-white transition-transform active:scale-95"
+          className="shrink-0 rounded-xl border border-white/20 bg-white/[.14] px-2.5 py-1.5 text-xs font-bold text-white transition-transform active:scale-95"
         >
           {t("dashboard.hero.leagueCta", "View →")}
         </button>
@@ -593,100 +601,133 @@ const StudentDashboardScreen = () => {
         )}
       </section>
 
-      {/* ── Today's Habits ── */}
-      <section className="rounded-2xl bg-white p-4 shadow-md">
-        <div className="mb-3 flex items-center gap-2">
-          <span
-            className="flex h-6 w-6 items-center justify-center rounded-lg text-xs text-white"
-            style={{ background: BRAND_GRADIENT }}
-          >
-            🔥
-          </span>
-          <p className="text-[13px] font-black tracking-tight text-slate-900">
-            {t("dashboard.habits.title", "Today's Habits")}
-          </p>
-          <span className="ms-auto rounded-full bg-green-50 px-2 py-0.5 text-[10px] font-bold text-green-600">
-            {habitsDone}/4
-          </span>
-        </div>
-        <div className="flex justify-around">
-          {habitList.map((h) => {
-            const done = habits[h.key];
-            return (
-              <div key={h.key} className="flex flex-col items-center gap-1.5">
-                <div
-                  className={cn(
-                    "flex h-11 w-11 items-center justify-center rounded-full",
-                    done
-                      ? "bg-green-500 text-white shadow-sm"
-                      : "border-2 border-dashed border-gray-300 bg-gray-100 text-gray-400"
-                  )}
-                >
-                  {done ? "✓" : "•"}
-                </div>
-                <span
-                  className={cn(
-                    "text-[10px]",
-                    done ? "text-gray-600" : "text-gray-400"
-                  )}
-                >
-                  {h.label}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-        {habitsDone < 4 && (
-          <div className="mt-3 flex items-center gap-2.5 rounded-lg border border-amber-100 bg-amber-50 px-3 py-2">
-            <MascotCharacter
-              character="penguin"
-              emotion="default"
-              size="sm"
-              decorative
-            />
-            <p className="text-xs font-medium leading-tight text-amber-700">
-              {t("dashboard.habits.nudge", {
-                defaultValue:
-                  "{{n}} more for a Perfect Day (+50 XP) — you're close!",
-                n: 4 - habitsDone,
+      {/* ── Today's Habits & Continue Your Path (Side by Side Grid) ── */}
+      <div className="grid gap-3 min-[640px]:grid-cols-2">
+        {/* Today's Habits */}
+        <section className="flex flex-col justify-between rounded-2xl bg-white p-3.5 shadow-md">
+          <div>
+            <div className="mb-2 flex items-center gap-2">
+              <span
+                className="flex h-5 w-5 items-center justify-center rounded-md text-[11px] text-white"
+                style={{ background: BRAND_GRADIENT }}
+              >
+                🔥
+              </span>
+              <p className="text-xs font-black tracking-tight text-slate-900">
+                {t("dashboard.habits.title", "Today's Habits")}
+              </p>
+              <span className="ms-auto rounded-full bg-green-50 px-2 py-0.5 text-[9px] font-bold text-green-600">
+                {habitsDone}/4
+              </span>
+            </div>
+            <div className="flex justify-around py-1">
+              {habitList.map((h) => {
+                const done = habits[h.key];
+                return (
+                  <div key={h.key} className="flex flex-col items-center gap-1">
+                    <div
+                      className={cn(
+                        "flex h-9 w-9 items-center justify-center rounded-full transition-all",
+                        done
+                          ? "bg-green-500 text-white shadow-sm"
+                          : "border-2 border-dashed border-gray-300 bg-gray-100 text-gray-400"
+                      )}
+                    >
+                      {done ? (
+                        <Check
+                          className="h-4 w-4 stroke-[2.5]"
+                          aria-hidden="true"
+                        />
+                      ) : (
+                        <span className="text-xs">{h.emoji}</span>
+                      )}
+                    </div>
+                    <span
+                      className={cn(
+                        "text-[9px] font-semibold",
+                        done ? "text-gray-600" : "text-gray-400"
+                      )}
+                    >
+                      {h.label}
+                    </span>
+                  </div>
+                );
               })}
-            </p>
+            </div>
           </div>
-        )}
-      </section>
+          {habitsDone < 4 && (
+            <div className="mt-2 flex items-center gap-2 rounded-lg border border-amber-100 bg-amber-50 px-2.5 py-1.5">
+              <MascotCharacter
+                character="penguin"
+                emotion="default"
+                size="sm"
+                decorative
+              />
+              <p className="text-[11px] font-medium leading-tight text-amber-700">
+                {t("dashboard.habits.nudge", {
+                  defaultValue: "Just {{n}} more for a Perfect Day (+50 XP)",
+                  n: 4 - habitsDone,
+                })}
+              </p>
+            </div>
+          )}
+        </section>
 
-      {/* ── Continue Your Path ── */}
-      <button
-        type="button"
-        onClick={() => navigate("/student/today")}
-        className="flex w-full items-center gap-3 rounded-2xl bg-white p-4 text-start shadow-md transition-transform active:scale-[.99]"
-      >
-        <div
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-white"
-          style={{ background: BRAND_GRADIENT }}
+        {/* Continue Your Path */}
+        <button
+          type="button"
+          onClick={() => navigate("/student/today")}
+          className="flex flex-col justify-between rounded-2xl border border-slate-100 bg-white p-3.5 text-start shadow-md transition-transform active:scale-[.99]"
         >
-          <MapIcon className="h-5 w-5" aria-hidden="true" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="text-[13px] font-black tracking-tight text-slate-900">
-            {t("dashboard.continuePath.title", "Continue your path")}
-          </p>
-          <p className="truncate text-xs text-gray-500">
-            {weakest
-              ? t("dashboard.continuePath.focus", "Focus: {{clo}}", {
-                  clo: weakest.clo_title,
-                })
-              : t(
-                  "dashboard.continuePath.subtitle",
-                  "Pick up where you left off"
-                )}
-          </p>
-        </div>
-        <ChevronRight
-          className="h-5 w-5 shrink-0 text-gray-300"
-          aria-hidden="true"
-        />
-      </button>
+          <div className="w-full">
+            <div className="mb-2 flex items-center gap-2">
+              <span
+                className="flex h-5 w-5 items-center justify-center rounded-md text-[11px] text-white"
+                style={{ background: BRAND_GRADIENT }}
+              >
+                🗺️
+              </span>
+              <p className="text-xs font-black tracking-tight text-slate-900">
+                {t("dashboard.continuePath.title", "Continue Your Path")}
+              </p>
+              <span className="ms-auto rounded-full bg-blue-50 px-2 py-0.5 text-[9px] font-bold text-blue-600">
+                {t("dashboard.continuePath.unit", "Unit 3")}
+              </span>
+            </div>
+            <div className="flex items-center gap-3 py-1">
+              <div
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-white"
+                style={{ background: BRAND_GRADIENT }}
+              >
+                <span className="text-base">📝</span>
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-xs font-bold text-gray-900">
+                  {weakest
+                    ? weakest.clo_title
+                    : t("dashboard.continuePath.topic", "Normalization")}
+                </p>
+                <p className="text-[11px] text-gray-500">
+                  {t(
+                    "dashboard.continuePath.progressText",
+                    "Applying level · 3 of 5 lessons"
+                  )}
+                </p>
+              </div>
+              <ChevronRight
+                className="h-4 w-4 shrink-0 text-gray-300"
+                aria-hidden="true"
+              />
+            </div>
+          </div>
+          <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
+            <div
+              className="h-full rounded-full"
+              style={{ width: "60%", background: BRAND_GRADIENT }}
+            />
+          </div>
+        </button>
+      </div>
 
       {/* ── Daily Review + Weekly Activity ── */}
       <div className="grid gap-3 lg:grid-cols-2">

@@ -405,11 +405,7 @@ const SurveyFormDialog = ({
               ))}
             </div>
 
-            <Button
-              type="submit"
-              disabled={isPending}
-              variant="tactile"
-            >
+            <Button type="submit" disabled={isPending} variant="tactile">
               {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
               {editSurveyId ? "Update Survey" : "Create Survey"}
             </Button>
@@ -480,10 +476,7 @@ const SurveyManager = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold tracking-tight">Surveys</h1>
-        <Button
-          onClick={handleCreate}
-          variant="tactile"
-        >
+        <Button onClick={handleCreate} variant="tactile">
           <Plus className="h-4 w-4" /> Create Survey
         </Button>
       </div>

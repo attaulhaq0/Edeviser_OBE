@@ -1,13 +1,12 @@
 import { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { useQuery } from "@tanstack/react-query";
 import { Award, BookOpen, Target, TrendingUp } from "lucide-react";
 
 import {
   Badge,
-  Card,
   KPICard,
   MasteryRing,
+  PCard,
   SectionHeader,
   Select,
   SelectContent,
@@ -19,72 +18,8 @@ import {
 import { NoLinkedStudents } from "@/components/shared/EmptyState";
 import { useAuth } from "@/hooks/useAuth";
 import { useLinkedChildren } from "@/hooks/useParentDashboard";
-import { supabase } from "@/lib/supabase";
-import { queryKeys } from "@/lib/queryKeys";
+import { useParentChildProgress } from "@/hooks/useParentProgress";
 import { attainmentValueClass } from "@/lib/attainmentTone";
-
-interface CourseProgress {
-  course_id: string;
-  course_name: string;
-  course_code: string;
-  attainment_percent: number;
-}
-
-const useChildProgress = (studentId: string | undefined) => {
-  return useQuery({
-    queryKey: queryKeys.outcomeAttainment.list({
-      studentId,
-      view: "parent-progress",
-    }),
-    queryFn: async (): Promise<CourseProgress[]> => {
-      if (!studentId) return [];
-
-      const { data: enrollments } = await supabase
-        .from("student_courses")
-        .select(`course_id, courses!inner(id, name, code)`)
-        .eq("student_id", studentId)
-        .eq("status", "active");
-
-      if (!enrollments || enrollments.length === 0) return [];
-
-      const courseIds = enrollments.map((e) => e.course_id);
-
-      const { data: attainment } = await supabase
-        .from("outcome_attainment")
-        .select("course_id, attainment_percent")
-        .eq("student_id", studentId)
-        .in("course_id", courseIds)
-        .eq("scope", "student_course");
-
-      const map = new Map<string, { sum: number; count: number }>();
-      for (const row of attainment ?? []) {
-        if (!row.course_id) continue;
-        const cur = map.get(row.course_id) ?? { sum: 0, count: 0 };
-        cur.sum += row.attainment_percent;
-        cur.count += 1;
-        map.set(row.course_id, cur);
-      }
-
-      return enrollments.map((e) => {
-        const course = e.courses as unknown as {
-          id: string;
-          name: string;
-          code: string;
-        };
-        const att = map.get(course.id);
-        return {
-          course_id: course.id,
-          course_name: course.name,
-          course_code: course.code,
-          attainment_percent:
-            att && att.count > 0 ? Math.round(att.sum / att.count) : 0,
-        };
-      });
-    },
-    enabled: !!studentId,
-    staleTime: 60_000,
-  });
-};
 
 const bandChipClass = (p: number): string => {
   if (p >= 85) return "text-green-600 bg-green-50";
@@ -106,7 +41,7 @@ const ParentProgressPage = () => {
     return children && children.length > 0 ? children[0]?.student_id ?? "" : "";
   }, [selectedChildId, children]);
 
-  const { data: courses, isLoading: progressLoading } = useChildProgress(
+  const { data: courses, isLoading: progressLoading } = useParentChildProgress(
     effectiveChildId || undefined
   );
 
@@ -135,17 +70,14 @@ const ParentProgressPage = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">
-          {t("parent.progress.title", "Child Progress")}
-        </h1>
-        <p className="mt-1 text-sm text-gray-500">
-          {t(
-            "parent.progress.subtitle",
-            "Detailed attainment by course for each linked child."
-          )}
-        </p>
-      </div>
+      <SectionHeader
+        icon={TrendingUp}
+        title={t("parent.progress.title", "Child Progress")}
+        description={t(
+          "parent.progress.subtitle",
+          "Detailed attainment by course for each linked child."
+        )}
+      />
 
       {childrenLoading ? (
         <Shimmer className="h-64 rounded-xl" />
@@ -181,7 +113,7 @@ const ParentProgressPage = () => {
           {progressLoading ? (
             <Shimmer className="h-64 rounded-xl" />
           ) : !courses || courses.length === 0 ? (
-            <Card className="card-elevated border-0 bg-white p-8 text-center">
+            <PCard className="p-8 text-center">
               <TrendingUp className="mx-auto mb-2 h-8 w-8 text-gray-400" />
               <p className="text-sm text-gray-500">
                 {t(
@@ -189,11 +121,11 @@ const ParentProgressPage = () => {
                   "No progress data yet. Once your child has graded assignments, attainment will appear here."
                 )}
               </p>
-            </Card>
+            </PCard>
           ) : (
             <>
               {/* Overall mastery */}
-              <Card className="card-elevated overflow-hidden border-0 bg-white">
+              <PCard>
                 <div className="flex items-center gap-5 p-6">
                   <MasteryRing value={summary.avg} size={104} tone="auto" />
                   <div>
@@ -212,7 +144,7 @@ const ParentProgressPage = () => {
                     </p>
                   </div>
                 </div>
-              </Card>
+              </PCard>
 
               {/* KPI row */}
               <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
@@ -247,7 +179,7 @@ const ParentProgressPage = () => {
               </div>
 
               {/* Per-course */}
-              <Card className="card-elevated overflow-hidden border-0 bg-white">
+              <PCard>
                 <div className="p-6">
                   <SectionHeader
                     icon={TrendingUp}
@@ -296,7 +228,7 @@ const ParentProgressPage = () => {
                     ))}
                   </div>
                 </div>
-              </Card>
+              </PCard>
             </>
           )}
         </>
