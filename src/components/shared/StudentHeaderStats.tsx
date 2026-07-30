@@ -1,9 +1,8 @@
-import { Flame, Gem } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useStreak } from "@/hooks/useStreak";
 import { useXPBalance } from "@/hooks/useXPBalance";
 
-/** Prototype `.top-stats` treatment, bound only to the student's existing data. */
+/** Prototype `.top-stats` treatment for students — 🔥 streak (orange) + 💎 gems (amber). */
 const StudentHeaderStats = () => {
   const { user } = useAuth();
   const streak = useStreak();
@@ -13,12 +12,16 @@ const StudentHeaderStats = () => {
 
   return (
     <div className="top-stats" aria-label="Student progress">
-      <span className="stat-chip">
-        <Flame className="size-3.5 text-muted-foreground" aria-hidden="true" />
+      <span className="stat-chip" style={{ color: "#ea580c" }}>
+        <span aria-hidden="true" style={{ fontSize: "14px", lineHeight: 1 }}>
+          🔥
+        </span>
         {streak.data?.streak_count ?? 0}
       </span>
-      <span className="stat-chip">
-        <Gem className="size-3.5 text-muted-foreground" aria-hidden="true" />
+      <span className="stat-chip" style={{ color: "#d97706" }}>
+        <span aria-hidden="true" style={{ fontSize: "14px", lineHeight: 1 }}>
+          💎
+        </span>
         {(xp.data?.balance ?? 0).toLocaleString()}
       </span>
     </div>

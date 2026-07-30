@@ -728,7 +728,8 @@ html.font-x-large {
   }
 }
 
-@media (min-width: 640px) and (max-width: 1399px) {
+@media (min-width: 640px) and (max-width: 999px) {
+  /* On medium screens, hide the chips only if there's no room (search also hidden) */
   .top-stats {
     display: none;
   }
