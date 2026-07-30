@@ -6,10 +6,12 @@ import {
   FileText,
   FolderOpen,
   Grid3X3,
+  Home,
   LayoutDashboard,
   Target,
   Megaphone,
   TrendingUp,
+  User,
   UserCog,
   Users,
   type LucideIcon,
@@ -213,7 +215,7 @@ const mobileTabsByRole: Record<UserRole, MobileTabItem[]> = {
     {
       to: "/student/dashboard",
       labelKey: "nav.mobile.home",
-      icon: LayoutDashboard,
+      icon: Home,
     },
     {
       to: "/student/learning-path",
@@ -231,7 +233,7 @@ const mobileTabsByRole: Record<UserRole, MobileTabItem[]> = {
       labelKey: "nav.mobile.progress",
       icon: TrendingUp,
     },
-    { to: "/student/profile", labelKey: "nav.me", icon: UserCog },
+    { to: "/student/profile", labelKey: "nav.me", icon: User },
   ],
   teacher: [
     {

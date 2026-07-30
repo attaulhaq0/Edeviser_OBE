@@ -304,7 +304,7 @@ const LoginPage = () => {
                       id="login-email"
                       type="email"
                       autoComplete="email"
-                      className="fld ps-10 h-11 border-slate-200 focus:border-blue-500 focus:ring-blue-500/20"
+                      className="fld !ps-10 ps-10 h-11 border-slate-200 focus:border-blue-500 focus:ring-blue-500/20"
                       placeholder="you@school.edu"
                       aria-invalid={!!loginForm.formState.errors.email}
                       {...loginForm.register("email")}
@@ -339,7 +339,7 @@ const LoginPage = () => {
                       id="login-password"
                       type={showLoginPw ? "text" : "password"}
                       autoComplete="current-password"
-                      className="fld ps-10 pe-11 h-11 border-slate-200 focus:border-blue-500 focus:ring-blue-500/20"
+                      className="fld !ps-10 !pe-11 ps-10 pe-11 h-11 border-slate-200 focus:border-blue-500 focus:ring-blue-500/20"
                       placeholder="••••••••"
                       aria-invalid={!!loginForm.formState.errors.password}
                       {...loginForm.register("password")}
@@ -428,34 +428,49 @@ const LoginPage = () => {
                 noValidate
                 className="space-y-3"
               >
-                {/* Role indication */}
-                <p className="mb-1 text-xs font-bold text-slate-700">
+                {/* Role selection */}
+                <p className="mb-1.5 text-xs font-bold text-slate-700">
                   {t("signup.role", "Account Type")}
                 </p>
-                <div className="mb-3 flex gap-2">
-                  <div
-                    className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-blue-200 bg-blue-50 py-2 px-2 text-xs font-bold text-blue-700"
-                    data-active={true}
-                  >
-                    <GraduationCap className="h-4 w-4 text-blue-600" />
-                    <span>{t("roles.student", "Student")}</span>
-                  </div>
-                  <button
-                    type="button"
-                    className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 py-2 px-2 text-xs font-medium text-slate-400 opacity-60"
-                    disabled
-                  >
-                    <User className="h-4 w-4 text-slate-400" />
-                    <span>{t("roles.teacher", "Teacher")}</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 py-2 px-2 text-xs font-medium text-slate-400 opacity-60"
-                    disabled
-                  >
-                    <Users className="h-4 w-4 text-slate-400" />
-                    <span>{t("roles.parent", "Parent")}</span>
-                  </button>
+                <div className="mb-3 grid grid-cols-5 gap-1.5">
+                  {[
+                    { id: "admin", label: "Admin", icon: Shield },
+                    { id: "coordinator", label: "Coordinator", icon: Users },
+                    { id: "teacher", label: "Teacher", icon: GraduationCap },
+                    { id: "student", label: "Student", icon: User },
+                    { id: "parent", label: "Parent", icon: Users },
+                  ].map((roleItem) => {
+                    const RoleIcon = roleItem.icon;
+                    const isSelected =
+                      (signUpForm.watch("requestedRole") ?? "student") ===
+                      roleItem.id;
+                    return (
+                      <button
+                        key={roleItem.id}
+                        type="button"
+                        onClick={() =>
+                          signUpForm.setValue(
+                            "requestedRole",
+                            roleItem.id as SignUpFormData["requestedRole"]
+                          )
+                        }
+                        className={`flex flex-col items-center justify-center gap-1 rounded-xl border p-2 text-center transition-all ${
+                          isSelected
+                            ? "border-blue-500 bg-blue-50/80 font-extrabold text-blue-700 shadow-xs"
+                            : "border-slate-200 bg-slate-50/50 font-semibold text-slate-600 hover:border-blue-300 hover:bg-blue-50/30"
+                        }`}
+                      >
+                        <RoleIcon
+                          className={`h-4 w-4 ${
+                            isSelected ? "text-blue-600" : "text-slate-400"
+                          }`}
+                        />
+                        <span className="text-[10px] leading-none">
+                          {t(`roles.${roleItem.id}`, roleItem.label)}
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
 
                 {/* First Name & Last Name */}
@@ -655,26 +670,12 @@ const LoginPage = () => {
                   <Sparkles className="h-3.5 w-3.5 text-amber-500 fill-amber-500" />
                   <span>Quick Demo Login</span>
                 </div>
-                <div className="grid grid-cols-3 gap-2 mb-2">
-                  {NOOR_DEMO_ACCOUNTS.slice(0, 3).map((acct) => (
+                <div className="grid grid-cols-2 gap-2.5">
+                  {NOOR_DEMO_ACCOUNTS.map((acct) => (
                     <button
                       key={acct.role}
                       type="button"
-                      className="flex h-9 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2 text-xs font-bold text-slate-700 shadow-2xs hover:border-blue-400 hover:bg-blue-50/50 transition-all disabled:opacity-50"
-                      onClick={() => handleNoorDemoLogin(acct.email, acct.role)}
-                      disabled={isPending}
-                    >
-                      {getRoleIcon(acct.role)}
-                      <span>{acct.label}</span>
-                    </button>
-                  ))}
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  {NOOR_DEMO_ACCOUNTS.slice(3, 5).map((acct) => (
-                    <button
-                      key={acct.role}
-                      type="button"
-                      className="flex h-9 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2 text-xs font-bold text-slate-700 shadow-2xs hover:border-blue-400 hover:bg-blue-50/50 transition-all disabled:opacity-50"
+                      className="flex h-10 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 text-xs font-extrabold text-slate-700 shadow-2xs hover:border-blue-400 hover:bg-blue-50/60 hover:text-blue-700 transition-all disabled:opacity-50"
                       onClick={() => handleNoorDemoLogin(acct.email, acct.role)}
                       disabled={isPending}
                     >

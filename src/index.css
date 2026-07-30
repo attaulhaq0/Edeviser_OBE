@@ -148,11 +148,8 @@
   --gradient-end: #0382bd; /* Blue */
 
   /* === GRADIENTS === */
-  --brand-gradient: linear-gradient(
-    93.65deg,
-    #14b8a6 5.37%,
-    #0382bd 78.89%
-  ); /* prototype-exact (adopted Path A) */
+  /* prettier-ignore */
+  --brand-gradient: linear-gradient(93.65deg, #14b8a6 5.37%, #0382bd 78.89%); /* prototype-exact (adopted Path A) */
   --hero-gradient: linear-gradient(
     135deg,
     #0f172a 0%,
@@ -795,7 +792,8 @@ html.font-x-large {
   width: 100%;
   border: 1.5px solid #e2e8f0;
   border-radius: 12px;
-  padding: 12px 14px;
+  padding-block: 12px;
+  padding-inline: 14px;
   font-size: 14px;
   color: #0f172a;
   background: #fff;

@@ -7,7 +7,6 @@ import { navItems } from "@/lib/navItems";
 import {
   getMoreNavItems,
   getPrimaryNavItems,
-  mobileFabPathByRole,
   type PresentedNavItem,
 } from "@/lib/navPresentation";
 import { useIntentPrefetch } from "@/hooks/useIntentPrefetch";
@@ -75,8 +74,6 @@ const Sidebar = () => {
 
   const renderItem = (item: PresentedNavItem, section: "primary" | "more") => {
     const isActive = section === "primary" && isItemActive(item.to);
-    const isFab =
-      section === "primary" && item.to === mobileFabPathByRole[role];
 
     const itemClassName = cn(
       "flex items-center rounded-[12px] px-[18px] text-[14px] transition-colors",
@@ -90,22 +87,38 @@ const Sidebar = () => {
         : "font-semibold text-[#64748b] hover:bg-slate-100 dark:text-gray-300 dark:hover:bg-slate-800"
     );
 
+    const IconComponent = item.icon;
+    const isTutorRoute = item.to === "/student/tutor";
+
     const content = (
       <>
         {isActive ? <span className="sr-only">(current page)</span> : null}
-        <span
-          className={cn(
-            "flex shrink-0 items-center justify-center leading-none",
-            section === "primary"
-              ? "size-[22px] text-[20px]"
-              : "size-5 text-[16px]",
-            isFab &&
-              "size-[34px] rounded-full bg-[image:var(--brand-gradient)] text-[18px] shadow-sm"
-          )}
-          aria-hidden="true"
-        >
-          {item.emoji}
-        </span>
+        {isTutorRoute ? (
+          <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-tr from-teal-500 via-cyan-500 to-blue-500 text-white shadow-xs">
+            <span className="text-xs">🤖</span>
+          </div>
+        ) : IconComponent ? (
+          <IconComponent
+            className={cn(
+              "shrink-0 transition-colors",
+              section === "primary" ? "h-5 w-5" : "h-4 w-4",
+              isActive ? "text-[#0284c7]" : "text-[#94a3b8]"
+            )}
+            aria-hidden="true"
+          />
+        ) : (
+          <span
+            className={cn(
+              "flex shrink-0 items-center justify-center leading-none",
+              section === "primary"
+                ? "size-[22px] text-[20px]"
+                : "size-5 text-[16px]"
+            )}
+            aria-hidden="true"
+          >
+            {item.emoji}
+          </span>
+        )}
         <span className="truncate">{t(item.labelKey)}</span>
       </>
     );

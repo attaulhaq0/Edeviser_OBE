@@ -129,22 +129,24 @@ const ProfileDropdown = () => {
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className="hdr-profile cursor-pointer"
+          className="hdr-profile flex cursor-pointer items-center gap-2.5 rounded-xl p-1.5 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800/80"
           data-tour="profile"
         >
-          <Avatar className="h-9 w-9">
+          <Avatar className="h-9 w-9 border border-slate-200 shadow-2xs dark:border-slate-700">
             <AvatarImage src={avatarUrl} alt={profile.full_name ?? "User"} />
-            <AvatarFallback className="hp-ava">{initials}</AvatarFallback>
+            <AvatarFallback className="bg-gradient-to-br from-teal-500 to-blue-600 font-extrabold text-xs text-white">
+              {initials}
+            </AvatarFallback>
           </Avatar>
-          <span className="hp-txt">
-            <span className="flex flex-col text-start leading-tight">
-              <span className="hp-name">
-                {getDisplayFirstName(profile.full_name) ?? "User"}
-              </span>
-              <span className="hp-sub mt-0.5">{profileSubtitle}</span>
+          <span className="hidden min-[768px]:flex flex-col text-start leading-tight">
+            <span className="text-xs font-extrabold text-slate-900 dark:text-white">
+              {profile.full_name}
+            </span>
+            <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+              {profileSubtitle}
             </span>
           </span>
-          <ChevronDown className="h-4 w-4 text-gray-500" />
+          <ChevronDown className="ms-0.5 h-3.5 w-3.5 text-slate-400" />
         </button>
       </DropdownMenuTrigger>
 

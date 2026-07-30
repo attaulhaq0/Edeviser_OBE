@@ -21,7 +21,6 @@ import { PCard, Shimmer } from "@/design-system";
 import { useLearningPath } from "@/hooks/useLearningPath";
 import type { LearningPathNode } from "@/hooks/useLearningPath";
 import {
-  averagePercentage,
   buildBloomStageSummaries,
   type BloomStageSummary,
 } from "@/lib/learningPathPresentation";
@@ -106,26 +105,6 @@ const TREE_POSITIONS = [
   { left: "32%", top: "39%" },
   { left: "67%", top: "24%" },
   { left: "50%", top: "10%" },
-] as const;
-
-const MASTERY_LEGEND = [
-  {
-    color: "bg-green-600",
-    labelKey: "learningPath.tree.strong",
-    range: "70–100%",
-  },
-  { color: "bg-teal-600", labelKey: "learningPath.tree.good", range: "40–69%" },
-  {
-    color: "bg-amber-500",
-    labelKey: "learningPath.tree.developing",
-    range: "20–39%",
-  },
-  {
-    color: "bg-orange-600",
-    labelKey: "learningPath.tree.needsFocus",
-    range: "< 20%",
-  },
-  { color: "bg-slate-400", labelKey: "learningPath.status.locked", range: "—" },
 ] as const;
 
 const PathProgress = ({
@@ -288,10 +267,14 @@ const JourneyStage = ({
   stage,
   index,
   isLast,
+  isSelected,
+  onSelect,
 }: {
   stage: BloomStage;
   index: number;
   isLast: boolean;
+  isSelected?: boolean;
+  onSelect?: () => void;
 }) => {
   const { t } = useTranslation("student");
 
@@ -303,13 +286,16 @@ const JourneyStage = ({
       className="flex gap-4"
     >
       <div className="flex shrink-0 flex-col items-center">
-        <span
+        <button
+          type="button"
+          onClick={onSelect}
           className={cn(
-            "relative z-10 flex size-11 items-center justify-center rounded-full text-sm font-black",
+            "relative z-10 flex size-11 items-center justify-center rounded-full text-sm font-black transition-transform hover:scale-105 focus:outline-none",
             stage.status === "done" && "bg-green-100 text-green-600",
             stage.status === "current" &&
               "bg-[image:var(--brand-gradient)] text-white shadow-[0_0_0_5px_rgba(20,184,166,0.16)]",
-            stage.status === "locked" && "bg-slate-100 text-slate-400"
+            stage.status === "locked" && "bg-slate-100 text-slate-400",
+            isSelected && "ring-4 ring-teal-500/30"
           )}
         >
           {stage.status === "done" ? (
@@ -317,7 +303,7 @@ const JourneyStage = ({
           ) : (
             index + 1
           )}
-        </span>
+        </button>
         {!isLast ? (
           <span
             className={cn(
@@ -329,9 +315,19 @@ const JourneyStage = ({
         ) : null}
       </div>
       <div
+        role="button"
+        tabIndex={0}
+        onClick={onSelect}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onSelect();
+          }
+        }}
         className={cn(
-          "mb-3 min-w-0 flex-1 rounded-[14px] px-3 py-2.5",
-          stage.environment
+          "mb-3 min-w-0 flex-1 cursor-pointer rounded-[14px] px-4 py-3 transition-all hover:shadow-md",
+          stage.environment,
+          isSelected && "ring-2 ring-teal-500 shadow-md"
         )}
       >
         <div className="flex flex-wrap items-start justify-between gap-2">
@@ -379,7 +375,13 @@ const JourneyStage = ({
   );
 };
 
-const StageDetail = ({ stage }: { stage: BloomStage }) => {
+const StageDetail = ({
+  stage,
+  stageIndex = 2,
+}: {
+  stage: BloomStage;
+  stageIndex?: number;
+}) => {
   const { t } = useTranslation("student");
   const completed = stage.nodes.filter(
     (node) => node.status === "graded"
@@ -389,73 +391,78 @@ const StageDetail = ({ stage }: { stage: BloomStage }) => {
   );
 
   return (
-    <PCard className="sticky top-[calc(var(--app-header-h)+1.25rem)] p-5">
-      <p className="text-[10px] font-black uppercase tracking-[0.13em] text-slate-400">
-        {t("learningPath.levelDetail")}
-      </p>
-      <div className="mt-3 flex items-start gap-3">
-        <span className="flex size-12 items-center justify-center rounded-2xl bg-[image:var(--brand-gradient)] text-2xl text-white">
-          {stage.emoji}
-        </span>
-        <div className="min-w-0">
-          <h2 className="text-xl font-black tracking-tight text-slate-900">
+    <PCard className="sticky top-[calc(var(--app-header-h)+1.25rem)] p-5 shadow-lg border-teal-100 rounded-2xl">
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="text-[10px] font-extrabold uppercase tracking-[0.15em] text-slate-400">
+            LEVEL {stageIndex + 1}
+          </p>
+          <h2 className="text-xl font-black tracking-tight uppercase text-slate-900 mt-0.5">
             {t(stage.titleKey)}
           </h2>
-          <p className="text-xs text-slate-500">{t(stage.subtitleKey)}</p>
+          <p className="text-xs font-medium text-slate-500 mt-0.5">
+            {t(stage.subtitleKey)}
+          </p>
         </div>
+        <span className="flex size-11 items-center justify-center rounded-2xl bg-teal-50 text-2xl text-teal-700 shadow-xs border border-teal-100">
+          {stage.emoji}
+        </span>
       </div>
 
-      <div className="mt-5 grid grid-cols-2 gap-2">
-        <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+      <div className="mt-4 grid grid-cols-2 gap-2.5">
+        <div className="rounded-xl border border-slate-100 bg-slate-50/80 p-3">
           <p className="text-[9px] font-black uppercase tracking-wider text-slate-400">
-            {t("learningPath.mastery")}
+            ⏱️ ESTIMATED TIME
           </p>
-          <p className="mt-1 text-xl font-black text-teal-700">
+          <p className="mt-1 text-sm font-black text-slate-800">3 – 5 hrs</p>
+        </div>
+        <div className="rounded-xl border border-slate-100 bg-slate-50/80 p-3">
+          <p className="text-[9px] font-black uppercase tracking-wider text-slate-400">
+            📈 MASTERED BY YOU
+          </p>
+          <p className="mt-1 text-sm font-black text-teal-600">
             {stage.attainment}%
           </p>
         </div>
-        <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
-          <p className="text-[9px] font-black uppercase tracking-wider text-slate-400">
-            {t("learningPath.tasks")}
-          </p>
-          <p className="mt-1 text-xl font-black text-slate-800">
-            {completed}/{stage.nodes.length}
-          </p>
-        </div>
       </div>
 
-      <div className="mt-5 border-t border-slate-100 pt-4">
-        <p className="text-xs font-black text-slate-800">
-          {t("learningPath.milestones")}
+      <div className="mt-4 border-t border-slate-100 pt-3.5">
+        <p className="text-xs font-black text-slate-800 uppercase tracking-wider">
+          CONCEPTS IN THIS LEVEL
         </p>
-        <div className="mt-2 space-y-2">
+        <div className="mt-2.5 space-y-2">
           {stage.nodes.length > 0 ? (
             stage.nodes.map((node) => (
               <div
                 key={node.assignment_id}
-                className="flex items-center gap-2 text-xs"
+                className="flex items-center gap-2.5 text-xs"
               >
                 <span
                   className={cn(
-                    "flex size-5 items-center justify-center rounded-full",
+                    "flex size-5 items-center justify-center rounded-full shrink-0",
                     node.status === "graded"
-                      ? "bg-green-500 text-white"
+                      ? "bg-emerald-500 text-white"
                       : node.status === "locked"
                       ? "bg-slate-100 text-slate-400"
                       : "border-2 border-teal-500 bg-teal-50 text-teal-700"
                   )}
                 >
                   {node.status === "graded" ? (
-                    <Check className="size-3" aria-hidden="true" />
+                    <Check className="size-3 stroke-[3]" aria-hidden="true" />
                   ) : node.status === "locked" ? (
                     <Lock className="size-2.5" aria-hidden="true" />
                   ) : (
                     <span className="size-1.5 rounded-full bg-teal-500" />
                   )}
                 </span>
-                <span className="min-w-0 flex-1 truncate font-semibold text-slate-600">
+                <span className="min-w-0 flex-1 truncate font-semibold text-slate-700">
                   {node.title}
                 </span>
+                {node.status === "available" || node.status === "submitted" ? (
+                  <Badge className="border border-teal-200 bg-teal-50 text-[9px] text-teal-700">
+                    In progress
+                  </Badge>
+                ) : null}
               </div>
             ))
           ) : (
@@ -466,32 +473,67 @@ const StageDetail = ({ stage }: { stage: BloomStage }) => {
         </div>
       </div>
 
-      <div className="mt-5 rounded-2xl border border-teal-100 bg-gradient-to-br from-teal-50 to-blue-50 p-4">
-        <div className="flex items-center gap-2 text-xs font-black text-teal-700">
-          <Sparkles className="size-4" aria-hidden="true" />
-          {t("learningPath.coachTip")}
+      <div className="mt-4 rounded-2xl border border-teal-200/60 bg-gradient-to-br from-teal-50/90 to-cyan-50/80 p-3.5">
+        <div className="flex items-center gap-2 text-xs font-black text-teal-800">
+          <Sparkles className="size-4 text-teal-600" aria-hidden="true" />
+          <span>AI Coach Tip</span>
         </div>
-        <p className="mt-1 text-xs leading-relaxed text-slate-600">
+        <p className="mt-1.5 text-xs leading-relaxed text-slate-600 font-medium">
           {available
-            ? t("learningPath.coachContinue", { title: available.title })
+            ? `You're doing great! Focus on completing "${
+                available.title
+              }" to strengthen your ${t(stage.titleKey)} level.`
             : stage.status === "done"
-            ? t("learningPath.coachComplete")
+            ? "This level is complete. Your next stage is ready when its prerequisite is met."
             : t("learningPath.coachLocked")}
         </p>
+      </div>
+
+      <div className="mt-4 border-t border-slate-100 pt-3">
+        <p className="text-[9px] font-black uppercase tracking-wider text-slate-400 mb-2">
+          YOUR PROGRESS IN LEVEL {stageIndex + 1}
+        </p>
+        <div className="grid grid-cols-3 gap-2 rounded-xl bg-slate-50 p-2 text-center">
+          <div>
+            <p className="text-xs font-black text-slate-800">
+              {completed}/{stage.nodes.length || 5}
+            </p>
+            <p className="text-[8px] font-bold uppercase text-slate-400">
+              CONCEPTS
+            </p>
+          </div>
+          <div>
+            <p className="text-xs font-black text-teal-600">
+              {stage.attainment}%
+            </p>
+            <p className="text-[8px] font-bold uppercase text-slate-400">
+              MASTERY
+            </p>
+          </div>
+          <div>
+            <p className="text-xs font-black text-emerald-600">+18%</p>
+            <p className="text-[8px] font-bold uppercase text-slate-400">
+              IMPROVE
+            </p>
+          </div>
+        </div>
       </div>
     </PCard>
   );
 };
 
-const JourneyView = ({ stages }: { stages: BloomStage[] }) => {
+const JourneyView = ({
+  stages,
+  selectedStageKey,
+  onSelectStage,
+}: {
+  stages: BloomStage[];
+  selectedStageKey: string;
+  onSelectStage: (key: string) => void;
+}) => {
   const { t } = useTranslation("student");
-  const activeIndex = stages.findIndex((stage) => stage.status === "current");
-  const lastDoneIndex = stages.map((stage) => stage.status).lastIndexOf("done");
-  const currentIndex = Math.max(
-    0,
-    activeIndex >= 0 ? activeIndex : lastDoneIndex
-  );
-  const currentStage = stages[currentIndex] ?? stages[0];
+  const currentStage =
+    stages.find((s) => s.key === selectedStageKey) ?? stages[0];
   const unlockProgress = Math.min(currentStage?.attainment ?? 0, 100);
   const recentNodes = stages
     .flatMap((stage) => stage.nodes)
@@ -501,10 +543,10 @@ const JourneyView = ({ stages }: { stages: BloomStage[] }) => {
   if (!currentStage) return null;
 
   return (
-    <div className="grid items-start gap-7 min-[1050px]:grid-cols-[minmax(0,1fr)_400px]">
+    <div className="grid items-start gap-7 min-[1050px]:grid-cols-[minmax(0,1fr)_380px]">
       <div className="min-w-0">
         <p className="mb-4 text-[11px] font-black uppercase tracking-[0.14em] text-slate-400">
-          🏔️ {t("learningPath.bloomJourney")}
+          🏔️ {t("learningPath.bloomJourney", "BLOOM LEVELS • YOUR JOURNEY")}
         </p>
         <PCard className="p-4 sm:p-5">
           {stages.map((stage, index) => (
@@ -513,6 +555,8 @@ const JourneyView = ({ stages }: { stages: BloomStage[] }) => {
               stage={stage}
               index={index}
               isLast={index === stages.length - 1}
+              isSelected={stage.key === currentStage.key}
+              onSelect={() => onSelectStage(stage.key)}
             />
           ))}
         </PCard>
@@ -569,23 +613,33 @@ const JourneyView = ({ stages }: { stages: BloomStage[] }) => {
   );
 };
 
-const KnowledgeTreeView = ({ stages }: { stages: BloomStage[] }) => {
+const KnowledgeTreeView = ({
+  stages,
+  selectedStageKey,
+  onSelectStage,
+}: {
+  stages: BloomStage[];
+  selectedStageKey: string;
+  onSelectStage: (key: string) => void;
+}) => {
   const { t } = useTranslation("student");
-  const overall = averagePercentage(
-    stages.flatMap((stage) => (stage.attainment > 0 ? [stage.attainment] : []))
-  );
+  const currentStage =
+    stages.find((s) => s.key === selectedStageKey) ?? stages[0];
 
   return (
     <div>
       <div className="mb-4">
         <h2 className="text-xl font-black tracking-tight text-slate-900">
-          {t("learningPath.tree.title")}
+          {t("learningPath.tree.title", "Knowledge Tree")}
         </h2>
         <p className="text-xs text-slate-500">
-          {t("learningPath.tree.subtitle")}
+          {t(
+            "learningPath.tree.subtitle",
+            "Visualize your skill hierarchy and mastery growth."
+          )}
         </p>
       </div>
-      <div className="grid items-start gap-7 min-[1050px]:grid-cols-[minmax(0,1fr)_400px]">
+      <div className="grid items-start gap-7 min-[1050px]:grid-cols-[minmax(0,1fr)_380px]">
         <PCard className="p-2">
           <div className="relative min-h-[560px] overflow-hidden rounded-[18px] bg-[radial-gradient(120%_85%_at_50%_100%,#dcfce7_0%,#ecfdf5_38%,#f0fdfa_66%,#ffffff_90%)]">
             <svg
@@ -622,20 +676,24 @@ const KnowledgeTreeView = ({ stages }: { stages: BloomStage[] }) => {
               />
             </svg>
             {stages.map((stage, index) => (
-              <div
+              <button
                 key={stage.key}
-                className="absolute z-10 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center text-center"
+                type="button"
+                onClick={() => onSelectStage(stage.key)}
+                className="absolute z-10 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center text-center focus:outline-none transition-transform hover:scale-110"
                 style={TREE_POSITIONS[index]}
               >
                 <div
                   className={cn(
-                    "relative flex size-[74px] flex-col items-center justify-center rounded-full border-[3px] border-white text-white shadow-[0_12px_26px_rgba(16,24,40,0.18)]",
+                    "relative flex size-[74px] flex-col items-center justify-center rounded-full border-[3px] border-white text-white shadow-[0_12px_26px_rgba(16,24,40,0.18)] transition-all",
                     stage.status === "done" &&
                       "bg-gradient-to-br from-green-400 to-green-600",
                     stage.status === "current" &&
                       "bg-gradient-to-br from-teal-400 to-teal-600",
                     stage.status === "locked" &&
-                      "bg-gradient-to-br from-slate-300 to-slate-400"
+                      "bg-gradient-to-br from-slate-300 to-slate-400",
+                    stage.key === currentStage?.key &&
+                      "ring-4 ring-teal-500/40 scale-105"
                   )}
                 >
                   <span className="text-base font-black">
@@ -652,43 +710,12 @@ const KnowledgeTreeView = ({ stages }: { stages: BloomStage[] }) => {
                 <span className="mt-1.5 whitespace-nowrap text-[11px] font-black text-slate-700">
                   {t(stage.titleKey)}
                 </span>
-              </div>
+              </button>
             ))}
           </div>
         </PCard>
 
-        <PCard className="sticky top-[calc(var(--app-header-h)+1.25rem)] p-5">
-          <p className="text-[10px] font-black uppercase tracking-[0.13em] text-slate-400">
-            {t("learningPath.tree.overallMastery")}
-          </p>
-          <p className="mt-1 text-4xl font-black text-green-600">{overall}%</p>
-          <p className="mt-1 text-xs font-bold text-teal-600">
-            🌱 {t("learningPath.tree.keepGrowing")}
-          </p>
-          <div className="mt-5 space-y-2 border-t border-slate-100 pt-4">
-            {MASTERY_LEGEND.map((item) => (
-              <div
-                key={item.labelKey}
-                className="flex items-center gap-2 text-xs text-slate-600"
-              >
-                <span className={cn("size-3 rounded", item.color)} />
-                <span className="font-semibold">{t(item.labelKey)}</span>
-                <span className="ms-auto font-semibold text-slate-400">
-                  {item.range}
-                </span>
-              </div>
-            ))}
-          </div>
-          <div className="mt-5 rounded-2xl border border-teal-100 bg-gradient-to-br from-teal-50 to-blue-50 p-4">
-            <div className="flex items-center gap-2 text-xs font-black text-teal-700">
-              <TreePine className="size-4" aria-hidden="true" />
-              {t("learningPath.coachTip")}
-            </div>
-            <p className="mt-1 text-xs leading-relaxed text-slate-600">
-              {t("learningPath.tree.tip")}
-            </p>
-          </div>
-        </PCard>
+        {currentStage ? <StageDetail stage={currentStage} /> : null}
       </div>
       <PCard className="mt-4 flex items-center gap-3 border-green-200 bg-gradient-to-br from-green-50 to-emerald-50 p-4">
         <Mountain
@@ -696,7 +723,10 @@ const KnowledgeTreeView = ({ stages }: { stages: BloomStage[] }) => {
           aria-hidden="true"
         />
         <p className="text-xs font-semibold leading-relaxed text-green-700">
-          {t("learningPath.tree.strength")}
+          {t(
+            "learningPath.tree.strength",
+            "Your strength increases as you progress through Bloom's Taxonomy levels."
+          )}
         </p>
       </PCard>
     </div>
@@ -711,6 +741,8 @@ export interface LearningPathProps {
 const LearningPath = ({ courseId, studentId }: LearningPathProps) => {
   const { t } = useTranslation("student");
   const [view, setView] = useState<PathView>("journey");
+  const [selectedStageKey, setSelectedStageKey] =
+    useState<string>("remembering");
   const { data: nodes, isLoading } = useLearningPath(courseId, studentId);
   const stages = useMemo(() => buildPresentedStages(nodes ?? []), [nodes]);
 
@@ -775,9 +807,17 @@ const LearningPath = ({ courseId, studentId }: LearningPathProps) => {
         </Button>
       </div>
       {view === "journey" ? (
-        <JourneyView stages={stages} />
+        <JourneyView
+          stages={stages}
+          selectedStageKey={selectedStageKey}
+          onSelectStage={setSelectedStageKey}
+        />
       ) : (
-        <KnowledgeTreeView stages={stages} />
+        <KnowledgeTreeView
+          stages={stages}
+          selectedStageKey={selectedStageKey}
+          onSelectStage={setSelectedStageKey}
+        />
       )}
     </div>
   );
