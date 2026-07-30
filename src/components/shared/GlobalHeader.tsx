@@ -9,7 +9,6 @@ import RoleHeaderStats from "@/components/shared/RoleHeaderStats";
 import StudentHeaderStats from "@/components/shared/StudentHeaderStats";
 import { useSidebar } from "@/components/shared/SidebarContext";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import type { UserRole } from "@/types/app";
 
 const dashboardRouteByRole: Record<UserRole, string> = {
@@ -28,16 +27,13 @@ const GlobalHeader = () => {
   const dashboardRoute = dashboardRouteByRole[role as UserRole] ?? "/student";
 
   return (
-    <header className="sticky top-0 z-[100] h-[var(--app-header-h)] w-full">
+    <header className="sticky top-0 z-[100] h-[var(--app-header-h)] w-full border-b border-slate-200/80 bg-white/95 shadow-[0_1px_3px_rgba(15,23,42,0.06)] backdrop-blur-md dark:border-border dark:bg-background/95">
       <div
         data-tour="top-bar"
-        className={cn(
-          "relative flex h-full w-full items-center justify-between gap-4 border-b border-border px-4",
-          "bg-white shadow-[0_1px_2px_rgba(15,23,42,0.05)] dark:bg-background",
-          "min-[640px]:pl-[calc(var(--app-sidebar-w)+var(--app-gutter))] min-[640px]:pr-[var(--app-gutter)]"
-        )}
+        className="mx-auto flex h-full w-full items-center justify-between gap-4 px-4 lg:px-6"
       >
-        <div className="flex min-w-0 items-center gap-3">
+        {/* Left: Mobile Toggle & Brand Logo */}
+        <div className="flex items-center gap-3 flex-shrink-0">
           <Button
             type="button"
             variant="ghost"
@@ -51,25 +47,30 @@ const GlobalHeader = () => {
 
           <Link
             to={dashboardRoute}
-            className="flex-shrink-0 min-[640px]:hidden"
+            className="flex items-center gap-2.5 transition-opacity hover:opacity-90"
             aria-label="Edeviser — go to dashboard"
           >
             <img
               src="/edeviser-logo-final.png"
-              className="h-8 w-auto"
+              className="h-8 w-auto object-contain"
               alt="Edeviser"
             />
+            <span className="font-black text-xl tracking-tight text-slate-900 dark:text-white">
+              Edeviser
+            </span>
           </Link>
         </div>
 
-        <div className="absolute left-1/2 -translate-x-1/2">
+        {/* Center: Search Command */}
+        <div className="hidden sm:flex flex-1 max-w-md mx-4 justify-center">
           <SearchCommand showTrigger />
         </div>
 
-        <div className="ms-auto flex min-w-0 items-center gap-2">
+        {/* Right: Role Stats, Bell & Profile */}
+        <div className="ms-auto flex min-w-0 items-center gap-2.5">
           {role === "student" ? <StudentHeaderStats /> : null}
           <RoleHeaderStats />
-          <div className="hidden min-[1280px]:block">
+          <div className="hidden min-[1024px]:block">
             <LanguageSwitcher />
           </div>
           <NotificationBell />
