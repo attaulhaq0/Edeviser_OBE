@@ -89,21 +89,27 @@ const Sidebar = () => {
     const itemIsCompanion = section === "primary" && isCompanion(item.to);
 
     // --- Primary section styling ---
-    // Active: full-width rounded light-blue pill, blue text
-    // Companion (inactive): transparent bg, faded label (icon stays colorful)
-    // Normal inactive: transparent bg, muted icon + faded label
+    // Active: full-width rounded light-blue pill, dark blue text
+    // Inactive primary: transparent bg, lighter muted label (#94a3b8)
+    // Secondary (below MORE): transparent bg, stronger slate-blue label (#64748b)
     const itemClassName = cn(
-      "flex items-center transition-all duration-150",
+      "flex items-center transition-colors duration-150",
       section === "primary"
         ? "rounded-[13px] px-[16px] gap-[12px] min-h-[47px]"
         : "rounded-[10px] px-[18px] gap-3 py-[8px]",
+      isActive ? "font-semibold" : "hover:bg-slate-50 dark:hover:bg-slate-800"
+    );
+
+    const labelClassName = cn(
+      "truncate transition-colors",
+      section === "primary" ? "text-[14px]" : "text-[13px]",
       isActive
-        ? "font-bold"
+        ? "font-semibold"
         : section === "primary"
-        ? "font-semibold text-[#64748b] opacity-[0.72] hover:opacity-100 hover:bg-slate-50 dark:text-gray-300 dark:hover:bg-slate-800"
+        ? "font-medium text-[#94a3b8] dark:text-slate-400"
         : item.deEmphasized
-        ? "font-medium text-gray-400 opacity-60 hover:bg-slate-100 hover:opacity-100 dark:text-gray-500"
-        : "font-medium text-[#64748b] opacity-[0.82] hover:opacity-100 hover:bg-slate-50 dark:text-gray-300 dark:hover:bg-slate-800"
+        ? "font-medium text-gray-400 dark:text-gray-500"
+        : "font-medium text-[#64748b] dark:text-slate-300"
     );
 
     const IconComponent = item.icon;
@@ -145,14 +151,7 @@ const Sidebar = () => {
           </span>
         ) : null}
 
-        <span
-          className={cn(
-            "truncate",
-            section === "primary" ? "text-[14px]" : "text-[13px]"
-          )}
-        >
-          {t(item.labelKey)}
-        </span>
+        <span className={labelClassName}>{t(item.labelKey)}</span>
       </>
     );
 
