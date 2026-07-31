@@ -478,10 +478,7 @@ const StudentDashboardScreen = () => {
             ) : nextDeadline ? (
               <>
                 <div className="flex items-center gap-3">
-                  <div
-                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg text-white"
-                    style={{ background: BRAND_GRADIENT }}
-                  >
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/80 border border-slate-200/60 shadow-2xs backdrop-blur-xs text-lg">
                     📝
                   </div>
                   <div className="min-w-0 flex-1">
@@ -535,10 +532,7 @@ const StudentDashboardScreen = () => {
       {/* ── My Courses strip (per-course mastery ring) ── */}
       <section>
         <div className="mb-2 flex items-center gap-2">
-          <span
-            className="flex h-6 w-6 items-center justify-center rounded-lg text-xs text-white"
-            style={{ background: BRAND_GRADIENT }}
-          >
+          <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-transparent text-sm">
             📚
           </span>
           <p className="text-[13px] font-black tracking-tight text-slate-900">
@@ -607,10 +601,7 @@ const StudentDashboardScreen = () => {
         <section className="flex flex-col justify-between rounded-2xl bg-white p-3.5 shadow-md">
           <div>
             <div className="mb-2 flex items-center gap-2">
-              <span
-                className="flex h-5 w-5 items-center justify-center rounded-md text-[11px] text-white"
-                style={{ background: BRAND_GRADIENT }}
-              >
+              <span className="flex h-5 w-5 items-center justify-center rounded-md bg-transparent text-xs">
                 🔥
               </span>
               <p className="text-xs font-black tracking-tight text-slate-900">
@@ -681,10 +672,7 @@ const StudentDashboardScreen = () => {
         >
           <div className="w-full">
             <div className="mb-2 flex items-center gap-2">
-              <span
-                className="flex h-5 w-5 items-center justify-center rounded-md text-[11px] text-white"
-                style={{ background: BRAND_GRADIENT }}
-              >
+              <span className="flex h-5 w-5 items-center justify-center rounded-md bg-transparent text-xs">
                 🗺️
               </span>
               <p className="text-xs font-black tracking-tight text-slate-900">
@@ -695,10 +683,7 @@ const StudentDashboardScreen = () => {
               </span>
             </div>
             <div className="flex items-center gap-3 py-1">
-              <div
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-white"
-                style={{ background: BRAND_GRADIENT }}
-              >
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/80 border border-slate-200/60 shadow-2xs backdrop-blur-xs text-slate-800">
                 <span className="text-base">📝</span>
               </div>
               <div className="min-w-0 flex-1">
@@ -734,11 +719,8 @@ const StudentDashboardScreen = () => {
         {/* Daily Review (spaced repetition) */}
         <div className="rounded-2xl bg-white p-4 shadow-md">
           <div className="mb-2 flex items-center gap-2">
-            <span
-              className="flex h-6 w-6 items-center justify-center rounded-lg text-white"
-              style={{ background: BRAND_GRADIENT }}
-            >
-              <Repeat2 className="h-3.5 w-3.5" aria-hidden="true" />
+            <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-transparent text-slate-700">
+              <Repeat2 className="h-4 w-4" aria-hidden="true" />
             </span>
             <p className="text-[13px] font-black tracking-tight text-slate-900">
               {t("dashboard.review.title", "Daily Review")}
@@ -794,11 +776,8 @@ const StudentDashboardScreen = () => {
         {/* This Week's Activity (habit heatmap) */}
         <div className="rounded-2xl bg-white p-4 shadow-md">
           <div className="mb-3 flex items-center gap-2">
-            <span
-              className="flex h-6 w-6 items-center justify-center rounded-lg text-white"
-              style={{ background: BRAND_GRADIENT }}
-            >
-              <BarChart3 className="h-3.5 w-3.5" aria-hidden="true" />
+            <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-transparent text-slate-700">
+              <BarChart3 className="h-4 w-4" aria-hidden="true" />
             </span>
             <p className="text-[13px] font-black tracking-tight text-slate-900">
               {t("dashboard.activity.title", "This Week's Activity")}
@@ -858,11 +837,8 @@ const StudentDashboardScreen = () => {
       {/* ── Announcements ── */}
       <section className="rounded-2xl bg-white p-4 shadow-md">
         <div className="mb-3 flex items-center gap-2">
-          <span
-            className="flex h-6 w-6 items-center justify-center rounded-lg text-white"
-            style={{ background: BRAND_GRADIENT }}
-          >
-            <Megaphone className="h-3.5 w-3.5" aria-hidden="true" />
+          <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-transparent text-slate-700">
+            <Megaphone className="h-4 w-4" aria-hidden="true" />
           </span>
           <p className="text-[13px] font-black tracking-tight text-slate-900">
             {t("dashboard.announcements.title", "Announcements")}

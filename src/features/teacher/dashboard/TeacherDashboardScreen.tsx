@@ -74,7 +74,6 @@ import { getDisplayFirstName } from "@/lib/displayName";
 import { cn } from "@/lib/utils";
 
 const HERO_GRADIENT = "var(--hero-gradient)";
-const BRAND_GRADIENT = "var(--brand-gradient)";
 
 /** Canonical Bloom's-level dot colors (design-system domain coding). */
 const BLOOM_DOT: Record<string, string> = {
@@ -188,10 +187,7 @@ const ActionTile = ({
     onClick={onClick}
     className="flex items-center gap-3 rounded-[20px] border border-[#eef2f6] bg-white p-4 text-start shadow-[0_1px_2px_rgba(16,24,40,0.04),0_10px_26px_rgba(16,24,40,0.05)] transition-transform active:scale-[.99]"
   >
-    <span
-      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white"
-      style={{ background: BRAND_GRADIENT }}
-    >
+    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/80 border border-slate-200/60 shadow-2xs backdrop-blur-xs text-teal-700">
       <Icon className="h-5 w-5" aria-hidden="true" />
     </span>
     <div className="min-w-0">
