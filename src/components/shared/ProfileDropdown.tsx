@@ -138,13 +138,27 @@ const ProfileDropdown = () => {
               {initials}
             </AvatarFallback>
           </Avatar>
-          <span className="hidden min-[768px]:flex flex-col text-start leading-tight">
+          <span className="hidden min-[640px]:flex flex-col text-start leading-tight">
             <span className="text-xs font-extrabold text-slate-900 dark:text-white">
               {profile.full_name}
             </span>
-            <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+            <span className="text-[11px] font-bold text-teal-600 dark:text-teal-400">
               {profileSubtitle}
             </span>
+            {isStudent && level.data ? (
+              <div
+                className="mt-1 h-1.5 w-24 overflow-hidden rounded-full bg-slate-200/80 dark:bg-slate-700/80"
+                title={`${
+                  level.data.progressPercent
+                }% (${level.data.xpTotal.toLocaleString()} / ${level.data.xpForNextLevel.toLocaleString()} XP)`}
+                aria-label={`Level progress ${level.data.progressPercent}%`}
+              >
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-teal-500 to-emerald-500 transition-all duration-500"
+                  style={{ width: `${level.data.progressPercent}%` }}
+                />
+              </div>
+            ) : null}
           </span>
           <ChevronDown className="ms-0.5 h-3.5 w-3.5 text-slate-400" />
         </button>
